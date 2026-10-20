@@ -1,109 +1,96 @@
-# worktree-guard — behavior spec
+# The worktree guard
 
-Authority for `hooks/worktree-guard.py`. A change to the hook that diverges
-from this document changes one of them knowingly — update both.
+Authority for `hooks/worktree-guard.py` and for the consent record
+`hooks/worktree_consent.py` writes: what the guard refuses, asks or allows
+before a branch switch or a worktree creation runs, and why. Update spec and
+code together.
 
 ## Premise
 
-Worktrees exist to keep CONCURRENT work from mixing in one folder. Single-
-stream work uses plain `git switch` on the shared tree. The guard enforces
-both directions of that rule from one signal: how many work streams are
-actually live on the tree.
+Worktrees exist to keep concurrent work from mixing in one folder.
+Single-stream work uses plain `git switch` on the shared tree. The guard
+enforces both directions of that rule from one signal: how many work streams
+are live on the tree.
 
 ## Decision matrix
 
-### A. Branch switch (`git switch` / branch-form `checkout`)
+### A. Branch switch
 
 | Tree state | Decision |
 |---|---|
-| ACTIVE session present | deny — steer to a worktree. One destination, so no choice to offer |
-| only IDLE sessions | **choice** — switch here, or split into a worktree; each session listed with its last-activity age, because forgotten tabs are the user's call. Where the person pressed `automation`, a deny to the model on every attempt instead, naming the split as the way on where its creation is consented, by the press in the clone it was given in or by this session's record in a clone it already split — see §Choice sites, *Under the press* |
-| detection unusable (can't see even our own process) | **choice** — same two. A blanket deny locked out extension hosts entirely. Under the press, the same deny as the row above: its way on, the split, needs no switch and no person, which is what keeps it from being that lockout |
-| single stream, tracked changes present | ask — the changes follow the switch. Genuinely yes/no: the destination branch is the same either way, and what is being asked is whether the uncommitted changes ride along. Where the person pressed `automation`, a deny to the model instead, naming the ways on that need nobody — see *The tracked-changes row has two readers too* |
+| ACTIVE session present | deny, steering to a worktree. One destination, so no choice to offer |
+| only IDLE sessions | **choice**: switch here, or split into a worktree, each session listed with its last-activity age, because a forgotten tab is the user's call. Under the `automation` press, a deny to the model on every attempt instead (*Choice sites*, *Under the press*) |
+| detection unusable (the guard cannot see even its own process) | **choice**, the same two, because a blanket deny locks some hosts out entirely. Under the press, the same deny as the row above |
+| single stream, tracked changes present | ask: the destination is the same either way, and what is asked is whether the uncommitted changes ride along. Under the press, a deny to the model instead |
 | single stream, clean | allow silently |
 
-`[shared-tree-ok]` in the command turns the two **choice** rows silent — see
-§Choice sites. A dirty tree then reaches the tracked-changes row from those two
-states as well, and there its reason opens with the token carrying the user's
-answer rather than with *Single-stream tree*, because nothing was counted as
-single-stream.
+`[shared-tree-ok]` in the command turns the two **choice** rows silent
+(*Choice sites*). A dirty tree then reaches the tracked-changes row from those
+two states as well, and its reason opens with the token carrying the user's
+answer rather than with *Single-stream tree*.
 
-**The tracked-changes row has two readers too (#894).** Where the session's
-person pressed `automation` on the routing question, the row is a `deny` to
-the model, because nobody is at the keyboard to answer it, and the answer the
-person would give, commit first, is not one of its two buttons. The press is
-read by the reader the unrecognised-shape stop uses, against the root of the
-session's own directory, never against the tree the switch names. The reason
-states what the guard read and what the guard is. Its one sentence about what
-git does is the index-residue note it shares with the `ask`, word for word. It
-opens with the same lead and lists the changes as the `ask` does, carries the
-press sentence, and says the row stops a switch while uncommitted tracked
-changes are present and says nothing once none are. It names `git commit`
-and `git stash` as commands on `LEAVES_THE_TREE`, each of which passes the
-guard when issued alone, and leaves to the model which of them fits the
-switch and what follows. Each is a command of
-its own, because the guard reads the tree before a line runs, so `git stash
-&& git switch x` meets this same row. It names no question tool, and says
-re-issuing the command unchanged meets the same refusal. The text is one
-string for every switch form, from a branch or a detached HEAD, and it names
-no switch option. Without the press the row is the `ask` it was, word for
-word, and `[shared-tree-ok]` reaches neither reader: a dirty tree under the
-token meets the same `deny` with the token's lead.
+**The tracked-changes row has two readers.** Where the session's person
+pressed `automation` on the routing question, the row is a `deny` to the
+model, because nobody is at the keyboard and the answer the person would give,
+commit first, is not one of its two buttons. The press is read by the reader
+the unrecognised-shape stop uses, against the root of the session's own
+directory, never against the tree the switch names. The reason opens with the
+`ask`'s lead, lists the changes as the `ask` does, carries the press
+sentence, and says the row stops a switch while uncommitted tracked changes
+are present and says nothing once none are. It names `git commit` and
+`git stash` as commands on `LEAVES_THE_TREE`, each passing the guard when
+issued alone, and leaves to the model which fits the switch. Each is a command
+of its own, because the guard reads the tree before a line runs, so
+`git stash && git switch x` meets this same row. It names no question tool,
+and says re-issuing the command unchanged meets the same refusal. Without the
+press the row is the `ask`, and `[shared-tree-ok]` reaches neither reader.
 
-**Why the row's own sentences predict nothing.** The guard reads three facts here: the
-changes (`git status`), that the command asks for a switch, and the press.
-What a given switch form does with the changes, where a commit lands, and
-whether a stash restores cleanly are not among them. The first text of this
-row named a way on per form, and three review rounds of work item 1791779434
-each found the next form it was wrong for: `-c`, then `--orphan` and the
-discarding forms, then a detached HEAD and a target branch that changed a
-listed file. Over sixteen setups the text was right in fourteen, and nothing
-the guard reads tells those from the other two. That is a prediction from
-text, the class this repository judges not to converge (§*Known limits*, the
-brace reader), so each sentence of the row's own about what git does was taken
-out rather than corrected again. The index-residue note it shares with the
-`ask` stays as the `ask` has it. A form found later is a row in the case that
-pins one text for every form, never a sentence here.
+The row's text predicts nothing about what git does with the changes: one
+string serves every switch form, from a branch or a detached HEAD, and names
+no switch option. Its one sentence about git is the index-residue note it
+shares with the `ask`. The guard reads the changes, that a switch is asked
+for, and the press; where a commit lands or whether a stash restores cleanly
+is not among them, and a sentence predicting either was wrong for some form
+in every version written. A form found later is a row in the case that pins
+one text for every form, never a sentence here.
 
 **The failure direction.** A verdict moves from `ask` to `deny` in one state
-and nowhere else, and the reader that decides it is the stop's, unchanged. A
-wrong deny costs the model a turn. Under the press this row puts no question
-to a person, where it put one per dirty switch; attended it puts the same one.
+and nowhere else, and the reader that decides it is the stop's. A wrong deny
+costs the model a turn.
 check: tests/test_the_guard_asks_once_per_session.py tests/test_worktree_guard.py
 
-A command that also creates a worktree is judged by this table whichever of the
-two is written first, with the creation judged inside it — see §Creation
-consent, *So the creation is judged between the ladder's two halves*.
+A command that also creates a worktree is judged by this table whichever of
+the two is written first, with the creation judged inside it (*Creation
+consent*, *So the creation is judged between the ladder's two halves*).
 
-**Which commands reach these rows (#826).** The guard does not predict
-whether a command switches a branch. It reads each git segment the frozen
-reading yields (§*Which tree*) as one of three shapes, from its words alone:
+**Which commands reach these rows.** The guard does not predict whether a
+command switches a branch. It reads each git segment the frozen reading
+yields (*Which tree*) as one of three shapes, from its words alone:
 
-- **listed** — its subcommand is in `LEAVES_THE_TREE`, the git subcommands
-  this repository's recorded runs hold whose plain invocation leaves HEAD's
-  branch where it was, each beside its count, or it is a `checkout` with a
-  path after its `--` (`git checkout -- f`, `git checkout x -- f`). A listed
-  shape is silent in every tree state and spawns no git. `worktree` and
-  `stash` are listed unless the first word bash hands git after them is
-  `add` or `branch`, so a redirection in front of that word hides nothing.
-  A `rebase` is listed unless it has two words that are not options, or
-  `--root` and one: those name the branch git switches to before it
-  rebases (`git rebase main feature/x`), and the shape is unrecognised. A
-  lone `-` is a word, since git reads it as `@{-1}`, and so is every word
-  after a `--` or an `--end-of-options`: `git rebase - feature/x` switches
-  too. git takes an unambiguous prefix of `--root` (`--ro`) as `--root`,
-  and so does the guard.
-- **a switch** — `git switch`, whatever its words. It takes the rows above,
-  in the tree its segment names.
-- **unrecognised** — every other git: a `checkout` with no path after a
+- **listed**: its subcommand is in `LEAVES_THE_TREE`, the git subcommands this
+  repository's recorded runs hold whose plain invocation leaves HEAD's branch
+  where it was, each beside its count, or it is a `checkout` with a path after
+  its `--` (`git checkout -- f`, `git checkout x -- f`). A listed shape is
+  silent in every tree state and spawns no git. `worktree` and `stash` are
+  listed unless the first word bash hands git after them is `add` or
+  `branch`, so a redirection in front of that word hides nothing. A `rebase`
+  is listed unless it has two words that are not options, or `--root` and
+  one: those name the branch git switches to before it rebases
+  (`git rebase main feature/x`). A lone `-` is a word, since git reads it as
+  `@{-1}`, and so is every word after a `--` or an `--end-of-options`: `git
+  rebase - feature/x` switches too. git takes an unambiguous prefix of
+  `--root` (`--ro`) as `--root`, and so does the guard.
+- **a switch** — `git switch`, whatever its words. It takes the rows above, in
+  the tree its segment names.
+- **unrecognised**: every other git. That is a `checkout` with no path after a
   `--`, a subcommand the list does not hold (`update-ref`, `symbolic-ref`,
   `stash branch`, or one this repository never ran), and a git the frozen
-  reading does not read as one — in a string handed to a shell (`sh -c`,
-  `bash -c`, `eval`, `env -S`), in a `$( … )`, backtick or `<( … )` body
-  whose git is not all listed, behind a redirection or a zsh precommand
-  word, or in a command that would not split into words.
+  reading does not read as one: in a string handed to a shell (`sh -c`,
+  `bash -c`, `eval`, `env -S`), in a `$( … )`, backtick or `<( … )` body whose
+  git is not all listed, behind a redirection or a zsh precommand word, or in
+  a command that would not split into words.
 
-A creation is §B's and is read as it was.
+A creation is *B*'s and is read as *B* says.
 
 **The stop for an unrecognised shape.** It is taken only where one of the
 first four rows above would speak about a switch in the tree the shape's
@@ -112,176 +99,119 @@ tracked changes. In a clean tree nobody else is in, row 5 says nothing of a
 switch, and nothing is said of a shape that might be one. Where the tree
 matters the guard stops before the rows, with one reason that quotes every
 unrecognised shape on the line and its plain spelling: `git switch <branch>`
-or `git switch --detach <rev>` for a switch, `git checkout -- <path>` or `git
-restore <path>` for a restore, the git command run on its own for a string or
-a body, `git` first and the redirection last, `git commit -F <file>` for a
-command that would not split, and `git -C <dir>` for another tree. A
+or `git switch --detach <rev>` for a switch, `git checkout -- <path>` or
+`git restore <path>` for a restore, the git command run on its own for a
+string or a body, `git` first and the redirection last, `git commit -F <file>`
+for a command that would not split, and `git -C <dir>` for another tree. A
 subcommand the list does not hold is its own plain spelling, so the reason
 names running it in a scratch clone with `git -C <scratch clone>`, or after
 the other session ends.
 
 The stop has two readers. Where the session's person pressed `automation` on
-the routing question, it is a `deny` to the model, which rewrites in the
-plain spelling and meets the rows above on the retry, and no person is
-asked. In a dirty tree that retry meets the tracked-changes row, which under
-the press is a `deny` as well, and with only IDLE sessions or detection
-unusable it meets the choice rows' deny (§Choice sites, *Under the press*), so
-no issue reaches a person. Otherwise it is an `ask` with the same text, except
-in a tree another
-session is ACTIVE in: row 1 denies a branch-form `checkout` there with
-nobody asked, so the stop is a `deny` whoever is at the keyboard. On the
-`ask` path a creation on the same line is judged first, because approving
-runs every segment. A `git switch` on the same line makes the stop a `deny`
-whoever is at the keyboard, for the same reason: approving would run the
-switch past the rows above, in a tree the stop's reason does not describe,
-so the reason says to run the switch on its own. The consent record is
-never read for the stop: a creation having run says nothing about whether
-anybody is at the keyboard.
+the routing question, it is a `deny` to the model, which rewrites in the plain
+spelling and meets the rows above on the retry, and no person is asked. In a
+dirty tree that retry meets the tracked-changes row's deny, and with only IDLE
+sessions or detection unusable the choice rows' deny, so no issue reaches a
+person. Otherwise it is an `ask` with the same text, except in a tree another
+session is ACTIVE in: row 1 denies a switch there with nobody asked, so the
+stop is a `deny` whoever is at the keyboard. On the `ask` path a creation on
+the same line is judged first, because approving runs every segment. A `git
+switch` on the same line makes the stop a `deny` whoever is at the keyboard,
+for the same reason: approving would run the switch past the rows above, in a
+tree the stop's reason does not describe, so the reason says to run the switch
+on its own. The consent record is never read for the stop: a creation having
+run says nothing about whether anybody is at the keyboard.
 
-Each unrecognised shape is judged in the tree its own segment names, first
-one first, and each tree is looked up once, so a shape in a clean tree takes
-no stop away from one behind it in a dirty tree. Every tree on the line is
-read before the stop is taken, so a shape in a tree another session is
-ACTIVE in makes it a `deny` even where an earlier tree only matters for its
-changes. The stop's reason names each tree that matters and why, its
-changes, its IDLE sessions or its detection unusable, because approving the
-`ask` runs the line in every one of them; where one is ACTIVE, the reason
-describes the ACTIVE trees alone. A reason that describes one tree calls it
-"this tree", whichever tree it is: with the session's own tree clean and `W`
-dirty, `git -C W checkout x` asks about "this tree" and means `W`. A git the commit gate's wider reading
-reads as a segment of its own (behind a redirection or a zsh precommand
-word) is judged in the tree its own `-C` names, and so is a git an `&` cut
-apart (`2>&1 git -C W switch x`, `git -C W worktree &>/dev/null add …`),
-from the directory its first part runs in; a string handed to a shell is
-not read for one. A body
-and a command that would not split belong to no one segment and are judged
-in the session's own tree.
+Each unrecognised shape is judged in the tree its own segment names, first one
+first, and each tree is looked up once, so a shape in a clean tree takes no
+stop away from one behind it in a dirty tree. Every tree on the line is read
+before the stop is taken, so a shape in a tree another session is ACTIVE in
+makes it a `deny` even where an earlier tree only matters for its changes. The
+reason names each tree that matters and why, because approving the `ask` runs
+the line in every one of them; where one is ACTIVE, it describes the ACTIVE
+trees alone. A reason that describes one tree calls it "this tree", whichever
+tree it is: with the session's own tree clean and `W` dirty,
+`git -C W checkout x` asks about "this tree" and means `W`. A git the commit
+gate's wider reading reads as a segment of its own (behind a redirection or a
+zsh precommand word) is judged in the tree its own `-C` names, and so is a git
+an `&` cut apart (`2>&1 git -C W switch x`), from the directory its first part
+runs in. A body and a command that would not split belong to no one segment
+and are judged in the session's own tree.
 
-**The failure direction.** The guard stops more than it did — every
-unrecognised shape where the tree matters — and allows more in one place, a
-creation only a hidden spelling holds in a clean tree nobody else is in,
-where nothing the Premise protects is at stake. Under the press the extra
-stops ask no person anything; without it each is one `ask`. Over the
-31,193 distinct command and directory pairs this repository's runs recorded
-before 2026-10-03, the shapes stop 315 tree-blind, 55 of them pairs the
-guard before #826 did not stop at its most cautious, and they let through
-none it stopped (work item 1791270162, `phases/phase-3.md`).
+**The failure direction.** The stop adds a stop for every unrecognised shape
+where the tree matters, and allows one thing more: a creation only a hidden
+spelling holds, in a clean tree nobody else is in, where nothing the Premise
+protects is at stake. Under the press the stops ask no person anything;
+without it each is one `ask`.
 check: tests/test_worktree_guard.py tests/test_the_guard_asks_once_per_session.py tests/test_guard_resolves_the_tree_it_judges.py
 
-### B. Worktree creation (`git worktree add`, or Agent/Task `isolation: "worktree"`)
+### B. Worktree creation
+
+A creation is a `git worktree add`, or an Agent or Task call with
+`isolation: "worktree"`.
 
 | Tree state | Decision |
 |---|---|
-| **consent: this session already created a worktree in this clone, or its person pressed `automation` on the routing question** | **allow** where the tool call is worktree creation and nothing else · **silent** where the command does more, and on the Agent/Task path. Read before every row below it — see §Creation consent |
-| ACTIVE session present | ask — separation justified, creation still needs a human. Declining leads to "use the worktree that session opened, or wait for it", neither of which is a command this session issues, so there is nothing to offer |
-| only IDLE sessions | **choice** — create it, or switch in the shared tree; likely single-stream. Where the person pressed `automation`, this row is reached only in a clone the press was not given in and this session has created no worktree in: a deny to the model on every attempt instead, naming no way on — see §Choice sites, *Under the press* |
-| detection unusable | **choice** — the same two, and under the press the same deny |
-| `[worktree-ok]` given (Bash only) | ask — the token IS a completed confirmation coming back through the guard, so putting the question again asks what the user already answered. Declining withdraws the token, which is the other way on |
-| single stream, **Bash** | deny — steer to `git switch`; `[worktree-ok]` in a retry reaches the row above |
-| **Agent/Task**, no consent, any tree state | ask — the agent runs beside this session, so the call is concurrent by construction. No session is counted, no choice site is reached, and declining cancels the spawn. See below |
+| **consent**: this session already created a worktree in this clone, or its person pressed `automation` on the routing question | **allow** where the tool call is worktree creation and nothing else; **silent** where the command does more, and on the Agent or Task path. Read before every row below it (*Creation consent*) |
+| ACTIVE session present | ask: separation is justified, and creation still needs a person. Declining leaves nothing this session could issue instead |
+| only IDLE sessions | **choice**: create it, or switch in the shared tree. Under the press this row is reached only in a clone the press was not given in and this session has created no worktree in, and there it is a deny to the model on every attempt, naming no way on (*Choice sites*, *Under the press*) |
+| detection unusable | **choice**, the same two, and under the press the same deny |
+| `[worktree-ok]` given (Bash only) | ask: the token is a completed confirmation coming back, and declining withdraws it |
+| single stream, **Bash** | deny, steering to `git switch`; `[worktree-ok]` in a retry reaches the row above |
+| **Agent or Task**, no consent, any tree state | ask: the agent runs beside this session, so the call is concurrent by construction. No session is counted, no choice site is reached, and declining cancels the spawn |
 
-Every row between the consent row and the Agent/Task row is the Bash path's.
-They are decided before the command runs in every clone, one carrying this
-plugin's git hooks included (§*Creation consent*, *Decided before git runs*).
+Every row between the consent row and the Agent or Task row is the Bash
+path's, decided before the command runs in every clone (*Decided before git
+runs*).
 
-#### Why the Agent path counts nothing, asks once, and reads no token
-
-**An isolated agent is concurrent work by construction, so the Agent path does
-not count sessions (#8).** The agent runs beside the session that spawned it,
-and that session's tree is not switched: two work streams, which is what the
-Premise counts. The session count cannot see it. A subagent's tool call renews
-its parent's lease and has no id of its own (measured), so an agent spawned in
-a one-session tree read as single-stream work. The verdict that reading
-produced told the model to call the Agent again without `isolation:
-"worktree"`, which puts the agent in the parent's tree while the parent works
-there — the mixing this guard exists to prevent.
-
-So the path has two outcomes. Consent is silence, for the reason §Creation
-consent gives: the call is a creation plus an agent with a prompt, and consent
-answers the first half. Otherwise it asks, once per session, because the
-first creation of a session is one confirmation and a spawn that ran writes the
-record. What changed is what the path measures, not that floor: lowering it for
-supervised sessions is not something #8 asked for.
-
-The token is a separate matter, and the reason the path reads none is that it
-has no command line.
-
-`[worktree-ok]` is a bare word in a command: a shell command is tokens, so
-"the user asked for this" and "a sentence about the token" are distinguishable
-there. An Agent call carries prose instead, and reading the token out of a
-prompt was tried and taken back after both halves failed:
-
-- a prompt that merely *documented* `[worktree-ok]` switched the guard off,
-  and the thing that writes those prompts is the model itself;
-- a prompt that really carried it — `the user's request was isolation
-  [worktree-ok]` — tokenized badly on one apostrophe and fell to the
-  single-stream **deny**, whose text told it to put `[worktree-ok]` in the
-  prompt. It already had.
-
-What the token was buying was one step, `deny` to `ask`, because worktree
-creation ends at a human confirmation on both paths regardless. The path now
-asks outright, so the verdict does not depend on the prompt at all.
+**An isolated agent is concurrent work by construction, so the Agent path
+counts no session, asks once, and reads no token.** The agent runs beside the
+session that spawned it, in a tree that is not switched: two work streams. The
+session count cannot see it, because a subagent's call renews its parent's
+lease and has no id of its own, so a count would read the spawn as
+single-stream and steer it into the parent's tree. Consent is silence, for
+the reason *Creation consent* gives; otherwise the path asks, once per
+session, because a spawn that ran writes the record. An Agent call carries
+prose, not a command line, and the model writes that prose, so a token in a
+prompt could not tell a person's answer from a sentence about the token; the
+path asks outright and the verdict does not depend on the prompt.
 check: tests/test_worktree_guard.py
 
-## Creation consent — the first creation is the question, not every one
+## Creation consent
 
-**The first worktree creation in a session is the question, and a later one in
-the same session is allowed — and where the person pressed `automation`, not
-even the first is asked.**
-The guard used to answer creation with `ask` at every site that reached it, so
-no path through it cost zero prompts and the cost grew with the number of
-worktrees. Measured on the release run that opened #237, on 2026-09-08: six work items on six branches
-needed six `git worktree add` calls, and the guard held the run at all six. An
-unattended run reaches the first and stops there, which is the one shape
-`CONTRIBUTING.md`'s prompt-budget rule has no room for.
+**The first worktree creation in a session is the question, and a later one
+in the same session is allowed; where the person pressed `automation`, not
+even the first is asked.** A guard that asked at every creation held a run of
+six work items at six `git worktree add` calls, and an unattended run stops
+at the first.
 
-`[worktree-ok]` cannot fix that, and the reason is the same one `has_token`
-gives: the token is written into the command by whoever issues it, so the model
-can write it on the first attempt, and reading it as consent turns the guard
-off with nobody asked.
+`[worktree-ok]` is no consent: the token is written by whoever issues the
+command, so the model can write it on the first attempt. What separates the
+first creation from the sixth is available without trusting any token. The
+harness runs only a `git worktree add` that was permitted, so a `PostToolUse`
+observation of one that ran is written after the answer, which a command's
+text cannot forge.
 
-**What separates the first creation from the sixth is available without
-trusting any token.** The harness only runs a `git worktree add` that was
-permitted, so a `PostToolUse` observation of one that actually ran is written
-**after** the answer rather than before the question. That is the one thing a
-command text cannot forge.
+The routing answer is the second consent, and it covers the creation the
+record cannot: the first. An automation run creates its worktrees before any
+of them has run, and the answer is on disk when the first creation arrives,
+written by the harness into the session's transcript from the person's click.
+The model writes the question and its options, never which one was pressed.
 
-| | `[worktree-ok]` | the consent record |
-|---|---|---|
-| written by | whoever issues the command | the `PostToolUse` hook |
-| written when | before the question | after the answer |
-| forgeable by the model | yes | no |
-
-`hooks/worktree_consent.py` writes it, on both entry points, and
-`guard_worktree_creation` reads it. What changes is one invariant: *creating a
-worktree always takes one confirmation* becomes *the first creation of a
-session takes one*, and the routing answer below makes that zero for a session
-whose person pressed `automation`.
-
-**The routing answer is the second consent, and it covers the creation the
-record cannot: the first.** An automation run creates its worktrees before any
-of them has run, so no record exists at the first `git worktree add`, and the
-guard stopped a run whose person had pressed `automation` one minute earlier
-(#604). That answer is on disk when the first creation arrives, and the model
-did not write it: the harness writes an `AskUserQuestion` result into the
-session's transcript from the person's click. The model writes the question
-and its options, never which one was pressed.
-
-| | `[worktree-ok]` | a `routing.md` reading `Automation \| yes` | the consent record | the routing answer in the transcript |
+| | `[worktree-ok]` | a `routing.md` reading `Automation` `yes` | the consent record | the routing answer in the transcript |
 |---|---|---|---|---|
 | written by | whoever issues the command | the model, with `Write` | the `PostToolUse` hook | the harness, from the person's click |
-| written when | before the question | after the answer, but the answer it records is the model's account of it | after a creation ran | when the person answers |
-| present at the first creation of an automation run | yes | no — measured twice, the worktrees came first so each branch could carry its own | no | **yes** |
+| written when | before the question | after the answer, as the model's account of it | after a creation ran | when the person answers |
+| present at the first creation of an automation run | yes | no: the worktrees come first so each branch can carry its own | no | **yes** |
 | forgeable by the model by habit | yes | yes | no | no |
-| forgeable by editing a file on purpose | — | — | yes (`touch`) | yes (an appended line) — the record's standing |
+| forgeable by editing a file on purpose | n/a | n/a | yes (`touch`) | yes (an appended line) |
 
 A `routing.md` is not read, not even as a fallback: a fallback the model can
 satisfy by writing a file is `[worktree-ok]`'s standing under another name.
 
-**What exactly is read**, and every way of failing it is *no consent*, which is
-the guard's behaviour before the answer was read:
+**What is read**, and every way of failing it is *no consent*:
 
-1. **This session's own main transcript** — the payload's `transcript_path`
+1. **This session's own main transcript**: the payload's `transcript_path`
    where its basename is `<session-id>.jsonl`, otherwise the one file matching
    `~/.claude/projects/*/<session-id>.jsonl`. A subagent's call carries its
    parent's session id, so it reaches the parent's answer through the second
@@ -289,707 +219,457 @@ the guard's behaviour before the answer was read:
 2. **A harness-written `AskUserQuestion` result**: a `user` entry whose
    `tool_result` names, by `tool_use_id`, an earlier `AskUserQuestion` call,
    read from its structured `toolUseResult.answers`, and carrying
-   `isSidechain: false`. A Bash result echoing *The user answered:
-   "automation"* has no such link, and a subagent has no `AskUserQuestion`.
-   Every main-transcript result measured carries `false`, so `true`, an
-   absent field and a value that is not a bool are all refused as shapes
-   nobody measured.
-3. **The routing question**: one single-select question whose options' leading
-   phrases are exactly `automation`, `per axis` and `no work item`
-   (`skills/implement/orchestration.md` §*Question 1 — single-select*), answered with
-   the option labelled `automation`; a `multiSelect` question is skipped, so the boxes
-   beside question 1 or in a call of their own neither give nor take back the press.
-   The answer must equal one of the question's option labels verbatim, because that
-   is what a pressed option writes; a typed `Other` answer is the person's own text
-   and is not read, so *automation - but ask me before each worktree* is not consent.
-   A leading phrase is the label casefolded and cut at the first ` (`, ` —` or ` -`,
-   so an option labelled `automation (Recommended)` counts.
-4. **The same clone**: the result entry's own `cwd` resolves to the same common
-   git directory as the creation's repository.
+   `isSidechain: false`. A Bash result echoing the answer has no such link,
+   and `true`, an absent field or a value that is not a bool is refused.
+3. **The routing question**: one single-select question whose options'
+   leading phrases are exactly `automation`, `per axis` and `no work item`
+   (`skills/implement/orchestration.md` *Question 1 — single-select*),
+   answered with the option labelled `automation`. A `multiSelect` question is
+   skipped, so the boxes neither give nor take back the press. The answer must
+   equal one of the option labels verbatim; a typed `Other` answer is the
+   person's own text and is not read. A leading phrase is the label casefolded
+   and cut at the first ` (`, ` —` or ` -`, so `automation (Recommended)`
+   counts.
+4. **The same clone**: the result entry's own `cwd` resolves to the same
+   common git directory as the creation's repository.
 5. **The last answer stands**: of every answer to the routing question from
-   that clone, the latest is the one read. A session that pressed `automation`
-   for one work item and answered `per axis` or `no work item` for a later one
-   has, on its latest answer, a person who may be asked, so the press is taken
-   back: the commit gate goes back to deny-then-ask, and this guard asks
-   again while no creation has run. A later press gives it back, and an
-   answer to any other question changes nothing. **A record already written
-   stands**: it is read first, and a creation that ran under the press was
-   consented to, so a later answer does not take it back and does not bring
-   the question back for that clone. This is the commit gate's round 1
-   finding (work item 1790644505, yellow 5), with the record's half settled
-   by the repository owner in round 2; it moves the guard in the asking
-   direction only.
+   that clone, the latest is read, so a later `per axis` or `no work item`
+   takes the press back and a later press gives it back. A record already
+   written stands: it is read first, and a creation that ran under the press
+   was consented to.
 
-A `per axis` answer is not read, even with its first box ticked: in every
-measured instance the box label had been reworded or translated, so a rule
-matching the prescribed label would never fire. A read that raises is no
-consent too: `hooks/dispatch.py` skips a gate that raises, which would turn
-the guard's deny into no decision at all. The record is read first,
-because it is one `stat`; the transcript is scanned only while there is no
-record, and the first creation writes one.
+A `per axis` answer is not read, even with its first box ticked: the box label
+is reworded or translated often enough that a rule matching the prescribed
+label would never fire. A read that raises is no consent, because a gate that
+raises is skipped. The record is read first, because it is one `stat`, and
+the transcript only while there is no record.
 
-**The record.** An empty file at
-`<git-common-dir>/specseal-worktree-consent/<session-id>`; its existence is the
-whole fact, the way the choice marker's is.
+**The record** is an empty file at
+`<git-common-dir>/specseal-worktree-consent/<session-id>`, whose existence is
+the whole fact.
 
-- **A third directory, not a value in `specseal-worktree-choice/create/`.**
-  That marker is written by `PreToolUse` before the answer and means *the
-  question was put*, so one shared file would let the guard read its own
-  question back as consent. The two also fail in opposite directions — an
-  unwritable choice marker counts as **already asked**, an unwritable consent
-  record counts as **no consent** — and one file cannot fail two ways.
-- **The common git directory, not the per-worktree one.** The record stands
-  for *this session may split this clone into worktrees*, and a linked worktree
-  is the same clone. A session that creates its first worktree from the main
-  tree and its second from inside a linked one has made one decision, so it
-  pays for one.
-- **The clone the guard judged.** The writer places a creation by the
-  guard's own placement, `hooks/worktree_consent.py#place`, through the same
+- **A directory of its own.** The choice marker is written before the answer
+  and means the question was put, so one shared file would let the guard read
+  its own question back as consent; and the two fail in opposite directions,
+  an unwritable marker counting as already asked and an unwritable record as
+  no consent.
+- **The common git directory.** The record stands for *this session may split
+  this clone*, and a linked worktree is the same clone.
+- **The clone the guard judged.** The writer places a creation by the guard's
+  own placement, `hooks/worktree_consent.py#place`, through the same
   tokenizing adapter, so the record lands under the clone whose tree the guard
-  judged (#868). Before #868 the writer took the first directory of the walk
-  that it could compute, and that disagreed with the guard twice: `eval x ; cd
-  A || git worktree add …` was filed under `A`, the branch the `||` skips, and
-  `cd <missing> ; git worktree add …` under a directory that holds nothing, so
-  no record was written at all. bash runs both creations in the session's own
-  directory, and that is where both are judged and filed.
-- **No expiry and no pruning.** A session id is already scoped to a session, so
-  a time bound can only produce one new outcome: a session that outlives it is
-  asked a second time, which is the failure this removes.
-- **A failed `git worktree add` records too.** The record is about the
-  approval, which happened; the retry after a failure — a path that already
-  exists, a branch already checked out — is the worst moment to put the
-  question again.
+  judged.
+- **No expiry.** A session id is already scoped to a session.
+- **A failed `git worktree add` records too.** The approval happened, and the
+  retry after a failure is the worst moment to ask again.
 - **An unwritable record leaves none**, silently, and the next creation asks.
-  A crash would be worse than the prompt it saves: a hook that raises dies with
-  stdout empty, which is how a hook says *nothing to see here*.
 
-**Why the allow is bounded.** `permissionDecision: "allow"` bypasses the user's
-own permission settings for the **whole** tool call, and a creation is
-routinely written as one segment of a compound. Consent is about worktree
-creation, so the guard speaks for a command that is worktree creation and
-nothing else. For anything more it stays **silent**: it withdraws its
-objection, and the rest of the command line meets the harness's own permission
-flow rather than a deny about the worktree. A command the lexer gave up on is not vouched
-for either — what it could not read is what the allow would be covering.
+**Why the allow is bounded.** `permissionDecision: "allow"` bypasses the
+user's own permission settings for the whole tool call, so the guard allows
+only a command that is worktree creation and nothing else. For anything more
+it stays **silent**: it withdraws its objection, and the rest of the command
+meets the harness's own permission flow. A command the lexer gave up on is
+not vouched for. Within a segment, two tests bound the allow: **the segment's
+command word is the word `git`**, compared exactly, because a basename is no
+identity (`./git`, `/tmp/x/git` name files this hook cannot identify); and
+**no token carries an expansion or a redirection** (`$`, a backtick, `<` or
+`>`). Every quoting of the word `git` runs what `git` runs and is vouched for.
+A glob or `~` in an argument, and a trailing `&`, run nothing else and are
+left alone.
 
-**And a segment is more than its command word.** *Nothing else* used to be
-asked of the compound only, which is what a `&&` or a `;` produces — and a
-shell runs a great deal inside one segment. Review round 1 executed eleven
-shapes that were vouched for with a record present: `$( )`, backticks, `>`,
-`>>`, `<`, `2>`, `<(…)`, a subshell, a heredoc, `sudo`, `env VAR=…` and a bare
-`VAR=…`. Two were run in a real shell and did what a shell does — the
-substitution created its marker, the redirection truncated a file — under an
-allow that had already covered the whole tool call.
+Without consent a command word outside that class splits two ways. One that
+`cmdline.parse_git` reads as a git invocation (a path, a runner it reads past
+such as `sudo` or `nice`, a leading assignment) is a creation and meets the
+ladder. One it does not (`$GIT`, `gi*`, a substitution, a different case, a
+trailing slash, a program outside the runners such as `uv run`) is no git to
+this guard, and it says nothing. A git behind a redirection or a zsh
+precommand word, or after a spaced `--config-env`, is no git to the frozen
+reading either, and is an unrecognised shape (*A*): it stops where its tree
+matters, under consent too, and in a clean tree nobody else is in it says
+nothing. What the class costs is the allow on `/usr/bin/git worktree add …`:
+a wrong silence leaves the call to the user's own settings, and a wrong allow
+signs for a binary nobody identified.
+`test_the_command_word_class_is_what_the_allow_covers` pins members of each
+group, and is where a new spelling is checked.
 
-Two tests are the bound now, and both are about one segment rather than the
-command: **the segment's command word is the word `git`**, which
-`cmdline.parse_git` deliberately does not require (it reads past `sudo`, `env`
-and a leading `VAR=val`, because the question IT answers is *is this a git
-invocation*); and **no token carries an expansion or a redirection** — `$`, a
-backtick, `<` or `>`. A glob and a `~` in an ARGUMENT are left alone on
-purpose: both expand and neither runs anything. A trailing `&` is left alone
-too — it backgrounds the creation and runs nothing else, and `… & rm -rf
-<path>` is two segments where the second one fails the first test.
-
-**The first test is exact equality, because a basename is not an identity.**
-It compared `os.path.basename(tokens[0])` for one release, and review round 2
-executed the consequence with a record present: `./git`, `../git`, `bin/git`,
-`/tmp/evil/git`, `~/git` and `*/git worktree add …` all answered `allow`. That
-allow covers the whole tool call, so a session that had **one** creation
-approved could then run any executable on the machine by giving it a filename
-of `git` — and the reason this test exists, that a hook must not speak over a
-user's own `permissions.deny`, does not stop at `sudo`.
-
-The boundary the code implements is *a command word carrying no separator, so
-the shell resolves it on `PATH`*. Anything with a `/` in it names a file this
-hook cannot identify. What is vouched for is a **class**, not a list: every
-spelling the lexer hands back as the word `git` — `git`, `'git'`, `g'i't`,
-`''git`, `"g"it` and every other quoting of the same word — and each of them
-runs exactly what `git` runs.
-
-Nothing outside that class reaches `allow`, and with consent the guard is
-**silent** on all of it rather than asking: every path (`/usr/bin/git`,
-`~/git`), every wrapper and leading assignment (`sudo git`, `VAR=1 git`), an
-expansion (`$GIT`), a different case and a trailing slash. Consent withdraws
-the objection and the bound refuses to speak for the call, so the user's own
-permission settings decide it. Without consent the same words split two ways.
-One that `cmdline.parse_git` reads as a git invocation — a path, a wrapper it
-reads past, a leading assignment — is a creation and meets the ladder above
-like any other. One it does not read as git — a command word whose last path
-component, as written and before the shell expands anything, is not `git`
-(`$GIT`, `gi*`, a command substitution, a different case, a trailing slash),
-or a program outside the runners it reads past, such as `uv run` — is not a
-git invocation to this guard, and it says nothing. `nice` sat in that group
-until #670 enumerated the programs that run their operands as a command
-(`cmdline.RUNNERS`); since then it is read past and sits in the first. A
-redirection in front of `git` or before its subcommand (`2>/dev/null git
-worktree add …`, `git 2>/dev/null worktree add …`, `git 2>&1 worktree add
-…`) and zsh's `noglob`, `nocorrect`, `repeat N`, `for i (…)` or `foreach i
-(…)` in front of it, or a spaced `--config-env` before `worktree`, are not git to this
-guard either: #674 taught the commit gate to read past them,
-and this guard reads a command through `hooks/cmdline_base.py`, the reader
-frozen at `86256492`, which does not (#689, §*Which tree*). Since #826
-they leave the second group as an unrecognised shape (§A): such a creation
-stops where the tree its segment names matters, under consent too, because
-the stop reads no consent record, and in a clean tree nobody else is in it
-says nothing, as at the base. `parse_git` expands nothing and compares that
-last component, so `~/git`, `*/git` and `$HOME/git` belong to the first group.
-What the class costs is the
-allow on `/usr/bin/git worktree add …`, which is the trade already made for `$`
-and `>`: a wrong silence leaves the call to the user's own settings, a wrong
-allow signs for a binary nobody identified. The case
-`test_the_command_word_class_is_what_the_allow_covers` pins members of each of
-the four groups, and it is where a new spelling is checked rather than a count.
-
-**A creation the guard never judged used to mint the record.** The guard's
-`PreToolUse` walk classified only the **first** segment it could read, while
-`hooks/worktree_consent.py` records for a creation **anywhere** in a command
-that ran. Any first segment with a verdict of its own therefore took the
-decision and the creation ladder never ran. Executed at round 1, clean
-single-stream tree, no record: `git worktree add ../wt f` denied and
-`git status && git worktree add ../wt f` denied — `git status` classifies to
-nothing, so the walk moved on — but `git switch feature/x && git worktree add
-../wt f` was **silent**, the shell created the worktree, and the session held
-session-wide consent from that point. The model never had to forge the record;
-it only had to choose which question got asked, and the first segment is where
-that is chosen.
-
-The switch ladder keeps every verdict it had. Making the creation outrank the
-earlier verdict closes the same hole and costs a protection: a switch denied
-because another session is working in the tree would become an `ask` about the
-creation, and the branch would still be taken out from under that session one
-approval later. **So the creation is judged between the ladder's two halves,
-whichever of the two is written first.**
+**So the creation is judged between the ladder's two halves**, whichever of
+the switch and the creation is written first, because the consent writer
+records for a creation anywhere in a command that ran, and a creation the
+guard never judged would mint consent.
 
 | Switch-ladder row | Order | Why |
 |---|---|---|
-| ACTIVE session | above the creation | the one row that denies unconditionally. A `deny` stops the creation along with the rest of the command, and making a creation outrank this would turn it into an `ask` while the branch is still taken out from under the other session, one approval later |
-| only IDLE · detection unusable | **both**, and the branch decides | these are [choice sites](#choice-sites): they deny **once** per session per direction and `ask` on every attempt after. The deny keeps its precedence, because it stops the whole command line. The `ask` does not — approving it runs every segment while its own text asks about the switch — so that branch hands the creation its verdict first, through `choose`'s `before_ask` |
+| ACTIVE session | above the creation | the one row that denies unconditionally; its deny stops the creation with the rest of the command |
+| only IDLE, detection unusable | **both**, and the branch decides | these are choice sites: the deny keeps its precedence, because it stops the whole command line, while the fallback `ask` runs every segment, so that branch hands the creation its verdict first, through `choose`'s `before_ask` |
 | **the creation** | | |
-| tracked changes present | below | its own text says *the switch is allowed* — it protects no tree, it asks whether uncommitted changes should ride along. Approving it created the worktree too, so whether the creation was questioned came down to whether the tree happened to be dirty. Executed: the same command denied on a clean tree and asked about the changes on a dirty one |
-| single stream, clean | below | says nothing at all. This is where `git switch feature/x && git worktree add ../wt f` ran unjudged and minted session-wide consent |
+| tracked changes present | below | it asks whether the changes ride along and protects no tree, so the creation is questioned whether or not the tree is dirty |
+| single stream, clean | below | it says nothing at all |
 
-**Reading *"the three rows above all deny"* off that first row is what put row
-2 in this table twice.** It was written when the creation sat below all three,
-and it was true of the first attempt in a session and false of every attempt
-after. Executed at round 2, in both the idle and the detection-unusable state:
-the same `git switch feature/x && git worktree add ../wt f` answered `deny`
-then `ask`, the `ask` read *Approve — switch branches in this shared tree*, and
-approving it created the worktree and minted session-wide consent with the
-creation question never put.
+The walk keeps the first switch and the first creation in either order and
+hands both to this table; an unrecognised shape on the same line is stopped
+before either where its tree matters (*A*). Both orders get the same decision
+and reason in every tree state, consent state and attempt, and the combined
+verdict is never weaker than the switch's alone or the creation's alone. The
+guard's other silent exit, at `if not top`, falls through the same way when a
+`git -C <repo> worktree add` is in a command whose shell is outside any
+repository.
 
-**The same walk missed the other order (#620).** It kept the first verdict of
-any kind, so a switch written after a creation was never read. The creation
-took the verdict, consent made it silent for a compound, and `git worktree add
-../x -b x && git switch y` ran the switch over a tree another session was
-ACTIVE in — which *What does not change* below rules out. The walk now keeps
-the first switch and the first creation in either order and hands both to the
-table above. Since #826 the switch is a `git switch`, and an unrecognised
-shape on the same line is stopped before either where its tree matters
-(§A). Both spellings get the same decision and the same reason in every
-tree state, consent state and attempt, and the combined verdict is never
-weaker than the switch's alone or the creation's alone.
-
-The guard's other silent exit is earlier, at `if not top`, and it has the same
-hole: it is reached when the shell is outside any repository while a `git -C
-<repo> worktree add` in the same command is not. That one falls through too.
-
-**The property, measured rather than the shapes.** For a session with no
-consent, whatever the writer would record for, the guard has either denied it —
-which stops the whole command line — or put the creation question in the text
-of its `ask`. The case `test_the_guard_is_never_silent_where_the_writer_records`
-walks it: every command shape it lists, switch-first and create-first, in four
-tree states and from two shell directories, three attempts per session so both
-choice budgets are spent inside a cell. The dirty tree is the fifth state, and
+**The property.** For a session with no consent, whatever the writer would
+record for, the guard has either denied it or put the creation question in
+the text of its `ask`. `test_the_guard_is_never_silent_where_the_writer_records`
+walks every shape it lists in four tree states, from two shell directories,
+three attempts each, and
 `test_a_dirty_tree_does_not_decide_whether_the_creation_is_questioned` holds
-it. Removing `before_ask` from either choice row turns the sweep red. With
-consent the property is not the one to hold: the record the writer would write
-already exists, and silence for a compound is the designed answer (§*Why the
-allow is bounded*).
+the fifth. With consent, silence for a compound is the designed answer.
 
-**Why the Agent/Task path is silent rather than an allow.** That call is a
-worktree creation *plus* an agent with a prompt, and the record is about the
-first half. Silence is the guard withdrawing its objection, which is the whole
-of what the record establishes; whatever the harness asks about running the
-agent is not the guard's to remove.
+**The Agent or Task path is silent rather than an allow**, because the call
+is a creation plus an agent with a prompt, and the record answers the first
+half only.
 
 **What does not change.** A session with neither the record nor the routing
-answer still asks at every site, and the single-stream row still denies and
-steers to `git switch`. The switch direction reads neither: a creation the user
-agreed to, or a run the user said should not stop, says nothing about taking
-another session's branch out from under it.
+answer asks at every site, and the single-stream row denies and steers to
+`git switch`. The switch direction reads neither: a creation the user agreed
+to, or a run the user said should not stop, says nothing about taking another
+session's branch out from under it.
 
-**The prompt budget.** Zero for a session whose person pressed `automation`, in the clone it was given in (another clone: §Choice sites, *Under the press*). One per session otherwise, from one per worktree unbounded — for a creation written on its own, which is the form the measured six took. Re-measured after round 2's fixes, six creations in one session on a clean single-stream tree: **deny, allow, allow, allow, allow, allow**.
-With consent, a creation written as one segment of a compound gets no allow,
-and neither does one carrying an expansion, a redirection, a wrapper or a **path-qualified command word**, because that is exactly what the bound above refuses to speak for. The guard is silent there, so what each one costs is whatever the user's own permission settings ask. The last of those is what round 2's second fix added to the list, and it moves nothing in the budget: `git worktree add …`, the same backgrounded, and the `\git` spelling all still allow.
+**The prompt budget.** Zero for a session whose person pressed `automation`,
+in the clone it was given in (another clone: *Choice sites*, *Under the
+press*). One per session otherwise, for a creation written on its own: six
+creations in one session on a clean single-stream tree answer deny, then
+allow five times. With consent, a creation written as one segment of a
+compound, or carrying an expansion, a redirection, a wrapper or a
+path-qualified command word, gets no allow; the guard is silent, and what each
+costs is whatever the user's own settings ask.
 check: tests/test_the_guard_asks_once_per_session.py tests/test_guard_resolves_the_tree_it_judges.py
 
-### Decided before git runs (#692)
+### Decided before git runs
 
 **A worktree creation is decided before git runs, in every clone, one
-carrying this plugin's git hooks included.**
-#692 first moved this decision into `post-checkout`, after git had made the
-creation, and took a refused one back. Round 1 of its review found what a
-take-back cannot undo. `git worktree add -B <existing>` resets that branch
-before any hook runs. `--no-checkout` and `--orphan` run no `post-checkout` at
-all. A `--lock`ed tree survives one `git worktree remove --force`. And a Bash
-creation that named `.claude/worktrees/` was kept and bought the session's
-consent. The owner's answer was the switch arm's (`seal/specs/1790815613-…/
-questions.md` P6, answer (a)): the rows of §B decide before the command runs,
-through the frozen reading §*Which tree* describes, and this plugin installs
-no `post-checkout`. So a creation that reading cannot follow is judged as
-0.16.0 judged it, with that release's known limits.
+carrying this plugin's git hooks included.** A hook after git made a creation
+can only take it back, and a take-back cannot undo all of it: `git worktree
+add -B <existing>` resets that branch before any hook runs, `--no-checkout`
+and `--orphan` run no `post-checkout`, and a `--lock`ed tree survives one
+`git worktree remove --force`. So the rows of *B* decide before the command
+runs, through the frozen reading *Which tree* describes, and this plugin
+installs no `post-checkout`.
 check: tests/test_a_creation_is_judged_before_git_runs.py tests/test_the_hook_surface_git_offers.py
 
-**A creation the guard lets through is recorded as before, from the command
-that ran.**
-The PostToolUse writer above files the record in every clone, so the budget
-is the one this section states, and `[worktree-ok]` is read from the command
-by the guard itself, never carried to a git hook.
+**A creation the guard lets through is recorded from the command that ran.**
+The `PostToolUse` writer files the record in every clone, and `[worktree-ok]`
+is read from the command by the guard itself, never carried to a git hook.
 check: tests/test_a_creation_is_judged_before_git_runs.py
 
 ## Choice sites
 
-A hook decision renders as approve/decline and the model never gets the turn,
-so at a site where declining has TWO destinations the user sees neither and
-has to retype the command they wanted. Those sites deny instead, and spend the
-reason on an AskUserQuestion instruction naming both — the shape measured in
-`hooks/review-skill-gate.py`.
+A hook decision renders as approve or decline, and the model never gets the
+turn, so at a site where declining has two destinations the user sees neither
+and has to retype the command they wanted. Those sites deny instead, and spend
+the reason on an AskUserQuestion instruction naming both. A site qualifies
+when, after declining, more than one command is left that this session could
+issue; the rows that stay `ask` or `deny` fail that test. A choice deny and
+the ACTIVE-session block are both `deny`, and the reason tells them apart.
 
-The test for whether a site qualifies is one question: **after declining, is
-there more than one command this session could issue?** Where there is not,
-options would have to be invented, and the three rows above that stay `ask`
-or `deny` are the ones that fail it.
-
-A choice deny and the ACTIVE-session block are both `deny`; the reason is what
-tells them apart.
-
-**The two branches have opposite standing for whatever else is on the command
-line, and only one of them is a protection.** The deny stops the WHOLE command,
-so anything written beside what the site is asking about is stopped too. The
-fallback `ask` does not: approving it runs every segment, while its own text
-asks about one of them. So a site reading a choice deny as *this row protects
-the tree* is reading the first attempt only. `choose` takes a `before_ask`
-for that reason — a judgment the fallback yields to, run on that branch alone,
-which is how the switch ladder's two choice rows keep their deny and stop
-deciding whether a creation on the same line is questioned at all.
+**The two branches have opposite standing for whatever else is on the
+command line.** The deny stops the whole command, so anything written beside
+what the site asks about is stopped too. The fallback `ask` does not:
+approving runs every segment while its text asks about one of them. So
+`choose` takes a `before_ask`, a judgment the fallback yields to, which is how
+the switch ladder's two choice rows keep their deny and still question a
+creation on the same line.
 
 **Once per session per direction**, not per site. The marker is
-`<git-dir>/specseal-worktree-choice/{create,switch}/<session-id>`, and the
-session id is reduced to its basename first — it names a file, and
-`../../escaped` otherwise wrote one at the repository root (measured).
+`<git-dir>/specseal-worktree-choice/{create,switch}/<session-id>`, with the
+session id reduced to its basename, because it names a file. One budget for
+the whole guard let a creation question spend the answer a later switch
+needed; within a direction the sites are mutually exclusive on tree state, so
+a budget per site would buy nothing and cost a second question when a retry
+with a token lands on a neighbouring site. The marker means the question was
+put, and the consent record means a creation ran; they are different records.
 
-Direction is the right grain in both directions of error. One budget for the
-whole guard let a creation question spend the answer a later switch needed,
-and the switch then got the two-button prompt this design exists to replace
-(measured). Splitting per site would buy nothing — within a direction the
-sites are mutually exclusive on tree state — while costing a second question
-whenever the model retries with a token and lands on a neighbouring site.
+An unwritable marker counts as already asked: one missed question beats a
+deny nothing can get past. Every attempt after the first gets the site's
+fallback decision, which is also the answer for an environment with nobody to
+ask. With no session id there is no marker, and the fallback stands from the
+start.
 
-**Not the same record as creation consent**, and the difference is what keeps
-them apart in one directory listing: this marker is written by `PreToolUse`
-before the answer and means *the question was put*; the consent record is
-written by `PostToolUse` after it and means *a creation ran*. §Creation consent
-holds the rest.
-
-An unwritable marker counts as already asked: one missed question beats a deny
-nothing can get past. Every attempt after the first gets the decision the site
-made before this design, which is also the answer for an environment with
-nobody to ask — one extra round trip, then the old behavior. No session id, no
-marker, so the site's old decision stands from the start.
-
-**Under the press all four choice sites deny on every attempt; the switch's
+**Under the press** all four choice sites deny on every attempt; the switch's
 two name the split into a worktree as the way on where its creation is
-consented, and the creation's two name none (#896, #903).** Nobody is at the
-keyboard to put the two options to. The reason opens with the row's situation
-and the tracked-changes row's press sentence. Where a creation in the switch's
-clone is consented, by the press in the clone it was given in or by this
-session's record in a clone it already split (§Creation consent), the switch
-reason names which of the two consents and the split as commands that pass as
-written with no `[worktree-ok]`: `git worktree add <wt_root>/<branch>
-<branch>`, or `git worktree add <wt_root>/<name> -b <branch> origin/main`, then
-`git -C` on that path; a branch already in a worktree needs no switch.
-Elsewhere it names no split, because a creation there is not consented. The
-creation rows are reached under the press only there; their reason opens with
-the origin before its quote note and says the press consents to a creation
-only in its own clone and nobody is at the keyboard to choose. No reason names
-a question tool, `[worktree-ok]` or `[shared-tree-ok]`, and each says
-re-issuing the command unchanged meets the same refusal. The press is read
-by the stop's reader at the session's own root, only where a choice row fires,
-so a switch reads the transcript at most once and a creation at most twice.
-No marker is written, because none was asked: a later `per axis` in the same
-clone meets the attended first attempt. `[shared-tree-ok]` still turns the
-switch rows silent and `[worktree-ok]` still reaches its `ask` above the
-creation rows; a model that appends one leaves that on the command line.
-Without the press all four rows are what they were, word for word.
+consented, and the creation's two name none. Nobody is at the keyboard to put
+the two options to. The reason opens with the row's situation and the
+tracked-changes row's press sentence. Where a creation in the switch's clone
+is consented, by the press in the clone it was given in or by this session's
+record in a clone it already split, the switch reason names which of the two
+consents and the split as commands that pass as written with no
+`[worktree-ok]`: `git worktree add <wt_root>/<branch> <branch>`, or
+`git worktree add <wt_root>/<name> -b <branch> origin/main`, then `git -C` on
+that path; a branch already in a worktree needs no switch. Elsewhere it names
+no split, because a creation there is not consented. The creation rows are
+reached under the press only there; their reason says the press consents to a
+creation only in its own clone and nobody is at the keyboard to choose. No
+reason names a question tool, `[worktree-ok]` or `[shared-tree-ok]`, and each
+says re-issuing the command unchanged meets the same refusal. The press is
+read by the stop's reader at the session's own root, only where a choice row
+fires. No marker is written, because none was asked, so a later `per axis` in
+the same clone meets the attended first attempt. `[shared-tree-ok]` still
+turns the switch rows silent and `[worktree-ok]` still reaches its `ask`
+above the creation rows. Without the press all four rows are as above.
 check: tests/test_a_creation_in_another_clone_asks_nobody.py tests/test_worktree_guard.py tests/test_the_idle_session_rows_ask_nobody.py
 
-**Retry tokens, one per direction.** Both are matched as **bare words** of the
-command, never as substrings: a substring test read
-`echo 'we documented [shared-tree-ok] today'` as an answer and turned the
-guard off (measured). Both stay visible in shell history.
-
-The whole command is tokenized first, and only when that fails does the check
-drop to per-segment scanning. Segments come from a regex that cuts on `;` and
-`|` inside quotes as well, so `… && echo "wip; go"  # [worktree-ok]` left
-pieces holding half a quote each; shlex refused them and a token the user
-really had given read as absent (measured). That landed on the single-stream
-deny — the one site with no budget and no `ask` behind it — and repeated on
-every retry until the command itself was rewritten.
-
-Tokenizing the whole command keeps **quoted** prose harmless, because a quoted
-sentence becomes one token that no bare-word comparison matches. Unquoted
-prose is a different matter and still passes — measured:
+**Retry tokens, one per direction**, matched as bare words of the command,
+never as substrings, so a quoted sentence about a token answers nothing. The
+whole command is tokenized first, and only when that fails does the check
+drop to per-segment scanning. Unquoted prose still passes:
 `git switch x && echo the [shared-tree-ok] token is documented` goes silent.
-Shell prose is usually quoted, so the residual is narrow, but it is a
-residual and not a property.
 
 **Where the token is read from.** The command, and only the command. Not
-from a here-document body, since #780: a token counts only where the command
-as written and the command with its here-document bodies taken out both carry
-it, the rule the commit gate's consent read has kept since #773
-(`hooks/tokens.py#without_bodies`). A body is text a command only carries, so
-a token there was read as an answer nobody typed. Where `hooks/cmdline.py`
-cannot load, the bodies are found by the frozen reader the judgment read
-already uses, so a token in a body is still not read and a typed one still
-is. The Agent/Task path has no command line and reads no token at all — see §B's
-"Why the Agent path counts nothing, asks once, and reads no token".
+from a here-document body: a token counts only where the command as written
+and the command with its here-document bodies taken out both carry it, the
+rule the commit gate's waiver read keeps (`hooks/tokens.py#without_bodies`).
+Where `hooks/cmdline.py` cannot load, the frozen reader finds the bodies. The
+Agent or Task path has no command line and reads no token.
 
 | Token | Answer it carries | Effect |
 |---|---|---|
-| `[worktree-ok]` | create the worktree | the site asks — creating one always takes a confirmation, so this direction's floor is `ask` and no token lowers it |
-| `[shared-tree-ok]` | switch in the shared tree | the two switch **choice** rows go silent — this direction's floor is `allow`, and the guard's own verdict there is *cannot tell*, so the token settles it |
+| `[worktree-ok]` | create the worktree | the site asks: creating one always takes a confirmation, so no token lowers this direction below `ask` |
+| `[shared-tree-ok]` | switch in the shared tree | the two switch **choice** rows go silent: the guard's own verdict there is *cannot tell*, so the token settles it |
 
-**The token check runs before the choice sites**, immediately after the
-ACTIVE-session row. Order matters: behind them, a user who answered "split
-into a worktree" came back carrying `[worktree-ok]`, and in an unreadable
-environment the choice site caught it first and asked the question they had
-just answered.
-
-**Each choice hands back the other direction's token.** The switch options
-name `git worktree add … # [worktree-ok]` and the creation options name
-`git switch … # [shared-tree-ok]`, so following either answer arrives
-confirmed rather than questioned again. One half was missing at first, and the
-measured cost was two AskUserQuestion prompts for one decision.
+**The token check runs before the choice sites**, after the ACTIVE-session
+row, so a user who answered "split into a worktree" and came back with
+`[worktree-ok]` is not asked again. **Each choice hands back the other
+direction's token**: the switch options name `git worktree add … #
+[worktree-ok]` and the creation options name `git switch … #
+[shared-tree-ok]`, so following either answer arrives confirmed.
 
 **What `[shared-tree-ok]` cannot reach.** The ACTIVE-session row is tested
-before the token, so a token in this session's command never crosses the deny
-that protects a tree this session does not own. What it can settle is only the
-two rows where the guard itself says it cannot tell, and the dirty-tree row is
-outside it too because that asks something else.
+before the token, so a token from this session never crosses the deny that
+protects a tree this session does not own; the dirty-tree row asks something
+else and is outside it too. The token records an answer in the command and
+nothing verifies who wrote it, the standing `[worktree-ok]` and `[no-review]`
+have: an audit trail, not an authorization.
 
-The token records the user's answer in the command; nothing verifies that a
-user rather than the model put it there. That is the same standing
-`[worktree-ok]` has always had, and the same one `[no-review]` has at the
-commit gate: an inline switch is an audit trail, not an authorization.
+Never guarded: file restores (`checkout -- <path>`, `restore`), every worktree
+subcommand but `add`, and sessions living in linked worktrees, which are
+already isolated.
 
-`[shared-tree-ok]` is ignored where another session is ACTIVE (that deny
-protects a tree this session does not own, and a token from this session is
-not the other session's consent) and where the tree is dirty (a different
-question). Without it, a user who chose the shared tree met the mirror
-question one command later — the answer they had just given.
+## Declared work streams
 
-Never guarded: file restores (`checkout -- <path>`, `restore`), every
-non-`add` worktree subcommand, sessions living in linked worktrees (already
-isolated — switching the shared tree cannot affect them).
+Liveness is inferred below, and inference has a ceiling: a session hosted
+outside a terminal, or working on this tree from another directory, leaves no
+process, tty or per-project transcript trace here. So every tool call that
+touches a repository also declares: the `session-lease` hook stamps
+`<git-dir>/specseal-leases/<session-id>` for the repository touched (a file
+edit leases the edited file's repository, a Bash call its `cwd`'s). A lease
+fresher than the idle threshold is an active work stream. Leases older than a
+day are pruned, and a failure is silent: a lease is a safety net, never a
+blocker.
 
-## Declared work streams — leases beat every heuristic
+## Activity: what makes a session ACTIVE without a lease
 
-The signals below INFER liveness, and inference has a measured ceiling: a
-session hosted outside a terminal (comm != `claude`) or working on this tree
-from another cwd leaves no process, tty, or per-project transcript trace
-here. So every repo-touching tool call (Bash, and file edits including
-notebooks) also DECLARES: the `session-lease` hook stamps
-`<git-dir>/specseal-leases/<session-id>` for the repo being touched
-(file edits lease the edited file's repo; Bash leases its cwd's repo). A
-lease fresher than the idle threshold is an active work stream, no inference
-involved. Leases older than a day are pruned; failures are silent — a lease
-is a safety net, never a blocker.
+**Active is any signal within `WORKTREE_GUARD_IDLE_MIN` minutes, default 5:**
 
-## Activity: what makes a session ACTIVE (heuristics, for sessions without a lease)
-
-**Active = ANY signal within `WORKTREE_GUARD_IDLE_MIN` minutes (default 5):**
-
-| Signal | Detects | Measured grounds (2026-05-06, live sessions) |
+| Signal | Detects | Grounds |
 |---|---|---|
-| tty atime (keystrokes) | human at the keyboard | forgotten tabs: hours stale |
-| tty mtime (screen writes) | session streaming its progress | an idle Claude prompt does NOT repaint; a working one repaints every second |
-| transcript last ACTIVE event | autonomous turns and **background agents** (`~/.claude/projects/<slug>/<session-id>/subagents/*.jsonl`) | a session 52 min past its last keystroke was writing its transcript that second |
+| tty atime (keystrokes) | a person at the keyboard | a forgotten tab is hours stale |
+| tty mtime (screen writes) | a session streaming its progress | an idle prompt does not repaint; a working one repaints every second |
+| transcript last ACTIVE event | autonomous turns and background agents (`~/.claude/projects/<slug>/<session-id>/subagents/*.jsonl`) | a session long past its last keystroke can be writing its transcript |
 
-The 5-minute default is safe only because of the second and third signals —
-keyboard input alone cannot distinguish "forgotten" from "autonomous turn in
-progress", which is why the earlier input-only design needed 60 minutes.
+Five minutes is safe only because of the second and third signals: keyboard
+input alone cannot tell a forgotten tab from an autonomous turn.
 check: tests/test_worktree_guard_signals.py
 
 ### Passive-event filtering
 
-Transcript file mtime over-reports: idle sessions keep receiving passive
-appends (type `attachment` — e.g. file-changed notices fired by *other*
-sessions editing shared files; observed live turning three forgotten tabs
-"active"). Therefore a fresh mtime must be confirmed against the tail (last
-64KB): only `user` / `assistant` / `tool_use` / `tool_result` / `progress`
-events count, and their own timestamps are used. A stale mtime is trusted
-as-is — passive appends only ever make a file look fresher, never staler.
+A transcript's mtime over-reports, because idle sessions receive passive
+appends (an `attachment`, such as a file-changed notice another session's edit
+fired). So a fresh mtime is confirmed against the last 64 KB: only `user`,
+`assistant`, `tool_use`, `tool_result` and `progress` events count, by their
+own timestamps. A stale mtime is trusted as it is, because a passive append
+only makes a file look fresher.
 
-### What a blocking prompt must show (identification)
+### What a blocking prompt must show
 
-"Another session is active" is undiagnosable without identity — measured in
-practice: a session was misattributed to Cursor by guessing from a sibling
-MCP process's flags, and "last activity 1 min ago" could not be told apart
-from a heartbeat. So every listed session shows:
+"Another session is active" cannot be acted on without identity. Every listed
+session shows:
 
-- **host app**, attributed by walking the ANCESTOR process chain (never
-  sibling processes) — e.g. "(VS Code 터미널)";
-- **disaggregated signals** — terminal input/output age and transcript
-  active-event age separately. An unidentified session prints its one
-  signal's kind and age (*lease declaration 4.7h ago*) and nothing after them:
-  whether it is working is the header's to say (#896);
-- the project's newest OTHER transcript's **last user message snippet**, so
-  the human can recognize which conversation is being protected.
+- the **host app**, attributed by walking the ancestor process chain, never a
+  sibling process;
+- the **signals apart**: terminal input and output age and transcript
+  active-event age. An unidentified session prints its one signal's kind and
+  age and nothing after them, because whether it is working is the header's
+  to say;
+- the project's newest other transcript's **last user message**, so the
+  person can recognise which conversation is being protected.
 
 ### Unknowns resolve conservatively
 
-No readable tty AND no readable transcript → active (deny-side). Detection
-that cannot even find our own process → `reliable=False` → the matrix rows
-above. Those rows are a **choice**, which is a deny that hands the decision
-back rather than a block: the second attempt is the `ask` those rows used to
-return, so no host is locked out. What must not return is a *plain* deny —
-some hosts never satisfy the process heuristics, and a permanent deny there
-disables `git switch` outright. Rationale: the
-guard's failure modes are asymmetric — a wrong deny costs a prompt, a wrong
-allow breaks another session's tree — but a deny that fires on EVERY switch
-in an environment is no longer a cost, it is an outage. Under the press those
-rows deny every attempt (§Choice sites), on Windows every switch without
-`[shared-tree-ok]`; their way on, a worktree per branch made with `-b`, needs
-no switch and no person, which keeps that a cost, not this outage.
+No readable tty and no readable transcript is active. Detection that cannot
+find its own process is `reliable=False`, which takes the matrix's
+detection-unusable rows. Those rows are a **choice**, a deny that hands the
+decision back, so the second attempt is an `ask` and no host is locked out. A
+plain deny must not return there: some hosts never satisfy the process
+heuristics, and a deny on every switch in an environment is an outage, not a
+cost. A wrong deny costs a prompt and a wrong allow breaks another session's
+tree. Under the press those rows deny every attempt, on Windows every switch
+without `[shared-tree-ok]`; their way on, a worktree per branch made with
+`-b`, needs no switch and no person, which keeps that a cost.
 
-### Which tree, when the command walks to it
+### Which tree
 
-The tree judged is the one the command acts on, by every row of §A — the
-tracked-changes row included, which until round 1 of work item 1790550712 read
-the session's own directory instead. `git -C <path>` names it outright, and a
-`cd` earlier in the command moves the shell to it — this guard is the reason a
-session is in that shape at all, since it refuses a switch and tells the user
-to work in a separate worktree, so the session stays where it was while the
-commands do not. The whole command is read the way the release base `86256492`
-read it, and not the way the commit gate reads it since #674 (#689): which
-segments are git, the `-C` values each names, where every `cd` lands. Nothing
-is read past the base's words since #826: a segment's shape (§A) is its
-subcommand and, for `checkout`, `worktree` and `stash`, the one word that
-decides it, and no name is looked up in any tree. This guard and the consent
-writer read the command through `hooks/cmdline_base.py`, which is that
-commit's `hooks/cmdline.py` copied byte for byte, and `hooks/cmdline_base.py`
-is unchanged. Neither chooses a segment, a slot or a directory through
+The tree judged is the one the command acts on, by every row of *A*, the
+tracked-changes row included. `git -C <path>` names it, and a `cd` earlier in
+the command moves the shell to it. The whole command is read the way the
+frozen reading reads it: which segments are git, the `-C` values each names,
+and where every `cd` lands. **Nothing is read past the base's words**: a
+segment's shape (*A*) is its subcommand and, for `checkout`, `worktree` and
+`stash`, the one word that decides it, and no name is looked up in any tree.
+The guard and the consent writer read the command through
+`hooks/cmdline_base.py`, a byte-for-byte copy of an earlier
+`hooks/cmdline.py` that `tests/test_the_frozen_reading_never_grows.py` pins,
+and neither chooses a segment, a slot or a directory through
 `hooks/cmdline.py`. The guard asks that module only what the frozen reading
-does not read as git — a shell's string, an `eval`'s argument, a substitution
-body, a git behind a redirection or a zsh precommand word, a group an `&`
-cut apart — and each answer is an unrecognised shape (§A). One answer names
-a tree: where only that module reads a git, the `-C` it reads is composed
-onto the directory the frozen walk placed the segment in. Since #780 the
-guard's consent read also has it take a command's here-document bodies out
-(§*Choice sites*), which names no tree.
+does not read as git (a shell's string, an `eval`'s argument, a substitution
+body, a git behind a redirection or a zsh precommand word, a group an `&` cut
+apart), and each answer is an unrecognised shape. Where only that module
+reads a git, the `-C` it reads is composed onto the directory the frozen walk
+placed the segment in.
 
-The reason is that this guard takes one answer where the gate takes all of
-them. It judges the first switch and the first creation, and the first
-directory in each that names a tree. The gate's wider reading finds more segments and more
-directories than the base's, and while the guard shared it, which one came
-first decided the tree. Each way of ordering the two that was tried met a
-command where what came first was a segment or a directory bash never ran the
-switch in: a `cd` that failed, a branch an `||` skipped, or a `2>/dev/null git
-switch` in front of the switch the base judged. Reading through a frozen copy
-makes the guard's answer the base's by construction.
-
-The cost is what #674 taught the gate and this guard does not read. A `cd`
-with a redirection among its words (`cd W 2>/dev/null`, `2>/dev/null cd W`,
-`cd>/dev/null W`, `2>&1 cd W`) does not move the tree this guard judges or the
-clone consent is filed under, while bash runs the switch in W. A git behind a
-redirection or behind zsh's `noglob`, `nocorrect`, `repeat N`, `for i (…)` or
-`foreach i (…)` is not git to the frozen reading, and the consent writer
-files nothing for it (§*Creation consent*'s command-word groups); the guard
-reads it as an unrecognised shape (§A). Round 2 of work item 1790660768 made
-the guard read the first and #674 the second, and #689 took both back as the
-accepted cost. The commit gate's own reading, kept for a clone whose hooks
-slot is foreign, reads both.
-
-Candidate C (#678), which asked about a switch or a creation only the commit
-gate's reading found, and the two rules read past the base — a `checkout`'s
-and a `switch`'s option words (#764, #738) and a `checkout`'s name looked up
-as git resolves it (#790) — left with #826. Each grew on the question *does
-this command switch a branch?*, and the findings against them did not
-converge; the question §A asks instead is *is this command known to leave the
-branch where it is?*. Where `hooks/cmdline.py` fails to load, or a reader in
+The guard takes one answer where the commit gate takes all of them: the first
+switch, the first creation, and the first directory in each that names a
+tree. A wider reading finds more segments and more directories, and which came
+first would then decide the tree; every order tried met a command where the
+first was a segment or a directory bash never ran the switch in. The frozen
+reading makes the guard's answer the base's by construction, at a stated cost
+(*Known limits*): a `cd` with a redirection among its words does not move the
+tree judged, and a git behind a redirection or a zsh precommand word is no git
+to the frozen reading. Where `hooks/cmdline.py` fails to load, or a reader in
 it raises, the bare word `git` in a string, a body, a hidden position, a
-command that would not split or either side of an `&` the splitter cut is
-the finding, so a broken reader costs a stop where the tree matters and
-never a silence. Such a cut is judged in the tree the part before it names,
-which is where it runs; a `-C` written after the cut is not read
-(§*Known limits*).
+command that would not split or either side of an `&` the splitter cut is the
+finding, so a broken reader costs a stop where the tree matters and never a
+silence. Such a cut is judged in the tree the part before it names, and a
+`-C` written after the cut is not read.
 check: tests/test_worktree_guard.py tests/test_guard_resolves_the_tree_it_judges.py
 
-#692, the redesign of how the gates learn where a command acts, decided this
-reading on the owner's answers of 2026-10-01, and it stays. No git refuses a
-branch switch before its tree has moved (`seal/specs/1790815613-…/phases/
-phase-1.md`, M1), so §A keeps reading the command's text on every git,
-permanently, and since #826 reads its shape rather than predicting a switch. A
-creation keeps it too, because a hook after git made one cannot undo all of
-what it did (§*Creation consent*, *Decided before git runs*).
-`tests/test_the_frozen_reading_never_grows.py` pins `hooks/cmdline_base.py`
-below its rider to `86256492:hooks/cmdline.py`, so a rule added to it has to
-delete that case first.
-`tests/test_guard_resolves_the_tree_it_judges.py` holds the base's answers.
+The advice follows the same tree. A command a reason tells the person to run
+(the worktree steer, a choice's option, the switch steer, the tracked-changes
+note's `git restore`) carries `git -C <root>` where the shell is not in the
+judged tree. The note's `git restore` commands carry it always, because their
+paths are relative to the root.
 
-The advice follows the same tree. A command a reason tells the person to run —
-the worktree steer, a choice's option, the switch steer, the tracked-changes
-note's `git restore` — would otherwise run in the shell's own repository. So
-where the shell is not in the judged tree, each carries `git -C <root>`; where
-it is, the text is unchanged. The note's `git restore` commands carry it
-always, because the paths they take are relative to the root and the shell may
-stand in a subdirectory, and the force-staged check they follow runs at that
-root for the same reason.
-
-Two kinds of destination fall back to the session's own directory, which is
-this guard's answer from before it could read a `cd` at all:
-
-- one that cannot be computed — a variable, a glob, a subshell, `cd -` with
-  nothing behind it;
-- one that reads cleanly and holds **no repository**. `cd /no/such/dir ; git
-  switch x` leaves the shell exactly where it started, because `;` runs what
-  follows whether the `cd` worked or not — so the switch happens in the
-  session's own tree, which is the tree another session may be sitting in.
-
-A `git -C` naming no repository is not one of them and stays silent: git
-refuses that command itself, so no tree is touched.
-
-The commit gate stops on a target like this instead of falling back. The two
-differ because what they protect differs: a commit nobody judged is a commit
-nobody reviewed, while a guard that goes silent leaves a shared tree
-unguarded, and §Unknowns resolve conservatively puts the cost of a wrong deny
-at one prompt against a wrong allow breaking another session's tree.
+Two kinds of destination fall back to the session's own directory: one that
+cannot be computed (a variable, a glob, a subshell, `cd -` with nothing behind
+it), and one that reads cleanly and holds no repository, since
+`cd /no/such/dir ; git switch x` switches in the session's own tree. A
+`git -C` naming no repository stays silent, because git refuses that command
+itself. The commit gate stops on a target like this instead: a commit nobody
+judged is a commit nobody reviewed, while a guard that goes silent leaves a
+shared tree unguarded, and *Unknowns resolve conservatively* weighs a wrong
+deny at one prompt.
 
 ## Known limits
 
-- Neither a switch nor a creation is judged by git. No git refuses a switch
-  before its tree has moved (M1), and a hook after a creation cannot undo all
-  of it (P6), so §A and §B read the command's text on every git, through the
-  frozen reading §*Which tree* describes.
+- **Neither a switch nor a creation is judged by git.** No git refuses a
+  switch before its tree has moved, and a hook after a creation cannot undo
+  all of it, so *A* and *B* read the command's text on every git, through the
+  frozen reading.
 - A word the shell builds before git runs — a brace expansion, a
-  substitution that spells `git`, a here-string or heredoc handed to a
-  shell, a git spelled past the splitter (`g""it` in a line it cannot
-  close) — is not read, so `git rebase {main,feature/x}`, `git rebase
-  --ro{,} feature/x`, `git stash {branch,} y` and `git worktree {add,} ../wt
-  f` are listed and silent in every tree, though bash makes the first three
-  switch HEAD and the fourth add a worktree (#856), and the class is decided
-  in #886. The guard reads the words the frozen reading splits, and the
-  shell makes this word afterwards. A brace reader was built for #856 in
-  work item 1791384157 and taken out in the same release: every reading of
-  it imitated bash, and five review rounds each found the next spelling it
-  missed. `test_a_shell_built_word_is_the_named_limit` and the braced half
-  of `test_no_listed_form_moves_head_under_git` in
-  `tests/test_worktree_guard.py` pin the limit as a fact.
+  substitution that spells `git`, a here-string or heredoc handed to a shell,
+  a git spelled past the splitter (`g""it` in a line it cannot close) — is not
+  read, so `git rebase {main,feature/x}`, `git rebase --ro{,} feature/x`, `git
+  stash {branch,} y` and `git worktree {add,} ../wt f` are listed and silent in
+  every tree, though bash makes the first three switch HEAD and the fourth add
+  a worktree. A reader imitating bash's expansion was built and taken out,
+  because each review found a spelling it missed.
+  `test_a_shell_built_word_is_the_named_limit` and the braced half of
+  `test_no_listed_form_moves_head_under_git` in `tests/test_worktree_guard.py`
+  pin the limit.
 - A switch into the worktree the same command creates is judged against the
-  session's own tree: `git worktree add ../x -b x && cd ../x && git switch y`
-  meets that tree's switch verdict, because `../x` does not exist yet when the
-  guard runs and §*Which tree* falls back. `git -C ../x switch y` is the
-  spelling that avoids the stop — it names no repository yet, so only the
+  session's own tree, because `../x` does not exist yet when the guard runs:
+  `git worktree add ../x -b x && cd ../x && git switch y` meets that tree's
+  switch verdict. `git -C ../x switch y` names no repository yet, so only the
   creation is judged.
 - A switch whose tree the guard cannot place is judged against the session's
-  own tree, as §*Which tree* says, and passes silently where that tree is clean
-  and single-stream. #686's seven shapes are examples, each before `&& git
-  switch …`: `builtin cd w`, `command cd w`, `time cd w`, `pushd w`, `noglob cd
-  w`, `cd "$W"` with `W` unset, and `2>&1 cd w`. Asking there instead was built
-  and counted on 2026-10-03, over every Bash command recorded in this
-  repository's transcripts on the maintainer's machine before that day (511
-  transcripts, 27,351 distinct command and directory pairs, 395 of them holding
-  a switch). It would have stopped 9 of them, so under the owner's rule of
-  2026-10-03 the fallback stays (work item 1790993140, `phases/phase-3.md`).
-  Two more spellings reach the same fallback (#854). One is `cd w 2>&1`
-  before the switch: the frozen splitter cuts it at its `&`, so the walk
-  keeps the directory before the `cd` first. The other is an unrecognised
-  shape the walk cannot place: a cut git inside an `if` body after `cd w`
-  (`cd w && if …; then 2>&1 git switch x; fi`) is judged in the session's own
-  tree, where the guard before #826 asked in every tree.
-  `git -C <dir> switch …`, or a plain `cd <dir>` of its own, is the spelling
-  the guard reads. `test_a_switch_tree_the_guard_cannot_place_is_judged_as_its_own`
-  in `tests/test_guard_resolves_the_tree_it_judges.py` pins it.
+  own tree, and passes silently where that tree is clean and single-stream:
+  each of `builtin cd w`, `command cd w`, `time cd w`, `pushd w`,
+  `noglob cd w`, `cd "$W"` with `W` unset, and `2>&1 cd w`, before
+  `&& git switch …`. Asking there instead was counted over the recorded runs
+  and would have stopped 9 of 395 switches, so the fallback stays. Two more
+  spellings reach it. One is `cd w 2>&1` before the switch: the frozen
+  splitter cuts it at its `&`, so the walk keeps the directory before the
+  `cd` first. The other is an unrecognised shape the walk cannot place: a cut
+  git inside an `if` body after `cd w` (`cd w && if …; then 2>&1 git switch x;
+  fi`) is judged in the session's own tree. `git -C <dir> switch …`, or a
+  plain `cd <dir>` of its own, is the spelling the guard reads.
+  `test_a_switch_tree_the_guard_cannot_place_is_judged_as_its_own` in
+  `tests/test_guard_resolves_the_tree_it_judges.py` pins it.
 - `LEAVES_THE_TREE` holds the subcommands this repository's recorded runs
-  hold, each with its count, and nothing guessed (owner's answer P1 (a) of
-  work item 1791270162). A git subcommand this repository never ran — `git
-  submodule update`, `git notes` — is unrecognised in every repository the
-  plugin is installed in, so it stops in a tree that matters until a release
-  adds its row; under the press the model cannot rewrite it, because it is
-  its own plain spelling. The stop's reason names the list, so the row to add
-  is one search away. Which subcommands leave the branch was read off what
-  each does, and one form of each row is run against git: a listed form
-  that moves HEAD fails `test_no_listed_form_moves_head_under_git`, which is
-  how `rebase`'s branch-naming form was found. A form no row's case runs is
-  still a reading.
+  hold, each with its count, and nothing guessed. A git subcommand this
+  repository never ran (`git submodule update`, `git notes`) is unrecognised
+  in every repository the plugin is installed in, so it stops in a tree that
+  matters until a release adds its row; under the press the model cannot
+  rewrite it, because it is its own plain spelling. The stop's reason names
+  the list. One form of each row is run against git, and a listed form that
+  moves HEAD fails `test_no_listed_form_moves_head_under_git`; a form no case
+  runs is still a reading.
 - A creation only a hidden spelling holds (`git 2>&1 worktree add …`, `git
   worktree 2>/dev/null add …`) is an unrecognised shape, so in a clean tree
-  nobody else is in it says nothing and §B never reads it, as at 0.16.0
-  before #678. The consent writer files nothing for it either.
-- A `rebase` is listed, and detaches HEAD while it runs: a session switching
-  in the same tree during that window meets a detached HEAD rather than the
-  branch. The guard judges the command before it runs and reads no window.
-  A `rebase` naming a branch is unrecognised (§A), and its words are read
-  without an option table, so an option's value counts as a word: `git
-  rebase --onto main x` stops too.
+  nobody else is in it says nothing and *B* never reads it. The consent writer
+  files nothing for it either.
+- A `rebase` is listed, and detaches HEAD while it runs: a session switching in
+  the same tree during that window meets a detached HEAD. The guard judges the
+  command before it runs and reads no window. A `rebase` naming a branch is
+  unrecognised, and its words are read without an option table, so an
+  option's value counts as a word: `git rebase --onto main x` stops too.
 - A body (`$( … )`, a backtick pair, `<( … )`) and a command that would not
   split belong to no one segment, so each is judged in the session's own
   tree: `cd W && F=$(git checkout x)` with `W` dirty and the session's tree
   clean says nothing.
 - A string handed to a shell (`sh -c`, `bash -c`, `eval`) is judged in the
-  tree its segment names, the one it was typed from: its own `-C` and `cd`
-  are not read. `sh -c 'git -C W switch x'` with `W` dirty and the
-  session's tree clean says nothing, as it did before #826. Only a git the
-  wider reading reads as a segment of its own has its `-C` composed.
-- Where `hooks/cmdline.py` did not load, or the reader that glues an `&`
-  cut back raises, a git the cut split is judged in the tree the part before
-  the cut names: `git -C W worktree 2>&1 add …` is judged in `W`, and `2>&1
-  git -C W switch x`, whose `-C` comes after the cut, in the tree it was
-  typed from. With `W` dirty and the session's tree clean the second says
-  nothing; with the reader loaded both are judged in `W`.
+  tree its segment names, the one it was typed from: its own `-C` and `cd` are
+  not read, so `sh -c 'git -C W switch x'` with `W` dirty and the session's
+  tree clean says nothing. Only a git the wider reading reads as a segment of
+  its own has its `-C` composed.
+- Where `hooks/cmdline.py` did not load, or the reader that glues an `&` cut
+  back raises, a git the cut split is judged in the tree the part before the
+  cut names: `git -C W worktree 2>&1 add …` in `W`, and `2>&1 git -C W switch
+  x`, whose `-C` comes after the cut, in the tree it was typed from.
 - The frozen splitter has taken the quotes off before a word is read, so a
   quoted `<` or `>` reads as a redirection: a path written `"> f"` after a
-  `checkout`'s `--` is no path, and the command is unrecognised. The same
-  splitter reads a redirection glued to the subcommand as the subcommand
-  (`git status>/dev/null`), and a spaced `--config-env`'s value as the
-  subcommand (`git --config-env k=v switch x` reads `k=v`), so each stops
-  where the tree matters with a plain spelling that names the wrong word.
-  Each stops; none goes silent.
-- On Windows the count of other sessions is always unusable. It walks the
-  process table with `ps -o` and `ps -axo`, and Git for Windows' `ps` takes
-  neither, so every tree state there reads as *detection unusable* and takes
-  that row of §A and §B. A second Bash creation in one session therefore
-  meets the confirmation where a POSIX system's single-stream row refuses it
-  (#692's Windows pass, CI run 36978391812). And every unrecognised shape
-  stops there, in every tree: a `deny` to the model under the press, an
-  `ask` otherwise. Under the press every switch without `[shared-tree-ok]` is
-  row 2's deny, and every Bash creation in a clone the press was not given in
-  and this session holds no record in is §B's detection-unusable deny. Read
-  from the code; Windows-only cases in `tests/test_the_idle_session_rows_ask_nobody.py`
-  and `tests/test_a_creation_in_another_clone_asks_nobody.py` measure the two.
+  `checkout`'s `--` is no path. The same splitter reads a redirection glued to
+  the subcommand as the subcommand (`git status>/dev/null`), and a spaced
+  `--config-env`'s value as the subcommand (`git --config-env k=v switch x`
+  reads `k=v`), so each stops where the tree matters with a plain spelling
+  that names the wrong word. None goes silent.
+- On Windows the count of other sessions is always unusable, because Git for
+  Windows' `ps` takes neither `-o` nor `-axo`, so every tree state there reads
+  as detection unusable and takes that row of *A* and *B*. A second Bash
+  creation in one session meets the confirmation where a POSIX system's
+  single-stream row refuses it, and every unrecognised shape stops there, in
+  every tree: a `deny` to the model under the press, an `ask` otherwise.
+  Under the press every switch without `[shared-tree-ok]` is row 2's deny, and
+  every Bash creation in a clone the press was not given in and this session
+  holds no record in is *B*'s detection-unusable deny. Windows-only cases in
+  `tests/test_the_idle_session_rows_ask_nobody.py` and
+  `tests/test_a_creation_in_another_clone_asks_nobody.py` measure the two.
 - The `automation` press is this session's, on this machine. It is read from
-  this session's own main transcript (§*Creation consent*, rule 1), which the
-  harness writes on the machine the session runs on, and a subagent reaches
-  it through its parent's id. A run resumed in a new session (a `/clear`, a
-  new `claude` start, another machine) has no press until question 1 is put
-  through `AskUserQuestion` again, and until then every stop that reads it is the
-  person's `ask` (`skills/implement/orchestration.md` §*Orchestrator: how the work
-  is routed*). Nothing that survives a machine move can stand in for it. The consent
-  record and the choice markers sit under the git directory, which does not travel,
-  and everything that travels is in the tree, which the model writes, so
-  `routing.md` is not read. What keeps the press is what keeps the session's id:
-  `claude --resume` and compaction both go on writing the same transcript the press
-  already sits in, and the section named above holds the reading that showed it.
-  Measured in #894: a release run resumed on another machine with the answer typed,
-  and the guard asked the owner twice in a run routed `automation`; replayed up to
-  the first of those stops, the reader found no press in that session.
-- Under the press a model that does not take the split loops on §A's choice
-  rows' deny, bounded by the reason's text alone; the next `automation` run
-  measures it (work item 1791781864, `questions.md` M1; P1 (c) is the lever).
-- Transcript activity is per-project, not per-pid: one working session marks
-  every session of that project active. Conservative by design.
-- tty atime also refreshes on in-turn stdin reads (a session listening for
-  interrupts), not only human keystrokes — which is why the prompt labels it
-  "terminal input/output", not "keystroke". Either cause means the session is
-  live, so treating it as active errs conservative.
+  this session's own main transcript, which the harness writes where the
+  session runs, and a subagent reaches it through its parent's id. A run
+  resumed in a new session (a `/clear`, a new `claude` start, another
+  machine) has no press until question 1 is put through `AskUserQuestion`
+  again, and until then every stop that reads it is the person's `ask`
+  (`skills/implement/orchestration.md` *Orchestrator: how the work is
+  routed*). Nothing that survives a machine move can stand in for it: the
+  consent record and the choice markers sit under the git directory, which
+  does not travel, and what travels is in the tree, which the model writes.
+  `claude --resume` and compaction go on writing the same transcript, so the
+  press survives them.
+- Under the press a model that does not take the split loops on the choice
+  rows' deny, bounded by the reason's text alone.
+- No case observes whether an Agent or Task spawn with
+  `isolation: "worktree"` runs `git worktree add`. No git hook judges a
+  creation, so the answer moves no verdict, and the PreToolUse arm reads
+  `tool_input.isolation`, not a command.
+- Transcript activity is per project, not per process: one working session
+  marks every session of that project active, which errs conservative.
+- tty atime also refreshes on in-turn stdin reads, not only keystrokes, which
+  is why the prompt labels it terminal input and output; either cause means
+  the session is live.

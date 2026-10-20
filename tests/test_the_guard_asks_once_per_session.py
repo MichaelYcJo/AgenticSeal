@@ -868,7 +868,7 @@ def test_a_switch_into_the_new_worktree_is_judged_where_the_shell_stands(
     worktree the command creates does not exist yet.
 
     `cd ../x && git switch y` therefore falls back to the session's own tree,
-    per §*Which tree, when the command walks to it*, and meets that tree's
+    per §*Which tree*, and meets that tree's
     switch verdict. It is a stop the person pays for a switch that would
     really happen in the new worktree, and it errs on the side a guard
     should. Seen red at the base: the creation's `ask`, or silence under

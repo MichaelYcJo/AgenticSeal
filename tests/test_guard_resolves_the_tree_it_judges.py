@@ -828,9 +828,9 @@ def test_the_guard_policy_says_the_record_is_filed_where_the_guard_judged():
 def test_the_guard_policy_names_the_shell_built_word_limit():
     """§14 of the agent contract, for S27 of work item 1791384157's second
     reframe: §*Known limits* says in one sentence that a word the shell
-    builds before git runs is not read, names #856's four forms as silent and
-    points at #886; §A names no brace rule, cost or count, and no bullet
-    names a brace-hidden `-C`. Red against `52c72bbe`'s text."""
+    builds before git runs is not read and names #856's four forms as silent;
+    §A names no brace rule, cost or count, and no bullet names a brace-hidden
+    `-C`. Red against `52c72bbe`'s text."""
     text = _policy_text()
     for sentence in (
         "A word the shell builds before git runs — a brace expansion, a "
@@ -840,7 +840,6 @@ def test_the_guard_policy_names_the_shell_built_word_limit():
         "so `git rebase {main,feature/x}`, `git rebase --ro{,} feature/x`, `git "
         "stash {branch,} y` and `git worktree {add,} ../wt f` are listed and "
         "silent in every tree",
-        "and the class is decided in #886",
     ):
         assert sentence in text, sentence
     for gone in (
@@ -1392,7 +1391,8 @@ def test_the_guard_policy_says_which_shapes_reach_the_rows_and_who_reads_the_sto
         "and meets the rows above on the retry, and no person is asked.",
         "so the stop is a `deny` whoever is at the keyboard.",
         "The consent record is never read for the stop",
-        "**The failure direction.** The guard stops more than it did",
+        "**The failure direction.** The stop adds a stop for every "
+        "unrecognised shape where the tree matters",
         # Round 1 of work item 1791270162: red 1 and red 3, absent at
         # `4de95fa7`.
         "A `git switch` on the same line makes the stop a `deny` whoever is "
@@ -1412,12 +1412,11 @@ def test_the_guard_policy_says_which_shapes_reach_the_rows_and_who_reads_the_sto
 
 def test_the_guard_policy_says_nothing_is_read_past_the_base():
     """S12 of work item 1791270162: §*Which tree* keeps the frozen reading's
-    paragraphs, says nothing is read past the base's words and why the
-    readings left, and §*Known limits* holds the new limits and none of the
-    removed ones. Red against the policy as it stood at `9c03ae85`."""
+    paragraphs and says nothing is read past the base's words, and §*Known
+    limits* holds the new limits and none of the removed ones. Red against
+    the policy as it stood at `9c03ae85`."""
     text = _policy_text()
-    assert "Nothing is read past the base's words since #826" in text
-    assert "left with #826" in text
+    assert "**Nothing is read past the base's words**" in text
     for limit in (
         "A git subcommand this repository never ran",
         "A creation only a hidden spelling holds",
@@ -1759,7 +1758,7 @@ def test_the_guard_policy_and_readmes_say_a_body_token_is_not_read():
     read. Red against `a3aa139a`'s texts."""
     assert (
         "**Where the token is read from.** The command, and only the command. "
-        "Not from a here-document body, since #780: a token counts only where "
+        "Not from a here-document body: a token counts only where "
         "the command as written and the command with its here-document bodies "
         "taken out both carry it"
     ) in _policy_text()
