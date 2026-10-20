@@ -21,7 +21,7 @@ something else.
 
 | Item | Who must answer |
 |---|---|
-| the full suite, the repository-wide lint and the typecheck over the phases built | the orchestrator's broad run |
+| closed the full suite and the repository-wide lint over the phases built | the orchestrator's broad run at 9ba59cc0, `broad-gate.md`: 7376 passed, 13 skipped, ruff check and format clean. The repository runs no typecheck (#951) |
 
 ## Not done
 
