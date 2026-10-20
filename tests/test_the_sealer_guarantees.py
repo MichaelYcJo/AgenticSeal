@@ -156,16 +156,16 @@ class TestTemplate:
 
     def test_the_target_row_keeps_an_earlier_run(self):
         """T3, S5 of #969. A re-run at a new HEAD keeps the earlier verdict on
-        the `Target SHA` row as `; earlier run: <sha> <verdict>`, the form
+        the `Target SHA` row as `; earlier run: <sha> <word>`, the form
         `broad-gate.md` already uses, and the definition re-runs only what a
         commit since touched. Protects: a full re-audit for a records-only
         commit, and an earlier verdict lost when the file is rewritten."""
         text = TEMPLATE.read_text(encoding="utf-8")
         rows = chain.table_rows(reader, reader.readable(text))
         cell = next(c[1] for c in rows if c[0].strip() == "Target SHA")
-        assert "; earlier run: <sha> <verdict>" in cell, cell
+        assert "; earlier run: <sha> <word>" in cell, cell
         rule = between(SEALER, "**The guarantee covers HEAD", " check: ")
-        assert "; earlier run: <sha> <verdict>" in rule, rule
+        assert "; earlier run: <sha> <word>" in rule, rule
         assert "re-runs only the claims whose coordinates a commit since" in rule
 
     def test_the_unfilled_template_is_no_guarantee(self):
@@ -183,7 +183,7 @@ class TestTemplate:
         assert "One row per act of `agents/sealer.md` step 3, whatever the act" in (
             comment
         )
-        assert "`does not hold — <what came back>`" in comment
+        assert "`does not hold: <what came back>`" in comment
         for act in ("`fixed <commit>`", "sampled", "removal", "🔴"):
             assert act not in comment, act
 
@@ -192,28 +192,87 @@ class TestTemplate:
 
 
 class TestVerdictsOf:
-    def test_each_verdict_is_read_through_emphasis(self):
-        """T8, S8 of #969: the three words are `sealed`, `withheld — <reason>`
-        and `undecided — <question>`. Protects: `withheld` with its reason
-        left off read as `sealed`, and a `sealed` with a rider passing."""
+    def test_each_verdict_is_read_in_its_shape(self):
+        """S5 of #1000: the line is `Verdict: sealed`, `Verdict: withheld
+        reason: <…>` or `Verdict: undecided question: <…>`, read whole.
+        Protects: `withheld` with its reason left off read as `sealed`, and a
+        `sealed` with a rider passing."""
         for said, word in (
             ("sealed", "sealed"),
-            ("**sealed**", "sealed"),
-            ("withheld — the body claims a README change", "withheld"),
-            ("undecided — does #12 ask for the flag?", "undecided"),
+            ("withheld reason: the body claims a README change", "withheld"),
+            ("undecided question: does #12 ask for the flag?", "undecided"),
         ):
             found = chain.verdicts_of(reader, guarantee("abc1234", said))
             assert [chain.verdict_word(v) for _n, v in found] == [word], said
-        assert chain.verdict_word("sealed, but the README is stale") != chain.SEALED
-        assert chain.verdict_word("withheld") != chain.SEALED
+        assert chain.verdict_word("Verdict: sealed, but the README is stale") is None
+        assert chain.verdict_word("Verdict: withheld") is None
 
     def test_a_verdict_in_a_comment_is_not_read_and_two_lines_are_two(self):
         text = guarantee("abc1234", "sealed").replace(
             "Verdict: sealed",
-            "<!-- Verdict: sealed -->\nVerdict: sealed\nVerdict: with",
+            "<!-- Verdict: sealed -->\nVerdict: sealed\n**Verdict:** with",
         )
         found = chain.verdicts_of(reader, text)
-        assert [v for _n, v in found] == ["sealed", "with"]
+        assert [v for _n, v in found] == ["Verdict: sealed", "**Verdict:** with"]
+
+    def test_the_verdict_patterns_are_linear_in_the_line(self):
+        """#941's round 3 met a pattern that backtracked exponentially; the
+        verdict line's patterns and the earlier run's repeat, so a long line
+        of their repeated characters is read in well under a second."""
+        import time
+
+        start = time.monotonic()
+        for line in (
+            "Verdict: withheld reason: " + "x " * 50000,
+            "*_ " * 30000 + "verdict",
+            "Verdict: undecided question:" + " " * 100000,
+        ):
+            chain.verdict_word(line)
+            chain.verdicts_of(reader, line)
+        chain.earlier_verdicts("; earlier run: aaa1111 against " + "x" * 100000)
+        chain.earlier_verdicts("; earlier run: aaa1111" + " against x" * 30000)
+        assert time.monotonic() - start < 1.0
+
+
+# S6 of #1000: lines that mean the verdict and are not one of its three
+# shapes. Each is refused at its line, and none reads as `sealed`.
+NEAR_MISSES = (
+    "Verdict: withheld — x",
+    "Verdict: withheld - x",
+    "Verdict: withheld",
+    "Verdict: withheld reason:",
+    "Verdict: withheld reason:x",
+    "Verdict: Sealed",
+    "Verdict: **sealed**",
+    "**Verdict:** sealed",
+    "verdict: sealed",
+    "Verdict: sealed reason: x",
+    "Verdict: undecided reason: x",
+)
+
+
+@pytest.mark.rule("ready-needs-sealed")
+@pytest.mark.parametrize("line", NEAR_MISSES)
+def test_a_near_miss_of_the_verdict_is_refused_at_its_line(item, line):
+    """S6 of #1000. Seen red against the reader that stripped emphasis and
+    read a value by its prefix: `Sealed`, `**sealed**` and `**Verdict:**
+    sealed` passed as `sealed`, and the rest were refused naming no shape,
+    or not read at all."""
+    root, sha = item
+    rel = f"{ITEM}/guarantee.md"
+    text = guarantee(sha, "sealed").replace("Verdict: sealed", line)
+    write(root, rel, text)
+    commit(root, f"the sealer wrote {line}")
+    found = chain.verdicts_of(reader, text)
+    assert len(found) == 1 and chain.verdict_word(found[0][1]) != chain.SEALED
+    [(path, number, why)] = chain.guarantee(reader, str(root), ITEM, "main")
+    assert (path, number) == (rel, text.splitlines().index(line) + 1), why
+    for shape in (
+        "`Verdict: sealed`",
+        "`Verdict: withheld reason: <reason>`",
+        "`Verdict: undecided question: <question>`",
+    ):
+        assert shape in why, why
 
 
 # --- earlier_verdicts ----------------------------------------------------------
@@ -221,30 +280,58 @@ class TestVerdictsOf:
 
 class TestEarlierVerdicts:
     """#975: the stamp is drawn once per work item, held by the `Target SHA`
-    row's own `; earlier run: <sha> <verdict>` chain rather than a count kept
+    row's own `; earlier run: <sha> <word>` chain rather than a count kept
     beside the tree. One reader of that chain, beside the check's other
     readers of the same row."""
 
     def test_each_earlier_run_is_read_with_its_verdict_word(self):
+        """S9 of #1000: an entry is `<sha> <word>`, with `against <base>`
+        after the SHA where it names one."""
         cell = (
-            "ccc3333 against main; earlier run: bbb2222 sealed; "
-            "earlier run: aaa1111 withheld — the README is stale"
+            "ccc3333 against main; earlier run: bbb2222 against main sealed; "
+            "earlier run: aaa1111 withheld"
         )
         assert chain.earlier_verdicts(cell) == [
             ("bbb2222", chain.SEALED),
             ("aaa1111", chain.WITHHELD),
         ]
 
-    def test_a_first_run_has_none_and_an_entry_without_a_sha_is_left_out(self):
+    def test_a_first_run_has_none(self):
         assert chain.earlier_verdicts("aaa1111 against main") == []
         assert chain.earlier_verdicts("") == []
         assert chain.earlier_verdicts(None) == []
-        cell = "bbb2222 against main; earlier run: an earlier one, sealed"
-        assert chain.earlier_verdicts(cell) == []
 
-    def test_an_entry_naming_its_base_and_emphasis_still_reads_its_word(self):
-        cell = "ccc3333 against main; earlier run: `bbb2222` against main **sealed**"
-        assert chain.earlier_verdicts(cell) == [("bbb2222", chain.SEALED)]
+    @pytest.mark.parametrize(
+        "entry",
+        [
+            "aaa1111 withheld — x",
+            "aaa1111 Sealed",
+            "`bbb2222` against main **sealed**",
+            "an earlier one, sealed",
+        ],
+    )
+    def test_an_entry_that_is_not_the_word_alone_reads_no_word(self, entry):
+        """S9 of #1000. Seen red against the reader that read the word by its
+        prefix and through emphasis: the first three read as a word."""
+        cell = f"ccc3333 against main; earlier run: {entry}"
+        assert chain.earlier_verdicts(cell) == [(entry, None)]
+
+    @pytest.mark.parametrize("entry", ["aaa1111 withheld — x", "aaa1111 Sealed"])
+    def test_the_arm_refuses_an_entry_at_the_target_row(self, item, entry):
+        """S9 of #1000: the guarantee arm refuses it at the `Target SHA`
+        row's line, naming the entry and the shape it reads."""
+        root, sha = item
+        rel = f"{ITEM}/guarantee.md"
+        text = guarantee(sha, "sealed").replace(
+            f"| Target SHA | {sha} against main |",
+            f"| Target SHA | {sha} against main; earlier run: {entry} |",
+        )
+        write(root, rel, text)
+        commit(root, "an earlier run with a rider")
+        [(path, number, why)] = chain.guarantee(reader, str(root), ITEM, "main")
+        row = next(n for n, ln in enumerate(text.splitlines(), 1) if "Target SHA" in ln)
+        assert (path, number) == (rel, row), why
+        assert f"`{entry}`" in why and "`<sha> <word>`" in why, why
 
 
 # --- guarantee: the arm --------------------------------------------------------
@@ -290,13 +377,16 @@ def test_a_verdict_other_than_sealed_fails_a_ready_pull_request(item, capsys):
     code, out = check(root, capsys)
     assert code == 0, out
     rel = f"{ITEM}/guarantee.md"
-    for verdict in ("withheld — the body claims a README change", "undecided — Q?"):
+    for verdict in (
+        "withheld reason: the body claims a README change",
+        "undecided question: Q?",
+    ):
         write(root, rel, guarantee(sha, verdict))
         commit(root, f"the sealer says {verdict}")
         code, out = check(root, capsys)
         assert code == 1, out
         line = next(ln for ln in out.splitlines() if ln.startswith(f"{rel}:"))
-        assert verdict.split(" — ")[0] in line and "`sealed`" in line
+        assert f"`Verdict: {verdict}`" in line and "needs `sealed`" in line, line
         code, out = check(root, capsys, "--sealing")
         assert code == 0 and rel in out
     event = root.parent / "event.json"
@@ -330,7 +420,12 @@ def test_the_old_words_are_refused_by_line(item, capsys):
         assert line.split()[0] == f"{rel}:{number}", line
         word = old.split(" — ")[0]
         assert f"`{word}` is a word the verdict no longer uses" in line, line
-        assert "`sealed`" in line and "`withheld — <reason>`" in line, line
+        # S8 of #1000: the three shapes, and no dash form.
+        assert (
+            "`Verdict: sealed`, `Verdict: withheld reason: <reason>` or "
+            "`Verdict: undecided question: <question>`"
+        ) in line, line
+        assert chain.DASH not in line.split("no longer uses", 1)[1], line
         assert (
             "Where `broad-gate.md` names a run at HEAD, or one followed only "
             "by the work item's records, spawn the sealer again at HEAD, which "
@@ -360,7 +455,7 @@ class TestDefinition:
 
     def test_step_1_reads_the_record_and_runs_nothing(self):
         """T2, S1 of #969. Step 1 reads `broad-gate.md` and the commits after
-        the run it names, and refuses with `withheld — no broad run at HEAD`
+        the run it names, and refuses with `withheld reason: no broad run at HEAD`
         where the record is absent or followed by a path outside the work
         item's records; no step of the definition runs `broad-gate --base`.
 
@@ -376,7 +471,7 @@ class TestDefinition:
         assert "`broad-gate.md`" in step, step
         assert "log --no-merges --name-only <named>..HEAD ^<base>" in step, step
         assert "`chain_check.py#follows`" in step, step
-        assert "`Verdict: withheld — no broad run at HEAD`" in step, step
+        assert "`Verdict: withheld reason: no broad run at HEAD`" in step, step
         assert "Absent" in step and "any other path" in step, step
         assert "not an ancestor of HEAD" in step, step
         assert "the plain branch name the prompt names" not in step, step
@@ -397,7 +492,7 @@ class TestDefinition:
             "and every `<base>` below is the commit it prints"
         ) in intro, intro
         assert (
-            "`Verdict: withheld — the base <name> resolves to no commit here`"
+            "`Verdict: withheld reason: the base <name> resolves to no commit here`"
         ) in intro, intro
         order = between(SEALER, "## Order of work", "## Never")
         assert "broad-gate --base" not in order, (

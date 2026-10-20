@@ -8,3 +8,13 @@
   repository's overviews carrying `none — <why>` fail at the next pull
   request until rewritten. A base revision still reads the old line as no
   rows.
+- **The sealer's verdict line is read whole (#1000).** It is exactly one of
+  `Verdict: sealed`, `Verdict: withheld reason: <reason>` or
+  `Verdict: undecided question: <question>`, with no emphasis. Any other
+  line that means the verdict, `Verdict: withheld — <reason>`, `Verdict:
+  Sealed` and `**Verdict:** sealed` among them, is refused at its line
+  naming the three shapes, and neither draws the stamp nor is judged by the
+  commit gate as `sealed`. An earlier run on the `Target SHA` row carries
+  its verdict's word alone, `; earlier run: <sha> <word>`, and any other
+  entry is refused at that row. A `Claims re-run` result that fails reads
+  `does not hold: <what came back>`.

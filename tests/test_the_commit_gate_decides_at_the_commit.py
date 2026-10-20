@@ -1713,7 +1713,7 @@ def test_a_sealed_the_branch_does_not_hold_is_stopped_inside_the_commit(world, s
         )
 
     withheld = world.head(world.w)[:8]
-    written(withheld, "withheld — x")
+    written(withheld, "withheld reason: x")
     g(world.w, "add", "-A", home=world.home, session="")
     g(world.w, "commit", "-q", "-m", "withheld", home=world.home, session="")
     written("deadbee", "sealed")
@@ -1732,7 +1732,7 @@ def test_a_sealed_the_branch_does_not_hold_is_stopped_inside_the_commit(world, s
     ):
         g(world.w, "add", rel, home=world.home, session="")
     if shape == "staged, then put back on disk":
-        written(withheld, "withheld — x")
+        written(withheld, "withheld reason: x")
     if shape == "a pathspec that leaves it out":
         world.change(world.w)
     got = g(world.w, *args, home=world.home, check=False)
@@ -1756,6 +1756,28 @@ def test_a_sealed_the_branch_does_not_hold_is_stopped_inside_the_commit(world, s
     assert got.stderr == GUARANTEE_TEXT.format(
         path=rel, target="deadbee", branch="feat", head=short
     ), got.stderr
+
+
+@pytest.mark.parametrize(
+    "line", ["Verdict: Sealed", "Verdict: **sealed**", "**Verdict:** sealed"]
+)
+def test_a_near_miss_of_sealed_is_not_judged_inside_the_commit(world, line):
+    """S7 of #1000 through the stubs: a guarantee whose verdict line only
+    looks like `sealed`, over `deadbee`, is not a `sealed` the commit gate
+    judges, so the commit lands; the pull request's check refuses the line.
+    Seen red against the reader that stripped emphasis and folded case,
+    which refused each as a `sealed` the branch does not hold."""
+    item = world.w / "seal" / "specs" / "1790000000-x"
+    (item / "guarantee.md").write_text(
+        "| Field | Value |\n|---|---|\n"
+        f"| Target SHA | deadbee against release |\n\n{line}\n",
+        encoding="utf-8",
+    )
+    g(world.w, "add", "-A", home=world.home, session="")
+    before = world.head(world.w)
+    got = g(world.w, "commit", "-q", "-m", "x", home=world.home, check=False)
+    assert got.returncode == 0, got.stderr
+    assert world.head(world.w) != before
 
 
 def test_the_post_tool_use_notice_stands_aside_where_git_says_it(world, monkeypatch):

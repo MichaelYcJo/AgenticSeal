@@ -205,8 +205,8 @@ base and the work item's directory**, the issue and the file holding the pull
 request body. The
 sealer reads that record, audits the work against the issue and the tree,
 and writes `guarantee.md` (`docs/the-review-record.md` §*The guarantee*); it
-runs nothing broad, and a missing or stale record comes back `withheld —
-no broad run at HEAD`.
+runs nothing broad, and a missing or stale record comes back
+`Verdict: withheld reason: no broad run at HEAD`.
 
 **On exit 1 spawn nothing.** The word beside each failing file says whether
 it predates the work: `new` is this work's to repair, `failing on base too`
@@ -237,10 +237,11 @@ item after the last round's `target:` commit, so a run taken straight after
 the fix returns the same refusal. `undecided` is a question for the owner,
 put after the run rather than during it; write the answer under the verdict
 as `Answered <date> by <who>: <answer>`, commit, and spawn the sealer again.
-`withheld — the base <name> resolves to no commit here` needs no commit: a
-`git clone` of the branch worktree copies its branches and none of its
-`origin/` refs, so spawn the sealer again with the branch worktree itself as
-its clone, where `origin/<base>` or, with no remote, `<base>` resolves.
+`withheld reason: the base <name> resolves to no commit here` needs no
+commit: a `git clone` of the branch worktree copies its branches and none
+of its `origin/` refs, so spawn the sealer again with the branch worktree
+itself as its clone, where `origin/<base>` or, with no remote, `<base>`
+resolves.
 Where `pre-commit` refuses the commit of `guarantee.md` because its row names
 a commit the branch does not hold, spawn the sealer again at HEAD and commit
 what it writes; never edit the row by hand. The hook recorded the refusal,

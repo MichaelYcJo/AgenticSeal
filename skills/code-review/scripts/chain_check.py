@@ -80,25 +80,49 @@ GUARANTEE_FILE = "guarantee.md"
 # other, and they are the only files that may follow the commit the
 # guarantee names, since the sealer audited everything else on the branch.
 CLOSING_RECORDS = (BROAD_GATE_FILE, GUARANTEE_FILE)
-VERDICT_LINE = re.compile(r"^Verdict:\s*(.*?)\s*$")
+# The sealer's verdict is one line of `guarantee.md` in one of the three
+# shapes `VERDICT_SHAPES` names, read whole, with no emphasis and a value
+# after each label.
+VERDICT = "Verdict:"
 SEALED = "sealed"
 WITHHELD = "withheld"
 UNDECIDED = "undecided"
+REASON = "reason:"
+QUESTION = "question:"
+VERDICT_SHAPE = re.compile(
+    rf"{VERDICT} (?:({SEALED})|({WITHHELD}) {REASON} \S.*"
+    rf"|({UNDECIDED}) {QUESTION} \S.*)"
+)
+# The three shapes, as a refusal names them.
+VERDICT_SHAPES = (
+    f"`{VERDICT} {SEALED}`, `{VERDICT} {WITHHELD} {REASON} <reason>` or "
+    f"`{VERDICT} {UNDECIDED} {QUESTION} <question>`"
+)
+# A line that means the verdict: the label in any case, after any emphasis or
+# block markup, then a colon. One that is no shape is refused at its line.
+MEANT_VERDICT = re.compile(r"[\s*_`>#+-]*verdict[\s*_`]*:", re.IGNORECASE)
 # The words the verdict used before #969. A guarantee still carrying one was
 # written by a sealer that ran before the words changed, so it is refused on
 # its line with what to do, never read as the new word it meant.
 RETIRED_VERDICTS = ("sound", "not sound", "undecidable")
 RETIRED_SAYS = (
-    "is a word the verdict no longer uses: it reads `sealed`, "
-    "`withheld — <reason>` or `undecided — <question>` now. Where "
-    "`broad-gate.md` names a run at HEAD, or one followed only by the work "
-    "item's records, spawn the sealer again at HEAD, which writes the new "
-    "word; otherwise run `broad-gate --base <base> --record <item>` and "
-    "commit `broad-gate.md` first"
+    f"is a word the verdict no longer uses: the line reads {VERDICT_SHAPES} "
+    "now. Where `broad-gate.md` names a run at HEAD, or one followed only by "
+    "the work item's records, spawn the sealer again at HEAD, which writes "
+    "the new word; otherwise run `broad-gate --base <base> --record <item>` "
+    "and commit `broad-gate.md` first"
 )
 # What a broad-gate entry is separated from the run behind it by. The newest
 # run stands first; `broad_gate.py#kept_runs` writes the rest behind it.
 EARLIER_RUN = "; earlier run: "
+# An earlier run of the sealer on the `Target SHA` row: its commit, the base
+# where the run names one, and its verdict's word alone.
+EARLIER_ENTRY = re.compile(
+    rf"([0-9a-f]{{7,40}})(?: against \S+)? ({SEALED}|{WITHHELD}|{UNDECIDED})"
+)
+EARLIER_WRITTEN = (
+    "`<sha> <word>`, with `against <base>` after the SHA where it names one"
+)
 
 # A round record's grammar is one table, `docs/the-review-record.md`
 # §*The round record*, and nothing in this file restates it: `grammar`
@@ -1362,21 +1386,16 @@ def target_of(reader, text):
 
 
 def earlier_verdicts(cell):
-    """`[(sha, word)]` for each `; earlier run: <sha> <verdict>` entry of a
-    `guarantee.md` `Target SHA` cell, in the order written (#975): `word` is
-    `verdict_word` of what follows the SHA, past an `against <base>` where an
-    entry names one. An entry whose first word is not SHA-shaped is left
-    out. The stamp is drawn once per work item, and an earlier entry reading
-    `sealed` is how the row says it was drawn already."""
+    """`[(sha, word)]` for each `; earlier run: ` entry of a `guarantee.md`
+    `Target SHA` cell, in the order written (#975), where the entry is
+    `EARLIER_ENTRY` whole; `(entry, None)` for one that is not, which the
+    guarantee arm refuses. The stamp is drawn once per work item, and an
+    earlier entry reading `sealed` is how the row says it was drawn
+    already."""
     out = []
     for entry in (cell or "").split(EARLIER_RUN)[1:]:
-        words = EMPHASIS.sub("", entry).split()
-        if not words or not SHA_RE.fullmatch(words[0]):
-            continue
-        rest = words[1:]
-        if len(rest) >= 2 and rest[0] == "against":
-            rest = rest[2:]
-        out.append((words[0], verdict_word(" ".join(rest))))
+        m = EARLIER_ENTRY.fullmatch(entry.strip())
+        out.append((m.group(1), m.group(2)) if m else (entry.strip(), None))
     return out
 
 
@@ -1614,34 +1633,48 @@ def broad_gate(reader, root, item, base):
 
 
 def verdicts_of(reader, text):
-    """[(line number, value)] for every `Verdict:` line outside comments and
-    fences, emphasis removed from the value."""
+    """[(line number, line)] for every line outside comments and fences that
+    means the verdict (`MEANT_VERDICT`), whatever its spelling, trailing
+    whitespace removed."""
     found = []
     for i, line in enumerate(reader.readable(text or "")):
-        m = VERDICT_LINE.match(EMPHASIS.sub("", reader.visible(line)))
-        if m:
-            found.append((i + 1, m.group(1).strip()))
+        line = reader.visible(line).rstrip()
+        if MEANT_VERDICT.match(line):
+            found.append((i + 1, line))
     return found
 
 
-def verdict_word(value):
-    """`sealed` where the value is that word alone; `withheld`, `undecided`,
-    or a word of `RETIRED_VERDICTS`, where the value begins with one; else
-    the value as it reads."""
-    s = value.strip().lower()
-    if s in (SEALED, RETIRED_VERDICTS[0]):
-        return s
-    for word in (WITHHELD, UNDECIDED, *RETIRED_VERDICTS[1:]):
-        if s == word or s.startswith(word + " "):
+def verdict_word(line):
+    """`sealed`, `withheld` or `undecided` where LINE is one of the three
+    shapes whole; a word of `RETIRED_VERDICTS` where the value after the
+    label, emphasis removed, is that word or opens with it and a space;
+    else None."""
+    m = VERDICT_SHAPE.fullmatch(line)
+    if m:
+        return next(word for word in m.groups() if word)
+    value = EMPHASIS.sub("", line).split(":", 1)[-1].strip().lower()
+    for word in RETIRED_VERDICTS:
+        if value == word or value.startswith(word + " "):
             return word
-    return value.strip()
+    return None
+
+
+def target_row(reader, text):
+    """`(line number, cell)` of `guarantee.md`'s first `Target SHA` row, or
+    `(0, None)`."""
+    for i, line in enumerate(reader.readable(text or "")):
+        cells = reader.split_row(line)
+        if cells and len(cells) > 1 and reader.visible(cells[0]) == TARGET:
+            return i + 1, reader.visible(cells[1])
+    return 0, None
 
 
 def guarantee(reader, root, item, base):
     """[(path, line, problem)] for the work item's `guarantee.md`: absent, no
-    commit, a commit with anything but the closing records after it, a word
-    of `RETIRED_VERDICTS` on its `Verdict:` line, or one `Verdict:` line that
-    does not read `sealed`."""
+    commit, a commit with anything but the closing records after it, an
+    earlier run that is not `EARLIER_ENTRY` whole, a word of
+    `RETIRED_VERDICTS` on its `Verdict:` line, a verdict line in none of the
+    three shapes, or one that does not read `sealed`."""
     rel = f"{item}/{GUARANTEE_FILE}"
     text = read_record(root, rel)
     if text is None:
@@ -1668,36 +1701,41 @@ def guarantee(reader, root, item, base):
                     + ("; the sealer runs again" if behind[0] == "after" else ""),
                 )
             )
+    row, cell = target_row(reader, text)
+    for entry, word in earlier_verdicts(cell):
+        if word is None:
+            problems.append(
+                (
+                    rel,
+                    row,
+                    f"the earlier run `{entry}` on its `{TARGET}` row is not read: "
+                    f"an earlier run is {EARLIER_WRITTEN}, its verdict's word alone",
+                )
+            )
     verdicts = verdicts_of(reader, text)
     if len(verdicts) != 1:
         problems.append(
             (
                 rel,
                 verdicts[1][0] if verdicts else 0,
-                f"{len(verdicts)} `Verdict:` lines; the guarantee carries one",
+                f"{len(verdicts)} `{VERDICT}` lines; the guarantee carries one",
             )
         )
-    elif verdict_word(verdicts[0][1]) in RETIRED_VERDICTS:
-        line, value = verdicts[0]
-        word = verdict_word(value)
-        problems.append(
-            (
-                rel,
-                line,
-                f"the sealer's verdict reads `{value}`: `{word}` {RETIRED_SAYS}",
-            )
+        return problems
+    line, value = verdicts[0]
+    word = verdict_word(value)
+    if word in RETIRED_VERDICTS:
+        said = f"`{word}` {RETIRED_SAYS}"
+    elif word is None:
+        said = f"the line reads only as {VERDICT_SHAPES}, written exactly so"
+    elif word != SEALED:
+        said = (
+            f"a ready pull request needs `{SEALED}`: fix what it names, or answer "
+            "its question under it, and the sealer runs again at the new HEAD"
         )
-    elif verdict_word(verdicts[0][1]) != SEALED:
-        line, value = verdicts[0]
-        problems.append(
-            (
-                rel,
-                line,
-                f"the sealer's verdict reads `{value}`, and a ready pull request "
-                f"needs `{SEALED}`: fix what it names, or answer its question "
-                "under it, and the sealer runs again at the new HEAD",
-            )
-        )
+    else:
+        return problems
+    problems.append((rel, line, f"the sealer's verdict reads `{value}`: {said}"))
     return problems
 
 

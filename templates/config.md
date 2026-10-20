@@ -125,7 +125,9 @@ every repository, whatever either row says:
   table in `docs/the-review-record.md` §*The round record*, which
   `chain_check.py` reads; a round record's `## Not judged` and `## Probes`
   headings, which the parties and the eval graders read; a
-  `guarantee.md`'s `Target SHA`; a `broad-gate.md`'s `Broad gate`; an
+  `guarantee.md`'s `Target SHA`, and its `Verdict:` line with the words
+  `sealed`, `withheld`, `undecided`, `reason:` and `question:`; a
+  `broad-gate.md`'s `Broad gate`; an
   `overview.md`'s `## Not verified` heading with its `Item` and
   `Who must answer` columns, or its no-change block `- nothing` with
   `why:`; a `spec.md`'s `## Removes` heading; its
