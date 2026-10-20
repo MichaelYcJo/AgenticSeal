@@ -82,7 +82,7 @@ make.
      chosen with what it was chosen over.
    - The phases, one line each.
    - What the frame says the work removes: the `## Removes` rows, or its
-     `nothing — <why>` line.
+     no-change block.
    - What you put out of scope, and why, one line each.
    - `questions.md`'s path and its rows, split by who can answer them.
    - What you read against what you only skimmed, and for anything left
@@ -147,7 +147,7 @@ states it, each `file:` picked from the index, `<policy root>/README.md`.
 check: tests/test_waiver_decided_at_start.py
 
 **A removal is named once, at the frame.** `spec.md`'s `## Removes` lists
-what the work takes out of the tree, or says `nothing — <why>`. The review
+what the work takes out of the tree, or holds the no-change block. The review
 reads each row against the diff, and a removal left unnamed reaches the
 reader only as a divergence after the fact.
 check: tests/test_a_phase_hands_the_next_one_a_record.py

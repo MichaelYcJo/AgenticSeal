@@ -1268,7 +1268,7 @@ def settled(root, ref, directories, here=None):
 
     It states no rule when it never wrote a `spec.md`, asked of history
     (`wrote_a_spec`), or when its `spec.md` at REF has no `## Rule changes`
-    or one that says `nothing`. Otherwise `rule_changes.py` replays every
+    or one holding the no-change block. Otherwise `rule_changes.py` replays every
     such directory here in merge order over REF's policy root, and each text
     an applied operation names occurs as often across the policy root at
     HERE as in the replay. Asked of the set, a later spec may rewrite what an

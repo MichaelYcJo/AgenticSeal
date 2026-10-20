@@ -595,7 +595,8 @@ What this does not do is as load-bearing as what it does.
   commit.
 - **`rules --check` proves a named test exists, not that it asserts the rule.**
   A target that resolves while the test checks something else reads clean,
-  and a rule written as `nothing — <why>` is held by nobody.
+  and a rule written as `check: none reader: <who>` is held by its reader
+  alone.
 - **"Broad and once" is a rule the agents follow, not a gate.** Nothing stops
   a session from running the full suite mid-round; what exists is the
   instruction, the warden's audit of the smith's labels, and `broad-gate.md`, which

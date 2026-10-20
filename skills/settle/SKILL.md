@@ -134,9 +134,9 @@ over an unsettled work item.
 - **In place.** Each change lands where its text stands, and the rest of
   the document is byte-identical. No marker is written.
 - **A directory goes only with the rule changes it applied**, whole, its
-  process record included. A `nothing — <why>` spec has nothing to apply and
-  goes. A spec with no `## Rule changes` was written before the section
-  existed; it is named and stays.
+  process record included. A spec whose section is the no-change block has
+  nothing to apply and goes. A spec with no `## Rule changes` was written
+  before the section existed; it is named and stays.
 - The documents are written before any directory is removed.
 
 It exits 0 when nothing was refused or held by an open row, a spec with no

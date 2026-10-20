@@ -67,7 +67,7 @@ readers share.
 it gives what the tree holds.** Each directory a pull request removes whole
 is judged as it stood at the merge base: nothing in its record open, and
 either no rule to replay (it wrote no `spec.md`, or its spec has no
-`## Rule changes` or says `nothing`) or the replay holds. The replay applies
+`## Rule changes` or holds the no-change block) or the replay holds. The replay applies
 every removed spec's rule changes, in merge order, over the merge base's
 `docs/`, and each text an applied operation names must occur as often across
 `docs/` at HEAD as in the replay, whitespace collapsed. So a
