@@ -345,8 +345,9 @@ def test_the_line_the_checklist_copies_is_the_line_the_reader_reads():
 
 def test_the_title_line_pattern_is_linear_in_the_line():
     """#941's round 3 met a pattern that backtracked exponentially; the
-    title line's pattern repeats, so a long line is read in well under a
-    second."""
+    title line's pattern repeats, so a long line is read inside the bound,
+    which is far above the linear time (under 0.1 s) and far below a
+    backtracking one (no end), so a loaded runner does not fail it."""
     import time
 
     mod = module(SCRIPT, "publish_release_note_for_its_pattern")
@@ -359,7 +360,7 @@ def test_the_title_line_pattern_is_linear_in_the_line():
         "release: " * 20000,
     ):
         mod.title_from(line, VERSION, TAG)
-    assert time.monotonic() - start < 1.0
+    assert time.monotonic() - start < 5.0
 
 
 # --- A5: the note is a summary over the section --------------------------

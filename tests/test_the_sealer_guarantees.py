@@ -218,7 +218,9 @@ class TestVerdictsOf:
     def test_the_verdict_patterns_are_linear_in_the_line(self):
         """#941's round 3 met a pattern that backtracked exponentially; the
         verdict line's patterns and the earlier run's repeat, so a long line
-        of their repeated characters is read in well under a second."""
+        of their repeated characters is read inside the bound, which is far
+        above the linear time (under 0.1 s) and far below a backtracking
+        one (no end), so a loaded runner does not fail it."""
         import time
 
         start = time.monotonic()
@@ -233,7 +235,7 @@ class TestVerdictsOf:
         chain.earlier_verdicts("; earlier run: aaa1111" + " against x" * 30000)
         chain.earlier_verdicts("earlier" + " " * 100000)
         chain.earlier_verdicts(" " * 100000 + "earlier runs" + " " * 100000)
-        assert time.monotonic() - start < 1.0
+        assert time.monotonic() - start < 5.0
 
 
 # S6 of #1000: lines that mean the verdict and are not one of its three

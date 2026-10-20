@@ -433,13 +433,15 @@ def test_a_near_miss_of_the_block_is_refused_at_its_line(tmp_path, body, bad, sa
 def test_the_near_miss_reading_is_linear_in_the_line():
     """#941's round 3 met a pattern that backtracked exponentially; the
     pattern that finds a near miss of the block repeats, so a long line of
-    its repeated characters is read in well under a second."""
+    its repeated characters is read well inside the bound. The bound is
+    far above the linear time (under 0.1 s) and far below a backtracking
+    one (no end), so a loaded runner does not fail it."""
     import time
 
     start = time.monotonic()
     for line in ("- " * 50000 + "x", " " * 100000 + "nonesuch", "-*+" * 30000):
         uc.parse_section([line], 1)
-    assert time.monotonic() - start < 1.0
+    assert time.monotonic() - start < 5.0
 
 
 def test_a_fenced_example_is_not_a_second_section(tmp_path):
@@ -1842,20 +1844,23 @@ def test_a_row_after_an_opener_quoted_in_a_code_span_is_counted(tmp_path):
     "tail", ["", "<!--"], ids=["no opener", "an opener at the end"]
 )
 def test_the_comment_scan_is_not_quadratic_in_backtick_runs(tail):
-    """Round 2 of #1000, finding 1: 400000 characters of closed code spans,
+    """Round 2 of #1000, finding 1: 800000 characters of closed code spans,
     with no opener or with one at the end, and a line of backtick runs each
-    without a partner of its own length, are each read in well under a
-    second. Seen red against the scan that sliced the line again per span,
-    which took 13 s on the first."""
+    without a partner of its own length, are each read inside the bound.
+    The linear scan takes under 0.2 s on the first; the scan that sliced the
+    line again per span took 13 s at 400000 characters and 54 s at 800000,
+    and was seen red here. The bound sits an order of magnitude from each,
+    so a loaded runner does not fail it (run 39382007019 read 1.1 s against
+    a 1 s bound)."""
     import time
 
     for line in (
-        "`a` " * 100000 + tail,
+        "`a` " * 200000 + tail,
         "".join("`" * k + "x" for k in range(1, 400)) + tail,
     ):
         start = time.monotonic()
         uc.strip_comments([line, "-->"])
-        assert time.monotonic() - start < 1.0, len(line)
+        assert time.monotonic() - start < 5.0, len(line)
 
 
 @pytest.mark.parametrize(
