@@ -4,8 +4,8 @@
 0.4.0 laid the plugin's tree out by lifetime under one root. `.specseal/` held
 the records that outlive a work item; `specs/<id>/` held a
 work item's documents and its review records; both are `seal/` now, and the
-opt-in is that root's presence (`docs/one-root-by-lifetime.md`, "What happens
-to the existing directories at the switch"). Nothing reads the old names after
+opt-in is that root's presence (`docs/one-root-by-lifetime.md`, "What first
+setup asks"). Nothing reads the old names after
 that release except this hook, so a repository still holding the old layout
 gets silence from every gate until this runs. That silence is the fail
 direction the design record keeps on purpose, and this hook is what ends it.

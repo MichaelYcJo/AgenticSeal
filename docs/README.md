@@ -2,7 +2,7 @@
 
 The standing policy, one row per topic. A `docs/` document outranks the work
 items' specs, and a spec that finds one wrong states the correction in its
-`## Rule changes` (`skills/settle/SKILL.md` §*Rule changes*).
+`## Rule changes` (`skills/settle/SKILL.md` *Rule changes*).
 
 | File | The question it answers |
 |---|---|
@@ -10,7 +10,7 @@ items' specs, and a spec that finds one wrong states the correction in its
 | `docs/commit-review-gate-spec.md` | how the gates are registered, what the PreToolUse reading of a commit decides where git cannot, and what the implementer mark says |
 | `docs/issues-and-milestones.md` | what the issue tracker's fields mean here, and which of them anything reads |
 | `docs/measuring-a-run.md` | what a segment of a run measures, and where the reading goes |
-| `docs/one-root-by-lifetime.md` and `docs/one-root-by-lifetime.ko.md` | the design 0.4.0 started from: one root, laid out by lifetime |
+| `docs/one-root-by-lifetime.md` and `docs/one-root-by-lifetime.ko.md` | where the plugin's one root is, what opts a repository in, what first setup asks, and what the repository's config rows decide |
 | `docs/release-checklist.md` | what to type on the day of a release, in order |
 | `docs/the-agent-set.md` | how the rules are split between the agents a work item spawns |
 | `docs/the-broad-gate.md` | who takes the one broad run, what it runs, and what it may say |

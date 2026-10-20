@@ -109,14 +109,11 @@ VERSION_TOKEN = re.compile(r"(?<![\w.])[vV]?(\d+\.\d+\.\d+)(?!\.\d)")
 ILLUSTRATIVE_VERSION = "1.2.3"
 
 RECORDS_OF_A_MOMENT = (
-    "docs/one-root-by-lifetime.md",
-    "docs/one-root-by-lifetime.ko.md",
     # A trailing slash is a PREFIX, not a path. `docs/experiments/` holds
     # dated records of what was measured on a particular day, on a particular
     # build of a particular tool — the file name carries the date. Rewriting
-    # the version an experiment ran against would falsify the record, which is
-    # the same argument the two exact paths above already carry, applied to
-    # a directory whose every future file has it too. That is what makes a
+    # the version an experiment ran against would falsify the record, and
+    # every future file of the directory has the same argument. That is what makes a
     # prefix defensible here where `docs/issues-and-milestones.md` — a
     # standing document edited every release — is not (#179).
     "docs/experiments/",
@@ -136,12 +133,6 @@ VERSIONS_OF_ANOTHER_PRODUCT = {
     ("docs/the-commit-gate-inside-git.md", "2.39.5"): "git's, a build #692 measured",
     ("docs/the-commit-gate-inside-git.md", "2.43.0"): "git's, a build #692 measured",
     ("docs/the-commit-gate-inside-git.md", "2.50.1"): "git's, a build #692 measured",
-    ("docs/worktree-guard-spec.md", "2.54.0"): (
-        "git's, the build whose `git checkout -h` and `git switch -h` the "
-        "guard's option table was taken from, named in §*Known limits* "
-        "(#764). A table read off an unnamed git is not a measurement, and "
-        "no release of SpecSeal makes the number wrong"
-    ),
     ("skills/implement/scripts/seal.py", "4.4.17"): (
         "bash's, named in a comment about the glob behaviour of that release"
     ),
@@ -153,14 +144,12 @@ VERSIONS_OF_ANOTHER_PRODUCT = {
     ("skills/verify/scripts/broad_gate.py", "2.54.0"): (
         "git's, named in `names_a_branch`'s docstring as the build on which "
         "`--branch` was measured to EXPAND `@{-N}` and then check what it "
-        "expanded to. The row above is the same fact about a different "
-        "docstring, and the reason is the row above's reason: a property "
-        "read off an unnamed git is not a measurement, and this one is the "
-        "grounds for a guard a reader can otherwise only take on trust "
-        "(#461). The pair is what makes this an entry rather than a reword — "
-        "the class is *a loaded file naming the tool build a measurement was "
-        "taken on*, it now has two members, and the exemption is keyed on "
-        "(file, token) so neither one lets the number through anywhere else"
+        "expanded to. A property read off an unnamed git is not a "
+        "measurement, and this one is the grounds for a guard a reader can "
+        "otherwise only take on trust (#461). The class is *a loaded file "
+        "naming the tool build a measurement was taken on*, and the "
+        "exemption is keyed on (file, token) so the number gets through "
+        "nowhere else"
     ),
     # A pytest build and a pytest-xdist build had rows here, keyed on
     # `broad_gate.py`, for the comments over the JUnit report and the
@@ -602,9 +591,7 @@ def test_no_loaded_file_names_a_version_at_or_above_the_running_one():
 
     - `RECORDS_OF_A_MOMENT` — files whose whole job is to name a moment.
       `seal/specs/`, `CHANGELOG.md` and `changelog/` are outside the scanned
-      set entirely.
-      `docs/one-root-by-lifetime.md` is the 0.4.0 design and says so in every
-      other paragraph, and `docs/experiments/` holds dated measurements whose
+      set entirely. `docs/experiments/` holds dated measurements whose
       numbers are the reading.
     - `ILLUSTRATIVE_VERSION` — the value the repository already tells authors
       to write, with its own case above asserting it is not a real one.
@@ -749,12 +736,10 @@ def test_the_illustrative_version_is_allowed_in_any_loaded_file():
 
 
 def test_a_record_of_a_moment_keeps_every_version_it_names():
-    """Both shapes of entry: an exact path, and `docs/experiments/` as a
-    prefix covering every dated record written under it, now and later."""
+    """`docs/experiments/` as a prefix covers every dated record written
+    under it, now and later; the exact-path shape is the order case's
+    below."""
     text = "measured on 2.1.259, which is above anything this plugin ships"
-    assert (
-        timers_in("docs/one-root-by-lifetime.md", text, RUNNING_IN_THE_FIXTURES) == []
-    )
     assert (
         timers_in(
             "docs/experiments/2026-09-03-skill-preload-and-the-copy-in-force.md",

@@ -1477,16 +1477,6 @@ TIP_KO = "base 브랜치의 끝"
     [
         ("README.md", TIP_EN, None),
         ("README.ko.md", TIP_KO, None),
-        (
-            os.path.join("docs", "one-root-by-lifetime.md"),
-            TIP_EN,
-            "never the base branch's moving tip",
-        ),
-        (
-            os.path.join("docs", "one-root-by-lifetime.ko.md"),
-            TIP_KO,
-            "현재 끝이 아니라",
-        ),
         # True at both places without naming either, and so not held to the tip
         # (`seal/specs/1790381329-the-deferred-sentences-and-pins/spec.md`,
         # *Out of scope*): a sibling squashed after this branch was cut is not

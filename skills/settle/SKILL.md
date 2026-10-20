@@ -15,8 +15,7 @@ description: |
 A spec states the rules its work changes in its `## Rule changes` section.
 The section is reviewed with the spec, and `settle --apply` applies it to
 `docs/` after the release. **The spec decides; the command applies.**
-`docs/one-root-by-lifetime.md` §*What keeps `settle` light* says the step
-"moves and does not verify": what a spec decided is not judged again here,
+The step moves and does not verify: what a spec decided is not judged again here,
 and whether a rule still holds is the suite's to say.
 
 ```
@@ -178,8 +177,9 @@ no commit with `HEAD` is refused at exit 2.
 **A settle is not finished until every check in your repository that carries
 a population floor over `seal/specs/` has been answered.** A floor is an
 assertion like `len(records) > 200` over a walk of `seal/specs/`, and a
-settle shrinks the corpus by design. `docs/one-root-by-lifetime.md` §*The
-dependency rule* names two such readers, and that list is not the whole list.
+settle shrinks the corpus by design (`docs/one-root-by-lifetime.md` *The
+dependency rule*), and a list of readers written in any document is not the
+whole list.
 The dry run lists every `tests/` file that reads `seal/specs`, and every path
 outside it that cites into what `--apply` removes. Each check gets one answer,
 written down:
