@@ -370,6 +370,16 @@ class TestEarlierVerdicts:
         cell = f"ccc3333 against main{entry}"
         assert chain.earlier_verdicts(cell) == [(entry.strip(), None)]
 
+    def test_an_entry_is_read_exactly_up_to_the_next_separator(self):
+        """Round 2 of #1000, finding 3: a space before the next separator is
+        text the shape does not hold, so that entry reads no word and the
+        one after it still reads."""
+        cell = "ccc3333 against main; earlier run: aaa1111 withheld ; earlier run: bbb2222 sealed"
+        assert chain.earlier_verdicts(cell) == [
+            ("; earlier run: aaa1111 withheld", None),
+            ("bbb2222", chain.SEALED),
+        ]
+
     @pytest.mark.parametrize(
         "entry",
         [
