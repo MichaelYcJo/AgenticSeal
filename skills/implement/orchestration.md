@@ -292,11 +292,11 @@ waives one command, typed in front of each, which is a per-command price none
 of the other answers pays.
 
 **A run resumed in a new session puts question 1 through `AskUserQuestion`
-again, before the first spawn**, in the same call as whatever else the resume
-has to ask. That is the one call question 1 shares: the boxes are not put
-again, because `routing.md` already holds their answer, so a resume has no
-second call to keep apart, while at the start of a work item question 1 goes
-alone, as above. The session puts it from a directory inside the clone the run
+again, before the first spawn.** Where the declaration answers `Automation`
+with `yes` it goes alone, because `hooks/question-gate.py` refuses whatever
+shares its call; elsewhere it may share the call with what else the resume
+asks. The boxes are not put again, because `routing.md` already holds their
+answer. The session puts it from a directory inside the clone the run
 works in: the readers keep the answer only where the result's own directory
 and the gate's root are the same clone (`docs/worktree-guard-spec.md`
 §*Creation consent*, rule 4). A new session is a `/clear`, a new `claude`
@@ -364,10 +364,9 @@ exactly, and the reason `seal mode` writes a row saying a person was asked.
 Question 1's third option never reaches the row: it opens no work item, so
 there is no file to write it in.
 
-**`Automation` is an audit trail, not a gate.** Nothing at the pull request can
-hold a run to it — a session that promised not to stop and then stopped leaves
-no artifact to find. What it buys is that a run which stopped at minute thirty
-has now broken something a reader can point at.
+**`Automation` is held by a gate.** While the row reads `yes`,
+`hooks/question-gate.py` refuses every question on the declared branch but
+question 1 put alone, and `docs/the-review-record.md` §*The run* is the rule.
 
 **The declaration has one more row, and nobody is asked about it.**
 

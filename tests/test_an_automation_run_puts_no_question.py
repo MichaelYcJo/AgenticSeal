@@ -280,6 +280,34 @@ def test_the_gate_is_registered_on_the_question_tool():
     assert commands == [f"python3 {run_group} || py -3 {run_group}"], commands
 
 
+ROOT = os.path.join(HOOKS, "..")
+
+
+def flat(*parts):
+    with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
+        return " ".join(f.read().split())
+
+
+def test_the_prose_points_to_the_gate_and_no_longer_says_nothing_holds_it():
+    """S14: the orchestrator's two documents name the gate, and none of the
+    sentences `spec.md` `## Removes` lists still stands."""
+    skill = flat("skills", "implement", "SKILL.md")
+    first = skill.split("### 1. Read the spec before the code", 1)[1]
+    assert f"`hooks/{GATE}`" in first.split("### 2.", 1)[0]
+    assert f"`hooks/{GATE}`" in flat("skills", "implement", "orchestration.md")
+    for parts, sentence in (
+        (("skills", "implement", "orchestration.md"), "audit trail, not a gate"),
+        (
+            ("skills", "implement", "orchestration.md"),
+            "in the same call as whatever else the resume has to ask",
+        ),
+        (("hooks", "routing.py"), "Nothing gates on it and nothing can"),
+        (("hooks", "routing.py"), "nothing CAN decide one on"),
+        (("templates", "sdd-routing.md"), "can hold a run to it"),
+    ):
+        assert sentence not in flat(*parts), (parts, sentence)
+
+
 def test_the_dispatcher_carries_the_refusal(repo):
     declare(repo)
     r = subprocess.run(
