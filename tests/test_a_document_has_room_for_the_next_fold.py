@@ -221,6 +221,31 @@ def test_the_policy_root_row_moves_every_check_there(tmp_path):
 
 
 @pytest.mark.parametrize(
+    "value, root",
+    [
+        ("policy", "policy"),
+        ("./policy/", "policy"),
+        ("", "docs"),
+        ("/etc", "docs"),
+        ("../elsewhere", "docs"),
+    ],
+)
+def test_the_policy_root_row_reads_as_docs_unless_it_names_a_directory_inside(
+    tmp_path, value, root
+):
+    """`hooks/config.py#policy_root`, the one reader every reader asks: an
+    empty value and one that leaves the repository read as `docs`."""
+    from conftest import load_hook_module
+
+    config = load_hook_module("config.py", "specseal_config_for_policy_root")
+    (tmp_path / "config.md").write_text(
+        f"| Item | Value |\n|---|---|\n| Policy root | {value} |\n", encoding="utf-8"
+    )
+    assert config.policy_root(str(tmp_path)) == root
+    assert config.policy_root("") == "docs"
+
+
+@pytest.mark.parametrize(
     "row, value, says",
     [
         (
