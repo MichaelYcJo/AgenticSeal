@@ -29,8 +29,9 @@ replaces `Enforced by:` in every rule file, the fold markers and their
 readers leave, and the no-change block replaces the em-dash form. Then five
 document groups, each rewritten to the current rule, split where still past
 one read, with the backlog specs of its domain read, their missing decisions
-written in, their rows closed and a no-change block added. Then what can
-leave now leaves, and the proof runs once.
+written in, their rows closed and a no-change block added. The last of them
+removes what can leave now and reads the preload bytes; no paid proof runs
+(owner, `questions.md` Q1).
 
 ## Technical context
 
@@ -110,8 +111,7 @@ from its test; the test's docstring is the rule's source, and `bin/rules
 | 6 | Review and records: `docs/the-review-record.md`, `docs/the-record-layout.md`, `docs/the-reader-registry.md`, `docs/the-agent-set.md`; its backlog | the six of phase 4 | |
 | 7 | Release and tracker: `docs/branch-and-release.md`, `docs/release-checklist.md`, `docs/issues-and-milestones.md`; its backlog | the six of phase 4 | |
 | 8 | Runs, broad gate, pact: `docs/measuring-a-run.md`, `docs/the-broad-gate.md`, `docs/the-pact.md`; its backlog | the six of phase 4 | |
-| 9 | One root: `docs/one-root-by-lifetime.md` and `.ko.md` rewritten to what still rules, split if still past 25000; every backlog spec no group took; the 8 directories removed, each check that reads `seal/specs` answered; `docs/README.md`'s rows final | the six of phase 4; S13's two `--baseline` runs; S15; S11 over all 117 | |
-| 10 | The proof, under `questions.md` Q1: `noninferiority.py run` for framer, smith, warden and sealer on ac83bdf3 and on phase 9's commit, then `compare` | a `pass` record per agent under `evals/` in this directory | |
+| 9 | One root: `docs/one-root-by-lifetime.md` and `.ko.md` rewritten to what still rules, split if still past 25000; every backlog spec no group took; the 8 directories removed, each check that reads `seal/specs` answered; `docs/README.md`'s rows final | the six of phase 4; S13's two `--baseline` runs; S15; S11 over all 117; S16's `wc -c` at ac83bdf3 and here | |
 
 This table is also where the work records how far it got. There is no separate
 task list: a list of tasks is mutable progress, and a stale one asserts a state
@@ -152,5 +152,4 @@ nowhere else. That is tolerable because nothing measures from this column.
 - **The owner's settle after 0.22.3 merges removes about 121 directories**
   (the 117 backlog specs and the 4 no-spec directories whose rows this item
   closes), and owes an answer to each of the 51 checks that read `seal/specs`.
-- **The proof costs money and hours** (`questions.md` Q1).
 - No new dependency, environment variable or migration.

@@ -45,7 +45,11 @@ The policy documents in docs/ outrank this file; cite them, don't restate. -->
 3. **The no-change block.** `nothing — <why>`, with its em dash, is the one
    syntax left in the settle grammar that a near miss trips: the reader
    refuses a hyphen and names the dash. It becomes field words in both places
-   a frame writes it, `## Rule changes` and `## Removes`.
+   a frame writes it, `## Rule changes` and `## Removes`. #1000 also names
+   this form; it is taken here because it shares
+   `unverified_check.py#NOTHING` with the `Enforced by:` form, and #1000 keeps
+   the other two shapes (`none — <why>`, and the sealer's `withheld — ` and
+   `undecided — `).
 4. **Every document under `docs/` states the current rule, once.** Narrated
    history, dated decision sections and issue numbers a sentence can stand
    without leave. A sentence stays only if an agent not editing that
@@ -81,8 +85,10 @@ The policy documents in docs/ outrank this file; cite them, don't restate. -->
    `1790260563`, `1790263216`, `1792126889`, `1792368014`. Each check that
    reads `seal/specs` gets its answer under `skills/settle/SKILL.md`
    *Answer every check that reads the corpus*.
-9. **The non-inferiority proof the issue names**, run as #923's was, once,
-   after the last edit to a preloaded file (`questions.md` Q1).
+9. **The preload is not larger.** No paid non-inferiority run (owner,
+   `questions.md` Q1): the only preload change is the label lines, so rule 4
+   of the proof, preload bytes, is read with `wc -c` on `agents/*.md` and the
+   skills their `skills:` lists inject, at ac83bdf3 and at phase 9's commit.
 
 **Out, and why.**
 
@@ -92,8 +98,9 @@ The policy documents in docs/ outrank this file; cite them, don't restate. -->
 | The prose of `skills/`, `templates/`, `CLAUDE.md`, `CONTRIBUTING.md` | #940's. This item edits those files only where they state a fact it changes: the label, the markers, the no-change spelling, and citations of a `docs/` heading it renames or moves |
 | The layout of `tests/` | #942's. This item edits tests only to add the gate markers, receive a docstring sentence, update or retire a case that pins text it rewrites, and retire the marker and shape readers. #942 moves the files afterwards, and `bin/rules --check` names any `check:` target the move leaves behind |
 | A topic taxonomy for `docs/` | The owner, 2026-10-20: split along a document's own headings, the tree stays flat |
-| `docs/experiments/` | Dated scratch, no policy, and `settle` never writes there. Whether it stays is `questions.md` Q3 |
-| A section sign, a coordinate's `#` and `>`, the changelog's `<!-- specs/<id> -->` lines, and the template headings' arrow outside `docs/` | Syntax a check reads in files this item does not rewrite. Named in `questions.md` Q2 |
+| `docs/experiments/` | Kept as it is (owner, `questions.md` Q3) |
+| A section sign, a coordinate's `#` and `>`, the changelog's `<!-- specs/<id> -->` lines, and the template headings' arrow outside `docs/` | #940 and a later item take them (owner, `questions.md` Q2) |
+| The paid non-inferiority run | Not run (owner, `questions.md` Q1) |
 | `seal/specs/1792449518-*/questions.md` Q2, Q3 and Q4 | #953's own rows |
 | A converter shipped for other repositories | `bin/rules --check` refuses the old label and its refusal names the new spelling; `Operational impact` in `plan.md` says what a consuming repository meets |
 
@@ -116,7 +123,7 @@ The policy documents in docs/ outrank this file; cite them, don't restate. -->
 | S13 what can leave now | Given the 8 directories removed, `unverified_check.py --baseline origin/release/v0.22.3 seal/specs/` and `--baseline origin/main` both name each as settled and exit 0 | both commands |
 | S14 a moved or renamed heading leaves no stale citation | `git grep` of each old heading text outside `seal/` and `changelog/` finds only its new home | grep per renamed heading, listed in the phase record |
 | S15 both editions | `tests/test_both_editions_carry_the_same_folds.py`'s outline arm passes over the rewritten pair | the module |
-| S16 the proof | Under `questions.md` Q1's default, `noninferiority.py compare` writes a `pass` record per agent | the records under `evals/` in this directory |
+| S16 the preload is not larger | `wc -c` over each agent's definition and the skills its `skills:` list injects is no larger at phase 9's commit than at ac83bdf3 | the two readings in `phases/phase-9.md` |
 
 ## Data & interfaces
 
