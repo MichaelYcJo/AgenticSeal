@@ -29,8 +29,8 @@ Under `automation`, a `git worktree add` in a clone the press was not given in p
 
 | Item | Who must answer |
 |---|---|
-| S11 / M1: on Windows a creation in another clone under the press is row 4's deny with nothing stubbed (`test_on_windows_a_creation_in_another_clone_is_row_fours_deny`, skipped off Windows) | the test workflow's Windows shards at the pull request |
-| The full suite, the repository-wide lint and the typecheck | the sealer, after the review rounds settle |
+| closed S11 / M1: on Windows a creation in another clone under the press is row 4's deny with nothing stubbed (`test_on_windows_a_creation_in_another_clone_is_row_fours_deny`, skipped off Windows) | #997's `windows-latest` shards ran `tests/test_a_creation_in_another_clone_asks_nobody.py` green |
+| closed The full suite, the repository-wide lint and the typecheck | #916, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
 
 ## Not done
 

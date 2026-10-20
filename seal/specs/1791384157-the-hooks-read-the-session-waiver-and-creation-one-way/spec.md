@@ -399,6 +399,13 @@ records.
   read again in the branch's fragment* says; the brace rows retired or
   rewritten in place, the fragment being unreleased (S29).
 
+## Rule changes
+
+- nothing
+  why: written: one session reader, one waiver reader and one placement, in
+    docs/the-commit-gate-inside-git.md and docs/worktree-guard-spec.md *Creation consent*;
+    overturned: the brace reader, taken out in its own release, now a known limit.
+
 ## Open questions → questions.md
 
 `questions.md` holds the judgments each frame made from the tree, the

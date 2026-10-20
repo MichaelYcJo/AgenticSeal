@@ -26,8 +26,8 @@ evidence ledger, not here.
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the typecheck | the sealer, spawned by the orchestrator after the review rounds settle |
-| The git-binding case's new forms under CI's gits: a branch named `-x` made by `update-ref`, and `--end-of-options`, which git has read since 2.24 | CI on Ubuntu, macOS and the Windows shards at the pull request |
+| closed The full suite, the repository-wide lint and the typecheck | #855, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
+| closed The git-binding case's new forms under CI's gits: a branch named `-x` made by `update-ref`, and `--end-of-options`, which git has read since 2.24 | #997's `ubuntu-latest`, `macos-latest` and `windows-latest` legs ran `test_no_listed_form_moves_head_under_git` green |
 
 ## Not done
 

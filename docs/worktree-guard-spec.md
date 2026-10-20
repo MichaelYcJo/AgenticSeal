@@ -661,9 +661,23 @@ deny at one prompt.
   consent record and the choice markers sit under the git directory, which
   does not travel, and what travels is in the tree, which the model writes.
   `claude --resume` and compaction go on writing the same transcript, so the
-  press survives them.
-- Under the press a model that does not take the split loops on the choice
-  rows' deny, bounded by the reason's text alone.
+  press survives them. That a `/clear` or a new `claude` start issues a new
+  session id is not observed by any case. The entry shape the reader requires
+  (`toolUseResult` with `questions` and `answers`, and a top-level `cwd`) and
+  the transcript's place were read from one harness on one machine, and a
+  harness that moves either leaves the press unread, so the guard asks.
+  Whether a subagent's payload carries its parent's `transcript_path` or its
+  own is not observed; either reaches the parent's file through the glob.
+- Under the press a model that does not take the way a deny names may
+  re-issue the command, on the choice rows or the tracked-changes row,
+  bounded by the reason's text alone. What it does next, a stash it never pops
+  or a commit on a detached HEAD, is the model's: the guard reads no later
+  command.
+- No case runs the switch arm against a live concurrent session; the cases
+  stub the session count.
+- Every count this document gives, the switches the fallback would have
+  stopped and the six creations, is over this repository's recorded runs on
+  the maintainer's machine. Another person's sessions are not measured.
 - No case observes whether an Agent or Task spawn with
   `isolation: "worktree"` runs `git worktree add`. No git hook judges a
   creation, so the answer moves no verdict, and the PreToolUse arm reads

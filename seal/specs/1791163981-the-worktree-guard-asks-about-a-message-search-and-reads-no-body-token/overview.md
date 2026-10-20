@@ -32,9 +32,9 @@ its fix pass closed each in code.
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the typecheck at this branch's head | the sealer, spawned by the orchestrator after the review rounds (contract §2) |
-| The real-git cases (`a_history`, the message search through `main()`) on Windows, which no machine here runs | CI's Windows job on the pull request |
-| `questions.md` P1, whether the owner's placement of #790 covers the guess from every remote | the owner, at the pull request; the build took default (a) on the orchestrator's relay |
+| closed The full suite, the repository-wide lint and the typecheck at this branch's head | #803, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
+| closed The real-git cases (`a_history`, the message search through `main()`) on Windows, which no machine here runs | its subject left the tree: 3d78c220 (#850) took the message search and its cases out |
+| closed `questions.md` P1, whether the owner's placement of #790 covers the guess from every remote | its subject left the tree: 3d78c220 (#850) took the name lookup out |
 
 ## Not done
 

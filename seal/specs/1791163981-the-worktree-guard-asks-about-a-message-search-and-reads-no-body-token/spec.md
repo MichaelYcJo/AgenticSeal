@@ -272,6 +272,12 @@ so no shell splits them.
   and `0.16.0.md` (M2); `bin/evidence-check --strict .` names the full set
   (`questions.md` W1).
 
+## Rule changes
+
+- nothing
+  why: written: a token in a here-document body is not read, in docs/worktree-guard-spec.md
+    *Choice sites*; overturned: the name lookup and the message search (3d78c220).
+
 ## Open questions → questions.md
 
 Anything a planner must answer lives in questions.md, not inline — unanswered

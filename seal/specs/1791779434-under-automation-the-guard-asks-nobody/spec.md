@@ -273,6 +273,11 @@ red against the base (`c38f97d7`) and the handover says how.
   (S12); the three leads of #624.2 keep their words, and the press sentence
   keeps the first frame's bytes.
 
+## Rule changes
+
+- nothing
+  why: written: the tracked-changes row's two readers, in docs/worktree-guard-spec.md *A*.
+
 ## Open questions → questions.md
 
 P1–P3 (a person); M1–M4 (a measurement); W1–W4 (the work). Each row says
