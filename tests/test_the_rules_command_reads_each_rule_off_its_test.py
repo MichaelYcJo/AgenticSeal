@@ -17,6 +17,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 
 import pytest
 
@@ -434,6 +435,28 @@ def test_a_label_behind_block_markup_is_refused_at_its_line(tmp_path, capsys, ma
     assert refusals[0].startswith("rules: docs/a.md:6: "), out
     assert refusals[0].endswith(f"`{line}` is no check line: {EXPECTED}"), out
     assert "rules: 1 refused in 1 check lines of 1 rule files." in out, out
+
+
+@pytest.mark.parametrize("mark", ["#", "-", "*", ">", "|", "1. ", " "])
+def test_a_long_run_of_markup_with_no_label_is_answered_at_once(mark):
+    """A run of one mark is matched in one way, so a shown line of markup
+    that holds no label is answered in time linear in its length, never in
+    time exponential in it. The child process holds the timeout, so a
+    pattern that backtracks fails this case and does not stall the run."""
+    child = (
+        "import importlib.util, sys\n"
+        "spec = importlib.util.spec_from_file_location('r', sys.argv[1])\n"
+        "r = importlib.util.module_from_spec(spec); spec.loader.exec_module(r)\n"
+        "assert r.NEAR.match(sys.argv[2] * 64 + ' x') is None\n"
+    )
+    done = subprocess.run(
+        [sys.executable, "-c", child, SCRIPT, mark],
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=10,
+    )
+    assert done.returncode == 0, done.stderr
 
 
 @pytest.mark.parametrize(

@@ -57,7 +57,7 @@ LABEL = "check: "
 NO_TARGET = "none reader: "
 # Markdown block markup, one mark: a heading's `#` run, a list bullet or
 # number, a task box, a blockquote's `>`, a table's `|`.
-BLOCK_MARK = r"(?:#{1,6}|[-+*]|[0-9]{1,9}[.)]|\[[ xX]\]|>|\|)"
+BLOCK_MARK = r"(?:#|[-+*]|[0-9]{1,9}[.)]|\[[ xX]\]|>|\|)"
 # What a near miss of the label looks like: the words in any case, with
 # nothing before them but spaces, block markup and emphasis, before a colon
 # with spaces around it. A line whose only content before `check:` is block
