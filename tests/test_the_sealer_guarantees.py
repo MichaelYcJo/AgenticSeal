@@ -242,6 +242,7 @@ NEAR_MISSES = (
     "Verdict: withheld",
     "Verdict: withheld reason:",
     "Verdict: withheld reason:x",
+    "Verdict: withheld reason:  x",
     "Verdict: Sealed",
     "Verdict: **sealed**",
     "**Verdict:** sealed",
@@ -359,6 +360,11 @@ class TestGuarantee:
         commit(root, "two verdicts")
         [(_p, _n, why)] = chain.guarantee(reader, str(root), ITEM, "main")
         assert "2 `Verdict:` lines" in why
+        write(root, rel, guarantee(head, "sealed").replace("Verdict: sealed\n", ""))
+        commit(root, "no verdict")
+        assert chain.guarantee(reader, str(root), ITEM, "main") == [
+            (rel, 0, "0 `Verdict:` lines; the guarantee carries one")
+        ]
         git(root, "rm", "-q", rel)
         commit(root, "no guarantee")
         [(_p, _n, why)] = chain.guarantee(reader, str(root), ITEM, "main")
