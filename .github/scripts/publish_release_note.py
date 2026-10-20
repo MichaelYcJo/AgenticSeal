@@ -187,14 +187,10 @@ def title_from(message, version, tag):
             f"{version} — {found.group(1).strip()}",
             f"the tagged commit's `{TITLE_LABEL}` line",
         )
-    first = next(
-        (
-            line.strip()
-            for line in (message or "").splitlines()
-            if line.strip().lower().startswith(TITLE_LABEL)
-        ),
-        None,
-    )
+    # The search's own line rule: `re.M` ends a line at "\n" alone, so the
+    # line quoted is a line `title_line_re` judged. Any case, any indent.
+    seen = re.search(rf"(?im)^[ \t]*{re.escape(TITLE_LABEL)}.*$", message or "")
+    first = seen.group(0).strip() if seen else None
     said = f"its first is `{first}`" if first else f"it carries no `{TITLE_LABEL}` line"
     expected = f"`{TITLE_LABEL} {version} {SYMPTOMS_LABEL} <the symptoms>`"
     return (
