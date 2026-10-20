@@ -226,6 +226,12 @@ issued from `repo`.
 - No new file, marker, environment variable, payload field or reader. No
   change to `hooks/hooks.json`.
 
+## Rule changes
+
+- nothing
+  why: written: a creation in another clone under the press, in docs/worktree-guard-spec.md
+    *B* and *Choice sites*.
+
 ## Removes
 
 | Removes | Coordinate | Where it lands, or why it can go |

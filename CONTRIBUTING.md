@@ -57,8 +57,8 @@ belong to a release and exit early on any base but `main`. The others run on
 every pull request, and they pass for a different reason — they ask nothing
 of a branch that declared nothing: the review-chain check, the
 unverified-record tally and the issue-claim report. The suite reads one fact
-about the rule files: an `Enforced by:` target your change renamed or removed
-fails it, naming the file, the line and the heading, and `bin/rules --check`
+about the rule files: a `check:` target your change renamed or removed fails
+it, naming the file, the line and the heading, and `bin/rules --check`
 gives the same answer before you push. Each row below gives its own reason,
 and a maintainer adding a CI step should read the row rather than this
 sentence.
@@ -315,8 +315,7 @@ when it arrives.
   same story about what exists. Under `docs/` the outline is checked:
   `tests/test_both_editions_carry_the_same_folds.py` reads every top-level
   `docs/X.ko.md` beside a `docs/X.md` and requires the same sequence of
-  heading levels and, under each heading position, the same fold markers. A
-  fold into one edition is a fold into both.
+  heading levels.
 - **Hooks stay local and quiet.** No writing outside the repo being worked
   on, and failure must never block a tool call. A gate that crashes should
   let the work through, not wedge the session.

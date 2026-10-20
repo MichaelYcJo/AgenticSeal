@@ -250,6 +250,12 @@ every other top-level entry (read: `ls` of both, 2026-10-04). So
 `changelog/` arrives in both with no manifest change, and `plugin.json`
 names no file list to extend.
 
+## Rule changes
+
+- nothing
+  why: written: the release's own file under changelog/ and the index, in
+    docs/branch-and-release.md and docs/the-record-layout.md.
+
 ## Open questions → questions.md
 
 Nothing here blocks the build. D1, D2, D5 and D6 are listed there as

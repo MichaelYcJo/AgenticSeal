@@ -37,7 +37,6 @@ ROWS = (
     "Mode",
     "Broad gate",
     # The fold's values, read by `fold-check` (#566, #953).
-    "Fold shape from",
     "Document token ceiling",
     "Policy root",
     # The reference roots (#688), missing from the skill until #647 counted

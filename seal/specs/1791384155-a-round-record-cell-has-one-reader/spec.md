@@ -377,6 +377,12 @@ drifts with `evidence-check --reverify --into seal/ledger/<this item>.md
 (the rows on location_units, pull_request_is_ready and draft_env, and any row
 that states the panel reads `startswith`).
 
+## Rule changes
+
+- nothing
+  why: written: one reader of a round record, in docs/the-review-record.md *The round
+    record*; overturned: the cells and the generator, rewritten at 8350c578.
+
 ## Open questions → questions.md
 
 No row needs a person. `questions.md` holds the judgments the issue left open

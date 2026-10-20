@@ -222,6 +222,12 @@ case does.
   paragraph the new record carries, or none; `evals/README.md` states the
   generators' usage as it is, with no `--list`.
 
+## Rule changes
+
+- nothing
+  why: written: the record's grammar stated once, in docs/the-review-record.md *The round
+    record*; overturned: the census and the stamps it removed.
+
 ## Removes
 
 | Removes | Coordinate | Where it lands, or why it can go |

@@ -407,6 +407,12 @@ left them; `test_two_files_in_one_turn_are_under_the_budget_together`;
   and by hand where a claim is false; the fragment's existing corrected
   rows rewritten in place for the open layout.
 
+## Rule changes
+
+- nothing
+  why: written: the release seal drawn from the SVG, in docs/branch-and-release.md, and the
+    28-cell stamp, in docs/the-review-record.md.
+
 ## Open questions → questions.md
 
 Q1 and Q8 are history (the owner's decisions 3–6 supersede each other in

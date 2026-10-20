@@ -30,8 +30,8 @@ fold's text, and leaves the removed row out.
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the typecheck | the sealer, once, after the review rounds settle |
-| Windows and Linux: only macOS was run | the three-OS matrix in `test.yml` at the pull request |
+| closed The full suite, the repository-wide lint and the typecheck | #609, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
+| closed Windows and Linux: only macOS was run | #609's `ubuntu-latest` and `windows-latest` legs ran the suite green |
 
 ## Not done
 

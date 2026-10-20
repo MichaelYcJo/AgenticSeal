@@ -1,36 +1,35 @@
 #!/usr/bin/env python3
-"""rules — a document's sections with what their tests guard, or every target checked.
+"""rules: a document's sections with what their tests guard, or every check line read.
 
   rules <doc>               every heading of DOC, and under each the targets
-                            of its `Enforced by:` lines, each with the first
+                            of its `check:` lines, each with the first
                             sentence of its docstring, resolved in the
                             repository the current directory is in
-  rules --check             every `Enforced by:` target in every rule file
-                            resolved, each one that does not named
+  rules --check             every `check:` line in every rule file read, and
+                            each one that is out of grammar or names a target
+                            that does not resolve named
   rules ... --root DIR      resolve in DIR instead
 
 A rule's text lives once, as the first sentence of the docstring of the test
-that holds it, and a document lists its tests by `Enforced by:`. `rules <doc>`
+that holds it, and a rule file lists its tests by `check:` line. `rules <doc>`
 prints the two together so the whole picture reads without a second copy:
 nothing is written, committed or generated, because a committed copy would be
 a second source and a file every branch rewrites.
 
-`rules --check` reads every rule file `RULE_FILES` names and every `Enforced
-by:` line a renderer shows in it, inside a rule paragraph or not, and resolves
-each target. A target is a file, a `path::name` unit its Python file defines
-once (`skills/settle/scripts/fold_check.py#target_problem`, the one resolver),
-or an eval case directory, `evals/behaviour/<agent>/<case>/`, which resolves
-where it holds `case.yaml`. `nothing — <why>` names no target. One suite case
-runs it over the tree, so it is read wherever the suite runs.
+The grammar of the line is `skills/settle/SKILL.md` *A rule has one shape*,
+and this module is its one reader. `rules --check` reads every rule file
+`RULE_FILES` names and every line a renderer shows in it, inside a rule
+paragraph or not. One suite case runs it over the tree, so it is read wherever
+the suite runs.
 
 **How it errs:** it cannot tell a test that exists from one that asserts the
-rule, and a rule written with no `Enforced by:` line is read by nobody.
+rule, and a rule written with no `check:` line is read by nobody.
 
-Exit codes: `rules <doc>` **0** the document was read, whatever its targets
-are · `rules --check` **0** every target resolves · **1** a target does not
-resolve, each named as `path:line §*heading*: why` · **2** for either: a file
-it had to read cannot be read, a module it reads through is not in the tree,
-or neither or both of DOC and `--check` were given.
+Exit codes: `rules <doc>` 0 the document was read, whatever its lines say.
+`rules --check` 0 every line holds, 1 a line is refused, each named as
+`rules: path:line: heading: why`. 2 for either: a file it had to read cannot
+be read, a module it reads through is not in the tree, or neither or both of
+DOC and `--check` were given.
 """
 
 import argparse
@@ -44,9 +43,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 SENTENCE = re.compile(r"(.+?[.!?])(?:\s|$)")
-DEFINITIONS = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
-RULE_CLOSER = "Enforced by:"
-# Where a rule is stated, and so where an `Enforced by:` line is read.
+# Where a rule is stated, and so where a `check:` line is read.
 RULE_FILES = (
     "CLAUDE.md",
     "CONTRIBUTING.md",
@@ -56,13 +53,27 @@ RULE_FILES = (
     "skills/*/orchestration.md",
     "templates/*.md",
 )
-# The one target `fold_check.py#target_problem` does not read: an eval case,
-# `evals/behaviour/<agent>/<case>/`, which resolves where this file is in it.
+LABEL = "check: "
+NO_TARGET = "none reader: "
+# Markdown block markup, one mark: a heading's `#` run, a list bullet or
+# number, a task box, a blockquote's `>`, a table's `|`.
+BLOCK_MARK = r"(?:#|[-+*]|[0-9]{1,9}[.)]|\[[ xX]\]|>|\|)"
+# What a near miss of the label looks like: the words in any case, with
+# nothing before them but spaces, block markup and emphasis, before a colon
+# with spaces around it. A line whose only content before `check:` is block
+# markup is refused at its line; only the exact shape is read.
+NEAR = re.compile(
+    rf"^(?:\s|{BLOCK_MARK})*[*_]*\s*(?:checks?|enforced\s+by)\s*[*_]*\s*:",
+    re.IGNORECASE,
+)
+REFUSED_IN_VALUE = ("::", ",", "—")
+MARKER = re.compile(r"[a-z0-9-]+")
 EVAL_CASES = "evals/behaviour/"
 EVAL_CASE = "case.yaml"
+EXPECTED = f"`{LABEL}<targets>` or `{LABEL}{NO_TARGET}<who reads it>`"
 
 # The modules this reads through, each the one reader of its input: the GFM
-# line walker, the fence and comment rule, and the resolver of a target.
+# line walker, the fence and comment rule, and the resolver of the repository.
 SIBLINGS = {
     "unverified_check": (
         os.path.join("skills", "verify", "scripts", "unverified_check.py"),
@@ -72,9 +83,9 @@ SIBLINGS = {
         os.path.join("hooks", "config.py"),
         "it is what says which lines a fence or a comment hides",
     ),
-    "fold_check": (
-        os.path.join("skills", "settle", "scripts", "fold_check.py"),
-        "it is the one resolver of an `Enforced by:` target",
+    "optin": (
+        os.path.join("hooks", "optin.py"),
+        "it is what finds the repository the command is typed in",
     ),
 }
 
@@ -118,14 +129,39 @@ def shown_lines(text):
     return out
 
 
-def enforcer_lines(text):
-    """`[(line number, heading, value)]` for every `Enforced by:` line one
-    markdown document shows, inside a rule paragraph or not."""
+def check_lines(text):
+    """`[(line number, heading, line)]` for every shown line of one markdown
+    document that is a `check:` line or a near miss of one, the line with its
+    ends stripped."""
     return [
-        (index + 1, heading, line.strip()[len(RULE_CLOSER) :].strip())
+        (index + 1, heading, line.strip())
         for index, (line, visible, heading) in enumerate(shown_lines(text))
-        if visible and line.strip().startswith(RULE_CLOSER)
+        if visible and NEAR.match(line)
     ]
+
+
+def parse(line):
+    """`(targets, reader, why)` for one stripped check line: the targets it
+    names, or the reader of a no-target line, or why it is refused."""
+    if not line.startswith(LABEL):
+        return [], None, f"`{line}` is no check line: write {EXPECTED}"
+    value = line[len(LABEL) :]
+    for symbol in REFUSED_IN_VALUE:
+        if symbol in value:
+            return [], None, f"`{symbol}` is no part of a check line: write {EXPECTED}"
+    if value == "none" or value.startswith("none "):
+        reader = value[len(NO_TARGET) :]
+        if not value.startswith(NO_TARGET) or not reader or reader != reader.strip():
+            return (
+                [],
+                None,
+                f"a line naming no target names its reader: write {EXPECTED}",
+            )
+        return [], reader, None
+    targets = value.split(" ")
+    if not all(targets):
+        return [], None, "targets are separated by one space"
+    return targets, None, None
 
 
 def rule_files(root):
@@ -141,68 +177,141 @@ def rule_files(root):
     return out
 
 
-def targets_of(value):
-    """The targets an `Enforced by:` value names, none where it says
-    `nothing — <why>` — read by `fold_check.py#names_targets`, so `rules` and
-    `fold-check` split one line alike."""
-    if not sibling("fold_check").names_targets(value):
-        return []
-    return value.split(",")
+def carried_by(decorator):
+    """The marker name a `@pytest.mark.rule("<name>")` decorator carries, or
+    None for any other decorator."""
+    if not (isinstance(decorator, ast.Call) and len(decorator.args) == 1):
+        return None
+    func, arg = decorator.func, decorator.args[0]
+    spelled = []
+    while isinstance(func, ast.Attribute):
+        spelled.insert(0, func.attr)
+        func = func.value
+    if not isinstance(func, ast.Name) or [func.id, *spelled] != [
+        "pytest",
+        "mark",
+        "rule",
+    ]:
+        return None
+    if isinstance(arg, ast.Constant) and isinstance(arg.value, str):
+        return arg.value
+    return None
+
+
+_markers = {}
+
+
+def markers(root):
+    """`{marker: [(test file, qualified name, docstring)]}` for every test
+    under `root` that carries `@pytest.mark.rule("<marker>")`, read once per
+    root. A test file is a `test_*.py` outside a directory whose name starts
+    with a dot; one that does not parse is Unreadable."""
+    if root in _markers:
+        return _markers[root]
+    found = {}
+    for top, dirs, files in os.walk(root):
+        dirs[:] = sorted(d for d in dirs if not d.startswith("."))
+        for name in sorted(files):
+            if not (name.startswith("test_") and name.endswith(".py")):
+                continue
+            path = os.path.join(top, name)
+            rel = os.path.relpath(path, root).replace(os.sep, "/")
+            try:
+                with open(path, encoding="utf-8") as handle:
+                    text = handle.read()
+                if "mark.rule(" not in text:
+                    continue
+                tree = ast.parse(text)
+            except (OSError, ValueError, SyntaxError) as error:
+                raise Unreadable(
+                    f"{rel} could not be read as Python ({type(error).__name__})"
+                ) from None
+            for qualified, node in definitions(tree):
+                for decorator in node.decorator_list:
+                    marker = carried_by(decorator)
+                    if marker is not None:
+                        doc = ast.get_docstring(node)
+                        found.setdefault(marker, []).append((rel, qualified, doc))
+    _markers[root] = found
+    return found
+
+
+def definitions(tree, prefix=""):
+    """`(qualified name, node)` for every function and class in TREE, a
+    method named `Class.method`: into an `if`, a `try` or a `with`, as pytest
+    collects, and never into a function's body."""
+    for node in ast.iter_child_nodes(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            yield prefix + node.name, node
+            if isinstance(node, ast.ClassDef):
+                yield from definitions(node, f"{prefix}{node.name}.")
+        elif not isinstance(node, ast.expr):
+            yield from definitions(node, prefix)
 
 
 def target_problem(root, target):
-    """Why one `Enforced by:` target does not resolve in the tree at `root`,
-    or None where it does. An eval case directory, `evals/behaviour/<agent>/
-    <case>/` with its slash, resolves where it holds `case.yaml`; every other
-    target is `fold_check.py#target_problem`'s, and a Python file it cannot
-    parse is Unreadable."""
-    cell = target.strip().strip("`")
-    if cell.startswith(EVAL_CASES) and cell.endswith("/"):
-        parts = cell[len(EVAL_CASES) : -1].split("/")
-        if len(parts) < 2 or not all(parts):
-            return f"{cell} is no eval case: write `{EVAL_CASES}<agent>/<case>/`"
-        base = os.path.realpath(root)
-        full = os.path.realpath(os.path.join(base, *cell[:-1].split("/")))
+    """Why one target does not resolve in the tree at `root`, or None where
+    it does: a marker some test carries, an eval case directory holding
+    `case.yaml`, or a file inside the repository."""
+    if MARKER.fullmatch(target):
+        if markers(root).get(target):
+            return None
+        return f"no test carries the marker `{target}`"
+    base = os.path.realpath(root)
+    if target.startswith(EVAL_CASES) and target.endswith("/"):
+        parts = target[len(EVAL_CASES) : -1].split("/")
+        if len(parts) != 2 or not all(parts):
+            return f"{target} is no eval case: write `{EVAL_CASES}<agent>/<case>/`"
+        full = os.path.realpath(os.path.join(base, *target[:-1].split("/")))
         if os.path.commonpath([full, base]) != base:
-            return f"{cell} is not a path inside the repository"
+            return f"{target} is not a path inside the repository"
         if not os.path.isfile(os.path.join(full, EVAL_CASE)):
-            return f"{cell} holds no {EVAL_CASE}"
+            return f"{target} holds no {EVAL_CASE}"
         return None
-    fold_check = sibling("fold_check")
-    try:
-        return fold_check.target_problem(root, cell)
-    except fold_check.Unusable as error:
-        raise Unreadable(f"a target {error}") from None
+    # Both sides through `realpath`, so a symlink inside the root that opens a
+    # file outside it is outside, and a root reached through one is itself.
+    full = os.path.realpath(os.path.join(base, *target.split("/")))
+    if os.path.commonpath([full, base]) != base:
+        return f"{target} is not a path inside the repository"
+    if not os.path.exists(full):
+        return f"{target} does not exist"
+    if not os.path.isfile(full):
+        return f"{target} is not a file in the repository"
+    return None
+
+
+def line_problems(root, line):
+    """Every reason one stripped check line is refused, empty where it holds."""
+    targets, _reader, why = parse(line)
+    if why:
+        return [why]
+    return [p for p in (target_problem(root, t) for t in targets) if p]
 
 
 def unresolved(root):
-    """`(failures, files, targets)`: each `Enforced by:` target in the rule
-    files at `root` that does not resolve, as `path:line §*heading*: why`,
-    and how many rule files and targets were read."""
+    """`(failures, files, lines)`: each refusal in the rule files at `root`,
+    as `path:line: heading: why`, and how many rule files and check lines
+    were read."""
     found, read, files = [], 0, rule_files(root)
     for path, text in files.items():
-        for number, heading, value in enforcer_lines(text):
-            for target in targets_of(value):
-                read += 1
-                problem = target_problem(root, target)
-                if problem:
-                    found.append(f"{path}:{number} §*{heading}*: {problem}")
+        for number, heading, line in check_lines(text):
+            read += 1
+            for problem in line_problems(root, line):
+                found.append(f"{path}:{number}: {heading}: {problem}")
     return found, len(files), read
 
 
 def check(root):
-    """Print each target that does not resolve and the count read; the exit
-    code is the verdict."""
-    found, files, targets = unresolved(root)
+    """Print each refusal and the count read; the exit code is the verdict."""
+    found, files, lines = unresolved(root)
     for failure in found:
         print(f"rules: {failure}")
     if found:
         print(
-            f"rules: {len(found)} of {targets} `Enforced by:` targets in "
-            f"{files} rule files do not resolve."
+            f"rules: {len(found)} refused in {lines} check lines of {files} rule files."
         )
         return 1
-    print(f"rules: all {targets} `Enforced by:` targets in {files} rule files resolve.")
+    print(f"rules: all {lines} check lines in {files} rule files hold.")
     return 0
 
 
@@ -214,84 +323,64 @@ def first_sentence(doc):
     return found.group(1) if found else paragraph
 
 
-def docstring(root, target):
-    """The docstring a resolved target carries: a `path::name` unit's, a
-    Python file's module docstring, or None where it has none or is no
-    Python.
-
-    The unit is the one the resolver found. `coordinates.py#py_spans` walks
-    the file as `coordinates.py#named_unit` does, into an `if`, a `try` or a
-    `with` and never into another `def`, so its one span for the name is the
-    unit `target_problem` accepted, and the definition read is the one that
-    starts and ends there."""
-    path, _, name = target.strip().strip("`").partition("::")
-    if not path.endswith(".py"):
-        return None
-    with open(os.path.join(root, *path.split("/")), encoding="utf-8") as handle:
-        text = handle.read()
-    tree = ast.parse(text)
-    if not name:
-        return ast.get_docstring(tree)
-    kernel = sibling("fold_check").coordinates()
-    places = (kernel.py_spans(text) or {}).get(".".join(name.split("::")), [])
-    if len(places) != 1:
-        return None
-    for node in ast.walk(tree):
-        if (
-            isinstance(node, DEFINITIONS)
-            and (
-                min([node.lineno] + [d.lineno for d in node.decorator_list]),
-                node.end_lineno,
-            )
-            == places[0]
-        ):
-            return ast.get_docstring(node)
-    return None
+def said(doc):
+    """What one docstring says it guards, in one line."""
+    return first_sentence(doc) if doc else "(no docstring)"
 
 
 def describe(root, target):
-    """One printed line for one target: what its docstring says it guards,
+    """The printed lines for one target: what its docstring says it guards,
     or why it says nothing."""
-    cell = target.strip().strip("`")
     try:
-        problem = target_problem(root, cell)
+        problem = target_problem(root, target)
     except Unreadable as error:
-        return f"{cell} — does not resolve: {error}"
+        return [f"{target}: does not resolve: {error}"]
     if problem:
-        return f"{cell} — does not resolve: {problem}"
-    if cell.startswith(EVAL_CASES):
-        return f"{cell} — an eval case"
+        return [f"{target}: does not resolve: {problem}"]
+    if MARKER.fullmatch(target):
+        return [
+            f"{target}: {path} {name}: {said(doc)}"
+            for path, name, doc in markers(root)[target]
+        ]
+    if target.startswith(EVAL_CASES):
+        return [f"{target}: an eval case"]
+    if not target.endswith(".py"):
+        return [f"{target}: (no docstring)"]
     try:
-        doc = docstring(root, cell)
+        with open(os.path.join(root, *target.split("/")), encoding="utf-8") as handle:
+            doc = ast.get_docstring(ast.parse(handle.read()))
     except (OSError, ValueError, SyntaxError):
-        return f"{cell} — (cannot be read as Python)"
-    return f"{cell} — {first_sentence(doc) if doc else '(no docstring)'}"
+        return [f"{target}: (cannot be read as Python)"]
+    return [f"{target}: {said(doc)}"]
 
 
 def render(root, text):
     """The printed walk of one document: each heading, and under it each
-    `Enforced by:` line's targets described, or a line saying it has none."""
+    check line's targets described, or a line saying it has none."""
     out, heading, held = [], None, False
+    by_number = {number: line for number, _, line in check_lines(text)}
+    reader = sibling("unverified_check")
     for number, (line, visible, _) in enumerate(shown_lines(text), 1):
         stripped = line.strip()
-        level = sibling("unverified_check").heading_level(line)
-        if visible and level is not None:
+        if visible and reader.heading_level(line) is not None:
             if heading is not None and not held:
-                out.append("  (no `Enforced by:` line)")
+                out.append("  (no check line)")
             out += ["", stripped]
             heading, held = stripped, False
             continue
-        if not visible or not stripped.startswith(RULE_CLOSER):
+        if number not in by_number:
             continue
         held = True
-        value = stripped[len(RULE_CLOSER) :].strip()
-        targets = targets_of(value)
-        out.append(f"  Enforced by, line {number}:")
-        if not targets:
-            out.append(f"    {value}")
-        out += [f"    {describe(root, target)}" for target in targets]
+        targets, who, why = parse(by_number[number])
+        out.append(f"  check, line {number}:")
+        if why:
+            out.append(f"    refused: {why}")
+        elif who is not None:
+            out.append(f"    no target, read by {who}")
+        for target in targets:
+            out += [f"    {each}" for each in describe(root, target)]
     if heading is not None and not held:
-        out.append("  (no `Enforced by:` line)")
+        out.append("  (no check line)")
     return "\n".join(out).lstrip("\n") + "\n"
 
 
@@ -303,7 +392,7 @@ def main(argv=None):
     parser.add_argument(
         "--check",
         action="store_true",
-        help="resolve every `Enforced by:` target in every rule file",
+        help="read every `check:` line in every rule file",
     )
     parser.add_argument(
         "--root", default=None, help="the repository to resolve in (default: cwd)"
@@ -318,7 +407,7 @@ def main(argv=None):
             # Typed anywhere inside a repository, the command reads that
             # repository, as `fold-check` does. `bin/` is on a user's PATH,
             # and the tree this script ships in is the plugin's, not theirs.
-            root = sibling("fold_check").optin().repo_root(root) or root
+            root = sibling("optin").repo_root(root) or root
         if args.check:
             return check(root)
         path = args.doc

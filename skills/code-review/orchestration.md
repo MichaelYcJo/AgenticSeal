@@ -57,7 +57,7 @@ finding named, and the fact the finding was about is usually stated in more
 than one place, so the other statements survive and arrive as a later round —
 that is contract §12. The fix pass finds them: for each rule its range
 reworded or removed, every other place stating it is found by its words and
-by the `Enforced by:` target that holds it, and corrected, or named in the
+by the `check:` target that holds it, and corrected, or named in the
 hand-back with why it stands. The round that follows reads that list against
 the diff.
 

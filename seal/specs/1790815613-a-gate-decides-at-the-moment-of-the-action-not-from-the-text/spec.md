@@ -399,6 +399,13 @@ name the test file each lands in.
   unit goes and writes this item's fragment; rows whose unit survives (the
   dispatcher, the press reader, the tokens) are re-read in place.
 
+## Rule changes
+
+- nothing
+  why: written: the commit judged inside git, in docs/the-commit-gate-inside-git.md;
+    overturned: the post-checkout half, by its own P6 answer, which keeps a
+    creation on the frozen text reading; internal: the measurements, its records.
+
 ## Open questions → questions.md
 
 Four for a person (P1–P4), eleven measurements (M1–M11), six for the work

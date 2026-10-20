@@ -165,6 +165,13 @@ where it names the spawn), `skills/verify/SKILL.md` (one sentence),
 `seal/specs/<id>/changelog.md`, `seal/ledger/<id>.md`, `seal/specs/<id>/overview.md`,
 `seal/specs/<id>/phases/phase-N.md`.
 
+## Rule changes
+
+- nothing
+  why: internal: the preflight's record arms, held by
+    tests/test_the_seal_is_taken_once_by_the_sealer.py; overturned: the ledger arm, at
+    5b1f6fae, and round_record.py, at 8350c578.
+
 ## Open questions → questions.md
 
 Anything a planner must answer lives in questions.md, not inline —

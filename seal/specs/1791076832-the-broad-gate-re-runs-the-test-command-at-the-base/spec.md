@@ -172,6 +172,12 @@ says so when it cannot find one.**
   `evidence-check --reverify --into <that fragment>`, with the false sentence
   corrected there.
 
+## Rule changes
+
+- nothing
+  why: internal: the base re-run takes the part of the row that runs the tests, held by
+    tests/test_the_seal_is_taken_once_by_the_sealer.py.
+
 ## Open questions → questions.md
 
 `questions.md` beside this file: the judgments this frame made that a person

@@ -380,6 +380,12 @@ repeated in the pull request.
   `tests/test_a_rider_reaches_its_file.py`. Whichever lands first, the other is
   merged hunk by hunk (Q6).
 
+## Rule changes
+
+- nothing
+  why: written: the declaring readers' answer, in docs/the-record-layout.md *Whether a line
+    is live is asked by what the line does*; internal: the walk, held by its tests.
+
 ## Open questions → questions.md
 
 One row needs a person: Q1, whether the suite may take `markdown-it-py`. Q2, Q3 and

@@ -11,16 +11,16 @@ Coding agents make claims. SpecSeal makes each claim leave something you can
 open: a **hand-back** in which each agent labels every claim `executed`,
 `read` or `unverified` and names who answers what it did not run, a
 **review mark** (`.git/specseal-reviewed`, holding the reviewed HEAD sha) that
-a commit hook looks for, and an **`Enforced by:` line** under each rule a
-policy document states, naming the test that holds it.
+a commit hook looks for, and a **`check:` line** under each rule a policy
+document states, naming the test that holds it.
 
 Commit without a current review mark and the hook stops the commit and puts the
-choice in front of you. Point a folded rule's `Enforced by:` line at a test
-that does not exist and `fold-check` exits non-zero. Neither is a wall — both
+choice in front of you. Point a rule's `check:` line at a test that does not
+exist and `rules --check` exits non-zero. Neither is a wall — both
 are a record you have to walk past knowingly.
 
 Distributed as a Claude Code **plugin**; the handoff protocol and
-`fold-check` work anywhere git does.
+`rules --check` work anywhere git does.
 
 ## Why the always-on context is 12 lines
 
@@ -142,12 +142,12 @@ pull request and the handoff to an agent are specified in
 [docs/the-review-record.md](./docs/the-review-record.md).
 
 **A rule names the test that holds it.** A rule a policy document states ends
-with an `Enforced by:` line naming a test as pytest spells its node id
-(`tests/test_x.py::test_y`), a unit, or a file, and CI running the suite is
-the check that the rule still holds. `fold-check` reads the statements
-`settle` folds into `docs/` and exits non-zero on a target that does not
-exist. A rule no test can hold says `Enforced by: nothing — <why>`, which
-leaves the gap where a reviewer reads it. What this proves is narrow and worth
+with a `check:` line naming the test files that hold it, or a marker its
+tests carry, and CI running the suite is the check that the rule still
+holds. `rules --check` reads every such line and exits non-zero on a target
+that does not exist. A rule no test can hold says
+`check: none reader: <who reads it>`, which leaves the gap where a reviewer
+reads it. What this proves is narrow and worth
 stating: that a named test exists and passes, not that it asserts the whole
 rule. That half is the review's.
 
@@ -261,8 +261,8 @@ wrong for every other machine.
 | `session-cost --latest` | where a session's minutes went — command time, model time between calls, checks re-run for a result already produced, and how many tools went out per turn — numbers nothing inside a session can measure |
 | `session-cost --segments <transcript>` | one row per agent the run spawned, read from that agent's own transcript: its span, calls, tools per turn, mean gap and tokens. That span is in no other column — where a harness writes a spawn's result on acceptance, the `--spawns` table reads seconds for an agent that ran twenty minutes. A resumed agent is one row per stretch of work, so no span covers the wait between two of them — whether the command is given the run's transcript or that agent's own — and a segment that spawned an agent of its own prints a line saying so. Under the table it names each row whose tools per turn sit under its kind's bar — a warden's or a framer's; a smith's edit-test loop is exempt — and counts the rows it could not grade |
 | `settle [--apply]` | the dry run: the `## Rule changes` each released spec states, in merge order, what it refuses and what `--apply` would remove. `--apply` writes those changes into `docs/` in place, the later spec winning, and removes each applied spec's directory whole; a spec it cannot place applies nothing and stays. A released directory with no `spec.md` and nothing open in its record goes too. A record closed on this branch but still open where `--released-at` and `HEAD` meet keeps its directory: CI asks there too until `--released-at` moves on past that commit, and once it has, `settle` names the merge that brings the closure here |
-| `fold-check [--shape-from <id>] [--ceiling <n>]` | checks the top level of the policy root for a rule's shape, one read and the index, as `skills/settle/scripts/fold_check.py` and its rows in `templates/config.md` §*The fold's values* state them. A flag replaces its row for one run, so `--shape-from 0` lists every statement still missing the shape |
-| `rules <doc> [--root <dir>]` · `rules --check [--root <dir>]` | `rules <doc>` prints each heading of a document and, under it, the targets of its `Enforced by:` lines, each with the first sentence of its test's docstring, or why the target does not resolve. A rule's text lives once, in that docstring, so this is how a document and its tests read side by side, and it exits 0 whatever it finds. `rules --check` resolves every target in every rule file and exits 1 naming each one that is gone, by file, line and heading; one case of the suite runs it over the tree. The targets resolve in the repository the command is typed in, and neither form writes anything |
+| `fold-check [--ceiling <n>]` | checks the top level of the policy root for one read and the index, as `skills/settle/scripts/fold_check.py` and its rows in `templates/config.md` §*The fold's values* state them. The flag replaces its row for one run |
+| `rules <doc> [--root <dir>]` · `rules --check [--root <dir>]` | `rules <doc>` prints each heading of a document and, under it, the targets of its `check:` lines, each with the first sentence of its test's docstring, or why the target does not resolve. A rule's text lives once, in that docstring, so this is how a document and its tests read side by side, and it exits 0 whatever it finds. `rules --check` reads every check line in every rule file and exits 1 naming each one out of grammar or naming a target that is gone, by file, line and heading; one case of the suite runs it over the tree. The targets resolve in the repository the command is typed in, and neither form writes anything |
 | `pact-check [ROOT]` | run at the repository holding a pact (`seal/pact.md`), the one copy of a contract several repositories keep together: reads every signer the pact lists, found through `~/.claude/specseal/pact-paths.md` or a sibling checkout, checks that each names the pact in its `Pact` row, and grades every pact anchor it cites. `SUPERSEDED` says the signer was built against an older clause, `NOT TAKEN` names the branch holding a change the pact has not taken, `UNMATCHED` and `BROKEN` say read both sides or re-coordinate. Local only: a signer's CI can read one repository, so it prints the relationship and verifies nothing |
 | `payload-meter [--calibrate <main transcript>] [--baseline <run.json>]` | what each agent's startup payload is made of — its definition, every skill its `skills:` list injects, and the two `CLAUDE.md` files — in bytes, chars and tokens, with a basis on every token figure: `measured` where it came from a transcript's spawns, `estimated` from a per-agent ratio otherwise. `--baseline` prints the delta against an earlier `--json` run, which is how a trimmed payload is shown to have shrunk |
 | `/specseal:preset-setup` | approval-gated semantic merge of the CLAUDE.md block |
@@ -593,9 +593,10 @@ What this does not do is as load-bearing as what it does.
   command skips it outright. It is a speed bump for an agent about to commit
   unreviewed work, not a security control — anyone who can answer a prompt can
   commit.
-- **`fold-check` proves a named test exists, not that it asserts the rule.**
+- **`rules --check` proves a named test exists, not that it asserts the rule.**
   A target that resolves while the test checks something else reads clean,
-  and a rule written as `nothing — <why>` is held by nobody.
+  and a rule written as `check: none reader: <who>` is held by its reader
+  alone.
 - **"Broad and once" is a rule the agents follow, not a gate.** Nothing stops
   a session from running the full suite mid-round; what exists is the
   instruction, the warden's audit of the smith's labels, and `broad-gate.md`, which

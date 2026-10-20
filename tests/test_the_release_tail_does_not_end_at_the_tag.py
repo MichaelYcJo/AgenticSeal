@@ -241,9 +241,9 @@ def squash_rule():
     part of the document does not satisfy these assertions.
     """
     text = read(BRANCHING)
-    start = text.index("**What breaks when the last row is squashed**")
+    start = text.index("**What breaks when the last row is squashed.**")
     rest = text[start:]
-    end = rest.index("**This is enforced, and it was not always.**")
+    end = rest.index("**Two rulesets enforce the merge methods.**")
     return flat(rest[:end])
 
 
@@ -252,7 +252,7 @@ def test_an_outside_directory_is_in_the_enumeration():
     both of which this repository can repair. The third reader cannot be
     repaired from here, which is the whole reason it is worth writing down."""
     rule = squash_rule()
-    assert "A third reader points at those commits now" in rule, (
+    assert "A third reader of those commits is outside this repository" in rule, (
         f"{BRANCHING}'s squash rule no longer names the reader that arrived "
         "from outside the repository"
     )
@@ -261,7 +261,7 @@ def test_an_outside_directory_is_in_the_enumeration():
         "the enumeration says a directory is a reader without saying what it "
         "pins, which is the fact that makes it one"
     )
-    assert "docs/release-checklist.md` §6" in rule, (
+    assert "docs/release-checklist.md` *6. After the merge*" in rule, (
         "nothing points from the rule to the box that reads what is pinned"
     )
     # Round 1's 🟡 4: the record line closing this paragraph's fold said a
@@ -307,15 +307,14 @@ def test_the_fixed_name_sentence_sits_beside_it():
 def release_tail_rule():
     """The standing statement the second fold wrote for this work item.
 
-    From its fold marker in §*Cutting a release* to the next `###` heading, so
-    the third-reader paragraph further down, which carries the same marker,
-    is not read as part of it.
+    From its opening in §*Cutting a release* to the next `###` heading, so
+    the third-reader paragraph further down is not read as part of it.
     """
     text = read(BRANCHING)
-    marker = (
-        "<!-- specs/1790076050-the-release-tail-is-three-acts-no-document-names -->"
+    start = text.index(
+        "**Every act the release performs once it reaches `main` belongs to a "
+        "machine or\nto a command that answers it"
     )
-    start = text.index(marker) + len(marker)
     rest = text[start:]
     return flat(rest[: rest.index("### Work accumulates on a release branch")])
 

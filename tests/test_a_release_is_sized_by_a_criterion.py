@@ -196,7 +196,7 @@ def test_the_two_releases_are_cited_without_a_version_number():
         "the release that replaced the deleted checklist with a gate",
     ):
         assert citation in doc, f"{OWNER} no longer cites {citation!r}"
-    assert "named rather than numbered on purpose" in doc, (
+    assert "named rather than numbered, so the description reads the same" in doc, (
         "without this note a later author, for whom both numbers have become "
         "history, replaces the descriptions with numbers and is right to"
     )

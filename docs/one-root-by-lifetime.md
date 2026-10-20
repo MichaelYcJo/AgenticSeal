@@ -1,308 +1,100 @@
-# One plugin-owned root, laid out by lifetime
+# One root, laid out by lifetime
 
 *English · [한국어](./one-root-by-lifetime.ko.md)*
 
-The design 0.4.0 starts from, gathered from issue #74 and the ten comments
-under it (2026-09-02, after the previous release shipped), plus the decisions the owner took
-after the thread while this document was reviewed: the opt-in is the root's
-presence, a work item's directory is removed only once a later `settle`
-step has folded it into `docs/`, and 0.4.0 itself deletes nothing. Nothing here is for 0.3.x. Every name below is a placeholder until
-the owner decides it; where the thread leaned one way, the text says
-*recommended* and the reason. What is decided and what is still open are
-both collected at the end.
+Everything this plugin keeps in a repository sits under one root it owns,
+`seal/`, and what sits there is sorted by how long it lives. This document
+says where that root is, what opts a repository in, what first setup asks,
+and what a repository's config row decides.
 
-The numbers in this document were re-measured against `origin/main` at
-`5685029` (the previous release's merge commit) on 2026-09-02. Where the issue's own numbers
-differ, both are given.
+## The root and its lifetimes
 
-## The change in four lines
+**One root the plugin owns holds everything the plugin keeps, sorted by how
+long each file lives.** "Owns" means the plugin creates, moves and removes it
+and its checkers define the formats, the way `.github/` is GitHub's. Three
+lifetimes, each with one home: a session's state sits beside the root under
+the common git directory and is never committed; a work item's directory,
+`seal/specs/<id>/`, lives until `settle` applies its spec and removes it;
+everything else under `seal/`, with `docs/` and `CHANGELOG.md`, is
+permanent. The layout, file by file, is `skills/implement/SKILL.md`
+*Document layout — two roots, three lifetimes* and `docs/the-record-layout.md`.
 
-<!-- specs/1788331011-two-roots-hold-three-lifetimes -->
-**After this change one root the plugin owns holds everything, sorted by how
-long it lives.** Today two committed roots hold files that live for three
-different lengths of time, and neither root sorts by that. `specs/<id>/`
-holds a work item's documents and its review records, which die at different
-times, and `.specseal/` holds the follow-up list and the migration config,
-which outlive every work item. Where
-that root sits is a per-repository choice, shared (committed)
-or local (under `.git/`, never committed), and its presence there is the
-opt-in. `specs/` stops being SpecSeal's directory. A work item's directory
-lives until `settle` folds it into `docs/`; 0.4.0 has no such step yet, so
-it moves everything and deletes nothing.
-
-```
-today                                      after
-─────                                      ─────
-specs/<id>/   spec plan questions overview  seal/specs/<id>/  the whole work item, until settle folds it
-              routing rounds/ todos pr.ko
-.specseal/    follow-up.md parity.md        seal/follow-up.md seal/parity.md
-(.specseal/ exists)  = opted in            seal/ exists at the mode's place = opted in
-```
-
-Enforced by: tests/test_no_document_names_the_old_roots.py::test_no_shipped_document_names_the_old_roots, tests/test_optin_home.py::test_the_legacy_directory_is_not_an_opt_in
-
-## The problem, as measured
-
-| Observation | Measured at `5685029` | In the issue | What it says |
-|---|---|---|---|
-| `specs/` after one week | 13 work items · 101 files · 6,937 lines | 13 · 96 · 6,655 | after a merge nothing mechanical reads a round record, and people rarely do |
-| `.specseal/map/` | 6 fragment files, 79 anchored rows across `map.md` and `map/` | 83 live rows | the rows are bounded by live claims; the files are one per work item forever, and almost every pull request touches the directory |
-
-The issue's counts were taken before this document's; what was counted
-differently was not traced.
-
-Half of the `specs/` lines are `rounds/` and `overview.md`: 2,147 and 1,279
-lines respectively. The rows are fine; the files and the churn accumulate.
-
-These are one defect. **Things with different lifetimes share a folder, and
-things with the same lifetime are split across two.**
-
-| What | Real lifetime | Where it is today |
-|---|---|---|
-| spec · plan · questions · overview | until the release that carries it; git history and the CHANGELOG's work-item comment keep it after | `specs/<id>/` |
-| routing · rounds · todos | while the pull request is open (the commit gate and `chain_check.py` read them) | `specs/<id>/` |
-| follow-up · parity | as long as the repository | `.specseal/` |
-
-### Where the line between the SDD set and the process record runs
-
-Comment 1 drew a line through the work item by asking whether a file would
-exist without this tool. Under SpecSeal the AI writes every file in the
-directory, so the line is not about who writes; it is about what the file
-is and who reads it after the merge.
-
-| The SDD set: what was decided and why | The process record: what SpecSeal's checkers read |
-|---|---|
-| `spec.md` · `plan.md` · `questions.md` · `overview.md` · `changelog.md` | `routing.md` (read by the commit gate, the hook that stops an unrouted commit) · `rounds/round-N.md` (read by `chain_check.py`, the pull-request check that a declared review chain has its record) · `broad-gate.md` |
-| exists under spec-driven development (SDD) with or without SpecSeal | exists because SpecSeal's gates read it |
-| read by people after the merge, for "why" | read by nothing after the merge |
-
-Separating the two kinds inside a work item is out of scope by the owner's
-decision. Round records have to be in the tree while the pull request is
-open, and pulling them apart from the spec is a larger change than this one.
-The design below therefore does not assume `specs/` is tool-free. The line
-is used for one thing: saying what `settle` folds (the SDD set) and what it
-simply drops with the directory (the process record).
-
-## The proposed tree
-
-One root the plugin owns. "Plugin-owned" means the plugin creates, moves and
-folds it and its checkers define the formats, the way `.github/` is
-GitHub's. It is committed in the default mode, because the round records
-must reach CI and other clones.
-
-```
-<repo>/
-├── seal/                          created, moved and folded by the plugin. Committed in shared mode.
-│   ├── README.md                  this folder's rules: export rules, what moves when
-│   ├── follow-up.md               permanent
-│   ├── parity.md                  migration projects only. Permanent
-│   ├── pact.md                    only in the repository that holds the pact. Permanent
-│   └── specs/<epoch>-<slug>/      the whole work item. Lives until settle folds it; 0.4.0 keeps it
-│       ├── spec.md plan.md questions.md overview.md      the SDD set: what was decided and why
-│       ├── changelog.md                                  gathered into CHANGELOG.md at release
-│       ├── routing.md rounds/round-N.md                  the process record: what the commit gate and CI read
-│       ├── broad-gate.md
-│       └── pr.ko.md
-├── docs/                          policy, and where settle folds the SDD set. Read by people; written by people and by settle
-├── CHANGELOG.md                   unchanged
-└── .git/                          never committed
-    ├── seal/                      local mode only: the whole root above lives here instead of <repo>/seal/
-    ├── specseal-planner           the framer mark (the file a spawned framer agent leaves behind). Session state
-    ├── specseal-implementer       the smith mark (the file a spawned smith agent leaves behind). Session state, unchanged
-    └── specseal-worktree-choice/  the worktree question's record. Session state, unchanged
-```
-
-Three lifetimes, and each has one home.
-
-| Lifetime | Lives in | Ends when |
-|---|---|---|
-| a session | `.git/` | the session ends |
-| between releases | `seal/specs/<id>/` | `settle` folds it |
-| permanent | `follow-up.md` · `parity.md` · `docs/` · `CHANGELOG.md` | never |
-
-A work item's directory has the middle lifetime, and 0.4.0 keeps it on disk
-anyway, because the step that folds it does not exist yet and deleting
-before folding is the half that cannot be undone. The dependency rule below
-is what keeps that step possible.
-
-Against today, the root itself changes in three ways: two roots become one,
-the root may sit under `.git/` instead of in the tree, and the fragments and
-work items gain a lifetime. The later comments added on top of that, and
-the sections below carry them: the mode choice at first setup, and an
-export/import pair.
-
-**What the names say.** `seal/specs/<id>/` holds the spec and its process
-record. The binding of a rule to the code is the test its `Enforced by:` line
-names — what the product name seals, rather than the sealer's seal
-(`skills/verify/SKILL.md` §*The hand-back's labels carry the claims, and the
-one seal is the sealer's*).
-
-## What happens at a release
-
-The accumulation of work items ends in the release-preparation step. The
-thread names only "the release-preparation script"; this document reads that
-as the step that already gathers `changelog.md` fragments by hand
-(`.github/scripts/gather_changelog.py --version`, see
-`docs/branch-and-release.md`).
-
-1. **`seal/specs/<id>/` folds into `docs/`, then the directory is
-   removed.** This is `settle`, a later item and not in 0.4.0. It merges
-   the SDD set of each released work item into `docs/<domain>` files,
-   merging into a document that already exists and creating one only for a
-   new area. The newest work item wins where two say different things.
-   Each folded sentence carries the work item id as an HTML comment, the
-   way a CHANGELOG entry does, so a reader can trace a rule back through git
-   history after the directory is gone. The process record is dropped with
-   the directory: nothing reads it after the merge. This rule replaces the
-   retention setting comment 4 proposed; there is nothing left to choose
-   to keep, because what is worth keeping has moved.
-2. **The guard.** A sentence in a work item's `spec.md` that must outlive
-   the release has to have moved into a `docs/` policy, with the test its
-   `Enforced by:` line names, before the merge. `settle` skips a released
-   work item whose `overview.md` still has an open `## Not verified` row:
-   neither folded nor removed, named in its output. The guard is what makes
-   removal safe: it is the proof that nothing permanent lives only in the
-   work item.
+**The plugin writes only to its own root.** A `specs/` directory anywhere
+else is the project's own, read as history and never taken
+(`templates/config.md` *Reference specs*). Where the root is, as a path a
+session can type, is stated once, in the agent contract's section on the
+`seal/` root.
+check: tests/test_no_document_names_the_old_roots.py tests/test_optin_home.py
 
 ## The dependency rule
 
-**Anything that must outlive a release may not read `seal/specs/<id>/`
-after the merge.** The directory will be removed by `settle`, so the design
-treats it as already gone for every permanent purpose. Measured against the
-code on `origin/main`, the reads of that directory fall into three groups.
+**Anything that must outlive a release may not read `seal/specs/<id>/` after
+the merge.** `settle` removes the directory, so every permanent purpose
+treats it as already gone. A round record's `target:` line is read only while
+its pull request is open. A comment naming a work item, above a released
+changelog entry, is a pointer rather than a read, and it still resolves
+through git history once the folder is gone. Every check in a repository
+that reads the corpus owes an answer when a settle removes part of it
+(`skills/settle/SKILL.md` *Answer every check that reads the corpus*). A new
+reader of `seal/specs/<id>/` after the merge is a finding for the review
+that meets it.
 
-- **Already safe.** A round record's `Target SHA` is read by `chain_check.py` only while the pull request is
-  open. The HTML comment above a released CHANGELOG entry, and the one
-  `settle` leaves in `docs/`, name the work item; a name is a pointer
-  rather than a read, and it still resolves through git history when the
-  folder is gone.
-- **Would break on removal, so must change before `settle` lands.**
-  `skills/verify/scripts/unverified_check.py --baseline` compares the
-  work-item tree against the merge base of the base ref and `HEAD` (#272) —
-  the fork point on a branch checkout, and the base's tip in CI, whose
-  checkout of a pull request is the head already merged into the base — and
-  fails for "a file that was there and is gone". The merge base does not
-  answer this one: a `settle` commit removes a merged work item's directory
-  relative to either commit, so the arm still refuses. It has to be scoped to work
-  items the pull request touches, or to unmerged ones. `.github/scripts/gather_changelog.py --check`
-  finds fragments that never reached `CHANGELOG.md` by reading the
-  fragments; after a removal it can only judge by the comment in
-  `CHANGELOG.md`. Both are named here so the `settle` item starts from
-  this list rather than rediscovering it.
-- **Kept on purpose.** The guard above; the export rules in
-  `seal/README.md`, which say where each kind of content must have gone
-  before the work item closes; and `settle` itself, the one sanctioned
-  reader after the merge.
+**Behind it is a wider rule: nothing may need to be found and updated when
+something else moves.** A record citing `path:line` breaks it: a line moves
+for edits unrelated to the claim, so the citation has to be re-anchored, and
+a squash orphans it. `settle` rewrites `docs/` and removes directories at
+every release it is called for, so anything coupled to a path or a position
+inside a work item breaks the same way. The coupling left is a round
+record's `target:` line, read while its pull request is open and gone with the
+record.
 
-A new reader of `seal/specs/<id>/` after 0.4.0 lands in the second group by
-definition, and a review should say so.
+## The opt-in signal is the root itself
 
-**The wider rule behind it: nothing may need to be found and updated when
-something else moves.** A record that cites `path:line` breaks this: a line
-moves for edits that have nothing to do with the claim, so such a citation is
-re-anchored, stamped, and orphaned by a squash. `settle` rewrites
-`docs/` and removes directories on every release, so anything coupled to a
-path or a position inside a work item would break the same way. What still
-carries such a coupling is short: a round record's `Target SHA` (read while
-its pull request is open, and gone with the record).
-
-**What keeps `settle` light**, since it is the heaviest step this design
-adds:
-
-- It moves and does not verify. Whether a rule still holds is the job of
-  the test its `Enforced by:` line names, which CI runs on every pull
-  request.
-- It applies each released spec's `## Rule changes` in place, in merge
-  order, whole or not at all, and a directory goes only with what it
-  applied, so a second run applies nothing twice.
-- It judges nothing: a rule was decided when its spec was reviewed, and a
-  text it cannot place is refused, never guessed.
-- An item with an open `## Not verified` row is skipped and named, never
-  folded or removed.
-- Its cost is measured with `session-cost`, so the release where it turns
-  heavy is visible.
-
-## What "spec" means after this
-
-Nothing changes here. `spec.md` was always the spec of one change. What must
-outlive the change already has one home: the `docs/` policy (judgment order
-is policy > SDD > code), with the test its `Enforced by:` line names.
-`settle` is the step that moves it there for every released work item. A
-person checking the AI's work does it while the pull request is open, when
-`spec.md` is there. A person asking "why does this behave so" after the
-release reads `docs/`, and `docs/`
-now holds the folded record of every change, not only the norms people
-wrote by hand.
-
-`docs/` is defined by who reads it, people, and not by who writes it. The
-`implement` skill's layout table says `docs/` is "never created here", and
-that sentence overclaims once `settle` writes there; it is one of the
-places the `settle` item corrects.
-
-## The opt-in signal is the root itself, wherever the mode put it
-
-<!-- specs/1788817289-local-mode-from-first-setup-to-the-gate -->
 **A repository is opted in when `seal/` exists at its mode's location**:
-`<repo>/seal/` in shared mode, `.git/seal/` in local mode. The hooks look at
-the two places in that order; whichever exists says both "on" and which
-mode. Nothing else is read, and there is no config key. This is the owner's
-decision after the thread; the thread itself leaned another way, described
-below.
+`<repo>/seal/` in shared mode, `$(git rev-parse --git-common-dir)/seal/` in
+local mode. The hooks look at the two places in that order; whichever exists
+says both "on" and which mode. Nothing else is read, and there is no config
+key: a git config key, a marker under `.git/` or a fetched ref would say
+twice what the folder already says.
 
-| | Today | After |
+| | Shared mode | Local mode |
 |---|---|---|
-| What opts a repository in | `.specseal/` exists at the root (`hooks/optin.py`) | `seal/` exists at the mode's location |
-| Who decides | whoever committed the directory, for every clone | shared: whoever committed it, for every clone that installed the plugin. Local: the developer of that clone |
-| A collaborator who did not set anything up | gated anyway, if the plugin is installed | shared: the same. Local: nothing runs, because their clone has no `.git/seal/` |
-| The `.specseal/scratch` opt-out | an empty file that turns the gates off in a throwaway fixture | no longer needed as such: a fixture simply creates no `seal/` (see "Decisions left open") |
+| Who decides | whoever committed `seal/`, for every clone that installed the plugin | the developer of that clone |
+| A collaborator who set nothing up | gated, once the plugin is installed | runs nothing, because their clone has no root under its git directory |
 
-**What the thread proposed instead, and why it is not needed.** Comment 2
-argued that only what the checkers read must be committed, so the opt-in
-could be a local signal separate from the folder: a git config key
-(`specseal.optin`, later `specseal.mode`), a marker under `.git/`, or a
-fetched ref. The point was that a committed root should not impose the
-gates on every collaborator; a local key would make it each developer's
-choice per clone. Two things make the key redundant once local mode lives
-under `.git/`:
-
-- In local mode the folder's presence already is a per-clone signal.
-  `.git/seal/` exists only in the clone that set it up, so a key beside it
-  would say the same thing twice.
-- In shared mode the imposition is smaller than it reads. The hooks belong
-  to the plugin, so a collaborator who never installed SpecSeal runs
-  nothing, key or no key. The only person a committed `seal/` reaches is one
-  who installed the plugin and cloned this repository, and that person is in
-  the same position under today's `.specseal/`.
-
-The fail direction is unchanged: no folder at either place means not opted
-in, and a hook that cannot tell does nothing.
-Enforced by: tests/test_optin_home.py::test_new_home_opts_in, tests/test_optin_home.py::test_the_git_directory_is_the_second_place, tests/test_optin_home.py::test_the_shared_root_wins_when_both_exist
+A collaborator who never installed the plugin runs nothing in either mode,
+because the hooks are the plugin's. The fail direction is that no folder at
+either place means not opted in, and a hook that cannot tell does nothing.
+A throwaway repository turns the gates off with an empty file,
+`.git/specseal-scratch`, under the common git directory, which no commit can
+carry to another clone.
+check: tests/test_optin_home.py
 
 ## What first setup asks
 
-<!-- specs/1788354065-the-tree-that-must-stay-clean-has-no-way-to-opt-in -->
-**The one moment this project allows a question is first setup.** The thread
-proposed two questions there, the mode and the retention; retention went
-away with the `settle` rule, so one remains.
+**The one moment this project allows a question about the root is first
+setup, and it asks one.** One `AskUserQuestion` with two options, shared
+first as the default, each saying what it does:
 
-Today the `implement` skill has one once-per-repo moment, when it creates
-`.specseal/README.md`; that moment becomes the question. One
-`AskUserQuestion` with two options, shared first as the default, each
-option saying what it does:
+- **shared** creates `<repo>/seal/`, which the routing commit carries, and
+  installs `.github/workflows/hygiene.yml` from `templates/hygiene.yml` where
+  that path is absent: a clone of the plugin at the release installed at
+  setup, and the two pull-request checks.
+- **local** creates `$(git rev-parse --git-common-dir)/seal/`, touches nothing
+  in the tree, and installs nothing, because the checks read committed files
+  and local mode commits none.
 
-- **shared** creates `<repo>/seal/` and commits it, and installs the hygiene
-  workflow.
-- **local** creates `.git/seal/` and installs no workflow. Nothing touches
-  the tree.
-
-A repository that already has `seal/` at either place has been through this
-and is never asked again; the mode is read from where the folder is.
-Enforced by: tests/test_first_setup_asks_once.py::test_a_repository_with_the_root_at_either_place_is_never_asked, tests/test_first_setup_asks_once.py::test_the_two_options_are_named_in_order_with_shared_as_the_default
+A repository with `seal/` at either place has been through this and is never
+asked again; the mode is read from where the folder is. A repository still on
+the layout that came before the root is told, not asked, and the session-start
+hook moves it once (`skills/implement/orchestration.md`, its bootstrap). Once
+a root exists at either place, that hook stamps the repository as moved, so a
+local-mode repository that later checks out an old branch is not moved into
+the tree it chose to keep clean.
+check: tests/test_first_setup_asks_once.py
 
 ### Shared or local
 
-<!-- specs/1788411058-the-mode-is-two-shell-lines-in-a-readme -->
-<!-- specs/1788398967-local-modes-records-never-leave-the-clone -->
 **The question is not "commit the folder or not" but "do CI and collaborators
 see this workflow".** Which answer fits is mostly decided by whose repository
 it is.
@@ -315,271 +107,112 @@ it is.
 | Linked worktrees and parallel sessions | read each other's records, because the git dir is common to every worktree of the clone | read each other's records, because the files are committed |
 | Other machines and a re-clone | start empty; `seal export` / `seal import` carry a copy by hand | have everything |
 | CI (the chain checks) | cannot run; the hygiene workflow is not installed | runs |
-| Switching later | `seal mode shared` — it moves `.git/seal/` to `<repo>/seal/`, stages it, and installs the workflow; you commit | `seal mode local` — it moves `<repo>/seal/` back, stages the removal, and takes the workflow out; you commit |
+| Switching later | `seal mode shared` moves `.git/seal/` to `<repo>/seal/`, stages it, and installs the workflow; you commit | `seal mode local` moves `<repo>/seal/` back, stages the removal, and takes the workflow out; you commit |
 
-The mode needs no key of its own: the hooks find `<repo>/seal/` or
-`.git/seal/` and that is the mode.
-
-**`seal/config.md`'s `Mode` row is not that key, and the difference is what
+**`seal/config.md`'s `Mode` row is not the opt-in, and the difference is what
 reads it.** The row says where the root *should* be; the folder's location
 says where it *is*, and no hook, gate or check resolves the root through the
-row — `hooks/optin.py#home_at` stays the only reader of the question, in the
-two places above (#104). A gate that trusted a hand-editable row would go
-looking in a place with no folder, and everything in that module is
-documented to fail toward *not opted in* rather than toward a guess. What the
-row buys is a repository that can say which mode it wants before the folder
-is moved, and a check that names a disagreement left standing rather than
-letting the file quietly stop being true. It has no default: an absent row is
-filled in from where the folder is, because that is the only value that
-cannot be wrong. Setup also decides whether the hygiene
-workflow (the pull-request checks in `.github/workflows/hygiene.yml`) is
-installed; in local mode it is not, because both checks read committed files
-and local mode commits none, so a workflow left there is red forever —
-`unverified_check.py` runs second and exits 2 for a path that is nowhere, and
-with no `continue-on-error` the job stops, so `chain_check.py` never runs at
-all. It would have exited 0 having examined nothing; it does not get the
-chance.
+row: `hooks/optin.py#home_at` is the only reader of the question. A gate that
+trusted a hand-editable row would look in a place with no folder, and that
+module fails toward *not opted in* rather than toward a guess. What the row
+buys is a repository that can say which mode it wants before the folder is
+moved, and a check that names a disagreement left standing. An absent row is
+filled in from where the folder is, the only value that cannot be wrong.
 
-**Why local mode is under `.git/` and not gitignored.** A linked worktree
-checks out committed files only, so an ignored `<repo>/seal/` in the main
-tree is simply absent in every worktree. The owner hit exactly this when
-`.specseal/` was ignored and parallel sessions could not read each other's
-records. It was git's behaviour, not a configuration mistake. So local mode
-keeps `seal/` inside the common git dir (`git rev-parse --git-common-dir`,
-i.e. `.git/seal/`), beside the smith mark and the worktree-choice records:
-shared by every worktree of that clone, never a commit candidate, no
-`.gitignore` line needed.
+A hygiene workflow left behind in local mode is red forever:
+`unverified_check.py` runs second and exits 2 for a path that is nowhere,
+and with no `continue-on-error` the job stops, so `chain_check.py` never runs.
+Had it run, it would have exited 0 having examined nothing.
 
-The owner's summary of the two modes, corrected for that:
+**Local mode lives under the git directory, not in a gitignored folder.** A
+linked worktree checks out committed files only, so an ignored
+`<repo>/seal/` would be absent from every worktree, and parallel sessions
+could not read each other's records. Under the common git directory the root
+is shared by every worktree of that clone, never a commit candidate, and
+needs no `.gitignore` line. Local mode has no per-branch isolation of
+uncommitted state; the per-work-item layout keeps parallel items apart. It
+never leaves that clone on that machine: a new machine or a re-clone starts
+with no work-item records, and CI's chain checks cannot run. That is the
+whole trade-off.
 
-1. At first setup, choose whether `seal/` is in the commit range. Shared mode
-   puts it at `<repo>/seal/` and commits it; local mode puts it at
-   `.git/seal/`, which is never committed.
-2. In both modes, worktrees and parallel sessions read each other's records.
-   In shared mode because the files are committed, in local mode because
-   the git dir is common. Local mode has no per-branch isolation of
-   uncommitted state; the per-work-item fragment layout is what keeps
-   parallel items apart.
-3. Local mode never leaves that clone on that machine. A new machine or a
-   re-clone starts with no work-item records, and CI's chain checks cannot
-   run. That is the whole trade-off.
-
-**Local records can be copied to another clone by hand.** Round records name
-pushed commits. `.git/seal/` must be its own folder so that it alone is
-copied; the smith mark, worktree choices and session leases beside it are
-that machine's session state.
-
-**A copy is not a sync, and the modes convert into each other.** Last copy
-wins, and the person tracks which rows went, so needing a copy twice is the
-signal to switch to shared mode. Either switch moves `.git/seal/` to
-`<repo>/seal/` or back, then commits or removes, and `seal mode local` /
-`seal mode shared` is the command that does it. The setup choice is "where
-does it live now", not a one-way door.
+**Local records can be carried to another clone by hand, and a copy is not a
+sync.** `seal export` zips the root alone, never the session state beside it,
+into `seal-<repo>-<date>.zip` with a manifest naming the remote URL and the
+HEAD SHA at export. `seal import <zip>` never overwrites: a missing file is
+added, and a file already present with other bytes lands beside it as
+`<name>.incoming<ext>`, reported and not asked about. The last copy wins and
+the person tracks which rows went, so needing a copy twice is the signal to
+switch to shared mode. `seal export --check` prints how many work items
+changed since the last export, and nothing is uploaded anywhere.
 
 **The mode is not a one-way door; the history is.** Going to shared puts the
 records in the tree, and the moment that commit lands they are in the
-repository's history — coming back removes them from the tree and not from
-it. The direction local mode exists to prevent is exactly the one that cannot
-be walked back, so the command says so before it acts, and stages rather than
-commits so that the point of no return stays the person's.
-
-**Local mode gets an export/import pair**, so its trade-off becomes "take a
-copy" rather than "lose it".
-
-- `seal export` zips `.git/seal/` alone, never the session state beside it,
-  into `seal-<repo>-<date>.zip` with a manifest naming the remote URL and the
-  HEAD SHA at export.
-- `seal import <zip>` never overwrites. Missing files are added; a file
-  already present with other bytes lands as `<name>.incoming<ext>` beside
-  the existing one, reported and not asked about.
-- The same pair is the mode switch: export, unzip into `<repo>/seal/`,
-  commit. Or the reverse.
-- One reminder only. In local mode the release-preparation step prints
-  "N work items changed since the last export". Nothing is uploaded
-  anywhere; where the copy goes is the user's business and not a question
-  the plugin asks.
-
-Enforced by: tests/test_first_setup_asks_once.py::test_each_option_says_what_it_creates_and_what_it_installs, tests/test_optin_home.py::test_the_local_root_is_never_a_commit_candidate_and_needs_no_gitignore
-
-### Retention: measured, and answered by `settle`
-
-The contents of `seal/specs/<id>/` split by who reads them after the merge.
-Measured on this repository's 13 work items at `5685029`:
-
-| | Files | Lines | Share | Value after release |
-|---|---|---|---|---|
-| the SDD set | spec · plan · questions · overview · changelog | 3,737 | 54% | yes. Like architecture decision records, "why" is browsable without git archaeology |
-| the process record | rounds · routing · todos · pr.ko | 3,143 | 45% | none. Read only while the pull request is open |
-| neither | `ab-comparison.md` (one work item) | 57 | 1% | — |
-
-The issue measured 3,736 (56%) against 2,975 (44%). What was counted
-differently was not traced; the split is the same.
-
-Comment 4 proposed keeping the SDD set and deleting the process record at
-release, with `retain = people | all | none` as a setup option. The owner's
-decision after the thread makes the setting unnecessary: the SDD set is
-folded into `docs/` by `settle` and the whole directory is then removed,
-so what the measurement says is worth keeping is kept, in `docs/`, and
-nothing is left in the directory to choose about. Until `settle` exists
-nothing is deleted.
+repository's history; coming back removes them from the tree and not from the
+history. That is the one direction local mode exists to prevent, so
+`seal mode shared` says so before it acts and stages rather than commits,
+which leaves the point of no return with the person.
+check: tests/test_first_setup_asks_once.py tests/test_optin_home.py tests/test_the_records_can_be_carried_out_and_in.py
 
 ## Naming
 
-**Product name, recommended: keep SpecSeal; use bare `seal` as the vocabulary
-inside it.** The root `seal/`, the `seal export` / `seal import` commands,
-"the seal" for the record.
+**The product is SpecSeal, and bare `seal` is the vocabulary inside it**: the
+root `seal/`, the `seal export` / `seal import` commands, "the seal" for the
+record.
 
-| Name | Its one sentence | Why not |
-|---|---|---|
-| SpecSeal | seals a spec to the code that implements it | — names what and how; says "spec borrowed, seal ours" |
-| Seal | seals | circular without its object; heavy collisions (Microsoft SEAL, kubeseal); unfindable as a marketplace name |
-| AiSeal | seals what AI made | names the maker, not the thing sealed; the prefix dates; collisions |
+| Name | Its one sentence |
+|---|---|
+| SpecSeal | seals a spec to the code that implements it |
+| `seal/` | the root, visible beside `docs/`, because the work items in flight are what people read while a pull request is open |
+| `seal/specs/<id>/` | a work item's directory, named for the primary artifact it holds |
 
-A compound product name with a one-word command inside is an ordinary
-arrangement (Sealed Secrets / `kubeseal`). Renaming costs the repository URL,
-the marketplace entry, `plugin.json`, hook-file prefixes, install docs and
-three tags' worth of history. If the plugin is ever renamed, 0.4.0 is the one
-cheap moment, because this change renames the root anyway. Revisit only if
-the scope really outgrows "spec", and then among seal compounds, not AI ones.
-
-**Root name, recommended: `seal/`, visible, rather than `.seal/`.** A dot is
-a declaration about the folder's nature, not a mechanism. The hooks look for
-the folder by name at two places and do not care whether it is dotted.
-Comment 9 tied the choice to what stays after release: visible if people
-read what is in the folder, dotted if it is emptied entirely. With
-`settle`, a released item leaves the folder, but the items in flight are
-exactly what people read while the pull request is open, so the visible
-name still fits. Either way, switching later means renaming one directory.
-
-**Sub-directory name, recommended: `seal/specs/<id>/`, not `work/`.** A
-directory has to say what is in it to whoever opens it first. `work` says
-nothing, and a metaphor (`forge/`) hides the contents. smith and warden stay
-as agent personas, where a name may describe character, and are not used
-for directories. `specs/` names the primary artifact and is the first half
-of the product's name.
-
-**English stays for every shipped artifact**, since this is a plugin for
-others and every token costs. Korean is the owner's per-user setting: the
-response language and `pr.ko.md`.
-
-## What happens to the existing directories at the switch
-
-- **Every work item in `specs/`** moves whole to `seal/specs/<id>/`, released
-  or not. The issue body said released ones are deleted, because history
-  and the CHANGELOG comments keep them; under the `settle` rule they wait
-  there for the first fold instead, which is what "delete nothing before
-  folding" means at the switch.
-- **The move is done by the session-start hook, once.** `hooks/root-migrate.py`
-  owns that moment: it migrates once per repository, never over uncommitted
-  files, and prints one line.
-- **`.specseal/map.md` and `.specseal/map/`** move to `seal/map.md` and
-  `seal/map/`, as `follow-up.md` and `parity.md` do.
-- In this repository `specs/` then ends up empty and goes away.
-
-## What it touches in this repository
-
-Files on `origin/main` that mention `.specseal/` or `specs/`, counted per
-area (a rough grep, not a list of edits):
-
-| Area | Files | The load-bearing ones |
-|---|---|---|
-| `hooks/` | 11 | `optin.py` (`HOME = ".specseal"` is the whole signal today), the session-start migration hook, the commit gate's `routing.md` path |
-| `skills/` | 13 | `implement` (the three-axis layout table, fragment paths), `code-review`, `verify` and their scripts |
-| `tests/` | 20 | fixtures that build `.specseal/` and `specs/<id>/` by hand |
-| `templates/` | 8 | five SDD templates (spec, plan, questions, round, routing) name their `specs/<epoch>-<slug>/` path in a header comment; `sdd-overview.md` and `map.md` name `.specseal/map` |
-| `.github/` | 2 | `hygiene.yml` passes `specs/` to `unverified_check.py`; `gather_changelog.py` globs the fragments |
-| `agents/` | 3 | the smith, warden and scribe agent prompts |
-| `docs/` | 3 | `branch-and-release.md`, and the two review-chain documents `the-review-record.md` has since replaced |
-| root | 4 | `README.md`, `README.ko.md`, `CONTRIBUTING.md`, `CLAUDE.md` |
-
-The CI paths change in step 3 of the order below, together with the root.
-
-## What does not change
-
-- Every gate's fail direction: cannot tell means not opted in.
-- Fragments per work item during development, gathered only at release.
-  That is what removed the merge conflicts, and three parallel branches
-  benefited from it on 2026-09-01.
-- `.git/` session state (the smith mark, the worktree choice, session
-  leases) stays where it is, never committed.
-- `CHANGELOG.md`, and the judgment order policy > SDD > code. `docs/` keeps
-  its role as what people read; it gains `settle` as a writer.
-- Every file a work item writes today. 0.4.0 changes where they live, not
-  whether they exist.
-
-## Order
-
-The tickets are grouped into releases on GitHub milestones.
-0.4.0 carries #78, #30 and #79 only; everything a person can live without
-for one release moved to 0.5.0, because even that set is large.
-
-
-1. **Name decisions**: plugin name kept or not, root name, sub-directory
-   name. The only human decision here.
-1. **The sealer (#30)**, first of the tickets, because its rule applies to
-   every work item from here on, the root merge included.
-3. **0.4.0: the root merge (#79).** The session-start hook moves
-   everything once; CI paths change; `docs/` and the skills' path
-   references follow. Shared mode only.
-3. **0.5.0**: local mode and the first-setup question (#80),
-   `seal/config.md` for per-repository settings such as the pull request
-   language (#82), and `seal export` / `seal import` (#81).
-4. **Later: the `settle` item (#83)**, and the framer (#84), the agent
-   that writes the frame the smith fills. For `settle`, first the two checks in "The dependency
-   rule" stop reading released work items; then `settle` folds released
-   work items into `docs/` and removes their directories, and the
-   `implement` skill's description of `docs/` is corrected to match.
-5. **Later and separate (#85)**: taking state out of the working tree
-   entirely, with an orphan branch as its home, opt-in by ref. That
-   was the first version of this issue.
+A directory says what is in it to whoever opens it first, so no directory is
+named for a metaphor; smith and warden stay agent personas. Every shipped
+artifact is written in English, because the plugin is for others and every
+token is paid for. The language a repository's own records and pull requests
+are written in is that repository's answer, below.
 
 ## What the repository decides for itself, and how it is read
 
-`seal/config.md` is the one file a repository writes about itself — one row
+`seal/config.md` is the one file a repository writes about itself, one row
 per item, read by the checkers and editable by hand. The rows that exist are
 documented in `templates/config.md`, and an absent row has a default that is
 stated there rather than left to whoever reads the code.
 
-<!-- specs/1788420761-the-settings-live-in-a-file-nobody-opens -->
 **A setting nobody can find is a setting nobody has.** Every row is reachable
 from a command that shows the whole file and routes a change, because first
-setup asks its questions in one batch and never asks again — and the rows
-that arrive after it were otherwise discovered only by reading a template a
-person has no reason to open. The routing layer holds no logic of its own: a
-row with a side effect routes to the script that performs it, and a row that
-is only a row is written directly. Logic inside a skill cannot be
+setup asks its questions in one batch and never asks again, and the rows that
+arrive after it would otherwise be found only by reading a template a person
+has no reason to open. The routing layer holds no logic of its own: a row
+with a side effect routes to the script that performs it, and a row that is
+only a row is written directly. Logic inside a skill cannot be
 mutation-tested the way a script can, and that is what decides where the line
 runs.
-Enforced by: tests/test_the_settings_have_a_front_door.py::test_the_skill_names_every_row_the_template_ships, tests/test_the_settings_have_a_front_door.py::test_the_skill_shows_rows_that_are_absent
+check: tests/test_the_settings_have_a_front_door.py
 
-<!-- specs/1788360817-the-pull-request-language-is-fixed-inside-a-skill -->
 **What language this plugin writes in is the repository's answer, not the
 plugin's.** A skill that requires English of everyone is a decision made in a
 file nobody who disagrees with it can edit, so the language lives in a config
 row, and the mirror file a translated pull-request body goes in is named for
 the language it holds rather than for one language.
-Enforced by: tests/test_the_pull_request_language_is_the_repositorys.py::test_the_skill_names_the_file_and_the_row, tests/test_the_pull_request_language_is_the_repositorys.py::test_the_mirror_is_named_for_its_own_language
+check: tests/test_the_pull_request_language_is_the_repositorys.py
 
-<!-- specs/1788420760-a-language-row-that-governs-four-things -->
 **Two rows, because one cannot express the middle answer.** The combinations
 people actually want are three: everything English; the commits and pull
 requests in the team's language with the documents in English; or both in it.
 One row cannot say the middle, and one row per document kind is seven rows
 where nobody sets the sixth differently from the fifth. So
-`Commit and pull request language` governs what the outside world reads — the
-commit subject and body, the pull request title and body — and
+`Commit and pull request language` governs what the outside world reads, the
+commit subject and body and the pull request title and body, and
 `Record language` governs the prose in the documents a work item writes.
 Setting one does not carry the other, because the two surfaces have different
 audiences: a pull request is read by whoever opens it, and a record by
 whoever comes back to the decision six months later.
 
-Whatever either row says, **the names a checker matches stay English** — the
-field names, the verdict words, the markers, and all code.
-A translated field name is not a translation; it is a checker that stops
-reading.
-Enforced by: tests/test_the_pull_request_language_is_the_repositorys.py::test_the_template_is_one_item_value_table_whose_first_row_is_the_language, tests/test_the_pull_request_language_is_the_repositorys.py::test_every_document_that_names_a_language_row_names_the_shipped_one
+Whatever either row says, **the names a checker matches stay English**: the
+field names, the verdict words, the markers, and all code. A translated field
+name is not a translation; it is a checker that stops reading.
+check: tests/test_the_pull_request_language_is_the_repositorys.py
 
-<!-- specs/1789598366-a-piped-broad-gate-row-takes-every-config-row-below-it -->
 **A cell may carry an escaped pipe, and one line that will not parse is named
 rather than treated as the end of the table.** A value like a shell command
 with a pipe in it is ordinary content, and a reader that stopped at it
@@ -587,105 +220,12 @@ silently took every row below it out of the config. The reader and the writer
 share the constant that describes a row, because their disagreement about
 which line is a given row is what turns one edit into a duplicate row in a
 person's file.
-Enforced by: tests/test_the_mode_question_is_asked_once.py::test_an_escaped_pipe_is_one_row_and_the_rows_below_it_still_arrive, tests/test_the_mode_question_is_asked_once.py::test_a_line_that_will_not_parse_is_named_and_the_hook_still_says_nothing
+check: tests/test_the_mode_question_is_asked_once.py
 
-<!-- specs/1788789329-a-git-call-that-fails-reads-as-no-remote -->
 **A git call that fails is not a git call that answered "nothing".** Empty
 output because a thing is absent and empty output because the question could
 not be asked are different facts, and a caller that cannot tell them apart
-reports the absence as settled — no remote, no other worktree, no tracked
+reports the absence as settled: no remote, no other worktree, no tracked
 file. Every call site whose caller needs the distinction returns it, and the
 refusal says which call failed rather than reporting a confident nothing.
-Enforced by: tests/test_the_records_can_be_carried_out_and_in.py::test_the_export_omits_a_remote_it_could_not_read, tests/test_the_records_can_be_carried_out_and_in.py::test_an_unreadable_remote_here_refuses_the_import, tests/test_the_mode_is_a_row_and_a_command.py::test_a_git_that_cannot_answer_does_not_report_no_submodule
-
-## Out of scope
-
-- Deleting anything from `seal/specs/<id>/` in 0.4.0. Removal arrives with
-  `settle`, and only after a fold.
-- Separating the SDD set from the process record inside a work item while
-  it is in development. They move together; the line between them is used
-  only to say what `settle` folds and what it drops.
-- Anything in 0.3.x.
-
-## Decided after the thread
-
-Taken by the owner on 2026-09-02, while this document was being reviewed.
-The rows from *The first-setup question's shape* on were taken the same day
-with #80's `questions.md` and are what that work item built; the last of
-them closes what was item 4 of the table below.
-
-| Decision | Answer | What it closes |
-|---|---|---|
-| The opt-in signal | `seal/` existing at the mode's location; no config key | comment 2's key, marker and ref candidates; the question of the key's shape |
-| What happens to a work item's directory | it lives until `settle` has folded its SDD set into `docs/`, then it is removed; 0.4.0 has no `settle` and deletes nothing | comment 4's `retain` setting and its default; the second setup question; the existing `specs/` moves whole |
-| Design stance toward the directory meanwhile | nothing permanent may depend on `seal/specs/<id>/` after the merge, and nothing may need finding and updating when a path or position moves | the dependency rule; the two checks that must change before `settle` |
-| Where the folded record lives | `docs/`, defined by who reads it (people), written by people and by `settle` | the `implement` skill's "never created here" sentence, to be corrected |
-| The first-setup question's shape | one `AskUserQuestion`, **shared** first as the default. Shared creates `<repo>/seal/` in the tree and the routing commit carries it; local creates `$(git rev-parse --git-common-dir)/seal/` and touches nothing in the tree. A repository with `seal/` at either place, or still on the 0.3.x layout, is not asked | Q6 and Q7 of #80; "creates `<repo>/seal/` and commits it" above is the flow as it reads, not a commit the bootstrap makes |
-| What shared mode installs | `.github/workflows/hygiene.yml` from `templates/hygiene.yml`, only when that path is absent: a clone of the plugin at the release installed at setup, and the two pull-request checks. Local mode installs nothing, because the checks read committed files | Q0-a and Q4 of #80; the sentence above that said the workflow would refuse a pull request, corrected twice — the workflow is red forever, because `unverified_check.py` exits 2 on a path that is nowhere and the job stops before `chain_check.py`, which would have been green having examined nothing |
-| The migration hook's stamp | with nothing old left, a repository whose root is at either place is stamped as moved, so a local-mode repository that later checks out an old branch is not moved into the tree it chose to keep clean | Q3 of #80 |
-| How a session finds the root | one sentence in the `implement` skill's layout section and in both agents: every `seal/…` path means `<repo>/seal/` where it exists, else `$(git rev-parse --git-common-dir)/seal/`. The hooks resolve it in code; every other path stays spelled `seal/…` | Q1 of #80 |
-| The `scratch` opt-out | kept, as the file `.git/specseal-scratch` under the common git dir, which cannot be committed; its predecessor `.specseal/scratch` was committed once and silenced every clone | item 4 of the table below, closed by #79 |
-
-## Decisions left open
-
-Each item names the options and what decides between them. All three are
-the ones the thread names as the owner's. A fourth surfaced while writing
-this document, was not in the thread, and was closed by #79; it moved to the
-table above.
-
-| # | Decision | Options | What decides it | Where the thread leaned |
-|---|---|---|---|---|
-| 1 | Plugin name | keep SpecSeal · rename | rename costs the URL, marketplace entry, `plugin.json`, hook prefixes, install docs, three tags of history; 0.4.0 is the one cheap moment | keep SpecSeal |
-| 2 | Root name | `seal/` · `.seal/` | the items in flight are what people read while a pull request is open, which argues for the visible row beside `docs/`; a dot only if footprint wins | `seal/` |
-| 3 | Sub-directory name | `specs/` · `work/` · a metaphor | it must say what it holds to a first-time reader | `specs/` |
-
-## Decided when `settle` was built (2026-09-22)
-
-The text above is a record of 2026-09-02 and is not rewritten. This is what
-#458 settled while building the step that document described, in the same
-shape *Decided after the thread* uses.
-
-| Decision | Answer | What it corrects above |
-|---|---|---|
-| What `settle` is | a skill with a command beside it. The spec decides and the command applies: `settle --apply` writes each released spec's `## Rule changes` into the policy root in place. `skills/settle/SKILL.md` is the procedure, `skills/settle/scripts/settle.py` the command, `bin/settle` its name | §*What keeps `settle` light* said the step moves and does not verify, and left open who does the moving |
-| Where the fold record lives | nowhere: a removed directory is told from a deletion by replaying its rule changes (`docs/the-record-layout.md` §*The fold, and what tells it from a deletion*). No second file | §*What happens at a release* step 1 named the comment as provenance only |
-| What groups | nothing: `settle` lists the released work items no fold has taken | nothing above said |
-| What a removal actually breaks | §*The dependency rule*'s two readers are **not** the whole list. Both changed — `unverified_check.py --baseline` now names a settled directory instead of reporting it, and `gather_changelog.py --check` now counts the markers in `CHANGELOG.md` and refuses a corpus carrying neither. Beyond them: every check in a repository carrying a **population floor** over that corpus | §*The dependency rule* was written when this repository had 13 work items. At 98 it had 14 test modules reading the corpus and at least 6 with a floor a fold turns red. The general rule is in `skills/settle/SKILL.md`, because any repository running this methodology accumulates the same shape |
-| Who may write in `docs/` | the `implement` skill's layout table now says a pull request does not edit the policy root, and `settle --apply` applies the specs' rule changes to it | the *never created here* sentence, which the table above already listed as one to correct |
-| Whether the mechanism's own release folds this repository | no. The mechanism shipped and nothing was removed; the fold of the accumulated work items is its own work item | nothing above said. Putting both in one pull request means one review round judges a mechanism and nine segments of policy prose at once, on a tree whose suite that same commit had just shortened |
-
-## Decided when the fold stopped being a work item (2026-09-23)
-
-The two sections above are records of 2026-09-02 and 2026-09-22 and are not
-rewritten. This is what #517 and #511 settled after two folds had run, in the
-same shape.
-
-| Decision | Answer | What it corrects above |
-|---|---|---|
-| Whether a fold is a work item | no. A fold opens no `routing.md`, spec, plan or rounds and is not asked the routing question; every commit is waived with `: '[no-review]';` in front, and its judgment is reviewed at its pull request. `skills/settle/SKILL.md` is its spec, and it keeps no log of folds | the 2026-09-22 row that made the fold of the accumulated work items its own work item. Two folds ran that way, and each left a directory for the next fold to retire, so no fold could finish |
-| A released work item that wrote no `spec.md` | retired by the rule, with no marker, when nothing in its `overview.md` is open; kept and named with its rows when something is. One predicate decides it for `settle` and for every CI reader, asked of the merge base | nothing above said; ten such items had been kept by name with no way out |
-
-## Decided when a joined project's `specs/` was read and never taken (2026-10-01)
-
-The three sections above are records of 2026-09-02, 2026-09-22 and
-2026-09-23 and are not rewritten. This is what #688 settled for a person
-joining a project that kept its own `specs/` before the plugin arrived, in
-the same shape.
-
-| Decision | Answer | What it corrects above |
-|---|---|---|
-| What *still on the 0.3.x layout* means | a repository holding `.specseal/`, or a `specs/` entry named `<unix-seconds>-<slug>` where git tracks a `routing.md`, or a file under `rounds/`, directly under it — an empty or ignored `rounds/` is not a mark, because the move's units are what git tracks. A `specs/` with no such entry is the project's own: the bootstrap asks it the shared/local question like any repository with no root, and the session-start hook moves nothing out of it. Measured at tag `v0.3.0`: every one of the 13 work items carried `routing.md` | the row *The first-setup question's shape*, whose "still on the 0.3.x layout" the bootstrap read as any top-level `specs/`, and §*What happens to the existing directories at the switch*, whose move the hook made by a directory's name alone, so a team directory of that shape was taken |
-| Whose a `specs/` outside the root is | the project's. The plugin writes only to its own root and reads every other directory named `specs` as history — a reference root, which the checks that read a record leave out. `seal/config.md`'s `Reference specs` row names them, and with no row every directory named `specs` outside the root is one | §*The change in four lines*, whose "`specs/` stops being SpecSeal's directory" said what the plugin stopped owning and not what it does with a directory it never owned |
-
-## Decided when the process record stopped waiting for the fold (2026-10-04)
-
-The sections above are records of 2026-09-02, 2026-09-22, 2026-09-23 and
-2026-10-01 and are not rewritten. This is what #729 settled about when each
-part of a work item's directory leaves, in the same shape.
-`docs/the-record-layout.md` §*seal/specs/<work-item-id>/* states the result.
-
-| Decision | Answer | What it corrects above |
-|---|---|---|
-| When the process record leaves | with its spec's directory, at the `settle --apply` that applies the spec. No check reads it once its release has merged to `main`, and what the SDD set still cites of it is read at the release tag | §*Retention*, which removed the process record only with the whole directory, after a fold. The fold had not run since 2026-09-24, and on 2026-10-04 the process record was 525 of the 841 files under `seal/specs/` and 67% of the bytes, kept for nobody |
-| What the process record is | `rounds/`, `phases/`, the two todo files, `broad-gate.md`, `handoff.md` and `pr.*.md`. `routing.md` is not in it: it stays with the SDD set until the fold, because `chain_check`, the release seal and the session-start migration all find a work item by it | §*Where the line between the SDD set and the process record runs* and the table in §*Retention*, which counted `routing` in the process record |
-| Whether the two halves move apart on disk | no. The paths stay as they are, and *one file per run* is rejected, because 41 of 53 runs' round records together exceed the 64 KB a reader takes whole. Only the moment each half leaves differs | §*Out of scope*, whose "They move together" still holds while a work item is in development and stops holding after its release |
+check: tests/test_the_records_can_be_carried_out_and_in.py tests/test_the_mode_is_a_row_and_a_command.py

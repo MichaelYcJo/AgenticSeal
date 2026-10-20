@@ -231,11 +231,12 @@ waits for the reply spends more.
 
 **Each scenario is built the same way: its case first, seen red against the
 tree as it stands, then the code, then the case green.** A rule the work
-states or changes ends with `Enforced by:` naming that case — in its home
+states or changes ends with a `check:` line naming that case — in its home
 under `docs/`, or in the *Verifiable how* cell of the spec's scenario table —
 so the case is the record that the rule holds, and CI running the suite is
-the check. A rule no case can hold says `Enforced by: nothing — <why>`, and
-the why is what a reviewer reads it by.
+the check. A rule no case can hold says `check: none reader: <who reads it>`,
+and the reader is who holds it instead. The grammar is
+`skills/settle/SKILL.md` *A rule has one shape*.
 
 This is the input for the reviewer and the next ticket: a case somebody can
 run rather than a reading somebody did. A judgment settled by opening code

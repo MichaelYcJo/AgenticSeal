@@ -274,6 +274,11 @@ where the defect is old, or under the mutation the row names.
   before this release stays as written.
 - **No new dependency, no migration.**
 
+## Rule changes
+
+- nothing
+  why: overturned: --reverify and the ledger left the tree at 5b1f6fae.
+
 ## Open questions → questions.md
 
 Anything a planner must answer lives in questions.md, not inline — unanswered

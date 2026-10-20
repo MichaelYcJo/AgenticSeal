@@ -343,6 +343,12 @@ as a possible switch, in the one place a switch would matter.
   press**, by construction; without the press, one `ask` per unrecognised
   shape in a tree that matters, bounded by phase 1's tree-blind count.
 
+## Rule changes
+
+- nothing
+  why: written: the three shapes and the stop for an unrecognised one, in
+    docs/worktree-guard-spec.md *A*; internal: the counts, its records.
+
 ## Open questions → questions.md
 
 `questions.md` holds P1 (the list's seed, a person's), the measurements M1–M4

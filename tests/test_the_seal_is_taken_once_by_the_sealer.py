@@ -8295,7 +8295,7 @@ def test_the_smith_names_no_runner_of_the_broad_gate():
     one, so either owner written here is false in one of the two trees."""
     smith = agent("smith.md")
     start = smith.index("**The broad gate is not yours, and its label is.**")
-    rule = smith[start : smith.index("Enforced by:", start)]
+    rule = smith[start : smith.index(" check: ", start)]
     assert "You do not run the full suite, the lint or the typecheck" in rule, (
         "the smith's gate rule stopped saying the run is not the smith's"
     )

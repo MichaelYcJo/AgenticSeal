@@ -893,25 +893,21 @@ def test_an_object_without_a_message_takes_the_report_as_its_message(
 def test_the_registration_section_says_a_failure_is_said_and_names_its_case():
     """S14. The ratified rule in `docs/commit-review-gate-spec.md`
     §*Registration* was that a raising gate is skipped. It now also says the
-    skip is said, and its `Enforced by:` line names the case above that pins
-    the words a person reads."""
+    skip is said, and its `check:` line names the module above that pins the
+    words a person reads."""
     path = os.path.join(os.path.dirname(HOOKS), "docs", "commit-review-gate-spec.md")
     with open(path, encoding="utf-8") as handle:
         text = handle.read()
-    start = text.index("## Registration — gates run in groups, not one process each")
+    start = text.index("## Registration\n")
     section = text[start : text.index("\n## ", start + 1)]
     flat_text = " ".join(section.split())
     assert (
         "**A gate that fails is said once per session, at the end of the main "
         "session's turn, and the call it failed on still goes ahead.**"
     ) in flat_text, section
-    assert "<!-- specs/1790635415-a-gate-that-fails-to-load-says-so -->" in section
-    enforced = [ln for ln in section.splitlines() if ln.startswith("Enforced by: ")]
+    enforced = [ln for ln in section.splitlines() if ln.startswith("check: ")]
     assert len(enforced) == 1, enforced
-    assert (
-        "tests/test_a_gate_that_fails_says_so.py::"
-        "test_a_broken_gate_is_said_at_the_end_of_the_turn_and_only_once"
-    ) in enforced[0], enforced
+    assert "tests/test_a_gate_that_fails_says_so.py" in enforced[0].split(), enforced
 
 
 # --- #661: a gate's JSON the dispatcher cannot read ends nothing --------------

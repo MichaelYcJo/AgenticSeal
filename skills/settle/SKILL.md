@@ -15,8 +15,7 @@ description: |
 A spec states the rules its work changes in its `## Rule changes` section.
 The section is reviewed with the spec, and `settle --apply` applies it to
 `docs/` after the release. **The spec decides; the command applies.**
-`docs/one-root-by-lifetime.md` §*What keeps `settle` light* says the step
-"moves and does not verify": what a spec decided is not judged again here,
+The step moves and does not verify: what a spec decided is not judged again here,
 and whether a rule still holds is the suite's to say.
 
 ```
@@ -54,6 +53,7 @@ line, indented two spaces:
 | `add` | `file`, `to`; `section` optional | puts `to` at the end of the section's own text, before its first sub-heading. With no `section` it creates `file`, and is refused where `file` exists |
 | `change` | `file`, `section`, `from`, `to` | rewrites `from` where it stands |
 | `remove` | `file`, `section`; `from` optional | deletes `from`, or with no `from` the whole section, up to the next heading of its level or higher |
+| `nothing` | `why` | changes no rule, and stands alone in the section |
 
 - `file` is a top-level `.md` file of the policy root, `seal/config.md`'s
   `Policy root` row (`docs` when absent), joined with `/` and holding no `\`
@@ -64,8 +64,9 @@ line, indented two spaces:
   character, emoji included, is matched as itself.
 - A value continues on the lines below it indented four spaces, and lands
   with that indent removed.
-- A spec that changes no rule writes `nothing — <why>` in place of the
-  items, with an em dash (U+2014); a hyphen is refused, naming the dash.
+- A spec that changes no rule writes the no-change block in place of the
+  items, `- nothing` with its one field `why:`. Any other spelling of it is
+  refused at its line, naming the block.
 - A block that does not match whole is refused at its line, and its spec
   applies nothing.
 
@@ -73,20 +74,37 @@ line, indented two spaces:
 
 ## A rule has one shape
 
-**A rule has one shape: the rule, its grounds, and what enforces it.** A
-`to` value that states a rule opens with the rule as one bold sentence, gives
-its grounds as prose, and ends with one line naming what reads it:
-`Enforced by: <target>[, …]`, where a target is a repository path with an
-optional `::<name>` for a `def` or `class`, or `Enforced by: nothing — <why>`
-with a reason. `Enforced by:` stays English in every edition.
+**A rule has one shape: the rule, its grounds, and the line naming what
+reads it.** A `to` value that states a rule opens with the rule as one bold
+sentence, gives its grounds as prose, and ends with one check line, which
+stays English in every edition.
 
-**What this plugin checks, and what it does not.** It ships `fold-check`
-(`skills/settle/scripts/fold_check.py`), which reads that shape over the top
-level of the policy root from the `Fold shape from` row in `seal/config.md`,
-and a row a repository does not write is a check it does not run
-(`templates/config.md` §*The fold's values*). Whether a target really
-enforces its rule, and whether two rules contradict each other, it cannot
-read: that is review's, and it is review's to find.
+- A check line is a shown line of a rule file whose text, after any leading
+  spaces, starts with `check: `, lowercase, one space after the colon.
+- It names one or more targets separated by single spaces, or no target,
+  written exactly `check: none reader: <who reads it>`.
+- A target is a file of the repository, an eval case directory
+  `evals/behaviour/<agent>/<case>/` holding `case.yaml`, or a marker:
+  lowercase letters, digits and hyphens, carried by at least one test as
+  `@pytest.mark.rule("<marker>")`.
+- A marker names the tests of a rule whose test drives a script that can
+  refuse a commit or fail a required pull-request job. Every other rule names
+  files.
+- A line whose only content before the label is Markdown block markup or
+  emphasis is a near miss and is refused at its line; only the exact shape
+  above is read.
+- Every other spelling of the label is refused at its line too: another
+  case, a space before the colon, the plural, the word `Enforced by`. So is
+  a value holding `::`, a comma or an em dash, a reader with a space
+  more after `reader:`, a path that is no file of the repository, and a
+  marker no test carries.
+
+**What this plugin checks, and what it does not.** It ships `rules --check`
+(`.github/scripts/rules.py`), which reads every check line in a rule file and
+refuses one the grammar refuses. Whether a target really enforces
+its rule, whether a rule paragraph carries the line at all, and whether two
+rules contradict each other, it cannot read: that is review's, and it is
+review's to find.
 
 ## The index
 
@@ -119,9 +137,9 @@ over an unsettled work item.
 - **In place.** Each change lands where its text stands, and the rest of
   the document is byte-identical. No marker is written.
 - **A directory goes only with the rule changes it applied**, whole, its
-  process record included. A `nothing — <why>` spec has nothing to apply and
-  goes. A spec with no `## Rule changes` was written before the section
-  existed; it is named and stays.
+  process record included. A spec whose section is the no-change block has
+  nothing to apply and goes. A spec with no `## Rule changes` was written
+  before the section existed; it is named and stays.
 - The documents are written before any directory is removed.
 
 It exits 0 when nothing was refused or held by an open row, a spec with no
@@ -163,8 +181,9 @@ no commit with `HEAD` is refused at exit 2.
 **A settle is not finished until every check in your repository that carries
 a population floor over `seal/specs/` has been answered.** A floor is an
 assertion like `len(records) > 200` over a walk of `seal/specs/`, and a
-settle shrinks the corpus by design. `docs/one-root-by-lifetime.md` §*The
-dependency rule* names two such readers, and that list is not the whole list.
+settle shrinks the corpus by design (`docs/one-root-by-lifetime.md` *The
+dependency rule*), and a list of readers written in any document is not the
+whole list.
 The dry run lists every `tests/` file that reads `seal/specs`, and every path
 outside it that cites into what `--apply` removes. Each check gets one answer,
 written down:
@@ -199,6 +218,6 @@ settling would never end.
 ## What this does not do
 
 - It does not verify. Whether a rule still holds is the suite's job, through
-  the test its `Enforced by:` line names.
+  the test its check line names.
 - It does not fail a build. No gate refuses a branch for an unsettled work
   item.

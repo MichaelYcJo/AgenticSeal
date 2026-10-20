@@ -124,6 +124,13 @@ S13, S16 and S17 described the changed-lines check and left with it in phase 4.
 - `hooks/launch.py <script> [arguments...]` — `FLOOR = (3, 12)`, the floor's one source; `.github/scripts/run_tests.py` reads it, and a case holds `ruff.toml` equal. Exit 2 below the floor or with no script named; otherwise the script's own.
 - `seal/budgets.md` — three ceilings lowered; no row, table or measurer added.
 
+## Rule changes
+
+- nothing
+  why: internal: one launcher holds the Python floor, held by
+    tests/test_a_script_says_which_interpreter_it_needs.py, and one module replays a
+    sample of its corpus; the per-pull-request case check left within the item.
+
 ## Removes
 
 - The floor's eight copies: the guard (`FLOOR`, `FLOOR_TEXT`, `BELOW_FLOOR`, `below_floor`) in `skills/code-review/scripts/round_record.py`, `skills/settle/scripts/settle.py`, `skills/settle/scripts/fold_check.py`, `skills/verify/scripts/broad_gate.py`, `skills/verify/scripts/payload_meter.py`, `skills/verify/scripts/seal_stamp.py` and `.github/scripts/claude_block.py`, and `run_tests.py`'s own `FLOOR` number, which now reads the launcher's.

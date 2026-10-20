@@ -29,8 +29,8 @@ moved direction is a red cell.
 | Item | Who must answer |
 |---|---|
 | closed Whether `hooks/blocks.py#walk` can ever return a line both `fence` and uncertain, which is the only case the rider check's `and not walked.uncertain[index]` clause decides; every shape probed in phase 1 returned an uncertain construct as `live`, and a mutation dropping the clause survived | answered from the code by round 1's note 5, at f8c96c3b: `walk` writes a fenced range as a slice and jumps past it, so its lines never reach the code that sets `uncertain`; the tail loops and `walk_text` mark only `live` lines uncertain; a seeded fuzz of 200,000 texts through both found 0 such lines. The clause is defensive and the surviving mutant is equivalent, until the walk changes |
-| Whether `tests/test_settle_reads_before_it_removes.py::test_no_row_of_this_repositorys_ledger_anchors_inside_a_work_item` is over the suite's 90 s ceiling at the base too: it ran 117 s in a parallel run on this branch and 153 s alone, and passed with the ceiling raised; this work adds 17 rows to the ledgers it reads and no code it runs | the sealer's broad gate, which re-runs a failing file at the base |
-| The full suite, lint over the repository and the typecheck | the sealer, once the review rounds settle |
+| closed Whether `tests/test_settle_reads_before_it_removes.py::test_no_row_of_this_repositorys_ledger_anchors_inside_a_work_item` is over the suite's 90 s ceiling at the base too: it ran 117 s in a parallel run on this branch and 153 s alone, and passed with the ceiling raised; this work adds 17 rows to the ledgers it reads and no code it runs | its subject left the tree: 5b1f6fae (#950) took that case out with the ledger |
+| closed The full suite, lint over the repository and the typecheck | #918, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
 
 ## Not done
 

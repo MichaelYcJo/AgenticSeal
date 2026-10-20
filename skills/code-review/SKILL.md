@@ -35,7 +35,7 @@ only a person can answer stays a question. Do not edit it.
 Review beyond the changed files: new code that calls into untouched files
 puts their conditions and boundaries into effect for the first time, so
 follow every call the change introduces.
-Enforced by: evals/behaviour/warden/rule-warden-one-finding/
+check: evals/behaviour/warden/rule-warden-one-finding/
 
 ## Comparison axes
 
@@ -65,7 +65,7 @@ name this change's own axes before starting: money and rounding, time zones,
 resource lifetime, migration ordering, pagination while writes land, whatever
 the diff touches. Walk them like the rest. An axis you could not judge is a
 row of `## Not judged`, never a silent pass.
-Enforced by: tests/test_review_axes.py::test_the_table_asks_what_a_second_actor_does, tests/test_review_axes.py::test_the_table_asks_the_security_questions, tests/test_review_axes.py::test_the_table_says_it_is_a_floor
+check: tests/test_review_axes.py
 
 ## Probes and regression tests
 
@@ -84,7 +84,7 @@ A fixture chain is `&&`, never `|`: a pipe feeds one command's output to the
 next instead of ordering them, and the chain can sit waiting on stdin with
 nothing arriving. Give any call that could run long a timeout you chose
 rather than one you assumed.
-Enforced by: tests/test_a_probe_that_commits_says_so.py::test_the_procedure_a_reviewer_follows_carries_the_leavings_rule_too, tests/test_a_probe_does_not_outlive_its_round.py::test_the_probe_rules_say_a_fixture_chain_is_and, tests/test_a_probe_does_not_outlive_its_round.py::test_the_probe_rules_ask_for_a_timeout_somebody_chose
+check: tests/test_a_probe_that_commits_says_so.py tests/test_a_probe_does_not_outlive_its_round.py
 
 ## Earlier rounds
 
@@ -100,7 +100,7 @@ introduced the defect. Where you weigh an earlier finding, re-run its
 `evidence: executed` line rather than re-deriving the claim; a probe it names
 is written again from its `## Probes` row. A record written before the
 `evidence:` row lacks the line, and that is no finding.
-Enforced by: tests/test_review_axes.py::test_a_later_round_inherits_no_verdict_anywhere, tests/test_the_rules_have_one_owner.py::test_a_close_that_does_not_hold_reopens_it, tests/test_review_axes.py::test_a_later_round_re_runs_an_executed_line
+check: tests/test_review_axes.py tests/test_the_rules_have_one_owner.py
 
 ## The record
 
@@ -136,7 +136,7 @@ is absent; field names, headings and vocabulary words stay English
   block under it. A mark quoted from the code under review is written as its
   code point (`U+1F7E1`) or in words, never as the character.
 
-Enforced by: tests/test_chain_check.py::TestGrammar::test_the_table_loads_and_every_line_matches_its_row_whole, tests/test_chain_check.py::TestGrammar::test_the_warden_and_the_review_skill_name_every_line_a_finding_needs, tests/test_the_record_is_written_in_words.py::test_no_file_an_agent_reads_carries_an_emoji_or_a_proof_block, evals/behaviour/warden/rule-warden-one-finding/
+check: tests/test_chain_check.py tests/test_the_record_is_written_in_words.py evals/behaviour/warden/rule-warden-one-finding/
 
 **Paste-ready means the snippet cannot mislead on its own.** Mark a name the
 tree does not have at the line that uses it:
@@ -161,4 +161,4 @@ resolution, file modes, symlinks, a subprocess's working directory, encoding
 - A claim a fix writes into a document closes when a test pins the document,
   not when the sentence lands.
 
-Enforced by: nothing — a reviewer's judgment, which the next round reads
+check: none reader: the next round

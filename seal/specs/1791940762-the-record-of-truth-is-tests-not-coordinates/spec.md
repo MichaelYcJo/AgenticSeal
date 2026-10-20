@@ -131,6 +131,12 @@ CI cost, private repository (Windows 2×, macOS 10×): deletions only. The `ledg
 
 `seal/budgets.md`: a `gate` row `enforced-unresolved` (ceiling 0, unit targets) and an `unenforced` family row with a `## Unenforced rules` table (`| File | Rules ceiling |`), both read through `hooks/config.py#gfm_table`. `budget_check.py`: `rule_paragraphs` (#923's, or built here), `measure_unenforced`, `measure_unresolved` (NAMES NOT IN TREE until phase 1), the resolver loaded from `skills/settle/scripts/fold_check.py#target_problem` widened by an eval-case branch. `evidence_check.py` at its path, cut to the kernel named above. One new case in `tests/test_release_hygiene.py` for S7. Deleted: see `## Removes`. Changelog: `changelog.md` here with the audit's numbers and the deletion table.
 
+## Rule changes
+
+- nothing
+  why: written: a rule names the test that holds it, in skills/settle/SKILL.md and on every
+    check line under docs/; the ledger it retired left the tree with it.
+
 ## Removes
 
 | Removes | Coordinate | Where it lands, or why it can go |

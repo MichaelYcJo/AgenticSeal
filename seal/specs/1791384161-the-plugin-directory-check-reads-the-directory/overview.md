@@ -25,8 +25,8 @@ The release checklist's last command told the releaser the plugin was *not liste
 
 | Item | Who must answer |
 |---|---|
-| Whether SpecSeal shows up in the directory today — a search for *SpecSeal* inside Claude (`questions.md` Q2). The box says this search is what answers it; no script can run it | the repository owner, with a Claude account in a browser |
-| That the Console page the command prints, `platform.claude.com/plugins/submissions`, is the page the owner's Console listing appears on. The address is the docs' own link (fetched 2026-10-08); the page is behind a login nobody here has | the repository owner |
+| closed Whether SpecSeal shows up in the directory today — a search for *SpecSeal* inside Claude (`questions.md` Q2). The box says this search is what answers it; no script can run it | a person's reading: the limit sentence in `docs/release-checklist.md` *6. After the merge* |
+| closed That the Console page the command prints, `platform.claude.com/plugins/submissions`, is the page the owner's Console listing appears on. The address is the docs' own link (fetched 2026-10-08); the page is behind a login nobody here has | the owner's reading behind a login: the limit sentence in `docs/release-checklist.md` *6. After the merge* |
 
 ## Not done
 

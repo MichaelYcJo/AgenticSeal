@@ -345,6 +345,7 @@ def test_a_lease_in_any_worktree_of_the_clone_starts_python(tmp_path, home):
     assert "ran pre-commit" in got.stderr
 
 
+@pytest.mark.rule("a-persons-own-commit")
 def test_an_emptied_lease_directory_starts_no_python(tmp_path, home):
     """Round 1's 🟡 11: `hooks/session-lease.py` prunes lease files and never
     the directory, so a person's commit in every clone a session once used

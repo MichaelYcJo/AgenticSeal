@@ -360,20 +360,20 @@ def test_another_files_section_in_a_definition_is_not_the_contracts():
 
 def test_the_four_rules_stand_with_their_enforcers():
     """T4: the four rules #957 added each keep their sentence and their
-    `Enforced by:` line, so a later trim cannot drop one quietly."""
+    `check:` line, so a later trim cannot drop one quietly."""
     found = bodies(read())
     for number in FOUR_RULES:
         body = " ".join(found.get(number, "").split())
         assert PINS[number] in body, f"§{number} lost its rule: {PINS[number]}"
-        assert re.search(r"^Enforced by: \S", found[number], re.M), (
-            f"§{number} has no `Enforced by:` line"
+        assert re.search(r"^check: \S", found[number], re.M), (
+            f"§{number} has no `check:` line"
         )
 
 
 def test_dropping_an_enforcer_from_one_of_the_four_is_caught():
     text = read()
     _, start, end = spans(text)[FOUR_RULES[0]]
-    body = re.sub(r"^Enforced by: .*\n?", "", text[start:end], flags=re.M)
+    body = re.sub(r"^check: .*\n?", "", text[start:end], flags=re.M)
     mutated = text[:start] + body + text[end:]
     found = bodies(mutated)
-    assert not re.search(r"^Enforced by: \S", found[FOUR_RULES[0]], re.M)
+    assert not re.search(r"^check: \S", found[FOUR_RULES[0]], re.M)

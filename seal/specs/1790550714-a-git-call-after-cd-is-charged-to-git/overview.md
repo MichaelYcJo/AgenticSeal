@@ -25,8 +25,8 @@ heredoc now reads as `test`.
 
 | Item | Who must answer |
 |---|---|
-| How the 0.15.5 run's own segment readings (#619) move under the new rule (`questions.md` Q1) | the owner, on the machine that holds the 0.15.5 transcripts: `session_cost.py --segments <transcript>` at 2037cf0 and at this branch's tip |
-| The full suite, the repository-wide lint and the typecheck | the sealer, once, after the review rounds settle |
+| closed How the 0.15.5 run's own segment readings (#619) move under the new rule (`questions.md` Q1) | transcripts on the owner's machine, which the tree cannot read: the rule in `docs/measuring-a-run.md` *What a measurement must survive, and what it must not invent* that a correction names the published readings it affects, and re-deriving them is its own work |
+| closed The full suite, the repository-wide lint and the typecheck | #635, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
 
 ## Not done
 

@@ -17,6 +17,8 @@ import glob
 import os
 import re
 
+import pytest
+
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 
 # Pictographs, the dingbats and miscellaneous symbols the old marks came from
@@ -112,14 +114,13 @@ def sentences(lines):
     return re.split(r"(?<=\.)\s+(?=[A-Z`*])", text)
 
 
+@pytest.mark.rule("fix-pass-two-lines")
 def test_a_repair_with_no_commit_closes_deferred_where_it_was_made():
     rel = "docs/the-review-record.md"
     lines, _ = section(read(rel), "## The round record")
     opener = "**The fix pass writes two lines per finding"
     start = next(i for i, line in enumerate(lines) if line.startswith(opener))
-    end = next(
-        i for i in range(start, len(lines)) if lines[i].startswith("Enforced by:")
-    )
+    end = next(i for i in range(start, len(lines)) if lines[i].startswith("check: "))
     paragraph = sentences(lines[start:end])
 
     outside = [s for s in paragraph if "outside the tree" in s]

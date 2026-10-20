@@ -982,18 +982,18 @@ def test_the_release_tail_says_the_seal_is_a_second_act_that_never_fails_it():
     """`docs/branch-and-release.md` §*Every act the release performs once it
     reaches `main`*: the bullet on the note says the seal job runs only on a
     release this run created, edits only a glance table still as generated,
-    and cannot turn the release red, and the section's `Enforced by:` line
-    names the case that pins the fallback. Since #832 it says the seal is
+    and cannot turn the release red, and the section's `check:` line names
+    the module that pins the fallback. Since #832 it says the seal is
     the owner's SVG drawn by `rsvg-convert`, and no longer that it is drawn
     from the broad gate's letter; seen red by the old sentence put back."""
     text = flat("docs", "branch-and-release.md")
     bullet = text.split("**The release note publishes itself.**", 1)[1].split(
         "- **", 1
     )[0]
-    assert "**Then the release's seal is attached** (#718)" in bullet
+    assert "**Then the release's seal is attached.**" in bullet
     assert (
         "draws the owner's seal from `.github/scripts/release-seal.svg` with "
-        "`rsvg-convert`, which the job installs (#832)" in bullet
+        "`rsvg-convert`, which the job installs, attaches it" in bullet
     )
     assert "letter" not in bullet
     assert "runs only when this run created the release" in bullet
@@ -1004,11 +1004,8 @@ def test_the_release_tail_says_the_seal_is_a_second_act_that_never_fails_it():
     section = text.split("**Every act the release performs once it reaches `main`", 1)[
         1
     ]
-    enforced = section.split("Enforced by:", 1)[1].split("###", 1)[0]
-    assert (
-        "tests/test_the_release_seal_is_drawn.py::"
-        "test_any_failure_leaves_the_note_as_it_was_published" in enforced
-    )
+    enforced = section.split(" check: ", 1)[1].split("###", 1)[0]
+    assert "tests/test_the_release_seal_is_drawn.py" in enforced.split(), enforced
 
 
 def test_the_checklist_box_says_where_a_missing_seal_is_explained():

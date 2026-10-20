@@ -133,7 +133,7 @@ def test_every_file_a_step_names_exists(path):
 
     A step opens a skill by its path, so a renamed skill leaves an
     instruction an agent meets as *file not found* mid-run; `rules --check`
-    reads only `Enforced by:` targets, and no other case reads the paths a
+    reads only `check:` targets, and no other case reads the paths a
     step names."""
     assert missing_paths(read(path)) == [], name(path)
 
@@ -191,7 +191,7 @@ It does a sixth thing; a write not named here is a write you do not make.
 ## Rules
 
 **A rule.** It holds.
-Enforced by: nothing — a planted definition
+check: none reader: a planted definition
 """
 
 

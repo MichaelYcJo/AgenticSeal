@@ -42,8 +42,8 @@ release seal cannot give one cell two meanings.
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the typecheck at this branch's head | the sealer, after the review rounds settle |
-| The suite's `gh.cmd` stub and the check running `gh` at the path `which` found, on Windows: read and pinned by an in-process case, never run on Windows here | CI's Windows shards at the pull request |
+| closed The full suite, the repository-wide lint and the typecheck at this branch's head | #890, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
+| closed The suite's `gh.cmd` stub and the check running `gh` at the path `which` found, on Windows: read and pinned by an in-process case, never run on Windows here | #997's `windows-latest` leg ran the suite green |
 
 ## Not done
 

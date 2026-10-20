@@ -61,6 +61,12 @@ Out:
 imports it. **Corrected 2026-09-30** by round 1's fix pass: this section
 described `cmdline.base_directories(items, cwd)`, which is removed.
 
+## Rule changes
+
+- nothing
+  why: written: the guard and the consent writer read through the frozen reader, in
+    docs/worktree-guard-spec.md *Which tree*.
+
 ## Open questions → questions.md
 
 None. The owner decided the scope on 2026-09-30 (`routing.md`).

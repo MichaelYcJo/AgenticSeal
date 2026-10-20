@@ -52,8 +52,8 @@ ledger.
 | Item | Who must answer |
 |---|---|
 | `bin/rules.cmd` runs on Windows: written in lockstep with `bin/fold-check.cmd`, never executed | the pull request's Windows leg |
-| the full suite, the repository-wide lint and the typecheck after phase 5 | the sealer, once, after the rounds |
-| `bin/fold-check.cmd --help` from `/` on Windows: `test_bin_wrapper_resolves_the_checker_from_any_cwd` was re-pointed from the deleted `evidence-check` wrapper, executed on macOS only | the pull request's Windows leg |
+| closed the full suite, the repository-wide lint and the typecheck after phase 5 | #950, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
+| closed `bin/fold-check.cmd --help` from `/` on Windows: `test_bin_wrapper_resolves_the_checker_from_any_cwd` was re-pointed from the deleted `evidence-check` wrapper, executed on macOS only | #950's `windows-latest` leg ran the case, which runs the `.cmd` wrapper on `win32`, green |
 | `bin/pact-check.cmd` after its script path moved to `skills\verify\scripts\pact_check.py`: edited in lockstep with `bin/pact-check`, whose `--help` exits 0 on macOS, never executed on Windows | the pull request's Windows leg |
 
 ## Not done

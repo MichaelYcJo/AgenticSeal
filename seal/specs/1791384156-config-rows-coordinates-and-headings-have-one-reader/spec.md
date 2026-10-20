@@ -282,6 +282,12 @@ say so.
 - `templates/config.md` and `skills/evidence-check/SKILL.md`: say what a
   doubled row and an unreadable file do, beside the non-numeric freeze row.
 
+## Rule changes
+
+- nothing
+  why: internal: one reader each for a config row, a coordinate and a heading, held by
+    their tests.
+
 ## Open questions → questions.md
 
 `questions.md` holds no row a person must answer; its head lists the eight

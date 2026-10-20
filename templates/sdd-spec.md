@@ -36,7 +36,11 @@ don't duplicate them.
 <!-- The rules this work adds to, changes in or removes from the policy
      root, which `settle --apply` applies after the release. The grammar is
      `skills/settle/SKILL.md` §*Rule changes*. A spec that changes no rule
-     writes `nothing — <why>`. -->
+     writes the no-change block:
+
+     - nothing
+       why: <the reason>
+     -->
 
 ## Removes
 
@@ -46,8 +50,8 @@ don't duplicate them.
 
 <!-- What this work item takes out of the tree, named once, here, before the
      build, each row read by the review against the diff. A work item that
-     removes nothing writes one line in place of the table: `nothing —
-     <why>`. The rule is `docs/the-reader-registry.md` §*A frame names what
+     removes nothing writes the no-change block in place of the table, as
+     `## Rule changes` does. The rule is `docs/the-reader-registry.md` §*A frame names what
      its work removes*.
      #107 is why a removal is recorded at all, and `docs/the-agent-set.md`
      tells it: a rule taken out of `agents/smith.md` was lost between two

@@ -217,6 +217,12 @@ Each class is enumerated by construction (contract §12). The builder re-runs ea
 
 The rest is questions W2.
 
+## Rule changes
+
+- nothing
+  why: written: every kind of record has one home, in docs/the-record-layout.md;
+    overturned: the ledger's freeze, gone with the ledger (5b1f6fae).
+
 ## Open questions → questions.md
 
 Every row there is either decided by this frame, with its answer written in, or belongs to a measurement or to the work. None blocks the build.

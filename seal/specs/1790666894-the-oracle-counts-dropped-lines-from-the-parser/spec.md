@@ -284,6 +284,12 @@ the helper.
   hooks' walk after a line of only a Unicode space followed by an indented
   `>`, and that it now takes the count from the parser.
 
+## Rule changes
+
+- nothing
+  why: internal: the oracle takes a paragraph's dropped lines from the parser, in
+    tests/commonmark_oracle.py.
+
 ## Open questions → questions.md
 
 None needs a person. Q1 to Q3 are measurements, and the phases that meet them

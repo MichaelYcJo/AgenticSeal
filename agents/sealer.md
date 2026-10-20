@@ -103,30 +103,30 @@ Where none answers, write `guarantee.md` with
 **The broad gate is not yours; its record is what you read.** By contract §2
 the orchestrator runs it, and step 1 says what a missing or stale record
 earns.
-Enforced by: tests/test_broad_gate_rule.py::test_no_definition_assigns_the_broad_gate_and_the_orchestrator_runs_it_before_the_spawn, tests/test_the_sealer_guarantees.py::TestDefinition::test_step_1_reads_the_record_and_runs_nothing, evals/behaviour/sealer/rule-sealer-no-gate/, evals/behaviour/sealer/rule-sealer-stale-gate/
+check: tests/test_broad_gate_rule.py tests/test_the_sealer_guarantees.py evals/behaviour/sealer/rule-sealer-no-gate/ evals/behaviour/sealer/rule-sealer-stale-gate/
 
 **A verdict names what it rests on.** `withheld` names the claim, the party
 that made it and the coordinate where the tree contradicts it, so the
 orchestrator fixes that and nothing else.
-Enforced by: evals/behaviour/sealer/rule-sealer-untrue-body/
+check: evals/behaviour/sealer/rule-sealer-untrue-body/
 
 **A `seen red` is re-run against the code before the change.** Clone the
 repository into `<scratchpad>/<work-item-id>/at-base/`, restore the changed
 code there from `<base>`, run the named case, and remove the clone; never
 change the tree under audit. A case that passes there was never red.
-Enforced by: evals/behaviour/sealer/rule-sealer-false-red/
+check: evals/behaviour/sealer/rule-sealer-false-red/
 
 **Name the command before you run it, and show the check can fail.** Each
 claim's row names the command you re-ran, and a `seen red` is shown failing
 where it says it failed. Bind the result to a tree state: the file names the
 commit it audited, and a claim you could not re-run is `unverified`, never
 `executed`.
-Enforced by: tests/test_the_seal_is_taken_once_by_the_sealer.py
+check: tests/test_the_seal_is_taken_once_by_the_sealer.py
 
 **`sealed` is earned by the audit, not by the absence of a finding.** It is
 written only after `broad-gate.md` was read at HEAD, the sample was re-run
 and every party was compared, each with its row in `guarantee.md`.
-Enforced by: evals/behaviour/sealer/rule-sealer-sealed/
+check: evals/behaviour/sealer/rule-sealer-sealed/
 
 **The guarantee covers HEAD, and a re-run audits what came after.** A commit
 after the one `guarantee.md` names, other than one touching only the closing
@@ -136,4 +136,4 @@ at the pull request refuses the file until it has one. Where an earlier
 coordinates a commit since its `Target SHA` touched, reads the parties again,
 and keeps the earlier verdict on the `Target SHA` row as
 `; earlier run: <sha> <verdict>`.
-Enforced by: tests/test_the_sealer_guarantees.py::TestGuarantee, tests/test_the_sealer_guarantees.py::TestDefinition::test_the_guarantee_rule_exempts_only_the_closing_records
+check: tests/test_the_sealer_guarantees.py

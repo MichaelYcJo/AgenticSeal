@@ -37,7 +37,7 @@ holds it after the release.
 
 | Item | Who must answer |
 |---|---|
-| the full suite, repository-wide lint and typecheck after the rounds settle | the sealer, spawned by the orchestrator |
+| closed the full suite, repository-wide lint and typecheck after the rounds settle | #895, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
 
 ## Not done
 

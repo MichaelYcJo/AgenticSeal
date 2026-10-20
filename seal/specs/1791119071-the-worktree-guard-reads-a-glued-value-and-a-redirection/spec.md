@@ -269,6 +269,12 @@ row, below).
   `seal/releases/0.18.0.md` K5 and N1 and `seal/releases/0.18.1.md` G1 and
   its K5 re-read; `bin/evidence-check --strict .` names any others.
 
+## Rule changes
+
+- nothing
+  why: overturned: the option table and the glued value's reading left with the guard's
+    three shapes (3d78c220).
+
 ## Open questions → questions.md
 
 Anything a planner must answer lives in questions.md, not inline — unanswered

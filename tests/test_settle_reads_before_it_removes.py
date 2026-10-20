@@ -61,7 +61,8 @@ def no_rule(repo, work_item_id):
     commit it, so `--apply` removes its directory."""
     path = repo / "seal" / "specs" / work_item_id / "spec.md"
     path.write_text(
-        path.read_text(encoding="utf-8") + "\n## Rule changes\n\nnothing — a moment.\n",
+        path.read_text(encoding="utf-8")
+        + "\n## Rule changes\n\n- nothing\n  why: a moment.\n",
         encoding="utf-8",
     )
     git(repo, "add", "--", f"seal/specs/{work_item_id}")
@@ -715,9 +716,9 @@ def test_the_skill_names_the_floors_a_fold_has_to_answer():
     assert "population floor" in text, (
         "the skill never tells a session that its own checks read the corpus"
     )
-    assert "is not the whole list" in text, (
-        "the skill lets `docs/one-root-by-lifetime.md`'s two readers stand as "
-        "the whole list, which is what makes a fold turn a suite red"
+    assert "a list of readers written in any document is not the whole list" in text, (
+        "the skill lets a written list of readers stand as the whole list, "
+        "which is what makes a fold turn a suite red"
     )
     for answer in ("retire the case", "re-point it at a fixture corpus", "decline"):
         assert answer in text, f"the skill does not offer `{answer}`"
@@ -817,94 +818,6 @@ def test_every_other_carrier_points_to_the_model(parts):
     ), "/".join(parts)
 
 
-@pytest.mark.parametrize(
-    "parts, heading",
-    [
-        (("docs", "one-root-by-lifetime.md"), "## Decided when `settle` was built"),
-        (("docs", "one-root-by-lifetime.ko.md"), "## `settle` 을 만들면서 정해진 것"),
-    ],
-)
-def test_the_design_record_takes_the_later_decision_as_a_dated_section(parts, heading):
-    """`tests/test_no_document_names_the_old_roots.py#DESIGN_RECORD`
-    classifies this document as a record of a moment, and a record of a moment
-    is not rewritten. The shape it already uses for a later decision is a
-    dated section, and both editions take one."""
-    text = document(*parts)
-    assert heading in text, f"{'/'.join(parts)} carries no dated section for #458"
-    assert "2026-09-22" in text
-    assert "2026-09-02" in text, (
-        "the dated section no longer says which text it is leaving alone"
-    )
-
-
-@pytest.mark.parametrize(
-    "parts, heading",
-    [
-        (
-            ("docs", "one-root-by-lifetime.md"),
-            "## Decided when the fold stopped being a work item (2026-09-23)",
-        ),
-        (
-            ("docs", "one-root-by-lifetime.ko.md"),
-            "## fold 가 작업 항목이 아니게 되면서 정해진 것 (2026-09-23)",
-        ),
-    ],
-)
-def test_the_design_record_takes_d1_as_a_dated_section(parts, heading):
-    """#517's D1 overturns the 2026-09-22 row that made the fold its own work
-    item, and a record of a moment takes the overturning as a new dated
-    section rather than an edit to the row."""
-    text = document(*parts)
-    assert heading in text, f"{'/'.join(parts)} carries no dated section for #517"
-    later = text.split(heading, 1)[1]
-    assert "2026-09-02" in later and "2026-09-22" in later, (
-        "the new section does not say which two records it leaves alone"
-    )
-    assert "[no-review]" in later
-
-
-DATED_SECTIONS = (
-    ("## Decided when `settle` was built", "## `settle` 을 만들면서 정해진 것"),
-    (
-        "## Decided when the fold stopped being a work item",
-        "## fold 가 작업 항목이 아니게 되면서 정해진 것",
-    ),
-    # #729: the process record leaves after its release, without the fold.
-    (
-        "## Decided when the process record stopped waiting for the fold",
-        "## 과정의 기록이 fold 를 기다리지 않게 되면서 정해진 것",
-    ),
-)
-
-
-def section(flat_text, heading):
-    """A dated section of a flattened document, from its heading to the next."""
-    rest = flat_text.split(heading, 1)[1]
-    return rest.split(" ## ", 1)[0]
-
-
-def test_both_editions_took_the_same_decisions():
-    """`CONTRIBUTING.md` requires the two editions to move together, and a
-    mirror drifts one edit at a time. The rows are prose in two languages, so
-    what is compared is that each edition's section has as many rows as the
-    other's."""
-    en = document("docs", "one-root-by-lifetime.md")
-    ko = document("docs", "one-root-by-lifetime.ko.md")
-    # Each section is read up to the next `## ` heading, so a later dated
-    # section is compared with its own twin rather than counted into this
-    # one's (#517 added the second).
-    for en_heading, ko_heading in DATED_SECTIONS:
-        sections = (section(en, en_heading), section(ko, ko_heading))
-        rows = tuple(s.count("|---|---|---|") for s in sections)
-        assert rows == (1, 1), (en_heading, rows)
-        counted = tuple(s.count(" | ") for s in sections)
-        assert counted[0] == counted[1], (
-            f"{en_heading}: the English section holds {counted[0]} cells and "
-            f"the Korean {counted[1]} — one edition took a decision the other "
-            "did not"
-        )
-
-
 # --- what the plugin says it ships -----------------------------------------
 
 
@@ -921,7 +834,10 @@ def test_the_release_checklist_carries_the_by_hand_step():
     assert "skills/settle/SKILL.md" in text
     # Round 1, finding 10: a document past the ceiling is a report (Q6), and
     # the checklist points to the skill's section rather than ordering a split.
-    assert "§*A document past its ceiling is split, never trimmed*" in text
+    assert (
+        "`skills/settle/SKILL.md` *A document past its ceiling is split, never "
+        "trimmed*" in " ".join(text.split())
+    )
     assert "split along its headings in the same pull request" not in text
 
 
@@ -1177,6 +1093,7 @@ def settled_repo(tmp_path, keep_empty_dir):
     return repo
 
 
+@pytest.mark.rule("an-empty-root-is-settled")
 @pytest.mark.parametrize("keep_empty_dir", [True, False], ids=["empty", "absent"])
 @pytest.mark.parametrize("apply", [False, True], ids=["report", "apply"])
 def test_a_settled_root_is_green_and_says_so(tmp_path, keep_empty_dir, apply):

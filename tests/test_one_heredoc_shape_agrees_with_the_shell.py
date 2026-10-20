@@ -169,6 +169,7 @@ def run_one(shell, mode, command, target, home):
     return done.returncode, wrote, markers
 
 
+@pytest.mark.rule("one-heredoc-shape-is-data")
 @pytest.mark.parametrize("mode", sorted(MODES))
 @pytest.mark.parametrize("shell", ["bash", "zsh"])
 def test_the_shell_cuts_every_admitted_body_where_the_reader_does(

@@ -424,8 +424,7 @@ def test_the_gate_never_says_sealed():
 # the `seal/` root, a script or a command (`seal-stamp`, `seal_stamp`,
 # `seal mode`, `seal.py`, `seal-mark.txt`), the sealer, the chain arm's
 # `--sealing` flag and `chain_check.SEALING`, the verdict word in backticks,
-# the Seal Test, a work item the sealer sealed, and the fold markers that name
-# spec directories. `questions.md` Q6 (a) keeps the code names and the concept
+# the Seal Test, a work item the sealer sealed, and an HTML comment. `questions.md` Q6 (a) keeps the code names and the concept
 # name. A name goes on past its `-`, `_` or `.`, so a `seal.` that closes a
 # sentence is the word and stays refused. `sealed_names` and `CHAIN_SEALING` need no entry: `_` is a word
 # character, so the word below never starts or ends inside them.
@@ -859,24 +858,19 @@ def test_the_pacts_words_keep_one_meaning():
 PACT_RENAMED = re.compile(r"signator(?:y|ies)", re.IGNORECASE)
 # The two places that DISCUSS the old word rather than use it, each named by
 # the span it removes, on the `SEAL_EXCLUDED` precedent: the policy's
-# statement about the old header, from its fold marker to the end of that
+# statement about the old header, from its opening to the end of that
 # statement, and the one unit of `hooks/config.py` that writes the old tuple
 # and the rename sentence (a `PACT_PRINTED` member, read alone).
 PACT_RENAMED_SPANS = {
-    "docs/the-pact.md": "<!-- specs/1791239490-a-repository-that-keeps-a-pact-is-a-signer -->",
+    "docs/the-pact.md": "**A pact headed with the word 0.18.x used still reads",
     "hooks/config.py renamed_header": None,
 }
-# A fold marker names the work item a statement came from, and a released
-# work item's id keeps the word it was minted with
-# (`1790993137-a-signatory-declares-…`). It is a process record's name, not
-# a use of the word, so markers are blanked before the sweep.
-FOLD_MARKER = re.compile(r"<!-- specs/[^ ]+ -->")
 
 
 def without_the_policy_span(where, text):
     """TEXT, as written, flattened with the policy's statement about the old
-    header taken out: from its fold marker to the end of its paragraph, a
-    heading at the start of a line, or the next fold marker, whichever comes
+    header taken out: from its opening to the end of its paragraph, a
+    heading at the start of a line, or an HTML comment, whichever comes
     first. The statement is one paragraph, so the exemption ends where the
     statement does, whatever follows it -- a setext heading's own text and an
     underline of one character included (round 1 of #822, white 2; round 2,
@@ -927,7 +921,6 @@ def test_no_pact_text_names_a_signer_the_way_0_18_did():
             if PACT_RENAMED_SPANS[where] is None:
                 continue
             text = without_the_policy_span(where, read("docs", "the-pact.md"))
-        text = FOLD_MARKER.sub("", text)
         said = PACT_RENAMED.findall(text)
         assert not said, (
             f"{where} names a signer the way 0.18.x did: {said} — the word is "
@@ -956,7 +949,7 @@ def test_no_pact_text_names_a_signer_the_way_0_18_did():
 #   it from `hooks/config.py#renamed_header` would pass with that constant
 #   changed while every 0.18.x pact stopped reading; and this module, whose
 #   pattern and comments name the word in order to refuse it;
-# - the two spans `PACT_RENAMED_SPANS` names, and fold markers.
+# - the two spans `PACT_RENAMED_SPANS` names.
 RENAMED_RECORDS = (
     "changelog/",
     "seal/specs/",
@@ -1015,7 +1008,6 @@ def test_no_live_text_says_the_word_0_19_0_renamed():
             )
             lines = text.splitlines()
             text = "\n".join(lines[: unit.lineno - 1] + lines[unit.end_lineno :])
-        text = FOLD_MARKER.sub("", text)
         pattern = PACT_HEADER_WORD if rel in RENAMED_COMPAT else PACT_RENAMED
         said.extend(f"{rel}: {m.group(0)}" for m in pattern.finditer(text))
     assert not said, (

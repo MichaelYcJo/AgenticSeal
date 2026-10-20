@@ -166,6 +166,7 @@ FAILS = {
 }
 
 
+@pytest.mark.rule("one-heredoc-shape-is-data")
 @pytest.mark.parametrize("name", sorted(FAILS))
 def test_a_string_that_fails_one_clause_is_no_match(name):
     assert reader.reduce(FAILS[name]) is None, repr(FAILS[name])

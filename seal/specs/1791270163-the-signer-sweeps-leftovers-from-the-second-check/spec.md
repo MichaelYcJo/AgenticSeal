@@ -124,6 +124,12 @@ run's paperwork.
   `Corrected · R1` row's notes open `Corrected 2026-10-06 by work item
   1791270163-…:` in the shape `seal/releases/0.19.0.md:6`'s notes use.
 
+## Rule changes
+
+- nothing
+  why: internal: the pact-policy sweep, held by tests/test_one_word_one_meaning.py;
+    written: the old header quoted as written, in docs/the-pact.md.
+
 ## Open questions → questions.md
 
 Nothing here blocks the smith; `questions.md` says which judgments the tree

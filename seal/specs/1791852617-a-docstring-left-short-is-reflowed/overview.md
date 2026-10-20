@@ -27,7 +27,7 @@ Nothing. The issue's coordinate (line 741 at `eea27ad0`) still named the short l
 
 | Item | Who must answer |
 |---|---|
-| The full suite, lint and typecheck over the merged tree | the sealer, once, after the review rounds settle |
+| closed The full suite, lint and typecheck over the merged tree | #912, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
 
 ## Not done
 

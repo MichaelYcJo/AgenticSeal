@@ -32,8 +32,8 @@ never ran the command in (#689).
 
 | Item | Who must answer |
 |---|---|
-| The full suite, repository-wide lint and typecheck (`unverified` per contract §2) | the orchestrating session, through the sealer's broad gate |
-| Windows: the guard's backslash doubling reaches `hooks/cmdline_base.py`'s splitter as it reached `86256492`'s, which it is byte for byte; read, not run | the repository owner, on a Windows machine; no runner here, and the RIDER on `_tokenize_with_separators` already records the platform |
+| closed The full suite, repository-wide lint and typecheck (`unverified` per contract §2) | #691, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
+| closed Windows: the guard's backslash doubling reaches `hooks/cmdline_base.py`'s splitter as it reached `86256492`'s, which it is byte for byte; read, not run | #997's `windows-latest` leg ran `tests/test_guard_resolves_the_tree_it_judges.py` green |
 | A real shell for the new cases' shapes; bash's behaviour for them is the one #690's rounds executed, not re-run here | the review round |
 
 ## Not done

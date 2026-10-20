@@ -247,6 +247,12 @@ case does.
 - **The question status words**: `open`; `answered <date> by <who>`.
 - **T6's skip map**: `{"skills/legacy-parity/SKILL.md": "#970"}`.
 
+## Rule changes
+
+- nothing
+  why: written outside docs/: the smith's job, in agents/smith.md; the agent split, in
+    docs/the-agent-set.md.
+
 ## Removes
 
 | Removes | Coordinate | Where it lands, or why it can go |

@@ -288,6 +288,7 @@ def drawn(mod, label, rows, disc=True):
     return "\n".join([label, *mod.stamp(rows, shape=False, disc=disc)])
 
 
+@pytest.mark.rule("stamp-drawn-once")
 def test_the_main_sessions_stop_draws_each_undrawn_file_once(tmp_path):
     """S3 and S4. The main session's `Stop` — `session_id` X, no `agent_id` —
     prints one JSON object whose `systemMessage` opens with a label naming
@@ -311,6 +312,7 @@ def test_the_main_sessions_stop_draws_each_undrawn_file_once(tmp_path):
     assert stop(repo) == "", "a drawn file was drawn a second time"
 
 
+@pytest.mark.rule("stamp-drawn-once")
 def test_a_subagents_end_draws_nothing_and_leaves_the_file(tmp_path):
     """S5. `SubagentStop` carries the parent's `session_id` and differs by
     `agent_id` alone (`questions.md` Q2), so a payload naming an agent is the
@@ -593,6 +595,7 @@ def queued(repo):
     return sorted(found)
 
 
+@pytest.mark.rule("stamp-drawn-once")
 def test_a_sealed_guarantees_commit_queues_one_stamp(tmp_path):
     """#975 S4. The commit adds `guarantee.md` reading `sealed` over a
     `Target SHA` with no earlier run, so `post-commit` writes one values
@@ -622,6 +625,7 @@ def test_a_sealed_guarantees_commit_queues_one_stamp(tmp_path):
     assert stop(repo) == "", "the stamp was drawn twice"
 
 
+@pytest.mark.rule("stamp-drawn-once")
 @pytest.mark.parametrize(
     "verdict",
     ["withheld — the README is stale", "undecided — does #12 ask for the flag?"],
@@ -639,6 +643,7 @@ def test_a_withheld_or_undecided_guarantee_queues_nothing(tmp_path, verdict):
     assert queued(repo) == []
 
 
+@pytest.mark.rule("stamp-drawn-once")
 def test_a_reseal_after_withheld_queues_the_stamp(tmp_path):
     """#975 S6. The sealer withheld at one commit, the work was fixed, and
     the sealer's second run reads `sealed`, keeping the earlier verdict on
@@ -651,6 +656,7 @@ def test_a_reseal_after_withheld_queues_the_stamp(tmp_path):
     assert path.endswith(f"-{ITEM_ID}-{target}.json"), path
 
 
+@pytest.mark.rule("stamp-drawn-once")
 def test_a_second_sealed_verdict_queues_nothing(tmp_path):
     """#975 S7. A work item is stamped once: a guarantee whose `Target SHA`
     row carries an earlier run reading `sealed` was stamped at that run, so
@@ -664,6 +670,7 @@ def test_a_second_sealed_verdict_queues_nothing(tmp_path):
     assert queued(repo) == []
 
 
+@pytest.mark.rule("stamp-drawn-once")
 def test_a_recommit_of_the_same_guarantee_queues_no_second_file(tmp_path):
     """#975 S8. An amend, and a second commit naming the same audited
     commit, find the first file — pending, or drawn and renamed — under any
@@ -701,6 +708,7 @@ def test_a_recommit_of_the_same_guarantee_queues_no_second_file(tmp_path):
     assert queued(repo) == [drawn_file]
 
 
+@pytest.mark.rule("stamp-drawn-once")
 def test_a_reseal_whose_row_lost_its_earlier_run_queues_nothing(tmp_path):
     """#975, once per work item. The sealer ran again at a new commit and
     wrote its row fresh, without `; earlier run: <sha> sealed`: the clone
@@ -722,6 +730,7 @@ def test_a_reseal_whose_row_lost_its_earlier_run_queues_nothing(tmp_path):
     assert len(queued(repo)) == 1, queued(repo)
 
 
+@pytest.mark.rule("stamp-drawn-once")
 def test_a_squash_of_a_sealed_item_in_another_clone_queues_nothing(tmp_path):
     """#975, once per work item. The guarantee was stamped in one clone; a
     squash of its branch in another clone carries the verdict onto a commit
@@ -742,6 +751,7 @@ def test_a_squash_of_a_sealed_item_in_another_clone_queues_nothing(tmp_path):
     assert queued(other) == []
 
 
+@pytest.mark.rule("stamp-drawn-once")
 def test_a_sealed_item_recommitted_in_another_clone_queues_nothing(tmp_path):
     """#975 round 3, once per work item. The guarantee was stamped in one
     clone. In a second clone of the same branch, a commit that edits the
@@ -769,6 +779,7 @@ def test_a_sealed_item_recommitted_in_another_clone_queues_nothing(tmp_path):
     assert queued(other) == []
 
 
+@pytest.mark.rule("stamp-drawn-once")
 def test_a_sealed_item_rebased_in_another_clone_queues_nothing(tmp_path):
     """#975 round 5, once per work item. The guarantee was stamped in one
     clone. A second clone rebases the branch, so the sealed commit is
@@ -808,6 +819,7 @@ def test_a_sealed_item_rebased_in_another_clone_queues_nothing(tmp_path):
     assert queued(other) == []
 
 
+@pytest.mark.rule("stamp-drawn-once")
 def test_a_sealed_item_rebased_and_cloned_fresh_queues_nothing(tmp_path):
     """#975 round 6, once per work item. The guarantee was stamped in one
     clone, which then rebased the branch onto a moved base. A fresh clone
@@ -851,6 +863,7 @@ def test_a_sealed_item_rebased_and_cloned_fresh_queues_nothing(tmp_path):
     assert queued(other) == []
 
 
+@pytest.mark.rule("stamp-drawn-once")
 def test_the_guarantee_stamps_rows_are_read_from_the_records(tmp_path):
     """#975 S9, `questions.md` Q1's answer (a). The stamp carries what the
     records at the commit say and nothing re-measured: its title, the
@@ -946,6 +959,7 @@ def queue_local(path, session="s-1"):
     return stamp_module().queue_for_local_guarantee(str(path), session)
 
 
+@pytest.mark.rule("stamp-drawn-once")
 @pytest.mark.parametrize("linked", [False, True], ids=["main checkout", "linked"])
 def test_a_local_mode_sealed_guarantee_queues_one_stamp(tmp_path, linked):
     """1792363231 S1. A local-mode `guarantee.md` reading `sealed` over a commit on
@@ -988,6 +1002,7 @@ def test_a_local_mode_sealed_guarantee_queues_one_stamp(tmp_path, linked):
     assert stop(repo) == "", "the stamp was drawn twice"
 
 
+@pytest.mark.rule("stamp-drawn-once")
 @pytest.mark.parametrize(
     "written",
     [
@@ -1008,6 +1023,7 @@ def test_a_local_mode_withheld_or_undecided_guarantee_queues_nothing(tmp_path, w
     assert queued(repo) == []
 
 
+@pytest.mark.rule("stamp-drawn-once")
 def test_a_local_mode_reseal_after_withheld_queues_the_stamp(tmp_path):
     """1792363231 S3. The sealer withheld, the work was fixed, and its second run
     reads `sealed` with the earlier verdict kept on the row: that write
@@ -1025,6 +1041,7 @@ def test_a_local_mode_reseal_after_withheld_queues_the_stamp(tmp_path):
     assert stamp_module().read_values(written)["rows"][-1] == ("rounds", "0")
 
 
+@pytest.mark.rule("stamp-drawn-once")
 def test_a_local_mode_second_sealed_queues_nothing(tmp_path):
     """1792363231 S3, once per work item. A row whose earlier-run chain reads
     `sealed` was stamped at that run, so it queues nothing. A values file
@@ -1082,6 +1099,8 @@ def _a_branch_gone(repo, item, target, base):
     (item / "routing.md").write_text(routing_text("feat/merged"), encoding="utf-8")
 
 
+@pytest.mark.rule("refused-sealed-leaves-a-record")
+@pytest.mark.rule("stamp-drawn-once")
 @pytest.mark.parametrize(
     "given",
     [
@@ -1122,6 +1141,7 @@ def test_a_local_mode_guarantee_off_its_branch_queues_nothing(tmp_path, given):
         assert said == [], said
 
 
+@pytest.mark.rule("stamp-drawn-once")
 def test_the_edit_gate_leaves_shared_mode_to_post_commit(tmp_path):
     """1792363231 S5, the writer's half. A `guarantee.md` reading `sealed` under
     `<repo>/seal/` is shared mode's, whose stamp `post-commit` queues at the
@@ -1187,6 +1207,7 @@ def edit_payload(path, cwd, tool="Write", session="s-1", **extra):
     return body
 
 
+@pytest.mark.rule("stamp-drawn-once")
 @pytest.mark.parametrize("tool", ["Write", "Edit"])
 def test_the_edit_gate_queues_a_local_mode_sealed_guarantee(tmp_path, tool):
     """1792363231 S6. A `Write` or `Edit` that leaves a local-mode `guarantee.md`
@@ -1210,6 +1231,7 @@ def test_the_edit_gate_queues_a_local_mode_sealed_guarantee(tmp_path, tool):
     assert stop(repo) == "", "the stamp was drawn twice"
 
 
+@pytest.mark.rule("stamp-drawn-once")
 def test_a_subagents_write_queues_and_draws_nothing(tmp_path):
     """1792363231 S6. The sealer writes its own `guarantee.md`, so the payload
     carries its `agent_id` beside the main session's `session_id`
@@ -1226,6 +1248,7 @@ def test_a_subagents_write_queues_and_draws_nothing(tmp_path):
     assert message(stop(repo))[0].startswith("SEALED feat/x @ ")
 
 
+@pytest.mark.rule("stamp-drawn-once")
 @pytest.mark.parametrize(
     "given",
     [
@@ -1323,6 +1346,7 @@ def off_branch_commit(repo):
     return sha[:7]
 
 
+@pytest.mark.rule("refused-sealed-leaves-a-record")
 @pytest.mark.parametrize(
     "recorded, earlier",
     [
@@ -1353,6 +1377,7 @@ def test_a_refusal_record_skips_only_its_own_verdict(tmp_path, recorded, earlier
     assert queued(repo) == []
 
 
+@pytest.mark.rule("refused-sealed-leaves-a-record")
 def test_a_local_mode_seal_refused_off_its_branch_then_resealed_draws_once(tmp_path):
     """1792363231 S14. In local mode a `sealed` over a commit the `Branch` row's
     branch does not hold, while that branch exists, queues nothing, records
@@ -1433,6 +1458,8 @@ def before_the_commit(repo, commitgate=None, session="s-1"):
     return commitgate.pre_commit(str(repo), environ, out), out.getvalue()
 
 
+@pytest.mark.rule("refused-sealed-leaves-a-record")
+@pytest.mark.rule("sealed-off-the-branch-refused")
 @pytest.mark.parametrize(
     "wrong",
     [lambda repo: "deadbee", off_branch_commit],
@@ -1639,6 +1666,8 @@ def _copied(*bring, pruned=False):
     return given
 
 
+@pytest.mark.rule("refused-sealed-leaves-a-record")
+@pytest.mark.rule("sealed-off-the-branch-refused")
 @pytest.mark.parametrize(
     "given",
     [
@@ -1707,6 +1736,7 @@ def test_the_guarantee_refusal_is_quiet_off_its_one_fact(tmp_path, given, monkey
         assert refusals(repo) == []
 
 
+@pytest.mark.rule("refused-sealed-leaves-a-record")
 def test_a_refused_row_over_a_drawn_seal_does_not_draw_again(tmp_path):
     """1792363231 S11's second case. The item was sealed and stamped in one
     clone, whose branch was then rebased onto a moved base, so a fresh clone
@@ -1755,6 +1785,8 @@ def test_a_refused_row_over_a_drawn_seal_does_not_draw_again(tmp_path):
     assert queued(other) == []
 
 
+@pytest.mark.rule("refused-sealed-leaves-a-record")
+@pytest.mark.rule("sealed-off-the-branch-refused")
 def test_a_tracking_ref_left_by_a_rebase_withholds_nothing(tmp_path):
     """1792363231 S11 after a push and a rebase, round 2's finding 1. The
     `withheld` guarantee was pushed, then the branch was rebased onto a
@@ -1789,6 +1821,8 @@ def test_a_tracking_ref_left_by_a_rebase_withholds_nothing(tmp_path):
     assert len(queued(other)) == 1, queued(other)
 
 
+@pytest.mark.rule("refused-sealed-leaves-a-record")
+@pytest.mark.rule("sealed-off-the-branch-refused")
 def test_a_sealed_committed_past_the_stub_keeps_the_gap(tmp_path):
     """1792363231 S13. A `sealed` over a commit nobody has, committed where
     `pre-commit` does not judge it (`--no-verify`, a foreign hooks slot, a
@@ -2252,9 +2286,9 @@ def stamp_section():
 
 
 def test_the_policy_states_the_budget_and_names_its_case():
-    """A18. `docs/the-review-record.md` §*The stamp* carries the budget rule
-    under #717's marker, and its `Enforced by:` line names A3's case; the
-    marker stands a second time over the paragraph nothing enforces. #832
+    """A18. `docs/the-review-record.md` §*The stamp* carries the budget rule,
+    and its `check:` line names this module; the paragraph nothing enforces
+    follows it. #832
     and #853: the rule names the two rungs, with the disc and the text block
     alone, the owner's disc 28 cells across, and one real run to a message;
     the unchecked paragraph says nothing outside the disc is painted, so the
@@ -2262,29 +2296,26 @@ def test_the_policy_states_the_budget_and_names_its_case():
     contrast figures before decision 6 of work item 1791270164 retired the
     sheet. The section moved from `docs/the-broad-gate.md` with #975."""
     text = stamp_section()
-    marker = "<!-- specs/1790913304-the-seal-stamp-is-a-letter-with-the-seal-on-its-corner -->"
-    assert text.count(marker) == 2, "the rule and the unchecked half, one marker each"
-    unchecked = text.split(marker)[2]
-    assert "**What the person's screen shows is not checked" in unchecked
+    budget = "**The hook holds its whole message under a budget named in the code"
+    screen = "**What the person's screen shows is not checked"
+    unchecked = screen + text.split(screen, 1)[1]
     assert (
         "So is how the stamp reads on a light background as well as a dark one. "
         "Nothing outside the disc is painted, so its text is in the terminal's "
         "own colours and theme"
     ) in unchecked
     assert "1.02 and 1.48" not in unchecked and "parchment" not in unchecked
-    rule = text.split(marker)[1].split("<!--", 1)[0]
-    assert "**The hook holds its whole message under a budget named in the code" in rule
-    assert "::test_the_hooks_message_is_under_the_budget_for_one_file" in rule
+    rule = budget + text.split(budget, 1)[1].split(screen, 1)[0]
+    assert "check: tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py" in rule
     # Round 1's 🟡 1, under the owner's rule of 2026-10-02 (`questions.md` Q6).
     assert "A seal past what one message can carry stays pending" in rule
-    assert "::test_seals_past_what_one_message_carries_wait_for_the_next_turn" in rule
     assert "a character outside the BMP is two" in rule
     # #832 and #853: two rungs, with the disc and without it — and the reason
     # is the owner's 28-cell disc having one size, not a smaller disc refused.
     assert "A stamp has two rungs, with its disc and then without it" in rule
     assert (
         "the owner's disc is drawn 28 cells across and has one size, so there "
-        "is no smaller disc to step to, and since #853 no scale either"
+        "is no smaller disc to step to, and no scale either"
     ) in rule
     assert "0.90" not in rule and "at every scale" not in rule
     assert "one stamp of a real work item's size goes out per message" in rule
@@ -2374,9 +2405,8 @@ def test_the_form_bullet_says_what_draws_the_final_seal():
 
 def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
     """S16, the policy's half, and #975 S10 and S13. `docs/the-review-record.md`
-    §*The stamp* carries the drawing rule under #400's and #975's markers
-    with an `Enforced by:` line naming the cases that queue and draw it, and
-    a second statement saying what the screen shows is enforced by nothing.
+    §*The stamp* carries the drawing rule with a `check:` line naming the marker the cases that queue and draw it
+    carry, and a second statement saying what the screen shows has no case.
     That statement names every place the hook is silent — a foreign hooks
     slot, a `python3` that cannot load `seal_stamp.py`, a main session
     outside the clone, a plugin older than the hook — and `seal-stamp --from
@@ -2393,11 +2423,9 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
     against the paragraph at 769f2aa4, and against 2759a60d's, which still
     named the guards."""
     text = stamp_section()
-    marker = "<!-- specs/1790562543-the-stamp-reaches-the-person-it-is-drawn-for -->"
-    ours = "<!-- specs/1792311781-the-stamp-is-drawn-from-the-sealers-verdict -->"
-    assert text.count(marker) == 2, "the rule and the unchecked half, one marker each"
-    assert text.count(ours) == 2, "the rule and the unchecked half, one marker each"
-    rule, unchecked = text.split(marker)[1:3]
+    screen = "**What the person's screen shows is not checked"
+    rule, unchecked = text.split(screen, 1)
+    unchecked = screen + unchecked
     assert (
         "**The stamp is drawn once per work item, from the sealer's `sealed`, at "
         "the end of the turn in which `guarantee.md` came to read it: at its "
@@ -2413,16 +2441,25 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
         "`settle` retires no local-mode work item",
     ):
         assert local in rule, local
+    assert "check: stamp-drawn-once" in rule
+    from conftest import rule_carriers
+
+    held = rule_carriers("stamp-drawn-once")
     for case in (
-        "::test_a_local_mode_sealed_guarantee_queues_one_stamp",
-        "::test_a_local_mode_second_sealed_queues_nothing",
-        "::test_a_local_mode_guarantee_off_its_branch_queues_nothing",
-        "::test_the_edit_gate_leaves_shared_mode_to_post_commit",
-        "::test_the_edit_gate_queues_a_local_mode_sealed_guarantee",
-        "::test_a_subagents_write_queues_and_draws_nothing",
-        "::test_the_edit_gate_is_silent_off_a_guarantee",
+        "test_a_local_mode_sealed_guarantee_queues_one_stamp",
+        "test_a_local_mode_second_sealed_queues_nothing",
+        "test_a_local_mode_guarantee_off_its_branch_queues_nothing",
+        "test_the_edit_gate_leaves_shared_mode_to_post_commit",
+        "test_the_edit_gate_queues_a_local_mode_sealed_guarantee",
+        "test_a_subagents_write_queues_and_draws_nothing",
+        "test_the_edit_gate_is_silent_off_a_guarantee",
+        "test_a_sealed_guarantees_commit_queues_one_stamp",
+        "test_a_withheld_or_undecided_guarantee_queues_nothing",
+        "test_a_second_sealed_verdict_queues_nothing",
+        "test_a_recommit_of_the_same_guarantee_queues_no_second_file",
+        "test_the_main_sessions_stop_draws_each_undrawn_file_once",
     ):
-        assert case in rule, case
+        assert case in held, case
     # #975 round 6's finding 1: the double-stamp limit is stated where the
     # rule is, as the class `sealed_before` cannot see, with its reason.
     assert "draws the stamp again in that clone" in rule, (
@@ -2452,18 +2489,9 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
     assert "no ref of that clone holds" not in rule
     assert "copied here by hand" not in text
     assert "the earlier-run chain alone skips a `sealed` this clone recorded" in rule
-    for case in (
-        "::test_a_sealed_guarantees_commit_queues_one_stamp",
-        "::test_a_withheld_or_undecided_guarantee_queues_nothing",
-        "::test_a_second_sealed_verdict_queues_nothing",
-        "::test_a_recommit_of_the_same_guarantee_queues_no_second_file",
-        "::test_the_main_sessions_stop_draws_each_undrawn_file_once",
-    ):
-        assert case in rule, case
     assert "**What the person's screen shows is not checked" in unchecked
-    assert "Enforced by: nothing — no case, hook or workflow can observe a screen" in (
-        unchecked
-    )
+    assert "No case, hook or workflow can observe a screen." in unchecked
+    assert "check: none reader: the owner on the first real run" in unchecked
     # Round 1's 🟡 1 of #400: the hook's silence where it cannot draw is
     # stated where a person looks for why no stamp appeared, with the way to
     # draw it.
@@ -2515,24 +2543,23 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
 
 def test_the_policy_states_the_refusal_record_and_names_its_cases():
     """1792363231 S8. §*The stamp* carries the refusal record as a rule of
-    its own under this work item's marker: a `sealed` refused because its
+    its own: a `sealed` refused because its
     audited commit is not on the branch leaves a record in the clone that
     refused it, and the earlier-run chain skips it, so the sealer's new
     audit draws the work item's one stamp. It names the two writers, the
     commit gate in shared mode and the local writer in local mode, the
     matcher's floor, and that `sealed_before` and `post-commit` ask and
     write no record; it names none of the guards `post-commit`'s record
-    had; and its `Enforced by:` line names the cases that hold each. Red at
+    had; and its `check:` line names the marker the cases that hold each
+    carry. Red at
     1e956838, whose paragraph described `post-commit`'s record and its
     four facts."""
     text = stamp_section()
-    marker = "<!-- specs/1792363231-a-local-mode-work-item-draws-no-stamp -->"
-    assert marker in text
     rule = text.split(
         "**A `sealed` refused because its audited commit is not on the branch "
         "leaves a refusal record",
         1,
-    )[1].split("<!--", 1)[0]
+    )[1].split("**The hook holds its whole message under a budget", 1)[0]
     for said in (
         "`<git-common-dir>/specseal-stamp-refused/<id>-<target>`",
         "`; earlier run: <sha> sealed`",
@@ -2547,18 +2574,22 @@ def test_the_policy_states_the_refusal_record_and_names_its_cases():
         assert said in rule, said
     for gone in ("reflog", "patch-equivalent", "No ref of the clone", "must hold"):
         assert gone not in rule, gone
+    assert "check: refused-sealed-leaves-a-record" in rule
+    from conftest import rule_carriers
+
+    held = rule_carriers("refused-sealed-leaves-a-record")
     for case in (
-        "::test_a_sealed_over_a_commit_the_branch_does_not_hold_is_refused_at_the_commit",
-        "::test_a_refused_row_over_a_drawn_seal_does_not_draw_again",
-        "::test_a_tracking_ref_left_by_a_rebase_withholds_nothing",
-        "::test_the_guarantee_refusal_is_quiet_off_its_one_fact",
-        "::test_a_sealed_committed_past_the_stub_keeps_the_gap",
-        "::test_a_refusal_record_skips_only_its_own_verdict",
-        "::test_a_local_mode_seal_refused_off_its_branch_then_resealed_draws_once",
-        "::test_a_local_mode_guarantee_off_its_branch_queues_nothing",
-        "::test_a_sealed_the_branch_does_not_hold_is_stopped_inside_the_commit",
+        "test_a_sealed_over_a_commit_the_branch_does_not_hold_is_refused_at_the_commit",
+        "test_a_refused_row_over_a_drawn_seal_does_not_draw_again",
+        "test_a_tracking_ref_left_by_a_rebase_withholds_nothing",
+        "test_the_guarantee_refusal_is_quiet_off_its_one_fact",
+        "test_a_sealed_committed_past_the_stub_keeps_the_gap",
+        "test_a_refusal_record_skips_only_its_own_verdict",
+        "test_a_local_mode_seal_refused_off_its_branch_then_resealed_draws_once",
+        "test_a_local_mode_guarantee_off_its_branch_queues_nothing",
+        "test_a_sealed_the_branch_does_not_hold_is_stopped_inside_the_commit",
     ):
-        assert case in rule, case
+        assert case in held, case
 
 
 def test_both_readmes_list_the_stamp_hook():

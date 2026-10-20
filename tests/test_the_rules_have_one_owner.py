@@ -117,10 +117,10 @@ RULES = {
         RECORD,
         "A leftover finding takes the first rung that fits.",
         # The smith's copy of the ladder left with #967. Filing is the
-        # orchestrator's act (the ladder's own `Enforced by:` says so), and a
+        # orchestrator's act (the ladder's own `check:` line says so), and a
         # smith hands a leftover back with its answerer (its step 10).
         {
-            TRACKER: "`docs/the-review-record.md` §*The run* owns where a filed "
+            TRACKER: "`docs/the-review-record.md` *The run* owns where a filed "
             "finding goes",
         },
     ),
@@ -309,6 +309,7 @@ def the_run():
     return text[text.index("## The run") : text.index("## The handoff")]
 
 
+@pytest.mark.rule("run-ends-with-verifying-round")
 def test_a_close_that_does_not_hold_reopens_it():
     """The owner's decision of 2026-10-16, on round 8 of work item
     1791933022 (S9, S26): a close that does not hold where no fix pass's

@@ -29,10 +29,10 @@ agent as concurrent work.
 
 | Item | Who must answer |
 |---|---|
-| The full suite, lint and typecheck across the repository | the sealer, once, after the review rounds settle |
-| Whether a subagent's `PreToolUse` payload carries its parent's `transcript_path` or its own `subagents/…` path (`questions.md` Q4). Either answer lands on the reader's glob fallback, which a case covers | a measurement: a session whose installed hook is this branch's copy |
-| That a live harness still writes `toolUseResult.questions`, `answers` and a top-level `cwd` in the shape the fixtures pin. Measured on 2026-09-26 in the orchestrator's transcript only | nobody in this repository can pin the harness; the prompt returns at the old cost if the shape moves |
-| Transcript location on Windows and Linux | the CI matrix, for the fixture cases; nobody, for a live Windows transcript |
+| closed The full suite, lint and typecheck across the repository | #622, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
+| closed Whether a subagent's `PreToolUse` payload carries its parent's `transcript_path` or its own `subagents/…` path (`questions.md` Q4). Either answer lands on the reader's glob fallback, which a case covers | a live harness: the press bullet of `docs/worktree-guard-spec.md` *Known limits* |
+| closed That a live harness still writes `toolUseResult.questions`, `answers` and a top-level `cwd` in the shape the fixtures pin. Measured on 2026-09-26 in the orchestrator's transcript only | a live harness: the press bullet of `docs/worktree-guard-spec.md` *Known limits* |
+| closed Transcript location on Windows and Linux | the fixture cases: #997's `ubuntu-latest` and `windows-latest` legs ran them green; a live transcript: the press bullet of `docs/worktree-guard-spec.md` *Known limits* |
 
 ## Not done
 

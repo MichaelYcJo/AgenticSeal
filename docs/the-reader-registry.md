@@ -6,10 +6,10 @@ This document is the standing account of that rule and what holds it.
 
 ## A frame names what its work removes
 
-<!-- specs/1791384152-a-reader-declares-its-input-class -->
 **A `spec.md`'s `## Removes` section lists what the work takes out of the
 tree, and the review reads it against the diff.** Each row names the thing,
 the coordinate it stood at, and where it lands or why it can go. A work item
-removing nothing writes `nothing — <why>`. A removal a phase makes that the
+removing nothing writes the no-change block of `skills/settle/SKILL.md`
+*Rule changes* in place of the table. A removal a phase makes that the
 frame did not name is a divergence, and it goes to `overview.md`.
-Enforced by: tests/test_a_phase_hands_the_next_one_a_record.py::test_the_spec_template_carries_the_removes_section_above_the_mark, tests/test_a_phase_hands_the_next_one_a_record.py::test_the_framer_is_told_it_writes_the_removes_section
+check: tests/test_a_phase_hands_the_next_one_a_record.py

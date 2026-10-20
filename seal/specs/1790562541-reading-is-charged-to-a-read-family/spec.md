@@ -242,6 +242,11 @@ section anchor in 11 rows over six release files; and every
   the `read` rule. Finding 1's heredoc fix moved 0 corpus calls when its
   round measured it (executed by that round; read here).
 
+## Rule changes
+
+- nothing
+  why: internal: the read family and what it takes, held by tests/test_session_cost.py.
+
 ## Open questions → questions.md
 
 No row needs a person. Q1 is the owner's answer, recorded. Q2 and Q3 are

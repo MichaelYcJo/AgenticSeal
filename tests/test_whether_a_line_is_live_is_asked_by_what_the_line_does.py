@@ -3,7 +3,7 @@
 Four readers decide whether a record line is live, and they give three
 answers, because they read three kinds of line:
 `docs/the-record-layout.md` §*The fold, and what tells it from a deletion*
-states the rule under the marker of work item 1791852615. This module is the
+states the rule. This module is the
 one place the four stand side by side. Each per-reader module owns that
 reader's edges; this one pins only the answer each reader's docstring, or the
 statement, already gives on a small corpus of shapes, so a reader whose answer
@@ -25,7 +25,7 @@ from conftest import load_hook_module
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
 STATEMENT_DOC = os.path.join(ROOT, "docs", "the-record-layout.md")
-MARKER = "<!-- specs/1791852615-whether-a-ledger-line-is-live-has-seven-rules -->"
+OPENING = "**Whether a line is live is asked by what the line does"
 
 
 def _load(name, relative):
@@ -241,14 +241,14 @@ def test_every_row_answers_every_shape_and_names_a_stated_cell():
 
 
 def statement():
-    """The statement under this work item's marker, to the next marker or
-    heading."""
+    """The statement from its bold opening to the next statement's or the
+    next heading."""
     with open(STATEMENT_DOC, encoding="utf-8") as handle:
         lines = handle.read().split("\n")
-    start = lines.index(MARKER) + 1
-    body = []
-    for line in lines[start:]:
-        if line.startswith("<!-- specs/") or re.match(r"#{1,6} ", line):
+    start = next(i for i, line in enumerate(lines) if line.startswith(OPENING))
+    body = [lines[start]]
+    for line in lines[start + 1 :]:
+        if line.startswith("**") or re.match(r"#{1,6} ", line):
             break
         body.append(line)
     return "\n".join(body)

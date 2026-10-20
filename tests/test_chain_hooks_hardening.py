@@ -527,6 +527,7 @@ def test_parity_gate_ignores_document_only_commits(repo):
     )
 
 
+@pytest.mark.rule("review-arm-asks")
 @pytest.mark.parametrize("path", ["docs/policies/note.md", "seal/ledger.md"])
 def test_the_review_arm_asks_on_a_document_only_commit(repo, path):
     """The parity arm's line at `docs/` and `seal/` is the parity arm's alone.
@@ -1471,7 +1472,7 @@ def test_the_smith_says_whether_the_frame_holds_before_building_to_it():
         "has already been spent on"
     )
     rule = smith[smith.index("**The frame is judged before it is built to.**") :]
-    rule = rule[: rule.index("Enforced by:")]
+    rule = rule[: rule.index(" check: ")]
     for named in ("phases/phase-N.md", "## What this phase found", "the hand-back"):
         assert named in rule, (
             f"the rule no longer names `{named}` as where a `no` goes. A "

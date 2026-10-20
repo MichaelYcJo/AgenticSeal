@@ -86,6 +86,12 @@ concurrency:
 
 `test.yml`'s trigger after the change is `pull_request:` with no `types:` list, so it runs on GitHub's default set (`opened`, `synchronize`, `reopened`). A one-line comment beside it says nothing here reads draft state and points to `hygiene.yml`, which does.
 
+## Rule changes
+
+- nothing
+  why: written outside docs/: the pull request opens ready, in
+    skills/code-review/orchestration.md and the workflows' own comments.
+
 ## Removes
 
 | Removes | Coordinate | Where it lands, or why it can go |

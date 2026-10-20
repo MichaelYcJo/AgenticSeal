@@ -6,8 +6,8 @@ description: |
   divergent.
   Use when: a written design exists and someone needs to know how far the
   implementation has drifted from it.
-  NOT for: checking that a rule's `Enforced by:` targets resolve
-  (`fold-check`), judging ported behavior against an original (`legacy-parity`), or reviewing
+  NOT for: checking that a rule's `check:` targets resolve
+  (`rules --check`), judging ported behavior against an original (`legacy-parity`), or reviewing
   a diff (`code-review`).
 ---
 

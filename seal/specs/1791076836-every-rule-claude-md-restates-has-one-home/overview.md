@@ -30,8 +30,8 @@ paste anywhere in the rule documents.
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the typecheck | the sealer, once, after the review rounds settle |
-| Ten ledger rows drifted on `origin/release/v0.18.1` before this branch merged it, on `tests/test_the_suite_has_a_command_that_is_cheap_twice.py#fake_venv`, `tests/test_release_hygiene.py#VERSIONS_OF_ANOTHER_PRODUCT` and `templates/config.md`, files this branch never touched; `evidence-check --strict .` exits 2 on them | the orchestrator, who decides which of #756, #757 and #758 re-reads them |
+| closed The full suite, the repository-wide lint and the typecheck | #767, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
+| closed Ten ledger rows drifted on `origin/release/v0.18.1` before this branch merged it, on `tests/test_the_suite_has_a_command_that_is_cheap_twice.py#fake_venv`, `tests/test_release_hygiene.py#VERSIONS_OF_ANOTHER_PRODUCT` and `templates/config.md`, files this branch never touched; `evidence-check --strict .` exits 2 on them | its subject left the tree: 5b1f6fae (#950) took the evidence ledger and `evidence-check` out |
 
 ## Not done
 

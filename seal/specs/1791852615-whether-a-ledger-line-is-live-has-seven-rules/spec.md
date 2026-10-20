@@ -175,6 +175,12 @@ to judge at the unit.
 one row per statement and per new unit, the `Re-read ·` rows `--reverify
 --into` writes, and the two re-derived figures with their moment.
 
+## Rule changes
+
+- nothing
+  why: written: the three answers, in docs/the-record-layout.md *Whether a line is live is
+    asked by what the line does*; overturned: the ledger's readers (5b1f6fae).
+
 ## Removes
 
 | Removes | Coordinate | Where it lands, or why it can go |

@@ -128,6 +128,12 @@ Where a carrier is a test-pinned sentence, the pin follows the sentence. `docs/r
 - Exit status: 0 when nothing was held, including the case with nothing left to remove (that is the done state after a previous run, unlike `--retire`'s nothing-folded case, which is work still to do); 1 when an item was kept by a guard; 2 for the refusals `settle` already has (local mode, an unresolvable `--released-at`, a missing interpreter floor).
 - No ledger coordinate changes form; no template changes.
 
+## Rule changes
+
+- nothing
+  why: written: the work item's files keep their paths and leave together, in
+    docs/the-record-layout.md; overturned: settle --retire-process, at ac83bdf3.
+
 ## Open questions → questions.md
 
 Anything a planner must answer lives in questions.md, not inline — unanswered

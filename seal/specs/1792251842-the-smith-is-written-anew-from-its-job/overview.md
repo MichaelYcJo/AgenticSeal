@@ -43,7 +43,7 @@ named in each row hold the detail.
 | `CLAUDE.md:69` still names *a seal block* as a format name, and decision 1's grep finds it | the repository owner: a subagent does not edit `CLAUDE.md` |
 | closed `skills/writing-style/SKILL.md:225` still lists *the smith's seal* as an instance | a6a0c692, phase 3, 2026-10-18: the row now reads *the sealer's seal · the warden's review mark · the smith's labels* |
 | closed `agents/sealer.md` and `skills/verify/SKILL.md` are edited here and by #969 in its own worktree | the merge 16e8d4c8, 2026-10-18: `agents/sealer.md` conflicted and keeps #969's sentence with this item's section title; `skills/verify/SKILL.md` merged without a conflict (row above) |
-| the full suite on this branch | the orchestrator's broad gate, still to run; CI's run 39095623463 at af716289 passed every pytest job on three platforms, which is not that gate |
+| closed the full suite on this branch | #974, merged with lint and the suite green on the ubuntu, macOS and Windows legs |
 | closed `windows-latest` on the merged tree | run 39095623463, dispatched on this branch at af716289: every job `success`, read with `gh run view` in phase 5 |
 | closed The second take of phase 4 was run past `questions.md` Q1's $150 stop for this item | the owner: asked on 2026-10-18 whether to spend about $60 past the night's $200 for the three agents' second take, the owner answered "decide and go with your recommendation", and the orchestrator took it (63.2295 USD; `phases/phase-4.md`) |
 

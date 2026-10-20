@@ -222,6 +222,12 @@ repository starts from:
   ledger rule in `docs/the-evidence-ledger.md` says a pipe in a cell is
   escaped).
 
+## Rule changes
+
+- nothing
+  why: overturned: the ledger and evidence-check, with its MALFORMED verdict, left the tree at
+    5b1f6fae.
+
 ## Open questions → questions.md
 
 Two person rows (Q1 the exit grading for other repositories, Q2 a lint guard

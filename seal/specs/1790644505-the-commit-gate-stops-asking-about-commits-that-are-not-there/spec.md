@@ -315,6 +315,13 @@ already uses. No case reads a real transcript.
   by CI's `windows-latest` leg for the cases, and the transcript location there
   is the guard's existing unknown.
 
+## Rule changes
+
+- nothing
+  why: written: every stop a deny under the automation press, in
+    docs/commit-review-gate-spec.md, and a commit naming its repository, in the
+    agent contract; nothing else is left to apply.
+
 ## Open questions → questions.md
 
 No row needs a person. `questions.md` lists the judgments the tickets left open

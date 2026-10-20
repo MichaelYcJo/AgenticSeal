@@ -84,18 +84,6 @@ PLACEHOLDER = re.compile(r"^<[^>]*>$")
 # family, and the byte-order mark. None of them make a marker into a claim.
 INVISIBLE = "\ufe0f\ufe0e\u200b\u200c\u200d\u2060\ufeff"
 SEPARATOR = re.compile(r"^:?-+:?$")
-# What a line or a section says when it states nothing, with its reason after
-# the em dash (U+2014): an `Enforced by:` line and a `## Rule changes`
-# section. `fold_check.py` and `rule_changes.py` read it here.
-NOTHING = "nothing — "
-# The provenance marker the appending fold wrote above each statement it put
-# in `docs/`. `fold_check.py`'s shape arm and
-# `tests/test_both_editions_carry_the_same_folds.py` read it until #941
-# removes the markers; no removal is judged by it. Line-anchored, because
-# documents quote its shape inline, and read on live lines only
-# (`live_lines`), because one quoted in a fence or a parked draft is not one.
-# `readable()` would erase it: it blanks HTML comments, and the marker is one.
-FOLD_MARKER = re.compile(r"^<!-- specs/(\S+) -->$", re.M)
 # The two delimiters of an HTML comment. `live_lines` scans for them directly:
 # it holds the comment state itself, so neither is looked for while it is
 # inside a fence or a code span, and nothing blanks either one out of the text.
@@ -114,7 +102,7 @@ BACKTICKS = re.compile(r"`+")
 # continuation line inside an open paragraph. Reading one as a delimiter does
 # not merely park lines — it INVERTS the fence state for the rest of the file,
 # so a real fenced block's content reads live and its delimiters read as
-# content, and a fold marker quoted inside a fenced example reads live
+# content, and a marker quoted inside a fenced example reads live
 # (round 6, finding 1). `blank_fences` used to keep an
 # unbounded spelling of its own, and #491 is what that cost: the bound had
 # landed here and not one function over in the same file.
@@ -162,8 +150,8 @@ def gfm_lines(text, keepends=False):
 
     **Every reader of markdown or record text reads its lines here** (#664):
     `readable` and `live_lines`'s callers below, and every script that loads this
-    module and splits the same text a second time -- `fold_check.py`'s marker
-    readers and `gather_changelog.py`. Two readers of one text that split it
+    module and splits the same text a second time -- `fold_check.py` and
+    `gather_changelog.py`. Two readers of one text that split it
     two ways disagree about which line an index names.
 
     `str.splitlines` also ends a line at U+2028, U+2029, NEL, a form feed, VT
@@ -219,7 +207,7 @@ def comment_scan(lines):
     out of the same walk and a second copy of the walk is what
     `check_text`'s docstring spent three review rounds undoing. `strip_comments`
     wants the text; `opens_outside_a_comment` wants the state the line STARTED
-    in, which the text cannot answer — a fold marker IS a comment, so a
+    in, which the text cannot answer — a changelog marker IS a comment, so a
     genuine one and one sitting inside a commented-out draft both come back
     with nothing kept.
     """
@@ -357,9 +345,10 @@ def fence_spans(lines):
 
     **An unclosed block is reported, not decided.** `blank_fences` blanks it
     to the end, because a gate reading a record treats it as quoted. A reader of a
-    line that HOLDS something — a fold marker, an open row — reads it,
+    line that HOLDS something — a changelog marker, an open row — reads it,
     because only a block that closes is certainly a quotation
-    (`docs/the-record-layout.md`'s *A marker counts only on a live line*).
+    (`docs/the-record-layout.md`'s *Whether a line is live is asked by what
+    the line does*).
     """
     spans, opener, first = [], None, None
     for n, line in enumerate(lines):
@@ -604,9 +593,9 @@ def live_lines(lines):
 
     A line that excuses or declares something is not taken on doubt, the
     second of the three answers `docs/the-record-layout.md` §*The fold, and
-    what tells it from a deletion* gives: what this parks, `fold_check.py`
-    binds no statement to, `rule_changes.py` reads as no heading, and the
-    changelog gather passes as a line holding no marker.
+    what tells it from a deletion* gives: what this parks, `rule_changes.py`
+    reads as no heading, and the changelog gather passes as a line holding no
+    marker.
 
     **The one rule for whether a line is live, and every reader of a marker
     or a policy heading asks it here.** A line
@@ -650,10 +639,10 @@ def live_lines(lines):
     delimiter is a delimiter. A fence is decided before the rest of its line,
     then whichever of a comment opener and a backtick run comes first wins.
     Reference definitions, link destinations, raw HTML blocks and entity
-    references are not modelled and none can hold a fold marker on a line of
-    its own. Markdown's indented code block is the one deliberate omission
-    with a shape that could, and `FOLD_MARKER` is line-anchored, so a marker
-    indented four spaces is not read as one.
+    references are not modelled and none can hold a changelog marker on a
+    line of its own. Markdown's indented code block is the one deliberate
+    omission with a shape that could, and the gather's marker pattern is
+    line-anchored, so a marker indented four spaces is not read as one.
 
     **What this may not touch.** `comment_scan`, `strip_comments`,
     `blank_fences` and `readable` serve the other gates — `check_text` and
@@ -1280,7 +1269,7 @@ def settled(root, ref, directories, here=None):
 
     It states no rule when it never wrote a `spec.md`, asked of history
     (`wrote_a_spec`), or when its `spec.md` at REF has no `## Rule changes`
-    or one that says `nothing`. Otherwise `rule_changes.py` replays every
+    or one holding the no-change block. Otherwise `rule_changes.py` replays every
     such directory here in merge order over REF's policy root, and each text
     an applied operation names occurs as often across the policy root at
     HERE as in the replay. Asked of the set, a later spec may rewrite what an

@@ -149,6 +149,12 @@ file can promise, and 9.4 % of the cases are priced at a guess.
   `tests/conftest.py` units only if an existing one is touched, which the
   hook does not require.
 
+## Rule changes
+
+- nothing
+  why: internal: the durations file and its refresh, held by
+    tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py.
+
 ## Removes
 
 nothing — the work replaces the data file whole and adds a case, a hook, a

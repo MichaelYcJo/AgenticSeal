@@ -1,610 +1,212 @@
-# commit-review-gate — behavior spec
+# The commit gate's PreToolUse reading
 
-Authority for `hooks/commit-review-gate.py` and the implementer mark: how the
-hooks are registered, what the PreToolUse reading decides where git cannot
-and which repository it judges a commit against, and what the implementer
-notice says.
-Two sibling documents carry the rest of what this one used to hold, one
-question each:
-
-- `docs/the-commit-gate-inside-git.md` — what git decides: the hooks inside
-  the commit, what they cannot see, and which reading judges each state of a
-  repository.
-- `docs/the-review-and-parity-arms.md` — what each arm wants: the review arm,
-  the parity arm, and the routing declaration that moves the review arm's
-  check to the pull request.
-
-The review run those hooks serve, and what the pull-request check reads of a
-round record, are `docs/the-review-record.md`'s. Update spec and code
+Authority for how the hooks are registered, for `hooks/commit-review-gate.py`,
+which reads a commit from the command's text where git cannot judge it, and
+for the implementer mark. What git decides inside a commit, and which reading
+judges each state of a repository, is `docs/the-commit-gate-inside-git.md`.
+What each arm wants is `docs/the-review-and-parity-arms.md`. The review run
+the hooks serve is `docs/the-review-record.md`. Update spec and code
 together.
 
-## Registration — gates run in groups, not one process each
+## Registration
 
 `hooks/hooks.json` registers `hooks/dispatch.py <group>` per event, and the
-dispatcher calls each gate in that group inside one interpreter. A gate is
-still a standalone script — that is how it is tested and debugged — but on a
-live tool call it does not pay for its own Python startup. Adding a gate means
-adding it to `GROUPS` in `dispatch.py`.
+dispatcher runs every gate of the group in one interpreter. A gate stays a
+standalone script, and adding one means adding it to `GROUPS` in
+`dispatch.py`. Where several gates of a group decide, the strictest wins
+(deny, then ask, then silence) and every reason is kept in the merged text. A
+gate that raises is skipped, and the rest of the group decides without it.
 
-When more than one gate in a group returns a decision, the strictest wins
-(deny > ask > silence) and **every** reason is kept in the merged text: a gate
-that was overruled still has something the user needs to read. A gate that
-raises is skipped and the rest of the group still decides — a crashing gate
-must not block a tool call.
-
-<!-- specs/1790635415-a-gate-that-fails-to-load-says-so -->
 **A gate that fails is said once per session, at the end of the main
 session's turn, and the call it failed on still goes ahead.** A failure is an
 exception while loading the gate's file, a `SystemExit` included, or an
-`Exception` from its `main()`. A `SystemExit` from `main()` is a gate
-finishing. A load-time `SystemExit` used to end the whole group. The
-dispatcher writes a record under `<git-common-dir>/specseal-gate-failure/`,
-keyed by session and gate, in an opted-in repository, and also where
-`optin.py` is itself the broken module, because that one cannot tell. The
+`Exception` from its `main()`; a `SystemExit` from `main()` is a gate
+finishing. The dispatcher writes a record under
+`<git-common-dir>/specseal-gate-failure/`, keyed by session and gate, in an
+opted-in repository and wherever `optin.py` is itself the broken module. The
 `stop` group says each pending record once as a `systemMessage`, before the
-sealer's stamp where there is one, and nothing the report adds carries a
-decision. Before this, a skipped gate read exactly like an allow and nobody
-was told. What it still cannot say is a failure it had nowhere to write: a
-git directory it cannot write to is as silent as before.
-Enforced by: tests/test_a_gate_that_fails_says_so.py::test_a_broken_gate_is_said_at_the_end_of_the_turn_and_only_once, tests/test_a_gate_that_fails_says_so.py::test_a_system_exit_at_load_does_not_take_the_group_down, tests/test_a_gate_that_fails_says_so.py::test_the_report_goes_before_the_stamp_and_the_stamp_is_unchanged
+sealer's stamp where there is one, and the report carries no decision. A
+failure in a git directory the dispatcher cannot write to is not said. No case
+sees how the harness renders the report beside the stamp, on any platform, and
+two hook processes racing for one record are forced in process, never run.
+check: tests/test_a_gate_that_fails_says_so.py
 
-## commit-review-gate (PreToolUse, Bash)
+## The PreToolUse reading of a commit
 
-This is the reading 0.16.0 shipped, and since #692 it judges only where git
-cannot: a target in a clone without this plugin's stubs, a target it cannot
-place from a session whose own clone has none, and a command whose words can
-keep the hooks from judging it. `docs/the-commit-gate-inside-git.md`
-§*The commit gate inside git* says when it stands aside, and everything below
-describes it as it was.
-
-The hook carries **two opt-ins, evaluated independently**. Each has its own
-mark, its own waiver token and its own silence rules, and neither is nested
-behind the other: one arm being satisfied never suppresses the other's prompt.
-
-They are no longer declared independently, and that changed at 0.10 without
-anyone noticing. The migration config lives at `seal/parity.md`, so
-writing it creates `seal/` — the directory whose existence is the review
-opt-in. A repository with a migration config and no review opt-in cannot be
-built through any address the plugin documents or writes.
-
-This paragraph used to claim the opposite, and the claim stayed true only
-through the pre-0.10 `docs/parity.md`, which no user-facing document has ever
-named and which nothing in the plugin has ever written. That read was removed
-rather than documented, on the grounds that the address had no
-users; removing it is what made the collapse visible. A repository that wants
-the parity arm and not the review arm waives the review arm per command with
-`[no-review]`, which is what the tests here do.
+**The reading judges a commit only where git cannot:** a target in a clone
+without this plugin's git hooks, a target it cannot place from a session whose
+own clone has none, and a command whose shape is not known plain.
+`docs/the-commit-gate-inside-git.md` *Where each state of a repository stands*
+says which reading judges each state. It asks both arms
+`docs/the-review-and-parity-arms.md` states, each with its own mark, waiver
+and silence, and one arm satisfied never quiets the other.
 
 | Condition | Decision |
 |---|---|
 | not a `git commit` command | silent |
-| neither opt-in applies | silent — a globally installed plugin must not nag unrelated repos |
-| the command names a `-C` the gate cannot resolve | **stopped** — see below |
+| neither opt-in applies | silent, so a globally installed plugin does not nag unrelated repositories |
+| a target the reading cannot resolve | stopped, as *Which repository* below says |
 | every applicable mark equals current HEAD | allow |
-| no session id in the payload | **ask** — nowhere to record that the choice was put up, and a deny would then repeat forever |
-| this session's person pressed `automation` on the routing question | **deny**, every time, whose reason names the ways on that need nobody and **puts no question to anybody** — see *Why a deny, and why only once* |
-| otherwise, first time this session meets it in this repo | **deny**, whose reason **instructs the model to put the choice up** with AskUserQuestion, naming both ways on for every arm that fired |
-| otherwise | **ask**, which is the harness **putting two buttons to the user** — every missing mark named at once, and approving IS the waiver |
+| no session id in the payload | **ask**: nowhere records that the choice was put up, and a deny would repeat forever |
+| this session's person pressed `automation` on the routing question | **deny**, every time, naming the ways on that need nobody |
+| otherwise, the first stop this session meets in this repository | **deny**, whose reason instructs the model to put the choice up with AskUserQuestion, naming both ways on for every arm that fired |
+| otherwise | **ask**, the harness putting two buttons to the user, every missing mark named at once; approving is the waiver |
 
-Those last two rows are different acts and the word "asks" covers both, so it
-is not used for either on its own. A `deny` addresses the **model**: the hook
-cannot render a dialog, so it spends its reason on instructions and hands the
-turn back. An `ask` addresses the **user**: the harness renders two buttons
-that the model never sees, and declining is a bare "No".
+A `deny` addresses the **model**: a hook cannot render a dialog, so it spends
+its reason on instructions and hands the turn back. An `ask` addresses the
+**user**: the harness renders two buttons the model never sees, and
+declining is a bare "No". The word *asks* is used for neither alone.
 
-### Which repository, and what happens when it cannot be read
+**The first stop is a deny, and every later one in the same session and
+repository an ask.** A declined `ask` leaves the user retyping the command for
+the other way on, and a deny gives the model the turn to put both. The record
+is `<git-dir>/specseal-commit-choice/<session-id>`, the id reduced to its
+basename, and an unwritable record counts as already asked, because one
+missed question beats a deny nothing gets past.
 
-<!-- specs/1788305134-the-reader-stops-where-it-need-not -->
-**The repository judged is the one the command commits *into*, not the one the
-shell sits in.** `git -C <path> commit` moves git without moving the shell, so
-the directory comes from the command and falls back to `cwd` only when the
-command names none. Repeated `-C` compose. A command committing into two
-repositories is judged for both.
+**Where the person pressed `automation`, every stop is a deny.** The run was
+promised that nothing stops to ask, and a subagent's call carries its
+parent's session id, so one deny per session would be spent by the first
+agent to meet it. The reason names the ways on that need nobody: a commit
+whose repository the gate can read, an edit through the `Edit` or `Write`
+tool, the waiver only for a commit no work item owns, and otherwise handing
+the commit back. It names no question tool, and says that re-issuing the
+command unchanged meets the same refusal. The press is read through
+`hooks/worktree_consent.py#automation_answered`, the reader
+`docs/worktree-guard-spec.md` *Creation consent* uses, against the session's
+own repository and only once a stop is decided, so what the gate stops does
+not move. A `per axis` answer and a `routing.md` `Automation` row are not
+read, and the last answer to the routing question from this clone stands.
+Every way of not reading the press is the attended answer. This blocks more
+and never allows more; what bounds a model that re-issues the same command is
+the reason's text alone.
+check: tests/test_an_automation_run_meets_no_commit_prompt.py
 
-The shell moves too, and reading only `-C` missed it. `cd <path> && git commit`
-leaves the shell somewhere else before git runs, so the gate judged the
-directory the session started in — measured wrong in both directions, and in
-the one that matters a routing declaration found in the session's own
-repository silenced a commit landing in a repository that had never given that
-answer. There was no moment on that path at which anyone could
-have typed a waiver or clicked a prompt. Every directory a command can commit
-into is resolved from the command, `cd` included.
+**Both arms, one call.** When both arms fire, the reason asks for two
+questions inside one AskUserQuestion call rather than one question with four
+combined options: the arms are waived independently, and one call is one
+interruption.
 
-Which directories it reaches depends on the operator joining the segments.
-`&&` and `||` are opposites: `&&` runs the commit where the `cd` arrived,
-`||` runs it only if the `cd` failed, which is where the shell already was.
-The pipe and background operators are a third case — they open a subshell, so
-a `cd` on one side of them does not move the shell the commit runs in at all.
+### Which repository
+
+**The repository judged is the one the command commits into, not the one the
+shell sits in.** `git -C <path>` moves git without moving the shell, repeated
+`-C` compose, and a `cd` moves the shell before git runs, so every directory a
+command can commit into is read from the command, with `cwd` the fallback. A
+command committing into two repositories is judged for both, and where every
+directory it reaches sits in one repository the operators decide nothing.
 
 | The command | What is judged |
 |---|---|
 | `cd X && git commit` | the repository holding X |
-| `cd X ; git commit` | both — `;` runs the commit whether the `cd` succeeded or not, so a failed `cd` leaves it in the session's own repository |
-| `cd X \|\| git commit` | both — the session's own repository and X |
-| `cd X \| git commit`, `cd X \|& git commit`, `cd X & git commit` | both, and for a different reason: the commit runs in a subshell that never left the session's own repository, and a shell told to run a pipeline's last stage in the current shell (`shopt -s lastpipe`) does land in X |
-| `cd N \|\| cd B && git commit` | both N and B — the second `cd` is skipped whenever the first works |
-| `cd X && git commit`, where X is inside the session's own repository | that one repository, with the verdict and the prompt unchanged |
+| `cd X ; git commit`, or the two on separate lines | both: a failed `cd` leaves the commit in the session's own repository |
+| `cd X \|\| git commit` | both |
+| `cd X \| git commit`, `cd X & git commit` | both: the commit runs in a subshell that never left, unless `lastpipe` runs it in X |
+| `cd N \|\| cd B && git commit` | N and B |
+| `cd X && make \|\| git commit` | X and the session's own repository |
 
-A segment joined by one of those operators may never run, so the directories
-in front of it stay candidates past it. Reading only the operator that
-*follows* a segment loses that: `cd N \|\| cd B && git commit` kept B alone,
-and where B carried a declaration the commit went unjudged.
+The reading is of `tool_input.command` before the shell expands it.
 
-**Where an operator is written does not change which operator it is.** An
-operator at the end of a line — the ordinary way to write a long command — put
-the line break directly behind itself, and a run of shell punctuation reads as
-a single token, so `cd X \|\|` and a newline arrived as one operator that
-matched none of these rules. The line break is read as its own separator, the
-first operator after a segment is the one that binds it, and a backslash
-before a line break is a continuation whose two characters both go.
+**A target the reading cannot resolve stops wherever the session's own
+repository opted in, and is silent anywhere else.** The session's own
+repository decides whether the gate speaks, never what is true of the target.
 
-**Only what the shell would EXECUTE is read as commands.** A heredoc body is
-data the shell feeds to a command on stdin, so the gate drops it before
-splitting, exactly as it drops a comment. Writing a script and then committing
-it is ordinary, and every newline being a separator meant a `cd` on the second
-line of `cat > run.sh <<'EOF'` moved the reader's shell — the commit after the
-terminator was then judged against a repository the shell never entered, with
-the session's own directory absent from the candidates altogether. A `<<`
-inside a comment opens nothing, `<<<` is a herestring and opens no body, and a
-body whose terminator never arrives runs to the end, which is what the shell
-does with one. Neither does `$((…))` open one: the `<<` in `n=$((1<<2))` is an
-arithmetic left shift, and reading it as a redirect took `2))` for a delimiter
-and dropped every line after it looking for a match no line makes — so a
-commit written below it did not arrive misjudged, it did not arrive at all.
-This is a JUDGMENT read. The scan for a waiver token is a CONSENT read: it
-keeps the comments, because the documented form writes the token in one, and
-it skips every heredoc body, because a waiver is typed in front of a command
-and a body is text the command only carries (#773). The bodies it skips are
-the ones this reading already finds, and a token counts only where the command
-as written carries it too, so skipping a body can refuse a waiver and never
-grant one. A token inside a body a shell runs is refused with the rest; typed
-in front of the Bash call's own command, it waives. A command that does not
-split carries no token from where its split fails: a waiver inside a quote
-that never closes, or after an apostrophe that opens one in a comment (`#
-don't [no-review]`), is read as nothing, and the words before that point are
-read. The scan is `hooks/tokens.py#given`, the one reader the worktree guard
-and the git hooks' old spelling read through too (#868). It used to fall back
-to a substring wherever the command did not split, which is reading loosely
-in the one direction that waives with nobody asked; the refusal names the
-waiver typed in front, which splits, and the git hooks read `git -c
-specseal.waive=review` with no text read at all.
-Enforced by: tests/test_gate_judges_the_repo_it_commits_to.py::test_a_commit_aimed_elsewhere_is_judged_there, tests/test_gate_judges_the_repo_it_commits_to.py::test_a_cd_reaches_the_repository_the_commit_lands_in, tests/test_one_heredoc_shape_is_data_to_the_commit_gate.py::test_s1_a_token_in_the_program_body_waives_nothing, tests/test_one_heredoc_shape_is_data_to_the_commit_gate.py::test_s2_a_token_in_a_body_outside_the_shape_waives_nothing, tests/test_one_heredoc_shape_is_data_to_the_commit_gate.py::test_s5_a_token_inside_a_body_a_shell_runs_waives_nothing, tests/test_one_heredoc_shape_is_data_to_the_commit_gate.py::test_s6_neither_read_honours_a_token_the_base_did_not, tests/test_one_heredoc_shape_is_data_to_the_commit_gate.py::test_a_waiver_only_a_substring_holds_waives_nothing, tests/test_one_heredoc_shape_is_data_to_the_commit_gate.py::test_a_waiver_behind_an_apostrophe_in_its_comment_waives_nothing, tests/test_the_old_spellings_reach_the_hook.py::test_the_three_token_reads_answer_as_one
+| The command | Why it cannot be resolved |
+|---|---|
+| `git -C "$WT" commit`, `cd "$WT"` | a variable is not expanded, and a mistyped path reads the same |
+| `cd /tmp/x*`, `cd {a,b}` | it names a set of paths |
+| `(cd X && git commit)` | the parenthesis decides where the commit runs |
+| `cd -` with nothing behind it | there is no previous directory |
+| a function body, a sourced script, an `eval`, a `pushd`, a loop | the reader enumerates the shell's reserved words and simple commands, never the open list of things that move a shell |
 
-<!-- specs/1788184145-the-gate-stops-the-session-editing-its-tests -->
+The stop is put as the table above puts any stop. Its first way on is to
+write the path out, which lets the gate reach a verdict; the waiver is
+second.
+check: tests/test_gate_judges_the_repo_it_commits_to.py tests/test_what_the_reader_understands.py
+
+**A commit is read wherever the shell would run one.** That is behind a
+reserved word that opens a command list (`do`, `then`, `else`, `elif`, `if`,
+`while`, `until`, `{`), behind a program that runs its operands (`exec`,
+`nice`, `timeout`, `xargs`, `sudo`, `find`, `watch` and the rest of
+`cmdline.RUNNERS`), behind a redirection, in a string a shell is handed
+(`sh -c`, `bash -c`, `su -c`, `env -S`, the argument of `eval`), and in the
+body of `$( … )`, backticks, `<( … )` or `>( … )`. A commit the walk cannot
+place, behind a reserved word, a runner's own options, or in a string or a
+substitution, is unresolved and stops as above. A body nested past what the
+reader reads counts as one that might commit. A program whose operand is a
+script or another machine (`bash run.sh`, `source`, `make`, `uv run`, `npx`,
+`ssh`, `docker exec`) is not read.
+check: tests/test_a_commit_behind_a_reserved_word_is_judged.py tests/test_a_commit_behind_a_wrapper_or_in_a_substitution_is_judged.py
+
+**A change to the reading adds stops and never removes one.** A `cd` target
+is not trusted not to fail, and a heredoc body is read as shell for whether it
+commits, but for the one shape below: each narrowing tried read a command
+silent that a real bash then committed.
+check: tests/test_no_shape_the_base_stops_reads_silent.py
+
+**Only what the shell would execute is read as a command, and a waiver
+counts only where it is typed in front of the call's own command.** A heredoc
+body is data for where a commit lands, as a comment is. The waiver read,
+`hooks/tokens.py#given`, keeps comments, because the documented form writes
+the token in one, and skips every heredoc body, so a token inside a body
+waives nothing, a body a shell runs included. A command that does not split
+carries no token from where its split fails: a waiver inside a quote that
+never closes, or after an apostrophe in a comment (`# don't [no-review]`), is
+read as nothing. The worktree guard and the git hooks' old spelling read
+through the same reader.
+check: executed-text-is-read
+
 **A file edit goes through the `Edit` tool, because a shell command that only
-edits a file is still a command line this gate reads.** Dropping a heredoc
-body from the walk decides where a commit lands; whether the command commits
-at all is asked of every body but one shape's separately, as shell, on
-purpose, because a commit hidden in a body used to walk straight past (legacy
-#75). Two kinds of
-segment count there. One is a segment whose command word is `git` with the
+edits a file is still a command line this gate reads.** Whether a command
+commits at all is asked of every heredoc body but one shape's, as shell. Two
+kinds of segment count. One is a segment whose command word is `git` with the
 `commit` subcommand, so what counts is the position and never the presence of
 the word: a fixture file of shell commands held in Python strings can read
-clean whole, while an eight-line patch of that file trips (#34). A string a
-shell would run is a position too — the one `sh -c` is handed, or the inside
-of `$( … )` or a backtick pair (#670) — and this repository's own fixture
-files hold commits in exactly those, so since #670 they trip whole. The other
-has no
-commit in it at all — an `eval` whose argument the reader cannot expand
-stops the session, since nothing can tell what it reduces to without running
-the shell. So a session that searched its patch for a commit and found none
-has not cleared it, and an edit the `Edit` tool makes leaves no command line
-to read.
+clean whole while a patch of it trips. A string a shell would run is a
+position too, the one `sh -c` is handed or the inside of `$( … )` or a
+backtick pair. The other has no commit in it: an `eval` whose argument the
+reader cannot expand stops the session. So a session that searched its patch
+for a commit and found none has not cleared it, and an `Edit` call leaves no
+command line to read.
 
-Skipping a body that is only being written to a file would reopen #75, and
-the repository owner made that trade for one shape alone, the one
-`hooks/one_heredoc.py` matches byte for byte (#739, #763). Its first line is,
-with one space between tokens and nothing before or after: optionally `cd`,
-one word and `&&`; then the consumer; then `<<` and, with no space between
-them, a delimiter of letters, digits and underscores in single quotes. The
-consumer is `cat` with `>` or `>>` and one word, `tee` or `tee -a` and one
-word, or `python3 -` and any number of words, where a word is a path of
-letters, digits, `_`, `.`, `/` and `-` not starting with `-`, or one
+The one shape is data, and the repository owner made that trade for one shape
+alone, the one `hooks/one_heredoc.py` matches byte for byte. Its first line
+is, with one space between tokens and nothing before or after: optionally
+`cd`, one word and `&&`; then the consumer; then `<<` and, with no space
+between them, a delimiter of letters, digits and underscores in single
+quotes. The consumer is `cat` with `>` or `>>` and one word, `tee` or `tee -a`
+and one word, or `python3 -` and any number of words, where a word is a path
+of letters, digits, `_`, `.`, `/` and `-` not starting with `-`, or one
 single-quoted word that is not empty and holds no quote or newline. The body
 ends at the first line exactly equal to the delimiter, compared on the raw
 text. The command holds no carriage return, no NUL, no backslash before a
 newline, and no second `<<` outside the body. After `cat` or `tee` nothing
 but newlines may follow the terminator, because nothing may run after a file
-is written. After
-`python3 -` anything may, and it is read as before: a Python program on stdin
-is a program whose operand is a script, which this document already leaves
-unread. The gate reads such a command with its body and
-terminator taken out. Every other body is read as shell exactly as before: an
-unquoted, double-quoted or partly quoted delimiter, `<<-`, an assignment or a
-substitution on the first line, a parameter as a target or an argument, a
-program after a file sink, a second heredoc, and every body below the top
-level. Widening the shape needs a reader that knows where a quote or a
-substitution closes, and four review passes of #760 found that reader
-disagreeing with the shell each time, with a commit that went unread.
-Enforced by: tests/test_edits_go_through_the_edit_tool.py::test_the_rule_names_the_tool_and_pairs_its_two_reasons, tests/test_gate_judges_the_repo_it_commits_to.py::test_an_interpreter_fed_heredoc_body_that_commits_stops, tests/test_one_heredoc_shape_is_data_to_the_commit_gate.py::test_refusal_1_as_recorded_is_silent, tests/test_one_heredoc_shape_is_data_to_the_commit_gate.py::test_each_slot_of_the_shape_is_silent, tests/test_one_heredoc_shape_is_data_to_the_commit_gate.py::test_a_string_that_fails_one_clause_still_stops, tests/test_one_heredoc_shape_is_data_to_the_commit_gate.py::test_what_760_found_still_stops, tests/test_one_heredoc_shape_is_read_exactly.py::test_a_string_that_fails_one_clause_is_no_match, tests/test_one_heredoc_shape_agrees_with_the_shell.py::test_the_shell_cuts_every_admitted_body_where_the_reader_does
+is written; after `python3 -` anything may, and it is read as shell. The gate
+reads such a command with its body and terminator taken out. Every other body
+is read as shell: an unquoted, double-quoted or partly quoted delimiter,
+`<<-`, an assignment or a substitution on the first line, a parameter as a
+target or an argument, a program after a file sink, a second heredoc, and
+every body below the top level.
+check: one-heredoc-shape-is-data
 
-<!-- specs/1788305134-the-reader-stops-where-it-need-not -->
+## The implementer mark and notice
 
-**A failure branch waits for the operator that runs it.** `cd X && make \|\|
-git commit` commits where the shell is when the `cd` fails, and that is the
-directory the session started in. Reading only the operator immediately after
-a segment lost it as soon as anything stood between the `cd` and the `\|\|`.
-The directory a failed command leaves the shell in is carried until something
-consumes it, and a failure branch nothing ever reaches is not reported — which
-is what keeps `cd X && git commit` answering for X alone.
-
-**Two operators consume one, not one.** `\|\|` runs its right side only from
-the failure branch; `;` — and a newline, which is the same operator written
-differently — runs it from both, which is why `cd X ; git commit` answers for
-two repositories where `cd X && git commit` answers for one. Only `\|\|` was
-treated as a consumer, so the session's own repository dropped out of the `;`
-answer and a routing declaration in X silenced a commit that could land in
-either. `bash -c 'cd /no/such/dir ; pwd'` prints the directory it started in.
-
-**The reader enumerates what it understands, not what moves a shell.** Where
-it met a construct it did not model it answered *the shell stayed where it
-was*, and that is a confident answer rather than an absent one: a stop where
-the session's own directory needs review, and a silence where that directory
-carries a declaration and the commit lands elsewhere. Measured on seven
-commands, five leaked — a `cd` inside a function body, a sourced script, an
-`eval`, a `pushd`, and a loop, with `command cd X` a sixth found alongside
-them. Filling the parser in is not the fix; the list of constructs that move a
-shell is not one anybody finishes, and every one still missing resolves
-confidently to the wrong directory.
-
-So a segment the reader can read as a simple command — a literal command word
-and its arguments — leaves the shell where the reader computed it, and every
-other segment leaves it **unreadable**, which is the stop below. What is
-enumerated is therefore the shell's reserved words, which are a closed and
-documented part of its grammar, rather than the open list of things that
-relocate a shell. The remaining error changes direction with it: a construct
-nobody added to the understood set reads as not understood, and stops.
-
-**Exclusive branches are not walked as one.** A directory reached by a branch
-that succeeded is not somewhere the alternative branch then runs, so
-`cd build \|\| cd dist` reaches build or dist and never `build/dist`. That
-composed path is not merely extra: it exists nowhere, so it resolves to no
-repository, and a target that resolves to nothing is reported as unreadable —
-which returns before the real verdict is used and puts a directory the user
-never typed in the prompt. Sixteen branches produced 65536 such candidates.
-What is still bounded only by a bound is every shape whose reachable
-directories genuinely multiply — a chain of pipe stages, one of `;`, and one
-alternating `&&` and `\|\|`. Those directories are all real, so the bound
-limits how much answering the reader will do rather than correcting anything;
-past it the command reads as one whose directory could not be computed.
-
-The last row is what keeps this cheap. Where every directory a command reaches
-sits in one repository, the operator does not matter and neither does the `cd`:
-the common `cd src && git commit` costs exactly what it cost before, compared
-byte for byte against the parent commit. Prompt volume is the problem reading
-the command was added to reduce.
-
-The gate reads `tool_input.command` **before the shell expands it**. So a `-C`
-whose value is a shell variable arrives as the literal characters `$WT`, names
-a directory that does not exist, and resolves to no repository. A path that was
-simply typed wrong looks identical from here — there is no reading of the
-command that tells them apart.
-
-That target is not a repository the gate checked and found clean. It is a
-repository the gate never saw, and until the release that closed it, both
-produced the same nothing. Every agent in that release session was instructed to
-commit with `git -C "$VAR"`, and every one of those commits passed a gate that
-had looked at nothing.
-
-| What the gate has | What it does |
-|---|---|
-| a `-C` it resolved to a repository | judges that repository — its opt-in, its marks |
-| a `-C` it could not resolve, in a session whose own repository opted in | **stops**: deny once per session per repository, then ask — or deny every time, where the session's person pressed `automation` |
-| a `-C` it could not resolve, anywhere else | silent — the plugin has no standing in a repository that never opted in |
-| no `-C`, and `cwd` is no repository | silent — there is no repository and no command naming one |
-
-The session's own repository decides *whether* the gate speaks, never *what is
-true* of the target. Judging an unresolved target against the session's marks
-would answer for a repository the commit may never touch, which is the defect
-`-C` parsing was added to fix.
-
-The two ways on are ordered deliberately. The first is to write the path out,
-because that is what lets the gate reach a verdict at all; `[no-review]` is
-second and works exactly as everywhere else.
-Enforced by: tests/test_gate_judges_the_repo_it_commits_to.py::test_a_failure_branch_survives_an_intervening_segment
-
-#### A `cd` the gate cannot read
-
-The rest of the shell is deliberately not implemented. A `cd` whose
-destination cannot be computed is treated as one that cannot be computed,
-rather than followed to a guess:
-
-| The `cd` | Why it cannot be read |
-|---|---|
-| `cd "$WT"` | the command is read before the shell expands it — the same fact that leaves a `-C` variable unresolvable |
-| `cd /tmp/x*`, `cd {a,b}` | names a set of paths rather than one |
-| `(cd X && git commit)` | the closing parenthesis decides whether the commit runs inside the subshell or after it, and finding that reliably is a shell parser. The `git commit` itself IS read — a subshell opener is taken off the command word and a closing parenthesis off the subcommand, because `(git commit)` commits for real and used to be invisible to the gate entirely |
-| `cd -` with nothing behind it | there is no previous directory to return to |
-
-Each takes the treatment the table above gives an unresolvable `-C`: a stop
-where the session's own repository opted in, silence anywhere else. It is that
-same partition and not a second one. A hook that follows a construct it half
-understands is back to being confidently wrong, which is the failure this
-section exists to describe — and the same-root collapse is what limits what
-the honesty costs, since a destination inside the right repository changes no
-verdict.
-
-`hooks/worktree-guard.py` reads a command the same way, because the parsing is
-shared and a session that walks to another repository to switch a branch there
-was judged against the tree it started in. Its answer for a destination it
-cannot read is the opposite one: it keeps judging the session's own tree,
-which is where today's answer already was. What that guard protects is a tree
-two sessions would share, so stopping is not available to it and going silent
-would be a fail-open.
-
-**A commit behind a reserved word that begins a command list is a commit.**
-`for d in a; do git commit -m x; done`, `while …; do git commit …; done` and
-`if true; then git commit …; fi` reached the gate as no commit at all (#669):
-the shell splits them at `;`, the commit arrives in a segment whose first word
-is `do` or `then`, and the reader looked for `git` in that position alone. The
-same commands written across lines were always judged, because there the
-reserved word stands on its own line and the commit follows a segment the
-reader does not understand.
-
-So after `do`, `then`, `else`, `elif`, `if`, `while`, `until` or `{`, the next
-word is read as the command word, and the segment gets the directory its
-multi-line spelling has: unresolved, which is a stop wherever the session's
-own repository opted in, before any declaration is read. Inside a `case` arm,
-a function definition or a coprocess no position names the command word, so
-the first `git` word stands in for it — a wrong one is a stop, never a
-silence. `!` and `time` stand in front of a command without opening a list,
-and a commit behind them is judged where the shell is. `for`, `select`, `case`
-and `in` are followed by names and words rather than commands, so
-`for d in git commit` reads nothing.
-
-The reading can only have gained stops by this. Every segment the new reading
-reaches began with a word at which the old one found no command, so no commit
-the base read is read differently, and the directories it marks unresolved
-are those segments' own. What that argument could not see is the fallback for
-a command the splitter could not finish, which is not a segment: a commit
-found behind `do` in a declared repository took the session's own directory
-out of the judgment, until the fallback came to stand beside what was found
-(round 1 of work item 1790644505, and the #670 statement below).
-Enforced by: tests/test_a_commit_behind_a_reserved_word_is_judged.py
-
-**A commit behind a wrapper, in a shell string or in a substitution is a
-commit.** `exec git commit`, `nice git commit`, `timeout 5 git commit`,
-`xargs git commit`, `sh -c 'git commit'` and `echo $(git commit)` each reached
-the gate as no commit at all (#670): the reader knew five wrappers by name,
-stopped at the first word it did not know, never read a string handed to a
-shell, and never looked inside a substitution.
-
-So three readings are added. A program that runs its operands as a command
-(`cmdline.RUNNERS`, an enumeration of POSIX's, GNU coreutils', util-linux's,
-the privilege tools', the tracers' and `find`, `parallel`, `watch` and
-`script`) is read past: directly in front of `git` the commit is judged where
-the shell is, and behind the program's own options or operands, which the
-reader does not parse, the first `git` word stands in and the directory is
-unresolved. A string `sh -c`, `bash -c`, `su -c`, `script -c`, `flock -c`,
-`env -S` or `watch` hands to a shell is read as a command, as `eval`'s argument
-was, `env -S`'s also as `env`'s own words (#716), and a command word the shell
-would expand in the string a host runs (`sh -c "$CMD"`) counts as one that
-might commit. `parallel`'s arguments are read for a commit written out, and no
-further: placing its command word means parsing its options (#674). That
-question is not asked of a shell's positional parameters or of `watch` as a
-word something else was handed, because no shell runs those
-(`find -exec sh -c '…' _ {}`, `grep watch *.py`). An `eval` is found the same
-way `git` is, behind a reserved word, a prefix, a runner or a subshell. The
-body of a `$( … )`, backticks, `<( … )` or `>( … )` is read as a command the
-way a heredoc body is; a single-quoted one is text. A commit found in a string
-or a substitution runs somewhere the walk does not place, so it stops wherever
-the session's own repository opted in.
-
-What stays unread is a program whose operands are a script or a remote
-command rather than a command here — `bash run.sh`, `source`, `make`, `uv
-run`, `npx`, `ssh`, `docker exec` — because reading it would mean reading
-files or machines, not the command. Each stays silent as it was.
-
-The reading can only have gained stops by this, for the reason #669's change
-gives, and for one more: a command the splitter could not finish is still
-judged in the session's own directory when the new reading found a commit in
-the part it did read. Without that, a commit found in a declared repository
-took the session's directory out of the judgment (round 1 of work item
-1790644505). A body nested deeper than the reader reads — `NESTING_READ`, 32
-levels, or the recursion limit where that comes first — reads as one that
-might commit, beside every commit already found, since a gate that raises is
-skipped and a skipped gate is silence; catching the raise around the whole
-reading had thrown away a commit it had found in another repository (round 2
-of work item 1790644505).
-Enforced by: tests/test_a_commit_behind_a_wrapper_or_in_a_substitution_is_judged.py
-
-**A program word is read where the shell reads one, whatever stands in front
-of it.** `2>/dev/null git commit`, `git 2>/dev/null commit`, `2>&1 git
-commit`, `(sh -c 'git commit')`, `bash -c 2>/dev/null "$CMD"` and `watch` in
-a `case` arm or a function body each reached the gate as no commit at all
-(#674), and bash landed every one it was given. The readers above stopped at
-the first word they did not know, and a redirection, a compound command's
-header and a `(` glued to the program are each such a word.
-
-So each place a program word stands is read past what the shell takes off it:
-
-- **A redirection** in front of the program or before git's subcommand, glued
-  or spaced (`2>/dev/null`, `2> /dev/null`, `<<<w`, `<< EOF`, `{fd}>f`, zsh's
-  `>!f`), is read past to the word it stands in front of. A commit there is
-  judged where the shell is, as the same commit without it is. A `cd`, a
-  relocator, a reserved word or an expanding word reached past one adds an
-  unresolved directory beside the one the walk read without it, and never
-  replaces it: `[no-review]` waives an unresolved target whole, and a session
-  that is not opted in reads one as silence, so a replaced directory is a
-  stop lost. The same holds for zsh's `noglob`, `nocorrect` and `repeat N`,
-  for a redirection glued to a word's end (`cd>/dev/null W`), and for one the
-  splitter cut (`2>&1 cd W`). A redirection after a `cd`'s operand, or glued
-  to one (`cd W 2>/dev/null`, `cd W>/dev/null`), is the shell's as well. The
-  landing read past any of these is added in front of the directory the walk
-  read with it, and the gate judges both. The worktree guard and the consent
-  writer read none of this list's additions. They take one answer where the
-  gate takes all, so since #689 they read a command through a frozen copy of
-  `86256492`'s reader, and for them this `cd` does not move the shell and a
-  git behind a redirection or a zsh prefix is not git
-  (`worktree-guard-spec.md` §*Which tree*).
-- **A redirection glued to the end of a word** (`git>/dev/null commit`, `git
-  commit>/dev/null`, `sh>/dev/null -c`) is cut off into a view read beside the
-  segment, adding only what the segment did not find. A descriptor in front
-  (`2>f`), bash 4.1's `{fd}>f` and a quoted word holding a space stay whole.
-- **The operators the splitter cuts at `&` or `|`** — `2>&1`, `>&2`, `<&0`,
-  `>&-`, `>|f`, and `&>f` after a word, `git>&2` among them — are glued back
-  into a view the gate reads beside the segments, adding only what no segment
-  found on its own. The walk asks that view too, where a `cd` behind one
-  stands. The splitter itself is unchanged, because teaching it these
-  operators moves every segment in both gates and in the walk.
-- **zsh's precommand words and short loops** — `noglob`, `nocorrect`, `repeat
-  N`, `for i (…) cmd` and `foreach i (…) cmd` — are read past as runners, the
-  count and the word list as operands.
-- **Inside a `case` arm, a function definition or a coprocess,** `watch` and
-  the command word of a host's string are read by position, and a header
-  spelling the reader does not place falls to the stand-in `git` already had.
-  Behind a runner's own options inside a string, which the reader cannot tell
-  from the program, a later word that expands counts. None of these three counts
-  a redirection's target. Past 32 headers, one inside the next
-  (`HEADERS_READ`), the program counts as one the reader does not place.
-- **A host glued to a subshell's `(`** is a host, and a string picked after a
-  host's flag is read past a redirection written there, and past the options
-  and `--` behind that redirection (`bash -c 2>/dev/null -- "$CMD"`).
-
-`sudo -s` and `sudo -i` are not string hosts: `man sudo` says the command
-is escaped a character at a time before it reaches the shell's `-c`, so a
-quoted string is one word there and not a command line. Their argument form
-is `sudo` the runner's.
-
-The reading can only have gained stops by this. Every reader asks what it
-asked before first and adds what the new reading finds, `understood`'s
-refusal is added beside the directory the walk read before, the walk's
-reading past redirections unplaces a segment beside its directory and never
-in place of it, and a generated
-corpus of 11,393 commands across these positions found none silent where the
-release base stopped. The one answer
-replaced rather than kept is git's subcommand where it had been a redirection,
-which no reader acted on. Over 6,033 commands recorded in the milestone's
-runs, none changed its verdict.
-
-That holds past the walk's `STATE_CAP` as well. Past 64 directories the walk
-collapses into one it cannot read, and the directories added beside count
-toward the cap, so a chain of `cd` segments reaches it sooner than the base's
-walk did: nine `2>/dev/null cd W;` in a row, or a refused segment followed by
-sixteen `cd W;`. So the walk carries the base's own states in a thread of
-their own, with none of the additions and the same collapse at the base's
-length, and every segment's directories are the walk's followed by that
-thread's (question Q7 of work item 1790660768). Where the walk names none,
-the base's come first. This gate judges every directory, so that order
-decides none of its answers, but it is the order the deny names its targets
-in. The worktree guard and the consent writer do not read this walk: they read
-through a frozen copy of `86256492`'s reader (#689), so no order of the two
-decides the tree they judge. The `cd` behind a redirection, the depth bound and
-the cap are held by `tests/test_no_shape_the_base_stops_reads_silent.py`.
-Enforced by: tests/test_a_commit_behind_a_wrapper_or_in_a_substitution_is_judged.py
-
-### Why a deny, and why only once
-
-A hook returns allow/deny/ask and nothing else, and the harness renders an
-`ask` as two buttons the model never sees. Declining is then a bare "No", and
-the user who wanted the *other* way on has to retype the command themselves —
-the yes/no shape `implement` §1 rejects, still present after the reason string
-was made to name both continuations. Denying gives the model the turn back and
-spends the reason on the question, which is the shape measured in
-`hooks/review-skill-gate.py`.
-
-Firing once per session per repository is what keeps that from being a trap.
-The marker is `<git-dir>/specseal-commit-choice/<session-id>`, with the session
-id reduced to its basename first — it names a file, and a malformed id with
-separators in it otherwise escapes the directory. An unwritable marker counts
-as already asked, since one missed question beats a deny nothing can get
-past. Every attempt after the first meets the plain `ask` — which is
-also the answer for an environment with nobody to ask: one extra round trip,
-then today's behavior.
-
-**Where the person said nobody would be answering, every stop is a deny.** A
-session whose person pressed `automation` on the routing question was
-promised that nothing stops to ask, and an `ask` is a person's prompt. So
-there the sentence above is reversed: the gate denies at every stop, in both
-arms and at both decision sites, and the reason names the ways on that need
-nobody — a commit whose repository the gate can read, an edit through the
-`Edit` or `Write` tool, the waiver only for a commit no work item owns, and
-otherwise handing the commit back. It names no question tool, and says that
-re-issuing the command unchanged meets the same refusal.
-
-Measured in the milestone-49 run (#662, #665): four stops reached the person
-as prompts. The main checkout's one deny had been spent by the orchestrator's
-own loop, and the marker is keyed on the git directory and the session id
-alone. A subagent's call carries its parent's session id, so every later stop
-in that repository, from every agent in the run, was an `ask`.
-
-The press is the one `docs/worktree-guard-spec.md` §*Creation consent* reads,
-through the same reader, `hooks/worktree_consent.py#automation_answered`, and
-it stands for the same reason: the harness writes it from the click, and the
-model writes the question and never which option was pressed. It is read
-against the session's own repository, which is where standing to speak comes
-from, and only once a stop is decided, so what the gate stops does not move.
-A `per axis` answer and a `routing.md` `Automation` row are not read, for the
-reasons that section gives, and such a run still meets the ask. The last
-answer to the routing question from this clone is the one that stands, so a
-later `per axis` takes an earlier press back.
-
-This blocks more and never allows more. Where the base asked, a click let the
-commit through; a deny never does. Every way of not reading the press — no
-session id, no transcript, a shape the reader refuses, a reader that raises —
-is the answer above, because a gate that raises is skipped, and a skipped gate
-is silence. A wrong refusal costs the model a turn. The bound on a model that
-re-issues the same command is the reason's text alone, and whether it holds is
-a measurement owed at the next automation run.
-Enforced by: tests/test_an_automation_run_meets_no_commit_prompt.py
-
-**Two readings that prompted that run stay as they are.** `cd X && x` on one
-line and `git commit` on the next reaches the session's own directory whenever
-the `cd` fails, which is *Two operators consume one, not one* above (#662). A
-heredoc body is read as shell for whether it commits, which is *A file edit
-goes through the `Edit` tool* above (#665), and that paragraph names the one
-shape it does not read. Work item `1790635415` narrowed
-both — trusting an existing `cd` target not to fail, and reading a body fed
-to a known interpreter as data — and its rounds 2 and 3 found commands the
-narrowed gate read silent where the base stopped them, and a real bash ran the
-commit for every one it was given: a flag after the `<<`, a bundled `-Bc`, a
-`$(…)` or `${…;…}` moving the boundary, a `#` glued to the delimiter, and an
-earlier segment or an assignment prefix moving the `cd` target. Each fix
-narrowed further than its proof, so the reading stays where it was, and what
-changed is who a stop is put to. The changes to the reading are the two
-stricter ones above: a commit behind a reserved word (#669), and one behind a
-wrapper, in a shell string or in a substitution (#670). Every one of those
-commands still stops, with the press and without, but one. The measured
-prompt whose patch body loops over a commit string is a `cd`, a Python
-program on stdin and a quoted delimiter with nothing after it, which is
-exactly the one shape, so it left the corpus for a case that pins it silent.
-The repository owner decided that, in Q1 of work item `1791089603`, carrying
-the same answer given for #760. Every other row still stops.
-Enforced by: tests/test_no_shape_the_base_stops_reads_silent.py
-
-**Both arms, one call.** When both arms fire, the reason asks for two
-questions inside a single AskUserQuestion call rather than one question with
-four combined options. The arms are waived independently, so combining them
-makes every label carry two facts and multiplies the option count; one call
-still costs one interruption.
-
-## implementer-mark · implementer-notice (PreToolUse Agent|Task · PostToolUse Bash)
-
-<!-- specs/1788310269-the-implementer-leaves-a-mark -->
 **A `framer` or `smith` spawn leaves a mark, and a commit on a branch whose
-declaration names that agent, with no mark standing, gets one line saying so.**
-The routing declaration has two axes that name an agent — `Planning`, who
-draws the frame, and `Implementation`, who builds the work item — each
-answered by that agent's name or by `the session`, and until these two hooks
-existed the answers were written down and read by nothing. Two hooks, sharing
-one address module (`hooks/implementer.py`), so the writer and the reader
-cannot spell the path two ways — and one module for both axes, because a
-second one beside it would differ by a constant:
+declaration names that agent, with no mark standing, gets one line saying
+so.** The two axes of the routing declaration that name an agent,
+`Planning` and `Implementation`, each answer an agent's name or
+`the session`. Two hooks share one address module, `hooks/implementer.py`,
+for both axes.
 
-| | Fires | Does | Prompt budget |
-|---|---|---|---|
-| `implementer-mark` (`pre-agent`) | an Agent/Task spawn whose `subagent_type` is `framer` or `smith` | writes the checked-out branch name to `<git-dir>/specseal-planner` or `<git-dir>/specseal-implementer`, one per axis. Prints nothing | zero — it cannot deny or ask |
-| `implementer-notice` (`post-bash`) | a command that actually invokes `git commit` | where the declaration for this branch names an agent on either axis and no mark of that axis stands for this branch, prints one line naming the file — one line naming both axes where both are unfulfilled, never one line each; silent for an axis whose mark stands, whose row is absent or outside its vocabulary, or which answers `the session` | zero — a reminder, once per session per repository, never a decision |
+| Hook | Fires | Does |
+|---|---|---|
+| `implementer-mark` (`pre-agent`) | an Agent or Task spawn whose `subagent_type` is `framer` or `smith` | writes the checked-out branch name to `<git-dir>/specseal-planner` or `<git-dir>/specseal-implementer`, and prints nothing |
+| `implementer-notice` (`post-bash`) | a command that invokes `git commit` | where the branch's declaration names an agent on an axis and no mark of that axis stands for the branch, prints one line naming the file, one line for both axes where both are unfulfilled, once per session per repository; silent for an axis whose mark stands, whose row is absent or outside its vocabulary, or which answers `the session` |
 
-A mark is keyed on the **branch**, not on HEAD as `specseal-reviewed` is: a
-work item commits many times and neither the framer nor the implementer
-changes when it does. It is keyed on the **axis** too, because the two marks
-share a directory and `smith` is spawned on nearly every work item — one mark
-answering for both would go silent in exactly the state the notice reports.
-It lives in the git dir and CI never sees it, which is why nothing at the pull
-request reads either axis — neither agent produces a committed artifact a
-session could not also write. Everything fails toward "no mark", which is toward a
-reminder: a mark gate that quietly stops running turns the notice on, not off,
-so a dead gate produces a line somebody reads rather than a silence nobody
-does. The commit gate's decision is byte-identical with the row and without it.
-Enforced by: tests/test_the_implementer_is_recorded.py::test_spawning_smith_leaves_a_mark, tests/test_the_implementer_is_recorded.py::test_a_declared_smith_with_no_mark_is_noticed_after_a_commit
+Neither hook can deny or ask. A mark is keyed on the branch, because a work
+item commits many times, and on the axis, because `smith` is spawned on nearly
+every work item. It lives in the git directory, so nothing at the pull request
+reads either axis. Everything fails toward no mark, which is toward the
+reminder, and the commit gate's decision does not read the mark.
+check: tests/test_the_implementer_is_recorded.py

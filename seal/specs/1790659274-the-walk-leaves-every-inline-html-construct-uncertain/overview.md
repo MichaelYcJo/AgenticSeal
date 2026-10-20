@@ -24,8 +24,8 @@ oracle now treat all six kinds of inline raw HTML as they treated a comment
 
 | Item | Who must answer |
 |---|---|
-| The full suite, lint and typecheck over the whole tree (`unverified`; phases ran the property, config, routing, rider and template modules only) | the orchestrator, by spawning the sealer once after the review rounds settle |
-| The eight breaks on Windows: the change is string processing, and CI's `windows-latest` leg is the only run on that platform | CI's `windows-latest` leg at the pull request |
+| closed The full suite, lint and typecheck over the whole tree (`unverified`; phases ran the property, config, routing, rider and template modules only) | #676, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
+| closed The eight breaks on Windows: the change is string processing, and CI's `windows-latest` leg is the only run on that platform | #676's `windows-latest` leg ran the suite green |
 
 ## Not done
 

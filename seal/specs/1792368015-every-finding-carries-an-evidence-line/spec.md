@@ -165,6 +165,12 @@ verdict: open
 Nothing reads a meaning out of the line, and no `Finding` field holds it. A
 reviewer reads it.
 
+## Rule changes
+
+- nothing
+  why: written: a finding's evidence line and an absence executed only, in
+    docs/the-review-record.md *The round record*.
+
 ## Removes
 
 | Removes | Coordinate | Where it lands, or why it can go |

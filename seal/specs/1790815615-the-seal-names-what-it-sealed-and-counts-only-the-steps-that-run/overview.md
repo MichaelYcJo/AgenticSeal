@@ -31,8 +31,8 @@ The sealer's stamp and its two lines named two commits and never the branch, the
 
 | Item | Who must answer |
 |---|---|
-| Q3: the installed 0.16.0 `Stop` hook draws a values file this gate writes (rows labelled `""`, two extra keys) unchanged, under its old label, on the owner's screen | the repository owner, on the first real seal of the 0.17.0 run |
-| The full suite, the repository-wide lint and the broad gate over this branch | the orchestrator, through the sealer after the review rounds settle |
+| closed Q3: the installed 0.16.0 `Stop` hook draws a values file this gate writes (rows labelled `""`, two extra keys) unchanged, under its old label, on the owner's screen | f1c9932d removed the values file: the gate writes none, and the stamp is drawn from the sealer's verdict |
+| closed The full suite, the repository-wide lint and the broad gate over this branch | #699, merged with lint and the suite green on the ubuntu, macOS and Windows legs |
 
 ## Not done
 

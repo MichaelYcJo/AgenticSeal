@@ -196,6 +196,13 @@ that case red.
 - New rows go in `seal/ledger/1790260567-the-broad-gate-hands-cmd-a-forward-slash.md`.
   The changelog entry goes in `seal/specs/1790260567-the-broad-gate-hands-cmd-a-forward-slash/changelog.md`.
 
+## Rule changes
+
+- nothing
+  why: internal: the gate hands cmd.exe a path it can run, held by
+    tests/test_the_gate_hands_cmd_a_path_it_can_run.py, and the suite runs with gh logged
+    out, by tests/conftest.py.
+
 ## Open questions → questions.md
 
 Q1 and Q2 are measurements and Q3 is the work's. No row needs a person.

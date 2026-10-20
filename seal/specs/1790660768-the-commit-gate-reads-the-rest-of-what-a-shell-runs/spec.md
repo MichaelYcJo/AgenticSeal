@@ -417,6 +417,13 @@ there.
   and `>!` is zsh, so both are read without being run here. Windows is CI's
   `windows-latest` leg.
 
+## Rule changes
+
+- nothing
+  why: written: a commit is read wherever the shell would run one, and a change to the
+    reading adds stops only, in docs/commit-review-gate-spec.md; internal: the
+    positions, the merged view and the bounds, held by its tests.
+
 ## Open questions → questions.md
 
 No row needs a person. `questions.md` lists the judgments the ticket left

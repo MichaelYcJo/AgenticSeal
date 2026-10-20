@@ -4,9 +4,7 @@ it holds.
 
 The coordinate kernel: it resolves a `path#unit` coordinate. No command runs
 it: the readers that name a place in a file by its content load this module
-by path and call it. They are `skills/settle/scripts/fold_check.py`, which
-resolves an `Enforced by:` target through `named_unit` for `fold-check` and
-`rules --check`; and `pact_check.py` beside it and `chain_check.py`, which
+by path and call it. They are `pact_check.py` and `chain_check.py`, which
 read pact anchors.
 
 A place is named by content, never by position. The locator is a **symbol
@@ -448,63 +446,3 @@ def resolve_unit(path, locator, text, shown=None):
         # the unit (round 4, 🔴 2).
         return Resolution(spans.get(locator, []))
     return Resolution([], unbounded(shown or path, rule, text))
-
-
-@functools.cache
-def _parsed_kinds(text):
-    """`unit_kinds`'s answer, stored once per distinct text, or None. The walk
-    is `parsed_spans`', so the two key a unit by one qualified name."""
-    try:
-        tree = ast.parse(text)
-    except (SyntaxError, ValueError):
-        return None
-    out = {}
-
-    def walk(node, prefix, in_function):
-        for child in ast.iter_child_nodes(node):
-            if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
-                name = prefix + child.name
-                kind = "class" if isinstance(child, ast.ClassDef) else "def"
-                out.setdefault(name, []).append(kind)
-                walk(child, name + ".", not isinstance(child, ast.ClassDef))
-            elif isinstance(child, (ast.Assign, ast.AnnAssign)) and not in_function:
-                targets = (
-                    child.targets if isinstance(child, ast.Assign) else [child.target]
-                )
-                for t in targets:
-                    elts = t.elts if isinstance(t, (ast.Tuple, ast.List)) else [t]
-                    for n in elts:
-                        if isinstance(n, ast.Name):
-                            out.setdefault(prefix + n.id, []).append("constant")
-            else:
-                walk(child, prefix, in_function)
-
-    walk(tree, "", False)
-    return {name: tuple(kinds) for name, kinds in out.items()}
-
-
-def unit_kinds(text):
-    """`{qualified name: (kind, ...)}` for the Python TEXT, one kind per
-    definition -- `def`, `class` or `constant` -- or None where it will not
-    parse. A fresh dict per caller, as `py_spans` hands out."""
-    kinds = _parsed_kinds(text)
-    return None if kinds is None else dict(kinds)
-
-
-def named_unit(text, names):
-    """What NAMES -- the parts of a `path::name(::name)*` target after its
-    path -- name in the Python TEXT: the kinds of every definition of that
-    qualified name, `()` where there is none, or None where TEXT will not
-    parse.
-
-    **The one resolver of `path::name`** (#836): `fold_check.py#target_problem`
-    reads an `Enforced by:` target through it, for `fold-check` and for
-    `rules --check`, and decides what it accepts.
-    """
-    kinds = unit_kinds(text)
-    if kinds is None:
-        return None
-    if any("." in name for name in names):
-        # One identifier per part: `A.b` is not `A::b` (round 1, ⬜ 4).
-        return ()
-    return kinds.get(".".join(names), ())

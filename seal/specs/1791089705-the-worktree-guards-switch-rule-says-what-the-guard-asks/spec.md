@@ -187,6 +187,12 @@ case red against the mutant" and "0 of 2,859 differ" are the reviewer's
 executions at `5e4984b1`, not re-run here. A2–A7 are where the builder runs
 them.
 
+## Rule changes
+
+- nothing
+  why: overturned: the switch sentence it corrected left when the guard stopped predicting
+    a switch and read three shapes instead (3d78c220).
+
 ## Open questions → questions.md
 
 None needs a person. `questions.md` lists what the frame decided.

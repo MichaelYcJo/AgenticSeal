@@ -31,9 +31,9 @@ naming the worktree split, and the line prints only what was measured.
 
 | Item | Who must answer |
 |---|---|
-| On Windows, with nothing stubbed, a switch under the press is row 2's deny (`questions.md` M2); `test_on_windows_a_switch_under_the_press_is_row_twos_deny` is skipped off Windows | the test workflow's Windows legs, at the pull request |
-| Whether the deny loops, or a Windows run splits twice, in a real `automation` run (`questions.md` M1) | the orchestrator of the next `automation` run after this ships, from its own transcript |
-| The full suite, lint and typecheck over the merged tree | the sealer, once, after the review rounds settle |
+| closed On Windows, with nothing stubbed, a switch under the press is row 2's deny (`questions.md` M2); `test_on_windows_a_switch_under_the_press_is_row_twos_deny` is skipped off Windows | #997's `windows-latest` leg ran `tests/test_the_idle_session_rows_ask_nobody.py` green |
+| closed Whether the deny loops, or a Windows run splits twice, in a real `automation` run (`questions.md` M1) | another session's behaviour: the re-issue bullet of `docs/worktree-guard-spec.md` *Known limits* |
+| closed The full suite, lint and typecheck over the merged tree | #902, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
 
 ## Not done
 

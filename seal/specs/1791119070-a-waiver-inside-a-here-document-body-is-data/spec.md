@@ -142,6 +142,12 @@ change without pinning one particular stop wording.
 - No new hook, no new config row, no new file outside this work item's
   directory and its ledger fragment.
 
+## Rule changes
+
+- nothing
+  why: written: a waiver counts only typed in front of the call's own command, in
+    docs/commit-review-gate-spec.md; internal: the case table, held by its tests.
+
 ## Open questions → questions.md
 
 Anything a planner must answer lives in questions.md, not inline — unanswered

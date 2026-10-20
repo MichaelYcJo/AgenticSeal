@@ -35,14 +35,14 @@ ceiling has to say why in the body.
 
 | Item | Who must answer |
 |---|---|
-| The hygiene step on the branch's pull request, green at the pushed tip | the orchestrator, from the pull request's `hygiene` run after the push |
-| That an edit to the pull request body re-runs the `hygiene` job and the budget step reads the new body | the orchestrator, by one body edit on the pull request |
-| The full suite, the repository-wide lint and the typecheck at this branch's tip | the sealer, after the review rounds settle |
-| `test_the_trees_budgets_hold` and the module on the Windows and macOS legs | the pull request's `tests` run |
-| That the price level holds against a real refresh: #931's refreshed `.test_durations` beside this branch's rows, the level restated to the number the step names, and every seconds row then holding | the orchestrator, when #931 and this branch meet on the release branch |
-| The `budgets` job on this branch's pull request: it runs after the pytest legs, reads the job list with its `actions: read` token, and its summary shows three legs against 15, 59 and 32 with the billable line | the orchestrator, from the pull request's `tests` run after the push; the job was green on run 38485697284, and its summary is the orchestrator's to read |
-| The two fixes of phase 4 on CI: the GFM census green on ubuntu, macOS group 2 and Windows group 1, and the byte cases green on Windows group 2 | the pull request's `tests` run at the pushed tip |
-| `--trend` on CI: the hygiene step's `git describe --tags --abbrev=0` names the base's last tag in the runner's checkout | the orchestrator, from the pull request's `hygiene` summary |
+| closed The hygiene step on the branch's pull request, green at the pushed tip | #938's checks green at its merged head; 8350c578 then removed the budget step |
+| closed That an edit to the pull request body re-runs the `hygiene` job and the budget step reads the new body | 8350c578 removed the budget step that read the body |
+| closed The full suite, the repository-wide lint and the typecheck at this branch's tip | #938, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
+| closed `test_the_trees_budgets_hold` and the module on the Windows and macOS legs | #938's `macos-latest` and `windows-latest` shards ran green; 8350c578 then removed the module |
+| closed That the price level holds against a real refresh: #931's refreshed `.test_durations` beside this branch's rows, the level restated to the number the step names, and every seconds row then holding | 8350c578 removed `seal/budgets.md` and its seconds rows |
+| closed The `budgets` job on this branch's pull request: it runs after the pytest legs, reads the job list with its `actions: read` token, and its summary shows three legs against 15, 59 and 32 with the billable line | #938's `budgets` job ran green |
+| closed The two fixes of phase 4 on CI: the GFM census green on ubuntu, macOS group 2 and Windows group 1, and the byte cases green on Windows group 2 | #938's three legs, every shard, ran green |
+| closed `--trend` on CI: the hygiene step's `git describe --tags --abbrev=0` names the base's last tag in the runner's checkout | 8350c578 removed `budget_check.py` and its `--trend` |
 
 ## Not done
 

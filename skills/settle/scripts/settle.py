@@ -343,7 +343,8 @@ def write_outcome(plan, out):
             out.write(f"    {work_item_id}  {where}  {why}\n")
     nothing = [i for i in plan["applied"] if not plan["parsed"][i].ops]
     if nothing:
-        out.write("\nno rule to apply (`nothing — <why>`):\n")
+        no_change = load(RULES, "specseal_rule_changes").NO_CHANGE
+        out.write(f"\nno rule to apply (`- {no_change}`):\n")
         out.write("".join(f"    {i}\n" for i in nothing))
     if plan["premodel"]:
         out.write(f"\n{PREMODEL_HEADING}\n")
@@ -542,7 +543,7 @@ def write_after(root, policy, out):
     is said in its own sentence, never as a traceback after the writes."""
     fold = load(FOLD_CHECK, "specseal_fold_check_for_settle")
     try:
-        ceiling = fold.declared(fold.seal_home(root))[1]
+        ceiling = fold.declared(fold.seal_home(root))[0]
         lines = list(fold.index_problems(root, policy) or [])
         if ceiling is not None:
             lines += fold.past_ceiling_lines(

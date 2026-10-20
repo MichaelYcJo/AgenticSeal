@@ -44,6 +44,12 @@ Out:
 - `hooks/worktree-guard.py#_rebase_names_a_branch`: the option-end set gains `--end-of-options`, and a prefix of `--root` counts as `--root`.
 - `docs/worktree-guard-spec.md` §A and §Known limits.
 
+## Rule changes
+
+- nothing
+  why: written: a rebase word after `--` or `--end-of-options`, and a prefix of `--root`, in
+    docs/worktree-guard-spec.md *A*.
+
 ## Open questions → questions.md
 
 None. The fix is the reviewer's, probed in round 3 (21 rebase and git-binding cases passed in a clone).

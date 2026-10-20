@@ -210,6 +210,12 @@ passes at `2b1dcb1f`. "A dirty `w`" means
     `hooks/cmdline.py#reparsed_texts`. The builder lists the full set with
     `bin/evidence-check`, not from this list.
 
+## Rule changes
+
+- nothing
+  why: overturned: the guard's reading of a restore and of env, by its three shapes
+    (3d78c220); internal: env's two grammars in the commit reader, held by its tests.
+
 ## Open questions → questions.md
 
 Q1 (`--quoting-style`), Q2 (#738), Q3 (whether the comparisons stay as

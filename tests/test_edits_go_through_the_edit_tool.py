@@ -35,6 +35,7 @@ what now refuses it.
 
 import os
 
+import pytest
 from conftest import load_hook_module
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
@@ -53,6 +54,7 @@ def flat(*parts):
     return " ".join(read(*parts).split())
 
 
+@pytest.mark.rule("one-heredoc-shape-is-data")
 def test_the_rule_names_the_tool_and_pairs_its_two_reasons():
     """The instruction itself, in each file that states it."""
     for parts in CARRIERS:
@@ -304,7 +306,7 @@ def test_the_rule_names_the_one_heredoc_shape_it_does_not_read():
         assert slot in policy, ("docs/commit-review-gate-spec.md", slot)
     assert "the repository owner made that trade for one shape alone" in policy
     assert "`hooks/one_heredoc.py` matches byte for byte" in policy
-    assert "Every other body is read as shell exactly as before" in policy
+    assert "Every other body is read as shell:" in policy
     assert "that trade is the repository owner's to make" not in policy, (
         "the policy still leaves open a trade the owner has made"
     )

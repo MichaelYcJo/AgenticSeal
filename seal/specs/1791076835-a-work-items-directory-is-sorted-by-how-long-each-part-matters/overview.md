@@ -25,9 +25,9 @@ Two thirds of `seal/specs/` was the process record of released work items, read 
 
 | Item | Who must answer |
 |---|---|
-| The full suite, lint and typecheck over the whole repository | the sealer, once the review rounds settle |
-| The first real `settle --retire-process` run, at 0.18.1's step 2b or later, on its own `[no-review]` pull request, including the survivor sweep at that pull request | the orchestrator, at the release that runs it |
-| `evidence-check --strict .` exits 2 on one drifted row, `tests/test_a_record_precedes_the_fixes_it_commissions.py#test_the_declared_limit_names_what_escapes_with_the_words_unchanged`, which drifts at e141980a too | the orchestrator, when the release branch is merged in, or that row's owner |
+| closed The full suite, lint and typecheck over the whole repository | #768, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
+| closed The first real `settle --retire-process` run, at 0.18.1's step 2b or later, on its own `[no-review]` pull request, including the survivor sweep at that pull request | ac83bdf3 removed `--retire-process`, and 5b1f6fae the survivor sweep |
+| closed `evidence-check --strict .` exits 2 on one drifted row, `tests/test_a_record_precedes_the_fixes_it_commissions.py#test_the_declared_limit_names_what_escapes_with_the_words_unchanged`, which drifts at e141980a too | 5b1f6fae removed `evidence-check` and the ledger rows it read |
 
 ## Not done
 

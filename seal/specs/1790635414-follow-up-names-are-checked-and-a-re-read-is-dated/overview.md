@@ -30,9 +30,9 @@ hash; after this, all three are read, dated or refused by the checker.
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the typecheck over this branch | the sealer, once the review rounds settle |
-| CI's Windows, Linux and macOS legs over the new cases, the `built_name` coordinate of a follow-up refusal and the local-date refusal included | the pull request's CI run |
-| The Korean README's new paragraph reads as native prose | the review chain |
+| closed The full suite, the repository-wide lint and the typecheck over this branch | #668, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
+| closed CI's Windows, Linux and macOS legs over the new cases, the `built_name` coordinate of a follow-up refusal and the local-date refusal included | #668's three legs ran the suite green |
+| closed The Korean README's new paragraph reads as native prose | 5b1f6fae removed the paragraph with `evidence-check` |
 
 ## Not done
 

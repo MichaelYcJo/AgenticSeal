@@ -31,8 +31,8 @@ run that hangs, and restores from held bytes.
 | Item | Who must answer |
 |---|---|
 | The Windows arm run on Windows: `proc.kill()` ending the direct child, the verdict text it prints, and `bin/mutation-check.cmd` reaching the script | the orchestrator, from the `windows-latest` leg of `.github/workflows/test.yml` on the pull request. That leg runs this module whole: S6, and every other case through the direct-child strategy, but no case times out there, so `proc.kill()` on expiry is still read and not run, and nothing in this repository runs the `.cmd` wrapper |
-| The full suite, repository-wide `ruff check` and `ruff format --check`, and the broad gate over this branch | the orchestrator, through the sealer, once the review rounds settle |
-| The post-cap `could not start` fix on Windows itself: the `native` parameter of the cannot-start case passing on the `windows-latest` leg | the orchestrator, from that leg's next run on PR #698; on this machine both parameters pass, and the `no-filename` one stands in for Windows' error by construction, not by running there |
+| closed The full suite, repository-wide `ruff check` and `ruff format --check`, and the broad gate over this branch | #698, merged with lint and the suite green on the ubuntu, macOS and Windows legs |
+| closed The post-cap `could not start` fix on Windows itself: the `native` parameter of the cannot-start case passing on the `windows-latest` leg | #698's `windows-latest` leg ran the module green at the merged head |
 | How the harness's own command bound did not end #577's 32-minute hang (spec M8) | the orchestrator, who holds the flow log; this work item bounds the run inside the command and does not explain the harness |
 
 ## Not done

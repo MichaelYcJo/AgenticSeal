@@ -215,6 +215,11 @@ command's behaviour is pinned case for case by its own module, which is the
 reason #417's fragment gave for the same choice. What earns a row is the
 re-read of S9, P1c and W4, whose units this work moves.
 
+## Rule changes
+
+- nothing
+  why: written: what the directory check reads and says, in docs/release-checklist.md.
+
 ## Open questions → questions.md
 
 Anything a planner must answer lives in questions.md, not inline. The owner's

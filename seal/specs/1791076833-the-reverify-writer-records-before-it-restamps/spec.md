@@ -315,6 +315,12 @@ unit took each one.
 unreadable `LEFT` line. Exact sentences are the build's, pinned in their
 commits (§14).
 
+## Rule changes
+
+- nothing
+  why: overturned: the reverify writer and the pact's change records left the tree at
+    5b1f6fae.
+
 ## Open questions → questions.md
 
 None blocks the build. The owner's answers of 2026-09-28 and 2026-10-03 cover

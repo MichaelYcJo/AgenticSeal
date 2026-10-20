@@ -184,6 +184,12 @@ Its intent, under `### Fixed`, one bullet ending `(#682)`:
 
 It names no function, as G's fragment does not.
 
+## Rule changes
+
+- nothing
+  why: overturned: the rider check left the tree at af9c924b, and the ledger hashes it read
+    at 5b1f6fae.
+
 ## Open questions → questions.md
 
 No row needs a person. The judgments the tree answered are listed at the head

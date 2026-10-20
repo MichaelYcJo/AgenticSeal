@@ -230,6 +230,12 @@ the tree.
   with a follow-on ticket that says what *adopted* means for a document
   without the plugin's record; nothing in this plan waits on it.
 
+## Rule changes
+
+- nothing
+  why: written outside docs/: a reference root is read and never taken, in
+    skills/implement/SKILL.md and templates/config.md *Reference specs*.
+
 ## Open questions → questions.md
 
 Anything a planner must answer lives in questions.md, not inline —

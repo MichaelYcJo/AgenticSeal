@@ -419,7 +419,7 @@ def test_the_template_runs_the_two_shipped_checks_from_the_plugin_at_its_tag():
     assert "skills/code-review/scripts/chain_check.py" in t
     assert t.count("--baseline") >= 2
     assert "seal/specs/" in t
-    # The check reads a record's `Target SHA` as an ancestor of HEAD only,
+    # The check reads a round record's `target:` line as an ancestor of HEAD only,
     # so the template fetches no pull-request heads (#923).
     assert "refs/pull/" not in t
     assert "v<version>" in t, "the plugin is not pinned to its tag"
@@ -658,47 +658,33 @@ def test_the_record_no_longer_says_the_checks_would_refuse(parts, wrong):
 
 
 @pytest.mark.parametrize(
-    "parts, decided, left_open",
+    "parts, opt_in, setup, stamp",
     [
         (
             ("docs", "one-root-by-lifetime.md"),
-            "## Decided after the thread",
-            "## Decisions left open",
+            "## The opt-in signal is the root itself",
+            "## What first setup asks",
+            "that hook stamps the repository as moved",
         ),
         (
             ("docs", "one-root-by-lifetime.ko.md"),
-            "## 스레드 뒤에 정해진 것",
-            "## 결정을 남겨 둔 것",
+            "## 옵트인 신호는 루트 자체다",
+            "## 처음 설정에서 무엇을 묻는가",
+            "그 훅은 저장소에 옮겼다는 표시를 남기므로",
         ),
     ],
 )
-def test_the_scratch_row_moved_from_left_open_to_decided(parts, decided, left_open):
+def test_the_design_record_states_the_setup_rules_where_they_rule(
+    parts, opt_in, setup, stamp
+):
+    """The opt-out sits with the opt-in it takes back, and the question's
+    shape, the workflow it installs and the migration hook's stamp sit with
+    first setup, in both editions."""
     text = read(*parts)
-    assert "specseal-scratch" in section(text, decided, 2), "/".join(parts)
-    assert "scratch" not in section(text, left_open, 2), "/".join(parts)
-
-
-@pytest.mark.parametrize(
-    "parts, decided",
-    [
-        (("docs", "one-root-by-lifetime.md"), "## Decided after the thread"),
-        (("docs", "one-root-by-lifetime.ko.md"), "## 스레드 뒤에 정해진 것"),
-    ],
-)
-def test_the_decided_table_carries_this_work_items_rows(parts, decided):
-    body = section(read(*parts), decided, 2)
-    rows = [line for line in body.splitlines() if line.startswith("| ")]
-    for needle in (
-        "templates/hygiene.yml",
-        COMMON_DIR,
-        "AskUserQuestion",
-        "specseal-scratch",
-    ):
-        assert any(needle in row for row in rows), (
-            f"{'/'.join(parts)}: no row names {needle}"
-        )
-    stamp = [row for row in rows if re.search(r"stamp|스탬프|표시", row)]
-    assert stamp, f"{'/'.join(parts)}: the migration hook's stamp rule has no row"
+    assert "specseal-scratch" in section(text, opt_in, 2), "/".join(parts)
+    body = " ".join(section(text, setup, 2).split())
+    for needle in ("templates/hygiene.yml", COMMON_DIR, "AskUserQuestion", stamp):
+        assert needle in body, f"{'/'.join(parts)}: {setup} does not name {needle}"
 
 
 # --- #151: the route that actually happens, and the state it leaves ---------
