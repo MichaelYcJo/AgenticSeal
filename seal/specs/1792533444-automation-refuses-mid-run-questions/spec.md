@@ -35,10 +35,13 @@ refuses the question tool.
   1. the tool name is exactly `AskUserQuestion`;
   2. `routing.declared(cwd, optin.repo_root(cwd))` returns a declaration
      whose `automation` is `routing.AUTOMATION_YES`;
-  3. the call is not the routing question put alone while this session has
-     not yet answered it from this clone. Put alone means one question,
-     single-select, with its text, whose labels the press reader recognises.
-     Not yet answered means `worktree_consent.last_routing_answer` is None.
+  3. the call is not the routing question put alone while this session's
+     transcript can be read and holds no answer to it from this clone. Put
+     alone means one question, single-select, with its text, whose labels
+     the press reader recognises. That condition holds when
+     `worktree_consent.last_routing_answer` is None. It does not hold when
+     the reader returns `worktree_consent.UNREAD` (nothing could be read),
+     nor when it returns an answer.
 - Every other case passes, with no output:
   - no `seal/`;
   - no declaration naming the branch, which covers the routing question at
@@ -119,7 +122,7 @@ refuses the question tool.
 | S5 detached HEAD | Given S1's declaration and a detached HEAD, then the gate prints nothing | the same module |
 | S6 linked worktree | Given a linked worktree checked out on the declared branch, with the main checkout on an undeclared branch, then a call whose `cwd` is the worktree is `deny`, and a call whose `cwd` is the main checkout prints nothing | the same module |
 | S7 local mode | Given the root under the common git directory holding S1's declaration, then the call is `deny` | the same module |
-| S8 the routing question alone | Given S1 and a session holding no answer to the routing question from this clone, when the call carries one single-select question with its text and question 1's three labels, decorated as the press reader accepts (`automation (Recommended)`), then the gate prints nothing. Once the transcript holds an answer from this clone, the same call is `deny`. A call with the labels but multi-select, or with no question text, is `deny` | the same module |
+| S8 the routing question alone | Given S1 and a session whose transcript can be read and holds no answer to the routing question from this clone, when the call carries one single-select question with its text and question 1's three labels, decorated as the press reader accepts (`automation (Recommended)`), then the gate prints nothing. Once the transcript holds an answer from this clone, or where no transcript can be read (`UNREAD`), the same call is `deny`. A call with the labels but multi-select, or with no question text, is `deny` | the same module |
 | S9 the routing question with company | Given S1, when the call carries question 1 and a second question, then it is `deny` | the same module |
 | S10 an unreadable call | Given S1, when `tool_input` has no `questions` list, or a question that is not an object, then it is `deny` | the same module |
 | S11 a near miss of the tool | Given S1, when `tool_name` is anything other than exactly `AskUserQuestion`, then the gate prints nothing | the same module |
@@ -159,9 +162,11 @@ tree with the gate absent, or with the pinned sentence deleted.
   recognises, with `multiSelect` False and a string `question`. These are the
   press reader's conditions. The exemption also needs
   `worktree_consent.last_routing_answer(top, session, transcript_path)` to be
-  None, meaning this session holds no answer from this clone. Once that
-  answer is recorded, a question in question 1's labels is refused like any
-  other.
+  None, meaning the transcript was read and holds no answer from this clone.
+  `worktree_consent.UNREAD`, returned when no transcript could be read, is
+  refused, because the gates that read the press would find none either.
+  Once an answer is recorded, a question in question 1's labels is refused
+  like any other.
 - **New function**: `worktree_consent.is_routing_question(question) -> bool`.
   It returns True when `question` is an object whose `options` labels, cut by
   `leading_phrase`, are exactly `ROUTING_LABELS`. It replaces the comparison
@@ -208,10 +213,14 @@ tree with the gate absent, or with the pinned sentence deleted.
     default as a row of the work item's `questions.md`, and names it in
     the pull request body, where the owner can overturn it. The routing
     question put alone, single-select and with its text, goes through
-    until this session has answered it from this clone, because a run
-    resumed in a new session has to put question 1 again for the gates
-    that read the press; once it is answered, it is refused like any
-    other question. The declaration is read through `hooks/routing.py` for the
+    while this session's transcript can be read and holds no answer to
+    it from this clone, because a run resumed in a new session has to
+    put question 1 again for the gates that read the press; once it is
+    answered, it is refused like any other question. Any routing answer
+    from this clone in the session spends the exemption, including one
+    given for another work item, so a session that has already answered
+    for another branch cannot put question 1 again; that is outside the
+    one-issue flow. The declaration is read through `hooks/routing.py` for the
     branch checked out where the session sits, and every way of not
     reading it is the attended answer. The file is written by the model,
     which is why the worktree guard never reads it as consent. It is read

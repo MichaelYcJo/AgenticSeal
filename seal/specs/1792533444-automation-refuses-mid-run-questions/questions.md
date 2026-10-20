@@ -22,14 +22,19 @@ answers it, inherit and record — only genuinely NEW rules belong here. -->
   (`hooks/gate.py#arms_missing`). A linked worktree reads its own branch,
   and its own `seal/` in shared mode or the common one in local mode. A
   detached HEAD reads as no branch, so the call passes.
-- **The routing question put alone passes until this session has answered
-  it from this clone.** Put alone means single-select and with its text. A
-  run resumed in a new session has to put question 1 again, so that the
-  worktree guard and the commit gate find the press
-  (`skills/implement/orchestration.md` §*Question 1 — single-select*, #894).
-  The issue did not cover this case. Once
-  `worktree_consent.last_routing_answer` holds an answer, the routing
-  question is refused like any other.
+- **The routing question put alone passes while this session's transcript
+  can be read and holds no answer to it from this clone.** Put alone means
+  single-select and with its text. A run resumed in a new session has to put
+  question 1 again, so that the worktree guard and the commit gate find the
+  press (`skills/implement/orchestration.md` §*Question 1 — single-select*,
+  #894). The issue did not cover this case.
+  `worktree_consent.last_routing_answer` returns None when it read the
+  transcript and found no answer, and only then does the question pass. It
+  returns `worktree_consent.UNREAD` when nothing could be read, which is
+  refused, since the gates that read the press would find none. Once it
+  returns an answer, the routing question is refused like any other. Any
+  answer from this clone spends the exemption, including one given for
+  another work item. That case is outside the one-issue flow.
 - **The deny repeats on every call.** It carries no once-per-session marker,
   because under automation every stop is a deny
   (`docs/commit-review-gate-spec.md` §*The PreToolUse reading of a commit*).
