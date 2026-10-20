@@ -338,6 +338,9 @@ def test_the_line_the_checklist_copies_is_the_line_the_reader_reads():
         f"{VERSION} — {SYMPTOMS}",
         "the tagged commit's `release:` line",
     )
+    # Trailing whitespace after the symptoms is no part of the title.
+    spaced = mod.title_from(message.replace("\n", "  \n"), VERSION, TAG)[0]
+    assert spaced == title, spaced
 
 
 def test_the_title_line_pattern_is_linear_in_the_line():
@@ -349,7 +352,7 @@ def test_the_title_line_pattern_is_linear_in_the_line():
     mod = module(SCRIPT, "publish_release_note_for_its_pattern")
     start = time.monotonic()
     for line in (
-        f"release: {VERSION} symptoms: " + " x" * 50000 + " ",
+        f"release: {VERSION} symptoms: " + "x " * 50000,
         f"release: {VERSION} symptoms:" + " " * 100000,
         "release: " * 20000,
     ):
