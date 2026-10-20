@@ -1640,12 +1640,14 @@ def broad_gate(reader, root, item, base):
 def verdicts_of(reader, text):
     """[(line number, line)] for every line outside comments and fences that
     means the verdict (`MEANT_VERDICT`), whatever its spelling, trailing
-    whitespace removed."""
+    whitespace removed. An indent is markup, a code block at four spaces, so
+    an indented line is handed back with its indent and no shape reads it
+    whole."""
     found = []
-    for i, line in enumerate(reader.readable(text or "")):
-        line = reader.visible(line).rstrip()
+    for i, raw in enumerate(reader.readable(text or "")):
+        line = reader.visible(raw)
         if MEANT_VERDICT.match(line):
-            found.append((i + 1, line))
+            found.append((i + 1, raw.rstrip() if raw[:1].isspace() else line))
     return found
 
 

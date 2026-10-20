@@ -655,6 +655,8 @@ NEAR_SEALED = (
     "**Verdict:** sealed",
     "verdict: sealed",
     "Verdict: sealed reason: x",
+    "    Verdict: sealed",
+    "\tVerdict: sealed",
 )
 
 

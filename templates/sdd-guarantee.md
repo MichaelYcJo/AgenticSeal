@@ -26,11 +26,12 @@ came back>`, and a `does not hold` is what the verdict names. -->
 |---|---|---|---|
 | <the spec · the build · the last round · the changelog · the pull request body> | <what it says the work is> | <the parties and facts it agrees with> | <none, or what contradicts it> |
 
-<!-- One line, exactly one of these three, with no emphasis:
+<!-- One line, exactly one of these three, at the start of the line and
+with no emphasis:
 
-    Verdict: sealed
-    Verdict: withheld reason: <the claim, its party, its coordinate>
-    Verdict: undecided question: <the question, for the owner>
+Verdict: sealed
+Verdict: withheld reason: <the claim, its party, its coordinate>
+Verdict: undecided question: <the question, for the owner>
 
 An owner's answer is a line under it, `Answered <date> by <who>: <answer>`,
 which the next run keeps. -->

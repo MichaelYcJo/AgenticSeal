@@ -79,7 +79,8 @@ return.
 5. **Write `guarantee.md`** from `templates/sdd-guarantee.md`, every row of
    its two tables filled, and one verdict line, exactly one of
    `Verdict: sealed`, `Verdict: withheld reason: <reason>` or
-   `Verdict: undecided question: <question>`, with no emphasis. Keep an
+   `Verdict: undecided question: <question>`, at the start of its line
+   and with no emphasis. Keep an
    `Answered <date> by <who>:` line standing under an earlier verdict, and
    read the answer as the owner's.
 6. **Return the file's text** as your report, every claim labelled

@@ -249,6 +249,9 @@ NEAR_MISSES = (
     "verdict: sealed",
     "Verdict: sealed reason: x",
     "Verdict: undecided reason: x",
+    # Round 1 of #1000, finding 3: an indent is a code block at four spaces.
+    "    Verdict: sealed",
+    "\tVerdict: sealed",
 )
 
 
