@@ -320,6 +320,7 @@ def test_the_routing_question_goes_through_only_until_it_is_answered(repo):
 
 def test_an_unreadable_call_is_refused(repo):
     declare(repo)
+    write_the_transcript(repo)
     for tool_input in (
         {},
         {"questions": "How is this work routed?"},
