@@ -179,6 +179,37 @@ def test_with_no_root_the_targets_resolve_where_the_command_runs(
     assert "    held-rule: tests/test_x.py test_held: A held rule is guarded.\n" in out
 
 
+def test_a_refused_line_is_printed_with_why(tmp_path, capsys):
+    """`rules <doc>` prints a line out of grammar under its section with the
+    reason `--check` refuses it, and still exits 0."""
+    root = tree(tmp_path, "## One\n\nEnforced by: tests/test_x.py\n")
+    code, out, _ = run(root, capsys)
+    assert code == 0
+    assert (
+        "  check, line 3:\n    refused: `Enforced by: tests/test_x.py` is no check "
+        "line: write `check: <targets>` or `check: none reader: <who reads it>`\n"
+    ) in out, out
+
+
+def test_a_test_under_a_dot_directory_is_not_read_for_markers(tmp_path, capsys):
+    """A virtual environment or a tool's cache holds `test_*.py` files that
+    are no test of the repository, and one may not parse here: the walk skips
+    every directory whose name starts with a dot."""
+    hidden = tmp_path / ".venv" / "lib"
+    hidden.mkdir(parents=True)
+    (hidden / "test_vendored.py").write_text(
+        'import pytest\n\n@pytest.mark.rule("hidden-rule")\ndef test_x(:\n',
+        "utf-8",
+    )
+    code, out = checked(tmp_path, {"docs/a.md": doc(rule("check: held-rule"))}, capsys)
+    assert code == 0, out
+    code, out = checked(
+        tmp_path, {"docs/a.md": doc(rule("check: hidden-rule"))}, capsys
+    )
+    assert code == 1, out
+    assert "no test carries the marker `hidden-rule`" in out, out
+
+
 def test_an_eval_case_and_a_no_target_line_are_printed_as_what_they_are(
     tmp_path, capsys
 ):
