@@ -17,19 +17,22 @@
   field `why:` replaces `nothing — <why>`. `settle` refuses every other
   spelling of a no-change line at its line, naming the block, and the block
   stands alone in its section.
-- **The commit gate's, the worktree guard's, the review record's and the
-  agents' documents state the current rule once (#941).**
+- **The commit gate's, the worktree guard's, the review record's, the
+  agents' and the release's documents state the current rule once (#941).**
   `docs/commit-review-gate-spec.md`, `docs/the-commit-gate-inside-git.md`,
   `docs/the-review-and-parity-arms.md`, `docs/worktree-guard-spec.md`,
-  `docs/the-review-record.md`, `docs/the-record-layout.md` and
-  `docs/the-agent-set.md` keep each rule, its grounds and its `check:` line,
+  `docs/the-review-record.md`, `docs/the-record-layout.md`,
+  `docs/the-agent-set.md`, `docs/branch-and-release.md`,
+  `docs/release-checklist.md` and `docs/issues-and-milestones.md` keep each
+  rule, its grounds and its `check:` line,
   and drop the history, the issue numbers, the section signs and the readers'
   mechanics, which the cases named on those lines hold. The guard's document
   fits one read and is not split. Headings that carried a dash, a middle dot, a pipe or an issue
   number are renamed: *Registration*, *The PreToolUse reading of a commit*,
   *Which repository*, *The implementer mark and notice*, *The commit gate
   inside git*, *Review arm*, *Parity arm*, *Creation consent*, *Decided
-  before git runs*, *Declared work streams* and *Which tree*.
+  before git runs*, *Declared work streams*, *Which tree*, *2b. Settle what
+  earlier releases left behind* and *3. Verify before committing*.
 - **`fold-check` no longer reads a rule's shape (#941).** The `Fold shape
   from` row is read by nothing and `--shape-from` is gone; a script that
   passes it gets an argument error, exit 2. `fold-check` holds the policy
