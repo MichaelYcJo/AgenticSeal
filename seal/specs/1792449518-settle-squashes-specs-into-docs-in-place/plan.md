@@ -68,9 +68,9 @@ spec's `change` then quotes text the hand edit already moved, and `settle
 --apply` refuses that spec at the owner's settle. Nothing is lost: the
 refusal is loud and the directory stays. But the fix lands at settle time,
 months after the author left, and that is the cost Q3 accepts. The second
-scenario is the replay predicate refusing a correct settle, where text was
-duplicated at the base (`spec.md`, *The settled predicate*). It errs toward
-keeping a directory, and a person sees the refusal at exit 1.
+scenario is the replay predicate refusing a correct settle whose pull request
+also hand-edited a named text (`spec.md`, *The settled predicate*). It errs
+toward keeping a directory, and a person sees the refusal at exit 1.
 
 ## Alternatives considered
 
@@ -78,7 +78,7 @@ keeping a directory, and a person sees the refusal at exit 1.
 |---|---|---|
 | A1a. `settle.py` applies the operations itself and writes `docs/` | a bug in the applier rewrites a document wrong across many specs at once | **chosen.** The judgment now happens when the spec is written and reviewed, so applying it judges nothing. A bug is caught by fixture cases and by the replay predicate, which re-derives the result independently of the commit |
 | A1b. Keep today's structure: the command lists, and a session writes each rule by hand (`skills/settle/SKILL.md` line 24; `docs/one-root-by-lifetime.md` row *What `settle` is*) | the session paraphrases; "refused, never guessed" cannot be held, because nothing compares the hand text with the operation; every settle costs a judgment pass, so the owner cannot call it at any moment | rejected. The premise that kept it, that only a reader can decide what is still true, no longer applies: what is true is decided at the spec's own pull request (issue #953, *The model*) |
-| A2a. The settled predicate: replay the removed specs over the base and compare with HEAD | a text the base held twice reads as not removed, a false refusal | **chosen.** It reads the fact itself, so it records nothing beside the tree, and it errs toward keeping the directory |
+| A2a. The settled predicate: replay the removed specs over the base and compare each named text's count with HEAD's | a hand edit in the same pull request that changes a count reads as not applied, a false refusal | **chosen.** It reads the fact itself, so it records nothing beside the tree, and it errs toward keeping the directory. Counting replaced presence in phase 3, which handles a text held twice |
 | A2b. Released and nothing open is enough, with no replay | a branch, or a `settle` bug, deletes a spec whose `add` never landed. CI is green and the rule is gone, and only a reviewer reading the diff could see it | rejected for specs with operations. Kept for pre-model specs, which state no operations (Q2) |
 | A2c. Keep a marker, smaller or elsewhere | — | rejected by the owner: "The `<!-- specs/<id> -->` marker paragraph is gone" (#953 item 3) |
 | A3a. A sentence is named by quoting it, in plain field words with no symbol (`skills/settle/SKILL.md` §*Rule changes*) | an author quotes text the docs re-wrapped; matching with whitespace collapsed absorbs that | **chosen** by the owner's answer to Q1, built in phase 1. It replaces this frame's first choice, a one-line form with `·`, `§` and `›`, which a reader could trip on |
@@ -87,7 +87,9 @@ keeping a directory, and a person sees the refusal at exit 1.
 | A4b. Two rows, lines and tokens | the line row never binds before the token row here, so it is a second constant that guards nothing | rejected (owner's direction, 2026-10-20: no unnecessary constants) |
 | A4c. Keep the structure: a 1000-line row plus `Over the ceiling` with frozen markers | the freeze counts markers, which no longer exist; and lines missed the two documents the tool already cuts at 999 and 666 lines | rejected: its premise, "a marker is the one thing only a fold adds" (`fold_check.py` docstring), goes with the marker |
 | A4d. Count tokens with the API's counter | needs a network and a key in CI and in every adopting repository | rejected |
-| A4e. This repository's value until #941: the largest estimate its tree holds (37,178 at 52c3e56d), the row undeclared, or 25,000 | undeclared checks nothing meanwhile; 25,000 refuses two documents only #941 splits | **the largest estimate**: nothing grows past today's largest document, and no exception list is kept. #941 sets 25,000 when it splits |
+| A4e. A document past the ceiling is a report: named as one to split along its headings, exit 0; this repository declares 25000 | a document grows past one read and only the report says so | **chosen by the owner** (Q6, 2026-10-20). The estimate is a guess, and a guessed reading is a report (`CLAUDE.md`) |
+| A4f. A gate: exit 1 until it is split in the same pull request | a single section past the cap cannot be split along headings, so the gate demands the trim the owner forbids; and the cap is one tool's, not the document's | rejected by the owner (Q6) |
+| A4g. Hold this repository at its largest estimate until #941 (37,178) | a constant no rule names, and lowered by hand later | rejected: superseded by A4e |
 | A5a. The process record leaves with its spec, and `--retire-process` goes | a release whose spec is refused keeps its `rounds/` until the next settle | **chosen** (issue item 6). The arm's own moment, every release, ended when 0.22.0 made `settle` owner-called (`docs/release-checklist.md` line 101), so both arms already run together |
 | A5b. Keep `--retire-process` as its own arm | two commands remove from one directory at the same moment | rejected |
 | A6a. `docs/README.md` is the index, and the table in `docs/the-record-layout.md` §*docs/* moves into it | — | **chosen**: the owner named the file (#953 item 5) |

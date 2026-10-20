@@ -59,15 +59,14 @@ no marker paragraph is written.
    removed directory is settled when three things hold. It was released at the
    base. Nothing in its record is open. Its rule changes, replayed over the
    base's policy root in merge order, are what HEAD's policy root holds.
-   `settle`, `unverified-check --baseline`, `chain-check` and
-   `tests/conftest.py#cutoff_item_is_traceable` all ask it.
+   `settle`, `unverified-check --baseline` and `chain-check` all ask it.
 5. **Every document stays within one read.** `fold-check`'s ceiling arm
    checks one row, `Document token ceiling`, against estimated tokens. It
    replaces `Document line ceiling`. An absent row is a check not run, as
-   today. The `Over the ceiling` row and its marker freeze go. After applying,
-   `settle --apply` names every document past the ceiling. The skill tells
-   the session to split it by topic along its own headings in the same pull
-   request, and never to trim it.
+   today. The `Over the ceiling` row and its marker freeze go. A document
+   past the ceiling is a report, not a gate (Q6). `fold-check` and `settle
+   --apply` name it as one to split along its own headings, never to trim,
+   and exit 0.
 6. **`<policy root>/README.md` is the index.** Each line names one topic and
    its file, and a `.ko.md` edition goes on its English edition's line.
    `fold-check` refuses three things: a top-level policy file missing from the
@@ -96,10 +95,7 @@ no marker paragraph is written.
   `tests/test_both_editions_carry_the_same_folds.py`, which compares markers,
   are left untouched. They keep reading the legacy markers until #941 removes
   them.
-- This repository's final ceiling value. Until #941 splits the two documents
-  already past one read, this repository declares the lowest value its tree
-  passes (*The one-read row*). #941 lowers it to the reading tool's figure
-  when it splits them.
+- Splitting the two documents already past the ceiling: #941.
 - `settle` in local mode: #955. It keeps refusing local mode.
 - Templates and skills an agent opens on demand, beyond the four files the
   issue names: #940.
@@ -127,10 +123,10 @@ cannot wait for a `settle` to apply it (see `## Rule changes`).
 | S9 a settle passes the readers | Given a branch that ran `settle --apply`, when `unverified-check --baseline` and `chain-check` run against the base, then each removed directory is named as settled, not reported as a deletion | the two readers' cases, re-pointed from markers |
 | S10 a deletion still fails | Given a branch that deletes a released spec's directory and leaves the policy root unchanged although the spec states an `add`, when the readers run, then the removal is refused | same cases, seen red with the replay disabled |
 | S11 pre-model spec | Given a released spec with no `## Rule changes` section and nothing open, when it is removed, then the readers accept it (Q2) | reader cases |
-| S12 one read | Given `Document token ceiling` 25000 and a document whose estimate is 25001, when `fold-check` runs, then it names the document and exits 1; with the row absent it checks nothing and says so in one line; a `Document line ceiling` row is no longer read | fold-check cases |
+| S12 one read | Given `Document token ceiling` 25000 and a document whose estimate is 25001, when `fold-check` or `settle --apply` runs, then it names the document as one to split and exits 0; with the row absent it checks nothing and says so in one line; a `Document line ceiling` row is no longer read | fold-check cases |
 | S13 the index | Given `docs/README.md` missing a top-level file, or naming one twice, or holding a line that names no file, when `fold-check` runs, then each is named and it exits 1; this repository's own tree passes | fold-check cases and the existing `test_this_repository_passes_the_command_with_no_flags` |
 | S14 policy root | Given `Policy root` names `policy/`, when `settle --apply` runs with no such directory, then it creates `policy/`, writes there, and touches no `docs/` | fixture case |
-| S15 the model is stated | Given the implement skill, the framer definition, the spec template and the settle skill, when read, then each states the model, and no carrier still says "the one writer that does is `settle`" or tells a session to write a marker | pins rewritten and seen red against today's text; `git grep` for the old phrases comes back empty outside `seal/specs/` and `changelog/` |
+| S15 the model is stated once | Given the implement skill, the framer definition, the spec template, the settle skill and the READMEs, when read, then the model is stated once, in the `docs/` row of the implement skill's lifetime table, every other carrier points to it, and no carrier still says "the one writer that does is `settle`" or tells a session to write a marker | pins rewritten and seen red against today's text; `git grep` for the old phrases comes back empty outside `seal/specs/` and `changelog/` |
 | S16 the resolver stays one | Given `bin/rules --check` and `fold-check`, when either resolves a `path::name` target, then both still go through `fold_check.py#target_problem` | existing `tests/test_a_folded_statement_names_what_enforces_it.py::test_the_target_is_resolved_by_named_unit`, unchanged and green |
 
 ## Data & interfaces
@@ -147,13 +143,11 @@ and this paragraph stops being its home). It replaces `folded_items` and
 absorbs `retired_by_rule`. It answers for the set of
 directories a pull request removes, because a later spec can supersede an
 earlier one inside one settle. The replay starts from the policy root at
-`base` and applies the removed specs in merge order. Every text the replay
-leaves in place must be present at HEAD, and every text it took out must be
-absent there, in any top-level document of the policy root, compared with
-whitespace collapsed. That is so a split along headings in the same pull
-request still passes. A text the base already held twice is a limit. Removing
-one copy reads as not applied, and the reader refuses it, which keeps the
-directory: the cheaper mistake.
+`base` and applies the removed specs in merge order. For each text an
+operation names (its `from`, its `to`, its section heading), the count across
+the policy root's top-level documents after the replay must equal HEAD's,
+with whitespace collapsed. Counting across the whole root lets a split along
+headings pass, and counting, not presence, handles a text held twice.
 
 **The one-read row.** `Document token ceiling` is the one size row, and the
 estimate is UTF-8 bytes halved, rounded up. Both are stated once, in
@@ -171,14 +165,13 @@ estimate is UTF-8 bytes halved, rounded up. Both are stated once, in
   2.15 (`executed`: `docs/worktree-guard-spec.md` doubled, 148,710 bytes,
   read as 52,121 tokens; `docs/one-root-by-lifetime.ko.md` doubled, 116,632
   bytes, as 54,209). Halving overestimates both. Q4 asks about denser text.
-- *What this repository declares until #941.* The largest estimate any
-  top-level document holds when phase 4 lands: 37,178 at HEAD 52c3e56d
-  (`docs/worktree-guard-spec.md`; `executed`). That is the lowest value
-  today's tree passes. It stops every document from growing past the
-  largest one now, with no exception list, and refuses nothing #941 has
-  yet to split. Leaving the row undeclared would check nothing until #941.
-  Declaring 25,000 would refuse two documents that only #941's split
-  fixes. #941 sets 25,000 when it splits them.
+- *A report, not a gate* (Q6, the owner, 2026-10-20). The figure is an
+  estimate, and it is one tool's per-call cap, not a property of the
+  document. A single section past it cannot be split along headings, so a
+  gate could demand the trim the owner forbids. This repository declares
+  25000. `fold-check` names `docs/one-root-by-lifetime.ko.md` and
+  `docs/worktree-guard-spec.md`, and exits 0 (the orchestrator's run, at
+  e1131a97); #941 splits them.
 
 **Config rows** (`templates/config.md`, `skills/config/SKILL.md`): added,
 `Policy root` (default `docs`, issue-required). Replaced, `Document line
@@ -203,7 +196,7 @@ so no pin is needed to hold a copy of the value to the row.
 
 | Removes | Coordinate | Where it lands, or why it can go |
 |---|---|---|
-| the marker as fold record | `skills/verify/scripts/unverified_check.py#folded_items`, and its callers at `chain_check.py#retired`, `settle.py#survey`/`#retire`, `tests/conftest.py#cutoff_item_is_traceable` | the settled predicate (*Data & interfaces*) |
+| the marker as fold record | `skills/verify/scripts/unverified_check.py#folded_items`, and its callers at `chain_check.py#retired`, `settle.py#survey`/`#retire`; `tests/conftest.py#cutoff_item_is_traceable` | the settled predicate (*Data & interfaces*); the conftest helper goes, since it had no caller after #923 |
 | the spec-less retirement predicate as a separate function | `skills/verify/scripts/unverified_check.py#retired_by_rule` | absorbed by the settled predicate; its *nothing open* condition and its merge-base reading (#602) carry over unchanged |
 | the retirement arm and its flag | `skills/settle/scripts/settle.py#retire`, `--retire` | `settle --apply` |
 | the process-record arm and its flag | `skills/settle/scripts/settle.py#retire_process`, `#process_plan`, `#write_process_section`, `PROCESS_DIRS`, `PROCESS_FILES`, `DURABLE`, `--retire-process` | the process record leaves with its spec's directory (issue item 6). Both arms run at the one moment the owner calls `settle`, so a separate arm has no moment of its own left |
@@ -233,6 +226,8 @@ questions buried in prose read as decided.
 The framer revised this frame on 2026-10-20 after phase 2, outside any
 review round, at the owner's direction relayed by the orchestrator. The
 grammar now points to the skill, and one token row replaces the line row.
+After phase 5 it was revised again on the owner's answer to Q6 (the ceiling
+is a report) and on the build's divergences in `overview.md`.
 
 <!-- The line below is the framer's mark, and it is the only evidence in the
      TREE that the framing happened — the existing framer mark lives in the
