@@ -22,10 +22,14 @@ answers it, inherit and record — only genuinely NEW rules belong here. -->
   (`hooks/gate.py#arms_missing`). A linked worktree reads its own branch,
   and its own `seal/` in shared mode or the common one in local mode. A
   detached HEAD reads as no branch, so the call passes.
-- **The routing question put alone passes.** A run resumed in a new session
-  has to put question 1 again, so that the worktree guard and the commit gate
-  find the press (`skills/implement/orchestration.md` §*Question 1 —
-  single-select*, #894). The issue did not cover this case.
+- **The routing question put alone passes until this session has answered
+  it from this clone.** Put alone means single-select and with its text. A
+  run resumed in a new session has to put question 1 again, so that the
+  worktree guard and the commit gate find the press
+  (`skills/implement/orchestration.md` §*Question 1 — single-select*, #894).
+  The issue did not cover this case. Once
+  `worktree_consent.last_routing_answer` holds an answer, the routing
+  question is refused like any other.
 - **The deny repeats on every call.** It carries no once-per-session marker,
   because under automation every stop is a deny
   (`docs/commit-review-gate-spec.md` §*The PreToolUse reading of a commit*).

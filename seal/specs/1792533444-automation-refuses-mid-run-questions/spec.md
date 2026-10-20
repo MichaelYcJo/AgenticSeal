@@ -35,9 +35,10 @@ refuses the question tool.
   1. the tool name is exactly `AskUserQuestion`;
   2. `routing.declared(cwd, optin.repo_root(cwd))` returns a declaration
      whose `automation` is `routing.AUTOMATION_YES`;
-  3. the call is not the routing question put alone, meaning exactly one
-     question whose options are recognised by the predicate the press reader
-     already uses.
+  3. the call is not the routing question put alone while this session has
+     not yet answered it from this clone. Put alone means one question,
+     single-select, with its text, whose labels the press reader recognises.
+     Not yet answered means `worktree_consent.last_routing_answer` is None.
 - Every other case passes, with no output:
   - no `seal/`;
   - no declaration naming the branch, which covers the routing question at
@@ -47,17 +48,18 @@ refuses the question tool.
   - a declaration that does not parse;
   - two declarations naming one branch.
 - The deny fires on every call, with no once-per-session marker. Its reason
-  names the declaration's path and the work item's `questions.md` path, and
-  says three things: build on the default the question states, write that
-  default as a row of `questions.md`, and name it in the pull request body.
-  It also says that asking again meets the same refusal, and that the routing
-  question put alone goes through. The row label and value it prints come
+  names the work item's directory once, and says three things: build on the
+  default the question states, write that default as a row of `questions.md`
+  in that directory, and name it in the pull request body. It also says that
+  a question stating no default is not the session's to answer, that asking
+  again meets the same refusal, and that the routing question put alone goes
+  through only until this session has answered it here. The row label and value it prints come
   from `routing.AUTOMATION` and `routing.AUTOMATION_YES`, never retyped. A
   test pins the text (contract §14).
-- `hooks/worktree_consent.py` has one predicate for "this question is the
-  routing question", `is_routing_question`. `_routing_preset`,
-  `_routing_answer` and the new gate all call it, in place of the two inline
-  copies of the label comparison.
+- `hooks/worktree_consent.py` has one predicate for "these are question 1's
+  labels", `is_routing_question`, in place of the two inline copies of the
+  label comparison. The press reader and the gate's `routing_question_alone`
+  both call it.
 - The prose points to the hook instead of carrying the rule alone:
   - `skills/implement/SKILL.md` §1 gains one sentence naming the hook and the
     rule's home.
@@ -91,8 +93,10 @@ refuses the question tool.
 - **Gates whose reason tells the model to use `AskUserQuestion`**:
   `review-skill-gate.py`, `mode-gate.py`, the commit gate's first deny
   without the press, and the worktree guard's choice sites. Under
-  `Automation` `yes` that instruction meets this refusal, and the session
-  builds on a default. This is a stated limit, not a change to those gates.
+  `Automation` `yes` that instruction meets this refusal. Such a question
+  states no default, so the session takes none of its ways on and hands the
+  stop back at the end of the run. This is a stated limit, not a change to
+  those gates.
 - **An orchestrator sitting in a checkout whose branch is not the declared
   one**, for example the main checkout on a release branch while the work
   item lives in a linked worktree. Its question passes. The normal flow is one
@@ -108,14 +112,14 @@ refuses the question tool.
 
 | Scenario | Given / When / Then | Verifiable how |
 |---|---|---|
-| S1 automation refuses | Given a repository with `seal/` and a declaration naming the checked-out branch with `Automation` `yes`, when an `AskUserQuestion` call carrying a framer-style question reaches the gate, then the decision is `deny` and the reason names the declaration's path, the work item's `questions.md` path, the pull request body, and the label and value from `routing.py` | a case in the new test module, driving the gate through `run_hook` |
+| S1 automation refuses | Given a repository with `seal/` and a declaration naming the checked-out branch with `Automation` `yes`, when an `AskUserQuestion` call carrying a framer-style question reaches the gate, then the decision is `deny`, and the reason names the work item's directory once, `questions.md` in it, the pull request body, and the label and value from `routing.py` | a case in the new test module, driving the gate through `run_hook` |
 | S2 every call | Given S1, when the same session calls a second time, then it is `deny` again, and nothing is written under the git directory | the same module |
 | S3 attended | Given the declaration reads `Automation` `no`, or has no `Automation` row, or a value outside its vocabulary, then the gate prints nothing | the same module, one case per spelling |
 | S4 not a declaration | Given no `seal/`; or `seal/` with no declaration for the branch; or a declaration whose `Review` row is outside its vocabulary; or two declarations naming the branch, then the gate prints nothing | the same module |
 | S5 detached HEAD | Given S1's declaration and a detached HEAD, then the gate prints nothing | the same module |
 | S6 linked worktree | Given a linked worktree checked out on the declared branch, with the main checkout on an undeclared branch, then a call whose `cwd` is the worktree is `deny`, and a call whose `cwd` is the main checkout prints nothing | the same module |
 | S7 local mode | Given the root under the common git directory holding S1's declaration, then the call is `deny` | the same module |
-| S8 the routing question alone | Given S1, when the call carries one question whose option labels are question 1's three, decorated as the press reader accepts (`automation (Recommended)`), then the gate prints nothing | the same module |
+| S8 the routing question alone | Given S1 and a session holding no answer to the routing question from this clone, when the call carries one single-select question with its text and question 1's three labels, decorated as the press reader accepts (`automation (Recommended)`), then the gate prints nothing. Once the transcript holds an answer from this clone, the same call is `deny`. A call with the labels but multi-select, or with no question text, is `deny` | the same module |
 | S9 the routing question with company | Given S1, when the call carries question 1 and a second question, then it is `deny` | the same module |
 | S10 an unreadable call | Given S1, when `tool_input` has no `questions` list, or a question that is not an object, then it is `deny` | the same module |
 | S11 a near miss of the tool | Given S1, when `tool_name` is anything other than exactly `AskUserQuestion`, then the gate prints nothing | the same module |
@@ -144,16 +148,24 @@ tree with the gate absent, or with the pinned sentence deleted.
     its own. `optin.home_at(top)` reads `<worktree>/seal/` in shared mode and
     `<common-dir>/seal/` in local mode.
 - **The work item's directory** for the reason is `routing.item_dir(top,
-  branch)`. It is printed relative to `top`. Where no relative spelling
-  exists (Windows, another drive) the absolute path is printed, the way
+  branch)`, named once. `routing.md` and `questions.md` are named as files in
+  it. It is printed relative to `top`. Where no relative spelling exists
+  (Windows, another drive) the absolute path is printed, the way
   `hooks/gate.py#declaration_hint` does it.
 - **Output**: the `hookSpecificOutput` deny object every gate prints
   (`hooks/review-skill-gate.py#decide` is the shape), or nothing.
+- **The exemption**: `routing_question_alone(tool_input)` in the gate. It is
+  True for exactly one question that `worktree_consent.is_routing_question`
+  recognises, with `multiSelect` False and a string `question`. These are the
+  press reader's conditions. The exemption also needs
+  `worktree_consent.last_routing_answer(top, session, transcript_path)` to be
+  None, meaning this session holds no answer from this clone. Once that
+  answer is recorded, a question in question 1's labels is refused like any
+  other.
 - **New function**: `worktree_consent.is_routing_question(question) -> bool`.
   It returns True when `question` is an object whose `options` labels, cut by
-  `leading_phrase`, are exactly `ROUTING_LABELS` as a set. This is the
-  comparison `_routing_answer` makes inline today. `_routing_preset` keeps its
-  own `multiSelect is False` condition on top of it.
+  `leading_phrase`, are exactly `ROUTING_LABELS`. It replaces the comparison
+  `_routing_preset` and `_routing_answer` each made inline.
 - **Registration**: `GROUPS["pre-question"] = ("question-gate.py",)`, and a
   `hooks.json` `PreToolUse` entry with matcher `AskUserQuestion`. The gate
   compares `tool_name` exactly, so the decision does not rest on how the
@@ -195,16 +207,22 @@ tree with the gate absent, or with the pinned sentence deleted.
     The session builds on the default the question states, writes that
     default as a row of the work item's `questions.md`, and names it in
     the pull request body, where the owner can overturn it. The routing
-    question put alone goes through, because a run resumed in a new
-    session has to put question 1 again for the gates that read the
-    press. The declaration is read through `hooks/routing.py` for the
+    question put alone, single-select and with its text, goes through
+    until this session has answered it from this clone, because a run
+    resumed in a new session has to put question 1 again for the gates
+    that read the press; once it is answered, it is refused like any
+    other question. The declaration is read through `hooks/routing.py` for the
     branch checked out where the session sits, and every way of not
     reading it is the attended answer. The file is written by the model,
     which is why the worktree guard never reads it as consent. It is read
     here only to refuse, so a row the model forged binds only the model,
     and a row edited to `no` is in the diff the review reads. A session
     sitting in a checkout whose branch is not the declared one is not
-    held, and neither is a question asked as plain text.
+    held, and neither is a question asked as plain text. A gate whose own
+    reason says to ask with the question tool meets this refusal too, and
+    its question states no default: the session takes none of the ways on
+    that question offers, and hands the stop back at the end of the run,
+    as the commit gate's reason under `automation` says.
     check: tests/test_an_automation_run_puts_no_question.py
 
 ## Removes
