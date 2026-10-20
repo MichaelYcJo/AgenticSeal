@@ -17,7 +17,7 @@ after it.
 severity: must
 location: `.github/scripts/publish_release_note.py:190-196`, `tests/test_every_reader_ends_a_line_where_gfm_does.py:490-507`
 evidence: read `.github/scripts/publish_release_note.py:184-203`, `tests/test_every_reader_ends_a_line_where_gfm_does.py:350-365`, `tests/test_every_reader_ends_a_line_where_gfm_does.py:490-507`
-verdict: open
+verdict: fixed 52e385ea
 
 The orchestrator relayed run 39380012235 at 565dfa24 (its `executed`, not
 this round's): `test_every_splitlines_call_left_is_named_with_its_reason`
@@ -50,14 +50,14 @@ among them) still find their line. `.` stops at a newline and keeps a
 `\r`, which `strip` removes. The case then counts no call in `title_from`
 and needs no `OUT_OF_CLASS` entry.
 
-answer:
+answer: Holds, and fixed as the record gives it. The fallback finds its line with `(?im)^[ \t]*release:.*$`, so `title_from` makes no `splitlines` call and `OUT_OF_CLASS` gains no entry. `tests/test_every_reader_ends_a_line_where_gfm_does.py` passes (executed); with a `splitlines` call planted back in `title_from`, `mutation-check` reports its case red (executed). The S16 cases pass, and with `(?im)` cut to `(?m)` they go red, the capitalised line no longer quoted (executed). The timing case reads a line of 100000 spaces and tabs before `Release` too.
 
 ### 2. A comment opener inside a code span hides every later line, so two merged guarantees' `Verdict: sealed` is invisible to the verdict reader
 
 severity: must
 location: `skills/verify/scripts/unverified_check.py:217-245`, `skills/code-review/scripts/chain_check.py:1640-1649`, `skills/code-review/scripts/chain_check.py:1720-1727`, `tests/test_the_sealer_guarantees.py`
 evidence: executed `python3 test_tmp_round1_probe.py`
-verdict: open
+verdict: fixed db30d32e
 
 Claimed (phase 2, and the orchestrator's relay of the hand-back): the
 guarantees of `1792449518` and `1792459424` hold `Verdict: sealed` that
@@ -168,14 +168,14 @@ finds exactly one verdict line in it. Run the modules naming
 `tests/test_unverified_rows_close.py` and `tests/test_chain_check.py`
 among them.
 
-answer:
+answer: Holds, and fixed. `comment_scan` lets a backtick run opened before the opener win when a run of its own length closes it on the line, and reads a run with no such closer as literal, `_liveness`'s reading A. It uses the file's own `BACKTICKS`, `OPENER` and `CLOSER`, so no `CODE_RUN` was added. `guarantee()` now extends its problems with `unclosed()` before it reads the verdict lines. Cases added: an opener in a code span opens no comment, and its literal-backtick, span-then-comment and inside-a-comment counterparts; an open row of `## Not verified` below such a cell is counted (this round's `## Not judged` row about the overview reader); a round record quoting the opener reads both findings; a guarantee quoting it in a claims cell passes the arm; one with an opener nobody closed is refused at the opener's line; and every committed `guarantee.md` shows its one verdict line. With the span branch cut, which is the old scan, `mutation-check` reports the cases red, and so it does for each of two other breaks of the branch and for the `unclosed` call removed (executed). The other readers in the class: every reader through `readable` or `strip_comments` (`check_text`, the round records, the guarantee, `broad-gate.md`, the stamp and the commit gate) reads through this one scan, so the one change reaches them. `hooks/blocks.py` models HTML comment blocks, which open only at the start of a line, and calls a line after a mid-line opener uncertain, never hidden (`leaves_open`'s docstring), so it stands. `rule_changes.py` reads through `live_lines`, which already knew code spans. The gather's markers are matched as whole lines. `bin/unverified-check seal/specs/` reads 120 overviews with 53 open and 333 closed: the 52 and 333 phase 1 counted, plus this item's own open row. No hidden row came to light (executed).
 
 ### 3. An indented verdict line, a code block when rendered, reads as `sealed`
 
 severity: should
 location: `skills/code-review/scripts/chain_check.py:1645-1648`, `templates/sdd-guarantee.md:31-33`, `tests/test_the_sealer_guarantees.py`, `tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py`
 evidence: executed `python3 test_tmp_round1_probe.py`
-verdict: open
+verdict: fixed f3362250
 
 `spec.md` *Scope* 2 says the verdict line "is read whole and exactly".
 *Data & interfaces* adds "no markup before `Verdict:`". The changelog
@@ -206,14 +206,14 @@ This replaces lines 1645-1648. Add `"    Verdict: sealed"` and
 `tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py`. Each must be
 seen red against the reader as it stands.
 
-answer:
+answer: Holds, and fixed as the record gives it. `verdicts_of` hands back an indented line with its indent, so no shape reads it whole and the arm refuses it, naming the three shapes. The two indented lines are in `NEAR_MISSES` and `NEAR_SEALED`, which also feed the commit gate's quiet-off-its-fact case; with the old return restored, `mutation-check` reports the near-miss cases red (executed). The template's comment now shows the three lines at the start of the line and says so, and `agents/sealer.md` step 5 and the changelog fragment say "at the start of its line" beside "with no emphasis". `spec.md`'s `## Rule changes` `to:` reads "written exactly so", which already covers the indent; it is the framer's file and is not edited here.
 
 ### 4. A misspelt `; earlier run: ` separator drops the entry unread and unrefused
 
 severity: should
 location: `skills/code-review/scripts/chain_check.py:1393-1404`, `skills/code-review/scripts/chain_check.py:117`, `tests/test_the_sealer_guarantees.py`
 evidence: executed `python3 test_tmp_round1_probe.py`
-verdict: open
+verdict: fixed 743d3027
 
 The spec says an earlier run "carries the word alone", with every other
 spelling refused at its line (S9, and the owner's direction that no near
@@ -250,7 +250,7 @@ row's line. The five separators above belong in the parametrised entry
 case of `tests/test_the_sealer_guarantees.py`. A cell of 100000 spaces after
 `earlier` belongs in `test_the_verdict_patterns_are_linear_in_the_line`.
 
-answer:
+answer: Holds, and fixed with the record's `EARLIER_MEANT` and loop. A refused entry is quoted with its separator in front. A separator with more spaces than the pattern's one before `earlier` is found from `earlier` on, and its entry is refused all the same; the case asserts that. The five separators are in the parametrised entry case, and `; Earlier run: ` is in the arm's case at the `Target SHA` row. The linear case reads `earlier` before 100000 spaces, and `earlier runs` between two runs of them. Two mutations went red: splitting on the exact separator again, and reading an entry whatever its separator. With the pattern nested as `(?:[;,]?\s*)*`, the linear case timed out after 30 s with no verdict (all executed). The 13 live earlier-run entries still read, none refused (executed). `broad_gate.py#EARLIER_RUN` writes the separator, and `tests/test_broad_gate.py` holds it equal to `chain_check.py`'s; it stands. The two readers that take only the newest run's first word, `newest_run` and `seal_stamp.py:1250`, read the part before the first exact separator, so a misspelt one changes nothing there; they stand.
 
 ## Confirmations
 
