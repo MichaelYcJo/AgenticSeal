@@ -14,10 +14,20 @@ one branch) is the attended answer, and the gate prints nothing.
 reads it as consent. Read here only to refuse, a row the model forged binds
 only the model.
 
-The routing question put alone goes through, by the predicate the press
-reader uses (`worktree_consent.is_routing_question`): a run resumed in a new
-session puts it again for the gates that read the press. A call whose
-questions cannot be read is not that question, and is refused.
+The routing question put alone goes through while this session holds no
+answer to it from this clone, read by the press reader the worktree guard
+uses (`worktree_consent.last_routing_answer`). That is the resumed session,
+which puts question 1 again so the gates that read the press find it. Once
+an answer is recorded, the routing question is refused like any other, and
+so is a question dressed in its labels, a shape no list of spellings closes.
+"Put alone" is the shape the press reader counts: one question, its labels
+(`worktree_consent.is_routing_question`), single-select, with its text. A
+call whose questions cannot be read is not that question, and is refused.
+
+A gate whose own reason says to ask with the question tool meets this
+refusal too, and its question states no default: the session takes none of
+the ways on that question offers, and hands the stop back at the end of the
+run, as the commit gate's reason under `automation` says.
 
 Failure direction: it blocks more. A wrong deny costs one default the pull
 request body names; a wrong allow is the stopped run this gate exists to end.
@@ -46,24 +56,29 @@ def shown(path, top):
 
 
 def reason(top, item):
-    declaration = shown(os.path.join(item, routing.FILENAME), top)
-    questions = shown(os.path.join(item, QUESTIONS), top)
     return (
-        f"SpecSeal refused this question. `{declaration}` answers "
-        f"`{routing.AUTOMATION}` with `{routing.AUTOMATION_YES}`, so nobody is "
-        "at the keyboard to answer it. Build on the default the question "
-        f"states, write that default as a row of `{questions}`, and name it in "
-        "the pull request body, where the owner can overturn it. Asking again "
-        "meets the same refusal. The routing question put alone goes through."
+        f"SpecSeal refused this question. `{routing.FILENAME}` in "
+        f"`{shown(item, top)}` answers `{routing.AUTOMATION}` with "
+        f"`{routing.AUTOMATION_YES}`, so this run does not stop to ask. Build "
+        "on the default the question states, write that default as a row of "
+        f"`{QUESTIONS}` in the same directory, and name it in the pull request "
+        "body, where the owner can overturn it. A question that states no "
+        "default, such as another gate's choice, is not yours to answer: take "
+        "none of its ways on and hand that stop back at the end of the run. "
+        "Asking again meets the same refusal. The routing question put alone "
+        "goes through only until this session has answered it here."
     )
 
 
 def routing_question_alone(tool_input):
     questions = tool_input.get("questions") if isinstance(tool_input, dict) else None
+    if not isinstance(questions, list) or len(questions) != 1:
+        return False
+    question = questions[0]
     return (
-        isinstance(questions, list)
-        and len(questions) == 1
-        and worktree_consent.is_routing_question(questions[0])
+        worktree_consent.is_routing_question(question)
+        and question.get("multiSelect") is False
+        and isinstance(question.get("question"), str)
     )
 
 
@@ -74,12 +89,18 @@ def main():
         return
     if not isinstance(event, dict) or event.get("tool_name") != TOOL:
         return
-    if routing_question_alone(event.get("tool_input")):
-        return
     cwd = event.get("cwd")
     top = optin.repo_root(cwd)
     declared = routing.declared(cwd, top)
     if not declared or declared["automation"] != routing.AUTOMATION_YES:
+        return
+    if (
+        routing_question_alone(event.get("tool_input"))
+        and worktree_consent.last_routing_answer(
+            top, event.get("session_id"), event.get("transcript_path") or ""
+        )
+        is None
+    ):
         return
     item = routing.item_dir(top, declared["branch"])
     print(

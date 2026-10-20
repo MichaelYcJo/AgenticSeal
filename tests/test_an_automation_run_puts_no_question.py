@@ -4,7 +4,8 @@ The person who pressed `automation` was told nothing stops to ask, and in
 0.22.3 four framer questions reached them anyway, with the prose rule loaded
 (#1002). The gate reads the checked-out branch's declaration through
 `hooks/routing.py` and refuses `AskUserQuestion` there, except for the routing
-question put alone, which a resumed run has to put again.
+question put alone, which a resumed run has to put again, until the session
+has answered it.
 """
 
 import json
@@ -20,10 +21,12 @@ from conftest import (
     local_home,
     run_hook,
 )
+from test_the_guard_asks_once_per_session import ask_entries, write_transcript
 
 HOOKS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "hooks")
 GATE = "question-gate.py"
 ITEM = "1787708604-a-work-item"
+SESSION = "s1"
 
 routing = load_hook_module("routing.py", "routing_for_question_gate")
 
@@ -70,14 +73,30 @@ def declare(repo, automation="yes", home=None, review="through the review chain"
 
 
 def payload(cwd, questions=(FRAMER_QUESTION,), tool="AskUserQuestion", **extra):
+    """A call from session `s1`, whose transcript is a path beside `cwd` that
+    holds nothing unless a case writes it, so no case reads a real one."""
     p = {
         "tool_name": tool,
-        "session_id": "s1",
+        "session_id": SESSION,
+        "transcript_path": os.path.join(
+            os.path.dirname(str(cwd)), "transcripts", f"{SESSION}.jsonl"
+        ),
         "tool_input": {"questions": list(questions)},
         "cwd": str(cwd),
     }
     p.update(extra)
     return p
+
+
+def answer_the_routing_question(cwd, answer="automation (Recommended)"):
+    """Write the session's transcript holding the routing question answered
+    from `cwd`, at the path `payload` names."""
+    write_transcript(
+        os.path.dirname(str(cwd)),
+        SESSION,
+        ask_entries(cwd, answer=answer),
+        slug="transcripts",
+    )
 
 
 def run(cwd, **kwargs):
@@ -101,14 +120,19 @@ def test_the_refusal_says_where_the_default_goes(repo):
     declare(repo)
     reason = reason_of(run(repo))
     item = os.path.join("seal", "specs", ITEM)
+    assert reason.count(item) == 1, reason
     for said in (
-        f"`{os.path.join(item, routing.FILENAME)}`",
-        f"`{os.path.join(item, 'questions.md')}`",
+        f"`{item}`",
+        f"`{routing.FILENAME}`",
+        "`questions.md`",
         f"answers `{routing.AUTOMATION}` with `{routing.AUTOMATION_YES}`",
         "Build on the default the question states",
         "pull request body",
+        "states no default",
+        "hand that stop back at the end of the run",
         "meets the same refusal",
-        "The routing question put alone goes through",
+        "The routing question put alone goes through only until this session "
+        "has answered it here",
     ):
         assert said in reason, said
 
@@ -203,17 +227,51 @@ def test_the_routing_question_with_company_is_refused(repo):
         assert decision_of(run(repo, questions=questions)) == "deny", questions
 
 
-def test_a_near_miss_of_the_routing_labels_is_refused(repo):
-    """Two of the three, or a fourth beside them, is not question 1."""
+def test_a_near_miss_of_the_routing_question_is_refused(repo):
+    """Two of the three labels, a fourth beside them, a multi-select, or no
+    question text is not question 1 as the press reader counts it, and its
+    answer would take an earlier press back (round 1, finding 1)."""
     declare(repo)
     options = ROUTING_QUESTION["options"]
     for changed in (
-        options[:2],
-        [*options, {"label": "automation", "description": "Again."}],
-        [*options, {"label": "later", "description": "A fourth."}],
+        {**ROUTING_QUESTION, "options": options[:2]},
+        {
+            **ROUTING_QUESTION,
+            "options": [*options, {"label": "automation", "description": "Again."}],
+        },
+        {
+            **ROUTING_QUESTION,
+            "options": [*options, {"label": "later", "description": "A fourth."}],
+        },
+        {**ROUTING_QUESTION, "multiSelect": True},
+        {k: v for k, v in ROUTING_QUESTION.items() if k != "multiSelect"},
+        {k: v for k, v in ROUTING_QUESTION.items() if k != "question"},
     ):
-        question = {**ROUTING_QUESTION, "options": changed}
-        assert decision_of(run(repo, questions=(question,))) == "deny", changed
+        assert decision_of(run(repo, questions=(changed,))) == "deny", changed
+
+
+DRESSED_FRAMER_QUESTION = {
+    **FRAMER_QUESTION,
+    "options": [
+        {"label": "automation - keep the short default", "description": "d"},
+        {"label": "per axis - switch to the long default", "description": "d"},
+        {"label": "no work item - print nothing", "description": "d"},
+    ],
+}
+
+
+def test_the_routing_question_goes_through_only_until_it_is_answered(repo):
+    """The exemption is for the resumed session that has to record its press
+    once. After any answer from this clone, every question is refused, the
+    routing question and one dressed in its labels included; no list of
+    spellings could close that second shape (round 1, finding 1)."""
+    declare(repo)
+    assert decision_of(run(repo, questions=(ROUTING_QUESTION,))) == "silent"
+    for answer in ("automation (Recommended)", "per axis"):
+        answer_the_routing_question(repo, answer=answer)
+        for question in (ROUTING_QUESTION, DRESSED_FRAMER_QUESTION):
+            out = run(repo, questions=(question,))
+            assert decision_of(out) == "deny", (answer, question)
 
 
 def test_an_unreadable_call_is_refused(repo):

@@ -366,7 +366,8 @@ there is no file to write it in.
 
 **`Automation` is held by a gate.** While the row reads `yes`,
 `hooks/question-gate.py` refuses every question on the declared branch but
-question 1 put alone, and `docs/the-review-record.md` §*The run* is the rule.
+question 1 put alone before this session has answered it, and
+`docs/the-review-record.md` §*The run* is the rule.
 
 **The declaration has one more row, and nobody is asked about it.**
 

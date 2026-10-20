@@ -217,8 +217,8 @@ def test_the_question_gates_refusal_survives_a_root_with_no_relative_spelling(
     tmp_path, monkeypatch, capsys
 ):
     """The same induced raise, for `hooks/question-gate.py`: its refusal names
-    the declaration and `questions.md` relative to the repository, and where
-    no relative spelling exists it still refuses, naming the absolute path."""
+    the work item's directory relative to the repository, and where no
+    relative spelling exists it still refuses, naming the absolute path."""
     from conftest import declare_routing
 
     gate = load("hooks/question-gate.py", "specseal_question_gate_failopen")
@@ -249,4 +249,4 @@ def test_the_question_gates_refusal_survives_a_root_with_no_relative_spelling(
     decision = json.loads(capsys.readouterr().out)["hookSpecificOutput"]
     assert decision["permissionDecision"] == "deny", decision
     reason = decision["permissionDecisionReason"]
-    assert f"`{item / 'routing.md'}`" in reason, reason
+    assert f"`{item}`" in reason, reason

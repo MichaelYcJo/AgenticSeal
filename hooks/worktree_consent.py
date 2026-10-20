@@ -281,7 +281,16 @@ def _clone_of(cwd) -> str:
 
 def automation_answered(top: str, session: str, transcript_path: str = "") -> bool:
     """True when the person pressed `automation` on the routing question, in
-    this session's own transcript, from this clone.
+    this session's own transcript, from this clone (`last_routing_answer`)."""
+    return last_routing_answer(top, session, transcript_path) is True
+
+
+def last_routing_answer(top: str, session: str, transcript_path: str = ""):
+    """True for the preset, False for any other answer to the routing question,
+    None while this session holds no answer to it from this clone.
+
+    `automation_answered` reads the True. `hooks/question-gate.py` reads the
+    None: the routing question goes through it only until it is answered.
 
     The harness writes this answer from the person's click; the model writes
     the question and its options and never which one was pressed. That is the
@@ -289,8 +298,8 @@ def automation_answered(top: str, session: str, transcript_path: str = "") -> bo
     wrote itself, and it is why the answer stands beside the record as
     consent. `docs/worktree-guard-spec.md` §*Creation consent* holds the table.
 
-    Four conditions, and every way of failing one is False, which is the
-    guard's behaviour before this reader existed:
+    Four conditions, and every way of failing one is None, which the guard
+    reads as its behaviour before this reader existed:
 
       1. the transcript is this session's own main one (`transcript_for`);
       2. the answer is a harness-written `AskUserQuestion` result: a `user`
@@ -313,20 +322,20 @@ def automation_answered(top: str, session: str, transcript_path: str = "") -> bo
     carries `toolUseResult`, so most user lines are parsed: 0.09 s on the
     largest local transcript (17.3 MB) when round 1 measured it. Every read
     error, every malformed line and every missing field is skipped or answered
-    False. The two shapes round 1 found raising -- a `tool_use_id` that is not
+    None. The two shapes round 1 found raising -- a `tool_use_id` that is not
     a string, a NUL in the path -- are handled here, and `consent` catches
     whatever else might, because `hooks/dispatch.py` skips a gate that raises
     and the guard's deny would become no decision at all.
     """
     path = transcript_for(session, transcript_path)
     if not path:
-        return False
+        return None
     want = _clone_of(top)
     if not want:
-        return False
+        return None
     asked = set()
     clones = {}
-    pressed = False
+    pressed = None
     try:
         with open(path, encoding="utf-8", errors="replace") as handle:
             for line in handle:
@@ -380,7 +389,7 @@ def automation_answered(top: str, session: str, transcript_path: str = "") -> bo
                     # later press gives it back.
                     pressed = answered
     except (OSError, ValueError):
-        return False
+        return None
     return pressed
 
 
