@@ -28,7 +28,7 @@
   naming the three shapes, and neither draws the stamp nor is judged by the
   commit gate as `sealed`. An earlier run on the `Target SHA` row carries
   its verdict's word alone, `; earlier run: <sha> <word>`, and any other
-  entry is refused at that row. A `Claims re-run` result that fails reads
+  entry, or a separator spelt any other way, is refused at that row. A `Claims re-run` result that fails reads
   `does not hold: <what came back>`.
 - **The round record's old spellings are a table of their own (#1000).**
   `docs/the-review-record.md` §*The round record* keeps the grammar table

@@ -231,6 +231,8 @@ class TestVerdictsOf:
             chain.verdicts_of(reader, line)
         chain.earlier_verdicts("; earlier run: aaa1111 against " + "x" * 100000)
         chain.earlier_verdicts("; earlier run: aaa1111" + " against x" * 30000)
+        chain.earlier_verdicts("earlier" + " " * 100000)
+        chain.earlier_verdicts(" " * 100000 + "earlier runs" + " " * 100000)
         assert time.monotonic() - start < 1.0
 
 
@@ -308,19 +310,36 @@ class TestEarlierVerdicts:
     @pytest.mark.parametrize(
         "entry",
         [
-            "aaa1111 withheld — x",
-            "aaa1111 Sealed",
-            "`bbb2222` against main **sealed**",
-            "an earlier one, sealed",
+            "; earlier run: aaa1111 withheld — x",
+            "; earlier run: aaa1111 Sealed",
+            "; earlier run: `bbb2222` against main **sealed**",
+            "; earlier run: an earlier one, sealed",
+            # Round 1 of #1000, finding 4: a misspelt separator.
+            ";  earlier run: bbb2222 sealed",
+            "; Earlier run: bbb2222 sealed",
+            "; earlier run bbb2222 sealed",
+            "; earlier runs: bbb2222 sealed",
+            ", earlier run: bbb2222 sealed",
         ],
     )
     def test_an_entry_that_is_not_the_word_alone_reads_no_word(self, entry):
-        """S9 of #1000. Seen red against the reader that read the word by its
-        prefix and through emphasis: the first three read as a word."""
-        cell = f"ccc3333 against main; earlier run: {entry}"
-        assert chain.earlier_verdicts(cell) == [(entry, None)]
+        """S9 of #1000, and round 1's finding 4. Seen red against the reader
+        that read the word by its prefix and through emphasis, and split the
+        cell on the exact separator alone: the first three read as a word,
+        and each misspelt separator gave no entry at all."""
+        cell = f"ccc3333 against main{entry}"
+        [(said, word)] = chain.earlier_verdicts(cell)
+        # A separator with more spaces than one is found from its word on.
+        assert word is None and entry.strip().endswith(said), said
 
-    @pytest.mark.parametrize("entry", ["aaa1111 withheld — x", "aaa1111 Sealed"])
+    @pytest.mark.parametrize(
+        "entry",
+        [
+            "; earlier run: aaa1111 withheld — x",
+            "; earlier run: aaa1111 Sealed",
+            "; Earlier run: aaa1111 sealed",
+        ],
+    )
     def test_the_arm_refuses_an_entry_at_the_target_row(self, item, entry):
         """S9 of #1000: the guarantee arm refuses it at the `Target SHA`
         row's line, naming the entry and the shape it reads."""
@@ -328,14 +347,14 @@ class TestEarlierVerdicts:
         rel = f"{ITEM}/guarantee.md"
         text = guarantee(sha, "sealed").replace(
             f"| Target SHA | {sha} against main |",
-            f"| Target SHA | {sha} against main; earlier run: {entry} |",
+            f"| Target SHA | {sha} against main{entry} |",
         )
         write(root, rel, text)
         commit(root, "an earlier run with a rider")
         [(path, number, why)] = chain.guarantee(reader, str(root), ITEM, "main")
         row = next(n for n, ln in enumerate(text.splitlines(), 1) if "Target SHA" in ln)
         assert (path, number) == (rel, row), why
-        assert f"`{entry}`" in why and "`<sha> <word>`" in why, why
+        assert f"`{entry.strip()}`" in why and "`<sha> <word>`" in why, why
 
 
 # --- guarantee: the arm --------------------------------------------------------

@@ -120,6 +120,9 @@ EARLIER_RUN = "; earlier run: "
 EARLIER_ENTRY = re.compile(
     rf"([0-9a-f]{{7,40}})(?: against \S+)? ({SEALED}|{WITHHELD}|{UNDECIDED})"
 )
+# The separator in any spelling, so a misspelt one is refused rather than
+# skipped. No leading `\s*`: on a cell of spaces it would backtrack.
+EARLIER_MEANT = re.compile(r"[;,]? ?earlier\s+runs?\b\s*:?\s*", re.IGNORECASE)
 EARLIER_WRITTEN = (
     "`<sha> <word>`, with `against <base>` after the SHA where it names one"
 )
@@ -1391,16 +1394,19 @@ def target_of(reader, text):
 
 
 def earlier_verdicts(cell):
-    """`[(sha, word)]` for each `; earlier run: ` entry of a `guarantee.md`
-    `Target SHA` cell, in the order written (#975), where the entry is
-    `EARLIER_ENTRY` whole; `(entry, None)` for one that is not, which the
-    guarantee arm refuses. The stamp is drawn once per work item, and an
-    earlier entry reading `sealed` is how the row says it was drawn
-    already."""
+    """`[(sha, word)]` for each earlier-run entry of a `guarantee.md`
+    `Target SHA` cell, in the order written (#975), where its separator is
+    `EARLIER_RUN` exactly and the entry `EARLIER_ENTRY` whole; `(entry,
+    None)` for one that is not, its separator in front, which the guarantee
+    arm refuses. A separator is found in any spelling (`EARLIER_MEANT`), so a
+    misspelt one is refused rather than read as part of the entry before it.
+    The stamp is drawn once per work item, and an earlier entry reading
+    `sealed` is how the row says it was drawn already."""
+    cell = cell or ""
     out = []
-    for entry in (cell or "").split(EARLIER_RUN)[1:]:
-        m = EARLIER_ENTRY.fullmatch(entry.strip())
-        out.append((m.group(1), m.group(2)) if m else (entry.strip(), None))
+    for sep, entry in zip(EARLIER_MEANT.findall(cell), EARLIER_MEANT.split(cell)[1:]):
+        m = EARLIER_ENTRY.fullmatch(entry.strip()) if sep == EARLIER_RUN else None
+        out.append((m.group(1), m.group(2)) if m else ((sep + entry).strip(), None))
     return out
 
 
