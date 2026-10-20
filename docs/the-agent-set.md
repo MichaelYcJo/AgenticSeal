@@ -8,7 +8,6 @@ It is a policy document, with the standing `docs/README.md` gives one.
 
 ## One contract every agent receives, and one definition each
 
-<!-- specs/1788433011-every-spawn-prompt-is-retyped-from-memory -->
 **The rules true of every agent live in one file every agent receives before
 its first tool call, without a prompt asking for it.** A rule kept only in
 whoever last wrote a spawn prompt goes missing without a trace, and it did:
@@ -32,7 +31,6 @@ keeps its number and becomes one line naming what replaced it, and a new
 rule takes the next number.
 check: tests/test_every_agent_reads_the_contract.py
 
-<!-- specs/1789081272-the-writer-of-the-contract-is-not-its-executor -->
 **The party that draws a contract is not the party that executes it.** A
 specification written by whoever then builds against it stops being a
 contract and becomes an account of what got built, which leaves the review's
@@ -70,7 +68,6 @@ Opus, the level of the agents it audits. `docs/the-review-record.md` §*The
 guarantee* holds the rule.
 check: tests/test_the_sealer_guarantees.py
 
-<!-- specs/1788445862-a-phase-hands-the-next-one-a-record -->
 **A build phase leaves a record, the way a review round does.** What a phase
 discovers reaches the next phase only if somebody retypes it into the next
 spawn prompt, and it goes missing without a trace when nobody does. So a
@@ -88,7 +85,6 @@ before the rule had reached anywhere else, and nothing recorded that it had
 gone; a removal the frame did not name is a divergence in `overview.md`.
 check: tests/test_a_phase_hands_the_next_one_a_record.py
 
-<!-- specs/1789100139-the-file-said-to-delete-it-when-the-last-box-was-ticked -->
 **A document that describes a transition is deleted when the transition is
 over, and its standing rules move first.** A file whose own last instruction
 is *delete this when the boxes are ticked* keeps being read as current long
@@ -99,7 +95,6 @@ being deleted — a case deleted with its document is coverage nobody decided
 to give up.
 check: none reader: review
 
-<!-- specs/1790206436-the-runs-instruments-cost-wall-clock -->
 **What an agent leaves in the scratchpad is named for the work item it
 serves, so two agents alive at once cannot pick the same name.** Every agent
 of one session shares one scratchpad, and a name any parallel agent would
@@ -118,7 +113,6 @@ check: tests/test_a_parallel_agent_names_its_scratch_after_the_work_item.py
 
 ## What a spawn costs
 
-<!-- specs/1788993115-a-payload-is-written-again-on-every-spawn -->
 **A spawn's payload is measurable, and it is paid on every spawn.** An
 agent's definition plus every skill its own list injects plus the instruction
 files the harness adds is written into the context of every segment that
@@ -134,7 +128,6 @@ party that has no way to ask anybody anything. What it cost was paid once per
 spawn, and nothing in either file could say it was wrong.
 check: tests/test_the_payload_meter_says_what_it_measured.py
 
-<!-- specs/1790076080-every-orchestrator-rule-is-a-sentence -->
 **The orchestrator's acts are counted, each against what delivers it.** An
 agent's rules arrive by mechanism, while the orchestrator has no spawn for a
 preload to attach to, so each of its acts is a sentence until something

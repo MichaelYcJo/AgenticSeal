@@ -12,7 +12,6 @@ a handoff carries. This document is about the measurement itself.
 
 ## The unit is a segment, and a segment has its own transcript
 
-<!-- specs/1789296300-a-segments-own-wall-clock-is-in-no-column -->
 **A spawned segment is measured from its own transcript, not from the
 parent's columns.** The parent sees a spawn go out and a result come back;
 what happened in between is a session of its own, with its own turns, its own
@@ -23,7 +22,6 @@ which transcript belongs to which spawn, and an unasserted one silently
 attributes one agent's cost to another.
 check: tests/test_session_cost.py
 
-<!-- specs/1788908215-the-orchestrator-is-measured-by-the-whole-session -->
 **An orchestrator measured by its whole session is measured by its
 children.** A session that spawns agents contains their durations, so the
 orchestrator's own row reads as the sum of everything it delegated. The
@@ -34,7 +32,6 @@ orchestrator's model time and reported as its own number**, because time
 spent waiting for another agent is not time spent thinking.
 check: tests/test_session_cost.py
 
-<!-- specs/1788613827-a-runs-report-carries-one-comparison-table -->
 **A run's report is one comparison table.** Tokens are summed over the
 transcript given **and** every subagent transcript beneath it, so the total
 is the run's rather than the parent's. One table, one shape, for every run —
@@ -44,7 +41,6 @@ check: tests/test_session_cost.py tests/test_a_segment_feeds_the_flow_log.py
 
 ## What a measurement must survive, and what it must not invent
 
-<!-- specs/1788700685-two-value-shaped-odd-rows-end-the-report -->
 **A degenerate reading is reported, never divided by.** A paired call whose
 request and result share a timestamp has a span of zero, and four divisions
 downstream of it end the report with the span line printed and the token
@@ -53,7 +49,6 @@ with nothing printed at all. What the meter owes is a report that survives
 both; what it must not do is invent a percentage for a span of zero.
 check: tests/test_session_cost.py
 
-<!-- specs/1788873620-two-in-range-values-make-one-that-is-not -->
 **Two in-range values can make one that is not.** Every site converting a
 number for display is enumerated from the module's own source, with
 membership decided by running the code rather than by a list of names, and
@@ -62,7 +57,6 @@ derived number. A list of names goes stale the moment somebody adds a site;
 an enumeration from the source cannot.
 check: tests/test_a_derived_number_reaching_an_int_carries_a_guard.py
 
-<!-- specs/1788904490-every-published-reading-carries-three-wrong-rows -->
 **A reading that was published is still wrong after it is published.** Three
 defects in one meter put a wrong row into every reading it had ever produced
 — a family classification, a per-message deduplication, and an input filter.
@@ -71,7 +65,6 @@ its own work: what the correcting work item owes is to say which published
 numbers are affected, so nobody reasons from them in the meantime.
 check: none reader: review of the correcting work item
 
-<!-- specs/1788926756-three-sentences-are-wrong-about-where-a-duration-is -->
 **A refusal names the cut its row ends at, not the event it went looking
 for.** A head row's cut is the first spawn's *start*, so a head call can
 outlive its own row's cut and end before any spawn's result — and a refusal
@@ -82,7 +75,6 @@ check: tests/test_session_cost.py
 
 ## Where a reading goes
 
-<!-- specs/1788449488-measure-what-flow-finds -->
 **A measurement nobody posted is a measurement nobody has.** Whichever
 session watched a segment finish is the only party still holding its
 transcript, so that session measures the segment and posts what it found to
@@ -99,7 +91,6 @@ issue at all — and **a repository that never measured and one that stopped
 are told apart**, because both used to be the same silence.
 check: tests/test_a_segment_feeds_the_flow_log.py
 
-<!-- specs/1790076080-every-orchestrator-rule-is-a-sentence -->
 **Posting a reading is one command, and a command does not make anybody run
 it.** `session-cost --segments <transcript> --post --says <path|->` posts to
 the one open log its label resolves to. It refuses without `--says`, because
@@ -116,7 +107,6 @@ what it cannot remove is the remembering, and the miss that started this was a
 day of measurements nobody took rather than a post that failed.
 check: tests/test_session_cost_post.py
 
-<!-- specs/1790076080-every-orchestrator-rule-is-a-sentence -->
 **A network write only a person's typing starts is not a hook, and the list of
 hook network touches does not reach it.** `CONTRIBUTING.md` counts the
 plugin's network touches under *Hooks stay local and quiet*, and every

@@ -2286,9 +2286,9 @@ def stamp_section():
 
 
 def test_the_policy_states_the_budget_and_names_its_case():
-    """A18. `docs/the-review-record.md` §*The stamp* carries the budget rule
-    under #717's marker, and its `check:` line names this module; the
-    marker stands a second time over the paragraph nothing enforces. #832
+    """A18. `docs/the-review-record.md` §*The stamp* carries the budget rule,
+    and its `check:` line names this module; the paragraph nothing enforces
+    follows it. #832
     and #853: the rule names the two rungs, with the disc and the text block
     alone, the owner's disc 28 cells across, and one real run to a message;
     the unchecked paragraph says nothing outside the disc is painted, so the
@@ -2296,18 +2296,16 @@ def test_the_policy_states_the_budget_and_names_its_case():
     contrast figures before decision 6 of work item 1791270164 retired the
     sheet. The section moved from `docs/the-broad-gate.md` with #975."""
     text = stamp_section()
-    marker = "<!-- specs/1790913304-the-seal-stamp-is-a-letter-with-the-seal-on-its-corner -->"
-    assert text.count(marker) == 2, "the rule and the unchecked half, one marker each"
-    unchecked = text.split(marker)[2]
-    assert "**What the person's screen shows is not checked" in unchecked
+    budget = "**The hook holds its whole message under a budget named in the code"
+    screen = "**What the person's screen shows is not checked"
+    unchecked = screen + text.split(screen, 1)[1]
     assert (
         "So is how the stamp reads on a light background as well as a dark one. "
         "Nothing outside the disc is painted, so its text is in the terminal's "
         "own colours and theme"
     ) in unchecked
     assert "1.02 and 1.48" not in unchecked and "parchment" not in unchecked
-    rule = text.split(marker)[1].split("<!--", 1)[0]
-    assert "**The hook holds its whole message under a budget named in the code" in rule
+    rule = budget + text.split(budget, 1)[1].split(screen, 1)[0]
     assert "check: tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py" in rule
     # Round 1's 🟡 1, under the owner's rule of 2026-10-02 (`questions.md` Q6).
     assert "A seal past what one message can carry stays pending" in rule
@@ -2407,8 +2405,7 @@ def test_the_form_bullet_says_what_draws_the_final_seal():
 
 def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
     """S16, the policy's half, and #975 S10 and S13. `docs/the-review-record.md`
-    §*The stamp* carries the drawing rule under #400's and #975's markers
-    with a `check:` line naming the marker the cases that queue and draw it
+    §*The stamp* carries the drawing rule with a `check:` line naming the marker the cases that queue and draw it
     carry, and a second statement saying what the screen shows has no case.
     That statement names every place the hook is silent — a foreign hooks
     slot, a `python3` that cannot load `seal_stamp.py`, a main session
@@ -2426,11 +2423,9 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
     against the paragraph at 769f2aa4, and against 2759a60d's, which still
     named the guards."""
     text = stamp_section()
-    marker = "<!-- specs/1790562543-the-stamp-reaches-the-person-it-is-drawn-for -->"
-    ours = "<!-- specs/1792311781-the-stamp-is-drawn-from-the-sealers-verdict -->"
-    assert text.count(marker) == 2, "the rule and the unchecked half, one marker each"
-    assert text.count(ours) == 2, "the rule and the unchecked half, one marker each"
-    rule, unchecked = text.split(marker)[1:3]
+    screen = "**What the person's screen shows is not checked"
+    rule, unchecked = text.split(screen, 1)
+    unchecked = screen + unchecked
     assert (
         "**The stamp is drawn once per work item, from the sealer's `sealed`, at "
         "the end of the turn in which `guarantee.md` came to read it: at its "
@@ -2548,7 +2543,7 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
 
 def test_the_policy_states_the_refusal_record_and_names_its_cases():
     """1792363231 S8. §*The stamp* carries the refusal record as a rule of
-    its own under this work item's marker: a `sealed` refused because its
+    its own: a `sealed` refused because its
     audited commit is not on the branch leaves a record in the clone that
     refused it, and the earlier-run chain skips it, so the sealer's new
     audit draws the work item's one stamp. It names the two writers, the
@@ -2560,13 +2555,11 @@ def test_the_policy_states_the_refusal_record_and_names_its_cases():
     1e956838, whose paragraph described `post-commit`'s record and its
     four facts."""
     text = stamp_section()
-    marker = "<!-- specs/1792363231-a-local-mode-work-item-draws-no-stamp -->"
-    assert marker in text
     rule = text.split(
         "**A `sealed` refused because its audited commit is not on the branch "
         "leaves a refusal record",
         1,
-    )[1].split("<!--", 1)[0]
+    )[1].split("**The hook holds its whole message under a budget", 1)[0]
     for said in (
         "`<git-common-dir>/specseal-stamp-refused/<id>-<target>`",
         "`; earlier run: <sha> sealed`",

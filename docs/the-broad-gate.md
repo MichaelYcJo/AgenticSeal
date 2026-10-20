@@ -9,8 +9,6 @@ It is a policy document, with the standing `docs/README.md` gives one.
 
 ## One act, one owner, and the owner is the orchestrator
 
-<!-- specs/1789002694-two-agents-are-forbidden-the-seal-and-nobody-is-assigned-it -->
-<!-- specs/1792252400-the-sealer-reads-the-gate-the-orchestrator-ran -->
 **A prohibition needs a holder, and the holder is the orchestrator.** No
 agent runs the broad gate. The orchestrator runs `broad-gate --base <base>
 --record <item>` once the rounds settle, with nothing else running, commits
@@ -26,7 +24,6 @@ the sealer's own verdict, which follows the run, is a separate file
 whose verdict nobody can separate from its measurement.
 check: tests/test_broad_gate_rule.py
 
-<!-- specs/1792311781-the-stamp-is-drawn-from-the-sealers-verdict -->
 **What the run prints says only whether it passed, and it draws nothing.**
 Its stdout opens `BROAD GATE PASSED` or `BROAD GATE FAILED` over the branch,
 the tree and the base it measured; a passing run prints its panel's rows as
@@ -38,7 +35,6 @@ never read
 as a sealed work item.
 check: tests/test_one_word_one_meaning.py tests/test_the_seal_is_taken_once_by_the_sealer.py
 
-<!-- specs/1789034970-the-contract-is-settled-against-the-agents-that-exist -->
 **A shared rule is settled against the agents that exist.** A rule kept only
 in whoever last wrote a spawn prompt goes missing without a trace, and a rule
 copied into two definitions goes out of step in one of them. What every agent
@@ -53,7 +49,6 @@ check: tests/test_the_agent_contract_holds_the_universal_rules.py tests/test_eve
 
 ## What the gate runs, and how the list is kept true
 
-<!-- specs/1789985781-the-gates-arm-list-is-maintained-by-hand -->
 **Every step CI runs is either mirrored by a named arm or excluded with a
 written reason. There is no third state and no silence.** An arm list kept by
 hand drifts the moment somebody adds a step to the workflow, and the drift is
@@ -69,7 +64,6 @@ Which steps those are is declared beside the partition and held against the
 workflow's guards from both sides, never read off the workflow at run time.
 check: tests/test_the_gate_names_every_step_ci_runs.py
 
-<!-- specs/1789956662-the-gate-and-ci-ask-about-different-ranges -->
 **The gate and CI ask about the same range, and the base is resolved once.**
 A local branch name and the remote-tracking ref CI reads are two different
 commits whenever the local one is behind, so a gate that resolves its base
@@ -80,7 +74,6 @@ order is the upstream the checkout declares, then the remote-tracking
 spelling the workflow uses literally, then the ref as given.
 check: tests/test_the_gate_asks_the_range_ci_will_ask.py
 
-<!-- specs/1789445605-the-broad-gate-row-runs-unchecked-and-is-never-asked-for -->
 **A configured command that breaks the criterion is refused before anything
 runs.** The row naming the repository's broad command is read by the gate and
 by nobody else until the gate runs, so a value that cannot do what the row
@@ -91,7 +84,6 @@ criterion for choosing a value has one owner, the template that documents the
 row, and it is three rules rather than an example.
 check: tests/test_the_seal_is_taken_once_by_the_sealer.py
 
-<!-- specs/1789721571-the-gate-reads-an-example-and-names-rows-nobody-wrote -->
 **A fenced example in a config file is not a config row.** The one walk of
 the `| Item | Value |` table reads the file through one fence rule, and the
 writer overwrites the line that walk names. A reader and a writer that
@@ -100,7 +92,6 @@ command can bring into agreement, so a repair landing in the reader alone is
 half a repair.
 check: tests/test_the_seal_is_taken_once_by_the_sealer.py
 
-<!-- specs/1790206436-the-runs-instruments-cost-wall-clock -->
 **The gate that measures a tree is the copy that tree ships, and its report
 says which copy measured it.** A gate found on PATH is the installed plugin's, so
 a branch that changed the gate was measured by the copy that predated the
@@ -127,7 +118,6 @@ check: tests/test_the_seal_is_taken_once_by_the_sealer.py
 
 ## What the runner owes the person who typed it
 
-<!-- specs/1788632199-the-repository-ships-no-way-to-run-its-own-suite -->
 **A repository ships a command that runs its own suite, and it is cheap the
 second time.** A documented incantation that resolves and installs its
 environment on every call is not a missing command, it is an expensive one —
@@ -136,7 +126,6 @@ one segment. The environment is built once and reused; the first call pays
 for it and every call after it pays for interpreter startup and nothing else.
 check: tests/test_the_suite_has_a_command_that_is_cheap_twice.py
 
-<!-- specs/1788691941-an-unwritable-venv-turns-the-refusal-into-a-traceback -->
 **Every failure the runner has is a sentence, never a traceback.** The
 awkward one is the environment it cannot write: the refusal that was supposed
 to name the floor gets replaced by a stack trace about a directory, which
@@ -146,7 +135,6 @@ could not do, names the path and what it means for `git status`, and carries
 on.
 check: tests/test_the_suite_has_a_command_that_is_cheap_twice.py
 
-<!-- specs/1790206436-the-runs-instruments-cost-wall-clock -->
 **The runner runs the suite in parallel by default, in every environment it
 builds or adopts, and the caller's own choice wins.** A runner that withheld
 `-n auto` because the environment it built had no `pytest-xdist` made one
@@ -167,7 +155,6 @@ check: tests/test_the_suite_has_a_command_that_is_cheap_twice.py
 
 ## A check that cannot fail is not a check
 
-<!-- specs/1788936260-a-case-pins-what-it-actually-measures -->
 **A module's arms are enumerated from its own source and each one mutated,
 and the arms no case kills are reported.** Counting a module's arms by hand
 produces a number that rots, and an arm nothing kills is an arm that can be
@@ -176,7 +163,6 @@ held to — seen red before it is committed — applied to the arms that are
 already there.
 check: skills/verify/scripts/arm_check.py tests/test_arm_check.py
 
-<!-- specs/1789540097-three-checks-that-do-not-see-what-they-are-named-for -->
 **A check named for a property has to be able to observe that property.**
 Three were not: a cell-presence loop that could not tell which shell a
 consequence belonged to, a closed set of search phrases the seam case and the
@@ -186,7 +172,6 @@ is named for becomes a value both the check and its own case read, so they
 cannot drift into checking different things.
 check: none reader: review of each check
 
-<!-- specs/1789996775-the-gate-states-what-its-own-fixes-disproved -->
 **A document that its own work item's fixes disproved is corrected in the
 same work item.** A docstring naming a class the command does not refuse, and
 an argument whose grounds the fixes removed, are both statements a reader

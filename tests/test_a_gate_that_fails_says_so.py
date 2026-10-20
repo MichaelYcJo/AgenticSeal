@@ -905,7 +905,6 @@ def test_the_registration_section_says_a_failure_is_said_and_names_its_case():
         "**A gate that fails is said once per session, at the end of the main "
         "session's turn, and the call it failed on still goes ahead.**"
     ) in flat_text, section
-    assert "<!-- specs/1790635415-a-gate-that-fails-to-load-says-so -->" in section
     enforced = [ln for ln in section.splitlines() if ln.startswith("check: ")]
     assert len(enforced) == 1, enforced
     assert "tests/test_a_gate_that_fails_says_so.py" in enforced[0].split(), enforced

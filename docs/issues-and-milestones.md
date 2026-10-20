@@ -10,7 +10,6 @@ record. This is that document.
 
 ## A milestone answers *when*, and takes three shapes
 
-<!-- specs/1789172128-a-release-is-sized-by-a-count-and-cut-by-urgency -->
 **A milestone answers *when* and never a release's size, which is decided by
 what has to be in effect before the next work item starts.**
 
@@ -100,8 +99,6 @@ label is written down here.
 `docs/the-review-record.md` §*The run* owns where a filed finding goes; this
 section owns what the label means.
 
-<!-- specs/1788661274-the-roll-names-the-next-version-by-guessing -->
-<!-- specs/1788486395-the-roll-opens-the-next-log-with-no-body -->
 **`flow-measurement` is a label that is not an index.** It is a lookup key,
 and it carries an invariant: *exactly one open at a time*.
 `.github/scripts/roll_flow_measurement_issue.py` closes the current one and
@@ -122,7 +119,6 @@ logs and misses `#51`; reading `--label measurement` finds everything and
 answers no lookup.
 check: tests/test_a_release_rolls_the_flow_measurement_issue.py
 
-<!-- specs/1788844200-the-refusal-text-is-unobserved-and-an-uppercase-v-is-invisible -->
 **A rolling log is titled after the version it rolled from**, in the form
 `chore: flow measurement — after 1.2.3`. That log opened at the 1.2.3
 release, holds the measurements taken since, and is closed by whatever ships
@@ -269,7 +265,6 @@ that caused it.
 
 ## A label says a ticket is already in, before the release ships
 
-<!-- specs/1789108681-a-merged-ticket-looks-unstarted-until-the-release-ships -->
 **An issue a pull request into a release branch claimed carries
 `merged: X.Y.Z` before the release ships.**
 An issue's state does not move until `main` moves, and `main` moves once per
@@ -304,7 +299,6 @@ check: tests/test_a_merged_ticket_says_so_on_the_tracker.py
 
 ## A keyword claims the one number after it
 
-<!-- specs/1788844400-a-body-naming-two-issues-claims-one -->
 **A closing keyword claims the one number after it.**
 `Closes #153 and #150` claims #153. The second number carries no keyword of
 its own, so nothing reads it as a claim — not GitHub, and not the script
@@ -329,7 +323,6 @@ this section is about, and a sentence that used it with a second number beside
 it would earn the warning like any body.
 check: tests/test_a_body_naming_two_issues_claims_one.py
 
-<!-- specs/1790173209-the-release-tail-stops-at-the-first-issue-it-cannot-close -->
 **A keyword inside a fence or a code span claims nothing, whatever the fence
 or the span is made of.** A fence opens with backticks or tildes at any
 indent and closes on its own delimiter; a span is one backtick or two. The

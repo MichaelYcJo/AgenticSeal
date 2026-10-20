@@ -33,7 +33,6 @@ Check both agree before announcing anything:
 git describe --tags   # must name the release, not "<tag>-N-g<sha>"
 ```
 
-<!-- specs/1788302682-the-release-check-never-watched-bin -->
 **A release pull request that changes what the plugin ships moves the
 version.** Two checks enforce the half that can be: `tests/test_chain_hooks_hardening.py`
 binds the changelog to whatever `plugin.json` says, and the `hygiene` workflow
@@ -42,7 +41,6 @@ fails a release PR — one whose base is `main` — that changes `skills/`,
 the version. The tag is still yours to push — nothing in CI can do it for you.
 check: tests/test_the_release_check_watches_what_ships.py .github/workflows/hygiene.yml
 
-<!-- specs/1790076050-the-release-tail-is-three-acts-no-document-names -->
 **Every act the release performs once it reaches `main` belongs to a machine or
 to a command that answers it, and none of them waits on somebody remembering.**
 Three acts used to follow the merge that were assigned to whoever was at the
@@ -144,7 +142,7 @@ at the merge button, so the ruleset does not offer the choice.
 **What breaks when the last row is squashed** — measured. A squash
 discards every commit the release branch wrote, and anything naming one of
 them by SHA stops resolving.
-<!-- specs/1788826000-a-stamp-names-content-not-a-commit -->
+
 **The `target:` line in every `round-N.md` is what still names a commit.**
 After a squash it resolves for nobody, which is why the check reads it only
 while the branch that holds the commit is open
@@ -153,7 +151,6 @@ squash that measured this survived only because their feature branches had
 been restored to the remote first.
 check: tests/test_a_rider_reaches_its_file.py
 
-<!-- specs/1790076050-the-release-tail-is-three-acts-no-document-names -->
 **A third reader points at those commits now, and it is outside this
 repository.** A marketplace file lists an external plugin by pinning a commit
 of its source repository — measured 2026-09-22 over one marketplace file's 310
@@ -173,6 +170,11 @@ it reaches are people the owner cannot name — which is the same failure as
 the release that shipped untagged, with the half that made that one visible
 removed.
 `docs/release-checklist.md` §6 carries the box that reads what is pinned.
+This paragraph is a record rather than a rule: a marketplace file pins a
+commit of each outside plugin's source repository. The rule it supports, that
+anything reaching `main` is a merge commit, is held outside the tree by the
+`main` ruleset.
+check: none reader: the main ruleset on GitHub
 
 **The plugin's name is fixed, and that is not a style question.** Everybody
 already running it installed it under its slug, so renaming it breaks their
@@ -346,9 +348,7 @@ and not a safe one: GitHub sends the SHA the push displaced, and where the
 runner cannot reach it the range fails and the run stops — which is the right
 direction, and not the same as being harmless. `DRY_RUN=1` prints what it
 would do and writes nothing.
-check: none reader: review
 
-<!-- specs/1790173209-the-release-tail-stops-at-the-first-issue-it-cannot-close -->
 **One issue the tracker refuses does not leave the rest open.** The run used
 to die on the first `gh issue close` that failed, with every issue sorted
 after it still open — measured on the release before #536, where one GraphQL

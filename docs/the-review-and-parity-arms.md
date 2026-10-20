@@ -24,7 +24,6 @@ together.
 | the change confined to `docs/`, `seal/` | no different from any other change — this arm reads no paths. The parity arm's silence on the same roots is that arm's alone, and the paragraph below says why |
 | otherwise | contributes an ask |
 
-<!-- specs/1790154759-the-review-arm-asks-where-no-reviewer-compares -->
 **The review arm reads no paths: a change confined to `docs/` and `seal/`
 meets it as any other change does, and a lighter tier is declared, never
 inferred.**
@@ -88,7 +87,6 @@ needs a tty and sources a user's rc.
 
 #### The declaration, and where the check went instead
 
-<!-- specs/1789518345-who-asks-the-routing-question-and-what-checks-the-answer -->
 **The gate reads `seal/specs/<work-item-id>/routing.md` before it reads anything
 else.** Where a declaration is in force the review arm stays silent — for
 **either** answer, because the routing question was answered before the first
@@ -104,7 +102,6 @@ What the check reads of each round record under the first answer is
 `docs/the-review-record.md` §*What the check reads at the pull request*.
 check: routing-read-first
 
-<!-- specs/1790173106-a-bare-yes-sets-the-run-length-and-a-session-review-has-no-row -->
 **`straight to the PR` owes the broad run's `broad-gate.md` and the sealer's
 `guarantee.md` and turns off the reviewer alone, and `Review` has two
 answers, not three.**
@@ -125,7 +122,6 @@ question's third answer, `no work item`, whose recorded form is `[no-review]`
 in front of each commit — there is no value meaning no enforcement anywhere.
 check: two-review-answers
 
-<!-- specs/1789518345-who-asks-the-routing-question-and-what-checks-the-answer -->
 **A declaration the pull request RETIRED is not one it made**, and neither is
 one it only renamed. Both are ways a `routing.md` leaves a diff without
 anybody declaring anything, and both are excluded: the rename because the

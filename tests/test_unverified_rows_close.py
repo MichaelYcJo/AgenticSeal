@@ -11,6 +11,7 @@ import atexit
 import importlib.util
 import os
 import random
+import re
 import shutil
 import subprocess
 import tempfile
@@ -1640,14 +1641,18 @@ def test_the_settled_line_reads_as_a_sentence(tmp_path, capsys):
     ) in out, out
 
 
+MARKER = re.compile(r"^<!-- specs/(\S+) -->$")
+
+
 def live_markers(body):
     """The marker ids on the live lines of BODY: `live_lines`, the one rule
-    for whether a line is live, and the line-anchored marker."""
+    for whether a line is live, and a line-anchored marker as the changelog
+    gather writes one."""
     return {
         found
         for line, live in uc.live_lines(uc.gfm_lines(body))
         if live
-        for found in uc.FOLD_MARKER.findall(line)
+        for found in MARKER.findall(line)
     }
 
 

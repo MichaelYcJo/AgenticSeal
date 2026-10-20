@@ -64,7 +64,6 @@ this branch and a squash merge like any other work.
 
 ## 2. Gather, bump
 
-<!-- specs/1788326734-the-ledger-fragments-are-never-gathered -->
 **The preparation commit gathers the changelog fragments.**
 
 ```bash
@@ -85,8 +84,6 @@ runs anything, because the suite lists files with `git ls-files`, which reads
 the index: an untracked release file is a tree the listing does not describe.
 check: tests/test_the_changelog_is_gathered_at_release.py
 
-<!-- specs/1790173209-the-release-tail-stops-at-the-first-issue-it-cannot-close -->
-<!-- specs/1790206437-a-second-fold-writes-a-second-heading -->
 **A second gather for the same version appends into its section.** The
 release pull request going red and a fragment landing after this step is the
 ordinary shape, and the gather used to write a second `## X.Y.Z` heading for
@@ -130,7 +127,6 @@ the first time. So the whole
 gate runs on this tree, and every exit code is read directly rather than
 through a `| tail`.
 
-<!-- specs/1789687448-a-tracked-file-the-tree-deleted-stops-the-sweep -->
 **A sweep that walks a git listing judges what remains instead of stopping at
 the first tracked file the disk lacks, and a case whose verdict needs the
 whole corpus says so.** A tree can hold tracked files the disk does not have,
@@ -203,7 +199,6 @@ run and swing on the same code, so they are read and never acted on alone.
 
 ### What a release pull request is held to
 
-<!-- specs/1788735085-a-loaded-file-naming-a-real-version-is-a-timer -->
 **A loaded file naming a version at or above the running one is a timer.** A
 document that names a version which does not exist yet goes red on the commit
 that writes it rather than on the release that ships it, so the refusal
@@ -216,7 +211,6 @@ writes, records of a moment under `docs/experiments/`, and a version
 belonging to another product.
 check: tests/test_release_hygiene.py
 
-<!-- specs/1789919879-the-outside-contributor-has-no-procedure -->
 **A contributor whose base is wrong is told the base is wrong.** The
 procedure a contributor needs is the first thing in the contributing guide,
 not the fourth: which branch to base on and how to find it, what they do, and
@@ -310,7 +304,6 @@ python3 .github/scripts/plugin_directory_check.py   # what the marketplace files
       until then. Whether it shows up at all is what a search for SpecSeal
       inside Claude answers.
 
-<!-- specs/1788789330-the-update-notice-names-the-expensive-move -->
 **A notice telling somebody an update landed names the move it costs them.**
 An installed copy is what a session loads, so an update that has landed on
 disk is not an update that is in force until the session reloads — and

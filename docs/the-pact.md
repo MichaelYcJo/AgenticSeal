@@ -10,7 +10,6 @@ It is a policy document, with the standing `docs/README.md` gives one.
 
 ## The words
 
-<!-- specs/1790993137-a-signatory-declares-its-pact-and-pact-check-reads-it -->
 **The pact is the one copy of what two or more repositories keep together,
 and every repository of such a work item is a signer, the one holding the
 pact included.** The pact is `seal/pact.md` in one of them. That repository
@@ -23,7 +22,6 @@ words of the first issue's thread name nothing here, and a case holds them
 out of the shipped text.
 check: tests/test_one_word_one_meaning.py tests/test_a_signer_declares_its_pact.py
 
-<!-- specs/1791239490-a-repository-that-keeps-a-pact-is-a-signer -->
 **A pact headed with the word 0.18.x used still reads, and `pact-check`
 names the rename on it in no exit class.** Through 0.18.x a signer was
 called a signatory, and a pact's `| Signatory |` table carried that word
@@ -40,7 +38,6 @@ check: tests/test_pact_check.py tests/test_a_signer_declares_its_pact.py tests/t
 
 ## When there is a pact at all
 
-<!-- specs/1790993137-a-signatory-declares-its-pact-and-pact-check-reads-it -->
 **A sentence is contract when another repository's code would be wrong if it
 changed, and a pact exists only where a work item commits in more than one
 repository and those repositories share contract.** The rule is the owner's
@@ -55,12 +52,11 @@ check: tests/test_a_signer_declares_its_pact.py
 
 ## One routing answer, one id, every gated repository
 
-<!-- specs/1790993137-a-signatory-declares-its-pact-and-pact-check-reads-it -->
 **The routing question is asked once, the work-item id is minted once, and
 a declaration goes into every repository the work item commits in that
 already has a `seal/` root, and into no other.** The id names the directory
-in every repository, so each share's changelog fragment and fold marker are
-keyed alike, and a directory named differently in each would have to be
+in every repository, so each share's changelog fragment and changelog marker
+are keyed alike, and a directory named differently in each would have to be
 renamed later, moving both. A repository with no root is
 named in the handback and left alone, because writing into it would create
 its root, which is the bootstrap's decision and the person's. Nothing checks
@@ -72,7 +68,6 @@ check: tests/test_a_signer_declares_its_pact.py tests/test_every_orchestrator_ac
 
 ## How a signer names the pact
 
-<!-- specs/1790993137-a-signatory-declares-its-pact-and-pact-check-reads-it -->
 **Every signer but the pact's repository names the pact in a `Pact` row
 of its `seal/config.md`, and one reader answers that row for every
 caller.** `Pact` is the origin remote URL of the pact's repository, several
@@ -87,7 +82,6 @@ check: tests/test_a_signer_declares_its_pact.py tests/test_pact_check.py
 
 ## The pact anchor
 
-<!-- specs/1790993137-a-signatory-declares-its-pact-and-pact-check-reads-it -->
 **A signer cites a clause as `pact:<name>/"<heading path>"@<hash>`.** Every
 `##` heading of `seal/pact.md` below its `| Signer |` table is a clause, and
 a `###` narrows inside one. The hash is the content hash
@@ -96,7 +90,6 @@ local coordinate to that heading carries. A signer writes the anchor in a
 spec's Grounding, recording what the work was built against.
 check: tests/test_pact_check.py tests/test_a_unit_is_bounded_where_a_parser_decides.py
 
-<!-- specs/1791076833-the-reverify-writer-records-before-it-restamps -->
 **A token begins a pact anchor where `pact:<name>` is followed at once by
 `/` or `#`, or by the rest of an anchor with its `/` missing, and
 `pact-check` refuses a token that begins one and does not go on to parse.**
@@ -116,7 +109,6 @@ check: tests/test_pact_check.py
 
 ## A signer's CI reads nothing of the pact
 
-<!-- specs/1790993137-a-signatory-declares-its-pact-and-pact-check-reads-it -->
 **At a pull request nothing reads the pact, and no exit status moves on
 anything about it.** There is no token for a pull request to read another
 repository with (#647, decision 2), so a signer's CI could see one side only;
@@ -126,7 +118,6 @@ check: none reader: review
 
 ## `pact-check` reconciles, locally
 
-<!-- specs/1790993137-a-signatory-declares-its-pact-and-pact-check-reads-it -->
 **`pact-check`, run at the pact's repository, reads every signer the pact
 lists and says which way each mismatch points.** It finds each checkout
 through `~/.claude/specseal/pact-paths.md` or the one sibling directory with
@@ -142,7 +133,6 @@ check: tests/test_pact_check.py
 
 ## What this does not see
 
-<!-- specs/1790993137-a-signatory-declares-its-pact-and-pact-check-reads-it -->
 **A pact whose history was squashed, or that lives under the git directory,
 reads every old version as `UNMATCHED`, and a renamed heading breaks every
 anchor to it.** A repository that squashes its pact edits loses the

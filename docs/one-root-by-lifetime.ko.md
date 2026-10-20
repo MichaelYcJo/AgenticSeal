@@ -16,7 +16,6 @@
 
 ## 무엇이 바뀌는가, 네 줄로
 
-<!-- specs/1788331011-two-roots-hold-three-lifetimes -->
 **바뀐 뒤에는 플러그인이 관리하는 루트 하나가 전부를 담고, 얼마나 오래 사는지에
 따라 자리를 나눕니다.** 지금은 커밋되는 루트 둘에 사는 기간이 세 가지로 다른
 파일이 섞여 있고, 어느 루트도 그 기간으로 자리를 나누지 않습니다.
@@ -231,7 +230,6 @@ SDD > 코드)이고, 그 규칙의 `check:` 줄이 가리키는 테스트가 함
 
 ## 옵트인 신호는 루트 자체다, 모드가 정한 자리에 있는
 
-<!-- specs/1788817289-local-mode-from-first-setup-to-the-gate -->
 **저장소가 옵트인한 것은 그 모드의 자리에 `seal/` 이 있을 때입니다.** shared
 모드면 `<repo>/seal/`, local 모드면 `.git/seal/` 입니다. 훅은 두 자리를 그
 순서로 보고, 있는 쪽이 "켜졌다" 와 "어느 모드인가" 를 함께 말해 줍니다. 그
@@ -266,7 +264,6 @@ check: tests/test_optin_home.py
 
 ## 처음 설정에서 무엇을 묻는가
 
-<!-- specs/1788354065-the-tree-that-must-stay-clean-has-no-way-to-opt-in -->
 **이 프로젝트가 질문을 허용하는 유일한 순간이 처음 설정입니다.** 스레드는 거기서
 모드와 보존 두 가지를 물으려 했는데, 보존은 `settle` 규칙으로 사라졌으니
 하나만 남습니다.
@@ -287,8 +284,6 @@ check: tests/test_first_setup_asks_once.py
 
 ### shared 인가 local 인가
 
-<!-- specs/1788411058-the-mode-is-two-shell-lines-in-a-readme -->
-<!-- specs/1788398967-local-modes-records-never-leave-the-clone -->
 **"폴더를 커밋할 것인가" 가 아니라 "CI 와 협업자가 이 워크플로를 보는가" 를
 묻는 것입니다.** 어느 쪽이 맞는지는 대개 누구의 저장소인가로 정해집니다.
 
@@ -522,7 +517,6 @@ CI 경로는 아래 순서의 3 단계에서 루트와 함께 바뀝니다.
 행은 `templates/config.md` 에 설명되어 있습니다. 행이 없을 때의 기본값도
 코드를 읽는 사람에게 맡기지 않고 거기에 적어 두었습니다.
 
-<!-- specs/1788420761-the-settings-live-in-a-file-nobody-opens -->
 **아무도 찾지 못하는 설정은 없는 설정과 같습니다.** 모든 행은 파일 전체를
 보여 주고 변경을 알맞은 곳으로 보내는 명령 하나에서 닿을 수 있습니다. 처음
 설정은 질문을 한 번에 묻고 다시 묻지 않으므로, 그 뒤에 생긴 행은 사람이 열어
@@ -533,7 +527,6 @@ CI 경로는 아래 순서의 3 단계에서 루트와 함께 바뀝니다.
 정해집니다.
 check: tests/test_the_settings_have_a_front_door.py
 
-<!-- specs/1788360817-the-pull-request-language-is-fixed-inside-a-skill -->
 **이 플러그인이 어떤 언어로 쓰는지는 플러그인이 아니라 저장소가 답합니다.**
 모두에게 영어를 요구하는 스킬은, 그 결정에 동의하지 않는 사람이 고칠 수
 없는 파일 안에서 내려진 결정입니다. 그래서 언어는 설정 행에 둡니다. 번역된
@@ -541,7 +534,6 @@ PR 본문이 들어가는 사본 파일의 이름도 특정 언어 하나가 아
 언어를 따릅니다.
 check: tests/test_the_pull_request_language_is_the_repositorys.py
 
-<!-- specs/1788420760-a-language-row-that-governs-four-things -->
 **행이 둘인 이유는 행 하나로는 중간 답을 적을 수 없어서입니다.** 사람들이
 실제로 원하는 조합은 셋입니다. 전부 영어로 쓰거나, 커밋과 PR 은 팀의 언어로
 쓰고 문서는 영어로 쓰거나, 둘 다 팀의 언어로 씁니다. 행 하나로는 가운데를
@@ -559,7 +551,6 @@ PR 제목과 본문을 맡고, `Record language` 는 작업 항목이 쓰는 문
 하는 일입니다.
 check: tests/test_the_pull_request_language_is_the_repositorys.py
 
-<!-- specs/1789598366-a-piped-broad-gate-row-takes-every-config-row-below-it -->
 **칸에는 이스케이프한 파이프가 들어갈 수 있고, 해석되지 않는 줄 하나는 표의
 끝으로 여기지 않고 이름을 대어 알립니다.** 파이프가 든 셸 명령 같은 값은
 평범한 내용인데, 거기서 읽기를 멈춘 읽기 함수는 그 아래 모든 행을 설정에서
@@ -568,7 +559,6 @@ check: tests/test_the_pull_request_language_is_the_repositorys.py
 파일에 행을 하나 더 만들기 때문입니다.
 check: tests/test_the_mode_question_is_asked_once.py
 
-<!-- specs/1788789329-a-git-call-that-fails-reads-as-no-remote -->
 **실패한 git 호출은 "없음" 이라고 답한 git 호출이 아닙니다.** 무엇이 없어서
 비어 있는 출력과 질문 자체를 할 수 없어서 비어 있는 출력은 다른 사실입니다.
 둘을 가르지 못하는 호출자는 없다는 것을 확정된 사실로 보고합니다. 원격이

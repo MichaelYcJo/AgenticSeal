@@ -225,7 +225,6 @@ check: tests/test_worktree_guard.py
 
 ## Creation consent — the first creation is the question, not every one
 
-<!-- specs/1788817291-the-guard-asks-once-per-worktree-not-once-per-session -->
 **The first worktree creation in a session is the question, and a later one in
 the same session is allowed — and where the person pressed `automation`, not
 even the first is asked.**
@@ -527,7 +526,6 @@ check: tests/test_the_guard_asks_once_per_session.py tests/test_guard_resolves_t
 
 ### Decided before git runs (#692)
 
-<!-- specs/1790815613-a-gate-decides-at-the-moment-of-the-action-not-from-the-text -->
 **A worktree creation is decided before git runs, in every clone, one
 carrying this plugin's git hooks included.**
 #692 first moved this decision into `post-checkout`, after git had made the
@@ -543,7 +541,6 @@ no `post-checkout`. So a creation that reading cannot follow is judged as
 0.16.0 judged it, with that release's known limits.
 check: tests/test_a_creation_is_judged_before_git_runs.py tests/test_the_hook_surface_git_offers.py
 
-<!-- specs/1790815613-a-gate-decides-at-the-moment-of-the-action-not-from-the-text -->
 **A creation the guard lets through is recorded as before, from the command
 that ran.**
 The PostToolUse writer above files the record in every clone, so the budget
@@ -711,7 +708,6 @@ is a safety net, never a blocker.
 
 ## Activity: what makes a session ACTIVE (heuristics, for sessions without a lease)
 
-<!-- specs/1788846800-an-exited-session-reads-as-live-for-five-minutes -->
 **Active = ANY signal within `WORKTREE_GUARD_IDLE_MIN` minutes (default 5):**
 
 | Signal | Detects | Measured grounds (2026-05-06, live sessions) |

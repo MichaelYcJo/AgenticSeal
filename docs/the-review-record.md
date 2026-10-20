@@ -298,9 +298,6 @@ check: none reader: a reader of the guarantee's own tables
 
 ## The stamp
 
-<!-- specs/1790562543-the-stamp-reaches-the-person-it-is-drawn-for -->
-<!-- specs/1792311781-the-stamp-is-drawn-from-the-sealers-verdict -->
-<!-- specs/1792363231-a-local-mode-work-item-draws-no-stamp -->
 **The stamp is drawn once per work item, from the sealer's `sealed`, at the
 end of the turn in which `guarantee.md` came to read it: at its commit in
 shared mode, and at its write in local mode.** The stamp means every party
@@ -353,7 +350,6 @@ stamp carries what the records say: the audited commit and its branch, the
 base, the work item, the newest broad run and the count of round records.
 check: stamp-drawn-once
 
-<!-- specs/1792363231-a-local-mode-work-item-draws-no-stamp -->
 **A `sealed` refused because its audited commit is not on the branch leaves
 a refusal record in the clone that refused it, and the earlier-run chain
 skips a `sealed` this clone recorded, so the sealer's new audit draws the
@@ -377,7 +373,6 @@ refused when its row was edited still holds the work item's stamp, and its
 repair draws nothing.
 check: refused-sealed-leaves-a-record
 
-<!-- specs/1790913304-the-seal-stamp-is-a-letter-with-the-seal-on-its-corner -->
 **The hook holds its whole message under a budget named in the code, and
 steps the drawing down rather than letting the harness persist it.** The
 harness writes a `Stop` hook's `systemMessage` longer than 10,000 characters
@@ -400,10 +395,6 @@ leaves it for `seal-stamp --from`. `seal-stamp` is not budgeted, because it
 is no hook's message.
 check: tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py
 
-<!-- specs/1790913304-the-seal-stamp-is-a-letter-with-the-seal-on-its-corner -->
-<!-- specs/1790562543-the-stamp-reaches-the-person-it-is-drawn-for -->
-<!-- specs/1792311781-the-stamp-is-drawn-from-the-sealers-verdict -->
-<!-- specs/1792363231-a-local-mode-work-item-draws-no-stamp -->
 **What the person's screen shows is not checked, and neither is the order of
 the text above it.** The cases prove that the hook emits the right bytes for
 the right payload. A screenshot of the probe proved once that such bytes

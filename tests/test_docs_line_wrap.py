@@ -34,7 +34,6 @@ the thing with value.
 import fnmatch
 import importlib.util
 import os
-import re
 import unicodedata
 
 import pytest
@@ -42,13 +41,6 @@ import pytest
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 
 LIMIT = 88
-
-# Spelled the way `skills/verify/scripts/unverified_check.py#FOLD_MARKER`
-# spells it, because what this skips has to be exactly what that reads: a
-# line this skipped and the reader did not would be an unwrapped line nobody
-# checks, and a line the reader accepted and this did not is the wrap limit
-# refusing a fold record.
-FOLD_MARKER = re.compile(r"<!-- specs/\S+ -->")
 
 
 def _rules():
@@ -178,9 +170,7 @@ COVERED = [
     # so the limit is doing visible work here rather than tidying a source.
     ".github/PULL_REQUEST_TEMPLATE.md",
     # The policy documents the first fold wrote. Each was written wrapped,
-    # so each goes in at birth with no sweep to owe — and each is a document
-    # a work item's spec was folded INTO, which is what puts the fold marker
-    # above in the way of the limit.
+    # so each goes in at birth with no sweep to owe.
     "docs/the-broad-gate.md",
     "docs/measuring-a-run.md",
     "docs/the-agent-set.md",
@@ -208,8 +198,7 @@ def prose_lines(text, rule_file=False):
 
     Skipped: YAML frontmatter, fenced code, table rows, images and block
     quotes (all wrap on their own terms or not at all), any line carrying a
-    URL, which cannot be broken, a fold marker, which cannot be broken
-    either, and a check line.
+    URL, which cannot be broken, and a check line.
 
     **A check line is not prose either.** Its reader reads one line, so a
     wrapped one is a broken target or a reader cut short, and two test paths
@@ -217,19 +206,6 @@ def prose_lines(text, rule_file=False):
     `rules.py#check_lines` finds in a RULE_FILE and `rules.py#parse` reads,
     and no others, so a line it refuses, and every line outside a rule file,
     are still held here.
-
-    **A fold marker is not prose.** `<!-- specs/<work-item-id> -->` is the
-    record `settle` reads to know a work item's spec was absorbed by a policy
-    document, and the reader matches it whole:
-    `^<!-- specs/(\\S+) -->$`. Wrapping it makes it stop being a fold record,
-    so the retirement refuses the directory it covers — the line is fixed at
-    the length of the id it names, and the id is
-    `<unix-epoch-seconds>-<slug>` with nothing bounding the slug.
-
-    Measured when the first fold landed: of 88 markers, one reached 89
-    columns and the rest fit. So this is not a limit somebody can stay under
-    by choosing shorter words in the document — it is decided by a directory
-    name chosen months earlier, in another work item, by whoever opened it.
     """
     lines = text.splitlines()
     enforced = set()
@@ -251,10 +227,6 @@ def prose_lines(text, rule_file=False):
             continue
         if "http://" in line or "https://" in line:
             continue
-        # The raw line, not `stripped`: the reader anchors the marker at
-        # column 0 with nothing after it, so an indented one is no fold record.
-        if FOLD_MARKER.fullmatch(line):
-            continue
         if number in enforced:
             continue
         yield number, line
@@ -273,40 +245,6 @@ def test_prose_stays_within_the_wrap_limit(relative):
         f"{relative}:{number} is {width} columns (limit {LIMIT})"
         for number, width in over
     )
-
-
-def test_a_fold_marker_is_skipped_and_the_line_beside_it_is_not():
-    """The skip is exactly one line wide.
-
-    A marker cannot be wrapped without ceasing to be a fold record, so it is
-    skipped; everything else in the file is still prose. The pair matters
-    because a skip written one line too wide would take the folded sentence
-    with it, and a folded sentence is the prose this limit exists for.
-    """
-    marker = "<!-- specs/1789969379-a-conflict-resolved-by-side-reverts-the-other-sides-corrections -->"
-    assert display_width(marker) > LIMIT, (
-        "the marker this case is about now fits, so it proves nothing — pick "
-        "a longer work item id"
-    )
-    over_long_prose = "word " * 30
-    numbers = [n for n, _line in prose_lines(f"{marker}\n{over_long_prose}\n")]
-    assert numbers == [2], (
-        f"the marker is line 1 and the prose is line 2; prose_lines yielded {numbers}"
-    )
-
-
-def test_a_marker_that_is_not_on_a_line_of_its_own_is_still_prose():
-    """A marker quoted inside a sentence is a description, not a marker —
-    the same rule `unverified_check.py#FOLD_MARKER` reads it by — so the
-    sentence carrying it wraps like any other."""
-    line = "The comment " + "<!-- specs/x -->" + " is what records a fold, " * 4
-    assert display_width(line) > LIMIT
-    assert [n for n, _ in prose_lines(line + "\n")] == [1]
-    # Nor is an indented one: the reader matches the raw line from column 0,
-    # so a skip that stripped first would pass a line nobody reads as a fold.
-    indented = "  <!-- specs/" + "an-indented-marker-" * 5 + " -->"
-    assert display_width(indented) > LIMIT
-    assert [n for n, _ in prose_lines(indented + "\n")] == [1]
 
 
 def test_the_check_can_fail():

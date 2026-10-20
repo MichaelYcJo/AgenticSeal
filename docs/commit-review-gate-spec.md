@@ -32,7 +32,6 @@ that was overruled still has something the user needs to read. A gate that
 raises is skipped and the rest of the group still decides — a crashing gate
 must not block a tool call.
 
-<!-- specs/1790635415-a-gate-that-fails-to-load-says-so -->
 **A gate that fails is said once per session, at the end of the main
 session's turn, and the call it failed on still goes ahead.** A failure is an
 exception while loading the gate's file, a `SystemExit` included, or an
@@ -94,7 +93,6 @@ that the model never sees, and declining is a bare "No".
 
 ### Which repository, and what happens when it cannot be read
 
-<!-- specs/1788305134-the-reader-stops-where-it-need-not -->
 **The repository judged is the one the command commits *into*, not the one the
 shell sits in.** `git -C <path> commit` moves git without moving the shell, so
 the directory comes from the command and falls back to `cwd` only when the
@@ -170,7 +168,6 @@ waiver typed in front, which splits, and the git hooks read `git -c
 specseal.waive=review` with no text read at all.
 check: executed-text-is-read
 
-<!-- specs/1788184145-the-gate-stops-the-session-editing-its-tests -->
 **A file edit goes through the `Edit` tool, because a shell command that only
 edits a file is still a command line this gate reads.** Dropping a heredoc
 body from the walk decides where a commit lands; whether the command commits
@@ -218,7 +215,6 @@ substitution closes, and four review passes of #760 found that reader
 disagreeing with the shell each time, with a commit that went unread.
 check: one-heredoc-shape-is-data
 
-<!-- specs/1788305134-the-reader-stops-where-it-need-not -->
 
 **A failure branch waits for the operator that runs it.** `cd X && make \|\|
 git commit` commits where the shell is when the `cd` fails, and that is the
@@ -580,7 +576,6 @@ still costs one interruption.
 
 ## implementer-mark · implementer-notice (PreToolUse Agent|Task · PostToolUse Bash)
 
-<!-- specs/1788310269-the-implementer-leaves-a-mark -->
 **A `framer` or `smith` spawn leaves a mark, and a commit on a branch whose
 declaration names that agent, with no mark standing, gets one line saying so.**
 The routing declaration has two axes that name an agent — `Planning`, who

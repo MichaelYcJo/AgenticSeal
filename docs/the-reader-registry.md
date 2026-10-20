@@ -6,7 +6,6 @@ This document is the standing account of that rule and what holds it.
 
 ## A frame names what its work removes
 
-<!-- specs/1791384152-a-reader-declares-its-input-class -->
 **A `spec.md`'s `## Removes` section lists what the work takes out of the
 tree, and the review reads it against the diff.** Each row names the thing,
 the coordinate it stood at, and where it lands or why it can go. A work item

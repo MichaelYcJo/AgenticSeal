@@ -307,15 +307,14 @@ def test_the_fixed_name_sentence_sits_beside_it():
 def release_tail_rule():
     """The standing statement the second fold wrote for this work item.
 
-    From its fold marker in §*Cutting a release* to the next `###` heading, so
-    the third-reader paragraph further down, which carries the same marker,
-    is not read as part of it.
+    From its opening in §*Cutting a release* to the next `###` heading, so
+    the third-reader paragraph further down is not read as part of it.
     """
     text = read(BRANCHING)
-    marker = (
-        "<!-- specs/1790076050-the-release-tail-is-three-acts-no-document-names -->"
+    start = text.index(
+        "**Every act the release performs once it reaches `main` belongs to a "
+        "machine or\nto a command that answers it"
     )
-    start = text.index(marker) + len(marker)
     rest = text[start:]
     return flat(rest[: rest.index("### Work accumulates on a release branch")])
 

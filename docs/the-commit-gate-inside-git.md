@@ -15,7 +15,6 @@ Update spec and code together.
 
 ## The commit gate inside git (pre-commit · reference-transaction · post-commit)
 
-<!-- specs/1790815613-a-gate-decides-at-the-moment-of-the-action-not-from-the-text -->
 **In a clone carrying this plugin's git hooks, a commit is judged inside the
 commit, in the worktree it lands in, and the command's text is an input to
 nothing.**
@@ -32,7 +31,6 @@ real commit kept, 37/44 real commits the release base missed now judged, and
 the recorded run's commits into a declared worktree among them.
 check: judged-inside-the-commit
 
-<!-- specs/1790815613-a-gate-decides-at-the-moment-of-the-action-not-from-the-text -->
 **The hooks are stubs that `hooks/hook-install.py` writes, and a hooks slot
 somebody else holds is never written over.**
 The installer runs at session start and first in every Bash call's `pre-bash`
@@ -50,7 +48,6 @@ once (`questions.md` P1, answer (a)). A clone that does not opt in gets
 nothing and loses the stubs it had.
 check: tests/test_the_hooks_are_installed_where_git_runs_them.py
 
-<!-- specs/1790815613-a-gate-decides-at-the-moment-of-the-action-not-from-the-text -->
 **A commit with no Claude session behind it is a person's own, and is not
 judged.**
 The session comes from `CLAUDE_CODE_SESSION_ID`, the one session variable the
@@ -72,7 +69,6 @@ wherever no lease file stands in the clone. `hooks/hooksession.py` holds the
 two routes and the names they read.
 check: a-persons-own-commit
 
-<!-- specs/1790815613-a-gate-decides-at-the-moment-of-the-action-not-from-the-text -->
 **The arms, the marks and the declaration are the ones
 `docs/the-review-and-parity-arms.md` states, asked of
 `hooks/gate.py#arms_missing`; what changes is how a stop is put.**
@@ -97,7 +93,6 @@ moment is its own command and is judged, and another agent's call starting or
 ending leaves the answer alone.
 check: how-a-stop-is-put
 
-<!-- specs/1792363231-a-local-mode-work-item-draws-no-stamp -->
 **Beside the arms, `pre-commit` refuses a commit that stages a work item's
 `sealed` over a commit its own history does not hold, and records the
 refusal; it is no arm.** Where no arm is missing,
@@ -131,7 +126,6 @@ still at that commit and cannot tell an amend from a plain commit, and the
 pull request's check refuses the landed row as stale.
 check: sealed-off-the-branch-refused
 
-<!-- specs/1790815613-a-gate-decides-at-the-moment-of-the-action-not-from-the-text -->
 **`--no-verify` is met where the branch moves, and nothing else that moves a
 branch is.**
 `--no-verify` skips `pre-commit` and nothing after it, so
@@ -148,7 +142,6 @@ A person who exports `GIT_AUTHOR_DATE` around a rebase makes it look like a
 commit, and it meets the refusal: the fail direction is a stop.
 check: no-verify-met-where-the-branch-moves
 
-<!-- specs/1790815613-a-gate-decides-at-the-moment-of-the-action-not-from-the-text -->
 **A commit git makes for its own rebase, cherry-pick or revert is not judged;
 a commit a shell starts while one is paused is.**
 A rebase, cherry-pick or revert that stopped on a conflict, and a reword,
@@ -171,7 +164,6 @@ second through (round 2 of #692, executed). A merge with no conflict makes
 its commit without `pre-commit` or the author date, and is not judged.
 check: gits-own-commits-not-judged
 
-<!-- specs/1790815613-a-gate-decides-at-the-moment-of-the-action-not-from-the-text -->
 **Where git decides, the PreToolUse reading of
 `docs/commit-review-gate-spec.md` §*commit-review-gate (PreToolUse, Bash)*
 stands aside; in a clone where it cannot, the commit is judged as 0.16.0
@@ -201,7 +193,6 @@ delimiter); and none of the words `hooks/tokens.py#steps_around_hooks`
 reads appears. A misread costs the one judgment 0.16.0 made.
 check: text-reading-stands-aside
 
-<!-- specs/1790815613-a-gate-decides-at-the-moment-of-the-action-not-from-the-text -->
 **The convergence argument is claimed for commits alone.**
 No git refuses a branch switch before its tree has moved: on 2.34–2.43 a
 switch reaches `reference-transaction` with no line at all, and on 2.50.1 the

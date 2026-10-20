@@ -17,7 +17,6 @@ differ, both are given.
 
 ## The change in four lines
 
-<!-- specs/1788331011-two-roots-hold-three-lifetimes -->
 **After this change one root the plugin owns holds everything, sorted by how
 long it lives.** Today two committed roots hold files that live for three
 different lengths of time, and neither root sorts by that. `specs/<id>/`
@@ -241,7 +240,6 @@ places the `settle` item corrects.
 
 ## The opt-in signal is the root itself, wherever the mode put it
 
-<!-- specs/1788817289-local-mode-from-first-setup-to-the-gate -->
 **A repository is opted in when `seal/` exists at its mode's location**:
 `<repo>/seal/` in shared mode, `.git/seal/` in local mode. The hooks look at
 the two places in that order; whichever exists says both "on" and which
@@ -280,7 +278,6 @@ check: tests/test_optin_home.py
 
 ## What first setup asks
 
-<!-- specs/1788354065-the-tree-that-must-stay-clean-has-no-way-to-opt-in -->
 **The one moment this project allows a question is first setup.** The thread
 proposed two questions there, the mode and the retention; retention went
 away with the `settle` rule, so one remains.
@@ -301,8 +298,6 @@ check: tests/test_first_setup_asks_once.py
 
 ### Shared or local
 
-<!-- specs/1788411058-the-mode-is-two-shell-lines-in-a-readme -->
-<!-- specs/1788398967-local-modes-records-never-leave-the-clone -->
 **The question is not "commit the folder or not" but "do CI and collaborators
 see this workflow".** Which answer fits is mostly decided by whose repository
 it is.
@@ -540,7 +535,6 @@ per item, read by the checkers and editable by hand. The rows that exist are
 documented in `templates/config.md`, and an absent row has a default that is
 stated there rather than left to whoever reads the code.
 
-<!-- specs/1788420761-the-settings-live-in-a-file-nobody-opens -->
 **A setting nobody can find is a setting nobody has.** Every row is reachable
 from a command that shows the whole file and routes a change, because first
 setup asks its questions in one batch and never asks again — and the rows
@@ -552,7 +546,6 @@ mutation-tested the way a script can, and that is what decides where the line
 runs.
 check: tests/test_the_settings_have_a_front_door.py
 
-<!-- specs/1788360817-the-pull-request-language-is-fixed-inside-a-skill -->
 **What language this plugin writes in is the repository's answer, not the
 plugin's.** A skill that requires English of everyone is a decision made in a
 file nobody who disagrees with it can edit, so the language lives in a config
@@ -560,7 +553,6 @@ row, and the mirror file a translated pull-request body goes in is named for
 the language it holds rather than for one language.
 check: tests/test_the_pull_request_language_is_the_repositorys.py
 
-<!-- specs/1788420760-a-language-row-that-governs-four-things -->
 **Two rows, because one cannot express the middle answer.** The combinations
 people actually want are three: everything English; the commits and pull
 requests in the team's language with the documents in English; or both in it.
@@ -579,7 +571,6 @@ A translated field name is not a translation; it is a checker that stops
 reading.
 check: tests/test_the_pull_request_language_is_the_repositorys.py
 
-<!-- specs/1789598366-a-piped-broad-gate-row-takes-every-config-row-below-it -->
 **A cell may carry an escaped pipe, and one line that will not parse is named
 rather than treated as the end of the table.** A value like a shell command
 with a pipe in it is ordinary content, and a reader that stopped at it
@@ -589,7 +580,6 @@ which line is a given row is what turns one edit into a duplicate row in a
 person's file.
 check: tests/test_the_mode_question_is_asked_once.py
 
-<!-- specs/1788789329-a-git-call-that-fails-reads-as-no-remote -->
 **A git call that fails is not a git call that answered "nothing".** Empty
 output because a thing is absent and empty output because the question could
 not be asked are different facts, and a caller that cannot tell them apart

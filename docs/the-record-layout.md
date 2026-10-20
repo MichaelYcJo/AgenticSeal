@@ -63,7 +63,6 @@ check: none reader: the next round's warden and the sealer
 The procedure is `skills/settle/SKILL.md`. This section holds the rules its
 readers share.
 
-<!-- specs/1790039346-settle-reads-a-marker-inside-a-commented-out-draft -->
 **A removed work item directory is a settle, not a deletion, when replaying
 it gives what the tree holds.** Each directory a pull request removes whole
 is judged as it stood at the merge base: nothing in its record open, and
@@ -79,8 +78,6 @@ in the same pull request passes. One predicate,
 mistake.
 check: a-settle-is-no-deletion
 
-<!-- specs/1790076070-the-fold-ships-and-the-corpus-is-still-on-disk -->
-<!-- specs/1790138190-settle-leaves-twelve-directories-with-no-way-out -->
 **A released work item that wrote no `spec.md` states no rule, and it is
 retired by that rule, with no marker.** Such an item was below the SDD
 ladder: a release entry, a renumbering, a CI repair, a pull request's record.
@@ -103,7 +100,6 @@ condition is a judgment the repository owner may overturn. An item that did
 write a `spec.md` leaves when `settle --apply` applies its rule changes.
 check: tests/test_settle_reads_before_it_removes.py
 
-<!-- specs/1790027178-a-shipped-spec-waits-for-a-settle-that-was-never-built -->
 **A released spec's rule changes are applied to `docs/` in place, and its
 directory goes with them, never before.** `settle --apply` replays each
 released spec's `## Rule changes` in merge order, writes what applies, and
@@ -113,7 +109,6 @@ reviewed, so applying it judges nothing, and no sentence is written by hand.
 No marker is written.
 check: tests/test_settle_applies_rule_changes_in_place.py tests/test_settle_reads_before_it_removes.py
 
-<!-- specs/1790138190-settle-leaves-twelve-directories-with-no-way-out -->
 **A settle is not a work item.** It opens no directory under `seal/specs/`.
 Its commits are waived one command at a time and what it applied is reviewed
 at its pull request (#517). What it leaves already has a home, the pull
@@ -123,8 +118,6 @@ would never end; `skills/settle/SKILL.md` §*A settle is not a work item* is
 the procedure.
 check: tests/test_settle_reads_before_it_removes.py
 
-<!-- specs/1790076070-the-fold-ships-and-the-corpus-is-still-on-disk -->
-<!-- specs/1790119502-four-shipped-work-items-wait-unfolded -->
 **A population floor over the records is replaced, never lowered.** A check
 asserting that a sweep of `seal/specs/` read *enough* — `len(records) > 200` —
 is answering *did the walk read anything* with a literal that stops being true
@@ -137,16 +130,13 @@ a lowering. `skills/settle/SKILL.md` §*Answer every check that reads the
 corpus* gives the three answers.
 check: tests/test_settle_reads_before_it_removes.py
 
-<!-- specs/1790154761-folded-statements-pile-into-one-spec -->
-**A fold into a document with a `.ko.md` edition is a fold into both, under
-the same heading position.** The two editions are prose in two languages, so
-the check compares what is language-neutral: the sequence of heading levels,
-and the fold-marker ids under each heading position. Whether a Korean
-paragraph says what its English one says is review's to read.
-`CONTRIBUTING.md` §*House rules* owns the rule.
+**A document with a `.ko.md` edition changes with it, heading for heading.**
+The two editions are prose in two languages, so the check compares what is
+language-neutral: the sequence of heading levels. Whether a Korean paragraph
+says what its English one says is review's to read. `CONTRIBUTING.md` *House
+rules* owns the rule.
 check: tests/test_both_editions_carry_the_same_folds.py
 
-<!-- specs/1791852615-whether-a-ledger-line-is-live-has-seven-rules -->
 **Whether a line is live is asked by what the line does, and the four
 readers that ask it give three answers.** These are all four readers, grouped
 by the kind of line they read, with the cost each answer is chosen against.
@@ -160,7 +150,7 @@ check: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py tests
   The wrong answer is loud instead: `BROKEN`, a refused name or exit 2, and a
   person answers it with an edit or a marker.
   check: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py
-- **A line that EXCUSES or DECLARES something — a fold marker, a
+- **A line that EXCUSES or DECLARES something — a changelog marker, a
   `seal/config.md` row, a `routing.md` row — is not taken on doubt, except
   where a declaring reader keeps an older reading that took it.**
   `unverified_check.py#live_lines` parks a line inside any fence or comment,
@@ -188,12 +178,11 @@ check: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py tests
   rather than read it as empty.
   check: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py
 
-No one rule serves all three kinds. The holding bias would let a fold marker
-quoted in an example bind a statement nobody wrote, and the excusing bias
+No one rule serves all three kinds. The holding bias would let a changelog
+marker quoted in an example stand for an entry nobody gathered, and the excusing bias
 would drop a parked row without a word. A reader of a new kind of line is a
 fourth answer, and it is argued against these three.
 
-<!-- specs/1790138190-settle-leaves-twelve-directories-with-no-way-out -->
 **A `seal/` root with no work item under it is the state a complete fold ends
 in, and it reads as settled, never as unusable.** Git keeps no empty
 directory, so the state is two: the tree that ran `settle --apply` holds an
@@ -205,16 +194,8 @@ included. Only that one path is settled; any other missing path is still
 refused, which keeps a misspelt path from passing in silence.
 check: an-empty-root-is-settled
 
-<!-- specs/1790076070-the-fold-ships-and-the-corpus-is-still-on-disk -->
-**A fold marker on a line of its own is exempt from the wrap limit.** The
-marker is matched whole, so wrapping a long work item id stops it being a fold
-record, and `tests/test_docs_line_wrap.py` skips a line that is exactly one
-marker rather than asking a document to choose between the two.
-check: tests/test_docs_line_wrap.py
-
 ## The unverified record, and the baseline it is read against
 
-<!-- specs/1788873600-the-baseline-is-the-moving-pull-request-base -->
 **A baseline reference is resolved once, to a merge base, and every arm reads
 that commit.** A branch name is not a commit: it moves while the pull request
 is open, so two arms reading it a second apart can compare against two

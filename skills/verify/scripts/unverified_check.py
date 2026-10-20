@@ -87,13 +87,6 @@ SEPARATOR = re.compile(r"^:?-+:?$")
 # What a `## Rule changes` section says when it states nothing, with its
 # reason after the em dash (U+2014). `rule_changes.py` reads it here.
 NOTHING = "nothing — "
-# The provenance marker the appending fold wrote above each statement it put
-# in `docs/`. `tests/test_both_editions_carry_the_same_folds.py` reads it
-# until #941 removes the markers; no removal is judged by it. Line-anchored, because
-# documents quote its shape inline, and read on live lines only
-# (`live_lines`), because one quoted in a fence or a parked draft is not one.
-# `readable()` would erase it: it blanks HTML comments, and the marker is one.
-FOLD_MARKER = re.compile(r"^<!-- specs/(\S+) -->$", re.M)
 # The two delimiters of an HTML comment. `live_lines` scans for them directly:
 # it holds the comment state itself, so neither is looked for while it is
 # inside a fence or a code span, and nothing blanks either one out of the text.
@@ -112,7 +105,7 @@ BACKTICKS = re.compile(r"`+")
 # continuation line inside an open paragraph. Reading one as a delimiter does
 # not merely park lines — it INVERTS the fence state for the rest of the file,
 # so a real fenced block's content reads live and its delimiters read as
-# content, and a fold marker quoted inside a fenced example reads live
+# content, and a marker quoted inside a fenced example reads live
 # (round 6, finding 1). `blank_fences` used to keep an
 # unbounded spelling of its own, and #491 is what that cost: the bound had
 # landed here and not one function over in the same file.
@@ -217,7 +210,7 @@ def comment_scan(lines):
     out of the same walk and a second copy of the walk is what
     `check_text`'s docstring spent three review rounds undoing. `strip_comments`
     wants the text; `opens_outside_a_comment` wants the state the line STARTED
-    in, which the text cannot answer — a fold marker IS a comment, so a
+    in, which the text cannot answer — a changelog marker IS a comment, so a
     genuine one and one sitting inside a commented-out draft both come back
     with nothing kept.
     """
@@ -355,7 +348,7 @@ def fence_spans(lines):
 
     **An unclosed block is reported, not decided.** `blank_fences` blanks it
     to the end, because a gate reading a record treats it as quoted. A reader of a
-    line that HOLDS something — a fold marker, an open row — reads it,
+    line that HOLDS something — a changelog marker, an open row — reads it,
     because only a block that closes is certainly a quotation
     (`docs/the-record-layout.md`'s *A marker counts only on a live line*).
     """
@@ -648,10 +641,10 @@ def live_lines(lines):
     delimiter is a delimiter. A fence is decided before the rest of its line,
     then whichever of a comment opener and a backtick run comes first wins.
     Reference definitions, link destinations, raw HTML blocks and entity
-    references are not modelled and none can hold a fold marker on a line of
-    its own. Markdown's indented code block is the one deliberate omission
-    with a shape that could, and `FOLD_MARKER` is line-anchored, so a marker
-    indented four spaces is not read as one.
+    references are not modelled and none can hold a changelog marker on a
+    line of its own. Markdown's indented code block is the one deliberate
+    omission with a shape that could, and the gather's marker pattern is
+    line-anchored, so a marker indented four spaces is not read as one.
 
     **What this may not touch.** `comment_scan`, `strip_comments`,
     `blank_fences` and `readable` serve the other gates — `check_text` and

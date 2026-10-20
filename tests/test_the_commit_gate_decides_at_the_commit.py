@@ -1916,17 +1916,15 @@ def test_the_policy_names_the_one_session_reader():
 def test_the_policy_states_the_guarantee_refusal_beside_the_arms():
     """§14 of the agent contract, for `spec.md` S7 and S11-S13 of work item
     1792363231. `docs/the-commit-gate-inside-git.md` states the refusal of a
-    `sealed` the history does not hold under that item's marker, beside the
-    arms and as no arm: what it reads and from where, the record it writes,
+    `sealed` the history does not hold, beside the arms and as no arm: what it reads and from where, the record it writes,
     the one way on, what it does not judge, and where it does not run; and
     its latency bullet carries phase 6's figures. Red against 2759a60d's
     text, which named no such refusal."""
     path = Path(__file__).resolve().parent.parent / "docs"
     raw = (path / "the-commit-gate-inside-git.md").read_text(encoding="utf-8")
     text = " ".join(raw.split())
-    marker = "<!-- specs/1792363231-a-local-mode-work-item-draws-no-stamp -->"
-    assert marker in raw
-    rule = text.split(marker, 1)[1].split("<!--", 1)[0]
+    opening = "**Beside the arms, `pre-commit` refuses a commit"
+    rule = opening + text.split(opening, 1)[1].split("**`--no-verify` is met", 1)[0]
     for sentence in (
         "**Beside the arms, `pre-commit` refuses a commit that stages a work "
         "item's `sealed` over a commit its own history does not hold, and "
