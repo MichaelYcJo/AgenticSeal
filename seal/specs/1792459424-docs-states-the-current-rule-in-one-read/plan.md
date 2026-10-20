@@ -111,7 +111,7 @@ from its test; the test's docstring is the rule's source, and `bin/rules
 | 6 | Review and records: `docs/the-review-record.md`, `docs/the-record-layout.md`, `docs/the-reader-registry.md`, `docs/the-agent-set.md`; its backlog | the six of phase 4 | 813031e9 |
 | 7 | Release and tracker: `docs/branch-and-release.md`, `docs/release-checklist.md`, `docs/issues-and-milestones.md`; its backlog | the six of phase 4 | d8ad9cbd |
 | 8 | Runs, broad gate, pact: `docs/measuring-a-run.md`, `docs/the-broad-gate.md`, `docs/the-pact.md`; its backlog | the six of phase 4 | 71ca8949 |
-| 9 | One root: `docs/one-root-by-lifetime.md` and `.ko.md` rewritten to what still rules, split if still past 25000; every backlog spec no group took; the 8 directories removed, each check that reads `seal/specs` answered; `docs/README.md`'s rows final | the six of phase 4; S13's two `--baseline` runs; S15; S11 over all 117; S16's `wc -c` at ac83bdf3 and here | |
+| 9 | One root: `docs/one-root-by-lifetime.md` and `.ko.md` rewritten to what still rules, split if still past 25000; every backlog spec no group took; the 8 directories removed, each check that reads `seal/specs` answered; `docs/README.md`'s rows final | the six of phase 4; S13's two `--baseline` runs; S15; S11 over all 117; S16's `wc -c` at ac83bdf3 and here | 63e088b3 |
 
 This table is also where the work records how far it got. There is no separate
 task list: a list of tasks is mutable progress, and a stale one asserts a state
