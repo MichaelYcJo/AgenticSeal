@@ -17,13 +17,15 @@
   field `why:` replaces `nothing — <why>`. `settle` refuses every other
   spelling of a no-change line at its line, naming the block, and the block
   stands alone in its section.
-- **The commit gate's and the worktree guard's documents state the current
-  rule once (#941).** `docs/commit-review-gate-spec.md`,
-  `docs/the-commit-gate-inside-git.md`, `docs/the-review-and-parity-arms.md`
-  and `docs/worktree-guard-spec.md` keep each rule, its grounds and its
-  `check:` line, and drop the history and the readers' mechanics, which the
-  cases named on those lines hold. The guard's document fits one read and is
-  not split. Headings that carried a dash, a middle dot, a pipe or an issue
+- **The commit gate's, the worktree guard's, the review record's and the
+  agents' documents state the current rule once (#941).**
+  `docs/commit-review-gate-spec.md`, `docs/the-commit-gate-inside-git.md`,
+  `docs/the-review-and-parity-arms.md`, `docs/worktree-guard-spec.md`,
+  `docs/the-review-record.md`, `docs/the-record-layout.md` and
+  `docs/the-agent-set.md` keep each rule, its grounds and its `check:` line,
+  and drop the history, the issue numbers, the section signs and the readers'
+  mechanics, which the cases named on those lines hold. The guard's document
+  fits one read and is not split. Headings that carried a dash, a middle dot, a pipe or an issue
   number are renamed: *Registration*, *The PreToolUse reading of a commit*,
   *Which repository*, *The implementer mark and notice*, *The commit gate
   inside git*, *Review arm*, *Parity arm*, *Creation consent*, *Decided
