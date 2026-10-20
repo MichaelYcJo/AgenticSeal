@@ -453,7 +453,7 @@ def test_two_specs_on_parallel_branches_at_one_place_are_a_conflict(repo, capfd)
     git(repo, "switch", "-q", "main")
     git(repo, "merge", "-q", "--no-ff", "-m", "one", "one")
     git(repo, "merge", "-q", "--no-ff", "-m", "two", "two")
-    code, text = dry_run(repo, capfd)
+    _, text = dry_run(repo, capfd)
     refused = text.split("refused")[1]
     for name in ("1700000001-a", "1700000002-b"):
         assert name in refused, text

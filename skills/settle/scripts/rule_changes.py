@@ -244,7 +244,7 @@ def apply_op(text, op):
         tail = lines[q:own] + lines[own:]
         rule = nl.join(op.new.split("\n")) + nl
         gap = [nl] if own < len(lines) and not lines[q:own] else []
-        return "".join(head + [nl, rule] + gap + tail), None
+        return "".join([*head, nl, rule, *gap, *tail]), None
 
     offset = len("".join(lines[: h + 1]))
     region = "".join(lines[h + 1 : end])
