@@ -231,6 +231,18 @@ def test_the_routing_question_is_refused_where_no_transcript_can_be_read(repo):
     )
 
 
+def test_the_press_reader_reads_nothing_for_a_root_that_is_no_clone(tmp_path):
+    """The gate's `top` is always a clone, so this is the reader's own half:
+    a transcript it cannot place is unread, never "not answered"."""
+    consent = load_hook_module("worktree_consent.py", "consent_for_question_gate")
+    write_the_transcript(tmp_path / "cwd")
+    path = payload(tmp_path / "cwd")["transcript_path"]
+    nowhere = tmp_path / "no-repository"
+    nowhere.mkdir()
+    answer = consent.last_routing_answer(str(nowhere), SESSION, path)
+    assert answer is consent.UNREAD, answer
+
+
 def test_the_routing_question_with_company_is_refused(repo):
     declare(repo)
     for questions in (
