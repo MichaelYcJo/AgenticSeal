@@ -195,8 +195,7 @@ name at least one shipped path that no longer exists.
 ## Rule changes
 
 - nothing
-  why: this item rewrites docs/ in its own diff, as the issue lists, so
-  nothing is left for a later settle to apply.
+  why: this item rewrites docs/ in its own diff, so nothing is left to apply.
 
 ## Removes
 
