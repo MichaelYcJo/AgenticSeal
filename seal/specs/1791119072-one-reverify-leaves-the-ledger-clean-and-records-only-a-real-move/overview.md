@@ -27,7 +27,7 @@ A pact change recorded a move from a hash to itself, one unfrozen `--reverify` l
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository lint and the typecheck at this branch's head | the sealer, after the review rounds settle |
+| closed The full suite, the repository lint and the typecheck at this branch's head | #786, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
 
 ## Not done
 

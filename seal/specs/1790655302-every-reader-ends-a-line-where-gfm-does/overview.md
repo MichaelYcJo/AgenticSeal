@@ -30,8 +30,8 @@ outside work item F's files ends a line where GFM, `ast` and git do.
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the typecheck over this branch | the sealer, once the review rounds settle |
-| CI's Linux and Windows legs over the new cases, the U+2028 fixtures and the `awk`-shaped `claude_block.py` case included | the pull request's CI run |
+| closed The full suite, the repository-wide lint and the typecheck over this branch | #675, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
+| closed CI's Linux and Windows legs over the new cases, the U+2028 fixtures and the `awk`-shaped `claude_block.py` case included | #997's `ubuntu-latest` and `windows-latest` legs ran the suite green |
 
 ## Not done
 

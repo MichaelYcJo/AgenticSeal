@@ -235,6 +235,12 @@ that range and are out.
   coordinate now says the `@` must follow the `#`, and that 0.15.5's entry
   left that condition out.
 
+## Rule changes
+
+- nothing
+  why: overturned: evidence-check's rule, gone with the ledger (5b1f6fae); internal: the
+    comments it corrected.
+
 ## Open questions → questions.md
 
 None needs a person, and none blocks the build. `questions.md` holds two

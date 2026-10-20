@@ -24,8 +24,8 @@ fragment along.
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the typecheck | the sealer, once, after the rounds settle (contract §2) |
-| The notice as GitHub renders it in a pull request's annotations | this item's own CI run — `round-record` on the PATH is the installed 0.18.2 and has no arm, so the orchestrator sees it only in CI or by running the tree's `round_record.py` |
+| closed The full suite, the repository-wide lint and the typecheck | #802, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
+| closed The notice as GitHub renders it in a pull request's annotations | its subject left the tree: 8350c578 (#959) removed `round_record.py` and its notice |
 
 ## Not done
 

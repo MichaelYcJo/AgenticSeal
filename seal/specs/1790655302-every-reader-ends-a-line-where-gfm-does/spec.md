@@ -213,6 +213,12 @@ reads bytes and keeps a lone CR, which `gfm_lines` ends a line at, as
 `splitlines` did. Only macOS runs this item's cases. Linux is CI's, and
 nobody runs Windows here.
 
+## Rule changes
+
+- nothing
+  why: internal: every reader ends a line where GFM does, held by
+    tests/test_every_reader_ends_a_line_where_gfm_does.py.
+
 ## Open questions → questions.md
 
 No row needs a person. Three rows are for a measurement or the work, and the

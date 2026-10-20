@@ -286,6 +286,12 @@ here claims it either way.
 - **Changelog.** One fragment,
   `seal/specs/1790381329-the-deferred-sentences-and-pins/changelog.md`.
 
+## Rule changes
+
+- nothing
+  why: internal: two scripts that exit 2 copied alone and five sentences corrected where
+    they stand, each held by its tests.
+
 ## Open questions → questions.md
 
 None blocks the build and none needs a person. `questions.md` holds two

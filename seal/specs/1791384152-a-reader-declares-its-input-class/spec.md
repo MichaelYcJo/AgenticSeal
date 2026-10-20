@@ -505,6 +505,12 @@ The document and the rules' statement:
   whoever writes or changes a population unit or a reading module body, and
   by #834's backfill.
 
+## Rule changes
+
+- nothing
+  why: written: a frame names what its work removes, in docs/the-reader-registry.md;
+    overturned: the units' input-class lines, taken out at af9c924b.
+
 ## Removes
 
 | Removes | Coordinate | Where it lands, or why it can go |

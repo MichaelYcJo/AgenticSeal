@@ -226,6 +226,12 @@ commits as the code (§14):
   `evidence_check.py` is the authority on the full list (read 2026-09-25 by
   `grep`; not executed).
 
+## Rule changes
+
+- nothing
+  why: overturned: the check it changed was rewritten at 8350c578; what stands is in
+    docs/the-review-record.md *What the check reads at the pull request*.
+
 ## Open questions → questions.md
 
 None of them blocks the build. `questions.md` lists at its head what the tree

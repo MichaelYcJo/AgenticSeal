@@ -47,6 +47,10 @@ of each finding it answers, the orchestrator's broad run writes
 `docs/the-review-record.md` holds what each of those files carries.
 check: tests/test_chain_check.py
 
+No case runs the scribe. That a spawn opens `legacy-parity` first, returns
+facts and no verdict, and returns `original not found` where the original
+does not resolve is read from `agents/scribe.md`, not observed.
+
 **The last party audits the others, and is independent of them.** The
 sealer's reference is the issue body and the tree, so a pull request body, a
 phase record or a review verdict that says what the tree does not is caught

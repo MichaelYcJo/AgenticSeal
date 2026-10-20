@@ -272,6 +272,12 @@ no `<repo>/seal/` and a root at `<git-common-dir>/seal/`, holding
   the local writer writes it at its branch refusal where the branch stands,
   and its own chain refusal asks it (S14).
 
+## Rule changes
+
+- nothing
+  why: written: the local-mode stamp, in docs/the-review-record.md *The stamp*, and the
+    refusal of a sealed off the branch, in docs/the-commit-gate-inside-git.md.
+
 ## Removes
 
 | Removes | Coordinate | Where it lands, or why it can go |

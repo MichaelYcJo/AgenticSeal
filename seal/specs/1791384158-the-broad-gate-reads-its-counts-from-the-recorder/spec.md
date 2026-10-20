@@ -344,6 +344,12 @@ directory) and `SUITE_KEY` (the key) in place of `SUITE_XML`; the step sets
 `tests/test_every_reader_ends_a_line_where_gfm_does.py` removed; the
 `"kind": "end"` fixtures gain `stopped`.
 
+## Rule changes
+
+- nothing
+  why: written: the counts and the base's stops read from the recorder, in
+    docs/the-broad-gate.md; overturned: the stamp's dial, by the sealer's stamp.
+
 ## Open questions → questions.md
 
 Five rows, none a person's: two measurements the smith makes first (the

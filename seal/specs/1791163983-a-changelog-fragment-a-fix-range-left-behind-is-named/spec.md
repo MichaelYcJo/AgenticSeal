@@ -212,6 +212,13 @@ following in their fix passes now anyway, since it is the 0.18.2 incident;
 that is the orchestrator's call, not a requirement. This item touches neither
 `broad_gate.py` (C) nor `hooks/` (B) nor `evidence_check.py` (A).
 
+## Rule changes
+
+- nothing
+  why: written: a commit after the build brings its fragment along, in
+    docs/the-record-layout.md; overturned: the notice, removed with round_record.py
+    (8350c578).
+
 ## Open questions → questions.md
 
 Anything a planner must answer lives in questions.md, not inline — unanswered

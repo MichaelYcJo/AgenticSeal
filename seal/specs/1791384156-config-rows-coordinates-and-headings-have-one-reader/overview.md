@@ -37,8 +37,8 @@ everywhere.
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the typecheck | the sealer, spawned by the orchestrator after the review rounds settle |
-| The unreadable fixtures (a directory named `config.md`, bytes that do not decode as UTF-8) on Linux and the Windows shards | CI at the pull request |
+| closed The full suite, the repository-wide lint and the typecheck | #882, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
+| closed The unreadable fixtures (a directory named `config.md`, bytes that do not decode as UTF-8) on Linux and the Windows shards | #997's `ubuntu-latest` and `windows-latest` legs ran the suite green |
 
 ## Not done
 

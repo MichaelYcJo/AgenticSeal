@@ -862,6 +862,12 @@ round record and `changelog.md` in its step 2 (`agents/sealer.md`), and
 `questions.md` and `overview.md` only inside the diff. Its step 4 compares
 the parties' stories; it counts nothing against the tree.
 
+## Rule changes
+
+- nothing
+  why: written: the round record, the check and the guarantee, in
+    docs/the-review-record.md; internal: the proof harness, held by its tests.
+
 ## Removes
 
 | Removes | Coordinate | Where it lands, or why it can go |
