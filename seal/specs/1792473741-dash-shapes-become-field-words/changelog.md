@@ -18,3 +18,11 @@
   its verdict's word alone, `; earlier run: <sha> <word>`, and any other
   entry is refused at that row. A `Claims re-run` result that fails reads
   `does not hold: <what came back>`.
+- **The round record's old spellings are a table of their own (#1000).**
+  `docs/the-review-record.md` §*The round record* keeps the grammar table
+  with the twelve rows the check reads, and `Target SHA:`, `refixes:` and
+  `fix of a fix:` move under it to `| Old spelling | Means |`, each cell one
+  code span. A line in an old spelling is refused as the label its `Means`
+  names, as before. `chain_check.py` stops at exit 2 naming the document
+  where that table is missing, a cell is not one code span, a `Means` is no
+  label, a spelling is a label or stands twice.

@@ -122,7 +122,7 @@ every repository, whatever either row says:
   name is typed into a shell and pasted into a URL.
 - **The field names, section headings and vocabulary a checker or a pinned
   case reads literally** — every cell of a round record's grammar, the
-  table in `docs/the-review-record.md` §*The round record*, which
+  two tables in `docs/the-review-record.md` §*The round record*, which
   `chain_check.py` reads; a round record's `## Not judged` and `## Probes`
   headings, which the parties and the eval graders read; a
   `guarantee.md`'s `Target SHA`, and its `Verdict:` line with the words

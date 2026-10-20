@@ -442,8 +442,7 @@ class TestGrammar:
         table, and a partial match letting a shape through, which #923 met
         three times. No other case loads the table or reads a line through
         a changed one."""
-        live = {k for k, r in chain.GRAMMAR.items() if r.where != chain.NOWHERE}
-        assert live == {
+        assert set(chain.GRAMMAR) == {
             "target:",
             "severity:",
             "location:",
@@ -456,10 +455,19 @@ class TestGrammar:
             "### <n>. <symptom>",
             "## Findings",
             "## Confirmations",
-        }, live
-        old = {k for k, r in chain.GRAMMAR.items() if r.where == chain.NOWHERE}
-        assert old == {"Target SHA:", "refixes:", "fix of a fix:"}, old
-        assert readings(chain.grammar(str(DOC), reader)) == readings(chain.GRAMMAR)
+        }, chain.GRAMMAR
+        # S10 of #1000: the old spellings are a table of their own, and no
+        # cell of either table holds a dash.
+        assert chain.OLD_SPELLINGS == {
+            "Target SHA:": "target:",
+            "refixes:": "regression:",
+            "fix of a fix:": "regression:",
+        }, chain.OLD_SPELLINGS
+        rows, old = chain.grammar(str(DOC), reader)
+        assert readings(rows) == readings(chain.GRAMMAR)
+        assert old == chain.OLD_SPELLINGS
+        cells = [c for r in readings(rows).values() for c in r] + [*old.items()]
+        assert not [c for c in cells if chain.DASH in str(c)], cells
 
         lines = reader.readable(TEMPLATE.read_text(encoding="utf-8"))
         # A finding carries one of `regression:` and `reopens:`, and the
@@ -521,7 +529,7 @@ class TestGrammar:
             "`severity: (?:must\\|should)`",
             "`severity: (?:must\\|should\\|could)`",
         )
-        monkeypatch.setattr(chain, "GRAMMAR", chain.grammar(str(wider), reader))
+        monkeypatch.setattr(chain, "GRAMMAR", chain.grammar(str(wider), reader)[0])
         assert chain.record_findings(reader, could, "r.md")[1] == []
 
     def test_the_warden_and_the_review_skill_name_every_line_a_finding_needs(self):
@@ -576,11 +584,52 @@ class TestGrammar:
             ),
             (row_of("reopens:"), "", "no `reopens:` row"),
             ("`target: (?P<commit>", "`target: (?P<sha>", "no `(?P<commit>…)`"),
-            ("the old spelling of `target:`", "the old spelling", "names no one label"),
+            # S12 of #1000: the old-spellings table the loader cannot read.
+            ("| Old spelling | Means |", "| Old | Means |", "no table headed"),
             (
-                "the old spelling of `target:`",
-                "the old spelling of `target:` or `verdict:`",
-                "names no one label",
+                "| Old spelling | Means |",
+                "| Old spelling | Meaning |",
+                "no table headed",
+            ),
+            (
+                "| `refixes:` | `regression:` |",
+                "| refixes: | `regression:` |",
+                "code span",
+            ),
+            (
+                "| `refixes:` | `regression:` |",
+                "| `refixes:` | `regression:` `x` |",
+                "code span",
+            ),
+            (
+                "| `refixes:` | `regression:` |",
+                "| `refixes:` | `regressed:` |",
+                "no label of the grammar table",
+            ),
+            (
+                "| `refixes:` | `regression:` |",
+                "| `answer:` | `regression:` |",
+                "`answer:` is a label of the grammar table",
+            ),
+            (
+                "| `refixes:` | `regression:` |",
+                "| `refixes:` | `regression:` |\n| `refixes:` | `regression:` |",
+                "a second `refixes:` old spelling",
+            ),
+            (
+                "| `refixes:` | `regression:` |",
+                "| `refixes` | `regression:` |",
+                "an old spelling is a label",
+            ),
+            (
+                row_of("answer:"),
+                row_of("answer:") + "| `Answer:` | — | nowhere | none | x |\n",
+                "not one code span",
+            ),
+            (
+                row_of("answer:"),
+                row_of("answer:") + "| `said:` | `said: .+` | nowhere | one | x |\n",
+                "cannot read",
             ),
             ("`severity: (?:must", "`sev: (?:must", "cannot read"),
             (row_of("severity:"), row_of("severity:") * 2, "a second `severity:` row"),
@@ -647,8 +696,10 @@ class TestGrammar:
         pass. Each way to break it — no section, no header, no separator, a
         row of the wrong width, a `Line` that is no code span, a shape that
         does not compile, a `Where` or `How many` the table does not use, a
-        row the check reads missing or naming no part it reads, an old
-        spelling naming no label, a label whose shape does not open with
+        row the check reads missing or naming no part it reads, an
+        old-spellings table that is missing, holds a cell that is no code
+        span, means no label, spells a label, or names a spelling twice
+        (S12 of #1000), a label whose shape does not open with
         it, a row twice, a heading row the check reads nothing from, and a
         row the check reads a meaning from standing where its reader does not
         look or allowing a `How many` that reader cannot keep — is refused
@@ -1059,8 +1110,9 @@ class TestFindings:
     def test_a_label_in_another_spelling_is_refused_by_line(self):
         """S24 (T32): a line whose first word, case-folded and stripped of
         emphasis, is one of the grammar table's nine labels or one of the
-        old spellings its `nowhere` rows name, `fix of a fix`, `refixes` and
-        `Target SHA`, and which is not the exact lowercase form, is refused
+        old spellings the old-spellings table names, `fix of a fix`,
+        `refixes` and `Target SHA`, and which is not the exact lowercase
+        form, is refused
         at its line naming the label the check reads — never skipped as
         prose. A finding carrying one is not read past it, so a finding with
         both spellings does not pass on the lowercase one."""
@@ -1500,7 +1552,7 @@ class TestConfirmations:
         )
         assert chain.CONFIRMATIONS_HEADING not in left_out
         assert chain.round_of(reader, left_out, "r.md", 1)[1] == []
-        table = chain.grammar(str(doc_with(tmp_path, old, new)), reader)
+        table, _old = chain.grammar(str(doc_with(tmp_path, old, new)), reader)
         monkeypatch.setattr(chain, "GRAMMAR", table)
         errors = chain.round_of(reader, left_out, "r.md", 1)[1]
         assert [(rel, line) for rel, line, _why in errors] == [("r.md", 0)], errors

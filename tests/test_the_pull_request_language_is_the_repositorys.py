@@ -1074,14 +1074,10 @@ def _round_record_fields():
     """What a round record carries: every label and section of the grammar
     table `chain_check.py` loads, read from the table rather than copied,
     and the two graded headings. The finding heading's `Line` cell is a
-    pattern, and an old spelling's row is what no record carries."""
+    pattern, and an old spelling stands in a table of its own, which no
+    record carries."""
     chain = _chain()
-    rows = chain.GRAMMAR.items()
-    return [
-        key
-        for key, row in rows
-        if row.where != chain.NOWHERE and key != chain.HEADING_ROW
-    ] + GRADED_HEADINGS
+    return [key for key in chain.GRAMMAR if key != chain.HEADING_ROW] + GRADED_HEADINGS
 
 
 ROUND_RECORD_FIELDS = _round_record_fields()
