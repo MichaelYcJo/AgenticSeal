@@ -212,6 +212,11 @@ def test_a_section_quoted_in_a_fence_or_a_comment_is_not_read():
             "- remove",
             "`- nothing` is the section's one item",
         ),
+        (
+            "- remove\n  file: docs/a.md\n  section: S\n- nothing\n  why: a reason.",
+            "- nothing",
+            "`- nothing` is the section's one item",
+        ),
     ],
     ids=[
         "unknown-op",
@@ -233,6 +238,7 @@ def test_a_section_quoted_in_a_fence_or_a_comment_is_not_read():
         "the block with an empty why",
         "the block with another field",
         "the block beside an operation",
+        "the block after an operation",
     ],
 )
 def test_a_block_that_does_not_match_whole_is_refused_at_its_line(body, bad, reason):
