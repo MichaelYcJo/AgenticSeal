@@ -20,17 +20,27 @@ place, so no session hand-writes policy prose beside a marker.
 | The index's line shape | `spec.md` Scope 6: "Each line names one topic and its file". Built: each table row after a header | table rows | the record-layout table it replaces is a table; prose lines in the index stay prose |
 | A removal `## Removes` did not name | `docs/the-record-layout.md` §*The fold, and what tells it from a deletion*'s line-ceiling statement and its two markers | removed with the statement | its rule was the freeze; §*The size a reader takes whole* holds the one-read rule |
 | Two specs added by one commit at one place | `spec.md` *Merge order*: ordered "only where one adding commit is an ancestor of the other". Built: one commit is not its own ancestor, so the pair is a conflict | conflict | the spec's own words; nothing orders two paths inside one commit |
+| Where the model is stated | `spec.md` S15: "each states the model". Built: the implement skill's lifetime row states it; the framer and both READMEs point to it | one home | `CLAUDE.md` "A fact has one source", and `tests/test_no_passage_is_pasted_into_a_second_file.py` refused the copies |
+| The dated sections of `docs/one-root-by-lifetime.md` | the document: "The text above is a record of 2026-09-02 and is not rewritten". Built: the rows `## Removes` names, and the rest of their class, rewritten in place in both editions | rewritten | `spec.md` Grounding: "Both editions are rewritten in place where they state the old split" |
+| Removals `## Removes` did not name | "a work item that finds it wrong corrects it" in `docs/measuring-a-run.md`, `docs/the-agent-set.md`, `docs/the-broad-gate.md`, `docs/the-pact.md`; the implement skill's §6 *Needs a decision* row | each points to `docs/README.md`, or names `## Rule changes` | the same class as `docs/the-record-layout.md:278`, which `## Removes` names |
 
 ## Not verified
 
 | Item | Who must answer |
 |---|---|
 | The full suite, the repository-wide lint and the typecheck over this branch | the orchestrator, at the broad gate |
+| Q4: whether bytes halved is a safe estimate for dense Hangul or symbol-heavy text | a measurement, now a report and not a gate, so a wrong estimate names a document or misses one and refuses nothing |
 
 ## Not done
 
-nothing
+- `questions.md` carries no row for the owner's 2026-10-20 answer on the ceiling, and Q5's Status is not written; the smith's definition names no write to that file. The orchestrator writes both.
+- `spec.md` S12 and *The one-read row* still say exit 1 and 37,178; the framer updates them.
+- `docs/worktree-guard-spec.md` and `docs/one-root-by-lifetime.ko.md` are past the ceiling and reported; #941 splits them.
 
 ## Fed back into the spec
 
-nothing
+*Inferred during implementation*; a planner may overturn each.
+
+- The settled predicate counts each text an operation names, the `from`, the `to` and the section heading, across the policy root (`docs/the-record-layout.md`).
+- An index row is a table row after a header, naming documents as backticked paths (`skills/settle/SKILL.md` §*The index*).
+- A `Policy root` value that is empty, absolute or holds a `..` part reads as `docs` (`templates/config.md` §*The fold's values*).
