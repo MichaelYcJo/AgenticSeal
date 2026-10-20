@@ -230,39 +230,45 @@ def comment_scan(lines):
     run with no closer of its own length on its line is literal, which is
     `_liveness`'s reading A, and the walk goes on after it. A span wrapped
     across lines is therefore read as literal backticks.
+
+    The line is walked by index: the opener is looked for once and again
+    only after the walk passes it, so a line with no opener costs one
+    search however many spans it holds.
     """
     inside = False
     for line in lines:
         began = not inside
-        rest, kept = line, ""
-        while rest:
+        kept, pos, start = [], 0, -1
+        while pos < len(line):
             if inside:
-                end = rest.find(CLOSER)
+                end = line.find(CLOSER, pos)
                 if end == -1:
-                    rest = ""
-                else:
-                    rest, inside = rest[end + len(CLOSER) :], False
+                    break
+                pos, inside = end + len(CLOSER), False
                 continue
-            start = rest.find(OPENER)
-            run = BACKTICKS.search(rest)
-            if run and (start == -1 or run.start() < start):
+            if start < pos:
+                start = line.find(OPENER, pos)
+            if start == -1:
+                kept.append(line[pos:])
+                break
+            run = BACKTICKS.search(line, pos, start)
+            if run:
                 width = run.end() - run.start()
                 closer = next(
                     (
                         m
-                        for m in BACKTICKS.finditer(rest, run.end())
+                        for m in BACKTICKS.finditer(line, run.end())
                         if m.end() - m.start() == width
                     ),
                     None,
                 )
                 upto = closer.end() if closer else run.end()
-                kept, rest = kept + rest[:upto], rest[upto:]
-            elif start == -1:
-                kept, rest = kept + rest, ""
-            else:
-                kept, rest = kept + rest[:start], rest[start + len(OPENER) :]
-                inside = True
-        yield began, kept
+                kept.append(line[pos:upto])
+                pos = upto
+                continue
+            kept.append(line[pos:start])
+            pos, inside = start + len(OPENER), True
+        yield began, "".join(kept)
 
 
 def strip_comments(lines):

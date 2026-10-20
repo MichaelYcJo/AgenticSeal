@@ -1838,15 +1838,24 @@ def test_a_row_after_an_opener_quoted_in_a_code_span_is_counted(tmp_path):
     assert not err and len(op) == 2, (op, err)
 
 
-def test_the_comment_scan_is_not_quadratic_in_backtick_runs():
-    """A line of backtick runs, each without a partner of its own length,
-    and one of runs that pair, are read in well under a second."""
+@pytest.mark.parametrize(
+    "tail", ["", "<!--"], ids=["no opener", "an opener at the end"]
+)
+def test_the_comment_scan_is_not_quadratic_in_backtick_runs(tail):
+    """Round 2 of #1000, finding 1: 400000 characters of closed code spans,
+    with no opener or with one at the end, and a line of backtick runs each
+    without a partner of its own length, are each read in well under a
+    second. Seen red against the scan that sliced the line again per span,
+    which took 13 s on the first."""
     import time
 
-    start = time.monotonic()
-    uc.strip_comments(["".join("`" * k + "x" for k in range(1, 400)) + "<!--"])
-    uc.strip_comments(["` " * 50000 + "<!--", "-->"])
-    assert time.monotonic() - start < 1.0
+    for line in (
+        "`a` " * 100000 + tail,
+        "".join("`" * k + "x" for k in range(1, 400)) + tail,
+    ):
+        start = time.monotonic()
+        uc.strip_comments([line, "-->"])
+        assert time.monotonic() - start < 1.0, len(line)
 
 
 @pytest.mark.parametrize(
