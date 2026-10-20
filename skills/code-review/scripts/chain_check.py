@@ -1767,7 +1767,7 @@ def declared_for_this_branch(root, routing):
     return matching, ""
 
 
-RETIRED_SAYS = (
+SETTLE_SAYS = (
     "retired: a settle — nothing open at the merge base, and the policy root "
     "holds every rule change its spec states"
 )
@@ -1858,7 +1858,7 @@ def main(argv=None):
         text = texts[rel]
         if text is None:
             if item in by_settle:
-                notices.append((rel, 0, RETIRED_SAYS))
+                notices.append((rel, 0, SETTLE_SAYS))
             else:
                 problems.append(
                     (
