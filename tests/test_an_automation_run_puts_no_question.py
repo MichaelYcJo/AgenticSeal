@@ -102,8 +102,8 @@ def test_the_refusal_says_where_the_default_goes(repo):
     reason = reason_of(run(repo))
     item = os.path.join("seal", "specs", ITEM)
     for said in (
-        os.path.join(item, routing.FILENAME),
-        os.path.join(item, "questions.md"),
+        f"`{os.path.join(item, routing.FILENAME)}`",
+        f"`{os.path.join(item, 'questions.md')}`",
         f"answers `{routing.AUTOMATION}` with `{routing.AUTOMATION_YES}`",
         "Build on the default the question states",
         "pull request body",
