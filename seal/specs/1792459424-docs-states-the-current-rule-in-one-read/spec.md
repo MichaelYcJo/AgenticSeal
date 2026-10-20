@@ -118,9 +118,9 @@ The policy documents in docs/ outrank this file; cite them, don't restate. -->
 | S8 no marker | `git grep -c '<!-- specs/' -- docs` prints nothing | grep |
 | S9 one read | `bin/fold-check` names no document past 25000 and its index arm passes | `bin/fold-check`, exit 0 and no `split` line |
 | S10 the no-change block | Given `## Rule changes` holding `- nothing` and `  why: <reason>`, then `rule_changes.py#parse` returns no operations and no errors; `nothing — x` is refused at its line naming the block; a block with no `why:` is refused | cases in `tests/test_settle_applies_rule_changes_in_place.py`, seen red |
-| S11 the backlog is ready for one settle | Given the 117 backlog specs after this item, when `bin/settle` dry-runs, then each is listed with nothing to apply and none as refused or as having no `## Rule changes`; at `--released-at` holding this item's merge, each is listed under what `--apply` would remove | `bin/settle` dry run, read |
-| S12 nothing open | `skills/verify/scripts/unverified_check.py` over each backlog directory reports no open row | the command per group |
-| S13 what can leave now | Given the 8 directories removed, `unverified_check.py --baseline origin/release/v0.22.3 seal/specs/` and `--baseline origin/main` both name each as settled and exit 0 | both commands |
+| S11 the backlog is ready for one settle | Given the 117 backlog specs after this item, when `bin/settle` dry-runs, then none is listed as refused or as having no `## Rule changes`; each is either nothing to apply, which `--apply` removes at `--released-at` holding this item's merge, or held for a row the closing rules below leave open, named in its group's phase record | `bin/settle` dry run, read |
+| S12 nothing open that a closer closes | `skills/verify/scripts/unverified_check.py` over each backlog directory reports no open row, except the rows the phase record names as closed by none of the closing rules | the command per group |
+| S13 what can leave now | Given the 8 directories removed, `unverified_check.py --baseline origin/release/v0.22.3 seal/specs/` and `--baseline origin/main` both exit 0, and each name as settled every removed directory that held an `overview.md`; one with none (`1791019421`) leaves no record for either run to name | both commands |
 | S14 a moved or renamed heading leaves no stale citation | `git grep` of each old heading text outside `seal/` and `changelog/` finds only its new home | grep per renamed heading, listed in the phase record |
 | S15 both editions | `tests/test_both_editions_carry_the_same_folds.py`'s outline arm passes over the rewritten pair | the module |
 | S16 the preload is not larger | `wc -c` over each agent's definition and the skills its `skills:` list injects is no larger at phase 9's commit than at ac83bdf3 | the two readings in `phases/phase-9.md` |
@@ -219,6 +219,10 @@ name at least one shipped path that no longer exists.
 
 Anything a planner must answer lives in questions.md, not inline — unanswered
 questions buried in prose read as decided.
+
+The framer revised S11, S12 and S13 on 2026-10-20 after phase 9, outside any
+review round, to what the closing rules and the removed directories produced
+(`overview.md`).
 
 <!-- The line below is the framer's mark, and it is the only evidence in the
      TREE that the framing happened — the existing framer mark lives in the
