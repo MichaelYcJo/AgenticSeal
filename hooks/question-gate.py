@@ -14,15 +14,22 @@ one branch) is the attended answer, and the gate prints nothing.
 reads it as consent. Read here only to refuse, a row the model forged binds
 only the model.
 
-The routing question put alone goes through while this session holds no
-answer to it from this clone, read by the press reader the worktree guard
-uses (`worktree_consent.last_routing_answer`). That is the resumed session,
-which puts question 1 again so the gates that read the press find it. Once
-an answer is recorded, the routing question is refused like any other, and
-so is a question dressed in its labels, a shape no list of spellings closes.
-"Put alone" is the shape the press reader counts: one question, its labels
+The routing question put alone goes through while this session's transcript
+can be read and holds no answer to it from this clone, read by the press
+reader the worktree guard uses (`worktree_consent.last_routing_answer`).
+That is the resumed session, which puts question 1 again so the gates that
+read the press find it. Where no transcript can be read, those gates find no
+press either, so the question is refused. Once an answer is recorded, the
+routing question is refused like any other, and so is a question dressed in
+its labels, a shape no list of spellings closes. "Put alone" is the shape
+the press reader counts: one question, its labels
 (`worktree_consent.is_routing_question`), single-select, with its text. A
 call whose questions cannot be read is not that question, and is refused.
+
+Any routing answer from this clone in the session spends the exemption,
+including one given for another work item, so a session that has already
+answered for another branch cannot put question 1 again. That is outside the
+one-issue flow, and is a limit rather than a mechanism.
 
 A gate whose own reason says to ask with the question tool meets this
 refusal too, and its question states no default: the session takes none of

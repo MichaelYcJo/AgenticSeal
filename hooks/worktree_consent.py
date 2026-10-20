@@ -285,12 +285,19 @@ def automation_answered(top: str, session: str, transcript_path: str = "") -> bo
     return last_routing_answer(top, session, transcript_path) is True
 
 
+# What `last_routing_answer` returns where it read nothing: an object no
+# answer can equal, so "unread" and "read, and not answered" stay apart.
+UNREAD = object()
+
+
 def last_routing_answer(top: str, session: str, transcript_path: str = ""):
     """True for the preset, False for any other answer to the routing question,
-    None while this session holds no answer to it from this clone.
+    None where this session's transcript was read and holds no answer to it
+    from this clone, and `UNREAD` where no transcript could be read.
 
     `automation_answered` reads the True. `hooks/question-gate.py` reads the
-    None: the routing question goes through it only until it is answered.
+    None: the routing question goes through it only until it is answered,
+    and only where a transcript exists for the press to be recorded in.
 
     The harness writes this answer from the person's click; the model writes
     the question and its options and never which one was pressed. That is the
@@ -298,8 +305,9 @@ def last_routing_answer(top: str, session: str, transcript_path: str = ""):
     wrote itself, and it is why the answer stands beside the record as
     consent. `docs/worktree-guard-spec.md` §*Creation consent* holds the table.
 
-    Four conditions, and every way of failing one is None, which the guard
-    reads as its behaviour before this reader existed:
+    Four conditions. Failing the first, or a clone that cannot be resolved, is
+    `UNREAD`; an entry failing another is skipped. The guard reads either as
+    its behaviour before this reader existed:
 
       1. the transcript is this session's own main one (`transcript_for`);
       2. the answer is a harness-written `AskUserQuestion` result: a `user`
@@ -320,19 +328,19 @@ def last_routing_answer(top: str, session: str, transcript_path: str = ""):
     A line is parsed only when it carries `AskUserQuestion` or `toolUseResult`.
     That skips assistant text and progress lines, but every tool result
     carries `toolUseResult`, so most user lines are parsed: 0.09 s on the
-    largest local transcript (17.3 MB) when round 1 measured it. Every read
-    error, every malformed line and every missing field is skipped or answered
-    None. The two shapes round 1 found raising -- a `tool_use_id` that is not
+    largest local transcript (17.3 MB) when round 1 measured it. A read error
+    is `UNREAD`, and every malformed line and every missing field is skipped.
+    The two shapes round 1 found raising -- a `tool_use_id` that is not
     a string, a NUL in the path -- are handled here, and `consent` catches
     whatever else might, because `hooks/dispatch.py` skips a gate that raises
     and the guard's deny would become no decision at all.
     """
     path = transcript_for(session, transcript_path)
     if not path:
-        return None
+        return UNREAD
     want = _clone_of(top)
     if not want:
-        return None
+        return UNREAD
     asked = set()
     clones = {}
     pressed = None
@@ -389,7 +397,7 @@ def last_routing_answer(top: str, session: str, transcript_path: str = ""):
                     # later press gives it back.
                     pressed = answered
     except (OSError, ValueError):
-        return None
+        return UNREAD
     return pressed
 
 

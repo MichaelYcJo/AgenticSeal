@@ -9,8 +9,9 @@
   that states no default, such as another gate's choice, is not answered:
   the session takes none of its ways on and hands that stop back at the end
   of the run. The routing question put alone, single-select and with its
-  text, goes through until the session has answered it from that clone, so
-  a resumed run can put it again once; after an answer it is refused like
-  any other. Every other branch, and every declaration that cannot be read,
+  text, goes through while the session's transcript holds no answer to it
+  from that clone, so a resumed run can put it again once. After an answer,
+  one given for another work item included, or where no transcript can be
+  read, it is refused like any other. Every other branch, and every declaration that cannot be read,
   is left alone. A session in a checkout of another branch is not held, and
   neither is a question asked as plain text.

@@ -88,15 +88,15 @@ def payload(cwd, questions=(FRAMER_QUESTION,), tool="AskUserQuestion", **extra):
     return p
 
 
+def write_the_transcript(cwd, entries=()):
+    """Write the session's transcript at the path `payload` names."""
+    write_transcript(os.path.dirname(str(cwd)), SESSION, entries, slug="transcripts")
+
+
 def answer_the_routing_question(cwd, answer="automation (Recommended)"):
-    """Write the session's transcript holding the routing question answered
-    from `cwd`, at the path `payload` names."""
-    write_transcript(
-        os.path.dirname(str(cwd)),
-        SESSION,
-        ask_entries(cwd, answer=answer),
-        slug="transcripts",
-    )
+    """The session's transcript, holding the routing question answered from
+    `cwd`."""
+    write_the_transcript(cwd, ask_entries(cwd, answer=answer))
 
 
 def run(cwd, **kwargs):
@@ -214,7 +214,21 @@ def test_a_root_under_the_common_git_directory_is_read(repo):
 
 def test_the_routing_question_put_alone_goes_through(repo):
     declare(repo)
+    write_the_transcript(repo)
     assert decision_of(run(repo, questions=(ROUTING_QUESTION,))) == "silent"
+
+
+def test_the_routing_question_is_refused_where_no_transcript_can_be_read(repo):
+    """The press readers read the same transcript, so where it cannot be read
+    no gate would find the press the question exists to record (round 2,
+    finding 1)."""
+    declare(repo)
+    nameless = payload(repo, questions=(ROUTING_QUESTION,))
+    del nameless["session_id"]
+    assert decision_of(run_hook(GATE, nameless)) == "deny"
+    assert decision_of(run(repo, questions=(ROUTING_QUESTION,))) == "deny", (
+        "a transcript path that names no file"
+    )
 
 
 def test_the_routing_question_with_company_is_refused(repo):
@@ -266,6 +280,7 @@ def test_the_routing_question_goes_through_only_until_it_is_answered(repo):
     routing question and one dressed in its labels included; no list of
     spellings could close that second shape (round 1, finding 1)."""
     declare(repo)
+    write_the_transcript(repo)
     assert decision_of(run(repo, questions=(ROUTING_QUESTION,))) == "silent"
     write_transcript(
         repo.parent,
