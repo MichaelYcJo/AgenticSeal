@@ -240,6 +240,13 @@ line), `skills/code-review/orchestration.md` (the preflight paragraph),
 `tests/test_broad_gate_rule.py`, this work item's records and ledger
 fragment, and the release files whose rows the edits drift.
 
+## Rule changes
+
+- nothing
+  why: internal: the preflight and its asked lines, held by
+    tests/test_the_seal_is_taken_once_by_the_sealer.py; overturned: round_record.py's seal
+    refusals, at 8350c578.
+
 ## Open questions → questions.md
 
 Anything a planner must answer lives in questions.md, not inline —

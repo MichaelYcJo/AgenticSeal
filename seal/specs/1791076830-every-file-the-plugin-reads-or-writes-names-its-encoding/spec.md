@@ -272,6 +272,12 @@ to make a test pass*. The test module's own docstring carries the reasoning
   whose unit an edit drifts, written by `bin/evidence-check --reverify --into
   <fragment> --checked <date>` after each drifted row is read (M3).
 
+## Rule changes
+
+- nothing
+  why: internal: every file read or written names its encoding, held by
+    tests/test_every_file_the_plugin_reads_or_writes_names_its_encoding.py.
+
 ## Open questions → questions.md
 
 Every judgment the ticket left open is decided above with its grounds, and

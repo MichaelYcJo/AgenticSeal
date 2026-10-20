@@ -25,8 +25,8 @@ row is read in one spelling and every other line naming a pact is refused.
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the typecheck at the head | the sealer, spawned by the orchestrator after the rounds settle |
-| The merge with sibling E (PR #786): both move `record_pact_changes`' hash and both edit `tests/test_a_signatory_records_a_pact_change.py`, so whichever squashes second re-reads the rows citing it again at the merged base | the orchestrator, at the second squash |
+| closed The full suite, the repository-wide lint and the typecheck at the head | #793, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
+| closed The merge with sibling E (PR #786): both move `record_pact_changes`' hash and both edit `tests/test_a_signatory_records_a_pact_change.py`, so whichever squashes second re-reads the rows citing it again at the merged base | 4b363e68 removed the test module and 5b1f6fae the pact's change records and the ledger rows citing them |
 
 ## Not done
 

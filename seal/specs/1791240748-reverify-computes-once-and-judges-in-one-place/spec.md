@@ -332,6 +332,11 @@ the handover says how (§15).
   new (S6). D4's line reuses `citations_left`'s words.
 - **No migration, no new dependency, no record format change.**
 
+## Rule changes
+
+- nothing
+  why: overturned: --reverify and the ledger left the tree at 5b1f6fae.
+
 ## Open questions → questions.md
 
 Anything a planner must answer lives in questions.md, not inline — unanswered

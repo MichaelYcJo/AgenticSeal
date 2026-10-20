@@ -291,6 +291,13 @@ Under `### Changed`, one bullet:
   and missed the cache beside a module imported from anywhere else. The smith
   types `mutation-check` per mutation instead (#641, #129).
 
+## Rule changes
+
+- nothing
+  why: internal: mutation-check clears the stale bytecode and bounds a run, held by
+    tests/test_a_mutation_clears_one_files_bytecode_and_ends_at_a_timeout.py; written
+    outside docs/: the smith's mutation rule, in agents/smith.md.
+
 ## Open questions → questions.md
 
 Nothing here waits on a person. `questions.md` lists the judgments the

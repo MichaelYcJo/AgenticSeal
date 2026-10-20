@@ -172,6 +172,12 @@ work item's records. No file under `hooks/` or `skills/` changes.
   untouched; the packages added are test-only, on the terms
   `CONTRIBUTING.md` §*Running the checks* states for `markdown-it-py`.
 
+## Rule changes
+
+- nothing
+  why: internal: the Windows leg's shards and cuts, held by
+    tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py.
+
 ## Open questions → questions.md
 
 `questions.md` carries three person's rows — Q1 with a default (the Windows

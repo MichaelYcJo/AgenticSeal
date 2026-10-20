@@ -225,6 +225,12 @@ here is re-read the same way.
   followed a heredoc. Span, command, model, idle, tokens, tools per turn,
   `slowest` and every `--spawns` and `--segments` span are not affected.
 
+## Rule changes
+
+- nothing
+  why: internal: which family a command after cd, a newline or a heredoc is charged to,
+    held by tests/test_session_cost.py.
+
 ## Open questions → questions.md
 
 No row needs a person. Q1 is a measurement on the other machine, and Q2 and

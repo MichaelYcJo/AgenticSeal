@@ -245,6 +245,12 @@ regression tests' skeleton.
   Counted at `cd24f516`; items A and B land in parallel and the tip decides
   (`questions.md` Q4).
 
+## Rule changes
+
+- nothing
+  why: written: the per-segment bars, in docs/the-review-record.md; the framer's opening,
+    in agents/framer.md.
+
 ## Open questions → questions.md
 
 Anything a planner must answer lives in questions.md, not inline — unanswered

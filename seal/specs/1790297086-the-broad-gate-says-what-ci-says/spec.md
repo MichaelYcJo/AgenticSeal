@@ -292,6 +292,12 @@ things that name the release job: `` `release` `` in backticks, as
   `seal/ledger/1790297086-the-broad-gate-says-what-ci-says.md`.
 - Changelog: `seal/specs/1790297086-the-broad-gate-says-what-ci-says/changelog.md`.
 
+## Rule changes
+
+- nothing
+  why: written: every step CI runs is mirrored or excluded, in docs/the-broad-gate.md;
+    internal: the cmd.exe handoff, held by tests/test_the_gate_hands_cmd_a_path_it_can_run.py.
+
 ## Open questions → questions.md
 
 Two measurements (M1, M2) and no question for a person.

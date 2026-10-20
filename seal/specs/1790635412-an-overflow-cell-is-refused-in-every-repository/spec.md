@@ -236,6 +236,11 @@ No other shipped interface changes. Test modules touched:
 `tests/test_dispatch.py`, and one new module for the arm, named for the
 behaviour in this repository's style.
 
+## Rule changes
+
+- nothing
+  why: overturned: evidence-check and its cell count left the tree at 5b1f6fae.
+
 ## Open questions → questions.md
 
 No row needs a person. The owner answered the one product question before

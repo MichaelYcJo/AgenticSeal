@@ -21,9 +21,9 @@ base, because the gate looked for it under the repository root. Now every
 
 | Item | Who must answer |
 |---|---|
-| The full suite, lint and typecheck after the rounds | the sealer, spawned by the orchestrator |
+| closed The full suite, lint and typecheck after the rounds | #787, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
 | This repository's own lint-first row (`bin/test -q` under `-n auto`) through a real failing broad gate with a branch-new module | the sealer, at its run — only if its run fails a test |
-| The cases on Windows (`cmd.exe`) and Linux; the `cd sub <file>` prefix behaves differently per shell, and the kept-file assertions assume it settles nothing | CI's three-platform test job |
+| closed The cases on Windows (`cmd.exe`) and Linux; the `cd sub <file>` prefix behaves differently per shell, and the kept-file assertions assume it settles nothing | #787's `ubuntu-latest` and `windows-latest` legs ran the suite green |
 
 ## Not done
 

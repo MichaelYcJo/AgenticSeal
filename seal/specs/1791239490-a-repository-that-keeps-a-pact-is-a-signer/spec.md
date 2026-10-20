@@ -179,6 +179,12 @@ record as it was written.
   coordinate (127 distinct anchors in `seal/releases/0.18.0–0.18.3.md`,
   read by `grep` 2026-10-06).
 
+## Rule changes
+
+- nothing
+  why: written: the pact's repository is a signer, and the old header still reads, in
+    docs/the-pact.md.
+
 ## Open questions → questions.md
 
 Nothing blocks the build. `questions.md` records the owner's three decisions

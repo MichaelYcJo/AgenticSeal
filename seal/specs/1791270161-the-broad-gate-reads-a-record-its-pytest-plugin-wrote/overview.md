@@ -55,12 +55,12 @@ Q1 and Q2 stay with the owner, (a) built for each.
 
 | Item | Who must answer |
 |---|---|
-| The recorder on Linux and Windows (`PYTHONPATH` with `;`, a Windows temp path) | CI's three-platform test job, at the pull request |
-| The listing spelled with `/` on Windows (S18): `record_path`'s `replace(os.sep, "/")` is the identity on POSIX, so its mutant survives on this machine by construction | CI's `windows-latest` leg, at the pull request |
+| closed The recorder on Linux and Windows (`PYTHONPATH` with `;`, a Windows temp path) | #846's `ubuntu-latest` and `windows-latest` legs ran the suite green |
+| closed The listing spelled with `/` on Windows (S18): `record_path`'s `replace(os.sep, "/")` is the identity on POSIX, so its mutant survives on this machine by construction | #846's `windows-latest` leg ran the case green |
 | The recorder's fallbacks for pytest below 6.1 (`config.rootdir`, `os.getcwd()`), and `item.fspath` below pytest 7 (`_node_path`) | nobody measured them: `uvx` on this machine's Python 3.14 measured 7.4 as the oldest; the next session decides whether a build that old is worth a probe |
 | A real plugin that builds or rebuilds a report without the recorder's attribute, and what it costs a suite in `unplaced` | nobody: S27's second half plants a conftest that does it; no third-party plugin was read or run for it |
 | `read_record`'s branch for a file that is listed and then cannot be opened | nobody: no case reaches it on a local disk; it holds no record, the strict side |
-| The full suite, lint and typecheck over the branch, and S22 (this suite under the sealer, its inner gates beside the outer recorder) | the sealer, once, after the review rounds settle |
+| closed The full suite, lint and typecheck over the branch, and S22 (this suite under the sealer, its inner gates beside the outer recorder) | #846, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
 
 ## What was fed back into the spec
 

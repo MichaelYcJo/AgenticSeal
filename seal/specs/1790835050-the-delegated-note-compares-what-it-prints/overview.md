@@ -27,8 +27,8 @@ The `--spawns` page printed `1.0m` in the `delegated` column above a note saying
 
 | Item | Who must answer |
 |---|---|
-| The full suite, repository-wide lint and format, at the tip | the sealer, spawned by the orchestrator after the review rounds settle |
-| `questions.md` Q1 on the CI interpreter matrix — the 57.0 s edge was executed on CPython 3.13.9 (the case) and 3.14.4 (the arithmetic) only | the pull request's CI run |
+| closed The full suite, repository-wide lint and format, at the tip | #711, merged with lint and the suite green on the ubuntu, macOS and Windows legs |
+| closed `questions.md` Q1 on the CI interpreter matrix — the 57.0 s edge was executed on CPython 3.13.9 (the case) and 3.14.4 (the arithmetic) only | #711's three legs ran the case green on CI's interpreter |
 
 ## Not done
 

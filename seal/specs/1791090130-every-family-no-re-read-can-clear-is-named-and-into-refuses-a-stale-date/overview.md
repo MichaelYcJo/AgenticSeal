@@ -26,7 +26,7 @@ case.
 
 | Item | Who must answer |
 |---|---|
-| The full suite, lint over the repository and the typecheck at the branch's head | the sealer, after the review rounds settle |
+| closed The full suite, lint over the repository and the typecheck at the branch's head | #771, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
 
 ## Not done
 

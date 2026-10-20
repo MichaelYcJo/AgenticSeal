@@ -26,7 +26,7 @@ prints for that agent from the run's transcript.
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the format check | the sealer, once, after the review rounds settle |
+| closed The full suite, the repository-wide lint and the format check | #649, merged with lint and the suite green on the ubuntu, macOS and Windows legs |
 | closed The hint landing after `--latest`'s `# <path>` line — read, not run: `main` prints that line before `emit` and the hint is `render()`'s first print | executed by the warden in round 1 (probe C2, `rounds/round-1.md`): `# <path>`, blank, hint, and `# <path>`, blank, own-file header; the verdict says no case is owed |
 
 ## Not done

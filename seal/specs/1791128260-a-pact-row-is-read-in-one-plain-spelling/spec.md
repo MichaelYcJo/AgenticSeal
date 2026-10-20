@@ -314,6 +314,11 @@ sentence naming that line.
   re-reads its rows again at the merged base. Neither edits the other's
   lines.
 
+## Rule changes
+
+- nothing
+  why: written: one reader of the Pact row, in docs/the-pact.md.
+
 ## Open questions → questions.md
 
 One row only a person can answer (Q1, non-blocking, with its default). Two

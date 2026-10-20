@@ -165,6 +165,12 @@ The policy documents in docs/ outrank this file; cite them, don't restate. -->
   workflow comment names the run each budget was set from, as it does
   today.
 
+## Rule changes
+
+- nothing
+  why: internal: the macOS shards and their timeouts, in .github/workflows/test.yml, held by
+    tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py.
+
 ## Open questions → questions.md
 
 Three rows, none a person's: the first sharded run's figures (Q1), the

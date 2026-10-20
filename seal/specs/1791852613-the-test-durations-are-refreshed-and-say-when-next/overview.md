@@ -24,10 +24,10 @@ is refreshed by the recipe.
 
 | Item | Who must answer |
 |---|---|
-| The whole suite at the branch's final SHA | the sealer, once, after the review rounds |
+| closed The whole suite at the branch's final SHA | #924, merged with lint and the suite green on the ubuntu, macOS and Windows legs |
 | closed That the measuring run finishes inside 55 minutes and uploads `.test_durations` | run 38332345615 at 9ec6faca, read in phase 2 on 2026-10-13: the Windows job took 37 m 21 s and the artifact `test-durations` was there |
 | closed That the hook sees the whole collection on GitHub's shards (`questions.md` Q4) | read in phase 3 on 2026-10-13: macOS group 3 of run 38332345615 read 1,276 of 13,480 collected cases, and run 38335775781's seven shards are green |
-| That GitHub reads the budgets at the final SHA | the pull request's run at the final SHA |
+| closed That GitHub reads the budgets at the final SHA | #924's eight pytest jobs ran green, each named with its budget in minutes |
 
 ## Not done
 

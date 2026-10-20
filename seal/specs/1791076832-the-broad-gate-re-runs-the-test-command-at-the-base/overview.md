@@ -30,9 +30,9 @@ anywhere a cut can reach.
 
 | Item | Who must answer |
 |---|---|
-| The `cmd.exe` grammar end to end: every new end-to-end case runs on `windows-latest`, and `test_a_row_is_cut_at_the_semicolon_its_shell_reads` skips there. Only the scanner's `cmd.exe` branch was driven, as a pure function, from macOS | CI's `windows-latest` leg on the pull request |
+| closed The `cmd.exe` grammar end to end: every new end-to-end case runs on `windows-latest`, and `test_a_row_is_cut_at_the_semicolon_its_shell_reads` skips there. Only the scanner's `cmd.exe` branch was driven, as a pure function, from macOS | #758's `windows-latest` leg ran the suite green |
 | This repository's own lint-first row (`uvx ruff check . && uvx ruff format --check . && bin/test -q`) through a real failing seal. The fixtures stand in for ruff with two `python -c` lines | the sealer, at the first seal of a branch whose suite fails; the orchestrator reads its `suite-at-base-<k>.txt` files |
-| The full suite, the repository-wide lint and the typecheck after this work | the sealer, spawned by the orchestrator after the rounds settle |
+| closed The full suite, the repository-wide lint and the typecheck after this work | #758, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
 
 ## Not done
 

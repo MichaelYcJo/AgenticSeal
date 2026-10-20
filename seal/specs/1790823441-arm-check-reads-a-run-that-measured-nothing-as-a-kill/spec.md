@@ -208,6 +208,12 @@ written — which is why the baseline's bound is pinned (S4).
   `skills/verify/SKILL.md`, `seal/releases/0.9.5.md`. The merge resolves
   these hunk by hunk (`CLAUDE.md` §*When a ledger file conflicts*).
 
+## Rule changes
+
+- nothing
+  why: internal: arm-check runs the cases on the original first, held by
+    tests/test_arm_check.py.
+
 ## Open questions → questions.md
 
 Anything a planner must answer lives in questions.md, not inline —
