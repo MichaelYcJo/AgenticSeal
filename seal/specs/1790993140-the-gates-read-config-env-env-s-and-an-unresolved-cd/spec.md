@@ -139,6 +139,12 @@ means a mutant of the branch it pins.
   touches (read: a count of anchors by grep, not of rows checked); those that
   drift are re-read there.
 
+## Rule changes
+
+- nothing
+  why: written: the guard's half in docs/worktree-guard-spec.md; internal: the commit
+    reader's class of spaced options and env's split string, held by its tests.
+
 ## Open questions → questions.md
 
 No row needs a person. The owner's rule of 2026-10-03 decides #686 and #678's

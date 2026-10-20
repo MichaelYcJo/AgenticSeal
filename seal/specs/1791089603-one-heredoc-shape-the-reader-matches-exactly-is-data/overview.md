@@ -29,11 +29,11 @@ and no other command reads any differently.
 
 | Item | Who must answer |
 |---|---|
-| Q3 for bash 5.x: whether bash 5 cuts every admitted string where the reader does, directly and through `eval` | the ubuntu leg of the test workflow at the pull request (`tests/test_one_heredoc_shape_agrees_with_the_shell.py`) |
-| Q4: whether the moved row reaches the shape on the Windows leg, where `shlex.quote` gives a single-quoted path with backslashes | the Windows leg of the test workflow at the pull request (`tests/test_no_shape_the_base_stops_reads_silent.py::test_the_moved_row_reads_silent`) |
-| The agreement test on the Windows leg, where `bash` is Git Bash or is skipped by `shell_probe` | the Windows leg of the test workflow at the pull request |
+| closed Q3 for bash 5.x: whether bash 5 cuts every admitted string where the reader does, directly and through `eval` | #997's `ubuntu-latest` leg ran `tests/test_one_heredoc_shape_agrees_with_the_shell.py` green |
+| closed Q4: whether the moved row reaches the shape on the Windows leg, where `shlex.quote` gives a single-quoted path with backslashes | #997's `windows-latest` leg ran `tests/test_no_shape_the_base_stops_reads_silent.py` green |
+| closed The agreement test on the Windows leg, where `bash` is Git Bash or is skipped by `shell_probe` | #997's `windows-latest` leg ran it green |
 | How many commands of I10's generated corpus (11,393) and recorded sessions are the one shape | the repository owner, if the count is wanted: it takes `1790660768`'s generator re-run, and the I10 correction is labelled read until then |
-| The full suite, repository-wide lint and typecheck | the sealer, after the review rounds |
+| closed The full suite, repository-wide lint and typecheck | #769, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
 
 ## Not done
 

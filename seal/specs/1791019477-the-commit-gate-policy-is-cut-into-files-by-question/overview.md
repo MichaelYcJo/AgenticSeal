@@ -31,7 +31,7 @@ the next fold again.
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the typecheck | the sealer, once, after the review rounds settle |
+| closed The full suite, the repository-wide lint and the typecheck | #744, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
 
 ## Not done
 

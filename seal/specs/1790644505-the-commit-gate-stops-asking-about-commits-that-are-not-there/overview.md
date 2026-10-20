@@ -27,9 +27,9 @@ refusal the model handles, and what the gate stops has not moved.
 
 | Item | Who must answer |
 |---|---|
-| The cases on Windows | CI's `windows-latest` leg, at the pull request |
-| Whether a refused model re-issues the same command (`questions.md` Q2) | The orchestrator of the next `automation` run, from its own transcript |
-| The whole suite, the repository-wide lint and the typecheck | The sealer, once, after the review rounds settle |
+| closed The cases on Windows | #997's `windows-latest` leg ran them green |
+| closed Whether a refused model re-issues the same command (`questions.md` Q2) | another session's behaviour: the limit sentence in `docs/commit-review-gate-spec.md` *The PreToolUse reading of a commit* |
+| closed The whole suite, the repository-wide lint and the typecheck | #671, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
 
 ## Not done
 

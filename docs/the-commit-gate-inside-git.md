@@ -226,6 +226,13 @@ check: tests/test_the_hook_surface_git_offers.py tests/test_the_frozen_reading_n
   and looks for the carried command inside the shell's argv, so two agents
   running the same command are both waived, and so is a command carrying no
   token that contains another open call's whole command that way.
+- **No case runs the stubs under a live Claude Code session.** The cases run
+  git below a process named `claude` with the session variable set. Which
+  harness version first exports `CLAUDE_CODE_SESSION_ID` and `CLAUDE_PID`,
+  what a headless run exports, whether every payload carries `tool_use_id`
+  (the answer store keys by the command's hash where one does not), and
+  whether every harness keeps the command in the Bash shell's argv were read
+  from one harness and are not pinned.
 - **Latency.** A judged commit starts one interpreter in `pre-commit`, one in
   `reference-transaction` at `prepared`, and one in `post-commit`, which lists
   the paths the commit touched for the stamp. `pre-commit` lists the staged

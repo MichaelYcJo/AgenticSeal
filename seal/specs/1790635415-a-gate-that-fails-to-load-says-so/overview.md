@@ -23,10 +23,10 @@ the call still goes ahead.
 
 | Item | Who must answer |
 |---|---|
-| Q1: the report on screen, line 1 as the dim `Stop says:` label and the stamp still whole and last when both arrive in one message | a measurement by the orchestrating session, which alone hosts `Stop` (`questions.md` Q1) |
-| The Windows render of a `Stop` `systemMessage`, and this work's cases on Windows | CI's `windows-latest` leg for the cases; the owner, or whoever next runs a session on Windows, for the render |
-| Two hook processes racing for one record, run for real rather than forced by blinding the existence check | nobody can run it deterministically. The exclusive create and the claim-by-rename are pinned by forcing each side of the race in-process |
-| The full suite, the repository-wide lint and the typecheck | the sealer, once, after the review rounds settle |
+| closed Q1: the report on screen, line 1 as the dim `Stop says:` label and the stamp still whole and last when both arrive in one message | a screen no case sees: the limit sentence in `docs/commit-review-gate-spec.md` *Registration* |
+| closed The Windows render of a `Stop` `systemMessage`, and this work's cases on Windows | the cases: #997's `windows-latest` leg ran `tests/test_a_gate_that_fails_says_so.py` green; the render: the limit sentence in `docs/commit-review-gate-spec.md` *Registration* |
+| closed Two hook processes racing for one record, run for real rather than forced by blinding the existence check | the limit sentence in `docs/commit-review-gate-spec.md` *Registration* |
+| closed The full suite, the repository-wide lint and the typecheck | #660, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
 
 ## Not done
 

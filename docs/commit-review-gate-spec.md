@@ -26,7 +26,9 @@ finishing. The dispatcher writes a record under
 opted-in repository and wherever `optin.py` is itself the broken module. The
 `stop` group says each pending record once as a `systemMessage`, before the
 sealer's stamp where there is one, and the report carries no decision. A
-failure in a git directory the dispatcher cannot write to is not said.
+failure in a git directory the dispatcher cannot write to is not said. No case
+sees how the harness renders the report beside the stamp, on any platform, and
+two hook processes racing for one record are forced in process, never run.
 check: tests/test_a_gate_that_fails_says_so.py
 
 ## The PreToolUse reading of a commit

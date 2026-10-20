@@ -27,8 +27,8 @@ reads each of them, and every command it stopped there it still stops.
 
 | Item | Who must answer |
 |---|---|
-| The cases on Windows | CI's `windows-latest` leg, at the pull request |
-| The whole suite, the repository-wide lint and the typecheck | The sealer, once, after the review rounds settle |
+| closed The cases on Windows | #997's `windows-latest` leg ran them green |
+| closed The whole suite, the repository-wide lint and the typecheck | #679, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
 
 ## Answered by the orchestrator
 
