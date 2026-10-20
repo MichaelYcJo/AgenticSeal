@@ -33,8 +33,6 @@ place, so no session hand-writes policy prose beside a marker.
 
 ## Not done
 
-- `questions.md` carries no row for the owner's 2026-10-20 answer on the ceiling, and Q5's Status is not written; the smith's definition names no write to that file. The orchestrator writes both.
-- `spec.md` S12 and *The one-read row* still say exit 1 and 37,178; the framer updates them.
 - `docs/worktree-guard-spec.md` and `docs/one-root-by-lifetime.ko.md` are past the ceiling and reported; #941 splits them.
 
 ## Fed back into the spec
