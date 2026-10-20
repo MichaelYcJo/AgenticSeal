@@ -89,6 +89,7 @@ TOKEN_CASES = (
 )
 
 
+@pytest.mark.rule("how-a-stop-is-put")
 @pytest.mark.parametrize("command, found", TOKEN_CASES[0], ids=TOKEN_CASES[1])
 def test_a_token_is_a_bare_word_and_nothing_else(command, found):
     assert tokens.given(command) == found
@@ -111,6 +112,7 @@ def _corpora():
     return commands
 
 
+@pytest.mark.rule("executed-text-is-read")
 def test_the_three_token_reads_answer_as_one():
     """S8 of work item 1791384157 (#868). Over every command of the three
     corpora, the commit gate's `has_marker` and the worktree guard's
@@ -149,6 +151,7 @@ def shell(command):
     )
 
 
+@pytest.mark.rule("how-a-stop-is-put")
 def test_an_answer_is_given_to_the_call_that_carried_it_and_no_other(tmp_path):
     """Round 1's 🟡 9: the parent and every subagent share one session id, so
     a token keyed by the session alone waived another agent's commit while
@@ -162,6 +165,7 @@ def test_an_answer_is_given_to_the_call_that_carried_it_and_no_other(tmp_path):
     assert not answers.given("s1", "[no-review]", [], root=root)
 
 
+@pytest.mark.rule("how-a-stop-is-put")
 def test_another_call_neither_replaces_nor_clears_an_answer(tmp_path):
     """The other half of 🟡 9: the writer cleared the session's answers for
     every new call, so a second agent's Bash call took the first's away."""

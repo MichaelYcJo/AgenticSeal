@@ -51,23 +51,23 @@ your one output.
 
 **Facts, never verdicts.** Whether the new code follows the original is your
 caller's judgment, made after verification.
-Enforced by: tests/test_a_moved_rule_leaves_its_definition.py::test_the_scribes_rules_stand_with_their_enforcers
+check: tests/test_a_moved_rule_leaves_its_definition.py
 
 **A guessed original proves nothing.** Where no original resolves, return
 `original not found` naming what was tried, and no findings.
-Enforced by: tests/test_a_moved_rule_leaves_its_definition.py::test_the_scribes_rules_stand_with_their_enforcers
+check: tests/test_a_moved_rule_leaves_its_definition.py
 
 **Start from the spec's coordinates, and report the axis nobody looked at.**
 An axis nobody looked at reads like one that came back empty, and your
 caller has to know which.
-Enforced by: tests/test_a_moved_rule_leaves_its_definition.py::test_the_scribes_rules_stand_with_their_enforcers
+check: tests/test_a_moved_rule_leaves_its_definition.py
 
 **Constraints, enums and defaults are read, not probed.** An original settles
 most of what you are asked by reading; §8 says how a probe that commits
 leaves the session undisturbed.
-Enforced by: tests/test_a_probe_that_commits_says_so.py::test_the_fact_finder_points_at_the_rule_it_no_longer_restates
+check: tests/test_a_probe_that_commits_says_so.py
 
 **An absence carries its search.** Report the command and the scope it ran
 over, after running it against a case you know is present. An absence
 without its search goes under what nobody has looked at, not under facts.
-Enforced by: tests/test_absence_claims.py::test_the_scribe_does_not_file_an_unrepeatable_absence_as_a_fact
+check: tests/test_absence_claims.py

@@ -2,8 +2,7 @@
 named by content (#870, #519, #867).
 
 `skills/verify/scripts/coordinates.py` is the coordinate kernel
-`fold_check.py`, `pact_check.py` and `chain_check.py` load. These are its
-cases:
+`pact_check.py` and `chain_check.py` load. These are its cases:
 
   the unit        a symbol through `ast`, a heading path in markdown, a
                   quoted line's paragraph anywhere, and a bare symbol refused
@@ -12,7 +11,6 @@ cases:
                   indentation is one
   the parse       one per distinct text, keyed on the text, and no caller's
                   edit reaches the next caller
-  the resolver    `named_unit` answers `path::name` targets
 """
 
 import importlib.util
@@ -416,29 +414,6 @@ def test_changing_the_returned_spans_does_not_reach_the_next_caller():
     first["f"].append((99, 99))
     first.pop("g")
     assert ec.py_spans(text) == {"f": [(1, 2)], "g": [(5, 6)]}
-
-
-# --- the resolver of `path::name` ------------------------------------------
-
-HELD = (
-    "def test_holds():\n    assert True\n\n\n"
-    "class TestA:\n    def test_b(self):\n        assert True\n\n\n"
-    "CONSTANT = 1\n"
-)
-
-
-def test_the_resolver_hands_each_caller_its_own_answer():
-    """`unit_kinds` is memoised on the text; a caller that changes the dict
-    it was handed changes nothing for the next one. A name is one
-    identifier per part: `A.b` is not `A::b`."""
-    first = ec.unit_kinds(HELD)
-    first["test_holds"] = ("class",)
-    assert ec.unit_kinds(HELD)["test_holds"] == ("def",)
-    assert ec.named_unit(HELD, ["TestA", "test_b"]) == ("def",)
-    assert ec.named_unit(HELD, ["CONSTANT"]) == ("constant",)
-    assert ec.named_unit(HELD, ["test_b"]) == ()
-    assert ec.named_unit("def (:\n", ["x"]) is None
-    assert ec.named_unit(HELD, ["TestA.test_b"]) == ()
 
 
 def test_a_word_ending_in_pact_is_not_a_pact_anchor():

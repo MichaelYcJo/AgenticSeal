@@ -1026,7 +1026,7 @@ def test_the_smiths_definition_names_the_command_and_no_directory_to_clear():
 def test_the_boundaries_bullet_says_the_command_holds_the_copy():
     smith = flat("agents", "smith.md")
     rule = smith[smith.index("**Commit before you mutate") :]
-    rule = rule[: rule.index("Enforced by:")]
+    rule = rule[: rule.index(" check: ")]
     assert "`mutation-check` holds the bytes it read" in rule, rule
 
 

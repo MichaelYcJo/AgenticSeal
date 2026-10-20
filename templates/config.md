@@ -432,18 +432,16 @@ repository over it.
 
 ## The fold's values
 
-Three rows, read by `fold-check` and `settle` (`skills/settle/SKILL.md`). The
+Two rows, read by `fold-check` and `settle` (`skills/settle/SKILL.md`). The
 plugin sets no value; these rows are where a repository states its own.
 
 ```markdown
-| Fold shape from | 1790154761 |
 | Document token ceiling | 25000 |
 | Policy root | docs |
 ```
 
 | Row | Value | Absent |
 |---|---|---|
-| `Fold shape from` | a work-item id's epoch prefix. A statement whose marker holds an id at or above it has the rule's shape; `0` binds every statement | the shape is not checked |
 | `Document token ceiling` | a positive whole number of estimated tokens. A top-level document of the policy root past it is reported as one to split | no length is checked |
 | `Policy root` | the repository-relative directory of the ratified policy documents, which `settle --apply` writes and every reader of them reads | `docs` |
 
@@ -459,6 +457,6 @@ refusing.** A `Policy root` value that is empty, absolute or climbs out with
 while tidying this file turns its check off, and the only trace is the one
 line `fold-check` prints about it.
 
-**A value that will not parse is refused.** A cutoff or a ceiling that is not
-a whole number exits 2 naming the row, and nothing is checked. A flag,
-`--shape-from` or `--ceiling`, overrides its row for one run.
+**A value that will not parse is refused.** A ceiling that is not a positive
+whole number exits 2 naming the row, and nothing is checked. The `--ceiling`
+flag overrides its row for one run.

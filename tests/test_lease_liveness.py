@@ -342,6 +342,7 @@ def test_the_session_pid_is_none_without_a_claude_ancestor(monkeypatch):
     assert hooksession.claude_pid() is None
 
 
+@pytest.mark.rule("a-persons-own-commit")
 @pytest.mark.parametrize("comm", ["/x/bin/claude", "claude-host"])
 def test_the_lease_records_the_process_the_hook_reads_back(repo, monkeypatch, comm):
     """S4 of work item 1791384157 (#868). The pid the lease writer records is
@@ -358,6 +359,7 @@ def test_the_lease_records_the_process_the_hook_reads_back(repo, monkeypatch, co
     assert hooksession.is_claude(comm) is (comm == "/x/bin/claude")
 
 
+@pytest.mark.rule("a-persons-own-commit")
 def test_the_guard_counts_the_sessions_the_one_test_names(tmp_path, monkeypatch):
     """S4 of work item 1791384157, the guard's half: its count of other
     sessions tests each process's name with `hooksession.is_claude`, so a
@@ -383,6 +385,7 @@ def test_the_guard_counts_the_sessions_the_one_test_names(tmp_path, monkeypatch)
     assert [entry[0] for entry in active] == [20], active
 
 
+@pytest.mark.rule("a-persons-own-commit")
 def test_the_lease_records_the_pid_the_harness_exports(repo, monkeypatch):
     """S5 of work item 1791384157. Where the environment carries
     `CLAUDE_PID`, an observed value, the lease records it, even where the walk
@@ -419,6 +422,7 @@ def test_a_pid_beside_no_session_id_on_either_side_is_not_recorded(
     assert rec["pid"] == 50, rec
 
 
+@pytest.mark.rule("a-persons-own-commit")
 @pytest.mark.parametrize("outer", ["the-outer-session", None])
 def test_a_pid_exported_for_another_session_is_not_recorded(repo, monkeypatch, outer):
     """Round 1 of work item 1791384157, yellow 4. A `claude` started from

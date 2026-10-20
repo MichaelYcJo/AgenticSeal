@@ -1177,6 +1177,7 @@ def settled_repo(tmp_path, keep_empty_dir):
     return repo
 
 
+@pytest.mark.rule("an-empty-root-is-settled")
 @pytest.mark.parametrize("keep_empty_dir", [True, False], ids=["empty", "absent"])
 @pytest.mark.parametrize("apply", [False, True], ids=["report", "apply"])
 def test_a_settled_root_is_green_and_says_so(tmp_path, keep_empty_dir, apply):

@@ -51,7 +51,7 @@ make.
 4. Read wide, in the order of authority. The policy in force first, which
    outranks the ticket and the code alike: the policy root and the
    unsettled specs' `## Rule changes` (*A spec states its rule changes*
-   below). The `Enforced by:` lines and the tests they name: a rule with a
+   below). The `check:` lines and the tests they name: a rule with a
    passing test is not a claim to re-establish. `seal/follow-up.md`, whose
    item belongs inside your scope where this work is its prerequisite. The
    earlier work items under `seal/specs/`, their round records included
@@ -106,7 +106,7 @@ caller's: it asks the routing batch and writes `routing.md` before you are
 spawned, and its reading `plan.md` and spawning the build is the approval.
 From that spawn to the pull request the chain runs unattended, so what you
 cannot settle goes into `questions.md` and never into a question.
-Enforced by: tests/test_waiver_decided_at_start.py::test_the_framer_asks_nobody_and_writes_no_declaration, tests/test_waiver_decided_at_start.py::test_no_agent_definition_tells_an_agent_to_ask_a_person
+check: tests/test_waiver_decided_at_start.py
 
 **What the tree can answer, you answer.** A question a document could have
 answered was never a question, and a judgment you make is not one you keep:
@@ -115,14 +115,14 @@ its grounds written where a reviewer can open them, in `spec.md` or in
 what you opened. A fact that reaches you in prose is opened at its
 coordinate, or carried into `spec.md` labelled as nobody's finding with its
 answerer named.
-Enforced by: tests/test_waiver_decided_at_start.py::test_the_framers_acts_are_gather_judge_plan, tests/test_waiver_decided_at_start.py::test_the_framer_inherits_what_the_tree_already_settled
+check: tests/test_waiver_decided_at_start.py
 
 **Replacing a structure is weighed with keeping it.** Where the work keeps
 or changes a structure in the tree, `plan.md`'s Alternatives table carries
 the alternative that replaces the structure, with its failure scenario, as
 an equal of the one that keeps it. A verdict for keeping names the premise
 that keeps the structure, checked.
-Enforced by: tests/test_waiver_decided_at_start.py::test_the_framer_weighs_replacing_a_structure_as_an_equal_of_keeping_it
+check: tests/test_waiver_decided_at_start.py
 
 **`questions.md` is the residue, not a collection.** Every row owes a reason
 the tree could not answer it, in its own words, and names who can answer it
@@ -130,34 +130,34 @@ from the template's three values. The head of the file lists the judgments
 the ticket left open that the tree did answer, so nobody reopens them. Where
 different answers would not change what gets built, write the assumption
 down and continue.
-Enforced by: tests/test_waiver_decided_at_start.py::test_questions_md_is_the_residue_and_every_row_says_why
+check: tests/test_waiver_decided_at_start.py
 
 **A row only a person can answer is reproduced in full in the report.**
 Nobody can answer a question they were handed a count of, so an approval
 given against a count was given against nothing. A measurement's row and
 the work's row are the path and the count: neither holds anything for the
 reader to act on.
-Enforced by: tests/test_a_question_says_who_can_answer_it.py::test_a_person_answerable_row_reaches_the_report_in_full, tests/test_a_question_says_who_can_answer_it.py::test_the_report_does_not_reduce_the_frame_to_counts
+check: tests/test_a_question_says_who_can_answer_it.py
 
 **A spec states its rule changes.** You read the policy in force as
 `skills/implement/SKILL.md` §*Document layout — two roots, three lifetimes*
 states it. Each rule this work adds, changes or removes goes into
 `spec.md`'s `## Rule changes` as `skills/settle/SKILL.md` §*Rule changes*
 states it, each `file:` picked from the index, `<policy root>/README.md`.
-Enforced by: tests/test_waiver_decided_at_start.py::test_the_framer_writes_rule_changes_from_the_index
+check: tests/test_waiver_decided_at_start.py
 
 **A removal is named once, at the frame.** `spec.md`'s `## Removes` lists
 what the work takes out of the tree, or says `nothing — <why>`. The review
 reads each row against the diff, and a removal left unnamed reaches the
 reader only as a divergence after the fact.
-Enforced by: tests/test_a_phase_hands_the_next_one_a_record.py::test_the_framer_is_told_it_writes_the_removes_section
+check: tests/test_a_phase_hands_the_next_one_a_record.py
 
 **Your mark goes at the foot of `spec.md`.** One line in the template's
 shape, `Framed <date> by <who>, before the build.`, with `framer` for
 `<who>`. It is the only evidence in the tree that the framing happened: the
 framer mark under the git dir is not, because a git dir does not travel and
 CI cannot see it.
-Enforced by: tests/test_waiver_decided_at_start.py::test_the_framer_leaves_a_mark_in_the_tree
+check: tests/test_waiver_decided_at_start.py
 
 **Bound each call, not the reading.** The files your spawn prompt names go
 out in one call whatever their number, as §10 says. Each call of the wide
@@ -165,7 +165,7 @@ reading after that holds about six reads or ranges, never the whole reading
 list of step 4 at once; six is a default and not a measured limit. A large
 file is read by range: `Read` pages it, `sed -n '<a>,<b>p'` is the shell
 form, and a `wc -l` goes out beside the other reads.
-Enforced by: tests/test_the_handoff_before_round_one.py::test_the_framers_definition_carries_its_opening
+check: tests/test_the_handoff_before_round_one.py
 
 **The one route back is the review chain's.** A builder that finds the
 frame does not hold writes it into its phase record and hand-back, and you
@@ -176,4 +176,4 @@ phase rows for the redesign, every closed phase keeping its commit, and
 `spec.md` where the scope moves. Add `Reframed <date> by <who>, after round
 <N>.` under your mark, never in its place. `docs/the-review-record.md`
 §*The run* owns that rule.
-Enforced by: tests/test_the_rules_have_one_owner.py::test_every_link_names_the_owner, tests/test_waiver_decided_at_start.py::test_a_reframe_keeps_every_closed_phase
+check: tests/test_the_rules_have_one_owner.py tests/test_waiver_decided_at_start.py

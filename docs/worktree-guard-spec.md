@@ -69,7 +69,7 @@ pins one text for every form, never a sentence here.
 and nowhere else, and the reader that decides it is the stop's, unchanged. A
 wrong deny costs the model a turn. Under the press this row puts no question
 to a person, where it put one per dirty switch; attended it puts the same one.
-Enforced by: tests/test_the_guard_asks_once_per_session.py::test_under_the_press_the_dirty_row_is_a_deny_to_the_model, tests/test_the_guard_asks_once_per_session.py::test_the_token_does_not_reach_the_dirty_row_under_the_press_either, tests/test_the_guard_asks_once_per_session.py::test_a_compound_stash_and_switch_meets_the_deny, tests/test_the_guard_asks_once_per_session.py::test_the_plain_retry_meets_todays_rows, tests/test_the_guard_asks_once_per_session.py::test_the_ways_on_pass_the_guard, tests/test_the_guard_asks_once_per_session.py::test_a_creation_on_the_dirty_line_is_stopped_with_it, tests/test_the_guard_asks_once_per_session.py::test_the_press_is_read_from_the_sessions_own_root, tests/test_the_guard_asks_once_per_session.py::test_one_text_for_every_switch_form, tests/test_worktree_guard.py::test_the_dirty_tree_row_names_what_was_measured
+check: tests/test_the_guard_asks_once_per_session.py tests/test_worktree_guard.py
 
 A command that also creates a worktree is judged by this table whichever of the
 two is written first, with the creation judged inside it — see §Creation
@@ -166,7 +166,7 @@ stops ask no person anything; without it each is one `ask`. Over the
 before 2026-10-03, the shapes stop 315 tree-blind, 55 of them pairs the
 guard before #826 did not stop at its most cautious, and they let through
 none it stopped (work item 1791270162, `phases/phase-3.md`).
-Enforced by: tests/test_worktree_guard.py::test_a_listed_shape_is_silent_in_every_tree_and_spawns_nothing, tests/test_worktree_guard.py::test_an_unrecognised_shape_stops_where_the_tree_matters, tests/test_worktree_guard.py::test_the_same_shapes_are_silent_in_a_clean_single_stream_tree, tests/test_the_guard_asks_once_per_session.py::test_under_the_press_the_stop_is_a_deny_to_the_model, tests/test_the_guard_asks_once_per_session.py::test_the_consent_record_is_not_the_press, tests/test_guard_resolves_the_tree_it_judges.py::test_no_redirection_makes_a_moving_verb_listed_wherever_it_stands, tests/test_guard_resolves_the_tree_it_judges.py::test_a_shape_in_a_clean_tree_takes_no_stop_from_one_in_a_dirty_tree, tests/test_worktree_guard.py::test_no_approval_runs_a_line_past_an_active_tree, tests/test_worktree_guard.py::test_a_rebase_naming_a_branch_is_unrecognised, tests/test_worktree_guard.py::test_no_listed_form_moves_head_under_git, tests/test_worktree_guard.py::test_the_stop_names_each_tree_that_matters_in_both_languages, tests/test_worktree_guard.py::test_a_cut_group_is_judged_in_the_tree_its_own_c_names
+check: tests/test_worktree_guard.py tests/test_the_guard_asks_once_per_session.py tests/test_guard_resolves_the_tree_it_judges.py
 
 ### B. Worktree creation (`git worktree add`, or Agent/Task `isolation: "worktree"`)
 
@@ -221,7 +221,7 @@ prompt was tried and taken back after both halves failed:
 What the token was buying was one step, `deny` to `ask`, because worktree
 creation ends at a human confirmation on both paths regardless. The path now
 asks outright, so the verdict does not depend on the prompt at all.
-Enforced by: tests/test_worktree_guard.py::test_an_isolated_agent_asks_without_counting_sessions, tests/test_worktree_guard.py::test_the_agent_verdict_does_not_depend_on_the_prompt
+check: tests/test_worktree_guard.py
 
 ## Creation consent — the first creation is the question, not every one
 
@@ -523,7 +523,7 @@ another session's branch out from under it.
 **The prompt budget.** Zero for a session whose person pressed `automation`, in the clone it was given in (another clone: §Choice sites, *Under the press*). One per session otherwise, from one per worktree unbounded — for a creation written on its own, which is the form the measured six took. Re-measured after round 2's fixes, six creations in one session on a clean single-stream tree: **deny, allow, allow, allow, allow, allow**.
 With consent, a creation written as one segment of a compound gets no allow,
 and neither does one carrying an expansion, a redirection, a wrapper or a **path-qualified command word**, because that is exactly what the bound above refuses to speak for. The guard is silent there, so what each one costs is whatever the user's own permission settings ask. The last of those is what round 2's second fix added to the list, and it moves nothing in the budget: `git worktree add …`, the same backgrounded, and the `\git` spelling all still allow.
-Enforced by: tests/test_the_guard_asks_once_per_session.py::test_the_first_creation_is_still_a_question, tests/test_the_guard_asks_once_per_session.py::test_a_second_creation_in_the_same_session_is_allowed, tests/test_the_guard_asks_once_per_session.py::test_the_measured_automation_run_is_not_stopped, tests/test_the_guard_asks_once_per_session.py::test_a_result_not_linked_to_an_ask_is_not_consent, tests/test_the_guard_asks_once_per_session.py::test_automation_on_another_question_is_not_consent, tests/test_the_guard_asks_once_per_session.py::test_an_answer_given_in_another_clone_is_not_consent, tests/test_the_guard_asks_once_per_session.py::test_the_labels_match_the_routing_question_the_orchestrator_asks, tests/test_the_guard_asks_once_per_session.py::test_a_typed_answer_that_qualifies_the_preset_is_not_consent, tests/test_the_guard_asks_once_per_session.py::test_question_1_alone_and_the_boxes_beside_it_read_the_same_press, tests/test_the_guard_asks_once_per_session.py::test_the_boxes_asked_alone_neither_give_nor_take_back_the_press, tests/test_the_guard_asks_once_per_session.py::test_a_shape_the_reader_did_not_expect_keeps_the_guards_deny, tests/test_the_guard_asks_once_per_session.py::test_a_switch_written_after_a_creation_is_judged, tests/test_the_guard_asks_once_per_session.py::test_the_order_of_a_switch_and_a_creation_does_not_decide, tests/test_the_guard_asks_once_per_session.py::test_a_command_with_both_is_never_weaker_than_either_alone, tests/test_the_guard_asks_once_per_session.py::test_the_command_word_class_is_what_the_allow_covers, tests/test_the_guard_asks_once_per_session.py::test_the_guard_is_never_silent_where_the_writer_records, tests/test_guard_resolves_the_tree_it_judges.py::test_the_consent_writer_files_a_creation_where_bash_runs_it, tests/test_guard_resolves_the_tree_it_judges.py::test_the_writer_files_under_the_clone_the_guard_judged, tests/test_guard_resolves_the_tree_it_judges.py::test_the_consent_writer_composes_the_creations_own_dash_c
+check: tests/test_the_guard_asks_once_per_session.py tests/test_guard_resolves_the_tree_it_judges.py
 
 ### Decided before git runs (#692)
 
@@ -541,7 +541,7 @@ questions.md` P6, answer (a)): the rows of §B decide before the command runs,
 through the frozen reading §*Which tree* describes, and this plugin installs
 no `post-checkout`. So a creation that reading cannot follow is judged as
 0.16.0 judged it, with that release's known limits.
-Enforced by: tests/test_a_creation_is_judged_before_git_runs.py::test_a_refused_dash_capital_b_leaves_the_branch_where_it_was, tests/test_a_creation_is_judged_before_git_runs.py::test_a_creation_git_runs_no_undo_for_is_refused_before_it, tests/test_a_creation_is_judged_before_git_runs.py::test_a_bash_creation_under_the_harness_path_buys_no_consent, tests/test_a_creation_is_judged_before_git_runs.py::test_no_git_hook_judges_a_creation, tests/test_the_hook_surface_git_offers.py::test_what_a_take_back_cannot_undo
+check: tests/test_a_creation_is_judged_before_git_runs.py tests/test_the_hook_surface_git_offers.py
 
 <!-- specs/1790815613-a-gate-decides-at-the-moment-of-the-action-not-from-the-text -->
 **A creation the guard lets through is recorded as before, from the command
@@ -549,7 +549,7 @@ that ran.**
 The PostToolUse writer above files the record in every clone, so the budget
 is the one this section states, and `[worktree-ok]` is read from the command
 by the guard itself, never carried to a git hook.
-Enforced by: tests/test_a_creation_is_judged_before_git_runs.py::test_an_answered_creation_runs_and_the_record_follows_it, tests/test_a_creation_is_judged_before_git_runs.py::test_the_old_token_puts_the_creation_to_the_person_before_it_runs
+check: tests/test_a_creation_is_judged_before_git_runs.py
 
 ## Choice sites
 
@@ -625,7 +625,7 @@ clone meets the attended first attempt. `[shared-tree-ok]` still turns the
 switch rows silent and `[worktree-ok]` still reaches its `ask` above the
 creation rows; a model that appends one leaves that on the command line.
 Without the press all four rows are what they were, word for word.
-Enforced by: tests/test_a_creation_in_another_clone_asks_nobody.py::test_under_the_press_a_creation_row_denies_every_attempt, tests/test_a_creation_in_another_clone_asks_nobody.py::test_an_unbalanced_quote_under_the_press_names_no_token, tests/test_a_creation_in_another_clone_asks_nobody.py::test_attended_an_unbalanced_quote_keeps_the_quote_note, tests/test_a_creation_in_another_clone_asks_nobody.py::test_a_record_in_the_other_clone_outranks_the_rows, tests/test_a_creation_in_another_clone_asks_nobody.py::test_the_token_still_reaches_its_own_row, tests/test_a_creation_in_another_clone_asks_nobody.py::test_the_press_is_read_from_the_sessions_own_root, tests/test_a_creation_in_another_clone_asks_nobody.py::test_a_creation_behind_a_cd_meets_the_same_deny, tests/test_a_creation_in_another_clone_asks_nobody.py::test_the_transcript_is_read_at_most_twice_per_creation, tests/test_worktree_guard.py::test_the_attended_creation_choice_rows_are_the_bases, tests/test_the_idle_session_rows_ask_nobody.py::test_under_the_press_a_choice_row_denies_every_attempt, tests/test_the_idle_session_rows_ask_nobody.py::test_the_token_still_reads_as_it_does_attended, tests/test_the_idle_session_rows_ask_nobody.py::test_the_way_on_passes_the_guard, tests/test_the_idle_session_rows_ask_nobody.py::test_a_creation_on_the_same_line_is_stopped_with_it, tests/test_the_idle_session_rows_ask_nobody.py::test_the_plain_retry_after_the_stop_meets_the_deny, tests/test_the_idle_session_rows_ask_nobody.py::test_the_press_is_read_at_most_once_per_command, tests/test_the_idle_session_rows_ask_nobody.py::test_the_press_is_read_from_the_sessions_own_root, tests/test_the_idle_session_rows_ask_nobody.py::test_a_switch_into_another_clone_names_no_split_it_cannot_consent, tests/test_the_idle_session_rows_ask_nobody.py::test_a_clone_this_session_already_split_is_named_the_split, tests/test_worktree_guard.py::test_the_attended_choice_rows_are_the_bases_in_korean
+check: tests/test_a_creation_in_another_clone_asks_nobody.py tests/test_worktree_guard.py tests/test_the_idle_session_rows_ask_nobody.py
 
 **Retry tokens, one per direction.** Both are matched as **bare words** of the
 command, never as substrings: a substring test read
@@ -723,7 +723,7 @@ is a safety net, never a blocker.
 The 5-minute default is safe only because of the second and third signals —
 keyboard input alone cannot distinguish "forgotten" from "autonomous turn in
 progress", which is why the earlier input-only design needed 60 minutes.
-Enforced by: tests/test_worktree_guard_signals.py::test_fresh_active_event_counts, tests/test_worktree_guard_signals.py::test_transcript_scan_reaches_background_agents
+check: tests/test_worktree_guard_signals.py
 
 ### Passive-event filtering
 
@@ -828,7 +828,7 @@ the finding, so a broken reader costs a stop where the tree matters and
 never a silence. Such a cut is judged in the tree the part before it names,
 which is where it runs; a `-C` written after the cut is not read
 (§*Known limits*).
-Enforced by: tests/test_worktree_guard.py::test_a_broken_wider_reader_costs_a_stop_never_a_silence, tests/test_worktree_guard.py::test_a_broken_reader_leaves_no_cut_group_silent, tests/test_worktree_guard.py::test_a_broken_reader_judges_a_cut_in_the_tree_before_it, tests/test_guard_resolves_the_tree_it_judges.py::test_a_git_only_the_wider_reading_finds_stops_where_its_tree_matters, tests/test_guard_resolves_the_tree_it_judges.py::test_a_zsh_prefixed_git_is_not_git_to_the_guard_or_the_consent_writer
+check: tests/test_worktree_guard.py tests/test_guard_resolves_the_tree_it_judges.py
 
 #692, the redesign of how the gates learn where a command acts, decided this
 reading on the owner's answers of 2026-10-01, and it stays. No git refuses a

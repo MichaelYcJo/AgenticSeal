@@ -46,7 +46,7 @@ sealer's stamp where there is one, and nothing the report adds carries a
 decision. Before this, a skipped gate read exactly like an allow and nobody
 was told. What it still cannot say is a failure it had nowhere to write: a
 git directory it cannot write to is as silent as before.
-Enforced by: tests/test_a_gate_that_fails_says_so.py::test_a_broken_gate_is_said_at_the_end_of_the_turn_and_only_once, tests/test_a_gate_that_fails_says_so.py::test_a_system_exit_at_load_does_not_take_the_group_down, tests/test_a_gate_that_fails_says_so.py::test_the_report_goes_before_the_stamp_and_the_stamp_is_unchanged
+check: tests/test_a_gate_that_fails_says_so.py
 
 ## commit-review-gate (PreToolUse, Bash)
 
@@ -168,7 +168,7 @@ to a substring wherever the command did not split, which is reading loosely
 in the one direction that waives with nobody asked; the refusal names the
 waiver typed in front, which splits, and the git hooks read `git -c
 specseal.waive=review` with no text read at all.
-Enforced by: tests/test_gate_judges_the_repo_it_commits_to.py::test_a_commit_aimed_elsewhere_is_judged_there, tests/test_gate_judges_the_repo_it_commits_to.py::test_a_cd_reaches_the_repository_the_commit_lands_in, tests/test_one_heredoc_shape_is_data_to_the_commit_gate.py::test_s1_a_token_in_the_program_body_waives_nothing, tests/test_one_heredoc_shape_is_data_to_the_commit_gate.py::test_s2_a_token_in_a_body_outside_the_shape_waives_nothing, tests/test_one_heredoc_shape_is_data_to_the_commit_gate.py::test_s5_a_token_inside_a_body_a_shell_runs_waives_nothing, tests/test_one_heredoc_shape_is_data_to_the_commit_gate.py::test_s6_neither_read_honours_a_token_the_base_did_not, tests/test_one_heredoc_shape_is_data_to_the_commit_gate.py::test_a_waiver_only_a_substring_holds_waives_nothing, tests/test_one_heredoc_shape_is_data_to_the_commit_gate.py::test_a_waiver_behind_an_apostrophe_in_its_comment_waives_nothing, tests/test_the_old_spellings_reach_the_hook.py::test_the_three_token_reads_answer_as_one
+check: executed-text-is-read
 
 <!-- specs/1788184145-the-gate-stops-the-session-editing-its-tests -->
 **A file edit goes through the `Edit` tool, because a shell command that only
@@ -216,7 +216,7 @@ program after a file sink, a second heredoc, and every body below the top
 level. Widening the shape needs a reader that knows where a quote or a
 substitution closes, and four review passes of #760 found that reader
 disagreeing with the shell each time, with a commit that went unread.
-Enforced by: tests/test_edits_go_through_the_edit_tool.py::test_the_rule_names_the_tool_and_pairs_its_two_reasons, tests/test_gate_judges_the_repo_it_commits_to.py::test_an_interpreter_fed_heredoc_body_that_commits_stops, tests/test_one_heredoc_shape_is_data_to_the_commit_gate.py::test_refusal_1_as_recorded_is_silent, tests/test_one_heredoc_shape_is_data_to_the_commit_gate.py::test_each_slot_of_the_shape_is_silent, tests/test_one_heredoc_shape_is_data_to_the_commit_gate.py::test_a_string_that_fails_one_clause_still_stops, tests/test_one_heredoc_shape_is_data_to_the_commit_gate.py::test_what_760_found_still_stops, tests/test_one_heredoc_shape_is_read_exactly.py::test_a_string_that_fails_one_clause_is_no_match, tests/test_one_heredoc_shape_agrees_with_the_shell.py::test_the_shell_cuts_every_admitted_body_where_the_reader_does
+check: one-heredoc-shape-is-data
 
 <!-- specs/1788305134-the-reader-stops-where-it-need-not -->
 
@@ -301,7 +301,7 @@ would answer for a repository the commit may never touch, which is the defect
 The two ways on are ordered deliberately. The first is to write the path out,
 because that is what lets the gate reach a verdict at all; `[no-review]` is
 second and works exactly as everywhere else.
-Enforced by: tests/test_gate_judges_the_repo_it_commits_to.py::test_a_failure_branch_survives_an_intervening_segment
+check: tests/test_gate_judges_the_repo_it_commits_to.py
 
 #### A `cd` the gate cannot read
 
@@ -360,7 +360,7 @@ a command the splitter could not finish, which is not a segment: a commit
 found behind `do` in a declared repository took the session's own directory
 out of the judgment, until the fallback came to stand beside what was found
 (round 1 of work item 1790644505, and the #670 statement below).
-Enforced by: tests/test_a_commit_behind_a_reserved_word_is_judged.py
+check: tests/test_a_commit_behind_a_reserved_word_is_judged.py
 
 **A commit behind a wrapper, in a shell string or in a substitution is a
 commit.** `exec git commit`, `nice git commit`, `timeout 5 git commit`,
@@ -406,7 +406,7 @@ might commit, beside every commit already found, since a gate that raises is
 skipped and a skipped gate is silence; catching the raise around the whole
 reading had thrown away a commit it had found in another repository (round 2
 of work item 1790644505).
-Enforced by: tests/test_a_commit_behind_a_wrapper_or_in_a_substitution_is_judged.py
+check: tests/test_a_commit_behind_a_wrapper_or_in_a_substitution_is_judged.py
 
 **A program word is read where the shell reads one, whatever stands in front
 of it.** `2>/dev/null git commit`, `git 2>/dev/null commit`, `2>&1 git
@@ -491,7 +491,7 @@ in. The worktree guard and the consent writer do not read this walk: they read
 through a frozen copy of `86256492`'s reader (#689), so no order of the two
 decides the tree they judge. The `cd` behind a redirection, the depth bound and
 the cap are held by `tests/test_no_shape_the_base_stops_reads_silent.py`.
-Enforced by: tests/test_a_commit_behind_a_wrapper_or_in_a_substitution_is_judged.py
+check: tests/test_a_commit_behind_a_wrapper_or_in_a_substitution_is_judged.py
 
 ### Why a deny, and why only once
 
@@ -546,7 +546,7 @@ is the answer above, because a gate that raises is skipped, and a skipped gate
 is silence. A wrong refusal costs the model a turn. The bound on a model that
 re-issues the same command is the reason's text alone, and whether it holds is
 a measurement owed at the next automation run.
-Enforced by: tests/test_an_automation_run_meets_no_commit_prompt.py
+check: tests/test_an_automation_run_meets_no_commit_prompt.py
 
 **Two readings that prompted that run stay as they are.** `cd X && x` on one
 line and `git commit` on the next reaches the session's own directory whenever
@@ -570,7 +570,7 @@ program on stdin and a quoted delimiter with nothing after it, which is
 exactly the one shape, so it left the corpus for a case that pins it silent.
 The repository owner decided that, in Q1 of work item `1791089603`, carrying
 the same answer given for #760. Every other row still stops.
-Enforced by: tests/test_no_shape_the_base_stops_reads_silent.py
+check: tests/test_no_shape_the_base_stops_reads_silent.py
 
 **Both arms, one call.** When both arms fire, the reason asks for two
 questions inside a single AskUserQuestion call rather than one question with
@@ -607,4 +607,4 @@ session could not also write. Everything fails toward "no mark", which is toward
 reminder: a mark gate that quietly stops running turns the notice on, not off,
 so a dead gate produces a line somebody reads rather than a silence nobody
 does. The commit gate's decision is byte-identical with the row and without it.
-Enforced by: tests/test_the_implementer_is_recorded.py::test_spawning_smith_leaves_a_mark, tests/test_the_implementer_is_recorded.py::test_a_declared_smith_with_no_mark_is_noticed_after_a_commit
+check: tests/test_the_implementer_is_recorded.py

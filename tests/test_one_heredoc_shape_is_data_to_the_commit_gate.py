@@ -79,6 +79,7 @@ def refusal_1(where):
     return f"cd {q(where)} && python3 - <<'EOF'\n{PY_BODY}\nEOF\ngrep -c git m.md"
 
 
+@pytest.mark.rule("one-heredoc-shape-is-data")
 def test_refusal_1_as_recorded_is_silent(tmp_path):
     """S1. Red at `e141980a`: a deny with the text for a command the gate
     cannot place."""
@@ -159,6 +160,7 @@ def test_refusals_2_and_3_as_recorded_still_stop(tmp_path):
 # --- S4: the shape's edges, through the gate ----------------------------------
 
 
+@pytest.mark.rule("one-heredoc-shape-is-data")
 @pytest.mark.parametrize("head", sorted(set(admitted())))
 def test_each_slot_of_the_shape_is_silent(tmp_path, head):
     """S4. Each sink form and the program, with and without arguments and the
@@ -174,6 +176,7 @@ def test_each_slot_of_the_shape_is_silent(tmp_path, head):
 NO_BODY = {"B: no newline at all"}
 
 
+@pytest.mark.rule("one-heredoc-shape-is-data")
 @pytest.mark.parametrize("name", sorted(set(FAILS) - NO_BODY))
 def test_a_string_that_fails_one_clause_still_stops(tmp_path, name):
     """S4. Each fails exactly the clause its name gives and carries a
@@ -332,6 +335,7 @@ def must_stop():
 MUST_STOP = must_stop()
 
 
+@pytest.mark.rule("one-heredoc-shape-is-data")
 @pytest.mark.parametrize("name", sorted(MUST_STOP))
 def test_what_760_found_still_stops(tmp_path, name):
     """S5. Green at `e141980a` and after: none of these is the one shape, so
@@ -429,6 +433,7 @@ def s2_body_outside_the_shape(opener, scratch, target):
     return f"{opener.format(scratch=q(scratch))}\n{WAIVER}\nEOF\n{commit_into(target)}"
 
 
+@pytest.mark.rule("executed-text-is-read")
 def test_s1_a_token_in_the_program_body_waives_nothing(tmp_path):
     """S1, `spec.md` case 2. Red at `94d7b2e0`: the base read the literal's
     token as a bare word and the commit into the undeclared repository went
@@ -442,6 +447,7 @@ def test_s1_a_token_in_the_program_body_waives_nothing(tmp_path):
     assert got in ("deny", "ask"), out
 
 
+@pytest.mark.rule("executed-text-is-read")
 @pytest.mark.parametrize("name", sorted(OUTSIDE_THE_SHAPE))
 def test_s2_a_token_in_a_body_outside_the_shape_waives_nothing(tmp_path, name):
     """S2, `spec.md` case 3. Red at `94d7b2e0` for each opener: the body's
@@ -494,6 +500,7 @@ def test_s3_the_documented_forms_still_waive_beside_a_body(tmp_path, name):
     assert decide(tokenless(command), session, "without")[0] in ("deny", "ask")
 
 
+@pytest.mark.rule("executed-text-is-read")
 def test_a_waiver_behind_an_apostrophe_in_its_comment_waives_nothing(tmp_path):
     """#868 In 3, the cost the frame named: `# don't [no-review]` opens a quote
     at the apostrophe to the one token reader, which reads comments on
@@ -524,6 +531,7 @@ def s5_shell_body(target, in_front=False):
     return f"bash <<EOF\n: '{WAIVER}'; {commit}\nEOF\n"
 
 
+@pytest.mark.rule("executed-text-is-read")
 def test_s5_a_token_inside_a_body_a_shell_runs_waives_nothing(tmp_path):
     """S5, `spec.md` case 4: the cost the frame accepted, pinned. Red at
     `94d7b2e0`, where the token inside the body silenced the commit the body
@@ -583,6 +591,8 @@ def every_case(tmp_path):
     yield from NEWLY_READ.values()
 
 
+@pytest.mark.rule("how-a-stop-is-put")
+@pytest.mark.rule("executed-text-is-read")
 def test_s6_neither_read_honours_a_token_the_base_did_not(tmp_path):
     """S6. For every command above, each read finds a token only where the
     base read found it. `NEWLY_READ` turns red the moment either read drops
@@ -607,6 +617,7 @@ def test_s6_neither_read_honours_a_token_the_base_did_not(tmp_path):
 # --- #868 In 3: the waiver has one reader --------------------------------------
 
 
+@pytest.mark.rule("executed-text-is-read")
 @pytest.mark.parametrize(
     "command",
     [

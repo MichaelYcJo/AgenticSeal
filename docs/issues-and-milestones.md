@@ -75,7 +75,7 @@ It named a real unshipped release here for three of them (#179).
 performance log whose body is the current state, and the open
 `flow-measurement` issue is this version's rolling log. Neither has a done
 condition, so neither closes, so the milestone does not either.
-Enforced by: tests/test_a_release_is_sized_by_a_criterion.py::test_the_rule_states_the_criterion_and_not_the_count, tests/test_a_release_is_sized_by_a_criterion.py::test_one_document_states_a_releases_size
+check: tests/test_a_release_is_sized_by_a_criterion.py
 
 ## A label answers *what it is about*, and survives the move
 
@@ -120,7 +120,7 @@ and says the count was unreadable.
 that key. Reading `--label flow-measurement --state all` finds the rolling
 logs and misses `#51`; reading `--label measurement` finds everything and
 answers no lookup.
-Enforced by: tests/test_a_release_rolls_the_flow_measurement_issue.py::test_two_open_issues_fails_loudly_without_retrying, tests/test_a_release_rolls_the_flow_measurement_issue.py::test_a_push_that_shipped_no_new_version_rolls_nothing
+check: tests/test_a_release_rolls_the_flow_measurement_issue.py
 
 <!-- specs/1788844200-the-refusal-text-is-unobserved-and-an-uppercase-v-is-invisible -->
 **A rolling log is titled after the version it rolled from**, in the form
@@ -220,7 +220,7 @@ makes the answer durable without making it a gate anybody has to satisfy.
 **What it does not decide is which release the ticket lands in.** The criterion
 answers *now or not now*; ordinary scheduling answers the rest, and a ticket
 without the label can still be the next thing somebody picks up.
-Enforced by: tests/test_a_release_rolls_the_flow_measurement_issue.py::test_the_title_the_roll_writes_is_the_title_the_next_roll_reads, tests/test_a_release_rolls_the_flow_measurement_issue.py::test_rolled_from_reads_only_the_title_the_roll_itself_writes
+check: tests/test_a_release_rolls_the_flow_measurement_issue.py
 
 ## Closing one of these by hand breaks the next release
 
@@ -300,7 +300,7 @@ Three things about it are worth knowing before anyone tidies it.
   missing label only **reports**, because a release must not be held for a
   failure of the signal rather than of its contents.
 
-Enforced by: tests/test_a_merged_ticket_says_so_on_the_tracker.py::test_it_labels_the_issue_the_keyword_named_and_nothing_else, tests/test_a_merged_ticket_says_so_on_the_tracker.py::test_the_trigger_is_a_push_to_a_release_branch_and_nothing_else
+check: tests/test_a_merged_ticket_says_so_on_the_tracker.py
 
 ## A keyword claims the one number after it
 
@@ -327,7 +327,7 @@ past-tense narrative keyword is still a keyword, so the opening paragraph of
 this section says a release *acted on* one number rather than using the verb
 this section is about, and a sentence that used it with a second number beside
 it would earn the warning like any body.
-Enforced by: tests/test_a_body_naming_two_issues_claims_one.py::test_the_sentence_that_lost_an_issue, tests/test_a_body_naming_two_issues_claims_one.py::test_the_two_lists_say_what_closes_and_what_does_not
+check: tests/test_a_body_naming_two_issues_claims_one.py
 
 <!-- specs/1790173209-the-release-tail-stops-at-the-first-issue-it-cannot-close -->
 **A keyword inside a fence or a code span claims nothing, whatever the fence
@@ -345,7 +345,7 @@ drop a real `Closes #N`, and an HTML comment, because whether GitHub reads a
 keyword inside one is unmeasured. `.github/scripts/issue_claims_check.py`
 imports the closer's two patterns rather than spelling its own, so the check
 and the closer read one body the same way.
-Enforced by: tests/test_release_hygiene.py
+check: tests/test_release_hygiene.py
 
 ## An issue is its body and its comments together
 

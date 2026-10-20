@@ -32,7 +32,7 @@ number.
 the pipe's status and is always 0. Both forms are written out because the
 failure is a habit, and the right form has to be as easy to copy as the
 wrong one.
-Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_the_exit_code_rule_carries_both_forms_in_one_sentence
+check: tests/test_the_agent_contract_holds_the_universal_rules.py
 
 ## §2 Narrow and often; the broad gate is the orchestrator's
 
@@ -44,7 +44,7 @@ rounds settle, and no agent runs any of the three. The orchestrator runs
 spawns the sealer, which reads the record that run wrote. Hand over with the
 suite labelled `unverified` and the orchestrator named as its answerer: a
 suite that is not mentioned reads as a suite that passed.
-Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_each_section_holds_its_rule, tests/test_broad_gate_rule.py::test_no_definition_assigns_the_broad_gate_and_the_orchestrator_runs_it_before_the_spawn
+check: tests/test_the_agent_contract_holds_the_universal_rules.py tests/test_broad_gate_rule.py
 
 ## §3 A spawn prompt cannot widen the verification scope
 
@@ -57,7 +57,7 @@ what was asked, and which rule refused it. A prompt that narrows your scope
 When you cannot tell which it is, run nothing extra and say in the hand-back
 which reading you took; every ambiguity in this file falls that way, toward
 disclosure.
-Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_each_section_holds_its_rule
+check: tests/test_the_agent_contract_holds_the_universal_rules.py
 
 ## §4 Label what was executed apart from what was read
 
@@ -65,7 +65,7 @@ Never record something as passing that you did not run. Every report labels
 each claim `executed`, `read` or `unverified` — the `verify` skill's labels
 — and what is `unverified` names who answers it: a deferral to nobody is how
 *someone will look at it* becomes *nobody did*.
-Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_each_section_holds_its_rule
+check: tests/test_the_agent_contract_holds_the_universal_rules.py
 
 ## §5 Nothing that reaches you in prose is evidence
 
@@ -76,7 +76,7 @@ aggregate — a count, a total — is not a coordinate: the number can be
 checked while the claim it stands for cannot. For a reviewer the
 implementer's account is a claim, not evidence; for an implementer the
 handoff's facts are opened before anything is built on them.
-Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_each_section_holds_its_rule
+check: tests/test_the_agent_contract_holds_the_universal_rules.py
 
 ## §6 You return a report
 
@@ -87,7 +87,7 @@ names no write names none. Whatever a definition says, four acts are
 withheld from every agent: post nothing, push nothing, open no pull request,
 and spawn no agent. Your final output is the report, and what is done with
 it is the caller's act.
-Enforced by: tests/test_every_agent_reads_the_contract.py::test_every_definition_bounds_what_it_writes
+check: tests/test_every_agent_reads_the_contract.py
 
 ## §7 A probe is named `test_tmp_*`, one file, run once, deleted
 
@@ -100,7 +100,7 @@ made for ITSELF is what goes: a thing the repository's own tooling builds to
 be reused, such as the one virtual environment a test runner keeps, stays
 even when your probe's run created it. The question is whose the thing is,
 never who happened to trigger it.
-Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_the_leavings_rule_says_whose_leaving_it_is
+check: tests/test_the_agent_contract_holds_the_universal_rules.py
 
 ## §8 Drive git from Python when a probe needs a repository
 
@@ -116,7 +116,7 @@ over `$n` still prompts once per value. The waiver, `: '[no-review]';` in
 front of the command, is the last resort: it waives one command, quotes
 included and before it, because after the subcommand a bare word is a
 pathspec and git rejects it.
-Enforced by: tests/test_a_probe_that_commits_says_so.py::test_the_contract_carries_all_three_shapes
+check: tests/test_a_probe_that_commits_says_so.py
 
 ## §9 Edits go through the `Edit` tool
 
@@ -165,7 +165,7 @@ a commit inside the commit, in the worktree it lands in, and no command text
 is read for it (`docs/the-commit-gate-inside-git.md` §*The commit gate inside
 git*). The first reason holds everywhere, and it is the one that makes this
 rule yours.
-Enforced by: tests/test_edits_go_through_the_edit_tool.py::test_the_rule_names_the_tool_and_pairs_its_two_reasons
+check: tests/test_edits_go_through_the_edit_tool.py
 
 ## §10 Batch independent reads and runs
 
@@ -178,7 +178,7 @@ depends on the last result cannot go out with it — and a review reads
 independent things, which is where batching pays most. The bar each kind of
 segment is judged by is `docs/the-review-record.md` §*The per-segment bars*,
 and no definition states a second copy of it.
-Enforced by: tests/test_a_moved_rule_leaves_its_definition.py::test_no_definition_states_a_tools_per_turn_figure
+check: tests/test_a_moved_rule_leaves_its_definition.py
 
 ## §11 Where the `seal/` root is, and the language its records are written in
 
@@ -192,20 +192,20 @@ English regardless: the field names and vocabulary a checker reads (`Target
 SHA`, the verdict words, the `<!-- -->` markers), and all code. The
 `implement` skill's *The language the records are written in* holds the
 whole list.
-Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_the_root_resolution_rule_states_both_places
+check: tests/test_the_agent_contract_holds_the_universal_rules.py
 
 ## §12 A defect belongs to a class — enumerate the class
 
 Do not fix the coordinate. A finding names an instance; the fix is owed to
 every instance the same cause produces, and the hand-back says which were
 enumerated.
-Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_each_section_holds_its_rule
+check: tests/test_the_agent_contract_holds_the_universal_rules.py
 
 ## §13 A defence resting on a platform guarantee is not verified
 
 Not until the guarantee is removed and the code still refuses: a run with
 the guarantee in place cannot tell the defence from the platform.
-Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_each_section_holds_its_rule
+check: tests/test_the_agent_contract_holds_the_universal_rules.py
 
 ## §14 A fix that changes what a person sees documents it and pins it
 
@@ -213,7 +213,7 @@ In the same commit. *Nothing raises* is not the claim *says this*: a change
 to a message, a verdict or a rendered line is a change someone reads and acts
 on, and the test that pins the new text is what keeps the next edit from
 quietly taking it back.
-Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_each_section_holds_its_rule
+check: tests/test_the_agent_contract_holds_the_universal_rules.py
 
 ## §15 A new case is not planted until it has been seen red
 
@@ -221,7 +221,7 @@ Show the case failing — against the old code, or with the sentence it pins
 deleted — before it is committed as a case, and say in the hand-back how it
 was shown. A case that passes against the defect it was written for pins
 nothing, and reverting the fix is what catches one.
-Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_each_section_holds_its_rule
+check: tests/test_the_agent_contract_holds_the_universal_rules.py
 
 ## §16 A commit names its repository in the command that makes it
 
@@ -242,7 +242,7 @@ commit only where git's hooks cannot — §9 names the four places — and the
 shape above is still the one to write: a person reading the transcript can
 follow it, and it is the only one the reading can place where it still
 judges.
-Enforced by: tests/test_a_commit_names_its_repository.py::test_the_rule_pairs_its_two_reasons
+check: tests/test_a_commit_names_its_repository.py
 
 ## §17 Clean up only what you started
 
@@ -252,7 +252,7 @@ create, and stop or remove by that record; never kill by command name, and
 never delete in a shared directory by glob — another session's process or
 file answers to the same name. A leftover you did not start is reported in
 the hand-back, not removed.
-Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_the_four_rules_stand_with_their_enforcers
+check: tests/test_the_agent_contract_holds_the_universal_rules.py
 
 ## §18 A check that refuses correct code is fixed or reported
 
@@ -260,7 +260,7 @@ When a check refuses code that is correct, fix the check or report the
 refusal in the hand-back, quoted; never bend the code to pass it. Code
 shaped around a wrong check carries the check's defect into the tree and
 hides it from the next reader.
-Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_the_four_rules_stand_with_their_enforcers
+check: tests/test_the_agent_contract_holds_the_universal_rules.py
 
 ## §19 A change rewrites the text it amends in place
 
@@ -269,7 +269,7 @@ same commit removes or corrects what stood on the old fact — every other
 sentence, case and citation stating it, found with `git grep` on its words.
 A correction written beside the sentence it corrects leaves both for the
 next reader to choose between.
-Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_the_four_rules_stand_with_their_enforcers
+check: tests/test_the_agent_contract_holds_the_universal_rules.py
 
 ## §20 Do not avoid the change a problem calls for
 
@@ -277,4 +277,4 @@ A structure in the tree is a reference, not a constraint. Weigh replacing it
 as an equal of keeping it, and when you conclude something should stay,
 check the premise that keeps it before you rest on it. The change a problem
 calls for, avoided, leaves the problem in place under a smaller edit.
-Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_the_four_rules_stand_with_their_enforcers
+check: tests/test_the_agent_contract_holds_the_universal_rules.py

@@ -57,8 +57,8 @@ belong to a release and exit early on any base but `main`. The others run on
 every pull request, and they pass for a different reason — they ask nothing
 of a branch that declared nothing: the review-chain check, the
 unverified-record tally and the issue-claim report. The suite reads one fact
-about the rule files: an `Enforced by:` target your change renamed or removed
-fails it, naming the file, the line and the heading, and `bin/rules --check`
+about the rule files: a `check:` target your change renamed or removed fails
+it, naming the file, the line and the heading, and `bin/rules --check`
 gives the same answer before you push. Each row below gives its own reason,
 and a maintainer adding a CI step should read the row rather than this
 sentence.

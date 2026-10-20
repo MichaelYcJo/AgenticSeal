@@ -164,7 +164,7 @@ class TestTemplate:
         rows = chain.table_rows(reader, reader.readable(text))
         cell = next(c[1] for c in rows if c[0].strip() == "Target SHA")
         assert "; earlier run: <sha> <verdict>" in cell, cell
-        rule = between(SEALER, "**The guarantee covers HEAD", "Enforced by:")
+        rule = between(SEALER, "**The guarantee covers HEAD", " check: ")
         assert "; earlier run: <sha> <verdict>" in rule, rule
         assert "re-runs only the claims whose coordinates a commit since" in rule
 
@@ -250,6 +250,7 @@ class TestEarlierVerdicts:
 # --- guarantee: the arm --------------------------------------------------------
 
 
+@pytest.mark.rule("ready-needs-sealed")
 class TestGuarantee:
     def test_a_sealed_verdict_at_head_passes(self, item):
         root, _sha = item
@@ -280,6 +281,7 @@ class TestGuarantee:
 # --- main: the arm at the pull request -----------------------------------------
 
 
+@pytest.mark.rule("ready-needs-sealed")
 def test_a_verdict_other_than_sealed_fails_a_ready_pull_request(item, capsys):
     """T8, S8 of #969: `withheld` and `undecided` fail a ready pull request
     naming the file and the verdict; a draft prints the same line and
@@ -303,6 +305,7 @@ def test_a_verdict_other_than_sealed_fails_a_ready_pull_request(item, capsys):
     assert code == 0 and rel in out
 
 
+@pytest.mark.rule("ready-needs-sealed")
 def test_the_old_words_are_refused_by_line(item, capsys):
     """T8, S8 of #969: a `guarantee.md` written before the words changed,
     reading `sound`, `not sound` or `undecidable`, fails a ready pull request
@@ -431,7 +434,7 @@ class TestDefinition:
         record of the work item may follow keeps an earlier verdict over a
         changelog or phase record it never read, and the check refuses it."""
         rule = " ".join(
-            between(SEALER, "**The guarantee covers HEAD", "Enforced by:").split()
+            between(SEALER, "**The guarantee covers HEAD", " check: ").split()
         )
         assert (
             "other than one touching only the closing records, `broad-gate.md` "

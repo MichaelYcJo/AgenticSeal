@@ -84,14 +84,12 @@ PLACEHOLDER = re.compile(r"^<[^>]*>$")
 # family, and the byte-order mark. None of them make a marker into a claim.
 INVISIBLE = "\ufe0f\ufe0e\u200b\u200c\u200d\u2060\ufeff"
 SEPARATOR = re.compile(r"^:?-+:?$")
-# What a line or a section says when it states nothing, with its reason after
-# the em dash (U+2014): an `Enforced by:` line and a `## Rule changes`
-# section. `fold_check.py` and `rule_changes.py` read it here.
+# What a `## Rule changes` section says when it states nothing, with its
+# reason after the em dash (U+2014). `rule_changes.py` reads it here.
 NOTHING = "nothing — "
 # The provenance marker the appending fold wrote above each statement it put
-# in `docs/`. `fold_check.py`'s shape arm and
-# `tests/test_both_editions_carry_the_same_folds.py` read it until #941
-# removes the markers; no removal is judged by it. Line-anchored, because
+# in `docs/`. `tests/test_both_editions_carry_the_same_folds.py` reads it
+# until #941 removes the markers; no removal is judged by it. Line-anchored, because
 # documents quote its shape inline, and read on live lines only
 # (`live_lines`), because one quoted in a fence or a parked draft is not one.
 # `readable()` would erase it: it blanks HTML comments, and the marker is one.
@@ -162,8 +160,8 @@ def gfm_lines(text, keepends=False):
 
     **Every reader of markdown or record text reads its lines here** (#664):
     `readable` and `live_lines`'s callers below, and every script that loads this
-    module and splits the same text a second time -- `fold_check.py`'s marker
-    readers and `gather_changelog.py`. Two readers of one text that split it
+    module and splits the same text a second time -- `fold_check.py` and
+    `gather_changelog.py`. Two readers of one text that split it
     two ways disagree about which line an index names.
 
     `str.splitlines` also ends a line at U+2028, U+2029, NEL, a form feed, VT
@@ -604,9 +602,9 @@ def live_lines(lines):
 
     A line that excuses or declares something is not taken on doubt, the
     second of the three answers `docs/the-record-layout.md` §*The fold, and
-    what tells it from a deletion* gives: what this parks, `fold_check.py`
-    binds no statement to, `rule_changes.py` reads as no heading, and the
-    changelog gather passes as a line holding no marker.
+    what tells it from a deletion* gives: what this parks, `rule_changes.py`
+    reads as no heading, and the changelog gather passes as a line holding no
+    marker.
 
     **The one rule for whether a line is live, and every reader of a marker
     or a policy heading asks it here.** A line

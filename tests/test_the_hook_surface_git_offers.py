@@ -325,6 +325,7 @@ exit 0
 """
 
 
+@pytest.mark.rule("no-verify-met-where-the-branch-moves")
 def test_only_git_commit_hands_reference_transaction_an_author_date(tmp_path):
     d, hooks = repo(tmp_path)
     hook(hooks, "reference-transaction", AUTHOR_DATE_LOG)
@@ -368,6 +369,7 @@ def test_only_git_commit_hands_reference_transaction_an_author_date(tmp_path):
     }
 
 
+@pytest.mark.rule("gits-own-commits-not-judged")
 def test_a_sequencer_that_stopped_on_a_conflict_commits_with_the_date(tmp_path):
     """Round 1 of #692 (🟡 7): what M12 left out. A cherry-pick or a rebase
     that stopped on a conflict finishes through a child `git commit`, which

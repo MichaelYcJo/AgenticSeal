@@ -83,7 +83,7 @@ The gather writes a new file, the release's own `changelog/X.Y.Z.md`, and
 heads the index `CHANGELOG.md` with its line (#728). It is staged before §3
 runs anything, because the suite lists files with `git ls-files`, which reads
 the index: an untracked release file is a tree the listing does not describe.
-Enforced by: tests/test_the_changelog_is_gathered_at_release.py::test_a_gather_writes_the_release_file_and_its_index_entry, tests/test_the_changelog_is_gathered_at_release.py::test_the_release_sequence_names_the_gather_step
+check: tests/test_the_changelog_is_gathered_at_release.py
 
 <!-- specs/1790173209-the-release-tail-stops-at-the-first-issue-it-cannot-close -->
 <!-- specs/1790206437-a-second-fold-writes-a-second-heading -->
@@ -94,7 +94,7 @@ it (#289) — one release's entries split across two sections that read as two
 releases. Run the same command again: the new entries join the existing
 section, the section keeps the first gather's date, and
 `tests/test_release_hygiene.py` refuses a file that heads a version twice.
-Enforced by: tests/test_release_hygiene.py, tests/test_the_changelog_is_gathered_at_release.py::test_a_second_gather_for_the_same_version_appends_into_its_section
+check: second-gather-appends tests/test_release_hygiene.py
 
 ## 2b. Settle what earlier releases left behind — when the owner calls it
 
@@ -154,7 +154,7 @@ What each one has caught, so a failure is recognised rather than debugged:
 | the full suite | a gathered entry prescribed a `git mv` whose destination nothing creates |
 | `test_no_loaded_file_names_a_version_at_or_above_the_running_one` | living prose that named the release by number the moment it became the running one. Since #179 it also names one written *ahead* of the release, which used to be green until the day it shipped — a document had carried an unshipped version for three releases that way. Records of a moment are listed in the test; everything else is reworded to name the change, or to the illustrative version the test's own message points at. Since #363 a version this repository has *tagged* is history and may be named — the shipped set is read from the root's `v*` tags, never from this file, because this commit writes the heading and the bump together and the version being cut is the timer |
 
-Enforced by: tests/test_a_shrunken_corpus_declines_to_judge.py::test_no_scope_in_the_suite_lists_paths_from_git_without_a_guard, tests/test_a_shrunken_corpus_declines_to_judge.py::test_declining_raises_the_skip_carrying_that_reason
+check: tests/test_a_shrunken_corpus_declines_to_judge.py
 
 ## 4. Commit, push, open the first pull request
 
@@ -214,7 +214,7 @@ already shipped, and a tag is what says so (#363). Three exemptions, each
 argued where the rule is: the illustrative version this repository already
 writes, records of a moment under `docs/experiments/`, and a version
 belonging to another product.
-Enforced by: tests/test_release_hygiene.py::test_no_loaded_file_names_a_version_at_or_above_the_running_one
+check: tests/test_release_hygiene.py
 
 <!-- specs/1789919879-the-outside-contributor-has-no-procedure -->
 **A contributor whose base is wrong is told the base is wrong.** The
@@ -224,7 +224,7 @@ what they are not asked to do. A pull request template carries the
 base-branch fact itself rather than only a link, because its whole advantage
 is that it reaches somebody who opened no document — and the refusal message
 of the check that fires on a wrong base says which fact is wrong.
-Enforced by: tests/test_the_release_check_watches_what_ships.py::test_the_refusal_names_the_wrong_base_as_one_of_the_two_causes, tests/test_the_contributor_has_a_procedure.py::test_the_procedure_is_the_first_section_of_the_guide
+check: tests/test_the_release_check_watches_what_ships.py tests/test_the_contributor_has_a_procedure.py
 
 ## 6. After the merge
 
@@ -354,4 +354,4 @@ leave.
       branch deleted or left, either is fine.
 - [ ] The next release branch is cut from `main`, not from this one.
 
-Enforced by: tests/test_version_check.py::test_the_warning_names_the_cheap_move_before_the_expensive_one, tests/test_version_check.py::test_the_warning_names_both_commands_in_order
+check: tests/test_version_check.py

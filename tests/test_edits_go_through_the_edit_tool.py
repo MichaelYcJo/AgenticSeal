@@ -35,6 +35,7 @@ what now refuses it.
 
 import os
 
+import pytest
 from conftest import load_hook_module
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
@@ -53,6 +54,7 @@ def flat(*parts):
     return " ".join(read(*parts).split())
 
 
+@pytest.mark.rule("one-heredoc-shape-is-data")
 def test_the_rule_names_the_tool_and_pairs_its_two_reasons():
     """The instruction itself, in each file that states it."""
     for parts in CARRIERS:

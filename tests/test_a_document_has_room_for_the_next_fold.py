@@ -31,8 +31,8 @@ fold_check = _load("specseal_fold_check", SCRIPT)
 
 
 def declared():
-    """`(cutoff, ceiling, policy root)` as this repository's `seal/config.md`
-    states them, read by the shipped command's own reader."""
+    """`(ceiling, policy root)` as this repository's `seal/config.md` states
+    them, read by the shipped command's own reader."""
     return fold_check.declared(fold_check.seal_home(ROOT))
 
 
@@ -52,8 +52,7 @@ def test_this_repository_passes_the_command_with_no_flags():
     and a document past the ceiling is named and does not fail the run."""
     code, out, err = command("--root", ROOT)
     assert code == 0, (out, err)
-    cutoff, ceiling, policy = declared()
-    assert f"; the cutoff {cutoff} binds " in out, out
+    ceiling, policy = declared()
     assert f" under {policy}/ to {ceiling} estimated tokens" in out, out
     for rel, tokens in fold_check.past_ceiling(ROOT, policy, ceiling):
         assert f"{rel} is about {tokens} tokens, past the ceiling" in out, out
@@ -122,7 +121,7 @@ INDEX = "| File | The question it answers |\n|---|---|\n"
 def test_an_index_that_misses_doubles_or_names_nothing_is_refused(tmp_path, rows, says):
     """S13, each refusal at exit 1, its message pinned (§14)."""
     root = tree(tmp_path, {"a.md": "# A\n", "b.md": "# B\n", "README.md": INDEX + rows})
-    code, out, err = command("--root", root, "--shape-from", "0")
+    code, out, err = command("--root", root)
     assert code == 1, (code, out, err)
     assert f"{says}\n" in out, out
 
@@ -133,14 +132,14 @@ def test_an_index_naming_each_document_once_passes(tmp_path):
     rows = "| `docs/a.md` and `docs/a.ko.md` | a |\n| `docs/b.md` | b |\n"
     files = {"a.md": "# A\n", "a.ko.md": "# A\n", "b.md": "# B\n"}
     root = tree(tmp_path, {**files, "README.md": INDEX + rows})
-    code, out, err = command("--root", root, "--shape-from", "0")
+    code, out, err = command("--root", root)
     assert code == 0, (code, out, err)
     assert "fold-check: the index docs/README.md names every document\n" in out
 
 
 def test_with_no_index_the_index_is_not_checked_and_the_run_says_so(tmp_path):
     root = tree(tmp_path, {"a.md": "# A\n"})
-    code, out, _ = command("--root", root, "--shape-from", "0")
+    code, out, _ = command("--root", root, "--ceiling", "10")
     assert code == 0, out
     assert "fold-check: there is no docs/README.md, so no index was checked\n" in out
 
@@ -162,48 +161,58 @@ def config_root(tmp_path, rows, policy="docs"):
     return str(tmp_path)
 
 
-def test_a_root_that_declares_neither_value_checks_nothing_and_says_so(tmp_path):
+def test_a_root_that_declares_no_ceiling_and_has_no_index_checks_nothing(tmp_path):
     """S4. Absent means not declared, as every optional row does; the line
-    names both rows and the file they were looked for in (§14)."""
+    names the row and the file it was looked for in (§14)."""
     root = config_root(tmp_path, [("Mode", "shared")])
     code, out, err = command("--root", root)
     config = os.path.join(root, "seal", "config.md")
     assert code == 0, (out, err)
     assert out == (
-        "fold-check: neither `Fold shape from` nor `Document token ceiling` is "
-        f"declared in {config}, and there is no docs/README.md, so nothing was "
-        "checked\n"
+        f"fold-check: `Document token ceiling` is not declared in {config}, and "
+        "there is no docs/README.md, so nothing was checked\n"
     ), out
 
 
-def test_the_line_row_is_no_longer_read(tmp_path):
-    """S12: `Document token ceiling` replaced it, so a repository that still
-    writes the line row has declared no ceiling."""
-    root = config_root(tmp_path, [("Document line ceiling", "1")])
+@pytest.mark.parametrize("row", ["Document line ceiling", "Fold shape from"])
+def test_a_retired_row_is_no_longer_read(tmp_path, row):
+    """S12: `Document token ceiling` replaced the line row, and the shape the
+    cutoff row bound left with its markers, so a repository that still
+    writes either has declared nothing."""
+    root = config_root(tmp_path, [(row, "1")])
     code, out, err = command("--root", root)
+    config = os.path.join(root, "seal", "config.md")
     assert code == 0, (out, err)
-    assert "nor `Document token ceiling` is declared" in out, out
+    assert out == (
+        f"fold-check: `Document token ceiling` is not declared in {config}, and "
+        "there is no docs/README.md, so nothing was checked\n"
+    ), out
 
 
 def test_a_row_with_an_empty_value_is_not_declared(tmp_path):
     """The template writes a row it leaves open with an empty cell, as it does
     `Mode` and `Broad gate`; an empty cell is no value, not a bad one."""
-    root = config_root(tmp_path, [("Fold shape from", ""), ("Policy root", "")])
+    root = config_root(tmp_path, [("Document token ceiling", ""), ("Policy root", "")])
     code, out, err = command("--root", root)
     assert code == 0, (out, err)
-    assert "neither `Fold shape from` nor `Document token ceiling` is declared" in out
+    assert "`Document token ceiling` is not declared in" in out, out
 
 
-def test_one_absent_row_skips_its_check_and_says_which(tmp_path):
-    root = config_root(tmp_path, [("Document token ceiling", "10")])
+def test_an_absent_ceiling_skips_its_check_and_says_so(tmp_path):
+    """With an index to read, the run goes on and says in one line which
+    check it did not run (§14)."""
+    root = config_root(tmp_path, [("Mode", "shared")])
+    (tmp_path / "docs" / "README.md").write_text(
+        f"{INDEX}| `docs/a.md` | a |\n", encoding="utf-8"
+    )
     code, out, _ = command("--root", root)
     config = os.path.join(root, "seal", "config.md")
     assert code == 0, out
-    assert (
-        f"fold-check: `Fold shape from` is not declared in {config}, so the "
-        "shape was not checked\n"
-    ) in out, out
-    assert "held 1 document under docs/ to 10 estimated tokens, 0 past it\n" in out
+    assert out == (
+        f"fold-check: `Document token ceiling` is not declared in {config}, so "
+        "no document's length was checked\n"
+        "fold-check: the index docs/README.md names every document\n"
+    ), out
 
 
 def test_the_policy_root_row_moves_every_check_there(tmp_path):
@@ -249,12 +258,6 @@ def test_the_policy_root_row_reads_as_docs_unless_it_names_a_directory_inside(
     "row, value, says",
     [
         (
-            "Fold shape from",
-            "17x",
-            "the `Fold shape from` row holds `17x`, which is not a work-item "
-            "id's epoch prefix (a whole number; `0` binds every statement)",
-        ),
-        (
             "Document token ceiling",
             "ten",
             "the `Document token ceiling` row holds `ten`, which is not a "
@@ -265,7 +268,7 @@ def test_the_policy_root_row_reads_as_docs_unless_it_names_a_directory_inside(
 def test_a_row_that_will_not_parse_is_named_and_nothing_is_checked(
     tmp_path, row, value, says
 ):
-    """S5, one case per row, each message pinned (§14)."""
+    """S5, its message pinned (§14)."""
     root = config_root(tmp_path, [(row, value)])
     code, out, err = command("--root", root)
     config = os.path.join(root, "seal", "config.md")
@@ -273,7 +276,7 @@ def test_a_row_that_will_not_parse_is_named_and_nothing_is_checked(
     assert err == f"fold-check: in {config}, {says} — nothing was checked\n", err
 
 
-@pytest.mark.parametrize("row", ["Fold shape from", "Document token ceiling"])
+@pytest.mark.parametrize("row", ["Document token ceiling"])
 def test_a_row_written_twice_is_refused_and_nothing_is_checked(tmp_path, row):
     """S1 of #867, `fold-check`'s half. A row written twice has no value, by
     `hooks/config.py#value_of`'s rule: the run exits 2 naming the row and the
@@ -312,7 +315,6 @@ def test_a_row_the_walker_did_not_read_is_refused_and_nothing_is_checked(tmp_pat
     root = config_root(
         tmp_path / "below",
         [
-            ("Fold shape from", "0"),
             ("Document token ceiling", "10"),
             ("Policy root", "docs"),
             ("Broad gate", "bin/test -q | tee out"),
@@ -387,10 +389,10 @@ def test_an_opted_out_repository_is_told_it_opted_out(tmp_path):
     code, out, err = command("--root", root)
     assert code == 0, (out, err)
     assert out == (
-        "fold-check: neither `Fold shape from` nor `Document token ceiling` is "
-        f"declared in {root}, which has opted out — `specseal-scratch` is under "
-        "its git directory, so its seal/config.md is not read, and there is no "
-        "docs/README.md, so nothing was checked\n"
+        f"fold-check: `Document token ceiling` is not declared in {root}, which "
+        "has opted out — `specseal-scratch` is under its git directory, so its "
+        "seal/config.md is not read, and there is no docs/README.md, so nothing "
+        "was checked\n"
     ), out
 
 
@@ -400,9 +402,9 @@ def test_a_repository_with_no_root_is_told_it_has_none(tmp_path):
     code, out, err = command("--root", str(tmp_path))
     assert code == 0, (out, err)
     assert out == (
-        "fold-check: neither `Fold shape from` nor `Document token ceiling` is "
-        f"declared in {tmp_path}, which has no seal/ root at either place, and "
-        "there is no docs/README.md, so nothing was checked\n"
+        f"fold-check: `Document token ceiling` is not declared in {tmp_path}, "
+        "which has no seal/ root at either place, and there is no "
+        "docs/README.md, so nothing was checked\n"
     ), out
 
 
@@ -411,7 +413,7 @@ def test_a_fold_row_written_again_below_the_stop_has_no_value(tmp_path):
     written again below it has no value, in fold-check as in
     `config_value`."""
     (tmp_path / "config.md").write_text(
-        "# c\n\n| Item | Value |\n|---|---|\n| Fold shape from | 100 |\n"
+        "# c\n\n| Item | Value |\n|---|---|\n"
         "| Document token ceiling | 400 |\n| Policy root | docs |\n"
         "| a | b | c |\n| Document token ceiling | 9000 |\n",
         encoding="utf-8",
@@ -428,7 +430,7 @@ def test_both_cheat_sheets_point_to_the_checks_home(edition):
     """Round 1, finding 9: the `fold-check` row described the freeze after it
     was gone. It now points to the rows' one statement and restates none."""
     with open(os.path.join(ROOT, edition), encoding="utf-8") as f:
-        row = next(line for line in f if line.startswith("| `fold-check [--shape-from"))
+        row = next(line for line in f if line.startswith("| `fold-check [--ceiling"))
     assert "`templates/config.md` §*The fold's values*" in row, row
     assert "frozen" not in row and "고정" not in row, row
 

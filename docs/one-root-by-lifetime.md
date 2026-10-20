@@ -39,7 +39,7 @@ specs/<id>/   spec plan questions overview  seal/specs/<id>/  the whole work ite
 (.specseal/ exists)  = opted in            seal/ exists at the mode's place = opted in
 ```
 
-Enforced by: tests/test_no_document_names_the_old_roots.py::test_no_shipped_document_names_the_old_roots, tests/test_optin_home.py::test_the_legacy_directory_is_not_an_opt_in
+check: tests/test_no_document_names_the_old_roots.py tests/test_optin_home.py
 
 ## The problem, as measured
 
@@ -132,7 +132,7 @@ the sections below carry them: the mode choice at first setup, and an
 export/import pair.
 
 **What the names say.** `seal/specs/<id>/` holds the spec and its process
-record. The binding of a rule to the code is the test its `Enforced by:` line
+record. The binding of a rule to the code is the test its `check:` line
 names — what the product name seals, rather than the sealer's seal
 (`skills/verify/SKILL.md` §*The hand-back's labels carry the claims, and the
 one seal is the sealer's*).
@@ -158,7 +158,7 @@ as the step that already gathers `changelog.md` fragments by hand
    to keep, because what is worth keeping has moved.
 2. **The guard.** A sentence in a work item's `spec.md` that must outlive
    the release has to have moved into a `docs/` policy, with the test its
-   `Enforced by:` line names, before the merge. `settle` skips a released
+   `check:` line names, before the merge. `settle` skips a released
    work item whose `overview.md` still has an open `## Not verified` row:
    neither folded nor removed, named in its output. The guard is what makes
    removal safe: it is the proof that nothing permanent lives only in the
@@ -210,7 +210,7 @@ its pull request is open, and gone with the record).
 adds:
 
 - It moves and does not verify. Whether a rule still holds is the job of
-  the test its `Enforced by:` line names, which CI runs on every pull
+  the test its `check:` line names, which CI runs on every pull
   request.
 - It applies each released spec's `## Rule changes` in place, in merge
   order, whole or not at all, and a directory goes only with what it
@@ -226,7 +226,7 @@ adds:
 
 Nothing changes here. `spec.md` was always the spec of one change. What must
 outlive the change already has one home: the `docs/` policy (judgment order
-is policy > SDD > code), with the test its `Enforced by:` line names.
+is policy > SDD > code), with the test its `check:` line names.
 `settle` is the step that moves it there for every released work item. A
 person checking the AI's work does it while the pull request is open, when
 `spec.md` is there. A person asking "why does this behave so" after the
@@ -276,7 +276,7 @@ under `.git/`:
 
 The fail direction is unchanged: no folder at either place means not opted
 in, and a hook that cannot tell does nothing.
-Enforced by: tests/test_optin_home.py::test_new_home_opts_in, tests/test_optin_home.py::test_the_git_directory_is_the_second_place, tests/test_optin_home.py::test_the_shared_root_wins_when_both_exist
+check: tests/test_optin_home.py
 
 ## What first setup asks
 
@@ -297,7 +297,7 @@ option saying what it does:
 
 A repository that already has `seal/` at either place has been through this
 and is never asked again; the mode is read from where the folder is.
-Enforced by: tests/test_first_setup_asks_once.py::test_a_repository_with_the_root_at_either_place_is_never_asked, tests/test_first_setup_asks_once.py::test_the_two_options_are_named_in_order_with_shared_as_the_default
+check: tests/test_first_setup_asks_once.py
 
 ### Shared or local
 
@@ -399,7 +399,7 @@ copy" rather than "lose it".
   anywhere; where the copy goes is the user's business and not a question
   the plugin asks.
 
-Enforced by: tests/test_first_setup_asks_once.py::test_each_option_says_what_it_creates_and_what_it_installs, tests/test_optin_home.py::test_the_local_root_is_never_a_commit_candidate_and_needs_no_gitignore
+check: tests/test_first_setup_asks_once.py tests/test_optin_home.py
 
 ### Retention: measured, and answered by `settle`
 
@@ -550,7 +550,7 @@ row with a side effect routes to the script that performs it, and a row that
 is only a row is written directly. Logic inside a skill cannot be
 mutation-tested the way a script can, and that is what decides where the line
 runs.
-Enforced by: tests/test_the_settings_have_a_front_door.py::test_the_skill_names_every_row_the_template_ships, tests/test_the_settings_have_a_front_door.py::test_the_skill_shows_rows_that_are_absent
+check: tests/test_the_settings_have_a_front_door.py
 
 <!-- specs/1788360817-the-pull-request-language-is-fixed-inside-a-skill -->
 **What language this plugin writes in is the repository's answer, not the
@@ -558,7 +558,7 @@ plugin's.** A skill that requires English of everyone is a decision made in a
 file nobody who disagrees with it can edit, so the language lives in a config
 row, and the mirror file a translated pull-request body goes in is named for
 the language it holds rather than for one language.
-Enforced by: tests/test_the_pull_request_language_is_the_repositorys.py::test_the_skill_names_the_file_and_the_row, tests/test_the_pull_request_language_is_the_repositorys.py::test_the_mirror_is_named_for_its_own_language
+check: tests/test_the_pull_request_language_is_the_repositorys.py
 
 <!-- specs/1788420760-a-language-row-that-governs-four-things -->
 **Two rows, because one cannot express the middle answer.** The combinations
@@ -577,7 +577,7 @@ Whatever either row says, **the names a checker matches stay English** — the
 field names, the verdict words, the markers, and all code.
 A translated field name is not a translation; it is a checker that stops
 reading.
-Enforced by: tests/test_the_pull_request_language_is_the_repositorys.py::test_the_template_is_one_item_value_table_whose_first_row_is_the_language, tests/test_the_pull_request_language_is_the_repositorys.py::test_every_document_that_names_a_language_row_names_the_shipped_one
+check: tests/test_the_pull_request_language_is_the_repositorys.py
 
 <!-- specs/1789598366-a-piped-broad-gate-row-takes-every-config-row-below-it -->
 **A cell may carry an escaped pipe, and one line that will not parse is named
@@ -587,7 +587,7 @@ silently took every row below it out of the config. The reader and the writer
 share the constant that describes a row, because their disagreement about
 which line is a given row is what turns one edit into a duplicate row in a
 person's file.
-Enforced by: tests/test_the_mode_question_is_asked_once.py::test_an_escaped_pipe_is_one_row_and_the_rows_below_it_still_arrive, tests/test_the_mode_question_is_asked_once.py::test_a_line_that_will_not_parse_is_named_and_the_hook_still_says_nothing
+check: tests/test_the_mode_question_is_asked_once.py
 
 <!-- specs/1788789329-a-git-call-that-fails-reads-as-no-remote -->
 **A git call that fails is not a git call that answered "nothing".** Empty
@@ -596,7 +596,7 @@ not be asked are different facts, and a caller that cannot tell them apart
 reports the absence as settled — no remote, no other worktree, no tracked
 file. Every call site whose caller needs the distinction returns it, and the
 refusal says which call failed rather than reporting a confident nothing.
-Enforced by: tests/test_the_records_can_be_carried_out_and_in.py::test_the_export_omits_a_remote_it_could_not_read, tests/test_the_records_can_be_carried_out_and_in.py::test_an_unreadable_remote_here_refuses_the_import, tests/test_the_mode_is_a_row_and_a_command.py::test_a_git_that_cannot_answer_does_not_report_no_submodule
+check: tests/test_the_records_can_be_carried_out_and_in.py tests/test_the_mode_is_a_row_and_a_command.py
 
 ## Out of scope
 

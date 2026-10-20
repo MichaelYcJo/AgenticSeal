@@ -12,4 +12,4 @@ tree, and the review reads it against the diff.** Each row names the thing,
 the coordinate it stood at, and where it lands or why it can go. A work item
 removing nothing writes `nothing — <why>`. A removal a phase makes that the
 frame did not name is a divergence, and it goes to `overview.md`.
-Enforced by: tests/test_a_phase_hands_the_next_one_a_record.py::test_the_spec_template_carries_the_removes_section_above_the_mark, tests/test_a_phase_hands_the_next_one_a_record.py::test_the_framer_is_told_it_writes_the_removes_section
+check: tests/test_a_phase_hands_the_next_one_a_record.py

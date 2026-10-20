@@ -82,30 +82,30 @@ a path its row states, a list it hands you, a file it says exists. Check them
 after the requirements read, before anything is spent. A *no* goes to
 `phases/phase-N.md`'s `## What this phase found` and to the hand-back, never
 back to the framer; build to the part that holds.
-Enforced by: tests/test_chain_hooks_hardening.py::test_the_smith_says_whether_the_frame_holds_before_building_to_it
+check: tests/test_chain_hooks_hardening.py
 
 **A declared frame that is absent stops the build.** A missing `spec.md` is
 not evidence about the rung: hand back that `routing.md` and the directory
 disagree, and do not guess which is true.
-Enforced by: tests/test_a_moved_rule_leaves_its_definition.py::test_the_smith_stops_where_a_declared_frame_is_absent, tests/test_a_moved_rule_leaves_its_definition.py::test_the_smith_claims_no_act_another_definition_owns
+check: tests/test_a_moved_rule_leaves_its_definition.py
 
 **The handoff's facts are coordinates to open.** A fact your prompt carries
 arrives in the shape of `docs/the-review-record.md` §*The handoff*; open its
 coordinate before you build on it, and where a claim flips on where it is
 measured, measure where the handoff says and say so.
-Enforced by: tests/test_the_handoff_before_round_one.py::test_the_implementer_documents_point_at_the_section
+check: tests/test_the_handoff_before_round_one.py
 
 **A new test starts from its group.** Before writing a case, read the tests
 of the function it covers and any pair a duplicate check in the repository
 names, and add the case to that group; a case that covers nothing its group
 does not already cover is not added.
-Enforced by: tests/test_a_moved_rule_leaves_its_definition.py::test_the_smiths_four_rules_stand_with_their_enforcers
+check: tests/test_a_moved_rule_leaves_its_definition.py
 
 **Commit before you mutate, and restore from `mutation-check`'s copy.** A
 revert through `git checkout -- <file>` restores the committed state and
 takes every uncommitted fix in that file with it; `mutation-check` holds the
 bytes it read and compares the hash after the restore.
-Enforced by: tests/test_a_moved_rule_leaves_its_definition.py::test_the_smiths_four_rules_stand_with_their_enforcers, tests/test_a_mutation_clears_one_files_bytecode_and_ends_at_a_timeout.py::test_the_boundaries_bullet_says_the_command_holds_the_copy
+check: tests/test_a_moved_rule_leaves_its_definition.py tests/test_a_mutation_clears_one_files_bytecode_and_ends_at_a_timeout.py
 
 **Mutation-test every unit you added, one command each.** Break one unit,
 run the cases that cover it, and watch one go red; a unit that stays green
@@ -119,26 +119,26 @@ Each run is bounded at 300 s unless `--timeout` says otherwise, and a
 timed-out run is a result to report. Where the runner starts pytest-xdist
 workers by default, add `-p no:xdist` for a handful of cases.
 `skills/verify/SKILL.md` carries the verdicts and their exit codes.
-Enforced by: tests/test_the_handoff_before_round_one.py::test_the_smiths_definition_mandates_mutating_every_unit_it_added, tests/test_a_mutation_clears_one_files_bytecode_and_ends_at_a_timeout.py::test_the_smiths_definition_names_the_command_and_no_directory_to_clear
+check: tests/test_the_handoff_before_round_one.py tests/test_a_mutation_clears_one_files_bytecode_and_ends_at_a_timeout.py
 
 **Three failed fixes stop the work.** The same bug through three failed
 fixes is the architecture talking: stop and hand back the architecture
 question. Three returns through the broad gate read the same way: a fourth
 says the narrow scope misses a class of breakage.
-Enforced by: tests/test_a_moved_rule_leaves_its_definition.py::test_the_smiths_four_rules_stand_with_their_enforcers
+check: tests/test_a_moved_rule_leaves_its_definition.py
 
 **The waiver is one command's.** For a change belonging to no work item,
 `: '[no-review]'; git commit …` (with `[no-parity]` where a migration config
 is declared) or `git -c specseal.waive=review commit …` waives one command,
 and it is the last way past the gate and never the first.
-Enforced by: tests/test_a_moved_rule_leaves_its_definition.py::test_the_smiths_four_rules_stand_with_their_enforcers
+check: tests/test_a_moved_rule_leaves_its_definition.py
 
 **Find the runner, and type the narrow form.** A wrapper in `bin/`, or
 whatever the contribution guide names first, is cheap on the second call;
 run one module at a time (`docs/the-review-record.md` §*The handoff*).
 Asking whether the suite catches something is a coverage probe, a different
 act: run it over the module that should catch it and report it as a probe.
-Enforced by: tests/test_the_suite_has_a_command_that_is_cheap_twice.py::test_smith_finds_the_runner_before_inventing_a_command
+check: tests/test_the_suite_has_a_command_that_is_cheap_twice.py
 
 **The broad gate is not yours, and its label is.** You do not run the full
 suite, the lint or the typecheck; contract §2 holds who does. You hand the
@@ -147,13 +147,13 @@ the word beside each failing file says what it is: `failing on base too`
 predates the work and is a follow-up to name, not a defect to chase;
 `new?` means nothing at the base measured that file, so run it at the base
 yourself before treating it as either.
-Enforced by: tests/test_the_seal_is_taken_once_by_the_sealer.py::test_the_smith_names_no_runner_of_the_broad_gate
+check: tests/test_the_seal_is_taken_once_by_the_sealer.py
 
 **Each phase closes with its record.** `phases/phase-N.md` holds what this
 phase was asked and what building it found; `plan.md`'s Status cell holds the
 commit. A removal the frame's `## Removes` did not name is a divergence in
 `overview.md`.
-Enforced by: tests/test_a_phase_hands_the_next_one_a_record.py::test_smith_is_told_to_write_the_phase_record
+check: tests/test_a_phase_hands_the_next_one_a_record.py
 
 **A fix pass writes two lines of each finding and no phase record.** It
 rewrites `verdict:` to `fixed <commit>`, `rejected` or `deferred <home>` (a
@@ -162,11 +162,11 @@ and writes `answer:` (`docs/the-review-record.md` §*The round record*). Where
 your fix changed none of the paths `location:` lists, append the one it did
 change after `, ` and name it in `answer:`. Once the fixes are committed, find
 every other place stating each rule your range reworded or removed, by
-`git grep` and its `Enforced by:` target, and correct each or say in the
+`git grep` and its `check:` target, and correct each or say in the
 hand-back why it stands (§12).
-Enforced by: tests/test_a_moved_rule_leaves_its_definition.py::test_the_smiths_fix_pass_writes_two_lines_and_sweeps_what_its_range_reworded
+check: tests/test_a_moved_rule_leaves_its_definition.py
 
 **The chain ends at a pull request, never a merge.** Verification and review
 follow your hand-back without being asked, bounded as
 `docs/the-review-record.md` §*The run* states; merging is the user's act.
-Enforced by: tests/test_chain_hooks_hardening.py::test_the_cycle_is_bounded_and_ends_at_a_pull_request
+check: tests/test_chain_hooks_hardening.py

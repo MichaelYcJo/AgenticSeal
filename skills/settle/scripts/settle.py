@@ -542,7 +542,7 @@ def write_after(root, policy, out):
     is said in its own sentence, never as a traceback after the writes."""
     fold = load(FOLD_CHECK, "specseal_fold_check_for_settle")
     try:
-        ceiling = fold.declared(fold.seal_home(root))[1]
+        ceiling = fold.declared(fold.seal_home(root))[0]
         lines = list(fold.index_problems(root, policy) or [])
         if ceiling is not None:
             lines += fold.past_ceiling_lines(

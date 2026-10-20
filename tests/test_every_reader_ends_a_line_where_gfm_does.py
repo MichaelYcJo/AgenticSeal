@@ -27,8 +27,6 @@ import os
 import subprocess
 import sys
 
-import pytest
-
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
 READER = os.path.join(ROOT, "skills", "verify", "scripts", "unverified_check.py")
 CHECKER = os.path.join(ROOT, "skills", "verify", "scripts", "coordinates.py")
@@ -106,27 +104,6 @@ def test_fold_check_keeps_no_copy_of_its_own():
     fold_check = _load("specseal_fold_check_for_gfm_lines", FOLD_CHECK)
     assert not hasattr(fold_check, "gfm_lines")
     assert not hasattr(fold_check, "GFM_LINE_RE")
-
-
-# --- S3, S4: a marker GFM does not show as its own line excuses nothing -----
-
-
-MARKED = f"# A policy\n\nprose{LS}<!-- specs/1700000000-a -->\n\n**A rule.**\n"
-
-
-def test_the_shape_arm_reads_no_marker_there():
-    """S4. `fold-check` binds no statement to a marker GFM shows mid-line."""
-    fold_check = _load("specseal_fold_check_s4", FOLD_CHECK)
-    assert fold_check.numbered_statements(MARKED) == []
-
-
-@pytest.mark.parametrize("char", SPLITLINES_ONLY, **BY_CODE_POINT)
-def test_no_one_of_the_eight_makes_a_marker_a_line(char):
-    """S3. The marker is line-anchored, and GFM renders it mid-line, so no
-    fold wrote it there."""
-    fold_check = _load("specseal_fold_check_s3", FOLD_CHECK)
-    text = MARKED.replace(LS, char)
-    assert fold_check.numbered_statements(text) == [], repr(char)
 
 
 # --- S5-S8: the changelog readers and their partner ---------------------------

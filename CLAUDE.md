@@ -38,7 +38,7 @@ is asked once, together, before the first edit, and nothing comes back mid-run.
 
 **A mechanism stays only while its history shows what it caught against what
 it costs**; existing is no reason to keep it. A rule's proof is the test or
-behaviour eval its `Enforced by:` names. A fact has one source, and every
+behaviour eval its `check:` line names. A fact has one source, and every
 other place links to it. A check gates only a fact it reads; a noisy reading,
 or one guessed from words, is a report. Nothing is kept beside the tree to
 stay in step with it, such as a stored count or coordinate. Do not avoid the

@@ -104,6 +104,7 @@ def gate(repo, cmd="git commit -m x", **kw):
 # --- the answer is read, both ways ------------------------------------------
 
 
+@pytest.mark.rule("routing-read-first")
 def test_a_declared_chain_item_commits_without_a_prompt(repo):
     """S1. The whole point: the answer was given, so it is not asked again."""
     opt_in(repo)
@@ -111,6 +112,7 @@ def test_a_declared_chain_item_commits_without_a_prompt(repo):
     assert decision_of(gate(repo)) == "silent"
 
 
+@pytest.mark.rule("routing-read-first")
 def test_a_declared_direct_item_commits_without_a_prompt(repo):
     """S4. Declaring is the routing answer; requiring `[no-review]` as well
     would be requiring the same answer twice."""

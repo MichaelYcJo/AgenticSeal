@@ -490,7 +490,7 @@ SENTENCE_END = re.compile(r"[.!?](?=\s|$)")
 
 def test_the_smiths_four_rules_stand_with_their_enforcers():
     """T3 of #967: S4's four rules each keep their paragraph, their clauses
-    and an `Enforced by:` line, and the waiver stays one sentence.
+    and a `check:` line, and the waiver stays one sentence.
 
     These four have no eval case that plants their breach, so a later trim
     could drop any of them with every grader green — #107's failure, a rule
@@ -498,14 +498,14 @@ def test_the_smiths_four_rules_stand_with_their_enforcers():
     for lead, clauses in SMITHS_FOUR_RULES.items():
         paragraph = smith_rule(lead)
         assert paragraph, f"`agents/smith.md` lost the rule {lead!r}"
-        assert re.search(r"^Enforced by: \S", paragraph, re.M), (
-            f"{lead!r} has no `Enforced by:` line, so nothing names what holds it"
+        assert re.search(r"^check: \S", paragraph, re.M), (
+            f"{lead!r} has no `check:` line, so nothing names what holds it"
         )
         said = flat(paragraph)
         for clause in clauses:
             assert clause in said, f"{lead!r} lost {clause!r}"
     waiver = smith_rule("The waiver is one command's.")
-    body = waiver.split("**", 2)[2].split("\nEnforced by:", 1)[0]
+    body = waiver.split("**", 2)[2].split("\ncheck:", 1)[0]
     assert len(SENTENCE_END.findall(body)) == 1, (
         "the waiver is stated in more than one sentence again, which is the "
         f"narration the rewrite removed: {flat(body)!r}"
@@ -570,7 +570,7 @@ SCRIBES_RULES = {
 
 def test_the_scribes_rules_stand_with_their_enforcers():
     """T3 of #970: the scribe's rules keep their paragraphs, their clauses and
-    an `Enforced by:` line, it opens `legacy-parity` at step 1, and where no
+    a `check:` line, it opens `legacy-parity` at step 1, and where no
     original resolves it returns `original not found` instead of asking.
 
     No case runs the scribe (#957's Q3), so a trim could drop any of these
@@ -584,8 +584,8 @@ def test_the_scribes_rules_stand_with_their_enforcers():
             (p for p in rules.split("\n\n") if p.startswith(f"**{lead}**")), ""
         )
         assert paragraph, f"`agents/scribe.md` lost the rule {lead!r}"
-        assert re.search(r"^Enforced by: \S", paragraph, re.M), (
-            f"{lead!r} has no `Enforced by:` line, so nothing names what holds it"
+        assert re.search(r"^check: \S", paragraph, re.M), (
+            f"{lead!r} has no `check:` line, so nothing names what holds it"
         )
         said = flat(paragraph)
         for clause in clauses:

@@ -238,6 +238,7 @@ def test_gathering_twice_writes_one_copy(tree):
     assert changelog(tree).count("the later one") == 1, changelog(tree)
 
 
+@pytest.mark.rule("second-gather-appends")
 def test_a_second_gather_for_the_same_version_appends_into_its_section(tree):
     """#289. A release pull request finding something is the ordinary shape:
     the first gather ran at the preparation commit, the pull request went

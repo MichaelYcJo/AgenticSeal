@@ -128,7 +128,7 @@ def report_of(agent):
     assert step, f"agents/{agent} has no `Hand back.` step"
     lead = "**A row only a person can answer"
     start = text.index(lead)
-    rule = text[start : text.index("Enforced by:", start)]
+    rule = text[start : text.index("\ncheck: ", start)]
     return " ".join((step.group(1) + rule).split())
 
 

@@ -194,11 +194,9 @@ def test_the_smiths_contract_does_not_demand_what_a_serial_loop_cannot_give():
 
 def framer_rule(text, lead):
     """The `agents/framer.md` rule paragraph opening with `**<lead>**`, up to
-    its `Enforced by:` line. Scoped so a phrase elsewhere in the definition
-    cannot hold one of the claims below up after the rule itself lost it."""
-    match = re.search(
-        rf"^\*\*{re.escape(lead)}\*\*(.*?)^Enforced by:", text, re.M | re.S
-    )
+    its `check:` line. Scoped so a phrase elsewhere in the definition cannot
+    hold one of the claims below up after the rule itself lost it."""
+    match = re.search(rf"^\*\*{re.escape(lead)}\*\*(.*?)^check: ", text, re.M | re.S)
     assert match, (
         f"`agents/framer.md` has no rule opening `**{lead}**`. The opening was "
         "typed into spawn prompts from 0.12.3 and lived in no file (#640); a "

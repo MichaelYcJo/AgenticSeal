@@ -38,7 +38,7 @@ specs/<id>/   spec plan questions overview   seal/specs/<id>/     작업 항목 
 (.specseal/ 가 있다)  = 옵트인               모드의 자리에 seal/ 이 있다  = 옵트인
 ```
 
-Enforced by: tests/test_no_document_names_the_old_roots.py::test_no_shipped_document_names_the_old_roots, tests/test_optin_home.py::test_the_legacy_directory_is_not_an_opt_in
+check: tests/test_no_document_names_the_old_roots.py tests/test_optin_home.py
 
 ## 문제를 숫자로 보면
 
@@ -129,7 +129,7 @@ CI 와 다른 클론에 닿아야 하기 때문입니다.
 담습니다. 처음 설정할 때 고르는 모드와 export/import 한 쌍입니다.
 
 **이름이 말하는 것.** `seal/specs/<id>/` 에는 스펙과 그 과정 기록이
-있습니다. 규칙과 코드를 묶는 것은 그 규칙의 `Enforced by:` 줄이 가리키는
+있습니다. 규칙과 코드를 묶는 것은 그 규칙의 `check:` 줄이 가리키는
 테스트이고, 그것이 seal 그 자체입니다.
 
 ## 릴리스 때 일어나는 일
@@ -150,7 +150,7 @@ CI 와 다른 클론에 닿아야 하기 때문입니다.
    때문입니다. 이 규칙이 코멘트 4 가 제안한 보존 설정을 대신합니다. 남길
    가치가 있는 것은 이미 옮겨 갔으니, 무엇을 남길지 고를 것이 없습니다.
 2. **가드.** 릴리스보다 오래 살아야 하는 `spec.md` 의 문장은 병합 전에,
-   그 문장의 `Enforced by:` 줄이 가리키는 테스트와 함께 `docs/` 정책서로
+   그 문장의 `check:` 줄이 가리키는 테스트와 함께 `docs/` 정책서로
    옮겨져 있어야 합니다. `overview.md` 의 `## Not verified` 에 열린 행이
    남은 릴리스된 작업 항목은 `settle` 이 건너뜁니다. 접지도 지우지도 않고
    출력에 이름만 적습니다. 이 가드가 있어야 지우는 것이 안전합니다. 영구히
@@ -202,7 +202,7 @@ CI 와 다른 클론에 닿아야 하기 때문입니다.
 단계라서 따로 적습니다.
 
 - 옮기기만 하고 검증하지 않습니다. 규칙이 아직 지켜지는지는 그 규칙의
-  `Enforced by:` 줄이 가리키는 테스트의 일이고, CI 가 PR 마다 돌립니다.
+  `check:` 줄이 가리키는 테스트의 일이고, CI 가 PR 마다 돌립니다.
 - 릴리스된 spec 마다 `## Rule changes` 를 머지 순서대로 제자리에 적용하고,
   spec 하나를 통째로 적용하거나 아무것도 적용하지 않습니다. 디렉터리는
   적용한 것과 함께만 지우므로 두 번 돌려도 두 번 적용되지 않습니다.
@@ -217,7 +217,7 @@ CI 와 다른 클론에 닿아야 하기 때문입니다.
 
 그대로입니다. `spec.md` 는 늘 변경 하나의 스펙이었습니다. 변경보다 오래
 살아야 하는 것은 이미 집이 하나입니다. `docs/` 정책서(판단 순서는 정책서 >
-SDD > 코드)이고, 그 규칙의 `Enforced by:` 줄이 가리키는 테스트가 함께
+SDD > 코드)이고, 그 규칙의 `check:` 줄이 가리키는 테스트가 함께
 갑니다. `settle` 은 릴리스된 작업 항목마다 그것을 그 집으로 옮기는
 단계입니다. AI 의 작업을 검사하는 사람은 PR 이 열려 있는 동안, `spec.md` 가
 있을 때 검사합니다. 릴리스 뒤에 "왜 이렇게 동작하지" 를 묻는 사람은 `docs/`
@@ -262,7 +262,7 @@ SDD > 코드)이고, 그 규칙의 `Enforced by:` 줄이 가리키는 테스트�
 
 실패 방향은 그대로입니다. 두 자리 어디에도 폴더가 없으면 옵트인하지 않은
 것이고, 판단할 수 없는 훅은 아무것도 하지 않습니다.
-Enforced by: tests/test_optin_home.py::test_new_home_opts_in, tests/test_optin_home.py::test_the_git_directory_is_the_second_place, tests/test_optin_home.py::test_the_shared_root_wins_when_both_exist
+check: tests/test_optin_home.py
 
 ## 처음 설정에서 무엇을 묻는가
 
@@ -283,7 +283,7 @@ Enforced by: tests/test_optin_home.py::test_new_home_opts_in, tests/test_optin_h
 
 두 자리 중 어디든 이미 `seal/` 이 있는 저장소는 이 과정을 거친 것이므로 다시
 묻지 않습니다. 모드는 폴더가 있는 자리로 읽습니다.
-Enforced by: tests/test_first_setup_asks_once.py::test_a_repository_with_the_root_at_either_place_is_never_asked, tests/test_first_setup_asks_once.py::test_the_two_options_are_named_in_order_with_shared_as_the_default
+check: tests/test_first_setup_asks_once.py
 
 ### shared 인가 local 인가
 
@@ -382,7 +382,7 @@ smith 표시와 워크트리 선택 기록이 이미 있는 자리입니다. 그
   않습니다. 사본을 어디에 둘지는 사용자의 일이고, 플러그인이 묻는 질문이
   아닙니다.
 
-Enforced by: tests/test_first_setup_asks_once.py::test_each_option_says_what_it_creates_and_what_it_installs, tests/test_optin_home.py::test_the_local_root_is_never_a_commit_candidate_and_needs_no_gitignore
+check: tests/test_first_setup_asks_once.py tests/test_optin_home.py
 
 ### 보존: 잰 것, 그리고 `settle` 이 답한 것
 
@@ -531,7 +531,7 @@ CI 경로는 아래 순서의 3 단계에서 루트와 함께 바뀝니다.
 스크립트로 보내고, 그냥 행일 뿐인 것은 바로 씁니다. 스킬 안의 논리는
 스크립트처럼 변이 테스트를 할 수 없고, 경계가 어디에 그어지는지는 그것으로
 정해집니다.
-Enforced by: tests/test_the_settings_have_a_front_door.py::test_the_skill_names_every_row_the_template_ships, tests/test_the_settings_have_a_front_door.py::test_the_skill_shows_rows_that_are_absent
+check: tests/test_the_settings_have_a_front_door.py
 
 <!-- specs/1788360817-the-pull-request-language-is-fixed-inside-a-skill -->
 **이 플러그인이 어떤 언어로 쓰는지는 플러그인이 아니라 저장소가 답합니다.**
@@ -539,7 +539,7 @@ Enforced by: tests/test_the_settings_have_a_front_door.py::test_the_skill_names_
 없는 파일 안에서 내려진 결정입니다. 그래서 언어는 설정 행에 둡니다. 번역된
 PR 본문이 들어가는 사본 파일의 이름도 특정 언어 하나가 아니라 그 안에 담긴
 언어를 따릅니다.
-Enforced by: tests/test_the_pull_request_language_is_the_repositorys.py::test_the_skill_names_the_file_and_the_row, tests/test_the_pull_request_language_is_the_repositorys.py::test_the_mirror_is_named_for_its_own_language
+check: tests/test_the_pull_request_language_is_the_repositorys.py
 
 <!-- specs/1788420760-a-language-row-that-governs-four-things -->
 **행이 둘인 이유는 행 하나로는 중간 답을 적을 수 없어서입니다.** 사람들이
@@ -557,7 +557,7 @@ PR 제목과 본문을 맡고, `Record language` 는 작업 항목이 쓰는 문
 이름, 판정 낱말, 표시 주석, 그리고 모든 코드가
 그렇습니다. 필드 이름을 옮기는 것은 번역이 아니라 검사기가 읽기를 멈추게
 하는 일입니다.
-Enforced by: tests/test_the_pull_request_language_is_the_repositorys.py::test_the_template_is_one_item_value_table_whose_first_row_is_the_language, tests/test_the_pull_request_language_is_the_repositorys.py::test_every_document_that_names_a_language_row_names_the_shipped_one
+check: tests/test_the_pull_request_language_is_the_repositorys.py
 
 <!-- specs/1789598366-a-piped-broad-gate-row-takes-every-config-row-below-it -->
 **칸에는 이스케이프한 파이프가 들어갈 수 있고, 해석되지 않는 줄 하나는 표의
@@ -566,7 +566,7 @@ Enforced by: tests/test_the_pull_request_language_is_the_repositorys.py::test_th
 소리 없이 빼 버렸습니다. 읽는 쪽과 쓰는 쪽은 행 하나를 설명하는 상수를 함께
 씁니다. 어느 줄이 주어진 행인지 둘의 판단이 갈리면, 고친 것 하나가 사람의
 파일에 행을 하나 더 만들기 때문입니다.
-Enforced by: tests/test_the_mode_question_is_asked_once.py::test_an_escaped_pipe_is_one_row_and_the_rows_below_it_still_arrive, tests/test_the_mode_question_is_asked_once.py::test_a_line_that_will_not_parse_is_named_and_the_hook_still_says_nothing
+check: tests/test_the_mode_question_is_asked_once.py
 
 <!-- specs/1788789329-a-git-call-that-fails-reads-as-no-remote -->
 **실패한 git 호출은 "없음" 이라고 답한 git 호출이 아닙니다.** 무엇이 없어서
@@ -575,7 +575,7 @@ Enforced by: tests/test_the_mode_question_is_asked_once.py::test_an_escaped_pipe
 없다, 다른 작업 트리가 없다, 추적되는 파일이 없다는 식입니다. 그 구분이
 필요한 호출자를 둔 호출 자리는 모두 그 구분을 돌려주고, 거부할 때는 자신
 있게 없다고 말하는 대신 어느 호출이 실패했는지를 밝힙니다.
-Enforced by: tests/test_the_records_can_be_carried_out_and_in.py::test_the_export_omits_a_remote_it_could_not_read, tests/test_the_records_can_be_carried_out_and_in.py::test_an_unreadable_remote_here_refuses_the_import, tests/test_the_mode_is_a_row_and_a_command.py::test_a_git_that_cannot_answer_does_not_report_no_submodule
+check: tests/test_the_records_can_be_carried_out_and_in.py tests/test_the_mode_is_a_row_and_a_command.py
 
 ## 범위 밖
 

@@ -1268,6 +1268,7 @@ def short(d, ref="HEAD"):
     return out.stdout.strip()[:7]
 
 
+@pytest.mark.rule("one-merge-base")
 def test_a_work_item_squashed_after_the_fork_is_not_this_branchs_removal(
     tmp_path, capsys
 ):
@@ -1304,6 +1305,7 @@ def test_the_moved_base_does_not_excuse_this_branchs_own_deletion(tmp_path, caps
     assert "squashed-sibling" not in out, out
 
 
+@pytest.mark.rule("one-merge-base")
 def test_a_row_the_base_gained_after_the_fork_is_not_a_deletion(tmp_path, capsys):
     """The row-count arm reads the base revision too, through
     `git show <ref>:<path>`, so it is in the same class as the arm the ticket
@@ -1588,6 +1590,7 @@ def remove(d, *names, docs=DOC):
     (d / "docs" / "a.md").write_text(docs, encoding="utf-8")
 
 
+@pytest.mark.rule("a-settle-is-no-deletion")
 def test_a_settled_work_item_is_not_read_as_this_branchs_deletion(tmp_path, capsys):
     """S9. A released directory removed whole, with nothing open, whose rule
     changes `docs/` holds, is a settle and not this branch's deletion. It is
@@ -1600,6 +1603,7 @@ def test_a_settled_work_item_is_not_read_as_this_branchs_deletion(tmp_path, caps
     assert "1 settled" in out and "1780000001-a" in out.split("settled —")[1], out
 
 
+@pytest.mark.rule("a-settle-is-no-deletion")
 def test_a_removal_whose_rule_docs_does_not_hold_still_fails(tmp_path, capsys):
     """S10, and the half that keeps the predicate from being a way past the
     check: two directories leave together, and `docs/` holds only one of
@@ -1615,6 +1619,7 @@ def test_a_removal_whose_rule_docs_does_not_hold_still_fails(tmp_path, capsys):
     assert "1780000002-b" in deleted and "1780000001-a" not in deleted, out
 
 
+@pytest.mark.rule("a-settle-is-no-deletion")
 def test_a_spec_with_no_rule_changes_and_nothing_open_is_settled(tmp_path, capsys):
     """S11, Q2's answer (a): a spec written before the section existed states
     nothing to replay, so its removal with nothing open passes."""
@@ -1636,9 +1641,8 @@ def test_the_settled_line_reads_as_a_sentence(tmp_path, capsys):
 
 
 def live_markers(body):
-    """The marker ids on the live lines of BODY, read the way
-    `fold_check.py#numbered_statements` reads them: `live_lines`, the one
-    rule for whether a line is live, and the line-anchored marker."""
+    """The marker ids on the live lines of BODY: `live_lines`, the one rule
+    for whether a line is live, and the line-anchored marker."""
     return {
         found
         for line, live in uc.live_lines(uc.gfm_lines(body))
@@ -2282,6 +2286,7 @@ def settled(tmp_path, keep_empty_dir):
     return d
 
 
+@pytest.mark.rule("an-empty-root-is-settled")
 @pytest.mark.parametrize("keep_empty_dir", [True, False], ids=["empty", "absent"])
 @pytest.mark.parametrize("baseline", [True, False], ids=["baseline", "plain"])
 def test_the_roots_own_specs_path_is_settled_when_nothing_is_under_it(

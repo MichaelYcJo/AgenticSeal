@@ -1833,7 +1833,7 @@ def test_this_repository_has_one_root_laid_out_by_lifetime():
     is the silence every gate would give this repository.
 
     S7 of #944: the evidence ledger does not come back. A rule is held by the
-    test its `Enforced by:` line names, and nothing reads a ledger file."""
+    test its `check:` line names, and nothing reads a ledger file."""
     seal = os.path.join(ROOT, "seal")
     for rel in ("README.md", "follow-up.md"):
         assert os.path.isfile(os.path.join(seal, rel)), rel

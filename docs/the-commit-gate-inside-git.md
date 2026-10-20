@@ -30,7 +30,7 @@ and zsh (`seal/specs/1790815613-…/phases/phase-1.md`, M6): 112/115 stops on a
 real commit kept, 37/44 real commits the release base missed now judged, and
 70/67 stops on commands that committed nothing anywhere undeclared dropped,
 the recorded run's commits into a declared worktree among them.
-Enforced by: tests/test_the_commit_gate_decides_at_the_commit.py::test_s1_a_commit_lands_in_the_declared_worktree_with_no_stop, tests/test_the_commit_gate_decides_at_the_commit.py::test_s1_a_heredoc_that_ends_early_commits_into_the_main_checkout_and_is_stopped, tests/test_the_commit_gate_decides_at_the_commit.py::test_s2_a_commit_bash_makes_into_an_undeclared_repository_does_not_land
+check: judged-inside-the-commit
 
 <!-- specs/1790815613-a-gate-decides-at-the-moment-of-the-action-not-from-the-text -->
 **The hooks are stubs that `hooks/hook-install.py` writes, and a hooks slot
@@ -48,7 +48,7 @@ level, or a hook file without the marker, makes the clone foreign: nothing is
 written, the plugin's own stubs there are taken out, and the session is told
 once (`questions.md` P1, answer (a)). A clone that does not opt in gets
 nothing and loses the stubs it had.
-Enforced by: tests/test_the_hooks_are_installed_where_git_runs_them.py::test_the_stubs_land_in_the_common_hooks_directory_from_a_linked_worktree, tests/test_the_hooks_are_installed_where_git_runs_them.py::test_core_hooks_path_makes_the_clone_foreign, tests/test_the_hooks_are_installed_where_git_runs_them.py::test_a_hook_file_without_the_marker_is_never_touched, tests/test_the_hooks_are_installed_where_git_runs_them.py::test_a_clone_that_does_not_opt_in_gets_nothing_and_loses_ours, tests/test_the_hooks_are_installed_where_git_runs_them.py::test_a_stub_git_cannot_run_is_written_again_and_decides_nothing_till_then
+check: tests/test_the_hooks_are_installed_where_git_runs_them.py
 
 <!-- specs/1790815613-a-gate-decides-at-the-moment-of-the-action-not-from-the-text -->
 **A commit with no Claude session behind it is a person's own, and is not
@@ -70,7 +70,7 @@ naming one pid are no session. With neither, the commit is the person's
 (`questions.md` P2, answer (a)), and the stub leaves before Python starts
 wherever no lease file stands in the clone. `hooks/hooksession.py` holds the
 two routes and the names they read.
-Enforced by: tests/test_the_commit_gate_decides_at_the_commit.py::test_s9_no_variable_and_no_lease_is_a_persons_own_commit, tests/test_the_commit_gate_decides_at_the_commit.py::test_s9_the_lease_names_the_session_when_no_variable_is_exported, tests/test_the_commit_gate_decides_at_the_commit.py::test_s9_an_emptied_environment_is_still_judged_through_the_lease, tests/test_the_hooks_are_installed_where_git_runs_them.py::test_an_emptied_lease_directory_starts_no_python, tests/test_the_commit_gate_decides_at_the_commit.py::test_the_lease_route_reads_the_exported_pid_with_no_ps_run, tests/test_the_commit_gate_decides_at_the_commit.py::test_the_one_session_variable_is_the_one_the_stub_and_the_reader_name, tests/test_lease_liveness.py::test_the_lease_records_the_process_the_hook_reads_back, tests/test_lease_liveness.py::test_the_lease_records_the_pid_the_harness_exports, tests/test_lease_liveness.py::test_the_guard_counts_the_sessions_the_one_test_names, tests/test_lease_liveness.py::test_a_pid_exported_for_another_session_is_not_recorded
+check: a-persons-own-commit
 
 <!-- specs/1790815613-a-gate-decides-at-the-moment-of-the-action-not-from-the-text -->
 **The arms, the marks and the declaration are the ones
@@ -95,7 +95,7 @@ commit whose ancestry up to the `claude` process carries that command — the
 Bash tool's shell holds it in its argv. Another agent's commit in the same
 moment is its own command and is judged, and another agent's call starting or
 ending leaves the answer alone.
-Enforced by: tests/test_the_commit_gate_decides_at_the_commit.py::test_s4_under_the_press_the_refusal_names_no_question_tool, tests/test_the_commit_gate_decides_at_the_commit.py::test_s5_an_attended_session_is_told_to_ask_and_the_second_attempt_is_the_same, tests/test_the_commit_gate_decides_at_the_commit.py::test_s5_both_spellings_the_refusal_names_actually_commit, tests/test_the_commit_gate_decides_at_the_commit.py::test_s6_inside_a_message_the_waiver_is_prose, tests/test_the_commit_gate_decides_at_the_commit.py::test_an_old_spelling_waives_no_other_agents_commit, tests/test_the_old_spellings_reach_the_hook.py::test_an_answer_is_given_to_the_call_that_carried_it_and_no_other, tests/test_the_old_spellings_reach_the_hook.py::test_another_call_neither_replaces_nor_clears_an_answer, tests/test_the_old_spellings_reach_the_hook.py::test_a_token_is_a_bare_word_and_nothing_else, tests/test_one_heredoc_shape_is_data_to_the_commit_gate.py::test_s6_neither_read_honours_a_token_the_base_did_not
+check: how-a-stop-is-put
 
 <!-- specs/1792363231-a-local-mode-work-item-draws-no-stamp -->
 **Beside the arms, `pre-commit` refuses a commit that stages a work item's
@@ -129,7 +129,7 @@ slot, the row lands, and its work item draws no stamp. So does a row an
 amend folds into the very commit it audited: `pre-commit` runs with HEAD
 still at that commit and cannot tell an amend from a plain commit, and the
 pull request's check refuses the landed row as stale.
-Enforced by: tests/test_the_commit_gate_decides_at_the_commit.py::test_a_sealed_the_branch_does_not_hold_is_stopped_inside_the_commit, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_over_a_commit_the_branch_does_not_hold_is_refused_at_the_commit, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_the_guarantee_refusal_is_quiet_off_its_one_fact, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_tracking_ref_left_by_a_rebase_withholds_nothing, tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py::test_a_sealed_committed_past_the_stub_keeps_the_gap, tests/test_the_commit_gate_decides_at_the_commit.py::test_the_policy_states_the_guarantee_refusal_beside_the_arms
+check: sealed-off-the-branch-refused
 
 <!-- specs/1790815613-a-gate-decides-at-the-moment-of-the-action-not-from-the-text -->
 **`--no-verify` is met where the branch moves, and nothing else that moves a
@@ -146,7 +146,7 @@ carries a one-shot mark keyed by the old HEAD, the tree, that date and the
 when it aborted after `pre-commit` is another process's, and passes nothing.
 A person who exports `GIT_AUTHOR_DATE` around a rebase makes it look like a
 commit, and it meets the refusal: the fail direction is a stop.
-Enforced by: tests/test_the_commit_gate_decides_at_the_commit.py::test_s3_no_verify_is_met_where_the_branch_moves_and_nothing_moves, tests/test_the_commit_gate_decides_at_the_commit.py::test_a_branch_moved_by_anything_but_git_commit_is_not_judged, tests/test_the_hook_surface_git_offers.py::test_only_git_commit_hands_reference_transaction_an_author_date, tests/test_the_commit_gate_decides_at_the_commit.py::test_a_mark_an_aborted_commit_left_passes_no_later_commit
+check: no-verify-met-where-the-branch-moves
 
 <!-- specs/1790815613-a-gate-decides-at-the-moment-of-the-action-not-from-the-text -->
 **A commit git makes for its own rebase, cherry-pick or revert is not judged;
@@ -169,7 +169,7 @@ started, so concluding a conflicted merge is judged whether it is typed as
 `git commit` or as `git merge --continue`, where 0.16.0's reading let the
 second through (round 2 of #692, executed). A merge with no conflict makes
 its commit without `pre-commit` or the author date, and is not judged.
-Enforced by: tests/test_the_commit_gate_decides_at_the_commit.py::test_concluding_a_conflicted_merge_is_judged, tests/test_the_commit_gate_decides_at_the_commit.py::test_a_rebase_git_continues_is_not_judged, tests/test_the_commit_gate_decides_at_the_commit.py::test_an_interactive_rebases_reword_is_not_judged, tests/test_the_commit_gate_decides_at_the_commit.py::test_a_pick_git_continues_is_not_judged, tests/test_the_commit_gate_decides_at_the_commit.py::test_a_commit_typed_while_a_rebase_is_paused_is_still_met, tests/test_the_commit_gate_decides_at_the_commit.py::test_a_commit_an_alias_starts_is_still_judged, tests/test_the_hook_surface_git_offers.py::test_a_sequencer_that_stopped_on_a_conflict_commits_with_the_date
+check: gits-own-commits-not-judged
 
 <!-- specs/1790815613-a-gate-decides-at-the-moment-of-the-action-not-from-the-text -->
 **Where git decides, the PreToolUse reading of
@@ -199,7 +199,7 @@ another descriptor; nothing is parsed again (no `$( … )`, backtick, `( … )`
 or `{ … }`, and no heredoc body holding a substitution behind an unquoted
 delimiter); and none of the words `hooks/tokens.py#steps_around_hooks`
 reads appears. A misread costs the one judgment 0.16.0 made.
-Enforced by: tests/test_the_commit_gate_decides_at_the_commit.py::test_the_text_reading_stands_aside_where_git_decides, tests/test_the_commit_gate_decides_at_the_commit.py::test_a_foreign_clone_keeps_the_text_reading, tests/test_the_commit_gate_decides_at_the_commit.py::test_a_command_that_can_step_around_the_hooks_keeps_the_text_reading, tests/test_the_commit_gate_decides_at_the_commit.py::test_only_those_words_make_the_reading_judge_a_git_decided_clone, tests/test_the_commit_gate_decides_at_the_commit.py::test_a_plain_agent_commit_stands_aside_and_one_word_more_is_judged, tests/test_the_commit_gate_decides_at_the_commit.py::test_a_negative_that_is_plain_stays_plain, tests/test_the_commit_gate_decides_at_the_commit.py::test_a_negative_outside_the_allowlist_is_not_plain
+check: text-reading-stands-aside
 
 <!-- specs/1790815613-a-gate-decides-at-the-moment-of-the-action-not-from-the-text -->
 **The convergence argument is claimed for commits alone.**
@@ -217,7 +217,7 @@ undo: `worktree add -B` resets an existing branch first, `--no-checkout` and
 worktree guard's switch and creation arms both keep `86256492`'s reading on
 every git, pinned so it cannot gain a rule (`docs/worktree-guard-spec.md`
 §*Which tree*). Those arms still predict from text, and do not converge.
-Enforced by: tests/test_the_hook_surface_git_offers.py::test_no_git_refuses_a_switch_before_the_tree_moves, tests/test_the_hook_surface_git_offers.py::test_what_a_take_back_cannot_undo, tests/test_the_frozen_reading_never_grows.py::test_the_bytes_below_the_rider_are_86256492s
+check: tests/test_the_hook_surface_git_offers.py tests/test_the_frozen_reading_never_grows.py
 
 ### Known limits of the commit gate inside git
 

@@ -409,6 +409,7 @@ def test_a_heredoc_body_does_not_hide_a_commit_that_follows_it(tmp_path):
     assert len(found) == 1
 
 
+@pytest.mark.rule("one-heredoc-shape-is-data")
 def test_an_interpreter_fed_heredoc_body_that_commits_stops(tmp_path):
     """issue #75: `bash <<'EOF'` hands its body to a shell that EXECUTES it,
     unlike `cat`, which only reads it as data (the case above). The reader
@@ -733,6 +734,7 @@ def test_an_absolute_chdir_recovers_a_directory_the_reader_had_lost(tmp_path):
 # --- the decision half ----------------------------------------------------
 
 
+@pytest.mark.rule("executed-text-is-read")
 def test_a_commit_aimed_elsewhere_is_judged_there(tmp_path):
     """The measured defect: the prompt belonged to a repo the commit never touches."""
     here = make_repo(tmp_path / "opted-in", opted_in=True)
@@ -765,6 +767,7 @@ def reason_of(out):
     return json.loads(out)["hookSpecificOutput"]["permissionDecisionReason"]
 
 
+@pytest.mark.rule("executed-text-is-read")
 def test_a_cd_reaches_the_repository_the_commit_lands_in(tmp_path):
     """S1. The measured fail-open: `cd <repo> && git commit` was judged
     against the directory the session started in, so the same commit into the

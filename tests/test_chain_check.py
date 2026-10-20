@@ -351,6 +351,7 @@ def released(root, subject="feat: a work item (#7)", committer=None, keep=False)
         git(root, "branch", "-q", "-D", "feature/x")
 
 
+@pytest.mark.rule("judged-where-carried")
 class TestCarriedBy:
     def test_a_declaration_only_a_squash_merge_touched_is_that_pull_requests(
         self, branch, monkeypatch
@@ -773,6 +774,7 @@ class TestDeferredHome:
 
 
 class TestLocationOf:
+    @pytest.mark.rule("location-touched-by-fix")
     def test_one_or_more_backticked_coordinates_read_and_nothing_else_does(self):
         """S22 (T33): a `location:` value is one or more backticked `path`,
         `path:line` or `path:first-last` items joined by `, `, read against
@@ -871,6 +873,7 @@ class TestRecordTarget:
             text = record("x").replace("target: x against main", f"target: {value}")
             assert target_of(text) == (read, []), value
 
+    @pytest.mark.rule("round-record-read-by-label")
     def test_no_line_two_lines_or_a_value_it_cannot_read_is_refused(self):
         """S4: no `target:` line — the old `| Target SHA |` table row among
         the ways to have none — two of them, or a value outside the two
@@ -969,6 +972,7 @@ class TestFindings:
         empty = reader.readable(record("abc1234"))
         assert chain.findings(reader, empty, "r.md") == ([], [])
 
+    @pytest.mark.rule("round-record-read-by-label")
     def test_what_the_check_cannot_read_is_refused_by_name(self):
         """S3, S11, S22 (T26, T33): what the reader cannot read is an error
         naming the path, the line and the finding's heading, never a pass — a
@@ -1119,6 +1123,7 @@ class TestFindings:
             )
             assert chain.findings(reader, reader.readable(text), "r.md")[1] == []
 
+    @pytest.mark.rule("round-record-read-by-label")
     def test_a_reopens_line_names_one_finding_and_never_beside_a_regression_line(
         self,
     ):
@@ -1363,6 +1368,7 @@ class TestFindings:
         marks = [c for c in text if EMOJI.match(c)]
         assert marks == [], marks
 
+    @pytest.mark.rule("round-record-read-by-label")
     def test_a_heading_with_no_number_or_a_number_twice_is_refused(self):
         """A finding is named across rounds by its heading's number, so a
         heading with none, or a number a second heading also carries, is a
@@ -1401,6 +1407,7 @@ class TestRecordFindings:
         assert errors == []
         assert found == chain.findings(reader, reader.readable(text), "r.md")[0]
 
+    @pytest.mark.rule("round-record-read-by-label")
     def test_a_fence_or_comment_that_never_closes_is_refused_by_its_opener(self):
         """A fence or a comment that never closes hides every line after it,
         so the findings below it would vanish and the record would pass. The
@@ -1503,6 +1510,7 @@ class TestConfirmations:
         monkeypatch.setattr(chain, "LABELS", (*chain.LABELS, "signed:"))
         assert chain.round_of(reader, kept, "r.md", 1)[1] == []
 
+    @pytest.mark.rule("round-record-read-by-label")
     def test_a_line_or_a_table_the_check_cannot_read_is_refused_by_line(self):
         """S23 (T36): a `confirms:` value the grammar table's `confirms:` row
         does not match whole, `round-<N>#<n>` or `none` — prose, another
@@ -1674,6 +1682,7 @@ class TestChannel:
         assert "`round-3#1`" in said[1] and "not an earlier record" in said[1]
         assert "`round-1#7`" in said[2] and "holds no finding 7" in said[2]
 
+    @pytest.mark.rule("round-record-read-by-label")
     def test_a_reference_the_check_cannot_read_or_naming_no_finding_is_refused(self):
         """S23 (T36): a reference naming a record the item has not got, or
         no earlier one, or a finding number that record does not hold, is
@@ -1745,6 +1754,8 @@ class TestChannel:
 # --- follows ------------------------------------------------------------------
 
 
+@pytest.mark.rule("run-ends-with-verifying-round")
+@pytest.mark.rule("last-record-at-head")
 class TestFollows:
     def test_head_and_record_commits_after_it_pass(self, branch):
         root, code = branch
@@ -1810,7 +1821,9 @@ class TestFrame:
 # --- main: the arms over a pull request ---------------------------------------
 
 
+@pytest.mark.rule("routing-read-first")
 class TestMain:
+    @pytest.mark.rule("old-table-shape-refused")
     def test_a_reviewed_branch_passes_a_ready_pull_request(self, branch, ready, capsys):
         """S11: the merged item's old-shape record, a finding open in it, is
         never opened — the check judges only what this pull request carries."""
@@ -1819,6 +1832,7 @@ class TestMain:
         assert code == 0, out
         assert MERGED_ITEM not in out
 
+    @pytest.mark.rule("round-record-read-by-label")
     def test_an_open_finding_fails_a_ready_pull_request(self, branch, ready, capsys):
         """S3 (T27): the `verdict:` lines decide, the line and the finding's
         heading are named, and a draft prints the same line and passes. A
@@ -1855,6 +1869,7 @@ class TestMain:
         code, out = check(root, capsys)
         assert code == 0, out
 
+    @pytest.mark.rule("round-record-read-by-label")
     def test_a_fixed_commit_head_does_not_descend_from_is_refused(
         self, branch, ready, capsys
     ):
@@ -1887,6 +1902,9 @@ class TestMain:
         assert "### 2." in named[1] and f"`{off[:8]}`" in named[1]
         assert all("HEAD does not descend from" in ln for ln in named), named
 
+    @pytest.mark.rule("round-record-read-by-label")
+    @pytest.mark.rule("fix-pass-two-lines")
+    @pytest.mark.rule("location-touched-by-fix")
     def test_a_fixed_commit_that_touches_nothing_of_the_finding_is_refused(
         self, branch, ready, capsys
     ):
@@ -1940,6 +1958,8 @@ class TestMain:
         assert "### 7." in named[1] and "`docs/xy.md`" in named[1], named
         assert all("touches no path" in ln for ln in named), named
 
+    @pytest.mark.rule("run-ends-with-verifying-round")
+    @pytest.mark.rule("last-record-at-head")
     def test_the_last_records_fixed_or_rejected_finding_owes_a_verifying_round(
         self, branch, ready, capsys
     ):
@@ -1977,6 +1997,7 @@ class TestMain:
             assert (code == 0) is closes, out
             assert (chain.VERIFYING_ROUND in out) is not closes, out
 
+    @pytest.mark.rule("last-record-at-head")
     def test_the_last_record_is_at_head_or_only_record_commits_follow(
         self, branch, ready, capsys
     ):
@@ -2014,6 +2035,7 @@ class TestMain:
         code, out = check(root, capsys)
         assert code == 0 and "holds no `round-N.md`" in out
 
+    @pytest.mark.rule("old-table-shape-refused")
     def test_an_old_shape_record_under_the_declared_item_is_refused(
         self, branch, ready, capsys
     ):
@@ -2066,6 +2088,7 @@ class TestMain:
         code, out = check(root, capsys, "--sealing")
         assert code == 0 and rel in out
 
+    @pytest.mark.rule("two-review-answers")
     def test_a_straight_to_the_pr_item_owes_the_sealers_two_files(
         self, branch, ready, capsys
     ):
@@ -2103,6 +2126,7 @@ class TestMain:
         code, out = check(root, capsys)
         assert code == 0 and "declared neither way" in out
 
+    @pytest.mark.rule("judged-where-carried")
     def test_a_release_pull_request_leaves_a_squashed_item_to_its_own_pull_request(
         self, branch, ready, capsys, monkeypatch
     ):
@@ -2124,6 +2148,7 @@ class TestMain:
         assert code == 1 and "does not descend from" in out
         assert "judged at its own pull request" not in out
 
+    @pytest.mark.rule("judged-where-carried")
     def test_an_item_the_release_pull_requests_own_commit_changes_is_judged(
         self, branch, ready, capsys, monkeypatch
     ):
@@ -2179,6 +2204,7 @@ def remove_an_earlier_item(root, applied, whole=True):
 
 
 class TestRetired:
+    @pytest.mark.rule("a-declaration-removed")
     def test_a_declaration_a_settle_removed_is_not_one_this_branch_made(
         self, branch, draft, capsys
     ):
@@ -2192,6 +2218,7 @@ class TestRetired:
         assert "retired: a settle" in out and "1788000000-an-earlier-item" in out
         assert "does not carry this file at HEAD" not in out
 
+    @pytest.mark.rule("a-declaration-removed")
     def test_a_declaration_deleted_with_nothing_absorbing_it_is_refused(
         self, branch, draft, capsys
     ):

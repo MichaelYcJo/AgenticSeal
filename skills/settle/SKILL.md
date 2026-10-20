@@ -73,20 +73,33 @@ line, indented two spaces:
 
 ## A rule has one shape
 
-**A rule has one shape: the rule, its grounds, and what enforces it.** A
-`to` value that states a rule opens with the rule as one bold sentence, gives
-its grounds as prose, and ends with one line naming what reads it:
-`Enforced by: <target>[, …]`, where a target is a repository path with an
-optional `::<name>` for a `def` or `class`, or `Enforced by: nothing — <why>`
-with a reason. `Enforced by:` stays English in every edition.
+**A rule has one shape: the rule, its grounds, and the line naming what
+reads it.** A `to` value that states a rule opens with the rule as one bold
+sentence, gives its grounds as prose, and ends with one check line, which
+stays English in every edition.
 
-**What this plugin checks, and what it does not.** It ships `fold-check`
-(`skills/settle/scripts/fold_check.py`), which reads that shape over the top
-level of the policy root from the `Fold shape from` row in `seal/config.md`,
-and a row a repository does not write is a check it does not run
-(`templates/config.md` §*The fold's values*). Whether a target really
-enforces its rule, and whether two rules contradict each other, it cannot
-read: that is review's, and it is review's to find.
+- A check line is a shown line of a rule file whose text, after any leading
+  spaces, starts with `check: `, lowercase, one space after the colon.
+- It names one or more targets separated by single spaces, or no target,
+  written exactly `check: none reader: <who reads it>`.
+- A target is a file of the repository, an eval case directory
+  `evals/behaviour/<agent>/<case>/` holding `case.yaml`, or a marker:
+  lowercase letters, digits and hyphens, carried by at least one test as
+  `@pytest.mark.rule("<marker>")`.
+- A marker names the tests of a rule whose test drives a script that can
+  refuse a commit or fail a required pull-request job. Every other rule names
+  files.
+- Every other spelling of the label is refused at its line: another case, a
+  space before the colon, a bullet or emphasis in front, the plural, the
+  word `Enforced by`. So is a value holding `::`, a comma or an em dash, a
+  path that is no file of the repository, and a marker no test carries.
+
+**What this plugin checks, and what it does not.** It ships `rules --check`
+(`.github/scripts/rules.py`), which reads every check line in a rule file and
+refuses one the grammar refuses. Whether a target really enforces
+its rule, whether a rule paragraph carries the line at all, and whether two
+rules contradict each other, it cannot read: that is review's, and it is
+review's to find.
 
 ## The index
 
@@ -199,6 +212,6 @@ settling would never end.
 ## What this does not do
 
 - It does not verify. Whether a rule still holds is the suite's job, through
-  the test its `Enforced by:` line names.
+  the test its check line names.
 - It does not fail a build. No gate refuses a branch for an unsettled work
   item.

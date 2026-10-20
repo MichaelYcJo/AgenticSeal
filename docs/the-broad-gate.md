@@ -24,7 +24,7 @@ reports what the commands said, and writes the work item's `broad-gate.md`;
 the sealer's own verdict, which follows the run, is a separate file
 (`docs/the-review-record.md` §*The guarantee*). A run that judges is a run
 whose verdict nobody can separate from its measurement.
-Enforced by: tests/test_broad_gate_rule.py::test_no_definition_assigns_the_broad_gate_and_the_orchestrator_runs_it_before_the_spawn
+check: tests/test_broad_gate_rule.py
 
 <!-- specs/1792311781-the-stamp-is-drawn-from-the-sealers-verdict -->
 **What the run prints says only whether it passed, and it draws nothing.**
@@ -36,7 +36,7 @@ and the stamp is drawn from that verdict at its commit, or in local mode at
 its write (`docs/the-review-record.md` §*The stamp*), so a green suite is
 never read
 as a sealed work item.
-Enforced by: tests/test_one_word_one_meaning.py::test_the_gate_never_says_sealed, tests/test_the_seal_is_taken_once_by_the_sealer.py::test_a_recorded_run_on_a_pipe_writes_no_values_file, tests/test_the_seal_is_taken_once_by_the_sealer.py::test_a_recorded_run_on_a_terminal_prints_the_same_report
+check: tests/test_one_word_one_meaning.py tests/test_the_seal_is_taken_once_by_the_sealer.py
 
 <!-- specs/1789034970-the-contract-is-settled-against-the-agents-that-exist -->
 **A shared rule is settled against the agents that exist.** A rule kept only
@@ -49,7 +49,7 @@ shared rule has to pass is that no role needs an exception to it.
 **A suite that is not mentioned reads as a suite that passed.** An agent's
 handover carries the suite labelled `unverified` with the orchestrator named
 as its answerer — labelled, never omitted.
-Enforced by: tests/test_the_agent_contract_holds_the_universal_rules.py::test_the_contract_says_it_is_universal_only, tests/test_every_agent_reads_the_contract.py::test_every_definition_has_the_shape_and_preloads_the_contract_alone
+check: tests/test_the_agent_contract_holds_the_universal_rules.py tests/test_every_agent_reads_the_contract.py
 
 ## What the gate runs, and how the list is kept true
 
@@ -67,7 +67,7 @@ skipped there, so the panel's count and the line beside it are taken over the
 steps CI runs for the base, and the line says how many it left out (#666).
 Which steps those are is declared beside the partition and held against the
 workflow's guards from both sides, never read off the workflow at run time.
-Enforced by: tests/test_the_gate_names_every_step_ci_runs.py::test_every_step_the_workflow_runs_is_classified, tests/test_the_gate_names_every_step_ci_runs.py::test_every_entry_of_the_partition_names_a_step_the_workflow_has, tests/test_the_gate_names_every_step_ci_runs.py::test_the_steps_left_out_off_main_are_the_steps_guarded_off_main
+check: tests/test_the_gate_names_every_step_ci_runs.py
 
 <!-- specs/1789956662-the-gate-and-ci-ask-about-different-ranges -->
 **The gate and CI ask about the same range, and the base is resolved once.**
@@ -78,7 +78,7 @@ against. The base becomes a resolved commit plus the ref it came from before
 any check runs, and after that point the raw argument is read nowhere. The
 order is the upstream the checkout declares, then the remote-tracking
 spelling the workflow uses literally, then the ref as given.
-Enforced by: tests/test_the_gate_asks_the_range_ci_will_ask.py::test_every_check_is_handed_the_commit_the_remote_tracking_ref_names, tests/test_the_gate_asks_the_range_ci_will_ask.py::test_the_gate_reads_the_given_base_exactly_once
+check: tests/test_the_gate_asks_the_range_ci_will_ask.py
 
 <!-- specs/1789445605-the-broad-gate-row-runs-unchecked-and-is-never-asked-for -->
 **A configured command that breaks the criterion is refused before anything
@@ -89,7 +89,7 @@ to save. The refusal names the form, quotes the value, and shows the row
 rewritten — exit 2, nothing run, the shape an absent row already takes. The
 criterion for choosing a value has one owner, the template that documents the
 row, and it is three rules rather than an example.
-Enforced by: tests/test_the_seal_is_taken_once_by_the_sealer.py::test_the_wrapped_row_that_would_have_seal_a_red_suite_is_refused, tests/test_the_seal_is_taken_once_by_the_sealer.py::test_a_refused_row_runs_no_check_and_adds_no_worktree
+check: tests/test_the_seal_is_taken_once_by_the_sealer.py
 
 <!-- specs/1789721571-the-gate-reads-an-example-and-names-rows-nobody-wrote -->
 **A fenced example in a config file is not a config row.** The one walk of
@@ -98,7 +98,7 @@ writer overwrites the line that walk names. A reader and a writer that
 disagree about which line is the row leave a file two rows deep that no
 command can bring into agreement, so a repair landing in the reader alone is
 half a repair.
-Enforced by: tests/test_the_seal_is_taken_once_by_the_sealer.py::test_a_broad_gate_line_only_inside_a_fence_is_named_and_not_called_absent
+check: tests/test_the_seal_is_taken_once_by_the_sealer.py
 
 <!-- specs/1790206436-the-runs-instruments-cost-wall-clock -->
 **The gate that measures a tree is the copy that tree ships, and its report
@@ -123,7 +123,7 @@ or redirected by an installed copy older than #666 — and the pull request
 asks the same scripts again. The row prints nowhere else: on every
 redirected run over a tree whose gate the branch did not change it said the
 same thing and was read by nobody (#666).
-Enforced by: tests/test_the_seal_is_taken_once_by_the_sealer.py
+check: tests/test_the_seal_is_taken_once_by_the_sealer.py
 
 ## What the runner owes the person who typed it
 
@@ -134,7 +134,7 @@ environment on every call is not a missing command, it is an expensive one —
 measured at 55 to 58 seconds of setup per call, on all seventeen test calls of
 one segment. The environment is built once and reused; the first call pays
 for it and every call after it pays for interpreter startup and nothing else.
-Enforced by: tests/test_the_suite_has_a_command_that_is_cheap_twice.py::test_a_built_environment_is_reused_and_never_rebuilt, tests/test_the_suite_has_a_command_that_is_cheap_twice.py::test_a_missing_environment_is_built_once
+check: tests/test_the_suite_has_a_command_that_is_cheap_twice.py
 
 <!-- specs/1788691941-an-unwritable-venv-turns-the-refusal-into-a-traceback -->
 **Every failure the runner has is a sentence, never a traceback.** The
@@ -144,7 +144,7 @@ tells the reader about the directory rather than about the thing they typed.
 A read-only environment directory is the operator's; the runner says what it
 could not do, names the path and what it means for `git status`, and carries
 on.
-Enforced by: tests/test_the_suite_has_a_command_that_is_cheap_twice.py::test_an_unwritable_venv_leaves_the_refusal_a_sentence, tests/test_the_suite_has_a_command_that_is_cheap_twice.py::test_a_failing_build_step_is_a_sentence
+check: tests/test_the_suite_has_a_command_that_is_cheap_twice.py
 
 <!-- specs/1790206436-the-runs-instruments-cost-wall-clock -->
 **The runner runs the suite in parallel by default, in every environment it
@@ -163,7 +163,7 @@ correct without it: an install that fails is one sentence naming the remedy,
 then a serial run with pytest's exit code. `-n auto` is withheld where the
 caller already decided — any spelling of `-n` or `--numprocesses`,
 `-p no:xdist`, or `--pdb`.
-Enforced by: tests/test_the_suite_has_a_command_that_is_cheap_twice.py
+check: tests/test_the_suite_has_a_command_that_is_cheap_twice.py
 
 ## A check that cannot fail is not a check
 
@@ -174,7 +174,7 @@ produces a number that rots, and an arm nothing kills is an arm that can be
 deleted with the suite staying green. That is the same rule new cases are
 held to — seen red before it is committed — applied to the arms that are
 already there.
-Enforced by: skills/verify/scripts/arm_check.py, tests/test_arm_check.py::test_a_watched_arm_is_killed_and_an_unwatched_one_survives, tests/test_arm_check.py::test_every_ast_constructor_is_classified
+check: skills/verify/scripts/arm_check.py tests/test_arm_check.py
 
 <!-- specs/1789540097-three-checks-that-do-not-see-what-they-are-named-for -->
 **A check named for a property has to be able to observe that property.**
@@ -184,8 +184,7 @@ sweeps each held their own copy of, and a sweep whose subject had drifted out
 of its range. The repair in each case is the same shape — the thing the check
 is named for becomes a value both the check and its own case read, so they
 cannot drift into checking different things.
-Enforced by: nothing — a session's judgment: whether a check can observe the
-property it is named for is read by review, one check at a time.
+check: none reader: review of each check
 
 <!-- specs/1789996775-the-gate-states-what-its-own-fixes-disproved -->
 **A document that its own work item's fixes disproved is corrected in the
@@ -195,5 +194,4 @@ acts on — and the run that disproved them is the only run that knows. A
 correction made later is made by somebody who has to rediscover why, and a
 correction never made is a false statement with a checker's authority behind
 it.
-Enforced by: nothing — a session's act: the work item whose fixes disproved a
-document corrects it, and review reads the correction in the same pull request.
+check: none reader: review of the same pull request

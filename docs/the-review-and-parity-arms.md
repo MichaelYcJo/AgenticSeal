@@ -56,7 +56,7 @@ exactly the work the chain exists to serve.
 Approving is still per commit and the marker still per command. What changed
 is that the routing answer now has somewhere to live, and the check it
 silences now happens at the pull request instead. See below.
-Enforced by: tests/test_chain_hooks_hardening.py::test_the_review_arm_asks_on_a_document_only_commit
+check: review-arm-asks
 
 #### Where the marker goes, which is not where it is read
 
@@ -102,7 +102,7 @@ edit and asking for `[no-review]` as well is asking for the same answer twice.
 
 What the check reads of each round record under the first answer is
 `docs/the-review-record.md` §*What the check reads at the pull request*.
-Enforced by: tests/test_routing_is_recorded.py::test_a_declared_chain_item_commits_without_a_prompt, tests/test_routing_is_recorded.py::test_a_declared_direct_item_commits_without_a_prompt, tests/test_chain_check.py::TestMain
+check: routing-read-first
 
 <!-- specs/1790173106-a-bare-yes-sets-the-run-length-and-a-session-review-has-no-row -->
 **`straight to the PR` owes the broad run's `broad-gate.md` and the sealer's
@@ -123,7 +123,7 @@ to the PR` and takes the broad run; what that answer turns off is the reviewer,
 and nothing else. A change belonging to no work item at all is the routing
 question's third answer, `no work item`, whose recorded form is `[no-review]`
 in front of each commit — there is no value meaning no enforcement anywhere.
-Enforced by: tests/test_chain_check.py::TestMain::test_a_straight_to_the_pr_item_owes_the_sealers_two_files
+check: two-review-answers
 
 <!-- specs/1789518345-who-asks-the-routing-question-and-what-checks-the-answer -->
 **A declaration the pull request RETIRED is not one it made**, and neither is
@@ -184,7 +184,7 @@ What it costs, stated rather than buried:
 - Deleting the routing file restores today's behavior exactly, because the
   fallback for a missing declaration is today's decision table.
 
-Enforced by: tests/test_chain_check.py::TestRetired::test_a_declaration_a_settle_removed_is_not_one_this_branch_made, tests/test_chain_check.py::TestRetired::test_a_declaration_deleted_with_nothing_absorbing_it_is_refused
+check: a-declaration-removed
 
 ### Parity arm — opt-in: `seal/parity.md` at the repo root
 

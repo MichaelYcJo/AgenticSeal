@@ -193,6 +193,7 @@ def as_the_tool_spells_it(command):
 # --- S1: the recorded run's four commands -----------------------------------
 
 
+@pytest.mark.rule("judged-inside-the-commit")
 def test_s1_a_commit_lands_in_the_declared_worktree_with_no_stop(world):
     """Rows 1 and 2 of 1790644505's table: `cd <W> && …` then a commit after
     a heredoc or after `;`. 0.15.7 asked the person both times, naming the main
@@ -216,6 +217,7 @@ def test_s1_a_commit_lands_in_the_declared_worktree_with_no_stop(world):
     assert gate.HEADER not in first.stderr + second.stderr
 
 
+@pytest.mark.rule("judged-inside-the-commit")
 def test_s1_a_heredoc_that_ends_early_commits_into_the_main_checkout_and_is_stopped(
     world,
 ):
@@ -616,6 +618,7 @@ def _lands_nothing_undeclared(tmp_path, name):
     assert not (hooked & undeclared), (name, sorted(hooked))
 
 
+@pytest.mark.rule("judged-inside-the-commit")
 @pytest.mark.parametrize("name", sorted(SAMPLE))
 def test_s2_a_commit_bash_makes_into_an_undeclared_repository_does_not_land(
     tmp_path, name
@@ -668,6 +671,7 @@ def status(world, d):
     )
 
 
+@pytest.mark.rule("no-verify-met-where-the-branch-moves")
 def test_s3_no_verify_is_met_where_the_branch_moves_and_nothing_moves(world):
     world.change(world.main)
     before = status(world, world.main)
@@ -708,6 +712,7 @@ def test_a_commit_pre_commit_let_through_leaves_no_mark_behind(world):
     assert judged.is_dir() and not list(judged.iterdir())
 
 
+@pytest.mark.rule("no-verify-met-where-the-branch-moves")
 @pytest.mark.parametrize(
     "args",
     [
@@ -789,6 +794,7 @@ LEASE_NEEDS_PS = (
 )
 
 
+@pytest.mark.rule("gits-own-commits-not-judged")
 @pytest.mark.skipif(os.name == "nt", reason=NO_SEQUENCER_COMMIT)
 def test_a_rebase_git_continues_is_not_judged(world):
     """Round 1's 🟡 7, c13: the sequencer's own `git commit -n` hands the
@@ -803,6 +809,7 @@ def test_a_rebase_git_continues_is_not_judged(world):
     assert not busy(world, d)
 
 
+@pytest.mark.rule("gits-own-commits-not-judged")
 @pytest.mark.skipif(os.name == "nt", reason=NO_SEQUENCER_COMMIT)
 def test_an_interactive_rebases_reword_is_not_judged(world):
     """Round 1's 🟡 7, c09: a reword runs `pre-commit` from the sequencer."""
@@ -823,6 +830,7 @@ def test_an_interactive_rebases_reword_is_not_judged(world):
     assert not busy(world, d)
 
 
+@pytest.mark.rule("gits-own-commits-not-judged")
 @pytest.mark.skipif(os.name == "nt", reason=NO_SEQUENCER_COMMIT)
 @pytest.mark.parametrize("verb", ["cherry-pick", "revert"])
 def test_a_pick_git_continues_is_not_judged(world, verb):
@@ -856,6 +864,7 @@ def test_a_pick_git_continues_is_not_judged(world, verb):
     assert not busy(world, d)
 
 
+@pytest.mark.rule("gits-own-commits-not-judged")
 def test_a_commit_typed_while_a_rebase_is_paused_is_still_met(world):
     """What the criterion keeps: a `git commit --no-verify` a shell starts
     during a paused rebase is a commit, and its branch move is refused."""
@@ -871,6 +880,7 @@ def test_a_commit_typed_while_a_rebase_is_paused_is_still_met(world):
     assert world.head(d) == before
 
 
+@pytest.mark.rule("gits-own-commits-not-judged")
 def test_a_commit_an_alias_starts_is_still_judged(world):
     """An alias runs `git commit` as a child of `git` too; with no sequencer
     state on disk it is a person's command, and is judged."""
@@ -892,6 +902,7 @@ def test_a_commit_an_alias_starts_is_still_judged(world):
     assert world.head(world.main) == before
 
 
+@pytest.mark.rule("gits-own-commits-not-judged")
 def test_concluding_a_conflicted_merge_is_judged(world):
     """Round 3's ⬜ 4, n07: `MERGE_HEAD` is no sequencer state, so `git merge
     --continue` in the undeclared main checkout is a commit the shell started,
@@ -907,6 +918,7 @@ def test_concluding_a_conflicted_merge_is_judged(world):
     assert world.head(d) == before
 
 
+@pytest.mark.rule("no-verify-met-where-the-branch-moves")
 @pytest.mark.skipif(os.name == "nt", reason=MARK_WITHOUT_PROCESS)
 def test_a_mark_an_aborted_commit_left_passes_no_later_commit(world):
     """Round 1's 🟡 10, c16: the same HEAD, tree and author date, and another
@@ -964,6 +976,7 @@ AUTOMATION_TEXT = (
 )
 
 
+@pytest.mark.rule("how-a-stop-is-put")
 def test_s4_under_the_press_the_refusal_names_no_question_tool(world):
     press(world)
     world.change(world.main)
@@ -982,6 +995,7 @@ def test_s4_under_the_press_the_refusal_names_no_question_tool(world):
     )
 
 
+@pytest.mark.rule("how-a-stop-is-put")
 def test_s5_an_attended_session_is_told_to_ask_and_the_second_attempt_is_the_same(
     world,
 ):
@@ -1031,6 +1045,7 @@ def test_the_refusal_reaches_an_ascii_console_as_written(world):
     )
 
 
+@pytest.mark.rule("how-a-stop-is-put")
 def test_s5_both_spellings_the_refusal_names_actually_commit(world):
     world.change(world.main)
     before = world.head(world.main)
@@ -1098,6 +1113,7 @@ def as_a_call(world, command):
     )
 
 
+@pytest.mark.rule("how-a-stop-is-put")
 def test_an_old_spelling_waives_no_other_agents_commit(world):
     """Round 1's 🟡 9, c25: while agent A's call carrying `[no-review]` runs,
     agent B's commit under the same session id is its own command, and is
@@ -1117,6 +1133,7 @@ def test_an_old_spelling_waives_no_other_agents_commit(world):
     assert world.head(world.main) != before
 
 
+@pytest.mark.rule("how-a-stop-is-put")
 def test_s6_inside_a_message_the_waiver_is_prose(world):
     world.change(world.main)
     before = world.head(world.main)
@@ -1164,6 +1181,7 @@ def lease_then(world, body):
     )
 
 
+@pytest.mark.rule("a-persons-own-commit")
 def test_s9_the_lease_names_the_session_when_no_variable_is_exported(world):
     ps_names_the_parent_or_skip(LEASE_NEEDS_PS)
     claude = fake_claude(world)
@@ -1184,6 +1202,7 @@ def test_s9_the_lease_names_the_session_when_no_variable_is_exported(world):
     assert AUTOMATION_TEXT in got.stderr
 
 
+@pytest.mark.rule("a-persons-own-commit")
 def test_s9_an_emptied_environment_is_still_judged_through_the_lease(world):
     """M6's two rows a probe could not see: `env -i git commit …`."""
     # On Windows this case was green for another reason: `env -i` there
@@ -1212,6 +1231,7 @@ def test_s9_an_emptied_environment_is_still_judged_through_the_lease(world):
     assert world.head(world.main) == before
 
 
+@pytest.mark.rule("a-persons-own-commit")
 def test_s9_no_variable_and_no_lease_is_a_persons_own_commit(world):
     """P2, answer (a)."""
     world.change(world.main)
@@ -1330,6 +1350,7 @@ def pre_bash(world, command, cwd):
     )
 
 
+@pytest.mark.rule("text-reading-stands-aside")
 def test_the_text_reading_stands_aside_where_git_decides(world):
     """The recorded run's 13 asks: a reading that named the main checkout for
     a commit landing in the declared worktree. Git decides in that clone, so
@@ -1342,6 +1363,7 @@ def test_the_text_reading_stands_aside_where_git_decides(world):
         assert pre_bash(world, command, world.main) == "silent", command
 
 
+@pytest.mark.rule("text-reading-stands-aside")
 def test_a_foreign_clone_keeps_the_text_reading(world, monkeypatch):
     """P1 (a), P5 (a): a clone whose hooks slot is somebody else's is judged
     as 0.16.0 judged it."""
@@ -1427,6 +1449,7 @@ STEPS_AROUND = {
 }
 
 
+@pytest.mark.rule("text-reading-stands-aside")
 @pytest.mark.parametrize("name", sorted(STEPS_AROUND))
 def test_a_command_that_can_step_around_the_hooks_keeps_the_text_reading(world, name):
     """Round 1's 🟡 2 and 🟡 8, and round 2's 🟡 1 and 🟡 2: a setting, a
@@ -1438,6 +1461,7 @@ def test_a_command_that_can_step_around_the_hooks_keeps_the_text_reading(world, 
     assert pre_bash(world, STEPS_AROUND[name], world.main) == "deny", name
 
 
+@pytest.mark.rule("text-reading-stands-aside")
 @pytest.mark.parametrize(
     "command",
     [
@@ -1525,11 +1549,13 @@ def test_each_other_condition_of_the_rule_makes_a_command_not_plain(command):
     assert not tokens.is_plain(command)
 
 
+@pytest.mark.rule("text-reading-stands-aside")
 @pytest.mark.parametrize("command", STILL_PLAIN)
 def test_a_negative_that_is_plain_stays_plain(command):
     assert tokens.is_plain(command)
 
 
+@pytest.mark.rule("text-reading-stands-aside")
 @pytest.mark.parametrize("command", NO_LONGER_PLAIN)
 def test_a_negative_outside_the_allowlist_is_not_plain(command):
     assert not tokens.is_plain(command)
@@ -1577,6 +1603,7 @@ PLAIN_AND_NOT = {
 }
 
 
+@pytest.mark.rule("text-reading-stands-aside")
 @pytest.mark.parametrize("name", sorted(PLAIN_AND_NOT))
 def test_a_plain_agent_commit_stands_aside_and_one_word_more_is_judged(world, name):
     """The allowlist's boundary in both directions (P7): the plain form is
@@ -1609,6 +1636,7 @@ def test_the_notice_follows_a_commit_git_made(world):
     assert "answers `Implementation`" not in second.stdout + second.stderr
 
 
+@pytest.mark.rule("stamp-drawn-once")
 def test_a_sealed_guarantees_commit_names_its_stamp_in_the_commits_output(world):
     """#975 S4, through the stub git runs: the commit that adds a work item's
     `guarantee.md` reading `sealed` prints one line saying where the stamp's
@@ -1651,6 +1679,8 @@ GUARANTEE_TEXT = (
 )
 
 
+@pytest.mark.rule("refused-sealed-leaves-a-record")
+@pytest.mark.rule("sealed-off-the-branch-refused")
 @pytest.mark.parametrize(
     "shape",
     [
@@ -1816,6 +1846,7 @@ def test_two_leases_naming_one_pid_name_no_session(tmp_path):
     assert hooksession.from_lease(str(common), 4242) == ""
 
 
+@pytest.mark.rule("a-persons-own-commit")
 def test_the_lease_route_reads_the_exported_pid_with_no_ps_run(tmp_path, monkeypatch):
     """S5 of work item 1791384157 (#868). Where the environment carries
     `CLAUDE_PID`, the hook's lease route matches it against the leases and
@@ -1841,6 +1872,7 @@ def test_the_lease_route_reads_the_exported_pid_with_no_ps_run(tmp_path, monkeyp
     assert ran, "the walk under the variable did not run"
 
 
+@pytest.mark.rule("a-persons-own-commit")
 def test_the_one_session_variable_is_the_one_the_stub_and_the_reader_name():
     """S6 of work item 1791384157 (#868). `hooksession.session` reads one
     variable, and the stub's short-cut names the same one and no other:
@@ -1880,6 +1912,7 @@ def test_the_policy_names_the_one_session_reader():
         assert sentence in text, sentence
 
 
+@pytest.mark.rule("sealed-off-the-branch-refused")
 def test_the_policy_states_the_guarantee_refusal_beside_the_arms():
     """§14 of the agent contract, for `spec.md` S7 and S11-S13 of work item
     1792363231. `docs/the-commit-gate-inside-git.md` states the refusal of a
@@ -1914,13 +1947,17 @@ def test_the_policy_states_the_guarantee_refusal_beside_the_arms():
         "a row an amend folds into the very commit it audited",
     ):
         assert sentence in rule, sentence
+    from conftest import rule_carriers
+
+    assert "check: sealed-off-the-branch-refused" in rule
+    held = rule_carriers("sealed-off-the-branch-refused")
     for case in (
-        "::test_a_sealed_the_branch_does_not_hold_is_stopped_inside_the_commit",
-        "::test_a_sealed_over_a_commit_the_branch_does_not_hold_is_refused_at_the_commit",
-        "::test_the_guarantee_refusal_is_quiet_off_its_one_fact",
-        "::test_a_sealed_committed_past_the_stub_keeps_the_gap",
+        "test_a_sealed_the_branch_does_not_hold_is_stopped_inside_the_commit",
+        "test_a_sealed_over_a_commit_the_branch_does_not_hold_is_refused_at_the_commit",
+        "test_the_guarantee_refusal_is_quiet_off_its_one_fact",
+        "test_a_sealed_committed_past_the_stub_keeps_the_gap",
     ):
-        assert case in rule, case
+        assert case in held, case
     assert (
         "268 ms an ordinary judged commit against 260 ms without it, and 310 ms "
         "against 283 ms for one that stages a `sealed` guarantee"

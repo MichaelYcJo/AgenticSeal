@@ -61,7 +61,7 @@ ALL_SHAPES = """\
   section: S
   to: **Rule.** Its grounds
     run on.
-    Enforced by: nothing — a reason
+    check: none reader: review
 - remove
   file: docs/a.md
   section: T
@@ -86,7 +86,7 @@ def test_each_shape_reads_into_one_operation_with_its_line():
             "docs/a.md",
             "S",
             None,
-            "**Rule.** Its grounds\nrun on.\nEnforced by: nothing — a reason",
+            "**Rule.** Its grounds\nrun on.\ncheck: none reader: review",
         ),
         ("remove", "docs/a.md", "T", None, None),
         ("remove", "docs/a.md", "S", "x.", None),
@@ -536,6 +536,7 @@ def test_apply_follows_merge_order(repo, capfd):
     assert not specs_dir(repo, "1700000001-b").exists()
 
 
+@pytest.mark.rule("a-settle-is-no-deletion")
 def test_what_apply_removed_is_settled_for_the_readers(repo, capfd):
     """S9 from `settle`'s side: the CI readers ask
     `unverified_check.py#settled` of the base, and what `--apply` removed

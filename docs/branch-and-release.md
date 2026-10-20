@@ -40,7 +40,7 @@ binds the changelog to whatever `plugin.json` says, and the `hygiene` workflow
 fails a release PR — one whose base is `main` — that changes `skills/`,
 `agents/`, `hooks/`, `templates/`, `bin/` or `.claude-plugin/` without moving
 the version. The tag is still yours to push — nothing in CI can do it for you.
-Enforced by: tests/test_the_release_check_watches_what_ships.py::test_every_shipping_root_is_watched, tests/test_the_release_check_watches_what_ships.py::test_the_refusal_still_fails_the_run, .github/workflows/hygiene.yml
+check: tests/test_the_release_check_watches_what_ships.py .github/workflows/hygiene.yml
 
 <!-- specs/1790076050-the-release-tail-is-three-acts-no-document-names -->
 **Every act the release performs once it reaches `main` belongs to a machine or
@@ -100,7 +100,7 @@ act, fires the note, because a note has to name a tag.
 `docs/release-checklist.md` §6 carries a box for each of the first two. The
 first confirms the workflow fired and is not where the note gets written; the
 second is where the command is run.
-Enforced by: tests/test_a_release_publishes_its_note.py::test_the_workflow_fires_on_the_tag_and_writes_one_release_one_asset_one_edit, tests/test_the_release_tail_does_not_end_at_the_tag.py::test_the_label_acts_are_fired_by_the_merge_to_main_not_the_tag, tests/test_the_release_tail_does_not_end_at_the_tag.py::test_the_directory_check_reads_the_marketplace_files_and_not_the_directory, tests/test_the_release_seal_is_drawn.py::test_any_failure_leaves_the_note_as_it_was_published
+check: tests/test_a_release_publishes_its_note.py tests/test_the_release_tail_does_not_end_at_the_tag.py tests/test_the_release_seal_is_drawn.py
 
 ### Work accumulates on a release branch
 
@@ -151,7 +151,7 @@ while the branch that holds the commit is open
 (`docs/the-review-record.md` §*The round record*). The round records of the
 squash that measured this survived only because their feature branches had
 been restored to the remote first.
-Enforced by: tests/test_a_rider_reaches_its_file.py::test_the_record_says_why_target_sha_names_a_commit
+check: tests/test_a_rider_reaches_its_file.py
 
 <!-- specs/1790076050-the-release-tail-is-three-acts-no-document-names -->
 **A third reader points at those commits now, and it is outside this
@@ -346,7 +346,7 @@ and not a safe one: GitHub sends the SHA the push displaced, and where the
 runner cannot reach it the range fails and the run stops — which is the right
 direction, and not the same as being harmless. `DRY_RUN=1` prints what it
 would do and writes nothing.
-Enforced by: nothing — a record rather than a rule: it measures that a marketplace file pins a commit of each outside plugin's source repository. The rule it supports, that anything reaching `main` is a merge commit, is held outside the tree by the `main` ruleset.
+check: none reader: review
 
 <!-- specs/1790173209-the-release-tail-stops-at-the-first-issue-it-cannot-close -->
 **One issue the tracker refuses does not leave the rest open.** The run used
@@ -362,7 +362,7 @@ many took it, and the run exits non-zero only at the end, naming each issue
 both routes refused with both errors. A partial close is repaired by
 re-running the script with the run's `BEFORE`, `AFTER` and `REPO`: it skips
 what is already closed and reaches the rest.
-Enforced by: tests/test_the_closer_carries_on_past_a_refusal.py
+check: tests/test_the_closer_carries_on_past_a_refusal.py
 
 ```
 Closes #88

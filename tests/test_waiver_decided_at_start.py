@@ -745,7 +745,7 @@ def test_the_framer_inherits_what_the_tree_already_settled():
     frame. The rewrite kept both sources and dropped both consequences."""
     framer = flat(read(*FRAMER))
     assert "a rule with a passing test is not a claim to re-establish" in framer, (
-        "the framer reads the `Enforced by:` lines with nothing saying a rule "
+        "the framer reads the `check:` lines with nothing saying a rule "
         "they hold is settled, so a frame can set out to prove it again"
     )
     assert "is not argued again in your `plan.md`" in framer, (

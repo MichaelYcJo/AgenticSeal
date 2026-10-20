@@ -9,6 +9,8 @@ looked. Two documents share this table; drift between them is the bug.
 
 import os
 
+import pytest
+
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 
 
@@ -165,6 +167,7 @@ def test_a_later_round_re_runs_an_executed_line():
     assert said in rounds, f"§*Earlier rounds* lost `{said}`"
 
 
+@pytest.mark.rule("old-table-shape-refused")
 def test_a_record_written_before_a_line_was_added_is_no_finding():
     """S10 (#985): a record written before the grammar gained a line lacks
     it, and a later round that judges it by the new grammar reports a defect
