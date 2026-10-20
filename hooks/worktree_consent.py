@@ -165,6 +165,24 @@ def leading_phrase(label) -> str:
     return (text[:cut] if cut >= 0 else text).strip()
 
 
+def is_routing_question(question) -> bool:
+    """True when QUESTION is an object whose options' leading phrases are the
+    three of `ROUTING_LABELS`, each once.
+
+    The one test of "this is question 1": the press reader asks it of a
+    result, and `hooks/question-gate.py` asks it of a call it would refuse.
+    """
+    if not isinstance(question, dict):
+        return False
+    options = question.get("options")
+    if not isinstance(options, list):
+        return False
+    phrases = sorted(
+        leading_phrase(o.get("label") if isinstance(o, dict) else None) for o in options
+    )
+    return phrases == sorted(ROUTING_LABELS)
+
+
 def transcript_for(session, transcript_path="") -> str:
     """This session's own MAIN transcript, or "" for every way of not having one.
 
@@ -213,14 +231,9 @@ def _routing_preset(result) -> bool:
     if not isinstance(questions, list) or not isinstance(answers, dict):
         return False
     for q in questions:
-        if not isinstance(q, dict) or q.get("multiSelect") is not False:
+        if not is_routing_question(q) or q.get("multiSelect") is not False:
             continue
-        options = q.get("options")
-        if not isinstance(options, list):
-            continue
-        labels = [o.get("label") if isinstance(o, dict) else None for o in options]
-        if sorted(leading_phrase(label) for label in labels) != sorted(ROUTING_LABELS):
-            continue
+        labels = [o.get("label") if isinstance(o, dict) else None for o in q["options"]]
         text = q.get("question")
         if not isinstance(text, str):
             continue
@@ -249,13 +262,8 @@ def _routing_answer(result):
         return True
     if not isinstance(result, dict) or not isinstance(result.get("questions"), list):
         return None
-    for q in result["questions"]:
-        options = q.get("options") if isinstance(q, dict) else None
-        if isinstance(options, list) and sorted(
-            leading_phrase(o.get("label") if isinstance(o, dict) else None)
-            for o in options
-        ) == sorted(ROUTING_LABELS):
-            return False
+    if any(is_routing_question(q) for q in result["questions"]):
+        return False
     return None
 
 
@@ -273,7 +281,23 @@ def _clone_of(cwd) -> str:
 
 def automation_answered(top: str, session: str, transcript_path: str = "") -> bool:
     """True when the person pressed `automation` on the routing question, in
-    this session's own transcript, from this clone.
+    this session's own transcript, from this clone (`last_routing_answer`)."""
+    return last_routing_answer(top, session, transcript_path) is True
+
+
+# What `last_routing_answer` returns where it read nothing: an object no
+# answer can equal, so "unread" and "read, and not answered" stay apart.
+UNREAD = object()
+
+
+def last_routing_answer(top: str, session: str, transcript_path: str = ""):
+    """True for the preset, False for any other answer to the routing question,
+    None where this session's transcript was read and holds no answer to it
+    from this clone, and `UNREAD` where no transcript could be read.
+
+    `automation_answered` reads the True. `hooks/question-gate.py` reads the
+    None: the routing question goes through it only until it is answered,
+    and only where a transcript exists for the press to be recorded in.
 
     The harness writes this answer from the person's click; the model writes
     the question and its options and never which one was pressed. That is the
@@ -281,8 +305,9 @@ def automation_answered(top: str, session: str, transcript_path: str = "") -> bo
     wrote itself, and it is why the answer stands beside the record as
     consent. `docs/worktree-guard-spec.md` §*Creation consent* holds the table.
 
-    Four conditions, and every way of failing one is False, which is the
-    guard's behaviour before this reader existed:
+    Four conditions. Failing the first, or a clone that cannot be resolved, is
+    `UNREAD`; an entry failing another is skipped. The guard reads either as
+    its behaviour before this reader existed:
 
       1. the transcript is this session's own main one (`transcript_for`);
       2. the answer is a harness-written `AskUserQuestion` result: a `user`
@@ -303,22 +328,22 @@ def automation_answered(top: str, session: str, transcript_path: str = "") -> bo
     A line is parsed only when it carries `AskUserQuestion` or `toolUseResult`.
     That skips assistant text and progress lines, but every tool result
     carries `toolUseResult`, so most user lines are parsed: 0.09 s on the
-    largest local transcript (17.3 MB) when round 1 measured it. Every read
-    error, every malformed line and every missing field is skipped or answered
-    False. The two shapes round 1 found raising -- a `tool_use_id` that is not
+    largest local transcript (17.3 MB) when round 1 measured it. A read error
+    is `UNREAD`, and every malformed line and every missing field is skipped.
+    The two shapes round 1 found raising -- a `tool_use_id` that is not
     a string, a NUL in the path -- are handled here, and `consent` catches
     whatever else might, because `hooks/dispatch.py` skips a gate that raises
     and the guard's deny would become no decision at all.
     """
     path = transcript_for(session, transcript_path)
     if not path:
-        return False
+        return UNREAD
     want = _clone_of(top)
     if not want:
-        return False
+        return UNREAD
     asked = set()
     clones = {}
-    pressed = False
+    pressed = None
     try:
         with open(path, encoding="utf-8", errors="replace") as handle:
             for line in handle:
@@ -372,7 +397,7 @@ def automation_answered(top: str, session: str, transcript_path: str = "") -> bo
                     # later press gives it back.
                     pressed = answered
     except (OSError, ValueError):
-        return False
+        return UNREAD
     return pressed
 
 

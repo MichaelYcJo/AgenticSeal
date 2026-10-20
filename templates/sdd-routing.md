@@ -89,10 +89,10 @@ this file is for people. -->
      asked. Writing `no` where the question was never put is the one mistake
      this row cannot survive, because it is then byte-identical to a file
      nobody read (#151).
-     WHAT IT DOES NOT BUY — nothing at the pull request can hold a run to it.
-     A session that promised not to stop and then stopped leaves no artifact
-     to find. What it buys is that the promise is now written down, so a run
-     that broke it broke something a reader can point at.
+     WHAT HOLDS IT is `hooks/question-gate.py`. While the row reads `yes`, it
+     refuses every question on this branch but the routing question put
+     alone before the session has answered it, so the run builds on the
+     default a question states instead.
      Answer pressed — `automation` or `per axis`. WHICH answer the person
      pressed, not what it derived to. OPTIONAL, on the same terms.
      HOW TO ANSWER IT — `automation` where they pressed the preset, `per axis`

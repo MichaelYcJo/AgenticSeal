@@ -211,3 +211,42 @@ def test_the_commit_gates_hint_survives_a_root_with_no_relative_spelling(
     assert expected in decision["permissionDecisionReason"], decision[
         "permissionDecisionReason"
     ]
+
+
+def test_the_question_gates_refusal_survives_a_root_with_no_relative_spelling(
+    tmp_path, monkeypatch, capsys
+):
+    """The same induced raise, for `hooks/question-gate.py`: its refusal names
+    the work item's directory relative to the repository, and where no
+    relative spelling exists it still refuses, naming the absolute path."""
+    from conftest import declare_routing
+
+    gate = load("hooks/question-gate.py", "specseal_question_gate_failopen")
+    repo = git_repo(tmp_path / "repo")
+    (repo / ".git" / "seal").mkdir()
+    item = declare_routing(repo, home=optin.home(str(repo)))
+    with open(item / "routing.md", "a", encoding="utf-8") as f:
+        f.write("| Automation | yes |\n")
+
+    def refuses(path, start=None):
+        raise ValueError("path is on mount 'D:', start on mount 'C:'")
+
+    monkeypatch.setattr(os.path, "relpath", refuses)
+    monkeypatch.setattr(
+        sys,
+        "stdin",
+        io.StringIO(
+            json.dumps(
+                {
+                    "tool_name": "AskUserQuestion",
+                    "tool_input": {"questions": [{"question": "Which?"}]},
+                    "cwd": str(repo),
+                }
+            )
+        ),
+    )
+    gate.main()
+    decision = json.loads(capsys.readouterr().out)["hookSpecificOutput"]
+    assert decision["permissionDecision"] == "deny", decision
+    reason = decision["permissionDecisionReason"]
+    assert f"`{item}`" in reason, reason

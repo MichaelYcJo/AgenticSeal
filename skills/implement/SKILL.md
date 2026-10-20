@@ -220,7 +220,9 @@ can make goes to `questions.md`, a finding you neither fixed nor answered to
 "someone will look at it" becomes nobody did (`verify` §The answerer has to
 exist) — and what was deliberately left goes to the overview's Not done
 section. Each is named in the PR body, because a leftover nobody can find was
-not handed over.
+not handed over. On a branch whose `routing.md` answers `Automation` with
+`yes`, `hooks/question-gate.py` holds this, and `docs/the-review-record.md`
+§*The run* is the rule.
 
 The test for whether something is a question or a row: would a different
 answer change what you build *now*? If it would not, raising it spends a

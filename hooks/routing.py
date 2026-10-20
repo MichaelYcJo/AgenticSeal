@@ -87,10 +87,9 @@ PLANNING_ANSWERS = (BY_FRAMER, BY_SESSION)
 # `no` is not "a person did it by hand". It is "this run may stop to ask", which
 # is the half a label cannot say and the half the measured instance got wrong.
 #
-# Nothing gates on it and nothing can: a session that promised not to stop and
-# then stopped leaves no artifact for a check to find. What the row buys is the
-# audit trail #88 asks for -- a run that stopped at minute thirty has now
-# broken something a reader can point at.
+# One gate reads it, and no commit is decided on it: `hooks/question-gate.py`
+# refuses a question on the declared branch while it reads `yes`
+# (`docs/the-review-record.md` §*The run*).
 AUTOMATION = "Automation"
 AUTOMATION_YES = "yes"
 AUTOMATION_NO = "no"
@@ -217,11 +216,11 @@ def parse(text):
 
     `Automation` and `Answer pressed` are the fifth and sixth rows and they are
     read on the same looser terms, for the same reason one step further along:
-    nothing decides a commit on either, and nothing CAN decide one on
-    `Automation` -- a run that promised not to stop and then stopped leaves no
-    artifact. A required row would turn all 84 declarations already committed
-    here into "not a declaration", which re-opens the commit gate on every
-    branch that already answered.
+    nothing decides a commit on either, and the one reader of `Automation`,
+    `hooks/question-gate.py`, only refuses a question, so an absent or
+    unreadable row leaves the run attended. A required row would turn all 84
+    declarations already committed here into "not a declaration", which
+    re-opens the commit gate on every branch that already answered.
 
     **What it reads is `table_rows`', which skips a row a renderer does not
     show** (#667): a table wholly inside a fenced block, or inside a comment
