@@ -129,8 +129,8 @@ every repository, whatever either row says:
   `overview.md`'s `## Not verified` heading with its `Item` and
   `Who must answer` columns; a `spec.md`'s `## Removes` heading; its
   `## Rule changes` heading, the items `add`, `change`, `remove` and
-  `nothing`, and the fields `file:`, `section:`, `from:`, `to:` and `why:`. A translated field name is not a
-  translation, it is a broken gate.
+  `nothing`, and the fields `file:`, `section:`, `from:`, `to:` and `why:`.
+  A translated field name is not a translation, it is a broken gate.
 - **The markers and anchors.** `<!-- specs/<work-item-id> -->`, a release
   section's `## X.Y.Z — <date>`, the word `closed` that opens a closed
   `## Not verified` row, and a pact
