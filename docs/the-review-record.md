@@ -72,9 +72,9 @@ a finding, and since the check reads one line of each, the first two are
 `## Confirmations`. Every other row may take any `Where` and `How many` the
 table uses for its kind, because the check counts each: a section, or a
 line in a section, that the table says is `one` is refused where a record
-leaves it out, `## Confirmations` included. So a rewrite of `docs/` that
-moves this heading or the table, as #941's will, moves the loader's path in
-the same commit, or every check that reads a record stops.
+leaves it out, `## Confirmations` included. So a change that moves this heading or the
+table moves the loader's path in the same commit, or every check that reads a
+record stops.
 check: tests/test_chain_check.py
 
 **A finding's `verdict:` decides it, and severity is for people.** The
@@ -118,9 +118,8 @@ check: none reader: the warden and the next round
 
 **A later round re-runs an `executed` line rather than re-deriving the
 claim.** Where it weighs an earlier finding, it runs the commands the line
-names again. A probe the line names was deleted under
-`skills/agent-contract/SKILL.md` §7, so the round writes it again from its
-`## Probes` row. The sealer weighs no finding: a finding's verdict is the
+names again. A probe the line names was deleted under the agent contract's
+probe rule, so the round writes it again from its `## Probes` row. The sealer weighs no finding: a finding's verdict is the
 check's to read (`agents/sealer.md` step 3).
 check: tests/test_review_axes.py
 
@@ -133,7 +132,7 @@ A repair a commit made, a correction to a record among them, closes
 `fixed <commit>`, with the record's path on `location:`. A repair made
 outside the tree, an issue or a pull request body edited, makes no commit
 on the branch and closes `deferred <where it was repaired>`, such as
-`deferred #956`, with `answer:` saying what changed there; it owes the next
+`deferred #<issue>`, with `answer:` saying what changed there; it owes the next
 round nothing. `rejected` means only that the finding does not hold.
 check: fix-pass-two-lines
 
@@ -192,7 +191,7 @@ commit someone makes under GitHub's identity with a number reads as carried.
 check: judged-where-carried
 
 **Of a round record the check reads its labelled lines, and refuses what it
-cannot read.** It reads every line §*The round record*'s table has a row
+cannot read.** It reads every line *The round record*'s table has a row
 for, and a ready pull request fails for any line that table refuses. It
 fails, too, while a finding reads `open`; for a `fixed` naming a commit HEAD
 does not descend from, or one that changed no located path; for a reference
@@ -301,10 +300,10 @@ check: none reader: a reader of the guarantee's own tables
 **The stamp is drawn once per work item, from the sealer's `sealed`, at the
 end of the turn in which `guarantee.md` came to read it: at its commit in
 shared mode, and at its write in local mode.** The stamp means every party
-verified the work item, the sealer last, and the work is done (#975), so it
-is drawn from that verdict and never from the broad gate's run, which comes
+verified the work item, the sealer last, and the work is done, so it is
+drawn from that verdict and never from the broad gate's run, which comes
 before the sealer has read anything and draws nothing
-(`docs/the-broad-gate.md` §*One act, one owner*). In shared mode git's
+(`docs/the-broad-gate.md` *One act, one owner*). In shared mode git's
 `post-commit` runs after the commit, in the worktree it landed in. Where the
 commit carries a work item's `guarantee.md` whose one `Verdict:` reads
 `sealed`, it writes the stamp's values under
@@ -384,7 +383,7 @@ UTF-16 units, so a character outside the BMP is two, and so does the hook.
 One message carries as many of the oldest pending stamps as fit together
 with their disc. A stamp has two rungs, with its disc and then without it:
 the owner's disc is drawn 28 cells across and has one size, so there is no
-smaller disc to step to, and since #853 no scale either. That disc is most
+smaller disc to step to, and no scale either. That disc is most
 of a stamp's size, so one stamp of a real work item's size
 goes out per message and a second waits for the next turn. A seal past
 what one message can carry stays pending and is drawn at the next turn's
@@ -432,7 +431,7 @@ local mode the record is the clone's own: a values directory emptied by hand,
 or a guarantee brought by `seal import` from a clone that drew and re-sealed
 here, draws again. A wrong row that names, by coincidence, the very commit a
 copy of the item on another branch was sealed and drawn over draws a second
-time once the gate refuses and records it, the class #975 accepts as a
+time once the gate refuses and records it, a class this rule accepts as a
 second run of the item. So does a `sealed` that drew in another clone and
 was brought onto a copy of its declared branch that does not hold its
 audited commit, whatever brought it: the gate refuses and records it, and the
@@ -563,6 +562,6 @@ reviewer's transcript from an edit-test loop.
 
 The bars judge a segment against its kind; the run-level table judges a run
 against the last run measured. The table asks what the whole run cost, and
-its rows are `skills/verify/SKILL.md` §*Measure the segment, and feed the flow
+its rows are `skills/verify/SKILL.md` *Measure the segment, and feed the flow
 log*'s; it is not a destination of its own.
 check: tests/test_the_handoff_before_round_one.py

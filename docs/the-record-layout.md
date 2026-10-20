@@ -1,7 +1,7 @@
-# The record layout — where each kind of record lives
+# The record layout
 
-This repository keeps a dozen kinds of record, and every one of them has one
-home. This document is the index: one table per place, each row naming a file
+Where each kind of record lives. Every kind of record this repository keeps
+has one home, and this document is the index: one table per place, each row naming a file
 or a file shape and the one question it answers. A reader looking for a rule
 or a record opens this index and then one file.
 
@@ -23,8 +23,8 @@ is found, the copy is the defect.
 ## The size a reader takes whole
 
 **A file a reader is meant to take whole fits one read.** The row and the
-estimate are `templates/config.md` §*The fold's values*, and what a document
-past it owes is `skills/settle/SKILL.md` §*A document past its ceiling is
+estimate are `templates/config.md` *The fold's values*, and what a document
+past it owes is `skills/settle/SKILL.md` *A document past its ceiling is
 split, never trimmed*.
 check: tests/test_a_document_has_room_for_the_next_fold.py
 
@@ -39,7 +39,7 @@ because that line ends the released section, and the gather refuses a
 fragment that has one.
 
 **The fragments are gathered at the release, by one command in one commit**,
-and `docs/release-checklist.md` §*2. Gather, bump* holds it. The fragments are
+and `docs/release-checklist.md` *2. Gather, bump* holds it. The fragments are
 concatenated into the release's own file, `changelog/X.Y.Z.md`, and the
 release's heading goes into the index, `CHANGELOG.md`. A fragment lives from
 the work item's first entry to the release that ships it.
@@ -54,8 +54,7 @@ changes behaviour can leave it describing something that no longer ships. The
 rule binds whoever writes the commit: the smith's fix pass, a fix written after
 the last round, and an integration commit after a sibling's squash, which the
 orchestrator writes. A commit that changes nothing a release note states owes
-the fragment nothing. 0.18.2 shipped three fragments their own review rounds had
-made false, and #795 corrected them by hand before the release.
+the fragment nothing.
 check: none reader: the next round's warden and the sealer
 
 ## The fold, and what tells it from a deletion
@@ -83,8 +82,8 @@ retired by that rule, with no marker.** Such an item was below the SDD
 ladder: a release entry, a renumbering, a CI repair, a pull request's record.
 Those are records of a moment, and a moment states no rule, so nothing has
 to be carried out of one: `settle` prints these under their own heading and
-`settle --apply` removes them without writing into `docs/` (#517). **One condition narrows it: nothing in the record may
-still be open.** An open `## Not verified` row is a claim with an answerer
+`settle --apply` removes them without writing into `docs/`. **One condition
+narrows it: nothing in the record may still be open.** An open `## Not verified` row is a claim with an answerer
 rather than a rule, so a directory holding one
 is kept and named with its rows, and closing each row — a row re-homed is
 closed too, `closed` naming where it went — in a pull request merged before the one
@@ -93,7 +92,7 @@ readers ask the rule of the merge base, so a closure in the same pull request
 as the removal is still open where they look. `settle` asks it at the merge
 base of `--released-at` and `HEAD`, which is where they look until the base
 moves past the fork and earlier after, and keeps a directory whose closure
-has reached the working branch and not that base (#602). Whether the item wrote a
+has reached the working branch and not that base. Whether the item wrote a
 `spec.md` is asked of its history, so a spec deleted in one commit, or in an
 earlier pull request, and the directory in the next is still a deletion. That
 condition is a judgment the repository owner may overturn. An item that did
@@ -111,11 +110,10 @@ check: tests/test_settle_applies_rule_changes_in_place.py tests/test_settle_read
 
 **A settle is not a work item.** It opens no directory under `seal/specs/`.
 Its commits are waived one command at a time and what it applied is reviewed
-at its pull request (#517). What it leaves already has a home, the pull
-request and git history, so it keeps no log of its own. Were it a work item,
-each settle would leave a directory for the next one to remove, and settling
-would never end; `skills/settle/SKILL.md` §*A settle is not a work item* is
-the procedure.
+at its pull request. What it leaves already has a home, the pull request and
+git history, so it keeps no log of its own. Were it a work item, each settle
+would leave a directory for the next one to remove, and settling would never
+end; `skills/settle/SKILL.md` *A settle is not a work item* is the procedure.
 check: tests/test_settle_reads_before_it_removes.py
 
 **A population floor over the records is replaced, never lowered.** A check
@@ -126,7 +124,7 @@ compares the walk against an independent listing of the same tree —
 `git ls-tree HEAD` — which holds at any size, and a property the real corpus no
 longer exercises moves to a record built in `tmp_path`. A repair is green
 before the fold and after it; one green only once the directories are gone is
-a lowering. `skills/settle/SKILL.md` §*Answer every check that reads the
+a lowering. `skills/settle/SKILL.md` *Answer every check that reads the
 corpus* gives the three answers.
 check: tests/test_settle_reads_before_it_removes.py
 
@@ -159,8 +157,8 @@ check: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py tests
   wherever its walk is unsure, the fence-only reading it gave before the walk:
   a row below a fence nobody closed declares nothing, and a row below a
   comment opener nobody closed still declares unless a fence that closes
-  holds it, because that reading never hid one and work item 1790645290
-  was bound to miss no row the older reading saw. `hooks/routing.py#shown`,
+  holds it, because that reading never hid one, and the walk may miss no row
+  the older reading saw. `hooks/routing.py#shown`,
   which reads a `routing.md` and is not one of the four, keeps the reading
   it gave before the walk the same way, and that reading hid nothing: a row
   below a fence or a comment opener nobody closed still declares there,
@@ -187,8 +185,8 @@ fourth answer, and it is argued against these three.
 in, and it reads as settled, never as unusable.** Git keeps no empty
 directory, so the state is two: the tree that ran `settle --apply` holds an
 empty `seal/specs/`, and a fresh checkout of that commit holds none. Read as
-unusable, `settle` exited 2 on its own finished work, and `unverified-check
---baseline` read the root's own `specs` path as a typo, which would turn every
+unusable, `settle` would exit 2 on its own finished work, and `unverified-check
+--baseline` would read the root's own `specs` path as a typo, turning every
 pull request after a complete fold red, the shipped `templates/hygiene.yml`
 included. Only that one path is settled; any other missing path is still
 refused, which keeps a misspelt path from passing in silence.
@@ -225,7 +223,8 @@ common directory otherwise.
 
 One work item's records, from its first commit to the `settle` fold that
 retires the directory. Which file each agent writes is
-`skills/implement/SKILL.md` §3's table; this one says what each file answers.
+`skills/implement/SKILL.md` *3. The SDD file set*; this table says what each
+file answers.
 
 | File | The question it answers |
 |---|---|
@@ -245,7 +244,7 @@ retires the directory. Which file each agent writes is
 `overview.md`, `changelog.md`) and the process record (`rounds/`, `phases/`,
 `broad-gate.md`, `guarantee.md`, and a `handoff.md` or `pr.*.md` where one
 was written) stay until `settle --apply` applies the spec's rule changes,
-and then the directory goes whole (`docs/release-checklist.md` §*2b*). What
+and then the directory goes whole (`docs/release-checklist.md` *2b*). What
 a document still cites of it resolves at the tag of the release that
 shipped it.
 check: tests/test_settle_applies_rule_changes_in_place.py

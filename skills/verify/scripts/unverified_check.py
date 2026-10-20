@@ -347,7 +347,8 @@ def fence_spans(lines):
     to the end, because a gate reading a record treats it as quoted. A reader of a
     line that HOLDS something — a changelog marker, an open row — reads it,
     because only a block that closes is certainly a quotation
-    (`docs/the-record-layout.md`'s *A marker counts only on a live line*).
+    (`docs/the-record-layout.md`'s *Whether a line is live is asked by what
+    the line does*).
     """
     spans, opener, first = [], None, None
     for n, line in enumerate(lines):

@@ -2315,7 +2315,7 @@ def test_the_policy_states_the_budget_and_names_its_case():
     assert "A stamp has two rungs, with its disc and then without it" in rule
     assert (
         "the owner's disc is drawn 28 cells across and has one size, so there "
-        "is no smaller disc to step to, and since #853 no scale either"
+        "is no smaller disc to step to, and no scale either"
     ) in rule
     assert "0.90" not in rule and "at every scale" not in rule
     assert "one stamp of a real work item's size goes out per message" in rule
