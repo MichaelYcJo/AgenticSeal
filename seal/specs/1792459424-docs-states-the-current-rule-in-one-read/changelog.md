@@ -17,6 +17,14 @@
   field `why:` replaces `nothing — <why>`. `settle` refuses every other
   spelling of a no-change line at its line, naming the block, and the block
   stands alone in its section.
+- **The commit gate's documents state the current rule once (#941).**
+  `docs/commit-review-gate-spec.md`, `docs/the-commit-gate-inside-git.md` and
+  `docs/the-review-and-parity-arms.md` keep each rule, its grounds and its
+  `check:` line, and drop the history and the reader's mechanics, which the
+  cases named on those lines hold. Headings that carried a dash, a middle dot
+  or a pipe are renamed: *Registration*, *The PreToolUse reading of a commit*,
+  *Which repository*, *The implementer mark and notice*, *The commit gate
+  inside git*, *Review arm* and *Parity arm*.
 - **`fold-check` no longer reads a rule's shape (#941).** The `Fold shape
   from` row is read by nothing and `--shape-from` is gone; a script that
   passes it gets an argument error, exit 2. `fold-check` holds the policy
