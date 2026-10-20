@@ -10,6 +10,7 @@ reads `sealed`. Each group holds a case on good input and one on bad.
 import importlib.util
 import json
 import pathlib
+import re
 import subprocess
 
 import pytest
@@ -128,7 +129,31 @@ def check(root, capsys, *extra):
 # --- the template ---------------------------------------------------------------
 
 
+def sealer_verdict_patterns():
+    """Every `pattern:` a sealer eval grader matches a verdict line with, as
+    `evals/scripts/rule_cases.py` generated it."""
+    found = []
+    for path in sorted(
+        (ROOT / "evals" / "behaviour" / "sealer").glob("*/graders/*.md")
+    ):
+        for line in path.read_text(encoding="utf-8").splitlines():
+            if line.startswith("pattern: '^Verdict:"):
+                found.append(line[len("pattern: '") : -1])
+    return found
+
+
 class TestTemplate:
+    def test_no_sealer_grader_matches_a_line_of_the_template(self):
+        """Round 2 of #1000, finding 2: a sealer that keeps the template's
+        comment must not pass a verdict grader by it, so no line of the
+        template opens with a verdict a grader reads. Seen red against the
+        comment that listed the three shapes at the start of their lines."""
+        patterns = sealer_verdict_patterns()
+        assert len(patterns) >= 9, patterns
+        text = TEMPLATE.read_text(encoding="utf-8")
+        hits = [p for p in patterns if re.search(p, text, re.M)]
+        assert hits == [], hits
+
     def test_the_template_carries_the_fields_sections_and_verdict_line(self):
         text = TEMPLATE.read_text(encoding="utf-8")
         lines = reader.readable(text)
