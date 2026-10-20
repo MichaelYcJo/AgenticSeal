@@ -135,6 +135,11 @@ The builder may cut cells that construction makes identical. Each such cut names
   - The rows citing `#family_view`, `#released_drift` or `#reverify_into` all sit in #736's fragment.
 - **Under the freeze**, the released rows are re-read into this work item's fragment, and #736's fragment rows are re-stamped in place, each read first.
 
+## Rule changes
+
+- nothing
+  why: overturned: --reverify and the ledger left the tree at 5b1f6fae.
+
 ## Open questions → questions.md
 
 `questions.md` holds two rows decided by this frame (Q1, Q2), two measurements

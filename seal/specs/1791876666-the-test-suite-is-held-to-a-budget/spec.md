@@ -127,7 +127,9 @@ S13, S16 and S17 described the changed-lines check and left with it in phase 4.
 ## Rule changes
 
 - nothing
-  why: internal: the suite's budgets, held by tests/test_a_slow_case_names_itself.py.
+  why: internal: one launcher holds the Python floor, held by
+    tests/test_a_script_says_which_interpreter_it_needs.py, and one module replays a
+    sample of its corpus; the per-pull-request case check left within the item.
 
 ## Removes
 

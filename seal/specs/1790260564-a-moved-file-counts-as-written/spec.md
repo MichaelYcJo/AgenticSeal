@@ -213,6 +213,11 @@ git directory as an input it computes lazily. It is asked only of a
 declaration that would have matched, so a run with no matching declaration
 still runs no extra `git` process.
 
+## Rule changes
+
+- nothing
+  why: overturned: the survivor sweep and its exemptions left the tree at 5b1f6fae.
+
 ## Open questions → questions.md
 
 Q1 (a person, non-blocking), Q2–Q3 (a measurement), Q4 (the work).

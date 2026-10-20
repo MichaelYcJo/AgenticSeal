@@ -186,6 +186,12 @@ to the walker by block state the twin lacks, the twin refuses the line
 instead, which is the stated direction: a vendored `--reverify` may refuse
 where the plugin reads, never read where the plugin refuses.
 
+## Rule changes
+
+- nothing
+  why: internal: one walker held to cmark-gfm reads the config table, held by
+    tests/test_the_mode_question_is_asked_once.py.
+
 ## Removes
 
 | Removes | Coordinate | Where it lands, or why it can go |

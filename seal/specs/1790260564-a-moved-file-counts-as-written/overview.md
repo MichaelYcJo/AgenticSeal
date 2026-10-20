@@ -25,9 +25,9 @@ The survivor sweep wrote a moved file's text as the range's own and misread a ga
 
 | Item | Who must answer |
 |---|---|
-| G10 on a runner whose git converts line endings, O1's symlink arm and the `normcase` comparison on Windows — only macOS was run | the three-OS matrix in `test.yml` at the pull request |
-| The full suite | the sealer, once, after the review rounds settle |
-| A local-mode repository end to end: `broad_gate.py#exemptions` handing a local `survivors.md` to the sweep at a seal | the sealer's run on a local-mode repository; the cases drive `survivor_check.py` directly |
+| closed G10 on a runner whose git converts line endings, O1's symlink arm and the `normcase` comparison on Windows — only macOS was run | #589's `ubuntu-latest` and `windows-latest` legs ran the suite green |
+| closed The full suite | #589, merged with the suite green on the ubuntu, macOS and Windows legs |
+| closed A local-mode repository end to end: `broad_gate.py#exemptions` handing a local `survivors.md` to the sweep at a seal | 5b1f6fae removed `survivor_check.py` and the exemptions it read |
 
 ## Not done
 

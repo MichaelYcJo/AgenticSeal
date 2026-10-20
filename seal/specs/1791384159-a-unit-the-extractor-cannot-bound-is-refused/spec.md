@@ -266,6 +266,12 @@ Each case is shown red against the tree before it is planted (agent-contract
 - No change to `ANCHOR_RE`, the row grammar, the verdict vocabulary, the exit
   codes, `templates/evidence-check.yml`, or the vendored-copy test.
 
+## Rule changes
+
+- nothing
+  why: overturned: evidence-check left the tree at 5b1f6fae, and the unit reader it used
+    left with this tree's coordinates.py#named_unit in #941.
+
 ## Open questions → questions.md
 
 Seven rows: Q1 and Q4 answered by the first build and superseded here, Q2

@@ -190,6 +190,12 @@ item's fragment (`evidence-check --reverify --into`). The new row cites
 `owner`, `judge` and `NOT_A_FILE_OPENER` and claims C1, C2 and C3 as stated
 above.
 
+## Rule changes
+
+- nothing
+  why: internal: the encoding walker's openers, held by
+    tests/test_every_file_the_plugin_reads_or_writes_names_its_encoding.py.
+
 ## Open questions → questions.md
 
 None needs a person. Two measurements and one row for the work are in

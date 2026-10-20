@@ -40,12 +40,12 @@ its file.
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the typecheck | the sealer, spawned by the orchestrator after the review rounds settle |
-| The new cases on the Windows and Linux legs (the vendored copy, the node-id paths with `/`) | CI at the pull request |
+| closed The full suite, the repository-wide lint and the typecheck | #887, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
+| closed The new cases on the Windows and Linux legs (the vendored copy, the node-id paths with `/`) | #887's `ubuntu-latest` and `windows-latest` legs ran the suite green |
 | closed `bin/evidence-check --strict .` after `origin/release/v0.21.0` is merged in: its head carries 22 drifted coordinates this branch does not (`templates/config.md#"# Repository config"`, `tests/test_every_reader_ends_a_line_where_gfm_does.py#OUT_OF_CLASS`) | measured at the integration step: release head ad447367 merged at df42a36c, the drift read and re-stamped, `--strict` exit 0 (§*The release branch's integration drift, cleared here*) |
-| `bin/evidence-check --strict .` once #870, which edits `evidence_check.py` beside this, lands on the release branch | the orchestrator, at whichever of the two lands second (`plan.md` §*Sequencing with the siblings*) |
-| The ledger arm over this repository's own test rows, read against the record of the full suite the seal runs (every cited case of this item's fragment, parametrised ones included) | the sealer's broad gate, after the rounds settle; no full suite runs before it |
-| Whether CI should observe too (`questions.md` Q7) | the repository owner; built on its default (a), no |
+| closed `bin/evidence-check --strict .` once #870, which edits `evidence_check.py` beside this, lands on the release branch | 5b1f6fae removed `evidence-check` |
+| closed The ledger arm over this repository's own test rows, read against the record of the full suite the seal runs (every cited case of this item's fragment, parametrised ones included) | 5b1f6fae removed the ledger and its arm |
+| closed Whether CI should observe too (`questions.md` Q7) | 5b1f6fae removed the ledger whose rows CI would have observed |
 
 ## The release branch's integration drift, cleared here
 

@@ -166,6 +166,12 @@ for `<name>` in `warden-phase-2`, `warden-phase-2-run-1`,
 `--old` is #957's `evals/baseline-<agent>.json`, `--new` is #957's
 `evals/<name>.json`, and `--phase` is the number in `<name>`.
 
+## Rule changes
+
+- nothing
+  why: internal: rule 3 adds a side's shape and reach passes, held by
+    tests/test_a_rewritten_definition_proved_non_inferior.py.
+
 ## Removes
 
 | Removes | Coordinate | Where it lands, or why it can go |

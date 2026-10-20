@@ -519,6 +519,12 @@ At the reframe, from the tree:
 14. *Does CI observe?* Not in this item; `questions.md` Q7 puts it to the
     owner with the default *no*.
 
+## Rule changes
+
+- nothing
+  why: overturned: the ledger left the tree at 5b1f6fae, where a rule's check line came to
+    name its test instead.
+
 ## Open questions → questions.md
 
 Seven rows. Q1–Q4 are answered. The reframe adds one measurement (Q5), one

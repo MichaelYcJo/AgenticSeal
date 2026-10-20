@@ -42,6 +42,13 @@ Out:
 - `skills/verify/scripts/pytest_record/specseal_pytest_record.py#Recorder`: `last_sent` is keyed on the sender.
 - `templates/config.md`: one sentence in rule 3.
 
+## Rule changes
+
+- nothing
+  why: internal: a base session that died part-way reads as unended, held by
+    tests/test_the_seal_is_taken_once_by_the_sealer.py; written outside docs/: the word
+    new?, in agents/smith.md.
+
 ## Open questions → questions.md
 
 None. The fixes are the reviewer's, executed in a clone in round 6 (the gate module passed 431).
