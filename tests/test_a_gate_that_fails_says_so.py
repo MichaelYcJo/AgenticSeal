@@ -898,7 +898,7 @@ def test_the_registration_section_says_a_failure_is_said_and_names_its_case():
     path = os.path.join(os.path.dirname(HOOKS), "docs", "commit-review-gate-spec.md")
     with open(path, encoding="utf-8") as handle:
         text = handle.read()
-    start = text.index("## Registration — gates run in groups, not one process each")
+    start = text.index("## Registration\n")
     section = text[start : text.index("\n## ", start + 1)]
     flat_text = " ".join(section.split())
     assert (
