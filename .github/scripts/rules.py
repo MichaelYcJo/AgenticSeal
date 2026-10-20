@@ -56,9 +56,12 @@ RULE_FILES = (
 LABEL = "check: "
 NO_TARGET = "none reader: "
 # What a near miss of the label looks like: the words in any case, behind
-# spaces, a list bullet or emphasis, before a colon with spaces around it.
+# spaces, any run of block markers (a list bullet, an ordered-list number, a
+# blockquote's `>`) or emphasis, before a colon with spaces around it.
 NEAR = re.compile(
-    r"^\s*(?:[-+*]\s+)?[*_]*\s*(?:checks?|enforced\s+by)\s*[*_]*\s*:", re.IGNORECASE
+    r"^\s*(?:(?:[-+*]|[0-9]{1,9}[.)]|>)\s*)*[*_]*\s*(?:checks?|enforced\s+by)"
+    r"\s*[*_]*\s*:",
+    re.IGNORECASE,
 )
 REFUSED_IN_VALUE = ("::", ",", "—")
 MARKER = re.compile(r"[a-z0-9-]+")
@@ -144,8 +147,8 @@ def parse(line):
         if symbol in value:
             return [], None, f"`{symbol}` is no part of a check line: write {EXPECTED}"
     if value == "none" or value.startswith("none "):
-        reader = value[len(NO_TARGET) :].strip()
-        if not value.startswith(NO_TARGET) or not reader:
+        reader = value[len(NO_TARGET) :]
+        if not value.startswith(NO_TARGET) or not reader or reader != reader.strip():
             return (
                 [],
                 None,

@@ -91,9 +91,11 @@ stays English in every edition.
   refuse a commit or fail a required pull-request job. Every other rule names
   files.
 - Every other spelling of the label is refused at its line: another case, a
-  space before the colon, a bullet or emphasis in front, the plural, the
-  word `Enforced by`. So is a value holding `::`, a comma or an em dash, a
-  path that is no file of the repository, and a marker no test carries.
+  space before the colon, a list bullet, an ordered-list number, a
+  blockquote's `>` or emphasis in front, the plural, the word `Enforced by`.
+  So is a value holding `::`, a comma or an em dash, a reader with a space
+  more after `reader:`, a path that is no file of the repository, and a
+  marker no test carries.
 
 **What this plugin checks, and what it does not.** It ships `rules --check`
 (`.github/scripts/rules.py`), which reads every check line in a rule file and
