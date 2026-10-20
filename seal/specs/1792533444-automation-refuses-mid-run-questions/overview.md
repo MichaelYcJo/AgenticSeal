@@ -20,7 +20,7 @@ answer made is held by a hook instead of by prose.
 | Item | Who must answer |
 |---|---|
 | that the harness runs a `PreToolUse` hook registered for `AskUserQuestion`, hands it `tool_input.questions` in the shape the cases use, and honours its deny | the orchestrator, by the measurement `questions.md` Q1 names, in the first session after a release carrying the gate is installed |
-| closed the full suite and the repository-wide lint over the phases built | the orchestrator's broad run at 045812ac, `broad-gate.md`: 7400 passed, 13 skipped, ruff check and format clean |
+| closed the full suite and the repository-wide lint over the phases built | the orchestrator's broad run at 00b19175, `broad-gate.md`: 7400 passed, 13 skipped, ruff check and format clean |
 
 ## Not done
 
