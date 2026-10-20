@@ -12,7 +12,8 @@ A new `PreToolUse` gate, `hooks/question-gate.py`, runs in its own dispatch
 group on `AskUserQuestion`. It reads the checked-out branch's declaration
 through `hooks/routing.py#declared`, the same call the commit gate's
 PreToolUse reading makes. Where that declaration reads `Automation` `yes`, the
-gate denies every call except the routing question put alone, and its reason
+gate denies every call except the routing question put alone, and that one
+only until this session has answered it from this clone, and its reason
 tells the session where the default goes instead. The two copies of the
 routing-question test in `hooks/worktree_consent.py` become one predicate,
 which the gate shares. The prose that said nothing can hold a run to the row
