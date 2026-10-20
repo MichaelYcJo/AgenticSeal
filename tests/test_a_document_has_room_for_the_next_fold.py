@@ -423,6 +423,16 @@ def test_a_fold_row_written_again_below_the_stop_has_no_value(tmp_path):
 # --- the prose that states the rule ----------------------------------------------
 
 
+@pytest.mark.parametrize("edition", ["README.md", "README.ko.md"])
+def test_both_cheat_sheets_point_to_the_checks_home(edition):
+    """Round 1, finding 9: the `fold-check` row described the freeze after it
+    was gone. It now points to the rows' one statement and restates none."""
+    with open(os.path.join(ROOT, edition), encoding="utf-8") as f:
+        row = next(line for line in f if line.startswith("| `fold-check [--shape-from"))
+    assert "`templates/config.md` §*The fold's values*" in row, row
+    assert "frozen" not in row and "고정" not in row, row
+
+
 def test_settle_owns_the_placement_rule():
     """A11. The rule is settle's, in general form, and it sets no value."""
     with open(
