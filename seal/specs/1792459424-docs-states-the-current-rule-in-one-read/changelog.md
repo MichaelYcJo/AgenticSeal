@@ -7,10 +7,11 @@
   `check: none reader: <who reads it>`. The grammar is
   `skills/settle/SKILL.md` *A rule has one shape*. `rules --check` refuses
   every other spelling at its line, exit 1, naming the spelling it expected:
-  `Enforced by:`, another case, a list bullet, an ordered-list number, a
-  blockquote's `>` or emphasis in front, a space before the colon, a value
-  holding `::`, a comma or an em dash, and a reader with a space more after
-  `reader:`. A consuming
+  `Enforced by:`, another case, a space before the colon, a value holding
+  `::`, a comma or an em dash, a reader with a space more after `reader:`,
+  and a label with nothing before it but Markdown block markup (a heading's
+  `#`, a list bullet or number, a task box, a blockquote's `>`, a table's
+  `|`) or emphasis. A consuming
   repository's `Enforced by:` lines are refused until rewritten. `rules
   <doc>` prints each target's module docstring, or for a marker each test
   carrying it.

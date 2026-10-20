@@ -55,12 +55,15 @@ RULE_FILES = (
 )
 LABEL = "check: "
 NO_TARGET = "none reader: "
-# What a near miss of the label looks like: the words in any case, behind
-# spaces, any run of block markers (a list bullet, an ordered-list number, a
-# blockquote's `>`) or emphasis, before a colon with spaces around it.
+# Markdown block markup, one mark: a heading's `#` run, a list bullet or
+# number, a task box, a blockquote's `>`, a table's `|`.
+BLOCK_MARK = r"(?:#{1,6}|[-+*]|[0-9]{1,9}[.)]|\[[ xX]\]|>|\|)"
+# What a near miss of the label looks like: the words in any case, with
+# nothing before them but spaces, block markup and emphasis, before a colon
+# with spaces around it. A line whose only content before `check:` is block
+# markup is refused at its line; only the exact shape is read.
 NEAR = re.compile(
-    r"^\s*(?:(?:[-+*]|[0-9]{1,9}[.)]|>)\s*)*[*_]*\s*(?:checks?|enforced\s+by)"
-    r"\s*[*_]*\s*:",
+    rf"^(?:\s|{BLOCK_MARK})*[*_]*\s*(?:checks?|enforced\s+by)\s*[*_]*\s*:",
     re.IGNORECASE,
 )
 REFUSED_IN_VALUE = ("::", ",", "—")

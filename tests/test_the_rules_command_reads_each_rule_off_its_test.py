@@ -359,8 +359,6 @@ EXPECTED = "write `check: <targets>` or `check: none reader: <who reads it>`"
         (f"**check:** {HELD}", f"`**check:** {HELD}` is no check line: {EXPECTED}"),
         (f"check : {HELD}", f"`check : {HELD}` is no check line: {EXPECTED}"),
         (f"- check: {HELD}", f"`- check: {HELD}` is no check line: {EXPECTED}"),
-        (f"1. check: {HELD}", f"`1. check: {HELD}` is no check line: {EXPECTED}"),
-        (f"> check: {HELD}", f"`> check: {HELD}` is no check line: {EXPECTED}"),
         (f"checks: {HELD}", f"`checks: {HELD}` is no check line: {EXPECTED}"),
         (f"check: {HELD}::test_held", f"`::` is no part of a check line: {EXPECTED}"),
         (f"check: {HELD}, {HELD}", f"`,` is no part of a check line: {EXPECTED}"),
@@ -389,8 +387,6 @@ EXPECTED = "write `check: <targets>` or `check: none reader: <who reads it>`"
         "in bold",
         "a space before the colon",
         "a list bullet",
-        "an ordered-list marker",
-        "a blockquote marker",
         "a plural",
         "a test named after the path",
         "a comma",
@@ -412,6 +408,31 @@ def test_every_other_spelling_is_refused_at_its_line(tmp_path, capsys, line, why
     code, out = checked(tmp_path, {"docs/a.md": doc(rule(line))}, capsys)
     assert code == 1, out
     assert f"rules: docs/a.md:6: The heading: {why}\n" in out, out
+    assert "rules: 1 refused in 1 check lines of 1 rule files." in out, out
+
+
+@pytest.mark.parametrize(
+    "markup",
+    ["1. ", "> ", "## ", "- [ ] ", "| "],
+    ids=[
+        "an ordered-list number",
+        "a blockquote mark",
+        "a heading mark",
+        "a task box",
+        "a table pipe",
+    ],
+)
+def test_a_label_behind_block_markup_is_refused_at_its_line(tmp_path, capsys, markup):
+    """S5's one class: a line whose only content before `check:` is Markdown
+    block markup is a near miss, refused at its own line, never read and
+    never passed. Only the exact line shape is read."""
+    line = f"{markup}check: {HELD}"
+    code, out = checked(tmp_path, {"docs/a.md": doc(rule(line))}, capsys)
+    assert code == 1, out
+    refusals = [row for row in out.splitlines() if row.startswith("rules: docs/a.md:")]
+    assert len(refusals) == 1, out
+    assert refusals[0].startswith("rules: docs/a.md:6: "), out
+    assert refusals[0].endswith(f"`{line}` is no check line: {EXPECTED}"), out
     assert "rules: 1 refused in 1 check lines of 1 rule files." in out, out
 
 

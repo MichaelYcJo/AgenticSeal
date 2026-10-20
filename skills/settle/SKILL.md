@@ -90,10 +90,12 @@ stays English in every edition.
 - A marker names the tests of a rule whose test drives a script that can
   refuse a commit or fail a required pull-request job. Every other rule names
   files.
-- Every other spelling of the label is refused at its line: another case, a
-  space before the colon, a list bullet, an ordered-list number, a
-  blockquote's `>` or emphasis in front, the plural, the word `Enforced by`.
-  So is a value holding `::`, a comma or an em dash, a reader with a space
+- A line whose only content before the label is Markdown block markup or
+  emphasis is a near miss and is refused at its line; only the exact shape
+  above is read.
+- Every other spelling of the label is refused at its line too: another
+  case, a space before the colon, the plural, the word `Enforced by`. So is
+  a value holding `::`, a comma or an em dash, a reader with a space
   more after `reader:`, a path that is no file of the repository, and a
   marker no test carries.
 
