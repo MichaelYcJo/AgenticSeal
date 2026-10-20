@@ -608,6 +608,11 @@ class TestGrammar:
             ),
             (
                 "| `refixes:` | `regression:` |",
+                "| `refixes:` | `## Findings` |",
+                "no label of the grammar table",
+            ),
+            (
+                "| `refixes:` | `regression:` |",
                 "| `answer:` | `regression:` |",
                 "`answer:` is a label of the grammar table",
             ),
