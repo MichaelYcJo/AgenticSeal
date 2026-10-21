@@ -87,8 +87,8 @@ this file is for people. -->
      nobody read.
      WHAT HOLDS IT is `hooks/question-gate.py`. While the row reads `yes`, it
      refuses every question on this branch but the routing question put
-     alone before the orchestrator has answered it, so the run builds on the
-     default a question states instead.
+     alone before the person has answered it in this session, so the run
+     builds on the default a question states instead.
      Answer pressed: `automation` or `per axis`. WHICH answer the person
      pressed, not what it derived to. OPTIONAL, on the same terms.
      HOW TO ANSWER IT: `automation` where the person pressed the preset,

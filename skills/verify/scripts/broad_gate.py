@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """broad-gate — the one broad run, taken once after the rounds settle.
 
-Issue #30. `CLAUDE.md` §*Verification Scope* says the full suite, the
+Issue #30. The CLAUDE.md block's **Verification Scope** rule
+(`templates/claude-md-block.md`) says the full suite, the
 repository-wide lint and the typecheck run once, after the review rounds
 settle, and for three releases nobody was assigned that run: contract §2
 forbade it to the smith and the warden, and the orchestrator that took it by

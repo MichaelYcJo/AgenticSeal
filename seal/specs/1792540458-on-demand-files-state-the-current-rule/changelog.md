@@ -17,20 +17,26 @@
   section holds the reasoning the CLAUDE.md block no longer carries, and
   its headings are *Orchestrator: Bootstrap*, *Orchestrator: Parity setup*,
   *Orchestrator: how the work is routed*, *Question 1* and *Question 2*.
-- **The CLAUDE.md block holds its rules alone, in 1,498 bytes, and has one
+- **The CLAUDE.md block holds its rules alone, in 1,669 bytes, and has one
   copy (#940).** `templates/claude-md-block.md` keeps its four headings and
   eight rules and drops the reasoning, which is in
   `skills/implement/orchestration.md`. The routing rule says, in order: where
   no `seal/` root exists, follow the Bootstrap first, and where the root
   lands is the user's decision; ask question 1 alone, its answers
   `automation`, `per axis` and `no work item`, and the boxes in a second
-  call only under `per axis`; write `routing.md` in a command of its own
-  before the first edit, then commit it; and under `no work item` put
-  `: '[no-review]';` in front of every commit. `/specseal:update` replaces
-  the block as before. The plugin's own repository no longer carries a
-  generated copy in its `CLAUDE.md`, and the pull-request step that held the
-  copy to the template is gone with the script it ran; a session in a clone
-  of the plugin installs that clone's block by running `./install.sh` there.
+  call only under `per axis`, with the orchestration file's routing section
+  named as where the question and the boxes are stated; except under `no
+  work item`, write `routing.md` in a command of its own before the first
+  edit, then commit it; and under `no work item` put `: '[no-review]';` in
+  front of every commit. The lint rule is scoped: before each commit, lint,
+  format and typecheck run over the files the commit changes, and the
+  repository-wide lint runs once after the rounds settle. `/specseal:update`
+  replaces the block as before. The plugin's own repository no longer
+  carries a generated copy in its `CLAUDE.md`, and the pull-request step that
+  held the copy to the template is gone with the script it ran; a session in
+  a clone of the plugin installs that clone's block with
+  `bash install.sh "$HOME/.claude/CLAUDE.md"` run there, since `--project`
+  would write a copy into the clone's `CLAUDE.md`.
 - **The orchestrator's half of `code-review` states the current rule, once
   (#940).** `skills/code-review/orchestration.md` drops the measurements and
   issue history it narrated and names the party of each act. The step before
@@ -73,11 +79,14 @@
   contributor where it said "you", drops the issue numbers and anecdotes it
   carried, and names the constant or the workflow file where it restated
   CI's job and shard counts, the case ceiling and the artifact's retention.
-- **The orchestrator drains a work item's unresolved rows before it spawns
-  the sealer (#940).** `skills/implement/SKILL.md` section 6, now *6. Drain
-  the rows before the sealer is spawned, and keep the records*, names the
-  orchestrator as the party and the sealer's spawn as the moment, since the
-  pull request opens once the sealer seals; it used to say only "before the
-  PR merges". The skills and templates cite a heading as the backticked path
+- **The orchestrator drains a work item's unresolved rows before the broad
+  run (#940).** `skills/implement/SKILL.md` section 6, now *6. Drain the rows
+  before the broad run, and keep the records*, names the orchestrator as the
+  party and the moment as after the last round has no finding open and
+  before `broad-gate --preflight`, since a commit after the broad run, a
+  `seal/follow-up.md` row among them, leaves `broad-gate.md` stale for the
+  sealer; it used to say only "before the PR merges". The orchestration
+  file's step before the preflight names that drain among its
+  preconditions. The skills and templates cite a heading as the backticked path
   followed by the heading in italics, with no section sign; a citation of
   the agent contract's numbered sections keeps its number.

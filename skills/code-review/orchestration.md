@@ -173,7 +173,9 @@ record is still owed then. Nothing that can reach `main` is exempt.
 **`broad-gate.md` and `guarantee.md` are read at the pull request**, so three
 more steps come before it opens: the preflight, the broad run, and then the
 sealer's spawn. You take them once you have written the pull request body to
-a file and the work item's `changelog.md` states what the work item ships.
+a file, the work item's `changelog.md` states what the work item ships, and
+every row `skills/implement/SKILL.md` *6. Drain the rows before the broad
+run, and keep the records* names has reached its destination.
 The party that builds the work item writes that fragment: the smith, or you
 where `routing.md` answers `Implementation` with `the session`
 (`docs/the-record-layout.md` *A change writes fragments, never a shared

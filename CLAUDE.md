@@ -44,7 +44,7 @@ A domain in an example or fixture is `example.com` and a user path is
 ## Repo rule: text an agent or a check reads has one reading
 
 A session here writes skills, agent definitions, templates and frames, and
-two rules bind every sentence of them. Nothing an agent writes or a check
+the owner's two directions bind every sentence of them. Nothing an agent writes or a check
 reads uses a symbol a reader can trip on as syntax, states a value twice, or
 takes a spelling a near miss could pass. Shorter is never bought with a
 second reading: an instruction names who acts, when, on which file and what

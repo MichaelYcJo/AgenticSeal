@@ -149,6 +149,7 @@ S13, each set as `spec.md` *Data and interfaces* lists it:
 | sealer | 55,861 | 23,597 | yes |
 | orchestrator, the four files of the table | 105,113 | 100,664 | yes |
 | orchestrator, with `skills/verify/orchestration.md` | 105,113 | 129,640 | no, as the table reads |
+| orchestrator, with both `skills/verify/` files | 159,334 | 151,600 | yes |
 
 The framer and the warden are over because phase 1's section added 3,447
 bytes to `skills/writing-style/SKILL.md` (21,720 to 25,167), which both sets
@@ -156,9 +157,12 @@ open, and the files the plan let phases 7 and 9 shorten in those sets
 (`templates/config.md`, the spec, plan, questions and round templates, and
 the section signs of `implement/SKILL.md`, `code-review/SKILL.md` and
 `settle/SKILL.md`) gave back 1,865 and 1,061 bytes; D7 and the longer
-citation in `settle` added 477 to the framer's set. The orchestrator's last
-row compares unlike sets: at b3154f43 the broad gate and the segment
+citation in `settle` added 477 to the framer's set. The orchestrator's
+second row compares unlike sets: at b3154f43 the broad gate and the segment
 measurement it runs were in `skills/verify/SKILL.md` (54,221 bytes), which
-the table's base set leaves out. Counted with that file, the base is 159,334
-against 129,640. `overview.md` records the framer and the warden as a
-divergence from S13.
+the table's base set leaves out, and the orchestrator still reads that file
+beside `skills/verify/orchestration.md`. Counted alike, with both
+`skills/verify/` files, the last row reads 159,334 at b3154f43 against
+151,600 at 493d9816, 7,734 bytes smaller (corrected in round 1's fix pass,
+finding 9). `overview.md` records the framer and the warden as a divergence
+from S13.

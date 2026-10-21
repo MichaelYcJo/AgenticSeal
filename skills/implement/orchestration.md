@@ -69,8 +69,9 @@ it from `templates/` in this plugin and continues. In particular:
   project's documentation habit, and one field's vocabulary, on every
   repository this plugin touches.
 
-**When `seal/` exists at neither place, the orchestrator asks one question
-before creating anything, then does two more things before continuing.**
+**When `seal/` exists at neither place, the orchestrator asks once, in the
+one call step 1 states, before creating anything, then does two more things
+before continuing.**
 Creating the root is what opts the repository in: from the next command on,
 every gate here is awake. Where the root lands, committed with the repository
 or under the git directory on this machine only, is the person's decision and
@@ -368,7 +369,7 @@ file to write it in.
 
 **`Automation` is held by a gate.** While the row reads `yes`,
 `hooks/question-gate.py` refuses every question on the declared branch but
-question 1 put alone before the session has answered it, and
+question 1 put alone before the person has answered it in this session, and
 `docs/the-review-record.md` *The run* is the rule.
 
 **The declaration has one more row, and nobody is asked about it.**
@@ -472,8 +473,9 @@ are not interchangeable: a heading in the changelog that every branch appends
 to, or one fragment per work item that a release gathers. Writing the first
 into a repository that uses the second invents a heading its checks refuse,
 or appends to the shared region the fragments exist to empty. Where the
-repository gathers fragments, basing on the default branch means running the
-gather, which the contribution guide names.
+repository gathers fragments, basing on `main` means running the gather,
+because `main` is the branch where the entries are due; the contribution
+guide names the command.
 
 What must not happen instead is a standing waiver: a session-level switch
 that turns the gate off leaves it nothing to do but stay quiet. The routing

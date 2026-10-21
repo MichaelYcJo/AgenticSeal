@@ -469,18 +469,20 @@ A fix that changes what the work item ships brings the work item's
 `docs/the-record-layout.md` *A commit after the build brings its changelog
 fragment along* owns that rule.
 
-### 6. Drain the rows before the sealer is spawned, and keep the records
+### 6. Drain the rows before the broad run, and keep the records
 
-**The orchestrator moves every unresolved row out before it spawns the
-sealer**, whichever party `routing.md`'s `Implementation` row names, because
-the orchestrator opens the pull request and the pull request opens once the
-sealer seals (`skills/code-review/orchestration.md` *Orchestrator: the pull
-request opens once the sealer seals, and a phase is re-run*). A row is out
-when it stands at its destination below:
+**The orchestrator moves every unresolved row out once the last round record
+has no finding open, and before it runs `broad-gate --preflight`**, whichever
+party `routing.md`'s `Implementation` row names: the orchestrator opens the
+pull request, and every commit after the broad run, a `seal/follow-up.md` row
+among them, leaves `broad-gate.md` stale for the sealer
+(`skills/code-review/orchestration.md` *Orchestrator: the pull request opens
+once the sealer seals, and a phase is re-run*). A row is out when it stands
+at its destination below:
 
 | Remaining item | Destination |
 |---|---|
-| Doable within this pull request | done now, by the party that builds the work item: the sealer's spawn is the last moment before the pull request opens |
+| Doable within this pull request | done now, by the party that builds the work item, and reviewed by a verifying round before the broad run |
 | Waiting on prerequisite work | `seal/follow-up.md` |
 | Needs a decision | An `add` in `spec.md`'s `## Rule changes` to the policy document's open-questions section |
 
