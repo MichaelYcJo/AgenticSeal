@@ -1733,7 +1733,8 @@ NO_BASELINE = (
 def parity_readers():
     """`(config, gate)`: `hooks/config.py` and `hooks/gate.py`, loaded by path
     in that order, because `config.py` puts `hooks/` on `sys.path` and
-    `gate.py`'s own imports need it there. Raises what `load` raises."""
+    `gate.py`'s own `import optin` needs it there, in a process that loaded
+    no routing reader first. Raises what `load` raises."""
     config = load(os.path.join(HOOKS, "config.py"), "specseal_config_for_parity")
     gate = load(os.path.join(HOOKS, "gate.py"), "specseal_gate_for_parity")
     return config, gate

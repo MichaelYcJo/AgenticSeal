@@ -2455,10 +2455,35 @@ class TestOriginals:
                 ),
                 "2 `Baseline commit` rows",
             ),
-            ("# Migration config\n", "| Field | Value |"),
+            ("# Migration config\n", "holds no `| Field | Value |` table"),
         ):
             sha, said = config.baseline_commit(bad)
             assert sha is None and why in said, (said, bad)
+        # No table is said as no table, not as a table with no such row.
+        _sha, said = config.baseline_commit("# Migration config\n")
+        assert "Baseline commit" not in said, said
+
+    def test_the_readers_load_where_only_the_check_was_loaded(self):
+        """`parity_readers` loads `hooks/config.py` before `hooks/gate.py`,
+        whose `import optin` needs `hooks/` on `sys.path`: a fresh
+        interpreter that loaded the check alone, and no routing reader,
+        still loads both."""
+        code = (
+            "import importlib.util, sys\n"
+            f"s = importlib.util.spec_from_file_location('c', {str(CHAIN)!r})\n"
+            "m = importlib.util.module_from_spec(s)\n"
+            "s.loader.exec_module(m)\n"
+            "config, gate = m.parity_readers()\n"
+            "print(gate.touches_code(['f.txt']), config.BASELINE_ROW)\n"
+        )
+        done = subprocess.run(
+            [sys.executable, "-I", "-c", code],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+        assert done.returncode == 0, done.stderr
+        assert done.stdout.strip() == "True Baseline commit", done.stdout
 
     def test_readers_that_will_not_load_are_exit_2_naming_them(
         self, branch, ready, capsys, monkeypatch
