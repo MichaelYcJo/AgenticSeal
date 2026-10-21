@@ -64,14 +64,9 @@ the workflow off in every clone.
 
 ## Export rules
 
-| Item still here | Destination |
-|---|---|
-| A finding still open in `seal/specs/<work-item-id>/rounds/round-N.md`, a test to plant among them | the implementation commit, or `seal/follow-up.md` where it is blocked on prerequisite work |
-| Open decisions | the policy document's open-questions section |
-
-They run before a work item closes. Closing without them leaves the list
-where nothing looks for it: a prescribed test unplanted, a decision nobody
-recorded.
+`skills/implement/SKILL.md` *6. Drain the rows before the broad run, and keep
+the records* states who moves the rows still open in a work item's directory
+out of it, when, and where each one goes.
 
 ## Layout
 

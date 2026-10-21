@@ -62,8 +62,8 @@ who acts, on which file, and what counts as done.
 When a root or file this skill needs does not exist, the orchestrator creates
 it from `templates/` in this plugin and continues. In particular:
 
-- `seal/README.md`, which carries the export rules so that a session that
-  never loads this skill still sees them.
+- `seal/README.md`, which says what the root holds and names the section of
+  `skills/implement/SKILL.md` that states the export rules.
 - **Not** policy documents. A repository that has none has none; judge from
   the SDD set and the code. Creating `docs/policies/<domain>/` imposes one
   project's documentation habit, and one field's vocabulary, on every

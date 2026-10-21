@@ -98,7 +98,7 @@ read. What sits directly under it is permanent; what sits under
 
 ```
 seal/
-├── README.md         the export rules, for sessions that never load this skill
+├── README.md         what the root holds, and where the export rules are
 ├── parity.md         migration config, only when declared
 ├── pact.md           the pact, only in the repository that holds one
 ├── follow-up.md      schedulable items in a repository with no tracker

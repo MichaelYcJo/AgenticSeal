@@ -87,6 +87,7 @@
   `seal/follow-up.md` row among them, leaves `broad-gate.md` stale for the
   sealer; it used to say only "before the PR merges". The orchestration
   file's step before the preflight names that drain among its
-  preconditions. The skills and templates cite a heading as the backticked path
+  preconditions, and `seal/README.md` and the questions template name the
+  section instead of stating their own moment and destinations. The skills and templates cite a heading as the backticked path
   followed by the heading in italics, with no section sign; a citation of
   the agent contract's numbered sections keeps its number.

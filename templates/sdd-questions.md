@@ -29,4 +29,5 @@ never by whoever asked. Sorting the rows this way also keeps the batch short
 enough to answer in one sitting: two of the three kinds never need a person.
 
 Answered rows feed back into `spec.md`'s `## Rule changes` (a policy clause
-or an open-questions section) before this directory's work merges.
+or an open-questions section) at the moment `skills/implement/SKILL.md` *6.
+Drain the rows before the broad run, and keep the records* names.

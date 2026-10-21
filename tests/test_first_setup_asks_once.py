@@ -635,6 +635,23 @@ def test_the_seal_readme_is_the_template_verbatim():
     assert read("seal", "README.md") == read("templates", "seal-README.md")
 
 
+def test_the_seal_readme_points_at_the_drain_and_restates_none_of_it():
+    """Round 2 of #940, finding 2. Who moves a work item's open rows, when
+    and where each goes is `skills/implement/SKILL.md` section 6's alone; a
+    second statement here drifted from it on all three. The README names the
+    section and carries no destination of its own."""
+    text = read("templates", "seal-README.md")
+    rules = flat(text.split("\n## Export rules\n", 1)[1].split("\n## ", 1)[0])
+    heading = "### 6. Drain the rows before the broad run, and keep the records"
+    assert heading in read("skills", "implement", "SKILL.md")
+    assert (
+        "`skills/implement/SKILL.md` *6. Drain the rows before the broad run, "
+        "and keep the records*" in rules
+    ), rules
+    for copied in ("| Item still here |", "follow-up.md", "open-questions"):
+        assert copied not in rules, (copied, rules)
+
+
 # --- Q8: the design record agrees with the code -----------------------------
 
 
@@ -746,6 +763,22 @@ def test_the_preset_sends_a_fresh_repository_to_the_bootstrap():
     # carries, which no longer holds it.
     assert "skills/implement/orchestration.md" in lead
     assert "neither" in lead, "the rule does not say WHICH repositories it means"
+
+
+def test_the_preset_writes_no_declaration_under_no_work_item():
+    """Round 1 of #940, finding 1. The write is conditioned on the answer,
+    and the block names the file that states question 1 and the boxes, so a
+    session in a rooted repository that reads only the block neither writes
+    a declaration nobody gave nor asks a question it has no text for."""
+    rule = routing_rule()
+    lead = rule[: rule.index("write `seal/specs/")]
+    assert "Except under `no work item`" in lead, (
+        "the routing rule writes routing.md under every answer, `no work item` included"
+    )
+    assert "*Orchestrator: how the work is routed*" in lead, (
+        "the routing rule names question 1 and the boxes without naming the "
+        "section that states them"
+    )
 
 
 def test_the_preset_names_both_places_the_root_can_be():

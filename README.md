@@ -117,7 +117,7 @@ Cross-session memory lives in the repo, not the session:
 
 ```
 seal/
-├── README.md         the export rules — what leaves a work item before it closes
+├── README.md         what the root holds, and where the export rules are
 ├── config.md         what this repository says about itself — two languages
 │                     and the mode. Optional, and an absent row is not an
 │                     error
@@ -417,7 +417,7 @@ prose works the same way, if you prefer it:
 
 The smith reads the spec chain, implements, verifies, and hands off to the
 warden for review — you decide what happens to the report. Anything the
-layout needs and the repo lacks (`seal/README.md` carrying the export rules)
+layout needs and the repo lacks (`seal/README.md` among them)
 your session creates from `templates/` as it goes.
 
 Two things work with no agent at all: `fold-check` and every gate in the
