@@ -79,16 +79,18 @@ committed side.
    section's `location:` lines, or empty where the section has none. A
    section the check would refuse is still one row, so a finding written in
    a broken shape counts as false instead of vanishing. `FINDING_ROW` goes.
-   **Where the check cannot read the record, the harness reads no finding
-   out of it either.** A record `chain_check.py#unclosed` refuses, one
-   holding a comment or a fence that never closes, has no reading the check
-   stands behind: `reader.readable` hides every line after the opener, and
+   **Where the check cannot read or split the record, the harness reads no
+   finding out of it either.** Two kinds of record are such: one holding a
+   comment or a fence that never closes, which `chain_check.py#unclosed`
+   refuses, where `reader.readable` hides every line after the opener and
    each of three later readings missed a shape (`rounds/round-1.md` finding
-   2, `round-2.md` finding 1, `round-3.md` finding 1). Such a record gives
-   one empty row for each line of its raw text, fenced and commented lines
-   included, that the shared reader reads as a heading at the finding
-   level. Every such row is false, and no `truth-` grader over the record
-   finds anything in that run. The count errs toward more false rows and
+   2, `round-2.md` finding 1, `round-3.md` finding 1); and one with no
+   `## Findings` section or with two, which `chain_check.py#finding_spans`
+   refuses (`rounds/round-4.md`). The rule for both is the docstring of
+   `noninferiority.py#finding_rows`: one empty row for each raw line at the
+   finding heading level, fenced and commented lines included. Every such
+   row is false, and no `truth-` grader over the record finds anything in
+   that run. The count errs toward more false rows and
    fewer finds, never the other way, and it follows the check, which reads
    no finding from such a record and refuses it at the pull request
    (`plan.md` U1 to U4).
@@ -237,13 +239,13 @@ are unchanged.
 the smith, returns one string per `### ` section that
 `chain_check.py#finding_spans` finds over `SHARED_READER.readable(text)`:
 that section's lines `chain_check.py#label_of` reads as `location:`, joined
-by a newline, or the empty string. A record with no `## Findings`, or with
-two, gives no rows, as the check's split does. Before any split, where
-`chain_check.py#unclosed` refuses the text, the function returns one empty
-string for each line of `reader.gfm_lines(text)` whose
-`reader.heading_level` equals `chain_check.py#FINDING_LEVEL`, and splits
-nothing. An empty row matches no `truth-` pattern, so `grade` finds no
-truth in such a run with no branch of its own.
+by a newline, or the empty string. Where `chain_check.py#unclosed` refuses
+the text, or `finding_spans` refuses the split (no `## Findings` section,
+or two), the function instead returns one empty string for each line of
+`reader.gfm_lines(text)` whose `reader.heading_level` equals
+`chain_check.py#FINDING_LEVEL`, as the `noninferiority.py#finding_rows`
+docstring states. An empty row matches no `truth-` pattern, so `grade`
+finds no truth in such a run with no branch of its own.
 
 **Counting a side** (`noninferiority.py#side_numbers`). Rows and false rows
 come from the finding rows of each run's `report_text`. A `truth-` grader
