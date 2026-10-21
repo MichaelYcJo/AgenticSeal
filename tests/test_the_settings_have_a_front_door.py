@@ -66,9 +66,11 @@ def test_the_skill_shows_rows_that_are_absent():
     # The whole clause, with its polarity. A fragment is satisfied by its own
     # negation — `never including the ones the file does not carry` left the
     # first spelling of this green (round 2).
+    # #940: the sentence counted nine rows over a table of eight; it names
+    # the table instead of a count.
     assert (
-        "print all nine with their current values — including the ones the "
-        "file does not carry"
+        "print every row of the table below with its current value, including "
+        "the ones the file does not carry"
     ) in flat(*SKILL), (
         "the skill no longer tells the session to print the rows the file "
         "does not carry, which are the ones somebody came to change"

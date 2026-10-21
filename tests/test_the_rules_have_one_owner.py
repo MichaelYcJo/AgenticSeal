@@ -114,7 +114,7 @@ RULES = {
         CONFIG_TEMPLATE,
         "A check that is red repository-wide for reasons unrelated to any "
         "branch does not belong in the row",
-        {CONFIG_SKILL: CRITERION_OWNER, ORCH_IMPL: CRITERION_LINK},
+        {CONFIG_SKILL: CRITERION_LINK, ORCH_IMPL: CRITERION_LINK},
     ),
     # From #493: filing a finding ran at 100% and acting on one at 47%, so a
     # new issue is a rung rather than the default.

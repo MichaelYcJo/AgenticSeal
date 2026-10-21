@@ -9,7 +9,7 @@ description: |
   (`security-audit`), or comparing a spec against the code (`gap-analysis`).
 ---
 
-# audit — the rules this repo wrote down for itself
+# audit, the rules this repo wrote down for itself
 
 A linter enforces what every project agrees on. This checks what only *this*
 project agreed on, declared as `.claude/audit-rules/*.md`. A rule with no
@@ -18,16 +18,16 @@ inventing conventions.
 
 ## How It Works
 
-1. **Check for rules**: Look for `.claude/audit-rules/*.md` files
-2. **If no rules exist**: Suggest bootstrapping with common patterns
-3. **If rules exist**: Validate each rule against the codebase
+1. **Check for rules**: look for `.claude/audit-rules/*.md` files.
+2. **If no rules exist**: suggest bootstrapping with common patterns.
+3. **If rules exist**: validate each rule against the codebase.
 
 ## Rule File Format
 
 Each `.claude/audit-rules/[name].md` defines:
-- **Pattern**: What to check (regex, file pattern, or description)
-- **Expected**: What should be true
-- **Severity**: critical / warning / info
+- **Pattern**: what to check (a regex, a file pattern, or a description)
+- **Expected**: what should be true
+- **Severity**: `critical`, `warning` or `info`
 
 ## Common starting rules
 
@@ -37,7 +37,7 @@ it is written as a file:
 
 - No hardcoded secrets (API keys, passwords, tokens)
 - No `console.log` in production code (unless a logging library wraps it)
-- No TODO/FIXME in the code being committed
+- No TODO or FIXME in the code being committed
 
 ## Managing rules
 
@@ -55,7 +55,7 @@ warnings: [N]
 violations: [N]
 
 [For each violation:]
-violation: [rule name] - [severity]
+violation: [rule name], severity: [severity]
    [file:line] [what's wrong]
    Fix: [suggestion]
 ```

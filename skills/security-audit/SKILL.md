@@ -1,15 +1,15 @@
 ---
 name: security-audit
-description: Walk a web-service security checklist — OWASP Top 10, auth, data exposure, configuration, dependencies. For a service taking untrusted input over a network; on a mobile, embedded, library, or pipeline target it reports cleanly about the wrong threats.
+description: Walk a web-service security checklist (OWASP Top 10, auth, data exposure, configuration, dependencies). For a service taking untrusted input over a network; on a mobile, embedded, library, or pipeline target it reports cleanly about the wrong threats.
 disable-model-invocation: true
 ---
 
-# /specseal:security-audit — a checklist walked the same way every time
+# /specseal:security-audit, a checklist walked the same way every time
 
 A scan finds what it was built to look for. The value of a written checklist
 is the opposite property: it covers the same ground on a bad day as on a good
-one. Walk every heading and say `none found` explicitly — a silently skipped
-section reads exactly like a clean one.
+one. Walk every heading and say `none found` explicitly, because a silently
+skipped section reads exactly like a clean one.
 
 **What this checklist assumes.** It describes a service that takes untrusted
 input over a network: injection through request data, sessions and
@@ -25,7 +25,7 @@ chain. A data pipeline worries about what leaks into logs and derived
 datasets.
 
 Say which of those the project is before walking the list. If the answer is
-"none of the above", a clean report here means the checklist did not apply —
+"none of the above", a clean report here means the checklist did not apply;
 say that instead of reporting a pass.
 
 ## OWASP Top 10 Check
@@ -36,17 +36,17 @@ say that instead of reporting a pass.
 - Command: user input in shell commands?
 - Path traversal: file paths validated?
 
-### Authentication & Authorization
-- Passwords properly hashed (bcrypt/argon2)?
+### Authentication and Authorization
+- Passwords properly hashed (bcrypt or argon2)?
 - Session management secure?
 - Auth checks on every endpoint?
-- RBAC/ABAC properly implemented?
+- RBAC or ABAC properly implemented?
 
 ### Data Protection
 - Sensitive data encrypted at rest?
 - TLS for data in transit?
 - PII handling compliant?
-- No secrets in code/logs/errors?
+- No secrets in code, logs or errors?
 
 ### Configuration
 - Debug mode off in production?
@@ -63,8 +63,8 @@ say that instead of reporting a pass.
 ## Rules
 - Critical findings: report immediately, suggest fix
 - Check actual code, not just patterns
-- Consider the threat model (internal tool vs public API)
-- No false sense of security: "no findings" ≠ "secure"
+- Consider the threat model (internal tool or public API)
+- No false sense of security: "no findings" does not mean "secure"
 
 ## Output
 
@@ -72,13 +72,13 @@ say that instead of reporting a pass.
 ## Security Audit: [scope]
 
 **Critical** (fix immediately)
-- [vulnerability] at file:line → [remediation]
+- [vulnerability] at file:line; remediation: [remediation]
 
 **High** (fix before deploy)
-- [vulnerability] at file:line → [remediation]
+- [vulnerability] at file:line; remediation: [remediation]
 
 **Medium** (fix soon)
-- [vulnerability] → [suggestion]
+- [vulnerability]; suggestion: [suggestion]
 
 **Recommendations**
 - [proactive security improvements]

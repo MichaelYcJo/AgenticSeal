@@ -1,14 +1,15 @@
 ---
 name: legacy-parity
 description: |
-  Behavior-equivalence methodology for legacy migrations: three-way judgment
-  (policy ↔ original code ↔ new code) with original-preservation as the default.
+  Behavior-equivalence methodology for legacy migrations: a three-way judgment
+  between policy, the original code and the new code, with the original's
+  behavior preserved by default.
   Use when: a project declares a migration config (seal/parity.md), porting or
   reviewing ported behavior, judging divergence from a legacy original.
-  NOT for: greenfield work — implement/code-review alone cover that.
+  NOT for: greenfield work, which implement and code-review cover alone.
 ---
 
-# legacy-parity — the original is the fallback spec
+# legacy-parity, the original is the fallback spec
 
 Extends `implement` and `code-review` when the work is a migration, the same
 behavior rebuilt on different technology, in a repository that declares
@@ -43,9 +44,9 @@ Where policy, the original and the new code diverge:
 
 | Situation | Follow |
 |---|---|
-| Policy explicitly covers the divergence, and it holds up | **Policy** — grounds means a quotable sentence with its source; "the document probably said so" is not grounds |
+| Policy explicitly covers the divergence, and it holds up | **Policy**. Grounds means a quotable sentence with its source; "the document probably said so" is not grounds |
 | Policy silent | **The original**, exactly |
-| Grounds exist but look wrong | Neither silently — record both texts side by side and escalate |
+| Grounds exist but look wrong | Neither silently: record both texts side by side and escalate |
 
 Inherit before raising a product decision: where policy is silent and the
 original already does the thing, follow it and mark it decided, since only a
@@ -99,10 +100,10 @@ check: tests/test_the_record_is_written_in_words.py tests/test_review_axes.py
 ## Recording the comparison
 
 The mark is written by the party that compared and whose definition names the
-write: the warden in a review round, and a session where it compared without
-one. The scribe and the smith write none. It is written only once
-coordinates were opened, behavior read and verdicts given, so the commit gate
-can recognize the cycle:
+write: the warden in a review round, and the orchestrator where it compared
+with no review round. The scribe and the smith write none. It is written only
+once coordinates were opened, behavior read and verdicts given, so the commit
+gate can recognize the cycle:
 
 ```bash
 git rev-parse HEAD > "$(git rev-parse --git-dir)/specseal-parity"
