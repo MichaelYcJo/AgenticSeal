@@ -358,6 +358,9 @@ def test_the_preset_block_states_the_rule_the_loaded_files_assume():
     assert "Batch independent reads and runs" in preset, (
         "the always-loaded block lost the batching rule"
     )
+    assert "Never cut the investigation." in preset, (
+        "the batching rule lost its bound: fewer trips, never fewer checks"
+    )
 
 
 # --- 1790815611: the record arms run before the sealer is spawned (#638) -------

@@ -142,8 +142,9 @@ def test_uninstall_sh_removes_the_block_and_nothing_else(tmp_path):
     out = bash(UNINSTALL, target)
     assert out.returncode == 0, out.stdout + out.stderr
     after = target.read_text(encoding="utf-8")
-    assert START not in after and END not in after, after
-    assert after.startswith("# mine, above\n"), after
+    assert after.strip() == "# mine, above", (
+        f"uninstall left a line of the block, or took one of the user's: {after!r}"
+    )
 
 
 def test_the_runtime_readers_name_the_template_path():
