@@ -155,7 +155,7 @@ def test_every_document_shows_the_third_axis_ROW_not_only_the_count():
         f"the axes table has {len(rows)} `Implementation` rows; the count "
         "beside it promises exactly one"
     )
-    assert "smith · the session" in rows[0], (
+    assert "`smith` or `the session`" in rows[0], (
         "the row lost the vocabulary, so a session reads a third axis with no answers"
     )
     # `agents/smith.md` used to state the same axis in prose, because it used
@@ -581,7 +581,7 @@ def test_the_preset_and_the_boxes_are_told_apart_in_the_file():
     assert len(rows) == 1, (
         f"the section has {len(rows)} `Automation` rows; the declaration has one"
     )
-    assert "yes · no" in rows[0], "the row lost its vocabulary"
+    assert "`yes` or `no`" in rows[0], "the row lost its vocabulary"
     assert "OPTIONAL" in rows[0], "the row stopped saying an absent answer is fine"
 
 
@@ -850,7 +850,7 @@ def test_the_planning_row_is_a_record_and_not_a_checkbox():
         f"the routing section has {len(rows)} `Planning` rows; the declaration "
         "has exactly one"
     )
-    assert "framer · the session" in rows[0], (
+    assert "`framer` or `the session`" in rows[0], (
         "the row lost the vocabulary, so a session reads an axis with no answers"
     )
     assert "OPTIONAL" in rows[0], "the row stopped saying an absent answer is fine"
@@ -860,9 +860,11 @@ def test_the_planning_row_is_a_record_and_not_a_checkbox():
             "the `Planning` axis reached a checkbox table, which is the one "
             "place #88 says it must not be"
         )
-    assert "#88" in skill, (
-        "the section asserts the rule without citing where it is stated, so a "
-        "reader who disagrees has nothing to open"
+    # The section cited #88 for the rule until #940, which removed issue
+    # numbers a sentence can stand without; the rule is stated in place.
+    assert "The question grows only where a decision is a person's" in flat(skill), (
+        "the section keeps the row out of the boxes without stating the rule "
+        "that keeps it out"
     )
 
 
@@ -919,18 +921,6 @@ def test_the_skill_keeps_the_token_as_a_per_command_waiver():
     skill = flat(read("skills", "implement", "SKILL.md"))
     assert "waives **one command**" in skill
     assert "routes **a work item**" in skill
-
-
-def test_the_row_that_said_no_marker_at_all_is_gone():
-    """It is the defect stated as a sentence, and rewording it would have left
-    the same claim in place."""
-    skill = read(*ORCH)
-    assert 'used to carry "no marker at all"' in skill, (
-        "the skill dropped the correction rather than making it — the next "
-        "reader cannot tell the old row was wrong"
-    )
-    for text in (skill, read(*SKILL)):
-        assert "| Through the review chain | it needs no marker at all" not in text
 
 
 def test_the_skill_refuses_a_standing_waiver_and_says_why_this_is_not_one():

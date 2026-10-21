@@ -266,7 +266,7 @@ def test_the_criterion_is_named_by_pointer_and_not_restated():
     rule 12). A bootstrap that spelled the three rules out would be its third
     carrier and the next place for them to disagree."""
     pointer = paragraph(bootstrap(), "**Name the criterion; do not restate it.**")
-    assert "§*Choosing a value — the criterion* owns the criterion" in pointer
+    assert "*Choosing a value — the criterion* owns the criterion" in pointer
     boot = flat(bootstrap())
     assert "red repository-wide" not in boot, (
         "the bootstrap restates a rule instead of pointing at its owner"
@@ -308,20 +308,24 @@ def test_the_row_is_written_after_seal_mode_and_carries_its_section():
 
 
 def test_a_decline_leaves_no_trace_and_the_asymmetry_with_the_mode_is_stated():
-    """The mode row records its answer because #151 measured what its absence
-    costs: a never-asked repository got shared mode SILENTLY. Nothing about
-    this row is silent — a repository that declined and one that was never
-    asked meet the same refusal and are told the same correct thing — so a
-    trace would separate two states nothing treats differently.
+    """The mode row records its answer because a never-asked repository got
+    shared mode SILENTLY (#151). Nothing about this row is silent — a
+    repository that declined and one that was never asked meet the same
+    refusal and are told the same correct thing — so a trace would separate
+    two states nothing treats differently.
 
-    Read from the decline paragraph alone. `#151` also stands in the mode
-    paragraph of the same section, where it has been since before this row
-    existed, so a case reading the whole section cannot fail by losing the
-    argument it is named for — which is what round 1's 🟡 7 measured here.
+    Read from the decline paragraph alone. The mode paragraph of the same
+    section argues its own row, so a case reading the whole section cannot
+    fail by losing the argument it is named for — which is what round 1's
+    🟡 7 measured here. The issue number left the paragraph with #940; the
+    argument it stood for is what is pinned.
     """
     decline = paragraph(bootstrap(), "**A decline writes nothing at all.**")
     assert "no sentinel" in decline
-    assert "#151" in decline, "the asymmetry with the mode row is asserted, not argued"
+    assert "would separate two states nothing treats differently" in decline
+    assert "The mode row is the opposite" in decline, (
+        "the asymmetry with the mode row is asserted, not argued"
+    )
 
 
 def test_the_sentence_that_said_nowhere_else_is_gone():

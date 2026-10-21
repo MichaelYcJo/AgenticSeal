@@ -48,6 +48,10 @@ CONTRIBUTING = ("CONTRIBUTING.md",)
 CRITERION_OWNER = (
     "`templates/config.md` §*Choosing a value — the criterion* owns the criterion"
 )
+# The same two links in the citation form a rewritten file uses: the
+# backticked path, then the heading in italics, with no section sign (#940).
+AFTER_THE_SEAL_LINK = AFTER_THE_SEAL.replace(" §*", " *")
+CRITERION_LINK = CRITERION_OWNER.replace(" §*", " *")
 FRAGMENT_OWNER = (
     "`docs/the-record-layout.md` §*A commit after the build brings its "
     "changelog fragment along* owns that rule"
@@ -80,7 +84,7 @@ RULES = {
         ORCH,
         "The pull request opens ready, once the sealer has sealed, and CI runs then.",
         {
-            ORCH_IMPL: f"the pull request opens ({AFTER_THE_SEAL} when)",
+            ORCH_IMPL: f"the pull request opens ({AFTER_THE_SEAL_LINK} when)",
             CONTRIBUTING: f"{AFTER_THE_SEAL} the order a maintainer's run follows",
         },
     ),
@@ -109,7 +113,7 @@ RULES = {
         CONFIG_TEMPLATE,
         "A check that is red repository-wide for reasons unrelated to any "
         "branch does not belong in the row",
-        {CONFIG_SKILL: CRITERION_OWNER, ORCH_IMPL: CRITERION_OWNER},
+        {CONFIG_SKILL: CRITERION_OWNER, ORCH_IMPL: CRITERION_LINK},
     ),
     # From #493: filing a finding ran at 100% and acting on one at 47%, so a
     # new issue is a rung rather than the default.
@@ -231,19 +235,26 @@ def test_the_owner_states_the_dispatch_step_and_the_limit():
     ) in text
 
 
+# Where step 2 of the order inside a ticket opens.
+STEP_2 = "2. The framer writes `spec.md`, `plan.md` and `questions.md`."
+
+
 def test_the_order_opens_the_pull_request_after_the_sealer():
     """`skills/implement/orchestration.md` §*Orchestrator: the order inside a
     ticket* is what a session reads to know what comes after the smith. #943
     moved the pull request from between the build and the rounds to after
     the sealer, so no step of the order opens, keeps or readies a draft."""
     text = flat(*ORCH_IMPL)
-    step = text[text.index("2. spec · plan") : text.index("3. The pull request body")]
+    step = text[text.index(STEP_2) : text.index("3. The pull request body")]
     # 1790815611 (#638) wrote the orchestrator's preflight in as the step
     # before the sealer's spawn, and #969 the broad run after it: the sealer
-    # reads the run's record, so the run comes before the spawn.
+    # reads the run's record, so the run comes before the spawn. Since #940
+    # the step says it in words rather than arrows.
     assert (
-        "smith → warden rounds → `broad-gate --preflight`, yours → `broad-gate "
-        "--record`, yours → sealer → the pull request opens (" in step
+        "spawns the smith (*The plan is approved at the spawn* below). The "
+        "warden's rounds follow, then `broad-gate --preflight` and `broad-gate "
+        "--record`, both run by the orchestrator, then the sealer, and then the "
+        "pull request opens (" in step
     ), step
     assert "draft" not in step, step
 
@@ -254,7 +265,7 @@ def test_the_order_no_longer_defers_the_framer_to_a_ticket():
     escape clause for the interval, which closed when `agents/framer.md`
     landed."""
     step = flat(*ORCH_IMPL)
-    step = step[step.index("2. spec · plan") : step.index("3. The pull request body")]
+    step = step[step.index(STEP_2) : step.index("3. The pull request body")]
     assert "framer" in step, "step 2 stopped naming who draws the frame"
     for gone in ("once #84 exists", "the session until then"):
         assert gone not in step, (

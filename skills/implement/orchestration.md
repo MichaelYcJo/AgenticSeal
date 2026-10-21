@@ -1,140 +1,154 @@
-# implement — the orchestrator's half
+# implement, the orchestrator's half
 
-The sections `skills/implement/SKILL.md` used to carry for the session that
-spawns agents, under the `Orchestrator:` prefix `code-review` already used for
-its own. They are the procedure for **starting** a work item: creating the
-`seal/` root the first time a repository opts in, setting up parity mode where
-a project ports an original, and asking the one routing question — question
-1 alone, the boxes only under `per axis`, one file — before the first edit.
+This file is the orchestrator's: the session that starts a work item, asks
+the person what only the person can answer, and spawns the agents. It holds
+the procedure for **starting** a work item: the order of the parties, creating
+the `seal/` root the first time a repository opts in, setting up parity mode
+where a project ports an original, and the one routing question, asked before
+the first edit.
 
-The sequence those sections sit inside arrived later, from the shared
-checklist that was deleted for being written by every branch (#351). It is
-the first section below, because a session starting a work item needs the
-order before it needs any step of it.
-
-**Read this if you are orchestrating a work item.**
-`skills/implement/SKILL.md` is the other half and holds the implementation
-itself — the record language, the document layout, the spec-first procedure,
-the test-first cadence, the SDD file set, the closing memo and the review
-incorporation. An orchestrator reads both; a `smith` spawn opens that one at
-its first step and never this, because asking a person and writing
-`routing.md` are acts `agents/smith.md` leaves to the session that spawned it.
-
-Nothing changed in the three sections #292 moved out of
-`skills/implement/SKILL.md`, except one sentence a `# RIDER:` had asked to
-name its arm; their headings keep the `Orchestrator:` prefix they were marked
-with, so a reference to one of those names the section it always named and
-only the file it names changed (#292, the shape #265 gave `code-review`).
-**The order below is the exception**: it gained the prefix when it moved, so
-it is cited by its new name and not by the one the shared checklist gave it.
-Every `seal/…` path here means what it means in the other
-half: `<repo>/seal/` where that directory exists, and
-`$(git rev-parse --git-common-dir)/seal/` otherwise (contract §11).
+`skills/implement/SKILL.md` is the other half: the record language, the
+document layout, the spec-first procedure, the test-first cadence, the SDD
+file set, the closing memo and the review incorporation. The orchestrator
+reads both. The smith opens that one at its first step and never this one,
+because asking a person and writing `routing.md` are acts `agents/smith.md`
+leaves to the orchestrator. Every `seal/…` path here means `<repo>/seal/`
+where that directory exists, and `$(git rev-parse --git-common-dir)/seal/`
+otherwise (contract §11).
 
 ## Orchestrator: the order inside a ticket
 
-1. Branch from the release branch; write `routing.md` before the first edit.
-2. spec · plan (framer) → smith → warden rounds → `broad-gate --preflight`,
-   yours → `broad-gate --record`, yours → sealer → the pull request opens
-   (`skills/code-review/orchestration.md` §*Orchestrator: the pull request
+1. The orchestrator branches from the release branch and writes `routing.md`
+   before the first edit (*Orchestrator: how the work is routed* below).
+2. The framer writes `spec.md`, `plan.md` and `questions.md`. The orchestrator
+   reads `plan.md`, writes its approval line and spawns the smith (*The plan
+   is approved at the spawn* below). The warden's rounds follow, then
+   `broad-gate --preflight` and `broad-gate --record`, both run by the
+   orchestrator, then the sealer, and then the pull request opens
+   (`skills/code-review/orchestration.md` *Orchestrator: the pull request
    opens once the sealer seals, and a phase is re-run* owns when).
 3. The pull request body carries `Closes #N`; the release workflow closes the
    ticket when the release reaches `main`.
 
-## Orchestrator: Bootstrap — create what's missing
+### The plan is approved at the spawn
 
-When a root or file this skill needs doesn't exist, create it from
-`templates/` in this plugin and continue. In particular:
+**The orchestrator approves `plan.md` by writing one line under its title
+when it spawns the smith; reading the plan and spawning the build is the
+approval.** The line has one shape:
 
-- `seal/README.md` — carries the export rules so sessions that never load
-  this skill still see them.
-- **Not** policy documents. If the repository has none, it has none; judge from
+```
+Approved <date> by <who>, when `smith` was spawned.
+```
+
+`<who>` is the person, or the orchestrator acting under the person's routing
+answer. The clause after `when` may name what the smith was spawned for, as
+in ``when `smith` was spawned for phases 1 to 3.``, and the line ends at its
+full stop. A reason, a scope note or a second approval goes on a line of its
+own below it, never after the full stop. Where `routing.md` answers
+`Implementation` with `the session`, nothing is spawned, and the line names
+the first edit as its moment: `Approved <date> by <who>, before the first
+edit.` Nothing in the tree reads the line; a sentence appended to it once made
+the reader that did see no approval at all.
+check: none reader: the warden at review
+
+**The spawn prompt is text an agent reads.** The orchestrator writes it to
+the rules of `skills/writing-style/SKILL.md` *에이전트와 검사가 읽는 글은 한
+가지로만 읽히게 쓴다*: each fact it hands over carries its coordinate or its
+label (`docs/the-review-record.md` *The handoff*), and each instruction names
+who acts, on which file, and what counts as done.
+
+## Orchestrator: Bootstrap
+
+When a root or file this skill needs does not exist, the orchestrator creates
+it from `templates/` in this plugin and continues. In particular:
+
+- `seal/README.md`, which carries the export rules so that a session that
+  never loads this skill still sees them.
+- **Not** policy documents. A repository that has none has none; judge from
   the SDD set and the code. Creating `docs/policies/<domain>/` imposes one
-  project's documentation habit — and one field's vocabulary — on every
+  project's documentation habit, and one field's vocabulary, on every
   repository this plugin touches.
 
-**When `seal/` exists at neither place — the once-per-repo moment — ask one
-question before creating anything, then do two more things before
-continuing.** Creating the root is what opts the repository in: from the
-next command on, every gate here is awake. Nobody reads a README to discover
-a question they did not know to ask, so this is the only place the mode and
-the migration question get asked at all.
+**When `seal/` exists at neither place, the orchestrator asks one question
+before creating anything, then does two more things before continuing.**
+Creating the root is what opts the repository in: from the next command on,
+every gate here is awake. Where the root lands, committed with the repository
+or under the git directory on this machine only, is the person's decision and
+not the orchestrator's. Nobody reads a README to discover a question they did
+not know to ask, so this is the only place the mode and the migration
+question are asked at all.
 
-First, look for the 0.3.x layout. A repository still holding
-`.specseal/`, or a top-level `specs/` with an entry named
-`<unix-seconds>-<slug>` that carries one of the plugin's two marks directly
-under it as git tracks it — `routing.md`, or a file under `rounds/` — is on
+First, look for the 0.3.x layout. A repository still holding `.specseal/`,
+or a top-level `specs/` with an entry named `<unix-seconds>-<slug>` that
+carries one of the plugin's two marks directly
+under it as git tracks it (`routing.md`, or a file under `rounds/`), is on
 the 0.3.x layout and committed the plugin's files, so it chose shared
-already: do not ask,
-say *"this repository is on the 0.3.x layout; start a new session and the
-plugin moves it into `<repo>/seal/`, or follow the README's by-hand sequence
-— and `seal mode local` moves it out of the tree afterwards if that is what
-you wanted"*, and stop the bootstrap there. The session-start hook moves it,
-and the root it creates is the one this section would have asked about.
-Naming the command is what keeps *not asked* from meaning *not offered*:
-nobody who lands in shared mode without a question goes looking in a README
-for the way out.
+already. The orchestrator does not ask. It says *"this repository is on the
+0.3.x layout; start a new session and the plugin moves it into
+`<repo>/seal/`, or follow the README's by-hand sequence, and `seal mode
+local` moves it out of the tree afterwards if that is what you wanted"*, and
+stops the bootstrap there. The session-start hook moves it, and the root it
+creates is the one this section would have asked about. Naming the command is
+what keeps *not asked* from meaning *not offered*.
 
 **A `specs/` without a marked entry is not the 0.3.x layout.** It is the
-project's own — a team's specifications, which a `spec.md`, a `plan.md` or
-an `overview.md` does not make the plugin's — so go on to the question below
-as for any repository with no root, and leave the directory where it is. The
+project's own, a team's specifications, which a `spec.md`, a `plan.md` or an
+`overview.md` does not make the plugin's. So go on to the question below as
+for any repository with no root, and leave the directory where it is. The
 session-start hook moves nothing out of it either: the plugin writes only to
-its own root, and every 0.3.x work item carried `routing.md` (#688).
+its own root.
 
-1. Ask, once, with one `AskUserQuestion` carrying **two questions** — the
-   mode, and the `Broad gate` row. One interruption or two is the whole of
-   what is being decided by putting them together, and this is the only place
-   either of them is asked at all. The mode's two options come first, in this
-   order:
+1. The orchestrator asks once, with one `AskUserQuestion` carrying **two
+   questions**: the mode, and the `Broad gate` row. The mode's two options
+   come first, in this order:
 
-   - **shared** (the default, listed first) — creates `<repo>/seal/` in the
-     tree; the routing commit you make before the first edit carries it. It
+   - **shared** (the default, listed first) creates `<repo>/seal/` in the
+     tree; the routing commit made before the first edit carries it. It
      installs the pull-request checks: `.github/workflows/hygiene.yml`,
-     written from `templates/hygiene.yml` only when that path is absent — an
-     existing file is never overwritten, and say so when you leave one alone.
-     Before writing it, replace `v<version>` in the template with the version
-     of the installed plugin, prefixed with `v`, so CI checks with the
-     release that wrote the file. The session sits in the user's repository
-     and the plugin sits in its cache, so the version is read from
-     `$CLAUDE_PLUGIN_ROOT/.claude-plugin/plugin.json` and never from a file
-     in the tree — a wrong read leaves `v<version>` in the workflow, and
-     CI's `git clone --branch` fails on it. One line reads it:
+     written from `templates/hygiene.yml` only when that path is absent. An
+     existing file is never overwritten, and the orchestrator says so when it
+     leaves one alone. Before writing it, the orchestrator replaces
+     `v<version>` in the template with the version of the installed plugin,
+     prefixed with `v`, so CI checks with the release that wrote the file.
+     The version is read from `$CLAUDE_PLUGIN_ROOT/.claude-plugin/plugin.json`
+     and never from a file in the tree, because the session sits in the
+     user's repository and the plugin in its cache; a wrong read leaves
+     `v<version>` in the workflow, and CI's `git clone --branch` fails on it.
+     One line reads it:
 
      ```bash
      python3 -c 'import json, os; print("v" + json.load(open(os.path.join(os.environ["CLAUDE_PLUGIN_ROOT"], ".claude-plugin", "plugin.json"), encoding="utf-8"))["version"])'
      ```
-   - **local** — creates `$(git rev-parse --git-common-dir)/seal/`, installs
-     nothing, touches nothing in the tree. Spell the path through the common
-     git directory rather than through `.git`, which is a file in a linked
-     worktree; the root lands beside the smith mark, shared by every
+   - **local** creates `$(git rev-parse --git-common-dir)/seal/`, installs
+     nothing, and touches nothing in the tree. The path is spelled through
+     the common git directory rather than through `.git`, which is a file in
+     a linked worktree; the root lands beside the smith mark, shared by every
      worktree of the clone, never a commit candidate, with no `.gitignore`
-     line. Say what it gives up: the pull-request checks read committed
-     files, so CI cannot run them, and a new machine or a re-clone starts
-     empty.
+     line. The orchestrator says what it gives up: the pull-request checks
+     read committed files, so CI cannot run them, and a new machine or a
+     re-clone starts empty.
 
-   Whichever answer, the mode is the place: the hooks read `<repo>/seal/` and
-   then the common git directory, and a repository with both is shared.
+   Whichever the answer, the mode is the place: the hooks read
+   `<repo>/seal/` and then the common git directory, and a repository with
+   both is shared.
 
    **The answer is not a door that shuts.** `seal mode` reports where the
-   root is and `seal mode local` / `seal mode shared` moves it, carrying the
-   workflow file and writing the mode into `seal/config.md` on the way. Say
-   so in one line when you create the root, because this question is asked
-   once and the person answering it does not yet know what they will want.
+   root is, and `seal mode local` or `seal mode shared` moves it, carrying
+   the workflow file and writing the mode into `seal/config.md` on the way.
+   The orchestrator says so in one line when it creates the root, because
+   the question is asked once and the person answering it does not yet know
+   what they will want.
 
-   **The second question is the `Broad gate` row, and it is a proposal rather
-   than a blank.** That row is the one value in this whole flow only a person
-   can write — `templates/config.md` §*Broad gate* says why it has no default
-   — and until #401 nothing ever asked for it, so it reached a person as the
-   gate's refusal, after the review rounds had settled, at the one moment
-   whoever is there has every reason to answer it themselves. A repository
-   being opted in may not yet know its broad command, so a bare question gets
-   answered badly to get past it. The parity setup below is the shape that
-   answers that, and it is the shape here too: **what the machine can derive
-   is offered, the person picks, and nothing is guessed.**
+   **The second question is the `Broad gate` row, and it is a proposal
+   rather than a blank.** That row is the one value in this flow only a
+   person can write (`templates/config.md` *Broad gate* says why it has no
+   default). Unasked, it reaches the person as the gate's refusal after the
+   review rounds have settled. A repository being opted in may not yet know
+   its broad command, so **what the machine can derive is offered, the
+   person picks, and nothing is guessed.**
 
-   Read candidates off the repository, in this order, and offer what you
-   found with the file each came from:
+   Read candidates off the repository, in this order, and offer each with
+   the file it came from:
 
    | Where to look | What to take |
    |---|---|
@@ -144,12 +158,11 @@ its own root, and every 0.3.x work item carried `routing.md` (#688).
    | a `Makefile` | a `test`, `check` or `lint` target |
 
    Offer each candidate as **one shell command line** composed the way
-   `templates/config.md` §*Choosing a value — the criterion* says to compose
-   one, and name the file it came from — a candidate whose source is named is
+   `templates/config.md` *Choosing a value — the criterion* says to compose
+   one, and name the file it came from: a candidate whose source is named is
    one the person can correct. Where nothing is findable, say so rather than
-   inventing one: a guessed row is what `templates/config.md` §*Broad gate*
-   argues against by name, and offering it with a source that does not exist
-   is worse than offering nothing.
+   inventing one: a guessed row is what `templates/config.md` *Broad gate*
+   argues against by name.
 
    **A candidate carrying a `|` is written with the pipe escaped, `\|`**, and
    a CI `run:` step is where one is likeliest to come from. Offer it that way
@@ -158,374 +171,329 @@ its own root, and every 0.3.x work item carried `routing.md` (#688).
    sees it. Say why, because a bare one is refused: GitHub shows the row cut
    off at the pipe, the gate quotes that line back with the edit instead of
    reporting the row as absent, and every row written below it goes unread
-   with it. `templates/config.md` §*What is refused, and what stays allowed*
+   with it. `templates/config.md` *What is refused, and what stays allowed*
    carries the rule.
 
    **Name the criterion; do not restate it.** `templates/config.md`
-   §*Choosing a value — the criterion* owns the criterion, three rules with
+   *Choosing a value — the criterion* owns the criterion, three rules with
    the reason for each, and the person answering reads it there.
 
    **Offer a decline, and say what it costs.** *Not yet* is a real answer:
-   the repository may not have a broad command yet, and one written to get
-   past a question is worse than none. The cost is one sentence — the first
-   `broad-gate` run refuses with nothing run, and that refusal lands after
-   the review rounds have settled, which is the last moment available.
-   `/specseal:config` fills the row in at any point before then.
+   one written to get past a question is worse than none. The cost is one
+   sentence: the first `broad-gate` run refuses with nothing run, and that
+   refusal lands after the review rounds have settled. `/specseal:config`
+   fills the row in at any point before then.
 
    **Then record the answer: run `seal mode`, with no argument.** It writes
-   the row from where the folder is, which is where you just put it, and it
-   moves nothing — `seal mode shared` on a root that is already shared works
-   too and answers with the whole switch narrative, which is not what
-   somebody who has just chosen needs to read. The row is not decoration and
-   it is not a default being guessed at: it is the only trace
-   that anybody was asked. Left unwritten, a root somebody chose and a root
-   that appeared because a session followed the preset's routing rule are
-   byte-identical — which is #151, reported from a repository whose review
-   records were committed without the question ever reaching a person.
-   `hooks/mode-gate.py` is what reads the absence, and it stops the next
-   command to ask this same question; running the command here is what keeps
-   the person who just answered from being asked twice.
+   the `Mode` row from where the folder is and moves nothing. The row is the
+   only trace that anybody was asked: left unwritten, a root somebody chose
+   and a root that appeared because a session followed the routing rule are
+   the same bytes.
+   `hooks/mode-gate.py` reads the absence and stops the next command to ask
+   this same question, so running the command here keeps the person who just
+   answered from being asked twice.
 
    **Then the `Broad gate` row, where a command was chosen.** `seal mode` has
-   just written a config file carrying `Mode` and nothing else, so add the
-   row the way `/specseal:config` step 3 adds one — the row **and the prose
-   under `## Broad gate` down to but not including `### What is refused, and
-   what stays allowed`**, taken from
-   `$CLAUDE_PLUGIN_ROOT/templates/config.md`. A bare row hands the person the
-   value and none of the half they read; the two lists and the criterion are
-   pointed at rather than copied down, because a frozen copy of them in
-   somebody's `seal/config.md` says something false about the tool at the
-   plugin's next release. No command does this and none is being added:
+   just written a config file carrying `Mode` and nothing else, so the
+   orchestrator adds the row the way `/specseal:config` step 3 adds one: the
+   row **and the prose under `## Broad gate` down to but not including
+   `### What is refused, and what stays allowed`**, taken from
+   `$CLAUDE_PLUGIN_ROOT/templates/config.md`. The two lists and the criterion
+   are pointed at rather than copied down, because a frozen copy in
+   somebody's `seal/config.md` says something false at the plugin's next
+   release. No command does this and none is being added:
    `skills/implement/scripts/seal.py`'s writer is the `Mode` row's, and
-   `skills/config/SKILL.md` §*What this does not do* refuses a generic setter
+   `skills/config/SKILL.md` *What this does not do* refuses a generic setter
    for a file people edit by hand.
 
    **A decline writes nothing at all.** No row, no sentinel, no note. A
    repository that declined and one that was never asked meet the same
    refusal at the same moment and are told the same correct thing, so a trace
-   would separate two states nothing treats differently — which is the
-   opposite of the mode row, whose absence is what #151 measured the cost of.
-2. Say in three lines what you created, that its presence at that place is
-   the opt-in, and what each part of the root is for. The layout is invisible
-   otherwise: it appears in a diff the user did not request — or, in local
-   mode, in no diff at all.
-3. Ask, once: *"Does this project port behavior from an existing codebase? If
-   so, tell me which one and I will set up parity mode."*
-   - **Yes** → run the parity setup below, then continue the work.
-   - **No** → continue, and never raise it again. Bootstrap does not re-run,
-     so the question does not either.
+   would separate two states nothing treats differently. The mode row is the
+   opposite: its absence makes a root somebody chose and a root nobody chose
+   the same bytes.
+2. The orchestrator says in three lines what it created, that its presence
+   at that place is the opt-in, and what each part of the root is for. The
+   layout is invisible otherwise: it appears in a diff the user did not
+   request, or, in local mode, in no diff at all.
+3. The orchestrator asks once:
+   *"Does this project port behavior from an existing codebase? If so, tell
+   me which one and I will set up parity mode."*
+   - **Yes**: the orchestrator runs the parity setup below, then continues
+     the work.
+   - **No**: the orchestrator continues and never raises it again. Bootstrap
+     does not re-run, so the question does not either.
 
 Nothing else is asked. **`/specseal:config` is how any of it is changed
-later** — it shows every row with its value, and routes a change to
-whatever owns that row. Say so once, here, because a person who answers a
-question in a batch has no reason to expect a way back to it.
+later**: it shows every row with its value and routes a change to whatever
+owns that row. The orchestrator says so once, here, because a person who
+answers a question in a batch has no reason to expect a way back to it.
 
-Ask only here. A repository that has `seal/` at either place — `<repo>/seal/`
-or `$(git rev-parse --git-common-dir)/seal/` — has been through this: the
-mode is read from where the folder is, and re-asking is the nagging this
-plugin exists to avoid.
+Ask only here. A repository that has `seal/` at either place,
+`<repo>/seal/` or `$(git rev-parse --git-common-dir)/seal/`, has been through
+this: the mode is read from where the folder is, and asking again is the
+nagging this plugin exists to avoid.
 
-## Orchestrator: Parity setup — deriving what can be derived
+## Orchestrator: Parity setup
 
 Three of the four fields come from the machine; only one needs the user.
-Never guess the original: a comparison against a guessed repo proves nothing.
+The orchestrator never guesses the original: a comparison against a guessed
+repository proves nothing.
 
-1. **Propose candidates for the original.** Sibling directories that are git
-   repos (a port usually sits beside its original), an upstream or fork
-   relation in `git remote -v`, and repos whose paths overlap this one's.
-   Present what you found and let the user pick or give a path.
-2. **Baseline commit** — read `HEAD` of the confirmed original checkout.
-3. **Policy root** — the ratified-policy directory the tree already has, or
-   `none`; never propose one.
-4. **Coordinate-trust exceptions** — leave empty. Rows arrive from real work.
+1. **Candidates for the original.** Sibling directories that are git
+   repositories (a port usually sits beside its original), an upstream or
+   fork relation in `git remote -v`, and repositories whose paths overlap
+   this one's. The orchestrator presents what it found and lets the user pick
+   or give a path.
+2. **Baseline commit**: `HEAD` of the confirmed original checkout.
+3. **Policy root**: the ratified-policy directory the tree already has, or
+   `none`; never a proposed one.
+4. **Coordinate-trust exceptions**: empty. Rows arrive from real work.
 
-Write `seal/parity.md` from `templates/parity.md` with those values, and
-record the machine-local checkout path in `~/.claude/specseal/parity-paths.md`
-keyed by the origin remote URL. The path never goes in the committed file.
+The orchestrator writes `seal/parity.md` from `templates/parity.md` with
+those values, and records the machine-local checkout path in
+`~/.claude/specseal/parity-paths.md`, keyed by the origin remote URL. The path
+never goes in the committed file.
 
-## Orchestrator: how the work is routed — question 1 alone, boxes if per axis, one file
+## Orchestrator: how the work is routed
 
-**How this work is routed is one of them.** It is one decision about where the
-work goes, and asking a later part of it on its own is itself the mid-round
-prompt this exists to remove. Opening a pull request is an outward-facing act —
-it is not a detail that can wait for the end.
+**The routing question is one of the questions `skills/implement/SKILL.md`
+*1. Read the spec before the code* has the orchestrator ask in one batch
+before the first edit.** It is one decision about where the work goes, and
+asking a part of it later is the mid-run question the batch exists to
+remove. Opening a pull request is an outward-facing act, not a detail that
+can wait for the end. Routing asked at the start, the reviewer in the middle
+and the pull request at the end would be three waits where one is due.
 
 **Ask question 1 alone; the boxes in a second call only under `per axis`.**
-Question 1 goes in one call of its own, and two of its three answers
-settle everything: `automation` writes every row, and `no work item` opens
-nothing, so under either of them the boxes mean nothing. They used to sit
-beside question 1 in the same call, and the harness shows every question of a
-call at once, so the owner was shown four meaningless boxes at the start of
-nearly every run (#911).
-
+The orchestrator puts both. Question 1 goes in one call of its own, and two
+of its three answers settle everything: `automation` writes every row, and `no work
+item` opens nothing, so under either of them the boxes mean nothing and are
+not shown. The harness shows every question of a call at once, so boxes put
+beside question 1 would be shown under the two answers they mean nothing for.
 Under `per axis` the second call follows the first at once, before the first
-edit. That is a second wait, and it is the trade #911 took: the boxes depend
-on question 1's answer, so putting them beside it shows them under the two
-answers they mean nothing for. Asked at once and before the first edit, the
-second wait still costs a reply rather than a stopped session, which is how
-`skills/implement/SKILL.md` §1 prices a question. `AskUserQuestion` allows at
-most four options per question, and two presets beside the four boxes is six
-— so the shape below is two questions rather than one, and that is what
-makes both fit.
+edit. `AskUserQuestion` allows at most four options per question, and two
+presets beside the four boxes would be six, which is why the shape is two
+questions rather than one.
 
-### Question 1 — single-select
+### Question 1
+
+A single-select question, put alone:
 
 | Order | Label | Description |
 |---|---|---|
-| 1 | **automation** | Every party runs: the framer frames it, `smith` builds it, `warden` reviews it, you take the broad run, the sealer audits it, and the pull request opens. **This is the last question — nothing stops to ask again.** |
+| 1 | **automation** | Every party runs: the framer frames it, `smith` builds it, `warden` reviews it, the orchestrator takes the broad run, the sealer audits it, and the pull request opens. **This is the last question: nothing stops to ask again.** |
 | 2 | **per axis** | The four boxes below are the answer. |
 | 3 | **no work item** | No work item is opened: no frame, no review, no seal, no `routing.md`, and this session writes the change itself. Every commit needs `[no-review]` typed in front of it, and nothing checks this change at the pull request. |
 
-**A label must name what it turns off, not where it ends.** The measured
-instance is the reason the exit is labelled the way it is: the owner read
-`straight to the PR` as *call no agents at all*, where in the tree that answer
-turns off `warden` alone. The label named a destination and what it meant was
-what does not run. So the exit names no destination, and its description names
-the five things that do not happen.
+**A label names what it turns off, not where it ends.** A label that names a
+destination is read as what runs: `straight to the PR` was read as *call no
+agents at all*, where that answer turns off `warden` alone. So the exit
+names no destination, and its description names the five things that do not
+happen.
 
-**The exit is last, and that is a decision rather than an ordering.** This
-document warns below that a preset makes the least-verified path the cheapest
-to press. The exit is one click and it is that path, so it sits where a
-reader's eye lands last, and its description states the cost. It stays cheap to
-press and expensive to use by a mechanism that already exists: `[no-review]`
-waives one command, typed in front of each, which is a per-command price none
-of the other answers pays.
+**The exit is last.** It is the least-verified path and one click, so it
+sits where a reader's eye lands last, and its description states the cost.
+It stays cheap to press and expensive to use: `[no-review]` waives one
+command, typed in front of each, a price none of the other answers pays.
 
 **A run resumed in a new session puts question 1 through `AskUserQuestion`
 again, before the first spawn.** Where the declaration answers `Automation`
-with `yes` it goes alone, because `hooks/question-gate.py` refuses whatever
-shares its call; elsewhere it may share the call with what else the resume
-asks. The boxes are not put again, because `routing.md` already holds their
-answer. The session puts it from a directory inside the clone the run
-works in: the readers keep the answer only where the result's own directory
-and the gate's root are the same clone (`docs/worktree-guard-spec.md`
-§*Creation consent*, rule 4). A new session is a `/clear`, a new `claude`
-start, or another machine, and a new day is one only where it starts one. A
-typed answer is not the press: the gates read a harness-written result in
-this session's own transcript and nothing else, and `routing.md` is not read
-(`docs/worktree-guard-spec.md` §*Known limits*). Measured: a release run
-resumed on another machine with the answer given as text, and the worktree
-guard asked the owner twice in a run routed `automation` on every item
-(#894). `claude --resume` and compaction keep the session's id and append to
-its transcript, so the press survives both and nothing is put again. Read
-off one machine's transcripts on 2026-10-12: 20 compaction boundaries, each
-under its file's own id, and 8 of 115 transcripts written under one id by
-more than one CLI version, which only a resumed process does.
+with `yes`, the question goes alone, because `hooks/question-gate.py` refuses
+whatever shares its call; elsewhere it may share the call with what else the
+resume asks. The boxes are not put again, because `routing.md` already holds
+their answer. The orchestrator puts it from a directory inside the clone the
+run works in: the readers keep the answer only where the result's own
+directory and the gate's root are the same clone
+(`docs/worktree-guard-spec.md` *Creation consent*, rule 4). A new session is
+a `/clear`, a new `claude` start, or another machine. A typed answer is not
+the press: the gates read a harness-written result in the session's own
+transcript and nothing else, and `routing.md` is not read
+(`docs/worktree-guard-spec.md` *Known limits*). `claude --resume` and
+compaction keep the session's id and append to its transcript, so the press
+survives both and nothing is put again.
 
-### Question 2 — `multiSelect`, asked only under *per axis*
+### Question 2
 
-**The order is the specification, not an incidental listing.** The first box is
-a property of the run; the three below name parties, in the order they run. A
-reader meeting four boxes of apparently the same kind reads the first as a
-fourth party to switch on, and that separation is the cheapest defence against
-it. If these are ever generated from a list, the list is what carries the order.
+A `multiSelect` question, asked only under `per axis`.
+
+**The order is the specification.** The first box is a property of the run;
+the three below name parties, in the order they run. A reader meeting four
+boxes of apparently the same kind reads the first as a fourth party to switch
+on, and the separation is the cheapest defence against it. A list that
+generates these carries the order.
 
 | Order | Box | Checked | Not checked |
 |---|---|---|---|
-| 1 | **run end to end without stopping to ask** | the run goes from here to its destination with nobody at the keyboard · `Automation` = `yes` | **this run may stop to ask** — somebody may be asked at minute thirty · `Automation` = `no` |
-| 2 | **implement with `smith`** | spawn the subagent · `Implementation` = `smith` | **this session writes the code** · `Implementation` = `the session` |
-| 3 | **review with `warden`** | the review rounds run · `Review` = `through the review chain` | **nothing reviews this code before the pull request** · `Review` = `straight to the PR` |
-| 4 | **open the pull request** | push it and open one · `Destination` = `open the pull request` | **the branch is handed back, committed and unpushed** · `Destination` = `stop before the pull request` |
+| 1 | **run end to end without stopping to ask** | the run goes from here to its destination with nobody at the keyboard; `Automation` = `yes` | **this run may stop to ask**: somebody may be asked at minute thirty; `Automation` = `no` |
+| 2 | **implement with `smith`** | spawn the subagent; `Implementation` = `smith` | **this session writes the code**; `Implementation` = `the session` |
+| 3 | **review with `warden`** | the review rounds run; `Review` = `through the review chain` | **nothing reviews this code before the pull request**; `Review` = `straight to the PR` |
+| 4 | **open the pull request** | push it and open one; `Destination` = `open the pull request` | **the branch is handed back, committed and unpushed**; `Destination` = `stop before the pull request` |
 
-**What is checked is the answer, and each box is a row of the declaration** —
-which is why each box's description carries its unchecked meaning too. That is
-the half a label cannot say and the half the measured instance got wrong. Box 1's
-unchecked half is the one most easily misread: `no` says this run may stop to
-ask, never that a person did the work by hand.
+**What is checked is the answer, and each box is a row of the declaration**,
+which is why each box's description carries its unchecked meaning too: that
+is the half a label cannot say. Box 1's unchecked half is the one most easily
+misread: `no` says this run may stop to ask, never that a person did the work
+by hand.
 
-**The ceiling, stated where the shape is defined.** `AskUserQuestion` allows at
-most four options per question. Question 2 sits at exactly four, and the room
-was made by taking the framer and the sealer out of the question. **It is fully
-spent: a fifth box breaks this shape**, and whoever adds one is back on #88's
-original wall — a third question of boxes, or a preset that hides the axes.
+**The ceiling.** `AskUserQuestion` allows at most four options per question.
+Question 2 sits at exactly four, and the room was made by taking the framer
+and the sealer out of the question. **It is fully spent: a fifth box breaks this
+shape**, and whoever adds one needs a third question of boxes or a preset
+that hides the axes.
 
 ### What the answer writes
 
-Question 1's first two options and question 2's four boxes write the same rows;
-what differs is how many clicks it took and which row says so.
+Question 1's first two options and question 2's four boxes write the same
+rows; what differs is how many clicks it took and which row says so.
 
 | Row | Answers |
 |---|---|
-| Automation | yes · no — OPTIONAL; absent reads as never asked |
-| Implementation | smith · the session — OPTIONAL; absent reads as unanswered |
-| Review | through the review chain · straight to the PR |
-| Destination | open the pull request · stop before the pull request |
-| Answer pressed | automation · per axis — OPTIONAL; absent reads as unanswered |
+| Automation | `yes` or `no`, OPTIONAL; absent reads as never asked |
+| Implementation | `smith` or `the session`, OPTIONAL; absent reads as unanswered |
+| Review | `through the review chain` or `straight to the PR` |
+| Destination | `open the pull request` or `stop before the pull request` |
+| Answer pressed | `automation` or `per axis`, OPTIONAL; absent reads as unanswered |
 
 **`automation` writes all four party rows at their checked values**, plus
 `Automation` = `yes`, plus `Answer pressed` = `automation`. Ticking all four
 boxes under `per axis` writes the same four rows and `Answer pressed` =
 `per axis`.
 
-**That last row is why the preset buys anything.** Without it a pressed preset
-and four boxes somebody ticked by hand are the same bytes, so a chosen answer
-goes back to being indistinguishable from a question nobody read — #151's shape
-exactly, and the reason `seal mode` writes a row saying a person was asked.
-Question 1's third option never reaches the row: it opens no work item, so
-there is no file to write it in.
+**The `Answer pressed` row is why the preset buys anything.** Without it a
+pressed preset and four boxes somebody ticked by hand are the same bytes, so
+a chosen answer cannot be told from a question nobody read. Question 1's
+third option never reaches the row: it opens no work item, so there is no
+file to write it in.
 
 **`Automation` is held by a gate.** While the row reads `yes`,
 `hooks/question-gate.py` refuses every question on the declared branch but
-question 1 put alone before this session has answered it, and
-`docs/the-review-record.md` §*The run* is the rule.
+question 1 put alone before the session has answered it, and
+`docs/the-review-record.md` *The run* is the rule.
 
 **The declaration has one more row, and nobody is asked about it.**
 
 | Axis | Answers |
 |---|---|
-| Planning | framer · the session — OPTIONAL; absent reads as unanswered |
+| Planning | `framer` or `the session`, OPTIONAL; absent reads as unanswered |
 
-It is a record, not a checkbox. #88 holds the rule a box here would break
-— the question grows only where a decision is genuinely a person's — and this
-one is not a person's: `agents/framer.md`'s `## Job` says the SDD ladder
-decides, so the framer runs only where §3 calls for a `spec.md`.
+It is a record, not a box. The question grows only where a decision is a
+person's, and this one is not: `agents/framer.md`'s `## Job` says the SDD
+ladder decides, so the framer runs only where `skills/implement/SKILL.md`
+*3. The SDD file set* calls for a `spec.md`. The orchestrator fills the row
+from what happened: `framer` where the subagent drew the frame, `the session`
+where the orchestrator drew it, and no row where the ladder called for no
+frame. A wrong answer here is contradicted by nothing, which is why
+`hooks/implementer-notice.py` says one line after a commit when a declared
+agent left no mark, for this row and for `Implementation` together.
 
-So fill the row from what happened. `framer` where the frame was drawn by the
-subagent, `the session` where this session drew it, and no row at all where
-the ladder called for no frame. A wrong answer here is contradicted by
-nothing, which is why `hooks/implementer-notice.py` says one line after a
-commit when a declared agent left no mark — for this row and for
-`Implementation` together, in one line rather than one each.
-
-**Asking one part of this later is the failure, not a lesser version of it.**
-Measured here: routing at the start, the reviewer in the middle, the pull
-request at the end — three interruptions, in the session that had the
-one-batch rule loaded. Nothing had said the three belonged to one question, so
-obeying the rule for the first of them looked like obeying it.
-
-**It is YOUR question, whether or not a framer runs**, and that is a property
-of the harness rather than a preference. **A subagent here has no
-`AskUserQuestion` and no equivalent** — measured from two agents independently,
-each declaring no `tools:` key and inheriting the full set: the tool is not in
-the list and `ToolSearch` for it returns *No matching deferred tools found*. A
-document that handed this act to the framer would be telling an agent to call a
-tool it does not have.
-
-So the one moment of human contact is here, before the first edit, and the
-order does not change when a framer runs:
+**The routing question is the orchestrator's, whether or not a framer runs.**
+A subagent in this harness has no `AskUserQuestion` and no equivalent, so a
+framer cannot ask. The one moment of human contact is here, before the first
+edit, and the order does not change when a framer runs:
 
 ```
-you        : ask question 1; boxes only if per axis   ← the tool is here
-you        : write and commit routing.md
-the framer : read, judge, write spec / plan / questions
-you        : read plan.md and spawn the build         ← the approval
+the orchestrator : ask question 1; the boxes only under per axis
+the orchestrator : write and commit routing.md
+the framer       : read, judge, write spec, plan and questions
+the orchestrator : read plan.md, write the approval line, spawn the build
 ```
 
 `agents/framer.md`'s rule *You ask nobody anything* is the other half of this,
 and its `## Job` tells a framer that arrives to a missing `routing.md` to
-report it rather than write one — a declaration written from a guess is a
+report it rather than write one: a declaration written from a guess is a
 recorded answer nobody gave.
 
-**Write the answer down before the first edit**, in
-`seal/specs/<work-item-id>/routing.md`, from `templates/sdd-routing.md`. Committed,
-because the check happens at the pull request and CI sees only what is in the
-tree. Below the SDD ladder this may be the only file a work item ever gets,
-and it is the first place such a change exists at all.
+**The orchestrator writes the answer down before the first edit**, in
+`seal/specs/<work-item-id>/routing.md`, from `templates/sdd-routing.md`, and
+commits it, because the check happens at the pull request and CI sees only
+what is in the tree. Below the SDD ladder this may be the only file a work
+item gets.
 
-**Write the file in a command of its own, never batched with the commit.**
-The declaration is read from the WORKING TREE — `hooks/routing.py`'s
-`declarations()` opens the path rather than asking git — so a `routing.md`
-that exists on disk silences the review arm for the very commit that adds it.
-There is no first-commit exception to arrange and no `[no-review]` to spend.
-That only holds if the file actually got written, and batching is what stops
-it: the commit gate is a `PreToolUse` hook, so it denies the WHOLE tool call,
-and `write routing.md && git add && git commit` in one call writes nothing.
-The gate then reports no declaration, which is true, and the session reads a
-chicken-and-egg the design does not have. Measured here: two questions put to
-a user who had to explain the batch was the bug. This is the one place a
-*batch independent commands* habit misleads — the commit is not independent
-of the write, and a gate sits between them. The commit goes the same way:
-each work item's `routing.md` in a command of its own, the worktree's path
-written out after `git -C`, never a loop over a variable naming it — contract
-§16, and in all three milestone runs on disk that loop met the gate.
+**The orchestrator writes the file in a command of its own, never batched
+with the commit.** The declaration is read from the working tree
+(`hooks/routing.py`'s `declarations()` opens the path rather than asking
+git), so a `routing.md` on disk silences the review arm for the very commit
+that adds it, and no first-commit waiver is needed. Where this plugin's git
+hooks run, git itself decides the commit, and the write lands either way. In
+a clone whose git hooks slot is somebody else's, the gate is a
+`PreToolUse` hook that denies the whole Bash call, so `write routing.md &&
+git add && git commit` in one call writes nothing, and the declaration the
+gate then reports missing is the file that was lost. The separate command is
+the one shape both readings accept, and it costs nothing where the git hooks
+run. This is the one place the batching rule misleads: the commit is not
+independent of the write. The commit goes the same way: each work item's
+`routing.md` in a command of its own, the worktree's path written out after
+`git -C`, never a loop over a variable naming it (contract §16).
 
 What the four combinations do:
 
 | Review | Destination | During the work | At the end | What CI checks |
 |---|---|---|---|---|
 | chain | open the PR | the review arm stays silent | the PR opens | a round record is required, and the broad run's `broad-gate.md` beside it |
-| chain | stop before the PR | the review arm stays silent | the branch is handed back, committed and unpushed | **nothing runs** — say so in the handback |
-| direct | open the PR | the review arm stays silent | you take the broad run, the sealer audits it, then the PR opens | the broad run's `broad-gate.md` in the work item's directory — the one broad run, at a SHA, against the base — and no round record; the answer turns off the reviewer alone |
-| direct | stop before the PR | the review arm stays silent | the branch is handed back | **nothing runs** — say so in the handback; the broad run's record is owed when a pull request opens |
+| chain | stop before the PR | the review arm stays silent | the branch is handed back, committed and unpushed | **nothing runs**; the orchestrator says so in the handback |
+| direct | open the PR | the review arm stays silent | the orchestrator takes the broad run, the sealer audits it, then the PR opens | the broad run's `broad-gate.md` in the work item's directory, at a SHA, against the base, and no round record; the answer turns off the reviewer alone |
+| direct | stop before the PR | the review arm stays silent | the branch is handed back | **nothing runs**; the orchestrator says so in the handback, and the broad run's record is owed when a pull request opens |
 
-That column is about the review arm. The gate has two arms, they are separate
-opt-ins, and each has terms that **wake** it and terms that **quiet** it.
-Prose has described this three times and lost a different term each time, so
-it is a table:
+That column is about the review arm. The gate has two arms, they are
+separate opt-ins, and each has terms that **wake** it and terms that
+**quiet** it:
 
 | | Review arm | Parity arm |
 |---|---|---|
-| **Wakes when** | `seal/` exists in the repository the commit lands in, whatever the change touches — a commit confined to `docs/` and `seal/` wakes it too | `seal/parity.md` exists there, **and** the change touches something outside `docs/` and `seal/` |
-| **Quiets when** | a `routing.md` declaration names this branch, for either answer · the review mark stands at HEAD, written by the review chain · `[no-review]` rides in front of one command | the parity mark stands at HEAD, written by a recorded comparison against the original · `[no-parity]` rides in front of one command |
+| **Wakes when** | `seal/` exists in the repository the commit lands in, whatever the change touches; a commit confined to `docs/` and `seal/` wakes it too | `seal/parity.md` exists there, **and** the change touches something outside `docs/` and `seal/` |
+| **Quiets when** | a `routing.md` declaration names this branch, for either answer; the review mark stands at HEAD, written by the review chain; `[no-review]` rides in front of one command | the parity mark stands at HEAD, written by a recorded comparison against the original; `[no-parity]` rides in front of one command |
 
-Two things the sentences kept dropping. A declaration reaches the review arm
-only, so a migration repository still meets the parity arm on a code-touching
-commit. And a commit confined to those two directories never wakes the PARITY
-arm at all — which is why the `routing.md` commit this section mandates costs
-nothing even in a migration repository, and why asking would only teach a
-reader to click through the prompt. (Both were once read the other way round
-in one session, which put the question to the user twice; the table above is
-unambiguous and the sentence is what gets read, so the sentence names the arm.)
+A declaration reaches the review arm only, so a migration repository still
+meets the parity arm on a code-touching commit. A commit confined to `docs/`
+and `seal/` never wakes the parity arm, which is why the `routing.md` commit
+costs nothing even in a migration repository.
 
-The declaration is what the commit gate reads, for **either** review answer.
-A work item routed to the chain used to carry "no marker at all", and that was
-true only after the first review mark landed — false for every commit before
-it, which is why every commit of every round was stopped on its way to the
-reviewer the answer had already named.
+The declaration is what the commit gate reads, for **either** review answer,
+so a declared work item commits silently whichever reviewer it named, and CI
+reads the same file at the pull request. Work never headed for a reviewer,
+such as a release chore or a documentation pass, declares `straight to the
+PR`. For a change belonging to no work item, `[no-review]` in front of each
+command is the waiver, spelled as `skills/implement/SKILL.md` *1. Read the
+spec before the code* spells it.
 
-Work that was never headed for a reviewer — a release chore, a documentation
-pass — declares `straight to the PR`.
+**Which branch the pull request lands on is decided with the routing
+question.** A pull request into the release branch is not a release: its
+entry accumulates unreleased, and the version is left alone. A pull request
+into `main` is a release: the version moves, the accumulated entries are
+gathered and dated, and the tag follows the merge. The release branch is the
+default, and the repository's contribution guide says which changes go to
+`main` directly.
 
-**Which branch the PR lands on is the other.** `main` is what the marketplace
-serves, so a PR into `main` is a release and a PR into the release branch is
-not (`CONTRIBUTING.md`), and the answer changes what the work writes rather
-than whether it finishes.
+**Where an entry accumulates is the repository's convention, so the
+orchestrator reads it before writing one.** Two shapes are common and they
+are not interchangeable: a heading in the changelog that every branch appends
+to, or one fragment per work item that a release gathers. Writing the first
+into a repository that uses the second invents a heading its checks refuse,
+or appends to the shared region the fragments exist to empty. Where the
+repository gathers fragments, basing on the default branch means running the
+gather, which the contribution guide names.
 
-| Answer | What it does |
-|---|---|
-| `release/vX.Y.Z` (the default) | the entry accumulates unreleased; `plugin.json` is left alone |
-| `main` | the version moves, the accumulated entries are collected and dated, and the tag follows the merge |
-
-Take `main` when the accumulated entries read as one thing, or when the change
-is a gate or a hook firing where it should not — that one does not wait for
-company.
-
-**Where an entry accumulates is the repository's convention, so read it before
-writing one.** Two shapes are common and they are not interchangeable: a
-heading in the changelog that every branch appends to, or one fragment per
-work item that a release gathers. Writing the first into a repository that
-uses the second either invents a heading its checks refuse or appends to the
-shared region the fragments exist to empty — which is the collision, arriving
-from the document that was supposed to prevent it.
-
-Where the repository gathers fragments, **basing on `main` means running the
-gather**, because that is the branch where the entries are due. It is the one
-moment a feature branch touches the changelog at all, and the repository's
-contribution guide names the command.
-
-What must not happen instead is a standing waiver. A session-level switch that
-turns the gate off leaves it nothing to do but stay quiet, which is the state
-the gate exists to end. The routing declaration is not that switch: it moves
-the check rather than removing it — the chain answer is checked at the pull
-request against the round record, the direct answer against the broad run's
-`broad-gate.md` at the same place — and there is no third value meaning no
-enforcement anywhere. The declaration silences the review arm for either
-answer, so no token checks the direct answer at any commit; what the answer
-turns off is the reviewer, and the broad run is owed just the same.
-Deciding early does not weaken the question; it moves it to the minute where
-answering it costs a reply rather than a stopped session.
+What must not happen instead is a standing waiver: a session-level switch
+that turns the gate off leaves it nothing to do but stay quiet. The routing
+declaration is not that switch. It moves the check rather than removing it:
+the chain answer is checked at the pull request against the round record,
+the direct answer against the broad run's `broad-gate.md` at the same place,
+and no third value means no enforcement anywhere. What the direct answer
+turns off is the reviewer, and the broad run is owed just the same. Deciding
+at the start moves the question to the minute where answering it costs a
+reply rather than a stopped run.
 
 ### A work item that commits in more than one repository
 
-Some work items commit in more than one repository. The routing question is
-still asked once, in the shape above, and every answer it writes goes into
-every repository the work item commits in. Asking it again per repository is
-the mid-run question this section exists to remove, arriving once per
-checkout.
+The routing question is still asked once, in the shape above, and every
+answer it writes goes into every repository the work item commits in. Asking
+it again per repository is the mid-run question this section exists to
+remove, arriving once per checkout.
 
 **Only a gated repository gets a declaration.** A gated repository is one
-with a `seal/` root at either place (`skills/agent-contract/SKILL.md` §11).
-Write `seal/specs/<work-item-id>/routing.md` into each one before that
+with a `seal/` root at either place (contract §11). Write
+`seal/specs/<work-item-id>/routing.md` into each one before that
 repository's first edit, each naming that repository's own branch, each in a
 command of its own, and commit each with that repository's absolute path
 written out after `git -C` (contract §16). A repository with no root is not
@@ -535,13 +503,13 @@ in the handback and write nothing into it.
 
 **One id, minted once, names the directory in every repository.** Take
 `date +%s` once, pick one slug, and use the resulting directory name in every
-repository. The id is what every share is keyed by: its changelog fragment
-and the `<!-- specs/<work-item-id> -->` marker the changelog gather writes. A directory
-named differently in each repository would have to be renamed later, and the
-rename moves both. Nothing checks this, because
-nothing can tell an id minted twice from a signer's own work item that
-cites the pact without changing it, and that second case is legitimate and
-common.
+repository. The id is what every share is keyed by:
+its changelog fragment and the `<!-- specs/<work-item-id> -->` marker the
+changelog gather writes. A directory named differently in each repository
+would have to be renamed later, and the rename moves both. Nothing checks
+this, because nothing can tell an id minted twice from a signer's own work
+item that cites the pact without changing it, and that second case is
+legitimate and common.
 
 **Where the repositories keep a contract together, they sign a pact.**
 `docs/the-pact.md` holds the model. Two conditions decide it, and both must
@@ -552,14 +520,14 @@ repository's code would be wrong if it changed. Where both hold:
 - the one copy of the contract is `seal/pact.md` in one of the repositories,
   begun from `templates/pact.md` and written by the build there, framed by
   that repository's own spec. That repository is the pact's repository;
-- every other repository of the work item is a signer too, and this step
+- every other repository of the work item is a signer, and the orchestrator
   writes one row into its `seal/config.md` where it is absent: `Pact`, the
-  origin remote URL of the pact's repository. `templates/config.md` §*Pact*
-  documents it. The pact's repository needs no row, because it is
-  identified by holding `seal/pact.md`;
-- each signer cites the clauses it was built against as pact anchors, in
-  its spec's Grounding, and `pact-check`, run at the
-  pact's repository, reads every signer and says where they disagree.
+  origin remote URL of the pact's repository. `templates/config.md` *Pact*
+  documents it. The pact's repository needs no row, because it is identified
+  by holding `seal/pact.md`;
+- each signer cites the clauses it was built against as pact anchors, in its
+  spec's Grounding, and `pact-check`, run at the pact's repository, reads
+  every signer and says where they disagree.
 
 Where only the first condition holds, the repositories get their
 declarations and nothing else: no pact, and no `Pact` row.
@@ -568,13 +536,10 @@ declarations and nothing else: no pact, and no `Pact` row.
 
 Every act addressed to the orchestrator sits under a heading carrying the
 `Orchestrator:` prefix, in this file or in
-`skills/code-review/orchestration.md`, and until #330 there was no list of
-them. This is the list.
+`skills/code-review/orchestration.md`, and this is the list of them.
 `tests/test_every_orchestrator_act_names_its_delivery.py` holds it against
 both files from both sides: an act with no row fails, and a row naming an act
-no file carries fails. One-sided is the state `broad_gate.PARTITION` was
-written to end one subject over, and that list went three releases at five
-entries while the workflow it mirrored went to thirteen steps.
+no file carries fails.
 
 **The row set is mechanical.** Every `##` heading whose text begins
 `Orchestrator:` in either file, plus every `###` heading directly beneath
@@ -591,50 +556,44 @@ act, what notices?** Four values and nothing else.
 | `still a sentence` | nothing notices. The `Grounds` cell says what was looked at and came back empty, and an empty cell there fails |
 
 **A command does not make anybody run it, and a row naming one says so where
-that is the case.** The miss #330 measured for the flow log is that the meter
-sat unreferenced through a full day of measurements nobody took: the
-measurement was not taken, not that the posting failed. So the grounds of a
-row whose delivery reaches only part of its act name the part it does not
-reach. A row that reads closed over a tree that is not is worse than no row
-at all, because the next work item picks its subject from this table.
+that is the case.** The grounds of a row whose delivery reaches only part of
+its act name the part it does not reach. A row that reads closed over a tree
+that is not is worse than no row at all, because the next work item picks
+its subject from this table.
 
-**What this does not catch**, stated rather than left to be found: an act
-written for the orchestrator under a heading carrying no marker has no row
-and nothing notices. The check reads the marker, not the meaning, which is
-the limit
-`tests/test_a_section_marked_for_one_role_reaches_only_that_role.py` already
-states for itself. The two read the headings through one parser, so they
-cannot come to different answers about what a heading is.
+**What this does not catch**: an act written for the orchestrator under a
+heading carrying no marker has no row and nothing notices. The check reads
+the marker, not the meaning, which is the limit
+`tests/test_a_section_marked_for_one_role_reaches_only_that_role.py` states
+for itself. The two read the headings through one parser, so they cannot
+come to different answers about what a heading is.
 
-**The one act outside this table is the one #330 measured, and it is named
-here because the table cannot hold it.** Posting a segment's reading to the
-flow log is structurally the orchestrator's — contract §6 withholds posting
-from every agent whatever its definition says — and it lives in
-`skills/verify/SKILL.md` §*Measure the segment, and feed the flow log*, under
-a heading carrying no marker, in a file the row rule above does not read. Its
-delivery is `session-cost … --post`, which resolves the label, applies the
-invariant and posts the reading with what a person says about it. **And
-nothing makes it run.** The miss the ticket measured is that the meter sat
-unreferenced through a full day of measurements nobody took: the measurement
-was not taken, not that the posting failed. So this paragraph is the row that
-act would have, written where the table's own blind spot put it, and it is
-not a closed-looking one.
+**One act is outside this table, because the table cannot hold it.** Posting
+a segment's reading to the flow log is the orchestrator's (contract §6
+withholds posting from every agent), and it lives in `skills/verify/SKILL.md`
+*Measure the segment, and feed the flow log*, under a heading carrying no
+marker, in a file the row rule above does not read. Its delivery is
+`session-cost … --post`, which resolves the label, applies the invariant and
+posts the reading with what a person says about it. **Nothing makes it
+run**: the measurement can go untaken while the posting never fails. So this
+paragraph is the row that act would have, and it is not a closed-looking
+one.
 
 | Act | File | Delivered by | Grounds |
 |---|---|---|---|
 | Orchestrator: the order inside a ticket | `skills/implement/orchestration.md` | still a sentence | Nothing reads the order. Each step it sequences has a row of its own, and what the sequence itself asserts, which party runs when, is in no file a check opens. A run that opened the pull request after the rounds leaves the same tree as one that opened it before them |
-| Orchestrator: Bootstrap — create what's missing | `skills/implement/orchestration.md` | check: `hooks/mode-gate.py` | A root with no `Mode` row in `config.md` is exactly nobody was asked, and this gate stops the next command until `seal mode` writes it. It reaches the mode question alone. Nothing reads the `Broad gate` proposal, so a repository that was never offered candidates meets `bin/broad-gate`'s own refusal after the rounds have settled, and nothing checks that the workflow file was written from the template with the version substituted |
-| Orchestrator: Parity setup — deriving what can be derived | `skills/implement/orchestration.md` | still a sentence | The four fields are derived by hand and nothing reads the result. The commit gate's parity arm wakes on `seal/parity.md` existing, so a setup that never happened is silence rather than a refusal, and a guessed original produces a file that parses |
-| Orchestrator: how the work is routed — question 1 alone, boxes if per axis, one file | `skills/implement/orchestration.md` | check: `hooks/commit-review-gate.py` | The review arm asks at every commit until a declaration naming the branch stands in the working tree, and `templates/claude-md-block.md` carries the question's exact shape into every session on the machine. What neither reaches is the shape of the asking: a declaration built from four separate questions parses exactly like one built from the asking this section mandates |
-| Question 1 — single-select | `skills/implement/orchestration.md` | part of its parent's act | The three options of the first `AskUserQuestion` call its parent describes, put alone. It names no act of its own |
-| Question 2 — `multiSelect`, asked only under *per axis* | `skills/implement/orchestration.md` | part of its parent's act | The four boxes of the second call, put only after a `per axis` answer, and the ceiling on how many there may be. It names no act of its own |
+| The plan is approved at the spawn | `skills/implement/orchestration.md` | part of its parent's act | The approval line of the step where its parent's order spawns the smith, and the rules the spawn prompt is written to. It names no act of its own |
+| Orchestrator: Bootstrap | `skills/implement/orchestration.md` | check: `hooks/mode-gate.py` | A root with no `Mode` row in `config.md` is exactly nobody was asked, and this gate stops the next command until `seal mode` writes it. It reaches the mode question alone. Nothing reads the `Broad gate` proposal, so a repository that was never offered candidates meets `bin/broad-gate`'s own refusal after the rounds have settled, and nothing checks that the workflow file was written from the template with the version substituted |
+| Orchestrator: Parity setup | `skills/implement/orchestration.md` | still a sentence | The four fields are derived by hand and nothing reads the result. The commit gate's parity arm wakes on `seal/parity.md` existing, so a setup that never happened is silence rather than a refusal, and a guessed original produces a file that parses |
+| Orchestrator: how the work is routed | `skills/implement/orchestration.md` | check: `hooks/commit-review-gate.py` | The review arm asks at every commit until a declaration naming the branch stands in the working tree, and `templates/claude-md-block.md` carries the question's shape into every session on the machine. What neither reaches is the shape of the asking: a declaration built from four separate questions parses exactly like one built from the asking this section mandates |
+| Question 1 | `skills/implement/orchestration.md` | part of its parent's act | The three options of the first `AskUserQuestion` call its parent describes, put alone. It names no act of its own |
+| Question 2 | `skills/implement/orchestration.md` | part of its parent's act | The four boxes of the second call, put only after a `per axis` answer, and the ceiling on how many there may be. It names no act of its own |
 | What the answer writes | `skills/implement/orchestration.md` | check: `skills/code-review/scripts/chain_check.py` | It refuses a `Review` or `Destination` value outside the vocabulary at the pull request, and `hooks/routing.py` parses the same rows at every commit. The three optional rows are read by nothing that refuses: `hooks/implementer-notice.py` says one line after a commit where a declared agent left no mark, and blocks nothing |
 | A work item that commits in more than one repository | `skills/implement/orchestration.md` | check: `hooks/commit-review-gate.py` | In each gated repository the review arm asks at every commit until a declaration naming that repository's branch stands there, so a repository the step skipped is noticed at its first commit. What it does not reach: an id minted twice is legitimate in a signer's own work item and nothing tells the two apart, and a missing `Pact` row is noticed only when somebody runs `bin/pact-check` at the pact's repository, which refuses a relationship recorded on one side |
-| Orchestrator: which of these acts runs itself | `skills/implement/orchestration.md` | check: `tests/test_every_orchestrator_act_names_its_delivery.py` | The test holds this table against both files from both sides, which is the condition #330 set for enumerating the class at all: unless something reads it. It reads the marker and not the meaning, so an act written under a heading with no prefix is in neither the table nor the test |
-| Orchestrator: a fix pass resumes the implementer | `skills/code-review/orchestration.md` | still a sentence | A resumed fix pass and a fresh spawn leave identical trees, so nothing at the pull request can tell them apart, and the measured difference between them is 282 calls against 30, and the choice of session is in no file |
+| Orchestrator: which of these acts runs itself | `skills/implement/orchestration.md` | check: `tests/test_every_orchestrator_act_names_its_delivery.py` | The test reads this table against the headings of both files, in both directions. What it reads is the marker rather than the meaning, so a heading with no prefix puts its act in neither the table nor the test |
+| Orchestrator: a fix pass resumes the implementer | `skills/code-review/orchestration.md` | still a sentence | A resumed fix pass and a fresh spawn leave identical trees, so nothing at the pull request can tell them apart, and the choice of session is in no file |
 | Orchestrator: the run ends with a verifying round | `skills/code-review/orchestration.md` | check: `skills/code-review/scripts/chain_check.py` | It fails a ready pull request when a commit touching a file outside the work item's records follows the commit on the last record's `target:` line, or a finding of that record reads `fixed <commit>` or `rejected`, which is the run whose own last fixes nobody opened; on a draft it prints and names the verifying round. What it cannot read is the cap: the extension lines are the warden's, and the sealer reads the count |
 | A regression is routed by comparing the fix with the frame | `skills/code-review/orchestration.md` | still a sentence | The warden's `regression:` line routes nothing mechanical, and neither does the sentence of its grounds the route reads: `skills/code-review/scripts/chain_check.py` reads the line only as a reference to an earlier finding, and the `Reframed` line only for its author against the declaration, and the sealer reads the records |
-| Orchestrator: the pull request opens once the sealer seals, and a phase is re-run | `skills/code-review/orchestration.md` | still a sentence | A pull request opened before the sealer leaves the same tree as one opened after it, so nothing reads the timing, nothing records that a platform-specific change ran `gh workflow run tests` before the broad run, and nothing records that a closed phase's suite and lint were re-run before the next phase spawned. What is delivered is the step the section ends on: `skills/code-review/scripts/chain_check.py` fails a ready pull request whose `broad-gate.md` is absent or names a commit other than HEAD, which is what makes the orchestrator's broad run and the sealer's spawn after it happen. The step before that run, `broad-gate --preflight` (#638), is recorded nowhere either, and a session that skips it loses time and nothing else: the broad run asks the same arms and refuses the same way |
+| Orchestrator: the pull request opens once the sealer seals, and a phase is re-run | `skills/code-review/orchestration.md` | still a sentence | A pull request opened before the sealer leaves the same tree as one opened after it, so nothing reads the timing, nothing records that a platform-specific change ran `gh workflow run tests` before the broad run, and nothing records that a closed phase's suite and lint were re-run before the next phase spawned. What is delivered is the step the section ends on: `skills/code-review/scripts/chain_check.py` fails a ready pull request whose `broad-gate.md` is absent or names a commit other than HEAD, which is what makes the orchestrator's broad run and the sealer's spawn after it happen. The step before that run, `broad-gate --preflight`, is recorded nowhere either, and a session that skips it loses time and nothing else: the broad run asks the same arms and refuses the same way |
 | Orchestrator: verify before posting | `skills/code-review/orchestration.md` | still a sentence | The four checks are readings the orchestrator takes before posting, and nothing in the tree records that any of them happened. The one part a record carries is the new HEAD on the next round's `target:` line where HEAD moved |
 | Orchestrator: closing the cycle | `skills/code-review/orchestration.md` | check: `hooks/commit-review-gate.py` | The review arm quiets on a mark standing at HEAD, so a cycle left unclosed meets the gate at the next commit. On a branch with a routing declaration in force the declaration quiets that arm first, and that is every branch this workflow routes, so for those the missing mark is never noticed |
-

@@ -161,15 +161,19 @@ def test_the_smith_calls_the_whole_thing_a_review_run():
 
 def test_the_row_that_could_not_be_true_is_corrected_not_reworded():
     """It was true only after the first review mark landed, and false for
-    every commit before it — the defect in #52 stated as a sentence."""
-    # The routing section is the orchestrator's half since #292, so the
-    # correction lives in `orchestration.md`; the old row must be in neither.
+    every commit before it — the defect in #52 stated as a sentence.
+
+    The narrated correction beside the routing section left with #940:
+    history goes to git and the changelog, and the section states the rule
+    that holds, that the declaration quiets the review arm for either
+    answer. What stays pinned is that the old row is in neither file."""
     skill = read("skills", "implement", "SKILL.md")
     orchestration = read("skills", "implement", "orchestration.md")
     for text in (skill, orchestration):
         assert "| Through the review chain | it needs no marker at all" not in text
-    assert 'used to carry "no marker at all"' in orchestration, (
-        "dropping the row leaves the next reader unable to tell it was wrong"
+    assert "for **either** review answer" in orchestration, (
+        "the routing section stopped saying the declaration quiets the review "
+        "arm whichever reviewer it names"
     )
 
 

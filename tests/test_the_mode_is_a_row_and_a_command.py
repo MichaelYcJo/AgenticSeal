@@ -829,8 +829,8 @@ def test_everything_else_refuses_where_there_is_no_root(argv, repo, seal, capsys
 def test_the_refusal_names_the_session_as_the_one_that_asks(repo, seal, capsys):
     """#970. The refusal tells the person who asks where `seal/` goes and
     creates it. That is the orchestrating session's act
-    (`skills/implement/orchestration.md` §*Orchestrator: Bootstrap — create
-    what's missing*); the line named the smith, which asks nobody."""
+    (`skills/implement/orchestration.md` *Orchestrator: Bootstrap*); the
+    line named the smith, which asks nobody."""
     code, out = run(seal, ["mode"], repo, capsys)
     assert code == 1, out
     assert (

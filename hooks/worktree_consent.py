@@ -104,7 +104,7 @@ CONSENT_DIR = "specseal-worktree-consent"
 PROJECTS_ROOT = os.path.join(os.path.expanduser("~"), ".claude", "projects")
 
 # Question 1 of the routing batch, `skills/implement/orchestration.md`
-# §*Question 1 — single-select*, as leading phrases. A test pins these against
+# *Question 1*, as leading phrases. A test pins these against
 # that table, so relabelling the question turns a case red instead of quietly
 # bringing the prompt back.
 ROUTING_LABELS = ("automation", "per axis", "no work item")

@@ -408,7 +408,9 @@ def test_the_order_inside_a_ticket_puts_the_preflight_before_the_sealer():
         )
     )
     assert PREFLIGHT in text, "the order does not name the preflight"
-    assert text.index(PREFLIGHT) < text.index("sealer → the pull request"), text
+    assert text.index(PREFLIGHT) < text.index("then the sealer, and then the pull"), (
+        text
+    )
 
 
 EXAMPLE_ROW = (

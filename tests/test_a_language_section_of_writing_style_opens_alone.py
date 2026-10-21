@@ -165,6 +165,15 @@ def test_the_rules_for_text_an_agent_or_a_check_reads_reach_both_languages():
             f"{SKILL} {heading}: nothing in it names *{title}*, so a writer "
             "who opened this section alone never reaches the three rules"
         )
+    # The orchestrator writes a spawn prompt, which an agent reads, and opens
+    # no language section to write it: the spawn step is where it is pointed.
+    spawn = read("skills/implement/orchestration.md")
+    spawn = spawn.split("### The plan is approved at the spawn", 1)[-1]
+    spawn = " ".join(spawn.split("\n## ", 1)[0].split())
+    assert f"`{SKILL}` *{title}*" in spawn, (
+        "the orchestrator's spawn step does not name the writing rules, so the "
+        "one party that writes a spawn prompt is never pointed at them"
+    )
     head = " ".join(text.split("\n---\n", 1)[0].split())
     assert "text an agent or a check reads" in head, (
         f"{SKILL}'s description does not name text an agent or a check reads "
