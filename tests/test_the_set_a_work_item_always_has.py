@@ -379,6 +379,14 @@ def test_the_orchestrator_states_the_approval_line_where_it_spawns_the_build():
     folded = " ".join(step.split())
     assert "the line ends at its full stop" in folded, folded[:300]
     assert "goes on a line of its own below it, never after the full stop" in folded
+    # The redesign's second approval names that statement rather than
+    # restating the shape (#940 Scope 6).
+    review = " ".join(read("skills", "code-review", "orchestration.md").split())
+    assert (
+        "a second `Approved` line in `plan.md` on a line of its own, in the shape "
+        "`skills/implement/orchestration.md` *The plan is approved at the spawn* "
+        "states"
+    ) in review, "the redesign row approves without naming where the shape is"
 
 
 def test_the_file_set_names_who_writes_each_file():

@@ -239,16 +239,16 @@ def test_implement_and_the_preset_block_do_not_drift():
 
 def test_the_fix_pass_resumes_the_implementer():
     """A fix pass as a fresh spawn re-establishes what the implementing
-    session already holds. Measured three times with no counterexample —
-    282 calls / 45 minutes fresh (#33) against 30 / 3.9 (#29) and 26 / 5.2
-    (the #57 chain) resumed — and an expectation with no number behind it
-    reads as style advice (work item 1788277657, round 1's tests-todo)."""
-    skill = read("skills", "code-review", "orchestration.md")
+    session already holds. The measurements behind the rule (#33, #29, the
+    #57 chain) are history since #940, and the file states the rule and its
+    reason in the present tense: the resumed session holds what the fixes
+    need, and a fresh spawn holds none of it."""
+    skill = " ".join(read("skills", "code-review", "orchestration.md").split())
     assert "resuming the session that built the branch" in skill, (
         "the orchestrator sections lost the sentence saying how the fixing "
         "session is obtained"
     )
-    assert "282 calls and 45 minutes" in skill, "the measurement went"
+    assert "A fresh spawn holds none of it" in skill, "the reason went"
     assert "the fresh spawn is the only option left" in skill, (
         "the fallback for a session that no longer exists went"
     )

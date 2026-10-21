@@ -577,6 +577,9 @@ def test_the_review_orchestrator_stops_the_run_rather_than_filling_the_row_in():
     assert "A refusal about the `Broad gate` row goes to a person" in orchestrator
     assert "open no pull request until they have" in orchestrator
     assert "/specseal:config" in orchestrator
-    assert "#401" in orchestrator, (
-        "the instruction is asserted without the measurement behind it"
-    )
+    # #401 is the measured instance; since #940 the file gives its reason in
+    # the present tense rather than the issue number.
+    assert (
+        "A row filled in to get past the refusal makes the broad run cover a "
+        "command the person never saw." in orchestrator
+    ), "the instruction is asserted without the reason behind it"

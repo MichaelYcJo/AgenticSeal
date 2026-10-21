@@ -56,6 +56,7 @@ FRAGMENT_OWNER = (
     "`docs/the-record-layout.md` §*A commit after the build brings its "
     "changelog fragment along* owns that rule"
 )
+FRAGMENT_LINK = FRAGMENT_OWNER.replace(" §*", " *")
 RUN_OWNS_THE_RULE = "`docs/the-review-record.md` §*The run* owns that rule"
 
 
@@ -134,7 +135,7 @@ RULES = {
         RECORD_LAYOUT,
         "A commit after the build that changes what the work item ships "
         "updates the work item's `changelog.md` in the same range.",
-        {IMPLEMENT: FRAGMENT_OWNER, ORCH: FRAGMENT_OWNER},
+        {IMPLEMENT: FRAGMENT_OWNER, ORCH: FRAGMENT_LINK},
     ),
     # From #823, and since 0.22.0 one mark rather than a count of two
     # (`questions.md` Q1 of work item 1791933022), routed by the comparison
@@ -193,7 +194,7 @@ def test_the_orchestrator_writes_the_body_file_the_sealer_reads():
     a pull request already open on the stated limit's path. Round 1 of #943
     reverted each of the first three and this module stayed green."""
     text = flat(*ORCH)
-    assert "once the pull request body is written to a file" in text
+    assert "once you have written the pull request body to a file" in text
     assert "the issue and the file holding the pull request body" in text
     assert "`gh pr create --body-file <that file>`" in text
     assert "`gh api -X PATCH repos/<owner>/<repo>/pulls/<N> -F body=@<file>`" in text
@@ -217,7 +218,7 @@ def test_a_run_that_stops_before_the_pull_request_pushes_nothing():
     ) in text
     assert (
         "Under `stop before the pull request` push nothing: name the "
-        "platform risk in the handback"
+        "platform risk in the hand-back"
     ) in text
 
 
