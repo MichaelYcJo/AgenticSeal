@@ -8,3 +8,12 @@
   `check:` line naming what reads it, both language sections link the
   section, and the skill's description names this kind of text, so a session
   writing a skill, an agent definition, a template or a frame loads it.
+- **The orchestrator's half of `implement` states the current rule, once
+  (#940).** `skills/implement/orchestration.md` drops the history it
+  narrated, says its order in words and names the party of each act. The
+  approval line's shape is stated at the step where the orchestrator spawns
+  the smith: `Approved <date> by <who>, when `smith` was spawned.`, ending
+  at its full stop, with anything more on a line of its own. The routing
+  section holds the reasoning the CLAUDE.md block no longer carries, and
+  its headings are *Orchestrator: Bootstrap*, *Orchestrator: Parity setup*,
+  *Orchestrator: how the work is routed*, *Question 1* and *Question 2*.
