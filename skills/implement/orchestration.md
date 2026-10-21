@@ -78,9 +78,9 @@ not the orchestrator's. Nobody reads a README to discover a question they did
 not know to ask, so this is the only place the mode and the migration
 question are asked at all.
 
-First, look for the 0.3.x layout. A repository still holding `.specseal/`,
-or a top-level `specs/` with an entry named `<unix-seconds>-<slug>` that
-carries one of the plugin's two marks directly
+First, look for the 0.3.x layout. A repository still holding
+`.specseal/`, or a top-level `specs/` with an entry named
+`<unix-seconds>-<slug>` that carries one of the plugin's two marks directly
 under it as git tracks it (`routing.md`, or a file under `rounds/`), is on
 the 0.3.x layout and committed the plugin's files, so it chose shared
 already. The orchestrator does not ask. It says *"this repository is on the
