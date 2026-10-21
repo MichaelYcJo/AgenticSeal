@@ -1090,6 +1090,24 @@ def test_a_finding_in_a_shape_the_check_refuses_is_still_one_false_row():
     assert (numbers["rows"], numbers["false"]) == (2, 2)
 
 
+def test_a_comment_that_never_closes_hides_no_finding_from_the_false_count():
+    """Guards S2 where the shared reader blanks a region to the end of the
+    file: the check refuses such a record (`chain_check.py#unclosed`), and
+    the findings after the opener still count, one row each, so a warden
+    cannot lower its false-finding rate by leaving a comment open."""
+    text = printed(
+        "".join(
+            f"### {n}. a finding\n\nseverity: should\n"
+            f"location: `src/b.py:{n}`\nverdict: open\n\n"
+            + ("Why it matters <!-- and nothing closes this.\n\n" if n == 1 else "")
+            for n in (1, 2, 3)
+        )
+    )
+    assert ni.finding_rows(text) == [f"location: `src/b.py:{n}`" for n in (1, 2, 3)]
+    numbers = ni.side_numbers(printed_side(text, [("truth-1", TRUTH)]))
+    assert (numbers["rows"], numbers["false"]) == (3, 3)
+
+
 def test_a_location_line_outside_every_finding_is_no_row():
     """Guards S3: a `location:` line above `## Findings`, in `## Not
     judged` or in an HTML comment belongs to no finding, so it is no row."""
@@ -1609,6 +1627,9 @@ def test_regrade_refuses_a_side_read_before_986(tmp_path, monkeypatch, capsys):
 # file carries neither whole.
 REFUSED_PATH = "/Users/" + "someone/"
 REFUSED_HOST = "fixture.example" + ".net"
+# The user root alone, which the scan refuses once the side's JSON writes
+# the character after it as an escape.
+USER_ROOT = "/Users" + "/"
 
 
 def test_a_kept_record_is_masked_where_the_identifier_scan_refuses_it(tmp_path):
@@ -1626,7 +1647,12 @@ def test_a_kept_record_is_masked_where_the_identifier_scan_refuses_it(tmp_path):
         f"evidence: read {REFUSED_PATH}w/log at {REFUSED_HOST}\nverdict: open\n",
         # A host that opens a line, refused and allowed: the side's JSON
         # writes the line break before it as an escape ending in a letter.
-        after=f"\n{REFUSED_HOST} answered it.\n" + "github.com/x/y answered it too.\n",
+        after=f"\n{REFUSED_HOST} answered it.\n"
+        + "github.com/x/y answered it too.\n"
+        # The user root before a line break and inside quotes, each an
+        # escape in the side's JSON (round 1 of #986, finding 3).
+        + f"a path ends the line at {USER_ROOT}\nand a quote holds "
+        + f'"{USER_ROOT}" + "someone".\n',
     )
     use = {"type": "tool_use", "id": "a", "name": "Bash"}
     use["input"] = {"command": f"cat {REPORT}"}
@@ -2347,6 +2373,8 @@ def shipped_item(tmp_path, monkeypatch, first=seeded_round_1, second=True):
     repo = tmp_path / "shipped"
     repo.mkdir()
     who = ["-c", "user.name=x", "-c", "user.email=x@example.com"]
+    # A fixed date, so a commit the scaffold amends today cannot match it.
+    dated = dict(os.environ, GIT_COMMITTER_DATE="2026-01-01T00:00:00+00:00")
 
     def git(*args):
         return subprocess.run(
@@ -2354,6 +2382,7 @@ def shipped_item(tmp_path, monkeypatch, first=seeded_round_1, second=True):
             check=True,
             capture_output=True,
             encoding="utf-8",
+            env=dated,
         ).stdout.strip()
 
     def put(rel, text):
@@ -2504,14 +2533,20 @@ def test_the_seeded_scaffold_leaves_round_1s_tree_and_no_copy_of_it(
     """Guards S10 on a repository a case can fetch for nothing: the clone
     holds no round record, the commit the plan's Status cell names
     resolves, the target's own commit does not, and no file under `.git`
-    outside its objects names it."""
+    outside its objects names it. The amended commit keeps the target's
+    committer and date, so no field of the log marks the seed's commit, and
+    the clone keeps no remote a `git fetch` could bring the shipped code
+    back from, while the base ref round 1 names still resolves."""
     sd = load_script("seed_defects")
     commits, repo = shipped_item(tmp_path, monkeypatch)
     t, _why = sd.target_of(commits["squash"])
     clone = tmp_path / "clone"
     clone.mkdir()
     (clone / "scaffold.sh").write_text(
-        "set -eu\n" + sd.scaffold(t, str(repo)) + "\n", encoding="utf-8"
+        # A URL, as `replay_targets.py#origin_url` gives the generator: a
+        # native Windows path in an unquoted `sh` word loses its backslashes.
+        "set -eu\n" + sd.scaffold(t, repo.as_uri()) + "\n",
+        encoding="utf-8",
     )
     run = subprocess.run(
         ["sh", "scaffold.sh"], cwd=clone, capture_output=True, encoding="utf-8"
@@ -2540,3 +2575,17 @@ def test_the_seeded_scaffold_leaves_round_1s_tree_and_no_copy_of_it(
                 if commits["target"].encode() in f.read():
                     named.append(path)
     assert named == [], named
+
+    def log(where, rev):
+        return subprocess.run(
+            ["git", "-C", str(where), "log", "-1", "--format=%cn %ce %cI", rev],
+            capture_output=True,
+            encoding="utf-8",
+        ).stdout
+
+    assert log(clone, "HEAD") == log(repo, commits["target"]) != ""
+    remotes = subprocess.run(
+        ["git", "-C", str(clone), "remote"], capture_output=True, encoding="utf-8"
+    )
+    assert (remotes.returncode, remotes.stdout) == (0, "")
+    assert exists("origin/main") == 0

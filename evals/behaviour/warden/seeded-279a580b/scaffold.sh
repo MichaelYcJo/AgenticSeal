@@ -15,7 +15,9 @@ lines[line - 1] = new
 with open(path, "w", encoding="utf-8", newline="") as f:
     f.write("\n".join(lines))
 PY
-git -c user.name=eval -c user.email=eval@example.com commit -q -a --amend --no-edit --no-verify
+GIT_COMMITTER_NAME="$(git log -1 --format=%cn)" GIT_COMMITTER_EMAIL="$(git log -1 --format=%ce)" GIT_COMMITTER_DATE="$(git log -1 --format=%cI)" git -c user.name=eval -c user.email=eval@example.com commit -q -a --amend --no-edit --no-verify
+git remote remove origin
+git update-ref refs/remotes/origin/release/v0.21.0 5623d7282eddd20b5949c4643ca9ee2808d143dd
 git reflog expire --expire=now --all
 rm -f .git/FETCH_HEAD
 git gc -q --prune=now

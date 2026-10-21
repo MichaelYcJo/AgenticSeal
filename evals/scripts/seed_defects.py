@@ -8,10 +8,12 @@ generator reads the item's `rounds/round-1.md` at that commit, through
 case at round 1's target against round 1's base. No round record exists in
 that tree, and every branch commit its files name is an ancestor of the
 target. The mutation lands on a line `base..target` added inside a Python
-unit, and it is amended into the target commit. The scaffold then expires
-the reflog, removes `FETCH_HEAD` and prunes what nothing reaches, so the
-target's original commit neither resolves in the clone nor is named by any
-file under its `.git/` outside the objects.
+unit, and it is amended into the target commit with the target's own
+committer and date. The scaffold then removes the remote, writing the base
+ref round 1 names again, expires the reflog, removes `FETCH_HEAD` and
+prunes what nothing reaches. So the target's original commit neither
+resolves in the clone nor is named by any file under its `.git/` outside
+the objects, and no `git fetch` brings the shipped code back.
 
 Its truths are the mutated line, a `truth-` grader over the record's
 `location:` lines for `path:<line>` within 15 lines of it either way, and
@@ -276,20 +278,30 @@ PY"""
 def scaffold(t, url):
     """The scaffold: round 1's target checked out as the replay scaffold
     does it (`replay_targets.py#scaffold`), the mutation amended into the
-    target commit, then the reflog expired, `FETCH_HEAD` removed and what
-    nothing reaches pruned, so no copy of the target's original commit is
-    left."""
+    target commit with the target's own committer and date, so no field of
+    the log marks the seed's commit. Then the remote goes, so no `git
+    fetch` brings the shipped code back, and the base ref round 1 names is
+    written again, since removing the remote removes it. Last the reflog is
+    expired, `FETCH_HEAD` removed and what nothing reaches pruned, so no
+    copy of the target's original commit is left."""
     mutate = MUTATE.format(
         path=shlex.quote(t["path"]),
         line=t["line"],
         old=shlex.quote(t["old"]),
         new=shlex.quote(t["new"]),
     )
+    head = rt.scaffold(t, url)
+    refs = [line for line in head.split("\n") if line.startswith("git update-ref ")]
     return "\n".join(
         [
-            rt.scaffold(t, url),
+            head,
             mutate,
+            'GIT_COMMITTER_NAME="$(git log -1 --format=%cn)" '
+            'GIT_COMMITTER_EMAIL="$(git log -1 --format=%ce)" '
+            'GIT_COMMITTER_DATE="$(git log -1 --format=%cI)" '
             "git -c user.name=eval -c user.email=eval@example.com commit -q -a --amend --no-edit --no-verify",
+            "git remote remove origin",
+            *refs,
             "git reflog expire --expire=now --all",
             "rm -f .git/FETCH_HEAD",
             "git gc -q --prune=now",

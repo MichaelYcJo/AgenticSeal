@@ -239,10 +239,8 @@ def masked(text):
     """TEXT with what the identifier scan refuses in a committed file
     replaced, line by line as the scan reads a file and by the scan's own
     functions: each user path by its fixture path, then each host by its
-    fixture host. A host that follows a control character is then set one
-    space after it: a side's JSON writes that character as an escape ending
-    in a letter or a digit, and the scan reads that character as the host's
-    first.
+    fixture host; then `apart`, for what the scan refuses only in the
+    side's JSON form.
 
     A `location:` value never starts with `/` and names no host, so no
     finding row changes."""
@@ -256,8 +254,43 @@ def masked(text):
             for m in reversed(refused(line)):
                 line = line[: m.start()] + fixture + line[m.end() :]
         lines.append(line)
-    glued = re.compile(rf"(?<=[\x00-\x1f])(?={scan.DOMAIN_RE.pattern})")
-    return glued.sub(" ", "\n".join(lines))
+    return apart("\n".join(lines), scan)
+
+
+def apart(text, scan):
+    """TEXT with one space set beside each character a side's JSON writes
+    as an escape, where the scan's functions refuse a host or a user path
+    in that JSON form and the refused match takes in part of the escape.
+    The space goes after the character where the match starts inside its
+    escape, a host whose first letter the scan reads from the escape, and
+    before it where the match runs into the escape, a user path whose name
+    the scan reads from the escape's backslash. The JSON form is the one
+    `write_side` writes, with `ensure_ascii` off.
+
+    A refusal no escape is part of is left as it is."""
+    while True:
+        spans, at = [], 0
+        for ch in text:
+            width = len(json.dumps(ch, ensure_ascii=False)) - 2
+            spans.append((at, at + width))
+            at += width
+        form = json.dumps(text, ensure_ascii=False)[1:-1]
+        found = sorted(
+            [*scan.refused_domains(form), *scan.refused_user_paths(form)],
+            key=lambda m: m.start(),
+        )
+        hit = next(
+            (
+                i + 1 if a < m.start() else i
+                for m in found
+                for i, (a, b) in enumerate(spans)
+                if b - a > 1 and a < m.end() and b > m.start()
+            ),
+            None,
+        )
+        if hit is None:
+            return text
+        text = text[:hit] + " " + text[hit:]
 
 
 def finding_rows(text):
@@ -269,9 +302,16 @@ def finding_rows(text):
     check would refuse is still one row.
 
     A record with no `## Findings` section, or with two, gives no rows, as
-    the check's split does."""
+    the check's split does. A comment or fence that never closes hides
+    every line after it from `readable`, and the check refuses the record
+    for it (`chain_check.py#unclosed`); such a record is split on its raw
+    lines, so a finding it hides is still a false row instead of
+    vanishing."""
     check, reader = rt.record_reader()
-    lines = reader.readable(text)
+    if check.unclosed(reader, text, ""):
+        lines = reader.gfm_lines(text)
+    else:
+        lines = reader.readable(text)
     _section, spans, _error = check.finding_spans(reader, lines)
     return [
         "\n".join(

@@ -9,8 +9,10 @@
   findings are read by `chain_check.py#finding_spans` over the lines the
   check's shared reader leaves, so a line in a fence or a comment is no
   finding, and a finding in a shape the check refuses still counts as
-  false. A `truth-` grader over the round record is graded on those
-  findings. `compare` and `regrade` refuse, with exit 2 and the side's file
+  false. A record holding a comment or fence that never closes, which the
+  check refuses, is split on its raw lines, so the findings after the
+  opener still count. A `truth-` grader over the round record is graded on
+  those findings. `compare` and `regrade` refuse, with exit 2 and the side's file
   named, a side that keeps no `report_text`; every side committed before
   #986 is one.
 - **A seeded case cited round records and commits its clone did not hold
@@ -19,9 +21,11 @@
   commits no squash reaches. It is now built at the work item's round 1
   target against round 1's base, the tree the first review saw. Each
   finding round 1 fixed that round 2 confirmed is a `truth-` grader beside
-  the seed. After the amend, the scaffold expires the reflog, removes
-  `FETCH_HEAD` and prunes what nothing reaches, so the target's original
-  commit is gone from the clone. The cases are `seeded-279a580b`,
+  the seed. The amend keeps the target's committer and date, so the log
+  does not point at the seed's commit. After it, the scaffold removes the
+  remote, so no `git fetch` brings the shipped code back, then expires the
+  reflog, removes `FETCH_HEAD` and prunes what nothing reaches, so the
+  target's original commit is gone from the clone. The cases are `seeded-279a580b`,
   `seeded-ad447367`, `seeded-8a100e13` and `seeded-f1c9932d`.
   `seeded-4d316179` takes no seed at its round 1 target. In
   `seeded-9b644676` two of round 1's truths accept one line. Both were

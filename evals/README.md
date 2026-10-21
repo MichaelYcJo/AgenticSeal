@@ -96,7 +96,7 @@ case:
 | Generator | Cases |
 |---|---|
 | `scripts/replay_targets.py` | `warden/replay-*`: a round record's target, each finding the next round confirmed fixed a `truth-` grader |
-| `scripts/seed_defects.py` | `warden/seeded-*`: a shipped work item's round 1 target, against round 1's base, with one mutation in a unit the build added and no copy of the unmutated target commit left in the clone; the mutated line is a `truth-` grader, and so is each finding round 1 fixed that round 2 confirmed |
+| `scripts/seed_defects.py` | `warden/seeded-*`: a shipped work item's round 1 target, against round 1's base, with one mutation in a unit the build added, amended into the target with the target's own committer and date, and neither a copy of the unmutated target commit nor a remote left in the clone; the mutated line is a `truth-` grader, and so is each finding round 1 fixed that round 2 confirmed |
 | `scripts/rule_cases.py` | `<agent>/rule-*`: a fixture repository the agent works in, graded on what it produced |
 
 All three also read `scripts/recurred_truths.json`. A real defect a case
