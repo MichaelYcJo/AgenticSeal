@@ -17,3 +17,17 @@
   section holds the reasoning the CLAUDE.md block no longer carries, and
   its headings are *Orchestrator: Bootstrap*, *Orchestrator: Parity setup*,
   *Orchestrator: how the work is routed*, *Question 1* and *Question 2*.
+- **The CLAUDE.md block holds its rules alone, in 1,498 bytes, and has one
+  copy (#940).** `templates/claude-md-block.md` keeps its four headings and
+  eight rules and drops the reasoning, which is in
+  `skills/implement/orchestration.md`. The routing rule says, in order: where
+  no `seal/` root exists, follow the Bootstrap first, and where the root
+  lands is the user's decision; ask question 1 alone, its answers
+  `automation`, `per axis` and `no work item`, and the boxes in a second
+  call only under `per axis`; write `routing.md` in a command of its own
+  before the first edit, then commit it; and under `no work item` put
+  `: '[no-review]';` in front of every commit. `/specseal:update` replaces
+  the block as before. The plugin's own repository no longer carries a
+  generated copy in its `CLAUDE.md`, and the pull-request step that held the
+  copy to the template is gone with the script it ran; a session in a clone
+  of the plugin installs that clone's block by running `./install.sh` there.
