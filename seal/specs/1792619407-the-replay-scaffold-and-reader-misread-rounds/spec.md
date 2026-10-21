@@ -86,9 +86,8 @@ committed side.
    each of three later readings missed a shape (`rounds/round-1.md` finding
    2, `round-2.md` finding 1, `round-3.md` finding 1); and one with no
    `## Findings` section or with two, which `chain_check.py#finding_spans`
-   refuses (`rounds/round-4.md`). The rule for both is the docstring of
-   `noninferiority.py#finding_rows`: one empty row for each raw line at the
-   finding heading level, fenced and commented lines included. Every such
+   refuses (`rounds/round-4.md`). What such a record gives is stated in
+   *Data & interfaces*, under *The finding rows of a text*. Every such
    row is false, and no `truth-` grader over the record finds anything in
    that run. The count errs toward more false rows and
    fewer finds, never the other way, and it follows the check, which reads
@@ -243,9 +242,8 @@ by a newline, or the empty string. Where `chain_check.py#unclosed` refuses
 the text, or `finding_spans` refuses the split (no `## Findings` section,
 or two), the function instead returns one empty string for each line of
 `reader.gfm_lines(text)` whose `reader.heading_level` equals
-`chain_check.py#FINDING_LEVEL`, as the `noninferiority.py#finding_rows`
-docstring states. An empty row matches no `truth-` pattern, so `grade`
-finds no truth in such a run with no branch of its own.
+`chain_check.py#FINDING_LEVEL`. An empty row matches no `truth-` pattern,
+so `grade` finds no truth in such a run with no branch of its own.
 
 **Counting a side** (`noninferiority.py#side_numbers`). Rows and false rows
 come from the finding rows of each run's `report_text`. A `truth-` grader
