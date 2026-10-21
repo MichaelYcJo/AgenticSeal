@@ -84,13 +84,14 @@ jobs:
       # nothing. On a pull request that is not a draft it fails for what the
       # author can fix: a declaration that says "through the review chain"
       # with no committed round record, a declaration that cannot be read, a
-      # judged work item's `spec.md` whose `## Rule changes` does not parse,
-      # a finding still `open` or one the check cannot read, a last record
-      # behind HEAD or with a finding no round after it read, no
-      # `broad-gate.md` at HEAD, or no `guarantee.md` reading `sealed` at
-      # HEAD. A round's `target:`
-      # commit is read only as HEAD or an ancestor of it, so the check
-      # needs no ref the checkout does not already carry.
+      # work item `spec.md` whose `## Rule changes` does not parse, where the
+      # work item is judged or the pull request's own commits add or change
+      # that `spec.md`, a finding still `open` or one the check cannot read,
+      # a last record behind HEAD or with a finding no round after it read,
+      # no `broad-gate.md` at HEAD, or no `guarantee.md` reading `sealed` at
+      # HEAD. A round's `target:` commit is read only as HEAD or an ancestor
+      # of it, so the check needs no ref the checkout does not already
+      # carry.
       - name: a declared review chain has the round record it claimed
         shell: bash
         run: |

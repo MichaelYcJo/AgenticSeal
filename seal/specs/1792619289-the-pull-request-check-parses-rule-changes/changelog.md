@@ -4,14 +4,18 @@
   request (#1006).** Before this, the section was first parsed at the
   owner's settle after the release. There a section that does not parse
   applies nothing, and no pull request is left to fix it in. `chain-check`
-  now parses the section of each work item whose `routing.md` it judges,
-  under either `Planning` answer, with the reader `settle` uses. A refusal
-  names the spec, the line the reader names and the reader's reason. It
-  fails a ready pull request, prints on a draft, and stays a refusal in the
-  broad gate's own run. A spec with no `## Rule changes` section, a work item
-  with no `spec.md`, and a work item another pull request's squash carried
-  are left alone. Where the reader will not load, the check exits 2 and says
-  so.
+  now parses the section with the reader `settle` uses, in the spec of each
+  work item whose `routing.md` it judges, under either `Planning` answer.
+  On a pull request that declares a work item, it also parses every work
+  item spec the pull request's own commits add or change, since a declared
+  work item can edit another work item's section. A refusal names the spec,
+  the line the reader names and the reader's reason. It fails a ready pull
+  request and prints on a draft. The broad gate's own run prints it, and
+  fails on it only where a ready pull request is already open. A spec with
+  no `## Rule changes` section, a work item with no `spec.md`, a spec
+  another pull request's squash carried, a spec only moved, and every spec
+  of a pull request that declares nothing are left alone. Where the reader
+  will not load, the check exits 2 and says so.
 - **A near miss of the `## Rule changes` heading is refused instead of read
   as a spec with no section (#1006).** A heading at any level whose letters,
   case folded, are those of `Rule changes`, such as `## Rule Changes` or

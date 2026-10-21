@@ -1932,15 +1932,34 @@ def put_spec(root, text, committed=True):
         seal(root)
 
 
-def refusal(root, text):
-    """The line the check prints for a spec reading TEXT outside CI, built
-    from `rule_changes.parse`'s own error so no reason is spelt here."""
+def refusal(root, text, item=ITEM):
+    """The line the check prints for ITEM's spec reading TEXT outside CI,
+    built from `rule_changes.parse`'s own error so no reason is spelt here."""
     ((line, reason),) = RULES.parse(text, reader.policy_root(str(root))).errors
-    return f"{ITEM}/spec.md:{line}  {chain.RULE_CHANGES_SAYS.format(reason=reason)}"
+    return f"{item}/spec.md:{line}  {chain.RULE_CHANGES_SAYS.format(reason=reason)}"
 
 
-def spec_lines(out):
-    return [ln for ln in out.splitlines() if f"{ITEM}/spec.md" in ln]
+def spec_lines(out, item=ITEM):
+    return [ln for ln in out.splitlines() if f"{item}/spec.md" in ln]
+
+
+def reviewed_to_head(root):
+    """A round 3 at HEAD, with nothing of its own, and the closing records
+    after it: what the branch carries once its edit outside the work item's
+    own directory was reviewed, so the spec read is the one refusal left."""
+    head = git(root, "rev-parse", "HEAD")
+    write(root, f"{ITEM}/rounds/round-3.md", record(head, n=3))
+    commit(root, "the round at HEAD")
+    seal(root)
+
+
+def on_main(root, rel, text):
+    """Commit TEXT at REL on `main` and merge `main` into `feature/x`."""
+    git(root, "switch", "-q", "main")
+    write(root, rel, text)
+    commit(root, f"{rel} on the base")
+    git(root, "switch", "-q", "feature/x")
+    git(root, "merge", "-q", "--no-edit", "main")
 
 
 @pytest.mark.rule("rule-changes-read-at-the-pull-request")
@@ -1994,14 +2013,23 @@ class TestRuleChangesRead:
         path, line = where.rsplit(":", 1)
         assert f"::notice file={path},line={line}::{said}" in out.splitlines(), out
 
-    def test_the_broad_run_still_refuses_it(self, branch, ready, capsys):
+    def test_the_broad_run_keeps_it_a_refusal_and_fails_only_on_a_ready_one(
+        self, branch, ready, capsys, monkeypatch
+    ):
         """S6: `--sealing` turns the closing records' lines into notices and
-        leaves this refusal one."""
+        leaves this refusal one, so a ready pull request fails. Where no pull
+        request is observed, as when the broad run goes before the pull
+        request opens, the check prints it and exits 0."""
         root, _code = branch
         text = spec_with(CONTINUED)
         put_spec(root, text)
         code, out = check(root, capsys, chain.SEALING)
         assert code == 1, out
+        assert spec_lines(out) == [refusal(root, text)], out
+        monkeypatch.delenv("GITHUB_EVENT_PATH")
+        code, out = check(root, capsys, chain.SEALING)
+        assert code == 0, out
+        assert chain.UNSEEN_SAYS in out
         assert spec_lines(out) == [refusal(root, text)], out
 
     def test_a_framer_drawn_frame_is_read_as_the_sessions_is(
@@ -2078,6 +2106,84 @@ class TestRuleChangesRead:
             "chain-check: the rule-changes reader would not load (a planted failure)"
             in err
         )
+
+    def test_another_work_items_spec_the_branch_adds_is_read(
+        self, branch, ready, capsys
+    ):
+        """S12: a declared work item's commit adds a spec to another work
+        item, whose `routing.md` is not in the diff, as #941's squash did to
+        114 of them."""
+        root, _code = branch
+        text = spec_with(CONTINUED)
+        write(root, f"{MERGED_ITEM}/spec.md", text)
+        commit(root, "another work item's spec")
+        reviewed_to_head(root)
+        code, out = check(root, capsys)
+        assert code == 1, out
+        assert spec_lines(out, MERGED_ITEM) == [refusal(root, text, MERGED_ITEM)], out
+
+    def test_another_work_items_spec_the_branch_changes_is_read(
+        self, branch, ready, capsys
+    ):
+        """S13: a spec that parses on the base, edited on the branch into a
+        section the reader refuses."""
+        root, _code = branch
+        rel = f"{MERGED_ITEM}/spec.md"
+        on_main(root, rel, spec_with(NOTHING))
+        text = spec_with(CONTINUED)
+        write(root, rel, text)
+        commit(root, "another work item's section, edited")
+        reviewed_to_head(root)
+        code, out = check(root, capsys)
+        assert code == 1, out
+        assert spec_lines(out, MERGED_ITEM) == [refusal(root, text, MERGED_ITEM)], out
+
+    @pytest.mark.rule("two-review-answers")
+    def test_another_work_items_spec_is_read_straight_to_the_pr(
+        self, branch, ready, capsys
+    ):
+        """S14: under `straight to the PR` no round is owed, and the spec is
+        still read."""
+        root, _code = branch
+        write(
+            root,
+            f"{ITEM}/routing.md",
+            ROUTING.format(review="straight to the PR", planning="the session"),
+        )
+        git(root, "rm", "-rq", f"{ITEM}/rounds")
+        text = spec_with(CONTINUED)
+        write(root, f"{MERGED_ITEM}/spec.md", text)
+        commit(root, "direct, and another work item's spec")
+        seal(root)
+        code, out = check(root, capsys)
+        assert code == 1, out
+        assert spec_lines(out, MERGED_ITEM) == [refusal(root, text, MERGED_ITEM)], out
+
+    def test_a_pull_request_that_declares_nothing_reads_no_spec(
+        self, branch, ready, capsys
+    ):
+        """S15: the promise in `hygiene.yml` and `CONTRIBUTING.md` holds."""
+        root, _code = branch
+        git(root, "rm", "-rq", ITEM)
+        write(root, f"{MERGED_ITEM}/spec.md", spec_with(CONTINUED))
+        commit(root, "no work item, and a spec")
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert "declared neither way" in out
+        assert spec_lines(out, MERGED_ITEM) == [], out
+
+    def test_a_spec_only_moved_is_not_read(self, branch, ready, capsys):
+        """S16: a move with the bytes unchanged writes no section, so it is
+        read at the pull request that wrote it, as a moved declaration is."""
+        root, _code = branch
+        old, new = "seal/specs/1788000001-old", "seal/specs/1788000001-moved"
+        on_main(root, f"{old}/spec.md", spec_with(CONTINUED))
+        git(root, "mv", old, new)
+        commit(root, "moved")
+        reviewed_to_head(root)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert spec_lines(out, old) == [] and spec_lines(out, new) == [], out
 
 
 # --- main: the arms over a pull request ---------------------------------------
