@@ -95,8 +95,8 @@ or more characters that are not whitespace, a quote, a backtick, a parenthesis o
 JSON writes a quote, a backslash and each control character with a backslash in front.
 
 The probe masked each text and then scanned the side line by line, as the test at line 1614 does. Two texts
-produced a refusal in the written side. `/Users/` at the end of a line became `/Users/\nnext`. A quoted `"/Users/"`
-became `/Users/\`. Neither text is masked, because on the plain line the scan finds nothing to replace. The second
+produced a refusal in the written side. A user root at the end of a line became the root followed by the escaped line break and the next word. A quoted user root
+became the root followed by an escaped quote. Neither text is masked, because on the plain line the scan finds nothing to replace. The second
 shape is the one a warden writes when it quotes this branch's own test line 404, `"/Users/" + "someone/"`, in a
 fix block. The committed side would then fail `test_no_user_paths`, and the orchestrator would have to edit a side
 by hand. Q4 was answered to avoid exactly that. The six other edge texts the probe wrote (a host after a tab, CR or
