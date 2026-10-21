@@ -2060,14 +2060,17 @@ class TestRuleChangesRead:
         self, branch, ready, capsys, monkeypatch
     ):
         """S10: the check cannot run, which is not a pass, and stderr names
-        the reader and what it raised."""
+        the reader and what it raised. A work item with no `spec.md` has
+        nothing to read and never reaches the reader."""
         root, _code = branch
-        put_spec(root, spec_with(NOTHING))
 
         def will_not_load():
             raise ImportError("a planted failure")
 
         monkeypatch.setattr(chain.SHARED_READER, "rule_changes", will_not_load)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        put_spec(root, spec_with(NOTHING))
         code = chain.main(["--baseline", "main", "--root", str(root)])
         err = capsys.readouterr().err
         assert code == 2, err
