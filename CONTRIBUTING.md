@@ -186,8 +186,9 @@ The contributor refreshes the file from the artifact of the branch's latest
 `tests` run: `gh run download <run id> -n test-durations -D <dir>`, then
 moves `<dir>/.test_durations` over the committed file and commits it. Its
 line ends are already LF. The download goes to a directory of its own
-because `gh` will not write over a file that is already there. A run whose
-artifact has expired is re-run first, with `gh run rerun <run id>`. A branch
+because `gh` will not write over a file that is already there. Where the
+run's artifact has expired, the contributor re-runs it first, with
+`gh run rerun <run id>`. A branch
 with no pull request has no `tests` run until one is dispatched, and neither
 has a branch whose run is too old to re-run:
 `gh workflow run test.yml --ref <branch>` starts one.
@@ -245,8 +246,8 @@ adds any mechanism by what it takes away:
   question really is the only answer, it belongs in the batch asked before
   the first edit, never at minute thirty.
 - **Platform honesty.** Process inspection (`ps`, `lsof`, `/proc`) behaves
-  differently across macOS, Linux, and Windows. A platform the contributor
-  could not test is named in the pull request rather than assumed.
+  differently across macOS, Linux, and Windows. The contributor names in the
+  pull request each platform they could not test, rather than assuming it.
 - **What it removes.** A pull request that adds a mechanism (a gate, a
   checker, a hook, a CI step, a rule) names the existing one it removes, or
   says why none can go, and with either answer what that one caught against
@@ -281,7 +282,8 @@ a question is not its difficulty, it is when it arrives.
 
 - **No real identifiers.** Examples, fixtures, and docs use `example.com`
   and `/Users/x/` only. `tests/test_no_real_identifiers.py` enforces it in
-  CI, and its allowlist is extended deliberately, never to make a test pass.
+  CI, and a contributor extends its allowlist deliberately, never to make a
+  test pass.
   The rule is held this hard because a real domain, path or organisation
   name inlined into an example is the leak that forces a rewrite of the
   repository's history.
@@ -293,8 +295,8 @@ a question is not its difficulty, it is when it arrives.
   with `console.to_utf8()`.
   `tests/test_every_file_the_plugin_reads_or_writes_names_its_encoding.py`
   enforces the first over every tracked `.py` and the second over `hooks/`,
-  and a unit is classified in its `ALLOWED` deliberately, never to make a
-  test pass. A `python3 -c` line in a skill or a workflow is outside its
+  and a contributor classifies a unit in its `ALLOWED` deliberately, never to
+  make a test pass. A `python3 -c` line in a skill or a workflow is outside its
   reach, so its writer names the encoding there.
 - **Functional files are English-only.** Skills, agents, hooks, and commands
   load into model context, where a translated mirror would drift. Korean

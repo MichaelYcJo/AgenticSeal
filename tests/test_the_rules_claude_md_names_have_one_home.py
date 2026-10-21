@@ -63,7 +63,8 @@ RULES = {
         CONTRIBUTING,
         "House rules",
         (
-            "its allowlist is extended deliberately, never to make a test pass.",
+            "a contributor extends its allowlist deliberately, never to make a "
+            "test pass.",
             "a real domain, path or organisation name inlined into an example "
             "is the leak that forces a rewrite of the repository's history",
         ),
