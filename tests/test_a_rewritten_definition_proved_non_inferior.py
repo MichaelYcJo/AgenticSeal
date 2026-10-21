@@ -23,6 +23,7 @@ import os
 import posixpath
 import re
 import subprocess
+import sys
 import types
 
 import pytest
@@ -1331,6 +1332,57 @@ def test_a_side_regraded_onto_its_own_suite_is_unchanged(tmp_path, monkeypatch):
     assert after["cases"][0]["aggregates"] == before["cases"][0]["aggregates"]
     assert after["aggregates"] == before["aggregates"]
     assert after["specseal"]["suite_rev"] == commits["own"]
+
+
+def fenced_first_run(result):
+    """Run 0 printed truth-1's line only inside a finding's fenced fix."""
+    run = result["cases"][0]["arms"]["with"][0]
+    run["specseal"]["report_text"] = printed(
+        "### 1. a defect\n\nseverity: must\nlocation: `src/a.py:40`\n"
+        "verdict: open\n\n```\nlocation: `src/a.py:11`\n```\n"
+    )
+
+
+def test_regrade_checks_a_side_against_the_file_the_eval_searched(
+    tmp_path, monkeypatch
+):
+    """Guards the two readings `regrade` holds apart. The eval searched the
+    whole file and found truth-1 on run 0's fenced line, so the side's own
+    suite gives that result back only from the whole `report_text`, and the
+    side is accepted. Graded on a suite, the run is read by its finding
+    rows, where the fenced line is no row, so truth-1 passes no run."""
+    commits = suite_commits(tmp_path, monkeypatch)
+    side = graded_side(
+        tmp_path, commits["own"], ROWS, [True, False], spoil=fenced_first_run
+    )
+    out = tmp_path / "out.json"
+    assert regrade(side, commits["own"], out) == 0
+    after = json.loads(out.read_text(encoding="utf-8"))
+    first = after["cases"][0]["arms"]["with"][0]
+    assert {g["name"]: g["passed"] for g in first["graders"]}["truth-1"] is False
+    numbers = ni.side_numbers(after)
+    assert numbers["graders"][("warden c1", "truth-1")] == ["truth", 0, 2]
+
+
+def test_the_scan_loads_in_a_process_that_cannot_import_a_test_module(tmp_path):
+    """Guards where `masked` runs: a side's run is `python3` on the script,
+    with no `tests/` on its path and maybe no pytest, so the scan is loaded
+    without the `conftest` import its cases need. Run in an isolated
+    interpreter, a refused path is masked."""
+    code = (
+        "import sys\n"
+        f"sys.path.insert(0, {os.path.join(ROOT, 'evals', 'scripts')!r})\n"
+        "import noninferiority as ni\n"
+        "print(ni.masked(sys.argv[1]))\n"
+    )
+    run = subprocess.run(
+        [sys.executable, "-I", "-c", code, f"read {REFUSED_PATH}log"],
+        cwd=tmp_path,
+        capture_output=True,
+        encoding="utf-8",
+    )
+    assert run.returncode == 0, run.stderr
+    assert run.stdout == "read /Users/x/log\n", run.stdout
 
 
 def test_a_side_regraded_onto_a_wider_truth_counts_the_row_it_now_matches(
