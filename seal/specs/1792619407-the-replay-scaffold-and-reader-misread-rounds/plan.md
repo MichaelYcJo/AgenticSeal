@@ -19,7 +19,7 @@ second convention for one kind of fact. -->
 
 ## Summary
 
-Two phases, each closed by free cases and no paid run. Phase 1 makes the
+Three phases, each closed by free cases and no paid run. Phase 1 makes the
 harness read a round record through the check's own split and keep the
 record it read, so the count of findings and the count of finds come from
 one reader, and a reader corrected later can be applied to every side taken
@@ -30,6 +30,9 @@ nowhere in the clone. The commits before the target still hold the seeded
 line unmutated, so `git diff HEAD^ HEAD` shows the seed inside a commit that
 otherwise touches records, in each of the four clones (executed by the
 smith, `phases/phase-2.md`); whether that leak stands is `questions.md` Q5.
+Phase 3, after the reframe that followed round 3, settles what the harness
+reads from a record the check itself cannot read: no finding and no find,
+and one false row per raw finding heading (U1 to U4).
 The paid baseline is `questions.md` Q1, not run by
 default.
 
@@ -63,6 +66,14 @@ The code this builds on, opened at 65db1096:
   line `commit^1..commit` added in a Python unit; `:227` `scaffold`
   fetches the commit alone, mutates, `git rm`s the rounds and amends;
   `:249` `prompt`; `:266` `graders`.
+- For phase 3, at 9f8fe13b: `evals/scripts/noninferiority.py:298`
+  `unhidden` keeps `readable`'s lines up to the first opener
+  `chain_check.py#unclosed` reports and reads the lines after it again on
+  their own; `:315` `finding_rows` splits its lines.
+  `skills/code-review/scripts/chain_check.py:1127` `unclosed` and `:504`
+  `FINDING_LEVEL`. The shared reader scans comments before fences, so a
+  comment opener inside a closed fence hides the fence's closer, and
+  `unclosed` then reports both openers (`rounds/round-3.md` finding 1).
 - `evals/scripts/recurred_truths.json`: 17 entries, six of them for
   `seeded-279a580b` (two) and `seeded-9b644676` (four), applied by case name
   at the case's target by `replay_targets.py:501` `truths_with`.
@@ -92,6 +103,10 @@ its fetch, loudly.
 | R1. Keep `FINDING_ROW` and make it skip fenced lines | A second statement of the grammar, which #1000 has already moved once. The next shape change drifts the harness from the check without a word, and the fault this issue names returns | Rejected under `CLAUDE.md` *The rule a mechanism is kept against*: a fact has one source |
 | R2. Read through `chain_check.py#record_findings` | It drops every finding it refuses, so a warden writing a broken `location:` line lowers its own false-finding rate. That is the harness failing open on the number rule 2 reads | Rejected |
 | R3. Split by `chain_check.py#finding_spans` over the shared reader's lines, one row per section, a refused section still a row | A record with two `## Findings` sections gives no rows, as the check's split does; the `shape-findings` grader does not catch that case | Chosen; the limit is the check's own |
+| U1. Keep the structure: `unhidden`, with a fourth reading that also handles a comment opener inside a closed fence | Round 1 read the raw lines, round 2 read the lines after the opener again, round 3 found that reading starting inside a fence; a fourth reading meets the fifth shape. Any reading after an opener the check cannot read is a second grammar of regions beside the shared reader's, the class R1 rejects. The premise that keeps it, that a refused record still holds finds worth crediting, was checked: the check reads no finding from such a record and refuses it at the pull request | Rejected |
+| U2. The warden's floor (`rounds/round-3.md` finding 1): rows from `unhidden`, padded with empty false rows up to the count of raw finding-level heading lines, fenced ones included, and `unhidden` kept for grading truths | The false count fails closed. Recall does not: `unhidden` stays, and where it misreads, the lines inside a later fenced fix can read as live. In round 3's shape the fence closer opens a fence, the next fix block's opener closes it, and that block's lines join a row, so a fenced `location:` line there can match a truth and credit a find (read: follows from round 3's trace, not executed). The mechanism the last three rounds chased stays for the next round to chase | Rejected |
+| U3. Mirror the check exactly: a refused record gives no rows and no finds | A warden that leaves one comment open lowers its false count for that run to zero. That fails open on the number rule 2 reads | Rejected |
+| U4. A refused record gives one empty, false row per raw line at the finding heading level, fenced and commented lines included, and no find | A warden whose record leaves a region open loses every find of that run and counts every heading line false, fenced `### ` lines included. One such run can cost a truth a pass and tip rule 1 or rule 2 for a side, where a reading might have credited real finds. Accepted: production reads the same record as no finding and refuses it, the warden's step 7 runs the check and corrects that refusal before handing back, and the penalty falls on the side whose run wrote the record. `unhidden` goes, and the empty rows find no truth through `grade` with no branch of their own | Chosen |
 | K1. Keep storing rows, now by the new reader | The defect again one level up: the next reader cannot be applied to sides that keep only this reader's output | Rejected |
 | K2. Keep the printed record whole in the side | A side grows by the records' bytes, about 18 records a warden side. A record can hold a user path the identifier scan refuses, so the text is masked where the scan would refuse it (`questions.md` Q4) | Chosen |
 | T1. Leave `truth-` results to the eval's whole-file search | A fenced line that matches a truth credits a find with no row behind it, so recall and the false rate are read by two readers | Rejected |
@@ -105,6 +120,7 @@ Vertical slices: each phase ends with something runnable and verified.
 |---|---|---|---|
 | 1 | **The reader.** The smith, in `evals/scripts/noninferiority.py`: the finding rows of a text by `chain_check.py#finding_spans` over the shared reader's lines, loaded as `replay_targets.py#record_reader` loads them; `annotate` keeping `report_text` in place of `report_rows`, masked by `questions.md` Q4; `side_numbers`, `regraded`, `unreproduced` and `regrade` reading rows and `truth-` passes from it (spec *Data & interfaces*); the refusal of a side without `report_text` in `compare` and `regrade`; `FINDING_ROW` and `report_rows` removed. Test-first in `tests/test_a_rewritten_definition_proved_non_inferior.py`: spec S1 to S7, and every case that builds a side by hand given `report_text`. `evals/README.md` (the sentence on what a side records, the `regrade` paragraph) and the module docstring rewritten in place. Done when every case below passes and no line of the tree outside `seal/` names `report_rows` or `FINDING_ROW` | S1 to S7 each seen red first, with the command and its exit in `phases/phase-1.md`; `mutation-check` red for the masked text read unmasked, for the refusal dropped, and for `truth-` passes taken from the eval again; `bin/test tests/test_a_rewritten_definition_proved_non_inferior.py tests/test_evals_layout.py -q` exit 0; S7's executed command over `seal/specs/1792368015-every-finding-carries-an-evidence-line/evals/baseline-warden.json` exit 2; `git grep -n -e report_rows -e FINDING_ROW -- ':!seal'` empty; `ruff check` and `ruff format --check` on the touched `.py` files | ba469747 |
 | 2 | **The seeded case.** The smith, in `evals/scripts/seed_defects.py`: targets read from round 1's record at each shipped squash commit through `replay_targets.py`'s readers; the seed chosen over `base..target`; the scaffold of spec *Data & interfaces*, with no `git rm`; round 1's confirmed fixes as truths beside `truth-seeded`; the case name kept as the squash's first 8 hex. The six seeded entries removed from `recurred_truths.json`. The four seeded cases regenerated with `--case` (`questions.md` Q3 for one that cannot be built). Test-first: spec S8 and S9, and the generator cases that name `seeded-279a580b` updated in place. `evals/README.md`'s `seed_defects.py` row and the stated point, the module docstring, and `changelog.md` in this directory written. Done when every regenerated scaffold has been run and every check of S10 holds | S8 and S9 seen red first; S10 executed once per case, network fetches included, each line in `phases/phase-2.md`; S11 `git status --porcelain evals/behaviour/` empty after regenerating; S12 `git rev-parse` of every other case tree equal at base and head; S13's `git grep`; `bin/test tests/test_a_rewritten_definition_proved_non_inferior.py tests/test_evals_layout.py -q` exit 0; `ruff check` and `ruff format --check` on the touched `.py` files | 5ed3d66c |
+| 3 | **A record the check cannot read.** The smith, in `evals/scripts/noninferiority.py`: `finding_rows` returns, where `chain_check.py#unclosed` refuses the text, one empty row per line of `reader.gfm_lines(text)` at `chain_check.py#FINDING_LEVEL`, and otherwise the split of phase 1 over `reader.readable`'s lines (spec *Data & interfaces*); `unhidden` removed. Test-first in `tests/test_a_rewritten_definition_proved_non_inferior.py`: spec S5a, S5b and S5c, the three cases at `:1093`, `:1136` and `:1148` rewritten in place to empty rows, and round 3's probe record as a case. The `finding_rows` docstring and the changelog fragment's sentence on such a record rewritten in place. Done when every case below passes and no line of the tree outside `seal/` names `unhidden` | S5a, S5b and S5c seen red against 9f8fe13b first, with the command and its exit in `phases/phase-3.md`; `mutation-check` red for the floor dropped, for the count taken over `readable`'s lines, and for a row of a refused record holding its `location:` lines; `bin/test tests/test_a_rewritten_definition_proved_non_inferior.py -q` exit 0; `git grep -n unhidden -- ':!seal'` empty; `ruff check` and `ruff format --check` on the touched `.py` files | |
 
 This table is also where the work records how far it got. There is no separate
 task list: a list of tasks is mutable progress, and a stale one asserts a state

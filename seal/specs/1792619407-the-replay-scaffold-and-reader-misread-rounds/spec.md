@@ -79,6 +79,19 @@ committed side.
    section's `location:` lines, or empty where the section has none. A
    section the check would refuse is still one row, so a finding written in
    a broken shape counts as false instead of vanishing. `FINDING_ROW` goes.
+   **Where the check cannot read the record, the harness reads no finding
+   out of it either.** A record `chain_check.py#unclosed` refuses, one
+   holding a comment or a fence that never closes, has no reading the check
+   stands behind: `reader.readable` hides every line after the opener, and
+   each of three later readings missed a shape (`rounds/round-1.md` finding
+   2, `round-2.md` finding 1, `round-3.md` finding 1). Such a record gives
+   one empty row for each line of its raw text, fenced and commented lines
+   included, that the shared reader reads as a heading at the finding
+   level. Every such row is false, and no `truth-` grader over the record
+   finds anything in that run. The count errs toward more false rows and
+   fewer finds, never the other way, and it follows the check, which reads
+   no finding from such a record and refuses it at the pull request
+   (`plan.md` U1 to U4).
 2. **A side keeps the record it was graded on.** Each run's `specseal`
    keeps the last printed record whole, as `report_text`, in place of
    `report_rows`. Rows are derived from it whenever a side is read, so a
@@ -199,6 +212,9 @@ list is the head of `questions.md`.
 | S3 a location line outside a finding is no row | Given `location:` lines in `## Not judged`, in an HTML comment and above `## Findings`, when the side is read, then none is a row | A case, seen red against `FINDING_ROW` |
 | S4 a truth matched only inside a fence is not found | Given a `truth-` grader whose pattern matches only the fenced line of S1, when the side is counted, then that grader passes no run and the row stays the one row | A case over `side_numbers`, seen red against the eval's recorded `passed` |
 | S5 the reader is the check's | Given `chain_check.py#finding_spans` replaced by one returning no section, when a side is read, then it has no rows | A case with the function patched, seen red against a reader that does not call it |
+| S5a a record the check cannot read gives a false row per raw finding heading | Given each record of the three rounds' probes, each of three findings: a comment opener left open in finding 1's prose (`round-1.md` finding 2); a fenced `## Not judged` or `## Findings` before or after an open comment (`round-2.md` finding 1); a lone comment opener inside finding 1's closed fenced fix (`round-3.md` finding 1). When the side is read, then each run has three rows, every one empty and false | The three cases at `tests/test_a_rewritten_definition_proved_non_inferior.py:1093`, `:1136` and `:1148` rewritten in place to three empty rows, and a case for round 3's record, seen red against the reader at 9f8fe13b, which gives it two rows |
+| S5b a record the check cannot read finds no truth | Given a record of S5a whose finding 2 names a truth's line outside every fence and comment, when the side is counted, then that truth passes no run and the run has three false rows | A case over `side_numbers`, seen red against the reader at 9f8fe13b, which credits the find |
+| S5c a fenced finding heading counts in such a record | Given a record holding a comment that never closes and a fenced fix with a `### ` line, when the side is read, then that line is one more empty row | A case, seen red against a count over `readable`'s lines |
 | S6 the record is kept whole | Given a trace whose session printed two records with `cat`, when the side is annotated, then `report_text` is the last one, byte for byte, and the run carries no `report_rows` | The case `test_the_report_rows_are_the_last_report_the_session_printed`, rewritten in place and renamed for the text, seen red against the old `annotate` |
 | S7 a side without the text is refused | Given a side any run of which has no `report_text`, when `compare` or `regrade` reads it, then it exits 2 and the message names the side and says it was read by the reader before #986 | One case per subcommand, seen red against the old code; and the executed command over `seal/specs/1792368015-every-finding-carries-an-evidence-line/evals/baseline-warden.json` |
 | S8 the seeded case is round 1's tree | Given a generator fixture whose shipped item has a round 1 record, when `seed_defects.py` writes the case, then the scaffold fetches round 1's target and base, checks out the target, holds no `git rm`, and ends with the reflog expired, `FETCH_HEAD` removed and unreachable objects pruned; the prompt names HEAD and round 1's base, and no commit of the unmutated tree | A generator case in the same module, seen red against the old `scaffold` |
@@ -222,7 +238,12 @@ the smith, returns one string per `### ` section that
 `chain_check.py#finding_spans` finds over `SHARED_READER.readable(text)`:
 that section's lines `chain_check.py#label_of` reads as `location:`, joined
 by a newline, or the empty string. A record with no `## Findings`, or with
-two, gives no rows, as the check's split does.
+two, gives no rows, as the check's split does. Before any split, where
+`chain_check.py#unclosed` refuses the text, the function returns one empty
+string for each line of `reader.gfm_lines(text)` whose
+`reader.heading_level` equals `chain_check.py#FINDING_LEVEL`, and splits
+nothing. An empty row matches no `truth-` pattern, so `grade` finds no
+truth in such a run with no branch of its own.
 
 **Counting a side** (`noninferiority.py#side_numbers`). Rows and false rows
 come from the finding rows of each run's `report_text`. A `truth-` grader
@@ -265,6 +286,7 @@ present sentences with round 1's base. Its graders are `report_shape`'s,
 | The removal of the work item's rounds from a seeded clone | `evals/scripts/seed_defects.py#scaffold` | Can go: the case is built at round 1's target, where no round record exists yet |
 | The squash commit as a seeded case's tree | `evals/scripts/seed_defects.py#targets` | Round 1's target and base of the shipped work item |
 | The six entries naming `seeded-279a580b` and `seeded-9b644676` | `evals/scripts/recurred_truths.json` | Can go: their coordinates were read at squash commits no case is built on. The next classed side under the new suite derives entries for the new trees |
+| The reading again of a record after a region that never closes | `evals/scripts/noninferiority.py#unhidden` | Can go: a record the check cannot read gives one false row per raw finding heading and no find (scope item 1), so no reading of its lines is owed. The changelog fragment's sentence that such a record "is split on its raw lines, so the findings after the opener still count" is rewritten in place |
 | The case pinning the old reader | `tests/test_a_rewritten_definition_proved_non_inferior.py#test_the_report_rows_are_the_last_report_the_session_printed` | Rewritten in place for `report_text` (S6), under a name that says so |
 | The four seeded case directories as generated today | `evals/behaviour/warden/seeded-279a580b/`, `seeded-4d316179/`, `seeded-9b644676/`, `seeded-ad447367/` | `seeded-279a580b` and `seeded-ad447367` rewritten by `seed_defects.py --case` under the same names; `seeded-4d316179` and `seeded-9b644676` removed, replaced by `seeded-8a100e13` and `seeded-f1c9932d` (`phases/phase-2.md`) |
 
@@ -274,3 +296,4 @@ Anything a planner must answer lives in questions.md, not inline: unanswered
 questions buried in prose read as decided.
 
 Framed 2026-10-22 by framer, before the build.
+Reframed 2026-10-22 by framer, after round 3.
