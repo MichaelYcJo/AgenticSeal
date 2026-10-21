@@ -69,3 +69,7 @@
   `broad-gate`'s refusal names it so. The spec template's last section is
   `## Open questions`, and the comments of the plan, overview and routing
   templates link the rules they used to restate.
+- **`CONTRIBUTING.md` states the current rule (#940).** It names the
+  contributor where it said "you", drops the issue numbers and anecdotes it
+  carried, and names the constant or the workflow file where it restated
+  CI's job and shard counts, the case ceiling and the artifact's retention.
