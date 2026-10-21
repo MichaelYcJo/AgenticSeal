@@ -1553,6 +1553,11 @@ def test_the_report_text_is_the_last_record_the_session_printed(tmp_path):
     text = ni.report_text(str(trace))
     assert text == last[0]["text"]
     assert ni.finding_rows(printed(text)) == ["location: `x:1`"]
+    # A run taken before 0.22.0 printed its record as `<...>-report.md`.
+    trace.write_text(
+        "\n".join(json.dumps(e) for e in cat("d", last)) + "\n", encoding="utf-8"
+    )
+    assert ni.report_text(str(trace)) == last[0]["text"]
 
 
 def old_side(path):
