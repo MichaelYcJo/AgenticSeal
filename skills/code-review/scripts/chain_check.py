@@ -6,13 +6,18 @@ Run by CI on every pull request (`.github/workflows/hygiene.yml`). It judges
 the `seal/specs/<id>/routing.md` naming the pull request's branch and every
 one its own commits add or change. One that reached the branch inside another
 pull request's squash was judged at that pull request and is named, not
-judged (`carried_by`). The arms are five:
+judged (`carried_by`). The arms are six:
 
   declaration   the file parses as a routing declaration; one the pull
                 request removed is accepted where the work item was retired
   frame         `Planning | framer`: `spec.md` and `plan.md` are committed,
                 `spec.md` ends with the framer's mark, and every `Reframed`
                 line under it names the framer
+  rule changes  under either `Planning` answer: the `## Rule changes`
+                section of the work item's `spec.md` parses with
+                `rule_changes.parse`, the one reader `settle` applies; a
+                spec with no such section, and a work item with no spec,
+                pass
   records       `Review | through the review chain`: `rounds/` holds at least
                 one `round-N.md`; each reads whole against the grammar table
                 of `docs/the-review-record.md` §*The round record*, which
@@ -43,7 +48,8 @@ two arms print and do not fail.
 
 Exit: 0 nothing to refuse · 1 a refusal, each named `path:line  why` (a
 GitHub annotation in CI) · 2 the check could not run, a grammar table it
-cannot read among the causes, named by its file.
+cannot read, named by its file, and a reader that will not load among the
+causes.
 """
 
 import argparse
@@ -1543,6 +1549,29 @@ def frame(reader, routing, root, item, declared):
     return problems
 
 
+RULE_CHANGES_SAYS = (
+    "`## Rule changes` does not parse, and `settle` applies nothing from this "
+    "spec: {reason}"
+)
+
+
+def rule_changes_read(reader, root, item):
+    """[(path, line, problem)] for the work item's `spec.md` whose
+    `## Rule changes` section `rule_changes.parse`, the one reader `settle`
+    applies, refuses; [] where git carries no spec. The reader is reached
+    through `unverified_check.py#rule_changes`, which raises where it will
+    not load."""
+    rel = f"{item}/spec.md"
+    text = read_record(root, rel)
+    if text is None:
+        return []
+    parsed = reader.rule_changes().parse(text, reader.policy_root(root))
+    return [
+        (rel, line, RULE_CHANGES_SAYS.format(reason=reason))
+        for line, reason in parsed.errors
+    ]
+
+
 def verdict_problems(root, path, f):
     """[(path, line, problem)] for one finding's verdict: `open`; a `fixed`
     whose commit HEAD does not descend from; a `fixed` whose commit changed
@@ -1950,6 +1979,14 @@ def main(argv=None):
         problems.extend(
             (rel, 0, p) for p in frame(reader, routing, root, item, declared)
         )
+        try:
+            problems.extend(rule_changes_read(reader, root, item))
+        except (OSError, SyntaxError, ImportError, SystemExit) as exc:
+            print(
+                f"chain-check: the rule-changes reader would not load ({exc})",
+                file=sys.stderr,
+            )
+            return 2
         if declared["review"] == routing.CHAIN:
             problems.extend(records(reader, routing, root, item, rel, args.baseline))
         gate = broad_gate(reader, root, item, args.baseline)

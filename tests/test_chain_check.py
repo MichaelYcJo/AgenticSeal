@@ -1892,6 +1892,191 @@ class TestFrame:
         assert any("Reframed 2026-10-16 by the session" in p for p in problems)
 
 
+# --- rule_changes_read --------------------------------------------------------
+
+RULES = reader.rule_changes()
+# The refusal's text before the parser's reason, pinned here so an edit to
+# `chain.RULE_CHANGES_SAYS` meets a case.
+SAYS = "`## Rule changes` does not parse, and `settle` applies nothing from this spec: "
+CONTINUED = "- nothing\n  why: a reason\n  that continues two spaces in\n"
+PROSE = "- add\n  file: docs/policy.md\n  to: A rule.\n\nA paragraph under the item.\n"
+NOTHING = "- nothing\n  why: a reason\n"
+CHANGE = (
+    "- change\n  file: docs/policy.md\n  section: A section\n"
+    "  from: old words.\n  to: new words.\n"
+)
+
+
+def template_comment():
+    """What `templates/sdd-spec.md` holds under its `## Rule changes`: the
+    comment a framer's skeleton commit carries."""
+    text = (ROOT / "templates" / "sdd-spec.md").read_text(encoding="utf-8")
+    section = text.split("\n## Rule changes\n", 1)[1].split("\n## Removes\n", 1)[0]
+    assert section.strip().startswith("<!--") and section.strip().endswith("-->")
+    return section
+
+
+def spec_with(section):
+    """A spec whose `## Rule changes` holds SECTION, or that has no such
+    section where SECTION is None, ending with the framer's mark."""
+    rules = "" if section is None else f"## Rule changes\n\n{section}\n"
+    return f"# spec\n\nbody\n\n{rules}## Removes\n\nnone\n\n" + SPEC.split("\n\n")[-1]
+
+
+def put_spec(root, text, committed=True):
+    """Write the work item's `spec.md`; where COMMITTED, commit it and the
+    closing records after it, so the spec is the one thing to refuse."""
+    write(root, f"{ITEM}/spec.md", text)
+    if committed:
+        commit(root, "the spec")
+        seal(root)
+
+
+def refusal(root, text):
+    """The line the check prints for a spec reading TEXT outside CI, built
+    from `rule_changes.parse`'s own error so no reason is spelt here."""
+    ((line, reason),) = RULES.parse(text, reader.policy_root(str(root))).errors
+    return f"{ITEM}/spec.md:{line}  {chain.RULE_CHANGES_SAYS.format(reason=reason)}"
+
+
+def spec_lines(out):
+    return [ln for ln in out.splitlines() if f"{ITEM}/spec.md" in ln]
+
+
+@pytest.mark.rule("rule-changes-read-at-the-pull-request")
+class TestRuleChangesRead:
+    @pytest.mark.parametrize(
+        "section",
+        [lambda: CONTINUED, lambda: PROSE, template_comment],
+        ids=["S1-continued-two-in", "S2-prose-under-items", "S3-the-template-comment"],
+    )
+    def test_a_section_the_parser_refuses_fails_a_ready_pull_request_at_its_line(
+        self, branch, ready, capsys, section
+    ):
+        """S1, S2, S3: the one refusal names the spec, the line the parser
+        names and the parser's reason. S3's section is the template's
+        comment and nothing else, which a framer's skeleton commit holds."""
+        root, _code = branch
+        text = spec_with(section())
+        put_spec(root, text)
+        code, out = check(root, capsys)
+        assert code == 1, out
+        assert spec_lines(out) == [refusal(root, text)], out
+        assert SAYS in spec_lines(out)[0]
+
+    @pytest.mark.parametrize(
+        "section", [NOTHING, CHANGE, None], ids=["no-change", "a-change", "none"]
+    )
+    def test_a_section_that_parses_or_no_section_passes(
+        self, branch, ready, capsys, section
+    ):
+        """S4: the no-change block, a `change` item that parses, and a spec
+        with no `## Rule changes`, which `settle` names and keeps."""
+        root, _code = branch
+        put_spec(root, spec_with(section))
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert spec_lines(out) == [], out
+
+    def test_a_draft_prints_the_refusal_as_a_notice(
+        self, branch, draft, capsys, monkeypatch
+    ):
+        """S5: in CI a draft annotates the same line as a notice and passes."""
+        root, _code = branch
+        text = spec_with(CONTINUED)
+        put_spec(root, text)
+        monkeypatch.setenv("GITHUB_ACTIONS", "true")
+        code, out = check(root, capsys)
+        assert code == 0, out
+        notices = [ln for ln in out.splitlines() if ln.startswith("::notice ")]
+        assert any(f"file={ITEM}/spec.md," in ln for ln in notices), out
+        where, said = refusal(root, text).split("  ", 1)
+        path, line = where.rsplit(":", 1)
+        assert f"::notice file={path},line={line}::{said}" in out.splitlines(), out
+
+    def test_the_broad_run_still_refuses_it(self, branch, ready, capsys):
+        """S6: `--sealing` turns the closing records' lines into notices and
+        leaves this refusal one."""
+        root, _code = branch
+        text = spec_with(CONTINUED)
+        put_spec(root, text)
+        code, out = check(root, capsys, chain.SEALING)
+        assert code == 1, out
+        assert spec_lines(out) == [refusal(root, text)], out
+
+    def test_a_framer_drawn_frame_is_read_as_the_sessions_is(
+        self, branch, ready, capsys
+    ):
+        """S7: the fixture declares `Planning | the session`, which S1 reads;
+        under `Planning | framer`, with the frame arm satisfied, the spec is
+        refused the same way."""
+        root, _code = branch
+        write(
+            root,
+            f"{ITEM}/routing.md",
+            ROUTING.format(review="through the review chain", planning="framer"),
+        )
+        write(root, f"{ITEM}/plan.md", "# plan\n")
+        text = spec_with(CONTINUED)
+        put_spec(root, text)
+        code, out = check(root, capsys)
+        assert code == 1, out
+        assert spec_lines(out) == [refusal(root, text)], out
+
+    @pytest.mark.rule("judged-where-carried")
+    def test_a_spec_another_pull_requests_squash_carried_is_not_read(
+        self, branch, ready, capsys, monkeypatch
+    ):
+        """S8: the release pull request leaves the work item to the pull
+        request that carried it, its spec with it; the head branch's own
+        pull request reads the same spec."""
+        root, _code = branch
+        put_spec(root, spec_with(CONTINUED))
+        released(root)
+        monkeypatch.setenv("GITHUB_HEAD_REF", RELEASE)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert spec_lines(out) == [], out
+        monkeypatch.setenv("GITHUB_HEAD_REF", "feature/x")
+        _code, out = check(root, capsys)
+        assert len(spec_lines(out)) == 1, out
+
+    def test_the_working_tree_is_read_under_worktree_and_head_otherwise(
+        self, branch, ready, capsys
+    ):
+        """S9: a spec written and not committed is refused under `--worktree`;
+        CI reads HEAD, which does not carry it."""
+        root, _code = branch
+        text = spec_with(CONTINUED)
+        put_spec(root, text, committed=False)
+        code, out = check(root, capsys, "--worktree")
+        assert code == 1, out
+        assert spec_lines(out) == [refusal(root, text)], out
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert spec_lines(out) == [], out
+
+    def test_a_reader_that_will_not_load_is_exit_2_naming_it(
+        self, branch, ready, capsys, monkeypatch
+    ):
+        """S10: the check cannot run, which is not a pass, and stderr names
+        the reader and what it raised."""
+        root, _code = branch
+        put_spec(root, spec_with(NOTHING))
+
+        def will_not_load():
+            raise ImportError("a planted failure")
+
+        monkeypatch.setattr(chain.SHARED_READER, "rule_changes", will_not_load)
+        code = chain.main(["--baseline", "main", "--root", str(root)])
+        err = capsys.readouterr().err
+        assert code == 2, err
+        assert (
+            "chain-check: the rule-changes reader would not load (a planted failure)"
+            in err
+        )
+
+
 # --- main: the arms over a pull request ---------------------------------------
 
 

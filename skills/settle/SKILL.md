@@ -71,6 +71,9 @@ line, indented two spaces:
   applies nothing.
 
 `skills/settle/scripts/rule_changes.py` is the one reader.
+`chain-check` asks the same reader at the pull request, for each work item
+whose `routing.md` it judges (`docs/the-review-record.md` *What the check
+reads at the pull request*).
 
 ## A rule has one shape
 

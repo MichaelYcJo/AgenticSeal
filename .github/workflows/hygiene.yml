@@ -170,7 +170,8 @@ jobs:
       # reasoning the step above gives for an honest open row: a build that
       # goes red for one teaches people to write none. It fails for what the
       # author can fix: a declaration that says "through the review chain"
-      # with no committed round record, a declaration that cannot be read,
+      # with no committed round record, a declaration that cannot be read, a
+      # judged work item's `spec.md` whose `## Rule changes` does not parse,
       # and — on a pull request that is not a draft — a finding still `open` or
       # one the check cannot read, a last record behind HEAD or with a finding
       # no round after it read, no `broad-gate.md` at HEAD, or no

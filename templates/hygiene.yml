@@ -82,8 +82,9 @@ jobs:
       # A work item routed "through the review chain" has to carry the round
       # record it claimed. It never fails a pull request that declared
       # nothing; once the pull request is no longer a draft it fails a
-      # declaration with no committed round, a finding still `open` or one the
-      # check cannot read, a last record behind HEAD or with a finding no
+      # declaration with no committed round, a judged work item's `spec.md`
+      # whose `## Rule changes` does not parse, a finding still `open` or one
+      # the check cannot read, a last record behind HEAD or with a finding no
       # round after it read, no `broad-gate.md` at HEAD, and no
       # `guarantee.md` reading `sealed` at HEAD. A round's `target:`
       # commit is read only as HEAD or an ancestor of it, so the check
