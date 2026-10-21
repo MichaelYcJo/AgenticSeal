@@ -36,6 +36,16 @@ ALSO_APPLIES = (
 
 HEADING_SPAN = re.compile(r"`(## [^`]+)`")
 
+# The section that holds the three rules for text an agent or a check reads,
+# under `## 구성 규칙`, and the `check:` line each of the three ends with.
+WRITING_RULES = "### 에이전트와 검사가 읽는 글은 한 가지로만 읽히게 쓴다"
+WRITING_RULE_CHECKS = (
+    "check: tests/test_the_rules_command_reads_each_rule_off_its_test.py"
+    " tests/test_settle_applies_rule_changes_in_place.py",
+    "check: tests/test_one_word_one_meaning.py",
+    "check: none reader: the warden at review",
+)
+
 
 def read(rel):
     with open(os.path.join(ROOT, rel), encoding="utf-8") as f:
@@ -110,4 +120,53 @@ def test_each_language_section_of_writing_style_opens_alone():
     assert not dangling, (
         f"an agent's writing-style step names a heading {SKILL} does not have:\n"
         + "\n".join(dangling)
+    )
+
+
+def section(lines, heading, level):
+    """The lines under HEADING up to the next heading of LEVEL or higher."""
+    i = lines.index(heading) + 1
+    out = []
+    while i < len(lines):
+        mark = lines[i].split(" ", 1)[0]
+        if mark and set(mark) == {"#"} and len(mark) <= level:
+            break
+        out.append(lines[i])
+        i += 1
+    return out
+
+
+def test_the_rules_for_text_an_agent_or_a_check_reads_reach_both_languages():
+    """The three writing rules for text an agent or a check reads stand in
+    one section under `## 구성 규칙`, each ending with its `check:` line, and
+    a writer who opens either language section alone is pointed at it.
+
+    An agent opens one language section by range, so a rule under
+    `## 구성 규칙` reaches it only through the line naming the section; and
+    the skill loads by its description, so the description names this kind
+    of text among its uses (S16 of `1792540458-on-demand-files-state-the-current-rule`).
+    """
+    text = read(SKILL)
+    lines = text.split("\n")
+    structure = next(h for h in headings(text) if h.startswith("## 구성 규칙"))
+    assert WRITING_RULES in section(lines, structure, 2), (
+        f"{SKILL}: {WRITING_RULES!r} does not stand under {structure!r}"
+    )
+    body = [line.strip() for line in section(lines, WRITING_RULES, 3)]
+    checks = tuple(line for line in body if line.startswith("check: "))
+    assert checks == WRITING_RULE_CHECKS, (
+        f"{SKILL} {WRITING_RULES}: its check lines read {checks}, and the "
+        f"three rules end with {WRITING_RULE_CHECKS}"
+    )
+    title = WRITING_RULES[len("### ") :]
+    for heading in LANGUAGE_SECTIONS:
+        named = " ".join(section(lines, heading, 2))
+        assert f"*{title}*" in named, (
+            f"{SKILL} {heading}: nothing in it names *{title}*, so a writer "
+            "who opened this section alone never reaches the three rules"
+        )
+    head = " ".join(text.split("\n---\n", 1)[0].split())
+    assert "text an agent or a check reads" in head, (
+        f"{SKILL}'s description does not name text an agent or a check reads "
+        "among its uses, so the skill is not loaded to write one"
     )

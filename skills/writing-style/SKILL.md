@@ -7,7 +7,8 @@ description: |
   not mirrors). The per-document sections ADD to the sentence rules and never
   replace them.
   Use when: writing a review comment, PR body, investigation report, a reply
-  to another team, or an answer to the user in conversation.
+  to another team, an answer to the user in conversation, or text an agent or
+  a check reads (a skill, an agent definition, a template, a frame).
   NOT for: code comments/docstrings; commit, PR-title and branch format
   (commit-pr-convention).
 ---
@@ -46,6 +47,10 @@ PR 본문의 기준은 이것이다 — **파일을 하나도 열지 않고 읽�
 함께 적용되고, 쓰는 글의 절이 그 위에 더해진다. 리뷰 코멘트면
 `## 리뷰 코멘트에만 해당하는 것` 이고, PR 본문·다른 팀에 답하는 코멘트·사용자와의
 대화면 `outside-the-review.md` 의 절이다.
+
+에이전트나 검사가 읽는 글(스킬, 에이전트 정의, 템플릿, 프레임)을 쓴다면
+`## 구성 규칙` 아래 *에이전트와 검사가 읽는 글은 한 가지로만 읽히게 쓴다* 의 세
+규칙도 따른다.
 
 ### 완전한 문장으로 쓴다
 
@@ -242,6 +247,43 @@ seal* 은 감사하는 쪽만 밝히고 감사받는 것은 밝히지 않는다.
 걸려 있고(`tests/test_one_word_one_meaning.py`), 남은 낱말을 훑어 찾는 일은
 #331 이다.
 
+### 에이전트와 검사가 읽는 글은 한 가지로만 읽히게 쓴다
+
+스킬, 에이전트 정의, 템플릿, 프레임(`spec.md`, `plan.md`, `questions.md`)처럼
+에이전트가 읽고 따르거나 검사가 읽는 글에는 아래 세 규칙이 더해진다. 이 글을
+읽는 쪽은 쓴 사람에게 되물을 수 없다. 그래서 두 번 읽어야 뜻이 정해지는 문장은
+짧아도 비싸다.
+
+**읽는 쪽이 문법으로 받아들일 수 있는 기호를 쓰지 않고, 같은 값을 두 곳에
+적지 않고, 철자가 조금 틀린 줄이 통과할 수 있는 모양을 쓰지 않는다.** 줄표,
+화살표, 가운뎃점, 파이프, 절 기호를 제목이나 문장 안에서 구분자처럼 쓰면 읽는
+쪽이 그것을 문법으로 읽을 수 있으므로, 그 자리는 낱말로 쓴다. 같은 값이 두 곳에 있으면 한쪽만 고쳐지고, 읽는 쪽은 어느 것이 맞는지
+골라야 한다. 검사가 읽는 줄은 정해진 철자 하나만 읽히고 조금 틀린 철자는 그
+줄에서 거절되어야 한다. 조금 틀린 철자를 말없이 지나치는 검사는 그 줄을 읽지
+않은 것과 같다. 사례는 `plan.md` 의 승인 줄이다. 그 줄 뒤에 문장 하나를
+덧붙이자, 그 줄을 읽던 검사는 승인이 없다고 읽었다.
+check: tests/test_the_rules_command_reads_each_rule_off_its_test.py tests/test_settle_applies_rule_changes_in_place.py
+
+**저장소가 정의한 용어는 정의한 뜻으로만 쓰고, 같은 것을 다른 말로 바꿔 부르지
+않는다.** 한 대상을 두 낱말로 부르면 읽는 쪽은 둘을 다른 것으로 읽는다. 한
+낱말에 두 뜻을 실으면 어느 뜻인지 문장 밖에서 골라야 한다. 여럿이 가질 수 있는
+것은 위의 *여럿이 가질 수 있는 것은 누구 것인지 밝힌다* 를 따르고, 사례도 그
+절의 `seal` 이다.
+check: tests/test_one_word_one_meaning.py
+
+**무엇을 하라는 문장은 누가, 언제, 어느 파일에서 하고 무엇이 되면 끝인지를
+밝히고, 그중 하나가 빠질 만큼 줄이지 않는다.** 하는 쪽은 orchestrator, framer,
+smith, warden, sealer 처럼 이름으로 적는다. 두 당사자가 함께 여는 파일에서는
+"you" 나 "the session" 이라고 쓰지 않는다. 그 파일에서 "the session" 은 둘 중
+누구로도 읽힌다. 줄이다가 하는 쪽이나 조건이 빠진 문장은 절약이 아니라 결함이다.
+사례는 셋이다.
+
+- "So is" 로 시작한 문장이 바로 앞이 아닌 다른 절에 붙어 읽혔다(#953 의 sealer).
+- "The one writer that does is `settle`" 이 `docs/` 를 누가 쓰는지 정하는 규칙으로 읽혔다(`seal/specs/1792449518-settle-squashes-specs-into-docs-in-place/spec.md`).
+- orchestrator 와 구현자가 함께 읽는 파일에서 "the session" 이 둘 중 누구인지 정해지지 않았다.
+
+check: none reader: the warden at review
+
 ### 이전 → 이후를 표로 보인다
 
 동작이 바뀌는 것은 표가 가장 빠르다. 무엇을 하는지가 아니라 **무엇이 달라지는지**를 적는다.
@@ -283,6 +325,10 @@ for the text being written adds to them. That is
 `## 리뷰 코멘트에만 해당하는 것` for a review comment, and
 `outside-the-review.md` for a PR body, a reply to another team or a
 conversation.
+
+Text an agent or a check reads (a skill, an agent definition, a template, a
+frame) also follows the three rules of *에이전트와 검사가 읽는 글은 한 가지로만
+읽히게 쓴다*, under `## 구성 규칙`.
 
 Independent norms for English output (PR bodies and commit messages are often
 English even when reviews are Korean). The structure rules above apply as-is.
