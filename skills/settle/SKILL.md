@@ -69,6 +69,11 @@ line, indented two spaces:
   refused at its line, naming the block.
 - A block that does not match whole is refused at its line, and its spec
   applies nothing.
+- The section's heading is `## Rule changes`, spelt exactly so. A heading at
+  any level whose letters, case folded, are those of `Rule changes`, and
+  that is not that heading, is a near miss: it is refused at its line, and
+  its spec applies nothing. A heading with other letters, such as
+  `## Rules changes`, is another section.
 
 `skills/settle/scripts/rule_changes.py` is the one reader.
 `chain-check` asks the same reader at the pull request, for each work item

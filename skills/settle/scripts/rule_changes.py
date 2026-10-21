@@ -69,13 +69,29 @@ def headings(lines):
     return out
 
 
+def letters(text):
+    """TEXT's letters, case folded. A heading whose letters are those of
+    `HEADING` and that is not `## HEADING` is a near miss of it."""
+    return re.sub(r"[^a-z]", "", text.casefold())
+
+
 def parse(text, policy_root):
     """The `## Rule changes` section of a spec's TEXT, as a `Parsed`; each
-    `file` is a top-level `.md` of the directory POLICY_ROOT."""
+    `file` is a top-level `.md` of the directory POLICY_ROOT. A near miss of
+    the heading, at any level, is refused at its line."""
     r = reader()
     lines = r.gfm_lines(text)
     marks = headings(lines)
     found = [(n, lv) for n, lv, t in marks if lv == 2 and t == HEADING]
+    near = [
+        n
+        for n, lv, t in marks
+        if letters(t) == letters(HEADING) and (n, lv) not in found
+    ]
+    if near:
+        written = lines[near[0]].strip()
+        why = f"`{written}` is a near miss of `## {HEADING}`, the one heading read"
+        return Parsed([], None, [(near[0] + 1, why)])
     if not found:
         return Parsed(None, None, [])
     if len(found) > 1:

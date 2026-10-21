@@ -12,3 +12,11 @@
   with no `spec.md`, and a work item another pull request's squash carried
   are left alone. Where the reader will not load, the check exits 2 and says
   so.
+- **A near miss of the `## Rule changes` heading is refused instead of read
+  as a spec with no section (#1006).** A heading at any level whose letters,
+  case folded, are those of `Rule changes`, such as `## Rule Changes` or
+  `### Rule changes`, and that is not `## Rule changes` itself, is refused at
+  its line. Before this, `settle` named such a spec as one written before the
+  section existed and applied nothing from it. Now `settle` holds it, and
+  `chain-check` refuses it at the pull request. A heading with other
+  letters, such as `## Rules changes`, is still another section.
