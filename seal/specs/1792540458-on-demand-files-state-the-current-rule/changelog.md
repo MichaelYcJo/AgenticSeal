@@ -31,3 +31,10 @@
   generated copy in its `CLAUDE.md`, and the pull-request step that held the
   copy to the template is gone with the script it ran; a session in a clone
   of the plugin installs that clone's block by running `./install.sh` there.
+- **The orchestrator's half of `code-review` states the current rule, once
+  (#940).** `skills/code-review/orchestration.md` drops the measurements and
+  issue history it narrated and names the party of each act. The step before
+  the preflight says who writes the work item's `changelog.md`: the party
+  that builds it, the smith, or the orchestrator where `routing.md` answers
+  `Implementation` with `the session`. A redesign's second approval line
+  takes the shape `skills/implement/orchestration.md` states at the spawn.
