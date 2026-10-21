@@ -166,16 +166,16 @@ jobs:
       # round. Recording the answer lets it stay quiet, and that is only
       # allowed because the check moved here rather than disappearing.
       #
-      # It never fails for a pull request that declared NOTHING — the same
+      # It never fails for a pull request that declared NOTHING, for the same
       # reasoning the step above gives for an honest open row: a build that
-      # goes red for one teaches people to write none. It fails for what the
-      # author can fix: a declaration that says "through the review chain"
-      # with no committed round record, a declaration that cannot be read, a
-      # judged work item's `spec.md` whose `## Rule changes` does not parse,
-      # and — on a pull request that is not a draft — a finding still `open` or
-      # one the check cannot read, a last record behind HEAD or with a finding
-      # no round after it read, no `broad-gate.md` at HEAD, or no
-      # `guarantee.md` reading `sealed` at HEAD (`docs/the-review-record.md`
+      # goes red for one teaches people to write none. On a pull request that
+      # is not a draft it fails for what the author can fix: a declaration
+      # that says "through the review chain" with no committed round record, a
+      # declaration that cannot be read, a judged work item's `spec.md` whose
+      # `## Rule changes` does not parse, a finding still `open` or one the
+      # check cannot read, a last record behind HEAD or with a finding no
+      # round after it read, no `broad-gate.md` at HEAD, or no `guarantee.md`
+      # reading `sealed` at HEAD (`docs/the-review-record.md`
       # §*What the check reads at the pull request*).
       #
       # The draft state comes from GITHUB_EVENT_PATH, which this runner
