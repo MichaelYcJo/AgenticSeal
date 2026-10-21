@@ -59,3 +59,13 @@
   the history they narrated and the symbols used as separators, and name who
   acts. `/specseal:config` lists every row of its table where it used to
   count nine over eight.
+- **The templates state the current rule (#940).** Every file under
+  `templates/` drops the history and issue numbers it narrated, says in
+  words what it drew with dashes, arrows and middle dots, and names who acts
+  where it said "you" or gave a bare imperative. A record copied from a
+  template is titled `Kind: id`, as `# Review round <N>: <work-item-id>`,
+  the shape the spec and plan templates already had. `templates/config.md`'s
+  criterion section is now *The criterion for choosing a value*, and
+  `broad-gate`'s refusal names it so. The spec template's last section is
+  `## Open questions`, and the comments of the plan, overview and routing
+  templates link the rules they used to restate.
