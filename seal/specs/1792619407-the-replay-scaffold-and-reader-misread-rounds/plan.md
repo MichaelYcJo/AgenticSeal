@@ -5,6 +5,7 @@ is the Design Gate's artifact: where the work alters observable behaviour,
 approval of this plan is the gate. -->
 
 Approved 2026-10-22 by the orchestrator, under the owner's `automation` answer and the defaults of Q1 to Q4, when `smith` was spawned.
+Approved 2026-10-22 by the orchestrator, for the redesign after round 3, when `smith` was spawned.
 
 <!-- The line above is the record that the gate happened. The orchestrator
 writes it when it spawns the build, in the shape and on the terms
