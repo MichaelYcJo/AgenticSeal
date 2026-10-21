@@ -267,8 +267,9 @@ def apart(text, scan):
     the scan reads from the escape's backslash. The JSON form is the one
     `write_side` writes, with `ensure_ascii` off.
 
-    A refusal no escape is part of is left as it is."""
-    while True:
+    A refusal no escape is part of is left as it is, and no more spaces are
+    set than TEXT has characters."""
+    for _ in range(len(text) + 1):
         spans, at = [], 0
         for ch in text:
             width = len(json.dumps(ch, ensure_ascii=False)) - 2
@@ -289,8 +290,9 @@ def apart(text, scan):
             None,
         )
         if hit is None:
-            return text
+            break
         text = text[:hit] + " " + text[hit:]
+    return text
 
 
 def finding_rows(text):
