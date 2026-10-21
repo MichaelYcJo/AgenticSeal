@@ -15,7 +15,7 @@ Carried from round 1, not established again: where the readers live (`chain_chec
 severity: should
 location: `skills/code-review/scripts/chain_check.py:16-22`, `skills/settle/SKILL.md:79-82`
 evidence: read `skills/code-review/scripts/chain_check.py:16-22`, `skills/code-review/scripts/chain_check.py:1981-1993`, `skills/settle/SKILL.md:79-82`, `seal/specs/1792619289-the-pull-request-check-parses-rule-changes/spec.md:23-37`, `tests/test_chain_check.py:2189-2200`
-verdict: open
+verdict: fixed f31de4a4
 
 An agent decides from these two sentences whether CI will read a spec it edits. Under `[no-review]`, for example, the check reads nothing, and these sentences say it will.
 
@@ -45,7 +45,7 @@ one work item, for every work item `spec.md` its own commits add or change
 (`docs/the-review-record.md` *What the check reads at the pull request*).
 ```
 
-answer:
+answer: Both sentences now read as the record proposes. Each carries the qualifier "on a pull request that declares at least one work item", which *Scope* item 1 and S15 state. A `git grep` for "commits add or change" found no other place that drops it. The hygiene comments have "It never fails for a pull request that declared nothing" before their lists. The changelog opens its sentence with "On a pull request that declares a work item". The `add` item in `spec.md` `## Rule changes` says "A pull request that declares nothing reads no `spec.md`". `edited_work_items`'s docstring describes the set the function returns, and `main` reaches it only after the declared-nothing return. The changelog does not change. The fix moves no behaviour.
 
 ## Confirmations
 
