@@ -109,8 +109,13 @@ committed side.
    files name is an ancestor of the target. The per-round reader is
    `replay_targets.py#round_target`, which both generators call. Where
    round 1 names a base ref the remote no longer has, the squash commit's
-   first parent stands for it (`replay_targets.py#ref_base`): three of the
-   four round 1 records name `origin/release/v0.21.0`, which is gone.
+   first parent stands for it (`replay_targets.py#ref_base`). Three of the
+   four round 1 records name such a ref: those of `seeded-279a580b` and
+   `seeded-ad447367` name `origin/release/v0.21.0`, and that of
+   `seeded-f1c9932d` names `release/v0.22.1`, both gone from the remote.
+   That of `seeded-8a100e13` names `release/v0.22.2`, which the remote
+   still has (executed: `git show <squash>:<item>/rounds/round-1.md` for
+   each, round 1 finding 5).
 6. **The seeded scaffold fetches the target and the base, removes no file,
    and leaves no copy of the unmutated commit.** After the amend, the
    scaffold expires the reflog, removes `FETCH_HEAD` and prunes unreachable
@@ -208,8 +213,7 @@ list is the head of `questions.md`.
 **A run's `specseal` in a side** (`noninferiority.py#annotate`):
 `report_text`, a string, the output of the last `cat <...>/round-N.md` (or
 `<...>-report.md`) the case session ran without error, verbatim apart from
-the masking of `questions.md` Q4, which also sets one space after a control
-character wherever a host would follow it; the empty string where the session
+the masking `questions.md` Q4 states; the empty string where the session
 printed none. `report_rows` is no longer written. `cost` and `tool_calls`
 are unchanged.
 
