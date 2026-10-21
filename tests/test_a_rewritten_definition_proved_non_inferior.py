@@ -1186,6 +1186,29 @@ def test_a_fenced_finding_heading_counts_in_a_record_the_check_cannot_read():
     assert ni.finding_rows(text) == ["", "", "", ""]
 
 
+@pytest.mark.parametrize(
+    "spoil",
+    [
+        lambda text: text.replace("### 2.", "## Findings\n\n### 2.", 1),
+        lambda text: text.replace("## Findings\n", "## Findings (3)\n", 1),
+    ],
+    ids=["a-second-findings-section", "a-misspelt-findings-heading"],
+)
+def test_a_record_the_check_cannot_split_counts_every_finding_false(spoil):
+    """Guards round 4 of #986: `chain_check.py#finding_spans` refuses a
+    record with two `## Findings` sections or with none, and production
+    reads it as no finding. Like a record holding a region that never
+    closes, it gives one empty, false row for each raw finding heading, so
+    a warden cannot zero its false count by splitting or misspelling the
+    section, and finds no truth. The second section passes the
+    `shape-findings` grader, so this count is the only thing that sees it."""
+    text = spoil(three_findings({}).replace("src/b.py:2", "src/a.py:11"))
+    assert ni.finding_rows(text) == ["", "", ""]
+    numbers = ni.side_numbers(printed_side(text, [("truth-1", TRUTH)], ["truth-1"]))
+    assert numbers["graders"][("c1", "truth-1")] == ["truth", 0, 1]
+    assert (numbers["rows"], numbers["false"]) == (3, 3)
+
+
 def test_regions_that_never_close_nested_or_repeated_hide_no_finding():
     """Guards S5a where the openers are nested or repeated: an opener inside
     an opener, a second comment that never closes, and a fence that never

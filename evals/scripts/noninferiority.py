@@ -301,25 +301,25 @@ def finding_rows(text):
     none. A finding is a `### ` section of the one `## Findings` section,
     split by `chain_check.py#finding_spans` over the lines its shared reader
     leaves, so a line in a fence or a comment is no line. A section the
-    check would refuse is still one row. A record with no `## Findings`
-    section, or with two, gives no rows, as the check's split does.
+    check would refuse is still one row.
 
-    A record holding a comment or fence that never closes is one the check
-    refuses (`chain_check.py#unclosed`) and production reads as no finding,
-    and no reading of the lines after such an opener is certain to find
-    every finding. It gives one empty row for each raw line at the finding
-    heading level, a fenced or commented one included, so every one is
-    false, the count errs toward more false rows, and an empty row finds no
-    truth."""
+    A record the check cannot read or cannot split is one production reads
+    as no finding: one holding a comment or fence that never closes
+    (`chain_check.py#unclosed`), after whose opener no reading is certain to
+    find every finding, and one with no `## Findings` section or with two,
+    which `finding_spans` refuses. It gives one empty row for each raw line
+    at the finding heading level, a fenced or commented one included, so
+    every one is false, the count errs toward more false rows, and an empty
+    row finds no truth."""
     check, reader = rt.record_reader()
-    if check.unclosed(reader, text, ""):
+    lines = reader.readable(text)
+    _section, spans, error = check.finding_spans(reader, lines)
+    if error or check.unclosed(reader, text, ""):
         return [
             ""
             for line in reader.gfm_lines(text)
             if reader.heading_level(line) == check.FINDING_LEVEL
         ]
-    lines = reader.readable(text)
-    _section, spans, _error = check.finding_spans(reader, lines)
     return [
         "\n".join(
             line
