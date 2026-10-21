@@ -2320,24 +2320,29 @@ SEEDED_SOURCE = (
 )
 
 
-def seeded_round_1(target, base):
-    """Round 1 of the shipped item: its target, a finding at `a.py:2` closed
-    fixed and one at `b.py:1` rejected."""
-    return (
+def seeded_round_1(target):
+    """Round 1 of the shipped item, written before the `evidence:` row: its
+    TARGET against `main`, a branch the clone has no ref for, a finding at
+    `a.py:2` closed fixed and one at `b.py:1` rejected."""
+    return re.sub(
+        r"^evidence: .*\n",
+        "",
         LABELLED_ROUND_1.replace("# i ", f"# {SEEDED_ITEM} ")
-        .replace("1a2b3c4 against main", f"{target} against {base}")
+        .replace("1a2b3c4 against main", f"{target} against main")
         .replace("`src/a.py:12`, `docs/a.md`", "`a.py:2`")
-        .replace("read `src/a.py:12`", "read `a.py:2`")
-        .replace("`src/b.py:3`", "`b.py:1`")
+        .replace("`src/b.py:3`", "`b.py:1`"),
+        flags=re.M,
     )
 
 
-def shipped_item(tmp_path, monkeypatch, first=seeded_round_1):
+def shipped_item(tmp_path, monkeypatch, first=seeded_round_1, second=True):
     """A repository that shipped one work item, with `rt` reading it: a base
-    holding the check, a branch of a code commit and a records commit, and
-    the branch squashed onto the base with round 1, FIRST of the target and
-    the base, and round 2 of the item added, as a shipped squash commit
-    holds them. `({name: commit}, its path)`."""
+    holding the check of a grammar with no `evidence:` row, a branch of a
+    code commit and a records commit, and the branch squashed onto the base
+    with round 1, FIRST of the target, and round 2 where SECOND is set,
+    added as a shipped squash commit holds them. No `main` ref but the
+    local branch exists, so the squash's first parent stands for the base
+    round 1 names. `({name: commit}, its path)`."""
     rt = load_script("seed_defects").rt
     repo = tmp_path / "shipped"
     repo.mkdir()
@@ -2360,7 +2365,10 @@ def shipped_item(tmp_path, monkeypatch, first=seeded_round_1):
     git("config", "uploadpack.allowAnySHA1InWant", "true")
     for rel in rt.CHECK_FILES:
         with open(os.path.join(ROOT, rel), encoding="utf-8") as f:
-            put(rel, f.read())
+            text = f.read()
+        if rel == "docs/the-review-record.md":
+            text = re.sub(r"^\| `evidence:` \|.*\n", "", text, flags=re.M)
+        put(rel, text)
     put("b.py", "x = 1\n")
     git("add", "-A")
     git("commit", "-qm", "base")
@@ -2383,8 +2391,9 @@ def shipped_item(tmp_path, monkeypatch, first=seeded_round_1):
     commits["target"] = git("rev-parse", "HEAD")
     git("checkout", "-q", "main")
     git("merge", "-q", "--squash", SEEDED_BRANCH)
-    put(f"{spec}/rounds/round-1.md", first(commits["target"], commits["base"]))
-    put(f"{spec}/rounds/round-2.md", LABELLED_ROUND_2)
+    put(f"{spec}/rounds/round-1.md", first(commits["target"]))
+    if second:
+        put(f"{spec}/rounds/round-2.md", LABELLED_ROUND_2)
     git("add", "-A")
     git("commit", "-qm", "feat: a shipped item (#1)")
     commits["squash"] = git("rev-parse", "HEAD")
@@ -2402,19 +2411,21 @@ def test_a_seeded_case_is_built_on_its_round_1_target(tmp_path, monkeypatch):
     commits, _repo = shipped_item(tmp_path, monkeypatch)
     t, why = sd.target_of(commits["squash"])
     assert why == "", why
-    assert (t["target"], t["base"], t["branch"]) == (
+    assert (t["target"], t["base"], t["base_ref"], t["branch"]) == (
         commits["target"],
         commits["base"],
+        "origin/main",
         SEEDED_BRANCH,
     )
     lines = sd.scaffold(t, "https://example.com/x/y.git").split("\n")
-    assert lines[:4] == [
+    assert lines[:6] == [
         "git init -q .",
         "git remote add origin https://example.com/x/y.git",
         f"git fetch -q --no-tags origin {commits['target']}",
         f"git fetch -q --no-tags origin {commits['base']}",
+        f"git update-ref refs/remotes/origin/main {commits['base']}",
+        f"git checkout -q -b {SEEDED_BRANCH} {commits['target']}",
     ]
-    assert f"git checkout -q -b {SEEDED_BRANCH} {commits['target']}" in lines
     assert lines[-3:] == [
         "git reflog expire --expire=now --all",
         "rm -f .git/FETCH_HEAD",
@@ -2449,13 +2460,27 @@ def test_a_seeded_case_counts_round_1s_confirmed_fixes_as_truths(tmp_path, monke
         assert sum(bool(g.search(row)) for g in truths.values()) <= 1, row
 
 
-def two_near_fixes(target, base):
+def two_near_fixes(target):
     """Round 1 with both findings closed fixed, three lines apart."""
     return (
-        seeded_round_1(target, base)
+        seeded_round_1(target)
         .replace("`b.py:1`", "`a.py:5`")
         .replace("verdict: rejected", "verdict: fixed abc1234")
     )
+
+
+def test_a_seeded_case_needs_no_round_after_round_1(tmp_path, monkeypatch):
+    """Guards what the seeded generator asks of a round that the replay
+    generator does not: a work item whose round 1 no round followed still
+    gives a case, its one truth the seed. A replay of that round has
+    nothing to confirm a fix and is left out."""
+    sd = load_script("seed_defects")
+    commits, _repo = shipped_item(tmp_path, monkeypatch, second=False)
+    t, why = sd.target_of(commits["squash"])
+    assert why == "", why
+    assert t["truths"] == []
+    names = [name for name, _ in sd.graders(t) if name.startswith("truth-")]
+    assert names == ["truth-seeded.md"]
 
 
 def test_a_shipped_commit_whose_round_1_truths_share_a_line_is_left_out(
