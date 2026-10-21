@@ -9,7 +9,7 @@ target: ad78bfb6, fixes 8c7ba12d..ad78bfb6
 severity: should
 location: `evals/scripts/noninferiority.py:298-330`, `seal/specs/1792619407-the-replay-scaffold-and-reader-misread-rounds/spec.md:240-241`, `seal/specs/1792619407-the-replay-scaffold-and-reader-misread-rounds/plan.md:106`
 evidence: executed `python3 test_tmp_986_round4.py`
-verdict: open
+verdict: fixed d4e134cd
 
 The reframe at 9fe7a57b sets a rule for a record the check cannot read. `spec.md` scope item 1 says the harness reads
 no finding from such a record and counts one false row per raw finding heading. It adds that "the count errs toward
@@ -48,7 +48,7 @@ snippet keeps phase 3's branch and adds the split's refusal.
         ]
 ```
 
-answer:
+answer: Applied as the fix block gives it: `finding_rows` splits first and takes the floor where `finding_spans` refuses or `unclosed` does, and its docstring and the changelog fragment state the one rule. `test_a_record_the_check_cannot_split_counts_every_finding_false` holds both shapes beside S5c, a second `## Findings` section before finding 2 and the heading misspelt `## Findings (3)`. Each gives three empty false rows and finds no truth, and both gave no rows against ad78bfb6 (executed). Two mutations went red: the condition narrowed back to `unclosed`, and narrowed to the split's refusal alone (executed). `spec.md:240-241` and plan row R3 still state the old limit, and they are the framer's to rewrite.
 
 ## Confirmations
 
