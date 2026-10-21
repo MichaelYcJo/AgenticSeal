@@ -38,3 +38,12 @@
   that builds it, the smith, or the orchestrator where `routing.md` answers
   `Implementation` with `the session`. A redesign's second approval line
   takes the shape `skills/implement/orchestration.md` states at the spawn.
+- **`verify` splits along its headings (#940).** The broad gate and the
+  measurement of each segment, the two acts no agent takes, move to a new
+  `skills/verify/orchestration.md`, which the orchestrator reads and the smith
+  and the sealer do not. `skills/verify/SKILL.md`, titled *The Seal Test*,
+  keeps the four conditions, `arm-check` and `mutation-check`, the hand-back's
+  labels, the scope rule, the cost of a repeated run and the counterfeits, at
+  about two fifths of its size, and names the party making a claim where it
+  said "you". The section the closed flow-measurement log's comment cites
+  is the new file's.
