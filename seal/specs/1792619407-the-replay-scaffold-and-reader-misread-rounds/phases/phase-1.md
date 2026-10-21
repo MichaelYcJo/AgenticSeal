@@ -51,9 +51,9 @@ mask in an isolated interpreter.
 **A side's JSON needs one more step than the scan's per-line reading.** A
 side writes `report_text` as one JSON string, so a line break before a host
 becomes the two characters backslash and `n`. The scan then reads the `n` as
-the host's first letter. `nexample.com` is refused even though
-`example.com` is allowed. So `masked` puts one space after a control
-character wherever a host would follow it. No `location:` line or heading
+the host's first letter, so even the fixture host is refused when it opens
+a line. So `masked` puts one space after a control character wherever a
+host would follow it. No `location:` line or heading
 can open with a host, so no row changes.
 `test_a_kept_record_is_masked_where_the_identifier_scan_refuses_it` writes
 the side and scans every line of the file.
