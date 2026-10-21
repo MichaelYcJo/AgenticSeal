@@ -501,7 +501,7 @@ def eval_side(tmp_path, name, rev, tree):
     """A one-run side `run` could have written, run on the suite REV/TREE."""
     run = {
         "graders": [{"name": "shape-x", "passed": True}],
-        "specseal": {"report_rows": []},
+        "specseal": {"report_text": ""},
     }
     case = {
         "name": "c1",
@@ -800,7 +800,7 @@ def test_a_run_records_what_it_cost(tmp_path, monkeypatch):
     # not the other run's cost alone.
     runs = data["cases"][0]["arms"]["with"]
     runs[0]["specseal"]["cost"] = None
-    runs.append({"graders": [], "specseal": {"cost": cost, "report_rows": []}})
+    runs.append({"graders": [], "specseal": {"cost": cost, "report_text": ""}})
     assert ni.side_numbers(data)["spend"] is None
     assert ni.side_numbers(data)["tokens"] is None
 
@@ -954,7 +954,9 @@ def test_a_paid_run_survives_a_later_crash_and_is_read_again_from_what_was_saved
     monkeypatch.setattr(ni, "annotate", real_annotate)
     assert ni.main(["run", "--from-raw", str(saved), "--out", str(out)]) == 0
     side = json.loads(out.read_text(encoding="utf-8"))
-    assert side["cases"][0]["arms"]["with"][0]["specseal"]["report_rows"] == [row]
+    kept = side["cases"][0]["arms"]["with"][0]["specseal"]
+    assert kept["report_text"] == row
+    assert "report_rows" not in kept, kept
     assert side["specseal"]["agent"] == "warden"
     assert side["specseal"]["preload"] == ni.preload_hashes(str(plugin), "warden")
     assert side["specseal"]["cut_short"] is False
@@ -984,42 +986,148 @@ def load_script(name):
 
 
 TRUTH = r"^location: .*(?:src\/a\.py:(?:10|11|12)(?!\d))"
+REPORT = "seal/specs/i/rounds/round-1.md"
+
+
+def printed(findings, before="", after=""):
+    """A round record a case session printed: BEFORE above its `## Findings`
+    section, FINDINGS in it, and AFTER below it."""
+    return (
+        "# i — review round 1\n\ntarget: 1a2b3c4 against main\n"
+        f"{before}\n## Findings\n\n{findings}{after}"
+    )
+
+
+def record_of(rows):
+    """A printed round record holding one finding for each of ROWS, each
+    finding's `location:` line the row."""
+    return printed(
+        "".join(
+            f"### {n}. a finding\n\nseverity: should\n{row}\nverdict: open\n\n"
+            for n, row in enumerate(rows, 1)
+        ),
+        after="## Confirmations\n\nconfirms: none\nheld.\n",
+    )
+
+
+def record_truth(name, pattern):
+    """A `truth-` grader over the round record, as a side records it."""
+    return {
+        "name": name,
+        "type": "regex",
+        "weight": 1,
+        "config": {
+            "target": {"source": "file", "path": REPORT},
+            "pattern": pattern,
+            "flags": "m",
+            "match": "contains",
+        },
+    }
+
+
+def printed_side(text, truths=(), found=()):
+    """A side of case c1 whose one run printed TEXT: its truth graders are
+    TRUTHS, `(name, pattern)` each, and the run recorded the ones FOUND
+    names as passed, as the eval's search of the whole file would."""
+    run = {
+        "graders": [{"name": n, "passed": n in found} for n, _ in truths],
+        "specseal": {"report_text": text},
+    }
+    case = {
+        "name": "c1",
+        "graders": [record_truth(n, p) for n, p in truths],
+        "arms": {"with": [run]},
+    }
+    return {"cases": [case]}
 
 
 def test_a_side_counts_a_finding_row_no_truth_matches_as_false():
     """Guards pass rule 2's input: a finding, read by its `location:` line,
-    is false only when no truth grader's pattern matches it."""
-    result = {
-        "cases": [
-            {
-                "name": "c1",
-                "graders": [
-                    {"name": "truth-1", "type": "regex", "config": {"pattern": TRUTH}},
-                    {"name": "shape-x", "type": "file_exists", "config": {}},
-                ],
-                "arms": {
-                    "with": [
-                        {
-                            "graders": [
-                                {"name": "truth-1", "passed": True},
-                                {"name": "shape-x", "passed": True},
-                            ],
-                            "specseal": {
-                                "report_rows": [
-                                    "location: `src/a.py:11`",
-                                    "location: `src/a.py:40`",
-                                ]
-                            },
-                        }
-                    ]
-                },
-            }
-        ]
-    }
+    is false only when no truth grader's pattern matches it, and a grader
+    that reads no round record keeps the result the eval recorded."""
+    text = record_of(["location: `src/a.py:11`", "location: `src/a.py:40`"])
+    result = printed_side(text, [("truth-1", TRUTH)])
+    case = result["cases"][0]
+    case["graders"].append({"name": "shape-x", "type": "file_exists", "config": {}})
+    case["arms"]["with"][0]["graders"].append({"name": "shape-x", "passed": True})
     numbers = ni.side_numbers(result)
     assert (numbers["rows"], numbers["false"]) == (2, 1)
     assert numbers["graders"][("c1", "truth-1")] == ["truth", 1, 1]
     assert numbers["graders"][("c1", "shape-x")] == ["shape", 1, 1]
+
+
+FENCED_FIX = (
+    "### 1. a defect with a fenced fix\n\nseverity: must\n"
+    "location: `src/a.py:11`\nverdict: open\n\n"
+    "```\nlocation: `src/a.py:40`\n```\n"
+)
+
+
+def test_a_location_line_in_a_fenced_fix_is_no_finding_row():
+    """Guards S1: a finding's paste-ready fix is a fenced block, and a fix
+    to a round record is a block of record lines. The run's one finding is
+    one row, its own `location:` line, and the fenced line is no row."""
+    text = printed(FENCED_FIX)
+    assert ni.finding_rows(text) == ["location: `src/a.py:11`"]
+    numbers = ni.side_numbers(printed_side(text, [("truth-1", TRUTH)], ["truth-1"]))
+    assert (numbers["rows"], numbers["false"]) == (1, 0)
+
+
+def test_a_finding_in_a_shape_the_check_refuses_is_still_one_false_row():
+    """Guards S2: a section with no `location:` line and one whose line
+    names a `path#unit` are each one row, and each is false. A reader that
+    dropped what the check refuses would let a warden lower its own
+    false-finding rate by writing a broken finding."""
+    text = printed(
+        "### 1. a finding with no location line\n\nseverity: should\n"
+        "verdict: open\n\n"
+        "### 2. a finding in a broken shape\n\nseverity: should\n"
+        "location: `src/a.py#unit`\nverdict: open\n"
+    )
+    assert ni.finding_rows(text) == ["", "location: `src/a.py#unit`"]
+    numbers = ni.side_numbers(printed_side(text, [("truth-1", TRUTH)]))
+    assert (numbers["rows"], numbers["false"]) == (2, 2)
+
+
+def test_a_location_line_outside_every_finding_is_no_row():
+    """Guards S3: a `location:` line above `## Findings`, in `## Not
+    judged` or in an HTML comment belongs to no finding, so it is no row."""
+    text = printed(
+        "### 1. a defect\n\nseverity: must\nlocation: `src/b.py:1`\nverdict: open\n",
+        before="location: `src/a.py:10`\n",
+        after="\n## Not judged\n\nlocation: `src/a.py:12`\n\n"
+        "<!--\nlocation: `src/a.py:11`\n-->\n",
+    )
+    assert ni.finding_rows(text) == ["location: `src/b.py:1`"]
+    numbers = ni.side_numbers(printed_side(text, [("truth-1", TRUTH)], ["truth-1"]))
+    assert (numbers["rows"], numbers["false"]) == (1, 1)
+    assert numbers["graders"][("c1", "truth-1")] == ["truth", 0, 1]
+
+
+def test_a_truth_matched_only_inside_a_fence_finds_nothing():
+    """Guards S4: recall is read by the reader the false count is read by.
+    The eval's search of the whole file finds a truth on the fenced line of
+    S1 and records it passed; counted from the run's finding rows it passes
+    no run, and the finding stays the one row, false."""
+    fenced_only = r"^location: .*(?:src\/a\.py:(?:40)(?!\d))"
+    side = printed_side(printed(FENCED_FIX), [("truth-1", fenced_only)], ["truth-1"])
+    numbers = ni.side_numbers(side)
+    assert numbers["graders"][("c1", "truth-1")] == ["truth", 0, 1]
+    assert (numbers["rows"], numbers["false"]) == (1, 1)
+
+
+def test_the_finding_rows_are_the_checks_split(monkeypatch):
+    """Guards S5: the harness spells no grammar of its own. With
+    `chain_check.py#finding_spans` answering no section, a record holding a
+    finding gives no rows, so the split the rows come from is the check's."""
+    check, _reader = ni.rt.record_reader()
+    text = printed(FENCED_FIX)
+    assert ni.finding_rows(text) == ["location: `src/a.py:11`"]
+    monkeypatch.setattr(
+        check, "finding_spans", lambda _reader, _lines: (None, [], None)
+    )
+    assert ni.finding_rows(text) == []
+    assert ni.side_numbers(printed_side(text))["rows"] == 0
 
 
 # --- regrade: a committed side read again under another suite's truths (#971)
@@ -1100,10 +1208,10 @@ def suite_commits(tmp_path, monkeypatch):
 
 
 def graded_side(tmp_path, rev, rows, found, spoil=None):
-    """A side of case c1 run on the suite at REV, its run I having printed
-    ROWS[I] and recorded truth-1 as FOUND[I], its scores the ones a run of
-    two graders gets, and SPOIL applied to it where one is given. The path
-    it is written to."""
+    """A side of case c1 run on the suite at REV, its run I having printed a
+    round record of one finding for each of ROWS[I] and recorded truth-1 as
+    FOUND[I], its scores the ones a run of two graders gets, and SPOIL
+    applied to it where one is given. The path it is written to."""
     truth = {
         "name": "truth-1",
         "type": "regex",
@@ -1122,7 +1230,7 @@ def graded_side(tmp_path, rev, rows, found, spoil=None):
         "config": {"path": "r.md"},
     }
     runs = []
-    for printed, passed in zip(rows, found, strict=True):
+    for shown, passed in zip(rows, found, strict=True):
         score = (1 + passed) / 2
         graders = [
             {"name": "shape-x", "passed": True, "weight": 1, "scored": True},
@@ -1133,7 +1241,7 @@ def graded_side(tmp_path, rev, rows, found, spoil=None):
                 "score": score,
                 "passed": score >= 1,
                 "graders": graders,
-                "specseal": {"report_rows": printed},
+                "specseal": {"report_text": record_of(shown)},
             }
         )
     score = sum(r["score"] for r in runs) / len(runs)
@@ -1171,8 +1279,8 @@ def graded_side(tmp_path, rev, rows, found, spoil=None):
     return str(path)
 
 
-# Run 0's truth row is its second line, so it is found only where the
-# grader's `m` flag reaches the regex.
+# Run 0's truth is its second finding's `location:` line, which a regex
+# finds only where the grader's `m` flag reaches it.
 ROWS = (
     ["location: `src/a.py:40`", "location: `src/a.py:11`"],
     ["location: `src/a.py:40`"],
@@ -1345,12 +1453,12 @@ def test_regrade_refuses_what_it_cannot_stand_in_for(
     assert named in capsys.readouterr().err
 
 
-def test_the_report_rows_are_the_last_report_the_session_printed(tmp_path):
-    """Guards where the false rows come from: the `location:` lines of the
-    session's own `cat` of the report, the last one winning, and never a
-    subagent's output. A record printed as `rounds/round-N.md` (0.22.0,
-    #923) is read as a report is, and a confirmation's location is not a
-    finding."""
+def test_the_report_text_is_the_last_record_the_session_printed(tmp_path):
+    """Guards S6, what a side keeps: the round record of the session's own
+    `cat`, the last one winning, byte for byte, and never a subagent's
+    output. A record printed as `rounds/round-N.md` (0.22.0, #923) is kept
+    as a report is, and a confirmation's location is no finding row of
+    it."""
 
     def cat(call_id, content, parent=None, path="r/round-1-report.md"):
         use = {"type": "tool_use", "id": call_id, "name": "Bash"}
@@ -1390,7 +1498,108 @@ def test_the_report_rows_are_the_last_report_the_session_printed(tmp_path):
     trace.write_text(
         "\n".join(json.dumps(e) for e in events) + "\nnot json\n", encoding="utf-8"
     )
-    assert ni.report_rows(str(trace)) == ["location: `x:1`"]
+    text = ni.report_text(str(trace))
+    assert text == last[0]["text"]
+    assert ni.finding_rows(printed(text)) == ["location: `x:1`"]
+
+
+def old_side(path):
+    """Rewrite the side at PATH the way a run before #986 kept it: its rows
+    and not the record its session printed."""
+    with open(path, encoding="utf-8") as f:
+        result = json.load(f)
+    for case in result["cases"]:
+        for run in ni.case_runs(case):
+            run["specseal"] = {"report_rows": ["location: `src/a.py:40`"]}
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(result, f)
+
+
+def test_compare_refuses_a_side_read_before_986(tmp_path, capsys):
+    """Guards S7 for `compare`: a side that keeps rows and not its record
+    was read by the reader before #986, and no reader written since can read
+    it again, so the pair is refused with exit 2, the sentence naming the
+    side, and nothing is written."""
+    old = eval_side(tmp_path, "old", "a" * 40, "b" * 40)
+    new = eval_side(tmp_path, "new", "a" * 40, "b" * 40)
+    out = tmp_path / "warden-phase-3.md"
+    argv = ["compare", "--agent", "warden", "--phase", "3", "--out", str(out)]
+    assert ni.main([*argv, "--old", old, "--new", new]) == 0
+    out.unlink()
+    old_side(old)
+    assert ni.main([*argv, "--old", old, "--new", new]) == 2
+    assert not out.exists(), "a record was written over a side read before #986"
+    said = capsys.readouterr().err
+    assert old in said and "the reader before #986" in said, said
+
+
+def test_regrade_refuses_a_side_read_before_986(tmp_path, monkeypatch, capsys):
+    """Guards S7 for `regrade`: the same side is refused with exit 2 before
+    any suite is read, naming the side, and nothing is written."""
+    commits = suite_commits(tmp_path, monkeypatch)
+    side = graded_side(tmp_path, commits["own"], ROWS, [True, False])
+    out = tmp_path / "out.json"
+    assert regrade(side, commits["own"], out) == 0
+    out.unlink()
+    old_side(side)
+    assert regrade(side, commits["own"], out) == 2
+    assert not out.exists(), "a side read before #986 was regraded"
+    said = capsys.readouterr().err
+    assert side in said and "the reader before #986" in said, said
+
+
+# A path and a host the identifier scan refuses, built from halves so this
+# file carries neither whole.
+REFUSED_PATH = "/Users/" + "someone/"
+REFUSED_HOST = "fixture.example" + ".net"
+
+
+def test_a_kept_record_is_masked_where_the_identifier_scan_refuses_it(tmp_path):
+    """Guards `questions.md` Q4 of #986: a committed side keeps the record
+    whole, and `tests/test_no_real_identifiers.py` scans every committed
+    file. The kept text has each path and host that scan refuses replaced
+    by the fixture one, read by the scan's own functions, and a line that
+    opens with a host keeps it apart from the escape the side's JSON writes
+    before it. The written side passes the scan, and the finding rows are
+    the ones the printed record gives."""
+    import test_no_real_identifiers as scan
+
+    shown = printed(
+        "### 1. a defect\n\nseverity: must\nlocation: `src/a.py:11`\n"
+        f"evidence: read {REFUSED_PATH}w/log at {REFUSED_HOST}\nverdict: open\n",
+        # A host that opens a line, refused and allowed: the side's JSON
+        # writes the line break before it as an escape ending in a letter.
+        after=f"\n{REFUSED_HOST} answered it.\n" + "github.com/x/y answered it too.\n",
+    )
+    use = {"type": "tool_use", "id": "a", "name": "Bash"}
+    use["input"] = {"command": f"cat {REPORT}"}
+    result = {"type": "tool_result", "tool_use_id": "a", "content": shown}
+    trace = tmp_path / "trace.jsonl"
+    trace.write_text(
+        json.dumps({"message": {"content": [use]}})
+        + "\n"
+        + json.dumps({"message": {"content": [result]}})
+        + "\n",
+        encoding="utf-8",
+    )
+    text = ni.report_text(str(trace))
+    assert REFUSED_PATH not in text and REFUSED_HOST not in text, text
+    assert f"{scan.ALLOWED_USER_PATH}w/log at {scan.FIXTURE_DOMAIN}" in text, text
+    assert (
+        ni.finding_rows(text) == ni.finding_rows(shown) == ["location: `src/a.py:11`"]
+    )
+    side = tmp_path / "side.json"
+    side.write_text(
+        json.dumps(printed_side(text), indent=1, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    with open(side, encoding="utf-8") as f:
+        refused = [
+            m.group(0)
+            for line in f
+            for m in [*scan.refused_domains(line), *scan.refused_user_paths(line)]
+        ]
+    assert refused == [], refused
 
 
 def test_only_a_directory_the_eval_kept_is_removed():

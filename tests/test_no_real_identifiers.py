@@ -16,8 +16,9 @@ from conftest import build_tracked_tree, git_listing, on_disk
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 
+FIXTURE_DOMAIN = "example.com"  # the designated fixture domain — use this in examples
 ALLOWED_DOMAINS = (
-    "example.com",  # the designated fixture domain — use this in examples
+    FIXTURE_DOMAIN,
     "github.com",
     "arxiv.org",
     "claude.com",  # official docs this plugin is built against
@@ -60,6 +61,38 @@ def tracked_text_files(root=ROOT):
     return on_disk(root, listed)
 
 
+def refused_domains(line):
+    """The match of every domain in `line` outside the allowlist, in order.
+
+    `evals/scripts/noninferiority.py#masked` reads a kept round record by
+    this function, so the record a committed side holds is masked by the
+    scan that reads it."""
+    refused = []
+    for m in DOMAIN_RE.finditer(line):
+        d = m.group(0)
+        if d in ALLOWED_UNDER_PATHS:
+            rest = line[m.end() :]
+            mail = m.start() > 0 and line[m.start() - 1] == "@"
+            if not mail and (
+                not rest.startswith("/") or rest.startswith(ALLOWED_UNDER_PATHS[d])
+            ):
+                continue
+        elif any(d == a or d.endswith("." + a) for a in ALLOWED_DOMAINS):
+            continue
+        refused.append(m)
+    return refused
+
+
+def refused_user_paths(line):
+    """The match of every user path in `line` outside the fixture one, in
+    order; `refused_domains` says who else reads it."""
+    return [
+        m
+        for m in USER_PATH_RE.finditer(line)
+        if not m.group(0).startswith(ALLOWED_USER_PATH)
+    ]
+
+
 def domains_in(root=ROOT):
     """`rel:line domain` for every domain outside the allowlist under `root`."""
     violations = []
@@ -67,19 +100,7 @@ def domains_in(root=ROOT):
     for rel in files:
         with open(os.path.join(root, rel), encoding="utf-8", errors="replace") as f:
             for i, line in enumerate(f, 1):
-                for m in DOMAIN_RE.finditer(line):
-                    d = m.group(0)
-                    if d in ALLOWED_UNDER_PATHS:
-                        rest = line[m.end() :]
-                        mail = m.start() > 0 and line[m.start() - 1] == "@"
-                        if not mail and (
-                            not rest.startswith("/")
-                            or rest.startswith(ALLOWED_UNDER_PATHS[d])
-                        ):
-                            continue
-                    elif any(d == a or d.endswith("." + a) for a in ALLOWED_DOMAINS):
-                        continue
-                    violations.append(f"{rel}:{i} {d}")
+                violations += [f"{rel}:{i} {m.group(0)}" for m in refused_domains(line)]
     return violations
 
 
@@ -90,9 +111,9 @@ def user_paths_in(root=ROOT):
     for rel in files:
         with open(os.path.join(root, rel), encoding="utf-8", errors="replace") as f:
             for i, line in enumerate(f, 1):
-                for m in USER_PATH_RE.finditer(line):
-                    if not m.group(0).startswith(ALLOWED_USER_PATH):
-                        violations.append(f"{rel}:{i} {m.group(0)}")
+                violations += [
+                    f"{rel}:{i} {m.group(0)}" for m in refused_user_paths(line)
+                ]
     return violations
 
 
