@@ -311,10 +311,20 @@ def resolve(rev):
     return git("rev-parse", "--verify", "-q", f"{rev}^{{commit}}", check=False).strip()
 
 
-def base_of(paragraph, target):
+def ref_base(target, ref, landed=None):
+    """The merge-base of TARGET and REF, or an empty string. Where REF no
+    longer resolves, a release branch deleted after its release, LANDED,
+    the commit the work landed on, stands for it: a squash puts none of
+    TARGET's commits on that branch, so the two share the fork REF named."""
+    tip = ref if resolve(ref) else landed
+    return git("merge-base", target, tip, check=False).strip() if tip else ""
+
+
+def base_of(paragraph, target, landed=None):
     """`(base SHA, base ref or None)` the asked PARAGRAPH names for TARGET:
     `against <ref> at <sha>`, then a fix range `<a>..<b>`'s start, then
-    `against <ref>` read as its merge-base with TARGET; `("", None)` if none.
+    `against <ref>` read as its merge-base with TARGET (`ref_base`, LANDED
+    standing for a ref that no longer resolves); `("", None)` if none.
 
     A paragraph naming none of the three gives no base."""
     m = AGAINST_AT.search(paragraph)
@@ -324,18 +334,18 @@ def base_of(paragraph, target):
     if m and resolve(m["base"]):
         return resolve(m["base"]), None
     m = AGAINST.search(paragraph)
-    if m and resolve(m["ref"]):
-        base = git("merge-base", target, m["ref"], check=False).strip()
-        if base:
-            return base, m["ref"]
+    base = ref_base(target, m["ref"], landed) if m else ""
+    if base:
+        return base, m["ref"]
     return "", None
 
 
-def target_base(value, target):
+def target_base(value, target, landed=None):
     """`(base SHA, base ref or None)` a labelled record's `target:` VALUE
     names for TARGET: a fix range `<a>..<b>`'s start, an `against <sha>`
     commit, or `against <base>` read as the merge-base of TARGET and
-    `origin/<base>`; `("", None)` if none resolves."""
+    `origin/<base>` (`ref_base`, LANDED standing for a ref that no longer
+    resolves); `("", None)` if none resolves."""
     m = FIX_RANGE.search(value)
     if m and resolve(m["base"]):
         return resolve(m["base"]), None
@@ -343,10 +353,9 @@ def target_base(value, target):
     if SHA.fullmatch(name) and resolve(name):
         return resolve(name), None
     ref = name if name.startswith("origin/") else f"origin/{name}"
-    if name and resolve(ref):
-        base = git("merge-base", target, ref, check=False).strip()
-        if base:
-            return base, ref
+    base = ref_base(target, ref, landed) if name else ""
+    if base:
+        return base, ref
     return "", None
 
 
@@ -556,75 +565,98 @@ def truths_with(case, truths, target):
     return out
 
 
-def targets(tags, items=None):
-    """`[target]` for every round with truth, and `[(item, n, why)]` for each
-    round left out, over the records `records` reads at TAGS for ITEMS.
+def round_target(item, n, text, nxt, wrote, replay=True, landed=None):
+    """`(target, "")` for round N of ITEM, or `(None, why)`. TEXT is the
+    round's record and NXT the next round's, or None where there is none.
+    WROTE maps a record's path to the commit whose check judges it: the
+    commit that wrote it (`written_at`), or None for this tree's check.
+    LANDED is the commit the work landed on, where the caller knows it
+    (`ref_base`). A target is `{"item", "n", "target", "base", "base_ref",
+    "branch", "asked", "truths", "size"}`, its truths each finding the
+    round closed `fixed` that the next round confirms, as `{"k", "finding",
+    "location", "pattern"}`.
 
     A round whose SHAs or branch do not resolve, or a labelled record the
-    check of the commit that wrote it refuses, is left out with the
-    reason."""
+    check of the commit that wrote it refuses, is left out with the reason.
+    Where REPLAY is set, so is a round with no next round or with no
+    truth; `seed_defects.py` builds on a round with neither."""
+    rel = f"seal/specs/{item}/rounds/round-{n}.md"
+    if labelled(text):
+        read, why = labelled_round(text, rel, n, wrote(rel))
+        if read is None:
+            return None, why
+        sha, para, label = read["sha"], "", "target"
+        rows = read["findings"]
+    else:
+        sha = field(text, "Target SHA") or ""
+        sha, para, label = sha.split()[0] if sha else "", asked(text), "Target SHA"
+        rows = [(k, f, at, "fixed" in v) for _m, k, f, at, v in findings(text)]
+    if not sha or not resolve(sha):
+        return None, f"{label} {sha or '(none)'} does not resolve"
+    if nxt is None and replay:
+        return None, "no next round to confirm a fix"
+    if labelled(text):
+        base, base_ref = target_base(read["value"], sha, landed)
+        names = "the target line"
+    else:
+        base, base_ref = base_of(para, sha, landed)
+        names = "the asked paragraph"
+    if not base:
+        return None, f"{names} names no base that resolves"
+    routing = git("show", f"{sha}:seal/specs/{item}/routing.md", check=False)
+    branch = field(routing, "Branch")
+    if not branch:
+        return None, "routing.md at the target names no branch"
+    following = f"seal/specs/{item}/rounds/round-{n + 1}.md"
+    done = set() if nxt is None else confirmed(nxt, n, following, wrote(following))
+    truths = []
+    for k, finding, location, fixed in rows:
+        if fixed and k in done:
+            pattern = truth_pattern(location, sha)
+            if pattern:
+                truths.append(
+                    {
+                        "k": k,
+                        "finding": finding,
+                        "location": location,
+                        "pattern": pattern,
+                    }
+                )
+    if not truths and replay:
+        return None, "no fixed finding the next round confirmed"
+    stat = git("diff", "--shortstat", base, sha)
+    size = sum(int(x) for x in re.findall(r"(\d+) (?:insertion|deletion)", stat))
+    return {
+        "item": item,
+        "n": n,
+        "target": git("rev-parse", sha).strip(),
+        "base": base,
+        "base_ref": base_ref,
+        "branch": branch,
+        "asked": para,
+        "truths": truths,
+        "size": size,
+    }, ""
+
+
+def targets(tags, items=None):
+    """`[target]` for every round with truth, and `[(item, n, why)]` for each
+    round left out, over the records `records` reads at TAGS for ITEMS, each
+    judged by `round_target`."""
     found = records(tags, items)
     kept, left = [], []
     for (item, n), text in sorted(found.items()):
-        rel = f"seal/specs/{item}/rounds/round-{n}.md"
-        if labelled(text):
-            read, why = labelled_round(text, rel, n, written_at(rel, tags))
-            if read is None:
-                left.append((item, n, why))
-                continue
-            sha, para, label = read["sha"], "", "target"
-            rows = read["findings"]
-        else:
-            sha = field(text, "Target SHA") or ""
-            sha, para, label = sha.split()[0] if sha else "", asked(text), "Target SHA"
-            rows = [(k, f, at, "fixed" in v) for _m, k, f, at, v in findings(text)]
-        nxt = found.get((item, n + 1))
-        if not sha or not resolve(sha):
-            left.append((item, n, f"{label} {sha or '(none)'} does not resolve"))
-            continue
-        if nxt is None:
-            left.append((item, n, "no next round to confirm a fix"))
-            continue
-        if labelled(text):
-            base, base_ref = target_base(read["value"], sha)
-            names = "the target line"
-        else:
-            base, base_ref = base_of(para, sha)
-            names = "the asked paragraph"
-        if not base:
-            left.append((item, n, f"{names} names no base that resolves"))
-            continue
-        routing = git("show", f"{sha}:seal/specs/{item}/routing.md", check=False)
-        branch = field(routing, "Branch")
-        if not branch:
-            left.append((item, n, "routing.md at the target names no branch"))
-            continue
-        following = f"seal/specs/{item}/rounds/round-{n + 1}.md"
-        done = confirmed(nxt, n, following, written_at(following, tags))
-        truths = []
-        for k, finding, location, fixed in rows:
-            if fixed and k in done:
-                pattern = truth_pattern(location, sha)
-                if pattern:
-                    truths.append({"k": k, "finding": finding, "pattern": pattern})
-        if not truths:
-            left.append((item, n, "no fixed finding the next round confirmed"))
-            continue
-        stat = git("diff", "--shortstat", base, sha)
-        size = sum(int(x) for x in re.findall(r"(\d+) (?:insertion|deletion)", stat))
-        kept.append(
-            {
-                "item": item,
-                "n": n,
-                "target": git("rev-parse", sha).strip(),
-                "base": base,
-                "base_ref": base_ref,
-                "branch": branch,
-                "asked": para,
-                "truths": truths,
-                "size": size,
-            }
+        t, why = round_target(
+            item,
+            n,
+            text,
+            found.get((item, n + 1)),
+            lambda rel: written_at(rel, tags),
         )
+        if t is None:
+            left.append((item, n, why))
+        else:
+            kept.append(t)
     return kept, left
 
 

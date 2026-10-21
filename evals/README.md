@@ -75,6 +75,13 @@ the rows the old reader matched and not the record, and no reader can read
 it again. Its committed record stays as it was judged, and `check` and
 `model`, which read a record and no side, still read it.
 
+**A warden comparison compares two sides taken from the same point.** The
+squash commit that lands #986 on `release/v0.22.3` is that point for the
+warden's suite: from it, both sides run the seeded cases built at round 1's
+target and both keep `report_text`. No side taken before it compares with
+one taken after it, and `compare` refuses such a pair twice over, since the
+suite trees differ and the earlier side keeps no text.
+
 **Every grader reads an outcome, never a sentence of a definition.** A
 `truth-` grader is a real or seeded defect the report names, a `shape-`
 grader is the work in the shape its next reader needs, and a `reach-` grader
@@ -89,7 +96,7 @@ case:
 | Generator | Cases |
 |---|---|
 | `scripts/replay_targets.py` | `warden/replay-*`: a round record's target, each finding the next round confirmed fixed a `truth-` grader |
-| `scripts/seed_defects.py` | `warden/seeded-*`: a shipped diff with one mutation in a unit it touched, the mutated line its `truth-` grader |
+| `scripts/seed_defects.py` | `warden/seeded-*`: a shipped work item's round 1 target, against round 1's base, with one mutation in a unit the build added and no copy of the unmutated target commit left in the clone; the mutated line is a `truth-` grader, and so is each finding round 1 fixed that round 2 confirmed |
 | `scripts/rule_cases.py` | `<agent>/rule-*`: a fixture repository the agent works in, graded on what it produced |
 
 All three also read `scripts/recurred_truths.json`. A real defect a case

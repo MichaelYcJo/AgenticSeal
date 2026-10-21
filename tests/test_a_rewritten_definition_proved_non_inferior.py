@@ -1925,7 +1925,9 @@ def test_targets_reads_the_next_round_by_the_commit_that_wrote_it(monkeypatch):
         ),
     )
     monkeypatch.setattr(rt, "resolve", lambda _rev: True)
-    monkeypatch.setattr(rt, "target_base", lambda _value, _target: ("abc1234", "main"))
+    monkeypatch.setattr(
+        rt, "target_base", lambda _value, _target, _landed=None: ("abc1234", "main")
+    )
     # The one git call left before `confirmed`: routing.md at the target.
     monkeypatch.setattr(rt, "git", lambda *_args, check=True: "| Branch | b |\n")
     asked = []
@@ -1959,6 +1961,12 @@ def test_a_labelled_target_names_its_base(monkeypatch):
     assert rt.target_base("2b3c4d5 against ce448bbe", "T") == ("c" * 40, None)
     assert rt.target_base("2b3c4d5 against main", "T") == ("m" * 40, "origin/main")
     assert rt.target_base("2b3c4d5 against gone", "T") == ("", None)
+    # A release branch deleted after its release: the commit the work landed
+    # on stands for it where the caller knows that commit (#986).
+    landed = ("m" * 40, "origin/gone")
+    assert rt.target_base("2b3c4d5 against gone", "T", landed="L") == landed
+    assert rt.base_of("Round 1, against origin/gone.", "T") == ("", None)
+    assert rt.base_of("Round 1, against origin/gone.", "T", landed="L") == landed
 
 
 def test_records_read_only_the_named_items(monkeypatch, tmp_path):
@@ -2278,6 +2286,9 @@ def test_the_replay_and_seeded_generators_read_the_entries_too(tmp_path, monkeyp
     s = {
         "commit": "279a580b" + "0" * 32,
         "item": "1791384154-a-records-finding-closes-once-at-the-runs-end",
+        "n": 1,
+        "target": "HEAD",
+        "truths": [],
         "path": "a.py",
         "unit": "f",
         "old": "a == b",
@@ -2296,3 +2307,211 @@ def test_a_seed_lands_on_a_code_token_and_never_in_a_string():
     tokens = sd.code_tokens(source)
     assert (3, "==") in tokens
     assert (2, "==") not in tokens
+
+
+# --- a seeded case is the tree its work item's round 1 reviewed (#986) -------
+
+SEEDED_ITEM = "1790000001-a-shipped-item"
+SEEDED_BRANCH = "feat/1-a-shipped-item"
+# Two units 38 lines apart, so the window of round 1's finding at line 2
+# reaches the first and not the second.
+SEEDED_SOURCE = (
+    "def f(a):\n    return a == 1\n" + "\n" * 34 + "\n\ndef g(b):\n    return b != 2\n"
+)
+
+
+def seeded_round_1(target, base):
+    """Round 1 of the shipped item: its target, a finding at `a.py:2` closed
+    fixed and one at `b.py:1` rejected."""
+    return (
+        LABELLED_ROUND_1.replace("# i ", f"# {SEEDED_ITEM} ")
+        .replace("1a2b3c4 against main", f"{target} against {base}")
+        .replace("`src/a.py:12`, `docs/a.md`", "`a.py:2`")
+        .replace("read `src/a.py:12`", "read `a.py:2`")
+        .replace("`src/b.py:3`", "`b.py:1`")
+    )
+
+
+def shipped_item(tmp_path, monkeypatch, first=seeded_round_1):
+    """A repository that shipped one work item, with `rt` reading it: a base
+    holding the check, a branch of a code commit and a records commit, and
+    the branch squashed onto the base with round 1, FIRST of the target and
+    the base, and round 2 of the item added, as a shipped squash commit
+    holds them. `({name: commit}, its path)`."""
+    rt = load_script("seed_defects").rt
+    repo = tmp_path / "shipped"
+    repo.mkdir()
+    who = ["-c", "user.name=x", "-c", "user.email=x@example.com"]
+
+    def git(*args):
+        return subprocess.run(
+            ["git", "-C", str(repo), *who, *args],
+            check=True,
+            capture_output=True,
+            encoding="utf-8",
+        ).stdout.strip()
+
+    def put(rel, text):
+        path = repo / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+
+    git("init", "-q", "-b", "main")
+    git("config", "uploadpack.allowAnySHA1InWant", "true")
+    for rel in rt.CHECK_FILES:
+        with open(os.path.join(ROOT, rel), encoding="utf-8") as f:
+            put(rel, f.read())
+    put("b.py", "x = 1\n")
+    git("add", "-A")
+    git("commit", "-qm", "base")
+    commits = {"base": git("rev-parse", "HEAD")}
+    git("checkout", "-q", "-b", SEEDED_BRANCH)
+    spec = f"seal/specs/{SEEDED_ITEM}"
+    put(
+        f"{spec}/routing.md",
+        f"| Axis | Answer |\n|---|---|\n| Branch | {SEEDED_BRANCH} |\n",
+    )
+    put("a.py", SEEDED_SOURCE)
+    git("add", "-A")
+    git("commit", "-qm", "feat: f and g")
+    commits["code"] = git("rev-parse", "HEAD")
+    put(
+        f"{spec}/plan.md", f"| Phase | Status |\n|---|---|\n| 1 | {commits['code']} |\n"
+    )
+    git("add", "-A")
+    git("commit", "-qm", "record: phase 1")
+    commits["target"] = git("rev-parse", "HEAD")
+    git("checkout", "-q", "main")
+    git("merge", "-q", "--squash", SEEDED_BRANCH)
+    put(f"{spec}/rounds/round-1.md", first(commits["target"], commits["base"]))
+    put(f"{spec}/rounds/round-2.md", LABELLED_ROUND_2)
+    git("add", "-A")
+    git("commit", "-qm", "feat: a shipped item (#1)")
+    commits["squash"] = git("rev-parse", "HEAD")
+    monkeypatch.setattr(rt, "ROOT", str(repo))
+    return commits, repo
+
+
+def test_a_seeded_case_is_built_on_its_round_1_target(tmp_path, monkeypatch):
+    """Guards S8: a seeded case is the tree the shipped item's round 1
+    reviewed, not the squash commit. Its scaffold fetches round 1's target
+    and base, removes no file, and after the amend expires the reflog,
+    removes `FETCH_HEAD` and prunes what nothing reaches. Its prompt names
+    HEAD and round 1's base, and no commit of the tree without the seed."""
+    sd = load_script("seed_defects")
+    commits, _repo = shipped_item(tmp_path, monkeypatch)
+    t, why = sd.target_of(commits["squash"])
+    assert why == "", why
+    assert (t["target"], t["base"], t["branch"]) == (
+        commits["target"],
+        commits["base"],
+        SEEDED_BRANCH,
+    )
+    lines = sd.scaffold(t, "https://example.com/x/y.git").split("\n")
+    assert lines[:4] == [
+        "git init -q .",
+        "git remote add origin https://example.com/x/y.git",
+        f"git fetch -q --no-tags origin {commits['target']}",
+        f"git fetch -q --no-tags origin {commits['base']}",
+    ]
+    assert f"git checkout -q -b {SEEDED_BRANCH} {commits['target']}" in lines
+    assert lines[-3:] == [
+        "git reflog expire --expire=now --all",
+        "rm -f .git/FETCH_HEAD",
+        "git gc -q --prune=now",
+    ]
+    assert not any(line.startswith("git rm") for line in lines), lines
+    prompt = sd.prompt(t)
+    assert f"on branch `{SEEDED_BRANCH}` at HEAD" in prompt
+    assert f"the base is `{commits['base']}`" in prompt
+    assert commits["target"] not in prompt and commits["squash"] not in prompt
+
+
+def test_a_seeded_case_counts_round_1s_confirmed_fixes_as_truths(tmp_path, monkeypatch):
+    """Guards S9: at round 1's target the tree holds the defects round 1
+    found, so each finding round 1 closed fixed that round 2 confirmed is a
+    `truth-` grader beside `truth-seeded`, and the seed lands on no line a
+    truth's window accepts: `f`'s line is in finding 1's window, so the
+    seed goes to `g`."""
+    sd = load_script("seed_defects")
+    commits, _repo = shipped_item(tmp_path, monkeypatch)
+    t, _why = sd.target_of(commits["squash"])
+    assert (t["path"], t["line"], t["new"]) == ("a.py", 40, "    return b == 2")
+    truths = {
+        name: truth_regex(name, text)
+        for name, text in sd.graders(t)
+        if name.startswith("truth-")
+    }
+    assert sorted(truths) == ["truth-1.md", "truth-seeded.md"]
+    assert truths["truth-1.md"].search("location: `a.py:2`")
+    for n in range(1, 60):
+        row = f"location: `a.py:{n}`"
+        assert sum(bool(g.search(row)) for g in truths.values()) <= 1, row
+
+
+def two_near_fixes(target, base):
+    """Round 1 with both findings closed fixed, three lines apart."""
+    return (
+        seeded_round_1(target, base)
+        .replace("`b.py:1`", "`a.py:5`")
+        .replace("verdict: rejected", "verdict: fixed abc1234")
+    )
+
+
+def test_a_shipped_commit_whose_round_1_truths_share_a_line_is_left_out(
+    tmp_path, monkeypatch
+):
+    """Guards S9's rule that one finding is never counted as two: where two
+    findings round 1 fixed lie so near that both truths accept one
+    `location:` line, the generator leaves the commit out, naming the line,
+    rather than writing a case the suite then refuses (`questions.md` Q3
+    of #986)."""
+    sd = load_script("seed_defects")
+    commits, _repo = shipped_item(tmp_path, monkeypatch, first=two_near_fixes)
+    t, why = sd.target_of(commits["squash"])
+    assert t is None
+    assert why == "two of round 1's truths accept `location: `a.py:1``", why
+
+
+def test_the_seeded_scaffold_leaves_round_1s_tree_and_no_copy_of_it(
+    tmp_path, monkeypatch
+):
+    """Guards S10 on a repository a case can fetch for nothing: the clone
+    holds no round record, the commit the plan's Status cell names
+    resolves, the target's own commit does not, and no file under `.git`
+    outside its objects names it."""
+    sd = load_script("seed_defects")
+    commits, repo = shipped_item(tmp_path, monkeypatch)
+    t, _why = sd.target_of(commits["squash"])
+    clone = tmp_path / "clone"
+    clone.mkdir()
+    (clone / "scaffold.sh").write_text(
+        "set -eu\n" + sd.scaffold(t, str(repo)) + "\n", encoding="utf-8"
+    )
+    run = subprocess.run(
+        ["sh", "scaffold.sh"], cwd=clone, capture_output=True, encoding="utf-8"
+    )
+    assert run.returncode == 0, run.stderr
+    assert not (clone / "seal" / "specs" / SEEDED_ITEM / "rounds").exists()
+    assert (clone / "a.py").read_text(encoding="utf-8").split("\n")[39] == (
+        "    return b == 2"
+    )
+
+    def exists(rev):
+        return subprocess.run(
+            ["git", "-C", str(clone), "cat-file", "-e", f"{rev}^{{commit}}"],
+            capture_output=True,
+        ).returncode
+
+    assert exists(commits["code"]) == 0
+    assert exists(commits["target"]) != 0
+    named = []
+    for directory, dirs, files in os.walk(clone / ".git"):
+        if "objects" in dirs:
+            dirs.remove("objects")
+        for name in files:
+            path = os.path.join(directory, name)
+            with open(path, "rb") as f:
+                if commits["target"].encode() in f.read():
+                    named.append(path)
+    assert named == [], named
