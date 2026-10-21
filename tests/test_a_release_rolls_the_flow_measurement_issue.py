@@ -783,6 +783,12 @@ def test_the_close_comment_names_the_version_this_release_shipped(monkeypatch):
         f"the comment must name the version this release shipped, which is "
         f"the one version knowable at this moment: {comment!r}"
     )
+    # #940 moved the section the comment sends its reader to into the verify
+    # skill's orchestrator half.
+    assert (
+        "`skills/verify/orchestration.md`'s \"Measure the segment, and feed the "
+        'flow log" section has the reasoning.' in comment
+    ), f"the comment sends its reader to a file the section left: {comment!r}"
 
 
 def test_a_push_that_shipped_no_new_version_rolls_nothing(monkeypatch):
