@@ -646,9 +646,8 @@ def test_no_agent_definition_tells_an_agent_to_ask_a_person():
 
     **This is one name, not a vocabulary.** A sweep over `agents/*.md` for
     every tool an agent cannot reach needs a list of what each agent has, kept
-    in step with the harness — that is mechanism, which a fix pass may not add
-    (`skills/code-review/orchestration.md` §*A fix pass adds the unit that
-    pins it*), and it is handed over as a ticket instead. What this case holds
+    in step with the harness — that is mechanism this case does not add, and
+    it is handed over as a ticket instead. What this case holds
     is the measured instance and the glob: a fourth agent definition added
     tomorrow is checked on the day it lands.
     """

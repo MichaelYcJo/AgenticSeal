@@ -77,7 +77,7 @@ laid out by **lifetime**, not by who wrote it:
 | `seal/`, everything above `specs/` | Permanent | Everything this plugin maintains | Written and read by machines: the repository's config, the migration config, the follow-up list |
 
 A `specs/` the project kept before the plugin is neither root: it is a
-**reference root**, as `templates/config.md` §*Reference specs* says — history
+**reference root**, as `templates/config.md` *Reference specs* says — history
 read where the work touches what it describes, cited in `spec.md` where it was
 read, and never written by anything this skill produces.
 
@@ -217,12 +217,12 @@ first.
 surfaces after it is written down rather than raised: a decision only a person
 can make goes to `questions.md`, a finding you neither fixed nor answered to
 `seal/follow-up.md` with an answerer named — a deferral to nobody is how
-"someone will look at it" becomes nobody did (`verify` §The answerer has to
-exist) — and what was deliberately left goes to the overview's Not done
+"someone will look at it" becomes nobody did (`skills/verify/SKILL.md` *The
+answerer has to exist*) — and what was deliberately left goes to the overview's Not done
 section. Each is named in the PR body, because a leftover nobody can find was
 not handed over. On a branch whose `routing.md` answers `Automation` with
 `yes`, `hooks/question-gate.py` holds this, and `docs/the-review-record.md`
-§*The run* is the rule.
+*The run* is the rule.
 
 The test for whether something is a question or a row: would a different
 answer change what you build *now*? If it would not, raising it spends a
@@ -343,7 +343,7 @@ without a registry — take it from `date +%s` when creating the directory.
 | File | Starts from | Written by | Holds | When |
 |---|---|---|---|---|
 | `routing.md` | `templates/sdd-routing.md` | the session that spawns the work, from the batch it asked — never a subagent, which has no way to put the question to anybody | the routing answer | before the first edit, and so before a framer is spawned |
-| `spec.md` | `templates/sdd-spec.md` | the framer | WHAT — scope, mandatory user scenarios & acceptance, grounding clauses, the rule changes `settle` applies to the policy root (`## Rule changes`), and the framer's mark at its foot, with a `Reframed … after round <N>.` line under it for each time the review chain sent the work item back (`docs/the-review-record.md` §*The run* owns that rule) | before implementing |
+| `spec.md` | `templates/sdd-spec.md` | the framer | WHAT — scope, mandatory user scenarios & acceptance, grounding clauses, the rule changes `settle` applies to the policy root (`## Rule changes`), and the framer's mark at its foot, with a `Reframed … after round <N>.` line under it for each time the review chain sent the work item back (`docs/the-review-record.md` *The run* owns that rule) | before implementing |
 | `plan.md` | `templates/sdd-plan.md` | the framer | HOW — phases as vertical slices, alternatives with failure scenarios; this is the Design Gate's artifact, and its `Approved <date> by <who>` line is the record that the gate happened | before implementing (gated work) |
 | `questions.md` | `templates/sdd-questions.md` | the framer opens the rows; each row's `Who can answer` cell names who closes it | decisions only a human can make — extracted so nothing ships on a silent assumption | one batch before the first edit, then as they arise |
 | `overview.md` | `templates/sdd-overview.md` | the builder | the closing memo — one line of purpose, then what the diff cannot show (below) | opened at the first divergence, unverified item, or fed-back clause; closed when implementation ends |
@@ -412,7 +412,7 @@ A memo whose last three sections are empty is correct and four lines long.
 
 **`## Not verified` is read by a machine, so it has one shape** — a
 `| Item | Who must answer |` table, or alone the no-change block
-`skills/settle/SKILL.md` §*Rule changes* states, `- nothing` with its one
+`skills/settle/SKILL.md` *Rule changes* states, `- nothing` with its one
 field `why:`. Any other spelling of the heading, the header row or the block
 fails the check rather than reporting zero, because zero reads as "everything
 has been closed".
@@ -445,7 +445,7 @@ and findings from execution are labeled separately.
 
 A session fixing review feedback starts at `seal/specs/<work-item-id>/rounds/`,
 **not** at the inline comments: the warden writes `round-N.md`, and the next
-review round reads it (`docs/the-review-record.md` §*The round record*).
+review round reads it (`docs/the-review-record.md` *The round record*).
 
 A finding is a claim too, and it arrives from someone who did not write the
 code. Open the coordinate and judge it yourself: fix what holds, and where it
@@ -459,23 +459,28 @@ rebuilt — only re-checked for whether the finding is now fixed.
 
 **A fix pass rewrites the `verdict:` line and writes the `answer:` line of
 each open finding in `rounds/round-N.md`, and writes no phase record** —
-`docs/the-review-record.md` §*The round record* names the three closing
+`docs/the-review-record.md` *The round record* names the three closing
 verdicts. A `fixed` commit must touch a path the finding's `location:`
 names; where the fix went somewhere else, the pass appends that coordinate
 to the line and says so in `answer:`. The build's phases keep theirs.
 
 A fix that changes what the work item ships brings the work item's
 `changelog.md` along, because the release gathers that fragment as it stands;
-`docs/the-record-layout.md` §*A commit after the build brings its changelog
+`docs/the-record-layout.md` *A commit after the build brings its changelog
 fragment along* owns that rule.
 
-### 6. Close before merge — drain the rows, keep the records
+### 6. Drain the rows before the sealer is spawned, and keep the records
 
-Before the PR merges, every unresolved row must move out:
+**The orchestrator moves every unresolved row out before it spawns the
+sealer**, whichever party `routing.md`'s `Implementation` row names, because
+the orchestrator opens the pull request and the pull request opens once the
+sealer seals (`skills/code-review/orchestration.md` *Orchestrator: the pull
+request opens once the sealer seals, and a phase is re-run*). A row is out
+when it stands at its destination below:
 
 | Remaining item | Destination |
 |---|---|
-| Doable within this PR | Do it now — merging is the last moment anyone is looking |
+| Doable within this pull request | done now, by the party that builds the work item: the sealer's spawn is the last moment before the pull request opens |
 | Waiting on prerequisite work | `seal/follow-up.md` |
 | Needs a decision | An `add` in `spec.md`'s `## Rule changes` to the policy document's open-questions section |
 

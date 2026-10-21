@@ -58,6 +58,7 @@ FRAGMENT_OWNER = (
 )
 FRAGMENT_LINK = FRAGMENT_OWNER.replace(" §*", " *")
 RUN_OWNS_THE_RULE = "`docs/the-review-record.md` §*The run* owns that rule"
+RUN_LINK = RUN_OWNS_THE_RULE.replace(" §*", " *")
 
 
 def read(*parts):
@@ -135,7 +136,7 @@ RULES = {
         RECORD_LAYOUT,
         "A commit after the build that changes what the work item ships "
         "updates the work item's `changelog.md` in the same range.",
-        {IMPLEMENT: FRAGMENT_OWNER, ORCH: FRAGMENT_LINK},
+        {IMPLEMENT: FRAGMENT_LINK, ORCH: FRAGMENT_LINK},
     ),
     # From #823, and since 0.22.0 one mark rather than a count of two
     # (`questions.md` Q1 of work item 1791933022), routed by the comparison
@@ -143,7 +144,7 @@ RULES = {
     "16 a regression is routed by comparing the fix with the frame": (
         RECORD,
         "A regression is routed by comparing the fix with the frame.",
-        {FRAMER: RUN_OWNS_THE_RULE, IMPLEMENT: RUN_OWNS_THE_RULE},
+        {FRAMER: RUN_OWNS_THE_RULE, IMPLEMENT: RUN_LINK},
     ),
 }
 

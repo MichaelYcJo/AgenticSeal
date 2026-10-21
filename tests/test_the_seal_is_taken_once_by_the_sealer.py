@@ -3743,7 +3743,7 @@ def test_the_docstrings_describe_the_letter_and_the_rows_it_carries():
 
 
 def test_the_documents_name_the_ci_also_row():
-    """#717, S7 for the rows (`agent-contract` §14). `skills/verify/SKILL.md`
+    """#717, S7 for the rows (`agent-contract` §14). `skills/verify/orchestration.md`
     §*A run says what it did not answer* and `agents/sealer.md` named the
     `workflow` row and its `<n> of <total> not answered` reading; both name
     the `CI also` row and its `<n> more steps` now, and the denominator is

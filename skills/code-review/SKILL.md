@@ -106,11 +106,11 @@ check: tests/test_review_axes.py tests/test_the_rules_have_one_owner.py
 
 A round writes `seal/specs/<work-item-id>/rounds/round-N.md` from
 `templates/sdd-round.md`. Every labelled line and heading follows its row of
-the grammar table in `docs/the-review-record.md` §*The round record*, which
+the grammar table in `docs/the-review-record.md` *The round record*, which
 the check reads; that section is the grammar's one statement. The prose follows
 `Record language` in the `seal/` root's `config.md`, English where the row
 is absent; field names, headings and vocabulary words stay English
-(`templates/config.md` §*What no row governs*).
+(`templates/config.md` *What no row governs*).
 
 - A finding is a defect. `must` is a spec violation or a defect to fix
   before merge; `should` is a defect the release would ship, a tool doing
