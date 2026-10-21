@@ -77,9 +77,9 @@ line, indented two spaces:
 
 `skills/settle/scripts/rule_changes.py` is the one reader.
 `chain-check` asks the same reader at the pull request, for each work item
-whose `routing.md` it judges and for every work item `spec.md` the pull
-request's own commits add or change (`docs/the-review-record.md` *What the
-check reads at the pull request*).
+whose `routing.md` it judges and, on a pull request that declares at least
+one work item, for every work item `spec.md` its own commits add or change
+(`docs/the-review-record.md` *What the check reads at the pull request*).
 
 ## A rule has one shape
 

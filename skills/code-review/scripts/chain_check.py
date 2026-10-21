@@ -16,10 +16,10 @@ judged (`carried_by`). The arms are six:
   rule changes  the `## Rule changes` section parses with
                 `rule_changes.parse`, the one reader `settle` applies, in
                 the `spec.md` of each judged work item under either
-                `Planning` answer, and in every work item `spec.md` the
-                pull request's own commits add or change
-                (`edited_work_items`); a spec with no such section, and a
-                work item with no spec, pass
+                `Planning` answer, and, on a pull request that declares at
+                least one work item, in every work item `spec.md` its own
+                commits add or change (`edited_work_items`); a spec with no
+                such section, and a work item with no spec, pass
   records       `Review | through the review chain`: `rounds/` holds at least
                 one `round-N.md`; each reads whole against the grammar table
                 of `docs/the-review-record.md` §*The round record*, which
