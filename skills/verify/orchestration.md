@@ -182,9 +182,8 @@ session-cost --segments <the run's transcript> --post --says <file|->
 
 It resolves the label rather than a number, `--label flow-baseline` reaches
 the durable log with the same code, and it **opens no issue in any state**.
-It refuses without `--says`, because the numbers are the script's and what
-they say is the orchestrator's: a command that invented the sentence would be
-posting a judgment nobody made. The readings below are what its exits mean,
+It refuses without `--says`: what the numbers mean is the orchestrator's
+sentence to write, and the script writes none. The readings below are what its exits mean,
 and they are still worth knowing, because an orchestrator that meets a
 refusal has to know which one it hit.
 
