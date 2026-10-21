@@ -9,7 +9,7 @@ target: c64c8845, fixes ad78bfb6..c64c8845
 severity: should
 location: `seal/specs/1792619407-the-replay-scaffold-and-reader-misread-rounds/spec.md:89-91`, `seal/specs/1792619407-the-replay-scaffold-and-reader-misread-rounds/spec.md:241-246`
 evidence: read `seal/specs/1792619407-the-replay-scaffold-and-reader-misread-rounds/spec.md:82-96`, `seal/specs/1792619407-the-replay-scaffold-and-reader-misread-rounds/spec.md:237-248`, `evals/scripts/noninferiority.py:298-330`
-verdict: open
+verdict: fixed 14349634
 
 c64c8845 rewrote the frame to point at the `finding_rows` docstring as the one statement of the floor rule. Under
 that rule, a record the check cannot read or split gives one empty row per raw finding-level heading line. Both of
@@ -42,7 +42,7 @@ and in *Data & interfaces*, the closing pointer goes, since this section is the 
 so `grade` finds no truth in such a run with no branch of its own.
 ```
 
-answer:
+answer: Applied the record's two snippets: scope item 1 no longer restates the floor and points to *Data & interfaces*, *The finding rows of a text*, which is now the spec's one statement of it, and that section's trailing "as the `noninferiority.py#finding_rows` docstring states" is gone. `rule_changes.py#parse` still reads the `## Rule changes` section as the no-change block (executed by the framer).
 
 ## Confirmations
 
