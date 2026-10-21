@@ -55,9 +55,9 @@ branch keep the arm at the commit as it is today.
 |---|---|
 | `hooks/gate.py#arms_missing` and the module docstring's *The two arms* list | the parity arm gains the conjunct *no declaration whose `review` is `routing.CHAIN`*; the declaration is read once for both arms |
 | `skills/code-review/scripts/chain_check.py` | a new refusal for a chain-declared work item in a parity repository whose diff touches code: a round record with no `original:` line, or one naming another commit; a config with no readable `Baseline commit` |
-| `docs/the-review-record.md` *The round record*, the grammar table | one new row, `original:`, edited in the commit that adds its reader, because `chain_check.py#grammar` loads the table from that file at run time; #1000 did the same (`ebbbd2f0`, its phase 3, `read`) |
+| `docs/the-review-record.md` *The round record*, the grammar table | one new row, `original:`, and the sentence under the table naming each row the loader reads a meaning from, both edited in the commit that adds the reader and its `READ_ROWS` entry, because `chain_check.py#grammar` loads the table from that file at run time; #1000 did the same (`ebbbd2f0`, its phase 3, `read`) |
 | `hooks/config.py` | one reader of `seal/parity.md`'s `Baseline commit` cell, beside `read_table`; no reader of that row exists today (`executed`: `git grep -n 'Baseline commit' -- hooks skills .github bin` returned only `skills/implement/orchestration.md:249`) |
-| `templates/sdd-round.md` | an `original:` placeholder line with one comment saying when it is owed |
+| `templates/sdd-round.md` | an example `original:` line inside a comment saying when it is owed, so a copied template carries no live line in a repository that declares no `seal/parity.md` |
 | `agents/warden.md` *Order of work* step 5 | the warden writes `original: <baseline>` in the record once it compared, beside the mark it already writes |
 | `skills/legacy-parity/SKILL.md` *Recording the comparison* | names the round record line as the record CI reads, and when the gate still asks |
 | `skills/implement/orchestration.md` *Orchestrator: how the work is routed* | the wake/quiet table's parity cell and the sentence under it |
