@@ -17,6 +17,10 @@ the act in one sentence of its own words:
   the commit cadence               skills/implement/SKILL.md, step 2
   the question batch               skills/implement/SKILL.md, step 1
 
+The commit cadence's row left `CLAUDE.md` with #940, whose rule keeps a row
+only where the owning file cannot reach a session in time; its home stays
+pinned here so no carrier restates it.
+
 A needle is a sentence only the home writes and the link row does not need.
 No carrier may contain one, the home aside. The carriers are the files
 `seal/specs/1791076836-every-rule-claude-md-restates-has-one-home/spec.md`
@@ -88,7 +92,9 @@ RULES = {
 # `CLAUDE.md` is loaded into every session; the four code comments cited it
 # for the identifiers rule until this work pointed them at the home.
 LINKED = {
-    "CLAUDE.md": ("merge", "identifiers", "cadence", "batch"),
+    # The cadence row left `CLAUDE.md` with #940: its home is opened at the
+    # build (`agents/smith.md` step 1), so `CLAUDE.md` no longer carries it.
+    "CLAUDE.md": ("merge", "identifiers", "batch"),
     ".github/scripts/plugin_directory_check.py": ("identifiers",),
     "tests/test_the_plugin_directory_answers_the_box.py": ("identifiers",),
     "tests/test_a_workflow_is_read_the_one_way.py": ("identifiers",),
@@ -209,7 +215,7 @@ def test_a_removed_link_is_named():
     texts["CLAUDE.md"] = texts["CLAUDE.md"].replace(CONTRIBUTING, "the guide")
     assert ("CLAUDE.md", "identifiers") in unlinked(texts)
     texts = tree()
-    texts["CLAUDE.md"] = texts["CLAUDE.md"].replace("§*House rules*", "")
+    texts["CLAUDE.md"] = texts["CLAUDE.md"].replace("*House rules*", "")
     assert ("CLAUDE.md", "identifiers") in unlinked(texts)
 
 

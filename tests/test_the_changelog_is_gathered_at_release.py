@@ -519,14 +519,17 @@ def test_the_index_and_the_release_files_agree():
 def test_the_documents_send_a_change_to_its_own_fragment():
     """Where an entry goes is decided in one home since #715,
     `docs/the-record-layout.md`, beside the release sequence that gathers it;
-    `CONTRIBUTING.md` and `CLAUDE.md`, where a reader stops first, send the
-    reader there by name rather than saying it a third and fourth time."""
+    `CONTRIBUTING.md`, where a contributor stops first, sends the reader there
+    by name rather than saying it again. `CLAUDE.md` sent its reader there
+    too until #940: the party writing the fragment is the orchestrator, at
+    the step `skills/code-review/orchestration.md` names."""
     for parts in (("docs", "the-record-layout.md"), ("docs", "branch-and-release.md")):
         text = flat(*parts)
         assert "seal/specs/<work-item-id>/changelog.md" in text, (
             "/".join(parts) + " does not name the file a change writes"
         )
-    for parts in (("CONTRIBUTING.md",), ("CLAUDE.md",)):
+    assert "changelog.md" in flat("skills", "code-review", "orchestration.md")
+    for parts in (("CONTRIBUTING.md",),):
         assert "docs/the-record-layout.md" in flat(*parts), (
             "/".join(parts) + " does not send the reader to the fragment rule's home"
         )

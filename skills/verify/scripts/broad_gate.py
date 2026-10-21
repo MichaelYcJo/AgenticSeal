@@ -2238,13 +2238,6 @@ PARTITION = (
         None,
     ),
     (
-        "the CLAUDE.md block is the template's, line for line",
-        None,
-        "runs `.github/scripts/claude_block.py` over this repository's own "
-        "CLAUDE.md. The plugin does not ship that script, and a repository "
-        "that wants it run names it in the `Broad gate` row",
-    ),
-    (
         "both READMEs move together",
         None,
         "raises a warning and never fails, so there is nothing for an arm to "

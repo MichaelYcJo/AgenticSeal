@@ -110,7 +110,7 @@ def test_the_preset_block_carries_the_routing_decision():
     A session that just commits never reads it and meets the gate at the commit
     instead — measured on a repository where <git-dir>/specseal-reviewed had
     never been written at all."""
-    preset = read("CLAUDE.md").split("<!-- specseal:end -->")[0]
+    preset = read("templates", "claude-md-block.md")
     assert "Routing, decided at the start" in preset
     assert "seal/specs/<work-item-id>/routing.md" in preset
     assert "[no-review]" in preset and "[no-parity]" in preset
@@ -189,7 +189,22 @@ def test_implement_and_the_preset_block_do_not_drift():
     the skill side of the pair is `orchestration.md` — the file the session
     that asks the question reads, and no smith spawn preloads."""
     implement = " ".join(read("skills", "implement", "orchestration.md").split())
-    preset = " ".join(read("CLAUDE.md").split("<!-- specseal:end -->")[0].split())
+    preset = " ".join(read("templates", "claude-md-block.md").split())
+    # The answers each box writes are the orchestration file's alone since
+    # #940: the block states the rules and leaves the vocabulary to the file
+    # a session asking the question reads.
+    for only in (
+        "through the review chain",
+        "straight to the PR",
+        "open the pull request",
+        "stop before the pull request",
+        "What is checked is the answer",
+        "each box is a row of",
+        # The third axis. A document still saying two would send a session to
+        # a template whose row it never asked about.
+        "`the session`",
+    ):
+        assert only in implement, f"the skill lost `{only}`"
     for both in (
         "seal/specs/<work-item-id>/routing.md",
         # The write is its own command. Both documents mandate it and the
@@ -198,10 +213,6 @@ def test_implement_and_the_preset_block_do_not_drift():
         # check for itself, because a batched write leaves nothing on disk to
         # look at.
         "in a command of its own",
-        "through the review chain",
-        "straight to the PR",
-        "open the pull request",
-        "stop before the pull request",
         # The SHAPE of the asking, not just its vocabulary. The rule against
         # asking the axes separately is worth nothing if only one document
         # carries it, and the preset block is the one a session that never
@@ -221,11 +232,6 @@ def test_implement_and_the_preset_block_do_not_drift():
         # question 1 now goes alone and the boxes follow only under
         # `per axis`.
         "Ask question 1 alone; the boxes in a second call only under `per axis`.",
-        "What is checked is the answer",
-        "each box is a row of",
-        # The third axis. A document still saying two would send a session to
-        # a template whose row it never asked about.
-        "`the session`",
     ):
         assert both in implement, f"the skill lost `{both}`"
         assert both in preset, f"the preset block lost `{both}`"

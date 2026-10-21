@@ -465,8 +465,8 @@ SpecSeal's workflow skips a pull request into `main`; a second case holds
 their guard. The cases read a guard on the base and no other kind of
 condition, so the class stays open for the next kind.
 
-**The arms the plugin ships are the arms the gate can run.** Three steps of
-SpecSeal's own `release` job have a local answer and no arm: two run a
+**The arms the plugin ships are the arms the gate can run.** Two steps of
+SpecSeal's own `release` job have a local answer and no arm: one runs a
 script under `.github/scripts/`, which no plugin ships, and one is shell
 written inline in the workflow with no script either side can share. A
 repository that wants checks of its own run names them in the `Broad gate`

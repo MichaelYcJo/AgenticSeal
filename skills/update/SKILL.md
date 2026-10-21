@@ -35,8 +35,7 @@ arrived, so there is nothing to load and neither move below is needed.
 path is keyed by the version string, and extraction is skipped when a
 directory by that name already exists — so on a machine that had one from an
 earlier numbering, the installer reports success, writes the right commit
-SHA beside it, and the copy that loads is whatever was already there.
-Measured the day this step was written: eight releases old (#157). The
+SHA beside it, and the copy that loads is whatever was already there. The
 summary in step 3 cannot see that, because it reads the marketplace clone,
 which is correct; it is the installed copy that is stale. Read the one path
 the installer records and compare:
@@ -61,7 +60,7 @@ rsync -a --exclude '.git' ~/.claude/plugins/marketplaces/specseal/ "$p/"
 mkdir -p "$p/.in_use"
 ```
 
-Two cautions, both measured the same day. `.in_use/` under a version
+Two cautions. `.in_use/` under a version
 directory holds PID files — a running session pins its own version — so never
 delete a directory whose `.in_use/` names a live PID; the `mv` above leaves
 the stale copy in place under another name for that reason. And
@@ -94,18 +93,17 @@ only the remainder.
 
 `claude plugin update` installs agents, skills, and hooks and never opens
 `CLAUDE.md`, so without this step a release changes a rule while the
-always-loaded file keeps stating the old one. Measured on this repository: the
-block changed in two of thirteen releases, and the first went four releases
-before anyone noticed.
+always-loaded file keeps stating the old one.
 
 ```bash
 diff <(sed -n '/specseal:start/,/specseal:end/p' ~/.claude/plugins/marketplaces/specseal/templates/claude-md-block.md) \
      <(sed -n '/specseal:start/,/specseal:end/p' ~/.claude/CLAUDE.md)
 ```
 
-`templates/claude-md-block.md` is the block's one source; the plugin
-repository's own `CLAUDE.md` carries a generated copy, held identical to it
-in CI, and is not what to diff against.
+`templates/claude-md-block.md` is the block's one source, and no other file
+carries a copy. A session in a clone of the plugin's own repository reads the
+installed block too, which is the last release's, not the clone's: running
+`./install.sh` from that clone installs the clone's block.
 
 Compare the scope that holds the block — `./CLAUDE.md` instead when the project
 owns it.

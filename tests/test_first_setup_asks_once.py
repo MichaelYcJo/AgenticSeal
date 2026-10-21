@@ -696,9 +696,9 @@ def test_the_design_record_states_the_setup_rules_where_they_rule(
 # The bootstrap above is where the mode question lives, and the cases in this
 # file all reach it by reading the skill. That is not how a session gets
 # there. `install.sh` copies the block between `<!-- specseal:start -->` and
-# `<!-- specseal:end -->` — `templates/claude-md-block.md`, of which this
-# repository's `CLAUDE.md` carries a generated copy — into
-# `~/.claude/CLAUDE.md`, so the block loads in EVERY project on the machine —
+# `<!-- specseal:end -->` — `templates/claude-md-block.md`, the block's one
+# source — into `~/.claude/CLAUDE.md`, so the block loads in EVERY project on
+# the machine —
 # including one that has never seen SpecSeal —
 # and it tells a session to write `seal/specs/<id>/routing.md` before the
 # first edit. That write creates `seal/`. Creating `seal/` opts the repository
@@ -715,22 +715,19 @@ START, END = "<!-- specseal:start -->", "<!-- specseal:end -->"
 def preset():
     """Exactly the text `install.sh` copies, markers included.
 
-    Read from the generated copy in `CLAUDE.md`, which
-    `.github/scripts/claude_block.py --check` holds identical to
-    `templates/claude-md-block.md`, the installer's source. Extracted the way
-    the installer extracts it rather than by reading the whole file: a
-    sentence added BELOW `specseal:end` reaches this repository and reaches
-    no user, and a case that read the whole file could not tell the two
-    apart.
+    Read from `templates/claude-md-block.md`, the installer's source, and
+    extracted the way the installer extracts it rather than by reading the
+    whole file: a line outside the markers reaches no user, and a case that
+    read the whole file could not tell the two apart.
     """
-    text = read("CLAUDE.md")
+    text = read("templates", "claude-md-block.md")
     assert START in text and END in text, "the preset markers moved"
     return text[text.index(START) : text.index(END) + len(END)]
 
 
 def routing_rule():
     """The preset's routing bullet, its line breaks folded."""
-    return paragraph(preset(), "- **Routing, decided at the start**")
+    return paragraph(preset(), "- **Routing, decided at the start.**")
 
 
 def test_the_preset_sends_a_fresh_repository_to_the_bootstrap():
@@ -745,7 +742,9 @@ def test_the_preset_sends_a_fresh_repository_to_the_bootstrap():
         "the routing rule instructs the write before it names the bootstrap, "
         "which is the order that made #151 happen"
     )
-    assert "implement" in lead
+    # The file the Bootstrap moved to, not the skill a `Skill implement` load
+    # carries, which no longer holds it.
+    assert "skills/implement/orchestration.md" in lead
     assert "neither" in lead, "the rule does not say WHICH repositories it means"
 
 
@@ -758,12 +757,15 @@ def test_the_preset_names_both_places_the_root_can_be():
     assert "git rev-parse --git-common-dir" in lead
 
 
-def test_the_preset_says_the_write_is_what_opts_the_repository_in():
-    """Without the consequence the sentence is a detour with no reason, and a
-    rule with no reason is the one that gets skipped when the work is
-    obvious."""
+def test_the_preset_says_whose_decision_the_place_is():
+    """The block keeps the rule and leaves the reason (#940): where the root
+    lands is the user's decision. That the write creates the root and opts
+    the repository in is the Bootstrap's, which the same sentence sends a
+    session to first."""
     rule = routing_rule()
-    assert "opts the repository in" in rule
+    assert "Creating the root is what opts the repository in" in flat(bootstrap()), (
+        "the Bootstrap no longer says creating the root opts the repository in"
+    )
     assert "user's decision" in rule, (
         "the rule does not say whose decision the place is, which is the "
         "whole of what #151 lost"

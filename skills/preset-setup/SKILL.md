@@ -25,10 +25,8 @@ through the user first.
 
 2. **Read both.** The preset block is the content between
    `<!-- specseal:start -->` and `<!-- specseal:end -->` in this plugin's
-   `templates/claude-md-block.md` (`$CLAUDE_PLUGIN_ROOT/templates/claude-md-block.md`).
-   That file is the block's one source; the plugin repository's own
-   `CLAUDE.md` carries a generated copy of it and is not what to read. Read
-   the user's file in full.
+   `templates/claude-md-block.md` (`$CLAUDE_PLUGIN_ROOT/templates/claude-md-block.md`),
+   the block's one source. Read the user's file in full.
 
 3. **Classify each overlap** between the user's existing content (outside any
    preset markers) and the preset block:

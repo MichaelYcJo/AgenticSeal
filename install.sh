@@ -40,11 +40,7 @@ else
         echo "(non-interactive: installing globally — use --project for project scope)"
     fi
 fi
-# The block's one source. The repository's own CLAUDE.md carries a generated
-# copy (`.github/scripts/claude_block.py --write`, checked in CI); this used
-# to read that copy, and #292 measured it against an installed block and
-# found `## Git` 95 % identical — one sentence had moved in one and not the
-# other, and nothing read both.
+# The block's one source. No other file in the repository carries a copy.
 SOURCE="$REPO_DIR/templates/claude-md-block.md"
 START='<!-- specseal:start -->'
 END='<!-- specseal:end -->'

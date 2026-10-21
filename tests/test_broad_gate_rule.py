@@ -350,7 +350,7 @@ def test_the_preset_block_states_the_rule_the_loaded_files_assume():
     An agent file needs the agent spawned and a skill needs the skill invoked.
     A session working this repo directly does neither, so the preset block --
     always in front of it -- is the only copy it will ever read."""
-    preset = read("CLAUDE.md").split("<!-- specseal:end -->")[0]
+    preset = read("templates", "claude-md-block.md").split("<!-- specseal:end -->")[0]
     assert "<!-- specseal:start -->" in preset, "the preset markers moved"
     assert "Verification Scope" in preset, (
         "the always-loaded block lost the rule that bounds a broad run"

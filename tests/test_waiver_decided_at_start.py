@@ -52,8 +52,8 @@ AXES = (
 ORCH = ("skills", "implement", "orchestration.md")
 SKILL = ("skills", "implement", "SKILL.md")
 
-# The shape of the asking, in the ONE spelling the orchestrator's section, the
-# block's template and its generated copy share (#911): question 1 alone, and
+# The shape of the asking, in the ONE spelling the orchestrator's section and
+# the block's template share (#911): question 1 alone, and
 # the boxes in a second call only where its answer was `per axis`, because
 # under the other two answers they mean nothing and were on screen anyway.
 # Fourteen words on purpose: at fifteen a sentence two documents share is a
@@ -450,8 +450,8 @@ def test_question_1_is_asked_alone_and_the_boxes_only_under_per_axis():
     assert len(labelled_table(skill, "Order", "Box")) == 4, (
         "question 2 does not offer exactly four boxes"
     )
-    # ONE spelling, shared with `templates/claude-md-block.md` and its
-    # generated copy, because `tests/test_review_axes.py` pairs the two
+    # ONE spelling, shared with `templates/claude-md-block.md`, because
+    # `tests/test_review_axes.py` pairs the two
     # documents on this exact phrase — two spellings of one decision is
     # the drift that pair exists to catch.
     assert SHAPE in flat(skill)
@@ -987,25 +987,23 @@ def test_the_smith_carries_its_own_half_and_not_the_questions():
 
 
 def test_the_preset_block_carries_it_too():
-    """`CLAUDE.md` is the one file a session in this repository always has.
+    """The block is the one file every session on a machine always has.
 
-    So it is the copy that matters most, and round 1 measured it as the copy
-    nothing held: the block kept its old three-checkbox paragraph and 176
-    cases stayed green, `claude_block.py --check` included — that command
-    compares the template with its generated copy and neither with the
-    question. Most of what this work item distributes IS this paragraph.
+    Round 1 measured it as the copy nothing held: the block kept its old
+    three-checkbox paragraph and 176 cases stayed green. Most of what this
+    work item distributes IS this paragraph. The absence half is the half
+    that would have caught it.
 
-    Asserted at BOTH ends, template and generated copy, and the absence half
-    is the half that would have caught it. This is the same defect the build
-    repaired one file over — a presence assertion on a count passing on the
-    copy that should have moved — landing on the copy a session always has.
+    Read from `templates/claude-md-block.md`, the one copy since #940. The
+    box answers left the block with it: the block states the shape, and
+    `skills/implement/orchestration.md` holds what each box writes.
     """
-    for parts in (("templates", "claude-md-block.md"), ("CLAUDE.md",)):
+    for parts in (("templates", "claude-md-block.md"),):
         text = flat(read(*parts))
         where = "/".join(parts)
         assert "seal/specs/<work-item-id>/routing.md" in text, where
-        for answer in AXES:
-            assert answer in text, f"{where} lost the answer `{answer}`"
+        for answer in ("automation", "per axis", "no work item"):
+            assert f"`{answer}`" in text, f"{where} lost the answer `{answer}`"
         assert SHAPE in text, (
             f"{where} still asks the old question, and the block is what a "
             "session in an opted-in repository always has in front of it"

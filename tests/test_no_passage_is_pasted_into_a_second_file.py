@@ -14,10 +14,9 @@ its home had not.
 every `*.ko.md`, because a Korean edition is a sanctioned mirror in other
 words; everything under `seal/`, which is records; and `CHANGELOG.md`.
 
-**How a file is normalised.** `CLAUDE.md`'s generated region is dropped,
-because `tests/test_the_claude_md_block_has_one_source.py` holds it equal to
-`templates/claude-md-block.md` on purpose. Fenced code blocks and heading
-lines are dropped. A quoted section name -- `§*...*`, or a `.md` path followed
+**How a file is normalised.** Each file is read whole: `CLAUDE.md` carries
+no copy of `templates/claude-md-block.md` since #940, so no region is
+sanctioned. Fenced code blocks and heading lines are dropped. A quoted section name -- `§*...*`, or a `.md` path followed
 by `*...*` -- becomes one token, because a link shares its heading's words by
 design; the name may wrap across a line, which is the case the first draft
 of this method missed. Then the text is lowercased, stripped of `` ` ``, `*`,
@@ -69,7 +68,6 @@ TOP_DIRS = ("docs/", "skills/", "agents/", "templates/")
 
 HOME_ACT = "link to the home instead of copying it, per `docs/the-record-layout.md`"
 
-GENERATED = re.compile(r"<!-- specseal:start -->.*?<!-- specseal:end -->", re.S)
 FENCE = re.compile(r"^ *(`{3,}|~{3,})")
 HEADING = re.compile(r"^ {0,3}#{1,6}(\s|$)")
 # A section quoted by name, after `§` or after a `.md` path (with or without
@@ -101,10 +99,7 @@ def lines(text):
 
 
 def words(text):
-    """TEXT normalised as the docstring says, as a list of words.
-
-    `CLAUDE.md`'s generated region is dropped by `tree`, which knows the
-    path; this reads every file's text the same way."""
+    """TEXT normalised as the docstring says, as a list of words."""
     kept, fence = [], None
     for line in lines(text):
         opened = FENCE.match(line)
@@ -180,15 +175,11 @@ def over_baseline(texts, baseline):
 
 
 def tree():
-    """`{path: text}` for the corpus, with `CLAUDE.md`'s generated region
-    dropped. Only that copy is sanctioned (spec O1): the template it is
-    generated from, `templates/claude-md-block.md`, carries the same markers
-    and is read like any other rule document."""
+    """`{path: text}` for the corpus, each file read whole."""
     texts = {}
     for rel in corpus():
         with open(os.path.join(ROOT, rel), encoding="utf-8") as f:
-            text = f.read()
-        texts[rel] = GENERATED.sub("\n", text) if rel == "CLAUDE.md" else text
+            texts[rel] = f.read()
     return texts
 
 
@@ -320,7 +311,7 @@ def test_a_paste_is_named_with_the_pair_the_run_and_the_act():
 
 def test_a_paste_into_the_block_template_is_named():
     """The block `install.sh` distributes is a rule document: a paste inside
-    its generated region is named like a paste anywhere else (round 1)."""
+    its marker region is named like a paste anywhere else (round 1)."""
     texts = tree()
     paste = a_sentence_of(texts["CONTRIBUTING.md"])
     rel = "templates/claude-md-block.md"
@@ -386,16 +377,14 @@ def test_a_wrapped_section_name_is_one_token():
     )
 
 
-def test_the_generated_block_fences_and_headings_are_not_read():
-    """The generated block is `CLAUDE.md`'s copy alone: it shares nothing
-    with its template, because the copy is not read, and the template itself
-    is read whole (round 1)."""
+def test_the_block_template_is_read_whole_and_fences_and_headings_are_not():
+    """The block's template is a rule document like any other and is read
+    whole (round 1); `CLAUDE.md` carries no copy of it since #940, so no
+    region of either file is dropped."""
     texts = tree()
     rel = "templates/claude-md-block.md"
-    assert len(words(texts[rel])) > 500, len(words(texts[rel]))
-    assert ("CLAUDE.md", rel) not in shared_counts(
-        {"CLAUDE.md": texts["CLAUDE.md"], rel: texts[rel]}
-    )
+    with open(os.path.join(ROOT, rel), encoding="utf-8") as f:
+        assert words(texts[rel]) == words(f.read())
     run = " ".join(f"w{i}" for i in range(WINDOW))
     fenced = f"```\n{run}\n```\n"
     heading = f"## {run}\n"
