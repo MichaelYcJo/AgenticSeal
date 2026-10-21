@@ -261,6 +261,13 @@ bytes executed at df686fc9, whose files equal b3154f43's:
 
 The orchestrator's row adds `skills/verify/orchestration.md` at phase 9.
 
+**A `docs/` line this item makes false** gets a `change` item in `## Rule
+changes`, added by the phase whose commit makes it false, and S14 lists it.
+That section holds the items and nothing else, because `rule_changes.py`
+refuses any other line in it and the spec then applies nothing. Until the
+owner's settle after 0.22.3 applies them, each such `docs/` line still names
+the old text; `plan.md` *Technical context* states that window.
+
 ## Rule changes
 
 - change
@@ -281,11 +288,11 @@ The orchestrator's row adds `skills/verify/orchestration.md` at phase 9.
   section: Creation consent
   from: (`skills/implement/orchestration.md` *Question 1 — single-select*),
   to: (`skills/implement/orchestration.md` *Question 1*),
-
-A heading phase 2 or a later phase renames that another `docs/` line cites
-adds its item here in the same commit, and S14 lists it. Until the owner's
-settle after 0.22.3 applies them, these three `docs/` lines name the old
-place; `plan.md` *Technical context* states that window.
+- change
+  file: docs/the-record-layout.md
+  section: seal/
+  from: | `seal/README.md` | the export rules, for a session that never loads a skill |
+  to: | `seal/README.md` | what the root holds, where it lives in each mode, and which file states the export rules |
 
 ## Removes
 
