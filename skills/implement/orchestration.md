@@ -462,8 +462,9 @@ question.** A pull request into the release branch is not a release: its
 entry accumulates unreleased, and the version is left alone. A pull request
 into `main` is a release: the version moves, the accumulated entries are
 gathered and dated, and the tag follows the merge. The release branch is the
-default, and the repository's contribution guide says which changes go to
-`main` directly.
+default. The orchestrator takes `main` when the accumulated entries read as
+one release, or when the change is a gate or a hook firing where it should
+not, which does not wait for other changes.
 
 **Where an entry accumulates is the repository's convention, so the
 orchestrator reads it before writing one.** Two shapes are common and they
