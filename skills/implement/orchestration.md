@@ -158,7 +158,7 @@ its own root.
    | a `Makefile` | a `test`, `check` or `lint` target |
 
    Offer each candidate as **one shell command line** composed the way
-   `templates/config.md` *Choosing a value — the criterion* says to compose
+   `templates/config.md` *The criterion for choosing a value* says to compose
    one, and name the file it came from: a candidate whose source is named is
    one the person can correct. Where nothing is findable, say so rather than
    inventing one: a guessed row is what `templates/config.md` *Broad gate*
@@ -175,7 +175,7 @@ its own root.
    carries the rule.
 
    **Name the criterion; do not restate it.** `templates/config.md`
-   *Choosing a value — the criterion* owns the criterion, three rules with
+   *The criterion for choosing a value* owns the criterion, three rules with
    the reason for each, and the person answering reads it there.
 
    **Offer a decline, and say what it costs.** *Not yet* is a real answer:

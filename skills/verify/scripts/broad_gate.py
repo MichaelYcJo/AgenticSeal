@@ -1023,8 +1023,8 @@ def missing_row(home):
         "command here checks its own choice.\n"
         "Take it to whoever owns the repository. `/specseal:config` is where "
         f"they answer it — it shows every row and adds this one with its "
-        "section — and `templates/config.md` §*Choosing a value — the "
-        "criterion* is what they choose against. Nothing ran."
+        "section — and `templates/config.md` §*The criterion for choosing "
+        "a value* is what they choose against. Nothing ran."
     )
 
 

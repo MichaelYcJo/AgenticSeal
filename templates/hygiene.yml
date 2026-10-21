@@ -4,27 +4,29 @@
 #
 # Setup: the `implement` skill writes this file to
 # .github/workflows/hygiene.yml at first setup, in shared mode only, and only
-# when nothing is there yet — an existing file is never overwritten. It pins
+# when nothing is there yet; an existing file is never overwritten. It pins
 # `v<version>` below to the plugin version installed at that moment, so the
-# checks come from the release that wrote the file. To move that line, edit
-# it, or delete this file and let the next first setup write it again.
+# checks come from the release that wrote the file. The line moves when a
+# person edits it, or deletes this file and lets the next first setup write
+# it again.
 #
-# Why local mode installs no copy: both checks read committed files —
-# `chain_check.py` lists `seal/specs/` with `git ls-tree HEAD`, and
-# `unverified_check.py` diffs against `--baseline <ref>` — and local mode
+# Why local mode installs no copy: both checks read committed files
+# (`chain_check.py` lists `seal/specs/` with `git ls-tree HEAD`, and
+# `unverified_check.py` diffs against `--baseline <ref>`), and local mode
 # keeps the root under the git directory, where nothing is ever committed.
-# A workflow left there is red forever. `unverified_check.py` runs second and
-# exits 2 for a path that is nowhere, and nothing here carries
-# `continue-on-error` or `if: always()` — so the job stops and the steps
-# after it, `chain_check.py` among them, never run. That check would have
-# exited 0 for a repository that declared nothing, green having
-# examined nothing, and it does not get the chance. The build is red for a
-# repository doing the right thing. The way to get CI is the switch to shared mode:
+# A workflow left there is red forever: `unverified_check.py` exits 2 for a
+# path that is nowhere, and since nothing here carries `continue-on-error`
+# or `if: always()`, the job stops, and the steps after it, `chain_check.py`
+# among them, never run; that check would have exited 0 for a repository
+# that declared nothing, green having examined nothing. The build is red for
+# a repository doing the right thing. The way to get CI is the switch to
+# shared mode:
 # `seal mode shared` moves the root into the tree, stages it, and writes this
-# file pinned to the plugin release it runs. You commit.
+# file pinned to the plugin release it runs, and whoever ran it commits.
 #
-# Doing it by hand instead: copy this file to .github/workflows/hygiene.yml
-# and replace v<version> with the tag of the plugin release you run.
+# Done by hand instead: a person copies this file to
+# .github/workflows/hygiene.yml and replaces v<version> with the tag of the
+# plugin release the repository runs.
 
 name: hygiene
 
@@ -48,7 +50,7 @@ jobs:
 
       # The checks ship with the plugin and load `hooks/routing.py` and
       # `hooks/optin.py` from beside themselves, so the plugin is cloned whole
-      # rather than copied file by file — and outside the tree, so it is never
+      # rather than copied file by file, and outside the tree, so it is never
       # a commit candidate here either. `actions/checkout` refuses a path
       # outside the workspace, which is why this is a clone and not a step of
       # that action.
@@ -69,8 +71,8 @@ jobs:
       # because `github.base_ref` names a branch that moves. In this job that
       # is the base's tip, since a pull request is checked out as its head
       # already merged into the base; on a branch checkout it is the fork
-      # point. Either way, work that lands on the base after your branch was
-      # cut is not your branch's removal.
+      # point. Either way, work that lands on the base after the branch was
+      # cut is not the branch's removal.
       - name: the unverified record is readable, and rows leave it closed
         shell: bash
         run: |
@@ -95,8 +97,8 @@ jobs:
       # `seal/config.md`'s `Mode` row is what this repository says its mode
       # should be; where the root actually sits is what it is. Nothing at
       # runtime reads the row, so it is the one thing here that can quietly
-      # stop being true. This fails for a disagreement left standing — always
-      # the author's, and always one command from fixed — and passes for an
+      # stop being true. This fails for a disagreement left standing (always
+      # the author's, and always one command from fixed) and passes for an
       # absent row, which declares nothing.
       - name: the mode the row declares is the mode the folder is in
         shell: bash

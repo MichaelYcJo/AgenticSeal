@@ -262,12 +262,11 @@ def test_the_template_and_the_config_skill_carry_the_pact_row_alone():
     assert "| Pact notify |" not in template
     assert "| `Pact notify` |" not in skill
     assert (
-        "**A `Pact notify` row is read by nobody.** An earlier release read a "
-        "second pact row, `Pact notify`, and nothing has acted on its value "
-        "since the pact's records of changes left. In the table no command "
-        "refuses it, prints it or names it, like any item no reader asks for;"
+        "**A `Pact notify` row is read by nobody.** No command refuses it, "
+        "prints it or names it, like any item no reader asks for, and whoever "
+        "next edits the file deletes it."
     ) in template
-    assert template.count("Pact notify") == 2, "the template says it once"
+    assert template.count("Pact notify") == 1, "the template says it once"
 
 
 # --- S4: the routing step across repositories -------------------------------

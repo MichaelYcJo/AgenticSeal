@@ -7573,25 +7573,25 @@ def test_the_measurement_its_cost_and_its_limits_are_told_where_the_row_is_writt
     for sentence in (
         "| 3 | Every pytest the row runs keeps the environment the gate hands it |",
         "On a failing test the gate compares each failing file with the base "
-        "from a record, never from what pytest printed (#825).",
+        "from a record, never from what pytest printed.",
         "the recorder's directory first on `PYTHONPATH`, `-p "
         "specseal_pytest_record` appended to `PYTEST_ADDOPTS`, and a key made "
         "fresh for the run.",
         "A pytest a test starts, and an xdist worker, inherit no key and write "
         "nothing, so nothing a test prints or runs changes a word.",
-        "**Then the row runs once more, unchanged, at the base** — nothing "
-        "appended, no part cut, every part run as written —",
-        "where no pytest at the base left a record — the row ended before it "
+        "**Then the row runs once more, unchanged, at the base** (nothing "
+        "appended, no part cut, every part run as written)",
+        "where no pytest at the base left a record (the row ended before it "
         "started one, none loaded the recorder, "
         "or the one that did could not write its record and warned in "
-        "`suite-at-base.txt` — `new?`; where the "
+        "`suite-at-base.txt`), `new?`; where the "
         "base's record holds a failing test or a failed collection of the file, "
         "`failing on base too`; where it holds the file and nothing of it "
         "failed, `new`; where it does not hold the file and the row exited 0, "
         "`new`, because the row ran to its end and never collected the file; "
         "and where it does not hold the file and the row exited otherwise, "
         "`new?` naming the exit, because the run may have ended before reaching "
-        "it — so a file the branch added reads `new?` wherever the base's row "
+        "it; so a file the branch added reads `new?` wherever the base's row "
         "already fails.",
         "Where no pytest the row ran at `HEAD` left a record, for any of "
         "those causes, the files "
@@ -7616,9 +7616,9 @@ def test_the_measurement_its_cost_and_its_limits_are_told_where_the_row_is_writt
         "finished: it wrote no `end` line to its record, because its process "
         "died, as plain pytest does on a test that calls `os._exit` or "
         "segfaults, or its recorder stopped writing, a disk that filled among "
-        "the causes; or its `end` line says pytest stopped it — an interrupt, "
+        "the causes; or its `end` line says pytest stopped it (an interrupt, "
         "`pytest.exit()` whatever code it chose, `-x` or `--maxfail`, a "
-        "plugin's stop — or shows an exit other than 0, 1 and 5. Where a red "
+        "plugin's stop) or shows an exit other than 0, 1 and 5. Where a red "
         "session also left reports out, that count is the one named.",
         # #849 round 1's 🟡 2: the same stop at `HEAD`, counted.
         "The gate also says there how many sessions at `HEAD` stopped "
@@ -7640,17 +7640,17 @@ def test_the_measurement_its_cost_and_its_limits_are_told_where_the_row_is_writt
         "record, and so does a row that sets `PYTEST_ADDOPTS` to a value of its "
         "own; its files read `new?`.",
         # #825 round 1's 🟡 2: Q2's class, not its first instance.
-        "A row that keeps `PYTEST_ADDOPTS` and loses `PYTHONPATH` fares worse — "
-        "one that replaces `PYTHONPATH`, an interpreter run with `-I` or `-E`, "
+        "A row that keeps `PYTEST_ADDOPTS` and loses `PYTHONPATH` fares worse "
+        "(one that replaces `PYTHONPATH`, an interpreter run with `-I` or `-E`, "
         "a wrapper that passes `PYTEST_ADDOPTS` or `PYTEST_*` on and not "
-        "`PYTHONPATH`: pytest cannot import the module the `-p` names and exits "
+        "`PYTHONPATH`): pytest cannot import the module the `-p` names and exits "
         "1 before any test runs, so the row fails at the gate.",
-        "and pass `PYTHONPATH` on wherever `PYTEST_ADDOPTS` goes.",
+        "and passes `PYTHONPATH` on wherever `PYTEST_ADDOPTS` goes.",
         # #825's reframe after round 3 (S28): what a line names a file by,
         # and the two kinds of report the record leaves out.
         "The record names each file by the path pytest itself holds for the "
-        "test or the collector, read in the process that holds it — an xdist "
-        "worker too — and carried on the report, never by a name pytest made "
+        "test or the collector, read in the process that holds it (an xdist "
+        "worker too) and carried on the report, never by a name pytest made "
         "from that path, so a file outside the rootdir, a `--pyargs` module "
         "wherever Python imports it from and a collector a conftest builds are "
         "each named by their own path.",

@@ -329,7 +329,7 @@ def test_the_template_PARSES_into_the_FOURTH_axis_it_ships():
     # the comment offers a person have to BE the answers the parser accepts.
     import re
 
-    stated = re.search(r"Planning — `([^`]+)` or `([^`]+)`\.", template)
+    stated = re.search(r"Planning: `([^`]+)` or `([^`]+)`\.", template)
     assert stated, (
         "the comment no longer states the fourth axis's two answers, so the "
         "only thing a person reads is the placeholder"
@@ -397,7 +397,7 @@ def test_the_template_PARSES_into_the_TWO_NEWEST_rows_it_ships():
         # the two files drift. Substituting the constants is self-consistent
         # by construction; what the person reads has to BE what the parser
         # takes.
-        stated = re.search(rf"{label} — `([^`]+)` or `([^`]+)`\.", template)
+        stated = re.search(rf"{label}: `([^`]+)` or `([^`]+)`\.", template)
         assert stated, f"the comment no longer states `{label}`'s two answers"
         assert tuple(stated.groups()) == answers, (
             f"the template offers {stated.groups()} for `{label}` and the "

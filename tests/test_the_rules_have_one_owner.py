@@ -46,7 +46,7 @@ AFTER_THE_SEAL = (
 )
 CONTRIBUTING = ("CONTRIBUTING.md",)
 CRITERION_OWNER = (
-    "`templates/config.md` §*Choosing a value — the criterion* owns the criterion"
+    "`templates/config.md` §*The criterion for choosing a value* owns the criterion"
 )
 # The same two links in the citation form a rewritten file uses: the
 # backticked path, then the heading in italics, with no section sign (#940).

@@ -135,7 +135,7 @@ failed: `git stash`, that one file, `git stash pop`.
   path; the failure form says how many there were. Nor, where a session at
   `HEAD` stopped part-way, is the test it stopped in, nor a test named on a
   line of the record that did not parse; the failure form counts both too.
-  `templates/config.md` *Choosing a value — the criterion*, rule 3, says
+  `templates/config.md` *The criterion for choosing a value*, rule 3, says
   which rows the gate cannot measure and how a row earns the measured word.
 
 Without the comparison, every failure that was already there is triage the

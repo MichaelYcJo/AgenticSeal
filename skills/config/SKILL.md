@@ -89,7 +89,7 @@ reader is a second answer.
   root.
 
   **How to choose that value is written down, and not here.**
-  `templates/config.md` *Choosing a value — the criterion* owns the
+  `templates/config.md` *The criterion for choosing a value* owns the
   criterion: three rules, with the reason for each. Read it to the person
   before they answer, rather than summarising it back to them.
 

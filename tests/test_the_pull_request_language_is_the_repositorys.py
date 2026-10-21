@@ -1246,7 +1246,7 @@ def _literal_strings():
     return sorted(found)
 
 
-GRAMMAR_TABLE = "`docs/the-review-record.md` §*The round record*"
+GRAMMAR_TABLE = "`docs/the-review-record.md` *The round record*"
 
 
 def test_the_exclusion_list_points_at_the_grammar_table_and_restates_none_of_it():

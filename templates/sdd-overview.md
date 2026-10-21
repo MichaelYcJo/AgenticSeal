@@ -1,14 +1,14 @@
-# <work item> — overview
+# Overview: <work item>
 
-<!-- The closing memo (implement skill, step 4). Not a summary of the work:
-`git diff --stat` holds the file list and the diff holds the detail. Only what
-the diff cannot show goes here, and each part is written when it happens rather
-than reconstructed at the end. A rule that must outlive this work item goes
-to its home under `docs/` with the test that holds it, not here. -->
+<!-- The closing memo, written by the party that builds the work item, on the
+terms of `skills/implement/SKILL.md` *4. The closing memo — only what the
+diff cannot show*: only what the diff cannot show goes here, each part
+written when it happens. A rule that must outlive this work item goes to its
+home under `docs/` with the test that holds it, not here. -->
 
 ## Scope confirmation
 
-<Second-rung work only — it alters nothing observable and is more than one
+<Second-rung work only: it alters nothing observable and is more than one
 line. The one line that replaces `plan.md`. Delete otherwise.>
 
 ## Why this work exists
@@ -25,31 +25,25 @@ it. Not a walk through the diff.>
 ## Not verified
 
 <!-- Read by `unverified-check`, so the shape is fixed: this table, or alone
-the no-change block of `skills/settle/SKILL.md` §*Rule changes*:
+the no-change block of `skills/settle/SKILL.md` *Rule changes*:
 
     - nothing
       why: <why nothing in this work item is left unverified>
 
-Leaving the placeholder row below fails the check: fill it in, or write the
-block in place of the table.
+The placeholder row below fails the check until it is filled in or the block
+replaces the table.
 
 An item is closed by marking it, never by deleting the row: the Item cell
 opens with the word `closed`, lower case, then the item.
 
     | closed <the item, kept> | <what closed it: the run, the session, the date> |
 
-So an open item never opens with that word. An open item whose own text
-begins with the word `closed` reads as closed, and nothing refuses it:
+An unmarked row counts open. An open item whose own text begins with the
+word `closed` reads as closed, and nothing refuses it:
 
     | closed issues are not re-read | the owner |
 
-Word such an item to open with another word. An unmarked row counts open.
-Deleting the row — or this whole file — fails the next pull request, which is
-what keeps "I verified it" and "I tidied it away" from being the same edit.
-
-What the check compares is the NUMBER of rows, not their text, so the second
-cell is read by people rather than by it: a closing that leaves the original
-answerer in place still passes. -->
+so such an item is worded to open with another word. -->
 
 | Item | Who must answer |
 |---|---|
@@ -57,10 +51,10 @@ answerer in place still passes. -->
 
 ## Not done
 
-<Deliberate leavings — what was within reach and not taken, and on what
+<Deliberate leavings: what was within reach and not taken, and on what
 grounds. Prose, because these are decisions rather than pending claims. Or
 "nothing".>
 
 ## Fed back into the spec
 
-<Clauses this work added, marked as inferred-during-implementation — or "none".>
+<Clauses this work added, marked as inferred-during-implementation, or "none".>

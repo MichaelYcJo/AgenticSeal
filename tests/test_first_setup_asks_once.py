@@ -266,7 +266,7 @@ def test_the_criterion_is_named_by_pointer_and_not_restated():
     rule 12). A bootstrap that spelled the three rules out would be its third
     carrier and the next place for them to disagree."""
     pointer = paragraph(bootstrap(), "**Name the criterion; do not restate it.**")
-    assert "*Choosing a value — the criterion* owns the criterion" in pointer
+    assert "*The criterion for choosing a value* owns the criterion" in pointer
     boot = flat(bootstrap())
     assert "red repository-wide" not in boot, (
         "the bootstrap restates a rule instead of pointing at its owner"
