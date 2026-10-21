@@ -2069,6 +2069,33 @@ class TestRuleChangesRead:
         _code, out = check(root, capsys)
         assert len(spec_lines(out)) == 1, out
 
+    @pytest.mark.rule("judged-where-carried")
+    def test_a_carried_spec_stays_unread_where_the_release_declares_its_own(
+        self, branch, ready, capsys, monkeypatch
+    ):
+        """S8, for the specs the diff carries: a release pull request that
+        declares a work item of its own reaches the edited specs, and still
+        leaves another work item's spec a squash carried to that squash's
+        pull request."""
+        root, _code = branch
+        write(root, f"{MERGED_ITEM}/spec.md", spec_with(CONTINUED))
+        commit(root, "another work item's spec")
+        reviewed_to_head(root)
+        released(root)
+        own = "seal/specs/1792000000-the-release"
+        write(
+            root,
+            f"{own}/routing.md",
+            ROUTING.format(review="straight to the PR", planning="the session").replace(
+                "feature/x", RELEASE
+            ),
+        )
+        commit(root, "the release's own work item")
+        monkeypatch.setenv("GITHUB_HEAD_REF", RELEASE)
+        code, out = check(root, capsys)
+        assert code == 1 and f"{own}/broad-gate.md" in out, out
+        assert spec_lines(out, MERGED_ITEM) == [], out
+
     def test_the_working_tree_is_read_under_worktree_and_head_otherwise(
         self, branch, ready, capsys
     ):
@@ -2184,6 +2211,42 @@ class TestRuleChangesRead:
         code, out = check(root, capsys)
         assert code == 0, out
         assert spec_lines(out, old) == [] and spec_lines(out, new) == [], out
+
+    def test_only_a_work_items_own_spec_file_is_read_from_the_diff(
+        self, branch, ready, capsys
+    ):
+        """S12's set holds `<id>/spec.md` exactly. Another file the branch
+        changes beside a spec it leaves alone, and a `spec.md` one directory
+        down, write no section `settle` reads."""
+        root, _code = branch
+        on_main(root, f"{MERGED_ITEM}/spec.md", spec_with(CONTINUED))
+        write(root, f"{MERGED_ITEM}/plan.md", "# plan\n")
+        write(root, f"{MERGED_ITEM}/notes/spec.md", spec_with(CONTINUED))
+        commit(root, "beside another work item's spec, and below it")
+        reviewed_to_head(root)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert spec_lines(out, MERGED_ITEM) == [], out
+        assert spec_lines(out, f"{MERGED_ITEM}/notes") == [], out
+
+    def test_a_reader_that_will_not_load_for_an_edited_spec_is_exit_2(
+        self, branch, ready, capsys, monkeypatch
+    ):
+        """S10, for the specs the diff carries: the judged work item has no
+        spec, so the edited spec is the first to reach the reader."""
+        root, _code = branch
+        write(root, f"{MERGED_ITEM}/spec.md", spec_with(NOTHING))
+        commit(root, "another work item's spec")
+        reviewed_to_head(root)
+
+        def will_not_load():
+            raise ImportError("a planted failure")
+
+        monkeypatch.setattr(chain.SHARED_READER, "rule_changes", will_not_load)
+        code = chain.main(["--baseline", "main", "--root", str(root)])
+        err = capsys.readouterr().err
+        assert code == 2, err
+        assert "the rule-changes reader would not load (a planted failure)" in err
 
 
 # --- main: the arms over a pull request ---------------------------------------
