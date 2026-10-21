@@ -295,6 +295,23 @@ def apart(text, scan):
     return text
 
 
+def unhidden(check, reader, text):
+    """`readable`'s lines of TEXT, where a region nobody closed hides no line
+    after the line that opened it. A comment or fence that never closes
+    hides every line after it from `readable`, and the check refuses the
+    record for it (`chain_check.py#unclosed`). The lines after the first
+    such opener are read again on their own, so a closed fence after it
+    still hides its own headings, and a second opener is read the same way.
+    Each reading is of fewer lines, so it ends."""
+    lines = reader.readable(text)
+    hidden = check.unclosed(reader, text, "")
+    if not hidden:
+        return lines
+    opened = min(line for _rel, line, _why in hidden)  # 1-based
+    rest = "\n".join(reader.gfm_lines(text)[opened:])
+    return lines[:opened] + unhidden(check, reader, rest)
+
+
 def finding_rows(text):
     """One row for each finding of the round record TEXT: the finding's
     `location:` lines joined by a newline, or the empty string where it has
@@ -304,16 +321,11 @@ def finding_rows(text):
     check would refuse is still one row.
 
     A record with no `## Findings` section, or with two, gives no rows, as
-    the check's split does. A comment or fence that never closes hides
-    every line after it from `readable`, and the check refuses the record
-    for it (`chain_check.py#unclosed`); such a record is split on its raw
-    lines, so a finding it hides is still a false row instead of
+    the check's split does. The lines split are `unhidden`'s, so a finding
+    after a region that never closes is still a false row instead of
     vanishing."""
     check, reader = rt.record_reader()
-    if check.unclosed(reader, text, ""):
-        lines = reader.gfm_lines(text)
-    else:
-        lines = reader.readable(text)
+    lines = unhidden(check, reader, text)
     _section, spans, _error = check.finding_spans(reader, lines)
     return [
         "\n".join(

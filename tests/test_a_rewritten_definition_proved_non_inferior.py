@@ -1108,6 +1108,61 @@ def test_a_comment_that_never_closes_hides_no_finding_from_the_false_count():
     assert (numbers["rows"], numbers["false"]) == (3, 3)
 
 
+def three_findings(tail):
+    """A printed record of three findings, each with its `location:` line,
+    and TAIL[n] after finding n's."""
+    return printed(
+        "".join(
+            f"### {n}. a finding\n\nseverity: should\n"
+            f"location: `src/b.py:{n}`\nverdict: open\n\n{tail.get(n, '')}"
+            for n in (1, 2, 3)
+        )
+    )
+
+
+@pytest.mark.parametrize(
+    "tail",
+    [
+        {1: "```\n## Not judged\n```\n\n", 3: "Why <!-- and nothing closes this.\n"},
+        {1: "```\n## Findings\n```\n\n", 3: "Why <!-- and nothing closes this.\n"},
+        {1: "Why <!-- and nothing closes this.\n\n", 2: "```\n## Not judged\n```\n"},
+    ],
+    ids=[
+        "a-fenced-heading-before",
+        "a-fenced-findings-before",
+        "a-fenced-heading-after",
+    ],
+)
+def test_a_closed_fence_still_hides_its_headings_beside_a_region_that_never_closes(
+    tail,
+):
+    """Guards round 2 of #986, finding 1: where a region never closes, the
+    lines up to its opener keep the shared reader's reading and the lines
+    after it are read again on their own, so a closed fence's `## ` line,
+    before or after the opener, ends no `## Findings` section and none of
+    the three findings vanishes."""
+    rows = [f"location: `src/b.py:{n}`" for n in (1, 2, 3)]
+    assert ni.finding_rows(three_findings(tail)) == rows
+
+
+def test_regions_that_never_close_nested_or_repeated_hide_no_finding():
+    """Guards that the reading again ends and still counts: an opener inside
+    an opener, a second comment that never closes, and a fence that never
+    closes, one in each finding, leave three rows."""
+    text = three_findings(
+        {
+            1: "Why <!-- an opener <!-- inside one\n\n",
+            2: "And <!-- another that never closes\n\n",
+            3: "```\nlocation: `src/c.py:9`\n",
+        }
+    )
+    assert ni.finding_rows(text) == [
+        "location: `src/b.py:1`",
+        "location: `src/b.py:2`",
+        "location: `src/b.py:3`\nlocation: `src/c.py:9`",
+    ]
+
+
 def test_a_location_line_outside_every_finding_is_no_row():
     """Guards S3: a `location:` line above `## Findings`, in `## Not
     judged` or in an HTML comment belongs to no finding, so it is no row."""
@@ -2535,8 +2590,9 @@ def test_the_seeded_scaffold_leaves_round_1s_tree_and_no_copy_of_it(
     resolves, the target's own commit does not, and no file under `.git`
     outside its objects names it. The amended commit keeps the target's
     committer and date, so no field of the log marks the seed's commit, and
-    the clone keeps no remote a `git fetch` could bring the shipped code
-    back from, while the base ref round 1 names still resolves."""
+    the clone keeps no remote (`seed_defects.py`'s module docstring says
+    what that closes and what it leaves), while the base ref round 1 names
+    still resolves."""
     sd = load_script("seed_defects")
     commits, repo = shipped_item(tmp_path, monkeypatch)
     t, _why = sd.target_of(commits["squash"])

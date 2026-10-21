@@ -13,7 +13,9 @@ committer and date. The scaffold then removes the remote, writing the base
 ref round 1 names again, expires the reflog, removes `FETCH_HEAD` and
 prunes what nothing reaches. So the target's original commit neither
 resolves in the clone nor is named by any file under its `.git/` outside
-the objects, and no `git fetch` brings the shipped code back.
+the objects, and a `git fetch` with no URL has no remote to fetch from. A
+fetch that names the repository's URL, which tracked files of the tree
+hold, still reaches the shipped code.
 
 Its truths are the mutated line, a `truth-` grader over the record's
 `location:` lines for `path:<line>` within 15 lines of it either way, and
@@ -279,9 +281,10 @@ def scaffold(t, url):
     """The scaffold: round 1's target checked out as the replay scaffold
     does it (`replay_targets.py#scaffold`), the mutation amended into the
     target commit with the target's own committer and date, so no field of
-    the log marks the seed's commit. Then the remote goes, so no `git
-    fetch` brings the shipped code back, and the base ref round 1 names is
-    written again, since removing the remote removes it. Last the reflog is
+    the log marks the seed's commit. Then the remote goes (the module
+    docstring says what that closes and what it leaves), and the base ref
+    round 1 names is written again, since removing the remote removes it.
+    Last the reflog is
     expired, `FETCH_HEAD` removed and what nothing reaches pruned, so no
     copy of the target's original commit is left."""
     mutate = MUTATE.format(

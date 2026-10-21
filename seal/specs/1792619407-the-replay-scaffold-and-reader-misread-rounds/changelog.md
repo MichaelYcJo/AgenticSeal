@@ -23,7 +23,7 @@
   finding round 1 fixed that round 2 confirmed is a `truth-` grader beside
   the seed. The amend keeps the target's committer and date, so the log
   does not point at the seed's commit. After it, the scaffold removes the
-  remote, so no `git fetch` brings the shipped code back, then expires the
+  remote, so a bare `git fetch` fetches nothing, then expires the
   reflog, removes `FETCH_HEAD` and prunes what nothing reaches, so the
   target's original commit is gone from the clone. The cases are `seeded-279a580b`,
   `seeded-ad447367`, `seeded-8a100e13` and `seeded-f1c9932d`.
