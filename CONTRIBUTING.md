@@ -83,8 +83,8 @@ The suite needs `pytest`, one parser, `markdown-it-py`, pinned to one
 version in `MARKDOWN_IT` in `.github/scripts/run_tests.py`, Pillow, pinned
 in `PILLOW` beside it, and one renderer, `cmarkgfm`, pinned in `CMARKGFM`.
 The parser is the CommonMark oracle the hook readers are checked against.
-Pillow decodes the release seal the tag push draws with `rsvg-convert` and
-attaches to the GitHub Release, in the suite's pixel case. The renderer is
+Pillow draws the release seal the tag push attaches to the GitHub Release,
+and the suite's pixel cases read what it draws. The renderer is
 GitHub's own, cmark-gfm, and the table walker in `hooks/config.py` is checked
 against what it renders. The parser and the renderer are test-only and Pillow
 is test-and-release-only: the gates themselves are stdlib-only Python and

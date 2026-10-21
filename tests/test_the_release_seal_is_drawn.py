@@ -967,18 +967,15 @@ def test_the_release_tail_says_the_seal_is_a_second_act_that_never_fails_it():
     reaches `main`*: the bullet on the note says the seal job runs only on a
     release this run created, edits only a glance table still as generated,
     and cannot turn the release red, and the section's `check:` line names
-    the module that pins the fallback. Since #832 it says the seal is
-    the owner's SVG drawn by `rsvg-convert`, and no longer that it is drawn
-    from the broad gate's letter; seen red by the old sentence put back."""
+    the module that pins the fallback. It no longer says the seal is drawn
+    from the broad gate's letter; seen red by the old sentence put back.
+    How the seal is drawn is #1009 S1 and S2's, and the bullet's sentence
+    on it is `spec.md`'s `## Rule changes` item of work item 1792624592."""
     text = flat("docs", "branch-and-release.md")
     bullet = text.split("**The release note publishes itself.**", 1)[1].split(
         "- **", 1
     )[0]
     assert "**Then the release's seal is attached.**" in bullet
-    assert (
-        "draws the owner's seal from `.github/scripts/release-seal.svg` with "
-        "`rsvg-convert`, which the job installs, attaches it" in bullet
-    )
     assert "letter" not in bullet
     assert "runs only when this run created the release" in bullet
     assert (
@@ -1011,8 +1008,3 @@ def test_the_checklist_box_says_where_a_missing_seal_is_explained():
     # Round 2's ⬜ 12: the reasons match the refusal's three causes.
     assert "published without one" in box
     assert "the pull requests moved between the two lists" in box
-    # #832: the seal is drawn by `rsvg-convert`, so the box names the binary
-    # among the reasons and the hand-drawn route needs a machine that has it.
-    # Seen red against the box as #718 left it.
-    assert "`rsvg-convert` was not installed or could not draw the SVG" in box
-    assert "from a checkout at the tag on a machine with `rsvg-convert`" in box

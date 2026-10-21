@@ -63,10 +63,10 @@ oracle reads, so the hook readers are checked against a parser that shares
 nothing with them. It is test-only: nothing under `hooks/` or `skills/`
 imports it.
 
-A second is Pillow, pinned in `PILLOW` (#718). The release's seal is the
-owner's SVG, which `.github/scripts/release_seal.py` hands to `rsvg-convert`
-when the tag push runs it (#832), and the suite's pixel case decodes the PNG
-that draws with Pillow. It is test-and-release-only, on the same terms:
+A second is Pillow, pinned in `PILLOW` (#718). `.github/scripts/release_seal.py`
+draws the release's seal with it from the terminal stamp's cells when the
+tag push runs it (#1009), and the suite's pixel cases read the PNG it draws.
+It is test-and-release-only, on the same terms:
 nothing under `hooks/` or `skills/` imports it, and a plugin user installs
 nothing new.
 
@@ -107,11 +107,11 @@ FLOOR_TEXT = ".".join(str(part) for part in FLOOR)
 MARKDOWN_IT_VERSION = "4.2.0"
 MARKDOWN_IT = f"markdown-it-py=={MARKDOWN_IT_VERSION}"
 
-# The imaging library the suite's pixel case decodes the release seal with
-# (#718). Since #832 `rsvg-convert` draws the seal and Pillow only reads it.
-# Pinned for the parser's reason: the pixel case samples what one version
-# decodes. Test-and-release-only: the gates stay stdlib-only, and the
-# `seal` job installs it to run the suite at the tag.
+# The imaging library the release seal is drawn with (#718, #1009), and
+# which the suite's pixel cases read it with. Pinned for the parser's
+# reason: the pixel cases compare what one version draws and decodes.
+# Test-and-release-only: the gates stay stdlib-only, and the `seal` job
+# installs it to run the suite at the tag and to draw the seal.
 # `.github/workflows/test.yml`,
 # `.github/workflows/publish-release.yml` and `CONTRIBUTING.md`'s fallback
 # carry the same string, and a case holds each to this one.
@@ -144,7 +144,7 @@ PYTEST_SPLIT = f"pytest-split=={PYTEST_SPLIT_VERSION}"
 # What a built environment holds. `pytest-xdist` is here because the suite
 # runs `-n auto` by default (#337): a build without it is the build whose
 # first call refused the flag. The parser is here for the oracle above,
-# Pillow for the seal's pixel case, and cmark-gfm for the table walker's.
+# Pillow for the seal's pixel cases, and cmark-gfm for the table walker's.
 PACKAGES = ("pytest", "pytest-xdist", MARKDOWN_IT, PILLOW, CMARKGFM)
 
 
@@ -312,8 +312,8 @@ def add_pillow(venv):
 
     `add_markdown_it`'s shape: an adopted `.venv` built before #718 has no
     Pillow, and it is repaired rather than refused. What a failed install
-    costs is narrower than the parser's: the seal's pixel case imports
-    Pillow inside the case rather than at module level, so that case fails
+    costs is narrower than the parser's: the seal's pixel cases import
+    Pillow inside each case rather than at module level, so those cases fail
     with a `ModuleNotFoundError` and every other case runs, in parallel and
     serially alike.
     """
@@ -325,17 +325,17 @@ def add_pillow(venv):
     else:
         step = [str(venv_python(venv)), "-m", "pip", "install", "--quiet", PILLOW]
     print(
-        f"bin/test: adding {PILLOW} to {venv}, which the suite's pixel case "
-        "decodes the release seal with. This run pays for it; every run after "
-        "it finds it there.",
+        f"bin/test: adding {PILLOW} to {venv}. Pillow draws the release seal, "
+        "and the release seal's pixel cases read what it draws. This run pays "
+        "for it; every run after it finds it there.",
         file=sys.stderr,
     )
     if subprocess.run(step).returncode != 0:
         return (
             f"bin/test: could not install {PILLOW} into {venv} (the command "
-            "above exited non-zero). Only the release seal's pixel case "
-            "imports it, so the release seal's pixel case fails with a "
-            "ModuleNotFoundError and every other case runs. Remove that "
+            "above exited non-zero). Only the release seal's pixel cases "
+            "import it, so those cases fail with a ModuleNotFoundError and "
+            "every other case runs. Remove that "
             "directory and run bin/test again to build it afresh with Pillow "
             "in it."
         )

@@ -708,8 +708,13 @@ def test_the_workflow_fires_on_the_tag_and_writes_one_release_one_asset_one_edit
     the job's own timeout sits under a job-level `continue-on-error` (round
     1's 🟡 4). The token is on the drawing step alone, and the checkout does
     not persist it in `.git/config`, so the suite at the tag runs with none
-    (round 1's 🟡 5). Seen red against the workflow with no `seal` job, and
-    the two round-1 halves against the workflow without them."""
+    (round 1's 🟡 5). Since #1009 (S7) the job has five steps: none runs
+    `apt-get`, so the job installs no system package and the image needs no
+    renderer from the runner, and the step that installs
+    `run_tests.py#PILLOW` comes before the draw, since the draw imports
+    Pillow. Seen red against the workflow with no `seal` job, the two
+    round-1 halves against the workflow without them, and #1009's three
+    against the job with the SVG renderer's install step."""
     text = workflow()
     assert "tags: ['v*']" in text, "the workflow no longer fires on a tag push"
     assert "branches:" not in text, (
@@ -732,8 +737,25 @@ def test_the_workflow_fires_on_the_tag_and_writes_one_release_one_asset_one_edit
         "    timeout-minutes: 60" in seal and "    continue-on-error: true" in seal
     ), seal
     held = steps(seal)
-    # Six since #832: the step that installs `rsvg-convert` joined them.
-    assert len(held) == 6, held
+    assert len(held) == 5, held
+    assert not any("apt-get" in line for step in held for line in step), held
+    pillow = module(
+        os.path.join(SCRIPTS, "run_tests.py"), "specseal_run_tests_for_the_seal_job"
+    ).PILLOW
+    installs = [
+        n
+        for n, step in enumerate(held)
+        if any("run: pip install" in line and pillow in line.split() for line in step)
+    ]
+    draws = [
+        n
+        for n, step in enumerate(held)
+        if any("release_seal.py" in line for line in step)
+    ]
+    assert len(installs) == len(draws) == 1 and installs[0] < draws[0], (
+        installs,
+        draws,
+    )
     assert any(line.strip() == "persist-credentials: false" for line in held[0]), held[
         0
     ]
@@ -764,47 +786,6 @@ def test_the_workflow_fires_on_the_tag_and_writes_one_release_one_asset_one_edit
     assert not any(
         "junitxml" in line or "SUITE_XML" in line for line in text.splitlines()
     )
-
-
-def test_the_seal_job_installs_rsvg_convert_before_the_suite_and_the_draw():
-    """S6 (#832). The runner image carries no `rsvg-convert`, so the `seal`
-    job installs `librsvg2-bin` with `apt-get`, without the recommended
-    packages, in a step of its own that is `continue-on-error` like every
-    other: an install that fails costs the image, and `release_seal.py`
-    says so on its `::warning::` line. The step comes before the suite, so
-    the suite at the tag runs the case that draws the seal with the real
-    binary, and so before the draw. Seen red against the job without it,
-    and with it placed after the draw.
-
-    The package lists are refreshed first, and the refresh does not gate
-    the install: `apt-get update` exits non-zero when any one list fails,
-    a third-party list the package does not come from included, so `&&`
-    after it skipped an install that would have worked (round 1's ⬜ 8). A
-    bare `;` skipped it too, because a step with no `shell:` runs under
-    `bash -e`, so the refresh is followed by `|| true` (round 2's 🟡 2).
-    Seen red against the `;` step."""
-    held = steps(job(workflow(), "seal"))
-    installs = [
-        at
-        for at, step in enumerate(held)
-        if any(
-            "sudo apt-get install -y --no-install-recommends librsvg2-bin" in line
-            for line in step
-        )
-    ]
-    assert len(installs) == 1, held
-    (at,) = installs
-    assert any(line.strip() == "continue-on-error: true" for line in held[at])
-    run = next(line for line in held[at] if "librsvg2-bin" in line)
-    assert "sudo apt-get update || true;" in run, run
-    assert "apt-get update &&" not in run, run
-    suite = next(
-        n for n, step in enumerate(held) if any("id: suite" in s for s in step)
-    )
-    draw = next(
-        n for n, step in enumerate(held) if any("release_seal.py" in s for s in step)
-    )
-    assert at < suite < draw, (at, suite, draw)
 
 
 def test_the_workflow_is_not_a_step_of_the_release_job():
