@@ -61,8 +61,11 @@ The policy documents in docs/ outrank this file; cite them, don't restate. -->
    writes skills, agents, templates and frames as its first act and opens no
    writing skill before it. The shipped block gets no line (Scope 2).
 2. **The block is read once, from one copy, and holds the rules only.**
-   `templates/claude-md-block.md` is cut to 1,000–1,500 bytes by `wc -c`
-   (4,695 at b3154f43, executed). It keeps the four headings and their
+   `templates/claude-md-block.md` holds the rules and no reasoning, 1,669
+   bytes by `wc -c` at 4c4c8e11 (4,695 at b3154f43; both executed). The
+   owner's 1–1.5 KB was the target; the 169 bytes over it are three rules,
+   each named with why it is a rule in `overview.md` (`questions.md` Q4). It
+   keeps the four headings and their
    rules: tooling, the three safety rules, batching, lint before commit,
    worktrees, and routing. The routing bullet states, in this order: where
    no `seal/` root exists, follow the Bootstrap section of
@@ -166,12 +169,12 @@ The policy documents in docs/ outrank this file; cite them, don't restate. -->
    `coordinates.py`'s `path#unit` grammar and the pact anchors it reads, and
    the changelog's `<!-- specs/<id> -->` lines `gather_changelog.py` writes
    and reads. Each changes a preload or a reader's grammar.
-9. **Item D7 from #3.** `skills/implement/SKILL.md` *6. Close before merge*
-   names its moment and its party: the party that opens the pull request
-   (the orchestrator, or the session where `routing.md` answers
-   `Implementation` with `the session`) moves each row out before it spawns
-   the sealer, because the pull request opens once the sealer seals
-   (`skills/code-review/orchestration.md`, read).
+9. **Item D7 from #3.** `skills/implement/SKILL.md` *6. Drain the rows
+   before the broad run, and keep the records* names its moment and its
+   party: the orchestrator moves each row out once the last round record has
+   no finding open, and before it runs `broad-gate --preflight`, because
+   every commit after the broad run, a `seal/follow-up.md` row among them,
+   leaves `broad-gate.md` stale for the sealer.
 10. **#755's restatements in this item's files.** Every
     `tests/test_no_passage_is_pasted_into_a_second_file.py#BASELINE` pair
     with a file this item rewrites is drained from that file where it is not
@@ -201,7 +204,7 @@ The policy documents in docs/ outrank this file; cite them, don't restate. -->
 
 | Scenario | Given / When / Then | Verifiable how |
 |---|---|---|
-| S1 the block is the rules | Given the rewritten template, `wc -c templates/claude-md-block.md` prints 1,000 to 1,500, and it states each rule of Scope 2 | `wc -c`; the pin cases of S4 |
+| S1 the block is the rules | Given the rewritten template, it states each rule of Scope 2 and no reasoning, and every byte past 1,500 by `wc -c` is a rule `overview.md` names | `wc -c`; the pin cases of S4; the `overview.md` row |
 | S2 one copy | `git grep -n 'specseal:start' -- CLAUDE.md` prints nothing; `git grep -n claude_block -- ':!seal' ':!changelog'` prints nothing; `hygiene.yml` holds no step running it | the greps |
 | S3 install still writes the block | Given an empty `CLAUDE.md`, `install.sh` writes the template's marker region once and a second run changes nothing; `uninstall.sh` removes it | the installer cases kept from `tests/test_the_claude_md_block_has_one_source.py`, in a module named for the installer |
 | S4 the routing rule still ships | Cases that read the block's routing bullet (`tests/test_first_setup_asks_once.py`, `tests/test_waiver_decided_at_start.py`, `tests/test_review_axes.py`, `tests/test_broad_gate_rule.py`) read the template and pass on Scope 2's content | those modules |
