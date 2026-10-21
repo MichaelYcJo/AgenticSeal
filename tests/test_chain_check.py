@@ -2321,6 +2321,14 @@ class TestOriginals:
         code, out = check(root, capsys)
         assert code == 1, out
         says = chain.NO_ORIGINAL.format(config=PARITY, sha=BASELINE)
+        # What the person reads: the line owed, and who writes it after what.
+        for words in (
+            f"no `original:` line: `{PARITY}` declares a migration",
+            f"each round record carries `original: {BASELINE}`",
+            "written by the warden once it compared the round's target with "
+            "the original through `legacy-parity`",
+        ):
+            assert words in says, says
         assert original_lines(out) == [
             f"{ITEM}/rounds/round-{n}.md:0  {says}" for n in (1, 2)
         ], out
