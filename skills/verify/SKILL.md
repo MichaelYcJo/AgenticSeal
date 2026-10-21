@@ -17,6 +17,8 @@ work back, and the sealer opens it for the conditions, the labels and the
 verdicts it audits against. The orchestrator reads it too. The orchestrator's
 own two acts, the broad gate and the measurement of each segment, are
 `skills/verify/orchestration.md`, which the smith and the sealer do not open.
+Each instruction below binds the party making a claim, whichever of the three
+it is.
 
 A completion claim is a mark, and a mark must be *earned*: **a check that
 cannot fail proves nothing, and evidence that outlives its tree state proves
@@ -51,19 +53,19 @@ evidence is that one search did not find something. An existence claim comes
 with a coordinate anyone can open; an absence claim comes with nothing to
 open, so the cost of checking it is asymmetric and it tends to pass unread.
 
-Condition 2 applies to the search itself: **run it against a case you know is
+Condition 2 applies to the search itself: **run it against a case known to be
 present.** A pattern that finds nothing there was broken, not the tree empty.
 Report the command and the scope it ran over, so the next session re-runs it
 instead of re-inventing it.
 
-An absence you cannot demonstrate that way is `unverified` and reads "not
+An absence that cannot be demonstrated that way is `unverified` and reads "not
 found", which is a different sentence from "not there". Never promote one to
 a document: a policy or a rule built on a search nobody could repeat is the
 same defect as a `read` reported as passing, with a longer fuse.
 
 #### `arm-check` asks condition 2 of a whole module, one arm at a time
 
-Condition 2 is asked of the case in front of you. **A module has arms nobody
+Condition 2 is asked of the case at hand. **A module has arms nobody
 ever asked it of**, and a count of them taken by hand is wrong as soon as the
 module changes.
 
@@ -92,7 +94,7 @@ suite can approach the bound, name the pytest command in `--tests` directly
 rather than a wrapper.
 
 **There are two ways to be wrong and the counts differ by a lot**, so the
-report keeps them apart and the number you quote has to say which one it is:
+report keeps them apart and a quoted number has to say which one it is:
 
 | Operator | Asks |
 |---|---|
@@ -170,7 +172,8 @@ The first line printed is the verdict, then the command's own output:
 - exit 2 for every run that measured nothing: `no baseline` (the cases fail
   without the break, so the break was never written), `timed out`, `could not
   start`, `could not run`, `refused` (nothing was written), `not restored`
-  (the file may still hold the break; restore it from your commit), and
+  (the file may still hold the break; restore it from the commit made
+  before the run), and
   `interrupted`.
 
 So `mutation-check … && mutation-check …` stops at the first unit nothing
@@ -279,8 +282,8 @@ them measures a tree that is going to change.
 
 | When | What runs | Label |
 |---|---|---|
-| Each slice | the tests for what you just wrote | `executed`, narrow |
-| Phase boundary | your module and the ones it touches, in parallel | `executed`, scoped |
+| Each slice | the tests for what the slice just wrote | `executed`, narrow |
+| Phase boundary | the module the phase changed and the ones it touches, in parallel | `executed`, scoped |
 | Handoff to review | nothing broad | the suite is `unverified`, and says so |
 | Review rounds 1..n | what the fix touches | `executed`, narrow |
 | **After the rounds settle** | full suite, lint, typecheck, **once**, by the orchestrator | `executed`, broad, once |
@@ -288,8 +291,8 @@ them measures a tree that is going to change.
 The last row is the orchestrator's, and `skills/verify/orchestration.md` *The
 broad gate* holds it, read against the base commit.
 
-Narrowing is not permission to go quiet. A suite you did not run is
-`unverified` with who answers it, never omitted: condition 4 is what makes
+Narrowing is not permission to go quiet. A suite the party making the claim did
+not run is `unverified` with who answers it, never omitted: condition 4 is what makes
 the smaller scope honest rather than a loophole. The loophole reopens three
 ways, below.
 
@@ -318,10 +321,10 @@ command from:
 | Prose only: docs, comments, docstrings | Whatever actually parses those files. Often nothing does, and then there is no seal to earn here. |
 | A comment or docstring inside source | That the module still imports. |
 | Logic | The tests covering that file. |
-| A merge, or a dependency bump | The broad gate. What breaks is outside what you edited, so a scope drawn around your own edit cannot see it. |
+| A merge, or a dependency bump | The broad gate. What breaks is outside what was edited, so a scope drawn around the edit cannot see it. |
 
 The last row is the one that gets narrowed by mistake. A merge is the moment
-the tree stops being the one you tested.
+the tree stops being the one that was tested.
 
 ### The answerer has to exist
 
@@ -345,7 +348,7 @@ It separates four outcomes that a reader otherwise collapses into one:
 - a local hook answers on the committer's machine only;
 - nothing answers.
 
-Exit 1 means the row you were about to write is not true.
+Exit 1 means the row about to be written is not true.
 
 It reads command text rather than a YAML graph, so a runner reached through a
 composite action, a reusable workflow, or a script it cannot see reads as
@@ -367,13 +370,13 @@ reports zero there and zero reads as "everything has been closed". Close an
 item by opening its row with the word `closed` and saying what closed it; the
 row stays.
 
-**`--baseline` names the branch you merge into, and what it reads is
-`git merge-base <ref> HEAD`**: where you forked from it on a branch checkout,
-and the base's tip in CI, whose checkout of a pull request is your head already
-merged into the base. Either way a work item squashed into that branch after
-your branch was cut is not your removal.
+**`--baseline` names the branch the work merges into, and what it reads is
+`git merge-base <ref> HEAD`**: the fork point on a branch checkout, and the
+base's tip in CI, whose checkout of a pull request is the branch's head
+already merged into the base. Either way a work item squashed into that
+branch after this branch was cut is not this branch's removal.
 
-## The cost of the run you repeat
+## The cost of a run that repeats
 
 Scope decides how often the expensive command fires. It does nothing about
 what the command costs, and the narrow run is the one that multiplies: every
@@ -390,7 +393,7 @@ lockfile, a target in the Makefile that is not the default, a line in a README
 or a comment. Repairing one is cheaper than paying its absence once per round.
 
 **Capture once, filter locally.** A command re-run to see its output a
-different way returns nothing you did not already have. Redirect to a file
+different way returns nothing the first run did not already have. Redirect to a file
 and read the file:
 
 ```
@@ -434,7 +437,7 @@ session-cost <transcript.jsonl>
   nor somebody else's problem: that axis now has no answer, and the honest row
   is `unverified` with the cause named.
 - A failure count with no base state behind it. "1 failed" is a claim about
-  your change only if you know what the tree failed before you touched it.
+  a change only where what the tree failed before the change is known.
 - A deferral to an answerer nobody resolved. "CI covers it" in a repository
   where nothing runs it is the `unverified` label doing the opposite of its
   job: it reads as handled.

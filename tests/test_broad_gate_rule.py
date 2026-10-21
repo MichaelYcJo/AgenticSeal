@@ -109,7 +109,7 @@ def test_verify_prices_the_run_that_repeats():
     """Scope decides how often; it says nothing about what each run costs, and
     the narrow run is the one that multiplies."""
     scope = read("skills", "verify", "SKILL.md")
-    assert "## The cost of the run you repeat" in scope
+    assert "## The cost of a run that repeats" in scope
     assert "recipe in a comment" in scope  # line-wrapped in the source
     assert "Capture once, filter locally" in scope, (
         "re-running a check to see its output differently returns nothing new"

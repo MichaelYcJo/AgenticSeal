@@ -140,7 +140,7 @@ def test_the_section_is_the_orchestrators_and_the_smiths_skill_names_it():
         "the smith's and the sealer's skill still carries the orchestrator's "
         "measuring section"
     )
-    assert "## The cost of the run you repeat" in smiths
+    assert "## The cost of a run that repeats" in smiths
     assert "`skills/verify/orchestration.md`" in smiths.split("\n## ", 1)[0], (
         "the opening of `skills/verify/SKILL.md` does not say where the "
         "orchestrator's two acts are"
