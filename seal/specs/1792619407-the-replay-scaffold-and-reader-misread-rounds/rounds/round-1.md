@@ -9,7 +9,7 @@ target: 8ef3a12c against release/v0.22.3
 severity: must
 location: `tests/test_a_rewritten_definition_proved_non_inferior.py:2514`
 evidence: read `tests/test_a_rewritten_definition_proved_non_inferior.py:2501-2520`, `evals/scripts/replay_targets.py:663-707`, `evals/scripts/seed_defects.py:276-297`
-verdict: open
+verdict: fixed 0cc8be41
 
 The orchestrator relayed `tests` run 39688600936 at 8ef3a12c. The run failed one case on one Windows split:
 `test_the_seeded_scaffold_leaves_round_1s_tree_and_no_copy_of_it`. Its stderr reads
@@ -38,14 +38,14 @@ here; the next Windows leg answers that.
     )
 ```
 
-answer:
+answer: The case now passes `repo.as_uri()`, the shape `origin_url` gives the generator, with a comment saying why. On macOS the module ran 122 passed (executed). Whether git for Windows fetches a SHA over `file:///C:/...` is unverified here; the orchestrator's next Windows leg answers it.
 
 ### 2. Findings after an unclosed comment vanish from the false count while the check refuses the record
 
 severity: should
 location: `evals/scripts/noninferiority.py:263-283`, `tests/test_a_rewritten_definition_proved_non_inferior.py:1077`
 evidence: executed `python3 test_tmp_986_probe.py`
-verdict: open
+verdict: fixed 0cc8be41
 
 Scope item 1 of `spec.md` says that a section the check would refuse is still one row, "so a finding written in
 a broken shape counts as false instead of vanishing". Plan row R2 rejects a reader that lets a warden lower its own
@@ -78,14 +78,14 @@ opening a comment that never closes, give three rows.
         lines = reader.readable(text)
 ```
 
-answer:
+answer: `finding_rows` splits the raw lines where `chain_check.py#unclosed` refuses the text, as the fix block gives. `test_a_comment_that_never_closes_hides_no_finding_from_the_false_count` stands beside S2: three findings, the first opening a comment that never closes, give three rows and three false. `mutation-check` with the branch made `if False:` went red (executed).
 
 ### 3. The mask leaves a user path the scan refuses once the side's JSON escapes the character after it
 
 severity: should
 location: `evals/scripts/noninferiority.py:238-260`, `tests/test_a_rewritten_definition_proved_non_inferior.py:1614`
 evidence: executed `python3 test_tmp_986_probe.py`
-verdict: open
+verdict: fixed 0cc8be41
 
 `masked` runs the scan's functions on each line of the plain text. The committed side holds the text as one JSON
 string, and the scan reads that JSON line. `phase-1.md` found that difference for hosts, and
@@ -114,14 +114,14 @@ the next character, and a case adds both texts to the masked-record test. The pa
     return escaped.sub(" ", glued.sub(" ", "\n".join(lines)))
 ```
 
-answer:
+answer: Built as the version the finding names without the copy. `noninferiority.py#apart` reads the text's JSON form, the one `write_side` writes, with the scan's own `refused_domains` and `refused_user_paths`, and sets one space beside an escape a refused match takes in: after it where the match starts inside the escape, before it where the match runs into it. It replaces the host-only pattern at line 259, so hosts and user paths take one path and no pattern is restated. The masked-record case adds the user root before a line break and inside quotes, and the written side scans clean (executed). Five mutations went red: `apart` not called, each of its two placements forced, user paths left out of the JSON-form scan, and its loop bound (executed). cdfd5f95 bounds that loop at the text's length, because a placement that fails to clear a refusal would otherwise loop for ever.
 
 ### 4. The seeded commit is the one commit with committer eval and today's date, which points a warden at the seed
 
 severity: should
 location: `evals/scripts/seed_defects.py:292`, `evals/behaviour/warden/seeded-279a580b/scaffold.sh:18`, `evals/behaviour/warden/seeded-ad447367/scaffold.sh:18`, `evals/behaviour/warden/seeded-8a100e13/scaffold.sh:18`, `evals/behaviour/warden/seeded-f1c9932d/scaffold.sh:18`, `tests/test_a_rewritten_definition_proved_non_inferior.py:2501`
 evidence: executed `sh evals/behaviour/warden/seeded-279a580b/scaffold.sh`, `git log -3 --format=%h%x20%cn%x20%ce%x20%cd`
-verdict: open
+verdict: fixed 0cc8be41
 
 The scaffold amends the seed into the target commit as `-c user.name=eval -c user.email=eval@example.com`, so git
 records the amended commit with committer `eval <eval@example.com>` and the date of the run. In each of the four
@@ -145,14 +145,14 @@ asserts that HEAD's committer and committer date equal the fixture target's.
             "git -c user.name=eval -c user.email=eval@example.com commit -q -a --amend --no-edit --no-verify",
 ```
 
-answer:
+answer: The amend sets the committer's name, email and date from the target commit, as the fix block gives. On the orchestrator's direction from the Not judged row, the scaffold also runs `git remote remove origin` after the amend and writes the base ref round 1 names again, since removing the remote removes it. The overview carries that as its own divergence row. The replay scaffold keeps its remote and is unchanged (S12). The four seeded cases were regenerated. Each scaffold was run once over the network in an empty directory (executed). Each exited 0, HEAD's committer and date equal the original target's, `git remote` printed nothing, the refs were the branch and the one base ref, and every earlier S10 check still held. The fixture case asserts the committer, the empty remote list and the base ref. Four mutations went red: the date dropped, the name dropped, the remote kept, the base ref not written again (executed).
 
 ### 5. Three records say three of the four round 1 records name origin/release/v0.21.0, and two do
 
 severity: should
 location: `seal/specs/1792619407-the-replay-scaffold-and-reader-misread-rounds/spec.md:113`, `seal/specs/1792619407-the-replay-scaffold-and-reader-misread-rounds/overview.md:18`, `seal/specs/1792619407-the-replay-scaffold-and-reader-misread-rounds/phases/phase-2.md:50-51`
 evidence: executed `git show 279a580b:seal/specs/1791384154-a-records-finding-closes-once-at-the-runs-end/rounds/round-1.md`, `git show ad447367:seal/specs/1791384160-a-fix-range-is-its-own-commits-across-a-merge/rounds/round-1.md`, `git show 8a100e13:seal/specs/1792363189-rule-3-decides-on-the-agent-not-one-run/rounds/round-1.md`, `git show f1c9932d:seal/specs/1792311781-the-stamp-is-drawn-from-the-sealers-verdict/rounds/round-1.md`
-verdict: open
+verdict: fixed 5020c9e8
 
 `spec.md` scope item 5, the overview's base-ref row and `phase-2.md` each say that three of the four round 1
 records name `origin/release/v0.21.0`. Read at each squash commit, two of them do: `279a580b` and `ad447367`, in
@@ -170,7 +170,7 @@ other two records cite it.
    do: two name `origin/release/v0.21.0` and one `release/v0.22.1`.
 ```
 
-answer:
+answer: `overview.md`'s base-ref row and `phase-2.md` no longer state the count; each points at `spec.md` scope item 5 for which refs are gone. `spec.md` is the framer's file, and the smith's definition names no write to it. So `spec.md:113`'s last sentence, which still says three of the four name `origin/release/v0.21.0`, is the orchestrator's to replace with the fix block's three lines. Until then the one statement the other two records cite is the wrong one.
 
 ## Confirmations
 
