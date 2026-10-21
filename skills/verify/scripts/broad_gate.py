@@ -57,7 +57,7 @@ A check that fails does not stop the ones after it: the failure form names
 every check that failed, which is what a reader acts on.
 
 **On a failing test the comparison against the base is reactive and
-mechanical** (`skills/verify/SKILL.md` §*The broad gate*). The row runs with
+mechanical** (`skills/verify/orchestration.md` §*The broad gate*). The row runs with
 a pytest recorder of the gate's own loaded (`recording_env`), which writes
 down, inside each pytest process the row starts, every test it ran and its
 outcome. Only when the repository's command fails AND that record holds

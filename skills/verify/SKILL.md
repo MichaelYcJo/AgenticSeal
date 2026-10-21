@@ -3,22 +3,27 @@ name: verify
 description: |
   Evidence protocol for completion claims (the Seal Test): name the proving
   command before running it, show the check can fail, bind the result to a
-  tree state, and label every claim executed / read / unverified.
+  tree state, and label every claim executed, read or unverified.
   Use when: about to say done, fixed, passes, or complete; before a commit;
   before handing work to the review chain.
   NOT for: deciding whether the work is worth doing, or reviewing someone
   else's diff (`code-review`).
 ---
 
-# verify — the smith's own gate before handoff
+# The Seal Test
 
-A completion claim is a mark, and a mark must be *earned*. The community
-baseline ("no completion claims without fresh verification evidence") stops
-at freshness — it accepts any green command as proof. This protocol demands
-more: **a check that cannot fail proves nothing, and evidence that outlives
-its tree state proves less than nothing.**
+This file is the smith's and the sealer's: the smith opens it before it hands
+work back, and the sealer opens it for the conditions, the labels and the
+verdicts it audits against. The orchestrator reads it too. The orchestrator's
+own two acts, the broad gate and the measurement of each segment, are
+`skills/verify/orchestration.md`, which the smith and the sealer do not open.
 
-A claim is sealed only when all four conditions hold:
+A completion claim is a mark, and a mark must be *earned*: **a check that
+cannot fail proves nothing, and evidence that outlives its tree state proves
+less than nothing.** Freshness alone accepts any green command as proof; this
+protocol asks more of the command.
+
+A claim stands only when all four conditions hold.
 
 ## The four conditions
 
@@ -26,22 +31,22 @@ A claim is sealed only when all four conditions hold:
 
 State the proving command **before** executing it, next to the claim it
 proves. Choosing the command after seeing what passes is how a test suite's
-green becomes "feature works" — the claim-to-command mapping is the
-verification, the run is just its execution.
+green becomes "feature works": the mapping from claim to command is the
+verification, and the run only executes it.
 
 ### 2. Able to fail
 
 Show the check CAN go red. For a bug fix: the reproduction failed before the
 change (or fails when the change is reverted). For a new test: it was
 observed failing against the pre-change code. A check that has never been
-seen red is a counterfeit seal — this is the condition the generic gates
-skip, and the one that catches assertion-free tests, mocked-away behavior,
-and wrong-file test runs.
+seen red is a counterfeit seal. This is the condition generic gates skip,
+and the one that catches assertion-free tests, mocked-away behavior, and
+wrong-file test runs.
 
 #### An absence claim is only as good as the search behind it
 
 "There are no callers", "the original has no such branch", "nothing reads
-this column" — these are claims about the whole tree, and their entire
+this column": these are claims about the whole tree, and their entire
 evidence is that one search did not find something. An existence claim comes
 with a coordinate anyone can open; an absence claim comes with nothing to
 open, so the cost of checking it is asymmetric and it tends to pass unread.
@@ -53,15 +58,14 @@ instead of re-inventing it.
 
 An absence you cannot demonstrate that way is `unverified` and reads "not
 found", which is a different sentence from "not there". Never promote one to
-a document — a policy or a rule built on a search nobody could repeat
-is the same defect as a `read` reported as passing, with a longer fuse.
+a document: a policy or a rule built on a search nobody could repeat is the
+same defect as a `read` reported as passing, with a longer fuse.
 
 #### `arm-check` asks condition 2 of a whole module, one arm at a time
 
 Condition 2 is asked of the case in front of you. **A module has arms nobody
-ever asked it of**, and counting them by hand is how the count rots: #262's
-own table said 33 arms where the module it counted had 31, because the file
-changed twice after the count was taken.
+ever asked it of**, and a count of them taken by hand is wrong as soon as the
+module changes.
 
 ```
 arm-check hooks/commit-review-gate.py
@@ -71,9 +75,9 @@ arm-check hooks/commit-review-gate.py --tests "bin/test tests/test_chain_hooks.p
 With no `--tests` it lists the arms and mutates nothing. With `--tests` it
 first runs that command once against the module as it is, which has to pass
 (below). Then it makes each arm wrong in turn, runs the command again, and
-names the arms nothing kills — restoring the module from held bytes and comparing the sha256 after
-every mutation, never with `git checkout`, which reaches the uncommitted work
-in the rest of the tree.
+names the arms nothing kills. It restores the module from held bytes and
+compares the sha256 after every mutation, never with `git checkout`, which
+reaches the uncommitted work in the rest of the tree.
 
 **`--timeout` bounds the wait, and not the work.** Each operator's command is
 waited for at most 900 seconds by default (`--timeout 0` removes the bound),
@@ -85,59 +89,54 @@ unbounded and unreported, beside every arm after it. The first run against the
 unmutated module is waited for under the same bound and leaks the same way
 when it reaches it, before the run is refused. Against a module whose
 suite can approach the bound, name the pytest command in `--tests` directly
-rather than a wrapper. Whether the bound should reach the whole process group
-is #313.
+rather than a wrapper.
 
 **There are two ways to be wrong and the counts differ by a lot**, so the
 report keeps them apart and the number you quote has to say which one it is:
 
-| Operator | Asks | Measured 2026-09-09 on the review-history guard, a hook since removed |
-|---|---|---|
-| `invert` | would a case notice this test being **backwards** | 0 of 29 survived |
-| `remove` | would a case notice this arm being **absent** | 12 of 32 survived |
+| Operator | Asks |
+|---|---|
+| `invert` | would a case notice this test being **backwards** |
+| `remove` | would a case notice this arm being **absent** |
 
-That third column is a measurement and not a property of the module: it moves
-when either the module or `tests/test_chain_hooks.py` changes, which is the rot
-this checker exists to end. Re-take it with the command above rather than
-reading it as current — a number in a document is exactly what #262 says goes
-stale.
+**A survivor count is a measurement, not a property of the module**: it moves
+when either the module or its cases change. Take it with the command above
+whenever it is needed, and never write one into a document.
 
 The two denominators differ because **a pair both operators answer identically
 is asked once.** A handler with one type left is aimed at what nothing raises
 by either operator, so `invert` refuses it and the report names the pair;
-`remove` keeps it, because #262's table is a removal count. Three of this
-module's arms are that shape.
+`remove` keeps it.
 
 An arm counts watched when **either** is noticed, because *does any case
-depend on this arm* is answered by one yes. #262's own table of unwatched arms
-is a `remove` count — every sentence in it is about taking something out — so
-that is the row to compare it with, and the combined total is not.
+depend on this arm* is answered by one yes.
 
-An arm is what #262's rule says it is: an `ExceptHandler` counting each member
-of an except tuple separately, or an `If`, `While` or `IfExp` counting each
-**top-level** member of the boolean test separately, plus a `match_case`'s
-alternatives and guard and a comprehension's `if` guards. The walk is derived
-from the grammar rather than from a list, and it **refuses an AST node type
-it does not recognise** instead of skipping it — a walk that skips silently is
-the rotted hand count with a shebang on it.
+An arm is an `ExceptHandler` counting each member of an except tuple
+separately, or an `If`, `While` or `IfExp` counting each **top-level** member
+of the boolean test separately, plus a `match_case`'s alternatives and guard
+and a comprehension's `if` guards. The walk is derived from the grammar rather
+than from a list, and it **refuses an AST node type it does not recognise**
+instead of skipping it: a walk that skips silently undercounts the way a hand
+count does.
 
 **A `killed` is a measurement only when the command passed without the
 mutation**, so `--tests` runs once against the module as it is before
 anything is written. A `-k` that selects no case, a module path that does not
 exist and a case already failing each exit non-zero whatever the module
-holds, and each used to print `killed` beside every arm. When that first run
-exits non-zero, does not return within `--timeout`, or cannot be spawned, the
-command prints `no baseline:` with the cause and what the command printed,
-writes nothing, measures no arm, and exits 2 — the code it already gives a
-negative `--timeout`. If the command itself changed the module during that
-run, the module is put back from the bytes read before it and the line says
-so instead. Where it cannot be put back, because the command left it
-unreadable, unwritable or replaced by a directory, the line names the error.
+holds, so without that run each would read `killed` beside every arm. When
+that first run exits non-zero, does not return within `--timeout`, or cannot
+be spawned, the command prints `no baseline:` with the cause and what the
+command printed, writes nothing, measures no arm, and exits 2, the code it
+already gives a negative `--timeout`. If the command itself changed the module
+during that run, the module is put back from the bytes read before it and the
+line says so instead. Where it cannot be put back, because the command left
+it unreadable, unwritable or replaced by a directory, the line names the
+error.
 
 Two things it does not claim. **A survivor is not automatically a defect:** an
 arm that cannot be constructed, or one whose removal preserves behaviour,
 belongs in the report and is not work anybody owes. And a measured run is
-**report-only, exit 0 either way** — whether an unwatched arm should fail a
+**report-only, exit 0 either way**: whether an unwatched arm should fail a
 run is an open decision, not an omission.
 
 #### `mutation-check` asks condition 2 of one unit, one break at a time
@@ -181,9 +180,9 @@ watches, or at the first run that could not say.
 a cached `.pyc` instead of the source whenever the size and whole-second
 mtime it recorded still match, and a same-length break written inside one
 second matches. Only the mutated file's cache can be stale. An importer's is
-valid for its unchanged source, so clearing `tests/__pycache__` removed
-caches that were right and missed the one that mattered whenever the mutated
-file lived anywhere else (#129). Every tag goes, because the
+valid for its unchanged source, so clearing `tests/__pycache__` removes
+caches that are right and misses the one that matters whenever the mutated
+file lives anywhere else. Every tag goes, because the
 interpreter that runs the command and the one that runs the cases can
 differ.
 
@@ -198,7 +197,7 @@ break was.
 300 seconds by default for each of the two runs, and `0` removes it. On
 POSIX the command runs in a session of its own and a timed-out run's whole
 process group is killed, so a wrapper's pytest does not outlive the verdict.
-That is the hole `arm-check`'s bound still has (#313). The group of a run
+That is the hole `arm-check`'s bound still has. The group of a run
 that exited is ended too, and the wait is on the process rather than on its
 output, so a child the cases leave behind neither outlives the verdict nor
 holds it back. A process that put itself in yet another session is outside
@@ -208,32 +207,34 @@ reaches this command rather than the cases, and it ends the group before the
 restore. On Windows only the direct child is ended, and the verdict says that
 anything it started was not.
 
-`-p no:xdist` belongs on a handful of cases. Measured 2026-10-01 on one
-machine, starting the workers took about 0.6 s a run against 0.02 s of
-cases. For a module's arms rather than one unit, `arm-check` above is the
-command.
+`-p no:xdist` belongs on a handful of cases: starting the workers takes
+longer than the cases do. For a module's arms rather than one unit,
+`arm-check` above is the command.
 
 ### 3. Bound to the tree
 
 Evidence attaches to a tree state, not to a session. Note the state the
 proof ran against (commit + dirty files); **any edit after the run voids
-the claim** — re-run, don't re-tell.
+the claim**: re-run, don't re-tell.
 
-### 4. Executed, read, or unverified — labeled
+### 4. Each claim labelled executed, read or unverified
 
-Every claim carries one label. `executed` (ran it, read full output, exit
-code checked) · `read` (inferred from reading code — a judgment, not proof)
-· `unverified` (say who or what can answer). Reporting a `read` as passing
-is the lie this whole skill exists to prevent.
+Every claim carries one of three labels:
+
+- `executed`: ran it, read the full output, checked the exit code.
+- `read`: inferred from reading code, which is a judgment and not proof.
+- `unverified`: names who or what can answer it.
+
+Reporting a `read` as passing is the lie this whole skill exists to prevent.
 
 ## Procedure
 
 1. List the claims this response is about to make.
-2. For each, name the proving command (condition 1). No command exists →
-   label `read` or `unverified`, never "should work".
-3. Run fresh; read the FULL output; record exit code and the line that
-   proves or refutes (conditions 2–3).
-4. Any claim red or unproven → report the actual state. The claim is
+2. For each, name the proving command (condition 1). Where no command exists,
+   label the claim `read` or `unverified`, never "should work".
+3. Run fresh; read the FULL output; record the exit code and the line that
+   proves or refutes (conditions 2 and 3).
+4. Where any claim is red or unproven, report the actual state. The claim is
    withheld, not negotiated.
 
 ## The hand-back's labels carry the claims, and the one seal is the sealer's
@@ -247,59 +248,57 @@ Two properties tell the sealer's seal apart from every other account of a
 run.
 
 - **Scope.** An agent's hand-back covers what that agent touched. The
-  sealer's seal covers a tree nobody is still editing — which is why *nothing
-  edits between the broad run and the PR* is a rule that seal rests on.
+  sealer's seal covers a tree nobody is still editing, which is why the rule
+  that nothing edits between the broad run and the pull request
+  (`skills/verify/orchestration.md` *The broad gate*) is one that seal rests
+  on.
 - **Form.** The sealer's seal is the only mark drawn, and only over a verdict
   that earned it: the stamp is drawn from the sealer's `guarantee.md` reading
   `sealed`, once per work item, at the end of the turn in which that file is
   committed, or in local mode written. git's `post-commit` writes the values
   it is drawn from, or in local mode the edit hook does at the file's write,
   and the `Stop` hook draws them in the orchestrator's session
-  (`docs/the-review-record.md` §*The stamp*). The broad gate draws nothing:
+  (`docs/the-review-record.md` *The stamp*). The broad gate draws nothing:
   its line reads `BROAD GATE PASSED` or `BROAD GATE FAILED` and judges
   nothing. So seeing the drawing means the last seal was earned.
 
 **A bare "the seal" is ambiguous the moment more than one exists, so every
-reference to an INSTANCE names whose** — the sealer's seal, the warden's
+reference to an INSTANCE names whose**: the sealer's seal, the warden's
 review mark. The concept and its formats stay bare: the Seal Test, a
 counterfeit seal, SpecSeal itself. The shape to watch for is a sentence that
-names one party and leaves the seal anonymous — *the warden's audit of the
+names one party and leaves the seal anonymous: *the warden's audit of the
 seal* names an auditor and not what is audited.
 
-## Scope — cheap and often, broad and once
+## Scope: cheap and often, broad and once
 
 Condition 3 decides where a broad check belongs. Evidence binds to a tree
-state, so **any run followed by an edit was spent, not banked**. Measured on
-one work item here: twenty broad runs, every one of them followed by more
-edits — 121 after the first, 1 after the last. Not one of those runs survived
-to the handoff, and they cost more than half the session's tool time.
+state, so **any run followed by an edit was spent, not banked**.
 
-Review rounds are edits you have already scheduled. Running the whole suite
-before them measures a tree that is going to change.
+Review rounds are edits already scheduled. Running the whole suite before
+them measures a tree that is going to change.
 
-| When | What runs | Seal |
+| When | What runs | Label |
 |---|---|---|
 | Each slice | the tests for what you just wrote | `executed`, narrow |
 | Phase boundary | your module and the ones it touches, in parallel | `executed`, scoped |
 | Handoff to review | nothing broad | the suite is `unverified`, and says so |
 | Review rounds 1..n | what the fix touches | `executed`, narrow |
-| **After the rounds settle** | full suite, lint, typecheck — **once** | `executed`, broad, once |
+| **After the rounds settle** | full suite, lint, typecheck, **once**, by the orchestrator | `executed`, broad, once |
+
+The last row is the orchestrator's, and `skills/verify/orchestration.md` *The
+broad gate* holds it, read against the base commit.
 
 Narrowing is not permission to go quiet. A suite you did not run is
-`unverified` with who answers it, never omitted — condition 4 is what makes
-the smaller scope honest rather than a loophole.
-
-The two ways that loophole reopens are below. Both were measured, and both
-looked like a sealed claim at the time.
+`unverified` with who answers it, never omitted: condition 4 is what makes
+the smaller scope honest rather than a loophole. The loophole reopens three
+ways, below.
 
 ### The narrow command still has to be able to fail
 
 Condition 2 does not relax when the scope shrinks. A smaller command is still
-a command being chosen, and it is easier to choose wrong — it can come back
-green because it examined nothing.
-
-Measured: a documentation-only change was sealed with a Python linter aimed at
-the docs directory. That directory holds no Python.
+a command being chosen, and it is easier to choose wrong: it can come back
+green because it examined nothing. A Python linter aimed at a directory that
+holds no Python reads this way:
 
 ```
 $ ruff check docs/
@@ -316,7 +315,7 @@ command from:
 
 | What changed | What can fail |
 |---|---|
-| Prose only — docs, comments, docstrings | Whatever actually parses those files. Often nothing does, and then there is no seal to earn here. |
+| Prose only: docs, comments, docstrings | Whatever actually parses those files. Often nothing does, and then there is no seal to earn here. |
 | A comment or docstring inside source | That the module still imports. |
 | Logic | The tests covering that file. |
 | A merge, or a dependency bump | The broad gate. What breaks is outside what you edited, so a scope drawn around your own edit cannot see it. |
@@ -327,14 +326,10 @@ the tree stops being the one you tested.
 ### The answerer has to exist
 
 `unverified; CI covers it` satisfies condition 4 on its face and voids it
-underneath. The row names an answerer; nothing ever checked there was one.
-
-Measured: a session narrowed to a single domain's tests and deferred the rest
-to CI. That repository's workflows assigned reviewers, deployed on push to the
-default branch, and validated a migration graph. None of them ran the suite,
-the default branch had no protection, and the pre-commit hooks were lint and
-typecheck — on the committer's machine. The deferred suite had no answerer at
-all, and the smith's seal read as though it did.
+underneath. The row names an answerer, and nothing checked there was one: a
+repository's workflows can assign reviewers, deploy on push and validate a
+migration graph while none of them runs the suite, and a pre-commit hook runs
+on the committer's machine alone.
 
 Resolve the answerer before writing the row:
 
@@ -344,205 +339,50 @@ deferral-check . --kind all   # tests, lint, typecheck
 ```
 
 It separates four outcomes that a reader otherwise collapses into one:
-something answers on pull requests · something answers, but only after the
-point being deferred · a local hook answers on the committer's machine only ·
-nothing answers. Exit 1 means the row you were about to write is not true.
+
+- something answers on pull requests;
+- something answers, but only after the point being deferred;
+- a local hook answers on the committer's machine only;
+- nothing answers.
+
+Exit 1 means the row you were about to write is not true.
 
 It reads command text rather than a YAML graph, so a runner reached through a
 composite action, a reusable workflow, or a script it cannot see reads as
-absent. Disagreement with what CI really does is a finding about this tool —
+absent. Disagreement with what CI really does is a finding about this tool,
 not permission to keep the row.
 
 ### And something has to read the row afterwards
 
-An answerer that exists still answers nothing if nobody returns to the row. One
-here said the gates had never been seen rendering in a TUI and named the user;
-months later the user hit exactly that and asked why every gate is yes/no.
+An answerer that exists still answers nothing if nobody returns to the row.
 
 ```
 unverified-check .                                   # what is still open, and where
 unverified-check --baseline origin/main seal/specs/  # and nothing was deleted from it
 ```
 
-It never fails for an open item — punishing an honest row is how sessions learn
+It never fails for an open item: punishing an honest row is how sessions learn
 to write none. It fails for a section it cannot read, because a tolerant reader
 reports zero there and zero reads as "everything has been closed". Close an
 item by opening its row with the word `closed` and saying what closed it; the
 row stays.
 
 **`--baseline` names the branch you merge into, and what it reads is
-`git merge-base <ref> HEAD`** — where you forked from it on a branch checkout,
+`git merge-base <ref> HEAD`**: where you forked from it on a branch checkout,
 and the base's tip in CI, whose checkout of a pull request is your head already
 merged into the base. Either way a work item squashed into that branch after
-your branch was cut is not your removal (#272). Before that,
-squashing one item turned every sibling red, and each one paid a merge, a
-re-run broad gate and a re-pushed pull request to clear it.
-
-## The broad gate — after the rounds, then compare against the base
-
-**It fires after the review rounds settle, never before them.** Nothing broad
-runs at the handoff to review; the hand-back carries the suite as
-`unverified`, and that label is what keeps the narrow scope honest. §Scope
-holds the reason and the measurement — a run taken before the rounds is spent
-by the first finding. Findings are the expected case rather than the
-exception: the review chain runs three finding rounds by default
-(`docs/the-review-record.md` §*The run*).
-
-**"After the rounds settle" is a row, not a moment, and this is the row: the
-last `rounds/round-N.md` has no finding open.** The phrase alone names no
-particular rounds — a work item has build phases with a progression of their
-own and a review chain with its own — so a reader who reaches for the moment
-has to guess, and one who reaches for the record does not.
-
-**It belongs to the orchestrator, and the four conditions above are the whole
-of the run.** The rule used to say when the gate fires and which agents may
-not take it, and named nobody who may — so it was assembled from these
-sentences by whichever session remembered them, differently each time. No
-agent runs it: `broad-gate --base <base> --record <item>` is the command the
-orchestrator types, with nothing else running, and
-`skills/code-review/orchestration.md` §*Orchestrator: the pull request opens
-once the sealer seals, and a phase is re-run* owns when, before the
-sealer is spawned. The run judges no failure and fixes none; the sealer reads its
-record, and what it guarantees after it is `docs/the-review-record.md`
-§*The guarantee*.
-`broad-gate --preflight`, which the orchestrator runs before the broad run,
-is not this run: it runs the gate's record arms, runs no suite, and writes
-nothing (#638).
-
-**An expensive suite argues for this placement, not against it.** A run that
-takes fifteen minutes is a finding about the run and deserves its own ticket.
-Moving it ahead of the rounds means paying it twice.
-
-**Which base, and it is the one the merge is judged by.** The gate resolves
-`--base` once, before anything runs, to the ref CI will read: the base's
-upstream where the checkout declares one, else `origin/<base>`, else the ref
-as given. Every check it runs takes that one commit — the two baselines, the scratch worktree the base comparison checks out, and
-`broad-gate.md`. A plain branch name is a LOCAL ref and a runner has no
-local branches, so a checkout one commit behind its remote used to pass green
-over a question nobody was asking while CI refused the same commit (#423).
-Where resolving moves the answer the gate prints one line naming both refs,
-both commits and the distance, and runs anyway; where the two agree it prints
-nothing. It never fetches, so a remote-tracking ref is only as fresh as the
-last fetch — which is why the gate's report names the ref beside the commit
-on the `base` row rather than the commit alone, and the `BROAD GATE PASSED`
-line names it as `<ref> @ <commit>`.
-
-**What the broad run covers is declared rather than remembered.** The
-arms exist so that the one run says what CI will say, and for three releases the
-list was kept in step with `.github/workflows/hygiene.yml` by whoever
-remembered. #424 added a step to that workflow's `release` job, nobody added
-the arm, and no case in the suite went red — so from that merge onward a green
-run covered a shorter list than the merge was judged by.
-`skills/verify/scripts/broad_gate.py`'s `PARTITION` is the declaration that
-ends it: every step of that job is mirrored by a named arm or excluded with a
-written reason, there is no third state, and a case holds the table against
-the workflow from both sides. A step added to the workflow fails the suite
-until somebody classifies it, and a row naming a step that was renamed away
-fails it too.
-
-**A run says what it did not answer.** Where the repository being gated has
-that workflow, the panel carries a `CI also` row — *· <n> more steps* — and the
-names of those steps go to stderr beside the line that names the
-repository's own command, with the total they are counted out of. The dim
-`·` is the owner's mark for a row that is not a pass (#832). The count is on the panel because a panel
-value is 41 columns and a step name is a sentence; the names are printed
-because a number alone sends the reader back to the two files this
-declaration exists to stop them opening. A repository with no such workflow
-sees neither, and nothing else about its run changes. Both are counted over
-the steps CI runs for the base (#666): a step CI does not ask of this pull
-request — three of SpecSeal's run only on a pull request into `main` — is
-neither answered nor unanswered, so the count leaves it out and the line says
-how many it left out and why. A run on a SpecSeal feature branch reads `CI
-also · 3 more steps`, and the line says they are three of the six CI runs
-for that base.
-
-**What the count does not say** is whether a mirrored arm asks the same
-question its step asks. The partition says a step is on the list; two readers
-of one question can still disagree about what they are checking (#473). The
-gate runs every arm at every base, and a case holds that no mirrored step of
-SpecSeal's workflow skips a pull request into `main`; a second case holds
-`broad_gate.py#ONLY_AT_MAIN`, the steps that run only into `main`, against
-their guard. The cases read a guard on the base and no other kind of
-condition, so the class stays open for the next kind.
-
-**The arms the plugin ships are the arms the gate can run.** Two steps of
-SpecSeal's own `release` job have a local answer and no arm: one runs a
-script under `.github/scripts/`, which no plugin ships, and one is shell
-written inline in the workflow with no script either side can share. A
-repository that wants checks of its own run names them in the `Broad gate`
-row of `seal/config.md` — the row this gate already runs first — rather than
-in the arm list of a script that ships to everybody.
-
-A full suite carries failures that were already there. Attributing them to
-this work is a wrong finding; passing over them is a silent pass. Both are
-avoided the same way: read the run against the base commit.
-
-**That comparison is reactive.** A baseline answers whose failure this is, so
-it is taken once an unexplained failure appears, and only for the tests that
-failed — `git stash`, that one file, `git stash pop`. Measured: a session ran a
-19,000-test suite serially for a baseline before any failure existed, and was
-about to run it a second time after the change.
-
-- **Failing on base too** — not this work's finding. Name it, record it as a
-  follow-up, and it does not block.
-- **New** — this work broke it. Back to the implement/review loop, and the
-  broad gate runs again afterwards.
-- **New?**, with a reason — nothing at the base measured it: no pytest the
-  `Broad gate` row ran left a record, because the row started no pytest,
-  none it started loaded the gate's recorder, or the one that did could not
-  write its record and warned in `suite.txt`, so the file is named only by
-  a `FAILED` line and the base was not run; no pytest the row ran at the
-  base left a record, for any of those three causes, a part before the
-  runner failing at the base among them; or the row's run at the base
-  exited non-zero before any pytest collected the file, which is also how a
-  file the branch added reads where the base's row already fails; or a
-  session of the base that ended non-zero left tests or collections out of
-  every list, a test whose xdist worker died in its setup among them, so
-  the record cannot say the file passed. A session of the base that
-  stopped part-way reads the same way: its record holds no `end` line,
-  because the process died, which plain pytest does on a test that calls
-  `os._exit`, or its recorder stopped writing; or its `end` line names a
-  stop pytest made, which an interrupt, any `pytest.exit()`, `-x`,
-  `--maxfail` and a plugin's stop all leave, or an exit outside 0, 1 and 5.
-  So does a base whose record holds a line that did not parse as the
-  recorder's, which the gate counts and passes over. It is a question about the
-  file, not a finding either way; open the kept `suite-at-base.txt` and the
-  `records/` beside it, and run the file at the base by hand before calling
-  it either of the two above.
-  A test with no file of its own is in no list at all, nor is a failed
-  collection of the whole session or a report a plugin built without its
-  path; the failure form says how many there were. Nor, where a session at
-  `HEAD` stopped part-way, is the test it stopped in, nor a test named on a
-  line of the record that did not parse; the failure form counts both too.
-  `templates/config.md` §*Choosing a value — the criterion*, rule 3, says
-  which rows the gate cannot measure and how a row earns the measured word.
-
-Measured on one repository: a full suite showed ten failures, all ten
-reproducing on the base commit and none of them in the domain being changed.
-Without the comparison, every one of them is triage the author cannot act on
-and is not allowed to fix.
-
-**Three returns and stop.** This counts trips through the gate, not the
-review chain's rounds. A fourth trip is not another bug; it means the narrow
-scope is missing a class of breakage, which is an architecture question for
-the user — the same reading as the 3+ Fix Rule.
-
-**Nothing edits between the broad run and the PR.** The tree that passed is
-the tree that ships. One more small fix after the run means the run is stale,
-and the gate is paid for again.
+your branch was cut is not your removal.
 
 ## The cost of the run you repeat
 
 Scope decides how often the expensive command fires. It does nothing about
-what the command costs, and the narrow run is the one that multiplies — every
+what the command costs, and the narrow run is the one that multiplies: every
 slice, every round.
 
-Measure before accepting it. The suspect is usually wrong: one session blamed
-SQL echo logging for a slow suite, turned it off, and measured 131s → 137s.
-What it actually found was the suite running serially while a parallel runner
-sat installed and unused, its recipe written in a `pyproject.toml` comment
-with the measured numbers beside it (225s → 83s). A recipe in a comment is not
-a recipe. Nobody runs it, and an agent least of all.
+Measure before accepting it. The suspect is usually wrong, and the fast path
+is often already in the project: a parallel runner installed and unused, its
+recipe written in a comment. A recipe in a comment is not a recipe. Nobody
+runs it, and an agent least of all.
 
 So before paying a check's cost repeatedly, spend a minute on where the time
 goes, and look for the fast path the project already has: a runner in the
@@ -550,10 +390,8 @@ lockfile, a target in the Makefile that is not the default, a line in a README
 or a comment. Repairing one is cheaper than paying its absence once per round.
 
 **Capture once, filter locally.** A command re-run to see its output a
-different way returns nothing you did not already have. Measured in one
-session: the same test scope ran at 194s piped through `tail`, then again at
-203s piped through `grep "^FAILED"` — three and a half minutes for a different
-view of a result already produced. Redirect to a file and read the file:
+different way returns nothing you did not already have. Redirect to a file
+and read the file:
 
 ```
 out=<scratchpad>/<work-item-id>/run.txt; mkdir -p "$(dirname "$out")"
@@ -564,10 +402,9 @@ grep '^FAILED' "$out"                # same run, second question
 The tell is a second invocation whose only difference is after the pipe.
 The file is under the scratchpad and carries the work item id, never a name
 every session on the machine would also pick: agents of one session share
-one scratchpad, and a generic name was overwritten mid-round by a sibling
-work item's three times in one run (#544).
+one scratchpad, so a generic name is overwritten by a sibling work item's run.
 
-`session-cost` reads a finished transcript and reports the split — command
+`session-cost` reads a finished transcript and reports the split: command
 time, model time between calls, the repeats, and how many tools went out per
 turn. None of it is visible from inside the session:
 
@@ -576,356 +413,26 @@ session-cost --latest          # newest transcript for this repo
 session-cost <transcript.jsonl>
 ```
 
-## Measure the segment, and feed the flow log
-
-After every smith or warden segment ends, measure its transcript with
-`skills/verify/scripts/session_cost.py` (the `session-cost` command above is
-the same script) and post the numbers, and what they say, as a comment on one
-of this repository's two measurement logs. Which of the two is not a filing
-detail — one of them is deleted at every release, so a reading put in the
-wrong one is a reading thrown away, and the paragraph below is what decides
-it.
-
-**There are two logs, and the difference is kind rather than scope.** A
-reading about the segment that just ended — its span, its calls, its tools
-per turn, and what those say — belongs to the rolling `flow-measurement`
-log, which opens at a release, accumulates until the next version ships,
-and is discarded by the release that ships it. Readings that span versions —
-a rate held against an earlier version's baseline, or an observation that a
-later measurement answers — belong to the durable `flow-baseline` log,
-which is maintained rather than accumulated. Posting one of those to the
-rolling log schedules it for deletion at the next release.
-
-A repository declares each of them the same way, with a label on an issue,
-and each keeps the same invariant: exactly one open. Neither is named by
-number, because a number goes stale the moment its issue closes.
-
-**One command does the lookup, the four readings below, and the post.**
-
-```
-session-cost --segments <the run's transcript> --post --says <file|->
-```
-
-It resolves the label rather than a number, `--label flow-baseline` reaches
-the durable log with the same code, and it **opens no issue in any state**.
-It refuses without `--says`, because the numbers are the script's and what
-they say is yours: a command that invented the sentence would be posting a
-judgment nobody made. The readings below are what its exits mean, and they
-are still worth knowing, because a session that meets a refusal has to know
-which one it hit.
-
-**The command does not make anybody run it.** What was measured is that this
-meter sat unreferenced through a full day of measurements nobody took — the
-measurement was not taken, not that the posting failed. `--post` removes the
-procedure a session otherwise reconstructs from this section every time; it
-does not remove the remembering, and nothing here does.
-
-By hand it is two lookups. Find the rolling log first — `gh issue list
---label flow-measurement --state open` — rather than assuming a number, and
-the durable one the same way with `--label flow-baseline`. Where more than
-one is open, treat it the way any broken invariant is treated: name it rather
-than guessing which one is current.
-
-**A reading of zero open is two different facts, and one call tells them
-apart.** `gh issue list --label flow-measurement --state all` says whether
-the label has any history at all:
-
-- **No issue has ever carried it.** This whole section is a no-op: nothing
-  is measured, nothing is posted, nothing fails, and nothing asks. Most
-  installed repositories never create the label, so most segments end here —
-  that is the expected case, not a missed one.
-- **The label has a history and nothing is open.** The log stopped and
-  nobody reopened it. Name that in the segment's own handover and stop
-  there: **opening one is not a session's act.** Two sessions finishing
-  segments at the same moment both read zero and both create, and the next
-  release then fails on two or more — the same invariant broken from the
-  other side. The release-time script that rolls the log
-  (`.github/scripts/roll_flow_measurement_issue.py`, where a repository has
-  one) is where that invariant and its reasoning are written.
-
-**`flow-baseline` splits the same way, and for the same reason.** Run the
-`--state all` lookup against it too. No issue has ever carried the label and
-this repository simply has no durable log: post the segment's own numbers
-to the rolling log, and leave the cross-version reading in the record that
-would have cited it. The label has a history and nothing is open, and
-somebody closed the durable log — name that, in the same handover and on
-the same grounds, and open nothing. Folding the second into the first is
-what sends a cross-version reading nowhere while everything looks fine.
-
-What a label answers that a milestone cannot, and why tidying one of these
-issues by hand breaks the next release, are the tracker's own conventions
-rather than this skill's. `docs/issues-and-milestones.md` holds them where a
-repository keeps one.
-
-Where a log is open, do the two steps as part of the segment that just
-finished, not as a follow-up someone might do later:
-
-1. Run `session_cost.py --segments` against the **run's** transcript. It
-   walks every segment beside it — a subagent's transcript lives under
-   `~/.claude/projects/<project-dir>/<session-id>/subagents/agent-*.jsonl` —
-   joins each to the spawn whose result it opened at, and prints one row per
-   segment: the agent, its own span, calls, tools per turn, mean gap and
-   tokens, and, under the table, which rows sit under their kind's bar. One
-   command, where this step used to be one invocation per transcript.
-
-   **A segment's own span is the number no other mode has.** A cycle row's
-   `delegated` is the spawn call's own interval, and where a harness writes
-   that result on acceptance it reads seconds for an agent that ran twenty
-   minutes. The row here is read from the agent's own file instead.
-
-   **A resumed agent is one row per slice, and the mode takes the split
-   that used to be done by eye.** Its transcript holds several stretches of
-   work in one file, and the idle gap between two of them belongs to
-   neither: read whole, a segment that worked for thirty-seven seconds
-   reports a span over two hours. The cut is the coordinator's own message
-   row. Where a file has an idle gap and no such row, the report prints one
-   row and names the gap rather than leaving it inside a span. The split is
-   the same given the agent's own file: `--segments <agent-*.jsonl>` prints
-   that file's slices, named by the file, because the spawn that would name
-   them is in the run's transcript and not in view. That is the path a
-   harness's task output hands the orchestrator, so it is the file a session
-   holding a fix pass's result already has.
-
-   **A §6 line means an agent spawned another agent**, which
-   `skills/agent-contract/SKILL.md` §6 withholds from every agent whatever
-   its own definition says. The mode notices and stops nothing — the
-   evidence is a transcript on the machine that ran the agent, in no commit
-   and on no CI runner, so a report somebody already runs at this boundary
-   is the only place it surfaces. Carry the line into the handover; it is
-   about the agent's conduct rather than its cost, and no other row says it.
-
-   **Read the counts above the table before the table.** The mode prints
-   how many transcripts it walked, how many spawns it found, the tolerance
-   it joined within, and how many went unmatched on each side — even when
-   they agree. A join that silently matched nothing reads exactly like a run
-   that spawned nothing, which is why the numbers are there to be seen
-   holding. Given a resumed agent's own file, nothing is walked or joined,
-   and a header naming the file and its coordinator messages stands in their
-   place.
-
-   **One segment measured on its own is still `session_cost.py
-   <transcript>`** with no mode flag, unless the coordinator restarted it.
-   The plain reading keeps its numbers, and for a file those messages cut
-   into two stretches of work or more it adds one line saying how many
-   coordinator messages the file holds: its span then
-   covers every stretch of work and the waits between them, and `--segments
-   <transcript>` is the reading that splits it. A row of the per-segment
-   table is that plain reading of another file, or of one stretch of one.
-
-   **A segment is one agent's own stretch of a chain, and a spawn cycle is
-   not one.** Every segment has a transcript of its own: a smith's, a
-   warden's, and the orchestrator's, which is one file however many agents
-   the run spawned. The spawn cycles inside that file are bands over the
-   orchestrator's own minutes, never segments in their own right — and a
-   cycle counted as a segment is how three segment kinds came to have bands a
-   later run can be read against while the most expensive one had none. The
-   two modes follow the distinction: `--spawns` slices this transcript into
-   those bands, and `--segments` opens the transcripts of the agents this run
-   spawned, one row each, or reads one agent's own resumed file one stretch
-   of work at a time.
-
-   **The orchestrator's own boundary is not a user line — `session_cost.py
-   --spawns` is what takes it.** Every other segment is measured whole,
-   because its transcript holds nothing but itself; the orchestrator's holds
-   every cycle of the run, so the whole file was the only row it ever had. A
-   **spawn cycle** is not the review chain's cycle, which
-   `docs/the-review-record.md` owns: it ends when a spawn call's result
-   arrives and begins where the row before it ended, so the head is the
-   framing before the first spawn, cycle N runs from spawn N-1's result to
-   spawn N's, and the tail is the closing work after the last one.
-
-   **Post a cycle row as a band, and never as an attribution.** Inside one
-   window the orchestrator waits on the previous agent, verifies the report
-   it hands over, and frames the next prompt, and no transcript field marks
-   where any of those ends. Cycle 1 is the one row without that window: the
-   run's own start is a boundary a script can take, so its framing goes to
-   the head row instead, and the two are read together.
-
-   **Read `delegated` before quoting a cycle's model time, because what a
-   spawn's result MEANS is the harness's and not this skill's.** That column
-   is the spawn call's own tool_use-to-tool_result span. Where a harness
-   writes the result when the agent FINISHES, the column is the delegated
-   wall clock and it is out of the row's other columns, which is the double
-   count gone. Where a harness writes it when the spawn is ACCEPTED, the
-   column reads seconds and the agent's own wall clock is in **none** of the
-   row's columns and none of any other row's. It is the gap between one
-   row's last call and the next row's first, and a row's span starts at its
-   own first call while its model time never counts the gap before it. So
-   the rows partition the run's calls and not its wall clock — measured at
-   12 to 31 per cent of a run — and the agent's own transcript is where its
-   number is, either way.
-
-   **A span runs from its window's first call to the last call to END, and
-   that is worth knowing because it used to end at the last call to BEGIN
-   (#300).** The old rule read the end of the last element of a list sorted
-   by start, so a long-lived call — a background command, a suite spanning
-   the window — ended after the window counting it, and a reading could
-   report a span shorter than a single call inside it. Two consequences for
-   anyone comparing readings across that change: a span taken before it is
-   the shorter of the two wherever a call outlived its window, and identical
-   everywhere else; and `command` could exceed 100 per cent of the span,
-   which the new rule narrows and does not close, because command time is a
-   sum over calls and calls can run concurrently. Where you see a share above
-   100, read it as command seconds against wall-clock seconds with calls
-   running at once, never as a broken number. Batching is the ordinary way
-   in and a background command is the rarer one: every tool call in one
-   assistant message carries that message's timestamp as its start, so a
-   batch of three overlaps by construction. Measured over the transcripts on
-   one machine, every second of overlap above a second came from calls
-   batched into one message and none of it from a call that crossed a turn.
-
-   **A `git` call counts as `git` wherever it runs on the line, and that is
-   worth knowing because it used to count only at the start (#377).** The
-   release that carries #377 is the one whose file under `changelog/` lists
-   it, and `--segments` prints the same warning on the page.
-   The family was read by position, so `cd /x && git status` — the shape
-   nearly every worktree session writes — was charged to `other`, and so was
-   a `gh` call inside a loop or after a leading assignment. It is now read
-   by command word: the first word after any separator, newline or reserved
-   word, never a word inside quotes or inside `$( … )`. The family also
-   reads the command with its newlines kept and removes a heredoc's body up
-   to its closing line, where it used to drop everything after the
-   operator, so a `gh issue create` after `cat > body.md <<'EOF'` and a
-   `bin/test` after a `python3 - <<'EOF'` script are read. What a reader
-   comparing readings across that change must know: in a reading taken
-   before it, `git` and `test` read low and `other` reads high by the same
-   calls, the `other` note may name a command that was a `git` run, and the
-   two repeats figures, which keep only `test`, `lint/type` and `build`, may
-   read low. Span, command, model, idle, tokens, tools per turn and the
-   `slowest` list do not move.
-
-   **A call that only reads counts as `read`, and that is worth knowing
-   because it used to count as `other` (#642).** The release that carries
-   #642 is the one whose file under `changelog/` lists it, and `--segments`
-   prints the same warning on the page. A call is `read` when every command on it
-   is a read word (`sed`, `grep`, `rg`, `cat`, `head`, `tail`, `ls`, `find`,
-   `wc`, `awk`, `nl`, `sort`, `diff`) or a word that touches no file (for
-   example `cd`, `echo`, `test`, `[[` and the words that close a loop or an
-   `if`; `session_cost.py`'s `NEUTRAL_WORDS` is the whole list), at least
-   one reads, nothing writes and nothing is hidden: `sed -i`, `sort -o`,
-   `find -delete`, a redirection into a file, a redirection before a
-   command's first word, a heredoc or a `$( … )` keeps it `other`, and so
-   does any command not on either list. What a `sed` or `awk` program
-   writes or runs from inside its quotes is not seen, and such a call is
-   `read`. It is judged after the other
-   four, so `grep -rn pytest` stays `test` and `ls && git status` stays
-   `git`. What a reader comparing readings across that change must know: in
-   a reading taken before it there is no `read` row, `other` holds those
-   calls, and the `other` note may fire where it would not now and name a
-   read command. Every other row, the two repeats figures, span, command,
-   model, idle, tokens, tools per turn and the `slowest` list do not move.
-
-   **Where the report gives no between-the-rows figure and prints the rows'
-   spans against the run's own, a call outlived the cut its row ends at.**
-   Assigning a call by its start is what makes the calls partition, and it
-   leaves a long-running one — a background command, a suite spanning a cut
-   — in the row it began in while the next row has already started, so two
-   rows' spans cover the same seconds. The head row's cut is the first
-   spawn's START and every other row's is a spawn's RESULT, which is why the
-   line names the cut and not the result: a head call can outlive its own
-   row's cut and still end before any spawn's result arrives.
-
-   **The two figures it prints are not the rows' overlap, so do not subtract
-   them and post the difference as one.** A row's span ends at its own last
-   call to end and so does the run's, so every row's interval sits inside
-   the run's and the difference is the gaps between the rows minus their
-   overlap. Quote that run's span and its rows' columns, and leave the
-   between-the-rows share out of the reading rather than substituting either
-   sum.
-
-   **So a long cycle span is not a long agent run.** Where a row's span
-   exceeds its own parts by an hour, that hour is a gap INSIDE the row,
-   above the fifteen minutes model time stops counting at — the orchestrator
-   issuing nothing between two of its own calls. Read it as idle time in the
-   orchestrator, never as the agent it spawned.
-2. Post what the numbers say. `--post` does it: your sentence first, the
-   reading fenced beneath it, on the issue the label resolved to — the
-   rolling log's for the segment's own numbers, the durable one's for a
-   reading that spans versions. By hand it is `gh issue comment <n>
-   --body-file <file>`, where `<n>` is the issue number the lookup above
-   returned, and that is the command `--post` composes.
-
-Do this before the next segment spawns, or at the latest together with the
-round or phase record that closes this one — never later, and never as a
-question. The destination issue is a log, not a decision: whoever is
-watching a segment finish posts to it without asking whether to, the same
-way the rest of this skill's completion claims are not asked about before
-they are made.
-
-**When the run ends, one more reading is taken, and it is the run's.**
-Everything above measures one segment — its span, its calls, its tools per
-turn. A run is every segment plus the rounds and the commits between them, and
-no segment's numbers say what the run cost. So the report a finished run hands
-over — the pull request body's chain section, and the comment that carries the
-numbers — holds one table, this run beside the last run measured, with the
-same rows in the same order every time. That is what lets two runs be read
-side by side without re-deriving either. It is **not a third destination**:
-the table goes to the rolling log named above, beside the segment readings it
-gathers up.
-
-| Row | Taken from |
-|---|---|
-| Rounds — finding and verifying | the round records |
-| Wall clock, routing commit to last record, build and chain apart | `git log` of the branch |
-| Commits, by kind | `git log --format=%s` |
-| Findings by severity | the records' verdict tables |
-| Findings by `Location`: record · code or tests · docs | the records' `Location` column. A record is anything under `seal/specs/` — the work item's own documents — because a finding in one is about the run's own paperwork rather than about the tool. That path, not the whole of `seal/`: the root also holds `config.md`, `follow-up.md` and `README.md`, which are the repository's own and belong under `docs` |
-| Records' share of the diff | `git diff --numstat` against the base, the record paths above counted apart |
-| Model turns · output tokens · cache write · cache read | `session_cost.py`'s token line over the run's main transcript |
-| Segments: count, minutes and tokens per kind | the agent completion notices, or the subagent transcripts |
-| Broad gate: whether it has run, how many times, and at what SHA | the work item's `broad-gate.md`, which holds one entry per full-suite run, newest first, each a SHA with the base it was compared against — the count is the number of entries, read off the file rather than remembered (#174) |
-
-**The tokens are counted, not estimated, and counted the same way every
-time.** `session_cost.py <the run's main transcript>` prints the token line,
-which sums `output_tokens`, `cache_creation_input_tokens` and
-`cache_read_input_tokens` over every `usage` block in that transcript and in
-every file under its `<session-id>/subagents/` directory. One command, so the
-row cannot be summed one way this run and another way the next. The line also
-says how many transcripts it covered, and that count is what a reader checks
-the number against.
-
-**The run's main transcript is the `*.jsonl` sitting directly under the
-project directory**, never one under a `<session-id>/subagents/`. `--latest`
-takes the newest file anywhere beneath the project directory, so on a run that
-spawned segments it usually lands on a segment rather than on the run — the
-path it prints as its first line is what says which, and a token line reading
-`1 transcript` for a run that spawned six is the same thing said twice. Give
-the main transcript by path when that happens.
-
-**A comparison against a run whose transcript covered only part of its branch
-says so beside the number**, in the prose under the table rather than as a
-column. A resumed session, a transcript split at the user lines, a segment
-spawned through another harness — each of those leaves the token row covering
-less than the branch, and a smaller number with nothing said about it reads as
-a run that cost less.
-
-**The table carries no verdict.** It makes two runs comparable and does
-nothing else. What a row meant on this branch — why the rounds ran long, why
-one kind of segment cost what it did — goes in the comment beside the table,
-never in a column of it.
-
 ## Counterfeits (stop on sight)
 
-- Output quoted from an earlier run — freshness is per tree state, not per
+- Output quoted from an earlier run: freshness is per tree state, not per
   conversation.
-- "Tests pass" for a claim no test covers — green suite, unproven claim.
+- "Tests pass" for a claim no test covers: green suite, unproven claim.
 - Satisfaction vocabulary before the run: should, probably, seems, likely.
 - A new test that passed on first run and was never seen red (condition 2).
-- Partial evidence generalized — one endpoint checked, "API works" claimed.
-- A broad run reported as the gate's pass when edits followed it — including the
-  one small fix made after it.
+- Partial evidence generalized: one endpoint checked, "API works" claimed.
+- A broad run reported as the gate's pass when edits followed it, including
+  the one small fix made after it.
 - A pre-existing failure counted as this work's, or waved past without
   being named. Both need the base comparison; neither survives it.
-- A narrow command that was green because it opened no files — a linter
+- A narrow command that was green because it opened no files: a linter
   pointed at a directory holding none of its language, a test path that
   collected zero tests. Condition 2 does not relax with the scope.
-- A check that stopped before reaching the code it was aimed at — a config
+- A check that stopped before reaching the code it was aimed at: a config
   error, a collection error, two modules under one name. The run ends early
   and cheaply, and "it was fast" reads as "it was clean". It is neither a pass
   nor somebody else's problem: that axis now has no answer, and the honest row
-  is `unverified` with the cause named. Measured: a `mypy .` that died in four
-  seconds on duplicate modules, checked neither the source nor the tests, and
-  was the direct reason eleven regressions went out.
+  is `unverified` with the cause named.
 - A failure count with no base state behind it. "1 failed" is a claim about
   your change only if you know what the tree failed before you touched it.
 - A deferral to an answerer nobody resolved. "CI covers it" in a repository

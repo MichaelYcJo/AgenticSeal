@@ -571,8 +571,9 @@ come to different answers about what a heading is.
 
 **One act is outside this table, because the table cannot hold it.** Posting
 a segment's reading to the flow log is the orchestrator's (contract §6
-withholds posting from every agent), and it lives in `skills/verify/SKILL.md`
-*Measure the segment, and feed the flow log*, under a heading carrying no
+withholds posting from every agent), and it lives in
+`skills/verify/orchestration.md` *Measure the segment, and feed the flow
+log*, under a heading carrying no
 marker, in a file the row rule above does not read. Its delivery is
 `session-cost … --post`, which resolves the label, applies the invariant and
 posts the reading with what a person says about it. **Nothing makes it

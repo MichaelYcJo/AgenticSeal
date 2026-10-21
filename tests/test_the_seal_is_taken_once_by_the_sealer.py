@@ -3607,7 +3607,7 @@ def test_the_documents_say_where_the_panel_now_carries_each_name():
         broad
     )
     verify = " ".join(
-        read_document(os.path.join("skills", "verify", "SKILL.md")).split()
+        read_document(os.path.join("skills", "verify", "orchestration.md")).split()
     )
     # #832's S5a: the ref stands beside the commit on the `base` row.
     assert "names the ref beside the commit on the `base` row" in verify
@@ -3751,12 +3751,13 @@ def test_the_documents_name_the_ci_also_row():
     dim `·`, the owner's mark for a row that is not a pass, and the value
     column is 41 wide."""
     verify = " ".join(
-        read_document(os.path.join("skills", "verify", "SKILL.md")).split()
+        read_document(os.path.join("skills", "verify", "orchestration.md")).split()
     )
-    assert "the panel carries a `CI also` row — *· <n> more steps* —" in verify
-    assert (
-        "A run on a SpecSeal feature branch reads `CI also · 3 more steps`"
-    ) in verify
+    assert "the panel carries a `CI also` row, *· <n> more steps*, and" in verify
+    # #940: the document carried a count of the steps a feature branch's run
+    # leaves unanswered, and it went stale when a step left the workflow. The
+    # gate prints the count; the document states no copy of it.
+    assert "A run on a SpecSeal feature branch reads `CI also ·" not in verify
     assert "A feature seal of" not in verify
     assert "value is 41 columns and a step name is a sentence" in verify
     assert "value is 23 columns" not in verify
@@ -4972,7 +4973,7 @@ def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
         # #969: the orchestrator meets the gate's words now, not the sealer.
         ("skills", "code-review", "orchestration.md"): "`new?`",
         ("agents", "smith.md"): "`new?` means nothing at the base measured that file",
-        ("skills", "verify", "SKILL.md"): "**New?**",
+        ("skills", "verify", "orchestration.md"): "**New?**",
         ("README.md",): "new? → not measured at the base",
         ("README.ko.md",): "new? → base 에서 재지 못했다",
         ("templates", "config.md"): "each file reads `new?` with the reason",
@@ -4983,7 +4984,7 @@ def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
     # #825: the reader sent to the base by hand is told the three causes the
     # record leaves, and to open the one kept run and its records.
     with open(
-        os.path.join(ROOT, "skills", "verify", "SKILL.md"), encoding="utf-8"
+        os.path.join(ROOT, "skills", "verify", "orchestration.md"), encoding="utf-8"
     ) as handle:
         bullet = " ".join(handle.read().split())
     for phrase in (

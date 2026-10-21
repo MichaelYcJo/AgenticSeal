@@ -2,8 +2,8 @@
 
 Issue #330. Of the three acts the ticket measured a miss for, two closed
 while it sat and one is still a sentence: posting the segment's reading to
-the flow log, written out in full in `skills/verify/SKILL.md` §*Measure the
-segment, and feed the flow log* and typed by nobody. This is that procedure
+the flow log, written out in full in `skills/verify/orchestration.md` *Measure
+the segment, and feed the flow log* and typed by nobody. This is that procedure
 as a command, and this module is what holds it.
 
 **Nothing here touches a network.** Every case replaces the module's own
@@ -434,8 +434,8 @@ def test_the_posted_body_does_not_carry_the_transcripts_path(
     branch fires whenever the named transcript has no subagents beside it,
     which is every segment measured on its own that the coordinator never
     restarted — the case
-    `skills/verify/SKILL.md` §*Measure the segment, and feed the flow log*
-    is written for.
+    `skills/verify/orchestration.md` *Measure the segment, and feed the flow
+    log* is written for.
     """
     module = _cost()
     says = tmp_path / "says.md"

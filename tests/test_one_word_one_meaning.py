@@ -206,6 +206,7 @@ SEAL_SWEPT = (
     # 🟡 10 again: the list closed where somebody had already looked.
     ("agents", "framer.md"),
     ("skills", "verify", "SKILL.md"),
+    ("skills", "verify", "orchestration.md"),
     ("skills", "code-review", "orchestration.md"),
     ("skills", "code-review", "SKILL.md"),
     ("skills", "implement", "SKILL.md"),
@@ -546,7 +547,7 @@ def test_the_stamp_sweep_reads_the_gates_run_and_the_passive():
 
 # The seventh word, and the one this repository's own measurement vocabulary
 # rests on: the per-segment bars in `docs/the-review-record.md`,
-# `skills/verify/SKILL.md` §*Measure the segment*, and the flow log all read
+# `skills/verify/orchestration.md` *Measure the segment*, and the flow log all read
 # `segment` as one agent's own stretch of a chain.
 #
 # Naming a report mode `--segments` beside `--spawns` is what put a second
@@ -559,7 +560,7 @@ def test_the_stamp_sweep_reads_the_gates_run_and_the_passive():
 #
 # The word was load-bearing before this work started, which is why the mode's
 # name is paid for here rather than assumed.
-SEGMENT_OWNER = ("skills", "verify", "SKILL.md")
+SEGMENT_OWNER = ("skills", "verify", "orchestration.md")
 
 # The files that carried the loose sentence, all three of them shipped and
 # all three read together by anyone working on the meter. Records are not
@@ -567,6 +568,7 @@ SEGMENT_OWNER = ("skills", "verify", "SKILL.md")
 # when they were written — which is the same boundary the seal sweep draws.
 SEGMENT_SWEPT = (
     ("skills", "verify", "SKILL.md"),
+    ("skills", "verify", "orchestration.md"),
     ("skills", "verify", "scripts", "session_cost.py"),
     ("tests", "test_session_cost.py"),
 )

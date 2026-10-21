@@ -181,8 +181,10 @@ file*). The preflight and the broad run are yours, and no agent takes either.
 **Run `broad-gate --preflight --base <base>`; on its exit 0, with nothing else
 running, run `broad-gate --base <base> --record <item>`**, which takes the
 one broad pass now that the rounds have settled and, on a green run, writes
-`broad-gate.md`. Send its output to `<scratchpad>/<work-item-id>/broad-gate.log`,
-making the directory first, and read the whole log and the exit code
+`broad-gate.md`. `skills/verify/orchestration.md` *The broad gate* says what
+the run covers and what each word beside a failing file means. Send its
+output to `<scratchpad>/<work-item-id>/broad-gate.log`, making the directory
+first, and read the whole log and the exit code
 directly. **On exit 0 commit `broad-gate.md`, then spawn `sealer` with the
 base and the work item's directory**, the issue and the file holding the pull
 request body. The

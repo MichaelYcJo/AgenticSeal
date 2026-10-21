@@ -2366,30 +2366,31 @@ def test_the_skill_calls_its_survivor_counts_a_measurement_and_not_a_property():
     with no date and nothing reading it.
 
     What is pinned here is the CLAIM, not the numbers. A case asserting
-    `12 of 32` is the rotting list one file further on; a case asserting that
-    the column is a measurement is what stops the next edit putting a bare
-    number back. Asserted as a whole clause and lowered, for the reasons
-    #310's case carries.
+    `12 of 32` is the rotting list one file further on. Since #940 the
+    section prints no count at all, because the hook it was measured on was
+    removed and the column described nothing in the tree; it says a count is
+    a measurement, to be taken with the command and never written down.
+    Asserted as a whole clause and lowered, for the reasons #310's case
+    carries.
 
-    Red how: deleting the sentence, or rewriting it to say the numbers are a
-    property of the module. Executed."""
+    Red how: deleting the sentence, or putting a measured column back.
+    Executed."""
     with open(
         os.path.join(ROOT, "skills", "verify", "SKILL.md"), encoding="utf-8"
     ) as f:
         text = " ".join(f.read().split()).lower()
-    assert (
-        "that third column is a measurement and not a property of the module" in text
-    ), (
-        "the section prints two survivor counts, and a reader who takes them "
-        "for a property of the module is reading a number that moves when "
-        "either the module or its cases change — which is the rot #262 is "
-        "about, arriving in the document that introduces the checker"
+    assert "a survivor count is a measurement, not a property of the module" in text, (
+        "a reader who takes a survivor count for a property of the module is "
+        "reading a number that moves when either the module or its cases "
+        "change — which is the rot #262 is about, arriving in the document "
+        "that introduces the checker"
     )
-    assert (
-        "re-take it with the command above rather than reading it as current" in text
-    ), (
+    assert "never write one into a document" in text, (
         "and it has to say what to do instead, or the disclosure is a caveat "
         "with no action in it"
+    )
+    assert " of 32 " not in text and "survived |" not in text, (
+        "the section prints a survivor count again"
     )
 
 

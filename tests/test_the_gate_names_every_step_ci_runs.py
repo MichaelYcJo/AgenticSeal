@@ -621,14 +621,14 @@ NUMBER_WORDS = ("no", "one", "two", "three", "four", "five", "six", "seven")
 
 
 def test_the_skill_counts_the_steps_with_a_local_answer_and_no_arm():
-    """The shipped verify skill counts the `release` steps that have a local
-    answer and no arm — the ones that run this repository's own script, and
-    the one written inline — and the count is `PARTITION`'s, so a step added
-    to either kind moves the sentence or fails here."""
+    """The shipped verify skill's orchestrator half counts the `release` steps
+    that have a local answer and no arm — the ones that run this repository's
+    own script, and the one written inline — and the count is `PARTITION`'s,
+    so a step added to either kind moves the sentence or fails here."""
     scripts = sum(".github/scripts/" in reason for _, reason in reasons())
     inline = sum("inline" in reason for _, reason in reasons())
     with open(
-        os.path.join(ROOT, "skills", "verify", "SKILL.md"), encoding="utf-8"
+        os.path.join(ROOT, "skills", "verify", "orchestration.md"), encoding="utf-8"
     ) as f:
         skill = " ".join(f.read().split())
     said = (
@@ -1032,7 +1032,9 @@ def test_the_documents_say_the_count_is_over_the_steps_ci_runs():
     CI does not run for the base is outside the count. Since #969 the sealer
     sees no output of the gate's and explains none of it, so its definition
     is not asked."""
-    verify = " ".join(read(os.path.join(ROOT, "skills", "verify", "SKILL.md")).split())
+    verify = " ".join(
+        read(os.path.join(ROOT, "skills", "verify", "orchestration.md")).split()
+    )
     assert "counted over the steps CI runs for the base" in verify
     broad = " ".join(read(os.path.join(ROOT, "docs", "the-broad-gate.md")).split())
     assert "A step CI does not run for the base is neither answered nor unanswered" in (

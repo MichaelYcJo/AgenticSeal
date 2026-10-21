@@ -2,11 +2,11 @@
 log what it found" used to live only in a person's message
 (`~/.claude/projects/.../memory/measure-every-segment-to-89.md`), retyped
 every session and naming a hardcoded issue number that goes stale the moment
-that issue closes. It moves into `skills/verify/SKILL.md`, between
-`## The cost of the run you repeat` and `## Counterfeits (stop on sight)`, so
-a session does it
+that issue closes. It moved into the verify skill, so a session does it
 because the skill says so, and the destination becomes a
-`flow-measurement`-labelled GitHub issue instead of a number.
+`flow-measurement`-labelled GitHub issue instead of a number. Since #940 the
+section is `skills/verify/orchestration.md`'s, the orchestrator's half of the
+skill, because posting is withheld from every agent.
 
 This module pins three things a session reading that section needs: both
 commands are named (`session_cost.py` and the `gh issue list --label
@@ -55,34 +55,35 @@ run fills in by feel.
 import os
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-SKILL = os.path.join(ROOT, "skills", "verify", "SKILL.md")
+# Since #940 the section is the orchestrator's, in the verify skill's
+# orchestration file; the smith's and the sealer's `SKILL.md` no longer
+# carries it.
+SKILL = os.path.join(ROOT, "skills", "verify", "orchestration.md")
+SMITHS_SKILL = os.path.join(ROOT, "skills", "verify", "SKILL.md")
 
 SECTION_HEADING = "## Measure the segment, and feed the flow log"
 
 
-def read():
-    with open(SKILL, encoding="utf-8") as f:
+def read(path=SKILL):
+    with open(path, encoding="utf-8") as f:
         return f.read()
+
+
+def section_text():
+    """The section with its lines intact, from its heading to the next `## `
+    or to the end of the file, where it is the last section."""
+    text = read()
+    start = text.index(SECTION_HEADING)
+    rest = text[start + len(SECTION_HEADING) :]
+    end = rest.find("\n## ")
+    return rest if end == -1 else rest[:end]
 
 
 def section_body():
     """Whitespace-collapsed, so a substring check does not break every time
     the prose re-wraps at a different column — the wording is what these
     tests pin, not which line a hyphen happens to fall on."""
-    text = read()
-    start = text.index(SECTION_HEADING)
-    rest = text[start + len(SECTION_HEADING) :]
-    next_heading = rest.index("\n## ")
-    return " ".join(rest[:next_heading].split())
-
-
-def section_text():
-    """The section with its lines intact. `section_body` collapses whitespace,
-    which is right for prose and wrong for a table whose rows are lines."""
-    text = read()
-    start = text.index(SECTION_HEADING)
-    rest = text[start + len(SECTION_HEADING) :]
-    return rest[: rest.index("\n## ")]
+    return " ".join(section_text().split())
 
 
 RUN_TABLE_HEADER = "| Row | Taken from |"
@@ -120,24 +121,29 @@ def test_skill_has_no_html_comments_at_all():
     whole file, a plain substring match already means "outside any HTML
     comment" — there is no comment for the section to hide inside."""
     assert "<!--" not in read(), (
-        "skills/verify/SKILL.md now has HTML comments — this module's plain "
-        "substring checks no longer prove the section sits outside them; "
+        "skills/verify/orchestration.md now has HTML comments — this module's "
+        "plain substring checks no longer prove the section sits outside them; "
         "switch to a comment-stripping reader like "
         "tests/test_a_phase_hands_the_next_one_a_record.py does"
     )
 
 
-def test_the_section_exists_between_the_cost_of_a_repeat_and_counterfeits():
-    """The section that stood before it, `## Seal block`, left with the proof
-    block (#967); the measuring section still follows the one that prices a
-    repeated run, which is the command it uses."""
-    text = read()
-    cost_idx = text.index("## The cost of the run you repeat")
-    section_idx = text.index(SECTION_HEADING)
-    counterfeits_idx = text.index("## Counterfeits (stop on sight)")
-    assert cost_idx < section_idx < counterfeits_idx, (
-        "the flow-log section must sit between `## The cost of the run you "
-        "repeat` and `## Counterfeits (stop on sight)`"
+def test_the_section_is_the_orchestrators_and_the_smiths_skill_names_it():
+    """#940 split the verify skill along its headings: posting is withheld
+    from every agent (contract §6), so the section is in the orchestrator's
+    file, and the file the smith and the sealer open carries no copy of it.
+    That file still prices the repeated run, which is the command the
+    section uses, and names the orchestrator's file in its opening."""
+    assert SECTION_HEADING in read(), "the orchestration file lost the section"
+    smiths = read(SMITHS_SKILL)
+    assert SECTION_HEADING not in smiths, (
+        "the smith's and the sealer's skill still carries the orchestrator's "
+        "measuring section"
+    )
+    assert "## The cost of the run you repeat" in smiths
+    assert "`skills/verify/orchestration.md`" in smiths.split("\n## ", 1)[0], (
+        "the opening of `skills/verify/SKILL.md` does not say where the "
+        "orchestrator's two acts are"
     )
 
 

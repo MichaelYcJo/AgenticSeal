@@ -164,8 +164,8 @@ the prose rather than under it — a reader who stops after the first screen
 still has the numbers. What the rounds found comes after it: which findings
 changed something, and what they changed.
 
-**The rows have one owner: `skills/verify/SKILL.md` §*Measure the segment,
-and feed the flow log*.** That section states each row and where it is taken
+**The rows have one owner: `skills/verify/orchestration.md` *Measure the
+segment, and feed the flow log*.** That section states each row and where it is taken
 from. Link it rather than copying the rows into this file or into the body —
 two copies are two things to keep in step, and the one that drifts is the
 copy nobody owns.
