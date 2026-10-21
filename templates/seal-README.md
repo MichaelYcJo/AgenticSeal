@@ -9,8 +9,8 @@ with every released one that wrote no `spec.md` and holds nothing open. A
 settle is not a work item and opens no directory here.
 `skills/settle/SKILL.md` is the procedure and `skills/settle/scripts/settle.py`
 the command behind it. A work item's directory is safe to delete wholesale
-**after the export rules below have run**: nothing that must survive is
-allowed to live only there.
+**once its open rows have been moved out**, which *Export rules* below says
+where to read: nothing that must survive is allowed to live only there.
 
 It lives at one of two places, and its presence at either is what opts the
 repository into the workflow. There is no config key. **Shared mode** keeps
