@@ -20,30 +20,53 @@ the framer cites them and does not restate them. -->
 
 **In.**
 
-1. `skills/code-review/scripts/chain_check.py` reads the `spec.md` of every
-   work item whose `routing.md` it judges, and parses that file's
-   `## Rule changes` section with `rule_changes.parse`, reached through the
-   shared reader's loader `skills/verify/scripts/unverified_check.py#rule_changes`.
-   The policy root it passes is `unverified_check.py#policy_root` of the
-   repository, the value `settle` passes.
+1. `skills/code-review/scripts/chain_check.py` reads two sets of `spec.md`
+   files, and parses each file's `## Rule changes` section with
+   `rule_changes.parse`, reached through the shared reader's loader
+   `skills/verify/scripts/unverified_check.py#rule_changes`. The policy root
+   it passes is `unverified_check.py#policy_root` of the repository, the
+   value `settle` passes.
+   - The `spec.md` of every work item whose `routing.md` the check judges.
+   - Every `seal/specs/<id>/spec.md` the pull request's own commits add or
+     change, on a pull request that declares at least one work item. A
+     declared work item can edit another work item's section without
+     touching that work item's `routing.md`: #941's squash b451e503 added
+     `## Rule changes` to 114 other work items' specs that way (executed by
+     round 1's warden). A `spec.md` another pull request's squash carried is
+     left out by `carried_by`, the rule the declarations use, and so is one
+     the diff only moved with its bytes unchanged.
+
+   A pull request that declares nothing reads no `spec.md`, as it reads
+   nothing else today.
 2. Each error the parser returns becomes one refusal, at the spec's path and
    the line the parser names, carrying the parser's reason verbatim. Its text
    is in *Data & interfaces*.
 3. The refusal is judged like every other refusal of the check. It fails a
-   ready pull request, prints and exits 0 on a draft, and stays a refusal
-   under `--sealing`, so the orchestrator's `broad-gate` run and its
-   `--preflight` meet it before the sealer is spawned.
+   ready pull request, and it prints and exits 0 on a draft. Under
+   `--sealing` it stays in `problems`, never among the notices.
+   **Limit:** in this repository's flow the `broad-gate` run and its
+   `--preflight` do not fail on it. Both run before the pull request opens,
+   because the pull request opens once the sealer seals
+   (`skills/code-review/orchestration.md`). With no pull request to observe,
+   the check reads the state as unknown, prints the refusal and exits 0. The
+   pull request's own CI run is where the refusal fails. This work keeps
+   the check's strictness as it is. Whether `--sealing` should judge
+   strictly where no pull request exists yet is left to round 1's
+   `## Not judged`, for the owner.
 4. These are left alone, as `settle` leaves them: a `spec.md` with no
    `## Rule changes` section, a section holding the no-change block, a work
-   item with no `spec.md`, and a work item whose declaration a settle removed.
-   The last two have no spec to read.
+   item with no `spec.md`, a work item whose declaration a settle removed,
+   and a `spec.md` the pull request deletes. The last three have no spec to
+   read.
 5. The prose that lists what the check reads is corrected in place in the
-   same commit: `chain_check.py`'s module docstring, the comment above the
-   chain step in `.github/workflows/hygiene.yml`, the same comment in
+   same commit, and each place names both sets of item 1:
+   `chain_check.py`'s module docstring, the comment above the chain step in
+   `.github/workflows/hygiene.yml`, the same comment in
    `templates/hygiene.yml`, and one pointer sentence in
-   `skills/settle/SKILL.md` *Rule changes*. The policy root's statement of
-   the rule is `## Rule changes` below, applied by `settle` after the
-   release.
+   `skills/settle/SKILL.md` *Rule changes*. The work item's
+   `changelog.md` says what item 3 says of the broad run. The policy root's
+   statement of the rule is `## Rule changes` below, applied by `settle`
+   after the release.
 
 **Out, each with its reason.**
 
@@ -52,13 +75,12 @@ the framer cites them and does not restate them. -->
   there at the settle depends on the specs merged before this one, in an
   order the pull request does not fix yet. `settle`'s dry run answers it
   after the release, and issue #1006 asks for the parse alone.
-- **A `spec.md` the diff carries for a work item the check does not judge.**
-  Every work item commits its `routing.md` before the first edit, so a work
-  item's own `spec.md` is always beside a judged declaration. A `spec.md`
-  edited by a commit that belongs to no work item is the remaining case, and
-  reading it would make the check fail a pull request that declared nothing,
-  which `.github/workflows/hygiene.yml`'s comment and `CONTRIBUTING.md`
-  promise it never does. `plan.md` A2 weighs it.
+- **A `spec.md` a pull request that declares nothing adds or changes.**
+  Reading it would make the check fail a pull request that declared
+  nothing, which `.github/workflows/hygiene.yml`'s comment and
+  `CONTRIBUTING.md` promise it never does. Such a pull request belongs to no
+  work item, and `settle`'s dry run still names its spec after the release.
+  `plan.md` A2 weighs it.
 - **Refusing a new `spec.md` that has no `## Rule changes` section.** Issue
   #1006 item 3 leaves it alone, and `settle` names it and keeps it. Whether
   a spec added after the template gained the section owes one is a decision
@@ -84,9 +106,14 @@ returns 0 for it.
 | S3 a section that is only the template's comment | Given a `spec.md` whose `## Rule changes` holds only the template's comment, when the check runs on a ready pull request, then it exits 1 with the reason `the section is empty` | a case, as S1 |
 | S4 what parses passes | Given, in turn, a `spec.md` with the no-change block, one with a `change` item that parses, and one with no `## Rule changes` section, when the check runs on a ready pull request, then it exits 0 and prints no line naming the spec | a parametrized case |
 | S5 a draft prints | Given S1's spec on a draft pull request, when the check runs, then it exits 0 and prints the same line as a notice | a case with the module's `draft` fixture |
-| S6 the broad run meets it | Given S1's spec on a ready pull request, when the check runs with `--sealing`, then it still exits 1 | a case |
+| S6 `--sealing` keeps it a refusal | Given S1's spec, when the check runs with `--sealing` on a ready pull request, then it still exits 1. When it runs with `--sealing` where no pull request is observed, as the broad run does in this repository's flow, then it prints the refusal and exits 0 | a case with each half; the second runs with no event payload and the conftest's `gh` that finds no pull request |
 | S7 either planning answer | Given S1's spec under a declaration whose `Planning` row reads `the session`, when the check runs on a ready pull request, then it exits 1 | a case; the `branch` fixture already declares `the session` |
 | S8 carried by a squash | Given a work item with S1's spec that reached the branch inside another pull request's squash (the module's `squash` helper), when the check runs on a ready pull request, then no line names that spec | a case beside `TestCarriedBy` |
+| S12 another work item's spec, added | Given the declared, reviewed branch adds `seal/specs/<other id>/spec.md` holding S1's section, and that work item's `routing.md` is not in the diff, when the check runs on a ready pull request, then it exits 1 naming that spec at the parser's line | a case; round 1's probe P1a, seen red against 22bfec31 |
+| S13 another work item's spec, changed | Given a spec that parses on the base, which the declared branch edits into S1's section, when the check runs on a ready pull request, then it exits 1 naming that spec | a case; round 1's probe P1b, seen red against 22bfec31 |
+| S14 another work item's spec under `straight to the PR` | Given S12's edit on a branch whose declaration reads `straight to the PR`, when the check runs on a ready pull request, then it exits 1 naming that spec | a case; round 1's probe P1c, seen red against 22bfec31 |
+| S15 nothing declared | Given a branch that declares nothing and edits a spec into S1's section, when the check runs on a ready pull request, then it exits 0 and prints the no-declaration notice, as it does today | a case pinning the promise |
+| S16 a spec only moved | Given the declared branch moves another work item's `spec.md` holding S1's section with its bytes unchanged, when the check runs on a ready pull request, then no line names it | a case |
 | S9 the working tree | Given S1's spec written and not committed, when the check runs with `--worktree`, then it exits 1 naming the spec | a case |
 | S10 a reader that will not load | Given `unverified_check.rule_changes` raising when called, when the check reaches a judged work item, then it exits 2 and stderr names the reader | a case with the loader monkeypatched |
 | S11 the importers are untouched | Given `hooks/commitgate.py`, `skills/verify/scripts/seal_stamp.py`, `skills/verify/scripts/broad_gate.py` and `.github/scripts/release_seal.py`, which import `chain_check.py`, when they import it, then nothing new loads at import | read by the warden at review: the parse is reached from `main` alone |
@@ -104,6 +131,16 @@ returns 0 for it.
   `problems`, never to the `--sealing` notices. A declaration that is
   carried, retired by a settle, or unreadable reaches no call, because
   `main` already moves on from each of those before `frame`.
+- **`main` also calls it once per edited work item**, after the
+  per-declaration loop and under the same exit-2 guard. The edited work
+  items are computed after the `if not declarations` return, from the
+  `paths` and `moved` that `changed` already returned. One is the directory
+  of each path that is `<WORK_ITEMS>/<id>/spec.md` exactly, is not in
+  `moved`, and for which `carried_by(root, baseline, path)` returns None,
+  less the directory of every judged declaration, whose spec the loop
+  already read. Round 1's record, finding 1, holds a code sketch of this
+  set. A deleted `spec.md` is in `paths` and `read_record` returns None for
+  it, so it yields nothing.
 - **The refusal's text** is one constant, `RULE_CHANGES_SAYS`, formatted with
   the parser's reason:
 
@@ -131,32 +168,37 @@ returns 0 for it.
   from: reads the declaration, the frame, the records, the broad gate's file
     and the sealer's guarantee, and nothing else of a round record.**
   to: reads the declaration, the frame, the `## Rule changes`
-    section of each judged work item's `spec.md`, the records, the broad
-    gate's file and the sealer's guarantee, and nothing else of a round
+    section of each `spec.md` it parses, the records, the broad gate's
+    file and the sealer's guarantee, and nothing else of a round
     record.**
 - add
   file: docs/the-review-record.md
   section: What the check reads at the pull request
   to: **The check parses the `## Rule changes` section of the `spec.md` of
-    every work item whose `routing.md` it judges, with
+    every work item whose `routing.md` it judges, and of every work item
+    `spec.md` the pull request's own commits add or change, with
     `skills/settle/scripts/rule_changes.py`, the one reader of that
     section, and a section the reader refuses is a refusal at the line the
     reader names, carrying the reader's reason.** `settle` reads the
     section after the release and applies nothing from a spec whose
     section does not parse, so a section first read there is a rule
-    change that never lands, with no pull request left to fix it in. The
-    check reads no other `spec.md`, so a work item a squash of another
-    pull request carried is read at that pull request. A `spec.md` with
-    no `## Rule changes` section is left alone, as `settle` leaves it. The
-    refusal reads a fact from the file and puts no question to a person.
+    change that never lands, with no pull request left to fix it in. A
+    declared work item can edit another work item's section without
+    touching that work item's `routing.md`, which is why the diff is read
+    as well as the declarations. A pull request that declares nothing
+    reads no `spec.md`. A `spec.md` a squash of another pull request
+    carried, and one the pull request only moved, are read at the pull
+    request that made them. A `spec.md` with no `## Rule changes` section
+    is left alone, as `settle` leaves it. The refusal reads a fact from
+    the file and puts no question to a person.
     check: rule-changes-read-at-the-pull-request
 
 ## Removes
 
 | Removes | Coordinate | Where it lands, or why it can go |
 |---|---|---|
-| the count of the check's arms, and its arm list without the spec read | `skills/code-review/scripts/chain_check.py#__doc__` (the sentence *The arms are five:* and the list under it) | rewritten in place: the list gains the read of each judged work item's `## Rule changes`, and the count names six |
-| the list of what the chain step fails for, without the spec read | `.github/workflows/hygiene.yml` (the comment above the step *a declared review chain has the round record it claimed*, its sentence opening *It fails for what the author can fix*) | rewritten in place: the list gains a `spec.md` whose `## Rule changes` does not parse |
+| the count of the check's arms, and its arm list without the spec read | `skills/code-review/scripts/chain_check.py#__doc__` (the sentence *The arms are five:* and the list under it) | rewritten in place: the list gains the read of `## Rule changes` in both sets of *Scope* item 1, and the count names six |
+| the list of what the chain step fails for, without the spec read | `.github/workflows/hygiene.yml` (the comment above the step *a declared review chain has the round record it claimed*, its sentence opening *It fails for what the author can fix*) | rewritten in place: the list gains a `spec.md` of either set whose `## Rule changes` does not parse |
 | the same list in the copy that ships to user repositories | `templates/hygiene.yml` (the comment above the same step, its sentence opening *It never fails a pull request that declared nothing*) | rewritten in place, as the row above |
 | the first rule's list of what the check reads | `docs/the-review-record.md` *What the check reads at the pull request* (the bold sentence opening *`chain_check.py` reads the declaration*) | the `change` item in `## Rule changes`, applied by `settle` after the release; the pull request leaves the policy root as it is |
 
@@ -166,3 +208,4 @@ Anything a planner must answer lives in questions.md, not inline: unanswered
 questions buried in prose read as decided.
 
 Framed 2026-10-22 by framer, before the build.
+Reframed 2026-10-22 by framer, after round 1.

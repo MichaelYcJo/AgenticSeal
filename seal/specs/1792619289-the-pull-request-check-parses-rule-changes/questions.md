@@ -11,11 +11,18 @@ answer and records it; only a new rule belongs here. -->
 nobody reopens it here.
 
 - **Which `spec.md` files are read.** The `spec.md` of each work item whose
-  `routing.md` the check judges, and no other (`plan.md` A1 against A2 and
-  A3). The check's own scope rule in `docs/the-review-record.md` *What the
-  check reads at the pull request* decides it.
-- **A work item a squash of another pull request carried.** Not read, because
-  *An item is judged at the pull request that carries it* in the same section.
+  `routing.md` the check judges, and every work item `spec.md` the pull
+  request's own commits add or change on a pull request that declares at
+  least one work item (`plan.md` A1 against A2, A3 and A9). Round 1's
+  finding 1 decided the second set, and the reframe recorded it.
+- **A pull request that declares nothing.** It reads no `spec.md`, which
+  keeps the promise in `.github/workflows/hygiene.yml` and `CONTRIBUTING.md`
+  (`plan.md` A2).
+- **A `spec.md` a squash of another pull request carried, or one only
+  moved.** Not read, because *An item is judged at the pull request that
+  carries it* and *The check reads the diff as declarations, not as file
+  identity* in the same section decide it for declarations, and the same
+  `carried_by` and moved set serve.
 - **A work item declared `the session`.** Read like one declared `framer`,
   because the parse is owed under either `Planning` answer.
 - **Which reader, and how it is loaded.** `rule_changes.parse`, through
@@ -25,8 +32,11 @@ nobody reopens it here.
   `settle` passes, so a `file:` outside that root is refused as `settle`
   refuses it.
 - **Draft, ready and `--sealing`.** The read is judged like every refusal of
-  the check, and stays a refusal under `--sealing`, so the broad run and the
-  preflight meet it (`spec.md` *Scope* item 3).
+  the check, and stays a refusal under `--sealing`. The broad run and the
+  preflight print it and do not fail on it, because no pull request exists
+  when they run (`spec.md` *Scope* item 3). Whether they should judge it
+  strictly is round 1's `## Not judged` row for the owner, and is not
+  reopened here.
 - **A section holding only the template's comment.** Refused with the
   parser's reason, `the section is empty`, because `settle` refuses it too.
 - **The refusal's text.** One constant, fixed in `spec.md` *Data &

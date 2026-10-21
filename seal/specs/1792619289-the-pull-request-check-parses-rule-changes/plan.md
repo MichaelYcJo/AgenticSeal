@@ -19,14 +19,19 @@ second convention for one kind of fact. -->
 
 ## Summary
 
-`chain_check.py` gains one read. For every work item whose `routing.md` it
-judges, it parses that work item's `spec.md` with `rule_changes.parse`, the
-reader `settle` uses, and turns each error into a refusal at the spec's path
-and the parser's line. The read joins the per-declaration loop in `main`
-beside the frame arm, so it takes the check's scope, its draft and ready
-strictness and its `--sealing` behaviour without a rule of its own. The
-prose that lists what the check reads is corrected in the same commit, and
-the policy root's statement of the rule is `spec.md` `## Rule changes`.
+`chain_check.py` gains one read over two sets of specs. It parses with
+`rule_changes.parse`, the reader `settle` uses, the `spec.md` of every work
+item whose `routing.md` it judges, and every work item `spec.md` the pull
+request's own commits add or change on a pull request that declares at
+least one work item. Each error becomes a refusal at the spec's path and the
+parser's line. The first set is read in the per-declaration loop in `main`
+beside the frame arm (phase 1). The second is read after that loop, from
+the diff `main` already holds, filtered by `carried_by` and by the moved
+set (phase 2, after round 1). Both take the check's draft and ready
+strictness and its `--sealing` behaviour without a rule of their own. The
+prose that lists what the check reads is corrected in the commit that
+changes it, and the policy root's statement of the rule is `spec.md`
+`## Rule changes`.
 
 ## Technical context
 
@@ -75,10 +80,18 @@ Coordinates are at the frame commit's parent, b571ece3 (read).
   (234–249); `check` (252–254) runs `main`; `squash` (330) builds a carried
   commit; `TestCarriedBy` (354) and `TestFrame` (1862) are the neighbours.
 
-**What breaks in six months.** A `spec.md` edited by a commit that belongs
-to no work item still merges unread, because the check reads only the specs
-of the work items it judges (Alternatives A2). `settle`'s dry run still
-names it after the release. A second case: a later change to
+For phase 2, at be5a9330 (read): `main` starts at 1881, `paths, moved =
+diff` is 1917, the `if not declarations` return is 1944, `fork` is computed
+at 1948, the loop's `rule_changes_read` call and its exit-2 guard follow
+`frame`, and the notices print from 1999. `carried_by` is 634. Round 1's
+record, finding 1, holds a sketch of the edited set at the line after
+`fork`.
+
+**What breaks in six months.** A `spec.md` edited by a pull request that
+declares nothing still merges unread (Alternatives A2). `settle`'s dry run
+still names it after the release. A pull request that edits many specs
+pays one `git log` per spec in `carried_by`: #941's would have paid 114. A
+second case: a later change to
 `rule_changes.parse` that reads the policy root's documents, such as whether
 a `section:` exists, would reach the pull request through this call and
 refuse sections whose text an earlier unsettled spec has not placed yet. The
@@ -89,8 +102,9 @@ reader, and whoever changes the reader meets this caller in `git grep`.
 
 | Approach | Failure scenario | Verdict |
 |---|---|---|
-| A1. Parse the `spec.md` of each work item whose `routing.md` the check judges, inside `main`'s per-declaration loop, through `unverified_check.py#rule_changes` | the case A2 names: a `spec.md` edited outside any work item merges unread | **chosen.** It takes the check's scope, strictness and `--sealing` handling from the loop it joins, and adds no loader and no rule about which specs count |
-| A2. Parse every `seal/specs/<id>/spec.md` the diff adds or changes, whether or not a declaration names it | a pull request that declared nothing fails for a spec it carries, which the comment above the hygiene step (*It never fails for a pull request that declared NOTHING*), `CONTRIBUTING.md`'s *ask nothing of a branch that declared nothing* and the no-declaration notice's *examined nothing* all deny. Four sentences change for one remaining case | rejected. The premise that makes A1 enough was checked: every work item commits its `routing.md` before the first edit (`skills/implement/SKILL.md` *3. The SDD file set*, the `routing.md` row), so a work item's own spec is always beside a judged declaration |
+| A1. Parse the `spec.md` of each work item whose `routing.md` the check judges, inside `main`'s per-declaration loop, and every work item `spec.md` the pull request's own commits add or change, on a pull request that declares at least one work item, less what `carried_by` assigns to another pull request and what the diff only moved; all through `unverified_check.py#rule_changes` | the case A2 names: a `spec.md` edited by a pull request that declares nothing merges unread. A pull request that edits many specs pays one `git log` per spec | **chosen, after round 1.** It reads every section the pull request's own commits wrote, reuses the diff, the moved set and `carried_by` the declarations already use, and keeps the promise that a pull request declaring nothing is asked nothing |
+| A2. As A1, and also on a pull request that declares nothing | a pull request that declared nothing fails for a spec it carries, which the comment above the hygiene step (*It never fails for a pull request that declared NOTHING*), `CONTRIBUTING.md`'s *ask nothing of a branch that declared nothing* and the no-declaration notice's *examined nothing* all deny. Four sentences change for a pull request that belongs to no work item | rejected. Such a pull request carries no routing, no round and no frame, and `settle`'s dry run still names its spec |
+| A9. Parse only the `spec.md` of each work item whose `routing.md` the check judges (phase 1's build) | a declared work item that edits another work item's spec merges that section unread. #941's squash b451e503 added `## Rule changes` to 114 other work items' specs without touching their `routing.md`, and none of those sections would have been read. Round 1's probes P1a, P1b and P1c each exited 0 on a ready pull request (executed by the warden) | rejected at round 1, finding 1. Its premise, that a work item's own spec is always beside a judged declaration, holds, and the conclusion drawn from it did not: a declared commit can write another work item's spec |
 | A3. Parse every `spec.md` in the tree at HEAD, the population `settle` reads | one section merged unread, before this check or by a direct push, refuses every later pull request on the release branch, charged to authors who did not write it | rejected. Measured at the frame: the 118 specs other than this one all parse (executed, in memory), so A3 would refuse nothing today; the failure is the next one |
 | A4. Replace the structure: run `settle`'s dry run at the pull request as a new hygiene step | the dry run exits 0 where the spec is also held by an open row, which is how both 0.22.3 instances passed, and exits 1 for refusals no pull request can settle, a `from:` an unmerged earlier spec places or a conflict merge order decides. A new step also owes a row in `broad_gate.py`'s partition | rejected |
 | A5. The commit gate parses `spec.md` at each commit | a framer's skeleton commit holds the template's empty section and is refused mid-run, which stops an unattended run at the commit. The reading inside git covers only clones whose hooks are this plugin's, so CI has to read it anyway | rejected |
@@ -103,6 +117,7 @@ reader, and whoever changes the reader meets this caller in `git grep`.
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
 | 1 | `chain_check.py#rule_changes_read`, the constant `RULE_CHANGES_SAYS`, the call in `main` beside `frame`, and exit 2 with the stderr line where the loader raises, all as `spec.md` *Data & interfaces* states them. Cases S1 to S10 in `tests/test_chain_check.py`, each carrying `@pytest.mark.rule("rule-changes-read-at-the-pull-request")`. In the same commit, the sentences `spec.md` `## Removes` names, rewritten in place, and one sentence after `skills/settle/SKILL.md` *Rule changes*'s *`skills/settle/scripts/rule_changes.py` is the one reader.* saying that `chain-check` asks the same reader at the pull request, citing `docs/the-review-record.md` *What the check reads at the pull request* | `bin/test tests/test_chain_check.py -q`. Each refusal case (S1, S2, S3, S5, S6, S7, S9, S10) seen red against `chain_check.py` as it stands at the frame commit, and the smith's hand-back saying how. `rule_changes.parse` run in memory over this work item's `spec.md`, to show its own section still parses | 22bfec31 |
+| 2 | The reframe after round 1. In `main`, the edited work items as `spec.md` *Data & interfaces* states them, computed after the `if not declarations` return and read after the per-declaration loop under the same exit-2 guard. Cases S12 to S16 and S6's second half in `tests/test_chain_check.py`, each carrying the same marker. In the same commit, every sentence that says the check reads only judged work items' specs, rewritten in place to name both sets of *Scope* item 1: the docstring's `rule changes` arm, both hygiene comments as round 1's fix pass leaves them, and the `skills/settle/SKILL.md` pointer sentence. `changelog.md`'s *stays a refusal in the broad gate's own run* rewritten to *Scope* item 3's limit | `bin/test tests/test_chain_check.py -q`. S12, S13 and S14 seen red against `chain_check.py` at 22bfec31, and the smith's hand-back saying how. `rule_changes.parse` run in memory over this work item's `spec.md` | |
 
 This table is also where the work records how far it got. There is no separate
 task list: a list of tasks is mutable progress, and a stale one asserts a state
@@ -132,8 +147,11 @@ else. Nothing measures from this column, which is why that is tolerable.
 ## Operational impact
 
 - **No migration, no new environment variable, no new dependency.**
-- **It blocks more.** A ready pull request whose judged work item's
-  `## Rule changes` does not parse now fails the hygiene job. A wrong
+- **It blocks more.** A ready pull request that declares a work item, and
+  carries a `spec.md` of either set whose `## Rule changes` does not parse,
+  now fails the hygiene job. The orchestrator's `broad-gate` run and
+  `--preflight` print the refusal and do not fail on it, because no pull
+  request exists yet when they run (`spec.md` *Scope* item 3). A wrong
   refusal costs one edit to a spec at its own pull request; a wrong allow is
   a release whose rule changes apply nothing at the owner's settle.
 - **Prompt budget: none.** The refusal is printed and read; nothing asks.
