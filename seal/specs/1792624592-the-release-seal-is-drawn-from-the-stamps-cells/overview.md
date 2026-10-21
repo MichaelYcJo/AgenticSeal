@@ -15,7 +15,7 @@ The release note's seal was a second drawing of the stamp, an SVG that `rsvg-con
 
 | Item | Who must answer |
 |---|---|
-| `tests/test_no_real_identifiers.py::test_only_neutral_domains` is red from 46a773ea on, through ed9ec343, on three lines of the frame that write out the W3C namespace host (`spec.md` lines 18 and 149, `plan.md` line 101), and on nothing else | the orchestrator, by rewording those three lines so they name the host without writing it, then running the case |
+| closed `tests/test_no_real_identifiers.py::test_only_neutral_domains` was red from 46a773ea through ed9ec343 on three frame lines writing out the W3C's namespace host | the framer's 5e2b93de reworded them; `bin/test tests/test_no_real_identifiers.py -q` exit 0, 6 passed (executed by the framer) |
 | the full suite and the repository-wide lint at this branch's head | the orchestrator's broad run |
 | the `seal` job at a real tag push draws the new PNG, attaches it and shows it 168 CSS pixels wide | the release run at the v0.22.3 tag, read by the owner |
 
@@ -25,4 +25,4 @@ Nothing.
 
 ## Fed back into the spec
 
-None.
+- S7 says no step of the `seal` job runs `apt-get`, and S9 names the release seal's pixel cases, S1's and S2's; both follow this overview's divergences (framer, 5e2b93de).
