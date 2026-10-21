@@ -47,3 +47,15 @@
   about two fifths of its size, and names the party making a claim where it
   said "you". The section the closed flow-measurement log's comment cites
   is the new file's.
+- **A branch cut from an issue carries the issue's number (#940).**
+  `commit-pr-convention` *Branch names* states the shapes once:
+  `<prefix>/<issue number>-<slug>` for a branch cut from an issue, two
+  numbers joined by a hyphen for two issues, the slug alone for a change with
+  no issue, and `release/vX.Y.Z` for a release branch. The smaller skills
+  (`config`, `legacy-parity`, `gap-analysis`, `parity-setup`,
+  `security-audit`, `testing`, `feature-planner`, `confidence-check`,
+  `learn`, `audit`, `debug`, `build-fix`, `checkpoint`, `update`,
+  `preset-setup`, and `writing-style`'s file for text outside a review) drop
+  the history they narrated and the symbols used as separators, and name who
+  acts. `/specseal:config` lists every row of its table where it used to
+  count nine over eight.
