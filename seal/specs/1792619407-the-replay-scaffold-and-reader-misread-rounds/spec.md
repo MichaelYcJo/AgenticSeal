@@ -83,11 +83,16 @@ committed side.
    keeps the last printed record whole, as `report_text`, in place of
    `report_rows`. Rows are derived from it whenever a side is read, so a
    reader corrected later is applied to every side that keeps its text.
-3. **Recall is read by the same reader.** Wherever `noninferiority.py`
-   counts a side (`side_numbers`, `regrade`), a `truth-` grader's result
-   for a run is its regex searched over that run's finding rows
-   (`noninferiority.py#grade`), not the eval's search of the whole file. A
-   fenced `location:` line then neither adds a row nor finds a truth.
+3. **Recall is read by the same reader, where the truth reads a round
+   record.** Wherever `noninferiority.py` counts a side (`side_numbers`,
+   `regrade`), a `truth-` grader whose target is a round record
+   (`noninferiority.py#reads_record`) takes its result for a run from its
+   regex searched over that run's finding rows (`noninferiority.py#grade`),
+   not from the eval's search of the whole file. A fenced `location:` line
+   then neither adds a row nor finds a truth. A `truth-` grader over any
+   other file keeps the eval's result: the sealer suite's `truth-` graders
+   read `guarantee.md`, which no run prints as a round record, so read from
+   the rows each would fail on both sides.
 4. **A side without `report_text` is refused, by name.** `compare` and
    `regrade` exit 2 on a side any run of which keeps no `report_text`,
    saying the side was read by the reader before #986 and cannot be read
@@ -101,12 +106,22 @@ committed side.
    against round 1's base. The mutation lands on a line `base..target`
    added inside a Python unit. The tree is the one the real round 1
    reviewed: no round record exists in it, and every branch commit its
-   files name is an ancestor of the target.
+   files name is an ancestor of the target. The per-round reader is
+   `replay_targets.py#round_target`, which both generators call. Where
+   round 1 names a base ref the remote no longer has, the squash commit's
+   first parent stands for it (`replay_targets.py#ref_base`): three of the
+   four round 1 records name `origin/release/v0.21.0`, which is gone.
 6. **The seeded scaffold fetches the target and the base, removes no file,
    and leaves no copy of the unmutated commit.** After the amend, the
    scaffold expires the reflog, removes `FETCH_HEAD` and prunes unreachable
    objects, so the target's original commit neither resolves in the clone
    nor is named by any file under its `.git/`. The `git rm` line goes.
+   The amend rewrites the target commit alone, so the commits before it
+   still hold the seeded line unmutated: in each of the four clones,
+   `git diff --stat HEAD^ HEAD` shows the seeded file changed by one line
+   inside a commit that otherwise touches records (executed by the smith,
+   `phases/phase-2.md`). Whether that narrower leak stands is
+   `questions.md` Q5, the owner's.
 7. **A seeded case's truths are the seed and round 1's confirmed fixes.**
    Built at round 1's target, the tree carries the defects round 1 found.
    Each finding round 1 closed `fixed` that round 2 confirmed is a `truth-`
@@ -118,7 +133,11 @@ committed side.
    smith regenerates `seeded-279a580b`, `seeded-4d316179`,
    `seeded-9b644676` and `seeded-ad447367` with `--case`. One that cannot be
    built is replaced by the next smallest shipped commit, and
-   `phases/phase-2.md` says which and why (`questions.md` Q3).
+   `phases/phase-2.md` says which and why (`questions.md` Q3). Two were:
+   `seeded-8a100e13` replaces `seeded-4d316179`, which takes no seed at its
+   round 1 target, and `seeded-f1c9932d` replaces `seeded-9b644676`, two of
+   whose round 1 truths accept one `location:` line
+   (`seed_defects.py#shared_line`).
 9. **The six `recurred_truths.json` entries of the seeded cases go.** Their
    coordinates were read at the squash commits, and `truths_with` would
    apply them at the round 1 target by case name without a word
@@ -182,14 +201,15 @@ list is the head of `questions.md`.
 | S10 the regenerated scaffolds run and hide nothing | Given each regenerated `seeded-*/scaffold.sh`, when the smith runs it in an empty scratch directory, then it exits 0; `git grep -n 'seal/specs/<item>/rounds/'` in the clone finds nothing; every commit named in the item's `plan.md` Status column resolves with `git cat-file -e`; `git cat-file -e <the target's original commit>` exits non-zero; and `grep -r <that commit> .git --exclude-dir=objects` finds nothing | Executed by the smith in phase 2 and written to `phases/phase-2.md`, one line per case. It fetches from the repository's GitHub remote and costs nothing |
 | S11 the suite is generated | Given the generators and `recurred_truths.json`, when every warden case is regenerated, then `git status --porcelain evals/behaviour/` is empty | Executed by the smith |
 | S12 only the seeded cases move | Given the base and the head, when the case trees are read, then every `replay-*` and `rule-*` case of the warden, and the `smith`, `framer` and `sealer` suites, are unchanged | `git rev-parse <base>:<dir>` equals `<head>:<dir>` for each (executed) |
-| S13 the texts say what the code does | Given the diff, when `evals/README.md`, the two module docstrings and the changelog fragment are read, then they state the kept text, the grammar's split, the refusal, the round 1 tree and the stated point as built, and `git grep -n -e report_rows -e FINDING_ROW -- ':!seal'` finds nothing | Read by the warden, and the `git grep` executed |
+| S13 the texts say what the code does | Given the diff, when `evals/README.md`, the two module docstrings and the changelog fragment are read, then they state the kept text, the grammar's split, the refusal, the round 1 tree and the stated point as built, and `git grep -n -e report_rows -e FINDING_ROW -- ':!seal'` finds only the two lines of the test module that name the old field on purpose, one asserting a side no longer carries it (S6) and one building a side as a run before #986 kept it (S7) | Read by the warden, and the `git grep` executed |
 
 ## Data & interfaces
 
 **A run's `specseal` in a side** (`noninferiority.py#annotate`):
 `report_text`, a string, the output of the last `cat <...>/round-N.md` (or
 `<...>-report.md`) the case session ran without error, verbatim apart from
-the masking of `questions.md` Q4; the empty string where the session
+the masking of `questions.md` Q4, which also sets one space after a control
+character wherever a host would follow it; the empty string where the session
 printed none. `report_rows` is no longer written. `cost` and `tool_calls`
 are unchanged.
 
@@ -201,9 +221,11 @@ by a newline, or the empty string. A record with no `## Findings`, or with
 two, gives no rows, as the check's split does.
 
 **Counting a side** (`noninferiority.py#side_numbers`). Rows and false rows
-come from the finding rows of each run's `report_text`. A `truth-` grader's
-passes come from `noninferiority.py#grade` over the same rows. Reach and
-shape graders keep the eval's recorded results. A run with no
+come from the finding rows of each run's `report_text`. A `truth-` grader
+that `noninferiority.py#reads_record` names takes its passes from
+`noninferiority.py#grade` over the same rows. Every other grader, reach,
+shape and a `truth-` grader over another file, keeps the eval's recorded
+result. A run with no
 `report_text` raises the refusal of scope item 4, which `compare` and
 `regrade` turn into exit 2.
 
@@ -240,7 +262,7 @@ present sentences with round 1's base. Its graders are `report_shape`'s,
 | The squash commit as a seeded case's tree | `evals/scripts/seed_defects.py#targets` | Round 1's target and base of the shipped work item |
 | The six entries naming `seeded-279a580b` and `seeded-9b644676` | `evals/scripts/recurred_truths.json` | Can go: their coordinates were read at squash commits no case is built on. The next classed side under the new suite derives entries for the new trees |
 | The case pinning the old reader | `tests/test_a_rewritten_definition_proved_non_inferior.py#test_the_report_rows_are_the_last_report_the_session_printed` | Rewritten in place for `report_text` (S6), under a name that says so |
-| The four seeded case directories as generated today | `evals/behaviour/warden/seeded-279a580b/`, `seeded-4d316179/`, `seeded-9b644676/`, `seeded-ad447367/` | Rewritten by `seed_defects.py --case` under the same names; a case that cannot be built is removed and its replacement named in `phases/phase-2.md` |
+| The four seeded case directories as generated today | `evals/behaviour/warden/seeded-279a580b/`, `seeded-4d316179/`, `seeded-9b644676/`, `seeded-ad447367/` | `seeded-279a580b` and `seeded-ad447367` rewritten by `seed_defects.py --case` under the same names; `seeded-4d316179` and `seeded-9b644676` removed, replaced by `seeded-8a100e13` and `seeded-f1c9932d` (`phases/phase-2.md`) |
 
 ## Open questions
 
