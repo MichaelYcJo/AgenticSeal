@@ -6,13 +6,20 @@ Run by CI on every pull request (`.github/workflows/hygiene.yml`). It judges
 the `seal/specs/<id>/routing.md` naming the pull request's branch and every
 one its own commits add or change. One that reached the branch inside another
 pull request's squash was judged at that pull request and is named, not
-judged (`carried_by`). The arms are five:
+judged (`carried_by`). The arms are six:
 
   declaration   the file parses as a routing declaration; one the pull
                 request removed is accepted where the work item was retired
   frame         `Planning | framer`: `spec.md` and `plan.md` are committed,
                 `spec.md` ends with the framer's mark, and every `Reframed`
                 line under it names the framer
+  rule changes  the `## Rule changes` section parses with
+                `rule_changes.parse`, the one reader `settle` applies, in
+                the `spec.md` of each judged work item under either
+                `Planning` answer, and, on a pull request that declares at
+                least one work item, in every work item `spec.md` its own
+                commits add or change (`edited_work_items`); a spec with no
+                such section, and a work item with no spec, pass
   records       `Review | through the review chain`: `rounds/` holds at least
                 one `round-N.md`; each reads whole against the grammar table
                 of `docs/the-review-record.md` §*The round record*, which
@@ -43,7 +50,8 @@ two arms print and do not fail.
 
 Exit: 0 nothing to refuse · 1 a refusal, each named `path:line  why` (a
 GitHub annotation in CI) · 2 the check could not run, a grammar table it
-cannot read among the causes, named by its file.
+cannot read, named by its file, and a reader that will not load among the
+causes.
 """
 
 import argparse
@@ -1543,6 +1551,64 @@ def frame(reader, routing, root, item, declared):
     return problems
 
 
+SPEC_FILE = "spec.md"
+RULE_CHANGES_SAYS = (
+    "`## Rule changes` does not parse, and `settle` applies nothing from this "
+    "spec: {reason}"
+)
+
+
+def rule_changes_read(reader, root, item):
+    """[(path, line, problem)] for the work item's `spec.md` whose
+    `## Rule changes` section `rule_changes.parse`, the one reader `settle`
+    applies, refuses; [] where git carries no spec. The reader is reached
+    through `unverified_check.py#rule_changes`, which raises where it will
+    not load."""
+    rel = f"{item}/{SPEC_FILE}"
+    text = read_record(root, rel)
+    if text is None:
+        return []
+    parsed = reader.rule_changes().parse(text, reader.policy_root(root))
+    return [
+        (rel, line, RULE_CHANGES_SAYS.format(reason=reason))
+        for line, reason in parsed.errors
+    ]
+
+
+def rule_changes_of(reader, root, items):
+    """[(path, line, problem)] from `rule_changes_read` over every work item
+    directory of ITEMS, or None where the reader would not load, which is
+    said on stderr."""
+    found = []
+    try:
+        for item in items:
+            found.extend(rule_changes_read(reader, root, item))
+    except (OSError, SyntaxError, ImportError, SystemExit) as exc:
+        print(
+            f"chain-check: the rule-changes reader would not load ({exc})",
+            file=sys.stderr,
+        )
+        return None
+    return found
+
+
+def edited_work_items(root, base, paths, moved, routing):
+    """The work item directories whose `spec.md` this pull request's own
+    commits add or change: each path of PATHS that is
+    `<WORK_ITEMS>/<id>/spec.md` exactly, is not in MOVED, and that
+    `carried_by` leaves this pull request's, in the order of PATHS."""
+    depth = len(routing.WORK_ITEMS.split("/")) + 2
+    return [
+        os.path.dirname(p)
+        for p in paths
+        if p.startswith(f"{routing.WORK_ITEMS}/")
+        and len(p.split("/")) == depth
+        and os.path.basename(p) == SPEC_FILE
+        and p not in moved
+        and carried_by(root, base, p) is None
+    ]
+
+
 def verdict_problems(root, path, f):
     """[(path, line, problem)] for one finding's verdict: `open`; a `fixed`
     whose commit HEAD does not descend from; a `fixed` whose commit changed
@@ -1917,6 +1983,14 @@ def main(argv=None):
         return 0
 
     fork = reader.merge_base(root, args.baseline)
+    # A declared work item's commit can write another work item's section
+    # without touching its `routing.md`, so the diff's specs are read too.
+    judged = {os.path.dirname(rel) for rel in declarations}
+    edited = [
+        item
+        for item in edited_work_items(root, args.baseline, paths, moved, routing)
+        if item not in judged
+    ]
     problems, notices = [], []
     texts = {rel: read_record(root, rel) for rel in declarations}
     by_settle = retired(reader, root, fork, texts)
@@ -1950,6 +2024,10 @@ def main(argv=None):
         problems.extend(
             (rel, 0, p) for p in frame(reader, routing, root, item, declared)
         )
+        found = rule_changes_of(reader, root, [item])
+        if found is None:
+            return 2
+        problems.extend(found)
         if declared["review"] == routing.CHAIN:
             problems.extend(records(reader, routing, root, item, rel, args.baseline))
         gate = broad_gate(reader, root, item, args.baseline)
@@ -1958,6 +2036,10 @@ def main(argv=None):
             notices.extend((p, n, f"{SEALING_SAYS}: {m}") for p, n, m in gate)
         else:
             problems.extend(gate)
+    found = rule_changes_of(reader, root, edited)
+    if found is None:
+        return 2
+    problems.extend(found)
 
     for rel, line, message in notices:
         print(reader.annotate("notice", rel, line, message))

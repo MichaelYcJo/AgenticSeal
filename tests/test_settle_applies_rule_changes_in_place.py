@@ -155,6 +155,44 @@ def test_a_spec_with_no_section_is_told_apart_from_an_empty_one():
     assert parse(spec("")).errors
 
 
+@pytest.mark.parametrize(
+    "heading",
+    [
+        "## Rule Changes",
+        "### Rule changes",
+        "# Rule changes",
+        "## Rule changes:",
+        "## Rule-changes",
+        "## RULE CHANGES.",
+    ],
+)
+@pytest.mark.parametrize("beside", [False, True], ids=["alone", "beside-the-heading"])
+def test_a_near_miss_of_the_heading_is_refused_at_its_line(heading, beside):
+    """A heading whose letters, case folded, are those of `Rule changes` and
+    that is not `## Rule changes` is a section its author wrote, not a spec
+    written before the section existed. It is refused at its line, naming
+    the one heading, whether or not the right heading stands too."""
+    body = "- nothing\n  why: a reason.\n\n"
+    text = (
+        "# a work item\n\n"
+        + (f"## Rule changes\n\n{body}" if beside else "")
+        + f"{heading}\n\n{body}## Open questions\n\nNone.\n"
+    )
+    parsed = parse(text)
+    assert parsed.errors, parsed
+    line, why = parsed.errors[0]
+    assert line == line_of(text, heading), (line, why)
+    assert f"`{heading}`" in why and "`## Rule changes`" in why, why
+    assert parsed.ops == [] and parsed.nothing is None
+
+
+def test_a_heading_with_other_letters_is_no_near_miss():
+    """The class is the letters of `Rule changes`; a heading with other
+    letters is another section, and a spec holding only it has none."""
+    for heading in ("## Rules changes", "## Rule changes made", "## Changes"):
+        assert parse(f"# x\n\n{heading}\n\nText.\n") == rules.Parsed(None, None, [])
+
+
 def test_a_section_quoted_in_a_fence_or_a_comment_is_not_read():
     fenced = "# x\n\n```\n## Rule changes\n\n- remove\n  file: docs/a.md\n```\n"
     assert parse(fenced).ops is None
