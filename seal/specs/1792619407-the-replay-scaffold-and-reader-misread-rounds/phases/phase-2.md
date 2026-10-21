@@ -47,10 +47,11 @@ four targets' last commits adds no Python line. Whether to accept this, or
 to choose another design, is a question for a person, named in the
 hand-back. S10's checks as written all hold.
 
-**A base ref deleted after its release.** Three of the four round 1 records
-name their base as `origin/release/v0.21.0`. That branch no longer exists on
-the remote (`git ls-remote origin 'refs/heads/release/*'` lists only
-`release/v0.22.2` and `release/v0.22.3`), so the replay readers find no base.
+**A base ref deleted after its release.** Some round 1 records name a base
+branch the remote no longer has; `spec.md` scope item 5 states which. The
+remote's release branches are only `release/v0.22.2` and `release/v0.22.3`
+(`git ls-remote origin 'refs/heads/release/*'`), so the replay readers find
+no base for those records.
 `replay_targets.py#ref_base` lets the commit the work landed on stand for a
 ref that no longer resolves. `seed_defects.py#target_of` passes the squash
 commit's first parent, the release branch it shipped on. A squash puts none
