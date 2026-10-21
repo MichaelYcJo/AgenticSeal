@@ -21,11 +21,6 @@ ALLOWED_DOMAINS = (
     "github.com",
     "arxiv.org",
     "claude.com",  # official docs this plugin is built against
-    # The W3C's SVG namespace host. Every SVG carries the namespace URI in its
-    # `xmlns`, and a renderer recognises an SVG by that namespace, so it can
-    # be neither removed nor replaced with example.com: it is an identifier,
-    # not an address anything fetches (#832).
-    "www.w3.org",
 )
 # A host allowed bare, or under the paths named for it, and nowhere else. The
 # developer portal sits under /directory on the product's own address, and it

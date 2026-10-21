@@ -1,30 +1,22 @@
 #!/usr/bin/env python3
 """Draw the release's seal as a PNG, attach it, and put it in the note (#718).
 
-The 0.17.0 seal was drawn by hand, and from #718 to #832 this script drew it
-the same way: the terminal stamp's cells painted one rectangle per half-cell.
-That made every edge a staircase and the emblem a block mosaic, which is
-what #832 opened on.
+**The seal is the terminal stamp's disc** (#1009). `draw` reads the cells
+and colours `skills/verify/scripts/seal_stamp.py#build` gives, the one
+drawing of the disc and its mark, and paints each cell as one opaque square
+block of `CELL_PX` by `CELL_PX` PNG pixels in exactly that cell's colour,
+transparent where `build` gives no colour. The comment above
+`seal_stamp.py#DISC_CELLS` says why a cell is square. The note shows the PNG
+at its side divided by `DENSITY`, so a high-density screen draws it sharp.
+A change to the disc's mark changes the terminal stamp and the release
+image together.
 
-**The seal is the owner's SVG** (#832). `SVG`, `release-seal.svg` beside
-this file, is the owner's 32 x 32 seal: radial-gradient wax, a rim, a pressed
-groove, and the seal's mark with a shadow and a highlight. The owner drew a
-Georgia Bold §; the mark is the terminal stamp's placeholder, Georgia Bold's
-S, until #857 chooses it, and the release image follows the terminal's. Its
-three layers were turned into `<path>` outlines once, on a machine that has
-the face, because the runner has no Georgia and a fallback serif would draw
-a different glyph. `rasterise` hands it to `rsvg-convert` at `SEAL_PX` times
-`DENSITY` pixels square, and the note shows it `SEAL_PX` wide, so a
-high-density screen draws it sharp.
-
-**`rsvg-convert` is a release dependency, never a plugin one.** It comes from
-`librsvg2-bin`, a system package the `seal` job installs with `apt-get`
+**Pillow is a release dependency, never a plugin one.** `draw` imports it in
+its own body and nowhere else, so this file loads without it, and the `seal`
+job installs it at the version `.github/scripts/run_tests.py#PILLOW` pins
 (`.github/workflows/publish-release.yml`). Nothing under `hooks/` or
-`skills/` imports this file or calls the binary, and this file imports no
-third-party module: the gates are stdlib-only (`CONTRIBUTING.md` §*Running
-the checks*). The suite reads the PNG it draws with Pillow, pinned in
-`.github/scripts/run_tests.py#PILLOW`, in one case that skips where the
-binary is absent.
+`skills/` imports this file, and the gates stay stdlib-only
+(`CONTRIBUTING.md`, *Running the checks*).
 
 **The rows are a fixed set, read from what the tag carries.** The suite's
 counts come from the record the broad gate's recorder wrote for the run at
@@ -49,8 +41,8 @@ leaves an attached image the note does not show, which the warning names.
 `DRY_RUN=1` draws the PNG at `SEAL_PNG` (by default `seal.png` in a
 temporary directory), prints the rows and the note it would write, and
 uploads and edits nothing, so the seal of a release whose job did not run can
-be drawn by hand from a checkout at the tag, on a machine with
-`rsvg-convert`, attached with `gh release upload` and shown with
+be drawn by hand from a checkout at the tag, with a `python3` that imports
+Pillow, attached with `gh release upload` and shown with
 `gh release edit --notes-file`.
 
 Environment: `TAG`, `REPO`, `GH_TOKEN`, `SUITE_RECORDS` (the directory the
@@ -103,14 +95,26 @@ def publisher():
     )
 
 
-# The owner's seal (#832), beside this file because this file is its one
-# reader. Its text is paths, so drawing it looks up no font.
-SVG = os.path.join(HERE, "release-seal.svg")
-# The seal's width and height on the release page, in CSS pixels, and how
-# many PNG pixels it is drawn with per CSS pixel. The note's `<img>` carries
-# `SEAL_PX`, and the PNG is `SEAL_PX * DENSITY` square, so a screen at twice
-# the density draws it from pixels it has rather than by stretching them.
-SEAL_PX = 160
+def stamp():
+    """`skills/verify/scripts/seal_stamp.py`, whose `build` gives the disc's
+    cells and their colours, which `draw` paints."""
+    return module(
+        "specseal_seal_stamp_for_release_seal",
+        "skills",
+        "verify",
+        "scripts",
+        "seal_stamp.py",
+    )
+
+
+# The side of one cell's block in PNG pixels, where a cell is one grid point
+# of `seal_stamp.py#build`; and how many PNG pixels the note shows per CSS
+# pixel. The PNG is the stamp's width in cells times `CELL_PX` square, and
+# the note's `<img>` carries that side divided by `DENSITY`, so a screen at
+# twice the density draws it from pixels it has rather than by stretching
+# them. `CELL_PX` is even, so a screen at density 1 halves every block to
+# whole pixels.
+CELL_PX = 12
 DENSITY = 2
 
 
@@ -422,26 +426,43 @@ def tagged(tag):
     return out.stdout.strip()
 
 
-def rasterise(svg, png):
-    """Draw `svg` as a `SEAL_PX * DENSITY` pixel square PNG at `png` with
-    `rsvg-convert`, or raise `Refused` saying why: the SVG is not there, the
-    binary is not on `PATH` -- the `seal` job installs it, and an install
-    that failed lands here -- or it exited non-zero, with what it printed."""
-    if not os.path.isfile(svg):
-        raise Refused(f"the seal's SVG is not there: {svg}")
-    side = str(SEAL_PX * DENSITY)
+def draw(png):
+    """Paint the stamp's disc at `png` and answer the note's width for it in
+    CSS pixels, or raise `Refused` saying why: the stamp's module will not
+    load, Pillow will not import -- the `seal` job installs it, and an
+    install that failed lands here -- or the PNG cannot be written.
+
+    Each cell `(x, y)` of `build` becomes the block of `CELL_PX` by
+    `CELL_PX` pixels at `(x * CELL_PX, y * CELL_PX)`, in the cell's colour
+    with alpha 255, and stays transparent where the cell has no colour: no
+    blending, no resampling and no colour of this file's own."""
     try:
-        out = subprocess.run(
-            ["rsvg-convert", "-w", side, "-h", side, svg, "-o", png],
-            capture_output=True,
-            encoding="utf-8",
-        )
-    except FileNotFoundError as problem:
+        cells = stamp()
+    except Exception as problem:
         raise Refused(
-            "rsvg-convert is not installed (librsvg2-bin); the seal cannot be drawn"
+            "the stamp's module skills/verify/scripts/seal_stamp.py would not "
+            f"load ({type(problem).__name__}: {problem})"
         ) from problem
-    if out.returncode:
-        raise Refused(f"rsvg-convert failed: {out.stderr.strip()}")
+    try:
+        from PIL import Image
+    except ImportError as problem:
+        raise Refused(
+            f"Pillow is not installed or will not import ({problem}); the seal "
+            "cannot be drawn"
+        ) from problem
+    w, h, px = cells.build()
+    image = Image.new("RGBA", (w * CELL_PX, h * CELL_PX), (0, 0, 0, 0))
+    for y in range(h):
+        for x in range(w):
+            colour = px(x, y)
+            if colour is not None:
+                left, top = x * CELL_PX, y * CELL_PX
+                image.paste((*colour, 255), (left, top, left + CELL_PX, top + CELL_PX))
+    try:
+        image.save(png, "PNG")
+    except OSError as problem:
+        raise Refused(f"the seal could not be written at {png}: {problem}") from problem
+    return w * CELL_PX // DENSITY
 
 
 def seal_release(tag, repo, dry):
@@ -473,8 +494,8 @@ def seal_release(tag, repo, dry):
     # writes `ASSET` in a directory of its own; `SEAL_PNG` is a dry run's.
     path = os.environ.get("SEAL_PNG") if dry else ""
     path = path or os.path.join(tempfile.mkdtemp(prefix="release-seal-"), ASSET)
-    rasterise(SVG, path)
-    print(f"drew {path} from {os.path.basename(SVG)} with rsvg-convert")
+    width = draw(path)
+    print(f"drew {path} from the stamp's cells with Pillow")
     try:
         body = json.loads(gh("release", "view", tag, "--repo", repo, "--json", "body"))[
             "body"
@@ -491,7 +512,7 @@ def seal_release(tag, repo, dry):
         )
     image = f"https://github.com/{repo}/releases/download/{tag}/{ASSET}"
     sealed = body.replace(
-        table, note.sealed_glance(image, alt_text(rows), SEAL_PX, work, closed, people)
+        table, note.sealed_glance(image, alt_text(rows), width, work, closed, people)
     )
     if dry:
         print("DRY_RUN -- nothing uploaded and nothing edited; the note would read:")
