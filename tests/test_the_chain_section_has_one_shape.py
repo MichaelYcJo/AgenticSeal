@@ -31,8 +31,8 @@ ROOT = os.path.join(os.path.dirname(__file__), "..")
 
 SKILL = ("skills", "commit-pr-convention", "SKILL.md")
 
-# Verbatim from the table in `skills/verify/SKILL.md` §*Measure the segment,
-# and feed the flow log*. A paste-back of the rows into the skill under test
+# Verbatim from the table in `skills/verify/orchestration.md` *Measure the
+# segment, and feed the flow log*. A paste-back of the rows into the skill under test
 # is red rather than invisible.
 ROWS = [
     "Findings by severity",
@@ -93,7 +93,7 @@ def test_the_section_points_at_the_tables_definition_rather_than_copying_it():
     and the drift is invisible: both copies read as authoritative, and the
     reader has no way to tell which one the last edit reached."""
     section = body_section()
-    assert "skills/verify/SKILL.md" in section, (
+    assert "skills/verify/orchestration.md" in section, (
         "the section names no owner for the table, so a session writing a "
         "body has a shape to follow and no rows to fill it with"
     )
@@ -104,7 +104,7 @@ def test_the_section_points_at_the_tables_definition_rather_than_copying_it():
     for row in ROWS:
         assert row not in section, (
             f"the section copies the table's rows ({row!r}). They are "
-            "defined in `skills/verify/SKILL.md`; two copies of nine rows "
+            "defined in `skills/verify/orchestration.md`; two copies of nine rows "
             "are two things to keep in step"
         )
 
@@ -112,12 +112,12 @@ def test_the_section_points_at_the_tables_definition_rather_than_copying_it():
 def test_the_pinned_rows_are_the_owners_own():
     """The absence half above is only worth having while the strings it
     refuses are the strings the owner actually uses. A row reworded in
-    `skills/verify/SKILL.md` and not here leaves the refusal guarding
+    `skills/verify/orchestration.md` and not here leaves the refusal guarding
     nothing, silently."""
-    owner = read("skills", "verify", "SKILL.md")
+    owner = read("skills", "verify", "orchestration.md")
     for row in ROWS:
         assert row in owner, (
             f"{row!r} is no longer a row of the table in "
-            "`skills/verify/SKILL.md`, so the case above refuses a string "
+            "`skills/verify/orchestration.md`, so the case above refuses a string "
             "nobody would paste. Re-take these from the owner's table"
         )

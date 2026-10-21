@@ -198,7 +198,7 @@ def test_the_spec_template_carries_the_rule_changes_section_above_removes():
     lines = reader_module().strip_comments(raw.splitlines())
     assert section_body(lines, "## Rule changes") == []
     assert raw.index("## Rule changes") < raw.index("## Removes")
-    assert "`skills/settle/SKILL.md` §*Rule changes*" in " ".join(raw.split())
+    assert "`skills/settle/SKILL.md` *Rule changes*" in " ".join(raw.split())
     assert (
         "## Rule changes"
         in read(os.path.join(ROOT, "skills", "settle", "SKILL.md")).splitlines()
@@ -216,27 +216,25 @@ def test_the_framer_is_told_it_writes_the_removes_section():
 # --- each section's comment names the measured failure it answers -----------
 
 
-def test_each_section_comment_names_its_measured_failure():
-    raw = read(PHASE_TEMPLATE)
+def test_each_section_comment_states_the_failure_it_prevents():
+    """Each comment says what goes wrong without its section, as a property
+    of the record rather than as the issue that first measured it (#940)."""
+    raw = " ".join(read(PHASE_TEMPLATE).split())
     # Comments are read from the RAW file (not stripped) — this is checking
     # the comments exist and say what they must, not that they are absent.
-    assert "#119" in raw, (
-        "no `#119` anywhere in the template — the asked/found split answers "
-        "that issue's finding that neither record said what it was told to do"
+    assert "with the spawn prompt gone" in raw, (
+        "the asked section no longer says it is how a later reader tells the "
+        "scope the phase was given from one it invented"
     )
-    assert "#107" in raw and "#121" in raw, (
-        "no `#107`/`#121` — the found section answers the dropped-rule "
-        "failure those issues measured"
+    assert "goes missing without a trace" in raw, (
+        "the found section no longer says a discovery the orchestrator does "
+        "not retype is lost"
     )
-    # The removal's worked #107 story moved with the removal, to the frame's
-    # `## Removes` comment (#835), and it is the story, not the bare number.
     spec = read(SPEC_TEMPLATE)
     tail = spec[spec.index("## Removes") :]
-    assert "#107" in tail and "agents/smith.md" in tail, (
-        "the `## Removes` comment must carry the #107 worked example "
-        "(a rule moved out of agents/smith.md and lost between phases)"
+    assert "lost between two phases" in " ".join(tail.split()), (
+        "the `## Removes` comment no longer says why a removal is recorded"
     )
-    assert "lost between two phases" in " ".join(tail.split())
 
 
 # --- the plan points at the path ---------------------------------------------

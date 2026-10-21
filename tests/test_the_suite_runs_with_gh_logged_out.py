@@ -111,10 +111,10 @@ def test_contributing_says_the_suite_runs_logged_out():
     section = text.split("## Running the checks", 1)[1].split("\n## ", 1)[0]
     prose = " ".join(section.split())
     for needle in (
-        "The suite runs with `gh` logged out, on your machine as on CI.",
+        "The suite runs with `gh` logged out, on a contributor's machine as on CI.",
         "it points `GH_CONFIG_DIR` at an empty directory",
         "sets `GH_TOKEN` and `GH_ENTERPRISE_TOKEN` to a value no server accepts",
-        "without a token variable, `gh` reads the login it keeps in your OS keyring",
+        "without a token variable, `gh` reads the login it keeps in the OS keyring",
         *(f"`{name}`" for name in TOKENS),
         "A case that needs `gh` stubs it.",
     ):

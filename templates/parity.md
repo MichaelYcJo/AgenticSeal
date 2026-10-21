@@ -1,26 +1,26 @@
 # Migration config
 
-This file's presence is the declaration: **this repository ports behavior from
-another codebase.** It turns on three-way judgment (policy ↔ original ↔ new)
-and lets the scribe fetch what the original actually does. Delete it and the
-project is greenfield again.
+This file's presence is the declaration: **this repository ports behaviour
+from another codebase.** It turns on the three-way judgment of policy,
+original and new, and lets the scribe fetch what the original actually does.
+Deleting it makes the project greenfield again.
 
-Machine-local checkout paths never belong here — they differ per machine and
+Machine-local checkout paths never belong here: they differ per machine and
 would be wrong for everyone else. They live in
 `~/.claude/specseal/parity-paths.md`, keyed by this repo's origin remote URL.
 
 | Field | Value |
 |---|---|
 | Original repo | `<org/repo>`, module `<path within it, or "whole repo">` |
-| Baseline commit | `<SHA>` — the commit the original's coordinates refer to |
+| Baseline commit | `<SHA>`, the commit the original's coordinates refer to |
 | Policy root | `<the directory the repository keeps its ratified policy in, such as docs/, or none>` |
 | Coordinate-trust exceptions | none |
 
 ## Coordinate-trust exceptions
 
 Paths whose recorded coordinates need re-verification before they can be
-trusted, and why. Empty is the normal state — rows arrive when someone finds a
-coordinate that moved without anybody noticing.
+trusted, and why. Empty is the normal state; a row arrives when someone finds
+a coordinate that moved without anybody noticing.
 
 | Path | Why it needs re-verification | Noticed |
 |---|---|---|
@@ -30,5 +30,5 @@ coordinate that moved without anybody noticing.
 
 What this migration does and does not cover, when that is not obvious from the
 original repo alone. For example: endpoints being ported in a later phase, or
-behavior deliberately left behind with the decision recorded under the policy
+behaviour deliberately left behind with the decision recorded under the policy
 root.

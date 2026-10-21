@@ -157,7 +157,10 @@ def test_the_readme_is_rewritten_from_the_new_template(hook, repo):
     no longer exists. The rewrite is staged with the move."""
     start(hook, repo)
     text = (repo / "seal" / "README.md").read_text(encoding="utf-8")
-    assert text.startswith("# seal/"), text[:80]
+    with open(
+        os.path.join(ROOT, "templates", "seal-README.md"), encoding="utf-8"
+    ) as handle:
+        assert text == handle.read(), text[:80]
     assert "the old text" not in text
     assert "seal/README.md" not in git(repo, "diff", "--name-only").stdout
 

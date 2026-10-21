@@ -621,21 +621,22 @@ NUMBER_WORDS = ("no", "one", "two", "three", "four", "five", "six", "seven")
 
 
 def test_the_skill_counts_the_steps_with_a_local_answer_and_no_arm():
-    """The shipped verify skill counts the `release` steps that have a local
-    answer and no arm — the ones that run this repository's own script, and
-    the one written inline — and the count is `PARTITION`'s, so a step added
-    to either kind moves the sentence or fails here."""
+    """The shipped verify skill's orchestrator half counts the `release` steps
+    that have a local answer and no arm — the ones that run this repository's
+    own script, and the one written inline — and the count is `PARTITION`'s,
+    so a step added to either kind moves the sentence or fails here."""
     scripts = sum(".github/scripts/" in reason for _, reason in reasons())
     inline = sum("inline" in reason for _, reason in reasons())
     with open(
-        os.path.join(ROOT, "skills", "verify", "SKILL.md"), encoding="utf-8"
+        os.path.join(ROOT, "skills", "verify", "orchestration.md"), encoding="utf-8"
     ) as f:
         skill = " ".join(f.read().split())
     said = (
         f"{NUMBER_WORDS[scripts + inline].capitalize()} steps of SpecSeal's own "
         f"`release` job have a local answer and no arm: {NUMBER_WORDS[scripts]} "
-        "run a script under `.github/scripts/`, which no plugin ships, and "
-        f"{NUMBER_WORDS[inline]} is shell written inline in the workflow"
+        f"{'runs' if scripts == 1 else 'run'} a script under `.github/scripts/`, "
+        f"which no plugin ships, and {NUMBER_WORDS[inline]} is shell written "
+        "inline in the workflow"
     )
     assert said in skill, said
 
@@ -971,7 +972,6 @@ def test_the_count_cannot_be_asked_without_a_base():
 
 FEATURE_UNANSWERED = (
     "every issue this pull request claims, and every one it only names",
-    "the CLAUDE.md block is the template's, line for line",
     "both READMEs move together",
 )
 
@@ -987,19 +987,20 @@ def real_panel_workflow_row(given):
 
 def test_a_feature_seal_counts_the_steps_ci_runs_for_it():
     """A11 over this repository's own workflow. Against a base that is not
-    `main` CI runs 6 of the 9 steps and the gate mirrors 3, so the panel
-    reads `CI also · 3 more steps`; the line names the three unanswered steps
+    `main` CI runs 5 of the 8 steps and the gate mirrors 3, so the panel
+    reads `CI also · 2 more steps`; the line names the two unanswered steps
     CI runs and none of the three only-at-`main` ones, and says three were
-    left out and why. Pinned verbatim (`agent-contract` §14)."""
+    left out and why. Pinned verbatim (`agent-contract` §14). The ninth step,
+    the CLAUDE.md copy held to its template, left with the copy (#940)."""
     assert gate.steps_for(read(HYGIENE), "release/x") == [
         step
         for step in gate.job_steps(read(HYGIENE), gate.RELEASE_JOB)
         if step not in gate.ONLY_AT_MAIN
     ]
-    assert real_panel_workflow_row("release/x") == "· 3 more steps"
+    assert real_panel_workflow_row("release/x") == "· 2 more steps"
     said = gate.coverage_line(read(HYGIENE), "release/x")
     assert said.startswith(
-        f"broad-gate: {gate.WORKFLOW}'s `release` job runs 6 steps for this base "
+        f"broad-gate: {gate.WORKFLOW}'s `release` job runs 5 steps for this base "
         "and this run answers 3. 3 more run only on a pull request into `main`, "
         "so this count leaves them out."
     ), said
@@ -1010,14 +1011,14 @@ def test_a_feature_seal_counts_the_steps_ci_runs_for_it():
 
 
 def test_a_release_seal_counts_every_step_ci_runs_for_it():
-    """A12. Against `main` CI runs every one of the 9 steps and the gate
-    mirrors 3, so the panel reads `CI also · 6 more steps` and the line
+    """A12. Against `main` CI runs every one of the 8 steps and the gate
+    mirrors 3, so the panel reads `CI also · 5 more steps` and the line
     leaves no step out."""
     for given in ("main", "origin/main"):
-        assert real_panel_workflow_row(given) == "· 6 more steps", given
+        assert real_panel_workflow_row(given) == "· 5 more steps", given
         said = gate.coverage_line(read(HYGIENE), given)
         assert said.startswith(
-            f"broad-gate: {gate.WORKFLOW}'s `release` job runs 9 steps for this "
+            f"broad-gate: {gate.WORKFLOW}'s `release` job runs 8 steps for this "
             "base and this run answers 3."
         ), said
         assert "leaves" not in said.split("Not answered", 1)[0], said
@@ -1031,7 +1032,9 @@ def test_the_documents_say_the_count_is_over_the_steps_ci_runs():
     CI does not run for the base is outside the count. Since #969 the sealer
     sees no output of the gate's and explains none of it, so its definition
     is not asked."""
-    verify = " ".join(read(os.path.join(ROOT, "skills", "verify", "SKILL.md")).split())
+    verify = " ".join(
+        read(os.path.join(ROOT, "skills", "verify", "orchestration.md")).split()
+    )
     assert "counted over the steps CI runs for the base" in verify
     broad = " ".join(read(os.path.join(ROOT, "docs", "the-broad-gate.md")).split())
     assert "A step CI does not run for the base is neither answered nor unanswered" in (

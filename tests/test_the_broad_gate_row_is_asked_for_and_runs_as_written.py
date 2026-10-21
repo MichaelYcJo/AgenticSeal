@@ -397,14 +397,16 @@ def test_the_paragraph_above_the_lists_no_longer_says_it_names_what_to_write():
     assert "does **not** name a command to write" in paragraph, (
         "the paragraph no longer says what the message stopped doing"
     )
-    assert "#401" in paragraph, (
-        "the paragraph asserts the change without the report behind it"
+    # #940: the reason is stated as a fact about the reader, not as the
+    # issue that reported it.
+    assert "the one party that may not choose one" in paragraph, (
+        "the paragraph asserts the change without the reason behind it"
     )
 
 
 # --- A8: the criterion has one home, and rule 3 was folded into it ----------
 
-CRITERION = "### Choosing a value — the criterion"
+CRITERION = "### The criterion for choosing a value"
 
 THREE_RULES = [
     "red repository-wide for reasons unrelated to any branch",
@@ -542,7 +544,7 @@ def test_the_absent_row_refusal_says_whose_the_row_is_and_where_it_is_answered()
     said = missing_row_text()
     assert "a row is a thing a person wrote" in said
     assert "/specseal:config" in said
-    assert "Choosing a value — the criterion" in said
+    assert "The criterion for choosing a value" in said
     assert "Nothing ran" in said
 
 
@@ -577,6 +579,9 @@ def test_the_review_orchestrator_stops_the_run_rather_than_filling_the_row_in():
     assert "A refusal about the `Broad gate` row goes to a person" in orchestrator
     assert "open no pull request until they have" in orchestrator
     assert "/specseal:config" in orchestrator
-    assert "#401" in orchestrator, (
-        "the instruction is asserted without the measurement behind it"
-    )
+    # #401 is the measured instance; since #940 the file gives its reason in
+    # the present tense rather than the issue number.
+    assert (
+        "A row filled in to get past the refusal makes the broad run cover a "
+        "command the person never saw." in orchestrator
+    ), "the instruction is asserted without the reason behind it"

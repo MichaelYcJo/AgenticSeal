@@ -1,8 +1,8 @@
-# <work-item-id> — guarantee
+# Guarantee: <work-item-id>
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/guarantee.md, written by the
+<!-- seal/specs/<unix-epoch-seconds>-<slug>/guarantee.md is written by the
 sealer alone and committed by the orchestrator beside `broad-gate.md`.
-`docs/the-review-record.md` §*The guarantee* holds the rules and
+`docs/the-review-record.md` *The guarantee* holds the rules and
 `agents/sealer.md` the order of work. -->
 
 | Field | Value |
@@ -24,7 +24,7 @@ came back>`, and a `does not hold` is what the verdict names. -->
 
 | Party | Says | Agrees with | Disagrees with |
 |---|---|---|---|
-| <the spec · the build · the last round · the changelog · the pull request body> | <what it says the work is> | <the parties and facts it agrees with> | <none, or what contradicts it> |
+| <one of: the spec, the build, the last round, the changelog, the pull request body> | <what it says the work is> | <the parties and facts it agrees with> | <none, or what contradicts it> |
 
 <!-- One line, exactly one of `Verdict: sealed`,
 `Verdict: withheld reason: <the claim, its party, its coordinate>` or

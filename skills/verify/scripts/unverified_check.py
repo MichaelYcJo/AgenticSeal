@@ -336,8 +336,6 @@ def fence_opener(line):
         next `## ` line with one predicate on purpose (#586), and a fragment
         carrying such a line is refused before it reaches the file, fenced or
         not;
-      - `.github/scripts/claude_block.py` reads two exact whole-line markers
-        it writes itself;
       - `tests/test_release_hygiene.py#overwide_rows` keeps no fence state at
         all;
       - the independent walk in `tests/test_unverified_rows_close.py` (around

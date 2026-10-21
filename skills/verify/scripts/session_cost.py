@@ -30,8 +30,8 @@ Usage:
                                          post that reading, and what it says,
                                          to the repository's measurement log
 
-**Why `--post` exists, in one sentence.** `skills/verify/SKILL.md` §*Measure
-the segment, and feed the flow log* wrote the posting procedure out in full —
+**Why `--post` exists, in one sentence.** `skills/verify/orchestration.md`
+§*Measure the segment, and feed the flow log* wrote the posting procedure out in full —
 which label, how to tell a repository that never made the log from one whose
 log somebody closed, which of the two logs a reading belongs to — and nothing
 typed it, so the meter sat unreferenced through a full day of measurements
@@ -59,8 +59,8 @@ between the two modes. `--spawns` slices THIS transcript into bands over the
 orchestrator's own minutes; `--segments` opens the OTHER transcripts, one row
 per agent this run spawned, and given a resumed agent's own transcript it
 reads that one file, one row per stretch of work (#637) — each row one
-agent's own stretch either way. `skills/verify/SKILL.md` §*Measure the segment*
-owns that distinction and `tests/test_one_word_one_meaning.py` holds it.
+agent's own stretch either way. `skills/verify/orchestration.md` §*Measure the
+segment* owns that distinction and `tests/test_one_word_one_meaning.py` holds it.
 """
 
 import argparse
@@ -1064,7 +1064,7 @@ def analyse(calls, turns, delegated=()):
     `unnamed` and nothing else. `read` is judged after `test`, `lint/type`
     and `build`, so no call enters or leaves the repeats figures, and
     `report_segments` says that too. The three changes are carried in
-    `skills/verify/SKILL.md`, where a person taking a reading meets them.
+    `skills/verify/orchestration.md`, where a person taking a reading meets them.
     Every other number here is untouched, `command_s` and `model_s`
     included.
 
@@ -1501,8 +1501,8 @@ def opening_stamp(path):
 
 
 # What a harness writes into a running agent's own transcript when the
-# coordinator sends it a new message. `skills/verify/SKILL.md` §*Measure the
-# segment* prescribes the hand split at exactly these rows, in exactly these
+# coordinator sends it a new message. `skills/verify/orchestration.md`
+# §*Measure the segment* prescribes the hand split at exactly these rows, in exactly these
 # words, and until now nothing asserted it against a file.
 #
 # **Measured over the 350 segment transcripts on one machine before this was
@@ -1754,7 +1754,7 @@ def measure_segments(path, calls):
     PLAIN reading — exactly what a person running this script against that
     one transcript gets today, taken over one slice's calls and turns where
     the coordinator restarted it. That is the point: the mode replaces the hand
-    method named in `skills/verify/SKILL.md`, so a row has to be the same
+    method named in `skills/verify/orchestration.md`, so a row has to be the same
     number that method produced, not a second meter with its own rules.
 
     A row's tokens cover that segment's OWN file only. The run total sums the
@@ -2573,7 +2573,7 @@ def report_segments(segments, path):
     zeroes about a join nobody attempted.
 
     **This is the reading the hand method produced one transcript at a
-    time.** `skills/verify/SKILL.md` §*Measure the segment* put a
+    time.** `skills/verify/orchestration.md` §*Measure the segment* put a
     `session_cost.py` run at the end of every smith and warden segment, which
     means opening each segment's file by hand and, for a resumed one,
     splitting it by eye. The rows below are that, for every segment of a run,
@@ -2797,7 +2797,7 @@ def newest(directory):
 
 # --- posting the reading to the flow log --------------------------------------
 #
-# `skills/verify/SKILL.md` §*Measure the segment, and feed the flow log* wrote
+# `skills/verify/orchestration.md` §*Measure the segment, and feed the flow log* wrote
 # this procedure out in full and nothing typed it: which label to look up, how
 # to tell a repository that never created the log from one whose log somebody
 # closed, and which of the two logs a reading belongs to. #330 measured what
@@ -2814,7 +2814,7 @@ def newest(directory):
 # posting a judgment nobody made.
 ROLLING_LABEL = "flow-measurement"
 
-# The four states `skills/verify/SKILL.md` enumerates, plus the one it does not
+# The four states `skills/verify/orchestration.md` enumerates, plus the one it does not
 # because it is about the machine rather than the tracker.
 NO_HISTORY, LOG_CLOSED, ONE_OPEN, MANY_OPEN, UNREADABLE = (
     "no history",

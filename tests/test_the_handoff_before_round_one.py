@@ -345,7 +345,11 @@ def test_the_bars_and_the_run_level_table_judge_different_things():
         "the section does not say which instrument judges what, so a reader "
         "holding a segment's numbers meets one bar and no run"
     )
-    assert "skills/verify/SKILL.md" in section, (
+    # `docs/` is not edited by a pull request: #940 moved the table to
+    # `skills/verify/orchestration.md`, and its `## Rule changes` item moves
+    # this citation at the settle after its release. Until then the section
+    # names the old path, and either path names the owner.
+    assert any(path in section for path in OWNER_PATHS), (
         "the section names no owner for the table, so a reader arriving for "
         "its rows leaves with neither them nor the path to them"
     )
@@ -384,11 +388,15 @@ def test_the_bars_and_the_run_level_table_judge_different_things():
     )
 
 
-# One fragment per row of the table in `skills/verify/SKILL.md` §*Measure the
-# segment, and feed the flow log*, taken verbatim. Refused in the bars section
-# above and held to the owner below.
+# The table's owner, and the path `docs/the-review-record.md` named before
+# #940's rule change is applied.
+OWNER_PATHS = ("skills/verify/orchestration.md", "skills/verify/SKILL.md")
+
+# One fragment per row of the table in `skills/verify/orchestration.md`
+# *Measure the segment, and feed the flow log*, taken verbatim. Refused in the
+# bars section above and held to the owner below.
 TABLE_ROWS = (
-    "Rounds — finding and verifying",
+    "Rounds, finding and verifying",
     "Wall clock, routing commit to last record",
     "Commits, by kind",
     "Findings by severity",
@@ -419,11 +427,11 @@ def test_the_refused_rows_are_the_owners_own():
     that section legitimately. That half is a reader's, and saying so is the
     point of writing it down -- a list that reads as though it closed the
     class is worse than one nobody expected to."""
-    owner = read("skills", "verify", "SKILL.md")
+    owner = read("skills", "verify", "orchestration.md")
     for row in TABLE_ROWS:
         assert row in owner, (
             f"{row!r} is no longer a row of the table in "
-            "`skills/verify/SKILL.md`, so the refusal above guards a string "
+            "`skills/verify/orchestration.md`, so the refusal above guards a string "
             "nobody would paste. Re-take these from the owner's table"
         )
 

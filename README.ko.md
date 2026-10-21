@@ -41,7 +41,7 @@ Claude Code **플러그인**으로 배포됩니다. 인계 규약과 `rules --ch
 | **sealer** (서브에이전트, Opus) | `agent-contract` | 마지막에 독립적으로 보증하는 쪽이다. 회차가 끝나고 PR 본문과 changelog 가 쓰이고 오케스트레이터가 광역 관문을 한 번 돌린 뒤(`broad-gate` 가 `broad-gate.md` 를 쓴다), 그 기록을 읽는다. 광역 검사는 직접 돌리지 않는다. 구현자가 실행했다고 적은 주장 가운데 일부를 다시 돌려 보고, 스펙·구현·마지막 리뷰·changelog·PR 본문을 이슈와 실제 트리에 견주어 읽는다. 판정은 작업 항목의 `guarantee.md` 에 남는다. `sealed`, 트리와 어긋난 곳을 짚은 `withheld`, 또는 소유자에게 넘기는 질문을 단 `undecided` 셋 중 하나다. 설계나 코드 품질을 다시 판정하지는 않는다 |
 | 스킬 | — | 스물두 개이고 세 묶음이다. 에이전트가 첫 도구 호출 전부터 따르는 한 개는 왼쪽 열에 있다. 열다섯 개는 작업이 그것을 요구할 때 세션이 알아서 로드하고, 에이전트는 그중 자기 단계가 가리키는 것을 그 단계에서 연다 — `audit`, `build-fix`, `checkpoint`, `code-review`, `commit-pr-convention`, `confidence-check`, `debug`, `feature-planner`, `gap-analysis`, `implement`, `learn`, `legacy-parity`, `settle`, `verify`, `writing-style`. 나머지 여섯은 사용자가 이름을 불러야 움직이며 아래 치트시트에 있다 |
 | 훅 | — | 게이트 그 자체. 플러그인이 자동으로 등록하므로 설정을 따로 만질 필요가 없다 |
-| CLAUDE.md 블록 | — | 늘 로드되는 12줄 — 절 제목 넷(`Tooling`·`Safety`·`Session cost`·`Git`)에 규칙 여덟이다. 툴링 하나, 안전 셋, 세션 비용 하나, git 셋. 응답 언어 규칙은 없다. 그것은 사용자 몫이다. 정본은 `templates/claude-md-block.md` 하나이고, 저장소의 `CLAUDE.md` 에는 거기서 생성한 사본이 들어 있으며, 둘이 다르면 CI 가 PR 을 막는다 |
+| CLAUDE.md 블록 | — | 늘 로드되는 12줄 — 절 제목 넷(`Tooling`·`Safety`·`Session cost`·`Git`)에 규칙 여덟이다. 툴링 하나, 안전 셋, 세션 비용 하나, git 셋. 응답 언어 규칙은 없다. 그것은 사용자 몫이다. 정본은 `templates/claude-md-block.md` 하나이고, `install.sh` 와 `/specseal:update` 가 이것을 `CLAUDE.md` 에 써 넣는다. 사본을 따로 두는 파일은 없다 |
 
 ## 체인
 
@@ -112,7 +112,7 @@ warden 은 그 기록을 다시 돌리는 대신 감사합니다. 명령이 실�
 
 ```
 seal/
-├── README.md         인계 규칙 — 작업 항목을 닫기 전에 무엇을 어디로 옮기는지
+├── README.md         루트가 담는 것과, 인계 규칙이 적힌 곳
 ├── config.md         이 저장소가 자기에 대해 말하는 것. 언어 두 행과 모드.
 │                     선택이고, 행이 없는 것은 오류가 아니다
 ├── parity.md         이관 설정, 선언했을 때만
@@ -411,7 +411,7 @@ smith 는 스펙 체인을 읽고 구현한 뒤 검증까지 마치고, 리뷰�
 리뷰를 돌릴 수도, 그대로 커밋할 수도 있습니다.
 
 문서 구조에 필요한데 레포에 없는 것은 세션이 작업하면서 `templates/` 에서
-만듭니다. 인계 규칙을 담은 `seal/README.md` 가 그렇습니다.
+만듭니다. `seal/README.md` 가 그렇습니다.
 
 에이전트를 쓰지 않아도 되는 기능이 두 가지 있습니다. `fold-check` 와, 위 표에
 적은 게이트 전부입니다.

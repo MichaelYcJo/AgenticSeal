@@ -24,7 +24,6 @@ import datetime
 import importlib.util
 import json
 import os
-import subprocess
 import sys
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
@@ -205,13 +204,12 @@ def test_the_gatherer_reads_a_marker_after_a_separator_as_no_line():
     assert gather.live_markers(text.replace(LS, "\n")) == ["1-a"]
 
 
-# --- S9-S15: the independent readers ----------------------------------------
+# --- S9-S13: the independent readers ----------------------------------------
 
 
 CHAIN = os.path.join(ROOT, "skills", "code-review", "scripts", "chain_check.py")
 PAYLOAD = os.path.join(ROOT, "skills", "verify", "scripts", "payload_meter.py")
 CLAIMS = os.path.join(ROOT, ".github", "scripts", "issue_claims_check.py")
-CLAUDE_BLOCK = os.path.join(ROOT, ".github", "scripts", "claude_block.py")
 
 
 def test_the_framers_mark_is_the_last_line_a_renderer_shows():
@@ -238,38 +236,6 @@ def test_an_issue_body_is_cut_where_github_renders_a_block():
     claims = _load("specseal_claims_s13", CLAIMS)
     text = f"The parser drops a row{LS}- when the cell is wide"
     assert claims.segments(text) == [(0, len(text))]
-
-
-START, END = "<!-- specseal:start -->", "<!-- specseal:end -->"
-
-
-def test_the_claude_md_block_is_cut_where_awk_cuts_it(tmp_path):
-    """S15. `install.sh`'s `awk` ends a record at LF alone. A template line
-    holding a U+2028 mid-line is one line to it, so `--write` copies that line
-    whole and `--check` then agrees. The target's last line has no line
-    end, and it is still a line: `awk` prints it, and `--write` keeps it."""
-    template = tmp_path / "block.md"
-    target = tmp_path / "CLAUDE.md"
-    template.write_text(f"{START}\n## Rules\nalpha{LS}beta\n{END}\n", encoding="utf-8")
-    target.write_text(
-        f"# repo\n\n{START}\n## Rules\nold\n{END}\n\ntail", encoding="utf-8"
-    )
-    paths = ["--template", str(template), "--target", str(target)]
-
-    def run(mode):
-        return subprocess.run(
-            [sys.executable, CLAUDE_BLOCK, mode, *paths],
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-        )
-
-    wrote = run("--write")
-    assert wrote.returncode == 0, wrote.stdout + wrote.stderr
-    written = target.read_text(encoding="utf-8")
-    assert written == f"# repo\n\n{START}\n## Rules\nalpha{LS}beta\n{END}\n\ntail"
-    checked = run("--check")
-    assert checked.returncode == 0, checked.stdout + checked.stderr
 
 
 # --- S16: the transcript tails ----------------------------------------------
@@ -343,8 +309,8 @@ def test_the_newest_active_event_holding_a_raw_separator_is_read(tmp_path):
 # Every `.splitlines(` call left in shipped code, by file and enclosing unit,
 # with how many calls the unit makes and why it is outside the class: the text
 # it splits is not a document's lines. A reader of markdown or record text
-# reads `gfm_lines`, or splits at LF where its partner does (`claude_block.py`,
-# the transcript tails). A call in a unit this does not list, or one more call
+# reads `gfm_lines`, or splits at LF where its partner does (the transcript
+# tails). A call in a unit this does not list, or one more call
 # in a unit it does, fails the case until somebody says which kind of text it
 # splits -- here, with the reason.
 GIT = "git output of paths, refs, subjects or status, not a document's lines"

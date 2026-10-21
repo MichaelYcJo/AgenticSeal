@@ -2404,7 +2404,7 @@ def test_the_orchestrator_is_told_the_stamp_is_drawn_for_it():
         "and commit what it writes; never edit the row by hand.",
         "**The stamp is drawn for you at the end of the turn in which "
         "`guarantee.md` reading `sealed` is committed, or in local mode the turn "
-        "in which the sealer's report arrives, and you never draw one (#975).**",
+        "in which the sealer's report arrives, and you never draw one.**",
         "In local mode no commit carries `guarantee.md`: the sealer's own "
         "`Write` of it queues the values. The line naming them is the edit "
         "hook's message, shown to the person at that write. It is not in the "
@@ -2416,7 +2416,8 @@ def test_the_orchestrator_is_told_the_stamp_is_drawn_for_it():
         "The broad run draws nothing: its stdout opens `BROAD GATE PASSED` or "
         "`BROAD GATE FAILED`",
         "So put the result text first",
-        "Draw none yourself, neither with `seal-stamp` nor by relaying a log.",
+        "Draw none yourself, neither with `seal-stamp` nor by relaying a log: a "
+        "relayed log shows the person the stamp twice",
         "On a red run relay the `BROAD GATE FAILED` lines.",
         # Round 1's 🟡 1 of #400: the command is named on the line that points
         # at a values file, and it stays the person's wherever it appears.

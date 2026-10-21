@@ -118,7 +118,8 @@ document is owed.
 
 ## When it runs
 
-**When the owner calls it, as `docs/release-checklist.md` §*2b* says.** It
+**When the owner calls it, as `docs/release-checklist.md` *2b. Settle what
+earlier releases left behind* says.** It
 is invoked, never triggered: no hook runs it and no gate refuses a branch
 over an unsettled work item.
 
@@ -147,7 +148,7 @@ It exits 0 when nothing was refused or held by an open row, a spec with no
 the arguments or the tree are unusable. Its last line counts each.
 
 **A reference root is history, never input.** A project's own `specs/`, as
-`templates/config.md` §*Reference specs* says, is read where the work touches
+`templates/config.md` *Reference specs* says, is read where the work touches
 what it describes and cited in the `spec.md` whose rule changes it informed.
 `settle` never writes there: `--apply` writes the policy root and removes only under
 `seal/specs/`.

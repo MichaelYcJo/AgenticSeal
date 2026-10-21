@@ -266,7 +266,7 @@ def test_the_criterion_is_named_by_pointer_and_not_restated():
     rule 12). A bootstrap that spelled the three rules out would be its third
     carrier and the next place for them to disagree."""
     pointer = paragraph(bootstrap(), "**Name the criterion; do not restate it.**")
-    assert "§*Choosing a value — the criterion* owns the criterion" in pointer
+    assert "*The criterion for choosing a value* owns the criterion" in pointer
     boot = flat(bootstrap())
     assert "red repository-wide" not in boot, (
         "the bootstrap restates a rule instead of pointing at its owner"
@@ -308,20 +308,24 @@ def test_the_row_is_written_after_seal_mode_and_carries_its_section():
 
 
 def test_a_decline_leaves_no_trace_and_the_asymmetry_with_the_mode_is_stated():
-    """The mode row records its answer because #151 measured what its absence
-    costs: a never-asked repository got shared mode SILENTLY. Nothing about
-    this row is silent — a repository that declined and one that was never
-    asked meet the same refusal and are told the same correct thing — so a
-    trace would separate two states nothing treats differently.
+    """The mode row records its answer because a never-asked repository got
+    shared mode SILENTLY (#151). Nothing about this row is silent — a
+    repository that declined and one that was never asked meet the same
+    refusal and are told the same correct thing — so a trace would separate
+    two states nothing treats differently.
 
-    Read from the decline paragraph alone. `#151` also stands in the mode
-    paragraph of the same section, where it has been since before this row
-    existed, so a case reading the whole section cannot fail by losing the
-    argument it is named for — which is what round 1's 🟡 7 measured here.
+    Read from the decline paragraph alone. The mode paragraph of the same
+    section argues its own row, so a case reading the whole section cannot
+    fail by losing the argument it is named for — which is what round 1's
+    🟡 7 measured here. The issue number left the paragraph with #940; the
+    argument it stood for is what is pinned.
     """
     decline = paragraph(bootstrap(), "**A decline writes nothing at all.**")
     assert "no sentinel" in decline
-    assert "#151" in decline, "the asymmetry with the mode row is asserted, not argued"
+    assert "would separate two states nothing treats differently" in decline
+    assert "The mode row is the opposite" in decline, (
+        "the asymmetry with the mode row is asserted, not argued"
+    )
 
 
 def test_the_sentence_that_said_nowhere_else_is_gone():
@@ -631,6 +635,23 @@ def test_the_seal_readme_is_the_template_verbatim():
     assert read("seal", "README.md") == read("templates", "seal-README.md")
 
 
+def test_the_seal_readme_points_at_the_drain_and_restates_none_of_it():
+    """Round 2 of #940, finding 2. Who moves a work item's open rows, when
+    and where each goes is `skills/implement/SKILL.md` section 6's alone; a
+    second statement here drifted from it on all three. The README names the
+    section and carries no destination of its own."""
+    text = read("templates", "seal-README.md")
+    rules = flat(text.split("\n## Export rules\n", 1)[1].split("\n## ", 1)[0])
+    heading = "### 6. Drain the rows before the broad run, and keep the records"
+    assert heading in read("skills", "implement", "SKILL.md")
+    assert (
+        "`skills/implement/SKILL.md` *6. Drain the rows before the broad run, "
+        "and keep the records*" in rules
+    ), rules
+    for copied in ("| Item still here |", "follow-up.md", "open-questions"):
+        assert copied not in rules, (copied, rules)
+
+
 # --- Q8: the design record agrees with the code -----------------------------
 
 
@@ -692,9 +713,9 @@ def test_the_design_record_states_the_setup_rules_where_they_rule(
 # The bootstrap above is where the mode question lives, and the cases in this
 # file all reach it by reading the skill. That is not how a session gets
 # there. `install.sh` copies the block between `<!-- specseal:start -->` and
-# `<!-- specseal:end -->` — `templates/claude-md-block.md`, of which this
-# repository's `CLAUDE.md` carries a generated copy — into
-# `~/.claude/CLAUDE.md`, so the block loads in EVERY project on the machine —
+# `<!-- specseal:end -->` — `templates/claude-md-block.md`, the block's one
+# source — into `~/.claude/CLAUDE.md`, so the block loads in EVERY project on
+# the machine —
 # including one that has never seen SpecSeal —
 # and it tells a session to write `seal/specs/<id>/routing.md` before the
 # first edit. That write creates `seal/`. Creating `seal/` opts the repository
@@ -711,22 +732,19 @@ START, END = "<!-- specseal:start -->", "<!-- specseal:end -->"
 def preset():
     """Exactly the text `install.sh` copies, markers included.
 
-    Read from the generated copy in `CLAUDE.md`, which
-    `.github/scripts/claude_block.py --check` holds identical to
-    `templates/claude-md-block.md`, the installer's source. Extracted the way
-    the installer extracts it rather than by reading the whole file: a
-    sentence added BELOW `specseal:end` reaches this repository and reaches
-    no user, and a case that read the whole file could not tell the two
-    apart.
+    Read from `templates/claude-md-block.md`, the installer's source, and
+    extracted the way the installer extracts it rather than by reading the
+    whole file: a line outside the markers reaches no user, and a case that
+    read the whole file could not tell the two apart.
     """
-    text = read("CLAUDE.md")
+    text = read("templates", "claude-md-block.md")
     assert START in text and END in text, "the preset markers moved"
     return text[text.index(START) : text.index(END) + len(END)]
 
 
 def routing_rule():
     """The preset's routing bullet, its line breaks folded."""
-    return paragraph(preset(), "- **Routing, decided at the start**")
+    return paragraph(preset(), "- **Routing, decided at the start.**")
 
 
 def test_the_preset_sends_a_fresh_repository_to_the_bootstrap():
@@ -741,8 +759,26 @@ def test_the_preset_sends_a_fresh_repository_to_the_bootstrap():
         "the routing rule instructs the write before it names the bootstrap, "
         "which is the order that made #151 happen"
     )
-    assert "implement" in lead
+    # The file the Bootstrap moved to, not the skill a `Skill implement` load
+    # carries, which no longer holds it.
+    assert "skills/implement/orchestration.md" in lead
     assert "neither" in lead, "the rule does not say WHICH repositories it means"
+
+
+def test_the_preset_writes_no_declaration_under_no_work_item():
+    """Round 1 of #940, finding 1. The write is conditioned on the answer,
+    and the block names the file that states question 1 and the boxes, so a
+    session in a rooted repository that reads only the block neither writes
+    a declaration nobody gave nor asks a question it has no text for."""
+    rule = routing_rule()
+    lead = rule[: rule.index("write `seal/specs/")]
+    assert "Except under `no work item`" in lead, (
+        "the routing rule writes routing.md under every answer, `no work item` included"
+    )
+    assert "*Orchestrator: how the work is routed*" in lead, (
+        "the routing rule names question 1 and the boxes without naming the "
+        "section that states them"
+    )
 
 
 def test_the_preset_names_both_places_the_root_can_be():
@@ -754,12 +790,15 @@ def test_the_preset_names_both_places_the_root_can_be():
     assert "git rev-parse --git-common-dir" in lead
 
 
-def test_the_preset_says_the_write_is_what_opts_the_repository_in():
-    """Without the consequence the sentence is a detour with no reason, and a
-    rule with no reason is the one that gets skipped when the work is
-    obvious."""
+def test_the_preset_says_whose_decision_the_place_is():
+    """The block keeps the rule and leaves the reason (#940): where the root
+    lands is the user's decision. That the write creates the root and opts
+    the repository in is the Bootstrap's, which the same sentence sends a
+    session to first."""
     rule = routing_rule()
-    assert "opts the repository in" in rule
+    assert "Creating the root is what opts the repository in" in flat(bootstrap()), (
+        "the Bootstrap no longer says creating the root opts the repository in"
+    )
     assert "user's decision" in rule, (
         "the rule does not say whose decision the place is, which is the "
         "whole of what #151 lost"

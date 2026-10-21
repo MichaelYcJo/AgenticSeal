@@ -1,13 +1,13 @@
-# <work-item-id> — review round <N>
+# Review round <N>: <work-item-id>
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/rounds/round-<N>.md — what one review
-round reviewed, what it found, and what answered it. The warden writes this
-file in the branch worktree under review; the smith's fix pass rewrites each
-finding's `verdict:` line and writes its `answer:` line, and changes nothing
-else but a coordinate it appends to `location:`; the next round reads it
-directly. Earlier round files are never edited or deleted. Words only: no
+<!-- seal/specs/<unix-epoch-seconds>-<slug>/rounds/round-<N>.md holds what one
+review round reviewed, what it found, and what answered it. The warden writes
+this file in the branch worktree under review; the smith's fix pass rewrites
+each finding's `verdict:` line and writes its `answer:` line, and changes
+nothing else but a coordinate it appends to `location:`; the next round reads
+it directly. Nobody edits or deletes an earlier round file. Words only: no
 emoji anywhere in the file. Every labelled line and finding heading follows
-its row of the grammar table in `docs/the-review-record.md` §*The round
+its row of the grammar table in `docs/the-review-record.md` *The round
 record*: the table, which `chain_check.py` reads at the pull request, gives
 each line's shape, where it stands and how many of it there are, and the
 check refuses any line it does not hold. -->
@@ -70,7 +70,7 @@ block, the artefact itself; and `answer:`. A fix that went to a path
 `location:` does not name appends that coordinate to the line and says so in
 `answer:`. A ready pull request fails while a finding reads `open`, for any
 line the table refuses, and for what `docs/the-review-record.md`
-§*What the check reads at the pull request* names. -->
+*What the check reads at the pull request* names. -->
 
 ### 1. <what is wrong, as a symptom, in one line>
 

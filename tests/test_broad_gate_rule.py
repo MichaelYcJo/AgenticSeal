@@ -51,8 +51,17 @@ def test_verify_says_when_not_only_what():
     ):
         assert row in scope, f"the Scope table lost its `{row}` row"
     assert "against the base commit" in scope
-    assert "Nothing edits between the broad run and the PR" in scope
     assert "broad seal" not in scope
+    # Since #940 the broad gate is the orchestrator's half of the skill, and
+    # the file the smith and the sealer open carries no copy of it.
+    gate = read("skills", "verify", "orchestration.md")
+    assert "## The broad gate\n" in gate
+    assert "## The broad gate" not in scope
+    assert "Nothing edits between the broad run and the PR" in gate
+    assert "against the base commit" in gate
+    opening = " ".join(gate.split("\n## ", 1)[0].split())
+    assert "The orchestrator reads both." in opening
+    assert "The smith and the sealer open that one and never this one" in opening
 
 
 def test_the_broad_gate_section_states_its_own_timing():
@@ -63,7 +72,7 @@ def test_the_broad_gate_section_states_its_own_timing():
 
     The baseline is the same failure one step further in: it is reached for
     once an unexplained failure appears, not before one exists."""
-    scope = read("skills", "verify", "SKILL.md")
+    scope = read("skills", "verify", "orchestration.md")
     section = scope.split("## The broad gate")[1].split("\n## ")[0]
     flat = " ".join(section.split())  # re-wrapping a paragraph is not a regression
     assert "after the review rounds settle" in flat, (
@@ -76,8 +85,9 @@ def test_the_broad_gate_section_states_its_own_timing():
         "the baseline stopped naming the event that calls for it"
     )
     # #943 renamed the section that owns when the run comes; a citation left
-    # at the old name points at a heading no file has.
-    assert f"`skills/code-review/orchestration.md` §*{SPAWN_SECTION}* owns when" in (
+    # at the old name points at a heading no file has. Since #940 the
+    # citation is the backticked path and the heading in italics.
+    assert f"`skills/code-review/orchestration.md` *{SPAWN_SECTION}* owns when" in (
         flat
     ), "the broad gate section no longer names the owner of when the run comes"
 
@@ -88,7 +98,7 @@ def test_the_owner_names_the_row_the_phrase_stood_for():
     own, and a reader deciding whether the gate is due has to pick one. The
     condition is the last round record with no finding open, which the check
     at the pull request reads."""
-    owner = flat("skills", "verify", "SKILL.md")
+    owner = flat("skills", "verify", "orchestration.md")
     assert "the last `rounds/round-N.md` has no finding open" in owner, (
         "the broad gate's own section stopped naming the row, and the phrase "
         "it leaves behind names no particular rounds"
@@ -99,7 +109,7 @@ def test_verify_prices_the_run_that_repeats():
     """Scope decides how often; it says nothing about what each run costs, and
     the narrow run is the one that multiplies."""
     scope = read("skills", "verify", "SKILL.md")
-    assert "## The cost of the run you repeat" in scope
+    assert "## The cost of a run that repeats" in scope
     assert "recipe in a comment" in scope  # line-wrapped in the source
     assert "Capture once, filter locally" in scope, (
         "re-running a check to see its output differently returns nothing new"
@@ -350,13 +360,16 @@ def test_the_preset_block_states_the_rule_the_loaded_files_assume():
     An agent file needs the agent spawned and a skill needs the skill invoked.
     A session working this repo directly does neither, so the preset block --
     always in front of it -- is the only copy it will ever read."""
-    preset = read("CLAUDE.md").split("<!-- specseal:end -->")[0]
+    preset = read("templates", "claude-md-block.md").split("<!-- specseal:end -->")[0]
     assert "<!-- specseal:start -->" in preset, "the preset markers moved"
     assert "Verification Scope" in preset, (
         "the always-loaded block lost the rule that bounds a broad run"
     )
     assert "Batch independent reads and runs" in preset, (
         "the always-loaded block lost the batching rule"
+    )
+    assert "Never cut the investigation." in preset, (
+        "the batching rule lost its bound: fewer trips, never fewer checks"
     )
 
 
@@ -408,7 +421,9 @@ def test_the_order_inside_a_ticket_puts_the_preflight_before_the_sealer():
         )
     )
     assert PREFLIGHT in text, "the order does not name the preflight"
-    assert text.index(PREFLIGHT) < text.index("sealer → the pull request"), text
+    assert text.index(PREFLIGHT) < text.index("then the sealer, and then the pull"), (
+        text
+    )
 
 
 EXAMPLE_ROW = (
@@ -441,10 +456,7 @@ def test_the_skill_says_the_preflight_is_not_the_broad_gate():
     sealed. The sealer's own definition never mentions it — the sealer does
     not preflight, and its four acts are unchanged."""
     text = joined(
-        section(
-            read("skills", "verify", "SKILL.md"),
-            "The broad gate — after the rounds, then compare against the base",
-        )
+        section(read("skills", "verify", "orchestration.md"), "The broad gate")
     )
     assert PREFLIGHT in text, "the broad gate section does not name the preflight"
     at = text.index(PREFLIGHT)

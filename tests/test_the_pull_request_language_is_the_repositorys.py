@@ -176,6 +176,36 @@ def test_branch_names_stay_ascii():
         assert "ASCII" in text, f"{who} does not hold branch names to ASCII"
 
 
+BRANCH_SHAPES = (
+    "A branch cut from an issue is `<prefix>/<issue number>-<slug>`.",
+    "A branch for two issues joins their numbers with a hyphen: `feat/110-117-<slug>`.",
+    "A change with no issue has the slug alone: `<prefix>/<slug>`.",
+    "A release branch is `release/vX.Y.Z`.",
+)
+
+
+def test_branch_names_state_the_issue_number_rule_once():
+    """S6 of #940. The issue-number rule lives in *Branch names*, in place:
+    the four shapes are stated there, the exclusion list links the section
+    rather than restating a shape, and no example carries a number that is
+    not an issue's, which `perf/403-…` did."""
+    text = read(*SKILL)
+    assert "## Branch names" in text, "the section was renamed; this case is now blind"
+    section = " ".join(text.split("## Branch names", 1)[1].split("\n## ", 1)[0].split())
+    for shape in BRANCH_SHAPES:
+        assert shape in section, f"*Branch names* does not state {shape!r}"
+    head = " ".join(text.split("## Branch names", 1)[0].split())
+    assert "<kebab-case-slug>" not in flat(*SKILL), (
+        "a second statement of the branch shape is back"
+    )
+    assert "*Branch names* below states their shape" in head, (
+        "the exclusion list no longer links the section that states the shape"
+    )
+    assert "perf/403" not in flat(*SKILL), (
+        "the example whose number reads as an issue under the rule is back"
+    )
+
+
 def test_the_response_language_stays_out_of_the_repository_file():
     """S6. Issue #82's third done-when row, and
     `docs/one-root-by-lifetime.md` before it: what the session says to you is
@@ -1216,7 +1246,7 @@ def _literal_strings():
     return sorted(found)
 
 
-GRAMMAR_TABLE = "`docs/the-review-record.md` §*The round record*"
+GRAMMAR_TABLE = "`docs/the-review-record.md` *The round record*"
 
 
 def test_the_exclusion_list_points_at_the_grammar_table_and_restates_none_of_it():

@@ -2,8 +2,8 @@
 """Close the current flow-measurement issue and open the next one.
 
 Issue #109 part 3: the flow log's destination is a `flow-measurement`-labelled
-GitHub issue (`skills/verify/SKILL.md`'s "Measure the segment, and feed the
-flow log" section, phase 1 of this work item). Nothing closes that issue and
+GitHub issue (`skills/verify/orchestration.md`'s "Measure the segment, and
+feed the flow log" section, phase 1 of this work item). Nothing closes that issue and
 opens the next one on its own -- without this, the log silently stops growing
 the day someone finally closes it by hand, and no session notices because the
 skill's own lookup treats "no open issue" as a no-op rather than a failure.
@@ -117,7 +117,7 @@ The last rung uses `run` rather than `try_run`, so a create that fails all the
 way down still exits loudly into the recovery message below.
 
 **The index label and the milestone are this repository's own names, and they
-belong here rather than in the skill.** `skills/verify/SKILL.md` ships to
+belong here rather than in the skill.** `skills/verify/orchestration.md` ships to
 repositories that have neither, so it names `flow-measurement` and
 `flow-baseline` and stops there. `.github/` stays home
 (`tests/test_the_release_check_watches_what_ships.py`), which is what lets
@@ -354,7 +354,7 @@ def close_issue(repo, number, shipped, comments=None):
         f"Closed by the release that just shipped {shipped}. The next "
         f"flow-measurement issue opens as `{log_title(shipped)}` -- named "
         f"after the version this release shipped, and closed by whatever "
-        f"ships after it. `skills/verify/SKILL.md`'s \"Measure the segment, "
+        f"ships after it. `skills/verify/orchestration.md`'s \"Measure the segment, "
         f'and feed the flow log" section has the reasoning.{empty}',
     )
 
@@ -373,7 +373,7 @@ def find_baseline_issue(repo):
     case and says nothing, because a note about it would appear on every
     rolling log every repository ever opens. Two or more open is that label's
     invariant broken, and it answers `None` with a note rather than taking
-    the first: `skills/verify/SKILL.md` gives both labels the same
+    the first: `skills/verify/orchestration.md` gives both labels the same
     exactly-one-open rule and says a broken invariant is named rather than
     guessed at, and a body carrying one of two numbers looks exactly like a
     body carrying the only one.

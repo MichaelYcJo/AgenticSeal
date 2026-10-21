@@ -606,7 +606,7 @@ def test_the_review_arms_missing_path_line_is_written_where_it_is_met():
 
     wake = flat("skills", "implement", "orchestration.md")
     assert (
-        "whatever the change touches — a commit confined to `docs/` and "
+        "whatever the change touches; a commit confined to `docs/` and "
         "`seal/` wakes it too" in wake
     ), "the wake/quiet table no longer says the review arm reads no paths"
 

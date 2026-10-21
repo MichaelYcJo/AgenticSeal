@@ -360,6 +360,35 @@ def test_the_approval_line_is_spelled_like_the_routing_answer():
         )
 
 
+def test_the_orchestrator_states_the_approval_line_where_it_spawns_the_build():
+    """S7 of #940. The approval line's shape is stated once, at the step
+    where the orchestrator spawns the smith, and it is the template's line.
+
+    Nothing reads the line in a work item, so the statement is what a writer
+    and the warden read it by: the line ends at its full stop, and anything
+    more goes on a line of its own."""
+    text = read("skills", "implement", "orchestration.md")
+    heading = "### The plan is approved at the spawn"
+    assert heading in text, "the spawn step no longer states the approval line"
+    step = text.split(heading, 1)[1].split("\n## ", 1)[0]
+    fenced = step.split("```\n", 2)[1].strip() if step.count("```") >= 2 else ""
+    assert fenced == stamp_line("Approved", "templates", "sdd-plan.md"), (
+        f"the spawn step states the line as `{fenced}`, and the template "
+        "every plan is copied from spells it otherwise"
+    )
+    folded = " ".join(step.split())
+    assert "the line ends at its full stop" in folded, folded[:300]
+    assert "goes on a line of its own below it, never after the full stop" in folded
+    # The redesign's second approval names that statement rather than
+    # restating the shape (#940 Scope 6).
+    review = " ".join(read("skills", "code-review", "orchestration.md").split())
+    assert (
+        "a second `Approved` line in `plan.md` on a line of its own, in the shape "
+        "`skills/implement/orchestration.md` *The plan is approved at the spawn* "
+        "states"
+    ) in review, "the redesign row approves without naming where the shape is"
+
+
 def test_the_file_set_names_who_writes_each_file():
     """The table listed what each member holds and never whose it is.
 

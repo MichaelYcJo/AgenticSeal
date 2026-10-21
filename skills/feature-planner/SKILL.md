@@ -5,12 +5,12 @@ description: |
   in writing before starting.
   Use when: the work spans more than about three files or needs phasing, and
   no plan exists yet.
-  NOT for: firing on your own while the framer is driving — it calls this
-  from inside the frame when decomposition is what the work needs. Not for
-  single-file changes.
+  NOT for: loading unasked while the framer is driving a work item, since
+  the framer calls it from inside the frame when decomposition is what the
+  work needs. Not for single-file changes.
 ---
 
-# feature-planner — write the scope down before it moves
+# feature-planner, write the scope down before it moves
 
 Scope that lives in someone's head grows quietly, and nobody can point to
 when it did. Decomposing the work orders it; writing down what is *not* in
@@ -27,12 +27,12 @@ it is what makes the boundary hold later.
 ### 2. Existing Code Analysis
 - What related code already exists?
 - What patterns does the project use?
-- What can be reused/extended vs built new?
-- What will break if we change X?
+- What can be reused or extended, and what is built new?
+- What will break if X changes?
 
 ### 3. Implementation Plan
 - Break into ordered tasks (dependencies mapped)
-- Identify parallel vs sequential work
+- Identify parallel and sequential work
 - Estimate which files change
 - Flag risky parts that need extra care
 
@@ -45,11 +45,11 @@ it is what makes the boundary hold later.
 - No gold-plating: plan only what's requested
 - Identify the MVP path first
 - Flag unknowns early (don't discover them mid-implementation)
-- If >10 files affected, suggest phased approach
+- Where more than ten files are affected, suggest a phased approach
 
 ## Where the output goes
 
-Into `seal/specs/<work-item-id>/plan.md`, as its Phases table — one row per phase,
+Into `seal/specs/<work-item-id>/plan.md`, as its Phases table: one row per phase,
 with the **Verified by** and **Status** columns that table carries. There is
 no separate task-list file and no separate root for one.
 
@@ -63,13 +63,14 @@ needs no file at all.
 ```
 ## Feature: [name]
 
-**Scope**: [in] / **Not**: [out]
+**Scope**: [in]
+**Not**: [out]
 
 **Tasks** (in order):
-1. [task] - [files affected]
-2. [task] - [files affected]
-   ↳ depends on #1
-3. [task] - [files affected] (parallel with #2)
+1. [task], files: [files affected]
+2. [task], files: [files affected]
+   (depends on task 1)
+3. [task], files: [files affected] (parallel with task 2)
 
 **Risks**: [what could go wrong]
 **Questions**: [what needs user input]

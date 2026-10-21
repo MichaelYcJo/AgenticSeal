@@ -717,7 +717,7 @@ def test_the_gate_reaches_for_the_spelling_the_workflow_uses(tmp_path):
 # #969 moved the base rule with the run, from the sealer's step 1 to the
 # orchestration that now runs the gate before the sealer is spawned.
 REVIEW_ORCH = os.path.join(ROOT, "skills", "code-review", "orchestration.md")
-VERIFY = os.path.join(ROOT, "skills", "verify", "SKILL.md")
+VERIFY = os.path.join(ROOT, "skills", "verify", "orchestration.md")
 
 # Each document needs ONE block carrying both halves — that the base is
 # resolved, and what it is resolved TO. A mention of `origin/` in a table

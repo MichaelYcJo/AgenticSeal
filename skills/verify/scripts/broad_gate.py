@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """broad-gate — the one broad run, taken once after the rounds settle.
 
-Issue #30. `CLAUDE.md` §*Verification Scope* says the full suite, the
+Issue #30. The CLAUDE.md block's **Verification Scope** rule
+(`templates/claude-md-block.md`) says the full suite, the
 repository-wide lint and the typecheck run once, after the review rounds
 settle, and for three releases nobody was assigned that run: contract §2
 forbade it to the smith and the warden, and the orchestrator that took it by
@@ -57,7 +58,7 @@ A check that fails does not stop the ones after it: the failure form names
 every check that failed, which is what a reader acts on.
 
 **On a failing test the comparison against the base is reactive and
-mechanical** (`skills/verify/SKILL.md` §*The broad gate*). The row runs with
+mechanical** (`skills/verify/orchestration.md` §*The broad gate*). The row runs with
 a pytest recorder of the gate's own loaded (`recording_env`), which writes
 down, inside each pytest process the row starts, every test it ran and its
 outcome. Only when the repository's command fails AND that record holds
@@ -1023,8 +1024,8 @@ def missing_row(home):
         "command here checks its own choice.\n"
         "Take it to whoever owns the repository. `/specseal:config` is where "
         f"they answer it — it shows every row and adds this one with its "
-        "section — and `templates/config.md` §*Choosing a value — the "
-        "criterion* is what they choose against. Nothing ran."
+        "section — and `templates/config.md` §*The criterion for choosing "
+        "a value* is what they choose against. Nothing ran."
     )
 
 
@@ -2236,13 +2237,6 @@ PARTITION = (
         "the mode the row declares is the mode the folder is in",
         MODE_NAME,
         None,
-    ),
-    (
-        "the CLAUDE.md block is the template's, line for line",
-        None,
-        "runs `.github/scripts/claude_block.py` over this repository's own "
-        "CLAUDE.md. The plugin does not ship that script, and a repository "
-        "that wants it run names it in the `Broad gate` row",
     ),
     (
         "both READMEs move together",

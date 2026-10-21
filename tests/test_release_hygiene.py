@@ -1203,10 +1203,10 @@ def test_the_release_target_is_asked_before_the_work_starts():
         # Collapsed, because both files wrap these sentences at different
         # columns and a literal match would be asserting the line breaks.
         text = " ".join(text.split())
-        assert "a PR into `main` is a release" in text, (
+        assert "A pull request into `main` is a release" in text, (
             f"{parts[-1]} stopped saying which base branch means a release"
         )
-        assert "release branch is not" in text, (
+        assert "release branch is not a release" in text, (
             f"{parts[-1]} stopped saying which base branch does NOT release"
         )
         assert "accumulates" in text, (

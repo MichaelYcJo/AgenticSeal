@@ -1596,14 +1596,14 @@ def test_a_session_id_that_reduces_to_nothing_has_no_transcript(projects, repo):
 
 def test_the_labels_match_the_routing_question_the_orchestrator_asks():
     """The reader's constants against `skills/implement/orchestration.md`
-    §*Question 1 — single-select*. Relabelling the question there turns this
-    red instead of quietly bringing the guard's prompt back. Seen red by
-    editing a constant."""
+    *Question 1*. Relabelling the question there turns this red instead of
+    quietly bringing the guard's prompt back. Seen red by editing a
+    constant."""
     root = pathlib.Path(__file__).resolve().parent.parent
     text = (root / "skills" / "implement" / "orchestration.md").read_text(
         encoding="utf-8"
     )
-    section = text.split("### Question 1 — single-select", 1)[1].split("\n### ", 1)[0]
+    section = text.split("\n### Question 1\n", 1)[1].split("\n### ", 1)[0]
     labels = [
         row.split("|")[2].strip().strip("*")
         for row in section.splitlines()

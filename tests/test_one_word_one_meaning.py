@@ -161,15 +161,19 @@ def test_the_smith_calls_the_whole_thing_a_review_run():
 
 def test_the_row_that_could_not_be_true_is_corrected_not_reworded():
     """It was true only after the first review mark landed, and false for
-    every commit before it — the defect in #52 stated as a sentence."""
-    # The routing section is the orchestrator's half since #292, so the
-    # correction lives in `orchestration.md`; the old row must be in neither.
+    every commit before it — the defect in #52 stated as a sentence.
+
+    The narrated correction beside the routing section left with #940:
+    history goes to git and the changelog, and the section states the rule
+    that holds, that the declaration quiets the review arm for either
+    answer. What stays pinned is that the old row is in neither file."""
     skill = read("skills", "implement", "SKILL.md")
     orchestration = read("skills", "implement", "orchestration.md")
     for text in (skill, orchestration):
         assert "| Through the review chain | it needs no marker at all" not in text
-    assert 'used to carry "no marker at all"' in orchestration, (
-        "dropping the row leaves the next reader unable to tell it was wrong"
+    assert "for **either** review answer" in orchestration, (
+        "the routing section stopped saying the declaration quiets the review "
+        "arm whichever reviewer it names"
     )
 
 
@@ -202,6 +206,7 @@ SEAL_SWEPT = (
     # 🟡 10 again: the list closed where somebody had already looked.
     ("agents", "framer.md"),
     ("skills", "verify", "SKILL.md"),
+    ("skills", "verify", "orchestration.md"),
     ("skills", "code-review", "orchestration.md"),
     ("skills", "code-review", "SKILL.md"),
     ("skills", "implement", "SKILL.md"),
@@ -542,7 +547,7 @@ def test_the_stamp_sweep_reads_the_gates_run_and_the_passive():
 
 # The seventh word, and the one this repository's own measurement vocabulary
 # rests on: the per-segment bars in `docs/the-review-record.md`,
-# `skills/verify/SKILL.md` §*Measure the segment*, and the flow log all read
+# `skills/verify/orchestration.md` *Measure the segment*, and the flow log all read
 # `segment` as one agent's own stretch of a chain.
 #
 # Naming a report mode `--segments` beside `--spawns` is what put a second
@@ -555,7 +560,7 @@ def test_the_stamp_sweep_reads_the_gates_run_and_the_passive():
 #
 # The word was load-bearing before this work started, which is why the mode's
 # name is paid for here rather than assumed.
-SEGMENT_OWNER = ("skills", "verify", "SKILL.md")
+SEGMENT_OWNER = ("skills", "verify", "orchestration.md")
 
 # The files that carried the loose sentence, all three of them shipped and
 # all three read together by anyone working on the meter. Records are not
@@ -563,6 +568,7 @@ SEGMENT_OWNER = ("skills", "verify", "SKILL.md")
 # when they were written — which is the same boundary the seal sweep draws.
 SEGMENT_SWEPT = (
     ("skills", "verify", "SKILL.md"),
+    ("skills", "verify", "orchestration.md"),
     ("skills", "verify", "scripts", "session_cost.py"),
     ("tests", "test_session_cost.py"),
 )

@@ -3607,7 +3607,7 @@ def test_the_documents_say_where_the_panel_now_carries_each_name():
         broad
     )
     verify = " ".join(
-        read_document(os.path.join("skills", "verify", "SKILL.md")).split()
+        read_document(os.path.join("skills", "verify", "orchestration.md")).split()
     )
     # #832's S5a: the ref stands beside the commit on the `base` row.
     assert "names the ref beside the commit on the `base` row" in verify
@@ -3743,7 +3743,7 @@ def test_the_docstrings_describe_the_letter_and_the_rows_it_carries():
 
 
 def test_the_documents_name_the_ci_also_row():
-    """#717, S7 for the rows (`agent-contract` §14). `skills/verify/SKILL.md`
+    """#717, S7 for the rows (`agent-contract` §14). `skills/verify/orchestration.md`
     §*A run says what it did not answer* and `agents/sealer.md` named the
     `workflow` row and its `<n> of <total> not answered` reading; both name
     the `CI also` row and its `<n> more steps` now, and the denominator is
@@ -3751,12 +3751,13 @@ def test_the_documents_name_the_ci_also_row():
     dim `·`, the owner's mark for a row that is not a pass, and the value
     column is 41 wide."""
     verify = " ".join(
-        read_document(os.path.join("skills", "verify", "SKILL.md")).split()
+        read_document(os.path.join("skills", "verify", "orchestration.md")).split()
     )
-    assert "the panel carries a `CI also` row — *· <n> more steps* —" in verify
-    assert (
-        "A run on a SpecSeal feature branch reads `CI also · 3 more steps`"
-    ) in verify
+    assert "the panel carries a `CI also` row, *· <n> more steps*, and" in verify
+    # #940: the document carried a count of the steps a feature branch's run
+    # leaves unanswered, and it went stale when a step left the workflow. The
+    # gate prints the count; the document states no copy of it.
+    assert "A run on a SpecSeal feature branch reads `CI also ·" not in verify
     assert "A feature seal of" not in verify
     assert "value is 41 columns and a step name is a sentence" in verify
     assert "value is 23 columns" not in verify
@@ -4972,7 +4973,7 @@ def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
         # #969: the orchestrator meets the gate's words now, not the sealer.
         ("skills", "code-review", "orchestration.md"): "`new?`",
         ("agents", "smith.md"): "`new?` means nothing at the base measured that file",
-        ("skills", "verify", "SKILL.md"): "**New?**",
+        ("skills", "verify", "orchestration.md"): "**New?**",
         ("README.md",): "new? → not measured at the base",
         ("README.ko.md",): "new? → base 에서 재지 못했다",
         ("templates", "config.md"): "each file reads `new?` with the reason",
@@ -4983,7 +4984,7 @@ def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
     # #825: the reader sent to the base by hand is told the three causes the
     # record leaves, and to open the one kept run and its records.
     with open(
-        os.path.join(ROOT, "skills", "verify", "SKILL.md"), encoding="utf-8"
+        os.path.join(ROOT, "skills", "verify", "orchestration.md"), encoding="utf-8"
     ) as handle:
         bullet = " ".join(handle.read().split())
     for phrase in (
@@ -7572,25 +7573,25 @@ def test_the_measurement_its_cost_and_its_limits_are_told_where_the_row_is_writt
     for sentence in (
         "| 3 | Every pytest the row runs keeps the environment the gate hands it |",
         "On a failing test the gate compares each failing file with the base "
-        "from a record, never from what pytest printed (#825).",
+        "from a record, never from what pytest printed.",
         "the recorder's directory first on `PYTHONPATH`, `-p "
         "specseal_pytest_record` appended to `PYTEST_ADDOPTS`, and a key made "
         "fresh for the run.",
         "A pytest a test starts, and an xdist worker, inherit no key and write "
         "nothing, so nothing a test prints or runs changes a word.",
-        "**Then the row runs once more, unchanged, at the base** — nothing "
-        "appended, no part cut, every part run as written —",
-        "where no pytest at the base left a record — the row ended before it "
+        "**Then the row runs once more, unchanged, at the base** (nothing "
+        "appended, no part cut, every part run as written)",
+        "where no pytest at the base left a record (the row ended before it "
         "started one, none loaded the recorder, "
         "or the one that did could not write its record and warned in "
-        "`suite-at-base.txt` — `new?`; where the "
+        "`suite-at-base.txt`), `new?`; where the "
         "base's record holds a failing test or a failed collection of the file, "
         "`failing on base too`; where it holds the file and nothing of it "
         "failed, `new`; where it does not hold the file and the row exited 0, "
         "`new`, because the row ran to its end and never collected the file; "
         "and where it does not hold the file and the row exited otherwise, "
         "`new?` naming the exit, because the run may have ended before reaching "
-        "it — so a file the branch added reads `new?` wherever the base's row "
+        "it; so a file the branch added reads `new?` wherever the base's row "
         "already fails.",
         "Where no pytest the row ran at `HEAD` left a record, for any of "
         "those causes, the files "
@@ -7615,9 +7616,9 @@ def test_the_measurement_its_cost_and_its_limits_are_told_where_the_row_is_writt
         "finished: it wrote no `end` line to its record, because its process "
         "died, as plain pytest does on a test that calls `os._exit` or "
         "segfaults, or its recorder stopped writing, a disk that filled among "
-        "the causes; or its `end` line says pytest stopped it — an interrupt, "
+        "the causes; or its `end` line says pytest stopped it (an interrupt, "
         "`pytest.exit()` whatever code it chose, `-x` or `--maxfail`, a "
-        "plugin's stop — or shows an exit other than 0, 1 and 5. Where a red "
+        "plugin's stop) or shows an exit other than 0, 1 and 5. Where a red "
         "session also left reports out, that count is the one named.",
         # #849 round 1's 🟡 2: the same stop at `HEAD`, counted.
         "The gate also says there how many sessions at `HEAD` stopped "
@@ -7639,17 +7640,17 @@ def test_the_measurement_its_cost_and_its_limits_are_told_where_the_row_is_writt
         "record, and so does a row that sets `PYTEST_ADDOPTS` to a value of its "
         "own; its files read `new?`.",
         # #825 round 1's 🟡 2: Q2's class, not its first instance.
-        "A row that keeps `PYTEST_ADDOPTS` and loses `PYTHONPATH` fares worse — "
-        "one that replaces `PYTHONPATH`, an interpreter run with `-I` or `-E`, "
+        "A row that keeps `PYTEST_ADDOPTS` and loses `PYTHONPATH` fares worse "
+        "(one that replaces `PYTHONPATH`, an interpreter run with `-I` or `-E`, "
         "a wrapper that passes `PYTEST_ADDOPTS` or `PYTEST_*` on and not "
-        "`PYTHONPATH`: pytest cannot import the module the `-p` names and exits "
+        "`PYTHONPATH`): pytest cannot import the module the `-p` names and exits "
         "1 before any test runs, so the row fails at the gate.",
-        "and pass `PYTHONPATH` on wherever `PYTEST_ADDOPTS` goes.",
+        "and passes `PYTHONPATH` on wherever `PYTEST_ADDOPTS` goes.",
         # #825's reframe after round 3 (S28): what a line names a file by,
         # and the two kinds of report the record leaves out.
         "The record names each file by the path pytest itself holds for the "
-        "test or the collector, read in the process that holds it — an xdist "
-        "worker too — and carried on the report, never by a name pytest made "
+        "test or the collector, read in the process that holds it (an xdist "
+        "worker too) and carried on the report, never by a name pytest made "
         "from that path, so a file outside the rootdir, a `--pyargs` module "
         "wherever Python imports it from and a collector a conftest builds are "
         "each named by their own path.",
