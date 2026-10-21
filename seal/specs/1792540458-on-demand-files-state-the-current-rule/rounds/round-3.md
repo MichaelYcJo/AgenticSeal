@@ -18,7 +18,7 @@ severity: should
 regression: round-2#2
 location: `templates/seal-README.md:11-13`, `seal/README.md:11-13`
 evidence: read `templates/seal-README.md:11-13`, `templates/seal-README.md:65-69`, `seal/README.md:11-13`
-verdict: open
+verdict: fixed 0874e5bc
 
 The unit is `templates/seal-README.md`, with `seal/README.md` held equal to
 it. `spec.md` Scope 7 asks each on-demand file to state the current rule
@@ -38,14 +38,14 @@ the command behind it. A work item's directory is safe to delete wholesale
 where to read: nothing that must survive is allowed to live only there.
 ```
 
-answer:
+answer: Applied the paste-ready sentence to both files in one commit: the directory is safe to delete "once its open rows have been moved out", which *Export rules* below says where to read. The two files stay byte-equal (executed `diff`, and `tests/test_first_setup_asks_once.py#test_the_seal_readme_is_the_template_verbatim` passes). `git grep` for "export rules below" and "rules below have run" outside `seal/specs` and `changelog/` now finds nothing (executed).
 
 ### 2. The questions template's feed-back sentence names when answered rows move, and not who moves them
 
 severity: should
 location: `templates/sdd-questions.md:32-34`
 evidence: read `templates/sdd-questions.md:32-34`, `skills/implement/SKILL.md:474-487`
-verdict: open
+verdict: fixed 0874e5bc
 
 The fix pass rewrote this line in its class sweep, from "before this
 directory's work merges" to "at the moment `skills/implement/SKILL.md` *6.
@@ -69,7 +69,7 @@ work item's rows, at the moment `skills/implement/SKILL.md` *6. Drain the
 rows before the broad run, and keep the records* names.
 ```
 
-answer:
+answer: Applied the paste-ready sentence: the orchestrator carries each answered row into `spec.md`'s `## Rule changes` when it drains the work item's rows, at section 6's moment, so the framer reads it as not its act. `git grep` for "feed back into" outside `seal/specs` and `changelog/` finds no other statement (executed). The template's pins (`tests/test_a_question_says_who_can_answer_it.py`) pass.
 
 ## Confirmations
 
