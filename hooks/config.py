@@ -1354,6 +1354,48 @@ def _signer(refusal):
     return refusal.replace("every row below it", "every signer below it")
 
 
+# --- the migration config's baseline (#988) --------------------------------
+#
+# `seal/parity.md` is written from `templates/parity.md`, a `| Field | Value |`
+# table whose `Baseline commit` cell holds the SHA the original's coordinates
+# refer to, in its first code span. `chain_check.py` compares each round
+# record's `original:` line with it, and reads it through this one function.
+
+PARITY_TABLE = ("Field", "Value")
+BASELINE_ROW = "Baseline commit"
+BASELINE_SHA = re.compile(r"[0-9a-f]{7,40}")
+FIRST_CODE_SPAN = re.compile(r"`([^`]*)`")
+
+
+def baseline_commit(text):
+    """`(sha, None)` for the migration config TEXT whose one `Baseline
+    commit` row holds 7 to 40 lowercase hex digits, and nothing else, in the
+    first code span of its value; else `(None, why)`.
+
+    The table is read by `read_table`, so a table GFM renders no row of is
+    no row here. No table, no such row, the row written twice, and a first
+    code span holding anything but a SHA, the template's `<SHA>` among them,
+    are each a `why` that reads after the file's name."""
+    rows, refusals, header = read_table(text, PARITY_TABLE)
+    if header is None:
+        return None, refusals[0]
+    found = [cells[1] for _line, cells in rows if cells[0] == BASELINE_ROW]
+    if not found:
+        table = f"`| {' | '.join(PARITY_TABLE)} |`"
+        said = f"holds no `{BASELINE_ROW}` row in its {table} table"
+        return None, "; ".join([said, *refusals])
+    if len(found) > 1:
+        return None, f"holds {len(found)} `{BASELINE_ROW}` rows, and one names it"
+    span = FIRST_CODE_SPAN.search(found[0])
+    if span is None or not BASELINE_SHA.fullmatch(span.group(1)):
+        return None, (
+            f"has a `{BASELINE_ROW}` row whose value is {found[0]}, and the "
+            "commit is the first code span of that value, 7 to 40 lowercase "
+            "hex digits"
+        )
+    return span.group(1), None
+
+
 # --- the word 0.18.x wrote (#822) ------------------------------------------
 #
 # Until 0.19.0 every repository of a work item that keeps a pact had another

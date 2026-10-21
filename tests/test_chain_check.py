@@ -444,6 +444,7 @@ class TestGrammar:
         a changed one."""
         assert set(chain.GRAMMAR) == {
             "target:",
+            "original:",
             "severity:",
             "location:",
             "evidence:",
@@ -472,8 +473,14 @@ class TestGrammar:
         lines = reader.readable(TEMPLATE.read_text(encoding="utf-8"))
         # A finding carries one of `regression:` and `reopens:`, and the
         # template's finding writes the first; the second's example is its
-        # comment's `round-<N>#<n>`.
-        written_by_comment = {"reopens:": ["reopens: round-1#2"]}
+        # comment's `round-<N>#<n>`. The `original:` line is owed only in a
+        # migration repository, so the template writes it in a comment, and
+        # that comment's line is the one read here (#988).
+        raw = TEMPLATE.read_text(encoding="utf-8").splitlines()
+        written_by_comment = {
+            "reopens:": ["reopens: round-1#2"],
+            "original:": [ln for ln in raw if ln.startswith("original: ")],
+        }
         for key in chain.LABELS:
             row = chain.GRAMMAR[key]
             written = [ln for ln in lines if chain.label_of(ln) == key]
@@ -675,6 +682,12 @@ class TestGrammar:
                 "| a finding | at most one | a reopened close",
                 "| a finding | any | a reopened close",
                 "`reopens:` row's `How many` is `any`",
+            ),
+            (
+                "| outside every finding | at most one | it names the migration",
+                "| outside every finding | one | it names the migration",
+                "`original:` row's `How many` is `one`, and the check can honour "
+                "only `at most one`",
             ),
             (
                 "| a finding | one | a verdict is",
@@ -1392,8 +1405,9 @@ class TestFindings:
         a `verdict:` written inside its fix block not read as a line;
         `## Confirmations` holding its two example entries, `confirms:
         round-1#2` read and `confirms: none`; its comments naming the
-        `reopens:` line beside `regression:`, read as no line; and no emoji
-        anywhere in it."""
+        `reopens:` line beside `regression:`, and the `original:` line a
+        migration repository's round owes (#988), each read as no line; and
+        no emoji anywhere in it."""
         text = (ROOT / "templates" / "sdd-round.md").read_text(encoding="utf-8")
         lines = reader.readable(text)
         found, errors = chain.record_findings(reader, text, "t")
@@ -1406,6 +1420,9 @@ class TestFindings:
         comments = text.split(chain.FINDINGS_HEADING)[1].split("### 1. ")[0]
         assert "`reopens:`" in comments and "  reopens:  " in comments, comments
         assert not any(ln.startswith(chain.REOPENS_ROW) for ln in lines)
+        above = text.split(chain.FINDINGS_HEADING)[0]
+        assert "\noriginal: " in above and "`seal/parity.md`" in above, above
+        assert not any(ln.startswith(chain.ORIGINAL_ROW) for ln in lines)
         assert found[0].heading.startswith("### 1. ") and found[0].number == 1
         confirmed, errors = chain.confirmations(reader, lines, "t")
         assert errors == []
@@ -2247,6 +2264,218 @@ class TestRuleChangesRead:
         err = capsys.readouterr().err
         assert code == 2, err
         assert "the rule-changes reader would not load (a planted failure)" in err
+
+
+# --- originals_of: the parity arm at the pull request (#988) -------------------
+
+BASELINE = "0123456789abcdef0123456789abcdef01234567"
+PARITY = "seal/parity.md"
+routing_module = load(chain.ROUTING, "specseal_routing_for_chain_tests")
+
+
+def parity_file(sha):
+    """`templates/parity.md` with its `Baseline commit` placeholder replaced
+    by SHA, or left standing where SHA is None."""
+    text = (ROOT / "templates" / "parity.md").read_text(encoding="utf-8")
+    assert text.count("`<SHA>`") == 1
+    return text if sha is None else text.replace("`<SHA>`", f"`{sha}`")
+
+
+def with_original(text, said):
+    """A round record with `original: SAID` under its `target:` line."""
+    assert text.count(" against main\n") == 1
+    return text.replace(" against main\n", f" against main\noriginal: {said}\n")
+
+
+def migrating(root, originals, sha=BASELINE):
+    """`main` declares a migration whose baseline is SHA, merged into
+    `feature/x`; each round record N gains `original: <ORIGINALS[N-1]>`,
+    none where that is None, and the closing records name HEAD."""
+    on_main(root, PARITY, parity_file(sha))
+    for n, said in enumerate(originals, 1):
+        if said is not None:
+            rel = f"{ITEM}/rounds/round-{n}.md"
+            write(root, rel, with_original((root / rel).read_text("utf-8"), said))
+    if any(said is not None for said in originals):
+        commit(root, "the rounds compared with the original")
+    seal(root)
+
+
+def original_lines(out):
+    """The lines the check prints about a round record or the config."""
+    where = (f"{ITEM}/rounds/", f"{PARITY}:")
+    return [ln for ln in out.splitlines() if ln.startswith(where)]
+
+
+@pytest.mark.rule("parity-at-the-pull-request")
+class TestOriginals:
+    def test_a_record_with_no_original_line_fails_a_ready_pull_request(
+        self, branch, ready, capsys, monkeypatch
+    ):
+        """S4: in a repository declaring `seal/parity.md`, a chain-declared
+        pull request changing code fails while a round record holds no
+        `original:` line, each record named with the baseline it owes, and
+        a draft prints the same lines and exits 0."""
+        root, _code = branch
+        migrating(root, (None, None))
+        code, out = check(root, capsys)
+        assert code == 1, out
+        says = chain.NO_ORIGINAL.format(config=PARITY, sha=BASELINE)
+        assert original_lines(out) == [
+            f"{ITEM}/rounds/round-{n}.md:0  {says}" for n in (1, 2)
+        ], out
+        event = pathlib.Path(os.environ["GITHUB_EVENT_PATH"])
+        event.write_text(json.dumps({"pull_request": {"draft": True}}), "utf-8")
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert len(original_lines(out)) == 2, out
+
+    @pytest.mark.parametrize(
+        "originals, sha",
+        [
+            ((BASELINE[:8], BASELINE), BASELINE),
+            ((BASELINE, BASELINE[:12]), BASELINE[:7]),
+        ],
+        ids=["short-in-the-record", "short-in-the-config"],
+    )
+    def test_a_record_naming_the_baseline_by_either_prefix_passes(
+        self, branch, ready, capsys, originals, sha
+    ):
+        """S5: an `original:` commit that is a prefix of the `Baseline
+        commit` row's SHA, or that SHA a prefix of it, is the baseline."""
+        root, _code = branch
+        migrating(root, originals, sha)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert original_lines(out) == [], out
+
+    def test_a_record_naming_another_commit_fails_naming_both(
+        self, branch, ready, capsys
+    ):
+        """S6: an `original:` line naming another commit is refused at its
+        line, naming the record and both commits."""
+        root, _code = branch
+        other = "fedcba9876543210"
+        migrating(root, (BASELINE, other))
+        code, out = check(root, capsys)
+        assert code == 1, out
+        rel = f"{ITEM}/rounds/round-2.md"
+        line = reader.readable((root / rel).read_text("utf-8")).index(
+            f"original: {other}"
+        )
+        says = chain.OTHER_ORIGINAL.format(said=other, sha=BASELINE)
+        assert original_lines(out) == [f"{rel}:{line + 1}  {says}"], out
+        assert other in says and BASELINE in says
+
+    def test_a_config_whose_baseline_holds_no_commit_fails_naming_it(
+        self, branch, ready, capsys
+    ):
+        """S10: a migration config whose `Baseline commit` row still holds
+        the template's placeholder fails a ready pull request naming
+        `seal/parity.md`, and no record is compared with nothing."""
+        root, _code = branch
+        migrating(root, (BASELINE, BASELINE), sha=None)
+        code, out = check(root, capsys)
+        assert code == 1, out
+        (line,) = original_lines(out)
+        assert line.startswith(f"{PARITY}:0  "), line
+        assert "`Baseline commit`" in line and "`<SHA>`" in line, line
+
+    def test_a_change_confined_to_the_document_roots_owes_no_line(self, branch):
+        """S7 and S11: the paths decide through `gate.touches_code`, read
+        from `hooks/gate.py`: a change confined to `docs/` and `seal/` owes
+        no line, one path outside them owes it, and paths git could not list
+        owe it too, as the parity arm reads them at the commit."""
+        root, _code = branch
+        migrating(root, (None, None))
+        inside = ["docs/a.md", f"{ITEM}/rounds/round-1.md"]
+
+        def owed(paths):
+            return chain.originals_of(reader, routing_module, str(root), paths, [ITEM])
+
+        assert owed(inside) == []
+        assert [p for p, _n, _w in owed([*inside, "f.txt"])] == [
+            f"{ITEM}/rounds/round-1.md",
+            f"{ITEM}/rounds/round-2.md",
+        ]
+        assert owed(None) == owed([*inside, "f.txt"])
+
+    @pytest.mark.parametrize(
+        "where, said",
+        [
+            ("inside", "a `original:` line inside a finding"),
+            ("twice", "2 `original:` lines; a round record carries one at most"),
+            ("spelt", "a label in another spelling"),
+        ],
+    )
+    def test_a_line_the_table_refuses_is_refused_at_its_line_and_only_so(
+        self, where, said
+    ):
+        """S9: an `original:` line inside a finding, a second one, and one
+        spelt `Original:` are refused at the line by the grammar table's
+        row, and `original_of` adds no second refusal saying the record has
+        none."""
+        text = record("abc1234", [finding(1, "rejected")])
+        if where == "inside":
+            text = text.replace("answer: \n", f"answer: \noriginal: {BASELINE}\n")
+        elif where == "twice":
+            text = with_original(with_original(text, BASELINE), BASELINE)
+        else:
+            text = with_original(text, BASELINE).replace("original:", "Original:")
+        lines = reader.readable(text)
+        at = next(
+            i + 1 for i, ln in enumerate(lines) if ln.lower().startswith("original:")
+        )
+        _round, errors = chain.round_of(reader, text, "r.md", 1)
+        assert [(line, said in why) for _r, line, why in errors] == [
+            (at + (where == "twice"), True)
+        ], errors
+        assert chain.original_of(reader, text, "r.md", BASELINE, PARITY) == []
+
+    def test_the_baseline_is_the_first_code_span_of_its_one_row(self):
+        """The `Baseline commit` reader in `hooks/config.py`: the SHA in the
+        first code span of the one row, else no SHA and why, naming a
+        placeholder, a second row, no row and no table."""
+        config = chain.parity_readers()[0]
+        row = "| Baseline commit | `<SHA>`, the commit the original's coordinates refer to |"
+        text = parity_file(BASELINE)
+        assert config.baseline_commit(text) == (BASELINE, None)
+        assert config.baseline_commit(parity_file(BASELINE[:7])) == (BASELINE[:7], None)
+        for bad, why in (
+            (parity_file(None), "`<SHA>`"),
+            (parity_file(BASELINE.upper()), BASELINE.upper()),
+            (
+                text.replace(row.replace("<SHA>", BASELINE) + "\n", ""),
+                "no `Baseline commit` row",
+            ),
+            (
+                text.replace(
+                    "| Policy root |",
+                    row.replace("<SHA>", BASELINE) + "\n| Policy root |",
+                ),
+                "2 `Baseline commit` rows",
+            ),
+            ("# Migration config\n", "| Field | Value |"),
+        ):
+            sha, said = config.baseline_commit(bad)
+            assert sha is None and why in said, (said, bad)
+
+    def test_readers_that_will_not_load_are_exit_2_naming_them(
+        self, branch, ready, capsys, monkeypatch
+    ):
+        """A `hooks/` reader the arm needs that will not load ends the run at
+        exit 2 with the reason, never a pass."""
+        root, _code = branch
+        migrating(root, (None, None))
+
+        def will_not_load():
+            raise ImportError("a planted failure")
+
+        monkeypatch.setattr(chain, "parity_readers", will_not_load)
+        code = chain.main(["--baseline", "main", "--root", str(root)])
+        err = capsys.readouterr().err
+        assert code == 2, err
+        assert "the parity readers would not load (a planted failure)" in err
 
 
 # --- main: the arms over a pull request ---------------------------------------

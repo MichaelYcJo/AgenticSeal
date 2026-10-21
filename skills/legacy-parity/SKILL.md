@@ -109,6 +109,14 @@ gate can recognize the cycle:
 git rev-parse HEAD > "$(git rev-parse --git-dir)/specseal-parity"
 ```
 
+The mark stays under the git directory, where CI never reads it. So in a
+review round whose pull request changes a path outside `docs/` and `seal/`,
+the warden also writes the round record's `original:` line, naming the
+migration config's `Baseline commit`; that line is the comparison's record
+the pull-request check reads (`docs/the-review-record.md` *The round
+record*). A round that could not resolve the original writes no line and
+raises an `unread` finding.
+
 A commit closes the cycle, and the next change to code starts an uncompared
 one. Committing code with no such record makes the gate ask: approving is the
 waiver, and `[no-parity]` skips it visibly, typed in front of the command with

@@ -36,7 +36,11 @@ write you do not make.
    verifying round the diff of the last fixes.
 5. Where `seal/parity.md` is declared, open `skills/legacy-parity/SKILL.md`,
    compare the behaviour with the original, and write
-   `<git-dir>/specseal-parity` once that comparison has happened.
+   `<git-dir>/specseal-parity` once that comparison has happened. Where the
+   pull request also changes a path outside `docs/` and `seal/`, write the
+   record's `original:` line too, naming the migration config's `Baseline
+   commit`; where the original could not be resolved, write no line and
+   raise an `unread` finding.
 6. Before writing the record, open `skills/writing-style/SKILL.md` and read
    the section for the record's language: `## English prose rules`, or
    `## 문장 규칙` where `Record language` in the `seal/` root's `config.md`
