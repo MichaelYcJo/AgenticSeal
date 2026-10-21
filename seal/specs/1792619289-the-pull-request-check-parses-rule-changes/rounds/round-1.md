@@ -11,7 +11,7 @@ This is round 1, so no earlier round carries a coordinate or a verdict here. Eve
 severity: must
 location: `skills/code-review/scripts/chain_check.py:1952-1989`, `seal/specs/1792619289-the-pull-request-check-parses-rule-changes/spec.md:55-61`, `seal/specs/1792619289-the-pull-request-check-parses-rule-changes/spec.md:148-150`, `seal/specs/1792619289-the-pull-request-check-parses-rule-changes/plan.md:78-81`, `seal/specs/1792619289-the-pull-request-check-parses-rule-changes/plan.md:92-93`, `tests/test_chain_check.py`
 evidence: executed `bin/test tests/test_tmp_round1_probe.py -q -s -p no:xdist -k p1`, `git show --name-status --format= b451e503 -- 'seal/specs/*/spec.md'`, `git show --format= b451e503 -- 'seal/specs/*/spec.md'`
-verdict: open
+verdict: deferred the frame
 
 This gap lets through the exact loss #1006 exists to stop. The work item's own failure direction (`plan.md` *Operational impact*) calls a wrong allow the expensive mistake: a release whose rule changes apply nothing at the owner's settle.
 
@@ -62,14 +62,14 @@ The fix reads every `seal/specs/<id>/spec.md` this pull request's own commits ad
             return 2
 ```
 
-answer:
+answer: The framer reframed this at 4fb593a8, and the build landed it in phase 2 at e077c5d5, with the cases that hold its filters at 2a3ea1a2. `chain_check.py#edited_work_items` gives every `<WORK_ITEMS>/<id>/spec.md` this pull request's own commits add or change, less an exact move and less what `carried_by` assigns to another pull request's squash. `main` reads that set after the per-declaration loop, under the one exit-2 guard `rule_changes_of`, and it reaches the set only after the declared-nothing return. S12, S13 and S14 hold P1a, P1b and P1c. Each was seen red against 22bfec31 on `assert 0 == 1`. S15 holds the declared-nothing promise. The frame's sentences this finding names were rewritten by the reframe.
 
 ### 2. The broad run and the preflight pass a spec whose section does not parse, while the frame and the changelog say they meet it
 
 severity: should
 location: `seal/specs/1792619289-the-pull-request-check-parses-rule-changes/spec.md:32-35`, `seal/specs/1792619289-the-pull-request-check-parses-rule-changes/spec.md:87`, `seal/specs/1792619289-the-pull-request-check-parses-rule-changes/changelog.md:10-11`, `tests/test_chain_check.py:1997-2006`
 evidence: executed `bin/test tests/test_tmp_round1_probe.py -q -s -p no:xdist`
-verdict: open
+verdict: deferred the frame
 
 The orchestrator and the sealer act on these two sentences. They read them as saying that the broad run stops a broken section before the sealer is spawned. In this repository's flow it does not.
 
@@ -99,14 +99,14 @@ The refusal does reach the pull request's own CI, which is the issue's ask, so t
   open.
 ```
 
-answer:
+answer: The framer reframed this at 4fb593a8: `spec.md` *Scope* item 3 now states the limit, and S6 has a second half. The build landed it in phase 2 at e077c5d5. S6's second half runs `--sealing` with no event payload and `gh` finding no pull request, and holds that the check prints the refusal and exits 0. `changelog.md` now says the broad gate's own run prints the refusal, and fails on it only where a ready pull request is already open. The strictness of `--sealing` where no pull request exists is unchanged, and it stays round 1's `## Not judged` row for the owner.
 
 ### 3. A near miss of the heading, such as `## Rule Changes`, reads as a spec with no section and passes without a word
 
 severity: should
 location: `skills/settle/scripts/rule_changes.py:78-80`, `skills/code-review/scripts/chain_check.py:1566`, `tests/test_chain_check.py`
 evidence: executed `bin/test tests/test_tmp_round1_probe.py -q -s -p no:xdist`
-verdict: open
+verdict: fixed 693c9a8c
 
 The new arm is a check that reads one line, the `## Rule changes` heading. The owner's direction says that line must accept one spelling and refuse a near miss at its line: "검사가 읽는 줄은 정해진 철자 하나만 읽히고 조금 틀린 철자는 그 줄에서 거절되어야 한다. 조금 틀린 철자를 말없이 지나치는 검사는 그 줄을 읽지 않은 것과 같다."
 
@@ -133,14 +133,14 @@ def _letters(text):
         return Parsed(None, None, [])
 ```
 
-answer:
+answer: Fixed in the one reader, as the record proposes, and decided as a class rather than a list of spellings. `rule_changes.py#parse` refuses at its line every heading, at any level, whose letters, case folded, are those of `Rule changes` and that is not `## Rule changes`. It does so whether or not the right heading also stands. The reason names the heading as written and `## Rule changes`, the one heading read. `skills/settle/SKILL.md` *Rule changes* states the class once. `chain-check` needs no change of its own, because it asks the same reader, so `settle` now holds such a spec instead of naming it premodel. The class narrows the gap and does not close it: a heading with other letters, such as `## Rules changes`, is still another section, and `test_a_heading_with_other_letters_is_no_near_miss` pins that boundary. The six near misses of probe P3 are cases in `tests/test_settle_applies_rule_changes_in_place.py`, alone and beside the right heading. All twelve were seen red before the fix. `rule_changes.parse` over the 119 specs under `seal/specs/` refuses none (executed, in memory).
 
 ### 4. The workflow comment lists the new refusal among those that fail a draft, and its template copy lists it among those that do not
 
 severity: should
 location: `.github/workflows/hygiene.yml:169-182`, `templates/hygiene.yml:82-91`
 evidence: read `.github/workflows/hygiene.yml:169-182`, `templates/hygiene.yml:82-91`, `skills/code-review/scripts/chain_check.py:2002-2004`, `tests/test_chain_check.py:1981-1995`
-verdict: open
+verdict: fixed 2d234e72
 
 Agents and people both read this comment to learn what the step fails for. The diff wrote one fact into it twice, once in each copy, and the two copies now give it opposite draft behaviours.
 
@@ -162,7 +162,7 @@ The owner's direction refuses both features of this sentence: a dash used as a s
       # §*What the check reads at the pull request*).
 ```
 
-answer:
+answer: Fixed as the record proposes, in both copies and in the same words. The not-a-draft qualifier now opens the list, so every item sits under it, and the dash separator is gone. `templates/hygiene.yml` carries the same list, the two items it lacked included, wrapped to its own indent. This commit came before phase 2's edit to the same list. Phase 2, at e077c5d5, then rewrote the spec item in both copies to name both sets the check reads.
 
 ## Confirmations
 
