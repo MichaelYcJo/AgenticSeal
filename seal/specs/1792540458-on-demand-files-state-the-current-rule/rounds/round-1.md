@@ -16,7 +16,7 @@ shows.
 severity: should
 location: `templates/claude-md-block.md:16`
 evidence: read `templates/claude-md-block.md:16`, `skills/implement/orchestration.md:279-287`, `skills/implement/SKILL.md:28-30`, `seal/specs/1792540458-on-demand-files-state-the-current-rule/phases/phase-2.md:61`
-verdict: open
+verdict: fixed bd1aa449
 
 Every session on a machine with the plugin reads this bullet, and it is the
 only routing text a session in a repository that already has a `seal/` root
@@ -57,14 +57,14 @@ does not add.
 - **Routing, decided at the start.** Where `seal/` exists at neither `<repo>/seal/` nor `$(git rev-parse --git-common-dir)/seal/`, first follow the Bootstrap section of `skills/implement/orchestration.md`; where the root lands is the user's decision. **Ask question 1 alone; the boxes in a second call only under `per axis`.** Its answers are `automation`, `per axis` and `no work item`, and that file's *Orchestrator: how the work is routed* states the question and the boxes. Except under `no work item`, write `seal/specs/<work-item-id>/routing.md` from `templates/sdd-routing.md` before the first edit, in a command of its own, then commit it. Under `no work item`, every commit carries `: '[no-review]';` in front of it, `[no-parity]` too where a migration config is declared.
 ```
 
-answer:
+answer: Applied the paste-ready bullet: the orchestration file's routing section is named for the question and the boxes, and the write is "Except under `no work item`". The block is 1,669 bytes; `overview.md`'s row on what the block keeps names the 169 bytes over 1,500 as three rules, under `questions.md` Q4's default, in place of a phase record a fix pass does not write. The changelog fragment's block entry follows.
 
 ### 2. The block states two rules for one lint run: before every commit, and once after the rounds
 
 severity: should
 location: `templates/claude-md-block.md:14`, `templates/claude-md-block.md:8`
 evidence: read `templates/claude-md-block.md:8`, `templates/claude-md-block.md:14`, `skills/agent-contract/SKILL.md:39-42`, `skills/code-review/orchestration.md:301-303`
-verdict: open
+verdict: fixed bd1aa449
 
 Line 14 says "Run lint, format and typecheck before committing." Line 8
 says "the full suite, lint and typecheck run once, after the review rounds
@@ -87,14 +87,14 @@ removes the second reading; `tests/test_broad_gate_rule.py:365` still finds
 - Before each commit, run lint, format and typecheck over the files it changes.
 ```
 
-answer:
+answer: Both lines now carry their scope: line 8 reads "the repository-wide lint", and line 14 reads "Before each commit, run lint, format and typecheck over the files it changes." `git grep 'before committing'` outside `seal/specs` and `changelog/` finds no other statement of the rule in the tree; `docs/release-checklist.md`'s heading of that wording is a release step, not this rule. The changelog fragment names the scoped rule.
 
 ### 3. "The default branch" names the release branch two sentences after the release branch was called the default
 
 severity: should
 location: `skills/implement/orchestration.md:475`
 evidence: executed `sed -n 460,478p skills/implement/orchestration.md`, `git show b3154f43:skills/implement/orchestration.md`
-verdict: open
+verdict: fixed bd1aa449
 
 The paragraph at lines 460 to 467 says "The release branch is the default."
 Line 475 then says "Where the repository gathers fragments, basing on the
@@ -112,14 +112,14 @@ gather, because `main` is the branch where the entries are due; the
 contribution guide names the command.
 ```
 
-answer:
+answer: Applied the paste-ready sentence: basing on `main` means running the gather, with the reason restored and the command left to the contribution guide. `git grep 'default branch'` over `skills/`, `templates/`, `CLAUDE.md` and `CONTRIBUTING.md` finds no other use.
 
 ### 4. The routing template says the orchestrator answers the routing question, where the hook reads the person's answer in the session's transcript
 
 severity: should
 location: `templates/sdd-routing.md:90`
 evidence: read `templates/sdd-routing.md:88-91`, `hooks/question-gate.py:17-22`, `skills/implement/orchestration.md:369-372`
-verdict: open
+verdict: fixed bd1aa449
 
 The comment says `hooks/question-gate.py` refuses every question "but the
 routing question put alone before the orchestrator has answered it". The
@@ -140,14 +140,14 @@ replacements were read and hold.
      builds on the default a question states instead.
 ```
 
-answer:
+answer: The template now says "before the person has answered it in this session", and `skills/implement/orchestration.md:372`, the other statement of the rule, says the same in place of "before the session has answered it". `hooks/question-gate.py:76` already says "until this session has answered it here", which names the conversation, and stands.
 
 ### 5. Section 6 names the sealer's spawn as the moment to drain rows, which falls after the broad run that a drain makes stale
 
 severity: should
 location: `skills/implement/SKILL.md:474-483`, `skills/code-review/orchestration.md:173-176`
 evidence: read `skills/implement/SKILL.md:472-483`, `skills/code-review/orchestration.md:173-185`, `agents/sealer.md:54-63`, `skills/verify/orchestration.md:149-151`
-verdict: open
+verdict: fixed bd1aa449
 
 The section says "The orchestrator moves every unresolved row out before it
 spawns the sealer", and its table says a doable item is "done now ...: the
@@ -194,14 +194,14 @@ every row `skills/implement/SKILL.md` *6. Drain the rows before the sealer is
 spawned, and keep the records* names has reached its destination.
 ```
 
-answer:
+answer: Section 6 now has the orchestrator drain every row once the last round record has no finding open and before `broad-gate --preflight`, with the reason (a commit after the broad run leaves `broad-gate.md` stale), and a doable row is done and reviewed by a verifying round before the broad run. The heading is *6. Drain the rows before the broad run, and keep the records*, and `skills/code-review/orchestration.md` names that drain among the preconditions of the preflight under the new heading. The changelog fragment and `overview.md` (the heading row, and a new row for D7's moment) follow; the framer amends Scope 9's sentence. `phases/phase-9.md` stays as the record of what phase 9 built.
 
 ### 6. Two counts are stated twice and disagree: two writing rules against three, and one Bootstrap question against two
 
 severity: should
 location: `CLAUDE.md:47`, `skills/implement/orchestration.md:72`
 evidence: read `CLAUDE.md:45-55`, `skills/writing-style/SKILL.md:253`, `skills/writing-style/SKILL.md:330`, `skills/implement/orchestration.md:72-73`, `skills/implement/orchestration.md:101-102`
-verdict: open
+verdict: fixed bd1aa449
 
 `CLAUDE.md:47` says "two rules bind every sentence of them" and links the
 writing-style section, which says "아래 세 규칙" (line 253) and, in the English
@@ -233,14 +233,14 @@ writes or a check
 before continuing.**
 ```
 
-answer:
+answer: `CLAUDE.md` now says "the owner's two directions bind every sentence of them", leaving the count of rules to the skill. The Bootstrap's lead says the orchestrator "asks once, in the one call step 1 states", rather than the paste's "in one `AskUserQuestion` call": `tests/test_first_setup_asks_once.py#test_the_broad_command_rides_the_question_that_already_stops_the_session` counts the tool's name in the section and refuses a second mention, and step 1 states the call and its two questions once.
 
 ### 7. The update skill's sentence on installing a clone's block names no target, and one of `install.sh`'s answers writes a copy back into the clone's `CLAUDE.md`
 
 severity: should
 location: `skills/update/SKILL.md:104-106`
 evidence: read `skills/update/SKILL.md:103-106`, `install.sh:22-42`, `tests/test_the_installer_writes_the_block_from_its_template.py:76`
-verdict: open
+verdict: fixed bd1aa449
 
 Scope 4 makes this sentence the one place that says how a session developing
 SpecSeal gets the tree's block: "running `./install.sh` from that clone
@@ -263,14 +263,14 @@ a copy into the clone's own `CLAUDE.md`, which
 `tests/test_the_installer_writes_the_block_from_its_template.py` refuses.
 ```
 
-answer:
+answer: Applied the paste-ready sentence: `bash install.sh "$HOME/.claude/CLAUDE.md"` run from the clone, with `--project` and option 2 named as writing the copy the test refuses (read `install.sh:22-42`: an explicit path is honoured). The changelog fragment's local-install clause names the same command. README's install rows describe the installer for any repository and stand.
 
 ### 8. `broad_gate.py`'s docstring cites this repository's `CLAUDE.md` for the Verification Scope rule, which only the template now carries
 
 severity: should
 location: `skills/verify/scripts/broad_gate.py:4`
 evidence: executed `git grep -n 'Verification Scope' -- CLAUDE.md templates/claude-md-block.md`
-verdict: open
+verdict: fixed bd1aa449
 
 Scope 4 rewrites every sentence that stood on the generated copy, and names
 `broad_gate.py`'s docstrings. Line 4 says "`CLAUDE.md` §*Verification
@@ -285,14 +285,14 @@ Issue #30. The CLAUDE.md block's **Verification Scope** rule
 (`templates/claude-md-block.md`) says the full suite, the
 ```
 
-answer:
+answer: Applied the paste-ready docstring lead: the block's **Verification Scope** rule in `templates/claude-md-block.md`. `git grep 'Verification Scope'` outside `seal/specs` and `changelog/` finds the block and `tests/test_broad_gate_rule.py:365`, which reads the block, and no other citation of `CLAUDE.md` for it.
 
 ### 9. Phase 9's orchestrator reading compares the base with both verify halves against the new set with one
 
 severity: should
 location: `seal/specs/1792540458-on-demand-files-state-the-current-rule/phases/phase-9.md:151-163`
 evidence: executed `bash -c 's=0; for p in skills/implement/orchestration.md skills/code-review/orchestration.md skills/implement/SKILL.md skills/code-review/SKILL.md skills/verify/orchestration.md skills/verify/SKILL.md; do s=$((s+$(git cat-file -s 493d9816:$p))); done; echo $s'`, `bash -c 'b=0; for p in skills/implement/orchestration.md skills/code-review/orchestration.md skills/implement/SKILL.md skills/code-review/SKILL.md skills/verify/SKILL.md; do b=$((b+$(git cat-file -s b3154f43:$p))); done; echo $b'`
-verdict: open
+verdict: fixed bd1aa449
 
 The record says "Counted with that file, the base is 159,334 against
 129,640." The base figure adds the whole of `skills/verify/SKILL.md` at
@@ -309,7 +309,7 @@ request body copies record sentences, so the wrong number travels.
 | orchestrator, with both `skills/verify/` files | 159,334 | 151,600 | yes |
 ```
 
-answer:
+answer: Added the like-for-like row (159,334 at b3154f43 against 151,600 at 493d9816, executed `git cat-file -s` over the six files) and rewrote the paragraph to say why the second row compares unlike sets and what the margin is counted alike, 7,734 bytes. The second row stays as the reading of the table `spec.md` lists.
 
 ## Confirmations
 
