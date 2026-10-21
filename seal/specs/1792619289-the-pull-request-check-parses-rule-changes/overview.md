@@ -17,7 +17,7 @@ A spec's `## Rule changes` section was first parsed at the owner's settle, after
 | Item | Who must answer |
 |---|---|
 | The full suite, the repository-wide lint and the typecheck at this branch's HEAD | the orchestrator, through `broad-gate --base release/v0.22.3 --record seal/specs/1792619289-the-pull-request-check-parses-rule-changes` |
-| S11: `hooks/commitgate.py`, `skills/verify/scripts/seal_stamp.py`, `skills/verify/scripts/broad_gate.py` and `.github/scripts/release_seal.py` load nothing new when they import `chain_check.py` | the warden, at review; the build adds no import-time load, and the reader is reached from `main` alone |
+| closed S11: `hooks/commitgate.py`, `skills/verify/scripts/seal_stamp.py`, `skills/verify/scripts/broad_gate.py` and `.github/scripts/release_seal.py` load nothing new when they import `chain_check.py` | the warden's round 1, probe P5 executed: no rule-changes module loads on import; `rounds/round-1.md` |
 
 ## Not done
 
