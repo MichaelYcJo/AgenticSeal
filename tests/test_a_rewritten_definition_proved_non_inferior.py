@@ -2416,14 +2416,16 @@ def seeded_round_1(target):
     )
 
 
-def shipped_item(tmp_path, monkeypatch, first=seeded_round_1, second=True):
+def shipped_item(tmp_path, monkeypatch, first=seeded_round_1, second=True, crlf=False):
     """A repository that shipped one work item, with `rt` reading it: a base
     holding the check of a grammar with no `evidence:` row, a branch of a
     code commit and a records commit, and the branch squashed onto the base
     with round 1, FIRST of the target, and round 2 where SECOND is set,
     added as a shipped squash commit holds them. No `main` ref but the
     local branch exists, so the squash's first parent stands for the base
-    round 1 names. `({name: commit}, its path)`."""
+    round 1 names. Every file is written with LF line ends and stored as
+    written, `a.py` with CRLF where CRLF is set. `({name: commit}, its
+    path)`."""
     rt = load_script("seed_defects").rt
     repo = tmp_path / "shipped"
     repo.mkdir()
@@ -2440,13 +2442,14 @@ def shipped_item(tmp_path, monkeypatch, first=seeded_round_1, second=True):
             env=dated,
         ).stdout.strip()
 
-    def put(rel, text):
+    def put(rel, text, newline="\n"):
         path = repo / rel
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(text, encoding="utf-8")
+        path.write_text(text, encoding="utf-8", newline=newline)
 
     git("init", "-q", "-b", "main")
     git("config", "uploadpack.allowAnySHA1InWant", "true")
+    git("config", "core.autocrlf", "false")
     for rel in rt.CHECK_FILES:
         with open(os.path.join(ROOT, rel), encoding="utf-8") as f:
             text = f.read()
@@ -2463,7 +2466,7 @@ def shipped_item(tmp_path, monkeypatch, first=seeded_round_1, second=True):
         f"{spec}/routing.md",
         f"| Axis | Answer |\n|---|---|\n| Branch | {SEEDED_BRANCH} |\n",
     )
-    put("a.py", SEEDED_SOURCE)
+    put("a.py", SEEDED_SOURCE, newline="\r\n" if crlf else "\n")
     git("add", "-A")
     git("commit", "-qm", "feat: f and g")
     commits["code"] = git("rev-parse", "HEAD")
@@ -2645,3 +2648,46 @@ def test_the_seeded_scaffold_leaves_round_1s_tree_and_no_copy_of_it(
     )
     assert (remotes.returncode, remotes.stdout) == (0, "")
     assert exists("origin/main") == 0
+
+
+@pytest.mark.parametrize(
+    ("crlf", "autocrlf"),
+    [(False, "true"), (True, "false")],
+    ids=["an-lf-file-checked-out-with-crlf", "a-file-stored-with-crlf"],
+)
+def test_the_seeded_scaffold_mutates_a_line_that_ends_with_crlf(
+    tmp_path, monkeypatch, crlf, autocrlf
+):
+    """Guards the scaffold's own check of the line it mutates, on every
+    platform. Git for Windows checks a file out with CRLF line ends
+    (`core.autocrlf`), so the line read from the checkout carries a carriage
+    return, which `tests` run 39691387210 met on a Windows split; a file
+    stored with CRLF carries one in the commit too. The carriage return is
+    the line's end, not its text: the seed is found and written without it,
+    and the mutated line keeps it."""
+    sd = load_script("seed_defects")
+    commits, repo = shipped_item(tmp_path, monkeypatch, crlf=crlf)
+    t, why = sd.target_of(commits["squash"])
+    assert why == "", why
+    assert (t["line"], t["old"], t["new"]) == (
+        40,
+        "    return b != 2",
+        "    return b == 2",
+    )
+    clone = tmp_path / "clone"
+    clone.mkdir()
+    (clone / "scaffold.sh").write_text(
+        "set -eu\n" + sd.scaffold(t, repo.as_uri()) + "\n", encoding="utf-8"
+    )
+    env = dict(
+        os.environ,
+        GIT_CONFIG_COUNT="1",
+        GIT_CONFIG_KEY_0="core.autocrlf",
+        GIT_CONFIG_VALUE_0=autocrlf,
+    )
+    run = subprocess.run(
+        ["sh", "scaffold.sh"], cwd=clone, capture_output=True, encoding="utf-8", env=env
+    )
+    assert run.returncode == 0, run.stderr
+    with open(clone / "a.py", encoding="utf-8", newline="") as f:
+        assert f.read().split("\n")[39] == "    return b == 2\r"

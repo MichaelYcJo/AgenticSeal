@@ -265,13 +265,19 @@ def targets(tags, prefixes=None):
     return kept, left
 
 
+# The scaffold's own mutation. The generator reads the source through git
+# with universal newlines, so OLD and NEW carry no line end. A checkout can
+# end a line with CRLF, as git for Windows does under `core.autocrlf`, so a
+# trailing carriage return is the line's end, compared without it and kept.
 MUTATE = """python3 - {path} {line} {old} {new} <<'PY'
 import sys
 path, line, old, new = sys.argv[1], int(sys.argv[2]), sys.argv[3], sys.argv[4]
 with open(path, encoding="utf-8", newline="") as f:
     lines = f.read().split("\\n")
-assert lines[line - 1] == old, f"{{path}}:{{line}} is not {{old!r}}"
-lines[line - 1] = new
+text = lines[line - 1]
+end = "\\r" if text.endswith("\\r") else ""
+assert text[: len(text) - len(end)] == old, f"{{path}}:{{line}} is not {{old!r}}"
+lines[line - 1] = new + end
 with open(path, "w", encoding="utf-8", newline="") as f:
     f.write("\\n".join(lines))
 PY"""

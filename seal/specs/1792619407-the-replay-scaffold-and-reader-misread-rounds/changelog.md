@@ -25,7 +25,10 @@
   does not point at the seed's commit. After it, the scaffold removes the
   remote, so a bare `git fetch` fetches nothing, then expires the
   reflog, removes `FETCH_HEAD` and prunes what nothing reaches, so the
-  target's original commit is gone from the clone. The cases are `seeded-279a580b`,
+  target's original commit is gone from the clone. The scaffold's check of
+  the line it mutates reads a trailing carriage return as the line's end,
+  so a case also builds where git checks files out with CRLF line ends, as
+  git for Windows does. The cases are `seeded-279a580b`,
   `seeded-ad447367`, `seeded-8a100e13` and `seeded-f1c9932d`.
   `seeded-4d316179` takes no seed at its round 1 target. In
   `seeded-9b644676` two of round 1's truths accept one line. Both were
