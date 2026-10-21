@@ -421,7 +421,9 @@ def test_a_diff_git_could_not_take_is_asked_about_at_pre_commit(
 ):
     """S10 of work item 1791384157 (#868), the git hook. `pre-commit` reads the
     staged paths with `git diff --cached`; where that fails, the parity arm
-    stands. Red at `5623d728`, where the hook let the commit through."""
+    stands. Red at `5623d728`, where the hook let the commit through. The
+    branch declares `straight to the PR`, which quiets the review arm and
+    leaves the parity arm at the commit (#988)."""
     if os.name == "nt":
         pytest.skip("the shim is a POSIX shell script")
     import io
@@ -430,7 +432,7 @@ def test_a_diff_git_could_not_take_is_asked_about_at_pre_commit(
     import commitgate
 
     parity_repo(repo)
-    declare_routing(repo)
+    declare_routing(repo, review="straight to the PR")
     stage(repo, "service.py")
     environ = {"CLAUDE_CODE_SESSION_ID": "s10"}
     assert commitgate.pre_commit(str(repo), environ, io.StringIO()) == 1

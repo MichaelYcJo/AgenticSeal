@@ -256,9 +256,9 @@ committing, and two things can drive that cost to nothing:
 
 Read both off the repository before leaning on them. One that merges without
 squashing keeps every commit in its history, and one with no declaration meets
-the review question at each commit. **A declaration does not silence the
-parity arm**: the two opt-ins are independent, so where a migration config is
-declared a code-touching commit still meets that one. The wake/quiet table in
+the review question at each commit. **Where a migration config is declared,
+the parity arm has quiet terms of its own**, and only one of the two review
+answers is among them. The wake/quiet table in
 `skills/implement/orchestration.md` says what wakes and quiets each arm, and
 it is the only place that says it.
 

@@ -107,11 +107,11 @@ def clone(path, home, branch):
     return path
 
 
-def declare(worktree, branch):
+def declare(worktree, branch, review="through the review chain"):
     d = worktree / "seal" / "specs" / "1790000000-x"
     d.mkdir(parents=True, exist_ok=True)
     (d / "routing.md").write_text(
-        "| Axis | Answer |\n|---|---|\n| Review | through the review chain |\n"
+        f"| Axis | Answer |\n|---|---|\n| Review | {review} |\n"
         f"| Destination | open the pull request |\n| Branch | {branch} |\n",
         encoding="utf-8",
     )
@@ -1282,7 +1282,24 @@ def test_a_review_mark_naming_head_lets_the_commit_through(world):
     assert world.head(world.main) != before
 
 
+@pytest.mark.rule("parity-quiet-under-the-chain")
+def test_a_chain_declared_code_commit_meets_no_parity_arm_inside_git(world):
+    """S1 of #988, through `pre-commit`. `world.w`'s branch declares the
+    review chain, so a code commit there lands with no parity mark at HEAD,
+    and the comparison is owed in each round record at the pull request."""
+    (world.w / "seal" / "parity.md").write_text("# parity\n", encoding="utf-8")
+    g(world.w, "add", "seal/parity.md", home=world.home, session="")
+    before = world.head(world.w)
+    g(world.w, "commit", "-q", "-m", "the migration config", home=world.home)
+    (world.w / "f.py").write_text("a = 3\n", encoding="utf-8")
+    g(world.w, "commit", "-q", "-am", "code", home=world.home)
+    assert world.head(world.w) != before
+
+
 def test_the_parity_arm_reads_the_paths_git_is_committing(world):
+    """`world.w` declares `straight to the PR` here, the answer under which
+    the parity arm stays at the commit (#988, `questions.md` Q1)."""
+    declare(world.w, "feat", review="straight to the PR")
     (world.w / "seal" / "parity.md").write_text("# parity\n", encoding="utf-8")
     (world.w / "docs").mkdir()
     (world.w / "docs" / "a.md").write_text("x\n", encoding="utf-8")

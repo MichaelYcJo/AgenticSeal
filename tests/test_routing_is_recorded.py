@@ -337,9 +337,12 @@ def test_the_third_way_names_its_arm_where_two_are_listed(repo):
     assert "REVIEW arm" in reason, (
         "the third way does not say which of the two arms it is a way out of"
     )
-    assert "silences NOTHING ELSE" in reason, (
+    assert "`straight to the PR`, it silences NOTHING ELSE" in reason, (
         "the sentence still reads as though the commit then goes through"
     )
+    # #988: the chain answer quiets the parity arm too, and the sentence
+    # that says what the declaration silences says so.
+    assert "`through the review chain`, it silences the parity arm too" in reason
     # Case-insensitive: the first version of this check read the lower-case
     # spelling only, and a mutation that opened the sentence with `Re-issue`
     # walked straight through it.
@@ -353,11 +356,13 @@ def test_the_parity_arm_gains_no_third_way(repo):
 
     The routing sentence rides on the review arm, so an arm that has no such
     way out must not inherit one -- offering it there would name a file that
-    silences nothing.
+    silences nothing. Under `straight to the PR` the parity arm still stands
+    at the commit (#988, `questions.md` Q1), which is where its prompt is
+    read.
     """
     opt_in(repo)
     (repo / "seal" / "parity.md").write_text("# migration config\n", encoding="utf-8")
-    declare(repo, review=CHAIN)
+    declare(repo, review=DIRECT)
     (repo / "code.py").write_text("x = 1\n", encoding="utf-8")
     subprocess.run(
         ["git", "-C", str(repo), "add", "-A"], check=True, capture_output=True
@@ -377,12 +382,13 @@ def test_the_parity_arm_gains_no_third_way(repo):
 # --- what the declaration does not touch ------------------------------------
 
 
-def test_the_declaration_does_not_waive_the_parity_arm(repo):
-    """Routing answers whether a reviewer sees the work. Whether the original
-    was consulted is a different question, and nobody answered it."""
+def test_a_direct_declaration_does_not_waive_the_parity_arm(repo):
+    """S2 of #988. Under `straight to the PR` no review round exists to
+    record a comparison against the original, so the declaration quiets the
+    review arm alone and a code commit still meets the parity arm."""
     opt_in(repo)
     (repo / "seal" / "parity.md").write_text("# migration config\n", encoding="utf-8")
-    declare(repo, review=CHAIN)
+    declare(repo, review=DIRECT)
     (repo / "code.py").write_text("x = 1\n", encoding="utf-8")
     subprocess.run(
         ["git", "-C", str(repo), "add", "-A"], check=True, capture_output=True
@@ -392,6 +398,36 @@ def test_the_declaration_does_not_waive_the_parity_arm(repo):
     reason = json.loads(out)["hookSpecificOutput"]["permissionDecisionReason"]
     assert "[no-parity]" in reason
     assert "[no-review]" not in reason
+
+
+gate_module = load_hook_module("gate.py", "specseal_gate_for_routing_tests")
+
+
+@pytest.mark.rule("parity-quiet-under-the-chain")
+def test_a_chain_declaration_quiets_the_parity_arm(repo):
+    """S1 of #988, through `gate.arms_missing` and the PreToolUse reading.
+    In a review chain the warden compares the change with the original after
+    the smith has committed it, and each round record carries that
+    comparison to the pull request. So a code commit on a branch declaring
+    the review chain meets neither arm, while the same commit with no
+    declaration meets the parity arm."""
+    opt_in(repo)
+    (repo / "seal" / "parity.md").write_text("# migration config\n", encoding="utf-8")
+    (repo / "code.py").write_text("x = 1\n", encoding="utf-8")
+    subprocess.run(
+        ["git", "-C", str(repo), "add", "-A"], check=True, capture_output=True
+    )
+
+    def missing():
+        return gate_module.arms_missing(
+            str(repo), str(repo), {gate_module.REVIEW}, lambda: ["code.py"]
+        )
+
+    assert missing() == [gate_module.PARITY]
+    declare(repo, review=CHAIN)
+    assert missing() == []
+    assert decision_of(gate(repo)) == "silent"
+    assert decision_of(gate(repo)) == "silent"
 
 
 def test_no_review_still_waives_one_command_on_its_own(repo):

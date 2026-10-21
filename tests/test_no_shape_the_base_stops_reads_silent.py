@@ -60,8 +60,14 @@ def heredoc(head, delimiter="EOF"):
     return f"{head}\n{BODY}\n{delimiter}"
 
 
-def make_repo(path, declared=False):
-    """An opted-in repository with one commit and a staged change."""
+def make_repo(path, declared=False, review="straight to the PR"):
+    """An opted-in repository with one commit and a staged change.
+
+    `declared` writes a routing declaration answering `review`. Its default
+    is `straight to the PR`, because the cases below that add a migration
+    config judge the parity arm as the one `[no-review]` does not answer,
+    and a declaration answering `through the review chain` quiets that arm
+    at the commit (#988)."""
     path.mkdir(parents=True)
     run = lambda *a: subprocess.run(
         ["git", "-C", str(path), *a], check=True, capture_output=True
@@ -74,7 +80,7 @@ def make_repo(path, declared=False):
     run("add", "f")
     (path / "seal").mkdir()
     if declared:
-        declare_routing(path)
+        declare_routing(path, review=review)
     return path
 
 

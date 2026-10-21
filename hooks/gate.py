@@ -16,9 +16,12 @@ and the other cannot.
   * review -- the repository opted in (`hooks/optin.py`), no routing
     declaration names the branch (`hooks/routing.py#declared`), nothing waived
     it, and the review mark under the git directory does not name HEAD;
-  * parity -- the repository declares a migration config, the change reaches
-    outside the document roots, nothing waived it, and the parity mark does not
-    name HEAD.
+  * parity -- the repository declares a migration config, no routing
+    declaration naming the branch answers `through the review chain`, the
+    change reaches outside the document roots, nothing waived it, and the
+    parity mark does not name HEAD. Under that answer each round record
+    carries the comparison on its `original:` line, which
+    `skills/code-review/scripts/chain_check.py` reads at the pull request.
 
 **What a refusal says** follows from where it is read. git prints a hook's
 stderr into the output of the command that ran git, so the model reads it as
@@ -151,17 +154,19 @@ def arms_missing(cwd, top, waived, paths, head=None):
         # An unborn branch exits non-zero here: no HEAD is git's ordinary no.
         head = git(["rev-parse", "--verify", "--quiet", "HEAD"], cwd) or ""
     git_dir = git(["rev-parse", "--git-dir"], cwd) or ""
+    declared = routing.declared(cwd, top)
     missing = []
     if (
         REVIEW not in waived
         and optin.opted_in(cwd)
-        and not routing.declared(cwd, top)
+        and not declared
         and (not head or read_mark(cwd, git_dir, MARKS[REVIEW]) != head)
     ):
         missing.append(REVIEW)
     if (
         PARITY not in waived
         and optin.parity_config(cwd)
+        and not (declared and declared["review"] == routing.CHAIN)
         and touches_code(paths())
         and (not head or read_mark(cwd, git_dir, MARKS[PARITY]) != head)
     ):
