@@ -1216,7 +1216,7 @@ def test_the_section_keeps_the_broad_once_rule():
     """It predates this work item and a cheap runner is exactly what would
     tempt a session to drop it."""
     section = running_the_checks()
-    assert "Run the broad ones once" in section
+    assert "The broad runs come once" in section
 
 
 def test_the_section_says_the_full_run_is_the_orchestrators():

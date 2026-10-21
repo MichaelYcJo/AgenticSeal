@@ -627,7 +627,7 @@ def test_the_rule_is_where_a_contributor_reads_it():
     rules = text.split("\n## House rules\n", 1)[1].split("\n## ", 1)[0]
     flat = " ".join(rules.split())
     assert "**Every file read or written names its encoding.**" in flat, flat
-    assert 'Name `encoding="utf-8"`.' in flat
+    assert 'The call names `encoding="utf-8"`.' in flat
     assert f"`tests/{os.path.basename(__file__)}`" in flat
     assert "opens its `__main__` with `console.to_utf8()`" in flat
 

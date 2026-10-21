@@ -777,7 +777,7 @@ def test_the_recipe_names_the_artifact_and_the_checklist_has_no_box():
         "`gh run download <run id> -n test-durations -D <dir>`",
         "`gh run rerun <run id>`",
         "`gh workflow run test.yml --ref <branch>`",
-        "over the committed file and commit it",
+        "over the committed file and commits it",
         "`durations` job",
         "`STALE_SHARE`",
         "entries the suite no longer collects",

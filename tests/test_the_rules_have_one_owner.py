@@ -86,7 +86,7 @@ RULES = {
         "The pull request opens ready, once the sealer has sealed, and CI runs then.",
         {
             ORCH_IMPL: f"the pull request opens ({AFTER_THE_SEAL_LINK} when)",
-            CONTRIBUTING: f"{AFTER_THE_SEAL} the order a maintainer's run follows",
+            CONTRIBUTING: f"{AFTER_THE_SEAL_LINK} the order a maintainer's run follows",
         },
     ),
     "7 a compacted session hands the next round to a fresh one": (

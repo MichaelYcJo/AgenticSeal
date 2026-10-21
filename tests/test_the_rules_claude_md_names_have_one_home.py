@@ -63,9 +63,9 @@ RULES = {
         CONTRIBUTING,
         "House rules",
         (
-            "extend its allowlist deliberately, never to make a test pass.",
-            "both incidents that forced a rewrite of this repository's history "
-            "entered exactly this way",
+            "its allowlist is extended deliberately, never to make a test pass.",
+            "a real domain, path or organisation name inlined into an example "
+            "is the leak that forces a rewrite of the repository's history",
         ),
     ),
     "cadence": (
