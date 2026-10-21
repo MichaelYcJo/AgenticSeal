@@ -30,7 +30,7 @@ severity: should
 reopens: round-1#1
 location: `tests/test_first_setup_asks_once.py`, `templates/claude-md-block.md:16`
 evidence: read `templates/claude-md-block.md:16`, `tests/test_first_setup_asks_once.py:728-760`
-verdict: open
+verdict: fixed 1f1dae03
 
 The close of round 1's finding 1 does not hold yet. The text is right: the
 bullet now reads "Except under `no work item`, write
@@ -71,7 +71,7 @@ def test_the_preset_writes_no_declaration_under_no_work_item():
     )
 ```
 
-answer:
+answer: Added the record's case to the bullet's group as `tests/test_first_setup_asks_once.py#test_the_preset_writes_no_declaration_under_no_work_item`. Seen red after 1f1dae03 by `mutation-check` twice, once with "Except under `no work item`, " removed from the template and once with the pointer clause removed (executed).
 
 ### 2. The seal README states the drain a second time, with a moment and a destination section 6 no longer has
 
@@ -79,7 +79,7 @@ severity: should
 reopens: round-1#5
 location: `templates/seal-README.md:65-74`, `seal/README.md:65-74`
 evidence: read `templates/seal-README.md:65-74`, `seal/README.md:65-74`, `skills/implement/SKILL.md:472-487`, `skills/implement/orchestration.md:65-66`, `tests/test_first_setup_asks_once.py:635`
-verdict: open
+verdict: fixed 1f1dae03
 
 Round 1's finding 5 was about the moment the orchestrator drains a work
 item's open rows. The fix moved section 6 to "once the last round record has
@@ -132,7 +132,7 @@ moved leaves them where nothing looks: a prescribed test unplanted, a
 decision nobody recorded.
 ```
 
-answer:
+answer: Took the pointer instead of the replacement text. Both READMEs' `## Export rules` is now one sentence naming `skills/implement/SKILL.md` *6. Drain the rows before the broad run, and keep the records* as where it is stated who moves a work item's open rows, when, and where each goes; it reads whole because the party section 6 names, the orchestrator, opens that skill. A new case, `tests/test_first_setup_asks_once.py#test_the_seal_readme_points_at_the_drain_and_restates_none_of_it`, holds the pointer and refuses a destination table; it was seen red twice after 1f1dae03, with the table put back and with the path dropped (executed `mutation-check`). The class sweep (executed `git grep` for `follow-up.md`, `open-questions section`, `export rules`, "before the PR merges" and "before … closes" over `skills/`, `templates/`, `agents/`, `docs/`, `CLAUDE.md`, `CONTRIBUTING.md` and both READMEs) found these. `templates/sdd-questions.md:32` sent answered rows to `## Rule changes` "before this directory's work merges", and now names section 6's moment. Five descriptions said the README carries the export rules for a session that never loads the skill; `skills/implement/SKILL.md:101`, `skills/implement/orchestration.md:65`, `README.md:120,420` and `README.ko.md:115,414` now say what the README holds. `docs/the-record-layout.md:217` says the same and is outside this diff; it is the framer's `## Rule changes` item. `skills/implement/SKILL.md:216-226` sends a mid-run leftover to `seal/follow-up.md`, which agrees with section 6, and `docs/the-review-record.md:529`'s filing ladder is the policy section 6 defers to; both stand. The changelog fragment names the change.
 
 ## Confirmations
 
