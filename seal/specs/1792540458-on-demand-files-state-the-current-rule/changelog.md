@@ -73,3 +73,11 @@
   contributor where it said "you", drops the issue numbers and anecdotes it
   carried, and names the constant or the workflow file where it restated
   CI's job and shard counts, the case ceiling and the artifact's retention.
+- **The orchestrator drains a work item's unresolved rows before it spawns
+  the sealer (#940).** `skills/implement/SKILL.md` section 6, now *6. Drain
+  the rows before the sealer is spawned, and keep the records*, names the
+  orchestrator as the party and the sealer's spawn as the moment, since the
+  pull request opens once the sealer seals; it used to say only "before the
+  PR merges". The skills and templates cite a heading as the backticked path
+  followed by the heading in italics, with no section sign; a citation of
+  the agent contract's numbered sections keeps its number.
