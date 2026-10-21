@@ -26,7 +26,7 @@ and a seeded case is the tree its work item's round 1 reviewed.
 
 | Item | Who must answer |
 |---|---|
-| The suite as a whole, the repository-wide lint and the typecheck at this branch's head | the orchestrator, at its one broad run |
+| closed the suite as a whole and the repository-wide lint at this branch's head | the orchestrator's broad run at 1219ffdd, `broad-gate.md`: 7420 passed, 13 skipped, ruff check and format clean. The repository runs no typecheck (#951) |
 | Whether a warden finds the seed through `git diff HEAD^ HEAD` more often than through the build, which only a paid run reads | the repository owner, with `questions.md` Q1 |
 
 ## Not done
