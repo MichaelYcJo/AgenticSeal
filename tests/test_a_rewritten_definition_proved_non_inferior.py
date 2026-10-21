@@ -1091,10 +1091,11 @@ def test_a_finding_in_a_shape_the_check_refuses_is_still_one_false_row():
 
 
 def test_a_comment_that_never_closes_hides_no_finding_from_the_false_count():
-    """Guards S2 where the shared reader blanks a region to the end of the
-    file: the check refuses such a record (`chain_check.py#unclosed`), and
-    the findings after the opener still count, one row each, so a warden
-    cannot lower its false-finding rate by leaving a comment open."""
+    """Guards S5a for round 1 of #986's shape: the shared reader blanks a
+    region nobody closed to the end of the file, and the check refuses the
+    record for it (`chain_check.py#unclosed`). The record gives one empty
+    row for each raw finding heading, each false, so a warden cannot lower
+    its false-finding rate by leaving a comment open."""
     text = printed(
         "".join(
             f"### {n}. a finding\n\nseverity: should\n"
@@ -1103,8 +1104,21 @@ def test_a_comment_that_never_closes_hides_no_finding_from_the_false_count():
             for n in (1, 2, 3)
         )
     )
-    assert ni.finding_rows(text) == [f"location: `src/b.py:{n}`" for n in (1, 2, 3)]
+    assert ni.finding_rows(text) == ["", "", ""]
     numbers = ni.side_numbers(printed_side(text, [("truth-1", TRUTH)]))
+    assert (numbers["rows"], numbers["false"]) == (3, 3)
+
+
+def test_a_record_the_check_cannot_read_finds_no_truth():
+    """Guards S5b: a record the check refuses reads as no finding in
+    production, so it finds no truth here either, even where a finding names
+    a truth's line outside every fence and comment and the eval's search of
+    the whole file recorded the truth passed. Every row stays false."""
+    text = three_findings({1: "Why <!-- and nothing closes this.\n\n"}).replace(
+        "location: `src/b.py:2`", "location: `src/a.py:11`"
+    )
+    numbers = ni.side_numbers(printed_side(text, [("truth-1", TRUTH)], ["truth-1"]))
+    assert numbers["graders"][("c1", "truth-1")] == ["truth", 0, 1]
     assert (numbers["rows"], numbers["false"]) == (3, 3)
 
 
@@ -1136,19 +1150,47 @@ def three_findings(tail):
 def test_a_closed_fence_still_hides_its_headings_beside_a_region_that_never_closes(
     tail,
 ):
-    """Guards round 2 of #986, finding 1: where a region never closes, the
-    lines up to its opener keep the shared reader's reading and the lines
-    after it are read again on their own, so a closed fence's `## ` line,
-    before or after the opener, ends no `## Findings` section and none of
-    the three findings vanishes."""
-    rows = [f"location: `src/b.py:{n}`" for n in (1, 2, 3)]
-    assert ni.finding_rows(three_findings(tail)) == rows
+    """Guards S5a for round 2 of #986's shapes: a closed fence's `## ` line,
+    before or after a comment that never closes, ends no count. The record
+    is one the check refuses, so it gives one empty row for each raw
+    finding heading and none of the three findings vanishes."""
+    assert ni.finding_rows(three_findings(tail)) == ["", "", ""]
+
+
+def test_a_comment_opener_inside_a_closed_fence_hides_no_finding():
+    """Guards S5a for round 3 of #986's shape: a lone comment opener inside
+    finding 1's fenced fix swallows the fence's closer, since the shared
+    reader reads comments before fences, and the check refuses the record.
+    No reading of the lines after such an opener is relied on: the record
+    gives one empty row for each raw finding heading."""
+    text = three_findings(
+        {
+            1: "```\n<!-- the head of a template\n```\n\n",
+            2: "```\nfix two\n```\n\n",
+            3: "```\nfix three\n```\n\n",
+        }
+    )
+    assert ni.finding_rows(text) == ["", "", ""]
+
+
+def test_a_fenced_finding_heading_counts_in_a_record_the_check_cannot_read():
+    """Guards S5c: in a record the check refuses, a `### ` line inside a
+    closed fence is one more empty row, since the count reads the raw lines
+    and errs toward more false rows, never fewer."""
+    text = three_findings(
+        {
+            1: "Why <!-- and nothing closes this.\n\n",
+            2: "```\n### 9. a quoted finding heading\n```\n\n",
+        }
+    )
+    assert ni.finding_rows(text) == ["", "", "", ""]
 
 
 def test_regions_that_never_close_nested_or_repeated_hide_no_finding():
-    """Guards that the reading again ends and still counts: an opener inside
+    """Guards S5a where the openers are nested or repeated: an opener inside
     an opener, a second comment that never closes, and a fence that never
-    closes, one in each finding, leave three rows."""
+    closes, one in each finding, still give one empty row for each raw
+    finding heading."""
     text = three_findings(
         {
             1: "Why <!-- an opener <!-- inside one\n\n",
@@ -1156,11 +1198,7 @@ def test_regions_that_never_close_nested_or_repeated_hide_no_finding():
             3: "```\nlocation: `src/c.py:9`\n",
         }
     )
-    assert ni.finding_rows(text) == [
-        "location: `src/b.py:1`",
-        "location: `src/b.py:2`",
-        "location: `src/b.py:3`\nlocation: `src/c.py:9`",
-    ]
+    assert ni.finding_rows(text) == ["", "", ""]
 
 
 def test_a_location_line_outside_every_finding_is_no_row():

@@ -9,9 +9,10 @@
   findings are read by `chain_check.py#finding_spans` over the lines the
   check's shared reader leaves, so a line in a fence or a comment is no
   finding, and a finding in a shape the check refuses still counts as
-  false. A record holding a comment or fence that never closes, which the
-  check refuses, is split on its raw lines, so the findings after the
-  opener still count. A `truth-` grader over the round record is graded on
+  false. A record holding a comment or fence that never closes is one the
+  check refuses and reads as no finding; it counts one false finding for
+  each raw finding heading, fenced ones included, and finds no truth. A
+  `truth-` grader over the round record is graded on
   those findings. `compare` and `regrade` refuse, with exit 2 and the side's file
   named, a side that keeps no `report_text`; every side committed before
   #986 is one.

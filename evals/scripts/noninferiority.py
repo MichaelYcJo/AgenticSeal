@@ -295,37 +295,30 @@ def apart(text, scan):
     return text
 
 
-def unhidden(check, reader, text):
-    """`readable`'s lines of TEXT, where a region nobody closed hides no line
-    after the line that opened it. A comment or fence that never closes
-    hides every line after it from `readable`, and the check refuses the
-    record for it (`chain_check.py#unclosed`). The lines after the first
-    such opener are read again on their own, so a closed fence after it
-    still hides its own headings, and a second opener is read the same way.
-    Each reading is of fewer lines, so it ends."""
-    lines = reader.readable(text)
-    hidden = check.unclosed(reader, text, "")
-    if not hidden:
-        return lines
-    opened = min(line for _rel, line, _why in hidden)  # 1-based
-    rest = "\n".join(reader.gfm_lines(text)[opened:])
-    return lines[:opened] + unhidden(check, reader, rest)
-
-
 def finding_rows(text):
     """One row for each finding of the round record TEXT: the finding's
     `location:` lines joined by a newline, or the empty string where it has
     none. A finding is a `### ` section of the one `## Findings` section,
     split by `chain_check.py#finding_spans` over the lines its shared reader
     leaves, so a line in a fence or a comment is no line. A section the
-    check would refuse is still one row.
+    check would refuse is still one row. A record with no `## Findings`
+    section, or with two, gives no rows, as the check's split does.
 
-    A record with no `## Findings` section, or with two, gives no rows, as
-    the check's split does. The lines split are `unhidden`'s, so a finding
-    after a region that never closes is still a false row instead of
-    vanishing."""
+    A record holding a comment or fence that never closes is one the check
+    refuses (`chain_check.py#unclosed`) and production reads as no finding,
+    and no reading of the lines after such an opener is certain to find
+    every finding. It gives one empty row for each raw line at the finding
+    heading level, a fenced or commented one included, so every one is
+    false, the count errs toward more false rows, and an empty row finds no
+    truth."""
     check, reader = rt.record_reader()
-    lines = unhidden(check, reader, text)
+    if check.unclosed(reader, text, ""):
+        return [
+            ""
+            for line in reader.gfm_lines(text)
+            if reader.heading_level(line) == check.FINDING_LEVEL
+        ]
+    lines = reader.readable(text)
     _section, spans, _error = check.finding_spans(reader, lines)
     return [
         "\n".join(
