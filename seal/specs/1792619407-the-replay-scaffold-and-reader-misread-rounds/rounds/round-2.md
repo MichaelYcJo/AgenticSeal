@@ -9,7 +9,7 @@ target: 4875eb7b, fixes 8ef3a12c..4875eb7b
 severity: should
 location: `evals/scripts/noninferiority.py:298-325`, `tests/test_a_rewritten_definition_proved_non_inferior.py:1093`
 evidence: executed `python3 test_tmp_986_round2.py`
-verdict: open
+verdict: fixed 729cea97
 regression: round-1#2
 
 The unit is `noninferiority.py#finding_rows`, which 0cc8be41 changed. Where `chain_check.py#unclosed` refuses the
@@ -54,14 +54,14 @@ and in `finding_rows`, in place of the branch at lines 313 to 316:
     lines = unhidden(check, reader, text)
 ```
 
-answer:
+answer: Applied as the record gives it: `noninferiority.py#unhidden` keeps `readable`'s lines up to the first opener `unclosed` reports and reads the lines after it again on their own, and `finding_rows` splits its lines. `test_a_closed_fence_still_hides_its_headings_beside_a_region_that_never_closes` stands beside the case at line 1093 with three shapes: a fenced `## Not judged` before an open comment, a fenced `## Findings` before one, and a fenced `## Not judged` after one. Each gives three rows, and all three were red against 4875eb7b's reader (executed). `test_regions_that_never_close_nested_or_repeated_hide_no_finding` puts an opener inside an opener, a second comment that never closes and a fence that never closes in three findings, and it ends with three rows. Each reading is of fewer lines, so the recursion ends. Three mutations went red: the raw split restored, the rest read from the opener's own line, and `readable` alone (executed).
 
 ### 2. Three texts say no git fetch brings the shipped code back, and a fetch naming the URL the tree holds does
 
 severity: should
 location: `evals/scripts/seed_defects.py:16`, `evals/scripts/seed_defects.py:282-283`, `seal/specs/1792619407-the-replay-scaffold-and-reader-misread-rounds/changelog.md:26`
 evidence: executed `git grep -l github.com/MichaelYcJo/SpecSeal`, `sh evals/behaviour/warden/seeded-279a580b/scaffold.sh`
-verdict: open
+verdict: fixed 729cea97
 regression: round-1
 
 The units are the module docstring of `seed_defects.py`, the docstring of `seed_defects.py#scaffold` and the
@@ -91,7 +91,7 @@ changelog.md:
   then expires the...
 ```
 
-answer:
+answer: Stated once, in `seed_defects.py`'s module docstring: a `git fetch` with no URL has no remote to fetch from, and a fetch that names the repository's URL, which tracked files of the tree hold, still reaches the shipped code. The `scaffold` docstring and the S10 case's docstring point at it, and the changelog fragment says a bare `git fetch` fetches nothing. `overview.md`'s row on the removed remote points at the docstring too. `git grep` finds no other text saying no fetch brings the shipped code back, outside the round records (executed). The four seeded cases regenerate unchanged by this rewording, since a docstring is no part of a scaffold (S11 executed: `git status --porcelain evals/behaviour/` empty).
 
 ## Confirmations
 
