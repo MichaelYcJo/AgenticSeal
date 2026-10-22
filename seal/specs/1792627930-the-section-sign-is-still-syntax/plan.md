@@ -12,12 +12,10 @@ another file's section to its heading text. Phase 3 adds the one case that
 refuses the old spelling, rewrites what is left, and states the shape in the
 writing rule.
 
-The owner's widening of 2026-10-22 adds three phases. Phase 4 takes every
+The owner's widening of 2026-10-22 adds two phases. Phase 4 takes every
 comment and every guidance sentence out of the record templates and lands
 each sentence once, in what its writer reads. Phase 5 makes the fence rule
-and the line split one copy. Phase 6 strips the old records and the record
-readers' comment states, and is built only if the owner answers
-`questions.md` Q6 with (a). `spec.md` holds the spellings, the readers, the
+and the line split one copy. `spec.md` holds the spellings, the readers, the
 homes and the counts.
 
 ## Technical context
@@ -28,7 +26,7 @@ homes and the counts.
 `seal/specs/`, 14 and 7 of them carry a section sign at the branch's tip,
 and the two diffs add 5 and 1 lines that carry one, records included
 (executed). #988 also changes `rule_changes.py`, `unverified_check.py` and
-`chain_check.py`, the readers phases 5 and 6 touch (relayed by the
+`chain_check.py`, the readers phase 5 touches (relayed by the
 orchestrator, not opened). So no phase pins a coordinate. Each phase starts
 with `git grep` at its own HEAD (for the section sign in phases 1 to 3, for
 `<!--` and the template paths in phase 4, for the fence functions in phase
@@ -105,8 +103,8 @@ warden can read each one against its home.
 | B4. Template guidance moves to the agent definitions | Every sentence moved there is paid on every spawn, and rule 4 is measured on exactly those bytes | rejected, except for a sentence with no other home |
 | B5. Template guidance moves to the skill or orchestration file its writer opens, or goes where its owner already states it | A writer that does not open the skill misses the sentence. The framer opens `skills/implement/SKILL.md` *3. The SDD file set* at its step 3, and the orchestrator opens `skills/implement/orchestration.md` to route the work | **chosen** |
 | B6. A template keeps a one-line comment pointing at its home | Still a comment in every record, and `skills/implement/SKILL.md` *3. The SDD file set* already maps each template to its writer | rejected |
-| B7. The record readers lose the comment and code-span states now, with the old records stripped | The owner's choice (`questions.md` Q6 answer a): it rewrites 611 record files, and a consuming repository's in-flight work item, framed under the old templates, is refused after it upgrades | phase 6, built only under Q6 (a) |
-| B8. The record readers keep the comment states until the owner's settle retires the backlog, and a later item removes them | Every reader keeps the states that caused #1000 and #988's round 2 for one more release | **chosen**, by default (`questions.md` Q6 answer b) |
+| B7. The record readers lose the comment and code-span states in this item, with the old records stripped | The backlog settle reads a released spec at `origin/main`, where #941's no-change blocks arrive only when 0.22.3 merges, so the strip would rewrite records that settle is due to remove (relayed by the orchestrator from a dry run, not opened) | rejected by the owner, 2026-10-22 (`questions.md` Q6) |
+| B8. The record readers keep the comment states until the backlog settle after 0.22.3 merges, and #1012 removes them right after it | Every reader keeps the states that caused #1000 and #988's round 2 for one more release | **chosen** by the owner, 2026-10-22 (`questions.md` Q6) |
 
 ## Phases
 
@@ -117,7 +115,13 @@ warden can read each one against its home.
 | 3 | The old spelling refused. The case of `spec.md` scope item 6 is written and run at the phase's HEAD, where it lists the residue (seen red), then every listed line is rewritten. The writing rule states the shape once and its `check:` line names the two modules. The phase record holds the preload bytes. | The new case at head (S3), `git diff --name-only <base>..HEAD` over the four record paths (S9), `noninferiority.py#preload_bytes` again (S5), the modules of every file the residue touched | |
 | 4 | The record templates. Every comment and every guidance sentence leaves the eight `templates/sdd-*.md`; each sentence is removed where its owner already states it, or moved to the home `spec.md` names. Each case that pinned a template sentence pins it at its home. `tests/test_a_record_carries_no_comment.py` refuses a comment in a record template (S10). The phase record lists every sentence and where it now stands (S11), and the five preloads. | The new case seen red with one comment put back; the 17 modules that read `templates/sdd-*` at the phase's HEAD; `noninferiority.py#preload_bytes` (S5) | |
 | 5 | One fence rule. `unverified_check.py` imports `fence_opener`, `fence_closes`, `GFM_LINE_RE` and `gfm_lines` from `hooks/blocks.py`, and its own copies and the two in-step cases go (S12). A labelled line in a closed fence is still not read, and an unclosed fence is still refused at its line. | `tests/test_chain_check.py`, `tests/test_unverified_rows_close.py`, `tests/test_the_hooks_hide_what_a_renderer_hides.py`, and the modules of every caller of the four names | |
-| 6 | Built only under `questions.md` Q6 answer (a). One commit strips the comments of every record under `seal/specs/`. `comment_scan` and `strip_comments` go, `readable` blanks fences alone, `chain_check.py#unclosed` keeps its fence half, and a record line beginning `<!--` is refused at its line by the reader of that record (S13). The Removes row marked "Q6 answer (a) only" is this phase. Under answer (b) this row stays empty, and the pull request body says the later item owns it. | The record readers' modules, the new refusal seen red; S9 then reads every record path as changed, which this phase records as intended | |
+
+## Out of scope
+
+- Stripping the old records' comments and removing the record readers'
+  comment and code-span states are #1012's, milestone 0.22.4, which runs
+  right after the backlog settle that follows 0.22.3's merge to `main`
+  (`questions.md` Q6; `spec.md` scope item 14).
 
 ## Operational impact
 
@@ -126,10 +130,11 @@ spawn's preload changes: the contract's headings and the agent definitions'
 citations. A spawn prompt written before this release that cites a rule with
 the section sign still names the same rule by the same number. A consuming
 repository's own records keep their old citations and their comments, and
-under Q6's default the readers still read them. A new work item there,
+in this release the readers still read them. A new work item there,
 framed after the upgrade, gets templates with no comment. The hooks change
 in comments and docstrings, and `hooks/blocks.py` becomes the one fence
-rule both the hooks and the skill readers ask. Under Q6 answer (a), a
-consuming repository's in-flight work item framed under the old templates
-is refused at its first check after the upgrade, until its records are
-stripped, and the release note has to say so.
+rule both the hooks and the skill readers ask. Once #1012 removes the
+readers' comment state, a consuming repository's in-flight work item
+framed under the old templates is refused at its first check after that
+upgrade, until its records are stripped, and the release note that ships
+#1012 has to say so.

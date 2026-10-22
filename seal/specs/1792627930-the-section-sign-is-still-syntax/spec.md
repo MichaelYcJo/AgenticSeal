@@ -20,7 +20,7 @@ comments and needless fences. Scope items 10 to 14 are that widening.
 | `CONTRIBUTING.md` *House rules* | Only the branch based on `main` writes `changelog/` and `CHANGELOG.md`. This branch edits neither. |
 | `evals/README.md`, the five pass rules of the behaviour suite | A rewrite of a preload is proved not worse by the paid suite. Rule 4 (the preload is fewer bytes than the baseline's) is read for free with `evals/scripts/noninferiority.py#preload_bytes`. "Nothing in the tree makes a later edit owe a run." |
 | `docs/branch-and-release.md` *Work accumulates on a release branch* | Each changelog entry is written under a comment naming its work item, invisible to a reader. This is the marker spelling `questions.md` Q1 keeps by default. |
-| `docs/the-review-record.md` *The round record* and *What the check reads at the pull request* | A finding holds its paste-ready fix in a fence, and a labelled line inside a fence or a comment is not a line. The fence state stays (scope item 12); the comment half stays while old records carry comments (`questions.md` Q6). |
+| `docs/the-review-record.md` *The round record* and *What the check reads at the pull request* | A finding holds its paste-ready fix in a fence, and a labelled line inside a fence or a comment is not a line. The fence state stays (scope item 12). The comment half stays too, and the sentence with it, until #1012 (scope item 14). |
 | `docs/the-record-layout.md` *seal/specs/<work-item-id>/* | Where the two new rules on comments and fences in records are added, through `## Rule changes`. |
 | `skills/settle/SKILL.md` *Rule changes* and *A rule has one shape* | The grammar of `## Rule changes` below. |
 
@@ -125,19 +125,28 @@ number, 271 before an italic heading, and 129 before anything else (executed).
     around a finding's paste-ready fix, with every labelled line a check
     reads outside every fence at the start of its line. A case refuses a
     comment in `templates/sdd-*.md`.
-14. **The old records, under `questions.md` Q6.** 611 files across all 125
-    work items carry a comment, about 12,240 lines of them (executed; the
-    line figure is a regex count, not the shared reader's). By default (Q6
-    answer b) they stay as written, and the readers keep the comment and
-    code-span states until the owner's settle retires the backlog; a later
-    item removes those states. Under answer (a), phase 6 strips them and
-    removes the states now.
+14. **New records carry no comment; old records keep theirs until #1012.**
+    A record started after phases 4 and 5 land carries no comment, because
+    its template holds none. The records already in the tree keep their
+    comments, and the record readers keep the comment and code-span states
+    that read them: `unverified_check.py#comment_scan`, `#strip_comments`
+    and `#readable`, the comment half of `chain_check.py#unclosed`, and the
+    comment skip in `rule_changes.py#parse`. The owner settled the order on
+    2026-10-22 (`questions.md` Q6): the backlog settle runs after 0.22.3
+    merges to `main`, and #1012, milestone 0.22.4, runs right after it. #1012
+    strips the records that settle leaves and removes those states. At
+    a16acb40, 611 record files across all 125 work items carried a comment,
+    about 12,240 lines (executed; the line figure is a regex count, not the
+    shared reader's); #1012 recounts at its own base.
 
 **Out of scope.**
 
 - The records of a moment, for the section sign. They state what was true
   when written, and `changelog/` belongs to the branch based on `main`.
-  Their comments are Q6's.
+  Their comments are #1012's (scope item 14).
+- Stripping the old records' comments and removing the record readers'
+  comment state. Both are #1012's, after the backlog settle that follows
+  0.22.3's merge to `main` (`questions.md` Q6).
 - The changelog markers. They stay `<!-- specs/<id> -->` by default
   (`questions.md` Q1). Refusing a near miss is not added either: 27 lines in
   11 release files open a comment naming `seal/specs/` in an older fragment
@@ -149,9 +158,14 @@ number, 271 before an italic heading, and 129 before anything else (executed).
   (`fold_check.py`) and the policy documents a rule change is applied to
   (`rule_changes.py#apply_op`). Those files are the consuming project's,
   written in its own convention.
-- `hooks/blocks.py`'s comment-block walk. It serves `seal/config.md`, where
-  `templates/config.md` documents parking a row in a comment, and old
-  `routing.md` files until Q6 is settled.
+- `hooks/blocks.py`'s comment-block walk, and `hooks/routing.py#shown`,
+  which reads a `routing.md` through it. The walk serves `seal/config.md`,
+  where `templates/config.md` documents parking a row in a comment. The
+  routing reader runs in the commit gate of every consuming repository, so
+  a refusal there would stop each commit of an in-flight work item framed
+  under the old templates, mid-run, until its `routing.md` is stripped. A
+  new `routing.md` carries no comment once phase 4 lands, and the walk
+  hides nothing in it.
 - The `<!-- specseal:start -->` and `<!-- specseal:end -->` lines of
   `templates/claude-md-block.md`. An installer and two tests read them to
   find the block in a person's `CLAUDE.md`, and they must not render there:
@@ -190,11 +204,11 @@ number, 271 before an italic heading, and 129 before anything else (executed).
 | S6 printed text | Given each message of scope item 8, when it is printed, then it carries no section sign and its new text is pinned. | the module that pins each message, each case seen red |
 | S7 touched citations resolve | Given a citation phases 2 and 3 touch whose file exists, when the phase closes, then the citation names a heading of that file, or the phase record lists what it became. | the phase records; read by the warden |
 | S8 rule changes | Given this spec, when `rule_changes.parse` reads it, then it yields one `change` and two `add`, and `apply_op` places each in its document at the base. | executed by the framer at a16acb40; the pull request check re-reads it |
-| S9 records untouched | Given the diff from the base to head, when it is listed for `seal/specs/`, `changelog/`, `CHANGELOG.md` and `evals/behaviour/`, then only this work item's own directory appears (under Q6 answer b). | `git diff --name-only <base>..HEAD` over those four paths |
+| S9 records untouched | Given the diff from the base to head, when it is listed for `seal/specs/`, `changelog/`, `CHANGELOG.md` and `evals/behaviour/`, then only this work item's own directory appears. | `git diff --name-only <base>..HEAD` over those four paths |
 | S10 templates carry no comment | Given `templates/sdd-*.md` at head, when the template case reads them, then none holds `<!--`; with one comment put back, the case fails naming the file and line. | `tests/test_a_record_carries_no_comment.py`, seen red |
 | S11 guidance lands once | Given each sentence phase 4 takes out of a template, when the phase closes, then its phase record names where the sentence now stands (file and heading) or the owner that already stated it; and each case that pinned a template sentence pins it at its new home. | phase 4's record; the 17 test modules that read `templates/sdd-*` at a16acb40 (executed count) |
 | S12 one fence rule | Given `unverified_check.py` at head, when its fence delimiter rule and line split are asked, then they are `hooks/blocks.py`'s; a labelled line inside a closed fence in a round record is still not read, and a fence that never closes is still refused at its opening line. | `tests/test_chain_check.py` and `tests/test_unverified_rows_close.py` at head, with the two in-step cases gone |
-| S13 old records, under Q6 answer (a) only | Given the records stripped, when the check reads a record that holds a line beginning `<!--`, then it refuses that line, and `comment_scan` and `strip_comments` no longer exist. | phase 6's cases, built only under Q6 answer (a) |
+| S13 old records read as before | Given a record in the tree that still carries a template comment, when `chain_check.py`, `unverified_check.py#check_text` or `rule_changes.py#parse` reads it at head, then the comment is hidden as it was at the base, and `comment_scan` and `strip_comments` still exist. | the readers' modules at head, their comment cases unchanged |
 
 ## Data & interfaces
 
@@ -286,7 +300,6 @@ holding `<!--`. The first `add` under `## Rule changes` names this module.
 | The 23 comments of the eight record templates, and the body guidance of `sdd-plan.md` and `sdd-questions.md` | every `templates/sdd-*.md` | The homes under `## Data & interfaces`, or the owner that already states each sentence; phase 4's record lists which |
 | The second copy of the fence rule and of the line split | `skills/verify/scripts/unverified_check.py#fence_opener`, `#fence_closes`, `#GFM_LINE_RE`, `#gfm_lines` | `hooks/blocks.py`, imported |
 | The two cases that held the copies in step | `tests/test_unverified_rows_close.py#test_the_fence_rule_agrees_with_the_config_reader`, `tests/test_the_hooks_hide_what_a_renderer_hides.py#test_the_walks_line_rule_is_the_readers` | One copy has nothing to agree with |
-| Under Q6 answer (a) only: the comment states of the record readers, and the old records' comments | `skills/verify/scripts/unverified_check.py#comment_scan`, `#strip_comments`, the comment half of `skills/code-review/scripts/chain_check.py#unclosed`, and the comments of 611 record files | Records carry no comment; a line beginning `<!--` in a record is refused at its line |
 
 ## Open questions
 
