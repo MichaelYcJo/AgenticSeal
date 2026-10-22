@@ -378,7 +378,9 @@ where the diff is large enough to threaten what the orchestrator still has
 to hold. That threshold is a number nobody has; the axis it sits on is
 REPLACEABILITY, not cost, because the orchestrator is the one participant a
 release cannot replace mid-run. The row is deleted only for a work item that
-has no answer to give.
+has no answer to give. The file ends with `## Why this way`, one or two
+sentences nothing reads: what a reviewer and the next session see instead of
+guessing from the absence of a token.
 
 **`automation` writes all four party rows at their checked values**, plus
 `Automation` = `yes`, plus `Answer pressed` = `automation`. Ticking all four
