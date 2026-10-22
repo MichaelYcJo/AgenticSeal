@@ -103,8 +103,11 @@ the framer cites them and does not restate them. -->
 - **The draw.** One function, `draw(png)`, writes the PNG at `png` and
   returns the note's width in CSS pixels. It imports Pillow in its own body,
   and raises `Refused` with a sentence naming the cause when Pillow will not
-  import, when the stamp module will not load, or when the save fails. The
-  module's top stays stdlib-only, so every publishing case can run with a
+  import, when the stamp module will not load, or when the save fails. In
+  the `seal` job neither of the first two reaches `draw`: a Pillow that did
+  not install, or a stamp module that will not load, fails the suite at the
+  tag first, and `seal_release` refuses on the suite's outcome before it
+  calls `draw`. The module's top stays stdlib-only, so every publishing case can run with a
   stand-in for `draw` and without Pillow, as they ran with a stand-in for
   `rsvg-convert`.
 - **The workflow.** The `seal` job keeps `install the suite's packages and
@@ -125,7 +128,7 @@ the framer cites them and does not restate them. -->
   file: docs/release-checklist.md
   section: 6. After the merge
   from: `rsvg-convert` was not installed or could not draw the SVG,
-  to: Pillow was not installed or the stamp's module would not load,
+  to: the seal could not be drawn or written,
 - change
   file: docs/release-checklist.md
   section: 6. After the merge

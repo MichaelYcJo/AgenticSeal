@@ -64,8 +64,9 @@ other four whose sections name these documents carry the no-change block.
 **The window.** From the merge until the owner's settle applies this spec,
 `docs/branch-and-release.md` and `docs/release-checklist.md` still say
 `rsvg-convert`. A person who follows the checklist's hand-drawn route in
-that window and has Pillow missing reads `no seal: Pillow is not
-installed...` from the script itself, which names the fix. `questions.md`
+that window without Pillow meets the failure at the route's first command:
+the suite's pixel cases fail with a `ModuleNotFoundError` naming `PIL`, and
+the script then refuses because the suite did not pass. `questions.md`
 Q1 offers the owner the other path.
 
 **The release this lands in draws itself with it.** `publish-release.yml`
