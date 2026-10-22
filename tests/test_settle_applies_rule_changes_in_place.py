@@ -232,6 +232,30 @@ def test_a_line_that_begins_inside_a_code_span_is_refused_at_its_line():
     assert parsed.ops[0].new.endswith("`through the review chain`\ncarries one line.")
 
 
+def test_a_comment_opener_inside_a_fence_above_the_section_hides_no_operation():
+    """Round 2 of #988, finding 1. A comment opener inside a fenced block is
+    code, not a comment, as `live_lines` reads it. The reader that refused a
+    wrapped span read it as a comment that ran to the next closer, so a
+    section after such a fence parsed as empty (shape A), or kept only the
+    operations after a later comment closed it, with no error (shape B)."""
+    fence = "# a work item\n\n```html\n<!-- an example of a comment\n```\n\n"
+    adds = [f"- add\n  file: docs/{name}.md\n  to: A rule." for name in "abc"]
+    shape_b = (
+        f"{fence}## Rule changes\n\n{adds[0]}\n{adds[1]}\n"
+        f"<!-- the third one -->\n{adds[2]}\n\n## Open questions\n\nNone.\n"
+    )
+    parsed = parse(shape_b)
+    assert parsed.errors == [], parsed.errors
+    assert [o.file for o in parsed.ops] == ["docs/a.md", "docs/b.md", "docs/c.md"]
+    shape_a = (
+        f"{fence}## Rule changes\n\n{adds[0]}\n\n## Open questions\n\n"
+        "None. <!-- a note -->\n"
+    )
+    parsed = parse(shape_a)
+    assert parsed.errors == [], parsed.errors
+    assert [o.file for o in parsed.ops] == ["docs/a.md"]
+
+
 @pytest.mark.parametrize(
     "body, bad, reason",
     [
