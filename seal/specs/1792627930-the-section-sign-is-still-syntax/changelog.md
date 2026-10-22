@@ -13,7 +13,7 @@
   agent that spawned another now reads `Contract rule 6`, and the broad
   gate's refusals, `settle`'s readers heading and the tracker label's
   source name their section by its heading. Every agent's preload is
-  smaller: framer 61 bytes, smith 78, warden 70, sealer 81 and scribe 59.
+  smaller: framer 16 bytes, smith 78, warden 70, sealer 81 and scribe 59.
 - **The record templates carry no comment and no guidance (#1005).** Each
   of the eight `templates/sdd-*.md` holds headings, table headers,
   placeholders, the labelled lines its record's grammar asks for and its
