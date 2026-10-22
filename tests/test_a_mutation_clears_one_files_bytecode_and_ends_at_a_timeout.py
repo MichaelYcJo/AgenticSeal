@@ -38,6 +38,7 @@ import textwrap
 import time
 
 import pytest
+from conftest import flat
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SCRIPT = os.path.join(ROOT, "skills", "verify", "scripts", "mutation_check.py")
@@ -986,11 +987,6 @@ def test_a_markdown_file_is_mutated_and_restored_the_same_way(tmp_path, capsys):
 
 
 # --- S9 · the definition names the command and no directory to clear -------
-
-
-def flat(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
-        return " ".join(f.read().split())
 
 
 def test_the_smiths_definition_names_the_command_and_no_directory_to_clear():

@@ -19,7 +19,8 @@ import os
 import re
 
 import pytest
-from conftest import posix_id
+from conftest import read
+from conftest import repo_relative as name
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -32,15 +33,6 @@ SECTIONS = ("## Job", "## Order of work", "## Never", "## Rules")
 # A backticked path into the plugin's own tree. A placeholder (`<…>`), a glob,
 # a `path::name` target and a `path#anchor` are not paths and are not read.
 PLUGIN_PATH = re.compile(r"`((?:skills|templates|docs|agents)/[A-Za-z0-9._/-]*)`")
-
-
-def read(path):
-    with open(path, encoding="utf-8") as handle:
-        return handle.read()
-
-
-def name(path):
-    return posix_id(os.path.relpath(path, ROOT))
 
 
 def split(text):

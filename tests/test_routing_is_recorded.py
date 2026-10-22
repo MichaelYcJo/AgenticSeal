@@ -20,7 +20,7 @@ import os
 import subprocess
 
 import pytest
-from conftest import decision_of, fired, load_hook_module, run_hook
+from conftest import branch_of, decision_of, fired, load_hook_module, opt_in, run_hook
 
 routing = load_hook_module("routing.py", "specseal_routing")
 
@@ -37,19 +37,6 @@ def payload(cmd, repo, session="s1", **extra):
     }
     p.update(extra)
     return p
-
-
-def opt_in(repo):
-    (repo / "seal").mkdir(exist_ok=True)
-
-
-def branch_of(repo):
-    return subprocess.run(
-        ["git", "-C", str(repo), "rev-parse", "--abbrev-ref", "HEAD"],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    ).stdout.strip()
 
 
 def declare(

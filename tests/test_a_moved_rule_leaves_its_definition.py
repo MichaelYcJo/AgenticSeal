@@ -70,7 +70,9 @@ import os
 import re
 
 import pytest
-from conftest import posix_id
+from conftest import flattened as flat
+from conftest import read
+from conftest import repo_relative as name
 from test_the_agent_contract_holds_the_universal_rules import HEADING
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -90,15 +92,6 @@ LONGEST_KEPT_APPLICATION = 10
 SMALLEST_REAL_DUPLICATION = 25
 
 
-def read(path):
-    with open(path, encoding="utf-8") as handle:
-        return handle.read()
-
-
-def flat(text):
-    return " ".join(text.split())
-
-
 def sections(text):
     """{number: body} for every `## <N>` in the contract, heading excluded.
 
@@ -114,10 +107,6 @@ def sections(text):
 
 
 SECTIONS = sections(read(CONTRACT))
-
-
-def name(path):
-    return posix_id(os.path.relpath(path, ROOT))
 
 
 def runs(body, window=WINDOW):

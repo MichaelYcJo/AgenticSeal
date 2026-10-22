@@ -38,6 +38,7 @@ import importlib.util
 import os
 
 import pytest
+from conftest import read
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 PHASE_TEMPLATE = os.path.join(ROOT, "templates", "sdd-phase.md")
@@ -51,11 +52,6 @@ SECTIONS = (
 SPEC_TEMPLATE = os.path.join(ROOT, "templates", "sdd-spec.md")
 FRAMER_AGENT = os.path.join(ROOT, "agents", "framer.md")
 REMOVES_RULE = os.path.join(ROOT, "docs", "the-reader-registry.md")
-
-
-def read(path):
-    with open(path, encoding="utf-8") as f:
-        return f.read()
 
 
 def reader_module():

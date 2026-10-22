@@ -38,7 +38,7 @@ import subprocess
 import sys
 
 import pytest
-from conftest import decision_of, load_hook_module, run_hook
+from conftest import decision_of, dirty, load_hook_module, run_hook
 
 wg = load_hook_module("worktree-guard.py", "wg_consent")
 wc = load_hook_module("worktree_consent.py", "wc_consent")
@@ -787,8 +787,8 @@ def test_the_order_of_a_switch_and_a_creation_does_not_decide(
     the base: the create-first spelling was silent or asked where the
     switch-first one denied."""
     differs = []
-    for state, sessions, dirty in TREE_STATES:
-        make_dirty(repo, dirty)
+    for state, sessions, changed in TREE_STATES:
+        make_dirty(repo, changed)
         for consented in (False, True):
             runs = {}
             for spelling, command in (
@@ -832,8 +832,8 @@ def test_a_command_with_both_is_never_weaker_than_either_alone(
     per run, so every verdict is a first attempt. Seen red at the base: with a
     record, create-first was silent where the switch alone denied."""
     weaker = []
-    for state, sessions, dirty in TREE_STATES:
-        make_dirty(repo, dirty)
+    for state, sessions, changed in TREE_STATES:
+        make_dirty(repo, changed)
         for consented in (False, True):
             for both in (CREATE_FIRST, SWITCH_FIRST):
                 verdicts = {}
@@ -1859,10 +1859,6 @@ def test_consent_fails_closed_on_any_exception(monkeypatch, repo):
 # otherwise it is an `ask`. The consent record is not the press.
 
 STOP = "does not know to leave the branch where it is"
-
-
-def dirty(repo):
-    (repo / "f.txt").write_text("changed\n", encoding="utf-8")
 
 
 def test_under_the_press_the_stop_is_a_deny_to_the_model(

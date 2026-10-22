@@ -6,13 +6,15 @@ stamp — is still held by `tests/test_the_seal_is_taken_once_by_the_sealer.py`
 until #942 moves it here.
 """
 
-import importlib.util
 import os
 import pathlib
 import subprocess
 import sys
 
 import pytest
+from conftest import git_out as git
+from conftest import load_module as load
+from conftest import write
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 GATE = ROOT / "skills" / "verify" / "scripts" / "broad_gate.py"
@@ -20,31 +22,8 @@ CHAIN = ROOT / "skills" / "code-review" / "scripts" / "chain_check.py"
 ITEM = "seal/specs/1799000001-a-gated-work-item"
 
 
-def load(path, name):
-    spec = importlib.util.spec_from_file_location(name, path)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
-
-
 gate = load(GATE, "broad_gate_under_test")
 chain = load(CHAIN, "chain_check_beside_broad_gate")
-
-
-def git(d, *args):
-    return subprocess.run(
-        ["git", "-C", str(d), *args],
-        check=True,
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    ).stdout.strip()
-
-
-def write(d, rel, text):
-    p = pathlib.Path(d) / rel
-    p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(text, encoding="utf-8")
 
 
 # --- the spelling the gate writes and the check reads -------------------------

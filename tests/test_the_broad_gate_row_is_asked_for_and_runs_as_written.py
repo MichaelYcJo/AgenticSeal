@@ -24,6 +24,8 @@ body of the commit that added it.
 import os
 import re
 
+from conftest import read
+
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 TEMPLATE = ("templates", "config.md")
@@ -33,11 +35,6 @@ SEALER = ("agents", "sealer.md")
 REVIEW_ORCH = ("skills", "code-review", "orchestration.md")
 
 REFUSED_AND_ALLOWED = "### What is refused, and what stays allowed"
-
-
-def read(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as handle:
-        return handle.read()
 
 
 def flat(text):

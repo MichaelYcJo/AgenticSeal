@@ -25,7 +25,7 @@ split across lines, which a whole-file substring cannot read.
 import os
 
 import pytest
-from conftest import REVIEW_CHAIN_DOCS, review_chain_text
+from conftest import REVIEW_CHAIN_DOCS, flat, review_chain_text
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -58,11 +58,6 @@ DIRECT_REQUIRES = {
 # direct answer was checked *by the token in every command* — false since the
 # declaration silenced the review arm for either answer.
 TOKEN_SENTENCE = "the direct answer by the token in every command"
-
-
-def flat(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as handle:
-        return " ".join(handle.read().split())
 
 
 @pytest.mark.parametrize("parts", sorted(DIRECT_REQUIRES))

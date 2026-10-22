@@ -34,7 +34,7 @@ import subprocess
 
 import config_shapes
 import pytest
-from conftest import local_home, symlink_or_skip
+from conftest import git, local_home, read, symlink_or_skip
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SCRIPT = os.path.join(ROOT, "skills", "implement", "scripts", "seal.py")
@@ -47,16 +47,6 @@ def seal():
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
-
-
-def git(repo, *args, check=True):
-    return subprocess.run(
-        ["git", "-C", str(repo), *args],
-        check=check,
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    )
 
 
 def porcelain(repo):
@@ -1309,11 +1299,6 @@ def test_another_worktree_is_named(shared_repo, seal, capsys, tmp_path):
 
 
 # --- what a person reads: the documents this changed ------------------------
-
-
-def read(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as handle:
-        return handle.read()
 
 
 @pytest.mark.parametrize("readme", ["README.md", "README.ko.md"])

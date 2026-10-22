@@ -6,7 +6,7 @@ routing declaration, a round record and a `broad-gate.md`, judged as a ready
 or a draft pull request through the event payload GitHub writes.
 """
 
-import importlib.util
+import functools
 import json
 import os
 import pathlib
@@ -15,6 +15,19 @@ import subprocess
 import sys
 
 import pytest
+from conftest import (
+    chain_check_run,
+    write,
+)
+from conftest import (
+    commit_everything as commit,
+)
+from conftest import (
+    git_out as git,
+)
+from conftest import (
+    load_module as load,
+)
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 CHAIN = ROOT / "skills" / "code-review" / "scripts" / "chain_check.py"
@@ -26,37 +39,9 @@ ITEM = "seal/specs/1791999999-a-work-item"
 EMOJI = re.compile("[⌀-⏿☀-➿⬀-⯿️\U0001f000-\U0001faff]")
 
 
-def load(path, name):
-    spec = importlib.util.spec_from_file_location(name, path)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
-
-
 chain = load(CHAIN, "chain_check_under_test")
 reader = load(READER, "unverified_reader_for_chain_tests")
-
-
-def git(d, *args):
-    return subprocess.run(
-        ["git", "-C", str(d), *args],
-        check=True,
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    ).stdout.strip()
-
-
-def write(d, rel, text):
-    p = pathlib.Path(d) / rel
-    p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(text, encoding="utf-8")
-
-
-def commit(d, message):
-    git(d, "add", "-A")
-    git(d, "commit", "-qm", message)
-    return git(d, "rev-parse", "HEAD")
+check = functools.partial(chain_check_run, chain)
 
 
 ROUTING = """# a work item -- routing
@@ -247,11 +232,6 @@ def draft(tmp_path, monkeypatch):
     monkeypatch.setenv("GITHUB_EVENT_PATH", str(event))
     monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
     monkeypatch.delenv("GITHUB_HEAD_REF", raising=False)
-
-
-def check(root, capsys, *extra):
-    code = chain.main(["--baseline", "main", "--root", str(root), *extra])
-    return code, capsys.readouterr().out
 
 
 # --- changed ------------------------------------------------------------------

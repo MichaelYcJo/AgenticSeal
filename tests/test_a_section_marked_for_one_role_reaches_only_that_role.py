@@ -39,6 +39,7 @@ import os
 import re
 
 import pytest
+from conftest import read_lossy as _read
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SCRIPT = os.path.join(ROOT, "skills", "verify", "scripts", "payload_meter.py")
@@ -65,11 +66,6 @@ def _meter():
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
-
-
-def _read(path):
-    with open(path, encoding="utf-8", errors="replace") as handle:
-        return handle.read()
 
 
 def headings(text):

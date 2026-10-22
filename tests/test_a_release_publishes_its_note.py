@@ -42,6 +42,7 @@ import importlib.util
 import os
 
 import pytest
+from conftest import read
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SCRIPTS = os.path.join(ROOT, ".github", "scripts")
@@ -82,11 +83,6 @@ def publisher():
 
 def gatherer():
     return module(GATHERER, "specseal_gather_changelog_for_publish_tests")
-
-
-def read(path):
-    with open(path, encoding="utf-8") as handle:
-        return handle.read()
 
 
 class Releases:

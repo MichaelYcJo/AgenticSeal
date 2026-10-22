@@ -13,7 +13,7 @@ import subprocess
 import time
 
 import pytest
-from conftest import load_hook_module, run_hook
+from conftest import load_hook_module, opt_in, run_hook
 
 
 @pytest.fixture
@@ -23,10 +23,6 @@ def hook(tmp_path, monkeypatch):
     mod.STATE_DIR = str(tmp_path / "state")
     mod.MARKER = os.path.join(mod.STATE_DIR, "version-check")
     return mod
-
-
-def opt_in(repo):
-    (repo / "seal").mkdir(exist_ok=True)
 
 
 def drive(hook, repo, running=(0, 7, 1), remote=(0, 8, 0), monkeypatch=None):

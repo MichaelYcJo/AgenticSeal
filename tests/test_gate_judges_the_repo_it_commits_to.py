@@ -35,8 +35,9 @@ from conftest import (
     fired,
     load_hook_module,
     local_home,
-    run_hook,
+    reason_of,
 )
+from conftest import run_gate as run
 
 gate = load_hook_module("commit-review-gate.py", "crg_target")
 reader = load_hook_module("cmdline.py", "cmdline_cd")
@@ -116,17 +117,6 @@ def make_repo(path, opted_in, local=False):
         MODE_ROW.format(mode="local" if local else "shared"), encoding="utf-8"
     )
     return path
-
-
-def run(command, cwd, session=None):
-    payload = {
-        "tool_name": "Bash",
-        "tool_input": {"command": command},
-        "cwd": str(cwd),
-    }
-    if session:
-        payload["session_id"] = session
-    return run_hook("commit-review-gate.py", payload)
 
 
 # --- the parsing half -----------------------------------------------------
@@ -761,10 +751,6 @@ def test_the_gate_fires_for_the_named_repository_from_outside(tmp_path):
         "[no-review]"
         in json.loads(out)["hookSpecificOutput"]["permissionDecisionReason"]
     )
-
-
-def reason_of(out):
-    return json.loads(out)["hookSpecificOutput"]["permissionDecisionReason"]
 
 
 @pytest.mark.rule("executed-text-is-read")

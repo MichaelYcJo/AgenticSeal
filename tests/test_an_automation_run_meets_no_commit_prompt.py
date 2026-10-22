@@ -41,14 +41,6 @@ PLAIN = "plain"
 ASK_TOOL = "AskUserQuestion"
 
 
-@pytest.fixture
-def projects(monkeypatch, tmp_path):
-    root = tmp_path / "projects"
-    root.mkdir()
-    monkeypatch.setattr(worktree_consent, "PROJECTS_ROOT", str(root))
-    return root
-
-
 def press(projects, cwd, session=PRESSED, **entries):
     write_transcript(projects, session, ask_entries(cwd, **entries))
 

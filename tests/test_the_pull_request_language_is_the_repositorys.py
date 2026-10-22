@@ -25,19 +25,9 @@ import os
 import subprocess
 
 import pytest
-from conftest import local_home
+from conftest import flat, local_home, read
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
-
-
-def read(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as handle:
-        return handle.read()
-
-
-def flat(*parts):
-    """The file as one line, so a pinned phrase survives re-wrapping."""
-    return " ".join(read(*parts).split())
 
 
 SKILL = ("skills", "commit-pr-convention", "SKILL.md")

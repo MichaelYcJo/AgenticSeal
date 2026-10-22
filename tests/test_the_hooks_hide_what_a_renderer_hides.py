@@ -19,12 +19,12 @@ moved, it had to give the frame's *Renderer* column on every shape, which the
 frame derived by reading the specification and could not execute (its Q2).
 """
 
-import ast
 import os
 
 import commonmark_oracle as oracle
 import pytest
 from block_shapes import BREAKS, CLOSE, OPEN, RENDERER, SHAPES
+from conftest import imported_roots
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -34,18 +34,6 @@ NBSP = chr(0xA0)
 
 
 # --- the oracle is independent, and it says what the frame read -------------
-
-
-def imported_roots(path):
-    with open(path, encoding="utf-8") as handle:
-        tree = ast.parse(handle.read())
-    roots = set()
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Import):
-            roots.update(alias.name.split(".")[0] for alias in node.names)
-        elif isinstance(node, ast.ImportFrom):
-            roots.add((node.module or "").split(".")[0] if not node.level else ".")
-    return roots
 
 
 def test_the_oracle_imports_the_parser_and_nothing_of_this_repositorys():

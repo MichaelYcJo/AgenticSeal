@@ -49,6 +49,7 @@ import os
 import re
 
 import pytest
+from conftest import read
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SCRIPTS = os.path.join(ROOT, ".github", "scripts")
@@ -74,11 +75,6 @@ def labels_module():
 
 def closer_module():
     return load("close_issues_on_release", "close_issues_on_release.py")
-
-
-def read(path):
-    with open(path, encoding="utf-8") as handle:
-        return handle.read()
 
 
 def flat(rel):

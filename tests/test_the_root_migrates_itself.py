@@ -22,7 +22,7 @@ import subprocess
 import sys
 
 import pytest
-from conftest import load_hook_module, shell_probe
+from conftest import load_hook_module, shell_probe, write
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -53,12 +53,6 @@ def hook(tmp_path):
     mod.STATE_DIR = str(tmp_path / "state")
     mod.MARKER = os.path.join(mod.STATE_DIR, "root-migrated")
     return mod
-
-
-def write(repo, rel, text):
-    path = repo / rel
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text, encoding="utf-8")
 
 
 @pytest.fixture

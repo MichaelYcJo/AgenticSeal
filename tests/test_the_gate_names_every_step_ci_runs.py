@@ -32,14 +32,13 @@ is partial (#424's finding 4).
 """
 
 import ast
-import importlib.util
 import os
 import re
 import subprocess
 import sys
 
 import pytest
-from conftest import workflow_step
+from conftest import git, load_module, read, workflow_step, write
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 GATE = os.path.join(ROOT, "skills", "verify", "scripts", "broad_gate.py")
@@ -47,20 +46,8 @@ STAMP = os.path.join(ROOT, "skills", "verify", "scripts", "seal_stamp.py")
 HYGIENE = os.path.join(ROOT, ".github", "workflows", "hygiene.yml")
 
 
-def _load(name, path):
-    spec = importlib.util.spec_from_file_location(name, path)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
-
-
 def gate_module():
-    return _load("specseal_broad_gate_for_partition_tests", GATE)
-
-
-def read(path):
-    with open(path, encoding="utf-8") as handle:
-        return handle.read()
+    return load_module(GATE, "specseal_broad_gate_for_partition_tests")
 
 
 gate = gate_module()
@@ -302,22 +289,6 @@ def test_the_gate_runs_no_arm_the_partition_does_not_account_for():
 # --- a repository the gate can seal ------------------------------------------
 
 
-def git(repo, *args, check=True):
-    return subprocess.run(
-        ["git", "-C", str(repo), *args],
-        check=check,
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    )
-
-
-def write(repo, rel, text):
-    path = repo / rel
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text, encoding="utf-8")
-
-
 def commit(repo, message):
     git(repo, "add", "-A")
     git(
@@ -501,7 +472,7 @@ def test_the_report_says_how_many_steps_the_run_did_not_answer(tmp_path):
     # left the panel for the stderr line beside the names, asserted below.
     # #832's S5a: the value leads with a dim `·`, which `--shape` writes `.`.
     assert re.search(r"^CI also [·.] 1 more steps$", rendered[0]), rendered[0]
-    width = _load("specseal_seal_stamp", STAMP).PANEL_VALUE_WIDTH
+    width = load_module(STAMP, "specseal_seal_stamp").PANEL_VALUE_WIDTH
     value = next(v for _, v in [r for r in panel_rows(repo) if r] if "more steps" in v)
     assert len(value) <= width, (
         f"the value is {len(value)} columns and the panel gives "

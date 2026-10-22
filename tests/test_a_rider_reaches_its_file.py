@@ -18,16 +18,13 @@ tied row written here is one nobody at that coordinate will ever see.
 import os
 import re
 
+from conftest import read
+
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 FOLLOW_UP = os.path.join(ROOT, "seal", "follow-up.md")
 
 # A coordinate is `path/to/file.ext:123` — the shape a rider is written at.
 COORDINATE = re.compile(r"[\w./-]+\.(?:py|md|json|yml|yaml|sh):\d+")
-
-
-def read(path):
-    with open(path, encoding="utf-8") as f:
-        return f.read()
 
 
 def rows(section):

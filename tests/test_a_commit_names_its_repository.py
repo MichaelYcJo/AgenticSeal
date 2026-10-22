@@ -19,17 +19,12 @@ what refuses a copy.
 
 import os
 
-from conftest import load_hook_module
+from conftest import load_hook_module, read
 from test_the_agent_contract_holds_the_universal_rules import HEADING
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 CONTRACT = ("skills", "agent-contract", "SKILL.md")
 ORCHESTRATION = ("skills", "implement", "orchestration.md")
-
-
-def read(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
-        return f.read()
 
 
 def section(number):

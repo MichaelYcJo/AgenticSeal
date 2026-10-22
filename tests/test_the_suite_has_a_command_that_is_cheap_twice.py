@@ -31,6 +31,7 @@ import subprocess
 import sys
 
 import pytest
+from conftest import read
 from test_ci_gives_the_checks_what_they_need import jobs, matrix_include_entries
 from test_ci_gives_the_checks_what_they_need import read as read_workflow
 
@@ -52,11 +53,6 @@ def _load_runner():
 
 
 rt = _load_runner()
-
-
-def read(path):
-    with open(path, encoding="utf-8") as handle:
-        return handle.read()
 
 
 def posix_entries():

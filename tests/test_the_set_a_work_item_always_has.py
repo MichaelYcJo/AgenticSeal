@@ -32,14 +32,9 @@ import re
 import subprocess
 
 import pytest
-from conftest import on_disk
+from conftest import on_disk, read
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
-
-
-def read(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
-        return f.read()
 
 
 # --- the condition ----------------------------------------------------------

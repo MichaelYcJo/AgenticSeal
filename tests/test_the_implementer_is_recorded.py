@@ -43,7 +43,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from conftest import fired, load_hook_module, run_hook
+from conftest import branch_of, fired, git_dir, load_hook_module, opt_in, run_hook
 
 HOOKS = os.path.join(os.path.dirname(__file__), "..", "hooks")
 
@@ -69,28 +69,6 @@ def run_dispatch(group, payload, hooks=HOOKS):
         timeout=30,
     )
     return r.stdout
-
-
-def opt_in(repo):
-    (repo / "seal").mkdir(exist_ok=True)
-
-
-def branch_of(repo):
-    return subprocess.run(
-        ["git", "-C", str(repo), "rev-parse", "--abbrev-ref", "HEAD"],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    ).stdout.strip()
-
-
-def git_dir(repo):
-    return subprocess.run(
-        ["git", "-C", str(repo), "rev-parse", "--absolute-git-dir"],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    ).stdout.strip()
 
 
 def mark_path(repo, mark):

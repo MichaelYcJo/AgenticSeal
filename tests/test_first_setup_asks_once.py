@@ -19,7 +19,7 @@ import re
 import subprocess
 
 import pytest
-from conftest import local_home, shell_probe
+from conftest import local_home, read, shell_probe
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -27,11 +27,6 @@ COMMON_DIR = "$(git rev-parse --git-common-dir)/seal/"
 # The sentence a session reads (Q1 of the work item's `questions.md`): the
 # same rule `hooks/optin.py` states, moved to where a session looks.
 SESSION_RULE = "`$(git rev-parse --git-common-dir)/seal/` otherwise"
-
-
-def read(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
-        return f.read()
 
 
 def section(text, heading, level):

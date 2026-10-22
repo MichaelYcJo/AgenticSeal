@@ -23,13 +23,14 @@ Nothing the base read as a commit reads differently, because every segment the
 new reading reaches began with a word the base's reading refused.
 """
 
+import functools
 import io
 import json
 import os
 import sys
 
 import pytest
-from conftest import load_hook_module
+from conftest import commit_found, load_hook_module
 from test_no_shape_the_base_stops_reads_silent import make_repo
 
 gate = load_hook_module("commit-review-gate.py", "crg_reserved_words")
@@ -103,8 +104,7 @@ def test_an_eval_behind_the_same_words_is_read(name, tmp_path):
     assert found(EVALS[name], tmp_path), name
 
 
-def found(command, cwd):
-    return gate.commit_invocations(command, str(cwd))[0]
+found = functools.partial(commit_found, gate)
 
 
 @pytest.mark.parametrize("name", sorted(SHAPES))

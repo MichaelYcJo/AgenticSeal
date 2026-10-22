@@ -34,7 +34,8 @@ import subprocess
 import sys
 
 import pytest
-from conftest import posix_row_shell_or_skip
+from conftest import commit_everything_as_e as commit
+from conftest import git, load_module, posix_row_shell_or_skip, write
 from test_the_agent_contract_holds_the_universal_rules import HEADING
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -391,7 +392,7 @@ def hook_cases():
     """The hook's case module, for its `FULL_ROWS` — `full_values()`'s rows,
     a real run's — and its four-row `SMALL_ROWS`, so the layout case reads
     the panels those cases draw rather than copies of them."""
-    return _load("specseal_hook_cases_for_their_rows", HOOK_CASES)
+    return load_module(HOOK_CASES, "specseal_hook_cases_for_their_rows")
 
 
 # The disc's nine colours and the title's red as `spec.md` *Data &
@@ -1187,54 +1188,16 @@ def record_text(n, target, findings, confirmations=""):
     )
 
 
-def _load(name, path):
-    spec = importlib.util.spec_from_file_location(name, path)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
-
-
 def gate_module():
-    return _load("specseal_broad_gate_for_tests", GATE)
+    return load_module(GATE, "specseal_broad_gate_for_tests")
 
 
 def reader_module():
-    return _load("specseal_reader_for_sealed_records", READER)
+    return load_module(READER, "specseal_reader_for_sealed_records")
 
 
 def check_module():
-    return _load("specseal_chain_check_for_sealed_records", CHECK)
-
-
-def git(repo, *args):
-    return subprocess.run(
-        ["git", "-C", str(repo), *args],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-        check=True,
-    )
-
-
-def write(repo, rel, text):
-    path = repo / rel
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text, encoding="utf-8")
-
-
-def commit(repo, message):
-    git(repo, "add", "-A")
-    git(
-        repo,
-        "-c",
-        "user.email=e@example.com",
-        "-c",
-        "user.name=e",
-        "commit",
-        "-qm",
-        message,
-    )
-    return git(repo, "rev-parse", "HEAD").stdout.strip()
+    return load_module(CHECK, "specseal_chain_check_for_sealed_records")
 
 
 def config(row=True):
@@ -1374,15 +1337,10 @@ def _no_ambient_pull_request(monkeypatch):
 
 
 @pytest.fixture(scope="session")
-def _template(tmp_path_factory):
+def _repo_template(tmp_path_factory):
+    """The gate's fixture repository, built once; `tests/conftest.py#repo`
+    copies it for each case of this module."""
     return build_repo(tmp_path_factory.mktemp("gate-template") / "repo")
-
-
-@pytest.fixture
-def repo(tmp_path, _template):
-    d = tmp_path / "repo"
-    shutil.copytree(_template, d)
-    return d
 
 
 def run_gate(
@@ -1508,7 +1466,7 @@ def recorded_report(repo, tmp_path, session="s-1"):
 
 
 @pytest.fixture(scope="module")
-def a_recorded_run(tmp_path_factory, _template):
+def a_recorded_run(tmp_path_factory, _repo_template):
     """One settled item run through `--record` on a pipe, with a session,
     shared by the cases that only read what that run printed and left.
 
@@ -1529,7 +1487,7 @@ def a_recorded_run(tmp_path_factory, _template):
     Returns (the repository, the completed process, the report's rows)."""
     scratch = tmp_path_factory.mktemp("recorded-once")
     repo = scratch / "a checkout" / "repo"
-    shutil.copytree(_template, repo)
+    shutil.copytree(_repo_template, repo)
     out, values = recorded_report(repo, scratch, session="s-1")
     return repo, out, values
 

@@ -17,7 +17,6 @@ values as the loop has iterations. Those two are the cases that keep the
 change bounded, and they are asserted here beside the ones that now resolve.
 """
 
-import json
 import os
 import shlex
 import subprocess
@@ -28,8 +27,9 @@ from conftest import (
     fired,
     load_hook_module,
     local_home,
-    run_hook,
+    reason_of,
 )
+from conftest import run_gate as run
 
 reader = load_hook_module("cmdline.py", "cmdline_named")
 gate = load_hook_module("commit-review-gate.py", "crg_named")
@@ -269,10 +269,6 @@ def test_a_value_holding_a_dollar_is_never_rescanned():
 # --- the gate, executed ---------------------------------------------------
 
 
-def reason_of(out):
-    return json.loads(out)["hookSpecificOutput"]["permissionDecisionReason"]
-
-
 def make_repo(path, opted_in, local=False):
     """A repository with one commit, and `seal/` when it opts in -- under the
     git directory when `local` (#80)."""
@@ -290,17 +286,6 @@ def make_repo(path, opted_in, local=False):
     elif opted_in:
         (path / "seal").mkdir()
     return path
-
-
-def run(command, cwd, session=None):
-    payload = {
-        "tool_name": "Bash",
-        "tool_input": {"command": command},
-        "cwd": str(cwd),
-    }
-    if session:
-        payload["session_id"] = session
-    return run_hook("commit-review-gate.py", payload)
 
 
 def test_the_gate_reaches_a_repository_the_command_named_for_itself(tmp_path):

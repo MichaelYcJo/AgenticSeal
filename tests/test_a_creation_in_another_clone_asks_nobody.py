@@ -128,16 +128,6 @@ def unattended(lang, row):
 
 
 @pytest.fixture
-def projects(monkeypatch, tmp_path):
-    """A projects root this case owns. Every loaded copy of the guard imports
-    the one `worktree_consent`, so one patch reaches both languages."""
-    root = tmp_path / "projects"
-    root.mkdir()
-    monkeypatch.setattr(wg.worktree_consent, "PROJECTS_ROOT", str(root))
-    return root
-
-
-@pytest.fixture
 def wko(monkeypatch):
     """The guard loaded with Korean text."""
     monkeypatch.setenv("SPECSEAL_LANG", "ko")

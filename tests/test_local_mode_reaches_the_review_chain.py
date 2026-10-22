@@ -9,7 +9,6 @@ already has.
 """
 
 import os
-import shutil
 import subprocess
 import sys
 
@@ -40,16 +39,11 @@ def _build(d):
 
 
 @pytest.fixture(scope="session")
-def _template(tmp_path_factory):
+def _repo_template(tmp_path_factory):
+    """The module's fixture repository, built once; `tests/conftest.py#repo`
+    copies it for each case."""
     d = tmp_path_factory.mktemp("local-mode-template") / "repo"
     _build(d)
-    return d
-
-
-@pytest.fixture
-def repo(tmp_path, _template):
-    d = tmp_path / "repo"
-    shutil.copytree(_template, d)
     return d
 
 

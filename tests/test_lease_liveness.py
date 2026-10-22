@@ -11,7 +11,7 @@ work stream. A lease that cannot be attributed is a question for the user, not
 a refusal.
 """
 
-import datetime
+import functools
 import json
 import os
 import socket
@@ -20,7 +20,7 @@ import sys
 import time
 
 import pytest
-from conftest import load_hook_module
+from conftest import guard_decision, iso, load_hook_module
 
 wg = load_hook_module("worktree-guard.py", "wg_lease")
 
@@ -197,27 +197,7 @@ def test_the_fresh_path_is_unchanged_by_the_scan(repo):
 # --- the decision the user sees ----------------------------------------------
 
 
-def decide(monkeypatch, capsys, repo, command, sessions=([], [], True)):
-    monkeypatch.setattr(wg, "sessions_in_tree", lambda top, own="": sessions)
-    monkeypatch.setattr(
-        wg,
-        "load_input",
-        lambda: {
-            "tool_name": "Bash",
-            "session_id": "me",
-            "tool_input": {"command": command},
-            "cwd": str(repo),
-        },
-    )
-    try:
-        wg.main()
-    except SystemExit:
-        pass
-    out = capsys.readouterr().out.strip()
-    if not out:
-        return "silent", ""
-    d = json.loads(out)["hookSpecificOutput"]
-    return d["permissionDecision"], d["permissionDecisionReason"]
+decide = functools.partial(guard_decision, wg)
 
 
 def test_unattributable_lease_offers_a_choice_instead_of_blocking(
@@ -526,11 +506,6 @@ def test_lease_write_survives_an_unwritable_dir(repo):
 # construction: a session lands in the dead set only on positive evidence its
 # owner is gone, so every unreadable answer leaves the transcript counted
 # exactly as before.
-
-
-def iso(minutes_ago):
-    t = datetime.datetime.now(datetime.UTC) - datetime.timedelta(minutes=minutes_ago)
-    return t.isoformat().replace("+00:00", "Z")
 
 
 def transcripts_for(monkeypatch, tmp_path, cwd):

@@ -23,7 +23,15 @@ import os
 import subprocess
 
 import pytest
-from conftest import decision_of, fired, load_hook_module, local_home, run_hook
+from conftest import (
+    decision_of,
+    fired,
+    linked_worktree,
+    load_hook_module,
+    local_home,
+    payload,
+    run_hook,
+)
 
 
 @pytest.fixture
@@ -117,17 +125,6 @@ def test_the_common_git_directory_is_asked_of_git_for_a_linked_worktree(
     )
     assert os.path.isfile(other / ".git"), "a linked worktree carries a .git FILE"
     assert os.path.samefile(optin.git_common_dir(str(other)), repo / ".git")
-
-
-def linked_worktree(repo, tmp_path):
-    other = tmp_path / "linked"
-    subprocess.run(
-        ["git", "-C", str(repo), "worktree", "add", "-q", str(other), "feature/x"],
-        check=True,
-        capture_output=True,
-    )
-    assert os.path.isfile(other / ".git"), "a linked worktree carries a .git FILE"
-    return other
 
 
 # --- #80: where the root lives, and no key -----------------------------------
@@ -415,15 +412,6 @@ def test_the_move_notice_is_gone(optin):
 
 
 # --- the gates read it -----------------------------------------------------
-
-
-def payload(cmd, repo):
-    return {
-        "tool_name": "Bash",
-        "session_id": "s1",
-        "tool_input": {"command": cmd},
-        "cwd": str(repo),
-    }
 
 
 def test_commit_gate_fires_on_the_new_home(repo):

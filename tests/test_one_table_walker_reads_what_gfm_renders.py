@@ -32,13 +32,12 @@ What the enumeration leaves out, and why:
     gfm_does.py` holds where a line ends, for every reader.
 """
 
-import ast
 import os
 import random
 
 import gfm_table_oracle as oracle
 import pytest
-from conftest import load_hook_module
+from conftest import imported_roots, load_hook_module
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 config = load_hook_module("config.py", "config_for_the_table_walker")
@@ -338,18 +337,6 @@ def disagreement(header, text):
 
 
 # --- the oracle is independent ---------------------------------------------
-
-
-def imported_roots(path):
-    with open(path, encoding="utf-8") as handle:
-        tree = ast.parse(handle.read())
-    roots = set()
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Import):
-            roots.update(alias.name.split(".")[0] for alias in node.names)
-        elif isinstance(node, ast.ImportFrom):
-            roots.add((node.module or "").split(".")[0] if not node.level else ".")
-    return roots
 
 
 def test_the_oracle_imports_the_renderer_and_nothing_of_this_repositorys():

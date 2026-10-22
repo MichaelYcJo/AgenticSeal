@@ -18,14 +18,13 @@ said.
 
 import json
 import os
-import shlex
 import shutil
 import subprocess
 import sys
 from pathlib import Path
 
 import pytest
-from conftest import load_hook_module, ps_names_the_parent_or_skip, symlink_or_skip
+from conftest import load_hook_module, ps_names_the_parent_or_skip, q, symlink_or_skip
 from test_the_guard_asks_once_per_session import ask_entries, write_transcript
 
 # `docs/worktree-guard-spec.md` *Known limits*, found red on `windows-latest`
@@ -39,13 +38,12 @@ HOOKS = Path(__file__).resolve().parent.parent / "hooks"
 install_mod = load_hook_module("hook-install.py", "hook_install_for_creation")
 
 BASH = shutil.which("bash")
-pytestmark = pytest.mark.skipif(BASH is None, reason="no bash to run commands in")
+# The stubs are the subject of every case here, so each case installs them.
+pytestmark = [
+    pytest.mark.skipif(BASH is None, reason="no bash to run commands in"),
+    pytest.mark.usefixtures("git_hooks_installed"),
+]
 SESSION = "s-create"
-
-
-@pytest.fixture(autouse=True)
-def _installer_writes(git_hooks_installed):
-    """The stubs are the subject of every case here."""
 
 
 def env(home, session=SESSION):
@@ -184,10 +182,6 @@ class Clone:
 @pytest.fixture
 def clone(tmp_path):
     return Clone(tmp_path)
-
-
-def q(p):
-    return shlex.quote(str(p))
 
 
 # --- round 1's four: refused before git runs, so nothing moved ---------------

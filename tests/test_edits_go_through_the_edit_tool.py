@@ -36,22 +36,12 @@ what now refuses it.
 import os
 
 import pytest
-from conftest import load_hook_module
+from conftest import flat, load_hook_module, read
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 CONTRACT = ("skills", "agent-contract", "SKILL.md")
 SMITH = ("agents", "smith.md")
 CARRIERS = (CONTRACT,)
-
-
-def read(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
-        return f.read()
-
-
-def flat(*parts):
-    """The file as one line, so an assertion is not pinning where it wraps."""
-    return " ".join(read(*parts).split())
 
 
 @pytest.mark.rule("one-heredoc-shape-is-data")

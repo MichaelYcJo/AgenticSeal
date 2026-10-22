@@ -27,7 +27,7 @@ import time
 from pathlib import Path
 
 import pytest
-from conftest import load_hook_module, ps_names_the_parent_or_skip, symlink_or_skip
+from conftest import load_hook_module, ps_names_the_parent_or_skip, q, symlink_or_skip
 from test_the_guard_asks_once_per_session import ask_entries, write_transcript
 
 HOOKS = Path(__file__).resolve().parent.parent / "hooks"
@@ -39,14 +39,13 @@ install_mod = load_hook_module("hook-install.py", "hook_install_for_the_commit_g
 crg = load_hook_module("commit-review-gate.py", "crg_beside_the_git_hooks")
 
 BASH = shutil.which("bash")
-pytestmark = pytest.mark.skipif(BASH is None, reason="no bash to run commands in")
+# The stubs are the subject of every case here, so each case installs them.
+pytestmark = [
+    pytest.mark.skipif(BASH is None, reason="no bash to run commands in"),
+    pytest.mark.usefixtures("git_hooks_installed"),
+]
 
 SESSION = "s-commit"
-
-
-@pytest.fixture(autouse=True)
-def _installer_writes(git_hooks_installed):
-    """The stubs are the subject of every case here."""
 
 
 def env(home, session=SESSION, **extra):
@@ -166,10 +165,6 @@ class World:
 @pytest.fixture
 def world(tmp_path):
     return World(tmp_path)
-
-
-def q(p):
-    return shlex.quote(str(p))
 
 
 def as_the_tool_spells_it(command):

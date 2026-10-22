@@ -17,10 +17,12 @@ import sys
 from conftest import (
     decision_of,
     declare_routing,
+    flat,
     load_hook_module,
     local_home,
     run_hook,
 )
+from conftest import git_out as git
 from test_the_guard_asks_once_per_session import ask_entries, write_transcript
 
 HOOKS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "hooks")
@@ -50,16 +52,6 @@ ROUTING_QUESTION = {
     ],
     "multiSelect": False,
 }
-
-
-def git(repo, *args):
-    return subprocess.run(
-        ["git", "-C", str(repo), *args],
-        check=True,
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    ).stdout.strip()
 
 
 def declare(repo, automation="yes", home=None, review="through the review chain"):
@@ -384,11 +376,6 @@ def test_the_gate_is_registered_on_the_question_tool():
 
 
 ROOT = os.path.join(HOOKS, "..")
-
-
-def flat(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
-        return " ".join(f.read().split())
 
 
 def test_the_prose_points_to_the_gate_and_no_longer_says_nothing_holds_it():

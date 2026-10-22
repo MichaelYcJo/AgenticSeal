@@ -21,7 +21,6 @@ cases load `seal_stamp.py` by path under a name of their own, so a draw
 that kept a copy of the chart or the colours cannot agree with itself.
 """
 
-import importlib.util
 import json
 import os
 import subprocess
@@ -29,6 +28,8 @@ import sys
 import types
 
 import pytest
+from conftest import flat
+from conftest import load_module as load
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SCRIPT = os.path.join(ROOT, ".github", "scripts", "release_seal.py")
@@ -48,13 +49,6 @@ ROWS = [
     ("capped", "6 of 10"),
     ("deferred", "13 issues"),
 ]
-
-
-def load(path, name):
-    spec = importlib.util.spec_from_file_location(name, path)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
 
 
 def seal():
@@ -965,11 +959,6 @@ def test_a_refused_gh_or_git_call_is_a_reason_naming_the_call(monkeypatch):
 
 
 # --- the documents a person reads (contract rule 14) ------------------------
-
-
-def flat(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as handle:
-        return " ".join(handle.read().split())
 
 
 def test_the_release_tail_says_the_seal_is_a_second_act_that_never_fails_it():

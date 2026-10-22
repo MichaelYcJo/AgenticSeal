@@ -12,16 +12,17 @@ The fail direction of every path here is "not opted in" or "nothing written"
 back in local mode the way it does in shared mode.
 """
 
-import json
 import os
-import subprocess
 
 import pytest
 from conftest import (
+    branch_of,
     decision_of,
     declare_routing,
     fired,
+    linked_worktree,
     local_home,
+    reason_of,
     run_hook,
 )
 
@@ -35,19 +36,6 @@ def bash(repo, command="git commit -m x", session="s1"):
         "tool_input": {"command": command},
         "cwd": str(repo),
     }
-
-
-def reason_of(out):
-    return json.loads(out)["hookSpecificOutput"]["permissionDecisionReason"]
-
-
-def branch_of(repo):
-    return subprocess.run(
-        ["git", "-C", str(repo), "rev-parse", "--abbrev-ref", "HEAD"],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    ).stdout.strip()
 
 
 def declare_smith(repo, home, item=ITEM):
@@ -64,17 +52,6 @@ def declare_smith(repo, home, item=ITEM):
         encoding="utf-8",
     )
     return d
-
-
-def linked_worktree(repo, tmp_path):
-    other = tmp_path / "linked"
-    subprocess.run(
-        ["git", "-C", str(repo), "worktree", "add", "-q", str(other), "feature/x"],
-        check=True,
-        capture_output=True,
-    )
-    assert os.path.isfile(other / ".git"), "a linked worktree carries a .git FILE"
-    return other
 
 
 def write(path, text):

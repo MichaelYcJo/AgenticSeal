@@ -11,6 +11,7 @@ import subprocess
 import sys
 
 import pytest
+from conftest import flattened as flat
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SCRIPT = os.path.join(ROOT, "skills", "settle", "scripts", "settle.py")
@@ -702,10 +703,6 @@ SKILL = os.path.join(ROOT, "skills", "settle", "SKILL.md")
 def skill():
     with open(SKILL, encoding="utf-8") as f:
         return f.read()
-
-
-def flat(text):
-    return " ".join(text.split())
 
 
 def test_the_skill_names_the_floors_a_fold_has_to_answer():

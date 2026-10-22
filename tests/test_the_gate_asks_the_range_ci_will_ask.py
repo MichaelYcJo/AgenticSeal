@@ -38,14 +38,14 @@ case below names the one it holds.
 """
 
 import ast
-import importlib.util
 import os
 import re
 import subprocess
 import sys
 
 import pytest
-from conftest import code_lines
+from conftest import code_lines, git, load_module, read, write
+from conftest import commit_everything_as_e as commit
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 GATE = os.path.join(ROOT, "skills", "verify", "scripts", "broad_gate.py")
@@ -53,20 +53,8 @@ STAMP = os.path.join(ROOT, "skills", "verify", "scripts", "seal_stamp.py")
 HYGIENE = os.path.join(ROOT, ".github", "workflows", "hygiene.yml")
 
 
-def _load(name, path):
-    spec = importlib.util.spec_from_file_location(name, path)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
-
-
 def gate_module():
-    return _load("specseal_broad_gate_for_range_tests", GATE)
-
-
-def read(path):
-    with open(path, encoding="utf-8") as handle:
-        return handle.read()
+    return load_module(GATE, "specseal_broad_gate_for_range_tests")
 
 
 # --- fixtures: a repository that actually has a remote ----------------------
@@ -79,37 +67,6 @@ def read(path):
 # resolved commit even where the resolution lands on the ref as given
 # (round 1, finding 3). A remote is new work, and it is built here rather than
 # there so that one moved reading stays checkable by reading the diff.
-
-
-def git(repo, *args):
-    return subprocess.run(
-        ["git", "-C", str(repo), *args],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-        check=True,
-    )
-
-
-def write(repo, rel, text):
-    path = repo / rel
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text, encoding="utf-8")
-
-
-def commit(repo, message):
-    git(repo, "add", "-A")
-    git(
-        repo,
-        "-c",
-        "user.email=e@example.com",
-        "-c",
-        "user.name=e",
-        "commit",
-        "-qm",
-        message,
-    )
-    return git(repo, "rev-parse", "HEAD").stdout.strip()
 
 
 def short(repo, rev):
@@ -1020,7 +977,7 @@ STAMP = os.path.join(ROOT, "skills", "verify", "scripts", "seal_stamp.py")
 
 
 def stamp_module():
-    return _load("specseal_seal_stamp_for_range_tests", STAMP)
+    return load_module(STAMP, "specseal_seal_stamp_for_range_tests")
 
 
 def ref_row_of(mod, ref, given="release/x"):

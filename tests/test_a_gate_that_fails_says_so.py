@@ -23,7 +23,7 @@ import subprocess
 import sys
 
 import pytest
-from conftest import decision_of, load_hook_module
+from conftest import decision_of, git, load_hook_module
 
 HOOKS = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "hooks"))
 BROKEN = "def broken(:\n"
@@ -781,17 +781,6 @@ def stop_live(repo, session):
 
 
 # --- Q2: the walk is duplicated, and the twins agree -------------------------
-
-
-def git(repo, *args):
-    """git driven from Python, so no Bash line carries a commit (contract rule 8)."""
-    return subprocess.run(
-        ["git", "-C", str(repo), *args],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-        check=True,
-    )
 
 
 def test_the_walk_agrees_with_its_twin_in_sealer_stamp(repo, tmp_path):

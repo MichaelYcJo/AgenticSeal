@@ -20,15 +20,11 @@ probes too, and no file ever told it any of this.
 
 import os
 
+from conftest import read
 from test_the_agent_contract_holds_the_universal_rules import HEADING
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 CONTRACT = os.path.join("skills", "agent-contract", "SKILL.md")
-
-
-def read(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
-        return f.read()
 
 
 def section(number):

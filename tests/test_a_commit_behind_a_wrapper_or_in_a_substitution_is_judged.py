@@ -25,13 +25,14 @@ Three readings are added, all in the stricter direction:
   not place, so it is a stop wherever the session's own repository opted in.
 """
 
+import functools
 import io
 import json
 import os
 import sys
 
 import pytest
-from conftest import load_hook_module
+from conftest import commit_found, load_hook_module
 from test_no_shape_the_base_stops_reads_silent import make_repo
 
 gate = load_hook_module("commit-review-gate.py", "crg_wrappers")
@@ -192,8 +193,7 @@ SUBSTITUTED = {
 }
 
 
-def found(command, cwd):
-    return gate.commit_invocations(command, str(cwd))[0]
+found = functools.partial(commit_found, gate)
 
 
 @pytest.mark.parametrize("name", sorted(WRAPPED))

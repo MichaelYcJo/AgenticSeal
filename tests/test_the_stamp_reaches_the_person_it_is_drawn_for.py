@@ -13,7 +13,6 @@ the scale #853 retired. The gate's half is in
 that drive a real gate over a settled work item.
 """
 
-import importlib.util
 import inspect
 import json
 import os
@@ -21,6 +20,7 @@ import subprocess
 import sys
 
 import pytest
+from conftest import flat, git, load_module
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 STAMP = os.path.join(ROOT, "skills", "verify", "scripts", "seal_stamp.py")
@@ -41,15 +41,8 @@ ROWS = [
 ]
 
 
-def _load(name, path):
-    spec = importlib.util.spec_from_file_location(name, path)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
-
-
 def stamp_module():
-    return _load("specseal_seal_stamp_for_its_values", STAMP)
+    return load_module(STAMP, "specseal_seal_stamp_for_its_values")
 
 
 NO_SCALE = object()
@@ -220,17 +213,6 @@ def test_a_session_id_cannot_name_a_directory_outside_the_values_dir(tmp_path):
 # --- S3-S6: the hook draws at the main session's `Stop`, once ---------------
 
 DISPATCH = os.path.join(ROOT, "hooks", "dispatch.py")
-
-
-def git(repo, *args):
-    """git driven from Python, so no Bash line carries a commit (contract rule 8)."""
-    return subprocess.run(
-        ["git", "-C", str(repo), *args],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-        check=True,
-    )
 
 
 def opted_in(tmp_path, name="repo"):
@@ -473,7 +455,7 @@ def test_the_stop_group_reports_the_stop_event(monkeypatch, capsys):
     """`dispatch.main` names the event on its decision path, and named every
     group that is not `pre-` as `PostToolUse`. The `stop` group answers
     `Stop`, so a decision coming out of it, should one ever do, says so."""
-    dispatch = _load("specseal_dispatch_for_the_stop_group", DISPATCH)
+    dispatch = load_module(DISPATCH, "specseal_dispatch_for_the_stop_group")
     decision = json.dumps(
         {
             "hookSpecificOutput": {
@@ -499,7 +481,7 @@ def test_the_hook_is_registered_for_stop_and_nothing_else():
     commands = [h["command"] for group in events["Stop"] for h in group["hooks"]]
     assert commands and all(c.split()[-1] == "stop" for c in commands), commands
     assert "SubagentStop" not in events
-    dispatch = _load("specseal_dispatch_for_its_groups", DISPATCH)
+    dispatch = load_module(DISPATCH, "specseal_dispatch_for_its_groups")
     assert dispatch.GROUPS["stop"] == ("sealer-stamp.py",)
 
 
@@ -522,8 +504,8 @@ def commitgate_module():
     names, as `hooks/git/post-commit.py` puts them on the path."""
     if HOOKS_DIR not in sys.path:
         sys.path.insert(0, HOOKS_DIR)
-    return _load(
-        "specseal_commitgate_for_the_stamp", os.path.join(HOOKS_DIR, "commitgate.py")
+    return load_module(
+        os.path.join(HOOKS_DIR, "commitgate.py"), "specseal_commitgate_for_the_stamp"
     )
 
 
@@ -1318,8 +1300,8 @@ def test_the_edit_gate_is_silent_off_a_guarantee(tmp_path, given, monkeypatch):
     body = given(path, repo)
     assert post_edit(body, repo) == ""
     assert queued(repo) == []
-    gate = _load(
-        "specseal_queue_gate_for_its_order", os.path.join(HOOKS_DIR, QUEUE_GATE)
+    gate = load_module(
+        os.path.join(HOOKS_DIR, QUEUE_GATE), "specseal_queue_gate_for_its_order"
     )
     loads = []
     monkeypatch.setattr(gate, "load_stamp", lambda: loads.append(1))
@@ -2744,11 +2726,6 @@ def test_both_readmes_list_the_stamp_hook():
 
 
 # --- S16: the sealer is told it draws nothing --------------------------------
-
-
-def flat(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as handle:
-        return " ".join(handle.read().split())
 
 
 def test_the_sealer_is_told_the_gate_draws_nothing_and_neither_does_it():

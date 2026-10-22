@@ -28,7 +28,7 @@ import subprocess
 import sys
 
 from censuses import matches, ruff_targets
-from conftest import decline_if_shrunken, git_listing, on_disk
+from conftest import decline_if_shrunken, git_listing, on_disk, read
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 BIN = os.path.join(ROOT, "bin")
@@ -50,11 +50,6 @@ print(json.dumps({
 }))
 sys.exit(int(sys.argv[1]))
 """
-
-
-def read(path):
-    with open(path, encoding="utf-8") as handle:
-        return handle.read()
 
 
 def load(path, name):

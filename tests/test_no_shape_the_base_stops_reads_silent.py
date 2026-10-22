@@ -31,12 +31,11 @@ run).
 import io
 import json
 import os
-import shlex
 import subprocess
 import sys
 
 import pytest
-from conftest import declare_routing, load_hook_module
+from conftest import declare_routing, load_hook_module, q
 from test_the_guard_asks_once_per_session import ask_entries, write_transcript
 
 gate = load_hook_module("commit-review-gate.py", "crg_no_new_silent")
@@ -50,10 +49,6 @@ import worktree_consent  # noqa: E402  -- the plain name the gate imports
 PY = "import os,sys; os.system(sys.stdin.read())"
 PERL = 'system(join("",<STDIN>))'
 BODY = "git commit -m x"
-
-
-def q(text):
-    return shlex.quote(str(text))
 
 
 def heredoc(head, delimiter="EOF"):
@@ -82,14 +77,6 @@ def make_repo(path, declared=False, review="straight to the PR"):
     if declared:
         declare_routing(path, review=review)
     return path
-
-
-@pytest.fixture
-def projects(monkeypatch, tmp_path):
-    root = tmp_path / "projects"
-    root.mkdir()
-    monkeypatch.setattr(worktree_consent, "PROJECTS_ROOT", str(root))
-    return root
 
 
 def decisions(monkeypatch, capsys, command, cwd, session):

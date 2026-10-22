@@ -23,6 +23,7 @@ import re
 import subprocess
 import sys
 
+from conftest import config_table as table
 from conftest import load_hook_module
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -34,12 +35,6 @@ def write_config(home, body):
     os.makedirs(home, exist_ok=True)
     with open(os.path.join(home, "config.md"), "w", encoding="utf-8") as handle:
         handle.write(body)
-
-
-def table(*rows):
-    return "# config\n\n| Item | Value |\n|---|---|\n" + "".join(
-        f"| {item} | {value} |\n" for item, value in rows
-    )
 
 
 # --- C1: the row and its default --------------------------------------------

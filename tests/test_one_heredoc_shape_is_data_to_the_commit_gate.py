@@ -12,11 +12,10 @@ command that could stop it.
 """
 
 import json
-import shlex
 import subprocess
 
 import pytest
-from conftest import decision_of, declare_routing, load_hook_module, run_hook
+from conftest import decision_of, declare_routing, load_hook_module, q, run_hook
 from test_one_heredoc_shape_is_read_exactly import FAILS, admitted
 
 gate = load_hook_module("commit-review-gate.py", "crg_one_heredoc")
@@ -32,10 +31,6 @@ PY_BODY = (
     'note = """\nrun `git commit` later\ngit commit -m x\n"""\n'
     'open("m.md", "a", encoding="utf-8").write(note)'
 )
-
-
-def q(text):
-    return shlex.quote(str(text))
 
 
 def make_repo(path, declared=False):

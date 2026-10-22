@@ -10,7 +10,7 @@ import json
 import os
 import subprocess
 
-from conftest import decision_of, run_hook
+from conftest import decision_of, opt_in, run_hook
 
 
 def payload(skill, repo, **extra):
@@ -22,10 +22,6 @@ def payload(skill, repo, **extra):
     }
     p.update(extra)
     return p
-
-
-def opt_in(repo):
-    (repo / "seal").mkdir(exist_ok=True)
 
 
 def run(skill, repo, **extra):

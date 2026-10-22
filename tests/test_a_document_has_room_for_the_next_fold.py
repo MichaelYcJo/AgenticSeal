@@ -9,25 +9,18 @@ twice, or holds a row naming none. The rows and the estimate are stated once,
 in `templates/config.md` *The fold's values*.
 """
 
-import importlib.util
 import os
 import subprocess
 import sys
 
 import pytest
+from conftest import load_module
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
 SCRIPT = os.path.join(ROOT, "skills", "settle", "scripts", "fold_check.py")
 
 
-def _load(name, path):
-    spec = importlib.util.spec_from_file_location(name, path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-fold_check = _load("specseal_fold_check", SCRIPT)
+fold_check = load_module(SCRIPT, "specseal_fold_check")
 
 
 def declared():

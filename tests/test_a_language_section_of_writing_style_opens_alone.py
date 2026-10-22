@@ -18,6 +18,8 @@ import glob
 import os
 import re
 
+from conftest import read
+
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 SKILL = "skills/writing-style/SKILL.md"
 
@@ -47,11 +49,6 @@ WRITING_RULE_CHECKS = (
     "check: tests/test_one_word_one_meaning.py",
     "check: none reader: the warden at review",
 )
-
-
-def read(rel):
-    with open(os.path.join(ROOT, rel), encoding="utf-8") as f:
-        return f.read()
 
 
 def headings(text):

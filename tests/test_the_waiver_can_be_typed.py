@@ -39,6 +39,7 @@ from conftest import (
     NOT_A_SHELL,
     decision_of,
     load_hook_module,
+    payload,
     run_hook,
     shell_probe,
 )
@@ -104,15 +105,6 @@ def opted_in_repo(tmp_path):
     shutil.copytree(_waiver_repo_template(), d)
     (d / "seal").mkdir()
     return d
-
-
-def payload(cmd, repo):
-    return {
-        "tool_name": "Bash",
-        "session_id": "s1",
-        "tool_input": {"command": cmd},
-        "cwd": str(repo),
-    }
 
 
 @pytest.mark.parametrize(

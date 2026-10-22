@@ -25,14 +25,21 @@ to trust.
 """
 
 import importlib.util
-import json
 import os
 import subprocess
 
 import config_shapes
 import pytest
 from block_shapes import SHAPES
-from conftest import decision_of, load_hook_module, local_home, run_hook
+from conftest import (
+    decision_of,
+    git_dir,
+    load_hook_module,
+    local_home,
+    payload,
+    reason_of,
+    run_hook,
+)
 
 GATE = "mode-gate.py"
 
@@ -40,26 +47,6 @@ GATE = "mode-gate.py"
 @pytest.fixture
 def config():
     return load_hook_module("config.py", "specseal_config_for_tests")
-
-
-def payload(cmd, repo, session="s1", tool="Bash", **extra):
-    p = {
-        "tool_name": tool,
-        "session_id": session,
-        "tool_input": {"command": cmd},
-        "cwd": str(repo),
-    }
-    p.update(extra)
-    return p
-
-
-def git_dir(repo):
-    return subprocess.run(
-        ["git", "-C", str(repo), "rev-parse", "--absolute-git-dir"],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    ).stdout.strip()
 
 
 def opt_in_shared(repo):
@@ -73,10 +60,6 @@ def write_config(home, text):
 
 
 TABLE = "# Repository config\n\n| Item | Value |\n|---|---|\n{rows}"
-
-
-def reason_of(out):
-    return json.loads(out)["hookSpecificOutput"]["permissionDecisionReason"]
 
 
 # --- the reader: one parser for the Mode row -------------------------------

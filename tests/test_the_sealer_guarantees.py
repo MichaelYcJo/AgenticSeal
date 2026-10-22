@@ -7,13 +7,23 @@ ready pull request passes only where the file names HEAD and its verdict
 reads `sealed`. Each group holds a case on good input and one on bad.
 """
 
-import importlib.util
+import functools
 import json
 import pathlib
 import re
 import subprocess
 
 import pytest
+from conftest import (
+    chain_check_run,
+    write,
+)
+from conftest import (
+    commit_everything as commit,
+)
+from conftest import (
+    load_module as load,
+)
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 CHAIN = ROOT / "skills" / "code-review" / "scripts" / "chain_check.py"
@@ -31,15 +41,9 @@ def between(path, start, end):
     return text[head : text.index(end, head)]
 
 
-def load(path, name):
-    spec = importlib.util.spec_from_file_location(name, path)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
-
-
 chain = load(CHAIN, "chain_check_for_the_guarantee")
 reader = load(READER, "unverified_reader_for_the_guarantee")
+check = functools.partial(chain_check_run, chain)
 
 
 def git(d, *args):
@@ -49,18 +53,6 @@ def git(d, *args):
         capture_output=True,
         encoding="utf-8",
     ).stdout.strip()
-
-
-def write(d, rel, text):
-    p = pathlib.Path(d) / rel
-    p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(text, encoding="utf-8")
-
-
-def commit(d, message):
-    git(d, "add", "-A")
-    git(d, "commit", "-qm", message)
-    return git(d, "rev-parse", "HEAD")
 
 
 def guarantee(sha, verdict):
@@ -119,11 +111,6 @@ def item(tmp_path, monkeypatch):
     # the plain line it prints everywhere else.
     monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
     return d, audited
-
-
-def check(root, capsys, *extra):
-    code = chain.main(["--baseline", "main", "--root", str(root), *extra])
-    return code, capsys.readouterr().out
 
 
 # --- the template ---------------------------------------------------------------

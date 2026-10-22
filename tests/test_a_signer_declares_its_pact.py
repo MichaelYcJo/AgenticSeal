@@ -17,7 +17,8 @@ step's pinned sentences (S4).
 import os
 
 import pytest
-from conftest import load_hook_module
+from conftest import config_table as table
+from conftest import flat, load_hook_module
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -27,17 +28,6 @@ URL = "git@example.com:org/orders-api.git"
 ORDERS = [(URL, "example.com/org/orders-api", "orders-api")]
 CONFIG_TOP = "# config\n\n| Item | Value |\n|---|---|\n| Mode | shared |\n"
 CONFIG = CONFIG_TOP + f"| Pact | {URL} |\n"
-
-
-def table(*rows):
-    return "# config\n\n| Item | Value |\n|---|---|\n" + "".join(
-        f"| {item} | {value} |\n" for item, value in rows
-    )
-
-
-def flat(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as handle:
-        return " ".join(handle.read().split())
 
 
 def walked(text):

@@ -32,7 +32,7 @@ import subprocess
 import sys
 
 import pytest
-from conftest import load_hook_module
+from conftest import dirty, load_hook_module
 from test_the_guard_asks_once_per_session import (
     ACTIVE,
     IDLE,
@@ -46,16 +46,6 @@ from test_the_guard_asks_once_per_session import (
 )
 
 STOP = "does not know to leave the branch where it is"
-
-
-@pytest.fixture
-def projects(monkeypatch, tmp_path):
-    """A projects root this case owns. Every loaded copy of the guard imports
-    the one `worktree_consent`, so one patch reaches both languages."""
-    root = tmp_path / "projects"
-    root.mkdir()
-    monkeypatch.setattr(wg.worktree_consent, "PROJECTS_ROOT", str(root))
-    return root
 
 
 @pytest.fixture
@@ -88,10 +78,6 @@ def judge(module, monkeypatch, capsys, cwd, command, sessions, session_id="me"):
         return "silent", ""
     d = json.loads(out)["hookSpecificOutput"]
     return d["permissionDecision"], d["permissionDecisionReason"]
-
-
-def dirty(repo):
-    (repo / "f.txt").write_text("changed\n", encoding="utf-8")
 
 
 # --- W1: the deny's one text, both rows, both languages ---------------------

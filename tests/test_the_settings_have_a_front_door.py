@@ -14,21 +14,13 @@ implementation inside a skill is one nothing can mutation-test.
 import os
 
 import pytest
+from conftest import flat, read
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 SKILL = ("skills", "config", "SKILL.md")
 # The bootstrap is `implement`'s orchestrator half since #292.
 BOOTSTRAP = ("skills", "implement", "orchestration.md")
 TEMPLATE = ("templates", "config.md")
-
-
-def read(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as handle:
-        return handle.read()
-
-
-def flat(*parts):
-    return " ".join(read(*parts).split())
 
 
 ROWS = (

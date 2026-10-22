@@ -18,6 +18,7 @@ import os
 import re
 
 import pytest
+from conftest import read
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 
@@ -38,11 +39,6 @@ PROOF_BLOCK = re.compile(
 
 # The files an agent reads as instruction, every one of them read.
 CORPUS = ("agents/*.md", "skills/*/SKILL.md", "templates/*.md")
-
-
-def read(rel):
-    with open(os.path.join(ROOT, rel), encoding="utf-8") as f:
-        return f.read()
 
 
 def corpus():

@@ -1,17 +1,18 @@
 """The suite's shared helpers and fixtures, and the environment every case runs in.
 
 The module body sets that environment for every case and every child: the
-locale, git's template and maintenance, `gh`'s login and `PATH`. It reads
-the case ceiling from it too, and a ceiling that is not a positive number
-raises.
+locale, git's template and maintenance, `gh`'s login and `PATH`.
 """
 
+import ast
 import atexit
+import datetime
 import importlib.util
 import json
 import os
 import pathlib
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -940,3 +941,228 @@ def posix_id(value, sep=os.sep):
     if not isinstance(value, str):
         return None
     return value.replace(sep, "/")
+
+
+# --- helpers more than one test module uses (#942) ----------------------------
+#
+# Each was defined byte-identically in two or more test modules. A module
+# imports the one it needs. A helper that reads a module the case loaded
+# itself, such as the worktree guard or the chain check, takes that module as
+# its first argument, and the case's module binds it with `functools.partial`.
+
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+
+def read(*parts):
+    """The text of the file at PARTS, joined under the repository root; an
+    absolute path is read where it stands."""
+    with open(os.path.join(ROOT, *parts), encoding="utf-8") as handle:
+        return handle.read()
+
+
+def read_lossy(path):
+    """The text of the file at PATH, each byte that is not UTF-8 read as the
+    replacement character."""
+    with open(path, encoding="utf-8", errors="replace") as handle:
+        return handle.read()
+
+
+def flat(*parts):
+    """`read`'s text as one line, so a pinned phrase survives re-wrapping."""
+    return flattened(read(*parts))
+
+
+def flattened(text):
+    """TEXT as one line, each run of whitespace one space."""
+    return " ".join(text.split())
+
+
+def repo_relative(path):
+    """PATH relative to the repository root, written with `/`."""
+    return posix_id(os.path.relpath(path, ROOT))
+
+
+def load_module(path, name):
+    """The Python file at PATH, run as a module named NAME, the arguments in
+    `load_hook_module`'s order."""
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def git(repo, *args, check=True):
+    """git driven from Python in REPO, so no Bash line carries a commit
+    (contract rule 8); the completed process."""
+    return subprocess.run(
+        ["git", "-C", str(repo), *args],
+        check=check,
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+
+
+def git_out(repo, *args):
+    """`git`'s standard output in REPO, stripped."""
+    return git(repo, *args).stdout.strip()
+
+
+def commit_everything(repo, message):
+    """Every change in REPO committed under MESSAGE; the new HEAD."""
+    git_out(repo, "add", "-A")
+    git_out(repo, "commit", "-qm", message)
+    return git_out(repo, "rev-parse", "HEAD")
+
+
+def commit_everything_as_e(repo, message):
+    """`commit_everything`, by the author `e <e@example.com>`."""
+    git_out(repo, "add", "-A")
+    identity = ["-c", "user.email=e@example.com", "-c", "user.name=e"]
+    git_out(repo, *identity, "commit", "-qm", message)
+    return git_out(repo, "rev-parse", "HEAD")
+
+
+def branch_of(repo):
+    """The branch REPO's HEAD is on, or `HEAD` when it is detached."""
+    return git(repo, "rev-parse", "--abbrev-ref", "HEAD", check=False).stdout.strip()
+
+
+def git_dir(repo):
+    """REPO's git directory, an absolute path."""
+    return git(repo, "rev-parse", "--absolute-git-dir", check=False).stdout.strip()
+
+
+def linked_worktree(repo, tmp_path):
+    """A worktree of REPO at TMP_PATH/linked, on `feature/x`."""
+    other = tmp_path / "linked"
+    git(repo, "worktree", "add", "-q", str(other), "feature/x")
+    assert os.path.isfile(other / ".git"), "a linked worktree carries a .git FILE"
+    return other
+
+
+def write(root, rel, text):
+    """TEXT written at REL under ROOT, its directories made."""
+    path = pathlib.Path(root) / rel
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+
+
+def opt_in(repo):
+    """REPO opted in to the workflow, in shared mode."""
+    (repo / "seal").mkdir(exist_ok=True)
+
+
+def dirty(repo):
+    """REPO with an uncommitted change to its tracked `f.txt`."""
+    (repo / "f.txt").write_text("changed\n", encoding="utf-8")
+
+
+def imported_roots(path):
+    """The top-level names the module at PATH imports, `.` for a relative
+    import."""
+    with open(path, encoding="utf-8") as handle:
+        tree = ast.parse(handle.read())
+    roots = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            roots.update(alias.name.split(".")[0] for alias in node.names)
+        elif isinstance(node, ast.ImportFrom):
+            roots.add((node.module or "").split(".")[0] if not node.level else ".")
+    return roots
+
+
+def iso(minutes_ago):
+    """The UTC time MINUTES_AGO, as a transcript writes it."""
+    t = datetime.datetime.now(datetime.UTC) - datetime.timedelta(minutes=minutes_ago)
+    return t.isoformat().replace("+00:00", "Z")
+
+
+def q(text):
+    """TEXT quoted for a shell."""
+    return shlex.quote(str(text))
+
+
+def payload(cmd, repo, session="s1", tool="Bash", **extra):
+    """The JSON a PreToolUse hook reads for a Bash COMMAND typed in REPO."""
+    p = {
+        "tool_name": tool,
+        "session_id": session,
+        "tool_input": {"command": cmd},
+        "cwd": str(repo),
+    }
+    p.update(extra)
+    return p
+
+
+def reason_of(out):
+    """The reason a hook's decision gives."""
+    return json.loads(out)["hookSpecificOutput"]["permissionDecisionReason"]
+
+
+def run_gate(command, cwd, session=None):
+    """The commit gate's output for COMMAND typed in CWD."""
+    gate_payload = {
+        "tool_name": "Bash",
+        "tool_input": {"command": command},
+        "cwd": str(cwd),
+    }
+    if session:
+        gate_payload["session_id"] = session
+    return run_hook("commit-review-gate.py", gate_payload)
+
+
+def config_table(*rows):
+    """A `seal/config.md` holding one row per `(item, value)` in ROWS."""
+    return "# config\n\n| Item | Value |\n|---|---|\n" + "".join(
+        f"| {item} | {value} |\n" for item, value in rows
+    )
+
+
+def chain_check_run(chain, root, capsys, *extra):
+    """CHAIN, the loaded chain check, run on ROOT against `main`; its exit
+    code and what it printed."""
+    code = chain.main(["--baseline", "main", "--root", str(root), *extra])
+    return code, capsys.readouterr().out
+
+
+def commit_found(gate, command, cwd):
+    """The first commit GATE, a loaded commit gate, finds in COMMAND typed in
+    CWD."""
+    return gate.commit_invocations(command, str(cwd))[0]
+
+
+def guard_decision(wg, monkeypatch, capsys, repo, command, sessions=([], [], True)):
+    """WG, a loaded worktree guard, run on COMMAND in REPO with SESSIONS in
+    its tree; its decision and reason, or `("silent", "")`."""
+    monkeypatch.setattr(wg, "sessions_in_tree", lambda top, own="": sessions)
+    monkeypatch.setattr(
+        wg,
+        "load_input",
+        lambda: {
+            "tool_name": "Bash",
+            "session_id": "me",
+            "tool_input": {"command": command},
+            "cwd": str(repo),
+        },
+    )
+    try:
+        wg.main()
+    except SystemExit:
+        pass
+    out = capsys.readouterr().out.strip()
+    if not out:
+        return "silent", ""
+    d = json.loads(out)["hookSpecificOutput"]
+    return d["permissionDecision"], d["permissionDecisionReason"]
+
+
+@pytest.fixture
+def projects(monkeypatch, tmp_path):
+    """A projects root this case owns. Every loaded copy of the worktree
+    guard imports the one `worktree_consent` by its plain name, so one patch
+    reaches every copy."""
+    root = tmp_path / "projects"
+    root.mkdir()
+    monkeypatch.setattr(sys.modules["worktree_consent"], "PROJECTS_ROOT", str(root))
+    return root

@@ -15,6 +15,7 @@ import subprocess
 import sys
 
 import pytest
+from conftest import write
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SCRIPT = os.path.join(ROOT, "skills", "verify", "scripts", "pact_check.py")
@@ -71,12 +72,6 @@ def commit(repo, message):
         message,
     )
     return git(repo, "rev-parse", "HEAD").strip()
-
-
-def write(repo, rel, text):
-    path = repo / rel
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text, encoding="utf-8")
 
 
 def pact(fields, signers=(SIGNER_URL,)):

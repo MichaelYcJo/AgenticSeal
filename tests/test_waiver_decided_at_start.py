@@ -29,6 +29,8 @@ mark landed and false for every commit before it.
 import os
 import re
 
+from conftest import read
+
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 
 AXES = (
@@ -67,11 +69,6 @@ STALE = (
     "three checkboxes",
     "two questions in ONE `AskUserQuestion` call",
 )
-
-
-def read(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
-        return f.read()
 
 
 def flat(text):

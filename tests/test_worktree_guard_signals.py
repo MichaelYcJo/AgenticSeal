@@ -1,6 +1,6 @@
 """worktree-guard activity signals, snippet forensics, and the Agent path."""
 
-import datetime
+import functools
 import json
 import os
 import subprocess
@@ -8,14 +8,9 @@ import sys
 import time
 
 import pytest
-from conftest import load_hook_module
+from conftest import guard_decision, iso, load_hook_module
 
 wg = load_hook_module("worktree-guard.py", "wg2")
-
-
-def iso(minutes_ago):
-    t = datetime.datetime.now(datetime.UTC) - datetime.timedelta(minutes=minutes_ago)
-    return t.isoformat().replace("+00:00", "Z")
 
 
 def write_jsonl(path, events):
@@ -191,27 +186,7 @@ def test_agent_without_isolation_is_untouched(monkeypatch, capsys, repo):
 # --- decision rows previously uncovered -----------------------------------
 
 
-def decide(monkeypatch, capsys, repo, command, sessions=([], [], True)):
-    monkeypatch.setattr(wg, "sessions_in_tree", lambda top, own="": sessions)
-    monkeypatch.setattr(
-        wg,
-        "load_input",
-        lambda: {
-            "tool_name": "Bash",
-            "session_id": "me",
-            "tool_input": {"command": command},
-            "cwd": str(repo),
-        },
-    )
-    try:
-        wg.main()
-    except SystemExit:
-        pass
-    out = capsys.readouterr().out.strip()
-    if not out:
-        return "silent", ""
-    d = json.loads(out)["hookSpecificOutput"]
-    return d["permissionDecision"], d["permissionDecisionReason"]
+decide = functools.partial(guard_decision, wg)
 
 
 def test_worktree_add_idle_sessions_offer_both_ways_on(monkeypatch, capsys, repo):

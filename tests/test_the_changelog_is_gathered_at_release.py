@@ -26,19 +26,10 @@ import subprocess
 import sys
 
 import pytest
-from conftest import gathered_entry, workflow_step
+from conftest import flat, gathered_entry, read, workflow_step
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SCRIPT = os.path.join(ROOT, ".github", "scripts", "gather_changelog.py")
-
-
-def read(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
-        return f.read()
-
-
-def flat(*parts):
-    return " ".join(read(*parts).split())
 
 
 def run(*args, root=None):

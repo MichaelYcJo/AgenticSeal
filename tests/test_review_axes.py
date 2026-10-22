@@ -10,13 +10,9 @@ looked. Two documents share this table; drift between them is the bug.
 import os
 
 import pytest
+from conftest import read
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
-
-
-def read(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
-        return f.read()
 
 
 def test_the_table_asks_what_a_second_actor_does():

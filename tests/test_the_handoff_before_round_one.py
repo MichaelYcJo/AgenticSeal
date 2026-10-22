@@ -16,16 +16,9 @@ Each case here was shown red before the prose it pins landed (#29).
 import os
 import re
 
+from conftest import flat, read
+
 ROOT = os.path.join(os.path.dirname(__file__), "..")
-
-
-def read(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
-        return f.read()
-
-
-def flat(*parts):
-    return " ".join(read(*parts).split())
 
 
 # --- the handoff before round 1 ---------------------------------------------

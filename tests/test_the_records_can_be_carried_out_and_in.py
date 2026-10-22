@@ -44,6 +44,7 @@ import zipfile
 
 import pytest
 from conftest import fifo_or_skip, local_home, symlink_or_skip
+from conftest import git_out as git
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SCRIPT = os.path.join(ROOT, "skills", "implement", "scripts", "seal.py")
@@ -83,16 +84,6 @@ def seal():
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
-
-
-def git(repo, *args):
-    return subprocess.run(
-        ["git", "-C", str(repo), *args],
-        check=True,
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    ).stdout.strip()
 
 
 def with_records(repo, home, item="1788000000-a-work-item"):

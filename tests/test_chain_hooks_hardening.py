@@ -7,7 +7,7 @@ import subprocess
 import sys
 
 import pytest
-from conftest import decision_of, declare_routing, fired, run_hook
+from conftest import decision_of, declare_routing, fired, opt_in, run_hook
 
 
 def payload(cmd, repo, session="s1"):
@@ -17,10 +17,6 @@ def payload(cmd, repo, session="s1"):
         "tool_input": {"command": cmd},
         "cwd": str(repo),
     }
-
-
-def opt_in(repo):
-    (repo / "seal").mkdir(exist_ok=True)
 
 
 def git(repo, *a):

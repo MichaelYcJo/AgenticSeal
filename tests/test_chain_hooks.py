@@ -7,37 +7,16 @@ import subprocess
 from conftest import (
     decision_of,
     fired,
+    git_dir,
     load_hook_module,
+    opt_in,
+    payload,
     run_hook,
 )
 
 # The gate's own name for the directory it records the question in. Read
 # from the module rather than written again, so a rename moves both.
 CHOICE_DIR = load_hook_module("commit-review-gate.py", "gate_choice_dir").CHOICE_DIR
-
-
-def payload(cmd, repo, session="s1", tool="Bash", **extra):
-    p = {
-        "tool_name": tool,
-        "session_id": session,
-        "tool_input": {"command": cmd},
-        "cwd": str(repo),
-    }
-    p.update(extra)
-    return p
-
-
-def opt_in(repo):
-    (repo / "seal").mkdir(exist_ok=True)
-
-
-def git_dir(repo):
-    return subprocess.run(
-        ["git", "-C", str(repo), "rev-parse", "--absolute-git-dir"],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    ).stdout.strip()
 
 
 # --- commit-review-gate ----------------------------------------------------

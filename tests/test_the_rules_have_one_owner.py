@@ -15,6 +15,7 @@ import os
 import re
 
 import pytest
+from conftest import flat
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -53,16 +54,6 @@ FRAGMENT_OWNER = (
     "changelog fragment along* owns that rule"
 )
 RUN_OWNS_THE_RULE = "`docs/the-review-record.md` *The run* owns that rule"
-
-
-def read(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as handle:
-        return handle.read()
-
-
-def flat(*parts):
-    """The file as one line, so a pinned phrase survives re-wrapping."""
-    return " ".join(read(*parts).split())
 
 
 # rule → (owner, the sentence the owner states, {link carrier: how it names

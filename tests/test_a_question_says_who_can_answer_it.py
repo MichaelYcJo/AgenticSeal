@@ -34,14 +34,11 @@ count of questions is an approval given against nothing.
 import os
 import re
 
+from conftest import read
+
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 ANSWERERS = ("a person", "a measurement", "the work")
-
-
-def read(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as handle:
-        return handle.read()
 
 
 def flat(*parts):

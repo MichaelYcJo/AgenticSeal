@@ -13,24 +13,17 @@ named by content (#870, #519, #867).
                   edit reaches the next caller
 """
 
-import importlib.util
 import os
 import sys
 
 import pytest
+from conftest import load_module
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 KERNEL = os.path.join(ROOT, "skills", "verify", "scripts", "coordinates.py")
 
 
-def _load(name, path):
-    spec = importlib.util.spec_from_file_location(name, path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-ec = _load("specseal_kernel_for_its_cases", KERNEL)
+ec = load_module(KERNEL, "specseal_kernel_for_its_cases")
 
 
 def places(path, locator, text):

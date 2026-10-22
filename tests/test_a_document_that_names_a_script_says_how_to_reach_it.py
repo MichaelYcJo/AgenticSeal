@@ -52,6 +52,7 @@ import os
 import re
 
 import pytest
+from conftest import read
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 BIN = os.path.join(ROOT, "bin")
@@ -85,11 +86,6 @@ NO_WRAPPER = {
         "a user-facing change with no defect behind it (#318)."
     ),
 }
-
-
-def read(path):
-    with open(path, encoding="utf-8") as handle:
-        return handle.read()
 
 
 def scripts():
