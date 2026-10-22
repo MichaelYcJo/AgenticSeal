@@ -86,8 +86,6 @@ def _declared(tree):
     if not body or not isinstance(body[0], ast.Assign):
         return None
     node = body[0]
-    if len(node.targets) != 1:
-        return None
     name = node.targets[0]
     if not isinstance(name, ast.Name) or name.id != TARGET_NAME:
         return None
