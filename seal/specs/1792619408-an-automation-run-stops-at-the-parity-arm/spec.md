@@ -8,7 +8,7 @@ the framer cites them and does not restate them. -->
 
 | Policy clause | What it fixes for this work |
 |---|---|
-| `CLAUDE.md` *The goal a design is chosen against* | Between two designs that catch the same defect, the one that stops to ask a person is the more expensive. The defect the parity arm catches is a code commit nobody compared with the original; this work keeps that catch and removes the stop |
+| `CLAUDE.md` *The goal a design is chosen against* | Between two designs that catch the same defect, the one that stops to ask a person is the more expensive. The defect the parity arm catches is a code commit nobody compared with the original; this work keeps that catch where the root is in the tree and CI runs this release's check, and removes the stop. S13 names where it does not |
 | `CLAUDE.md` *The rule a mechanism is kept against* | The commit-time parity arm on a chain-declared branch is weighed for what it catches. Its only satisfying event in a chain run, the warden's comparison, comes after the commits it gates (`agents/warden.md` *Order of work* step 5; `agents/smith.md` *Order of work* step 6), so on that branch it catches nothing the review does not, and it costs the run |
 | `docs/the-review-and-parity-arms.md` *Parity arm* | What the arm protects: a commit that changes code carries a record that the original was consulted, and the mark says a comparison was recorded, not that it was a good one |
 | `docs/the-review-and-parity-arms.md` *The declaration, and where the check went* | The review arm's precedent: a declaration moves the check to the pull request, the waiver stays per command, and there is no standing waiver. This work applies the same move to the parity arm under one answer |
@@ -84,7 +84,7 @@ the framer cites them and does not restate them. -->
 | S10 | Given S4's work item, when `seal/parity.md` has no `Baseline commit` row whose value holds a SHA, then the ready pull request fails naming `seal/parity.md` | a case beside S4's |
 | S11 | Given S4's work item, when the paths the pull request changes cannot be read, then no pull request passes: `chain-check` itself exits 2 at `cannot diff against <base>` before it judges any record, and `chain_check.py#originals_of`, given no paths, owes the line, as `hooks/gate.py#touches_code` decides for paths git could not list | a case at `originals_of` with the paths None; the command's exit 2 is its existing behaviour, so no run of the command reaches the parity refusal with an unreadable diff |
 | S12 | The wake/quiet table in `skills/implement/orchestration.md` *Orchestrator: how the work is routed* states the parity arm's new quiet condition and the `straight to the PR` case, and no file in the tree still says a declaration reaches the review arm only | the warden reads the table against this spec; `git grep -n -i 'review arm only'` and `git grep -n 'does not silence the'` return nothing outside `seal/specs/` and `changelog/` |
-| S13 | The issue's done-when: an `automation` run in a repository with `seal/parity.md` reaches its pull request with no question to a person, and a code commit with no recorded comparison is still refused at a place CI or a person sees | S1 for the first half; S4, S2 and S3 for the second |
+| S13 | The issue's done-when: an `automation` run in a repository with `seal/parity.md` reaches its pull request with no question to a person, and a code commit with no recorded comparison is still refused at a place CI or a person sees. That place exists where the root is in the tree and the repository's `.github/workflows/hygiene.yml` pins this release or a later one: in local mode no pull-request check reads the round records, and the Parity arm `add` operation of `## Rule changes` states that limit with the other two | S1 for the first half; S4, S2 and S3 for the second |
 
 ## Data & interfaces
 
@@ -181,7 +181,17 @@ the review arm, and the build reads it once for both.
     the table above states, and under the press a code commit there is
     refused and handed back at the end of the run. A branch that declares
     the chain and never opens a pull request is checked by nothing, which is
-    the cost the review arm's declaration already states.
+    the cost the review arm's declaration already states. Three more shapes
+    leave code nobody compared with nothing that reads it. In local mode the
+    root sits under the common git directory and nothing under it is
+    committed, so no pull-request check reads a round record, the cost the
+    review arm's declaration already carries there. A repository whose
+    `.github/workflows/hygiene.yml` pins a plugin release older than this
+    rule runs a `chain-check` that reads no `original:` line, until a person
+    moves the pin's `v<version>` to the installed release. And a declaration
+    rewritten from `through the review chain` to `straight to the PR` after
+    code was committed leaves those commits compared by nobody, because the
+    check reads the answer at HEAD.
     check: parity-quiet-under-the-chain
 - change
   file: docs/the-review-record.md
@@ -196,14 +206,14 @@ the review arm, and the build reads it once for both.
   file: docs/the-review-record.md
   section: What the check reads at the pull request
   to: **Where `seal/parity.md` is declared and the change reaches outside
-    `docs/` and `seal/`, every round record of a work item declaring `through
-    the review chain` carries one `original:` line naming the migration
-    config's baseline.** The check reads `seal/parity.md` at HEAD and the
-    paths the pull request changes against its base, through the parity
-    arm's own rule for a change confined to the document roots. A diff it
-    cannot read ends the check with exit 2 before any record is judged. A
-    ready pull request fails while a round
-    record holds no `original:` line, or holds one whose commit and the
+    `docs/` and `seal/`, every round record of a work item declaring
+    `through the review chain` carries one `original:` line naming the
+    migration config's baseline.** The check reads `seal/parity.md` at HEAD
+    and the paths the pull request changes against its base, through the
+    parity arm's own rule for a change confined to the document roots. A
+    diff it cannot read ends the check with exit 2 before any record is
+    judged. A ready pull request fails while a round record holds no
+    `original:` line, or holds one whose commit and the
     `Baseline commit` row's SHA are not one a prefix of the other, and a
     migration config whose `Baseline commit` holds no SHA fails it too. Each
     refusal names the record, or the config, and both commits where two are

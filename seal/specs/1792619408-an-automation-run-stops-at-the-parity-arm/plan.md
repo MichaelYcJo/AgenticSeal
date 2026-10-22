@@ -25,7 +25,10 @@ commit, and the pull-request check takes the arm's place: it refuses a ready
 pull request whose round records do not each carry an `original:` line
 naming the migration config's baseline. The warden writes that line in the
 round where it compares. The `straight to the PR` answer and an undeclared
-branch keep the arm at the commit as it is today.
+branch keep the arm at the commit as it is today. Where no pull-request check
+reads the round records, in local mode or under a `hygiene.yml` pin older
+than this release, nothing takes the arm's place; `spec.md`'s Parity arm
+`add` operation states those limits.
 
 ## Technical context
 
@@ -73,7 +76,10 @@ own limit (`docs/the-review-and-parity-arms.md` *Parity arm*, last
 paragraph), moved to a place CI can see. What catches it is the next round
 and the sealer reading the records, not a check. A second scenario: a
 chain-declared branch with `stop before the pull request` is checked by
-nothing, the cost the review arm's declaration already carries.
+nothing, the cost the review arm's declaration already carries. Three more
+shapes leave such code unread: local mode, a `hygiene.yml` pin older than
+this release, and a declaration rewritten to `straight to the PR` after code
+was committed. `spec.md`'s Parity arm `add` operation states them.
 
 **This repository declares no `seal/parity.md`** (`executed`: `ls seal/`
 lists `config.md`, `follow-up.md`, `README.md` and `specs`), so the smith's
@@ -87,7 +93,7 @@ exit 1, with `^target:` over `seal/specs` as the control, exit 0).
 | Approach | Failure scenario | Verdict |
 |---|---|---|
 | A. Keep the arm as it stands | every `automation` run in a migration repository stops at the smith's first code commit and hands the build back; the issue's done-when fails by construction | rejected |
-| B. A chain declaration quiets the arm at the commit, and `chain_check.py` owes an `original:` line naming the baseline in every round record | a warden copies the line without comparing, and the check cannot tell; a chain branch that never opens a pull request is checked by nothing. Both are limits the mark and the review arm's declaration already have | **chosen**: it keeps the catch (a code change nobody compared does not reach a ready pull request), moves it where CI sees it, and stops nobody; it is the review arm's own design applied to the second arm |
+| B. A chain declaration quiets the arm at the commit, and `chain_check.py` owes an `original:` line naming the baseline in every round record | a warden copies the line without comparing, and the check cannot tell; a chain branch that never opens a pull request is checked by nothing. Both are limits the mark and the review arm's declaration already have. In local mode, under a `hygiene.yml` pin older than this release, and after a declaration is rewritten to `straight to the PR`, nothing reads the line at all | **chosen**: where the root is in the tree and CI runs this release's check, it keeps the catch (a code change nobody compared does not reach a ready pull request), moves it where CI sees it, and stops nobody; it is the review arm's own design applied to the second arm |
 | C. The smith writes the parity mark from a scribe comparison | the smith cannot spawn a scribe (contract §6), so the orchestrator spawns one before each commit; the mark names one HEAD, so the second commit of a phase stops again; the builder certifies its own comparison, which the review arm's two answers exist to refuse; and CI never sees a mark under the git directory | rejected |
 | D. The comparison as a phase step, recorded in `phases/phase-N.md` and read by the gate before the commit | the phase record is written when the phase closes, after its commits; a gate that reads a builder-written line as the satisfying fact turns a claim into a waiver, and the reading is of words | rejected |
 | E. The parity arm moves to the pull request for every branch, and leaves the commit everywhere | an undeclared code commit in a migration repository, question 1's `no work item` answer, is read by no pull-request check, which passes a branch with no declaration with a notice; nothing then records that nobody compared | rejected; its pull-request half is B |
@@ -134,9 +140,13 @@ else. Nothing measures from this column, which is why that is tolerable.
 ## Operational impact
 
 - **A migration repository with a chain-declared work item in flight** meets
-  the new refusal at its next ready pull request once it upgrades: round
-  records written before this release carry no `original:` line. A round
-  written after the upgrade carries it. This is the case
+  the new refusal at its next ready pull request once its
+  `.github/workflows/hygiene.yml` pins this release or a later one. The pin
+  moves only when a person edits it, while the commit half runs from the
+  installed plugin, so until the pin moves its CI reads no `original:` line
+  and a chain-declared branch commits code nobody compared. Round records
+  written before this release carry no `original:` line; a round written
+  after the pin moves carries it. This is the case
   `docs/the-review-record.md` *What the check reads at the pull request*
   already states for a line the table adds, and the changelog fragment names
   it.
