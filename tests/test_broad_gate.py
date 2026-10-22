@@ -28,6 +28,9 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 CHAIN = ROOT / "skills" / "code-review" / "scripts" / "chain_check.py"
 READER = ROOT / "skills" / "verify" / "scripts" / "unverified_check.py"
 ITEM = "seal/specs/1799000001-a-gated-work-item"
+# The record's path as the gate prints it: `os.path.relpath`, so with the
+# platform's separator.
+RECORD_REL = os.path.join(ITEM, "broad-gate.md").replace("/", os.sep)
 ROW = "Broad gate"
 
 gate = load_module(ROOT / TARGET, "broad_gate_under_test")
@@ -1000,7 +1003,7 @@ class Test_coverage_line:
         )
         assert gate.coverage_line(text, "main") == (
             "broad-gate: this run answers every one of the 1 `release` steps "
-            ".github/workflows/hygiene.yml runs for this base."
+            f"{gate.WORKFLOW} runs for this base."
         )
 
     def test_refuses_to_send_a_reader_to_a_row_for_an_unclassified_step(self):
@@ -1335,7 +1338,7 @@ class Test_uncommitted_line:
     def test_accepts_a_written_file_git_sees_uncommitted(self, repo):
         path = gate.write_gate_file(str(repo / ITEM), "c", "b")
         assert gate.uncommitted_line(str(repo), path) == gate.CELL_UNCOMMITTED.format(
-            path=f"{ITEM}/broad-gate.md"
+            path=RECORD_REL
         )
 
     def test_refuses_a_committed_file_and_no_file(self, repo):
@@ -1382,7 +1385,7 @@ class Test_gate:
             f"base    {base}  base",
         ]
         assert "suite   ✓ 1 passed" in lines
-        assert lines[-1] == gate.CELL_UNCOMMITTED.format(path=f"{ITEM}/broad-gate.md")
+        assert lines[-1] == gate.CELL_UNCOMMITTED.format(path=RECORD_REL)
         for name in ("suite", "unverified", "chain", "mode"):
             assert (keep / f"{name}.txt").is_file(), name
         chain_kept = (keep / "chain.txt").read_text(encoding="utf-8")
