@@ -66,7 +66,7 @@ class Test_declared_target:
         assert layout.declared_target(source) is None
 
     def test_refuses_a_target_that_is_not_a_string(self):
-        assert layout.declared_target("import os\nTARGET = None\n") is None
+        assert layout.declared_target("import os\nTARGET = 1\n") is None
 
 
 class Test_file_name_for:
