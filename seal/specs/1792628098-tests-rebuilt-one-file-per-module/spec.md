@@ -57,7 +57,7 @@ The smith reads the target's functions first and lists the classes the file must
 
 ### Rule 3, when a module's tests are written anew from the code
 
-A module's tests are written anew when the old files that exercise it price at 60 seconds or more in `.test_durations`, or when `bin/test-layout --pairs` names a pair inside one of its classes. Every other module's old cases are placed and merged. A module written anew gets its accepting and refusing cases from reading the code, one class per function, and the old cases are read as a reference for inputs. The mutation table is what shows the new file protects what the old ones did, and rule 4 bounds what the new file may cost.
+A module's tests are written anew when the old files that exercise it price at 60 seconds or more in `.test_durations`, or when `bin/test-layout --pairs` names a pair inside one of its classes. Every other module's old cases are placed and merged. A module written anew gets its accepting and refusing cases from reading the code, one class per function, and the old cases are read as a reference for inputs. The proof of equal protection below is what shows the new file protects what the old ones did, and rule 4 bounds what the new file may cost.
 
 ### Rule 4, what a rewritten module may cost
 
@@ -65,8 +65,19 @@ The target the rebuild works toward is the issue's: the suite's real protection 
 
 - A rewritten module builds its fixture repositories once, in a module-scoped fixture, and resets them between cases by copying; it does not build one per case.
 - A case about a reading of a command is judged without real git or a real shell. The real-git rows that stay are the ones showing the reading and git agree, and a batch names them.
-- A case does not enumerate a whole input space where a sampled set, one row per kind, holds the same behaviour; the mutation table is what shows it does.
+- A case does not enumerate a whole input space where a sampled set, one row per kind, holds the same behaviour; the proof of equal protection is what shows it does.
 - Each rewritten module's record states its seconds before and after, from `bin/test <files> -q` at the build machine, beside the cases before and after.
+
+### The proof of equal protection
+
+#942 changes no shipped code, so the one risk a rebuilt module carries is a fault the old cases caught and the new ones miss. A sample of mutants at the code's decision points is enough to show that risk, and the owner set its cost on 2026-10-22.
+
+- Where the mutants go: one or two per class, at each public function's decision points, the branches where a case accepts or refuses. That is about 30 per module.
+- How the new file's column runs: in one `bin/mutation-check` call carrying every mutant of the module, which runs the baseline once and then each mutant once, stopping each mutant's run at its first failure.
+- When the old files' column runs: only for a mutant the new file lets survive. Where the old files miss it too, the record states an old gap. Where they kill it, the smith adds a case to the new file and sees it red on that mutant before the batch commits.
+- What the record carries: the table of mutants with the new column's verdict, the old column's verdict where it ran, each old gap, and each case added.
+
+`broad_gate.py` and `seal_stamp.py` ran under the earlier proof, a table of about 100 mutants each run in both columns, and their records stay as they were written. The commit flow's record says at which mutant it switched to this proof.
 
 ### What holds the rules
 
@@ -96,7 +107,7 @@ The target the rebuild works toward is the issue's: the suite's real protection 
 | S2 a class without its pair is refused | Given a function class with only `test_accepts_` cases, when `--check` runs, then it exits 1 naming the class and the missing kind | `tests/test_test_layout.py` |
 | S3 a twin is refused | Given two test files defining one helper byte-identically, one of them declaring `TARGET`, when `--check` runs, then it exits 1 naming both | `tests/test_test_layout.py` |
 | S4 a likely pair is named, not refused | Given two cases in one class calling the function with equal arguments, when `--pairs` runs, then both names print and the exit is 0 | `tests/test_test_layout.py` |
-| S5 a rebuilt module protects what the old files did | Given a module's old files and its new file, when each mutation of the batch's table runs against both, then every mutation red before is red after | the phase record's table, run with `bin/mutation-check` |
+| S5 a rebuilt module protects what the old files did | Given a module's new file and its sample of about 30 mutants at the public functions' decision points, when one `bin/mutation-check` call runs them against the new file, then every mutant is killed, or each survivor is run against the old files and either recorded as an old gap or answered by a case seen red on it | the phase record's table |
 | S6 a slow case is reported | Given a case whose call runs past `SLOW_CASE_S`, when the run ends, then one line names it and its seconds and the run exits 0 | `tests/test_conftest.py`, an inner pytest run with the value lowered |
 | S7 the release table has module rows | Given `.test_durations` at the head and at the tag, when `release_report.py` runs, then one row per test file prints with cases and seconds at both | `tests/test_release_report.py` on two fixture trees |
 | S8 a census runs with its module | Given `tests/test_<stem>.py`, when `bin/test tests/test_<stem>.py` runs, then `test_census` judges `TARGET` under every census | `tests/test_censuses.py` with a fixture target that fails one census |
@@ -108,6 +119,7 @@ The target the rebuild works toward is the issue's: the suite's real protection 
 - `bin/test-layout [--check [--all] | --pairs] [paths]`, launched through `hooks/launch.py` like `bin/mutation-check`.
 - `tests/conftest.py#census_case(target)` returns the one case; `tests/censuses.py` exposes `def <census>(rel, root=None) -> list[str]`, one per census, where `rel` is the file's path relative to the repository root and `root` is the tree read, the repository root when absent.
 - `release_report.py#module_rows(at, now)` reads `.test_durations` in both trees.
+- `bin/mutation-check <path> --tests <command> --replace OLD NEW`, with `--replace` given once per mutant: a call with several pairs runs the baseline once, then each mutant once with its run stopped at the first failing case, restores the file after each, prints one verdict line per pair in the order given, and exits 1 where any mutant survived. A call with one pair runs as it does today.
 
 ## Removes
 
@@ -137,10 +149,10 @@ The target the rebuild works toward is the issue's: the suite's real protection 
   to: **Each release clears what grew.** The module rows are a report and
     never a ceiling: a heavily exercised module needs the cases it needs. The
     owner reads the rows whose seconds or cases grew most since the tag and
-    sweeps each such module with `bin/mutation-check` for cases that kill
-    nothing another case does not. The sweep's cuts land in a work item of
-    the next release with one line per cut case, the shape
-    `CONTRIBUTING.md` *The test layout* gives.
+    sweeps each such module with one `bin/mutation-check` call carrying a
+    mutant per class, for cases that kill nothing another case does not. The
+    sweep's cuts land in a work item of the next release with one line per
+    cut case, the shape `CONTRIBUTING.md` *The test layout* gives.
 - change
   file: docs/the-broad-gate.md
   section: What the gate runs, and how the list is kept true
