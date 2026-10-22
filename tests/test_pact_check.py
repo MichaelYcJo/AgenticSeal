@@ -1,77 +1,44 @@
-"""`pact-check` reads every signer from the pact's repository (#647, B).
+"""`skills/verify/scripts/pact_check.py`, one class per function.
 
-Two temporary repositories side by side: the pact's repository, whose
-`seal/pact.md` carries one clause committed as v1 and then v2 on `main`, with
-v3 on a side branch HEAD does not hold; and a signer, which names the pact
-in its `seal/config.md` and cites the clause from a work item's `spec.md`. `HOME`
-is a temporary directory, so the machine-local map is whatever a case writes
-there. S3 and S8-S12 of the work item's `spec.md`.
+Rebuilt by #942's phase 5. The printed paths, the near-miss rule, the
+anchor grammar, a clause's hash and an anchor's grade run in the process on
+text, a grade against a stand-in history. The checkout search, the history
+and `check` read a world built once for the module and copied for each case
+that writes into it: the pact's repository, whose `seal/pact.md` carries one
+clause committed as v1 and then v2 on `main` and v3 on a side branch HEAD does
+not hold, and a signer beside it, which names the pact in its
+`seal/config.md`. `HOME` is the world's own directory, so the machine-local
+map is whatever a case writes there. Each copy is the reset.
 """
 
-import importlib.util
-import io
+import ntpath
 import os
+import shutil
 import subprocess
-import sys
 
 import pytest
-from conftest import write
+from conftest import ROOT, census_case, load_module, symlink_or_skip, write
+from conftest import commit_everything_as_e as commit
+from conftest import git_out as git
 
-ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-SCRIPT = os.path.join(ROOT, "skills", "verify", "scripts", "pact_check.py")
+TARGET = "skills/verify/scripts/pact_check.py"
+
+SCRIPT = os.path.join(ROOT, TARGET)
 WRAPPER = os.path.join(ROOT, "bin", "pact-check")
+
+pc = load_module(SCRIPT, "pact_check_under_test")
+checker = pc.load(pc.CHECKER, "evidence_for_pact_tests")
+config = pc.load(os.path.join(pc.HOOKS, "config.py"), "config_for_pact_tests")
 
 PACT_URL = "git@example.com:org/orders-api.git"
 SIGNER_URL = "https://example.com/org/orders-web"
+SIGNER = (SIGNER_URL, config.normalise_remote(SIGNER_URL), "orders-web")
+MOBILE_URL = "https://example.com/org/orders-mobile"
 LOCATOR = '"## Order response shape / ### Fields"'
-
-
-def load():
-    spec = importlib.util.spec_from_file_location("pact_check_under_test", SCRIPT)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
-
-
-pc = load()
-checker = pc.load(pc.CHECKER, "evidence_for_pact_tests")
-
-
-def test_a_clause_heading_quoted_in_a_fence_is_not_a_second_clause():
-    """#867: `clause_hash` reads a clause's heading where a renderer shows
-    one, as the checker reads a document's. A pact that quotes its own
-    `## A` inside a closed fence has one clause `## A`, hashed over the lines
-    as written. Seen red against the raw lines: two clauses."""
-    text = "# Pact\n\n## A\n\nterms\n\n```markdown\n## A\n```\n\n## B\n\nmore\n"
-    digest, why = pc.clause_hash(checker, text, '"## A"')
-    assert why is None, why
-    lines = checker.gfm_lines(text)
-    assert digest == checker.content_hash(lines[2:10])
-
-
-def git(repo, *args):
-    return subprocess.run(
-        ["git", "-C", str(repo), *args],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-        check=True,
-    ).stdout
-
-
-def commit(repo, message):
-    git(repo, "add", "-A")
-    git(
-        repo,
-        "-c",
-        "user.email=e@example.com",
-        "-c",
-        "user.name=e",
-        "commit",
-        "-qm",
-        message,
-    )
-    return git(repo, "rev-parse", "HEAD").strip()
+PACT = "seal/pact.md"
+SPEC = "seal/specs/1790000000-x/spec.md"
+SPEC_Y = "seal/specs/1790000001-y/spec.md"
+V1, V2, V3 = "id, total", "id, total, currency", "id, total, currency, tax"
 
 
 def pact(fields, signers=(SIGNER_URL,)):
@@ -83,7 +50,8 @@ def pact(fields, signers=(SIGNER_URL,)):
     )
 
 
-V1, V2, V3 = "id, total", "id, total, currency", "id, total, currency, tax"
+def old_header(text):
+    return text.replace("| Signer |\n|---|", "| Signatory |\n|---|", 1)
 
 
 def clause(fields):
@@ -92,133 +60,838 @@ def clause(fields):
     return digest
 
 
-def config(*rows):
+def signer_config(*rows):
     return "# config\n\n| Item | Value |\n|---|---|\n| Mode | shared |\n" + "".join(
         f"| {item} | {value} |\n" for item, value in rows
     )
-
-
-SPEC = "seal/specs/1790000000-x/spec.md"
 
 
 def grounding_row(anchor):
     return f"| `{anchor}` | the field list, built against it |\n"
 
 
-@pytest.fixture
-def world(tmp_path):
-    """The pact's repository and the signer as siblings under `work/`,
-    and an empty HOME."""
-    return make_world(tmp_path)
-
-
-def make_world(tmp_path):
-    """`world`'s body."""
-    work = tmp_path / "work"
-    home = tmp_path / "home"
-    home.mkdir()
-    api = work / "orders-api"
-    api.mkdir(parents=True)
-    git(api, "init", "-q", "-b", "main")
-    git(api, "remote", "add", "origin", PACT_URL)
-    write(api, "seal/pact.md", pact(V1))
-    commit(api, "pact v1")
-    write(api, "seal/pact.md", pact(V2))
-    commit(api, "pact v2")
-    git(api, "switch", "-qc", "side")
-    write(api, "seal/pact.md", pact(V3))
-    commit(api, "pact v3")
-    git(api, "switch", "-q", "main")
-    web = work / "orders-web"
-    web.mkdir()
-    git(web, "init", "-q", "-b", "main")
-    git(web, "remote", "add", "origin", SIGNER_URL)
-    write(web, "seal/config.md", config(("Pact", PACT_URL)))
-    commit(web, "signer")
-    return {"api": api, "web": web, "home": home, "tmp": tmp_path}
-
-
-def cite(world, digest, locator=LOCATOR, where=SPEC):
-    anchor = f"pact:orders-api/{locator}@{digest}"
-    write(world["web"], where, grounding_row(anchor))
-    return anchor
-
-
 def posix(path):
-    """A path as `pact-check` prints one outside HOME: every separator `/`.
-    Each case comparing a printed path compares this, so a Windows run
-    holds the same sentence a POSIX one does."""
+    """A path as `pact-check` prints one outside HOME: every separator `/`."""
     return str(path).replace(os.sep, "/")
 
 
-def run(world, root=None):
+def init(d, url):
+    d.mkdir(parents=True)
+    git(d, "init", "-q", "-b", "main")
+    git(d, "remote", "add", "origin", url)
+
+
+@pytest.fixture(scope="module")
+def _template(tmp_path_factory):
+    """The pact's repository and the signer as siblings under `work/`, and
+    an empty HOME, built once for the module."""
+    base = tmp_path_factory.mktemp("pact-world")
+    (base / "home").mkdir()
+    api = base / "work" / "orders-api"
+    init(api, PACT_URL)
+    write(api, PACT, pact(V1))
+    commit(api, "pact v1")
+    write(api, PACT, pact(V2))
+    commit(api, "pact v2")
+    git(api, "switch", "-qc", "side")
+    write(api, PACT, pact(V3))
+    commit(api, "pact v3")
+    git(api, "switch", "-q", "main")
+    web = base / "work" / "orders-web"
+    init(web, SIGNER_URL)
+    write(web, "seal/config.md", signer_config(("Pact", PACT_URL)))
+    commit(web, "signer")
+    return base
+
+
+class World:
+    """A copy of the module's world under one case's directory."""
+
+    def __init__(self, template, tmp_path):
+        self.tmp = tmp_path
+        shutil.copytree(template, tmp_path / "w", symlinks=True)
+        base = tmp_path / "w"
+        self.home = base / "home"
+        self.api = base / "work" / "orders-api"
+        self.web = base / "work" / "orders-web"
+
+    def cite(self, digest, locator=LOCATOR, where=SPEC):
+        anchor = f"pact:orders-api/{locator}@{digest}"
+        write(self.web, where, grounding_row(anchor))
+        return anchor
+
+    def run(self, root=None):
+        """(exit, the printed lines run together) for `check` at ROOT, the
+        pact's repository by default."""
+        import io
+
+        out = io.StringIO()
+        code = pc.check(str(root or self.api), out=out, home_dir=str(self.home))
+        return code, " ".join(out.getvalue().split())
+
+    def map(self, *rows):
+        write(
+            self.home,
+            ".claude/specseal/pact-paths.md",
+            "| Remote | Path |\n|---|---|\n"
+            + "".join(f"| {r} | {p} |\n" for r, p in rows),
+        )
+
+
+@pytest.fixture
+def world(_template, tmp_path):
+    return World(_template, tmp_path)
+
+
+class Test_module:
+    @pytest.mark.parametrize(
+        "anchor",
+        [
+            'pact:orders-api#"## Order response shape / ### Fields"@1a2b3c4d',
+            "pact:orders-api/## Order response shape@1a2b3c4d",
+            'pact:orders-api/"## Order response shape / ### Fields"',
+            f"pact:orders-api{LOCATOR}@1a2b3c4d",
+            f"pact:orders-api:{LOCATOR}@1a2b3c4d",
+            f"pact:orders-api {LOCATOR}@1a2b3c4d",
+            "pact:orders-api@1a2b3c4d",
+            f"pact:orders-api.{LOCATOR}@1a2b3c4d",
+            f"pact:orders-api-{LOCATOR}@1a2b3c4d",
+            f"pact:orders-api_{LOCATOR}@1a2b3c4d",
+            f"pact:orders-api./{LOCATOR}@1a2b3c4d",
+            f"pact:orders-api-/{LOCATOR}@1a2b3c4d",
+            f"pact:orders-api_/{LOCATOR}@1a2b3c4d",
+            "pact:orders-api.@1a2b3c4d",
+            "The clauses sit under pact:orders-api/ in that repository.",
+        ],
+        ids=[
+            "hash for slash",
+            "no quotes",
+            "no hash",
+            "no slash",
+            "a colon for the slash",
+            "a space for the slash",
+            "no heading path",
+            "a dot for the slash",
+            "a hyphen for the slash",
+            "an underscore for the slash",
+            "a dot before the slash",
+            "a hyphen before the slash",
+            "an underscore before the slash",
+            "a dot, no heading path",
+            "half typed in prose",
+        ],
+    )
+    def test_accepts_each_attempt_at_an_anchor_as_beginning_one(self, anchor):
+        """The grammar's one rule: each of these begins an anchor naming the
+        pact, or the pact and one mark, and does not complete one, so
+        `check` refuses it."""
+        assert not checker.PACT_ANCHOR_RE.search(anchor) or not any(
+            m.group("name") == "orders-api"
+            for m in checker.PACT_ANCHOR_RE.finditer(anchor)
+        )
+        begun = [m.group("name") for m in pc.PACT_MENTION_RE.finditer(anchor)]
+        assert any(n == "orders-api" or pc.near_miss(n, "orders-api") for n in begun)
+
+    @pytest.mark.parametrize(
+        "body",
+        [
+            "This work item signs pact:orders-api, the order contract.",
+            "This work item signs `pact:orders-api`.",
+            'Cite each clause as `pact:orders-api/"<heading path>"@<hash>`.',
+            "See pact:orders-api.",
+        ],
+        ids=[
+            "prose",
+            "code span",
+            "the form with its placeholders",
+            "a sentence's end",
+        ],
+    )
+    def test_refuses_to_read_prose_naming_the_pact_as_an_attempt(self, body):
+        assert not pc.PACT_MENTION_RE.search(body)
+
+    def test_accepts_the_map_named_in_posix_form_under_windows_joins(
+        self, monkeypatch, tmp_path
+    ):
+        """Loaded with Windows' `os.path.join`, as on a Windows runner, the
+        module still names the map with `/`; reading the file stays native."""
+        with monkeypatch.context() as patched:
+            patched.setattr(os.path, "join", ntpath.join)
+            windows = load_module(SCRIPT, "pact_check_with_windows_joins")
+        _, why = windows.checkout(config, SIGNER, str(tmp_path / "nowhere"), {})
+        assert "~/.claude/specseal/pact-paths.md" in why, why
+        assert "\\" not in why, why
+
+    def test_the_wrapper_runs_the_script_from_any_directory(self, world):
+        """The command run as a person types it, from a directory that is
+        not the pact's repository."""
+        if os.name == "nt":
+            pytest.skip("the POSIX wrapper; bin/pact-check.cmd is its Windows twin")
+        world.cite(clause(V2))
+        done = subprocess.run(
+            ["sh", WRAPPER, str(world.api)],
+            cwd=str(world.tmp),
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            env={**os.environ, "HOME": str(world.home)},
+        )
+        assert done.returncode == 0, done.stdout + done.stderr
+        assert "1 ok" in done.stdout, done.stdout
+
+
+class Test_shown:
+    @pytest.mark.parametrize(
+        "path, repo, home, want",
+        [
+            (
+                r"C:\Users\x\work\orders-web\seal\config.md",
+                r"C:\Users\x\work\orders-web",
+                r"C:\Users\x",
+                "seal/config.md",
+            ),
+            (
+                r"C:\Users\x\.claude\specseal\pact-paths.md",
+                None,
+                r"C:\Users\x",
+                "~/.claude/specseal/pact-paths.md",
+            ),
+            ("C:/Users/x/work/a\\b.md", r"C:\Users\x\work", None, "a/b.md"),
+        ],
+        ids=["inside its repository", "under home", "both separators"],
+    )
+    def test_accepts_a_path_under_its_repository_or_home_as_relative(
+        self, path, repo, home, want
+    ):
+        """Windows paths through `ntpath`, so the POSIX guarantee is removed
+        rather than relied on (contract rule 13)."""
+        assert pc.shown(path, repo, home, flavour=ntpath) == want
+
+    @pytest.mark.parametrize(
+        "path, repo, home, want",
+        [
+            (r"D:\work\orders-web", None, r"C:\Users\x", "D:/work/orders-web"),
+            (r"D:\Users\x\work", None, r"C:\Users\x", "D:/Users/x/work"),
+            (r"Users\x\work", None, r"\Users\x", "Users/x/work"),
+            (r"D:\data\xy\work", None, r"D:\data\x", "D:/data/xy/work"),
+            (r"C:\Users\x\work", r"C:\Users\x\work", None, "C:/Users/x/work"),
+        ],
+        ids=[
+            "another drive",
+            "the same segments on another drive",
+            "a relative path under a rooted home",
+            "a longer segment is not under home",
+            "the repository itself",
+        ],
+    )
+    def test_refuses_to_shorten_a_path_under_neither_and_prints_it_whole(
+        self, path, repo, home, want
+    ):
+        got = pc.shown(path, repo, home, flavour=ntpath)
+        assert got == want
+        assert "\\" not in got
+
+
+class Test_load:
+    def test_accepts_a_sibling_module_by_its_path(self):
+        assert hasattr(pc.load(pc.CHECKER, "evidence_loaded_again"), "PACT_ANCHOR_RE")
+
+    def test_refuses_a_module_that_is_not_there_with_a_sentence(self, tmp_path, capsys):
+        with pytest.raises(SystemExit) as stopped:
+            pc.load(str(tmp_path / "gone.py"), "gone")
+        assert stopped.value.code == 2
+        err = capsys.readouterr().err
+        assert "pact-check: cannot read " in err and "Nothing was read." in err, err
+
+
+class Test_near_miss:
+    @pytest.mark.parametrize("said", ["orders-api.", "orders-api-", "ORDERS-API_"])
+    def test_accepts_the_name_and_one_mark_the_name_class_holds(self, said):
+        assert pc.near_miss(said, "orders-api")
+
+    @pytest.mark.parametrize(
+        "said", ["orders-api", "orders-api.-", "orders-apix", "orders-ap."]
+    )
+    def test_refuses_the_name_itself_two_marks_or_another_character(self, said):
+        assert not pc.near_miss(said, "orders-api")
+
+
+class Test_git:
+    def test_accepts_a_command_git_answers_with_its_output(self, _template):
+        api = _template / "work" / "orders-api"
+        assert pc.git(str(api), "rev-parse", "--abbrev-ref", "HEAD") == "main\n"
+
+    def test_refuses_a_command_git_refuses_and_a_directory_that_is_not_there(
+        self, _template, tmp_path
+    ):
+        api = _template / "work" / "orders-api"
+        assert pc.git(str(api), "rev-parse", "--verify", "no-such-ref") is None
+        assert pc.git(str(tmp_path / "gone"), "status") is None
+
+
+class Test_read:
+    def test_accepts_a_file_as_its_text(self, tmp_path):
+        write(tmp_path, "a.md", "text\n")
+        assert pc.read(str(tmp_path / "a.md")) == "text\n"
+
+    def test_refuses_a_directory_and_bytes_that_do_not_decode(self, tmp_path):
+        (tmp_path / "d").mkdir()
+        (tmp_path / "b.md").write_bytes(b"\xff\n")
+        assert pc.read(str(tmp_path / "d")) is None
+        assert pc.read(str(tmp_path / "b.md")) is None
+
+
+class Test_origin:
+    def test_accepts_the_origin_remote_as_written(self, _template):
+        assert pc.origin(str(_template / "work" / "orders-api")) == PACT_URL
+
+    def test_refuses_a_repository_with_no_origin_as_empty(self, tmp_path):
+        d = tmp_path / "r"
+        d.mkdir()
+        git(d, "init", "-q")
+        assert pc.origin(str(d)) == ""
+
+
+class Test_path_map:
+    def test_accepts_each_row_keyed_by_the_remote_normalised(self, world):
+        world.map(
+            ("git@example.com:org/orders-web.git", "~/work/orders-web"),
+            ("https://example.com/org/b", "/x/b"),
+        )
+        found, refusal = pc.path_map(config, str(world.home))
+        assert refusal is None
+        assert found == {
+            "example.com/org/orders-web": os.path.expanduser("~/work/orders-web"),
+            "example.com/org/b": "/x/b",
+        }
+
+    def test_accepts_no_map_as_an_empty_one(self, world):
+        assert pc.path_map(config, str(world.home)) == ({}, None)
+
+    def test_refuses_to_read_a_row_past_the_tables_end(self, world):
+        write(
+            world.home,
+            ".claude/specseal/pact-paths.md",
+            "| Remote | Path |\n|---|---|\n| https://example.com/org/a | /x/a |\n"
+            "\nprose\n\n| https://example.com/org/b | /x/b |\n",
+        )
+        found, _ = pc.path_map(config, str(world.home))
+        assert list(found) == ["example.com/org/a"]
+
+    @pytest.mark.parametrize("shape", ["directory", "dangling link"])
+    def test_refuses_a_map_that_is_there_and_will_not_read(self, world, shape):
+        """Read as empty, every signer it names would be reported missing."""
+        where = world.home / ".claude" / "specseal" / "pact-paths.md"
+        where.parent.mkdir(parents=True)
+        if shape == "directory":
+            where.mkdir()
+        else:
+            symlink_or_skip(str(world.tmp / "gone"), where)
+        found, refusal = pc.path_map(config, str(world.home))
+        assert found == {}
+        assert refusal == (
+            "~/.claude/specseal/pact-paths.md is there and could not be read"
+        )
+
+
+class Test_checkout:
+    def test_accepts_the_map_s_checkout_and_the_one_sibling_with_the_origin(
+        self, world
+    ):
+        moved = world.tmp / "elsewhere" / "orders-web"
+        assert pc.checkout(config, SIGNER, str(world.api), {}) == (str(world.web), None)
+        moved.parent.mkdir()
+        world.web.rename(moved)
+        mapped = {SIGNER[1]: str(moved)}
+        assert pc.checkout(config, SIGNER, str(world.api), mapped) == (str(moved), None)
+
+    def test_refuses_a_map_line_naming_no_directory_or_another_origin(self, world):
+        gone = world.tmp / "gone"
+        _, why = pc.checkout(config, SIGNER, str(world.api), {SIGNER[1]: str(gone)})
+        assert why == f"the map names {posix(gone)}, which is not a directory here"
+        other = world.tmp / "unrelated"
+        init(other, "git@example.com:org/unrelated.git")
+        _, why = pc.checkout(config, SIGNER, str(world.api), {SIGNER[1]: str(other)})
+        assert why == (
+            f"the map names {posix(other)}, whose origin is "
+            "example.com/org/unrelated rather than example.com/org/orders-web"
+        )
+
+    def test_refuses_to_guess_between_two_siblings_with_the_origin(self, world):
+        init(world.web.parent / "orders-web-2", SIGNER_URL)
+        path, why = pc.checkout(config, SIGNER, str(world.api), {})
+        assert path is None
+        assert why.startswith("2 sibling directories have its origin (")
+        assert "nothing here guesses which" in why, why
+
+    def test_refuses_the_pact_s_own_repository_and_a_signer_nowhere(self, world):
+        own = (PACT_URL, config.normalise_remote(PACT_URL), "orders-api")
+        path, why = pc.checkout(config, own, str(world.api), {})
+        assert path is None
+        assert why == (
+            "no checkout of it was found on this machine: add "
+            f"`| {PACT_URL} | <the path of its checkout> |` to "
+            "~/.claude/specseal/pact-paths.md"
+        )
+
+
+class Test_anchor_files:
+    def test_accepts_every_work_item_s_spec_in_order(self, tmp_path):
+        for rel in ("specs/2-b/spec.md", "specs/1-a/spec.md"):
+            write(tmp_path, rel, "x\n")
+        assert pc.anchor_files(str(tmp_path)) == [
+            os.path.join(str(tmp_path), "specs", "1-a", "spec.md"),
+            os.path.join(str(tmp_path), "specs", "2-b", "spec.md"),
+        ]
+
+    def test_refuses_a_work_item_s_other_records_and_a_spec_below_one(self, tmp_path):
+        for rel in ("specs/1-a/plan.md", "specs/1-a/phases/spec.md", "spec.md"):
+            write(tmp_path, rel, "x\n")
+        assert pc.anchor_files(str(tmp_path)) == []
+
+
+class Test_History:
+    def test_accepts_heads_versions_newest_first_and_the_side_version_by_its_ref(
+        self, _template
+    ):
+        history = pc.History(str(_template / "work" / "orders-api"), PACT)
+        assert [history.text(s) for s in history.head()] == [pact(V2), pact(V1)]
+        other = history.other()
+        assert [history.text(s) for s in other] == [pact(V3)]
+        assert history.ref_holding(other[0]) == "side"
+
+    def test_accepts_a_version_a_merge_did_not_keep_and_one_only_a_tag_holds(
+        self, world
+    ):
+        """Main held v2; a branch cut from v1 changed the clause, and the
+        merge kept the branch's text, so v2 sits on the side git's default
+        history simplification does not follow. A version on a tag alone is
+        another ref's."""
+        api = world.api
+        git(api, "switch", "-qc", "early", "main~1")
+        write(api, PACT, pact("id, total, tax"))
+        commit(api, "the clause, changed from v1")
+        git(api, "switch", "-q", "main")
+        git(api, "merge", "-q", "--no-ff", "-s", "ours", "--no-commit", "early")
+        write(api, PACT, pact("id, total, tax"))
+        commit(api, "merge early, keeping its clause")
+        git(api, "switch", "-q", "--detach", "main~1")
+        write(api, PACT, pact("id"))
+        tagged = commit(api, "a version on a tag")
+        git(api, "tag", "t1")
+        git(api, "switch", "-q", "main")
+        history = pc.History(str(api), PACT)
+        assert pact(V2) in [history.text(s) for s in history.head()]
+        assert tagged in history.other()
+        assert history.ref_holding(tagged) == "t1"
+
+    def test_refuses_a_path_git_never_tracked_and_names_an_unheld_commit_by_sha(
+        self, world
+    ):
+        history = pc.History(str(world.api), "seal/nothing.md")
+        assert history.head() == [] and history.other() == []
+        git(world.api, "switch", "-qc", "gone")
+        write(world.api, "f.txt", "x\n")
+        sha = commit(world.api, "a commit no ref will hold")
+        git(world.api, "switch", "-q", "main")
+        git(world.api, "branch", "-qD", "gone")
+        assert history.text(sha) is None
+        assert pc.History(str(world.api), PACT).ref_holding(sha) == sha[:8]
+
+
+class Test_clause_hash:
+    def test_accepts_a_clause_hashed_over_its_lines_as_written(self):
+        """#867: a heading quoted inside a closed fence is no second clause,
+        and the hash is over the clause's lines as written."""
+        text = "# Pact\n\n## A\n\nterms\n\n```markdown\n## A\n```\n\n## B\n\nmore\n"
+        digest, why = pc.clause_hash(checker, text, '"## A"')
+        assert why is None, why
+        assert digest == checker.content_hash(checker.gfm_lines(text)[2:10])
+
+    @pytest.mark.parametrize(
+        "text, locator, why",
+        [
+            (
+                pact(V2),
+                '"Order response shape"',
+                "names no heading path, and a pact clause is addressed by one",
+            ),
+            (
+                pact(V2),
+                '"## Order response shape / ### Gone"',
+                "resolves to no clause in the pact",
+            ),
+            (
+                pact(V2) + "\n## Order response shape\n\n### Fields\n\nagain\n",
+                LOCATOR,
+                "resolves to 2 clauses in the pact",
+            ),
+        ],
+        ids=["no heading", "no clause", "two clauses"],
+    )
+    def test_refuses_a_locator_naming_no_one_clause(self, text, locator, why):
+        assert pc.clause_hash(checker, text, locator) == (None, why)
+
+
+class _History:
+    """A stand-in for `History`: HEAD's versions and another ref's, by sha."""
+
+    def __init__(self, head=(), other=()):
+        self._head, self._other = list(head), list(other)
+        self.texts = {sha: text for sha, text in (*head, *other)}
+
+    def head(self):
+        return [sha for sha, _ in self._head]
+
+    def other(self):
+        return [sha for sha, _ in self._other]
+
+    def text(self, sha):
+        return self.texts[sha]
+
+    def ref_holding(self, sha):
+        return "side"
+
+
+A, B, C = "a" * 40, "b" * 40, "c" * 40
+
+
+class Test_grade:
+    def test_accepts_the_current_hash_and_names_where_an_older_one_came_from(self):
+        history = _History(head=[(A, None), (B, pact(V1))], other=[(C, pact(V3))])
+        assert pc.grade(checker, pact(V2), history, LOCATOR, clause(V2)) == (
+            pc.OK,
+            "",
+        )
+        status, detail = pc.grade(checker, pact(V2), history, LOCATOR, clause(V1))
+        assert status == pc.SUPERSEDED
+        assert detail == (
+            "the signer was built against a superseded clause, the one at "
+            f"bbbbbbbb; it reads @{clause(V2)} now. Re-read it in the signer and "
+            "re-anchor"
+        )
+        status, detail = pc.grade(checker, pact(V2), history, LOCATOR, clause(V3))
+        assert status == pc.NOT_TAKEN
+        assert detail.startswith(
+            "the pact has not taken the signer's recorded change: this hash is "
+            "the clause on side (at cccccccc), which HEAD does not hold."
+        ), detail
+
+    def test_refuses_a_hash_no_version_gave_and_a_path_naming_no_clause(self):
+        history = _History(head=[(B, pact(V1))], other=[(C, pact(V3))])
+        status, detail = pc.grade(checker, pact(V2), history, LOCATOR, "deadbeef")
+        assert status == pc.UNMATCHED
+        assert detail.endswith("Read both sides"), detail
+        status, detail = pc.grade(
+            checker, pact(V2), history, '"## Order response shape / ### Gone"', "x"
+        )
+        assert (status, detail) == (
+            pc.BROKEN,
+            "the heading path resolves to no clause in the pact: the clause was "
+            "renamed or removed. Re-coordinate the signer",
+        )
+
+
+class Test_check:
+    def test_accepts_a_signer_citing_the_current_clause(self, world):
+        """S12: two specs cite the current hash, one of them in the pact's
+        name as another case spells it, and an anchor of another pact and one
+        shown in a fence are not read: exit 0 and the summary line."""
+        world.cite(clause(V2))
+        write(
+            world.web,
+            SPEC_Y,
+            grounding_row(f"pact:ORDERS-API/{LOCATOR}@{clause(V2)}")
+            + grounding_row(f"pact:billing/{LOCATOR}@deadbeef")
+            + grounding_row(f"pact:orders-api-legacy-/{LOCATOR}@deadbeef")
+            + f"```\npact:orders-api/{LOCATOR}@deadbeef\n```\n",
+        )
+        code, out = world.run()
+        assert code == 0, out
+        assert (
+            f"READ {SIGNER_URL} {posix(world.web)} — 2 pact anchors naming `orders-api`"
+        ) in out, out
+        assert out.endswith(
+            "pact-check: the pact `orders-api` — 1 of 1 signer read · 2 ok · 0 "
+            "superseded · 0 not taken · 0 unmatched · 0 broken"
+        ), out
+        assert "heads its table" not in out and "does not parse" not in out, out
+
+    @pytest.mark.parametrize(
+        "fields, locator, code, line",
+        [
+            (V1, LOCATOR, 1, "SUPERSEDED {s} {spec}:1 {a} — the signer was built"),
+            (V3, LOCATOR, 1, "NOT TAKEN {s} {spec}:1 {a} — the pact has not taken"),
+            (None, LOCATOR, 1, "UNMATCHED {s} {spec}:1 {a} — no commit in this"),
+            (
+                V2,
+                '"## Order response shape / ### Gone"',
+                2,
+                "BROKEN {s} {spec}:1 {a} — the heading path resolves to no clause",
+            ),
+        ],
+        ids=["superseded", "not taken", "unmatched", "broken"],
+    )
+    def test_refuses_each_anchor_that_does_not_read_ok(
+        self, world, fields, locator, code, line
+    ):
+        anchor = world.cite(clause(fields) if fields else "deadbeef", locator)
+        got, out = world.run()
+        assert got == code, out
+        assert line.format(s=SIGNER_URL, spec=SPEC, a=anchor) in out, out
+
+    def test_refuses_a_mismatch_under_local_mode_as_unmatched_and_says_why(self, world):
+        common = git(world.api, "rev-parse", "--git-common-dir")
+        local = os.path.join(str(world.api), common, "seal")
+        os.makedirs(local)
+        os.replace(str(world.api / PACT), os.path.join(local, "pact.md"))
+        os.rmdir(str(world.api / "seal"))
+        anchor = world.cite(clause(V1))
+        code, out = world.run()
+        assert code == 1, out
+        assert f"UNMATCHED {SIGNER_URL} {SPEC}:1 {anchor}" in out, out
+        assert out.endswith(
+            "The pact sits under the git directory (local mode), so it has no "
+            "history and every mismatch reads unmatched"
+        ), out
+
+    def test_accepts_a_signer_the_map_finds_where_no_sibling_is(self, world):
+        moved = world.tmp / "elsewhere" / "orders-web"
+        moved.parent.mkdir()
+        world.web.rename(moved)
+        code, out = world.run()
+        assert code == 1, out
+        assert (
+            f"NOT FOUND {SIGNER_URL} — no checkout of it was found on this "
+            f"machine: add `| {SIGNER_URL} | <the path of its checkout> |` to "
+            "~/.claude/specseal/pact-paths.md"
+        ) in out, out
+        world.map(("git@example.com:org/orders-web.git", moved))
+        world.web = moved
+        world.cite(clause(V2))
+        code, out = world.run()
+        assert code == 0, out
+
+    def test_refuses_a_second_signer_not_found_and_counts_both(self, world):
+        write(world.api, PACT, pact(V2, (SIGNER_URL, MOBILE_URL)))
+        commit(world.api, "a second signer")
+        world.cite(clause(V2))
+        code, out = world.run()
+        assert code == 1, out
+        assert f"NOT FOUND {MOBILE_URL} — " in out, out
+        assert "pact-check: the pact `orders-api` — 1 of 2 signers read · " in out, out
+
+    @pytest.mark.parametrize("header", ["Signer", "Signatory"])
+    def test_refuses_a_pact_listing_its_own_repository_by_the_table_it_holds(
+        self, world, header
+    ):
+        """Not `NOT FOUND`, which would send a person looking for a checkout
+        of the repository they stand in; the sentence calls the table by the
+        header the pact holds."""
+        text = pact(V2, (SIGNER_URL, PACT_URL))
+        write(world.api, PACT, text if header == "Signer" else old_header(text))
+        commit(world.api, "the pact lists itself")
+        world.cite(clause(V2))
+        code, out = world.run()
+        assert code == 2, out
+        assert (
+            f"REFUSED {PACT_URL} seal/pact.md — the pact lists its own repository; "
+            f"the `{header}` table lists every OTHER signer, so take this row out"
+        ) in out, out
+        assert "NOT FOUND" not in out, out
+
+    def test_refuses_a_signer_row_the_table_walk_cannot_read(self, world):
+        """The row with no closing pipe is refused at the pact, so a signer
+        below it is never reported as clean by omission."""
+        text = pact(V2).replace(
+            f"| {SIGNER_URL} |\n", f"| {SIGNER_URL} |\n| {MOBILE_URL}\n"
+        )
+        write(world.api, PACT, text)
+        commit(world.api, "a row with no closing pipe")
+        world.cite(clause(V2))
+        code, out = world.run()
+        assert code == 2, out
+        assert (
+            "REFUSED seal/pact.md — the pact has a `Signer` table that stops at "
+            f"`| {MOBILE_URL}`"
+        ) in out, out
+
+    @pytest.mark.parametrize("side", ["no seal root", "no Pact row"])
+    def test_refuses_a_relationship_recorded_on_one_side(self, world, side):
+        if side == "no seal root":
+            shutil.rmtree(world.web / "seal")
+            where, said = posix(world.web), "it has no seal/ root to name this pact in"
+        else:
+            write(world.web, "seal/config.md", signer_config())
+            where = "seal/config.md"
+            said = f"its config names no `Pact` row for {PACT_URL}"
+        code, out = world.run()
+        assert code == 2, out
+        assert (
+            f"ONE-SIDED {SIGNER_URL} {where} — the pact lists it, and {said}: the "
+            "relationship is recorded on one side only"
+        ) in out, out
+
+    @pytest.mark.parametrize(
+        "anchor",
+        [
+            'pact:orders-api#"## Order response shape / ### Fields"@1a2b3c4d',
+            "pact:orders-api/## Order response shape@1a2b3c4d",
+            'pact:orders-api/"## Order response shape / ### Fields"',
+            f"pact:orders-api {LOCATOR}@1a2b3c4d",
+            "pact:orders-api@1a2b3c4d",
+            f"pact:orders-api.{LOCATOR}@1a2b3c4d",
+            f"pact:orders-api-/{LOCATOR}@1a2b3c4d",
+            "pact:orders-api.@1a2b3c4d",
+        ],
+        ids=[
+            "hash for slash",
+            "no quotes",
+            "no hash",
+            "a space for the slash",
+            "no heading path",
+            "a dot for the slash",
+            "a hyphen before the slash",
+            "a dot, no heading path",
+        ],
+    )
+    def test_refuses_an_anchor_that_does_not_parse(self, world, anchor):
+        """A mistyped citation is read by nobody else: not the signer's own
+        check, not chain-check. Here it is named, with both remedies, and
+        exit 2."""
+        write(world.web, SPEC, grounding_row(anchor))
+        code, out = world.run()
+        assert code == 2, out
+        assert f"REFUSED {SIGNER_URL} {SPEC}:1 — `" in out, out
+        assert (
+            'does not parse as `pact:orders-api/"<heading path>"@<hash>`, so '
+            "nothing grades it. Quote the heading path and give it a hash, "
+            "`@00000000` until the first report names the real one; or, where it "
+            "shows the shape rather than citing a clause, put it in a fenced code "
+            "block, which nothing reads"
+        ) in out, out
+
+    def test_accepts_the_pact_s_name_inside_a_graded_anchor_s_heading(self, world):
+        """The anchor around it is graded, and the spelling inside it is not
+        a second citation."""
+        write(
+            world.web,
+            SPEC,
+            grounding_row(
+                'pact:orders-api/"## On pact:orders-api/old shapes"@deadbeef'
+            ),
+        )
+        code, out = world.run()
+        assert code == 2 and "BROKEN " in out, out
+        assert "does not parse" not in out, out
+
+    @pytest.mark.parametrize("shape", ["directory", "undecodable"])
+    def test_refuses_a_signer_config_that_will_not_read(self, world, shape):
+        """Both unreadable shapes reach it as `UNREADABLE` at exit 2 through
+        `hooks/config.py#config_text`, named relative to the signer's
+        checkout and in POSIX form."""
+        cfg = world.web / "seal" / "config.md"
+        text = cfg.read_bytes()
+        cfg.unlink()
+        if shape == "directory":
+            cfg.mkdir()
+        else:
+            cfg.write_bytes(text + b"| Record language | \xff |\n")
+        code, out = world.run()
+        assert code == 2, out
+        assert f"UNREADABLE {SIGNER_URL} seal/config.md — could not be read" in out, out
+
+    def test_refuses_an_anchor_file_and_a_pact_that_will_not_read(self, world):
+        (world.web / SPEC).mkdir(parents=True)
+        code, out = world.run()
+        assert code == 2, out
+        assert f"UNREADABLE {SIGNER_URL} {SPEC} — could not be read" in out, out
+        (world.api / PACT).unlink()
+        (world.api / PACT).mkdir()
+        code, out = world.run()
+        assert code == 2, out
+        assert out == "UNREADABLE seal/pact.md — the pact could not be read", out
+
+    def test_refuses_a_map_that_will_not_read(self, world):
+        (world.home / ".claude" / "specseal" / "pact-paths.md").mkdir(parents=True)
+        world.cite(clause(V2))
+        code, out = world.run()
+        assert code == 2, out
+        assert (
+            "REFUSED ~/.claude/specseal/pact-paths.md — ~/.claude/specseal/"
+            "pact-paths.md is there and could not be read"
+        ) in out, out
+
+    def test_refuses_a_root_outside_git_no_pact_and_no_origin(self, world):
+        """Exit 2 for each way the pact's repository cannot be read."""
+        code, out = world.run(root=world.tmp)
+        assert code == 2 and out.endswith(
+            "is not in a git repository — nothing was read"
+        ), out
+        code, out = world.run(root=world.web)
+        assert code == 2 and "holds no seal/pact.md, so there is no pact" in out, out
+        git(world.api, "remote", "remove", "origin")
+        code, out = world.run()
+        assert code == 2 and "has no origin remote" in out, out
+
+
+class Test_renamed:
+    def test_accepts_the_header_0_18_wrote_with_one_line_naming_it(self, world):
+        """S2 of #822: the pact headed `| Signatory |` reads identically, one
+        line before its `READ` line names the file, both headers and the
+        release, and the exit is the new header's."""
+        world.cite(clause(V2))
+        new_code, new_out = world.run()
+        write(world.api, PACT, old_header(pact(V2)))
+        commit(world.api, "the pact as 0.18.0 began it")
+        code, out = world.run()
+        rename = (
+            "pact-check: seal/pact.md heads its table `| Signatory |`, the word "
+            "before 0.19.0 — `| Signer |` is the header now; rename it when the "
+            "file is next edited"
+        )
+        assert code == new_code == 0, (out, new_out)
+        assert out.count(rename) == 1, out
+        assert out.index(rename) < out.index(f"READ {SIGNER_URL}"), out
+        assert out.replace(rename + " ", "") == new_out, (out, new_out)
+
+    @pytest.mark.parametrize("header", [config.SIGNER_HEADER, None])
+    def test_refuses_to_name_a_rename_for_the_header_now_or_none(self, header):
+        said = []
+        pc.renamed(config, PACT, header, config.SIGNER_HEADER, said.append)
+        assert said == []
+
+
+@pytest.fixture
+def printed(monkeypatch):
+    """What `main` prints. `check` binds `sys.stdout` as it stood when the
+    module loaded, under pytest's collection, so its default is replaced."""
+    import io
+
     out = io.StringIO()
-    code = pc.check(str(root or world["api"]), out=out, home_dir=str(world["home"]))
-    return code, " ".join(out.getvalue().split())
+    monkeypatch.setattr(pc.check, "__defaults__", (out, None))
+    return out
 
 
-def test_s12_a_signer_citing_the_current_clause_is_clean(world):
-    """S12. Every listed signer resolves, names this repository, and
-    cites the current hash: exit 0 and the summary line."""
-    cite(world, clause(V2))
-    cite(world, clause(V2), where="seal/specs/1790000001-y/spec.md")
-    code, out = run(world)
-    assert code == 0, out
-    assert (
-        f"READ {SIGNER_URL} {posix(world['web'])} — 2 pact anchors naming `orders-api`"
-    ) in out, out
-    assert (
-        "pact-check: the pact `orders-api` — 1 of 1 signer read · 2 ok · 0 "
-        "superseded · 0 not taken · 0 unmatched · 0 broken"
-    ) in out, out
-    # #944: a signer's records of pact changes are not read, so neither the
-    # `READ` line nor the summary counts them.
-    assert "pact change" not in out, out
+class Test_main:
+    def test_accepts_the_current_directory_as_the_pact_s_repository(
+        self, world, monkeypatch, printed
+    ):
+        world.cite(clause(V2))
+        monkeypatch.setenv("HOME", str(world.home))
+        monkeypatch.setenv("USERPROFILE", str(world.home))
+        monkeypatch.chdir(world.api)
+        assert pc.main([]) == 0
+        assert "1 ok" in printed.getvalue()
+
+    def test_refuses_a_root_named_outside_any_repository(self, world, printed):
+        assert pc.main([str(world.tmp)]) == 2
+        assert "is not in a git repository" in printed.getvalue()
 
 
-# --- the header 0.18.x wrote (#822) ------------------------------------------
-#
-# A pact begun before 0.19.0 heads its table with the word the release
-# renamed. It reads as one headed `Signer`, and one line names the rename;
-# the exit is what the new header gives.
-
-RENAME = (
-    "pact-check: seal/pact.md heads its table `| Signatory |`, the word before "
-    "0.19.0 — `| Signer |` is the header now; rename it when the file is next "
-    "edited"
-)
-
-
-def old_header(text):
-    return text.replace("| Signer |\n|---|", "| Signatory |\n|---|", 1)
-
-
-def test_s1_a_pact_headed_signer_reads_with_no_word_of_a_rename(world):
-    """S1 of #822. The header `templates/pact.md` now begins a pact with is
-    read as the old one was, and nothing is said about a rename."""
-    cite(world, clause(V2))
-    code, out = run(world)
-    assert code == 0, out
-    assert (
-        f"READ {SIGNER_URL} {posix(world['web'])} — 1 pact anchor naming `orders-api`"
-    ) in out, out
-    assert "heads its table" not in out and "Signatory" not in out, out
-
-
-def test_s2_a_pact_headed_as_0_18_wrote_it_reads_the_same_and_names_it(world):
-    """S2 of #822. The same pact headed `| Signatory |` reads identically,
-    one line before its `READ` line names the file, both headers and the
-    release, and the exit is the new header's."""
-    cite(world, clause(V2))
-    new_code, new_out = run(world)
-    write(world["api"], "seal/pact.md", old_header(pact(V2)))
-    commit(world["api"], "the pact as 0.18.0 began it")
-    code, out = run(world)
-    assert code == new_code == 0, (out, new_out)
-    assert out.count(RENAME) == 1, out
-    read = f"READ {SIGNER_URL} {posix(world['web'])}"
-    assert read in out and out.index(RENAME) < out.index(read), out
-    assert out.replace(RENAME + " ", "") == new_out, (out, new_out)
+# Left for `hooks/config.py`, whose table walker each one's rows pin: the
+# refusals of the pact's `Signer` table and of a signer's config, run through
+# `check` as they were.
 
 
 def test_s2_a_broken_table_under_the_old_header_is_refused_naming_it(world):
@@ -226,51 +899,33 @@ def test_s2_a_broken_table_under_the_old_header_is_refused_naming_it(world):
     under the old header that will not read says `Signatory`, beside the
     rename line; the exit is the refusal's."""
     text = old_header(pact(V2)).replace(
-        f"| {SIGNER_URL} |\n",
-        f"| {SIGNER_URL} |\n| https://example.com/org/orders-mobile\n",
+        f"| {SIGNER_URL} |\n", f"| {SIGNER_URL} |\n| {MOBILE_URL}\n"
     )
-    write(world["api"], "seal/pact.md", text)
-    commit(world["api"], "an old header over a row with no closing pipe")
-    cite(world, clause(V2))
-    code, out = run(world)
+    write(world.api, PACT, text)
+    commit(world.api, "an old header over a row with no closing pipe")
+    world.cite(clause(V2))
+    code, out = world.run()
     assert code == 2, out
-    assert RENAME in out, out
+    assert "heads its table `| Signatory |`" in out, out
     assert (
         "REFUSED seal/pact.md — the pact has a `Signatory` table that stops at "
-        "`| https://example.com/org/orders-mobile`"
-    ) in out, out
-
-
-def test_s2_a_refusal_naming_the_table_names_the_header_the_pact_holds(world):
-    """`pact-check`'s own sentences about the pact's table call it by the
-    header the pact holds, so a person told to edit the table finds it."""
-    write(world["api"], "seal/pact.md", old_header(pact(V2, (SIGNER_URL, PACT_URL))))
-    commit(world["api"], "an old pact lists itself")
-    cite(world, clause(V2))
-    code, out = run(world)
-    assert code == 2, out
-    assert (
-        f"REFUSED {PACT_URL} seal/pact.md — the pact lists its own repository; "
-        "the `Signatory` table lists every OTHER signer, so take this row out"
+        f"`| {MOBILE_URL}`"
     ) in out, out
 
 
 def test_s4_a_pact_holding_both_tables_is_exit_2_naming_the_old_one(world):
-    """Round 1's yellow 1, end to end. The old table above the new one,
-    under a heading of its own, holds a signer the `Signer` table does not
-    list. Read silently it would be a signer nobody reads at exit 0; it is
-    refused instead, and no rename line is printed, because the header read
-    is the new one."""
+    """The old table above the new one, under a heading of its own, holds a
+    signer the `Signer` table does not list; it is refused, and no rename
+    line is printed, because the header read is the new one."""
     text = pact(V2).replace(
         "# Pact\n\n",
-        "# Pact\n\n| Signatory |\n|---|\n| https://example.com/org/orders-mobile |"
-        "\n\n## Before 0.19.0\n\n",
+        f"# Pact\n\n| Signatory |\n|---|\n| {MOBILE_URL} |\n\n## Before 0.19.0\n\n",
         1,
     )
-    write(world["api"], "seal/pact.md", text)
-    commit(world["api"], "an old table above a new one")
-    cite(world, clause(V2))
-    code, out = run(world)
+    write(world.api, PACT, text)
+    commit(world.api, "an old table above a new one")
+    world.cite(clause(V2))
+    code, out = world.run()
     assert code == 2, out
     assert (
         "REFUSED seal/pact.md — the pact also holds a `| Signatory |` header, the "
@@ -280,101 +935,66 @@ def test_s4_a_pact_holding_both_tables_is_exit_2_naming_the_old_one(world):
     assert "heads its table" not in out, out
 
 
-def test_s7_the_summary_counts_two_signers(world):
-    """S7 of #822: the plural. The second signer has no checkout here, so
-    one of the two is read."""
-    write(
-        world["api"],
-        "seal/pact.md",
-        pact(V2, (SIGNER_URL, "https://example.com/org/orders-mobile")),
+def test_a_signer_row_below_a_blank_line_is_refused(world):
+    text = pact(V2).replace(
+        f"| {SIGNER_URL} |\n", f"| {SIGNER_URL} |\n\n| {MOBILE_URL} |\n"
     )
-    commit(world["api"], "a second signer")
-    cite(world, clause(V2))
-    code, out = run(world)
-    assert code == 1, out
-    assert "pact-check: the pact `orders-api` — 1 of 2 signers read · " in out, out
-
-
-def test_s8_a_hash_from_heads_own_history_is_superseded(world):
-    """S8. v1's hash, which `main` gave the clause before v2."""
-    anchor = cite(world, clause(V1))
-    code, out = run(world)
-    assert code == 1, out
-    assert (
-        f"SUPERSEDED {SIGNER_URL} seal/specs/1790000000-x/spec.md:1 {anchor} — the "
-        "signer was built against a superseded clause"
-    ) in out, out
-    assert f"it reads @{clause(V2)} now" in out, out
-
-
-def test_s9_a_hash_only_another_ref_holds_is_not_taken_and_names_it(world):
-    """S9. v3 is on `side`, which HEAD does not hold."""
-    anchor = cite(world, clause(V3))
-    code, out = run(world)
-    assert code == 1, out
-    assert (
-        f"NOT TAKEN {SIGNER_URL} seal/specs/1790000000-x/spec.md:1 {anchor} — the "
-        "pact has not taken the signer's recorded change: this hash is the "
-        "clause on side"
-    ) in out, out
-
-
-def test_s10_a_hash_no_commit_gave_is_unmatched(world):
-    """S10, first half: exit 1."""
-    cite(world, "deadbeef")
-    code, out = run(world)
-    assert code == 1, out
-    assert "UNMATCHED " in out and "Read both sides" in out, out
-
-
-def test_s10_a_heading_path_that_resolves_to_nothing_is_broken(world):
-    """S10, second half: exit 2, and the verdict says what to do."""
-    cite(world, clause(V2), locator='"## Order response shape / ### Gone"')
-    code, out = run(world)
+    write(world.api, PACT, text)
+    commit(world.api, "a blank line inside the table")
+    world.cite(clause(V2))
+    code, out = world.run()
     assert code == 2, out
     assert (
-        "BROKEN " in out
-        and "the heading path resolves to no clause in the pact: the clause was "
-        "renamed or removed. Re-coordinate the signer"
-        in out
-    ), out
-
-
-def test_s11_a_checkout_nowhere_on_this_machine_names_the_map_line(world):
-    """S11, first half: not in the map and not a sibling, so exit 1 with the
-    line to add."""
-    moved = world["tmp"] / "elsewhere" / "orders-web"
-    moved.parent.mkdir()
-    world["web"].rename(moved)
-    code, out = run(world)
-    assert code == 1, out
-    assert (
-        f"NOT FOUND {SIGNER_URL} — no checkout of it was found on this "
-        f"machine: add `| {SIGNER_URL} | <the path of its checkout> |` to "
-        "~/.claude/specseal/pact-paths.md"
+        "REFUSED seal/pact.md — the pact has a `Signer` table that ends above "
+        f"`| {MOBILE_URL} |`, a row the walk never reaches — it and every signer "
+        "below it would go unread"
     ) in out, out
-    # The map finds it, keyed by the URL compared normalised.
-    write(
-        world["home"],
-        ".claude/specseal/pact-paths.md",
-        f"| Remote | Path |\n|---|---|\n| git@example.com:org/orders-web.git | {moved} |\n",
+
+
+def test_a_signer_written_as_an_autolink_is_never_passed_over(world):
+    text = pact(V2).replace(
+        f"| {SIGNER_URL} |\n", f"| {SIGNER_URL} |\n<{MOBILE_URL}>\n"
     )
-    world["web"] = moved
-    cite(world, clause(V2))
-    code, out = run(world)
-    assert code == 0, out
-
-
-def test_s11_a_relationship_recorded_on_one_side_is_refused(world):
-    """S11, second half: the pact lists the signer and its config does
-    not name the pact, so exit 2."""
-    write(world["web"], "seal/config.md", config())
-    code, out = run(world)
+    write(world.api, PACT, text)
+    commit(world.api, "a signer written as an autolink")
+    world.cite(clause(V2))
+    code, out = world.run()
     assert code == 2, out
     assert (
-        f"ONE-SIDED {SIGNER_URL} seal/config.md — the pact lists it, and its "
-        f"config names no `Pact` row for {PACT_URL}: the relationship is "
-        "recorded on one side only"
+        "REFUSED seal/pact.md — the pact has a `Signer` table that continues "
+        f"with `<{MOBILE_URL}>`, a line with no pipe that GFM reads as one of "
+        "its rows — write it as `| … |`"
+    ) in out, out
+
+
+def test_an_entry_refusal_is_printed_after_the_pact(world):
+    text = pact(V2).replace(f"| {SIGNER_URL} |\n", f"| {SIGNER_URL} |\n|  |\n")
+    write(world.api, PACT, text)
+    commit(world.api, "an empty row")
+    world.cite(clause(V2))
+    code, out = world.run()
+    assert code == 2, out
+    assert (
+        "REFUSED seal/pact.md — the pact has a `Signer` entry that will not "
+        "read: an empty row"
+    ) in out, out
+
+
+def test_a_signer_config_the_walker_refuses_is_exit_2(world):
+    """S4 of #871: a bare-piped line in a signer's table is refused in the
+    walker's sentence, naming the line, and the run exits 2."""
+    write(
+        world.web,
+        "seal/config.md",
+        signer_config(("Pact", PACT_URL)) + "| Broad gate | bin/test -q | tee out |\n",
+    )
+    world.cite(clause(V2))
+    code, out = world.run()
+    assert code == 2, out
+    assert (
+        f"REFUSED {SIGNER_URL} seal/config.md — has a `Item | Value` table that "
+        "stops at `| Broad gate | bin/test -q | tee out |`, which is not a "
+        "2-cell row written `| … | … |`"
     ) in out, out
 
 
@@ -388,532 +1008,15 @@ def test_s11_a_relationship_recorded_on_one_side_is_refused(world):
 )
 def test_a_pact_notify_row_an_earlier_release_read_is_ignored(world, rows):
     """`templates/config.md` *Pact*: a `Pact notify` row left in a signer's
-    table is read by nobody, so neither a value outside the vocabulary the
-    row once had nor the row written twice is refused, and the `READ` line
-    names no notify value. Seen red against the reader that still refused
-    the row: exit 2."""
-    write(world["web"], "seal/config.md", config(("Pact", PACT_URL), *rows))
-    cite(world, clause(V2))
-    code, out = run(world)
+    table is read by nobody."""
+    write(world.web, "seal/config.md", signer_config(("Pact", PACT_URL), *rows))
+    world.cite(clause(V2))
+    code, out = world.run()
     assert code == 0, out
     assert "REFUSED" not in out and "`Pact notify`" not in out, out
 
 
-def test_a_signer_config_the_walker_refuses_is_exit_2(world):
-    """S4 of #871, `pact-check`'s case. A signer's table is read by the
-    walker cmark-gfm holds, so a bare-piped line in it is refused in the
-    walker's sentence, naming the line, and the run exits 2. Seen red against
-    the stop rule: the line ended the table in silence and the run was
-    clean."""
-    write(
-        world["web"],
-        "seal/config.md",
-        config(("Pact", PACT_URL)) + "| Broad gate | bin/test -q | tee out |\n",
-    )
-    cite(world, clause(V2))
-    code, out = run(world)
-    assert code == 2, out
-    assert (
-        f"REFUSED {SIGNER_URL} seal/config.md — has a `Item | Value` table that "
-        "stops at `| Broad gate | bin/test -q | tee out |`, which is not a "
-        "2-cell row written `| … | … |`"
-    ) in out, out
-
-
-def test_no_pact_here_and_no_origin_are_unusable_input(world):
-    """Exit 2 for the two ways the pact's repository cannot be read."""
-    code, out = run(world, root=world["web"])
-    assert code == 2 and "holds no seal/pact.md" in out, out
-    git(world["api"], "remote", "remove", "origin")
-    code, out = run(world)
-    assert code == 2 and "has no origin remote" in out, out
-
-
-def test_an_anchor_naming_another_pact_is_not_read(world):
-    """A signer of two pacts cites the other one too; only this pact's
-    name is graded here."""
-    write(
-        world["web"],
-        "seal/specs/1790000000-x/spec.md",
-        grounding_row(f"pact:billing/{LOCATOR}@deadbeef")
-        + grounding_row(f"pact:orders-api/{LOCATOR}@{clause(V2)}"),
-    )
-    code, out = run(world)
-    assert code == 0, out
-    assert "1 ok" in out, out
-
-
-def test_the_wrapper_runs_the_script_from_any_directory(world):
-    """S14's command, run as a person types it."""
-    if os.name == "nt":
-        pytest.skip("the POSIX wrapper; bin/pact-check.cmd is its Windows twin")
-    cite(world, clause(V2))
-    env = {**os.environ, "HOME": str(world["home"])}
-    done = subprocess.run(
-        ["sh", WRAPPER, str(world["api"])],
-        cwd=str(world["tmp"]),
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-        env=env,
-    )
-    assert done.returncode == 0, done.stdout + done.stderr
-    assert "1 ok" in done.stdout, done.stdout
-    assert sys.executable  # the wrapper runs python3 from PATH, as the others do
-
-
-def test_a_heading_path_naming_two_clauses_is_broken(world):
-    """An ambiguous address is no address: BROKEN, naming the count."""
-    text = pact(V2) + "\n## Order response shape\n\n### Fields\n\nagain\n"
-    write(world["api"], "seal/pact.md", text)
-    commit(world["api"], "a second clause under one heading")
-    cite(world, clause(V2))
-    code, out = run(world)
-    assert code == 2, out
-    assert "the heading path resolves to 2 clauses in the pact" in out, out
-
-
-def test_two_siblings_with_the_signers_origin_are_not_guessed_between(world):
-    """Nothing is guessed: two checkouts of one signer, and no map line,
-    is a signer not found, with both named."""
-    twin = world["web"].parent / "orders-web-2"
-    twin.mkdir()
-    git(twin, "init", "-q", "-b", "main")
-    git(twin, "remote", "add", "origin", SIGNER_URL)
-    code, out = run(world)
-    assert code == 1, out
-    assert "2 sibling directories have its origin" in out, out
-    assert "nothing here guesses which" in out, out
-
-
-def test_a_map_that_will_not_read_is_refused_rather_than_read_as_empty(world):
-    """Read as empty, every signer it names would be reported missing."""
-    (world["home"] / ".claude" / "specseal" / "pact-paths.md").mkdir(parents=True)
-    cite(world, clause(V2))
-    code, out = run(world)
-    assert code == 2, out
-    assert "REFUSED ~/.claude/specseal/pact-paths.md — " in out, out
-    assert "is there and could not be read" in out, out
-
-
-def test_a_pact_under_local_mode_has_no_history_and_says_so(world):
-    """Local mode: every mismatch reads UNMATCHED, said once in the
-    summary."""
-    api = world["api"]
-    common = git(api, "rev-parse", "--git-common-dir").strip()
-    local = os.path.join(str(api), common, "seal")
-    os.makedirs(local)
-    os.replace(str(api / "seal" / "pact.md"), os.path.join(local, "pact.md"))
-    os.rmdir(str(api / "seal"))
-    anchor = cite(world, clause(V1))
-    code, out = run(world)
-    assert code == 1, out
-    assert f"UNMATCHED {SIGNER_URL} seal/specs/1790000000-x/spec.md:1 {anchor}" in out
-    assert (
-        "The pact sits under the git directory (local mode), so it has no "
-        "history and every mismatch reads unmatched"
-    ) in out, out
-
-
-def test_a_map_line_naming_a_checkout_of_another_repository_is_not_trusted(world):
-    """The map is keyed by URL and the checkout it names must have that
-    origin; a stale line pointing elsewhere is a signer not found."""
-    other = world["tmp"] / "unrelated"
-    other.mkdir()
-    git(other, "init", "-q", "-b", "main")
-    git(other, "remote", "add", "origin", "git@example.com:org/unrelated.git")
-    write(
-        world["home"],
-        ".claude/specseal/pact-paths.md",
-        f"| Remote | Path |\n|---|---|\n| {SIGNER_URL} | {other} |\n",
-    )
-    code, out = run(world)
-    assert code == 1, out
-    assert (
-        f"NOT FOUND {SIGNER_URL} — the map names {posix(other)}, whose origin is"
-    ) in out, out
-
-
-def test_an_anchor_quoted_in_a_closed_fence_is_an_example_and_not_graded(world):
-    """A spec showing the anchor's shape in a code block cites nothing,
-    because `coordinates.py#unquoted` reads no fenced line."""
-    write(
-        world["web"],
-        "seal/specs/1790000000-x/spec.md",
-        f"```\npact:orders-api/{LOCATOR}@deadbeef\n```\n",
-    )
-    cite(world, clause(V2), where="seal/specs/1790000001-y/spec.md")
-    code, out = run(world)
-    assert code == 0, out
-    assert "1 ok · 0 superseded · 0 not taken · 0 unmatched" in out, out
-
-
-def test_a_clause_a_merge_did_not_keep_is_still_heads_history(world):
-    """Main held v2; a branch cut from v1 changed the clause, and the merge
-    kept the branch's text. A signer built against v2 is SUPERSEDED, not
-    UNMATCHED: v2 is in HEAD's history, on the side git's default history
-    simplification does not follow."""
-    api = world["api"]
-    git(api, "switch", "-qc", "early", "main~1")
-    write(api, "seal/pact.md", pact("id, total, tax"))
-    commit(api, "the clause, changed from v1")
-    git(api, "switch", "-q", "main")
-    git(api, "merge", "-q", "--no-ff", "-s", "ours", "--no-commit", "early")
-    write(api, "seal/pact.md", pact("id, total, tax"))
-    commit(api, "merge early, keeping its clause")
-    cite(world, clause(V2))
-    code, out = run(world)
-    assert code == 1, out
-    assert "SUPERSEDED" in out and "UNMATCHED " not in out, out
-
-
-def test_a_signer_row_the_table_walk_cannot_read_is_exit_2(world):
-    """The row with no closing pipe is refused at the pact, so a signer
-    below it is never reported as clean by omission."""
-    text = pact(V2).replace(
-        f"| {SIGNER_URL} |\n",
-        f"| {SIGNER_URL} |\n| https://example.com/org/orders-mobile\n",
-    )
-    write(world["api"], "seal/pact.md", text)
-    commit(world["api"], "a row with no closing pipe")
-    cite(world, clause(V2))
-    code, out = run(world)
-    assert code == 2, out
-    assert (
-        "REFUSED seal/pact.md — the pact has a `Signer` table that stops at "
-        "`| https://example.com/org/orders-mobile`"
-    ) in out, out
-
-
-@pytest.mark.parametrize(
-    "anchor",
-    [
-        'pact:orders-api#"## Order response shape / ### Fields"@1a2b3c4d',
-        "pact:orders-api/## Order response shape@1a2b3c4d",
-        'pact:orders-api/"## Order response shape / ### Fields"',
-    ],
-    ids=["hash for slash", "no quotes", "no hash"],
-)
-def test_a_pact_anchor_that_does_not_parse_is_refused(world, anchor):
-    """A mistyped citation is read by nobody else: not the signer's own
-    check, not chain-check. Here it is named and exit 2."""
-    write(world["web"], "seal/specs/1790000000-x/spec.md", grounding_row(anchor))
-    code, out = run(world)
-    assert code == 2, out
-    assert (f"REFUSED {SIGNER_URL} seal/specs/1790000000-x/spec.md:1 — `") in out, out
-    assert (
-        'does not parse as `pact:orders-api/"<heading path>"@<hash>`, so '
-        "nothing grades it"
-    ) in out, out
-
-
-def test_a_signer_with_no_seal_root_is_one_sided(world):
-    """Without a root it cannot name the pact, and nothing is read from the
-    directory the command happens to stand in."""
-    import shutil
-
-    shutil.rmtree(world["web"] / "seal")
-    code, out = run(world)
-    assert code == 2, out
-    assert (
-        f"ONE-SIDED {SIGNER_URL} {posix(world['web'])} — the pact lists it, and it "
-        "has no seal/ root to name this pact in: the relationship is recorded "
-        "on one side only"
-    ) in out, out
-
-
-@pytest.mark.parametrize("shape", ["directory", "undecodable"])
-def test_a_signer_config_that_will_not_read_is_unreadable(world, shape):
-    """S3 of #867 holds for `pact-check` unchanged: both unreadable shapes,
-    a directory and bytes that do not decode, reach it as `UNREADABLE` at
-    exit 2 through `hooks/config.py#config_text`."""
-    config = world["web"] / "seal" / "config.md"
-    text = config.read_bytes()
-    config.unlink()
-    if shape == "directory":
-        config.mkdir()
-    else:
-        config.write_bytes(text + b"| Record language | \xff |\n")
-    code, out = run(world)
-    assert code == 2, out
-    # Relative to the signer's checkout and in POSIX form: the sentence
-    # used to join a native absolute path with `/` (#647's separator note).
-    assert f"UNREADABLE {SIGNER_URL} seal/config.md — could not be read" in out, out
-
-
-def test_an_anchor_file_that_will_not_read_is_unreadable(world):
-    (world["web"] / "seal" / "specs" / "1790000000-x" / "spec.md").mkdir(parents=True)
-    code, out = run(world)
-    assert code == 2, out
-    assert (
-        f"UNREADABLE {SIGNER_URL} seal/specs/1790000000-x/spec.md — could not be read"
-    ) in out, out
-
-
-def test_a_pact_that_will_not_read_is_unreadable(world):
-    (world["api"] / "seal" / "pact.md").unlink()
-    (world["api"] / "seal" / "pact.md").mkdir()
-    code, out = run(world)
-    assert code == 2, out
-    assert "UNREADABLE seal/pact.md — the pact could not be read" in out, out
-
-
-def test_a_pact_listing_its_own_repository_says_so(world):
-    """Not `NOT FOUND`, which would send a person looking for a checkout of
-    the repository they stand in."""
-    write(world["api"], "seal/pact.md", pact(V2, (SIGNER_URL, PACT_URL)))
-    commit(world["api"], "the pact lists itself")
-    cite(world, clause(V2))
-    code, out = run(world)
-    assert code == 2, out
-    assert (
-        f"REFUSED {PACT_URL} seal/pact.md — the pact lists its own repository; "
-        "the `Signer` table lists every OTHER signer, so take this row out"
-    ) in out, out
-    assert "NOT FOUND" not in out, out
-
-
-def test_a_signer_row_below_a_blank_line_is_refused(world):
-    """A blank line ends the table's walk; a row written below it is a
-    signer nobody reads, so it is refused rather than passed over."""
-    text = pact(V2).replace(
-        f"| {SIGNER_URL} |\n",
-        f"| {SIGNER_URL} |\n\n| https://example.com/org/orders-mobile |\n",
-    )
-    write(world["api"], "seal/pact.md", text)
-    commit(world["api"], "a blank line inside the table")
-    cite(world, clause(V2))
-    code, out = run(world)
-    assert code == 2, out
-    assert (
-        "REFUSED seal/pact.md — the pact has a `Signer` table that ends above "
-        "`| https://example.com/org/orders-mobile |`, a row the walk never "
-        "reaches — it and every signer below it would go unread"
-    ) in out, out
-
-
-@pytest.mark.parametrize(
-    "body",
-    [
-        "This work item signs pact:orders-api, the order contract.",
-        "This work item signs `pact:orders-api`.",
-        'Cite each clause as `pact:orders-api/"<heading path>"@<hash>`.',
-        "See pact:orders-api.",
-    ],
-    ids=["prose", "code span", "the form with its placeholders", "a sentence's end"],
-)
-def test_prose_naming_the_pact_is_not_a_citation(world, body):
-    """A refusal is for a token that begins an anchor, `pact:<name>/` or
-    `pact:<name>#`, and does not complete. Naming the pact is not that."""
-    cite(world, clause(V2))
-    write(world["web"], "seal/specs/1790000001-y/spec.md", f"# spec\n\n{body}\n")
-    code, out = run(world)
-    assert code == 0, out
-    assert "does not parse" not in out, out
-
-
-def test_a_pact_name_inside_a_graded_anchors_heading_is_not_a_near_miss(world):
-    """A clause heading may spell the pact's own name; the anchor around it
-    is graded, and the spelling inside it is not a second citation."""
-    write(
-        world["web"],
-        "seal/specs/1790000000-x/spec.md",
-        grounding_row('pact:orders-api/"## On pact:orders-api/old shapes"@deadbeef'),
-    )
-    code, out = run(world)
-    assert code == 2 and "BROKEN " in out, out
-    assert "does not parse" not in out, out
-
-
-def test_a_signer_written_as_an_autolink_is_never_passed_over(world):
-    """S2 (🟡 18 of #735's round 3). GFM renders a second signer from an
-    autolink line under the table; the walk refuses the line rather than end
-    the table there, so the run never says every signer was read."""
-    text = pact(V2).replace(
-        f"| {SIGNER_URL} |\n",
-        f"| {SIGNER_URL} |\n<https://example.com/org/orders-mobile>\n",
-    )
-    write(world["api"], "seal/pact.md", text)
-    commit(world["api"], "a signer written as an autolink")
-    cite(world, clause(V2))
-    code, out = run(world)
-    assert code == 2, out
-    assert (
-        "REFUSED seal/pact.md — the pact has a `Signer` table that continues "
-        "with `<https://example.com/org/orders-mobile>`, a line with no pipe "
-        "that GFM reads as one of its rows — write it as `| … |`"
-    ) in out, out
-
-
-def test_an_entry_refusal_is_printed_after_the_pact(world):
-    text = pact(V2).replace(f"| {SIGNER_URL} |\n", f"| {SIGNER_URL} |\n|  |\n")
-    write(world["api"], "seal/pact.md", text)
-    commit(world["api"], "an empty row")
-    cite(world, clause(V2))
-    code, out = run(world)
-    assert code == 2, out
-    assert (
-        "REFUSED seal/pact.md — the pact has a `Signer` entry that will not "
-        "read: an empty row"
-    ) in out, out
-
-
-def test_the_map_is_named_in_posix_form_on_every_platform(world, monkeypatch):
-    """The map lives at one documented place, `~/.claude/specseal/
-    pact-paths.md`, and every sentence names it that way. Loaded with
-    Windows' `os.path.join`, as on a Windows runner, the module still says
-    it with `/`; reading the file stays native."""
-    import ntpath
-
-    with monkeypatch.context() as patched:
-        patched.setattr(os.path, "join", ntpath.join)
-        windows = load()
-    config = pc.load(os.path.join(pc.HOOKS, "config.py"), "config_for_posix_map")
-    signer = (SIGNER_URL, "example.com/org/orders-web", "orders-web")
-    _, why = windows.checkout(config, signer, str(world["tmp"] / "nowhere"), {})
-    assert "~/.claude/specseal/pact-paths.md" in why, why
-    assert "\\" not in why, why
-
-
-# --- #647 C and D, PR #749's phase 2: the grammar and the printed paths ----
-
-
-@pytest.mark.parametrize(
-    "shape",
-    [
-        "pact:orders-api{loc}@{h}",
-        "pact:orders-api:{loc}@{h}",
-        "pact:orders-api {loc}@{h}",
-        "pact:orders-api@{h}",
-    ],
-    ids=[
-        "no slash",
-        "a colon for the slash",
-        "a space for the slash",
-        "no heading path",
-    ],
-)
-def test_an_anchor_missing_its_slash_is_refused(world, shape):
-    """S4 (🟡 19 of #735's round 3). An anchor whose `/` went missing is still
-    an attempt, and the shipped section says one that does not parse is exit
-    2. Round 2's narrowing had made each of these a mention, read by nobody."""
-    anchor = shape.format(loc=LOCATOR, h=clause(V2))
-    write(world["web"], "seal/specs/1790000000-x/spec.md", grounding_row(anchor))
-    code, out = run(world)
-    assert code == 2, out
-    assert "does not parse" in out, out
-
-
-@pytest.mark.parametrize(
-    "shape",
-    [
-        "pact:orders-api.{loc}@{h}",
-        "pact:orders-api-{loc}@{h}",
-        "pact:orders-api_{loc}@{h}",
-        "pact:orders-api./{loc}@{h}",
-        "pact:orders-api-/{loc}@{h}",
-        "pact:orders-api_/{loc}@{h}",
-        "pact:orders-api.@{h}",
-    ],
-    ids=[
-        "a dot for the slash",
-        "a hyphen for the slash",
-        "an underscore for the slash",
-        "a dot before the slash",
-        "a hyphen before the slash",
-        "an underscore before the slash",
-        "a dot, no heading path",
-    ],
-)
-def test_a_mark_the_name_holds_is_not_a_second_name(world, shape):
-    """`.`, `-` and `_` are marks the grammar's "one mark" covers and the
-    name pattern also takes in, so each made the token name another pact,
-    read by nobody (round 1, yellow 4). Each is refused at exit 2."""
-    anchor = shape.format(loc=LOCATOR, h=clause(V2))
-    write(world["web"], "seal/specs/1790000000-x/spec.md", grounding_row(anchor))
-    code, out = run(world)
-    assert code == 2, out
-    assert "does not parse" in out, out
-
-
-def test_a_pact_whose_name_extends_this_ones_is_another_pact(world):
-    """One mark only: `orders-api-legacy-` begins with this pact's name and
-    ends in a mark, and it is another pact's name, cited whole, so it is
-    neither graded nor refused here."""
-    write(
-        world["web"],
-        "seal/specs/1790000000-x/spec.md",
-        grounding_row(f"pact:orders-api-legacy-/{LOCATOR}@deadbeef")
-        + grounding_row(f"pact:orders-api/{LOCATOR}@{clause(V2)}"),
-    )
-    code, out = run(world)
-    assert code == 0, out
-    assert "does not parse" not in out, out
-
-
-def test_the_refusal_names_both_remedies(world):
-    """S5 (⬜ 23). The grammar stands -- a `/` after `pact:<name>` begins an
-    anchor -- so the half-typed form in prose is refused, and the sentence
-    names the second remedy beside the first: a fenced block for an
-    example."""
-    cite(world, clause(V2))
-    write(
-        world["web"],
-        "seal/specs/1790000001-y/spec.md",
-        "# spec\n\nThe clauses sit under pact:orders-api/ in that repository.\n",
-    )
-    code, out = run(world)
-    assert code == 2, out
-    assert (
-        "Quote the heading path and give it a hash, `@00000000` until the first "
-        "report names the real one; or, where it shows the shape rather than "
-        "citing a clause, put it in a fenced code block, which nothing reads"
-    ) in out, out
-
-
-@pytest.mark.parametrize(
-    "path, repo, home, want",
-    [
-        (
-            r"C:\Users\x\work\orders-web\seal\config.md",
-            r"C:\Users\x\work\orders-web",
-            r"C:\Users\x",
-            "seal/config.md",
-        ),
-        (
-            r"C:\Users\x\.claude\specseal\pact-paths.md",
-            None,
-            r"C:\Users\x",
-            "~/.claude/specseal/pact-paths.md",
-        ),
-        (r"C:\Users\x\work\orders-web", None, r"C:\Users\x", "~/work/orders-web"),
-        (r"D:\work\orders-web", None, r"C:\Users\x", "D:/work/orders-web"),
-        (r"D:\Users\x\work", None, r"C:\Users\x", "D:/Users/x/work"),
-        (r"Users\x\work", None, r"\Users\x", "Users/x/work"),
-        (r"D:\data\xy\work", None, r"D:\data\x", "D:/data/xy/work"),
-        ("C:/Users/x/work/a\\b.md", r"C:\Users\x\work", None, "a/b.md"),
-    ],
-    ids=[
-        "inside its repository",
-        "the map",
-        "a checkout under home",
-        "another drive",
-        "the same segments on another drive",
-        "a relative path under no anchor",
-        "a longer segment is not under home",
-        "both separators",
-    ],
-)
-def test_every_printed_path_is_in_posix_form(path, repo, home, want):
-    """S6. The one helper every printed path goes through, fed Windows paths
-    through `ntpath`, so the POSIX guarantee is removed rather than relied on
-    (contract rule 13): no `\\` survives, a path under home begins `~/`,
-    and one inside its repository is relative to it."""
-    import ntpath
-
-    got = pc.shown(path, repo, home, flavour=ntpath)
-    assert got == want
-    assert "\\" not in got
+# For #923: it reads this module's source.
 
 
 def test_no_line_formats_a_path_without_the_helper():
@@ -951,3 +1054,6 @@ def test_no_line_formats_a_path_without_the_helper():
             ):
                 raw.append((node.lineno, part.value.id))
     assert raw == [], raw
+
+
+test_census = census_case(TARGET)
