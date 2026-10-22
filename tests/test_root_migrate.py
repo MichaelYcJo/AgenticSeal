@@ -815,7 +815,9 @@ class Test_main:
         assert (proj / ".specseal").is_dir()
 
     @pytest.mark.parametrize(
-        "payload", ["[]", '{"cwd": ""}', "{"], ids=["a list", "no cwd", "not json"]
+        "payload",
+        ["[]", '["x"]', '{"cwd": ""}', "{"],
+        ids=["an empty list", "a list", "no cwd", "not json"],
     )
     def test_refuses_a_payload_that_names_no_directory(self, hook, payload):
         assert start(hook, None, payload) == ""
