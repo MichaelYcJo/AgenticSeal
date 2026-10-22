@@ -1536,7 +1536,7 @@
     "tests/test_a_rewritten_definition_proved_non_inferior.py::test_targets_reads_the_next_round_by_the_commit_that_wrote_it": 0.011961799999994582,
     "tests/test_a_rewritten_definition_proved_non_inferior.py::test_the_model_is_decided_by_the_truths_and_the_spend": 0.0337742999998909,
     "tests/test_a_rewritten_definition_proved_non_inferior.py::test_the_replay_and_seeded_generators_read_the_entries_too": 0.016052899999976944,
-    "tests/test_a_rewritten_definition_proved_non_inferior.py::test_the_report_rows_are_the_last_report_the_session_printed": 0.052175400000010086,
+    "tests/test_a_rewritten_definition_proved_non_inferior.py::test_the_report_text_is_the_last_record_the_session_printed": 0.052175400000010086,
     "tests/test_a_rewritten_definition_proved_non_inferior.py::test_the_verdict_is_recomputed_from_the_records_numbers[every rule holds]": 0.004995300000132374,
     "tests/test_a_rewritten_definition_proved_non_inferior.py::test_the_verdict_is_recomputed_from_the_records_numbers[no result: a case the baseline ran and the new side did not, whatever its graders]": 0.004839300000071489,
     "tests/test_a_rewritten_definition_proved_non_inferior.py::test_the_verdict_is_recomputed_from_the_records_numbers[no result: a side cut to one case of four]": 0.008837699999958204,

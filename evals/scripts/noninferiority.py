@@ -17,15 +17,29 @@ for is saved before anything reads it**: the eval's JSON, every run's trace
 and the measured preload go to `<out>.raw/` beside `--out`, and only then is
 each directory the eval kept removed. `--out` is the saved side with these
 additions under `specseal`: the preload's hashes and bytes, each run's
-report rows, cost (its trace's `result` event: `total_cost_usd`,
-`duration_ms`, `modelUsage`) and tool calls (every `tool_use` block in its
-trace), and whether the side was cut short. `run --from-raw` writes `--out`
-again from a saved side, with no eval run. `regrade` writes a saved side
-again under the `truth-` graders of the suite at REV, with no eval run:
-each run's truth result is the grader's regex searched over its report
-rows, and the scores follow. It refuses a side whose own suite does not
-give back from its rows what it recorded, and a suite at REV that differs
-from the side's in anything but `truth-` graders or holds other cases.
+`report_text` (the round record its session printed, whole, with what
+`tests/test_no_real_identifiers.py` refuses masked), cost (its trace's
+`result` event: `total_cost_usd`, `duration_ms`, `modelUsage`) and tool
+calls (every `tool_use` block in its trace), and whether the side was cut
+short. `run --from-raw` writes `--out` again from a saved side, with no
+eval run.
+
+A side is read whenever it is compared or regraded. Each run's finding rows
+are the `### ` sections of the one `## Findings` section of its
+`report_text`, split by `chain_check.py#finding_spans` over the lines the
+check's shared reader leaves (`finding_rows`), so a correction to that
+reader applies to every side that keeps its text. A `truth-` grader over a
+round record is read from those rows, for recall and for the false count
+alike. `compare` and `regrade` refuse, with exit 2, a side any run of which
+keeps no `report_text`: such a side was read by the reader before #986 and
+cannot be read again.
+
+`regrade` writes a saved side again under the `truth-` graders of the suite
+at REV, with no eval run: each run's truth result is the grader's regex
+searched over its finding rows, and the scores follow. It refuses a side
+whose own suite does not give back, from each run's whole `report_text`,
+the truth results it recorded, and a suite at REV that differs from the
+side's in anything but `truth-` graders or holds other cases.
 `compare` writes the record the
 five pass rules judge, outcome first and then cost, each against the
 baseline: recall not fallen, except by one find where every truth grader
@@ -46,12 +60,15 @@ then one line saying why. The record's own verdict does not decide it.
 Exit codes: 0 written, the record's verdict holds, or a model was decided ·
 1 the record's verdict is not `pass`, or it disagrees with its numbers · 2
 nothing ran (arguments, a missing tool, an unreadable input), `model` was
-handed a record that disagrees with its numbers or ran two suites, or
+handed a record that disagrees with its numbers or ran two suites,
+`compare` or `regrade` refused a side read before #986, naming its file, or
 `regrade` refused a side, naming the case.
 """
 
 import argparse
+import ast
 import copy
+import functools
 import hashlib
 import io
 import json
@@ -63,14 +80,26 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+import types
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import replay_targets as rt
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
 SUITE = "evals/behaviour"
 AGENTS = ("warden", "smith", "framer", "sealer", "scribe")
 CLT_GIT = "/Library/Developer/CommandLineTools/usr/bin/git"
-# A finding of the round record, as the `truth-` graders read it: its one
-# `location:` line.
-FINDING_ROW = re.compile(r"^location: .*$", re.M)
+# The end of a round record's path: `round-N.md`, or `<...>-report.md` on a
+# run taken before 0.22.0. A side keeps the record a session printed from
+# such a path, and a `truth-` grader over such a path is read from it.
+RECORD_PATH = r"(?:-report|/round-\d+)\.md"
+# The scan every committed file is held to, which masks the record a side
+# keeps (`masked`).
+SCAN = os.path.join(ROOT, "tests", "test_no_real_identifiers.py")
+UNREAD = (
+    "keeps no report_text, so the side was read by the reader before #986 "
+    "and cannot be read again"
+)
 FALSE_MARGIN = 0.05
 # The three counts of a model's `modelUsage` entry a run read.
 READ_COUNTS = ("inputTokens", "cacheCreationInputTokens", "cacheReadInputTokens")
@@ -185,15 +214,154 @@ def write_git_shim(tree):
     os.chmod(path, 0o755)
 
 
-def report_rows(trace_path):
-    """The finding `location:` lines of the round record the run's session
-    printed with `cat <…/round-N.md>` (`<…-report.md>` on a run taken before
-    0.22.0), the last such print winning.
+@functools.cache
+def identifier_scan():
+    """`tests/test_no_real_identifiers.py` as a module, run without its
+    `from conftest import` line: only its cases and its walk of the tree
+    read those names, and `conftest` needs pytest, which a side's run does
+    not have.
+
+    A scan that will not parse stops the run."""
+    with open(SCAN, encoding="utf-8") as f:
+        tree = ast.parse(f.read(), SCAN)
+    tree.body = [
+        node
+        for node in tree.body
+        if not (isinstance(node, ast.ImportFrom) and node.module == "conftest")
+    ]
+    scan = types.ModuleType("specseal_identifier_scan")
+    scan.__file__ = SCAN
+    exec(compile(tree, SCAN, "exec"), scan.__dict__)
+    return scan
+
+
+def masked(text):
+    """TEXT with what the identifier scan refuses in a committed file
+    replaced, line by line as the scan reads a file and by the scan's own
+    functions: each user path by its fixture path, then each host by its
+    fixture host; then `apart`, for what the scan refuses only in the
+    side's JSON form.
+
+    A `location:` value never starts with `/` and names no host, so no
+    finding row changes."""
+    scan = identifier_scan()
+    lines = []
+    for line in text.split("\n"):
+        for refused, fixture in (
+            (scan.refused_user_paths, scan.ALLOWED_USER_PATH),
+            (scan.refused_domains, scan.FIXTURE_DOMAIN),
+        ):
+            for m in reversed(refused(line)):
+                line = line[: m.start()] + fixture + line[m.end() :]
+        lines.append(line)
+    return apart("\n".join(lines), scan)
+
+
+def apart(text, scan):
+    """TEXT with one space set beside each character a side's JSON writes
+    as an escape, where the scan's functions refuse a host or a user path
+    in that JSON form and the refused match takes in part of the escape.
+    The space goes after the character where the match starts inside its
+    escape, a host whose first letter the scan reads from the escape, and
+    before it where the match runs into the escape, a user path whose name
+    the scan reads from the escape's backslash. The JSON form is the one
+    `write_side` writes, with `ensure_ascii` off.
+
+    A refusal no escape is part of is left as it is, and no more spaces are
+    set than TEXT has characters."""
+    for _ in range(len(text) + 1):
+        spans, at = [], 0
+        for ch in text:
+            width = len(json.dumps(ch, ensure_ascii=False)) - 2
+            spans.append((at, at + width))
+            at += width
+        form = json.dumps(text, ensure_ascii=False)[1:-1]
+        found = sorted(
+            [*scan.refused_domains(form), *scan.refused_user_paths(form)],
+            key=lambda m: m.start(),
+        )
+        hit = next(
+            (
+                i + 1 if a < m.start() else i
+                for m in found
+                for i, (a, b) in enumerate(spans)
+                if b - a > 1 and a < m.end() and b > m.start()
+            ),
+            None,
+        )
+        if hit is None:
+            break
+        text = text[:hit] + " " + text[hit:]
+    return text
+
+
+def finding_rows(text):
+    """One row for each finding of the round record TEXT: the finding's
+    `location:` lines joined by a newline, or the empty string where it has
+    none. A finding is a `### ` section of the one `## Findings` section,
+    split by `chain_check.py#finding_spans` over the lines its shared reader
+    leaves, so a line in a fence or a comment is no line. A section the
+    check would refuse is still one row.
+
+    A record the check cannot read or cannot split is one production reads
+    as no finding: one holding a comment or fence that never closes
+    (`chain_check.py#unclosed`), after whose opener no reading is certain to
+    find every finding, and one with no `## Findings` section or with two,
+    which `finding_spans` refuses. It gives one empty row for each raw line
+    at the finding heading level, a fenced or commented one included, so
+    every one is false, the count errs toward more false rows, and an empty
+    row finds no truth."""
+    check, reader = rt.record_reader()
+    lines = reader.readable(text)
+    _section, spans, error = check.finding_spans(reader, lines)
+    if error or check.unclosed(reader, text, ""):
+        return [
+            ""
+            for line in reader.gfm_lines(text)
+            if reader.heading_level(line) == check.FINDING_LEVEL
+        ]
+    return [
+        "\n".join(
+            line
+            for line in lines[first:stop]
+            if check.label_of(line) == check.LOCATION_ROW
+        )
+        for first, stop in spans
+    ]
+
+
+def text_of(case, i, run):
+    """The record run I of CASE kept, `report_text`.
+
+    A run that keeps none raises ValueError naming the case and the run."""
+    text = (run.get("specseal") or {}).get("report_text")
+    if not isinstance(text, str):
+        raise ValueError(f"{case}, run {i}, {UNREAD}")
+    return text
+
+
+def reads_record(grader):
+    """True for a `truth-` grader whose regex reads a round record, the file
+    `finding_rows` reads; a truth over another file keeps the eval's
+    result."""
+    config = grader.get("config") or {}
+    path = (config.get("target") or {}).get("path") or ""
+    return (
+        kind(grader["name"]) == "truth"
+        and grader.get("type") == "regex"
+        and re.search(rf"{RECORD_PATH}$", path) is not None
+    )
+
+
+def report_text(trace_path):
+    """The round record the run's session printed with `cat <…/round-N.md>`
+    (`<…-report.md>` on a run taken before 0.22.0), the last such print
+    winning, `masked`.
 
     Only an event whose `message` is an object with a list `content` holds
     tool calls; a line that is not a JSON object, a `message` that is a
     string (a `permission_denied` event's) and a string `content` are
-    skipped. A run that printed no report gives no rows."""
+    skipped. A run that printed no record keeps the empty string."""
     commands, last = {}, ""
     with open(trace_path, encoding="utf-8") as f:
         for line in f:
@@ -215,7 +383,7 @@ def report_rows(trace_path):
                 if block.get("type") == "tool_result":
                     command = commands.get(block.get("tool_use_id"), "")
                     if re.match(
-                        r"\s*cat \S+(?:-report|/round-\d+)\.md\s*$", command
+                        rf"\s*cat \S+{RECORD_PATH}\s*$", command
                     ) and not block.get("is_error"):
                         content = block.get("content")
                         if isinstance(content, list):
@@ -225,7 +393,7 @@ def report_rows(trace_path):
                                 if isinstance(c, dict)
                             )
                         last = content or ""
-    return FINDING_ROW.findall(last)
+    return masked(last)
 
 
 def run_cost(trace_path):
@@ -384,11 +552,11 @@ def save_side(raw, saved, meta):
 
 def annotate(saved):
     """The side SAVED holds, with `specseal` added: the preload's hashes and
-    bytes, each run's report rows and cost read from its saved trace, and
-    whether the side was cut short.
+    bytes, each run's `report_text`, cost and tool calls read from its saved
+    trace, and whether the side was cut short.
 
-    A run with no saved trace has no rows and no cost, and a run's error
-    makes the side cut short."""
+    A run with no saved trace keeps the empty string and no cost, and a
+    run's error makes the side cut short."""
     with open(os.path.join(saved, "raw.json"), encoding="utf-8") as f:
         result = json.load(f)
     with open(os.path.join(saved, "meta.json"), encoding="utf-8") as f:
@@ -398,7 +566,7 @@ def annotate(saved):
         rel = meta["traces"].get(key)
         trace = os.path.join(saved, rel) if rel else None
         run["specseal"] = {
-            "report_rows": report_rows(trace) if trace else [],
+            "report_text": report_text(trace) if trace else "",
             "cost": run_cost(trace) if trace else None,
             "tool_calls": tool_calls(trace) if trace else None,
         }
@@ -509,10 +677,17 @@ def side_numbers(result):
     "seconds", "bytes"}` for one side, the last five pooled over every run,
     the tokens read across every model and the calls every `tool_use` block.
 
-    A grader whose name carries no kind prefix is not counted. Each of
-    spend, tokens, calls and seconds is None where any run lacks it, a run
-    with no cost lacking the first, second and fourth, and bytes is None
-    where the preload's bytes were not recorded."""
+    Rows and false rows are each run's `finding_rows` of its `report_text`,
+    a row false where no `truth-` grader's regex finds it. A `truth-`
+    grader that `reads_record` passes a run where `grade` finds it in those
+    rows; every other grader keeps the result the eval recorded. A grader
+    whose name carries no kind prefix is not counted. Each of spend, tokens,
+    calls and seconds is None where any run lacks it, a run with no cost
+    lacking the first, second and fourth, and bytes is None where the
+    preload's bytes were not recorded.
+
+    A run that keeps no `report_text`, or a grader that reads a record and
+    `grade` cannot read, raises ValueError naming the case."""
     graders, runs_per_case = {}, {}
     rows = false = 0
     costs, calls = [], []
@@ -523,18 +698,27 @@ def side_numbers(result):
             for g in case.get("graders", [])
             if kind(g["name"]) == "truth" and g.get("type") == "regex"
         ]
-        runs = [r for arm in case.get("arms", {}).values() for r in arm]
+        read = {g["name"]: g for g in case.get("graders", []) if reads_record(g)}
+        runs = case_runs(case)
         runs_per_case[name] = len(runs)
         for g in case.get("graders", []):
             k = kind(g["name"])
             if k:
                 graders[(name, g["name"])] = [k, 0, len(runs)]
-        for run in runs:
+        for i, run in enumerate(runs):
+            found = finding_rows(text_of(name, i, run))
             for g in run.get("graders", []):
                 key = (name, g["name"])
-                if key in graders and g.get("passed"):
+                if g["name"] in read:
+                    try:
+                        passed = grade(read[g["name"]], found)["passed"]
+                    except ValueError as e:
+                        raise ValueError(f"{name}: {e}") from None
+                else:
+                    passed = g.get("passed")
+                if key in graders and passed:
                     graders[key][1] += 1
-            for row in (run.get("specseal") or {}).get("report_rows", []):
+            for row in found:
                 rows += 1
                 if not any(t.search(row) for t in truths):
                     false += 1
@@ -980,11 +1164,18 @@ def cheaper_model(numbers):
 def compare(a):
     """`compare`: write the record of one agent's phase.
 
-    A file that is not JSON stops the run."""
-    with open(a.old, encoding="utf-8") as f:
-        old = side_numbers(json.load(f))
-    with open(a.new, encoding="utf-8") as f:
-        new = side_numbers(json.load(f))
+    A side `side_numbers` cannot read is refused with exit 2, naming the
+    side's file; a file that is not JSON stops the run."""
+    sides = []
+    for path in (a.old, a.new):
+        with open(path, encoding="utf-8") as f:
+            result = json.load(f)
+        try:
+            sides.append(side_numbers(result))
+        except ValueError as e:
+            print(f"{path}: {e}", file=sys.stderr)
+            return 2
+    old, new = sides
     for s in (old, new):
         if not s["suite"]["rev"]:
             print(
@@ -1116,9 +1307,10 @@ def truths_at(rev, files):
 
 
 def grade(grader, rows):
-    """A run's entry for the truth GRADER: its regex searched over the run's
-    report ROWS joined by newlines, which is what the grader reads in the
-    report, since a `truth-` pattern matches a `location:` line.
+    """A run's entry for the truth GRADER: its regex searched over ROWS
+    joined by newlines, the run's `finding_rows` where a side is counted or
+    graded on another suite, and its whole `report_text` where `regrade`
+    checks a side against the suite it ran.
 
     A grader that is not a regex the report must contain, or that carries a
     flag this module does not know, raises ValueError."""
@@ -1135,7 +1327,7 @@ def grade(grader, rows):
         "name": grader["name"],
         "passed": found,
         "weight": grader.get("weight", 1),
-        "explanation": "regraded from the report rows: "
+        "explanation": "regraded from the kept report text: "
         + ("found" if found else "not found"),
         "withOnly": False,
         "scored": True,
@@ -1153,15 +1345,17 @@ def case_runs(case):
     return [r for arm in case.get("arms", {}).values() for r in arm]
 
 
-def regraded(result, truths):
+def regraded(result, truths, whole=False):
     """RESULT with each case's truth graders TRUTHS[case dir], every run
-    graded on them from its report rows, and the scores recomputed the way
-    the eval writes them: a run's score is its passed graders' weight over
-    every scored grader's, passing at the suite's threshold; a case's score
-    and pass rate are its runs' means; the side's are its cases' means, and
-    its cases passed are those whose every run passed.
+    graded on them from its `finding_rows`, or from its whole `report_text`
+    where WHOLE is set, and the scores recomputed the way the eval writes
+    them: a run's score is its passed graders' weight over every scored
+    grader's, passing at the suite's threshold; a case's score and pass
+    rate are its runs' means; the side's are its cases' means, and its cases
+    passed are those whose every run passed.
 
-    A truth grader `grade` cannot read raises ValueError naming the case."""
+    A run that keeps no `report_text`, or a truth grader `grade` cannot
+    read, raises ValueError naming the case."""
     out = copy.deepcopy(result)
     threshold = (out.get("suite") or {}).get("threshold", 1)
     cases = out.get("cases", [])
@@ -1170,8 +1364,9 @@ def regraded(result, truths):
         kept = [g for g in case.get("graders", []) if kind(g["name"]) != "truth"]
         case["graders"] = kept + new
         runs = case_runs(case)
-        for run in runs:
-            rows = (run.get("specseal") or {}).get("report_rows", [])
+        for i, run in enumerate(runs):
+            text = text_of(case["name"], i, run)
+            rows = [text] if whole else finding_rows(text)
             others = [g for g in run.get("graders", []) if kind(g["name"]) != "truth"]
             try:
                 run["graders"] = others + [grade(g, rows) for g in new]
@@ -1219,7 +1414,8 @@ def differs(recorded, again, keys):
 
 def unreproduced(result, again):
     """`[problem]`, each naming its case: where AGAIN, RESULT graded once
-    more on the suite it ran, does not give what RESULT recorded, its truth
+    more on the suite it ran over each run's whole `report_text`, the file
+    the eval searched, does not give what RESULT recorded, its truth
     graders, each run's truth results and scores, and its aggregates."""
     problems = []
     for case, mine in zip(result.get("cases", []), again["cases"], strict=True):
@@ -1249,7 +1445,7 @@ def unreproduced(result, again):
             }
             if was != now:
                 problems.append(
-                    f"{name}, run {i}: it recorded {was} and its report rows give {now}"
+                    f"{name}, run {i}: it recorded {was} and its report text gives {now}"
                 )
             off = differs(run, re_run, ("score", "passed"))
             if was == now and off:
@@ -1273,14 +1469,24 @@ def unreproduced(result, again):
 
 def regrade(a):
     """`regrade`: write the side A.side holds, graded on the `truth-` graders
-    of the suite at A.suite_rev from its report rows, with no eval run.
+    of the suite at A.suite_rev from each run's `finding_rows`, with no eval
+    run.
 
-    Refused with exit 2, naming the case, where the side's own suite does not
-    give back from its rows what it recorded, where the target suite and the
-    side's differ in a case's files other than its `truth-` graders, or where
-    the two hold different cases. A REV git does not resolve stops the run."""
+    Refused with exit 2, naming the side's file, where a run keeps no
+    `report_text`; and, naming the case, where the side's own suite does
+    not give back from each run's whole `report_text` what it recorded,
+    where the target suite and the side's differ in a case's files other
+    than its `truth-` graders, or where the two hold different cases. A REV
+    git does not resolve stops the run."""
     with open(a.side, encoding="utf-8") as f:
         result = json.load(f)
+    try:
+        for case in result.get("cases", []):
+            for i, run in enumerate(case_runs(case)):
+                text_of(case["name"], i, run)
+    except ValueError as e:
+        print(f"{a.side}: {e}", file=sys.stderr)
+        return 2
     meta = result.get("specseal") or {}
     agent, own = meta.get("agent"), meta.get("suite_rev")
     if agent not in AGENTS or not own:
@@ -1313,7 +1519,8 @@ def regrade(a):
             )
     try:
         if not problems:
-            problems = unreproduced(result, regraded(result, truths_at(own, mine)))
+            again = regraded(result, truths_at(own, mine), whole=True)
+            problems = unreproduced(result, again)
         if not problems:
             out = regraded(result, truths_at(target, theirs))
     except ValueError as e:
