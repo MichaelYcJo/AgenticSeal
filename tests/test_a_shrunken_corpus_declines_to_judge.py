@@ -220,14 +220,15 @@ OPENS_NOTHING = {
 LISTS_A_FIXTURE = {
     "tests/test_optin_home.py#test_the_local_root_is_never_a_commit_candidate_and_needs_no_gitignore": 1,
     "tests/test_routing_is_recorded.py#test_an_uncommitted_declaration_silences_the_commit_that_adds_it": 1,
-    "tests/test_the_mode_is_a_row_and_a_command.py#test_the_recovery_commands_work_where_they_are_printed": 1,
-    "tests/test_the_mode_is_a_row_and_a_command.py#test_an_ignored_workflow_path_is_not_reported_as_staged": 1,
     "tests/test_the_root_migrates_itself.py#test_the_readmes_by_hand_sequence_yields_the_hooks_tracked_set": 1,
-    # The hook's cases read what is staged, unstaged and tracked in the copy
-    # of the old layout the case took, to assert what the move staged.
+    # The hook's cases read what is unstaged and tracked in the copy of the
+    # old layout the case took, to assert what the move staged.
     "tests/test_root_migrate.py#unstaged": 1,
-    "tests/test_root_migrate.py#staged": 1,
     "tests/test_root_migrate.py#tracked": 1,
+    # What a case staged in its own copy of a world: the hook's move in
+    # `tests/test_root_migrate.py`, and `seal mode`'s switch and the
+    # workflow it stages in `tests/test_seal.py`.
+    "tests/conftest.py#staged": 1,
 }
 
 # One call per scope everywhere today. Spelled as a map rather than as "one

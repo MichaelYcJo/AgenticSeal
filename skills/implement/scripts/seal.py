@@ -305,8 +305,8 @@ def root_files(home):
     always produces the same zip and the same digest.
 
     **This is the only walk.** The zip's members and the digests the manifest
-    records come from this one list, and `test_the_records_can_be_carried_out_
-    and_in.py` asserts the zip's namelist against it. Two enumerations would
+    records come from this one list, and `tests/test_seal.py::Test_export`
+    asserts the zip's namelist against it. Two enumerations would
     drift at the seam — the manifest recording what one of them saw while the
     reminder compares against what the other sees — and the difference would
     read as a work item somebody changed.
@@ -1349,9 +1349,8 @@ CONFIG_PATHSPEC = f"{optin.HOME}/{CONFIG}"
 # The line CI's own workflow uses to clone this plugin. A file at WORKFLOW
 # carrying it is one this plugin wrote; a file that does not is somebody
 # else's with our name, and the switch leaves it alone rather than deleting
-# it. `tests/test_the_mode_is_a_row_and_a_command.py` asserts the template
-# still contains this, so the marker cannot drift away from what it
-# identifies.
+# it. `tests/test_seal.py::Test_module` asserts the template still contains
+# this, so the marker cannot drift away from what it identifies.
 PLUGIN_CLONE = "https://github.com/MichaelYcJo/SpecSeal.git"
 
 # The version placeholder in `templates/hygiene.yml`. A workflow written with

@@ -1041,6 +1041,11 @@ def linked_worktree(repo, tmp_path):
     return other
 
 
+def staged(repo):
+    """The paths staged in REPO, one per line."""
+    return git(repo, "diff", "--cached", "--name-only").stdout
+
+
 def write(root, rel, text):
     """TEXT written at REL under ROOT, its directories made."""
     path = pathlib.Path(root) / rel

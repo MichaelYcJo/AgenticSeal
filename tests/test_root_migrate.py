@@ -24,6 +24,7 @@ from conftest import (
     commit_everything_as_e,
     git,
     load_hook_module,
+    staged,
     symlink_or_skip,
     write,
 )
@@ -74,11 +75,6 @@ def commit_staged(repo):
 def unstaged(repo):
     """The paths changed in REPO's worktree and not staged."""
     return git(repo, "diff", "--name-only").stdout
-
-
-def staged(repo):
-    """The paths staged in REPO, one per line."""
-    return git(repo, "diff", "--cached", "--name-only").stdout
 
 
 def tracked(repo, *paths):
