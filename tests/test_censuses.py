@@ -104,8 +104,12 @@ class Test_judge:
                 "# exempt from encoding: git output\nx = t.splitlines()\n",
                 [["hooks/x.py:1", "encoding"], ["hooks/x.py:2", "splitlines"]],
             ),
+            (
+                "# exempt from splitlines:\nx = t.splitlines()\n",
+                [["hooks/x.py:2", "splitlines"]],
+            ),
         ],
-        ids=["at-the-end-or-ending-a-line", "from-another-census"],
+        ids=["at-the-end-or-ending-a-line", "from-another-census", "without-a-reason"],
     )
     def test_refuses_an_exemption_out_of_place(self, tmp_path, text, named):
         found = censuses.judge("hooks/x.py", plant(tmp_path, "hooks/x.py", text))
