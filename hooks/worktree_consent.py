@@ -46,7 +46,7 @@ defaults:
 This is its own file rather than a branch inside the guard because
 `hooks/dispatch.py` hands every gate the same payload with no event name. One
 file wired to both events would have to tell them apart by sniffing
-`hook_event_name`, and `skills/agent-contract/SKILL.md` §13 refuses a defence
+`hook_event_name`, and contract rule 13 refuses a defence
 that rests on a platform guarantee: where the field were absent the writer
 would silently never record, which reads as "nobody ever consented" and costs
 back every prompt this removes. A gate wired only to PostToolUse needs no

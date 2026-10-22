@@ -130,7 +130,7 @@ def test_skill_has_no_html_comments_at_all():
 
 def test_the_section_is_the_orchestrators_and_the_smiths_skill_names_it():
     """#940 split the verify skill along its headings: posting is withheld
-    from every agent (contract §6), so the section is in the orchestrator's
+    from every agent (contract rule 6), so the section is in the orchestrator's
     file, and the file the smith and the sealer open carries no copy of it.
     That file still prices the repeated run, which is the command the
     section uses, and names the orchestrator's file in its opening."""
@@ -702,10 +702,10 @@ def test_the_section_sends_a_resumed_lone_segment_to_the_mode():
 
 def test_the_section_says_the_mode_notices_a_spawn_inside_a_segment():
     """#343's half of the same command. A session that runs `--segments` at
-    every segment boundary meets the §6 line there, and the section is where
-    it learns that is what the line means."""
+    every segment boundary meets the `Contract rule 6` line there, and the
+    section is where it learns that is what the line means."""
     body = section_body()
-    assert "§6" in body, (
+    assert "`Contract rule 6` line" in body, (
         "the section names the mode and not the one finding it can print "
         "that is about the agent's own conduct rather than its cost"
     )

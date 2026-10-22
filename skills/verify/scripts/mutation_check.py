@@ -175,7 +175,7 @@ def mutated(text: str, old: str, new: str, path: str) -> str:
 
 def strategy(os_name: str) -> str:
     """What the bound ends on this platform. Takes the platform as an
-    argument so the Windows half is pinned from any machine (contract §13)."""
+    argument so the Windows half is pinned from any machine (contract rule 13)."""
     return CHILD if os_name == "nt" else GROUP
 
 

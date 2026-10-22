@@ -73,7 +73,7 @@ make.
    for the record's language: `## English prose rules`, or `## 문장 규칙`
    where `Record language` in the `seal/` root's `config.md` is Korean.
 7. Write `spec.md`, then `plan.md`, then `questions.md`.
-8. Hand back. Label each claim as contract §4 says: a fact a command you
+8. Hand back. Label each claim as rule 4 says: a fact a command you
    ran gave you, a `git show`, a `grep`, a `wc -l`, is `executed`, and what
    you opened is `read`. You ran no check of the repository's, and the
    report says so. The report stands without a file opened beside it:
@@ -160,7 +160,7 @@ CI cannot see it.
 check: tests/test_waiver_decided_at_start.py
 
 **Bound each call, not the reading.** The files your spawn prompt names go
-out in one call whatever their number, as §10 says. Each call of the wide
+out in one call whatever their number, as rule 10 says. Each call of the wide
 reading after that holds about six reads or ranges, never the whole reading
 list of step 4 at once; six is a default and not a measured limit. A large
 file is read by range: `Read` pages it, `sed -n '<a>,<b>p'` is the shell

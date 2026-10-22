@@ -20,7 +20,7 @@ The five states, and the exit each ends on:
   more than one open            exit 1, both named         (A8)
   exactly one open              exit 0, one comment        (A9)
 
-**Red-first, per the contract's §15.** Every case here was run against
+**Red-first, per contract rule 15.** Every case here was run against
 `session_cost.py` before the mode existed: `--post` was not a flag, so
 argparse exited 2 on all of them, and only A5 was red for its own reason.
 The phase record names the run. After the mode landed, each unit it added was
@@ -245,7 +245,7 @@ def test_one_open_posts_once_to_that_issue(monkeypatch, capsys):
 
 def test_the_body_file_is_removed_after_the_post(monkeypatch):
     """A temp file per segment boundary, left behind, is the leaving
-    `agent-contract` §7 is about — and this one is the command's, not a
+    contract rule 7 is about — and this one is the command's, not a
     probe's, so nothing else would ever clean it."""
     module = _cost()
     paths = []

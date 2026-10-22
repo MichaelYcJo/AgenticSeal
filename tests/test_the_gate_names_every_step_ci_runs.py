@@ -347,7 +347,7 @@ ITEM = "seal/specs/1799000000-a-fixture-work-item"
 def sealable_repo(tmp_path):
     """A repository on `base` with a `feature` branch one commit ahead.
 
-    Driven from Python, per `agent-contract` §8: a probe that commits reaches
+    Driven from Python, per contract rule 8: a probe that commits reaches
     the commit gate exactly as real work does, and the prompt lands on nobody
     while a round is running.
     """
@@ -990,7 +990,7 @@ def test_a_feature_seal_counts_the_steps_ci_runs_for_it():
     `main` CI runs 5 of the 8 steps and the gate mirrors 3, so the panel
     reads `CI also · 2 more steps`; the line names the two unanswered steps
     CI runs and none of the three only-at-`main` ones, and says three were
-    left out and why. Pinned verbatim (`agent-contract` §14). The ninth step,
+    left out and why. Pinned verbatim (contract rule 14). The ninth step,
     the CLAUDE.md copy held to its template, left with the copy (#940)."""
     assert gate.steps_for(read(HYGIENE), "release/x") == [
         step
@@ -1027,7 +1027,7 @@ def test_a_release_seal_counts_every_step_ci_runs_for_it():
 
 
 def test_the_documents_say_the_count_is_over_the_steps_ci_runs():
-    """S5's documentation (`agent-contract` §14): the skill section that
+    """S5's documentation (contract rule 14): the skill section that
     explains the count and the partition's policy paragraph each say a step
     CI does not run for the base is outside the count. Since #969 the sealer
     sees no output of the gate's and explains none of it, so its definition

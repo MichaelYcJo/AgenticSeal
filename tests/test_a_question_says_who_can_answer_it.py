@@ -23,7 +23,7 @@ Two documents carry the consequence and this module pins both.
 
 The report half is the one that is easy to get backwards, and it was
 backwards: the rule read *never the rows' text*, unconditionally, resting on
-contract §5's *an aggregate is not a coordinate*. §5 is about a claim a reader
+contract rule 5's *an aggregate is not a coordinate*. That rule is about a claim a reader
 might believe and act on without opening it. A question a person must answer
 is not a claim — it is the asking itself, and an approval given against a
 count of questions is an approval given against nothing.
@@ -192,7 +192,7 @@ def test_the_report_does_not_reduce_the_frame_to_counts():
 def test_the_hand_back_labels_what_the_framer_ran_as_executed():
     """Round 1 of #968, finding 3. A framer runs `git show`, `grep` and
     `wc -l` while it reads, and a frame labels those facts `executed`. A
-    hand-back told that every claim is `read` misstates them (contract §4);
+    hand-back told that every claim is `read` misstates them (contract rule 4);
     what is true is narrower, that it ran no check of the repository's."""
     report = report_of("framer.md")
     assert "executed nothing" not in report, (

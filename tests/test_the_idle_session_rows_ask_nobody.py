@@ -283,7 +283,7 @@ def git_ok(*args):
 
 
 def test_the_way_on_passes_the_guard(monkeypatch, capsys, projects, repo, tmp_path):
-    """S7, run rather than read (`agent-contract` §13). The fixture gains an
+    """S7, run rather than read (contract rule 13). The fixture gains an
     `origin` holding `main` (W3), so the commands the deny names run as
     written: the fetch and the creation each pass the guard and then run in
     git, and a git command in the new worktree, issued by path from this

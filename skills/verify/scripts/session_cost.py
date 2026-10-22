@@ -1805,7 +1805,7 @@ def measure_segments(path, calls):
         # carrying one name, so counting rows makes this climb with every
         # resume -- which is the failure `segment_slices` gives every slice
         # the file's name to avoid, undone one function later. `report_breaches`
-        # reconciles the §6 count against this number, so a row count makes a
+        # reconciles the contract rule 6 count against this number, so a row count makes a
         # run whose counts agree print that they do not, and sends a reader
         # looking for a child transcript that was never missing. Measured on
         # the machine this was written on: one of 43 runs already reads 3 for
@@ -1831,7 +1831,7 @@ def measure_segments(path, calls):
     # nothing for this.
     #
     # `unnamed` stays 0 and is computed above, before this: it counts WALKED
-    # transcripts, and the given file is not one. Counted here, the §6
+    # transcripts, and the given file is not one. Counted here, the rule 6
     # reconciliation would print a disagreement for an agent that spawned
     # nothing. `own_file` is present in this case alone, so every other
     # reading's dict is what it was.
@@ -2406,7 +2406,7 @@ def segment_label(row):
 def report_breaches(segments):
     """#343: an `Agent` call made INSIDE a segment, named where it happened.
 
-    `skills/agent-contract/SKILL.md` §6 withholds four acts from every agent
+    Contract rule 6 withholds four acts from every agent
     whatever its own definition says, and one of them is spawning. Delivery
     is not what failed: round 1 of #120 spawned two agents and disclosed
     neither, with the rule already in that agent's payload, in a section the
@@ -2422,8 +2422,8 @@ def report_breaches(segments):
     exit code is a later work item's, and it will be choosing against
     readings rather than against a guess.
 
-    **It says who §6 reaches, because the walk cannot tell.** §6 binds the
-    agents this plugin spawns. An `Agent` call in a segment's transcript is
+    **It says who contract rule 6 reaches, because the walk cannot tell.** The
+    rule binds the agents this plugin spawns. An `Agent` call in a segment's transcript is
     all this file can see, and a `subagent_type` from somewhere else — one
     whose own procedure instructs the fan-out — looks exactly the same.
     Measured over the 43 runs on the machine this was written on: 13 carry
@@ -2449,26 +2449,26 @@ def report_breaches(segments):
     if not calls and not unnamed:
         return
     if breaches:
-        print("\n  §6 — an agent spawned another agent")
+        print("\n  Contract rule 6 — an agent spawned another agent")
         for row in breaches:
             print(
                 f"    {segment_label(row).strip()} made "
                 f"{plural(row['spawns'], '`Agent` call')} in its own transcript"
             )
         print(
-            "\n  `skills/agent-contract/SKILL.md` §6 withholds four acts from "
-            "every agent\n  whatever its own definition says: post nothing, "
-            "push nothing, open no pull\n  request, and spawn no agent. This "
-            "line notices and stops nothing — the\n  transcript it read is on "
-            "the machine that ran the agent, in no commit and on\n  no CI "
-            "runner, and a report a person already runs at every segment "
-            "boundary is\n  what that leaves."
+            "\n  Contract rule 6 in `skills/agent-contract/SKILL.md` withholds "
+            "four acts\n  from every agent whatever its own definition says: "
+            "post nothing, push\n  nothing, open no pull request, and spawn no "
+            "agent. This line notices and\n  stops nothing — the transcript it "
+            "read is on the machine that ran the\n  agent, in no commit and on "
+            "no CI runner, and a report a person already\n  runs at every "
+            "segment boundary is what that leaves."
         )
         print(
-            "\n  §6 binds the agents this plugin spawns. A row above naming "
-            "an agent from\n  somewhere else is still a spawn made inside a "
-            "segment and still worth\n  seeing, but which rule it answers to "
-            "is for that agent's own definition\n  to say."
+            "\n  Contract rule 6 binds the agents this plugin spawns. A row above "
+            "naming an\n  agent from somewhere else is still a spawn made inside "
+            "a segment and still\n  worth seeing, but which rule it answers to "
+            "is for that agent's own\n  definition to say."
         )
     # An agent's own file (#637) was read with no parent in view, so there is
     # no second count to hold this one against: `unnamed` is 0 by
@@ -2835,7 +2835,7 @@ def run_gh(args):
 
     The one place this module touches a network, and the seam every case
     below replaces. The exit code is read straight off the subprocess
-    (`agent-contract` §1) rather than through a pipe.
+    (contract rule 1) rather than through a pipe.
 
     A `gh` that is not on PATH comes back with `None` for the code — a
     different fact from a lookup that ran and failed, and the caller treats

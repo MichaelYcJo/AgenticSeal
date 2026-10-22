@@ -65,8 +65,8 @@ def test_the_implementer_documents_point_at_the_section():
         )
 
     # Phase 4 of #107 re-pointed the second half. The rule that a fact with
-    # no coordinate and no label is an assertion nobody has opened is §5 of
-    # the agent contract, which every agent receives at startup -- the smith
+    # no coordinate and no label is an assertion nobody has opened is
+    # contract rule 5, which every agent receives at startup -- the smith
     # was one of two definitions stating it and the scribe stated it nowhere.
     # What stays in the definitions is the ROUTE: the section a prompt's
     # facts arrive under, which is what this case is about.
@@ -88,9 +88,9 @@ def test_the_protocol_no_longer_states_the_rules_it_points_at():
     source a paste-back would bring."""
     protocol = flat(*PROTOCOL)
     for phrase, whose in (
-        ("never `cmd | tail; echo $?`", "the contract's §1"),
-        ("enumerate the class, do not fix the coordinate", "the contract's §12"),
-        ("Do not push, do not open a pull request", "the contract's §6"),
+        ("never `cmd | tail; echo $?`", "contract rule 1"),
+        ("enumerate the class, do not fix the coordinate", "contract rule 12"),
+        ("Do not push, do not open a pull request", "contract rule 6"),
         ("make a `uv` venv", "`agents/warden.md`"),
         ("Mutation-test every unit added", "`agents/smith.md`"),
     ):
@@ -118,11 +118,11 @@ def test_the_smiths_definition_mandates_mutating_every_unit_it_added():
     `test_the_agent_contract_holds_the_universal_rules.py` pins from the
     other side; this row pointed at a definition and nothing pinned it.
 
-    Contract §15 is the neighbour, not this rule. It asks that a case be
+    Contract rule 15 is the neighbour, not this rule. It asks that a case be
     seen red on the day it is planted; this asks that every unit the branch
     added be broken before the branch leaves the implementer's hands. Both
     halves are asserted -- the act and its timing -- because a definition
-    that kept only the act would read as §15 restated, which
+    that kept only the act would read as contract rule 15 restated, which
     `test_a_moved_rule_leaves_its_definition.py` would then be right to
     refuse."""
     smith = flat("agents", "smith.md")
@@ -178,7 +178,7 @@ def test_the_protocol_names_the_progress_channel_and_the_stall_signal():
 def test_the_smiths_contract_does_not_demand_what_a_serial_loop_cannot_give():
     """The batching rule lands on the smith with the caveat that keeps it
     honest: an edit-test loop is serial, and a rule that ignores that is a
-    demand the work cannot meet. The caveat is contract §10's; the bar it
+    demand the work cannot meet. The caveat is contract rule 10's; the bar it
     points at has one home, `docs/the-review-record.md` §*The per-segment
     bars*, and no definition carries a copy since #957."""
     contract = flat("skills", "agent-contract", "SKILL.md")
@@ -226,12 +226,12 @@ def test_the_framers_definition_carries_its_opening():
         "the bound says how large a call may be and not what it may not be, "
         "which is the opening burst #456's stalls are the evidence about"
     )
-    assert "§10" in rule, "the bound stopped citing the rule it applies"
-    # Round 1's 🟡 3. §10 says the files the handoff names go out in one
+    assert "rule 10" in rule, "the bound stopped citing the rule it applies"
+    # Round 1's 🟡 3. Contract rule 10 says the files the handoff names go out in one
     # call, so a bound with no exception for them contradicts the rule the
     # bullet says it applies.
     assert "whatever their number" in rule, (
-        "the bound reaches the files the spawn prompt names, which §10 says "
+        "the bound reaches the files the spawn prompt names, which rule 10 says "
         "go out in one call"
     )
     assert "read by range" in rule and "sed -n" in rule, (

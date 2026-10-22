@@ -92,7 +92,7 @@ def main():
     # record it in this session's lease, where no reader of this session looks
     # (round 1 of work item 1791384157, yellow 4). So the variable is read
     # only beside a `CLAUDE_CODE_SESSION_ID` that is the payload's own, and
-    # the walk answers everywhere else, as it did before #868 (§13). Failure
+    # the walk answers everywhere else, as it did before #868 (contract rule 13). Failure
     # is silent, as everything here is: a reader that raises records no pid,
     # which the guard reads as unattributable.
     try:

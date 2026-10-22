@@ -13,7 +13,7 @@ skipped file and a deleted entry are the same evidence, so a silent skip buys
 it a false alarm. Those decline, through `decline_if_shrunken`.
 
 **The reason string is why this module exists.** It is text a person reads at
-a release and acts on, which `skills/agent-contract/SKILL.md` §14 says has to
+a release and acts on, which contract rule 14 says has to
 be pinned in the commit that writes it — and `seal/follow-up.md`'s seventh
 row is that omission in an earlier release, a refusal whose second half
 nothing held. The three call sites pin their own `what`; the shape is pinned
@@ -405,7 +405,7 @@ def _tree_of(rel):
 def test_no_scope_in_the_suite_lists_paths_from_git_without_a_guard():
     """The class, re-enumerated by the suite rather than by whoever remembers.
 
-    `skills/agent-contract/SKILL.md` §12: the finding named one coordinate and
+    Contract rule 12: the finding named one coordinate and
     what was owed was every instance the same cause produces. Five helpers
     carried it, a sixth was found by this case while it was being written, and
     a seventh is what this exists to stop.

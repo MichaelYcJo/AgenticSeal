@@ -107,7 +107,7 @@ def test_the_sentence_names_the_contract():
     """The sentence names a file that is the contract, so a sentence pointing
     at another skill that happens to exist is red here rather than nowhere."""
     with open(os.path.join(ROOT, CONTRACT), encoding="utf-8") as handle:
-        assert "## §1 " in handle.read(), f"{CONTRACT} carries no numbered rules"
+        assert "## 1 " in handle.read(), f"{CONTRACT} carries no numbered rules"
 
 
 # --- the shape ---------------------------------------------------------------
@@ -139,7 +139,7 @@ def test_every_file_a_step_names_exists(path):
 
 
 # The ways a definition is allowed to close its own list of durable writes.
-# Under the contract's §6 a definition's named writes are its permission, so
+# Under contract rule 6 a definition's named writes are its permission, so
 # every definition says where that list stops, and each phrase names WRITING
 # as its subject so only a sentence about what the agent writes can match it.
 BOUNDS = (
@@ -153,7 +153,7 @@ BOUNDS = (
 @pytest.mark.parametrize("path", AGENTS, ids=name)
 def test_every_definition_bounds_what_it_writes(path):
     """A definition that names writes and never says where the list stops
-    reads its own examples as a floor, and under §6 every sentence about
+    reads its own examples as a floor, and under contract rule 6 every sentence about
     producing something becomes a grant."""
     text = " ".join(read(path).split())
     assert any(bound in text for bound in BOUNDS), (

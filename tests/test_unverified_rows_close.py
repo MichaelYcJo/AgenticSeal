@@ -176,7 +176,7 @@ class TestClosedRow:
             assert not cl and len(op) == 2
 
     def test_the_old_marks_refusal_names_the_edit(self, tmp_path):
-        """§14: the sentence a person reads when their overview still carries
+        """Contract rule 14: the sentence a person reads when their overview still carries
         the old mark, pinned whole, because the edit it names is the whole of
         what they have to do."""
         section = CANONICAL.replace(
@@ -261,7 +261,7 @@ OPEN_BY_DEFAULT_TEXTS = [
 def test_a_text_saying_a_row_counts_open_names_the_open_item_that_reads_closed(
     tmp_path, parts
 ):
-    """§14, round 1's finding 1: an open item whose own text begins with the
+    """Contract rule 14, round 1's finding 1: an open item whose own text begins with the
     word `closed` reads as closed, and the reader cannot tell it from a
     closing. So each text that says an unmarked row counts open names that
     row too, and the reader's reading of it is checked beside the sentence.
@@ -1609,7 +1609,7 @@ def test_the_documents_state_the_merge_base_footing(doc, tip, false_sentence):
 
 
 def test_the_baseline_help_names_both_places(capsys):
-    """#612: the `--baseline` help is a rendered line (contract §14). The
+    """#612: the `--baseline` help is a rendered line (contract rule 14). The
     documents case above reads the whole file, where the module docstring and
     `merge_base`'s docstring carry the same phrase, so it cannot see the help
     go back to the fork point. The help is rendered and read on its own. Red
@@ -1698,7 +1698,7 @@ def test_a_spec_with_no_rule_changes_and_nothing_open_is_settled(tmp_path, capsy
 
 
 def test_the_settled_line_reads_as_a_sentence(tmp_path, capsys):
-    """§14: the line a person reads in the hygiene workflow's output."""
+    """Contract rule 14: the line a person reads in the hygiene workflow's output."""
     d = settle_repo(tmp_path, {"1780000001-a": rule("A new rule.")})
     remove(d, "1780000001-a", docs=DOC + "\nA new rule.\n")
     run([str(d), "--baseline", "HEAD"])

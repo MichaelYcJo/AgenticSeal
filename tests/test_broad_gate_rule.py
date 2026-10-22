@@ -21,6 +21,8 @@ import glob
 import os
 import re
 
+from test_the_agent_contract_holds_the_universal_rules import HEADING
+
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 
 
@@ -117,7 +119,7 @@ def test_verify_prices_the_run_that_repeats():
 
 
 def test_the_implementers_bar_is_not_the_reviewers_and_has_one_home():
-    """Contract §10 points each kind of segment at its bar in
+    """Contract rule 10 points each kind of segment at its bar in
     `docs/the-review-record.md` §*The per-segment bars*, and the implementing
     row is not judged by tools per turn: an edit-test loop judged by the
     reviewer's bar is asked for what a serial loop cannot give. Since #957
@@ -131,7 +133,7 @@ def test_the_implementers_bar_is_not_the_reviewers_and_has_one_home():
 
 
 def test_the_smith_puts_both_answers_in_the_hand_back():
-    """What stayed with the implementer when §2 and §3 moved.
+    """What stayed with the implementer when contract rule 2 and contract rule 3 moved.
 
     The rule is the contract's and is asserted against it below. This is the
     half that is nobody else's: WHERE the two answers land. The smith's
@@ -145,7 +147,7 @@ def test_the_smith_puts_both_answers_in_the_hand_back():
     disclosure half is asserted here because the smith is where it is
     disclosed."""
     smith = flat("agents", "smith.md")
-    assert "§2" in smith and "§3" in smith, (
+    assert "rule 2" in smith and "rule 3" in smith, (
         "the implementer can no longer reach the rules its hand-back answers"
     )
     assert "the suite labelled `unverified`" in smith, (
@@ -161,26 +163,26 @@ def test_the_smith_puts_both_answers_in_the_hand_back():
         "override stays invisible"
     )
     assert "hand-back" in smith, (
-        "the destination went. Without it §3's disclosure sentence has "
+        "the destination went. Without it rule 3's disclosure sentence has "
         "nowhere named to land, which is the gap the warden's field fills"
     )
 
 
 def contract_section(number):
-    """The body of `## §N` in the contract, heading excluded.
+    """The body of `## <N>` in the contract, heading excluded.
 
     Scoped rather than whole-file, because the thing #120 has to keep out is
     a WORD -- `orchestrator` -- that the contract says legitimately elsewhere
     (its opening paragraph, about the prompt a round arrives in). A whole-file
     absence check would either fail on that sentence or be dropped."""
     text = read("skills", "agent-contract", "SKILL.md")
-    heads = list(re.finditer(r"^## §(\d+) (.+)$", text, re.M))
+    heads = list(HEADING.finditer(text))
     for index, match in enumerate(heads):
         if int(match.group(1)) != number:
             continue
         end = heads[index + 1].start() if index + 1 < len(heads) else len(text)
         return " ".join(text[match.end() : end].split())
-    raise AssertionError(f"the contract has no §{number}")
+    raise AssertionError(f"the contract has no rule {number}")
 
 
 # What a definition says when it hands its agent the run: the command typed
@@ -195,7 +197,7 @@ RUN = "broad-gate --base <base> --record <item>"
 
 
 def test_no_definition_assigns_the_broad_gate_and_the_orchestrator_runs_it_before_the_spawn():
-    """S2 of #969. Contract §2 says no agent runs the broad gate and names the
+    """S2 of #969. Contract rule 2 says no agent runs the broad gate and names the
     orchestrator's command; no file under `agents/` hands its agent the run;
     and the orchestration names the preflight, the run, its log and its commit
     before the sentence that spawns the sealer.
@@ -203,22 +205,24 @@ def test_no_definition_assigns_the_broad_gate_and_the_orchestrator_runs_it_befor
     Protects: a definition taking the run back, which is the second run of a
     suite #957 measured at 240K tokens; and the orchestration spawning the
     sealer before the run, which leaves it a record that is absent or stale.
-    It replaces the three cases that pinned the interim §2, the count of
+    It replaces the three cases that pinned the interim rule 2, the count of
     silent definitions and the preflight's order, because each held one third
     of one fact and none held the run's place in the order."""
     contract = " ".join(read("skills", "agent-contract", "SKILL.md").split())
     body = contract_section(2)
     assert "no agent runs any of the three" in body, (
-        "§2 stopped forbidding the broad gate to every agent"
+        "contract rule 2 stopped forbidding the broad gate to every agent"
     )
     assert RUN in body and "orchestrator" in body, (
-        "§2 stopped naming the orchestrator's command"
+        "contract rule 2 stopped naming the orchestrator's command"
     )
     assert body.index(RUN) < body.index("spawns the sealer"), (
-        "§2 names the spawn before the run it waits for"
+        "contract rule 2 names the spawn before the run it waits for"
     )
     for named in ("but the sealer", "Where the run is yours"):
-        assert named not in body, f"§2 still names an agent as runner: {named!r}"
+        assert named not in body, (
+            f"contract rule 2 still names an agent as runner: {named!r}"
+        )
     assert "Hand over with the suite labelled `unverified`" in contract, (
         "the label went, and a suite that is simply not mentioned reads as a "
         "suite that passed"
@@ -251,11 +255,11 @@ def test_no_definition_assigns_the_broad_gate_and_the_orchestrator_runs_it_befor
 
 
 def test_no_definition_promises_the_suite_once_the_rounds_settle():
-    """Round 1, finding 2 of #120. `agents/warden.md` read *§2 keeps the suite
-    out of your hands UNTIL the rounds settle*, which says it becomes the
+    """Round 1, finding 2 of #120. `agents/warden.md` read *rule 2 keeps the
+    suite out of your hands UNTIL the rounds settle*, which says it becomes the
     warden's afterwards.
 
-    Under the old §2 that was a harmless imprecision about a prohibition with
+    Under the old contract rule 2 that was a harmless imprecision about a prohibition with
     a holder who was not an agent. Under the new one it is false in a way a
     reader can act on: this file assigns none of the three, and since #969 no
     definition does, because the orchestrator runs the gate. The hazard is
@@ -280,7 +284,7 @@ def test_no_definition_promises_the_suite_once_the_rounds_settle():
         text = " ".join(read_at(path).split())
         assert "until the rounds settle" not in text.lower(), (
             f"{os.path.basename(path)} promises the suite once the rounds "
-            "settle. §2 has no such release for anyone: an agent takes the "
+            "settle. Contract rule 2 has no such release for anyone: an agent takes the "
             "broad gate when its own definition assigns it, and never later"
         )
 
@@ -288,7 +292,7 @@ def test_no_definition_promises_the_suite_once_the_rounds_settle():
 def test_the_warden_audits_the_scope_of_a_seal():
     """What stayed with the reviewer: the audit, which is nobody else's.
 
-    §2 says the reviewer does not run the suite. It does not say what the
+    Contract rule 2 says the reviewer does not run the suite. It does not say what the
     reviewer does INSTEAD, and that half is an application of the rule rather
     than the rule -- a seal is audited by the second person looking, and the
     warden is the only agent that is one."""

@@ -244,7 +244,7 @@ def test_the_label_is_two_states_and_nothing_schedules_from_it():
     # thing it protected was still true. What a reader must not come away
     # with is that something SCHEDULES from the label, because then a stale
     # one reads as a blocked release. So the sentence says that, and the
-    # assertion follows it (`skills/agent-contract/SKILL.md` §14: a change to
+    # assertion follows it (contract rule 14: a change to
     # what a person reads documents it and pins it, in the same commit).
     assert "**Nothing schedules from this label**" in doc, (
         "a reader who thinks something schedules from the label reads a stale "

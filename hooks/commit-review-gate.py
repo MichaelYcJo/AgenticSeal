@@ -170,7 +170,7 @@ def _hides_a_commit(text):
     here keeps every invocation already found; a `RecursionError` caught in
     `main` discarded them all. The bound answers before the stack runs out,
     and the catch stays for an interpreter whose limit is lower still
-    (contract §13): with the limit below what 32 levels need, the answer is
+    (contract rule 13): with the limit below what 32 levels need, the answer is
     the same.
     """
     if _nesting[0] >= NESTING_READ:

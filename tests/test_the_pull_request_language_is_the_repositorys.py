@@ -1303,7 +1303,7 @@ ROW_READERS = [
     ("skills", "code-review", "SKILL.md"),
     # Phases 3 and 4 of #107 re-pointed both definitions' rows here: the
     # record-language section was in two of them in near-identical words and
-    # in the third not at all, and it is §11 of the agent contract now. That
+    # in the third not at all, and it is contract rule 11 now. That
     # neither definition kept a copy is held by
     # `tests/test_a_moved_rule_leaves_its_definition.py`, so removing a row
     # from this list is a move rather than a deletion.

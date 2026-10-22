@@ -16,7 +16,7 @@ session. Two routes answer it, in order:
      read. Two leases naming one pid is a question nobody can settle from
      here, and the answer is no session (W3).
 
-Contract §13 is why the second route exists: the variable is a platform
+Contract rule 13 is why the second route exists: the variable is a platform
 guarantee, and a defence resting on one is verified only with it removed.
 
 **No session is an answer, and it is a person's** (`questions.md` P2, answer
@@ -32,7 +32,7 @@ find the same process. The writer used to take any process whose name held
 no reader ever matched that lease. `claude_pid` reads `CLAUDE_PID` first, a
 value the harness exports beside `SESSION_VARIABLE` to every Bash child
 (measured: it is the pid the walk finds), and walks only where it is absent.
-The walk stays under the variable for §13's reason. The stub's short-cut
+The walk stays under the variable for contract rule 13's reason. The stub's short-cut
 (`hooks/githooks.py`) and `hooks/tokens.py#steps_around_hooks` name
 `SESSION_VARIABLE` and nothing else, because nothing here reads another name.
 """

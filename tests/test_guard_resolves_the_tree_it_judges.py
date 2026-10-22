@@ -816,7 +816,7 @@ def test_the_consent_writer_files_a_creation_where_bash_runs_it(repo, tmp_path, 
 
 
 def test_the_guard_policy_says_the_record_is_filed_where_the_guard_judged():
-    """§14 of the agent contract, for S1-S3 of work item 1791384157: §*Creation
+    """Contract rule 14, for S1-S3 of work item 1791384157: §*Creation
     consent*'s record says its clone is the one the guard judged, placed by
     one function. Red against `5623d728`'s text."""
     assert (
@@ -826,7 +826,7 @@ def test_the_guard_policy_says_the_record_is_filed_where_the_guard_judged():
 
 
 def test_the_guard_policy_names_the_shell_built_word_limit():
-    """§14 of the agent contract, for S27 of work item 1791384157's second
+    """Contract rule 14, for S27 of work item 1791384157's second
     reframe: §*Known limits* says in one sentence that a word the shell
     builds before git runs is not read and names #856's four forms as silent;
     §A names no brace rule, cost or count, and no bullet names a brace-hidden
@@ -1376,7 +1376,7 @@ def _policy_text():
 
 
 def test_the_guard_policy_says_which_shapes_reach_the_rows_and_who_reads_the_stop():
-    """S12 of work item 1791270162, §14 of the agent contract: §A names the
+    """S12 of work item 1791270162, Contract rule 14: §A names the
     three shapes, the stop's two readers and its failure direction, in the
     sentences a person reads to learn when the guard stops. Red against the
     policy as it stood at `9c03ae85`."""
@@ -1753,7 +1753,7 @@ def test_the_token_read_never_reads_more_than_the_base(monkeypatch, token, break
 
 
 def test_the_guard_policy_and_readmes_say_a_body_token_is_not_read():
-    """§14 of the agent contract, for #780: §*Choice sites* and the two token
+    """Contract rule 14, for #780: §*Choice sites* and the two token
     rows of both READMEs say a token inside a here-document body is not
     read. Red against `a3aa139a`'s texts."""
     assert (

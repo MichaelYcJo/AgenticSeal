@@ -964,7 +964,7 @@ def test_a_refused_gh_or_git_call_is_a_reason_naming_the_call(monkeypatch):
         mod.tagged("nope")
 
 
-# --- the documents a person reads (contract §14) ----------------------------
+# --- the documents a person reads (contract rule 14) ------------------------
 
 
 def flat(*parts):

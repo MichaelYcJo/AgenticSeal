@@ -954,7 +954,7 @@ def test_no_optional_row_answers_for_another(repo):
 
     `test_neither_optional_axis_answers_for_the_other` above pins the pair
     that existed before; this is the same property over all four, which is the
-    class rather than the two instances of it (§12).
+    class rather than the two instances of it (contract rule 12).
     """
     keys = {
         routing.PLANNING: ("planning", routing.BY_FRAMER),

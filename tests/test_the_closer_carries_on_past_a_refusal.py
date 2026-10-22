@@ -23,7 +23,7 @@ repos/<owner>/<repo>/issues/<n> -f state=closed` closed the issue at once.
 as an argument tuple, in order, so a case can assert about ORDER — that #3 was
 attempted after #2 was refused — and not only about the end state.
 
-**Shown red before it was committed (§15).** At `HEAD` before the fix, `run`
+**Shown red before it was committed (contract rule 15).** At `HEAD` before the fix, `run`
 exits on the refused close, so S1 fails with #3 still open and S2 fails
 because the exit arrives before #3 is attempted; both outputs are quoted in
 phase 1's record of work item

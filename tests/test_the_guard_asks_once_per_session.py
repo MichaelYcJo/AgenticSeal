@@ -21,7 +21,7 @@ Two halves, and they are separable on purpose:
                `hooks/dispatch.py` hands every gate the same payload with no
                event name, so one file wired to both events would have to tell
                them apart by sniffing a harness field. A gate wired only to
-               `PostToolUse` needs no such guarantee (`agent-contract` §13).
+               `PostToolUse` needs no such guarantee (contract rule 13).
   the reader   `guard_worktree_creation`'s new first row. The tests here grant
                consent by writing the record BY HAND, so the reader is pinned
                without the writer under it.
@@ -1012,7 +1012,7 @@ def test_a_session_id_that_is_only_separators_has_no_record_path(repo):
     """The id names a file, so an id that reduces to nothing must resolve to no
     path at all rather than to the directory above it. Left to the filesystem,
     `..` would be refused by `open` raising on a directory — a defence resting
-    on a platform guarantee, which `agent-contract` §13 refuses."""
+    on a platform guarantee, which contract rule 13 refuses."""
     for bad in ("", ".", "..", "/", "../..", os.sep):
         assert wc.consent_path(str(repo), bad) == "", bad
     assert wc.consent_path(str(repo), "me").endswith(os.path.join("me"))
@@ -1737,7 +1737,7 @@ def test_an_unreadable_transcript_leaves_the_old_verdict(
 
 
 def test_the_allow_says_which_consent_it_read(monkeypatch, capsys, projects, repo):
-    """§14: the two sources are two different sentences, in both languages."""
+    """Contract rule 14: the two sources are two different sentences, in both languages."""
     write_transcript(projects, "me", ask_entries(repo))
     _, reason = decide(monkeypatch, capsys, repo, "git worktree add ../wt f")
     assert "The user pressed `automation` on this session's routing question" in reason
@@ -2125,7 +2125,7 @@ def test_the_ways_on_pass_the_guard(monkeypatch, capsys, projects, repo):
     """S4, narrowed at the reframe to the claim the deny makes: `git commit`
     and `git stash`, each issued alone, pass the guard, and a switch after
     either meets a clean tree and passes too. Run with real git
-    (`agent-contract` §13). What git did with the change is asserted by
+    (contract rule 13). What git did with the change is asserted by
     nothing, because the deny promises none of it."""
     write_transcript(projects, "me", ask_entries(repo))
     here = git_in(repo, "branch", "--show-current")

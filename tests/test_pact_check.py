@@ -912,7 +912,7 @@ def test_the_refusal_names_both_remedies(world):
 def test_every_printed_path_is_in_posix_form(path, repo, home, want):
     """S6. The one helper every printed path goes through, fed Windows paths
     through `ntpath`, so the POSIX guarantee is removed rather than relied on
-    (`agent-contract` §13): no `\\` survives, a path under home begins `~/`,
+    (contract rule 13): no `\\` survives, a path under home begins `~/`,
     and one inside its repository is relative to it."""
     import ntpath
 

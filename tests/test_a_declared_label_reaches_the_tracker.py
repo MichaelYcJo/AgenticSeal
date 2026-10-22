@@ -32,7 +32,7 @@ a label write failed is a release that did not finish. So the failing-write
 case asserts the close happened anyway, and the ordering case asserts the
 close was made first rather than trusting that it was.
 
-**Shown red before it was committed (§15).** Each case A9 to A12 was run
+**Shown red before it was committed (contract rule 15).** Each case A9 to A12 was run
 against the script or document with the one behaviour it pins removed; the
 mutations and what each case said were recorded in
 phase 4 of work item `1790076050-the-release-tail-is-three-acts-no-document-names`,
@@ -425,7 +425,7 @@ def test_a_dry_run_over_an_already_closed_issue_names_the_label_too(
 
 
 def test_every_report_of_the_removal_goes_through_one_place():
-    """§12: the defect was one copy of three being unguarded, so what is owed
+    """Contract rule 12: the defect was one copy of three being unguarded, so what is owed
     is that a fourth copy cannot be written. Both branches of the loop call
     `spend_label`, and the two lines a reader sees are inside it."""
     source = read(os.path.join(SCRIPTS, "close_issues_on_release.py"))

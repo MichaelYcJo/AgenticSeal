@@ -1435,7 +1435,7 @@ def _reasons(monkeypatch, capsys, repo, module):
 def test_the_two_reworded_reasons_are_pinned_in_both_languages(
     monkeypatch, capsys, repo
 ):
-    """S10, §14. The Agent reason is pinned whole. The `[worktree-ok]` row's
+    """S10, contract rule 14. The Agent reason is pinned whole. The `[worktree-ok]` row's
     first sentence starts from what was counted -- no Claude session shown to
     be working -- where a count was taken, instead of asserting *single-stream
     work*, which a worktree a subagent chain will use is not.

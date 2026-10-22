@@ -26,7 +26,7 @@ the moment a word is added earlier in the paragraph — the reader
 `tests/test_a_release_is_sized_by_a_criterion.py` already uses, for the reason
 its own docstring gives.
 
-**Shown red before it was committed (§15).** Each case was run against the two
+**Shown red before it was committed (contract rule 15).** Each case was run against the two
 documents with the sentence or box it pins removed; the mutations and what
 each case said were recorded in
 phase 2 of work item `1790076050-the-release-tail-is-three-acts-no-document-names`,

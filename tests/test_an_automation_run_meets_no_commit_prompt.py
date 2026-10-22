@@ -252,7 +252,7 @@ def reasons_under_the_press(monkeypatch, capsys, projects, tmp_path):
 def test_the_refusal_names_the_ways_on_that_need_nobody(
     monkeypatch, capsys, projects, tmp_path
 ):
-    """S5, pinned (contract §14). The ways on are in this order: make the
+    """S5, pinned (contract rule 14). The ways on are in this order: make the
     repository readable, edit through the tools, the waiver only where no
     work item owns the commit, and hand back otherwise. Seen red by deleting
     each sentence of the text in turn."""
@@ -391,7 +391,7 @@ def test_without_the_press_the_answer_is_the_bases(
 def test_a_reader_that_raises_or_did_not_load_is_no_press(
     monkeypatch, capsys, projects, tmp_path
 ):
-    """S6, contract §13. `hooks/dispatch.py` skips a gate that raises, and a
+    """S6, contract rule 13. `hooks/dispatch.py` skips a gate that raises, and a
     skipped gate is silence, so the reader failing must land on the base's
     answer rather than on nothing. Seen red with the guard around the reader
     removed."""

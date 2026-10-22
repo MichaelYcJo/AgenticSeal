@@ -29,7 +29,7 @@ HOOKS = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "hooks"))
 BROKEN = "def broken(:\n"
 RECORDS = "specseal-gate-failure"
 
-# The words a person reads (contract §14). Pinned whole, so an edit that
+# The words a person reads (contract rule 14). Pinned whole, so an edit that
 # changes what the line says has to change this too.
 LABEL_ONE = "SpecSeal: 1 gate failed and was skipped"
 CLOSING = (
@@ -784,7 +784,7 @@ def stop_live(repo, session):
 
 
 def git(repo, *args):
-    """git driven from Python, so no Bash line carries a commit (§8)."""
+    """git driven from Python, so no Bash line carries a commit (contract rule 8)."""
     return subprocess.run(
         ["git", "-C", str(repo), *args],
         capture_output=True,

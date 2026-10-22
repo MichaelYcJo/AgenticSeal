@@ -114,7 +114,7 @@ def shown(path, repo=None, home_dir=None, flavour=os.path):
     FLAVOUR is the path module whose separators and drive rule apply;
     `ntpath` is what a case passes, so the Windows spelling is exercised on
     every platform rather than resting on a POSIX guarantee
-    (`agent-contract` §13).
+    (contract rule 13).
     """
     seps = "".join(s for s in (flavour.sep, flavour.altsep) if s)
 

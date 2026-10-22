@@ -27,7 +27,7 @@ check reads the marker, not the meaning, and a paraphrase is the reviewer's
 finding — the same limit `test_a_moved_rule_leaves_its_definition.py`
 states for itself.
 
-Red-first, per the contract's §15: the planted cases build a temp tree with
+Red-first, per contract rule 15: the planted cases build a temp tree with
 the defect in it, and the real-tree case was seen red on this repository at
 the commit that marked `implement`'s three sections before moving them —
 `seal/specs/1788993115-a-payload-is-written-again-on-every-spawn/phases/phase-2.md`

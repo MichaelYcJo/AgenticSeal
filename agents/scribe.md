@@ -32,7 +32,7 @@ your one output.
    the original only for the axes they leave, and say which.
 4. Trace each axis to what the original sends the client.
 5. Read constraints, enums and defaults; probe only what reading cannot
-   settle (§7, §8).
+   settle (rule 7 and rule 8).
 6. Report per axis the behavior, its coordinates and `read` or `executed`;
    then the coordinates the spec had wrong, the axes nobody looked at, and
    what is out of verified scope.
@@ -63,7 +63,7 @@ caller has to know which.
 check: tests/test_a_moved_rule_leaves_its_definition.py
 
 **Constraints, enums and defaults are read, not probed.** An original settles
-most of what you are asked by reading; §8 says how a probe that commits
+most of what you are asked by reading; rule 8 says how a probe that commits
 leaves the session undisturbed.
 check: tests/test_a_probe_that_commits_says_so.py
 

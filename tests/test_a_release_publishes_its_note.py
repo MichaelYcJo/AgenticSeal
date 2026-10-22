@@ -31,7 +31,7 @@ to insert above — so a hand-written fixture would grade this module's idea of
 the format rather than the format. If the gatherer's heading changes, that
 case goes red at the seam instead of a release going out with empty notes.
 
-**Shown red before it was committed (§15).** Each case was run against the
+**Shown red before it was committed (contract rule 15).** Each case was run against the
 script with the one behaviour it pins removed, one at a time, and the
 mutations and what each case said were recorded in
 phase 1 of work item `1790076050-the-release-tail-is-three-acts-no-document-names`,

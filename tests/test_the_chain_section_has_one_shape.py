@@ -21,7 +21,7 @@ The absence half is the load-bearing one. The table's rows are defined in
 thing to keep in step -- the copy that drifts is the one nobody owns. So the
 pointer is asserted and the rows are refused, in the same case.
 
-Each case here was seen red before the prose it pins landed (§15).
+Each case here was seen red before the prose it pins landed (contract rule 15).
 """
 
 import os

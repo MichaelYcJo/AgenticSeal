@@ -72,7 +72,7 @@ def table(text, header):
     tables live under one heading, so it merged them: the pipe row could be
     moved into the refused table with every case still green, and the refused
     loop below could pair a form with another form's reason. That is the
-    §14 artifact for this change asserting nothing about its own content, in a
+    contract rule 14 artifact for this change asserting nothing about its own content, in a
     release whose whole subject is a check that could not fail.
     """
     assert header in text, f"{header!r} is not a table in this section"
@@ -324,7 +324,7 @@ def test_the_allowed_list_says_how_a_pipe_is_written():
 # and `phases/phase-5.md` recorded that the old sentence should survive
 # nowhere. It survived outside the message, in the two places somebody meets
 # BEFORE the message — the module's own header, and the template paragraph
-# directly above the section this branch added. `agent-contract` §14 is the
+# directly above the section this branch added. Contract rule 14 is the
 # grounds: the documents that explain a changed behaviour change with it.
 
 GATE_SCRIPT = ("skills", "verify", "scripts", "broad_gate.py")
@@ -558,7 +558,7 @@ def test_the_row_refusal_is_a_persons_and_the_sealer_chooses_no_command():
     assert "the row is a person's" in sealer
     # The paragraph on its own, not the file: asserted against the whole file
     # a phrase elsewhere would carry it, which is the counterfeit
-    # `agent-contract` §15 exists to catch.
+    # contract rule 15 exists to catch.
     paragraph = read(*REVIEW_ORCH).split(
         "**A refusal about the `Broad gate` row goes to a person", 1
     )[1]

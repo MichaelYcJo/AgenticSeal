@@ -367,7 +367,7 @@ RULE_3_REASONS = {
 
 @pytest.mark.parametrize("name", sorted(RULE_3_REASONS))
 def test_rule_3_names_the_total_and_each_grader_failing_every_new_run(name):
-    """Guards S2 and S3 of #966 (contract §14): a falling shape and reach
+    """Guards S2 and S3 of #966 (contract rule 14): a falling shape and reach
     total is written with both totals and every grader whose passes fell,
     sorted, and a grader the new side failed on every run, where the
     baseline passed it, is named on a line of its own. Rule 3's lines come

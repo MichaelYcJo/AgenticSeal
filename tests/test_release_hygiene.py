@@ -1330,7 +1330,7 @@ def test_the_script_closes_and_takes_off_one_named_label_and_nothing_else():
     # 0, while the script assigns a person on every label removal.
     #
     # **The same blindness was under the five forbidden verbs**, which is the
-    # class rather than the coordinate (`agent-contract` §12): they were
+    # class rather than the coordinate (contract rule 12): they were
     # substring searches too, so a re-spelled `gh issue reopen` walked past
     # them for exactly the reason the `edit` one did. The folded reader is
     # gone from this case entirely; there is one reader and it does not care

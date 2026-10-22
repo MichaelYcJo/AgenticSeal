@@ -27,7 +27,9 @@ import pytest
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 CONTRACT = os.path.join("skills", "agent-contract", "SKILL.md")
 
-HEADING = re.compile(r"^## §(\d+) (.+)$", re.M)
+# The one reader of a contract heading, `## <N> <title>`. Every other module
+# that walks the contract's rules imports it from here.
+HEADING = re.compile(r"^## (\d+) (.+)$", re.M)
 
 # One phrase per section, taken from the sentence in the BODY that is the
 # rule rather than from its heading or its story. Deleting it deletes the
@@ -67,18 +69,12 @@ PINS = {
 # The four rules #957 added (spec.md §*Rules the rewrite states in place*).
 FOUR_RULES = (17, 18, 19, 20)
 
-# A contract citation outside the contract: the word that names the contract,
-# then `§N`, and any `, §M` / `and §M` / `or §M` that follows it.
-CITATION = re.compile(
-    r"(?:agent-contract(?:/SKILL\.md)?`?|[Cc]ontract(?:'s)?)\s+"
-    r"(§\d+(?:\s*(?:,|and|or)\s*§\d+)*)"
-)
-NUMBER = re.compile(r"§(\d+)")
-# Where a bare `§N` is the contract's: the contract itself, and the agent
-# definitions, which receive it at startup and cite it bare. A `§N` that
-# follows a file name there is that file's.
+# A contract citation is `contract rule <N>`, one number each. The contract
+# itself and the agent definitions, which receive it at startup, cite the
+# bare `rule <N>`. Both are read across a line break.
+CITATION = re.compile(r"\b[Cc]ontract\s+rule\s+(\d+)\b")
+BARE_CITATION = re.compile(r"\b[Rr]ule\s+(\d+)\b")
 BARE_HOMES = ("agents",)
-OTHER_FILE = re.compile(r"\.(?:md|py)`?(?:'s)?\s*$")
 CITED_TREES = ("agents", "skills", "docs", "templates", "hooks", "tests")
 CITED_FILES = ("CONTRIBUTING.md",)
 
@@ -93,7 +89,7 @@ def frontmatter(text):
 
 
 def spans(text):
-    """{number: (heading, body_start, body_end)} for every `## §N`, in order.
+    """{number: (heading, body_start, body_end)} for every `## <N>`, in order.
 
     The body starts after the heading line, so a pin can never be satisfied
     by the heading itself."""
@@ -161,7 +157,7 @@ def test_every_pinned_section_exists_and_nothing_is_unpinned():
 def test_no_pin_is_its_own_heading():
     """A pin the heading satisfies survives the body being emptied."""
     for number, (heading, _, _) in spans(read()).items():
-        assert PINS[number] not in heading, f"§{number} pins its heading"
+        assert PINS[number] not in heading, f"rule {number} pins its heading"
 
 
 def test_the_contract_says_it_is_universal_only():
@@ -182,7 +178,7 @@ def test_the_numbering_rule_is_stated():
 @pytest.mark.parametrize("number", sorted(PINS))
 def test_each_section_holds_its_rule(number):
     assert (number, PINS[number]) not in missing_pins(read()), (
-        f"§{number} no longer says: {PINS[number]}"
+        f"rule {number} no longer says: {PINS[number]}"
     )
 
 
@@ -199,27 +195,27 @@ def test_the_exit_code_rule_carries_both_forms_in_one_sentence():
 
 
 def test_the_root_resolution_rule_states_both_places():
-    """§11 says where the `seal/` root is before it sends an agent to the
+    """Contract rule 11 says where the `seal/` root is before it sends an agent to the
     `config.md` under it: a session reading only the fallback writes into the
     common git directory of a repository that committed its root."""
     body = " ".join(bodies(read())[11].split())
-    assert "means `<repo>/seal/` where" in body, "§11 lost the shared-mode half"
+    assert "means `<repo>/seal/` where" in body, "rule 11 lost the shared-mode half"
     assert "`$(git rev-parse --git-common-dir)/seal/` otherwise" in body, (
-        "§11 lost the local-mode half"
+        "rule 11 lost the local-mode half"
     )
     assert body.index("means `<repo>/seal/` where") < body.index("Record language"), (
-        "§11 names the config before it says where the root is"
+        "rule 11 names the config before it says where the root is"
     )
 
 
 def test_the_leavings_rule_says_whose_leaving_it_is():
-    """Round 1, finding 7 of #120. The widened §7 names a virtual environment
+    """Round 1, finding 7 of #120. The widened contract rule 7 names a virtual environment
     among its examples, and this repository builds one on purpose and reuses
     it -- `bin/test` exists for exactly that, and its own header prices the
     alternative at 55-58 seconds of setup per call.
 
     So an agent that writes a probe, runs it through the repository's runner in
-    a fresh clone and then follows §7 to the letter deletes the venv its
+    a fresh clone and then follows rule 7 to the letter deletes the venv its
     probe's run created, and every later call in the segment pays the build
     again. The general form is ratified -- `questions.md` Q3 chose widening
     over an enumeration and this does not reopen it -- but a general form that
@@ -230,7 +226,7 @@ def test_the_leavings_rule_says_whose_leaving_it_is():
     clause draws."""
     body = " ".join(bodies(read())[7].split())
     assert "What the probe made for ITSELF is what goes" in body, (
-        "§7 lost the ownership clause, so `a virtual environment` in its own "
+        "rule 7 lost the ownership clause, so `a virtual environment` in its own "
         "example list reads as an instruction to delete a reused one"
     )
     assert "never who happened to trigger it" in body, (
@@ -247,12 +243,12 @@ def test_the_leavings_rule_says_whose_leaving_it_is():
 
 
 def without_pin(text, number):
-    """The contract with §N's pinned phrase deleted from §N's body, as it sits
+    """The contract with rule N's pinned phrase deleted from its body, as it sits
     in the file — wrapped or not. The heading is left standing."""
     _, start, end = spans(text)[number]
     pattern = r"\s+".join(re.escape(w) for w in PINS[number].split())
     body, n = re.subn(pattern, "", text[start:end], count=1)
-    assert n == 1, f"could not find the wrapped form of §{number}'s phrase"
+    assert n == 1, f"could not find the wrapped form of rule {number}'s phrase"
     return text[:start] + body + text[end:]
 
 
@@ -267,12 +263,12 @@ def test_deleting_a_pinned_phrase_is_caught(number):
 
 def test_moving_a_sentence_to_another_section_is_caught():
     """The pin is scoped to the section, so a rule that keeps its words and
-    loses its number — the drift a cited §N cannot survive — is red."""
+    loses its number — the drift a cited rule number cannot survive — is red."""
     text = read()
     _, start, end = spans(text)[15]
     rest = text[start:end]
     _, _, end14 = spans(text)[14]
-    # §15 keeps its heading and nothing else; its body now sits under §14.
+    # Rule 15 keeps its heading and nothing else; its body now sits under 14.
     moved = text[:end14].rstrip("\n") + "\n" + rest + text[end14:start] + "\n"
     assert (15, PINS[15]) in missing_pins(moved)
     assert (14, PINS[14]) not in missing_pins(moved)
@@ -283,22 +279,14 @@ def test_moving_a_sentence_to_another_section_is_caught():
 
 
 def cited_sections(rel, text):
-    """[(line, number)] for every contract section `rel` cites.
-
-    Outside the contract a citation names the contract first. The contract
-    and the agent definitions cite it bare, so there every `§N` counts unless
-    a file name stands right before it."""
-    out = []
+    """[(line, number)] for every contract rule `rel` cites, at the line the
+    citation starts on."""
     bare = rel == CONTRACT.replace(os.sep, "/") or rel.split("/")[0] in BARE_HOMES
-    for lineno, line in enumerate(text.splitlines(), 1):
-        if bare:
-            for m in NUMBER.finditer(line):
-                if not OTHER_FILE.search(line[: m.start()]):
-                    out.append((lineno, int(m.group(1))))
-        else:
-            for m in CITATION.finditer(line):
-                out.extend((lineno, int(n)) for n in NUMBER.findall(m.group(1)))
-    return out
+    pattern = BARE_CITATION if bare else CITATION
+    return [
+        (text.count("\n", 0, m.start()) + 1, int(m.group(1)))
+        for m in pattern.finditer(text)
+    ]
 
 
 def tree_files():
@@ -312,18 +300,18 @@ def tree_files():
 
 
 def dangling(files, numbers):
-    """[(path:line, §N)] for every cited section the contract does not have."""
+    """[(path:line, rule N)] for every cited rule the contract does not have."""
     out = []
     for rel, text in files:
         for lineno, n in cited_sections(rel, text):
             if n not in numbers:
-                out.append((f"{rel}:{lineno}", f"§{n}"))
+                out.append((f"{rel}:{lineno}", f"rule {n}"))
     return out
 
 
 def test_every_cited_section_exists():
     """T3: every contract section the tree cites is a section the contract
-    has. #957 moved two numbers (the old §16 into §11, the old §17 to §16),
+    has. #957 moved two numbers (the old rule 16 into rule 11, the old rule 17 to rule 16),
     and a citation left at an old number points a reader at a different rule
     or at none."""
     numbers = set(spans(read()))
@@ -338,24 +326,56 @@ def test_every_cited_section_exists():
 @pytest.mark.parametrize(
     "rel, line",
     [
-        ("docs/x.md", "as contract §{n} says"),
-        ("skills/x/SKILL.md", "(`skills/agent-contract/SKILL.md` §{n})"),
-        ("hooks/x.py", "contract §11 and §{n} each"),
-        ("agents/x.md", "which §{n} names"),
+        ("docs/x.md", "as contract rule {n} says"),
+        ("skills/x/SKILL.md", "(contract rule {n})"),
+        ("hooks/x.py", "Contract rule {n} each"),
+        ("skills/x/SKILL.md", "as the contract\nrule {n} says"),
+        ("agents/x.md", "which rule {n} names"),
+        ("agents/x.md", "which contract rule {n} names"),
+        ("skills/agent-contract/SKILL.md", "rule {n} says"),
     ],
 )
 def test_a_citation_above_the_last_section_is_caught(rel, line):
     """T3 can fail: in every tree and every spelling, a number one above the
-    last heading is named."""
+    last heading is named, at the line the citation starts on."""
     numbers = set(spans(read()))
     text = line.format(n=max(numbers) + 1)
-    assert dangling([(rel, text)], numbers) == [(f"{rel}:1", f"§{max(numbers) + 1}")]
+    assert dangling([(rel, text)], numbers) == [
+        (f"{rel}:1", f"rule {max(numbers) + 1}")
+    ]
 
 
-def test_another_files_section_in_a_definition_is_not_the_contracts():
+def test_a_bare_rule_outside_the_contracts_homes_is_not_a_citation():
+    """Outside the contract and `agents/`, `rule <N>` can be any list's rule,
+    such as the behaviour suite's pass rules, so only `contract rule <N>`
+    is read there."""
     numbers = set(spans(read()))
-    text = f"`skills/implement/SKILL.md` §{max(numbers) + 1} owns it"
-    assert dangling([("agents/x.md", text)], numbers) == []
+    text = f"pass rule {max(numbers) + 1} holds"
+    assert dangling([("hooks/x.py", text)], numbers) == []
+
+
+def misspelled_headings(text):
+    """[line] for every second-level heading of the contract HEADING does not
+    read."""
+    return [
+        lineno
+        for lineno, line in enumerate(text.splitlines(), 1)
+        if line.startswith("## ") and not HEADING.match(line)
+    ]
+
+
+def test_every_heading_of_the_contract_is_a_numbered_rule():
+    """S1 of #1005: a heading in another spelling is not a rule HEADING
+    reads, so it is refused at its line rather than skipped."""
+    assert misspelled_headings(read()) == []
+
+
+def test_a_heading_in_the_old_spelling_is_refused_at_its_line():
+    text = read()
+    first = HEADING.search(text)
+    old = f"## \N{SECTION SIGN}{first.group(1)} {first.group(2)}"
+    mutated = text[: first.start()] + old + text[first.end() :]
+    assert misspelled_headings(mutated) == [text.count("\n", 0, first.start()) + 1]
 
 
 def test_the_four_rules_stand_with_their_enforcers():
@@ -364,9 +384,9 @@ def test_the_four_rules_stand_with_their_enforcers():
     found = bodies(read())
     for number in FOUR_RULES:
         body = " ".join(found.get(number, "").split())
-        assert PINS[number] in body, f"§{number} lost its rule: {PINS[number]}"
+        assert PINS[number] in body, f"rule {number} lost its sentence: {PINS[number]}"
         assert re.search(r"^check: \S", found[number], re.M), (
-            f"§{number} has no `check:` line"
+            f"rule {number} has no `check:` line"
         )
 
 

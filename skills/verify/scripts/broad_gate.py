@@ -4,7 +4,7 @@
 Issue #30. The CLAUDE.md block's **Verification Scope** rule
 (`templates/claude-md-block.md`) says the full suite, the
 repository-wide lint and the typecheck run once, after the review rounds
-settle, and for three releases nobody was assigned that run: contract §2
+settle, and for three releases nobody was assigned that run: contract rule 2
 forbade it to the smith and the warden, and the orchestrator that took it by
 default kept hundreds of output lines in the one context a release cannot
 replace. This command is the run, as a thing the orchestrator types once,
@@ -51,7 +51,7 @@ the same commit on the same check (#423). Where resolving MOVES the answer
 one line says so and the run continues; where it does not, nothing extra
 prints. Nothing is fetched.
 
-Every exit code is read directly off the subprocess (`agent-contract` §1),
+Every exit code is read directly off the subprocess (contract rule 1),
 and every check's output is kept in a file under `--keep-output` so the
 report can quote a failing check's first lines and name where the rest is.
 A check that fails does not stop the ones after it: the failure form names
@@ -635,7 +635,7 @@ def resolve_base(root, given):
 def seal_home(root):
     """`<root>/seal/` where it exists, else `<git-common-dir>/seal/`, else
     None — the two places every `seal/…` path in this plugin resolves to
-    (`agent-contract` §11), read in that order."""
+    (contract rule 11), read in that order."""
     shared = os.path.join(root, SEAL_DIR)
     if os.path.isdir(shared):
         return shared

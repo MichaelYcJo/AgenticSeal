@@ -808,7 +808,7 @@ def test_the_cleanup_never_removes_a_linked_specs(hook, repo, monkeypatch):
     and it rested on a POSIX guarantee: `rmdir` refuses a symbolic link with
     `ENOTDIR`. Windows' `RemoveDirectoryW` removes a directory link itself,
     whatever is behind it, so a team's linked `specs/` was deleted from the
-    working tree and the line named nothing left. Contract §13: the guarantee
+    working tree and the line named nothing left. Contract rule 13: the guarantee
     is removed here, by giving `rmdir` Windows' semantics for a link."""
     real = os.rmdir
 

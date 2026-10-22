@@ -34,7 +34,7 @@ whether a file is behind. `test_a_commit_this_clone_does_not_have_is_not_called_
 is that case, and it builds a real repository to have an ancestry to ask
 about.
 
-**Shown red before it was committed (§15).** Each case was run against the
+**Shown red before it was committed (contract rule 15).** Each case was run against the
 script with the one behaviour it pins removed; the mutations and what each
 case said were recorded in
 phase 3 of work item `1790076050-the-release-tail-is-three-acts-no-document-names`,

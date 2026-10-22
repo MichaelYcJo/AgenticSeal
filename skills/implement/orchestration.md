@@ -14,7 +14,7 @@ reads both. The smith opens that one at its first step and never this one,
 because asking a person and writing `routing.md` are acts `agents/smith.md`
 leaves to the orchestrator. Every `seal/…` path here means `<repo>/seal/`
 where that directory exists, and `$(git rev-parse --git-common-dir)/seal/`
-otherwise (contract §11).
+otherwise (contract rule 11).
 
 ## Orchestrator: the order inside a ticket
 
@@ -425,7 +425,7 @@ the one shape both readings accept, and it costs nothing where the git hooks
 run. This is the one place the batching rule misleads: the commit is not
 independent of the write. The commit goes the same way: each work item's
 `routing.md` in a command of its own, the worktree's path written out after
-`git -C`, never a loop over a variable naming it (contract §16).
+`git -C`, never a loop over a variable naming it (contract rule 16).
 
 What the four combinations do:
 
@@ -513,11 +513,11 @@ it again per repository is the mid-run question this section exists to
 remove, arriving once per checkout.
 
 **Only a gated repository gets a declaration.** A gated repository is one
-with a `seal/` root at either place (contract §11). Write
+with a `seal/` root at either place (contract rule 11). Write
 `seal/specs/<work-item-id>/routing.md` into each one before that
 repository's first edit, each naming that repository's own branch, each in a
 command of its own, and commit each with that repository's absolute path
-written out after `git -C` (contract §16). A repository with no root is not
+written out after `git -C` (contract rule 16). A repository with no root is not
 opted in by this step: writing the file would create its root, and creating
 a root is the bootstrap's decision and the person's. Name such a repository
 in the handback and write nothing into it.
@@ -590,7 +590,7 @@ for itself. The two read the headings through one parser, so they cannot
 come to different answers about what a heading is.
 
 **One act is outside this table, because the table cannot hold it.** Posting
-a segment's reading to the flow log is the orchestrator's (contract §6
+a segment's reading to the flow log is the orchestrator's (contract rule 6
 withholds posting from every agent), and it lives in
 `skills/verify/orchestration.md` *Measure the segment, and feed the flow
 log*, under a heading carrying no

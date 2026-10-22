@@ -482,7 +482,7 @@ def _folded(name):
 
 
 def test_the_policy_says_one_reader_reads_a_token_and_a_failed_diff_asks():
-    """§14 of the agent contract, for S7, S8 and S10 of work item 1791384157
+    """Contract rule 14, for S7, S8 and S10 of work item 1791384157
     (#868): the consent-read paragraph of `docs/commit-review-gate-spec.md`
     says a command that does not split carries no token from where its split
     fails, `docs/the-commit-gate-inside-git.md` names the one reader, and
@@ -964,7 +964,7 @@ def test_auto_firing_skills_declare_when_not_to_fire():
 #
 # #422, half one: that repair anchored the FRONT of each stem and left the
 # back open, so a stem matched inside a longer word and the same defect stood
-# one layer down again. Measured: `agent-contract` §10's own wording — *open
+# one layer down again. Measured: contract rule 10's own wording — *open
 # every coordinate a task names in one batch* — refused at exit 1 with
 # `persona` one clause away, which `agents/smith.md` already writes. Both ends
 # are anchored now, and the back anchor is what splits the stems into two
@@ -1096,7 +1096,7 @@ def test_the_sweep_refuses_a_planted_instruction_in_every_spelling():
         "the window no longer bounds the distance, so ordinary prose far "
         "from a batch phrase is refused"
     )
-    # `agent-contract` §10's own legitimate wording, with the two words the
+    # contract rule 10's own legitimate wording, with the two words the
     # back anchor exists to stop one clause away.
     assert not list(
         batch_instructions(
@@ -1135,7 +1135,7 @@ def test_the_asking_stems_are_anchored_at_both_ends():
     # WHAT THE BACK ANCHOR ALSO COST, pinned so the next reader meets it
     # rather than discovering it (round 1's 🟡 3). The agent nouns stopped
     # matching, and each of them NAMES the party this guard is looking for —
-    # `agent-contract` §4 writes `answerer` for exactly that party. This block
+    # contract rule 4 writes `answerer` for exactly that party. This block
     # used to sit in the one above, whose message calls its words ordinary
     # *for a question nobody is asking*, which is false of these three.
     #
@@ -1244,7 +1244,7 @@ def test_the_questions_are_collected_before_the_work_not_during_it():
     )
     # WHAT IS REFUSED IS A CLAIM, NOT A SPELLING, and the first version of
     # this assertion refused the spelling. It read `"in one batch" not in
-    # body` over every definition — and `agent-contract` §10, which every
+    # body` over every definition — and contract rule 10, which every
     # agent receives at startup, gives that phrase a second and entirely
     # legitimate meaning: *Batch independent reads and runs*. A definition
     # writing `open every coordinate in one batch` would have been following
@@ -1324,7 +1324,7 @@ def test_the_questions_are_collected_before_the_work_not_during_it():
                 "plugin spawns has `AskUserQuestion`, so collecting a batch "
                 "of questions is an instruction nothing can carry out; the "
                 "act belongs to the session that spawns the work. Batching "
-                "READS is a different thing and is what `agent-contract` §10 "
+                "READS is a different thing and is what contract rule 10 "
                 f"asks for — that wording is not refused here.\n  …{window}…"
             )
     assert [name for name, _ in read] == [

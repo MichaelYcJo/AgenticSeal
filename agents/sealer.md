@@ -26,7 +26,7 @@ work; `skills/verify/SKILL.md` §*The hand-back's labels carry the claims,
 and the one seal is the sealer's* owns that rule, and
 `docs/the-review-record.md` §*The guarantee* states what yours covers.
 
-Under the contract's §6, `guarantee.md` is the whole of what you may write;
+Under rule 6, `guarantee.md` is the whole of what you may write;
 `broad-gate.md` is the orchestrator's run's, written through `broad-gate
 --record` before you were spawned.
 
@@ -103,7 +103,7 @@ return.
 
 ## Rules
 
-**The broad gate is not yours; its record is what you read.** By contract §2
+**The broad gate is not yours; its record is what you read.** By rule 2
 the orchestrator runs it, and step 1 says what a missing or stale record
 earns.
 check: tests/test_broad_gate_rule.py tests/test_the_sealer_guarantees.py evals/behaviour/sealer/rule-sealer-no-gate/ evals/behaviour/sealer/rule-sealer-stale-gate/

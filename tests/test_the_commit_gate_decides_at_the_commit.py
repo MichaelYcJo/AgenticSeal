@@ -1926,7 +1926,7 @@ def test_the_one_session_variable_is_the_one_the_stub_and_the_reader_name():
 
 
 def test_the_policy_names_the_one_session_reader():
-    """§14 of the agent contract, for S4-S6 of work item 1791384157 (#868):
+    """Contract rule 14, for S4-S6 of work item 1791384157 (#868):
     `docs/the-commit-gate-inside-git.md` names `CLAUDE_PID`, the one test of
     a process's name and the one session variable. Red against
     `5623d728`'s text."""
@@ -1953,7 +1953,7 @@ def test_the_policy_names_the_one_session_reader():
 
 @pytest.mark.rule("sealed-off-the-branch-refused")
 def test_the_policy_states_the_guarantee_refusal_beside_the_arms():
-    """§14 of the agent contract, for `spec.md` S7 and S11-S13 of work item
+    """Contract rule 14, for `spec.md` S7 and S11-S13 of work item
     1792363231. `docs/the-commit-gate-inside-git.md` states the refusal of a
     `sealed` the history does not hold, beside the arms and as no arm: what it reads and from where, the record it writes,
     the one way on, what it does not judge, and where it does not run; and

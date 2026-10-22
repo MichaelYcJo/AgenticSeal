@@ -748,7 +748,7 @@ def test_the_block_reader_can_fail():
 
 
 def test_no_document_leaves_the_base_reading_as_the_ref_you_typed():
-    """§14. The resolution is a change to what a person reads — the sealer
+    """Contract rule 14. The resolution is a change to what a person reads — the sealer
     passes the base, and the panel and the printed line are read by whoever
     doubts a seal. A document that still describes the base as the ref as
     typed is a false sentence, and this is what makes that red rather than

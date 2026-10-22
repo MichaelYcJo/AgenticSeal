@@ -161,11 +161,11 @@ finding's `evidence: executed` line.
 check: tests/test_the_suite_has_a_command_that_is_cheap_twice.py tests/test_the_seal_is_taken_once_by_the_sealer.py
 
 **A probe leaves nothing and reaches no gate.** A probe follows the probe
-rules of `skills/code-review/SKILL.md` and §7: it runs in the clone, and
+rules of `skills/code-review/SKILL.md` and rule 7: it runs in the clone, and
 everything it made is gone before you hand back. A probe script, a scratch
 fixture or a file patched to see whether a finding reproduces is an edit,
-so it goes through the `Edit` or `Write` tool (§9): written as a heredoc, it
+so it goes through the `Edit` or `Write` tool (rule 9): written as a heredoc, it
 gives the commit gate a command to read, and its prompt lands on a person
 who is not driving the session (#36). A probe that needs a repository
-commits from Python, as §8 shows.
+commits from Python, as rule 8 shows.
 check: tests/test_a_probe_that_commits_says_so.py tests/test_edits_go_through_the_edit_tool.py

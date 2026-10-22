@@ -223,7 +223,7 @@ DISPATCH = os.path.join(ROOT, "hooks", "dispatch.py")
 
 
 def git(repo, *args):
-    """git driven from Python, so no Bash line carries a commit (§8)."""
+    """git driven from Python, so no Bash line carries a commit (contract rule 8)."""
     return subprocess.run(
         ["git", "-C", str(repo), *args],
         capture_output=True,
@@ -528,7 +528,7 @@ def commitgate_module():
 
 
 def commit_all(repo, message):
-    """Everything in `repo` committed, driven from Python (§8)."""
+    """Everything in `repo` committed, driven from Python (contract rule 8)."""
     git(repo, "add", "-A")
     git(
         repo,
@@ -957,7 +957,7 @@ def routing_text(branch="feat/x"):
 
 def local_guaranteed(tmp_path, verdict="sealed", earlier="", linked=False):
     """A repository in local mode — no `seal/` in its tree, its root under
-    the git common dir (contract §11) — whose branch `feat/x` carries the
+    the git common dir (contract rule 11) — whose branch `feat/x` carries the
     audited commit, checked out in the main checkout or, with `linked`, in a
     linked worktree of it. The work item under that root holds `routing.md`
     naming the branch, two round records, `broad-gate.md` naming the audited
@@ -1184,7 +1184,7 @@ def test_the_edit_gate_leaves_shared_mode_to_post_commit(tmp_path):
     """1792363231 S5, the writer's half. A `guarantee.md` reading `sealed` under
     `<repo>/seal/` is shared mode's, whose stamp `post-commit` queues at the
     commit; and a root under the git common dir of a repository that also
-    has `<repo>/seal/` is shared too (contract §11). The local writer queues
+    has `<repo>/seal/` is shared too (contract rule 11). The local writer queues
     nothing for either, where every other fact would queue; nor for the
     same `sealed` text under a local work item in a file that is not its
     `guarantee.md`."""
@@ -2378,7 +2378,7 @@ def test_the_policy_states_the_budget_and_names_its_case():
 
 
 def test_the_orchestrator_is_told_the_stamp_is_drawn_for_it():
-    """S16, the orchestrator's half (contract §14), and #975 S13. The rule
+    """S16, the orchestrator's half (contract rule 14), and #975 S13. The rule
     sits in the section that spawns the sealer: the stamp is drawn at the end
     of the turn in which the sealer's `sealed` guarantee is committed, the
     result text comes first, the orchestrator draws none — by `seal-stamp` or
@@ -2752,7 +2752,7 @@ def flat(*parts):
 
 
 def test_the_sealer_is_told_the_gate_draws_nothing_and_neither_does_it():
-    """S16, the sealer's half (contract §14). `agents/sealer.md` said the
+    """S16, the sealer's half (contract rule 14). `agents/sealer.md` said the
     drawing arrives as letters and to pass it through, which the 0.15.6 run
     did — every seal behind `ctrl+o`. Since #969 the sealer runs no gate, so
     there is no line of the gate's for it to pass on: it says it draws no

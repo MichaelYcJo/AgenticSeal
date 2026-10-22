@@ -723,7 +723,7 @@ def test_the_framer_weighs_replacing_a_structure_as_an_equal_of_keeping_it():
     file stated it nowhere: a framer that judges only among ways of keeping a
     structure writes an Alternatives table in which the change the problem
     calls for never stands. The rule is the framer's application of contract
-    §20 to that table, so the case reads the replacing row and the weight it
+    rule 20 to that table, so the case reads the replacing row and the weight it
     is given beside the kept one."""
     framer = flat(read(*FRAMER))
     assert "the alternative that replaces the structure" in framer, (
