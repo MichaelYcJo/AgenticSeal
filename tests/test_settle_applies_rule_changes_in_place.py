@@ -254,6 +254,24 @@ def test_a_comment_opener_inside_a_fence_above_the_section_hides_no_operation():
     parsed = parse(shape_a)
     assert parsed.errors == [], parsed.errors
     assert [o.file for o in parsed.ops] == ["docs/a.md"]
+    # Below such a fence a wrapped span is still refused at its line, and
+    # not skipped as part of a comment that is not there.
+    wrapped = "    the review chain` carries one line."
+    shape_c = shape_a.replace(
+        "  to: A rule.", f"  to: A branch declaring `through\n{wrapped}"
+    )
+    [(line, why)] = parse(shape_c).errors
+    assert line == line_of(shape_c, wrapped) and "code span" in why, (line, why)
+    # A fenced block inside the section is read as lines, so it is refused
+    # as no field of the item above, never skipped.
+    shape_d = shape_a.replace(
+        "  to: A rule.\n", "  to: A rule.\n\n```\n- remove\n  file: docs/b.md\n```\n"
+    )
+    lines = shape_d.split("\n")
+    opener = lines.index("```", lines.index("## Rule changes")) + 1
+    assert parse(shape_d).errors == [
+        (opener, "a line that is not a field of the item above")
+    ]
 
 
 @pytest.mark.parametrize(
