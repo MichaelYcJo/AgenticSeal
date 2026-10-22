@@ -71,13 +71,18 @@ class Test_judge:
             ["hooks/x.py:2", "splitlines"],
         ], found
 
-    def test_accepts_a_flagged_line_under_its_exemptions(self, tmp_path):
-        text = (
+    @pytest.mark.parametrize(
+        "text",
+        [
             "# exempt from encoding: a fixture read in the locale on purpose\n"
             "    # the next line splits git's output\n"
             "# exempt from splitlines: git output\n"
-            "x = open(p).read().splitlines()\n"
-        )
+            "x = open(p).read().splitlines()\n",
+            "# write `# exempt from splitlines: <why>` above it\nx = 1\n",
+        ],
+        ids=["exemptions-above-the-line", "a-comment-quoting-the-form"],
+    )
+    def test_accepts_a_line_under_its_exemptions(self, tmp_path, text):
         assert censuses.judge("hooks/x.py", plant(tmp_path, "hooks/x.py", text)) == []
 
     def test_refuses_an_exemption_above_a_line_no_census_flags(self, tmp_path):
@@ -87,28 +92,24 @@ class Test_judge:
             "splitlines does not flag the line below it; remove the comment"
         ]
 
-    def test_refuses_an_exemption_at_the_end_or_at_the_end_of_a_line(self, tmp_path):
-        text = (
-            "x = t.splitlines()  # exempt from splitlines: git output\n"
-            "# exempt from splitlines: git output"
-        )
+    @pytest.mark.parametrize(
+        "text, named",
+        [
+            (
+                "x = t.splitlines()  # exempt from splitlines: git output\n"
+                "# exempt from splitlines: git output",
+                [["hooks/x.py:1", "splitlines"], ["hooks/x.py:2", "splitlines"]],
+            ),
+            (
+                "# exempt from encoding: git output\nx = t.splitlines()\n",
+                [["hooks/x.py:1", "encoding"], ["hooks/x.py:2", "splitlines"]],
+            ),
+        ],
+        ids=["at-the-end-or-ending-a-line", "from-another-census"],
+    )
+    def test_refuses_an_exemption_out_of_place(self, tmp_path, text, named):
         found = censuses.judge("hooks/x.py", plant(tmp_path, "hooks/x.py", text))
-        assert [line.split(": ")[0:2] for line in found] == [
-            ["hooks/x.py:1", "splitlines"],
-            ["hooks/x.py:2", "splitlines"],
-        ], found
-
-    def test_refuses_an_exemption_from_another_census(self, tmp_path):
-        text = "# exempt from encoding: git output\nx = t.splitlines()\n"
-        found = censuses.judge("hooks/x.py", plant(tmp_path, "hooks/x.py", text))
-        assert [line.split(": ")[0:2] for line in found] == [
-            ["hooks/x.py:1", "encoding"],
-            ["hooks/x.py:2", "splitlines"],
-        ], found
-
-    def test_accepts_a_comment_that_quotes_the_form(self, tmp_path):
-        text = "# write `# exempt from splitlines: <why>` above it\nx = 1\n"
-        assert censuses.judge("hooks/x.py", plant(tmp_path, "hooks/x.py", text)) == []
+        assert [line.split(": ")[0:2] for line in found] == named, found
 
 
 class Test_encoding:
@@ -485,9 +486,9 @@ class Test_unnamed_sites:
     def test_accepts_each_named_shape(self, shape):
         assert censuses.unnamed_sites(NAMED[shape]) == []
 
-    @pytest.mark.parametrize("shape", sorted(UNNAMED))
-    def test_refuses_each_unnamed_shape(self, shape):
-        source, kind = UNNAMED[shape]
+    @pytest.mark.parametrize("shape", sorted({**UNNAMED, **UNPROVEN}))
+    def test_refuses_each_unnamed_shape_and_what_the_walk_cannot_prove(self, shape):
+        source, kind = {**UNNAMED, **UNPROVEN}[shape]
         line = source.count("\n") + 1
         assert censuses.unnamed_sites(source) == [(line, kind, "<module>")]
 
@@ -496,12 +497,6 @@ class Test_unnamed_sites:
         source, kind, qualname = UNIMPORTED_RECEIVERS[shape]
         line = source.count("\n") + 1
         assert censuses.unnamed_sites(source) == [(line, kind, qualname)]
-
-    @pytest.mark.parametrize("shape", sorted(UNPROVEN))
-    def test_refuses_what_the_walk_cannot_prove(self, shape):
-        source, kind = UNPROVEN[shape]
-        line = source.count("\n") + 1
-        assert censuses.unnamed_sites(source) == [(line, kind, "<module>")]
 
     def test_refuses_a_call_through_an_aliased_module(self):
         source = "import subprocess as sp\nsp.run(c, text=True)\n"

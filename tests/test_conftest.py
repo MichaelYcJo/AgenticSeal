@@ -116,10 +116,10 @@ class Test_census_case:
 
     def test_refuses_a_target_one_census_flags_naming_it(self, tmp_path, monkeypatch):
         (tmp_path / "hooks").mkdir()
-        (tmp_path / "hooks" / "x.py").write_text("open(p)\n", encoding="utf-8")
+        (tmp_path / "hooks" / "y.py").write_text("open(p)\n", encoding="utf-8")
         monkeypatch.setattr(censuses, "ROOT", str(tmp_path))
-        with pytest.raises(AssertionError, match=r"hooks/x\.py:1: encoding: "):
-            conftest.census_case("hooks/x.py")()
+        with pytest.raises(AssertionError, match=r"hooks/y\.py:1: encoding: "):
+            conftest.census_case("hooks/y.py")()
 
 
 test_census = conftest.census_case(TARGET)
