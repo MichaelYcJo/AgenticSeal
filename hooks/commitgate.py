@@ -74,6 +74,7 @@ def waived(cwd, session):
     # `config --get-all` exits 1 where no such key is set: no waiver, git's
     # ordinary no, not a failure.
     configured = gate.git(["config", "--get-all", "specseal.waive"], cwd) or ""
+    # exempt from splitlines: git output
     for value in configured.splitlines():
         for word in value.replace(",", " ").split():
             if word in (gate.REVIEW, gate.PARITY):

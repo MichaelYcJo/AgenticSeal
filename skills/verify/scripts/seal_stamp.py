@@ -228,6 +228,7 @@ def read_chart(path):
     saved with a byte-order mark as the same chart, rather than refusing its
     first line as one character too long."""
     with open(path, encoding="utf-8-sig") as handle:
+        # exempt from splitlines: the seal's mark chart, a grid of two characters
         lines = handle.read().splitlines()
     n = DISC_CELLS
     c, field = (n - 1) / 2, n / 2 - GROOVE_INSET
@@ -1083,6 +1084,7 @@ def queue_for_guarantee(top, common, session, now=None):
     )
     items = [
         found.group(1)
+        # exempt from splitlines: git output
         for path in (touched or "").splitlines()
         for found in [GUARANTEE_PATH.match(path.strip())]
         if found
@@ -1229,6 +1231,7 @@ def _queue_one(chain, top, common, session, name, now):
         target=target,
         cell=cell,
         gate_text=gate_text,
+        # exempt from splitlines: git output
         rounds=listed.splitlines(),
         branch=branch,
         item=os.path.join(top, *rel.split("/")),

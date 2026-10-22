@@ -24,6 +24,7 @@ import console  # noqa: E402
 
 def main():
     state = sys.argv[1] if len(sys.argv) > 1 else ""
+    # exempt from splitlines: the ref lines git hands this hook
     lines = sys.stdin.read().splitlines()
     return commitgate.reference_transaction(
         os.getcwd(), os.environ, state, lines, sys.stderr

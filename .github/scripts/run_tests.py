@@ -443,6 +443,7 @@ def venv_version(venv):
         text = (venv / "pyvenv.cfg").read_text(encoding="utf-8", errors="replace")
     except OSError:
         return None
+    # exempt from splitlines: pyvenv.cfg
     for line in text.splitlines():
         name, sep, value = line.partition("=")
         if not sep or name.strip() not in ("version", "version_info"):

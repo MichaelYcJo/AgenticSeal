@@ -17,6 +17,7 @@ import json
 import os
 
 import pytest
+from conftest import census_case
 
 TARGET = ".github/scripts/release_report.py"
 
@@ -83,3 +84,6 @@ class Test_main:
         missing = str(tmp_path / "missing")
         assert report.main(["--against", "v0.0.1", "--at", missing, "--root", now]) == 2
         assert capsys.readouterr().out == ""
+
+
+test_census = census_case(TARGET)

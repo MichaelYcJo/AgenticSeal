@@ -98,5 +98,6 @@ def main(argv):
     return 0
 
 
+# exempt from entry_point: the launcher imports nothing before its floor check
 if __name__ == "__main__":
     sys.exit(main(sys.argv))

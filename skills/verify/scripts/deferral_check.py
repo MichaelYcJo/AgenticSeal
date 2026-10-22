@@ -94,6 +94,7 @@ def read_events(text):
     which is reported as unknown rather than as absent.
     """
     events = set()
+    # exempt from splitlines: YAML keys
     lines = text.splitlines()
     for i, line in enumerate(lines):
         m = re.match(r"^on\s*:\s*(.*)$", line)
@@ -102,10 +103,12 @@ def read_events(text):
         rest = m.group(1).strip()
         if rest.startswith("["):
             events |= {e.strip() for e in rest.strip("[]").split(",") if e.strip()}
+        # exempt from heading_rule: a YAML comment in a workflow's on key
         elif rest and not rest.startswith("#"):
             events.add(rest)
         else:
             for follow in lines[i + 1 :]:
+                # exempt from heading_rule: a YAML comment in a workflow's on block
                 if not follow.strip() or follow.lstrip().startswith("#"):
                     continue
                 indent = len(follow) - len(follow.lstrip())
@@ -121,8 +124,10 @@ def read_events(text):
 def runners_in(text, kind):
     """Command lines in `text` that run `kind`, deduped, in file order."""
     found = []
+    # exempt from splitlines: YAML keys
     for line in text.splitlines():
         stripped = line.strip().lstrip("-").strip()
+        # exempt from heading_rule: a YAML or shell comment in a workflow's run lines
         if not stripped or stripped.startswith("#"):
             continue
         for pattern in RUNNERS[kind]:

@@ -25,7 +25,8 @@ cost its trace's `result` event carries (spend, seconds and `modelUsage`,
 every model's tokens) and its tool calls (every `tool_use` block in the
 trace, the session's and the agent's), beside the preload's bytes. The
 record is kept whole as `report_text`, with each user path and host that
-`tests/test_no_real_identifiers.py` refuses replaced by the fixture one.
+the `real_identifiers` census in `tests/censuses.py` refuses replaced by the
+fixture one.
 Whenever `compare` or `regrade` reads a side, a run's findings are the
 `### ` sections of the record's one `## Findings` section, split by
 `chain_check.py#finding_spans` over the lines its shared reader leaves, so a

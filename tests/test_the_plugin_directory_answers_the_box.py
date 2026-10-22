@@ -417,6 +417,6 @@ def test_it_reads_the_path_the_marketplace_files_actually_have():
     assert mod.MANIFEST == ".claude-plugin/marketplace.json"
     assert mod.manifest_url("owner/repo").startswith("https://api.github.com/"), (
         "the reader moved off an allowed host; "
-        "`tests/test_no_real_identifiers.py` allows github.com and is silent "
-        "on the raw-content host"
+        "the `real_identifiers` census in `tests/censuses.py` allows "
+        "github.com and is silent on the raw-content host"
     )

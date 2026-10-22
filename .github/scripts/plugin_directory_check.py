@@ -61,11 +61,11 @@ thing, and it is a listing of somebody else's file: the shapes in it are not
 this repository's to hold steady.
 
 **It reads over HTTPS through `api.github.com`** rather than a raw-content
-host. `tests/test_no_real_identifiers.py` allows `github.com` and every
-subdomain of it, and is silent on the host GitHub serves raw file bodies
-from; extending that allowlist to read a file the documented API already
-serves would spend the repository's own rule for nothing -- and the sweep
-refuses the host's NAME in the tree, so a comment explaining the choice by
+host. The `real_identifiers` census in `tests/censuses.py` allows
+`github.com` and every subdomain of it, and is silent on the host GitHub
+serves raw file bodies from; extending that allowlist to read a file the
+documented API already serves would spend the repository's own rule for
+nothing -- and the census refuses the host's NAME in the tree, so a comment explaining the choice by
 spelling it out is itself the violation. No credentials are needed for a
 public
 file. `.claude-plugin/marketplace.json` is the path -- measured, the root

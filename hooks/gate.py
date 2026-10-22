@@ -110,6 +110,7 @@ def lines(out):
     shape a path reader hands `arms_missing`."""
     if out is None:
         return None
+    # exempt from splitlines: git output
     return [line for line in out.splitlines() if line]
 
 

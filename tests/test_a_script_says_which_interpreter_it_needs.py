@@ -19,7 +19,6 @@ edit missed passes by testing an unmodified file.
 """
 
 import ast
-import fnmatch
 import importlib.util
 import json
 import os
@@ -27,8 +26,8 @@ import posixpath
 import re
 import subprocess
 import sys
-import tomllib
 
+from censuses import matches, ruff_targets
 from conftest import decline_if_shrunken, git_listing, on_disk
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -265,10 +264,6 @@ ASSIGNED = re.compile(r'^\s*(?:set ")?(\w+)="?([^"\n]*?)"?\s*$', re.M)
 VARIABLE = re.compile(r"\$(\w+)|%(\w+)%")
 # A file named by itself, as `hooks/dispatch.py` names its gates.
 BARE_SCRIPT = re.compile(r"[\w-]+\.py")
-# The two constructs ruff pushes toward at the floor, and the version each
-# needs: B905 asks every `zip` for `strict=`, and UP017 spells `timezone.utc`
-# as `datetime.UTC`. A syntax newer than the version is `ast`'s to refuse.
-NEWER = {"`zip(..., strict=...)`": (3, 10), "`datetime.UTC`": (3, 11)}
 
 
 def handed_first(text):
@@ -354,94 +349,30 @@ def before_any_floor(root=ROOT):
     return seen, missing
 
 
-def newer_than(text, version):
-    """`[(line, construct)]` in a module's text that a `python3` at
-    `version` cannot run: a syntax `ast` refuses at that version, or one of
-    `NEWER`'s constructs where it needs a later one."""
-    try:
-        tree = ast.parse(text, feature_version=version)
-    except SyntaxError as error:
-        return [(error.lineno, f"syntax: {error.msg}")]
-    found = []
-    for node in ast.walk(tree):
-        if (
-            isinstance(node, ast.Call)
-            and isinstance(node.func, ast.Name)
-            and node.func.id == "zip"
-            and any(k.arg == "strict" for k in node.keywords)
-        ):
-            found.append((node.lineno, "`zip(..., strict=...)`"))
-        elif (
-            isinstance(node, ast.Attribute)
-            and node.attr == "UTC"
-            and isinstance(node.value, ast.Name)
-            and node.value.id == "datetime"
-        ) or (
-            isinstance(node, ast.ImportFrom)
-            and node.module == "datetime"
-            and any(a.name == "UTC" for a in node.names)
-        ):
-            found.append((node.lineno, "`datetime.UTC`"))
-    return [(line, what) for line, what in found if NEWER[what] > tuple(version)]
-
-
-def ruff_targets(path=RUFF):
-    """`{pattern: (major, minor)}`, `ruff.toml`'s `per-file-target-version`."""
-    with open(path, "rb") as handle:
-        table = tomllib.load(handle).get("per-file-target-version", {})
-    return {p: (int(v[2]), int(v[3:])) for p, v in table.items()}
-
-
-def matches(pattern, rel):
-    """Whether ruff's glob `pattern` names `rel`. Its `*` crosses a `/`, as
-    ruff's does: `"hooks/*.py"` lints `hooks/git/pre-commit.py` too. Ruff
-    also matches the pattern against the file's name, so one with no `/`,
-    `"seal_stamp.py"`, names that file in any directory; a name holds no `/`
-    for a pattern's `/` to match."""
-    return any(fnmatch.fnmatchcase(p, pattern) for p in (rel, posixpath.basename(rel)))
-
-
-def test_what_runs_before_any_floor_needs_nothing_its_python3_lacks():
+def test_what_runs_before_any_floor_is_linted_at_the_floor():
     """The launcher holds the floor for `bin/`, and nothing holds it for a
     hook, a git hook, the launcher itself or `bin/test`'s runner: each runs on
     whatever `python3` starts it, 3.9 on a stock macOS, and so does every
     module it loads in its own process. A hook that raises there fails open,
     and the Stop hook loses the stamp it claimed. `ruff.toml` lints that set
     at the version its `per-file-target-version` names, so B905 and UP017 do
-    not ask it for `zip`'s `strict=` or `datetime.UTC`. This case holds every
-    file of the set to that table, and refuses in it the syntax `ast` rejects
-    at that version and those two constructs. Nothing runs the set at that
-    version, so a standard-library module or an annotation only a newer
-    `python3` has passes it."""
-    planted = "import datetime\nzip(a, b, strict=True)\ndatetime.UTC\n"
-    assert {what for _, what in newer_than(planted, (3, 9))} == set(NEWER)
-    assert newer_than(planted, (3, 11)) == []
-    assert newer_than("match x:\n    case 1:\n        pass\n", (3, 9))
+    not ask it for `zip`'s `strict=` or `datetime.UTC`. This case holds the
+    set to that table, both ways; the `floor_syntax` census in
+    `tests/censuses.py` refuses in each file the table names what a
+    `python3` at its version cannot run."""
     loads = (
         'import a\nfrom e import f\nG = ("b.py",)\n'
         'D = os.path.join(H, "..", "s", "d.py")\n'
     )
     tracked = {"hooks/a.py", "hooks/b.py", "hooks/c.py", "hooks/e.py", "s/d.py"}
     assert loaded_by("hooks/c.py", loads, tracked) == tracked - {"hooks/c.py"}
-    assert matches("hooks/*.py", "hooks/git/pre-commit.py")
-    assert not matches("hooks/*.py", "skills/verify/scripts/broad_gate.py")
-    assert matches("seal_stamp.py", "skills/verify/scripts/seal_stamp.py")
     unfloored, missing = before_any_floor()
-    targets = ruff_targets()
+    targets = ruff_targets(RUFF)
     assert {"hooks/dispatch.py", "hooks/launch.py"} <= unfloored, unfloored
     unlinted = sorted(r for r in unfloored if not any(matches(p, r) for p in targets))
     assert not unlinted, (
         f"{unlinted} run before any floor is checked and ruff lints them at the "
         "floor; add them to ruff.toml's per-file-target-version"
-    )
-    found = {
-        rel: newer
-        for rel in sorted(unfloored)
-        for version in [min(v for p, v in targets.items() if matches(p, rel))]
-        if (newer := newer_than(read(os.path.join(ROOT, rel)), version))
-    }
-    assert not found, (
-        f"{found} run on whatever `python3` starts them, and need a newer one"
     )
     stale = sorted(p for p in targets if not any(matches(p, r) for r in unfloored))
     if stale:

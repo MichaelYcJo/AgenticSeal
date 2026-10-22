@@ -370,6 +370,7 @@ def capped(text, cap):
 def first_line(exc):
     """The first non-blank line of `exc`'s message, capped at `MESSAGE_CAP`
     UTF-16 units by `capped`."""
+    # exempt from splitlines: an exception's message
     lines = str(exc).strip().splitlines()
     return capped(lines[0].strip() if lines else "", MESSAGE_CAP)
 
@@ -628,6 +629,7 @@ def main():
         print(merged)
 
 
+# exempt from entry_point: its own reconfigure loop, held by test_console_is_not_utf8
 if __name__ == "__main__":
     # THE entry point, and the only one that matters in production: `hooks.json`
     # spawns this file and nothing else, and it loads each gate with

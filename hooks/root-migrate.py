@@ -116,6 +116,7 @@ class MoveError(Exception):
 def attempted(root):
     try:
         with open(MARKER, encoding="utf-8") as f:
+            # exempt from splitlines: a marker file of root paths
             return root in f.read().splitlines()
     except OSError:
         return False
@@ -170,6 +171,7 @@ def dirty(root):
         return True
     if r.returncode != 0:
         return True
+    # exempt from splitlines: git output
     for line in r.stdout.splitlines():
         if len(line) < 2:
             continue

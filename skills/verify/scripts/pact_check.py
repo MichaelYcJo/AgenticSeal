@@ -261,6 +261,7 @@ def path_map(config, home_dir):
     row = re.compile(
         rf"^\|\s*(?P<remote>{config.CELL}+?)\s*\|\s*(?P<path>{config.CELL}+?)\s*\|\s*$"
     )
+    # exempt from splitlines: lines the GFM walk numbers
     for _index, line in config.unfenced(text.splitlines(), text):
         if not seen_header:
             seen_header = bool(MAP_HEADER.match(line))

@@ -240,11 +240,16 @@ whole goes in `Test_module`. A flow across modules lives under
 from, and each of its classes is a scenario that keeps the same two cases.
 A case whose assertion reads a shipped document names that document as
 `TARGET`, and its classes take any name. A helper two test files use is
-defined once, in `tests/conftest.py`. `bin/test-layout --check` refuses a
-file that declares `TARGET` and breaks this, and lists the files that do not
-declare one yet. A contributor writing a case first reads its class and the
-pairs `bin/test-layout --pairs` names in it.
-check: tests/test_test_layout.py
+defined once, in `tests/conftest.py`. Each module file ends with
+`test_census = census_case(TARGET)`, which runs every census in
+`tests/censuses.py` over its module, and a line a census flags on purpose
+carries `# exempt from <census>: <why>` on its own line above it, where the
+census reads it and refuses it once it excuses nothing.
+`bin/test-layout --check` refuses a file that declares `TARGET` and breaks
+this, and lists the files that do not declare one yet. A contributor writing
+a case first reads its class and the pairs `bin/test-layout --pairs` names
+in it.
+check: tests/test_test_layout.py tests/test_censuses.py
 
 **A module's old cases get one verdict each when the module is rebuilt.**
 The contributor rebuilding a module reads its functions first and lists the
@@ -353,9 +358,9 @@ a question is not its difficulty, it is when it arrives.
   expecting to.
 
 - **No real identifiers.** Examples, fixtures, and docs use `example.com`
-  and `/Users/x/` only. `tests/test_no_real_identifiers.py` enforces it in
-  CI, and a contributor extends its allowlist deliberately, never to make a
-  test pass.
+  and `/Users/x/` only. The `real_identifiers` census in `tests/censuses.py`
+  enforces it in CI, and a contributor extends its `ALLOWED_DOMAINS`
+  deliberately, never to make a test pass.
   The rule is held this hard because a real domain, path or organisation
   name inlined into an example is the leak that forces a rewrite of the
   repository's history.
@@ -364,12 +369,11 @@ a question is not its difficulty, it is when it arrives.
   `encoding=` takes the locale's, which is cp1252 on the Windows leg and
   UTF-8 everywhere else, so that leg is the only one that sees it. The call
   names `encoding="utf-8"`. Every hook entry point also opens its `__main__`
-  with `console.to_utf8()`.
-  `tests/test_every_file_the_plugin_reads_or_writes_names_its_encoding.py`
-  enforces the first over every tracked `.py` and the second over `hooks/`,
-  and a contributor classifies a unit in its `ALLOWED` deliberately, never to
-  make a test pass. A `python3 -c` line in a skill or a workflow is outside its
-  reach, so its writer names the encoding there.
+  with `console.to_utf8()`. The `encoding` and `entry_point` censuses in
+  `tests/censuses.py` enforce the first over every tracked `.py` and the
+  second over `hooks/`, and a contributor exempts a line deliberately, never
+  to make a test pass. A `python3 -c` line in a skill or a workflow is outside
+  their reach, so its writer names the encoding there.
 - **Functional files are English-only.** Skills, agents, hooks, and commands
   load into model context, where a translated mirror would drift. Korean
   belongs in human-facing docs (`README.ko.md`). The `writing-style` skill

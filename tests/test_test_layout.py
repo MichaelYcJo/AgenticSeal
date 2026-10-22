@@ -17,6 +17,7 @@ import importlib.util
 import os
 
 import pytest
+from conftest import census_case
 
 TARGET = "skills/verify/scripts/test_layout.py"
 
@@ -290,3 +291,6 @@ class Test_main:
         monkeypatch.setattr(layout, "_toplevel", lambda start: None)
         assert layout.main(["--check", "--all"]) == 2
         assert "not inside a git repository" in capsys.readouterr().out
+
+
+test_census = census_case(TARGET)

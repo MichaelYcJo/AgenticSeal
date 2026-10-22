@@ -1750,13 +1750,13 @@ USER_ROOT = "/Users" + "/"
 
 def test_a_kept_record_is_masked_where_the_identifier_scan_refuses_it(tmp_path):
     """Guards `questions.md` Q4 of #986: a committed side keeps the record
-    whole, and `tests/test_no_real_identifiers.py` scans every committed
-    file. The kept text has each path and host that scan refuses replaced
-    by the fixture one, read by the scan's own functions, and a line that
-    opens with a host keeps it apart from the escape the side's JSON writes
-    before it. The written side passes the scan, and the finding rows are
-    the ones the printed record gives."""
-    import test_no_real_identifiers as scan
+    whole, and the `real_identifiers` census in `tests/censuses.py` scans
+    every committed file. The kept text has each path and host that census
+    refuses replaced by the fixture one, read by the census's own functions,
+    and a line that opens with a host keeps it apart from the escape the
+    side's JSON writes before it. The written side passes the census, and
+    the finding rows are the ones the printed record gives."""
+    import censuses as scan
 
     shown = printed(
         "### 1. a defect\n\nseverity: must\nlocation: `src/a.py:11`\n"

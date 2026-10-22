@@ -599,6 +599,7 @@ def proc_cwd(pid: int):
             encoding="utf-8",
             errors="replace",
         )
+        # exempt from splitlines: a tool's output
         for line in r.stdout.splitlines():
             if line.startswith("n"):
                 return line[1:]
@@ -907,6 +908,7 @@ def lease_owner_alive(pid: int):
             )
         except Exception:
             return None
+        # exempt from splitlines: a tool's output
         rows = (line.split() for line in (r.stdout or "").splitlines() if line.strip())
         return any(len(cols) >= 2 and cols[1] == str(pid) for cols in rows)
     try:
@@ -1130,6 +1132,7 @@ def sessions_in_tree(top: str, own_session_id: str = ""):
             errors="replace",
         )
         pids = set()
+        # exempt from splitlines: a tool's output
         for line in r.stdout.splitlines():
             line = line.strip()
             if not line:
@@ -1274,6 +1277,7 @@ def tracked_changes(cwd: str) -> list[tuple[str, str]]:
             encoding="utf-8",
             errors="replace",
         )
+        # exempt from splitlines: git output
         return [(line[:2], line[3:]) for line in r.stdout.splitlines() if line.strip()]
     except Exception:
         return []

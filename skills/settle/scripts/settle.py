@@ -143,6 +143,7 @@ def released(root, ref):
         return None
     prefix = SPECS + "/"
     found = set()
+    # exempt from splitlines: git output
     for line in r.stdout.splitlines():
         if line.startswith(prefix):
             rest = line[len(prefix) :]

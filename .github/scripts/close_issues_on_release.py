@@ -385,7 +385,9 @@ def arrived(before, after):
             "WARNING: no `before` commit — reading only the tip. Any pull "
             "request behind it in this push is not seen."
         )
+        # exempt from splitlines: git output
         return run("git", "log", "-1", "--format=%s", after).splitlines()
+    # exempt from splitlines: git output
     return run("git", "log", "--format=%s", f"{before}..{after}").splitlines()
 
 

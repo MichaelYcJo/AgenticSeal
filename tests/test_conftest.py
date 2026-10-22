@@ -18,6 +18,7 @@ import subprocess
 import sys
 import types
 
+import censuses
 import conftest
 import pytest
 
@@ -102,3 +103,23 @@ class Test_pytest_terminal_summary:
     def test_refuses_to_name_a_quick_case(self, inner_run):
         _, out = inner_run
         assert "test_quick ran" not in out, out
+
+
+class Test_census_case:
+    def test_accepts_a_target_every_census_passes(self, tmp_path, monkeypatch):
+        (tmp_path / "hooks").mkdir()
+        (tmp_path / "hooks" / "x.py").write_text(
+            'open(p, encoding="utf-8")\n', encoding="utf-8"
+        )
+        monkeypatch.setattr(censuses, "ROOT", str(tmp_path))
+        assert conftest.census_case("hooks/x.py")() is None
+
+    def test_refuses_a_target_one_census_flags_naming_it(self, tmp_path, monkeypatch):
+        (tmp_path / "hooks").mkdir()
+        (tmp_path / "hooks" / "x.py").write_text("open(p)\n", encoding="utf-8")
+        monkeypatch.setattr(censuses, "ROOT", str(tmp_path))
+        with pytest.raises(AssertionError, match=r"hooks/x\.py:1: encoding: "):
+            conftest.census_case("hooks/x.py")()
+
+
+test_census = conftest.census_case(TARGET)

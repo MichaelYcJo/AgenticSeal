@@ -18,7 +18,7 @@ and the measured preload go to `<out>.raw/` beside `--out`, and only then is
 each directory the eval kept removed. `--out` is the saved side with these
 additions under `specseal`: the preload's hashes and bytes, each run's
 `report_text` (the round record its session printed, whole, with what
-`tests/test_no_real_identifiers.py` refuses masked), cost (its trace's
+the `real_identifiers` census in `tests/censuses.py` refuses masked), cost (its trace's
 `result` event: `total_cost_usd`, `duration_ms`, `modelUsage`) and tool
 calls (every `tool_use` block in its trace), and whether the side was cut
 short. `run --from-raw` writes `--out` again from a saved side, with no
@@ -66,10 +66,10 @@ handed a record that disagrees with its numbers or ran two suites,
 """
 
 import argparse
-import ast
 import copy
 import functools
 import hashlib
+import importlib.util
 import io
 import json
 import os
@@ -80,7 +80,6 @@ import subprocess
 import sys
 import tarfile
 import tempfile
-import types
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import replay_targets as rt
@@ -93,9 +92,9 @@ CLT_GIT = "/Library/Developer/CommandLineTools/usr/bin/git"
 # run taken before 0.22.0. A side keeps the record a session printed from
 # such a path, and a `truth-` grader over such a path is read from it.
 RECORD_PATH = r"(?:-report|/round-\d+)\.md"
-# The scan every committed file is held to, which masks the record a side
-# keeps (`masked`).
-SCAN = os.path.join(ROOT, "tests", "test_no_real_identifiers.py")
+# The census module whose `real_identifiers` every committed file is held
+# to, which masks the record a side keeps (`masked`).
+SCAN = os.path.join(ROOT, "tests", "censuses.py")
 UNREAD = (
     "keeps no report_text, so the side was read by the reader before #986 "
     "and cannot be read again"
@@ -216,22 +215,14 @@ def write_git_shim(tree):
 
 @functools.cache
 def identifier_scan():
-    """`tests/test_no_real_identifiers.py` as a module, run without its
-    `from conftest import` line: only its cases and its walk of the tree
-    read those names, and `conftest` needs pytest, which a side's run does
-    not have.
+    """`tests/censuses.py` as a module, loaded by its path. It imports
+    nothing from `tests/conftest.py`, which needs pytest, and a side's run
+    has no pytest.
 
-    A scan that will not parse stops the run."""
-    with open(SCAN, encoding="utf-8") as f:
-        tree = ast.parse(f.read(), SCAN)
-    tree.body = [
-        node
-        for node in tree.body
-        if not (isinstance(node, ast.ImportFrom) and node.module == "conftest")
-    ]
-    scan = types.ModuleType("specseal_identifier_scan")
-    scan.__file__ = SCAN
-    exec(compile(tree, SCAN, "exec"), scan.__dict__)
+    A census module that will not load stops the run."""
+    spec = importlib.util.spec_from_file_location("specseal_identifier_scan", SCAN)
+    scan = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(scan)
     return scan
 
 

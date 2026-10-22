@@ -861,6 +861,24 @@ def pytest_terminal_summary(terminalreporter):
         terminalreporter.write_line(line)
 
 
+# --- a module's file runs the censuses over its module (#942) ------------------
+
+
+def census_case(target):
+    """The case a module file ends with, `test_census = census_case(TARGET)`:
+    every census in `tests/censuses.py` over TARGET, so the run a
+    contributor makes of one module judges that module under every census."""
+
+    def test_census():
+        import censuses
+
+        problems = censuses.judge(target)
+        assert not problems, "\n".join(problems)
+
+    test_census.__doc__ = f"Every census in tests/censuses.py over {target}."
+    return test_census
+
+
 # --- the marker a check line names --------------------------------------------
 
 

@@ -412,6 +412,7 @@ def walk_text(text):
     renderer_starts = _starts(renderer)
     kinds, uncertain, of = [], [], []
     line = 0
+    # exempt from splitlines: lines the GFM walk numbers
     for start in _starts(text.splitlines(keepends=True)):
         while line + 1 < len(renderer_starts) and renderer_starts[line + 1] <= start:
             line += 1

@@ -1466,6 +1466,7 @@ def with_row(text, value):
     adding one may make two.
     """
     row = f"| {ROW_ITEM} | {value} |"
+    # exempt from splitlines: lines the GFM walk numbers
     lines = text.splitlines(keepends=True)
     ending = line_ending(lines)
     doubled = doubled_modes(lines)
@@ -1564,6 +1565,7 @@ def write_row(home, value):
         # about (#429, round 2). That shape is repaired above; the branch
         # stays because the next member of the class must not be misdescribed
         # either.
+        # exempt from splitlines: lines the GFM walk numbers
         if fence_map(new.splitlines(), new)[1] is not None:
             return (
                 f"{path} has a fenced code block that is never closed, and "
@@ -1624,6 +1626,7 @@ def porcelain(repo, *paths):
         return [f"git status could not be run ({exc})"]
     if done.returncode != 0:
         return [(done.stderr or "").strip() or f"git status exited {done.returncode}"]
+    # exempt from splitlines: git output
     return [line for line in (done.stdout or "").splitlines() if line.strip()]
 
 
@@ -1730,6 +1733,7 @@ def other_worktrees(repo):
     # function is next opened.
     here = os.path.realpath(repo)
     found = []
+    # exempt from splitlines: git output
     for line in git(repo, "worktree", "list", "--porcelain").splitlines():
         if line.startswith("worktree "):
             path = line[len("worktree ") :].strip()
@@ -1955,6 +1959,7 @@ def mode_refusal(home):
         return refused
     if text is None:
         return ""
+    # exempt from splitlines: lines the GFM walk numbers
     doubled = doubled_modes(text.splitlines(keepends=True))
     if doubled:
         return f"{config_path(home)} {doubled}"
@@ -2067,7 +2072,10 @@ def gitlinks_under_root(repo):
             f"git ls-files exited {done.returncode}"
         )
     return [
-        line for line in (done.stdout or "").splitlines() if line.startswith("160000")
+        line
+        # exempt from splitlines: git output
+        for line in (done.stdout or "").splitlines()
+        if line.startswith("160000")
     ], ""
 
 

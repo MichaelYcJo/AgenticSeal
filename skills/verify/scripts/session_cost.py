@@ -2882,6 +2882,7 @@ def open_log(label):
         ]
     )
     if code != 0:
+        # exempt from splitlines: a tool's output
         first = (err or out or "").strip().splitlines()
         return UNREADABLE, (
             "`gh` is not on PATH" if code is None else f"exit {code}"

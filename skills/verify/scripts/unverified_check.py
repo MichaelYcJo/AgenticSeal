@@ -115,8 +115,8 @@ fence_closes = _BLOCKS.fence_closes
 # of markdown or record text reads its lines through `gfm_lines`, this
 # module's callers and the scripts that load it among them, because two
 # readers of one text that split it two ways disagree about which line an
-# index names; `tests/test_every_reader_ends_a_line_where_gfm_does.py` holds
-# the remaining splitters to it.
+# index names; the `splitlines` census in `tests/censuses.py` holds the
+# remaining splitters to it.
 GFM_LINE_RE = _BLOCKS.GFM_LINE_RE
 gfm_lines = _BLOCKS.gfm_lines
 
@@ -1235,6 +1235,7 @@ def overviews_at(root, ref, prefixes):
         if loaded and p != "." and config.under_reference_root(p, roots)
     ]
     out = []
+    # exempt from splitlines: git output
     for rel in r.stdout.splitlines():
         if os.path.basename(rel) != OVERVIEW:
             continue
@@ -1357,6 +1358,7 @@ def tree_at(root, ref, directory):
         encoding="utf-8",
         errors="replace",
     )
+    # exempt from splitlines: git output
     return r.stdout.splitlines() if r.returncode == 0 else []
 
 

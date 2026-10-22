@@ -191,6 +191,7 @@ def frontmatter(text):
     end = text.find("\n---", 3)
     block = text[3:end] if end != -1 else text[3:]
     in_skills = False
+    # exempt from splitlines: YAML keys
     for line in block.splitlines():
         if re.match(r"^name:\s*\S", line):
             name = line.split(":", 1)[1].strip()

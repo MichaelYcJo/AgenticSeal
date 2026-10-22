@@ -152,7 +152,9 @@ SHARED_GUARD = "on_disk"
 # 1. It applies the shared predicate. The reader checks the code rather than
 #    the row: the name has to be mentioned in the scope.
 APPLIES_THE_SHARED_GUARD = {
-    "tests/test_no_real_identifiers.py#tracked_text_files": 1,
+    # #942's sweep of every census over each tracked file no module file
+    # declares. It judges what it finds, so it skips the missing half.
+    "tests/test_censuses.py#test_every_file_no_module_file_declares_meets_every_census": 1,
     "tests/test_no_document_names_the_old_roots.py#tracked": 1,
     "tests/test_release_hygiene.py#tracked": 1,
     "tests/test_a_release_is_sized_by_a_criterion.py#tracked": 1,
@@ -169,20 +171,12 @@ APPLIES_THE_SHARED_GUARD = {
     # rose, so a file listed and not on disk can lower a count and never
     # raise one; it skips the missing half and does not decline.
     "tests/test_no_passage_is_pasted_into_a_second_file.py#corpus": 1,
-    # #741's two walks, the encoding half's corpus and the hook entry points.
-    # Each returns the missing half, and its liveness half hands that to
-    # `decline_if_shrunken`.
-    "tests/test_every_file_the_plugin_reads_or_writes_names_its_encoding.py#tracked_python": 1,
-    "tests/test_every_file_the_plugin_reads_or_writes_names_its_encoding.py#entry_points": 1,
     # #867's heading rule held to markdown-it over every tracked `.md`. Both
     # its callers judge what they find, so it skips the missing half.
     "tests/test_one_heading_rule_holds_to_commonmark.py#tracked_markdown": 1,
     # #967's T5 reads every tracked file for a citation of `implement`'s
     # headings. It judges what it finds, so it skips the missing half.
     "tests/test_the_set_a_work_item_always_has.py#cited_files": 1,
-    # #1005's sweep for the section sign over every tracked living file. It
-    # judges what it finds, so it skips the missing half.
-    "tests/test_no_living_file_writes_the_section_sign.py#signs": 1,
 }
 
 # 2. It guards its own list by another predicate, which predates this work.

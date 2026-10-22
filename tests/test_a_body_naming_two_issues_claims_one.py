@@ -23,7 +23,8 @@ this file and misses the one it was written for.
 
 The real #162 body is deliberately NOT a fixture. It carries a session URL on
 a domain outside this repository's fixture allowlist, so committing it turns
-`tests/test_no_real_identifiers.py` red — and the shape is what matters rather
+the `real_identifiers` census in `tests/censuses.py` red — and the shape is
+what matters rather
 than the numbers anyway. It was run live instead, and the output is in this
 work item's `phases/phase-2.md`.
 """
