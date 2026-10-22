@@ -13,7 +13,7 @@ branch at 736062fe under the round's scratch directory. The base is eae7f0ad.
 severity: should
 location: `tests/test_the_release_seal_is_drawn.py:122-142`
 evidence: executed `.venv/bin/python -m pytest tests/test_the_release_seal_is_drawn.py::test_the_png_is_the_stamps_cells_one_square_block_each tests/test_the_release_seal_is_drawn.py::test_the_png_follows_whatever_chart_the_stamp_module_has -q -p no:xdist -p no:cacheprovider`, `.venv/bin/python -m pytest tests/test_tmp_round1.py -q -p no:xdist -p no:cacheprovider`
-verdict: open
+verdict: fixed b4772c74
 
 `spec.md` S2 says its case is "seen red against a draw that holds a copy of
 the chart or the colours". The case replaces only `CHART` on the stamp
@@ -69,14 +69,14 @@ def test_the_png_follows_whatever_chart_the_stamp_module_has(monkeypatch, tmp_pa
     assert Image.open(before).tobytes() != Image.open(after).tobytes()
 ```
 
-answer:
+answer: S2's case is now the record's variant. It replaces `CHART` and `LIGHT` on both stamp modules and asserts that cell (14, 14) carries the new colour. The red was shown at b4772c74 by `mutation-check` on `release_seal.py`'s `colour = px(x, y)` (executed). A `draw` mapping `(1, 2, 3)` to the tree's `LIGHT` went red at cell (14, 14). A `draw` indexing a literal copy of the nine colours by `DISC_COLOURS` went red with `ValueError`. S1 alone still survives the second mutation (executed), which is why S2 carries the colour half.
 
 ### 2. Where Pillow is absent, S2's case fails with the release script's Refused, but bin/test says both pixel cases fail with a ModuleNotFoundError
 
 severity: should
 location: `tests/test_the_release_seal_is_drawn.py:122-142`, `.github/scripts/run_tests.py:315-318`, `.github/scripts/run_tests.py:334-338`, `tests/test_the_suite_has_a_command_that_is_cheap_twice.py:919`
 evidence: executed `.venv/bin/python -m pytest tests/test_tmp_round1.py -q -s -p no:xdist -p no:cacheprovider`
-verdict: open
+verdict: fixed b4772c74
 
 After a failed Pillow install, `bin/test` prints: "Only the release seal's
 pixel cases import it, so those cases fail with a ModuleNotFoundError and
@@ -108,14 +108,14 @@ def test_the_png_follows_whatever_chart_the_stamp_module_has(monkeypatch, tmp_pa
     assert Image.open(before).tobytes() != Image.open(after).tobytes()
 ```
 
-answer:
+answer: Fixed by finding 1's change, which imports Pillow at the top of S2 and uses it in the last assertion. `run_tests.py`'s message and the S9 pin stay as they are and are now true. The check was executed at b4772c74 with `sys.modules["PIL"]` set to None, running S1 and S2. Both failed with `ModuleNotFoundError: import of PIL halted; None in sys.modules`, and no `Refused` was raised.
 
 ### 3. A failed Pillow install in the seal job stops at the suite's refusal, but two sentences say it reaches the draw's refusal
 
 severity: should
 location: `.github/scripts/release_seal.py:431-433`, `.github/workflows/publish-release.yml:98-99`, `seal/specs/1792624592-the-release-seal-is-drawn-from-the-stamps-cells/spec.md:128`
 evidence: read `.github/workflows/publish-release.yml:97-102`, `.github/workflows/publish-release.yml:109-134`, `.github/scripts/release_seal.py:475-477`, `.github/scripts/release_seal.py:497`
-verdict: open
+verdict: fixed b4772c74
 
 The `draw` docstring says "Pillow will not import -- the `seal` job
 installs it, and an install that failed lands here". The workflow comment
@@ -160,7 +160,7 @@ def draw(png):
   to: the seal could not be drawn or written,
 ```
 
-answer:
+answer: The `draw` docstring and the workflow comment are reworded to the order that holds (b4772c74). The reasoning does not depend on what pip does when one requirement fails. The suite's pixel cases import Pillow, so the suite at the tag fails where Pillow is missing, whether or not pytest itself was installed. `seal_release` then refuses on `SUITE_OUTCOME` in the job, or on the record's failures in `suite_counts` on the hand-drawn route, before `draw` runs. The pip question in Not judged is therefore not needed by any sentence. Pip's usual order, which is to resolve and fetch every requirement before installing any, is read and not run. The same false fact stood in the work item's `changelog.md`, which is corrected at d9dad63b. The `spec.md` line 128 `to:` line is the framer's to change, and the record's wording `the seal could not be drawn or written,` holds.
 
 ## Confirmations
 
