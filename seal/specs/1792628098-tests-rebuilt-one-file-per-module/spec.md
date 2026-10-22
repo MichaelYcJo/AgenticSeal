@@ -41,7 +41,7 @@ The work is four rules the smith applies to any module without asking, the two c
 - A flow across modules lives under `tests/e2e/<flow>/`, its `TARGET` names the command or hook the flow starts from, and its classes are scenarios that keep the accepting and refusing pair. The commit gate run through real git is the first flow.
 - A case whose assertion reads a shipped document names that document as `TARGET`; its classes are free-named. Such cases are #923's and this work moves none of them.
 - A helper used by two files is defined once, in `tests/conftest.py`. The fixture repositories a module needs are built once per module by a module-scoped fixture and copied for each case; the copy is the reset.
-- The censuses are cases of each module's file: `tests/censuses.py` holds one function per census that judges one file, and each module file ends with `test_census = census_case(TARGET)` from `tests/conftest.py`, so running a module's tests runs every census over its target. A census's exemption is a comment on the exempted line, read by that census and refused by it where the line would not have been flagged, and no census keeps a list of exemptions in a test file.
+- The censuses are cases of each module's file: `tests/censuses.py` holds one function per census that judges one file, and each module file ends with `test_census = census_case(TARGET)` from `tests/conftest.py`, so running a module's tests runs every census over its target. A census's exemption is a comment line of its own, directly above the exempted line, because `ruff format` moves a comment written at the end of a line; the census reads it, refuses one above a line the census would not have flagged, refuses one written at the end of a line, and reads no comment that has no reason after its colon. No census keeps a list of exemptions in a test file. A tracked file whose module file does not yet declare it is judged by the sweep in `tests/test_censuses.py`, one git listing per run.
 
 ### Rule 2, how each existing case is classified
 
@@ -70,7 +70,7 @@ The target the rebuild works toward is the issue's: the suite's real protection 
 
 ### What holds the rules
 
-- `skills/verify/scripts/test_layout.py`, run as `bin/test-layout`. `--check` reads every `tests/**/test_*.py` that declares `TARGET` and fails on: a `TARGET` git does not track, a file name that does not match it, a `Test_<function>` naming no top-level definition of the target, a function class lacking the accepting or refusing case, a non-test top-level function whose source is byte-identical to one in another test file. It prints the files that declare no `TARGET`, and with `--all` fails on them. It prints each public top-level function of the target that has no class, and fails on none. `--pairs` prints, for each class, two cases that call the target's function with equal argument expressions, or whose bodies are equal once names and string constants are normalised, and exits 0 whatever it prints.
+- `skills/verify/scripts/test_layout.py`, run as `bin/test-layout`. `--check` reads every `tests/**/test_*.py` that declares `TARGET` and fails on: a `TARGET` git does not track, a file name that does not match it, a `Test_<function>` naming no top-level definition of the target, a function class lacking the accepting or refusing case, a non-test top-level function whose source is byte-identical to one in another test file where one of the two files declares `TARGET`. It prints the files that declare no `TARGET` and every twin between two undeclared files, and with `--all` fails on both. It prints each public top-level function of the target that has no class, and fails on none. `--pairs` prints, for each class, two cases that call the target's function with equal argument expressions, leaving out an argument that reads a name the case assigns or takes as a parameter, or whose bodies are equal once names and string constants are normalised, and exits 0 whatever it prints.
 - `tests/test_test_layout.py` holds the script's own cases on fixtures, and one case that runs `--check` over this repository's `tests/`; the last phase gives that case `--all`.
 - `.github/scripts/release_report.py` prints, under its existing table, one row per test file: priced cases and seconds in `.test_durations` at the pull request head and at the last release tag, sorted by seconds. It reads the two trees it already reads and nothing else.
 - `tests/conftest.py` prints each case whose call ran past `SLOW_CASE_S` (90 seconds) in the terminal summary and fails nothing. `SPECSEAL_CASE_CEILING_S` is not read. The legs' `timeout-minutes` in `.github/workflows/test.yml` stay.
@@ -79,7 +79,7 @@ The target the rebuild works toward is the issue's: the suite's real protection 
 
 - Question 5, the commit gate's text reading: it stays, and its three files are cut on #929's pattern, a sampled row per kind with a mutation table. The reading alone judges the two states `docs/the-commit-gate-inside-git.md` names and the stub-removal escape in its known limits; no record since #692 names a commit it caught (three records mention the reading, executed grep over `seal/specs/179[12]*/rounds`, `overview.md` and `phases`); the tree holds no count of installs in either state. Removing it allows more, which is the gate bar's costly direction, so the removal is `questions.md` Q1 with a default of keep.
 - Question 6: decided by the owner, built as above.
-- The censuses: every census over shipped files moves into `tests/censuses.py` and runs per module through `test_census`. The stored lists `OUT_OF_CLASS` (two blocks), `ALLOWED`, `COORDINATE_EXEMPT` and `HEADING_EXEMPT` become line comments at the exempted lines. The `Reads:` census is already gone.
+- The censuses: a census moves into `tests/censuses.py` and runs per module through `test_census` when it judges one file by reading that file alone. A check that reads a document's prose, compares files with each other, derives a set across files, or judges records or markdown against an oracle stays where it is. `tests/test_censuses.py` sweeps every tracked file whose module file does not declare it, so a document and a module not yet rebuilt keep their censuses. The stored lists `OUT_OF_CLASS` (two blocks), `ALLOWED`, `ENTRY_POINTS_CLASSIFIED`, `COORDINATE_EXEMPT` and `HEADING_EXEMPT` become comment lines above the exempted lines. The `Reads:` census is already gone.
 - The release sweep: `docs/release-checklist.md` section 5, through `## Rule changes` below.
 
 ### Out
@@ -94,19 +94,19 @@ The target the rebuild works toward is the issue's: the suite's real protection 
 |---|---|---|
 | S1 a misplaced test is refused | Given a test file declaring `TARGET` whose class names no function of the target, when `bin/test-layout --check` runs, then it exits 1 and names the file and class | `tests/test_test_layout.py`, seen red by removing the refusal |
 | S2 a class without its pair is refused | Given a function class with only `test_accepts_` cases, when `--check` runs, then it exits 1 naming the class and the missing kind | `tests/test_test_layout.py` |
-| S3 a twin is refused | Given two test files defining one helper byte-identically, when `--check` runs, then it exits 1 naming both | `tests/test_test_layout.py` |
+| S3 a twin is refused | Given two test files defining one helper byte-identically, one of them declaring `TARGET`, when `--check` runs, then it exits 1 naming both | `tests/test_test_layout.py` |
 | S4 a likely pair is named, not refused | Given two cases in one class calling the function with equal arguments, when `--pairs` runs, then both names print and the exit is 0 | `tests/test_test_layout.py` |
 | S5 a rebuilt module protects what the old files did | Given a module's old files and its new file, when each mutation of the batch's table runs against both, then every mutation red before is red after | the phase record's table, run with `bin/mutation-check` |
 | S6 a slow case is reported | Given a case whose call runs past `SLOW_CASE_S`, when the run ends, then one line names it and its seconds and the run exits 0 | `tests/test_conftest.py`, an inner pytest run with the value lowered |
 | S7 the release table has module rows | Given `.test_durations` at the head and at the tag, when `release_report.py` runs, then one row per test file prints with cases and seconds at both | `tests/test_release_report.py` on two fixture trees |
 | S8 a census runs with its module | Given `tests/test_<stem>.py`, when `bin/test tests/test_<stem>.py` runs, then `test_census` judges `TARGET` under every census | `tests/test_censuses.py` with a fixture target that fails one census |
-| S9 a spent exemption is refused | Given an exemption comment on a line no census flags, when the census runs, then it fails naming the line | `tests/test_censuses.py` |
+| S9 a spent exemption is refused | Given an exemption comment line directly above a line no census flags, when the census runs, then it fails naming the line | `tests/test_censuses.py` |
 | S10 the whole suite is placed | Given the last batch merged, when `--check --all` runs over `tests/`, then it exits 0 | the suite case in `tests/test_test_layout.py` |
 
 ## Data & interfaces
 
 - `bin/test-layout [--check [--all] | --pairs] [paths]`, launched through `hooks/launch.py` like `bin/mutation-check`.
-- `tests/conftest.py#census_case(target)` returns the one case; `tests/censuses.py` exposes `def <census>(path) -> list[str]`, one per census.
+- `tests/conftest.py#census_case(target)` returns the one case; `tests/censuses.py` exposes `def <census>(rel, root=None) -> list[str]`, one per census, where `rel` is the file's path relative to the repository root and `root` is the tree read, the repository root when absent.
 - `release_report.py#module_rows(at, now)` reads `.test_durations` in both trees.
 
 ## Removes
@@ -114,13 +114,13 @@ The target the rebuild works toward is the issue's: the suite's real protection 
 | Removes | Coordinate | Where it lands, or why it can go |
 |---|---|---|
 | the failing ceiling and its environment variable | `tests/conftest.py#CASE_CEILING_S`, `#ceiling_from`, `#over_the_ceiling`, `#pytest_runtest_makereport` | `SLOW_CASE_S` and a terminal-summary report in the same file; a report needs no raise |
-| the slow-case module | `tests/test_a_slow_case_names_itself.py` | `tests/test_conftest.py` under rule 1 |
-| the stored exemption lists | `tests/test_every_reader_ends_a_line_where_gfm_does.py#OUT_OF_CLASS`, `tests/test_every_file_the_plugin_reads_or_writes_names_its_encoding.py#ALLOWED`, `tests/test_a_format_has_one_reader.py#COORDINATE_EXEMPT` and `#HEADING_EXEMPT` | a comment on each exempted line, read by the census in `tests/censuses.py` |
+| the slow-case module | `tests/test_a_slow_case_names_itself.py` | `tests/test_conftest.py` under rule 1, except its case that reads the legs' `timeout-minutes` in `test.yml`, which lands in `tests/test_ci_gives_the_checks_what_they_need.py` beside the cases that read the same workflow |
+| the stored exemption lists | `tests/test_every_reader_ends_a_line_where_gfm_does.py#OUT_OF_CLASS`, `tests/test_every_file_the_plugin_reads_or_writes_names_its_encoding.py#ALLOWED` and `#ENTRY_POINTS_CLASSIFIED`, `tests/test_a_format_has_one_reader.py#COORDINATE_EXEMPT` and `#HEADING_EXEMPT` | a comment line directly above each exempted line, read by the census in `tests/censuses.py` |
 | the helper twins | every non-test top-level function defined byte-identically in two or more files under `tests/` | one definition in `tests/conftest.py` |
 | every test file not in the layout | `tests/test_*.py` as they stand at the build's start | `tests/test_<stem>.py`, `tests/e2e/<flow>/`, or the batch's cut lines |
 | cases whose kills another case makes, and cases guarding behaviour that left the tree | named per batch in `phases/phase-N.md` | the batch's one line per case |
-| the priced ids of removed cases | `.test_durations` | pruned as #929 phase 1 did, by a script that asserts each id was present |
-| the paragraph heading a case's budget | `CONTRIBUTING.md` *A case has a budget, and so does each leg* | rewritten in place to the report, same section; the three rules and the record shape go under a new heading `CONTRIBUTING.md` *The test layout*, which `.github/scripts/rules.py` reads like every `CONTRIBUTING.md` heading |
+| the priced ids of removed cases | `.test_durations` | pruned by the smith with one `Edit` per batch, whose match on the removed lines is what asserts each id was present |
+| the paragraph heading a case's budget | `CONTRIBUTING.md` *A case has a budget, and so does each leg* | rewritten in place to the report, same section; the four rules and the record shape go under a new heading `CONTRIBUTING.md` *The test layout*, which `.github/scripts/rules.py` reads like every `CONTRIBUTING.md` heading |
 
 ## Rule changes
 

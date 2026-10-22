@@ -31,7 +31,7 @@ The checks go in first, then the modules are rebuilt in batches, heaviest first,
 | Remove the text reading with its three files | Allows more in a foreign hooks slot and an unreached clone, the gate bar's costly direction, with no install count to weigh it by | Q1, a person's; default keep and sample |
 | Keep `CASE_CEILING_S` failing | A loaded machine fails a guarantor run on time alone, as on 2026-10-16 | refused by the owner; a report |
 | Keep each census as one module over every file | The implementer runs the module it touched and never the census, four times in 0.22.0 | refused; per-module cases |
-| Keep the stored exemption lists | A list beside the tree drifts from it; `CLAUDE.md` refuses it | refused; a comment at the line |
+| Keep the stored exemption lists | A list beside the tree drifts from it; `CLAUDE.md` refuses it | refused; a comment line above the line |
 
 ## Phases
 
@@ -39,10 +39,10 @@ Vertical slices. Each phase's first step recomputes the facts it acts on with th
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | `skills/verify/scripts/test_layout.py`, `bin/test-layout` with its `.cmd`, `tests/test_test_layout.py` with `TARGET`, the suite case running `--check` over `tests/` without `--all`; `CONTRIBUTING.md` *The test layout* stating the four rules and the record shape; the command named in `agents/smith.md` line 98's and `agents/warden.md` line 131's sentences | S1 to S4 seen red; `bin/test-layout --check` exits 0 and prints the count of files without `TARGET`; `bin/test tests/test_test_layout.py -q` | cbf6ef6f |
+| 1 | `skills/verify/scripts/test_layout.py`, `bin/test-layout` with its `.cmd`, `tests/test_test_layout.py` with `TARGET`, the suite case running `--check` over `tests/` without `--all`; `CONTRIBUTING.md` *The test layout* stating the four rules and the record shape; the command named in the sentence of `agents/smith.md` and the sentence of `agents/warden.md` that send a reader to the pairs a duplicate check names | S1 to S4 seen red; `bin/test-layout --check` exits 0 and prints the count of files without `TARGET`; `bin/test tests/test_test_layout.py -q` | cbf6ef6f |
 | 2 | `SLOW_CASE_S` and the summary report in `tests/conftest.py`; `tests/test_conftest.py`; module rows in `release_report.py` and `tests/test_release_report.py`; `docs/release-checklist.md` through `## Rule changes`; the `CONTRIBUTING.md` paragraph rewritten | S6 and S7 seen red; `python3 .github/scripts/release_report.py --against v0.22.2 --at <archive>` prints the rows locally | 243dc28f |
 | 3 | `tests/censuses.py` with one function per census, `census_case` in `conftest.py`, the exemption lists replaced by line comments, the old census modules placed under rule 1 | S8 and S9 seen red; every census module's old cases either placed or cut with a line; `bin/test tests/test_censuses.py -q` | ef753db7 |
-| 4 | Helper twins defined once in `conftest.py`; first step: `bin/test-layout --check` lists them | the check names no twin; `bin/test <each touched file> -q` | 4496bb0f |
+| 4 | Helper twins defined once in `conftest.py`; first step: `bin/test-layout --check` prints them, every one a report while no file of a twin declares `TARGET` | the check names no twin; `bin/test <each touched file> -q` | 4496bb0f |
 | 5 | Batch A, the modules whose old files price at a minute or more; first step: `python3 -c` over `.test_durations` grouped by file, descending; one commit per module, the sealer's and the commit-gate flow's first, the three text-reading files sampled per kind under Q1's default | S5 per module; the pairs report names no pair in the new file; the record's tables | |
 | 6 | Batch B, every remaining shipped module, one commit per shipped directory (`hooks/`, `hooks/git/`, `skills/verify/scripts/`, `skills/code-review/scripts/`, `skills/settle/scripts/`, `skills/implement/scripts/`, `.github/scripts/`, `evals/scripts/`); first step: `git ls-files '*.py'` less `tests/` | S5 per module; the pairs report; the record's tables | |
 | 7 | The suite case takes `--all`; `.test_durations` pruned of removed ids; the closing memo with the suite's wall time before and after, `bin/test -q` locally | S10; `bin/test tests/test_test_layout.py -q`; `test_the_durations_file_prices_the_suite` passes | |
