@@ -98,7 +98,8 @@ check: tests/test_the_handoff_before_round_one.py
 **A new test starts from its group.** Before writing a case, read the tests
 of the function it covers and any pair a duplicate check in the repository
 names, and add the case to that group; a case that covers nothing its group
-does not already cover is not added.
+does not already cover is not added. In a repository whose test files
+declare `TARGET`, `test-layout --pairs` is that check.
 check: tests/test_a_moved_rule_leaves_its_definition.py
 
 **Commit before you mutate, and restore from `mutation-check`'s copy.** A

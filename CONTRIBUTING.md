@@ -222,6 +222,76 @@ to work on this repository too: narrow runs while the work is still being
 edited, everything after the review rounds settle, and nothing edited between
 that run and the pull request.
 
+## The test layout
+
+**Each shipped module has one test file, and the file names its module
+once.** The file is `tests/test_<stem>.py`. The stem is the module's file
+name without `.py`, with each hyphen written as an underscore, and where two
+shipped modules share a stem, the parent directory's name goes before it.
+The first assignment after the file's imports is
+`TARGET = "<tracked path>"`. A file whose cases run a `bin/` command names
+the script that command runs. The file holds one class per top-level function or class of
+the module, `Test_<name>`, with the name spelt as the code spells it, and
+each such class holds a case named `test_accepts_<what>` for good input and
+one named `test_refuses_<what>` for bad input. What the module does as a
+whole goes in `Test_module`. A flow across modules lives under
+`tests/e2e/<flow>/`: its `TARGET` names the command or hook the flow starts
+from, and each of its classes is a scenario that keeps the same two cases.
+A case whose assertion reads a shipped document names that document as
+`TARGET`, and its classes take any name. A helper two test files use is
+defined once, in `tests/conftest.py`. `bin/test-layout --check` refuses a
+file that declares `TARGET` and breaks this, and lists the files that do not
+declare one yet. A contributor writing a case first reads its class and the
+pairs `bin/test-layout --pairs` names in it.
+check: tests/test_test_layout.py
+
+**A module's old cases get one verdict each when the module is rebuilt.**
+The contributor rebuilding a module reads its functions first and lists the
+classes its file must have. Then each old case that exercises the module is
+placed in its class as it stands, merged into a case of the class that
+already covers it, cut, or rewritten, and a case whose assertion reads a
+document's prose stays where it is. A case is cut only where the mutation
+table shows that every mutation it kills is killed by another case, or where
+the behaviour it guarded has left the tree.
+check: none reader: the warden at review
+
+**A module's tests are written anew from the code when its old files cost a
+minute.** The threshold is 60 seconds of the module's old files in
+`.test_durations`, or a pair `bin/test-layout --pairs` names inside one of
+the module's classes. Every other module's old cases are placed and merged.
+A module written anew takes its accepting and refusing cases from reading
+the code, one class per function, and its old cases are read for their
+inputs.
+check: none reader: the warden at review
+
+**A rewritten module builds its world once and reads a command without
+git.** Its fixture repositories are built once, in a module-scoped fixture,
+and copied for each case. A case about how a command is read runs neither
+real git nor a real shell; the real-git cases that stay are the ones showing
+that the reading and git agree. A case samples one input of each kind where
+the mutation table shows the sample kills what enumerating the whole input
+space killed. These bind the rewrite and nothing in CI: the seconds the
+record states are read by the release table, not by a gate.
+check: none reader: the warden at review
+
+**A rebuilt module's record carries its mutation table and one line per
+removed case.** The contributor writes it into the phase record of the work
+item that rebuilt the module, in four parts:
+
+- the mutation table. The mutations are chosen before the old cases are
+  read, at least one per class, and each row gives its verdict against the
+  old files and against the new file. Every mutation red against the old
+  files is red against the new one, and a mutation the new file survives
+  gets a case first, seen red on that mutation;
+- the module's cases and seconds before and after, from
+  `bin/test <files> -q` on the machine that built it;
+- the real-git cases kept, each named;
+- one line per old case cut or rewritten: its name, what it guarded, and the
+  case or tree fact that holds it now; and the names of the cases left
+  where they stand because they read prose.
+
+check: none reader: the warden at review
+
 ## What a change to a gate must carry
 
 The gates decide whether someone's commit or branch switch proceeds, so a

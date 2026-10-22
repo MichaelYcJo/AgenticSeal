@@ -135,7 +135,8 @@ check: tests/test_the_rules_have_one_owner.py tests/test_the_verifying_round_is_
 **Each new test is read against its group.** A test the diff adds is read
 against the tests of the function it covers, and against any pair a
 duplicate check in the repository names; a test that covers nothing its
-group does not already cover is a `should` finding.
+group does not already cover is a `should` finding. In a repository whose
+test files declare `TARGET`, `test-layout --pairs` is that check.
 check: tests/test_a_moved_rule_leaves_its_definition.py
 
 **The broad gate is not yours, and its label is.** The full suite, the lint
