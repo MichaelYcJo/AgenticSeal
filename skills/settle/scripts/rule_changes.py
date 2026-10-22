@@ -12,7 +12,7 @@ git. `settle` writes what `replay` returns; nothing here writes a file.
 
 Headings, fences and comments are read through
 `skills/verify/scripts/unverified_check.py` (`live_lines`, `heading_level`,
-`closed_fence_lines`, `liveness`, `gfm_lines`), loaded by path, so this
+`liveness`, `gfm_lines`), loaded by path, so this
 module spells no fence or heading rule of its own.
 """
 
@@ -99,21 +99,20 @@ def parse(text, policy_root):
     start = found[0][0]
     end = next((n for n, lv, _ in marks if n > start and lv <= 2), len(lines))
     live = [flag for _, flag in r.live_lines(lines)]
-    fenced = r.closed_fence_lines(lines)
     # `live_lines` ANDs two readings. In this one a code span never leaves
     # its line, so a line dead here is in a comment or a fence, read fence
-    # first as `live_lines` reads it, and is skipped. A line live here and
-    # dead in `live` begins inside a code span an earlier line opened, and
-    # is refused (#988).
+    # first as `live_lines` reads it, and is skipped. A fence's opener is
+    # live, so a fence inside the section is refused at that line as no
+    # field. A line live here and dead in `live` begins inside a code span
+    # an earlier line opened, and is refused (#988).
     literal = r.liveness(lines, spans_cross_lines=False)
 
     body = []
     for n in range(start + 1, end):
         line = lines[n]
-        outside = live[n] or n in fenced
-        if line.lstrip().startswith("<!--") or not (outside or literal[n]):
+        if line.lstrip().startswith("<!--") or not literal[n]:
             continue
-        if not outside:
+        if not live[n]:
             why = (
                 "this line begins inside a code span an earlier line opened, "
                 "and settle would drop it: close each span on the line that "
