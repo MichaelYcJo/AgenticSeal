@@ -7,13 +7,20 @@ sealer alone and committed by the orchestrator beside `broad-gate.md`.
 
 | Field | Value |
 |---|---|
-| Target SHA | 001098c2 against a16acb40 |
+| Target SHA | 97ac7878 against a16acb40; earlier run: 001098c2 withheld |
 | Broad gate | 53f8cedf against eae7f0ad |
 
 The base `release/v0.22.3` resolves to a16acb40, which is #986's merge on top
 of eae7f0ad. The merge base of HEAD and a16acb40 is eae7f0ad, so the diff
 audited, `git diff a16acb40...HEAD`, is the diff the broad run and both
 rounds read against eae7f0ad (executed).
+
+This run follows the run at 001098c2. The one commit since, 97ac7878, touches
+only this file (executed `git diff --name-only 001098c2 HEAD`), so no claim's
+coordinate changed in the tree, and the rows below stand as that run executed
+them. The pull request body changed outside the tree in one cell, the `git
+grep` row's result. It was read again in full, and that row was re-run at
+97ac7878.
 
 ## Claims re-run
 
@@ -34,7 +41,7 @@ rounds read against eae7f0ad (executed).
 | `## Removes`: the install step, the install case, the step count's comment, the three failure parameters, the SVG cases and fixtures, `wired`'s `rsvg` argument, the W3C namespace host's exemption, the `draws the release seal` not-in pin, the `Pillow only reads it` sentence | `spec.md:146-154` | executed `git grep -n -E` for each removed name and sentence, and a grep of `tests/test_the_release_seal_is_drawn.py` for `LAYERS`, `RED`, `NS`, `SVG`, `points`, `svg_tree` and `rsvg` | holds: exit 1 for both |
 | `## Removes`: the docstring and comment sentences naming the SVG in `release_seal.py`, `publish-release.yml`, the test module, `run_tests.py`, `CONTRIBUTING.md` and `seal_stamp.py` | `spec.md:145`, `spec.md:149`, `spec.md:153`, `spec.md:155-156` | executed `git grep -n -i -E "svg\|owner's seal"` over those files | holds: one match, `tests/test_a_release_publishes_its_note.py:717`, which says how a case was seen red against the removed step |
 | S8: outside `seal/specs/`, `changelog/` and `.test_durations`, the grep finds only the three `## Rule changes` sentences | `phases/phase-2.md:63` | executed `git grep -n -i -e rsvg -e release-seal.svg -e librsvg -- ':!seal/specs' ':!changelog' ':!.test_durations'` | holds: `docs/branch-and-release.md:63-64`, `docs/release-checklist.md:242` and `:248` |
-| The same grep, outside this work item's records, finds only the three `## Rule changes` sentences | the pull request body, *How it was verified*, the `git grep` row | executed `git grep -l -i -e rsvg -e release-seal.svg -e librsvg -- ':!seal/specs/1792624592-the-release-seal-is-drawn-from-the-stamps-cells'` | does not hold: it also matches `.test_durations`, `changelog/0.20.0.md`, and records of work items 1790993139, 1791270164 and 1791382684 |
+| The same grep, outside `seal/specs/`, `changelog/` and `.test_durations`, finds only the four lines of the three `## Rule changes` sentences | the pull request body, *How it was verified*, the `git grep` row, as rewritten after the run at 001098c2 | executed at 97ac7878 `git grep -n -i -e rsvg -e release-seal.svg -e librsvg -- ':!seal/specs' ':!changelog' ':!.test_durations'` | holds: `docs/branch-and-release.md:63-64`, `docs/release-checklist.md:242` and `:248`. The row's earlier wording, outside this work item's records alone, did not hold at 001098c2 |
 
 ## The parties
 
@@ -44,10 +51,10 @@ rounds read against eae7f0ad (executed).
 | the build | phases 1 and 2 at 46a773ea and ed9ec343, and round 1's fix at b4772c74, deliver S1 to S9; the tree at 001098c2 holds them | the spec; the claims re-run above | none |
 | the last round | round 2 at 478da5c6 confirms round 1's three findings fixed at b4772c74 and opens nothing; the full suite and the tag push are left to the orchestrator and the owner | the build; the broad run at 53f8cedf, whose only later source commit is round 2's record | none |
 | the changelog | the seal is the stamp's disc, 12-pixel cells, 336 pixels shown 168 wide; the SVG and the install step are gone; a missing Pillow or stamp module fails the suite at the tag first | the spec; the build; the drawn PNG; round 2's confirmation of round 1's third finding | none |
-| the pull request body | what changes, as the changelog says; Q1 built on its default and open for the owner; how it was verified | the changelog, the phase records, both rounds, the CI runs and the broad run, except the row below | its `git grep` row says the grep, run "outside the work item's records", finds only the three `## Rule changes` sentences; the tree contradicts it (the last claim above), and the phase record it copies, `phases/phase-2.md:63`, excludes `seal/specs/`, `changelog/` and `.test_durations` |
+| the pull request body | what changes, as the changelog says; Q1 built on its default and open for the owner; how it was verified | the changelog, the phase records, both rounds, the CI runs, the broad run's log, and the tree for every sentence, the `git grep` row included | none |
 
 The issue body's third change says the case reads the PNG at each cell's
 centre. S1 compares every pixel of every cell's block, which holds that
 property and more, so the two do not disagree (read).
 
-Verdict: withheld reason: the pull request body's How it was verified row for the git grep says the grep for rsvg, release-seal.svg and librsvg, run outside the work item's records, finds only the three Rule changes sentences; executed at 001098c2 with only this work item's records left out, it also matches .test_durations, changelog/0.20.0.md and the records of work items 1790993139, 1791270164 and 1791382684. The record the row copies, phases/phase-2.md:63, ran it outside seal/specs/, changelog/ and .test_durations. Replace the row's result cell with: outside `seal/specs/`, `changelog/` and `.test_durations`, finds only the four lines of the three `## Rule changes` sentences
+Verdict: sealed
