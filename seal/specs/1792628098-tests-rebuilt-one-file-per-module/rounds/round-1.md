@@ -11,7 +11,7 @@ This round reviewed phases 1 to 4 and the frame corrections at 8aa42bf8, read in
 severity: must
 location: `tests/test_censuses.py:736-749`, `skills/verify/scripts/test_layout.py:206-291`, `tests/test_test_layout.py:33-50`, `CONTRIBUTING.md:244-249`
 evidence: executed `bin/test tests/test_release_report.py tests/test_censuses.py -q -p no:xdist`, `bin/test tests/test_release_report.py -q -p no:xdist`
-verdict: open
+verdict: fixed c6d2bfc4
 
 The sweep in `Test_module` skips every tracked file that some test file declares as its `TARGET` (`tests/test_censuses.py:740-747`). It assumes that the declaring file ends with `test_census = census_case(TARGET)`, and nothing checks the assumption. `bin/test-layout --check` does not refuse a declared file without that line, and the sweep reads the declaration, not the census case. Phases 5 to 7 declare `TARGET` in about 140 files, so one dropped line takes a shipped module out of all eight censuses and no case fails.
 
@@ -62,14 +62,14 @@ def runs_the_censuses(tree):
                         declared.add(layout.declared_target(source))
 ```
 
-answer:
+answer: Applied as written. `check` refuses a declared file that does not assign the census case, `runs_the_censuses` reads it bare or qualified, and the sweep skips only a target whose file runs the case. `PLACED` carries the line, and `Test_check::test_refuses_a_declared_file_that_runs_no_census` was seen red with the refusal broken by `mutation-check` (`if not runs_the_censuses(tree):` made `if False:`). The sweep's half is not seen red on its own: it differs only over a declared file without the line, which `--check` now refuses first.
 
 ### 2. The census sweep passes when git lists no file
 
 severity: should
 location: `tests/test_censuses.py:738`, `tests/test_censuses.py:749`
 evidence: executed `bin/test tests/test_tmp_r1_probe.py -q -p no:xdist`, `git show 6046f062:tests/test_every_file_the_plugin_reads_or_writes_names_its_encoding.py`
-verdict: open
+verdict: fixed c6d2bfc4
 
 `git_listing` runs git with `check=False` and returns an empty list when git fails (`tests/conftest.py:226-245`). An empty listing leaves `found` empty, and the sweep passes having judged nothing. A tree git refuses to read, such as a checkout git calls of dubious ownership inside a container, produces exactly that.
 
@@ -80,14 +80,14 @@ The old censuses held this fact. At 6046f062, `tests/test_every_file_the_plugin_
         assert tracked, "git ls-files listed no tracked file, so the sweep judged nothing"
 ```
 
-answer:
+answer: Applied as written: the sweep runs `git ls-files` with `check=True` and asserts it listed a file. Seen red with `git_listing` in `tests/conftest.py` made to return nothing (`mutation-check`, `.stdout.split()[:0]`), under which the sweep case fails.
 
 ### 3. An exemption written at the end of a line no census flags is read as nothing and stays in the tree
 
 severity: should
 location: `tests/censuses.py:56-90`, `tests/test_censuses.py:98-117`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/spec.md:44`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-3.md:23`
 evidence: executed `bin/test tests/test_tmp_r1_probe.py -q -p no:xdist`
-verdict: open
+verdict: fixed c6d2bfc4
 
 Claimed: `spec.md:44` and `phases/phase-3.md:23` say the census "refuses one written at the end of a line". Found: `_exempted` reads whole comment lines only (`COMMENT_LINE`, `tests/censuses.py:38`), so a comment that ends a line of code is never read. On a flagged line the census still fails, but only because the flag stands. On a line no census flags it passes. Probe P2 judged `x = 1  # exempt from splitlines: git output` in `hooks/x.py`, and `judge` returned nothing. That is the spent exemption the comment rule exists to remove. It is also the shape the first build of phase 3 wrote, as `phases/phase-3.md:23` tells.
 
@@ -120,14 +120,14 @@ def _trailing(text, name):
         ]
 ```
 
-answer:
+answer: Applied as written in `tests/censuses.py`. The `at-the-end-or-ending-a-line` row now names line 1 twice, and the `ending-an-unflagged-line` row holds `x = 1  # exempt from splitlines: git output`; seen red with `_trailing`'s lines dropped by `mutation-check`. With the fix, `spec.md:44` and `phases/phase-3.md:23` state what the census does, so neither changes.
 
 ### 4. One exemption excuses every `.splitlines(` call on the line below it
 
 severity: should
 location: `tests/censuses.py:646-663`
 evidence: executed `git show 6046f062:tests/test_every_reader_ends_a_line_where_gfm_does.py`, `sed -n 560,700p tests/censuses.py`
-verdict: open
+verdict: fixed c6d2bfc4
 
 The old census counted the calls in each unit and failed on "one more call in a unit it does" list (6046f062, `tests/test_every_reader_ends_a_line_where_gfm_does.py`, the comment above `OUT_OF_CLASS` and the `more` assertion of `test_every_splitlines_call_left_is_named_with_its_reason`). The new census keys its flags by line (`tests/censuses.py:655`), so a second call written on an exempted line, such as `a.splitlines() + b.splitlines()`, passes under the one comment. Only this census narrowed. The old `encoding`, `coordinate_grammar` and `heading_rule` lists excused a whole unit, a whole file or a whole line, so a per-line comment is as strict or stricter for them.
 
@@ -148,14 +148,14 @@ The old census counted the calls in each unit and failed on "one more call in a 
     ]
 ```
 
-answer:
+answer: Applied as written, with the census's sentence kept as it stands. `Test_splitlines::test_refuses_a_second_call_under_one_exemption` plants `a.splitlines() + b.splitlines()` under one exemption, and was seen red with `doubled` emptied by `mutation-check`. No shipped file holds two calls on one line: the census sweep passes.
 
 ### 5. The twin check never reads `tests/conftest.py`, and a path argument narrows it to that path
 
 severity: should
 location: `skills/verify/scripts/test_layout.py:404-425`, `skills/verify/scripts/test_layout.py:455-464`, `skills/verify/scripts/test_layout.py:285-290`
 evidence: executed `bin/test tests/test_tmp_r1_probe.py -q -p no:xdist`
-verdict: open
+verdict: fixed c6d2bfc4
 
 `CONTRIBUTING.md:242-243` says a helper two test files use is defined once, in `tests/conftest.py`. The twins phase 4 removed come back as a module file that copies a conftest helper instead of importing it. `_read_tests` takes only `test_*.py`, so that copy is no twin. Probe P4 appended the source of `conftest.flattened` to `tests/test_test_layout.py`, a declared file, and `check` refused nothing. With `tests/conftest.py` added to the files read, the same copy was refused.
 
@@ -184,14 +184,14 @@ A path argument narrows the comparison too. `bin/test-layout --check tests/test_
         ...
 ```
 
-answer:
+answer: Applied as written: `main` hands `check` every test file and `tests/conftest.py` as peers, whatever the paths name, and a twin is judged where one of its files is among the files named. `Test_check::test_refuses_a_copy_of_a_conftest_helper_in_a_declared_file` was seen red with `check` comparing the named files alone (`mutation-check`, `twins(peers or tests)` made `twins(tests)`). The module docstring names the conftest twin and the peers.
 
 ### 6. `bin/test-layout --check` exits 0 on a path that names nothing
 
 severity: should
 location: `skills/verify/scripts/test_layout.py:404-412`, `skills/verify/scripts/test_layout.py:44-46`, `skills/verify/scripts/test_layout.py:449-455`
 evidence: executed `bin/test tests/test_tmp_r1_probe.py -q -p no:xdist`
-verdict: open
+verdict: fixed c6d2bfc4
 
 Probe P5 ran `main(["--check", "tests/test_no_such_file.py"])`. It returned 0 and printed `0 files read, 0 refused`. A misspelt module name reads as a pass to an agent that reads the exit code, and the docstring gives exit 2 to arguments that cannot be used. `_read_tests` walks a path that does not exist and finds nothing (`test_layout.py:408-418`).
 
@@ -207,14 +207,14 @@ Probe P5 ran `main(["--check", "tests/test_no_such_file.py"])`. It returned 0 an
 # parse.
 ```
 
-answer:
+answer: Applied as written, the docstring's exit line included. `Test_main::test_refuses_a_path_that_names_nothing` was seen red with the check removed by `mutation-check`.
 
 ### 7. Phase 2 removed seven slow-case cases without a line each, and two of their facts are held by nothing
 
 severity: should
 location: `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-2.md:10`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-2.md:25`, `tests/test_conftest.py:39-49`, `tests/conftest.py:841`
 evidence: executed `bin/test tests/test_conftest.py tests/test_ci_gives_the_checks_what_they_need.py -q -p no:xdist`, `git show 6046f062:tests/test_a_slow_case_names_itself.py`
-verdict: open
+verdict: fixed c6d2bfc4
 
 `spec.md` rule 2 and `CONTRIBUTING.md` *The test layout* ask one line per case cut or rewritten, naming what it guarded and what holds it now. `tests/test_a_slow_case_names_itself.py` held eight cases. `phases/phase-2.md` names one, the timeout case that moved, and the other seven appear nowhere in phases 1 to 4 (executed, a listing of every case name gone from its file). Three of the seven guarded `SPECSEAL_CASE_CEILING_S`, which left the tree by design. Two guarded facts that are still in the tree and are now held by nothing.
 
@@ -257,14 +257,14 @@ class Test_module:
         assert conftest.SLOW_CASE_S == 90
 ```
 
-answer:
+answer: Applied as written. The inner run holds a slow failing call, the accepting case asserts both slow calls named and one failure, and `Test_module` pins the value. Seen red by `mutation-check`: `SLOW_CASE_S = 9000`, and the summary hook reading the passed reports alone. `phases/phase-2.md` gains one line for each of the seven cases.
 
 ### 8. CI fails `test_the_durations_file_prices_the_suite` from phase 3 on, and no phase record says so
 
 severity: should
 location: `.test_durations`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/plan.md:55`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/spec.md:122`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-3.md:85`
 evidence: executed `gh run view 39724802385 --json jobs`, `gh run view 39724802385 --log-failed`
-verdict: open
+verdict: deferred plan.md phase 7
 
 CI run 39724802385 at 381d6c0f concluded `failure`. Five of its nine pytest legs failed on two cases. One is the overview census the orchestrator expects. The other is `tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py::test_the_durations_file_prices_the_suite`: "507 of the 7538 collected cases (6.7%) have no price in .test_durations ... over the 5% STALE_SHARE". 8aa42bf8 changes only `plan.md` and `spec.md`, so the target is in the same state.
 
@@ -285,14 +285,14 @@ plan.md, ## Operational impact, the second bullet:
   (`CONTRIBUTING.md` *Running the checks* says how).
 ```
 
-answer:
+answer: Not refreshed per phase, by the orchestrator's decision: `.test_durations` is refreshed once, in phase 7, from the final CI run's `test-durations` artifact. Every batch makes the file stale again, and each refresh costs a full CI run. The frame's text stays, because phase 7 already prunes and refreshes the file. Until then CI fails `test_the_durations_file_prices_the_suite`, and the orchestrator reads every CI run for any other failure.
 
 ### 9. `CONTRIBUTING.md` *The test layout* gives three readings of which definitions need a class, and states the rewrite threshold twice
 
 severity: should
 location: `CONTRIBUTING.md:233-237`, `CONTRIBUTING.md:264-266`, `skills/verify/scripts/test_layout.py:9-11`
 evidence: read `CONTRIBUTING.md:233-237`, `CONTRIBUTING.md:264-266`, `skills/verify/scripts/test_layout.py:9-11`, `skills/verify/scripts/test_layout.py:274-284`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/spec.md:40`
-verdict: open
+verdict: fixed c6d2bfc4
 
 Three texts name which definitions of a module need a class. `spec.md:40` says one class per function. `CONTRIBUTING.md:233-234` says one per "top-level function or class", and `test_layout.py:9-11` says one per top-level definition. The check reports only a public function without a class (`test_layout.py:274-284`). The smith who rebuilds a module in phases 5 to 7 reads `CONTRIBUTING.md`, so it would write a class for each private helper, which the frame does not ask for and the report never names. `CLAUDE.md` *Repo rule: text an agent or a check reads has one reading* asks one reading.
 
@@ -312,7 +312,7 @@ past the threshold.** The threshold is 60 seconds of the module's old files in
 
 The docstring at `test_layout.py:9-11` takes the same wording: "holds one class per public top-level function of that module, `Test_<name>`".
 
-answer:
+answer: Applied as written: `CONTRIBUTING.md` *The test layout* names one class per public top-level function and lets a class or a private function have one, the heading states the threshold once as "past the threshold" with the value in the sentence after it, and the docstring of `test_layout.py` takes the same wording. Prose, so no case was seen red. `spec.md:40` still says "one class per function", which is the framer's sentence to bring to the same wording.
 
 ## Confirmations
 
