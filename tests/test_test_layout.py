@@ -62,7 +62,7 @@ class Test_declared_target:
         assert layout.declared_target(source) == "hooks/x.py"
 
     def test_refuses_a_target_that_is_not_the_first_assignment(self):
-        source = 'import os\n\nreader = 1\nTARGET = "/target"\n'
+        source = 'import os\n\nreader = "/reader"\nTARGET = "/target"\n'
         assert layout.declared_target(source) is None
 
     def test_refuses_a_target_that_is_not_a_string(self):

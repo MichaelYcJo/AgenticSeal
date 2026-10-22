@@ -290,10 +290,6 @@ class _Normalised(ast.NodeTransformer):
     def visit_Name(self, node):
         return ast.copy_location(ast.Name(id="_", ctx=node.ctx), node)
 
-    def visit_arg(self, node):
-        node.arg = "_"
-        return self.generic_visit(node)
-
     def visit_Constant(self, node):
         if isinstance(node.value, str):
             return ast.copy_location(ast.Constant(value=""), node)
