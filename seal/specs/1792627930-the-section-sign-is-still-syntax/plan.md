@@ -1,6 +1,6 @@
 # Implementation Plan: #1005 the section sign is still syntax
 
-Approved <date> by <who>, when `smith` was spawned.
+Approved 2026-10-22 by the orchestrator, under the owner's `automation` answer, the owner's answer to Q6 and the stated defaults of Q1, Q2 and Q3, when `smith` was spawned.
 
 ## Summary
 
