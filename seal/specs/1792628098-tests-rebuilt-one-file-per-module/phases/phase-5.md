@@ -641,7 +641,7 @@ No old gap. `git status` was clean after the batch.
 | m40 | `main` lets an `AttributeError` out of a payload that is no object | SURVIVED | SURVIVED, then red after the row `["x"]` |
 | m41 | `say` prints no JSON | not run | red |
 
-m40 is an old gap: neither file had a payload that parses to a non-empty list. The row added for it, in `Test_main::test_refuses_a_payload_that_names_no_directory`, was seen red on m40 in a batch of one before 95db3498 committed it. `git status` was clean after every run, and the clone stays in the scratch directory outside the tree.
+m40 is an old gap: neither file had a payload that parses to a non-empty list. The row added for it, in `Test_main::test_refuses_a_payload_that_names_no_directory`, was seen red on m40 in a batch of one before 95db3498 committed it. `git status` was clean after every run, and the clone was removed.
 
 **The pairs report** (`executed`). `--pairs` named one pair in the first draft, `Test_stamp`'s two cases stamping one root; the refusing case stamps another now, and `--pairs` names 0 pairs in the new file and 0 over `tests/` at 95db3498.
 
