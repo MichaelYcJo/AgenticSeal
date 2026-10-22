@@ -23,7 +23,13 @@ record template stops carrying comments that every record then copies.
 
 ## Not done
 
-nothing
+`.test_durations` still names the four test cases this work removed; CI's
+measuring runs rewrite that file, and no case fails on a stale entry, so it
+was not edited by hand. `docs/the-review-record.md` *The guarantee* still
+spells the verdicts with dashes, `withheld — <reason>`, where
+`agents/sealer.md` and the template's reader use the colon form; `docs/` is
+the framer's to change through `## Rule changes`, and this work changed no
+sentence there.
 
 ## Fed back into the spec
 
