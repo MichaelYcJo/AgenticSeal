@@ -13,7 +13,8 @@ commits-that-are-not-there/spec.md` *Where the four prompts came from*).
 What changes is only the choice between `deny` and `ask`, and only where the
 harness-written transcript holds the press `hooks/worktree_consent.py`'s
 reader accepts. What the gate stops is unchanged, and
-`tests/test_no_shape_the_base_stops_reads_silent.py` holds that half.
+`tests/test_commit_review_gate.py::Test_main::test_refuses_each_shape_the_base_stops`
+holds that half.
 
 "Under the press" below means a transcript built by the fixture
 `tests/test_the_guard_asks_once_per_session.py` uses, under a projects root

@@ -23,17 +23,19 @@ Three readings are added, all in the stricter direction:
 - **A command substitution** -- `$( … )`, backticks, `<( … )`, `>( … )` -- has
   its body read as a command. A commit there runs in a subshell the walk does
   not place, so it is a stop wherever the session's own repository opted in.
+
+Every case here reads a command with no git and no shell: each row is how
+`hooks/cmdline.py` reads one shape, kept for the phase of #942 that rebuilds
+that module. What the gate decides on a reading is
+`tests/test_commit_review_gate.py`'s, one row per kind.
 """
 
 import functools
-import io
-import json
 import os
 import sys
 
 import pytest
 from conftest import commit_found, load_hook_module
-from test_no_shape_the_base_stops_reads_silent import make_repo
 
 gate = load_hook_module("commit-review-gate.py", "crg_wrappers")
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "hooks"))
@@ -502,25 +504,6 @@ def test_a_commit_behind_a_redirection_and_a_construct_is_unplaced(name, tmp_pat
     assert all(isinstance(inv.base, cmdline.Unresolved) for inv in invocations), name
 
 
-@pytest.mark.parametrize("name", sorted({**REDIRECTED, **REDIRECTED_UNPLACED}))
-def test_the_gate_stops_a_redirected_commit(monkeypatch, capsys, tmp_path, name):
-    command = {**REDIRECTED, **REDIRECTED_UNPLACED}[name]
-    repo = make_repo(tmp_path / "repo")
-    assert say(monkeypatch, capsys, command, repo) == "deny", name
-
-
-@pytest.mark.parametrize(
-    "name", ["2>/dev/null git", "git 2>/dev/null commit", "2>&1 git", "git 2>&1 commit"]
-)
-def test_a_redirected_commit_in_a_declared_repository_is_silent(
-    monkeypatch, capsys, tmp_path, name
-):
-    """The redirection is read past, not read as a construct: a declared
-    repository answers the commit the way it answers `git commit` bare."""
-    repo = make_repo(tmp_path / "repo", declared=True)
-    assert say(monkeypatch, capsys, REDIRECTED[name], repo) == "silent", name
-
-
 def test_a_redirection_whose_target_is_named_git_still_reads_as_git(tmp_path):
     """`spec.md` decision 1. `2>/x/git commit` reads as a git invocation at
     `86256492`, because the reader took the whole word's last component.
@@ -676,42 +659,12 @@ def test_a_redirection_with_nothing_after_it_keeps_the_base_subcommand():
 
 
 @pytest.mark.parametrize("name", sorted(STILL_HANDED))
-def test_a_string_that_is_an_expansion_still_stops(monkeypatch, capsys, tmp_path, name):
-    repo = make_repo(tmp_path / "repo", declared=True)
-    assert say(monkeypatch, capsys, STILL_HANDED[name], repo) == "deny", name
-
-
-def say(monkeypatch, capsys, command, cwd):
-    payload = {
-        "tool_name": "Bash",
-        "tool_input": {"command": command},
-        "cwd": str(cwd),
-        "session_id": "s",
-    }
-    monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps(payload)))
-    gate.main()
-    printed = capsys.readouterr().out.strip()
-    if not printed:
-        return "silent"
-    return json.loads(printed)["hookSpecificOutput"]["permissionDecision"]
-
-
-ALL = {**{k: v[0] for k, v in WRAPPED.items()}, **HANDED, **SUBSTITUTED}
-
-
-@pytest.mark.parametrize("name", sorted(ALL))
-def test_the_gate_stops_it(monkeypatch, capsys, tmp_path, name):
-    """Through `main()`, in an opted-in repository with no declaration."""
-    repo = make_repo(tmp_path / "repo")
-    assert say(monkeypatch, capsys, ALL[name], repo) == "deny", name
-
-
-@pytest.mark.parametrize("name", sorted(CONTROLS))
-def test_a_declared_repository_meets_no_new_stop(monkeypatch, capsys, tmp_path, name):
-    """The ordinary shapes around a substitution or a wrapper cost nothing new:
-    in a declared repository each is silent, as it was at `768377bf`."""
-    repo = make_repo(tmp_path / "repo", declared=True)
-    assert say(monkeypatch, capsys, CONTROLS[name], repo) == "silent", name
+def test_a_string_that_is_an_expansion_is_read_as_unreadable(name, tmp_path):
+    """Each was a deny in a declared repository through the gate's `main`, and
+    an unplaced commit is what that deny reads; `main`'s half is
+    `tests/test_commit_review_gate.py::Test_main`'s."""
+    invocations = found(STILL_HANDED[name], tmp_path)
+    assert any(isinstance(inv.base, cmdline.Unresolved) for inv in invocations), name
 
 
 def test_the_controls_read_no_hidden_commit(tmp_path):
@@ -877,12 +830,17 @@ UNSEEN_CD = [
 
 
 @pytest.mark.parametrize("shape", UNSEEN_CD)
-def test_a_cd_the_walk_did_not_see_stops(monkeypatch, capsys, shape, tmp_path):
-    """Seen red at `3b8522c3`, where each was silent."""
-    session = make_repo(tmp_path / "session", declared=True)
-    u = make_repo(tmp_path / "u")
-    command = shape.format(u=u)
-    assert say(monkeypatch, capsys, command, session) != "silent", command
+def test_a_cd_the_walk_did_not_see_is_read_as_leaving(shape, tmp_path):
+    """Seen red at `3b8522c3`, where each was silent through the gate's `main`
+    from a declared session. A commit read as landing in U, or as unplaced,
+    is what makes that stop; `main`'s half is
+    `tests/test_commit_review_gate.py::Test_main`'s."""
+    session = str(tmp_path / "session")
+    command = shape.format(u=tmp_path / "u")
+    assert any(
+        isinstance(inv.base, cmdline.Unresolved) or inv.base != session
+        for inv in found(command, session)
+    ), command
 
 
 # #716: git's global options that take their value as a SEPARATE word. Each
@@ -909,15 +867,6 @@ def test_a_commit_behind_a_spaced_global_option_is_read(option, tmp_path):
     value = SPACED_OPTIONS[option]
     assert found(f"git {option} {value} commit -m x", tmp_path), option
     assert not found(f"git {option} {value} status", tmp_path), option
-
-
-@pytest.mark.parametrize("declared", [False, True])
-def test_the_gate_judges_a_spaced_config_env(monkeypatch, capsys, tmp_path, declared):
-    """#716's own shape: it stops where any commit stops, and a declared
-    repository meets no new stop. Seen red at `233f0455`, silent undeclared."""
-    repo = make_repo(tmp_path / "repo", declared=declared)
-    command = "git --config-env core.hooksPath=VAR commit -m x"
-    assert say(monkeypatch, capsys, command, repo) == ("silent" if declared else "deny")
 
 
 def test_a_glued_config_env_reads_as_it_did():

@@ -5,7 +5,8 @@ Work item `1791089603-one-heredoc-shape-the-reader-matches-exactly-is-data`,
 `spec.md` *The shape* and scenario S4's reader half. Every admitted string
 here comes back as its reduced text, and every string that fails one clause
 comes back as None, which is what makes the gate read it as before. The
-gate's half of S4 is in `tests/test_one_heredoc_shape_is_data_to_the_commit_gate.py`.
+gate's half of S4 is in `tests/test_one_heredoc_shape_is_data_to_the_commit_gate.py`,
+read without git, and in `tests/test_commit_review_gate.py::Test_main`.
 """
 
 import ast

@@ -640,7 +640,7 @@ def test_a_cd_behind_a_redirection_leaves_the_guard_on_the_tree_the_base_judged(
     session tree and is silent, and the consent writer files the creation
     under the session's clone, while bash runs both in the dirty `w`. That is
     the containment's accepted cost, recorded in #689's spec. The commit gate
-    still lands each `cd` (`test_no_shape_the_base_stops_reads_silent.py`).
+    still lands each `cd` (`test_commit_review_gate.py::Test_main`).
 
     Changed by #689 rather than deleted. It asserted `ask` naming `f.txt`,
     and the consent writer filing under `w`; at the containment it failed on
