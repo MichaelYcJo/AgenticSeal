@@ -1,13 +1,13 @@
 # Handoff: 1792628098-tests-rebuilt-one-file-per-module (#942)
 
-Written 2026-10-22 by the orchestrator, when the owner paused the build after phase 5's first proof under the new rule. The branch is `chore/942-tests-rebuilt-one-file-per-module`, cut from `release/v0.22.3` at 6046f062. The tree this file describes is f74be021 and the commit that adds this file.
+Written 2026-10-22 by the orchestrator, when the owner paused the build after phase 5's first proof under the new rule, and brought up to date on 2026-10-23 by the smith spawn that rebuilt two more modules. The branch is `chore/942-tests-rebuilt-one-file-per-module`, cut from `release/v0.22.3` at 6046f062. The tree this file describes is c9e2f5be and the commit that updates this file.
 
 ## Where the build stands
 
 | Phase | State |
 |---|---|
 | 1 to 4 | built: `bin/test-layout`, the slow-case report, the censuses in `tests/censuses.py`, the helper twins in `tests/conftest.py` |
-| 5 | 4 of 11 modules rebuilt, plus the `mutation-check` batch mode; 7 modules remain |
+| 5 | 6 of 11 modules rebuilt, plus the `mutation-check` batch mode; 5 modules remain |
 | 6 and 7 | not started |
 | Review | round 1 covered phases 1 to 4 at 8aa42bf8; its nine findings are answered, eight fixed at c6d2bfc4 and one deferred to phase 7; no verifying round has run yet |
 
@@ -22,6 +22,8 @@ The phase records `phases/phase-1.md` to `phases/phase-5.md` hold each module's 
 | the commit flow, `tests/e2e/commit/` | c7f38def | 189, 157.5 s serial | 181, 60.1 s serial | 34 mutants under the old rule, 6 under the new; 4 survive both files and are recorded as old gaps |
 | `skills/verify/scripts/mutation_check.py` batch mode | 29cd8544, 4a509442 | none | its cases in `tests/test_mutation_check.py` | 20 mutants, 18 red, the 2 survivors red after two assertions |
 | `hooks/commit-review-gate.py` | 54c9e803, af336515 | 1,000 in three files, 124.3 s serial | 670 in four files, 11.0 s serial | new rule: 32 mutants in one batch, 4 survivors, all red after a row each |
+| `hooks/worktree-guard.py` | 8ecb8d32 | 251 in two files, 39.8 s serial | 210 in the same two, 6.9 s serial | new rule: 35 mutants, all red |
+| `skills/code-review/scripts/chain_check.py` | c9e2f5be | 126 in one file, 52.7 s serial | 186 in the same file, 32.7 s serial | new rule: 37 mutants; 2 survivors, one an equivalent old gap, one red after a row |
 
 Seconds are macOS wall time on a shared machine, from each module's record.
 
@@ -41,7 +43,7 @@ The owner replaced the 100-mutant table on 2026-10-22 (`spec.md` *The proof of e
 - `tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py::test_the_durations_file_prices_the_suite` fails on every CI run of this branch: the rebuilt cases have no price in `.test_durations`. Phase 7 refreshes the file once, from the final CI run's `test-durations` artifact (round 1 finding 8, deferred by the orchestrator).
 - CI run 39748911321 at 281873fb failed on four of nine pytest legs. Lint passed. Two causes:
   - the durations case above, on three legs, with 1,200 of 7,120 collected cases unpriced;
-  - three cases of the rebuilt `tests/test_broad_gate.py`, on Windows shard 1 only: `Test_coverage_line::test_accepts_a_workflow_every_step_of_which_is_answered`, `Test_gate::test_accepts_a_green_tree_and_runs_every_check_in_order` and `Test_uncommitted_line::test_accepts_a_written_file_git_sees_uncommitted`. Each expects the record path in the line `broad-gate: the run is written to seal/specs/...` with forward slashes, and Windows prints it with backslashes. The expected text must be built with the platform's separator, or the printed path normalised, whichever the old cases did.
+  - three cases of the rebuilt `tests/test_broad_gate.py`, on Windows shard 1 only, each expecting a printed path with forward slashes where Windows prints backslashes: two the record's path, one the workflow's. 0e6a02b3 builds both expectations with the platform's separator, as the cases at 6046f062 did; no Windows leg has run since (`phases/phase-5.md` *The Windows paths*).
 
 ## Decisions taken today
 
@@ -51,9 +53,9 @@ The owner replaced the 100-mutant table on 2026-10-22 (`spec.md` *The proof of e
 
 ## Left for the next session
 
-1. Fix the three Windows failures in `tests/test_broad_gate.py` named above, first, and see them pass on the Windows leg.
-2. Rebuild the seven remaining phase 5 modules, in phase 5's order: `hooks/worktree-guard.py`, `skills/code-review/scripts/chain_check.py`, `skills/verify/scripts/pact_check.py`, `hooks/root-migrate.py`, `skills/verify/scripts/seal.py`, `evals/scripts/noninferiority.py`, `skills/verify/scripts/unverified_check.py`. `hooks/worktree-guard.py` is next: its two old files hold 251 cases, 40.9 s serial, many of them prompt texts in two languages, mixed with `hooks/worktree_consent.py`'s cases.
-3. `CONTRIBUTING.md` *The test layout* needs the verdict `left for its module` that `spec.md` rule 2 gained at f74be021, if it restates the verdict table; the next smith checks.
+1. See the three `tests/test_broad_gate.py` cases 0e6a02b3 fixed pass on the Windows leg of the next CI run.
+2. Rebuild the five remaining phase 5 modules, in phase 5's order: `skills/verify/scripts/pact_check.py`, `hooks/root-migrate.py`, `skills/implement/scripts/seal.py`, `evals/scripts/noninferiority.py`, `skills/verify/scripts/unverified_check.py`. `pact_check.py` is next: `tests/test_pact_check.py` priced 107.1 Windows seconds at 8aa42bf8.
+3. A `## Rule changes` item, the framer's, for `docs/worktree-guard-spec.md`: five case names the worktree guard's rebuild retired, at lines 292, 319, 322, 582, 583 and 611, and the `check:` line at 343, which does not name `tests/test_worktree_guard.py` (`overview.md` *Not done*).
 4. Phase 6, the remaining shipped modules one commit per directory, and phase 7, `--all`, the `.test_durations` refresh and the closing memo.
 5. A verifying round over round 1's fixes and phase 5, then a round over phases 6 and 7, the broad gate, the sealer, the pull request into `release/v0.22.3`, and then the release preparation.
 

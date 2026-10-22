@@ -23,9 +23,9 @@ The suite grew to 7,466 cases and four thousand Windows seconds in files named a
 
 ## Not done
 
-Phase 4 left seven survived mutations of `tests/conftest.py` helpers (h2, h4, h6, h12, h14, h21, h23). Each closes in the batch that rebuilds the module whose cases reach it; none closed with `broad_gate.py`, `seal_stamp.py`, the commit flow, `hooks/commit-review-gate.py` or `hooks/worktree-guard.py`, as `phases/phase-5.md` says.
+Phase 4 left seven survived mutations of `tests/conftest.py` helpers (h2, h4, h6, h12, h14, h21, h23). Each closes in the batch that rebuilds the module whose cases reach it; none closed with `broad_gate.py`, `seal_stamp.py`, the commit flow, `hooks/commit-review-gate.py`, `hooks/worktree-guard.py` or `chain_check.py`, as `phases/phase-5.md` says.
 
-Phase 5 has rebuilt five of its eleven modules, `skills/verify/scripts/broad_gate.py`, `skills/verify/scripts/seal_stamp.py`, the commit flow into `tests/e2e/commit/`, `hooks/commit-review-gate.py` and `hooks/worktree-guard.py`. The other six remain for the next phase 5 spawn: `chain_check.py`, `pact_check.py`, `hooks/root-migrate.py`, `seal.py`, `evals/scripts/noninferiority.py` and `unverified_check.py`.
+Phase 5 has rebuilt six of its eleven modules, `skills/verify/scripts/broad_gate.py`, `skills/verify/scripts/seal_stamp.py`, the commit flow into `tests/e2e/commit/`, `hooks/commit-review-gate.py`, `hooks/worktree-guard.py` and `skills/code-review/scripts/chain_check.py`. The other five remain for the next phase 5 spawn: `skills/verify/scripts/pact_check.py`, `hooks/root-migrate.py`, `skills/implement/scripts/seal.py`, `evals/scripts/noninferiority.py` and `skills/verify/scripts/unverified_check.py`.
 
 `docs/worktree-guard-spec.md` names five case names the worktree guard's rebuild retired, at lines 292, 319, 322, 582, 583 and 611, and its `check:` line at 343 does not name `tests/test_worktree_guard.py`; each moves through a `## Rule changes` item the framer writes (`phases/phase-5.md` *`hooks/worktree-guard.py`*).
 
