@@ -47,7 +47,11 @@ PLACED = (
     "class Test_module:\n"
     "    def test_imports(self):\n"
     "        assert os\n"
+    "\n"
+    "\n"
+    "test_census = census_case(TARGET)\n"
 )
+CENSUS_LINE = "\n\ntest_census = census_case(TARGET)\n"
 HELPER = "def read(path):\n    return path\n"
 UNDECLARED = "import os\n\n\ndef test_a():\n    assert os\n"
 
@@ -147,7 +151,7 @@ class Test_check:
         assert refused == ["refused: tests/test_old.py: declares no TARGET"]
 
     def test_accepts_free_names_for_a_flow_and_a_document(self):
-        scenario = PLACED.split("\n\nclass Test_module")[0] + "\n"
+        scenario = PLACED.split("\n\nclass Test_module")[0] + CENSUS_LINE
         flow = scenario.replace("class Test_parse", "class TestOneCommit")
         document = PLACED.replace("hooks/x.py", "docs/x.md").replace(
             "class Test_parse", "class TestTheHeading"
@@ -201,6 +205,36 @@ class Test_check:
             in reported
         )
 
+    def test_refuses_a_declared_file_that_runs_no_census(self):
+        source = PLACED.replace(CENSUS_LINE, "\n")
+        refused, _ = checked({"tests/test_x.py": source})
+        assert refused == [
+            "refused: tests/test_x.py: does not assign test_census = "
+            "census_case(TARGET), so no census judges hooks/x.py"
+        ]
+        other = PLACED.replace("census_case(TARGET)", 'census_case("hooks/y.py")')
+        assert checked({"tests/test_x.py": other})[0] == refused
+        qualified = PLACED.replace("census_case(", "conftest.census_case(")
+        assert checked({"tests/test_x.py": qualified}) == ([], [])
+
+    def test_refuses_a_copy_of_a_conftest_helper_in_a_declared_file(self):
+        tests = {"tests/test_x.py": PLACED + "\n\n" + HELPER}
+        peers = {**tests, "tests/conftest.py": HELPER, "tests/test_a.py": HELPER}
+        refused, _ = layout.check(
+            tests, TRACKED, {"hooks/x.py": MODULE}.get, peers=peers
+        )
+        assert refused == [
+            "refused: read is defined byte-identically in tests/conftest.py, "
+            "tests/test_a.py, tests/test_x.py"
+        ]
+        alone = {"tests/conftest.py": HELPER, "tests/test_a.py": HELPER}
+        assert layout.check(
+            {"tests/test_x.py": PLACED},
+            TRACKED,
+            {"hooks/x.py": MODULE}.get,
+            peers={**alone, "tests/test_x.py": PLACED},
+        ) == ([], [])
+
     def test_refuses_a_target_git_does_not_track(self):
         refused, _ = checked({"tests/test_x.py": PLACED}, tracked={"tests/test_x.py"})
         assert refused == [
@@ -250,6 +284,21 @@ class Test_pairs:
         )
         assert layout.pairs({"tests/test_x.py": source}) == []
 
+    def test_accepts_the_rest_of_a_call_once_its_local_argument_is_left_out(self):
+        source = PLACED.replace(
+            'assert x.parse("a") == 1',
+            'text = "a"\n        assert x.parse(text, strict=True) == 1',
+        ).replace(
+            'assert x.parse("") is None',
+            'text = ""\n        assert x.parse(text, strict=True) is None',
+        )
+        assert layout.pairs({"tests/test_x.py": source}) == [
+            "pair: tests/test_x.py::Test_parse: test_accepts_text and "
+            "test_refuses_nothing call parse with equal arguments"
+        ]
+        other = source.replace("strict=True) is None", "strict=False) is None")
+        assert layout.pairs({"tests/test_x.py": other}) == []
+
 
 class Test_main:
     def test_accepts_this_repositorys_tests(self, capsys):
@@ -286,6 +335,11 @@ class Test_main:
             layout.main(["--pairs", "--all"])
         assert stopped.value.code == 2
         assert "--all" in capsys.readouterr().err
+
+    def test_refuses_a_path_that_names_nothing(self, capsys):
+        missing = os.path.join(ROOT, "tests", "test_no_such_file.py")
+        assert layout.main(["--check", missing]) == 2
+        assert f"{missing} names no file or directory" in capsys.readouterr().out
 
     def test_refuses_a_directory_outside_a_repository(self, monkeypatch, capsys):
         monkeypatch.setattr(layout, "_toplevel", lambda start: None)

@@ -21,6 +21,7 @@ against the tree without `tests/censuses.py`, and `mutation-check` broke
 each census's refusal in turn and watched a case of its class fail.
 """
 
+import ast
 import importlib.util
 import inspect
 import os
@@ -98,7 +99,15 @@ class Test_judge:
             (
                 "x = t.splitlines()  # exempt from splitlines: git output\n"
                 "# exempt from splitlines: git output",
-                [["hooks/x.py:1", "splitlines"], ["hooks/x.py:2", "splitlines"]],
+                [
+                    ["hooks/x.py:1", "splitlines"],
+                    ["hooks/x.py:2", "splitlines"],
+                    ["hooks/x.py:1", "splitlines"],
+                ],
+            ),
+            (
+                "x = 1  # exempt from splitlines: git output\n",
+                [["hooks/x.py:1", "splitlines"]],
             ),
             (
                 "# exempt from encoding: git output\nx = t.splitlines()\n",
@@ -109,7 +118,12 @@ class Test_judge:
                 [["hooks/x.py:2", "splitlines"]],
             ),
         ],
-        ids=["at-the-end-or-ending-a-line", "from-another-census", "without-a-reason"],
+        ids=[
+            "at-the-end-or-ending-a-line",
+            "ending-an-unflagged-line",
+            "from-another-census",
+            "without-a-reason",
+        ],
     )
     def test_refuses_an_exemption_out_of_place(self, tmp_path, text, named):
         found = censuses.judge("hooks/x.py", plant(tmp_path, "hooks/x.py", text))
@@ -584,6 +598,18 @@ class Test_splitlines:
             "`# exempt from splitlines: <what it splits>` on its own line above it"
         ]
 
+    def test_refuses_a_second_call_under_one_exemption(self, tmp_path):
+        source = (
+            "def reader(a, b):\n"
+            "    # exempt from splitlines: git output\n"
+            "    return a.splitlines() + b.splitlines()\n"
+        )
+        root = plant(tmp_path, "skills/new.py", source)
+        assert censuses.splitlines("skills/new.py", root) == [
+            "skills/new.py:3: splitlines: two calls on one line, and an "
+            "exemption names one; put each call on a line of its own"
+        ]
+
 
 class Test_coordinate_grammar:
     def test_accepts_another_pattern_and_a_file_outside_the_shipped_directories(
@@ -736,13 +762,21 @@ class Test_module:
     def test_every_file_no_module_file_declares_meets_every_census(self):
         """The censuses over every tracked file whose module file does not run
         them itself: the documents, and every module not yet in the layout."""
-        tracked, _missing = on_disk(ROOT, git_listing(ROOT, "ls-files"))
+        tracked, _missing = on_disk(ROOT, git_listing(ROOT, "ls-files", check=True))
+        assert tracked, (
+            "git ls-files listed no tracked file, so the sweep judged nothing"
+        )
         declared = set()
         for directory, _dirs, names in os.walk(os.path.join(ROOT, "tests")):
             for name in names:
                 if name.startswith("test_") and name.endswith(".py"):
                     with open(os.path.join(directory, name), encoding="utf-8") as f:
-                        declared.add(layout.declared_target(f.read()))
+                        source = f.read()
+                    # Only a file that runs the censuses takes its target out
+                    # of the sweep: one that declares and runs none leaves it
+                    # here, judged.
+                    if layout.runs_the_censuses(ast.parse(source)):
+                        declared.add(layout.declared_target(source))
         found = [
             p for rel in tracked if rel not in declared for p in censuses.judge(rel)
         ]
@@ -777,7 +811,6 @@ def tables_matched_by_dotted_name():
     """`{name: table}` for every table `judge_call` tests `target in`, read
     from `judge_call`'s own source, so a table added there later is read
     here too."""
-    import ast
 
     tree = ast.parse(inspect.getsource(censuses.judge_call))
     names = {

@@ -230,10 +230,10 @@ name without `.py`, with each hyphen written as an underscore, and where two
 shipped modules share a stem, the parent directory's name goes before it.
 The first assignment after the file's imports is
 `TARGET = "<tracked path>"`. A file whose cases run a `bin/` command names
-the script that command runs. The file holds one class per top-level
-function or class of the module, `Test_<name>`, with the name spelt as the
-code spells it, and
-each such class holds a case named `test_accepts_<what>` for good input and
+the script that command runs. The file holds one class per public top-level
+function of the module, `Test_<name>`, with the name spelt as the code spells
+it, and a class or a private function of the module may have a class too.
+Each such class holds a case named `test_accepts_<what>` for good input and
 one named `test_refuses_<what>` for bad input. What the module does as a
 whole goes in `Test_module`. A flow across modules lives under
 `tests/e2e/<flow>/`: its `TARGET` names the command or hook the flow starts
@@ -261,8 +261,8 @@ table shows that every mutation it kills is killed by another case, or where
 the behaviour it guarded has left the tree.
 check: none reader: the warden at review
 
-**A module's tests are written anew from the code when its old files cost a
-minute.** The threshold is 60 seconds of the module's old files in
+**A module's tests are written anew from the code when its old files cost
+past the threshold.** The threshold is 60 seconds of the module's old files in
 `.test_durations`, or a pair `bin/test-layout --pairs` names inside one of
 the module's classes. Every other module's old cases are placed and merged.
 A module written anew takes its accepting and refusing cases from reading

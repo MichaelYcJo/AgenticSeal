@@ -23,6 +23,14 @@
 
 - One case of the slow-case module was not `conftest.py`'s. `test_every_pytest_leg_has_a_timeout_and_the_job_reads_it` reads `.github/workflows/test.yml`, and it already imported its readers from `tests/test_ci_gives_the_checks_what_they_need.py`. It moved there, to the cases that read the same workflow, and not to `tests/test_conftest.py`.
 - The ceiling failed a slow passing call and left a failing one its own report. The report names every call past `SLOW_CASE_S`, passing or failing: a report has no outcome of its own to protect.
+- The other seven cases of the slow-case module, each with what it guarded and what holds it now (added by round 1's fix pass, finding 7):
+  - `test_a_call_over_the_ceiling_is_named_with_its_seconds`: rewritten; a call past the value named with its seconds is held by `tests/test_conftest.py::Test_slow_lines::test_accepts_a_call_past_the_value_named_with_its_seconds`.
+  - `test_a_call_at_or_under_the_ceiling_says_nothing`: rewritten; held by `Test_slow_lines::test_refuses_a_call_at_the_value_and_a_setup_past_it`.
+  - `test_the_ceiling_is_the_one_q6_set`: rewritten; the value 90 is held by `Test_module::test_the_value_is_the_one_work_item_1791270165_set`.
+  - `test_the_variable_raises_the_ceiling_for_one_run_and_unset_is_ninety`: cut; `SPECSEAL_CASE_CEILING_S` left the tree, and `git grep` finds no reader of it.
+  - `test_an_empty_variable_is_unset_and_a_decimal_is_seconds`: cut, for the same reason.
+  - `test_a_ceiling_of_zero_or_less_is_refused_naming_the_variable`: cut, for the same reason.
+  - `test_the_hook_fails_a_slow_passing_call_and_nothing_else`: rewritten to the report; a slow call is named, failing or passing, and nothing fails for it, held by `Test_pytest_terminal_summary::test_accepts_a_slow_case_named_and_failing_nothing`, whose inner run holds a slow failing call.
 - `.test_durations` lost the slow-case module's 8 ids through one `Edit`, whose match on the 8 lines is what asserts each id was present. The frame names a script, and the prompt for this build forbids a script that writes a repository file.
 
 **The cases, and how each was seen red** (`executed`). Against the tree before the change, `tests/test_conftest.py` and `tests/test_release_report.py` failed 6 of their 8 cases. The two that passed are refusals of a state the old code also refused: the quick case not named, and the exit on an unreadable tree. `bin/mutation-check` turned each red.

@@ -44,6 +44,11 @@ def test_slow():
     time.sleep(0.6)
 
 
+def test_slow_and_failing():
+    time.sleep(0.6)
+    assert False, "its own failure"
+
+
 def test_quick():
     pass
 """
@@ -95,14 +100,22 @@ class Test_slow_lines:
 
 
 class Test_pytest_terminal_summary:
-    def test_accepts_a_slow_case_named_in_a_run_that_passes(self, inner_run):
+    def test_accepts_a_slow_case_named_and_failing_nothing(self, inner_run):
         code, out = inner_run
-        assert code == 0, out
+        assert code == 1, out
+        assert "1 failed, 2 passed" in out, out
+        assert "its own failure" in out, out
         assert "slow case: test_inner.py::test_slow ran " in out, out
+        assert "slow case: test_inner.py::test_slow_and_failing ran " in out, out
 
     def test_refuses_to_name_a_quick_case(self, inner_run):
         _, out = inner_run
         assert "test_quick ran" not in out, out
+
+
+class Test_module:
+    def test_the_value_is_the_one_work_item_1791270165_set(self):
+        assert conftest.SLOW_CASE_S == 90
 
 
 class Test_census_case:

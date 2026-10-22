@@ -29,9 +29,11 @@ a record with `real_identifiers`' own readers.
 
 import ast
 import fnmatch
+import io
 import os
 import posixpath
 import re
+import tokenize
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 EXEMPTION = re.compile(r"^\s*#\s*exempt from ([a-z_]+):\s*\S")
@@ -87,7 +89,29 @@ def _held(name, rel, text, flagged):
         f"because {name} does not flag the line below it; remove the comment"
         for number in sorted(set(exempted) - set(flagged))
     ]
+    if rel.endswith(".py"):
+        out += [
+            f"{rel}:{number}: {name}: the exemption ends a line, where the "
+            "formatter moves it; put it on its own line above the line it exempts"
+            for number in _trailing(text, name)
+        ]
     return out
+
+
+def _trailing(text, name):
+    """The line numbers where an exemption from NAME ends a line of code.
+    Python text only; text tokenize cannot read yields none."""
+    try:
+        tokens = list(tokenize.generate_tokens(io.StringIO(text).readline))
+    except (tokenize.TokenError, SyntaxError):
+        return []
+    return [
+        token.start[0]
+        for token in tokens
+        if token.type == tokenize.COMMENT
+        and token.line[: token.start[1]].strip()
+        and name in EXEMPTION.findall(token.string)
+    ]
 
 
 def _python(rel, root, under=None):
@@ -652,19 +676,30 @@ def splitlines(rel, root=None):
     text = _python(rel, root, SHIPPED)
     if text is None:
         return []
+    calls = [
+        node.func.end_lineno
+        for node in ast.walk(ast.parse(text, rel))
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and node.func.attr == "splitlines"
+    ]
     flagged = {
-        node.func.end_lineno: (
+        line: (
             "`.splitlines(` ends a line where GFM does not; a reader of "
             "markdown or record text reads `hooks/blocks.py#gfm_lines`, and a "
             "call over any other text puts "
             "`# exempt from splitlines: <what it splits>` on its own line above it"
         )
-        for node in ast.walk(ast.parse(text, rel))
-        if isinstance(node, ast.Call)
-        and isinstance(node.func, ast.Attribute)
-        and node.func.attr == "splitlines"
+        for line in calls
     }
-    return _held("splitlines", rel, text, flagged)
+    # An exemption names one call, so a second call on its line would pass
+    # under it; the old census counted calls per unit for the same reason.
+    doubled = sorted({line for line in calls if calls.count(line) > 1})
+    return _held("splitlines", rel, text, flagged) + [
+        f"{rel}:{line}: splitlines: two calls on one line, and an exemption "
+        "names one; put each call on a line of its own"
+        for line in doubled
+    ]
 
 
 # --- coordinate_grammar and heading_rule (#867) --------------------------------

@@ -6,9 +6,10 @@
   test-layout --pairs [paths]         name two cases of a class that look alike
 
 #942. A test file names the module it tests once, as the first assignment
-after its imports, `TARGET = "<tracked path>"`, and holds one class per
-top-level definition of that module, `Test_<name>`, each with a case named
-`test_accepts_...` and one named `test_refuses_...`. `CONTRIBUTING.md`
+after its imports, `TARGET = "<tracked path>"`, holds one class per public
+top-level function of that module, `Test_<name>`, each with a case named
+`test_accepts_...` and one named `test_refuses_...`, and ends with
+`test_census = census_case(TARGET)`. `CONTRIBUTING.md`
 *The test layout* states the rules; this script is their one reader. It
 reads `tests/**/test_*.py` under the repository the first path, or the
 current directory, is in.
@@ -22,8 +23,12 @@ current directory, is in.
   another tracked module outside `tests/` has the same stem
   a class `Test_<name>` naming no top-level definition of TARGET
   a class lacking a `test_accepts_` case or a `test_refuses_` case
+  a file that declares TARGET and does not assign
+  `test_census = census_case(TARGET)`
   a non-test top-level function defined byte-identically in two test files,
-  where one of them declares TARGET
+  or in a test file and `tests/conftest.py`, where one of them declares
+  TARGET; the helpers of the paths named are compared with every test file
+  and `tests/conftest.py`, whatever the paths name
 
 `Test_module` holds what the module does as a whole and needs no pair. A
 file under `tests/e2e/` tests a flow: its classes are scenarios, free-named,
@@ -43,7 +48,8 @@ are kept, so two cases calling different methods of one object differ.
 
 Exit codes: `--check` 0 when nothing is refused and 1 when something is.
 `--pairs` 0 whatever it prints. 2 for either: the directory is not inside a
-git repository, or the arguments do not parse.
+git repository, a path names no file or directory, or the arguments do not
+parse.
 """
 
 import argparse
@@ -203,12 +209,41 @@ def _missing_kinds(rel, cls):
     ]
 
 
-def check(tests, tracked, read, every=False):
+CENSUS_CASE = "test_census = census_case(TARGET)"
+
+
+def runs_the_censuses(tree):
+    """Whether TREE assigns `test_census` a call of `census_case` on
+    `TARGET` at its top level, called bare or as `conftest.census_case`."""
+    for node in tree.body:
+        if not isinstance(node, ast.Assign) or len(node.targets) != 1:
+            continue
+        name, call = node.targets[0], node.value
+        if not (isinstance(name, ast.Name) and name.id == "test_census"):
+            continue
+        if not isinstance(call, ast.Call) or len(call.args) != 1:
+            continue
+        func = call.func
+        called = func.id if isinstance(func, ast.Name) else getattr(func, "attr", None)
+        argument = call.args[0]
+        if (
+            called == "census_case"
+            and isinstance(argument, ast.Name)
+            and argument.id == TARGET_NAME
+        ):
+            return True
+    return False
+
+
+def check(tests, tracked, read, every=False, peers=None):
     """`(refused, reported)`, two lists of lines, for TESTS, `{path: source}`.
 
     TRACKED is the set of paths git tracks, and READ returns a tracked
     path's source or None. With EVERY, a file that declares no TARGET and a
-    twin between two such files are refused rather than reported.
+    twin between two such files are refused rather than reported. PEERS,
+    `{path: source}`, are the files whose helpers TESTS' helpers are compared
+    with, TESTS where none are given; a twin is judged only where one of its
+    files is in TESTS.
     """
     shipped = sorted(
         p for p in tracked if p.endswith(".py") and not p.startswith(TESTS)
@@ -232,6 +267,11 @@ def check(tests, tracked, read, every=False):
             )
             continue
         declared.add(rel)
+        if not runs_the_censuses(tree):
+            refused.append(
+                f"refused: {rel}: does not assign {CENSUS_CASE}, "
+                f"so no census judges {target}"
+            )
         if target not in tracked:
             refused.append(
                 f"refused: {rel}: {TARGET_NAME} {target} is not a file git tracks"
@@ -282,7 +322,9 @@ def check(tests, tracked, read, every=False):
                 reported.append(
                     f"report: {target}: function {name} has no class {CLASS_PREFIX}{name}"
                 )
-    for name, files in twins(tests):
+    for name, files in twins(peers or tests):
+        if not set(files) & set(tests):
+            continue
         line = f"{name} is defined byte-identically in {', '.join(files)}"
         if every or declared.intersection(files):
             refused.append(f"refused: {line}")
@@ -310,9 +352,11 @@ def _body(case):
 
 
 def _calls(case, function):
-    """Each call of FUNCTION in CASE, dumped without its callee, leaving out
-    a call whose arguments read a name the case assigns or takes as a
-    parameter: two cases passing a local `source` pass two values."""
+    """Each call of FUNCTION in CASE, dumped without its callee and without
+    each argument that reads a name the case assigns or takes as a
+    parameter: two cases passing a local `source` pass two values, and the
+    rest of the call is still compared. A call every argument of which is
+    left out has nothing left to compare, and is not dumped."""
     local = {arg.arg for arg in ast.walk(case.args) if isinstance(arg, ast.arg)}
     local |= {
         node.id
@@ -327,16 +371,22 @@ def _calls(case, function):
         named = (isinstance(callee, ast.Name) and callee.id == function) or (
             isinstance(callee, ast.Attribute) and callee.attr == function
         )
-        arguments = ast.Tuple(elts=[*node.args, *node.keywords], ctx=ast.Load())
-        reads = {n.id for n in ast.walk(arguments) if isinstance(n, ast.Name)}
-        if named and not reads & local:
-            found.add(
-                ast.dump(
-                    ast.Call(
-                        func=ast.Name(id="_"), args=node.args, keywords=node.keywords
-                    )
-                )
+        if not named:
+            continue
+
+        def own(argument):
+            return (
+                not {n.id for n in ast.walk(argument) if isinstance(n, ast.Name)}
+                & local
             )
+
+        args = [argument for argument in node.args if own(argument)]
+        keywords = [keyword for keyword in node.keywords if own(keyword.value)]
+        if (node.args or node.keywords) and not (args or keywords):
+            continue
+        found.add(
+            ast.dump(ast.Call(func=ast.Name(id="_"), args=args, keywords=keywords))
+        )
     return found
 
 
@@ -452,6 +502,13 @@ def main(argv=None):
     if root is None:
         print(f"test-layout: {start} is not inside a git repository", flush=True)
         return 2
+    missing = [path for path in args.paths if not os.path.exists(path)]
+    if missing:
+        print(
+            f"test-layout: {', '.join(missing)} names no file or directory",
+            flush=True,
+        )
+        return 2
     tests = _read_tests(root, args.paths or [os.path.join(root, "tests")])
     if args.pairs:
         lines = pairs(tests)
@@ -459,8 +516,18 @@ def main(argv=None):
             print(line)
         print(f"test-layout: {len(tests)} files read, {len(lines)} pairs", flush=True)
         return 0
+    # Helpers are compared over every test file and `tests/conftest.py`,
+    # whatever the paths name; the paths choose the files judged.
+    peers = _read_tests(root, [os.path.join(root, "tests")])
+    shared = _read(root, "tests/conftest.py")
+    if shared is not None:
+        peers["tests/conftest.py"] = shared
     refused, reported = check(
-        tests, _tracked(root), lambda rel: _read(root, rel), every=args.all
+        tests,
+        _tracked(root),
+        lambda rel: _read(root, rel),
+        every=args.all,
+        peers=peers,
     )
     for line in refused + reported:
         print(line)
