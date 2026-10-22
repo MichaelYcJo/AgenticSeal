@@ -543,3 +543,19 @@ def test_a_newer_pull_request_run_cancels_the_older_and_no_other_run_waits():
             f"`{CANCEL_ON_PULL_REQUEST}` cancels a pull request's run and "
             "no other"
         )
+
+
+def test_every_pytest_leg_has_a_timeout_and_the_job_reads_it():
+    """Each `pytest` leg of `test.yml` carries a `timeout-minutes` past which
+    GitHub fails the job (#841). It moved here from the slow-case module when
+    that module's ceiling became a report (#942)."""
+    text = read("test.yml")
+    entries = matrix_include_entries(text)
+    assert entries
+    budgets = [e.get("timeout", "") for e in entries]
+    assert all(b.isdigit() for b in budgets), f"a leg with no timeout: {entries}"
+    assert all(int(b) > 0 for b in budgets), entries
+    job = jobs(text)["pytest"]
+    assert "\n    timeout-minutes: ${{ matrix.timeout }}\n" in job, (
+        "the job does not read the matrix's timeout"
+    )

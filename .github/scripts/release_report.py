@@ -23,6 +23,10 @@ into `main` and appends what it prints to the job's summary.
   `<document>`        the bytes of `CLAUDE.md`, `CONTRIBUTING.md` and each
                       `docs/*.md`, each CRLF counted as the LF git stores
 
+Under it, a second table under `### Test files against <TAG>` gives one row
+per test file `.test_durations` prices in either tree: its cases and seconds
+at the tag and now, slowest now first.
+
 It fails nothing: no row is held to a number, and its reader is whoever
 prepares the release. A leg's minutes compare one run with one run, which
 swing on the same code, and the table's header says so.
@@ -57,6 +61,11 @@ HEADER = (
     "each document's size, at the last release tag and now. Nothing here "
     "fails: a leg's minutes compare one run with one run, which swing on the "
     "same code, so no row is a verdict."
+)
+FILES_HEADER = (
+    "Each test file's priced cases and seconds in `.test_durations`, at the "
+    "last release tag and now, slowest now first. A report and never a "
+    "ceiling: a heavily exercised module needs the cases it needs."
 )
 
 
@@ -102,6 +111,12 @@ def preloads(root, kernel):
 def suite_seconds(root):
     """The seconds `.test_durations` in the tree at `root` prices every case
     at, summed, or Unreadable."""
+    return sum(durations(root).values())
+
+
+def durations(root):
+    """`.test_durations` in the tree at `root`, `{case id: seconds}`, or
+    Unreadable."""
     path = os.path.join(root, DURATIONS)
     try:
         with open(path, encoding="utf-8") as handle:
@@ -114,7 +129,48 @@ def suite_seconds(root):
         raise Unreadable(
             f"{DURATIONS} under {root} is no object of case ids to seconds"
         )
-    return sum(data.values())
+    return data
+
+
+def by_file(priced):
+    """`{test file: (cases, seconds)}` for `durations`' reading `priced`."""
+    files = {}
+    for case, seconds in priced.items():
+        cases, total = files.get(case.split("::")[0], (0, 0.0))
+        files[case.split("::")[0]] = (cases + 1, total + seconds)
+    return files
+
+
+def module_rows(at, now):
+    """One table row per test file `.test_durations` prices in the tree at
+    `at` or the tree at `now`: its cases and seconds in each, slowest now
+    first, a file absent from one tree shown absent there."""
+    old, new = by_file(durations(at)), by_file(durations(now))
+
+    def slowest(path):
+        return (-new.get(path, (0, 0.0))[1], -old.get(path, (0, 0.0))[1], path)
+
+    rows = []
+    for path in sorted(set(old) | set(new), key=slowest):
+        cells = [f"`{path}`"]
+        for side in (old, new):
+            cases, seconds = side.get(path, (None, None))
+            cells += [cell(cases), cell(seconds, 1)]
+        rows.append("| " + " | ".join(cells) + " |")
+    return rows
+
+
+def files_table(tag, rows):
+    """The test-file table printed under the release table."""
+    lines = [
+        f"### Test files against {tag}",
+        "",
+        FILES_HEADER,
+        "",
+        f"| Test file | Cases at {tag} | Seconds at {tag} | Cases now | Seconds now |",
+        "|---|---|---|---|---|",
+    ]
+    return "\n".join(lines + rows) + "\n"
 
 
 def documents(root):
@@ -245,7 +301,9 @@ def main(argv=None):
         sys.stderr.write(f"release-report: {error}. Nothing was compared.\n")
         return 2
     jobs_at, jobs_now = leg_minutes(args.ci_jobs_at), leg_minutes(args.ci_jobs)
+    rows = module_rows(os.path.abspath(args.at), os.path.abspath(args.root))
     sys.stdout.write(table(args.against, at, now, jobs_at, jobs_now))
+    sys.stdout.write("\n" + files_table(args.against, rows))
     return 0
 
 

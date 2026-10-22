@@ -152,14 +152,14 @@ table against the last release tag and fails nothing; and the hygiene
 workflow that guards releases. A change to any hook needs a test that fails
 without it, as the counterfeit rule below says.
 
-**A case has a budget, and so does each leg.** A case whose call runs longer
-than `CASE_CEILING_S` in `tests/conftest.py` fails with one line naming it
-and its seconds, locally as in CI. The contributor makes it cheaper, splits
-it, or samples what it walks. On a machine running other suites at the same
-time, a case can pass that ceiling on load alone;
-`SPECSEAL_CASE_CEILING_S=<seconds>` raises it for one run, and CI never sets
-it. The ceiling reads a case's call only: time spent building a fixture in
-setup is not held to it. Each `pytest` leg in `test.yml` carries a
+**A slow case is named, and each leg has a budget.** A case whose call runs
+longer than `SLOW_CASE_S` in `tests/conftest.py` is named with its seconds in
+the run's terminal summary, locally as in CI, and nothing fails for it: a
+loaded machine moves a call by four times, so a time reading is a report.
+The contributor who sees a case named makes it cheaper, splits it, or samples
+what it walks. The report reads a case's call only: time spent building a
+fixture in setup is the module's, and the release table's row for each test
+file is where that shows. Each `pytest` leg in `test.yml` carries a
 `timeout-minutes`, and the comment beside the values says which runs they
 were set from.
 
