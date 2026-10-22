@@ -8,7 +8,8 @@ a heading that stands mid-line read as a line of its own, a line number one
 off the one `grep -n` prints, and, where the reader wrote the text back, the
 character turned into a line break.
 
-One splitter, `skills/verify/scripts/unverified_check.py#gfm_lines`, is what
+One splitter, `hooks/blocks.py#gfm_lines`, which `unverified_check.py` hands
+its callers, is what
 every such reader now reads, and two readers of one text split it alike. The
 scenarios are `seal/specs/1790655302-every-reader-ends-a-line-where-gfm-does/
 spec.md`'s, numbered as it numbers them, and each was seen red at `2e392d46`
@@ -31,7 +32,6 @@ READER = os.path.join(ROOT, "skills", "verify", "scripts", "unverified_check.py"
 CHECKER = os.path.join(ROOT, "skills", "verify", "scripts", "coordinates.py")
 ARM_CHECK = os.path.join(ROOT, "skills", "verify", "scripts", "arm_check.py")
 FOLD_CHECK = os.path.join(ROOT, "skills", "settle", "scripts", "fold_check.py")
-BLOCKS = os.path.join(ROOT, "hooks", "blocks.py")
 
 # Every character `str.splitlines` ends a line at and GFM does not.
 SPLITLINES_ONLY = [chr(c) for c in (0x0B, 0x0C, 0x1C, 0x1D, 0x1E, 0x85, 0x2028, 0x2029)]
@@ -79,22 +79,18 @@ def test_the_splitter_is_splitlines_on_a_text_without_the_eight():
 
 
 def test_every_copy_of_the_splitter_is_the_readers():
-    """S17. `hooks/blocks.py` keeps work item F's copy because a hook does not
-    load a skill module on every call, and `arm_check._lines` splits Python
-    source where `ast` does, ends kept. The coordinate kernel asks the reader
-    itself. All are one rule, held equal here."""
+    """S17. The reader's split is `hooks/blocks.py`'s, which it imports since
+    #1005; `arm_check._lines` splits Python source where `ast` does, ends
+    kept, and the coordinate kernel asks the reader itself. All are one rule,
+    held equal here."""
     checker = _load("specseal_checker_for_gfm_lines", CHECKER)
     arm_check = _load("specseal_arm_check_for_gfm_lines", ARM_CHECK)
-    blocks = _load("specseal_blocks_for_gfm_lines", BLOCKS)
     for text in texts():
         want = reader.gfm_lines(text)
         assert checker.gfm_lines(text) == want, repr(text)
-        assert blocks.gfm_lines(text) == want, repr(text)
         kept = reader.gfm_lines(text, keepends=True)
         assert checker.gfm_lines(text, keepends=True) == kept, repr(text)
-        assert blocks.gfm_lines(text, keepends=True) == kept, repr(text)
         assert arm_check._lines(text) == kept, repr(text)
-    assert reader.GFM_LINE_RE.pattern == blocks.GFM_LINE_RE.pattern
 
 
 def test_fold_check_keeps_no_copy_of_its_own():
@@ -459,7 +455,7 @@ def test_every_splitlines_call_left_is_named_with_its_reason():
     unnamed = {key: n for key, n in found.items() if key not in OUT_OF_CLASS}
     assert not unnamed, (
         f"`.splitlines(` in a unit this case does not name: {unnamed}. A reader "
-        "of markdown or record text reads `unverified_check.py#gfm_lines`; any "
+        "of markdown or record text reads `hooks/blocks.py#gfm_lines`; any "
         "other text goes into OUT_OF_CLASS with the reason it is not a "
         "document's lines"
     )

@@ -167,12 +167,15 @@ def record_reader():
 
 
 # What a commit's check needs beside it to load: the script, the reader it
-# loads when imported, and the document whose grammar table it reads. A
-# check from before the table carries its grammar in its code, and that
-# commit holds no table for it to read.
+# loads when imported, the hook module that reader takes its fence rule and
+# line split from (#1005), and the document whose grammar table it reads. A
+# file a commit does not hold is not copied: a check from before the table
+# carries its grammar in its code, and a reader from before #1005 keeps its
+# own fence rule.
 CHECK_FILES = (
     "skills/code-review/scripts/chain_check.py",
     "skills/verify/scripts/unverified_check.py",
+    "hooks/blocks.py",
     "docs/the-review-record.md",
 )
 CHECKS = {}

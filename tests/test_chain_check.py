@@ -753,6 +753,11 @@ class TestGrammar:
         (tree / "skills" / "verify" / "scripts" / "unverified_check.py").write_text(
             READER.read_text(encoding="utf-8"), encoding="utf-8"
         )
+        (tree / "hooks").mkdir()
+        (tree / "hooks" / "blocks.py").write_text(
+            (ROOT / "hooks" / "blocks.py").read_text(encoding="utf-8"),
+            encoding="utf-8",
+        )
         (tree / "docs").mkdir()
         target = tree / "docs" / "the-review-record.md"
         named = os.path.join(str(script.parent), "..", "..", "..", "docs", target.name)

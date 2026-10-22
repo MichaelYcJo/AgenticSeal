@@ -225,7 +225,7 @@ def heading_starts(text):
     applies before it reads a marker, applied here before a byte count is
     put beside a heading somebody may trim.
 
-    The fence is the shared rule, `unverified_check.py#fence_opener` and
+    The fence is the shared rule, `hooks/blocks.py#fence_opener` and
     `#fence_closes` (#584): at most three spaces of indentation, a backtick
     opener's info string holds no backtick, and a fence closes only on a run
     of its own character at least as long with nothing after it — which

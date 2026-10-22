@@ -114,7 +114,7 @@ def sibling(key):
 
 def shown_lines(text):
     """`[(line, shown, heading)]` for one markdown document: each GFM line
-    (`unverified_check.py#gfm_lines`), whether a renderer shows it outside a
+    (`hooks/blocks.py#gfm_lines`), whether a renderer shows it outside a
     fence or a comment (`hooks/config.py#unfenced`), and the text of the
     heading it stands under, "" above the first."""
     reader = sibling("unverified_check")

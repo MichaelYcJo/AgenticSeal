@@ -67,6 +67,59 @@ import re
 import subprocess
 import sys
 
+# `hooks/` beside this script, from which the fence rule, the line split, the
+# `Reference specs` row's reader and the root's resolver are loaded by path
+# (#688, #1005).
+HERE = os.path.dirname(os.path.abspath(__file__))
+HOOKS = os.path.join(HERE, "..", "..", "..", "hooks")
+
+
+def _load_blocks():
+    """`hooks/blocks.py`, the one place the fence delimiter rule and the GFM
+    line split are written. A hook imports nothing from `skills/`, so this
+    module asks the hook's copy rather than the other way round."""
+    spec = importlib.util.spec_from_file_location(
+        "specseal_blocks_for_unverified", os.path.join(HOOKS, "blocks.py")
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+_BLOCKS = _load_blocks()
+# The fence delimiter rule, CommonMark 4.5 (#491, #444, #584): `fence_opener`
+# says which fence a line opens and `fence_closes` whether a line closes it.
+# The readers of this module ask them, `fence_spans` and through it
+# `blank_fences` and `closed_fence_lines`, and `liveness` and
+# `_paragraph_ends_at`; so do `coordinates.py#quoted_lines`,
+# `gather_changelog.py` through `live_lines`, `payload_meter.py#heading_starts`
+# and `tests/test_a_section_marked_for_one_role_reaches_only_that_role.py`;
+# and `hooks/blocks.py#walk` adds a line-start HTML comment block to it for
+# `hooks/config.py` and `hooks/routing.py`, apart from `live_lines` on
+# purpose, since a hook row is safe at its old reading where the walk is
+# unsure. Readers that keep a rule of their own, each on purpose: the pull request
+# body readers through `close_issues_on_release.py#FENCE`, which open a fence
+# at any indentation as GitHub does, so a fence under a list item masks a
+# closing keyword (`docs/issues-and-milestones.md` *A keyword inside a fence
+# or a code span claims nothing*); `tests/test_docs_line_wrap.py#fenced_numbers`,
+# which strips a line's indentation first; `gather_changelog.py#insert` and
+# `#section_lines` and `publish_release_note.py#section_body`, which end a
+# released section at the next `## ` line on purpose (#586);
+# `tests/test_release_hygiene.py#overwide_rows`, which keeps no fence state;
+# and the oracle walk in `tests/test_unverified_rows_close.py`. A new reader
+# that decides by line whether it stands inside a fence belongs in one of
+# these two lists.
+fence_opener = _BLOCKS.fence_opener
+fence_closes = _BLOCKS.fence_closes
+# Where GFM ends a line: LF, CR or CRLF, and nowhere else (#664). Every reader
+# of markdown or record text reads its lines through `gfm_lines`, this
+# module's callers and the scripts that load it among them, because two
+# readers of one text that split it two ways disagree about which line an
+# index names; `tests/test_every_reader_ends_a_line_where_gfm_does.py` holds
+# the remaining splitters to it.
+GFM_LINE_RE = _BLOCKS.GFM_LINE_RE
+gfm_lines = _BLOCKS.gfm_lines
+
 OVERVIEW = "overview.md"
 HEADING = "## Not verified"
 HEADER = ("Item", "Who must answer")
@@ -105,22 +158,6 @@ OPENER = "<!--"
 CLOSER = "-->"
 # A run of backticks. `live_lines` needs it as it scans for code spans.
 BACKTICKS = re.compile(r"`+")
-# A fence delimiter line, as CommonMark 4.5 spells one: at most three spaces
-# of indentation, a run of three or more backticks or three or more tildes,
-# then the info string. `fence_opener` and `fence_closes` below are the rule
-# the coordinate kernel and the record readers ask — `fence_opener`'s docstring
-# lists them, and the readers that still keep a rule of their own — and this
-# pattern is only their first half.
-#
-# **Three spaces, not `\\s*`.** Four is an indented code block, or a lazy
-# continuation line inside an open paragraph. Reading one as a delimiter does
-# not merely park lines — it INVERTS the fence state for the rest of the file,
-# so a real fenced block's content reads live and its delimiters read as
-# content, and a marker quoted inside a fenced example reads live
-# (round 6, finding 1). `blank_fences` used to keep an
-# unbounded spelling of its own, and #491 is what that cost: the bound had
-# landed here and not one function over in the same file.
-FENCE_RE = re.compile(r"^ {0,3}(?P<run>`{3,}|~{3,})(?P<info>.*)$")
 SKIP_DIRS = {
     ".git",
     ".venv",
@@ -151,36 +188,6 @@ class _LooseHeading:
 
 
 LOOSE_HEADING = _LooseHeading()
-# Where GFM ends a line: LF, CR or CRLF, and nowhere else. `str.splitlines`
-# also ends one at U+2028, U+2029, NEL, a form feed, VT and `\x1c`-`\x1e`, so
-# below one of those a reader read lines no renderer shows (#664).
-GFM_LINE_RE = re.compile(r"[^\r\n]*(?:\r\n|\r|\n)|[^\r\n]+\Z")
-
-
-def gfm_lines(text, keepends=False):
-    """TEXT's lines as GFM reads them, the way `str.splitlines` returns them
-    otherwise: no trailing empty line, and each line's end kept only when
-    KEEPENDS asks.
-
-    **Every reader of markdown or record text reads its lines here** (#664):
-    `readable` and `live_lines`'s callers below, and every script that loads this
-    module and splits the same text a second time -- `fold_check.py` and
-    `gather_changelog.py`. Two readers of one text that split it
-    two ways disagree about which line an index names.
-
-    `str.splitlines` also ends a line at U+2028, U+2029, NEL, a form feed, VT
-    and `\\x1c`-`\\x1e`. Below one of those it cut a table row in two, read a
-    heading or a marker that stands mid-line as a line of its own, printed a
-    line number one off the one `grep -n` and git print, and, where the
-    reader wrote the text back, turned the character into a line break. On a
-    text holding none of the eight the two splits agree, including `""`, a
-    trailing newline and a final line with none.
-
-    `skills/verify/scripts/coordinates.py#gfm_lines` asks this one, `hooks/blocks.py#gfm_lines` is the copy a hook keeps, and
-    `tests/test_every_reader_ends_a_line_where_gfm_does.py` holds them
-    equal."""
-    lines = GFM_LINE_RE.findall(text)
-    return lines if keepends else [line.rstrip("\r\n") for line in lines]
 
 
 def split_row(line):
@@ -278,98 +285,6 @@ def strip_comments(lines):
     that comment. The guidance is not rows, and it is not prose where a table
     belongs."""
     return [kept for _, kept in comment_scan(lines)]
-
-
-def fence_opener(line):
-    """The fence `line` opens, as `(character, length)`, or None.
-
-    **The fence delimiter rule, and the one place it is written** (#491,
-    #444). CommonMark 4.5: at most three spaces of indentation, then three or
-    more backticks or three or more tildes. A BACKTICK opener's info string
-    may not itself hold a backtick, so ``` ```x` ``` on its own line opens
-    nothing; a tilde opener's info string is unrestricted. `fence_closes`
-    below is the other half.
-
-    The readers below ask these two functions rather than a pattern of their
-    own, because five spellings of this rule is what five readers had.
-
-    **The readers that ask it.** In this module: `fence_spans` and, through
-    it, `blank_fences` and `closed_fence_lines`; `liveness` and
-    `_paragraph_ends_at`. The coordinate kernel:
-    `skills/verify/scripts/coordinates.py#quoted_lines`, which its
-    `unquoted` and `markdown_lines` read through. The readers #584 brought
-    here: `.github/scripts/gather_changelog.py#live_markers` through
-    `live_lines`, which `#ungathered` and `--check`'s count read through;
-    and `skills/verify/scripts/payload_meter.py#heading_starts`
-    and `tests/test_a_section_marked_for_one_role_reaches_only_that_role.py#headings`,
-    which ask the two functions directly.
-
-    **The readers that keep a rule of their own, each on purpose.** #584
-    brought every reader it enumerated here or answered it, and these are the
-    answers:
-
-      - `hooks/blocks.py#FENCE`, with its `fence_opener` and `fence_closes`,
-        is a deliberate copy of this rule: it runs on the hook path, where
-        loading a skill module would cost every hook call, and
-        `hooks/config.py#FENCE` is that pattern under its old name.
-        `tests/test_unverified_rows_close.py#test_the_fence_rule_agrees_with_the_config_reader`
-        holds the copy in step, shape by shape. It is the delimiter half of
-        `hooks/blocks.py#walk`, which adds a line-start HTML comment block to
-        the fence and which `hooks/config.py` and
-        `hooks/routing.py#table_rows` read (#667, #658). It stays apart from
-        `live_lines` on purpose: a hook row is safe at its old reading where
-        the walk is unsure, and a marker is safe parked;
-      - `.github/scripts/close_issues_on_release.py#FENCE`, and
-        `issue_claims_check.py` and `label_merged_on_release_branch.py`
-        through it, read a pull request body by GitHub's rule and open a
-        fence at any indentation on purpose, so a fence under a list item
-        masks a closing keyword (`docs/issues-and-milestones.md` *A keyword
-        inside a fence or a code span claims nothing*). This rule's
-        three-space bound would un-mask those and close issues on quoted
-        examples;
-      - the fence walk in `tests/test_docs_line_wrap.py#fenced_numbers` asks
-        these two functions with a wider opener, a line's indentation
-        stripped first, because the documents it reads fence commands under
-        list items (#658);
-      - `.github/scripts/gather_changelog.py#insert` and `#section_lines`, and
-        `publish_release_note.py#section_body`, end a released section at the
-        next `## ` line with one predicate on purpose (#586), and a fragment
-        carrying such a line is refused before it reaches the file, fenced or
-        not;
-      - `tests/test_release_hygiene.py#overwide_rows` keeps no fence state at
-        all;
-      - the independent walk in `tests/test_unverified_rows_close.py` (around
-        `block_ends_at`) is an oracle, kept apart from the rule it checks on
-        purpose.
-
-    **A new reader that decides by line whether it stands inside a fence
-    belongs in one of these two lists**, and a reviewer of one has this
-    docstring to check it against — nothing else can reach a reader that
-    does not exist yet."""
-    m = FENCE_RE.match(line.rstrip("\r\n"))
-    if not m:
-        return None
-    run = m.group("run")
-    if run[0] == "`" and "`" in m.group("info"):
-        return None
-    return run[0], len(run)
-
-
-def fence_closes(line, opener):
-    """Whether `line` closes the fence `opener` (a `fence_opener` value).
-
-    CommonMark 4.5: the same character as the opener, a run at least as
-    long, the same three-space bound, and nothing after the run but spaces
-    or tabs. So ```` ```python ```` inside an open ```` ``` ```` block is
-    content, and so is ```` ``` ```` inside a ```` ```` ```` block.
-    """
-    m = FENCE_RE.match(line.rstrip("\r\n"))
-    return bool(
-        m
-        and m.group("run")[0] == opener[0]
-        and len(m.group("run")) >= opener[1]
-        and not m.group("info").strip()
-    )
 
 
 def fence_spans(lines):
@@ -1042,12 +957,6 @@ def overviews(paths):
             if OVERVIEW in files:
                 found.append(os.path.join(root, OVERVIEW))
     return sorted(dict.fromkeys(found))
-
-
-# The `Reference specs` row's one reader and the root's one resolver, loaded
-# by path from `hooks/` beside this script (#688).
-HERE = os.path.dirname(os.path.abspath(__file__))
-HOOKS = os.path.join(HERE, "..", "..", "..", "hooks")
 
 
 def config_at(top):

@@ -359,9 +359,8 @@ def test_the_oracle_reads_the_text_not_a_readers_split(name):
 
 # --- the corpus: the frame's shapes, the old cases, and a generated set -----
 
-# `tests/test_unverified_rows_close.py#FENCE_SHAPES`, the delimiter rule's own
-# shapes, and 1790635413's `COMMENT_SHAPES` at `4edc5de6`: every line of each
-# is a place a reading of fences or comments has had to be right.
+# 1790635413's `COMMENT_SHAPES` at `4edc5de6`: every line of each is a place a
+# reading of fences or comments has had to be right.
 COMMENT_SHAPES = [
     [OPEN, "| a | b |", CLOSE, "| c | d |"],
     [OPEN + " x", "| a | b |"],
@@ -806,26 +805,3 @@ def test_an_unclosed_fence_is_reported_at_the_reader_line_it_starts():
     walked = blocks.walk_text(text)
     assert walked.unclosed == [0], walked.unclosed
     assert len(walked.kinds) == len(text.splitlines()) == 3
-
-
-def test_the_walks_line_rule_is_the_readers():
-    """#667 round 1, 🟡 1. `hooks/blocks.py#gfm_lines` is a copy of
-    `skills/verify/scripts/unverified_check.py#gfm_lines`, the precedent work
-    item A set for #664's class: a hook imports nothing from `skills/`, so
-    the copy is held to the original here, over every break `str.splitlines`
-    makes and CommonMark does not, and the three it does."""
-    import importlib.util
-
-    path = os.path.join(
-        HERE, "..", "skills", "verify", "scripts", "unverified_check.py"
-    )
-    spec = importlib.util.spec_from_file_location("specseal_uc_for_the_walk", path)
-    reader = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(reader)
-    texts = ["", "a", "a\n", "a\r\nb\rc\nd", "\n\n", "a\r", "a\r\r\n"]
-    texts += [f"a{brk}b\n{brk}\nc{brk}" for brk in BREAKS.values()]
-    for text in texts:
-        for keepends in (False, True):
-            assert blocks.gfm_lines(text, keepends) == reader.gfm_lines(
-                text, keepends
-            ), (text, keepends)

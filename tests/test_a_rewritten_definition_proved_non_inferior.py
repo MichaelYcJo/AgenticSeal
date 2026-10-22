@@ -1981,10 +1981,9 @@ def test_a_labelled_record_is_read_by_the_grammar_of_the_commit_that_wrote_it(
         path.write_text(text, encoding="utf-8")
 
     git("init", "-q")
-    for rel in (
-        "skills/code-review/scripts/chain_check.py",
-        "skills/verify/scripts/unverified_check.py",
-    ):
+    # The check's files as `replay_targets.py` copies them for a commit, the
+    # grammar document apart because the commit below holds an older one.
+    for rel in (r for r in rt.CHECK_FILES if not r.startswith("docs/")):
         with open(os.path.join(ROOT, rel), encoding="utf-8") as f:
             put(rel, f.read())
     with open(
