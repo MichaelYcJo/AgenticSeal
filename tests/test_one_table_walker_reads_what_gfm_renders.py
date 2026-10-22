@@ -10,7 +10,7 @@ refuses.** No shape yields cells cmark-gfm does not render.
 **The corpus is enumerated by construction, not from examples.** Round 3 of
 #735 found the walk's silent drop (an autolink row) with 21 shapes its author
 had not written, after the walk had passed 14 its author had. So the line kinds
-below are every block start CommonMark 0.29 lists in §4 (leaf blocks) and §5
+below are every block start CommonMark 0.29 lists in section 4 (leaf blocks) and section 5
 (container blocks), taken section by section, with the near misses each
 section states beside its starts; the GFM extensions' own line shapes (a
 table's delimiter and rows, a task list item, an extended autolink); and the
@@ -51,7 +51,7 @@ HEADERS = {
     "config": ("Item", "Value"),
 }
 
-# CommonMark 0.29 §4.6, HTML block start condition 6: the block-level tag
+# CommonMark 0.29 section 4.6, HTML block start condition 6: the block-level tag
 # names, written out from the specification rather than from the walker.
 TYPE_6 = [
     "address",
@@ -121,7 +121,7 @@ TYPE_6 = [
 # Every kind is a list of lines. The comment before each group is the section
 # of the specification it is taken from.
 KINDS = {
-    # §4.1 thematic breaks, each character, spaced and not, and a near miss.
+    # section 4.1 thematic breaks, each character, spaced and not, and a near miss.
     "break ***": ["***"],
     "break ---": ["---"],
     "break ___": ["___"],
@@ -129,27 +129,27 @@ KINDS = {
     "break - - -": ["- - -"],
     "break _ _ _": ["_ _ _"],
     "not a break **": ["**"],
-    # §4.2 ATX headings, the widest and the empty one, and two near misses.
+    # section 4.2 ATX headings, the widest and the empty one, and two near misses.
     "heading #": ["# h"],
     "heading ######": ["###### h"],
     "heading, empty": ["#"],
     "not a heading #######": ["####### h"],
     "not a heading #h": ["#h"],
-    # §4.3 setext underlines (`---` is above).
+    # section 4.3 setext underlines (`---` is above).
     "setext ===": ["==="],
     "setext =": ["="],
-    # §4.4 indented code, and indented code that holds a container's marker,
+    # section 4.4 indented code, and indented code that holds a container's marker,
     # which four columns make code rather than a container.
     "indented code": ["    code"],
     "indented code, a list marker": ["    - x"],
     "indented code, a quote marker": ["    > q"],
-    # §4.5 fenced code: closed, unclosed, and a backtick info string.
+    # section 4.5 fenced code: closed, unclosed, and a backtick info string.
     "fence ```": ["```", "x", "```"],
     "fence ~~~": ["~~~", "x", "~~~"],
     "fence ```, unclosed": ["```"],
     "fence ~~~, unclosed": ["~~~"],
     "not a fence ```a`b": ["```a`b"],
-    # §4.6 HTML blocks, the seven start conditions.
+    # section 4.6 HTML blocks, the seven start conditions.
     "html 1 <script>": ["<script>"],
     "html 1 <pre>": ["<pre>"],
     "html 1 <style>": ["<style>"],
@@ -184,8 +184,8 @@ KINDS = {
     "not html 7, unfinished": ["<span"],
     "not html 7, unquoted": ['<a href="x"'],
     # What may interrupt a paragraph, which decides whether a line above the
-    # header leaves a block open: §4.6 says the seventh kind may not, and
-    # §5.2 that a list item may only with text after a bullet or the number 1.
+    # header leaves a block open: section 4.6 says the seventh kind may not, and
+    # section 5.2 that a list item may only with text after a bullet or the number 1.
     "after a paragraph, html 7": ["text", "<span>"],
     "after a paragraph, html 6": ["text", "<div>"],
     "after a paragraph, list -": ["text", "- x"],
@@ -196,17 +196,17 @@ KINDS = {
     "after a list item, a break": ["- x", "***"],
     "after a list item, a comment": ["- x", "<!-- c -->"],
     "after a list item, a fence": ["- x", "```", "x", "```"],
-    # §4.7 a link reference definition.
+    # section 4.7 a link reference definition.
     "link reference": ["[x]: https://example.com"],
-    # §4.8 a paragraph line.
+    # section 4.8 a paragraph line.
     "paragraph": ["text"],
-    # §4.9 blank lines (the indentation makes the whitespace-only ones).
+    # section 4.9 blank lines (the indentation makes the whitespace-only ones).
     "blank": [""],
-    # §5.1 block quotes.
+    # section 5.1 block quotes.
     "quote > q": ["> q"],
     "quote >": [">"],
     "quote >q": [">q"],
-    # §5.2 list items, each marker, the widest number, empty ones, near misses.
+    # section 5.2 list items, each marker, the widest number, empty ones, near misses.
     "list -": ["- x"],
     "list +": ["+ x"],
     "list *": ["* x"],

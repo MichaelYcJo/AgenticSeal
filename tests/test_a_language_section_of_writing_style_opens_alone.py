@@ -41,7 +41,9 @@ HEADING_SPAN = re.compile(r"`(## [^`]+)`")
 WRITING_RULES = "### 에이전트와 검사가 읽는 글은 한 가지로만 읽히게 쓴다"
 WRITING_RULE_CHECKS = (
     "check: tests/test_the_rules_command_reads_each_rule_off_its_test.py"
-    " tests/test_settle_applies_rule_changes_in_place.py",
+    " tests/test_settle_applies_rule_changes_in_place.py"
+    " tests/test_no_living_file_writes_the_section_sign.py"
+    " tests/test_the_agent_contract_holds_the_universal_rules.py",
     "check: tests/test_one_word_one_meaning.py",
     "check: none reader: the warden at review",
 )

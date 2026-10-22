@@ -6,7 +6,7 @@ ceiling` row as one to split along its own headings, and exits 0 on it: the
 estimate is a guess from bytes, so it is a report and not a gate. Its index
 arm refuses a `<policy root>/README.md` that misses a document, names one
 twice, or holds a row naming none. The rows and the estimate are stated once,
-in `templates/config.md` §*The fold's values*.
+in `templates/config.md` *The fold's values*.
 """
 
 import importlib.util
@@ -119,7 +119,7 @@ INDEX = "| File | The question it answers |\n|---|---|\n"
     ids=["missing", "twice", "no file"],
 )
 def test_an_index_that_misses_doubles_or_names_nothing_is_refused(tmp_path, rows, says):
-    """S13, each refusal at exit 1, its message pinned (§14)."""
+    """S13, each refusal at exit 1, its message pinned (contract rule 14)."""
     root = tree(tmp_path, {"a.md": "# A\n", "b.md": "# B\n", "README.md": INDEX + rows})
     code, out, err = command("--root", root)
     assert code == 1, (code, out, err)
@@ -163,7 +163,7 @@ def config_root(tmp_path, rows, policy="docs"):
 
 def test_a_root_that_declares_no_ceiling_and_has_no_index_checks_nothing(tmp_path):
     """S4. Absent means not declared, as every optional row does; the line
-    names the row and the file it was looked for in (§14)."""
+    names the row and the file it was looked for in (contract rule 14)."""
     root = config_root(tmp_path, [("Mode", "shared")])
     code, out, err = command("--root", root)
     config = os.path.join(root, "seal", "config.md")
@@ -200,7 +200,7 @@ def test_a_row_with_an_empty_value_is_not_declared(tmp_path):
 
 def test_an_absent_ceiling_skips_its_check_and_says_so(tmp_path):
     """With an index to read, the run goes on and says in one line which
-    check it did not run (§14)."""
+    check it did not run (contract rule 14)."""
     root = config_root(tmp_path, [("Mode", "shared")])
     (tmp_path / "docs" / "README.md").write_text(
         f"{INDEX}| `docs/a.md` | a |\n", encoding="utf-8"
@@ -268,7 +268,7 @@ def test_the_policy_root_row_reads_as_docs_unless_it_names_a_directory_inside(
 def test_a_row_that_will_not_parse_is_named_and_nothing_is_checked(
     tmp_path, row, value, says
 ):
-    """S5, its message pinned (§14)."""
+    """S5, its message pinned (contract rule 14)."""
     root = config_root(tmp_path, [(row, value)])
     code, out, err = command("--root", root)
     config = os.path.join(root, "seal", "config.md")
@@ -382,7 +382,7 @@ def test_the_command_typed_in_a_subdirectory_reads_the_repository(tmp_path):
 
 def test_an_opted_out_repository_is_told_it_opted_out(tmp_path):
     """Round 1, finding 3: it has a root, so "no seal/ root" would be false.
-    Both of the states `home_at` answers "" for are pinned whole (§14)."""
+    Both of the states `home_at` answers "" for are pinned whole (contract rule 14)."""
     root = config_root(tmp_path, [("Document token ceiling", "10")])
     git_init(root)
     (tmp_path / ".git" / "specseal-scratch").write_text("", encoding="utf-8")
@@ -431,7 +431,7 @@ def test_both_cheat_sheets_point_to_the_checks_home(edition):
     was gone. It now points to the rows' one statement and restates none."""
     with open(os.path.join(ROOT, edition), encoding="utf-8") as f:
         row = next(line for line in f if line.startswith("| `fold-check [--ceiling"))
-    assert "`templates/config.md` §*The fold's values*" in row, row
+    assert "`templates/config.md` *The fold's values*" in row, row
     assert "frozen" not in row and "고정" not in row, row
 
 

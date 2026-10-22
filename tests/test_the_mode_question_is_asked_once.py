@@ -6,7 +6,7 @@ local mode, and nothing asked the migration question.
 
 Three files each said something correct and the three together left no route
 to the question. `hooks/optin.py` says the root's existence IS the
-declaration; `skills/implement/orchestration.md` §Bootstrap says the mode
+declaration; `skills/implement/orchestration.md` *Orchestrator: Bootstrap* says the mode
 question is asked there and nowhere else; and the preset block — `templates/claude-md-block.md`,
 which `install.sh` copies into `~/.claude/CLAUDE.md`, so it loads in every project
 on the machine — tells a session to write `seal/specs/<id>/routing.md` before the
@@ -332,7 +332,7 @@ def test_a_backslash_against_a_pipe_is_the_one_shape_the_escape_narrows(config):
     assert config.config_rows(header + tight_last) == [], (
         "a backslash against the closing pipe is markdown's escaped pipe, so "
         "the line has no closing pipe left and is not a row. If this returns "
-        "a row the pattern changed and `spec.md` §*What this repair cannot "
+        "a row the pattern changed and `spec.md` *What this repair cannot "
         "see* is now wrong"
     )
     assert config.config_rows(header + tight_first) == [], (
@@ -834,7 +834,7 @@ def test_the_fence_rule_answers_the_same_for_a_crlf_file(config, tmp_path):
 
 
 def test_what_counts_as_a_fence_is_commonmarks_rule_as_far_as_it_goes(config):
-    """Q3 of `questions.md`, decided and pinned. `spec.md` §*Data &
+    """Q3 of `questions.md`, decided and pinned. `spec.md` *Data &
     interfaces* fixes the rule for the shapes that matter; the residue is
     CommonMark's own edge cases, resolved toward *not a fence* wherever the
     specification leaves room, because that is the direction that keeps a
@@ -903,7 +903,7 @@ def test_what_counts_as_a_fence_is_commonmarks_rule_as_far_as_it_goes(config):
 # --- #667: a row inside a comment that closes is not a row either ----------
 #
 # The shape ids are `seal/specs/1790645290-the-hooks-and-the-rider-check-read-
-# fences-and-comments-by-one-rule/spec.md` §*The shapes*, and the texts are
+# fences-and-comments-by-one-rule/spec.md` *The shapes*, and the texts are
 # `tests/block_shapes.py`'s -- most of them work item 1790635413's own strings,
 # each a place an earlier reading of this file was wrong. "red at base" means
 # the case fails with `hooks/config.py` from `3911a8cf`; "pins" means it passes
@@ -1154,7 +1154,7 @@ def test_the_fence_named_is_the_one_that_hides_the_row(config):
 
 
 def test_a_mid_line_comment_hides_no_row_the_base_reads(config):
-    """C13, the residual `spec.md` §*Scope* names. A renderer hides the first
+    """C13, the residual `spec.md` *Scope* names. A renderer hides the first
     pipe-line behind a lone backtick and a mid-line `<!--`, and knowing that
     needs code spans and the paragraph's extent, which is where all three of
     1790635413's rounds lost ground. The base reads it, so reading it is not
@@ -1195,7 +1195,7 @@ def test_the_writer_leaves_a_commented_row_alone(config, tmp_path):
 #
 # The scenario ids are `seal/specs/1791852616-the-config-table-has-its-own-
 # grammar-beside-the-gfm-walker/spec.md`'s, and the shape numbers are its
-# §*Data & interfaces* table's; the texts are `tests/config_shapes.py`'s.
+# *Data & interfaces* table's; the texts are `tests/config_shapes.py`'s.
 
 
 @pytest.mark.parametrize("number", sorted(config_shapes.SHAPES))
@@ -1391,7 +1391,8 @@ def test_a_root_with_no_recorded_mode_is_named(repo):
 
 
 def test_the_prompt_says_what_each_answer_costs(repo):
-    """Every answer has to continue (`implement` §1). Both do something and
+    """Every answer has to continue (`implement` *1. Read the spec before the
+    code*). Both do something and
     the prompt says which — one records where the folder already is, the other
     moves it."""
     opt_in_shared(repo)
@@ -1422,7 +1423,7 @@ def test_a_repository_with_no_root_is_silent(repo):
 def test_the_question_arrives_on_the_first_command_not_at_the_commit(repo):
     """The budget decided this, not the act #151 names. Scoping the gate to a
     commit puts the question beside the review arm's, at minute thirty, on a
-    session that may have nobody at the keyboard — and `implement` §1 says the
+    session that may have nobody at the keyboard — and `implement` *1. Read the spec before the code* says the
     cost of a question is when it arrives. The count is the same either way,
     because the budget below is per session rather than per command."""
     opt_in_shared(repo)

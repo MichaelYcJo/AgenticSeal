@@ -26,7 +26,7 @@ document is true, or whether two contradict each other, stays review's.
 
 **It sets no value.** The repository states the values as rows of
 `seal/config.md`, read through `hooks/config.py#config_rows`, and
-`templates/config.md` §*The fold's values* states each row once. An absent
+`templates/config.md` *The fold's values* states each row once. An absent
 row means *not declared*, as every optional row of that file does: the check
 it governs is not run, and the output says so in one line rather than
 refusing. A flag overrides its row for one run.
@@ -68,7 +68,7 @@ POLICY_ROW = "Policy root"
 ROWS = (CEILING_ROW, POLICY_ROW)
 WHOLE = re.compile(r"[0-9]+")
 # The estimate's one constant, a token taken as two bytes of UTF-8;
-# `templates/config.md` §*The fold's values* states it.
+# `templates/config.md` *The fold's values* states it.
 BYTES_PER_TOKEN = 2
 
 

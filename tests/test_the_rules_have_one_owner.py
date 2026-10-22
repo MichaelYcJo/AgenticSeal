@@ -37,28 +37,22 @@ CONFIG_SKILL = ("skills", "config", "SKILL.md")
 ROUND_TEMPLATE = ("templates", "sdd-round.md")
 
 ONE_SEAL_IS_FINAL = (
-    "`skills/verify/SKILL.md` §*The hand-back's labels carry the claims, and "
+    "`skills/verify/SKILL.md` *The hand-back's labels carry the claims, and "
     "the one seal is the sealer's* owns that rule"
 )
 AFTER_THE_SEAL = (
-    "`skills/code-review/orchestration.md` §*Orchestrator: the pull request "
+    "`skills/code-review/orchestration.md` *Orchestrator: the pull request "
     "opens once the sealer seals, and a phase is re-run* owns"
 )
 CONTRIBUTING = ("CONTRIBUTING.md",)
 CRITERION_OWNER = (
-    "`templates/config.md` §*The criterion for choosing a value* owns the criterion"
+    "`templates/config.md` *The criterion for choosing a value* owns the criterion"
 )
-# The same two links in the citation form a rewritten file uses: the
-# backticked path, then the heading in italics, with no section sign (#940).
-AFTER_THE_SEAL_LINK = AFTER_THE_SEAL.replace(" §*", " *")
-CRITERION_LINK = CRITERION_OWNER.replace(" §*", " *")
 FRAGMENT_OWNER = (
-    "`docs/the-record-layout.md` §*A commit after the build brings its "
+    "`docs/the-record-layout.md` *A commit after the build brings its "
     "changelog fragment along* owns that rule"
 )
-FRAGMENT_LINK = FRAGMENT_OWNER.replace(" §*", " *")
-RUN_OWNS_THE_RULE = "`docs/the-review-record.md` §*The run* owns that rule"
-RUN_LINK = RUN_OWNS_THE_RULE.replace(" §*", " *")
+RUN_OWNS_THE_RULE = "`docs/the-review-record.md` *The run* owns that rule"
 
 
 def read(*parts):
@@ -86,8 +80,8 @@ RULES = {
         ORCH,
         "The pull request opens ready, once the sealer has sealed, and CI runs then.",
         {
-            ORCH_IMPL: f"the pull request opens ({AFTER_THE_SEAL_LINK} when)",
-            CONTRIBUTING: f"{AFTER_THE_SEAL_LINK} the order a maintainer's run follows",
+            ORCH_IMPL: f"the pull request opens ({AFTER_THE_SEAL} when)",
+            CONTRIBUTING: f"{AFTER_THE_SEAL} the order a maintainer's run follows",
         },
     ),
     "7 a compacted session hands the next round to a fresh one": (
@@ -115,7 +109,7 @@ RULES = {
         CONFIG_TEMPLATE,
         "A check that is red repository-wide for reasons unrelated to any "
         "branch does not belong in the row",
-        {CONFIG_SKILL: CRITERION_LINK, ORCH_IMPL: CRITERION_LINK},
+        {CONFIG_SKILL: CRITERION_OWNER, ORCH_IMPL: CRITERION_OWNER},
     ),
     # From #493: filing a finding ran at 100% and acting on one at 47%, so a
     # new issue is a rung rather than the default.
@@ -136,7 +130,7 @@ RULES = {
         RECORD_LAYOUT,
         "A commit after the build that changes what the work item ships "
         "updates the work item's `changelog.md` in the same range.",
-        {IMPLEMENT: FRAGMENT_LINK, ORCH: FRAGMENT_LINK},
+        {IMPLEMENT: FRAGMENT_OWNER, ORCH: FRAGMENT_OWNER},
     ),
     # From #823, and since 0.22.0 one mark rather than a count of two
     # (`questions.md` Q1 of work item 1791933022), routed by the comparison
@@ -144,7 +138,7 @@ RULES = {
     "16 a regression is routed by comparing the fix with the frame": (
         RECORD,
         "A regression is routed by comparing the fix with the frame.",
-        {FRAMER: RUN_OWNS_THE_RULE, IMPLEMENT: RUN_LINK},
+        {FRAMER: RUN_OWNS_THE_RULE, IMPLEMENT: RUN_OWNS_THE_RULE},
     ),
 }
 
@@ -242,7 +236,7 @@ STEP_2 = "2. The framer writes `spec.md`, `plan.md` and `questions.md`."
 
 
 def test_the_order_opens_the_pull_request_after_the_sealer():
-    """`skills/implement/orchestration.md` §*Orchestrator: the order inside a
+    """`skills/implement/orchestration.md` *Orchestrator: the order inside a
     ticket* is what a session reads to know what comes after the smith. #943
     moved the pull request from between the build and the rounds to after
     the sealer, so no step of the order opens, keeps or readies a draft."""
@@ -281,13 +275,13 @@ def test_a_regression_is_a_defect_a_fix_passs_own_commit_made():
     a `regression:` line names a defect a fix pass's own commit introduced,
     and a defect in a unit a build phase made, which the framer designed and
     the owner approved, is an ordinary finding of new work, so its round
-    gets its fix pass. The document states it, and the template and the
-    warden, who write the line, say the same."""
+    gets its fix pass. The document states it, and the warden, who writes
+    the line, says the same."""
     run = flat(*RECORD)
     run = run[run.index("## The run") : run.index("## The handoff")]
     assert "A regression is a defect a fix pass's own commit introduced." in run
     assert "is an ordinary finding of new work" in run
-    for carrier in (RECORD, WARDEN, ("templates", "sdd-round.md")):
+    for carrier in (RECORD, WARDEN):
         text = flat(*carrier)
         assert "a fix pass's own commits added or changed" in text, (
             f"{'/'.join(carrier)} does not say a `regression:` line is for a "
@@ -327,21 +321,21 @@ def test_a_close_that_does_not_hold_reopens_it():
     """The owner's decision of 2026-10-16, on round 8 of work item
     1791933022 (S9, S26): a close that does not hold where no fix pass's
     commit made the defect is raised again on a `reopens:` line, as an
-    ordinary finding that gets its fix pass. §*The run* says so; every
+    ordinary finding that gets its fix pass. *The run* says so; every
     carrier that names the channel's `confirms:` and `regression:` lines in
     one sentence names `reopens:` in it too; and the orchestration's
     verifying-round section ends the run only where the check does."""
     reopened = [
         s for s in sentences(the_run()) if "`reopens:`" in s and "does not hold" in s
     ]
-    assert reopened, "§*The run* does not say a close that does not hold reopens"
+    assert reopened, "*The run* does not say a close that does not hold reopens"
     assert any(
         "where no fix pass's commit made the defect" in s
         and "gets its fix pass" in s
         and "framer" not in s
         for s in reopened
     ), reopened
-    for carrier in (RECORD, ROUND_TEMPLATE, WARDEN, SKILL, ORCH):
+    for carrier in (RECORD, WARDEN, SKILL, ORCH):
         both = [
             s
             for s in sentences(flat(*carrier))
@@ -399,7 +393,7 @@ def test_a_regression_is_routed_by_comparing_the_fix_with_the_frame():
         "A second regression on the same unit after a fix-pass route goes to the "
         "framer whatever the comparison says.",
     ):
-        assert route in run, f"§*The run* no longer says {route!r}"
+        assert route in run, f"*The run* no longer says {route!r}"
     assert "### A regression is routed by comparing the fix with the frame" in flat(
         *ORCH
     )
@@ -436,11 +430,11 @@ def test_the_cap_counts_from_the_last_design_change():
         "followed by one verifying round, whatever the count",
         "is not an extension",
     ):
-        assert said in run, f"§*The run* no longer says {said!r}"
+        assert said in run, f"*The run* no longer says {said!r}"
     assert (
         "A second regression on the same unit after a fix-pass route goes to the "
         "framer whatever the comparison says." in run
-    ), "§*The run* lost the loop guard"
+    ), "*The run* lost the loop guard"
     for carrier in (ORCH, ("README.md",)):
         assert "counted from the last design change" in flat(*carrier), (
             f"{'/'.join(carrier)} caps rounds without saying where the count starts"
@@ -448,8 +442,8 @@ def test_the_cap_counts_from_the_last_design_change():
     assert "마지막 설계 변경" in flat("README.ko.md"), (
         "README.ko.md caps rounds without saying where the count starts"
     )
-    assert "counting from round <S>" in flat(*ROUND_TEMPLATE), (
-        "the template's extension line does not say where the count started"
+    assert "counting from round 1:" in run, (
+        "*The run*'s extension line does not say where the count started"
     )
     assert "the record that stopped the run" not in flat(*FRAMER), (
         "agents/framer.md still reads a regression's round as the end of the run"

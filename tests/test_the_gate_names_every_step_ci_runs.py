@@ -19,7 +19,7 @@ it named both directions, which the two rows below hold:
   A2   a partition entry naming a step the workflow no longer has fails here,
        so the list cannot rot into naming steps nobody runs
 
-`spec.md` §*User scenarios & acceptance* numbers the rows A1 to A7 and each
+`spec.md` *User scenarios & acceptance* numbers the rows A1 to A7 and each
 case below names the one it holds.
 
 **The step names are read out of `hygiene.yml` itself.** `plan.md` retypes
@@ -347,7 +347,7 @@ ITEM = "seal/specs/1799000000-a-fixture-work-item"
 def sealable_repo(tmp_path):
     """A repository on `base` with a `feature` branch one commit ahead.
 
-    Driven from Python, per `agent-contract` §8: a probe that commits reaches
+    Driven from Python, per contract rule 8: a probe that commits reaches
     the commit gate exactly as real work does, and the prompt lands on nobody
     while a round is running.
     """
@@ -569,7 +569,7 @@ def test_every_exclusion_carries_prose_rather_than_a_category():
 
     **What this cannot catch is a category in prose clothing.** *not
     applicable here* passes every rule below and says as little as
-    `EXCLUDED`. Only a reader catches that one, and `plan.md` §*The failure
+    `EXCLUDED`. Only a reader catches that one, and `plan.md` *The failure
     scenario at six months* is where it is written down as an open hole
     rather than a closed one.
     """
@@ -789,7 +789,7 @@ def test_a_step_no_row_classifies_is_not_said_to_carry_a_reason():
 def test_a_step_a_row_excludes_is_still_pointed_at_its_reason():
     """The other half, and what keeps the case above from being answered by
     deleting the pointer. A step the partition DOES exclude carries a written
-    reason, and naming where it is written is the whole of `spec.md` §Scope
+    reason, and naming where it is written is the whole of `spec.md` *Scope*
     5."""
     said = gate.coverage_line(read(HYGIENE), "base")
     assert "no arm mirrors it in `broad_gate.py#PARTITION`" in said, said
@@ -990,7 +990,7 @@ def test_a_feature_seal_counts_the_steps_ci_runs_for_it():
     `main` CI runs 5 of the 8 steps and the gate mirrors 3, so the panel
     reads `CI also · 2 more steps`; the line names the two unanswered steps
     CI runs and none of the three only-at-`main` ones, and says three were
-    left out and why. Pinned verbatim (`agent-contract` §14). The ninth step,
+    left out and why. Pinned verbatim (contract rule 14). The ninth step,
     the CLAUDE.md copy held to its template, left with the copy (#940)."""
     assert gate.steps_for(read(HYGIENE), "release/x") == [
         step
@@ -1027,7 +1027,7 @@ def test_a_release_seal_counts_every_step_ci_runs_for_it():
 
 
 def test_the_documents_say_the_count_is_over_the_steps_ci_runs():
-    """S5's documentation (`agent-contract` §14): the skill section that
+    """S5's documentation (contract rule 14): the skill section that
     explains the count and the partition's policy paragraph each say a step
     CI does not run for the base is outside the count. Since #969 the sealer
     sees no output of the gate's and explains none of it, so its definition

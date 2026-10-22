@@ -31,6 +31,7 @@ import os
 import re
 import subprocess
 
+import pytest
 from conftest import on_disk
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
@@ -244,17 +245,19 @@ def test_the_plan_template_carries_a_status_column():
     assert "|---|---|---|---|" in tpl
 
 
-def test_the_template_says_why_a_tick_is_refused():
+def test_the_skill_says_why_a_tick_is_refused():
     """The column is worth nothing if its closed value can be typed.
 
     A tick and the word `done` assert a present state nobody can check. A
     commit asserts a past one that someone can open, which is the only reason
-    mutable-looking progress is allowed inside the contract at all.
+    mutable-looking progress is allowed inside the contract at all. The rule
+    stands in the skill the plan's writer and builder open, and the template
+    ships the column alone.
     """
-    tpl = read("templates", "sdd-plan.md")
-    assert "A tick is refused" in tpl
+    tpl = " ".join(read("skills", "implement", "SKILL.md").split())
+    assert "a tick and the word `done` are refused" in tpl
     assert "the commit that closed the phase" in tpl
-    assert "past" in tpl, (
+    assert "asserts a **past** state" in tpl, (
         "the reason a hash is accepted where a tick is not is that it asserts "
         "a past state — without it the rule is arbitrary and gets relaxed"
     )
@@ -401,9 +404,12 @@ def test_the_file_set_names_who_writes_each_file():
     header = [
         line for line in skill.splitlines() if line.startswith("| File | Starts from |")
     ]
-    assert len(header) == 1, "the SDD file-set table changed shape -- re-read §3"
+    assert len(header) == 1, (
+        "the SDD file-set table changed shape -- re-read *3. The SDD file set*"
+    )
     assert "| Written by |" in header[0], (
-        "§3's file table does not say who writes each member of the set. "
+        "the file table of *3. The SDD file set* does not say who writes each "
+        "member of the set. "
         "`spec.md` written by whoever then builds to it is an account of "
         "what got built, and the table is where a session learns otherwise"
     )
@@ -423,7 +429,7 @@ def test_the_file_set_names_who_writes_each_file():
         rows[cells[0]] = dict(zip(columns, cells, strict=True))
     for name in ("`spec.md`", "`plan.md`", "`questions.md`"):
         assert "framer" in rows[name]["Written by"], (
-            f"{name} is no longer the framer's in §3's table, which is the "
+            f"{name} is no longer the framer's in the file table, which is the "
             "one place a session reads the set as a whole"
         )
     for name in ("`overview.md`", "`phases/phase-N.md`"):
@@ -433,7 +439,7 @@ def test_the_file_set_names_who_writes_each_file():
             "written before the work it is about"
         )
     assert "Approved <date> by <who>" in rows["`plan.md`"]["Holds"], (
-        "§3's table stops naming the approval line, so the only document "
+        "the file table stops naming the approval line, so the only document "
         "that describes the whole set never mentions the record of the gate"
     )
 
@@ -443,31 +449,27 @@ def test_the_file_set_names_who_writes_each_file():
 # What names the skill right before a section: its path, or its name in
 # backticks. Read over whitespace-collapsed text, because a citation wraps.
 SKILL_NAMED = r"(?:skills/implement/SKILL\.md`?|`implement`)"
-CITED_NUMBER = re.compile(SKILL_NAMED + r"\s+§(\d+)\b")
-CITED_TITLE = re.compile(SKILL_NAMED + r"(?:\s+§| skill's )\*([^*]+)\*")
+# A section is cited by its heading text in italics, after the path, or
+# after `implement`'s name and the word `skill's`.
+CITED_TITLE = re.compile(SKILL_NAMED + r"(?: | skill's )\*([^*]+)\*")
 # Records of what was true when they were written are not brought to a new
 # heading, so they are not read.
 NOT_CITATIONS = ("seal/specs/", "changelog/", "CHANGELOG.md")
 
 
 def implement_headings(text):
-    """({step numbers}, {heading titles}) of `implement`'s `##`/`###` lines."""
-    titles = {m.group(1) for m in re.finditer(r"^#{2,3} (.+)$", text, re.M)}
-    numbers = {int(m.group(1)) for m in re.finditer(r"^### (\d+)\. ", text, re.M)}
-    return numbers, titles
+    """{heading titles} of `implement`'s `##`/`###` lines."""
+    return {m.group(1) for m in re.finditer(r"^#{2,3} (.+)$", text, re.M)}
 
 
-def dangling_implement_citations(files, numbers, titles):
+def dangling_implement_citations(files, titles):
     """[(path, citation)] for every cited section `implement` does not have."""
     out = []
     for rel, text in files:
         flat = " ".join(text.split())
-        for m in CITED_NUMBER.finditer(flat):
-            if int(m.group(1)) not in numbers:
-                out.append((rel, f"§{m.group(1)}"))
         for m in CITED_TITLE.finditer(flat):
             if m.group(1) not in titles:
-                out.append((rel, f"§*{m.group(1)}*"))
+                out.append((rel, f"*{m.group(1)}*"))
     return out
 
 
@@ -493,17 +495,30 @@ def cited_files():
 def test_every_cited_heading_of_implement_exists():
     """T5 of #967 (S7): a step renamed or renumbered in a rewrite of
     `skills/implement/SKILL.md` leaves `CLAUDE.md`'s citations of its steps 1
-    and 2, the hooks' `§1` and the frame's `§3` pointing at nothing, and no
-    case read them."""
-    numbers, titles = implement_headings(read("skills", "implement", "SKILL.md"))
+    and 2, the hooks' and the framer's pointing at nothing, and no case read
+    them."""
+    titles = implement_headings(read("skills", "implement", "SKILL.md"))
     files = list(cited_files())
-    found = sum(
-        len(CITED_NUMBER.findall(" ".join(t.split())))
-        + len(CITED_TITLE.findall(" ".join(t.split())))
-        for _, t in files
-    )
+    found = sum(len(CITED_TITLE.findall(" ".join(t.split()))) for _, t in files)
     assert found >= 10, f"only {found} citations recognised, so a pass means nothing"
-    dangling = dangling_implement_citations(files, numbers, titles)
+    dangling = dangling_implement_citations(files, titles)
     assert not dangling, (
         f"a citation of `implement` names a heading it does not have: {dangling}"
     )
+
+
+MISSING_STEP = "*9. No such step*"
+
+
+@pytest.mark.parametrize(
+    "named", ["`skills/implement/SKILL.md`", "the `implement` skill's"]
+)
+def test_a_cited_heading_implement_lacks_is_dangling(named):
+    """S4 of #1005: a citation by heading text names a heading the skill has,
+    or it is refused as dangling. The citation is built here, so this file
+    does not itself cite a missing heading."""
+    titles = implement_headings(read("skills", "implement", "SKILL.md"))
+    text = f"{named} {MISSING_STEP}"
+    assert dangling_implement_citations([("x.md", text)], titles) == [
+        ("x.md", MISSING_STEP)
+    ]

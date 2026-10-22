@@ -392,7 +392,7 @@ def test_s11_a_relationship_recorded_on_one_side_is_refused(world):
     ids=["a value outside the old vocabulary", "written twice"],
 )
 def test_a_pact_notify_row_an_earlier_release_read_is_ignored(world, rows):
-    """`templates/config.md` §*Pact*: a `Pact notify` row left in a signer's
+    """`templates/config.md` *Pact*: a `Pact notify` row left in a signer's
     table is read by nobody, so neither a value outside the vocabulary the
     row once had nor the row written twice is refused, and the `READ` line
     names no notify value. Seen red against the reader that still refused
@@ -912,7 +912,7 @@ def test_the_refusal_names_both_remedies(world):
 def test_every_printed_path_is_in_posix_form(path, repo, home, want):
     """S6. The one helper every printed path goes through, fed Windows paths
     through `ntpath`, so the POSIX guarantee is removed rather than relied on
-    (`agent-contract` §13): no `\\` survives, a path under home begins `~/`,
+    (contract rule 13): no `\\` survives, a path under home begins `~/`,
     and one inside its repository is relative to it."""
     import ntpath
 

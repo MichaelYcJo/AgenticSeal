@@ -160,7 +160,7 @@ def test_a_syntax_error_is_refused_rather_than_read_by_the_text_rule():
 
 
 def no_rule(path, named):
-    """The refusal a bare symbol in PATH reads, pinned whole (§14): why no
+    """The refusal a bare symbol in PATH reads, pinned whole (contract rule 14): why no
     unit is bounded, and the anchor's shape."""
     return (
         f"no bounding rule for {named}; anchor a quoted line instead, "

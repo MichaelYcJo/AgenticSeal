@@ -16,8 +16,8 @@ words; everything under `seal/`, which is records; and `CHANGELOG.md`.
 
 **How a file is normalised.** Each file is read whole: `CLAUDE.md` carries
 no copy of `templates/claude-md-block.md` since #940, so no region is
-sanctioned. Fenced code blocks and heading lines are dropped. A quoted section name -- `§*...*`, or a `.md` path followed
-by `*...*` -- becomes one token, because a link shares its heading's words by
+sanctioned. Fenced code blocks and heading lines are dropped. A quoted
+section name -- a `.md` path followed by `*...*` -- becomes one token, because a link shares its heading's words by
 design; the name may wrap across a line, which is the case the first draft
 of this method missed. Then the text is lowercased, stripped of `` ` ``, `*`,
 `|`, `>` and `#`, and split into words.
@@ -34,7 +34,7 @@ thing, which no constant can hold: at any similarity that catches a
 paraphrase it also matches a heading against the sentence that links it.
 The paraphrase half was measured once, by hand, and its result is recorded in
 `seal/specs/1791076836-every-rule-claude-md-restates-has-one-home/spec.md`
-§*The method and its result* rather than checked.
+*The method and its result* rather than checked.
 
 **Why a ratchet.** The tree already holds copies, measured into `BASELINE`
 below, and moving them is #755's work, cluster by cluster. So the check fails
@@ -42,7 +42,7 @@ when a pair not in `BASELINE` shares any run, or when a pair's count goes
 above its baseline. It passes when a count goes down, and the baseline need
 not be lowered in the same change: otherwise every branch that edits a
 duplicated passage would edit this one table, which is the shared-file
-conflict `docs/the-record-layout.md` §*A change writes fragments, never a
+conflict `docs/the-record-layout.md` *A change writes fragments, never a
 shared file* exists to stop. The cost is slack, stated: a pair that has
 drained can take a later copy up to its old count. The work that drains a
 pair lowers its entry on purpose.
@@ -70,10 +70,10 @@ HOME_ACT = "link to the home instead of copying it, per `docs/the-record-layout.
 
 FENCE = re.compile(r"^ *(`{3,}|~{3,})")
 HEADING = re.compile(r"^ {0,3}#{1,6}(\s|$)")
-# A section quoted by name, after `§` or after a `.md` path (with or without
-# its possessive). `[^*]` crosses a line break, so a wrapped name is one name.
-SECTION = re.compile(r"§\*[^*]{1,200}\*|`?[\w./-]+\.md`?(?:'s)?\s+\*[^*]{1,200}\*")
-SECTION_TOKEN = " §section "
+# A section quoted by name after a `.md` path (with or without its
+# possessive). `[^*]` crosses a line break, so a wrapped name is one name.
+SECTION = re.compile(r"`?[\w./-]+\.md`?(?:'s)?\s+\*[^*]{1,200}\*")
+SECTION_TOKEN = " section-citation "
 STRIP = str.maketrans("", "", "`*|>#")
 
 
@@ -325,8 +325,9 @@ def test_a_wrapped_section_name_is_one_token():
         "gathers every one of them before it folds"
     )
     assert len(name.split()) > WINDOW
-    one = f"See `docs/the-record-layout.md` §*{name}* for where it goes.\n"
-    two = f"Read §*{name.replace(' a shared', chr(10) + 'a shared')}*\nfirst.\n"
+    one = f"See `docs/the-record-layout.md` *{name}* for where it goes.\n"
+    wrapped = name.replace(" a shared", chr(10) + "a shared")
+    two = f"Read `docs/the-record-layout.md`\n*{wrapped}*\nfirst.\n"
     path = f"`CONTRIBUTING.md`'s *{name}*\n"
     other = f"As docs/the-record-layout.md *{name}* says.\n"
     assert not shared_counts(

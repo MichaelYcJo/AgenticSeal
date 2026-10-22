@@ -8,7 +8,7 @@ review rounds and two fix passes all ran it and reported clean, and the
 unscoped read at the pull request found fifteen drifted rows and one broken
 claim — every one in a file the branch had touched.
 
-Since 0.22.0 the handoff rule is `docs/the-review-record.md` §*The handoff*
+Since 0.22.0 the handoff rule is `docs/the-review-record.md` *The handoff*
 (#923).
 """
 

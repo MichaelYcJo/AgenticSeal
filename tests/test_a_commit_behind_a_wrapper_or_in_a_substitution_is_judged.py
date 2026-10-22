@@ -179,7 +179,7 @@ SUBSTITUTED = {
     "a redirected commit in $( )": f"echo $(2>/dev/null {C})",
     # #674, phase 3: the string past a redirection after `env -S`, and the
     # hosts #670's enumeration did not mark. `parallel` runs its arguments
-    # through a shell and is read for a commit only (`spec.md` §*Scope*).
+    # through a shell and is read for a commit only (`spec.md` *Scope*).
     "env -S 2>/dev/null": f"env -S 2>/dev/null '{C}'",
     "flock -c": f"flock /tmp/l -c '{C}'",
     "flock --command": f"flock -w 5 /tmp/l --command '{C}'",
@@ -294,7 +294,7 @@ CONTROLS = {
 # #674: round 1's seven controls, rewritten into each position the work item
 # teaches the reader. A program word is read by where it stands, never by
 # whether it is present, so a search word and a positional parameter stay what
-# they were wherever the command itself is moved to (`spec.md` §*How the
+# they were wherever the command itself is moved to (`spec.md` *How the
 # controls stay unasked*). Each is silent at `86256492` and must stay so.
 ROUND_1_CONTROLS = (
     "find -exec sh -c with _ {}",
@@ -577,7 +577,7 @@ def test_header_end(name):
 
 
 def test_a_header_spelling_the_reader_cannot_place_falls_to_the_stand_in():
-    """#674, `spec.md` §*Two stand-ins*. A header the positional reading does
+    """#674, `spec.md` *Two stand-ins*. A header the positional reading does
     not recognise is read the way `86256492` read every header for `git`: any
     later `watch` counts as the program, and any later word that expands counts
     as the string's command word. A false one is a stop, never a silence."""

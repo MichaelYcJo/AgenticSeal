@@ -33,7 +33,7 @@ edits:
                   spelling it reaches for is held against the workflow's, so
                   the two readers cannot drift apart again in silence
 
-`spec.md` §*User scenarios & acceptance* numbers the rows A1 to A12 and each
+`spec.md` *User scenarios & acceptance* numbers the rows A1 to A12 and each
 case below names the one it holds.
 """
 
@@ -315,7 +315,7 @@ def test_what_the_branch_tracks_wins_over_origin_when_the_two_differ(tmp_path):
     """The order is not decoration. A clone whose base branch tracks a SECOND
     remote — a fork with an upstream — would compare against the fork's stale
     copy if `origin/` came first, and that is the defect class being repaired
-    (`plan.md` §*Alternatives considered*)."""
+    (`plan.md` *Alternatives considered*)."""
     fork = upstream_repo(tmp_path / "fork")
     work = clone(fork, tmp_path / "work")
     other = upstream_repo(tmp_path / "other")
@@ -354,7 +354,7 @@ def test_a_base_with_no_remote_counterpart_resolves_to_itself(tmp_path):
     # `base.commit != base.ref`, and it was measured UNREACHABLE — the
     # mutation that hands the consumers the ref stops at the line above it, so
     # the extra line could never fail. A check that cannot fail is the
-    # counterfeit `skills/verify/SKILL.md` §*The Seal Test* names, and this
+    # counterfeit `skills/verify/SKILL.md` *The Seal Test* names, and this
     # work item already carries one finding about planting one.
     assert base.ref == "never-pushed", f"resolved to {base.ref}"
     assert base.commit == short(work, "never-pushed")
@@ -455,7 +455,7 @@ def test_the_unverified_arm_reports_what_ci_reports(tmp_path):
 
 
 def test_the_gate_reads_the_given_base_exactly_once(tmp_path):
-    """The closure is structural rather than a list. `spec.md` §*The class,
+    """The closure is structural rather than a list. `spec.md` *The class,
     enumerated by construction* names six consumers of `args.base`; counting
     the reads is what stops a seventh, written later, from taking the
     unresolved value without this count going red."""
@@ -501,7 +501,7 @@ def test_a_base_that_agrees_with_its_remote_prints_nothing_extra(tmp_path):
 
 def test_a_base_behind_its_remote_says_so_with_both_refs_and_the_distance(tmp_path):
     """A5. All four values and how far apart they are, in one line, and the
-    run continues — `plan.md` §*Alternatives considered* rejected the refusal
+    run continues — `plan.md` *Alternatives considered* rejected the refusal
     because its only repair is a fetch and a second nine-minute gate."""
     work = behind_gate_repo(tmp_path)
     out = run_gate(work, tmp_path / "out")
@@ -723,13 +723,13 @@ VERIFY = os.path.join(ROOT, "skills", "verify", "orchestration.md")
 # resolved, and what it is resolved TO. A mention of `origin/` in a table
 # three hundred lines from the sentence about the base is not the fact stated;
 # `tests/test_the_lenient_run_says_what_the_broad_gate_will_say.py`'s
-# §*no document describes the lenient reader alone* is the precedent.
+# *no document describes the lenient reader alone* is the precedent.
 #
 # `broad_gate.py` is NOT in this list and is checked below instead. Its
 # `REMOTE_BASE` and `UPSTREAM_BASE` constants sit in one block and carry both
 # words between them, so a whole-file block walk passes on the code whatever
 # the docstring says — a check that cannot fail, which is the counterfeit
-# `skills/verify/SKILL.md` §*The Seal Test* is about. Measured: deleting the
+# `skills/verify/SKILL.md` *The Seal Test* is about. Measured: deleting the
 # docstring's paragraph left this case green.
 DESCRIBES_THE_BASE = (REVIEW_ORCH, VERIFY)
 
@@ -748,7 +748,7 @@ def test_the_block_reader_can_fail():
 
 
 def test_no_document_leaves_the_base_reading_as_the_ref_you_typed():
-    """§14. The resolution is a change to what a person reads — the sealer
+    """Contract rule 14. The resolution is a change to what a person reads — the sealer
     passes the base, and the panel and the printed line are read by whoever
     doubts a seal. A document that still describes the base as the ref as
     typed is a false sentence, and this is what makes that red rather than
@@ -804,7 +804,7 @@ def test_the_documents_name_the_panel_row_the_gate_actually_prints():
 def a_clone_tracking_a_second_remote(tmp_path):
     """A clone whose `base` was retargeted to a second remote while
     `origin/base` still exists at a different commit — a fork with an
-    upstream, which is the case `plan.md` §*Alternatives considered* puts step
+    upstream, which is the case `plan.md` *Alternatives considered* puts step
     1 of the rule first for."""
     fork = upstream_repo(tmp_path / "fork")
     work = clone(fork, tmp_path / "work")
@@ -896,7 +896,7 @@ def test_a_bare_sha_does_not_take_a_branchs_upstream(tmp_path):
 # The six spellings round 1 drove the old pattern over. Three were invisible
 # to it, and one of those three — the `BASE:` assignment — is not
 # hypothetical: `.github/workflows/hygiene.yml` already spells a base that
-# way, and `plan.md` §*Technical context* counts that line among the four
+# way, and `plan.md` *Technical context* counts that line among the four
 # base-taking steps. So the pin covered three of the four the plan enumerates
 # while `phases/phase-4.md` and the changelog claimed all of them.
 WORKFLOW_SHAPES = [
@@ -959,7 +959,7 @@ def test_the_workflow_reader_finds_the_env_assignment_the_file_already_has():
 # Every shape #462 names, in one workflow: a flag in a whole-line comment, a
 # flag in a trailing comment, a `BASE:` under `with:` and one inside a
 # `run: |` block beside the one `env:` carries, and an empty quoted value.
-# Neutral values only (`CONTRIBUTING.md` §*House rules*, *No real
+# Neutral values only (`CONTRIBUTING.md` *House rules*, *No real
 # identifiers*).
 MISLEADING_WORKFLOW = """\
 jobs:

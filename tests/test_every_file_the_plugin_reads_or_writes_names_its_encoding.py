@@ -639,7 +639,7 @@ def test_every_classification_carries_its_grounds():
 
 
 def test_the_failure_names_the_site_and_the_repair():
-    """A person reads this at a red Windows leg and acts on it (§14)."""
+    """A person reads this at a red Windows leg and acts on it (contract rule 14)."""
     message = failure(["hooks/x.py:3 (open(), main)"])
     assert "hooks/x.py:3 (open(), main)" in message, message
     assert (

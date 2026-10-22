@@ -1,5 +1,5 @@
 """The shapes `seal/specs/1790645290-the-hooks-and-the-rider-check-read-
-fences-and-comments-by-one-rule/spec.md` §*The shapes* names, as lines (#667).
+fences-and-comments-by-one-rule/spec.md` *The shapes* names, as lines (#667).
 
 Data and nothing else. Each shape is the document one row of that table is
 about, and `RENDERER` is the frame's *Renderer* column turned into the lines
@@ -285,7 +285,7 @@ def span(first, last):
 
 
 # The frame's *Renderer* column as hidden lines, derived by reading the
-# CommonMark specification (§4.5 fences, §4.6 HTML blocks, §6.6 inline raw
+# CommonMark specification (section 4.5 fences, section 4.6 HTML blocks, section 6.6 inline raw
 # HTML) and GFM's table extension, before anything was parsed.
 RENDERER = {
     "C1": set(),

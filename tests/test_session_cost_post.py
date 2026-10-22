@@ -20,7 +20,7 @@ The five states, and the exit each ends on:
   more than one open            exit 1, both named         (A8)
   exactly one open              exit 0, one comment        (A9)
 
-**Red-first, per the contract's §15.** Every case here was run against
+**Red-first, per contract rule 15.** Every case here was run against
 `session_cost.py` before the mode existed: `--post` was not a flag, so
 argparse exited 2 on all of them, and only A5 was red for its own reason.
 The phase record names the run. After the mode landed, each unit it added was
@@ -245,7 +245,7 @@ def test_one_open_posts_once_to_that_issue(monkeypatch, capsys):
 
 def test_the_body_file_is_removed_after_the_post(monkeypatch):
     """A temp file per segment boundary, left behind, is the leaving
-    `agent-contract` §7 is about — and this one is the command's, not a
+    contract rule 7 is about — and this one is the command's, not a
     probe's, so nothing else would ever clean it."""
     module = _cost()
     paths = []
@@ -572,7 +572,7 @@ def test_an_empty_reading_is_refused_rather_than_posted(
     monkeypatch, capsys, tmp_path, transcript
 ):
     """Round 1's second finding. The invariant is that the numbers are the
-    script's and the sentence is not, and `spec.md` §Scope states it as *it
+    script's and the sentence is not, and `spec.md` *Scope* states it as *it
     refuses to post without a reading* — not without the flag. Enforced
     against the missing flag alone, a `--says` naming an empty file posts a
     fence with nothing above it, which is the shape a session reaches by

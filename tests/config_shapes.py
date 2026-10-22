@@ -1,5 +1,5 @@
 """The sixteen config shapes `seal/specs/1791852616-the-config-table-has-its-
-own-grammar-beside-the-gfm-walker/spec.md` §*Data & interfaces* measured, as
+own-grammar-beside-the-gfm-walker/spec.md` *Data & interfaces* measured, as
 texts (#871).
 
 Data and nothing else. Each shape is the document one row of that table is

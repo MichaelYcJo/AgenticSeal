@@ -367,7 +367,7 @@ RULE_3_REASONS = {
 
 @pytest.mark.parametrize("name", sorted(RULE_3_REASONS))
 def test_rule_3_names_the_total_and_each_grader_failing_every_new_run(name):
-    """Guards S2 and S3 of #966 (contract §14): a falling shape and reach
+    """Guards S2 and S3 of #966 (contract rule 14): a falling shape and reach
     total is written with both totals and every grader whose passes fell,
     sorted, and a grader the new side failed on every run, where the
     baseline passed it, is named on a line of its own. Rule 3's lines come
@@ -962,8 +962,8 @@ def test_a_paid_run_survives_a_later_crash_and_is_read_again_from_what_was_saved
     assert side["specseal"]["preload"] == ni.preload_hashes(str(plugin), "warden")
     assert side["specseal"]["cut_short"] is False
     # Round 1 of #969, finding 7: a `--tree` side's `rev` names no machine
-    # path, since a committed record may not carry one (CONTRIBUTING.md
-    # §House rules); the preload's hashes already name the content.
+    # path, since a committed record may not carry one (`CONTRIBUTING.md`
+    # *House rules*); the preload's hashes already name the content.
     assert side["specseal"]["rev"] == "tree", side["specseal"]["rev"]
     meta = json.loads((saved / "meta.json").read_text(encoding="utf-8"))
     assert meta["rev"] == "tree", meta["rev"]
@@ -1981,10 +1981,9 @@ def test_a_labelled_record_is_read_by_the_grammar_of_the_commit_that_wrote_it(
         path.write_text(text, encoding="utf-8")
 
     git("init", "-q")
-    for rel in (
-        "skills/code-review/scripts/chain_check.py",
-        "skills/verify/scripts/unverified_check.py",
-    ):
+    # The check's files as `replay_targets.py` copies them for a commit, the
+    # grammar document apart because the commit below holds an older one.
+    for rel in (r for r in rt.CHECK_FILES if not r.startswith("docs/")):
         with open(os.path.join(ROOT, rel), encoding="utf-8") as f:
             put(rel, f.read())
     with open(

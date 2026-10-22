@@ -1,6 +1,6 @@
 """Under `automation`, a creation in another clone asks nobody (#903).
 
-Work item 1791852612. `docs/worktree-guard-spec.md` §B's rows *only IDLE
+Work item 1791852612. `docs/worktree-guard-spec.md` *B. Worktree creation*, its rows *only IDLE
 sessions* (row 3) and *detection unusable* (row 4) are `choose` sites: a
 `deny` once per session that tells the model to put two options to the
 person with `AskUserQuestion`, and an `ask` on every attempt after. In the
@@ -364,7 +364,7 @@ def test_on_windows_a_creation_in_another_clone_is_row_fours_deny(
     """S11, M1 of work item 1791852612, measured by the Windows shards.
     Nothing is stubbed: `sessions_in_tree` runs as it does there, where `ps`
     takes no `-o` and detection reads unusable. If the reading is wrong, this
-    case is where it shows, and `docs/worktree-guard-spec.md` §*Known limits*
+    case is where it shows, and `docs/worktree-guard-spec.md` *Known limits*
     is corrected in this work item. Seen red at `321e9de1` off Windows, by a
     deleted probe that ran this body with the process scan stubbed to read
     unusable: the attended deny."""

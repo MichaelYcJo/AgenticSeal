@@ -442,7 +442,7 @@ def test_the_commit_gate_says_what_declining_does(tmp_path):
     """A hook returns allow/deny/ask; declining renders as a bare No.
 
     The reason string is the only place that can give the decline a
-    destination, and `implement` §1 rejects a question whose no leads nowhere.
+    destination, and `implement` *1. Read the spec before the code* rejects a question whose no leads nowhere.
     """
     from conftest import run_hook
 
@@ -816,7 +816,7 @@ def test_the_consent_writer_files_a_creation_where_bash_runs_it(repo, tmp_path, 
 
 
 def test_the_guard_policy_says_the_record_is_filed_where_the_guard_judged():
-    """§14 of the agent contract, for S1-S3 of work item 1791384157: §*Creation
+    """Contract rule 14, for S1-S3 of work item 1791384157: *Creation
     consent*'s record says its clone is the one the guard judged, placed by
     one function. Red against `5623d728`'s text."""
     assert (
@@ -826,10 +826,10 @@ def test_the_guard_policy_says_the_record_is_filed_where_the_guard_judged():
 
 
 def test_the_guard_policy_names_the_shell_built_word_limit():
-    """§14 of the agent contract, for S27 of work item 1791384157's second
-    reframe: §*Known limits* says in one sentence that a word the shell
+    """Contract rule 14, for S27 of work item 1791384157's second
+    reframe: *Known limits* says in one sentence that a word the shell
     builds before git runs is not read and names #856's four forms as silent;
-    §A names no brace rule, cost or count, and no bullet names a brace-hidden
+    *A. Branch switch* names no brace rule, cost or count, and no bullet names a brace-hidden
     `-C`. Red against `52c72bbe`'s text."""
     text = _policy_text()
     for sentence in (
@@ -1053,7 +1053,7 @@ UNPLACED = {
 def test_a_switch_tree_the_guard_cannot_place_is_judged_as_its_own(
     monkeypatch, capsys, repo, tmp_path, name
 ):
-    """`docs/worktree-guard-spec.md` §*Known limits*: asking here would have
+    """`docs/worktree-guard-spec.md` *Known limits*: asking here would have
     stopped 9 of the 27,351 recorded command and directory pairs, so the
     fallback stays (phase 3 of work item 1790993140). Seen red against a
     mutant whose last silent exit asks."""
@@ -1065,7 +1065,7 @@ def test_a_switch_tree_the_guard_cannot_place_is_judged_as_its_own(
 def test_a_one_tree_reason_calls_the_tree_it_judges_this_tree(
     monkeypatch, capsys, repo, tmp_path
 ):
-    """`docs/worktree-guard-spec.md` §A: a reason that describes one tree
+    """`docs/worktree-guard-spec.md` *A. Branch switch*: a reason that describes one tree
     calls it "this tree", whichever tree it is, so with the session's tree
     clean and `w` dirty the reason about `w` names no path (#854, round 3 of
     work item 1791270162, white 2)."""
@@ -1082,7 +1082,7 @@ def test_a_one_tree_reason_calls_the_tree_it_judges_this_tree(
 WIDER_ONLY = {
     "git 2>&1 worktree add": ("cd w && git 2>&1 worktree add ../wt b", "creation"),
     # Run in `w` since #826: in the clean session tree an unrecognised shape
-    # says nothing, which is §A row 5 and not the reading under test.
+    # says nothing, which is row 5 of *A. Branch switch* and not the reading under test.
     "--config-env, a creation": (
         "cd w && git --config-env k=v worktree add ../wt b",
         "creation",
@@ -1167,7 +1167,7 @@ def test_a_creation_only_the_wider_reading_finds_stops_whatever_the_consent_reco
     every creation, and #734 found it read against the wrong clone. Since
     #826 the stop reads no consent record (`spec.md` In 3 of 1791270162): a
     creation having run says nothing about whether this one is plain, and
-    the plain retry meets §B, which reads its own clone's consent."""
+    the plain retry meets *B. Worktree creation*, which reads its own clone's consent."""
     session, _other = _a_dirty_w_under_a_clean_session(repo, tmp_path)
     assert wg.worktree_consent.record(str(session), "me")
     assert wg.worktree_consent.record(str(session / "w"), "me")
@@ -1376,7 +1376,7 @@ def _policy_text():
 
 
 def test_the_guard_policy_says_which_shapes_reach_the_rows_and_who_reads_the_stop():
-    """S12 of work item 1791270162, §14 of the agent contract: §A names the
+    """S12 of work item 1791270162, contract rule 14: *A. Branch switch* names the
     three shapes, the stop's two readers and its failure direction, in the
     sentences a person reads to learn when the guard stops. Red against the
     policy as it stood at `9c03ae85`."""
@@ -1411,8 +1411,8 @@ def test_the_guard_policy_says_which_shapes_reach_the_rows_and_who_reads_the_sto
 
 
 def test_the_guard_policy_says_nothing_is_read_past_the_base():
-    """S12 of work item 1791270162: §*Which tree* keeps the frozen reading's
-    paragraphs and says nothing is read past the base's words, and §*Known
+    """S12 of work item 1791270162: *Which tree* keeps the frozen reading's
+    paragraphs and says nothing is read past the base's words, and *Known
     limits* holds the new limits and none of the removed ones. Red against
     the policy as it stood at `9c03ae85`."""
     text = _policy_text()
@@ -1436,7 +1436,7 @@ def test_the_guard_policy_says_nothing_is_read_past_the_base():
     for gone in (
         "Two rules are read past the base.",
         "options are read from a static table",
-        "name is looked up as git resolves it (§*Which tree*)",
+        "name is looked up as git resolves it (*Which tree*)",
         "the guard asks wherever a view's words hold a switch",
     ):
         assert gone not in text, gone
@@ -1742,7 +1742,7 @@ def test_the_token_read_never_reads_more_than_the_base(monkeypatch, token, break
     """`spec.md` A9. Over every command of A6-A8, the two the splitter cannot
     finish until the body goes, and the existing token cases, `has_token` is
     True only where `a3aa139a`'s was, with the wider body reader working
-    and raising. It holds by the AND in `spec.md` §*Scope* In 5; red with the
+    and raising. It holds by the AND in `spec.md` *Scope* In 5; red with the
     read over the body-free text alone (`plan.md` F)."""
     if break_it:
         monkeypatch.setattr(wg.tokens, "without_bodies", _raises)
@@ -1753,7 +1753,7 @@ def test_the_token_read_never_reads_more_than_the_base(monkeypatch, token, break
 
 
 def test_the_guard_policy_and_readmes_say_a_body_token_is_not_read():
-    """§14 of the agent contract, for #780: §*Choice sites* and the two token
+    """Contract rule 14, for #780: *Choice sites* and the two token
     rows of both READMEs say a token inside a here-document body is not
     read. Red against `a3aa139a`'s texts."""
     assert (

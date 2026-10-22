@@ -46,7 +46,7 @@ defaults:
 This is its own file rather than a branch inside the guard because
 `hooks/dispatch.py` hands every gate the same payload with no event name. One
 file wired to both events would have to tell them apart by sniffing
-`hook_event_name`, and `skills/agent-contract/SKILL.md` §13 refuses a defence
+`hook_event_name`, and contract rule 13 refuses a defence
 that rests on a platform guarantee: where the field were absent the writer
 would silently never record, which reads as "nobody ever consented" and costs
 back every prompt this removes. A gate wired only to PostToolUse needs no
@@ -303,7 +303,7 @@ def last_routing_answer(top: str, session: str, transcript_path: str = ""):
     the question and its options and never which one was pressed. That is the
     whole difference from `[worktree-ok]` and from a `routing.md` the model
     wrote itself, and it is why the answer stands beside the record as
-    consent. `docs/worktree-guard-spec.md` §*Creation consent* holds the table.
+    consent. `docs/worktree-guard-spec.md` *Creation consent* holds the table.
 
     Four conditions. Failing the first, or a clone that cannot be resolved, is
     `UNREAD`; an entry failing another is skipped. The guard reads either as
@@ -534,7 +534,7 @@ def place(tokens, wheres, cwd: str):
     `hooks/commit-review-gate.py`) and the guard falls back instead. The two
     protect different things: a commit nobody judged is a commit nobody
     reviewed, while a guard that goes silent leaves a shared tree unguarded,
-    and `worktree-guard-spec.md` §Unknowns resolve conservatively puts the
+    and `docs/worktree-guard-spec.md` *Unknowns resolve conservatively* puts the
     cost of a wrong deny at one prompt against a wrong allow breaking another
     session's tree.
 

@@ -111,7 +111,7 @@ MERGED_PR = re.compile(r"\(#(\d+)\)\s*$")
 # bodies continue a bullet onto the next line, so masking it would drop real
 # claims -- the wrong direction for a closer. Whether GitHub acts on a keyword
 # inside an HTML comment is unmeasured (`docs/issues-and-milestones.md`
-# §*A keyword claims the one number after it*); until somebody measures it on a
+# *A keyword claims the one number after it*); until somebody measures it on a
 # scratch pull request the shape is read as it always was.
 #
 # A fence is three backticks or three tildes, indented or not, closed by the

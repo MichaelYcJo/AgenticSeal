@@ -67,7 +67,7 @@ TOKENS = {REVIEW: "[no-review]", PARITY: "[no-parity]"}
 
 # `seal/` as a string rather than `optin.HOME` joined under anything: these
 # classify paths as `git diff` prints them, repository-relative. The line is
-# the PARITY arm's alone -- `docs/the-review-and-parity-arms.md` §*Review arm*
+# the PARITY arm's alone -- `docs/the-review-and-parity-arms.md` *Review arm*
 # (#518) holds why the review arm reads no paths.
 DOC_ROOTS = ("docs/", "seal/")
 

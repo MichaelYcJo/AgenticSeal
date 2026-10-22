@@ -46,7 +46,7 @@ fragment along* owns that rule.
 **The fix pass then finds what the fixes left standing.** A fix repairs the
 coordinate a finding named, and the fact the finding was about is usually
 stated in more than one place, so the other statements survive and arrive as
-a later round; that is contract §12. For each rule its range reworded or
+a later round; that is contract rule 12. For each rule its range reworded or
 removed, the smith finds every other place stating it, by its words and by
 the `check:` target that holds it, and corrects each or names it in the
 hand-back with why it stands. The round that follows reads that list against
@@ -305,7 +305,7 @@ phase, run the closed phase's suite and the lint of its changed files yourself
 and read the output: a phase that reports green has reported, and a next phase
 built on that report is built on prose. *Orchestrator: verify before posting*
 below says the same of the warden's report. The broad gate still runs once,
-after the rounds settle (contract §2); this is the narrow run at each phase
+after the rounds settle (contract rule 2); this is the narrow run at each phase
 boundary, and it is yours rather than the smith's. A phase boundary is never
 that moment: the gate comes due when the last round record has no finding
 open, which is a record no phase writes.

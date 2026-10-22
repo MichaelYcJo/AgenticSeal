@@ -63,7 +63,7 @@ def quoted_lines(lines):
     included — the lines `unquoted` blanks.
 
     A line that holds a claim is read on doubt, the first of the three
-    answers `docs/the-record-layout.md` §*The fold, and what tells it from
+    answers `docs/the-record-layout.md` *The fold, and what tells it from
     a deletion* gives to whether a line is live: the wrong answer is a
     parked or malformed line read, never one dropped.
 

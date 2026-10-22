@@ -334,12 +334,12 @@ def test_the_report_does_not_promise_what_the_retirement_refuses(tree):
     kept = text.split(settle.RULE_BASE_HEADING.format(base=BASE))[1]
     assert MOMENT in kept and "a claim nobody ran" in kept, text
     # #611, round 3 of 1790297085 ⬜ 3: bc63b91d reworded the summary line and
-    # nothing pinned the new words (contract §14).
+    # nothing pinned the new words (contract rule 14).
     assert f"1 kept because the closure has not reached {BASE}" in text, text
 
 
 def test_the_base_heading_says_where_the_closure_has_to_go():
-    """§14: the sentence a person acts on is pinned, not only its presence."""
+    """Contract rule 14: the sentence a person acts on is pinned, not only its presence."""
     heading = flat(settle.RULE_BASE_HEADING.format(base="origin/main"))
     assert "origin/main" in heading, heading
     assert "the branch the release merges to" in heading, heading
@@ -347,7 +347,7 @@ def test_the_base_heading_says_where_the_closure_has_to_go():
 
 
 def test_the_documents_say_the_closure_has_to_reach_the_base():
-    """S11, §14's half of #602: the skill, the policy, both cheat-sheet rows,
+    """S11, contract rule 14's half of #602: the skill, the policy, both cheat-sheet rows,
     the kept heading and the module docstring say the rule is asked at the
     merge base of `--released-at` and `HEAD`, and what a person does about a
     directory kept there."""
@@ -550,6 +550,11 @@ def test_the_report_lists_what_an_apply_would_remove(tree):
     assert "docs/cites.md:2" in takes, "an abbreviated path is a citation too"
     assert "1700000002-beta" not in takes, "a marker or a bare id is not a path"
     assert "tests/test_reads.py" in text.split("checks that read")[1], text
+    # Contract rule 14: the heading a person reads names the section that
+    # says what each check owes, by its heading text.
+    assert (
+        "(`skills/settle/SKILL.md` *Answer every check that reads the corpus*)"
+    ) in " ".join(text.split()), text
 
 
 @pytest.mark.parametrize("ref", [None, "HEAD"])
@@ -608,7 +613,7 @@ def test_the_predicate_is_what_settle_asks(tree, monkeypatch):
 
 
 def test_the_documents_say_a_spec_less_directory_is_retired_by_the_rule():
-    """§14's half of D3. The policy said such an item *is kept by name*; that
+    """Contract rule 14's half of D3. The policy said such an item *is kept by name*; that
     is overturned, and the one condition the frame added is stated where the
     owner can overturn it."""
     policy = document("docs", "the-record-layout.md")
@@ -704,7 +709,7 @@ def flat(text):
 
 
 def test_the_skill_names_the_floors_a_fold_has_to_answer():
-    """A11. `docs/one-root-by-lifetime.md` §*The dependency rule* names two
+    """A11. `docs/one-root-by-lifetime.md` *The dependency rule* names two
     readers and the real list is longer — fourteen test modules read this
     repository's own corpus and at least six carry a population floor. A
     session that folds without answering them removes the population its own
@@ -813,7 +818,7 @@ def test_every_other_carrier_points_to_the_model(parts):
     text = document(*parts)
     assert "one writer that does is `settle`" not in text, "/".join(parts)
     assert (
-        "`skills/implement/SKILL.md` §*Document layout — two roots, three lifetimes*"
+        "`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*"
         in text
     ), "/".join(parts)
 
@@ -1036,7 +1041,7 @@ def test_the_released_at_refusal_is_about_the_ref_and_nothing_else(tmp_path):
 
 
 def test_the_module_and_the_skill_both_say_local_mode_is_refused():
-    """Round 2, finding 3 — §14's other half. The exit-code list named three
+    """Round 2, finding 3 — contract rule 14's other half. The exit-code list named three
     causes of exit 2 and there were four, and the one document a session reads
     before it folds said nothing about the refusal at all. A person whose root
     sits under the git directory meets a stop no document predicted."""

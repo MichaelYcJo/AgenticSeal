@@ -101,7 +101,7 @@ def test_no_row_and_an_empty_row_hold_no_pact():
     ids=["a value outside the old vocabulary", "written twice"],
 )
 def test_a_pact_notify_row_an_earlier_release_read_is_ignored(rows):
-    """`templates/config.md` §*Pact*: a `Pact notify` row left in the table
+    """`templates/config.md` *Pact*: a `Pact notify` row left in the table
     is read by nobody, with a `Pact` row or without one, so neither a value
     outside the vocabulary the row once had nor the row written twice is
     refused. Seen red by `mutation-check` against a reader that refused the

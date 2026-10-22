@@ -5,7 +5,7 @@ Two bodies of the same chain came out unreadable side by side. PR #162 wrote
 that section as prose and PR #168 as a table, so the numbers a reader wants to
 hold against each other sat in two different shapes -- which is the whole of
 what a fixed set of rows buys. `skills/commit-pr-convention/SKILL.md`
-§*Pull request bodies* is where a session writing a body actually reads, so
+*Pull request bodies* is where a session writing a body actually reads, so
 that is where the shape is stated.
 
 Why this is its own file rather than a case in an existing module. The two
@@ -21,7 +21,7 @@ The absence half is the load-bearing one. The table's rows are defined in
 thing to keep in step -- the copy that drifts is the one nobody owns. So the
 pointer is asserted and the rows are refused, in the same case.
 
-Each case here was seen red before the prose it pins landed (§15).
+Each case here was seen red before the prose it pins landed (contract rule 15).
 """
 
 import os

@@ -21,7 +21,7 @@ Two halves, and they are separable on purpose:
                `hooks/dispatch.py` hands every gate the same payload with no
                event name, so one file wired to both events would have to tell
                them apart by sniffing a harness field. A gate wired only to
-               `PostToolUse` needs no such guarantee (`agent-contract` §13).
+               `PostToolUse` needs no such guarantee (contract rule 13).
   the reader   `guard_worktree_creation`'s new first row. The tests here grant
                consent by writing the record BY HAND, so the reader is pinned
                without the writer under it.
@@ -176,7 +176,7 @@ def test_a_second_creation_in_the_same_session_is_allowed(monkeypatch, capsys, r
 
 
 def test_consent_outranks_every_row_below_it(monkeypatch, capsys, repo):
-    """Each row of §B asks something the record has already answered — the
+    """Each row of *B. Worktree creation* asks something the record has already answered — the
     ACTIVE row asks for a confirmation, the two choice rows ask which way to
     go, and the `[worktree-ok]` row asks whether the token was meant. So the
     read goes above all of them rather than beside one."""
@@ -361,7 +361,7 @@ def test_a_path_qualified_git_carries_no_allow(monkeypatch, capsys, repo):
     )
 
 
-# #243. `docs/worktree-guard-spec.md` §*Creation consent* counted the spellings
+# #243. `docs/worktree-guard-spec.md` *Creation consent* counted the spellings
 # the allow covers (*exactly five*) and gave everything else one verdict
 # (*falls to `ask`*). Both were a property of one enumeration, not of the
 # boundary. The boundary is a class, and this table pins members of each
@@ -708,7 +708,7 @@ def test_the_guard_is_never_silent_where_the_writer_records(
 # creation took the verdict and the switch was never read. With consent the
 # creation is silent for a compound, and that silence was the whole answer: the
 # switch ran over a tree another session was working in, which
-# `docs/worktree-guard-spec.md` §*Creation consent* says consent never reaches.
+# `docs/worktree-guard-spec.md` *Creation consent* says consent never reaches.
 # The walk now keeps the first switch and the first creation in whichever
 # order they are written, and a command carrying both goes to the switch
 # ladder with the creation hooked in where the switch-first shape has it.
@@ -716,7 +716,7 @@ def test_the_guard_is_never_silent_where_the_writer_records(
 CREATE_FIRST = "git worktree add ../wt f && git switch feature/x"
 SWITCH_FIRST = "git switch feature/x && git worktree add ../wt f"
 
-# `docs/worktree-guard-spec.md` §A's five tree states: (name, sessions, dirty).
+# The five tree states of `docs/worktree-guard-spec.md` *A. Branch switch*: (name, sessions, dirty).
 TREE_STATES = (
     ("active", (ACTIVE, [], True), False),
     ("idle", ([], IDLE, True), False),
@@ -868,7 +868,7 @@ def test_a_switch_into_the_new_worktree_is_judged_where_the_shell_stands(
     worktree the command creates does not exist yet.
 
     `cd ../x && git switch y` therefore falls back to the session's own tree,
-    per §*Which tree*, and meets that tree's
+    per *Which tree*, and meets that tree's
     switch verdict. It is a stop the person pays for a switch that would
     really happen in the new worktree, and it errs on the side a guard
     should. Seen red at the base: the creation's `ask`, or silence under
@@ -876,7 +876,7 @@ def test_a_switch_into_the_new_worktree_is_judged_where_the_shell_stands(
 
     `git -C ../x switch y` names no repository, so it keeps that section's
     silence, and the creation's own verdict stands, as it did at the base.
-    That is the spelling `docs/worktree-guard-spec.md` §*Known limits* names
+    That is the spelling `docs/worktree-guard-spec.md` *Known limits* names
     as the way to avoid the stop."""
     for consented in (False, True):
         sid = f"consented-{consented}"
@@ -1012,7 +1012,7 @@ def test_a_session_id_that_is_only_separators_has_no_record_path(repo):
     """The id names a file, so an id that reduces to nothing must resolve to no
     path at all rather than to the directory above it. Left to the filesystem,
     `..` would be refused by `open` raising on a directory — a defence resting
-    on a platform guarantee, which `agent-contract` §13 refuses."""
+    on a platform guarantee, which contract rule 13 refuses."""
     for bad in ("", ".", "..", "/", "../..", os.sep):
         assert wc.consent_path(str(repo), bad) == "", bad
     assert wc.consent_path(str(repo), "me").endswith(os.path.join("me"))
@@ -1181,7 +1181,7 @@ def test_the_silent_arm_emits_nothing_at_all(monkeypatch, capsys, repo):
 # routing question can: the harness writes it into the session's transcript
 # from the click, and the model writes the question and never which option was
 # pressed. The fixtures below build transcript lines in the shape measured on
-# 2026-09-26 (`spec.md` §*Data & interfaces*), under a projects root the case
+# 2026-09-26 (`spec.md` *Data & interfaces*), under a projects root the case
 # owns, so no case reads a transcript of whoever runs the suite.
 
 ROUTING_QUESTION = "How should this work be routed?"
@@ -1737,7 +1737,7 @@ def test_an_unreadable_transcript_leaves_the_old_verdict(
 
 
 def test_the_allow_says_which_consent_it_read(monkeypatch, capsys, projects, repo):
-    """§14: the two sources are two different sentences, in both languages."""
+    """Contract rule 14: the two sources are two different sentences, in both languages."""
     write_transcript(projects, "me", ask_entries(repo))
     _, reason = decide(monkeypatch, capsys, repo, "git worktree add ../wt f")
     assert "The user pressed `automation` on this session's routing question" in reason
@@ -1922,7 +1922,7 @@ def test_the_consent_record_is_not_the_press(monkeypatch, capsys, projects, repo
 
 # --- #894: under the press, the tracked-changes row asks nobody -------------
 #
-# Work item 1791779434. The row of `docs/worktree-guard-spec.md` §A that the
+# Work item 1791779434. The row of `docs/worktree-guard-spec.md` *A. Branch switch* that the
 # 0.21.0 run met with nobody at the keyboard: a `git switch` over one modified
 # tracked file put a yes/no to the owner in a run routed `automation`. Under
 # the press it is a deny to the model naming the ways on that need nobody;
@@ -2125,7 +2125,7 @@ def test_the_ways_on_pass_the_guard(monkeypatch, capsys, projects, repo):
     """S4, narrowed at the reframe to the claim the deny makes: `git commit`
     and `git stash`, each issued alone, pass the guard, and a switch after
     either meets a clean tree and passes too. Run with real git
-    (`agent-contract` §13). What git did with the change is asserted by
+    (contract rule 13). What git did with the change is asserted by
     nothing, because the deny promises none of it."""
     write_transcript(projects, "me", ask_entries(repo))
     here = git_in(repo, "branch", "--show-current")
@@ -2142,7 +2142,7 @@ def test_the_ways_on_pass_the_guard(monkeypatch, capsys, projects, repo):
         git_in(repo, *command.split()[1:])
 
 
-# S12: round 3's sixteen setups (`rounds/round-3-report.md` §1), each a form
+# S12: round 3's sixteen setups (`rounds/round-3-report.md`, section 1), each a form
 # and the state git was in. The guard reads none of the state, so every row
 # meets the same bytes; a form a later round finds is a row here.
 SIXTEEN = (

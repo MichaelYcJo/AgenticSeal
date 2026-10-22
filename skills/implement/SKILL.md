@@ -333,7 +333,19 @@ it observable* is not something anyone can check, and it is not a way out.
 `questions.md` is not on that ladder: it starts with the batch collected
 before the first edit (step 1) and gains a row whenever a decision only a
 human can make appears later, at any size. A late one still gets written — the
-batch is what keeps it from being the only way they arrive.
+batch is what keeps it from being the only way they arrive. A question is a
+row there and never a sentence of `spec.md`, because an unanswered question
+in prose reads as decided.
+
+**A row's `Who can answer` cell takes one of three values.** **a person**:
+what the product should be, or a value somebody has to be accountable for,
+and the only kind of row that blocks the build. **a measurement**: a probe,
+a command or a count settles it, so a person is the wrong instrument and a
+row queued behind one wastes a round trip. **the work**: unknowable at
+framing time; the phase that meets it decides it there and records a
+divergence row, and it does not travel back to the framer. **The framer
+opens rows and does not own their answers**: the `Status` column is written
+by whoever answered, as `answered <date> by <who>`, never by whoever asked.
 
 A work item's directory is `seal/specs/<unix-epoch-seconds>-<slug>/` (e.g.
 `seal/specs/1784780439-center-list-sort/`), bootstrapped from `templates/`. The
@@ -376,13 +388,33 @@ it** — never the boilerplate the contract, this skill, and `agents/smith.md`
 already carry, which every phase gets told by definition and none of them
 need repeated in their own record. Copy it in when the phase closes: what
 the spawn prompt or task description said this phase, specifically, had to
-build.
+build. The section is how a reader opening the record later, with the spawn
+prompt gone, tells a scope the orchestrator gave the phase from one the phase
+invented. `## What this phase found` holds what building the phase taught
+that `plan.md`'s cells do not: a decision settled while writing the code, a
+constraint found only by trying, anything the next phase needs. A discovery
+reaches the next phase only through that section or through the orchestrator
+retyping it into the next spawn prompt, and the second goes missing without
+a trace when the orchestrator does not.
 
 **`plan.md`'s Phases table is the task list, and there is no other.** Each
 phase carries a **Verified by** column, so it cannot be called done the way a
 checkbox can be ticked, and a **Status** column that is empty or holds the
 commit that closed the phase. A commit asserts a **past** state that someone
-can open, so a tick and the word `done` are refused where a hash is not.
+can open, so a tick and the word `done` are refused where a hash is not. The
+party that builds a phase fills its cell as the phase closes, not at the end.
+Where feature branches squash, those commits stop resolving at the merge, and
+**a rebase during the work does the same earlier and more quietly**, because
+the orphaned object still answers `git cat-file` in the worktree that wrote
+it; **the party that rebases the branch re-reads the column after the
+rebase**. Nothing measures from the column, which is why that is tolerable.
+
+**`spec.md` ends with its frame's mark**, `Framed <date> by <who>, before the
+build.`, where `<who>` is the `Planning` row's answer in `routing.md`,
+`framer` or `the session`; `chain_check.py` refuses a `Planning | framer`
+work item whose mark names anyone else. The mark, `plan.md`'s approval line
+and `routing.md`'s `Answered` line share one shape, the verb, the date, who
+and the moment, so the three stay one convention.
 
 ### 4. The closing memo — only what the diff cannot show
 
@@ -409,13 +441,17 @@ is written, so this is
    *inferred during implementation* so planners know they may overturn them.
 
 A memo whose last three sections are empty is correct and four lines long.
+`## Not done` holds what was within reach and deliberately not taken, with
+its grounds, in prose, because those are decisions rather than pending
+claims.
 
 **`## Not verified` is read by a machine, so it has one shape** — a
 `| Item | Who must answer |` table, or alone the no-change block
 `skills/settle/SKILL.md` *Rule changes* states, `- nothing` with its one
 field `why:`. Any other spelling of the heading, the header row or the block
 fails the check rather than reporting zero, because zero reads as "everything
-has been closed".
+has been closed". The template's placeholder row fails it too, until it is
+filled in or the block replaces the table.
 
 An item is closed by marking it, never by deleting it: the Item cell opens
 with the word `closed`, lower case, then the item.

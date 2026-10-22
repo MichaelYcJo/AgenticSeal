@@ -29,7 +29,7 @@ HOOKS = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "hooks"))
 BROKEN = "def broken(:\n"
 RECORDS = "specseal-gate-failure"
 
-# The words a person reads (contract §14). Pinned whole, so an edit that
+# The words a person reads (contract rule 14). Pinned whole, so an edit that
 # changes what the line says has to change this too.
 LABEL_ONE = "SpecSeal: 1 gate failed and was skipped"
 CLOSING = (
@@ -784,7 +784,7 @@ def stop_live(repo, session):
 
 
 def git(repo, *args):
-    """git driven from Python, so no Bash line carries a commit (§8)."""
+    """git driven from Python, so no Bash line carries a commit (contract rule 8)."""
     return subprocess.run(
         ["git", "-C", str(repo), *args],
         capture_output=True,
@@ -892,7 +892,7 @@ def test_an_object_without_a_message_takes_the_report_as_its_message(
 
 def test_the_registration_section_says_a_failure_is_said_and_names_its_case():
     """S14. The ratified rule in `docs/commit-review-gate-spec.md`
-    §*Registration* was that a raising gate is skipped. It now also says the
+    *Registration* was that a raising gate is skipped. It now also says the
     skip is said, and its `check:` line names the module above that pins the
     words a person reads."""
     path = os.path.join(os.path.dirname(HOOKS), "docs", "commit-review-gate-spec.md")

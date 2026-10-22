@@ -426,7 +426,7 @@ def run_moves(root, units):
         # with ENOTDIR, which is what this used to rest on; Windows'
         # `RemoveDirectoryW` removes a directory link itself, whatever is
         # behind it, and deleted a team's linked `specs/` from the working
-        # tree (PR #700's windows leg, #688; contract §13).
+        # tree (PR #700's windows leg, #688; contract rule 13).
         if os.path.islink(path):
             continue
         try:

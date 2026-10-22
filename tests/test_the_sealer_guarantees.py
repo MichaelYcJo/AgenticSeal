@@ -200,17 +200,20 @@ class TestTemplate:
         assert len(verdicts) == 1 and verdicts[0][1] != chain.SEALED
 
     def test_the_claims_table_takes_a_row_per_act_of_step_3_and_lists_none(self):
-        """T22: the sealer's acts are listed once, in `agents/sealer.md` step
-        3. The comment over `## Claims re-run` points there and names no act,
-        so a duty added to the definition has a row here without a second
-        list to keep in step."""
-        comment = between(TEMPLATE, "## Claims re-run", "| Claim |")
-        assert "One row per act of `agents/sealer.md` step 3, whatever the act" in (
-            comment
+        """T22: the sealer's acts are listed once, in `agents/sealer.md`.
+        `docs/the-review-record.md` *The guarantee* makes each act a row and
+        names none, and the template's `## Claims re-run` holds its table
+        alone, so a duty added to the definition has a row here without a
+        second list to keep in step."""
+        rule = between(
+            ROOT / "docs" / "the-review-record.md", "## The guarantee", "## The stamp"
         )
-        assert "`does not hold: <what came back>`" in comment
+        assert "Each act is one row of `## Claims re-run` or `## The parties`" in rule
+        assert between(TEMPLATE, "## Claims re-run", "| Claim |") == "## Claims re-run "
+        row = between(TEMPLATE, "| Claim |", "## The parties")
+        assert "does not hold: what came back" in row
         for act in ("`fixed <commit>`", "sampled", "removal", "🔴"):
-            assert act not in comment, act
+            assert act not in row, act
 
 
 # --- verdicts_of ---------------------------------------------------------------
@@ -687,9 +690,9 @@ class TestDefinition:
 
 class TestDocument:
     def test_the_guarantee_section_points_at_step_3_and_lists_no_act(self):
-        """T23: `docs/the-review-record.md` §*The guarantee* points at the
+        """T23: `docs/the-review-record.md` *The guarantee* points at the
         definition's steps 3 and 4 for the acts and lists none of them. The
-        record's vocabulary in §*The round record* keeps `fixed <commit>`,
+        record's vocabulary in *The round record* keeps `fixed <commit>`,
         and is outside the slice read here."""
         section = between(DOCUMENT, "## The guarantee", "## The run")
         assert "`agents/sealer.md` step 3" in section

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """seal-stamp — the sealer's stamp, drawn from a `sealed` guarantee.
 
-Issue #30 §*What it prints*, redrawn by #717 and #832, and since #975 drawn
+Issue #30 *What it prints*, redrawn by #717 and #832, and since #975 drawn
 once per work item from the sealer's verdict rather than the broad gate's
 run. Two things side by side on the terminal's own background, and nothing
 else: at the left a wax disc with the disc's mark pressed into it, and three
@@ -125,7 +125,7 @@ TITLE_RED = (196, 40, 44)
 # case shadow — `m` the wax edge and `.` the field, as #30 had them; `M n N`
 # the rim lit, mid and dark; `X` the disc's mark's face, and `Y` and `y` its
 # highlight and its drop shadow, as #717 had them; `x` its inner shadow. The
-# framer chose them (`spec.md` §*Data & interfaces*): the twin is for a
+# framer chose them (`spec.md` *Data & interfaces*): the twin is for a
 # console that cannot draw half-blocks, and no decision of the owner's names
 # its letters. Every disc cell is exactly one of these colours, so a cell's
 # letter is a lookup (`letter_row`).
@@ -971,7 +971,7 @@ CHAIN_CHECK = os.path.join(
 # hook draws nothing, and says nothing, where it cannot: a `python3` that
 # cannot load this file, a main session whose working directory is outside
 # this clone, a plugin older than the hook (`docs/the-review-record.md`
-# §*The stamp*).
+# *The stamp*).
 QUEUED = (
     "specseal: the stamp for {id} is drawn at the end of this turn from "
     "{path}; where none appears, `seal-stamp --from {command}` draws it"

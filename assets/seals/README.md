@@ -1,7 +1,7 @@
 # assets/seals/ — the emblems the stamp has carried
 
 The stamp is the sealer's. It is drawn once per work item, at the commit of
-a `guarantee.md` reading `sealed` (`docs/the-review-record.md` §*The
+a `guarantee.md` reading `sealed` (`docs/the-review-record.md` *The
 stamp*): the panel of what the records at that commit say, and a wax disc
 with an emblem pressed into it. Before #975 the broad gate's run drew it
 when the run passed. It drew the gold lily, the red lily and, from 0.20.0
@@ -125,11 +125,11 @@ disc is a candidate; its sheet and the shape of its rows are history.
 that is not 28 lines of 28 over `.M` or that marks a cell outside the field,
 with a sentence naming the line and the column.
 
-### The § at 28 cells — `section-28`
+### The section sign at 28 cells — `section-28`
 
-![The § at 28 cells: Georgia Bold's section sign in three red tones with a drop shadow on a 28-cell disc, at the right of a parchment sheet carrying a sample panel](candidates/section-28.png)
+![The section sign at 28 cells: Georgia Bold's section sign in three red tones with a drop shadow on a 28-cell disc, at the right of a parchment sheet carrying a sample panel](candidates/section-28.png)
 
-- **What it is:** Georgia Bold's §, fitted to the 28-cell frame, in the
+- **What it is:** Georgia Bold's section sign, fitted to the 28-cell frame, in the
   red lily's three tones with a drop shadow.
 - **Drawn by:** the orchestrating session's reference renderer over a
   sample panel, not by `seal_stamp.py`. No tag draws it again.
@@ -150,11 +150,11 @@ with a sentence naming the line and the column.
 - **Its chart is accepted as it stands**, and the `.ans` shows every `M`
   of it.
 
-### The light-red § at 14 cells — `section-14-light-red`
+### The light-red section sign at 14 cells — `section-14-light-red`
 
-![The light-red § at 14 cells: a hand-drawn section sign in one light red with a one-cell shadow on a 14-cell disc, inside a parchment sheet against its right edge](candidates/section-14-light-red.png)
+![The light-red section sign at 14 cells: a hand-drawn section sign in one light red with a one-cell shadow on a 14-cell disc, inside a parchment sheet against its right edge](candidates/section-14-light-red.png)
 
-- **What it is:** a hand-drawn 7 × 10 chart of the § in one light red,
+- **What it is:** a hand-drawn 7 × 10 chart of the section sign in one light red,
   (240, 130, 118), with a one-cell shadow, on a 14-cell disc of four flat
   colours, standing inside the sheet against its right edge. The owner
   printed it and accepted it, then chose the 28-cell frame the same day.

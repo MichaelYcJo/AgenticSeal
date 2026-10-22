@@ -47,7 +47,7 @@ WORKFLOWS = os.path.join(ROOT, ".github", "workflows")
 
 # Events GitHub does NOT include by default, and that a workflow needs where
 # it runs the one script that reads draft state: `chain_check.py` excuses a
-# draft (`docs/the-review-record.md` §*What the check reads at the pull
+# draft (`docs/the-review-record.md` *What the check reads at the pull
 # request*), so leaving draft state has to re-run it.
 DRAFT_EVENTS = ("ready_for_review", "converted_to_draft")
 DRAFT_READER = "chain_check.py"
@@ -260,7 +260,7 @@ def matrix_include_entries(text):
 # A matrix in this repository's shape, with a commented entry, a trailing
 # comment, a single-quoted value, a value holding a `#`, a key of the job
 # that ends the matrix and a second job's matrix. Neutral values
-# only (`CONTRIBUTING.md` §*House rules*, *No real identifiers*).
+# only (`CONTRIBUTING.md` *House rules*, *No real identifiers*).
 MATRIX = """\
 name: tests
 
@@ -413,7 +413,7 @@ def shallow_pytest_jobs(text):
 # Every way a job here has been seen to call pytest, each on a shallow
 # checkout, and one that only names the job: round 1's 🟡 3 of work item
 # 1791876667 found the first four unselected. Neutral values only
-# (`CONTRIBUTING.md` §*House rules*, *No real identifiers*).
+# (`CONTRIBUTING.md` *House rules*, *No real identifiers*).
 SHALLOW_RUNNERS = {
     "uvx-pytest": "uvx --with pytest pytest tests/ -q",
     "uv-run-pytest": "uv run pytest tests/ -q",

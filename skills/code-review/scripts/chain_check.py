@@ -22,7 +22,7 @@ judged (`carried_by`). The arms are seven:
                 such section, and a work item with no spec, pass
   records       `Review | through the review chain`: `rounds/` holds at least
                 one `round-N.md`; each reads whole against the grammar table
-                of `docs/the-review-record.md` §*The round record*, which
+                of `docs/the-review-record.md` *The round record*, which
                 `grammar` loads at import, and no finding reads `open`; a
                 `fixed` commit is on the branch and touches a path its
                 `location:` line names; every `fixed` or `rejected` finding
@@ -146,7 +146,7 @@ TARGET_WRITTEN = (
 )
 
 # A round record's grammar is two tables, `docs/the-review-record.md`
-# §*The round record*, and nothing in this file restates them: `grammar`
+# *The round record*, and nothing in this file restates them: `grammar`
 # loads both once, when this file is imported, and every reader below reads
 # a line through its row. What this file names is which row is which, by the
 # row's `Line` cell, the named parts of a row's shape it reads, and the four

@@ -550,7 +550,7 @@ def test_when_git_ls_files_cannot_answer_the_move_is_refused_as_dirty(
 
 
 def test_an_item_shaped_tracked_file_under_specs_stays_and_is_named(hook, repo):
-    """Round 2's 🟢 C. §"Which entries of `specs/` are SpecSeal's" says a
+    """Round 2's 🟢 C. *Which entries of `specs/` are SpecSeal's* says a
     DIRECTORY of that shape; a tracked file with an item's name is not one,
     stays, and is named in the line as left where it is."""
     write(repo, "specs/1788000001-a-file.md", "# a file with an item's name\n")
@@ -808,7 +808,7 @@ def test_the_cleanup_never_removes_a_linked_specs(hook, repo, monkeypatch):
     and it rested on a POSIX guarantee: `rmdir` refuses a symbolic link with
     `ENOTDIR`. Windows' `RemoveDirectoryW` removes a directory link itself,
     whatever is behind it, so a team's linked `specs/` was deleted from the
-    working tree and the line named nothing left. Contract §13: the guarantee
+    working tree and the line named nothing left. Contract rule 13: the guarantee
     is removed here, by giving `rmdir` Windows' semantics for a link."""
     real = os.rmdir
 

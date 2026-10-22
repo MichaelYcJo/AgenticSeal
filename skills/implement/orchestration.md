@@ -14,7 +14,7 @@ reads both. The smith opens that one at its first step and never this one,
 because asking a person and writing `routing.md` are acts `agents/smith.md`
 leaves to the orchestrator. Every `seal/…` path here means `<repo>/seal/`
 where that directory exists, and `$(git rev-parse --git-common-dir)/seal/`
-otherwise (contract §11).
+otherwise (contract rule 11).
 
 ## Orchestrator: the order inside a ticket
 
@@ -355,6 +355,32 @@ rows; what differs is how many clicks it took and which row says so.
 | Review | `through the review chain` or `straight to the PR` |
 | Destination | `open the pull request` or `stop before the pull request` |
 | Answer pressed | `automation` or `per axis`, OPTIONAL; absent reads as unanswered |
+| Branch | the branch the work item is built on; two declarations naming one branch read as none |
+
+**Each answer is written without backticks**, since a backticked value reads
+as unanswered. `templates/sdd-routing.md` ships `Review` and `Destination`
+answered and the optional rows as placeholders: a wrong answer in the first
+two is caught at the next commit, because the gate stops recognising the
+file, and a wrong answer in the others is contradicted by nothing, so a file
+copied and never revisited lands on not answered rather than on a confident
+answer nobody gave. An absent `Automation` row means nobody was asked, which
+is why `no` is never written where the question was not put.
+
+**`Implementation` is answered by a criterion, not by habit: is the work
+FINDING OUT or WRITING DOWN?** Finding out, what an unfamiliar codebase does
+or what an original did, is a STEP to send to `scribe`: a large input and a
+small output is what a subagent boundary is for. That is a step and not an
+answer to this row; the orchestrator that reads the facts back and writes
+the code still answers `the session`, so the row is never deleted because
+the work is discovery. Writing down stays with the orchestrator too, because
+a delegate re-buys the context the orchestrator holds, and `smith` answers
+where the diff is large enough to threaten what the orchestrator still has
+to hold. That threshold is a number nobody has; the axis it sits on is
+REPLACEABILITY, not cost, because the orchestrator is the one participant a
+release cannot replace mid-run. The row is deleted only for a work item that
+has no answer to give. The file ends with `## Why this way`, one or two
+sentences nothing reads: what a reviewer and the next session see instead of
+guessing from the absence of a token.
 
 **`automation` writes all four party rows at their checked values**, plus
 `Automation` = `yes`, plus `Answer pressed` = `automation`. Ticking all four
@@ -425,7 +451,7 @@ the one shape both readings accept, and it costs nothing where the git hooks
 run. This is the one place the batching rule misleads: the commit is not
 independent of the write. The commit goes the same way: each work item's
 `routing.md` in a command of its own, the worktree's path written out after
-`git -C`, never a loop over a variable naming it (contract §16).
+`git -C`, never a loop over a variable naming it (contract rule 16).
 
 What the four combinations do:
 
@@ -513,11 +539,11 @@ it again per repository is the mid-run question this section exists to
 remove, arriving once per checkout.
 
 **Only a gated repository gets a declaration.** A gated repository is one
-with a `seal/` root at either place (contract §11). Write
+with a `seal/` root at either place (contract rule 11). Write
 `seal/specs/<work-item-id>/routing.md` into each one before that
 repository's first edit, each naming that repository's own branch, each in a
 command of its own, and commit each with that repository's absolute path
-written out after `git -C` (contract §16). A repository with no root is not
+written out after `git -C` (contract rule 16). A repository with no root is not
 opted in by this step: writing the file would create its root, and creating
 a root is the bootstrap's decision and the person's. Name such a repository
 in the handback and write nothing into it.
@@ -590,7 +616,7 @@ for itself. The two read the headings through one parser, so they cannot
 come to different answers about what a heading is.
 
 **One act is outside this table, because the table cannot hold it.** Posting
-a segment's reading to the flow log is the orchestrator's (contract §6
+a segment's reading to the flow log is the orchestrator's (contract rule 6
 withholds posting from every agent), and it lives in
 `skills/verify/orchestration.md` *Measure the segment, and feed the flow
 log*, under a heading carrying no

@@ -9,7 +9,7 @@ closed, and every truth `recurred_truths.json` adds for the case or widens
 `truth-` grader over the `location:` lines of the round record the warden
 writes today. A record comes in one of two shapes:
 
-  labelled   0.22.0's record (`docs/the-review-record.md` §*The round
+  labelled   0.22.0's record (`docs/the-review-record.md` *The round
              record*), read through the `chain_check.py` of the commit that
              last wrote it, with the grammar that commit's
              `docs/the-review-record.md` holds, so each record is judged by
@@ -167,12 +167,15 @@ def record_reader():
 
 
 # What a commit's check needs beside it to load: the script, the reader it
-# loads when imported, and the document whose grammar table it reads. A
-# check from before the table carries its grammar in its code, and that
-# commit holds no table for it to read.
+# loads when imported, the hook module that reader takes its fence rule and
+# line split from (#1005), and the document whose grammar table it reads. A
+# file a commit does not hold is not copied: a check from before the table
+# carries its grammar in its code, and a reader from before #1005 keeps its
+# own fence rule.
 CHECK_FILES = (
     "skills/code-review/scripts/chain_check.py",
     "skills/verify/scripts/unverified_check.py",
+    "hooks/blocks.py",
     "docs/the-review-record.md",
 )
 CHECKS = {}

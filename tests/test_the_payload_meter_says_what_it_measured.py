@@ -854,7 +854,7 @@ def test_sections_split_by_the_shared_fence_rule(meter, shape):
     """#584, S12. `heading_starts` kept a fence rule of its own — any
     indentation, any delimiter line of the right character opening — so a
     line the shared rule does not read as a fence hid every heading after
-    it. The walk is `unverified_check.py#fence_opener` and `fence_closes`
+    it. The walk is `hooks/blocks.py#fence_opener` and `fence_closes`
     now."""
     text = f"# alpha\n\n## First\n\n{NOT_A_FENCE[shape]}\n## H\n\nlast\n"
     headings = [p["heading"] for p in meter.sections_of(text)]

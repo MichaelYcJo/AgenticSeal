@@ -333,13 +333,10 @@ def test_a_planted_team_specs_changes_no_checks_verdict(tmp_path):
 # Each party that reads the tree for a decision is told, in its own file, that
 # a reference root is history: read where the work touches what it describes,
 # cited where it was read, and never written. Each names the row by pointing
-# at `templates/config.md` §*Reference specs* rather than restating its
+# at `templates/config.md` *Reference specs* rather than restating its
 # grammar, so the grammar has one home.
 
-POINTER = "`templates/config.md` §*Reference specs*"
-# The skills cite a heading without the section sign since #940; the agent
-# definitions keep it until the item that rewrites their citations.
-POINTER_LINK = POINTER.replace(" §*", " *")
+POINTER = "`templates/config.md` *Reference specs*"
 READERS = {
     "agents/framer.md": ("cite", "spec.md"),
     "agents/smith.md": ("cite", "spec.md"),
@@ -369,9 +366,8 @@ NEVER_LINE = {
 def test_each_reader_says_when_it_reads_a_reference_root_and_where_it_cites_it():
     for rel, (act, where) in READERS.items():
         text = open(os.path.join(ROOT, rel), encoding="utf-8").read()
-        pointer = POINTER if rel.startswith("agents/") else POINTER_LINK
-        assert pointer in text, f"{rel} does not point at the row's section"
-        said = paragraph_naming(text, pointer)
+        assert POINTER in text, f"{rel} does not point at the row's section"
+        said = paragraph_naming(text, POINTER)
         assert "touches what" in said and "describes" in said, (rel, said)
         assert act in said and where in said, (rel, said)
         if rel in NEVER_LINE:

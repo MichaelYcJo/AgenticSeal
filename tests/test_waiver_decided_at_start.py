@@ -179,16 +179,18 @@ def test_the_optional_row_ships_the_criterion_that_decides_it():
 
     The other two axes need no criterion: a wrong answer in either is
     contradicted at the next commit, because the gate stops recognising the
-    file and goes back to asking. This one is contradicted by nothing, which
-    is why the guidance has to travel with the row rather than sit in a skill
-    a session may not have loaded.
+    file and goes back to asking. This one is contradicted by nothing, so the
+    criterion stands where the orchestrator, who fills the row, reads how the
+    work is routed: `skills/implement/orchestration.md` *What the answer
+    writes*. Since #1005 the template carries no comment that every
+    declaration would copy.
 
     Written as a criterion and NOT as a default, which is the half a check can
     hold: a sentence naming one answer as what to do absent a reason makes the
     other the exception, and the row is optional precisely so that neither
     reads as the silent one. `test_the_template_PARSES_into_the_three_answers
     _it_ships` below holds the placeholder itself unanswered."""
-    tpl = " ".join(read("templates", "sdd-routing.md").split())
+    tpl = " ".join(read(*ORCH).split())
     assert "FINDING OUT or WRITING DOWN" in tpl, (
         "the criterion went. The row is back to being answered by habit, "
         "which is the state #263 measured"
@@ -210,7 +212,7 @@ def test_the_optional_row_ships_the_criterion_that_decides_it():
         "reading it has a destination and no value to write in the row"
     )
     assert "still answers `the session`" in tpl, (
-        "the comment stopped saying what to type for a discovery work item, "
+        "the criterion stopped saying what to type for a discovery work item, "
         "which is the half `questions.md` Q4 did not have to answer"
     )
     assert "never deleted because the work is discovery" in tpl, (
@@ -327,27 +329,36 @@ def test_the_template_PARSES_into_the_FOURTH_axis_it_ships():
     # `BY_FRAMER` and the substitution renames with it -- so on its own it
     # cannot see the two files drift apart. This direction can: the answers
     # the comment offers a person have to BE the answers the parser accepts.
-    import re
 
-    stated = re.search(r"Planning: `([^`]+)` or `([^`]+)`\.", template)
+    stated = offered(template, routing.PLANNING)
     assert stated, (
-        "the comment no longer states the fourth axis's two answers, so the "
-        "only thing a person reads is the placeholder"
+        "the placeholder no longer states the fourth axis's two answers, so "
+        "a person reads no vocabulary at the row"
     )
-    assert tuple(stated.groups()) == routing.PLANNING_ANSWERS, (
-        f"the template offers {stated.groups()} and the parser accepts "
+    assert stated == routing.PLANNING_ANSWERS, (
+        f"the template offers {stated} and the parser accepts "
         f"{routing.PLANNING_ANSWERS}; a session filling the row in as "
         "instructed would record nothing"
     )
 
-    # The row inherits the third axis's terms rather than restating them, so
-    # the comment has to SEND a reader there. Without this the row ships with
-    # no account of why an absent answer is not a defect.
-    tpl = flat(template)
-    assert "on exactly the terms the `Implementation` row" in tpl, (
-        "the fourth axis stopped pointing at the row whose terms it borrows, "
-        "so its own optionality is unexplained"
+    # The row is optional on the third axis's terms, and the orchestrator,
+    # who fills it, reads those terms in the table of what the answer writes.
+    # Without this the row ships with no account of why an absent answer is
+    # not a defect.
+    assert (
+        "| Planning | `framer` or `the session`, OPTIONAL; absent reads as "
+        "unanswered |" in read(*ORCH)
+    ), "the orchestration no longer says the fourth axis is optional"
+
+
+def offered(template, label):
+    """The two answers the template's LABEL row offers a person, read out of
+    its placeholder `<first, or: second>`; None where the row has no such
+    placeholder."""
+    m = re.search(
+        rf"^\| {re.escape(label)} \| <([^,>]+), or: ([^>]+)> \|$", template, re.M
     )
+    return m.groups() if m else None
 
 
 def test_the_template_PARSES_into_the_TWO_NEWEST_rows_it_ships():
@@ -393,14 +404,14 @@ def test_the_template_PARSES_into_the_TWO_NEWEST_rows_it_ships():
                 f"the template's `{label}` row does not accept `{answer}`, so "
                 "a session filling it in as instructed still records nothing"
             )
-        # The vocabulary READ OUT of the comment, the direction that can see
-        # the two files drift. Substituting the constants is self-consistent
-        # by construction; what the person reads has to BE what the parser
-        # takes.
-        stated = re.search(rf"{label}: `([^`]+)` or `([^`]+)`\.", template)
-        assert stated, f"the comment no longer states `{label}`'s two answers"
-        assert tuple(stated.groups()) == answers, (
-            f"the template offers {stated.groups()} for `{label}` and the "
+        # The vocabulary READ OUT of the placeholder, the direction that can
+        # see the two files drift. Substituting the constants is
+        # self-consistent by construction; what the person reads has to BE
+        # what the parser takes.
+        stated = offered(template, label)
+        assert stated, f"the placeholder no longer states `{label}`'s two answers"
+        assert stated == answers, (
+            f"the template offers {stated} for `{label}` and the "
             f"parser accepts {answers}"
         )
 
@@ -706,13 +717,11 @@ def test_the_framer_writes_rule_changes_from_the_index():
     the grammar and the model and restates neither."""
     raw = read(*FRAMER)
     framer = flat(raw)
-    assert "as `skills/settle/SKILL.md` §*Rule changes* states it" in framer
+    assert "as `skills/settle/SKILL.md` *Rule changes* states it" in framer
     assert "picked from the index, `<policy root>/README.md`" in framer
     assert (
         "the policy in force as "
-        + (
-            "`skills/implement/SKILL.md` §*Document layout — two roots, three lifetimes*"
-        )
+        + ("`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*")
         in framer
     )
     assert "\n  from:" not in raw, "the framer restates the grammar"
@@ -723,7 +732,7 @@ def test_the_framer_weighs_replacing_a_structure_as_an_equal_of_keeping_it():
     file stated it nowhere: a framer that judges only among ways of keeping a
     structure writes an Alternatives table in which the change the problem
     calls for never stands. The rule is the framer's application of contract
-    §20 to that table, so the case reads the replacing row and the weight it
+    rule 20 to that table, so the case reads the replacing row and the weight it
     is given beside the kept one."""
     framer = flat(read(*FRAMER))
     assert "the alternative that replaces the structure" in framer, (
@@ -756,7 +765,7 @@ def test_the_framer_inherits_what_the_tree_already_settled():
 
 def test_a_reframe_keeps_every_closed_phase():
     """Round 1 of #968, finding 2. A reframe adds phase rows and keeps each
-    closed phase's commit. `docs/the-review-record.md` §*The run* owns the
+    closed phase's commit. `docs/the-review-record.md` *The run* owns the
     route back and does not say how `plan.md` is rewritten, so the
     definition says it."""
     framer = flat(read(*FRAMER))
@@ -1014,12 +1023,14 @@ def test_the_preset_block_carries_it_too():
             )
 
 
-def test_the_template_ships_the_vocabulary_the_parser_accepts():
-    """A template offering words the reader rejects produces a declaration
-    that reads as none, which is what a branch that never declared looks
-    like."""
-    tpl = read("templates", "sdd-routing.md")
+def test_the_orchestration_offers_the_vocabulary_the_parser_accepts():
+    """Words the orchestrator writes into `routing.md` that the reader
+    rejects produce a declaration that reads as none, which is what a branch
+    that never declared looks like. The table of what the answer writes is
+    where the orchestrator reads the words; the template ships two of them
+    answered and the rest as placeholders."""
+    orch = read(*ORCH)
     routing = read("hooks", "routing.py")
     for answer in AXES:
-        assert answer in tpl, f"the template lost `{answer}`"
+        assert f"`{answer}`" in orch, f"the orchestration lost `{answer}`"
         assert f'"{answer}"' in routing, f"the parser does not accept `{answer}`"

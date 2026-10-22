@@ -176,7 +176,7 @@ class TestClosedRow:
             assert not cl and len(op) == 2
 
     def test_the_old_marks_refusal_names_the_edit(self, tmp_path):
-        """§14: the sentence a person reads when their overview still carries
+        """Contract rule 14: the sentence a person reads when their overview still carries
         the old mark, pinned whole, because the edit it names is the whole of
         what they have to do."""
         section = CANONICAL.replace(
@@ -218,7 +218,6 @@ class TestClosedRow:
 
 # Every shipped text that tells a session how a `## Not verified` row closes.
 CLOSING_TEXTS = [
-    ("templates", "sdd-overview.md"),
     ("templates", "config.md"),
     ("docs", "the-record-layout.md"),
     ("skills", "implement", "SKILL.md"),
@@ -239,19 +238,26 @@ def test_no_text_that_states_the_closing_shows_the_old_mark(parts):
         assert OLD_MARK not in f.read()
 
 
-def test_the_template_shows_the_word():
-    """The template is what a session copies, so its example row is the one
-    the check accepts."""
+def test_the_skill_shows_the_word(tmp_path):
+    """`skills/implement/SKILL.md` *4. The closing memo — only what the diff
+    cannot show* is what the memo's writer reads for how a row closes, so its
+    example row is one the check accepts as closed."""
     with open(
-        os.path.join(ROOT, "templates", "sdd-overview.md"), encoding="utf-8"
+        os.path.join(ROOT, "skills", "implement", "SKILL.md"), encoding="utf-8"
     ) as f:
         text = f.read()
-    assert "| closed <the item, kept> | <what closed it" in text
+    example = next(ln for ln in text.splitlines() if ln.startswith("| closed "))
+    p = tmp_path / "overview.md"
+    p.write_text(
+        f"# memo\n\n## Not verified\n\n| Item | Who must answer |\n|---|---|\n{example}\n",
+        encoding="utf-8",
+    )
+    op, closed, err = uc.check_file(str(p))
+    assert not err and not op and len(closed) == 1, (op, closed, err)
 
 
 # Every shipped text that says which way an unmarked row reads.
 OPEN_BY_DEFAULT_TEXTS = [
-    ("templates", "sdd-overview.md"),
     ("skills", "implement", "SKILL.md"),
     ("skills", "verify", "scripts", "unverified_check.py"),
 ]
@@ -261,7 +267,7 @@ OPEN_BY_DEFAULT_TEXTS = [
 def test_a_text_saying_a_row_counts_open_names_the_open_item_that_reads_closed(
     tmp_path, parts
 ):
-    """§14, round 1's finding 1: an open item whose own text begins with the
+    """Contract rule 14, round 1's finding 1: an open item whose own text begins with the
     word `closed` reads as closed, and the reader cannot tell it from a
     closing. So each text that says an unmarked row counts open names that
     row too, and the reader's reading of it is checked beside the sentence.
@@ -365,7 +371,7 @@ def test_the_no_change_block_is_how_a_work_item_says_nothing_is_open(tmp_path, b
     """S1 of #1000. Saying it explicitly is the point: silence and "nothing
     open" have to look different in the file, not only in the tally. The
     block is the one `## Rule changes` writes (`skills/settle/SKILL.md`
-    §*Rule changes*), read by the same function."""
+    *Rule changes*), read by the same function."""
     op, cl, err = uc.check_file(write(tmp_path, f"## Not verified\n\n{block}"))
     assert not err and not op and not cl
 
@@ -749,8 +755,9 @@ def test_the_skill_states_the_closing_convention():
 
 
 def test_a_comment_beside_the_section_is_not_read_as_content(tmp_path):
-    """The template ships its guidance as a comment in this section, and an
-    overview keeps it. Reading it as prose would fail every filled-in copy."""
+    """An overview started from a template before #1005 keeps the guidance
+    comment that template shipped in this section. Reading it as prose would
+    fail every filled-in copy; #1012 retires the case with the state."""
     section = (
         "## Not verified\n\n<!-- guidance:\n| closed <item> | <what closed it> |\n-->\n\n"
         + CANONICAL.split("\n", 2)[2]
@@ -1609,7 +1616,7 @@ def test_the_documents_state_the_merge_base_footing(doc, tip, false_sentence):
 
 
 def test_the_baseline_help_names_both_places(capsys):
-    """#612: the `--baseline` help is a rendered line (contract §14). The
+    """#612: the `--baseline` help is a rendered line (contract rule 14). The
     documents case above reads the whole file, where the module docstring and
     `merge_base`'s docstring carry the same phrase, so it cannot see the help
     go back to the fork point. The help is rendered and read on its own. Red
@@ -1698,7 +1705,7 @@ def test_a_spec_with_no_rule_changes_and_nothing_open_is_settled(tmp_path, capsy
 
 
 def test_the_settled_line_reads_as_a_sentence(tmp_path, capsys):
-    """§14: the line a person reads in the hygiene workflow's output."""
+    """Contract rule 14: the line a person reads in the hygiene workflow's output."""
     d = settle_repo(tmp_path, {"1780000001-a": rule("A new rule.")})
     remove(d, "1780000001-a", docs=DOC + "\nA new rule.\n")
     run([str(d), "--baseline", "HEAD"])
@@ -2453,13 +2460,20 @@ def test_any_other_missing_path_is_still_a_typo(tmp_path, capsys, baseline):
 # and neither refused a closer carrying an info string.
 
 
-def fenced_by_the_shared_rule(lines):
-    """The indices `uc.fence_spans` puts inside a block, unclosed ones to the
-    end — the same question `hooks/config.py#fence_map` answers."""
-    out = set()
-    for first, last in uc.fence_spans(lines):
-        out.update(range(first, len(lines) if last is None else last + 1))
-    return out
+def test_the_fence_rule_and_the_line_split_are_the_hooks():
+    """S12 of #1005. The fence delimiter rule and the line split are written
+    once, in `hooks/blocks.py`, and this module asks that copy, so a change
+    to the rule reaches the hook readers and the record readers in one
+    commit and no case has to hold two copies in step."""
+    blocks = os.path.join(ROOT, "hooks", "blocks.py")
+    for name in ("fence_opener", "fence_closes", "gfm_lines"):
+        code = getattr(uc, name).__code__
+        assert os.path.samefile(code.co_filename, blocks), (name, code.co_filename)
+    with open(uc.__file__, encoding="utf-8") as handle:
+        source = handle.read()
+    for defined in ("def fence_opener(", "def fence_closes(", "def gfm_lines("):
+        assert defined not in source, defined
+    assert "GFM_LINE_RE = re.compile" not in source
 
 
 def test_an_indented_delimiter_is_not_a_fence_for_the_gates_reader():
@@ -2525,39 +2539,31 @@ FENCE_SHAPES = [
 
 
 @pytest.mark.parametrize("lines", FENCE_SHAPES, ids=range(len(FENCE_SHAPES)))
-def test_the_fence_rule_agrees_with_the_config_reader(lines):
-    """S6. `hooks/blocks.py#FENCE` is the one deliberate second copy of the
-    delimiter rule — it runs on the hook path, where loading a skill module
-    would cost every hook call — so this holds the two in step, shape by
-    shape, over which lines are fenced and where an unclosed block opened.
-    Seen red against `c52e8350`'s `blank_fences` rule on shapes 3, 4, 6, 12
-    and 13 — the indentation bound, the closer's info string and the opener's
-    backtick.
+def test_the_fence_walks_agree_shape_by_shape(lines):
+    """The delimiter rule is written once, in `hooks/blocks.py`, and three
+    walks still apply it, each with its own state: `uc.fence_spans`,
+    `blocks.fence_only`, and the walk behind `hooks/config.py#fence_map`.
+    They agree on which lines are fenced and on where a block that never
+    closes opened."""
+    from conftest import load_hook_module
 
-    Asked of the config reader and of the walk's fence half both (#667, the
-    frame's S3): the copy moved out of `hooks/config.py` into the walk the
-    hook-path readers share, and neither may drift from this rule on a file
-    that holds no comment. `blocks.fence_only` is the fence rule alone;
-    `blocks.walk` on these shapes, where it claims a line, hides the same
-    fenced lines."""
     spec = importlib.util.spec_from_file_location(
-        "specseal_config_for_fence_agreement", os.path.join(ROOT, "hooks", "config.py")
+        "specseal_config_for_fence_walks", os.path.join(ROOT, "hooks", "config.py")
     )
     config = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(config)
-    shown, opened_at = config.fence_map(lines)
-    theirs = set(range(len(lines))) - {n for n, _ in shown}
-    assert fenced_by_the_shared_rule(lines) == theirs
+    blocks = load_hook_module("blocks.py", "specseal_blocks_for_fence_walks")
+    fenced = set()
+    for first, last in uc.fence_spans(lines):
+        fenced.update(range(first, len(lines) if last is None else last + 1))
     unclosed = [first for first, last in uc.fence_spans(lines) if last is None]
+    shown, opened_at = config.fence_map(lines)
+    assert fenced == set(range(len(lines))) - {n for n, _ in shown}
     assert unclosed == ([] if opened_at is None else [opened_at])
-
-    from conftest import load_hook_module
-
-    blocks = load_hook_module("blocks.py", "specseal_blocks_for_fence_agreement")
-    assert blocks.fence_only(lines) == (fenced_by_the_shared_rule(lines), opened_at)
+    assert blocks.fence_only(lines) == (fenced, opened_at)
     walked = blocks.walk(lines)
     claimed = {n for n in range(len(lines)) if not walked.uncertain[n]}
-    assert set(walked.hidden()) & claimed == fenced_by_the_shared_rule(lines) & claimed
+    assert set(walked.hidden()) & claimed == fenced & claimed
 
 
 @pytest.mark.parametrize(

@@ -35,7 +35,7 @@ no row here and nothing notices. The check reads the marker, not the meaning
 marker is already load-bearing for a different reason, so a heading without
 it costs something immediately and visibly.
 
-Red-first, per the contract's §15. Each case below builds a temp root with
+Red-first, per contract rule 15. Each case below builds a temp root with
 one defect in it and asserts the finding names that defect.
 
 **Eight planted trees carry a defect, and all eight are listed.** A list

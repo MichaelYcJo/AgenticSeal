@@ -1,7 +1,7 @@
 """`settle` applies each released spec's `## Rule changes` to the policy root
 in place, in merge order, and refuses what it cannot place (#953).
 
-The grammar is `skills/settle/SKILL.md` §*Rule changes*, and
+The grammar is `skills/settle/SKILL.md` *Rule changes*, and
 `skills/settle/scripts/rule_changes.py` is its one reader. The first cases
 ask that reader directly; the later ones build a git history, because merge
 order is a fact only git holds.

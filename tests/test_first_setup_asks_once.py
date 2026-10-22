@@ -117,7 +117,7 @@ def test_the_parity_question_follows_the_mode_question():
 
 # --- A9 of #401: the broad command is the second question, not a later one --
 #
-# `templates/config.md` §*Broad gate* says the row is a thing a PERSON wrote
+# `templates/config.md` *Broad gate* says the row is a thing a PERSON wrote
 # and that the seal covers exactly that. Nothing ever asked for it: grepped
 # before this work, the bootstrap carried two `Ask, once` steps and neither
 # was this one, and no command in `bin/` or `seal.py` wrote the row. So the
@@ -285,7 +285,7 @@ def test_the_row_is_written_after_seal_mode_and_carries_its_section():
     """`seal mode` writes a config file holding only `Mode`, so the row lands
     afterwards — and it lands the way `/specseal:config` step 3 lands one, the
     row AND its section, because the documentation beside it is the half a
-    person reads. No new writer: `skills/config/SKILL.md` §*What this does not
+    person reads. No new writer: `skills/config/SKILL.md` *What this does not
     do* refuses a generic setter for a file people edit by hand."""
     boot = flat(bootstrap())
     assert "Then the `Broad gate` row" in boot
@@ -378,7 +378,7 @@ def test_a_bare_specs_is_asked_and_only_the_plugins_marks_are_told():
         # Phases 3 and 4 of #107 re-pointed both definitions' rows here. The
         # sentence was in two of them verbatim and in the third not at all,
         # and the agent without it is the one that reads `seal/parity.md`. It
-        # is §11 of the contract now, which every agent receives at startup.
+        # is contract rule 11 now, which every agent receives at startup.
         ("skills", "agent-contract", "SKILL.md"),
     ],
 )
@@ -391,7 +391,7 @@ def test_the_session_rule_appears_once(parts):
 @pytest.mark.parametrize("agent", ["warden.md", "smith.md"])
 def test_no_definition_carries_its_own_copy_of_the_root_rule(agent):
     """The move has to be a move. A definition that keeps the sentence beside
-    the contract's is the duplication §11 was written to end, and it is
+    the contract's is the duplication contract rule 11 was written to end, and it is
     invisible in a diff that only adds."""
     assert SESSION_RULE not in read("agents", agent), (
         f"agents/{agent} still spells the root rule out, so the tree holds "
@@ -644,10 +644,8 @@ def test_the_seal_readme_points_at_the_drain_and_restates_none_of_it():
     rules = flat(text.split("\n## Export rules\n", 1)[1].split("\n## ", 1)[0])
     heading = "### 6. Drain the rows before the broad run, and keep the records"
     assert heading in read("skills", "implement", "SKILL.md")
-    assert (
-        "`skills/implement/SKILL.md` *6. Drain the rows before the broad run, "
-        "and keep the records*" in rules
-    ), rules
+    cited = "`skills/implement/SKILL.md` " + f"*{heading[4:]}*"
+    assert cited in rules, rules
     for copied in ("| Item still here |", "follow-up.md", "open-questions"):
         assert copied not in rules, (copied, rules)
 

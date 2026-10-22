@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """rule_changes — the one reader of a spec's `## Rule changes` section.
 
-The grammar is `skills/settle/SKILL.md` §*Rule changes*. `GRAMMAR` below is
+The grammar is `skills/settle/SKILL.md` *Rule changes*. `GRAMMAR` below is
 the one spelling of its operations in code; the item lines, their fields and
 the no-change block are spelt once in `unverified_check.py`, which reads
 `## Not verified` with the same block. `parse` reads a section into operations,

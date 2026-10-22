@@ -26,14 +26,14 @@ to update -- and keeps the whole section beneath, folded. Nothing here
 composes prose: every line is a pull request title, a number, or a handle.
 
 **The title comes from the tagged commit's message**, which carries the
-`release: X.Y.Z symptoms: <symptoms>` line `docs/release-checklist.md` §5
-prescribes. Three other sources were measured and rejected: the merge
+`release: X.Y.Z symptoms: <symptoms>` line `docs/release-checklist.md`
+*5. The release pull request* prescribes. Three other sources were measured and rejected: the merge
 commit's *subject* is GitHub's `Merge pull request #N from <owner>/...` line
 and not the title at all; the `## X.Y.Z -- <date>` changelog heading carries
 a date and no prose, so a title taken from it drops the symptom line every
 existing release carries; and the twenty-three hand-written release names
 reproduce neither the pull request titles nor the changelog headings, so
-nothing can reproduce them. §5's line is the only written-down source, and so
+nothing can reproduce them. That step's line is the only written-down source, and so
 the only one anything can read.
 
 Three things it deliberately does not do.
@@ -110,7 +110,8 @@ RELEASES = "changelog"
 TAG_RE = re.compile(r"^v(\d+\.\d+\.\d+)$")
 
 
-# The title line `docs/release-checklist.md` §5 prescribes for the release
+# The title line `docs/release-checklist.md` *5. The release pull request*
+# prescribes for the release
 # pull request, which is what the merge commit's body carries: a whole line,
 # one space after each colon and after the version, read exactly so.
 #

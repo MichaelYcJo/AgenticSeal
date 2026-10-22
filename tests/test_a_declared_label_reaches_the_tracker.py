@@ -32,11 +32,11 @@ a label write failed is a release that did not finish. So the failing-write
 case asserts the close happened anyway, and the ordering case asserts the
 close was made first rather than trusting that it was.
 
-**Shown red before it was committed (§15).** Each case A9 to A12 was run
+**Shown red before it was committed (contract rule 15).** Each case A9 to A12 was run
 against the script or document with the one behaviour it pins removed; the
 mutations and what each case said were recorded in
 phase 4 of work item `1790076050-the-release-tail-is-three-acts-no-document-names`,
-whose rule `docs/branch-and-release.md` §*Cutting a release* now carries. That
+whose rule `docs/branch-and-release.md` *Cutting a release* now carries. That
 work item's directory was retired by #514's fold, so the phase
 record is read from history before that commit. A13 and A14 were added later,
 by work item `1790134781-a-label-description-past-100-characters-fails-every-release`,
@@ -240,9 +240,21 @@ def test_every_declared_label_says_which_document_specifies_it():
         assert label["specified_by"].startswith(OWNER.split("/")[-1]) or label[
             "specified_by"
         ].startswith("docs/"), label
-        document = label["specified_by"].split(" §")[0]
+        document, _, heading = label["specified_by"].partition(" *")
         assert os.path.exists(os.path.join(ROOT, document)), (
             f"{label['name']!r} cites {document}, which is not in the tree"
+        )
+        # The section is cited by its heading text in italics, and the
+        # heading is read as it renders, its own emphasis dropped.
+        with open(os.path.join(ROOT, document), encoding="utf-8") as handle:
+            headings = {
+                line.lstrip("#").strip().replace("*", "")
+                for line in handle
+                if line.startswith("#")
+            }
+        assert heading.endswith("*") and heading[:-1] in headings, (
+            f"{label['name']!r} cites {label['specified_by']!r}, and "
+            f"{document} has no such heading"
         )
 
 
@@ -425,7 +437,7 @@ def test_a_dry_run_over_an_already_closed_issue_names_the_label_too(
 
 
 def test_every_report_of_the_removal_goes_through_one_place():
-    """§12: the defect was one copy of three being unguarded, so what is owed
+    """Contract rule 12: the defect was one copy of three being unguarded, so what is owed
     is that a fourth copy cannot be written. Both branches of the loop call
     `spend_label`, and the two lines a reader sees are inside it."""
     source = read(os.path.join(SCRIPTS, "close_issues_on_release.py"))

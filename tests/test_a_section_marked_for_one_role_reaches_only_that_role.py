@@ -27,7 +27,7 @@ check reads the marker, not the meaning, and a paraphrase is the reviewer's
 finding — the same limit `test_a_moved_rule_leaves_its_definition.py`
 states for itself.
 
-Red-first, per the contract's §15: the planted cases build a temp tree with
+Red-first, per contract rule 15: the planted cases build a temp tree with
 the defect in it, and the real-tree case was seen red on this repository at
 the commit that marked `implement`'s three sections before moving them —
 `seal/specs/1788993115-a-payload-is-written-again-on-every-spawn/phases/phase-2.md`
@@ -55,7 +55,7 @@ def _reader():
     return module
 
 
-# The fence delimiter rule, `unverified_check.py#fence_opener` and
+# The fence delimiter rule, `hooks/blocks.py#fence_opener` and
 # `#fence_closes` (#584) — the pair `payload_meter.py#heading_starts` asks.
 RULE = _reader()
 
@@ -78,7 +78,7 @@ def headings(text):
 
     A fence is tracked because a skill quotes headings as examples, and an
     example is not a section. The fence is the shared rule,
-    `unverified_check.py#fence_opener` and `#fence_closes` (#584), the same
+    `hooks/blocks.py#fence_opener` and `#fence_closes` (#584), the same
     rule `payload_meter.py#heading_starts` applies: at most three spaces of
     indentation, no backtick in a backtick opener's info string, and a close
     only on a run of the same character at least as long with nothing after

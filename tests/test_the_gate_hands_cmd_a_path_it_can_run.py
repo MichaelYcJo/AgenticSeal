@@ -9,7 +9,7 @@ failure form reported the suite as failing. `bin/test.cmd` exists so that
 
 Every Windows half below is driven from any machine with the platform passed
 in as an argument (`windows`, `comspec`), because a defence that rests on the
-machine a case happens to run on is not verified (`agent-contract` §13). The
+machine a case happens to run on is not verified (contract rule 13). The
 one claim no argument can stand in for — that `cmd.exe` really resolves
 `bin\\probe` to `bin\\probe.cmd` — is `test_the_row_runs_on_the_real_platform`,
 and only CI's `windows-latest` leg executes its `cmd.exe` path.
@@ -374,7 +374,7 @@ def test_a_switch_against_another_program_reaches_cmd_exe_as_written(tree, row, 
 
 
 def test_the_template_says_which_positions_are_rewritten():
-    """A2, the reader's half (§14). `templates/config.md` §*Broad gate* is
+    """A2, the reader's half (contract rule 14). `templates/config.md` *Broad gate* is
     where a person writing the row learns what `cmd.exe` is handed, and it
     states the rule and names the positions the scan leaves as written —
     the gap the cases above pin is only a gap nobody is surprised by while
@@ -418,7 +418,7 @@ def test_the_template_says_which_positions_are_rewritten():
         "a directory at the root named like a program the row calls with a "
         "glued switch (an `xcopy/` directory) makes `xcopy/e` read as a path",
     ):
-        assert needle in prose, f"templates/config.md §Broad gate lacks: {needle}"
+        assert needle in prose, f"`templates/config.md` *Broad gate* lacks: {needle}"
     assert "Two positions are not rewritten" not in prose, (
         "the template still counts the positions it leaves as written"
     )
@@ -444,7 +444,7 @@ def test_a_rewritten_row_is_kept_and_said_beside_the_row_as_written(
 ):
     """A3. The shell is handed `bin\\test`; the kept file's first line is the
     row as written and its second is what `cmd.exe` was handed; and one
-    stderr line, pinned verbatim here (§14), says the same before the run.
+    stderr line, pinned verbatim here (contract rule 14), says the same before the run.
     `run` asks about the directory where the row runs, its own `root`."""
     gate = gate_module()
     ran = _Ran()
@@ -596,7 +596,7 @@ def test_a_switch_against_a_program_runs_on_the_real_platform(tmp_path):
 # --- A5: a failing row with no test result says so ----------------------------
 
 # Pinned verbatim, because a person reads it on the failure form and decides
-# from it whether to open the kept file (`agent-contract` §14). It names every
+# from it whether to open the kept file (contract rule 14). It names every
 # cause of a missing record, never one as the only one (#825, #869).
 NO_RECORD_HERE = (
     "no pytest the row ran here left a record of the gate's recorder (the row "

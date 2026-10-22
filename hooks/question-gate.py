@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """PreToolUse gate: on a branch declared `Automation` `yes`, no question is put.
 
-The rule is `docs/the-review-record.md` §*The run*. This file holds what the
+The rule is `docs/the-review-record.md` *The run*. This file holds what the
 rule rests on.
 
 The declaration is read through `routing.declared`, the call the commit gate's

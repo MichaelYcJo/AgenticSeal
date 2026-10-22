@@ -840,7 +840,7 @@ def test_the_splice_reads_a_column_offset_as_bytes_not_characters():
 
 
 def test_the_report_names_the_scope_the_shape_and_the_line_of_a_survivor():
-    """§14 — the report is text a person reads and acts on, so it is pinned.
+    """Contract rule 14 — the report is text a person reads and acts on, so it is pinned.
 
     A survivor named without its line is a survivor nobody can find, and the
     report also has to say that a survivor is not automatically a defect:
@@ -904,7 +904,7 @@ def f(x, items):
 
 
 def test_the_declared_exclusions_are_named_where_the_total_is_printed(tmp_path):
-    """Round 1's finding 7. §14 — the report is what a person reads.
+    """Round 1's finding 7. Contract rule 14 —the report is what a person reads.
 
     `Assert`, `For` and `AsyncFor` are excluded by DECLARATION rather than
     because they hold no boolean test: an `assert` is a test a mutation could
@@ -953,7 +953,7 @@ def test_every_declared_exclusion_is_classified_as_a_non_arm():
 
 
 def test_a_filtered_run_does_not_state_its_count_as_the_modules_total(tmp_path, capsys):
-    """Round 1's finding 8. §14 again, and the harm is in the paste.
+    """Round 1's finding 8. Contract rule 14 again, and the harm is in the paste.
 
     The header names a file and gives a number, so it reads as the file's
     total. Under `--only` it was the filtered count: `--only reader` printed
@@ -1490,7 +1490,7 @@ NO_VERDICT_DOORS = ["every pair times out", "the command cannot be spawned"]
 
 @pytest.mark.parametrize("label", NO_VERDICT_DOORS, ids=NO_VERDICT_DOORS)
 def test_the_report_does_not_call_a_mutated_arm_unmutated(two_arms, monkeypatch, label):
-    """Round 2's finding 15. §14 — the report is what a person reads.
+    """Round 2's finding 15. Contract rule 14 —the report is what a person reads.
 
     An arm reached this list only when `mutate` had no mutation for any
     operator, so nothing had been written to disk and *enumerated and not
@@ -1555,7 +1555,7 @@ def test_the_report_does_not_call_a_mutated_arm_unmutated(two_arms, monkeypatch,
 
 
 def test_the_help_says_the_bound_reaches_the_command_and_not_its_children(capsys):
-    """Round 2's finding 16. §14 — the help text is what a person reads
+    """Round 2's finding 16. Contract rule 14 —the help text is what a person reads
     before they type the command the skill documents.
 
     `subprocess.run` sends the kill to the direct child and to nothing below
@@ -1759,7 +1759,7 @@ def nothing_was_written(module_path, before):
 def refusal_line(out):
     """The verdict line of a refused run, with the three pieces it is pinned
     by checked: the word, the sentence that says why, and the sentence that
-    says what holds afterwards (§14)."""
+    says what holds afterwards (contract rule 14)."""
     first = out.splitlines()[0]
     assert first.startswith("no baseline: "), (
         f"{out!r} — a run whose command does not pass against the module as it "
@@ -2316,7 +2316,7 @@ def test_an_arm_is_watched_when_any_operator_is_noticed(tmp_path):
 
 
 def test_the_report_separates_the_operators_and_names_the_ticket_row(two_arms):
-    """§14 — a reader comparing this run with #262 needs the `remove` row, and
+    """Contract rule 14 — a reader comparing this run with #262 needs the `remove` row, and
     a total that mixed the operators would invite exactly the wrong
     comparison.
 

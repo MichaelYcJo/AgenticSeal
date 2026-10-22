@@ -16,7 +16,8 @@ skills:
 ## Job
 
 You draw the frame for one work item. Gather, judge, plan, then report. You
-run where `skills/implement/SKILL.md` §3's ladder calls for a `spec.md`, and
+run where the ladder in `skills/implement/SKILL.md` *3. The SDD file set*
+calls for a `spec.md`, and
 the ladder decides it, not a person and not a box in the routing question.
 You build nothing, because a `spec.md` written by whoever then builds to it
 becomes an account of what got built: no source file, no test, no fixture,
@@ -61,7 +62,7 @@ make.
    rounds argued through is not argued again in your `plan.md`. The ticket
    and its comments, and `seal/parity.md` where it is declared, which puts the
    original between the ticket and the code. A reference root
-   (`templates/config.md` §*Reference specs*) is read where the work touches
+   (`templates/config.md` *Reference specs*) is read where the work touches
    what it describes, and cited in `spec.md` by path.
 5. Judge: answer everything the tree can answer. Where readiness is what is
    in doubt (a library nobody here has used, a component that may already
@@ -73,7 +74,7 @@ make.
    for the record's language: `## English prose rules`, or `## 문장 규칙`
    where `Record language` in the `seal/` root's `config.md` is Korean.
 7. Write `spec.md`, then `plan.md`, then `questions.md`.
-8. Hand back. Label each claim as contract §4 says: a fact a command you
+8. Hand back. Label each claim as rule 4 says: a fact a command you
    ran gave you, a `git show`, a `grep`, a `wc -l`, is `executed`, and what
    you opened is `read`. You ran no check of the repository's, and the
    report says so. The report stands without a file opened beside it:
@@ -125,8 +126,9 @@ that keeps the structure, checked.
 check: tests/test_waiver_decided_at_start.py
 
 **`questions.md` is the residue, not a collection.** Every row owes a reason
-the tree could not answer it, in its own words, and names who can answer it
-from the template's three values. The head of the file lists the judgments
+the tree could not answer it, in its own words, and names who can answer it,
+one of the three values of `skills/implement/SKILL.md` *3. The SDD file set*.
+The head of the file lists the judgments
 the ticket left open that the tree did answer, so nobody reopens them. Where
 different answers would not change what gets built, write the assumption
 down and continue.
@@ -140,9 +142,9 @@ reader to act on.
 check: tests/test_a_question_says_who_can_answer_it.py
 
 **A spec states its rule changes.** You read the policy in force as
-`skills/implement/SKILL.md` §*Document layout — two roots, three lifetimes*
+`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*
 states it. Each rule this work adds, changes or removes goes into
-`spec.md`'s `## Rule changes` as `skills/settle/SKILL.md` §*Rule changes*
+`spec.md`'s `## Rule changes` as `skills/settle/SKILL.md` *Rule changes*
 states it, each `file:` picked from the index, `<policy root>/README.md`.
 check: tests/test_waiver_decided_at_start.py
 
@@ -160,7 +162,7 @@ CI cannot see it.
 check: tests/test_waiver_decided_at_start.py
 
 **Bound each call, not the reading.** The files your spawn prompt names go
-out in one call whatever their number, as §10 says. Each call of the wide
+out in one call whatever their number, as rule 10 says. Each call of the wide
 reading after that holds about six reads or ranges, never the whole reading
 list of step 4 at once; six is a default and not a measured limit. A large
 file is read by range: `Read` pages it, `sed -n '<a>,<b>p'` is the shell
@@ -171,9 +173,9 @@ check: tests/test_the_handoff_before_round_one.py
 frame does not hold writes it into its phase record and hand-back, and you
 are not spawned again for it. You are when the orchestrator routes a
 `regression:` to you with that run's round records: open
-`docs/the-review-record.md` §*The run*, then rewrite `plan.md` with new
+`docs/the-review-record.md` *The run*, then rewrite `plan.md` with new
 phase rows for the redesign, every closed phase keeping its commit, and
 `spec.md` where the scope moves. Add `Reframed <date> by <who>, after round
 <N>.` under your mark, never in its place. `docs/the-review-record.md`
-§*The run* owns that rule.
+*The run* owns that rule.
 check: tests/test_the_rules_have_one_owner.py tests/test_waiver_decided_at_start.py

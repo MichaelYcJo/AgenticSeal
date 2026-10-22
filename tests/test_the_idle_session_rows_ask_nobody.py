@@ -1,6 +1,6 @@
 """Under `automation`, the switch ladder's two choice rows ask nobody (#896).
 
-Work item 1791781864. `docs/worktree-guard-spec.md` §A's rows *only IDLE
+Work item 1791781864. `docs/worktree-guard-spec.md` *A. Branch switch*, its rows *only IDLE
 sessions* (row 1-b) and *detection unusable* (row 2) are `choose` sites: a
 `deny` once per session that tells the model to put two options to the
 person with `AskUserQuestion`, and an `ask` on every attempt after. On the
@@ -283,7 +283,7 @@ def git_ok(*args):
 
 
 def test_the_way_on_passes_the_guard(monkeypatch, capsys, projects, repo, tmp_path):
-    """S7, run rather than read (`agent-contract` §13). The fixture gains an
+    """S7, run rather than read (contract rule 13). The fixture gains an
     `origin` holding `main` (W3), so the commands the deny names run as
     written: the fetch and the creation each pass the guard and then run in
     git, and a git command in the new worktree, issued by path from this
@@ -429,7 +429,7 @@ def test_on_windows_a_switch_under_the_press_is_row_twos_deny(
     """M2 of work item 1791781864, measured by the Windows shards. Nothing is
     stubbed: `sessions_in_tree` runs as it does there, where `ps` takes no
     `-o` and detection reads unusable. If the reading is wrong, this case is
-    where it shows, and `docs/worktree-guard-spec.md` §*Known limits* is
+    where it shows, and `docs/worktree-guard-spec.md` *Known limits* is
     corrected in this work item. Seen red at `c38f97d7` off Windows, by a
     deleted probe in which the process scan found no `claude` process — the
     same branch: the attended deny."""

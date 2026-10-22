@@ -67,7 +67,7 @@ def test_the_header_says_what_belongs_and_what_does_not():
 def test_the_header_says_a_rider_carries_no_stamp_and_no_checker():
     """`seal/follow-up.md` is where the convention is written down, and the
     stamps and their checker left in #964: a hash kept beside the tree to stay
-    in step with it is the class `CLAUDE.md` §*The rule a mechanism is kept
+    in step with it is the class `CLAUDE.md` *The rule a mechanism is kept
     against* removes. Nothing else reads this header, so a sentence putting
     the stamp back, or naming the checker as though it ran, would be the one
     place the old convention survived. Seen red against the header as it

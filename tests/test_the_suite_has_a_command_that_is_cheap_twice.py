@@ -1,7 +1,7 @@
 """The repository ships a command for its own suite, and the second call is cheap.
 
 Issue #156. The issue says nothing names a command; that half is wrong --
-`CONTRIBUTING.md` §*Running the checks* named `uvx --with pytest python3 -m
+`CONTRIBUTING.md` *Running the checks* named `uvx --with pytest python3 -m
 pytest tests/ -q`. What it did not have is a command that is cheap the second
 time it runs: that form resolves its environment on every call, 55-58 seconds
 each, paid on all seventeen test calls of one measured segment (#133). Six
@@ -177,7 +177,7 @@ def test_the_runner_behind_the_wrapper_says_the_same_thing():
 
     #30 re-pointed the wrapper's comment from `orchestrator` to `sealer` and
     left the module it runs saying the other thing — one command, two files,
-    two owners, which is the §12 class this branch already knows
+    two owners, which is the contract rule 12 class this branch already knows
     `survivor-check` cannot reach. The changelog claimed *the runner's own
     comment … all of them now say the sealer's*, true of the wrapper and
     false of the runner.
@@ -197,7 +197,7 @@ def test_the_runner_behind_the_wrapper_says_the_same_thing():
 
 def test_the_wrapper_points_at_the_contract_rather_than_inviting_a_full_run():
     """`bin/test` with no arguments runs the whole suite, which
-    `skills/agent-contract/SKILL.md` §2 forbids to smith and warden. The file
+    contract rule 2 forbids to smith and warden. The file
     a session reads before typing it says so, and names where the rule is.
 
     Re-pointed by #30 from `orchestrator` to `sealer`, and back by #969, which
@@ -572,7 +572,7 @@ def test_the_unwritable_sentence_is_the_same_on_every_platform(
 ):
     """The case above is skipped as root and on Windows, and the suite runs on
     `ubuntu-latest`, `macos-latest` and `windows-latest`. A sentence a person
-    reads is pinned by contract §14 wherever it can print, so the write is
+    reads is pinned by contract rule 14 wherever it can print, so the write is
     made to refuse here instead of the directory being made to refuse it --
     the guard catches `OSError` and every platform can raise one."""
     real_write_text = pathlib.Path.write_text
@@ -1138,7 +1138,7 @@ def flat(*parts):
 
 
 def running_the_checks():
-    """`CONTRIBUTING.md` §*Running the checks*, to the next heading."""
+    """`CONTRIBUTING.md` *Running the checks*, to the next heading."""
     text = read(os.path.join(ROOT, "CONTRIBUTING.md"))
     start = text.index("## Running the checks")
     return text[start : text.index("\n## ", start + 1)]
@@ -1150,7 +1150,7 @@ def test_the_section_names_the_cheap_command_before_the_slow_one():
     call, and a section that names the cheap one second still costs that."""
     section = running_the_checks()
     assert "bin/test" in section, (
-        "CONTRIBUTING.md §Running the checks does not name the runner at all"
+        "`CONTRIBUTING.md` *Running the checks* does not name the runner at all"
     )
     assert section.index("bin/test") < section.index("uvx --with pytest"), (
         "the slow form is still the first command in the section, so it is "
@@ -1224,7 +1224,7 @@ def test_the_section_keeps_the_broad_once_rule():
 
 def test_the_section_says_the_full_run_is_the_orchestrators():
     """`bin/test` with no arguments runs the whole suite, which
-    §2 forbids to every agent. The section that makes it cheap is the
+    contract rule 2 forbids to every agent. The section that makes it cheap is the
     section that has to say who it is for, and name the form a segment
     types.
 
@@ -1246,7 +1246,7 @@ def test_the_section_says_the_full_run_is_the_orchestrators():
     )
 
 
-HANDOFF_LINK = "`docs/the-review-record.md` §*The handoff*"
+HANDOFF_LINK = "`docs/the-review-record.md` *The handoff*"
 
 
 def test_the_protocol_says_a_shipped_runner_is_found_not_typed():
@@ -1260,7 +1260,7 @@ def test_the_protocol_says_a_shipped_runner_is_found_not_typed():
 
 def test_the_protocol_hands_over_the_narrow_form():
     """The requirement points a segment at a command that runs the whole
-    suite. Naming it without naming which form is how §2 gets widened by a
+    suite. Naming it without naming which form is how contract rule 2 gets widened by a
     document that never mentions it."""
     record = flat("docs", "the-review-record.md")
     assert "the form handed over is the narrow one" in record
@@ -1277,7 +1277,7 @@ def test_smith_finds_the_runner_before_inventing_a_command():
     )
     assert "run one module at a time" in smith, (
         "smith is pointed at a command that runs the full suite and not at "
-        "the form §2 leaves it"
+        "the form contract rule 2 leaves it"
     )
     assert HANDOFF_LINK in smith, (
         "the rule is restated rather than linked, so the two carriers can drift apart"
@@ -1298,7 +1298,7 @@ def test_warden_finds_the_runner_before_building_its_own():
     )
     assert "Type the narrow form, one module" in warden, (
         "warden is pointed at a command that runs the full suite and not at "
-        "the form §2 leaves it"
+        "the form contract rule 2 leaves it"
     )
     assert HANDOFF_LINK in warden, (
         "the rule is restated rather than linked, so the two carriers can drift apart"
@@ -1366,6 +1366,9 @@ def test_no_loaded_document_states_the_serial_figure():
     for name, text in (
         ("bin/test", flat("bin", "test")),
         (".github/scripts/run_tests.py", runner),
-        ("CONTRIBUTING.md §Running the checks", " ".join(running_the_checks().split())),
+        (
+            "`CONTRIBUTING.md` *Running the checks*",
+            " ".join(running_the_checks().split()),
+        ),
     ):
         assert "five minutes" not in text, f"{name} states the serial figure"

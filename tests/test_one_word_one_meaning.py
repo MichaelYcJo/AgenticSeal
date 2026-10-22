@@ -152,7 +152,7 @@ def test_the_bound_is_on_the_review_run_and_never_on_the_cycle():
 
 def test_the_smith_calls_the_whole_thing_a_review_run():
     smith = flat("agents", "smith.md")
-    assert "bounded as `docs/the-review-record.md` §*The run* states" in smith
+    assert "bounded as `docs/the-review-record.md` *The run* states" in smith
     assert "the cycle is bounded" not in smith
 
 
@@ -479,8 +479,8 @@ def test_the_gate_sweep_reads_a_seal_that_ends_a_sentence():
 # --- "the stamp" — the sealer's, never the broad gate's --------------------
 
 # #975: the stamp is drawn once per work item from the sealer's `sealed`
-# (`docs/the-review-record.md` §*The stamp*), and `docs/the-broad-gate.md`
-# §*Where the stamp is drawn* is gone. Read by construction rather than by a
+# (`docs/the-review-record.md` *The stamp*), and `docs/the-broad-gate.md`
+# *Where the stamp is drawn* is gone. Read by construction rather than by a
 # list of sentences: the gate, possessive or not, with at most three words
 # before `stamp`, each of which may carry an apostrophe (`gate's stamp`,
 # `gate draws a stamp`, `gate's run draws the stamp`, `gate's run's stamp`,

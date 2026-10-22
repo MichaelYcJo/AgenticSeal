@@ -285,7 +285,7 @@ REMEDY = (
     "A run older than the artifact's seven days is re-run first, with "
     "`gh run rerun <run id>`; a branch with no pull request, or whose run "
     "is too old to re-run, gets one with `gh workflow run test.yml --ref "
-    "<branch>` (CONTRIBUTING.md §Running the checks)."
+    "<branch>` (`CONTRIBUTING.md` *Running the checks*)."
 )
 
 
@@ -399,7 +399,7 @@ def test_one_more_unpriced_fails_and_names_the_counts_and_the_recipe():
     assert "over the committed .test_durations and commit it;" in sentence
     assert "gh run rerun <run id>" in sentence
     assert "gh workflow run test.yml --ref <branch>" in sentence
-    assert "CONTRIBUTING.md §Running the checks" in sentence
+    assert "(`CONTRIBUTING.md` *Running the checks*)" in sentence
     assert "First unpriced: " + collected[0] in sentence
     assert "First gone" not in sentence, sentence
 

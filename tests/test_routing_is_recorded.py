@@ -816,7 +816,7 @@ def test_the_answer_pressed_row_is_read_when_it_is_there():
 # --- #658, #667: a row a renderer does not show is not an answer ------------
 #
 # The shape ids are `seal/specs/1790645290-the-hooks-and-the-rider-check-read-
-# fences-and-comments-by-one-rule/spec.md` §*The shapes*, the texts
+# fences-and-comments-by-one-rule/spec.md` *The shapes*, the texts
 # `tests/block_shapes.py`'s. "red at base" means the case fails with
 # `hooks/routing.py` from `3911a8cf`; "pins" means it passes there too.
 
@@ -881,9 +881,9 @@ def test_a_declaration_below_a_comment_opener_nobody_closed_still_reads():
 
 
 def test_the_template_and_the_committed_declarations_still_parse():
-    """R10's floor, S11. `templates/sdd-routing.md` opens with a comment above
-    its table and a placeholder line below it, and it still parses; the
-    measurement over every committed declaration is in the phase record."""
+    """R10's floor, S11. `templates/sdd-routing.md` carries its table and a
+    placeholder line below it, and it still parses; the measurement over
+    every committed declaration is in the phase record."""
     root = os.path.join(os.path.dirname(__file__), "..")
     with open(os.path.join(root, "templates", "sdd-routing.md"), encoding="utf-8") as f:
         template = f.read()
@@ -954,7 +954,7 @@ def test_no_optional_row_answers_for_another(repo):
 
     `test_neither_optional_axis_answers_for_the_other` above pins the pair
     that existed before; this is the same property over all four, which is the
-    class rather than the two instances of it (§12).
+    class rather than the two instances of it (contract rule 12).
     """
     keys = {
         routing.PLANNING: ("planning", routing.BY_FRAMER),

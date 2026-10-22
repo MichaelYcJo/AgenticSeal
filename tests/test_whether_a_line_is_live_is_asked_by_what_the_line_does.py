@@ -2,7 +2,7 @@
 
 Four readers decide whether a record line is live, and they give three
 answers, because they read three kinds of line:
-`docs/the-record-layout.md` §*The fold, and what tells it from a deletion*
+`docs/the-record-layout.md` *The fold, and what tells it from a deletion*
 states the rule. This module is the
 one place the four stand side by side. Each per-reader module owns that
 reader's edges; this one pins only the answer each reader's docstring, or the

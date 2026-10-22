@@ -8,8 +8,8 @@ gate, and the measurement of each segment posted to the flow log.
 `skills/verify/SKILL.md` is the other half: the four conditions every claim
 meets, the hand-back's labels, the scope rule and the counterfeits. The
 orchestrator reads both. The smith and the sealer open that one and never
-this one, because contract §2 gives the broad gate to the orchestrator and
-contract §6 withholds posting from every agent.
+this one, because contract rule 2 gives the broad gate to the orchestrator and
+contract rule 6 withholds posting from every agent.
 
 ## The broad gate
 
@@ -255,9 +255,9 @@ segment that just finished, not as a follow-up someone might do later:
    in view. That is the path a harness's task output hands the orchestrator,
    so it is the file an orchestrator holding a fix pass's result already has.
 
-   **A §6 line means an agent spawned another agent**, which
-   `skills/agent-contract/SKILL.md` §6 withholds from every agent whatever
-   its own definition says. The mode notices and stops nothing: the evidence
+   **A `Contract rule 6` line means an agent spawned another agent**, which
+   contract rule 6 withholds from every agent whatever its own definition
+   says. The mode notices and stops nothing: the evidence
    is a transcript on the machine that ran the agent, in no commit and on no
    CI runner, so a report somebody already runs at this boundary is the only
    place it surfaces. Carry the line into the handover; it is about the

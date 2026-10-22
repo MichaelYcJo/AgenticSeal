@@ -48,7 +48,7 @@ def module():
     """The command, loaded from its path and registered first.
 
     Missing, this raises -- which is how every case below was seen red before
-    the script existed (§15)."""
+    the script existed (contract rule 15)."""
     spec = importlib.util.spec_from_file_location("specseal_mutation_check", SCRIPT)
     loaded = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = loaded
@@ -394,7 +394,7 @@ def test_a_same_length_mutation_reads_red_over_a_trusted_cache(tmp_path, capsys)
 def test_a_replacement_that_cannot_land_once_is_refused_before_any_write(
     tmp_path, capsys, source, count
 ):
-    """§9: an edit must be able to fail. A pattern that misses writes
+    """Contract rule 9: an edit must be able to fail. A pattern that misses writes
     nothing and exits zero when the shell does it, so the loop records a
     verdict for a mutation that never happened -- the two-spaces incident
     `arm_check.run_arms`'s docstring records. One that lands twice breaks two
@@ -962,7 +962,7 @@ def test_the_command_a_session_types_reaches_the_script(tmp_path):
 
 def test_a_markdown_file_is_mutated_and_restored_the_same_way(tmp_path, capsys):
     """The smith's unit is often a sentence: `agents/*.md` and `skills/*.md`
-    are what a session reads and acts on, and §14 pins them by case."""
+    are what a session reads and acts on, and contract rule 14 pins them by case."""
     target = tmp_path / "notes.md"
     text = "# Notes\n\nThe sentence a case pins. Another one stays.\n"
     target.write_text(text, encoding="utf-8")
@@ -994,7 +994,7 @@ def flat(*parts):
 
 
 def test_the_smiths_definition_names_the_command_and_no_directory_to_clear():
-    """§14: the sentence the smith acts on changed, so the new text is pinned
+    """Contract rule 14: the sentence the smith acts on changed, so the new text is pinned
     and so is the absence of the old one. *Clear `tests/__pycache__`* cleared
     the importers, whose bytecode is never stale, and missed the mutated
     file's, which is; any second directory named in its place would miss the
@@ -1269,7 +1269,7 @@ def test_a_group_that_ended_on_its_own_at_the_bound_is_not_an_error():
 
 
 def test_the_bound_is_chosen_by_the_platform_and_windows_says_what_it_left():
-    """§13: a defence resting on a platform's guarantee is asked without it.
+    """Contract rule 13: a defence resting on a platform's guarantee is asked without it.
     The chooser takes the platform as an argument, so the Windows half is
     pinned from a machine that is not Windows."""
     mc = module()

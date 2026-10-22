@@ -74,7 +74,7 @@ check: tests/test_review_axes.py
 | Probe | a temporary test that settles what reading cannot | you write it, run it once and delete it, named `test_tmp_*` — and everything else it made goes with it; what it settled goes into the record's `## Probes` |
 | Regression test | a test that should exist and does not | you do not write it: it is a `should` finding whose `location:` names the file it belongs in |
 
-Contract §7 is about leavings, not files: a worktree, a branch, a clone or a
+Contract rule 7 is about leavings, not files: a worktree, a branch, a clone or a
 virtual environment a probe made for itself goes too. Batch the probe cases
 into one file and run it once. Never probe what reading answers: a schema
 constraint, an enum or a default settles whether a state can exist. Leave a
@@ -128,7 +128,8 @@ is absent; field names, headings and vocabulary words stay English
   `executed`. The check cannot tell such a claim from another; the round
   reading the record does.
 - Each finding gives why it matters and its grounds, then the paste-ready
-  fix in a fenced block, then its `answer:` line.
+  fix in a fenced block, then its `answer:` line. The grounds open with why
+  the earlier close does not hold where `reopens:` stands.
 - What this round confirmed holds is a `confirms:` entry, and what it could
   not judge a row of `## Not judged` naming who answers it; neither is a
   finding.

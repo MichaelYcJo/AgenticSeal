@@ -15,7 +15,7 @@ run the script at all, so the typed half is the half those segments never
 touched.
 
 What this file pins is the looking half, as a property of the class rather
-than of the instance the ticket named -- `skills/agent-contract/SKILL.md` §12,
+than of the instance the ticket named -- contract rule 12,
 *do not fix the coordinate, enumerate the class*. The ticket named three
 documents; there were nine, and the one the four segments actually hand-wrote
 from (`templates/sdd-round.md`, seven mentions) was not among the three.
@@ -41,7 +41,7 @@ Scope is what an agent's startup payload can contain: `agents/`, `skills/` and
 it does not ship, no agent's payload holds it, and its readers have the whole
 clone to `git grep`.
 
-Shown red before it was committed (§15): against the tree as it stood, this
+Shown red before it was committed (contract rule 15): against the tree as it stood, this
 file failed on all nine of `round_record.py`'s documents and on
 `chain_check.py` having no classification, and the command-form case was
 driven red by planting an invocation in a shipped document.
@@ -344,7 +344,7 @@ def test_a_document_with_no_locator_is_caught():
 
 
 def test_the_failure_message_offers_a_repair_that_actually_works():
-    """§14: a message a person reads and acts on is pinned by a case.
+    """Contract rule 14: a message a person reads and acts on is pinned by a case.
 
     The repair the message names has to be one the rule accepts. For a
     hyphenless command it cannot be, so the message says the path and says

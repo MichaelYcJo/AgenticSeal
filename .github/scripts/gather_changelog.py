@@ -15,7 +15,7 @@ released notes alone. Two branches cannot collide, because no two work items
 share an id. This script is the other half — release preparation runs it, and
 it concatenates the fragments into `## X.Y.Z — <date>`.
 
-**Each release is a file of its own** (#728, `docs/the-record-layout.md` §F2):
+**Each release is a file of its own** (#728, `docs/branch-and-release.md` *Work accumulates on a release branch*):
 `changelog/X.Y.Z.md`, which opens with that `## X.Y.Z — <date>` line, and
 `CHANGELOG.md` is the index — one copy of each release's heading line, newest
 first, with a link to its file under it. The gather writes the release's file
@@ -170,7 +170,7 @@ def release_files(root):
     """`[(version, path)]` for every `changelog/<X.Y.Z>.md`, newest first.
 
     Listed from the disk rather than from git: release preparation runs this
-    before the new file is staged (`docs/release-checklist.md` §3)."""
+    before the new file is staged (`docs/release-checklist.md` *3. Verify before committing*)."""
     directory = os.path.join(root, RELEASES)
     if not os.path.isdir(directory):
         return []

@@ -8,7 +8,7 @@ wrong was who the stop went to: one deny per session per repository, then an
 `ask` for every later stop, and the first deny in the main checkout had been
 spent by the orchestrator's own loop, so every agent's stop after it became a
 person's prompt (`seal/specs/1790644505-the-commit-gate-stops-asking-about-
-commits-that-are-not-there/spec.md` §*Where the four prompts came from*).
+commits-that-are-not-there/spec.md` *Where the four prompts came from*).
 
 What changes is only the choice between `deny` and `ask`, and only where the
 harness-written transcript holds the press `hooks/worktree_consent.py`'s
@@ -252,7 +252,7 @@ def reasons_under_the_press(monkeypatch, capsys, projects, tmp_path):
 def test_the_refusal_names_the_ways_on_that_need_nobody(
     monkeypatch, capsys, projects, tmp_path
 ):
-    """S5, pinned (contract §14). The ways on are in this order: make the
+    """S5, pinned (contract rule 14). The ways on are in this order: make the
     repository readable, edit through the tools, the waiver only where no
     work item owns the commit, and hand back otherwise. Seen red by deleting
     each sentence of the text in turn."""
@@ -391,7 +391,7 @@ def test_without_the_press_the_answer_is_the_bases(
 def test_a_reader_that_raises_or_did_not_load_is_no_press(
     monkeypatch, capsys, projects, tmp_path
 ):
-    """S6, contract §13. `hooks/dispatch.py` skips a gate that raises, and a
+    """S6, contract rule 13. `hooks/dispatch.py` skips a gate that raises, and a
     skipped gate is silence, so the reader failing must land on the base's
     answer rather than on nothing. Seen red with the guard around the reader
     removed."""

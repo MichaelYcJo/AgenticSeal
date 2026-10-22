@@ -1604,8 +1604,8 @@ def porcelain(repo, *paths):
     **Both paths this command stages, not just the root.** The switch stages
     a removal or an addition of the workflow file too, and a guard watching
     only the root would leave that path's uncommitted work to be taken by
-    `git rm`. Enumerating the class is the point; `spec.md` §"What the switch
-    touches" lists all five.
+    `git rm`. Enumerating the class is the point; `spec.md` *What the switch
+    touches* lists all five.
 
     An unanswerable question reads as dirty, the direction
     `hooks/root-migrate.py#dirty` takes: moving on a guess is the one
@@ -2074,7 +2074,7 @@ def gitlinks_under_root(repo):
 def refusals(repo, home, shared, local, wanted):
     """Every reason not to switch, gathered before anything is written.
 
-    The list is the class in `spec.md` §"What the switch touches", walked in
+    The list is the class in `spec.md` *What the switch touches*, walked in
     order, rather than the guards a reader thinks of first. The one act that
     is NOT preflighted is the workflow file, because it is the last step and
     a second run finishes it — the resume is what makes preflighting it
@@ -2161,7 +2161,7 @@ def refusals(repo, home, shared, local, wanted):
 def switch(args, repo, home, shared, local, current, wanted):
     """Move the root, write the row, stage the index, carry the workflow file.
 
-    In the order of `spec.md` §"Order, and what a stopped run leaves": the
+    In the order of `spec.md` *Order, and what a stopped run leaves*: the
     rename first, because it is the step that can fail for reasons outside
     this command and until it succeeds nothing has happened. Every step after
     it is idempotent, so `seal mode <the same mode>` finishes a stopped run —

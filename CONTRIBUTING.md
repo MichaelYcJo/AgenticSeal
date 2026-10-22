@@ -107,7 +107,8 @@ date and a machine, recorded in the work item that measured it, not here.
 
 **A contributor names a module.** The full suite is the orchestrator's, run
 once after the review rounds settle and before the sealer is spawned, and
-`skills/agent-contract/SKILL.md` §2 forbids it to every agent. A cheap runner
+contract rule 2 in `skills/agent-contract/SKILL.md` forbids it to every
+agent. A cheap runner
 does not widen that rule. What it makes cheap is `bin/test tests/<file> -q`,
 and that is the form a segment types.
 

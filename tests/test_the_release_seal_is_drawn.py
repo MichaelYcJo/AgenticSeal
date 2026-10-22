@@ -964,7 +964,7 @@ def test_a_refused_gh_or_git_call_is_a_reason_naming_the_call(monkeypatch):
         mod.tagged("nope")
 
 
-# --- the documents a person reads (contract §14) ----------------------------
+# --- the documents a person reads (contract rule 14) ------------------------
 
 
 def flat(*parts):
@@ -973,8 +973,9 @@ def flat(*parts):
 
 
 def test_the_release_tail_says_the_seal_is_a_second_act_that_never_fails_it():
-    """`docs/branch-and-release.md` §*Every act the release performs once it
-    reaches `main`*: the bullet on the note says the seal job runs only on a
+    """`docs/branch-and-release.md` *Cutting a release*, in its paragraph
+    **Every act the release performs once it reaches `main`**: the bullet on
+    the note says the seal job runs only on a
     release this run created, edits only a glance table still as generated,
     and cannot turn the release red, and the section's `check:` line names
     the module that pins the fallback. It no longer says the seal is drawn
@@ -1000,7 +1001,7 @@ def test_the_release_tail_says_the_seal_is_a_second_act_that_never_fails_it():
 
 
 def test_the_checklist_box_says_where_a_missing_seal_is_explained():
-    """`docs/release-checklist.md` §6, the release-note box: it names the
+    """`docs/release-checklist.md` *6. After the merge*, the release-note box: it names the
     `seal` job, says its log carries the reason on a `::warning::` line and
     that it never fails the release, and gives the hand-drawn route."""
     text = flat("docs", "release-checklist.md")

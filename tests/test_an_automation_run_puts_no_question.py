@@ -116,7 +116,7 @@ def test_a_question_on_a_branch_declared_automation_is_refused(repo):
 
 
 def test_the_refusal_says_where_the_default_goes(repo):
-    """Contract §14: the reason is what the session acts on."""
+    """Contract rule 14: the reason is what the session acts on."""
     declare(repo)
     reason = reason_of(run(repo))
     item = os.path.join("seal", "specs", ITEM)

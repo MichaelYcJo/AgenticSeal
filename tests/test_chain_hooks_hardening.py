@@ -482,11 +482,11 @@ def _folded(name):
 
 
 def test_the_policy_says_one_reader_reads_a_token_and_a_failed_diff_asks():
-    """§14 of the agent contract, for S7, S8 and S10 of work item 1791384157
+    """Contract rule 14, for S7, S8 and S10 of work item 1791384157
     (#868): the consent-read paragraph of `docs/commit-review-gate-spec.md`
     says a command that does not split carries no token from where its split
     fails, `docs/the-commit-gate-inside-git.md` names the one reader, and
-    §*Parity arm* says a diff git could not take is asked about. Red against
+    *Parity arm* says a diff git could not take is asked about. Red against
     `5623d728`'s texts."""
     for name, sentence in (
         (
@@ -541,7 +541,7 @@ def test_the_review_arm_asks_on_a_document_only_commit(repo, path):
     in `docs/`, one of them 🔴, and 26 fixed findings across every round
     record sit in the ledger alone. So a commit confined to either root meets
     the review arm exactly as a code change does
-    (`docs/the-review-and-parity-arms.md` §*Review arm*). One path per root, because the line can leak by halves:
+    (`docs/the-review-and-parity-arms.md` *Review arm*). One path per root, because the line can leak by halves:
     an exemption for `seal/` alone passes every `docs/` case. This case is
     what fails if `touches_code`, or either half of it, is ever shared
     between the arms.
@@ -964,7 +964,7 @@ def test_auto_firing_skills_declare_when_not_to_fire():
 #
 # #422, half one: that repair anchored the FRONT of each stem and left the
 # back open, so a stem matched inside a longer word and the same defect stood
-# one layer down again. Measured: `agent-contract` §10's own wording — *open
+# one layer down again. Measured: contract rule 10's own wording — *open
 # every coordinate a task names in one batch* — refused at exit 1 with
 # `persona` one clause away, which `agents/smith.md` already writes. Both ends
 # are anchored now, and the back anchor is what splits the stems into two
@@ -1004,7 +1004,8 @@ ASKING_WINDOW = 140
 #
 #   *go in **one batch** before the first edit*  -- verbatim from the
 #       sentence `CLAUDE.md`'s goal section carried until #730 left the rule
-#       to `skills/implement/SKILL.md` §1; the emphasis markers break the
+#       to `skills/implement/SKILL.md` *1. Read the spec before the code*;
+#       the emphasis markers break the
 #       literal;
 #   *in a single batch* and *as a single batch* -- ordinary synonyms.
 #
@@ -1096,7 +1097,7 @@ def test_the_sweep_refuses_a_planted_instruction_in_every_spelling():
         "the window no longer bounds the distance, so ordinary prose far "
         "from a batch phrase is refused"
     )
-    # `agent-contract` §10's own legitimate wording, with the two words the
+    # contract rule 10's own legitimate wording, with the two words the
     # back anchor exists to stop one clause away.
     assert not list(
         batch_instructions(
@@ -1135,18 +1136,18 @@ def test_the_asking_stems_are_anchored_at_both_ends():
     # WHAT THE BACK ANCHOR ALSO COST, pinned so the next reader meets it
     # rather than discovering it (round 1's 🟡 3). The agent nouns stopped
     # matching, and each of them NAMES the party this guard is looking for —
-    # `agent-contract` §4 writes `answerer` for exactly that party. This block
+    # contract rule 4 writes `answerer` for exactly that party. This block
     # used to sit in the one above, whose message calls its words ordinary
     # *for a question nobody is asking*, which is false of these three.
     #
     # Widening the stem set is refused with grounds in
-    # `seal/specs/1789540097-…/spec.md` §*Out*, so this is residue and not a
+    # `seal/specs/1789540097-…/spec.md` *Out*, so this is residue and not a
     # defect. It is residue, not correctness.
     for word in ("asker", "answerer", "questioner"):
         assert not ASKING.search(word), (
             f"{word} is an agent noun the back anchor stops. If this line is "
             "ever reversed, it is a widening of what the guard refuses and "
-            "needs the argument `spec.md` §*Out* asks for"
+            "needs the argument `spec.md` *Out* asks for"
         )
     # The front anchor, which round 2 of #419 bought and this must not undo.
     for word in ("task", "multitasking", "flask"):
@@ -1244,7 +1245,7 @@ def test_the_questions_are_collected_before_the_work_not_during_it():
     )
     # WHAT IS REFUSED IS A CLAIM, NOT A SPELLING, and the first version of
     # this assertion refused the spelling. It read `"in one batch" not in
-    # body` over every definition — and `agent-contract` §10, which every
+    # body` over every definition — and contract rule 10, which every
     # agent receives at startup, gives that phrase a second and entirely
     # legitimate meaning: *Batch independent reads and runs*. A definition
     # writing `open every coordinate in one batch` would have been following
@@ -1277,7 +1278,7 @@ def test_the_questions_are_collected_before_the_work_not_during_it():
     #     a new occurrence would fire. Bounding it at a heading is a change
     #     with its own failure direction — an instruction whose sentence
     #     straddles a heading would pass — and it is ruled out with grounds in
-    #     `seal/specs/1789540097-…/spec.md` §*Out*.
+    #     `seal/specs/1789540097-…/spec.md` *Out*.
     #   · It reads `*` and not `_`. See `EMPHASIS` above for why.
     #   · It refuses by the WORDS in the window, so a definition that names a
     #     person answering for some other reason within 140 characters of a
@@ -1308,7 +1309,7 @@ def test_the_questions_are_collected_before_the_work_not_during_it():
     # mechanism a fix pass may not add on top of a unit an earlier fix pass
     # created, and a planted corpus is a change to what the suite guards that
     # `CONTRIBUTING.md` asks a separate argument for. It is in this work item's
-    # `overview.md` §*Not verified* with an answerer.
+    # `overview.md` *Not verified* with an answerer.
     definitions = sorted(glob.glob(os.path.join(ROOT, "agents", "*.md")))
     assert len(definitions) >= 3, f"agents/*.md matched {len(definitions)} files"
     read = []
@@ -1324,7 +1325,7 @@ def test_the_questions_are_collected_before_the_work_not_during_it():
                 "plugin spawns has `AskUserQuestion`, so collecting a batch "
                 "of questions is an instruction nothing can carry out; the "
                 "act belongs to the session that spawns the work. Batching "
-                "READS is a different thing and is what `agent-contract` §10 "
+                "READS is a different thing and is what contract rule 10 "
                 f"asks for — that wording is not refused here.\n  …{window}…"
             )
     assert [name for name, _ in read] == [

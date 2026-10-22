@@ -28,7 +28,7 @@ import pytest
 from conftest import load_hook_module, ps_names_the_parent_or_skip, symlink_or_skip
 from test_the_guard_asks_once_per_session import ask_entries, write_transcript
 
-# `docs/worktree-guard-spec.md` §*Known limits*, found red on `windows-latest`
+# `docs/worktree-guard-spec.md` *Known limits*, found red on `windows-latest`
 # by #692's Windows pass.
 GUARD_COUNT_NEEDS_PS = (
     "known limit: where `ps` cannot walk the process table, as on Windows, "

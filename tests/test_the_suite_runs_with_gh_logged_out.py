@@ -102,7 +102,7 @@ def test_the_token_gh_would_send_is_not_a_login():
 
 
 def test_contributing_says_the_suite_runs_logged_out():
-    """A6, the reader's half (`agent-contract` §14). A contributor whose case
+    """A6, the reader's half (contract rule 14). A contributor whose case
     goes red on a machine where `gh` works everywhere else needs to find why
     in the section that tells them how to run the suite."""
     path = os.path.join(HERE, "..", "CONTRIBUTING.md")
@@ -118,7 +118,9 @@ def test_contributing_says_the_suite_runs_logged_out():
         *(f"`{name}`" for name in TOKENS),
         "A case that needs `gh` stubs it.",
     ):
-        assert needle in prose, f"CONTRIBUTING.md §Running the checks lacks: {needle}"
+        assert needle in prose, (
+            f"`CONTRIBUTING.md` *Running the checks* lacks: {needle}"
+        )
     assert "removes `GH_TOKEN`" not in prose, (
         "CONTRIBUTING.md still says the suite removes `GH_TOKEN`, which would "
         "leave `gh` reading the login in the OS keyring"

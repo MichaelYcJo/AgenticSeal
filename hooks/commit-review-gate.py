@@ -170,7 +170,7 @@ def _hides_a_commit(text):
     here keeps every invocation already found; a `RecursionError` caught in
     `main` discarded them all. The bound answers before the stack runs out,
     and the catch stays for an interpreter whose limit is lower still
-    (contract §13): with the limit below what 32 levels need, the answer is
+    (contract rule 13): with the limit below what 32 levels need, the answer is
     the same.
     """
     if _nesting[0] >= NESTING_READ:
@@ -630,7 +630,7 @@ def changed_paths(cwd, invocations):
 # The line is the PARITY arm's alone. The review arm reads no paths, on
 # purpose: it asks whether anybody reads the change, and `docs/` here is the
 # policy the code conforms to. #518 measured it and kept the asymmetry --
-# `docs/the-review-and-parity-arms.md` §*Review arm* holds the grounds, and
+# `docs/the-review-and-parity-arms.md` *Review arm* holds the grounds, and
 # `test_the_review_arm_asks_on_a_document_only_commit` fails if this line
 # ever reaches the review arm.
 DOC_ROOTS = gate.DOC_ROOTS
@@ -645,7 +645,7 @@ def touches_code(cwd, invocations):
 
     Only the parity arm calls this. The review arm's question is not about an
     original, and `docs/` is where a measured share of the review chain's
-    fixed findings sit (`docs/the-review-and-parity-arms.md` §*Review arm*,
+    fixed findings sit (`docs/the-review-and-parity-arms.md` *Review arm*,
     #518).
     """
     return gate.touches_code(changed_paths(cwd, invocations))
@@ -801,7 +801,8 @@ def question_reason(arms):
 # subagent has none, and the main session of such a run was promised it would
 # not use one. The ways on are ordered from the one that gets the commit a
 # verdict to the one that ends the attempt, and the waiver is offered only
-# where `skills/implement/SKILL.md` §1 offers it -- a commit no work item owns.
+# where `skills/implement/SKILL.md` *1. Read the spec before the code* offers
+# it -- a commit no work item owns.
 AUTOMATION_WAYS = (
     "This session's person pressed `automation` on the routing question, so "
     "this gate puts no question to them, and none is to be put to them in its "

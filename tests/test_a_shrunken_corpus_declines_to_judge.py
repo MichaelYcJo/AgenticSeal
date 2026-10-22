@@ -13,7 +13,7 @@ skipped file and a deleted entry are the same evidence, so a silent skip buys
 it a false alarm. Those decline, through `decline_if_shrunken`.
 
 **The reason string is why this module exists.** It is text a person reads at
-a release and acts on, which `skills/agent-contract/SKILL.md` §14 says has to
+a release and acts on, which contract rule 14 says has to
 be pinned in the commit that writes it — and `seal/follow-up.md`'s seventh
 row is that omission in an earlier release, a refusal whose second half
 nothing held. The three call sites pin their own `what`; the shape is pinned
@@ -180,6 +180,9 @@ APPLIES_THE_SHARED_GUARD = {
     # #967's T5 reads every tracked file for a citation of `implement`'s
     # headings. It judges what it finds, so it skips the missing half.
     "tests/test_the_set_a_work_item_always_has.py#cited_files": 1,
+    # #1005's sweep for the section sign over every tracked living file. It
+    # judges what it finds, so it skips the missing half.
+    "tests/test_no_living_file_writes_the_section_sign.py#signs": 1,
 }
 
 # 2. It guards its own list by another predicate, which predates this work.
@@ -189,7 +192,7 @@ GUARDS_ITS_OWN_LIST = {}
 # 3. Its list is only ever OPENED behind a scope that catches the error. The
 #    reader checks that the named scope still carries the handler. This is not
 #    an endorsement: that silence dropped a document from the corpus and
-#    produced a false report at its own round 5, and `spec.md` §*Out, and why*
+#    produced a false report at its own round 5, and `spec.md` *Out, and why*
 #    leaves repairing it to a different work item.
 OPENED_ONLY_BEHIND = {
     "tests/test_the_pull_request_language_is_the_repositorys.py#shipped_templates": "unreachable_templates",
@@ -327,7 +330,7 @@ def vanished_scopes(found, missing):
     of question. A scope the reader FOUND that no table accounts for, and a
     scope whose call count moved, are both evidence about a module that is on
     disk: they need no whole corpus and they judge what remains, which is what
-    `spec.md` §*Is a skip a weakening* asks of a positive sweep. Only the
+    `spec.md` *Is a skip a weakening* asks of a positive sweep. Only the
     scopes that VANISHED are the half a skipped module can explain.
 
     The first shape of this helper declined in front of all three, and round 2
@@ -405,7 +408,7 @@ def _tree_of(rel):
 def test_no_scope_in_the_suite_lists_paths_from_git_without_a_guard():
     """The class, re-enumerated by the suite rather than by whoever remembers.
 
-    `skills/agent-contract/SKILL.md` §12: the finding named one coordinate and
+    Contract rule 12: the finding named one coordinate and
     what was owed was every instance the same cause produces. Five helpers
     carried it, a sixth was found by this case while it was being written, and
     a seventh is what this exists to stop.
@@ -586,7 +589,7 @@ def test_an_unguarded_scope_is_named_although_a_module_is_mid_edit():
     Measured against the shape this replaces: with the decline in front of
     all three halves, a planted unguarded scope went unnamed on a tree with
     one test module deleted from disk, and the case exited 0 — a gate going
-    quiet on the seventh helper it exists to catch. `spec.md` §*Is a skip a
+    quiet on the seventh helper it exists to catch. `spec.md` *Is a skip a
     weakening* is the rule this module was breaking on itself: the positive
     sweeps do not skip themselves.
     """

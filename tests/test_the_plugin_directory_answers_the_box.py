@@ -17,13 +17,13 @@ says nothing about a directory it did not read.
 `.claude-plugin/marketplace.json` files the command reads, outputs of the
 review pipeline and nothing more; *listed* is a word about the directory, so
 no line here says it (`seal/specs/1791384161-the-plugin-directory-check-reads-the-directory/spec.md`
-§*Vocabulary*).
+*Vocabulary*).
 
 **Nothing here reaches the network.** `fetch` is replaced at the module, and
 the fixtures below are the four `source` shapes measured over the two real
 files on 2026-09-22, rewritten onto neutral names. A fixture captured whole
 would carry real organisation names into the tree, which `CONTRIBUTING.md`
-§*House rules*, *No real identifiers*, refuses; the shapes are what the
+*House rules*, *No real identifiers*, refuses; the shapes are what the
 reader is about, and the shapes are what these carry.
 
 **The ancestry answer has three values, not two**, and that is the half a
@@ -34,11 +34,11 @@ whether a file is behind. `test_a_commit_this_clone_does_not_have_is_not_called_
 is that case, and it builds a real repository to have an ancestry to ask
 about.
 
-**Shown red before it was committed (§15).** Each case was run against the
+**Shown red before it was committed (contract rule 15).** Each case was run against the
 script with the one behaviour it pins removed; the mutations and what each
 case said were recorded in
 phase 3 of work item `1790076050-the-release-tail-is-three-acts-no-document-names`,
-whose rule `docs/branch-and-release.md` §*Cutting a release* now carries. The
+whose rule `docs/branch-and-release.md` *Cutting a release* now carries. The
 #858 cases and the pins they moved were run red against the command as #417
 left it, and with each new line removed, in phase 1 of work item
 `1791384161-the-plugin-directory-check-reads-the-directory`.
@@ -340,7 +340,7 @@ def test_the_run_claims_nothing_about_the_directory_and_names_the_pages(
     each answers for. Whatever the files hold, nothing printed says the plugin
     is or is not listed, and nothing sends the reader to submit or resubmit —
     on the portal nothing is resubmitted, and a Console listing takes no new
-    version (`spec.md` §*Vocabulary*, three facts from the docs)."""
+    version (`spec.md` *Vocabulary*, three facts from the docs)."""
     mod = checker()
     assert not hasattr(mod, "PORTAL"), (
         "the short link that answers 302 to a documentation page is still a "

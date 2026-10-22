@@ -602,7 +602,7 @@ def test_a_junk_segment_shrinks_the_numbers_rather_than_stopping_the_report(tmp_
 
 
 def test_the_printed_token_line_names_the_transcripts_it_covered(tmp_path):
-    """Contract §14: the line is text a person reads and acts on, so a case
+    """Contract rule 14: the line is text a person reads and acts on, so a case
     pins its wording. The transcript count is the load-bearing half — every
     way this can go wrong prints a SMALLER number rather than failing, and
     only the person who spawned the segments can tell that `1 transcript` is
@@ -3475,12 +3475,12 @@ def test_the_grade_carries_the_protocols_caveats(run_with_segments):
 def test_the_grade_sits_between_the_table_and_the_section_six_block(
     segment_that_spawned,
 ):
-    """Spec I5: under the table and before the §6 block, so the grade reads
+    """Spec I5: under the table and before the contract rule 6 block, so the grade reads
     against the rows just above it."""
     out = segment_report(segment_that_spawned)
     table = out.index("t/turn")
     grade = out.index("Tools per turn against each kind's bar")
-    breach = out.index("§6 — an agent spawned another agent")
+    breach = out.index("Contract rule 6 — an agent spawned another agent")
     assert table < grade < breach, out
 
 
@@ -3885,7 +3885,7 @@ def test_the_idle_gap_sentence_agrees_with_its_own_number(tmp_path):
 
 # --- #343: an agent that spawned another agent -----------------------------
 #
-# `skills/agent-contract/SKILL.md` §6 withholds four acts from every agent
+# Contract rule 6 withholds four acts from every agent
 # whatever its definition says, and one of them is spawning. Round 1 of #120
 # spawned two agents and disclosed neither, with the rule already in the
 # agent's payload — so delivery worked and the act still went the other way.
@@ -3936,7 +3936,7 @@ def test_a_spawn_inside_a_segment_prints_a_line_naming_agent_count_and_section(
     a person who can skip it — and that is the claim the evidence's location
     permits, because a transcript never leaves the machine that produced it."""
     out = " ".join(segment_report(segment_that_spawned).split())
-    assert "§6" in out, out
+    assert "Contract rule 6" in out, out
     assert "specseal:smith" in out, out
     assert "1 `Agent` call" in out, out
     assert "spawn no agent" in out, out
@@ -3947,7 +3947,7 @@ def test_a_clean_run_prints_no_such_line(run_with_segments):
     has seen fail is a counterfeit seal: these two segments made no `Agent`
     call, and the section is not mentioned at all."""
     out = segment_report(run_with_segments)
-    assert "§6" not in out, out
+    assert "rule 6" not in out, out
     assert "spawn no agent" not in out, out
     rows = segments_of(run_with_segments)["rows"]
     assert all(row["spawns"] == 0 for row in rows), rows
@@ -3962,12 +3962,12 @@ def test_the_breach_line_says_which_agents_the_section_binds(segment_that_spawne
     definition here governs.
 
     The absence half is `test_a_clean_run_prints_no_such_line`, which asserts
-    `§6` appears nowhere in a clean run and so covers this sentence too.
+    `rule 6` appears nowhere in a clean run and so covers this sentence too.
 
     Red before the fix: the report cites the section and never says who it
     reaches."""
     out = " ".join(segment_report(segment_that_spawned).split())
-    assert "§6 binds the agents this plugin spawns" in out, out
+    assert "Contract rule 6 binds the agents this plugin spawns" in out, out
     assert "for that agent's own definition to say" in out, out
 
 
@@ -4248,7 +4248,7 @@ def test_an_own_file_page_says_what_its_rows_are(resumed_segment):
 
 
 def test_a_spawn_inside_an_own_slice_is_named_without_a_reconciliation(tmp_path):
-    """The §6 list is exactly what an `Agent` call in an agent's own stretch
+    """The contract rule 6 list is exactly what an `Agent` call in an agent's own stretch
     of work exists to name. Its reconciliation against the files the parent
     could not name is not printed, because no parent is in view and a line
     saying the two counts disagree would send a reader after a child
@@ -4267,7 +4267,7 @@ def test_a_spawn_inside_an_own_slice_is_named_without_a_reconciliation(tmp_path)
     )
     out = " ".join(segment_report(own_file(path)).split())
     assert "agent-smith.jsonl 2/2 made 1 `Agent` call" in out, out
-    assert "§6 binds the agents this plugin spawns" in out, out
+    assert "Contract rule 6 binds the agents this plugin spawns" in out, out
     assert "inside a segment, against" not in out, out
     assert "agree" not in out, out
     assert "One spawn arrives twice" not in out, out

@@ -7,7 +7,7 @@ the definition under `agents/`, every `SKILL.md` its `skills:` list injects,
 and the two `CLAUDE.md` files the harness adds (the repository's and
 `~/.claude/CLAUDE.md`). The prefix is cached for five minutes, and no two
 spawns of one agent in a review chain fall inside five minutes of each other
-(#292, `spec.md` §Measured before the first edit) — so in a chain it is
+(#292, `spec.md` *Measured before the first edit*) — so in a chain it is
 written on every spawn. This reads the tree and says what that prefix is.
 
   bytes, chars    counted from the files.
@@ -225,7 +225,7 @@ def heading_starts(text):
     applies before it reads a marker, applied here before a byte count is
     put beside a heading somebody may trim.
 
-    The fence is the shared rule, `unverified_check.py#fence_opener` and
+    The fence is the shared rule, `hooks/blocks.py#fence_opener` and
     `#fence_closes` (#584): at most three spaces of indentation, a backtick
     opener's info string holds no backtick, and a fence closes only on a run
     of its own character at least as long with nothing after it — which

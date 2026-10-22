@@ -52,7 +52,6 @@ DIRECT_REQUIRES = {
         "requires nothing of it at the pull request",
         "requires " + STANDS + " of it and no reviewer's record",
     ),
-    ("templates", "sdd-routing.md"): (None, STANDS),
 }
 
 # The closing paragraph of the orchestration skill's routing section said the
@@ -68,7 +67,7 @@ def flat(*parts):
 
 @pytest.mark.parametrize("parts", sorted(DIRECT_REQUIRES))
 def test_each_carrier_says_what_the_direct_answer_requires(parts):
-    """A8. A reader opening any of the seven places finds what `straight to
+    """A8. A reader opening any of these places finds what `straight to
     the PR` requires at a ready pull request and no sentence saying it
     requires nothing. Seen red by restoring one of the old sentences."""
     gone, stands = DIRECT_REQUIRES[parts]
@@ -123,5 +122,7 @@ def test_the_release_checklist_names_the_waiver_as_the_no_work_item_answer():
     token in front of each commit — rather than stepping around a gate."""
     text = flat("docs", "release-checklist.md")
     assert "`no work item` answer" in text, (
-        "§4 does not name the waiver as the routing question's `no work item` answer"
+        "`docs/release-checklist.md` *4. Commit, push, open the first pull "
+        "request* does not name the waiver as the routing question's `no work "
+        "item` answer"
     )

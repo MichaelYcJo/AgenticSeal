@@ -1435,7 +1435,7 @@ def _reasons(monkeypatch, capsys, repo, module):
 def test_the_two_reworded_reasons_are_pinned_in_both_languages(
     monkeypatch, capsys, repo
 ):
-    """S10, §14. The Agent reason is pinned whole. The `[worktree-ok]` row's
+    """S10, contract rule 14. The Agent reason is pinned whole. The `[worktree-ok]` row's
     first sentence starts from what was counted -- no Claude session shown to
     be working -- where a count was taken, instead of asserting *single-stream
     work*, which a worktree a subagent chain will use is not.
@@ -1588,7 +1588,7 @@ ATTENDED_ASK = {
 
 
 def test_a_git_command_inside_a_heredoc_body_is_not_judged(monkeypatch, capsys, repo):
-    """#243's phase 3 measured `docs/worktree-guard-spec.md` §*Known limits*'s
+    """#243's phase 3 measured `docs/worktree-guard-spec.md` *Known limits*'s
     old first line -- *a heredoc line that IS exactly a git command still
     matches* -- and found it closed: `_judgment_text` drops heredoc bodies, so
     a body line is data. The line was deleted and this is what holds it, in a
@@ -1629,7 +1629,7 @@ def test_a_git_command_inside_a_heredoc_body_is_not_judged(monkeypatch, capsys, 
 
 STOP = "does not know to leave the branch where it is"
 
-# The five tree states of `docs/worktree-guard-spec.md` §A, as the stub of
+# The five tree states of `docs/worktree-guard-spec.md` *A. Branch switch*, as the stub of
 # `sessions_in_tree` and whether `f.txt` carries an uncommitted change.
 STATES = {
     "active": ((ACTIVE, [], True), False),
@@ -1789,7 +1789,7 @@ def test_an_unrecognised_shape_stops_where_the_tree_matters(monkeypatch, capsys,
     """S3. Without the press, in each state where a switch would matter, the
     guard stops before the ladder and names the shape it read and the plain
     spelling it reads. An `ask` for the person, except in a tree another
-    session is ACTIVE in, where `docs/worktree-guard-spec.md` §A row 1 denies
+    session is ACTIVE in, where `docs/worktree-guard-spec.md` *A. Branch switch*, row 1, denies
     a branch-form `checkout` outright and nobody is asked to approve it, and
     on a line holding a `git switch` the frozen reading reads, where
     approving would run the switch past the ladder (round 1 of work item
@@ -1857,7 +1857,7 @@ def test_a_switch_carrying_a_cut_redirection_still_meets_the_ladder(
 def test_the_same_shapes_are_silent_in_a_clean_single_stream_tree(
     monkeypatch, capsys, repo
 ):
-    """S4. §A row 5: nothing to protect, so nothing is asked, whatever the
+    """S4. Row 5 of *A. Branch switch*: nothing to protect, so nothing is asked, whatever the
     shape. The base asked about a hidden switch here (candidate C)."""
     in_state(monkeypatch, repo, "clean")
     for command in UNRECOGNISED:
@@ -1930,7 +1930,7 @@ def test_no_approval_runs_a_line_past_an_active_tree(
     """Round 1 of work item 1791270162, red 1. Approving the stop's `ask`
     runs every segment of the line. So a `git switch` on it, or an
     unrecognised shape in a second tree another session is ACTIVE in, put
-    §A row 1's deny one approval away: each of these was an `ask` about the
+    the deny of row 1 of *A. Branch switch* one approval away: each of these was an `ask` about the
     session tree's changes at `4de95fa7`, and the base denied the switches.
     The other direction holds too: with the second tree IDLE or its
     detection unusable and no switch on the line, the stop is still the
@@ -2242,7 +2242,7 @@ def test_a_broken_reader_judges_a_cut_in_the_tree_before_it(
     silent at `3c9a1161`, which placed it by the part after. A `-C` after
     the cut (`2>&1 git -C W switch x`) only the broken reader could read, so
     that group is judged in the tree it was typed from: the limit
-    `docs/worktree-guard-spec.md` §*Known limits* names."""
+    `docs/worktree-guard-spec.md` *Known limits* names."""
     import shutil
 
     w = tmp_path / "W"
@@ -2266,7 +2266,7 @@ def test_a_broken_reader_judges_a_cut_in_the_tree_before_it(
             assert decision == "ask" and "could not run" in reason, (command, reason)
 
 
-# Phase 1 of work item 1791270162, `phases/phase-1.md` §M1: every git
+# Phase 1 of work item 1791270162, its `phases/phase-1.md`, measurement M1: every git
 # subcommand the frozen reading yields over the recorded runs, as pairs
 # holding it in cut 1 / cut 2. Phase 3 re-read cut 1 on the same definition
 # and found the same table.
@@ -2579,7 +2579,7 @@ def test_no_listed_form_moves_head_under_git(monkeypatch, capsys, repo, tmp_path
     # reads the words, and each switches HEAD or adds a worktree; the guard
     # reads each as listed and says nothing in an ACTIVE tree. A word the
     # shell builds before git runs is the limit `docs/worktree-guard-spec.md`
-    # §*Known limits* names, decided with #886's shapes, and the day a change
+    # *Known limits* names, decided with #886's shapes, and the day a change
     # to the frozen words makes the guard read one, this half says so. Red at
     # `52c72bbe`, where the guard stopped all four. The guard's half reads
     # words and runs everywhere; bash's half runs only where `bash` is a
@@ -2639,7 +2639,7 @@ def test_a_shell_built_word_is_the_named_limit(monkeypatch, capsys, repo, comman
     runs is not among them, so a brace changes nothing: each form is silent
     in a tree another session is ACTIVE in. The first four switch HEAD or add
     a worktree under bash (`test_no_listed_form_moves_head_under_git`), which
-    is the limit `docs/worktree-guard-spec.md` §*Known limits* names beside
+    is the limit `docs/worktree-guard-spec.md` *Known limits* names beside
     #886's shapes. Red at `52c72bbe`, where the brace reader stopped all but
     the two quoted forms."""
     in_state(monkeypatch, repo, "active")
