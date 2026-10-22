@@ -117,6 +117,13 @@ class Test_twins:
         }
         assert layout.twins(tests) == []
 
+    def test_refuses_one_body_under_two_decorators(self):
+        tests = {
+            "tests/test_a.py": "@pytest.fixture\n" + HELPER,
+            "tests/test_b.py": '@pytest.fixture(scope="module")\n' + HELPER,
+        }
+        assert layout.twins(tests) == []
+
 
 class Test_check:
     def test_accepts_a_placed_file(self):

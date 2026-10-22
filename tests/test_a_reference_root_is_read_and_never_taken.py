@@ -187,6 +187,7 @@ SHIPPED = {
     "rules": (NO_WALK, "reads the one document it is named and its targets"),
     "arm-check": (NO_WALK, "reads the Python files it is named"),
     "mutation-check": (NO_WALK, "breaks and restores the one file it is named"),
+    "test-layout": (NO_WALK, "reads tests/ and the modules its files name"),
     "deferral-check": (NO_WALK, "reads the pull request body and round records"),
     "seal": (NOT_A_CHECK, "the mode command, writing seal/config.md"),
     "seal-stamp": (NOT_A_CHECK, "draws the sealer's stamp from a sealed guarantee"),

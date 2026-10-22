@@ -53,6 +53,7 @@ import os
 import posixpath
 import subprocess
 import sys
+import types
 
 TARGET_NAME = "TARGET"
 MODULE_CLASS = "Test_module"
@@ -144,15 +145,21 @@ def _helpers(source):
         tree = ast.parse(source)
     except SyntaxError:
         return []
-    lines = source.splitlines(keepends=True)
     found = []
     for node in tree.body:
         if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             continue
         if node.name.startswith("test"):
             continue
-        start = min([node.lineno] + [d.lineno for d in node.decorator_list])
-        found.append((node.name, "".join(lines[start - 1 : node.end_lineno])))
+        # From column 0 of the first decorator's line: the parser's own line
+        # count, through `ast.get_source_segment`, places it.
+        span = types.SimpleNamespace(
+            lineno=min([node.lineno] + [d.lineno for d in node.decorator_list]),
+            col_offset=0,
+            end_lineno=node.end_lineno,
+            end_col_offset=node.end_col_offset,
+        )
+        found.append((node.name, ast.get_source_segment(source, span)))
     return found
 
 

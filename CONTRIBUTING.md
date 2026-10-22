@@ -230,8 +230,9 @@ name without `.py`, with each hyphen written as an underscore, and where two
 shipped modules share a stem, the parent directory's name goes before it.
 The first assignment after the file's imports is
 `TARGET = "<tracked path>"`. A file whose cases run a `bin/` command names
-the script that command runs. The file holds one class per top-level function or class of
-the module, `Test_<name>`, with the name spelt as the code spells it, and
+the script that command runs. The file holds one class per top-level
+function or class of the module, `Test_<name>`, with the name spelt as the
+code spells it, and
 each such class holds a case named `test_accepts_<what>` for good input and
 one named `test_refuses_<what>` for bad input. What the module does as a
 whole goes in `Test_module`. A flow across modules lives under
