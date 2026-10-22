@@ -122,24 +122,34 @@ def test_the_png_is_the_stamps_cells_one_square_block_each(tmp_path):
 def test_the_png_follows_whatever_chart_the_stamp_module_has(monkeypatch, tmp_path):
     """#1009 S2. With the `CHART` of the stamp module `release_seal.py`
     loaded replaced by a chart this case builds, 28 lines of 28 with one
-    `M` inside the field, the PNG's cells are that chart's `build`, and the
-    PNG differs from the one drawn with the tree's chart. So the disc's mark
-    is read from the one chart, and #857's choice reaches the release image
-    with nothing else changed. Seen red against a draw that loads a copy of
-    the stamp module of its own."""
+    `M` inside the field, and its `LIGHT` replaced by a colour no cell of the
+    tree's stamp has, the PNG's cells are that module's `build`, and the PNG
+    differs from the one drawn with the tree's chart. So the disc's mark and
+    its colours are read from the stamp module, and #857's choice reaches the
+    release image with nothing else changed. Pillow is imported first, as in
+    S1, so where it is absent this case fails with a `ModuleNotFoundError`,
+    as `bin/test` says. Seen red against a draw that loads a copy of the
+    stamp module of its own, and against one that maps a cell's colour to a
+    colour of its own."""
+    from PIL import Image
+
     mod = seal()
     before = tmp_path / "tree.png"
     mod.draw(str(before))
     n = 28
     chart = tuple("." * 14 + "M" + "." * 13 if y == 14 else "." * n for y in range(n))
+    # The mark's lit cell, (14, 14) in this chart, in a colour the tree has not.
+    lit = (1, 2, 3)
     expected = stamp("seal_stamp_for_the_built_chart")
-    expected.CHART = chart
+    for loaded in (expected, mod.stamp()):
+        monkeypatch.setattr(loaded, "CHART", chart)
+        monkeypatch.setattr(loaded, "LIGHT", lit)
     w, _, px = expected.build()
-    monkeypatch.setattr(mod.stamp(), "CHART", chart)
+    assert px(14, 14) == lit
     after = tmp_path / "built.png"
     mod.draw(str(after))
     assert blocks(after, px, w, mod.CELL_PX) == []
-    assert before.read_bytes() != after.read_bytes()
+    assert Image.open(before).tobytes() != Image.open(after).tobytes()
 
 
 def test_the_release_script_loads_with_pillow_blocked():

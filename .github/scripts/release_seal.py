@@ -429,8 +429,12 @@ def tagged(tag):
 def draw(png):
     """Paint the stamp's disc at `png` and answer the note's width for it in
     CSS pixels, or raise `Refused` saying why: the stamp's module will not
-    load, Pillow will not import -- the `seal` job installs it, and an
-    install that failed lands here -- or the PNG cannot be written.
+    load, Pillow will not import, or the PNG cannot be written. The suite
+    runs before the draw, in the `seal` job and on the hand-drawn route,
+    and its pixel cases and stamp cases need both of the first two. So
+    where either is missing the suite fails first, and `seal_release`
+    refuses on the suite before it calls this. The first two refusals are
+    reached only where the draw runs under a Python the suite did not.
 
     Each cell `(x, y)` of `build` becomes the block of `CELL_PX` by
     `CELL_PX` pixels at `(x * CELL_PX, y * CELL_PX)`, in the cell's colour

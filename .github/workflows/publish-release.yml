@@ -95,8 +95,9 @@ jobs:
       # The suite's packages and Pillow, at the versions
       # `.github/scripts/run_tests.py` pins; a case holds this line to them.
       # cmarkgfm is among them since #647: the table walker's case imports it.
-      # Pillow also draws the seal (#1009), so an install that fails costs
-      # the image, and the draw's `::warning::` says so.
+      # Pillow also draws the seal (#1009). The suite's pixel cases import
+      # it too, so where this step fails the suite at the tag fails, and the
+      # draw's `::warning::` names the suite's outcome rather than Pillow.
       - name: install the suite's packages and Pillow
         continue-on-error: true
         run: pip install pytest pytest-xdist markdown-it-py==4.2.0 pillow==12.3.0 cmarkgfm==2025.10.22
