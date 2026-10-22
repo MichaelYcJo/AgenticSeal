@@ -106,6 +106,10 @@ class Test_judge:
             ["hooks/x.py:2", "splitlines"],
         ], found
 
+    def test_accepts_a_comment_that_quotes_the_form(self, tmp_path):
+        text = "# write `# exempt from splitlines: <why>` above it\nx = 1\n"
+        assert censuses.judge("hooks/x.py", plant(tmp_path, "hooks/x.py", text)) == []
+
 
 class Test_encoding:
     def test_accepts_a_named_encoding_and_a_file_of_another_kind(self, tmp_path):
@@ -703,8 +707,10 @@ class Test_real_identifiers:
             "ok.md",
             f"from a {PRODUCT_HOST} account, at {PRODUCT_HOST}/directory/manage\n",
         )
+        (tmp_path / "x.png").write_bytes(b"\x89PNG " + REFUSED_DOMAIN.encode())
         assert censuses.real_identifiers("kept.md", root) == []
         assert censuses.real_identifiers("ok.md", root) == []
+        assert censuses.real_identifiers("x.png", root) == []
 
     def test_refuses_a_domain_a_user_path_and_the_product_host_elsewhere(
         self, tmp_path
