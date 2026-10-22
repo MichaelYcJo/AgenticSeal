@@ -13,7 +13,7 @@ of the branch at a9d9423c.
 severity: must
 location: `tests/test_a_shrunken_corpus_declines_to_judge.py:154-183`, `tests/test_no_living_file_writes_the_section_sign.py:27-45`
 evidence: executed `bin/test tests/test_a_shrunken_corpus_declines_to_judge.py -q`
-verdict: open
+verdict: fixed dae18434
 
 CI run 39711220166 at ce84116a failed on the ubuntu leg, macOS shard 1 and
 Windows shard 1. The coordinator read that run; this round reproduced it.
@@ -50,14 +50,14 @@ passed. The edit was then reverted.
 }
 ```
 
-answer:
+answer: Holds. `signs` is registered in `APPLIES_THE_SHARED_GUARD` as the fix gives it. The module now passes, and so do the census modules `git grep -l "git_listing\|tracked_text_files\|ls-files" tests/` lists, run with the meta modules: 2691 passed (executed). The 18 test comments that read `section4.5` with no space now read `section 4.5`. A `git grep` over the branch's added lines for a word glued to a number finds no other leftover of the sign (executed).
 
 ### 2. Deleting the fence agreement case leaves the three fence walks and the unclosed report of `fence_only` held by nothing
 
 severity: should
 location: `tests/test_unverified_rows_close.py:2502-2520`, `hooks/blocks.py:154-175`
 evidence: executed `bin/mutation-check hooks/blocks.py --replace '    return hidden, opened_at' '    return hidden, None' --tests 'bin/test tests/test_routing_is_recorded.py tests/test_one_table_walker_reads_what_gfm_renders.py tests/test_the_release_check_watches_what_ships.py tests/test_the_seal_is_taken_once_by_the_sealer.py tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py tests/test_a_declared_label_reaches_the_tracker.py tests/test_the_mode_question_is_asked_once.py tests/test_the_hooks_hide_what_a_renderer_hides.py tests/test_unverified_rows_close.py -q -x' --timeout 400`, `git checkout 0d62145a`, `bin/mutation-check hooks/blocks.py --replace '    return hidden, opened_at' '    return hidden, None' --tests 'bin/test tests/test_unverified_rows_close.py -q -x -k agrees_with_the_config_reader' --timeout 300`
-verdict: open
+verdict: fixed dae18434
 
 `spec.md` `## Removes` says the two in-step cases can go because "One copy
 has nothing to agree with". That holds for
@@ -138,14 +138,14 @@ def test_the_fence_walks_agree_shape_by_shape(lines):
     assert set(walked.hidden()) & claimed == fenced & claimed
 ```
 
-answer:
+answer: Holds. `test_the_fence_walks_agree_shape_by_shape` and its 19 shapes are back in `tests/test_unverified_rows_close.py`, without the copy half, and all 19 pass. The `fence_only` mutation that survived at HEAD, `return hidden, None`, is red against the case (executed: `bin/mutation-check`, exit 0). The spec's `## Removes` row for the in-step case still holds for its copy half, which stays gone.
 
 ### 3. The contract citation reader neither reads nor refuses a near-miss spelling, so a dangling number in one passes
 
 severity: should
 location: `tests/test_the_agent_contract_holds_the_universal_rules.py:75-76`
 evidence: executed `.venv/bin/python test_tmp_round1_probes.py`
-verdict: open
+verdict: fixed dae18434
 
 `spec.md` *Grounding* holds this work to "A check reads one spelling and
 refuses a near miss at its line". `CITATION` reads `contract rule <N>` only.
@@ -196,14 +196,14 @@ def test_a_near_miss_citation_is_refused_at_its_line(text):
     assert near_citations("intro\n" + text) == [2]
 ```
 
-answer:
+answer: Holds. `NEAR_CITATION` and `near_citations` refuse a capital `Rule`, a plural or list, and a possessive at the line each starts on. A tree-wide case runs over the files the citation reader walks. The three shapes are built inside the case, so the module holds none of them. On its first run the tree-wide case caught the module's own literal `contract rules 7 and`, which is now built from parts. Each shape was seen red (executed, `bin/mutation-check`, exit 0). Narrowing the pattern to `[Cc]ontract\s+[Rr]ule\s+\d` turned the plural and the possessive red. Making `Rule` lowercase turned the capital red. Dropping the `CITATION` exemption turned `test_the_one_spelling_is_no_near_miss` red.
 
 ### 4. The review skill states the regression grounds rule a fourth time
 
 severity: should
 location: `skills/code-review/SKILL.md:130-133`
 evidence: read `skills/code-review/SKILL.md:130-133`, `docs/the-review-record.md:494-504`, `skills/code-review/orchestration.md:117-122`, `agents/warden.md:120-126`
-verdict: open
+verdict: fixed dae18434
 
 `spec.md` scope item 11 says a sentence that its home already states is
 removed, and only a sentence the home does not state moves there. Phase 4's
@@ -223,14 +223,14 @@ stating a value twice. `tests/test_chain_check.py` pins only the phrase
   the earlier close does not hold where `reopens:` stands.
 ```
 
-answer:
+answer: Holds. The bullet now keeps only the `reopens:` half, in the fix's words. The `regression:` half stands in `docs/the-review-record.md` *The run*, `skills/code-review/orchestration.md` and `agents/warden.md`. `tests/test_chain_check.py` passes (executed).
 
 ### 5. The closing memo lists as not done the verdict spelling that the frame's Rule changes now rewrites
 
 severity: should
 location: `seal/specs/1792627930-the-section-sign-is-still-syntax/overview.md:28-32`
 evidence: read `seal/specs/1792627930-the-section-sign-is-still-syntax/overview.md:28-32`, `seal/specs/1792627930-the-section-sign-is-still-syntax/spec.md:279-286`
-verdict: open
+verdict: fixed dae18434
 
 `overview.md` `## Not done` says `docs/the-review-record.md` *The guarantee*
 still spells the verdicts with dashes. It says that `docs/` is the framer's
@@ -247,7 +247,7 @@ measuring runs rewrite that file, and no case fails on a stale entry, so it
 was not edited by hand.
 ```
 
-answer:
+answer: Holds. `## Not done` keeps the `.test_durations` sentence alone, in the fix's words. It also no longer counts the removed cases, since the count was off.
 
 ## Confirmations
 
