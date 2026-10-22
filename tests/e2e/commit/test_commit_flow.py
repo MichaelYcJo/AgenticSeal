@@ -19,10 +19,16 @@ The world is built once for the module and copied for each case:
 
 The copy points the linked worktree's two links at itself. The sample of
 commands bash commits (S2) copies two sandboxes built once, one without the
-stubs and one with them. A case about which commands the reading stands
-aside for is judged without git, through `hooks/tokens.py#is_plain`; the
-real-git rows that stay show the reading and git agree, and the work item's
-`phases/phase-5.md` names them.
+stubs and one with them. Both copies hardlink the stubs from the template
+instead of copying them, and the template runs each stub once when it is
+built: macOS makes a newly created executable wait 150 to 200 ms the first
+time it runs, and a copied stub is a new file, so every committing case paid
+that for each of the three stubs (`_link_or_copy`).
+
+A case about which commands the reading stands aside for is judged without
+git, through `hooks/tokens.py#is_plain`; the real-git rows that stay show
+the reading and git agree, and the work item's `phases/phase-5.md` names
+them.
 """
 
 import io
@@ -144,9 +150,66 @@ def declare(worktree, branch, review="through the review chain"):
     )
 
 
+def _link_or_copy(src, dst):
+    """`shutil.copytree`'s copy of one file of a template: a file git or a
+    shell executes is hardlinked, every other file copied.
+
+    A hardlink is the template's own file, whose first run the template paid
+    (`_run_each_stub_once`), so a case's commit starts each stub at once. A
+    write into a linked file would reach the template, so a case that changes
+    a stub writes a new file and `os.replace`s it, as
+    `hooks/hook-install.py#write_stubs` does; no case here writes one. On
+    Windows `os.access` reads no execute bit and calls every file
+    executable, so there every file is copied, as it was before; a file
+    system that refuses a hardlink gets a copy too."""
+    if os.name != "nt" and os.access(src, os.X_OK):
+        try:
+            os.link(src, dst)
+            return dst
+        except OSError:
+            pass
+    return shutil.copy2(src, dst)
+
+
+def _write_anew(path, text):
+    """Replace the file at PATH with a new file holding TEXT.
+
+    Not a write over the old file. Git for Windows marks a worktree's `.git`
+    file hidden, and Windows refuses to open a hidden file for writing with
+    the flags `write_text` passes: every case's copy failed there with
+    `PermissionError` (CI run 39866987196). A new file also never writes
+    through a hardlink into the template (`_link_or_copy`)."""
+    path.unlink()
+    path.write_text(text, encoding="utf-8")
+
+
+def _copy_template(template, root):
+    shutil.copytree(template, root, symlinks=True, copy_function=_link_or_copy)
+
+
+def _run_each_stub_once(repo, home):
+    """Run each stub REPO's installer wrote, once, so the template pays the
+    first run of each new executable and every hardlinked copy finds it
+    paid. With no session variable and no lease each stub leaves before
+    Python. Not on Windows, where every file is copied (`_link_or_copy`)."""
+    if os.name == "nt":
+        return
+    for hook in githooks.HOOKS:
+        subprocess.run(
+            [str(repo / ".git" / "hooks" / hook)],
+            cwd=str(repo),
+            capture_output=True,
+            check=True,
+            env=env(home, session=""),
+            stdin=subprocess.DEVNULL,
+            timeout=60,
+        )
+
+
 @pytest.fixture(scope="module")
 def _world_template(tmp_path_factory):
-    """The world, built once for the module with the stubs installed."""
+    """The world, built once for the module with the stubs installed and
+    each run once."""
     base = tmp_path_factory.mktemp("commit-world")
     home = base / "home"
     home.mkdir()
@@ -168,6 +231,8 @@ def _world_template(tmp_path_factory):
         patched.delenv("SPECSEAL_HOOK_INSTALL", raising=False)
         for r in (main, u):
             assert install_mod.install(str(r), "installer")
+    for r in (main, u):
+        _run_each_stub_once(r, home)
     return base
 
 
@@ -177,7 +242,7 @@ class World:
     def __init__(self, template, tmp_path):
         self.tmp = tmp_path
         root = tmp_path / "world"
-        shutil.copytree(template, root, symlinks=True)
+        _copy_template(template, root)
         self.home, self.main, self.w, self.u = (
             root / "home",
             root / "main",
@@ -187,10 +252,8 @@ class World:
         # A linked worktree and its clone name each other by absolute path,
         # so the copy points both links at itself.
         link = self.main / ".git" / "worktrees" / "w"
-        (self.w / ".git").write_text(f"gitdir: {link.as_posix()}\n", encoding="utf-8")
-        (link / "gitdir").write_text(
-            f"{(self.w / '.git').as_posix()}\n", encoding="utf-8"
-        )
+        _write_anew(self.w / ".git", f"gitdir: {link.as_posix()}\n")
+        _write_anew(link / "gitdir", f"{(self.w / '.git').as_posix()}\n")
 
     def head(self, d):
         return g(d, "rev-parse", "HEAD", home=self.home, session="").stdout.strip()
@@ -432,6 +495,7 @@ def _sandbox(base, with_hooks, home):
         g(d, "add", "f.py", home=home, session="")
         if with_hooks:
             assert install_mod.install(str(d), "installer")
+            _run_each_stub_once(d, home)
 
 
 @pytest.fixture(scope="module")
@@ -526,7 +590,7 @@ def _run_row(tmp_path, sandboxes, kind, command):
     copy of the KIND sandbox."""
     template, heads = sandboxes
     base = tmp_path / kind
-    shutil.copytree(template / kind, base, symlinks=True)
+    _copy_template(template / kind, base)
     home = tmp_path / "home"
     home.mkdir(exist_ok=True)
     repos = {name: base / name for name in ("main", "w", "u")}
