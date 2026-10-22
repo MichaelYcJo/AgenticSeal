@@ -284,11 +284,13 @@ check: none reader: the warden at review
 removed case.** The contributor writes it into the phase record of the work
 item that rebuilt the module, in four parts:
 
-- the mutation table. The mutations are chosen before the old cases are
-  read, at least one per class, and each row gives its verdict against the
-  old files and against the new file. Every mutation red against the old
-  files is red against the new one, and a mutation the new file survives
-  gets a case first, seen red on that mutation;
+- the mutation table. The mutants are chosen from the code before the old
+  cases are read, one or two per class at the decision points where a case
+  accepts or refuses, about 30 per module, and they run against the new file
+  in one `bin/mutation-check` call with `-x` in its tests command. The old
+  files' column runs only for a mutant the new file lets survive: where the
+  old files miss it too, the table names an old gap, and where they kill it,
+  the new file gets a case seen red on that mutant;
 - the module's cases and seconds before and after, from
   `bin/test <files> -q` on the machine that built it;
 - the real-git cases kept, each named;
