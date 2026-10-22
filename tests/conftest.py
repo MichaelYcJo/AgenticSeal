@@ -1083,16 +1083,15 @@ def q(text):
     return shlex.quote(str(text))
 
 
-def payload(cmd, repo, session="s1", tool="Bash", **extra):
-    """The JSON a PreToolUse hook reads for a Bash COMMAND typed in REPO."""
-    p = {
-        "tool_name": tool,
+def payload(cmd, repo, session="s1"):
+    """The JSON a PreToolUse hook reads for a Bash command CMD typed in REPO
+    by SESSION."""
+    return {
+        "tool_name": "Bash",
         "session_id": session,
         "tool_input": {"command": cmd},
         "cwd": str(repo),
     }
-    p.update(extra)
-    return p
 
 
 def reason_of(out):
