@@ -29,14 +29,14 @@ The cause is spec line 200. Line 199 ends by opening a code span before the word
     migration config's baseline.** The check reads `seal/parity.md` at HEAD and the
 ```
 
-answer:
+answer: The finding holds, and the fix is the framer's, because `spec.md` is the framer's file; the orchestrator sends it after this fix pass, so the verdict stays `open` until the framer's commit closes it. Since 7eacbe1c, `rule_changes.parse` refuses spec line 200 at its number (finding 2), and `chain_check.py --baseline origin/release/v0.22.3 --worktree` prints that refusal for this spec, so the pull-request check no longer passes it.
 
 ### 2. A Rule changes line that begins inside a code span is dropped at parse with no error
 
 severity: should
 location: `skills/settle/scripts/rule_changes.py:104-108`, `tests/test_settle_applies_rule_changes_in_place.py`
 evidence: executed `python3 -I <scratch>/test_tmp_live.py <clone>`, `python3 -I <scratch>/test_tmp_replay.py <clone>`
-verdict: open
+verdict: fixed 7eacbe1c
 
 `rule_changes.parse` is the one reader both `settle` and #1006's pull-request arm use. Its body loop skips every line that is not live and not inside a closed fence. That rule is meant to drop HTML comments, but it also drops a field's continuation line that begins inside a code span opened on the line above. The section then parses clean, settle applies the operation with the line missing, and the pull-request check reports nothing. Finding 1 is one instance in this branch. Any spec that wraps a backticked phrase across two lines of a `from:` or `to:` value is another, and a `from:` missing a line also places against a different text than the one the framer wrote. This code is the base's, not this branch's, so the fix pass may close it `deferred <home>`. It is reported here because this round was asked to read the section under #1006's check, and the check cannot tell this section's defect from a clean one.
 
@@ -64,14 +64,14 @@ The fix refuses such a line at its own line instead of dropping it. A line skipp
         body.append((n + 1, line))
 ```
 
-answer:
+answer: Fixed here, as the record's fix gives it. `rule_changes.parse` reads `unverified_check.py#comment_scan`, skips a line that began inside an HTML comment as before, and refuses a line that is not live, began outside a comment and stands outside a closed fence, at its number, so the spec applies nothing. `tests/test_settle_applies_rule_changes_in_place.py#test_a_line_that_begins_inside_a_code_span_is_refused_at_its_line` was seen red against the old reader (the operation parsed with its value cut at the open span), and `mutation-check` turned it red with the refusal removed and with the comment skip narrowed. `skills/settle/SKILL.md` *Rule changes* states the rule, and the changelog fragment names it. Over all 120 `seal/specs/*/spec.md`, `parse` now refuses one: this work item's own `spec.md:200`, which is finding 1.
 
 ### 3. In local mode a chain declaration silences the parity arm and no check reads the original line
 
 severity: should
 location: `hooks/gate.py:157-170`, `skills/implement/orchestration.md:446-456`, `seal/specs/1792619408-an-automation-run-stops-at-the-parity-arm/spec.md:132-140`, `tests/test_routing_is_recorded.py`
 evidence: executed `python3 -I <scratch>/test_tmp_routes.py <clone> <scratch>/work`
-verdict: open
+verdict: fixed 6a87e4a8
 
 The frame justifies quieting the arm at the commit by its pull-request half: "a code commit with no recorded comparison is still refused at a place CI or a person sees" (`spec.md` S13). In local mode no such place exists. The root sits under the common git directory and nothing under it is committed, so CI cannot run the chain checks (`docs/one-root-by-lifetime.md` *Shared or local*), and `chain_check.py` run by hand prints that it examined nothing (`skills/code-review/scripts/chain_check.py:1980-1990`). Before this branch, local mode met the parity arm on every code commit. Now a chain declaration removes the arm, and nothing reads the `original:` line that replaced it.
 
@@ -100,14 +100,14 @@ The fix keeps the arm at the commit where the root is local, on Q1's reasoning. 
     ):
 ```
 
-answer:
+answer: The finding holds. The orchestrator chose the record's second fix, a limit sentence, over the gate change: the review arm's declaration already carries the same cost in local mode, and keeping the arm at the commit there brings back the stop this work item removes. 6a87e4a8 states the limit under the wake/quiet table in `skills/implement/orchestration.md`, points to it from `skills/legacy-parity/SKILL.md` *Recording the comparison*, and names it in the changelog fragment. The `spec.md` and `plan.md` side, S13's qualifier and the `add` paragraph's limit sentence, is the framer's.
 
 ### 4. The changelog promises a pull-request check that a pinned workflow or a rewritten declaration never runs
 
 severity: should
 location: `seal/specs/1792619408-an-automation-run-stops-at-the-parity-arm/changelog.md:12-27`, `seal/specs/1792619408-an-automation-run-stops-at-the-parity-arm/plan.md:136-142`, `seal/specs/1792619408-an-automation-run-stops-at-the-parity-arm/spec.md:168-185`
 evidence: read `templates/hygiene.yml:5-11`, `templates/hygiene.yml:58-61`, `docs/branch-and-release.md:198-201`, `skills/code-review/scripts/chain_check.py:2128-2141`
-verdict: open
+verdict: fixed 6a87e4a8
 
 The two halves of this change reach a user repository at different times. The commit half runs from the installed plugin, so it changes when the plugin is upgraded. The pull-request half runs from `templates/hygiene.yml`, which pins `--branch v<version>` to the release installed at first setup and moves only when a person edits it (`templates/hygiene.yml:5-11`, `:58-61`). A migration repository that upgrades the plugin and keeps its pin therefore gets a commit gate that no longer stops an uncompared code commit on a chain branch. Its CI keeps running a `chain-check` that has no `original:` arm, so the ready pull request passes. The changelog says the chain-declared pull request "owes the comparison in every round record", and `plan.md` *Operational impact* says such a repository "meets the new refusal at its next ready pull request once it upgrades". Both are false until the pin moves, and neither tells the person to move it.
 
@@ -134,14 +134,14 @@ plan.md *Operational impact*: the first bullet names the pin as the
 condition under which the refusal is met.
 ```
 
-answer:
+answer: The finding holds. 6a87e4a8 adds both limits to the changelog fragment: the pin in `.github/workflows/hygiene.yml` must move to this release before CI reads `original:` lines, and a declaration rewritten to `straight to the PR` after code commits leaves those commits compared by nobody. The same two limits stand under the wake/quiet table in `skills/implement/orchestration.md`, the shipped text. The sentence in `spec.md`'s Parity arm `add` operation and the first bullet of `plan.md` *Operational impact* are the framer's.
 
 ### 5. The migration setup skill and the shipped workflow still describe the parity check as it was
 
 severity: should
 location: `skills/parity-setup/SKILL.md:55-61`, `templates/hygiene.yml:82-94`
 evidence: executed `git grep -n -i -E "original was consulted|whether the original|compared HEAD|specseal-parity" -- ':!seal/specs' ':!changelog' ':!CHANGELOG.md' ':!tests'`, `git log --oneline -3 -- templates/hygiene.yml`
-verdict: open
+verdict: fixed 6a87e4a8
 
 Contract §19 asks every sentence that stands on the old fact to be rewritten in the same change. Two shipped texts were not in the frame's `## Removes`.
 
@@ -165,14 +165,14 @@ templates/hygiene.yml, in the list after "that `spec.md`,":
       # request changes a path outside `docs/` and `seal/`, a finding still
 ```
 
-answer:
+answer: Fixed as the record gives it. `skills/parity-setup/SKILL.md` step 7 names the chain-declared branch as the exception, where the warden writes an `original:` line and the pull-request check reads it, placed after the sentence on `<git-dir>` so "That is" still points at the mark's path. `templates/hygiene.yml` lists the new refusal after the `## Rule changes` one.
 
 ### 6. The overview still lists as not done the two rule changes 77eef010 made
 
 severity: should
 location: `seal/specs/1792619408-an-automation-run-stops-at-the-parity-arm/overview.md:23-37`
 evidence: read `seal/specs/1792619408-an-automation-run-stops-at-the-parity-arm/overview.md:23-37`, `seal/specs/1792619408-an-automation-run-stops-at-the-parity-arm/spec.md:148-161`
-verdict: open
+verdict: fixed 6a87e4a8
 
 `## Not done` says the `docs/commit-review-gate-spec.md` sentence and the `docs/README.md` row were left, and that "the orchestrator decides whether `## Rule changes` gains an operation for each". Commit 77eef010 added both operations (`spec.md:148-161`), so an orchestrator or sealer reading the overview is asked to decide something already decided. `## Fed back into the spec` reads "None.", while 77eef010 carried the build's divergences on S3, S11, the loader sentence and the `commit-review-gate.py` clause into `spec.md`. The pull request body is copied from these records, so the stale lines would reach it.
 
@@ -190,7 +190,7 @@ names the 26 cases that declare `straight to the PR`, S11 is pinned at
 `READ_ROWS` entry, and `## Removes` names the `commit-review-gate.py` clause.
 ```
 
-answer:
+answer: Fixed. `## Not done` now says the two sentences are the third and fourth `change` operations added at 77eef010. `## Fed back into the spec` names the four divergences 77eef010 carried into `spec.md`, S11's wording included.
 
 ## Confirmations
 
