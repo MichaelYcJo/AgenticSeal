@@ -182,7 +182,7 @@ def test_each_home_states_its_rule_under_its_section():
     for rule, (home, heading, needles) in RULES.items():
         body = section(home, heading)
         missing = [n for n in needles if " ".join(n.split()) not in body]
-        assert not missing, f"{home} §{heading} does not state {rule}: {missing}"
+        assert not missing, f"{home} *{heading}* does not state {rule}: {missing}"
 
 
 def test_no_carrier_restates_a_home():

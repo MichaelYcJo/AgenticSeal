@@ -1,6 +1,6 @@
 """Under `automation`, a creation in another clone asks nobody (#903).
 
-Work item 1791852612. `docs/worktree-guard-spec.md` §B's rows *only IDLE
+Work item 1791852612. `docs/worktree-guard-spec.md` *B. Worktree creation*, its rows *only IDLE
 sessions* (row 3) and *detection unusable* (row 4) are `choose` sites: a
 `deny` once per session that tells the model to put two options to the
 person with `AskUserQuestion`, and an `ask` on every attempt after. In the

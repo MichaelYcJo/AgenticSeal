@@ -39,7 +39,7 @@ A) Branch switching (Bash: `git switch`, and every git shape not known to
 
   A command that also creates a worktree is judged by these rows, whichever of
   the two is written first, and the creation is judged where they would let the
-  command run (docs/worktree-guard-spec.md §Creation consent).
+  command run (`docs/worktree-guard-spec.md` *Creation consent*).
 
 B) Worktree creation, whichever path it takes:
      - Bash: `git worktree add ...`
@@ -2061,14 +2061,15 @@ def judge_creation(
 # to leave the branch where it is?* from the frozen reading's own words, and
 # treats everything else as a possible switch, judged only where a switch
 # would matter: another session ACTIVE or IDLE in the tree, detection
-# unusable, or tracked changes (`docs/worktree-guard-spec.md` §A rows 1-4).
+# unusable, or tracked changes (`docs/worktree-guard-spec.md` *A. Branch
+# switch*, rows 1 to 4).
 # Phase 3 of the work item removed the four readings and `classify` with
 # them; nothing in this file looks a name up any more.
 
 # Every git subcommand the recorded runs hold whose plain invocation leaves
 # HEAD's branch where it was. The count beside each is the distinct (command,
 # directory) pairs holding it in cut 1 / cut 2 of phase 1 of work item
-# 1791270162 (`phases/phase-1.md` §M1: Bash tool uses before
+# 1791270162 (its `phases/phase-1.md`, measurement M1: Bash tool uses before
 # 2026-10-03T11:06:22+09:00 / to 2026-10-06), the way `hooks/tokens.py`'s
 # `PLAIN_GIT` carries its counts. A subcommand the corpus never recorded is
 # not here, on the owner's answer P1 (a): the list grows by a measured row,
@@ -2083,7 +2084,7 @@ def judge_creation(
 # `update-ref` 13/13 and `symbolic-ref` 1/1 (both can
 # move HEAD, owner's answer P3 (a)), and `bisect` and `stash branch`, which
 # were recorded 0 times. Content moved on the same branch -- `reset`,
-# `stash`, `rebase`, `merge`, `pull` -- is not the guard's subject (§Premise).
+# `stash`, `rebase`, `merge`, `pull` -- is not the guard's subject (`docs/worktree-guard-spec.md` *Premise*).
 LEAVES_THE_TREE = frozenset(
     {
         "log",  # 2858/3064
@@ -2586,7 +2587,7 @@ def _changes(eff_cwd, seen):
 def tree_matters(top, session_id, eff_cwd, seen=None):
     """(matters, active, idle, reliable, entries) for the tree at TOP.
 
-    It matters where §A rows 1-4 would speak about a switch: another session
+    It matters where rows 1 to 4 of *A. Branch switch* would speak about a switch: another session
     ACTIVE or IDLE, detection unusable, or tracked changes at EFF_CWD. The
     changes are read only where the sessions did not already decide it, and
     ENTRIES is None where they were not read. SEEN carries both reads to the
@@ -2815,7 +2816,7 @@ def stop_unrecognised(findings, trees, pressed, before_ask=None, switch_on_line=
     where the person pressed `automation`, which rewrites in the plain
     spelling and meets today's rows on the retry, and an `ask` otherwise. In
     a tree another session is ACTIVE in it is a `deny` either way:
-    `docs/worktree-guard-spec.md` §A row 1 denies a branch-form `checkout`
+    `docs/worktree-guard-spec.md` *A. Branch switch*, row 1, denies a branch-form `checkout`
     there with nobody asked, and an `ask` would let one approval take the
     branch out from under that session. Every shape on the line is listed,
     so one rewrite answers all of them.
@@ -2825,7 +2826,7 @@ def stop_unrecognised(findings, trees, pressed, before_ask=None, switch_on_line=
     segment of it, so a creation on the same line is judged first
     (`test_the_guard_is_never_silent_where_the_writer_records`). A
     `git switch` on the line (SWITCH_ON_LINE) makes the stop a `deny` for
-    the same reason: approving would run the switch past §A's rows, in a
+    the same reason: approving would run the switch past the rows of *A. Branch switch*, in a
     tree this reason does not describe (round 1 of work item 1791270162,
     red 1), and the reason says to run the switch on its own."""
     held = [tree for tree in trees if tree[1][0]]
@@ -2949,7 +2950,7 @@ def main():
 
     The command is text this guard does not control. An unknown shape stops
     where the tree it names matters and is silent in a clean tree nobody else
-    is in (`docs/worktree-guard-spec.md` §A, *Which commands reach these
+    is in (`docs/worktree-guard-spec.md` *A. Branch switch*, *Which commands reach these
     rows*), and a word the shell builds after this guard reads the command is
     not read at all (*Known limits*), so unknown input is refused in one
     place and passed in another.
@@ -2965,7 +2966,7 @@ def main():
     # This path counts nothing (#8). An isolated agent runs BESIDE this
     # session while this session's tree stays where it is, so the call is two
     # work streams by construction -- the concurrency
-    # `docs/worktree-guard-spec.md` §Premise counts. Counting Claude sessions
+    # `docs/worktree-guard-spec.md` *Premise* counts. Counting Claude sessions
     # cannot see it: a subagent's tool call renews its PARENT's lease and has
     # no id of its own (measured), so an agent in a one-session tree read as
     # single-stream. The verdict that reading produced told the model to call
@@ -3082,7 +3083,7 @@ def main():
 
     # The stop of `spec.md` In 3, taken before the ladder because it stops
     # the whole line. Only where the tree an unrecognised shape names
-    # matters: in a clean tree nobody else is in, §A row 5 says nothing of a
+    # matters: in a clean tree nobody else is in, row 5 of *A. Branch switch* says nothing of a
     # switch, and nothing here says more of a shape that might be one. Each
     # shape is judged in the tree its own segment names, first one first, so
     # one in a clean tree takes no stop away from one behind it in a dirty
@@ -3220,7 +3221,7 @@ def main():
     # session's record there (`worktree_consent.granted`). So the split is
     # named only where one of those holds for the switch's tree; a switch
     # into another clone is refused naming none, because the creation there
-    # is not consented: §B's choice rows used to put that split to a person
+    # is not consented: the choice rows of *B. Worktree creation* used to put that split to a person
     # (round 1 of work item 1791781864), and since #903 they refuse it under
     # the press, while row 1 still asks where another session is active.
     # Neither check reads the transcript.

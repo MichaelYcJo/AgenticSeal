@@ -1150,7 +1150,7 @@ def test_the_section_names_the_cheap_command_before_the_slow_one():
     call, and a section that names the cheap one second still costs that."""
     section = running_the_checks()
     assert "bin/test" in section, (
-        "CONTRIBUTING.md §Running the checks does not name the runner at all"
+        "`CONTRIBUTING.md` *Running the checks* does not name the runner at all"
     )
     assert section.index("bin/test") < section.index("uvx --with pytest"), (
         "the slow form is still the first command in the section, so it is "
@@ -1366,6 +1366,9 @@ def test_no_loaded_document_states_the_serial_figure():
     for name, text in (
         ("bin/test", flat("bin", "test")),
         (".github/scripts/run_tests.py", runner),
-        ("CONTRIBUTING.md §Running the checks", " ".join(running_the_checks().split())),
+        (
+            "`CONTRIBUTING.md` *Running the checks*",
+            " ".join(running_the_checks().split()),
+        ),
     ):
         assert "five minutes" not in text, f"{name} states the serial figure"

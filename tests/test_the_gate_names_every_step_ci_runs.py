@@ -789,7 +789,7 @@ def test_a_step_no_row_classifies_is_not_said_to_carry_a_reason():
 def test_a_step_a_row_excludes_is_still_pointed_at_its_reason():
     """The other half, and what keeps the case above from being answered by
     deleting the pointer. A step the partition DOES exclude carries a written
-    reason, and naming where it is written is the whole of `spec.md` §Scope
+    reason, and naming where it is written is the whole of `spec.md` *Scope*
     5."""
     said = gate.coverage_line(read(HYGIENE), "base")
     assert "no arm mirrors it in `broad_gate.py#PARTITION`" in said, said

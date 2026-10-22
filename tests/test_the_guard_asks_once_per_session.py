@@ -176,7 +176,7 @@ def test_a_second_creation_in_the_same_session_is_allowed(monkeypatch, capsys, r
 
 
 def test_consent_outranks_every_row_below_it(monkeypatch, capsys, repo):
-    """Each row of §B asks something the record has already answered — the
+    """Each row of *B. Worktree creation* asks something the record has already answered — the
     ACTIVE row asks for a confirmation, the two choice rows ask which way to
     go, and the `[worktree-ok]` row asks whether the token was meant. So the
     read goes above all of them rather than beside one."""
@@ -716,7 +716,7 @@ def test_the_guard_is_never_silent_where_the_writer_records(
 CREATE_FIRST = "git worktree add ../wt f && git switch feature/x"
 SWITCH_FIRST = "git switch feature/x && git worktree add ../wt f"
 
-# `docs/worktree-guard-spec.md` §A's five tree states: (name, sessions, dirty).
+# The five tree states of `docs/worktree-guard-spec.md` *A. Branch switch*: (name, sessions, dirty).
 TREE_STATES = (
     ("active", (ACTIVE, [], True), False),
     ("idle", ([], IDLE, True), False),
@@ -1922,7 +1922,7 @@ def test_the_consent_record_is_not_the_press(monkeypatch, capsys, projects, repo
 
 # --- #894: under the press, the tracked-changes row asks nobody -------------
 #
-# Work item 1791779434. The row of `docs/worktree-guard-spec.md` §A that the
+# Work item 1791779434. The row of `docs/worktree-guard-spec.md` *A. Branch switch* that the
 # 0.21.0 run met with nobody at the keyboard: a `git switch` over one modified
 # tracked file put a yes/no to the owner in a run routed `automation`. Under
 # the press it is a deny to the model naming the ways on that need nobody;
@@ -2142,7 +2142,7 @@ def test_the_ways_on_pass_the_guard(monkeypatch, capsys, projects, repo):
         git_in(repo, *command.split()[1:])
 
 
-# S12: round 3's sixteen setups (`rounds/round-3-report.md` §1), each a form
+# S12: round 3's sixteen setups (`rounds/round-3-report.md`, section 1), each a form
 # and the state git was in. The guard reads none of the state, so every row
 # meets the same bytes; a form a later round finds is a row here.
 SIXTEEN = (

@@ -1,6 +1,6 @@
 """Under `automation`, the switch ladder's two choice rows ask nobody (#896).
 
-Work item 1791781864. `docs/worktree-guard-spec.md` §A's rows *only IDLE
+Work item 1791781864. `docs/worktree-guard-spec.md` *A. Branch switch*, its rows *only IDLE
 sessions* (row 1-b) and *detection unusable* (row 2) are `choose` sites: a
 `deny` once per session that tells the model to put two options to the
 person with `AskUserQuestion`, and an `ask` on every attempt after. On the

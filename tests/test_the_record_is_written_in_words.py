@@ -125,7 +125,8 @@ def test_a_repair_with_no_commit_closes_deferred_where_it_was_made():
 
     outside = [s for s in paragraph if "outside the tree" in s]
     assert outside, (
-        f"{rel} §The round record: the fix-pass paragraph names no repair outside the tree"
+        f"{rel} *The round record*: the fix-pass paragraph names no repair "
+        "outside the tree"
     )
     for s in outside:
         assert "`deferred <where it was repaired>`" in s, (
@@ -134,7 +135,7 @@ def test_a_repair_with_no_commit_closes_deferred_where_it_was_made():
 
     corrections = [s for s in paragraph if "correction to a record" in s]
     assert corrections, (
-        f"{rel} §The round record: the fix-pass paragraph names no record correction"
+        f"{rel} *The round record*: the fix-pass paragraph names no record correction"
     )
     for s in corrections:
         assert "`fixed <commit>`" in s, (
@@ -143,5 +144,5 @@ def test_a_repair_with_no_commit_closes_deferred_where_it_was_made():
 
     sent = [s for s in sentences(lines) if "repair" in s and "`rejected`" in s]
     assert not sent, (
-        f"{rel} §The round record sends a repair to `rejected`:\n" + "\n".join(sent)
+        f"{rel} *The round record* sends a repair to `rejected`:\n" + "\n".join(sent)
     )

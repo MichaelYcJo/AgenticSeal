@@ -12,8 +12,8 @@ and the way back is a documented sequence rather than a setting.
 under SpecSeal: the session created `seal/` and started working, and no
 question was asked. Three files each said something correct and the three
 together left no route to the question -- `hooks/optin.py` says the root's
-existence IS the declaration, `skills/implement/orchestration.md` §Bootstrap
-says the mode question is asked there and nowhere else, and the preset block
+existence IS the declaration, `skills/implement/orchestration.md`
+*Orchestrator: Bootstrap* says the mode question is asked there and nowhere else, and the preset block
 (`templates/claude-md-block.md`, which `install.sh` copies into
 `~/.claude/CLAUDE.md`, so it loads in every project on the machine) tells a
 session to write
@@ -48,7 +48,7 @@ below is per session, not per command.
 session per repository and no more: one deny, then one `ask` that approving
 gets past, then silence for every command after them. Zero once the row
 exists, which `seal mode` writes and which `skills/implement/orchestration.md`
-§Bootstrap now writes when it creates the root -- so a repository that went
+*Orchestrator: Bootstrap* now writes when it creates the root -- so a repository that went
 through the bootstrap is never asked here, and this gate sees only the roots
 that did not.
 

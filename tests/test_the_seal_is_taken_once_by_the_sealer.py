@@ -1060,7 +1060,7 @@ def test_the_failure_form_carries_no_disc_and_names_every_failure():
 )
 def test_pick_shape_is_letters_off_a_utf8_terminal(stream, why):
     """S5 — the colour form is for a person's terminal. Blocks and colour are
-    for a UTF-8 tty and nothing else. (#30's `spec.md` §Out said the sealer's
+    for a UTF-8 tty and nothing else. (#30's `spec.md` *Out* said the sealer's
     returned text carries the twin; since #400 it carries no drawing at all,
     because the gate asks `is_terminal` and draws nothing on a pipe.)"""
     assert module().pick_shape(stream) is True, why
@@ -1991,7 +1991,7 @@ def test_an_ampersand_that_is_not_last_stays_allowed(value):
 
     It stays allowed rather than being refused, and the reason is in
     `templates/config.md`'s allowed list beside the form: telling an operator
-    `&` from a `2>&1` or a quoted one needs the shell parser `spec.md` §Scope
+    `&` from a `2>&1` or a quoted one needs the shell parser `spec.md` *Scope*
     refuses, and a false deny would make a legitimate row unwritable. The last
     two values are what such a parser would have to get right.
 

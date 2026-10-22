@@ -572,7 +572,7 @@ def test_an_empty_reading_is_refused_rather_than_posted(
     monkeypatch, capsys, tmp_path, transcript
 ):
     """Round 1's second finding. The invariant is that the numbers are the
-    script's and the sentence is not, and `spec.md` §Scope states it as *it
+    script's and the sentence is not, and `spec.md` *Scope* states it as *it
     refuses to post without a reading* — not without the flag. Enforced
     against the missing flag alone, a `--says` naming an empty file posts a
     fence with nothing above it, which is the shape a session reaches by

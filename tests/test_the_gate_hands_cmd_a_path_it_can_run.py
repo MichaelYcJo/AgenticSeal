@@ -418,7 +418,7 @@ def test_the_template_says_which_positions_are_rewritten():
         "a directory at the root named like a program the row calls with a "
         "glued switch (an `xcopy/` directory) makes `xcopy/e` read as a path",
     ):
-        assert needle in prose, f"templates/config.md §Broad gate lacks: {needle}"
+        assert needle in prose, f"`templates/config.md` *Broad gate* lacks: {needle}"
     assert "Two positions are not rewritten" not in prose, (
         "the template still counts the positions it leaves as written"
     )

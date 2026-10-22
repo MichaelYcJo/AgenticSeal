@@ -7,7 +7,7 @@ the definition under `agents/`, every `SKILL.md` its `skills:` list injects,
 and the two `CLAUDE.md` files the harness adds (the repository's and
 `~/.claude/CLAUDE.md`). The prefix is cached for five minutes, and no two
 spawns of one agent in a review chain fall inside five minutes of each other
-(#292, `spec.md` §Measured before the first edit) — so in a chain it is
+(#292, `spec.md` *Measured before the first edit*) — so in a chain it is
 written on every spawn. This reads the tree and says what that prefix is.
 
   bytes, chars    counted from the files.

@@ -534,7 +534,7 @@ def place(tokens, wheres, cwd: str):
     `hooks/commit-review-gate.py`) and the guard falls back instead. The two
     protect different things: a commit nobody judged is a commit nobody
     reviewed, while a guard that goes silent leaves a shared tree unguarded,
-    and `worktree-guard-spec.md` §Unknowns resolve conservatively puts the
+    and `docs/worktree-guard-spec.md` *Unknowns resolve conservatively* puts the
     cost of a wrong deny at one prompt against a wrong allow breaking another
     session's tree.
 

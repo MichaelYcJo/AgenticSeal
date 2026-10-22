@@ -64,7 +64,7 @@ def test_the_oracle_imports_the_parser_and_nothing_of_this_repositorys():
 @pytest.mark.parametrize("name", sorted(SHAPES))
 def test_the_oracle_gives_the_frames_renderer_column(name):
     """S1, and the frame's Q2. The *Renderer* column was derived by reading
-    CommonMark §4.5, §4.6 and §6.6 and was not executed; the parser gives it
+    CommonMark section4.5, section4.6 and section6.6 and was not executed; the parser gives it
     on every shape. Where the two disagreed, the oracle would win and the
     divergence would be recorded in `overview.md`."""
     assert oracle.hidden_lines(SHAPES[name]) == RENDERER[name]
@@ -98,7 +98,7 @@ def test_the_oracle_gives_the_frames_renderer_column(name):
         # CRLF is the same document
         (["```\r", "x\r", "```\r", "y\r"], {0: "fence", 1: "fence", 2: "fence"}),
         # markdown-it-py 4.2.0 runs an inline comment past a closer that a
-        # `-` precedes, which CommonMark 0.31.2 §6.6 does not: a comment's
+        # `-` precedes, which CommonMark 0.31.2 section6.6 does not: a comment's
         # text may not hold `-->`. Pinned by name (#667 round 1, ⬜ 4), so a
         # wider corpus meets the divergence here, and so the walk, which
         # follows the specification, is never "fixed" toward the parser.

@@ -97,10 +97,10 @@ LOADED = (
 VERSION_TOKEN = re.compile(r"(?<![\w.])[vV]?(\d+\.\d+\.\d+)(?!\.\d)")
 
 # The value the repository already tells an author to write where a real
-# version would be wrong. `docs/issues-and-milestones.md` §"A rolling log is
-# titled after the version it rolled from" is where that decision was made and
-# where the reason for it sits; the check's own message points a reader there
-# rather than restating it.
+# version would be wrong. The paragraph of `docs/issues-and-milestones.md` that
+# opens **A rolling log is titled after the version it rolled from** is where
+# that decision was made and where the reason for it sits; the check's own
+# message points a reader there rather than restating it.
 #
 # It is exempt in EVERY loaded file rather than at one coordinate, because the
 # whole point of an illustrative value is that the next author may write it
@@ -309,13 +309,13 @@ def what_to_write_instead():
     return (
         f"Write the illustrative {ILLUSTRATIVE_VERSION} instead, and say "
         "beside it why the number is not real — the paragraph at "
-        '`docs/issues-and-milestones.md` §"A rolling log is titled after the '
-        'version it rolled from" already does exactly that, and is the model '
+        "`docs/issues-and-milestones.md` that opens **A rolling log is titled "
+        "after the version it rolled from** already does exactly that, and is the model "
         "to follow. If the number belongs to another product, declare it in "
         "`VERSIONS_OF_ANOTHER_PRODUCT` with the product it names. If the "
         "file's whole job is to name a moment, it belongs in "
-        '`RECORDS_OF_A_MOMENT` with the argument CONTRIBUTING.md §"What a '
-        'change to a gate must carry" asks for. A version BELOW the running '
+        "`RECORDS_OF_A_MOMENT` with the argument `CONTRIBUTING.md` *What a "
+        "change to a gate must carry* asks for. A version BELOW the running "
         "one, or one this repository has TAGGED, is history and is already "
         "allowed — nothing needs doing to it. "
         "And if the number is not a release at all — a date written with "
@@ -383,6 +383,13 @@ def test_the_message_has_a_route_for_every_token_the_check_refuses():
         f"`3.13.9` has, and the one {sorted(VERSIONS_OF_ANOTHER_PRODUCT)} is"
     )
     assert "RECORDS_OF_A_MOMENT" in routes, "no route for a record of a moment"
+    # Contract rule 14: the two places the routes send a reader, by the
+    # heading or the paragraph's bold lead a reader finds them under.
+    assert (
+        "the paragraph at `docs/issues-and-milestones.md` that opens **A "
+        "rolling log is titled after the version it rolled from**"
+    ) in routes, routes
+    assert "`CONTRIBUTING.md` *What a change to a gate must carry*" in routes, routes
     assert "BELOW" in routes, "the message does not say history is already allowed"
     assert "TAGGED" in routes, (
         "the message does not say a tagged version is history too (#363), so "
@@ -542,8 +549,8 @@ def test_the_illustrative_version_is_not_one_this_repository_could_ship():
         f"the illustrative version {ILLUSTRATIVE_VERSION} is now the running "
         "version, so the exemption in `timers_in` hides the defect it was "
         "written beside. Choose a value this repository will not reach and "
-        'rewrite the paragraph at `docs/issues-and-milestones.md` §"A '
-        'rolling log is titled after the version it rolled from" with it'
+        "rewrite the paragraph at `docs/issues-and-milestones.md` that opens "
+        "**A rolling log is titled after the version it rolled from** with it"
     )
     shipped = shipped_versions()
     assert shipped, "CHANGELOG.md records no releases — this case is blind"

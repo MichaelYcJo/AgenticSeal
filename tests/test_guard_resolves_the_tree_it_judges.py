@@ -829,7 +829,7 @@ def test_the_guard_policy_names_the_shell_built_word_limit():
     """Contract rule 14, for S27 of work item 1791384157's second
     reframe: *Known limits* says in one sentence that a word the shell
     builds before git runs is not read and names #856's four forms as silent;
-    §A names no brace rule, cost or count, and no bullet names a brace-hidden
+    *A. Branch switch* names no brace rule, cost or count, and no bullet names a brace-hidden
     `-C`. Red against `52c72bbe`'s text."""
     text = _policy_text()
     for sentence in (
@@ -1065,7 +1065,7 @@ def test_a_switch_tree_the_guard_cannot_place_is_judged_as_its_own(
 def test_a_one_tree_reason_calls_the_tree_it_judges_this_tree(
     monkeypatch, capsys, repo, tmp_path
 ):
-    """`docs/worktree-guard-spec.md` §A: a reason that describes one tree
+    """`docs/worktree-guard-spec.md` *A. Branch switch*: a reason that describes one tree
     calls it "this tree", whichever tree it is, so with the session's tree
     clean and `w` dirty the reason about `w` names no path (#854, round 3 of
     work item 1791270162, white 2)."""
@@ -1082,7 +1082,7 @@ def test_a_one_tree_reason_calls_the_tree_it_judges_this_tree(
 WIDER_ONLY = {
     "git 2>&1 worktree add": ("cd w && git 2>&1 worktree add ../wt b", "creation"),
     # Run in `w` since #826: in the clean session tree an unrecognised shape
-    # says nothing, which is §A row 5 and not the reading under test.
+    # says nothing, which is row 5 of *A. Branch switch* and not the reading under test.
     "--config-env, a creation": (
         "cd w && git --config-env k=v worktree add ../wt b",
         "creation",
@@ -1167,7 +1167,7 @@ def test_a_creation_only_the_wider_reading_finds_stops_whatever_the_consent_reco
     every creation, and #734 found it read against the wrong clone. Since
     #826 the stop reads no consent record (`spec.md` In 3 of 1791270162): a
     creation having run says nothing about whether this one is plain, and
-    the plain retry meets §B, which reads its own clone's consent."""
+    the plain retry meets *B. Worktree creation*, which reads its own clone's consent."""
     session, _other = _a_dirty_w_under_a_clean_session(repo, tmp_path)
     assert wg.worktree_consent.record(str(session), "me")
     assert wg.worktree_consent.record(str(session / "w"), "me")
@@ -1376,7 +1376,7 @@ def _policy_text():
 
 
 def test_the_guard_policy_says_which_shapes_reach_the_rows_and_who_reads_the_stop():
-    """S12 of work item 1791270162, Contract rule 14: §A names the
+    """S12 of work item 1791270162, contract rule 14: *A. Branch switch* names the
     three shapes, the stop's two readers and its failure direction, in the
     sentences a person reads to learn when the guard stops. Red against the
     policy as it stood at `9c03ae85`."""

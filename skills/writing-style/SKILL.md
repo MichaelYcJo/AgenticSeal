@@ -257,12 +257,15 @@ seal* 은 감사하는 쪽만 밝히고 감사받는 것은 밝히지 않는다.
 **읽는 쪽이 문법으로 받아들일 수 있는 기호를 쓰지 않고, 같은 값을 두 곳에
 적지 않고, 철자가 조금 틀린 줄이 통과할 수 있는 모양을 쓰지 않는다.** 줄표,
 화살표, 가운뎃점, 파이프, 절 기호를 제목이나 문장 안에서 구분자처럼 쓰면 읽는
-쪽이 그것을 문법으로 읽을 수 있으므로, 그 자리는 낱말로 쓴다. 같은 값이 두 곳에 있으면 한쪽만 고쳐지고, 읽는 쪽은 어느 것이 맞는지
+쪽이 그것을 문법으로 읽을 수 있으므로, 그 자리는 낱말로 쓴다. 인용도 낱말로
+쓴다. 계약의 규칙은 `contract rule <N>` 으로, 계약 안과 `agents/` 에서는
+`rule <N>` 으로 하나씩 인용하고, 다른 파일의 절은 백틱으로 감싼 경로 뒤에
+기울인 제목 글자로 인용한다. 같은 값이 두 곳에 있으면 한쪽만 고쳐지고, 읽는 쪽은 어느 것이 맞는지
 골라야 한다. 검사가 읽는 줄은 정해진 철자 하나만 읽히고 조금 틀린 철자는 그
 줄에서 거절되어야 한다. 조금 틀린 철자를 말없이 지나치는 검사는 그 줄을 읽지
 않은 것과 같다. 사례는 `plan.md` 의 승인 줄이다. 그 줄 뒤에 문장 하나를
 덧붙이자, 그 줄을 읽던 검사는 승인이 없다고 읽었다.
-check: tests/test_the_rules_command_reads_each_rule_off_its_test.py tests/test_settle_applies_rule_changes_in_place.py
+check: tests/test_the_rules_command_reads_each_rule_off_its_test.py tests/test_settle_applies_rule_changes_in_place.py tests/test_no_living_file_writes_the_section_sign.py tests/test_the_agent_contract_holds_the_universal_rules.py
 
 **저장소가 정의한 용어는 정의한 뜻으로만 쓰고, 같은 것을 다른 말로 바꿔 부르지
 않는다.** 한 대상을 두 낱말로 부르면 읽는 쪽은 둘을 다른 것으로 읽는다. 한

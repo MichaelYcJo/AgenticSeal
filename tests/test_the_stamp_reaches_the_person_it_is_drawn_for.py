@@ -340,7 +340,7 @@ def test_another_sessions_stop_leaves_its_file_alone(tmp_path):
 
 # The smallest panel a run could carry. Whether two of its stamps share one
 # message is the disc's mark's to say, not this module's: under #717's lily
-# they did; under phase 2's § of #832 they did not; under the owner's 14-cell
+# they did; under phase 2's section-sign mark of #832 they did not; under the owner's 14-cell
 # disc they did again; under the S of 2026-10-07 they do not, and under the
 # archived key they do (`phases/phase-6.md` of work item 1791270164 and round
 # 1's report there have the sizes). A case that needs a pair over the budget
@@ -2122,7 +2122,7 @@ def test_two_files_in_one_turn_are_under_the_budget_together(tmp_path):
     under the interim ring of work item 1791270164 they did
     (`phases/phase-1.md` there has the sizes). The second run therefore
     carries deferral homes, one at a time, until the pair does not fit with
-    their discs — none under the lily or under phase 2's §, where this is
+    their discs — none under the lily or under phase 2's section-sign mark, where this is
     the case as it stood, and some under the owner's 14-cell disc, where two
     real runs share a message — and the premise is asserted rather than
     assumed."""
@@ -2201,7 +2201,7 @@ def test_one_seal_too_large_for_the_disc_is_drawn_alone_without_it(tmp_path):
     rather than losing its disc.
 
     The record carries deferral homes, one at a time, until its stamp does
-    not fit with its disc: sixty did under phase 2's § of #832, and under
+    not fit with its disc: sixty did under phase 2's section-sign mark of #832, and under
     the owner's 14-cell disc sixty fit, so the count is derived and the
     premise asserted rather than assumed."""
     mod = stamp_module()
@@ -2369,7 +2369,7 @@ def test_the_policy_states_the_budget_and_names_its_case():
     assert "does not fit with its disc by itself is the only one drawn" in rule
     assert "as the text block with no disc" in rule
     assert "0.80 and 0.75" not in rule and "at 0.75 by itself" not in rule
-    assert "24 cells" not in rule and "§ fragment" not in rule
+    assert "24 cells" not in rule and "\N{SECTION SIGN} fragment" not in rule
     assert "14 cells" not in rule and "sheet" not in rule
     assert "The gate's own terminal drawing" not in rule, "the gate draws nothing"
 

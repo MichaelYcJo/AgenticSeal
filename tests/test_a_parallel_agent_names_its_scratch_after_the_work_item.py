@@ -63,7 +63,7 @@ def test_the_wardens_clone_is_named_for_the_work_item_and_the_round():
     by the agent that made them."""
     where = section(WARDEN, "Rules")
     assert CLONE in where, (
-        "agents/warden.md §Rules does not name the clone directory "
+        "`agents/warden.md` *Rules* does not name the clone directory "
         f"as `{CLONE}`, so two parallel wardens can clone to one name"
     )
     assert ROUND_HOME in where, (

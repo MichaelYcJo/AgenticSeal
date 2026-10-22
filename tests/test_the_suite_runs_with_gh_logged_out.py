@@ -118,7 +118,9 @@ def test_contributing_says_the_suite_runs_logged_out():
         *(f"`{name}`" for name in TOKENS),
         "A case that needs `gh` stubs it.",
     ):
-        assert needle in prose, f"CONTRIBUTING.md §Running the checks lacks: {needle}"
+        assert needle in prose, (
+            f"`CONTRIBUTING.md` *Running the checks* lacks: {needle}"
+        )
     assert "removes `GH_TOKEN`" not in prose, (
         "CONTRIBUTING.md still says the suite removes `GH_TOKEN`, which would "
         "leave `gh` reading the login in the OS keyring"
