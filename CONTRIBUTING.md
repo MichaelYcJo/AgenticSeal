@@ -359,8 +359,8 @@ a question is not its difficulty, it is when it arrives.
 
 - **No real identifiers.** Examples, fixtures, and docs use `example.com`
   and `/Users/x/` only. The `real_identifiers` census in `tests/censuses.py`
-  enforces it in CI, and a contributor extends its `ALLOWED_DOMAINS`
-  deliberately, never to make a test pass.
+  enforces it in CI, and a contributor extends its allowlist deliberately,
+  never to make a test pass.
   The rule is held this hard because a real domain, path or organisation
   name inlined into an example is the leak that forces a rewrite of the
   repository's history.

@@ -228,7 +228,7 @@ def read_chart(path):
     saved with a byte-order mark as the same chart, rather than refusing its
     first line as one character too long."""
     with open(path, encoding="utf-8-sig") as handle:
-        # exempt from splitlines: the seal's mark chart, a grid of two characters
+        # exempt from splitlines: the disc's mark chart, a grid of two characters
         lines = handle.read().splitlines()
     n = DISC_CELLS
     c, field = (n - 1) / 2, n / 2 - GROOVE_INSET
