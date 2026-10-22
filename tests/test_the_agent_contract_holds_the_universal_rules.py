@@ -345,6 +345,14 @@ def test_a_citation_above_the_last_section_is_caught(rel, line):
     ]
 
 
+def test_a_wrapped_citation_is_named_at_the_line_it_starts_on():
+    numbers = set(spans(read()))
+    text = f"intro\nas the contract\nrule {max(numbers) + 1} says"
+    assert dangling([("skills/x/SKILL.md", text)], numbers) == [
+        ("skills/x/SKILL.md:2", f"rule {max(numbers) + 1}")
+    ]
+
+
 def test_a_bare_rule_outside_the_contracts_homes_is_not_a_citation():
     """Outside the contract and `agents/`, `rule <N>` can be any list's rule,
     such as the behaviour suite's pass rules, so only `contract rule <N>`
