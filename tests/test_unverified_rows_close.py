@@ -755,8 +755,9 @@ def test_the_skill_states_the_closing_convention():
 
 
 def test_a_comment_beside_the_section_is_not_read_as_content(tmp_path):
-    """The template ships its guidance as a comment in this section, and an
-    overview keeps it. Reading it as prose would fail every filled-in copy."""
+    """An overview started from a template before #1005 keeps the guidance
+    comment that template shipped in this section. Reading it as prose would
+    fail every filled-in copy; #1012 retires the case with the state."""
     section = (
         "## Not verified\n\n<!-- guidance:\n| closed <item> | <what closed it> |\n-->\n\n"
         + CANONICAL.split("\n", 2)[2]

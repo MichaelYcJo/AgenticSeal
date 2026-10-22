@@ -281,9 +281,10 @@ def comment_scan(lines):
 def strip_comments(lines):
     """The same lines with HTML comment content blanked out, indices intact.
 
-    A template explains a section in a comment beside it, and an overview keeps
-    that comment. The guidance is not rows, and it is not prose where a table
-    belongs."""
+    A record started from a template before #1005 keeps the comment that
+    explained a section beside it. The guidance is not rows, and it is not
+    prose where a table belongs; #1012 retires this state once those records
+    are stripped."""
     return [kept for _, kept in comment_scan(lines)]
 
 
