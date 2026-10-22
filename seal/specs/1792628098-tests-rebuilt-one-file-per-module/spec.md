@@ -71,18 +71,19 @@ The target the rebuild works toward is the issue's: the suite's real protection 
 
 ### The proof of equal protection
 
-#942 changes no shipped code, so the one risk a rebuilt module carries is a fault the old cases caught and the new ones miss. A sample of mutants at the code's decision points is enough to show that risk, and the owner set its cost on 2026-10-22.
+#942 changes no shipped code, so the one risk a rebuilt module carries is a fault the old cases caught and the new ones miss. The proof shows that a module's rebuild lost no protection; it decides nothing about what to cut. A module whose cases were only moved, with nothing cut, merged or rewritten, cannot have lost protection, so it skips the mutants. Whether a module was only moved is decided by the move check below, from the two trees and never from the smith's record. The owner set the mutants' cost on 2026-10-22 and the move check's rule on 2026-10-23.
 
-- Where the mutants go: one or two per class, at each public function's decision points, the branches where a case accepts or refuses. That is about 30 per module.
+- The move check: `bin/test-layout --moved <base> --from <old file>... <new file>` reads the old files at the base commit and the new file in the working tree, and passes only where three conditions hold for the module. First, pytest collects as many items from the new file as from the old files at the base, each parametrize row counting as one item and the new file's `test_census` item left out. Second, each old case's body is in the new file unchanged apart from its name, its place, the class around it and the `self` parameter, compared as an AST with docstrings dropped. Third, every fixture a case requests resolves, in the case's file or in `tests/conftest.py`, to a fixture definition whose AST, decorator included, is the same in both trees, so a world built once where it was built per case is a change. The check prints each case that fails with the condition it failed, exits 0 where the module passes and 1 where it does not, and the smith records the command and its last line in place of a mutant table.
+- Where the mutants go, for a module the check does not pass: one or two per class, at each public function's decision points, the branches where a case accepts or refuses. That is about 30 per module.
 - How the new file's column runs: in one `bin/mutation-check` call carrying every mutant of the module, which runs the baseline once and then each mutant once. The smith puts `-x` in the `--tests` command, so that pytest stops a mutant's run at its first failing case; the tool itself stops nothing.
 - When the old files' column runs: only for a mutant the new file lets survive. Where the old files miss it too, the record states an old gap. Where they kill it, the smith adds a case to the new file and sees it red on that mutant before the batch commits.
 - What the record carries: the table of mutants with the new column's verdict, the old column's verdict where it ran, each old gap, and each case added.
 
-`broad_gate.py` and `seal_stamp.py` ran under the earlier proof, a table of about 100 mutants each run in both columns, and their records stay as they were written. The commit flow's record says at which mutant it switched to this proof.
+`broad_gate.py` and `seal_stamp.py` ran under the earlier proof, a table of about 100 mutants each run in both columns, and their records stay as they were written. The commit flow's record says at which mutant it switched to this proof. Every phase 5 module was rewritten, so each ran or runs the mutants and none is re-proved under the move check; the check is built as phase 6's first step, for the modules whose old cases are placed and merged.
 
 ### What holds the rules
 
-- `skills/verify/scripts/test_layout.py`, run as `bin/test-layout`. `--check` reads every `tests/**/test_*.py` that declares `TARGET` and fails on: a `TARGET` git does not track, a file name that does not match it, a `Test_<function>` naming no top-level definition of the target, a function class lacking the accepting or refusing case, a non-test top-level function whose source is byte-identical to one in another test file where one of the two files declares `TARGET`. It prints the files that declare no `TARGET` and every twin between two undeclared files, and with `--all` fails on both. It prints each public top-level function of the target that has no class, and fails on none. `--pairs` prints, for each class, two cases that call the target's function with equal argument expressions, or whose bodies are equal once names and string constants are normalised, and exits 0 whatever it prints. A call with an argument that reads a name the case assigns or takes as a parameter is not compared at all: its input is on disk or in a fixture, where the report cannot see it. A call with no argument is not compared either, because any two such calls are equal.
+- `skills/verify/scripts/test_layout.py`, run as `bin/test-layout`. `--check` reads every `tests/**/test_*.py` that declares `TARGET` and fails on: a `TARGET` git does not track, a file name that does not match it, a `Test_<function>` naming no top-level definition of the target, a function class lacking the accepting or refusing case, a non-test top-level function whose source is byte-identical to one in another test file where one of the two files declares `TARGET`. It prints the files that declare no `TARGET` and every twin between two undeclared files, and with `--all` fails on both. It prints each public top-level function of the target that has no class, and fails on none. `--pairs` prints, for each class, two cases that call the target's function with equal argument expressions, or whose bodies are equal once names and string constants are normalised, and exits 0 whatever it prints. A call with an argument that reads a name the case assigns or takes as a parameter is not compared at all: its input is on disk or in a fixture, where the report cannot see it. A call with no argument is not compared either, because any two such calls are equal. `--moved` is the move check *The proof of equal protection* states, in the same script because the reader of a test file's classes and cases has one home; it reads the base's files through `git show <base>:<path>` and collects the base's items in a detached worktree of the base that it adds under a temporary directory and removes before it exits.
 - `tests/test_test_layout.py` holds the script's own cases on fixtures, and one case that runs `--check` over this repository's `tests/`; the last phase gives that case `--all`.
 - `.github/scripts/release_report.py` prints, under its existing table, one row per test file: priced cases and seconds in `.test_durations` at the pull request head and at the last release tag, sorted by seconds. It reads the two trees it already reads and nothing else.
 - `tests/conftest.py` prints each case whose call ran past `SLOW_CASE_S` (90 seconds) in the terminal summary and fails nothing. `SPECSEAL_CASE_CEILING_S` is not read. The legs' `timeout-minutes` in `.github/workflows/test.yml` stay.
@@ -114,10 +115,11 @@ The target the rebuild works toward is the issue's: the suite's real protection 
 | S8 a census runs with its module | Given `tests/test_<stem>.py`, when `bin/test tests/test_<stem>.py` runs, then `test_census` judges `TARGET` under every census | `tests/test_censuses.py` with a fixture target that fails one census |
 | S9 a spent exemption is refused | Given an exemption comment line directly above a line no census flags, when the census runs, then it fails naming the line | `tests/test_censuses.py` |
 | S10 the whole suite is placed | Given the last batch merged, when `--check --all` runs over `tests/`, then it exits 0 | the suite case in `tests/test_test_layout.py` |
+| S11 a module only moved skips the mutants | Given a fixture repository with old test files at a base commit and a new file holding the same cases in classes, when `bin/test-layout --moved <base> --from <old files> <new file>` runs, then it exits 0; given instead one old case cut, two old cases merged into one, one case's body edited, or one fixture's scope changed from function to module, then it exits 1 naming the case and the condition it failed | `tests/test_test_layout.py::Test_moved::test_accepts_a_pure_move` and `Test_moved::test_refuses_a_cut_a_merge_an_edited_body_and_a_changed_fixture`, one row per failing kind, each seen red with its condition removed from the script |
 
 ## Data & interfaces
 
-- `bin/test-layout [--check [--all] | --pairs] [paths]`, launched through `hooks/launch.py` like `bin/mutation-check`.
+- `bin/test-layout [--check [--all] | --pairs | --moved <base> --from <old file>...] [paths]`, launched through `hooks/launch.py` like `bin/mutation-check`. With `--moved`, `<base>` is a commit the repository holds, each `--from` names an old test file at that commit, and the one path is the new file in the working tree; the exit is 0 where the module passes the three conditions, 1 where it does not, and 2 where the base or a file cannot be read.
 - `tests/conftest.py#census_case(target)` returns the one case; `tests/censuses.py` exposes `def <census>(rel, root=None) -> list[str]`, one per census, where `rel` is the file's path relative to the repository root and `root` is the tree read, the repository root when absent.
 - `release_report.py#module_rows(at, now)` reads `.test_durations` in both trees.
 - `bin/mutation-check <path> --tests <command> --replace OLD NEW`, with `--replace` given once per mutant: a call with several pairs runs the baseline once, then each mutant once, restores the file after each, and prints one verdict line per pair in the order given. It exits 0 where every mutant is red, 1 where any mutant survived, and 2 where none survived but a run gave no verdict. It stops no run early: a `--tests` command that should stop at its first failing case carries pytest's `-x`. A call with one pair runs as it does today.
@@ -177,6 +179,43 @@ The target the rebuild works toward is the issue's: the suite's real protection 
   section: The PreToolUse reading of a commit
   from: check: tests/test_no_shape_the_base_stops_reads_silent.py
   to: check: tests/test_commit_review_gate.py
+- change
+  file: docs/worktree-guard-spec.md
+  section: Creation consent
+  from: `test_the_command_word_class_is_what_the_allow_covers` pins members of each group, and is where a new spelling is checked.
+  to: `Test_only_creates_a_worktree` in `tests/test_worktree_guard.py` pins
+    members of each group in the rows of its two cases, and is where a new
+    spelling is checked.
+- change
+  file: docs/worktree-guard-spec.md
+  section: Creation consent
+  from: `test_the_guard_is_never_silent_where_the_writer_records` walks every shape it lists in four tree states, from two shell directories, three attempts each, and `test_a_dirty_tree_does_not_decide_whether_the_creation_is_questioned` holds the fifth.
+  to: `Test_main::test_refuses_to_be_silent_where_the_writer_records` in
+    `tests/test_worktree_guard.py` walks every shape `CREATIONS` lists in four
+    session states, from two shell directories, three attempts in the two
+    states whose budget the attempts spend, and
+    `Test_main::test_refuses_a_line_weaker_than_its_switch_or_its_creation`
+    holds the fifth state, the dirty tree.
+- change
+  file: docs/worktree-guard-spec.md
+  section: Creation consent
+  from: check: tests/test_the_guard_asks_once_per_session.py tests/test_guard_resolves_the_tree_it_judges.py
+  to: check: tests/test_the_guard_asks_once_per_session.py tests/test_guard_resolves_the_tree_it_judges.py tests/test_worktree_guard.py
+- change
+  file: docs/worktree-guard-spec.md
+  section: Known limits
+  from: `test_a_shell_built_word_is_the_named_limit` and the braced half of `test_no_listed_form_moves_head_under_git` in `tests/test_worktree_guard.py` pin the limit.
+  to: The braced rows of `Test_main::test_accepts_data_no_shell_runs_as_no_command`
+    and the braced half of
+    `Test_shape_of::test_accepts_no_listed_form_that_moves_head_under_git` in
+    `tests/test_worktree_guard.py` pin the limit.
+- change
+  file: docs/worktree-guard-spec.md
+  section: Known limits
+  from: moves HEAD fails `test_no_listed_form_moves_head_under_git`; a form no case
+  to: moves HEAD fails
+    `Test_shape_of::test_accepts_no_listed_form_that_moves_head_under_git`; a
+    form no case
 
 ## Open questions → questions.md
 
