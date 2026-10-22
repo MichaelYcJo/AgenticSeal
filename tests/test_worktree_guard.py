@@ -269,7 +269,10 @@ class Test_has_token:
 class Test_walk_command:
     def test_accepts_a_cd_as_moving_the_segment_after_it(self):
         walked = wg.walk_command("cd sub && git switch x", "/base")
-        assert walked[1] == (["git", "switch", "x"], (os.path.join("/base", "sub"),))
+        # Built as `hooks/cmdline_base.py#apply_chdir` builds it, joined and
+        # then normalised, which on Windows turns the leading `/` into `\`.
+        landed = os.path.normpath(os.path.join("/base", "sub"))
+        assert walked[1] == (["git", "switch", "x"], (landed,))
 
     def test_refuses_a_heredoc_line_as_a_segment(self):
         walked = wg.walk_command("cat > n <<'EOF'\ngit switch x\nEOF", "/base")
