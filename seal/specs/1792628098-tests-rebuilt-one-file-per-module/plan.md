@@ -4,6 +4,8 @@
 artifact: where the work alters observable behaviour, approval of this plan is
 the gate. -->
 
+Approved 2026-10-22 by the orchestrator, under the owner's `automation` answer and the owner's answers to Q1 and Q2, when `smith` was spawned.
+
 ## Summary
 
 The checks go in first, then the modules are rebuilt in batches, heaviest first, each batch applying `spec.md`'s four rules and recording what it cut. Rule 4 is read before every module: a rewritten module builds its world once, judges a reading without git where it can, samples where it enumerated, and records its seconds before and after. The smith recomputes every count it acts on at the tree it builds on, with the command each phase names, because #988, #1009 and #1005 merge between this frame and the build and move cases, lines and citations.
