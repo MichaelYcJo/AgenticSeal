@@ -104,21 +104,22 @@ def parse(text, policy_root):
     # first as `live_lines` reads it, and is skipped. A fence's opener is
     # live, so a fence inside the section is refused at that line as no
     # field. A line live here and dead in `live` begins inside a code span
-    # an earlier line opened, and is refused (#988).
+    # an earlier line opened, and is refused (#988), before the comment
+    # skip, since a comment opener inside a span is text.
     literal = r.liveness(lines, spans_cross_lines=False)
 
     body = []
     for n in range(start + 1, end):
         line = lines[n]
-        if line.lstrip().startswith("<!--") or not literal[n]:
-            continue
-        if not live[n]:
+        if literal[n] and not live[n]:
             why = (
                 "this line begins inside a code span an earlier line opened, "
                 "and settle would drop it: close each span on the line that "
                 "opens it"
             )
             return Parsed([], None, [(n + 1, why)])
+        if line.lstrip().startswith("<!--") or not literal[n]:
+            continue
         body.append((n + 1, line))
     while body and not body[-1][1].strip():
         body.pop()

@@ -230,6 +230,13 @@ def test_a_line_that_begins_inside_a_code_span_is_refused_at_its_line():
     parsed = parse(closed)
     assert parsed.errors == [], parsed.errors
     assert parsed.ops[0].new.endswith("`through the review chain`\ncarries one line.")
+    # Round 3 of #988: the line inside the span opens with `<!--`, which the
+    # span makes text, so it is refused too and not skipped as a comment.
+    opener = "    <!-- the review chain` carries"
+    commented = text.replace(f"\n{wrapped}", f"\n{opener}\n    one line. -->")
+    [(line, why)] = parse(commented).errors
+    assert line == line_of(commented, opener), (line, why)
+    assert "begins inside a code span" in why, why
 
 
 def test_a_comment_opener_inside_a_fence_above_the_section_hides_no_operation():
