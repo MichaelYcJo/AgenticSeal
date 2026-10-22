@@ -9,6 +9,7 @@ script under the case's own directory that logs what it saw of the target.
 """
 
 import pathlib
+import py_compile
 import re
 import shlex
 import sys
@@ -71,6 +72,8 @@ def mutant_of(old, new):
 class Test_batch_run:
     def test_accepts_each_pair_alone_after_one_baseline(self, tmp_path):
         target, log, command = world(tmp_path)
+        # Bytecode an earlier run left behind, which the baseline must not meet.
+        py_compile.compile(str(target), doraise=True)
         results = list(mc.batch_run(str(target), PAIRS, command, cwd=str(tmp_path)))
         assert [r[0] for r in results] == [mc.BASELINE, mc.RED, mc.SURVIVED, mc.RED]
         assert all(r[3] >= 0 for r in results), results
@@ -172,8 +175,10 @@ class Test_main:
         printed = re.findall(r"^mutant (\d+): (red|SURVIVED|timed out)", out, re.M)
         assert printed == [(str(n), v) for n, v in enumerate(verdicts, 1)], out
         assert code == exit_code, out
-        counts = (verdicts.count("red"), verdicts.count("SURVIVED"))
-        assert f"3 mutants, {counts[0]} red, {counts[1]} SURVIVED" in out, out
+        counts = [verdicts.count(v) for v in ("red", "SURVIVED", "timed out")]
+        assert (
+            "3 mutants, {} red, {} SURVIVED, {} with no verdict".format(*counts) in out
+        ), out
         assert len(seen(log)) == 4, "the baseline or a mutant did not run once"
         assert target.read_text(encoding="utf-8") == ORIGINAL
 
