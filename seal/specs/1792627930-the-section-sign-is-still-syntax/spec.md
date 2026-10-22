@@ -207,7 +207,7 @@ number, 271 before an italic heading, and 129 before anything else (executed).
 | S5 preload bytes | Given each of framer, smith, warden, sealer and scribe, when `noninferiority.py#preload_bytes` is read at the branch's base and at head, then head is fewer bytes for every agent. | the free measurement in `plan.md`, phases 1, 3 and 4, recorded in each phase record |
 | S6 printed text | Given each message of scope item 8, when it is printed, then it carries no section sign and its new text is pinned. | the module that pins each message, each case seen red |
 | S7 touched citations resolve | Given a citation phases 2 and 3 touch whose file exists, when the phase closes, then the citation names a heading of that file, or the phase record lists what it became. | the phase records; read by the warden |
-| S8 rule changes | Given this spec, when `rule_changes.parse` reads it, then it yields three `change` and two `add`, and `apply_op` places each in its document at the base. | executed by the framer at a16acb40; the pull request check re-reads it |
+| S8 rule changes | Given this spec, when `rule_changes.parse` reads it, then it yields four `change` and two `add`, and `apply_op` places each in its document at the base. | executed by the framer at a16acb40; the pull request check re-reads it |
 | S9 records untouched | Given the diff from the base to head, when it is listed for `seal/specs/`, `changelog/`, `CHANGELOG.md` and `evals/behaviour/`, then only this work item's own directory appears. | `git diff --name-only <base>..HEAD` over those four paths |
 | S10 templates carry no comment | Given `templates/sdd-*.md` at head, when the template case reads them, then none holds `<!--`; with one comment put back, the case fails naming the file and line. | `tests/test_a_record_carries_no_comment.py`, seen red |
 | S11 guidance lands once | Given each sentence phase 4 takes out of a template, when the phase closes, then its phase record names where the sentence now stands (file and heading) or the owner that already stated it; and each case that pinned a template sentence pins it at its new home. | phase 4's record; the 17 test modules that read `templates/sdd-*` at a16acb40 (executed count) |
@@ -284,6 +284,12 @@ holding `<!--`. The first `add` under `## Rule changes` names this module.
   to: one `Verdict:` line, in one of three shapes: `Verdict: sealed`,
     `Verdict: withheld reason: <reason>` or
     `Verdict: undecided question: <question>`.
+- change
+  file: docs/the-review-and-parity-arms.md
+  section: The declaration, and where the check went
+  from: declaration: it takes the third answer of `templates/sdd-routing.md`.
+  to: declaration: it takes the third answer of question 1, `no work item`,
+    in `skills/implement/orchestration.md` *Question 1*.
 - add
   file: docs/the-record-layout.md
   section: seal/specs/<work-item-id>/
@@ -314,6 +320,7 @@ holding `<!--`. The first `add` under `## Rule changes` names this module.
 | The step-number citation reader for `implement` | `tests/test_the_set_a_work_item_always_has.py#CITED_NUMBER` | `#CITED_TITLE` reads the heading-text citation that replaces every step-number citation |
 | The section-sign arms of two citation readers | `tests/test_no_passage_is_pasted_into_a_second_file.py#SECTION`, `tests/test_the_set_a_work_item_always_has.py#CITED_TITLE` | The case of scope item 6 refuses the old spelling, so no reader keeps an arm for it |
 | The docs sentence naming the contract's "section numbers" | `docs/the-agent-set.md` *One contract every agent receives, and one definition each* | `## Rule changes` above |
+| The docs sentence pointing at "the third answer of `templates/sdd-routing.md`", which the template no longer holds | `docs/the-review-and-parity-arms.md` *The declaration, and where the check went* | `## Rule changes` above: `skills/implement/orchestration.md` *Question 1*, where the `no work item` answer stands |
 | The docs sentence citing "the agent contract's section on the `seal/` root", and the one spelling the guarantee's verdicts with a dash | `docs/one-root-by-lifetime.md` *The root and its lifetimes*, `docs/the-review-record.md` *The guarantee* | `## Rule changes` above: `contract rule 11`, and the three shapes `chain_check.py#VERDICT_SHAPE` reads |
 | The section sign in 747 lines of 144 living files | every living file, listed at build time by `git grep` | The spellings under `## Data & interfaces`; the case of scope item 6 keeps it out |
 | The 23 comments of the eight record templates, and the body guidance of `sdd-plan.md` and `sdd-questions.md` | every `templates/sdd-*.md` | The homes under `## Data & interfaces`, or the owner that already states each sentence; phase 4's record lists which |
