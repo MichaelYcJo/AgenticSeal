@@ -73,10 +73,10 @@ class Test_main:
             "### Test files against v0.0.1"
         )
         assert (
-            "| Test file | Cases at v0.0.1 | Seconds at v0.0.1 | Cases now | Seconds now |"
-            in out
-        )
-        assert "| `tests/test_new.py` | — | — | 1 | 9.0 |" in out
+            "| Test file | Cases at v0.0.1 | Seconds at v0.0.1 | Cases now | Seconds now |\n"
+            "|---|---|---|---|---|\n"
+            "| `tests/test_new.py` | — | — | 1 | 9.0 |\n"
+        ) in out
 
     def test_refuses_to_print_rows_for_a_tree_it_cannot_read(self, tmp_path, capsys):
         now = priced(tmp_path / "now", NOW)
