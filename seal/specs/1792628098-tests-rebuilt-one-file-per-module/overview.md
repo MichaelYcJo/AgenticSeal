@@ -21,9 +21,9 @@ The suite grew to 7,466 cases and four thousand Windows seconds in files named a
 
 ## Not done
 
-Phase 4 left seven survived mutations of `tests/conftest.py` helpers (h2, h4, h6, h12, h14, h21, h23). Each closes in the batch that rebuilds the module whose cases reach it; none closed with `broad_gate.py` or `seal_stamp.py`, as `phases/phase-5.md` says.
+Phase 4 left seven survived mutations of `tests/conftest.py` helpers (h2, h4, h6, h12, h14, h21, h23). Each closes in the batch that rebuilds the module whose cases reach it; none closed with `broad_gate.py`, `seal_stamp.py` or the commit flow, as `phases/phase-5.md` says.
 
-Phase 5 has rebuilt two of its eleven modules, `skills/verify/scripts/broad_gate.py` and `skills/verify/scripts/seal_stamp.py`. The other nine remain for the next phase 5 spawn: the commit flow into `tests/e2e/commit/`, `hooks/commit-review-gate.py`, `hooks/worktree-guard.py`, `chain_check.py`, `pact_check.py`, `hooks/root-migrate.py`, `seal.py`, `evals/scripts/noninferiority.py` and `unverified_check.py`.
+Phase 5 has rebuilt three of its eleven modules, `skills/verify/scripts/broad_gate.py`, `skills/verify/scripts/seal_stamp.py` and the commit flow into `tests/e2e/commit/`. The other eight remain for the next phase 5 spawn: `hooks/commit-review-gate.py`, `hooks/worktree-guard.py`, `chain_check.py`, `pact_check.py`, `hooks/root-migrate.py`, `seal.py`, `evals/scripts/noninferiority.py` and `unverified_check.py`.
 
 ## Fed back into the spec
 
