@@ -18,7 +18,7 @@ The probe built three readers, each with its own `unverified_check.py`: the base
 severity: should
 location: `skills/settle/scripts/rule_changes.py:110-122`, `skills/settle/SKILL.md:66-68`, `tests/test_settle_applies_rule_changes_in_place.py`
 evidence: executed `python3 -I <scratch>/test_tmp_three_readers.py <clone> <scratch>/work`
-verdict: open
+verdict: fixed fcc7e989
 reopens: round-1#2
 
 Round 1's finding 2 was closed `fixed 7eacbe1c`, and round 2 confirmed it on the shapes it named. Its close does not hold for one shape the fix range rewrote but did not reach. `skills/settle/SKILL.md:66-68` now tells the person writing a spec that "a line that begins inside a span an earlier line opened is refused at its line". The reader breaks that sentence when such a line starts with the comment opener.
@@ -55,7 +55,7 @@ A case beside `test_a_line_that_begins_inside_a_code_span_is_refused_at_its_line
         body.append((n + 1, line))
 ```
 
-answer:
+answer: The finding holds, and fcc7e989 fixes it with the one reorder the record gives. In `rule_changes.py#parse` the refusal of a line that is live in `liveness` and dead in `live_lines` now runs before the comment skip, and the skip is otherwise unchanged. The comment above the loop says why the refusal comes first. `test_a_line_that_begins_inside_a_code_span_is_refused_at_its_line` gained the three-line shape: a value opening a span, a line that opens with `<!--` and closes the span, and a line that closes the comment. Against d5f9fc31's reader that shape returned the operation with no error. Now it is refused at the second line. `mutation-check` turned the module red for four mutations: the refusal removed, its `literal[n]` term dropped, the comment opener exempted from the refusal again, and the comment skip narrowed. Over all 120 `seal/specs/*/spec.md` the reader at fcc7e989 returns exactly what d5f9fc31's returns, and refuses none. `skills/settle/SKILL.md:66-68` now holds as written, so it is unchanged.
 
 ## Confirmations
 
