@@ -7,10 +7,12 @@ values file under the git common dir, and a `Stop` hook in the session that
 ran the gate (since #969 the orchestrator's) draws each undrawn file once,
 after that turn's text.
 
-This module holds the stamp's half — the values file, `seal-stamp --from`,
-the scale #853 retired. The gate's half is in
-`tests/test_the_seal_is_taken_once_by_the_sealer.py`, beside the fixtures
-that drive a real gate over a settled work item.
+This module holds what reaches the person through the hooks: the `Stop`
+hook's drawing (`hooks/sealer-stamp.py`), the commit gate's refusal of a
+`sealed` the branch does not hold (`hooks/commitgate.py`), the `post-edit`
+gate that queues a local-mode stamp (`hooks/sealer-stamp-queue.py`), and the
+cases that read the documents. `skills/verify/scripts/seal_stamp.py`'s own
+cases, one class per function, are `tests/test_seal_stamp.py` since #942.
 """
 
 import inspect
@@ -74,20 +76,6 @@ LABEL = (
 )
 
 
-def test_a_values_file_from_an_older_gate_draws_the_label_it_always_drew():
-    """A15's compatibility half. A file with no `branch` key was written by
-    a gate older than #666, and may still be pending when a newer hook draws
-    it, so it gets the label it always got. `branch` present and `null` is a
-    detached HEAD, which is the new shape with the branch left out; no `pr`
-    leaves the pull request out."""
-    mod = stamp_module()
-    old = {k: v for k, v in values().items() if k not in ("branch", "pr")}
-    assert mod.label(old) == "SEALED aaa1111 against bbb2222 · 1799000000-an-item"
-    assert mod.label({**values(), "branch": None, "pr": None}) == (
-        "SEALED aaa1111 against origin/base @ bbb2222 · 1799000000-an-item"
-    )
-
-
 def seal_stamp(*args):
     """`seal_stamp.py` as a person types it, stdout a pipe."""
     return subprocess.run(
@@ -97,117 +85,6 @@ def seal_stamp(*args):
         errors="replace",
         timeout=60,
     )
-
-
-# --- S11: a values file drawn by hand, once --------------------------------
-
-
-def test_a_values_file_is_drawn_by_hand_once_and_then_refused(tmp_path):
-    """S11. `seal-stamp --from <file>` draws that run's rows — not the
-    sample — and marks the file drawn. The same command again refuses with
-    one sentence and exit 2, because a sealed run's values are drawn once
-    whoever draws them."""
-    mod = stamp_module()
-    path = mod.write_values(str(tmp_path), "s-1", values())
-    out = seal_stamp("--from", path)
-    assert out.returncode == 0, out.stderr
-    assert out.stdout == "\n" + "\n".join(mod.stamp(ROWS, shape=True)) + "\n\n"
-    assert "aaa1111" in out.stdout and "c46fd2d" not in out.stdout, (
-        "the drawing is the sample's, not the run's"
-    )
-    assert not os.path.exists(path), "the file was drawn and not marked drawn"
-    assert os.path.exists(mod.drawn_path(path)), "the drawn file's values are gone"
-
-    again = seal_stamp("--from", path)
-    assert again.returncode == 2, again.stdout + again.stderr
-    assert again.stdout == "", f"something was drawn a second time:\n{again.stdout}"
-    refusal = again.stderr.strip()
-    assert "was drawn already" in refusal and "\n" not in refusal, refusal
-    assert seal_stamp("--from", mod.drawn_path(path)).returncode == 2, (
-        "the drawn file itself can be drawn again by naming it"
-    )
-
-
-def test_the_drawn_refusal_names_the_file_the_values_are_in(tmp_path):
-    """Round 1's 🟡 3. Naming the drawn file itself was refused — rightly —
-    with a sentence saying the values stay in `X.drawn.drawn.json`, which does
-    not exist, on the one path a person has to recover them from. The file
-    the refusal says holds the values exists, whichever name was given."""
-    mod = stamp_module()
-    path = mod.write_values(str(tmp_path), "s-1", values())
-    assert seal_stamp("--from", path).returncode == 0
-    drawn = mod.drawn_path(path)
-    for given in (path, drawn):
-        out = seal_stamp("--from", given)
-        assert out.returncode == 2, out.stdout + out.stderr
-        assert f"the values stay in {drawn}." in out.stderr, out.stderr
-        assert ".drawn.drawn.json" not in out.stderr, out.stderr
-
-
-def test_a_file_that_is_not_a_run_is_refused_and_left_for_a_repair(tmp_path):
-    """A values file that is not in the gate's shape is refused before it is
-    claimed, so it is still there to be drawn once somebody repairs it."""
-    for broken, said in (
-        ("not json", "it is not JSON"),
-        (json.dumps({**values(), "rows": "SEALED"}), "`rows` is not a list"),
-    ):
-        path = tmp_path / "1-aaa1111.json"
-        path.write_text(broken, encoding="utf-8")
-        out = seal_stamp("--from", str(path))
-        assert out.returncode == 2, (broken, out.stdout, out.stderr)
-        assert said in out.stderr, out.stderr
-        assert out.stdout == "", out.stdout
-        assert path.exists(), f"a refused file was claimed: {broken!r}"
-
-
-@pytest.mark.parametrize(
-    "scale",
-    [NO_SCALE, 0.9, 0.5, "large", None],
-    ids=["none", "an-older-gates-0.90", "under-the-old-floor", "a-word", "null"],
-)
-def test_a_values_file_draws_whatever_scale_it_carries(tmp_path, scale):
-    """S13 (#853). The gate writes no `scale` since #853, and a file a gate
-    before it wrote carries one; both draw the same stamp, and a `scale`
-    the old band would have refused, or that is no number, is read as
-    nothing too — the stamp has one size, so the key decides nothing."""
-    mod = stamp_module()
-    path = mod.write_values(str(tmp_path), "s-1", values(scale=scale))
-    assert mod.read_values(path)["rows"] == [
-        None if row is None else tuple(row) for row in ROWS
-    ]
-    out = seal_stamp("--from", path)
-    assert out.returncode == 0, out.stderr
-    assert out.stdout == "\n" + "\n".join(mod.stamp(ROWS, shape=True)) + "\n\n"
-
-
-def test_pending_lists_the_undrawn_oldest_first_and_claim_takes_one_once(tmp_path):
-    """The reader the hook uses. `pending` lists undrawn files oldest first
-    and skips drawn ones and the writer's hidden temporary; `claim` renames a
-    file to its drawn name and answers None to the second caller, which is
-    what keeps two drawers racing for one file to one drawing."""
-    mod = stamp_module()
-    older = mod.write_values(str(tmp_path), "s-1", values(), now=1)
-    newer = mod.write_values(str(tmp_path), "s-1", values(), now=2)
-    directory = mod.values_dir(str(tmp_path), "s-1")
-    open(os.path.join(directory, ".3-aaa1111.tmp"), "w", encoding="utf-8").close()
-    assert mod.pending(directory) == [older, newer]
-    assert mod.claim(older) == mod.drawn_path(older)
-    assert mod.claim(older) is None, "a claimed file was claimed a second time"
-    assert mod.pending(directory) == [newer]
-    assert mod.pending(str(tmp_path / "nowhere")) == []
-
-
-def test_a_session_id_cannot_name_a_directory_outside_the_values_dir(tmp_path):
-    """The session id names a directory, so a separator in a malformed one
-    must not become a path escape, and an absent one lands under `none/`."""
-    mod = stamp_module()
-    assert mod.session_key("../../elsewhere") == "elsewhere"
-    for absent in (None, "", "  ", ".", ".."):
-        assert mod.session_key(absent) == mod.NO_SESSION, absent
-    path = mod.write_values(str(tmp_path), "../../elsewhere", values())
-    assert os.path.dirname(path) == os.path.join(
-        str(tmp_path), mod.VALUES_DIR, "elsewhere"
-    ), path
 
 
 # --- S3-S6: the hook draws at the main session's `Stop`, once ---------------
@@ -577,57 +454,6 @@ def queued(repo):
     return sorted(found)
 
 
-@pytest.mark.rule("stamp-drawn-once")
-def test_a_sealed_guarantees_commit_queues_one_stamp(tmp_path):
-    """#975 S4. The commit adds `guarantee.md` reading `sealed` over a
-    `Target SHA` with no earlier run, so `post-commit` writes one values
-    file for the session, named by the work item's id and the audited
-    commit, and prints one line naming it and `seal-stamp --from`. The
-    main session's `Stop` then draws it once, labelled with what was
-    sealed. Red at `ddb5cf1a`: the hook queued nothing.
-
-    Under a directory whose name holds a space, so the command the line
-    names is quoted for the shell a person types it into."""
-    mod = stamp_module()
-    spaced = tmp_path / "a checkout"
-    spaced.mkdir()
-    repo, target, base = guaranteed(spaced)
-    said = after_the_commit(repo)
-    (path,) = queued(repo)
-    assert " " in path and f"--from {path}`" not in said, said
-    assert os.path.dirname(path) == str(repo / ".git" / "specseal-stamp" / "s-1")
-    assert os.path.basename(path).endswith(f"-{ITEM_ID}-{target}.json"), path
-    assert said == (
-        f"specseal: the stamp for {ITEM_ID} is drawn at the end of this turn "
-        f"from {path}; where none appears, `seal-stamp --from {mod.quote(path)}` "
-        "draws it\n"
-    ), said
-    lines = message(stop(repo))
-    assert lines[0] == f"SEALED feat/x @ {target} against {base} · {ITEM_NAME}", lines
-    assert stop(repo) == "", "the stamp was drawn twice"
-
-
-@pytest.mark.rule("stamp-drawn-once")
-@pytest.mark.parametrize(
-    "verdict",
-    [
-        "withheld reason: the README is stale",
-        "undecided question: does #12 ask for the flag?",
-    ],
-)
-def test_a_withheld_or_undecided_guarantee_queues_nothing(tmp_path, verdict):
-    """#975 S5. The finished-work stamp is not drawn over unfinished work:
-    a committed guarantee that does not read `sealed` queues nothing and
-    says nothing about a stamp. Nor does a later commit that does not touch
-    the guarantee."""
-    repo, _target, _base = guaranteed(tmp_path, verdict=verdict)
-    assert after_the_commit(repo) == ""
-    (repo / "README.md").write_text("x\n", encoding="utf-8")
-    commit_all(repo, "something else")
-    assert after_the_commit(repo) == ""
-    assert queued(repo) == []
-
-
 # S7 of #1000: lines that mean the sealer's verdict and are none of its three
 # shapes, `tests/test_the_sealer_guarantees.py#NEAR_MISSES`'s cases that would
 # otherwise read as `sealed` or near it.
@@ -640,280 +466,6 @@ NEAR_SEALED = (
     "    Verdict: sealed",
     "\tVerdict: sealed",
 )
-
-
-@pytest.mark.rule("stamp-drawn-once")
-@pytest.mark.parametrize("line", NEAR_SEALED)
-def test_a_near_miss_of_sealed_queues_nothing_and_is_no_earlier_seal(tmp_path, line):
-    """S7 of #1000. A committed guarantee whose verdict line is a near miss
-    queues no stamp, and a later commit does not find it as an earlier
-    `sealed` (`sealed_before`). Seen red against the reader that stripped
-    emphasis and folded case: `Sealed`, `**sealed**` and `**Verdict:**
-    sealed` queued a stamp and counted as sealed before."""
-    repo, target, base = guaranteed(tmp_path, verdict="withheld reason: x")
-    rel = f"seal/specs/{ITEM_NAME}/guarantee.md"
-    text = guarantee_text(target, base, "sealed").replace("Verdict: sealed", line)
-    (repo / rel).write_text(text, encoding="utf-8")
-    commit_all(repo, "a near miss of sealed")
-    assert after_the_commit(repo) == ""
-    assert queued(repo) == []
-    (repo / "README.md").write_text("x\n", encoding="utf-8")
-    commit_all(repo, "something after it")
-    mod = stamp_module()
-    assert mod.sealed_before(mod._chain_check(), str(repo), rel) is False
-
-
-@pytest.mark.rule("stamp-drawn-once")
-def test_a_reseal_after_withheld_queues_the_stamp(tmp_path):
-    """#975 S6. The sealer withheld at one commit, the work was fixed, and
-    the sealer's second run reads `sealed`, keeping the earlier verdict on
-    the row: that commit draws the stamp."""
-    repo, target, _base = guaranteed(
-        tmp_path, earlier="; earlier run: abc1234 withheld"
-    )
-    assert after_the_commit(repo)
-    (path,) = queued(repo)
-    assert path.endswith(f"-{ITEM_ID}-{target}.json"), path
-
-
-@pytest.mark.rule("stamp-drawn-once")
-def test_a_second_sealed_verdict_queues_nothing(tmp_path):
-    """#975 S7. A work item is stamped once: a guarantee whose `Target SHA`
-    row carries an earlier run reading `sealed` was stamped at that run, so
-    a later `sealed` queues nothing — held by the row the tree carries and
-    no count beside it."""
-    repo, _target, _base = guaranteed(
-        tmp_path,
-        earlier="; earlier run: bbb2222 sealed; earlier run: abc1234 withheld",
-    )
-    assert after_the_commit(repo) == ""
-    assert queued(repo) == []
-
-
-@pytest.mark.rule("stamp-drawn-once")
-def test_a_recommit_of_the_same_guarantee_queues_no_second_file(tmp_path):
-    """#975 S8. An amend, and a second commit naming the same audited
-    commit, find the first file — pending, or drawn and renamed — under any
-    session's directory of the clone, and queue nothing more."""
-    repo, _target, _base = guaranteed(tmp_path)
-    assert after_the_commit(repo, session="s-1")
-    git(
-        repo,
-        "-c",
-        "user.name=e",
-        "-c",
-        "user.email=e@example.com",
-        "commit",
-        "--amend",
-        "-qm",
-        "the closing records, again",
-    )
-    assert after_the_commit(repo, session="s-2") == ""
-    assert len(queued(repo)) == 1, queued(repo)
-    stop(repo)
-    (drawn_file,) = queued(repo)
-    assert drawn_file.endswith(".drawn.json"), drawn_file
-    git(
-        repo,
-        "-c",
-        "user.name=e",
-        "-c",
-        "user.email=e@example.com",
-        "commit",
-        "--amend",
-        "-qm",
-        "the closing records, a third time",
-    )
-    assert after_the_commit(repo) == ""
-    assert queued(repo) == [drawn_file]
-
-
-@pytest.mark.rule("stamp-drawn-once")
-def test_a_reseal_whose_row_lost_its_earlier_run_queues_nothing(tmp_path):
-    """#975, once per work item. The sealer ran again at a new commit and
-    wrote its row fresh, without `; earlier run: <sha> sealed`: the clone
-    already holds the work item's stamp, so nothing more is queued. Red at
-    a0ee12eb: the key named the audited commit, so a second file stood
-    beside the drawn one."""
-    repo, _target, base = guaranteed(tmp_path)
-    assert after_the_commit(repo)
-    stop(repo)
-    item = repo / "seal" / "specs" / ITEM_NAME
-    (repo / "x.txt").write_text("a fix after the seal\n", encoding="utf-8")
-    commit_all(repo, "a fix")
-    new = git(repo, "rev-parse", "--short", "HEAD").stdout.strip()
-    (item / "guarantee.md").write_text(
-        guarantee_text(new, base, "sealed"), encoding="utf-8"
-    )
-    commit_all(repo, "the sealer again, its row written fresh")
-    assert after_the_commit(repo) == ""
-    assert len(queued(repo)) == 1, queued(repo)
-
-
-@pytest.mark.rule("stamp-drawn-once")
-def test_a_squash_of_a_sealed_item_in_another_clone_queues_nothing(tmp_path):
-    """#975, once per work item. The guarantee was stamped in one clone; a
-    squash of its branch in another clone carries the verdict onto a commit
-    whose history does not hold the audited commit, so nothing is queued.
-    Red at a0ee12eb: the second clone held no values file, so it queued
-    one."""
-    repo, _target, _base = guaranteed(tmp_path)
-    assert after_the_commit(repo)
-    other = tmp_path / "other"
-    subprocess.run(
-        ["git", "clone", "-q", "--no-local", str(repo), str(other)], check=True
-    )
-    git(other, "switch", "-q", "main")
-    git(other, "fetch", "-q", "origin", "feat/x:feat/x")
-    git(other, "merge", "--squash", "feat/x")
-    commit_all(other, "the squash, elsewhere")
-    assert after_the_commit(other) == ""
-    assert queued(other) == []
-
-
-@pytest.mark.rule("stamp-drawn-once")
-def test_a_sealed_item_recommitted_in_another_clone_queues_nothing(tmp_path):
-    """#975 round 3, once per work item. The guarantee was stamped in one
-    clone. In a second clone of the same branch, a commit that edits the
-    sealed guarantee with no new run, and a re-seal whose row lost its
-    earlier run, each find `sealed` earlier in the guarantee's history, so
-    nothing is queued. Red at b81de037: the second clone held no values
-    file, so the first of them queued one."""
-    repo, _target, base = guaranteed(tmp_path)
-    assert after_the_commit(repo)
-    other = tmp_path / "other"
-    subprocess.run(
-        ["git", "clone", "-q", "--no-local", str(repo), str(other)], check=True
-    )
-    git(other, "switch", "-q", "feat/x")
-    item = other / "seal" / "specs" / ITEM_NAME / "guarantee.md"
-    item.write_text(item.read_text(encoding="utf-8") + "\na note\n", encoding="utf-8")
-    commit_all(other, "a note in the guarantee, no new run")
-    assert after_the_commit(other) == ""
-    (other / "x.txt").write_text("a fix after the seal\n", encoding="utf-8")
-    commit_all(other, "a fix")
-    new = git(other, "rev-parse", "--short", "HEAD").stdout.strip()
-    item.write_text(guarantee_text(new, base, "sealed"), encoding="utf-8")
-    commit_all(other, "the sealer again, its row written fresh")
-    assert after_the_commit(other) == ""
-    assert queued(other) == []
-
-
-@pytest.mark.rule("stamp-drawn-once")
-def test_a_sealed_item_rebased_in_another_clone_queues_nothing(tmp_path):
-    """#975 round 5, once per work item. The guarantee was stamped in one
-    clone. A second clone rebases the branch, so the sealed commit is
-    rewritten over a history that no longer holds its audited commit, and
-    the sealer's re-run writes its row fresh. The rewritten `sealed` is the
-    stamp's trace, so nothing is queued. Red at 5943f1d7: `sealed_before`
-    skipped the rewritten commit and the second clone queued a second
-    stamp."""
-    repo, _target, _base = guaranteed(tmp_path)
-    assert after_the_commit(repo)
-    other = tmp_path / "other"
-    subprocess.run(
-        ["git", "clone", "-q", "--no-local", str(repo), str(other)], check=True
-    )
-    git(other, "switch", "-q", "main")
-    (other / "base.txt").write_text("the base moved\n", encoding="utf-8")
-    commit_all(other, "the base moved")
-    git(other, "switch", "-q", "feat/x")
-    git(
-        other,
-        "-c",
-        "user.name=e",
-        "-c",
-        "user.email=e@example.com",
-        "rebase",
-        "-q",
-        "main",
-    )
-    (other / "x.txt").write_text("a fix after the rebase\n", encoding="utf-8")
-    commit_all(other, "a fix")
-    new = git(other, "rev-parse", "--short", "HEAD").stdout.strip()
-    base = git(other, "rev-parse", "--short", "main").stdout.strip()
-    item = other / "seal" / "specs" / ITEM_NAME / "guarantee.md"
-    item.write_text(guarantee_text(new, base, "sealed"), encoding="utf-8")
-    commit_all(other, "the sealer again after the rebase, its row written fresh")
-    assert after_the_commit(other) == ""
-    assert queued(other) == []
-
-
-@pytest.mark.rule("stamp-drawn-once")
-def test_a_sealed_item_rebased_and_cloned_fresh_queues_nothing(tmp_path):
-    """#975 round 6, once per work item. The guarantee was stamped in one
-    clone, which then rebased the branch onto a moved base. A fresh clone
-    of the rebased branch does not hold the commit the first `sealed`
-    audited, and the sealer's re-run there writes its row fresh. The
-    rewritten `sealed` still counts, so nothing is queued. Red with
-    `sealed_before` counting a `sealed` only where its target resolves in
-    the clone (`plan.md` B4): the fresh clone queued a second stamp."""
-    repo, target, _base = guaranteed(tmp_path)
-    assert after_the_commit(repo)
-    git(repo, "switch", "-q", "main")
-    (repo / "base.txt").write_text("the base moved\n", encoding="utf-8")
-    commit_all(repo, "the base moved")
-    git(repo, "switch", "-q", "feat/x")
-    git(
-        repo,
-        "-c",
-        "user.name=e",
-        "-c",
-        "user.email=e@example.com",
-        "rebase",
-        "-q",
-        "main",
-    )
-    other = tmp_path / "other"
-    subprocess.run(
-        ["git", "clone", "-q", "--no-local", str(repo), str(other)], check=True
-    )
-    held = subprocess.run(
-        ["git", "-C", str(other), "cat-file", "-e", target], capture_output=True
-    )
-    assert held.returncode != 0, "the fresh clone holds the pre-rebase commit"
-    (other / "x.txt").write_text("a fix after the rebase\n", encoding="utf-8")
-    commit_all(other, "a fix")
-    new = git(other, "rev-parse", "--short", "HEAD").stdout.strip()
-    base = git(other, "rev-parse", "--short", "origin/main").stdout.strip()
-    item = other / "seal" / "specs" / ITEM_NAME / "guarantee.md"
-    item.write_text(guarantee_text(new, base, "sealed"), encoding="utf-8")
-    commit_all(other, "the sealer again in a fresh clone, its row written fresh")
-    assert after_the_commit(other) == ""
-    assert queued(other) == []
-
-
-@pytest.mark.rule("stamp-drawn-once")
-def test_the_guarantee_stamps_rows_are_read_from_the_records(tmp_path):
-    """#975 S9, `questions.md` Q1's answer (a). The stamp carries what the
-    records at the commit say and nothing re-measured: its title, the
-    audited commit with the branch under it, the base, the work item's id,
-    then the newest broad run `broad-gate.md` names and the count of round
-    records. No `scale` is written."""
-    mod = stamp_module()
-    repo, target, base = guaranteed(tmp_path)
-    after_the_commit(repo)
-    (path,) = queued(repo)
-    said = mod.read_values(path)
-    assert said["rows"] == [
-        ("SEALED", ""),
-        ("tree", target),
-        ("", "feat/x"),
-        ("base", base),
-        ("item", ITEM_ID),
-        None,
-        ("gate", f"✓ {target}"),
-        ("rounds", "2"),
-    ], said["rows"]
-    assert "scale" not in said, said
-    assert (said["tree"], said["base"], said["from"], said["branch"]) == (
-        target,
-        base,
-        None,
-        "feat/x",
-    ), said
-    assert said["item"] == str(repo / "seal" / "specs" / ITEM_NAME), said
-    assert said["session"] == "s-1" and said["pr"] is None, said
 
 
 # --- 1792363231: in local mode the stamp is queued at the write ---------------------
@@ -974,219 +526,15 @@ def local_guaranteed(tmp_path, verdict="sealed", earlier="", linked=False):
     return repo, target, base, path
 
 
-def queue_local(path, session="s-1"):
-    """What the local writer returned for the `guarantee.md` at `path`."""
-    return stamp_module().queue_for_local_guarantee(str(path), session)
-
-
-@pytest.mark.rule("stamp-drawn-once")
-@pytest.mark.parametrize("linked", [False, True], ids=["main checkout", "linked"])
-def test_a_local_mode_sealed_guarantee_queues_one_stamp(tmp_path, linked):
-    """1792363231 S1. A local-mode `guarantee.md` reading `sealed` over a commit on
-    the `Branch` row's branch, with no earlier run reading `sealed`, queues
-    one values file for the session under the common dir, named by the work
-    item's id and the audited commit, with the rows the shared writer
-    builds from the same records, and returns the one line `post-commit`
-    prints in shared mode. The main session's `Stop` then draws it once.
-    The same from a linked worktree, whose common dir is the main
-    checkout's `.git`. Red at d8f9eaef: `seal_stamp` had no local writer."""
-    mod = stamp_module()
-    repo, target, base, path = local_guaranteed(tmp_path, linked=linked)
-    said = queue_local(path)
-    (written,) = queued(repo)
-    assert os.path.dirname(written) == str(repo / ".git" / "specseal-stamp" / "s-1")
-    assert os.path.basename(written).endswith(f"-{ITEM_ID}-{target}.json"), written
-    real = os.path.realpath(written)
-    assert said == [mod.QUEUED.format(id=ITEM_ID, path=real, command=mod.quote(real))]
-    values = mod.read_values(written)
-    assert values["rows"] == [
-        ("SEALED", ""),
-        ("tree", target),
-        ("", "feat/x"),
-        ("base", base),
-        ("item", ITEM_ID),
-        None,
-        ("gate", f"✓ {target}"),
-        ("rounds", "2"),
-    ], values["rows"]
-    assert (values["tree"], values["base"], values["from"], values["branch"]) == (
-        target,
-        base,
-        None,
-        "feat/x",
-    ), values
-    assert values["item"] == os.path.realpath(path.parent), values
-    assert values["session"] == "s-1" and values["pr"] is None, values
-    lines = message(stop(repo))
-    assert lines[0] == f"SEALED feat/x @ {target} against {base} · {ITEM_NAME}", lines
-    assert stop(repo) == "", "the stamp was drawn twice"
-
-
-@pytest.mark.rule("stamp-drawn-once")
-@pytest.mark.parametrize(
-    "written",
-    [
-        lambda t, b: guarantee_text(t, b, "withheld reason: the README is stale"),
-        lambda t, b: guarantee_text(t, b, "undecided question: does #12 ask?"),
-        lambda t, b: guarantee_text(t, b, "sealed") + "\nVerdict: withheld reason: x\n",
-        lambda t, b: open(GUARANTEE_TEMPLATE, encoding="utf-8").read(),
-    ],
-    ids=["withheld", "undecided", "two verdicts", "the unfilled template"],
-)
-def test_a_local_mode_withheld_or_undecided_guarantee_queues_nothing(tmp_path, written):
-    """1792363231 S2. The finished-work stamp is not drawn over unfinished work in
-    local mode either: a guarantee that does not read one `Verdict:` of
-    `sealed` queues nothing and returns no line."""
-    repo, target, base, path = local_guaranteed(tmp_path)
-    path.write_text(written(target, base), encoding="utf-8")
-    assert queue_local(path) == []
-    assert queued(repo) == []
-
-
-@pytest.mark.rule("stamp-drawn-once")
-def test_a_local_mode_reseal_after_withheld_queues_the_stamp(tmp_path):
-    """1792363231 S3. The sealer withheld, the work was fixed, and its second run
-    reads `sealed` with the earlier verdict kept on the row: that write
-    queues the stamp. A work item whose review went straight to the pull
-    request holds no `rounds/`, and its stamp reads `0` rounds."""
-    repo, target, _base, path = local_guaranteed(
-        tmp_path, earlier="; earlier run: abc1234 withheld"
-    )
-    for name in ("round-1.md", "round-2.md"):
-        (path.parent / "rounds" / name).unlink()
-    (path.parent / "rounds").rmdir()
-    assert queue_local(path)
-    (written,) = queued(repo)
-    assert written.endswith(f"-{ITEM_ID}-{target}.json"), written
-    assert stamp_module().read_values(written)["rows"][-1] == ("rounds", "0")
-
-
-@pytest.mark.rule("stamp-drawn-once")
-def test_a_local_mode_second_sealed_queues_nothing(tmp_path):
-    """1792363231 S3, once per work item. A row whose earlier-run chain reads
-    `sealed` was stamped at that run, so it queues nothing. A values file
-    for the work item under any session's directory of the clone, pending
-    or drawn, is a complete record in local mode, since the root and the
-    values directory share the common dir: a second write queues nothing
-    beside it."""
-    repo, target, base, path = local_guaranteed(
-        tmp_path,
-        earlier="; earlier run: bbb2222 sealed; earlier run: abc1234 withheld",
-    )
-    assert queue_local(path) == []
-    assert queued(repo) == []
-    path.write_text(guarantee_text(target, base, "sealed"), encoding="utf-8")
-    assert queue_local(path, session="s-1")
-    assert queue_local(path, session="s-2") == []
-    assert len(queued(repo)) == 1, queued(repo)
-    stop(repo)
-    (drawn_file,) = queued(repo)
-    assert drawn_file.endswith(".drawn.json"), drawn_file
-    assert queue_local(path, session="s-3") == []
-    assert queued(repo) == [drawn_file]
-
-
-def _unresolved(repo, item, target, base):
-    (item / "guarantee.md").write_text(
-        guarantee_text("dead0000", base, "sealed"), encoding="utf-8"
-    )
-    return "dead0000"
-
-
-def _off_the_branch(repo, item, target, base):
-    off = off_branch_commit(repo)
-    (item / "guarantee.md").write_text(
-        guarantee_text(off, base, "sealed"), encoding="utf-8"
-    )
-    return off
-
-
-def _no_target(repo, item, target, base):
-    (item / "guarantee.md").write_text(
-        "# an item — guarantee\n\nVerdict: sealed\n", encoding="utf-8"
-    )
-
-
-def _no_routing(repo, item, target, base):
-    (item / "routing.md").unlink()
-
-
-def _no_branch_row(repo, item, target, base):
-    (item / "routing.md").write_text(routing_text(None), encoding="utf-8")
-
-
-def _a_branch_gone(repo, item, target, base):
-    (item / "routing.md").write_text(routing_text("feat/merged"), encoding="utf-8")
-
-
-@pytest.mark.rule("refused-sealed-leaves-a-record")
-@pytest.mark.rule("stamp-drawn-once")
-@pytest.mark.parametrize(
-    "given",
-    [
-        _no_target,
-        _unresolved,
-        _off_the_branch,
-        _no_routing,
-        _no_branch_row,
-        _a_branch_gone,
-    ],
-    ids=[
-        "no Target SHA row",
-        "the target does not resolve",
-        "the target is off the branch",
-        "no routing.md",
-        "no Branch row",
-        "a branch the clone no longer holds",
-    ],
-)
-def test_a_local_mode_guarantee_off_its_branch_queues_nothing(tmp_path, given):
-    """1792363231 S4. `settle` never retires a local-mode work item, so a `sealed`
-    the clone wrote long ago still stands under its root. A verdict over a
-    commit the work item's branch does not hold — or one whose branch cannot
-    be named or is gone — queues nothing, so editing an old guarantee draws
-    no stamp for work finished long ago. Where the branch stands and does
-    not hold the commit named, the writer says so in one line, since no
-    pull request's check reads a local guarantee; where no branch can be
-    read, nothing is said. Red at 37f96f7a on the line: the writer was
-    silent."""
-    repo, target, base, path = local_guaranteed(tmp_path)
-    named = given(repo, path.parent, target, base)
-    said = queue_local(path)
-    assert queued(repo) == []
-    if named:
-        line = stamp_module().NOT_ON_BRANCH
-        assert said == [line.format(id=ITEM_ID, target=named, branch="feat/x")], said
-    else:
-        assert said == [], said
-
-
 @pytest.mark.rule("stamp-drawn-once")
 def test_the_edit_gate_leaves_shared_mode_to_post_commit(tmp_path):
-    """1792363231 S5, the writer's half. A `guarantee.md` reading `sealed` under
-    `<repo>/seal/` is shared mode's, whose stamp `post-commit` queues at the
-    commit; and a root under the git common dir of a repository that also
-    has `<repo>/seal/` is shared too (contract rule 11). The local writer queues
-    nothing for either, where every other fact would queue; nor for the
-    same `sealed` text under a local work item in a file that is not its
-    `guarantee.md`."""
-    for name in ("shared", "both", "local"):
-        (tmp_path / name).mkdir()
-    shared, _target, _base = guaranteed(tmp_path / "shared")
+    """1792363231 S5, the gate's half: a `Write` of a `guarantee.md` reading
+    `sealed` under `<repo>/seal/`, shared mode's, whose stamp `post-commit`
+    queues at the commit, says nothing and queues nothing. The writer's
+    half is `tests/test_seal_stamp.py`'s."""
+    shared, _target, _base = guaranteed(tmp_path)
     item = shared / "seal" / "specs" / ITEM_NAME
     (item / "routing.md").write_text(routing_text(), encoding="utf-8")
-    assert queue_local(item / "guarantee.md") == []
-    assert queued(shared) == []
-    both, _target, _base, path = local_guaranteed(tmp_path / "both")
-    (both / "seal").mkdir()
-    assert queue_local(path) == []
-    assert queued(both) == []
-    local, _target, _base, path = local_guaranteed(tmp_path / "local")
-    notes = path.parent / "notes.md"
-    notes.write_text(path.read_text(encoding="utf-8"), encoding="utf-8")
-    assert queue_local(notes) == []
-    assert queued(local) == []
-    # The gate's half: a `Write` of the shared guarantee says nothing.
     assert post_edit(edit_payload(item / "guarantee.md", shared), shared) == ""
     assert queued(shared) == []
 
@@ -1364,72 +712,6 @@ def off_branch_commit(repo):
         "a commit no branch holds",
     ).stdout.strip()
     return sha[:7]
-
-
-@pytest.mark.rule("refused-sealed-leaves-a-record")
-@pytest.mark.parametrize(
-    "recorded, earlier",
-    [
-        (("1700000000", "deadbee"), "deadbee"),
-        ((ITEM_ID, "deadbe"), "deadbee"),
-        ((ITEM_ID, "deadbee"), "dea0bee"),
-    ],
-    ids=[
-        "a record of another work item",
-        "a record spelled shorter than seven characters",
-        "another commit",
-    ],
-)
-def test_a_refusal_record_skips_only_its_own_verdict(tmp_path, recorded, earlier):
-    """1792363231 S14, the reader half. A record answers for one work item
-    and one commit spelled at least seven characters long, so it skips
-    nothing else, and the earlier `sealed` the row names then counts as the
-    stamp: a record another work item left over the same commit, a record
-    spelled shorter than the floor, of which the row's SHA is an extension,
-    and a record of another commit. Red with `_same_commit`'s floor
-    deleted: the six-character record was matched and the re-seal queued a
-    stamp."""
-    repo, _target, _base, path = local_guaranteed(
-        tmp_path, earlier=f"; earlier run: {earlier} sealed"
-    )
-    stamp_module().record_refusal(str(repo / ".git"), *recorded)
-    assert queue_local(path) == []
-    assert queued(repo) == []
-
-
-@pytest.mark.rule("refused-sealed-leaves-a-record")
-def test_a_local_mode_seal_refused_off_its_branch_then_resealed_draws_once(tmp_path):
-    """1792363231 S14. In local mode a `sealed` over a commit the `Branch` row's
-    branch does not hold, while that branch exists, queues nothing, records
-    the refusal and says the line; the re-seal whose row keeps that run as
-    `sealed` then queues one file. Where the refusal is for a missing
-    `Branch` row or a branch the clone no longer holds, nothing is recorded.
-    Red at f6ad0b2c: the re-seal's chain counted the refused run as
-    stamped. Red at 37f96f7a on the line, which the writer did not say."""
-    (tmp_path / "held").mkdir()
-    repo, target, base, path = local_guaranteed(tmp_path / "held")
-    off = off_branch_commit(repo)
-    path.write_text(guarantee_text(off, base, "sealed"), encoding="utf-8")
-    assert queue_local(path) == [
-        f"specseal: no stamp was queued for {ITEM_ID}: its guarantee.md names "
-        f"{off}, which feat/x does not hold; a new audit at the head of feat/x "
-        "draws it"
-    ]
-    assert queued(repo) == [] and refusals(repo) == [f"{ITEM_ID}-{off}"]
-    path.write_text(
-        guarantee_text(target, base, "sealed", f"; earlier run: {off} sealed"),
-        encoding="utf-8",
-    )
-    assert queue_local(path)
-    assert len(queued(repo)) == 1, queued(repo)
-    for given in (_no_branch_row, _a_branch_gone):
-        (tmp_path / given.__name__).mkdir()
-        repo, target, base, path = local_guaranteed(tmp_path / given.__name__)
-        off = off_branch_commit(repo)
-        path.write_text(guarantee_text(off, base, "sealed"), encoding="utf-8")
-        given(repo, path.parent, target, base)
-        assert queue_local(path) == []
-        assert refusals(repo) == [], given.__name__
 
 
 # --- 1792363231 S11-S12: a `sealed` the branch does not hold, at its commit ---------
@@ -1850,29 +1132,6 @@ def test_a_tracking_ref_left_by_a_rebase_withholds_nothing(tmp_path):
     assert len(queued(other)) == 1, queued(other)
 
 
-@pytest.mark.rule("refused-sealed-leaves-a-record")
-@pytest.mark.rule("sealed-off-the-branch-refused")
-def test_a_sealed_committed_past_the_stub_keeps_the_gap(tmp_path):
-    """1792363231 S13. A `sealed` over a commit nobody has, committed where
-    `pre-commit` does not judge it (`--no-verify`, a foreign hooks slot, a
-    person's own commit; here a plain commit with no hook), lands.
-    `post-commit` queues nothing and writes no record, and the repair that
-    keeps the run on its row queues nothing: the chain and `sealed_before`
-    count the earlier `sealed`. The gap stays for that item, a missing
-    stamp, which is Q8's direction, and is pinned as a limit so that a
-    change closing it is seen. Red at de80c2c2: `post-commit` recorded the
-    refusal under its guards, and the repair drew."""
-    repo, target, base = declared_guaranteed(tmp_path)
-    seal_and_commit(repo, "deadbee", base, "the wrong row, past the stub")
-    assert after_the_commit(repo) == ""
-    assert queued(repo) == [] and refusals(repo) == []
-    seal_and_commit(
-        repo, target, base, "the row repaired", earlier="; earlier run: deadbee sealed"
-    )
-    assert after_the_commit(repo) == ""
-    assert queued(repo) == [] and refusals(repo) == []
-
-
 # --- #717: the hook's whole message is held under a budget --------------------
 
 # What `broad_gate.panel` returns for a real run since #832 — `full_values()`'s
@@ -1934,16 +1193,6 @@ def full_values(tree="aaa1111a"):
     }
 
 
-def test_the_budget_is_named_and_derived_from_the_measured_limit():
-    """A2. The limit is the harness's, measured in characters, and the
-    budget leaves room for the report `dispatch.py` prepends to the same
-    message."""
-    mod = stamp_module()
-    assert mod.MESSAGE_LIMIT <= 10090, "above a size the harness has persisted"
-    assert mod.MESSAGE_LIMIT == 10000, "not the number the probe measured"
-    assert mod.MESSAGE_BUDGET <= mod.MESSAGE_LIMIT - 1000, mod.MESSAGE_BUDGET
-
-
 def test_the_hooks_message_is_under_the_budget_for_one_file(tmp_path):
     """A3, one file. A run's values at a real run's size, drawn by the hook
     through `dispatch.py stop`: the printed `systemMessage` is no longer than
@@ -1961,132 +1210,6 @@ def test_the_hooks_message_is_under_the_budget_for_one_file(tmp_path):
     assert text.split("\n", 1)[0] == mod.label(full_values())
     assert text == drawn(mod, mod.label(full_values()), FULL_ROWS), (
         "a real work item's stamp no longer fits the budget with its disc"
-    )
-
-
-# The rows the owner's chosen reference was drawn over: the orchestrating
-# session's `frames.py`'s `ROWS`, behind the panel's title row, which
-# `frames.py#design_open` drew from a constant. They are the panel's shape
-# with one difference the real panel does not have — a `flow` row where the
-# panel carries `CI also` (`questions.md` Q15 of work item 1791270164) — and
-# they stay here as data, because the owner's picture was drawn over them.
-REFERENCE_ROWS = [
-    ("SEALED", ""),
-    ("tree", "aaa1111a"),
-    ("", "feat/12-the-branch-names-the-work-item"),
-    ("base", "bbb2222b  origin/release/v1.2.3"),
-    ("item", "#12 · 1799000000"),
-    ("gate", "tree 1.2.3"),
-    None,
-    ("suite", "✓ 6621 passed · 11 skipped"),
-    ("ledger", "✓ 3451 ok · 0 drifted · 0 broken"),
-    ("chain", "✓ exit 0"),
-    ("flow", "· 4 of 9 not answered"),
-    ("rounds", "2"),
-]
-# The owner's reference for a real work item's stamp, chosen on 2026-10-07: design 3
-# of `frames.py`, `~/Desktop/specseal-frame-3-open.ans` on the owner's
-# machine (`spec.md` decision 6 and S3 of work item 1791270164). Transcribed
-# from that file's SGR stream and half-blocks by a script that read no line
-# of `seal_stamp.py`: each disc cell its top half's letter (its bottom
-# half's where the top is off the disc), the text as the twin writes it, and
-# each line without the blank cells the reference carries past its end.
-REFERENCE_TWIN = (
-    "        mmmmmmmmmmmm           SEALED ------------------------------",
-    "     mmmMMMMMMMMMMMMmmm",
-    "   mmMMMMNNN....NNNnnnnmm      tree    aaa1111a",
-    "  mmMMNN............NMnnmm             feat/12-the-branch-names-the-work-item",
-    " mMMMN....YYxyyyXXYy..MnnNm    base    bbb2222b  origin/release/v1.2.3",
-    "mmMMN....YXXy.....xy...MNNmm   item    #12 . 1799000000",
-    "mMMN.....YXXXXYY...y....MNNm   gate    tree 1.2.3",
-    "mMMN.......xxXXXXXX.....MNNm",
-    "mMMNN....Y.....yXXXxy..MMNNm   suite   + 6621 passed . 11 skipped",
-    " mMMN....YX......Yxxy..MNNm    ledger  + 3451 ok . 0 drifted . 0 broken",
-    "  mnnNN..YyxxYYYYxyy.MMNNm     chain   + exit 0",
-    "   mnnnMM..........MMNNNm      flow    . 4 of 9 not answered",
-    "     mmnnNNMMMMMMNNNNmm        rounds  2",
-    "        mmmNNNNNNmmm",
-)
-# The disc's twenty-eight half-rows in the reference, columns 0 to 27 of its
-# fourteen lines, each half its colour's letter and a space off the disc.
-REFERENCE_DISC = (
-    "           mmmmmm           ",
-    "        mmmMMMMMMmmm        ",
-    "      mmMMMMMMMMMMMMmm      ",
-    "     mmMMMMNNNNNNMMnnmm     ",
-    "    mMMMMNNN....NNNnnnnm    ",
-    "   mMMMNN..........NNnnnm   ",
-    "  mmMMNN............NMnnmm  ",
-    "  mMMNN....YYYYYY.Y..MMnnm  ",
-    " mMMMN....YYxyyyXXYy..MnnNm ",
-    " mMMN....YYxyy...Xxy...MNNm ",
-    " mMMN....YXXy.....xy...MNNm ",
-    "mMMNN....YXXX.....Yy...MMNNm",
-    "mMMN.....YXXXXYY...y....MNNm",
-    "mMMN......XXXXXXXY......MNNm",
-    "mMMN.......xxXXXXXX.....MNNm",
-    "mMMN........yyxXXXXx....MNNm",
-    "mMMNN....Y.....yXXXxy..MMNNm",
-    " mMMN....Yy......XXxy..MNNm ",
-    " mMMN....YX......Yxxy..MNNm ",
-    " mMnnN...YXX....YYxyy.MNNNm ",
-    "  mnnNN..YyxxYYYYxyy.MMNNm  ",
-    "  mmnnMM..y.yyyyyyy.MMNNmm  ",
-    "   mnnnMM..........MMNNNm   ",
-    "    mnnnnMMM....MMMNNNNm    ",
-    "     mmnnNNMMMMMMNNNNmm     ",
-    "      mmNNNNNNNNNNNNmm      ",
-    "        mmmNNNNNNmmm        ",
-    "           mmmmmm           ",
-)
-# The reference's colours by letter, the owner's `seal28.py`'s nine.
-REFERENCE_COLOURS = {
-    "m": (150, 24, 28),
-    "M": (208, 68, 64),
-    "n": (160, 30, 34),
-    "N": (96, 10, 14),
-    ".": (112, 16, 20),
-    "X": (186, 38, 42),
-    "Y": (222, 86, 78),
-    "x": (90, 8, 12),
-    "y": (84, 8, 12),
-    " ": None,
-}
-
-
-def test_a_real_runs_stamp_is_the_owners_reference_cell_for_cell():
-    """#832 S1-S4 against the picture the owner chose rather than against a
-    rule: the stamp over the rows the reference was drawn over is the
-    reference — 14 lines, the disc's grid at column 0 and half-row 0, each of
-    its 784 half-cells the reference's colour or off the disc, the twin the
-    reference's letters line for line, and the block form's text, codes
-    stripped, the twin's with the owner's characters in place. The block
-    form leads its `·` dim where the reference left it plain, which is the
-    owner's decision 6's wording, and the reference is a picture of it.
-
-    A real run's message is its label and its block and nothing else."""
-    mod = stamp_module()
-    letter = mod.compose(REFERENCE_ROWS)
-    assert (letter.height, letter.width, letter.disc) == (14, 77, (0, 0, 28, 28))
-    assert mod.stamp(REFERENCE_ROWS, shape=True) == list(REFERENCE_TWIN)
-    for y, said in enumerate(REFERENCE_DISC):
-        line = letter.cells[y // 2]
-        for x, key in enumerate(said):
-            # A line ends at its last visible cell, so past it is off the disc.
-            char, fg, bg, _style = line[x] if x < len(line) else (None,) * 4
-            top, bottom = (fg, bg) if char == "▀" else (bg, fg)
-            half = top if y % 2 == 0 else bottom
-            assert half == REFERENCE_COLOURS[key], (x, y, key, char, fg, bg)
-    blocks = [mod.strip_ansi(line) for line in mod.stamp(REFERENCE_ROWS)]
-    ascii_ = str.maketrans({"·": ".", "✓": "+", "─": "-", "→": ">"})
-    for line, twin in zip(blocks, REFERENCE_TWIN, strict=True):
-        assert len(line) == len(twin), (line, twin)
-        text = line.translate(ascii_)
-        same = zip(text, twin, strict=True)
-        assert all(a == b for a, b in same if a not in "▀▄"), (line, twin)
-    label = mod.label(full_values())
-    assert mod.fitted([(label, FULL_ROWS)]) == "\n".join(
-        [label, *mod.stamp(FULL_ROWS, shape=False)]
     )
 
 
@@ -2205,25 +1328,6 @@ def test_one_seal_too_large_for_the_disc_is_drawn_alone_without_it(tmp_path):
     assert later == drawn(mod, mod.label(full_values("ccc3333c")), FULL_ROWS)
 
 
-def test_a_character_outside_the_bmp_is_counted_as_two():
-    """The round-1 question, measured in the fix pass: the harness counts a
-    `systemMessage` in UTF-16 units, so 5,001 U+1D54F (10,002 units) were
-    persisted where 4,999 were shown. Python's `len` counts each as one, so
-    a label of them fitted a rung the harness would not. A budget between
-    the two counts steps the block down — since #832 to the text block alone,
-    the one step after the disc."""
-    mod = stamp_module()
-    label = LABEL + " " + "\U0001d54f" * 50
-    at = {disc: drawn(mod, label, ROWS, disc) for disc in (True, False)}
-    assert len(at[True].encode("utf-16-le")) // 2 == len(at[True]) + 50
-    assert mod.fitted([(label, ROWS)], len(at[True]) + 10) == at[False]
-    assert mod.fitted([(label, ROWS)], len(at[True]) + 50) == at[True]
-    # A values file is JSON, which can carry a lone surrogate; counting it
-    # must not raise, or every pending file would wait forever.
-    lone = LABEL + "\ud800"
-    assert mod.fitted([(lone, ROWS)]) == drawn(mod, lone, ROWS)
-
-
 def test_a_values_file_from_an_older_gate_draws_every_row_in_the_new_layout(
     tmp_path,
 ):
@@ -2252,43 +1356,6 @@ def test_a_values_file_from_an_older_gate_draws_every_row_in_the_new_layout(
     for k, row in enumerate(rows, top + 2):
         want = "" if row is None else f"{row[0]:<7} {row[1]}".rstrip()
         assert said[k] == want, (k, said[k], want)
-
-
-def test_the_ladder_steps_down_in_order_and_ends_with_no_disc():
-    """A4, over the two rungs #853 left. Driven at small budgets: the block
-    with its disc where it fits, then the panel with no disc — which is
-    returned whatever the budget, because nothing comes after it. Oldest
-    first (`questions.md` Q6 of #717): a newer block that does not fit
-    beside the older waits rather than losing its disc, because no smaller
-    disc is drawn."""
-    mod = stamp_module()
-    at = {disc: drawn(mod, LABEL, ROWS, disc) for disc in (True, False)}
-    assert len(at[True]) > len(at[False]), (len(at[True]), len(at[False]))
-    one = [(LABEL, ROWS)]
-    assert mod.fitted(one, len(at[True])) == at[True]
-    assert mod.fitted(one, len(at[True]) - 1) == at[False]
-    assert mod.fitted(one, 0) == at[False], "the last rung is the last"
-    assert mod.fitted([]) == "" and mod.admitted([], 0) == []
-    bare = mod.strip_ansi(at[False])
-    assert "▀" not in bare and "▄" not in bare, "the last rung drew a disc"
-    for row in ROWS[1:]:
-        if row is not None:
-            assert f"{row[0]:<7} {row[1]}".strip() in bare, row
-    # Two blocks that fit together are one message; where the newer does not
-    # fit beside the older, it is left out rather than both losing the disc.
-    two = [(LABEL, ROWS), (LABEL, ROWS)]
-    room = len(at[True]) * 2 + 2
-    assert mod.fitted(two, room) == at[True] + "\n\n" + at[True]
-    assert mod.admitted(two, room - 1) == [at[True]], "both drawn, or not whole"
-    # Oldest first: a newer seal that would fit is not drawn ahead of an
-    # older one that does not, which the hook would claim and not print.
-    huge = (LABEL, ROWS + [("", f"home-{k}") for k in range(60)])
-    plain = (LABEL, ROWS)
-    assert mod.admitted([plain, huge, plain], room) == [at[True]], (
-        "drawn past a seal that waits"
-    )
-    # A single seal exactly at the budget keeps its disc.
-    assert mod.admitted([(LABEL, ROWS)], len(at[True])) == [at[True]]
 
 
 def test_admitteds_docstring_fits_the_line_length():
@@ -2475,18 +1542,19 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
     from conftest import rule_carriers
 
     held = rule_carriers("stamp-drawn-once")
+    local, shared = "Test_queue_for_local_guarantee.", "Test_queue_for_guarantee."
     for case in (
-        "test_a_local_mode_sealed_guarantee_queues_one_stamp",
-        "test_a_local_mode_second_sealed_queues_nothing",
-        "test_a_local_mode_guarantee_off_its_branch_queues_nothing",
+        local + "test_a_local_mode_sealed_guarantee_queues_one_stamp",
+        local + "test_a_local_mode_second_sealed_queues_nothing",
+        local + "test_a_local_mode_guarantee_off_its_branch_queues_nothing",
         "test_the_edit_gate_leaves_shared_mode_to_post_commit",
         "test_the_edit_gate_queues_a_local_mode_sealed_guarantee",
         "test_a_subagents_write_queues_and_draws_nothing",
         "test_the_edit_gate_is_silent_off_a_guarantee",
-        "test_a_sealed_guarantees_commit_queues_one_stamp",
-        "test_a_withheld_or_undecided_guarantee_queues_nothing",
-        "test_a_second_sealed_verdict_queues_nothing",
-        "test_a_recommit_of_the_same_guarantee_queues_no_second_file",
+        shared + "test_a_sealed_guarantees_commit_queues_one_stamp",
+        shared + "test_a_withheld_or_undecided_guarantee_queues_nothing",
+        shared + "test_a_second_sealed_verdict_queues_nothing",
+        shared + "test_a_recommit_of_the_same_guarantee_queues_no_second_file",
         "test_the_main_sessions_stop_draws_each_undrawn_file_once",
     ):
         assert case in held, case
@@ -2608,15 +1676,17 @@ def test_the_policy_states_the_refusal_record_and_names_its_cases():
     from conftest import rule_carriers
 
     held = rule_carriers("refused-sealed-leaves-a-record")
+    local, shared = "Test_queue_for_local_guarantee.", "Test_queue_for_guarantee."
     for case in (
         "test_a_sealed_over_a_commit_the_branch_does_not_hold_is_refused_at_the_commit",
         "test_a_refused_row_over_a_drawn_seal_does_not_draw_again",
         "test_a_tracking_ref_left_by_a_rebase_withholds_nothing",
         "test_the_guarantee_refusal_is_quiet_off_its_one_fact",
-        "test_a_sealed_committed_past_the_stub_keeps_the_gap",
-        "test_a_refusal_record_skips_only_its_own_verdict",
-        "test_a_local_mode_seal_refused_off_its_branch_then_resealed_draws_once",
-        "test_a_local_mode_guarantee_off_its_branch_queues_nothing",
+        shared + "test_a_sealed_committed_past_the_stub_keeps_the_gap",
+        local + "test_a_refusal_record_skips_only_its_own_verdict",
+        local
+        + "test_a_local_mode_seal_refused_off_its_branch_then_resealed_draws_once",
+        local + "test_a_local_mode_guarantee_off_its_branch_queues_nothing",
         "test_a_sealed_the_branch_does_not_hold_is_stopped_inside_the_commit",
     ):
         assert case in held, case

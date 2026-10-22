@@ -1987,7 +1987,7 @@ def test_the_policy_states_the_guarantee_refusal_beside_the_arms():
         "test_a_sealed_the_branch_does_not_hold_is_stopped_inside_the_commit",
         "test_a_sealed_over_a_commit_the_branch_does_not_hold_is_refused_at_the_commit",
         "test_the_guarantee_refusal_is_quiet_off_its_one_fact",
-        "test_a_sealed_committed_past_the_stub_keeps_the_gap",
+        "Test_queue_for_guarantee.test_a_sealed_committed_past_the_stub_keeps_the_gap",
     ):
         assert case in held, case
     assert (

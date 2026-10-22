@@ -1381,8 +1381,8 @@ def queue_for_local_guarantee(path, session, now=None):
 # Neutral values in the stamp's shape, so `seal-stamp` shows a person what a
 # sealed guarantee's commit draws without one having been committed — every
 # row `guarantee_rows` can return, the conditional ones included, in its
-# order; a case in `tests/test_the_seal_is_taken_once_by_the_sealer.py`
-# holds the labels against `guarantee_rows`'. Since #975 the stamp carries
+# order; a case in `tests/test_seal_stamp.py`'s `Test_module` holds the
+# labels against `guarantee_rows`'. Since #975 the stamp carries
 # what the records say and no suite counts: those are the broad gate's
 # report's, which the gate prints as text.
 SAMPLE_ROWS = [
