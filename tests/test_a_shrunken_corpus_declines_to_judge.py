@@ -222,14 +222,12 @@ LISTS_A_FIXTURE = {
     "tests/test_routing_is_recorded.py#test_an_uncommitted_declaration_silences_the_commit_that_adds_it": 1,
     "tests/test_the_mode_is_a_row_and_a_command.py#test_the_recovery_commands_work_where_they_are_printed": 1,
     "tests/test_the_mode_is_a_row_and_a_command.py#test_an_ignored_workflow_path_is_not_reported_as_staged": 1,
-    "tests/test_the_root_migrates_itself.py#test_every_move_is_staged_and_history_follows_the_file": 1,
-    "tests/test_the_root_migrates_itself.py#test_the_readme_is_rewritten_from_the_new_template": 1,
-    "tests/test_the_root_migrates_itself.py#test_an_ignored_file_directly_under_the_old_root_does_not_stop_the_move": 1,
     "tests/test_the_root_migrates_itself.py#test_the_readmes_by_hand_sequence_yields_the_hooks_tracked_set": 1,
-    # #688: both read `git diff --cached --name-only` in the fixture the case
-    # built, to assert that a team's directory was not staged for a move.
-    "tests/test_the_root_migrates_itself.py#test_an_id_shaped_directory_without_the_marks_stays_and_is_named": 1,
-    "tests/test_the_root_migrates_itself.py#test_a_mark_git_does_not_track_is_not_a_mark": 1,
+    # The hook's cases read what is staged, unstaged and tracked in the copy
+    # of the old layout the case took, to assert what the move staged.
+    "tests/test_root_migrate.py#unstaged": 1,
+    "tests/test_root_migrate.py#staged": 1,
+    "tests/test_root_migrate.py#tracked": 1,
 }
 
 # One call per scope everywhere today. Spelled as a map rather than as "one
