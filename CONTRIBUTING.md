@@ -255,10 +255,11 @@ check: tests/test_test_layout.py tests/test_censuses.py
 The contributor rebuilding a module reads its functions first and lists the
 classes its file must have. Then each old case that exercises the module is
 placed in its class as it stands, merged into a case of the class that
-already covers it, cut, or rewritten, and a case whose assertion reads a
-document's prose stays where it is. A case is cut only where the mutation
-table shows that every mutation it kills is killed by another case, or where
-the behaviour it guarded has left the tree.
+already covers it, cut, or rewritten. A case whose assertion reads a
+document's prose stays where it is, and so does a case whose rows pin how
+another module reads a shape, until the module it pins is rebuilt. A case is
+cut only where the mutation table shows that every mutation it kills is
+killed by another case, or where the behaviour it guarded has left the tree.
 check: none reader: the warden at review
 
 **A module's tests are written anew from the code when its old files cost
@@ -271,13 +272,15 @@ inputs.
 check: none reader: the warden at review
 
 **A rewritten module builds its world once and reads a command without
-git.** Its fixture repositories are built once, in a module-scoped fixture,
-and copied for each case. A case about how a command is read runs neither
-real git nor a real shell; the real-git cases that stay are the ones showing
-that the reading and git agree. A case samples one input of each kind where
-the mutation table shows the sample kills what enumerating the whole input
-space killed. These bind the rewrite and nothing in CI: the seconds the
-record states are read by the release table, not by a gate.
+git.** Its fixture repositories are built once, in a module-scoped fixture.
+A case that writes into them takes a copy, and the copy is the reset; where
+no case writes more than a marker keyed by a session id, each case makes its
+own session id, and that is the reset. A case about how a command is read
+runs neither real git nor a real shell; the real-git cases that stay are the
+ones showing that the reading and git agree. A case samples one input of
+each kind where the mutation table shows the sample kills what enumerating
+the whole input space killed. These bind the rewrite and nothing in CI: the
+seconds the record states are read by the release table, not by a gate.
 check: none reader: the warden at review
 
 **A rebuilt module's record carries its mutation table and one line per
@@ -296,7 +299,8 @@ item that rebuilt the module, in four parts:
 - the real-git cases kept, each named;
 - one line per old case cut or rewritten: its name, what it guarded, and the
   case or tree fact that holds it now; and the names of the cases left
-  where they stand because they read prose.
+  where they stand because they read prose, or because they wait for the
+  module they pin, with that module named.
 
 check: none reader: the warden at review
 

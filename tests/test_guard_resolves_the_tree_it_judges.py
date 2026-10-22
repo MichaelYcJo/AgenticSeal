@@ -1485,8 +1485,9 @@ def test_a_wider_reader_that_exits_at_load_leaves_the_guard_reading(
 
     Since #826 what it keeps is the frozen reading's shapes, and a git only
     the missing reader could have read is the bare word's finding, a stop
-    where the tree matters (`test_a_broken_wider_reader_costs_a_stop_never_a_silence`
-    holds the verdicts). It asserted candidate C's empty answer."""
+    where the tree matters (`tests/test_worktree_guard.py`'s
+    `test_refuses_to_be_silent_where_the_wider_reader_is_broken` holds the
+    verdicts). It asserted candidate C's empty answer."""
     hooks = tmp_path / "hooks"
     shutil.copytree(os.path.join(os.path.dirname(__file__), "..", "hooks"), hooks)
     (hooks / "cmdline.py").write_text("raise SystemExit(3)\n", encoding="utf-8")
