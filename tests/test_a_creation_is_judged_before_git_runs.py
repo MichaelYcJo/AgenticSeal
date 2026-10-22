@@ -127,8 +127,7 @@ class Clone:
         `claude` anywhere, the count was unusable and the same creation met
         the confirmation prompt instead (#692, after the chain: CI run
         36965695916). A symlink to bash, so `ps` names it `claude`, for the
-        reasons `tests/test_the_commit_gate_decides_at_the_commit.py#fake_claude`
-        gives."""
+        reasons `tests/e2e/commit/test_commit_flow.py#fake_claude` gives."""
         link = self.tmp / "bin" / "claude"
         if not link.exists():
             link.parent.mkdir(exist_ok=True)

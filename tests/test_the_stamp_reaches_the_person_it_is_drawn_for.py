@@ -1687,7 +1687,7 @@ def test_the_policy_states_the_refusal_record_and_names_its_cases():
         local
         + "test_a_local_mode_seal_refused_off_its_branch_then_resealed_draws_once",
         local + "test_a_local_mode_guarantee_off_its_branch_queues_nothing",
-        "test_a_sealed_the_branch_does_not_hold_is_stopped_inside_the_commit",
+        "Test_a_sealed_the_branch_does_not_hold.test_refuses_it_inside_the_commit",
     ):
         assert case in held, case
 

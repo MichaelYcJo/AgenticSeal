@@ -3,7 +3,7 @@
 
 `hooks/tokens.py` reads the bare words, `hooks/answers.py` keeps them, and the
 two PreToolUse/PostToolUse gates around them write and clear. What a hook does
-with an answer is `tests/test_the_commit_gate_decides_at_the_commit.py`'s.
+with an answer is `tests/e2e/commit/test_commit_flow.py`'s.
 """
 
 import io

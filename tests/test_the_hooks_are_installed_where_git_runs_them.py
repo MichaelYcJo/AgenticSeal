@@ -399,7 +399,7 @@ def test_the_installed_hooks_let_a_commit_through_where_nothing_is_missing(
 ):
     """The stubs end to end, through the installed entry points: a reviewed
     HEAD is a commit with nothing missing. What they refuse is
-    `tests/test_the_commit_gate_decides_at_the_commit.py`'s."""
+    `tests/e2e/commit/test_commit_flow.py`'s."""
     r = repo(tmp_path / "r")
     install_mod.install(str(r), "s1")
     head = g(r, "rev-parse", "HEAD").stdout.strip()
