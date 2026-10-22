@@ -20,13 +20,12 @@ with no git, for the phase that rebuilds that module.
 
 import io
 import json
-import shlex
 import sys
 import types
 import uuid
 
 import pytest
-from conftest import census_case, declare_routing, git, load_hook_module
+from conftest import census_case, declare_routing, git, load_hook_module, q
 
 TARGET = "hooks/commit-review-gate.py"
 
@@ -37,10 +36,6 @@ C = "git commit -m x"
 WAIVER = "[no-review]"
 CONSTRUCT = "contains something the gate cannot read as a plain command"
 AUTOMATION = "pressed `automation` on the routing question"
-
-
-def q(path):
-    return shlex.quote(str(path))
 
 
 def _repository(path, declared=False, parity=False):
