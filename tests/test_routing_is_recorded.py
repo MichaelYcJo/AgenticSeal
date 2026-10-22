@@ -816,7 +816,7 @@ def test_the_answer_pressed_row_is_read_when_it_is_there():
 # --- #658, #667: a row a renderer does not show is not an answer ------------
 #
 # The shape ids are `seal/specs/1790645290-the-hooks-and-the-rider-check-read-
-# fences-and-comments-by-one-rule/spec.md` §*The shapes*, the texts
+# fences-and-comments-by-one-rule/spec.md` *The shapes*, the texts
 # `tests/block_shapes.py`'s. "red at base" means the case fails with
 # `hooks/routing.py` from `3911a8cf`; "pins" means it passes there too.
 

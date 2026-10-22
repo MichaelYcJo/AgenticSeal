@@ -706,13 +706,11 @@ def test_the_framer_writes_rule_changes_from_the_index():
     the grammar and the model and restates neither."""
     raw = read(*FRAMER)
     framer = flat(raw)
-    assert "as `skills/settle/SKILL.md` §*Rule changes* states it" in framer
+    assert "as `skills/settle/SKILL.md` *Rule changes* states it" in framer
     assert "picked from the index, `<policy root>/README.md`" in framer
     assert (
         "the policy in force as "
-        + (
-            "`skills/implement/SKILL.md` §*Document layout — two roots, three lifetimes*"
-        )
+        + ("`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*")
         in framer
     )
     assert "\n  from:" not in raw, "the framer restates the grammar"
@@ -756,7 +754,7 @@ def test_the_framer_inherits_what_the_tree_already_settled():
 
 def test_a_reframe_keeps_every_closed_phase():
     """Round 1 of #968, finding 2. A reframe adds phase rows and keeps each
-    closed phase's commit. `docs/the-review-record.md` §*The run* owns the
+    closed phase's commit. `docs/the-review-record.md` *The run* owns the
     route back and does not say how `plan.md` is rewritten, so the
     definition says it."""
     framer = flat(read(*FRAMER))

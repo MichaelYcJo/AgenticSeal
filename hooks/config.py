@@ -24,7 +24,7 @@ names rather than keeping a second copy.
 
 **Not in `optin.py`, deliberately.** That module's docstring says there is no
 config key and everything in it fails toward *not opted in*; the root's
-existence is the opt-in and `docs/one-root-by-lifetime.md` §*The opt-in signal
+existence is the opt-in and `docs/one-root-by-lifetime.md` *The opt-in signal
 is the root itself* is the clause. The `Mode` row decides nothing about opting
 in -- it RECORDS an answer -- and putting it in that module would read as the
 clause being softened.
@@ -187,7 +187,7 @@ def hidden_lines(lines, text=None):
 
     A line that declares something is not taken on doubt where the older
     reading would not take it, the second of the three answers
-    `docs/the-record-layout.md` §*The fold, and what tells it from a
+    `docs/the-record-layout.md` *The fold, and what tells it from a
     deletion* gives: a row this hides is no declaration, so a hook says
     nothing and a gate asks, and `broad-gate` names a fence left open.
 
@@ -264,7 +264,7 @@ def unfenced(lines, text=None):
 
     **Why a table inside a fence is not the table.** `config.md`'s header
     comment points its reader at `templates/config.md`, a document of EXAMPLE
-    tables, and `skills/config/SKILL.md` §*Procedure* step 3 tells a session
+    tables, and `skills/config/SKILL.md` *Procedure* step 3 tells a session
     to copy a block of that template -- one holding a fenced
     `| Broad gate | ... |` row -- into the repository's own file, naming no
     position for it. So a fenced example above the live table, or above a
@@ -413,7 +413,7 @@ def config_text(home):
       - a hook that may not stop -- `hooks/mode-gate.py` -- reads a refusal
         as nothing it can act on and says nothing, because a gate that
         refuses wrongly is an outage nobody can get past (`CONTRIBUTING.md`
-        §*What a change to a gate must carry*);
+        *What a change to a gate must carry*);
       - a command a person runs prints the sentence and exits 2 with nothing
         judged, because a command that reads a written row as absent acts as
         if the person had written none.
@@ -596,7 +596,7 @@ def declared_mode(home):
 # `specs` as history: a REFERENCE ROOT, read when a change touches what it
 # describes and never moved, edited, absorbed or deleted. The checks that read
 # a record ask `under_reference_root` before they read a path, so none of them
-# carries a test of its own (`templates/config.md` §*Reference specs*).
+# carries a test of its own (`templates/config.md` *Reference specs*).
 
 REFERENCE_ROW = "Reference specs"
 NO_REFERENCE = "none"
@@ -691,7 +691,7 @@ def policy_root(home):
     No root, no file, no such row, an empty value, a refusal and a value
     that leaves the repository (an absolute path or a `..` part) all read as
     `docs`, the directory every repository read before the row existed.
-    `templates/config.md` §*The fold's values* states the row."""
+    `templates/config.md` *The fold's values* states the row."""
     value = declared_value(home, POLICY_ROW)[0] if home else None
     rel = (value or "").strip().replace("\\", "/")
     while rel.startswith("./"):
@@ -855,7 +855,7 @@ def pact_declaration(text):
 
     **Only the `Pact` row is read.** A row of any other item is no answer
     about a pact, a `Pact notify` row an earlier release read included
-    (`templates/config.md` §*Pact*).
+    (`templates/config.md` *Pact*).
 
     **A table the walker refuses is refused here too** (#871). Its
     sentences are appended after every other refusal: a `Pact` row below
@@ -1403,7 +1403,7 @@ def baseline_commit(text):
 # regenerates. It still reads (`read_table`), and both commands print the
 # sentence below where they read one. This unit is the one place the old word is written, which is
 # what lets `tests/test_one_word_one_meaning.py` refuse it everywhere else and
-# exclude this unit by name (`docs/the-pact.md` §*The words*).
+# exclude this unit by name (`docs/the-pact.md` *The words*).
 RENAMED_IN = "0.19.0"
 
 

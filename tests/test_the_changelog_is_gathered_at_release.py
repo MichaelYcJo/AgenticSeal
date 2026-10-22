@@ -735,7 +735,7 @@ def test_a_quoted_marker_gathers_nothing(tree, shape):
     gathered, and `--check` passed a release that never shipped the entry.
     Its count was line-anchored and still read the fenced and commented
     shapes. A marker counts only on a live line
-    (`docs/the-record-layout.md` §*The fold, and what tells it from a deletion*)."""
+    (`docs/the-record-layout.md` *The fold, and what tells it from a deletion*)."""
     quoting(tree, shape)
     r = run("--check", root=tree)
     assert r.returncode == 1, r.stdout

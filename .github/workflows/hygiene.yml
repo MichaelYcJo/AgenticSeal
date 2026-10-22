@@ -178,7 +178,7 @@ jobs:
       # behind HEAD or with a finding no round after it read, no
       # `broad-gate.md` at HEAD, or no `guarantee.md` reading `sealed` at
       # HEAD (`docs/the-review-record.md`
-      # §*What the check reads at the pull request*).
+      # *What the check reads at the pull request*).
       #
       # The draft state comes from GITHUB_EVENT_PATH, which this runner
       # already sets. On a draft every refusal prints and none fails. A

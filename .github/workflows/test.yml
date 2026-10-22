@@ -241,7 +241,8 @@ jobs:
   # bytes, the suite's seconds, each leg's minutes and each document's bytes
   # beside the same reading at the last release tag, appended to this job's
   # summary. It fails nothing, and whoever prepares the release reads it
-  # (`docs/release-checklist.md` §2); `.github/scripts/release_report.py` is
+  # (`docs/release-checklist.md` *2. Gather, bump*);
+  # `.github/scripts/release_report.py` is
   # the rule. The tag's minutes are its own commit's `tests` run on `main`.
   #
   # After the suite, whatever its verdict: a red leg still spent its minutes.

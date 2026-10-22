@@ -20,7 +20,7 @@ The six sites that used to slice the workflow on a bare token, enumerated by
     test_the_check_only_runs_for_a_release`
 
 All six now read through these helpers. Nothing structural stops a seventh,
-and `spec.md` §*Out, and why* says why.
+and `spec.md` *Out, and why* says why.
 """
 
 import pytest
@@ -28,7 +28,7 @@ from conftest import code_line, step_running, workflow_step, workflow_steps
 
 # A comment naming the script above an unrelated step, the real step below
 # it, a step with no name, a quoted name and a second job. Neutral values
-# only (`CONTRIBUTING.md` §*House rules*, *No real identifiers*).
+# only (`CONTRIBUTING.md` *House rules*, *No real identifiers*).
 WORKFLOW = """\
 jobs:
   release:

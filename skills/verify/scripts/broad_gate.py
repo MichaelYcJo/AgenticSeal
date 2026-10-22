@@ -58,7 +58,7 @@ A check that fails does not stop the ones after it: the failure form names
 every check that failed, which is what a reader acts on.
 
 **On a failing test the comparison against the base is reactive and
-mechanical** (`skills/verify/orchestration.md` §*The broad gate*). The row runs with
+mechanical** (`skills/verify/orchestration.md` *The broad gate*). The row runs with
 a pytest recorder of the gate's own loaded (`recording_env`), which writes
 down, inside each pytest process the row starts, every test it ran and its
 outcome. Only when the repository's command fails AND that record holds
@@ -374,7 +374,7 @@ def gate_copy(root, plugin=PLUGIN, running=None, installed=None):
     prints. Versions are not compared: within a release cycle the tree's
     `plugin.json` equals the installed one until the release bumps it, so a
     branch that changed the gate — #475 itself — would print nothing exactly
-    when it matters (`plan.md` §*Alternatives considered*).
+    when it matters (`plan.md` *Alternatives considered*).
     """
     running = __file__ if running is None else running
     if not under(running, root):
@@ -456,7 +456,7 @@ def moved_line(root, base):
     None where the given spelling and the resolved one are the same commit.
 
     Printed and then the run continues. A refusal was the ticket's second
-    direction and `plan.md` §*Alternatives considered* rejected it: its only
+    direction and `plan.md` *Alternatives considered* rejected it: its only
     repair is a `git fetch` and a second nine-minute gate, performed by a
     person the run has no way to ask, and it fires on the ordinary release
     case where a sibling merges while this branch is open.
@@ -602,7 +602,7 @@ def resolve_base(root, given):
          1 measured it (finding 3).
 
     Nothing is fetched. A remote-tracking ref is only as fresh as the last
-    fetch, and #423 §*Not this* refuses a check that moves refs to make
+    fetch, and #423 *Not this* refuses a check that moves refs to make
     itself pass — an unattended run may have no credentials. What this buys
     is that the gate asks the question the merge is judged by; what it cannot
     buy is that the answer is current, which is why the ref is named in what
@@ -989,7 +989,7 @@ def missing_row(home):
             "— not this gate's reader, not the mode gate's, and not "
             "`seal mode`'s writer. The row is not absent: it is written where "
             f"nothing reads it, and there is no command to run.\n{where}\n"
-            "`templates/config.md` §*What is refused, and what stays allowed* "
+            "`templates/config.md` *What is refused, and what stays allowed* "
             "is where the rule says so, and `/specseal:config` is the door to "
             "the file. Nothing ran."
         )
@@ -1011,7 +1011,7 @@ def missing_row(home):
             "commented out, and there is no command to run.\n"
             "If it is the command to run, take the row out of the "
             "comment and into the `| Item | Value |` table.\n"
-            "`templates/config.md` §*What is refused, and what stays allowed* "
+            "`templates/config.md` *What is refused, and what stays allowed* "
             "is where the rule says so, and `/specseal:config` is the door to "
             "the file. Nothing ran."
         )
@@ -1020,11 +1020,11 @@ def missing_row(home):
         "there is no command to run — and choosing one is not this "
         "session's to do. There is no default because a row is a thing a "
         "person wrote, and what the broad run covers is exactly that "
-        "(`skills/verify/SKILL.md` §*The Seal Test*): a session that picks a "
+        "(`skills/verify/SKILL.md` *The Seal Test*): a session that picks a "
         "command here checks its own choice.\n"
         "Take it to whoever owns the repository. `/specseal:config` is where "
         f"they answer it — it shows every row and adds this one with its "
-        "section — and `templates/config.md` §*The criterion for choosing "
+        "section — and `templates/config.md` *The criterion for choosing "
         "a value* is what they choose against. Nothing ran."
     )
 
@@ -1084,7 +1084,7 @@ def walker_refusal(home, mine):
         )
     return (
         f"broad-gate: {os.path.join(home, CONFIG)} {said}.\n{where}{escape}\n"
-        "`templates/config.md` §*What is refused, and what stays allowed* is "
+        "`templates/config.md` *What is refused, and what stays allowed* is "
         "where the rule says so, and `/specseal:config` is the door to the "
         "file. Nothing ran."
     )
@@ -1125,7 +1125,7 @@ def not_as_written(home, command):
 
     **The criterion has two halves: the value must run as the command it
     reads as, and the exit code the gate reads must be that command's.**
-    `templates/config.md` §*Broad gate* owns it, owns the list of refused
+    `templates/config.md` *Broad gate* owns it, owns the list of refused
     forms and owns the list of what stays allowed, each with its reason.
     This function is the half that acts; a form belongs here only by failing
     one of those halves there.
@@ -1181,7 +1181,7 @@ def not_as_written(home, command):
         f"    as meant:   | {ROW} | {rewritten} |\n"
         "Nothing ran, and nothing was repaired: the row is a person's to "
         "write, and a value quietly fixed here would leave the file still "
-        "wrong. `templates/config.md` §*Broad gate* lists what is refused "
+        "wrong. `templates/config.md` *Broad gate* lists what is refused "
         "and what stays allowed, with the reason for each, and "
         "`/specseal:config` is the door to the row."
     )
@@ -1474,7 +1474,7 @@ def command_names_backslashed(command, is_directory):
     existed; and a command name after a redirection at the start of a
     command (`>out bin/test`), where this scan stops treating the rest as
     command position. None is worse than the row handed as written, and
-    `templates/config.md` §*Broad gate* states the rule and these examples.
+    `templates/config.md` *Broad gate* states the rule and these examples.
 
     **Judged where the row starts, and bounded there, named rather than
     claimed:** a directory an earlier command in the same row makes, or
@@ -1484,7 +1484,7 @@ def command_names_backslashed(command, is_directory):
     program the row calls with a glued switch (an `xcopy/` directory)
     makes `xcopy/e` read as a path; `cmd.exe` itself is ambiguous in that
     tree, and a blank before the switch (`xcopy /e`) is never rewritten.
-    `templates/config.md` §*Broad gate* states both.
+    `templates/config.md` *Broad gate* states both.
     """
     out = []
     at_command = True  # the next word read is a command name
@@ -2624,7 +2624,7 @@ def panel(
     repository's row came back with — continued under `suite` until #717
     took it off. NOT `("lint", "clean")` either: the row is
     one shell command line and nothing in it says which part is a linter
-    (`templates/config.md` §*Broad gate*), so `clean` over a row with no
+    (`templates/config.md` *Broad gate*), so `clean` over a row with no
     linter in it is the gate's report asserting a check that never ran."""
     stamp = stamp_module()
     fit = stamp.fit
@@ -2902,7 +2902,7 @@ def gate(args, ascii_marks=False):
     # (`compare_at_base`, which runs it once, unchanged, at the base) is
     # reached only after the run below, so this refusal closes it by
     # reachability rather than by a second guard in a second place (`spec.md`
-    # §*The class, enumerated by construction*). It runs the very row this
+    # *The class, enumerated by construction*). It runs the very row this
     # refusal passed (#825).
     unrunnable = not_as_written(home, command)
     if unrunnable:
@@ -2912,7 +2912,7 @@ def gate(args, ascii_marks=False):
         raise Refused(f"broad-gate: {root} has no HEAD to run over — nothing ran")
     # The one read of `args.base` in this file, and the count is held by a
     # case: a seventh consumer written later cannot take the unresolved value
-    # without that case going red (`spec.md` §*The class, enumerated by
+    # without that case going red (`spec.md` *The class, enumerated by
     # construction*). Every check below asks `base.commit`, which is the
     # commit CI will compare against. The readers of `base.given`, the
     # caller's spelling, are none of them a check: `moved_line`, which exists

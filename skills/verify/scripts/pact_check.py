@@ -163,7 +163,7 @@ NOT_FOUND, ONE_SIDED, REFUSED, UNREADABLE = (
 # (round 1 of #647, yellow 4).
 #
 # **The grammar, in one rule** (round 2, yellow 13; round 3 of #735, yellow
-# 19), stated for a reader in `docs/the-pact.md` §*The pact anchor*: a token
+# 19), stated for a reader in `docs/the-pact.md` *The pact anchor*: a token
 # begins an anchor where `pact:<name>` is followed at once by `/` or `#`, or
 # where the rest of an anchor follows with its `/` missing -- a quoted heading
 # path closed by `@`, or `@` and a hash, at once or after one mark or one

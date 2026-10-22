@@ -1621,7 +1621,7 @@ def header_end(tokens):
     stays, since a false one needs the literal word. `_is_the_program` and
     `names_an_unknown_command` use it, because for them a false stand-in needs
     only a word that expands somewhere after it, and `grep -n watch *.py` in a
-    function body is such a word (`spec.md` §*Two stand-ins*). They fall back
+    function body is such a word (`spec.md` *Two stand-ins*). They fall back
     to the stand-in only on `UNPLACEABLE`, which is the stopping direction.
     """
     toks, n, i = list(tokens), len(tokens), 0
@@ -1725,7 +1725,7 @@ def reparsed_texts(tokens, env_words=True):
         elif word in ("watch", "parallel"):
             # `parallel` runs each of its arguments through a shell (#674). It
             # is read for a commit written out, which costs nothing where none
-            # is; placing its command word is a parser (`spec.md` §*Scope*).
+            # is; placing its command word is a parser (`spec.md` *Scope*).
             texts += [t for t in rest if not t.startswith("-")]
         elif word in ("env", "genv"):
             # env's words are walked once under GNU's grammar and, for `env`

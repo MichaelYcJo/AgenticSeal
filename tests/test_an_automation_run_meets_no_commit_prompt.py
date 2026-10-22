@@ -8,7 +8,7 @@ wrong was who the stop went to: one deny per session per repository, then an
 `ask` for every later stop, and the first deny in the main checkout had been
 spent by the orchestrator's own loop, so every agent's stop after it became a
 person's prompt (`seal/specs/1790644505-the-commit-gate-stops-asking-about-
-commits-that-are-not-there/spec.md` §*Where the four prompts came from*).
+commits-that-are-not-there/spec.md` *Where the four prompts came from*).
 
 What changes is only the choice between `deny` and `ask`, and only where the
 harness-written transcript holds the press `hooks/worktree_consent.py`'s

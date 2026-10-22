@@ -35,7 +35,7 @@ case goes red at the seam instead of a release going out with empty notes.
 script with the one behaviour it pins removed, one at a time, and the
 mutations and what each case said were recorded in
 phase 1 of work item `1790076050-the-release-tail-is-three-acts-no-document-names`,
-whose rule `docs/branch-and-release.md` §*Cutting a release* now carries.
+whose rule `docs/branch-and-release.md` *Cutting a release* now carries.
 """
 
 import importlib.util
@@ -255,7 +255,8 @@ def test_a_tag_that_is_not_a_version_goes_red(monkeypatch, tmp_path, capsys):
 
 
 def test_the_title_is_the_line_the_checklist_prescribes(monkeypatch, tmp_path, capsys):
-    """A4, first branch, and S15 of #1000. `docs/release-checklist.md` §5
+    """A4, first branch, and S15 of #1000. `docs/release-checklist.md`
+    *5. The release pull request*
     prescribes `release: X.Y.Z symptoms: <symptoms>` for the release pull
     request, and the merge commit's BODY carries it — the subject is GitHub's
     own line. The published title keeps its `X.Y.Z — <symptoms>` form."""
@@ -317,7 +318,7 @@ def test_without_that_line_the_title_is_the_tag_and_the_log_says_so(
 
 
 def test_the_line_the_checklist_copies_is_the_line_the_reader_reads():
-    """S17 of #1000. The command in `docs/release-checklist.md` §*5*, filled
+    """S17 of #1000. The command in `docs/release-checklist.md` *5*, filled
     with a version and a symptom, is the merge commit's body line, and
     `title_from` reads it as S15 does. Protects: the document a release
     session copies and the reader moving apart, which loses the next

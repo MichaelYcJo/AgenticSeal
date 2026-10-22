@@ -2249,7 +2249,7 @@ def test_a_values_file_from_an_older_gate_draws_every_row_in_the_new_layout(
     `chain` row, `exit 0` under the suite and `0 drifted . 0 broken` under
     the ledger, the base's ref on a row of its own and ` . ` between parts,
     and may still be pending when this hook draws it. Since #832 nothing
-    converts it (`spec.md` §*Out* of work item 1791270164): every row it
+    converts it (`spec.md` *Out* of work item 1791270164): every row it
     carries is drawn as text in the open layout, one line each and in order,
     its blanks as blank lines, under `label(values)`, with its disc.
     #717's name for this case said the blanks drew no line, which the sheet
@@ -2322,7 +2322,7 @@ def test_admitteds_docstring_fits_the_line_length():
 
 
 def stamp_section():
-    """`docs/the-review-record.md` §*The stamp*, flattened: the stamp's rules
+    """`docs/the-review-record.md` *The stamp*, flattened: the stamp's rules
     stand beside the verdict they are drawn from since #975, and
     `docs/the-broad-gate.md` keeps none of them."""
     text = flat("docs", "the-review-record.md")
@@ -2333,7 +2333,7 @@ def stamp_section():
 
 
 def test_the_policy_states_the_budget_and_names_its_case():
-    """A18. `docs/the-review-record.md` §*The stamp* carries the budget rule,
+    """A18. `docs/the-review-record.md` *The stamp* carries the budget rule,
     and its `check:` line names this module; the paragraph nothing enforces
     follows it. #832
     and #853: the rule names the two rungs, with the disc and the text block
@@ -2453,7 +2453,7 @@ def test_the_form_bullet_says_what_draws_the_final_seal():
 
 def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
     """S16, the policy's half, and #975 S10 and S13. `docs/the-review-record.md`
-    §*The stamp* carries the drawing rule with a `check:` line naming the marker the cases that queue and draw it
+    *The stamp* carries the drawing rule with a `check:` line naming the marker the cases that queue and draw it
     carry, and a second statement saying what the screen shows has no case.
     That statement names every place the hook is silent — a foreign hooks
     slot, a `python3` that cannot load `seal_stamp.py`, a main session
@@ -2466,7 +2466,7 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
     the silences, and no longer hands the never-twice gap to an issue: it
     names a local guarantee that arrived other than by `Write` or `Edit`, a
     local verdict whose branch cannot be read, and the limits the commit
-    gate leaves (`spec.md` §*Scope*), the coincidence `plan.md`'s path walk
+    gate leaves (`spec.md` *Scope*), the coincidence `plan.md`'s path walk
     found among them, and none of `post-commit`'s removed guards. Red
     against the paragraph at 769f2aa4, and against 2759a60d's, which still
     named the guards."""
@@ -2590,7 +2590,7 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
 
 
 def test_the_policy_states_the_refusal_record_and_names_its_cases():
-    """1792363231 S8. §*The stamp* carries the refusal record as a rule of
+    """1792363231 S8. *The stamp* carries the refusal record as a rule of
     its own: a `sealed` refused because its
     audited commit is not on the branch leaves a record in the clone that
     refused it, and the earlier-run chain skips it, so the sealer's new

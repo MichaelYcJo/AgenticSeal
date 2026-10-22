@@ -892,7 +892,7 @@ def test_an_object_without_a_message_takes_the_report_as_its_message(
 
 def test_the_registration_section_says_a_failure_is_said_and_names_its_case():
     """S14. The ratified rule in `docs/commit-review-gate-spec.md`
-    §*Registration* was that a raising gate is skipped. It now also says the
+    *Registration* was that a raising gate is skipped. It now also says the
     skip is said, and its `check:` line names the module above that pins the
     words a person reads."""
     path = os.path.join(os.path.dirname(HOOKS), "docs", "commit-review-gate-spec.md")

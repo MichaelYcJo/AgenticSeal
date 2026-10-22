@@ -151,7 +151,7 @@ def test_a_later_round_re_runs_an_executed_line():
     instead spends the round on a search the earlier one already named, and
     a deleted probe is the case that needs saying: it comes back from its
     `## Probes` row. The record's document states it beside the line, and
-    the review skill's §*Earlier rounds*, which the warden follows, says it
+    `skills/code-review/SKILL.md` *Earlier rounds*, which the warden follows, says it
     where a round reads the earlier records."""
     record = " ".join(read("docs", "the-review-record.md").split())
     for said in (
@@ -166,7 +166,9 @@ def test_a_later_round_re_runs_an_executed_line():
         "Where you weigh an earlier finding, re-run its `evidence: executed` "
         "line rather than re-deriving the claim"
     )
-    assert said in rounds, f"§*Earlier rounds* lost `{said}`"
+    assert said in rounds, (
+        f"`skills/code-review/SKILL.md` *Earlier rounds* lost `{said}`"
+    )
 
 
 @pytest.mark.rule("old-table-shape-refused")

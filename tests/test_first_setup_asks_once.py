@@ -117,7 +117,7 @@ def test_the_parity_question_follows_the_mode_question():
 
 # --- A9 of #401: the broad command is the second question, not a later one --
 #
-# `templates/config.md` §*Broad gate* says the row is a thing a PERSON wrote
+# `templates/config.md` *Broad gate* says the row is a thing a PERSON wrote
 # and that the seal covers exactly that. Nothing ever asked for it: grepped
 # before this work, the bootstrap carried two `Ask, once` steps and neither
 # was this one, and no command in `bin/` or `seal.py` wrote the row. So the
@@ -285,7 +285,7 @@ def test_the_row_is_written_after_seal_mode_and_carries_its_section():
     """`seal mode` writes a config file holding only `Mode`, so the row lands
     afterwards — and it lands the way `/specseal:config` step 3 lands one, the
     row AND its section, because the documentation beside it is the half a
-    person reads. No new writer: `skills/config/SKILL.md` §*What this does not
+    person reads. No new writer: `skills/config/SKILL.md` *What this does not
     do* refuses a generic setter for a file people edit by hand."""
     boot = flat(bootstrap())
     assert "Then the `Broad gate` row" in boot
@@ -644,10 +644,8 @@ def test_the_seal_readme_points_at_the_drain_and_restates_none_of_it():
     rules = flat(text.split("\n## Export rules\n", 1)[1].split("\n## ", 1)[0])
     heading = "### 6. Drain the rows before the broad run, and keep the records"
     assert heading in read("skills", "implement", "SKILL.md")
-    assert (
-        "`skills/implement/SKILL.md` *6. Drain the rows before the broad run, "
-        "and keep the records*" in rules
-    ), rules
+    cited = "`skills/implement/SKILL.md` " + f"*{heading[4:]}*"
+    assert cited in rules, rules
     for copied in ("| Item still here |", "follow-up.md", "open-questions"):
         assert copied not in rules, (copied, rules)
 

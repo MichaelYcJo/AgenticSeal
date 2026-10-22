@@ -426,7 +426,7 @@ class TestGrammar:
     def test_the_table_loads_and_every_line_matches_its_row_whole(
         self, monkeypatch, tmp_path
     ):
-        """S4 (T2): the table in `docs/the-review-record.md` §*The round
+        """S4 (T2): the table in `docs/the-review-record.md` *The round
         record* is what the check reads. Its rows are the nine labels, the
         finding heading, the two sections and the three old spellings, and
         the module's grammar is the document's, read again here. Every line
@@ -541,7 +541,7 @@ class TestGrammar:
 
     def test_the_warden_and_the_review_skill_name_every_line_a_finding_needs(self):
         """S8 (#985): `agents/warden.md` step 7 and `skills/code-review/SKILL.md`
-        §*The record* each list the lines a finding carries, and each names
+        *The record* each list the lines a finding carries, and each names
         every row the table places in a finding as `one`, read from the table.
 
         Protects: a row added to the table and missed in either list, which
@@ -561,7 +561,10 @@ class TestGrammar:
         record = skill.split("## The record ", 1)[1]
         record = record.split("Each finding carries one line of each row", 1)[1]
         record = record.split("The check refuses a finding missing any.", 1)[0]
-        for where, text in (("warden.md step 7", step), ("§*The record*", record)):
+        for where, text in (
+            ("warden.md step 7", step),
+            ("`skills/code-review/SKILL.md` *The record*", record),
+        ):
             missing = [key for key in needed if f"`{key}" not in text]
             assert missing == [], f"{where} does not name {missing}"
 

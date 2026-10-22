@@ -35,7 +35,8 @@ not move the session's workspace.
 
 **When, and why not at the commit.** On any Bash call, which means the first
 one of the session. Scoping it to a commit was the first design here and the
-budget is what argued it down: `skills/implement/SKILL.md` §1 says the cost of
+budget is what argued it down: `skills/implement/SKILL.md` *1. Read the spec
+before the code* says the cost of
 a question is not its difficulty but WHEN it arrives, and at the commit this
 question lands beside the review arm's, at minute thirty, on a session that may
 have nobody at the keyboard. On the first Bash call it lands in the batch a

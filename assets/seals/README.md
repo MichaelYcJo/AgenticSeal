@@ -1,7 +1,7 @@
 # assets/seals/ — the emblems the stamp has carried
 
 The stamp is the sealer's. It is drawn once per work item, at the commit of
-a `guarantee.md` reading `sealed` (`docs/the-review-record.md` §*The
+a `guarantee.md` reading `sealed` (`docs/the-review-record.md` *The
 stamp*): the panel of what the records at that commit say, and a wax disc
 with an emblem pressed into it. Before #975 the broad gate's run drew it
 when the run passed. It drew the gold lily, the red lily and, from 0.20.0

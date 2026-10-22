@@ -31,7 +31,7 @@ Usage:
                                          to the repository's measurement log
 
 **Why `--post` exists, in one sentence.** `skills/verify/orchestration.md`
-§*Measure the segment, and feed the flow log* wrote the posting procedure out in full —
+*Measure the segment, and feed the flow log* wrote the posting procedure out in full —
 which label, how to tell a repository that never made the log from one whose
 log somebody closed, which of the two logs a reading belongs to — and nothing
 typed it, so the meter sat unreferenced through a full day of measurements
@@ -59,7 +59,7 @@ between the two modes. `--spawns` slices THIS transcript into bands over the
 orchestrator's own minutes; `--segments` opens the OTHER transcripts, one row
 per agent this run spawned, and given a resumed agent's own transcript it
 reads that one file, one row per stretch of work (#637) — each row one
-agent's own stretch either way. `skills/verify/orchestration.md` §*Measure the
+agent's own stretch either way. `skills/verify/orchestration.md` *Measure the
 segment* owns that distinction and `tests/test_one_word_one_meaning.py` holds it.
 """
 
@@ -1502,8 +1502,9 @@ def opening_stamp(path):
 
 # What a harness writes into a running agent's own transcript when the
 # coordinator sends it a new message. `skills/verify/orchestration.md`
-# §*Measure the segment* prescribes the hand split at exactly these rows, in exactly these
-# words, and until now nothing asserted it against a file.
+# *Measure the segment, and feed the flow log* prescribes the hand split at
+# exactly these rows, in exactly these words, and until now nothing asserted it
+# against a file.
 #
 # **Measured over the 350 segment transcripts on one machine before this was
 # written.** 41 of them hold an idle gap at or above `analyse`'s 900-second
@@ -2346,7 +2347,7 @@ LABEL_WIDTH = 30
 # #640. Each segment kind's bar on tools per turn, keyed by the basename of
 # the spawn's `subagent_type` after its last `:`, so `specseal:warden` and
 # `warden` are one kind. The values are `docs/the-review-record.md`
-# §*The per-segment bars*: the protocol's name for the kind,
+# *The per-segment bars*: the protocol's name for the kind,
 # and its bar, or None where the protocol exempts the kind from this ratio.
 #
 # Constants rather than read from the protocol at run time, because this
@@ -2573,8 +2574,8 @@ def report_segments(segments, path):
     zeroes about a join nobody attempted.
 
     **This is the reading the hand method produced one transcript at a
-    time.** `skills/verify/orchestration.md` §*Measure the segment* put a
-    `session_cost.py` run at the end of every smith and warden segment, which
+    time.** `skills/verify/orchestration.md` *Measure the segment, and feed
+    the flow log* put a `session_cost.py` run at the end of every smith and warden segment, which
     means opening each segment's file by hand and, for a resumed one,
     splitting it by eye. The rows below are that, for every segment of a run,
     in one command.
@@ -2797,7 +2798,7 @@ def newest(directory):
 
 # --- posting the reading to the flow log --------------------------------------
 #
-# `skills/verify/orchestration.md` §*Measure the segment, and feed the flow log* wrote
+# `skills/verify/orchestration.md` *Measure the segment, and feed the flow log* wrote
 # this procedure out in full and nothing typed it: which label to look up, how
 # to tell a repository that never created the log from one whose log somebody
 # closed, and which of the two logs a reading belongs to. #330 measured what
@@ -3001,8 +3002,8 @@ def emit(args, render, path=None):
     `~/.claude/projects/-Users-x-<repo>/<session-id>.jsonl`, so the path
     carries the account name twice and the session id once; `--post` writes
     into an issue tracker, where the repair for a published one is a person
-    deleting a comment. `CONTRIBUTING.md` §*Hooks stay local and quiet*
-    states the repository's position on what may leave the machine — *anything
+    deleting a comment. `CONTRIBUTING.md` *House rules*, in its bullet
+    **Hooks stay local and quiet**, states the repository's position on what may leave the machine — *anything
     that would send repository contents, paths, or prompts is not on the
     table* — and it binds hooks rather than this, which is why the rule is
     written here rather than cited.

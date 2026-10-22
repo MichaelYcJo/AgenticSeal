@@ -1,7 +1,7 @@
 """The hook readers hide what a CommonMark renderer hides, and nothing else (#667).
 
 `seal/specs/1790645290-the-hooks-and-the-rider-check-read-fences-and-comments-
-by-one-rule/spec.md` §*The acceptance property* is what this module holds.
+by-one-rule/spec.md` *The acceptance property* is what this module holds.
 For every line L of a document, with `base(L)` a reader's reading at
 `release/v0.16.0` and `renderer(L)` the oracle's:
 

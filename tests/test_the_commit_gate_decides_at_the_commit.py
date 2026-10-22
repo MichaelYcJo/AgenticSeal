@@ -526,7 +526,7 @@ def _stays_gone(marker, *, since):
     return False
 
 
-# `docs/the-commit-gate-inside-git.md` §*Known limits of the commit gate
+# `docs/the-commit-gate-inside-git.md` *Known limits of the commit gate
 # inside git*. `stdbuf` exports `LD_PRELOAD` as an MSYS path; Git for Windows' `sh`
 # reads it as a list split at `:`, dies loading `C`, and git commits as if
 # every hook had passed (#692's Windows pass, CI run 37013783175, traced).
@@ -771,7 +771,7 @@ def busy(world, d):
 
 
 # The known limits a case below rests on where it skips, as
-# `docs/the-commit-gate-inside-git.md` §*Known limits of the commit gate
+# `docs/the-commit-gate-inside-git.md` *Known limits of the commit gate
 # inside git* states them. The first two are the code's own `os.name == "nt"`
 # branches (`hooks/commitgate.py#_sequencer_commit`, `#_git_process`), so
 # their cases skip on the same test; the last two rest on `ps`, and their

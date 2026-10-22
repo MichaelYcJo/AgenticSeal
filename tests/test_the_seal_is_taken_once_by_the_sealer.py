@@ -221,7 +221,7 @@ def test_the_disc_draws_the_same_bytes_in_every_process():
 
 
 def test_the_disc_is_symmetric_because_it_is_computed():
-    """#30 §*How it is drawn*: four hand-typed discs were lopsided; a computed
+    """#30 *How it is drawn*: four hand-typed discs were lopsided; a computed
     one cannot be. Every twin row has the same left and right margin."""
     mod = module()
     w, h, px = mod.build()
@@ -297,7 +297,7 @@ def test_a_line_writes_one_sgr_per_change_and_no_reset_inside_it():
     over the disc alone, against the count of changes taken from
     `compose`'s cells here.
 
-    #30 §*Output size* found a code per cell 282 KB for one seal; the
+    #30 *Output size* found a code per cell 282 KB for one seal; the
     writer before this one reset over every cell nothing covered. A real
     run's block with its label is held under 5,500 UTF-16 units: the owner's
     reference was 5,119 for rows of the same length."""
@@ -394,7 +394,7 @@ def hook_cases():
     return _load("specseal_hook_cases_for_their_rows", HOOK_CASES)
 
 
-# The disc's nine colours and the title's red as `spec.md` §*Data &
+# The disc's nine colours and the title's red as `spec.md` *Data &
 # interfaces* of work item 1791270164 gives them — the owner's, from
 # `seal28.py` and `frames.py` — written out so the cases below do not read
 # them from the module they check.
@@ -448,7 +448,7 @@ def owners_disc(chart, x, y):
 
 
 def disc_cell(top, bottom):
-    """One cell of the disc as `spec.md` §*Data & interfaces* writes it."""
+    """One cell of the disc as `spec.md` *Data & interfaces* writes it."""
     if top and bottom:
         return ("▀", top, bottom, None)
     if top:
@@ -664,7 +664,7 @@ def test_the_disc_is_twenty_eight_cells_in_the_frames_nine_colours():
     or nothing. The frame's counts, which no chart moves: 176 outside, 84
     of the wax edge, 98 lit, 30 mid and 96 dark over the rim and the groove,
     and 300 inside the groove — split over the field and the disc's mark by
-    the rule in `spec.md` §*Data & interfaces*, rebuilt here from the chart
+    the rule in `spec.md` *Data & interfaces*, rebuilt here from the chart
     (`owners_disc`) and compared cell for cell. No count of the mark's own
     is pinned: the mark is a placeholder (#857)."""
     mod = module()
@@ -1021,7 +1021,7 @@ def test_no_scale_is_left_to_ask_for():
 
 
 def test_the_failure_form_carries_no_disc_and_names_every_failure():
-    """#30 §*On failure*: no drawing. What a person needs then is which checks
+    """#30 *On failure*: no drawing. What a person needs then is which checks
     broke, and a 22-row picture pushes that off the screen. Since #975 the
     form is the gate's, under `BROAD GATE FAILED`, and never says `sealed`."""
     mod = module()
@@ -1847,7 +1847,7 @@ def test_a_base_that_does_not_resolve_is_refused_with_nothing_run(repo, tmp_path
 # substitution: the checks ran, their exit status was thrown away, and their
 # OUTPUT was executed in their place. The lucky tail of that is exit 127. The
 # quiet one is exit 0 over a check that failed, which is the counterfeit
-# `skills/verify/SKILL.md` §*The Seal Test* is named after.
+# `skills/verify/SKILL.md` *The Seal Test* is named after.
 #
 # Every case below was executed against the gate as it stood at 0e676e6, with
 # no refusal in `gate()` at all, and every one failed; the output is in the
@@ -1902,12 +1902,16 @@ def test_a_row_wrapped_in_backticks_is_refused_and_shown_rewritten(repo, tmp_pat
     """A1. The reported mistake. The message names the form, quotes the value
     as written, and shows the row as meant — it does not strip anything: a
     value silently repaired leaves the file still wrong and the next person
-    still believing backticks were fine (#402 §*Not this*)."""
+    still believing backticks were fine (#402 *Not this*)."""
     said = refusal_of(repo, f"`{SUITE_ROW}`", tmp_path / "out")
     assert "backticks" in said, said
     assert f"as written: | {ROW} | `{SUITE_ROW}` |" in said, said
     assert f"as meant:   | {ROW} | {SUITE_ROW} |" in said, said
     assert "Nothing ran" in said and "nothing was repaired" in said, said
+    assert (
+        "`templates/config.md` *Broad gate* lists what is refused and what "
+        "stays allowed"
+    ) in " ".join(said.split()), said
     # The whole message, pinned HERE rather than only in A2 below. This case
     # reads a refusal, so it runs on every platform; A2 needs a POSIX shell
     # to have a subject at all, and `DISCARDED` used to be asserted only
@@ -2041,7 +2045,7 @@ def test_the_forms_that_stay_allowed_are_sealed_exactly_as_today(
     repo, tmp_path, value, why, needs_posix
 ):
     """A5. The row is an arbitrary shell command line by design and that is
-    unchanged (#402 §*Not this*). Each of these has a cost and the cost is
+    unchanged (#402 *Not this*). Each of these has a cost and the cost is
     stated in `templates/config.md` rather than paid for by a refusal — a
     piped row exits with the pipe's last status, which is a claim the
     repository made about itself.
@@ -2123,7 +2127,7 @@ def refusal_over(tmp_path, name, table):
     """`missing_row` over a config written literally, with no helper between
     the case and the bytes. Every fixture in this region is malformed on
     purpose, so a builder that assembled a well-formed table and checked it
-    read back would swallow the subject (`plan.md` §*Every fixture here is
+    read back would swallow the subject (`plan.md` *Every fixture here is
     malformed on purpose*)."""
     home = tmp_path / name / "seal"
     home.mkdir(parents=True)
@@ -2199,7 +2203,7 @@ def test_a_broad_gate_row_below_a_refused_line_is_not_reported_absent(tmp_path):
     **Nobody has to type a pipe to reach it.** The line below is a Windows
     path ending in a separator, which was a row before this branch and is not
     one after it, because a backslash immediately before the closing pipe is
-    now markdown's escaped pipe (`spec.md` §*What this repair cannot see*).
+    now markdown's escaped pipe (`spec.md` *What this repair cannot see*).
     """
     said = refusal_over(
         tmp_path,
@@ -2377,6 +2381,7 @@ def test_a_second_unparseable_line_below_is_not_called_nothing(tmp_path):
 
     site1 = refusal_over(tmp_path, "site1_second_bad_line", head + bad + also_bad)
     assert UNREAD in site1 and IS_THE_ROW in site1, site1
+    assert WHERE_THE_RULE_IS in " ".join(site1.split()), site1
 
     site2 = refusal_over(
         tmp_path, "site2_second_bad_line", head + "| Mode | shared |\n" + bad + also_bad
@@ -2404,6 +2409,11 @@ def test_a_second_unparseable_line_below_is_not_called_nothing(tmp_path):
 # --- #429: a `Broad gate` line written where no walk reads it ---------------
 
 FENCED = "written inside a code fence"
+# Where every refusal of a row no walk reads sends the person (contract rule 14).
+WHERE_THE_RULE_IS = (
+    "`templates/config.md` *What is refused, and what stays allowed* is where "
+    "the rule says so"
+)
 
 
 def test_a_broad_gate_line_only_inside_a_fence_is_named_and_not_called_absent(
@@ -2441,6 +2451,7 @@ def test_a_broad_gate_line_only_inside_a_fence_is_named_and_not_called_absent(
         f"the line parses perfectly well; what is wrong is where it is:\n{said}"
     )
     assert "/specseal:config" in said, said
+    assert WHERE_THE_RULE_IS in " ".join(said.split()), said
     # The other half of round 1's 🟡 2, and what keeps its repair from being a
     # flat swap. This fence IS closed, so the row really is inside an example
     # block and moving it is the act — the sentence for a fence nobody closed
@@ -2569,6 +2580,7 @@ def test_a_broad_gate_line_only_inside_a_comment_is_named_and_not_called_absent(
     assert f"| {ROW} | bin/test -q |" in said, said
     assert "The row is not absent and it is not in a code fence" in said, said
     assert "take the row out of the comment" in said, said
+    assert WHERE_THE_RULE_IS in " ".join(said.split()), said
     assert f"has no `{ROW}` row" not in said, said
     assert FENCED not in said, said
     assert said.endswith("Nothing ran."), said
@@ -2631,7 +2643,7 @@ def test_an_unclosed_fence_hides_the_live_table_and_the_gate_says_which_line(
     """A5. An unclosed fence runs to the end of the file, so it swallows the
     live table under it — and that lands on *nothing is declared*, which is
     the direction `hooks/config.py` fails in on purpose and the trade
-    `plan.md` §*Alternatives considered* accepted for this rule.
+    `plan.md` *Alternatives considered* accepted for this rule.
 
     What makes it acceptable is that it is loud where it matters. The exit
     code is read directly off the process and no check ran, and the message
@@ -2854,7 +2866,7 @@ def test_an_escaped_pipe_reaches_the_gate_as_the_command_it_reads_as(tmp_path):
         f"the gate read {command!r} from a row written with `\\|`"
     )
     assert module.not_as_written(str(home), command) is None, (
-        "a pipe satisfies the criterion (`templates/config.md` §*What is "
+        "a pipe satisfies the criterion (`templates/config.md` *What is "
         "refused, and what stays allowed*) and nothing here restricts it"
     )
 
@@ -3745,7 +3757,7 @@ def test_the_docstrings_describe_the_letter_and_the_rows_it_carries():
 
 def test_the_documents_name_the_ci_also_row():
     """#717, S7 for the rows (contract rule 14). `skills/verify/orchestration.md`
-    §*A run says what it did not answer* and `agents/sealer.md` named the
+    *A run says what it did not answer* and `agents/sealer.md` named the
     `workflow` row and its `<n> of <total> not answered` reading; both name
     the `CI also` row and its `<n> more steps` now, and the denominator is
     said to be on the stderr line. #832's S5a: the row's value leads with a
@@ -7922,7 +7934,7 @@ def test_a_green_tree_preflights_green_and_seals_nothing(repo, tmp_path):
 
 
 def test_the_preflight_prints_no_coverage_line(repo, tmp_path):
-    """Spec §*Data & interfaces*, step 2. The coverage line says what THIS
+    """Spec *Data & interfaces*, step 2. The coverage line says what THIS
     RUN answers of the workflow's `release` job, and a preflight runs no
     row, so it prints none — over a fixture carrying this repository's own
     workflow, where the full run over the same tree prints it."""

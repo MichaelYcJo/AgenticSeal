@@ -36,7 +36,7 @@ close was made first rather than trusting that it was.
 against the script or document with the one behaviour it pins removed; the
 mutations and what each case said were recorded in
 phase 4 of work item `1790076050-the-release-tail-is-three-acts-no-document-names`,
-whose rule `docs/branch-and-release.md` §*Cutting a release* now carries. That
+whose rule `docs/branch-and-release.md` *Cutting a release* now carries. That
 work item's directory was retired by #514's fold, so the phase
 record is read from history before that commit. A13 and A14 were added later,
 by work item `1790134781-a-label-description-past-100-characters-fails-every-release`,
@@ -240,9 +240,21 @@ def test_every_declared_label_says_which_document_specifies_it():
         assert label["specified_by"].startswith(OWNER.split("/")[-1]) or label[
             "specified_by"
         ].startswith("docs/"), label
-        document = label["specified_by"].split(" §")[0]
+        document, _, heading = label["specified_by"].partition(" *")
         assert os.path.exists(os.path.join(ROOT, document)), (
             f"{label['name']!r} cites {document}, which is not in the tree"
+        )
+        # The section is cited by its heading text in italics, and the
+        # heading is read as it renders, its own emphasis dropped.
+        with open(os.path.join(ROOT, document), encoding="utf-8") as handle:
+            headings = {
+                line.lstrip("#").strip().replace("*", "")
+                for line in handle
+                if line.startswith("#")
+            }
+        assert heading.endswith("*") and heading[:-1] in headings, (
+            f"{label['name']!r} cites {label['specified_by']!r}, and "
+            f"{document} has no such heading"
         )
 
 

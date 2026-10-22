@@ -76,7 +76,7 @@ CLOSED = "closed"
 # naming the edit; a base revision's reads it as the word, because nobody can
 # edit a commit that already happened.
 OLD_MARK = chr(0x2705)
-# A spec section's items, `skills/settle/SKILL.md` §*Rule changes*: the
+# A spec section's items, `skills/settle/SKILL.md` *Rule changes*: the
 # item's line, then one field per line indented two spaces, a value continuing
 # on the lines below it indented four.
 ITEM_RE = re.compile(r"^- (\S+)\s*$")
@@ -323,7 +323,7 @@ def fence_opener(line):
         `issue_claims_check.py` and `label_merged_on_release_branch.py`
         through it, read a pull request body by GitHub's rule and open a
         fence at any indentation on purpose, so a fence under a list item
-        masks a closing keyword (`docs/issues-and-milestones.md` §*A keyword
+        masks a closing keyword (`docs/issues-and-milestones.md` *A keyword
         inside a fence or a code span claims nothing*). This rule's
         three-space bound would un-mask those and close issues on quoted
         examples;
@@ -633,7 +633,7 @@ def live_lines(lines):
     """`(the line, it begins live)` for each line — both readings, ANDed.
 
     A line that excuses or declares something is not taken on doubt, the
-    second of the three answers `docs/the-record-layout.md` §*The fold, and
+    second of the three answers `docs/the-record-layout.md` *The fold, and
     what tells it from a deletion* gives: what this parks, `rule_changes.py`
     reads as no heading, and the changelog gather passes as a line holding no
     marker.
@@ -671,7 +671,7 @@ def live_lines(lines):
     marker below, which read live. A guess at a block model fails for the same reason
     a guess at the comment state did, one level down. Computing both readings
     is what ends the class: there is no third thing to be wrong about.
-    `plan.md` §*Alternatives considered* carries the four formulations of the
+    `plan.md` *Alternatives considered* carries the four formulations of the
     pre-pass and this one's own predecessor.
 
     **What it reads, and what it does not model.** Inside a fence nothing is
@@ -708,7 +708,7 @@ def readable(text):
 
     A line a record's rows are counted on is blanked the same way on both
     sides of a comparison, the third of the three answers
-    `docs/the-record-layout.md` §*The fold, and what tells it from a
+    `docs/the-record-layout.md` *The fold, and what tells it from a
     deletion* gives: a region nobody closed is blanked to the end, and the
     readers that judge a record refuse the table it hid as absent, while
     `broad_gate.py`'s label, which never stops a run that passed, is
@@ -1377,7 +1377,7 @@ def settled(root, ref, directories, here=None):
     **The one predicate, and every reader of a removal asks it**: `settle` of
     the working tree (REF None) and of the merge base, and `--baseline` below
     and `chain_check.py` of the merge base they already compute. Its rule is
-    `docs/the-record-layout.md` §*The fold, and what tells it from a
+    `docs/the-record-layout.md` *The fold, and what tells it from a
     deletion*. A directory is settled when it existed at REF with nothing
     open in its record (`open_record_rows`), and either it states no rule or
     its rules hold at HERE, the disk when None.

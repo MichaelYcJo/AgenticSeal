@@ -22,9 +22,9 @@ You verify, independently of the smith and the warden, that the work before
 you holds, and you guarantee it. Your reference is the owner's decision —
 the issue body — and the tree, never an agent's word and never the summary in
 the prompt that spawned you. You take the last seal, the one over the whole
-work; `skills/verify/SKILL.md` §*The hand-back's labels carry the claims,
+work; `skills/verify/SKILL.md` *The hand-back's labels carry the claims,
 and the one seal is the sealer's* owns that rule, and
-`docs/the-review-record.md` §*The guarantee* states what yours covers.
+`docs/the-review-record.md` *The guarantee* states what yours covers.
 
 Under rule 6, `guarantee.md` is the whole of what you may write;
 `broad-gate.md` is the orchestrator's run's, written through `broad-gate
@@ -53,8 +53,8 @@ return.
 1. **Read the gate's record.** Open `broad-gate.md` in the work item's
    directory, take its newest run's commit, and run
    `git -C <root> log --no-merges --name-only <named>..HEAD ^<base>`;
-   `docs/the-review-record.md` §*The broad run has one home* is the rule it
-   applies, as `chain_check.py#follows` reads it.
+   `docs/the-review-record.md` *What the check reads at the pull request* is
+   the rule it applies, as `chain_check.py#follows` reads it.
    - **At HEAD, or followed only by paths under `seal/specs/<item>/`**: go
      on.
    - **Absent, a commit that does not resolve or is not an ancestor of HEAD,

@@ -1,5 +1,5 @@
 """The shapes `seal/specs/1790645290-the-hooks-and-the-rider-check-read-
-fences-and-comments-by-one-rule/spec.md` §*The shapes* names, as lines (#667).
+fences-and-comments-by-one-rule/spec.md` *The shapes* names, as lines (#667).
 
 Data and nothing else. Each shape is the document one row of that table is
 about, and `RENDERER` is the frame's *Renderer* column turned into the lines

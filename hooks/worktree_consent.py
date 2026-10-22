@@ -303,7 +303,7 @@ def last_routing_answer(top: str, session: str, transcript_path: str = ""):
     the question and its options and never which one was pressed. That is the
     whole difference from `[worktree-ok]` and from a `routing.md` the model
     wrote itself, and it is why the answer stands beside the record as
-    consent. `docs/worktree-guard-spec.md` §*Creation consent* holds the table.
+    consent. `docs/worktree-guard-spec.md` *Creation consent* holds the table.
 
     Four conditions. Failing the first, or a clone that cannot be resolved, is
     `UNREAD`; an entry failing another is skipped. The guard reads either as

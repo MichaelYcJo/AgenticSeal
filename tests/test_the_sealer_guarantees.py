@@ -687,9 +687,9 @@ class TestDefinition:
 
 class TestDocument:
     def test_the_guarantee_section_points_at_step_3_and_lists_no_act(self):
-        """T23: `docs/the-review-record.md` §*The guarantee* points at the
+        """T23: `docs/the-review-record.md` *The guarantee* points at the
         definition's steps 3 and 4 for the acts and lists none of them. The
-        record's vocabulary in §*The round record* keeps `fixed <commit>`,
+        record's vocabulary in *The round record* keeps `fixed <commit>`,
         and is outside the slice read here."""
         section = between(DOCUMENT, "## The guarantee", "## The run")
         assert "`agents/sealer.md` step 3" in section

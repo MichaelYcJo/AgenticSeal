@@ -170,7 +170,7 @@ def release_files(root):
     """`[(version, path)]` for every `changelog/<X.Y.Z>.md`, newest first.
 
     Listed from the disk rather than from git: release preparation runs this
-    before the new file is staged (`docs/release-checklist.md` §3)."""
+    before the new file is staged (`docs/release-checklist.md` *3. Verify before committing*)."""
     directory = os.path.join(root, RELEASES)
     if not os.path.isdir(directory):
         return []

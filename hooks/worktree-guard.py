@@ -2161,7 +2161,7 @@ _OPENERS = ("$(", "`", "<(", ">(")
 # 1791384157 built a brace reader for #856 and took it out in the same
 # release, because every reading of it imitated bash and five review rounds
 # each found the next spelling it missed. The class is the limit
-# `docs/worktree-guard-spec.md` §*Known limits* names, decided in #886.
+# `docs/worktree-guard-spec.md` *Known limits* names, decided in #886.
 
 
 class Finding(tuple):
@@ -2468,7 +2468,7 @@ def _cut_unread(items):
     that glues an `&` cut back is missing or raises: each cut with the bare
     word `git` on either side of it is a finding, so a broken reader costs a
     stop where the tree matters and never a silence
-    (`docs/worktree-guard-spec.md` §*Which tree*; round 1 of work item
+    (`docs/worktree-guard-spec.md` *Which tree*; round 1 of work item
     1791270162, yellow 4). A background `&` beside a git command stops too
     while the reader is broken, which is the cheaper mistake.
 
@@ -2476,7 +2476,7 @@ def _cut_unread(items):
     where the frozen reading finds a `-C` (`git -C W worktree 2>&1 add …` is
     judged in `W`). A `-C` after the cut (`2>&1 git -C W switch x`) only the
     broken reader could read, so that cut is judged in the tree it was typed
-    from: a named limit (§*Known limits*; round 2 of work item 1791270162,
+    from: a named limit (*Known limits*; round 2 of work item 1791270162,
     yellow 3)."""
     out = []
     for index, (sep, tokens) in enumerate(items):
@@ -2553,7 +2553,7 @@ def _finding_tree(tokens, wheres, cwd):
     handed to a shell (`sh -c 'git -C W switch x'`) is no git to either
     reading, so its own `-C` and `cd` are not read and it is judged in the
     tree it was typed from: a named limit (`docs/worktree-guard-spec.md`
-    §*Known limits*; round 1 of work item 1791270162, yellow 5)."""
+    *Known limits*; round 1 of work item 1791270162, yellow 5)."""
     if tokens is None:
         return cwd
     here, target = worktree_consent.place(tokens, wheres, cwd)
@@ -2951,7 +2951,7 @@ def main():
     where the tree it names matters and is silent in a clean tree nobody else
     is in (`docs/worktree-guard-spec.md` §A, *Which commands reach these
     rows*), and a word the shell builds after this guard reads the command is
-    not read at all (§*Known limits*), so unknown input is refused in one
+    not read at all (*Known limits*), so unknown input is refused in one
     place and passed in another.
     """
     data = load_input()
@@ -3035,7 +3035,7 @@ def main():
     # creation took the verdict, consent made it silent for a compound, and
     # `git worktree add ../x -b x && git switch y` ran the switch over a tree
     # another session was ACTIVE in. `docs/worktree-guard-spec.md`
-    # §*Creation consent* says consent never reaches the switch direction.
+    # *Creation consent* says consent never reaches the switch direction.
     #
     # Only the first of each kind, which is what the writer records for a
     # creation. A switch in a second tree or a creation in a second clone is
@@ -3206,7 +3206,7 @@ def main():
     # between the two options, and the model may not pick the shared tree in
     # their place: that is the call those rows exist to hand a person, and
     # the token that carries it is written by whoever issues the command
-    # (`docs/worktree-guard-spec.md` §*Choice sites*), so it is not named.
+    # (`docs/worktree-guard-spec.md` *Choice sites*), so it is not named.
     # The split needs nobody where its creation is consented: the press is
     # consent in the clone it was given in, read before every creation row
     # there, so the plain `git worktree add` passes, and a session works in

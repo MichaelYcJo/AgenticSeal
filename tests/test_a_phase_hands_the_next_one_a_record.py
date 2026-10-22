@@ -10,7 +10,7 @@ so they live only in a transcript the next phase's session never opens.
 
 `templates/sdd-phase.md` gives the build side the same committed,
 per-segment record the review chain already has in `templates/sdd-round.md`
-(`docs/the-review-record.md` §*The round record*). This module pins:
+(`docs/the-review-record.md` *The round record*). This module pins:
 
   the field table    `Phase`, `Commit` — nothing more, because a phase has
                      no `target:` commit to squash away

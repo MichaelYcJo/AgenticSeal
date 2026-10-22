@@ -1,6 +1,6 @@
 """Every agent definition has one shape and preloads the contract alone.
 
-`spec.md` §*The shape of a definition* of #957: frontmatter whose `skills:`
+`spec.md` *The shape of a definition* of #957: frontmatter whose `skills:`
 list is `agent-contract` and nothing else, one opening sentence naming the
 contract, identical in every definition, then `## Job`, `## Order of work`,
 `## Never` and `## Rules`, in that order. Every other skill is opened at the

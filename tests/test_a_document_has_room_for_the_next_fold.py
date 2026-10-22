@@ -6,7 +6,7 @@ ceiling` row as one to split along its own headings, and exits 0 on it: the
 estimate is a guess from bytes, so it is a report and not a gate. Its index
 arm refuses a `<policy root>/README.md` that misses a document, names one
 twice, or holds a row naming none. The rows and the estimate are stated once,
-in `templates/config.md` §*The fold's values*.
+in `templates/config.md` *The fold's values*.
 """
 
 import importlib.util
@@ -431,7 +431,7 @@ def test_both_cheat_sheets_point_to_the_checks_home(edition):
     was gone. It now points to the rows' one statement and restates none."""
     with open(os.path.join(ROOT, edition), encoding="utf-8") as f:
         row = next(line for line in f if line.startswith("| `fold-check [--ceiling"))
-    assert "`templates/config.md` §*The fold's values*" in row, row
+    assert "`templates/config.md` *The fold's values*" in row, row
     assert "frozen" not in row and "고정" not in row, row
 
 

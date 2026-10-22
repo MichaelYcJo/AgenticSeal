@@ -10,7 +10,7 @@ repair with no commit on the branch closes `deferred <where it was
 repaired>`, one a commit made closes `fixed <commit>`, and `rejected` is a
 finding that does not hold (T41, `spec.md` of
 `1791933022-every-agent-skill-and-doc-states-the-current-rule-only`,
-§*What a round records*).
+*What a round records*).
 """
 
 import glob

@@ -365,7 +365,7 @@ def test_the_no_change_block_is_how_a_work_item_says_nothing_is_open(tmp_path, b
     """S1 of #1000. Saying it explicitly is the point: silence and "nothing
     open" have to look different in the file, not only in the tally. The
     block is the one `## Rule changes` writes (`skills/settle/SKILL.md`
-    §*Rule changes*), read by the same function."""
+    *Rule changes*), read by the same function."""
     op, cl, err = uc.check_file(write(tmp_path, f"## Not verified\n\n{block}"))
     assert not err and not op and not cl
 

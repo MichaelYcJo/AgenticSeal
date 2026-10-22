@@ -392,7 +392,7 @@ def test_s11_a_relationship_recorded_on_one_side_is_refused(world):
     ids=["a value outside the old vocabulary", "written twice"],
 )
 def test_a_pact_notify_row_an_earlier_release_read_is_ignored(world, rows):
-    """`templates/config.md` §*Pact*: a `Pact notify` row left in a signer's
+    """`templates/config.md` *Pact*: a `Pact notify` row left in a signer's
     table is read by nobody, so neither a value outside the vocabulary the
     row once had nor the row written twice is refused, and the `READ` line
     names no notify value. Seen red against the reader that still refused

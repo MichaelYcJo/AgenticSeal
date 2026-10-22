@@ -361,7 +361,7 @@ def test_a_path_qualified_git_carries_no_allow(monkeypatch, capsys, repo):
     )
 
 
-# #243. `docs/worktree-guard-spec.md` §*Creation consent* counted the spellings
+# #243. `docs/worktree-guard-spec.md` *Creation consent* counted the spellings
 # the allow covers (*exactly five*) and gave everything else one verdict
 # (*falls to `ask`*). Both were a property of one enumeration, not of the
 # boundary. The boundary is a class, and this table pins members of each
@@ -708,7 +708,7 @@ def test_the_guard_is_never_silent_where_the_writer_records(
 # creation took the verdict and the switch was never read. With consent the
 # creation is silent for a compound, and that silence was the whole answer: the
 # switch ran over a tree another session was working in, which
-# `docs/worktree-guard-spec.md` §*Creation consent* says consent never reaches.
+# `docs/worktree-guard-spec.md` *Creation consent* says consent never reaches.
 # The walk now keeps the first switch and the first creation in whichever
 # order they are written, and a command carrying both goes to the switch
 # ladder with the creation hooked in where the switch-first shape has it.
@@ -868,7 +868,7 @@ def test_a_switch_into_the_new_worktree_is_judged_where_the_shell_stands(
     worktree the command creates does not exist yet.
 
     `cd ../x && git switch y` therefore falls back to the session's own tree,
-    per §*Which tree*, and meets that tree's
+    per *Which tree*, and meets that tree's
     switch verdict. It is a stop the person pays for a switch that would
     really happen in the new worktree, and it errs on the side a guard
     should. Seen red at the base: the creation's `ask`, or silence under
@@ -876,7 +876,7 @@ def test_a_switch_into_the_new_worktree_is_judged_where_the_shell_stands(
 
     `git -C ../x switch y` names no repository, so it keeps that section's
     silence, and the creation's own verdict stands, as it did at the base.
-    That is the spelling `docs/worktree-guard-spec.md` §*Known limits* names
+    That is the spelling `docs/worktree-guard-spec.md` *Known limits* names
     as the way to avoid the stop."""
     for consented in (False, True):
         sid = f"consented-{consented}"
@@ -1181,7 +1181,7 @@ def test_the_silent_arm_emits_nothing_at_all(monkeypatch, capsys, repo):
 # routing question can: the harness writes it into the session's transcript
 # from the click, and the model writes the question and never which option was
 # pressed. The fixtures below build transcript lines in the shape measured on
-# 2026-09-26 (`spec.md` §*Data & interfaces*), under a projects root the case
+# 2026-09-26 (`spec.md` *Data & interfaces*), under a projects root the case
 # owns, so no case reads a transcript of whoever runs the suite.
 
 ROUTING_QUESTION = "How should this work be routed?"

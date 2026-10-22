@@ -120,12 +120,12 @@ def test_verify_prices_the_run_that_repeats():
 
 def test_the_implementers_bar_is_not_the_reviewers_and_has_one_home():
     """Contract rule 10 points each kind of segment at its bar in
-    `docs/the-review-record.md` §*The per-segment bars*, and the implementing
+    `docs/the-review-record.md` *The per-segment bars*, and the implementing
     row is not judged by tools per turn: an edit-test loop judged by the
     reviewer's bar is asked for what a serial loop cannot give. Since #957
     no definition carries a second copy of a bar."""
     contract = flat("skills", "agent-contract", "SKILL.md")
-    assert "`docs/the-review-record.md` §*The per-segment bars*" in contract
+    assert "`docs/the-review-record.md` *The per-segment bars*" in contract
     bars = flat("docs", "the-review-record.md")
     assert "never tools per turn" in bars, (
         "the implementing row lost the sentence that keeps it off the reviewer's bar"

@@ -32,7 +32,7 @@ lines of each open finding; a write not named here is a write you do not make.
    the earlier `phases/`, `seal/follow-up.md`, and every coordinate the
    handoff names. Where `seal/parity.md` is declared, open
    `skills/legacy-parity/SKILL.md` before judging anything. A reference root
-   (`templates/config.md` §*Reference specs*) is read where the work touches
+   (`templates/config.md` *Reference specs*) is read where the work touches
    what it describes, and cited where `spec.md` cites it.
 3. Say whether the frame holds before you build to it.
 4. Where `routing.md` declares a framer and no `spec.md` is there, stop and
@@ -90,7 +90,7 @@ disagree, and do not guess which is true.
 check: tests/test_a_moved_rule_leaves_its_definition.py
 
 **The handoff's facts are coordinates to open.** A fact your prompt carries
-arrives in the shape of `docs/the-review-record.md` §*The handoff*; open its
+arrives in the shape of `docs/the-review-record.md` *The handoff*; open its
 coordinate before you build on it, and where a claim flips on where it is
 measured, measure where the handoff says and say so.
 check: tests/test_the_handoff_before_round_one.py
@@ -135,7 +135,7 @@ check: tests/test_a_moved_rule_leaves_its_definition.py
 
 **Find the runner, and type the narrow form.** A wrapper in `bin/`, or
 whatever the contribution guide names first, is cheap on the second call;
-run one module at a time (`docs/the-review-record.md` §*The handoff*).
+run one module at a time (`docs/the-review-record.md` *The handoff*).
 Asking whether the suite catches something is a coverage probe, a different
 act: run it over the module that should catch it and report it as a probe.
 check: tests/test_the_suite_has_a_command_that_is_cheap_twice.py
@@ -158,7 +158,7 @@ check: tests/test_a_phase_hands_the_next_one_a_record.py
 **A fix pass writes two lines of each finding and no phase record.** It
 rewrites `verdict:` to `fixed <commit>`, `rejected` or `deferred <home>` (a
 repair with no commit on the branch is `deferred <where it was repaired>`)
-and writes `answer:` (`docs/the-review-record.md` §*The round record*). Where
+and writes `answer:` (`docs/the-review-record.md` *The round record*). Where
 your fix changed none of the paths `location:` lists, append the one it did
 change after `, ` and name it in `answer:`. Once the fixes are committed, find
 every other place stating each rule your range reworded or removed, by
@@ -168,5 +168,5 @@ check: tests/test_a_moved_rule_leaves_its_definition.py
 
 **The chain ends at a pull request, never a merge.** Verification and review
 follow your hand-back without being asked, bounded as
-`docs/the-review-record.md` §*The run* states; merging is the user's act.
+`docs/the-review-record.md` *The run* states; merging is the user's act.
 check: tests/test_chain_hooks_hardening.py

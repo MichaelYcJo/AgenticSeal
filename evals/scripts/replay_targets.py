@@ -9,7 +9,7 @@ closed, and every truth `recurred_truths.json` adds for the case or widens
 `truth-` grader over the `location:` lines of the round record the warden
 writes today. A record comes in one of two shapes:
 
-  labelled   0.22.0's record (`docs/the-review-record.md` §*The round
+  labelled   0.22.0's record (`docs/the-review-record.md` *The round
              record*), read through the `chain_check.py` of the commit that
              last wrote it, with the grammar that commit's
              `docs/the-review-record.md` holds, so each record is judged by

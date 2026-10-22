@@ -149,7 +149,7 @@ body is read as shell, and the exception changes nothing about the first
 reason: an edit made through the shell still cannot fail the way an `Edit`
 call does. The grammar, slot by slot, has one home, and a session spelling a
 heredoc any other way reads it there first: `docs/commit-review-gate-spec.md`
-§*A file edit goes through the `Edit` tool*.
+*A file edit goes through the `Edit` tool*.
 
 That second reason is about a reader, and since #692 the reader judges a
 commit only where git's hooks cannot: a clone whose hooks slot is somebody
@@ -161,7 +161,7 @@ no assignment, are plain). Everywhere else — every
 opted-in clone a session reaches, unless `core.hooksPath` or a hook file it
 did not write holds the slot — git judges
 a commit inside the commit, in the worktree it lands in, and no command text
-is read for it (`docs/the-commit-gate-inside-git.md` §*The commit gate inside
+is read for it (`docs/the-commit-gate-inside-git.md` *The commit gate inside
 git*). The first reason holds everywhere, and it is the one that makes this
 rule yours.
 check: tests/test_edits_go_through_the_edit_tool.py
@@ -175,7 +175,7 @@ the requirements read, where every file the handoff names can be opened in
 one call, has no excuse. An edit-test loop is serial — a call whose input
 depends on the last result cannot go out with it — and a review reads
 independent things, which is where batching pays most. The bar each kind of
-segment is judged by is `docs/the-review-record.md` §*The per-segment bars*,
+segment is judged by is `docs/the-review-record.md` *The per-segment bars*,
 and no definition states a second copy of it.
 check: tests/test_a_moved_rule_leaves_its_definition.py
 

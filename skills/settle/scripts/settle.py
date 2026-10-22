@@ -207,7 +207,7 @@ PREMODEL_HEADING = (
 REMOVES_HEADING = "what `settle --apply` would remove:"
 READERS_HEADING = (
     "checks that read `seal/specs` — each owes an answer "
-    "(`skills/settle/SKILL.md`\n§*Answer every check that reads the corpus*) "
+    "(`skills/settle/SKILL.md`\n*Answer every check that reads the corpus*) "
     "before the directories go:"
 )
 

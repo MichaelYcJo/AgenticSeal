@@ -160,7 +160,7 @@ VERSIONS_OF_ANOTHER_PRODUCT = {
     ("CONTRIBUTING.md", "4.2.0"): (
         "markdown-it-py's, the parser the suite's CommonMark oracle reads, "
         "pinned in `.github/scripts/run_tests.py#MARKDOWN_IT` (#667). The "
-        "fallback commands in §*Running the checks* carry the pin so they "
+        "fallback commands in *Running the checks* carry the pin so they "
         "install the parser the oracle is held to, and a case holds them to "
         "the runner's constant; no release of SpecSeal makes the number wrong"
     ),
@@ -1491,7 +1491,7 @@ def test_a_four_space_indented_block_is_still_read_as_a_claim():
 def test_an_html_comment_is_still_read_as_a_claim():
     """Deliberately unmasked, and for a different reason: whether GitHub
     acts on a keyword inside a comment is unmeasured
-    (`docs/issues-and-milestones.md` §*A keyword claims the one number after
+    (`docs/issues-and-milestones.md` *A keyword claims the one number after
     it*), and a measurement needs a scratch pull request on a tracker. Until
     it is taken the shape stays as it was."""
     m = _closer()

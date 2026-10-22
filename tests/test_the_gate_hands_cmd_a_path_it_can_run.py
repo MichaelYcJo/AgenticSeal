@@ -374,7 +374,7 @@ def test_a_switch_against_another_program_reaches_cmd_exe_as_written(tree, row, 
 
 
 def test_the_template_says_which_positions_are_rewritten():
-    """A2, the reader's half (contract rule 14). `templates/config.md` §*Broad gate* is
+    """A2, the reader's half (contract rule 14). `templates/config.md` *Broad gate* is
     where a person writing the row learns what `cmd.exe` is handed, and it
     states the rule and names the positions the scan leaves as written —
     the gap the cases above pin is only a gap nobody is surprised by while

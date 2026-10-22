@@ -123,5 +123,7 @@ def test_the_release_checklist_names_the_waiver_as_the_no_work_item_answer():
     token in front of each commit — rather than stepping around a gate."""
     text = flat("docs", "release-checklist.md")
     assert "`no work item` answer" in text, (
-        "§4 does not name the waiver as the routing question's `no work item` answer"
+        "`docs/release-checklist.md` *4. Commit, push, open the first pull "
+        "request* does not name the waiver as the routing question's `no work "
+        "item` answer"
     )

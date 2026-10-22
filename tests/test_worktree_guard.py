@@ -1588,7 +1588,7 @@ ATTENDED_ASK = {
 
 
 def test_a_git_command_inside_a_heredoc_body_is_not_judged(monkeypatch, capsys, repo):
-    """#243's phase 3 measured `docs/worktree-guard-spec.md` §*Known limits*'s
+    """#243's phase 3 measured `docs/worktree-guard-spec.md` *Known limits*'s
     old first line -- *a heredoc line that IS exactly a git command still
     matches* -- and found it closed: `_judgment_text` drops heredoc bodies, so
     a body line is data. The line was deleted and this is what holds it, in a
@@ -2242,7 +2242,7 @@ def test_a_broken_reader_judges_a_cut_in_the_tree_before_it(
     silent at `3c9a1161`, which placed it by the part after. A `-C` after
     the cut (`2>&1 git -C W switch x`) only the broken reader could read, so
     that group is judged in the tree it was typed from: the limit
-    `docs/worktree-guard-spec.md` §*Known limits* names."""
+    `docs/worktree-guard-spec.md` *Known limits* names."""
     import shutil
 
     w = tmp_path / "W"
@@ -2579,7 +2579,7 @@ def test_no_listed_form_moves_head_under_git(monkeypatch, capsys, repo, tmp_path
     # reads the words, and each switches HEAD or adds a worktree; the guard
     # reads each as listed and says nothing in an ACTIVE tree. A word the
     # shell builds before git runs is the limit `docs/worktree-guard-spec.md`
-    # §*Known limits* names, decided with #886's shapes, and the day a change
+    # *Known limits* names, decided with #886's shapes, and the day a change
     # to the frozen words makes the guard read one, this half says so. Red at
     # `52c72bbe`, where the guard stopped all four. The guard's half reads
     # words and runs everywhere; bash's half runs only where `bash` is a
@@ -2639,7 +2639,7 @@ def test_a_shell_built_word_is_the_named_limit(monkeypatch, capsys, repo, comman
     runs is not among them, so a brace changes nothing: each form is silent
     in a tree another session is ACTIVE in. The first four switch HEAD or add
     a worktree under bash (`test_no_listed_form_moves_head_under_git`), which
-    is the limit `docs/worktree-guard-spec.md` §*Known limits* names beside
+    is the limit `docs/worktree-guard-spec.md` *Known limits* names beside
     #886's shapes. Red at `52c72bbe`, where the brace reader stopped all but
     the two quoted forms."""
     in_state(monkeypatch, repo, "active")

@@ -620,7 +620,7 @@ def figures(text):
 
 @pytest.mark.parametrize("path", AGENTS, ids=name)
 def test_no_definition_states_a_tools_per_turn_figure(path):
-    """T5: the per-segment bars live in `docs/the-review-record.md` §*The
+    """T5: the per-segment bars live in `docs/the-review-record.md` *The
     per-segment bars*, and contract rule 10 says no definition states a second
     copy. A copy in a definition drifts from the table and is read first."""
     assert not figures(read(path)), f"{name(path)}: {figures(read(path))}"

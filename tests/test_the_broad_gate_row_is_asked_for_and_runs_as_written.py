@@ -153,7 +153,7 @@ def test_the_criterion_sits_beside_the_list_rather_than_only_the_list():
 
 
 def test_the_template_says_a_refused_value_is_refused_and_not_repaired():
-    """#402 §*Not this*. Stripping makes a wrong value silently work, leaves
+    """#402 *Not this*. Stripping makes a wrong value silently work, leaves
     the file still wrong, and teaches the next person that backticks were
     fine."""
     body = flat(section(read(*TEMPLATE), REFUSED_AND_ALLOWED, 3))
@@ -544,7 +544,11 @@ def test_the_absent_row_refusal_says_whose_the_row_is_and_where_it_is_answered()
     said = missing_row_text()
     assert "a row is a thing a person wrote" in said
     assert "/specseal:config" in said
-    assert "The criterion for choosing a value" in said
+    assert (
+        "`templates/config.md` *The criterion for choosing a value* is what "
+        "they choose against"
+    ) in said
+    assert "(`skills/verify/SKILL.md` *The Seal Test*)" in said
     assert "Nothing ran" in said
 
 

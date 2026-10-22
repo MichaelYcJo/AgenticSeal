@@ -19,7 +19,7 @@ it named both directions, which the two rows below hold:
   A2   a partition entry naming a step the workflow no longer has fails here,
        so the list cannot rot into naming steps nobody runs
 
-`spec.md` §*User scenarios & acceptance* numbers the rows A1 to A7 and each
+`spec.md` *User scenarios & acceptance* numbers the rows A1 to A7 and each
 case below names the one it holds.
 
 **The step names are read out of `hygiene.yml` itself.** `plan.md` retypes
@@ -569,7 +569,7 @@ def test_every_exclusion_carries_prose_rather_than_a_category():
 
     **What this cannot catch is a category in prose clothing.** *not
     applicable here* passes every rule below and says as little as
-    `EXCLUDED`. Only a reader catches that one, and `plan.md` §*The failure
+    `EXCLUDED`. Only a reader catches that one, and `plan.md` *The failure
     scenario at six months* is where it is written down as an open hole
     rather than a closed one.
     """

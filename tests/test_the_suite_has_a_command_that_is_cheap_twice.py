@@ -1,7 +1,7 @@
 """The repository ships a command for its own suite, and the second call is cheap.
 
 Issue #156. The issue says nothing names a command; that half is wrong --
-`CONTRIBUTING.md` §*Running the checks* named `uvx --with pytest python3 -m
+`CONTRIBUTING.md` *Running the checks* named `uvx --with pytest python3 -m
 pytest tests/ -q`. What it did not have is a command that is cheap the second
 time it runs: that form resolves its environment on every call, 55-58 seconds
 each, paid on all seventeen test calls of one measured segment (#133). Six
@@ -1138,7 +1138,7 @@ def flat(*parts):
 
 
 def running_the_checks():
-    """`CONTRIBUTING.md` §*Running the checks*, to the next heading."""
+    """`CONTRIBUTING.md` *Running the checks*, to the next heading."""
     text = read(os.path.join(ROOT, "CONTRIBUTING.md"))
     start = text.index("## Running the checks")
     return text[start : text.index("\n## ", start + 1)]
@@ -1246,7 +1246,7 @@ def test_the_section_says_the_full_run_is_the_orchestrators():
     )
 
 
-HANDOFF_LINK = "`docs/the-review-record.md` §*The handoff*"
+HANDOFF_LINK = "`docs/the-review-record.md` *The handoff*"
 
 
 def test_the_protocol_says_a_shipped_runner_is_found_not_typed():

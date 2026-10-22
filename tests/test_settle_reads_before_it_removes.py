@@ -550,6 +550,11 @@ def test_the_report_lists_what_an_apply_would_remove(tree):
     assert "docs/cites.md:2" in takes, "an abbreviated path is a citation too"
     assert "1700000002-beta" not in takes, "a marker or a bare id is not a path"
     assert "tests/test_reads.py" in text.split("checks that read")[1], text
+    # Contract rule 14: the heading a person reads names the section that
+    # says what each check owes, by its heading text.
+    assert (
+        "(`skills/settle/SKILL.md` *Answer every check that reads the corpus*)"
+    ) in " ".join(text.split()), text
 
 
 @pytest.mark.parametrize("ref", [None, "HEAD"])
@@ -704,7 +709,7 @@ def flat(text):
 
 
 def test_the_skill_names_the_floors_a_fold_has_to_answer():
-    """A11. `docs/one-root-by-lifetime.md` §*The dependency rule* names two
+    """A11. `docs/one-root-by-lifetime.md` *The dependency rule* names two
     readers and the real list is longer — fourteen test modules read this
     repository's own corpus and at least six carry a population floor. A
     session that folds without answering them removes the population its own
@@ -813,7 +818,7 @@ def test_every_other_carrier_points_to_the_model(parts):
     text = document(*parts)
     assert "one writer that does is `settle`" not in text, "/".join(parts)
     assert (
-        "`skills/implement/SKILL.md` §*Document layout — two roots, three lifetimes*"
+        "`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*"
         in text
     ), "/".join(parts)
 

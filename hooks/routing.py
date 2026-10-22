@@ -89,7 +89,7 @@ PLANNING_ANSWERS = (BY_FRAMER, BY_SESSION)
 #
 # One gate reads it, and no commit is decided on it: `hooks/question-gate.py`
 # refuses a question on the declared branch while it reads `yes`
-# (`docs/the-review-record.md` §*The run*).
+# (`docs/the-review-record.md` *The run*).
 AUTOMATION = "Automation"
 AUTOMATION_YES = "yes"
 AUTOMATION_NO = "no"

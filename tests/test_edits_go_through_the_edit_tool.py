@@ -283,7 +283,7 @@ def test_the_rule_names_the_one_heredoc_shape_it_does_not_read():
         assert "Any other spelling of the same body is read as shell" in text, who
         assert "changes nothing about the first reason" in text, who
         assert (
-            "`docs/commit-review-gate-spec.md` §*A file edit goes through the "
+            "`docs/commit-review-gate-spec.md` *A file edit goes through the "
             "`Edit` tool*" in text
         ), who
     policy = flat("docs", "commit-review-gate-spec.md")

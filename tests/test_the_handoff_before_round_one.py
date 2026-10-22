@@ -179,14 +179,14 @@ def test_the_smiths_contract_does_not_demand_what_a_serial_loop_cannot_give():
     """The batching rule lands on the smith with the caveat that keeps it
     honest: an edit-test loop is serial, and a rule that ignores that is a
     demand the work cannot meet. The caveat is contract rule 10's; the bar it
-    points at has one home, `docs/the-review-record.md` §*The per-segment
+    points at has one home, `docs/the-review-record.md` *The per-segment
     bars*, and no definition carries a copy since #957."""
     contract = flat("skills", "agent-contract", "SKILL.md")
     assert "An edit-test loop is serial" in contract, (
         "the contract stopped conceding what a serial loop cannot give, so "
         "the batching rule became a demand the work cannot meet"
     )
-    assert "§*The per-segment bars*" in contract, (
+    assert "`docs/the-review-record.md` *The per-segment bars*" in contract, (
         "the contract stopped pointing at the bars, and a figure with no home "
         "is one that measures the wrong agent"
     )

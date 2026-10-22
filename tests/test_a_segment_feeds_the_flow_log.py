@@ -493,7 +493,7 @@ def test_the_location_buckets_are_the_repositorys_own_definition_of_a_record():
     to be comparable, which two fillings of one row destroy.
 
     A ticket is a request and a ratified document outranks it, so the buckets
-    follow the policy. `overview.md` §*Where spec and implementation diverged*
+    follow the policy. `overview.md` *Where spec and implementation diverged*
     quotes both sides."""
     label, source = labelled("Findings by `Location`")
     assert "ledger" not in label, (

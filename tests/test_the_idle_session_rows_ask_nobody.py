@@ -429,7 +429,7 @@ def test_on_windows_a_switch_under_the_press_is_row_twos_deny(
     """M2 of work item 1791781864, measured by the Windows shards. Nothing is
     stubbed: `sessions_in_tree` runs as it does there, where `ps` takes no
     `-o` and detection reads unusable. If the reading is wrong, this case is
-    where it shows, and `docs/worktree-guard-spec.md` §*Known limits* is
+    where it shows, and `docs/worktree-guard-spec.md` *Known limits* is
     corrected in this work item. Seen red at `c38f97d7` off Windows, by a
     deleted probe in which the process scan found no `claude` process — the
     same branch: the attended deny."""
