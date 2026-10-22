@@ -45,8 +45,9 @@ and every string constant is replaced by one placeholder. A call with an
 argument that reads a name the case assigns or takes as a parameter is not
 compared at all: two cases passing a local `source` pass two values, and
 the input such a call reads is on disk or in a fixture, where the report
-cannot see it. Attribute names are kept, so two cases calling different
-methods of one object differ.
+cannot see it. A call with no argument is not compared either, because any
+two such calls are equal. Attribute names are kept, so two cases calling
+different methods of one object differ.
 
 Exit codes: `--check` 0 when nothing is refused and 1 when something is.
 `--pairs` 0 whatever it prints. 2 for either: the directory is not inside a
@@ -355,8 +356,9 @@ def _body(case):
 
 def _calls(case, function):
     """Each call of FUNCTION in CASE, dumped without its callee, leaving out
-    a call whose arguments read a name the case assigns or takes as a
-    parameter: two cases passing a local `source` pass two values."""
+    a call with no argument, since any two such calls are equal, and a call
+    whose arguments read a name the case assigns or takes as a parameter:
+    two cases passing a local `source` pass two values."""
     local = {arg.arg for arg in ast.walk(case.args) if isinstance(arg, ast.arg)}
     local |= {
         node.id
@@ -373,7 +375,8 @@ def _calls(case, function):
         )
         arguments = ast.Tuple(elts=[*node.args, *node.keywords], ctx=ast.Load())
         reads = {n.id for n in ast.walk(arguments) if isinstance(n, ast.Name)}
-        if named and not reads & local:
+        given = node.args or node.keywords
+        if named and given and not reads & local:
             found.add(
                 ast.dump(
                     ast.Call(

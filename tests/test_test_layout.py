@@ -276,13 +276,20 @@ class Test_pairs:
         source = PLACED.replace('x.parse("") is None', 'x.parse("b") == 2')
         assert layout.pairs({"tests/test_x.py": source}) == []
 
-    def test_refuses_two_cases_passing_a_local_of_one_name(self):
-        source = PLACED.replace(
-            'assert x.parse("a") == 1',
-            'text = "a"\n        assert x.parse(text, strict=True) == 1',
-        ).replace(
-            'assert x.parse("") is None',
-            'text = ""\n        assert x.parse(text, strict=True) == 2',
+    @pytest.mark.parametrize(
+        "first, second",
+        [
+            (
+                'text = "a"\n        assert x.parse(text, strict=True) == 1',
+                'text = ""\n        assert x.parse(text, strict=True) == 2',
+            ),
+            ("assert x.parse() == 1", "assert x.parse() == 2"),
+        ],
+        ids=["a-local-of-one-name", "no-argument"],
+    )
+    def test_refuses_two_cases_whose_calls_show_no_input(self, first, second):
+        source = PLACED.replace('assert x.parse("a") == 1', first).replace(
+            'assert x.parse("") is None', second
         )
         assert layout.pairs({"tests/test_x.py": source}) == []
 
