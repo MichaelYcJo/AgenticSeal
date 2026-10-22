@@ -40,7 +40,7 @@ The work is four rules the smith applies to any module without asking, the two c
 - Inside a file, one class per public top-level function of the target (one whose name does not start with an underscore), named `Test_<function>` with the function's name spelt as the code spells it; a private function gets a class where a case needs one. Behaviour of the module as a whole sits in `Test_module`. A function's class holds at least one case whose name starts with `test_accepts_` (the behaviour on good input) and one whose name starts with `test_refuses_` (the refusal or error on bad input). Other cases in the class take any `test_` name.
 - A flow across modules lives under `tests/e2e/<flow>/`, its `TARGET` names the command or hook the flow starts from, and its classes are scenarios that keep the accepting and refusing pair. The commit gate run through real git is the first flow.
 - A case whose assertion reads a shipped document names that document as `TARGET`; its classes are free-named. Such cases are #923's and this work moves none of them.
-- A helper used by two files is defined once, in `tests/conftest.py`. The fixture repositories a module needs are built once per module by a module-scoped fixture and copied for each case; the copy is the reset.
+- A helper used by two files is defined once, in `tests/conftest.py`. The fixture repositories a module needs are built once per module by a module-scoped fixture. Where a case writes into the world, each case takes a copy and the copy is the reset; where no case writes into it beyond a marker keyed by a session id, each case makes its own session id and that is the reset, with no copy.
 - The censuses are cases of each module's file: `tests/censuses.py` holds one function per census that judges one file, and each module file ends with `test_census = census_case(TARGET)` from `tests/conftest.py`, so running a module's tests runs every census over its target. A census's exemption is a comment line of its own, directly above the exempted line, because `ruff format` moves a comment written at the end of a line; the census reads it, refuses one above a line the census would not have flagged, refuses one written at the end of a line, and reads no comment that has no reason after its colon. No census keeps a list of exemptions in a test file. A tracked file whose module file does not yet declare it is judged by the sweep in `tests/test_censuses.py`, one git listing per run.
 
 ### Rule 2, how each existing case is classified
@@ -54,6 +54,7 @@ The smith reads the target's functions first and lists the classes the file must
 | cut | the mutation table shows every mutation it kills is killed by another case, or the behaviour it guards left the tree | one line: the case name, what it guarded, which case or tree fact now holds it |
 | rewrite | the class is written anew under rule 3; the old cases are read for their inputs, then deleted | one line per old case, as for cut |
 | to #923 | the assertion reads prose | the case name, in the batch's list left to #923 |
+| left for its module | the case's rows pin how another module reads a shape, so the target's mutants cannot show that a sample of the rows protects what the rows did; the case stays in its old file, rewritten in place without git where it ran the gate's `main`, until the phase that rebuilds the module it pins | the case name and the module it waits for |
 
 ### Rule 3, when a module's tests are written anew from the code
 
@@ -63,7 +64,7 @@ A module's tests are written anew when the old files that exercise it price at 6
 
 The target the rebuild works toward is the issue's: the suite's real protection at a fraction of today's time, with no case that runs for tens of minutes and no file or flow that dominates the run. The smith applies this rule while writing each module, and it binds the rewrite and nothing in CI: a time reading is noisy, the per-case ceiling is a report for that reason, and the per-module rows and the release sweep are what act on a slow module after the fact.
 
-- A rewritten module builds its fixture repositories once, in a module-scoped fixture, and resets them between cases by copying; it does not build one per case.
+- A rewritten module builds its fixture repositories once, in a module-scoped fixture, and resets them between cases by the means rule 1 names, a copy or a per-case session id; it does not build one per case.
 - A case about a reading of a command is judged without real git or a real shell. The real-git rows that stay are the ones showing the reading and git agree, and a batch names them.
 - A case does not enumerate a whole input space where a sampled set, one row per kind, holds the same behaviour; the proof of equal protection is what shows it does.
 - Each rewritten module's record states its seconds before and after, from `bin/test <files> -q` at the build machine, beside the cases before and after.
@@ -73,7 +74,7 @@ The target the rebuild works toward is the issue's: the suite's real protection 
 #942 changes no shipped code, so the one risk a rebuilt module carries is a fault the old cases caught and the new ones miss. A sample of mutants at the code's decision points is enough to show that risk, and the owner set its cost on 2026-10-22.
 
 - Where the mutants go: one or two per class, at each public function's decision points, the branches where a case accepts or refuses. That is about 30 per module.
-- How the new file's column runs: in one `bin/mutation-check` call carrying every mutant of the module, which runs the baseline once and then each mutant once, stopping each mutant's run at its first failure.
+- How the new file's column runs: in one `bin/mutation-check` call carrying every mutant of the module, which runs the baseline once and then each mutant once. The smith puts `-x` in the `--tests` command, so that pytest stops a mutant's run at its first failing case; the tool itself stops nothing.
 - When the old files' column runs: only for a mutant the new file lets survive. Where the old files miss it too, the record states an old gap. Where they kill it, the smith adds a case to the new file and sees it red on that mutant before the batch commits.
 - What the record carries: the table of mutants with the new column's verdict, the old column's verdict where it ran, each old gap, and each case added.
 
@@ -81,7 +82,7 @@ The target the rebuild works toward is the issue's: the suite's real protection 
 
 ### What holds the rules
 
-- `skills/verify/scripts/test_layout.py`, run as `bin/test-layout`. `--check` reads every `tests/**/test_*.py` that declares `TARGET` and fails on: a `TARGET` git does not track, a file name that does not match it, a `Test_<function>` naming no top-level definition of the target, a function class lacking the accepting or refusing case, a non-test top-level function whose source is byte-identical to one in another test file where one of the two files declares `TARGET`. It prints the files that declare no `TARGET` and every twin between two undeclared files, and with `--all` fails on both. It prints each public top-level function of the target that has no class, and fails on none. `--pairs` prints, for each class, two cases that call the target's function with equal argument expressions, or whose bodies are equal once names and string constants are normalised, and exits 0 whatever it prints. A call with an argument that reads a name the case assigns or takes as a parameter is not compared at all: its input is on disk or in a fixture, where the report cannot see it.
+- `skills/verify/scripts/test_layout.py`, run as `bin/test-layout`. `--check` reads every `tests/**/test_*.py` that declares `TARGET` and fails on: a `TARGET` git does not track, a file name that does not match it, a `Test_<function>` naming no top-level definition of the target, a function class lacking the accepting or refusing case, a non-test top-level function whose source is byte-identical to one in another test file where one of the two files declares `TARGET`. It prints the files that declare no `TARGET` and every twin between two undeclared files, and with `--all` fails on both. It prints each public top-level function of the target that has no class, and fails on none. `--pairs` prints, for each class, two cases that call the target's function with equal argument expressions, or whose bodies are equal once names and string constants are normalised, and exits 0 whatever it prints. A call with an argument that reads a name the case assigns or takes as a parameter is not compared at all: its input is on disk or in a fixture, where the report cannot see it. A call with no argument is not compared either, because any two such calls are equal.
 - `tests/test_test_layout.py` holds the script's own cases on fixtures, and one case that runs `--check` over this repository's `tests/`; the last phase gives that case `--all`.
 - `.github/scripts/release_report.py` prints, under its existing table, one row per test file: priced cases and seconds in `.test_durations` at the pull request head and at the last release tag, sorted by seconds. It reads the two trees it already reads and nothing else.
 - `tests/conftest.py` prints each case whose call ran past `SLOW_CASE_S` (90 seconds) in the terminal summary and fails nothing. `SPECSEAL_CASE_CEILING_S` is not read. The legs' `timeout-minutes` in `.github/workflows/test.yml` stay.
@@ -119,7 +120,7 @@ The target the rebuild works toward is the issue's: the suite's real protection 
 - `bin/test-layout [--check [--all] | --pairs] [paths]`, launched through `hooks/launch.py` like `bin/mutation-check`.
 - `tests/conftest.py#census_case(target)` returns the one case; `tests/censuses.py` exposes `def <census>(rel, root=None) -> list[str]`, one per census, where `rel` is the file's path relative to the repository root and `root` is the tree read, the repository root when absent.
 - `release_report.py#module_rows(at, now)` reads `.test_durations` in both trees.
-- `bin/mutation-check <path> --tests <command> --replace OLD NEW`, with `--replace` given once per mutant: a call with several pairs runs the baseline once, then each mutant once with its run stopped at the first failing case, restores the file after each, prints one verdict line per pair in the order given, and exits 1 where any mutant survived. A call with one pair runs as it does today.
+- `bin/mutation-check <path> --tests <command> --replace OLD NEW`, with `--replace` given once per mutant: a call with several pairs runs the baseline once, then each mutant once, restores the file after each, and prints one verdict line per pair in the order given. It exits 0 where every mutant is red, 1 where any mutant survived, and 2 where none survived but a run gave no verdict. It stops no run early: a `--tests` command that should stop at its first failing case carries pytest's `-x`. A call with one pair runs as it does today.
 
 ## Removes
 
@@ -171,6 +172,11 @@ The target the rebuild works toward is the issue's: the suite's real protection 
   from: it says nothing a reader acts on. check: tests/test_the_seal_is_taken_once_by_the_sealer.py
   to: it says nothing a reader acts on.
     check: tests/test_broad_gate.py
+- change
+  file: docs/commit-review-gate-spec.md
+  section: The PreToolUse reading of a commit
+  from: check: tests/test_no_shape_the_base_stops_reads_silent.py
+  to: check: tests/test_commit_review_gate.py
 
 ## Open questions → questions.md
 
