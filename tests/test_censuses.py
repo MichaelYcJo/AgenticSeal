@@ -588,27 +588,31 @@ class Test_splitlines:
         root = plant(tmp_path, "tests/x.py", "def f(t):\n    return t.splitlines()\n")
         assert censuses.splitlines("tests/x.py", root) == []
 
-    def test_refuses_a_planted_call_at_the_line_that_names_it(self, tmp_path):
-        source = "def reader(text):\n    return (\n        text\n        .splitlines()\n    )\n"
+    @pytest.mark.parametrize(
+        "source, line",
+        [
+            (
+                "def reader(text):\n    return (\n        text\n"
+                "        .splitlines()\n    )\n",
+                "skills/new.py:4: splitlines: `.splitlines(` ends a line where GFM "
+                "does not; a reader of markdown or record text reads "
+                "`hooks/blocks.py#gfm_lines`, and a call over any other text puts "
+                "`# exempt from splitlines: <what it splits>` on its own line "
+                "above it",
+            ),
+            (
+                "def reader(a, b):\n"
+                "    # exempt from splitlines: git output\n"
+                "    return a.splitlines() + b.splitlines()\n",
+                "skills/new.py:3: splitlines: two calls on one line, and an "
+                "exemption names one; put each call on a line of its own",
+            ),
+        ],
+        ids=["at-the-line-that-names-it", "a-second-call-under-one-exemption"],
+    )
+    def test_refuses_a_planted_call(self, tmp_path, source, line):
         root = plant(tmp_path, "skills/new.py", source)
-        assert censuses.splitlines("skills/new.py", root) == [
-            "skills/new.py:4: splitlines: `.splitlines(` ends a line where GFM "
-            "does not; a reader of markdown or record text reads "
-            "`hooks/blocks.py#gfm_lines`, and a call over any other text puts "
-            "`# exempt from splitlines: <what it splits>` on its own line above it"
-        ]
-
-    def test_refuses_a_second_call_under_one_exemption(self, tmp_path):
-        source = (
-            "def reader(a, b):\n"
-            "    # exempt from splitlines: git output\n"
-            "    return a.splitlines() + b.splitlines()\n"
-        )
-        root = plant(tmp_path, "skills/new.py", source)
-        assert censuses.splitlines("skills/new.py", root) == [
-            "skills/new.py:3: splitlines: two calls on one line, and an "
-            "exemption names one; put each call on a line of its own"
-        ]
+        assert censuses.splitlines("skills/new.py", root) == [line]
 
 
 class Test_coordinate_grammar:

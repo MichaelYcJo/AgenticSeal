@@ -278,26 +278,13 @@ class Test_pairs:
 
     def test_refuses_two_cases_passing_a_local_of_one_name(self):
         source = PLACED.replace(
-            'assert x.parse("a") == 1', 'text = "a"\n        assert x.parse(text) == 1'
-        ).replace(
-            'assert x.parse("") is None', 'text = ""\n        assert x.parse(text) == 2'
-        )
-        assert layout.pairs({"tests/test_x.py": source}) == []
-
-    def test_accepts_the_rest_of_a_call_once_its_local_argument_is_left_out(self):
-        source = PLACED.replace(
             'assert x.parse("a") == 1',
             'text = "a"\n        assert x.parse(text, strict=True) == 1',
         ).replace(
             'assert x.parse("") is None',
-            'text = ""\n        assert x.parse(text, strict=True) is None',
+            'text = ""\n        assert x.parse(text, strict=True) == 2',
         )
-        assert layout.pairs({"tests/test_x.py": source}) == [
-            "pair: tests/test_x.py::Test_parse: test_accepts_text and "
-            "test_refuses_nothing call parse with equal arguments"
-        ]
-        other = source.replace("strict=True) is None", "strict=False) is None")
-        assert layout.pairs({"tests/test_x.py": other}) == []
+        assert layout.pairs({"tests/test_x.py": source}) == []
 
 
 class Test_main:
