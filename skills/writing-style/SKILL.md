@@ -166,8 +166,8 @@ PR 본문의 기준은 이것이다 — **파일을 하나도 열지 않고 읽�
 ```
 나쁨   overview → 개요 (사전적 대응) → 작업 전체를 요약한 글로 읽힌다
        → 실제로는 요약을 쓰지 말라고 적혀 있다
-좋음   templates/sdd-overview.md 를 열어 보니 diff 가 보여 주지 못하는
-       것만 적는 마무리 메모였다 → 마무리 메모
+좋음   `skills/implement/SKILL.md` *4. The closing memo — only what the diff cannot show*
+       를 열어 보니 diff 가 보여 주지 못하는 것만 적는 마무리 메모였다 → 마무리 메모
 ```
 
 세 가지를 판별한다.

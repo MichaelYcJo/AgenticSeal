@@ -126,8 +126,9 @@ that keeps the structure, checked.
 check: tests/test_waiver_decided_at_start.py
 
 **`questions.md` is the residue, not a collection.** Every row owes a reason
-the tree could not answer it, in its own words, and names who can answer it
-from the template's three values. The head of the file lists the judgments
+the tree could not answer it, in its own words, and names who can answer it,
+one of the three values of `skills/implement/SKILL.md` *3. The SDD file set*.
+The head of the file lists the judgments
 the ticket left open that the tree did answer, so nobody reopens them. Where
 different answers would not change what gets built, write the assumption
 down and continue.
