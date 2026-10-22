@@ -204,6 +204,34 @@ def test_a_section_quoted_in_a_fence_or_a_comment_is_not_read():
     assert parsed.errors == [] and parsed.nothing == "a reason."
 
 
+def test_a_line_that_begins_inside_a_code_span_is_refused_at_its_line():
+    """Round 1 of #988, finding 2. A value's code span opened at the end of
+    one line and closed on the next leaves the second line beginning inside
+    the span, which the shared reader reads as not live. The reader dropped
+    such a line as it drops a comment, so the section parsed clean and
+    settle wrote the value without it. It is refused at its line, and the
+    spec applies nothing; a comment's lines are still skipped."""
+    wrapped = "    the review chain` carries one line."
+    text = spec(
+        "<!-- guidance, never an operation\n  - remove -->\n"
+        "- add\n  file: docs/a.md\n  section: S\n"
+        "  to: **Rule.** A branch declaring `through\n"
+        f"{wrapped}"
+    )
+    parsed = parse(text)
+    assert parsed.ops == [], parsed
+    [(line, why)] = parsed.errors
+    assert line == line_of(text, wrapped), (line, why)
+    assert "begins inside a code span" in why, why
+    # The same value with the span closed on the line that opens it.
+    closed = text.replace("`through\n", "`through the review chain`\n").replace(
+        "    the review chain` carries", "    carries"
+    )
+    parsed = parse(closed)
+    assert parsed.errors == [], parsed.errors
+    assert parsed.ops[0].new.endswith("`through the review chain`\ncarries one line.")
+
+
 @pytest.mark.parametrize(
     "body, bad, reason",
     [
