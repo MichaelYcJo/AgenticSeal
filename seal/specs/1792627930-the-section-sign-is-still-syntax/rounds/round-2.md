@@ -15,9 +15,9 @@ round.
 ### 1. Three living sentences still point at guidance that phase 4 took out of the templates
 
 severity: should
-location: `agents/framer.md:129-130`, `docs/the-review-and-parity-arms.md:78-79`, `skills/writing-style/SKILL.md:169-170`, `seal/specs/1792627930-the-section-sign-is-still-syntax/spec.md`
+location: `agents/framer.md:129-130`, `docs/the-review-and-parity-arms.md:78-79`, `skills/writing-style/SKILL.md:169-170`, `seal/specs/1792627930-the-section-sign-is-still-syntax/spec.md`, `seal/follow-up.md`
 evidence: executed `git grep -n -E 'sdd-(spec|plan|questions|routing|overview|phase|round|guarantee)\.md' -- agents skills docs CONTRIBUTING.md README.md hooks`, `git grep -n -i -E "template's|the template (says|states|names|carries|explains|lists|holds)" -- agents skills docs templates CONTRIBUTING.md README.md`, `git show 0d62145a:templates/sdd-routing.md`, `git show 0d62145a:templates/sdd-overview.md`
-verdict: open
+verdict: fixed 7eb63541
 
 Phase 4 built these units, so this finding takes neither a `regression:` nor
 a `reopens:` line. `spec.md` scope item 11 lands each guidance sentence in
@@ -66,7 +66,7 @@ In skills/writing-style/SKILL.md, lines 169-170 of the example block:
        를 열어 보니 마무리 메모였다 → 마무리 메모
 ```
 
-answer:
+answer: Holds. `agents/framer.md` now names the three values in `skills/implement/SKILL.md` *3. The SDD file set*, in the record's words. The framer's preload is 25239 bytes against the base's 25255 (executed). The good example in `skills/writing-style/SKILL.md` now opens `skills/implement/SKILL.md` *4. The closing memo — only what the diff cannot show*. The `docs/the-review-and-parity-arms.md` sentence is the framer's to change, through `## Rule changes`. I closed the class with a `git grep` over every living file for "the template's", "template comment", "the template says", "in the template" and the record's two patterns (executed). The search found two more pointers into removed guidance, both in `seal/follow-up.md`. One row quoted the plan template's Status rule, which now stands in the skill. Another said the routing vocabulary is read out of a comment, and since #1005 it is read out of the placeholder. Each row now points where the guidance stands, which is why `location:` gains that path. Every other match names a template's shape, row or placeholder, which still exists. The touched modules and the meta modules pass: 1844 passed (executed).
 
 ## Confirmations
 
