@@ -71,7 +71,7 @@ The file as a whole prices 7,276 cases in 141 files at 3,996.6 seconds. The fram
 | `evals/scripts/noninferiority.py` | the non-inferiority file |
 | `skills/verify/scripts/unverified_check.py` | the unverified-rows file |
 
-**How far the spawns went** (`executed`). The first spawn rebuilt `skills/verify/scripts/broad_gate.py` at 8f4b7431 and ran round 1's fix pass at c6d2bfc4. The second reverted the fix pass's `--pairs` rule at c343efe9 and rebuilt `skills/verify/scripts/seal_stamp.py`. The third left a call with no argument out of `--pairs` at 00674174 and rebuilt the commit flow into `tests/e2e/commit/`. The fourth gave `mutation-check` its batch mode at 29cd8544 and 4a509442 and rebuilt `hooks/commit-review-gate.py` at 54c9e803 and af336515, the first module under the decision-point proof alone. It then measured `hooks/worktree-guard.py`'s two old files at c799c712 and stopped at the module boundary before any edit: `tests/test_the_guard_asks_once_per_session.py` runs 103 cases in 14.7 s and `tests/test_worktree_guard.py` 148 in 4.8 s, each with the parallel runner; together under `-p no:xdist` they run 251 in 40.9 s, 11.7 s of it in `test_the_guard_is_never_silent_where_the_writer_records`. The fifth fixed three Windows-only cases of `tests/test_broad_gate.py` at 0e6a02b3, rebuilt `hooks/worktree-guard.py` at 8ecb8d32 and `skills/code-review/scripts/chain_check.py` at c9e2f5be, and stopped at the module boundary. Five modules remain, starting with `skills/verify/scripts/pact_check.py`. Phase 5 is not closed, so `plan.md`'s Status cell for it stays empty.
+**How far the spawns went** (`executed`). The first spawn rebuilt `skills/verify/scripts/broad_gate.py` at 8f4b7431 and ran round 1's fix pass at c6d2bfc4. The second reverted the fix pass's `--pairs` rule at c343efe9 and rebuilt `skills/verify/scripts/seal_stamp.py`. The third left a call with no argument out of `--pairs` at 00674174 and rebuilt the commit flow into `tests/e2e/commit/`. The fourth gave `mutation-check` its batch mode at 29cd8544 and 4a509442 and rebuilt `hooks/commit-review-gate.py` at 54c9e803 and af336515, the first module under the decision-point proof alone. It then measured `hooks/worktree-guard.py`'s two old files at c799c712 and stopped at the module boundary before any edit: `tests/test_the_guard_asks_once_per_session.py` runs 103 cases in 14.7 s and `tests/test_worktree_guard.py` 148 in 4.8 s, each with the parallel runner; together under `-p no:xdist` they run 251 in 40.9 s, 11.7 s of it in `test_the_guard_is_never_silent_where_the_writer_records`. The fifth fixed three Windows-only cases of `tests/test_broad_gate.py` at 0e6a02b3, rebuilt `hooks/worktree-guard.py` at 8ecb8d32 and `skills/code-review/scripts/chain_check.py` at c9e2f5be, and stopped at the module boundary. The sixth hardlinked the commit flow's stubs and fixed its Windows setup at 7efbd4c6, fixed a Windows path in `tests/test_worktree_guard.py` at 3e5cbb59, rebuilt `skills/verify/scripts/pact_check.py` at 7c2fff8c and `hooks/root-migrate.py` at df5136f1 and 95db3498, and stopped at the module boundary before `skills/implement/scripts/seal.py`, whose 2,512 lines and two old files of 183 cases it could not finish with a complete record in the same spawn. Three modules remain, starting with `seal.py`. Phase 5 is not closed, so `plan.md`'s Status cell for it stays empty.
 
 **Whether the frame holds.** It holds, with two readings the build took.
 
@@ -286,6 +286,27 @@ The four mutants both columns let survive are gaps the old file had too. c2 is e
 **Left where they stand, for #923.** In the commit-gate file: `test_the_policy_names_the_one_session_reader` and `test_the_policy_states_the_guarantee_refusal_beside_the_arms`, which read `docs/the-commit-gate-inside-git.md`.
 
 **The boundary** (`executed`). At the tree committed as c7f38def with this record uncommitted, one `bin/test ... -q` over 26 modules: the flow file and the commit-gate file; the stamp file and the three files whose docstrings changed; `tests/test_test_layout.py` and `tests/test_chain_hooks_hardening.py`; `tests/test_censuses.py` and every other file `git grep -l "git_listing\|tracked_text_files\|ls-files" tests/` lists. No module imports what moved. 1,953 passed. `bin/test tests -q -p no:xdist -k test_the_windows_leg_runs_in_shards_that_make_the_whole`, over the whole collection: 32 passed and 1 failed, `test_the_durations_file_prices_the_suite`, the known red until phase 7 (1,021 of 7,437 cases unpriced). `bin/test-layout --check` exits 0, `bin/rules --check` exits 0 with 249 check lines, `bin/unverified-check seal/specs/` exits 0, and ruff checks and formats each changed file clean, one file per run.
+
+### The commit flow's stubs, hardlinked, at 7efbd4c6
+
+**Why.** The orchestrator measured on this Mac that a newly created executable waits 150 to 200 ms the first time it runs and 4 to 10 ms after, and that a copy pays the wait again. The world was copied per case with `shutil.copytree`, so every committing case paid it for each of the three stubs git ran.
+
+**What changed** (`executed`). Both copies, the world's and S2's sandbox's, go through `_link_or_copy`: a file with the execute bit is hardlinked from the template, every other file is copied. Each template runs its stubs once when it is built (`_run_each_stub_once`); with no session and no lease each stub leaves before Python. On Windows `os.access` reads no execute bit, so there every file is copied and no stub is run, as before, and a file system that refuses a hardlink gets a copy. The hook stubs are the only executables in either template: `tests/conftest.py` points `GIT_TEMPLATE_DIR` at an empty directory, and each symlink named `claude` is made by a case after its copy. No case writes a stub: the installer replaces one through `os.replace`, which breaks a link, and the `rm` and `chmod` rows of `STEPS_AROUND` are judged without git. The module docstring names the change where it describes the copy.
+
+**What a run costs** (`executed`, a probe in the world's copy, deleted after). The first run of a linked stub took 57 to 61 ms over three links, of a copy of it 215 ms; each run after took 7 to 16 ms. A linked stub's first run is not free, but it costs a quarter of a copy's. `test_accepts_a_review_mark_naming_head`'s call went from 1.00 s to 0.62 s.
+
+| | Cases | Parallel, wall s | Serial, wall s |
+|---|---|---|---|
+| before, at dde8ccd1 | 179 | 19.9 (load 6.0) | 53.1 (load 4.2) |
+| after, at 7efbd4c6 | 179 | 20.0 (load 5.6) | 43.4 (load 5.9) |
+
+The parallel run does not move: each worker builds the two templates and runs their nine stubs once, which is what the copies saved. No assertion changed, so the commit carries no mutation proof.
+
+**The Windows setup errors in the same commit** (`read`). CI run 39866987196 at dde8ccd1 failed 43 cases of this file on Windows shard 1 at setup, each `PermissionError` on the copy's `w\.git` in `World.__init__` (`executed` by the orchestrator, from the log). Git for Windows marks a worktree's `.git` file hidden, and `write_text` opens it with flags Windows refuses on a hidden file. `_write_anew` removes the file first and writes a new one, which also never writes through a hardlink into the template. The cause is read from the log and the platform's documented behaviour; no Windows leg has run the fix: `unverified`, and the orchestrator answers it on CI.
+
+### The worktree guard's cd case on Windows, at 3e5cbb59
+
+The same CI run failed `tests/test_worktree_guard.py::Test_walk_command::test_accepts_a_cd_as_moving_the_segment_after_it` on Windows shard 4: it expected `'/base\\sub'` and the walk gave `'\\base\\sub'` (`executed` by the orchestrator, from the log). `hooks/cmdline_base.py#apply_chdir` joins and then normalises, so the case builds its expectation the same way (`read`). It passes on macOS (`executed`); the Windows leg is `unverified`, answered by the orchestrator on CI.
 
 ### `mutation-check`'s batch mode, at 29cd8544 and 4a509442
 
@@ -514,3 +535,135 @@ k12 is an old gap and an equivalent mutant: `finding_of` hands `reopened_of` onl
 **Left where they stand.** For #923, in the new file under their names: `test_the_warden_and_the_review_skill_name_every_line_a_finding_needs` and `test_the_template_is_the_record_the_check_reads`, the second now also holding the record document's sentence naming the backtick's stand-in, which the old evidence case read. For `hooks/config.py`: `test_the_baseline_is_the_first_code_span_of_its_one_row`. No other file exercising `chain_check.py` was changed; the light ones are phase 6's.
 
 **The boundary** (`executed`). At the tree committed as c9e2f5be, one `bin/test ... -q` over 43 modules: the new file; every test file naming `chain_check` or `chain-check`; `tests/test_censuses.py`, `tests/test_chain_hooks_hardening.py`, `tests/test_test_layout.py` and every other file `git grep -l "git_listing\|tracked_text_files\|ls-files" tests/` lists. 3,036 passed and 8 skipped in 38.1 s. The shards module over the whole collection: 32 passed and 1 failed, `test_the_durations_file_prices_the_suite`, the known red until phase 7. `bin/test-layout --check` exits 0 with 138 files declaring no `TARGET`, `bin/rules --check` exits 0 with 249 check lines, `bin/unverified-check seal/specs/` exits 0, and ruff checks and formats the changed file clean.
+
+### `skills/verify/scripts/pact_check.py`, at 7c2fff8c
+
+**The files.** `tests/test_pact_check.py` is rewritten in place, with `TARGET = "skills/verify/scripts/pact_check.py"` and the census line. It holds `Test_module`, `Test_shown`, `Test_load`, `Test_near_miss`, `Test_git`, `Test_read`, `Test_origin`, `Test_path_map`, `Test_checkout`, `Test_anchor_files`, `Test_History`, `Test_clause_hash`, `Test_grade`, `Test_check`, `Test_renamed` and `Test_main`. The printed paths, the near-miss rule, the anchor grammar, a clause's hash and a grade run in the process on text; `Test_grade` grades against a stand-in history. The checkout search, the history and `check` read a world built once for the module, the pact's repository with v1 and v2 on `main` and v3 on `side` and the signer beside it, and each case that writes into it takes a copy. `check` runs in the process; one case runs `bin/pact-check` as a person types it. The copy holds no executable, so the hardlink rule does not reach it (`read`, `GIT_TEMPLATE_DIR` in `tests/conftest.py`).
+
+**Whether the frame holds.** It holds, with two readings the build took.
+
+- The old file bore the module file's name, so it is rewritten in place. Its case that reads the module's source, `test_no_line_formats_a_path_without_the_helper`, is #923's and stands in the new file under its name, outside any class.
+- Seven cases pin how `hooks/config.py` walks the pact's `Signer` table and a signer's config table. They stand in the new file under their names, outside any class, for the phase that rebuilds `hooks/config.py`, as `chain_check.py`'s file left its `baseline_commit` case.
+
+**Cases and seconds** (`executed`, macOS arm64, the build machine shared with other sessions).
+
+| | Cases | Parallel, wall s | Serial, wall s |
+|---|---|---|---|
+| before, at 3e5cbb59 | 68 | 7.2 (load 5.1) | 20.9 |
+| after, at 7c2fff8c | 106 | 2.2 (load 4.1) | 4.6 |
+
+The count grew because the anchor grammar's fifteen attempts and four mentions run as rows of `Test_module` without git, beside the eight attempts `check` still reads through a signer. `.test_durations` priced the old file at 107.1 Windows seconds.
+
+**The real-git rows kept.** `Test_git`, `Test_origin`, `Test_checkout`, `Test_History`, `Test_check`, `Test_renamed`'s accepting case, `Test_main` and the seven cases left for `hooks/config.py` run git, in the world or its copy: `pact-check` asks git for a checkout's origin and for the pact's history, and each of those cases is a row where the reading and git agree. Every other class runs no git.
+
+**The mutation table** (`executed`). 43 mutants of `pact_check.py`, p1 to p43, one to four at the decision points of each class's function, chosen from the code before the old file's cases were read. The new column is one batch call, `bin/test tests/test_pact_check.py -q -p no:xdist -x`, which ran in 71 s with a 4.9 s baseline: all 43 red. No mutant survived, so the old column did not run. The exact replacement of each is kept with the build's driver outside the tree. An id here names a row of this table alone.
+
+| # | Mutation | New file |
+|---|---|---|
+| p1 to p4 | `shown` shortens a path equal to its base, drops the rooted test, keeps the separators, drops the segment prefix | red |
+| p5 | `load` exits 1 | red |
+| p6, p7 | `near_miss` reads no `-`, no case | red |
+| p8 to p10 | `git` keeps a refused command's output; `read` takes undecodable bytes; `origin` asks another remote | red |
+| p11 to p13 | `path_map` reads a dangling link as no map, reads past the table's end, expands no `~` | red |
+| p14 to p17 | `checkout` takes a map line naming no directory, one with another origin, the pact's own repository as a sibling, the first of two siblings | red |
+| p18 | `anchor_files` reads every record of a work item | red |
+| p19 to p21 | `History` follows the TREESAME parent only, reads branches only, names an unheld commit by sha | red |
+| p22 to p24 | `clause_hash` takes a path with no heading, the first of two clauses, the clause's lines off by one | red |
+| p25, p26 | `grade` calls HEAD's version not taken, reads no other ref | red |
+| p27 to p37, p41 to p43 | `check`: a root outside git exits 0; no pact read as unreadable; local mode not said; the pact's own repository listed; a signer with no root read; a one-sided config read; the name compared with its case; a name inside a graded anchor refused; a near miss never graded; a refusal exits 1; a signer not found exits 0; the pact table's refusals not printed; an unreadable config not reported; a map refusal not printed | red |
+| p38 | `renamed` names a rename for the new header | red |
+| p39 | `main` defaults to the parent directory | red |
+| p40 | `PACT_MENTION_RE` refuses the form with its placeholder | red |
+
+No old gap. `git status` was clean after the batch.
+
+**The pairs report** (`executed`). `--pairs` names 0 pairs in the new file and 0 over `tests/` at 7c2fff8c.
+
+**Phase 4's survivors.** None closes here. The new file calls `census_case`, `commit_everything_as_e`, `git_out`, `load_module`, `symlink_or_skip` and `write` from `tests/conftest.py`. h6, `commit_everything_as_e` without its identity, survives for phase 4's reason, and `git_out` checks every exit code, so h4's branch is not reached.
+
+**Timing** (`executed`, `date` around the work). The module began at 07:54:24 with its reading; the commit 7c2fff8c landed at 08:03:28: 9 minutes, 71 s of them the batch.
+
+**Each old case, and where it went.** Every class named below is in the new `tests/test_pact_check.py`.
+
+- Placed: `test_a_clause_heading_quoted_in_a_fence_is_not_a_second_clause` in `Test_clause_hash`; `test_a_signer_row_the_table_walk_cannot_read_is_exit_2` in `Test_check` as `test_refuses_a_signer_row_the_table_walk_cannot_read`; `test_a_signer_config_that_will_not_read_is_unreadable` in `Test_check`, both rows; `test_a_pact_name_inside_a_graded_anchors_heading_is_not_a_near_miss` in `Test_check`; `test_the_map_is_named_in_posix_form_on_every_platform` and `test_the_wrapper_runs_the_script_from_any_directory` in `Test_module`.
+- Rewritten, held by `Test_check::test_accepts_a_signer_citing_the_current_clause`: `test_s12_a_signer_citing_the_current_clause_is_clean`, `test_s1_a_pact_headed_signer_reads_with_no_word_of_a_rename`, `test_an_anchor_naming_another_pact_is_not_read`, `test_a_pact_whose_name_extends_this_ones_is_another_pact` and `test_an_anchor_quoted_in_a_closed_fence_is_an_example_and_not_graded`, into one case with one row of each in its two specs.
+- Rewritten, held by `Test_check::test_refuses_each_anchor_that_does_not_read_ok` and `Test_grade`: `test_s8_a_hash_from_heads_own_history_is_superseded`, `test_s9_a_hash_only_another_ref_holds_is_not_taken_and_names_it`, `test_s10_a_hash_no_commit_gave_is_unmatched`, `test_s10_a_heading_path_that_resolves_to_nothing_is_broken`.
+- Rewritten, held by `Test_check` and `Test_checkout`: `test_s11_a_checkout_nowhere_on_this_machine_names_the_map_line` by `test_accepts_a_signer_the_map_finds_where_no_sibling_is`; `test_s11_a_relationship_recorded_on_one_side_is_refused` and `test_a_signer_with_no_seal_root_is_one_sided` by the two rows of `test_refuses_a_relationship_recorded_on_one_side`; `test_s7_the_summary_counts_two_signers` by `test_refuses_a_second_signer_not_found_and_counts_both`; `test_a_pact_listing_its_own_repository_says_so` and `test_s2_a_refusal_naming_the_table_names_the_header_the_pact_holds` by the two rows of `test_refuses_a_pact_listing_its_own_repository_by_the_table_it_holds`; `test_no_pact_here_and_no_origin_are_unusable_input` by `test_refuses_a_root_outside_git_no_pact_and_no_origin`; `test_an_anchor_file_that_will_not_read_is_unreadable` and `test_a_pact_that_will_not_read_is_unreadable` by `test_refuses_an_anchor_file_and_a_pact_that_will_not_read`; `test_a_map_that_will_not_read_is_refused_rather_than_read_as_empty` by `test_refuses_a_map_that_will_not_read` and `Test_path_map`'s refusing case; `test_two_siblings_with_the_signers_origin_are_not_guessed_between` and `test_a_map_line_naming_a_checkout_of_another_repository_is_not_trusted` by `Test_checkout`'s refusing cases.
+- Rewritten, held by `Test_renamed::test_accepts_the_header_0_18_wrote_with_one_line_naming_it`: `test_s2_a_pact_headed_as_0_18_wrote_it_reads_the_same_and_names_it`.
+- Rewritten, held by `Test_History::test_accepts_a_version_a_merge_did_not_keep_and_one_only_a_tag_holds`: `test_a_clause_a_merge_did_not_keep_is_still_heads_history`; by `Test_check::test_refuses_a_mismatch_under_local_mode_as_unmatched_and_says_why`: `test_a_pact_under_local_mode_has_no_history_and_says_so`; by `Test_clause_hash`'s refusing case: `test_a_heading_path_naming_two_clauses_is_broken`.
+- Rewritten and sampled: `test_a_pact_anchor_that_does_not_parse_is_refused` (three rows), `test_an_anchor_missing_its_slash_is_refused` (four), `test_a_mark_the_name_holds_is_not_a_second_name` (seven) and `test_the_refusal_names_both_remedies`. All fifteen shapes are rows of `Test_module::test_accepts_each_attempt_at_an_anchor_as_beginning_one`, without git. Eight of them run through `check` in `Test_check::test_refuses_an_anchor_that_does_not_parse`, which asserts both remedies, one row per kind: the rows `no slash`, `a colon for the slash`, `a hyphen for the slash`, `an underscore for the slash`, `a dot before the slash`, `an underscore before the slash` and the half-typed prose each repeat a kind a kept row has.
+- Rewritten without git: `test_prose_naming_the_pact_is_not_a_citation`, its four rows, by `Test_module::test_refuses_to_read_prose_naming_the_pact_as_an_attempt`, which asks `PACT_MENTION_RE` alone, the one reader `check` refuses through.
+- Rewritten, held by `Test_shown`: `test_every_printed_path_is_in_posix_form`, its eight rows, with a ninth for the repository itself.
+
+**Left where they stand.** For #923, in the new file under its name: `test_no_line_formats_a_path_without_the_helper`. For `hooks/config.py`, in the new file under their names: `test_s2_a_broken_table_under_the_old_header_is_refused_naming_it`, `test_s4_a_pact_holding_both_tables_is_exit_2_naming_the_old_one`, `test_a_signer_row_below_a_blank_line_is_refused`, `test_a_signer_written_as_an_autolink_is_never_passed_over`, `test_an_entry_refusal_is_printed_after_the_pact`, `test_a_signer_config_the_walker_refuses_is_exit_2` and `test_a_pact_notify_row_an_earlier_release_read_is_ignored`. The light files that exercise `pact_check.py` are phase 6's.
+
+**The boundary** (`executed`). At the tree committed as 7c2fff8c, one `bin/test ... -q` over 25 modules: the new file; every test file naming `pact_check` or `pact-check`; `tests/test_censuses.py`, `tests/test_chain_hooks_hardening.py`, `tests/test_test_layout.py`, `tests/test_the_suite_has_a_command_that_is_cheap_twice.py` and every other file `git grep -l "git_listing\|tracked_text_files\|ls-files" tests/` lists. 1,696 passed in 18.2 s. The shards module over the whole collection: 32 passed and 1 failed, `test_the_durations_file_prices_the_suite`, the known red until phase 7. `bin/test-layout --check` exits 0 with 137 files declaring no `TARGET`, `bin/rules --check` and `bin/unverified-check seal/specs/` exit 0, and ruff checks and formats the changed file clean.
+
+### `hooks/root-migrate.py`, at df5136f1 and 95db3498
+
+**The files.** `tests/test_root_migrate.py` is new, with `TARGET = "hooks/root-migrate.py"` and the census line. It holds `Test_MoveError`, `Test_attempted`, `Test_stamp`, `Test_dirty`, `Test_tracked_names`, `Test_entries`, `Test_marked`, `Test_tracked_marks`, `Test_unmarked`, `Test_old_items`, `Test_moves`, `Test_git_mv`, `Test_taken`, `Test_move`, `Test_rewrite_readme`, `Test_run_moves`, `Test_has_root` and `Test_main`; `under` and `say` have no class, and `bin/test-layout --check` reports them. Two repositories are built once for the module and copied for each case: the old layout committed, and a fresh one of one commit. The hook is loaded once and each case points its marker at the case's own directory. `tests/test_the_root_migrates_itself.py` keeps four cases and takes the new file's fixtures by import. `hooks/root-migrate.py`'s docstring names the new file where it named the old one. `tests/test_a_shrunken_corpus_declines_to_judge.py#LISTS_A_FIXTURE` names the new file's three listing helpers, `unstaged`, `staged` and `tracked`, in place of five moved cases.
+
+**Whether the frame holds.** It holds, with two readings the build took.
+
+- The hook is a reader of git's index for every unit it moves, so rule 4's reading clause has nothing to take out of git: every case of `Test_main` is a row where the hook and git agree. The units with no git, `MoveError`, `taken`, `attempted` and `stamp`, run on text and files.
+- A subcommand the cases make fail is named through one constant, `LS_FILES`: a call that spells `"ls-files"` reads as a path listing to the corpus census, which would then want each such case classified.
+
+**What building it found** (`executed`). A directory moved file by file into one that exists keeps its own directory on disk, empty, when it held a subdirectory: `move`'s bottom-up walk lists the directory's children before it removes them, so the item's directory still sees `rounds/` and stays. Git sees nothing there, and `run_moves` then leaves `specs/` too. The old file never asserted the directory gone on that path. `Test_move` and `Test_main` pin what the hook does now, an empty directory and nothing tracked, and the hand-back names it for the orchestrator; #942 changes no shipped code.
+
+**Cases and seconds** (`executed`, macOS arm64, the build machine shared with other sessions).
+
+| | Files | Cases | Parallel, wall s | Serial, wall s |
+|---|---|---|---|---|
+| before, at 7c2fff8c | the old file | 54 | 4.5 (load 3.3) | 13.5 |
+| after, at 95db3498 | the new file, the old file | 72, 6 | 2.8, 1.2 (load 3.8) | 9.4 for 78 |
+
+`.test_durations` priced the old file at 86.1 Windows seconds.
+
+**The real-git rows kept.** Every class but `Test_MoveError`, `Test_attempted`, `Test_stamp` and `Test_taken` runs git in its copy, because each unit it covers asks git or moves through `git mv`. No case runs a shell; the old file's by-hand case runs the README's lines under bash.
+
+**The mutation table** (`executed`). 41 mutants of `hooks/root-migrate.py`, m1 to m41, one to four at the decision points of each class's function, chosen from the code before the old file's cases were read. The new column is one batch call, `bin/test tests/test_root_migrate.py -q -p no:xdist -x`, which ran in 108.1 s with an 8.7 s baseline: 40 red and 1 survived. The old column ran for the survivor in a clone of 7c2fff8c, over the old file whole (`pytest tests/test_the_root_migrates_itself.py -q -p no:xdist -x`, 27.6 s). An id here names a row of this table alone.
+
+| # | Mutation | Old file | New file |
+|---|---|---|---|
+| m1, m2 | `attempted` reads a substring; `stamp` overwrites the marker | not run | red |
+| m3 to m5 | `dirty` passes a staged modification, a `status` that failed, an `ls-files` that cannot answer | not run | red |
+| m6, m7 | `tracked_names` reads no slash after the root; `entries` lists the disk where git tracks nothing | not run | red |
+| m8 | `marked` takes a name without the shape | not run | red |
+| m9 to m12 | `tracked_marks` takes a `routing.md` below the item, a name without the shape, a file named `rounds`, a corrupt index as no marks | not run | red |
+| m13, m14 | `unmarked` takes a name without the shape; `old_items` reads no mark from the disk where git cannot | not run | red |
+| m15, m16 | `moves` lists the README as any entry, an item outside `seal/specs/` | not run | red |
+| m17 to m19 | `git_mv` calls an uncreatable parent resumable, passes a rename git refused; `taken` calls itself resumable | not run | red |
+| m20 to m24 | `move` passes a file at its destination, moves a directory whole into one that exists, moves the marks first, passes a taken file inside, leaves emptied directories | not run | red |
+| m25, m26 | `rewrite_readme` stages nothing; `run_moves` miscounts | not run | red |
+| m27 | `run_moves` removes a linked root | not run | red |
+| m28, m29 | `has_root` reads no git directory, takes a file there | not run | red |
+| m30 to m39 | `main`: a linked home moved; stamped with no root; the marker not read; a throwaway moved; a linked `specs/` not refused; a dirty tree moved; every stop called resumable; the home always named; the item count always plural; no unmarked reason | not run | red |
+| m40 | `main` lets an `AttributeError` out of a payload that is no object | SURVIVED | SURVIVED, then red after the row `["x"]` |
+| m41 | `say` prints no JSON | not run | red |
+
+m40 is an old gap: neither file had a payload that parses to a non-empty list. The row added for it, in `Test_main::test_refuses_a_payload_that_names_no_directory`, was seen red on m40 in a batch of one before 95db3498 committed it. `git status` was clean after every run, and the clone stays in the scratch directory outside the tree.
+
+**The pairs report** (`executed`). `--pairs` named one pair in the first draft, `Test_stamp`'s two cases stamping one root; the refusing case stamps another now, and `--pairs` names 0 pairs in the new file and 0 over `tests/` at 95db3498.
+
+**Phase 4's survivors.** None closes here. The new file calls `census_case`, `commit_everything_as_e`, `git`, `load_hook_module`, `symlink_or_skip` and `write` from `tests/conftest.py`. Every `git` call checks its exit code, so h4's branch is not reached; h6 survives for phase 4's reason.
+
+**Timing** (`executed`, `date` around the work). The module began at 08:03:33 with its reading; df5136f1 landed at 08:12 and 95db3498 at 08:15:23: 12 minutes, about 2.5 of them the batch and the old column.
+
+**Each old case, and where it went.** Every class named below is in `tests/test_root_migrate.py`.
+
+- Rewritten, held by `Test_main::test_accepts_the_first_start_as_the_move_said_in_one_line`: `test_the_first_session_start_moves_the_tree_and_says_so_in_one_line`, `test_every_move_is_staged_and_history_follows_the_file`, `test_a_foreign_entry_under_specs_stays_and_is_named`, `test_the_moved_file_is_its_old_bytes_and_nothing_is_rewritten` and `test_the_second_session_start_is_silent`, into one case that asserts the whole line.
+- Rewritten, held by `Test_rewrite_readme`: `test_the_readme_is_rewritten_from_the_new_template`. By `Test_run_moves::test_accepts_every_unit_and_takes_away_the_emptied_roots`: `test_specs_goes_away_when_git_left_it_empty`. By `Test_main::test_accepts_the_old_layout_that_does_not_opt_in`: `test_the_hook_does_not_wait_for_the_new_opt_in`.
+- Rewritten, held by `Test_main::test_refuses_to_move_over_work_in_progress` and `Test_dirty`: `test_uncommitted_changes_under_the_old_roots_refuse_the_move`, `test_a_staged_edit_under_the_old_roots_is_work_in_progress_too`, `test_an_untracked_file_under_a_work_item_is_work_in_progress`, `test_a_git_that_cannot_answer_reads_as_dirty` and `test_when_git_ls_files_cannot_answer_the_move_is_refused_as_dirty`. The staged edit runs through `dirty` alone, a kind `main`'s worktree-edit row reaches the same sentence by.
+- Rewritten, held by `Test_main`: `test_a_move_by_hand_that_stopped_halfway_is_finished` and `test_a_directory_already_at_the_destination_is_merged_file_by_file`, into `test_accepts_a_move_by_hand_that_stopped_halfway_and_a_fragment_there`; `test_a_step_that_fails_stops_the_run_and_stamps_nothing` by `test_refuses_to_stamp_a_stopped_move_and_the_next_start_continues` and `Test_run_moves`; `test_a_file_named_seal_stops_with_a_line_not_an_exception` and `test_a_destination_already_holding_the_file_is_named_and_left_to_the_person` by the two rows of `test_refuses_a_stop_a_person_has_to_settle`; `test_a_repository_declaring_itself_throwaway_is_left_alone` by `test_refuses_a_repository_declaring_itself_throwaway`.
+- Rewritten, held by `Test_main::test_refuses_to_speak_where_nothing_is_old_or_the_marker_answered`: `test_a_repository_with_nothing_old_says_nothing` and `test_a_marker_already_carrying_the_root_keeps_the_hook_silent`. By `test_accepts_a_moved_repository_as_stamped_so_an_old_branch_stays`: `test_a_moved_repository_is_stamped_so_an_old_branch_is_not_moved_again`.
+- Rewritten, held by `Test_main::test_accepts_an_ignored_file_under_the_old_root_left_where_it_is`: `test_an_ignored_file_directly_under_the_old_root_does_not_stop_the_move`.
+- Rewritten, held by the two rows of `Test_main::test_refuses_a_linked_old_root_every_start`: `test_a_symlinked_specseal_is_refused_not_half_moved` and `test_a_symlinked_specs_holding_work_items_is_refused_not_half_moved`.
+- Rewritten, held by `Test_main::test_accepts_only_work_items_under_specs_and_names_the_rest`, `Test_tracked_marks` and `Test_unmarked`: `test_an_item_shaped_tracked_file_under_specs_stays_and_is_named`, `test_an_id_shaped_directory_without_the_marks_stays_and_is_named`, `test_a_mark_under_a_name_without_the_shape_is_not_a_work_item`, `test_a_routing_md_deeper_than_directly_under_is_not_a_mark`, and `test_a_mark_git_does_not_track_is_not_a_mark`, its three rows as the ignored `rounds/` and the empty one in one tree; the ignored `routing.md` row repeats the ignored `rounds/` kind.
+- Rewritten, held by `Test_main::test_accepts_either_mark_alone_and_resumes_its_item_once_settled`: `test_a_directory_carrying_either_mark_alone_still_moves`, `test_an_item_with_one_mark_stopped_inside_resumes` and `test_a_move_stopped_inside_an_item_resumes_whichever_file_is_kept`, the last sampled from two rows to the newer file kept. Keeping the old one removes the destination, so the item moves whole, as the first start's move holds. The plural line, which the two-mark row asserted, is `test_accepts_two_items_named_in_the_plural`.
+- Rewritten, held by `Test_main::test_refuses_to_stamp_where_git_cannot_list_the_marks`: `test_a_git_that_cannot_list_the_marks_stamps_nothing`, both rows.
+- Rewritten, held by `Test_main::test_accepts_a_linked_specs_holding_no_marked_directory`: `test_a_linked_specs_holding_only_unmarked_directories_is_not_refused`, with a `handbook/routing.md` behind the link for m8. By `Test_run_moves::test_refuses_to_remove_a_linked_specs_under_windows_rmdir`: `test_the_cleanup_never_removes_a_linked_specs`.
+- Rewritten, held by `Test_main::test_accepts_a_local_root_as_stamped_and_leaves_an_old_branch_alone` and `Test_has_root`: `test_a_repository_with_only_a_local_root_is_silent_and_stamped`, `test_a_linked_worktree_of_a_local_mode_repository_is_stamped_too` and `test_a_stamped_local_mode_repository_leaves_an_old_layout_branch_alone`; `test_a_file_named_seal_under_the_git_directory_stamps_nothing` by `Test_has_root`'s refusing case. By `test_accepts_a_local_root_beside_an_old_layout_as_moved_into_the_tree`: `test_a_local_root_beside_an_old_layout_is_moved_into_the_tree`.
+
+**Left where they stand,** in `tests/test_the_root_migrates_itself.py`. For #923: `test_the_readmes_by_hand_sequence_yields_the_hooks_tracked_set` and `test_by_hand_block_fails_loudly_when_the_block_leaves_its_section`, which read the README, and `test_the_hook_reads_the_old_names_and_nothing_else_does`, which reads the hooks' source. For `hooks/dispatch.py`: `test_the_hook_is_wired_into_session_start_before_the_git_hooks`, which reads that module's session-start group.
+
+**The boundary** (`executed`). At the tree committed as df5136f1, one `bin/test ... -q` over 24 modules: the new file and the old one; every test file naming `root-migrate`, `root_migrate` or the old file; `tests/test_censuses.py`, `tests/test_chain_hooks_hardening.py`, `tests/test_test_layout.py` and every other file `git grep -l "git_listing\|tracked_text_files\|ls-files" tests/` lists. 1,532 passed in 22.4 s. The shards module over the whole collection: 32 passed and 1 failed, `test_the_durations_file_prices_the_suite`, the known red until phase 7. `bin/test-layout --check`, `bin/rules --check` and `bin/unverified-check seal/specs/` exit 0, and ruff checks and formats each changed file clean, one file per run. At 95db3498 the two files, the corpus census and `tests/test_censuses.py` give 265 passed.
