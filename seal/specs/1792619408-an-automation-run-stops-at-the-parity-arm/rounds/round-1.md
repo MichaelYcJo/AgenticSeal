@@ -13,7 +13,7 @@ The implementer's account was checked claim by claim. Claimed: the declaration i
 severity: must
 location: `seal/specs/1792619408-an-automation-run-stops-at-the-parity-arm/spec.md:198-201`
 evidence: executed `python3 -I <scratch>/test_tmp_replay.py <clone>`, `python3 -I <scratch>/test_tmp_live.py <clone>`
-verdict: open
+verdict: fixed f0507fed
 
 At settle, the second `add` operation of `## Rule changes` writes a policy paragraph into `docs/the-review-record.md` that is missing its subject's second half. The sentence that states the new rule then runs from "every round record of a work item declaring" straight into "config's baseline", with the answer it names and the `original:` line it owes both gone, and no agent or person can act on it. The pull-request check from #1006 (`chain_check.py#rule_changes_read`) parses the section, finds no error, and passes it. So the loss reaches the release unannounced, which is the failure #1006 exists to stop.
 
@@ -29,7 +29,7 @@ The cause is spec line 200. Line 199 ends by opening a code span before the word
     migration config's baseline.** The check reads `seal/parity.md` at HEAD and the
 ```
 
-answer: The finding holds, and the fix is the framer's, because `spec.md` is the framer's file; the orchestrator sends it after this fix pass, so the verdict stays `open` until the framer's commit closes it. Since 7eacbe1c, `rule_changes.parse` refuses spec line 200 at its number (finding 2), and `chain_check.py --baseline origin/release/v0.22.3 --worktree` prints that refusal for this spec, so the pull-request check no longer passes it.
+answer: The finding holds, and the fix is the framer's, because `spec.md` is the framer's file; the framer's f0507fed closes it, every code span in the operation now opening and closing on one line, and `rule_changes.parse` reads the spec with no error. Since 7eacbe1c, `rule_changes.parse` refuses spec line 200 at its number (finding 2), and `chain_check.py --baseline origin/release/v0.22.3 --worktree` prints that refusal for this spec, so the pull-request check no longer passes it.
 
 ### 2. A Rule changes line that begins inside a code span is dropped at parse with no error
 
