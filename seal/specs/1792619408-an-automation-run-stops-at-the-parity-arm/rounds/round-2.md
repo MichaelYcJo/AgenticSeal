@@ -15,7 +15,7 @@ The coordinator asked for the hardest look at 7eacbe1c. Every `spec.md` blob git
 severity: must
 location: `skills/settle/scripts/rule_changes.py:103-113`, `tests/test_settle_applies_rule_changes_in_place.py`
 evidence: executed `python3 -I skills/settle/scripts/test_tmp_parse_diff.py`, `python3 -I skills/settle/scripts/test_tmp_fix.py`
-verdict: open
+verdict: fixed 8aeda705
 regression: round-1#2
 
 The unit is `rule_changes.py#parse` lines 103-113, which 7eacbe1c added. The frame does not touch this reader: neither `spec.md` nor a `plan.md` phase names it. The fix followed round 1's paste-ready block, which this round's reviewer wrote. The defect came from that block. It took the comment state from `unverified_check.py#comment_scan`, which reads a comment opener even inside a fenced block. `live_lines`, which `parse` already reads, decides a fence before anything else on the line, and its docstring names `comment_scan` as a reader that stays off its path (`skills/verify/scripts/unverified_check.py:685-687`).
@@ -60,7 +60,7 @@ A case beside `test_a_line_that_begins_inside_a_code_span_is_refused_at_its_line
         body.append((n + 1, line))
 ```
 
-answer:
+answer: The finding holds, and it is fixed. In 8aeda705, `rule_changes.py#parse` reads its comment state from `unverified_check.py#liveness`. That is the reader formerly named `_liveness`, given its public name in the same commit, with no copy made. It reads with `spans_cross_lines=False`, the same reading `live_lines` ANDs, which decides a fence first. `test_a_comment_opener_inside_a_fence_above_the_section_hides_no_operation` was seen red against 43eb0af3's reader: shape B returned `docs/c.md` alone, and shape A was refused as empty. Round 1's case still passes, so a wrapped span is still refused. 630a63b0 added two shapes to the case. A wrapped span below such a fence is refused at its line, and a fence inside the section is refused at its opener as no field. With those shapes, `mutation-check` showed that the fenced-line term of the record's candidate could not be told from its absence. A fence's opener is live, so the section is refused there either way. 4d37579b therefore reduced the condition to: skip a line dead in `liveness`, and refuse one live there and dead in `live_lines`. `mutation-check` turned the case red for four mutations: the comment state read from `comment_scan` again, the skip removed, the refusal removed, and the crossing reading. Over all 120 `seal/specs/*/spec.md`, the reader at HEAD returns exactly what 43eb0af3's reader returns, and refuses none. The changelog fragment's sentence does not change.
 
 ## Confirmations
 
