@@ -891,10 +891,10 @@ def test_a_failed_pillow_install_is_a_sentence_and_pytest_is_still_called(
     tmp_path, monkeypatch, capsys
 ):
     """#718, S16. The top-up exits non-zero: one sentence names the pinned
-    package, says what its absence costs -- the release seal's pixel case
-    fails, and nothing else does, because Pillow is imported inside that
-    case rather than at module level -- and names the remedy. pytest is still
-    called, in parallel, and the exit code is pytest's."""
+    package, says what its absence costs -- the release seal's pixel cases
+    fail, and nothing else does, because Pillow is imported inside those
+    cases rather than at module level -- and names the remedy. pytest is
+    still called, in parallel, and the exit code is pytest's."""
     (tmp_path / "tests").mkdir()
     fake_venv(tmp_path, pillow=False)
     calls = []
@@ -909,11 +909,14 @@ def test_a_failed_pillow_install_is_a_sentence_and_pytest_is_still_called(
     assert rt.main([]) == 0
     err = capsys.readouterr().err
     assert rt.PILLOW in err, err
-    # #832: `rsvg-convert` draws the seal and Pillow only reads it, so the
-    # line announcing the top-up says so. Seen red against #718's sentence.
-    assert "which the suite's pixel case decodes the release seal with" in err, err
-    assert "draws the release seal" not in err, err
-    assert "the release seal's pixel case fails" in err, err
+    # #1009 S9: Pillow draws the release seal and the seal's pixel cases
+    # read what it draws, so the line announcing the top-up says both, and
+    # the line after the failed install names those cases as the ones that
+    # fail. Seen red against #832's sentences.
+    assert "Pillow draws the release seal" in err, err
+    assert "the release seal's pixel cases read what it draws" in err, err
+    assert "Only the release seal's pixel cases import it" in err, err
+    assert "so those cases fail with a ModuleNotFoundError" in err, err
     assert "every other case runs" in err, err
     assert "run bin/test again" in err, err
     assert "Traceback" not in err, err

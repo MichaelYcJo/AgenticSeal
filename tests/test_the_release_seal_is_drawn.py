@@ -5,51 +5,34 @@ second job then runs the suite at the tag, draws one seal for the release,
 attaches it, and puts it where the note's glance table stood. Any failure
 leaves the note as it was.
 
-Since #832 (work item 1791270164) the seal is the owner's own SVG,
-`.github/scripts/release-seal.svg`, rasterised by `rsvg-convert` at twice
-its display size. It used to be the terminal stamp painted cell for cell,
-which is the staircase that ticket opened on.
+Since #1009 (work item 1792624592) the seal is the terminal stamp's disc:
+`release_seal.py#draw` paints each cell of `seal_stamp.py#build` as one
+square block of pixels in that cell's colour.
 
-This module holds `.github/scripts/release_seal.py`: the SVG and its
-rasteriser (S6), the rows and their sources (S8-S11), and the publishing path
-with every way it can fail (S1-S5, S9, S12). The one case that runs
-`rsvg-convert` skips where it is not installed, and reads the PNG with
-Pillow, which `bin/test` installs; every other case runs a stand-in for the
-binary and imports nothing beyond the standard library.
+This module holds `.github/scripts/release_seal.py`: the draw (#1009's S1,
+S2 and S6), the rows and their sources (S8-S11), and the publishing path
+with every way it can fail (S1-S5, S9, S12). The pixel cases import Pillow,
+which `bin/test` installs, inside the case. Every other case runs a stand-in
+for `draw`, or the real `draw` with Pillow blocked or stood in for, and
+imports nothing beyond the standard library.
 
-**The colours here are not read from the SVG through the code under test.**
-`LAYERS` and `RED` hold what the owner's file carried, written out, so a case
-cannot agree with whatever the tree's copy happens to say.
+**The cells here are not read through the code under test.** The pixel
+cases load `seal_stamp.py` by path under a name of their own, so a draw
+that kept a copy of the chart or the colours cannot agree with itself.
 """
 
 import importlib.util
 import json
-import math
 import os
-import re
-import shutil
 import subprocess
-import xml.etree.ElementTree as ElementTree
+import sys
+import types
 
 import pytest
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SCRIPT = os.path.join(ROOT, ".github", "scripts", "release_seal.py")
-SVG = os.path.join(ROOT, ".github", "scripts", "release-seal.svg")
-NS = "{http://www.w3.org/2000/svg}"
-
-# The owner's three `<text>` layers of the seal's mark, as their file carried
-# them: the fill, the opacity (None where the layer had none), and the point
-# the glyph was anchored at -- the middle of its advance on `x`, its baseline
-# on `y`. The owner drew a §; the tree's copy carries each layer as a `<path>`
-# of the seal's placeholder mark, Georgia Bold's S, which #857 replaces.
-LAYERS = [
-    ("#380709", "0.9", (16.5, 21.5)),
-    ("#c42830", None, (16.0, 21.0)),
-    ("#e65a61", "0.5", (15.7, 20.7)),
-]
-# The face of the seal's mark, the layer drawn at full opacity.
-RED = (0xC4, 0x28, 0x30)
+STAMP_SCRIPT = os.path.join(ROOT, "skills", "verify", "scripts", "seal_stamp.py")
 
 # A release's rows in the shape `release_rows` returns. The version is the
 # illustrative one `tests/test_release_hygiene.py` exempts; the rest are
@@ -78,135 +61,120 @@ def seal():
     return load(SCRIPT, "specseal_release_seal_for_tests")
 
 
-def svg_tree():
-    return ElementTree.parse(SVG).getroot()
+def stamp(name):
+    """`seal_stamp.py` loaded by path under `name`, apart from the module
+    `release_seal.py` loads, so its cells are not read through the code
+    under test."""
+    return load(STAMP_SCRIPT, name)
 
 
-def points(d):
-    """The `(x, y)` pairs of a path's `d`, in order: every command the
-    converter writes (`M`, `Q`, `L`, `Z`) takes absolute pairs."""
-    numbers = [float(n) for n in re.findall(r"-?\d+(?:\.\d+)?", d)]
-    return list(zip(numbers[::2], numbers[1::2], strict=True))
+def blocks(png, px, w, cell):
+    """The cells whose block of `cell` by `cell` pixels in the PNG at `png`
+    is not every pixel `px(x, y)` with alpha 255, or alpha 0 where
+    `px(x, y)` is None, as `(x, y, two of the block's pixels)`. An empty
+    list is a PNG that is exactly the cells."""
+    from PIL import Image
+
+    pixels = Image.open(png).load()
+    wrong = []
+    for y in range(w):
+        for x in range(w):
+            colour = px(x, y)
+            block = {
+                pixels[u, v]
+                for u in range(x * cell, (x + 1) * cell)
+                for v in range(y * cell, (y + 1) * cell)
+            }
+            if colour is None:
+                held = all(pixel[3] == 0 for pixel in block)
+            else:
+                held = block == {(*colour, 255)}
+            if not held:
+                wrong.append((x, y, sorted(block)[:2]))
+    return wrong
 
 
-# --- S6: the PNG is the owner's SVG -----------------------------------------
+# --- #1009: the PNG is the stamp's cells ------------------------------------
 
 
-def test_the_release_seal_svg_is_the_owners_with_its_text_as_paths():
-    """S6, the half that needs neither Pillow nor the binary. The tree's SVG
-    is the owner's 32 x 32 seal: the radial gradient `sealBg` with its three
-    stops, the linear gradient `rimShade`, the wax circle with its rim and
-    the pressed groove inside it, and three `<path>` layers of the seal's
-    mark in the fills and opacities the owner's three `<text>` layers had.
-    The owner's layers drew a §; since the owner's decision of 2026-10-07
-    the glyph is the terminal's placeholder mark, Georgia Bold's S, and #857
-    replaces it in both. It holds no `<text>`, so the runner looks up no
-    font: a fallback serif would draw a different glyph. The three layers
-    are one outline, each moved by exactly the offset between the owner's
-    anchors, so a layer redrawn from another glyph or put back at another
-    point is seen, and the outline stands inside the groove. Seen red before
-    the file existed, and by one fill changed."""
-    root = svg_tree()
-    assert root.tag == f"{NS}svg" and root.get("viewBox") == "0 0 32 32"
-    assert not list(root.iter(f"{NS}text")), "the SVG still carries text"
-    radial = root.find(f"{NS}defs/{NS}radialGradient[@id='sealBg']")
-    assert [(s.get("offset"), s.get("stop-color")) for s in radial] == [
-        ("0%", "#931e24"),
-        ("70%", "#6e1418"),
-        ("100%", "#490b0e"),
-    ]
-    rim = root.find(f"{NS}defs/{NS}linearGradient[@id='rimShade']")
-    assert [s.get("stop-color") for s in rim] == ["#b83238", "#380709"]
-    wax, groove = root.findall(f"{NS}circle")
-    assert (wax.get("r"), wax.get("fill"), wax.get("stroke")) == (
-        "15",
-        "url(#sealBg)",
-        "url(#rimShade)",
-    )
-    assert (groove.get("r"), groove.get("stroke"), groove.get("fill")) == (
-        "13",
-        "#40090c",
-        "none",
-    )
-    layers = root.findall(f"{NS}path")
-    assert [(p.get("fill"), p.get("opacity")) for p in layers] == [
-        (fill, opacity) for fill, opacity, _ in LAYERS
-    ]
-    outlines = [points(p.get("d")) for p in layers]
-    base, (bx, by) = outlines[1], LAYERS[1][2]
-    assert len(base) > 50, "the seal's mark is an outline of curves, not a box"
-    for outline, (_, _, (ax, ay)) in zip(outlines, LAYERS, strict=True):
-        assert len(outline) == len(base)
-        for (x, y), (x0, y0) in zip(outline, base, strict=True):
-            assert abs((x - x0) - (ax - bx)) < 0.002, (x, x0)
-            assert abs((y - y0) - (ay - by)) < 0.002, (y, y0)
-    for x, y in (pair for outline in outlines for pair in outline):
-        assert math.hypot(x - 16, y - 16) < 13 - 0.4, (x, y)
-
-
-def test_the_rasteriser_runs_rsvg_convert_at_two_times_the_display_size(
-    monkeypatch, tmp_path
-):
-    """S6. `rasterise` hands the SVG to `rsvg-convert` at `SEAL_PX` times
-    `DENSITY` pixels square, the PNG named after `-o`; the note shows it at
-    `SEAL_PX`, so a high-density screen draws it sharp. `SVG` is the file
-    beside the script. Seen red before `rasterise` existed, and by the
-    density dropped from the size."""
-    mod = seal()
-    seen = []
-
-    def run(args, **_):
-        seen.append(list(args))
-        return subprocess.CompletedProcess(args, 0, stdout="", stderr="")
-
-    monkeypatch.setattr(mod.subprocess, "run", run)
-    out = str(tmp_path / "seal.png")
-    mod.rasterise(mod.SVG, out)
-    assert (mod.SEAL_PX, mod.DENSITY) == (160, 2)
-    assert os.path.samefile(mod.SVG, SVG)
-    assert seen == [["rsvg-convert", "-w", "320", "-h", "320", mod.SVG, "-o", out]]
-
-
-@pytest.mark.skipif(
-    shutil.which("rsvg-convert") is None,
-    reason="rsvg-convert is not installed here; the publishing job installs it",
-)
-def test_rsvg_convert_draws_the_seal_transparent_round_and_in_its_colours(tmp_path):
-    """S6, the pixel half, on the real binary. The PNG `rasterise` writes is
-    RGBA and `SEAL_PX * DENSITY` square, clear at its four corners and solid
-    at its centre, so it sits on any page background as a disc; somewhere in
-    it a pixel is within 8 per channel of the mark's face, `RED`; and the wax
-    is lit from the upper left, as the radial gradient centred at 35 % puts
-    it, so a point of the field up and left of the mark is lighter than its
-    mirror down and right. Seen red by the face's fill changed in the SVG
-    (`questions.md` Q11 set the tolerances from this render)."""
+def test_the_png_is_the_stamps_cells_one_square_block_each(tmp_path):
+    """#1009 S1. `draw` writes an RGBA PNG `w * CELL_PX` pixels square,
+    where `w` is the width `seal_stamp.py#build` gives, and every pixel of
+    the block for cell `(x, y)` is `px(x, y)` with alpha 255, or alpha 0
+    where `px(x, y)` is None. It answers the note's width, the side divided
+    by `DENSITY`. The cells are read from `seal_stamp.py` loaded here by
+    path, apart from the module `release_seal.py` loaded. Seen red with one
+    cell's colour changed in the draw."""
     from PIL import Image
 
     mod = seal()
+    w, h, px = stamp("seal_stamp_for_the_release_png").build()
     out = tmp_path / "seal.png"
-    mod.rasterise(mod.SVG, str(out))
+    width = mod.draw(str(out))
     image = Image.open(out)
-    side = mod.SEAL_PX * mod.DENSITY
-    assert image.mode == "RGBA" and image.size == (side, side)
-    pixels = image.load()
-    for corner in ((0, 0), (side - 1, 0), (0, side - 1), (side - 1, side - 1)):
-        assert pixels[corner][3] == 0, (corner, pixels[corner])
-    assert pixels[side // 2, side // 2][3] == 255
-    assert any(
-        all(abs(have - want) <= 8 for have, want in zip(pixel[:3], RED, strict=True))
-        and pixel[3] == 255
-        for pixel in (pixels[x, y] for x in range(side) for y in range(side))
-    ), "no pixel of the mark's face"
+    side = w * mod.CELL_PX
+    assert (mod.CELL_PX, mod.DENSITY) == (12, 2)
+    assert w == h and image.mode == "RGBA" and image.size == (side, side)
+    assert width == side // mod.DENSITY, (width, side)
+    assert blocks(out, px, w, mod.CELL_PX) == []
 
-    def at(x, y):
-        return sum(pixels[round(x * side / 32), round(y * side / 32)][:3])
 
-    assert at(8, 8) > at(24, 24), (at(8, 8), at(24, 24))
+def test_the_png_follows_whatever_chart_the_stamp_module_has(monkeypatch, tmp_path):
+    """#1009 S2. With the `CHART` of the stamp module `release_seal.py`
+    loaded replaced by a chart this case builds, 28 lines of 28 with one
+    `M` inside the field, and its `LIGHT` replaced by a colour no cell of the
+    tree's stamp has, the PNG's cells are that module's `build`, and the PNG
+    differs from the one drawn with the tree's chart. So the disc's mark and
+    its colours are read from the stamp module, and #857's choice reaches the
+    release image with nothing else changed. Pillow is imported first, as in
+    S1, so where it is absent this case fails with a `ModuleNotFoundError`,
+    as `bin/test` says. Seen red against a draw that loads a copy of the
+    stamp module of its own, and against one that maps a cell's colour to a
+    colour of its own."""
+    from PIL import Image
+
+    mod = seal()
+    before = tmp_path / "tree.png"
+    mod.draw(str(before))
+    n = 28
+    chart = tuple("." * 14 + "M" + "." * 13 if y == 14 else "." * n for y in range(n))
+    # The mark's lit cell, (14, 14) in this chart, in a colour the tree has not.
+    lit = (1, 2, 3)
+    expected = stamp("seal_stamp_for_the_built_chart")
+    for loaded in (expected, mod.stamp()):
+        monkeypatch.setattr(loaded, "CHART", chart)
+        monkeypatch.setattr(loaded, "LIGHT", lit)
+    w, _, px = expected.build()
+    assert px(14, 14) == lit
+    after = tmp_path / "built.png"
+    mod.draw(str(after))
+    assert blocks(after, px, w, mod.CELL_PX) == []
+    assert Image.open(before).tobytes() != Image.open(after).tobytes()
+
+
+def test_the_release_script_loads_with_pillow_blocked():
+    """#1009 S6. With `PIL` blocked, `release_seal.py` loads: Pillow is
+    imported inside `draw` and nowhere else, so every publishing case runs
+    with a stand-in for `draw` where Pillow is absent. Seen red with
+    `import PIL` at the module's top."""
+    script = (
+        "import sys, importlib.util\n"
+        "sys.modules['PIL'] = None\n"
+        f"spec = importlib.util.spec_from_file_location('s', {SCRIPT!r})\n"
+        "mod = importlib.util.module_from_spec(spec)\n"
+        "spec.loader.exec_module(mod)\n"
+        "assert callable(mod.draw)\n"
+    )
+    r = subprocess.run(
+        [sys.executable, "-c", script],
+        capture_output=True,
+        encoding="utf-8",
+        timeout=120,
+    )
+    assert r.returncode == 0, r.stderr
 
 
 # --- S8: the rows are fixed and fit -----------------------------------------
-
-STAMP_SCRIPT = os.path.join(ROOT, "skills", "verify", "scripts", "seal_stamp.py")
 
 
 def test_the_rows_are_the_fixed_set_in_order_and_fit_the_panel():
@@ -661,40 +629,46 @@ def note(pulls=PULLS):
     return publisher.release_body(SECTION, pulls, OWNER, REPO, TAG)
 
 
-def rsvg_convert(how="draws"):
-    """`subprocess.run` as `rasterise` meets it: `draws` writes a PNG's
-    eight-byte signature where `-o` points, `fails` exits 1 with what
-    librsvg prints for a file it cannot read, and `missing` raises what
-    `subprocess.run` raises for a command that is not on `PATH`.
-
-    Every other command goes to the real `subprocess.run`, because the patch
-    reaches the module the whole process shares: the round-record readers
-    ask `git rev-parse --git-common-dir` where the `seal/` root is, and a
-    stand-in that answered them as `rsvg-convert` failed every draw."""
-    real = subprocess.run
-
-    def run(args, **kwargs):
-        if args[0] != "rsvg-convert":
-            return real(args, **kwargs)
-        if how == "missing":
-            raise FileNotFoundError(2, "No such file or directory", args[0])
-        if how == "fails":
-            return subprocess.CompletedProcess(
-                args, 1, stdout="", stderr="rsvg-convert: Error reading SVG\n"
-            )
-        with open(args[args.index("-o") + 1], "wb") as handle:
-            handle.write(b"\x89PNG\r\n\x1a\n")
-        return subprocess.CompletedProcess(args, 0, stdout="", stderr="")
-
-    return run
+# The width the stand-in for `draw` answers. The real draw never answers
+# it, so a note carrying it took its width from `draw`'s answer.
+DRAWN_WIDTH = 123
 
 
-def wired(monkeypatch, tmp_path, body=None, fails=(), pulls=PULLS, rsvg="draws", **env):
-    """The seal with a fixture suite, a fixture tree, a stand-in for
-    `rsvg-convert` and no route to GitHub."""
+def drawn(png):
+    """`draw` as the publishing cases meet it: it writes a PNG's eight-byte
+    signature at `png` and answers `DRAWN_WIDTH`, with no Pillow."""
+    with open(png, "wb") as handle:
+        handle.write(b"\x89PNG\r\n\x1a\n")
+    return DRAWN_WIDTH
+
+
+def pillow_that_cannot_save():
+    """A stand-in for the `PIL` package whose image takes every block and
+    whose save raises what a full disk raises, so the case reaches the save
+    with no Pillow installed."""
+
+    class Image:
+        def paste(self, colour, box):
+            pass
+
+        def save(self, path, kind):
+            raise OSError(28, "No space left on device")
+
+    pil = types.ModuleType("PIL")
+    pil.Image = types.SimpleNamespace(new=lambda mode, size, colour: Image())
+    return pil
+
+
+def wired(
+    monkeypatch, tmp_path, body=None, fails=(), pulls=PULLS, stand_in=True, **env
+):
+    """The seal with a fixture suite, a fixture tree, no route to GitHub,
+    and `drawn` standing in for `draw`, or the real `draw` where `stand_in`
+    is False."""
     mod = seal()
     hub = GitHub(mod, note(pulls) if body is None else body, fails)
-    monkeypatch.setattr(mod.subprocess, "run", rsvg_convert(rsvg))
+    if stand_in:
+        monkeypatch.setattr(mod, "draw", drawn)
     monkeypatch.setattr(mod, "gh", hub.gh)
     monkeypatch.setattr(mod, "tagged", lambda tag: SHA)
     monkeypatch.setattr(mod, "ROOT", tree(tmp_path, verdicts=[["deferred #12"]]))
@@ -717,13 +691,14 @@ def wired(monkeypatch, tmp_path, body=None, fails=(), pulls=PULLS, rsvg="draws",
 
 
 def test_the_seal_replaces_the_glance_table_and_is_attached(monkeypatch, tmp_path):
-    """S1, S7. The PNG is uploaded as `seal.png`, and the edited note is the
-    published one with its glance block replaced by the heading, the image
-    at the release-download URL with its alt text and its display width
-    `SEAL_PX`, a blank line and one line of the counts -- every other byte
-    unchanged. The PNG is `DENSITY` times that width, so the width is what
-    keeps it from showing twice its size. Seen red before `main` existed,
-    and before the image carried a width."""
+    """S1, S7, and #1009 S3. The PNG is uploaded as `seal.png`, and the
+    edited note is the published one with its glance block replaced by the
+    heading, the image at the release-download URL with its alt text and the
+    display width `draw` answered, a blank line and one line of the counts
+    -- every other byte unchanged. The PNG is `DENSITY` times that width
+    (#1009 S1), so the width is what keeps it from showing twice its size.
+    Seen red before `main` existed, before the image carried a width, and
+    by a width the note computed apart from `draw`."""
     mod, hub = wired(monkeypatch, tmp_path)
     assert mod.main() == 0
     (upload,) = hub.writes("upload")
@@ -738,14 +713,14 @@ def test_the_seal_replaces_the_glance_table_and_is_attached(monkeypatch, tmp_pat
     rows = mod.release_rows("1.2.3", SHA, 2, 2, (7003, 66), (1, 1, 1, 1))
     image = f"https://github.com/{REPO}/releases/download/{TAG}/seal.png"
     sealed = publisher.sealed_glance(
-        image, mod.alt_text(rows), mod.SEAL_PX, work, closed, people
+        image, mod.alt_text(rows), DRAWN_WIDTH, work, closed, people
     )
     assert body == note().replace(publisher.glance(work, closed, people), sealed)
     assert body.startswith(
         f'### 📊 At a glance\n\n<img src="{image}" alt="The 1.2.3 release seal: '
         "SEALED v1.2.3 at aaa11111 on main, 2 pull requests merged, 2 issues "
         "closed, the suite at 7003 passed and 66 skipped, 1 work item over 1 "
-        'review round, 1 of them capped, 1 issue deferred" width="160">\n\n'
+        f'review round, 1 of them capped, 1 issue deferred" width="{DRAWN_WIDTH}">\n\n'
         "🔀 Pull requests **2** · ✅ Issues closed **2** · 🙌 Outside contributors **1**"
         "\n\n### ✨ Features"
     ), body[:600]
@@ -762,9 +737,12 @@ REASONS = {
     "a session of the suite stopped part-way": "sessions stopped part-way",
     "the suite counts a failure": "did not pass: 1 failed and 0 errors",
     "the suite counts an error": "did not pass: 0 failed and 1 errors",
-    "rsvg-convert is not installed": "rsvg-convert is not installed",
-    "rsvg-convert fails": "rsvg-convert failed: rsvg-convert: Error reading SVG",
-    "the SVG is not there": "the seal's SVG is not there",
+    "Pillow is not installed": "Pillow is not installed or will not import",
+    "the stamp's module will not load": (
+        "the stamp's module skills/verify/scripts/seal_stamp.py would not load "
+        "(ImportError: no stamp)"
+    ),
+    "the PNG cannot be saved": "could not be written",
     "gh pr list fails": "gh pr list could not list",
     "gh release view fails": "gh release view failed",
     "gh release upload fails": "gh release upload failed",
@@ -773,6 +751,13 @@ REASONS = {
     "gh release edit fails": "gh release edit failed",
     "a module will not load": "ImportError: no publisher",
 }
+# The failures `draw` raises itself, which the case meets with the real
+# `draw` rather than its stand-in.
+REASONS_OF_THE_DRAW = (
+    "Pillow is not installed",
+    "the stamp's module will not load",
+    "the PNG cannot be saved",
+)
 
 
 @pytest.mark.parametrize(
@@ -784,9 +769,9 @@ REASONS = {
         "a session of the suite stopped part-way",
         "the suite counts a failure",
         "the suite counts an error",
-        "rsvg-convert is not installed",
-        "rsvg-convert fails",
-        "the SVG is not there",
+        "Pillow is not installed",
+        "the stamp's module will not load",
+        "the PNG cannot be saved",
         "gh pr list fails",
         "gh release view fails",
         "gh release upload fails",
@@ -802,15 +787,14 @@ def test_any_failure_leaves_the_note_as_it_was_published(
     """S2, the case #718's box 2 asks for. Each failure, one at a time: the
     process exits 0, prints a line naming the failure and a `::warning::`
     with the same reason, and calls no `gh release edit` -- except where the
-    edit is the call that failed. Seen red by removing the guard each pins;
-    the three `rsvg-convert` cases (#832, S9) by `rasterise` letting the
-    error through unnamed, and by it not checking the exit code."""
-    env, fails, body, pulls, rsvg = {}, (), None, PULLS, "draws"
-    if case == "rsvg-convert is not installed":
-        rsvg = "missing"
-    elif case == "rsvg-convert fails":
-        rsvg = "fails"
-    elif case == "the suite step failed":
+    edit is the call that failed. Nothing is uploaded either, except where
+    the upload or the edit is the call that failed. Seen red by removing the
+    guard each pins. The three draw cases (#1009 S4 and S5) run the real
+    `draw` with no Pillow behind it: blocked, or a stand-in whose save
+    fails; seen red by `draw` letting each error through unnamed."""
+    env, fails, body, pulls = {}, (), None, PULLS
+    stand_in = case not in REASONS_OF_THE_DRAW
+    if case == "the suite step failed":
         env["SUITE_OUTCOME"] = "failure"
     elif case == "no record carries the key":
         env["SUITE_KEY"] = "seal-0000000000"
@@ -849,11 +833,19 @@ def test_any_failure_leaves_the_note_as_it_was_published(
         body=body if body is not None else (note() if pulls is not None else ""),
         fails=fails,
         pulls=pulls,
-        rsvg=rsvg,
+        stand_in=stand_in,
         **env,
     )
-    if case == "the SVG is not there":
-        monkeypatch.setattr(mod, "SVG", str(tmp_path / "absent.svg"))
+    if case == "Pillow is not installed":
+        monkeypatch.setitem(sys.modules, "PIL", None)
+    elif case == "the stamp's module will not load":
+
+        def broken():
+            raise ImportError("no stamp")
+
+        monkeypatch.setattr(mod, "stamp", broken)
+    elif case == "the PNG cannot be saved":
+        monkeypatch.setitem(sys.modules, "PIL", pillow_that_cannot_save())
     elif case == "a module will not load":
 
         def publisher():
@@ -874,6 +866,8 @@ def test_any_failure_leaves_the_note_as_it_was_published(
         assert len(edits) == 1 and "uploaded" in reason, (edits, reason)
     else:
         assert edits == [], (case, hub.calls)
+    if case not in ("gh release upload fails", "gh release edit fails"):
+        assert hub.writes("upload") == [], (case, hub.calls)
 
 
 def test_a_hand_edited_note_is_left_alone_and_nothing_is_uploaded(
@@ -983,18 +977,15 @@ def test_the_release_tail_says_the_seal_is_a_second_act_that_never_fails_it():
     reaches `main`*: the bullet on the note says the seal job runs only on a
     release this run created, edits only a glance table still as generated,
     and cannot turn the release red, and the section's `check:` line names
-    the module that pins the fallback. Since #832 it says the seal is
-    the owner's SVG drawn by `rsvg-convert`, and no longer that it is drawn
-    from the broad gate's letter; seen red by the old sentence put back."""
+    the module that pins the fallback. It no longer says the seal is drawn
+    from the broad gate's letter; seen red by the old sentence put back.
+    How the seal is drawn is #1009 S1 and S2's, and the bullet's sentence
+    on it is `spec.md`'s `## Rule changes` item of work item 1792624592."""
     text = flat("docs", "branch-and-release.md")
     bullet = text.split("**The release note publishes itself.**", 1)[1].split(
         "- **", 1
     )[0]
     assert "**Then the release's seal is attached.**" in bullet
-    assert (
-        "draws the owner's seal from `.github/scripts/release-seal.svg` with "
-        "`rsvg-convert`, which the job installs, attaches it" in bullet
-    )
     assert "letter" not in bullet
     assert "runs only when this run created the release" in bullet
     assert (
@@ -1027,8 +1018,3 @@ def test_the_checklist_box_says_where_a_missing_seal_is_explained():
     # Round 2's ⬜ 12: the reasons match the refusal's three causes.
     assert "published without one" in box
     assert "the pull requests moved between the two lists" in box
-    # #832: the seal is drawn by `rsvg-convert`, so the box names the binary
-    # among the reasons and the hand-drawn route needs a machine that has it.
-    # Seen red against the box as #718 left it.
-    assert "`rsvg-convert` was not installed or could not draw the SVG" in box
-    assert "from a checkout at the tag on a machine with `rsvg-convert`" in box
