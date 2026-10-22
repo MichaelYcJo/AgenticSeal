@@ -180,6 +180,9 @@ APPLIES_THE_SHARED_GUARD = {
     # #967's T5 reads every tracked file for a citation of `implement`'s
     # headings. It judges what it finds, so it skips the missing half.
     "tests/test_the_set_a_work_item_always_has.py#cited_files": 1,
+    # #1005's sweep for the section sign over every tracked living file. It
+    # judges what it finds, so it skips the missing half.
+    "tests/test_no_living_file_writes_the_section_sign.py#signs": 1,
 }
 
 # 2. It guards its own list by another predicate, which predates this work.

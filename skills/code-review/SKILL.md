@@ -128,9 +128,8 @@ is absent; field names, headings and vocabulary words stay English
   `executed`. The check cannot tell such a claim from another; the round
   reading the record does.
 - Each finding gives why it matters and its grounds, then the paste-ready
-  fix in a fenced block, then its `answer:` line. The grounds open with the
-  unit where `regression:` stands, and with why the earlier close does not
-  hold where `reopens:` stands.
+  fix in a fenced block, then its `answer:` line. The grounds open with why
+  the earlier close does not hold where `reopens:` stands.
 - What this round confirmed holds is a `confirms:` entry, and what it could
   not judge a row of `## Not judged` naming who answers it; neither is a
   finding.

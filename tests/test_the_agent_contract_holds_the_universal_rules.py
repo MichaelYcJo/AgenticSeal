@@ -74,6 +74,9 @@ FOUR_RULES = (17, 18, 19, 20)
 # bare `rule <N>`. Both are read across a line break.
 CITATION = re.compile(r"\b[Cc]ontract\s+rule\s+(\d+)\b")
 BARE_CITATION = re.compile(r"\b[Rr]ule\s+(\d+)\b")
+# A spelling that means a contract citation and is not the one CITATION
+# reads: a plural or a list, a possessive, or a capital `Rule`.
+NEAR_CITATION = re.compile(r"\b[Cc]ontract(?:'s)?\s+[Rr]ules?\s+\d")
 BARE_HOMES = ("agents",)
 CITED_TREES = ("agents", "skills", "docs", "templates", "hooks", "tests")
 CITED_FILES = ("CONTRIBUTING.md",)
@@ -360,6 +363,39 @@ def test_a_bare_rule_outside_the_contracts_homes_is_not_a_citation():
     numbers = set(spans(read()))
     text = f"pass rule {max(numbers) + 1} holds"
     assert dangling([("hooks/x.py", text)], numbers) == []
+
+
+def near_citations(text):
+    """[line] where a near miss of `contract rule <N>` starts, in any file:
+    such a spelling is neither read as a citation nor let pass."""
+    return [
+        text.count("\n", 0, m.start()) + 1
+        for m in NEAR_CITATION.finditer(text)
+        if not CITATION.match(text, m.start())
+    ]
+
+
+def test_no_file_cites_the_contract_in_a_near_miss():
+    found = [f"{rel}:{n}" for rel in tree_files() for n in near_citations(read(rel))]
+    assert not found, (
+        "cite one contract rule as `contract rule <N>`, one number each: "
+        + ", ".join(found)
+    )
+
+
+@pytest.mark.parametrize(
+    "shape",
+    ["Contract Rule {n}", "contract rules {m} and {n}", "the contract's rule {n}"],
+)
+def test_a_near_miss_citation_is_refused_at_its_line(shape):
+    """A capital `Rule`, a plural with a list, and a possessive each mean a
+    contract citation the reader does not read, so each is refused at the
+    line it starts on; the shapes are built here so this file holds none."""
+    assert near_citations("intro\n" + shape.format(m=7, n=21)) == [2]
+
+
+def test_the_one_spelling_is_no_near_miss():
+    assert near_citations("intro\ncontract rule 21 and Contract rule 3") == []
 
 
 def misspelled_headings(text):

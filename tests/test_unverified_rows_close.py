@@ -2515,6 +2515,57 @@ def test_each_reader_asks_the_one_delimiter_rule(lines, fenced):
     assert parked == fenced - openers, parked
 
 
+FENCE_SHAPES = [
+    ["```", "x", "```"],
+    ["~~~", "x", "~~~"],
+    ["   ```", "x", "   ```"],
+    ["    ```", "x", "    ```"],
+    ["```", "x", "    ```", "y", "```"],
+    ["```python", "x", "```"],
+    ["```", "x", "```python", "y", "```"],
+    ["```", "x", "```   ", "y"],
+    ["````", "```", "x", "````"],
+    ["```", "x", "``````", "y"],
+    ["```", "x", "~~~", "y", "```"],
+    ["~~~", "```", "x", "~~~"],
+    ["```x`", "y", "```"],
+    ["``` `x`", "y"],
+    ["~~~ `x`", "y", "~~~", "z"],
+    ["``", "x", "``"],
+    ["```", "x", "y"],
+    ["a", "```\r", "x\r", "```\r", "b\r"],
+    ["| a |", "```", "| b |", "```", "| c |"],
+]
+
+
+@pytest.mark.parametrize("lines", FENCE_SHAPES, ids=range(len(FENCE_SHAPES)))
+def test_the_fence_walks_agree_shape_by_shape(lines):
+    """The delimiter rule is written once, in `hooks/blocks.py`, and three
+    walks still apply it, each with its own state: `uc.fence_spans`,
+    `blocks.fence_only`, and the walk behind `hooks/config.py#fence_map`.
+    They agree on which lines are fenced and on where a block that never
+    closes opened."""
+    from conftest import load_hook_module
+
+    spec = importlib.util.spec_from_file_location(
+        "specseal_config_for_fence_walks", os.path.join(ROOT, "hooks", "config.py")
+    )
+    config = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(config)
+    blocks = load_hook_module("blocks.py", "specseal_blocks_for_fence_walks")
+    fenced = set()
+    for first, last in uc.fence_spans(lines):
+        fenced.update(range(first, len(lines) if last is None else last + 1))
+    unclosed = [first for first, last in uc.fence_spans(lines) if last is None]
+    shown, opened_at = config.fence_map(lines)
+    assert fenced == set(range(len(lines))) - {n for n, _ in shown}
+    assert unclosed == ([] if opened_at is None else [opened_at])
+    assert blocks.fence_only(lines) == (fenced, opened_at)
+    walked = blocks.walk(lines)
+    claimed = {n for n in range(len(lines)) if not walked.uncertain[n]}
+    assert set(walked.hidden()) & claimed == fenced & claimed
+
+
 @pytest.mark.parametrize(
     "line, ends",
     [("   # a heading", True), ("    # four spaces is paragraph text", False)],

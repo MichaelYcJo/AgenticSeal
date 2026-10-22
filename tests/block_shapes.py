@@ -285,7 +285,7 @@ def span(first, last):
 
 
 # The frame's *Renderer* column as hidden lines, derived by reading the
-# CommonMark specification (section4.5 fences, section4.6 HTML blocks, section6.6 inline raw
+# CommonMark specification (section 4.5 fences, section 4.6 HTML blocks, section 6.6 inline raw
 # HTML) and GFM's table extension, before anything was parsed.
 RENDERER = {
     "C1": set(),
