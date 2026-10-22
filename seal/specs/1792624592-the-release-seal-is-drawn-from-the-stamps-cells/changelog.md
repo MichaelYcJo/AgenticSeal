@@ -12,5 +12,6 @@
   changes the terminal stamp and the release image together. The SVG and
   the `rsvg-convert` install step are gone. Releases already published keep
   their attached image. A failure to draw still leaves the note as it was
-  published, with one `::warning::` line: it now names Pillow not
-  importing, the stamp's module not loading, or the PNG not being written.
+  published, with one `::warning::` line. Where Pillow is missing or the
+  stamp's module will not load, the suite at the tag fails first, and that
+  line names the suite's outcome.
