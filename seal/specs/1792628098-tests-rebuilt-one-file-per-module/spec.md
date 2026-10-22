@@ -37,7 +37,7 @@ The work is four rules the smith applies to any module without asking, the two c
 ### Rule 1, the layout
 
 - One test file per shipped module: `tests/test_<stem>.py`, where `<stem>` is the module's file name without `.py` and with each hyphen written as an underscore. Where two shipped modules share a stem, each file name takes the parent directory before the stem. The target is declared once, as the first assignment after the imports: `TARGET = "<tracked path>"`. A file whose cases run a `bin/` command names the script the launcher runs.
-- Inside a file, one class per function of the target, named `Test_<function>` with the function's name spelt as the code spells it. Behaviour of the module as a whole sits in `Test_module`. A function's class holds at least one case whose name starts with `test_accepts_` (the behaviour on good input) and one whose name starts with `test_refuses_` (the refusal or error on bad input). Other cases in the class take any `test_` name.
+- Inside a file, one class per public top-level function of the target (one whose name does not start with an underscore), named `Test_<function>` with the function's name spelt as the code spells it; a private function gets a class where a case needs one. Behaviour of the module as a whole sits in `Test_module`. A function's class holds at least one case whose name starts with `test_accepts_` (the behaviour on good input) and one whose name starts with `test_refuses_` (the refusal or error on bad input). Other cases in the class take any `test_` name.
 - A flow across modules lives under `tests/e2e/<flow>/`, its `TARGET` names the command or hook the flow starts from, and its classes are scenarios that keep the accepting and refusing pair. The commit gate run through real git is the first flow.
 - A case whose assertion reads a shipped document names that document as `TARGET`; its classes are free-named. Such cases are #923's and this work moves none of them.
 - A helper used by two files is defined once, in `tests/conftest.py`. The fixture repositories a module needs are built once per module by a module-scoped fixture and copied for each case; the copy is the reset.
@@ -70,7 +70,7 @@ The target the rebuild works toward is the issue's: the suite's real protection 
 
 ### What holds the rules
 
-- `skills/verify/scripts/test_layout.py`, run as `bin/test-layout`. `--check` reads every `tests/**/test_*.py` that declares `TARGET` and fails on: a `TARGET` git does not track, a file name that does not match it, a `Test_<function>` naming no top-level definition of the target, a function class lacking the accepting or refusing case, a non-test top-level function whose source is byte-identical to one in another test file where one of the two files declares `TARGET`. It prints the files that declare no `TARGET` and every twin between two undeclared files, and with `--all` fails on both. It prints each public top-level function of the target that has no class, and fails on none. `--pairs` prints, for each class, two cases that call the target's function with equal argument expressions, leaving out an argument that reads a name the case assigns or takes as a parameter, or whose bodies are equal once names and string constants are normalised, and exits 0 whatever it prints.
+- `skills/verify/scripts/test_layout.py`, run as `bin/test-layout`. `--check` reads every `tests/**/test_*.py` that declares `TARGET` and fails on: a `TARGET` git does not track, a file name that does not match it, a `Test_<function>` naming no top-level definition of the target, a function class lacking the accepting or refusing case, a non-test top-level function whose source is byte-identical to one in another test file where one of the two files declares `TARGET`. It prints the files that declare no `TARGET` and every twin between two undeclared files, and with `--all` fails on both. It prints each public top-level function of the target that has no class, and fails on none. `--pairs` prints, for each class, two cases that call the target's function with equal argument expressions, or whose bodies are equal once names and string constants are normalised, and exits 0 whatever it prints. A call with an argument that reads a name the case assigns or takes as a parameter is not compared at all: its input is on disk or in a fixture, where the report cannot see it.
 - `tests/test_test_layout.py` holds the script's own cases on fixtures, and one case that runs `--check` over this repository's `tests/`; the last phase gives that case `--all`.
 - `.github/scripts/release_report.py` prints, under its existing table, one row per test file: priced cases and seconds in `.test_durations` at the pull request head and at the last release tag, sorted by seconds. It reads the two trees it already reads and nothing else.
 - `tests/conftest.py` prints each case whose call ran past `SLOW_CASE_S` (90 seconds) in the terminal summary and fails nothing. `SPECSEAL_CASE_CEILING_S` is not read. The legs' `timeout-minutes` in `.github/workflows/test.yml` stay.
@@ -141,6 +141,24 @@ The target the rebuild works toward is the issue's: the suite's real protection 
     nothing another case does not. The sweep's cuts land in a work item of
     the next release with one line per cut case, the shape
     `CONTRIBUTING.md` *The test layout* gives.
+- change
+  file: docs/the-broad-gate.md
+  section: What the gate runs, and how the list is kept true
+  from: row, and it is three rules rather than an example. check: tests/test_the_seal_is_taken_once_by_the_sealer.py
+  to: row, and it is three rules rather than an example.
+    check: tests/test_broad_gate.py
+- change
+  file: docs/the-broad-gate.md
+  section: What the gate runs, and how the list is kept true
+  from: half a repair. check: tests/test_the_seal_is_taken_once_by_the_sealer.py
+  to: half a repair.
+    check: tests/test_broad_gate.py
+- change
+  file: docs/the-broad-gate.md
+  section: What the gate runs, and how the list is kept true
+  from: it says nothing a reader acts on. check: tests/test_the_seal_is_taken_once_by_the_sealer.py
+  to: it says nothing a reader acts on.
+    check: tests/test_broad_gate.py
 
 ## Open questions → questions.md
 

@@ -32,6 +32,7 @@ The checks go in first, then the modules are rebuilt in batches, heaviest first,
 | Keep `CASE_CEILING_S` failing | A loaded machine fails a guarantor run on time alone, as on 2026-10-16 | refused by the owner; a report |
 | Keep each census as one module over every file | The implementer runs the module it touched and never the census, four times in 0.22.0 | refused; per-module cases |
 | Keep the stored exemption lists | A list beside the tree drifts from it; `CLAUDE.md` refuses it | refused; a comment line above the line |
+| `--pairs` compares a call and leaves out only the argument that reads a local | Tried in round 1's fix pass: the report then named 31 pairs whose differing input was a file on disk, and a report that noisy is not read | dropped by the orchestrator on 2026-10-22; a call with such an argument is not compared, as phase 1 built it |
 
 ## Phases
 
