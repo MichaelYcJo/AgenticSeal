@@ -26,6 +26,15 @@ Extended past round <K>, counting from round <S>: round <K> found <n>, round <K-
 A verifying round after a regression's fix pass is not an extension and
 carries no such line. -->
 
+<!-- original: owed in a repository that declares `seal/parity.md`, where
+the pull request changes a path outside `docs/` and `seal/`. The warden
+compares this round's target with the original through `legacy-parity`,
+then writes one line here, outside this comment, naming the migration
+config's `Baseline commit`:
+original: 1a2b3c4
+Where the original could not be resolved, the warden writes no line and
+raises an `unread` finding. Elsewhere no line is written. -->
+
 ## Findings
 
 <!-- One `### <n>. <symptom>` section per finding, numbered from 1. What

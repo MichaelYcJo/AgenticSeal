@@ -121,6 +121,22 @@ def test_a_parity_stop_under_the_press_is_refused_too(
         assert "'[no-review]'" not in reason.split("pressed `automation`")[1]
 
 
+@pytest.mark.rule("parity-quiet-under-the-chain")
+def test_a_chain_declared_code_commit_meets_no_parity_stop_under_the_press(
+    monkeypatch, capsys, projects, tmp_path
+):
+    """S1 of #988, under the press. A branch declaring the review chain in a
+    migration repository commits its code with no parity mark at HEAD, so
+    the smith's first code commit no longer ends an `automation` run."""
+    repo = make_repo(
+        tmp_path / "repo", declared=True, review="through the review chain"
+    )
+    (repo / "seal" / "parity.md").write_text("# parity\n", encoding="utf-8")
+    press(projects, repo)
+    for _ in range(2):
+        assert say(monkeypatch, capsys, "git commit -m x", repo) == ("silent", "")
+
+
 def test_a_resolved_stop_the_first_time_puts_no_question(
     monkeypatch, capsys, projects, tmp_path
 ):

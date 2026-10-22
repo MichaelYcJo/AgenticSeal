@@ -204,6 +204,83 @@ def test_a_section_quoted_in_a_fence_or_a_comment_is_not_read():
     assert parsed.errors == [] and parsed.nothing == "a reason."
 
 
+def test_a_line_that_begins_inside_a_code_span_is_refused_at_its_line():
+    """Round 1 of #988, finding 2. A value's code span opened at the end of
+    one line and closed on the next leaves the second line beginning inside
+    the span, which the shared reader reads as not live. The reader dropped
+    such a line as it drops a comment, so the section parsed clean and
+    settle wrote the value without it. It is refused at its line, and the
+    spec applies nothing; a comment's lines are still skipped."""
+    wrapped = "    the review chain` carries one line."
+    text = spec(
+        "<!-- guidance, never an operation\n  - remove -->\n"
+        "- add\n  file: docs/a.md\n  section: S\n"
+        "  to: **Rule.** A branch declaring `through\n"
+        f"{wrapped}"
+    )
+    parsed = parse(text)
+    assert parsed.ops == [], parsed
+    [(line, why)] = parsed.errors
+    assert line == line_of(text, wrapped), (line, why)
+    assert "begins inside a code span" in why, why
+    # The same value with the span closed on the line that opens it.
+    closed = text.replace("`through\n", "`through the review chain`\n").replace(
+        "    the review chain` carries", "    carries"
+    )
+    parsed = parse(closed)
+    assert parsed.errors == [], parsed.errors
+    assert parsed.ops[0].new.endswith("`through the review chain`\ncarries one line.")
+    # Round 3 of #988: the line inside the span opens with `<!--`, which the
+    # span makes text, so it is refused too and not skipped as a comment.
+    opener = "    <!-- the review chain` carries"
+    commented = text.replace(f"\n{wrapped}", f"\n{opener}\n    one line. -->")
+    [(line, why)] = parse(commented).errors
+    assert line == line_of(commented, opener), (line, why)
+    assert "begins inside a code span" in why, why
+
+
+def test_a_comment_opener_inside_a_fence_above_the_section_hides_no_operation():
+    """Round 2 of #988, finding 1. A comment opener inside a fenced block is
+    code, not a comment, as `live_lines` reads it. The reader that refused a
+    wrapped span read it as a comment that ran to the next closer, so a
+    section after such a fence parsed as empty (shape A), or kept only the
+    operations after a later comment closed it, with no error (shape B)."""
+    fence = "# a work item\n\n```html\n<!-- an example of a comment\n```\n\n"
+    adds = [f"- add\n  file: docs/{name}.md\n  to: A rule." for name in "abc"]
+    shape_b = (
+        f"{fence}## Rule changes\n\n{adds[0]}\n{adds[1]}\n"
+        f"<!-- the third one -->\n{adds[2]}\n\n## Open questions\n\nNone.\n"
+    )
+    parsed = parse(shape_b)
+    assert parsed.errors == [], parsed.errors
+    assert [o.file for o in parsed.ops] == ["docs/a.md", "docs/b.md", "docs/c.md"]
+    shape_a = (
+        f"{fence}## Rule changes\n\n{adds[0]}\n\n## Open questions\n\n"
+        "None. <!-- a note -->\n"
+    )
+    parsed = parse(shape_a)
+    assert parsed.errors == [], parsed.errors
+    assert [o.file for o in parsed.ops] == ["docs/a.md"]
+    # Below such a fence a wrapped span is still refused at its line, and
+    # not skipped as part of a comment that is not there.
+    wrapped = "    the review chain` carries one line."
+    shape_c = shape_a.replace(
+        "  to: A rule.", f"  to: A branch declaring `through\n{wrapped}"
+    )
+    [(line, why)] = parse(shape_c).errors
+    assert line == line_of(shape_c, wrapped) and "code span" in why, (line, why)
+    # A fenced block inside the section is read as lines, so it is refused
+    # as no field of the item above, never skipped.
+    shape_d = shape_a.replace(
+        "  to: A rule.\n", "  to: A rule.\n\n```\n- remove\n  file: docs/b.md\n```\n"
+    )
+    lines = shape_d.split("\n")
+    opener = lines.index("```", lines.index("## Rule changes")) + 1
+    assert parse(shape_d).errors == [
+        (opener, "a line that is not a field of the item above")
+    ]
+
+
 @pytest.mark.parametrize(
     "body, bad, reason",
     [

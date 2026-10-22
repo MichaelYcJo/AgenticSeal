@@ -63,7 +63,9 @@ line, indented two spaces:
   the section, compared with runs of whitespace collapsed; every other
   character, emoji included, is matched as itself.
 - A value continues on the lines below it indented four spaces, and lands
-  with that indent removed.
+  with that indent removed. A code span closes on the line that opens it: a
+  line that begins inside a span an earlier line opened is refused at its
+  line, and its spec applies nothing.
 - A spec that changes no rule writes the no-change block in place of the
   items, `- nothing` with its one field `why:`. Any other spelling of it is
   refused at its line, naming the block.

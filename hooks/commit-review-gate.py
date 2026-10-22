@@ -33,7 +33,9 @@ must not nag unrelated repos.
 A repo that declares `seal/parity.md` opts into a second check: ported
 behavior follows the original where policy is silent, so a commit touching
 code should carry a record that the original was consulted. The legacy-parity
-skill writes the compared HEAD to <git-dir>/specseal-parity.
+skill writes the compared HEAD to <git-dir>/specseal-parity. On a branch whose
+routing declaration answers `through the review chain` that check moves to the
+pull request, where each round record carries the comparison (`hooks/gate.py`).
 
 Both opt-ins are independent — a repo may declare either, both, or neither.
 
@@ -1127,10 +1129,14 @@ def judge(cwd, top, command, invocations, clean):
                     "tree, so it silences the review arm for the very "
                     "commit that adds it, and the answer it records — the "
                     "user's answer, not yours — is checked at the pull "
-                    "request instead. It silences NOTHING ELSE, so any "
-                    "other arm named above still has to be answered on "
-                    "its own and the commit does not go through until it "
-                    "is. The separate command matters: this gate denies "
+                    "request instead. Answering `straight to the PR`, it "
+                    "silences NOTHING ELSE, so any other arm named above "
+                    "still has to be answered on its own and the commit "
+                    "does not go through until it is. Answering `through "
+                    "the review chain`, it silences the parity arm too, "
+                    "because each round record then carries the comparison "
+                    "with the original to the pull request. The separate "
+                    "command matters: this gate denies "
                     "the whole call, so a write batched with the commit "
                     "never runs."
                 ),

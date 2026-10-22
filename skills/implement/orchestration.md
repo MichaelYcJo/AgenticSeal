@@ -443,12 +443,30 @@ separate opt-ins, and each has terms that **wake** it and terms that
 | | Review arm | Parity arm |
 |---|---|---|
 | **Wakes when** | `seal/` exists in the repository the commit lands in, whatever the change touches; a commit confined to `docs/` and `seal/` wakes it too | `seal/parity.md` exists there, **and** the change touches something outside `docs/` and `seal/` |
-| **Quiets when** | a `routing.md` declaration names this branch, for either answer; the review mark stands at HEAD, written by the review chain; `[no-review]` rides in front of one command | the parity mark stands at HEAD, written by a recorded comparison against the original; `[no-parity]` rides in front of one command |
+| **Quiets when** | a `routing.md` declaration names this branch, for either answer; the review mark stands at HEAD, written by the review chain; `[no-review]` rides in front of one command | a `routing.md` declaration names this branch and answers `through the review chain`; the parity mark stands at HEAD, written by a recorded comparison against the original; `[no-parity]` rides in front of one command |
 
-A declaration reaches the review arm only, so a migration repository still
-meets the parity arm on a code-touching commit. A commit confined to `docs/`
-and `seal/` never wakes the parity arm, which is why the `routing.md` commit
-costs nothing even in a migration repository.
+A declaration answering `through the review chain` quiets both arms at the
+commit, because the warden compares the change with the original after the
+smith has committed it, and each round record carries that comparison on its
+`original:` line, which the pull request's check reads. A declaration
+answering `straight to the PR` quiets the review arm alone: no review round
+exists to record a comparison, so a migration repository still meets the
+parity arm on a code-touching commit, and under the `automation` press that
+commit is refused and handed back at the end of the run. A commit confined
+to `docs/` and `seal/` never wakes the parity arm, which is why the
+`routing.md` commit costs nothing even in a migration repository.
+
+The chain answer moves the parity check to a pull-request check, and three
+shapes leave code nobody compared with nothing that reads it. In local mode the
+root sits under the common git directory and nothing under it is committed,
+so no pull-request check reads a round record, the cost the review arm's
+declaration already carries there. A repository whose
+`.github/workflows/hygiene.yml` pins a plugin release older than this rule
+runs a `chain-check` that reads no `original:` line, until a person moves
+the pin's `v<version>` to the installed release. And a declaration rewritten
+from `through the review chain` to `straight to the PR` after code was
+committed leaves those commits compared by nobody, because the check reads
+the answer at HEAD.
 
 The declaration is what the commit gate reads, for **either** review answer,
 so a declared work item commits silently whichever reviewer it named, and CI

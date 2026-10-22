@@ -6,7 +6,7 @@ Run by CI on every pull request (`.github/workflows/hygiene.yml`). It judges
 the `seal/specs/<id>/routing.md` naming the pull request's branch and every
 one its own commits add or change. One that reached the branch inside another
 pull request's squash was judged at that pull request and is named, not
-judged (`carried_by`). The arms are six:
+judged (`carried_by`). The arms are seven:
 
   declaration   the file parses as a routing declaration; one the pull
                 request removed is accepted where the work item was retired
@@ -30,6 +30,12 @@ judged (`carried_by`). The arms are six:
                 `regression:` lines, and none stands in the last record; the
                 last record's `target:` commit is HEAD, or every commit after
                 it touches only the work item's own directory
+  original      `Review | through the review chain`, where git carries
+                `seal/parity.md` at HEAD and the pull request changes a path
+                outside the document roots `hooks/gate.py#touches_code`
+                reads: the config's `Baseline commit` row names a SHA
+                (`hooks/config.py#baseline_commit`), and every round record
+                carries one `original:` line naming it (`originals_of`)
   broad gate    `broad-gate.md`'s newest run is HEAD, or every commit after it
                 touches only the work item's own directory
   guarantee     `guarantee.md` names HEAD, or every commit after it touches
@@ -78,7 +84,8 @@ if __name__ == "__main__":
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")
-ROUTING = os.path.join(HERE, "..", "..", "..", "hooks", "routing.py")
+HOOKS = os.path.join(HERE, "..", "..", "..", "hooks")
+ROUTING = os.path.join(HOOKS, "routing.py")
 
 TARGET = "Target SHA"
 BROAD_GATE = "Broad gate"
@@ -166,6 +173,7 @@ CONFIRMATIONS_HEADING = "## Confirmations"
 IN_FINDINGS = f"`{FINDINGS_HEADING}`"
 IN_CONFIRMATIONS = f"`{CONFIRMATIONS_HEADING}`"
 TARGET_ROW = "target:"
+ORIGINAL_ROW = "original:"
 HEADING_ROW = "### <n>. <symptom>"
 LOCATION_ROW = "location:"
 VERDICT_ROW = "verdict:"
@@ -182,6 +190,9 @@ CONFIRMS_ROW = "confirms:"
 Read = collections.namedtuple("Read", "where many parts")
 READ_ROWS = {
     TARGET_ROW: Read(OUTSIDE_FINDINGS, (ONE,), ("commit",)),
+    # At most one: a record is owed the line only in a migration repository,
+    # and `originals_of` refuses one that has none there.
+    ORIGINAL_ROW: Read(OUTSIDE_FINDINGS, (AT_MOST_ONE,), ("commit",)),
     FINDINGS_HEADING: Read(IN_RECORD, (ONE, AT_MOST_ONE), ()),
     HEADING_ROW: Read(IN_FINDINGS, (EACH_ONCE,), ("number",)),
     LOCATION_ROW: Read(IN_FINDING, (ONE,), ()),
@@ -1697,6 +1708,92 @@ def records(reader, routing, root, item, rel, base):
     return problems
 
 
+# The parity arm at the pull request (#988). A routing declaration answering
+# the review chain quiets the commit gate's parity arm, and each round record
+# then carries the comparison on its `original:` line, which these read.
+NO_ORIGINAL = (
+    f"no `{ORIGINAL_ROW}` line: `{{config}}` declares a migration and this "
+    "pull request changes a path outside the document roots, so each round "
+    f"record carries `{ORIGINAL_ROW} {{sha}}`, the migration config's "
+    "baseline, written by the warden once it compared the round's target "
+    "with the original through `legacy-parity`"
+)
+OTHER_ORIGINAL = (
+    f"`{ORIGINAL_ROW} {{said}}` names a commit other than the migration "
+    "config's `Baseline commit`, {sha}: the line names the commit this round "
+    "compared against, and a comparison against another original proves "
+    "nothing"
+)
+NO_BASELINE = (
+    "{why}: the migration config names the baseline every round record's "
+    f"`{ORIGINAL_ROW}` line is compared with"
+)
+
+
+def parity_readers():
+    """`(config, gate)`: `hooks/config.py` and `hooks/gate.py`, loaded by path
+    in that order, because `config.py` puts `hooks/` on `sys.path` and
+    `gate.py`'s own `import optin` needs it there, in a process that loaded
+    no routing reader first. Raises what `load` raises."""
+    config = load(os.path.join(HOOKS, "config.py"), "specseal_config_for_parity")
+    gate = load(os.path.join(HOOKS, "gate.py"), "specseal_gate_for_parity")
+    return config, gate
+
+
+def original_of(reader, text, rel, sha, config):
+    """[(rel, line, problem)] for one round record's `original:` line, held
+    against SHA, the `Baseline commit` of the migration config at CONFIG:
+    a record with no such line, and one naming a commit that is not a prefix
+    of SHA and of which SHA is not a prefix. A line the grammar table
+    refuses, standing in a finding, a second one, or one spelt otherwise, is
+    `read_whole`'s refusal at that line, and none is added here."""
+    lines, _found, _errors, outside = read_whole(reader, text, rel)
+    at = [
+        i
+        for i, line in enumerate(lines)
+        if ORIGINAL_ROW in (label_of(line), misspelt(line))
+    ]
+    if not at:
+        return [(rel, 0, NO_ORIGINAL.format(config=config, sha=sha))]
+    found = outside[ORIGINAL_ROW]
+    if found is None:
+        return []
+    said = found["commit"]
+    if said.startswith(sha) or sha.startswith(said):
+        return []
+    return [(rel, at[0] + 1, OTHER_ORIGINAL.format(said=said, sha=sha))]
+
+
+def originals_of(reader, routing, root, paths, items):
+    """[(path, line, problem)] for the round records of ITEMS, each declared
+    through the review chain, where git carries the migration config at HEAD
+    and PATHS, this pull request's, reach outside the document roots;
+    `hooks/gate.py#touches_code` decides that, and paths git could not list
+    reach outside them. A config whose `Baseline commit` names no SHA is one
+    refusal naming it. None where `hooks/` would not load, said on stderr."""
+    config = f"{routing.optin.HOME}/{routing.optin.PARITY_CONFIG}"
+    text = read_record(root, config)
+    if text is None or not items:
+        return []
+    try:
+        reads, gate = parity_readers()
+    except (OSError, SyntaxError, ImportError, SystemExit) as exc:
+        print(
+            f"chain-check: the parity readers would not load ({exc})", file=sys.stderr
+        )
+        return None
+    if not gate.touches_code(paths):
+        return []
+    sha, why = reads.baseline_commit(text)
+    if sha is None:
+        return [(config, 0, NO_BASELINE.format(why=why))]
+    found = []
+    for item in items:
+        for rel in round_records(routing, root, item):
+            found.extend(original_of(reader, read_record(root, rel), rel, sha, config))
+    return found
+
+
 def broad_gate(reader, root, item, base):
     """[(path, line, problem)] for the work item's `broad-gate.md`: absent,
     unreadable, or naming a run behind HEAD."""
@@ -1991,7 +2088,7 @@ def main(argv=None):
         for item in edited_work_items(root, args.baseline, paths, moved, routing)
         if item not in judged
     ]
-    problems, notices = [], []
+    problems, notices, chained = [], [], []
     texts = {rel: read_record(root, rel) for rel in declarations}
     by_settle = retired(reader, root, fork, texts)
     for rel in declarations:
@@ -2030,6 +2127,7 @@ def main(argv=None):
         problems.extend(found)
         if declared["review"] == routing.CHAIN:
             problems.extend(records(reader, routing, root, item, rel, args.baseline))
+            chained.append(item)
         gate = broad_gate(reader, root, item, args.baseline)
         gate += guarantee(reader, root, item, args.baseline)
         if args.sealing:
@@ -2037,6 +2135,10 @@ def main(argv=None):
         else:
             problems.extend(gate)
     found = rule_changes_of(reader, root, edited)
+    if found is None:
+        return 2
+    problems.extend(found)
+    found = originals_of(reader, routing, root, paths, chained)
     if found is None:
         return 2
     problems.extend(found)

@@ -228,7 +228,7 @@ def comment_scan(lines):
     **A code span opened first wins** (CommonMark 6.1): an opener inside a
     span closed on the same line is text, as the page shows it. A backtick
     run with no closer of its own length on its line is literal, which is
-    `_liveness`'s reading A, and the walk goes on after it. A span wrapped
+    `liveness`'s reading A, and the walk goes on after it. A span wrapped
     across lines is therefore read as literal backticks.
 
     The line is walked by index: the opener is looked for once and again
@@ -294,7 +294,7 @@ def fence_opener(line):
     own, because five spellings of this rule is what five readers had.
 
     **The readers that ask it.** In this module: `fence_spans` and, through
-    it, `blank_fences` and `closed_fence_lines`; `_liveness` and
+    it, `blank_fences` and `closed_fence_lines`; `liveness` and
     `_paragraph_ends_at`. The coordinate kernel:
     `skills/verify/scripts/coordinates.py#quoted_lines`, which its
     `unquoted` and `markdown_lines` read through. The readers #584 brought
@@ -377,7 +377,7 @@ def fence_spans(lines):
     included, with `last` None for a block that is never closed.
 
     The walk for a reader with no comment or code-span state of its own. A
-    reader that has either — `_liveness` — walks with
+    reader that has either — `liveness` — walks with
     `fence_opener` and `fence_closes` directly, because whether a line can
     open a fence at all depends on the state it began in.
 
@@ -431,14 +431,17 @@ def blank_fences(lines):
     return out
 
 
-def _liveness(lines, spans_cross_lines):
+def liveness(lines, spans_cross_lines):
     """Whether each line BEGINS live, under one of the two span readings.
 
     `spans_cross_lines` is the only thing that differs between them, and it is
     the one question markdown cannot answer without a block model: a backtick
     run with no partner on its own line is literal text if the paragraph ends
     before its partner, and a code span if it does not. `live_lines` runs this
-    twice rather than deciding.
+    twice rather than deciding. `rule_changes.py#parse` reads the reading
+    with `spans_cross_lines=False` as well: a line dead there is in a fence
+    or a comment, and a line live there and dead in `live_lines` begins
+    inside a code span an earlier line opened.
 
     Everything else is shared and is not a guess. Inside a fence nothing is
     read but the closing fence; inside a comment nothing is markdown, so
@@ -694,8 +697,8 @@ def live_lines(lines):
     trip and ends a line where GFM does already.
     """
     lines = list(lines)
-    literal = _liveness(lines, spans_cross_lines=False)
-    crossing = _liveness(lines, spans_cross_lines=True)
+    literal = liveness(lines, spans_cross_lines=False)
+    crossing = liveness(lines, spans_cross_lines=True)
     for n, line in enumerate(lines):
         yield line, literal[n] and crossing[n]
 

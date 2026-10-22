@@ -56,11 +56,14 @@ the layout predates the question, or when the original repository changes.
    skill, the `scribe` agent, and that divergence from the original now needs
    grounds rather than preference. Say the consequence the user meets first,
    too: from this file onward, a commit touching anything outside the document
-   roots stops and asks whether the original was consulted, and it keeps
-   asking until `legacy-parity` has recorded the compared HEAD in
+   roots stops and asks whether the original was consulted, until
+   `legacy-parity` has recorded the compared HEAD in
    `<git-dir>/specseal-parity`. That is `.git/` in a plain checkout and
    `.git/worktrees/<name>/` in a worktree, so the mark is written through
-   `git rev-parse --git-dir` rather than a literal path. `[no-parity]` skips
+   `git rev-parse --git-dir` rather than a literal path. A branch whose
+   `routing.md` answers `through the review chain` is the exception: there
+   the warden writes an `original:` line in each round record, and the
+   pull-request check reads it instead. `[no-parity]` skips
    one commit as a bare word typed in FRONT of it, `: '[no-parity]'; git
    commit …`, quotes included, because after `git commit` a bare word is a
    pathspec and git rejects the whole command; inside a longer message it is

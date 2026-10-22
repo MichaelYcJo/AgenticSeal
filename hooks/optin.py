@@ -39,6 +39,9 @@ HOME = "seal"
 # every hook that opens a file joins this under `home()` instead, so #80
 # changes where the folder is created and nothing that reads it.
 WORK_ITEMS = "specs"
+# The migration config, directly under the root: `parity_config` below opens
+# it, and `chain_check.py` reads it at HEAD under the shared root (#988).
+PARITY_CONFIG = "parity.md"
 # An empty FILE under the common git directory; its existence is the whole
 # signal, read the way the root is read. It is not an entry inside an existing
 # file because every gate would then parse one to answer what is a directory
@@ -219,5 +222,5 @@ def parity_config(cwd):
     root = home(cwd)
     if not root:
         return ""
-    path = os.path.join(root, "parity.md")
+    path = os.path.join(root, PARITY_CONFIG)
     return path if os.path.isfile(path) else ""

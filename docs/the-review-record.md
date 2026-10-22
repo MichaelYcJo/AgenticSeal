@@ -41,6 +41,7 @@ check: tests/test_chain_check.py
 | Line | Shape | Where | How many | Refused as |
 |---|---|---|---|---|
 | `target:` | `target: (?P<commit>[0-9a-f]{7,40})(?: against [\w./-]*\w\|, fixes [0-9a-f]{7,40}\.\.[0-9a-f]{7,40})` | outside every finding | one | it names the reviewed commit as `<sha> against <base>`, or `<sha>, fixes <a>..<b>` for a verifying round |
+| `original:` | `original: (?P<commit>[0-9a-f]{7,40})` | outside every finding | at most one | it names the migration config's baseline commit this round compared against, as 7 to 40 hex digits |
 | `## Findings` | `## Findings` | the record | one | a round record holds one, with a `### ` section and one `verdict:` line per finding |
 | `### <n>. <symptom>` | `### (?P<number>[1-9][0-9]*)\. .+` | `## Findings` | each number once | no number: a finding's heading reads `### <n>. <symptom>`, and a later round names it by that `n` |
 | `severity:` | `severity: (?:must\|should)` | a finding | one | a severity is `must` or `should` |
@@ -74,7 +75,7 @@ not use, a row the check reads a meaning from that is missing, one whose
 shape lacks the named part, such as `(?P<commit>…)`, the check reads out of
 it, or one that stands where the check does not look for it or whose
 `How many` the check cannot keep. `target:` stands outside every finding
-and is `one`. `location:`, `verdict:`, `regression:` and `reopens:` stand in
+and is `one`, and `original:` stands there and is `at most one`. `location:`, `verdict:`, `regression:` and `reopens:` stand in
 a finding, and since the check reads one line of each, the first two are
 `one` and the last two `one` or `at most one`. `confirms:` stands in
 `## Confirmations`. Every other row may take any `Where` and `How many` the
