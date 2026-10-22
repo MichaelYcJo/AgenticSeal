@@ -355,6 +355,30 @@ rows; what differs is how many clicks it took and which row says so.
 | Review | `through the review chain` or `straight to the PR` |
 | Destination | `open the pull request` or `stop before the pull request` |
 | Answer pressed | `automation` or `per axis`, OPTIONAL; absent reads as unanswered |
+| Branch | the branch the work item is built on; two declarations naming one branch read as none |
+
+**Each answer is written without backticks**, since a backticked value reads
+as unanswered. `templates/sdd-routing.md` ships `Review` and `Destination`
+answered and the optional rows as placeholders: a wrong answer in the first
+two is caught at the next commit, because the gate stops recognising the
+file, and a wrong answer in the others is contradicted by nothing, so a file
+copied and never revisited lands on not answered rather than on a confident
+answer nobody gave. An absent `Automation` row means nobody was asked, which
+is why `no` is never written where the question was not put.
+
+**`Implementation` is answered by a criterion, not by habit: is the work
+FINDING OUT or WRITING DOWN?** Finding out, what an unfamiliar codebase does
+or what an original did, is a STEP to send to `scribe`: a large input and a
+small output is what a subagent boundary is for. That is a step and not an
+answer to this row; the orchestrator that reads the facts back and writes
+the code still answers `the session`, so the row is never deleted because
+the work is discovery. Writing down stays with the orchestrator too, because
+a delegate re-buys the context the orchestrator holds, and `smith` answers
+where the diff is large enough to threaten what the orchestrator still has
+to hold. That threshold is a number nobody has; the axis it sits on is
+REPLACEABILITY, not cost, because the orchestrator is the one participant a
+release cannot replace mid-run. The row is deleted only for a work item that
+has no answer to give.
 
 **`automation` writes all four party rows at their checked values**, plus
 `Automation` = `yes`, plus `Answer pressed` = `automation`. Ticking all four

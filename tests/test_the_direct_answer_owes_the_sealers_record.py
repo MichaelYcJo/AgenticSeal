@@ -52,7 +52,6 @@ DIRECT_REQUIRES = {
         "requires nothing of it at the pull request",
         "requires " + STANDS + " of it and no reviewer's record",
     ),
-    ("templates", "sdd-routing.md"): (None, STANDS),
 }
 
 # The closing paragraph of the orchestration skill's routing section said the
@@ -68,7 +67,7 @@ def flat(*parts):
 
 @pytest.mark.parametrize("parts", sorted(DIRECT_REQUIRES))
 def test_each_carrier_says_what_the_direct_answer_requires(parts):
-    """A8. A reader opening any of the seven places finds what `straight to
+    """A8. A reader opening any of these places finds what `straight to
     the PR` requires at a ready pull request and no sentence saying it
     requires nothing. Seen red by restoring one of the old sentences."""
     gone, stands = DIRECT_REQUIRES[parts]

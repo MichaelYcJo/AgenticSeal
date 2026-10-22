@@ -14,7 +14,9 @@ Two documents carry the consequence and this module pins both.
   the template   `templates/sdd-questions.md` is the file a session types
                  into. The column has to be in the shipped table, because a
                  session bootstraps from the template and never reads the
-                 argument for it
+                 argument for it; the argument, the three values and who
+                 writes `Status`, is `skills/implement/SKILL.md` *3. The SDD
+                 file set*, which the framer opens
   the report     `agents/framer.md`'s hand-back step and its person-row rule
                  split on the same three values. A row a PERSON answers goes
                  to the orchestrator in full; the other two are a path and a
@@ -72,35 +74,35 @@ def test_the_questions_template_carries_the_answerer_column():
     )
 
 
-def test_the_template_names_the_three_answerers_and_only_those():
+def test_the_skill_names_the_three_answerers_and_only_those():
     """Three values, spelled out. A free-text column collects the name of
     whoever the framer had in mind, which is the same as no column: the point
     is that a MEASUREMENT is never queued behind a person, and that only
     works if `a measurement` is a value a reader recognises."""
-    tpl = flat("templates", "sdd-questions.md")
+    tpl = flat("skills", "implement", "SKILL.md")
     for value in ANSWERERS:
         assert f"**{value}**" in tpl, (
-            f"`templates/sdd-questions.md` no longer offers `{value}` as one "
+            f"`skills/implement/SKILL.md` no longer offers `{value}` as one "
             "of the three answers the column takes"
         )
     assert "wrong instrument" in tpl, (
-        "the template lost the reason a measurement is not a person's row. "
+        "the skill lost the reason a measurement is not a person's row. "
         "Without it the column reads as a label and the round trip gets paid "
         "anyway"
     )
     assert "does not travel back to the framer" in tpl, (
-        "the template no longer says where a `the work` row is settled. A row "
+        "the skill no longer says where a `the work` row is settled. A row "
         "nobody can answer at framing time, with no destination, is held open "
         "waiting for somebody who was never coming"
     )
 
 
-def test_the_template_says_the_framer_does_not_own_the_answers():
+def test_the_skill_says_the_framer_does_not_own_the_answers():
     """The other half of S7. A row is a question put to somebody else, so the
     status belongs to whoever answered it and not to whoever asked."""
-    tpl = flat("templates", "sdd-questions.md")
+    tpl = flat("skills", "implement", "SKILL.md")
     assert "opens rows and does not own their answers" in tpl, (
-        "`templates/sdd-questions.md` stopped saying that the framer opens "
+        "`skills/implement/SKILL.md` stopped saying that the framer opens "
         "rows without owning their answers, which is what keeps a frame from "
         "answering its own questions and calling that a decision"
     )

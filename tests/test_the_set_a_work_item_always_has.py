@@ -245,17 +245,19 @@ def test_the_plan_template_carries_a_status_column():
     assert "|---|---|---|---|" in tpl
 
 
-def test_the_template_says_why_a_tick_is_refused():
+def test_the_skill_says_why_a_tick_is_refused():
     """The column is worth nothing if its closed value can be typed.
 
     A tick and the word `done` assert a present state nobody can check. A
     commit asserts a past one that someone can open, which is the only reason
-    mutable-looking progress is allowed inside the contract at all.
+    mutable-looking progress is allowed inside the contract at all. The rule
+    stands in the skill the plan's writer and builder open, and the template
+    ships the column alone.
     """
-    tpl = read("templates", "sdd-plan.md")
-    assert "A tick is refused" in tpl
+    tpl = " ".join(read("skills", "implement", "SKILL.md").split())
+    assert "a tick and the word `done` are refused" in tpl
     assert "the commit that closed the phase" in tpl
-    assert "past" in tpl, (
+    assert "asserts a **past** state" in tpl, (
         "the reason a hash is accepted where a tick is not is that it asserts "
         "a past state — without it the rule is arbitrary and gets relaxed"
     )

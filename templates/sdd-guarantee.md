@@ -1,20 +1,11 @@
 # Guarantee: <work-item-id>
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/guarantee.md is written by the
-sealer alone and committed by the orchestrator beside `broad-gate.md`.
-`docs/the-review-record.md` *The guarantee* holds the rules and
-`agents/sealer.md` the order of work. -->
-
 | Field | Value |
 |---|---|
 | Target SHA | <the commit audited, `<sha> against <base>`, each one word, and on a later run `; earlier run: <sha> <word>`, its verdict's word alone; nothing else, or the row is refused> |
 | Broad gate | <the run `broad-gate.md` names, `<sha> against <base>`> |
 
 ## Claims re-run
-
-<!-- One row per act of `agents/sealer.md` step 3, whatever the act, and one
-per thing the act checks. `Result` reads `holds`, or `does not hold: <what
-came back>`, and a `does not hold` is what the verdict names. -->
 
 | Claim | Source | Command | Result |
 |---|---|---|---|
@@ -26,10 +17,4 @@ came back>`, and a `does not hold` is what the verdict names. -->
 |---|---|---|---|
 | <one of: the spec, the build, the last round, the changelog, the pull request body> | <what it says the work is> | <the parties and facts it agrees with> | <none, or what contradicts it> |
 
-<!-- One line, exactly one of `Verdict: sealed`,
-`Verdict: withheld reason: <the claim, its party, its coordinate>` or
-`Verdict: undecided question: <the question, for the owner>`, at the start
-of the line and with no emphasis. An owner's answer is a line under it,
-`Answered <date> by <who>: <answer>`, which the next run keeps. -->
-
-Verdict: <one of the three shapes above>
+Verdict: <one of the three shapes `agents/sealer.md` step 5 names>

@@ -1105,9 +1105,14 @@ def _round_record_fields():
     table `chain_check.py` loads, read from the table rather than copied,
     and the two graded headings. The finding heading's `Line` cell is a
     pattern, and an old spelling stands in a table of its own, which no
-    record carries."""
+    record carries. Two lines are owed only where their condition holds,
+    `original:` in a repository that declares `seal/parity.md` and
+    `reopens:` on a finding that raises an earlier close, so the template's
+    one finding shows the other relation, `regression:`, and neither of
+    these."""
     chain = _chain()
-    return [key for key in chain.GRAMMAR if key != chain.HEADING_ROW] + GRADED_HEADINGS
+    left_out = (chain.HEADING_ROW, chain.ORIGINAL_ROW, chain.REOPENS_ROW)
+    return [key for key in chain.GRAMMAR if key not in left_out] + GRADED_HEADINGS
 
 
 ROUND_RECORD_FIELDS = _round_record_fields()

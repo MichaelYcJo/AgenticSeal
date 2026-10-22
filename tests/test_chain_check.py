@@ -472,19 +472,17 @@ class TestGrammar:
 
         lines = reader.readable(TEMPLATE.read_text(encoding="utf-8"))
         # A finding carries one of `regression:` and `reopens:`, and the
-        # template's finding writes the first; the second's example is its
-        # comment's `round-<N>#<n>`. The `original:` line is owed only in a
-        # migration repository, so the template writes it in a comment, and
-        # that comment's line is the one read here (#988).
-        raw = TEMPLATE.read_text(encoding="utf-8").splitlines()
-        written_by_comment = {
+        # template's finding writes the first. The `original:` line is owed
+        # only in a migration repository (#988). The template writes neither
+        # of those two, so each is read here as a round would write it.
+        conditional = {
             "reopens:": ["reopens: round-1#2"],
-            "original:": [ln for ln in raw if ln.startswith("original: ")],
+            "original:": ["original: 1a2b3c4"],
         }
         for key in chain.LABELS:
             row = chain.GRAMMAR[key]
             written = [ln for ln in lines if chain.label_of(ln) == key]
-            written = written or written_by_comment.get(key, [])
+            written = written or conditional.get(key, [])
             assert written, f"the template writes no `{key}` line"
             for ln in written:
                 assert row.shape.fullmatch(ln), ln
@@ -1407,10 +1405,10 @@ class TestFindings:
         (#985), naming the regression `round-1#1`;
         a `verdict:` written inside its fix block not read as a line;
         `## Confirmations` holding its two example entries, `confirms:
-        round-1#2` read and `confirms: none`; its comments naming the
-        `reopens:` line beside `regression:`, and the `original:` line a
-        migration repository's round owes (#988), each read as no line; and
-        no emoji anywhere in it."""
+        round-1#2` read and `confirms: none`; no `reopens:` line and no
+        `original:` line, each owed only where its condition holds, with the
+        review skill saying where a `reopens:` finding's grounds open; and no
+        emoji anywhere in it."""
         text = (ROOT / "templates" / "sdd-round.md").read_text(encoding="utf-8")
         lines = reader.readable(text)
         found, errors = chain.record_findings(reader, text, "t")
@@ -1420,12 +1418,10 @@ class TestFindings:
         ]
         said = [ln for ln in lines if chain.label_of(ln) == "evidence:"]
         assert len(said) == 1, said
-        comments = text.split(chain.FINDINGS_HEADING)[1].split("### 1. ")[0]
-        assert "`reopens:`" in comments and "  reopens:  " in comments, comments
         assert not any(ln.startswith(chain.REOPENS_ROW) for ln in lines)
-        above = text.split(chain.FINDINGS_HEADING)[0]
-        assert "\noriginal: " in above and "`seal/parity.md`" in above, above
         assert not any(ln.startswith(chain.ORIGINAL_ROW) for ln in lines)
+        skill = (ROOT / "skills" / "code-review" / "SKILL.md").read_text("utf-8")
+        assert "where `reopens:` stands" in " ".join(skill.split())
         assert found[0].heading.startswith("### 1. ") and found[0].number == 1
         confirmed, errors = chain.confirmations(reader, lines, "t")
         assert errors == []
@@ -1927,12 +1923,12 @@ CHANGE = (
 )
 
 
-def template_comment():
-    """What `templates/sdd-spec.md` holds under its `## Rule changes`: the
-    comment a framer's skeleton commit carries."""
+def template_section():
+    """What `templates/sdd-spec.md` holds under its `## Rule changes`:
+    nothing, which is what a framer's skeleton commit carries."""
     text = (ROOT / "templates" / "sdd-spec.md").read_text(encoding="utf-8")
     section = text.split("\n## Rule changes\n", 1)[1].split("\n## Removes\n", 1)[0]
-    assert section.strip().startswith("<!--") and section.strip().endswith("-->")
+    assert section.strip() == "", section
     return section
 
 
@@ -1986,15 +1982,15 @@ def on_main(root, rel, text):
 class TestRuleChangesRead:
     @pytest.mark.parametrize(
         "section",
-        [lambda: CONTINUED, lambda: PROSE, template_comment],
-        ids=["S1-continued-two-in", "S2-prose-under-items", "S3-the-template-comment"],
+        [lambda: CONTINUED, lambda: PROSE, template_section],
+        ids=["S1-continued-two-in", "S2-prose-under-items", "S3-the-template-section"],
     )
     def test_a_section_the_parser_refuses_fails_a_ready_pull_request_at_its_line(
         self, branch, ready, capsys, section
     ):
         """S1, S2, S3: the one refusal names the spec, the line the parser
-        names and the parser's reason. S3's section is the template's
-        comment and nothing else, which a framer's skeleton commit holds."""
+        names and the parser's reason. S3's section is the template's,
+        empty, which a framer's skeleton commit holds."""
         root, _code = branch
         text = spec_with(section())
         put_spec(root, text)

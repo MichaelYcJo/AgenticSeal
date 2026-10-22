@@ -218,7 +218,6 @@ class TestClosedRow:
 
 # Every shipped text that tells a session how a `## Not verified` row closes.
 CLOSING_TEXTS = [
-    ("templates", "sdd-overview.md"),
     ("templates", "config.md"),
     ("docs", "the-record-layout.md"),
     ("skills", "implement", "SKILL.md"),
@@ -239,19 +238,26 @@ def test_no_text_that_states_the_closing_shows_the_old_mark(parts):
         assert OLD_MARK not in f.read()
 
 
-def test_the_template_shows_the_word():
-    """The template is what a session copies, so its example row is the one
-    the check accepts."""
+def test_the_skill_shows_the_word(tmp_path):
+    """`skills/implement/SKILL.md` *4. The closing memo — only what the diff
+    cannot show* is what the memo's writer reads for how a row closes, so its
+    example row is one the check accepts as closed."""
     with open(
-        os.path.join(ROOT, "templates", "sdd-overview.md"), encoding="utf-8"
+        os.path.join(ROOT, "skills", "implement", "SKILL.md"), encoding="utf-8"
     ) as f:
         text = f.read()
-    assert "| closed <the item, kept> | <what closed it" in text
+    example = next(ln for ln in text.splitlines() if ln.startswith("| closed "))
+    p = tmp_path / "overview.md"
+    p.write_text(
+        f"# memo\n\n## Not verified\n\n| Item | Who must answer |\n|---|---|\n{example}\n",
+        encoding="utf-8",
+    )
+    op, closed, err = uc.check_file(str(p))
+    assert not err and not op and len(closed) == 1, (op, closed, err)
 
 
 # Every shipped text that says which way an unmarked row reads.
 OPEN_BY_DEFAULT_TEXTS = [
-    ("templates", "sdd-overview.md"),
     ("skills", "implement", "SKILL.md"),
     ("skills", "verify", "scripts", "unverified_check.py"),
 ]

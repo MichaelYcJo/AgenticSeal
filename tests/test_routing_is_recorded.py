@@ -881,9 +881,9 @@ def test_a_declaration_below_a_comment_opener_nobody_closed_still_reads():
 
 
 def test_the_template_and_the_committed_declarations_still_parse():
-    """R10's floor, S11. `templates/sdd-routing.md` opens with a comment above
-    its table and a placeholder line below it, and it still parses; the
-    measurement over every committed declaration is in the phase record."""
+    """R10's floor, S11. `templates/sdd-routing.md` carries its table and a
+    placeholder line below it, and it still parses; the measurement over
+    every committed declaration is in the phase record."""
     root = os.path.join(os.path.dirname(__file__), "..")
     with open(os.path.join(root, "templates", "sdd-routing.md"), encoding="utf-8") as f:
         template = f.read()

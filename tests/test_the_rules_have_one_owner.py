@@ -275,13 +275,13 @@ def test_a_regression_is_a_defect_a_fix_passs_own_commit_made():
     a `regression:` line names a defect a fix pass's own commit introduced,
     and a defect in a unit a build phase made, which the framer designed and
     the owner approved, is an ordinary finding of new work, so its round
-    gets its fix pass. The document states it, and the template and the
-    warden, who write the line, say the same."""
+    gets its fix pass. The document states it, and the warden, who writes
+    the line, says the same."""
     run = flat(*RECORD)
     run = run[run.index("## The run") : run.index("## The handoff")]
     assert "A regression is a defect a fix pass's own commit introduced." in run
     assert "is an ordinary finding of new work" in run
-    for carrier in (RECORD, WARDEN, ("templates", "sdd-round.md")):
+    for carrier in (RECORD, WARDEN):
         text = flat(*carrier)
         assert "a fix pass's own commits added or changed" in text, (
             f"{'/'.join(carrier)} does not say a `regression:` line is for a "
@@ -335,7 +335,7 @@ def test_a_close_that_does_not_hold_reopens_it():
         and "framer" not in s
         for s in reopened
     ), reopened
-    for carrier in (RECORD, ROUND_TEMPLATE, WARDEN, SKILL, ORCH):
+    for carrier in (RECORD, WARDEN, SKILL, ORCH):
         both = [
             s
             for s in sentences(flat(*carrier))
@@ -442,8 +442,8 @@ def test_the_cap_counts_from_the_last_design_change():
     assert "마지막 설계 변경" in flat("README.ko.md"), (
         "README.ko.md caps rounds without saying where the count starts"
     )
-    assert "counting from round <S>" in flat(*ROUND_TEMPLATE), (
-        "the template's extension line does not say where the count started"
+    assert "counting from round 1:" in run, (
+        "*The run*'s extension line does not say where the count started"
     )
     assert "the record that stopped the run" not in flat(*FRAMER), (
         "agents/framer.md still reads a regression's round as the end of the run"
