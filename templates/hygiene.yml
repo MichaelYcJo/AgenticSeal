@@ -86,7 +86,11 @@ jobs:
       # with no committed round record, a declaration that cannot be read, a
       # work item `spec.md` whose `## Rule changes` does not parse, where the
       # work item is judged or the pull request's own commits add or change
-      # that `spec.md`, a finding still `open` or one the check cannot read,
+      # that `spec.md`, a round record of a work item reviewed through the
+      # review chain with no `original:` line naming `seal/parity.md`'s
+      # `Baseline commit`, where that config is declared and the pull
+      # request changes a path outside `docs/` and `seal/`, a finding still
+      # `open` or one the check cannot read,
       # a last record behind HEAD or with a finding no round after it read,
       # no `broad-gate.md` at HEAD, or no `guarantee.md` reading `sealed` at
       # HEAD. A round's `target:` commit is read only as HEAD or an ancestor

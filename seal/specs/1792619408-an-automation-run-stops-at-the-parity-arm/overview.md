@@ -22,16 +22,16 @@ In a repository that declares `seal/parity.md`, an `automation` run stopped at t
 
 ## Not done
 
-Two `docs/` sentences outside this spec's `## Rule changes` read short of
-the new fact, and the build left them because a sentence under the policy
-root changes through a spec's `## Rule changes`, which the framer writes.
-`docs/commit-review-gate-spec.md` says "one arm satisfied never quiets the
-other", the wording the first `change` operation rewrites in
-`docs/the-review-and-parity-arms.md`. The `docs/README.md` row for
-`docs/the-review-and-parity-arms.md` names "the routing declaration that
-moves the review arm's check to the pull request" alone. The orchestrator
-decides whether `## Rule changes` gains an operation for each.
+None. The two `docs/` sentences the build left, in
+`docs/commit-review-gate-spec.md` and the `docs/README.md` row, are the
+third and fourth `change` operations of `spec.md` `## Rule changes`, added
+at 77eef010.
 
 ## Fed back into the spec
 
-None.
+At 77eef010 the orchestrator carried four of the build's divergences into
+`spec.md`: S3 names the 26 cases that declare `straight to the PR`, S11 is
+pinned at `originals_of` with `chain-check` exiting 2 on a diff it cannot
+read, *Data & interfaces* names the sentence under the grammar table and
+the `READ_ROWS` entry, and `## Removes` names the `commit-review-gate.py`
+clause.

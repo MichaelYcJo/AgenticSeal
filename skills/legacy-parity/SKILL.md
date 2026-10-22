@@ -120,9 +120,12 @@ raises an `unread` finding.
 A commit closes the cycle, and the next change to code starts an uncompared
 one. On a branch whose routing declaration answers `through the review
 chain`, the commit gate does not ask, because each round record's
-`original:` line carries the comparison to the pull request. On a branch no
-declaration names, or one whose declaration answers `straight to the PR`,
-committing code with no such record makes the gate ask: approving is the
+`original:` line carries the comparison to the pull request; the shapes in
+which no pull-request check reads that line, local mode among them, are
+stated under the wake/quiet table in `skills/implement/orchestration.md`. On
+a branch no declaration names, or one whose declaration answers `straight
+to the PR`, committing code with no such record makes the gate ask:
+approving is the
 waiver, and `[no-parity]` skips it visibly, typed in front of the command with
 its quotes, `: '[no-parity]'; git commit …`, because after `git commit` a bare
 word is a pathspec. A mark for work nobody compared turns *nobody checked*

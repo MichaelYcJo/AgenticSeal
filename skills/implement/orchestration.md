@@ -456,6 +456,18 @@ commit is refused and handed back at the end of the run. A commit confined
 to `docs/` and `seal/` never wakes the parity arm, which is why the
 `routing.md` commit costs nothing even in a migration repository.
 
+The chain answer moves the parity check to a pull-request check, and three
+shapes leave code nobody compared with nothing that reads it. In local mode the
+root sits under the common git directory and nothing under it is committed,
+so no pull-request check reads a round record, the cost the review arm's
+declaration already carries there. A repository whose
+`.github/workflows/hygiene.yml` pins a plugin release older than this rule
+runs a `chain-check` that reads no `original:` line, until a person moves
+the pin's `v<version>` to the installed release. And a declaration rewritten
+from `through the review chain` to `straight to the PR` after code was
+committed leaves those commits compared by nobody, because the check reads
+the answer at HEAD.
+
 The declaration is what the commit gate reads, for **either** review answer,
 so a declared work item commits silently whichever reviewer it named, and CI
 reads the same file at the pull request. Work never headed for a reviewer,
