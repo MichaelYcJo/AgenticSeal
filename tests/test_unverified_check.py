@@ -27,6 +27,7 @@ import subprocess
 import time
 
 import pytest
+from commonmark_oracle import heading_lines, hidden_text
 from conftest import (
     ROOT,
     census_case,
@@ -41,6 +42,9 @@ from conftest import (
 TARGET = "skills/verify/scripts/unverified_check.py"
 
 UC = load_module(os.path.join(ROOT, *TARGET.split("/")), "unverified_check_under_test")
+# `UC` under the name the heading rule's oracle cases were written with, so
+# they stand here as they stood in the file on the one heading rule.
+uc = UC
 
 WORK = "1780000000-work"
 OTHER = "1780000001-other"
@@ -532,6 +536,95 @@ class Test_liveness:
         assert UC.liveness(self.SPAN, spans_cross_lines=True) == [True, False, False]
 
 
+# The heading rule held to `tests/commonmark_oracle.py`, which reads
+# markdown-it and nothing of this repository's (#867): on every line a
+# renderer shows, `heading_level` answers what the parser's top-level ATX
+# headings answer. A heading indented one to three spaces under a list item
+# is that item's content, and a rule that reads one line cannot see the item
+# above it, so the comparison skips such a line and counts it.
+LIST_ITEM = ("- ", "* ", "+ ", "1. ", "1) ")
+
+
+def disagreements(lines):
+    """`([(index, ours, theirs)], skipped)` over the lines of a document a
+    renderer shows, skipping a line indented one to three spaces below a
+    list item (the module's stated limit). The file on the one heading rule
+    imports it for its corpus of tracked files."""
+    text = "\n".join(lines)
+    hidden = hidden_text(text)
+    theirs = heading_lines(text)
+    out, skipped, under_a_list = [], 0, False
+    for index, line in enumerate(lines):
+        if line.lstrip(" ").startswith(LIST_ITEM):
+            under_a_list = True
+        if index in hidden:
+            continue
+        ours = uc.heading_level(line)
+        if ours != theirs.get(index):
+            if (
+                under_a_list
+                and line[:1] == " "
+                and len(line) - len(line.lstrip(" ")) <= 3
+            ):
+                skipped += 1
+                continue
+            out.append((index, ours, theirs.get(index)))
+    return out, skipped
+
+
+SHAPES = {
+    "a heading": (["## B"], 2),
+    "indented three spaces": (["   ## B"], 2),
+    "indented four spaces": (["    ## B"], None),
+    "a tab before the run": (["\t## B"], None),
+    "an issue number at column 0": (["#84's line"], None),
+    "a wrapped issue reference": (["text", "#120) was it"], None),
+    "seven hashes": (["####### x"], None),
+    "a run and a tab": (["#\tx"], 1),
+    "a run alone": (["#"], 1),
+    "a closing run": (["## B ##"], 2),
+    "no space after the run": (["#hello"], None),
+    "a heading in a block quote": (["> # q"], None),
+    "a heading in a list item": (["- # item"], None),
+    "a heading after a paragraph": (["text", "## B"], 2),
+}
+
+SEED = 867
+CORPUS_SIZE = 2000
+ALPHABET = [
+    "",
+    "## B",
+    "   ## B",
+    "  ## B",
+    " # x",
+    "    ## B",
+    "#120) x",
+    "#84's",
+    "####### x",
+    "#",
+    "#\tx",
+    "\t# x",
+    "## B ##",
+    "x",
+    "```",
+    "~~~",
+    "> # q",
+    "- # item",
+    "- item",
+    "1. x",
+    "<div>",
+    "</div>",
+    "---",
+    "===",
+    "* * *",
+    "    code",
+    "<!--",
+    "-->",
+    "| a | b |",
+    "|---|---|",
+]
+
+
 class Test_heading_level:
     @pytest.mark.parametrize(
         "line, level",
@@ -548,6 +641,29 @@ class Test_heading_level:
     )
     def test_refuses_four_spaces_a_tab_an_issue_number_and_seven_hashes(self, line):
         assert UC.heading_level(line) is None
+
+    @pytest.mark.parametrize("name", sorted(SHAPES))
+    def test_the_frames_shapes(self, name):
+        """S8's and S9's shapes: the rule's answer for the shape's last line, and
+        markdown-it's, agree, and both are the level written beside it."""
+        lines, level = SHAPES[name]
+        assert uc.heading_level(lines[-1]) == level
+        assert disagreements(lines) == ([], 0), name
+
+    def test_a_seeded_generated_corpus(self):
+        """S10, the generated half: CORPUS_SIZE documents of one to twelve lines
+        drawn from ALPHABET, the same ones on every run (SEED), so a red is
+        reproducible. Measured while building it: 3,000 documents found
+        disagreements only on the stated limit."""
+        rng = random.Random(SEED)
+        found, skipped = [], 0
+        for _ in range(CORPUS_SIZE):
+            lines = [rng.choice(ALPHABET) for _ in range(rng.randint(1, 12))]
+            wrong, limit = disagreements(lines)
+            skipped += limit
+            found.extend((lines, w) for w in wrong)
+        assert not found, found[:5]
+        assert skipped, "the corpus no longer reaches the stated limit"
 
 
 class Test__paragraph_ends_at:

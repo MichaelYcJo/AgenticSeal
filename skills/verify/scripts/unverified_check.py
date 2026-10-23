@@ -445,9 +445,12 @@ def heading_level(line):
     quoted in a closed fence is never asked. Setext headings are not read:
     every one markdown-it finds in this repository is a front-matter line
     under its `---` closer, which GitHub renders as a table.
-    `tests/test_one_heading_rule_holds_to_commonmark.py` holds this to
-    markdown-it's ATX headings, through `tests/commonmark_oracle.py`, and
-    says so the day a setext heading appears in a body.
+    `tests/test_unverified_check.py`'s `Test_heading_level` holds this to
+    markdown-it's ATX headings, through `tests/commonmark_oracle.py`, over
+    the frame's shapes and a generated corpus;
+    `tests/test_one_heading_rule_holds_to_commonmark.py` holds every tracked
+    `.md` file to them, and says so the day a setext heading appears in a
+    body.
 
     It used to be spelled in five places: here inline in
     `_paragraph_ends_at`, as `startswith("#")` in `headings` and in
