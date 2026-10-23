@@ -13,7 +13,7 @@ Facts carried from earlier rounds and not established again: what the move check
 severity: should
 location: `tests/test_unverified_rows_close.py:1-13`, `tests/test_unverified_rows_close.py:279-302`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-7.md:337`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/overview.md:19-21`
 evidence: read `tests/test_unverified_rows_close.py:279-302`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/spec.md:57`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/spec.md:97`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-5.md:902`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-6.md:589`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-7.md:337`
-verdict: open
+verdict: fixed ed3f25a8
 
 This matters because it leaves the same kind of gap the sealer's fourth reading withheld on, now with a reason written down that does not fit the case. `overview.md:5` and `changelog.md:3` say that a rebuilt module's tests stand in one file that declares it as `TARGET`. The sealer's condition for that sentence to hold was that every case standing outside its module's file is either moved or named in the records with grounds (`guarantee.md` line 60 at 95f139e1). The next agent to read the file is #923's, or the settle that closes S10. That agent reads the new docstring, takes the case for a check across files, and leaves it out of the modules phase 5 assigned it to.
 
@@ -47,7 +47,7 @@ phases/phase-7.md:337, the sentences from "Its two rows read" to "It stays.":
 Its two rows each read one file, `chain_check.py`'s source or `settle.py`'s, for a call of `settled` and for no second definition of it. `spec.md` line 97 does not keep it, because each row judges one file alone, so rule 2 sent it to groups 36 and 37. It stays, as `overview.md` records with its grounds.
 ```
 
-answer:
+answer: The fix pass took the first path, because each row judges one file alone and rule 2 sends such a case to its module's file. ed3f25a8 moves the row for `chain_check.py` into a new `tests/test_chain_check.py::Test_module` and the row for `settle.py` into `tests/test_settle.py::Test_module`, each under the case's name with `self` added and with `script = TARGET.split("/")` in place of the parameter. `Test_module` fits rule 1 better than the class of `retired` or `rule_arm`, because the second assertion walks the whole module for a definition of `settled`. `tests/test_unverified_rows_close.py` loses the case, its docstring now says where the two rows went, and `.test_durations` carries the two new ids with the old rows' seconds. Executed: `bin/test-layout --moved c3028ee1` over the three files ends `168 old cases, 342 items against 342 at c3028ee1bd51, 3 failed`, exit 1, on the old case's body and the two landings. So `chain_check.py` and `settle.py` ran decision-point mutants against the moved case alone, three each: the call dropped, a `settled` defined at the top of the module, and one nested in the function holding the call. All 6 were red, so no old column ran. `phases/phase-7.md` *Two left cases placed* no longer cites `spec.md` line 97 for the case, and *The retirement-predicate case placed, in round 8's fix pass* holds the run. The class, read: `tests/test_a_script_copied_alone_exits_2.py`, which `overview.md` *Not done* counts as a check across files, holds two parametrized cases that copy one module per row, and this pass did not move them.
 
 ## Confirmations
 
