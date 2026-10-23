@@ -1,6 +1,6 @@
 # Handoff: 1792628098-tests-rebuilt-one-file-per-module (#942)
 
-Written 2026-10-22 by the orchestrator, when the owner paused the build after phase 5's first proof under the new rule, and brought up to date on 2026-10-23 by the smith spawns that rebuilt the modules since. The branch is `chore/942-tests-rebuilt-one-file-per-module`, cut from `release/v0.22.3` at 6046f062. The tree this file describes is 52ce0e03 and the commit that updates this file.
+Written 2026-10-22 by the orchestrator, when the owner paused the build after phase 5's first proof under the new rule, and brought up to date on 2026-10-23 by the smith spawns that rebuilt the modules since. The branch is `chore/942-tests-rebuilt-one-file-per-module`, cut from `release/v0.22.3` at 6046f062. The tree this file describes is 3c6b9e0d and the commit that updates this file.
 
 ## Where the build stands
 
@@ -9,7 +9,7 @@ Written 2026-10-22 by the orchestrator, when the owner paused the build after ph
 | 1 to 4 | built: `bin/test-layout`, the slow-case report, the censuses in `tests/censuses.py`, the helper twins in `tests/conftest.py` |
 | 5 | closed at b770ca64: 11 modules rebuilt, plus the `mutation-check` batch mode |
 | 6 | closed at 52ce0e03: the move check at 6e7214be, its two sets at 43324e4e; Batch B's `hooks/` groups 1 to 26, from 0a86c1b4 to da3eae09, 28 modules placed, `hooks/config.py` in groups 21 to 23 and `hooks/cmdline.py` last in groups 24 to 26, the creation flow in `tests/e2e/creation/`, the worktree guard's light files in its one file, the commit gate's guarantee arm in `tests/test_commitgate.py`, and every commit gate case the work moves in its file. The framer's survey at 0b134a29 gave every `check:` line the remaining groups meet a verdict in `spec.md`; the installer's line, for `hooks/githooks.py` and `hooks/hook-install.py`, waits on `questions.md` Q10, whose default is wait. `hooks/cmdline_base.py` and `hooks/git/` have nothing to move. `skills/verify/scripts/`'s groups 27 to 35, from ffb0bd4b to 2272cd1e, placed seven modules and the light files of `broad_gate.py` and `unverified_check.py`; `seal_stamp.py` and `pact_check.py` had none to move. Group 36, at 19c01e3b, placed `skills/code-review/scripts/chain_check.py`'s light files. Group 37, at 809408e5, placed `skills/settle/scripts/`'s three modules, and group 38, at 4f350b0f, `seal.py`'s last light cases. Groups 39 to 49, from 46e1ec4c to a4a113f6, placed `.github/scripts/`'s fourteen modules, and group 50, at 52ce0e03, `evals/scripts/`'s three generators. Over the 50 groups 1,055 mutants ran, 136 survived and 125 of them are old gaps (`phases/phase-6.md` *The phase's close*) |
-| 7 | next: not started |
+| 7 | closed at 3c6b9e0d: the move check drops nested docstrings at cc391101 (S14), and group 44's check passes; S10 stays open under `questions.md` Q9's default, with the 115 undeclared files and their reasons in `overview.md` *Not done*; the cases of `tests/conftest.py`'s workflow readers and `gh` block moved to `tests/test_conftest.py` at 099cd54d by the move check alone; `.test_durations` refreshed from CI run 39964746967 at 3c6b9e0d. Locally the suite ran in 183.9 s at the base and 91.4 s at the head (`phases/phase-7.md`) |
 | Review | round 1 covered phases 1 to 4 at 8aa42bf8; its nine findings are answered, eight fixed at c6d2bfc4 and one deferred to phase 7. Round 2 verified round 1's closes and reviewed phase 5 at cfb846b2; its four findings are fixed, answered in `rounds/round-2.md` at ac965ee7. Two commit-flow gaps from the orchestrator's kill matrix (issue #1014) are closed at 5a207e20 |
 
 The phase records `phases/phase-1.md` to `phases/phase-6.md` hold each module's cases, mutants and cut lines. `overview.md` holds the divergences from the frame.
@@ -105,7 +105,7 @@ The owner replaced the 100-mutant table on 2026-10-22 (`spec.md` *The proof of e
 
 ## What is red, and why
 
-- `tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py::test_the_durations_file_prices_the_suite` fails on every CI run of this branch: the rebuilt cases have no price in `.test_durations`. Phase 7 refreshes the file once, from the final CI run's `test-durations` artifact (round 1 finding 8, deferred by the orchestrator).
+- `tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py::test_the_durations_file_prices_the_suite` failed on every CI run of this branch up to run 39964746967 at b2c300c9, because the rebuilt cases had no price in `.test_durations` (round 1 finding 8, deferred by the orchestrator to phase 7). 3c6b9e0d replaced the file from that run's `test-durations` artifact, and the case passes locally with 19 cases unpriced, 0.25%, the ones 099cd54d moved.
 - CI run 39748911321 at 281873fb failed on four of nine pytest legs. Lint passed. Two causes:
   - the durations case above, on three legs, with 1,200 of 7,120 collected cases unpriced;
   - three cases of the rebuilt `tests/test_broad_gate.py`, on Windows shard 1 only, each expecting a printed path with forward slashes where Windows prints backslashes: two the record's path, one the workflow's. 0e6a02b3 builds both expectations with the platform's separator, as the cases at 6046f062 did, and CI run 39866987196 at dde8ccd1 passed them on Windows (`executed` by the orchestrator).
@@ -119,12 +119,12 @@ The owner replaced the 100-mutant table on 2026-10-22 (`spec.md` *The proof of e
 
 ## Left for the next session
 
-1. See the files phase 6 wrote after 1b0e7c23 pass on the Windows and ubuntu legs of the next CI run. CI run 39895069406 at 1b0e7c23 passed every file written before it on those legs, the commit flow, `tests/test_seal.py`, `tests/test_noninferiority.py`, `tests/test_unverified_check.py`, `Test_moved` and groups 1 to 6 among them; it failed `CONTRIBUTING.md`'s line wrap, re-wrapped since, and the durations case.
-2. Place `hooks/root-migrate.py#move`'s empty directory, which the rebuild found and pinned as it is (`overview.md` *Not done*).
-3. The `## Rule changes` items for `docs/one-root-by-lifetime.md` and its Korean twin are in `spec.md` since 93a009c6, and the worktree guard's since 099119b8.
-4. The `## Rule changes` items the fifth spawn found missing are in `spec.md` since 0b134a29, with *The check lines the remaining groups meet* for the lines outside `docs/`; groups 16 to 20 moved on them.
-5. Phase 7 is next: `--all` where `--check --all` exits 0 (`questions.md` Q9), the `.test_durations` refresh and the closing memo. Phase 6 closed at 52ce0e03 (`phases/phase-6.md` *The phase's close*).
-6. A round verifying round 2's fix pass and the move check, then a round over phases 6 and 7, the broad gate, the sealer, the pull request into `release/v0.22.3`, and then the release preparation.
+1. Round 3 is next: a round verifying round 2's fix pass and the move check, and reviewing phases 6 and 7 at the tree this file describes, round 1's finding 8 among what it confirms. Then the broad gate, the sealer, the pull request into `release/v0.22.3`, and the release preparation.
+2. See the files phase 7 changed after b2c300c9 pass on the Windows and ubuntu legs of the next CI run (`overview.md` *Not verified*). CI run 39964746967 at b2c300c9 passed every file written before it on those legs, apart from the durations case.
+3. The framer writes a *Rule changes* item naming `tests/test_conftest.py` on `docs/release-checklist.md` line 134, and a smith then moves `tests/test_a_shrunken_corpus_declines_to_judge.py`'s eight cases of `on_disk`, `shrunken_corpus`, `decline_if_shrunken` and `build_tracked_tree` (`overview.md` *Not done*).
+4. Place `hooks/root-migrate.py#move`'s empty directory, which the rebuild found and pinned as it is (`overview.md` *Not done*).
+5. The `## Rule changes` items for `docs/one-root-by-lifetime.md` and its Korean twin are in `spec.md` since 93a009c6, and the worktree guard's since 099119b8.
+6. The `## Rule changes` items the fifth spawn found missing are in `spec.md` since 0b134a29, with *The check lines the remaining groups meet* for the lines outside `docs/`; groups 16 to 20 moved on them, and the framer's lines that named too little were settled at 9e92e4e8.
 
 ## How a smith spawn for the next modules reads
 

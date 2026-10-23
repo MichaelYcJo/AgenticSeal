@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Phase | 7 |
-| Commit | not closed; its first step is cc391101 |
+| Commit | 3c6b9e0d; its first step is cc391101 |
 
 ## What this phase was asked
 
@@ -79,3 +79,32 @@ The archive was committed once (`git init`, `git add -A`, one commit, driven fro
 **The real-git cases kept.** None of the moved cases runs git. `test_the_token_gh_would_send_is_not_a_login` runs `gh auth token`, and skips where `gh` is absent.
 
 **The boundary** (`executed`). At the tree committed as 099cd54d, before the commit over the same bytes: `tests/test_conftest.py`, `tests/test_the_suite_runs_with_gh_logged_out.py`, `tests/test_the_rules_claude_md_names_have_one_home.py`, `tests/test_test_layout.py`, `tests/test_chain_hooks_hardening.py` and the 19 test files `git grep -l "git_listing\|tracked_text_files\|ls-files" tests/` lists, `tests/test_censuses.py` and `tests/test_a_shrunken_corpus_declines_to_judge.py` among them: 2,417 passed and 3 skipped. The shards module over the whole collection: 17 passed and `test_the_durations_file_prices_the_suite` failed, the known red. `--check` exits 0 with 184 files read, 0 refused and 115 declaring no `TARGET`, and `--check --all` refuses those 115; `bin/rules --check` and `bin/unverified-check seal/specs/` exit 0; ruff checks and formats each changed Python file clean, one file per run.
+
+### `.test_durations` from CI, at 3c6b9e0d
+
+**The artifact** (`executed`). `gh -R MichaelYcJo/SpecSeal run download 39964746967 -n test-durations -D <scratch>` gave one `.test_durations` of 7,726 ids priced at 1,662.0 s, with LF line ends, and it was moved over the committed file. The committed file it replaced priced 3,996.6 s, of which 3,780.4 s belonged to 5,263 ids the suite no longer collects.
+
+**What the durations case reads** (`executed`, against the tree after 099cd54d). `bin/test tests -q -k test_the_durations_file_prices_the_suite` passes: 1 passed. Of the 7,726 collected cases, 19 have no price, 0.25%, and they are exactly the cases 099cd54d moved into `tests/test_conftest.py`, priced in the artifact under their old ids. Those 19 old ids are 7.8 s of the file's 1,662.0 s, 0.47%, under `STALE_SHARE`'s 5%. `bin/test tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py -q -p no:xdist` gives 16 passed and 2 skipped: run alone, the module skips the two cases that need the whole collection, which the `-k` run over `tests` gives them.
+
+**CI run 39964746967 at b2c300c9** (`executed` by the orchestrator for the verdicts; the seconds by this smith, `gh run view 39964746967 --json jobs`, each job's start to its end). Every job passed except the durations case on the legs whose shard holds it.
+
+| Job | Conclusion | Seconds |
+|---|---|---|
+| pytest, macOS, group 1 of 3 | success | 125 |
+| pytest, macOS, group 2 of 3 | success | 126 |
+| pytest, macOS, group 3 of 3 | failure, the durations case | 85 |
+| pytest, ubuntu | failure, the durations case | 142 |
+| pytest, Windows, group 1 of 4 | success | 201 |
+| pytest, Windows, group 2 of 4 | success | 133 |
+| pytest, Windows, group 3 of 4 | success | 184 |
+| pytest, Windows, group 4 of 4 | failure, the durations case | 118 |
+| lint | success | 8 |
+| durations | success | 10 |
+| arm-check-grammar, 3.13 and 3.14 | success | 26 and 22 |
+| release-report | skipped | |
+
+The run took 219 s from its creation to its last job. No run of the base was timed the same way, so these figures are the after side of `questions.md` Q5 alone.
+
+### The phase's close, at 3c6b9e0d
+
+`plan.md`'s Status cell for phase 7 holds 3c6b9e0d, the last build commit. S14 holds, and group 44's move check passes. S10 stays open under Q9's default with 115 undeclared files, each named in `overview.md` *Not done* with the reason it stays. The shrunken-corpus file's eight helper cases wait on a *Rule changes* item for `docs/release-checklist.md` line 134, which is the framer's. `test_the_durations_file_prices_the_suite` passes, and `bin/test tests/test_test_layout.py -q` gives 55 passed (`executed`).
