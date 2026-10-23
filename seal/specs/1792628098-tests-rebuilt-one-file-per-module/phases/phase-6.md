@@ -572,7 +572,51 @@ The batch ran 34 red and 6 survived in 683.7 s after a 30.2 s baseline; the old 
 
 **The real-git cases kept.** Every moved `Test_main` case runs the hook as the harness does, against the `repo` fixture or a repository of its own, where the gate asks git for the root, HEAD, the git directory and the staged paths; two add a linked worktree, whose declaration lives in the main tree's common directory. `Test_touches_code` stages into the `repo` fixture and reads the diff git gives.
 
-**The boundary** (`executed`). At the tree committed as f5185d67, before the commit: the changed files, every file importing `stage` or requesting `local`, every file naming the moved or removed files, `SECURITY.md` or the verify skill, the `arm-check` files, the `git_listing` files, the censuses, `tests/test_test_layout.py`, `tests/test_conftest.py` and `tests/test_docs_line_wrap.py`, 59 files: 2,973 passed and 13 skipped in 32.9 s. `bin/test-layout --check` exits 0, 164 files read, 125 declaring no `TARGET`; `--pairs` names no pair in the changed files; `bin/rules --check` exits 0 with 249 check lines; `bin/unverified-check seal/specs/` exits 0. Ruff checks and formats each changed `.py` file clean.
+**The boundary** (`executed`). At the tree committed as f5185d67, before the commit: the changed files, every file importing `stage` or requesting `local`, every file naming the moved or removed files, `SECURITY.md` or the verify skill, the `arm-check` files, the `git_listing` files, the censuses, `tests/test_test_layout.py`, `tests/test_conftest.py` and `tests/test_docs_line_wrap.py`, 59 files: 2,973 passed and 13 skipped in 32.9 s. `bin/test-layout --check` exits 0, 164 files read, 125 declaring no `TARGET`; `--pairs` names no pair in the changed files; `bin/rules --check` exits 0 with 249 check lines; `bin/unverified-check seal/specs/` exits 0. Ruff checks and formats each changed `.py` file clean. `tests/test_conftest.py` was named for that run and a filter of the list dropped it; it ran at group 15's boundary, over a tree holding group 14: 8 passed.
+
+### Batch B, `hooks/`, group 15, at f1d13be0
+
+**The `check:` lines** (`executed`, `git grep` over the `check:` lines of `docs/`, `CONTRIBUTING.md`, `skills/` and `agents/`). No line names either old file, and no case of the group carries a rule marker.
+
+**The module.** `hooks/blocks.py`, the first shared reader, whose own cases were four of `tests/test_the_hooks_hide_what_a_renderer_hides.py` and two of `tests/test_every_reader_ends_a_line_where_gfm_does.py`, now `tests/test_blocks.py`:
+
+- `Test_gfm_lines`: the splitter's two cases, renamed `test_refuses_to_end_a_line_at_any_of_the_eight` and `test_accepts_a_text_without_the_eight_as_splitlines_splits_it`.
+- `Test_walk_text`: the walk's three answers per reader line, renamed `test_refuses_to_claim_a_piece_inside_its_lines_open_comment`, `test_refuses_to_claim_a_piece_inside_other_inline_html_its_line_left_open` and `test_accepts_an_unclosed_fence_at_the_reader_line_it_starts`.
+- `Test_module`: `walk`'s paragraph case, under its name, the one case of a function with no class.
+
+6 old cases, 10 items. `bin/test-layout --check` reports `columns`, `fence_closes`, `fence_only`, `fence_opener`, `leaves_html_open`, `leaves_open`, `not_spaces_after_the_run` and `walk` with no class: no undeclared case calls one of them as its subject.
+
+**Left where they stand.** The renderer file keeps halves 1 and 2, the walk and the config and routing readers held to the CommonMark oracle over the shapes and a generated corpus, which `spec.md` *What the frame decided* keeps where it is. The splitter file keeps `test_every_copy_of_the_splitter_is_the_readers`, which holds the copies in other modules to this one, and the other modules' cases. `tests/test_unverified_rows_close.py::test_the_fence_walks_agree_shape_by_shape` holds this module's two fence walks to `unverified_check.py`'s and to `hooks/config.py#fence_map`, files against each other, and stays.
+
+**The move check** (`executed`):
+
+`bin/test-layout --moved 06d0f554 --from tests/test_the_hooks_hide_what_a_renderer_hides.py tests/test_every_reader_ends_a_line_where_gfm_does.py --to tests/test_blocks.py tests/test_the_hooks_hide_what_a_renderer_hides.py tests/test_every_reader_ends_a_line_where_gfm_does.py`
+
+`test-layout: moved: 31 old cases, 142 items against 142 at 06d0f55453fc, 0 failed`, exit 0. No mutation table. `--pairs` names no pair in the new file.
+
+**Helpers.** `INLINE_KINDS` is data both files read, so it is in `tests/block_shapes.py`; `texts` and `SPLITLINES_ONLY` serve both the splitter's cases and the copies' case, so they are in `tests/conftest.py`. `INLINE_OPEN_CLOSE` moved with the cases that read it. The splitter's cases read `reader.gfm_lines`, where `reader` was `unverified_check.py`, whose `gfm_lines` is this module's own; in the new file `reader` is this module, under the name the bodies read. The move check reads no module-level name, so it is named here.
+
+**Cases and seconds** (`executed`, serial): 142 items in 9.33 s before, the two old files in an archive of 06d0f554 with the worktree's `.venv`; 143 items in 5.19 and 5.33 s after, over the three files, the census item among them.
+
+**The real-git cases kept.** None: the walk and the splitter read text.
+
+**Phase 4's survivors.** None is reached: the new file calls `census_case`, `load_hook_module` and `texts` from `tests/conftest.py` (`read`).
+
+**The boundary** (`executed`). At the tree committed as f1d13be0, before the commit: the three files, every file naming `block_shapes`, `blocks.py` or the moved helpers, the `git_listing` files, the censuses, `tests/test_test_layout.py` and `tests/test_chain_hooks_hardening.py`, 34 files: 3,331 passed and 3 skipped in 50.1 s; `tests/test_conftest.py`: 8 passed. `bin/test-layout --check` exits 0, 165 files read, 125 declaring no `TARGET`; `bin/rules --check` and `bin/unverified-check seal/specs/` exit 0. Ruff checks and formats each changed file clean.
+
+### The shared readers stop at `hooks/config.py`
+
+**The `check:` lines its group meets** (`executed`, `git grep`; the rule `read`). `docs/one-root-by-lifetime.md` line 223 and `docs/one-root-by-lifetime.ko.md` line 212 name `tests/test_the_mode_question_is_asked_once.py` for the rule *A cell may carry an escaped pipe, and one line that will not parse is named rather than treated as the end of the table*. The config reader's cases in that file hold it; group 4 left them there for this group, and its record says the two lines stand under them. `spec.md` *Rule changes* carries no item for either line, so the config reader's group does not start, and the spawn hands back at this boundary.
+
+**What the later reader groups meet** (`executed`, `git grep` over the `check:` lines for every undeclared file that loads the reader; whether the reader's own cases hold each line's rule is `unverified` until its group reads them, and the spawn that places each reader answers it):
+
+| Reader | Lines naming the files it draws from, with no item in `spec.md` |
+|---|---|
+| `hooks/config.py`, beside the two above | `docs/the-record-layout.md` 29, 150, 170, 177; `agents/warden.md` 99; `docs/the-pact.md` 18, 31, 45, 61, 75; `docs/the-broad-gate.md` 33; `skills/writing-style/SKILL.md` 275; `docs/one-root-by-lifetime.md` 197, 214 and `docs/one-root-by-lifetime.ko.md` 189, 204 |
+| `hooks/gate.py` | `docs/the-review-and-parity-arms.md` 141, whose rule its one case in an undeclared file, the hardening file's backstop case, holds (`read`, group 14's table) |
+| `hooks/tokens.py` | none: its candidate files are named by no line, and the waiver file names `tokens` in a docstring alone |
+| `hooks/cmdline.py` | `docs/commit-review-gate-spec.md` 125 and 139, group 14's; `docs/branch-and-release.md` 146; `docs/the-commit-gate-inside-git.md` 183 |
+| `hooks/cmdline_base.py` | `docs/the-commit-gate-inside-git.md` 183 |
 
 ### What `hooks/` holds back
 
@@ -580,10 +624,10 @@ The batch ran 34 red and 6 survived in 683.7 s after a 30.2 s baseline; the old 
 
 **Files a group may drain but not remove** (`executed`, `git grep` over the `check:` lines of `docs/`, `CONTRIBUTING.md`, `skills/` and `agents/`). Of the undeclared files that hold `hooks/` cases, these are named by a `check:` line: `tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py`, `tests/test_the_hooks_are_installed_where_git_runs_them.py`, `tests/test_routing_is_recorded.py`, `tests/test_optin_home.py`, `tests/test_a_gate_that_fails_says_so.py`, `tests/test_worktree_guard_signals.py`, `tests/test_guard_resolves_the_tree_it_judges.py`, `tests/test_the_guard_asks_once_per_session.py`, `tests/test_the_mode_question_is_asked_once.py`, `tests/test_gate_judges_the_repo_it_commits_to.py`, `tests/test_chain_hooks_hardening.py`, `tests/test_an_automation_run_meets_no_commit_prompt.py`, `tests/test_the_waiver_can_be_typed.py`, `tests/test_a_commit_behind_a_reserved_word_is_judged.py`, `tests/test_a_commit_behind_a_wrapper_or_in_a_substitution_is_judged.py`, and `tests/test_a_creation_is_judged_before_git_runs.py`, which group 7 emptied. Each line has its `## Rule changes` item in `spec.md` at 066e619b except the installer's and the five group 14 names, which name the six files listed before the last.
 
-**Where `hooks/` stands at f5185d67** (`read`). Group 14 placed the commit gate's light cases that hold no rule of the five lines without an item. The next group is the first shared reader's.
+**Where `hooks/` stands at f1d13be0** (`read`). Group 14 placed the commit gate's light cases that hold no rule of the five lines without an item, and group 15 placed `hooks/blocks.py`'s own cases. The config reader's group meets two lines without an item, and the shared readers stop there.
 
 ### What remains in phase 6
 
-- `hooks/`: the commit gate's cases that hold the rules of the five lines group 14 names, once `spec.md` carries an item for each, with the commit gate's mutants run again in that group; then the six shared readers, one group each, with `hooks/config.py`'s group taking the cases `tests/test_a_reference_root_is_read_and_never_taken.py` and `tests/test_a_script_copied_alone_exits_2.py` hold for routing and config together. `hooks/githooks.py` and `hooks/hook-install.py` wait on Q10. `hooks/answer-clear.py` has a file whose `Test_module` holds its two round trips and no `Test_main`. `tests/test_local_mode_resolves_under_the_git_dir.py` holds the implementer notice's case and a case over three gates that groups 9 and 10 left.
+- `hooks/`: the commit gate's cases that hold the rules of the five lines group 14 names, once `spec.md` carries an item for each, with the commit gate's mutants run again in that group; then the five shared readers after `hooks/blocks.py`, one group each, each once the lines its group meets carry their items (*The shared readers stop at `hooks/config.py`*), with `hooks/config.py`'s group taking the cases `tests/test_a_reference_root_is_read_and_never_taken.py` and `tests/test_a_script_copied_alone_exits_2.py` hold for routing and config together. `hooks/githooks.py` and `hooks/hook-install.py` wait on Q10. `hooks/answer-clear.py` has a file whose `Test_module` holds its two round trips and no `Test_main`. `tests/test_local_mode_resolves_under_the_git_dir.py` holds the implementer notice's case and a case over three gates that groups 9 and 10 left.
 - The other seven shipped directories of `plan.md`'s phase 6 row: `hooks/git/`, `skills/verify/scripts/`, `skills/code-review/scripts/`, `skills/settle/scripts/`, `skills/implement/scripts/`, `.github/scripts/`, `evals/scripts/`, with the light files phase 5 left for its other modules.
 - Phase 4's survivors: h14 was re-run against the creation flow in group 7, h21 against the guard's file in group 12 and h4 against the commit gate's file in group 14, and each survives, an old gap. h2, h6, h12 and h23 wait for the groups that rebuild the modules whose cases reach them (`unverified`, for the spawn that places those modules).
