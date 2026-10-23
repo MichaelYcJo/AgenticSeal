@@ -90,27 +90,31 @@ file that keeps cases for a later group. It prints a line opening with
            directly under `tests/`, a test file among them, is read where
            that module defines it, in the same tree, so a helper moved
            unchanged into `tests/conftest.py` or into another test file
-           passes. Both readings hold for an import made inside a function,
-           or anywhere else inside a case or a definition the reading
-           reaches, as for one at the top of a file: a name such a
-           `from <module> import` binds and the case or definition holding
-           it reads, and a `<module>.<name>` it reads where such an
-           `import <module>` binds the module, are read where that module
-           defines them, and the import statement is compared as part of
-           the case or definition that holds it. A function or class
-           compares as a case's body does, an import as the one alias that
-           binds the name, any other statement as written, and a statement
-           binding the name inside a compound statement as that whole
-           statement. A name bound in neither tree is a builtin's or
+           passes. Both readings hold for an import made anywhere inside a
+           case or a definition the reading reaches, in a function's or
+           lambda's body, a class body or a compound statement, as for one at
+           the top of a file: a name such a `from <module> import` binds and
+           the case or definition holding it reads, and a `<module>.<name>`
+           it reads where such an `import <module>` binds the module, are
+           read where that module defines them, and the import statement is
+           compared as part of the case or definition that holds it. A
+           function or class compares as a case's body does, an import as the
+           one alias that binds the name, any other statement as written, and
+           a statement binding the name inside a compound statement as that
+           whole statement. A name bound in neither tree is a builtin's or
            pytest's, a name bound in one tree only is a change, and so is a
            name one tree's reading reaches and the other's does not. Each
            name is compared as the set of its distinct definitions, so one
            definition reached from two files counts once. The condition has
-           three limits: a name a case reaches only through a string, such
-           as `globals()["x"]`, is not read; a name a star import,
+           four limits: a name a case reaches only through a string, such as
+           `globals()["x"]`, is not read; a name a star import,
            `from <module> import *`, brings is bound in neither tree as the
-           condition reads it, so it is not compared; and two definitions
-           of one name in two places a case reaches, swapped between the
+           condition reads it, so it is not compared; a name that an import
+           inside a compound statement at the top of a file binds, such as
+           one inside an `if` or a `try`, is compared as that whole statement,
+           as written, and is followed into the module the import names only
+           where that statement itself reads the name; and two definitions of
+           one name in two places a case reaches, swapped between the
            trees, compare equal. A case is tested on this condition only
            where it passed the body and fixture conditions, and its line
            names every name whose own definition differs, those both trees
