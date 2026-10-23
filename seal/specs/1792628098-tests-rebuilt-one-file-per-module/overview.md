@@ -19,9 +19,7 @@ The suite grew to 7,466 cases and four thousand Windows seconds in files named a
 |---|---|
 | the full suite, the repository-wide lint and the typecheck at the work item's head | the orchestrator, through `broad-gate` after the review rounds settle |
 | what the suite costs in CI minutes after the rebuild (`questions.md` Q5) | a measurement: the release table at the next release pull request |
-| the Windows fixes at 7efbd4c6 and 3e5cbb59, `tests/test_seal.py` at ef95b457, `tests/test_noninferiority.py` at 136c8923 and `tests/test_unverified_check.py` at b770ca64, run on macOS only | the orchestrator, on the next CI run's Windows legs |
-| `tests/test_test_layout.py::Test_moved` at 6e7214be and its set-form rows at 43324e4e, which add and remove a git worktree and run pytest in it, and the two commit flow cases at 5a207e20, run on macOS only | the orchestrator, on the next CI run's Windows and ubuntu legs |
-| the files phase 6's `hooks/` groups wrote or changed at 0a86c1b4, ccca432d, e6700896, 714f2df2, 04115ed2 and df48707c, and the helpers they moved into `tests/conftest.py`, run on macOS only; `tests/test_one_heredoc.py`'s shell rows skip where bash or zsh is not found | the orchestrator, on the next CI run's Windows and ubuntu legs |
+| the files phase 6's `hooks/` groups write or change after 1b0e7c23, run on macOS only. CI run 39895069406 at 1b0e7c23 passed every file written before it on the Windows and ubuntu legs, the Windows fixes, `Test_moved`, the commit flow and groups 1 to 6 among them; `tests/test_one_heredoc.py`'s shell rows skip where bash or zsh is not found | the orchestrator, on the next CI run's Windows and ubuntu legs |
 
 ## Not done
 

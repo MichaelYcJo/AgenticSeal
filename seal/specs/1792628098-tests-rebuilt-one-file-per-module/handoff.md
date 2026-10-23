@@ -8,7 +8,7 @@ Written 2026-10-22 by the orchestrator, when the owner paused the build after ph
 |---|---|
 | 1 to 4 | built: `bin/test-layout`, the slow-case report, the censuses in `tests/censuses.py`, the helper twins in `tests/conftest.py` |
 | 5 | closed at b770ca64: 11 modules rebuilt, plus the `mutation-check` batch mode |
-| 6 | open: the move check at 6e7214be, its two sets at 43324e4e; Batch B's `hooks/` groups 1 to 6 at 0a86c1b4, ccca432d, e6700896, 714f2df2, 04115ed2 and df48707c, 12 modules placed; the rest waits on rule changes (below) |
+| 6 | open: the move check at 6e7214be, its two sets at 43324e4e; Batch B's `hooks/` groups 1 to 6 at 0a86c1b4, ccca432d, e6700896, 714f2df2, 04115ed2 and df48707c, 12 modules placed. The framer's `## Rule changes` items for the held-back groups are in `spec.md` at 066e619b; the installer's line, for `hooks/githooks.py` and `hooks/hook-install.py`, waits on `questions.md` Q10, whose default is wait |
 | 7 | not started |
 | Review | round 1 covered phases 1 to 4 at 8aa42bf8; its nine findings are answered, eight fixed at c6d2bfc4 and one deferred to phase 7. Round 2 verified round 1's closes and reviewed phase 5 at cfb846b2; its four findings are fixed, answered in `rounds/round-2.md` at ac965ee7. Two commit-flow gaps from the orchestrator's kill matrix (issue #1014) are closed at 5a207e20 |
 
@@ -73,10 +73,10 @@ The owner replaced the 100-mutant table on 2026-10-22 (`spec.md` *The proof of e
 
 ## Left for the next session
 
-1. See the commit flow's 43 cases and the worktree guard's cd case, which 7efbd4c6 and 3e5cbb59 fixed, `tests/test_seal.py`, `tests/test_noninferiority.py`, `tests/test_unverified_check.py`, `tests/test_test_layout.py::Test_moved` and the commit flow's two cases of 5a207e20, pass on the Windows legs of the next CI run, and so do the files phase 6's `hooks/` groups wrote: `tests/test_lint_python.py`, `tests/test_version_check.py`, `tests/test_review_skill_gate.py`, `tests/test_question_gate.py`, `tests/test_launch.py`, `tests/test_one_heredoc.py`, `tests/test_session_lease.py`, `tests/test_mode_gate.py`, `tests/test_answers.py`, `tests/test_answer_write.py`, `tests/test_answer_clear.py` and `tests/test_hooksession.py`.
+1. See the files phase 6 writes after 1b0e7c23 pass on the Windows and ubuntu legs of the next CI run. CI run 39895069406 at 1b0e7c23 passed every file written before it on those legs, the commit flow, `tests/test_seal.py`, `tests/test_noninferiority.py`, `tests/test_unverified_check.py`, `Test_moved` and groups 1 to 6 among them; it failed `CONTRIBUTING.md`'s line wrap, re-wrapped since, and the durations case.
 2. Place `hooks/root-migrate.py#move`'s empty directory, which the rebuild found and pinned as it is (`overview.md` *Not done*).
 3. The `## Rule changes` items for `docs/one-root-by-lifetime.md` and its Korean twin are in `spec.md` since 93a009c6, and the worktree guard's since 099119b8.
-4. Before `hooks/` can go on: `## Rule changes` items for the `check:` lines that name the old files the next groups would drain or whose rules their moving cases hold, `docs/commit-review-gate-spec.md` lines 32 and 212, `docs/the-record-layout.md` line 141, `docs/the-commit-gate-inside-git.md` line 37, `docs/one-root-by-lifetime.md` lines 27 and 71 and their Korean twins, `docs/worktree-guard-spec.md` lines 60, 146 and 343, and `docs/the-review-record.md` line 404, a question for the framer and the orchestrator (`phases/phase-6.md` *What `hooks/` holds back*). Then the rest of phase 6's Batch B, `hooks/` and the seven other directories, and phase 7, `--all`, the `.test_durations` refresh and the closing memo.
+4. The rest of phase 6's Batch B, `hooks/` and the seven other directories, on the framer's `## Rule changes` items of 066e619b, and phase 7, `--all`, the `.test_durations` refresh and the closing memo.
 5. A round verifying round 2's fix pass and the move check, then a round over phases 6 and 7, the broad gate, the sealer, the pull request into `release/v0.22.3`, and then the release preparation.
 
 ## How a smith spawn for the next modules reads
