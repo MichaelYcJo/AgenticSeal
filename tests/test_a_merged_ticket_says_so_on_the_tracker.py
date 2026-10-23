@@ -7,8 +7,8 @@ once per release. So for the length of a release a finished work item and one
 nobody has started read identically, which is what #359 is about.
 
 Following `tests/test_release_hygiene.py`'s `monkeypatch`-on-the-module's-own-
-`run` pattern and `tests/test_a_release_rolls_the_flow_measurement_issue.py`'s
-fake tracker: the fixtures below replace `close_issues_on_release`'s `run`,
+`run` pattern and `tests/test_roll_flow_measurement_issue.py`'s fake
+tracker: the fixtures below replace `close_issues_on_release`'s `run`,
 `arrived` and `_issue_api` -- never the real network.
 
 Two of the three scenarios are about a write NOT happening, which is why the

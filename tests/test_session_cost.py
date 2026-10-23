@@ -811,8 +811,8 @@ def _cost():
     """The script, imported so `run_gh` can be replaced.
 
     Imported rather than shelled out for the reason
-    `tests/test_a_release_rolls_the_flow_measurement_issue.py` records for
-    its own neighbour: the seam is a module attribute, and a subprocess would
+    `tests/test_roll_flow_measurement_issue.py#_roller` records for its own
+    neighbour: the seam is a module attribute, and a subprocess would
     have to be handed a stub on PATH to reach it.
     """
     spec = importlib.util.spec_from_file_location("session_cost_for_post", SCRIPT)
