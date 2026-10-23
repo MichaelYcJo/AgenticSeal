@@ -2,7 +2,7 @@
 
 ## Why this work exists
 
-The suite grew to 7,466 cases and four thousand Windows seconds in files named after scenarios, so a new case had no place to start from and a heavy file had no owner; each shipped module now has one test file that names it, held by a check, and the heaviest modules are rewritten to cost less while the mutation table shows they still protect what the old files did. Locally, `bin/test -q` took 183.9 s over 7,494 items at the base and 91.4 s over 7,726 at 6a54be98, before 099cd54d's move of the conftest helpers' cases (`phases/phase-7.md` *The suite's wall time, before and after*).
+The suite grew to 7,466 cases and four thousand Windows seconds in files named after scenarios, so a new case had no place to start from and a heavy file had no owner; a rebuilt module's tests now stand in one file that declares it as `TARGET`, grouped by function and held by `bin/test-layout --check`, while the test files that declare no `TARGET` wait for S10 (*Not done*), and the heaviest modules are rewritten to cost less while the mutation table shows they still protect what the old files did. Locally, `bin/test -q` took 183.9 s over 7,494 items at the base and 91.4 s over 7,726 at 6a54be98, before 099cd54d's move of the conftest helpers' cases (`phases/phase-7.md` *The suite's wall time, before and after*).
 
 ## Where spec and implementation diverged
 
