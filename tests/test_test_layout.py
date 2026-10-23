@@ -857,7 +857,7 @@ class Test_moved:
                     "TestDouble::test_double",
                     "self._double",
                 ),
-                (("json import", "marshal import"), None, "test_parse", "loads"),
+                (("return path", "return None"), None, "test_reader", "load"),
                 (
                     ("import shapes_d\n", "from conftest import shapes_d\n"),
                     {CONFTEST: "import shapes_d\n" + MOVED_CONFTEST},
@@ -878,7 +878,13 @@ class Test_moved:
                 {CONFTEST: MOVED_CONFTEST.replace("return path", "return None")},
                 [f"{where}: name root_of: {DIFFERS}" for where in EVERY],
                 (OLD_A, OLD_B),
-            )
+            ),
+            (
+                {D: NAMED_NEW.replace("return making\n", "return making or ROWS\n")},
+                None,
+                [f"moved: {OLD_D}::test_made: fixture made: {DIFFERS}"],
+                (OLD_D,),
+            ),
         ],
         ids=[
             "a-cut",
@@ -903,6 +909,7 @@ class Test_moved:
             "a-module-reached-another-way",
             "a-name-imported-from-another-test-file",
             "a-changed-conftest-helper",
+            "a-changed-fixture-reading-another-name",
         ],
     )
     def test_refuses_a_cut_a_merge_an_edited_body_and_a_changed_fixture(
