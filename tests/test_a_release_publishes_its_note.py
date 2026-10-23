@@ -16,7 +16,7 @@ so the four directions that matter are the four this module holds:
       folded; with no pull request to read it is the section alone (#572)
 
 **Nothing here reaches GitHub.** `gh` is replaced at the module's own `run`
-and `release_exists`, following `tests/test_a_merged_ticket_says_so_on_the_tracker.py`'s
+and `release_exists`, following `tests/test_label_merged_on_release_branch.py`'s
 fake tracker — the calls are recorded as argument tuples, in order, so a case
 can assert about a write that did NOT happen as well as one that did. Two of
 the four scenarios are exactly that.

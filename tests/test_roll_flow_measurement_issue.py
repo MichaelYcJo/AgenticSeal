@@ -39,7 +39,7 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 def _roller():
     """The rollover script, imported so its functions can be monkeypatched
     and its regex/format strings read directly -- the same reason
-    `tests/test_release_hygiene.py`'s own `_closer()` imports rather than
+    `tests/test_close_issues_on_release.py`'s own `_closer()` imports rather than
     shells out."""
     import importlib.util
 
@@ -283,9 +283,9 @@ class Test_main:
 
     def test_accepts_one_open_issue_and_closes_it_and_opens_the_next(self, monkeypatch):
         """The full round trip, with `run` itself mocked (matching
-        `tests/test_release_hygiene.py`'s pattern for `close_issues_on_release.py`)
+        `tests/test_close_issues_on_release.py`'s pattern for its script)
         so the exact `gh` arguments are visible -- the same reason that file's
-        `test_it_closes_the_issue_the_keyword_named_and_nothing_else` mocks `run`
+        `test_accepts_the_issue_the_keyword_named_and_closes_nothing_else` mocks `run`
         rather than a higher-level function."""
         m = _roller()
         calls = []
