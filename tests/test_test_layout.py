@@ -308,9 +308,13 @@ MOVED_CONFTEST = (
     "import pytest\n"
     "\n"
     "\n"
+    "def root_of(path):\n"
+    "    return path\n"
+    "\n"
+    "\n"
     "@pytest.fixture\n"
     "def base_dir(tmp_path):\n"
-    "    return tmp_path\n"
+    "    return root_of(tmp_path)\n"
     "\n"
     "\n"
     "@pytest.fixture\n"
@@ -460,10 +464,12 @@ NESTED_NEW = "import pytest\n\n\nclass Test_four:\n" + textwrap.indent(
     "    ",
 )
 # The fourth old file's cases read names from the module around them: a
-# helper, a module bound by an import, a row constant, a helper a fixture
-# calls, a name a loader's call binds, an attribute of a module under
-# `tests/` and a helper of their class. Its new file holds them in classes,
-# each name defined as it was.
+# helper, a module bound by an import, a row constant, a helper the fixture
+# a requested fixture requests calls, a name a loader's call binds, an
+# attribute of a module under `tests/`, a class, a name another test file
+# defines and a helper of their class. Its new file holds them in classes,
+# each name defined as it was. The base also holds a directory under
+# `tests/` that is no module.
 PARSE = "def parse(s):\n    return loads(s)\n\n\n"
 ROWS = 'ROWS = [("a", 1), ("bb", 2)]\n'
 D_MODULE = (
@@ -472,6 +478,7 @@ D_MODULE = (
     "\n"
     "import pytest\n"
     "import shapes_d\n"
+    "from test_e import V\n"
     "\n" + ROWS + "\n"
     "\n" + PARSE + "def build():\n"
     "    return [1]\n"
@@ -484,9 +491,18 @@ D_MODULE = (
     'reader = load("hooks/a.py")\n'
     "\n"
     "\n"
+    "class Pair:\n"
+    "    first = 1\n"
+    "\n"
+    "\n"
     "@pytest.fixture\n"
-    "def made():\n"
+    "def making():\n"
     "    return build()\n"
+    "\n"
+    "\n"
+    "@pytest.fixture\n"
+    "def made(making):\n"
+    "    return making\n"
     "\n"
     "\n"
 )
@@ -514,6 +530,14 @@ D_CASES = (
     "\n"
     "def test_limit():\n"
     "    assert shapes_d.LIMIT\n"
+    "\n"
+    "\n"
+    "def test_pair():\n"
+    "    assert Pair.first\n"
+    "\n"
+    "\n"
+    "def test_value():\n"
+    "    assert V\n"
 )
 DOUBLE = (
     "class {}:\n"
@@ -589,6 +613,8 @@ def _moved_world(tmp_path_factory):
     write(repo, OLD_C, MOVED_OLD_C)
     write(repo, OLD_D, MOVED_OLD_D)
     write(repo, SHAPES_D, SHAPES)
+    write(repo, "tests/test_e.py", "V = 1\n")
+    write(repo, "tests/data/rows.txt", "a 1\n")
     return repo, commit_everything_as_e(repo, "base")
 
 
@@ -625,11 +651,11 @@ class Test_moved:
                     CONFTEST: "from json import loads\n\n"
                     + MOVED_CONFTEST
                     + "\n\n"
-                    + PARSE
+                    + PARSE.replace("(s):\n", '(s):\n    """Parse S."""\n')
                 },
                 (OLD_D,),
-                7,
-                8,
+                9,
+                10,
             ),
             (
                 {
@@ -640,15 +666,15 @@ class Test_moved:
                 },
                 {SHAPES_D: SHAPES + ROWS},
                 (OLD_D,),
-                7,
-                8,
+                9,
+                10,
             ),
             (
                 {D: NAMED_NEW.replace("json import loads", "json import dumps, loads")},
                 None,
                 (OLD_D,),
-                7,
-                8,
+                9,
+                10,
             ),
         ],
         ids=[
@@ -820,7 +846,28 @@ class Test_moved:
                     "TestDouble::test_double",
                     "self._double",
                 ),
+                (("json import", "marshal import"), None, "test_parse", "loads"),
+                (
+                    ("import shapes_d\n", "from conftest import shapes_d\n"),
+                    {CONFTEST: "import shapes_d\n" + MOVED_CONFTEST},
+                    "test_limit",
+                    "shapes_d.LIMIT",
+                ),
+                (
+                    ("from test_e import", "from test_f import"),
+                    {"tests/test_f.py": "V = 1\n"},
+                    "test_value",
+                    "V",
+                ),
             ]
+        ]
+        + [
+            (
+                {X: MOVED_NEW},
+                {CONFTEST: MOVED_CONFTEST.replace("return path", "return None")},
+                [f"{where}: name root_of: {DIFFERS}" for where in EVERY],
+                (OLD_A, OLD_B),
+            )
         ],
         ids=[
             "a-cut",
@@ -841,6 +888,10 @@ class Test_moved:
             "a-loader-given-another-path",
             "a-changed-module-attribute",
             "a-changed-class-helper",
+            "a-name-a-helper-reads",
+            "a-module-reached-another-way",
+            "a-name-imported-from-another-test-file",
+            "a-changed-conftest-helper",
         ],
     )
     def test_refuses_a_cut_a_merge_an_edited_body_and_a_changed_fixture(

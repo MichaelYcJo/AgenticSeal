@@ -91,9 +91,11 @@ file that keeps cases for a later group. It prints a line opening with
            a case's body does, an import as the one alias that binds the
            name, any other statement as written, and a statement binding
            the name inside a compound statement as that whole statement. A
-           name bound in neither tree is a builtin's or pytest's; a name a
-           case reaches only through a string, such as `globals()["x"]`, is
-           not read. A case is tested on this condition only where it
+           name bound in neither tree is a builtin's or pytest's, a name
+           bound in one tree only is a change, and so is a name one tree's
+           reading reaches and the other's does not; a name a case reaches
+           only through a string, such as `globals()["x"]`, is not read. A
+           case is tested on this condition only where it
            passed the other two, and its line names the first name, in
            alphabetical order, whose own definition differs
 
@@ -947,16 +949,13 @@ def _git(root, *args):
 
 
 def _test_modules(paths, read):
-    """`{import name: source}` for each of PATHS that is a module directly
-    under `tests/` and no test file, its source as READ gives it."""
+    """`{import name: source}` for each of PATHS, `tests/<entry>` for each
+    entry directly under `tests/`, that is a module and no test file, its
+    source as READ gives it."""
     found = {}
     for path in sorted(paths):
         name = posixpath.basename(path)
-        if (
-            posixpath.dirname(path) + "/" == TESTS
-            and name.endswith(".py")
-            and not name.startswith("test_")
-        ):
+        if name.endswith(".py") and not name.startswith("test_"):
             source = read(path)
             if source is not None:
                 found[name[: -len(".py")]] = source
