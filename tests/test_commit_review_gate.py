@@ -12,9 +12,7 @@ its own, so the session id is the reset. The press is a stub of the reader
 stub of `hooks/githooks.py#decides`; each of those modules has its own file.
 
 How `hooks/cmdline.py` reads each shell shape is `tests/test_cmdline.py`'s,
-reading cases with no git; until #942's phase 6 places the rest there,
-`tests/test_a_commit_behind_a_wrapper_or_in_a_substitution_is_judged.py` and
-`tests/test_no_shape_the_base_stops_reads_silent.py` keep theirs.
+reading cases with no git, and `Test_main` reads that file's `SHAPES`.
 
 #942's phase 6 placed here the gate's cases of
 `tests/test_gate_judges_the_repo_it_commits_to.py`,
@@ -79,7 +77,7 @@ from conftest import (
     write_transcript,
 )
 from conftest import run_gate as run
-from test_a_commit_behind_a_reserved_word_is_judged import HERE, SHAPES
+from test_cmdline import HERE, SHAPES
 
 TARGET = "hooks/commit-review-gate.py"
 
