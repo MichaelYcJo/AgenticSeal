@@ -13,7 +13,7 @@ Facts carried from earlier rounds and not established again: what the move check
 severity: should
 location: `agents/warden.md:99`, `tests/test_settle.py:1288-1296`, `tests/test_routing.py:568-575`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-7.md:500`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-7.md:505`
 evidence: executed `grep -n warden.md seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-7.md seal/specs/1792628098-tests-rebuilt-one-file-per-module/overview.md`, `git grep -n test_a_reference_root_is_read_and_never_taken 86661b67 -- docs agents skills templates CONTRIBUTING.md CLAUDE.md .github`, `pytest tests/test_settle.py::Test_module::test_the_pinned_checks_read_under_the_root_alone with settle.py's SPECS set to "specs"`
-verdict: open
+verdict: fixed fff64113
 regression: round-9#1
 
 The unit is `Test_module::test_the_pinned_checks_read_under_the_root_alone`, which 18349051 made twice, at `tests/test_settle.py:1288` and `tests/test_routing.py:568`, by splitting the one case of `tests/test_a_reference_root_is_read_and_never_taken.py`. The frame lets a case move only once every `check:` line naming a rule the case holds has its item, and a line outside `docs/` is rewritten by the commit that moves the case (`plan.md:106`, `questions.md:26`, `questions.md:29`); 18349051 moved this case, left `agents/warden.md:99` as it was, and its record does not say why, so the defect came from the fix pass applying that condition to the `docs/` lines that held the liveness cells and not to the one line outside `docs/` that names a file the pass drew from.
@@ -45,14 +45,14 @@ fix pass added the settle half's landing; the framer restates the row.
 
 If the fix pass finds that neither half holds the rule, the other path is one sentence at `phases/phase-7.md:505` saying why, and the line stays.
 
-answer:
+answer: The finding holds for the settle half, and the routing half holds no rule of the line. fff64113 rewrites `agents/warden.md:99` in place to `check: tests/test_a_reference_root_is_read_and_never_taken.py tests/test_config.py tests/test_settle.py tests/test_chain_check.py tests/test_unverified_check.py`, which adds finding 2's three landings in the same commit. The routing half stays off the line because `hooks/routing.py` writes nothing, and every module that reads `routing.WORK_ITEMS` only lists, matches or names paths under it: `chain_check.py`, `hooks/commitgate.py`, `hooks/gate.py` and `hooks/commit-review-gate.py` (read). 7d0b36b3 writes both halves' grounds into the sentence on the pinned case in `phases/phase-7.md` *The class enumerated, in round 9's fix pass*. It also adds the row on what `agents/warden.md:99` names against `spec.md:109` to `overview.md` *Where spec and implementation diverged*, for the framer to restate. `bin/rules --check` exits 0 at fff64113, with all 249 check lines in 62 rule files holding (executed).
 
 ### 2. test_a_planted_team_specs_changes_no_checks_verdict stays on a ground spec.md line 97 does not give: its loop runs each of three hand-written checks alone
 
 severity: should
 location: `tests/test_a_reference_root_is_read_and_never_taken.py:76-174`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-7.md:382`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-7.md:501`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/overview.md:55`, `agents/warden.md:99`, `tests/conftest.py`, `tests/test_chain_check.py`, `tests/test_unverified_check.py`, `tests/test_settle.py`
 evidence: read `tests/test_a_reference_root_is_read_and_never_taken.py:126-174`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/spec.md:97`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/spec.md:129`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/questions.md:28`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-7.md:382`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-7.md:501`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/overview.md:55`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/rounds/round-9.md:24`
-verdict: open
+verdict: fixed fff64113
 reopens: round-9#1
 
 Why the close does not hold. Round 9's finding 1 was closed `fixed 18349051` with its class enumerated by one test, and the answer says the test closed the class. The test as the record states it keeps a member of that class: a case whose subjects each run alone, one per pass of a loop over a list written by hand.
@@ -93,14 +93,14 @@ The fix, on the path rule 2 states, in the shape 18349051 gave the copied-alone 
 
 If the fix pass finds a sentence of the frame that keeps a conjunction over modules each run alone, the other path is to keep the case, state that sentence in `overview.md` *Where spec and implementation diverged*, and rewrite `phases/phase-7.md:382` and `overview.md:55` to it. This round found no such sentence.
 
-answer:
+answer: The fix pass took the fenced fix and found no sentence of the frame that keeps the conjunction. fff64113 defines `planted`, `SERVICE`, `OURS` and `TEAM` once in `tests/conftest.py` with their bodies unchanged. `tests/test_unverified_check.py` imports `TEAM` and `OURS` from there in place of its own copies of the same values, which the fix did not name. Each script's pass is a case of `Test_module` in `tests/test_chain_check.py`, `tests/test_unverified_check.py` and `tests/test_settle.py`, followed by the check of the team's three files, with the script bound from `TARGET` and the arguments `CHECKS` gave it. `agents/warden.md:99` names the three files, and `.test_durations` gives each new id a third of the old id's seconds. Executed, the move check over the four files at 0775ccb8: `test-layout: moved: 336 old cases, 638 items against 636 at 0775ccb8db03, 5 failed`, exit 1, sending `chain_check.py`, `unverified_check.py` and `settle.py`. Sixteen decision-point mutants ran, one batch per module, against the moved cases alone with `-x` and the runner copied outside the tree. 8 are red there: u1 to u5, s1, s2, and c6 on the chain check's case. Of the 8 survivors, c1, c2, c5 and s3 are red on the group's other new files at fff64113. c3, c4, s4 and s5 survive the four old files whole at 0775ccb8 too, so they are old gaps: the planted repositories hold no team `routing.md`, no declaration, no citation and no `tests/` directory. No protection was lost, and no case was added. The class closes in 7d0b36b3. The test of `phases/phase-7.md` *The class enumerated, in round 9's fix pass* is now `spec.md:97`'s, worded in the record as it is at `overview.md:55`, and each row kept on the old first branch was judged again. The splitter, token and config-reader cases each set one module's answer against another's, and their rows say so. The S10 case meets none of line 97's branches and stays on `spec.md:129`'s Q10 ground, which its row now states, since the guard imports neither installer module. `test_the_walk_is_exact_somewhere` and `test_the_routing_reader_hides_something` each guard an oracle case, and their rows say so. The table now counts 19 moved, 1 held and 96 stay. The new section *The planted team's case split, in round 10's fix pass* records the pass.
 
 ### 3. overview.md line 55 holds the liveness cells until items for three docs lines, where the Not verified row and plan.md's condition ask for four
 
 severity: should
 location: `seal/specs/1792628098-tests-rebuilt-one-file-per-module/overview.md:55`
 evidence: read `seal/specs/1792628098-tests-rebuilt-one-file-per-module/overview.md:29`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/overview.md:55`, `docs/the-record-layout.md:138-141`, `docs/the-record-layout.md:150`, `docs/the-record-layout.md:170`, `docs/the-record-layout.md:177`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/plan.md:106`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/questions.md:26`
-verdict: open
+verdict: fixed 7d0b36b3
 
 This matters because `overview.md:55` states when the held cells may move, and the next smith acts on it. It says the cells "stay until `spec.md` *Rule changes* carries items for `docs/the-record-layout.md` lines 150, 170 and 177". `plan.md:106` lets a case move only once every `check:` line naming a rule the case holds has its item. `docs/the-record-layout.md:141` names the liveness file, with `tests/test_routing_is_recorded.py`, for the rule the cells state reader by reader: "the four readers that ask it give three answers" (lines 138-140). By `questions.md:26`, a moving cell lands in a file line 141 must then name. So the condition is four items, as the *Not verified* row at `overview.md:29` says ("an item for each of the four lines"). A smith reading line 55 could move the cells once three items land and leave line 141 naming too little.
 
@@ -115,7 +115,7 @@ clause on the held cells, rewritten in place:
   with `tests/test_routing_is_recorded.py` (*Not verified*).
 ```
 
-answer:
+answer: 7d0b36b3 rewrites the clause in place. The held cells now stay until `spec.md` *Rule changes* carries items for `docs/the-record-layout.md` lines 141, 150, 170 and 177; the last three name the liveness file alone, and line 141 names it with `tests/test_routing_is_recorded.py`. That is the count the *Not verified* row and `plan.md:106` ask for. The same clause stood twice more in `phases/phase-7.md` *The class enumerated, in round 9's fix pass*: the paragraph on whether the frame holds and the held row. Both now name the four lines.
 
 ## Confirmations
 
