@@ -859,6 +859,31 @@ The five old gaps: no case leaves two fences open, asks `config_text` for an emp
 
 **Where the seventh spawn stopped.** At the boundary after group 23. `hooks/cmdline.py`'s group moves about 150 cases out of seven files and then runs the mutants of a 3,097-line module, which needs that module read whole to place them; it could not close with a complete record in what was left of this spawn, and `hooks/cmdline_base.py` and the seven directories come after it.
 
+### The eighth spawn
+
+**What this spawn was asked.** `hooks/cmdline.py`'s cases from seven files, its text-reading cases moving as they stand into `tests/test_cmdline.py` under Q1, `tests/test_what_the_reader_understands.py`'s constant `TARGET = "/target"` renamed where its cases land in a file declaring `TARGET`, and what `tests/test_commit_review_gate.py` imports from the reserved-word file moved with the cases, split into several groups along public functions where one would not close; then `hooks/cmdline_base.py`; then the seven directories outside `hooks/` in `plan.md`'s order, rule 3 where an old file prices at 60 s or more, each group rewriting the lines outside `docs/` that `spec.md` *The check lines the remaining groups meet* assigns it, and the group placing `skills/verify/scripts/arm_check.py`'s cases correcting `tests/test_arm_check.py`'s docstring. A line with no verdict is recorded and left; an item that names too little or too much once a group moves is a row of `overview.md` for the framer. Phase 4's h2, h12 and h23 are re-run where a group rebuilds a module whose cases reach one.
+
+**Whether the frame holds** (`read`). It holds for `hooks/cmdline.py`. The three `check:` lines naming its files, `docs/commit-review-gate-spec.md` lines 125, 139 and 145, each have an item moving them to `tests/test_commit_review_gate.py tests/test_cmdline.py` (`spec.md` lines 215, 358 and 363); `docs/the-commit-gate-inside-git.md` line 183 names neither the frozen reading file nor the hook surface file for a case this group moves. The five files those three lines name stay with a docstring and no case. No line names `tests/test_one_heredoc_shape_is_data_to_the_commit_gate.py` or `tests/test_a_path_the_command_wrote_out.py`, so each goes with its last case.
+
+**How `hooks/cmdline.py` is split** (`read`). Renaming the reader file's `TARGET` changes 24 case bodies, so the group that moves those cases fails the move check and the module runs its mutants there whatever else holds. The groups go from the cases that move unchanged to the ones that do not, so the mutants run once, last, over every case the module's file holds: group 24, the heredoc-data file; group 25, the walk file, the reserved-word file, the wrapper file and the no-shape file, each moved with its body; group 26, the reader file and the path file, whose names collide with group 25's (`unreadable`, `BODIES`, a case name) as well as with `TARGET`.
+
+### Batch B, `hooks/`, group 24, at 93bf39da
+
+**The cases.** From `tests/test_one_heredoc_shape_is_data_to_the_commit_gate.py`, its three:
+
+- S4, `test_a_string_that_fails_one_clause_still_stops`, and S5, `test_what_760_found_still_stops`, into `tests/test_cmdline.py`'s `Test_module` under their names. Each reads a command through the commit gate's `commit_invocations`, which hands it to `hooks/cmdline.py`; neither calls a function of the reader by name. `hidden_commit`, `NO_BODY` and the S5 lists came with them.
+- S6, `test_s6_neither_read_honours_a_token_the_base_did_not`, into `tests/test_tokens.py`'s `Test_module`: it holds `has_marker` and `tokens.given` to the base's two reads, and since #868 `has_marker` is `tokens.given`. Its builders and `every_case` came with it, and `tests/test_the_old_spellings_reach_the_hook.py#_corpora` imports `every_case` from there.
+
+No `check:` line names the old file, so it went.
+
+**The move check** (`executed`): `bin/test-layout --moved 687388b5 --from tests/test_one_heredoc_shape_is_data_to_the_commit_gate.py tests/test_tokens.py --to tests/test_cmdline.py tests/test_tokens.py` ends `test-layout: moved: 4 old cases, 215 items against 215 at 687388b5ae85, 0 failed`, exit 0. No mutation table. `--pairs` names S4 and S5, whose bodies are equal once names and strings are normalised; under Q1 the module's cases move as they stand and none is merged.
+
+**The lines rewritten.** `tests/test_one_heredoc.py`'s docstring names `tests/test_cmdline.py` for the gate's half of S4, and `tests/test_commit_review_gate.py`'s names it for how the reader reads each shape.
+
+**Cases and seconds** (`executed`, serial, pytest's own figure): 216 items in 0.60 s before, the two files at 687388b5; 217 items in 1.32 s after, the census item of `tests/test_cmdline.py` among them.
+
+**The boundary** (`executed`). At the tree committed as 93bf39da, before the commit with the new file staged: the five changed files, the `git_listing` files, the censuses, `tests/test_test_layout.py`, `tests/test_conftest.py` and `tests/test_chain_hooks_hardening.py`, 27 files: 2,357 passed and 3 skipped. After the commit, the same set less the changed files plus the new file: 2,194 passed and 3 skipped. `bin/test-layout --check` exits 0, 167 files read, 123 declaring no `TARGET`; `bin/rules --check` exits 0 with 249 check lines; `bin/unverified-check seal/specs/` exits 0. Ruff checks and formats each changed file clean.
+
 ### What `hooks/` holds back
 
 **The installer waits on Q10** (`read`). `hooks/githooks.py` and `hooks/hook-install.py` have their cases in `tests/test_the_hooks_are_installed_where_git_runs_them.py`, which `docs/the-commit-gate-inside-git.md` names on the `check:` line of a section whose heading is also the document's title. `questions.md` Q10's default is wait, so the two keep their cases there through this work.
