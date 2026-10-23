@@ -1027,6 +1027,34 @@ def lease_dir(repo):
     return d
 
 
+# A `config.md` text with its `Item | Value` table; `{rows}` takes the rows.
+TABLE = "# Repository config\n\n| Item | Value |\n|---|---|\n{rows}"
+
+
+def opt_in_shared(repo):
+    (repo / "seal").mkdir(exist_ok=True)
+    return repo / "seal"
+
+
+def write_config(home, text):
+    with open(os.path.join(str(home), "config.md"), "w", encoding="utf-8") as f:
+        f.write(text)
+
+
+def write_unreadable(home, shape):
+    """`<home>/config.md` in one of the two unreadable shapes that hold on
+    macOS, Linux and Windows alike: a directory of that name, and bytes that
+    do not decode as UTF-8. A permission bit is left out on purpose: Windows
+    and a root user both read through it."""
+    path = os.path.join(str(home), "config.md")
+    if shape == "directory":
+        os.mkdir(path)
+    else:
+        with open(path, "wb") as f:
+            f.write(b"| Item | Value |\n|---|---|\n| Mode | \xff\xfe shared |\n")
+    return path
+
+
 def git(repo, *args, check=True):
     """git driven from Python in REPO, so no Bash line carries a commit
     (contract rule 8); the completed process."""
