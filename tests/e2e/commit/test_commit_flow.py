@@ -331,6 +331,14 @@ def lease_then(world, body):
     )
 
 
+def under_shells(body, shells):
+    """BODY run by SHELLS bash processes nested one inside the next, each
+    kept alive by `; exit $?` so none is replaced by what it runs."""
+    for _ in range(shells):
+        body = f"{q(BASH)} -c {q(body + '; exit $?')}"
+    return body
+
+
 def as_claude(world, claude, body):
     """BODY run by the `claude` shell at CLAUDE after it writes its lease,
     with no session variable exported."""
@@ -852,16 +860,38 @@ class Test_a_commit_with_no_session_behind_it:
         assert hooksession.from_lease(str(tmp_path / "git"), 4242) == ""
 
     @pytest.mark.rule("a-persons-own-commit")
-    def test_refuses_a_commit_whose_session_the_lease_names(self, world):
+    @pytest.mark.parametrize(
+        "shells", [0, 2], ids=["claude-the-parent", "claude-four-levels-up"]
+    )
+    def test_refuses_a_commit_whose_session_the_lease_names(self, world, shells):
+        """The walk up to `claude` climbs past the shells between it and git:
+        with two, `claude` is four levels above the hook, one more than any
+        other case here puts it."""
         ps_names_the_parent_or_skip(LEASE_NEEDS_PS)
         claude = fake_claude(world)
         press(world)
         world.change(world.main)
         before = world.head(world.main)
-        got = as_claude(world, claude, "git commit -q -m x")
+        got = as_claude(world, claude, under_shells("git commit -q -m x", shells))
         assert got.returncode != 0
         assert world.head(world.main) == before
         assert AUTOMATION_TEXT in got.stderr
+
+    def test_refuses_a_commit_in_an_undeclared_linked_worktree_through_the_lease(
+        self, world
+    ):
+        """P2's stub looks for a lease in the whole clone, from the common
+        git directory: a session whose lease sits in the main checkout and
+        whose commit lands in a linked worktree, with no variable, still
+        starts Python, and the commit is judged."""
+        ps_names_the_parent_or_skip(LEASE_NEEDS_PS)
+        claude = fake_claude(world)
+        (world.w / "seal" / "specs" / "1790000000-x" / "routing.md").unlink()
+        world.change(world.w)
+        before = world.head(world.w)
+        got = as_claude(world, claude, f"git -C {q(world.w)} commit -q -m x")
+        assert got.returncode != 0, got.stderr
+        assert world.head(world.w) == before
 
     @pytest.mark.rule("a-persons-own-commit")
     def test_refuses_an_emptied_environment_through_the_lease(self, world):
