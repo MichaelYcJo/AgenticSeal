@@ -740,6 +740,46 @@ The five survivors are old gaps: no old case sends a session-less payload to the
 
 **The boundary** (`executed`). At 6277911e: the two files, `tests/test_first_setup_asks_once.py`, `tests/test_implementer_mark.py` and `tests/test_commit_review_gate.py`, which read the conftest helpers beside the new one, the censuses, `tests/test_test_layout.py` and `tests/test_conftest.py`, 608 passed. `bin/test-layout --check` exits 0, 166 files read, 124 declaring no `TARGET`; `bin/rules --check` and `bin/unverified-check seal/specs/` exit 0. Ruff clean.
 
+### The seventh spawn
+
+**What this spawn was asked.** The three shared readers left in `hooks/`, one group each, `hooks/config.py` split along its public functions where one group would not close with a complete record, and `agents/warden.md` line 99 rewritten in its group's commit; `hooks/cmdline.py`'s text-reading cases moving as they stand into `tests/test_cmdline.py`, with the constant `TARGET = "/target"` of `tests/test_what_the_reader_understands.py` renamed when its cases land in a file declaring `TARGET`; then `hooks/cmdline_base.py`; then the seven directories outside `hooks/` in `plan.md`'s order, rule 3 where an old file prices at 60 s or more, each group rewriting the lines outside `docs/` that `spec.md` *The check lines the remaining groups meet* assigns it, and the group placing `skills/verify/scripts/arm_check.py`'s cases correcting `tests/test_arm_check.py`'s docstring. A `check:` line with no verdict in `spec.md` is recorded and left as it is. Phase 4's h2, h6, h12 and h23 are re-run where a group rebuilds a module whose cases reach one.
+
+**Whether the frame holds** (`read`). It holds for `hooks/config.py`. Every `check:` line its groups meet has a verdict in `spec.md`: `agents/warden.md` line 99 has its row; `docs/one-root-by-lifetime.md` lines 197 and 223, their Korean twins at 189 and 212, and `docs/the-pact.md` lines 18, 31, 75 and 126 have their items; `docs/the-pact.md` lines 45 and 61, `docs/one-root-by-lifetime.md` line 214 and its twin's 204 are lines a drained file keeps. `docs/the-record-layout.md` line 29 names the fold file for its size rule, which the policy root's case does not hold, so moving that case changes nothing the line names.
+
+### Batch B, `hooks/`, group 21, at 1b3e6978
+
+**How `hooks/config.py` is split** (`read`). Its cases sit in more than ten files, and one case of `tests/test_a_signer_declares_its_pact.py` and six of `tests/test_pact_check.py` read a module-level `PACT` that is the pact's text in the first file and the pact's path in the second, so placing both in one file changes one side's bodies and sends the module to the mutants. The groups are: this one, the small files; group 22, the reader cases of `tests/test_the_mode_question_is_asked_once.py`; group 23, the pact's readers, last, so the mutants run once over every case the module's file holds.
+
+**The cases.** Into `tests/test_config.py`, each with its body:
+
+- `Test_reference_roots`: the seven resolver cases (C1) of `tests/test_a_reference_root_is_read_and_never_taken.py`, two renamed `test_accepts_a_row_naming_its_prefixes_with_or_without_a_slash` and `test_refuses_a_row_written_twice_or_a_file_that_will_not_read`.
+- `Test_normalise_remote`: the three cases of `tests/test_the_records_can_be_carried_out_and_in.py`, two renamed `test_accepts_remote_urls_that_reduce_to_one_host_and_path` and `test_refuses_to_reduce_two_different_repositories_to_one`, with their `seal` fixture.
+- `Test_config_rows`: the six cases of `tests/test_the_pull_request_language_is_the_repositorys.py` that call `items` on a text written for them, two renamed `test_accepts_an_item_value_table_and_no_other` and `test_refuses_a_second_table_further_down_as_more_rows`.
+- `Test_gfm_table`: the three cases of `tests/test_one_table_walker_reads_what_gfm_renders.py` that ask no oracle, two renamed `test_refuses_a_hidden_line_directly_above_the_header` and `test_accepts_the_rows_above_a_heading_piece_and_refuses_the_row_below`.
+- `Test_module`: `policy_root`'s one case from `tests/test_a_document_has_room_for_the_next_fold.py` and `test_the_baseline_is_the_first_code_span_of_its_one_row` from `tests/test_chain_check.py`, each under its name, one case of a function with no refusing partner.
+
+21 cases, 36 items, and the census item.
+
+**Helpers.** `write_config` in `tests/conftest.py` now makes the directory it writes into, as the reference-root file's own copy did, and that copy is gone; its other callers write into a directory that exists. `parity_file` and `BASELINE` serve `tests/test_chain_check.py` and the new file, so they are in `tests/conftest.py`. The new file reads the row reader through `items = config.config_rows` and `_config_reader()`, which answers the module the file loaded where the old file loaded a copy per call; the move check reads neither, so they are named here.
+
+**Left where they stand.** In the reference-root file: the census of every `bin/` command, the pinned constants of `settle.py` and `hooks/routing.py`, the planted team `specs/` run through three checks, all comparing shipped files with each other, and the two prose cases, #923's. `tests/test_a_script_copied_alone_exits_2.py::test_a_hook_reader_copied_without_the_walk_names_it` holds `hooks/config.py` and `hooks/routing.py` to one sentence in one parametrized body, a check across files that stays. The oracle file keeps every case that asks cmark-gfm, as `spec.md` *What the frame decided* keeps a check against an oracle. In the pull request language file, `configured_language` and its cases model a session's reading of the row and stay, with `test_this_file_loads_the_one_reader_and_not_a_copy_of_it`, which holds that model to the one reader.
+
+**The move check** (`executed`):
+
+`bin/test-layout --moved fb0c5dfc --from tests/test_a_reference_root_is_read_and_never_taken.py tests/test_a_document_has_room_for_the_next_fold.py tests/test_the_records_can_be_carried_out_and_in.py tests/test_chain_check.py tests/test_the_pull_request_language_is_the_repositorys.py tests/test_one_table_walker_reads_what_gfm_renders.py --to tests/test_config.py tests/test_a_reference_root_is_read_and_never_taken.py tests/test_a_document_has_room_for_the_next_fold.py tests/test_the_records_can_be_carried_out_and_in.py tests/test_chain_check.py tests/test_the_pull_request_language_is_the_repositorys.py tests/test_one_table_walker_reads_what_gfm_renders.py`
+
+`test-layout: moved: 193 old cases, 803 items against 803 at fb0c5dfccd2f, 0 failed`, exit 0. No mutation table. `--pairs` names no pair in the new file.
+
+**The lines rewritten.** `agents/warden.md` line 99 names `tests/test_a_reference_root_is_read_and_never_taken.py tests/test_config.py`, as `spec.md` assigns. `hooks/config.py`'s comment on `HOME` names the new file as the one holding it equal to `hooks/optin.py#HOME`; the docstrings of the records file, the reference-root file and the oracle file name where their cases went.
+
+**Cases and seconds** (`executed`, serial, pytest's own figure): 804 items in 39.68 s before, the six old files at fb0c5dfc; 805 items in 38.01 s after, over the seven files, the census item among them.
+
+**The real-git cases kept.** `Test_reference_roots::test_local_mode_reads_the_row_under_the_git_directory` inits a repository and asks git for its common directory, where the local-mode root sits. No other case runs git.
+
+**Phase 4's survivors.** None is reached: no moved case calls `read`, `commit_everything_as_e`, `imported_roots` or `repo_relative` (`read`).
+
+**The boundary** (`executed`). At the tree committed as 1b3e6978, before the commit: the changed files, every test file naming `warden.md`, `write_config`, `parity_file`, `BASELINE` or `test_config`, the `git_listing` files, the censuses, `tests/test_every_agent_reads_the_contract.py`, `tests/test_test_layout.py`, `tests/test_conftest.py` and `tests/test_chain_hooks_hardening.py`, 53 files: 3,933 passed and 13 skipped in 48.3 s. After the commit, the `git_listing` files, the censuses, `tests/test_test_layout.py`, `tests/test_conftest.py` and the new file: 2,008 passed and 3 skipped. `bin/test-layout --check` exits 0, 167 files read, 124 declaring no `TARGET`; `bin/rules --check` exits 0 with 249 check lines; `bin/unverified-check seal/specs/` exits 0. `uvx ruff check` and `uvx ruff format --check` pass each changed `.py` file, one file per run.
+
 ### What `hooks/` holds back
 
 **The installer waits on Q10** (`read`). `hooks/githooks.py` and `hooks/hook-install.py` have their cases in `tests/test_the_hooks_are_installed_where_git_runs_them.py`, which `docs/the-commit-gate-inside-git.md` names on the `check:` line of a section whose heading is also the document's title. `questions.md` Q10's default is wait, so the two keep their cases there through this work.
