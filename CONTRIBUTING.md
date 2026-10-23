@@ -293,19 +293,25 @@ record of the work item that rebuilt the module, in four parts:
   together, and names every old file the group's cases came from after
   `--from` and every new file the group wrote after `--to`; an old file
   that keeps cases for a later group stands in both lists. It passes where
-  four conditions hold, which `skills/verify/scripts/test_layout.py`'s
-  docstring states: the count of items, each case's body, the fixtures it
-  requests, and the names it and those fixtures read from the module
-  around them. Where it exits 0, the group's cases were only moved and the
-  record has no mutation table. Where it exits 1, each module of the group
-  carries the mutation table, and so does a module written anew. Its mutants sit at the
-  decision points where a case accepts or refuses, one or two per class
-  and one more for each further decision point a function holds, so their
-  count follows the module's classes. They run against the new file in one
-  `bin/mutation-check` call with `-x` in its tests command. The old files'
-  column runs only for a mutant the new file lets survive: where the old
-  files miss it too, the table names an old gap, and where they kill it,
-  the new file gets a case seen red on that mutant;
+  every condition `skills/verify/scripts/test_layout.py`'s docstring
+  states for `--moved` holds. Where it exits 0, the group's cases were
+  only moved and the record has no mutation table. Where it exits 1, each
+  module of the group carries the mutation table, and so does a module
+  written anew. A failing case that stands in a file declaring no `TARGET`
+  counts for the shipped module whose function it calls as its subject.
+  Where it calls no shipped module as its subject, as a check across files
+  or a case reading prose does, it counts for the definition its line
+  names, in the file that defines it in the working tree, and that
+  definition's decision points carry the mutants: each branch of a
+  function, and each entry of a collection the case reads. A module's
+  mutants sit at the decision points where a case accepts or refuses, one
+  or two per class and one more for each further decision point a
+  function holds, so their count follows the module's classes. They run
+  against the new file in one `bin/mutation-check` call with `-x` in its
+  tests command. The old files' column runs only for a mutant the new file
+  lets survive: where the old files miss it too, the table names an old
+  gap, and where they kill it, the new file gets a case seen red on that
+  mutant;
 - the module's cases and seconds before and after, from
   `bin/test <files> -q` on the machine that built it;
 - the real-git cases kept, each named;

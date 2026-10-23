@@ -685,6 +685,10 @@ class Test_moved:
                     None,
                 ),
                 (NAMED_NEW.replace("    reader = 2\n", "    reader = 3\n"), None),
+                (
+                    NAMED_NEW.replace("from test_e import", "from test_f import"),
+                    {"tests/test_f.py": "V = 1\n"},
+                ),
             ]
         ],
         ids=[
@@ -694,6 +698,7 @@ class Test_moved:
             "a-constant-moved-into-a-module-under-tests",
             "a-name-imported-beside-another",
             "a-name-a-helper-stores-for-itself-changed",
+            "a-name-imported-from-another-test-file",
         ],
     )
     def test_accepts_a_pure_move(
@@ -864,12 +869,7 @@ class Test_moved:
                     "test_limit",
                     "shapes_d.LIMIT",
                 ),
-                (
-                    ("from test_e import", "from test_f import"),
-                    {"tests/test_f.py": "V = 1\n"},
-                    "test_value",
-                    "V",
-                ),
+                (None, {"tests/test_e.py": "V = 2\n"}, "test_value", "V"),
             ]
         ]
         + [
@@ -907,7 +907,7 @@ class Test_moved:
             "a-changed-class-helper",
             "a-name-a-helper-reads",
             "a-module-reached-another-way",
-            "a-name-imported-from-another-test-file",
+            "a-changed-name-in-another-test-file",
             "a-changed-conftest-helper",
             "a-changed-fixture-reading-another-name",
         ],

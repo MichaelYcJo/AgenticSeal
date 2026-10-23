@@ -58,7 +58,7 @@ files, with nothing cut, merged or rewritten, and such a group needs no
 mutants. It reads each OLD file at BASE through `git show` and each NEW
 file in the working tree; one path may stand in both lists, for an old
 file that keeps cases for a later group. It prints a line opening with
-`moved:` for each failure of its four conditions:
+`moved:` for each failure of the conditions below:
 
   count    pytest collects as many items from the NEW files as from the OLD
            files at BASE, each parametrize row one item, the census case
@@ -81,23 +81,31 @@ file that keeps cases for a later group. It prints a line opening with
   names    each name the case and those fixtures read from the module
            around them, as Python's scoping resolves it, is defined alike in
            both trees: a helper, a constant a `parametrize` mark reads, a
-           module an import or a loader's call binds, an attribute
-           `<module>.<name>` of a module directly under `tests/` that is no
-           test file, and `self.<name>` where the case's class binds it;
-           each definition is followed through the names it reads in turn,
-           and a name `from <that module> import` brings is read where that
-           module defines it, in the same tree, so a helper moved unchanged
-           into `tests/conftest.py` passes. A function or class compares as
-           a case's body does, an import as the one alias that binds the
-           name, any other statement as written, and a statement binding
-           the name inside a compound statement as that whole statement. A
-           name bound in neither tree is a builtin's or pytest's, a name
-           bound in one tree only is a change, and so is a name one tree's
-           reading reaches and the other's does not; a name a case reaches
-           only through a string, such as `globals()["x"]`, is not read. A
-           case is tested on this condition only where it
-           passed the other two, and its line names the first name, in
-           alphabetical order, whose own definition differs
+           module an import or a loader's call binds, and `self.<name>`
+           where the case's class binds it, outside a function or lambda
+           that takes a `self` of its own; each definition is followed
+           through the names it reads in turn. A name that
+           `from <module> import` brings, or that `<module>.<name>` reads
+           after `import <module>`, where the module is any module
+           directly under `tests/`, a test file among them, is read where
+           that module defines it, in the same tree, so a helper moved
+           unchanged into `tests/conftest.py` or into another test file
+           passes. A function or class compares as a case's body does, an
+           import as the one alias that binds the name, any other
+           statement as written, and a statement binding the name inside
+           a compound statement as that whole statement. A name bound in
+           neither tree is a builtin's or pytest's, a name bound in one
+           tree only is a change, and so is a name one tree's reading
+           reaches and the other's does not. Each name is compared as the
+           set of its distinct definitions, so one definition reached
+           from two files counts once. The condition has two limits: a
+           name a case reaches only through a string, such as
+           `globals()["x"]`, is not read, and two definitions of one name
+           in two places a case reaches, swapped between the trees,
+           compare equal. A case is tested on this condition only where
+           it passed the body and fixture conditions, and its line names
+           the first name, in alphabetical order, whose own definition
+           differs
 
 It then prints the old cases, both counts and the failures on one last line.
 
@@ -690,8 +698,9 @@ def _form(statement, name):
 
 class _Names:
     """One tree's side of the name condition. TREES is `{label: tree}` for
-    the test files and the modules directly under `tests/` that are not test
-    files, each module under its import name, which MODULES lists."""
+    the old or new files under their paths and for every module directly
+    under `tests/`, test files among them, under its import name, which
+    MODULES lists."""
 
     def __init__(self, trees, modules):
         self.trees, self.modules = trees, modules
@@ -839,8 +848,8 @@ def moved(old, new, old_modules=None, new_modules=None):
 
     OLD is `{path: source}` of the old files at the base, NEW `{path:
     source}` of the new files in the working tree, and the two module maps
-    are `{import name: source}` of the modules directly under `tests/` that
-    are not test files in each tree, `conftest` among them where it is
+    are `{import name: source}` of the modules directly under `tests/` in
+    each tree, test files and `conftest` among them where they are
     present. An old case holds where a case of the new files has its form
     (`_moved_form`), each new case standing for one old case, where the two
     cases request the same fixtures (`_requested`), where every fixture
@@ -970,12 +979,14 @@ def _git(root, *args):
 
 def _test_modules(paths, read):
     """`{import name: source}` for each of PATHS, `tests/<entry>` for each
-    entry directly under `tests/`, that is a module and no test file, its
-    source as READ gives it."""
+    entry directly under `tests/`, that is a module, a test file among them,
+    its source as READ gives it. pytest imports a test file directly under
+    `tests/` under its file name, so `from test_x import` in another file
+    reads that file's definition."""
     found = {}
     for path in sorted(paths):
         name = posixpath.basename(path)
-        if name.endswith(".py") and not name.startswith("test_"):
+        if name.endswith(".py"):
             source = read(path)
             if source is not None:
                 found[name[: -len(".py")]] = source
