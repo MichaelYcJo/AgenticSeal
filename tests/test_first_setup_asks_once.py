@@ -4,7 +4,7 @@ or a person reads says the same thing about where the root lives.
 The work item is `seal/specs/1788354065-the-tree-that-must-stay-clean-has-no-
 way-to-opt-in/`; the clauses named per case are its spec's. The hooks resolve
 the root in code (`hooks/optin.py#home_at`) and are pinned by
-`tests/test_optin_home.py` and `tests/test_local_mode_resolves_under_the_git_
+`tests/test_optin.py` and `tests/test_local_mode_resolves_under_the_git_
 dir.py`. What is pinned HERE is the text: the one question the `implement`
 skill asks, the sentence a session needs, the workflow template shared mode
 installs and the reason local mode has none, and the switch the READMEs give.

@@ -218,7 +218,7 @@ OPENS_NOTHING = {
 #    the case put there. A guard would be asserting the fixture against
 #    itself.
 LISTS_A_FIXTURE = {
-    "tests/test_optin_home.py#test_the_local_root_is_never_a_commit_candidate_and_needs_no_gitignore": 1,
+    "tests/test_optin.py#test_the_local_root_is_never_a_commit_candidate_and_needs_no_gitignore": 1,
     "tests/test_routing_is_recorded.py#test_an_uncommitted_declaration_silences_the_commit_that_adds_it": 1,
     "tests/test_the_root_migrates_itself.py#test_the_readmes_by_hand_sequence_yields_the_hooks_tracked_set": 1,
     # The hook's cases read what is unstaged and tracked in the copy of the

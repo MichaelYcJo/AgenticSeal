@@ -1306,6 +1306,22 @@ def with_row(label, answer):
     return two_axis_text().replace("| Branch |", f"| {label} | {answer} |\n| Branch |")
 
 
+# --- the opt-in's two places, the old name and the throwaway marker -------------
+
+
+def home(repo):
+    (repo / "seal").mkdir(exist_ok=True)
+
+
+def legacy(repo):
+    (repo / ".specseal").mkdir(exist_ok=True)
+    (repo / ".specseal" / "map.md").write_text("# map\n", encoding="utf-8")
+
+
+def scratch(repo):
+    (repo / ".git" / "specseal-scratch").write_text("", encoding="utf-8")
+
+
 # --- the implementer family's declaration and calls -----------------------------
 
 ITEM = "1788137177-a-work-item"
