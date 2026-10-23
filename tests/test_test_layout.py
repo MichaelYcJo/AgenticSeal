@@ -16,6 +16,7 @@ in turn and watched a case of its class fail (the work item's
 import importlib.util
 import os
 import shutil
+import textwrap
 
 import pytest
 from conftest import census_case, commit_everything_as_e, git_out, write
@@ -295,12 +296,14 @@ class Test_pairs:
         assert layout.pairs({"tests/test_x.py": source}) == []
 
 
-# The move check's world: two old files at a base commit and the conftest
+# The move check's world: three old files at a base commit and the conftest
 # beside them. A case asks for a fixture by a parameter, by `usefixtures` on
 # its class or in `pytestmark`, and by an autouse fixture of its class; `box`
 # requests `base_dir`, and `a` is both a conftest fixture and a parametrized
-# name. Each case writes its new file into a copy and runs `--moved` there,
-# which collects at the base in a worktree of its own and in the copy.
+# name. The third old file holds a case and a fixture that define functions
+# and a class with docstrings over three lines, at every depth. Each case
+# writes its new file into a copy and runs `--moved` there, which collects
+# at the base in a worktree of its own and in the copy.
 MOVED_CONFTEST = (
     "import pytest\n"
     "\n"
@@ -407,8 +410,58 @@ MERGED = MOVED_NEW.replace(
 SHADOWED = MOVED_NEW.replace(
     LOCAL, LOCAL + "@pytest.fixture\ndef tmp_path():\n    return 1\n\n\n"
 )
-X, Y = "tests/test_x.py", "tests/test_y.py"
+NESTED_FIXTURE = (
+    "@pytest.fixture\n"
+    "def maker():\n"
+    "    def make():\n"
+    '        """Make one.\n'
+    "\n"
+    "        Over three lines.\n"
+    '        """\n'
+    "        return 1\n"
+    "\n"
+    "    return make\n"
+)
+NESTED_CASE = (
+    "def test_four(maker):\n"
+    "    def helper():\n"
+    '        """Help.\n'
+    "\n"
+    "        Over three lines.\n"
+    '        """\n'
+    "\n"
+    "        class Four:\n"
+    '            """Four.\n'
+    "\n"
+    "            Over three lines.\n"
+    '            """\n'
+    "\n"
+    "            async def value(self):\n"
+    '                """The value.\n'
+    "\n"
+    "                Over three lines.\n"
+    '                """\n'
+    "                return 3\n"
+    "\n"
+    "        return Four\n"
+    "\n"
+    "    assert helper().value and maker() == 1\n"
+)
+MOVED_OLD_C = "import pytest\n\n\n" + NESTED_FIXTURE + "\n\n" + NESTED_CASE
+# The third old file's case and fixture moved into a class, as the formatter
+# the edit hook runs leaves them: every line four spaces deeper, the
+# continuation lines of each docstring among them.
+NESTED_NEW = "import pytest\n\n\nclass Test_four:\n" + textwrap.indent(
+    NESTED_FIXTURE.replace("def maker():", "def maker(self):")
+    + "\n"
+    + NESTED_CASE.replace(
+        "def test_four(maker):", "def test_accepts_four(self, maker):"
+    ),
+    "    ",
+)
+X, Y, Z = "tests/test_x.py", "tests/test_y.py", "tests/test_z.py"
 OLD_A, OLD_B = "tests/test_old_a.py", "tests/test_old_b.py"
+OLD_C = "tests/test_old_c.py"
 MARKED = 'import pytest\n\npytestmark = pytest.mark.usefixtures("box")\n\n\n'
 # `test_old_a.py` split between two modules' files, one case to each.
 SPLIT = {
@@ -453,6 +506,7 @@ def _moved_world(tmp_path_factory):
     write(repo, "tests/conftest.py", MOVED_CONFTEST)
     write(repo, "tests/test_old_a.py", MOVED_OLD_A)
     write(repo, "tests/test_old_b.py", MOVED_OLD_B)
+    write(repo, OLD_C, MOVED_OLD_C)
     return repo, commit_everything_as_e(repo, "base")
 
 
@@ -474,16 +528,26 @@ def run_moved(world, tmp_path, monkeypatch, news, conftest=None, olds=(OLD_A, OL
 
 
 class Test_moved:
-    def test_accepts_a_pure_move(self, _moved_world, tmp_path, monkeypatch, capsys):
+    @pytest.mark.parametrize(
+        "news, olds, cases, items",
+        [
+            ({X: MOVED_NEW}, (OLD_A, OLD_B), 4, 5),
+            ({Z: NESTED_NEW}, (OLD_C,), 1, 1),
+        ],
+        ids=["every-kind-of-move", "a-nested-docstring-re-indented"],
+    )
+    def test_accepts_a_pure_move(
+        self, _moved_world, tmp_path, monkeypatch, capsys, news, olds, cases, items
+    ):
         code, others, base = run_moved(
-            _moved_world, tmp_path, monkeypatch, {X: MOVED_NEW}
+            _moved_world, tmp_path, monkeypatch, news, olds=olds
         )
         out = capsys.readouterr().out
         assert code == 0, out
         assert "moved:" not in out.replace("test-layout: moved:", "")
         assert out.splitlines()[-1] == (
-            f"test-layout: moved: 4 old cases, 5 items against 5 at {base[:12]}, "
-            "0 failed"
+            f"test-layout: moved: {cases} old cases, {items} items against {items} "
+            f"at {base[:12]}, 0 failed"
         )
         assert others == 0, "the base's worktree was left behind"
 
@@ -504,91 +568,105 @@ class Test_moved:
         assert others == 0, "the base's worktree was left behind"
 
     @pytest.mark.parametrize(
-        "news, conftest, lines",
+        "news, conftest, lines, olds",
         [
+            (*row, (OLD_A, OLD_B))
+            for row in [
+                (
+                    {X: MOVED_NEW.replace(THREE, "")},
+                    None,
+                    [
+                        COUNT.format(3),
+                        f"{THREE_OLD}: {BODY_GONE}",
+                        f"{AGAIN}: {BODY_GONE}",
+                    ],
+                ),
+                (
+                    {X: MERGED},
+                    None,
+                    [
+                        COUNT.format(3),
+                        f"{ONE}: {BODY_GONE}",
+                        f"{THREE_OLD}: {BODY_GONE}",
+                        f"{AGAIN}: {BODY_GONE}",
+                        f"moved: {X}::Test_one::test_accepts_one: {NO_OLD}",
+                    ],
+                ),
+                (
+                    {X: MOVED_NEW.replace(REFUSE_3 + "\n", "")},
+                    None,
+                    [COUNT.format(4), f"{AGAIN}: {BODY_GONE}"],
+                ),
+                (
+                    {X: MOVED_NEW, Y: TWICE},
+                    None,
+                    [COUNT.format(6), f"moved: {Y}::test_one_again: {NO_OLD}"],
+                ),
+                (
+                    {
+                        X: MOVED_NEW.replace(
+                            REFUSE_3, REFUSE_3.replace("assert 3", "assert 4")
+                        )
+                    },
+                    None,
+                    [
+                        f"{AGAIN}: {BODY_GONE}",
+                        f"moved: {X}::Test_three::test_refuses_three: {NO_OLD}",
+                    ],
+                ),
+                (
+                    {X: MOVED_NEW},
+                    TWO_SCOPED,
+                    [
+                        f"{where}: fixture base_dir: its definition differs from the base's"
+                        for where in EVERY
+                    ],
+                ),
+                (
+                    {X: MOVED_NEW.replace('"QUIET", "1"', '"QUIET", "2"')},
+                    None,
+                    [
+                        f"{where}: fixture quiet: its definition differs from the base's"
+                        for where in (THREE_OLD, AGAIN)
+                    ],
+                ),
+                (
+                    {
+                        X: MOVED_NEW.replace(
+                            "@pytest.fixture(autouse=True)", "@pytest.fixture"
+                        )
+                    },
+                    None,
+                    [
+                        f"{where}: fixture quiet: requested at the base only"
+                        for where in (THREE_OLD, AGAIN)
+                    ],
+                ),
+                (
+                    {X: MOVED_NEW.replace(LOCAL, "")},
+                    None,
+                    [f"{ONE}: fixture local: defined at the base only"],
+                ),
+                (
+                    {X: SHADOWED},
+                    None,
+                    [
+                        f"{where}: fixture tmp_path: defined in the working tree only"
+                        for where in EVERY
+                    ],
+                ),
+            ]
+        ]
+        + [
             (
-                {X: MOVED_NEW.replace(THREE, "")},
+                {Z: NESTED_NEW.replace("return 3", "return 4")},
                 None,
                 [
-                    COUNT.format(3),
-                    f"{THREE_OLD}: {BODY_GONE}",
-                    f"{AGAIN}: {BODY_GONE}",
+                    f"moved: {OLD_C}::test_four: {BODY_GONE}",
+                    f"moved: {Z}::Test_four::test_accepts_four: {NO_OLD}",
                 ],
-            ),
-            (
-                {X: MERGED},
-                None,
-                [
-                    COUNT.format(3),
-                    f"{ONE}: {BODY_GONE}",
-                    f"{THREE_OLD}: {BODY_GONE}",
-                    f"{AGAIN}: {BODY_GONE}",
-                    f"moved: {X}::Test_one::test_accepts_one: {NO_OLD}",
-                ],
-            ),
-            (
-                {X: MOVED_NEW.replace(REFUSE_3 + "\n", "")},
-                None,
-                [COUNT.format(4), f"{AGAIN}: {BODY_GONE}"],
-            ),
-            (
-                {X: MOVED_NEW, Y: TWICE},
-                None,
-                [COUNT.format(6), f"moved: {Y}::test_one_again: {NO_OLD}"],
-            ),
-            (
-                {
-                    X: MOVED_NEW.replace(
-                        REFUSE_3, REFUSE_3.replace("assert 3", "assert 4")
-                    )
-                },
-                None,
-                [
-                    f"{AGAIN}: {BODY_GONE}",
-                    f"moved: {X}::Test_three::test_refuses_three: {NO_OLD}",
-                ],
-            ),
-            (
-                {X: MOVED_NEW},
-                TWO_SCOPED,
-                [
-                    f"{where}: fixture base_dir: its definition differs from the base's"
-                    for where in EVERY
-                ],
-            ),
-            (
-                {X: MOVED_NEW.replace('"QUIET", "1"', '"QUIET", "2"')},
-                None,
-                [
-                    f"{where}: fixture quiet: its definition differs from the base's"
-                    for where in (THREE_OLD, AGAIN)
-                ],
-            ),
-            (
-                {
-                    X: MOVED_NEW.replace(
-                        "@pytest.fixture(autouse=True)", "@pytest.fixture"
-                    )
-                },
-                None,
-                [
-                    f"{where}: fixture quiet: requested at the base only"
-                    for where in (THREE_OLD, AGAIN)
-                ],
-            ),
-            (
-                {X: MOVED_NEW.replace(LOCAL, "")},
-                None,
-                [f"{ONE}: fixture local: defined at the base only"],
-            ),
-            (
-                {X: SHADOWED},
-                None,
-                [
-                    f"{where}: fixture tmp_path: defined in the working tree only"
-                    for where in EVERY
-                ],
-            ),
+                (OLD_C,),
+            )
         ],
         ids=[
             "a-cut",
@@ -601,13 +679,14 @@ class Test_moved:
             "a-lost-autouse",
             "a-fixture-left-behind",
             "a-shadowed-fixture",
+            "an-edited-nested-function",
         ],
     )
     def test_refuses_a_cut_a_merge_an_edited_body_and_a_changed_fixture(
-        self, _moved_world, tmp_path, monkeypatch, capsys, news, conftest, lines
+        self, _moved_world, tmp_path, monkeypatch, capsys, news, conftest, lines, olds
     ):
         code, others, _base = run_moved(
-            _moved_world, tmp_path, monkeypatch, news, conftest
+            _moved_world, tmp_path, monkeypatch, news, conftest, olds
         )
         out = capsys.readouterr().out
         assert code == 1, out

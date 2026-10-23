@@ -66,15 +66,18 @@ file that keeps cases for a later group. It prints a line opening with
            worktree of BASE added under a temporary directory and removed
            before the check ends
   body     each old case is a case of the NEW files unchanged apart from its
-           name, its place, the class around it, its docstring and a `self`
-           parameter, each new case standing for one old case; a new case
-           that stands for none is named, so an old case that lands twice is
-           named by its second landing
+           name, its place, the class around it, a `self` parameter and its
+           docstrings, its own and those of every function and class it
+           defines at any depth, which the formatter the edit hook runs
+           re-indents to the depth a move puts them at; each new case
+           stands for one old case, and a new case that stands for none is
+           named, so an old case that lands twice is named by its second
+           landing
   fixture  the two cases request the same fixtures, by parameter, by
            `usefixtures` or as autouse, and each, followed through the
            fixtures it requests, is defined alike in both trees, in the
-           case's class, its file or `tests/conftest.py`; a name defined in
-           neither tree is pytest's own
+           case's class, its file or `tests/conftest.py`, read as a case's
+           body is read; a name defined in neither tree is pytest's own
 
 It then prints the old cases, both counts and the failures on one last line.
 
@@ -473,12 +476,18 @@ def _without_docstring(body):
     return body[1:] if body and _is_docstring(body[0]) else body
 
 
-def _moved_form(case):
-    """CASE as an AST dump that keeps its decorators, its parameters and its
-    body, and drops its name, its docstring and a first `self`."""
-    node = copy.deepcopy(case)
+def _moved_form(definition):
+    """DEFINITION, a case or a fixture, as an AST dump that keeps its
+    decorators, its parameters and its body, and drops its name, a first
+    `self`, and the docstring of DEFINITION and of every function and class
+    it defines, at any depth. The formatter the edit hook runs re-indents a
+    nested docstring's continuation lines to the depth a move puts it at, so
+    a docstring compared would fail a case whose code did not change."""
+    node = copy.deepcopy(definition)
     node.name = ""
-    node.body = _without_docstring(node.body) or [ast.Pass()]
+    for inner in list(ast.walk(node)):
+        if isinstance(inner, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            inner.body = _without_docstring(inner.body) or [ast.Pass()]
     params = node.args.posonlyargs or node.args.args
     if params and params[0].arg == "self":
         del params[0]
@@ -570,9 +579,10 @@ def _requested(tree, cls, case, conftest):
 
 
 def _resolver(tree, cls, conftest):
-    """A function from a fixture name to its definition's AST dump, read in
-    CASE's class, then its file, then CONFTEST's tree; None where none of
-    them defines it, which is a fixture pytest itself provides."""
+    """A function from a fixture name to its definition's form
+    (`_moved_form`) and the fixtures it requests, read in CASE's class, then
+    its file, then CONFTEST's tree; None where none of them defines it,
+    which is a fixture pytest itself provides."""
     scopes = ([cls.body] if cls is not None else []) + [tree.body]
     if conftest is not None:
         scopes.append(conftest.body)
@@ -581,9 +591,8 @@ def _resolver(tree, cls, conftest):
     def resolve(name):
         for table in tables:
             if name in table:
-                node = copy.deepcopy(table[name][0])
-                node.body = _without_docstring(node.body) or [ast.Pass()]
-                return ast.dump(node), set(_parameters(node)) - {"request"}
+                node = table[name][0]
+                return _moved_form(node), set(_parameters(node)) - {"request"}
         return None
 
     return resolve
