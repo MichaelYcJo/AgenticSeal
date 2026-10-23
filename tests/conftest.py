@@ -1288,6 +1288,24 @@ def projects(monkeypatch, tmp_path):
     return root
 
 
+# --- a routing declaration as text ----------------------------------------------
+
+
+def two_axis_text(branch="feature/x"):
+    """A declaration in the shape every one written before the third axis had."""
+    return (
+        "| Axis | Answer |\n|---|---|\n"
+        "| Review | through the review chain |\n"
+        "| Destination | open the pull request |\n"
+        f"| Branch | {branch} |\n"
+    )
+
+
+def with_row(label, answer):
+    """`two_axis_text()` with one more row in front of `Branch`."""
+    return two_axis_text().replace("| Branch |", f"| {label} | {answer} |\n| Branch |")
+
+
 # --- a console the gates cannot encode to --------------------------------------
 
 # Korean, which cp949 encodes and ASCII does not; it is in the payload on

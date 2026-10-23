@@ -35,7 +35,7 @@ BREAKS = {
 CHAIN = "through the review chain"
 DIRECT = "straight to the PR"
 
-# `tests/test_routing_is_recorded.py#two_axis_text`, as lines.
+# `tests/conftest.py#two_axis_text`, as lines.
 TABLE = [
     "| Axis | Answer |",
     "|---|---|",
