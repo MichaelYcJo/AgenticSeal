@@ -13,7 +13,7 @@ The two findings share one cause. The name condition now refuses moves the three
 severity: should
 location: `seal/specs/1792628098-tests-rebuilt-one-file-per-module/plan.md:94`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/questions.md:46`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/overview.md:35`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-6.md:1693`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-7.md:160`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-7.md:168`
 evidence: executed `python3 moves.py`, `git show 7cd34d46:tests/test_a_unit_is_bounded_where_a_parser_decides.py`, `git show 31aed13b:tests/test_coordinates.py`, `git show f7ef43cc:tests/test_the_suite_has_a_command_that_is_cheap_twice.py`, `git show a4a113f6:tests/test_run_tests.py`, `git show 56d2f856:tests/test_a_shrunken_corpus_declines_to_judge.py`
-verdict: open
+verdict: fixed f9031b38
 regression: round-3#1
 
 The unit is `plan.md` *Round 3's fix pass* step 3, the rule for which modules a re-run that now fails sends to the mutants, as the re-run records at 724b3831 apply it. `spec.md:78` ends "A group whose check exits 1 runs the mutants for each of its modules". Step 3 narrows that, for a re-run whose lines are all on the name condition, to "those whose new file, by its `TARGET`, holds a case a line names". The fix followed step 3 as written. The defect comes from step 3 itself: it keys on a `TARGET` that the file holding a named case need not declare.
@@ -54,14 +54,14 @@ cases, at 4e987021*) | the framer |
 
 The second way, for the framer to weigh against the first: the name condition follows `from <module> import <name>` into a test file directly under `tests/` too, in the same tree. pytest imports such a file by that name. The row `a-name-imported-from-another-test-file` then passes where `V` is defined alike in both test files and refuses where it is not.
 
-answer:
+answer: The framer took both ways at b120e598. 32cd06c7 makes the condition follow an import from another test file, with `a-name-imported-from-another-test-file` moved to the accepting case and `a-changed-name-in-another-test-file` refusing, both seen red at a1047bfe. f9031b38 holds the re-run of all 52 recorded commands with it and sends every line naming a case in a file that declares no `TARGET` to its case's subject. The re-run counts 34 such lines, not 25: 13 of the 25 now pass, 12 still fail, and 22 more stand in groups recorded at exit 1, which plan step 4 sends whatever the command was recorded at and the count of 25 left out. Groups 29, 41, 48 and 49 now exit 0. Each subject has a fresh table or names the earlier table it stands on; 19 fresh mutants ran, 12 red and 7 old gaps, and no protection was lost (`phases/phase-6.md` and `phases/phase-7.md`, each *The move checks re-run with a test file's import followed*). `overview.md`'s row is rewritten with these counts and closed.
 
 ### 2. The fourth condition's statements say less than the check does, and a swap of two definitions passes the check
 
 severity: should
 location: `skills/verify/scripts/test_layout.py:97-99`, `skills/verify/scripts/test_layout.py:801`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/spec.md:78`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/overview.md:60`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/overview.md:67`, `CONTRIBUTING.md:295-299`
 evidence: executed `python3 swap_probe.py clone`, `git grep -n "four conditions\|the other two" -- tests skills/verify agents CONTRIBUTING.md docs`, `grep -n "self.<name>\|<module>.<name>\|reaches and the other" spec.md`
-verdict: open
+verdict: fixed 32cd06c7
 regression: round-3#1
 
 The unit is the name condition as the fix pass built it and stated it: `_Names.forms` at 2f681b9c to 79af3fcc, the script's `names` entry, the `CONTRIBUTING.md` sentence and the fourth condition of `spec.md:78`. The frame says the condition's one limit is a name reached through a string ("and that is the condition's limit"). The fix built a check that also reads `<module>.<name>`, `self.<name>` and a name only one tree reaches, and that keeps one set of forms per name. The defect comes from how those statements describe the code, plus one escape that 79af3fcc's set of forms opens.
@@ -114,7 +114,7 @@ It passes where every condition `skills/verify/scripts/test_layout.py`'s
 docstring states for `--moved` holds.
 ```
 
-answer:
+answer: The framer wrote the three readings and the two limits into `spec.md` at b120e598. 32cd06c7 rewrites the script's `names` entry: it states the `self.<name>` and `<module>.<name>` readings, that a name one tree's reading reaches and the other's does not is a change, that each name is compared as the set of its distinct definitions, and the two limits, the string and the swap. It says "for each failure of the conditions below" and "passed the body and fixture conditions". `CONTRIBUTING.md`'s bullet now points at the docstring for the conditions and lists none, and neither file says "four conditions". The swap gets no guard, as the plan's alternatives weigh it. `overview.md`'s *Fed back into the spec* bullet names the reframe and the two limits at f9031b38.
 
 ## Confirmations
 
