@@ -301,7 +301,7 @@ def toplevel(cwd):
     The twin of `hooks/sealer-stamp.py#toplevel`, and duplicated rather than
     imported: that module imports `console` and `optin` at load, so reaching
     it would make the report depend on the modules whose failure it reports.
-    `tests/test_a_gate_that_fails_says_so.py` holds the two to one answer."""
+    `tests/test_dispatch.py` holds the two to one answer."""
     if not cwd:
         return ""
     here = os.path.abspath(cwd)
@@ -629,7 +629,7 @@ def main():
         print(merged)
 
 
-# exempt from entry_point: its own reconfigure loop, held by test_console_is_not_utf8
+# exempt from entry_point: its own reconfigure loop, held by test_dispatch
 if __name__ == "__main__":
     # THE entry point, and the only one that matters in production: `hooks.json`
     # spawns this file and nothing else, and it loads each gate with

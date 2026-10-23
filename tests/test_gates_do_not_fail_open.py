@@ -1,6 +1,6 @@
 """The reading direction: a reader that cannot decode must not answer "nothing".
 
-`tests/test_console_is_not_utf8.py` holds the writing direction — a gate that
+`tests/test_console.py` holds the writing direction — a gate that
 raises while printing dies with empty stdout. This file holds the other one,
 which is quieter and worse.
 

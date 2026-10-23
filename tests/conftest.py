@@ -570,7 +570,11 @@ def run_hook(filename, payload, env=None):
 
 
 def decision_of(stdout):
-    """'silent' when a hook allowed by staying quiet, else its decision."""
+    """'silent' when a hook allowed by staying quiet, else its decision.
+    STDOUT is the hook's output as text, or the finished process whose
+    output is bytes, as a case run on a hostile console holds it."""
+    if isinstance(stdout, subprocess.CompletedProcess):
+        stdout = stdout.stdout.decode("utf-8")
     if not stdout.strip():
         return "silent"
     return json.loads(stdout)["hookSpecificOutput"]["permissionDecision"]
@@ -1282,3 +1286,53 @@ def projects(monkeypatch, tmp_path):
     root.mkdir()
     monkeypatch.setattr(sys.modules["worktree_consent"], "PROJECTS_ROOT", str(root))
     return root
+
+
+# --- a console the gates cannot encode to --------------------------------------
+
+# Korean, which cp949 encodes and ASCII does not; it is in the payload on
+# purpose, because the payload carries the user's own command text, which is
+# where the non-ASCII in production actually is.
+KOREAN = "한글"
+
+# Consoles that cannot carry what the gates say. `ascii` is the sharpest and is
+# not hypothetical: it is what a bare `LC_ALL=C` gives a POSIX runner.
+HOSTILE = ["cp949", "ascii", "latin-1"]
+
+
+_CONSOLE_REPO_TEMPLATE = None
+
+
+def _console_repo_template():
+    """A repo with one committed file, built once per process -- `opted_in_repo`
+    is called once per case of the hostile-console cases, always onto this
+    shape."""
+    global _CONSOLE_REPO_TEMPLATE
+    if _CONSOLE_REPO_TEMPLATE is None:
+        d = pathlib.Path(tempfile.mkdtemp(prefix="specseal-console-repo-template-"))
+        d = d / "repo"
+        d.mkdir(parents=True)
+        git = lambda *a: subprocess.run(
+            ["git", "-C", str(d), *a], check=True, capture_output=True
+        )
+        git("init", "-q")
+        git("config", "user.email", "t@t.example")
+        git("config", "user.name", "t")
+        (d / "f.txt").write_text("one\n", encoding="utf-8")
+        git("add", "-A")
+        git("commit", "-qm", "base")
+        atexit.register(shutil.rmtree, d, True)
+        _CONSOLE_REPO_TEMPLATE = d
+    return _CONSOLE_REPO_TEMPLATE
+
+
+def opted_in_repo(where):
+    """A repository the commit gate fires in, at a path holding non-ASCII."""
+    shutil.copytree(_console_repo_template(), where)
+    (where / "seal").mkdir(exist_ok=True)
+    return where
+
+
+@pytest.fixture
+def korean_repo(tmp_path):
+    return opted_in_repo(tmp_path / KOREAN / "repo")

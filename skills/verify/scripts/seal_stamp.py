@@ -178,7 +178,7 @@ MESSAGE_LIMIT = 10000
 # `dispatch.describe`, every gate this plugin names and three foreign ones,
 # in every group it names and a foreign one, at every phase, with every field
 # past its cap -- a record an older or newer plugin wrote;
-# `tests/test_a_gate_that_fails_says_so.py#longest_report` is the
+# `tests/test_dispatch.py#longest_report` is the
 # measurement). Before #722 the name had no cap, so a class from outside the
 # plugin with a long enough name passed the reserve with two gates. The caps
 # count the same units, so a name or a text outside the BMP keeps these

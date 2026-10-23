@@ -647,7 +647,8 @@ def entry_point(rel, root=None):
     `console.to_utf8()`, which `hooks/console.py` says each one carries
     rather than relying on `dispatch.py` having made the call. The census
     reads the order: the call after `main()` is refused as its absence is.
-    Whether the call works is `tests/test_console_is_not_utf8.py`'s."""
+    Whether the call works is `tests/test_console.py`'s and, for the
+    dispatcher's own loop, `tests/test_dispatch.py`'s."""
     text = _python(rel, root, ("hooks/",))
     if text is None:
         return []
