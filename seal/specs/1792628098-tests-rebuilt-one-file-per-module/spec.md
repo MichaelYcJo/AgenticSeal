@@ -95,6 +95,38 @@ The target the rebuild works toward is the issue's: the suite's real protection 
 - The censuses: a census moves into `tests/censuses.py` and runs per module through `test_census` when it judges one file by reading that file alone. A check that reads a document's prose, compares files with each other, derives a set across files, or judges records or markdown against an oracle stays where it is. `tests/test_censuses.py` sweeps every tracked file whose module file does not declare it, so a document and a module not yet rebuilt keep their censuses. The stored lists `OUT_OF_CLASS` (two blocks), `ALLOWED`, `ENTRY_POINTS_CLASSIFIED`, `COORDINATE_EXEMPT` and `HEADING_EXEMPT` become comment lines above the exempted lines. The `Reads:` census is already gone.
 - The release sweep: `docs/release-checklist.md` section 5, through `## Rule changes` below.
 
+### The check lines the remaining groups meet
+
+One survey at 44525de4 read every `check:` line in the files `.github/scripts/rules.py#RULE_FILES` lists, and took each line that names a test file declaring no `TARGET`, or a declared file holding a case left for a later group. Each line was judged by `questions.md`'s answer on which files a line names once its cases move. A `docs/` line whose files change has its item under *Rule changes* below, and the installer's line waits on Q10. A line outside the policy root is rewritten in place by the group that moves its cases, in that group's commit:
+
+| Line at 44525de4 | What it names once the group moves | The group that rewrites it |
+|---|---|---|
+| `agents/sealer.md` line 144 | `tests/test_the_sealer_guarantees.py tests/test_chain_check.py` | `skills/code-review/scripts/` |
+| `agents/smith.md` line 109 | `tests/test_a_moved_rule_leaves_its_definition.py tests/test_a_mutation_clears_one_files_bytecode_and_ends_at_a_timeout.py tests/test_mutation_check.py` | `skills/verify/scripts/` |
+| `agents/smith.md` line 123 | `tests/test_the_handoff_before_round_one.py tests/test_a_mutation_clears_one_files_bytecode_and_ends_at_a_timeout.py tests/test_mutation_check.py` | `skills/verify/scripts/` |
+| `agents/warden.md` line 99 | `tests/test_a_reference_root_is_read_and_never_taken.py tests/test_config.py` | `hooks/config.py` |
+| `skills/writing-style/SKILL.md` line 268 | `tests/test_rules.py tests/test_rule_changes.py tests/test_censuses.py tests/test_the_agent_contract_holds_the_universal_rules.py` | `.github/scripts/` writes `tests/test_rules.py` in place of `tests/test_the_rules_command_reads_each_rule_off_its_test.py`, and `skills/settle/scripts/` writes `tests/test_rule_changes.py` in place of `tests/test_settle_applies_rule_changes_in_place.py` |
+
+A file a remaining group draws cases from keeps the lines below unchanged, because the cases their rules rest on stay in it, or because the file already carries the module's rule 1 name:
+
+| File | The lines it keeps, at 44525de4 |
+|---|---|
+| `tests/test_session_cost.py` | `docs/measuring-a-run.md` lines 21, 31, 38, 46 and 68: the file takes `skills/verify/scripts/session_cost.py`'s cases under the name it has |
+| `tests/test_arm_check.py` | `docs/the-broad-gate.md` line 153, for the same reason |
+| `tests/test_chain_check.py` | all 13 of its lines: the one case it gives up, `test_the_baseline_is_the_first_code_span_of_its_one_row`, holds the `Baseline commit` reader, whose rule is `skills/legacy-parity/SKILL.md`'s and names other files |
+| `tests/test_pact_check.py` | `docs/the-pact.md` lines 102 and 141 |
+| `tests/test_a_signer_declares_its_pact.py` | `docs/the-pact.md` lines 45 and 61, held by the template and routing cases that stay |
+| `tests/test_chain_hooks_hardening.py` | `agents/smith.md` lines 85 and 173, held by the definition cases that stay |
+| `tests/test_the_suite_has_a_command_that_is_cheap_twice.py` | `agents/smith.md` line 142 and `agents/warden.md` line 162, held by the definition cases that stay |
+| `tests/test_the_sealer_guarantees.py` | `agents/sealer.md` line 109, `docs/the-agent-set.md` line 61 and `docs/the-review-record.md` line 282, held by the definition and document cases that stay |
+| `tests/test_a_release_publishes_its_note.py`, `tests/test_the_release_seal_is_drawn.py` | `docs/branch-and-release.md` line 94, held by the release-tail cases and the cases that read the workflows, which stay |
+| `tests/test_a_release_rolls_the_flow_measurement_issue.py` | `docs/issues-and-milestones.md` line 179, whose rule no case of the roll holds |
+| `tests/test_the_pull_request_language_is_the_repositorys.py` | `docs/one-root-by-lifetime.md` line 214 and the Korean edition's line 204, held by the cases that compare the template's exclusion list with the checkers |
+| `tests/test_release_hygiene.py` | `docs/release-checklist.md` lines 76 and 192, held by the version sweep and the changelog heading cases; line 76's marker moves with the gather case that carries it |
+| `tests/test_settle_reads_before_it_removes.py` | `docs/the-record-layout.md` lines 117 and 129, held by the skill cases that stay |
+
+Every other line the survey found names a file no remaining group draws a case from: its cases read prose, which #923 places, or compare files with each other, which *What the frame decided* keeps where it is. Those files are `tests/test_waiver_decided_at_start.py`, `tests/test_a_question_says_who_can_answer_it.py`, `tests/test_a_phase_hands_the_next_one_a_record.py`, `tests/test_the_handoff_before_round_one.py`, `tests/test_the_rules_have_one_owner.py`, `tests/test_a_moved_rule_leaves_its_definition.py`, `tests/test_a_probe_that_commits_says_so.py`, `tests/test_a_probe_does_not_outlive_its_round.py`, `tests/test_absence_claims.py`, `tests/test_broad_gate_rule.py`, `tests/test_the_seal_is_taken_once_by_the_sealer.py`, `tests/test_review_axes.py`, `tests/test_the_verifying_round_is_bounded_not_cheapest.py`, `tests/test_the_record_is_written_in_words.py`, `tests/test_edits_go_through_the_edit_tool.py`, `tests/test_a_commit_names_its_repository.py`, `tests/test_a_parallel_agent_names_its_scratch_after_the_work_item.py`, `tests/test_a_rider_reaches_its_file.py`, `tests/test_the_release_check_watches_what_ships.py`, `tests/test_the_release_tail_does_not_end_at_the_tag.py`, `tests/test_a_release_is_sized_by_a_criterion.py`, `tests/test_a_segment_feeds_the_flow_log.py`, `tests/test_the_settings_have_a_front_door.py`, `tests/test_first_setup_asks_once.py`, `tests/test_a_shrunken_corpus_declines_to_judge.py`, `tests/test_the_contributor_has_a_procedure.py`, `tests/test_every_orchestrator_act_names_its_delivery.py`, `tests/test_every_agent_reads_the_contract.py`, `tests/test_one_word_one_meaning.py`, `tests/test_the_agent_contract_holds_the_universal_rules.py`, `tests/test_the_gate_asks_the_range_ci_will_ask.py`, `tests/test_both_editions_carry_the_same_folds.py`, `tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py`, `tests/test_the_rules_claude_md_names_have_one_home.py`, `tests/test_no_passage_is_pasted_into_a_second_file.py`, `tests/test_the_hook_surface_git_offers.py` and `tests/test_the_frozen_reading_never_grows.py`. The last two are named by `docs/the-commit-gate-inside-git.md` line 183, which stands under the heading Q10 found doubled and so could carry no item; it needs none, because the hook surface file probes git itself and the frozen reading file's cases compare files with each other or wait on Q10 with the installer.
+
 ### Out
 
 - Cases whose assertion reads this repository's prose: #923. Each batch lists the ones it left.
@@ -181,7 +213,7 @@ The target the rebuild works toward is the issue's: the suite's real protection 
   file: docs/commit-review-gate-spec.md
   section: The PreToolUse reading of a commit
   from: check: tests/test_no_shape_the_base_stops_reads_silent.py
-  to: check: tests/test_commit_review_gate.py
+  to: check: tests/test_commit_review_gate.py tests/test_cmdline.py
 - change
   file: docs/worktree-guard-spec.md
   section: Creation consent
@@ -315,6 +347,196 @@ The target the rebuild works toward is the issue's: the suite's real protection 
   section: The stamp
   from: check: tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py
   to: check: tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py tests/test_sealer_stamp.py
+- change
+  file: docs/commit-review-gate-spec.md
+  section: The PreToolUse reading of a commit
+  from: check: tests/test_an_automation_run_meets_no_commit_prompt.py
+  to: check: tests/test_commit_review_gate.py tests/test_worktree_consent.py
+- change
+  file: docs/commit-review-gate-spec.md
+  section: Which repository
+  from: check: tests/test_gate_judges_the_repo_it_commits_to.py tests/test_what_the_reader_understands.py
+  to: check: tests/test_commit_review_gate.py tests/test_cmdline.py
+- change
+  file: docs/commit-review-gate-spec.md
+  section: Which repository
+  from: check: tests/test_a_commit_behind_a_reserved_word_is_judged.py tests/test_a_commit_behind_a_wrapper_or_in_a_substitution_is_judged.py
+  to: check: tests/test_commit_review_gate.py tests/test_cmdline.py
+- change
+  file: docs/the-review-and-parity-arms.md
+  section: Review arm
+  from: check: tests/test_the_waiver_can_be_typed.py
+  to: check: tests/test_commit_review_gate.py
+- change
+  file: docs/the-review-and-parity-arms.md
+  section: Parity arm
+  from: check: tests/test_chain_hooks_hardening.py
+  to: check: tests/test_commit_review_gate.py tests/test_commitgate.py tests/test_gate.py
+- change
+  file: docs/one-root-by-lifetime.md
+  section: What the repository decides for itself, and how it is read
+  from: check: tests/test_the_mode_question_is_asked_once.py
+  to: check: tests/test_config.py
+- change
+  file: docs/one-root-by-lifetime.ko.md
+  section: 저장소가 스스로 정하는 것, 그리고 그것을 읽는 방법
+  from: check: tests/test_the_mode_question_is_asked_once.py
+  to: check: tests/test_config.py
+- change
+  file: docs/one-root-by-lifetime.md
+  section: What the repository decides for itself, and how it is read
+  from: than for one language. check: tests/test_the_pull_request_language_is_the_repositorys.py
+  to: than for one language.
+    check: tests/test_the_pull_request_language_is_the_repositorys.py tests/test_config.py
+- change
+  file: docs/one-root-by-lifetime.ko.md
+  section: 저장소가 스스로 정하는 것, 그리고 그것을 읽는 방법
+  from: 이름을 붙입니다. check: tests/test_the_pull_request_language_is_the_repositorys.py
+  to: 이름을 붙입니다.
+    check: tests/test_the_pull_request_language_is_the_repositorys.py tests/test_config.py
+- change
+  file: docs/the-pact.md
+  section: The words
+  from: check: tests/test_one_word_one_meaning.py tests/test_a_signer_declares_its_pact.py
+  to: check: tests/test_one_word_one_meaning.py tests/test_config.py
+- change
+  file: docs/the-pact.md
+  section: The words
+  from: check: tests/test_pact_check.py tests/test_a_signer_declares_its_pact.py tests/test_one_word_one_meaning.py
+  to: check: tests/test_pact_check.py tests/test_config.py tests/test_one_word_one_meaning.py
+- change
+  file: docs/the-pact.md
+  section: How a signer names the pact
+  from: check: tests/test_a_signer_declares_its_pact.py tests/test_pact_check.py
+  to: check: tests/test_a_signer_declares_its_pact.py tests/test_pact_check.py tests/test_config.py
+- change
+  file: docs/the-pact.md
+  section: The pact anchor
+  from: check: tests/test_pact_check.py tests/test_a_unit_is_bounded_where_a_parser_decides.py
+  to: check: tests/test_pact_check.py tests/test_coordinates.py
+- change
+  file: docs/the-pact.md
+  section: `pact-check` reconciles, locally
+  from: check: tests/test_pact_check.py
+  to: check: tests/test_pact_check.py tests/test_config.py
+- change
+  file: docs/the-agent-set.md
+  section: What a spawn costs
+  from: check: tests/test_the_payload_meter_says_what_it_measured.py
+  to: check: tests/test_payload_meter.py
+- change
+  file: docs/the-broad-gate.md
+  section: What the gate runs, and how the list is kept true
+  from: check: tests/test_the_gate_names_every_step_ci_runs.py
+  to: check: tests/test_broad_gate.py
+- change
+  file: docs/the-broad-gate.md
+  section: What the runner owes the person who typed it
+  from: nothing else. check: tests/test_the_suite_has_a_command_that_is_cheap_twice.py
+  to: nothing else.
+    check: tests/test_run_tests.py
+- change
+  file: docs/the-broad-gate.md
+  section: What the runner owes the person who typed it
+  from: carries on. check: tests/test_the_suite_has_a_command_that_is_cheap_twice.py
+  to: carries on.
+    check: tests/test_run_tests.py
+- change
+  file: docs/the-broad-gate.md
+  section: What the runner owes the person who typed it
+  from: or `--pdb`. check: tests/test_the_suite_has_a_command_that_is_cheap_twice.py
+  to: or `--pdb`.
+    check: tests/test_run_tests.py
+- change
+  file: docs/measuring-a-run.md
+  section: What a measurement must survive, and what it must not invent
+  from: check: tests/test_a_derived_number_reaching_an_int_carries_a_guard.py
+  to: check: tests/test_session_cost.py
+- change
+  file: docs/measuring-a-run.md
+  section: Where a reading goes
+  from: remember to run it. check: tests/test_session_cost_post.py
+  to: remember to run it.
+    check: tests/test_session_cost.py
+- change
+  file: docs/measuring-a-run.md
+  section: Where a reading goes
+  from: reaching it would. check: tests/test_session_cost_post.py
+  to: reaching it would.
+    check: tests/test_session_cost.py
+- change
+  file: docs/issues-and-milestones.md
+  section: A label answers *what it is about*, and survives the move
+  from: answers no lookup. check: tests/test_a_release_rolls_the_flow_measurement_issue.py
+  to: answers no lookup.
+    check: tests/test_roll_flow_measurement_issue.py
+- change
+  file: docs/issues-and-milestones.md
+  section: A label says a ticket is already in, before the release ships
+  from: check: tests/test_a_merged_ticket_says_so_on_the_tracker.py
+  to: check: tests/test_label_merged_on_release_branch.py
+- change
+  file: docs/issues-and-milestones.md
+  section: A keyword claims the one number after it
+  from: check: tests/test_a_body_naming_two_issues_claims_one.py
+  to: check: tests/test_a_body_naming_two_issues_claims_one.py tests/test_issue_claims_check.py
+- change
+  file: docs/issues-and-milestones.md
+  section: A keyword claims the one number after it
+  from: check: tests/test_release_hygiene.py
+  to: check: tests/test_close_issues_on_release.py
+- change
+  file: docs/branch-and-release.md
+  section: Work accumulates on a release branch
+  from: check: tests/test_the_closer_carries_on_past_a_refusal.py
+  to: check: tests/test_close_issues_on_release.py
+- change
+  file: docs/the-record-layout.md
+  section: The size a reader takes whole
+  from: check: tests/test_a_document_has_room_for_the_next_fold.py
+  to: check: tests/test_fold_check.py
+- change
+  file: docs/the-record-layout.md
+  section: A change writes fragments, never a shared file
+  from: check: tests/test_the_changelog_is_gathered_at_release.py
+  to: check: tests/test_gather_changelog.py
+- change
+  file: docs/the-record-layout.md
+  section: The fold, and what tells it from a deletion
+  from: applies its rule changes. check: tests/test_settle_reads_before_it_removes.py
+  to: applies its rule changes.
+    check: tests/test_settle.py
+- change
+  file: docs/the-record-layout.md
+  section: The fold, and what tells it from a deletion
+  from: check: tests/test_settle_applies_rule_changes_in_place.py tests/test_settle_reads_before_it_removes.py
+  to: check: tests/test_rule_changes.py tests/test_settle.py
+- change
+  file: docs/the-record-layout.md
+  section: seal/specs/<work-item-id>/
+  from: check: tests/test_settle_applies_rule_changes_in_place.py
+  to: check: tests/test_settle.py
+- change
+  file: docs/the-record-layout.md
+  section: The root records
+  from: check: tests/test_the_changelog_is_gathered_at_release.py
+  to: check: tests/test_the_changelog_is_gathered_at_release.py tests/test_gather_changelog.py
+- change
+  file: docs/the-review-record.md
+  section: The round record
+  from: check: tests/test_settle_applies_rule_changes_in_place.py
+  to: check: tests/test_settle.py
+- change
+  file: docs/the-review-record.md
+  section: The guarantee
+  from: at the new HEAD. check: tests/test_the_sealer_guarantees.py
+  to: at the new HEAD.
+    check: tests/test_the_sealer_guarantees.py tests/test_chain_check.py
+- change
+  file: docs/release-checklist.md
+  section: 2. Gather, bump
+  from: check: tests/test_the_changelog_is_gathered_at_release.py
+  to: check: tests/test_gather_changelog.py
 
 ## Open questions → questions.md
 
