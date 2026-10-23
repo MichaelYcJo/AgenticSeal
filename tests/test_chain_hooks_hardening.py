@@ -1,10 +1,9 @@
 """Hardening cases: prose-mention false positives, cycle edges, lease isolation.
 
 The commit gate's cases, the parity arm's among them, are in
-`tests/test_commit_review_gate.py`'s `Test_main` (#942's phase 6), and the
-parity arm's case of `hooks/commitgate.py#pre_commit` is in
-`tests/test_commitgate.py`. The backstop's case below waits for
-`hooks/gate.py`'s group.
+`tests/test_commit_review_gate.py`'s `Test_main` (#942's phase 6), the parity
+arm's case of `hooks/commitgate.py#pre_commit` is in `tests/test_commitgate.py`,
+and the backstop's path reader's is in `tests/test_gate.py`.
 """
 
 import json
@@ -14,18 +13,6 @@ import subprocess
 import sys
 
 import pytest
-from conftest import a_git_whose_diff_fails, stage
-
-
-def git(repo, *a):
-    return subprocess.run(
-        ["git", "-C", str(repo), *a],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-        check=False,
-    )
-
 
 # --- packaging sanity ------------------------------------------------------
 
@@ -165,40 +152,6 @@ def test_parity_declaration_is_bootstrappable_not_hand_written():
     assert "disable-model-invocation: true" in head, (
         "parity-setup writes a declaration; it must not fire on its own"
     )
-
-
-def test_the_backstop_hands_the_parity_arm_none_where_git_could_not_list(
-    repo, tmp_path, monkeypatch
-):
-    """S10 of work item 1791384157 (#868), the backstop's path reader:
-    `reference-transaction` lists what a commit past `--no-verify` carries
-    with `git diff` over its base, and a failure there is None, which
-    `gate.touches_code` answers True. A break reading the failure as an empty
-    list survived every case until this one."""
-    if os.name == "nt":
-        pytest.skip("the shim is a POSIX shell script")
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "hooks"))
-    import commitgate
-    import gate
-
-    head = git(repo, "rev-parse", "HEAD").stdout.strip()
-    stage(repo, "service.py")
-    git(
-        repo,
-        "-c",
-        "user.email=e@example.com",
-        "-c",
-        "user.name=e",
-        "commit",
-        "-qm",
-        "c",
-    )
-    new = git(repo, "rev-parse", "HEAD").stdout.strip()
-    assert commitgate._paths_between(str(repo), head, new)() == ["service.py"]
-    monkeypatch.setenv("PATH", a_git_whose_diff_fails(tmp_path))
-    listed = commitgate._paths_between(str(repo), head, new)()
-    assert listed is None, listed
-    assert gate.touches_code(listed)
 
 
 def _folded(name):
