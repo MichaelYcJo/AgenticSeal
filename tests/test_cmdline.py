@@ -1,11 +1,14 @@
 """`hooks/cmdline.py`, the commit gate's reading of a command's text, one
 class per function the old cases call by name.
 
-Every case here reads a command with no git and no shell, through the reader
-itself or through the commit gate's `commit_invocations`, which hands the
-command to this module; a case of the second kind is `Test_module`'s. The
-cases moved here as they stood, under `questions.md` Q1 of #942, and #1014
-decides the reading's future. They came from these files, by #942's phase 6:
+Almost every case here reads a command with no git and no shell, through the
+reader itself or through the commit gate's `commit_invocations`, which hands
+the command to this module; a case of the second kind is `Test_module`'s.
+The real-shell rows of `Test_understood` run each construct through bash to
+show where it lands, and six cases of `Test_module` run the commit gate over
+repositories git made, to show its verdict follows the reading. The cases
+moved here as they stood, under `questions.md` Q1 of #942, and #1014 decides
+the reading's future. They came from these files, by #942's phase 6:
 
 - `tests/test_one_heredoc_shape_is_data_to_the_commit_gate.py`: a body
   outside the one heredoc shape is read as shell for whether it commits
@@ -28,6 +31,15 @@ decides the reading's future. They came from these files, by #942's phase 6:
   #737), each reading in the stricter direction.
 - `tests/test_no_shape_the_base_stops_reads_silent.py`: two shapes the commit
   gate's corpus of leaks turned up, read with no git.
+- `tests/test_what_the_reader_understands.py`: the reader answered "nothing
+  moved" for every construct it did not model (#72); it now enumerates what
+  it understands and routes everything else to `Unresolved`. Its constant
+  `TARGET = "/target"` is `TARGET_DIR` here, and its `unreadable` keeps its
+  name, so the walk file's is `unreadable_flags`.
+- `tests/test_a_path_the_command_wrote_out.py`: a name the command assigns
+  for itself fills a `$NAME` operand, and nothing guesses at an environment
+  this process cannot see. Its `BODIES` is `UNRUN_BODIES` here, beside the
+  wrapper file's.
 
 `SHAPES` and `HERE` are read by `tests/test_commit_review_gate.py::Test_main`,
 which runs the gate's `main` over the same shapes against real git.
@@ -35,10 +47,25 @@ which runs the gate's `main` over the same shapes against real git.
 
 import functools
 import os
+import shlex
+import subprocess
 import sys
 
 import pytest
-from conftest import HOOKS, census_case, commit_found, load_hook_module, sh
+from conftest import (
+    HOOKS,
+    census_case,
+    commit_found,
+    decision_of,
+    declare_routing,
+    fired,
+    load_hook_module,
+    local_home,
+    reason_of,
+    sh,
+    shell_probe,
+)
+from conftest import run_gate as run
 from test_one_heredoc import FAILS
 
 TARGET = "hooks/cmdline.py"
@@ -91,8 +118,356 @@ def commit_dirs(command, cwd):
     return out
 
 
-def unreadable(wheres):
+def unreadable_flags(wheres):
     return [isinstance(w, reader.Unresolved) for w in wheres]
+
+
+# --- what the reader understands (#72) ----------------------------------------
+#
+# The reader answered "nothing moved" for every construct it did not model,
+# which is a confident answer and wrong in both directions at once. It now
+# enumerates what it UNDERSTANDS and routes everything else to `Unresolved`,
+# which `docs/commit-review-gate-spec.md` treats as a stop. The cases below
+# that read through `commit_wheres` are in two halves, and both are load
+# bearing: the constructs that must now stop, and the ordinary shapes that
+# must not have gained a single candidate.
+
+SESSION = "/session"
+TARGET_DIR = "/target"
+# `TARGET_DIR` as the READER spells it back, which is not always how it was
+# typed.
+#
+# The two constants are NOT symmetric, and the `windows-latest` job is the only
+# thing that says so. `SESSION` is handed to `walk_directories` as the starting
+# cwd and comes back untouched, so it answers in the spelling above.
+# `TARGET_DIR` is reached through `cd`, and `apply_chdir` normalises, so on
+# Windows it answers `\\target`. One run asserted the typed spelling for both
+# and eight cases failed; the next asserted the normalised spelling for both
+# and twelve did. The runner printed the asymmetry outright --
+# `['\\target', '/session']` in one answer list.
+#
+# The rule the two runs together establish: a directory the reader CONSTRUCTS
+# is normalised -- `cd /target`, and `<cwd>/$WT` from `cd "$WT"`, both come back
+# with the platform's separator. The cwd it was HANDED is returned as given.
+# `test_one_directory_reached_two_ways_stays_two_answers` is the case that
+# separates them: it builds `{SESSION}/$WT` and needs the normalised form, and
+# its absence from the second run's failures is what proved it.
+#
+# That mixed spelling is a property of the reader, not of this work item:
+# nothing here touches a path separator (the arithmetic scan is
+# character-level, the understood check token-level) and it is the same at
+# `release/v0.22.0`. It is recorded in `round-4.md` rather than fixed here.
+TARGET_READ = os.path.normpath(TARGET_DIR)
+
+
+def commit_wheres(command, cwd=SESSION):
+    """Every directory the `git commit` in `command` may run in.
+
+    Through the judgment read, because that is what both gates perform.
+    """
+    text = reader.drop_heredoc_bodies(reader.drop_comments(command))
+    items, clean = reader.split_segments_with_separators(text)
+    assert clean, command
+    out = []
+    for tokens, wheres in reader.walk_directories(items, cwd):
+        parsed = reader.parse_git(tokens)
+        if parsed and parsed[0] == "commit":
+            out.extend(wheres)
+    return out
+
+
+def unreadable(wheres):
+    return [w for w in wheres if isinstance(w, reader.Unresolved)]
+
+
+# Each row is (name, the command, what a real shell does with the `cd`). The
+# third element is what the probe below runs, so the deny is grounded in where
+# bash actually lands rather than in an argument about where it might.
+MOVES_THE_SHELL = [
+    ("a function body", "f() { cd %s; }; f; git commit -m x", "f() { cd %s; }; f"),
+    (
+        "a spaced function body",
+        "f () { cd %s; }; f; git commit -m x",
+        "f () { cd %s; }; f",
+    ),
+    ("an eval", "eval 'cd %s'; git commit -m x", "eval 'cd %s'"),
+    ("a pushd", "pushd %s; git commit -m x", "pushd %s >/dev/null"),
+    (
+        "a for loop",
+        "for d in %s; do cd $d; done; git commit -m x",
+        "for d in %s; do cd $d; done",
+    ),
+    (
+        "a while loop",
+        "while true; do cd %s; break; done; git commit -m x",
+        "while true; do cd %s; break; done",
+    ),
+    ("a sourced script by dot", ". %s/s.sh; git commit -m x", ". %s/s.sh"),
+    ("a sourced script by source", "source %s/s.sh; git commit -m x", "source %s/s.sh"),
+    ("a wrapper before cd", "command cd %s && git commit -m x", "command cd %s"),
+    (
+        "a wrapper with an option",
+        "command -p cd %s && git commit -m x",
+        "command -p cd %s",
+    ),
+    (
+        "a wrapper with an end-of-options",
+        "command -- cd %s && git commit -m x",
+        "command -- cd %s",
+    ),
+    (
+        "a wrapper around a variable",
+        "C=cd; command $C %s && git commit -m x",
+        "C=cd; command $C %s",
+    ),
+]
+
+NAMES = [row[0] for row in MOVES_THE_SHELL]
+
+# The seventeen operators that take a WORD, which is the whole family round 5
+# generated. `${x:-((}` has no closing paren, so a reader with no `${…}` state
+# ran the arithmetic region to the end of the input.
+WORD_TAKING_EXPANSIONS = [
+    "${x:-((}",
+    "${x-((}",
+    "${x:+((}",
+    "${x+((}",
+    "${y:=((}",
+    "${y=((}",
+    "${x:?((}",
+    "${x?((}",
+    "${x#((}",
+    "${x##((}",
+    "${x%((}",
+    "${x%%((}",
+    "${x/((/z}",
+    "${x//((/z}",
+    "${x/z/((}",
+    "${x^((}",
+    "${x,((}",
+]
+
+
+# --- a path the command wrote out ---------------------------------------------
+#
+# `SB=/abs/path; git -C "$SB" commit` names its destination twice: once as an
+# assignment the readers stepped past, once as a `$SB` the `EXPANDS` test
+# calls unresolvable. The reader now keeps the names a command string writes
+# for ITSELF, and does not guess at an environment this process cannot see:
+# `git -C "$WT"` with no assignment in the string stays unresolvable, and so
+# does a loop variable.
+
+
+def commits(command, cwd=SESSION):
+    """[(chdirs, where)] for each `git commit` — what the walk hands the gate.
+
+    `chdirs` are `parse_git`'s `-C` values and `where` is the directory the
+    segment's shell is in. Those two are exactly what this change moves, and
+    reading them separately is what tells a resolved `-C` apart from a
+    resolved `cd`.
+    """
+    text = reader.drop_heredoc_bodies(reader.drop_comments(command))
+    items, clean = reader.split_segments_with_separators(text)
+    assert clean, command
+    out = []
+    for tokens, wheres in reader.walk_directories(items, cwd):
+        parsed = reader.parse_git(tokens)
+        if parsed and parsed[0] == "commit":
+            out.extend((tuple(parsed[2]), where) for where in wheres)
+    return out
+
+
+def targets(command, cwd=SESSION):
+    """The directories the commits land in, composed the way the gate does.
+
+    What comes back has been through `apply_chdir`, which ends in
+    `os.path.normpath` -- so on Windows `/one` arrives as `\\one`. An expected
+    path written as a bare literal is therefore a test that passes on two of
+    the three matrix legs and fails on the third: four assertions here did
+    exactly that, one of them for two releases. Put the expected value through
+    `os.path.normpath` too.
+    """
+    return [str(reader.compose(where, list(ch))) for ch, where in commits(command, cwd)]
+
+
+def make_repo(path, opted_in, local=False):
+    """A repository with one commit, and `seal/` when it opts in -- under the
+    git directory when `local` (#80)."""
+    subprocess.run(["git", "init", "-q", str(path)], check=True)
+    git = lambda *a: subprocess.run(
+        ["git", "-C", str(path), *a], check=True, capture_output=True
+    )
+    (path / "f.py").write_text("x = 1\n", encoding="utf-8")
+    git("add", "-A")
+    git("-c", "user.email=e@example.com", "-c", "user.name=e", "commit", "-qm", "base")
+    (path / "f.py").write_text("x = 2\n", encoding="utf-8")
+    git("add", "-A")
+    if opted_in and local:
+        local_home(path)
+    elif opted_in:
+        (path / "seal").mkdir()
+    return path
+
+
+# --- round 1: the reader learned to fill a name and not to empty one ------
+
+FORGETS = [
+    # The segment RUNS something, so `_bind` refuses the name -- and refusing
+    # to take it is only half. bash has `/two` here and the reader answered
+    # `/one`, which is the confident wrong answer the mechanism is bounded to
+    # avoid.
+    "export SB=/two",
+    "declare SB=/two",
+    "readonly SB=/two",
+    "typeset SB=/two",
+    # A construct `understood` rejects. Its effect on a name is no more
+    # knowable than its effect on the shell's directory.
+    "if true; then SB=/two; fi",
+    "for i in 1; do SB=/two; done",
+    "while false; do SB=/two; done",
+    "eval SB=/two",
+    "( SB=/two )",
+    # Writes a name with no `=` in the token at all.
+    "read SB",
+    "read -r SB",
+    "mapfile SB",
+    "getopts x SB",
+    "printf -v SB /two",
+    # Round 2: the name-writer check read the segment's FIRST token, so
+    # anything in front of the builtin hid it. `IFS= read -r line` is the
+    # canonical shell idiom, and `command`/`builtin`/`env` are the spellings
+    # that reach past a function of the same name.
+    "IFS= read -r SB",
+    "command read SB",
+    "builtin read SB",
+    "env read SB",
+    # `unset` does not write a name, it removes one, and to this reader the
+    # effect is the same: the earlier value must not survive.
+    "unset SB",
+    # An assignment operator other than `=`, behind a prefix.
+    "export SB+=/two",
+    "export SB[0]=/two",
+]
+
+BINDS = [
+    ('SB=/one; git -C "$SB" commit -m x', "/one"),
+    ('SB=/one; true; git -C "$SB" commit -m x', "/one"),
+    ('SB=/a SB=/b; git -C "$SB" commit -m x', "/b"),
+    ('A=/a; B=$A/x; git -C "$B" commit -m x', "/a/x"),
+    ('A1=/a; git -C "$A1" commit -m x', "/a"),
+]
+
+# --- round 3: the wide reset was aimed rather than removed -----------------
+
+# What each of these segments can do to a NAME is nothing: it carries none.
+# Executed under bash 3.2.57, `SB=/one; <middle>; printf '%s' "$SB"` prints
+# `/one` for every one of them, and every one of them prompted after that change,
+# where any segment `understood` refused emptied the environment whole.
+KEEPS = [
+    "if [ -d /nope ]; then echo hi; fi",
+    "if true; then echo hi; fi",
+    "while [ -d /nope ]; do echo hi; done",
+    "until true; do echo hi; done",
+    "for i in a b; do echo $i; done",
+    "case x in x) echo hi ;; esac",
+    "( echo hi )",
+    "{ echo hi; }",
+    "pushd /tmp",
+    "popd",
+    "alias ls=ls",
+]
+
+# The other side, and it is the side that decides whether the aim was safe.
+# Each of these is a segment `understood` refuses that CAN leave a name
+# somewhere this reader cannot state.
+UNSEEN_FORGETS = [
+    # Text this scan never sees. Asked of every word rather than the first,
+    # because a structure word puts it second.
+    ('eval "SB=/two"', "eval"),
+    ('then eval "$x"', "an eval behind a structure word"),
+    (". ./lib.sh", "a sourced script"),
+    ("source ./lib.sh", "the other spelling of it"),
+    ('trap "SB=/two" EXIT', "a trap, which runs later"),
+    ('if eval "$x"; then :; fi', "an eval in a condition"),
+    # The command word this process cannot read before expansion -- the same
+    # refusal `understood` makes for the DIRECTORY, asked here for the name.
+    ("then $cmd SB", "an unreadable command word"),
+    # A loop writes the name it iterates, once per iteration, and no `=`
+    # appears in the segment for `_forget` to find.
+    ("for SB in /two /three; do :; done", "a loop over the name itself"),
+    ("for ((SB=0; SB<3; SB++)); do :; done", "the arithmetic loop head"),
+    ("select SB in /two; do break; done", "`select`, which writes it too"),
+    # A name-writing builtin hidden behind structure. `_forget` asks this of
+    # the word that RUNS, which is right where the reader knows what runs;
+    # here it does not, so it is asked of every word.
+    ("f() { read SB; }", "a definition whose body reads"),
+    ("function f { read SB; }", "the other spelling of it"),
+    ("while read -r SB; do :; done", "the canonical read loop"),
+    ("if IFS= read -r SB; then :; fi", "a read in a condition"),
+    # Assignments inside the refused segment, which `_forget` does find.
+    ("if true; then SB=/two; fi", "an assignment in a branch that may not run"),
+    ("{ SB=/two; }", "a brace group, which writes the parent's name"),
+    ("( SB=/two )", "a subshell, which does not -- and is forgotten anyway"),
+]
+
+# --- a body's later statements are still inside the body -------------------
+
+# Executed under bash 3.2.57: `SB=/one; <middle>; printf '%s' "$SB"` prints
+# `/one` for every one of these, because the body never runs -- a false
+# condition, an empty list, an arm that does not match, a function defined
+# and never called -- or runs in a subshell. Once the reset was aimed the
+# reader answered `/three` for all of them: the body's FIRST statement is
+# refused with the structure word in front of it, and the SECOND arrives as a
+# segment of its own, indistinguishable from a top-level assignment. The wide
+# reset had hidden that by accident, because the closer emptied the
+# environment, and a closer carries no name. 80 of the 82 fail-opens one
+# differential run found against the wide reset were this shape.
+UNRUN_BODIES = [
+    "if false; then echo hi; SB=/three; fi",
+    "if true; then :; else echo hi; SB=/three; fi",
+    "while false; do echo hi; SB=/three; done",
+    "until true; do echo hi; SB=/three; done",
+    "for i in; do echo hi; SB=/three; done",
+    "case x in y) echo hi; SB=/three ;; esac",
+    "f() { echo hi; SB=/three; }",
+    "function f { echo hi; SB=/three; }",
+    "( echo hi; SB=/three )",
+    "(SB=/two; SB=/three)",
+    "if false; then { :; }; SB=/three; fi",
+    "if false; then if true; then :; fi; SB=/three; fi",
+    # A closer in argument position closes nothing -- bash reads `fi` as a
+    # word there, and so does the count. These eight were what was left after
+    # the first version counted a closer wherever it stood.
+    "if false; then echo fi; SB=/three; fi",
+    "f() { echo done; SB=/three; }",
+    # The other spellings `_bind` handles, inside a body.
+    "if false; then :; export SB=/three; fi",
+    "if false; then :; SB+=/x; fi",
+    # Round 1 of the re-application. A multi-line `case` puts its arm pattern
+    # on a line of its own, and that `a )` is a `)` last in its segment --
+    # exactly where a subshell's closer stands. The integer count took it as
+    # one and reached zero before the arm body; the stack pops a `)` only when
+    # a `(` is on top.
+    "case x in\na )\necho hi; SB=/three ;;\nesac",
+    "case x in\n(a)\necho hi; SB=/three ;;\nesac",
+    "case x in\na)\nSB=/three;;\nesac",
+    # The glued spelling: `f(){` is one token, neither in `OPENERS` nor a bare
+    # `{`, so nothing opened and the second statement bound.
+    "f(){ echo hi; SB=/three; }",
+    # A quoted `")"` in argument position, last in its segment, closed the
+    # count the same way the arm pattern did.
+    'if false; then echo ")"; SB=/three; fi',
+    # Nested bodies and an `elif` branch that does not run.
+    "if false; then :; elif false; then echo hi; SB=/three; fi",
+    "while false; do case x in y) echo hi; SB=/three ;; esac; done",
+    # Round 2: inside a subshell body, the spaced `)` of an array, a command
+    # substitution or a process substitution is the segment's last token with
+    # `(` on top of the stack, and it popped the subshell -- the assignment
+    # after it bound at top level. bash: `/one`.
+    "( echo hi; OT=( a b ); SB=/three; true )",
+    "( echo hi; OT=$( pwd ); SB=/three; true )",
+    "( echo hi; cat <( echo x ); SB=/three; true )",
+]
 
 
 def hidden_commit(command):
@@ -1253,6 +1628,148 @@ class Test_module:
         assert cmdline._env_long("--un", True) == "--unset"
         assert cmdline._env_long("--un", False) is None
 
+    def test_the_gate_reaches_a_repository_the_command_named_for_itself(self, tmp_path):
+        """S2 at the gate, in the direction that costs a prompt today.
+
+        The shell sits in a repository that never opted in; the commit lands in
+        one that did. Written out, that stops. Written as an assignment and a
+        `$SB`, it used to resolve to a directory that exists nowhere — so the gate
+        asked about a path the user never typed instead of about the repository.
+        """
+        here = make_repo(tmp_path / "plain", opted_in=False)
+        there = make_repo(tmp_path / "opted-in", opted_in=True)
+        out = run(f'SB={sh(there)}; git -C "$SB" commit -m x', here, session="named")
+        assert fired(out)
+        assert str(there) in reason_of(out), (
+            "the verdict is about the repository the commit lands in"
+        )
+
+    def test_a_declaration_silences_the_name_the_way_it_silences_the_path(
+        self, tmp_path
+    ):
+        """S1's other direction, and the one the original probes measured: the repository
+        IS declared, so the written-out form is silent and the named form asked."""
+        here = make_repo(tmp_path / "plain", opted_in=False)
+        there = make_repo(tmp_path / "opted-in", opted_in=True)
+        declare_routing(there)
+        out = run(f'SB={sh(there)}; git -C "$SB" commit -m x', here, session="declared")
+        assert decision_of(out) == "silent", (
+            f"{there} carries a declaration; the gate judged a path nobody typed"
+        )
+
+    def test_the_named_form_answers_what_the_written_out_form_answers(self, tmp_path):
+        """Byte-identical, because the two commands reach the same repository.
+
+        Comparing the two prompts is what catches a fix that resolves the target
+        and then describes it differently — a user reading the two would have no
+        way to tell that one command is the other one written out.
+        """
+        here = make_repo(tmp_path / "plain", opted_in=False)
+        there = make_repo(tmp_path / "opted-in", opted_in=True)
+        written = run(f"git -C {sh(there)} commit -m x", here, session="written")
+        named = run(f'SB={sh(there)}; git -C "$SB" commit -m x', here, session="named2")
+        assert decision_of(written) == decision_of(named) == "deny"
+        assert reason_of(written) == reason_of(named)
+
+    def test_a_cd_to_a_named_path_reaches_the_same_repository(self, tmp_path):
+        """The `cd` operand at the gate, which is the second of the two call
+        sites the spec names."""
+        here = make_repo(tmp_path / "plain", opted_in=False)
+        there = make_repo(tmp_path / "opted-in", opted_in=True)
+        out = run(f'SB={sh(there)}; cd "$SB" && git commit -m x', here, session="cd")
+        assert fired(out)
+        assert str(there) in reason_of(out)
+
+    def test_an_environment_name_still_stops_the_gate(self, tmp_path):
+        """S3 at the gate. The environment-variable answer must not move: the gate has no way
+        to know what `$WT` holds, and a silence there is indistinguishable from a
+        repository checked and found clean."""
+        here = make_repo(tmp_path / "opted-in", opted_in=True)
+        declare_routing(here)
+        assert fired(run('git -C "$WT" commit -m x', here, session="env")), (
+            "the reader answered for a value only the user's shell holds"
+        )
+
+    def test_the_aimed_reset_moves_the_gates_verdict_and_only_where_it_should(
+        self, tmp_path
+    ):
+        """The reader's answer is not the deliverable; the gate's verdict is.
+
+        Measured on two real repositories, both carrying a routing declaration,
+        with the session sitting in one of them. At `b76fd99` all eight shapes
+        below returned `deny`, naming a `$SB` the user never typed. Six of them
+        carry no name and now return `silent`, which is the answer the same
+        command written out has always had. The two that CAN write a name still
+        deny, and that is the half of the measurement that matters.
+        """
+        here = make_repo(tmp_path / "session", opted_in=True)
+        there = make_repo(tmp_path / "opted-in", opted_in=True)
+        declare_routing(here)
+        declare_routing(there)
+        for at, shape in enumerate(KEEPS[:6]):
+            command = f'SB={sh(there)}; {shape}; git -C "$SB" commit -m x'
+            out = run(command, here, session=f"kept{at}")
+            assert decision_of(out) == "silent", (
+                f"`{shape}` carries no name, `{there}` is declared, and the gate "
+                f"asked about a path nobody typed: {reason_of(out)}"
+            )
+        for at, shape in enumerate(
+            ("if [ -d /nope ]; then SB=/two; fi", 'eval "SB=/two"')
+        ):
+            command = f'SB={sh(there)}; {shape}; git -C "$SB" commit -m x'
+            out = run(command, here, session=f"lost{at}")
+            assert decision_of(out) == "deny", (
+                f"`{shape}` can write the name, and the gate passed a commit "
+                "whose repository this reader cannot name"
+            )
+
+    def test_a_structure_word_does_not_hide_the_command_that_runs(self):
+        """`_runs` reads past the compound-command structure to the word that
+        actually runs, and `understood`'s two exceptions come with it: `[` and
+        `[[` hold characters `EXPANDS` lists and are conditionals rather than
+        globs. Without them `if [ -d <x> ]` empties the environment again, which
+        is the shape this round exists to keep."""
+        assert reader._runs(shlex.split("then echo hi")) == "echo"
+        assert reader._runs(shlex.split("if [ -d /nope ]")) == "["
+        assert reader._runs(shlex.split("f() { read SB")) == "read"
+        assert reader._runs(shlex.split("fi")) is None
+        # `case WORD in` -- the word is data being matched, not a command, so an
+        # unreadable one says nothing about what ran.
+        assert reader._runs(shlex.split("case $HOME in")) is None
+
+    def test_what_opens_a_body_and_what_closes_one(self):
+        def after(segment, stack=()):
+            return reader._nesting(shlex.split(segment), list(stack))
+
+        assert after("for ((SB=0") == ["for"]
+        assert after("k++))") == []
+        assert after("(cd /x") == ["("]
+        assert after("case x in x)") == ["case"]
+        assert after("( echo hi )") == []
+        assert after("} > out", ["{"]) == []
+        assert after("echo fi done esac", ["if"]) == ["if"]
+        assert after("then if true", ["if"]) == ["if", "if"]
+        # A `)` closes only a `(`: a multi-line arm pattern and a quoted `")"`
+        # inside a `case` or an `if` close nothing.
+        assert after("a )", ["case"]) == ["case"]
+        assert after('echo ")"', ["if"]) == ["if"]
+        # And every closer pops only its own opener.
+        assert after("fi", ["case"]) == ["case"]
+        # The glued function head opens a `{` body.
+        assert after("f(){ echo hi") == ["{"]
+        assert after("function f {") == ["{"]
+        # Openers count in command position only.
+        assert after('git commit -m "(wip) x"') == []
+        assert after("grep -c '(' f") == []
+        assert after("time { echo") == ["{"]
+        assert after("! ( cd /x )") == []
+        # A `)` that belongs to the segment's own `SB=(` or `$(` leaves the
+        # subshell on the stack; at top level it closes nothing either way.
+        assert after("OT=( a b )", ["("]) == ["("]
+        assert after("OT=$( pwd )", ["("]) == ["("]
+        assert after("cat <( echo x )", ["("]) == ["("]
+        assert after("X=$( pwd )") == []
+
 
 class Test_split_segments_with_separators:
     def test_accepts_the_operator_that_joined_two_segments(self):
@@ -1575,14 +2092,14 @@ class Test_walk_directories:
         same fact that made `git -C "$WT"` unresolvable (issue #56)."""
         for dest in ('"$WT"', "'$WT'", "/tmp/x*", "{a,b}"):
             wheres = commit_dirs(f"cd {dest} && git commit -m x", tmp_path)
-            assert unreadable(wheres) == [True], dest
+            assert unreadable_flags(wheres) == [True], dest
 
     def test_a_subshell_does_not_hide_the_cd_by_hiding_the_word(self, tmp_path):
         """`(cd X && git commit)` tokenizes its first word as `(cd`, so the cd was
         invisible while the commit was not — the fail-open reproduced with one
         parenthesis. Where the commit runs cannot be read, so it is not read."""
         wheres = commit_dirs(f"(cd {sh(tmp_path / 'b')} && git commit -m x)", tmp_path)
-        assert wheres and all(unreadable(wheres)), wheres
+        assert wheres and all(unreadable_flags(wheres)), wheres
 
     def test_cd_dash_goes_back_to_the_directory_before_it(self, tmp_path):
         command = f"cd {sh(tmp_path / 'b')} && cd - && git commit -m x"
@@ -1590,7 +2107,7 @@ class Test_walk_directories:
 
     def test_cd_dash_with_nothing_behind_it_is_unreadable(self, tmp_path):
         wheres = commit_dirs("cd - && git commit -m x", tmp_path)
-        assert unreadable(wheres) == [True]
+        assert unreadable_flags(wheres) == [True]
 
     def test_an_unreadable_directory_still_says_what_it_could_not_read(self, tmp_path):
         """The prompt for an unresolved target prints the directories it could
@@ -1614,6 +2131,1277 @@ class Test_walk_directories:
         landed = [str(w) for w in wheres[0] if not isinstance(w, cmdline.Unresolved)]
         assert os.path.join(here, "u2") in landed, (cd, named)
         assert os.path.join(here, "u2", "u2") not in named, (cd, named)
+
+    def test_the_common_cross_repository_form_gains_no_candidate(self):
+        """S11. `cd <repo> && git commit` is the shape issue #45 exists to keep
+        silent, and the detector must not have widened it by one candidate."""
+        wheres = commit_wheres(f"cd {TARGET_DIR} && git commit -m x")
+        assert [str(w) for w in wheres] == [TARGET_READ]
+        assert unreadable(wheres) == []
+
+    def test_the_commit_message_heredoc_gains_nothing(self):
+        """S12. The form Claude Code itself writes. A `$(cat <<'EOF' ...)` body is
+        a commit message, and the segment holding it is an ordinary `git`
+        invocation -- nothing in it is a construct the reader fails to read.
+
+        Driven with a segment IN FRONT of the commit, because a single-segment
+        command's `running` is always `[(cwd, None)]` and no answer it produces
+        can be unreadable. Without one the type assertion below cannot fail:
+        measured, it stayed green under a mutation that made `understood()`
+        return False for everything.
+        """
+        wheres = commit_wheres(
+            "git add -A && git commit -m \"$(cat <<'EOF'\ntitle\nEOF\n)\""
+        )
+        assert [str(w) for w in wheres] == [SESSION]
+        assert unreadable(wheres) == []
+
+    @pytest.mark.parametrize(
+        "command",
+        [
+            f"cd {TARGET_DIR} ; git commit -m x",
+            f"cd {TARGET_DIR} && make ; git commit -m x",
+            f"cd {TARGET_DIR} && make\ngit commit -m x",
+            f"cd {TARGET_DIR} && npm run build && lint ; git commit -m x",
+        ],
+    )
+    def test_a_semicolon_consumes_the_failure_branch(self, command):
+        """S8-S10. `;` and a newline run what follows either way.
+
+        `||` was the only operator that consumed a parked failure, so a `cd` in
+        front of a `;` read as though it could not fail and the directory the
+        shell was already in dropped out of the answer. Where that directory is
+        the session's own and the target carries a routing declaration, the
+        declaration silenced a commit that could land in either.
+
+        A newline is the same operator: `split_segments_with_separators` writes
+        an unquoted one out as `;`, so the third row is the second row wrapped
+        the way a long command is normally written.
+        """
+        found = commit_wheres(command)
+        wheres = [str(w) for w in found]
+        assert TARGET_READ in wheres, command
+        assert SESSION in wheres, f"the failure branch of the `cd` is missing: {wheres}"
+        # By TYPE, not by text. `Unresolved` subclasses `str`, so an answer that
+        # has gone entirely unreadable spells the same two paths and passed the
+        # two assertions above unchanged.
+        assert unreadable(found) == []
+
+    def test_the_ampersand_form_is_still_the_target_alone(self):
+        """The mirror of the case above, and the cost that must stay at zero.
+
+        `&&` runs the commit only where the `cd` arrived. Making `;` branch must
+        not have taught `&&` to, or every `cd <repo> && git commit` starts
+        answering for the session's own repository too -- the prompt volume issue
+        #45 exists to reduce.
+        """
+        found = commit_wheres(f"cd {TARGET_DIR} && git commit -m x")
+        assert [str(w) for w in found] == [TARGET_READ]
+        assert unreadable(found) == []
+
+    def test_a_semicolon_chain_reaches_the_cap_rather_than_multiplying(self):
+        """`;` adds a branch point, so it adds a shape that multiplies.
+
+        Measured at `STATE_CAP` = 64, counting the `cd` segments in front of the
+        commit: a chain of `;`-joined `cd`s reads as a directory the reader could
+        not compute from the seventh on. Before this change that chain did not
+        multiply at all -- one candidate at any length -- because a `;` consumed
+        nothing. Past the cap the answer says it is not an answer, which is this
+        module's failure direction: a stop, never a guess.
+        """
+        command = " ; ".join(f"cd d{i}" for i in range(8)) + " ; git commit -m x"
+        wheres = commit_wheres(command)
+        assert len(wheres) <= reader.STATE_CAP
+        assert unreadable(wheres) == wheres, (
+            "past the cap the answer has to say it is not an answer"
+        )
+
+    def test_cd_dash_does_not_launder_an_unreadable_shell(self):
+        """`cd -` returns to a directory the reader recorded, and after a segment
+        it could not follow that record is not where the shell has been.
+
+        Returning the recorded previous directory washed the answer clean:
+        `eval 'cd /A; cd /B' && cd - && git commit` answered the session's own
+        directory with nothing marked unreadable, while bash stood in `/A`. It is
+        the one place the invariant this work item introduces did not survive a
+        segment.
+        """
+        found = commit_wheres("eval 'cd /A; cd /B' && cd - && git commit -m x")
+        assert found and unreadable(found) == found, (
+            f"the answer came back readable: {[str(w) for w in found]}"
+        )
+
+    def test_cd_dash_with_no_previous_directory_invents_no_path(self):
+        """A `cd -` the reader has no previous directory for is unreadable, not a
+        path built out of the operand.
+
+        `<cwd>/-` exists nowhere, and putting it in the prompt names a target the
+        user never typed. The `;` merge feeds exactly that state -- a branch whose
+        `cd` failed has no previous directory -- so a shape that used to need
+        `cd -` as the very first segment became common.
+        """
+        found = commit_wheres("cd /A ; cd - ; git commit -m x")
+        assert not [w for w in found if str(w).endswith("/-")], (
+            f"a path nobody typed reached the answer: {[str(w) for w in found]}"
+        )
+
+    def test_an_unreadable_target_records_why_it_could_not_be_read(self):
+        """The two ways a target goes unreadable need different ways out, so the
+        reader records which one happened.
+
+        For a value the shell would have expanded, writing the absolute path in
+        its place is a real instruction. For a construct there is no value to
+        replace and the directory carried is the last one the reader could name,
+        usually the session's own -- so the same instruction changes nothing and
+        the waiver becomes the only exit. `hooks/commit-review-gate.py` picks the
+        arm off this field; without it, both failures got the value's prompt.
+        """
+        value = commit_wheres('cd "$WT" && git commit -m x')
+        assert [w.why for w in value] == [reader.Unresolved.VALUE]
+
+        construct = commit_wheres("eval 'cd /B' && git commit -m x")
+        assert [w.why for w in construct] == [reader.Unresolved.CONSTRUCT]
+
+        # A command can reach both, and they stay apart: `cd "$WT"` is the value
+        # the reader could not expand and the `eval` is the construct it could not
+        # follow. Collapsing them by type alone -- which is how the states used to
+        # be keyed -- leaves one prompt speaking for both.
+        both = commit_wheres("cd \"$WT\" || eval 'cd /B' || git commit -m x")
+        assert sorted({w.why for w in both}) == [
+            reader.Unresolved.CONSTRUCT,
+            reader.Unresolved.VALUE,
+        ], [(str(w), w.why) for w in both]
+
+    def test_one_directory_reached_two_ways_stays_two_answers(self):
+        """The reason is part of what makes two states distinct, not a label on
+        one of them.
+
+        A pipeline leaves the parent shell where it was and carries the moved
+        state beside it, so `cd "$WT" && eval '…' | git commit` reaches
+        `<cwd>/$WT` twice: once as the value the reader could not expand, and once
+        marked by the `eval` it could not follow. Keyed by type alone, which is
+        how these states used to be told apart, the two collapse into whichever
+        came first and one prompt then speaks for both.
+        """
+        both = commit_wheres("cd \"$WT\" && eval 'cd /B' | git commit -m x")
+        at_value = {w.why for w in both if str(w) == os.path.normpath(f"{SESSION}/$WT")}
+        assert at_value == {
+            reader.Unresolved.VALUE,
+            reader.Unresolved.CONSTRUCT,
+        }, [(str(w), getattr(w, "why", None)) for w in both]
+
+    @pytest.mark.parametrize(
+        "command",
+        [
+            "cd - && git commit -m x",
+            "cd - ; git commit -m x",
+        ],
+    )
+    def test_a_cd_dash_the_reader_cannot_retrace_says_construct(self, command):
+        """The directory carried is one the reader named itself, so there is no
+        value for the user to write out.
+
+        Marked `VALUE`, the gate answers a `cd -` it cannot retrace with *"write
+        the absolute path in place of the unresolved value"* — an instruction with
+        no value to apply it to, which leaves the waiver as the only way past.
+        That is the arm round 1 opened as a blocking finding, reached through a
+        different door.
+        """
+        found = commit_wheres(command)
+        reasons = {getattr(w, "why", None) for w in found}
+        assert reader.Unresolved.CONSTRUCT in reasons, [
+            (str(w), getattr(w, "why", None)) for w in found
+        ]
+        # `;` also carries the branch where the `cd -` FAILED, and that shell
+        # really did stay put -- a readable answer, correctly. What must not be
+        # here is `VALUE`, which is the arm with no value to write out.
+        assert reader.Unresolved.VALUE not in reasons
+
+    def test_the_cap_collapse_says_construct(self, monkeypatch):
+        """Past `STATE_CAP` the command reached more directories than the reader
+        will answer for, and that is not a value anyone can write out either.
+
+        Driven with the cap lowered rather than with a sixty-segment command, so
+        the case reads as what it is about.
+        """
+        monkeypatch.setattr(reader, "STATE_CAP", 3)
+        command = " ; ".join(f"cd a{i}" for i in range(6)) + " ; git commit -m x"
+        found = commit_wheres(command)
+        assert found and all(
+            getattr(w, "why", None) == reader.Unresolved.CONSTRUCT for w in found
+        ), [(str(w), getattr(w, "why", None)) for w in found]
+
+    def test_a_readable_directory_carries_no_reason(self):
+        """The field is what tells an unreadable target from a readable one at the
+        grouping key, so a plain answer must not grow one by accident."""
+        assert [getattr(w, "why", None) for w in commit_wheres("git commit -m x")] == [
+            None
+        ]
+
+    def test_a_name_the_command_defined_names_the_repository(self):
+        """S1. The one-assignment shape, which is the common one."""
+        assert commits('SB=/abs/path; git -C "$SB" commit -m x') == [
+            (("/abs/path",), SESSION)
+        ]
+
+    def test_the_braced_spelling_reads_the_same(self):
+        """S1. `${SB}` is the same name written the other way, and a reader that
+        filled one and not the other would answer differently for two spellings of
+        one command."""
+        assert commits('SB=/abs/path; git -C "${SB}" commit -m x') == [
+            (("/abs/path",), SESSION)
+        ]
+
+    def test_a_name_composed_with_a_suffix_resolves(self):
+        """S2. `"$SB/r1"` is how a scratch repository is actually named."""
+        assert commits('SB=/abs/path; git -C "$SB/r1" commit -m x') == [
+            (("/abs/path/r1",), SESSION)
+        ]
+
+    def test_a_cd_to_a_name_the_command_defined_moves_the_shell(self):
+        """S1 through the other operand. `_cd_target` and `parse_git` are two
+        call sites reading one fact, and fixing one would answer differently for
+        `cd "$SB" && git commit` than for `git -C "$SB" commit`."""
+        assert targets('SB=/abs/path; cd "$SB" && git commit -m x') == [
+            os.path.normpath("/abs/path")
+        ]
+        assert targets('SB=/abs/path; cd "$SB/r1" && git commit -m x') == [
+            os.path.normpath("/abs/path/r1")
+        ]
+
+    def test_a_value_built_from_an_earlier_name_resolves(self):
+        """`B=$A/sub` records what `$A` already resolved to, because the value is
+        substituted as it is bound."""
+        assert commits('A=/base; B=$A/sub; git -C "$B" commit -m x') == [
+            (("/base/sub",), SESSION)
+        ]
+
+    def test_the_later_assignment_is_the_one_used(self):
+        """S5, first half."""
+        assert commits('SB=/one; SB=/two; git -C "$SB" commit -m x') == [
+            (("/two",), SESSION)
+        ]
+
+    def test_an_environment_variable_is_still_unresolvable(self):
+        """S3, and it is the line the whole mechanism is bounded by.
+
+        `$WT` comes from a shell this process cannot see. A reader that answered
+        from its OWN environment would be silently wrong wherever the two differ,
+        which is the confident-wrong direction `understood`'s docstring exists to
+        end. The `$` has to survive into the operand.
+        """
+        assert commits('git -C "$WT" commit -m x') == [(("$WT",), SESSION)]
+
+    def test_an_undefined_name_beside_a_defined_one_is_still_unresolvable(self):
+        """The same, with the mechanism switched on. An environment that holds
+        `SB` must not answer for `OTHER`."""
+        assert commits('SB=/x; git -C "$OTHER" commit -m x') == [(("$OTHER",), SESSION)]
+
+    def test_a_loop_variable_keeps_its_prompt_and_names_itself(self):
+        """S4. `$n` has as many values as the loop has iterations, and one of them
+        is not an answer.
+
+        The operand comes back with `$SB` filled and `$n` standing, so the text a
+        prompt prints names the part that could not be read rather than the part
+        that could — which is what makes "write this one out" a usable
+        instruction.
+        """
+        assert commits('SB=/p; git -C "$SB/r$n" commit -m x') == [
+            (("/p/r$n",), SESSION)
+        ]
+
+    def test_the_expansion_operators_are_left_standing(self):
+        """Everything one step out from a bare name stays unresolvable: an
+        operator that takes a WORD, a command substitution, an arithmetic
+        expansion, and a positional parameter."""
+        for operand, expected in (
+            ("${SB:-/y}", "${SB:-/y}"),
+            ("${#SB}", "${#SB}"),
+            ("$(pwd)", "$(pwd)"),
+            ("$((1+1))", "$((1+1))"),
+            ("$1", "$1"),
+            ("$@", "$@"),
+        ):
+            assert commits(f'SB=/x; git -C "{operand}" commit -m x') == [
+                ((expected,), SESSION)
+            ], operand
+
+    def test_the_expands_test_still_stands_in_front_of_the_shell(self):
+        """The substitution goes IN FRONT of the `EXPANDS` test and never replaces
+        it, so a value carrying a glob is still a set of paths rather than one."""
+        kind, operand = reader._cd_target(["cd", "/a*b"])
+        assert (kind, operand) == ("unknown", "/a*b")
+        where = commits('SB="/a*b"; cd "$SB" && git commit -m x')[0][1]
+        assert isinstance(where, reader.Unresolved), (
+            f"a glob named through a variable became one path: {where!r}"
+        )
+
+    def test_an_assignment_in_the_same_segment_does_not_expand_in_it(self):
+        """`SB=/x git -C "$SB"` — bash expands the arguments before it applies the
+        assignment, so the shell does not see `/x` here either."""
+        assert commits('SB=/abs/path git -C "$SB" commit -m x') == [(("$SB",), SESSION)]
+
+    def test_an_assignment_the_reader_cannot_place_never_enters(self):
+        """S5, second half. `understood` already refuses to say where these leave
+        the shell, and a name is no easier than a directory.
+
+        A subshell is on this list twice over: bash discards its assignments when
+        it exits, so answering `/inside` would be wrong about bash and not only
+        about what this reader can see.
+        """
+        for name, command in (
+            ("a function body", 'f() { SB=/inside; }; f; git -C "$SB" commit -m x'),
+            (
+                "a loop body",
+                'for i in 1; do SB=/inside; done; git -C "$SB" commit -m x',
+            ),
+            ("a subshell", '(SB=/inside); git -C "$SB" commit -m x'),
+            ("an eval", "eval 'SB=/inside'; git -C \"$SB\" commit -m x"),
+        ):
+            assert [ch for ch, _ in commits(command)] == [("$SB",)], name
+
+    def test_a_pipeline_stage_leaves_the_parent_shells_name_alone(self):
+        """bash runs each stage in a subshell: `A=1 | true; echo $A` prints
+        nothing. The same fact that keeps a pipeline from moving the parent
+        shell's DIRECTORY keeps it from writing its names."""
+        for sep in ("|", "|&", "&"):
+            assert [
+                ch for ch, _ in commits(f'SB=/x {sep} git -C "$SB" commit -m y')
+            ] == [("$SB",)], sep
+
+    def test_an_assignment_this_reader_does_not_model_empties_the_name(self):
+        """`A+=x` appends and `a[0]=x` writes one element. An earlier `SB=/one`
+        left standing through either would answer confidently with a path the
+        shell never reaches — the single failure mode this mechanism has."""
+        for form in ("SB+=/two", "SB[0]=/two"):
+            assert commits(f'SB=/one; {form}; git -C "$SB" commit -m x') == [
+                (("$SB",), SESSION)
+            ], form
+
+    def test_a_name_rebound_to_something_unresolvable_stops_again(self):
+        """The later assignment wins even when it loses the answer: a reader that
+        kept `/one` here would name a repository the shell left two segments
+        ago."""
+        assert commits('SB=/one; SB=$WT; git -C "$SB" commit -m x') == [
+            (("$WT",), SESSION)
+        ]
+
+    def test_an_assignment_in_front_of_a_command_is_that_commands_environment(self):
+        """bash keeps a prefix assignment out of the shell: `A=1 true; echo "$A"`
+        prints an empty line, measured under bash 3.2.57.
+
+        So the shapes this reads are exactly the ones `understood` calls
+        "assignments alone". `SB=/x make` looks like an assignment and is not one,
+        and reading it would name a repository the shell never learned about.
+        """
+        for command in (
+            'SB=/x make; git -C "$SB" commit -m y',
+            'SB=/x true && git -C "$SB" commit -m y',
+        ):
+            assert [ch for ch, _ in commits(command)] == [("$SB",)], command
+
+    def test_two_assignments_in_one_segment_both_land(self):
+        """`A=/a B=/b` alone is still assignments alone, and bash keeps both."""
+        assert commits(
+            'A=/a B=/b; git -C "$A" commit -m x && git -C "$B" commit -m y'
+        ) == [
+            (("/a",), SESSION),
+            (("/b",), SESSION),
+        ]
+
+    def test_a_single_quoted_operand_is_filled_too_and_that_is_the_cost(self):
+        """The measured cost of this mechanism, pinned as a DECISION.
+
+        bash expands nothing inside single quotes: `ls -d '$SB'` names a directory
+        literally called `$SB`, executed. This reader cannot tell the two quotings
+        apart -- `shlex` runs in posix mode and takes both off, so `git -C '$SB'`
+        and `git -C "$SB"` arrive as one token -- and it now answers `/x` for both
+        where it used to answer `<cwd>/$SB` for both and was right about the first.
+
+        That is the fail-OPEN direction, and it is accepted rather than closed. It
+        needs a directory literally named `$SB`, single-quoted, in a command that
+        also assigns `SB`. Closing it means carrying quote provenance out of the
+        splitter, which changes how every argument in every command tokenizes.
+
+        Asserting the CURRENT answer rather than the ideal one: if quote
+        provenance ever lands, this expectation flips and the flip is the signal.
+        """
+        assert commits("SB=/x; git -C '$SB' commit -m y") == [(("/x",), SESSION)]
+
+    def test_a_name_a_segment_may_have_written_is_forgotten(self):
+        """Round 1, and it is a REGRESSION rather than a gap.
+
+        Before this branch every one of these reached the gate as `$SB`, because
+        nothing was resolved at all. The branch resolved the first assignment and
+        then held it across a segment that may have changed it, so a stop became
+        a silence -- measured at the gate, `deny` at the base and `silent` here,
+        with bash committing in a repository nothing had reviewed.
+        """
+        for middle in FORGETS:
+            where = targets(f'SB=/one; {middle}; git -C "$SB" commit -m x')
+            assert any("$SB" in w for w in where), (
+                f"`{middle}` left `/one` standing: {where}. The reader has to "
+                "forget a name it cannot follow, not keep the value from before"
+            )
+
+    def test_a_conditional_branch_does_not_bind_a_name(self):
+        """`states` and `parked` model a conditional for the DIRECTORY and
+        nothing modelled it for a name.
+
+        Measured: `SB=/one; [ -d /nope ] && SB=/two; git -C "$SB" commit`
+        answered `/two` where bash has `/one`. The branch may not run, so what it
+        assigns is not something this reader can state."""
+        for joined in ("&&", "||"):
+            where = targets(f'SB=/one; true {joined} SB=/two; git -C "$SB" commit -m x')
+            assert any("$SB" in w for w in where), (
+                f"a `{joined}` branch bound a name the shell may never have set: {where}"
+            )
+
+    def test_forgetting_did_not_take_the_answers_with_it(self):
+        """The other direction. A reader that forgets everything is correct and
+        useless, and the shapes that DO resolve are the point of this work."""
+        for command, expected in BINDS:
+            where = targets(command)
+            assert os.path.normpath(expected) in where, (
+                f"{command!r} stopped resolving: {where}"
+            )
+
+    def test_a_refused_segment_that_carries_no_name_keeps_the_environment(self):
+        """Round 3, and the regression is this branch's own.
+
+        An earlier commit on this branch cured a real fail-open -- an `eval` and a sourced script were
+        answering with a path bash had left -- by emptying the environment for
+        every segment `understood` refused. Six shapes that answered `/one` at
+        before it prompted after it, and `if …; then … fi` is the commonest shape
+        in a script, in a work item that exists to stop asking.
+        """
+        for middle in KEEPS:
+            where = targets(f'SB=/one; {middle}; git -C "$SB" commit -m x')
+            assert where == [os.path.normpath("/one")], (
+                f"`{middle}` carries no name and cannot have written one, and the "
+                f"reader lost `/one` across it: {where}"
+            )
+
+    def test_a_refused_segment_that_can_write_a_name_forgets_it(self):
+        """The aim only holds if what it keeps is what carries no name.
+
+        Every entry here answered `$SB` after that change because everything did.
+        Keeping any one of them would answer confidently with a path the shell is
+        not in, which is the one failure mode this whole mechanism is bounded to
+        avoid.
+        """
+        for middle, why in UNSEEN_FORGETS:
+            where = targets(f'SB=/one; {middle}; git -C "$SB" commit -m x')
+            assert any("$SB" in w for w in where), (
+                f"{why} -- `{middle}` -- left `/one` standing: {where}"
+            )
+
+    def test_the_reset_still_empties_the_whole_environment_not_one_name(self):
+        """An `eval` says nothing about which name it wrote, so no name survives
+        it. `_forget` would drop what the segment NAMES, and an `eval` names
+        nothing -- which is the difference between the two branches."""
+        where = targets('SB=/one; OT=/other; eval "$x"; git -C "$OT" commit -m x')
+        assert any("$OT" in w for w in where), (
+            f"an `eval` left a second name standing: {where}. What it wrote is "
+            "not something this reader can narrow to the names it can see"
+        )
+        # And the aimed branch does NOT empty the second name.
+        assert targets('SB=/one; OT=/other; fi; git -C "$OT" commit -m x') == [
+            os.path.normpath("/other")
+        ]
+
+    def test_a_name_writer_read_blindly_costs_a_prompt_and_not_an_answer(self):
+        """The cost of asking `NAME_WRITERS` of every word rather than of the
+        word that runs. `echo read` writes nothing, and this reader forgets on it
+        anyway -- a prompt, which is what the branch gave for everything before.
+        It is recorded rather than fixed, because the direction is the safe one."""
+        where = targets('SB=/one; then echo read SB; git -C "$SB" commit -m x')
+        assert any("$SB" in w for w in where), where
+
+    def test_the_pipeline_branch_forgets_and_lastpipe_is_why(self):
+        """Round 2 found nothing reaching this branch: turning it into `pass`
+        left the suite green.
+
+        `shopt -s lastpipe` runs a pipeline's last stage in the current shell, so
+        `true | SB=/two` writes the parent's `SB` under a setting this process
+        cannot see and `SB=/two | true` does not. Which of the two a segment is
+        depends on a shell option, so the answer is the one this reader gives for
+        anything it cannot state. The cost is one prompt where bash has `/one`.
+        """
+        for command in (
+            'SB=/one; SB=/two | true; git -C "$SB" commit -m x',
+            'SB=/one; true | SB=/two; git -C "$SB" commit -m x',
+            'SB=/one; SB=/two & git -C "$SB" commit -m x',
+        ):
+            where = targets(command)
+            assert any("$SB" in w for w in where), (
+                f"the pipeline branch kept a name across a stage bash runs in a "
+                f"subshell -- or wrote one under `lastpipe` that it cannot see: "
+                f"{command!r} answered {where}"
+            )
+
+    def test_the_arithmetic_loop_head_forgets_its_counter_and_not_the_rest(self):
+        """`for ((i=0; i<3; i++))` arrives as the single token `for` `((i=0`, and
+        `_name_at` reads a name from the START of a word -- so the `(` comes off
+        first. A loop head this reader cannot read a name out of empties the
+        environment instead, because which name it writes is not visible."""
+        where = targets(
+            "SB=/one; OT=/other; for ((SB=0; k<3; k++)); do :; done; "
+            'git -C "$OT" commit -m x'
+        )
+        assert where == [os.path.normpath("/other")], (
+            f"the arithmetic head took a name it never wrote with it: {where}"
+        )
+        # The counter itself, named only in the head. bash leaves `SB` at `3`.
+        where = targets(
+            'SB=/one; for ((SB=0; k<3; k++)); do :; done; git -C "$SB" commit -m x'
+        )
+        assert any("$SB" in w for w in where), (
+            f"the loop counter kept the value from before the loop: {where}"
+        )
+        assert reader._unseen({"SB": "/one"}, shlex.split("for $v in a b")) == {}, (
+            "a loop head with no readable name left a value standing"
+        )
+
+    def test_the_blind_sweep_forgets_bare_names_only(self):
+        """`_unseen` asks `NAME_WRITERS` of every word and then forgets the bare
+        names beside it. The operand test is `end == len(tok)`, the same line
+        `_forget` carries, and loosening it here survived every test while the
+        same loosening in `_forget` did not: `read -rp 'SB> ' ans` would forget
+        `SB` on the strength of a prompt string. Executed under bash 3.2.57 with
+        stdin closed, `SB` is `/one` after it."""
+        kept = reader._unseen(
+            {"SB": "/one", "ans": "x"}, shlex.split("if read -rp 'SB> ' ans")
+        )
+        assert kept.get("SB") == "/one", "`SB> ` is not the name `SB`"
+        assert "ans" not in kept, "the name the `read` writes survived it"
+        where = targets(
+            "SB=/one; if read -rp 'SB> ' ans; then :; fi; git -C \"$SB\" commit -m x"
+        )
+        assert where == [os.path.normpath("/one")], where
+
+    def test_a_bodys_later_statement_is_not_a_top_level_one(self):
+        for middle in UNRUN_BODIES:
+            where = targets(f'SB=/one; {middle}; git -C "$SB" commit -m x')
+            assert any("$SB" in w for w in where), (
+                f"`{middle}` -- a statement inside a body this reader cannot say "
+                f"ran was bound as if it were top level: {where}"
+            )
+
+    def test_the_body_ends_at_its_closer(self):
+        """The count has to come back down, or the aim is lost again one level
+        up: every assignment after the first compound command would be forgotten
+        and the string would prompt from there on."""
+        for command in (
+            'SB=/one; if false; then echo hi; SB=/two; fi; SB=/three; git -C "$SB" commit -m x',
+            'SB=/one; if false; then { :; }; SB=/two; fi; SB=/three; git -C "$SB" commit -m x',
+            'SB=/one; ( echo hi ); SB=/three; git -C "$SB" commit -m x',
+            'SB=/one; f() { echo hi; }; SB=/three; git -C "$SB" commit -m x',
+            'SB=/one; case x in x) echo hi ;; esac; SB=/three; git -C "$SB" commit -m x',
+            # The arithmetic head is not a subshell, so the loop nets to zero.
+            'SB=/one; for ((k=0; k<2; k++)); do :; done; SB=/three; git -C "$SB" commit -m x',
+            # A closer in argument position is a word, and does not close early.
+            'SB=/one; if true; then echo fi; fi; SB=/three; git -C "$SB" commit -m x',
+            # Round 1: the multi-line `case` ends at its `esac`, so the stack has
+            # to pop `case` there -- with `stack.pop()` removed this one prompts.
+            'SB=/one; case x in\na )\necho hi ;;\nesac; SB=/three; git -C "$SB" commit -m x',
+            # And an opener outside command position opens nothing, so the
+            # everyday shapes round 1 found newly prompting resolve again.
+            "SB=/one; grep -c '(' f; SB=/three; git -C \"$SB\" commit -m x",
+            'SB=/one; time { echo hi; }; SB=/three; git -C "$SB" commit -m x',
+            'SB=/one; if true; then if true; then :; fi; fi; SB=/three; git -C "$SB" commit -m x',
+            # Round 2: the `)` an array or a substitution closes at top level is
+            # nobody's subshell closer, so the assignment after it still binds.
+            'SB=/one; OT=( a b ); ( echo hi ); SB=/three; git -C "$SB" commit -m x',
+            'SB=/one; X=$( pwd ); SB=/three; git -C "$SB" commit -m x',
+        ):
+            assert targets(command) == [os.path.normpath("/three")], command
+        # A paren inside a commit message opened a body for the rest of the string.
+        where = targets(
+            'SB=/one; git commit -m "(wip) x"; SB=/three; git -C "$SB" commit -m x'
+        )
+        assert os.path.normpath("/three") in where, where
+
+    def test_a_glued_closer_costs_a_prompt_and_not_an_answer(self):
+        """`(cd <x> && make)` arrives as `(cd` … `make)`, and the glued closer is
+        not counted because a `case` pattern `x)` looks the same. The count stays
+        open and the assignment after it is forgotten -- a prompt where bash has
+        `/three`. Recorded as the cost rather than fixed, because the direction is
+        the safe one."""
+        where = targets(
+            'SB=/one; (cd /x && echo hi); SB=/three; git -C "$SB" commit -m x'
+        )
+        assert any("$SB" in w for w in where), where
+
+    def test_a_call_to_a_function_the_string_defined_empties_the_environment(self):
+        """`f() { SB=/three; }; SB=/one; f; git -C "$SB"` -- bash `/three`, the
+        reader `/one`. The call is a plain word `understood` accepts and `_forget`
+        finds nothing in, but the definition is in the same string, so the reader
+        has seen the name."""
+        for command in (
+            'f() { SB=/three; }; SB=/one; f; git -C "$SB" commit -m x',
+            'function f { SB=/three; }; SB=/one; OT=/o; f; git -C "$OT" commit -m x',
+            'f(){ SB=/three; }; SB=/one; time f; git -C "$SB" commit -m x',
+            'f () { SB=/three; }; SB=/one; if true; then f; fi; git -C "$SB" commit -m x',
+            'f() { SB=/three; }; SB=/one; true && f; git -C "$SB" commit -m x',
+        ):
+            where = targets(command)
+            assert any("$" in w for w in where), (
+                f"{command!r} kept a name the call may have rewritten: {where}"
+            )
+        # A definition is not a call, and a word never defined here is a word.
+        assert targets('f() { SB=/three; }; SB=/one; g; git -C "$SB" commit -m x') == [
+            os.path.normpath("/one")
+        ]
+
+    def test_the_writers_round_one_found_are_forgotten(self):
+        """`((SB=3))`, `let "SB = 3"` and `${SB:=/three}` each write `SB` with no
+        `NAME=` at the start of a word. Executed under bash 3.2.57: `SB` is `3`,
+        `3` and -- for `:=` on a set name -- `/one`; the reader forgets on all of
+        them, which is a prompt and never an answer."""
+        for middle in (
+            "((SB=3))",
+            'let "SB = 3"',
+            "let SB++",
+            ': "${SB:=/three}"',
+            'echo "${SB=/three}"',
+            "if ((SB=3)); then :; fi",
+            'while let "SB = 3"; do break; done',
+            'if true; then : "${SB:=/three}"; fi',
+        ):
+            where = targets(f'SB=/one; {middle}; git -C "$SB" commit -m x')
+            assert any("$SB" in w for w in where), f"`{middle}` kept `/one`: {where}"
+        # The operators that read a name without writing it are left standing.
+        assert targets(
+            'SB=/one; echo "${SB:-/three}" "${#SB}"; git -C "$SB" commit -m x'
+        ) == [os.path.normpath("/one")]
+
+
+class Test_understood:
+    def test_accepts_a_plain_command_and_not_a_construct(self):
+        """The check has to be able to say no AND yes, or it is not a check.
+
+        `verify`'s second condition: a check that cannot fail is a counterfeit
+        seal. `understood` returning False for everything would make every test
+        above pass and every command in the repository prompt.
+        """
+        assert reader.understood(["git", "commit", "-m", "x"]) is True
+        assert reader.understood(["cd", "/tmp"]) is True
+        assert reader.understood(["FOO=1", "make"]) is True
+        assert reader.understood(["eval", "cd /tmp"]) is False
+        assert reader.understood(["for", "d", "in", "x"]) is False
+        assert reader.understood(["command", "-p", "cd", "/tmp"]) is False
+        assert reader.understood(["command", "$C", "/tmp"]) is False
+        assert reader.understood(["time", "make"]) is True
+
+    def test_refuses_a_reserved_word_behind_a_prefix_as_a_simple_command(self):
+        """`understood` asked the reserved-word question of the FIRST token only,
+        and `!` and `time` are prefixes it steps past. `! for SB in /two /three`
+        then reached `_bind` as something that runs, `_forget` found no `=` in
+        it, and `/one` stood where bash has `/three`. Two of the 82."""
+        assert not reader.understood(shlex.split("! for SB in /two /three"))
+        assert not reader.understood(shlex.split("time pushd /x"))
+        assert not reader.understood(shlex.split("command pushd /x"))
+        # And what the prefixes still pass through.
+        assert reader.understood(shlex.split("! true"))
+        assert reader.understood(shlex.split("time echo hi"))
+        assert reader.understood(shlex.split("command -p ls"))
+        for middle in (
+            "! for SB in /two /three; do :; done",
+            "time for SB in /two; do :; done",
+        ):
+            where = targets(f'SB=/one; {middle}; git -C "$SB" commit -m x')
+            assert any("$SB" in w for w in where), (
+                f"`{middle}` kept the value from before the loop: {where}"
+            )
+
+    @pytest.mark.parametrize("name,command,_probe", MOVES_THE_SHELL, ids=NAMES)
+    def test_a_construct_the_reader_does_not_model_stops_the_commit(
+        self, name, command, _probe
+    ):
+        """S1-S6. Not "the shell stayed here", which is an answer -- `Unresolved`,
+        which is the reader saying it does not have one."""
+        filled = command.replace("%s/s.sh", "/x/s.sh")
+        if "%s" in filled:
+            filled = filled % TARGET_DIR
+        wheres = commit_wheres(filled)
+        assert wheres, f"{name}: no commit was found at all"
+        assert unreadable(wheres) == wheres, (
+            f"{name}: the reader still answered with a directory: "
+            f"{[str(w) for w in wheres]}"
+        )
+
+    @pytest.mark.parametrize("name,_command,probe", MOVES_THE_SHELL, ids=NAMES)
+    def test_a_real_shell_really_lands_in_the_target(
+        self, name, _command, probe, tmp_path
+    ):
+        """The other half of the measurement, and the reason the stop is right.
+
+        Every construct above leaves bash in the target directory, so the reader's
+        old answer -- the session's own directory -- named a repository the commit
+        was not going to land in. Without this, the tests above pin a stop with no
+        evidence that anything was ever wrong.
+
+        `sudo cd` is deliberately not here: it looks for a binary named `cd` and
+        finds none, so it does NOT move the shell. The reader stops for it anyway,
+        because keeping which wrapper forks would be one more enumeration.
+        """
+        why = shell_probe("bash")
+        if why:
+            pytest.skip(f"bash: {why}")
+        target = tmp_path / "target"
+        target.mkdir()
+        # The sourced-script rows name a script beside the target; the others
+        # ignore it. Writing it unconditionally keeps the table one shape.
+        (tmp_path / "s.sh").write_text(
+            f"cd {shlex.quote(str(target))}\n", encoding="utf-8"
+        )
+        filled = probe.replace("%s/s.sh", shlex.quote(str(tmp_path / "s.sh")))
+        if "%s" in filled:
+            filled = filled % shlex.quote(str(target))
+        out = subprocess.run(
+            ["bash", "-c", filled + "; pwd -P"],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+        landed = out.stdout.strip().splitlines()[-1] if out.stdout.strip() else ""
+        assert landed == str(target.resolve()), (
+            f"{name}: bash landed in {landed!r}, so this row is not the case it "
+            f"claims to be (stderr: {out.stderr.strip()!r})"
+        )
+
+    @pytest.mark.parametrize(
+        "command",
+        [
+            f"cd {TARGET_DIR} && make && git commit -m x",
+            f"cd {TARGET_DIR} && ./deploy.sh && git commit -m x",
+            f"cd {TARGET_DIR} && git add -A && git commit -m x",
+            "sudo git commit -m x",
+            "env FOO=1 git commit -m x",
+            "time git commit -m x",
+            # A conditional expression holds no commands, so it cannot leave the
+            # shell anywhere. `[[ … ]]` is a reserved word and `[` is `test`
+            # spelled the other way -- read as a scope opener and as a glob
+            # respectively, both stopped what `test -f f.py && git commit`, the
+            # same condition in a third spelling, never stopped.
+            "[ -f f.py ] && git commit -m x",
+            "[[ -f f.py ]] && git commit -m x",
+            "[ ! -f zzz ] && git commit -m x",
+            "test -f f.py && git commit -m x",
+            # `shopt` does not move a shell. It was a relocator for one round on
+            # the grounds that `expand_aliases` turns alias expansion on, and an
+            # alias written in the command is caught by `alias` itself while one
+            # set by a profile is caught by nothing -- so it closed no door and
+            # stopped `shopt -s globstar && git commit`.
+            "shopt -s globstar && git commit -m x",
+            "shopt -s nullglob && git commit -m x",
+        ],
+    )
+    def test_an_ordinary_command_is_still_understood(self, command):
+        """A wrapper, a script, a build tool -- none of them is a construct. A
+        detector that stopped on these would be the "judge every directory named
+        anywhere" option `plan.md` rejected, arriving by accident."""
+        found = commit_wheres(command)
+        assert found, f"no commit was found at all: {command!r}"
+        assert unreadable(found) == []
+
+    def test_a_reserved_word_that_only_stands_in_front_is_not_a_scope(self):
+        """`time` and `!` stand in FRONT of a command rather than opening a scope.
+
+        Read as scope openers they stopped `time make && git commit` and
+        `! grep -q zzz f && git commit`, both ordinary and both silent before this
+        work item. The segment's own directory was never the question -- what
+        changed was every segment after it.
+        """
+        for command in (
+            "time make && git commit -m x",
+            "! grep -q zzz f.py && git commit -m x",
+        ):
+            found = commit_wheres(command)
+            # `unreadable([]) == []`, so an answer with no commit in it passes the
+            # line below. A commit swallowed whole is not hypothetical here --
+            # both the arithmetic case and the comment case produced exactly that.
+            assert found, f"no commit was found at all: {command!r}"
+            assert unreadable(found) == []
+        # The pair: a `cd` behind one of them is unreadable, because whether the
+        # word forks is what decides whether that `cd` reaches this shell.
+        assert (
+            unreadable(commit_wheres(f"time cd {TARGET_DIR} && git commit -m x")) != []
+        )
+
+    def test_an_alias_on_cd_stops_the_commit(self):
+        """`alias cd='cd <B>'` leaves both words in the command exactly as written.
+
+        So this is a directory the reader got confidently wrong rather than a
+        command it never saw -- which is why `alias` and `shopt` are relocators
+        and not, like a command hidden in an `eval` string, issue #75's shape.
+        Executed: bash stands in `<B>` while the reader answered `['/tmp', '/S']`
+        with nothing marked unreadable.
+
+        Not every candidate comes back unreadable, and that is the reader being
+        consistent rather than a gap. An absolute `cd` does not depend on where
+        the shell was, so `/tmp` is recovered clean -- the rule that lets
+        `eval 'echo hi'; cd /tmp; git commit` answer `/tmp` instead of giving up.
+        One unreadable candidate is what stops the commit, and that is what this
+        asserts.
+
+        What no enumeration reaches: an alias set by `BASH_ENV` or a profile,
+        which never appears in the command string at all.
+        """
+        found = commit_wheres(f"alias cd='cd {TARGET_DIR}'\ncd /tmp\ngit commit -m x")
+        assert unreadable(found), (
+            f"nothing in the answer says the reader could not follow the alias: "
+            f"{[str(w) for w in found]}"
+        )
+
+
+class Test_drop_comments:
+    def test_accepts_a_paren_inside_an_expansion_as_a_word_part(self):
+        """Both models, not one. This is the half issue #78's title is about.
+
+        Asserted at `drop_comments` rather than through a shell: bash rejects
+        `echo ${x:-((} zz)#c` outright — `syntax error near unexpected token ')'`,
+        measured — so there is no behaviour to compare against. What is being
+        pinned is that the two models answer the same question the same way, which
+        is what makes their answers predictable when one of them is wrong.
+        """
+        text = "echo ${x:-((} zz)#c ; git commit -m x"
+        assert reader.drop_comments(text) == text, (
+            "the `)` ended the word, the `#` opened a comment, and the commit went"
+        )
+
+    def test_refuses_a_bare_brace_as_an_expansion_opener(self):
+        """A bare `{` is a group or a brace expansion, not an expansion of a name.
+
+        Measured under bash 3.2.57: `echo { #c ; echo REACHED` prints `{` and does
+        NOT reach the next command, so bash opens a comment there. Counting a bare
+        `{` would hold the expansion open past the `}` that never comes, leave the
+        comment standing, and read `git commit` as a command bash never runs.
+        """
+        assert commit_wheres("echo { #c ; git commit -m x") == []
+        assert reader.drop_comments("echo { #c ; git commit -m x") == "echo { "
+
+    def test_a_hash_after_a_command_substitution_opens_no_comment(self):
+        """`)` ends a word for a subshell and not for `$(…)`, and this reader
+        cannot tell them apart.
+
+        Executed: `bash -c 'echo $(echo a)#foo && echo X'` prints `a#foo` and then
+        `X`, so bash runs everything after that `#`. Reading it as a comment
+        opener deleted the `&& git commit` behind it — and once the commit gate's
+        judgment read started dropping comments, that deletion reached a gate with
+        no commit left to judge. A blank still opens one.
+        """
+        found = commit_wheres(f"cd {TARGET_DIR} && echo $(pwd)#note && git commit -m x")
+        assert found, "the commit was deleted with a comment bash does not open"
+        assert [str(w) for w in found] == [TARGET_READ]
+        # The spaced form is a comment in bash too, so the commit really is gone
+        # from what the shell would run -- and the reader answers for the segments
+        # that remain rather than inventing one.
+        spaced = commit_wheres(
+            f"cd {TARGET_DIR} && echo $(pwd) # note && git commit -m x"
+        )
+        assert spaced == []
+
+    @pytest.mark.parametrize(
+        "command",
+        [
+            "cat <(echo a)#zzz ; git commit -m x",
+            "echo <(echo a)#zzz ; git commit -m x",
+            "echo a > >(cat)#zzz ; git commit -m x",
+            "x=(a b)#zzz && git commit -m x",
+            "files=(*.py)#zzz ; git commit -m x",
+            "x=()#zzz && git commit -m x",
+        ],
+    )
+    def test_a_hash_after_a_word_part_paren_opens_no_comment(self, command):
+        """A `)` that closes something a WORD runs through opens no comment.
+
+        `$(` is not the only opener. Four are: `$(`, the `<(` and `>(` of a
+        process substitution, and the `(` of an array assignment `name=(`.
+        Measured under bash 3.2.57 against a scratch repository -- every command
+        here really creates a commit, and reading that `)` as a subshell's put a
+        comment where bash opens none and deleted the commit behind it.
+
+        Round 2 closed `$(` and round 4 found the other three still open, which
+        is why the model is pinned here by construct rather than by example.
+        """
+        assert commit_wheres(command), command
+
+    def test_a_subshell_close_still_opens_one(self, command=None):
+        """The other side of the same constant, so neither direction is free.
+
+        `(echo a)#zzz` really is a comment to bash -- and bash creates no commit
+        there, so the reader answering `blind` is correct. Teaching every `)` to
+        leave the word running would make this case wrong.
+        """
+        assert not commit_wheres("(echo a)#zzz ; git commit -m x")
+
+    @pytest.mark.parametrize("op", ["@", "!", "*", "+", "?"])
+    def test_an_extglob_pattern_keeps_the_word_running(self, op):
+        """extglob's five operators make `(` part of a WORD, the way `$(` does.
+
+        Read as a command paren, the `)` ends the word and the `#` after it opens a
+        comment bash does not -- which DELETES the commit behind it, and both gates
+        then say nothing. Measured under bash 3.2.57 against a scratch repository:
+        with `shopt -s extglob` on the line above, `ls -d @(a|b)#x ; git commit`
+        really commits, 1 -> 2.
+
+        `bash -n` calls it a syntax error and is WRONG here: `extglob` is a runtime
+        shopt the parse check cannot see. Measure this family with `bash -O
+        extglob`. Round 4 enumerated four openers and declared the list closed;
+        this is the fifth time that constant has been found short.
+        """
+        assert commit_wheres(f"shopt -s extglob\nls -d {op}(a|b)#x ; git commit -m x")
+
+    def test_a_hash_inside_a_parameter_expansion_opens_no_comment(self):
+        """The other paren model's own cost, which issue #78 reported as nothing.
+
+        It was measured on six `${x:-((}#zzz` shapes, where this reader agrees
+        with bash. A `#` after a BLANK inside the expansion was never measured and
+        is a fail-OPEN: executed under bash 3.2.57, `echo ${x:-a #b} ; echo
+        REACHED` prints `a #b` and then `REACHED`, so bash opens no comment and
+        runs what follows -- while `drop_comments` returned `echo ${x:-a ` and the
+        `git commit` behind it was gone from the segment list entirely.
+        """
+        assert commit_wheres("echo ${x:-a #b} ; git commit -m x") == [SESSION]
+        assert "#b" in reader.drop_comments("echo ${x:-a #b} ; git commit -m x")
+
+    @pytest.mark.parametrize("expansion", WORD_TAKING_EXPANSIONS)
+    def test_the_six_shapes_the_comment_model_already_answered_are_unchanged(
+        self, expansion
+    ):
+        """S7's other half. `${…}#zzz` was measured against bash at round 5 and
+        the reader agreed on all of it; teaching this model about `${…}` must not
+        move an answer it already had right."""
+        assert commit_wheres(f"echo {expansion}#zzz ; git commit -m x") == [SESSION]
+
+    def test_a_case_pattern_comment_does_not_take_the_segment_list(self):
+        """An unbalanced `)` ends the word, which is what keeps a comment readable.
+
+        A `case` pattern's `)` closes nothing this reader opened, and it is the
+        place an unbalanced one actually occurs. Measured: bash opens a comment
+        after it, and a comment left in place whose text holds an apostrophe opens
+        a quote that never closes -- which took every later line, the commit
+        included, out of the segment list.
+        """
+        command = (
+            "case x in\nx)#don't\n  echo hit ;;\nesac\ncd /elsewhere && git commit -m x"
+        )
+        text = reader.drop_heredoc_bodies(reader.drop_comments(command))
+        _, clean = reader.split_segments_with_separators(text)
+        assert clean, "the apostrophe in a comment bash DOES open took the segment list"
+
+
+class Test_drop_heredoc_bodies:
+    def test_accepts_a_heredoc_body_as_dropped(self):
+        """The case `drop_heredoc_bodies` exists for, pinned beside the fix.
+
+        A body is data. Stepping over arithmetic must not have taught the reader
+        to walk into one -- `cd /elsewhere` here is a line written to a file, and
+        the commit belongs to the session's own repository.
+        """
+        wheres = commit_wheres(
+            "cat > run.sh <<'EOF'\ncd /elsewhere\nEOF\ngit commit -m x"
+        )
+        assert [str(w) for w in wheres] == [SESSION]
+
+    @pytest.mark.parametrize(
+        "command",
+        [
+            "n=$((1<<2))\ngit commit -m x",
+            "n=$(( (1<<2) + 3 ))\ngit commit -m x",
+            "echo $((n<<1))\ngit commit -m x",
+        ],
+    )
+    def test_refuses_arithmetic_as_a_heredoc(self, command):
+        """S7. `<<` inside `$((…))` is a left shift.
+
+        Read as a redirect it took `2))` for a delimiter and dropped every line
+        after it looking for one that matched, so the commit did not arrive
+        misjudged -- it did not arrive at all, and a gate with no commit in front
+        of it has nothing to say. The assertion is therefore that a commit is
+        FOUND, and found where the shell actually is.
+        """
+        wheres = commit_wheres(command)
+        assert wheres, "the commit after the arithmetic was swallowed entirely"
+        assert [str(w) for w in wheres] == [SESSION], (
+            "the commit after the arithmetic was swallowed with the heredoc body"
+        )
+        assert unreadable(wheres) == []
+
+    @pytest.mark.parametrize(
+        "command",
+        [
+            "n=$[1<<2]\ngit commit -m x",
+            "n=$[ (1<<2) + 3 ]\ngit commit -m x",
+        ],
+    )
+    def test_the_older_arithmetic_spelling_is_arithmetic_too(self, command):
+        """`$[…]` is bash's older spelling of `$((…))` and closes on ONE bracket.
+
+        Left out of the branch that steps over arithmetic, it swallowed the commit
+        below it exactly as `$((1<<2))` did -- measured with the commit really
+        created in a scratch repository while the reader's segment list held no
+        commit at all.
+        """
+        found = commit_wheres(command)
+        assert found, "the commit after the arithmetic was swallowed entirely"
+        assert [str(w) for w in found] == [SESSION]
+        assert unreadable(found) == []
+
+    def test_a_parenthesis_in_a_string_does_not_stretch_the_arithmetic(self):
+        """The depth count tracks quotes, because a shell does.
+
+        Counting brackets blind, one `(` inside a string ran the region to the end
+        of the input, and the heredoc body after it was raised as commands -- so
+        `cat > run.sh <<'EOF'` with a `cd` in the body newly stopped a command
+        that only writes a file.
+        """
+        command = "x=$((printf '(' ) )\ncat > run.sh <<'EOF'\ncd /elsewhere\nEOF\ngit commit -m x"
+        found = commit_wheres(command)
+        assert [str(w) for w in found] == [SESSION], (
+            "the heredoc body was read as commands"
+        )
+        assert unreadable(found) == []
+
+    @pytest.mark.parametrize(
+        "command",
+        [
+            "i=0\nwhile ((i<1)); do((i=i+(1<<2)))\nbreak; done\ngit commit -m x",
+            "if true; then((x=1<<2))\nfi\ngit commit -m x",
+            "if false; then :\nelse((x=1<<2))\nfi\ngit commit -m x",
+            "!((1<<2))\ngit commit -m x",
+            "{((x=1<<2))\n}\ngit commit -m x",
+        ],
+    )
+    def test_arithmetic_glued_to_a_reserved_word_is_arithmetic_too(self, command):
+        """`(` is a metacharacter, so a reserved word ends at it with no blank.
+
+        Requiring one was a fail-open. Measured under bash 3.2.57 against a
+        scratch repository: each of these really creates a commit. Read as a
+        redirect, the `<<` took its delimiter out of the expression and swallowed
+        every line after it, the commit included, and both gates stayed silent.
+        """
+        assert commit_wheres(command), command
+
+    def test_the_spaced_form_was_never_the_broken_one(self, command=None):
+        """The control. One space was the whole difference, which is what said the
+        defence was half built rather than absent."""
+        assert commit_wheres(
+            "i=0\nwhile ((i<1)); do ((i=i+(1<<2)))\nbreak; done\ngit commit -m x"
+        )
+
+    def test_a_paren_pair_in_a_quoted_string_is_not_arithmetic(self, command=None):
+        """The cost of dropping the blank, bounded where it is cheapest to check.
+
+        Quotes are handled before the arithmetic branch, so a `((` inside them
+        opens no region and a following heredoc body is still dropped. The two
+        shapes that DO answer differently without the blank are both rejected by
+        `bash -n`, and are recorded at the branch rather than pinned here.
+        """
+        found = commit_wheres(
+            "echo '((' <<'EOF'\ngit commit -m sneaky\nEOF\ngit commit -m real"
+        )
+        assert len(found) == 1, f"the heredoc body was read as commands: {found}"
+
+    @pytest.mark.parametrize("expansion", WORD_TAKING_EXPANSIONS)
+    def test_a_paren_pair_inside_a_parameter_expansion_is_a_word(self, expansion):
+        """Issue #78, and this expectation is the flip that says it landed.
+
+        It used to assert `2` -- the sneaky commit inside the heredoc body counted
+        as a second one, because the arithmetic region ran to the end of the input
+        and the `<<` below it was never read as a redirect. Round 5 measured the
+        family at 51 shapes across all seventeen operators and pinned the answer
+        it gave rather than the answer bash gives, so that leaving it stayed a
+        decision.
+
+        Both paren models now count `${…}` nesting, so the `((` in here is the
+        text bash treats it as, the heredoc opens, and the body is dropped. One
+        commit, which is what bash makes.
+        """
+        found = commit_wheres(
+            f"echo {expansion} <<'EOF'\ngit commit -m sneaky\nEOF\ngit commit -m real"
+        )
+        assert len(found) == 1, f"the heredoc body was read as commands: {found}"
+
+    def test_a_parameter_expansion_paren_no_longer_imports_the_body_s_cd(self):
+        """The sharpest form, and the one that cost a person something.
+
+        Executed under bash 3.2.57 against a scratch repository: bash prints `((`,
+        stays in the directory it started in, and makes one commit -- 1 -> 2. The
+        gate used to answer for `/target`, a path that exists only in the heredoc
+        body, and DENIED a commit that had already been reviewed.
+
+        It now answers for the directory the shell is actually in, which is the
+        session's own. This assertion used to be `TARGET_READ in …`.
+        """
+        found = commit_wheres(
+            "echo ${x:-((} <<'EOF'\ncd /target\nEOF\ngit commit -m real"
+        )
+        assert [str(w) for w in found] == [SESSION], found
+
+    @pytest.mark.parametrize("arith", ["$((1<<2))", "$[1<<2]"])
+    def test_arithmetic_inside_a_parameter_expansion_is_still_stepped_over(self, arith):
+        """The direction `${…}` state can break, and the reason `$((` and `$[` are
+        unconditional while a bare `((` is not.
+
+        `$((1<<2))` is arithmetic wherever it is written, and the `<<` inside it is
+        a shift. Suppressing the skip inside `${…}` would read that `<<` as a
+        redirect naming the delimiter `2))}`, swallow every line after it, and take
+        the `git commit` with it — a fail-OPEN, where the family this change closes
+        was fail-closed. Executed: `echo ${x:-$((1<<2))}` prints `4` and reaches
+        the next command.
+        """
+        found = commit_wheres(
+            f"echo ${{x:-{arith}}} <<EOF\ncd /target\nEOF\ngit commit -m real"
+        )
+        assert [str(w) for w in found] == [SESSION], found
+
+    def test_an_unbalanced_expansion_leaves_the_heredoc_readable(self):
+        """`${` with no `}` holds the count open to the end of the input, which is
+        the state that could hide a real `((` region. Nothing else moves: the
+        heredoc opener is read by a later branch, so the body is still dropped and
+        the commit below it is still found."""
+        found = commit_wheres("echo ${x <<EOF\ncd /target\nEOF\ngit commit -m real")
+        assert [str(w) for w in found] == [SESSION], found
+
+    def test_a_hash_inside_an_expansion_closes_no_brace_in_either_model(self):
+        """Round 1: `drop_comments` got `and not braces` and the heredoc splitter
+        did not, so the two models answered one question two ways.
+
+        `${x:-a #b}` opened a comment in the splitter that swallowed the closing
+        `}`, `braces` stayed 1 to the end of the input, every `((` after it
+        stopped being an arithmetic region, and a `<<` inside one opened a
+        heredoc that ate the rest of the command. Measured: the `git worktree
+        add` below such a line left the segment list entirely and the worktree
+        guard went silent on a command bash really runs, `rc=0`.
+        """
+        command = "echo ${x:-a #b}\n((1<<2))\ngit worktree add -b nb ../wt"
+        text = reader.drop_heredoc_bodies(reader.drop_comments(command))
+        items, clean = reader.split_segments_with_separators(text)
+        assert clean, command
+        words = [tokens for _, tokens in items]
+        assert any(t[:2] == ["git", "worktree"] for t in words), (
+            f"the `git worktree add` left the segment list: {words}. A `#` inside "
+            "an expansion must not close the brace count in either model"
+        )
+
+    def test_refuses_a_heredoc_opener_inside_an_expansion(self):
+        """Round 2: `braces` reached the `#` and `((` branches and not `<<`.
+
+        `${x:-<<E}` opened a heredoc whose delimiter was `E}`, the closing line
+        never came, and every line below it was swallowed as a body -- so a
+        `git worktree add` bash really runs, `rc=0`, left the segment list
+        entirely. 32 of 333 generated inputs failed open this way and every one
+        was this family.
+        """
+        command = "echo ${x:-<<E}\ngit worktree add -b nb ../wt"
+        items, clean = reader.split_segments_with_separators(
+            reader.drop_heredoc_bodies(reader.drop_comments(command))
+        )
+        assert clean, command
+        words = [tokens for _, tokens in items]
+        assert any(t[:2] == ["git", "worktree"] for t in words), (
+            f"the `git worktree add` left the segment list: {words}"
+        )
+
+    def test_accepts_a_heredoc_opened_after_an_unbalanced_expansion(self):
+        """The guard the fix above needed, and the reason it is not one word.
+
+        Adding `not braces` alone would let an UNBALANCED `${` hold the count to
+        the end of the input, hiding every heredoc opener after it and reading a
+        body as commands -- the fail-OPEN direction, and the opposite of what the
+        count exists for. So an expansion counts only when a `}` closes it."""
+        command = "echo ${x <<EOF\ncd /elsewhere\nEOF\ngit commit -m x"
+        items, clean = reader.split_segments_with_separators(
+            reader.drop_heredoc_bodies(reader.drop_comments(command))
+        )
+        assert clean, command
+        words = [tokens for _, tokens in items]
+        assert not any("cd" in t for t in words), (
+            f"the heredoc body was read as commands: {words}. An unbalanced "
+            "`${` must not hold the brace count open"
+        )
+
+
+class Test__bind:
+    def test_refuses_a_subshell_of_its_own_accord(self):
+        """`_bind`'s subshell guard is asserted at the unit, because the walk's
+        `understood` check already refuses these and would keep the guard green
+        if it were deleted — measured, removing it turns no case in this file red.
+
+        Two things refusing one shape is deliberate: bash discards a subshell's
+        assignments when it exits, so `(SB=/inside)` is wrong about bash and not
+        only about what this reader can follow.
+        """
+        assert reader._bind({}, ["(SB=/inside)"]) == {}
+        assert reader._bind({}, ["{", "SB=/inside"]) == {}
+        assert reader._bind({}, ["SB=/inside"]) == {"SB": "/inside"}
+
+    def test_accepts_only_a_bare_name_operand_as_forgotten(self):
+        """The other side of `_forget`'s permissiveness.
+
+        Forgetting costs a prompt and keeping costs a repository nobody reviewed,
+        so it leans toward forgetting -- but it must still be reading operands
+        rather than dropping the environment whenever a name-writer appears."""
+        kept = reader._bind({"SB": "/one"}, shlex.split("read SB.x"))
+        assert kept.get("SB") == "/one", (
+            "`SB.x` is not the name `SB`, and forgetting on it makes every "
+            "name-writer segment a full reset"
+        )
+        kept = reader._bind({"SB": "/one"}, shlex.split("read OTHER"))
+        assert kept.get("SB") == "/one", "a name-writer forgot a name it never named"
+
+    def test_the_subshell_refusal_forgets_rather_than_keeps(self):
+        """`_bind`'s own subshell guard, reached directly.
+
+        `( SB=/two )` is caught twice over -- the walk excludes a subshell join
+        and `_bind` refuses one of its own accord -- so a mutation to either
+        alone leaves the other standing. This calls `_bind` with the tokens, so
+        the guard inside it is the only thing answering.
+        """
+        kept = reader._bind({"SB": "/one"}, shlex.split("( SB=/two )"))
+        assert "SB" not in kept, (
+            "`_bind`'s subshell guard returned the environment untouched, so a "
+            "value from before the subshell survives it. Refusing to take a name "
+            "and keeping the old one is the confident wrong answer"
+        )
+        # And the same for the branch that refuses a segment which runs something.
+        kept = reader._bind({"SB": "/one"}, shlex.split("export SB=/two"))
+        assert "SB" not in kept
+
+    def test_an_array_assignment_empties_the_name(self):
+        """`SB=(/three)` makes an array whose `$SB` is `/three`, and the reader
+        bound the text between the parens: `git -C "$SB"` composed `(/three)`
+        onto the session directory. Unmodelled, so the name is emptied."""
+        kept = reader._bind({"SB": "/one"}, shlex.split("SB=(/three)"))
+        assert "SB" not in kept, "an array assignment kept the value from before it"
+        where = targets('SB=(/three); git -C "$SB" commit -m x')
+        assert any("$SB" in w for w in where), where
+
+
+class Test__substitute:
+    def test_accepts_a_bound_name_and_leaves_every_other_standing(self):
+        """`verify`'s second condition, at the unit that does the work.
+
+        `_substitute` returning its operand unchanged would leave every case above
+        green except the six that now resolve, and one that filled every `$`
+        would take S3 and S4 with it. Both directions are asserted here.
+        """
+        assert reader._substitute("$SB/r1", {"SB": "/x"}) == "/x/r1"
+        assert reader._substitute("${SB}/r1", {"SB": "/x"}) == "/x/r1"
+        assert reader._substitute("$SB", {}) == "$SB"
+        assert reader._substitute("$WT", {"SB": "/x"}) == "$WT"
+        assert reader._substitute("${SB:-/y}", {"SB": "/x"}) == "${SB:-/y}"
+        assert reader._substitute("$SBX", {"SB": "/x"}) == "$SBX"
+        assert reader._substitute("/plain/path", {"SB": "/x"}) == "/plain/path"
+
+    def test_refuses_to_rescan_a_value_holding_a_dollar(self):
+        """One pass, so nothing here loops: what a substitution writes is not
+        read again."""
+        assert reader._substitute("$A", {"A": "$A", "B": "/x"}) == "$A"
+        assert reader._substitute("$B", {"B": "$A/y", "A": "/loop"}) == "$A/y"
 
 
 class Test_parse_git:

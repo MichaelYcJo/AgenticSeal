@@ -19,8 +19,9 @@ of its light files: the lease and transcript readers' cases of
 `tests/test_the_idle_session_rows_ask_nobody.py` and
 `tests/test_a_creation_in_another_clone_asks_nobody.py`, the tree each
 command is judged in from `tests/test_guard_resolves_the_tree_it_judges.py`,
-and the process probe of `tests/test_gates_do_not_fail_open.py`. Each runs on
-the `repo` fixture or a directory of its own, as it did there.
+the process probe of `tests/test_gates_do_not_fail_open.py`, and the guard's
+half of the reader's S13 from `tests/test_what_the_reader_understands.py`.
+Each runs on the `repo` fixture or a directory of its own, as it did there.
 """
 
 import contextlib
@@ -1372,6 +1373,27 @@ class Test_walk_command:
             walked = wg.walk_command(cmd, r"C:\start", windows=True)
             where = walked[1][1][0]
             assert not isinstance(where, wg.cmdline.Unresolved), cmd
+
+    def test_the_guard_reads_the_same_answer(self):
+        """S13. Issue #68's rounds twice fixed one gate and left the other, so the
+        guard is asserted rather than assumed. It reads the walk through
+        `walk_command` in `hooks/worktree-guard.py`, and since #689 that walk is
+        `hooks/cmdline_base.py`'s, `86256492`'s reader frozen, where the commit
+        gate takes `cmdline.walk_directories`; an `eval` is refused by both.
+
+        `wg.cmdline` rather than a reader loaded here: the guard reaches its
+        reader with a plain `import cmdline_base as cmdline`, which goes through
+        `sys.modules`, while
+        `load_hook_module` builds a second instance under its own name. The two
+        `Unresolved` classes are then different objects and `isinstance` is False
+        across them -- which is a test that passes for the wrong reason waiting to
+        happen, since the failing direction is "nothing was unreadable".
+        """
+        walked = wg.walk_command("eval 'cd /target'; git switch main", "/session")
+        wheres = list(walked[-1][1])
+        assert wheres and all(isinstance(w, wg.cmdline.Unresolved) for w in wheres), (
+            f"the guard still answered with a directory: {[str(w) for w in wheres]}"
+        )
 
 
 class Test_only_creates_a_worktree:
