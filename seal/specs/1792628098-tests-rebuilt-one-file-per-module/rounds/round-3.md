@@ -11,7 +11,7 @@ This round did two things at 425d052a. It checked round 2's four closes. It also
 severity: should
 location: `skills/verify/scripts/test_layout.py:624`, `skills/verify/scripts/test_layout.py:68-75`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/spec.md:74-76`, `CONTRIBUTING.md:290-306`, `tests/test_test_layout.py`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-6.md:534`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-6.md:597`
 evidence: executed `bin/test tests/test_tmp_r3_probe.py -q -p no:xdist -s`, `python3 helpers.py clone 3 6 7 12 15 16 18 19 20 21 22 24 25 27 28 29 30 31 32 35 37 38 40 41 42 43 46 47 48 49 50 52`, `bin/test tests/test_tmp_r3_fix_probe.py -q -p no:xdist -s`, `R3_SHOW=1 R3_SCRIPT=test_layout_fixed.py python3 moves.py clone run clone2 3 6 7 12 15 16 18 19 20 21 22 24 25 27 28 29 30 31 32 35 37 38 40 41 42 43 46 47 48 49 50 51 52`
-verdict: open
+verdict: fixed 724b3831
 
 `spec.md:74` makes the move check the decider: whether a group's modules were only moved "is decided by the move check below, from the two trees and never from the smith's record". `plan.md:46` records the owner's refusal of the smith's record as that decider. A module the check passes skips the mutants, so the check is the whole proof of equal protection for 31 of phase 6's 50 groups and for both phase 7 moves.
 
@@ -155,14 +155,14 @@ module binding, a row constant, a fixture's helper) and one row of
 red against the script at 425d052a.
 ```
 
-answer:
+answer: Applied as the first repair the orchestrator chose, with the three changes the reframe at 79f9c3fd made to the candidate: an import is read as its one alias, every non-test module directly under `tests/` is followed as `tests/conftest.py` is, and the names of every fixture a case reaches are read. 2f681b9c to 8dd97a30 build it in `skills/verify/scripts/test_layout.py`, whose docstring and `CONTRIBUTING.md` *The test layout* now say four conditions. S15's five refusing rows were red against 76551ca7's script, its three accepting rows were red on the mutants that remove their readings, and the last batch, at 8dd97a30, ran 30 mutants, all red. The re-run showed the candidate's shape refusing correct moves three ways, and 79af3fcc fixed each with an accepting row: `_binds` counted a helper's own locals as module bindings, `self` was read inside a fake class a case defines, and one definition reached from two files counted twice. The build also reads `<module>.<name>` of a module under `tests/` and `self.<name>` of the case's class, and counts a name one tree's reading reaches and the other's does not as a change; `overview.md` *Fed back into the spec* holds the three for the framer. Re-run at their commits in a scratch clone, the 51 commands phases 6 and 7 record reproduce their recorded last lines with each commit's own script; with the new script the 18 recorded at exit 1 stay at exit 1, 9 of the 33 recorded at exit 0 still exit 0, and 24 exit 1, every line on the name condition. 18 groups sent 23 modules to the mutants, 19 on new tables and 4 on the tables of groups 17, 23, 26 and 36 under `questions.md` Q11's default. One survivor is a lost protection, `hooks/answers.py`'s a17, which the old file killed at 714f2df2, and 56d2f856 adds the case seen red on it; every other survivor is an old gap or is red on a case that stands at the head. Group 15's sentence on `reader` named a definition that did differ: `reader` is one of the six lines its re-run prints, and `hooks/blocks.py` ran 15 mutants, 12 red, 2 red on the renderer files at the head and 1 old gap. 20 of the named cases stand in files that declare no `TARGET`, and the plan's step 3 sends no module for them; `overview.md` *Not verified* asks the framer what proves them. 724b3831 holds the records, each phase's *The move checks re-run with the name condition*.
 
 ### 2. The overview says the pairs report names no pair and that one pair stands unmerged, but the report names 210 at the head, and it times the suite "at the head" on a tree before the last move
 
 severity: should
 location: `seal/specs/1792628098-tests-rebuilt-one-file-per-module/overview.md:5`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/overview.md:16`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/overview.md:59`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/handoff.md:13`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-6.md:1425-1450`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-6.md:1457-1521`
 evidence: executed `bin/test-layout --pairs tests/`, `python3 skills/verify/scripts/test_layout.py --pairs tests/test_roll_flow_measurement_issue.py tests/test_tracker_labels.py`, `git log --oneline 6a54be98..425d052a`
-verdict: open
+verdict: fixed 724b3831
 
 The overview is what the sealer reads and what the pull request body copies. Three of its sentences state facts of the head that the head does not show.
 
@@ -206,7 +206,7 @@ the other because <reason>, so neither is merged.
 because <reason>, so neither is merged.
 ```
 
-answer:
+answer: Applied at 724b3831. `overview.md` line 5 and `handoff.md` line 13 name 6a54be98 as the tree the suite was timed at, before 099cd54d's move. The fed-back bullet says `--pairs` named 0 pairs at 00674174 and names 210 at 208803e6 (`executed`, `bin/test-layout --pairs tests/`). The divergence row on pairs met at placement now quotes `spec.md` rule 2 as the reframe at 79f9c3fd wrote it, a pair merged "where one of its cases covers the other" and otherwise named with its reason in the batch's record, and says which groups' records name the 210; with group 44's sentence written, none departs from the rule. Group 44's record gains the sentence on its pair, after reading the two cases: they call `find_baseline_issue("example/repo")` over different answers of the `try_run` each stands in, the first asserting no number and no note for a failed, empty or unparsed lookup and the number for one open log, the second no number and a note naming `flow-baseline` for two. Group 45's record already names its pair, at `phases/phase-6.md:1471` at 425d052a ("`--pairs` also names `tests/test_tracker_labels.py::Test_main`'s two `main(["--apply"])` cases, over different trackers: one asserts a create, the other that nothing is written, so neither covers the other and neither is merged"), so the finding's claim that neither record mentions them holds for group 44 alone, and group 45's record gains nothing.
 
 ## Confirmations
 
