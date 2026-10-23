@@ -140,5 +140,13 @@ class Test_module:
             os.path.expanduser("~"), ".claude", "specseal", "answers"
         )
 
+    def test_the_override_names_the_store_where_it_is_set(self, monkeypatch, tmp_path):
+        """Red where `root_dir` does not read `SPECSEAL_ANSWERS`. The old file's
+        case of a payload with no `tool_use_id` killed that mutant at 714f2df2,
+        through the answers the store under the home directory kept, and no
+        case at the head did (#942's round 3 fix pass, a17)."""
+        monkeypatch.setenv(answers.OVERRIDE, str(tmp_path))
+        assert answers.root_dir() == str(tmp_path)
+
 
 test_census = census_case(TARGET)
