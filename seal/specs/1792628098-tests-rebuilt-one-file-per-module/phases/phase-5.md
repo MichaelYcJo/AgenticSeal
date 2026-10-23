@@ -209,7 +209,7 @@ The orchestrator ruled that `--pairs` compares no call with no argument, because
 - Mutation: `given = node.args or node.keywords` made `given = True` turns that row red.
 - The report: `bin/test-layout --pairs tests/` names 0 pairs at 00674174. At 94660204 it named the two `build()` calls of `tests/test_seal_stamp.py::Test_build`.
 
-`spec.md` *What holds the rules* does not yet carry the rule; `overview.md`'s divergence row names it.
+f74be021 wrote the rule into `spec.md` *What holds the rules*; `overview.md` *Fed back into the spec* names it.
 
 ### The commit flow, at c7f38def
 
@@ -336,8 +336,8 @@ No old column: the batch mode had no old cases. `git status` was clean after eve
 
 **Whether the frame holds.** It holds, with four readings the build took.
 
-- A case whose rows pin how another module reads a shell shape stays in its old file. Its rows run through `commit_invocations`, but each row is a branch of `hooks/cmdline.py`, `hooks/one_heredoc.py` or `hooks/tokens.py`. The proof's mutants are this module's alone, so they cannot show that a sample of those rows protects what the whole set did. The rows cost nothing without git. Where such a case ran `main` with git, its rows are rewritten in place without git, and `main`'s half is sampled into the new file. This is the sealer file's reading again, one module per commit, and rule 2's table has no verdict for it; `overview.md` holds the divergence.
-- The world is never copied. No case writes into it but the gate's choice marker, which is keyed by a session id each case makes its own, so the session id is the reset. `spec.md` rule 1 copies the world for each case; `overview.md` holds the divergence.
+- A case whose rows pin how another module reads a shell shape stays in its old file. Its rows run through `commit_invocations`, but each row is a branch of `hooks/cmdline.py`, `hooks/one_heredoc.py` or `hooks/tokens.py`. The proof's mutants are this module's alone, so they cannot show that a sample of those rows protects what the whole set did. The rows cost nothing without git. Where such a case ran `main` with git, its rows are rewritten in place without git, and `main`'s half is sampled into the new file. This is the sealer file's reading again, one module per commit. Rule 2's table had no verdict for it, and f74be021 added `left for its module`; `overview.md` *Fed back into the spec* names it.
+- The world is never copied. No case writes into it but the gate's choice marker, which is keyed by a session id each case makes its own, so the session id is the reset. `spec.md` rule 1 copied the world for each case, and f74be021 added the session-id reset; `overview.md` *Fed back into the spec* names it.
 - The press is read off a stub. Each old corpus row ran four times, twice without the press and twice with it, and asserted none was silent. Whether the gate stops is decided before the press is read, so each row runs once without it. `test_refuses_the_first_attempt_with_a_question_and_the_next_with_an_ask` and `test_refuses_every_attempt_with_a_deny_under_the_press` show that neither a second attempt nor the press turns a stop silent (r18, r28 and r29 below).
 - `docs/commit-review-gate-spec.md` names `tests/test_no_shape_the_base_stops_reads_silent.py` in the `check:` line of *A change to the reading adds stops and never removes one*. Its corpus now runs in `Test_main::test_refuses_each_shape_the_base_stops`, and the file stays with two `cmdline` cases and the fixtures two other modules import. The line moves only through a `## Rule changes` item, which is the framer's.
 
