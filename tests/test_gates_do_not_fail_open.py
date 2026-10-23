@@ -18,47 +18,24 @@ as the one to avoid.
 Platform-independent by construction: the `None` state is produced directly,
 because that is the state the reader thread leaves behind, and reproducing the
 thread death would need a locale the test cannot set portably.
+
+The guard's process probe in this direction is
+`tests/test_worktree_guard.py`'s
+`Test_lease_owner_alive::test_the_process_probe_survives_output_it_cannot_decode`
+(#942's phase 6).
 """
 
 import io
 import json
 import os
-import subprocess
 import sys
 
-import pytest
 from conftest import git_repo, load
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 
 
 optin = load("hooks/optin.py", "specseal_optin_failopen")
-
-
-def test_the_process_probe_survives_output_it_cannot_decode(monkeypatch):
-    """`tasklist` is the only process probe Windows has — there is no `ps` and
-    no `/proc` — and it answers in the OEM codepage, so it is the one reader in
-    this tree whose source is not UTF-8.
-
-    Under `text=True` its reader thread died and `r.stdout` came back `None`,
-    which `.splitlines()` then hit OUTSIDE the `try`. The guard's session
-    detection went blind on exactly the consoles most likely to be non-UTF-8,
-    and blind means `reliable` is False, which means every branch switch
-    reaches the cannot-tell arm.
-    """
-    guard = load("hooks/worktree-guard.py", "specseal_guard_failopen")
-    if not hasattr(guard, "lease_owner_alive"):
-        pytest.skip("the probe moved; this case names it by function")
-
-    def decoded_nothing(*args, **kwargs):
-        return subprocess.CompletedProcess(args, 0, stdout=None, stderr=None)
-
-    monkeypatch.setattr(guard.subprocess, "run", decoded_nothing)
-    monkeypatch.setattr(guard.sys, "platform", "win32")
-    # False — "this pid is not running" — and not a traceback. Answering the
-    # question wrongly is a separate matter from failing to answer it at all,
-    # and only the second one takes the caller down with it.
-    assert guard.lease_owner_alive(1) is False
 
 
 def test_the_commit_gates_hint_survives_a_root_with_no_relative_spelling(

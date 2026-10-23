@@ -94,8 +94,8 @@ def _corpora():
     commit gate's heredoc cases, and the worktree guard's token cases."""
     import tempfile
 
-    import test_guard_resolves_the_tree_it_judges as guard_cases
     import test_one_heredoc_shape_is_data_to_the_commit_gate as heredoc_cases
+    import test_worktree_guard as guard_cases
 
     commands = [command for command, _ in TOKEN_CASES[0] if command is not None]
     with tempfile.TemporaryDirectory() as scratch:
