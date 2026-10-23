@@ -435,7 +435,8 @@ def strip_ansi(s):
 # cut ref would read as a whole ref.
 #
 # Stated here and measured over there, and neither may move without the other
-# going red: `test_the_panel_value_width_is_what_the_stamp_actually_gives`
+# going red: `tests/test_seal_stamp.py`'s
+# `Test_stamp::test_accepts_a_value_as_wide_as_the_panel_at_eighty_columns`
 # draws a value of this width and measures the stamp's widest line.
 PANEL_VALUE_WIDTH = 41
 ELISION = "..."

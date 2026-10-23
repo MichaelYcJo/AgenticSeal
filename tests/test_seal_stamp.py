@@ -791,6 +791,19 @@ class Test_stamp:
         )
         assert len(drawn(label, REFERENCE_ROWS).encode("utf-16-le")) // 2 < 5500
 
+    def test_accepts_a_value_as_wide_as_the_panel_at_eighty_columns(self):
+        """A value of exactly `PANEL_VALUE_WIDTH` under a seven-column label,
+        beside the disc, makes the stamp's widest line 80 columns, whole, in
+        both forms: the width is measured by drawing, not restated. One
+        column more would run past an 80-column terminal."""
+        width = stamp.PANEL_VALUE_WIDTH
+        rows = [("SEALED", ""), ("CI also", "x" * width)]
+        for shape in (False, True):
+            lines = [stamp.strip_ansi(line) for line in stamp.stamp(rows, shape)]
+            widest = max(len(line) for line in lines)
+            assert widest == 80, f"a value of {width} columns draws {widest}"
+            assert any(line.endswith(" " + "x" * width) for line in lines), lines
+
     @pytest.mark.parametrize("disc", [True, False], ids=["with-its-disc", "no-disc"])
     def test_refuses_a_twin_of_another_size_or_with_a_code_or_a_half_block(self, disc):
         """S5: the twin is the block form's footprint, row for row, in ASCII."""
