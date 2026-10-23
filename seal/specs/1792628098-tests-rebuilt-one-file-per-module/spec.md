@@ -79,7 +79,7 @@ The target the rebuild works toward is the issue's: the suite's real protection 
 - When the old files' column runs: only for a mutant the new file lets survive. Where the old files miss it too, the record states an old gap. Where they kill it, the smith adds a case to the new file and sees it red on that mutant before the batch commits.
 - What the record carries: the table of mutants with the new column's verdict, the old column's verdict where it ran, each old gap, and each case added.
 
-`broad_gate.py` and `seal_stamp.py` ran under the earlier proof, a table of about 100 mutants each run in both columns, and their records stay as they were written. The commit flow's record says at which mutant it switched to this proof. Every phase 5 module was rewritten, so each ran or runs the mutants and none is re-proved under the move check; the check is built as phase 6's first step, for the modules whose old cases are placed and merged.
+`broad_gate.py` and `seal_stamp.py` ran under the earlier proof, a table of about 100 mutants each, and their records stay as they were written. `seal_stamp.py`'s table ran in both columns in full. `broad_gate.py`'s new column ran in full, and its old column ran for g1 to g9, for each mutant the new file first let survive and for g104; the rest of that column was stopped for time, and a mutant red against the new file needs no old verdict (`phases/phase-5.md`, each module's *The mutation table*). The commit flow's record says at which mutant it switched to this proof. Every phase 5 module was rewritten, so each ran the mutants and none is re-proved under the move check; the check is built as phase 6's first step, for the modules whose old cases are placed and merged.
 
 ### What holds the rules
 
