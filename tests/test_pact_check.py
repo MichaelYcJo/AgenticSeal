@@ -605,7 +605,9 @@ class Test_check:
         assert f"NOT FOUND {MOBILE_URL} — " in out, out
         assert "pact-check: the pact `orders-api` — 1 of 2 signers read · " in out, out
 
-    @pytest.mark.parametrize("header", ["Signer", "Signatory"])
+    @pytest.mark.parametrize(
+        "header", ["Signer", "Signatory"], ids=["Signer", "old_header"]
+    )
     def test_refuses_a_pact_listing_its_own_repository_by_the_table_it_holds(
         self, world, header
     ):

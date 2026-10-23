@@ -4495,7 +4495,7 @@
     "tests/test_pact_check.py::Test_check::test_accepts_the_pact_s_name_inside_a_graded_anchor_s_heading": 0.3892196000000183,
     "tests/test_pact_check.py::Test_check::test_refuses_a_map_that_will_not_read": 0.8142485999999849,
     "tests/test_pact_check.py::Test_check::test_refuses_a_mismatch_under_local_mode_as_unmatched_and_says_why": 0.5465372999999829,
-    "tests/test_pact_check.py::Test_check::test_refuses_a_pact_listing_its_own_repository_by_the_table_it_holds[Signatory]": 0.8141516999999965,
+    "tests/test_pact_check.py::Test_check::test_refuses_a_pact_listing_its_own_repository_by_the_table_it_holds[old_header]": 0.8141516999999965,
     "tests/test_pact_check.py::Test_check::test_refuses_a_pact_listing_its_own_repository_by_the_table_it_holds[Signer]": 0.6062535000000082,
     "tests/test_pact_check.py::Test_check::test_refuses_a_relationship_recorded_on_one_side[no Pact row]": 0.3566083999999705,
     "tests/test_pact_check.py::Test_check::test_refuses_a_relationship_recorded_on_one_side[no seal root]": 0.35753819999996495,
