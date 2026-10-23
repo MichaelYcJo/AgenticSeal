@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Phase | 6 |
-| Commit | not closed; its first step is 6e7214be, extended to the two sets at 43324e4e |
+| Commit | 52ce0e03; its first step is 6e7214be, extended to the two sets at 43324e4e |
 
 ## What this phase was asked
 
@@ -1122,7 +1122,7 @@ At the boundary after group 32, at 903d5f46. The next module in `skills/verify/s
 
 **What this spawn was asked.** The rest of `skills/verify/scripts/`: `session_cost.py`'s three old files, split into several groups along public functions if one would not close; `broad_gate.py`'s light files, renaming the names that collide in `tests/test_broad_gate.py` and confirming each move check failure is the autouse fixture or a named rename, then the module's mutants once; the light files of `seal_stamp.py`, `unverified_check.py` and `pact_check.py`. Then `skills/code-review/scripts/` with `agents/sealer.md` line 144, `skills/settle/scripts/` and `.github/scripts/` with `skills/writing-style/SKILL.md` line 268, `skills/implement/scripts/` with `seal.py`'s light files and the eleven re-export and writer cases groups 22 and 23 left, settling `overview.md`'s row on `docs/one-root-by-lifetime.md` line 223 when the writer cases land, and `evals/scripts/`. A line with no verdict is recorded and left; a placement that makes an item name too little or too much is a row of `overview.md` for the framer.
 
-**Whether the frame holds** (`read`). It holds for `session_cost.py`: `spec.md` *The check lines the remaining groups meet* keeps `docs/measuring-a-run.md` lines 21, 31, 38, 46 and 68 on `tests/test_session_cost.py`, and its three `## Rule changes` items move lines 54, 100 and 114 from the two other old files to it. No old file prices at 60 s (`executed`, `.test_durations`: 28.6 s, 0.3 s and 1.1 s), so rule 3 does not apply and the cases are placed. For `broad_gate.py` it does not hold in one item, below under *What remains in phase 6*.
+**Whether the frame holds** (`read`). It holds for `session_cost.py`: `spec.md` *The check lines the remaining groups meet* keeps `docs/measuring-a-run.md` lines 21, 31, 38, 46 and 68 on `tests/test_session_cost.py`, and its three `## Rule changes` items move lines 54, 100 and 114 from the two other old files to it. No old file prices at 60 s (`executed`, `.test_durations`: 28.6 s, 0.3 s and 1.1 s), so rule 3 does not apply and the cases are placed. For `broad_gate.py` it does not hold in one item, below under *The eleventh spawn*.
 
 ### Batch B, `skills/verify/scripts/`, group 33, at c9af3c38
 
@@ -1586,10 +1586,44 @@ The emoji the note's headings and glance rows carry are spelled as Python escape
 
 `.github/scripts/` is done: each of its 14 modules has its rule 1 file (`executed`, one `TARGET` line per module's file).
 
-### What remains in phase 6
+### Batch B, `evals/scripts/`, group 50, at 52ce0e03
+
+**The modules.** `replay_targets.py`, `rule_cases.py` and `seed_defects.py`, whose 25 cases were what phase 5 left in `tests/test_a_rewritten_definition_proved_non_inferior.py`. `noninferiority.py` has its file from phase 5. `behaviour.py` has no case of its own: every case reaches it through `tests/test_noninferiority.py`, which loads it to write graders for the reader under test, or through a generator (`read`).
+
+**Rule 3** (`executed`). `.test_durations` prices the old file at 62.0 s, but 58.1 s of that is ids phase 5 moved to `tests/test_noninferiority.py`, which phase 7 prunes (`overview.md`, the first divergence); the 28 priced ids of its 35 collected items sum to 3.9 s, and the file runs in 8.0 s serial. So the cases are placed.
+
+**The cases.** Into three new files, bodies unchanged:
+
+- `tests/test_replay_targets.py`: three in `Test_confirmed`, two in `Test_truth_pattern`, and six in `Test_module`, among them `test_a_named_case_is_read_at_every_release_tag`, whose rows run both generators through this module's tag reading. Renamed: `test_accepts_a_fixed_finding_the_next_round_confirmed`, `test_refuses_a_labelled_record_the_check_refuses`, `test_accepts_a_location_inside_its_line_window_and_no_further`, `test_refuses_a_coordinate_the_check_refuses`.
+- `tests/test_rule_cases.py`: five that run `main` in `Test_main`. Renamed: `test_accepts_an_entry_and_adds_the_truth_its_case_is_written_with`, `test_refuses_an_entry_the_case_cannot_take`.
+- `tests/test_seed_defects.py`: four in `Test_target_of` and five in `Test_module`, among them `test_the_replay_and_seeded_generators_read_the_entries_too`, which reads both generators' graders. Renamed: `test_accepts_a_shipped_commit_and_builds_its_case_on_round_1s_target`, `test_refuses_a_shipped_commit_whose_round_1_truths_share_a_line`.
+
+`load_script` and the two labelled rounds live in the replay file, and `recurred_file`, `entry` and `truth_regex` in the rule file; the other files import them, in that order, so no import goes round. The old table's markers in the replay cases' records are spelled as Python escapes, so each string constant is the one it was.
+
+**Left where it stands.** `test_no_two_truths_of_a_warden_case_accept_one_location`, which reads the committed warden cases under `evals/behaviour/`, a check over records; the old file keeps it and its pattern, and reads graders through the rule file's `truth_regex`. No `check:` line names the old file.
+
+**The move check** (`executed`): `bin/test-layout --moved HEAD --from tests/test_a_rewritten_definition_proved_non_inferior.py --to tests/test_replay_targets.py tests/test_rule_cases.py tests/test_seed_defects.py tests/test_a_rewritten_definition_proved_non_inferior.py`, HEAD at f19395a5, ends `test-layout: moved: 26 old cases, 35 items against 35 at f19395a52bea, 0 failed`, exit 0. No mutants run; `--pairs` names none.
+
+**Cases and seconds** (`executed`, serial): 35 items in 5.21 s before, in an archive of bc2b976f; 38 in 5.09 s after.
+
+**The real-git cases kept.** The seeded cases build a shipped repository per case and run the scaffold against it, and the replay file's grammar case builds one, because what they hold is what git keeps and fetches.
+
+**The boundary** (`executed`). At the tree committed as 52ce0e03, before the commit over the same bytes: the four files, `tests/test_noninferiority.py`, `tests/test_evals_layout.py`, `tests/test_the_sealer_guarantees.py`, `tests/test_chain_check.py`, the `git_listing` files, the censuses, `tests/test_test_layout.py`, `tests/test_conftest.py` and `tests/test_chain_hooks_hardening.py`. 30 files: 2,940 passed and 3 skipped. `--check` (185 files, 0 refused, 116 declaring no `TARGET`), `bin/rules --check` and `bin/unverified-check seal/specs/` exit 0; ruff clean.
+
+`evals/scripts/` is done.
+
+### What phase 6 leaves
 
 - `hooks/`: `hooks/githooks.py` and `hooks/hook-install.py` wait on Q10. `hooks/answer-clear.py` has a file whose `Test_module` holds its two round trips and no `Test_main`.
 - `skills/verify/scripts/`, `skills/code-review/scripts/`, `skills/settle/scripts/` and `skills/implement/scripts/`: done, apart from the cases left for #923 and those that compare files with each other.
 - `.github/scripts/`: done; groups 39 to 49 placed the cases of its fourteen modules.
-- `evals/scripts/`: not started; `noninferiority.py` has its file from phase 5, and `behaviour.py`, `replay_targets.py`, `rule_cases.py` and `seed_defects.py` have none.
-- Phase 4's survivors: h14 was re-run against the creation flow in group 7, h21 against the guard's file in group 12, h4 against the commit gate's file in group 14 and h6 against `tests/test_config.py` in group 23, and each survives, an old gap. h2, h12 and h23 wait for the groups that rebuild the modules whose cases reach them; no group through 44 reaches one (`read`, each group's record). The files whose cases reach them, by phase 4's table, are `tests/test_the_handoff_before_round_one.py` for h2, `tests/test_the_hooks_hide_what_a_renderer_hides.py` and `tests/test_one_table_walker_reads_what_gfm_renders.py` for h12, and `tests/test_every_agent_reads_the_contract.py` and `tests/test_a_moved_rule_leaves_its_definition.py` for h23. Three of the five are on `spec.md`'s list of files no remaining group draws a case from (`read`), so h2 and h23 may never be reached by a module group; whether a group draws from the two h12 files is `unverified`, for the spawn that places the last modules.
+- `evals/scripts/`: done; group 50 placed the three generators, `noninferiority.py` has its file from phase 5, and `behaviour.py` has no case of its own.
+- Phase 4's survivors, all seven settled. h14 was re-run against the creation flow in group 7, h21 against the guard's file in group 12, h4 against the commit gate's file in group 14, h6 against `tests/test_config.py` in group 23, and h2 against the five rebuilt files that call `read` (`tests/test_broad_gate.py`, `tests/test_launch.py`, `tests/test_release_completeness_check.py`, `tests/test_close_issues_on_release.py` and `tests/test_label_merged_on_release_branch.py`), in two `bin/mutation-check` calls at 503e2f5e; each survives, an old gap (`executed`). h12 and h23 are not reached: no file that declares `TARGET` calls `tests/conftest.py#imported_roots` or `#repo_relative` (`executed`, `git grep` over `tests/`; `tests/test_unverified_check.py`'s `repo_relative` is the module's own). Groups 15 and 21 drew cases from h12's two files, and the cases that call `imported_roots`, which check what the oracles import, stayed with the oracles; h23's two files read the agent definitions and no group drew from them.
+
+### The phase's close, at 52ce0e03
+
+Batch B is placed. Every shipped module has its rule 1 file or a record of why it has none, except `hooks/githooks.py` and `hooks/hook-install.py`, whose cases stay in `tests/test_the_hooks_are_installed_where_git_runs_them.py` under `questions.md` Q10's default; `plan.md`'s Status cell for phase 6 holds 52ce0e03, the last group's commit.
+
+The totals over groups 1 to 50 (`read`, each group's record; the seconds are the first figure each record states, serial, on a shared machine whose load moved the same tree's figure by up to three times): the groups' files held 7,803 pytest items before and 7,881 after, each parametrized row one item and each new file's census item in the after figure, in 462.6 s before and 421.8 s after. 31 groups passed the move check and ran no mutant, group 25 among them because its module's mutants ran in group 26. 18 failed it, each failure line read, and with group 13, written anew under rule 3 with no move check, those 19 groups ran 1,055 mutants over their modules in one batch per module, the commit gate's table counted in groups 14 and 17 and the worktree guard's in groups 12 and 26: 919 red and 136 survived. Of the 136, 125 are old gaps, the old files missing them too; 9 the old files kill through cases that did not move, so no case was added for them (group 14's 2 and group 23's 7); and 2 were answered by a case added and seen red on the mutant, both in group 8. Phase 6's first step, the move check itself, ran 33 more mutants in two batches, 32 red and 1 answered by a row.
+
+What phase 6 leaves is in `overview.md`: the rows for the framer on the check lines that name too little, the move check's reading of nested docstrings, and the Windows and ubuntu legs of the files written since 1b0e7c23; the removed ids `.test_durations` still prices, for phase 7; and the undeclared files Q9 counts, among them the emptied files a `docs/` line names until the settle and the files whose cases read prose, for #923.
