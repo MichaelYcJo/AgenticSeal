@@ -4,6 +4,8 @@
   test-layout --check [paths]         refuse a file that breaks the layout
   test-layout --check --all [paths]   refuse a file that declares no TARGET too
   test-layout --pairs [paths]         name two cases of a class that look alike
+  test-layout --moved BASE --from OLD... NEW
+                                      whether NEW holds OLD's cases, only moved
 
 #942. A test file names the module it tests once, as the first assignment
 after its imports, `TARGET = "<tracked path>"`, holds one class per public
@@ -49,19 +51,46 @@ cannot see it. A call with no argument is not compared either, because any
 two such calls are equal. Attribute names are kept, so two cases calling
 different methods of one object differ.
 
+`--moved` is the move check of `CONTRIBUTING.md` *The test layout*: it
+passes a module whose old cases were only moved into NEW, with nothing cut,
+merged or rewritten, and such a module needs no mutants. It reads each OLD
+file at BASE through `git show` and NEW in the working tree, and prints a
+line opening with `moved:` for each failure of its three conditions:
+
+  count    pytest collects as many items from NEW as from the OLD files at
+           BASE, each parametrize row one item, the census case left out on
+           both sides; BASE's items are collected in a detached worktree of
+           BASE added under a temporary directory and removed before the
+           check ends
+  body     each old case is a case of NEW unchanged apart from its name, its
+           place, the class around it, its docstring and a `self` parameter,
+           each case of NEW standing for one old case
+  fixture  the two cases request the same fixtures, by parameter, by
+           `usefixtures` or as autouse, and each, followed through the
+           fixtures it requests, is defined alike in both trees, in the
+           case's class, its file or `tests/conftest.py`; a name defined in
+           neither tree is pytest's own
+
+It then prints the old cases, both counts and the failures on one last line.
+
 Exit codes: `--check` 0 when nothing is refused and 1 when something is.
-`--pairs` 0 whatever it prints. 2 for either: the directory is not inside a
-git repository, a path names no file or directory, or the arguments do not
-parse.
+`--pairs` 0 whatever it prints. `--moved` 0 where the module passes and 1
+where it does not. 2 for any of them: the directory is not inside a git
+repository, a path names no file or directory, or the arguments do not
+parse; and for `--moved`, a BASE that names no commit, an OLD file BASE does
+not hold, or a collection pytest cannot make.
 """
 
 import argparse
 import ast
 import copy
+import importlib.util
 import os
 import posixpath
+import shutil
 import subprocess
 import sys
+import tempfile
 import types
 
 TARGET_NAME = "TARGET"
@@ -416,6 +445,329 @@ def pairs(tests):
     return lines
 
 
+# --- the move check ----------------------------------------------------------
+
+
+def _all_cases(tree):
+    """`[(qualified name, class or None, case)]` for every case pytest
+    collects by its default names: a `test...` function at the top, or a
+    `test...` method of a `Test...` class."""
+    found = []
+    for node in tree.body:
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            if node.name.startswith("test"):
+                found.append((node.name, None, node))
+        elif isinstance(node, ast.ClassDef) and node.name.startswith("Test"):
+            found += [(f"{node.name}::{c.name}", node, c) for c in _cases(node)]
+    return found
+
+
+def _without_docstring(body):
+    return body[1:] if body and _is_docstring(body[0]) else body
+
+
+def _moved_form(case):
+    """CASE as an AST dump that keeps its decorators, its parameters and its
+    body, and drops its name, its docstring and a first `self`."""
+    node = copy.deepcopy(case)
+    node.name = ""
+    node.body = _without_docstring(node.body) or [ast.Pass()]
+    params = node.args.posonlyargs or node.args.args
+    if params and params[0].arg == "self":
+        del params[0]
+    return ast.dump(node)
+
+
+def _parametrized(case):
+    """The names CASE's `parametrize` marks hand it, which are no fixture."""
+    names = set()
+    for mark in case.decorator_list:
+        if not (
+            isinstance(mark, ast.Call)
+            and getattr(mark.func, "attr", None) == "parametrize"
+            and mark.args
+        ):
+            continue
+        first = mark.args[0]
+        if isinstance(first, ast.Constant) and isinstance(first.value, str):
+            names |= {n.strip() for n in first.value.split(",")}
+        elif isinstance(first, (ast.List, ast.Tuple)):
+            names |= {e.value for e in first.elts if isinstance(e, ast.Constant)}
+    return names
+
+
+def _used(decorators):
+    """The fixture names `usefixtures` marks among DECORATORS name."""
+    names = set()
+    for node in decorators:
+        for call in ast.walk(node):
+            if (
+                isinstance(call, ast.Call)
+                and getattr(call.func, "attr", None) == "usefixtures"
+            ):
+                names |= {
+                    a.value
+                    for a in call.args
+                    if isinstance(a, ast.Constant) and isinstance(a.value, str)
+                }
+    return names
+
+
+def _parameters(node):
+    args = node.args
+    return [a.arg for a in args.posonlyargs + args.args + args.kwonlyargs]
+
+
+def _fixtures(body):
+    """`{name: (definition, autouse)}` for each function in BODY that a
+    `pytest.fixture` decorator, called or not, makes a fixture; a fixture
+    renamed through `name=` is read under its function's name, a spelling
+    no test file here uses."""
+    found = {}
+    for node in body:
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        for mark in node.decorator_list:
+            call = mark if isinstance(mark, ast.Call) else None
+            func = call.func if call else mark
+            if getattr(func, "attr", None) != "fixture":
+                continue
+            autouse = any(
+                k.arg == "autouse" and getattr(k.value, "value", False) is True
+                for k in (call.keywords if call else [])
+            )
+            found[node.name] = (node, autouse)
+    return found
+
+
+def _requested(tree, cls, case, conftest):
+    """The fixtures CASE asks for: its parameters less `self` and what its
+    `parametrize` marks hand it, the `usefixtures` marks on it, on its class
+    and in the file's `pytestmark`, and the autouse fixtures of its class,
+    its file and CONFTEST's tree."""
+    names = set(_parameters(case)) - {"self"} - _parametrized(case)
+    names |= _used(case.decorator_list)
+    scopes = [tree.body] + ([cls.body] if cls is not None else [])
+    if conftest is not None:
+        scopes.append(conftest.body)
+    if cls is not None:
+        names |= _used(cls.decorator_list)
+    for node in tree.body:
+        if isinstance(node, ast.Assign) and any(
+            isinstance(t, ast.Name) and t.id == "pytestmark" for t in node.targets
+        ):
+            names |= _used([node.value])
+    for body in scopes:
+        names |= {n for n, (_d, auto) in _fixtures(body).items() if auto}
+    return names
+
+
+def _resolver(tree, cls, conftest):
+    """A function from a fixture name to its definition's AST dump, read in
+    CASE's class, then its file, then CONFTEST's tree; None where none of
+    them defines it, which is a fixture pytest itself provides."""
+    scopes = ([cls.body] if cls is not None else []) + [tree.body]
+    if conftest is not None:
+        scopes.append(conftest.body)
+    tables = [_fixtures(body) for body in scopes]
+
+    def resolve(name):
+        for table in tables:
+            if name in table:
+                node = copy.deepcopy(table[name][0])
+                node.body = _without_docstring(node.body) or [ast.Pass()]
+                return ast.dump(node), set(_parameters(node)) - {"request"}
+        return None
+
+    return resolve
+
+
+def _fixture_change(old, new, names):
+    """The first fixture under NAMES, followed through the fixtures each
+    requests, whose definition the two resolvers OLD and NEW read apart, as
+    `(name, what)`; None where every one reads alike."""
+    seen, todo = set(), sorted(names)
+    while todo:
+        name = todo.pop(0)
+        if name in seen:
+            continue
+        seen.add(name)
+        before, after = old(name), new(name)
+        if before is None and after is None:
+            continue
+        if before is None:
+            return name, "defined in the working tree only"
+        if after is None:
+            return name, "defined at the base only"
+        if before[0] != after[0]:
+            return name, "its definition differs from the base's"
+        todo += sorted(before[1] - seen)
+    return None
+
+
+def moved(old, new, old_conftest=None, new_conftest=None):
+    """One line for each old case the new file does not hold as it was.
+
+    OLD is `{path: source}` of the old files at the base, NEW `(path,
+    source)` of the new file in the working tree, and the two conftests are
+    `tests/conftest.py`'s source in each tree, None where it is absent. An
+    old case holds where a case of the new file has its form (`_moved_form`),
+    each new case standing for one old case, where the two cases request the
+    same fixtures (`_requested`), and where every fixture requested reads
+    alike in both trees (`_fixture_change`). The count of collected items is
+    `main`'s, which runs pytest."""
+    new_rel, new_source = new
+    new_tree = ast.parse(new_source)
+    new_conf = ast.parse(new_conftest) if new_conftest is not None else None
+    old_conf = ast.parse(old_conftest) if old_conftest is not None else None
+    standing = {}
+    for _name, cls, case in _all_cases(new_tree):
+        standing.setdefault(_moved_form(case), []).append((cls, case))
+    lines = []
+    for rel in sorted(old):
+        tree = ast.parse(old[rel])
+        for name, cls, case in _all_cases(tree):
+            where = f"moved: {rel}::{name}"
+            match = standing.get(_moved_form(case))
+            if not match:
+                lines.append(f"{where}: body: not in {new_rel} unchanged")
+                continue
+            new_cls, new_case = match.pop(0)
+            before = _requested(tree, cls, case, old_conf)
+            after = _requested(new_tree, new_cls, new_case, new_conf)
+            apart = sorted(before ^ after)
+            if apart:
+                side = "at the base" if apart[0] in before else "in the working tree"
+                lines.append(f"{where}: fixture {apart[0]}: requested {side} only")
+                continue
+            change = _fixture_change(
+                _resolver(tree, cls, old_conf),
+                _resolver(new_tree, new_cls, new_conf),
+                before,
+            )
+            if change:
+                lines.append(f"{where}: fixture {change[0]}: {change[1]}")
+    return lines
+
+
+class Unreadable(Exception):
+    """The base, a file or the collection cannot be read; `main` exits 2."""
+
+
+def _interpreter(root):
+    """An interpreter that can run pytest: this one where it can, else the
+    repository's `.venv`, which `bin/test` builds."""
+    if importlib.util.find_spec("pytest") is not None:
+        return sys.executable
+    for venv in (("bin", "python"), ("Scripts", "python.exe")):
+        candidate = os.path.join(root, ".venv", *venv)
+        if os.path.exists(candidate):
+            return candidate
+    raise Unreadable("no interpreter with pytest; run bin/test once to build .venv")
+
+
+def _collected(python, root, paths):
+    """How many items pytest collects from PATHS under ROOT, leaving out the
+    census case each module file assigns."""
+    env = {
+        k: v
+        for k, v in os.environ.items()
+        if k not in ("PYTEST_ADDOPTS", "PYTEST_PLUGINS")
+    }
+    env["PYTHONDONTWRITEBYTECODE"] = "1"
+    quiet = ["--collect-only", "-q", "-p", "no:xdist", "-p", "no:cacheprovider"]
+    run = subprocess.run(
+        [python, "-m", "pytest", *quiet, *paths],
+        cwd=root,
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+        env=env,
+        stdin=subprocess.DEVNULL,
+    )
+    if run.returncode != 0:
+        # exempt from splitlines: pytest's own output
+        tail = (run.stdout + run.stderr).strip().splitlines()[-1:]
+        raise Unreadable(
+            f"pytest cannot collect {' '.join(paths)} under {root}: {tail}"
+        )
+    items = []
+    # exempt from splitlines: pytest's own output
+    for line in run.stdout.splitlines():
+        if not line.strip():
+            break
+        items.append(line.strip())
+    return sum(1 for item in items if item.rsplit("::", 1)[-1] != "test_census")
+
+
+def _git(root, *args):
+    return subprocess.run(
+        ["git", "-C", root, *args],
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+
+
+def _moved_main(root, base, olds, new):
+    """`--moved`: the exit code, having printed each failure and a last
+    line."""
+    sha = _git(root, "rev-parse", "--verify", "--quiet", f"{base}^{{commit}}")
+    if sha.returncode != 0:
+        raise Unreadable(f"{base} names no commit")
+    sha = sha.stdout.strip()
+
+    def rel(path):
+        return os.path.relpath(os.path.abspath(path), root).replace(os.sep, "/")
+
+    old_rels, new_rel = [rel(p) for p in olds], rel(new)
+    old = {}
+    for path in old_rels:
+        shown = _git(root, "show", f"{sha}:{path}")
+        if shown.returncode != 0:
+            raise Unreadable(f"{path} is not a file at {sha[:12]}")
+        old[path] = shown.stdout
+    new_source = _read(root, new_rel)
+    if new_source is None:
+        raise Unreadable(f"{new_rel} cannot be read")
+    conf = _git(root, "show", f"{sha}:tests/conftest.py")
+    lines = moved(
+        old,
+        (new_rel, new_source),
+        conf.stdout if conf.returncode == 0 else None,
+        _read(root, "tests/conftest.py"),
+    )
+    python = _interpreter(root)
+    holder = tempfile.mkdtemp(prefix="test-layout-moved-")
+    tree = os.path.join(holder, "base")
+    try:
+        added = _git(root, "worktree", "add", "--detach", "--quiet", tree, sha)
+        if added.returncode != 0:
+            raise Unreadable(f"git cannot check out {sha[:12]}: {added.stderr.strip()}")
+        before = _collected(python, tree, old_rels)
+    finally:
+        # This worktree alone, by its path: a prune would drop every other
+        # worktree's record whose directory is missing too.
+        _git(root, "worktree", "remove", "--force", tree)
+        shutil.rmtree(holder, ignore_errors=True)
+    after = _collected(python, root, [new_rel])
+    if after != before:
+        lines.insert(
+            0,
+            f"moved: count: {new_rel} collects {after} items, the old files "
+            f"{before} at the base",
+        )
+    for line in lines:
+        print(line)
+    cases = sum(len(_all_cases(ast.parse(source))) for source in old.values())
+    print(
+        f"test-layout: moved: {cases} old cases, {after} items against {before} "
+        f"at {sha[:12]}, {len(lines)} failed",
+        flush=True,
+    )
+    return 1 if lines else 0
+
+
 def _toplevel(start):
     """The repository START is in, or None outside one."""
     result = subprocess.run(
@@ -482,10 +834,22 @@ def main(argv=None):
         "--check", action="store_true", help="refuse what breaks the layout"
     )
     mode.add_argument("--pairs", action="store_true", help="name cases that look alike")
+    mode.add_argument(
+        "--moved",
+        metavar="BASE",
+        help="whether the new file holds the old files' cases at BASE, only moved",
+    )
     parser.add_argument(
         "--all",
         action="store_true",
         help="with --check, refuse a file that declares no TARGET",
+    )
+    parser.add_argument(
+        "--from",
+        dest="olds",
+        nargs="+",
+        metavar="OLD",
+        help="with --moved, the old test files at BASE; the new file comes last",
     )
     parser.add_argument(
         "paths", nargs="*", help="files or directories; tests/ when none"
@@ -493,6 +857,26 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if args.all and not args.check:
         parser.error("--all goes with --check")
+    if args.olds and args.moved is None:
+        parser.error("--from goes with --moved")
+    if args.moved is not None:
+        # `--from` takes every word after it, so the new file, written last,
+        # is its last word unless a path was given before it.
+        olds, news = list(args.olds or []), list(args.paths)
+        if not news and len(olds) > 1:
+            news = [olds.pop()]
+        if len(news) != 1 or not olds:
+            parser.error("--moved takes --from with the old files, then one new file")
+        start = os.path.dirname(os.path.abspath(news[0]))
+        root = _toplevel(start)
+        if root is None:
+            print(f"test-layout: {start} is not inside a git repository", flush=True)
+            return 2
+        try:
+            return _moved_main(root, args.moved, olds, news[0])
+        except Unreadable as exc:
+            print(f"test-layout: {exc}", flush=True)
+            return 2
     first = args.paths[0] if args.paths else os.getcwd()
     start = first if os.path.isdir(first) else os.path.dirname(os.path.abspath(first))
     root = _toplevel(start)

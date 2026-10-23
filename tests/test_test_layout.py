@@ -15,9 +15,10 @@ in turn and watched a case of its class fail (the work item's
 
 import importlib.util
 import os
+import shutil
 
 import pytest
-from conftest import census_case
+from conftest import census_case, commit_everything_as_e, git_out, write
 
 TARGET = "skills/verify/scripts/test_layout.py"
 
@@ -292,6 +293,289 @@ class Test_pairs:
             'assert x.parse("") is None', second
         )
         assert layout.pairs({"tests/test_x.py": source}) == []
+
+
+# The move check's world: two old files at a base commit and the conftest
+# beside them. A case asks for a fixture by a parameter, by `usefixtures` on
+# its class or in `pytestmark`, and by an autouse fixture of its class; `box`
+# requests `base_dir`, and `a` is both a conftest fixture and a parametrized
+# name. Each case writes its new file into a copy and runs `--moved` there,
+# which collects at the base in a worktree of its own and in the copy.
+MOVED_CONFTEST = (
+    "import pytest\n"
+    "\n"
+    "\n"
+    "@pytest.fixture\n"
+    "def base_dir(tmp_path):\n"
+    "    return tmp_path\n"
+    "\n"
+    "\n"
+    "@pytest.fixture\n"
+    "def box(base_dir):\n"
+    "    return base_dir\n"
+    "\n"
+    "\n"
+    "@pytest.fixture\n"
+    "def a():\n"
+    "    return 0\n"
+    "\n"
+    "\n"
+    "def census_case(target):\n"
+    "    def test_census():\n"
+    "        assert target\n"
+    "\n"
+    "    return test_census\n"
+)
+MOVED_OLD_A = (
+    "import pytest\n"
+    "\n"
+    'pytestmark = pytest.mark.usefixtures("box")\n'
+    "\n"
+    "\n"
+    "@pytest.fixture\n"
+    "def local():\n"
+    "    return 1\n"
+    "\n"
+    "\n"
+    "def test_one(box, local):\n"
+    "    assert box.exists() and local\n"
+    "\n"
+    "\n"
+    '@pytest.mark.parametrize("a", [1, 2])\n'
+    "def test_two(a):\n"
+    "    assert a\n"
+)
+MOVED_OLD_B = (
+    "import pytest\n"
+    "\n"
+    "\n"
+    '@pytest.mark.usefixtures("box")\n'
+    "class TestThree:\n"
+    "    @pytest.fixture(autouse=True)\n"
+    "    def quiet(self, monkeypatch):\n"
+    '        monkeypatch.setenv("QUIET", "1")\n'
+    "\n"
+    "    def test_three(self):\n"
+    '        """Three."""\n'
+    "        assert 3\n"
+    "\n"
+    "    def test_three_again(self):\n"
+    "        assert 3\n"
+)
+LOCAL = "@pytest.fixture\ndef local():\n    return 1\n\n\n"
+# A function with a fixture's name that no fixture decorator makes one.
+NOT_A_FIXTURE = "@functools.cache\ndef base_dir():\n    return None\n\n\n"
+REFUSE_3 = "    def test_refuses_three(self):\n        assert 3\n"
+THREE = (
+    "class Test_three:\n"
+    "    @pytest.fixture(autouse=True)\n"
+    "    def quiet(self, monkeypatch):\n"
+    '        monkeypatch.setenv("QUIET", "1")\n'
+    "\n"
+    "    def test_accepts_three(self):\n"
+    "        assert 3\n"
+    "\n" + REFUSE_3 + "\n"
+    "\n"
+)
+# The pure move: every old case under a new name, out of a class or into
+# one, with its docstring and `self` gone, its fixture moved with it, and the
+# census case beside them.
+MOVED_NEW = (
+    "import functools\n"
+    "\n"
+    "import pytest\n"
+    "from conftest import census_case\n"
+    "\n"
+    'TARGET = "x.py"\n'
+    "\n"
+    'pytestmark = pytest.mark.usefixtures("box")\n'
+    "\n"
+    "\n" + LOCAL + NOT_A_FIXTURE + "class Test_one:\n"
+    "    def test_accepts_one(self, box, local):\n"
+    "        assert box.exists() and local\n"
+    "\n"
+    '    @pytest.mark.parametrize("a", [1, 2])\n'
+    "    def test_refuses_two(self, a):\n"
+    "        assert a\n"
+    "\n"
+    "\n" + THREE + "test_census = census_case(TARGET)\n"
+)
+MERGED = MOVED_NEW.replace(
+    "        assert box.exists() and local\n",
+    "        assert box.exists() and local\n        assert 3\n",
+).replace(THREE, "")
+SHADOWED = MOVED_NEW.replace(
+    LOCAL, LOCAL + "@pytest.fixture\ndef tmp_path():\n    return 1\n\n\n"
+)
+TWO_SCOPED = MOVED_CONFTEST.replace(
+    "@pytest.fixture\ndef base_dir", '@pytest.fixture(scope="module")\ndef base_dir'
+).replace("@pytest.fixture\ndef a(", '@pytest.fixture(scope="module")\ndef a(')
+BODY_GONE = "body: not in tests/test_x.py unchanged"
+COUNT = "moved: count: tests/test_x.py collects {} items, the old files 5 at the base"
+ONE, TWO = (
+    "moved: tests/test_old_a.py::test_one",
+    "moved: tests/test_old_a.py::test_two",
+)
+THREE_OLD = "moved: tests/test_old_b.py::TestThree::test_three"
+AGAIN = "moved: tests/test_old_b.py::TestThree::test_three_again"
+EVERY = (ONE, TWO, THREE_OLD, AGAIN)
+
+
+@pytest.fixture(scope="module")
+def _moved_world(tmp_path_factory):
+    repo = tmp_path_factory.mktemp("moved") / "repo"
+    repo.mkdir()
+    git_out(repo, "init", "-q")
+    write(repo, "tests/conftest.py", MOVED_CONFTEST)
+    write(repo, "tests/test_old_a.py", MOVED_OLD_A)
+    write(repo, "tests/test_old_b.py", MOVED_OLD_B)
+    return repo, commit_everything_as_e(repo, "base")
+
+
+def run_moved(world, tmp_path, monkeypatch, new, conftest=None):
+    """`--moved` over the base and the two old files, with NEW written as
+    `tests/test_x.py` in a copy of the world, and CONFTEST in place of the
+    base's where given; (exit code, how many worktrees the copy lists beside
+    its own, the base)."""
+    template, base = world
+    repo = tmp_path / "repo"
+    shutil.copytree(template, repo, symlinks=True)
+    write(repo, "tests/test_x.py", new)
+    if conftest is not None:
+        write(repo, "tests/conftest.py", conftest)
+    monkeypatch.chdir(repo)
+    code = layout.main(
+        [
+            "--moved",
+            base,
+            "--from",
+            "tests/test_old_a.py",
+            "tests/test_old_b.py",
+            "tests/test_x.py",
+        ]
+    )
+    return code, git_out(repo, "worktree", "list").count("\n"), base
+
+
+class Test_moved:
+    def test_accepts_a_pure_move(self, _moved_world, tmp_path, monkeypatch, capsys):
+        code, others, base = run_moved(_moved_world, tmp_path, monkeypatch, MOVED_NEW)
+        out = capsys.readouterr().out
+        assert code == 0, out
+        assert "moved:" not in out.replace("test-layout: moved:", "")
+        assert out.splitlines()[-1] == (
+            f"test-layout: moved: 4 old cases, 5 items against 5 at {base[:12]}, "
+            "0 failed"
+        )
+        assert others == 0, "the base's worktree was left behind"
+
+    @pytest.mark.parametrize(
+        "new, conftest, lines",
+        [
+            (
+                MOVED_NEW.replace(THREE, ""),
+                None,
+                [
+                    COUNT.format(3),
+                    f"{THREE_OLD}: {BODY_GONE}",
+                    f"{AGAIN}: {BODY_GONE}",
+                ],
+            ),
+            (
+                MERGED,
+                None,
+                [
+                    COUNT.format(3),
+                    f"{ONE}: {BODY_GONE}",
+                    f"{THREE_OLD}: {BODY_GONE}",
+                    f"{AGAIN}: {BODY_GONE}",
+                ],
+            ),
+            (
+                MOVED_NEW.replace(REFUSE_3 + "\n", ""),
+                None,
+                [COUNT.format(4), f"{AGAIN}: {BODY_GONE}"],
+            ),
+            (
+                MOVED_NEW.replace(REFUSE_3, REFUSE_3.replace("assert 3", "assert 4")),
+                None,
+                [f"{AGAIN}: {BODY_GONE}"],
+            ),
+            (
+                MOVED_NEW,
+                TWO_SCOPED,
+                [
+                    f"{where}: fixture base_dir: its definition differs from the base's"
+                    for where in EVERY
+                ],
+            ),
+            (
+                MOVED_NEW.replace('"QUIET", "1"', '"QUIET", "2"'),
+                None,
+                [
+                    f"{where}: fixture quiet: its definition differs from the base's"
+                    for where in (THREE_OLD, AGAIN)
+                ],
+            ),
+            (
+                MOVED_NEW.replace("@pytest.fixture(autouse=True)", "@pytest.fixture"),
+                None,
+                [
+                    f"{where}: fixture quiet: requested at the base only"
+                    for where in (THREE_OLD, AGAIN)
+                ],
+            ),
+            (
+                MOVED_NEW.replace(LOCAL, ""),
+                None,
+                [f"{ONE}: fixture local: defined at the base only"],
+            ),
+            (
+                SHADOWED,
+                None,
+                [
+                    f"{where}: fixture tmp_path: defined in the working tree only"
+                    for where in EVERY
+                ],
+            ),
+        ],
+        ids=[
+            "a-cut",
+            "a-merge",
+            "two-alike-merged",
+            "an-edited-body",
+            "a-changed-fixture",
+            "a-changed-class-fixture",
+            "a-lost-autouse",
+            "a-fixture-left-behind",
+            "a-shadowed-fixture",
+        ],
+    )
+    def test_refuses_a_cut_a_merge_an_edited_body_and_a_changed_fixture(
+        self, _moved_world, tmp_path, monkeypatch, capsys, new, conftest, lines
+    ):
+        code, others, _base = run_moved(
+            _moved_world, tmp_path, monkeypatch, new, conftest
+        )
+        out = capsys.readouterr().out
+        assert code == 1, out
+        assert [line for line in out.splitlines() if line.startswith("moved:")] == (
+            lines
+        )
+        assert out.splitlines()[-1].endswith(f"{len(lines)} failed"), out
+        assert others == 0, "the base's worktree was left behind"
+
+    def test_refuses_a_base_or_an_old_file_it_cannot_read(
+        self, _moved_world, tmp_path, monkeypatch, capsys
+    ):
+        repo, base = _moved_world
+        monkeypatch.chdir(repo)
+        args = ["--from", "tests/test_old_a.py", "tests/test_old_a.py"]
+        assert layout.main(["--moved", "no-such-commit", *args]) == 2
+        assert "no-such-commit names no commit" in capsys.readouterr().out
+        args = ["--from", "tests/test_gone.py", "tests/test_old_a.py"]
+        assert layout.main(["--moved", base, *args]) == 2
+        assert "tests/test_gone.py is not a file at" in capsys.readouterr().out
 
 
 class Test_main:

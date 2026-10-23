@@ -283,16 +283,21 @@ the whole input space killed. These bind the rewrite and nothing in CI: the
 seconds the record states are read by the release table, not by a gate.
 check: none reader: the warden at review
 
-**A rebuilt module's record carries its mutation table and one line per
-removed case.** The contributor writes it into the phase record of the work
-item that rebuilt the module, in four parts:
+**A rebuilt module's record carries its move check or its mutation table,
+and one line per removed case.** The contributor writes it into the phase
+record of the work item that rebuilt the module, in four parts:
 
-- the mutation table. The mutants are chosen from the code before the old
-  cases are read, one or two per class at the decision points where a case
-  accepts or refuses, about 30 per module, and they run against the new file
-  in one `bin/mutation-check` call with `-x` in its tests command. The old
-  files' column runs only for a mutant the new file lets survive: where the
-  old files miss it too, the table names an old gap, and where they kill it,
+- the move check, `bin/test-layout --moved <base> --from <old file>...
+  <new file>`, with its command and its last line. Where it exits 0, the
+  module's cases were only moved and the record has no mutation table.
+  Where it exits 1, or where the module was written anew, the record
+  carries the mutation table. Its mutants sit at the decision points where
+  a case accepts or refuses, one or two per class and one more for each
+  further decision point a function holds, so their count follows the
+  module's classes. They run against the new file in one
+  `bin/mutation-check` call with `-x` in its tests command. The old files'
+  column runs only for a mutant the new file lets survive: where the old
+  files miss it too, the table names an old gap, and where they kill it,
   the new file gets a case seen red on that mutant;
 - the module's cases and seconds before and after, from
   `bin/test <files> -q` on the machine that built it;
