@@ -407,11 +407,35 @@ MERGED = MOVED_NEW.replace(
 SHADOWED = MOVED_NEW.replace(
     LOCAL, LOCAL + "@pytest.fixture\ndef tmp_path():\n    return 1\n\n\n"
 )
+X, Y = "tests/test_x.py", "tests/test_y.py"
+OLD_A, OLD_B = "tests/test_old_a.py", "tests/test_old_b.py"
+MARKED = 'import pytest\n\npytestmark = pytest.mark.usefixtures("box")\n\n\n'
+# `test_old_a.py` split between two modules' files, one case to each.
+SPLIT = {
+    X: MARKED + LOCAL + "class Test_one:\n"
+    "    def test_accepts_one(self, box, local):\n"
+    "        assert box.exists() and local\n",
+    Y: MARKED + "class Test_two:\n"
+    '    @pytest.mark.parametrize("a", [1, 2])\n'
+    "    def test_refuses_two(self, a):\n"
+    "        assert a\n",
+}
+# `test_old_b.py` keeps `test_three_again` for a later group, and its
+# `test_three` moved to the new file with `test_old_a.py`'s cases.
+KEPT = {
+    X: MOVED_NEW.replace(REFUSE_3 + "\n", ""),
+    OLD_B: MOVED_OLD_B.replace(
+        '    def test_three(self):\n        """Three."""\n        assert 3\n\n', ""
+    ),
+}
+# `test_old_a.py`'s `test_one` landing a second time, in a second new file.
+TWICE = "def test_one_again(box, local):\n    assert box.exists() and local\n"
 TWO_SCOPED = MOVED_CONFTEST.replace(
     "@pytest.fixture\ndef base_dir", '@pytest.fixture(scope="module")\ndef base_dir'
 ).replace("@pytest.fixture\ndef a(", '@pytest.fixture(scope="module")\ndef a(')
-BODY_GONE = "body: not in tests/test_x.py unchanged"
-COUNT = "moved: count: tests/test_x.py collects {} items, the old files 5 at the base"
+BODY_GONE = "body: not in the new files unchanged"
+NO_OLD = "body: stands for no old case"
+COUNT = "moved: count: the new files collect {} items, the old files 5 at the base"
 ONE, TWO = (
     "moved: tests/test_old_a.py::test_one",
     "moved: tests/test_old_a.py::test_two",
@@ -432,34 +456,28 @@ def _moved_world(tmp_path_factory):
     return repo, commit_everything_as_e(repo, "base")
 
 
-def run_moved(world, tmp_path, monkeypatch, new, conftest=None):
-    """`--moved` over the base and the two old files, with NEW written as
-    `tests/test_x.py` in a copy of the world, and CONFTEST in place of the
-    base's where given; (exit code, how many worktrees the copy lists beside
-    its own, the base)."""
+def run_moved(world, tmp_path, monkeypatch, news, conftest=None, olds=(OLD_A, OLD_B)):
+    """`--moved` over the base with OLDS as `--from` and NEWS, `{path:
+    source}`, written in a copy of the world and named as `--to`, and
+    CONFTEST in place of the base's where given; (exit code, how many
+    worktrees the copy lists beside its own, the base)."""
     template, base = world
     repo = tmp_path / "repo"
     shutil.copytree(template, repo, symlinks=True)
-    write(repo, "tests/test_x.py", new)
+    for rel, source in news.items():
+        write(repo, rel, source)
     if conftest is not None:
         write(repo, "tests/conftest.py", conftest)
     monkeypatch.chdir(repo)
-    code = layout.main(
-        [
-            "--moved",
-            base,
-            "--from",
-            "tests/test_old_a.py",
-            "tests/test_old_b.py",
-            "tests/test_x.py",
-        ]
-    )
+    code = layout.main(["--moved", base, "--from", *olds, "--to", *news])
     return code, git_out(repo, "worktree", "list").count("\n"), base
 
 
 class Test_moved:
     def test_accepts_a_pure_move(self, _moved_world, tmp_path, monkeypatch, capsys):
-        code, others, base = run_moved(_moved_world, tmp_path, monkeypatch, MOVED_NEW)
+        code, others, base = run_moved(
+            _moved_world, tmp_path, monkeypatch, {X: MOVED_NEW}
+        )
         out = capsys.readouterr().out
         assert code == 0, out
         assert "moved:" not in out.replace("test-layout: moved:", "")
@@ -470,10 +488,26 @@ class Test_moved:
         assert others == 0, "the base's worktree was left behind"
 
     @pytest.mark.parametrize(
-        "new, conftest, lines",
+        "news, olds",
+        [(SPLIT, (OLD_A,)), (KEPT, (OLD_A, OLD_B))],
+        ids=["one-old-file-in-two-new-files", "an-old-file-in-both-sets"],
+    )
+    def test_accepts_an_old_file_split_across_two_new_files(
+        self, _moved_world, tmp_path, monkeypatch, capsys, news, olds
+    ):
+        code, others, _base = run_moved(
+            _moved_world, tmp_path, monkeypatch, news, olds=olds
+        )
+        out = capsys.readouterr().out
+        assert code == 0, out
+        assert out.splitlines()[-1].endswith(", 0 failed"), out
+        assert others == 0, "the base's worktree was left behind"
+
+    @pytest.mark.parametrize(
+        "news, conftest, lines",
         [
             (
-                MOVED_NEW.replace(THREE, ""),
+                {X: MOVED_NEW.replace(THREE, "")},
                 None,
                 [
                     COUNT.format(3),
@@ -482,27 +516,40 @@ class Test_moved:
                 ],
             ),
             (
-                MERGED,
+                {X: MERGED},
                 None,
                 [
                     COUNT.format(3),
                     f"{ONE}: {BODY_GONE}",
                     f"{THREE_OLD}: {BODY_GONE}",
                     f"{AGAIN}: {BODY_GONE}",
+                    f"moved: {X}::Test_one::test_accepts_one: {NO_OLD}",
                 ],
             ),
             (
-                MOVED_NEW.replace(REFUSE_3 + "\n", ""),
+                {X: MOVED_NEW.replace(REFUSE_3 + "\n", "")},
                 None,
                 [COUNT.format(4), f"{AGAIN}: {BODY_GONE}"],
             ),
             (
-                MOVED_NEW.replace(REFUSE_3, REFUSE_3.replace("assert 3", "assert 4")),
+                {X: MOVED_NEW, Y: TWICE},
                 None,
-                [f"{AGAIN}: {BODY_GONE}"],
+                [COUNT.format(6), f"moved: {Y}::test_one_again: {NO_OLD}"],
             ),
             (
-                MOVED_NEW,
+                {
+                    X: MOVED_NEW.replace(
+                        REFUSE_3, REFUSE_3.replace("assert 3", "assert 4")
+                    )
+                },
+                None,
+                [
+                    f"{AGAIN}: {BODY_GONE}",
+                    f"moved: {X}::Test_three::test_refuses_three: {NO_OLD}",
+                ],
+            ),
+            (
+                {X: MOVED_NEW},
                 TWO_SCOPED,
                 [
                     f"{where}: fixture base_dir: its definition differs from the base's"
@@ -510,7 +557,7 @@ class Test_moved:
                 ],
             ),
             (
-                MOVED_NEW.replace('"QUIET", "1"', '"QUIET", "2"'),
+                {X: MOVED_NEW.replace('"QUIET", "1"', '"QUIET", "2"')},
                 None,
                 [
                     f"{where}: fixture quiet: its definition differs from the base's"
@@ -518,7 +565,11 @@ class Test_moved:
                 ],
             ),
             (
-                MOVED_NEW.replace("@pytest.fixture(autouse=True)", "@pytest.fixture"),
+                {
+                    X: MOVED_NEW.replace(
+                        "@pytest.fixture(autouse=True)", "@pytest.fixture"
+                    )
+                },
                 None,
                 [
                     f"{where}: fixture quiet: requested at the base only"
@@ -526,12 +577,12 @@ class Test_moved:
                 ],
             ),
             (
-                MOVED_NEW.replace(LOCAL, ""),
+                {X: MOVED_NEW.replace(LOCAL, "")},
                 None,
                 [f"{ONE}: fixture local: defined at the base only"],
             ),
             (
-                SHADOWED,
+                {X: SHADOWED},
                 None,
                 [
                     f"{where}: fixture tmp_path: defined in the working tree only"
@@ -543,6 +594,7 @@ class Test_moved:
             "a-cut",
             "a-merge",
             "two-alike-merged",
+            "a-case-landing-twice",
             "an-edited-body",
             "a-changed-fixture",
             "a-changed-class-fixture",
@@ -552,10 +604,10 @@ class Test_moved:
         ],
     )
     def test_refuses_a_cut_a_merge_an_edited_body_and_a_changed_fixture(
-        self, _moved_world, tmp_path, monkeypatch, capsys, new, conftest, lines
+        self, _moved_world, tmp_path, monkeypatch, capsys, news, conftest, lines
     ):
         code, others, _base = run_moved(
-            _moved_world, tmp_path, monkeypatch, new, conftest
+            _moved_world, tmp_path, monkeypatch, news, conftest
         )
         out = capsys.readouterr().out
         assert code == 1, out
@@ -565,17 +617,39 @@ class Test_moved:
         assert out.splitlines()[-1].endswith(f"{len(lines)} failed"), out
         assert others == 0, "the base's worktree was left behind"
 
-    def test_refuses_a_base_or_an_old_file_it_cannot_read(
+    def test_refuses_a_base_or_a_file_it_cannot_read(
         self, _moved_world, tmp_path, monkeypatch, capsys
     ):
         repo, base = _moved_world
         monkeypatch.chdir(repo)
-        args = ["--from", "tests/test_old_a.py", "tests/test_old_a.py"]
+        args = ["--from", OLD_A, "--to", OLD_A]
         assert layout.main(["--moved", "no-such-commit", *args]) == 2
         assert "no-such-commit names no commit" in capsys.readouterr().out
-        args = ["--from", "tests/test_gone.py", "tests/test_old_a.py"]
+        args = ["--from", "tests/test_gone.py", "--to", OLD_A]
         assert layout.main(["--moved", base, *args]) == 2
         assert "tests/test_gone.py is not a file at" in capsys.readouterr().out
+        args = ["--from", OLD_A, "--to", "tests/test_gone.py"]
+        assert layout.main(["--moved", base, *args]) == 2
+        assert "tests/test_gone.py cannot be read" in capsys.readouterr().out
+
+    @pytest.mark.parametrize(
+        "args",
+        [
+            ["--moved", "HEAD", "--from", OLD_A, X],
+            ["--moved", "HEAD", "--from", OLD_A, "--to", X, "--", Y],
+            ["--check", "--to", X],
+        ],
+        ids=[
+            "the-new-file-as-the-last-from-word",
+            "a-path-after-the-lists",
+            "to-alone",
+        ],
+    )
+    def test_refuses_a_new_file_no_to_names(self, args, capsys):
+        with pytest.raises(SystemExit) as stopped:
+            layout.main(args)
+        assert stopped.value.code == 2
+        assert "--to" in capsys.readouterr().err
 
 
 class Test_main:

@@ -4,8 +4,9 @@
   test-layout --check [paths]         refuse a file that breaks the layout
   test-layout --check --all [paths]   refuse a file that declares no TARGET too
   test-layout --pairs [paths]         name two cases of a class that look alike
-  test-layout --moved BASE --from OLD... NEW
-                                      whether NEW holds OLD's cases, only moved
+  test-layout --moved BASE --from OLD... --to NEW...
+                                      whether the NEW files hold the OLD
+                                      files' cases, only moved
 
 #942. A test file names the module it tests once, as the first assignment
 after its imports, `TARGET = "<tracked path>"`, holds one class per public
@@ -52,19 +53,23 @@ two such calls are equal. Attribute names are kept, so two cases calling
 different methods of one object differ.
 
 `--moved` is the move check of `CONTRIBUTING.md` *The test layout*: it
-passes a module whose old cases were only moved into NEW, with nothing cut,
-merged or rewritten, and such a module needs no mutants. It reads each OLD
-file at BASE through `git show` and NEW in the working tree, and prints a
-line opening with `moved:` for each failure of its three conditions:
+passes a group of modules whose old cases were only moved into the NEW
+files, with nothing cut, merged or rewritten, and such a group needs no
+mutants. It reads each OLD file at BASE through `git show` and each NEW
+file in the working tree; one path may stand in both lists, for an old
+file that keeps cases for a later group. It prints a line opening with
+`moved:` for each failure of its three conditions:
 
-  count    pytest collects as many items from NEW as from the OLD files at
-           BASE, each parametrize row one item, the census case left out on
-           both sides; BASE's items are collected in a detached worktree of
-           BASE added under a temporary directory and removed before the
-           check ends
-  body     each old case is a case of NEW unchanged apart from its name, its
-           place, the class around it, its docstring and a `self` parameter,
-           each case of NEW standing for one old case
+  count    pytest collects as many items from the NEW files as from the OLD
+           files at BASE, each parametrize row one item, the census case
+           left out on both sides; BASE's items are collected in a detached
+           worktree of BASE added under a temporary directory and removed
+           before the check ends
+  body     each old case is a case of the NEW files unchanged apart from its
+           name, its place, the class around it, its docstring and a `self`
+           parameter, each new case standing for one old case; a new case
+           that stands for none is named, so an old case that lands twice is
+           named by its second landing
   fixture  the two cases request the same fixtures, by parameter, by
            `usefixtures` or as autouse, and each, followed through the
            fixtures it requests, is defined alike in both trees, in the
@@ -74,11 +79,13 @@ line opening with `moved:` for each failure of its three conditions:
 It then prints the old cases, both counts and the failures on one last line.
 
 Exit codes: `--check` 0 when nothing is refused and 1 when something is.
-`--pairs` 0 whatever it prints. `--moved` 0 where the module passes and 1
+`--pairs` 0 whatever it prints. `--moved` 0 where the group passes and 1
 where it does not. 2 for any of them: the directory is not inside a git
 repository, a path names no file or directory, or the arguments do not
-parse; and for `--moved`, a BASE that names no commit, an OLD file BASE does
-not hold, or a collection pytest cannot make.
+parse; for `--moved` that includes a path in neither list, so the new file
+written as the last word after `--from` is refused. And 2 for `--moved`
+where BASE names no commit, BASE does not hold an OLD file, a NEW file
+cannot be read, or pytest cannot make a collection.
 """
 
 import argparse
@@ -606,23 +613,28 @@ def _fixture_change(old, new, names):
 
 
 def moved(old, new, old_conftest=None, new_conftest=None):
-    """One line for each old case the new file does not hold as it was.
+    """One line for each old case the new files do not hold as it was, and
+    one for each case of the new files that stands for no old case.
 
-    OLD is `{path: source}` of the old files at the base, NEW `(path,
-    source)` of the new file in the working tree, and the two conftests are
+    OLD is `{path: source}` of the old files at the base, NEW `{path:
+    source}` of the new files in the working tree, and the two conftests are
     `tests/conftest.py`'s source in each tree, None where it is absent. An
-    old case holds where a case of the new file has its form (`_moved_form`),
-    each new case standing for one old case, where the two cases request the
-    same fixtures (`_requested`), and where every fixture requested reads
-    alike in both trees (`_fixture_change`). The count of collected items is
-    `main`'s, which runs pytest."""
-    new_rel, new_source = new
-    new_tree = ast.parse(new_source)
+    old case holds where a case of the new files has its form
+    (`_moved_form`), each new case standing for one old case, where the two
+    cases request the same fixtures (`_requested`), and where every fixture
+    requested reads alike in both trees (`_fixture_change`). The files on
+    each side are read in path order, so an old case whose form two new
+    cases have is held by the first and the second is named. The count of
+    collected items is `main`'s, which runs pytest."""
     new_conf = ast.parse(new_conftest) if new_conftest is not None else None
     old_conf = ast.parse(old_conftest) if old_conftest is not None else None
     standing = {}
-    for _name, cls, case in _all_cases(new_tree):
-        standing.setdefault(_moved_form(case), []).append((cls, case))
+    for new_rel in sorted(new):
+        new_tree = ast.parse(new[new_rel])
+        for name, cls, case in _all_cases(new_tree):
+            standing.setdefault(_moved_form(case), []).append(
+                (f"{new_rel}::{name}", new_tree, cls, case)
+            )
     lines = []
     for rel in sorted(old):
         tree = ast.parse(old[rel])
@@ -630,9 +642,9 @@ def moved(old, new, old_conftest=None, new_conftest=None):
             where = f"moved: {rel}::{name}"
             match = standing.get(_moved_form(case))
             if not match:
-                lines.append(f"{where}: body: not in {new_rel} unchanged")
+                lines.append(f"{where}: body: not in the new files unchanged")
                 continue
-            new_cls, new_case = match.pop(0)
+            _place, new_tree, new_cls, new_case = match.pop(0)
             before = _requested(tree, cls, case, old_conf)
             after = _requested(new_tree, new_cls, new_case, new_conf)
             apart = sorted(before ^ after)
@@ -647,6 +659,10 @@ def moved(old, new, old_conftest=None, new_conftest=None):
             )
             if change:
                 lines.append(f"{where}: fixture {change[0]}: {change[1]}")
+    for left in standing.values():
+        lines += [
+            f"moved: {place}: body: stands for no old case" for place, *_rest in left
+        ]
     return lines
 
 
@@ -709,7 +725,7 @@ def _git(root, *args):
     )
 
 
-def _moved_main(root, base, olds, new):
+def _moved_main(root, base, olds, news):
     """`--moved`: the exit code, having printed each failure and a last
     line."""
     sha = _git(root, "rev-parse", "--verify", "--quiet", f"{base}^{{commit}}")
@@ -720,20 +736,22 @@ def _moved_main(root, base, olds, new):
     def rel(path):
         return os.path.relpath(os.path.abspath(path), root).replace(os.sep, "/")
 
-    old_rels, new_rel = [rel(p) for p in olds], rel(new)
+    old_rels, new_rels = [rel(p) for p in olds], [rel(p) for p in news]
     old = {}
     for path in old_rels:
         shown = _git(root, "show", f"{sha}:{path}")
         if shown.returncode != 0:
             raise Unreadable(f"{path} is not a file at {sha[:12]}")
         old[path] = shown.stdout
-    new_source = _read(root, new_rel)
-    if new_source is None:
-        raise Unreadable(f"{new_rel} cannot be read")
+    new = {}
+    for path in new_rels:
+        new[path] = _read(root, path)
+        if new[path] is None:
+            raise Unreadable(f"{path} cannot be read")
     conf = _git(root, "show", f"{sha}:tests/conftest.py")
     lines = moved(
         old,
-        (new_rel, new_source),
+        new,
         conf.stdout if conf.returncode == 0 else None,
         _read(root, "tests/conftest.py"),
     )
@@ -750,11 +768,11 @@ def _moved_main(root, base, olds, new):
         # worktree's record whose directory is missing too.
         _git(root, "worktree", "remove", "--force", tree)
         shutil.rmtree(holder, ignore_errors=True)
-    after = _collected(python, root, [new_rel])
+    after = _collected(python, root, new_rels)
     if after != before:
         lines.insert(
             0,
-            f"moved: count: {new_rel} collects {after} items, the old files "
+            f"moved: count: the new files collect {after} items, the old files "
             f"{before} at the base",
         )
     for line in lines:
@@ -837,7 +855,7 @@ def main(argv=None):
     mode.add_argument(
         "--moved",
         metavar="BASE",
-        help="whether the new file holds the old files' cases at BASE, only moved",
+        help="whether the new files hold the old files' cases at BASE, only moved",
     )
     parser.add_argument(
         "--all",
@@ -849,7 +867,14 @@ def main(argv=None):
         dest="olds",
         nargs="+",
         metavar="OLD",
-        help="with --moved, the old test files at BASE; the new file comes last",
+        help="with --moved, the old test files at BASE",
+    )
+    parser.add_argument(
+        "--to",
+        dest="news",
+        nargs="+",
+        metavar="NEW",
+        help="with --moved, the new test files in the working tree",
     )
     parser.add_argument(
         "paths", nargs="*", help="files or directories; tests/ when none"
@@ -857,23 +882,23 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if args.all and not args.check:
         parser.error("--all goes with --check")
-    if args.olds and args.moved is None:
-        parser.error("--from goes with --moved")
+    if (args.olds or args.news) and args.moved is None:
+        parser.error("--from and --to go with --moved")
     if args.moved is not None:
-        # `--from` takes every word after it, so the new file, written last,
-        # is its last word unless a path was given before it.
-        olds, news = list(args.olds or []), list(args.paths)
-        if not news and len(olds) > 1:
-            news = [olds.pop()]
-        if len(news) != 1 or not olds:
-            parser.error("--moved takes --from with the old files, then one new file")
-        start = os.path.dirname(os.path.abspath(news[0]))
+        # Each path's list is told by the word before it, so a path in
+        # neither list is refused rather than counted into one.
+        if not args.olds or not args.news or args.paths:
+            parser.error(
+                "--moved takes the old files after --from and the new files "
+                "after --to, and no other path"
+            )
+        start = os.path.dirname(os.path.abspath(args.news[0]))
         root = _toplevel(start)
         if root is None:
             print(f"test-layout: {start} is not inside a git repository", flush=True)
             return 2
         try:
-            return _moved_main(root, args.moved, olds, news[0])
+            return _moved_main(root, args.moved, args.olds, args.news)
         except Unreadable as exc:
             print(f"test-layout: {exc}", flush=True)
             return 2

@@ -8,8 +8,9 @@
 #   test-layout --check            refuse a file that breaks the layout
 #   test-layout --check --all      refuse a file that declares no TARGET too
 #   test-layout --pairs tests/x.py name two cases of a class that look alike
-#   test-layout --moved BASE --from OLD... NEW
-#                                  whether NEW holds OLD's cases at BASE,
-#                                  only moved, so its module needs no mutants
+#   test-layout --moved BASE --from OLD... --to NEW...
+#                                  whether the NEW files hold the OLD files'
+#                                  cases at BASE, only moved, so the group's
+#                                  modules need no mutants
 here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 exec python3 "$here/../hooks/launch.py" "$here/../skills/verify/scripts/test_layout.py" "$@"

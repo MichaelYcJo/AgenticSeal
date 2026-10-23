@@ -288,13 +288,17 @@ and one line per removed case.** The contributor writes it into the phase
 record of the work item that rebuilt the module, in four parts:
 
 - the move check, `bin/test-layout --moved <base> --from <old file>...
-  <new file>`, with its command and its last line. Where it exits 0, the
-  module's cases were only moved and the record has no mutation table.
-  Where it exits 1, or where the module was written anew, the record
-  carries the mutation table. Its mutants sit at the decision points where
-  a case accepts or refuses, one or two per class and one more for each
-  further decision point a function holds, so their count follows the
-  module's classes. They run against the new file in one
+  --to <new file>...`, with its command and its last line. One run covers
+  a group, the modules of one shipped directory or a smaller group rebuilt
+  together, and names every old file the group's cases came from after
+  `--from` and every new file the group wrote after `--to`; an old file
+  that keeps cases for a later group stands in both lists. Where it exits
+  0, the group's cases were only moved and the record has no mutation
+  table. Where it exits 1, each module of the group carries the mutation
+  table, and so does a module written anew. Its mutants sit at the
+  decision points where a case accepts or refuses, one or two per class
+  and one more for each further decision point a function holds, so their
+  count follows the module's classes. They run against the new file in one
   `bin/mutation-check` call with `-x` in its tests command. The old files'
   column runs only for a mutant the new file lets survive: where the old
   files miss it too, the table names an old gap, and where they kill it,
