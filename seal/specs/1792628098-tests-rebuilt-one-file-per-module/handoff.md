@@ -1,6 +1,6 @@
 # Handoff: 1792628098-tests-rebuilt-one-file-per-module (#942)
 
-Written 2026-10-22 by the orchestrator, when the owner paused the build after phase 5's first proof under the new rule, and brought up to date on 2026-10-23 by the smith spawns that rebuilt the modules since. The branch is `chore/942-tests-rebuilt-one-file-per-module`, cut from `release/v0.22.3` at 6046f062. The tree this file describes is 6e7214be and the commit that updates this file.
+Written 2026-10-22 by the orchestrator, when the owner paused the build after phase 5's first proof under the new rule, and brought up to date on 2026-10-23 by the smith spawns that rebuilt the modules since. The branch is `chore/942-tests-rebuilt-one-file-per-module`, cut from `release/v0.22.3` at 6046f062. The tree this file describes is df48707c and the commit that updates this file.
 
 ## Where the build stands
 
@@ -8,7 +8,7 @@ Written 2026-10-22 by the orchestrator, when the owner paused the build after ph
 |---|---|
 | 1 to 4 | built: `bin/test-layout`, the slow-case report, the censuses in `tests/censuses.py`, the helper twins in `tests/conftest.py` |
 | 5 | closed at b770ca64: 11 modules rebuilt, plus the `mutation-check` batch mode |
-| 6 | open: its first step, `bin/test-layout --moved`, at 6e7214be; Batch B not started |
+| 6 | open: the move check at 6e7214be, its two sets at 43324e4e; Batch B's `hooks/` groups 1 to 6 at 0a86c1b4, ccca432d, e6700896, 714f2df2, 04115ed2 and df48707c, 12 modules placed; the rest waits on rule changes (below) |
 | 7 | not started |
 | Review | round 1 covered phases 1 to 4 at 8aa42bf8; its nine findings are answered, eight fixed at c6d2bfc4 and one deferred to phase 7. Round 2 verified round 1's closes and reviewed phase 5 at cfb846b2; its four findings are fixed, answered in `rounds/round-2.md` at ac965ee7. Two commit-flow gaps from the orchestrator's kill matrix (issue #1014) are closed at 5a207e20 |
 
@@ -32,6 +32,19 @@ The phase records `phases/phase-1.md` to `phases/phase-5.md` hold each module's 
 | `skills/verify/scripts/unverified_check.py` | 984a5cd2, b770ca64 | 236 in one file, 8.3 to 8.5 s serial | 313 in `tests/test_unverified_check.py` and 43 left in the old file, 7.0 to 7.4 s serial | new rule: 123 mutants over 56 classes; 4 survivors, 2 old gaps and 2 the old file killed, each red after a row |
 
 Seconds are macOS wall time on a shared machine, from each module's record.
+
+## Phase 6, group by group
+
+| Group | Commit | Modules | Move check's last line | Proof |
+|---|---|---|---|---|
+| 1 | 0a86c1b4 | `hooks/lint-python.py`, `hooks/version-check.py`, `hooks/review-skill-gate.py`, `hooks/question-gate.py` | `73 old cases, 74 items against 73 at 43324e4e104e, 17 failed` | each failure a merge or a split; 40 mutants over the four, 8 survivors, every one an old gap |
+| 2 | ccca432d | `hooks/launch.py`, `hooks/one_heredoc.py` | `20 old cases, 147 items against 147 at 0a86c1b4c088, 0 failed` | the move check |
+| 3 | e6700896 | `hooks/session-lease.py` | `108 old cases, 119 items against 119 at ccca432d83a7, 3 failed` | one merge; 15 mutants, 6 survivors, every one an old gap |
+| 4 | 714f2df2 | `hooks/mode-gate.py` | `66 old cases, 180 items against 180 at e945c57c16fc, 4 failed` | one merge; 16 mutants, 4 survivors, every one an old gap |
+| 5 | 04115ed2 | `hooks/answers.py`, `hooks/answer-write.py`, `hooks/answer-clear.py` | `17 old cases, 37 items against 37 at 714f2df2eff1, 0 failed` | the move check |
+| 6 | df48707c | `hooks/hooksession.py` | `18 old cases, 28 items against 28 at 04115ed2da4d, 0 failed` | the move check |
+
+`phases/phase-6.md` holds each group's command, cases and seconds, mutants and cases left in place.
 
 ## What the new proof costs
 
@@ -60,10 +73,10 @@ The owner replaced the 100-mutant table on 2026-10-22 (`spec.md` *The proof of e
 
 ## Left for the next session
 
-1. See the commit flow's 43 cases and the worktree guard's cd case, which 7efbd4c6 and 3e5cbb59 fixed, `tests/test_seal.py`, `tests/test_noninferiority.py`, `tests/test_unverified_check.py`, `tests/test_test_layout.py::Test_moved` and the commit flow's two cases of 5a207e20, pass on the Windows legs of the next CI run.
+1. See the commit flow's 43 cases and the worktree guard's cd case, which 7efbd4c6 and 3e5cbb59 fixed, `tests/test_seal.py`, `tests/test_noninferiority.py`, `tests/test_unverified_check.py`, `tests/test_test_layout.py::Test_moved` and the commit flow's two cases of 5a207e20, pass on the Windows legs of the next CI run, and so do the files phase 6's `hooks/` groups wrote: `tests/test_lint_python.py`, `tests/test_version_check.py`, `tests/test_review_skill_gate.py`, `tests/test_question_gate.py`, `tests/test_launch.py`, `tests/test_one_heredoc.py`, `tests/test_session_lease.py`, `tests/test_mode_gate.py`, `tests/test_answers.py`, `tests/test_answer_write.py`, `tests/test_answer_clear.py` and `tests/test_hooksession.py`.
 2. Place `hooks/root-migrate.py#move`'s empty directory, which the rebuild found and pinned as it is (`overview.md` *Not done*).
 3. The `## Rule changes` items for `docs/one-root-by-lifetime.md` and its Korean twin are in `spec.md` since 93a009c6, and the worktree guard's since 099119b8.
-4. Phase 6's Batch B, the remaining shipped modules one commit per directory, `hooks/` first, and phase 7, `--all`, the `.test_durations` refresh and the closing memo. Before Batch B: whether the move check should take several new files, since a module whose old file is split with another module's cannot pass it as built (`phases/phase-6.md` *What the frame's check cannot pass*), a question for the framer and the orchestrator.
+4. Before `hooks/` can go on: `## Rule changes` items for the `check:` lines that name the old files the next groups would drain or whose rules their moving cases hold, `docs/commit-review-gate-spec.md` lines 32 and 212, `docs/the-record-layout.md` line 141, `docs/the-commit-gate-inside-git.md` line 37, `docs/one-root-by-lifetime.md` lines 27 and 71 and their Korean twins, `docs/worktree-guard-spec.md` lines 60, 146 and 343, and `docs/the-review-record.md` line 404, a question for the framer and the orchestrator (`phases/phase-6.md` *What `hooks/` holds back*). Then the rest of phase 6's Batch B, `hooks/` and the seven other directories, and phase 7, `--all`, the `.test_durations` refresh and the closing memo.
 5. A round verifying round 2's fix pass and the move check, then a round over phases 6 and 7, the broad gate, the sealer, the pull request into `release/v0.22.3`, and then the release preparation.
 
 ## How a smith spawn for the next modules reads
@@ -73,7 +86,8 @@ Each spawn so far took one or two modules. The prompt that worked names:
 - the worktree, the branch and HEAD, and that the routing is automation through the review chain;
 - what to read first: `spec.md`, `plan.md`, `questions.md`, every phase record, `overview.md`, `rounds/round-1.md`, `CONTRIBUTING.md` *The test layout* and `skills/writing-style/SKILL.md`;
 - the modules to rebuild, one commit each, stopping at a module boundary rather than starting one it cannot finish with a complete record;
-- the proof: decision-point mutants in one `mutation-check` batch call with `-x` in `--tests`, the old column only for survivors;
+- the proof: decision-point mutants in one `mutation-check` batch call with `-x` in `--tests`, the old column only for survivors; for phase 6, the move check first, `bin/test-layout --moved <the commit before the group> --from <every old file> --to <every new file and every old file that keeps cases>`, and the mutants only for a module whose cases fail it;
+- that `TARGET` must be the first statement after the imports, so a hook module the cases import by name is loaded through `load_hook_module`, and that the edit hook runs `ruff check --fix`, which drops an import nothing uses yet, so the census line goes in with its import;
 - the copy rule: a file git or a shell executes inside a copied world is hardlinked from a template that ran it once, as `tests/e2e/commit/test_commit_flow.py#_link_or_copy` does, and a case that changes such a file writes a new one;
 - a module whose old file and new file share no name leaves the old file's listing scopes to `tests/test_a_shrunken_corpus_declines_to_judge.py#LISTS_A_FIXTURE`, which names each scope that lists paths from git;
 - the runs at each commit: the module and its importers, `tests/test_censuses.py` and every file `git grep -l "git_listing\|tracked_text_files\|ls-files" tests/` lists, `tests/test_chain_hooks_hardening.py`, the shards module over the whole collection, `bin/test-layout --check`, `bin/rules --check`, `bin/unverified-check seal/specs/`, and ruff one changed file at a time;

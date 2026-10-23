@@ -172,8 +172,92 @@ The mutants sit at `main`'s tool test, editor target, other-tool return, directo
 
 **The boundary** (`executed`). At the tree committed as e6700896: the four files, every file carrying `rule_carriers` or the `a-persons-own-commit` marker (`tests/e2e/commit/test_commit_flow.py`, `tests/test_the_commit_gate_decides_at_the_commit.py`, `tests/test_the_hooks_are_installed_where_git_runs_them.py`, `tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py`), the censuses, the `git_listing` files, `tests/test_chain_hooks_hardening.py`, `tests/test_test_layout.py` and `tests/test_conftest.py`, 29 files: 1,993 passed. The shards module: the known red alone. `bin/test-layout --check` exits 0, 153 files read, 130 declaring no `TARGET`; `bin/rules --check` and `bin/unverified-check seal/specs/` exit 0. Ruff clean on each changed file.
 
+### Batch B, `hooks/`, group 4, at 714f2df2
+
+**The module.** `hooks/mode-gate.py`, whose cases were the 24 of `tests/test_the_mode_question_is_asked_once.py`'s section *S7-S10: the gate* and `test_a_table_the_walker_refuses_is_silence_from_the_mode_gate`, now `tests/test_mode_gate.py`. The old file keeps the config reader's cases. The two `check:` lines that name it, in `docs/one-root-by-lifetime.md` line 223 and its Korean twin line 212, stand under the config reader's rule *A cell may carry an escaped pipe*, whose cases stay, so they still name the file that holds their rule. The survey's 44 matches in `tests/test_gate_judges_the_repo_it_commits_to.py` were the word `Mode` in a config row; reading the file found no case of this module there.
+
+**The move check** (`executed`):
+
+`bin/test-layout --moved e945c57c --from tests/test_the_mode_question_is_asked_once.py --to tests/test_mode_gate.py tests/test_the_mode_question_is_asked_once.py`
+
+`test-layout: moved: 66 old cases, 180 items against 180 at e945c57c16fc, 4 failed`, exit 1. The four lines are one merge made on purpose: `test_a_recorded_mode_is_silent`, `test_a_local_root_with_a_recorded_mode_is_silent` and `test_a_mode_row_written_twice_is_silence_not_a_question` read alike once names and strings are normalised, so they became `Test_main::test_accepts_a_root_whose_config_answers_or_refuses_the_mode`, parametrized over the root and the rows.
+
+**Helpers.** `TABLE`, `opt_in_shared`, `write_config` and `write_unreadable` are used by both files, so they moved to `tests/conftest.py`.
+
+**The mutation table** (`executed`, one batch over `tests/test_mode_gate.py` with `-x`; the old column against the old file in an archive of e945c57c):
+
+| Mutants | New column | Old column | Old gaps |
+|---|---|---|---|
+| 16 | 12 red, 4 survived | 4 survived | a session id of `.` or `..`; `undeclared` answering the falsy home it was given in place of `""`, which no caller tells apart while `optin.home_at` answers `""`; `git_dir_of` answering on a non-zero exit; the question's first sentence without the root's path, which the first option names again |
+
+The mutants sit at `already_asked`'s `basename`, dot names, existing marker and write error; `undeclared`'s missing home and both readings of `refused`; `git_dir_of`'s exit and absolute join; `marker_dir`'s shared and local arms; and `main`'s tool test, root, first prompt, second prompt and the question's text. No case was added.
+
+**Cases and seconds** (`executed`, serial): before, 180 items in 2.48 s; after, 181 items in 2.67 s over the two files, the new file alone 27 items in 3.63 s.
+
+**The real-git cases kept.** Every case runs the gate as a process against the `repo` fixture, and two add a linked worktree: which git directory holds the marker is git's answer.
+
+**Left where they stand.** `test_a_line_that_will_not_parse_is_named_and_the_hook_still_says_nothing` reads the config reader and the gate's `undeclared` in one body, and waits in the old file for `hooks/config.py`. `tests/test_first_setup_asks_once.py`'s case naming `mode-gate.py` reads the bootstrap prose and the dispatcher's list, and is the first-setup rule's.
+
+**The boundary** (`executed`). At the tree committed as 714f2df2: the two files, `tests/test_first_setup_asks_once.py`, `tests/test_a_reference_root_is_read_and_never_taken.py`, the censuses, the `git_listing` files, `tests/test_chain_hooks_hardening.py`, `tests/test_test_layout.py` and `tests/test_conftest.py`, 26 files: 1,900 passed; `tests/test_a_signer_declares_its_pact.py`, which names the old file in a docstring, 50 passed. The shards module: the known red alone. `bin/test-layout --check` exits 0, 154 files read, 130 declaring no `TARGET`; `bin/rules --check` and `bin/unverified-check seal/specs/` exit 0. Ruff clean on each changed file.
+
+### Batch B, `hooks/`, group 5, at 04115ed2
+
+**The modules.** `hooks/answers.py`, `hooks/answer-write.py` and `hooks/answer-clear.py`, whose fifteen cases sat in `tests/test_the_old_spellings_reach_the_hook.py`, now `tests/test_answers.py` (`Test_given`, `Test_write`, `Test_module`), `tests/test_answer_write.py` (`Test_main`) and `tests/test_answer_clear.py`. No other file reaches the three modules by name or import (`git grep`, `executed`); the survey's matches elsewhere were the word `answers`. The old file keeps `hooks/tokens.py`'s two cases and is named in both lists.
+
+**Where the cases went.** `test_another_call_neither_replaces_nor_clears_an_answer` writes two calls and clears each, so it is `Test_write`'s refusing case. `call_id`'s one case and `root_dir`'s one case have no partner to make a pair with, so each is in `Test_module`. `hooks/answer-clear.py`'s two cases write through the writer before they clear, so they are its `Test_module`, and `--check` reports its `main` with no class.
+
+**The move check** (`executed`):
+
+`bin/test-layout --moved 714f2df2 --from tests/test_the_old_spellings_reach_the_hook.py --to tests/test_answers.py tests/test_answer_write.py tests/test_answer_clear.py tests/test_the_old_spellings_reach_the_hook.py`
+
+`test-layout: moved: 17 old cases, 37 items against 37 at 714f2df2eff1, 0 failed`, exit 0. No module of the group has a mutation table. `--pairs` names no pair in the four files.
+
+**Helpers and loading.** `A`, `B`, `shell` and `run` are used by all three new files, so they moved to `tests/conftest.py`, which now imports `io`; `tests/e2e/commit/test_commit_flow.py`'s docstring names `tests/conftest.py#shell`. The new files load `answers` through `load_hook_module` under the name the cases read, because `TARGET` has to be the first statement after the imports and ruff's E402 refuses an `import answers` after it.
+
+**Cases and seconds** (`executed`, serial): 37 items in 0.18 s before, 40 items in 0.15 to 0.19 s after over the four files.
+
+**Left where they stand.** For `hooks/tokens.py`, in the old file: `test_a_token_is_a_bare_word_and_nothing_else` and `test_the_three_token_reads_answer_as_one`, with `TOKEN_CASES` and `_corpora`.
+
+**The boundary** (`executed`). At the tree committed as 04115ed2: the four files, the commit flow, `tests/test_one_heredoc_shape_is_data_to_the_commit_gate.py`, the censuses, the `git_listing` files, `tests/test_chain_hooks_hardening.py`, `tests/test_test_layout.py` and `tests/test_conftest.py`, 28 files: 2,075 passed. The shards module: the known red alone. `bin/test-layout --check` exits 0, 157 files read, 130 declaring no `TARGET`; `bin/rules --check` and `bin/unverified-check seal/specs/` exit 0. Ruff clean on each changed file.
+
+### Batch B, `hooks/`, group 6, at df48707c
+
+**The module.** `hooks/hooksession.py`, whose three `claude_pid` cases group 3 left under their names in `tests/test_session_lease.py`, now `tests/test_hooksession.py` (`Test_claude_pid`). `tests/e2e/commit/test_commit_flow.py` keeps its scenarios that read a lease back through `from_lease` and `session`, as phase 5 placed them in the flow.
+
+**The move check** (`executed`):
+
+`bin/test-layout --moved 04115ed2 --from tests/test_session_lease.py --to tests/test_hooksession.py tests/test_session_lease.py`
+
+`test-layout: moved: 18 old cases, 28 items against 28 at 04115ed2da4d, 0 failed`, exit 0. No mutation table.
+
+**Helpers.** `stub_process_tree` serves both files, so it moved to `tests/conftest.py`. It replaced `getppid` and `run` on the `os` and `subprocess` the loaded session-lease module holds; those are the shared modules, so the conftest version replaces them on `os` and `subprocess` directly.
+
+**Cases and seconds** (`executed`, serial): 29 items in 0.94 s before, 30 items in 1.03 to 3.33 s after over the two files.
+
+**The boundary** (`executed`). At the tree committed as df48707c: the two files, `tests/test_lease_liveness.py`, the commit flow, the censuses, the `git_listing` files, `tests/test_chain_hooks_hardening.py`, `tests/test_test_layout.py` and `tests/test_conftest.py`, 26 files: 1,897 passed. The shards module: the known red alone. `bin/test-layout --check` exits 0, 158 files read, 130 declaring no `TARGET`; `bin/rules --check` and `bin/unverified-check seal/specs/` exit 0. Ruff clean on each changed file.
+
 ### What `hooks/` holds back
+
+**Three groups wait for a rule change** (`read`). A `check:` line names a file whose cases would all leave it, or whose rule the moving cases hold, and the smith edits nothing under `docs/`:
+
+| Modules | Old file | `check:` line | Why the line has to move |
+|---|---|---|---|
+| `hooks/dispatch.py` | `tests/test_a_gate_that_fails_says_so.py` | `docs/commit-review-gate-spec.md` line 32 | the file is the dispatcher's failure report, and every case of it is the dispatcher's |
+| `hooks/routing.py` | `tests/test_routing_is_recorded.py` | `docs/the-record-layout.md` line 141 | the rule *Whether a line is live is asked by what the line does* is held by routing's line reader among others, and the file would keep only the commit gate's cases |
+| `hooks/implementer.py`, `hooks/implementer-mark.py`, `hooks/implementer-notice.py` | `tests/test_the_implementer_is_recorded.py` | `docs/commit-review-gate-spec.md` line 212 | every case of the file is the family's (below) |
+| `hooks/githooks.py`, `hooks/hook-install.py` | `tests/test_the_hooks_are_installed_where_git_runs_them.py` | `docs/the-commit-gate-inside-git.md` line 37 | every case of the file is the stub installer's |
+| `hooks/optin.py` | `tests/test_optin_home.py` | `docs/one-root-by-lifetime.md` lines 27 and 71, and the Korean twin | the opt-in home rules are held by the optin cases that would move |
+| `hooks/worktree_consent.py`, with the worktree guard's light files | `tests/test_the_guard_asks_once_per_session.py`, `tests/test_guard_resolves_the_tree_it_judges.py` and the guard's other light files | `docs/worktree-guard-spec.md` lines 60, 146 and 343 | the consent and failure-direction rules are held by the cases that would move; the guard's cases also meet its file's autouse fixture (group 3) |
+| `hooks/sealer-stamp.py`, `hooks/sealer-stamp-queue.py`, `hooks/commitgate.py` | `tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py` | `docs/the-review-record.md` line 404 | the stamp's drawing rule is held by the sealer stamp's cases; the file also prices its 55 remaining cases at 110.2 s, so rule 3 writes the three anew |
 
 **The implementer family waits for a rule change** (`read`). `hooks/implementer.py`, `hooks/implementer-mark.py` and `hooks/implementer-notice.py` have their cases in `tests/test_the_implementer_is_recorded.py`, and `docs/commit-review-gate-spec.md` line 212 names that file in the `check:` line of the rule *A `framer` or `smith` spawn leaves a mark*. Placing the cases empties the file, and `bin/rules --check` then refuses the line; the smith edits nothing under `docs/`. The line needs a `## Rule changes` item in `spec.md`, naming `tests/test_implementer_mark.py tests/test_implementer_notice.py`, before the family moves.
 
-**Files a group may drain but not remove** (`executed`, `git grep` over the `check:` lines of `docs/`, `CONTRIBUTING.md`, `skills/` and `agents/`). Of the undeclared files that hold `hooks/` cases, these are named by a `check:` line: `tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py`, `tests/test_the_hooks_are_installed_where_git_runs_them.py`, `tests/test_routing_is_recorded.py`, `tests/test_optin_home.py`, `tests/test_a_gate_that_fails_says_so.py`, `tests/test_worktree_guard_signals.py`, `tests/test_guard_resolves_the_tree_it_judges.py`, `tests/test_the_guard_asks_once_per_session.py`, `tests/test_the_mode_question_is_asked_once.py`, `tests/test_gate_judges_the_repo_it_commits_to.py`, `tests/test_a_creation_is_judged_before_git_runs.py` and `tests/test_chain_hooks_hardening.py`. A group that would move every case out of one of them needs the framer's rule change first.
+**Files a group may drain but not remove** (`executed`, `git grep` over the `check:` lines of `docs/`, `CONTRIBUTING.md`, `skills/` and `agents/`). Of the undeclared files that hold `hooks/` cases, these are named by a `check:` line: `tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py`, `tests/test_the_hooks_are_installed_where_git_runs_them.py`, `tests/test_routing_is_recorded.py`, `tests/test_optin_home.py`, `tests/test_a_gate_that_fails_says_so.py`, `tests/test_worktree_guard_signals.py`, `tests/test_guard_resolves_the_tree_it_judges.py`, `tests/test_the_guard_asks_once_per_session.py`, `tests/test_the_mode_question_is_asked_once.py`, `tests/test_gate_judges_the_repo_it_commits_to.py`, `tests/test_a_creation_is_judged_before_git_runs.py` and `tests/test_chain_hooks_hardening.py`. A group that would move every case out of one of them needs the framer's rule change first, and so does a group that would move the cases a line's rule rests on.
+
+**Why the second spawn stopped at df48707c** (`read`). After group 6, each of the 19 modules left in `hooks/` is one of three kinds (12 modules were placed in groups 1 to 6, and phase 5 rebuilt 3 of the 34). Twelve wait for the rule changes in the table above. `hooks/blocks.py`, `hooks/config.py`, `hooks/gate.py`, `hooks/tokens.py`, `hooks/cmdline.py` and `hooks/cmdline_base.py` are the shared readers: their cases sit in most of the files above, several of those files are named by `check:` lines whose rules their cases hold, and `hooks/cmdline.py`'s cases in the three text-reading files stay sampled under Q1 with #1014 to decide them. `hooks/console.py`'s three cases each run the dispatcher, `hooks/routing.py` or the commit gate alone, so it moves with the dispatcher's group. The light files phase 5 left for `hooks/commit-review-gate.py`, `hooks/worktree-guard.py` and `hooks/root-migrate.py` meet the same `check:` lines, and the guard's meet its autouse fixture too. No next group can be finished with a complete record without the framer's rule changes, so the spawn hands back at a group boundary.
+
+### What remains in phase 6
+
+- `hooks/`: the twelve modules behind the rule changes above; the six shared readers and `hooks/console.py`; the light files of phase 5's three `hooks/` modules. `hooks/answer-clear.py` has a file whose `Test_module` holds its two round trips and no `Test_main`.
+- The other seven shipped directories of `plan.md`'s phase 6 row: `hooks/git/`, `skills/verify/scripts/`, `skills/code-review/scripts/`, `skills/settle/scripts/`, `skills/implement/scripts/`, `.github/scripts/`, `evals/scripts/`, with the light files phase 5 left for its other modules.
+- Phase 4's survivors h2, h4, h6, h12, h14, h21 and h23: no group of this spawn re-ran them, so whether a group closed one is not known (`unverified`, for the spawn that rebuilds the module whose cases reach each).
