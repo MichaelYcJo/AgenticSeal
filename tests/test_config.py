@@ -10,8 +10,8 @@ from `tests/test_the_pull_request_language_is_the_repositorys.py` and three
 of the table walker's from
 `tests/test_one_table_walker_reads_what_gfm_renders.py`, which keeps the
 walker held to cmark-gfm, the reader's cases of
-`tests/test_the_mode_question_is_asked_once.py`, which keeps the writer's,
-the pact readers' of `tests/test_a_signer_declares_its_pact.py`, and the
+`tests/test_the_mode_question_is_asked_once.py`, whose writer's cases are in
+`tests/test_seal.py`, the pact readers' of `tests/test_a_signer_declares_its_pact.py`, and the
 seven cases `tests/test_pact_check.py` left for this module, which run
 `pact-check` over the pact's world in `tests/conftest.py`. Each case keeps
 its body, except two that read the pact's text as `PACT_TEXT`, because

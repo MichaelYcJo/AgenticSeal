@@ -1112,7 +1112,7 @@ def config():
 
 
 # The config texts the reader's cases in `tests/test_config.py` and the
-# writer's in `tests/test_the_mode_question_is_asked_once.py` both read. A row
+# writer's in `tests/test_seal.py` both read. A row
 # that parses comes first in the piped table, because the walker stops at the
 # first line it refuses (#415, #871).
 PIPED_TABLE = (

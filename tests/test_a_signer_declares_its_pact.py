@@ -11,10 +11,10 @@ own `seal/config.md`:
 The row has one reader, `hooks/config.py#pact_declaration`, which both
 `chain_check.py` (prints) and `pact_check.py` (refuses) ask. That reader's
 cases (S1-S3 of the work item's `spec.md`) and the `Signer` table's are in
-`tests/test_config.py` since #942's phase 6. What stays here reads the
-configs and templates this plugin ships through the reader, `seal.py`'s
-re-export of its normaliser, which waits for the group that places
-`seal.py`'s light files, and the routing step's pinned sentences (S4).
+`tests/test_config.py` since #942's phase 6, and `seal.py`'s re-export of
+its normaliser is in `tests/test_seal.py`. What stays here reads the configs
+and templates this plugin ships through the reader, and the routing step's
+pinned sentences (S4).
 """
 
 import os
@@ -24,16 +24,6 @@ from conftest import ORDERS, URL, flat, load_hook_module
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 config = load_hook_module("config.py", "config_for_the_pact")
-
-
-def test_seal_keeps_one_normaliser():
-    """`seal.py` re-exports the reader's normaliser rather than keeping a
-    second copy that could drift from the one the `Pact` row goes through."""
-    seal = load_hook_module(
-        os.path.join("..", "skills", "implement", "scripts", "seal.py"),
-        "seal_for_the_pact",
-    )
-    assert seal.normalise_remote is seal.repo_config.normalise_remote
 
 
 def _broad_gate_block():
