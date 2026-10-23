@@ -7,6 +7,14 @@ resolution over one repository built once for the module, and the base
 comparison and the gate's own run over a fixture repository built once and
 copied for each case. Those cases run the fixture's one-test suite through
 the gate's recorder, one row per kind of answer, and each copy is the reset.
+
+Phase 6 placed the light files' cases here as they stood. The cases of
+`run` and `handed_to_shell` that came from the file on what `cmd.exe` is
+handed (#448, #596) drive the Windows half with the platform passed in as an
+argument; two of them run the machine's real shell, and only CI's
+`windows-latest` leg runs its `cmd.exe` path. The cases of `main` that came
+from the file on the steps CI runs (#468) each build a repository with a
+`feature` branch and run the command over it.
 """
 
 import argparse
@@ -14,12 +22,22 @@ import ast
 import json
 import os
 import pathlib
+import re
 import shutil
+import stat
 import subprocess
 import sys
 
 import pytest
-from conftest import census_case, git, git_out, load_module, symlink_or_skip, write
+from conftest import (
+    census_case,
+    git,
+    git_out,
+    load_module,
+    read,
+    symlink_or_skip,
+    write,
+)
 from conftest import commit_everything_as_e as commit
 
 TARGET = "skills/verify/scripts/broad_gate.py"
@@ -36,6 +54,15 @@ ROW = "Broad gate"
 gate = load_module(ROOT / TARGET, "broad_gate_under_test")
 chain = load_module(CHAIN, "chain_check_beside_broad_gate")
 stamp = gate.stamp_module()
+GATE = str(ROOT / TARGET)
+STAMP = str(ROOT / "skills" / "verify" / "scripts" / "seal_stamp.py")
+HYGIENE = str(ROOT / ".github" / "workflows" / "hygiene.yml")
+
+
+def gate_module():
+    """A fresh load of the gate, for the cases that load their own."""
+    return load_module(GATE, "specseal_broad_gate_for_cmd")
+
 
 PASSING_TEST = "def test_one():\n    assert True\n"
 FAILING_TEST = "def test_two():\n    assert False, 'planted'\n"
@@ -132,6 +159,52 @@ def clean_env():
     return {k: v for k, v in os.environ.items() if k not in AMBIENT}
 
 
+def gate_function():
+    """`gate()`, as a syntax tree.
+
+    Read as a tree rather than as text: the claim is about which checks the
+    gate RUNS, and a substring search cannot tell a call from a mention of
+    one in a docstring or a comment.
+    """
+    parsed = ast.parse(read(GATE))
+    found = [
+        node
+        for node in ast.walk(parsed)
+        if isinstance(node, ast.FunctionDef) and node.name == "gate"
+    ]
+    assert len(found) == 1, f"broad_gate.py has {len(found)} functions named gate"
+    return found[0]
+
+
+def arms_the_gate_runs():
+    """The check name each `checks[...] = run(...)` in `gate()` records.
+
+    The key is read as source rather than resolved, so `checks[CHAIN_NAME]`
+    comes back as the constant's NAME — which is what the partition holds too,
+    because a row names the arm by the same constant.
+    """
+    names = []
+    for node in ast.walk(gate_function()):
+        if not isinstance(node, ast.Assign):
+            continue
+        for target in node.targets:
+            if not isinstance(target, ast.Subscript):
+                continue
+            if ast.unparse(target.value) != "checks":
+                continue
+            call = node.value
+            ran = isinstance(call, ast.Call) and ast.unparse(call.func) == "run"
+            if ran:
+                names.append(ast.unparse(target.slice))
+    return names
+
+
+def reasons():
+    """`PARTITION`'s written reasons, by step; the file on the steps CI runs
+    imports it for the count of the steps with a local answer."""
+    return [(name, reason) for name, _, reason in gate.PARTITION if reason]
+
+
 # --- the module as a whole ------------------------------------------------------
 
 
@@ -163,6 +236,183 @@ class Test_module:
         text = pathlib.Path(path).read_text(encoding="utf-8")
         assert chain.newest_run(reader, text) == "abc1234"
         assert chain.newest_run(reader, text.replace("abc1234", "zz")) is None
+
+    def test_the_one_shell_site_is_run_and_it_applies_the_rewrite(self):
+        """A2, the class by construction. `broad_gate.py` has exactly one call
+        passing `shell=`, it is inside `run`, and the string it is handed is the
+        one `handed_to_shell` produced. `gate`'s `SUITE` and `compare_at_base`'s
+        `suite-at-base` both reach a shell through it, so a third shell site
+        written anywhere else turns this red rather than going unrewritten."""
+        with open(GATE, encoding="utf-8") as handle:
+            tree = ast.parse(handle.read())
+        sites, callers = [], []
+        for fn in ast.walk(tree):
+            if not isinstance(fn, ast.FunctionDef):
+                continue
+            for node in ast.walk(fn):
+                if not isinstance(node, ast.Call) or not any(
+                    kw.arg == "shell" for kw in node.keywords
+                ):
+                    continue
+                func = node.func
+                if (
+                    isinstance(func, ast.Attribute)
+                    and isinstance(func.value, ast.Name)
+                    and func.value.id == "subprocess"
+                ):
+                    sites.append((fn.name, node))
+                elif isinstance(func, ast.Name) and func.id == "run":
+                    callers.append(fn.name)
+        names = [name for name, _ in sites]
+        assert names == ["run"], f"`subprocess` calls passing `shell=` are in: {names}"
+        # The two callers the spec enumerates, and a third is a change to read.
+        assert sorted(callers) == ["compare_at_base", "gate"], callers
+        run_fn = next(
+            fn
+            for fn in tree.body
+            if isinstance(fn, ast.FunctionDef) and fn.name == "run"
+        )
+        call = sites[0][1]
+        assert call.args and isinstance(call.args[0], ast.Name), ast.dump(call)
+        handed = call.args[0].id
+        assigned_from_rewrite = [
+            node
+            for node in ast.walk(run_fn)
+            if isinstance(node, ast.Assign)
+            and any(isinstance(t, ast.Name) and t.id == handed for t in node.targets)
+            and any(
+                isinstance(inner, ast.Call)
+                and isinstance(inner.func, ast.Name)
+                and inner.func.id == "handed_to_shell"
+                for inner in ast.walk(node.value)
+            )
+        ]
+        assert assigned_from_rewrite, (
+            f"`run` hands the shell `{handed}`, and nothing in `run` assigns it "
+            "from `handed_to_shell`"
+        )
+
+    def test_the_partition_names_each_step_once(self):
+        """Two rows for one step is two answers to one question, and the second
+        is unreachable — whichever way a reader resolves it, the count of what the
+        seal did not answer is wrong by one."""
+        names = [name for name, _, _ in gate.PARTITION]
+        twice = sorted({name for name in names if names.count(name) > 1})
+        assert not twice, f"these steps carry more than one row: {twice}"
+
+    def test_a_row_is_an_arm_or_a_reason_and_never_both_or_neither(self):
+        """The partition's shape, which A1 and A2 assume and neither asserts. A
+        row with both says a step is mirrored AND excluded; a row with neither is
+        the silence written down."""
+        broken = [
+            (name, arm, reason)
+            for name, arm, reason in gate.PARTITION
+            if bool(arm) == bool(reason)
+        ]
+        assert not broken, (
+            f"these rows are neither mirrored nor excluded, or claim to be both: {broken}"
+        )
+
+    def test_every_arm_the_partition_names_is_an_arm_the_gate_runs(self):
+        """A3. Red when an arm is deleted from `gate()` while its partition row
+        stands — the row would then say a step is mirrored by nothing.
+
+        The partition holds the arm's VALUE (`"chain"`) and `gate()` subscripts
+        `checks` by the constant's NAME (`CHAIN_NAME`), so the two are joined
+        through the module: a constant renamed in one place and not the other is
+        red here rather than quiet."""
+        ran = arms_the_gate_runs()
+        assert ran, "gate() records no check at all"
+        values = {}
+        for name in ran:
+            assert hasattr(gate, name), (
+                f"gate() records `checks[{name}]` and broad_gate.py has no such constant"
+            )
+            values[getattr(gate, name)] = name
+        missing = sorted(
+            {arm for _, arm, _ in gate.PARTITION if arm and arm not in values}
+        )
+        assert not missing, (
+            f"`PARTITION` says these arms mirror a step of the workflow and "
+            f"`gate()` runs no check by those names: {missing}. The arms it does "
+            f"run are {sorted(values)}"
+        )
+
+    def test_the_gate_runs_no_arm_the_partition_does_not_account_for(self):
+        """A3's other side. An arm the gate runs and the partition never names is
+        an arm nobody can say which step it stands for — the `suite` arm aside,
+        which answers no step of this job at all: it is the repository's own
+        command from the `Broad gate` row of `seal/config.md`."""
+        answering_no_release_step = {gate.SUITE}
+        named = {arm for _, arm, _ in gate.PARTITION if arm}
+        loose = sorted(
+            getattr(gate, name)
+            for name in arms_the_gate_runs()
+            if getattr(gate, name) not in named | answering_no_release_step
+        )
+        assert not loose, (
+            f"`gate()` runs these arms and no partition row names them: {loose}. "
+            "An arm belongs to a step of the `release` job, or it answers "
+            "something outside that job — the repository's own command, or a job "
+            "of another workflow — and belongs in the set above"
+        )
+
+    def test_every_exclusion_carries_prose_rather_than_a_category(self):
+        """A4. Red against a reason cell reduced to a category word.
+
+        `EXCLUDED` tells the next reader nothing, and the reason is the whole
+        value of the row — it is what a person checks when they wonder whether
+        the seal covers them. Two structural rules stand in for that judgment: a
+        reason is several words, and it is written in the prose case rather than
+        as a marker.
+
+        **What this cannot catch is a category in prose clothing.** *not
+        applicable here* passes every rule below and says as little as
+        `EXCLUDED`. Only a reader catches that one, and `plan.md` *The failure
+        scenario at six months* is where it is written down as an open hole
+        rather than a closed one.
+        """
+        thin = [
+            (name, reason)
+            for name, reason in reasons()
+            if len(reason.split()) < 3 or reason == reason.upper()
+        ]
+        assert not thin, (
+            f"these rows give a marker where a reason belongs: {thin}. A reason "
+            "is prose somebody wrote — `needs the pull request's body` is one, "
+            "`EXCLUDED` is not"
+        )
+
+    def test_every_exclusion_says_what_the_gate_cannot_reach(self):
+        """A4's second half. A reason that never names the thing out of reach is
+        a sentence rather than a reason — it reads as prose and answers nothing.
+
+        Held loosely on purpose: the vocabulary below is what the four kinds of
+        unreachable thing are called in this repository, and a fifth kind is a
+        word to add here rather than a case to delete."""
+        out_of_reach = (
+            "pull request",
+            "tracker",
+            "fetch",
+            "network",
+            "never fails",
+            "warning",
+            ".github/scripts/",
+            "inline",
+            "second reading",
+            "second implementation",
+        )
+        silent = [
+            name
+            for name, reason in reasons()
+            if not any(word in reason for word in out_of_reach)
+        ]
+        assert not silent, (
+            f"these rows give a reason that names nothing out of the gate's "
+            f"reach: {silent}. Say what the gate cannot get at — the pull "
+            "request, the tracker, a fetch, a step that only warns, or a check "
+            "this repository owns rather than the plugin"
+        )
 
 
 # --- loading a sibling ------------------------------------------------------------
@@ -634,6 +884,49 @@ class Test_not_as_written:
 
 # --- running one check ----------------------------------------------------------------
 
+CMD = r"C:\Windows\System32\cmd.exe"
+CMD_ROW = "bin/test -q && uvx ruff check . && uvx ruff format --check ."
+HANDED = r"bin\test -q && uvx ruff check . && uvx ruff format --check ."
+
+# Every directory a row in this module starts a command name in. A name is
+# rewritten only where it starts in a directory that exists where the row
+# runs (#596), so each case says where that is rather than leaning on
+# whatever pytest's working directory happens to hold.
+DIRECTORIES = ("bin", "tools", "x")
+
+
+@pytest.fixture
+def tree(tmp_path):
+    root = tmp_path / "tree"
+    for name in DIRECTORIES:
+        (root / name).mkdir(parents=True)
+    return str(root)
+
+
+def only_slashes_turned(row, got):
+    """A3. Every character but `/` → `\\` stays where it was."""
+    assert len(got) == len(row)
+    moved = [(a, b) for a, b in zip(row, got, strict=True) if a != b]
+    assert all(pair == ("/", "\\") for pair in moved), moved
+
+
+class _Ran:
+    """A stand-in for `subprocess.run` that records what it was handed."""
+
+    def __init__(self):
+        self.handed = []
+
+    def __call__(self, args, **kwargs):
+        self.handed.append((args, kwargs.get("shell")))
+        return subprocess.CompletedProcess(args, 0, "1 passed in 0.01s\n", "")
+
+
+def runs_under_cmd_exe(gate, repo):
+    """Whether this machine's shell is `cmd.exe`, read from what the gate
+    would hand it. `repo` holds `bin/`, so the probe's answer does not rest
+    on what pytest's working directory happens to hold (#596)."""
+    return gate.handed_to_shell("bin/probe", root=str(repo)) != "bin/probe"
+
 
 class Test_Check:
     def test_accepts_a_zero_exit_as_passed_and_quotes_its_lines(self):
@@ -669,6 +962,156 @@ class Test_run:
         kept = pathlib.Path(check.path).read_text(encoding="utf-8").splitlines()
         assert kept[:2] == ["$ bin/echo hi", "cmd.exe was handed: bin\\echo hi"]
         assert "broad-gate: suite — cmd.exe reads a `/`" in capsys.readouterr().err
+
+    def test_a_rewritten_row_is_kept_and_said_beside_the_row_as_written(
+        self, tree, tmp_path, monkeypatch, capsys
+    ):
+        """A3. The shell is handed `bin\\test`; the kept file's first line is the
+        row as written and its second is what `cmd.exe` was handed; and one
+        stderr line, pinned verbatim here (contract rule 14), says the same before the run.
+        `run` asks about the directory where the row runs, its own `root`."""
+        gate = gate_module()
+        ran = _Ran()
+        monkeypatch.setattr(gate.subprocess, "run", ran)
+        check = gate.run(
+            "suite",
+            CMD_ROW,
+            tree,
+            str(tmp_path),
+            shell=True,
+            windows=True,
+            comspec=CMD,
+        )
+        assert ran.handed == [(HANDED, True)], ran.handed
+        kept = (tmp_path / "suite.txt").read_text(encoding="utf-8").splitlines()
+        assert kept[:3] == [
+            f"$ {CMD_ROW}",
+            f"cmd.exe was handed: {HANDED}",
+            "exit 0",
+        ], kept
+        assert capsys.readouterr().err == (
+            "broad-gate: suite — cmd.exe reads a `/` in a command name as the start "
+            "of a switch, so a command name that starts in a directory has its `/` "
+            f"handed to it as `\\`: {HANDED}\n"
+        )
+        assert check.code == 0
+
+    def test_run_judges_the_directory_where_the_row_runs(self, tmp_path, monkeypatch):
+        """A5. The same row, run from a root with no `bin/`, is handed over as
+        written: `run` passes its own `root` on, and the directory is asked
+        there and not in the caller's working directory."""
+        gate = gate_module()
+        ran = _Ran()
+        monkeypatch.setattr(gate.subprocess, "run", ran)
+        bare = tmp_path / "bare"
+        bare.mkdir()
+        gate.run(
+            "suite",
+            CMD_ROW,
+            str(bare),
+            str(tmp_path),
+            shell=True,
+            windows=True,
+            comspec=CMD,
+        )
+        assert ran.handed == [(CMD_ROW, True)], ran.handed
+
+    @pytest.mark.parametrize(
+        "windows, comspec, row",
+        [
+            (False, None, CMD_ROW),
+            (True, r"C:\Program Files\Git\bin\bash.exe", CMD_ROW),
+            # Nothing to rewrite, so nothing changed, so nothing extra is said.
+            (True, CMD, "uvx ruff check ."),
+        ],
+    )
+    def test_a_row_handed_as_written_adds_nothing_to_the_record(
+        self, tmp_path, monkeypatch, capsys, windows, comspec, row
+    ):
+        """A3, the other half. Where nothing was rewritten, the kept file is the
+        shape it always was and nothing is printed."""
+        gate = gate_module()
+        ran = _Ran()
+        monkeypatch.setattr(gate.subprocess, "run", ran)
+        gate.run(
+            "suite",
+            row,
+            str(tmp_path),
+            str(tmp_path),
+            shell=True,
+            windows=windows,
+            comspec=comspec,
+        )
+        assert ran.handed == [(row, True)], ran.handed
+        kept = (tmp_path / "suite.txt").read_text(encoding="utf-8").splitlines()
+        assert kept[:2] == [f"$ {row}", "exit 0"], kept
+        assert capsys.readouterr().err == ""
+
+    def test_an_argv_check_is_never_rewritten(self, tmp_path, monkeypatch, capsys):
+        """A3. The plugin's own checks are argv lists with `shell=False`, which
+        reach `CreateProcess` directly and take no shell's reading; the rewrite is
+        for shell strings only, whatever the platform."""
+        gate = gate_module()
+        ran = _Ran()
+        monkeypatch.setattr(gate.subprocess, "run", ran)
+        argv = [sys.executable, "tools/check.py"]
+        gate.run(
+            "ledger", argv, str(tmp_path), str(tmp_path), windows=True, comspec=CMD
+        )
+        assert ran.handed == [(argv, False)], ran.handed
+        assert capsys.readouterr().err == ""
+
+    def test_the_row_runs_on_the_real_platform(self, tmp_path):
+        """A4. A fixture with the pair `bin/probe` (sh) and `bin/probe.cmd`, and
+        the row `bin/probe`, run through the real shell of whatever machine this
+        is. On macOS and ubuntu `sh` runs the POSIX half; only on
+        `windows-latest` does `cmd.exe` run `bin\\probe` and resolve it to
+        `bin\\probe.cmd`. Its red on Windows without the fix is #448's own
+        measurement, not a run of this case."""
+        gate = gate_module()
+        repo = tmp_path / "repo"
+        (repo / "bin").mkdir(parents=True)
+        probe = repo / "bin" / "probe"
+        probe.write_text("#!/bin/sh\necho probe ran under sh\n", encoding="utf-8")
+        probe.chmod(probe.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+        (repo / "bin" / "probe.cmd").write_text(
+            "@echo probe ran under cmd\r\n", encoding="utf-8"
+        )
+        keep = tmp_path / "keep"
+        keep.mkdir()
+        check = gate.run("suite", "bin/probe", str(repo), str(keep), shell=True)
+        kept = (keep / "suite.txt").read_text(encoding="utf-8")
+        assert check.code == 0, kept
+        under = "cmd" if runs_under_cmd_exe(gate, repo) else "sh"
+        assert f"probe ran under {under}" in check.text, kept
+        assert f"probe ran under {under}" in kept, kept
+
+    def test_a_switch_against_a_program_runs_on_the_real_platform(self, tmp_path):
+        """A6, #596. `where/q cmd` — a program that ships with Windows and is not
+        one of `CMD_BUILTINS`, with a switch written straight against it —
+        run through `run(..., shell=True)` from a root with no `where`
+        directory, exits 0: `/q` prints nothing and `where` finds `cmd`. Only
+        CI's `windows-latest` leg executes it; elsewhere the shell is not
+        `cmd.exe` and the row means nothing there (`questions.md` M1)."""
+        gate = gate_module()
+        repo = tmp_path / "repo"
+        (repo / "bin").mkdir(parents=True)
+        if not runs_under_cmd_exe(gate, repo):
+            # On Windows this case exists to run, and a skip there would let the
+            # leg's green say nothing about M1: so it fails instead, and a pass on
+            # `windows-latest` means it ran (round 2, M1).
+            assert os.name != "nt", (
+                "this is Windows and the shell the gate hands the row to is not "
+                "cmd.exe, so the case cannot answer M1"
+            )
+            pytest.skip("the shell here is not cmd.exe")
+        keep = tmp_path / "keep"
+        keep.mkdir()
+        row = "where/q cmd"
+        assert gate.handed_to_shell(row, root=str(repo)) == row
+        check = gate.run("suite", row, str(repo), str(keep), shell=True)
+        kept = (keep / "suite.txt").read_text(encoding="utf-8")
+        assert check.code == 0, kept
 
 
 class Test_as_cmd_expands:
@@ -713,6 +1156,208 @@ class Test_handed_to_shell:
         )
         assert gate.handed_to_shell("bin/test", False, None, str(ROOT)) == "bin/test"
 
+    @pytest.mark.parametrize(
+        "windows, comspec, expected",
+        [
+            (True, CMD, HANDED),
+            (True, "CMD.EXE", HANDED),
+            (True, f'"{CMD}"', HANDED),
+            # Unset and empty are what Python itself answers with `cmd.exe`.
+            (True, "", HANDED),
+            (True, r"C:\Program Files\Git\bin\bash.exe", CMD_ROW),
+            (
+                True,
+                r"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe",
+                CMD_ROW,
+            ),
+            (False, CMD, CMD_ROW),
+            (False, None, CMD_ROW),
+        ],
+    )
+    def test_only_cmd_exe_on_windows_is_handed_the_backslashed_row(
+        self, tree, windows, comspec, expected
+    ):
+        """A1. Windows and a `COMSPEC` naming `cmd.exe` get `bin\\test`; POSIX,
+        and a Windows `COMSPEC` naming any other shell, get the row as written.
+        Keyed on the shell rather than `os.name`, because a POSIX shell in
+        `COMSPEC` runs `bin/test` as written."""
+        gate = gate_module()
+        got = gate.handed_to_shell(CMD_ROW, windows=windows, comspec=comspec, root=tree)
+        assert got == expected, f"windows={windows} comspec={comspec!r}: {got!r}"
+
+    def test_an_unset_comspec_on_windows_is_cmd_exe(self, tree, monkeypatch):
+        """A1, the default. `subprocess` falls back to `cmd.exe` where `COMSPEC`
+        is unset, so the rewrite must too — read from the environment when the
+        argument is not given."""
+        monkeypatch.delenv("COMSPEC", raising=False)
+        gate = gate_module()
+        assert gate.handed_to_shell(CMD_ROW, windows=True, root=tree) == HANDED
+
+    @pytest.mark.parametrize(
+        "row, expected",
+        [
+            (CMD_ROW, HANDED),
+            # A runner handed quoted paths.
+            ('bin/test "tests/x.py"', r'bin\test "tests/x.py"'),
+            ("bin/test tests/a/b.py --out=dir/x", r"bin\test tests/a/b.py --out=dir/x"),
+            ('"tools/run tests" -q "a/b"', r'"tools\run tests" -q "a/b"'),
+            ("bin/test %OUT%/x & tools/lint", r"bin\test %OUT%/x & tools\lint"),
+            ("bin/test ^& not/a/command", r"bin\test ^& not/a/command"),
+            # An escaped character opens the command name it stands in, so the
+            # word after the next blank is an argument and keeps its `/`: a
+            # one-character name that is escaped is still the name.
+            ("^a b/c", "^a b/c"),
+            ('bin/test "a & b/c" && x/y', r'bin\test "a & b/c" && x\y'),
+            ("(bin/a && bin/b) || bin/c", r"(bin\a && bin\b) || bin\c"),
+            (
+                "bin/test 2>&1 | tools/tee out/log.txt",
+                r"bin\test 2>&1 | tools\tee out/log.txt",
+            ),
+            ("bin/test>out/log.txt", r"bin\test>out/log.txt"),
+            ("bin/test<in/x.txt", r"bin\test<in/x.txt"),
+            ("bin/test\tx/y", "bin\\test\tx/y"),
+            ("@bin/test -q", r"@bin\test -q"),
+            ("  bin/test", r"  bin\test"),
+            ("echo a/b", "echo a/b"),
+            ("echo (a/b)", "echo (a/b)"),
+            ("echo(a/b)", "echo(a/b)"),
+            ("cmd /c bin/x", "cmd /c bin/x"),
+            # A `/` written against one of `cmd.exe`'s own commands is that
+            # command's switch, which runs as written today.
+            ("rd/s/q build && bin/test", r"rd/s/q build && bin\test"),
+            ("@dir/b tests & bin/test", r"@dir/b tests & bin\test"),
+            ("CD/D x && bin/test", r"CD/D x && bin\test"),
+            ("echo/ && bin/test", r"echo/ && bin\test"),
+            # The same after a separator: the built-in is the name that began there.
+            ("bin/test && rd/s/q out", r"bin\test && rd/s/q out"),
+            # A block that opens after `if`, `else` or `for … in` is not in
+            # command position, which the template names as left as written.
+            ("if exist x (bin/a) else (bin/b)", "if exist x (bin/a) else (bin/b)"),
+            ("for %i in (x/y) do tools/x %i", "for %i in (x/y) do tools/x %i"),
+            # Positions `templates/config.md` names as not rewritten, pinned so
+            # the gap stays the one it states.
+            ("call bin/test", "call bin/test"),
+            (">out.txt bin/test", ">out.txt bin/test"),
+            # The redirection's target is not a command name, blank or not.
+            ("> out/log.txt bin/test", "> out/log.txt bin/test"),
+            # #596, the other side of the rows above: a name whose part before
+            # its first `/` names no directory where the row runs.
+            # A program with a switch written against it: no directory carries
+            # the program's name, so the name and its switch reach `cmd.exe`.
+            ("nothere/x -q", "nothere/x -q"),
+            ('"nothere/run tests" -q', '"nothere/run tests" -q'),
+            ("^nothere/x", "^nothere/x"),
+            ("@nothere/x", "@nothere/x"),
+            # Every leading `@` is dropped, as the built-in check drops them
+            # (round 1, ⬜ 9).
+            ("@@bin/test", r"@@bin\test"),
+            # The same shapes, starting in a directory that exists.
+            ("^bin/x", r"^bin\x"),
+            ('@"tools/run tests"', r'@"tools\run tests"'),
+            ('"bin"/x', r'"bin"\x'),
+            # `.` and `..` are directories wherever the row runs.
+            ("./bin/test", r".\bin\test"),
+            ("../x/y", r"..\x\y"),
+            # An empty part is the drive's root, which always exists.
+            ("/abs/x -q", r"\abs\x -q"),
+            # One decision per name: every later `/` goes the way the first did.
+            ("bin/nothere/x", r"bin\nothere\x"),
+            ("nothere/bin/x", "nothere/bin/x"),
+            # Each name after a separator is judged on its own.
+            ("bin/test && nothere/x a/b", r"bin\test && nothere/x a/b"),
+            ("nothere/x & bin/test", r"nothere/x & bin\test"),
+            ("(nothere/a && bin/b)", r"(nothere/a && bin\b)"),
+            # A quoted or escaped name after a separator starts where it stands,
+            # not where the name before it did.
+            ('nothere/x && "bin/run tests"', r'nothere/x && "bin\run tests"'),
+            ("bin/test && ^nothere/x", r"bin\test && ^nothere/x"),
+        ],
+    )
+    def test_only_the_command_names_have_their_slash_turned(self, tree, row, expected):
+        """A2. Arguments, quoted arguments, `%VAR%`, `^&`, `2>&1`, blocks and
+        every operator reach `cmd.exe` as written; only `/` inside a command
+        name changes. And the rewrite moves no character: the only difference
+        anywhere is `/` → `\\`, position for position. Driven from a root in
+        which the rows before #596's start in a directory (`DIRECTORIES`), so
+        each is handed over exactly as it was before #596. #596's rows: a
+        command name whose part before its first `/` names no directory where
+        the row runs is handed over as written, and one that does is
+        rewritten, whatever opened it."""
+        gate = gate_module()
+        got = gate.handed_to_shell(row, windows=True, comspec=CMD, root=tree)
+        assert got == expected, f"{row!r} was handed as {got!r}"
+        only_slashes_turned(row, got)
+
+    def test_a_name_rooted_in_a_variable_is_judged_where_the_variable_points(
+        self, tree, monkeypatch
+    ):
+        """#596, round 1's 🟡 3 and round 2's 🟡 1. `cmd.exe` expands `%VAR%`
+        before it reads a command name, so the part is expanded before it is
+        asked whether it is a directory, as far as `as_cmd_expands` models it: a
+        name from the environment takes its value, and `%CD%` and `%__CD__%`,
+        which `cmd.exe` computes where the environment defines neither, name the
+        directory the row runs in. A defined `CD` wins, as it does in `cmd.exe`
+        (#616). 0.15.3 rewrote `%CD%/bin/test`, and a literal `%CD%` directory
+        never exists, so without the expansion that row stopped running. `$HOME`
+        means nothing to `cmd.exe` and is not expanded."""
+        gate = gate_module()
+        monkeypatch.setenv("SPECSEAL_PROBE_TREE", tree)
+        monkeypatch.delenv("SPECSEAL_PROBE_NOWHERE", raising=False)
+        monkeypatch.delenv("CD", raising=False)
+        monkeypatch.delenv("__CD__", raising=False)
+        # A `$HOME` that names the tree, so only the expansion's rule can leave
+        # it as written.
+        monkeypatch.setenv("HOME", tree)
+        for row, expected in (
+            ("%SPECSEAL_PROBE_TREE%/bin/test -q", r"%SPECSEAL_PROBE_TREE%\bin\test -q"),
+            ("%SPECSEAL_PROBE_NOWHERE%/bin/x", "%SPECSEAL_PROBE_NOWHERE%/bin/x"),
+            ("xcopy/e/i a b", "xcopy/e/i a b"),
+            # `CD` is computed by cmd.exe where the environment defines none, and
+            # the case deletes it above (round 2, 🟡 1).
+            ("%CD%/bin/test -q", r"%CD%\bin\test -q"),
+            ("%cd%/bin/test -q", r"%cd%\bin\test -q"),
+            ("%__CD__%bin/test", r"%__CD__%bin\test"),
+            # A substring is not modelled, as `templates/config.md` says (#616):
+            # the name it starts is handed as written, although the variable it
+            # cuts from names the tree.
+            ("%SPECSEAL_PROBE_TREE:~0,500%/bin/test -q",) * 2,
+            ("$HOME/x", "$HOME/x"),
+        ):
+            got = gate.handed_to_shell(row, windows=True, comspec=CMD, root=tree)
+            assert got == expected, got
+            only_slashes_turned(row, got)
+        # cmd.exe lets a defined `CD` override the one it computes (`set /?`),
+        # so the environment is asked first (#616, round 3 of 1790297086, note 1).
+        monkeypatch.setenv("CD", os.path.join(tree, "nowhere"))
+        got = gate.handed_to_shell(
+            "%CD%/bin/test -q", windows=True, comspec=CMD, root=tree
+        )
+        assert got == "%CD%/bin/test -q", got
+
+    @pytest.mark.parametrize(
+        "row, handed",
+        [
+            ("xcopy/e/i a b && bin/test", r"xcopy/e/i a b && bin\test"),
+            ("findstr/s x *.py", "findstr/s x *.py"),
+            ("timeout/t 5 && bin/test", r"timeout/t 5 && bin\test"),
+            ("ipconfig/all", "ipconfig/all"),
+            # The blank the template also names, which was never rewritten.
+            ("xcopy /e /i a b && bin/test", r"xcopy /e /i a b && bin\test"),
+        ],
+    )
+    def test_a_switch_against_another_program_reaches_cmd_exe_as_written(
+        self, tree, row, handed
+    ):
+        """A1, #596. A `/` written straight after a program that is not one of
+        `CMD_BUILTINS` is that program's switch: no directory carries the
+        program's name where the row runs, so `xcopy/e/i` reaches `cmd.exe` as
+        written, and the `bin/test` after it is still rewritten. Before #596
+        this case pinned the opposite, `xcopy\\e\\i`, as a documented bound."""
+        gate = gate_module()
+        got = gate.handed_to_shell(row, windows=True, comspec=CMD, root=tree)
+        assert got == handed, got
+        only_slashes_turned(row, got)
+
 
 class Test_command_names_backslashed:
     @staticmethod
@@ -732,6 +1377,48 @@ class Test_command_names_backslashed:
         assert self.turned("xcopy/e a") == "xcopy/e a"
         assert self.turned("echo a^&bin/test", "bin") == "echo a^&bin/test"
         assert self.turned("echo >out bin/test", "bin") == "echo >out bin/test"
+
+    @pytest.mark.parametrize(
+        "row, asked",
+        [
+            ("bin/test -q", ["bin"]),
+            ('"tools/run tests" -q', ["tools"]),
+            ("^bin/x", ["bin"]),
+            ("@bin/test", ["bin"]),
+            ('@"a b"/c', ["a b"]),
+            ("./bin/x", ["."]),
+            # One question per name, at its first `/`.
+            ("a/b/c && d/e", ["a", "d"]),
+            # An empty part is answered without asking.
+            ("/abs/x", []),
+            # A built-in is asked about first, and is never a directory.
+            ("rd/s/q x && y/z", ["y"]),
+            # Only command names are asked about.
+            ("echo a/b", []),
+        ],
+    )
+    @pytest.mark.parametrize("answer", [True, False])
+    def test_the_scan_asks_about_a_name_and_reads_nothing_itself(
+        self, row, asked, answer
+    ):
+        """A4. The scan takes the directory question as an argument and does no
+        I/O: a predicate here answers from no filesystem at all, and records
+        what it was asked — the part before a name's first `/`, with `"`, `^`
+        and a leading `@` removed. Both answers are driven, and the answer is
+        what decides."""
+        gate = gate_module()
+        heard = []
+
+        def is_directory(part):
+            heard.append(part)
+            return answer
+
+        got = gate.command_names_backslashed(row, is_directory)
+        assert heard == asked, heard
+        only_slashes_turned(row, got)
+        if asked:
+            # Every asked name's `/` follows the answer.
+            assert ("\\" in got) is answer, got
 
 
 # --- the base comparison ----------------------------------------------------------------
@@ -906,6 +1593,63 @@ class Test_base_word:
 
 # --- the workflow -----------------------------------------------------------------
 
+WORKFLOW_WITH_TWO_JOBS = """\
+name: example
+
+on:
+  pull_request:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # - name: a step somebody commented out
+      - name: the first step
+        run: true
+      - name: the second step
+        run: true
+  ledger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: a step of another job
+        run: true
+"""
+
+UNCLASSIFIED_WORKFLOW = """\
+name: hygiene
+
+on:
+  pull_request:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: a declared review chain has the round record it claimed
+        run: true
+      - name: deploy to staging
+        run: true
+"""
+
+MIXED_WORKFLOW = """\
+name: hygiene
+
+on:
+  pull_request:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: a declared review chain has the round record it claimed
+        run: true
+      - name: both READMEs move together
+        run: true
+      - name: deploy to staging
+        run: true
+"""
+
 
 class Test_unquote:
     def test_accepts_a_quoted_scalar_without_its_quotes(self):
@@ -930,6 +1674,45 @@ class Test_job_steps:
         assert gate.job_steps("name: x\n", "release") == []
         assert gate.job_steps(WORKFLOW, "lint") == ["not a release step"]
 
+    def test_the_reader_takes_the_steps_of_the_job_it_was_asked_for(self):
+        """A1's reader. In file order, this job only, and an unnamed step — the
+        checkout every job opens with — is not one. Nor is a step that exists
+        only in a comment, the same reading
+        `tests/test_ci_gives_the_checks_what_they_need.py#strip_comments` takes
+        of the same file, for the same reason."""
+        assert gate.job_steps(WORKFLOW_WITH_TWO_JOBS, "release") == [
+            "the first step",
+            "the second step",
+        ]
+        assert gate.job_steps(WORKFLOW_WITH_TWO_JOBS, "ledger") == [
+            "a step of another job"
+        ]
+
+    def test_a_job_the_workflow_does_not_have_reads_as_no_steps(self):
+        assert gate.job_steps(WORKFLOW_WITH_TWO_JOBS, "nosuchjob") == []
+
+    def test_a_file_that_declares_no_jobs_reads_as_no_steps(self):
+        """Not an exception. The gate calls this on whatever file sits at the
+        workflow's path in the repository it was pointed at, and a file it cannot
+        read as a workflow must leave the run exactly as it was (A7)."""
+        assert gate.job_steps("name: not a workflow at all\n", "release") == []
+        assert gate.job_steps("", "release") == []
+
+    def test_a_quoted_step_name_comes_back_unquoted(self):
+        """YAML lets a name be quoted, and the partition holds the name a reader
+        sees rather than the bytes the file spells it in."""
+        text = 'jobs:\n  release:\n    steps:\n      - name: "the quoted step"\n'
+        assert gate.job_steps(text, "release") == ["the quoted step"]
+        text = "jobs:\n  release:\n    steps:\n      - name: 'the other quoting'\n"
+        assert gate.job_steps(text, "release") == ["the other quoting"]
+
+    def test_a_step_name_carrying_a_colon_survives_the_reader(self):
+        """`- name: a: b` is one name, not a mapping. A reader that split on the
+        first colon would take `a` and the partition would name a step nobody
+        runs — which is exactly A2's failure, arriving through the reader."""
+        text = "jobs:\n  release:\n    steps:\n      - name: the step: and its tail\n"
+        assert gate.job_steps(text, "release") == ["the step: and its tail"]
+
 
 class Test_base_is_main:
     @pytest.mark.parametrize("given", ["main", "origin/main"])
@@ -939,6 +1722,22 @@ class Test_base_is_main:
     @pytest.mark.parametrize("given", [None, "release/v1", "upstream/main"])
     def test_refuses_any_other_base(self, given):
         assert not gate.base_is_main(given)
+
+    @pytest.mark.parametrize(
+        "given, main",
+        [
+            ("main", True),
+            ("origin/main", True),
+            ("origin/origin/main", False),
+            ("refs/heads/main", False),
+            ("mains", False),
+            ("release/x", False),
+            (None, False),
+        ],
+    )
+    def test_one_reading_says_whether_the_base_is_main(self, given, main):
+        """S5's `base_is_main`: the one reading the count takes, keyed on the spelling with one leading `origin/` removed."""
+        assert gate.base_is_main(given) is main
 
 
 class Test_steps_for:
@@ -1013,6 +1812,72 @@ class Test_coverage_line:
         assert "a step nobody classified" not in excluded
         assert unknown.endswith(": a step nobody classified.")
         assert gate.coverage_line("name: x\n", "main") is None
+
+    def test_a_step_no_row_classifies_is_not_said_to_carry_a_reason(self):
+        """A6's other repository, and round 1's finding 3. `PARTITION` describes
+        THIS repository's `release` job, and `broad_gate.py` ships to every
+        installation — so a repository with a `release` job of its own has steps
+        no row has ever heard of.
+
+        Counting them as unanswered is honest; telling their reader the reason is
+        in `PARTITION` is not, because `PARTITION` holds a row per step of a
+        workflow that repository does not run. A reader who follows the pointer
+        finds somebody else's list and no answer, which is the reconstruction
+        from two files this work item exists to remove, one level further out."""
+        said = gate.coverage_line(UNCLASSIFIED_WORKFLOW, "base")
+        assert "deploy to staging" in said, said
+        with_reasons = said.split("no arm mirrors it in", 1)
+        assert len(with_reasons) == 1 or "deploy to staging" not in with_reasons[1], (
+            f"a step in no row of PARTITION is named among the ones PARTITION "
+            f"gives a reason for:\n{said}"
+        )
+        assert "no row of `broad_gate.py#PARTITION` at all" in said, said
+
+    def test_the_two_clauses_render_together_and_hold_the_right_names(self):
+        """Round 2's coverage note. The case above and
+        `tests/test_the_gate_names_every_step_ci_runs.py`'s
+        `test_a_step_a_row_excludes_is_still_pointed_at_its_reason` each
+        exercise one clause — `UNCLASSIFIED_WORKFLOW` leaves `excluded` empty
+        and this repository's own workflow leaves `unknown` empty — so the
+        JOINED sentence, which is
+        the one a mixed repository's reader actually has to parse, was rendered
+        by nothing.
+
+        The two comprehensions are disjoint by construction, which is why the
+        reviewer called this a coverage note rather than a defect. It is still
+        the sentence that goes wrong if either clause ever learns to claim the
+        other's steps."""
+        said = gate.coverage_line(MIXED_WORKFLOW, "base")
+        assert "runs 3 steps for this base and this run answers 1" in said, said
+
+        reasoned, _, unknown = said.partition(
+            "In no row of `broad_gate.py#PARTITION` at all"
+        )
+        assert unknown, f"the second clause did not render at all:\n{said}"
+        assert "no arm mirrors it in `broad_gate.py#PARTITION`" in reasoned, said
+
+        assert "both READMEs move together" in reasoned, said
+        assert "both READMEs move together" not in unknown, (
+            f"a step `PARTITION` excludes with a reason is named among the ones "
+            f"it has never heard of:\n{said}"
+        )
+        assert "deploy to staging" in unknown, said
+        assert "deploy to staging" not in reasoned, (
+            f"a step in no row of `PARTITION` is named among the ones it gives a "
+            f"reason for:\n{said}"
+        )
+        assert "a declared review chain has the round record it claimed" not in said, (
+            f"a step the gate DOES mirror is named as unanswered:\n{said}"
+        )
+
+    def test_the_count_cannot_be_asked_without_a_base(self):
+        """Round 1's 🟡 3: a caller that drops the base gets a `TypeError` rather
+        than the feature-base answer in silence, so the merge that rewrote the
+        gate's coverage call could not lose its argument unnoticed."""
+        text = read(HYGIENE)
+        for unit in (gate.unanswered, gate.coverage_line):
+            with pytest.raises(TypeError):
+                unit(text)
 
 
 # --- what the report reads --------------------------------------------------------
@@ -1194,7 +2059,65 @@ class Test_panel:
         assert long_ref.startswith("origin/") and len(based) == width
 
 
+# Pinned verbatim, because a person reads it on the failure form and decides
+# from it whether to open the kept file (contract rule 14). It names every
+# cause of a missing record, never one as the only one (#825, #869).
+NO_RECORD_HERE = (
+    "no pytest the row ran here left a record of the gate's recorder (the row "
+    "started no pytest, because a part before its runner failed or it has none; "
+    "none it started loaded the recorder; or the one that did could not write "
+    "its record and warned 'specseal_pytest_record: no record written' in "
+    "suite.txt), so this exit code is not a count of failing tests"
+)
+
+
+def a_counted_record(sessions=1, **counts):
+    """A `RunRecord` of SESSIONS sessions whose counts are COUNTS."""
+    record = gate.RunRecord()
+    record.sessions, record.counts = sessions, dict(counts)
+    return record
+
+
 class Test_failure_lines:
+    @pytest.mark.parametrize(
+        "name, text, record, said",
+        [
+            # #448's case: the shell never reached the suite. The wording is
+            # the machine's own language, which is why the line does not read it.
+            (
+                "suite",
+                "'bin' is not recognized as an internal or external command,\n",
+                None,
+                True,
+            ),
+            ("suite", "", a_counted_record(sessions=0), True),
+            # A printed summary is no record (#869): the form says no record.
+            ("suite", "F\n1 failed in 0.01s\n", None, True),
+            # A record's counts are what the form shows instead.
+            ("suite", "", a_counted_record(failed=1), False),
+            ("suite", "", a_counted_record(error=1), False),
+            # Any other check's output was never a pytest run.
+            ("ledger", "BROKEN a#b@c\n", None, False),
+        ],
+    )
+    def test_a_failing_suite_with_no_record_says_it_is_not_a_count(
+        self, name, text, record, said
+    ):
+        """A5. The line is keyed on what is missing, a record of the row's own
+        pytest, and not on an exit code: `cmd.exe` exits 1 for a command it
+        cannot find, which is pytest's own 1; nor on a summary the row printed,
+        which anything the row runs can print (#869)."""
+        gate = gate_module()
+        lines = gate.failure_lines(
+            gate.Check(name, 1, text, "/x/out.txt"), None, record
+        )
+        assert (NO_RECORD_HERE in lines) is said, lines
+        assert lines[0] == "exit 1", lines
+        assert lines[-1] == "full output: /x/out.txt", lines
+        if name == "suite" and not said:
+            assert gate.suite_counts(record) in lines, lines
+        assert not hasattr(gate, "NO_SUMMARY")
+
     def test_accepts_a_failing_suite_compared_at_the_base_with_its_counts(self):
         check = gate.Check(gate.SUITE, 1, "first\nsecond\n", "/k/suite.txt")
         record = a_record(sessions=1, counts={"failed": 1}, unended=2)
@@ -1463,6 +2386,121 @@ class Test_gate:
             gate.gate(namespace(tmp_path, tmp_path / "out"))
 
 
+CONFIG = (
+    "# Repository config\n\n| Item | Value |\n|---|---|\n| Mode | shared |\n"
+    f"| Broad gate | {sys.executable} -c pass |\n"
+)
+
+
+def sealable_repo(tmp_path):
+    """A repository on `base` with a `feature` branch one commit ahead.
+
+    Driven from Python, per contract rule 8: a probe that commits reaches
+    the commit gate exactly as real work does, and the prompt lands on nobody
+    while a round is running.
+    """
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    git(repo, "init", "-q", "-b", "base")
+    write(repo, "src/service.py", "def handler(x):\n    return x + 1\n")
+    write(repo, "seal/config.md", CONFIG)
+    write(repo, f"{ITEM}/overview.md", OVERVIEW)
+    commit(repo, "base")
+    git(repo, "switch", "-qc", "feature")
+    write(repo, "src/service.py", "def handler(x):\n    return x + 2\n")
+    commit(repo, "feature changes the handler")
+    return repo
+
+
+def run_gate(repo, keep, base="base"):
+    return subprocess.run(
+        [
+            sys.executable,
+            GATE,
+            "--base",
+            base,
+            "--root",
+            str(repo),
+            "--shape",
+            "--keep-output",
+            str(keep),
+        ],
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=300,
+        env={
+            key: value
+            for key, value in os.environ.items()
+            if key not in ("GITHUB_EVENT_PATH", "GITHUB_HEAD_REF")
+        },
+    )
+
+
+FIXTURE_WORKFLOW = """\
+name: hygiene
+
+on:
+  pull_request:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: a declared review chain has the round record it claimed
+        run: true
+      - name: the milestone this release claims is the work it carries
+        run: |
+          if [ "${{ github.base_ref }}" != "main" ]; then
+            echo "not a release"; exit 0
+          fi
+      - name: both READMEs move together
+        run: true
+"""
+
+
+def panel_rows(repo):
+    """The stamp's rows for a run over `repo`'s workflow, computed rather
+    than scraped off the drawing — the rendered line is asserted separately,
+    and a value's WIDTH cannot be measured once the frame has cut it."""
+    checks = {
+        name: gate.Check(name, 0, "", "") for name in (gate.SUITE, gate.CHAIN_NAME)
+    }
+    base = gate.Base("base", "cccccccc", "base", "cccccccc")
+    return gate.panel(
+        "ccccccc", base, checks, None, read(repo / ".github/workflows/hygiene.yml")
+    )
+
+
+def with_workflow(repo):
+    """The fixture, given a hygiene workflow whose `release` job runs three
+    real steps: one this gate mirrors and two it does not."""
+    write(repo, ".github/workflows/hygiene.yml", FIXTURE_WORKFLOW)
+    commit(repo, "the repository gains a hygiene workflow")
+    return repo
+
+
+# The panel of a run with no workflow, as it has stood release to release.
+# `gate` joined it in 0.15.1 (#475), and since #666 it prints only where the
+# copy that ran is not the one invoked, so a run handed no `copy` has none.
+# #666 also moved the ref from `from` to the row under `base` (`""`), and the
+# row's exit code from `row` to the row under `suite` — which this fixture's
+# empty output, carrying no pytest counts, does not have. No row here is
+# about the workflow: a run without one is still the run it was. #717 took
+# `chain` off, because a drawn panel is green by construction and its title
+# already said its exit was 0. #832's S5a, the owner's design of 2026-10-07,
+# put it back with a `✓`, and the base's ref beside its commit on one row.
+# #944 took the `ledger` row off with the ledger, and #975 the title row, when
+# the rows became the gate's printed report and no stamp's.
+HISTORICAL_ROWS = (
+    "tree",
+    "base",
+    "suite",
+    "chain",
+)
+
+
 class Test_main:
     def test_accepts_the_trees_own_copy_with_the_same_arguments(self, repo, tmp_path):
         stub = "import sys\nprint('STUB GATE RAN', sys.argv[1:])\nsys.exit(3)\n"
@@ -1540,6 +2578,207 @@ class Test_main:
         )
         assert out.returncode == 0, out.stderr
         assert out.stdout.startswith("usage: broad-gate")
+
+    def test_the_fixture_branch_passes(self, tmp_path):
+        """The other cases' starting point: every arm passes on the fixture, so a
+        refusal below is the one thing each case changed."""
+        repo = sealable_repo(tmp_path)
+        result = run_gate(repo, tmp_path / "out")
+        assert result.returncode == 0, result.stdout + result.stderr
+        assert result.stdout.startswith("BROAD GATE PASSED   "), result.stdout
+
+    def test_a_mode_row_that_disagrees_with_the_folder_fails_the_gate(self, tmp_path):
+        """A3's behavioural half for the other arm #468 added. `seal/config.md`
+        says the root lives under the git directory and the root is committed in
+        the tree, which is the one direction of that disagreement CI can ever
+        reach — and the gate said nothing about it until this arm existed.
+
+        Red against the gate as it stood: this fixture sealed green."""
+        repo = sealable_repo(tmp_path)
+        write(
+            repo,
+            "seal/config.md",
+            CONFIG.replace("| Mode | shared |", "| Mode | local |"),
+        )
+        commit(repo, "the row now says local while the folder is committed")
+        result = run_gate(repo, tmp_path / "out")
+        assert result.returncode == 1, result.stdout + result.stderr
+        assert result.stdout.startswith("BROAD GATE FAILED   "), result.stdout
+        assert gate.MODE_NAME in result.stdout, (
+            f"the failure form does not name the `{gate.MODE_NAME}` arm:\n{result.stdout}"
+        )
+
+    def test_the_report_says_how_many_steps_the_run_did_not_answer(self, tmp_path):
+        """A6, on the printed output rather than on the data behind it.
+
+        W1's choice, recorded: **the panel carries the count and the names go to
+        the stream beside it.** The panel gives a value 41 columns since #832
+        (23 before it) — `seal_stamp.PANEL_VALUE_WIDTH` — and three
+        step names do not fit in it, let alone fourteen. A reader given only a
+        number would have to reconstruct WHICH from two files, which is the
+        reconstruction this work item exists to remove, so both are printed and
+        neither alone.
+
+        The printed half is read off the run's own stdout since #975, where the
+        panel's rows are text under the `BROAD GATE PASSED` line."""
+        repo = with_workflow(sealable_repo(tmp_path))
+        result = run_gate(repo, tmp_path / "out")
+        assert result.returncode == 0, result.stdout + result.stderr
+
+        printed = result.stdout.splitlines()
+        rendered = [line for line in printed if "more steps" in line]
+        assert len(rendered) == 1, (
+            "the report says nothing about the steps this run did not answer:\n"
+            + result.stdout
+        )
+        # Whole, not cut: a value one column too wide would read as a shorter
+        # true statement — which is the failure mode the elision beside the
+        # `from` row was added for. The substring is the assertion: a cut value
+        # would not carry its tail.
+        #
+        # #666: over the steps CI runs for THIS base. The milestone step runs only
+        # on a pull request into `main` and the base here is `base`, so it is
+        # neither answered nor unanswered — `2 of 3` became `1 of 2`.
+        #
+        # #717: the owner's wording, `CI also  <n> more steps`. The denominator
+        # left the panel for the stderr line beside the names, asserted below.
+        # #832's S5a: the value leads with a dim `·`, which `--shape` writes `.`.
+        assert re.search(r"^CI also [·.] 1 more steps$", rendered[0]), rendered[0]
+        width = load_module(STAMP, "specseal_seal_stamp").PANEL_VALUE_WIDTH
+        value = next(
+            v for _, v in [r for r in panel_rows(repo) if r] if "more steps" in v
+        )
+        assert len(value) <= width, (
+            f"the value is {len(value)} columns and the panel gives "
+            f"{width}: {value!r}. This is W1's whole reason for a "
+            "count rather than the names"
+        )
+
+        assert "both READMEs move together" in result.stderr
+        # A11 at the fixture: the step CI will not run here is not named among
+        # the unanswered, and one clause says how many were left out and why.
+        assert "the milestone this release claims is the work it carries" not in (
+            result.stderr
+        ), result.stderr
+        assert (
+            "runs 2 steps for this base and this run answers 1. 1 more runs only on "
+            "a pull request into `main`, so this count leaves it out."
+        ) in result.stderr, result.stderr
+        assert (
+            "a declared review chain has the round record it claimed"
+            not in (result.stderr.split("Not answered", 1)[-1])
+        ), "a step the gate DOES mirror is listed among the ones it did not answer"
+
+    def test_a_seal_that_answers_every_step_says_so(self, tmp_path):
+        """The other value of the same line. A run that leaves nothing unanswered
+        must not go quiet: silence there is indistinguishable from a gate that
+        stopped looking, which is the state this work item found the gate in.
+
+        #666 keys it on the base: the milestone step stays in the workflow and
+        runs only into `main`, so against `base` the one step CI runs is the
+        mirrored one, and the line says every one is answered AND that one more
+        was left out, rather than calling the milestone unanswered."""
+        repo = sealable_repo(tmp_path)
+        readmes = "      - name: both READMEs move together\n        run: true\n"
+        assert readmes in FIXTURE_WORKFLOW, "the fixture no longer has the step"
+        write(
+            repo, ".github/workflows/hygiene.yml", FIXTURE_WORKFLOW.replace(readmes, "")
+        )
+        commit(repo, "a workflow whose every step CI runs here this gate mirrors")
+        result = run_gate(repo, tmp_path / "out")
+        assert result.returncode == 0, result.stdout + result.stderr
+        assert (
+            "this run answers every one of the 1 `release` steps "
+            f"{gate.WORKFLOW} runs for this base. 1 more runs only on a pull request "
+            "into `main`, so this count leaves it out."
+        ) in result.stderr, result.stderr
+        # #717: the panel's row does not go quiet either. At 0 it still prints,
+        # and it says a count.
+        assert ("CI also", "· 0 more steps") in panel_rows(repo), panel_rows(repo)
+
+    def test_a_repository_with_no_hygiene_workflow_is_sealed_exactly_as_before(
+        self, tmp_path
+    ):
+        """A7. The partition describes THIS repository's CI and `broad_gate.py`
+        ships to every repository that installs the plugin. For one with no such
+        workflow the run must be what it was: the same panel rows, and no line
+        about steps nobody runs.
+
+        Red against a gate that prints the row unconditionally — which is what a
+        partition held as a constant and printed from would do, and why
+        `questions.md` Q1's answer (a) survives only while this case is green.
+        """
+        repo = sealable_repo(tmp_path)
+        assert not (repo / ".github").exists(), "the fixture has a workflow after all"
+        result = run_gate(repo, tmp_path / "out")
+        assert result.returncode == 0, result.stdout + result.stderr
+        # The stamp's rows are what the run read: `panel` is handed
+        # `workflow_text(root)`, and for this repository that is None, which is
+        # the input the labels below are computed over. It used to be asked of a
+        # drawing on stdout, and a piped run draws nothing since #400 — so that
+        # absence held for every repository, workflow or not.
+        assert gate.workflow_text(str(repo)) is None, (
+            "the run read a workflow in a repository that has none, so the stamp "
+            "would say something about that workflow's steps"
+        )
+        # What names the release job, and nothing a path can carry by accident:
+        # the job as `coverage_line` spells it, the workflow's path, and every
+        # step name the partition holds. A bare `release` used to be searched
+        # for once the echoed paths were cut out of the stream, and a checkout
+        # under a `release/` directory then went red for a path nobody had cut
+        # yet (#499).
+        for names_the_job in (
+            f"`{gate.RELEASE_JOB}`",
+            gate.WORKFLOW,
+            *(name for name, _, _ in gate.PARTITION),
+        ):
+            assert names_the_job not in result.stderr, (
+                f"the gate names {names_the_job!r} for a repository with no "
+                f"hygiene workflow:\n{result.stderr}"
+            )
+
+        labels = tuple(
+            row[0]
+            for row in gate.panel(
+                "ccccccc",
+                gate.Base("base", "cccccccc", "base", "cccccccc"),
+                {
+                    name: gate.Check(name, 0, "", "")
+                    for name in (gate.SUITE, gate.CHAIN_NAME)
+                },
+                None,
+            )
+            if row
+        )
+        assert labels == HISTORICAL_ROWS, (
+            f"the panel of a run with no workflow is no longer the panel it was: {labels}"
+        )
+
+    def test_a_workflow_that_is_not_utf8_leaves_the_run_as_it_was(self, tmp_path):
+        """A7's other shape, and the one that ends the run rather than changing
+        it. `UnicodeDecodeError` is a `ValueError`, not an `OSError`, and
+        `broad_gate.main` catches only `Refused` — so before this the gate ended
+        on a traceback for a repository whose workflow file happens to be
+        latin-1. A repository this partition is not about must come out of the
+        run exactly as it went in, and a traceback is the largest departure from
+        that there is. Round 1, finding 5."""
+        repo = sealable_repo(tmp_path)
+        path = repo / ".github" / "workflows" / "hygiene.yml"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(
+            "jobs:\n  release:\n    steps:\n      - name: café step\n".encode("latin-1")
+        )
+        commit(repo, "a workflow file that is not utf-8")
+        assert gate.workflow_text(str(repo)) is None
+        result = run_gate(repo, tmp_path / "out")
+        assert result.returncode == 0, result.stdout + result.stderr
+        assert result.stdout.startswith("BROAD GATE PASSED   "), result.stdout
+        assert "Traceback" not in result.stderr, result.stderr
+        # No `workflow` row on the stamp is `workflow_text(root)` being None,
+        # asserted above: it is the one input `panel` takes the row from, and the
+        # case before this one pins the rows of a run given None. It used to be
+        # asked of a drawing on stdout as well, and a piped run draws nothing
+        # since #400, so that absence held whatever the run read.
 
 
 test_census = census_case(TARGET)
