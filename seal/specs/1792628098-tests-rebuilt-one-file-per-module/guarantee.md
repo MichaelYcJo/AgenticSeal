@@ -1,0 +1,56 @@
+# 1792628098-tests-rebuilt-one-file-per-module — guarantee
+
+| Field | Value |
+|---|---|
+| Target SHA | ca66eca5 against 6046f062 |
+| Broad gate | 7891de9e against 6046f062 |
+
+## Claims re-run
+
+Every command ran in a `git clone --shared` of the branch worktree at ca66eca5 in the scratch area, with the worktree's virtualenv, and `HOME` and `SPECSEAL_ANSWERS` pointed into the scratch area. Each clone's status was clean after each run, and the clones were removed after the audit.
+
+| Claim | Source | Command | Result |
+|---|---|---|---|
+| The broad run's record names a commit HEAD descends from, followed only by this item's records | `broad-gate.md:5` | `git merge-base --is-ancestor 7891de9e HEAD`; `git log --no-merges --name-only 7891de9e..HEAD ^6046f062` | holds: ancestor; ca66eca5 touches `broad-gate.md` and `changelog.md` of this item alone |
+| `--check` exits 0 with 184 files read, 0 refused, 115 declaring no `TARGET` | `overview.md:50`, `rounds/round-6.md:76` | `bin/test-layout --check` | holds: exit 0, `184 files read, 0 refused, 115 declare no TARGET` |
+| `--check --all` exits 1 and refuses the 115 undeclared files and nothing else | `overview.md:50` | `bin/test-layout --check --all` | holds: exit 1, `184 files read, 115 refused, 115 declare no TARGET`; no twin line in either run |
+| `--pairs` names 210 pairs and exits 0 | `overview.md:16` | `bin/test-layout --pairs tests/` | holds: exit 0, `184 files read, 210 pairs` |
+| The changed modules' files pass at the head | `phases/phase-7.md:323` | `bin/test tests/test_test_layout.py tests/test_conftest.py tests/test_release_report.py tests/test_censuses.py tests/test_mutation_check.py tests/test_answers.py tests/test_root_migrate.py tests/test_broad_gate.py -q` | holds: exit 0, 743 passed, 1 skipped |
+| a17, `root_dir` not reading `SPECSEAL_ANSWERS`, is red on the case 56d2f856 added, and that case is what kills it | `phases/phase-6.md:1709` | `bin/mutation-check hooks/answers.py --replace 'return os.environ.get(OVERRIDE) or os.path.join(' 'return os.path.join('`, `--tests` `tests/test_answers.py -x`, then with `-k 'not test_the_override_names_the_store_where_it_is_set'` | holds: red; SURVIVED with the case left out |
+| m40, `main` letting an `AttributeError` out, is red on the row `["x"]`, and that row is what kills it | `phases/phase-5.md:644`, `phases/phase-5.md:647` | `bin/mutation-check hooks/root-migrate.py --replace 'except (ValueError, AttributeError):' 'except ValueError:'`, `--tests` `tests/test_root_migrate.py -x`, then with `--deselect '...test_refuses_a_payload_that_names_no_directory[a list]'` | holds: red; SURVIVED with the row left out |
+| br1 and bt1 are red against group 34's case alone | `phases/phase-6.md:1892`, `phases/phase-6.md:1893` | one `bin/mutation-check` batch over `tests/test_broad_gate.py`, `ROOT` one directory short and `TARGET` naming `seal_stamp.py`, `--tests` the one case of `tests/test_the_gate_names_every_step_ci_runs.py` | holds: 2 mutants, 2 red |
+| u2 and v1 are red against `Test_moved`, and each survives with its own row left out | `phases/phase-7.md:251`, `phases/phase-7.md:252`, `phases/phase-7.md:254` | one batch over `skills/verify/scripts/test_layout.py` with `-k Test_moved`, u2 the `if source is not None:` guard made `if True:`, v1 the `<module>.<name>` reading stopped at names starting `test_`; then each alone with `-k 'Test_moved and not <its row>'` | holds: 2 red; u2 SURVIVED without `a-directory-named-like-a-module`, v1 SURVIVED without `a-changed-attribute-of-another-test-file` |
+| Group 27's move check passes with the head's script | `phases/phase-6.md:1664` | clone at ffb0bd4b, `test_layout.py` from ca66eca5, `--moved 300abe34 --from tests/test_deferral_check.py --to tests/test_deferral_check.py` | holds: exit 0, `11 old cases, 11 items against 11 at 300abe340a60, 0 failed` |
+| Group 39's move check fails on 17 lines with the head's script, each a merge | `phases/phase-6.md:1353`, `phases/phase-6.md:1793` | clone at 46e1ec4c, `test_layout.py` from ca66eca5, group 39's recorded command | holds: exit 1, `38 old cases, 50 items against 50 at 4f350b0f9144, 17 failed`, all 17 on the body condition |
+| `mutation-check`'s batch mode and `release_report.py#module_rows` were seen red before their code | `phases/phase-5.md:314`, `phases/phase-2.md:36` | clone at ca66eca5 with `skills/verify/scripts/mutation_check.py` and `.github/scripts/release_report.py` restored from 6046f062: `bin/test` over `Test_batch_run`, `Test_main::test_accepts_a_batch_whose_every_mutant_is_red` and `Test_module_rows` | holds: 9 passed at the head, 9 failed with the base's code |
+| CI run 40007433075 at 1f9cd759 passed every leg, and the commits after it change records and a docstring | `overview.md:35`, `rounds/round-7.md:22` | `gh run view 40007433075 --json headSha,conclusion,jobs`; `git diff --name-only 1f9cd759 HEAD` | holds: head 1f9cd759, success, 12 jobs success and 1 skipped; nine files under this item and `test_layout.py`, whose one hunk, lines 90 to 120, lies inside the docstring that closes at line 136 |
+| Removes: the failing ceiling and its environment variable | `spec.md:168` | `git grep` for `CASE_CEILING_S`, `ceiling_from`, `over_the_ceiling`, `pytest_runtest_makereport`, `SPECSEAL_CASE_CEILING_S` | holds: none in `tests/conftest.py`; the only `pytest_runtest_makereport` left is the recorder plugin's and its test's |
+| Removes: the slow-case module | `spec.md:169` | `ls tests/test_a_slow_case_names_itself.py`; `grep SLOW_CASE_S tests/conftest.py` | holds: the file is gone; `SLOW_CASE_S = 90` |
+| Removes: the stored exemption lists | `spec.md:170` | `git grep` for `OUT_OF_CLASS`, `ALLOWED`, `ENTRY_POINTS_CLASSIFIED`, `COORDINATE_EXEMPT`, `HEADING_EXEMPT` over `tests` | holds: none |
+| Removes: the helper twins | `spec.md:171` | `bin/test-layout --check` and `--check --all` | holds: no twin printed or refused |
+| Removes: the one-new-file form of the move check | `spec.md:175` | `test_layout.py --moved HEAD --from tests/test_seal.py tests/test_seal.py`; the same with a path after `--to`'s list | holds: exit 2 each |
+| Removes: the paragraph heading a case's budget | `spec.md:176` | `grep` over `CONTRIBUTING.md` at 6046f062 and at the head | holds: line 155 reads `A slow case is named, and each leg has a budget.` in place of `A case has a budget, and so does each leg.`; `## The test layout` stands at line 225 |
+| Every file declaring `TARGET` runs the censuses | `changelog.md:7` | a loop over each file `git grep -l '^TARGET = '` lists, for `test_census = census_case(TARGET)` | holds: 69 files, all but `tests/test_conftest.py`, whose target `tests/conftest.py` the sweep in `tests/test_censuses.py:766` judges (read) |
+
+## The parties
+
+| Party | Says | Agrees with | Disagrees with |
+|---|---|---|---|
+| the spec | four layout rules, the checks that hold them, the module batches, and a proof of equal protection; S10 left to Q9 | the tree, the phase records, the overview | none found |
+| the build | phases 1 to 7 and the fix passes of rounds 1 to 6, every module placed or rebuilt but the two Q10 holds, 115 undeclared files each with its reason | the spec, the re-runs above | none found |
+| the last round | round 7 confirms round 6's close and opens nothing | the tree at 4a5f24f5, the CI run | none |
+| the changelog | seven entries for the layout, the move check, the batch proof, the slow-case report, the censuses, the release rows and the wall time | the tree and the records | none found |
+| the pull request body | the work as the changelog states it, with measures, proof figures, decisions and what is left open | the changelog's entries, the measures, the decisions table except its last row's reason, CI run 40007433075, `broad-gate.md`'s commit | eight sentences the records or the tree contradict, or no record carries, listed below |
+
+The pull request body's sentences, each with the coordinate that decides it:
+
+1. Line 5 and line 63, "#942 changes no shipped code". The tree changes shipped code. `skills/verify/scripts/test_layout.py` is new, `skills/verify/scripts/mutation_check.py` gains the batch mode (29cd8544), `.github/scripts/release_report.py` gains `module_rows` (6945b11d), and `evals/scripts/noninferiority.py` loads `tests/censuses.py` in place of `tests/test_no_real_identifiers.py` (197bc2a0). The body's own bullets describe the first three, and the issue's *In* items 2 and 3 ask for them. The sentence stands in `spec.md:76` as the premise of the proof, where it means the rebuilt modules' behaviour.
+2. Line 26, "every survivor was either an old gap or answered by a case seen red on it". `phases/phase-6.md:1627` says 9 of the 136 survivors are killed by old cases that did not move, so no case was added for them: group 14's 2 and group 23's 7.
+3. Line 27, "sent 20 modules ... to fresh mutants", for the fix passes of rounds 3 to 5. 20 is round 3's pass alone (`phases/phase-6.md:1748`). Round 4's pass also ran fresh mutants for `hooks/worktree-guard.py`, `hooks/routing.py` and `skills/implement/scripts/seal.py` (wg1, rt1, sw1 and sw2, `phases/phase-6.md:1841` to `1844`).
+4. Line 42, the reason "because no file under `tests/` takes those shapes". `tests/test_release_hygiene.py:794` and `:803` reach a name through `globals()`, the string shape (`rounds/round-6.md:69`). `spec.md:78` gives the swap's reason as "a move does not swap two definitions", not the absence of a file.
+5. Line 48, "every scenario's case was seen red against the tree as it stood before its code". S1 to S4, S8 and S9 were seen red on mutants of the new code, after a collection error before the script existed (`phases/phase-1.md:35`, `phases/phase-3.md:52`). Two of phase 2's eight cases passed against the tree before the change and were turned red by mutants (`phases/phase-2.md:36`). Several S14 and S15 rows were seen red on mutants (`phases/phase-7.md:22`, `:240`, `:281`).
+6. Line 50, "every survivor got a row of `Test_moved` seen red on it". Of the 9 survivors at 2f681b9c, t2 was answered by removing the condition it named and t3 by a directory in the base world (`phases/phase-7.md:126`).
+7. Line 52, "ruff check and format clean, the suite 7738 passed and 14 skipped, chain-check exit 0". `broad-gate.md` holds the commit and base alone, and no record in the tree carries these figures. The broad run is the orchestrator's, so this audit did not run it.
+8. Line 53, "Each was fixed and confirmed by the next round". Round 1's finding 8 is `deferred plan.md phase 7` (`rounds/round-1.md:267`). Round 2 confirms round 1's findings 1 to 7 and 9 and not 8, and no later round confirms it.
+
+Verdict: withheld reason: eight sentences of the pull request body, the orchestrator's, that the tree or the records contradict or no record carries: lines 5 and 63 "#942 changes no shipped code" against `test_layout.py`, `mutation_check.py`, `release_report.py` and `noninferiority.py`; line 26 against `phases/phase-6.md:1627`; line 27 against `phases/phase-6.md:1748` and `:1841`; line 42 against `tests/test_release_hygiene.py:794`; line 48 against `phases/phase-1.md:35`, `phases/phase-2.md:36` and `phases/phase-3.md:52`; line 50 against `phases/phase-7.md:126`; line 52 against `broad-gate.md`; line 53 against `rounds/round-1.md:267`. The code, the records and the re-runs hold.
