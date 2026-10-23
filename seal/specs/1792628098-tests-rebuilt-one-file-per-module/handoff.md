@@ -54,7 +54,7 @@ The owner replaced the 100-mutant table on 2026-10-22 (`spec.md` *The proof of e
 ## Decisions taken today
 
 - `--pairs` leaves out a call with an argument that reads a name the case assigns or takes as a parameter, and a call with no argument. Leaving out only the one argument named 31 non-pairs and was dropped (`plan.md` *Alternatives*).
-- The proof of equal protection is a decision-point sample, about 30 mutants per module in one `mutation-check` batch call, with the old column run only for survivors.
+- The proof of equal protection is a decision-point sample: one or two mutants per class at the decision points where a case accepts or refuses, and one more for each further decision point, so the count follows the module's classes (`spec.md` *The proof of equal protection*). They run in one `mutation-check` batch call, with the old column run only for survivors.
 - The owner chose on 2026-10-22 to finish all seven phases in 0.22.3, and answered Q1 and Q2 with their defaults.
 
 ## Left for the next session
