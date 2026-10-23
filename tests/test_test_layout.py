@@ -467,9 +467,10 @@ NESTED_NEW = "import pytest\n\n\nclass Test_four:\n" + textwrap.indent(
 # helper, a module bound by an import, a row constant, a helper the fixture
 # a requested fixture requests calls, a name a loader's call binds, an
 # attribute of a module under `tests/`, a class, a name another test file
-# defines and a helper of their class. Its new file holds them in classes,
-# each name defined as it was. The base also holds a directory under
-# `tests/` that is no module.
+# defines and a helper of their class; one case reads `self.value` of a fake
+# it defines, and a helper no case reads stores a name a case reads. Its new
+# file holds them in classes, each name defined as it was. The base also
+# holds a directory under `tests/` that is no module.
 PARSE = "def parse(s):\n    return loads(s)\n\n\n"
 ROWS = 'ROWS = [("a", 1), ("bb", 2)]\n'
 D_MODULE = (
@@ -491,6 +492,11 @@ D_MODULE = (
     'reader = load("hooks/a.py")\n'
     "\n"
     "\n"
+    "def unread():\n"
+    "    reader = 2\n"
+    "    return reader\n"
+    "\n"
+    "\n"
     "class Pair:\n"
     "    first = 1\n"
     "\n"
@@ -508,7 +514,7 @@ D_MODULE = (
 )
 D_CASES = (
     "def test_parse():\n"
-    '    assert parse("[1, 2]") == [1, 2]\n'
+    '    assert parse("[1, 2]") == loads("[1, 2]")\n'
     "\n"
     "\n"
     "def test_subject():\n"
@@ -538,6 +544,17 @@ D_CASES = (
     "\n"
     "def test_value():\n"
     "    assert V\n"
+    "\n"
+    "\n"
+    "def test_fake():\n"
+    "    class Fake:\n"
+    "        pass\n"
+    "\n"
+    "    def get(self):\n"
+    "        return self.value\n"
+    "\n"
+    "    Fake.get, Fake.value = get, 1\n"
+    "    assert Fake().get()\n"
 )
 DOUBLE = (
     "class {}:\n"
@@ -640,42 +657,35 @@ class Test_moved:
         [
             ({X: MOVED_NEW}, None, (OLD_A, OLD_B), 4, 5),
             ({Z: NESTED_NEW}, None, (OLD_C,), 1, 1),
-            (
-                {
-                    D: NAMED_NEW.replace(PARSE, "").replace(
+        ]
+        + [
+            ({D: new}, beside, (OLD_D,), 10, 11)
+            for new, beside in [
+                (
+                    NAMED_NEW.replace(PARSE, "").replace(
                         "import shapes_d\n",
                         "import shapes_d\nfrom conftest import parse\n",
-                    )
-                },
-                {
-                    CONFTEST: "from json import loads\n\n"
-                    + MOVED_CONFTEST
-                    + "\n\n"
-                    + PARSE.replace("(s):\n", '(s):\n    """Parse S."""\n')
-                },
-                (OLD_D,),
-                9,
-                10,
-            ),
-            (
-                {
-                    D: NAMED_NEW.replace(ROWS, "").replace(
+                    ),
+                    {
+                        CONFTEST: "from json import loads\n\n"
+                        + MOVED_CONFTEST
+                        + "\n\n"
+                        + PARSE.replace("(s):\n", '(s):\n    """Parse S."""\n')
+                    },
+                ),
+                (
+                    NAMED_NEW.replace(ROWS, "").replace(
                         "import shapes_d\n",
                         "import shapes_d\nfrom shapes_d import ROWS\n",
-                    )
-                },
-                {SHAPES_D: SHAPES + ROWS},
-                (OLD_D,),
-                9,
-                10,
-            ),
-            (
-                {D: NAMED_NEW.replace("json import loads", "json import dumps, loads")},
-                None,
-                (OLD_D,),
-                9,
-                10,
-            ),
+                    ),
+                    {SHAPES_D: SHAPES + ROWS},
+                ),
+                (
+                    NAMED_NEW.replace("json import loads", "json import dumps, loads"),
+                    None,
+                ),
+                (NAMED_NEW.replace("    reader = 2\n", "    reader = 3\n"), None),
+            ]
         ],
         ids=[
             "every-kind-of-move",
@@ -683,6 +693,7 @@ class Test_moved:
             "a-helper-moved-into-conftest",
             "a-constant-moved-into-a-module-under-tests",
             "a-name-imported-beside-another",
+            "a-name-a-helper-stores-for-itself-changed",
         ],
     )
     def test_accepts_a_pure_move(

@@ -651,18 +651,21 @@ def _alias_name(alias):
 
 
 def _binds(statement):
-    """The names STATEMENT stores, defines or imports anywhere inside it. A
-    compound statement stands for every name bound inside it, and a name a
-    function stores for itself is counted too: the reading only grows what
-    is compared."""
-    names = set()
-    for inner in ast.walk(statement):
+    """The names STATEMENT stores, defines or imports in the scope it stands
+    in. A compound statement stands for every name bound inside it; a
+    function or class binds its own name, and what it stores for itself is
+    its own."""
+    names, todo = set(), [statement]
+    while todo:
+        inner = todo.pop()
+        if isinstance(inner, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            names.add(inner.name)
+            continue
         if isinstance(inner, ast.Name) and not isinstance(inner.ctx, ast.Load):
             names.add(inner.id)
-        elif isinstance(inner, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
-            names.add(inner.name)
         elif isinstance(inner, (ast.Import, ast.ImportFrom)):
             names |= {_alias_name(a) for a in inner.names}
+        todo += ast.iter_child_nodes(inner)
     return names
 
 
@@ -705,9 +708,11 @@ class _Names:
         return self._binders[id(body)]
 
     def reads(self, node):
-        """`(names, attributes)`: the names NODE reads from the module around
-        it, as Python's own scoping (`symtable`) resolves them, and each
-        `(name, attribute)` it reads as `name.attribute`."""
+        """`(names, attributes, own)`: the names NODE reads from the module
+        around it, as Python's own scoping (`symtable`) resolves them, each
+        `(name, attribute)` it reads as `name.attribute`, and each attribute
+        it reads of its own `self`, outside a function or lambda it defines
+        that takes a `self` of its own."""
         if id(node) not in self._reads:
             table = symtable.symtable(ast.unparse(node), "<moved>", "exec")
             names = {s.get_name() for s in table.get_symbols() if s.is_referenced()}
@@ -726,7 +731,21 @@ class _Names:
                 if isinstance(inner, ast.Attribute)
                 and isinstance(inner.value, ast.Name)
             }
-            self._reads[id(node)] = names, attributes
+            own, below = set(), list(ast.iter_child_nodes(node))
+            while below:
+                inner = below.pop()
+                if isinstance(
+                    inner, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda)
+                ) and "self" in _parameters(inner):
+                    continue
+                if (
+                    isinstance(inner, ast.Attribute)
+                    and isinstance(inner.value, ast.Name)
+                    and inner.value.id == "self"
+                ):
+                    own.add(inner.attr)
+                below += ast.iter_child_nodes(inner)
+            self._reads[id(node)] = names, attributes, own
         return self._reads[id(node)]
 
     def items(self, label, cls, node):
@@ -735,13 +754,13 @@ class _Names:
         looked up in LABEL; `self.<name>` looked up in CLS; and
         `<module>.<name>`, where `import <module>` binds a module directly
         under `tests/`, looked up in that module."""
-        names, attributes = self.reads(node)
+        names, attributes, own = self.reads(node)
         found = [(label, None, name, name) for name in sorted(names)]
+        if cls is not None:
+            found += [(label, cls, f"self.{name}", name) for name in sorted(own)]
         binders = self.binders(self.trees[label].body)
         for owner, attribute in sorted(attributes):
-            if owner == "self" and cls is not None:
-                found.append((label, cls, f"self.{attribute}", attribute))
-            elif owner in names:
+            if owner in names:
                 found += [
                     (alias.name, None, f"{owner}.{attribute}", attribute)
                     for statement in binders.get(owner, [])
@@ -753,7 +772,8 @@ class _Names:
 
     def forms(self, todo):
         """`{key: [form, ...]}` for each definition TODO's items reach, the
-        forms in order; an item whose name nothing binds records no form. A
+        distinct forms in order, so one definition reached from two places
+        counts once; an item whose name nothing binds records no form. A
         definition's own reads join TODO, so a name reached through a helper
         is compared itself, and a name imported by `from <module> import`
         from a module directly under `tests/` is read where that module
@@ -778,7 +798,7 @@ class _Names:
                     continue
                 forms.append(_form(statement, name))
                 todo += self.items(label, cls, statement)
-        return {key: sorted(forms) for key, forms in found.items()}
+        return {key: sorted(set(forms)) for key, forms in found.items()}
 
 
 def _name_change(before, after):
