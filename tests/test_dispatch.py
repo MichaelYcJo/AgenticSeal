@@ -1132,6 +1132,26 @@ class Test_main:
             run_dispatch("pre-nothing", payload("git commit -m x", repo)).strip() == ""
         )
 
+    def test_accepts_the_stop_group_and_names_its_event(self, monkeypatch, capsys):
+        """`main` names the event on its decision path, and named every group
+        that is not `pre-` as `PostToolUse`. The `stop` group answers `Stop`, so
+        a decision coming out of it, should one ever do, says so."""
+        d = dispatch_module()
+        decision = json.dumps(
+            {
+                "hookSpecificOutput": {
+                    "permissionDecision": "ask",
+                    "permissionDecisionReason": "r",
+                }
+            }
+        )
+        monkeypatch.setattr(d, "run_gate", lambda _gate, _payload: decision)
+        monkeypatch.setattr(sys, "argv", ["dispatch.py", "stop"])
+        monkeypatch.setattr(sys, "stdin", io.StringIO("{}"))
+        d.main()
+        said = json.loads(capsys.readouterr().out)
+        assert said["hookSpecificOutput"]["hookEventName"] == "Stop", said
+
 
 class Test_module:
     def test_the_installer_runs_before_the_gates_it_serves(self):

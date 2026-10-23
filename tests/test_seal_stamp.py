@@ -853,6 +853,18 @@ class Test_admitted:
         lone = LABEL + "\ud800"
         assert stamp.admitted([(lone, SMALL_ROWS)]) == [drawn(lone, SMALL_ROWS)]
 
+    def test_admitteds_docstring_fits_the_line_length(self):
+        """S13 (#721). Round 3 of #717 reflowed one line of `admitted`'s
+        docstring to 113 columns; no line of the docstring is wider than 79 as
+        the source holds it, read from the source, because Python 3.13 strips
+        a docstring's indent from `__doc__` and 3.12 keeps it."""
+        import inspect
+
+        source = inspect.getsource(stamp.admitted)
+        doc = source.split('"""', 2)[1]
+        wide = [line for line in source.splitlines() if line in doc and len(line) > 79]
+        assert wide == [], wide
+
 
 class Test_fitted:
     def test_accepts_the_admitted_blocks_joined_by_a_blank_line(self):

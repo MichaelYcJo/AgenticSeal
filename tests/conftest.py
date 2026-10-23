@@ -1521,6 +1521,42 @@ def _a_dirty_w_under_a_clean_session(repo, tmp_path):
     return session, other
 
 
+# --- a work item's closing records, as the stamp's queue gates read them -------
+#
+# `tests/test_commitgate.py` and `tests/test_sealer_stamp_queue.py` write them.
+
+STAMP_ITEM = "1799000000-an-item"
+
+
+def guarantee_record(target, base, verdict, earlier=""):
+    """A `guarantee.md` in `templates/sdd-guarantee.md`'s shape: its `Target
+    SHA` row, with EARLIER after it, and one `Verdict:` line."""
+    return (
+        "# an item — guarantee\n\n| Field | Value |\n|---|---|\n"
+        f"| Target SHA | {target} against {base}{earlier} |\n"
+        f"| Broad gate | {target} against {base} |\n\nVerdict: {verdict}\n"
+    )
+
+
+def routing_record(branch="feat/x"):
+    """A `routing.md` in `templates/sdd-routing.md`'s shape, naming BRANCH in
+    its `Branch` row, or with no `Branch` row where BRANCH is None."""
+    rows = (
+        "| Axis | Answer |\n|---|---|\n"
+        "| Review | through the review chain |\n"
+        "| Destination | open the pull request |\n"
+    )
+    return rows + (f"| Branch | {branch} |\n" if branch else "")
+
+
+def queued_values(repo):
+    """Every values file under REPO's `.git/specseal-stamp`, drawn or not."""
+    found = []
+    for directory, _dirs, names in os.walk(repo / ".git" / "specseal-stamp"):
+        found += [os.path.join(directory, n) for n in names if n.endswith(".json")]
+    return sorted(found)
+
+
 # --- the opt-in's two places, the old name and the throwaway marker -------------
 
 

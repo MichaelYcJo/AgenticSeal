@@ -76,8 +76,9 @@ def test_the_policy_states_the_guarantee_refusal_beside_the_arms():
     held = rule_carriers("sealed-off-the-branch-refused")
     for case in (
         "Test_a_sealed_the_branch_does_not_hold.test_refuses_it_inside_the_commit",
-        "test_a_sealed_over_a_commit_the_branch_does_not_hold_is_refused_at_the_commit",
-        "test_the_guarantee_refusal_is_quiet_off_its_one_fact",
+        "Test_pre_commit.test_refuses_a_sealed_off_the_history_and_records_the_refusal",
+        "Test_guarantee_off_history."
+        "test_accepts_every_guarantee_but_one_sealed_off_the_history",
         "Test_queue_for_guarantee.test_a_sealed_committed_past_the_stub_keeps_the_gap",
     ):
         assert case in held, case

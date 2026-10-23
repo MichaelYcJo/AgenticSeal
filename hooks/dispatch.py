@@ -67,7 +67,7 @@ NAME_CAP = 40
 # `(gate, phase, exception)` where phase is "load" or "run". Kept beside the
 # return value rather than inside it: `run_gate` returns a gate's stdout, and
 # a case replaces it with a function returning one
-# (`tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py#test_the_stop_group_reports_the_stop_event`).
+# (`tests/test_dispatch.py#Test_main.test_accepts_the_stop_group_and_names_its_event`).
 # One invocation is one process, so the list starts empty for each.
 FAILED = []
 
