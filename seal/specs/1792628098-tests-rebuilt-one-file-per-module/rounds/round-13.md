@@ -15,7 +15,7 @@ Some facts were carried from earlier rounds and not established again. That `cha
 severity: should
 location: `seal/specs/1792628098-tests-rebuilt-one-file-per-module/questions.md:65`
 evidence: read `agents/warden.md:94-98`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/questions.md:65`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/spec.md:109`, `tests/test_a_reference_root_is_read_and_never_taken.py:89-127`
-verdict: open
+verdict: fixed d57ad448
 regression: round-12#1
 
 The unit is the answer 329619c7 added at `questions.md:65`, on which files `agents/warden.md` line 99 names. The frame at `spec.md:109` says the rule states two things, that the warden opens a cited reference root in stage 1 and that the plugin never writes there, and that reading one breaks neither; the framer's answer, written in the same commit as that row, says the rule "says nothing of reading one", so the defect came from the answer's wording and not from the row, and it goes back to the framer.
@@ -38,7 +38,7 @@ becomes
 
 The fix touches no OS boundary.
 
-answer:
+answer: d57ad448 rewrites the two phrases of `questions.md` line 65 in place as this finding's fenced block writes them: the rule says the plugin never writes in a reference root and tells the warden to open a cited one in stage 1, and it forbids no read of one; and the other direction rewords lines 96 to 98 to forbid a check to read a team's `specs/` as the plugin's own record. The file list on `agents/warden.md` line 99 does not change.
 
 ## Confirmations
 
