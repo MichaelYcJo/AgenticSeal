@@ -956,7 +956,8 @@ RENAMED_RECORDS = (
     "seal/specs/",
 )
 RENAMED_COMPAT = (
-    "tests/test_a_signer_declares_its_pact.py",
+    "tests/conftest.py",
+    "tests/test_config.py",
     "tests/test_one_table_walker_reads_what_gfm_renders.py",
     "tests/test_pact_check.py",
 )

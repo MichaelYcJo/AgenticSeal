@@ -7,6 +7,7 @@ locale, git's template and maintenance, `gh`'s login and `PATH`.
 import ast
 import atexit
 import datetime
+import functools
 import importlib.util
 import io
 import json
@@ -1442,6 +1443,141 @@ def parity_file(sha):
     text = pathlib.Path(ROOT, "templates", "parity.md").read_text(encoding="utf-8")
     assert text.count("`<SHA>`") == 1
     return text if sha is None else text.replace("`<SHA>`", f"`{sha}`")
+
+
+# --- the pact's world ---------------------------------------------------------
+#
+# `skills/verify/scripts/pact_check.py`'s cases in `tests/test_pact_check.py`
+# and the cases of `tests/test_config.py` that run it over a table the walker
+# refuses share one world: the pact's repository, whose `seal/pact.md` carries
+# one clause committed as v1 and then v2 on `main` and v3 on a side branch HEAD
+# does not hold, and a signer beside it, which names the pact in its
+# `seal/config.md`.
+
+
+@functools.cache
+def pact_check_modules():
+    """`(pact_check, its evidence reader)`, loaded once, so the world's
+    `check` and the cases that patch the module reach one module."""
+    pc = load_module(
+        os.path.join(ROOT, "skills", "verify", "scripts", "pact_check.py"),
+        "pact_check_under_test",
+    )
+    return pc, pc.load(pc.CHECKER, "evidence_for_pact_tests")
+
+
+PACT_URL = "git@example.com:org/orders-api.git"
+SIGNER_URL = "https://example.com/org/orders-web"
+MOBILE_URL = "https://example.com/org/orders-mobile"
+LOCATOR = '"## Order response shape / ### Fields"'
+PACT = "seal/pact.md"
+SPEC = "seal/specs/1790000000-x/spec.md"
+V1, V2, V3 = "id, total", "id, total, currency", "id, total, currency, tax"
+# The pact a signer's `Pact` row names in the reader's cases, and what
+# `hooks/config.py#pact_declaration` answers for it.
+URL = PACT_URL
+ORDERS = [(URL, "example.com/org/orders-api", "orders-api")]
+
+
+def pact(fields, signers=(SIGNER_URL,)):
+    rows = "".join(f"| {s} |\n" for s in signers)
+    return (
+        "# Pact\n\n| Signer |\n|---|\n"
+        + rows
+        + f"\n## Order response shape\n\n### Fields\n\n{fields}\n\n## Errors\n\nx\n"
+    )
+
+
+def old_header(text):
+    return text.replace("| Signer |\n|---|", "| Signatory |\n|---|", 1)
+
+
+def clause(fields):
+    pc, checker = pact_check_modules()
+    digest, why = pc.clause_hash(checker, pact(fields), LOCATOR)
+    assert why is None
+    return digest
+
+
+def signer_config(*rows):
+    return "# config\n\n| Item | Value |\n|---|---|\n| Mode | shared |\n" + "".join(
+        f"| {item} | {value} |\n" for item, value in rows
+    )
+
+
+def grounding_row(anchor):
+    return f"| `{anchor}` | the field list, built against it |\n"
+
+
+def init(d, url):
+    d.mkdir(parents=True)
+    git_out(d, "init", "-q", "-b", "main")
+    git_out(d, "remote", "add", "origin", url)
+
+
+# The name `_template` commits by, as `tests/test_pact_check.py` imports it.
+commit = commit_everything_as_e
+
+
+@pytest.fixture(scope="module")
+def _template(tmp_path_factory):
+    """The pact's repository and the signer as siblings under `work/`, and
+    an empty HOME, built once for the module."""
+    base = tmp_path_factory.mktemp("pact-world")
+    (base / "home").mkdir()
+    api = base / "work" / "orders-api"
+    init(api, PACT_URL)
+    write(api, PACT, pact(V1))
+    commit(api, "pact v1")
+    write(api, PACT, pact(V2))
+    commit(api, "pact v2")
+    git(api, "switch", "-qc", "side")
+    write(api, PACT, pact(V3))
+    commit(api, "pact v3")
+    git(api, "switch", "-q", "main")
+    web = base / "work" / "orders-web"
+    init(web, SIGNER_URL)
+    write(web, "seal/config.md", signer_config(("Pact", PACT_URL)))
+    commit(web, "signer")
+    return base
+
+
+class World:
+    """A copy of the module's world under one case's directory."""
+
+    def __init__(self, template, tmp_path):
+        self.tmp = tmp_path
+        shutil.copytree(template, tmp_path / "w", symlinks=True)
+        base = tmp_path / "w"
+        self.home = base / "home"
+        self.api = base / "work" / "orders-api"
+        self.web = base / "work" / "orders-web"
+
+    def cite(self, digest, locator=LOCATOR, where=SPEC):
+        anchor = f"pact:orders-api/{locator}@{digest}"
+        write(self.web, where, grounding_row(anchor))
+        return anchor
+
+    def run(self, root=None):
+        """(exit, the printed lines run together) for `check` at ROOT, the
+        pact's repository by default."""
+        pc, _checker = pact_check_modules()
+        out = io.StringIO()
+        code = pc.check(str(root or self.api), out=out, home_dir=str(self.home))
+        return code, " ".join(out.getvalue().split())
+
+    def map(self, *rows):
+        write(
+            self.home,
+            ".claude/specseal/pact-paths.md",
+            "| Remote | Path |\n|---|---|\n"
+            + "".join(f"| {r} | {p} |\n" for r, p in rows),
+        )
+
+
+@pytest.fixture
+def world(_template, tmp_path):
+    return World(_template, tmp_path)
 
 
 def chain_check_run(chain, root, capsys, *extra):

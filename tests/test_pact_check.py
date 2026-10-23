@@ -8,7 +8,10 @@ that writes into it: the pact's repository, whose `seal/pact.md` carries one
 clause committed as v1 and then v2 on `main` and v3 on a side branch HEAD does
 not hold, and a signer beside it, which names the pact in its
 `seal/config.md`. `HOME` is the world's own directory, so the machine-local
-map is whatever a case writes there. Each copy is the reset.
+map is whatever a case writes there. Each copy is the reset. The world is
+`tests/conftest.py`'s, because the seven cases phase 5 left here for
+`hooks/config.py`, which run `check` over a pact or a signer config the
+table walker refuses, are in `tests/test_config.py` since #942's phase 6.
 """
 
 import ntpath
@@ -17,7 +20,29 @@ import shutil
 import subprocess
 
 import pytest
-from conftest import ROOT, census_case, load_module, symlink_or_skip, write
+from conftest import (
+    LOCATOR,
+    MOBILE_URL,
+    PACT,
+    PACT_URL,
+    ROOT,
+    SIGNER_URL,
+    SPEC,
+    V1,
+    V2,
+    V3,
+    census_case,
+    clause,
+    grounding_row,
+    init,
+    load_module,
+    old_header,
+    pact,
+    pact_check_modules,
+    signer_config,
+    symlink_or_skip,
+    write,
+)
 from conftest import commit_everything_as_e as commit
 from conftest import git_out as git
 
@@ -26,121 +51,20 @@ TARGET = "skills/verify/scripts/pact_check.py"
 SCRIPT = os.path.join(ROOT, TARGET)
 WRAPPER = os.path.join(ROOT, "bin", "pact-check")
 
-pc = load_module(SCRIPT, "pact_check_under_test")
-checker = pc.load(pc.CHECKER, "evidence_for_pact_tests")
+# The module and its evidence reader, loaded once in `tests/conftest.py`, so
+# the world's `check` runs and this file patches one module. The world, its
+# texts and the `world` fixture are there too, since `tests/test_config.py`
+# runs the pact walker's cases through them.
+pc, checker = pact_check_modules()
 config = pc.load(os.path.join(pc.HOOKS, "config.py"), "config_for_pact_tests")
 
-PACT_URL = "git@example.com:org/orders-api.git"
-SIGNER_URL = "https://example.com/org/orders-web"
 SIGNER = (SIGNER_URL, config.normalise_remote(SIGNER_URL), "orders-web")
-MOBILE_URL = "https://example.com/org/orders-mobile"
-LOCATOR = '"## Order response shape / ### Fields"'
-PACT = "seal/pact.md"
-SPEC = "seal/specs/1790000000-x/spec.md"
 SPEC_Y = "seal/specs/1790000001-y/spec.md"
-V1, V2, V3 = "id, total", "id, total, currency", "id, total, currency, tax"
-
-
-def pact(fields, signers=(SIGNER_URL,)):
-    rows = "".join(f"| {s} |\n" for s in signers)
-    return (
-        "# Pact\n\n| Signer |\n|---|\n"
-        + rows
-        + f"\n## Order response shape\n\n### Fields\n\n{fields}\n\n## Errors\n\nx\n"
-    )
-
-
-def old_header(text):
-    return text.replace("| Signer |\n|---|", "| Signatory |\n|---|", 1)
-
-
-def clause(fields):
-    digest, why = pc.clause_hash(checker, pact(fields), LOCATOR)
-    assert why is None
-    return digest
-
-
-def signer_config(*rows):
-    return "# config\n\n| Item | Value |\n|---|---|\n| Mode | shared |\n" + "".join(
-        f"| {item} | {value} |\n" for item, value in rows
-    )
-
-
-def grounding_row(anchor):
-    return f"| `{anchor}` | the field list, built against it |\n"
 
 
 def posix(path):
     """A path as `pact-check` prints one outside HOME: every separator `/`."""
     return str(path).replace(os.sep, "/")
-
-
-def init(d, url):
-    d.mkdir(parents=True)
-    git(d, "init", "-q", "-b", "main")
-    git(d, "remote", "add", "origin", url)
-
-
-@pytest.fixture(scope="module")
-def _template(tmp_path_factory):
-    """The pact's repository and the signer as siblings under `work/`, and
-    an empty HOME, built once for the module."""
-    base = tmp_path_factory.mktemp("pact-world")
-    (base / "home").mkdir()
-    api = base / "work" / "orders-api"
-    init(api, PACT_URL)
-    write(api, PACT, pact(V1))
-    commit(api, "pact v1")
-    write(api, PACT, pact(V2))
-    commit(api, "pact v2")
-    git(api, "switch", "-qc", "side")
-    write(api, PACT, pact(V3))
-    commit(api, "pact v3")
-    git(api, "switch", "-q", "main")
-    web = base / "work" / "orders-web"
-    init(web, SIGNER_URL)
-    write(web, "seal/config.md", signer_config(("Pact", PACT_URL)))
-    commit(web, "signer")
-    return base
-
-
-class World:
-    """A copy of the module's world under one case's directory."""
-
-    def __init__(self, template, tmp_path):
-        self.tmp = tmp_path
-        shutil.copytree(template, tmp_path / "w", symlinks=True)
-        base = tmp_path / "w"
-        self.home = base / "home"
-        self.api = base / "work" / "orders-api"
-        self.web = base / "work" / "orders-web"
-
-    def cite(self, digest, locator=LOCATOR, where=SPEC):
-        anchor = f"pact:orders-api/{locator}@{digest}"
-        write(self.web, where, grounding_row(anchor))
-        return anchor
-
-    def run(self, root=None):
-        """(exit, the printed lines run together) for `check` at ROOT, the
-        pact's repository by default."""
-        import io
-
-        out = io.StringIO()
-        code = pc.check(str(root or self.api), out=out, home_dir=str(self.home))
-        return code, " ".join(out.getvalue().split())
-
-    def map(self, *rows):
-        write(
-            self.home,
-            ".claude/specseal/pact-paths.md",
-            "| Remote | Path |\n|---|---|\n"
-            + "".join(f"| {r} | {p} |\n" for r, p in rows),
-        )
-
-
-@pytest.fixture
-def world(_template, tmp_path):
-    return World(_template, tmp_path)
 
 
 class Test_module:
@@ -887,133 +811,6 @@ class Test_main:
     def test_refuses_a_root_named_outside_any_repository(self, world, printed):
         assert pc.main([str(world.tmp)]) == 2
         assert "is not in a git repository" in printed.getvalue()
-
-
-# Left for `hooks/config.py`, whose table walker each one's rows pin: the
-# refusals of the pact's `Signer` table and of a signer's config, run through
-# `check` as they were.
-
-
-def test_s2_a_broken_table_under_the_old_header_is_refused_naming_it(world):
-    """The refusal names the header the walk was asked for, so a table
-    under the old header that will not read says `Signatory`, beside the
-    rename line; the exit is the refusal's."""
-    text = old_header(pact(V2)).replace(
-        f"| {SIGNER_URL} |\n", f"| {SIGNER_URL} |\n| {MOBILE_URL}\n"
-    )
-    write(world.api, PACT, text)
-    commit(world.api, "an old header over a row with no closing pipe")
-    world.cite(clause(V2))
-    code, out = world.run()
-    assert code == 2, out
-    assert "heads its table `| Signatory |`" in out, out
-    assert (
-        "REFUSED seal/pact.md — the pact has a `Signatory` table that stops at "
-        f"`| {MOBILE_URL}`"
-    ) in out, out
-
-
-def test_s4_a_pact_holding_both_tables_is_exit_2_naming_the_old_one(world):
-    """The old table above the new one, under a heading of its own, holds a
-    signer the `Signer` table does not list; it is refused, and no rename
-    line is printed, because the header read is the new one."""
-    text = pact(V2).replace(
-        "# Pact\n\n",
-        f"# Pact\n\n| Signatory |\n|---|\n| {MOBILE_URL} |\n\n## Before 0.19.0\n\n",
-        1,
-    )
-    write(world.api, PACT, text)
-    commit(world.api, "an old table above a new one")
-    world.cite(clause(V2))
-    code, out = world.run()
-    assert code == 2, out
-    assert (
-        "REFUSED seal/pact.md — the pact also holds a `| Signatory |` header, the "
-        "word before 0.19.0, and nothing under it is read while the `| Signer |` "
-        "table stands — move its rows into that table and delete it"
-    ) in out, out
-    assert "heads its table" not in out, out
-
-
-def test_a_signer_row_below_a_blank_line_is_refused(world):
-    text = pact(V2).replace(
-        f"| {SIGNER_URL} |\n", f"| {SIGNER_URL} |\n\n| {MOBILE_URL} |\n"
-    )
-    write(world.api, PACT, text)
-    commit(world.api, "a blank line inside the table")
-    world.cite(clause(V2))
-    code, out = world.run()
-    assert code == 2, out
-    assert (
-        "REFUSED seal/pact.md — the pact has a `Signer` table that ends above "
-        f"`| {MOBILE_URL} |`, a row the walk never reaches — it and every signer "
-        "below it would go unread"
-    ) in out, out
-
-
-def test_a_signer_written_as_an_autolink_is_never_passed_over(world):
-    text = pact(V2).replace(
-        f"| {SIGNER_URL} |\n", f"| {SIGNER_URL} |\n<{MOBILE_URL}>\n"
-    )
-    write(world.api, PACT, text)
-    commit(world.api, "a signer written as an autolink")
-    world.cite(clause(V2))
-    code, out = world.run()
-    assert code == 2, out
-    assert (
-        "REFUSED seal/pact.md — the pact has a `Signer` table that continues "
-        f"with `<{MOBILE_URL}>`, a line with no pipe that GFM reads as one of "
-        "its rows — write it as `| … |`"
-    ) in out, out
-
-
-def test_an_entry_refusal_is_printed_after_the_pact(world):
-    text = pact(V2).replace(f"| {SIGNER_URL} |\n", f"| {SIGNER_URL} |\n|  |\n")
-    write(world.api, PACT, text)
-    commit(world.api, "an empty row")
-    world.cite(clause(V2))
-    code, out = world.run()
-    assert code == 2, out
-    assert (
-        "REFUSED seal/pact.md — the pact has a `Signer` entry that will not "
-        "read: an empty row"
-    ) in out, out
-
-
-def test_a_signer_config_the_walker_refuses_is_exit_2(world):
-    """S4 of #871: a bare-piped line in a signer's table is refused in the
-    walker's sentence, naming the line, and the run exits 2."""
-    write(
-        world.web,
-        "seal/config.md",
-        signer_config(("Pact", PACT_URL)) + "| Broad gate | bin/test -q | tee out |\n",
-    )
-    world.cite(clause(V2))
-    code, out = world.run()
-    assert code == 2, out
-    assert (
-        f"REFUSED {SIGNER_URL} seal/config.md — has a `Item | Value` table that "
-        "stops at `| Broad gate | bin/test -q | tee out |`, which is not a "
-        "2-cell row written `| … | … |`"
-    ) in out, out
-
-
-@pytest.mark.parametrize(
-    "rows",
-    [
-        [("Pact notify", "sometimes")],
-        [("Pact notify", "never"), ("Pact notify", "always")],
-    ],
-    ids=["a value outside the old vocabulary", "written twice"],
-)
-def test_a_pact_notify_row_an_earlier_release_read_is_ignored(world, rows):
-    """`templates/config.md` *Pact*: a `Pact notify` row left in a signer's
-    table is read by nobody."""
-    write(world.web, "seal/config.md", signer_config(("Pact", PACT_URL), *rows))
-    world.cite(clause(V2))
-    code, out = world.run()
-    assert code == 0, out
-    assert "REFUSED" not in out and "`Pact notify`" not in out, out
 
 
 # For #923: it reads this module's source.

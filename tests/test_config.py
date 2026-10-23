@@ -9,10 +9,14 @@ normaliser's from `tests/test_the_records_can_be_carried_out_and_in.py`, the
 from `tests/test_the_pull_request_language_is_the_repositorys.py` and three
 of the table walker's from
 `tests/test_one_table_walker_reads_what_gfm_renders.py`, which keeps the
-walker held to cmark-gfm, and the reader's cases of
-`tests/test_the_mode_question_is_asked_once.py`, which keeps the writer's.
-Each case keeps its body; a name its old file defined for it is defined
-here, and a fixture or text two files read is `tests/conftest.py`'s.
+walker held to cmark-gfm, the reader's cases of
+`tests/test_the_mode_question_is_asked_once.py`, which keeps the writer's,
+the pact readers' of `tests/test_a_signer_declares_its_pact.py`, and the
+seven cases `tests/test_pact_check.py` left for this module, which run
+`pact-check` over the pact's world in `tests/conftest.py`. Each case keeps
+its body, except two that read the pact's text as `PACT_TEXT`, because
+`PACT` is the world's path to it; a name its old file defined for it is
+defined here, and a fixture or text two files read is `tests/conftest.py`'s.
 """
 
 import importlib.util
@@ -27,21 +31,34 @@ from conftest import (
     FENCED_ABOVE,
     FENCED_BELOW_A_TABLE_THAT_NEVER_BEGAN,
     FENCED_REFUSAL,
+    MOBILE_URL,
+    ORDERS,
+    PACT,
+    PACT_URL,
     PIPED_TABLE,
     ROOT,
+    SIGNER_URL,
     TABLE,
     UNDER_THE_COMMENT,
+    URL,
+    V2,
     census_case,
+    clause,
     crlf,
     load_hook_module,
     load_module,
     local_home,
+    old_header,
     opt_in_shared,
+    pact,
     parity_file,
     shape_text,
+    signer_config,
+    write,
     write_config,
     write_unreadable,
 )
+from conftest import commit_everything_as_e as commit
 from conftest import config_table as table
 
 TARGET = "hooks/config.py"
@@ -56,6 +73,152 @@ COMMENTED_OLD_ROW = shape_text("C5")
 COMMENTED_OLD_TABLE = shape_text("C6")
 QUOTED_DELIMITERS = shape_text("C1")
 LIVE = [("Mode", "shared"), ("Broad gate", "bin/test -q")]
+
+# The pact readers' texts, from `tests/test_a_signer_declares_its_pact.py`.
+# The pact's text is `PACT_TEXT` here: `PACT` is the pact's path, which the
+# cases that run `pact-check` over the world write to.
+CONFIG_TOP = "# config\n\n| Item | Value |\n|---|---|\n| Mode | shared |\n"
+CONFIG = CONFIG_TOP + f"| Pact | {URL} |\n"
+
+
+def walked(text):
+    """The walker's refusals of TEXT's `| Item | Value |` table, which
+    `pact_declaration` appends after its own since #871. The sentences
+    themselves are pinned by `Test_config_table` and by the oracle; here what
+    is pinned is that they arrive, last."""
+    return config.config_table(text)[1]
+
+
+BARE_PIPE = (
+    "has a `Item | Value` table that stops at "
+    "`| Broad gate | bin/test -q | tee out |`, which is not a 2-cell row "
+    "written `| … | … |` — every row below it would go unread"
+)
+
+PACT_TEXT = (
+    "# Pact\n\n<!-- | Signer |\n|---|\n| git@example.com:org/quoted.git | -->\n\n"
+    "| Signer |\n|---|\n"
+    "| git@example.com:org/orders-web.git |\n"
+    "| https://example.com/other/orders-web |\n\n"
+    "## Order response shape\n\nx\n"
+)
+
+# The header 0.18.x wrote (#822), spelled out here rather than read from
+# `hooks/config.py#renamed_header`: a case taking the old header from the
+# reader's own constant would pass with that constant changed, and the pacts
+# written in 0.18.x would not.
+OLD = PACT_TEXT.replace("| Signer |\n|---|\n|", "| Signatory |\n|---|\n|")
+
+BOTH = (
+    "also holds a `| Signatory |` header, the word before 0.19.0, and nothing "
+    "under it is read while the `| Signer |` table stands — move its rows into "
+    "that table and delete it"
+)
+
+# Every way GFM ends or breaks the `Signer` table (round 2 of #647). A table is
+# a header row, a delimiter row of the same width, then body rows, and it is
+# broken by a blank line or by the start of another block. Each way is either
+# read as GFM reads it, or refused; none drops a signer while the table reads
+# as complete. These cases pin the SENTENCES the pact prints; that the walk
+# reads what GFM renders is held by
+# `tests/test_one_table_walker_reads_what_gfm_renders.py`, over a corpus
+# enumerated from the block kinds and judged by cmark-gfm itself.
+WEB = "https://example.com/org/orders-web"
+MOBILE = "https://example.com/org/orders-mobile"
+HEAD = f"# Pact\n\n| Signer |\n|---|\n| {WEB} |\n"
+CLAUSE = "\n## Order response shape\n\nx\n"
+ENDS_ABOVE = (
+    f"has a `Signer` table that ends above `| {MOBILE} |`, a row the walk "
+    "never reaches — it and every signer below it would go unread"
+)
+
+
+def stops_at(line, why="which is not a one-cell row written `| … |`"):
+    return (
+        f"has a `Signer` table that stops at `{line}`, {why} — every "
+        "signer below it would go unread"
+    )
+
+
+TABLE_ENDS = [
+    ("a blank line, then a row", HEAD + f"\n| {MOBILE} |\n" + CLAUSE, ENDS_ABOVE),
+    (
+        "a line with no pipe",
+        HEAD + f"{MOBILE}\n" + CLAUSE,
+        f"has a `Signer` table that continues with `{MOBILE}`, a line with "
+        "no pipe that GFM reads as one of its rows — write it as `| … |`",
+    ),
+    ("a heading", HEAD + f"## A clause\n\n| {MOBILE} |\n", None),
+    ("a fence", HEAD + f"```\nx\n```\n| {MOBILE} |\n" + CLAUSE, ENDS_ABOVE),
+    ("an HTML comment", HEAD + f"<!-- a note -->\n| {MOBILE} |\n" + CLAUSE, ENDS_ABOVE),
+    ("a block quote", HEAD + f"> a note\n| {MOBILE} |\n" + CLAUSE, ENDS_ABOVE),
+    ("a list item", HEAD + f"- a note\n| {MOBILE} |\n" + CLAUSE, ENDS_ABOVE),
+    ("the end of the file", HEAD, None),
+    # Round 3 of #735 (🟡 18): an autolink is a row to GFM, not an HTML
+    # block, and a thematic break ends the table rather than being a row.
+    (
+        "an autolink row",
+        HEAD + f"<{MOBILE}>\n" + CLAUSE,
+        f"has a `Signer` table that continues with `<{MOBILE}>`, a line with "
+        "no pipe that GFM reads as one of its rows — write it as `| … |`",
+    ),
+    ("an HTML block", HEAD + f"<div>\n| {MOBILE} |\n" + CLAUSE, ENDS_ABOVE),
+    ("an ordered list item", HEAD + f"1. a note\n| {MOBILE} |\n" + CLAUSE, ENDS_ABOVE),
+    ("a thematic break", HEAD + f"***\n| {MOBILE} |\n" + CLAUSE, ENDS_ABOVE),
+    ("a thematic break, then a clause", HEAD + "---\n" + CLAUSE, None),
+    # ⬜ 22: indented as GFM permits, read rather than refused.
+    (
+        "an indented header, delimiter and row",
+        f"# Pact\n\n   | Signer |\n  |---|\n | {WEB} |\n" + CLAUSE,
+        None,
+    ),
+    (
+        "a row four columns in",
+        HEAD + f"    | {MOBILE} |\n" + CLAUSE,
+        f"has a `Signer` table that ends above `| {MOBILE} |`, a row the walk "
+        "never reaches — it and every signer below it would go unread",
+    ),
+    (
+        "a header GFM reads into a list item",
+        f"# Pact\n\n- a note\n| Signer |\n|---|\n| {WEB} |\n" + CLAUSE,
+        "has a `| Signer |` header directly under `- a note`, and GFM "
+        "renders a table under a line only in some of the shapes that line "
+        "can take — leave a blank line above the header",
+    ),
+    (
+        "no delimiter row",
+        f"# Pact\n\n| Signer |\n| {WEB} |\n" + CLAUSE,
+        "has a `| Signer |` header with no delimiter row under it, so GFM "
+        "renders no table there",
+    ),
+    (
+        "a comment between the header and its delimiter",
+        f"# Pact\n\n| Signer |\n<!-- a note -->\n|---|\n| {WEB} |\n" + CLAUSE,
+        "has a `| Signer |` header with no delimiter row under it, so GFM "
+        "renders no table there",
+    ),
+    (
+        "a delimiter row of the wrong width",
+        f"# Pact\n\n| Signer |\n|---|---|\n| {WEB} |\n" + CLAUSE,
+        "has a `| Signer |` header over a delimiter row of 2 cells, so GFM "
+        "renders no table there",
+    ),
+    (
+        "a delimiter row out of place",
+        HEAD + f"|---|\n| {MOBILE} |\n" + CLAUSE,
+        stops_at("|---|", "a delimiter row out of place"),
+    ),
+    ("too few cells", HEAD + "|  |\n" + CLAUSE, "an empty row"),
+    (
+        "too many cells",
+        HEAD + f"| {MOBILE} | the app |\n" + CLAUSE,
+        stops_at(f"| {MOBILE} | the app |"),
+    ),
+    ("no closing pipe", HEAD + f"| {MOBILE}\n" + CLAUSE, stops_at(f"| {MOBILE}")),
+    ("no opening pipe", HEAD + f"{MOBILE} |\n" + CLAUSE, stops_at(f"{MOBILE} |")),
+]
+
+ENTRY = "has a `Signer` entry that will not read: "
 
 # `seal.py`, which re-exports `normalise_remote`: the normaliser's cases ask
 # it by that name, through the `seal` fixture below.
@@ -1100,6 +1263,481 @@ class Test_unfenced:
         assert [index for index, _line in config.unfenced(lines)] == list(
             range(len(lines))
         )
+
+
+class Test_pact_declaration:
+    def test_accepts_one_pact_normalised(self):
+        """S1. One URL: the URL normalised, and its name."""
+        pacts, refusals = config.pact_declaration(
+            table(("Mode", "shared"), ("Pact", "git@example.com:org/Orders-API.git"))
+        )
+        assert refusals == []
+        assert pacts == [
+            (
+                "git@example.com:org/Orders-API.git",
+                "example.com/org/orders-api",
+                "orders-api",
+            )
+        ]
+
+    def test_two_pacts_come_back_in_order(self):
+        """S2. `;` separates the pacts a signer signs, and the order is the
+        row's."""
+        pacts, refusals = config.pact_declaration(
+            table(
+                (
+                    "Pact",
+                    "https://example.com/org/orders-api ; git@example.com:org/billing.git",
+                ),
+            )
+        )
+        assert refusals == []
+        assert [name for _, _, name in pacts] == ["orders-api", "billing"]
+
+    def test_no_row_and_an_empty_row_hold_no_pact(self):
+        """Absent means no pact is held elsewhere, and so do an empty value and
+        a file with no table."""
+        for text in (
+            table(("Mode", "shared")),
+            table(("Pact", "")),
+            "no table here\n",
+        ):
+            assert config.pact_declaration(text) == ([], []), text
+
+    @pytest.mark.parametrize(
+        "rows",
+        [
+            [("Pact notify", "sometimes")],
+            [("Pact notify", "never"), ("Pact notify", "always")],
+        ],
+        ids=["a value outside the old vocabulary", "written twice"],
+    )
+    def test_a_pact_notify_row_an_earlier_release_read_is_ignored(self, rows):
+        """`templates/config.md` *Pact*: a `Pact notify` row left in the table
+        is read by nobody, with a `Pact` row or without one, so neither a value
+        outside the vocabulary the row once had nor the row written twice is
+        refused. Seen red by `mutation-check` against a reader that refused the
+        row (phase 8 of 1791940762)."""
+        assert config.pact_declaration(table(("Pact", URL), *rows)) == (ORDERS, [])
+        assert config.pact_declaration(table(*rows)) == ([], [])
+
+    def test_refuses_a_row_that_will_not_parse_and_never_reads_it_as_absent(self):
+        """Each way an entry fails is a sentence naming it, so a signer that
+        wrote a row is never read as one that wrote none."""
+        cases = {
+            "orders-api": "is not a remote URL",
+            "git@example.com:org/a.git;;git@example.com:org/b.git": "holds an empty entry",
+            "git@example.com:org/a.git git@example.com:org/b.git": "holds a space",
+            "https://example.com/org/a+b": "which a pact anchor cannot name",
+            "git@example.com:org/api.git;https://example.com/other/api": "both end in `api`",
+            "git@example.com:org/api.git;https://example.com/org/api": "are one repository",
+        }
+        for value, said in cases.items():
+            _, refusals = config.pact_declaration(table(("Pact", value)))
+            assert len(refusals) == 1 and said in refusals[0], (value, refusals)
+        # A `Pact` row written twice has no value, in the one sentence every
+        # config row is refused in (#867): its first row is not the answer, so it
+        # lists no pact. Seen red against the first-wins reader, which listed `a`.
+        pacts, refusals = config.pact_declaration(
+            table(
+                ("Pact", "git@example.com:org/a.git"),
+                ("Pact", "git@example.com:org/b.git"),
+            )
+        )
+        assert pacts == []
+        assert refusals == ["`Pact` appears 2 times — one value"]
+
+    @pytest.mark.parametrize(
+        "text",
+        [
+            f"| Item | Value |\n|---|---|\n | Pact | {URL} |\n| Mode | shared |\n",
+            CONFIG_TOP + f"  | Pact | {URL} |\n",
+        ],
+        ids=["between the header and the first row", "indented"],
+    )
+    def test_an_indented_pact_row_is_read_as_cmark_gfm_renders_it(self, text):
+        """#871. A row indented one to three spaces is one of the table's rows
+        to cmark-gfm, and the walker reads it: the row is read, and nothing is
+        refused. Seen red against the stop rule, whose row pattern began at the
+        margin."""
+        assert config.pact_declaration(text) == (ORDERS, [])
+
+    def test_a_signer_config_the_walker_refuses_is_refused_after_the_pact(self):
+        """#871. A signer's table is read by the walker cmark-gfm holds, so a
+        line it refuses is refused here as well, after every other refusal. A
+        `Pact` row above the line is read; one below it is a row the walk never
+        read, so no pact comes back. Seen red against the stop rule: the line
+        ended the table in silence and nothing was refused."""
+        bad = "| Broad gate | bin/test -q | tee out |\n"
+        assert config.pact_declaration(CONFIG + bad) == (ORDERS, [BARE_PIPE])
+        assert walked(CONFIG + bad) == [BARE_PIPE]
+        assert config.pact_declaration(CONFIG_TOP + bad + f"| Pact | {URL} |\n") == (
+            [],
+            [BARE_PIPE],
+        )
+        # The arm a doubled `Pact` returns from early keeps the walker's sentence
+        # last too: seen red by `mutation-check` dropping it on that arm alone.
+        doubled = CONFIG + "| Pact | git@example.com:org/b.git |\n" + bad
+        assert config.pact_declaration(doubled) == (
+            [],
+            ["`Pact` appears 2 times — one value", BARE_PIPE],
+        )
+
+
+class Test_declared_pacts:
+    def test_an_unreadable_config_is_no_declaration(self, tmp_path):
+        """`declared_pacts` is what `pact-check` reads a signer's row
+        through. No file is no row; a file that is there and will not read is
+        None, which the caller refuses, because a written row read as absent is
+        the silence the reader exists to end."""
+        assert config.declared_pacts(str(tmp_path / "missing")) == ([], [])
+        home = tmp_path / "seal"
+        (home / "config.md").mkdir(parents=True)
+        assert config.declared_pacts(str(home)) is None
+        (home / "config.md").rmdir()
+        (home / "config.md").write_text(table(("Pact", URL)), encoding="utf-8")
+        pacts, refusals = config.declared_pacts(str(home))
+        assert [n for _, _, n in pacts] == ["orders-api"] and refusals == []
+
+    def test_refuses_a_signer_config_the_walker_refuses_with_exit_2(self, world):
+        """S4 of #871: a bare-piped line in a signer's table is refused in the
+        walker's sentence, naming the line, and the run exits 2."""
+        write(
+            world.web,
+            "seal/config.md",
+            signer_config(("Pact", PACT_URL))
+            + "| Broad gate | bin/test -q | tee out |\n",
+        )
+        world.cite(clause(V2))
+        code, out = world.run()
+        assert code == 2, out
+        assert (
+            f"REFUSED {SIGNER_URL} seal/config.md — has a `Item | Value` table that "
+            "stops at `| Broad gate | bin/test -q | tee out |`, which is not a "
+            "2-cell row written `| … | … |`"
+        ) in out, out
+
+    @pytest.mark.parametrize(
+        "rows",
+        [
+            [("Pact notify", "sometimes")],
+            [("Pact notify", "never"), ("Pact notify", "always")],
+        ],
+        ids=["a value outside the old vocabulary", "written twice"],
+    )
+    def test_accepts_a_pact_notify_row_an_earlier_release_read_as_nothing(
+        self, world, rows
+    ):
+        """`templates/config.md` *Pact*: a `Pact notify` row left in a signer's
+        table is read by nobody."""
+        write(world.web, "seal/config.md", signer_config(("Pact", PACT_URL), *rows))
+        world.cite(clause(V2))
+        code, out = world.run()
+        assert code == 0, out
+        assert "REFUSED" not in out and "`Pact notify`" not in out, out
+
+
+class Test_pact_signers:
+    def test_accepts_the_signers_a_pact_lists_and_no_table_in_a_comment(self):
+        """Two signers may end in one segment, because nobody cites a
+        signer by name; a table in a comment block is not the table."""
+        signers, refusals, header = config.pact_signers(PACT_TEXT)
+        assert refusals == [] and header == ("Signer",)
+        assert [n for _, n, _ in signers] == [
+            "example.com/org/orders-web",
+            "example.com/other/orders-web",
+        ]
+
+    def test_refuses_a_pact_with_no_table_or_an_unfilled_one(self):
+        """A pact nobody signs is not a pact, and the template's placeholder row
+        is refused rather than read as a signer. A pact holding neither header
+        is refused naming the new one (S3 of #822)."""
+        assert config.pact_signers("# Pact\n\n## A\n") == (
+            [],
+            ["holds no `| Signer |` table, so it names no signer"],
+            None,
+        )
+        with open(os.path.join(ROOT, "templates", "pact.md"), encoding="utf-8") as h:
+            signers, refusals, header = config.pact_signers(h.read())
+        assert signers == [] and len(refusals) == 1 and "holds a space" in refusals[0]
+        assert header == ("Signer",), "the template begins a pact with the new word"
+        _, refusals, _ = config.pact_signers("| Signer |\n|---|\n\n## A\n")
+        assert refusals == ["has a `Signer` table that lists nobody"]
+        # A header GFM renders no table under is that refusal alone: it names
+        # no table, so it cannot be one that lists nobody.
+        assert config.pact_signers("| Signer |\n\n## A\n") == (
+            [],
+            [
+                "has a `| Signer |` header with no delimiter row under it, so "
+                "GFM renders no table there"
+            ],
+            ("Signer",),
+        )
+
+    def test_s2_a_pact_headed_as_0_18_wrote_it_is_read_the_same(self):
+        """The old header reads to the same signers, and the reader says which
+        header it read, so a caller can name the rename without reading the text
+        again; the comment block's quoted table is still not the table."""
+        assert "| Signatory |\n|---|\n| git@example.com:org/orders-web" in OLD
+        signers, refusals, header = config.pact_signers(OLD)
+        assert (signers, refusals) == config.pact_signers(PACT_TEXT)[:2]
+        assert header == ("Signatory",)
+        assert config.renamed_header(config.SIGNER_HEADER)[0] == header
+
+    def test_s2_every_refusal_under_the_old_header_names_it(self):
+        """A table under the old header that lists nobody, or holds an entry
+        that will not read, is refused in the old header's word."""
+        _, refusals, header = config.pact_signers("| Signatory |\n|---|\n\n## A\n")
+        assert refusals == ["has a `Signatory` table that lists nobody"]
+        assert header == ("Signatory",)
+        _, refusals, _ = config.pact_signers(
+            "| Signatory |\n|---|\n| orders-mobile |\n\n## A\n"
+        )
+        assert refusals == [
+            "has a `Signatory` entry that will not read: `orders-mobile` is not a "
+            "remote URL — it reduces to no host and path, so no repository can be "
+            "found by it"
+        ], refusals
+
+    def test_s4_a_pact_holding_both_tables_reads_signer_and_refuses_the_old_one(
+        self,
+    ):
+        """S4 of #822, and round 1's yellow 1. A `| Signer |` table is read
+        alone, and an old table anywhere else in the file is refused rather than
+        left unread: below it under a heading, above it under a heading, or
+        above it with only a blank line between. Its rows hold signers, and a
+        signer nobody reads at exit 0 is what the table walker exists to end.
+        Directly below after a blank line, the walk's stray-row refusal already
+        names it; with no blank line GFM reads it as one of the `Signer` rows,
+        and it is named as the old header rather than as an entry. It is never
+        named twice."""
+        signer = "# Pact\n\n| Signer |\n|---|\n| https://example.com/org/orders-web |\n"
+        old = "| Signatory |\n|---|\n| https://example.com/org/billing |\n"
+        for text in (
+            signer + "\n## Before\n\n" + old + "\n## A\n\nx\n",
+            f"# Pact\n\n{old}\n## Now\n\n" + signer.split("\n\n", 1)[1],
+            f"# Pact\n\n{old}\n" + signer.split("\n\n", 1)[1],
+        ):
+            signers, refusals, header = config.pact_signers(text)
+            assert [s[2] for s in signers] == ["orders-web"], (text, signers)
+            assert refusals == [BOTH] and header == ("Signer",), (text, refusals)
+        _, refusals, header = config.pact_signers(signer + "\n" + old)
+        assert header == ("Signer",)
+        assert refusals == [
+            "has a `Signer` table that ends above `| Signatory |`, a row the walk "
+            "never reaches — it and every signer below it would go unread"
+        ], refusals
+        # Written without its spaces, the old header is quoted as written by the
+        # stray-row refusal, and is still named once (round 2 of #822, white 5).
+        _, refusals, _ = config.pact_signers(
+            signer + "\n|Signatory|\n|---|\n|https://example.com/org/billing|\n"
+        )
+        assert len(refusals) == 1 and "ends above `|Signatory|`" in refusals[0], (
+            refusals
+        )
+        # With no blank line above it, GFM reads the old header as a row of the
+        # `Signer` table; it is named once, as a line inside that table, and not
+        # also as an entry that is not a remote URL (round 3 of #822, white 11;
+        # #830). A second old table further down does not name it twice.
+        glued = (
+            "holds a `| Signatory |` line inside its `| Signer |` table, the word "
+            "before 0.19.0, which GFM reads as one of that table's rows — delete "
+            "the line"
+        )
+        for under in (
+            "|Signatory|\n|---|\n|https://example.com/org/billing|\n",
+            "| Signatory |\n",
+            "  | Signatory |\n",
+            "| Signatory |\n\n## X\n\n| Signatory |\n|---|\n| https://example.com/org/b |\n",
+        ):
+            # The line is quoted as it is written, its indent aside, so a person
+            # searching the file for it finds it (#831).
+            signers, refusals, _ = config.pact_signers(signer + under)
+            assert [s[2] for s in signers] == ["orders-web"], signers
+            assert sum("Signatory" in r for r in refusals) == 1, refusals
+            quoted = under.split("\n", 1)[0].strip()
+            assert glued.replace("`| Signatory |`", f"`{quoted}`") in refusals, refusals
+        # Rows under a glued old header with no delimiter row are rows of the
+        # `Signer` table to GFM, and they are read as signers; the refusal says
+        # so rather than "nothing under it is read" (post-review check of #830).
+        signers, refusals, _ = config.pact_signers(
+            signer + "| Signatory |\n| https://example.com/org/billing |\n"
+        )
+        assert [s[2] for s in signers] == ["orders-web", "billing"], signers
+        assert refusals == [glued], refusals
+        # A glued old header above a second old table after a blank line: the
+        # walk's stray-row refusal names the second, and the glued line is not
+        # also refused as an entry (post-review check 2 of #830; #831).
+        signers, refusals, _ = config.pact_signers(
+            signer
+            + "| Signatory |\n\n| Signatory |\n|---|\n| https://example.com/org/billing |\n"
+        )
+        assert [s[2] for s in signers] == ["orders-web"], signers
+        assert refusals == [
+            "has a `Signer` table that ends above `| Signatory |`, a row the walk "
+            "never reaches — it and every signer below it would go unread"
+        ], refusals
+
+    def test_s4_a_broken_signer_table_does_not_fall_back_to_the_old_one(self):
+        """A `Signer` table that will not read is refused as it stands; a
+        well-formed old table below it is not read in its place, and is named."""
+        text = (
+            "# Pact\n\n- a note\n| Signer |\n|---|\n| https://example.com/org/a |\n\n"
+            "| Signatory |\n|---|\n| https://example.com/org/b |\n\n## A\n\nx\n"
+        )
+        signers, refusals, header = config.pact_signers(text)
+        assert signers == [] and header == ("Signer",), (signers, header)
+        assert refusals and "`| Signer |` header directly under" in refusals[0]
+        assert BOTH in refusals, refusals
+
+    @pytest.mark.parametrize(
+        "row",
+        [
+            "| https://example.com/org/orders-mobile",
+            "| https://example.com/org/orders-mobile | the app |",
+        ],
+        ids=["no closing pipe", "two cells"],
+    )
+    def test_a_signer_row_the_walk_cannot_read_is_refused(self, row):
+        """A table line the walk cannot read ends it, and the signers below
+        it would go unread; the line is refused rather than passed in silence."""
+        text = (
+            "# Pact\n\n| Signer |\n|---|\n| https://example.com/org/orders-web |\n"
+            + row
+            + "\n\n## A\n\nx\n"
+        )
+        signers, refusals, _ = config.pact_signers(text)
+        assert [s[2] for s in signers] == ["orders-web"]
+        assert refusals == [
+            f"has a `Signer` table that stops at `{row}`, which is not a one-cell "
+            "row written `| … |` — every signer below it would go unread"
+        ], refusals
+
+    @pytest.mark.parametrize(
+        "text, said", [c[1:] for c in TABLE_ENDS], ids=[c[0] for c in TABLE_ENDS]
+    )
+    def test_every_way_the_table_ends_is_read_or_refused(self, text, said):
+        signers, refusals, _ = config.pact_signers(text)
+        if said is None:
+            assert refusals == [], refusals
+            assert [s[1] for s in signers] == ["example.com/org/orders-web"]
+        else:
+            assert any(said in r for r in refusals), refusals
+
+    @pytest.mark.parametrize(
+        "row, sentence",
+        [
+            ("|  |", ENTRY + "an empty row"),
+            (
+                "| https://example.com/org/orders web |",
+                ENTRY + "`https://example.com/org/orders web` holds a space — one "
+                "remote URL per entry",
+            ),
+            (
+                "| orders-mobile |",
+                ENTRY + "`orders-mobile` is not a remote URL — it reduces to no host "
+                "and path, so no repository can be found by it",
+            ),
+            (
+                "| git@example.com:org/orders-web.git |",
+                ENTRY + "`git@example.com:org/orders-web.git` and "
+                "`https://example.com/org/orders-web` are one repository",
+            ),
+        ],
+        ids=["empty", "a space", "not a url", "one repository"],
+    )
+    def test_every_entry_refusal_reads_after_the_pact(self, row, sentence):
+        """Both callers print a table refusal after "the pact "; each sentence
+        an entry can raise is pinned whole (round 2 of #647, white 14)."""
+        text = HEAD + row + "\n" + CLAUSE
+        _, refusals, _ = config.pact_signers(text)
+        assert refusals == [sentence], refusals
+        assert ("the pact " + sentence).count("the pact the") == 0
+
+    def test_s2_a_broken_table_under_the_old_header_is_refused_naming_it(self, world):
+        """The refusal names the header the walk was asked for, so a table
+        under the old header that will not read says `Signatory`, beside the
+        rename line; the exit is the refusal's."""
+        text = old_header(pact(V2)).replace(
+            f"| {SIGNER_URL} |\n", f"| {SIGNER_URL} |\n| {MOBILE_URL}\n"
+        )
+        write(world.api, PACT, text)
+        commit(world.api, "an old header over a row with no closing pipe")
+        world.cite(clause(V2))
+        code, out = world.run()
+        assert code == 2, out
+        assert "heads its table `| Signatory |`" in out, out
+        assert (
+            "REFUSED seal/pact.md — the pact has a `Signatory` table that stops at "
+            f"`| {MOBILE_URL}`"
+        ) in out, out
+
+    def test_s4_a_pact_holding_both_tables_is_exit_2_naming_the_old_one(self, world):
+        """The old table above the new one, under a heading of its own, holds a
+        signer the `Signer` table does not list; it is refused, and no rename
+        line is printed, because the header read is the new one."""
+        text = pact(V2).replace(
+            "# Pact\n\n",
+            f"# Pact\n\n| Signatory |\n|---|\n| {MOBILE_URL} |\n\n## Before 0.19.0\n\n",
+            1,
+        )
+        write(world.api, PACT, text)
+        commit(world.api, "an old table above a new one")
+        world.cite(clause(V2))
+        code, out = world.run()
+        assert code == 2, out
+        assert (
+            "REFUSED seal/pact.md — the pact also holds a `| Signatory |` header, the "
+            "word before 0.19.0, and nothing under it is read while the `| Signer |` "
+            "table stands — move its rows into that table and delete it"
+        ) in out, out
+        assert "heads its table" not in out, out
+
+    @pytest.mark.parametrize(
+        "line, message, said",
+        [
+            (
+                f"\n| {MOBILE_URL} |\n",
+                "a blank line inside the table",
+                "the pact has a `Signer` table that ends above "
+                f"`| {MOBILE_URL} |`, a row the walk never reaches — it and every "
+                "signer below it would go unread",
+            ),
+            (
+                f"<{MOBILE_URL}>\n",
+                "a signer written as an autolink",
+                "the pact has a `Signer` table that continues with "
+                f"`<{MOBILE_URL}>`, a line with no pipe that GFM reads as one of "
+                "its rows — write it as `| … |`",
+            ),
+        ],
+        ids=["a row below a blank line", "a signer written as an autolink"],
+    )
+    def test_refuses_a_signer_the_walk_never_reads_and_prints_why(
+        self, world, line, message, said
+    ):
+        """A signer written below a blank line, or as an autolink GFM reads as
+        a row, is never passed over: `check` exits 2 and prints the walker's
+        sentence after the pact's path."""
+        text = pact(V2).replace(f"| {SIGNER_URL} |\n", f"| {SIGNER_URL} |\n" + line)
+        write(world.api, PACT, text)
+        commit(world.api, message)
+        world.cite(clause(V2))
+        code, out = world.run()
+        assert code == 2, out
+        assert "REFUSED seal/pact.md — " + said in out, out
+
+    def test_an_entry_refusal_is_printed_after_the_pact(self, world):
+        text = pact(V2).replace(f"| {SIGNER_URL} |\n", f"| {SIGNER_URL} |\n|  |\n")
+        write(world.api, PACT, text)
+        commit(world.api, "an empty row")
+        world.cite(clause(V2))
+        code, out = world.run()
+        assert code == 2, out
+        assert (
+            "REFUSED seal/pact.md — the pact has a `Signer` entry that will not "
+            "read: an empty row"
+        ) in out, out
 
 
 class Test_gfm_table:
