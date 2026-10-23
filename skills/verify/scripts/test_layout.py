@@ -58,7 +58,7 @@ files, with nothing cut, merged or rewritten, and such a group needs no
 mutants. It reads each OLD file at BASE through `git show` and each NEW
 file in the working tree; one path may stand in both lists, for an old
 file that keeps cases for a later group. It prints a line opening with
-`moved:` for each failure of its three conditions:
+`moved:` for each failure of its four conditions:
 
   count    pytest collects as many items from the NEW files as from the OLD
            files at BASE, each parametrize row one item, the census case
@@ -78,6 +78,24 @@ file that keeps cases for a later group. It prints a line opening with
            fixtures it requests, is defined alike in both trees, in the
            case's class, its file or `tests/conftest.py`, read as a case's
            body is read; a name defined in neither tree is pytest's own
+  names    each name the case and those fixtures read from the module
+           around them, as Python's scoping resolves it, is defined alike in
+           both trees: a helper, a constant a `parametrize` mark reads, a
+           module an import or a loader's call binds, an attribute
+           `<module>.<name>` of a module directly under `tests/` that is no
+           test file, and `self.<name>` where the case's class binds it;
+           each definition is followed through the names it reads in turn,
+           and a name `from <that module> import` brings is read where that
+           module defines it, in the same tree, so a helper moved unchanged
+           into `tests/conftest.py` passes. A function or class compares as
+           a case's body does, an import as the one alias that binds the
+           name, any other statement as written, and a statement binding
+           the name inside a compound statement as that whole statement. A
+           name bound in neither tree is a builtin's or pytest's; a name a
+           case reaches only through a string, such as `globals()["x"]`, is
+           not read. A case is tested on this condition only where it
+           passed the other two, and its line names the first name, in
+           alphabetical order, whose own definition differs
 
 It then prints the old cases, both counts and the failures on one last line.
 
@@ -99,6 +117,7 @@ import os
 import posixpath
 import shutil
 import subprocess
+import symtable
 import sys
 import tempfile
 import types
@@ -110,6 +129,7 @@ ACCEPTS = "test_accepts_"
 REFUSES = "test_refuses_"
 E2E = "tests/e2e/"
 TESTS = "tests/"
+CONFTEST_MODULE = "conftest"
 
 
 def declared_target(source):
@@ -477,17 +497,20 @@ def _without_docstring(body):
 
 
 def _moved_form(definition):
-    """DEFINITION, a case or a fixture, as an AST dump that keeps its
-    decorators, its parameters and its body, and drops its name, a first
-    `self`, and the docstring of DEFINITION and of every function and class
-    it defines, at any depth. The formatter the edit hook runs re-indents a
-    nested docstring's continuation lines to the depth a move puts it at, so
-    a docstring compared would fail a case whose code did not change."""
+    """DEFINITION, a case, a fixture, or a function or class a case reads,
+    as an AST dump that keeps its decorators, its parameters and its body,
+    and drops its name, a first `self`, and the docstring of DEFINITION and
+    of every function and class it defines, at any depth. The formatter the
+    edit hook runs re-indents a nested docstring's continuation lines to the
+    depth a move puts it at, so a docstring compared would fail a case whose
+    code did not change."""
     node = copy.deepcopy(definition)
     node.name = ""
     for inner in list(ast.walk(node)):
         if isinstance(inner, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
             inner.body = _without_docstring(inner.body) or [ast.Pass()]
+    if isinstance(node, ast.ClassDef):
+        return ast.dump(node)
     params = node.args.posonlyargs or node.args.args
     if params and params[0].arg == "self":
         del params[0]
@@ -578,24 +601,191 @@ def _requested(tree, cls, case, conftest):
     return names
 
 
-def _resolver(tree, cls, conftest):
+def _resolver(label, tree, cls, conftest):
     """A function from a fixture name to its definition's form
-    (`_moved_form`) and the fixtures it requests, read in CASE's class, then
-    its file, then CONFTEST's tree; None where none of them defines it,
-    which is a fixture pytest itself provides."""
-    scopes = ([cls.body] if cls is not None else []) + [tree.body]
+    (`_moved_form`), the fixtures it requests, and where it stands, `(label,
+    class or None, definition)`, read in CASE's class, then its file LABEL,
+    then CONFTEST's tree, labelled `conftest`; None where none of them
+    defines it, which is a fixture pytest itself provides."""
+    scopes = ([(label, cls)] if cls is not None else []) + [(label, None)]
     if conftest is not None:
-        scopes.append(conftest.body)
-    tables = [_fixtures(body) for body in scopes]
+        scopes.append((CONFTEST_MODULE, None))
+    trees = {label: tree, CONFTEST_MODULE: conftest}
+    tables = [
+        (where, owner, _fixtures((owner or trees[where]).body))
+        for where, owner in scopes
+    ]
 
     def resolve(name):
-        for table in tables:
+        for where, owner, table in tables:
             if name in table:
                 node = table[name][0]
-                return _moved_form(node), set(_parameters(node)) - {"request"}
+                requests = set(_parameters(node)) - {"request"}
+                return _moved_form(node), requests, (where, owner, node)
         return None
 
     return resolve
+
+
+def _reached(resolve, names):
+    """Where each fixture under NAMES stands, `(label, class or None,
+    definition)`, followed through the fixtures each requests as RESOLVE
+    reads them; a name RESOLVE does not define is pytest's and left out."""
+    found, seen, todo = [], set(), sorted(names)
+    while todo:
+        name = todo.pop(0)
+        if name in seen:
+            continue
+        seen.add(name)
+        hit = resolve(name)
+        if hit is not None:
+            found.append(hit[2])
+            todo += sorted(hit[1] - seen)
+    return found
+
+
+def _alias_name(alias):
+    return (alias.asname or alias.name).split(".")[0]
+
+
+def _binds(statement):
+    """The names STATEMENT stores, defines or imports anywhere inside it. A
+    compound statement stands for every name bound inside it, and a name a
+    function stores for itself is counted too: the reading only grows what
+    is compared."""
+    names = set()
+    for inner in ast.walk(statement):
+        if isinstance(inner, ast.Name) and not isinstance(inner.ctx, ast.Load):
+            names.add(inner.id)
+        elif isinstance(inner, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            names.add(inner.name)
+        elif isinstance(inner, (ast.Import, ast.ImportFrom)):
+            names |= {_alias_name(a) for a in inner.names}
+    return names
+
+
+def _form(statement, name):
+    """How STATEMENT, which binds NAME, is compared: an import as the one
+    alias that binds NAME, its module, the name taken and the relative
+    level; a function or class as a case's body is (`_moved_form`); any
+    other statement as written."""
+    if isinstance(statement, (ast.Import, ast.ImportFrom)):
+        alias = next(a for a in statement.names if _alias_name(a) == name)
+        return repr(
+            (
+                getattr(statement, "module", None),
+                alias.name,
+                getattr(statement, "level", None),
+            )
+        )
+    if isinstance(statement, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+        return _moved_form(statement)
+    return ast.dump(statement)
+
+
+class _Names:
+    """One tree's side of the name condition. TREES is `{label: tree}` for
+    the test files and the modules directly under `tests/` that are not test
+    files, each module under its import name, which MODULES lists."""
+
+    def __init__(self, trees, modules):
+        self.trees, self.modules = trees, modules
+        self._binders, self._reads = {}, {}
+
+    def binders(self, body):
+        """`{name: [statement, ...]}` for the statements of BODY, in order."""
+        if id(body) not in self._binders:
+            found = {}
+            for statement in body:
+                for name in sorted(_binds(statement)):
+                    found.setdefault(name, []).append(statement)
+            self._binders[id(body)] = found
+        return self._binders[id(body)]
+
+    def reads(self, node):
+        """`(names, attributes)`: the names NODE reads from the module around
+        it, as Python's own scoping (`symtable`) resolves them, and each
+        `(name, attribute)` it reads as `name.attribute`."""
+        if id(node) not in self._reads:
+            table = symtable.symtable(ast.unparse(node), "<moved>", "exec")
+            names = {s.get_name() for s in table.get_symbols() if s.is_referenced()}
+            todo = list(table.get_children())
+            while todo:
+                child = todo.pop()
+                todo += child.get_children()
+                names |= {
+                    s.get_name()
+                    for s in child.get_symbols()
+                    if s.is_referenced() and s.is_global()
+                }
+            attributes = {
+                (inner.value.id, inner.attr)
+                for inner in ast.walk(node)
+                if isinstance(inner, ast.Attribute)
+                and isinstance(inner.value, ast.Name)
+            }
+            self._reads[id(node)] = names, attributes
+        return self._reads[id(node)]
+
+    def items(self, label, cls, node):
+        """What NODE, standing in the file or module LABEL and in CLS where it
+        is a method, reads, as `(label, class or None, key, name)`: a name
+        looked up in LABEL; `self.<name>` looked up in CLS; and
+        `<module>.<name>`, where `import <module>` binds a module directly
+        under `tests/`, looked up in that module."""
+        names, attributes = self.reads(node)
+        found = [(label, None, name, name) for name in sorted(names)]
+        binders = self.binders(self.trees[label].body)
+        for owner, attribute in sorted(attributes):
+            if owner == "self" and cls is not None:
+                found.append((label, cls, f"self.{attribute}", attribute))
+            elif owner in names:
+                found += [
+                    (alias.name, None, f"{owner}.{attribute}", attribute)
+                    for statement in binders.get(owner, [])
+                    if isinstance(statement, ast.Import)
+                    for alias in statement.names
+                    if _alias_name(alias) == owner and alias.name in self.modules
+                ]
+        return found
+
+    def forms(self, todo):
+        """`{key: [form, ...]}` for each definition TODO's items reach, the
+        forms in order; an item whose name nothing binds records no form. A
+        definition's own reads join TODO, so a name reached through a helper
+        is compared itself, and a name imported by `from <module> import`
+        from a module directly under `tests/` is read where that module
+        defines it."""
+        found, seen = {}, set()
+        while todo:
+            label, cls, key, name = todo.pop(0)
+            if (label, id(cls), key, name) in seen:
+                continue
+            seen.add((label, id(cls), key, name))
+            forms = found.setdefault(key, [])
+            body = cls.body if cls is not None else self.trees[label].body
+            for statement in self.binders(body).get(name, []):
+                if (
+                    isinstance(statement, ast.ImportFrom)
+                    and not statement.level
+                    and statement.module in self.modules
+                    and statement.module != label
+                ):
+                    alias = next(a for a in statement.names if _alias_name(a) == name)
+                    todo.append((statement.module, None, key, alias.name))
+                    continue
+                forms.append(_form(statement, name))
+                todo += self.items(label, cls, statement)
+        return {key: sorted(forms) for key, forms in found.items()}
+
+
+def _name_change(before, after):
+    """The first key, in alphabetical order, whose definitions BEFORE and
+    AFTER, `{key: forms}`, read apart where both reached it; else the first
+    key one side reached and the other did not; None where every one reads
+    alike."""
+    apart = sorted(k for k in before.keys() & after.keys() if before[k] != after[k])
+    return (apart or sorted(before.keys() ^ after.keys()) or [None])[0]
 
 
 def _fixture_change(old, new, names):
@@ -621,39 +811,48 @@ def _fixture_change(old, new, names):
     return None
 
 
-def moved(old, new, old_conftest=None, new_conftest=None):
+def moved(old, new, old_modules=None, new_modules=None):
     """One line for each old case the new files do not hold as it was, and
     one for each case of the new files that stands for no old case.
 
     OLD is `{path: source}` of the old files at the base, NEW `{path:
-    source}` of the new files in the working tree, and the two conftests are
-    `tests/conftest.py`'s source in each tree, None where it is absent. An
-    old case holds where a case of the new files has its form
+    source}` of the new files in the working tree, and the two module maps
+    are `{import name: source}` of the modules directly under `tests/` that
+    are not test files in each tree, `conftest` among them where it is
+    present. An old case holds where a case of the new files has its form
     (`_moved_form`), each new case standing for one old case, where the two
-    cases request the same fixtures (`_requested`), and where every fixture
-    requested reads alike in both trees (`_fixture_change`). The files on
+    cases request the same fixtures (`_requested`), where every fixture
+    requested reads alike in both trees (`_fixture_change`), and where every
+    name the case and those fixtures read from the module around them is
+    defined alike in both trees (`_Names`, `_name_change`). The files on
     each side are read in path order, so an old case whose form two new
     cases have is held by the first and the second is named. The count of
     collected items is `main`'s, which runs pytest."""
-    new_conf = ast.parse(new_conftest) if new_conftest is not None else None
-    old_conf = ast.parse(old_conftest) if old_conftest is not None else None
+    sides = []
+    for files, modules in ((old, old_modules or {}), (new, new_modules or {})):
+        trees = {rel: ast.parse(source) for rel, source in {**files, **modules}.items()}
+        sides.append(_Names(trees, set(modules)))
+    before_side, after_side = sides
+    old_conf = before_side.trees.get(CONFTEST_MODULE)
+    new_conf = after_side.trees.get(CONFTEST_MODULE)
     standing = {}
     for new_rel in sorted(new):
-        new_tree = ast.parse(new[new_rel])
+        new_tree = after_side.trees[new_rel]
         for name, cls, case in _all_cases(new_tree):
             standing.setdefault(_moved_form(case), []).append(
-                (f"{new_rel}::{name}", new_tree, cls, case)
+                (f"{new_rel}::{name}", new_rel, cls, case)
             )
     lines = []
     for rel in sorted(old):
-        tree = ast.parse(old[rel])
+        tree = before_side.trees[rel]
         for name, cls, case in _all_cases(tree):
             where = f"moved: {rel}::{name}"
             match = standing.get(_moved_form(case))
             if not match:
                 lines.append(f"{where}: body: not in the new files unchanged")
                 continue
-            _place, new_tree, new_cls, new_case = match.pop(0)
+            _place, new_rel, new_cls, new_case = match.pop(0)
+            new_tree = after_side.trees[new_rel]
             before = _requested(tree, cls, case, old_conf)
             after = _requested(new_tree, new_cls, new_case, new_conf)
             apart = sorted(before ^ after)
@@ -661,13 +860,26 @@ def moved(old, new, old_conftest=None, new_conftest=None):
                 side = "at the base" if apart[0] in before else "in the working tree"
                 lines.append(f"{where}: fixture {apart[0]}: requested {side} only")
                 continue
-            change = _fixture_change(
-                _resolver(tree, cls, old_conf),
-                _resolver(new_tree, new_cls, new_conf),
-                before,
-            )
+            old_resolve = _resolver(rel, tree, cls, old_conf)
+            new_resolve = _resolver(new_rel, new_tree, new_cls, new_conf)
+            change = _fixture_change(old_resolve, new_resolve, before)
             if change:
                 lines.append(f"{where}: fixture {change[0]}: {change[1]}")
+                continue
+            reached = []
+            for side, label, owner, node, resolve in (
+                (before_side, rel, cls, case, old_resolve),
+                (after_side, new_rel, new_cls, new_case, new_resolve),
+            ):
+                todo = side.items(label, owner, node)
+                for at, at_class, fixture in _reached(resolve, before):
+                    todo += side.items(at, at_class, fixture)
+                reached.append(side.forms(todo))
+            name = _name_change(*reached)
+            if name is not None:
+                lines.append(
+                    f"{where}: name {name}: its definition differs from the base's"
+                )
     for left in standing.values():
         lines += [
             f"moved: {place}: body: stands for no old case" for place, *_rest in left
@@ -734,6 +946,23 @@ def _git(root, *args):
     )
 
 
+def _test_modules(paths, read):
+    """`{import name: source}` for each of PATHS that is a module directly
+    under `tests/` and no test file, its source as READ gives it."""
+    found = {}
+    for path in sorted(paths):
+        name = posixpath.basename(path)
+        if (
+            posixpath.dirname(path) + "/" == TESTS
+            and name.endswith(".py")
+            and not name.startswith("test_")
+        ):
+            source = read(path)
+            if source is not None:
+                found[name[: -len(".py")]] = source
+    return found
+
+
 def _moved_main(root, base, olds, news):
     """`--moved`: the exit code, having printed each failure and a last
     line."""
@@ -757,12 +986,19 @@ def _moved_main(root, base, olds, news):
         new[path] = _read(root, path)
         if new[path] is None:
             raise Unreadable(f"{path} cannot be read")
-    conf = _git(root, "show", f"{sha}:tests/conftest.py")
+
+    def shown_at_base(path):
+        shown = _git(root, "show", f"{sha}:{path}")
+        return shown.stdout if shown.returncode == 0 else None
+
+    listed = _git(root, "ls-tree", "--name-only", sha, TESTS).stdout.split("\n")
+    here = os.path.join(root, TESTS)
+    present = os.listdir(here) if os.path.isdir(here) else []
     lines = moved(
         old,
         new,
-        conf.stdout if conf.returncode == 0 else None,
-        _read(root, "tests/conftest.py"),
+        _test_modules(listed, shown_at_base),
+        _test_modules([TESTS + name for name in present], lambda p: _read(root, p)),
     )
     python = _interpreter(root)
     holder = tempfile.mkdtemp(prefix="test-layout-moved-")

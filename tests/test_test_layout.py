@@ -459,9 +459,88 @@ NESTED_NEW = "import pytest\n\n\nclass Test_four:\n" + textwrap.indent(
     ),
     "    ",
 )
+# The fourth old file's cases read names from the module around them: a
+# helper, a module bound by an import, a row constant, a helper a fixture
+# calls, a name a loader's call binds, an attribute of a module under
+# `tests/` and a helper of their class. Its new file holds them in classes,
+# each name defined as it was.
+PARSE = "def parse(s):\n    return loads(s)\n\n\n"
+ROWS = 'ROWS = [("a", 1), ("bb", 2)]\n'
+D_MODULE = (
+    "import posixpath as subject\n"
+    "from json import loads\n"
+    "\n"
+    "import pytest\n"
+    "import shapes_d\n"
+    "\n" + ROWS + "\n"
+    "\n" + PARSE + "def build():\n"
+    "    return [1]\n"
+    "\n"
+    "\n"
+    "def load(path):\n"
+    "    return path\n"
+    "\n"
+    "\n"
+    'reader = load("hooks/a.py")\n'
+    "\n"
+    "\n"
+    "@pytest.fixture\n"
+    "def made():\n"
+    "    return build()\n"
+    "\n"
+    "\n"
+)
+D_CASES = (
+    "def test_parse():\n"
+    '    assert parse("[1, 2]") == [1, 2]\n'
+    "\n"
+    "\n"
+    "def test_subject():\n"
+    '    assert subject.join("a", "b")\n'
+    "\n"
+    "\n"
+    '@pytest.mark.parametrize("text, n", ROWS)\n'
+    "def test_rows(text, n):\n"
+    "    assert len(text) == n\n"
+    "\n"
+    "\n"
+    "def test_made(made):\n"
+    "    assert made\n"
+    "\n"
+    "\n"
+    "def test_reader():\n"
+    "    assert reader\n"
+    "\n"
+    "\n"
+    "def test_limit():\n"
+    "    assert shapes_d.LIMIT\n"
+)
+DOUBLE = (
+    "class {}:\n"
+    "    def _double(self, x):\n"
+    "        return 2 * x\n"
+    "\n"
+    "    def {}(self):\n"
+    "        assert self._double(2) == 4\n"
+)
+SHAPES = "LIMIT = 3\n"
+MOVED_OLD_D = D_MODULE + D_CASES + "\n\n" + DOUBLE.format("TestDouble", "test_double")
+NAMED_NEW = (
+    D_MODULE
+    + "class Test_d:\n"
+    + textwrap.indent(
+        D_CASES.replace("():", "(self):")
+        .replace("(made):", "(self, made):")
+        .replace("(text, n):", "(self, text, n):"),
+        "    ",
+    )
+    + "\n\n"
+    + DOUBLE.format("Test_double", "test_accepts_double")
+)
 X, Y, Z = "tests/test_x.py", "tests/test_y.py", "tests/test_z.py"
 OLD_A, OLD_B = "tests/test_old_a.py", "tests/test_old_b.py"
-OLD_C = "tests/test_old_c.py"
+OLD_C, OLD_D, D = "tests/test_old_c.py", "tests/test_old_d.py", "tests/test_d.py"
+CONFTEST, SHAPES_D = "tests/conftest.py", "tests/shapes_d.py"
 MARKED = 'import pytest\n\npytestmark = pytest.mark.usefixtures("box")\n\n\n'
 # `test_old_a.py` split between two modules' files, one case to each.
 SPLIT = {
@@ -488,6 +567,7 @@ TWO_SCOPED = MOVED_CONFTEST.replace(
 ).replace("@pytest.fixture\ndef a(", '@pytest.fixture(scope="module")\ndef a(')
 BODY_GONE = "body: not in the new files unchanged"
 NO_OLD = "body: stands for no old case"
+DIFFERS = "its definition differs from the base's"
 COUNT = "moved: count: the new files collect {} items, the old files 5 at the base"
 ONE, TWO = (
     "moved: tests/test_old_a.py::test_one",
@@ -507,21 +587,22 @@ def _moved_world(tmp_path_factory):
     write(repo, "tests/test_old_a.py", MOVED_OLD_A)
     write(repo, "tests/test_old_b.py", MOVED_OLD_B)
     write(repo, OLD_C, MOVED_OLD_C)
+    write(repo, OLD_D, MOVED_OLD_D)
+    write(repo, SHAPES_D, SHAPES)
     return repo, commit_everything_as_e(repo, "base")
 
 
-def run_moved(world, tmp_path, monkeypatch, news, conftest=None, olds=(OLD_A, OLD_B)):
+def run_moved(world, tmp_path, monkeypatch, news, beside=None, olds=(OLD_A, OLD_B)):
     """`--moved` over the base with OLDS as `--from` and NEWS, `{path:
     source}`, written in a copy of the world and named as `--to`, and
-    CONFTEST in place of the base's where given; (exit code, how many
-    worktrees the copy lists beside its own, the base)."""
+    BESIDE, `{path: source}` such as `tests/conftest.py`, written there and
+    named in neither list; (exit code, how many worktrees the copy lists
+    beside its own, the base)."""
     template, base = world
     repo = tmp_path / "repo"
     shutil.copytree(template, repo, symlinks=True)
-    for rel, source in news.items():
+    for rel, source in {**news, **(beside or {})}.items():
         write(repo, rel, source)
-    if conftest is not None:
-        write(repo, "tests/conftest.py", conftest)
     monkeypatch.chdir(repo)
     code = layout.main(["--moved", base, "--from", *olds, "--to", *news])
     return code, git_out(repo, "worktree", "list").count("\n"), base
@@ -529,18 +610,69 @@ def run_moved(world, tmp_path, monkeypatch, news, conftest=None, olds=(OLD_A, OL
 
 class Test_moved:
     @pytest.mark.parametrize(
-        "news, olds, cases, items",
+        "news, beside, olds, cases, items",
         [
-            ({X: MOVED_NEW}, (OLD_A, OLD_B), 4, 5),
-            ({Z: NESTED_NEW}, (OLD_C,), 1, 1),
+            ({X: MOVED_NEW}, None, (OLD_A, OLD_B), 4, 5),
+            ({Z: NESTED_NEW}, None, (OLD_C,), 1, 1),
+            (
+                {
+                    D: NAMED_NEW.replace(PARSE, "").replace(
+                        "import shapes_d\n",
+                        "import shapes_d\nfrom conftest import parse\n",
+                    )
+                },
+                {
+                    CONFTEST: "from json import loads\n\n"
+                    + MOVED_CONFTEST
+                    + "\n\n"
+                    + PARSE
+                },
+                (OLD_D,),
+                7,
+                8,
+            ),
+            (
+                {
+                    D: NAMED_NEW.replace(ROWS, "").replace(
+                        "import shapes_d\n",
+                        "import shapes_d\nfrom shapes_d import ROWS\n",
+                    )
+                },
+                {SHAPES_D: SHAPES + ROWS},
+                (OLD_D,),
+                7,
+                8,
+            ),
+            (
+                {D: NAMED_NEW.replace("json import loads", "json import dumps, loads")},
+                None,
+                (OLD_D,),
+                7,
+                8,
+            ),
         ],
-        ids=["every-kind-of-move", "a-nested-docstring-re-indented"],
+        ids=[
+            "every-kind-of-move",
+            "a-nested-docstring-re-indented",
+            "a-helper-moved-into-conftest",
+            "a-constant-moved-into-a-module-under-tests",
+            "a-name-imported-beside-another",
+        ],
     )
     def test_accepts_a_pure_move(
-        self, _moved_world, tmp_path, monkeypatch, capsys, news, olds, cases, items
+        self,
+        _moved_world,
+        tmp_path,
+        monkeypatch,
+        capsys,
+        news,
+        beside,
+        olds,
+        cases,
+        items,
     ):
         code, others, base = run_moved(
-            _moved_world, tmp_path, monkeypatch, news, olds=olds
+            _moved_world, tmp_path, monkeypatch, news, beside, olds
         )
         out = capsys.readouterr().out
         assert code == 0, out
@@ -568,7 +700,7 @@ class Test_moved:
         assert others == 0, "the base's worktree was left behind"
 
     @pytest.mark.parametrize(
-        "news, conftest, lines, olds",
+        "news, beside, lines, olds",
         [
             (*row, (OLD_A, OLD_B))
             for row in [
@@ -616,7 +748,7 @@ class Test_moved:
                 ),
                 (
                     {X: MOVED_NEW},
-                    TWO_SCOPED,
+                    {CONFTEST: TWO_SCOPED},
                     [
                         f"{where}: fixture base_dir: its definition differs from the base's"
                         for where in EVERY
@@ -667,6 +799,28 @@ class Test_moved:
                 ],
                 (OLD_C,),
             )
+        ]
+        + [
+            (
+                {D: NAMED_NEW.replace(*change)} if change else {D: NAMED_NEW},
+                beside,
+                [f"moved: {OLD_D}::{case}: name {name}: {DIFFERS}"],
+                (OLD_D,),
+            )
+            for change, beside, case, name in [
+                (("return loads(s)", "return [1, 2]"), None, "test_parse", "parse"),
+                (("posixpath as", "ntpath as"), None, "test_subject", "subject"),
+                (('("bb", 2)', '("a", 1)'), None, "test_rows", "ROWS"),
+                (("return [1]", "return []"), None, "test_made", "build"),
+                (("hooks/a.py", "hooks/b.py"), None, "test_reader", "reader"),
+                (None, {SHAPES_D: "LIMIT = 4\n"}, "test_limit", "shapes_d.LIMIT"),
+                (
+                    ("return 2 * x", "return x + x"),
+                    None,
+                    "TestDouble::test_double",
+                    "self._double",
+                ),
+            ]
         ],
         ids=[
             "a-cut",
@@ -680,13 +834,20 @@ class Test_moved:
             "a-fixture-left-behind",
             "a-shadowed-fixture",
             "an-edited-nested-function",
+            "a-changed-helper",
+            "a-rebound-module",
+            "a-changed-row-constant",
+            "a-changed-fixture-helper",
+            "a-loader-given-another-path",
+            "a-changed-module-attribute",
+            "a-changed-class-helper",
         ],
     )
     def test_refuses_a_cut_a_merge_an_edited_body_and_a_changed_fixture(
-        self, _moved_world, tmp_path, monkeypatch, capsys, news, conftest, lines, olds
+        self, _moved_world, tmp_path, monkeypatch, capsys, news, beside, lines, olds
     ):
         code, others, _base = run_moved(
-            _moved_world, tmp_path, monkeypatch, news, conftest, olds
+            _moved_world, tmp_path, monkeypatch, news, beside, olds
         )
         out = capsys.readouterr().out
         assert code == 1, out

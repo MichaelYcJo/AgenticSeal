@@ -292,10 +292,13 @@ record of the work item that rebuilt the module, in four parts:
   a group, the modules of one shipped directory or a smaller group rebuilt
   together, and names every old file the group's cases came from after
   `--from` and every new file the group wrote after `--to`; an old file
-  that keeps cases for a later group stands in both lists. Where it exits
-  0, the group's cases were only moved and the record has no mutation
-  table. Where it exits 1, each module of the group carries the mutation
-  table, and so does a module written anew. Its mutants sit at the
+  that keeps cases for a later group stands in both lists. It passes where
+  four conditions hold, which `skills/verify/scripts/test_layout.py`'s
+  docstring states: the count of items, each case's body, the fixtures it
+  requests, and the names it and those fixtures read from the module
+  around them. Where it exits 0, the group's cases were only moved and the
+  record has no mutation table. Where it exits 1, each module of the group
+  carries the mutation table, and so does a module written anew. Its mutants sit at the
   decision points where a case accepts or refuses, one or two per class
   and one more for each further decision point a function holds, so their
   count follows the module's classes. They run against the new file in one
