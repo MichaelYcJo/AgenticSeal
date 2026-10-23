@@ -13,10 +13,8 @@ has one reader, `hooks/config.py#reference_roots`, and one predicate,
 `hooks/config.py#under_reference_root`; every check that would read a
 reference root as a record asks that predicate instead of spelling its own
 test. The resolver's cases (C1) are in `tests/test_config.py`, since #942's
-phase 6; the checks' cases sit beside each check's own (D1, D2, D3), the
-planted team's case of D3 in each check's module file since #942's round 10
-fix pass, and this file names every shipped check and what keeps it off a
-reference root.
+phase 6; the checks' cases sit beside each check's own (D1, D2, D3), and
+this file names every shipped check and what keeps it off a reference root.
 """
 
 import os
@@ -35,11 +33,12 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 # the constant it rests on, which its module's file holds under `seal/`:
 # `settle.py#SPECS` in `tests/test_settle.py` and `hooks/routing.py#WORK_ITEMS`
 # in `tests/test_routing.py`, each a case of one module, which #942's round 9
-# fix pass moved there from this file. The checks that walk work items run
-# over a repository with and without a team's own `specs/` in their modules'
-# files, `tests/test_chain_check.py`, `tests/test_unverified_check.py` and
-# `tests/test_settle.py`, one case each, which #942's round 10 fix pass split
-# from this file's loop over the three.
+# fix pass moved there from this file. The checks that walk work items are
+# held off a team's `specs/` in their modules' files:
+# `tests/test_unverified_check.py`'s walk from the root over a team's
+# unreadable overview, `tests/test_settle.py`'s apply beside a team directory
+# of the removed work item's id, and `tests/test_chain_check.py`'s
+# `Test_changed_routing`, which takes a declaration only under `seal/specs/`.
 
 PREDICATE = "asks hooks/config.py#under_reference_root"
 PINNED = "reads the plugin's root by a constant under seal/"
