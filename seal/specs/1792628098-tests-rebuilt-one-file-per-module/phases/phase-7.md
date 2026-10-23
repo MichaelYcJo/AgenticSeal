@@ -196,7 +196,7 @@ Group 44's command is group 44's own group, whose module ran 38 mutants at 222bf
 | u1 | a test file left out of the modules, t4's inverse | red |
 | u2 | a `.py` entry whose source cannot be read kept | SURVIVED |
 
-u2 is answered by a reason, not a row. It differs from the code only for an entry directly under `tests/` whose name ends in `.py` and that `git show` at the base or a read in the working tree cannot give, a directory so named or a file nobody can read. No tree of this repository and no fixture of `Test_moved` holds one, and under u2 such an entry makes `ast.parse` raise, so the check stops with a traceback and does not pass a group.
+u2 differs from the code only for an entry directly under `tests/` whose name ends in `.py` and that `git show` at the base or a read in the working tree cannot give, a directory so named or a file nobody can read; under u2 such an entry makes `ast.parse` raise, so the check stops with a traceback. Round 5's fix pass answers it with a row: `a-directory-named-like-a-module` is red on u2 in that pass's batch (*The line names every name, in round 5's fix pass*).
 
 **The boundary** (`executed`, at the tree committed as 32cd06c7, before the commit over the same bytes). `bin/test tests/test_test_layout.py tests/test_docs_line_wrap.py -q -p no:xdist`: 111 passed. `bin/test-layout --check` exits 0, 184 files read, 0 refused, 115 declaring no `TARGET`; `bin/rules --check` exits 0, all 249 check lines holding; `bin/unverified-check seal/specs/` exits 0; `uvx ruff check` and `uvx ruff format --check` pass both changed Python files, one file per run.
 
@@ -219,3 +219,46 @@ Group 44's two lines on `_roller` and the conftest move's one on `TOKENS` are go
 | on1 | the entry for `tests/test_the_release_check_watches_what_ships.py#tracked_top_level_entries` names a scope nowhere | red |
 | on2 | the entry for `tests/test_conftest.py#test_the_builder_leaves_a_deleted_file_tracked` names a scope nowhere | red |
 | on3 | that key names the builder case's place before 4e987021, `tests/test_a_shrunken_corpus_declines_to_judge.py` | red |
+
+### The line names every name, in round 5's fix pass
+
+**What was asked.** `plan.md` *Round 5's fix pass*, steps 1 to 7, after `rounds/round-5.md` findings 1 and 2 and the reframe at 31cf78dd: a failing case's line names every name the name condition finds apart; the script's docstrings and `CONTRIBUTING.md` state that line and the subject of a failing case that calls no shipped module; four rows of `Test_moved`, two of them pinning u2 and the `<module>.<name>` reading into a test file; one mutation batch over the changed code with u2 and v1; the three commands that send a line to a definition re-run; group 34's mutants at the definitions its line sends; the records and the handoff.
+
+**Whether the frame holds** (`read`, with the parts marked `executed`). It holds for the code and the rows. The script at 31cf78dd is the script at 854f8ff3 (`git diff --stat 854f8ff3` over the script, the test file and `CONTRIBUTING.md` is empty, `executed`), and the four definitions plan step 5 names for group 34 stand at the lines it gives, at 5966150b, at 854f8ff3 and at the base 10667b32 (`executed`, `git show`). One sentence does not hold for group 19's line. `questions.md` says a name only the base's reading reaches "gets no mutant: the head's case does not read it". The head's case does read `TOKEN_CASES`, through an import inside `_corpora`'s body, which the name condition does not follow (`phases/phase-6.md` *The lines sent to a definition, with every name printed*). `overview.md` records it.
+
+**What changed** (`executed`, macOS arm64, at 24cd7813). `_name_change` returns a list: each name both readings reach whose definitions differ, then each name one reading alone reaches, each run in alphabetical order, and an empty list where every name reads alike. `moved` prints `name <name>: its definition differs from the base's` for one name and `names <name>, <name>: their definitions differ from the base's` for more, still one line per failing case. The docstring of `_name_change` and the module docstring's `names` entry say so, in place of "the first name, in alphabetical order". `CONTRIBUTING.md` *The test layout*'s move check bullet states what a failing case that calls no shipped module counts for in `spec.md`'s words, in place of "the definition its line names, in the file that defines it in the working tree", and is wrapped as `tests/test_docs_line_wrap.py` reads it. `git grep` on "alphabetical order", "definition its line" and "defines it in the working", with `CONTRIBUTING.md`, the script, the test file, `agents/smith.md`, `agents/warden.md` and `skills/verify/SKILL.md` also read with their lines joined, finds no live statement of the old line or the old subject outside the phase and round records and the frame's own history rows (`executed`).
+
+**The rows** (`executed`). Four rows of `tests/test_test_layout.py::Test_moved`:
+
+- `two-changed-names`, refusing: the new file's `parse` returns `[1, 2]` and its `loads` comes from `pickle`, and `test_parse` reads both. The line is `names loads, parse`.
+- `a-changed-name-beside-one-reached-once`, refusing: `load` returns `path or ROWS`, so `test_reader` reaches `load` changed and `ROWS` in the working tree alone. The line is `names load, ROWS`, the changed name first although `ROWS` sorts before it.
+- `a-changed-attribute-of-another-test-file`, refusing: `tests/test_old_g.py`, added to `_moved_world`, reads `test_e.V` after `import test_e`, and the new file `tests/test_g.py` reads it the same way while the working tree's `tests/test_e.py` holds `V = 2`. The line is `name test_e.V`.
+- `a-directory-named-like-a-module`, accepting: the working tree holds a directory `tests/held.py/`, and a pure move still exits 0.
+
+No existing row's expected line changed: with the new code `Test_moved` passed whole, 40 cases, before any existing row was touched.
+
+**Seen red** (`executed`). Against the script at 854f8ff3, `bin/test tests/test_test_layout.py -q -p no:xdist`, with `-k` naming `Test_moved` and the four rows' ids, gave 2 failed and 2 passed: `two-changed-names` printed `name loads` and `a-changed-name-beside-one-reached-once` printed `name load`, each with the one-name text. The other two pass there, as plan step 2 says, and each is seen red on its mutant below.
+
+**The mutation table** (`executed`, one `bin/mutation-check` batch over `skills/verify/scripts/test_layout.py` with `--tests "bin/test tests/test_test_layout.py -q -p no:xdist -x -k Test_moved"`, at the tree committed as 24cd7813, the runner a copy outside the tree). 7 mutants, 7 red, in 87.6 s after a 14.1 s baseline.
+
+| # | Mutation | At 24cd7813 |
+|---|---|---|
+| z1 | `_name_change` leaves out the run of names one reading alone reaches | red |
+| z2 | `_name_change` leaves out the run of names apart | red |
+| z3 | `_name_change` merges the two runs into one sorted run | red |
+| p1 | `moved` prints the one-name line for every count | red |
+| p2 | `moved` prints the many-name line for one name | red |
+| u2 | `_test_modules` keeps a `.py` entry whose source cannot be read | red |
+| v1 | `_Names.items` stops the `<module>.<name>` reading at test files | red |
+
+u2 and v1 each ran twice more, alone (`executed`). Each is red against its own row alone, `a-directory-named-like-a-module` for u2 and `a-changed-attribute-of-another-test-file` for v1, and each SURVIVED `Test_moved` with that row left out, so each row is the case that kills its mutant. Round 4's 30 mutants did not run again: they sit at code that `git diff 854f8ff3` over the script leaves unchanged.
+
+**4e987021's command, re-run** (`executed`, as `phases/phase-6.md` *The lines sent to a definition, with every name printed* ran group 34's and group 19's).
+
+| Command | Commit | Round 4's re-run | With every name printed |
+|---|---|---|---|
+| the shrunken corpus file's helper cases | 4e987021 | `31 old cases, 43 items against 43 at 56d2f85689e0, 5 failed`, exit 1 | `31 old cases, 43 items against 43 at 56d2f85689e0, 5 failed`, exit 1 |
+
+Its five lines are round 4's word for word, each naming `OPENS_NOTHING` alone. The line sends `OPENS_NOTHING` at line 120 of `tests/test_a_shrunken_corpus_declines_to_judge.py` at 4e987021, line 206 at the base 56d2f856. on1 to on3 ran once more in one `bin/mutation-check` batch over that file at 24cd7813 in the scratch clone, against the five sweep cases alone, `-k` naming the five, which selects 5 cases and deselects 4: 3 mutants, 3 red, in 5.0 s after a 2.5 s baseline, each red on `test_no_scope_in_the_suite_lists_paths_from_git_without_a_guard`. `git diff --stat 32cd06c7 24cd7813` over the file is empty.
+
+**The boundary** (`executed`, at the tree committed as 24cd7813, before the commit over the same bytes). `bin/test tests/test_test_layout.py tests/test_docs_line_wrap.py -q -p no:xdist`: 115 passed. `bin/test-layout --check` exits 0, 184 files read, 0 refused, 115 declaring no `TARGET`; `bin/rules --check` exits 0, all 249 check lines holding; `bin/unverified-check seal/specs/` exits 0; `uvx ruff check` and `uvx ruff format --check` pass both changed Python files, one file per run.

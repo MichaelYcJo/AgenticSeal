@@ -1821,10 +1821,10 @@ The mutants sit at `claude_pid`'s exported pid, `claude_ancestor`'s pid floor, e
 | 14 | `tests/test_chain_hooks_hardening.py::test_a_diff_git_could_not_take_is_asked_about_at_pre_commit` | `tests/test_commitgate.py::Test_pre_commit` | `hooks/commitgate.py#pre_commit` | group 16's table in the section above, 7 red |
 | 14, 16 | `tests/test_chain_hooks_hardening.py::test_the_backstop_hands_the_parity_arm_none_where_git_could_not_list` | `tests/test_gate.py::Test_module` | `hooks/commitgate.py#_paths_between` | group 16's table in the section above, 7 red |
 | 16 | `tests/test_chain_hooks_hardening.py::test_a_diff_git_could_not_take_is_asked_about_by_the_parity_arm` | `tests/test_commit_review_gate.py::Test_main` | `hooks/commit-review-gate.py`, `changed_paths` and `touches_code` | group 17's table, g13 and g14 red; g12 and g15 below |
-| 19 | `tests/test_the_old_spellings_reach_the_hook.py::test_the_three_token_reads_answer_as_one` | where it was | the definition `_corpora`, a check across files | cp1 to cp6, old gaps |
+| 19 | `tests/test_the_old_spellings_reach_the_hook.py::test_the_three_token_reads_answer_as_one` | where it was | the definition `_corpora`, line 24 of its file at e1e39bf7, a check across files; `TOKEN_CASES`, which the line also names since round 5, sends none (*The lines sent to a definition, with every name printed*) | cp1 to cp6, old gaps; cp2 stands for `TOKEN_CASES` |
 | 22 | `tests/test_the_mode_question_is_asked_once.py::test_the_writer_leaves_a_commented_row_alone` | `tests/test_seal.py::Test_write_row` | `skills/implement/scripts/seal.py#write_row` and `#with_row` | sw1 and sw2, red |
 | 23 | `tests/test_a_signer_declares_its_pact.py::test_s4_the_configs_this_plugin_writes_or_copies_are_silent` | where it was | `hooks/config.py#pact_declaration` | group 23's table, every mutant at `pact_declaration` red |
-| 34 | `tests/test_the_gate_names_every_step_ci_runs.py::test_the_skill_counts_the_steps_with_a_local_answer_and_no_arm` | where it was | the definition `ROOT`, a case reading prose | ro1, red |
+| 34 | `tests/test_the_gate_names_every_step_ci_runs.py::test_the_skill_counts_the_steps_with_a_local_answer_and_no_arm` | where it was | the definitions `import pathlib`, `TARGET`, `ROOT` and `gate` of `tests/test_broad_gate.py`, lines 24, 43, 45 and 54 at 5966150b, a case reading prose (*The lines sent to a definition, with every name printed*) | bp1, bt1, br1, bg1 and bg2, red; ro1 stands for no definition the rule sends |
 | 35 | `tests/test_one_heading_rule_holds_to_commonmark.py::test_every_tracked_markdown_file` | where it was | `skills/verify/scripts/unverified_check.py#heading_level`, which `disagreements` calls through `uc` | group 35's table in the section above, 6 red |
 | 37 | `tests/test_settle_applies_rule_changes_in_place.py::test_the_skills_example_reads_as_the_skill_says` | where it was | `skills/settle/scripts/rule_changes.py#parse` | group 37's table in the section above; r4 an old gap |
 | 37 | `tests/test_settle_reads_before_it_removes.py::test_a_closed_row_is_told_to_merge_before_its_directory_goes` | where it was | `skills/settle/scripts/settle.py`, its report | group 37's table in the section above; st10, st13, st25 and st27 old gaps |
@@ -1848,4 +1848,50 @@ The mutants sit at `claude_pid`'s exported pid, `claude_ancestor`'s pid floor, e
 | g12 | `commit_shape` reads no pathspec after `--`, rebuilt from group 14's description | red, `tests/test_commit_review_gate.py`, 51.7 s | ran before the head's verdict: red at 0b134a29 on `test_parity_gate_sees_commits_that_never_touched_the_index`, which stands at 32cd06c7 in `tests/test_commit_review_gate.py`; survived at 43324e4e, 459d7944 and 8dedf9e4 |
 | g15 | `commit_shape` takes a value option's value as a path, rebuilt from group 14's description | SURVIVED, 53.1 s | SURVIVED at 43324e4e, 459d7944, 8dedf9e4, 9818ee1a and 0b134a29, an old gap as groups 14 and 17 found |
 
-These batches ran 16 mutants: 9 red and 7 survived, every survivor an old gap. cp1 to cp6 are new old gaps: the case asserts that three readers agree over the commands `_corpora` gives, so a corpus with fewer commands, or with a None among them, still agrees, at the head and at the base. g12 and g15 are rebuilt from their descriptions, because group 14's batch text is not in the tree; the rebuilt g12 removes the pathspec, which is red where group 14's survived. No protection is lost, and no case was added.
+These batches ran 16 mutants: 9 red and 7 survived, every survivor an old gap. cp1 to cp6 are new old gaps: the case asserts that three readers agree over the commands `_corpora` gives, so a corpus with fewer commands, or with a None among them, still agrees, at the head and at the base. g12 and g15 are rebuilt from their descriptions, because group 14's batch text is not in the tree; the rebuilt g12 removes the pathspec, which is red where group 14's survived. ro1 sits at the `ROOT` of group 34's case file, which reads at 5966150b as it read at the base 10667b32, so since round 5 it stands for no definition the subject rule sends; group 34's case is proved by the five mutants of *The lines sent to a definition, with every name printed*, all red. No protection is lost, and no case was added.
+
+### The lines sent to a definition, with every name printed
+
+**What was asked.** `plan.md` *Round 5's fix pass*, steps 4 to 6, after `rounds/round-5.md` finding 1: the three recorded commands that send a line to a definition run again with the script that names every name apart, the definitions each line sends are named with their file and line, and group 34's mutants run at its definitions against its case alone. This section holds group 34's and group 19's rows; 4e987021's is in `phases/phase-7.md` *The line names every name, in round 5's fix pass*.
+
+**The re-runs** (`executed`, macOS arm64). Each command ran in a scratch clone of the branch (`git clone --shared`) checked out at the command's commit, with `skills/verify/scripts/test_layout.py` as committed at 24cd7813 copied over the clone's and restored after, and the worktree's `.venv` as the interpreter. The clone was removed when the pass ended.
+
+| Group | Commit | Round 4's re-run | With every name printed |
+|---|---|---|---|
+| 19 | e1e39bf7 | `2 old cases, 19 items against 19 at 95991e42b3d5, 2 failed`, exit 1 | `2 old cases, 19 items against 19 at 95991e42b3d5, 2 failed`, exit 1 |
+| 34 | 5966150b | `198 old cases, 314 items against 315 at 10667b32ad71, 46 failed`, exit 1 | `198 old cases, 314 items against 315 at 10667b32ad71, 46 failed`, exit 1 |
+
+Each command prints one line per failing case, as round 4's re-run did, so each last line and exit stand. Compared case by case with round 4's re-run output, three lines name more names and every other line is word for word:
+
+- group 34's case `tests/test_the_gate_names_every_step_ci_runs.py::test_the_skill_counts_the_steps_with_a_local_answer_and_no_arm` printed `name ROOT` and now prints `names ROOT, gate, GATE, TARGET, gate_module, pathlib`;
+- group 19's `test_the_three_token_reads_answer_as_one` printed `name _corpora` and now prints `names _corpora, TOKEN_CASES`;
+- group 19's `test_a_token_is_a_bare_word_and_nothing_else` printed `name tokens` and now prints `names tokens, HOOKS, __file__, importlib, load_hook_module, os`. At e1e39bf7 the case stands in `tests/test_tokens.py`, which declares `TARGET = "hooks/tokens.py"`, so it counts for `hooks/tokens.py`, whose 8 mutants ran in round 3's pass, and the names it adds send nothing.
+
+**The definitions each line sends** (`executed`, a script outside the tree that makes `_Names.forms`'s reading at the command's commit and at the group's base and keeps each definition's file and line). The case file of group 34 is `tests/test_the_gate_names_every_step_ci_runs.py`, and group 19's is `tests/test_the_old_spellings_reach_the_hook.py`.
+
+| Group | Name on the line | At the base | At the command's commit | Sent |
+|---|---|---|---|---|
+| 34 | `ROOT` | the case file, line 43 | the case file, line 48; `tests/test_broad_gate.py`, line 45 | `tests/test_broad_gate.py`, line 45. The case file's reads as the base's, in the same file |
+| 34 | `gate` | the case file, line 53 | `tests/test_broad_gate.py`, line 54 | `tests/test_broad_gate.py`, line 54 |
+| 34 | `GATE` | the case file, line 44 | not reached | none |
+| 34 | `TARGET` | not reached | `tests/test_broad_gate.py`, line 43 | `tests/test_broad_gate.py`, line 43 |
+| 34 | `gate_module` | the case file, line 49 | not reached | none |
+| 34 | `pathlib` | not reached | `tests/test_broad_gate.py`, line 24, `import pathlib` | `tests/test_broad_gate.py`, line 24 |
+| 19 | `_corpora` | the case file, line 92 | the case file, line 24 | the case file, line 24 |
+| 19 | `TOKEN_CASES` | the case file, line 21 | not reached | none |
+
+`tests/test_broad_gate.py` holds the same four lines at the base, 16, 25, 27 and 36, but the base's reading of the case does not reach that file, because `reasons` stood in the case's own file until group 34 moved it. The four lines stand unchanged at the head: `git diff --stat 5966150b 24cd7813` over the two files is empty (`executed`).
+
+Group 19's `TOKEN_CASES` is reached by the base's reading alone, through `_corpora`, which the line also names. The head's `_corpora` still reads it, through `from test_tokens import TOKEN_CASES, every_case` inside its own body, and the name condition does not follow an import made inside a function, so the head's reading does not reach it (`overview.md` records this against the frame). cp2, which empties `TOKEN_CASES`'s commands in `_corpora`, is the mutant that stands for it: it survived the whole file at 32cd06c7 and the old files at 95991e42, an old gap. cp1 to cp6 stand for the line, because `git diff --stat 32cd06c7 24cd7813` over the file is empty and a mutant that survives the whole file survives the one case in it.
+
+**Group 34's mutation table** (`executed`, one `bin/mutation-check` batch over `tests/test_broad_gate.py` at 24cd7813 in the scratch clone, with `--tests "bin/test tests/test_the_gate_names_every_step_ci_runs.py::test_the_skill_counts_the_steps_with_a_local_answer_and_no_arm -q -p no:xdist -x"`, the runner a copy outside the tree and `SPECSEAL_ANSWERS` a directory in the scratch area; each mutant then ran once alone, for its output). 5 mutants, 5 red, in 3.4 s after a 1.1 s baseline that ran the one case.
+
+| # | Definition | Mutation | At 24cd7813 | Old files |
+|---|---|---|---|---|
+| bp1 | `import pathlib`, line 24 | binds `posixpath` as `pathlib` | red at collection: `posixpath` has no `Path` | not run |
+| bt1 | `TARGET`, line 43 | names `skills/verify/scripts/seal_stamp.py` | red at collection: the loaded module has no `stamp_module` | not run |
+| br1 | `ROOT`, line 45 | names `tests/`, not the repository | red at collection: `FileNotFoundError` | not run |
+| bg1 | `gate`, line 54 | binds `chain_check.py` | red at collection: the loaded module has no `stamp_module` | not run |
+| bg2 | `gate`, line 54 | binds the gate with every reason of `PARTITION` emptied | red on the case's assertion: the sentence it builds opens "No steps" | not run |
+
+Four of the five are red because `tests/test_broad_gate.py` cannot be imported, which shows that the case reads those definitions and little more, as `plan.md` *Alternatives considered* says of a definition that is neither a function nor a collection. bg2 keeps the import and changes what `gate` holds, and the case's own assertion fails, so the count the case checks comes from `gate.PARTITION` through `reasons`. No mutant survived, so the old column did not run and no case was added. ro1 stays in *The move checks re-run with a test file's import followed* as a mutant that ran.
