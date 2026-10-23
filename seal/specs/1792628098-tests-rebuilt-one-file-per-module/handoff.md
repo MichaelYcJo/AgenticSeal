@@ -61,6 +61,7 @@ Seconds are macOS wall time on a shared machine, from each module's record.
 | 22 | 10f6ad94 | `hooks/config.py`'s 33 reader cases of the mode question file | `65 old cases, 190 items against 190 at 92add28be86b, 0 failed` | the move check |
 | 23 | ca726662 | `hooks/config.py`'s pact readers, from the signer file and the seven cases `tests/test_pact_check.py` held | `134 old cases, 333 items against 333 at c6c1d8b03de3, 7 failed` | two bodies read `PACT_TEXT`, one merge; 87 mutants over the module, 12 survivors: 5 old gaps, and 7 the oracle file kills through cases that did not move |
 | 24 | 93bf39da | the heredoc-data file: S4 and S5 to `hooks/cmdline.py`'s new file, S6 to `hooks/tokens.py`'s | `4 old cases, 215 items against 215 at 687388b5ae85, 0 failed` | the move check |
+| 25 | eb207a6d | `hooks/cmdline.py`'s cases of the walk, reserved-word, wrapper and no-shape files | `65 old cases, 661 items against 661 at 3cf118239946, 0 failed` | the move check; the module's mutants run in group 26 |
 
 `phases/phase-6.md` holds each group's command, cases and seconds, mutants and cases left in place.
 

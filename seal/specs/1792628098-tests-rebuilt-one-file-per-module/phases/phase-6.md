@@ -884,6 +884,31 @@ No `check:` line names the old file, so it went.
 
 **The boundary** (`executed`). At the tree committed as 93bf39da, before the commit with the new file staged: the five changed files, the `git_listing` files, the censuses, `tests/test_test_layout.py`, `tests/test_conftest.py` and `tests/test_chain_hooks_hardening.py`, 27 files: 2,357 passed and 3 skipped. After the commit, the same set less the changed files plus the new file: 2,194 passed and 3 skipped. `bin/test-layout --check` exits 0, 167 files read, 123 declaring no `TARGET`; `bin/rules --check` exits 0 with 249 check lines; `bin/unverified-check seal/specs/` exits 0. Ruff checks and formats each changed file clean.
 
+### Batch B, `hooks/`, group 25, at eb207a6d
+
+**The cases.** 63 cases into `tests/test_cmdline.py`, each with its body:
+
+- From `tests/test_gate_judges_the_repo_it_commits_to.py`, its 28: the 23 read through `commit_dirs` into `Test_walk_directories`, `test_a_cd_carries_the_commit_that_follows_it` renamed `test_accepts_a_cd_as_carrying_the_commit_that_follows_it` and `test_a_destination_the_reader_cannot_expand_is_not_a_directory` renamed `test_refuses_a_destination_the_reader_cannot_expand_as_a_directory`; the three of the splitter into `Test_split_segments_with_separators`, two renamed `test_accepts_the_operator_that_joined_two_segments` and `test_refuses_the_newline_after_an_operator_as_the_one_that_binds`; `parse_git`'s one into `Test_parse_git`, renamed `test_refuses_a_subshell_with_no_subcommand_as_a_git_invocation`; and `split_segments`' one, which has no refusing partner, into `Test_module`.
+- From `tests/test_a_commit_behind_a_reserved_word_is_judged.py`, its 6: `test_the_guard_reads_the_same_command_word` into `Test_parse_git`, renamed `test_accepts_the_command_word_behind_a_list_opener`, and the five read through the commit gate's `commit_invocations` into `Test_module`.
+- From `tests/test_a_commit_behind_a_wrapper_or_in_a_substitution_is_judged.py`, its 27: `header_end`'s two into `Test_header_end`, renamed `test_accepts_each_header_spelling_at_the_word_its_command_starts` and `test_refuses_a_header_spelling_it_cannot_place_as_unplaceable`; `merged_view`'s two into `Test_merged_view`, renamed `test_accepts_the_cut_operators_glued_back` and `test_refuses_to_glue_across_a_real_separator`; `names_an_unknown_command`'s one into `Test_names_an_unknown_command`, renamed `test_accepts_an_unknown_command_word_as_named_and_no_structural_one`; `parse_git`'s two into `Test_parse_git`; and the 20 read through `commit_invocations`, or one case of a function with no refusing partner (`substitution_bodies`, `reparsed_texts`, `_env_long`), or a module constant (`RUNNERS`, `ENV_OPTIONS`), into `Test_module`.
+- From `tests/test_no_shape_the_base_stops_reads_silent.py`, its 2: the header bound into `Test_names_an_unknown_command`, renamed `test_refuses_to_read_past_the_header_bound`, and the cut `cd` into `Test_walk_directories`.
+
+`SHAPES` and `HERE` moved with the reserved-word cases, and `tests/test_commit_review_gate.py` imports them from the new file. The four old files are named by `check:` lines of `docs/commit-review-gate-spec.md` whose items are not yet settled, so each keeps a docstring naming where its cases went, and no case.
+
+**The move check** (`executed`):
+
+`bin/test-layout --moved 3cf11823 --from tests/test_cmdline.py tests/test_gate_judges_the_repo_it_commits_to.py tests/test_a_commit_behind_a_reserved_word_is_judged.py tests/test_a_commit_behind_a_wrapper_or_in_a_substitution_is_judged.py tests/test_no_shape_the_base_stops_reads_silent.py --to tests/test_cmdline.py`
+
+`test-layout: moved: 65 old cases, 661 items against 661 at 3cf118239946, 0 failed`, exit 0. No mutation table here: the module runs its mutants in group 26, over every case its file holds. `--pairs` names three pairs in `Test_module`, each two cases whose bodies are equal once names and strings are normalised and whose tables differ: S4 and S5; the reserved-word file's `eval` rows and the wrapper file's rows both SHAs read as nothing; the reserved-word file's `SHAPES` and the wrapper file's `WRAPPED`. Under Q1 none is merged.
+
+**The lines rewritten.** `tests/test_commit_review_gate.py`'s docstring names `tests/test_cmdline.py` as the home of every reading case and of `SHAPES`.
+
+**Cases and seconds** (`executed`, serial, pytest's own figure): 662 items in 1.03 s before, the five files in an archive of 3cf11823 with the worktree's `.venv`; 662 items in 0.98 to 1.05 s after, and 3.71 to 4.16 s on the first run after an edit.
+
+**The real-git cases kept.** None: every case reads text.
+
+**The boundary** (`executed`). At the tree committed as eb207a6d, before the commit with the new file staged: the six changed files, the `git_listing` files, the censuses, `tests/test_test_layout.py`, `tests/test_conftest.py` and `tests/test_chain_hooks_hardening.py`, 27 files: 2,267 passed and 3 skipped. `bin/test-layout --check` exits 0, 167 files read, 123 declaring no `TARGET`; `bin/rules --check` exits 0 with 249 check lines; `bin/unverified-check seal/specs/` exits 0. Ruff checks and formats each changed file clean.
+
 ### What `hooks/` holds back
 
 **The installer waits on Q10** (`read`). `hooks/githooks.py` and `hooks/hook-install.py` have their cases in `tests/test_the_hooks_are_installed_where_git_runs_them.py`, which `docs/the-commit-gate-inside-git.md` names on the `check:` line of a section whose heading is also the document's title. `questions.md` Q10's default is wait, so the two keep their cases there through this work.
