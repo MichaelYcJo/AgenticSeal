@@ -1073,6 +1073,20 @@ The seventeen survivors are old gaps: no moved case reads a `${…}` holding a `
 
 **The boundary** (`executed`). At the tree committed as 666cedbb, before the commit with the new file staged: the two changed files, the two files above that load the module, `tests/test_every_orchestrator_act_names_its_delivery.py`, `tests/test_the_suite_has_a_command_that_is_cheap_twice.py`, the `git_listing` files, the censuses, `tests/test_test_layout.py`, `tests/test_conftest.py` and `tests/test_chain_hooks_hardening.py`, 28 files: 2,601 passed and 3 skipped. `bin/test-layout --check` exits 0, 168 files read, 121 declaring no `TARGET`; `bin/rules --check` exits 0 with 249 check lines; `bin/unverified-check seal/specs/` exits 0. Ruff checks and formats each changed file clean.
 
+### Batch B, `skills/verify/scripts/`, group 31, at 391c7857
+
+**The cases.** `skills/verify/scripts/pytest_record/specseal_pytest_record.py`'s, the 34 of `tests/test_the_recorder_writes_what_its_process_ran.py`, into the new `tests/test_specseal_pytest_record.py` with their bodies. Which process records, the five decided by `pytest_configure` claiming the key, into `Test_pytest_configure`, `test_the_recorder_records_its_own_process` renamed `test_accepts_the_measured_process_as_the_one_that_records` and `test_without_a_key_or_a_directory_nothing_is_written` renamed `test_refuses_to_record_without_a_key_or_a_directory`; the three that drive the class directly into `Test_Recorder`, `path_of`'s two renamed `test_accepts_a_path_only_from_its_own_workers_report_of_it` and `test_refuses_a_freed_workers_reports_to_a_worker_made_after_it`; the 26 that run pytest with the plugin loaded, its behaviour as a whole, into `Test_module`. The fixtures' texts and helpers came with them. No `check:` line names the old file, so it went.
+
+**The move check** (`executed`): `bin/test-layout --moved 17ee8532 --from tests/test_the_recorder_writes_what_its_process_ran.py --to tests/test_specseal_pytest_record.py` ends `test-layout: moved: 34 old cases, 46 items against 46 at 17ee85328290, 0 failed`, exit 0. No mutation table. `--pairs` names one pair, `Test_Recorder`'s two `path_of` cases, which build the recorder with equal arguments and then send it different reports: one holds which report lends a path, the other that a freed worker's address lends nothing, so neither covers the other and none is merged, as group 1 left review-skill-gate's pair.
+
+**Cases and seconds** (`executed`, serial, pytest's own figure, each file from an archive of its commit with the worktree's `.venv`): 46 items in 6.58 s before, at 17ee8532; 47 in 6.61 s after, at 391c7857, the census item among them. Through `bin/test` the new file ran in 9.57 and 9.91 s, the launcher's own cost.
+
+**The real-git cases kept.** None: no case runs git. Every case of `Test_pytest_configure` and `Test_module` runs a real pytest, because what the recorder writes is what that process ran.
+
+**Phase 4's survivors.** None of h2, h12 and h23 is reached: no moved case calls `read`, `imported_roots` or `repo_relative` (`read`).
+
+**The boundary** (`executed`). At the tree committed as 391c7857, before the commit with the new file staged and the old one removed: the new file, the three other files naming the recorder (`tests/test_a_release_publishes_its_note.py`, `tests/test_the_gate_hands_cmd_a_path_it_can_run.py`, `tests/test_the_seal_is_taken_once_by_the_sealer.py`), the `git_listing` files, the censuses, `tests/test_test_layout.py`, `tests/test_conftest.py` and `tests/test_chain_hooks_hardening.py`, 26 files: 2,643 passed and 4 skipped. `bin/test-layout --check` exits 0, 168 files read, 120 declaring no `TARGET`; `bin/rules --check` exits 0 with 249 check lines; `bin/unverified-check seal/specs/` exits 0. Ruff checks and formats the new file clean.
+
 ### What remains in phase 6
 
 - `hooks/`: `hooks/githooks.py` and `hooks/hook-install.py` wait on Q10. `hooks/answer-clear.py` has a file whose `Test_module` holds its two round trips and no `Test_main`.
