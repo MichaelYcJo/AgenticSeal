@@ -780,6 +780,35 @@ The five survivors are old gaps: no old case sends a session-less payload to the
 
 **The boundary** (`executed`). At the tree committed as 1b3e6978, before the commit: the changed files, every test file naming `warden.md`, `write_config`, `parity_file`, `BASELINE` or `test_config`, the `git_listing` files, the censuses, `tests/test_every_agent_reads_the_contract.py`, `tests/test_test_layout.py`, `tests/test_conftest.py` and `tests/test_chain_hooks_hardening.py`, 53 files: 3,933 passed and 13 skipped in 48.3 s. After the commit, the `git_listing` files, the censuses, `tests/test_test_layout.py`, `tests/test_conftest.py` and the new file: 2,008 passed and 3 skipped. `bin/test-layout --check` exits 0, 167 files read, 124 declaring no `TARGET`; `bin/rules --check` exits 0 with 249 check lines; `bin/unverified-check seal/specs/` exits 0. `uvx ruff check` and `uvx ruff format --check` pass each changed `.py` file, one file per run.
 
+### Batch B, `hooks/`, group 22, at 10f6ad94
+
+**The cases.** The 33 cases of `tests/test_the_mode_question_is_asked_once.py` that call the reader as their subject, each with its body, into `tests/test_config.py`:
+
+- `Test_config_rows`, 13: the #415 escape cases, the three-column row, the two fenced examples, the fence rule, the code-span delimiters, the three breaks inside inline HTML, the row and the header after a break GFM does not honour.
+- `Test_config_value`, 7: `test_one_row_is_its_value_and_no_row_is_none`, renamed `test_accepts_one_row_as_its_value_and_no_row_as_none`, and `test_an_item_written_again_below_the_stopping_line_has_no_value`, renamed `test_refuses_an_item_written_again_below_the_stopping_line`, with the fenced example of a row, the per-item refusal, the next heading's table, the line below the stop, and `test_a_line_that_will_not_parse_is_named_and_the_hook_still_says_nothing`, which group 4 left for this module.
+- `Test_declared_mode`, 5: two renamed `test_accepts_the_row_from_the_root_the_folder_is_at` and `test_refuses_a_mode_row_written_twice`.
+- `Test_config_table`, 3: two renamed `test_refuses_a_fenced_pipe_line_as_a_line_somebody_wrote` and `test_accepts_every_config_shape_as_the_frame_expects`, with the sixteen shapes.
+- `Test_fence_map`, 3: two renamed `test_refuses_to_name_a_fence_inside_a_closed_comment` and `test_accepts_a_fence_nobody_closed_as_the_one_named`.
+- `Test_unfenced`, 2: renamed `test_refuses_a_commented_row_in_either_line_ending` and `test_accepts_every_line_under_a_mid_line_comment`.
+
+**Left where they stand**, for the group that places `skills/implement/scripts/seal.py`'s light files: the ten cases that call `seal.py`'s `write_row` or `with_row` as their subject, among them `test_the_fence_rule_answers_the_same_for_a_crlf_file`, which holds the writer's CRLF walk beside the reader's, and `test_the_command_and_the_gate_read_one_parser`, which holds `seal.py`'s re-export of the reader. The file's docstring says so. `docs/one-root-by-lifetime.md` line 223 and its twin's 212 name this file for the rule *A cell may carry an escaped pipe*, whose writer clause these cases hold; `spec.md`'s items move both lines to `tests/test_config.py` alone (`unverified` whether the line then needs `tests/test_seal.py` as well, once that group places the writer's cases; the framer answers it, and the item is left as it stands).
+
+**Helpers.** The file's function-scoped `config` fixture serves both files and is in `tests/conftest.py`, its definition unchanged, so the fixture condition holds; `tests/test_config.py` keeps its module-level `config`, which the fixture parameter shadows inside the cases that request it. `PIPED_TABLE`, `FENCED_ABOVE`, `FENCED_BELOW_A_TABLE_THAT_NEVER_BEGAN`, `FENCED_REFUSAL`, `UNDER_THE_COMMENT`, `crlf` and `shape_text` serve both files and are in `tests/conftest.py` too; `GATE`, the commented shapes and `LIVE` moved with the cases that read them.
+
+**The move check** (`executed`):
+
+`bin/test-layout --moved 92add28b --from tests/test_config.py tests/test_the_mode_question_is_asked_once.py --to tests/test_config.py tests/test_the_mode_question_is_asked_once.py`
+
+`test-layout: moved: 65 old cases, 190 items against 190 at 92add28be86b, 0 failed`, exit 0. No mutation table. `--pairs` names no pair in the new file.
+
+**Cases and seconds** (`executed`, serial, pytest's own figure): 191 items in 4.36 s and 3.35 s before, the two files in an archive of 92add28b run with the worktree's `.venv`; 191 items in 1.02 s and 0.43 s after, in the worktree.
+
+**The real-git cases kept.** The seven `Test_declared_mode` and `Test_config_value` cases that take the `repo` fixture read a root in a repository git made, and `test_accepts_the_row_from_the_root_the_folder_is_at` asks git for the common directory of a local-mode root.
+
+**Phase 4's survivors.** None is reached (`read`).
+
+**The boundary** (`executed`). At the tree committed as 10f6ad94, before the commit: the two files, `tests/test_mode_gate.py`, `tests/test_seal.py` and `tests/test_a_signer_declares_its_pact.py`, which read `config_shapes` or the conftest helpers, the `git_listing` files, the censuses, `tests/test_test_layout.py`, `tests/test_conftest.py` and `tests/test_chain_hooks_hardening.py`: 2,265 passed and 3 skipped. `bin/test-layout --check` exits 0, 167 files read, 124 declaring no `TARGET`; `bin/rules --check` and `bin/unverified-check seal/specs/` exit 0. Ruff clean on each changed file.
+
 ### What `hooks/` holds back
 
 **The installer waits on Q10** (`read`). `hooks/githooks.py` and `hooks/hook-install.py` have their cases in `tests/test_the_hooks_are_installed_where_git_runs_them.py`, which `docs/the-commit-gate-inside-git.md` names on the `check:` line of a section whose heading is also the document's title. `questions.md` Q10's default is wait, so the two keep their cases there through this work.
