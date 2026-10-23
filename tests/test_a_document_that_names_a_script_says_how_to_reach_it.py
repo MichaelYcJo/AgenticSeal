@@ -248,8 +248,8 @@ def test_every_script_a_shipped_document_names_is_wrapped_or_classified(script):
     assert os.access(posix, os.X_OK), (
         f"`bin/{command}` ships without its executable bit, so the command "
         "resolves on PATH and then refuses. The form this generalises -- "
-        "`tests/test_unverified_rows_close.py::test_the_wrapper_is_present_"
-        "and_executable` -- asks for file, twin, exec bit and target"
+        "`tests/test_unverified_check.py::Test_module::test_the_wrapper_is_"
+        "present_and_executable` -- asks for file, twin, exec bit and target"
     )
 
 

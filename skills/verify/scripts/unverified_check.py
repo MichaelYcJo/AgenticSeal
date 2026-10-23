@@ -106,7 +106,7 @@ _BLOCKS = _load_blocks()
 # `#section_lines` and `publish_release_note.py#section_body`, which end a
 # released section at the next `## ` line on purpose (#586);
 # `tests/test_release_hygiene.py#overwide_rows`, which keeps no fence state;
-# and the oracle walk in `tests/test_unverified_rows_close.py`. A new reader
+# and the oracle walk in `tests/test_unverified_check.py`. A new reader
 # that decides by line whether it stands inside a fence belongs in one of
 # these two lists.
 fence_opener = _BLOCKS.fence_opener
@@ -504,7 +504,7 @@ def _paragraph_ends_at(line):
     # which are paragraph text — and on the issue references this repository
     # writes constantly, 944 lines of them (round 6, finding 4). Four spaces
     # is paragraph text too, a lazy continuation line, and the oracle
-    # `tests/test_unverified_rows_close.py#block_ends_at` has bounded it all
+    # `tests/test_unverified_check.py#block_ends_at` has bounded it all
     # along (#491's round-7 comment).
     if heading_level(line) is not None:
         return True
