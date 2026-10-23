@@ -1448,10 +1448,148 @@ Every survivor is an old gap. r18 no input tells apart: more than one open log r
 
 **Phase 4's survivors.** None of h2, h12 and h23 is reached by groups 40 to 44 (`read`).
 
+### The thirteenth spawn
+
+**What this spawn was asked.** The rest of `.github/scripts/`: `close_issues_on_release.py`, `label_merged_on_release_branch.py` and `tracker_labels.py` as one group, because three old files each define a fake `Tracker` of their own; then `durations_union.py`, `gather_changelog.py`, `publish_release_note.py`, `release_seal.py` and `run_tests.py`; then `evals/scripts/`; then phase 6's close, with phase 4's h2, h12 and h23 stated as re-run or unreached.
+
+**Whether the frame holds** (`read`). It holds for `.github/scripts/`. Every `check:` line naming an old file the remaining groups draw from has an item in `spec.md` *Rule changes* or a row in *The check lines the remaining groups meet*: `docs/issues-and-milestones.md` lines 249 and 286 and `docs/branch-and-release.md` line 315 for the closer and the signal, `docs/release-checklist.md` line 69 and `docs/the-record-layout.md` lines 46 and 268 for the gatherer, the three lines of `docs/the-broad-gate.md` *What the runner owes the person who typed it* for the runner, and `docs/branch-and-release.md` line 94, which keeps its files. No `check:` line names `tests/test_a_declared_label_reaches_the_tracker.py` or `tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py`. Every old file of the directory prices under 60 s, so the cases are placed.
+
+### Batch B, `.github/scripts/`, group 45, at efc3a79f
+
+**The modules.** `close_issues_on_release.py`, `label_merged_on_release_branch.py` and `tracker_labels.py`, whose cases sat in `tests/test_a_declared_label_reaches_the_tracker.py`, `tests/test_a_merged_ticket_says_so_on_the_tracker.py`, `tests/test_the_closer_carries_on_past_a_refusal.py` and `tests/test_release_hygiene.py`.
+
+**The cases.** 58 of the 94 old cases, into three new files:
+
+- `tests/test_close_issues_on_release.py`: the keyword reader's six from the hygiene file in `Test_keywords_in`; in `Test_main`, the label file's eight that drive `main`, the refusal file's eight and the hygiene file's three; in `Test_module`, the removal-report case, the `attempt` case, the fallback's comment case and the hygiene file's argv case. Renamed: `test_accepts_only_a_keyword_before_a_number`, `test_refuses_a_keyword_inside_a_tilde_fence`, `test_accepts_the_issue_the_keyword_named_and_closes_nothing_else`, `test_refuses_a_close_both_routes_refuse_and_names_it_at_the_end`.
+- `tests/test_tracker_labels.py`: the reconcile step's three `main` cases in `Test_main` and the cap case in `Test_module`. Renamed: `test_accepts_a_missing_label_and_creates_it_with_the_documents_sentence`, `test_refuses_to_write_under_check_and_reports_what_is_missing`.
+- `tests/test_label_merged_on_release_branch.py`: the signal's sixteen, two in `Test_version_of`, eleven in `Test_main` and three in `Test_module`, and the label file's reader case in `Test_module`. Renamed: `test_accepts_a_release_branch_and_names_its_milestone_and_label`, `test_refuses_a_branch_that_is_not_a_release`, `test_accepts_the_issue_the_keyword_named_and_labels_nothing_else`, `test_refuses_a_non_release_branch_and_writes_nothing`.
+
+The label file's `Tracker` and `load` live in the closer's file, and the two other new files import them. The refusal file's fake is `RefusingTracker` beside it, so its eight cases read the new name; the closer's two loaders are one, `closer_module`, beside the hygiene file's `_closer`.
+
+**Left where they stand**, for #923: the label file's five cases that read the workflow, `docs/issues-and-milestones.md` and the documents its labels cite; the merged-ticket file's three that read its workflow; the hygiene file's token case, which reads the closer's workflow. The refusal file holds no case and stays, because `docs/branch-and-release.md` line 315 names it until the settle.
+
+**The merge.** Placed in `Test_keywords_in`, the hygiene file's four-space and HTML comment cases gave `--pairs` one pair, equal bodies once strings are normalised. They are one parametrized case, `test_accepts_a_shape_left_unmasked_as_a_claim`, with each old docstring's reason as a comment above its row; the closer's comment above `FENCE` and `SPAN` says each shape has a row there. `--pairs` also names `tests/test_tracker_labels.py::Test_main`'s two `main(["--apply"])` cases, over different trackers: one asserts a create, the other that nothing is written, so neither covers the other and neither is merged.
+
+**The move check** (`executed`): `bin/test-layout --moved HEAD --from tests/test_a_declared_label_reaches_the_tracker.py tests/test_a_merged_ticket_says_so_on_the_tracker.py tests/test_the_closer_carries_on_past_a_refusal.py tests/test_release_hygiene.py --to tests/test_close_issues_on_release.py tests/test_tracker_labels.py tests/test_label_merged_on_release_branch.py tests/test_a_declared_label_reaches_the_tracker.py tests/test_a_merged_ticket_says_so_on_the_tracker.py tests/test_the_closer_carries_on_past_a_refusal.py tests/test_release_hygiene.py`, HEAD at bc2b976f, ends `test-layout: moved: 94 old cases, 102 items against 102 at bc2b976ffa97, 21 failed`, exit 1. The 21 lines are three kinds, each an old case and its new form: the refusal file's eight cases, whose bodies name `RefusingTracker`; its fallback-comment case, whose message names the argv case where it named the hygiene file; and the two merged cases with the case they became.
+
+**The mutation table** (`executed`, one `bin/mutation-check` batch per module at the tree committed as efc3a79f, `--tests "bin/test <its new file> -q -p no:xdist -x"`; the old column in an archive of bc2b976f with the worktree's `.venv`, against the old files each module's cases came from).
+
+`close_issues_on_release.py`: 46 mutants, c1 to c46, at the decision points of `keywords_in` and its four patterns, `run`, `attempt`, `gh_json`, `_issue_api`, `issue_state`, `comments_on`, `issue_labels`, `drop_label`, `spend_label`, `closing_comment`, `close_issue`, `pull_request_body`, `arrived` and `main`: 34 red and 12 survived, after a 5.0 s baseline; the old column ran the 12 against the label file, the refusal file and the hygiene file's ten closer cases, and each survived there too.
+
+| # | Mutation | New file | Old files |
+|---|---|---|---|
+| c1 to c9, c11, c12, c17, c19 to c27, c29, c31, c34, c37 to c46 | a fence or a span left unmasked; a number with no keyword claimed; the keywords read case-sensitively; a merged number read mid-subject; the tilde fence, the indented fence or the fence's own closing delimiter dropped; the double-backtick span dropped; `attempt` inverted or unstripped; the comment count never read; an issue's labels read as none; a refused removal unreported, a removal reported as failed, the dry arm or the report's guard dropped; the closing comment's pull request dropped; the first route taken as closing, a refused PATCH unreported, a landed comment taken as missing, the posted comment's body changed; a pull request read with no body; every subject dropped; a missing issue closed; any label taken as spent; an already-closed issue closed again; the closed arm's removal dropped; the dry run closing; a refused close unreported; the closed issue's removal dropped; the failures not raised; the re-run's `REPO` dropped; `DRY_RUN` ignored | red | not run |
+| c10 | `run` does not exit on a failed call | SURVIVED | SURVIVED |
+| c13 | `gh_json` answers the text, not its JSON | SURVIVED | SURVIVED |
+| c14 | `_issue_api` exits on a 404 | SURVIVED | SURVIVED |
+| c15 | `issue_state` answers `open` for every issue that exists | SURVIVED | SURVIVED |
+| c16 | `comments_on` answers 0 where the read gave no count | SURVIVED | SURVIVED |
+| c18 | `issue_labels` reads a missing issue's data | SURVIVED | SURVIVED |
+| c28 | `close_issue` takes a count it could not read as 0 | SURVIVED | SURVIVED |
+| c30 | `pull_request_body` answers an issue's body as a pull request's | SURVIVED | SURVIVED |
+| c32 | `arrived` reads a range from an all-zero `before` | SURVIVED | SURVIVED |
+| c33 | `arrived` reads the tip, not the range | SURVIVED | SURVIVED |
+| c35 | `main` reads keywords from a number that is no pull request | SURVIVED | SURVIVED |
+| c36 | the last pull request to claim an issue is named, not the first | SURVIVED | SURVIVED |
+
+`label_merged_on_release_branch.py`: 22 mutants, m1 to m22: 19 red and 3 survived; the old column ran the 3 against the merged-ticket file and the label file's reader case, and each survived there too.
+
+| # | Mutation | New file | Old files |
+|---|---|---|---|
+| m1 to m5, m7, m8, m10, m12 to m22 | the branch pattern's end anchor dropped; no version read as empty; the milestone, label or description spelled without its branch; the issue's labels or the existing labels read as none; the description dropped from the create; the add written as a remove; a number that is no pull request read; the issue and its pull request swapped; a non-release branch labelled; nothing claimed and the label created; an existing label created again; the dry run creating, labelling a missing issue, labelling again or writing; `DRY_RUN` ignored | red | not run |
+| m6 | `LABEL_DESCRIPTION_LIMIT` is 1000 | SURVIVED | SURVIVED |
+| m9 | the label list is read 30 at a time | SURVIVED | SURVIVED |
+| m11 | the label is created in another colour | SURVIVED | SURVIVED |
+
+`tracker_labels.py`: 9 mutants, t1 to t9: 7 red and 2 survived; the old column ran the 2 against the label file, and each survived there too.
+
+| # | Mutation | New file | Old files |
+|---|---|---|---|
+| t1 to t3, t5, t7 to t9 | nothing declared; the present labels taken as missing; the description dropped from the create; the complete tracker not said; `--check` creating; `--check`'s pointer to `--apply` dropped; every run read as dry | red | not run |
+| t4 | the label is created in another colour | SURVIVED | SURVIVED |
+| t6 | `DRY_RUN` creates | SURVIVED | SURVIVED |
+
+Every survivor is an old gap. Five no case can reach, because every case replaces the function or nothing calls it: `run` (c10) and `arrived` (c32, c33) are faked in every case, `_issue_api` (c14) in every case that reaches it, and `gh_json` (c13) has no caller in the tree (`executed`, `git grep gh_json -- .github`). For the others no case has a closed issue read through the real `issue_state` and asserted not closed again (c15), a comment count unreadable before the first route and readable after it (c16, c28), a missing issue read through the closer's own `issue_labels` (c18), a subject number that names an issue reaching the real `pull_request_body` (c30, c35), two pull requests claiming one issue (c36), a description held to the cap's value (m6), a tracker of more than 30 labels (m9), an asserted colour (m11, t4), or `tracker_labels.py` run under `DRY_RUN` (t6). No case was added.
+
+**Cases and seconds** (`executed`, serial): 66 items in 0.08 s before, the three tracker files and the hygiene file's ten closer cases in an archive of bc2b976f; 69 in 0.12 s after over the three new files and the three old ones, the three census items among them.
+
+**The real-git cases kept.** None: no case runs git or `gh`.
+
+**Lines rewritten.** The closer's comment above `FENCE` and `SPAN`, `seal/follow-up.md`'s row on folded-source readers, and the docstrings of `tests/test_roll_flow_measurement_issue.py` (`_roller` and the round trip's case) and `tests/test_a_release_publishes_its_note.py` name the files that hold the cases.
+
+**The boundary** (`executed`). At the tree committed as efc3a79f, before the commit over the same bytes: the seven files, the roll file, the note file, `tests/test_issue_claims_check.py`, `tests/test_the_changelog_is_gathered_at_release.py`, every file reading `seal/follow-up.md`, `tests/test_every_reader_ends_a_line_where_gfm_does.py`, `tests/test_docs_line_wrap.py`, the `git_listing` files, the censuses, `tests/test_test_layout.py`, `tests/test_conftest.py` and `tests/test_chain_hooks_hardening.py`. 40 files: 3,153 passed and 3 skipped in 27.4 s. `bin/test-layout --check` exits 0, 177 files read, 0 refused, 116 declaring no `TARGET`; `bin/rules --check` exits 0 with 249 check lines; `bin/unverified-check seal/specs/` exits 0. Ruff checks and formats each changed Python file clean.
+
+### Batch B, `.github/scripts/`, group 46, at b68d41d1
+
+**The module.** `.github/scripts/durations_union.py`, whose six cases were in `tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py`, now `tests/test_durations_union.py` with the fixture parts and their two helpers: five that run `main` in `Test_main`, renamed `test_accepts_the_parts_and_writes_their_union_sorted_with_lf` and `test_refuses_a_missing_part_a_duplicate_id_or_an_unparseable_part`, and the report's empty-committed-file case in `Test_module`. The old file keeps the cases that read the workflow, the durations file and the documents, and conftest's `posix_id` case, and its docstring names the new file.
+
+**The move check** (`executed`): `bin/test-layout --moved HEAD --from tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py --to tests/test_durations_union.py tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py`, HEAD at efc3a79f, ends `test-layout: moved: 24 old cases, 33 items against 33 at efc3a79f8793, 0 failed`, exit 0. No mutants run; `--pairs` names none.
+
+**Cases and seconds** (`executed`, serial): 33 items in 0.11 s before, in an archive of bc2b976f; 34 in 0.13 s after.
+
+**The real-git cases kept.** None: the union reads fixture parts on disk.
+
+**The boundary** (`executed`). At the tree committed as b68d41d1, before the commit over the same bytes: the two files, `tests/test_ci_gives_the_checks_what_they_need.py`, which the old file imports, `tests/test_release_report.py`, the `git_listing` files, the censuses, `tests/test_test_layout.py`, `tests/test_conftest.py` and `tests/test_chain_hooks_hardening.py`. 26 files: 2,502 passed and 5 skipped. `--check` (178 files, 0 refused), `bin/rules --check` and `bin/unverified-check seal/specs/` exit 0; ruff clean.
+
+### Batch B, `.github/scripts/`, group 47, at 503e2f5e
+
+**The module.** `.github/scripts/gather_changelog.py`, whose 33 cases were in `tests/test_the_changelog_is_gathered_at_release.py`, now `tests/test_gather_changelog.py` with the `tree` fixture and the layout helpers: 32 that run the script as a process in `Test_main`, renamed `test_accepts_every_fragment_into_the_released_section` and `test_refuses_a_release_with_nothing_to_gather`, and the index case that calls `indexed` in `Test_module`. The `second-gather-appends` marker moves with its case; `.github/scripts/rules.py#markers` reads a marker from any test file, so `docs/release-checklist.md` line 76 stands as `spec.md` says. The old file keeps the nine cases that read the workflow, the documents, this repository's changelog and records, and conftest's `gathered_entry`. `tests/test_release_hygiene.py`'s docstring names the file that checks the order of the sections.
+
+**The move check** (`executed`): `bin/test-layout --moved HEAD --from tests/test_the_changelog_is_gathered_at_release.py --to tests/test_gather_changelog.py tests/test_the_changelog_is_gathered_at_release.py`, HEAD at b68d41d1, ends `test-layout: moved: 42 old cases, 52 items against 52 at b68d41d1caa8, 0 failed`, exit 0. No mutants run; `--pairs` names none.
+
+**Cases and seconds** (`executed`, serial): 52 items in 1.35 s before, in an archive of bc2b976f; 53 in 1.41 s after.
+
+**The real-git cases kept.** None: the gather reads and writes files under a temporary root.
+
+**The boundary** (`executed`). At the tree committed as 503e2f5e, before the commit over the same bytes: the two files, the hygiene file, the files naming the gatherer (`tests/test_every_reader_ends_a_line_where_gfm_does.py`, `tests/test_first_setup_asks_once.py`, `tests/test_a_body_naming_two_issues_claims_one.py`, `tests/test_a_release_publishes_its_note.py`), the two rules files, `tests/test_a_workflow_is_read_the_one_way.py`, `tests/test_docs_line_wrap.py`, the `git_listing` files, the censuses, `tests/test_test_layout.py`, `tests/test_conftest.py` and `tests/test_chain_hooks_hardening.py`. 31 files: 2,650 passed and 3 skipped. `--check` (179 files, 0 refused), `bin/rules --check` (249 check lines) and `bin/unverified-check seal/specs/` exit 0; ruff clean.
+
+**Phase 4's survivors.** Group 45's moved cases call `read`, so h2 was re-run against `tests/test_close_issues_on_release.py` and `tests/test_label_merged_on_release_branch.py` with one `bin/mutation-check` call at the tree committed as 503e2f5e, and it survives, an old gap (`executed`): every call passes an absolute path, and `bin/test` runs from the root, so the root join changes no path. h12 and h23 are not reached by groups 45 to 47: no moved case calls `imported_roots` or `repo_relative` (`read`).
+
+### Batch B, `.github/scripts/`, group 48, at f7ef43cc
+
+**The modules.** `publish_release_note.py` and `release_seal.py`, one group because their cases share `tests/test_a_release_publishes_its_note.py` and `tests/test_the_release_seal_is_drawn.py`.
+
+**The cases.** 41 of the 47 old cases, into two new files:
+
+- `tests/test_publish_release_note.py`: the note file's 14 that run `main` in `Test_main`, renamed `test_accepts_the_gathered_section_as_the_release_note` and `test_refuses_a_tag_with_no_changelog_section`, and in `Test_module` the title pattern's bound, the branch list's call, the glance block and the gatherer seam.
+- `tests/test_release_seal.py`: the seal file's 23, three in `Test_release_rows`, three in `Test_suite_counts`, eight in `Test_chain_counts`, four that run `main` in `Test_main`, and in `Test_module` the two pixel cases, the load with Pillow blocked, the alt text and the `gh` and `tagged` calls. Renamed: `test_accepts_the_fixed_set_of_rows_in_order_and_fits_the_panel`, `test_refuses_to_count_a_chain_count_nobody_could_read`, `test_accepts_the_record_and_reads_it_through_the_gates_reader`, `test_refuses_a_record_that_cannot_vouch_for_the_counts`, `test_accepts_a_tree_and_counts_items_rounds_capped_and_deferred`, `test_refuses_to_count_a_tree_whose_records_are_not_there`, `test_accepts_a_published_note_and_replaces_its_glance_table`, `test_refuses_on_any_failure_and_leaves_the_note_as_published`. `draw` has no class: its two cases assert what it paints and have no refusing partner, so both are in `Test_module`.
+
+The emoji the note's headings and glance rows carry are spelled as Python escapes in the moved assertions, so each string constant is the one it was and the move check compares them equal; the round findings' markers in docstrings and comments are words.
+
+**Left where they stand**, for #923: the note file's checklist title case and its two workflow cases, which load the script through the new file's `module`; the seal file's install-pin case and its two document cases. `docs/branch-and-release.md` line 94 names both old files and keeps them, as `spec.md` says; `overview.md` asks the framer whether it should name the new files too.
+
+**The move check** (`executed`): `bin/test-layout --moved HEAD --from tests/test_a_release_publishes_its_note.py tests/test_the_release_seal_is_drawn.py --to tests/test_publish_release_note.py tests/test_release_seal.py tests/test_a_release_publishes_its_note.py tests/test_the_release_seal_is_drawn.py`, HEAD at 503e2f5e, ends `test-layout: moved: 47 old cases, 80 items against 80 at 503e2f5e32f4, 0 failed`, exit 0. No mutants run; `--pairs` names none in the two new files.
+
+**Cases and seconds** (`executed`, serial): 80 items in 3.85 s before, in an archive of bc2b976f; 82 in 3.65 s after.
+
+**The real-git cases kept.** None: the seal's `tree` builds a work item's records on disk, and `gh` and `git` are stood in for.
+
+**Lines rewritten.** `publish_release_note.py`'s comment on the section heading names the seam case where it stands now.
+
+**The boundary** (`executed`). At the tree committed as f7ef43cc, before the commit over the same bytes: the four files, `tests/test_gather_changelog.py`, `tests/test_the_gate_names_every_step_ci_runs.py`, `tests/test_the_release_tail_does_not_end_at_the_tag.py`, `tests/test_seal_stamp.py`, the hygiene file, `tests/test_ci_gives_the_checks_what_they_need.py`, `tests/test_docs_line_wrap.py`, the `git_listing` files, the censuses, `tests/test_test_layout.py`, `tests/test_conftest.py` and `tests/test_chain_hooks_hardening.py`. 32 files: 2,757 passed and 3 skipped. `--check` (181 files, 0 refused), `bin/rules --check` and `bin/unverified-check seal/specs/` exit 0; ruff clean.
+
+### Batch B, `.github/scripts/`, group 49, at a4a113f6
+
+**The module.** `.github/scripts/run_tests.py`, whose 36 cases of its functions were in `tests/test_the_suite_has_a_command_that_is_cheap_twice.py`, now `tests/test_run_tests.py` with the fake environment, the recorder and the stand-in interpreter: ten of `ensure`, two of `hide_from_git`, five of `build`, 18 that run `main`, and the repository root case in `Test_module`. Renamed: `test_accepts_a_built_environment_and_never_rebuilds_it`, `test_refuses_an_environment_below_the_floor`, `test_accepts_a_built_environment_and_hides_it_from_git`, `test_refuses_to_overwrite_an_existing_ignore`, `test_accepts_a_fresh_build_and_installs_xdist_beside_pytest`, `test_refuses_a_machine_with_neither_tool_and_names_what_to_install`, `test_accepts_the_callers_arguments_and_passes_them_through`, `test_refuses_a_tree_without_a_suite_in_a_sentence`. The old file keeps the 24 cases that read the `bin/` wrappers, the workflows, `CONTRIBUTING.md`, the handoff protocol, the agent definitions and the runner's own prose, and reads the runner through the new file's `rt`. `docs/the-broad-gate.md`'s three lines move to the new file through `spec.md`'s items; `agents/smith.md` line 142 and `agents/warden.md` line 162 keep the old file, as `spec.md` says.
+
+**The pairs.** `--pairs` names 120 pairs in `Test_main`, every one two of the 16 cases that call `main([])`. Each case builds a different world on disk with `fake_venv`, or stands in a different `subprocess.run`, and asserts a different line or call, so none covers another and none is merged; the report compares the literal `[]` and cannot see the input that differs.
+
+**The move check** (`executed`): `bin/test-layout --moved HEAD --from tests/test_the_suite_has_a_command_that_is_cheap_twice.py --to tests/test_run_tests.py tests/test_the_suite_has_a_command_that_is_cheap_twice.py`, HEAD at f7ef43cc, ends `test-layout: moved: 60 old cases, 95 items against 95 at f7ef43ccac39, 0 failed`, exit 0. No mutants run.
+
+**Cases and seconds** (`executed`, serial): 95 items in 0.86 s before, in an archive of bc2b976f; 96 in 0.67 s after.
+
+**The real-git cases kept.** The six that `git init` a directory and read `git status`, because what they hold is whether git sees the virtualenv.
+
+**The boundary** (`executed`). At the tree committed as a4a113f6, before the commit over the same bytes: the two files, `tests/test_arm_check.py`, `tests/test_launch.py`, the note and seal files, the hygiene file, `tests/test_ci_gives_the_checks_what_they_need.py`, `tests/test_the_seal_is_taken_once_by_the_sealer.py`, `tests/test_rules.py`, `tests/test_docs_line_wrap.py`, the `git_listing` files, the censuses, `tests/test_test_layout.py`, `tests/test_conftest.py` and `tests/test_chain_hooks_hardening.py`. 31 files: 2,729 passed and 5 skipped. `--check` (182 files, 0 refused), `bin/rules --check` and `bin/unverified-check seal/specs/` exit 0; ruff clean.
+
+**Phase 4's survivors.** Groups 48 and 49 call no conftest helper that h2, h12 or h23 breaks: the moved cases load modules with `load_module` and read files with `open` (`read`).
+
+`.github/scripts/` is done: each of its 14 modules has its rule 1 file (`executed`, one `TARGET` line per module's file).
+
 ### What remains in phase 6
 
 - `hooks/`: `hooks/githooks.py` and `hooks/hook-install.py` wait on Q10. `hooks/answer-clear.py` has a file whose `Test_module` holds its two round trips and no `Test_main`.
 - `skills/verify/scripts/`, `skills/code-review/scripts/`, `skills/settle/scripts/` and `skills/implement/scripts/`: done, apart from the cases left for #923 and those that compare files with each other.
-- `.github/scripts/`: groups 39 to 44 placed `issue_claims_check.py`, `release_report.py`'s other cases, `rules.py` with line 268's other file, `release_completeness_check.py`, `plugin_directory_check.py` and `roll_flow_measurement_issue.py`. Eight modules have no rule 1 file yet: `close_issues_on_release.py`, `durations_union.py`, `gather_changelog.py`, `label_merged_on_release_branch.py`, `publish_release_note.py`, `release_seal.py`, `run_tests.py` and `tracker_labels.py`, none of whose old files prices at 60 s (`executed`, `.test_durations`; the heaviest is `tests/test_the_release_seal_is_drawn.py` at 55.9 s). The closer's cases sit in five old files, three of which (`tests/test_a_declared_label_reaches_the_tracker.py`, `tests/test_a_merged_ticket_says_so_on_the_tracker.py`, `tests/test_the_closer_carries_on_past_a_refusal.py`) each define a fake `Tracker` of their own under one name, so `tracker_labels.py`, `label_merged_on_release_branch.py` and `close_issues_on_release.py` are one group, and its move check will name the bodies that read the renamed fakes (`read`).
+- `.github/scripts/`: done; groups 39 to 49 placed the cases of its fourteen modules.
 - `evals/scripts/`: not started; `noninferiority.py` has its file from phase 5, and `behaviour.py`, `replay_targets.py`, `rule_cases.py` and `seed_defects.py` have none.
 - Phase 4's survivors: h14 was re-run against the creation flow in group 7, h21 against the guard's file in group 12, h4 against the commit gate's file in group 14 and h6 against `tests/test_config.py` in group 23, and each survives, an old gap. h2, h12 and h23 wait for the groups that rebuild the modules whose cases reach them; no group through 44 reaches one (`read`, each group's record). The files whose cases reach them, by phase 4's table, are `tests/test_the_handoff_before_round_one.py` for h2, `tests/test_the_hooks_hide_what_a_renderer_hides.py` and `tests/test_one_table_walker_reads_what_gfm_renders.py` for h12, and `tests/test_every_agent_reads_the_contract.py` and `tests/test_a_moved_rule_leaves_its_definition.py` for h23. Three of the five are on `spec.md`'s list of files no remaining group draws a case from (`read`), so h2 and h23 may never be reached by a module group; whether a group draws from the two h12 files is `unverified`, for the spawn that places the last modules.
