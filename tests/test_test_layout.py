@@ -593,10 +593,27 @@ INSIDE = (
     "    assert V and tempfile.gettempdir()\n"
 )
 VIEW = "def view():\n    import test_e\n\n    return test_e.V\n\n\n"
+# Two cases that import `test_e` inside their bodies and read no `W` of it.
+UNREAD = (
+    "def test_unread():\n"
+    "    from test_e import V, W\n"
+    "\n"
+    "    assert V\n"
+    "\n"
+    "\n"
+    "def test_other():\n"
+    "    import tempfile\n"
+    "\n"
+    "    import test_e\n"
+    "\n"
+    "    assert test_e.V and tempfile.W\n"
+)
 OLD_H, H = "tests/test_old_h.py", "tests/test_h.py"
 OLD_K, K = "tests/test_old_k.py", "tests/test_k.py"
-INSIDE_NEW = "class Test_module:\n" + textwrap.indent(
-    INSIDE.replace("():", "(self):"), "    "
+OLD_N, N = "tests/test_old_n.py", "tests/test_n.py"
+INSIDE_NEW, UNREAD_NEW = (
+    "class Test_module:\n" + textwrap.indent(source.replace("():", "(self):"), "    ")
+    for source in (INSIDE, UNREAD)
 )
 VIEW_NEW = (
     VIEW + "class Test_module:\n    def test_view(self):\n        assert view()\n"
@@ -656,6 +673,7 @@ def _moved_world(tmp_path_factory):
     )
     write(repo, OLD_H, INSIDE)
     write(repo, OLD_K, VIEW + "def test_view():\n    assert view()\n")
+    write(repo, OLD_N, UNREAD)
     write(repo, "tests/data/rows.txt", "a 1\n")
     return repo, commit_everything_as_e(repo, "base")
 
@@ -717,7 +735,13 @@ class Test_moved:
                 (NAMED_NEW, {"tests/held.py/rows.txt": "a 1\n"}),
             ]
         ]
-        + [({H: INSIDE_NEW}, {"tests/test_e.py": "V = 1\nW = 2\n"}, (OLD_H,), 1, 1)],
+        + [
+            ({new: source}, {"tests/test_e.py": "V = 1\nW = 2\n"}, (old,), cases, cases)
+            for new, source, old, cases in [
+                (H, INSIDE_NEW, OLD_H, 1),
+                (N, UNREAD_NEW, OLD_N, 2),
+            ]
+        ],
         ids=[
             "every-kind-of-move",
             "a-nested-docstring-re-indented",
@@ -728,6 +752,7 @@ class Test_moved:
             "a-name-imported-from-another-test-file",
             "a-directory-named-like-a-module",
             "a-local-import-beside-a-changed-name-it-does-not-take",
+            "a-changed-name-of-a-local-import-the-case-does-not-read",
         ],
     )
     def test_accepts_a_pure_move(
