@@ -331,6 +331,32 @@ The mutants sit at the mark hook's tool test, agent test, opt-in and branch; `im
 
 **The boundary** (`executed`). At the tree committed as d8bba633: the three files, every test file naming `run_dispatch`, `declare`, `spawn`, `ITEM` or `bash(`, every file naming `arm-check`, the `git_listing` files, the censuses, `tests/test_dispatch.py`, `tests/test_test_layout.py`, `tests/test_conftest.py` and `tests/test_chain_hooks_hardening.py`, 82 files: 4,681 passed and 10 skipped. `bin/test-layout --check` exits 0, 162 files read, 128 declaring no `TARGET`; `--pairs` names none in the new files; `bin/rules --check` exits 0. Ruff clean on each changed file.
 
+### Batch B, `hooks/`, group 10, at 449feefb
+
+**The module.** `hooks/optin.py`, whose cases were 29 of `tests/test_optin_home.py` and three of `tests/test_gates_do_not_fail_open.py`, now `tests/test_optin.py` (`Test_repo_root`, `Test_git_common_dir`, `Test_home_paths`, `Test_home`, `Test_opted_in`, `Test_parity_config`, `Test_module`). Group 1 left the version check's two cases and the review-skill gate's three in the old optin file for this module, because they pin how a hook reads the two places; they are in `Test_module`. The old file keeps the commit gate's seven cases, which wait for the commit gate's group. The `check:` lines of `docs/one-root-by-lifetime.md` and its Korean twin that name the old file move to `tests/test_optin.py` through their `## Rule changes` items.
+
+**The move check** (`executed`):
+
+`bin/test-layout --moved 9197c897 --from tests/test_optin_home.py tests/test_gates_do_not_fail_open.py --to tests/test_optin.py tests/test_optin_home.py tests/test_gates_do_not_fail_open.py`
+
+`test-layout: moved: 46 old cases, 47 items against 47 at 9197c897c376, 6 failed`, exit 1. The six lines are the three cases from `tests/test_gates_do_not_fail_open.py`, each named twice. They read a module the file loaded at import under the name `optin`, which `tests/test_optin.py` gives to its fixture, so each now requests the fixture and reads the module through it; their bodies are as they were. `--pairs` names `test_review_skill_gate_fires_on_the_new_home` and `test_review_skill_gate_stays_silent_on_the_legacy_marker`, which assert opposite verdicts on two inputs, so neither covers the other and they are not merged.
+
+**Helpers.** `home`, `legacy` and `scratch` serve both files, so they moved to `tests/conftest.py`. `tests/test_a_shrunken_corpus_declines_to_judge.py#LISTS_A_FIXTURE` names the local-root case under its new file, and `tests/test_first_setup_asks_once.py`'s docstring names `tests/test_optin.py`. That module's three cases fail while the new file is untracked, because its scan lists tracked files; after 449feefb they pass, 17 cases.
+
+**The mutation table** (`executed`, one batch over `tests/test_optin.py` with `-x`; the old column against the two old files in an archive of 9197c897):
+
+| Mutants | New column | Old column | Old gaps |
+|---|---|---|---|
+| 15 | 10 red, 5 survived, 18.6 s | 5 survived | `repo_root` asking git for a path that is not a directory, which git refuses anyway; `repo_root` answering git's spelling without `normpath`, which is the same spelling on POSIX; `home_paths` asking git when the caller passed the common directory, which no case counts; `home_paths` leaving the local place unnormalised; `parity_config` reading a repository with no root, where `home` answers nothing |
+
+The mutants sit at `repo_root`'s directory test, its `None` guard and its `normpath`; `git_common_dir`'s directory fast path, its `None` guard and its join; `home_paths`' empty root, its passed common directory and its local normalisation; `home_at`'s marker as a file, the marker test, each place as a directory and the order; and `parity_config`'s file test and its missing root. No case was added.
+
+**Cases and seconds** (`executed`, serial): 47 items in 2.29 s before, in the archive; 48 items in 2.07 s after, over the three files.
+
+**The real-git cases kept.** Every case that takes the `repo` fixture asks git for the root or the common directory, and four add a linked worktree, whose `.git` is a file git has to resolve; the cases that stub `subprocess.run` are the rows where the reading is asked without git.
+
+**The boundary** (`executed`). At the tree committed as 449feefb, before the commit: the three files, every test file naming `home(`, `legacy(`, `scratch(`, `KOREAN` or `optin`, the `git_listing` files, the censuses, `tests/test_test_layout.py`, `tests/test_conftest.py` and `tests/test_chain_hooks_hardening.py`, 42 files: 2,841 passed and the three untracked-file failures above, which pass once committed. `bin/test-layout --check` exits 0, 163 files read, 128 declaring no `TARGET`; `bin/rules --check` exits 0. Ruff clean on each changed file.
+
 ### What `hooks/` holds back
 
 **Three groups wait for a rule change** (`read`). A `check:` line names a file whose cases would all leave it, or whose rule the moving cases hold, and the smith edits nothing under `docs/`:
