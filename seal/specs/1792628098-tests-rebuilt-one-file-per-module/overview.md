@@ -20,13 +20,13 @@ The suite grew to 7,466 cases and four thousand Windows seconds in files named a
 |---|---|
 | the full suite, the repository-wide lint and the typecheck at the work item's head | the orchestrator, through `broad-gate` after the review rounds settle |
 | what the suite costs in CI minutes after the rebuild (`questions.md` Q5) | a measurement: the release table at the next release pull request |
-| the Windows fixes at 7efbd4c6 and 3e5cbb59, `tests/test_seal.py` at ef95b457 and `tests/test_noninferiority.py` at 136c8923, run on macOS only | the orchestrator, on the next CI run's Windows legs |
+| the Windows fixes at 7efbd4c6 and 3e5cbb59, `tests/test_seal.py` at ef95b457, `tests/test_noninferiority.py` at 136c8923 and `tests/test_unverified_check.py` at b770ca64, run on macOS only | the orchestrator, on the next CI run's Windows legs |
 
 ## Not done
 
-Phase 4 left seven survived mutations of `tests/conftest.py` helpers (h2, h4, h6, h12, h14, h21, h23). Each closes in the batch that rebuilds the module whose cases reach it; none closed with `broad_gate.py`, `seal_stamp.py`, the commit flow, `hooks/commit-review-gate.py`, `hooks/worktree-guard.py`, `chain_check.py`, `pact_check.py`, `hooks/root-migrate.py`, `seal.py` or `noninferiority.py`, as `phases/phase-5.md` says.
+Phase 4 left seven survived mutations of `tests/conftest.py` helpers (h2, h4, h6, h12, h14, h21, h23). Each closes in the batch that rebuilds the module whose cases reach it; none closed with `broad_gate.py`, `seal_stamp.py`, the commit flow, `hooks/commit-review-gate.py`, `hooks/worktree-guard.py`, `chain_check.py`, `pact_check.py`, `hooks/root-migrate.py`, `seal.py`, `noninferiority.py` or `unverified_check.py`, as `phases/phase-5.md` says, so each is left to phase 6.
 
-Phase 5 has rebuilt ten of its eleven modules, `skills/verify/scripts/broad_gate.py`, `skills/verify/scripts/seal_stamp.py`, the commit flow into `tests/e2e/commit/`, `hooks/commit-review-gate.py`, `hooks/worktree-guard.py`, `skills/code-review/scripts/chain_check.py`, `skills/verify/scripts/pact_check.py`, `hooks/root-migrate.py`, `skills/implement/scripts/seal.py` and `evals/scripts/noninferiority.py`. The other one remains for the next phase 5 spawn: `skills/verify/scripts/unverified_check.py`.
+Phase 5 closed at b770ca64 with its eleven modules rebuilt, `skills/verify/scripts/broad_gate.py`, `skills/verify/scripts/seal_stamp.py`, the commit flow into `tests/e2e/commit/`, `hooks/commit-review-gate.py`, `hooks/worktree-guard.py`, `skills/code-review/scripts/chain_check.py`, `skills/verify/scripts/pact_check.py`, `hooks/root-migrate.py`, `skills/implement/scripts/seal.py`, `evals/scripts/noninferiority.py` and `skills/verify/scripts/unverified_check.py`. Phases 6 and 7 are not started.
 
 `docs/one-root-by-lifetime.md` names the two old files of `seal.py` in its `check:` lines at 154 and 231, and `docs/one-root-by-lifetime.ko.md` at 149 and 220, for rules `tests/test_seal.py` now holds; each moves through a `## Rule changes` item the framer writes (`phases/phase-5.md` *`skills/implement/scripts/seal.py`*).
 

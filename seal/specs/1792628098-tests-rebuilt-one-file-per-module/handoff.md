@@ -1,13 +1,13 @@
 # Handoff: 1792628098-tests-rebuilt-one-file-per-module (#942)
 
-Written 2026-10-22 by the orchestrator, when the owner paused the build after phase 5's first proof under the new rule, and brought up to date on 2026-10-23 by the smith spawns that rebuilt the modules since. The branch is `chore/942-tests-rebuilt-one-file-per-module`, cut from `release/v0.22.3` at 6046f062. The tree this file describes is 136c8923 and the commit that updates this file.
+Written 2026-10-22 by the orchestrator, when the owner paused the build after phase 5's first proof under the new rule, and brought up to date on 2026-10-23 by the smith spawns that rebuilt the modules since. The branch is `chore/942-tests-rebuilt-one-file-per-module`, cut from `release/v0.22.3` at 6046f062. The tree this file describes is b770ca64 and the commit that updates this file.
 
 ## Where the build stands
 
 | Phase | State |
 |---|---|
 | 1 to 4 | built: `bin/test-layout`, the slow-case report, the censuses in `tests/censuses.py`, the helper twins in `tests/conftest.py` |
-| 5 | 10 of 11 modules rebuilt, plus the `mutation-check` batch mode; 1 module remains |
+| 5 | closed at b770ca64: 11 modules rebuilt, plus the `mutation-check` batch mode |
 | 6 and 7 | not started |
 | Review | round 1 covered phases 1 to 4 at 8aa42bf8; its nine findings are answered, eight fixed at c6d2bfc4 and one deferred to phase 7; no verifying round has run yet |
 
@@ -28,6 +28,7 @@ The phase records `phases/phase-1.md` to `phases/phase-5.md` hold each module's 
 | `hooks/root-migrate.py` | df5136f1, 95db3498 | 54 in one file, 13.5 s serial | 72 in `tests/test_root_migrate.py` and 6 left in the old file, 9.4 s serial | new rule: 41 mutants; 1 survivor, an old gap, red after a row |
 | `skills/implement/scripts/seal.py` | ef95b457 | 183 in two files, 24.0 s serial | 315 in `tests/test_seal.py` and 13 left in the two old files, 11.4 to 13.4 s serial | new rule: 101 mutants over 53 classes; 1 survivor, an equivalent old gap; 1 more old gap closed by a row |
 | `evals/scripts/noninferiority.py` | 452cbeb6, 136c8923 | 133 in one file, 98 of them this module's, 14.8 s serial | 252 in `tests/test_noninferiority.py` and the generators' 35 left in the old file, 8.3 to 8.7 s serial | new rule: 91 mutants over 62 classes; 1 survivor, an old gap, red after a row |
+| `skills/verify/scripts/unverified_check.py` | 984a5cd2, b770ca64 | 236 in one file, 8.3 to 8.5 s serial | 313 in `tests/test_unverified_check.py` and 43 left in the old file, 7.0 to 7.4 s serial | new rule: 123 mutants over 56 classes; 4 survivors, 2 old gaps and 2 the old file killed, each red after a row |
 
 Seconds are macOS wall time on a shared machine, from each module's record.
 
@@ -58,12 +59,11 @@ The owner replaced the 100-mutant table on 2026-10-22 (`spec.md` *The proof of e
 
 ## Left for the next session
 
-1. See the commit flow's 43 cases and the worktree guard's cd case, which 7efbd4c6 and 3e5cbb59 fixed, `tests/test_seal.py` and `tests/test_noninferiority.py`, pass on the Windows legs of the next CI run.
-2. Rebuild the last phase 5 module, `skills/verify/scripts/unverified_check.py`: 1,788 lines and 56 top-level definitions, and its old file, `tests/test_unverified_rows_close.py`, 2,665 lines priced at 61.8 Windows seconds for 215 cases. One spawn should take it alone, then close phase 5's record and its Status cell.
-3. Place `hooks/root-migrate.py#move`'s empty directory, which the rebuild found and pinned as it is (`overview.md` *Not done*).
-4. A `## Rule changes` item, the framer's, for `docs/one-root-by-lifetime.md` and its Korean twin: the `check:` lines that name `seal.py`'s two old files (`overview.md` *Not done*). The worktree guard's sentences are in `spec.md` *Rule changes* since 099119b8.
-5. Phase 6, the remaining shipped modules one commit per directory, and phase 7, `--all`, the `.test_durations` refresh and the closing memo.
-6. A verifying round over round 1's fixes and phase 5, then a round over phases 6 and 7, the broad gate, the sealer, the pull request into `release/v0.22.3`, and then the release preparation.
+1. See the commit flow's 43 cases and the worktree guard's cd case, which 7efbd4c6 and 3e5cbb59 fixed, `tests/test_seal.py`, `tests/test_noninferiority.py` and `tests/test_unverified_check.py`, pass on the Windows legs of the next CI run.
+2. Place `hooks/root-migrate.py#move`'s empty directory, which the rebuild found and pinned as it is (`overview.md` *Not done*).
+3. A `## Rule changes` item, the framer's, for `docs/one-root-by-lifetime.md` and its Korean twin: the `check:` lines that name `seal.py`'s two old files (`overview.md` *Not done*). The worktree guard's sentences are in `spec.md` *Rule changes* since 099119b8.
+4. Phase 6, the remaining shipped modules one commit per directory, its first step the move check, and phase 7, `--all`, the `.test_durations` refresh and the closing memo.
+5. A verifying round over round 1's fixes and phase 5, then a round over phases 6 and 7, the broad gate, the sealer, the pull request into `release/v0.22.3`, and then the release preparation.
 
 ## How a smith spawn for the next modules reads
 
