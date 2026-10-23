@@ -1087,6 +1087,33 @@ The seventeen survivors are old gaps: no moved case reads a `${…}` holding a `
 
 **The boundary** (`executed`). At the tree committed as 391c7857, before the commit with the new file staged and the old one removed: the new file, the three other files naming the recorder (`tests/test_a_release_publishes_its_note.py`, `tests/test_the_gate_hands_cmd_a_path_it_can_run.py`, `tests/test_the_seal_is_taken_once_by_the_sealer.py`), the `git_listing` files, the censuses, `tests/test_test_layout.py`, `tests/test_conftest.py` and `tests/test_chain_hooks_hardening.py`, 26 files: 2,643 passed and 4 skipped. `bin/test-layout --check` exits 0, 168 files read, 120 declaring no `TARGET`; `bin/rules --check` exits 0 with 249 check lines; `bin/unverified-check seal/specs/` exits 0. Ruff checks and formats the new file clean.
 
+### Batch B, `skills/verify/scripts/`, group 32, at bf6df24b
+
+**The module.** `skills/verify/scripts/arm_check.py`, whose 63 cases are the whole of `tests/test_arm_check.py`, which keeps its name and now declares `TARGET`. 60 take classes with their bodies, ten renamed to the pairs:
+
+- `Test_module`, nine: the classification tables' five, the real hook's source segments, `restore`'s refusal, the stale cache `clear_bytecode_cache` removes, and `command_words`' Windows split, each of a function with one case.
+- `Test_arms`, nine: `test_an_unclassified_node_type_is_refused_rather_than_skipped` renamed `test_refuses_an_unclassified_node_type_rather_than_skipping_it`, `test_the_fixtures_arms_are_counted_by_construction` renamed `test_accepts_the_fixtures_arms_as_counted_by_construction`.
+- `Test_mutate`, eleven: `test_an_arm_with_no_defined_mutation_is_refused_not_reported_unwatched` renamed `test_refuses_an_arm_with_no_defined_mutation_rather_than_reporting_it_unwatched`, `test_a_mutation_inverts_the_arm_and_leaves_the_module_parseable` renamed `test_accepts_an_inversion_that_leaves_the_module_parseable`.
+- `Test_run_arms`, fifteen: `test_a_watched_arm_is_killed_and_an_unwatched_one_survives` renamed `test_accepts_a_watched_arm_as_killed_and_an_unwatched_one_as_survived`, `test_a_command_that_never_returns_is_recorded_as_unmeasured` renamed `test_refuses_a_command_that_never_returns_as_unmeasured`.
+- `Test__report`, seven: `test_the_report_names_the_scope_the_shape_and_the_line_of_a_survivor` renamed `test_accepts_a_survivor_with_its_scope_shape_and_line`, `test_the_report_does_not_call_a_mutated_arm_unmutated` renamed `test_refuses_to_call_a_mutated_arm_unmutated`.
+- `Test_main`, nine: `test_the_checker_is_report_only_and_exits_zero_over_the_real_module` renamed `test_accepts_a_report_only_run_at_exit_zero_over_the_real_module`, `test_a_negative_bound_is_refused_rather_than_measured` renamed `test_refuses_a_negative_bound_rather_than_measuring`.
+
+The two triple-quoted sources fed to `textwrap.dedent` keep their old indentation inside the literal, because the AST compares the string and not what `dedent` makes of it; the first draft re-indented them and the check named both bodies.
+
+**Left where they stand.** For #923, at the top level of the file under their names: `test_every_bound_of_the_range_table_is_a_python_ci_runs_this_module_at`, which reads `.github/workflows/test.yml`; `test_a_job_counts_only_where_its_pytest_line_selects_this_module`, whose subject is this file's reader of that workflow's pytest lines; and `test_the_skill_calls_its_survivor_counts_a_measurement_and_not_a_property`, which reads the verify skill. `docs/the-broad-gate.md` line 153 names the file, which keeps its name, so the line is unchanged, as `spec.md` says.
+
+**The lines rewritten.** The docstring no longer names `tests/test_chain_hooks.py#reader_blanking_passes`, which left the tree at 8350c578: the sentence keeps what reading `ast`'s class tree does and drops the precedent it pointed to, because that case exists nowhere. `git grep reader_blanking` outside `seal/specs/` now finds nothing.
+
+**The move check** (`executed`): `bin/test-layout --moved 6df0950b --from tests/test_arm_check.py --to tests/test_arm_check.py` ends `test-layout: moved: 63 old cases, 95 items against 95 at 6df0950bb66f, 0 failed`, exit 0. No mutation table. `--pairs` names one pair, `Test_arms`' fixture count and its flattening case, which read `arms` over one fixture and assert different facts of the answer, the count per scope and the nested segments' text; neither covers the other, so none is merged.
+
+**Cases and seconds** (`executed`, serial, pytest's own figure): 93 passed and 2 skipped in 10.53 s before, in an archive of 6df0950b; 94 passed and 2 skipped in 10.43 s after, the census item among them. The two skipped are the t-string cases, which need Python 3.14.
+
+**The real-git cases kept.** None: no case runs git.
+
+**Phase 4's survivors.** None of h2, h12 and h23 is reached: the file calls `code_lines` from conftest and no `read`, `imported_roots` or `repo_relative` (`read`).
+
+**The boundary** (`executed`). At the tree committed as bf6df24b: the changed file, the two `mutation_check.py` files, which load the module through the command, `tests/test_ci_gives_the_checks_what_they_need.py`, whose `jobs` the file imports, the `git_listing` files, the censuses, `tests/test_test_layout.py`, `tests/test_conftest.py` and `tests/test_chain_hooks_hardening.py`, 26 files: 2,616 passed and 5 skipped. `bin/test-layout --check` exits 0, 168 files read, 119 declaring no `TARGET`; `bin/rules --check` exits 0 with 249 check lines; `bin/unverified-check seal/specs/` exits 0. Ruff checks and formats the file clean.
+
 ### What remains in phase 6
 
 - `hooks/`: `hooks/githooks.py` and `hooks/hook-install.py` wait on Q10. `hooks/answer-clear.py` has a file whose `Test_module` holds its two round trips and no `Test_main`.
