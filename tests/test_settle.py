@@ -9,13 +9,14 @@ fixture's history; `Test_main` runs the command over a repository whose
 merge order git holds. `Test_module` holds the loader, the headings, the
 launcher, and two answers the command takes from its siblings,
 `unverified_check.py#settled` and `rule_changes.py#order`, asked over the
-repositories this file builds.
+repositories this file builds, and the case that reads this module's source
+for a call of `settled` and no second definition of it.
 
 #942's phase 6 placed these cases from
 `tests/test_settle_reads_before_it_removes.py` and
 `tests/test_settle_applies_rule_changes_in_place.py`, which keep the cases
 that read the skill, the documents, the READMEs, the checklist and the cheat
-sheets.
+sheets. The source-reading case came from `tests/test_unverified_rows_close.py`.
 """
 
 import io
@@ -1202,6 +1203,35 @@ class Test_module:
         ]
         assert "does not take its candidates from here" in doc["survey"], doc["survey"]
         assert "not taken from `survey`" in doc["apply"], doc["apply"]
+
+    def test_every_reader_of_a_retirement_calls_the_one_predicate(self):
+        """Three parties ask whether a removed directory was settled, and a
+        predicate spelled in each would take the next condition in one and not
+        the others. The behaviour is pinned per reader in its own module; this
+        pins that this one reaches the answer by calling `settled` on the
+        module that owns it, so a reader that re-derives the rule inline goes
+        red here even while it agrees today. `tests/test_chain_check.py` holds
+        `chain_check.py` to the same."""
+        import ast
+
+        script = TARGET.split("/")
+        with open(os.path.join(ROOT, *script), encoding="utf-8") as f:
+            tree = ast.parse(f.read())
+        calls = [
+            node
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and node.func.attr == "settled"
+        ]
+        assert calls, (
+            f"{'/'.join(script)} decides a removal without asking the predicate"
+        )
+        assert not [
+            node
+            for node in ast.walk(tree)
+            if isinstance(node, ast.FunctionDef) and node.name == "settled"
+        ], f"{'/'.join(script)} defines a second `settled`"
 
 
 test_census = census_case(TARGET)

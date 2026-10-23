@@ -3,13 +3,13 @@
 #942's phase 5 rebuilt `skills/verify/scripts/unverified_check.py`'s cases
 into `tests/test_unverified_check.py`, one class per function. Two kinds of
 case stay here, byte for byte. The cases whose assertion reads a shipped
-document's prose wait for #923. Two cases hold other modules to this one, and
-each is a check across files, which stays where it is:
-`test_the_fence_walks_agree_shape_by_shape` holds `hooks/blocks.py` and
-`hooks/config.py#fence_map` to this module's fence walk, and
-`test_every_reader_of_a_retirement_calls_the_one_predicate` reads the code of
+document's prose wait for #923. `test_the_fence_walks_agree_shape_by_shape`
+holds `hooks/blocks.py` and `hooks/config.py#fence_map` to this module's
+fence walk, a check across files, which stays where it is. The case that read
 `skills/code-review/scripts/chain_check.py` and
-`skills/settle/scripts/settle.py` for a call of this module's `settled`.
+`skills/settle/scripts/settle.py` for a call of this module's `settled` judged
+one file per row, so each row is now a case of its module's file,
+`tests/test_chain_check.py` and `tests/test_settle.py`.
 """
 
 import importlib.util
@@ -267,39 +267,6 @@ def test_the_documents_state_the_merge_base_footing(doc, tip, false_sentence):
         assert false_sentence not in flat_text, (
             f"{doc} still says CI never compares at the base's tip"
         )
-
-
-@pytest.mark.parametrize(
-    "script",
-    [
-        ("skills", "code-review", "scripts", "chain_check.py"),
-        ("skills", "settle", "scripts", "settle.py"),
-    ],
-)
-def test_every_reader_of_a_retirement_calls_the_one_predicate(script):
-    """Three parties ask whether a removed directory was settled, and a
-    predicate spelled in each would take the next condition in one and not
-    the others. The behaviour is pinned per reader in its own module; this
-    pins that each one reaches the answer by calling `settled` on the module
-    that owns it, so a reader that re-derives the rule inline goes red here
-    even while it agrees today."""
-    import ast
-
-    with open(os.path.join(ROOT, *script), encoding="utf-8") as f:
-        tree = ast.parse(f.read())
-    calls = [
-        node
-        for node in ast.walk(tree)
-        if isinstance(node, ast.Call)
-        and isinstance(node.func, ast.Attribute)
-        and node.func.attr == "settled"
-    ]
-    assert calls, f"{'/'.join(script)} decides a removal without asking the predicate"
-    assert not [
-        node
-        for node in ast.walk(tree)
-        if isinstance(node, ast.FunctionDef) and node.name == "settled"
-    ], f"{'/'.join(script)} defines a second `settled`"
 
 
 FENCE_SHAPES = [

@@ -6,6 +6,9 @@ process over a repository built once for the module and copied for each
 case that judges it: a branch with a routing declaration, a code commit, two
 round records and the closing records, judged as a ready or a draft pull
 request through the event payload GitHub writes. Each copy is the reset.
+`Test_module` holds the case that reads this module's source for a call of
+`unverified_check.py#settled` and no second definition of it, which #942
+moved from `tests/test_unverified_rows_close.py`.
 """
 
 import functools
@@ -3010,6 +3013,37 @@ class Test_retired:
         _code, out = check(root, capsys)
         assert "does not carry this file at HEAD" in out
         assert "retired:" not in out
+
+
+class Test_module:
+    def test_every_reader_of_a_retirement_calls_the_one_predicate(self):
+        """Three parties ask whether a removed directory was settled, and a
+        predicate spelled in each would take the next condition in one and not
+        the others. The behaviour is pinned per reader in its own module; this
+        pins that this one reaches the answer by calling `settled` on the
+        module that owns it, so a reader that re-derives the rule inline goes
+        red here even while it agrees today. `tests/test_settle.py` holds
+        `settle.py` to the same."""
+        import ast
+
+        script = TARGET.split("/")
+        with open(os.path.join(ROOT, *script), encoding="utf-8") as f:
+            tree = ast.parse(f.read())
+        calls = [
+            node
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and node.func.attr == "settled"
+        ]
+        assert calls, (
+            f"{'/'.join(script)} decides a removal without asking the predicate"
+        )
+        assert not [
+            node
+            for node in ast.walk(tree)
+            if isinstance(node, ast.FunctionDef) and node.name == "settled"
+        ], f"{'/'.join(script)} defines a second `settled`"
 
 
 # --- left where they stand, for #923: they read the shipped documents --------------
