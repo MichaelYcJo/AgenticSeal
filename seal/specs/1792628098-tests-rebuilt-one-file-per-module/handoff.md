@@ -1,6 +1,6 @@
 # Handoff: 1792628098-tests-rebuilt-one-file-per-module (#942)
 
-Written 2026-10-22 by the orchestrator, when the owner paused the build after phase 5's first proof under the new rule, and brought up to date on 2026-10-23 by the smith spawns that rebuilt the modules since. The branch is `chore/942-tests-rebuilt-one-file-per-module`, cut from `release/v0.22.3` at 6046f062. The tree this file describes is 46e1ec4c and the commit that updates this file.
+Written 2026-10-22 by the orchestrator, when the owner paused the build after phase 5's first proof under the new rule, and brought up to date on 2026-10-23 by the smith spawns that rebuilt the modules since. The branch is `chore/942-tests-rebuilt-one-file-per-module`, cut from `release/v0.22.3` at 6046f062. The tree this file describes is 222bf69a and the commit that updates this file.
 
 ## Where the build stands
 
@@ -8,7 +8,7 @@ Written 2026-10-22 by the orchestrator, when the owner paused the build after ph
 |---|---|
 | 1 to 4 | built: `bin/test-layout`, the slow-case report, the censuses in `tests/censuses.py`, the helper twins in `tests/conftest.py` |
 | 5 | closed at b770ca64: 11 modules rebuilt, plus the `mutation-check` batch mode |
-| 6 | open: the move check at 6e7214be, its two sets at 43324e4e; Batch B's `hooks/` groups 1 to 26, from 0a86c1b4 to da3eae09, 28 modules placed, `hooks/config.py` in groups 21 to 23 and `hooks/cmdline.py` last in groups 24 to 26, the creation flow in `tests/e2e/creation/`, the worktree guard's light files in its one file, the commit gate's guarantee arm in `tests/test_commitgate.py`, and every commit gate case the work moves in its file. The framer's survey at 0b134a29 gave every `check:` line the remaining groups meet a verdict in `spec.md`; the installer's line, for `hooks/githooks.py` and `hooks/hook-install.py`, waits on `questions.md` Q10, whose default is wait. `hooks/cmdline_base.py` and `hooks/git/` have nothing to move. `skills/verify/scripts/`'s groups 27 to 35, from ffb0bd4b to 2272cd1e, placed seven modules and the light files of `broad_gate.py` and `unverified_check.py`; `seal_stamp.py` and `pact_check.py` had none to move. Group 36, at 19c01e3b, placed `skills/code-review/scripts/chain_check.py`'s light files. Group 37, at 809408e5, placed `skills/settle/scripts/`'s three modules, and group 38, at 4f350b0f, `seal.py`'s last light cases. Group 39, at 46e1ec4c, placed `.github/scripts/issue_claims_check.py`; twelve modules of `.github/scripts/` and `evals/scripts/` remain (`phases/phase-6.md` *What remains in phase 6*) |
+| 6 | open: the move check at 6e7214be, its two sets at 43324e4e; Batch B's `hooks/` groups 1 to 26, from 0a86c1b4 to da3eae09, 28 modules placed, `hooks/config.py` in groups 21 to 23 and `hooks/cmdline.py` last in groups 24 to 26, the creation flow in `tests/e2e/creation/`, the worktree guard's light files in its one file, the commit gate's guarantee arm in `tests/test_commitgate.py`, and every commit gate case the work moves in its file. The framer's survey at 0b134a29 gave every `check:` line the remaining groups meet a verdict in `spec.md`; the installer's line, for `hooks/githooks.py` and `hooks/hook-install.py`, waits on `questions.md` Q10, whose default is wait. `hooks/cmdline_base.py` and `hooks/git/` have nothing to move. `skills/verify/scripts/`'s groups 27 to 35, from ffb0bd4b to 2272cd1e, placed seven modules and the light files of `broad_gate.py` and `unverified_check.py`; `seal_stamp.py` and `pact_check.py` had none to move. Group 36, at 19c01e3b, placed `skills/code-review/scripts/chain_check.py`'s light files. Group 37, at 809408e5, placed `skills/settle/scripts/`'s three modules, and group 38, at 4f350b0f, `seal.py`'s last light cases. Groups 39 to 44, from 46e1ec4c to 222bf69a, placed six modules of `.github/scripts/`; eight modules of that directory and `evals/scripts/` remain (`phases/phase-6.md` *What remains in phase 6*) |
 | 7 | not started |
 | Review | round 1 covered phases 1 to 4 at 8aa42bf8; its nine findings are answered, eight fixed at c6d2bfc4 and one deferred to phase 7. Round 2 verified round 1's closes and reviewed phase 5 at cfb846b2; its four findings are fixed, answered in `rounds/round-2.md` at ac965ee7. Two commit-flow gaps from the orchestrator's kill matrix (issue #1014) are closed at 5a207e20 |
 
@@ -76,6 +76,11 @@ Seconds are macOS wall time on a shared machine, from each module's record.
 | 37 | 809408e5 | `skills/settle/scripts/fold_check.py`, `rule_changes.py` and `settle.py`, and `skills/writing-style/SKILL.md` line 268's settle file | `116 old cases, 174 items against 174 at db6541fc96b0, 0 failed` | the move check |
 | 38 | 4f350b0f | `skills/implement/scripts/seal.py`'s writer and re-export cases | `174 old cases, 330 items against 330 at 809408e5ec2e, 0 failed` | the move check |
 | 39 | 46e1ec4c | `.github/scripts/issue_claims_check.py` | `38 old cases, 50 items against 50 at 4f350b0f9144, 17 failed` | three merges of pairs; 34 mutants, 10 survivors, every one an old gap |
+| 40 | 565de415 | `.github/scripts/release_report.py`'s other cases | `9 old cases, 15 items against 15 at 409d8037ab94, 0 failed` | the move check |
+| 41 | 56a8ac20 | `.github/scripts/rules.py`, and `skills/writing-style/SKILL.md` line 268's other file | `22 old cases, 61 items against 61 at 565de4152a2c, 0 failed` | the move check |
+| 42 | 5e26a264 | `.github/scripts/release_completeness_check.py` | `25 old cases, 30 items against 30 at 56a8ac20bf30, 0 failed` | the move check |
+| 43 | 0cc2609c | `.github/scripts/plugin_directory_check.py` | `12 old cases, 17 items against 17 at 5e26a264b9d6, 0 failed` | the move check |
+| 44 | 222bf69a | `.github/scripts/roll_flow_measurement_issue.py` | `35 old cases, 35 items against 35 at 0cc2609cad5a, 2 failed` | one nested docstring the formatter re-indents; 38 mutants, 4 survivors, every one an old gap |
 
 `hooks/cmdline_base.py` and `hooks/git/` have no case of their own to move, and their records say why.
 
@@ -112,7 +117,7 @@ The owner replaced the 100-mutant table on 2026-10-22 (`spec.md` *The proof of e
 2. Place `hooks/root-migrate.py#move`'s empty directory, which the rebuild found and pinned as it is (`overview.md` *Not done*).
 3. The `## Rule changes` items for `docs/one-root-by-lifetime.md` and its Korean twin are in `spec.md` since 93a009c6, and the worktree guard's since 099119b8.
 4. The `## Rule changes` items the fifth spawn found missing are in `spec.md` since 0b134a29, with *The check lines the remaining groups meet* for the lines outside `docs/`; groups 16 to 20 moved on them.
-5. The rest of phase 6's Batch B: twelve modules of `.github/scripts/` and `evals/scripts/` (`phases/phase-6.md` *What remains in phase 6*); and phase 7, `--all`, the `.test_durations` refresh and the closing memo.
+5. The rest of phase 6's Batch B: eight modules of `.github/scripts/` and `evals/scripts/` (`phases/phase-6.md` *What remains in phase 6*); and phase 7, `--all`, the `.test_durations` refresh and the closing memo.
 6. A round verifying round 2's fix pass and the move check, then a round over phases 6 and 7, the broad gate, the sealer, the pull request into `release/v0.22.3`, and then the release preparation.
 
 ## How a smith spawn for the next modules reads
