@@ -11,7 +11,9 @@ that decoded nothing answers "not opted in" and never raises.
 The cases come from `tests/test_optin_home.py` and
 `tests/test_gates_do_not_fail_open.py` (#942's phase 6), with the version
 check's and the review-skill gate's cases that pin how a hook reads the two
-places, which group 1 left for this module.
+places, which group 1 left for this module, and the case of
+`tests/test_local_mode_resolves_under_the_git_dir.py` where the scratch marker
+under the common directory keeps three gates silent in local mode.
 """
 
 import os
@@ -21,8 +23,10 @@ import pytest
 from conftest import (
     KOREAN,
     ROOT,
+    bash,
     census_case,
     decision_of,
+    declare_smith,
     git_repo,
     home,
     legacy,
@@ -521,6 +525,30 @@ class Test_module:
         with contextlib.redirect_stdout(buf):
             hook.main()
         assert buf.getvalue() == ""
+
+    def test_a_scratch_marker_under_the_common_directory_keeps_every_gate_silent(
+        self, local
+    ):
+        repo, home = local
+        (repo / ".git" / "specseal-scratch").write_text("", encoding="utf-8")
+        declare_smith(repo, home)
+
+        assert decision_of(run_hook("commit-review-gate.py", bash(repo))) == "silent"
+        assert (
+            decision_of(
+                run_hook(
+                    "review-skill-gate.py",
+                    {
+                        "tool_name": "Skill",
+                        "session_id": "s1",
+                        "tool_input": {"skill": "code-review"},
+                        "cwd": str(repo),
+                    },
+                )
+            )
+            == "silent"
+        )
+        assert run_hook("implementer-notice.py", bash(repo)) == ""
 
 
 test_census = census_case(TARGET)

@@ -1721,6 +1721,22 @@ def declare(repo, implementation="smith", item=ITEM, planning=None):
     return d
 
 
+def declare_smith(repo, home, item=ITEM):
+    """A declaration under `home` whose third axis says `smith`."""
+    d = home / "specs" / item
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "routing.md").write_text(
+        f"# {item} -- routing\n\n"
+        "| Axis | Answer |\n|---|---|\n"
+        "| Review | through the review chain |\n"
+        "| Destination | open the pull request |\n"
+        "| Implementation | smith |\n"
+        f"| Branch | {branch_of(repo)} |\n",
+        encoding="utf-8",
+    )
+    return d
+
+
 def spawn(repo, agent="specseal:smith", session="s1", **extra):
     return {
         "tool_name": "Agent",

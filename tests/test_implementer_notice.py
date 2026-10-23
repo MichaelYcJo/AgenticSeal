@@ -5,8 +5,9 @@ One line for both axes where both are unfulfilled. Nothing is said about an
 axis whose mark stands, whose row was not answered, or in a repository that
 never opted in: missing that silence, this is a fourth prompt in a plugin
 whose first goal is verification that runs unattended. The notice never
-blocks. The cases come from `tests/test_the_implementer_is_recorded.py`
-(#942's phase 6).
+blocks. The cases come from `tests/test_the_implementer_is_recorded.py` and,
+for the path a local-mode root prints, from
+`tests/test_local_mode_resolves_under_the_git_dir.py` (#942's phase 6).
 """
 
 import os
@@ -18,6 +19,7 @@ from conftest import (
     bash,
     census_case,
     declare,
+    declare_smith,
     opt_in,
     run_dispatch,
     run_hook,
@@ -170,6 +172,13 @@ class Test_main:
         out = run_hook("implementer-notice.py", bash(repo))
         assert NOTICE in out
         assert "permissionDecision" not in out
+
+    def test_the_implementer_notice_names_the_local_path(self, local):
+        repo, home = local
+        declare_smith(repo, home)
+        out = run_hook("implementer-notice.py", bash(repo))
+        assert "answers `Implementation` with `smith`" in out, out
+        assert os.path.join(".git", "seal", "specs", ITEM, "routing.md") in out, out
 
 
 test_census = census_case(TARGET)
