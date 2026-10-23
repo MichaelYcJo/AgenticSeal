@@ -74,7 +74,7 @@ The target the rebuild works toward is the issue's: the suite's real protection 
 #942 changes no shipped code, so the one risk a rebuilt module carries is a fault the old cases caught and the new ones miss. The proof shows that a module's rebuild lost no protection; it decides nothing about what to cut. A module whose cases were only moved, with nothing cut, merged or rewritten, cannot have lost protection, so it skips the mutants. Whether a module was only moved is decided by the move check below, from the two trees and never from the smith's record. The owner set the mutants' cost on 2026-10-22 and the move check's rule on 2026-10-23.
 
 - The move check: `bin/test-layout --moved <base> --from <old file>... <new file>` reads the old files at the base commit and the new file in the working tree, and passes only where three conditions hold for the module. First, pytest collects as many items from the new file as from the old files at the base, each parametrize row counting as one item and the new file's `test_census` item left out. Second, each old case's body is in the new file unchanged apart from its name, its place, the class around it and the `self` parameter, compared as an AST with docstrings dropped. Third, every fixture a case requests resolves, in the case's file or in `tests/conftest.py`, to a fixture definition whose AST, decorator included, is the same in both trees, so a world built once where it was built per case is a change. The check prints each case that fails with the condition it failed, exits 0 where the module passes and 1 where it does not, and the smith records the command and its last line in place of a mutant table.
-- Where the mutants go, for a module the check does not pass: one or two per class, at each public function's decision points, the branches where a case accepts or refuses. That is about 30 per module.
+- Where the mutants go, for a module the check does not pass: one or two per class, at each public function's decision points, the branches where a case accepts or refuses, and one more for each further decision point a function holds. The count follows the module's classes and no figure is set for it, so a module of many public functions runs many mutants, each once.
 - How the new file's column runs: in one `bin/mutation-check` call carrying every mutant of the module, which runs the baseline once and then each mutant once. The smith puts `-x` in the `--tests` command, so that pytest stops a mutant's run at its first failing case; the tool itself stops nothing.
 - When the old files' column runs: only for a mutant the new file lets survive. Where the old files miss it too, the record states an old gap. Where they kill it, the smith adds a case to the new file and sees it red on that mutant before the batch commits.
 - What the record carries: the table of mutants with the new column's verdict, the old column's verdict where it ran, each old gap, and each case added.
@@ -109,7 +109,7 @@ The target the rebuild works toward is the issue's: the suite's real protection 
 | S2 a class without its pair is refused | Given a function class with only `test_accepts_` cases, when `--check` runs, then it exits 1 naming the class and the missing kind | `tests/test_test_layout.py` |
 | S3 a twin is refused | Given two test files defining one helper byte-identically, one of them declaring `TARGET`, when `--check` runs, then it exits 1 naming both | `tests/test_test_layout.py` |
 | S4 a likely pair is named, not refused | Given two cases in one class calling the function with equal arguments, when `--pairs` runs, then both names print and the exit is 0 | `tests/test_test_layout.py` |
-| S5 a rebuilt module protects what the old files did | Given a module's new file and its sample of about 30 mutants at the public functions' decision points, when one `bin/mutation-check` call runs them against the new file, then every mutant is killed, or each survivor is run against the old files and either recorded as an old gap or answered by a case seen red on it | the phase record's table |
+| S5 a rebuilt module protects what the old files did | Given a module's new file and its mutants, one or two per class at the public functions' decision points, when one `bin/mutation-check` call runs them against the new file, then every mutant is killed, or each survivor is run against the old files and either recorded as an old gap or answered by a case seen red on it | the phase record's table |
 | S6 a slow case is reported | Given a case whose call runs past `SLOW_CASE_S`, when the run ends, then one line names it and its seconds and the run exits 0 | `tests/test_conftest.py`, an inner pytest run with the value lowered |
 | S7 the release table has module rows | Given `.test_durations` at the head and at the tag, when `release_report.py` runs, then one row per test file prints with cases and seconds at both | `tests/test_release_report.py` on two fixture trees |
 | S8 a census runs with its module | Given `tests/test_<stem>.py`, when `bin/test tests/test_<stem>.py` runs, then `test_census` judges `TARGET` under every census | `tests/test_censuses.py` with a fixture target that fails one census |
@@ -216,6 +216,26 @@ The target the rebuild works toward is the issue's: the suite's real protection 
   to: moves HEAD fails
     `Test_shape_of::test_accepts_no_listed_form_that_moves_head_under_git`; a
     form no case
+- change
+  file: docs/one-root-by-lifetime.md
+  section: Shared or local
+  from: check: tests/test_first_setup_asks_once.py tests/test_optin_home.py tests/test_the_records_can_be_carried_out_and_in.py
+  to: check: tests/test_first_setup_asks_once.py tests/test_optin_home.py tests/test_seal.py
+- change
+  file: docs/one-root-by-lifetime.md
+  section: What the repository decides for itself, and how it is read
+  from: check: tests/test_the_records_can_be_carried_out_and_in.py tests/test_the_mode_is_a_row_and_a_command.py
+  to: check: tests/test_seal.py
+- change
+  file: docs/one-root-by-lifetime.ko.md
+  section: shared 인가 local 인가
+  from: check: tests/test_first_setup_asks_once.py tests/test_optin_home.py tests/test_the_records_can_be_carried_out_and_in.py
+  to: check: tests/test_first_setup_asks_once.py tests/test_optin_home.py tests/test_seal.py
+- change
+  file: docs/one-root-by-lifetime.ko.md
+  section: 저장소가 스스로 정하는 것, 그리고 그것을 읽는 방법
+  from: check: tests/test_the_records_can_be_carried_out_and_in.py tests/test_the_mode_is_a_row_and_a_command.py
+  to: check: tests/test_seal.py
 
 ## Open questions → questions.md
 
