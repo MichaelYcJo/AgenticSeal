@@ -1044,6 +1044,32 @@ def shell(command):
     )
 
 
+def stub_process_tree(monkeypatch, start, tree):
+    """`ps -o ppid=,comm= -p <pid>` against a fixture tree of {pid: (ppid, comm)},
+    the walk starting at START as this process's parent.
+
+    Only `ps` is faked; everything else (git, notably) reaches the real
+    subprocess, so a hook's `main` can still resolve the repo. The hooks
+    read `os.getppid` and `subprocess.run` off the modules every caller
+    shares, so those are what is replaced.
+    """
+    import types
+
+    real_run = subprocess.run
+    monkeypatch.setattr(os, "getppid", lambda: start)
+
+    def fake_run(cmd, **kwargs):
+        if not (isinstance(cmd, (list, tuple)) and cmd and cmd[0] == "ps"):
+            return real_run(cmd, **kwargs)
+        pid = int(cmd[-1])
+        if pid not in tree:
+            return types.SimpleNamespace(stdout="")
+        ppid, comm = tree[pid]
+        return types.SimpleNamespace(stdout=f"{ppid} {comm}\n")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+
 def run(module, monkeypatch, payload):
     monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps(payload)))
     module.main()

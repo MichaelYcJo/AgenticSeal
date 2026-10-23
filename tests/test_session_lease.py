@@ -24,6 +24,7 @@ from conftest import (
     load_hook_module,
     payload,
     run_hook,
+    stub_process_tree,
 )
 
 TARGET = "hooks/session-lease.py"
@@ -53,29 +54,6 @@ def run_lease_hook(repo, session):
         errors="replace",
         timeout=30,
     )
-
-
-def stub_process_tree(monkeypatch, start, tree):
-    """`ps -o ppid=,comm= -p <pid>` against a fixture tree of {pid: (ppid, comm)}.
-
-    Only `ps` is faked; everything else (git, notably) reaches the real
-    subprocess, so main() can still resolve the repo.
-    """
-    import types
-
-    real_run = sl.subprocess.run
-    monkeypatch.setattr(sl.os, "getppid", lambda: start)
-
-    def fake_run(cmd, **kwargs):
-        if not (isinstance(cmd, (list, tuple)) and cmd and cmd[0] == "ps"):
-            return real_run(cmd, **kwargs)
-        pid = int(cmd[-1])
-        if pid not in tree:
-            return types.SimpleNamespace(stdout="")
-        ppid, comm = tree[pid]
-        return types.SimpleNamespace(stdout=f"{ppid} {comm}\n")
-
-    monkeypatch.setattr(sl.subprocess, "run", fake_run)
 
 
 def run_main_in_process(repo, monkeypatch, session, filed=None):
@@ -285,42 +263,6 @@ class Test_main:
             run_lease_hook(repo, "sess-y")
         finally:
             os.chmod(d, 0o700)
-
-
-# Left for `hooks/hooksession.py`, under their names: each asks its
-# `claude_pid` through the process tree `stub_process_tree` fakes.
-def test_the_session_pid_walks_past_the_shell(monkeypatch):
-    """The immediate parent is the shell that spawned the hook — measured here,
-    /bin/zsh, with claude two levels up. Recording getppid() would name a
-    process that dies constantly, and every dead shell would retire a live
-    session's lease. The lease writer's own walk (`owner_pid`) left with #868;
-    it asks `hooks/hooksession.py#claude_pid`, the reader the commit gate's
-    lease route asks too."""
-    import hooksession
-
-    stub_process_tree(monkeypatch, 100, {100: (50, "/bin/zsh"), 50: (1, "claude")})
-    assert hooksession.claude_pid() == 50
-
-
-def test_the_session_pid_is_none_without_a_claude_ancestor(monkeypatch):
-    """An extension host is not named `claude`. No pid is recorded, so the
-    guard reads the lease as unattributable rather than as an exited session."""
-    import hooksession
-
-    stub_process_tree(monkeypatch, 100, {100: (50, "/bin/zsh"), 50: (1, "code")})
-    assert hooksession.claude_pid() is None
-
-
-@pytest.mark.parametrize("value", ["", "x", "0", "1", "-5"])
-def test_an_exported_pid_that_names_no_process_falls_back_to_the_walk(
-    monkeypatch, value
-):
-    """S5 of work item 1791384157, the other side: a value that is not a pid
-    above 1 is not read, and the walk answers as it did."""
-    import hooksession
-
-    stub_process_tree(monkeypatch, 100, {100: (50, "/bin/zsh"), 50: (1, "claude")})
-    assert hooksession.claude_pid({"CLAUDE_PID": value}) == 50, value
 
 
 test_census = census_case(TARGET)
