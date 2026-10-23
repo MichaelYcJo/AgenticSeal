@@ -1021,6 +1021,12 @@ def git_repo(where):
     return where
 
 
+def lease_dir(repo):
+    d = os.path.join(str(repo), ".git", "specseal-leases")
+    os.makedirs(d, exist_ok=True)
+    return d
+
+
 def git(repo, *args, check=True):
     """git driven from Python in REPO, so no Bash line carries a commit
     (contract rule 8); the completed process."""

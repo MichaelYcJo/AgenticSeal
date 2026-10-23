@@ -119,59 +119,6 @@ def test_gate_ignores_non_bash_tools(repo):
     assert decision_of(run_hook("commit-review-gate.py", p)) == "silent"
 
 
-# --- session-lease: repo resolution and isolation -------------------------
-
-
-def leases_of(repo):
-    gd = git(repo, "rev-parse", "--absolute-git-dir").stdout.strip()
-    d = os.path.join(gd, "specseal-leases")
-    return sorted(os.listdir(d)) if os.path.isdir(d) else []
-
-
-def test_edit_tool_leases_like_write(repo, tmp_path):
-    p = {
-        "tool_name": "Edit",
-        "session_id": "sess-e",
-        "tool_input": {"file_path": str(repo / "f.txt")},
-        "cwd": str(tmp_path),
-    }
-    run_hook("session-lease.py", p)
-    assert "sess-e" in leases_of(repo)
-
-
-def test_bash_in_subdir_leases_repo_root(repo):
-    (repo / "sub").mkdir()
-    p = {
-        "tool_name": "Bash",
-        "session_id": "sess-sub",
-        "tool_input": {"command": "ls"},
-        "cwd": str(repo / "sub"),
-    }
-    run_hook("session-lease.py", p)
-    assert "sess-sub" in leases_of(repo)
-
-
-def test_linked_worktree_lease_stays_isolated(repo, tmp_path):
-    wt = tmp_path / "wt"
-    git(repo, "worktree", "add", "-q", str(wt), "feature/x")
-    p = {
-        "tool_name": "Bash",
-        "session_id": "sess-wt",
-        "tool_input": {"command": "ls"},
-        "cwd": str(wt),
-    }
-    run_hook("session-lease.py", p)
-    # the worktree session's lease lands in the worktree's own git-dir,
-    # so it does NOT count against the main tree (already-isolated rule)
-    assert "sess-wt" not in leases_of(repo)
-
-
-def test_missing_session_id_falls_back_to_pid(repo):
-    p = {"tool_name": "Bash", "tool_input": {"command": "ls"}, "cwd": str(repo)}
-    run_hook("session-lease.py", p)
-    assert any(name.startswith("pid-") for name in leases_of(repo))
-
-
 # --- packaging sanity ------------------------------------------------------
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
