@@ -1,15 +1,15 @@
-"""What is left of `unverified_check.py`'s old file, the cases that wait.
+"""What is left of `unverified_check.py`'s old file.
 
 #942's phase 5 rebuilt `skills/verify/scripts/unverified_check.py`'s cases
 into `tests/test_unverified_check.py`, one class per function. Two kinds of
 case stay here, byte for byte. The cases whose assertion reads a shipped
-document's prose wait for #923. Two cases pin other modules:
+document's prose wait for #923. Two cases hold other modules to this one, and
+each is a check across files, which stays where it is:
 `test_the_fence_walks_agree_shape_by_shape` holds `hooks/blocks.py` and
 `hooks/config.py#fence_map` to this module's fence walk, and
 `test_every_reader_of_a_retirement_calls_the_one_predicate` reads the code of
 `skills/code-review/scripts/chain_check.py` and
-`skills/settle/scripts/settle.py`; each waits for the phase that rebuilds the
-module it pins.
+`skills/settle/scripts/settle.py` for a call of this module's `settled`.
 """
 
 import importlib.util

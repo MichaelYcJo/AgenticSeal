@@ -408,20 +408,6 @@ class Test_module:
         assert decision_of(r.stdout) == "deny", r.stdout
 
 
-# Left for `hooks/worktree_consent.py`, under its name: it reads that module's
-# press reader.
-def test_the_press_reader_reads_nothing_for_a_root_that_is_no_clone(tmp_path):
-    """The gate's `top` is always a clone, so this is the reader's own half:
-    a transcript it cannot place is unread, never "not answered"."""
-    consent = load_hook_module("worktree_consent.py", "consent_for_question_gate")
-    write_the_transcript(tmp_path / "cwd")
-    path = payload(tmp_path / "cwd")["transcript_path"]
-    nowhere = tmp_path / "no-repository"
-    nowhere.mkdir()
-    answer = consent.last_routing_answer(str(nowhere), SESSION, path)
-    assert answer is consent.UNREAD, answer
-
-
 # Left for #923, under its name: its assertion reads prose.
 def test_the_prose_points_to_the_gate_and_no_longer_says_nothing_holds_it():
     """S14: the orchestrator's two documents name the gate, and none of the

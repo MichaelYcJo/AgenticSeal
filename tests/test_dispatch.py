@@ -11,8 +11,10 @@ every pending record once, at the end of the main session's turn, as a
 Most cases drive `dispatch.py` from a COPY of `hooks/` as a subprocess, which
 is what production spawns. A broken gate is one whose file is replaced by
 `def broken(:\\n`. The live `hooks/` is never touched. The cases come from
-`tests/test_dispatch.py`, `tests/test_a_gate_that_fails_says_so.py` and
-`tests/test_console_is_not_utf8.py` (#942's phase 6).
+`tests/test_dispatch.py`, `tests/test_a_gate_that_fails_says_so.py`,
+`tests/test_console_is_not_utf8.py` (#942's phase 6) and
+`tests/test_the_root_migrates_itself.py`, whose case of the session-start
+group's order is in `Test_module` (#942's phase 7).
 """
 
 import contextlib
@@ -1160,6 +1162,15 @@ class Test_module:
         d = dispatch_module()
         assert d.GROUPS["pre-bash"][0] == "hook-install.py"
         assert d.GROUPS["session-start"][-1] == "hook-install.py"
+
+    def test_the_hook_is_wired_into_session_start_before_the_git_hooks(self):
+        """The dispatch group is the only thing that runs hooks in production, and
+        the git hooks are installed into the root this one may just have moved, so
+        the order is part of the contract."""
+        dispatch = load_hook_module("dispatch.py", "dispatch_for_root")
+        group = dispatch.GROUPS["session-start"]
+        assert "root-migrate.py" in group
+        assert group.index("root-migrate.py") < group.index("hook-install.py")
 
     def test_a_message_is_its_first_line_and_capped(self):
         d = load(os.path.join(HOOKS, "dispatch.py"), "dispatch_for_the_cap")

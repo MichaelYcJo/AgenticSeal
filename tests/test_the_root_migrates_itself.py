@@ -3,9 +3,9 @@
 #942's phase 5 rebuilt the hook's cases into `tests/test_root_migrate.py`.
 These stay: the README's by-hand sequence read out of the document and run
 against what the hook does, and the hook's source read for its rider, both
-for #923, which takes the cases that read prose; and the session-start
-group's order, which is `hooks/dispatch.py`'s, for the phase that rebuilds
-that module.
+for #923, which takes the cases that read prose. The case of the
+session-start group's order is `hooks/dispatch.py`'s, and it is in
+`tests/test_dispatch.py`.
 """
 
 import os
@@ -13,7 +13,7 @@ import shutil
 import subprocess
 
 import pytest
-from conftest import ROOT, git, load_hook_module, shell_probe
+from conftest import ROOT, git, shell_probe
 from test_root_migrate import (  # noqa: F401  -- the fixtures the cases take
     ITEM,
     _templates,
@@ -21,16 +21,6 @@ from test_root_migrate import (  # noqa: F401  -- the fixtures the cases take
     proj,
     start,
 )
-
-
-def test_the_hook_is_wired_into_session_start_before_the_git_hooks():
-    """The dispatch group is the only thing that runs hooks in production, and
-    the git hooks are installed into the root this one may just have moved, so
-    the order is part of the contract."""
-    dispatch = load_hook_module("dispatch.py", "dispatch_for_root")
-    group = dispatch.GROUPS["session-start"]
-    assert "root-migrate.py" in group
-    assert group.index("root-migrate.py") < group.index("hook-install.py")
 
 
 def test_the_hook_reads_the_old_names_and_nothing_else_does():

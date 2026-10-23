@@ -12,8 +12,10 @@ the guard's own placement. The guard's reading of both is
 `tests/test_worktree_guard.py`'s.
 
 The cases come from `tests/test_the_guard_asks_once_per_session.py`,
-`tests/test_guard_resolves_the_tree_it_judges.py` and
-`tests/test_an_automation_run_meets_no_commit_prompt.py` (#942's phase 6).
+`tests/test_guard_resolves_the_tree_it_judges.py`,
+`tests/test_an_automation_run_meets_no_commit_prompt.py` (#942's phase 6) and
+`tests/test_question_gate.py`, whose case of the press reader takes that file's
+`payload`, `write_the_transcript` and `SESSION` (#942's phase 7).
 """
 
 import json
@@ -36,6 +38,7 @@ from conftest import (
     staged_repo,
     write_transcript,
 )
+from test_question_gate import SESSION, payload, write_the_transcript
 
 TARGET = "hooks/worktree_consent.py"
 
@@ -791,6 +794,17 @@ class Test_module:
         assert decision_of(outs["control"]) == "deny", outs["control"]
         for name, out in outs.items():
             assert decision_of(out) == "deny", (name, out)
+
+    def test_the_press_reader_reads_nothing_for_a_root_that_is_no_clone(self, tmp_path):
+        """The gate's `top` is always a clone, so this is the reader's own half:
+        a transcript it cannot place is unread, never "not answered"."""
+        consent = load_hook_module("worktree_consent.py", "consent_for_question_gate")
+        write_the_transcript(tmp_path / "cwd")
+        path = payload(tmp_path / "cwd")["transcript_path"]
+        nowhere = tmp_path / "no-repository"
+        nowhere.mkdir()
+        answer = consent.last_routing_answer(str(nowhere), SESSION, path)
+        assert answer is consent.UNREAD, answer
 
 
 test_census = census_case(TARGET)
