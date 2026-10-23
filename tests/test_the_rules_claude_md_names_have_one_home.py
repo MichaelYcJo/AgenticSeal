@@ -98,7 +98,7 @@ LINKED = {
     "CLAUDE.md": ("merge", "identifiers", "batch"),
     ".github/scripts/plugin_directory_check.py": ("identifiers",),
     "tests/test_plugin_directory_check.py": ("identifiers",),
-    "tests/test_a_workflow_is_read_the_one_way.py": ("identifiers",),
+    "tests/test_conftest.py": ("identifiers",),
     "tests/test_the_gate_asks_the_range_ci_will_ask.py": ("identifiers",),
     # The fifth citation, spelled `no-real-identifiers`, which the enumerating
     # grep's `real identifier` did not match (round 1). Round 1's fix pass
@@ -118,7 +118,7 @@ CARRIERS = (
     "templates/claude-md-block.md",
     ".github/scripts/plugin_directory_check.py",
     "tests/test_plugin_directory_check.py",
-    "tests/test_a_workflow_is_read_the_one_way.py",
+    "tests/test_conftest.py",
     "tests/test_the_gate_asks_the_range_ci_will_ask.py",
     "agents/warden.md",
 )

@@ -53,7 +53,7 @@ def review_chain_text(root):
 # comment is got it slightly differently: a flag in a comment counted as a
 # base (#462), and a comment naming a script moved the region a case sliced
 # out (#482). These three helpers are the one reading, driven over fixtures
-# in `tests/test_a_workflow_is_read_the_one_way.py`. They are a test helper
+# in `tests/test_conftest.py`. They are a test helper
 # and refuse nothing.
 
 
