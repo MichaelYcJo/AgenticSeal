@@ -605,7 +605,7 @@ NO_REFERENCE = "none"
 REFERENCE_NAME = "specs"
 # The plugin's own root in the tree, `hooks/optin.py#HOME`. Spelled here so
 # this reader needs no second sibling, and held equal to that one by
-# `tests/test_a_reference_root_is_read_and_never_taken.py`.
+# `tests/test_config.py`.
 HOME = "seal"
 
 

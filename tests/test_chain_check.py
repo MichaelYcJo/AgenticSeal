@@ -18,7 +18,7 @@ import subprocess
 import sys
 
 import pytest
-from conftest import census_case, chain_check_run, write
+from conftest import BASELINE, census_case, chain_check_run, parity_file, write
 from conftest import commit_everything as commit
 from conftest import git_out as git
 from conftest import load_module as load
@@ -1933,17 +1933,8 @@ class Test_rule_changes_read:
 
 # --- the parity arm at the pull request (#988) -------------------------------------
 
-BASELINE = "0123456789abcdef0123456789abcdef01234567"
 PARITY = "seal/parity.md"
 routing_module = load(chain.ROUTING, "specseal_routing_for_chain_tests")
-
-
-def parity_file(sha):
-    """`templates/parity.md` with its `Baseline commit` placeholder replaced
-    by SHA, or left standing where SHA is None."""
-    text = (ROOT / "templates" / "parity.md").read_text(encoding="utf-8")
-    assert text.count("`<SHA>`") == 1
-    return text if sha is None else text.replace("`<SHA>`", f"`{sha}`")
 
 
 def with_original(text, said):
@@ -2591,42 +2582,6 @@ def test_the_template_is_the_record_the_check_reads():
     found, errors = chain.findings(reader, reader.readable(fenced), "t")
     assert errors == [] and [f.verdict for f in found] == [(chain.OPEN, None)]
     assert [c for c in text if EMOJI.match(c)] == []
-
-
-# --- left for its module: `hooks/config.py#baseline_commit` -------------------------
-
-
-def test_the_baseline_is_the_first_code_span_of_its_one_row():
-    """The `Baseline commit` reader in `hooks/config.py`: the SHA in the
-    first code span of the one row, else no SHA and why, naming a
-    placeholder, a second row, no row and no table."""
-    config = chain.parity_readers()[0]
-    row = (
-        "| Baseline commit | `<SHA>`, the commit the original's coordinates refer to |"
-    )
-    text = parity_file(BASELINE)
-    assert config.baseline_commit(text) == (BASELINE, None)
-    assert config.baseline_commit(parity_file(BASELINE[:7])) == (BASELINE[:7], None)
-    for bad, why in (
-        (parity_file(None), "`<SHA>`"),
-        (parity_file(BASELINE.upper()), BASELINE.upper()),
-        (
-            text.replace(row.replace("<SHA>", BASELINE) + "\n", ""),
-            "no `Baseline commit` row",
-        ),
-        (
-            text.replace(
-                "| Policy root |",
-                row.replace("<SHA>", BASELINE) + "\n| Policy root |",
-            ),
-            "2 `Baseline commit` rows",
-        ),
-        ("# Migration config\n", "holds no `| Field | Value |` table"),
-    ):
-        sha, said = config.baseline_commit(bad)
-        assert sha is None and why in said, (said, bad)
-    _sha, said = config.baseline_commit("# Migration config\n")
-    assert "Baseline commit" not in said, said
 
 
 test_census = census_case(TARGET)

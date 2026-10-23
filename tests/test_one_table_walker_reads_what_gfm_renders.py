@@ -30,6 +30,10 @@ What the enumeration leaves out, and why:
     reader's to judge, not the walk's;
   - a line ending other than LF: `tests/test_every_reader_ends_a_line_where_
     gfm_does.py` holds where a line ends, for every reader.
+
+The walker's cases that ask no oracle, a hidden line above the header and
+the two pieces after a break GFM does not honour, are in
+`tests/test_config.py` since #942's phase 6.
 """
 
 import os
@@ -663,29 +667,6 @@ def test_a_pipe_after_an_even_run_of_backslashes_is_refused(cell):
 
 
 @pytest.mark.parametrize(
-    "above",
-    ["text\n```\nx\n```\n", "text\n" + "<" + "!-- c -->\n"],
-    ids=[
-        "a closed fence directly above, under a paragraph",
-        "a closed comment directly above, under a paragraph",
-    ],
-)
-def test_a_hidden_line_directly_above_the_header_is_refused(above):
-    """**The trade** (round 2, yellow 15). cmark-gfm renders both of these
-    tables, and until round 2 the walker read them, because `unfenced` hides
-    the closing fence or comment and the walk saw a gap above the header.
-    The walker now judges the line above as written, hidden or not, because
-    the same hidden line is what hid a header cmark-gfm does not render: a
-    fence inside a kind 6-7 HTML block, or a list item a fence-only reading
-    hid. So these are refused with the blank-line remedy, as a paragraph
-    directly above already is (round 1, yellow 5). Every template and the
-    writer leave the blank line."""
-    text = f"# Pact\n\n{above}| Signer |\n|---|\n| https://example.com/org/a |\n"
-    _rows, refusals = config.gfm_table(text, ("Signer",))
-    assert refusals and "blank line above the header" in refusals[0], refusals
-
-
-@pytest.mark.parametrize(
     "text",
     [
         "- x\n\n  | Signer |\n|---|\n| {u} |\n",
@@ -731,44 +712,6 @@ def test_a_heading_inside_the_list_item_does_not_end_it():
     assert oracle.rows_under(text, ("Signer",)) is None, text
     _rows, refusals = config.gfm_table(text, ("Signer",))
     assert refusals and "indented under a list item" in refusals[0], refusals
-
-
-@pytest.mark.parametrize("name", ["LS", "PS", "NEL", "FF", "VT", "FS", "GS", "RS"])
-def test_a_signer_after_a_break_gfm_does_not_honour_is_no_signer(name):
-    """#871 round 2, the deferred half of yellow 7. A signer row after a
-    character only `str.splitlines` ends a line at is more of the row above
-    it to cmark-gfm, which shows one signer (measured for FF and U+2028 by
-    the round's reviewer). The walk reads the first and refuses the second,
-    for every table it walks, so `pact_signers` names one signer and the
-    refusal. Seen red against 4dfb3d0d: two signers, no refusal."""
-    from block_shapes import BREAKS
-
-    a, b = "https://example.com/org/a", "https://example.com/org/b"
-    text = f"# Pact\n\n| Signer |\n|---|\n| {a} |{BREAKS[name]}| {b} |\n"
-    rows, refusals = config.gfm_table(text, ("Signer",))
-    assert [c for _l, c in rows] == [(a,)], rows
-    assert refusals and "not a row of its own to GFM" in refusals[0], refusals
-    signers, said, _header = config.pact_signers(text)
-    assert [s[0] for s in signers] == [a], signers
-    assert any("not a row of its own to GFM" in s for s in said), said
-
-
-@pytest.mark.parametrize("name", ["LS", "FF"])
-def test_a_heading_after_a_break_does_not_end_the_rows_nobody_reads(name):
-    """#871 round 2, yellow 7's class after the table's end. A heading piece
-    after a character only `str.splitlines` ends a line at is more of the
-    line above to GFM, not a heading, so a line written `| … |` under it is
-    still a row nobody reads, and is refused. Seen red against 4dfb3d0d,
-    where the piece ended the walk's look for such rows."""
-    from block_shapes import BREAKS
-
-    text = (
-        "| Item | Value |\n|---|---|\n| Mode | shared |\n\n"
-        f"x{BREAKS[name]}## Notes\n| Broad gate | y |\n"
-    )
-    rows, refusals = config.gfm_table(text, ("Item", "Value"))
-    assert [c for _l, c in rows] == [("Mode", "shared")], rows
-    assert refusals and "ends above `| Broad gate | y |`" in refusals[0], refusals
 
 
 def test_a_list_marker_in_indented_code_is_no_list_item():

@@ -1,58 +1,16 @@
-"""`seal export` and `seal import`: what is left here after #942's phase 5.
+"""`seal export` and `seal import`: what is left here after #942.
 
-The cases of `skills/implement/scripts/seal.py` are in `tests/test_seal.py`.
-Two kinds stay in this file. The three cases of `normalise_remote` pin how
-`hooks/config.py` reduces a remote URL, which `seal.py` reaches through an
-alias, and they wait for the phase that rebuilds `hooks/config.py`. The two
-README cases read prose, and they are #923's.
+The cases of `skills/implement/scripts/seal.py` are in `tests/test_seal.py`,
+and the three of `normalise_remote`, which `seal.py` re-exports from
+`hooks/config.py`, are in `tests/test_config.py`. The two README cases left
+here read prose, and they are #923's.
 """
 
-import importlib.util
 import os
 
 import pytest
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-SCRIPT = os.path.join(ROOT, "skills", "implement", "scripts", "seal.py")
-
-
-@pytest.fixture
-def seal():
-    spec = importlib.util.spec_from_file_location("specseal_seal", SCRIPT)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-@pytest.mark.parametrize(
-    "left,right",
-    [
-        ("git@example.com:org/repo.git", "https://example.com/org/repo"),
-        ("ssh://git@example.com/org/repo.git", "https://example.com/org/repo/"),
-        ("HTTPS://Example.com/Org/Repo.git", "https://example.com/org/repo"),
-    ],
-)
-def test_remote_urls_reduce_to_host_and_path(seal, left, right):
-    assert seal.normalise_remote(left) == seal.normalise_remote(right)
-
-
-def test_a_port_is_not_read_as_an_scp_separator(seal):
-    """The colon becomes `/` only where there was no scheme. Otherwise
-    `https://example.com:8443/x` reduces to `example.com/8443/x`, and two
-    ports of one host stop comparing equal to themselves."""
-    assert seal.normalise_remote("https://example.com:8443/org/repo") == (
-        "example.com:8443/org/repo"
-    )
-
-
-def test_two_different_repositories_do_not_reduce_to_one(seal):
-    """The direction the normalisation must not be wrong in."""
-    assert seal.normalise_remote("git@example.com:org/a.git") != seal.normalise_remote(
-        "git@example.com:org/b.git"
-    )
-    assert seal.normalise_remote("git@example.com:org/a") != seal.normalise_remote(
-        "git@other.example:org/a"
-    )
 
 
 @pytest.mark.parametrize("readme", ["README.md", "README.ko.md"])

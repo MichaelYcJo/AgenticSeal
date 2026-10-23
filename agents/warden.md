@@ -96,7 +96,7 @@ citing a reference root (`templates/config.md` *Reference specs*) cites a
 coordinate: open it in stage 1 where the work touches what it describes. The
 plugin never writes there, so a diff that edits, moves or copies a file out
 of one is a finding.
-check: tests/test_a_reference_root_is_read_and_never_taken.py
+check: tests/test_a_reference_root_is_read_and_never_taken.py tests/test_config.py
 
 **Earlier rounds carry coordinates, never verdicts.** Open what an earlier
 round names instead of searching again, and say in the record which facts

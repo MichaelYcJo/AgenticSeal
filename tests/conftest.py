@@ -1111,6 +1111,8 @@ def opt_in_shared(repo):
 
 
 def write_config(home, text):
+    """TEXT written as `<home>/config.md`, HOME made where it is missing."""
+    os.makedirs(str(home), exist_ok=True)
     with open(os.path.join(str(home), "config.md"), "w", encoding="utf-8") as f:
         f.write(text)
 
@@ -1349,6 +1351,18 @@ def config_table(*rows):
     return "# config\n\n| Item | Value |\n|---|---|\n" + "".join(
         f"| {item} | {value} |\n" for item, value in rows
     )
+
+
+# A full commit id for a migration config's `Baseline commit` row.
+BASELINE = "0123456789abcdef0123456789abcdef01234567"
+
+
+def parity_file(sha):
+    """`templates/parity.md` with its `Baseline commit` placeholder replaced
+    by SHA, or left standing where SHA is None."""
+    text = pathlib.Path(ROOT, "templates", "parity.md").read_text(encoding="utf-8")
+    assert text.count("`<SHA>`") == 1
+    return text if sha is None else text.replace("`<SHA>`", f"`{sha}`")
 
 
 def chain_check_run(chain, root, capsys, *extra):
