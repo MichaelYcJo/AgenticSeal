@@ -11,7 +11,7 @@ This round did two things at cfb846b2: it checked round 1's eight closes at c6d2
 severity: should
 location: `seal/specs/1792628098-tests-rebuilt-one-file-per-module/overview.md:9-15`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/spec.md:82`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/plan.md:22`, `CONTRIBUTING.md:290-291`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-5.md:96`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-5.md:167`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-5.md:355`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-5.md:421`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-5.md:492`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-5.md:691`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-5.md:772`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-5.md:836`
 evidence: read `seal/specs/1792628098-tests-rebuilt-one-file-per-module/plan.md:22`, `CONTRIBUTING.md:290-291`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/spec.md:82`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-5.md:96`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-5.md:167`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-5.md:355`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-5.md:421`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-5.md:492`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-5.md:559`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-5.md:624`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-5.md:691`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-5.md:772`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-5.md:836`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/overview.md:9-15`
-verdict: open
+verdict: fixed 73f35a4c
 
 The overview is where a reader learns how the build departed from the frame. The sealer reads it, and the pull request body copies it. Two departures in the proof are written in the phase record and missing from the overview.
 
@@ -29,14 +29,14 @@ spec.md, *The proof of equal protection*, the paragraph after the bullets, its f
 `broad_gate.py` and `seal_stamp.py` ran under the earlier proof, a table of about 100 mutants each: `seal_stamp.py`'s ran in both columns in full, and `broad_gate.py`'s old column ran for g1 to g9 and for each mutant the new file first let survive. Their records stay as they were written.
 ```
 
-answer:
+answer: The overview half was applied at bcab5b41 as two divergence rows. The framer then committed the spec half at f783cb2a: `spec.md` *The proof of equal protection* states which columns each earlier table ran, and `plan.md` drops the order of choosing the mutants from the rule. Both departures then stood in the frame, so 73f35a4c moved the two rows to the overview's *Fed back into the spec*, as finding 3 does for the earlier rows. The driver output of `broad_gate.py`'s old column (`executed` at 482fed97 by phase 5's first spawn, kept outside the tree) holds g104 red, so 28a977a2 names g104 among the old column's runs in `phases/phase-5.md:96` to match the table at :110. `CONTRIBUTING.md:290-292` is rewritten in phase 6's first step, as `plan.md`'s phase 6 row asks.
 
 ### 2. A comment in `seal_stamp.py` sends its reader to a case that is gone, and no case now measures the width it says is measured
 
 severity: should
 location: `skills/verify/scripts/seal_stamp.py:436-439`, `tests/test_seal_stamp.py`
 evidence: executed `python3 refs.py clone 6046f062 cfb846b2`, `grep -n "\b80\b\|widest" tests/test_seal_stamp.py tests/test_broad_gate.py tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py tests/test_the_seal_is_taken_once_by_the_sealer.py`, `bin/mutation-check skills/verify/scripts/seal_stamp.py --replace 'PANEL_VALUE_WIDTH = 41' 'PANEL_VALUE_WIDTH = 42' --tests "bin/test tests/test_seal_stamp.py tests/test_broad_gate.py -q -p no:xdist"`, `bin/test tests/test_tmp_r2_width.py -q -p no:xdist`
-verdict: open
+verdict: fixed d8874fc5
 
 `skills/verify/scripts/seal_stamp.py:436-439` says the width is "Stated here and measured over there", and that `test_the_panel_value_width_is_what_the_stamp_actually_gives` "draws a value of this width and measures the stamp's widest line". That case was in `tests/test_the_gate_asks_the_range_ci_will_ask.py` at 6046f062 (line 1042). In both shapes it drew a value of `PANEL_VALUE_WIDTH` under a seven-column label, and it asserted that the widest line is exactly 80 columns. Phase 5 rewrote it. `phases/phase-5.md:120` places its behaviour in `Test_resolve_base`, `Test_moved_line`, `Test_names_a_branch`, `Test_a_runner_could_hold`, `Test_panel` and `Test_module`.
 
@@ -65,14 +65,14 @@ This is the class of comment phase 5 already rewrote in five shipped files: comm
 # draws a value of this width and measures the stamp's widest line.
 ```
 
-answer:
+answer: Applied as written, with the assertion message naming the width drawn. `Test_stamp::test_accepts_a_value_as_wide_as_the_panel_at_eighty_columns` was seen red alone through `bin/mutation-check` with `PANEL_VALUE_WIDTH` set to 42 and to 40, and green as committed. The comment at `seal_stamp.py:437-440` names the case, and `phases/phase-5.md`'s cut line for `test_the_panel_value_width_is_what_the_stamp_actually_gives` now names it as the case that holds it. The class of comment naming a moved test was not searched again; round 2's search found this instance and the `docs/` lines `spec.md` *Rule changes* moves.
 
 ### 3. The overview says nothing was fed back into the spec, but three of its divergence rows quote spec text that 95e88420 and f74be021 rewrote to match the build
 
 severity: should
 location: `seal/specs/1792628098-tests-rebuilt-one-file-per-module/overview.md:13-15`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/overview.md:35-37`
 evidence: read `seal/specs/1792628098-tests-rebuilt-one-file-per-module/overview.md:13-15`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/overview.md:35-37`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/spec.md:43`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/spec.md:57`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/spec.md:86`
-verdict: open
+verdict: fixed 6428be03
 
 The overview template's `## Fed back into the spec` holds the clauses the work added to the spec. At the target it reads `none` (`overview.md:35-37`). Three of the five divergence rows quote spec text that no longer stands. Each was written into the spec because the build had done it:
 
@@ -93,14 +93,14 @@ The overview was last edited at cfb846b2, after all three spec changes. A reader
 - `spec.md` rule 1: where no case writes into the world beyond a marker keyed by a session id, the session id is the reset (f74be021). Inferred during implementation: `tests/test_commit_review_gate.py` at 54c9e803
 ```
 
-answer:
+answer: Applied as written, with each bullet carrying the grounds its removed row held: the 31 pairs and the revert at c343efe9, the three modules a left case pins, the cost of a copy per case. The same commit corrects three sentences of `phases/phase-5.md` that sent the reader to those rows (:212, :339, :340), each now naming the commit that wrote the clause and the overview's *Fed back into the spec*.
 
 ### 4. One old case of the root migration left the tree with no line in the record
 
 severity: should
 location: `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-5.md:652-667`
 evidence: executed `python3 gone.py clone 8aa42bf8 cfb846b2 records.txt`, `bin/mutation-check hooks/root-migrate.py --replace '        if not attempted(root) and has_root(root):' '        if not attempted(root):' --replace '        if (n in marks if marks is not None else marked(root, n))' '        if True' --tests "bin/test tests/test_root_migrate.py -q -p no:xdist -x"`
-verdict: open
+verdict: fixed 9c6bff01
 
 `spec.md` rule 2 and `CONTRIBUTING.md` *The test layout* require one line per old case that is cut or rewritten. Between 8aa42bf8 and the target, 931 test and class names left the files that held them. A script checked each one against the text of phases 2, 3 and 5 and round 1. It found 54 names that no record writes out. Fifty-three of them are covered anyway: by a sentence that names the whole old class (for example, "every case of `TestMain` under a new name" for `chain_check.py`), by "the twelve cases of the old `tests/test_broad_gate.py`", or by round 1's fix pass. One name is covered by nothing: `test_a_joined_project_holding_only_its_own_specs_hears_nothing`, in `tests/test_the_root_migrates_itself.py` at 7c2fff8c (line 601). That case guarded B1: a project with a `specs/` of its own and no `.specseal/` is left silent, with nothing staged and nothing stamped. The list at `phases/phase-5.md:652-667` and the cases left at :667 do not name it.
 
@@ -112,7 +112,7 @@ phases/phase-5.md, *Each old case, and where it went* of `hooks/root-migrate.py`
 - Rewritten, held by `Test_main::test_refuses_to_speak_where_nothing_is_old_or_the_marker_answered` and `Test_main::test_accepts_only_work_items_under_specs_and_names_the_rest`: `test_a_joined_project_holding_only_its_own_specs_hears_nothing`. The first holds the silence and the missing stamp of a repository with nothing old. The second holds that a team's directory under `specs/` is neither moved nor staged.
 ```
 
-answer:
+answer: Applied as written, with the fact the case guarded and the two mutants. The round's two mutants were run again before the line was written, with the same command at 6428be03: 2 red.
 
 ## Confirmations
 
