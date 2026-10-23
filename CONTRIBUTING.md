@@ -123,9 +123,8 @@ interpreter it says which to install. What runs before any floor is checked
 (a hook, a git hook, the launcher, `bin/test`'s runner, and every module one
 of them loads in its own process) runs on whatever `python3` starts it.
 `ruff.toml` lints that code at the version its `per-file-target-version`
-names, and `tests/test_a_script_says_which_interpreter_it_needs.py` derives
-the set, holds every file of it to that table, and refuses in it the syntax
-`ast` rejects at that version and the two constructs ruff pushes toward above
+names, and `tests/test_launch.py` derives the set, holds every file of it to
+that table, and refuses in it the syntax `ast` rejects at that version and the two constructs ruff pushes toward above
 it, `zip(..., strict=)` and `datetime.UTC`. Nothing runs that code at that
 version, so a standard-library module or an annotation only a newer
 `python3` has, as `tomllib` or `str | None` in a signature, passes both.

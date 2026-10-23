@@ -13,7 +13,7 @@ which holds the rest of this file's cases since #942's phase 5;
 
 import pytest
 from conftest import load_hook_module, q
-from test_one_heredoc_shape_is_read_exactly import FAILS
+from test_one_heredoc import FAILS
 
 gate = load_hook_module("commit-review-gate.py", "crg_one_heredoc")
 

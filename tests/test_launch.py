@@ -28,7 +28,9 @@ import subprocess
 import sys
 
 from censuses import matches, ruff_targets
-from conftest import decline_if_shrunken, git_listing, on_disk, read
+from conftest import census_case, decline_if_shrunken, git_listing, on_disk, read
+
+TARGET = "hooks/launch.py"
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 BIN = os.path.join(ROOT, "bin")
@@ -95,63 +97,133 @@ def run(*command, cwd):
 # --- the sentence, and the moment it arrives ----------------------------------
 
 
-def test_below_the_floor_the_launcher_refuses_before_the_script_runs(
-    tmp_path, monkeypatch, capsys
-):
-    """Exit 2, a sentence rather than a traceback, and the script never ran.
+class Test_main:
+    def test_accepts_the_floor_and_runs_the_script_as_if_run_directly(self, tmp_path):
+        """At the floor itself, the launched script sees what a direct run sees:
+        its arguments, `sys.path[0]`, `__file__` and `__name__`, and its exit
+        code reaches the caller. A floor that refused itself would stop every
+        command at the next release."""
+        script = probe(tmp_path)
+        args = (script, "3", "two words", "--flag")
+        direct = run(*args, cwd=tmp_path)
+        launched = run(launcher(tmp_path, sys.version_info[:2]), *args, cwd=tmp_path)
+        assert direct.returncode == 3, direct.stderr
+        assert (launched.returncode, launched.stderr) == (3, ""), launched.stderr
+        assert json.loads(launched.stdout) == json.loads(direct.stdout)
 
-    The process half runs a copy with its floor raised, so the exit code and
-    the moment are the shipped file's. The sentence half asks the real
-    `main` with its floor raised in place, where the decision is made. The
-    sentence names the floor and the version found, or a reader whose
-    `python3` is secretly 3.9 cannot tell whether it means them; the
-    interpreter's path, because on macOS the surprise is which file `python3`
-    was; the command, because a reader typed the wrapper and not the file."""
-    script = probe(tmp_path)
-    out = run(launcher(tmp_path, (99, 0)), script, "0", cwd=tmp_path)
-    assert out.returncode == 2, (out.returncode, out.stderr)
-    assert "Traceback" not in out.stderr, out.stderr
-    assert not out.stdout, out.stdout
-    launch = load(LAUNCH, "specseal_launch_refusal")
-    monkeypatch.setattr(launch, "FLOOR", (99, 0))
-    assert launch.main(["launch.py", script, "0"]) == 2
-    assert not (tmp_path / "scripts" / "ran").exists(), (
-        "the script ran before the refusal, so the refusal is not at entry"
-    )
-    found = ".".join(str(part) for part in sys.version_info[:3])
-    err = capsys.readouterr().err
-    assert err.startswith(
-        f"probe-case: needs python 99.0 or newer, and this is python {found} "
-        f"at {sys.executable}.\n"
-        "Nothing was read and nothing was written.\n"
-    ), err
-    assert "macOS ships python 3.9 under that name" in err, err
+    def test_refuses_below_the_floor_before_the_script_runs(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """Exit 2, a sentence rather than a traceback, and the script never ran.
+
+        The process half runs a copy with its floor raised, so the exit code and
+        the moment are the shipped file's. The sentence half asks the real
+        `main` with its floor raised in place, where the decision is made. The
+        sentence names the floor and the version found, or a reader whose
+        `python3` is secretly 3.9 cannot tell whether it means them; the
+        interpreter's path, because on macOS the surprise is which file `python3`
+        was; the command, because a reader typed the wrapper and not the file."""
+        script = probe(tmp_path)
+        out = run(launcher(tmp_path, (99, 0)), script, "0", cwd=tmp_path)
+        assert out.returncode == 2, (out.returncode, out.stderr)
+        assert "Traceback" not in out.stderr, out.stderr
+        assert not out.stdout, out.stdout
+        launch = load(LAUNCH, "specseal_launch_refusal")
+        monkeypatch.setattr(launch, "FLOOR", (99, 0))
+        assert launch.main(["launch.py", script, "0"]) == 2
+        assert not (tmp_path / "scripts" / "ran").exists(), (
+            "the script ran before the refusal, so the refusal is not at entry"
+        )
+        found = ".".join(str(part) for part in sys.version_info[:3])
+        err = capsys.readouterr().err
+        assert err.startswith(
+            f"probe-case: needs python 99.0 or newer, and this is python {found} "
+            f"at {sys.executable}.\n"
+            "Nothing was read and nothing was written.\n"
+        ), err
+        assert "macOS ships python 3.9 under that name" in err, err
 
 
-def test_at_the_floor_the_script_runs_as_if_it_were_run_directly(tmp_path):
-    """At the floor itself, the launched script sees what a direct run sees:
-    its arguments, `sys.path[0]`, `__file__` and `__name__`, and its exit
-    code reaches the caller. A floor that refused itself would stop every
-    command at the next release."""
-    script = probe(tmp_path)
-    args = (script, "3", "two words", "--flag")
-    direct = run(*args, cwd=tmp_path)
-    launched = run(launcher(tmp_path, sys.version_info[:2]), *args, cwd=tmp_path)
-    assert direct.returncode == 3, direct.stderr
-    assert (launched.returncode, launched.stderr) == (3, ""), launched.stderr
-    assert json.loads(launched.stdout) == json.loads(direct.stdout)
+class Test_module:
+    def test_the_refusal_is_ascii_whatever_path_it_names(self):
+        """The refusal is written before anything sets up stderr, so a path the
+        console cannot encode would end it in a traceback, on the machine that
+        has no other way of being told what is wrong."""
+        launch = load(LAUNCH, "specseal_launch_ascii")
+        sentence = launch.refusal(
+            "/Users/x/코드/round_record.py", (3, 9, 6), "/Users/x/파이썬/python3"
+        )
+        stowaways = sorted({c for c in sentence if not c.isascii()})
+        assert not stowaways, f"the refusal carries {stowaways}"
 
+    def test_the_floor_has_one_source(self):
+        """`hooks/launch.py` is the one file that spells the floor, the runner
+        builds its virtualenv against the launcher's number, and `ruff.toml`,
+        which cannot import, lints at that number."""
+        floor = tuple(load(LAUNCH, "specseal_launch_floor").FLOOR)
+        assert floor_carriers() == {"hooks/launch.py": floor}, floor_carriers()
+        assert tuple(load(RUNNER, "specseal_runner_floor").FLOOR) == floor
+        m = re.search(r'target-version = "py(\d)(\d+)"', read(RUFF))
+        assert m, "ruff.toml lost its target-version"
+        assert (int(m.group(1)), int(m.group(2))) == floor, (
+            f"hooks/launch.py holds {floor} and ruff.toml lints at "
+            f"{m.group(1)}.{m.group(2)}"
+        )
 
-def test_the_refusal_is_ascii_whatever_path_it_names():
-    """The refusal is written before anything sets up stderr, so a path the
-    console cannot encode would end it in a traceback, on the machine that
-    has no other way of being told what is wrong."""
-    launch = load(LAUNCH, "specseal_launch_ascii")
-    sentence = launch.refusal(
-        "/Users/x/코드/round_record.py", (3, 9, 6), "/Users/x/파이썬/python3"
-    )
-    stowaways = sorted({c for c in sentence if not c.isascii()})
-    assert not stowaways, f"the refusal carries {stowaways}"
+    def test_every_wrapper_runs_its_script_through_the_launcher(self):
+        """Every file in `bin/`, found by listing it: each interpreter it starts
+        is handed the launcher first, so a wrapper added later is held the day it
+        is written. `bin/test` and its twin are the one exception, held the other
+        way: each interpreter they start is handed the runner, so a launcher put
+        back in front of it refuses the old `python3` the runner exists to get
+        past."""
+        unheld = {}
+        for entry in sorted(os.listdir(BIN)):
+            text = read(os.path.join(BIN, entry))
+            if entry in RUNS_ITS_RUNNER_DIRECTLY:
+                first, defined = RUNS_ITS_RUNNER_DIRECTLY[entry], True
+            elif entry.endswith(".cmd"):
+                first = '"%launch%"'
+                defined = 'set "launch=%here%..\\hooks\\launch.py"' in text
+            else:
+                first, defined = '"$here/../hooks/launch.py"', True
+            found = launches(text)
+            bypass = [line for line, arg in found if arg != first]
+            if not found or bypass or not defined:
+                unheld[entry] = bypass or "starts no interpreter through the launcher"
+        assert not unheld, unheld
+
+    def test_what_runs_before_any_floor_is_linted_at_the_floor(self):
+        """The launcher holds the floor for `bin/`, and nothing holds it for a
+        hook, a git hook, the launcher itself or `bin/test`'s runner: each runs on
+        whatever `python3` starts it, 3.9 on a stock macOS, and so does every
+        module it loads in its own process. A hook that raises there fails open,
+        and the Stop hook loses the stamp it claimed. `ruff.toml` lints that set
+        at the version its `per-file-target-version` names, so B905 and UP017 do
+        not ask it for `zip`'s `strict=` or `datetime.UTC`. This case holds the
+        set to that table, both ways; the `floor_syntax` census in
+        `tests/censuses.py` refuses in each file the table names what a
+        `python3` at its version cannot run."""
+        loads = (
+            'import a\nfrom e import f\nG = ("b.py",)\n'
+            'D = os.path.join(H, "..", "s", "d.py")\n'
+        )
+        tracked = {"hooks/a.py", "hooks/b.py", "hooks/c.py", "hooks/e.py", "s/d.py"}
+        assert loaded_by("hooks/c.py", loads, tracked) == tracked - {"hooks/c.py"}
+        unfloored, missing = before_any_floor()
+        targets = ruff_targets(RUFF)
+        assert {"hooks/dispatch.py", "hooks/launch.py"} <= unfloored, unfloored
+        unlinted = sorted(
+            r for r in unfloored if not any(matches(p, r) for p in targets)
+        )
+        assert not unlinted, (
+            f"{unlinted} run before any floor is checked and ruff lints them at the "
+            "floor; add them to ruff.toml's per-file-target-version"
+        )
+        stale = sorted(p for p in targets if not any(matches(p, r) for r in unfloored))
+        if stale:
+            decline_if_shrunken(missing, "the liveness half of per-file-target-version")
+        assert not stale, f"ruff.toml lints {stale} as if a floor-less run reached them"
 
 
 # --- one number --------------------------------------------------------------
@@ -178,21 +250,6 @@ def floor_carriers(root=ROOT):
             ):
                 found[rel] = ast.literal_eval(node.value)
     return found
-
-
-def test_the_floor_has_one_source():
-    """`hooks/launch.py` is the one file that spells the floor, the runner
-    builds its virtualenv against the launcher's number, and `ruff.toml`,
-    which cannot import, lints at that number."""
-    floor = tuple(load(LAUNCH, "specseal_launch_floor").FLOOR)
-    assert floor_carriers() == {"hooks/launch.py": floor}, floor_carriers()
-    assert tuple(load(RUNNER, "specseal_runner_floor").FLOOR) == floor
-    m = re.search(r'target-version = "py(\d)(\d+)"', read(RUFF))
-    assert m, "ruff.toml lost its target-version"
-    assert (int(m.group(1)), int(m.group(2))) == floor, (
-        f"hooks/launch.py holds {floor} and ruff.toml lints at "
-        f"{m.group(1)}.{m.group(2)}"
-    )
 
 
 # --- no way around it ---------------------------------------------------------
@@ -224,30 +281,6 @@ def launches(text):
 # The one pair that hands its interpreter the runner itself, and what it hands
 # it: `hooks/launch.py`'s docstring says why `bin/test` is not launched.
 RUNS_ITS_RUNNER_DIRECTLY = {"test": '"$script"', "test.cmd": '"%script%"'}
-
-
-def test_every_wrapper_runs_its_script_through_the_launcher():
-    """Every file in `bin/`, found by listing it: each interpreter it starts
-    is handed the launcher first, so a wrapper added later is held the day it
-    is written. `bin/test` and its twin are the one exception, held the other
-    way: each interpreter they start is handed the runner, so a launcher put
-    back in front of it refuses the old `python3` the runner exists to get
-    past."""
-    unheld = {}
-    for entry in sorted(os.listdir(BIN)):
-        text = read(os.path.join(BIN, entry))
-        if entry in RUNS_ITS_RUNNER_DIRECTLY:
-            first, defined = RUNS_ITS_RUNNER_DIRECTLY[entry], True
-        elif entry.endswith(".cmd"):
-            first = '"%launch%"'
-            defined = 'set "launch=%here%..\\hooks\\launch.py"' in text
-        else:
-            first, defined = '"$here/../hooks/launch.py"', True
-        found = launches(text)
-        bypass = [line for line, arg in found if arg != first]
-        if not found or bypass or not defined:
-            unheld[entry] = bypass or "starts no interpreter through the launcher"
-    assert not unheld, unheld
 
 
 # --- what runs before any floor is checked -------------------------------------
@@ -344,32 +377,4 @@ def before_any_floor(root=ROOT):
     return seen, missing
 
 
-def test_what_runs_before_any_floor_is_linted_at_the_floor():
-    """The launcher holds the floor for `bin/`, and nothing holds it for a
-    hook, a git hook, the launcher itself or `bin/test`'s runner: each runs on
-    whatever `python3` starts it, 3.9 on a stock macOS, and so does every
-    module it loads in its own process. A hook that raises there fails open,
-    and the Stop hook loses the stamp it claimed. `ruff.toml` lints that set
-    at the version its `per-file-target-version` names, so B905 and UP017 do
-    not ask it for `zip`'s `strict=` or `datetime.UTC`. This case holds the
-    set to that table, both ways; the `floor_syntax` census in
-    `tests/censuses.py` refuses in each file the table names what a
-    `python3` at its version cannot run."""
-    loads = (
-        'import a\nfrom e import f\nG = ("b.py",)\n'
-        'D = os.path.join(H, "..", "s", "d.py")\n'
-    )
-    tracked = {"hooks/a.py", "hooks/b.py", "hooks/c.py", "hooks/e.py", "s/d.py"}
-    assert loaded_by("hooks/c.py", loads, tracked) == tracked - {"hooks/c.py"}
-    unfloored, missing = before_any_floor()
-    targets = ruff_targets(RUFF)
-    assert {"hooks/dispatch.py", "hooks/launch.py"} <= unfloored, unfloored
-    unlinted = sorted(r for r in unfloored if not any(matches(p, r) for p in targets))
-    assert not unlinted, (
-        f"{unlinted} run before any floor is checked and ruff lints them at the "
-        "floor; add them to ruff.toml's per-file-target-version"
-    )
-    stale = sorted(p for p in targets if not any(matches(p, r) for r in unfloored))
-    if stale:
-        decline_if_shrunken(missing, "the liveness half of per-file-target-version")
-    assert not stale, f"ruff.toml lints {stale} as if a floor-less run reached them"
+test_census = census_case(TARGET)

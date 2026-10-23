@@ -779,7 +779,7 @@ def heading_rule(rel, root=None):
 # `python3` starts it, 3.9 on a stock macOS. `ruff.toml` lints that set at
 # the version its `per-file-target-version` names, so B905 and UP017 do not
 # ask it for `zip`'s `strict=` or `datetime.UTC`.
-# `tests/test_a_script_says_which_interpreter_it_needs.py` derives the set
+# `tests/test_launch.py` derives the set
 # and holds the table to it; this census holds each file the table names to
 # its version.
 
