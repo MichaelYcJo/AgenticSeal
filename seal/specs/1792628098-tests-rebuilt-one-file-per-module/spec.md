@@ -38,7 +38,7 @@ The work is four rules the smith applies to any module without asking, the two c
 
 - One test file per shipped module: `tests/test_<stem>.py`, where `<stem>` is the module's file name without `.py` and with each hyphen written as an underscore. Where two shipped modules share a stem, each file name takes the parent directory before the stem. The target is declared once, as the first assignment after the imports: `TARGET = "<tracked path>"`. A file whose cases run a `bin/` command names the script the launcher runs.
 - Inside a file, one class per public top-level function of the target (one whose name does not start with an underscore), named `Test_<function>` with the function's name spelt as the code spells it; a private function gets a class where a case needs one. Behaviour of the module as a whole sits in `Test_module`. A function's class holds at least one case whose name starts with `test_accepts_` (the behaviour on good input) and one whose name starts with `test_refuses_` (the refusal or error on bad input). Other cases in the class take any `test_` name.
-- A flow across modules lives under `tests/e2e/<flow>/`, its `TARGET` names the command or hook the flow starts from, and its classes are scenarios that keep the accepting and refusing pair. The commit gate run through real git is the first flow.
+- A flow across modules lives under `tests/e2e/<flow>/`, its `TARGET` names the command or hook the flow starts from, and its classes are scenarios that keep the accepting and refusing pair. The commit gate run through real git is the first flow. A worktree creation run as the harness runs one Bash call, the `pre-bash` group, the command under real git in a clone carrying the installed stubs, then the `post-bash` group, is the second: `tests/e2e/creation/test_creation_flow.py`, whose `TARGET` is `hooks/dispatch.py`.
 - A case whose assertion reads a shipped document names that document as `TARGET`; its classes are free-named. Such cases are #923's and this work moves none of them.
 - A helper used by two files is defined once, in `tests/conftest.py`. The fixture repositories a module needs are built once per module by a module-scoped fixture. Where a case writes into the world, each case takes a copy and the copy is the reset; where no case writes into it beyond a marker keyed by a session id, each case makes its own session id and that is the reset, with no copy.
 - The censuses are cases of each module's file: `tests/censuses.py` holds one function per census that judges one file, and each module file ends with `test_census = census_case(TARGET)` from `tests/conftest.py`, so running a module's tests runs every census over its target. A census's exemption is a comment line of its own, directly above the exempted line, because `ruff format` moves a comment written at the end of a line; the census reads it, refuses one above a line the census would not have flagged, refuses one written at the end of a line, and reads no comment that has no reason after its colon. No census keeps a list of exemptions in a test file. A tracked file whose module file does not yet declare it is judged by the sweep in `tests/test_censuses.py`, one git listing per run.
@@ -134,7 +134,7 @@ The target the rebuild works toward is the issue's: the suite's real protection 
 | the slow-case module | `tests/test_a_slow_case_names_itself.py` | `tests/test_conftest.py` under rule 1, except its case that reads the legs' `timeout-minutes` in `test.yml`, which lands in `tests/test_ci_gives_the_checks_what_they_need.py` beside the cases that read the same workflow |
 | the stored exemption lists | `tests/test_every_reader_ends_a_line_where_gfm_does.py#OUT_OF_CLASS`, `tests/test_every_file_the_plugin_reads_or_writes_names_its_encoding.py#ALLOWED` and `#ENTRY_POINTS_CLASSIFIED`, `tests/test_a_format_has_one_reader.py#COORDINATE_EXEMPT` and `#HEADING_EXEMPT` | a comment line directly above each exempted line, read by the census in `tests/censuses.py` |
 | the helper twins | every non-test top-level function defined byte-identically in two or more files under `tests/` | one definition in `tests/conftest.py` |
-| every test file not in the layout | `tests/test_*.py` as they stand at the build's start | `tests/test_<stem>.py`, `tests/e2e/<flow>/`, or the batch's cut lines |
+| every test file not in the layout | `tests/test_*.py` as they stand at the build's start | `tests/test_<stem>.py`, `tests/e2e/<flow>/`, or the batch's cut lines. An old file a `check:` line names stays in the tree, holding no case once its cases leave, until `settle --apply` applies this spec's `## Rule changes` after the release, because a pull request does not edit `docs/` and `bin/rules --check` refuses a line naming a file that does not exist |
 | cases whose kills another case makes, and cases guarding behaviour that left the tree | named per batch in `phases/phase-N.md` | the batch's one line per case |
 | the priced ids of removed cases | `.test_durations` | pruned by the smith with one `Edit` per batch, whose match on the removed lines is what asserts each id was present |
 | the one-new-file form of the move check, the new file taken as `--from`'s last word or as a path after it | `skills/verify/scripts/test_layout.py#main`, the branch under `args.moved` that pops the last `--from` word into the new file | `--to <new file>...`, read by `main` as the second list; `Test_moved`'s rows run with `--to` |
@@ -203,7 +203,7 @@ The target the rebuild works toward is the issue's: the suite's real protection 
   file: docs/worktree-guard-spec.md
   section: Creation consent
   from: check: tests/test_the_guard_asks_once_per_session.py tests/test_guard_resolves_the_tree_it_judges.py
-  to: check: tests/test_the_guard_asks_once_per_session.py tests/test_guard_resolves_the_tree_it_judges.py tests/test_worktree_guard.py
+  to: check: tests/test_worktree_consent.py tests/test_worktree_guard.py
 - change
   file: docs/worktree-guard-spec.md
   section: Known limits
@@ -223,7 +223,7 @@ The target the rebuild works toward is the issue's: the suite's real protection 
   file: docs/one-root-by-lifetime.md
   section: Shared or local
   from: check: tests/test_first_setup_asks_once.py tests/test_optin_home.py tests/test_the_records_can_be_carried_out_and_in.py
-  to: check: tests/test_first_setup_asks_once.py tests/test_optin_home.py tests/test_seal.py
+  to: check: tests/test_first_setup_asks_once.py tests/test_optin.py tests/test_seal.py
 - change
   file: docs/one-root-by-lifetime.md
   section: What the repository decides for itself, and how it is read
@@ -233,12 +233,88 @@ The target the rebuild works toward is the issue's: the suite's real protection 
   file: docs/one-root-by-lifetime.ko.md
   section: shared 인가 local 인가
   from: check: tests/test_first_setup_asks_once.py tests/test_optin_home.py tests/test_the_records_can_be_carried_out_and_in.py
-  to: check: tests/test_first_setup_asks_once.py tests/test_optin_home.py tests/test_seal.py
+  to: check: tests/test_first_setup_asks_once.py tests/test_optin.py tests/test_seal.py
 - change
   file: docs/one-root-by-lifetime.ko.md
   section: 저장소가 스스로 정하는 것, 그리고 그것을 읽는 방법
   from: check: tests/test_the_records_can_be_carried_out_and_in.py tests/test_the_mode_is_a_row_and_a_command.py
   to: check: tests/test_seal.py
+- change
+  file: docs/one-root-by-lifetime.md
+  section: The root and its lifetimes
+  from: check: tests/test_no_document_names_the_old_roots.py tests/test_optin_home.py
+  to: check: tests/test_no_document_names_the_old_roots.py tests/test_optin.py
+- change
+  file: docs/one-root-by-lifetime.md
+  section: The opt-in signal is the root itself
+  from: check: tests/test_optin_home.py
+  to: check: tests/test_optin.py
+- change
+  file: docs/one-root-by-lifetime.ko.md
+  section: 루트와 그 안의 수명
+  from: check: tests/test_no_document_names_the_old_roots.py tests/test_optin_home.py
+  to: check: tests/test_no_document_names_the_old_roots.py tests/test_optin.py
+- change
+  file: docs/one-root-by-lifetime.ko.md
+  section: 옵트인 신호는 루트 자체다
+  from: check: tests/test_optin_home.py
+  to: check: tests/test_optin.py
+- change
+  file: docs/commit-review-gate-spec.md
+  section: Registration
+  from: check: tests/test_a_gate_that_fails_says_so.py
+  to: check: tests/test_dispatch.py tests/test_a_gate_that_fails_says_so.py
+- change
+  file: docs/commit-review-gate-spec.md
+  section: The implementer mark and notice
+  from: check: tests/test_the_implementer_is_recorded.py
+  to: check: tests/test_implementer_mark.py tests/test_implementer_notice.py tests/test_commit_review_gate.py
+- change
+  file: docs/the-record-layout.md
+  section: The fold, and what tells it from a deletion
+  from: check: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py tests/test_routing_is_recorded.py
+  to: check: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py tests/test_routing.py
+- change
+  file: docs/worktree-guard-spec.md
+  section: A. Branch switch
+  from: check: tests/test_the_guard_asks_once_per_session.py tests/test_worktree_guard.py
+  to: check: tests/test_worktree_consent.py tests/test_worktree_guard.py
+- change
+  file: docs/worktree-guard-spec.md
+  section: A. Branch switch
+  from: check: tests/test_worktree_guard.py tests/test_the_guard_asks_once_per_session.py tests/test_guard_resolves_the_tree_it_judges.py
+  to: check: tests/test_worktree_guard.py tests/test_worktree_consent.py
+- change
+  file: docs/worktree-guard-spec.md
+  section: Decided before git runs
+  from: check: tests/test_a_creation_is_judged_before_git_runs.py tests/test_the_hook_surface_git_offers.py
+  to: check: tests/e2e/creation/test_creation_flow.py tests/test_the_hook_surface_git_offers.py
+- change
+  file: docs/worktree-guard-spec.md
+  section: Decided before git runs
+  from: never carried to a git hook. check: tests/test_a_creation_is_judged_before_git_runs.py
+  to: never carried to a git hook.
+    check: tests/e2e/creation/test_creation_flow.py
+- change
+  file: docs/worktree-guard-spec.md
+  section: Choice sites
+  from: check: tests/test_a_creation_in_another_clone_asks_nobody.py tests/test_worktree_guard.py tests/test_the_idle_session_rows_ask_nobody.py
+  to: check: tests/test_worktree_guard.py
+- change
+  file: docs/worktree-guard-spec.md
+  section: Activity: what makes a session ACTIVE without a lease
+  from: check: tests/test_worktree_guard_signals.py
+  to: check: tests/test_worktree_guard.py
+- change
+  file: docs/worktree-guard-spec.md
+  section: Which tree
+  from: check: tests/test_worktree_guard.py tests/test_guard_resolves_the_tree_it_judges.py
+  to: check: tests/test_worktree_guard.py tests/test_worktree_consent.py
+- change
+  file: docs/the-review-record.md
+  section: The stamp
+  from: check: tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py
+  to: check: tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py tests/test_sealer_stamp.py
 
 ## Open questions → questions.md
 
