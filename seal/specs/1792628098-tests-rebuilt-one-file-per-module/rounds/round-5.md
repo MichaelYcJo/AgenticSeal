@@ -13,7 +13,7 @@ The two findings are both in the unit 32cd06c7 and b120e598 made. Finding 1 is a
 severity: should
 location: `seal/specs/1792628098-tests-rebuilt-one-file-per-module/spec.md:78`, `CONTRIBUTING.md:300-306`, `skills/verify/scripts/test_layout.py:104-108`, `skills/verify/scripts/test_layout.py:813-819`, `skills/verify/scripts/test_layout.py:909-913`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-6.md:1827`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-6.md:1845`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-6.md:1851`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/overview.md:35`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/overview.md:45`
 evidence: executed `python3 lines.py`, `python3 show.py undeclared`, `python3 mutants.py`, `git show 5966150b:tests/test_broad_gate.py`, `git show 10667b32:tests/test_the_gate_names_every_step_ci_runs.py`, `git show 5966150b:tests/test_the_gate_names_every_step_ci_runs.py`
-verdict: open
+verdict: fixed a1abd6a7
 regression: round-4#1
 
 The unit is the rule for a failing case that stands in a file declaring no `TARGET` and calls no shipped module, which the reframe at b120e598 wrote into `spec.md:78` and 32cd06c7 into `CONTRIBUTING.md:302-306`, as f9031b38 applied it to group 34. The frame sends such a case to "the definition its line names, in the file that defines it in the working tree" (`plan.md:114`, step 4, and `spec.md:78`); the fix ran one mutant, ro1, at the `ROOT` of the case's own file; the defect comes from the rule, which takes the line's one name for every changed definition and one file for its place, while the line names only the first name in alphabetical order and the condition compares each name as the set of its definitions across files.
@@ -92,14 +92,14 @@ tests/test_test_layout.py::Test_moved with two names apart, seen red
 against the script at c97b5f91, pins the new line.
 ```
 
-answer:
+answer: The framer reframed at 31cf78dd: the line names every name apart, and a case that calls no shipped module counts for each definition of those names that the working tree's reading reaches, less any the base's reading reaches in the same file and as written. 24cd7813 builds the line, `names <name>, <name>` for more than one, states it in the script's docstrings, and rewrites `CONTRIBUTING.md`'s bullet in `spec.md`'s words; `two-changed-names` and `a-changed-name-beside-one-reached-once` were seen red against the script at 854f8ff3. a1abd6a7 re-ran the three commands that send a line to a definition: each last line and exit stands, and group 34's line now names `ROOT`, `gate`, `GATE`, `TARGET`, `gate_module` and `pathlib`. It sends `tests/test_broad_gate.py`'s `import pathlib`, `TARGET`, `ROOT` and `gate`, lines 24, 43, 45 and 54 at 5966150b, whose five mutants, bp1, bt1, br1, bg1 and bg2, are red against the case alone; ro1 stands for no definition the rule sends. Group 19's row names `_corpora` at line 24 and says cp2 stands for `TOKEN_CASES`, and on1 to on3 are red against the five sweep cases alone. `overview.md` lines 35 and 45 and `phases/phase-6.md`'s two rows are rewritten in place. One frame sentence does not hold, and `overview.md` records it for the framer: the head's `_corpora` reads `TOKEN_CASES` through an import inside its body, which the name condition does not follow, a limit `spec.md` does not state.
 
 ### 2. Two readings of the changed module map pass `Test_moved` broken: `<module>.<name>` into a test file, and u2
 
 severity: should
 location: `tests/test_test_layout.py:633`, `tests/test_test_layout.py:661-702`, `tests/test_test_layout.py:845-913`, `skills/verify/scripts/test_layout.py:778`, `skills/verify/scripts/test_layout.py:991`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-7.md:190-199`
 evidence: executed `python3 mutants2.py`, `git ls-tree c97b5f91 tests/`
-verdict: open
+verdict: fixed 24cd7813
 regression: round-4#1
 
 The unit is 32cd06c7's change to `_test_modules`, with the rows and the mutant batch that `plan.md` *Round 4's fix pass* step 1 asks for. The frame has the changed code's mutants run over `Test_moved`, "each survivor is answered by a row seen red on it" (`plan.md:111`), and the condition reads `<module>.<name>` into any module directly under `tests/` (`spec.md:78`); the fix wrote two rows for `from <module> import`, ran 31 mutants and answered its one survivor, u2, by a reason (`phases/phase-7.md:199`); the defect comes from the batch, which carried no mutant for the attribute reading the same change opened, and from the answer, which leaves u2 standing where the plan asks for a row.
@@ -140,7 +140,7 @@ OLD_G, G = "tests/test_old_g.py", "tests/test_g.py"  # NAMES NOT IN TREE, added 
 
 The first row is seen red on u2 and the second on v1, as step 1 asks. `phases/phase-7.md`'s table then lists u2 and v1 red and drops the reason.
 
-answer:
+answer: 24cd7813 writes both rows as this finding sketches them, with `tests/test_old_g.py` added to `_moved_world`: `a-directory-named-like-a-module` among the accepting rows and `a-changed-attribute-of-another-test-file` among the refusing rows. The batch over the changed code at 24cd7813 carried u2 and v1 beside five mutants at `_name_change` and `moved`: 7 mutants, 7 red. Run alone, u2 and v1 are each red on its own row and survive `Test_moved` with that row left out. a1abd6a7 records the batch in `phases/phase-7.md` *The line names every name, in round 5's fix pass* and rewrites the paragraph that answered u2 by a reason to point at the row.
 
 ## Confirmations
 
