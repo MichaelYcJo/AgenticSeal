@@ -986,6 +986,59 @@ def names_path(path, text):
     return path in text or repr(path)[1:-1] in text
 
 
+# --- a team's own specs/ planted beside the plugin's root (#688's D3) ---------
+#
+# A repository with a `seal/` root holding one work item, built twice: once
+# alone, and once with a team's own `specs/` planted beside it — a malformed
+# overview, a spec, and a design note, edited in the second commit. Each check
+# that walks work items runs over both in its module's file and must say the
+# same thing about both: `tests/test_chain_check.py`,
+# `tests/test_unverified_check.py` and `tests/test_settle.py`.
+SERVICE = "def handler(x):\n    return x + 1\n"
+OURS = "seal/specs/1790000000-ours"
+TEAM = "specs/1788000001-team-thing"
+
+
+def planted(where, team):
+    def git(*args):
+        subprocess.run(
+            ["git", "-C", str(where), *args], check=True, capture_output=True
+        )
+
+    def put(rel, text):
+        path = where / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+
+    where.mkdir(parents=True)
+    git("init", "-q", "-b", "main")
+    git("config", "user.email", "t@example.com")
+    git("config", "user.name", "t")
+    put("src/service.py", SERVICE)
+    put(f"{OURS}/routing.md", "# routing\n\n| Axis | Answer |\n|---|---|\n")
+    put(
+        f"{OURS}/overview.md",
+        "# ours\n\n## Not verified\n\n- nothing\n  why: a probe\n",
+    )
+    if team:
+        put(f"{TEAM}/spec.md", "# the team's spec\n\nA design they own.\n")
+        put(f"{TEAM}/overview.md", "# theirs\n\n## Not verified\n\nnot a table\n")
+        put(f"{TEAM}/design.md", "# design\n\n| Clause | Coordinate |\n|---|---|\n")
+    git("add", "-A")
+    git("commit", "-qm", "base")
+    # The second commit arrives by a merge, so a check reading the range
+    # meets a merge in it.
+    git("switch", "-qc", "side")
+    put("src/service.py", SERVICE + "\n\ndef other():\n    return 0\n")
+    if team:
+        put(f"{TEAM}/design.md", "# design\n\nRewritten by the team.\n")
+    git("add", "-A")
+    git("commit", "-qm", "second")
+    git("switch", "-q", "main")
+    git("merge", "-q", "--no-ff", "-m", "merge", "side")
+    return where
+
+
 # --- helpers more than one test module uses (#942) ----------------------------
 #
 # Each was defined byte-identically in two or more test modules. A module

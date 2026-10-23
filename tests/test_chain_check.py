@@ -12,7 +12,10 @@ moved from `tests/test_unverified_rows_close.py`; the copy run without its
 siblings, from `tests/test_a_script_copied_alone_exits_2.py`; and the
 framer's mark after a U+2028, `frame_foot`'s one case, from
 `tests/test_every_reader_ends_a_line_where_gfm_does.py`. The last two came in
-its round 9 fix pass, each a case of this module alone.
+its round 9 fix pass, each a case of this module alone. The command run over
+a repository with and without a team's own `specs/` came from
+`tests/test_a_reference_root_is_read_and_never_taken.py` in its round 10 fix
+pass, this module's pass of a loop that ran three commands each alone.
 """
 
 import functools
@@ -28,10 +31,12 @@ import pytest
 from conftest import (
     BASELINE,
     LS,
+    TEAM,
     census_case,
     chain_check_run,
     names_path,
     parity_file,
+    planted,
     write,
 )
 from conftest import commit_everything as commit
@@ -3107,6 +3112,46 @@ class Test_module:
         assert chain.frame_foot(reader, spec)[0] is None
         whole = "# spec\n\nprose\nFramed 2026-01-01 by framer, before the build.\n"
         assert chain.frame_foot(reader, whole)[0] == ("2026-01-01", "framer")
+
+    def test_a_planted_team_specs_changes_no_checks_verdict(self, tmp_path):
+        """#688's D3. This command run over the repository with and without a
+        team's `specs/` exits the same and prints the same, with the
+        repository's own path written out of both; and the team's directory
+        is on disk, untouched, after it ran. `tests/conftest.py#planted`
+        builds the two repositories, and `tests/test_unverified_check.py` and
+        `tests/test_settle.py` run their commands over them."""
+        name, script = TARGET, TARGET
+        args = ["--baseline", "HEAD~1", "--root", "{r}"]
+        alone = planted(tmp_path / "alone", team=False)
+        joined = planted(tmp_path / "joined", team=True)
+        before = {
+            rel: (joined / TEAM / rel).read_bytes()
+            for rel in ("spec.md", "overview.md", "design.md")
+        }
+        said = []
+        for repo in (alone, joined):
+            r = subprocess.run(
+                [sys.executable, os.path.join(ROOT, script)]
+                + [a.replace("{r}", str(repo)) for a in args],
+                cwd=str(repo),
+                capture_output=True,
+                encoding="utf-8",
+                errors="replace",
+            )
+            # The two repositories' paths and commits differ by construction.
+            text = re.sub(
+                r"\b[0-9a-f]{7,40}\b",
+                "<sha>",
+                (r.stdout + r.stderr).replace(str(repo), "<repo>"),
+            )
+            said.append((r.returncode, text))
+        assert said[0] == said[1], (
+            f"{name} says something else once a team's specs/ is planted:\n"
+            f"alone:\n{said[0]}\njoined:\n{said[1]}"
+        )
+        assert "team-thing" not in said[1][1], f"{name} read the team's specs/"
+        for rel, data in before.items():
+            assert (joined / TEAM / rel).read_bytes() == data, rel
 
 
 # --- left where they stand, for #923: they read the shipped documents --------------

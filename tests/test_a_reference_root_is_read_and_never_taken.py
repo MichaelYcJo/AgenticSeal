@@ -13,15 +13,14 @@ has one reader, `hooks/config.py#reference_roots`, and one predicate,
 `hooks/config.py#under_reference_root`; every check that would read a
 reference root as a record asks that predicate instead of spelling its own
 test. The resolver's cases (C1) are in `tests/test_config.py`, since #942's
-phase 6; the checks' cases sit beside each check's own (D1, D2, D3), and this
-file's last section names every shipped check and what keeps it off a
+phase 6; the checks' cases sit beside each check's own (D1, D2, D3), the
+planted team's case of D3 in each check's module file since #942's round 10
+fix pass, and this file names every shipped check and what keeps it off a
 reference root.
 """
 
 import os
 import re
-import subprocess
-import sys
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -36,7 +35,11 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 # the constant it rests on, which its module's file holds under `seal/`:
 # `settle.py#SPECS` in `tests/test_settle.py` and `hooks/routing.py#WORK_ITEMS`
 # in `tests/test_routing.py`, each a case of one module, which #942's round 9
-# fix pass moved there from this file.
+# fix pass moved there from this file. The checks that walk work items run
+# over a repository with and without a team's own `specs/` in their modules'
+# files, `tests/test_chain_check.py`, `tests/test_unverified_check.py` and
+# `tests/test_settle.py`, one case each, which #942's round 10 fix pass split
+# from this file's loop over the three.
 
 PREDICATE = "asks hooks/config.py#under_reference_root"
 PINNED = "reads the plugin's root by a constant under seal/"
@@ -73,105 +76,6 @@ def test_every_shipped_command_is_classified():
         f"{sorted(shipped ^ set(SHIPPED))}. Say what keeps it off a team's "
         "specs/ — the predicate, a constant under seal/, or no walk at all"
     )
-
-
-# A repository with a `seal/` root holding one work item, built twice: once alone, and once with a team's own `specs/` planted beside
-# it — a malformed overview, a spec, and a design note, edited in the second
-# commit. Every check below must say the same thing about both.
-SERVICE = "def handler(x):\n    return x + 1\n"
-OURS = "seal/specs/1790000000-ours"
-TEAM = "specs/1788000001-team-thing"
-
-
-def planted(where, team):
-    def git(*args):
-        subprocess.run(
-            ["git", "-C", str(where), *args], check=True, capture_output=True
-        )
-
-    def put(rel, text):
-        path = where / rel
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(text, encoding="utf-8")
-
-    where.mkdir(parents=True)
-    git("init", "-q", "-b", "main")
-    git("config", "user.email", "t@example.com")
-    git("config", "user.name", "t")
-    put("src/service.py", SERVICE)
-    put(f"{OURS}/routing.md", "# routing\n\n| Axis | Answer |\n|---|---|\n")
-    put(
-        f"{OURS}/overview.md",
-        "# ours\n\n## Not verified\n\n- nothing\n  why: a probe\n",
-    )
-    if team:
-        put(f"{TEAM}/spec.md", "# the team's spec\n\nA design they own.\n")
-        put(f"{TEAM}/overview.md", "# theirs\n\n## Not verified\n\nnot a table\n")
-        put(f"{TEAM}/design.md", "# design\n\n| Clause | Coordinate |\n|---|---|\n")
-    git("add", "-A")
-    git("commit", "-qm", "base")
-    # The second commit arrives by a merge, so a check reading the range
-    # meets a merge in it.
-    git("switch", "-qc", "side")
-    put("src/service.py", SERVICE + "\n\ndef other():\n    return 0\n")
-    if team:
-        put(f"{TEAM}/design.md", "# design\n\nRewritten by the team.\n")
-    git("add", "-A")
-    git("commit", "-qm", "second")
-    git("switch", "-q", "main")
-    git("merge", "-q", "--no-ff", "-m", "merge", "side")
-    return where
-
-
-CHECKS = {
-    "chain_check.py": (
-        "skills/code-review/scripts/chain_check.py",
-        ["--baseline", "HEAD~1", "--root", "{r}"],
-    ),
-    "unverified-check": ("skills/verify/scripts/unverified_check.py", ["{r}"]),
-    "settle": (
-        "skills/settle/scripts/settle.py",
-        ["--root", "{r}", "--released-at", "HEAD"],
-    ),
-}
-
-
-def test_a_planted_team_specs_changes_no_checks_verdict(tmp_path):
-    """D3. Each check run over the repository with and without the team's
-    `specs/` exits the same and prints the same, with the repository's own
-    path written out of both; and the team's directory is on disk, untouched,
-    after all of them."""
-    alone = planted(tmp_path / "alone", team=False)
-    joined = planted(tmp_path / "joined", team=True)
-    before = {
-        rel: (joined / TEAM / rel).read_bytes()
-        for rel in ("spec.md", "overview.md", "design.md")
-    }
-    for name, (script, args) in CHECKS.items():
-        said = []
-        for repo in (alone, joined):
-            r = subprocess.run(
-                [sys.executable, os.path.join(ROOT, script)]
-                + [a.replace("{r}", str(repo)) for a in args],
-                cwd=str(repo),
-                capture_output=True,
-                encoding="utf-8",
-                errors="replace",
-            )
-            # The two repositories' paths and commits differ by construction.
-            text = re.sub(
-                r"\b[0-9a-f]{7,40}\b",
-                "<sha>",
-                (r.stdout + r.stderr).replace(str(repo), "<repo>"),
-            )
-            said.append((r.returncode, text))
-        assert said[0] == said[1], (
-            f"{name} says something else once a team's specs/ is planted:\n"
-            f"alone:\n{said[0]}\njoined:\n{said[1]}"
-        )
-        assert "team-thing" not in said[1][1], f"{name} read the team's specs/"
-    for rel, data in before.items():
-        assert (joined / TEAM / rel).read_bytes() == data, rel
 
 
 # --- C2: the readers read a reference root when relevant, and cite it --------

@@ -17,6 +17,12 @@ merge, a clone with a `seal/` root beside a team's own `specs/`, and a
 `seal/` root with no `specs/`. A case that writes into a world takes a copy,
 and the copy is the reset. No world holds a file a case runs, so the copies
 are plain copies.
+
+`Test_module` also runs the command over a repository with and without a
+team's own `specs/`, the planted team's case of
+`tests/test_a_reference_root_is_read_and_never_taken.py`, which #942's round
+10 fix pass split into one case per command; `TEAM` and `OURS` are
+`tests/conftest.py`'s since then, because `planted` reads them too.
 """
 
 import os
@@ -24,17 +30,21 @@ import random
 import re
 import shutil
 import subprocess
+import sys
 import time
 
 import pytest
 from commonmark_oracle import heading_lines, hidden_text
 from conftest import (
+    OURS,
     ROOT,
+    TEAM,
     census_case,
     commit_everything_as_e,
     git,
     git_out,
     load_module,
+    planted,
     symlink_or_skip,
     write,
 )
@@ -292,8 +302,6 @@ def merged(tmp_path_factory):
     return d
 
 
-TEAM = "specs/1788000001-team-thing"
-OURS = "seal/specs/1790000000-ours"
 MALFORMED = "## Not verified\n\nnot a table, and not a none line either\n"
 
 
@@ -2386,6 +2394,46 @@ class Test_module:
         """The corpus is the real test, and it states the rule for new work:
         a work item that writes an overview writes this section in it."""
         assert run([os.path.join(ROOT, "seal", "specs")]) == 0
+
+    def test_a_planted_team_specs_changes_no_checks_verdict(self, tmp_path):
+        """#688's D3. This command run over the repository with and without a
+        team's `specs/` exits the same and prints the same, with the
+        repository's own path written out of both; and the team's directory
+        is on disk, untouched, after it ran. `tests/conftest.py#planted`
+        builds the two repositories, and `tests/test_chain_check.py` and
+        `tests/test_settle.py` run their commands over them."""
+        name, script = TARGET, TARGET
+        args = ["{r}"]
+        alone = planted(tmp_path / "alone", team=False)
+        joined = planted(tmp_path / "joined", team=True)
+        before = {
+            rel: (joined / TEAM / rel).read_bytes()
+            for rel in ("spec.md", "overview.md", "design.md")
+        }
+        said = []
+        for repo in (alone, joined):
+            r = subprocess.run(
+                [sys.executable, os.path.join(ROOT, script)]
+                + [a.replace("{r}", str(repo)) for a in args],
+                cwd=str(repo),
+                capture_output=True,
+                encoding="utf-8",
+                errors="replace",
+            )
+            # The two repositories' paths and commits differ by construction.
+            text = re.sub(
+                r"\b[0-9a-f]{7,40}\b",
+                "<sha>",
+                (r.stdout + r.stderr).replace(str(repo), "<repo>"),
+            )
+            said.append((r.returncode, text))
+        assert said[0] == said[1], (
+            f"{name} says something else once a team's specs/ is planted:\n"
+            f"alone:\n{said[0]}\njoined:\n{said[1]}"
+        )
+        assert "team-thing" not in said[1][1], f"{name} read the team's specs/"
+        for rel, data in before.items():
+            assert (joined / TEAM / rel).read_bytes() == data, rel
 
 
 # --- a reading written from the format, for `Test_live_lines` -----------------

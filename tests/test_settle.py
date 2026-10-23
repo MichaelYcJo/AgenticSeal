@@ -11,7 +11,8 @@ launcher, and two answers the command takes from its siblings,
 `unverified_check.py#settled` and `rule_changes.py#order`, asked over the
 repositories this file builds, the case that reads this module's source
 for a call of `settled` and no second definition of it, the copy run without
-its siblings, and `SPECS` held under `seal/`.
+its siblings, `SPECS` held under `seal/`, and the command run over a
+repository with and without a team's own `specs/`.
 
 #942's phase 6 placed these cases from
 `tests/test_settle_reads_before_it_removes.py` and
@@ -20,16 +21,29 @@ that read the skill, the documents, the READMEs, the checklist and the cheat
 sheets. The source-reading case came from `tests/test_unverified_rows_close.py`.
 The copy's case came from `tests/test_a_script_copied_alone_exits_2.py` and
 the `SPECS` case from `tests/test_a_reference_root_is_read_and_never_taken.py`
-in #942's round 9 fix pass, each a case of this module alone.
+in #942's round 9 fix pass, each a case of this module alone, and the
+planted team's case from the same file in its round 10 fix pass, this
+module's pass of a loop that ran three commands each alone.
 """
 
 import io
 import os
+import re
 import subprocess
 import sys
 
 import pytest
-from conftest import DOC, census_case, line_of, load_module, names_path, op, spec
+from conftest import (
+    DOC,
+    TEAM,
+    census_case,
+    line_of,
+    load_module,
+    names_path,
+    op,
+    planted,
+    spec,
+)
 from conftest import flattened as flat
 
 TARGET = "skills/settle/scripts/settle.py"
@@ -1294,6 +1308,46 @@ class Test_module:
         classifies every shipped command by what keeps it off a reference
         root."""
         assert settle.SPECS == "seal/specs"
+
+    def test_a_planted_team_specs_changes_no_checks_verdict(self, tmp_path):
+        """#688's D3. This command run over the repository with and without a
+        team's `specs/` exits the same and prints the same, with the
+        repository's own path written out of both; and the team's directory
+        is on disk, untouched, after it ran. `tests/conftest.py#planted`
+        builds the two repositories, and `tests/test_chain_check.py` and
+        `tests/test_unverified_check.py` run their commands over them."""
+        name, script = TARGET, TARGET
+        args = ["--root", "{r}", "--released-at", "HEAD"]
+        alone = planted(tmp_path / "alone", team=False)
+        joined = planted(tmp_path / "joined", team=True)
+        before = {
+            rel: (joined / TEAM / rel).read_bytes()
+            for rel in ("spec.md", "overview.md", "design.md")
+        }
+        said = []
+        for repo in (alone, joined):
+            r = subprocess.run(
+                [sys.executable, os.path.join(ROOT, script)]
+                + [a.replace("{r}", str(repo)) for a in args],
+                cwd=str(repo),
+                capture_output=True,
+                encoding="utf-8",
+                errors="replace",
+            )
+            # The two repositories' paths and commits differ by construction.
+            text = re.sub(
+                r"\b[0-9a-f]{7,40}\b",
+                "<sha>",
+                (r.stdout + r.stderr).replace(str(repo), "<repo>"),
+            )
+            said.append((r.returncode, text))
+        assert said[0] == said[1], (
+            f"{name} says something else once a team's specs/ is planted:\n"
+            f"alone:\n{said[0]}\njoined:\n{said[1]}"
+        )
+        assert "team-thing" not in said[1][1], f"{name} read the team's specs/"
+        for rel, data in before.items():
+            assert (joined / TEAM / rel).read_bytes() == data, rel
 
 
 test_census = census_case(TARGET)
