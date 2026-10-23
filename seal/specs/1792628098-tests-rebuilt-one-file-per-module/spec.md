@@ -73,7 +73,7 @@ The target the rebuild works toward is the issue's: the suite's real protection 
 
 #942 changes no shipped code, so the one risk a rebuilt module carries is a fault the old cases caught and the new ones miss. The proof shows that a module's rebuild lost no protection; it decides nothing about what to cut. A module whose cases were only moved, with nothing cut, merged or rewritten, cannot have lost protection, so it skips the mutants. Whether the modules of a group were only moved is decided by the move check below, from the two trees and never from the smith's record. The owner set the mutants' cost on 2026-10-22 and the move check's rule on 2026-10-23; the orchestrator set the check's shape, a set of old files against a set of new files, on 2026-10-23, after phase 6's first step had built it for one new file and found that most old files in `hooks/` hold cases of two or more modules (`phases/phase-6.md` *What the frame's check cannot pass*).
 
-- The move check: `bin/test-layout --moved`, with the arguments *Data & interfaces* gives, reads a set of old files at the base commit and a set of new files in the working tree, and passes only where three conditions hold for the two sets. First, pytest collects as many items from the new set as from the old set at the base, each parametrize row counting as one item and every `test_census` item left out on both sides. Second, each old case's body is in exactly one case of the new set, unchanged apart from its name, its place, the class around it and the `self` parameter, compared as an AST with docstrings dropped; a case of the new set that stands for no old case fails this condition too, so an old case that lands in two new files is named by its second landing and not only by the count. Third, every fixture a case requests resolves, in the case's file or in `tests/conftest.py`, to a fixture definition whose AST, decorator included, is the same in both trees, so a world built once where it was built per case is a change. The check prints each case that fails with the condition it failed, exits 0 where the group passes and 1 where it does not, and the smith records the command and its last line in place of a mutant table. One run covers one group: the modules of one shipped directory's commit, or any smaller group the smith rebuilds together, and the run names every old file the group's cases were drawn from and every new file the group wrote. An old file that keeps cases for a module of a later group is named in both sets, so its remaining cases compare to themselves in the working tree. A group whose check exits 1 runs the mutants for each of its modules, as below.
+- The move check: `bin/test-layout --moved`, with the arguments *Data & interfaces* gives, reads a set of old files at the base commit and a set of new files in the working tree, and passes only where three conditions hold for the two sets. First, pytest collects as many items from the new set as from the old set at the base, each parametrize row counting as one item and every `test_census` item left out on both sides. Second, each old case's body is in exactly one case of the new set, unchanged apart from its name, its place, the class around it and the `self` parameter, compared as an AST with the docstring of the case, and of every function and class it defines, dropped, because the formatter the edit hook runs re-indents a nested docstring to the case's new depth; a case of the new set that stands for no old case fails this condition too, so an old case that lands in two new files is named by its second landing and not only by the count. Third, every fixture a case requests resolves, in the case's file or in `tests/conftest.py`, to a fixture definition whose AST, decorator included and docstrings dropped as for a case, is the same in both trees, so a world built once where it was built per case is a change. The check prints each case that fails with the condition it failed, exits 0 where the group passes and 1 where it does not, and the smith records the command and its last line in place of a mutant table. One run covers one group: the modules of one shipped directory's commit, or any smaller group the smith rebuilds together, and the run names every old file the group's cases were drawn from and every new file the group wrote. An old file that keeps cases for a module of a later group is named in both sets, so its remaining cases compare to themselves in the working tree. A group whose check exits 1 runs the mutants for each of its modules, as below.
 - Where the mutants go, for a module the check does not pass: one or two per class, at each public function's decision points, the branches where a case accepts or refuses, and one more for each further decision point a function holds. The count follows the module's classes and no figure is set for it, so a module of many public functions runs many mutants, each once.
 - How the new file's column runs: in one `bin/mutation-check` call carrying every mutant of the module, which runs the baseline once and then each mutant once. The smith puts `-x` in the `--tests` command, so that pytest stops a mutant's run at its first failing case; the tool itself stops nothing.
 - When the old files' column runs: only for a mutant the new file lets survive. Where the old files miss it too, the record states an old gap. Where they kill it, the smith adds a case to the new file and sees it red on that mutant before the batch commits.
@@ -119,7 +119,6 @@ A file a remaining group draws cases from keeps the lines below unchanged, becau
 | `tests/test_chain_hooks_hardening.py` | `agents/smith.md` lines 85 and 173, held by the definition cases that stay |
 | `tests/test_the_suite_has_a_command_that_is_cheap_twice.py` | `agents/smith.md` line 142 and `agents/warden.md` line 162, held by the definition cases that stay |
 | `tests/test_the_sealer_guarantees.py` | `agents/sealer.md` line 109, `docs/the-agent-set.md` line 61 and `docs/the-review-record.md` line 282, held by the definition and document cases that stay |
-| `tests/test_a_release_publishes_its_note.py`, `tests/test_the_release_seal_is_drawn.py` | `docs/branch-and-release.md` line 94, held by the release-tail cases and the cases that read the workflows, which stay |
 | `tests/test_a_release_rolls_the_flow_measurement_issue.py` | `docs/issues-and-milestones.md` line 179, whose rule no case of the roll holds |
 | `tests/test_the_pull_request_language_is_the_repositorys.py` | `docs/one-root-by-lifetime.md` line 214 and the Korean edition's line 204, held by the cases that compare the template's exclusion list with the checkers |
 | `tests/test_release_hygiene.py` | `docs/release-checklist.md` lines 76 and 192, held by the version sweep and the changelog heading cases; line 76's marker moves with the gather case that carries it |
@@ -150,6 +149,7 @@ Every other line the survey found names a file no remaining group draws a case f
 | S11 a module only moved skips the mutants | Given a fixture repository with old test files at a base commit and a new file holding the same cases in classes, when `bin/test-layout --moved` runs with the old files as `--from` and the new file as `--to`, then it exits 0; given instead one old case cut, two old cases merged into one, one case's body edited, or one fixture's scope changed from function to module, then it exits 1 naming the case and the condition it failed | `tests/test_test_layout.py::Test_moved::test_accepts_a_pure_move` and `Test_moved::test_refuses_a_cut_a_merge_an_edited_body_and_a_changed_fixture`, one row per failing kind, each seen red with its condition removed from the script |
 | S12 an old file split across two modules passes | Given one old file at the base whose cases belong to two modules, when `--moved` runs with that file as `--from` and the two new files holding its cases as `--to`, then it exits 0; given instead a second old file at the base that keeps cases for a module of a later group, named in `--from` and in `--to`, with the cases it keeps unchanged in the working tree, then it exits 0 | `Test_moved::test_accepts_an_old_file_split_across_two_new_files`, one row per passing shape, each seen red against the script at 6e7214be, which refuses `--to` |
 | S13 a case that lands twice is refused | Given one old case whose body is in two cases of the new set, when `--moved` runs over the sets, then it exits 1 naming the second landing's case and the condition it failed, beside the count | a row of `Test_moved::test_refuses_a_cut_a_merge_an_edited_body_and_a_changed_fixture`, seen red with the condition's line removed from the script |
+| S14 a nested docstring the formatter re-indented still passes | Given an old case at the base that defines a function whose docstring runs over three lines, and the same case in a class of the new set with that docstring's continuation lines indented four spaces deeper, when `--moved` runs over the two sets, then it exits 0; given instead one statement of the nested function changed, then it exits 1 naming the case and the body condition | a row of `Test_moved::test_accepts_a_pure_move`, seen red against the script at 54b41700, and a row of `Test_moved::test_refuses_a_cut_a_merge_an_edited_body_and_a_changed_fixture` |
 
 ## Data & interfaces
 
@@ -280,7 +280,7 @@ Every other line the survey found names a file no remaining group draws a case f
   file: docs/one-root-by-lifetime.md
   section: The opt-in signal is the root itself
   from: check: tests/test_optin_home.py
-  to: check: tests/test_optin.py
+  to: check: tests/test_optin.py tests/test_commit_review_gate.py
 - change
   file: docs/one-root-by-lifetime.ko.md
   section: 루트와 그 안의 수명
@@ -290,7 +290,7 @@ Every other line the survey found names a file no remaining group draws a case f
   file: docs/one-root-by-lifetime.ko.md
   section: 옵트인 신호는 루트 자체다
   from: check: tests/test_optin_home.py
-  to: check: tests/test_optin.py
+  to: check: tests/test_optin.py tests/test_commit_review_gate.py
 - change
   file: docs/commit-review-gate-spec.md
   section: Registration
@@ -376,12 +376,12 @@ Every other line the survey found names a file no remaining group draws a case f
   file: docs/one-root-by-lifetime.md
   section: What the repository decides for itself, and how it is read
   from: check: tests/test_the_mode_question_is_asked_once.py
-  to: check: tests/test_config.py
+  to: check: tests/test_config.py tests/test_seal.py
 - change
   file: docs/one-root-by-lifetime.ko.md
   section: 저장소가 스스로 정하는 것, 그리고 그것을 읽는 방법
   from: check: tests/test_the_mode_question_is_asked_once.py
-  to: check: tests/test_config.py
+  to: check: tests/test_config.py tests/test_seal.py
 - change
   file: docs/one-root-by-lifetime.md
   section: What the repository decides for itself, and how it is read
@@ -428,19 +428,19 @@ Every other line the survey found names a file no remaining group draws a case f
   file: docs/the-broad-gate.md
   section: What the gate runs, and how the list is kept true
   from: check: tests/test_the_gate_names_every_step_ci_runs.py
-  to: check: tests/test_broad_gate.py
+  to: check: tests/test_the_gate_names_every_step_ci_runs.py tests/test_broad_gate.py
 - change
   file: docs/the-broad-gate.md
   section: What the runner owes the person who typed it
   from: nothing else. check: tests/test_the_suite_has_a_command_that_is_cheap_twice.py
   to: nothing else.
-    check: tests/test_run_tests.py
+    check: tests/test_the_suite_has_a_command_that_is_cheap_twice.py tests/test_run_tests.py
 - change
   file: docs/the-broad-gate.md
   section: What the runner owes the person who typed it
   from: carries on. check: tests/test_the_suite_has_a_command_that_is_cheap_twice.py
   to: carries on.
-    check: tests/test_run_tests.py
+    check: tests/test_the_suite_has_a_command_that_is_cheap_twice.py tests/test_run_tests.py
 - change
   file: docs/the-broad-gate.md
   section: What the runner owes the person who typed it
@@ -499,7 +499,7 @@ Every other line the survey found names a file no remaining group draws a case f
   file: docs/the-record-layout.md
   section: A change writes fragments, never a shared file
   from: check: tests/test_the_changelog_is_gathered_at_release.py
-  to: check: tests/test_gather_changelog.py
+  to: check: tests/test_the_changelog_is_gathered_at_release.py tests/test_gather_changelog.py
 - change
   file: docs/the-record-layout.md
   section: The fold, and what tells it from a deletion
@@ -536,7 +536,12 @@ Every other line the survey found names a file no remaining group draws a case f
   file: docs/release-checklist.md
   section: 2. Gather, bump
   from: check: tests/test_the_changelog_is_gathered_at_release.py
-  to: check: tests/test_gather_changelog.py
+  to: check: tests/test_the_changelog_is_gathered_at_release.py tests/test_gather_changelog.py
+- change
+  file: docs/branch-and-release.md
+  section: Cutting a release
+  from: check: tests/test_a_release_publishes_its_note.py tests/test_the_release_tail_does_not_end_at_the_tag.py tests/test_the_release_seal_is_drawn.py
+  to: check: tests/test_a_release_publishes_its_note.py tests/test_publish_release_note.py tests/test_the_release_tail_does_not_end_at_the_tag.py tests/test_the_release_seal_is_drawn.py tests/test_release_seal.py
 
 ## Open questions → questions.md
 
