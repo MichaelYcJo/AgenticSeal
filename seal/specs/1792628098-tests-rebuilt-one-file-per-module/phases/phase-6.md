@@ -277,6 +277,32 @@ The dispatcher's mutants sit at `run_gate`'s phase, its `SystemExit` catch in `m
 
 **The boundary** (`executed`). At the tree committed as 9c70ddbf: the six files, every test file naming `decision_of`, `opted_in_repo`, `korean_repo`, `HOSTILE` or `KOREAN`, the `git_listing` files, the censuses, `tests/test_test_layout.py`, `tests/test_conftest.py`, `tests/test_chain_hooks_hardening.py`, `tests/test_seal_stamp.py` and `tests/test_gates_do_not_fail_open.py`, 40 files: 2,196 passed. `bin/test-layout --check` exits 0, 160 files read, 129 declaring no `TARGET`; `bin/rules --check` exits 0. Ruff checks and formats each changed `.py` file clean.
 
+### Batch B, `hooks/`, group 8, at 4f50aee0 and 6c126f35
+
+**The module.** `hooks/routing.py`, whose parser cases were 23 of `tests/test_routing_is_recorded.py` and the undecodable declaration's case of `tests/test_console_is_not_utf8.py`, now `tests/test_routing.py` (`Test_parse`, `Test_module`). The old routing file keeps the 27 cases that run the commit gate, one of them through `hooks/gate.py#arms_missing` as well, which wait for the commit gate's light cases. `tests/test_console_is_not_utf8.py` held no other case and no `check:` line names it, so it went. The `check:` line of `docs/the-record-layout.md` *The fold, and what tells it from a deletion* names the old routing file and moves to `tests/test_routing.py` through its `## Rule changes` item.
+
+**Left where they stand.** `tests/test_the_hooks_hide_what_a_renderer_hides.py`'s two cases of `routing.shown`: one holds the reader to the renderer oracle over a generated corpus, and the other is that case's guard against a reader that hides nothing, so the pair stays with the oracle, where `spec.md` *What the frame decided* keeps a check that judges markdown against an oracle. `tests/test_waiver_decided_at_start.py`'s two template cases assert the placeholder text of `templates/sdd-routing.md` and are #923's. `tests/test_a_reference_root_is_read_and_never_taken.py`'s case pins `settle.py` and routing's constants together, and `tests/test_a_script_copied_alone_exits_2.py`'s parametrized case pins `hooks/config.py` and routing alike; both wait for `hooks/config.py`'s group.
+
+**The move check** (`executed`):
+
+`bin/test-layout --moved 459d7944 --from tests/test_routing_is_recorded.py tests/test_console_is_not_utf8.py --to tests/test_routing.py tests/test_routing_is_recorded.py`
+
+`test-layout: moved: 51 old cases, 69 items against 70 at 459d7944c0d4, 4 failed`, exit 1. As first placed it ended `70 items against 70 ..., 0 failed`. Then `--pairs` named three cases that call `parse(two_axis_text())`: `test_a_two_axis_declaration_is_still_a_declaration` and `test_a_declaration_without_a_planning_row_is_still_a_declaration` became `Test_parse::test_accepts_a_two_axis_declaration_with_no_optional_row_answered`, and the four lines are that merge and the count. The third, `test_an_absent_automation_row_is_not_the_same_fact_as_a_chosen_no`, is named and not merged: its point is that a chosen `no` and an absent row parse apart, which neither other case asserts.
+
+**Helpers.** `two_axis_text` and `with_row` are used by both files, so they moved to `tests/conftest.py`; `tests/block_shapes.py`'s comment names the new place.
+
+**The mutation table** (`executed`, one batch over `tests/test_routing.py` with `-x`; the old column against the two old files in an archive of 459d7944). The mutants sit at the functions the moved cases call: `shown`'s hidden test and its walk of the text, `table_rows`'s row test and cell count, `parse`'s count of a label, the review, destination and branch tests, the four optional vocabularies and the planning row's label, and `declarations`' decode catch, its missing home and its parsed test. `current_branch`, `for_branch`, `item_dir` and the round readers are reached only by the commit gate's cases, which did not move, so the move cannot have lost what they hold.
+
+| Mutants | New column | Old column | Old gaps | Cases added |
+|---|---|---|---|---|
+| 16 | 11 red, 5 survived, 10.5 s | 3 survived, 2 red | `table_rows` reading a line that does not start with a pipe; `table_rows` reading a one-cell row; `declarations` reading a repository with no `seal/` as its own root | `Test_parse::test_refuses_a_review_answer_outside_the_vocabulary`, red on the review test read as truthiness; `Test_module::test_a_routing_md_that_does_not_parse_is_left_out`, red on the parsed test removed. The old file killed both through the commit gate's hook |
+
+**Cases and seconds** (`executed`, serial): 70 items in 6.88 s before, in the archive of 459d7944; 72 items in 6.58 s after, over the two files.
+
+**The real-git cases kept.** None in `tests/test_routing.py`: the parser reads text, and `declarations` reads a directory. The commit gate's cases in the old file run the hook against the `repo` fixture.
+
+**The boundary** (`executed`). At the tree committed as 4f50aee0: the two files, every test file naming `two_axis_text`, `with_row`, `block_shapes` or `routing`, the `git_listing` files, the censuses, `tests/test_test_layout.py`, `tests/test_conftest.py` and `tests/test_chain_hooks_hardening.py`, 64 files: 4,620 passed and 2 skipped. At 6c126f35, `tests/test_routing.py`: 45 passed. `bin/test-layout --check` exits 0, 160 files read, 128 declaring no `TARGET`; `bin/rules --check` exits 0. Ruff clean on each changed file.
+
 ### What `hooks/` holds back
 
 **Three groups wait for a rule change** (`read`). A `check:` line names a file whose cases would all leave it, or whose rule the moving cases hold, and the smith edits nothing under `docs/`:
