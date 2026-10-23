@@ -2032,3 +2032,78 @@ def opted_in_repo(where):
 @pytest.fixture
 def korean_repo(tmp_path):
     return opted_in_repo(tmp_path / KOREAN / "repo")
+
+
+# A spec's `## Rule changes` and the history `settle` reads, shared by
+# `tests/test_rule_changes.py`, `tests/test_settle.py` and the cases the two
+# old settle files keep.
+
+
+def spec(changes):
+    """A spec whose `## Rule changes` section holds CHANGES, with a section
+    on either side so the reader has to find where it ends."""
+    return (
+        "# a work item\n\n## Scope\n\nIn.\n\n## Rule changes\n\n"
+        f"{changes}\n\n## Open questions\n\nNone.\n"
+    )
+
+
+def line_of(text, needle):
+    return text.split("\n").index(needle) + 1
+
+
+DOC = """\
+# A policy
+
+## S
+
+Before. old sentence. After.
+
+### S child
+
+Child text.
+
+## T
+
+x.
+
+T's text.
+
+## U
+
+Last.
+"""
+
+
+def op(kind, section=None, old=None, new=None, file="docs/a.md"):
+    lines = [f"- {kind}", f"  file: {file}"]
+    for name, value in (("section", section), ("from", old), ("to", new)):
+        if value is not None:
+            lines.append(f"  {name}: {value}")
+    return "\n".join(lines)
+
+
+@pytest.fixture
+def tree(tmp_path):
+    """Four work items: three released, one that arrives after the commit.
+
+    `delta` is this branch's own unreleased work.
+    """
+    repo = tmp_path / "repo"
+    (repo / "docs").mkdir(parents=True)
+    (repo / "docs" / "one-root.md").write_text("# a policy\n\nA rule.\n", "utf-8")
+    (repo / "seal").mkdir()
+    (repo / "seal" / "README.md").write_text("# seal\n", encoding="utf-8")
+    for name in ("1700000001-alpha", "1700000002-beta", "1700000003-gamma"):
+        item = repo / "seal" / "specs" / name
+        item.mkdir(parents=True)
+        (item / "spec.md").write_text(f"# {name}\n\nWhat it decided.\n", "utf-8")
+    git(repo, "init", "-q")
+    git(repo, "config", "user.email", "x@example.com")
+    git(repo, "config", "user.name", "x")
+    git(repo, "add", "-A")
+    git(repo, "commit", "-qm", "released")
+    later = repo / "seal" / "specs" / "1700000004-delta"
+    later.mkdir()
+    (later / "spec.md").write_text("# delta\n\nIn flight.\n", encoding="utf-8")
+    return repo
