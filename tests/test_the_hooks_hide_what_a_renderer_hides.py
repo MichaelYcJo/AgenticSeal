@@ -11,8 +11,9 @@ For every line L of a document, with `base(L)` a reader's reading at
   3. on every shape the frame names, the reader gives its expected answer.
 
 Halves 1 and 2 run here, over the frame's shapes and a seeded generated
-corpus. Half 3 is each reader's own case table, in the module that already
-holds that reader's cases.
+corpus. Half 3 is each reader's own case table, in the module that holds that
+reader's cases: the walk's own answers are `tests/test_blocks.py`'s (#942's
+phase 6).
 
 The oracle comes first, and it is the first thing held: before any reader
 moved, it had to give the frame's *Renderer* column on every shape, which the
@@ -23,7 +24,7 @@ import os
 
 import commonmark_oracle as oracle
 import pytest
-from block_shapes import BREAKS, CLOSE, OPEN, RENDERER, SHAPES
+from block_shapes import BREAKS, CLOSE, INLINE_KINDS, OPEN, RENDERER, SHAPES
 from conftest import imported_roots
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -294,18 +295,6 @@ def test_the_strips_set_is_the_one_measured():
     dropped = set(DROPPED_BY_THE_STRIP)
     assert {chr(0x1F), NBSP, chr(0x1680), chr(0x2000), chr(0x3000)} <= dropped
     assert not {" ", "\t"} & dropped
-
-
-# Inline raw HTML other than a comment that can run past a line ending, with
-# a closer that does not put `>` at a line's start (#673). A declaration's
-# closer is written `a>` for that reason.
-INLINE_KINDS = [
-    ("<![CDATA[ a", "]]>"),
-    ("<? a", "?>"),
-    ("<!DOCTYPE a", "a>"),
-    ('<span title="a', '">'),
-    ("<span title='a", "'>"),
-]
 
 
 @pytest.mark.parametrize("name", sorted(BREAKS))
@@ -712,84 +701,3 @@ def test_the_routing_reader_hides_something():
         lines = SHAPES[name]
         skipped = set(range(len(lines))) - {i for i, _ in routing.shown(lines)}
         assert skipped == RENDERER[name], name
-
-
-def test_a_piece_inside_its_lines_open_comment_is_the_only_piece_unsure():
-    """#667 round 2, 🟡 1, `walk_text`'s own answer. A piece after a break
-    inside an inline comment its line left open is uncertain; a piece of a
-    fenced line stays fenced and claimed; a piece that starts before the
-    line's opener is claimed live. Each of the three conditions is one
-    line of this case."""
-    ls = BREAKS["LS"]
-    inside = blocks.walk_text(f"a {OPEN} x{ls}| r |\n{CLOSE}\n")
-    assert inside.uncertain[:2] == [False, True], inside.uncertain
-    fenced = blocks.walk_text(f"```\nx {OPEN} a{ls}y\n```\n")
-    assert (fenced.kinds[2], fenced.uncertain[2]) == (blocks.FENCED, False)
-    before = blocks.walk_text(f"a{ls}b {OPEN} c\n\nd\n")
-    assert before.uncertain[:2] == [False, False], before.uncertain
-
-
-# An opener and a closer of every other kind of inline raw HTML, with a
-# closer that can stand at a line's start or directly after the opener (#673).
-# The closing tag's closer is `>` and is only ever written on the same line.
-INLINE_OPEN_CLOSE = [
-    *INLINE_KINDS,
-    ("<span", 'a="b">'),
-    ("</span", ">"),
-]
-
-
-def test_a_piece_inside_other_inline_html_its_line_left_open_is_unsure():
-    """#673's S4, `walk_text`'s own answer. A piece after a break inside
-    CDATA, a processing instruction, a declaration or a tag its line left
-    open is uncertain; a piece after one its line closed is claimed; a piece
-    of a fenced line stays fenced and claimed. And an opener a renderer does
-    not honour does not step over one it does."""
-    ls = BREAKS["LS"]
-    for opener, closer in INLINE_OPEN_CLOSE:
-        inside = blocks.walk_text(f"a {opener}{ls}{closer} x\n\nd\n")
-        assert inside.uncertain[:2] == [False, True], (opener, inside.uncertain)
-        closed = blocks.walk_text(f"a {opener} {closer}{ls}| r |\n\nd\n")
-        assert closed.uncertain[:2] == [False, False], (opener, closed.uncertain)
-        fenced = blocks.walk_text(f"```\nx {opener}{ls}y\n```\n")
-        assert (fenced.kinds[2], fenced.uncertain[2]) == (blocks.FENCED, False)
-    nested = blocks.walk_text(f"a `<?` <![CDATA[ b ?> c{ls}| r |\n]]>\n")
-    assert nested.uncertain[:2] == [False, True], nested.uncertain
-    # a `>` inside a quoted value does not end the tag
-    quoted = blocks.walk_text(f'a <span title="b>c{ls}d">\n\ne\n')
-    assert quoted.uncertain[:2] == [False, True], quoted.uncertain
-    # `<?>` does not close a processing instruction: the `?` is the opener's
-    instruction = blocks.walk_text(f"a <?>{ls}| r |\n?>\n\nd\n")
-    assert instruction.uncertain[:2] == [False, True], instruction.uncertain
-    # a closer before its opener closes nothing
-    early = blocks.walk_text(f"a ?> <? b{ls}| r |\n?>\n\nd\n")
-    assert early.uncertain[:2] == [False, True], early.uncertain
-    # a `>` inside a single-quoted value does not end the tag either
-    single = blocks.walk_text(f"a <span title='b>c{ls}d'>\n\ne\n")
-    assert single.uncertain[:2] == [False, True], single.uncertain
-
-
-@pytest.mark.parametrize("opener", [o for o, _ in INLINE_OPEN_CLOSE[:-1]])
-def test_a_paragraph_left_inside_other_inline_html_is_unsure_to_its_end(opener):
-    """#673's S5, `walk`'s paragraph state. The lines after a line that
-    leaves CDATA, a processing instruction, a declaration or a tag open are
-    uncertain to the paragraph's end, because the walk does not follow that
-    construct's end across lines; a blank line ends it. A `-->` does not end
-    it either, where the comment it closes is one the parser never formed."""
-    found = blocks.walk([f"a {opener}", "b", "c", "", "d"])
-    assert found.uncertain == [False, True, True, False, False], found.uncertain
-    past = blocks.walk([f"a {opener}", "b " + CLOSE + " c", "d", "", "e"])
-    assert past.uncertain == [False, True, True, False, False], past.uncertain
-    fake = blocks.walk(["a `" + OPEN + "` b", "c <? d " + CLOSE + " e", "f", "", "g"])
-    assert fake.uncertain == [False, True, True, False, False], fake.uncertain
-
-
-def test_an_unclosed_fence_is_reported_at_the_reader_line_it_starts():
-    """#667 round 1, 🟡 1. `walk_text` answers per reader line, and a fence
-    opener whose info string holds a U+2028 is one GFM line and two reader
-    lines. The opener that never closes is the first of them, the one a
-    person can be sent to; the piece after the break opens nothing."""
-    text = "```" + BREAKS["LS"] + "x\n| a |\n"
-    walked = blocks.walk_text(text)
-    assert walked.unclosed == [0], walked.unclosed
-    assert len(walked.kinds) == len(text.splitlines()) == 3

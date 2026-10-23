@@ -18,6 +18,10 @@ before it was committed.
 Every one of the eight is built from its code point, never typed: an escape
 typed into an editing tool can come back as the character itself, and a file
 holding one is exactly what these cases are about.
+
+The splitter's own cases are `tests/test_blocks.py`'s `Test_gfm_lines`
+(#942's phase 6); what stays holds every copy of it, and each other reader,
+to it.
 """
 
 import datetime
@@ -26,14 +30,14 @@ import json
 import os
 import sys
 
+from conftest import texts
+
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
 READER = os.path.join(ROOT, "skills", "verify", "scripts", "unverified_check.py")
 CHECKER = os.path.join(ROOT, "skills", "verify", "scripts", "coordinates.py")
 ARM_CHECK = os.path.join(ROOT, "skills", "verify", "scripts", "arm_check.py")
 FOLD_CHECK = os.path.join(ROOT, "skills", "settle", "scripts", "fold_check.py")
 
-# Every character `str.splitlines` ends a line at and GFM does not.
-SPLITLINES_ONLY = [chr(c) for c in (0x0B, 0x0C, 0x1C, 0x1D, 0x1E, 0x85, 0x2028, 0x2029)]
 LS = chr(0x2028)
 FF = chr(0x0C)
 BY_CODE_POINT = {"ids": lambda c: f"U+{ord(c):04X}"}
@@ -53,28 +57,6 @@ reader = _load("specseal_reader_for_gfm_lines", READER)
 
 
 # --- S17: one splitter, and its copies agree ---------------------------------
-
-
-def texts():
-    """Every shape the copies could part on: each line end GFM has, each of
-    the eight mid-line and at a line end, no trailing newline, and nothing."""
-    out = ["", "a", "a\n", "a\n\n", "\n", "a\nb", "a\r\nb\r\n", "a\rb\r", "a\r\n\r\n"]
-    for char in SPLITLINES_ONLY:
-        out += [f"a{char}b\n", f"a{char}\nb", f"{char}", f"a\n{char}\n\nc{char}"]
-    return out
-
-
-def test_the_readers_splitter_ends_a_line_at_lf_cr_and_crlf_alone():
-    for char in SPLITLINES_ONLY:
-        assert reader.gfm_lines(f"a{char}b\nc") == [f"a{char}b", "c"], repr(char)
-    assert reader.gfm_lines("a\r\nb\rc\nd") == ["a", "b", "c", "d"]
-    assert reader.gfm_lines("a\r\nb\n", keepends=True) == ["a\r\n", "b\n"]
-
-
-def test_the_splitter_is_splitlines_on_a_text_without_the_eight():
-    for text in [t for t in texts() if not any(c in t for c in SPLITLINES_ONLY)]:
-        assert reader.gfm_lines(text) == text.splitlines(), repr(text)
-        assert reader.gfm_lines(text, True) == text.splitlines(True), repr(text)
 
 
 def test_every_copy_of_the_splitter_is_the_readers():

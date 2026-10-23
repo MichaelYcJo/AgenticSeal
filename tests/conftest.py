@@ -918,6 +918,19 @@ def rule_carriers(marker):
     return {name for _path, name, _doc in rules.markers(root).get(marker, [])}
 
 
+# Every character `str.splitlines` ends a line at and GFM does not.
+SPLITLINES_ONLY = [chr(c) for c in (0x0B, 0x0C, 0x1C, 0x1D, 0x1E, 0x85, 0x2028, 0x2029)]
+
+
+def texts():
+    """Every shape the copies could part on: each line end GFM has, each of
+    the eight mid-line and at a line end, no trailing newline, and nothing."""
+    out = ["", "a", "a\n", "a\n\n", "\n", "a\nb", "a\r\nb\r\n", "a\rb\r", "a\r\n\r\n"]
+    for char in SPLITLINES_ONLY:
+        out += [f"a{char}b\n", f"a{char}\nb", f"{char}", f"a\n{char}\n\nc{char}"]
+    return out
+
+
 # --- the durations file prices the suite (#874) -------------------------------
 #
 # `tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py#

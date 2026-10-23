@@ -32,6 +32,17 @@ BREAKS = {
     "RS": chr(0x1E),
 }
 
+# Inline raw HTML other than a comment that can run past a line ending, with
+# a closer that does not put `>` at a line's start (#673). A declaration's
+# closer is written `a>` for that reason.
+INLINE_KINDS = [
+    ("<![CDATA[ a", "]]>"),
+    ("<? a", "?>"),
+    ("<!DOCTYPE a", "a>"),
+    ('<span title="a', '">'),
+    ("<span title='a", "'>"),
+]
+
 CHAIN = "through the review chain"
 DIRECT = "straight to the PR"
 
