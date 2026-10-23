@@ -15,7 +15,7 @@ Some facts were carried from earlier rounds and not established again. Rounds 3 
 severity: must
 location: `agents/warden.md:99`, `tests/test_a_document_that_names_a_script_says_how_to_reach_it.py:124-126`, `tests/test_a_document_that_names_a_script_says_how_to_reach_it.py:166`
 evidence: executed `python -m pytest -q -p no:xdist tests/test_a_document_that_names_a_script_says_how_to_reach_it.py at 600cc01e`, `a script over every .md under agents, skills and templates at 600cc01e, setting names' substring reading against a bounded one`, `python -m pytest -q -p no:xdist tests/test_a_document_that_names_a_script_says_how_to_reach_it.py with names bounded`
-verdict: open
+verdict: fixed 0b50fa07
 regression: round-10#1
 
 The unit is the `check:` line at `agents/warden.md:99`. fff64113 rewrote it in place for round 10's finding 1, and in the same commit added the files of finding 2's three landings. The frame has the commit that moves a case rewrite a `check:` line outside `docs/` in place, so that it names each file that holds its rule (`questions.md:29`, `spec.md:109`). fff64113 did that, and the line says what the frame says. The defect came from how the fix was checked. Its boundary ran eight files (`phases/phase-7.md:579`), and none of them is the module that reads every shipped document for script names. That module's reader takes a script's filename where it stands inside a longer filename. So the frame is not wrong, and the round gets an ordinary fix pass. This unit is not round 10's finding 1's unit, which was the pinned case, so this is not a second regression on one unit.
@@ -63,14 +63,14 @@ def test_a_test_file_named_for_a_script_does_not_name_it():
 
 The case is seen red against the reader as it stands: its first assertion fails on the substring reading. No OS boundary is touched.
 
-answer:
+answer: The finding holds, and 0b50fa07 builds the fix as given. `names` and `command_forms` take a script's filename only where no word character or hyphen stands before it. `test_a_test_file_named_for_a_script_does_not_name_it` stands beside the file's `command_forms` and `reachable` cases, and no locator went into `agents/warden.md`. The case failed on its first assertion against the reader at 5b3f8771. With `names` alone bounded, it failed on its fourth, the command-form line. With both bounded, the module passes: 34 passed, 8 skipped (executed). `bin/mutation-check` per unit after the commit: `names` unbounded turns the new case and the two `agents/warden.md` cases red, and `command_forms` unbounded turns the new case red (executed). Other test files assert a script's bare filename present in a text. Five of their texts carry the bounded name, so none passes on a test file's name alone. Those cases read prose, are #923's, and are unchanged (executed, a `grep` per text). `phases/phase-7.md` *The script reader bounded and the planted cases judged, in round 11's fix pass* records the runs.
 
 ### 2. The three cases fff64113 placed cover nothing their files do not already cover: every mutant red on each is red on the rest of its file
 
 severity: should
 location: `tests/test_chain_check.py:3116-3154`, `tests/test_unverified_check.py:2398-2436`, `tests/test_settle.py:1312-1350`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/phases/phase-7.md:538`
 evidence: executed `mutation-check skills/code-review/scripts/chain_check.py with c6 --tests "pytest -x tests/test_chain_check.py -k 'not test_a_planted_team_specs_changes_no_checks_verdict'"`, `mutation-check skills/verify/scripts/unverified_check.py with u1 to u5 --tests "pytest -x tests/test_unverified_check.py -k 'not test_a_planted_team_specs_changes_no_checks_verdict'"`, `mutation-check skills/settle/scripts/settle.py with s1 and s2 --tests "pytest -x tests/test_settle.py -k 'not test_a_planted_team_specs_changes_no_checks_verdict'"`
-verdict: open
+verdict: fixed 13b45a32
 regression: round-10#2
 
 The unit is the three cases named `test_a_planted_team_specs_changes_no_checks_verdict` that fff64113 added to `Test_module` of the three receiving files. The frame gives every old case that exercises a target one verdict. That verdict is merge where a case of the class already covers it, and cut where the mutation table shows that another case kills every mutation it kills (`spec.md:48-56`). This round's rule reads each test the diff adds against its group. The fix took round 10's paste-ready fix, which placed each pass of the loop in `Test_module` and asked neither question. Neither did the fix pass's record (`phases/phase-7.md:538`): it says "No new case was written" and gives each case no rule 2 verdict. The defect came from a paste-ready fix taken from a review record, so the round gets an ordinary fix pass.
@@ -98,7 +98,7 @@ For each of the three cases, in the commit that answers this finding:
    case; .test_durations follows any id that goes.
 ```
 
-answer:
+answer: The finding holds, and 13b45a32 removes the three cases. Each mutant ran against its receiving file with the moved case deselected and no `-x`, so every red case is named (executed). The unverified check's case is merged into `Test_main::test_accepts_a_walk_from_the_root_leaving_a_team_specs_out`, red on u1 to u5, with nothing folded in. The team reaches that command's output only through the walk, whose five mutants the survivor kills, and `unverified_check.py` opens no file for writing (read, a `grep`). The chain check's case and settle's are cut, the verdict rule 2's cut row gives. Step 2 of the fix above offers keep where no case of `main` covers one, but keep needs an assertion that a mutant only the case kills shows, and none was found. c6 is red on `Test_changed_routing::test_accepts_every_declaration_added_changed_or_deleted` and 31 other cases, and `chain_check.py` opens no file for writing. s1 is red on 41 cases, among them `Test_apply::test_apply_leaves_a_team_specs_of_the_same_name_on_disk`, and s2 on 38. A dry run made to apply is red on `Test_main::test_the_dry_run_lists_pending_changes_in_merge_order_and_writes_nothing` alone and survives the planted case (executed). `tests/conftest.py` loses `planted` and `SERVICE`, and `OURS` and `TEAM` go back to `tests/test_unverified_check.py`, their one reader. `agents/warden.md:99` keeps its five files, because each receiving file keeps a case red when its check takes a team's `specs/` as its own. `bin/rules --check` holds (executed). `.test_durations` drops the three ids, 7,725 left. The verdicts are in a new section, `phases/phase-7.md` *The script reader bounded and the planted cases judged, in round 11's fix pass*, and round 10's section stays as that pass wrote it. `overview.md` gains a divergence row for the framer: `spec.md:109` names the planted landings as what puts the three files on the line.
 
 ## Confirmations
 
