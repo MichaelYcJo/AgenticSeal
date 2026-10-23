@@ -15,7 +15,7 @@ The code, the rows and the re-runs hold, and both of round 5's closes hold. The 
 severity: must
 location: `seal/specs/1792628098-tests-rebuilt-one-file-per-module/spec.md:560-561`
 evidence: executed `chain_check.py --baseline release/v0.22.3 --root <branch worktree> --worktree`, `chain_check.py --baseline release/v0.22.3 --root <branch worktree>`, `chain_check.py --baseline origin/release/v0.22.3 --root <clone> --worktree`, `git grep -n "after round [0-9]*'s" db498230 -- 'seal/specs/*/spec.md'`
-verdict: open
+verdict: fixed cdfec550
 regression: round-5
 
 The unit is the foot of `spec.md`, the framer's mark and the `Reframed` lines under it. The reframe at 6a62ce17 added line 560, `Reframed 2026-10-24 by framer, after round 5's fix pass.`, and the amendment at c5f9641d added line 561, `Reframed 2026-10-24 by framer, after round 5's second fix pass.`. The frame for that foot is the framer's definition and the record's rule: each reframe adds `Reframed <date> by <who>, after round <N>.` under the mark (`agents/framer.md:178-179`, `docs/the-review-record.md:507`). The two commits wrote a pass's name where the shape has the round's number and a full stop, so the defect came from how the lines were written, not from the frame.
@@ -40,7 +40,7 @@ Reframed 2026-10-24 by framer, after round 5.
 
 One line stands for 6a62ce17's reframe. `plan.md:19` records c5f9641d as an amendment, and the foot carries no line for the framer's earlier amendments (`plan.md:9-14`), so it takes none. If the framer counts c5f9641d as a reframe, a second `Reframed 2026-10-24 by framer, after round 5.` reads clean as well; the check accepts repeated rounds. Which pass each reframe followed is already stated in `spec.md:76` and `plan.md:17-19`.
 
-answer:
+answer: The framer rewrote the foot at cdfec550 as this finding's fix block writes it: line 560 now reads `Reframed 2026-10-24 by framer, after round 5.` for 6a62ce17's reframe, and line 561 is removed, because `plan.md:19` records c5f9641d as an amendment and the foot carries no line for an amendment. Executed by the framer at cdfec550 over the worktree, `chain_check.py --baseline release/v0.22.3 --root . --worktree` no longer prints the missing framer mark; it prints this verdict while open and the two files the broad run and the sealer write.
 
 ## Confirmations
 
