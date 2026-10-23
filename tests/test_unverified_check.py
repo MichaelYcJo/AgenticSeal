@@ -477,6 +477,8 @@ class Test_fence_spans:
     def test_accepts_each_closed_block_with_its_delimiters(self):
         lines = ["a", "```", "x", "```", "~~~", "y", "~~~"]
         assert UC.fence_spans(lines) == [(1, 3), (4, 6)]
+        # A block with nothing in it closes on the line after its opener.
+        assert UC.fence_spans(["```", "```", "x"]) == [(0, 1)]
 
     def test_refuses_to_close_a_block_nobody_closed(self):
         assert UC.fence_spans(["a", "```", "x"]) == [(1, None)]
@@ -1766,12 +1768,14 @@ class Test_main:
         self, tmp_path, capsys
     ):
         """A reader must never confuse "everything is closed" with "this
-        could not be read"."""
-        memo_at(tmp_path, "## Not verified\n\n- prose\n")
+        could not be read", and a section that could not be read lists none
+        of the rows it did read as open."""
+        memo_at(tmp_path, CANONICAL + "| an item | an answerer | a third cell |\n")
         assert run([str(tmp_path)]) == 1
         out = capsys.readouterr().out
         assert "could not be read" in out and "open: 0" not in out
         assert "This is not a report of zero open items." in out
+        assert "open  how the gate renders in a TUI" not in out, out
 
     @pytest.mark.parametrize("state", ["empty", "missing", "and a root"])
     def test_refuses_a_path_that_holds_no_overview(self, tmp_path, capsys, state):
@@ -1962,7 +1966,8 @@ class Test_main:
         dropping one from the presence check reports it deleted."""
         assert run([str(linked), "--baseline", "HEAD"]) == 0
         out = capsys.readouterr().out
-        assert "1 overviews" in out and "2 open" in out, out
+        tally = [ln for ln in out.split("\n") if ln.startswith("1 overviews")]
+        assert len(tally) == 1 and " 2 open " in tally[0], out
 
     @pytest.mark.parametrize("change", ["a row", "a file"])
     def test_refuses_a_deletion_reached_through_a_linked_path(
@@ -2123,6 +2128,9 @@ class Test_main:
             "settled: at HEAD nothing in its record was open, and `docs/` holds "
             "every rule change its spec states"
         ) in " ".join(out.split())
+        # A path whose every overview a settle removed reads no overview and
+        # is still no empty scan.
+        assert run([str(d / "specs" / SETTLE_C), "--baseline", "HEAD"]) == 0
 
     @pytest.mark.rule("a-settle-is-no-deletion")
     def test_a_removal_whose_rule_docs_does_not_hold_still_fails(
