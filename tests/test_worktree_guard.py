@@ -22,6 +22,12 @@ command is judged in from `tests/test_guard_resolves_the_tree_it_judges.py`,
 the process probe of `tests/test_gates_do_not_fail_open.py`, and the guard's
 half of the reader's S13 from `tests/test_what_the_reader_understands.py`.
 Each runs on the `repo` fixture or a directory of its own, as it did there.
+
+The round 9 fix pass placed in `Test_last_user_snippet` the record holding a
+raw U+2028, from `tests/test_every_reader_ends_a_line_where_gfm_does.py`, a
+case of this module alone. That file's case for `last_active_event_epoch`
+is merged into `Test_last_active_event_epoch`'s accepting case, which hands
+the reader the same raw separator inside the newest active event.
 """
 
 import contextlib
@@ -45,6 +51,7 @@ import uuid
 import pytest
 from conftest import (
     BASE_TREE_CHAINS,
+    LS,
     PLACEMENT_CHAINS,
     TOKEN,
     _a_dirty_w_under_a_clean_session,
@@ -307,6 +314,15 @@ def only_our_own_claude(monkeypatch, fake_pid=424242, *others):
 def write_jsonl(path, events):
     with open(path, "w", encoding="utf-8") as f:
         f.writelines(json.dumps(e) + "\n" for e in events)
+
+
+def jsonl(path, events):
+    """JSON Lines as a JavaScript writer emits them: a U+2028 inside a
+    string stays raw, which JSON permits."""
+    path.write_text(
+        "".join(json.dumps(e, ensure_ascii=False) + "\n" for e in events),
+        encoding="utf-8",
+    )
 
 
 def project_dir(monkeypatch, tmp_path, cwd):
@@ -2020,6 +2036,37 @@ class Test_last_user_snippet:
             [{"type": "user", "timestamp": iso(1), "message": {"content": "secret"}}],
         )
         assert wg.last_user_snippet(str(cwd), "mine") is None
+
+    def test_a_transcript_record_holding_a_raw_separator_is_read(
+        self, monkeypatch, tmp_path
+    ):
+        """S16 of #664. Cut at a U+2028 a JavaScript writer leaves raw in a
+        string, the last user record was two halves that each failed to parse,
+        and the snippet named an earlier message."""
+        cwd = tmp_path / "tree"
+        cwd.mkdir()
+        monkeypatch.setenv("HOME", str(tmp_path))
+        monkeypatch.setenv("USERPROFILE", str(tmp_path))
+        proj = tmp_path / ".claude" / "projects" / wg.project_slug(str(cwd))
+        proj.mkdir(parents=True)
+        jsonl(
+            proj / "abcd1234-x.jsonl",
+            [
+                {
+                    "type": "user",
+                    "timestamp": "2026-01-01T00:00",
+                    "message": {"content": "first"},
+                },
+                {
+                    "type": "user",
+                    "timestamp": "2026-01-01T00:05",
+                    "message": {"content": f"second{LS}message"},
+                },
+            ],
+        )
+        _sid, when, text = wg.last_user_snippet(str(cwd), "me")
+        assert when == "2026-01-01T00:05"
+        assert text.startswith("second")
 
 
 @pytest.fixture

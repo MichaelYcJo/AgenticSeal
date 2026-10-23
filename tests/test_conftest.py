@@ -14,6 +14,10 @@ takes `gh`'s login away at import is read from a child process and asked of
 The cases of `on_disk`, `shrunken_corpus`, `decline_if_shrunken` and
 `build_tracked_tree` came from `tests/test_a_shrunken_corpus_declines_to_judge.py`
 in #942's round 3 fix pass, and that file keeps its sweep across files.
+`names_path`'s Windows case came from `tests/test_a_script_copied_alone_exits_2.py`
+and `posix_id`'s from
+`tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py` in #942's
+round 9 fix pass, each a case of one helper of this module.
 
 Seen red before they were committed (contract rule 15): the three accepting
 cases failed against the conftest that still held the failing ceiling, which
@@ -22,6 +26,7 @@ each refusing case red by breaking the condition it pins.
 """
 
 import json
+import ntpath
 import os
 import shutil
 import subprocess
@@ -35,7 +40,9 @@ from conftest import (
     build_tracked_tree,
     code_line,
     decline_if_shrunken,
+    names_path,
     on_disk,
+    posix_id,
     shrunken_corpus,
     step_running,
     workflow_step,
@@ -370,6 +377,27 @@ class Test_module:
             f"(exit {r.returncode}, {len(token)} characters, not printed), so a "
             "case that reaches a live `gh` passes here and fails on CI"
         )
+
+    def test_the_path_is_found_as_a_windows_oserror_spells_it(self):
+        """CI's windows-latest leg on PR #605: `chain_check.py` quotes the
+        `OSError`, whose filename is repr-escaped on Windows, so every backslash
+        of the path arrives doubled and the plain path is not a substring. Shown
+        here with a Windows-shaped path, since a POSIX path has no separator for
+        the escape to double."""
+        path = "C:\\Users\\x\\alone"
+        oserror = FileNotFoundError(2, "No such file or directory", path + "\\..\\r.py")
+        text = f"chain-check: the shared reader would not load ({oserror})"
+        assert path not in text, "the fixture no longer has the Windows shape"
+        assert names_path(path, text), text
+        assert names_path(path, f"cannot read {path}\\..\\r.py, and it is ...")
+        assert not names_path(path, "cannot read C:\\Users\\y\\alone"), (
+            "matched another path"
+        )
+
+    def test_a_path_id_is_written_with_forward_slashes(self):
+        assert posix_id(ntpath.join("agents", "framer.md"), "\\") == "agents/framer.md"
+        assert posix_id("agents/framer.md") == "agents/framer.md"
+        assert posix_id(None) is None
 
 
 class Test_step_running:

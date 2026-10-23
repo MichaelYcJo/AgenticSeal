@@ -921,6 +921,11 @@ def rule_carriers(marker):
 
 # Every character `str.splitlines` ends a line at and GFM does not.
 SPLITLINES_ONLY = [chr(c) for c in (0x0B, 0x0C, 0x1C, 0x1D, 0x1E, 0x85, 0x2028, 0x2029)]
+# Two of them by name, built from the code point, for the readers' cases that
+# put one mid-line: an escape typed into an editing tool can come back as the
+# character itself.
+LS = chr(0x2028)
+FF = chr(0x0C)
 
 
 def texts():
@@ -969,6 +974,16 @@ def posix_id(value, sep=os.sep):
     if not isinstance(value, str):
         return None
     return value.replace(sep, "/")
+
+
+def names_path(path, text):
+    """Whether `text` names `path`, as written or as an `OSError` spells it.
+
+    `str(OSError)` quotes the filename with `repr`, which doubles every
+    backslash, so on Windows the path a refusal quotes from one is not the
+    path as written. `chain_check.py` quotes one; the three loaders #590
+    fixed write the path themselves."""
+    return path in text or repr(path)[1:-1] in text
 
 
 # --- helpers more than one test module uses (#942) ----------------------------

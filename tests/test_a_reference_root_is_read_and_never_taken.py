@@ -18,13 +18,10 @@ file's last section names every shipped check and what keeps it off a
 reference root.
 """
 
-import importlib.util
 import os
 import re
 import subprocess
 import sys
-
-from conftest import load_hook_module
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -36,7 +33,10 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 # script at a time. So every command `bin/` ships is named here with what
 # keeps it off a team's `specs/`, and a command nobody classified turns this
 # red. A check that walks no `specs/` says so; one pinned to the root names
-# the constant it rests on, which the case below holds under `seal/`.
+# the constant it rests on, which its module's file holds under `seal/`:
+# `settle.py#SPECS` in `tests/test_settle.py` and `hooks/routing.py#WORK_ITEMS`
+# in `tests/test_routing.py`, each a case of one module, which #942's round 9
+# fix pass moved there from this file.
 
 PREDICATE = "asks hooks/config.py#under_reference_root"
 PINNED = "reads the plugin's root by a constant under seal/"
@@ -62,16 +62,6 @@ SHIPPED = {
 }
 
 
-def load_script(*parts):
-    path = os.path.join(ROOT, *parts)
-    spec = importlib.util.spec_from_file_location(
-        "specseal_" + parts[-1].replace(".", "_") + "_for_reference_roots", path
-    )
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
 def test_every_shipped_command_is_classified():
     shipped = {
         name
@@ -83,16 +73,6 @@ def test_every_shipped_command_is_classified():
         f"{sorted(shipped ^ set(SHIPPED))}. Say what keeps it off a team's "
         "specs/ — the predicate, a constant under seal/, or no walk at all"
     )
-
-
-def test_the_pinned_checks_read_under_the_root_alone(tmp_path):
-    """Each constant a pinned check rests on, held under `seal/`. Widening one
-    to a top-level `specs/` turns this red, which is the probe the plan names
-    for `SPECS` and `WORK_ITEMS`."""
-    settle = load_script("skills", "settle", "scripts", "settle.py")
-    assert settle.SPECS == "seal/specs"
-    routing = load_hook_module("routing.py", "routing_for_reference_roots")
-    assert routing.WORK_ITEMS == "seal/specs"
 
 
 # A repository with a `seal/` root holding one work item, built twice: once alone, and once with a team's own `specs/` planted beside

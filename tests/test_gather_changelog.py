@@ -13,7 +13,13 @@ here are laid out that way, and the script runs as a process over them.
 
 #942's phase 6 placed these cases from
 `tests/test_the_changelog_is_gathered_at_release.py`, which keeps the cases
-that read the workflow, the documents and this repository's own records.
+that read the workflow, the documents and this repository's own records. Its
+round 9 fix pass placed the six cases that hand the gatherer a U+2028 or a
+form feed mid-line, from `tests/test_every_reader_ends_a_line_where_gfm_does.py`,
+each a case of this module alone: the dry run's in `Test_main`, and the
+`insert`, `leaves_open`, `section_lines` and `live_markers` ones in
+`Test_module`, since none of those functions has a class here, and a class
+holds an accepting and a refusing case.
 """
 
 import os
@@ -22,7 +28,7 @@ import subprocess
 import sys
 
 import pytest
-from conftest import census_case
+from conftest import FF, LS, census_case
 
 TARGET = ".github/scripts/gather_changelog.py"
 
@@ -146,6 +152,17 @@ def load(path, name):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def fragment_tree(tmp_path, body):
+    """A repository root holding one changelog fragment and a changelog."""
+    item = tmp_path / "seal" / "specs" / "2-b"
+    item.mkdir(parents=True)
+    (item / "changelog.md").write_text(body, encoding="utf-8")
+    (tmp_path / "CHANGELOG.md").write_text(
+        "# Changelog\n\n## 1.0.0 — 2026-01-01\n\nold\n", encoding="utf-8"
+    )
+    return tmp_path
 
 
 # #586: a fragment's own `## ` line ends the released section.
@@ -663,6 +680,17 @@ class Test_main:
         assert r.returncode == 0, r.stdout
         assert "3 work items marked in changelog/" in r.stdout, r.stdout
 
+    def test_the_dry_run_prints_a_fragments_character_as_it_stands(
+        self, tmp_path, capsys
+    ):
+        """#664. A U+2028 in a fragment is printed by the dry run as the
+        character it is, not turned into a line break."""
+        gather = load(SCRIPT, "specseal_gather_dry_run")
+        root = fragment_tree(tmp_path, f"entry{LS}b\n")
+        argv = ["--version", "1.1.0", "--date", "2026-01-02", "--dry-run"]
+        assert gather.main([*argv, "--root", str(root)]) == 0
+        assert f"entry{LS}b" in capsys.readouterr().out
+
 
 class Test_module:
     def test_an_index_with_no_release_yet_takes_the_first_entry_below_its_text(self):
@@ -676,6 +704,75 @@ class Test_module:
         assert gather_mod.indexed(text, "## 0.1.0 — e", "0.1.0") == text, (
             "an index that already heads the version took a second entry"
         )
+
+    def test_gathering_below_a_separator_lands_in_the_section_and_keeps_it(self):
+        """S5 of #664. `insert` found the section by counting LF and then
+        indexed a list `splitlines` had made, so a U+2028 above the section put
+        the new entries above its heading, and the file was written back with a
+        line break where the character stood."""
+        gather = load(SCRIPT, "specseal_gather_s5")
+        text = (
+            "# Changelog\n\n"
+            f"Intro alpha{LS}beta.\n\n"
+            "## 1.1.0 — 2026-01-02\n\n"
+            "<!-- specs/1-a -->\nentry a\n\n"
+            "## 1.0.0 — 2026-01-01\n\nold\n"
+        )
+        block = gather.section("1.1.0", "2026-01-03", [("2-b", f"entry{FF}b")])
+        assert gather.insert(text, block, "1.1.0") == (
+            "# Changelog\n\n"
+            f"Intro alpha{LS}beta.\n\n"
+            "## 1.1.0 — 2026-01-02\n\n"
+            "<!-- specs/1-a -->\nentry a\n\n"
+            f"<!-- specs/2-b -->\nentry{FF}b\n\n"
+            "## 1.0.0 — 2026-01-01\n\nold\n"
+        )
+        fresh = gather.section("1.2.0", "2026-01-03", [("2-b", f"entry{FF}b")])
+        assert gather.insert(text, fresh, "1.2.0") == (
+            "# Changelog\n\n"
+            f"Intro alpha{LS}beta.\n\n"
+            f"## 1.2.0 — 2026-01-03\n\n<!-- specs/2-b -->\nentry{FF}b\n\n"
+            "## 1.1.0 — 2026-01-02\n\n"
+            "<!-- specs/1-a -->\nentry a\n\n"
+            "## 1.0.0 — 2026-01-01\n\nold\n"
+        )
+
+    def test_the_sections_index_is_counted_on_the_list_it_indexes(self):
+        """`insert` indexes `gfm_lines(text)`, and the heading's index is counted
+        with the same split. A text read through `open()` never holds a lone CR,
+        so counting LF agrees on every file `main` reads; handed one directly,
+        the two counts part and the entries land above the heading."""
+        gather = load(SCRIPT, "specseal_gather_index")
+        text = "# Changelog\n\nIntro\rmore.\n\n## 1.1.0 — 2026-01-02\n\nentry a\n"
+        block = gather.section("1.1.0", "2026-01-03", [("2-b", "entry b")])
+        assert gather.insert(text, block, "1.1.0") == (
+            "# Changelog\n\nIntro\nmore.\n\n## 1.1.0 — 2026-01-02\n\n"
+            "entry a\n\n<!-- specs/2-b -->\nentry b\n"
+        )
+
+    def test_a_fence_after_a_separator_opens_nothing_in_a_fragment(self):
+        """`leaves_open` asks `live_lines` whether a marker written below the
+        body would be live. A fence run after a U+2028 is mid-line to GFM, so it
+        opens nothing, and the fragment is not refused for one."""
+        gather = load(SCRIPT, "specseal_gather_leaves_open")
+        assert gather.leaves_open(f"an entry{LS}```\n") is False
+
+    def test_a_section_line_is_a_line_that_starts_one(self, tmp_path):
+        """`section_lines` names every fragment line starting `## `, by the
+        number `grep -n` prints. One after a form feed mid-line starts none."""
+        gather = load(SCRIPT, "specseal_gather_section_lines")
+        root = fragment_tree(tmp_path, f"entry{FF}## not a heading\n\n## one\n")
+        assert gather.section_lines(str(root), "2-b") == [(3, "## one")]
+
+    def test_the_gatherer_reads_a_marker_after_a_separator_as_no_line(self):
+        """S6 of #664. A marker after a U+2028 on its line is not a line of its
+        own to GFM, so the gatherer does not call the fragment gathered; the
+        same marker on a line of its own is read, so the empty answer is the
+        separator's doing."""
+        gather = load(SCRIPT, "specseal_gather_s6")
+        text = f"# Changelog\n\n## 1.0.0 — 2026-01-01\n\nold{LS}<!-- specs/1-a -->\n"
+        assert gather.live_markers(text) == []
+        assert gather.live_markers(text.replace(LS, "\n")) == ["1-a"]
 
 
 test_census = census_case(TARGET)

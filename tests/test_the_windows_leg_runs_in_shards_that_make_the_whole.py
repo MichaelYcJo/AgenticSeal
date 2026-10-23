@@ -47,13 +47,12 @@ from the branch's own run.
 """
 
 import json
-import ntpath
 import os
 import re
 import sys
 
 import pytest
-from conftest import COLLECTED_NODE_IDS, _unquote, posix_id, workflow_steps
+from conftest import COLLECTED_NODE_IDS, _unquote, workflow_steps
 from test_ci_gives_the_checks_what_they_need import (
     jobs,
     matrix_include_entries,
@@ -493,12 +492,6 @@ def test_no_collected_id_carries_the_interpreters_path(request):
     collected = getattr(request.session, COLLECTED_NODE_IDS)
     bad = [node for node in collected if sys.executable in node]
     assert not bad, f"{len(bad)} collected ids carry {sys.executable}: {bad[:3]}"
-
-
-def test_a_path_id_is_written_with_forward_slashes():
-    assert posix_id(ntpath.join("agents", "framer.md"), "\\") == "agents/framer.md"
-    assert posix_id("agents/framer.md") == "agents/framer.md"
-    assert posix_id(None) is None
 
 
 # --- the words a contributor acts on (#931) -----------------------------------

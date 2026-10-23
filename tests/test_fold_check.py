@@ -7,12 +7,17 @@ own headings, and exits 0 on it: the estimate is a guess from bytes, so it is
 a report and not a gate. Its index arm refuses a `<policy root>/README.md`
 that misses a document, names one twice, or holds a row naming none. The
 rows and the estimate are stated once, in `templates/config.md` *The fold's
-values*. Every case but two runs the command; `Test_module` holds the
-estimate and the reader of a row written again below the stop.
+values*. Every case but three runs the command; `Test_module` holds the
+estimate, the reader of a row written again below the stop, a copy of the
+command run without its siblings, and the line splitter this module no
+longer keeps.
 
 #942's phase 6 placed these cases from
 `tests/test_a_document_has_room_for_the_next_fold.py`, which keeps the two
-cases that read the cheat sheets and the settle skill.
+cases that read the cheat sheets and the settle skill. Its round 9 fix pass
+placed the copy's case from `tests/test_a_script_copied_alone_exits_2.py`
+and the splitter's from `tests/test_every_reader_ends_a_line_where_gfm_does.py`,
+each a case of this module alone.
 """
 
 import os
@@ -20,7 +25,7 @@ import subprocess
 import sys
 
 import pytest
-from conftest import census_case, load_module
+from conftest import census_case, load_module, names_path
 
 TARGET = "skills/settle/scripts/fold_check.py"
 
@@ -382,6 +387,60 @@ class Test_module:
         )
         with pytest.raises(fold_check.Unusable, match="appears 2 times"):
             fold_check.declared(str(tmp_path))
+
+    @pytest.mark.parametrize(
+        "args, purpose, absent",
+        [
+            (
+                ["--root", "{root}"],
+                "it is what finds the repository's seal/ root",
+                "fold's markers",
+            )
+        ],
+        ids=["optin.py"],
+    )
+    def test_a_script_copied_alone_exits_2_and_names_what_it_misses(
+        self, tmp_path, args, purpose, absent
+    ):
+        """#590. A copy of this script taken without its siblings exits 2, with
+        a sentence naming the missing path and what it is for: 2 means the
+        input or the tree was unusable and nothing was read, and a sibling that
+        is not beside the command is that kind. It loads `hooks/optin.py`
+        before it reads the root, so `--root` reaches the loader, and the
+        sentence is not the fold markers' purpose."""
+        script = TARGET
+        name = script.rsplit("/", 1)[1]
+        alone = tmp_path / "alone"
+        alone.mkdir()
+        copy = alone / name
+        with open(os.path.join(ROOT, *script.split("/")), encoding="utf-8") as f:
+            copy.write_text(f.read(), encoding="utf-8")
+        repo = tmp_path / "repo"
+        repo.mkdir()
+        done = subprocess.run(
+            [sys.executable, str(copy), *(a.format(root=repo) for a in args)],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            cwd=str(repo),
+        )
+        assert done.returncode == 2, (done.returncode, done.stderr)
+        assert "Traceback" not in done.stderr, done.stderr
+        assert names_path(str(alone), done.stderr), (
+            f"the refusal does not name the missing path: {done.stderr}"
+        )
+        assert purpose in done.stderr, (
+            f"the refusal does not say what the missing file is for: {done.stderr}"
+        )
+        if absent:
+            assert absent not in done.stderr, done.stderr
+
+    def test_fold_check_keeps_no_copy_of_its_own(self):
+        """The copy `fold_check.py` held while the reader was being rewritten on
+        another branch is gone: a line ends where `hooks/blocks.py#gfm_lines`
+        ends it (#664)."""
+        assert not hasattr(fold_check, "gfm_lines")
+        assert not hasattr(fold_check, "GFM_LINE_RE")
 
 
 test_census = census_case(TARGET)

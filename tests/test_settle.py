@@ -9,14 +9,18 @@ fixture's history; `Test_main` runs the command over a repository whose
 merge order git holds. `Test_module` holds the loader, the headings, the
 launcher, and two answers the command takes from its siblings,
 `unverified_check.py#settled` and `rule_changes.py#order`, asked over the
-repositories this file builds, and the case that reads this module's source
-for a call of `settled` and no second definition of it.
+repositories this file builds, the case that reads this module's source
+for a call of `settled` and no second definition of it, the copy run without
+its siblings, and `SPECS` held under `seal/`.
 
 #942's phase 6 placed these cases from
 `tests/test_settle_reads_before_it_removes.py` and
 `tests/test_settle_applies_rule_changes_in_place.py`, which keep the cases
 that read the skill, the documents, the READMEs, the checklist and the cheat
 sheets. The source-reading case came from `tests/test_unverified_rows_close.py`.
+The copy's case came from `tests/test_a_script_copied_alone_exits_2.py` and
+the `SPECS` case from `tests/test_a_reference_root_is_read_and_never_taken.py`
+in #942's round 9 fix pass, each a case of this module alone.
 """
 
 import io
@@ -25,7 +29,7 @@ import subprocess
 import sys
 
 import pytest
-from conftest import DOC, census_case, line_of, load_module, op, spec
+from conftest import DOC, census_case, line_of, load_module, names_path, op, spec
 from conftest import flattened as flat
 
 TARGET = "skills/settle/scripts/settle.py"
@@ -1232,6 +1236,64 @@ class Test_module:
             for node in ast.walk(tree)
             if isinstance(node, ast.FunctionDef) and node.name == "settled"
         ], f"{'/'.join(script)} defines a second `settled`"
+
+    @pytest.mark.parametrize(
+        "args, purpose, absent",
+        [
+            (
+                ["--root", "{root}"],
+                "it is what finds the repository's seal/ root",
+                "fold record",
+            )
+        ],
+        ids=["optin.py"],
+    )
+    def test_a_script_copied_alone_exits_2_and_names_what_it_misses(
+        self, tmp_path, args, purpose, absent
+    ):
+        """#590. A copy of this script taken without its siblings exits 2, with
+        a sentence naming the missing path and what it is for: 2 means the
+        input or the tree was unusable and nothing was read, and a sibling that
+        is not beside the command is that kind. It loads `hooks/optin.py`
+        before it reads the root, so `--root` reaches the loader. The loader
+        used to give every file the fold record's purpose, which is false of
+        `optin.py`, so that phrase must not appear."""
+        script = TARGET
+        name = script.rsplit("/", 1)[1]
+        alone = tmp_path / "alone"
+        alone.mkdir()
+        copy = alone / name
+        with open(os.path.join(ROOT, *script.split("/")), encoding="utf-8") as f:
+            copy.write_text(f.read(), encoding="utf-8")
+        repo = tmp_path / "repo"
+        repo.mkdir()
+        done = subprocess.run(
+            [sys.executable, str(copy), *(a.format(root=repo) for a in args)],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            cwd=str(repo),
+        )
+        assert done.returncode == 2, (done.returncode, done.stderr)
+        assert "Traceback" not in done.stderr, done.stderr
+        assert names_path(str(alone), done.stderr), (
+            f"the refusal does not name the missing path: {done.stderr}"
+        )
+        assert purpose in done.stderr, (
+            f"the refusal does not say what the missing file is for: {done.stderr}"
+        )
+        if absent:
+            assert absent not in done.stderr, done.stderr
+
+    def test_the_pinned_checks_read_under_the_root_alone(self):
+        """#688's D3: the constant this command's walk of work items rests on,
+        held under `seal/`. Widening it to a top-level `specs/` turns this red,
+        which is the probe that work item's plan names for `SPECS`.
+        `tests/test_routing.py` holds `hooks/routing.py#WORK_ITEMS` to the
+        same, and `tests/test_a_reference_root_is_read_and_never_taken.py`
+        classifies every shipped command by what keeps it off a reference
+        root."""
+        assert settle.SPECS == "seal/specs"
 
 
 test_census = census_case(TARGET)

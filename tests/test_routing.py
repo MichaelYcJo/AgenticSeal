@@ -6,10 +6,15 @@ reads. Failure direction: a declaration that cannot be read is not a
 declaration, and an optional row that cannot be read is unanswered while the
 declaration stands. What the commit gate does with an answer is its own file's.
 The cases come from `tests/test_routing_is_recorded.py` and
-`tests/test_console_is_not_utf8.py` (#942's phase 6).
+`tests/test_console_is_not_utf8.py` (#942's phase 6). Two cases of
+`Test_module` came in #942's round 9 fix pass, each a case of this module
+alone: the copy without `hooks/blocks.py`, from
+`tests/test_a_script_copied_alone_exits_2.py`, and `WORK_ITEMS` held under
+`seal/`, from `tests/test_a_reference_root_is_read_and_never_taken.py`.
 """
 
 import os
+import subprocess
 import sys
 
 import pytest
@@ -17,6 +22,7 @@ from conftest import (
     ROOT,
     census_case,
     load_hook_module,
+    names_path,
     opted_in_repo,
     two_axis_text,
     with_row,
@@ -525,6 +531,48 @@ class Test_module:
             "1780000001-table"
         ]
         assert found[0][1]["review"] == CHAIN
+
+    def test_a_hook_reader_copied_without_the_walk_names_it(self, tmp_path):
+        """#667. This module imports `hooks/blocks.py`, the walk the hook-path
+        readers share, after `hooks/optin.py`, so the copy takes `optin.py`
+        with it. It is a module, not a script: gates and scripts import it, a
+        gate that raises is skipped and said at the end of the turn
+        (`hooks/dispatch.py`, #28), and a script catches the error or names the
+        file first. So a copy without the walk raises one `ImportError` whose
+        sentence names the path and what the file is for.
+        `tests/test_config.py` holds `hooks/config.py` to the same."""
+        name, siblings = TARGET.rsplit("/", 1)[1], ["optin.py"]
+        alone = tmp_path / "hooks"
+        alone.mkdir()
+        for file in (name, *siblings):
+            with open(os.path.join(ROOT, "hooks", file), encoding="utf-8") as f:
+                (alone / file).write_text(f.read(), encoding="utf-8")
+        done = subprocess.run(
+            [
+                sys.executable,
+                "-c",
+                f"import sys; sys.path.insert(0, {str(alone)!r}); import {name[:-3]}",
+            ],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+        assert done.returncode != 0, done.stderr
+        last = done.stderr.strip().splitlines()[-1]
+        assert last.startswith("ImportError: cannot read "), last
+        assert names_path(os.path.join(str(alone), "blocks.py"), last), last
+        assert "tells a live row from one quoted in a fence or parked in a comment" in (
+            last
+        ), last
+
+    def test_the_pinned_checks_read_under_the_root_alone(self):
+        """#688's D3: the constant this module's walk of work items rests on,
+        held under `seal/`. Widening it to a top-level `specs/` turns this red,
+        which is the probe that work item's plan names for `WORK_ITEMS`.
+        `tests/test_settle.py` holds `settle.py#SPECS` to the same, and
+        `tests/test_a_reference_root_is_read_and_never_taken.py` classifies
+        every shipped command by what keeps it off a reference root."""
+        assert routing.WORK_ITEMS == "seal/specs"
 
 
 test_census = census_case(TARGET)

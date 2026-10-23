@@ -28,12 +28,16 @@ What the enumeration leaves out, and why:
     the walker returns a cell's source and the renderer its text, so the two
     differ by design. The rows here are plain, and a cell's content is the
     reader's to judge, not the walk's;
-  - a line ending other than LF: `tests/test_every_reader_ends_a_line_where_
-    gfm_does.py` holds where a line ends, for every reader.
+  - a line ending other than LF: `hooks/blocks.py#gfm_lines` is where a
+    line ends, `tests/test_blocks.py` holds it, and
+    `tests/test_every_reader_ends_a_line_where_gfm_does.py` holds its copies
+    to it.
 
 The walker's cases that ask no oracle, a hidden line above the header and
 the two pieces after a break GFM does not honour, are in
-`tests/test_config.py` since #942's phase 6.
+`tests/test_config.py` since #942's phase 6, and the refusal of a line shown
+directly above the header since its round 9 fix pass; that case reads this
+file's corpus, `HEADERS`, `KINDS`, `INDENTS` and `document`, from here.
 """
 
 import os
@@ -428,34 +432,6 @@ def test_every_delimiter_gfm_accepts_is_read(which):
         if not ok:
             wrong.append(f"{spelled!r}: walker {got} {refusals}, GFM {want}")
     assert not wrong, "\n".join(wrong)
-
-
-@pytest.mark.parametrize("which", sorted(HEADERS))
-def test_a_line_directly_above_the_header_is_refused(which):
-    """Whether cmark-gfm renders a table under a line depends on the block
-    state above it, which the walker does not track, so a non-blank line the
-    walk is shown directly above a header is refused with the blank-line
-    remedy (round 1, yellow 5). This reverses the build's first choice,
-    which mirrored cmark-gfm's interruption rules line by line and was found
-    reading tables cmark-gfm does not render in shapes the corpus did not
-    reach. A kind whose last line `unfenced` hides, or a blank line, leaves
-    a gap or a blank above the header and is not this rule's."""
-    header = HEADERS[which]
-    for kind, lines in KINDS.items():
-        for indent in INDENTS:
-            text = document(header, lines, "before the header", indent)
-            split = text.splitlines()
-            head = split.index("| " + " | ".join(header) + " |")
-            shown = dict(config.unfenced(split, text))
-            above = shown.get(head - 1)
-            if above is None or not above.strip():
-                continue
-            _rows, refusals = config.gfm_table(text, header)
-            assert refusals and "blank line above the header" in refusals[0], (
-                kind,
-                indent,
-                refusals,
-            )
 
 
 def test_the_shapes_round_1_measured_are_refused():

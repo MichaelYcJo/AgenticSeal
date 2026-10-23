@@ -18,7 +18,12 @@ change that quietly stops subtracting the baseline, or starts printing a
 number with no basis, fails here.
 
 #942's phase 6 placed these cases from
-`tests/test_the_payload_meter_says_what_it_measured.py`.
+`tests/test_the_payload_meter_says_what_it_measured.py`. Its round 9 fix pass
+placed in `Test_module` the two rows that run a copy of this script without
+its siblings, from `tests/test_a_script_copied_alone_exits_2.py`, and the
+heading after a U+2028, from
+`tests/test_every_reader_ends_a_line_where_gfm_does.py`, each a case of this
+module alone.
 """
 
 import importlib.util
@@ -29,7 +34,7 @@ import subprocess
 import sys
 
 import pytest
-from conftest import census_case
+from conftest import LS, census_case, names_path
 
 TARGET = "skills/verify/scripts/payload_meter.py"
 
@@ -898,6 +903,69 @@ class Test_module:
         starts = meter.heading_starts(text)
         lines = [text[at:].split("\n", 1)[0] for at in starts]
         assert lines == ["   ## Indented", "##\tTabbed", "### Three"], lines
+
+    def test_a_heading_after_a_separator_starts_no_section(self, meter):
+        """S12 of #664. No section starts mid-line: a heading after a U+2028,
+        which GFM does not end a line at, starts none, and the one that does
+        start is at its offset in the file, which is where the ends kept put
+        it."""
+        text = f"intro\n\nprose{LS}## Not a section\n\n## Real\nbody\n"
+        assert meter.heading_starts(text) == [text.index("## Real")]
+
+    @pytest.mark.parametrize(
+        "args, purpose, absent",
+        [
+            (
+                ["--root", "{root}", "--calibrate", "{root}/main.jsonl"],
+                "it is what reads a transcript's spawns",
+                None,
+            ),
+            # #584: it loads `unverified_check.py` only under `--sections`, and
+            # its purpose must not be the transcript sibling's.
+            (
+                ["--root", "{root}", "--sections"],
+                "it is what says which lines of a skill stand inside a fenced example",
+                "transcript",
+            ),
+        ],
+        ids=["session_cost.py", "unverified_check.py"],
+    )
+    def test_a_script_copied_alone_exits_2_and_names_what_it_misses(
+        self, tmp_path, args, purpose, absent
+    ):
+        """#590 and #610. A copy of this script taken without its siblings exits
+        2, with a sentence naming the missing path and what it is for; here 1
+        means an input that could not be measured, and 2 that nothing was read.
+        It loads `session_cost.py` only under `--calibrate`, and `measure` calls
+        the loader before it opens the transcript, so the transcript named need
+        not exist; under `--sections` it calls that loader before it reads the
+        root, so the row reaches it in a directory with no `agents/` at all."""
+        script = TARGET
+        name = script.rsplit("/", 1)[1]
+        alone = tmp_path / "alone"
+        alone.mkdir()
+        copy = alone / name
+        with open(os.path.join(ROOT, *script.split("/")), encoding="utf-8") as f:
+            copy.write_text(f.read(), encoding="utf-8")
+        repo = tmp_path / "repo"
+        repo.mkdir()
+        done = subprocess.run(
+            [sys.executable, str(copy), *(a.format(root=repo) for a in args)],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            cwd=str(repo),
+        )
+        assert done.returncode == 2, (done.returncode, done.stderr)
+        assert "Traceback" not in done.stderr, done.stderr
+        assert names_path(str(alone), done.stderr), (
+            f"the refusal does not name the missing path: {done.stderr}"
+        )
+        assert purpose in done.stderr, (
+            f"the refusal does not say what the missing file is for: {done.stderr}"
+        )
+        if absent:
+            assert absent not in done.stderr, done.stderr
 
     def test_json_carries_the_same_numbers_as_the_text_and_no_machine_path(
         self, tmp_path

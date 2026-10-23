@@ -17,11 +17,19 @@ seven cases `tests/test_pact_check.py` left for this module, which run
 its body, except two that read the pact's text as `PACT_TEXT`, because
 `PACT` is the world's path to it; a name its old file defined for it is
 defined here, and a fixture or text two files read is `tests/conftest.py`'s.
+
+#942's round 9 fix pass placed two more, each a case of this module alone:
+the table walker's refusal of a line shown directly above the header, from
+the oracle file, whose corpus it imports from there, and the case that copies
+this module without `hooks/blocks.py`, from
+`tests/test_a_script_copied_alone_exits_2.py`, whose `routing.py` row is in
+`tests/test_routing.py`.
 """
 
 import importlib.util
 import os
 import subprocess
+import sys
 
 import config_shapes
 import pytest
@@ -48,6 +56,7 @@ from conftest import (
     load_hook_module,
     load_module,
     local_home,
+    names_path,
     old_header,
     opt_in_shared,
     pact,
@@ -60,6 +69,12 @@ from conftest import (
 )
 from conftest import commit_everything_as_e as commit
 from conftest import config_table as table
+from test_one_table_walker_reads_what_gfm_renders import (
+    HEADERS,
+    INDENTS,
+    KINDS,
+    document,
+)
 
 TARGET = "hooks/config.py"
 
@@ -1801,6 +1816,33 @@ class Test_gfm_table:
         assert [c for _l, c in rows] == [("Mode", "shared")], rows
         assert refusals and "ends above `| Broad gate | y |`" in refusals[0], refusals
 
+    @pytest.mark.parametrize("which", sorted(HEADERS))
+    def test_a_line_directly_above_the_header_is_refused(self, which):
+        """Whether cmark-gfm renders a table under a line depends on the block
+        state above it, which the walker does not track, so a non-blank line the
+        walk is shown directly above a header is refused with the blank-line
+        remedy (round 1, yellow 5). This reverses the build's first choice,
+        which mirrored cmark-gfm's interruption rules line by line and was found
+        reading tables cmark-gfm does not render in shapes the corpus did not
+        reach. A kind whose last line `unfenced` hides, or a blank line, leaves
+        a gap or a blank above the header and is not this rule's."""
+        header = HEADERS[which]
+        for kind, lines in KINDS.items():
+            for indent in INDENTS:
+                text = document(header, lines, "before the header", indent)
+                split = text.splitlines()
+                head = split.index("| " + " | ".join(header) + " |")
+                shown = dict(config.unfenced(split, text))
+                above = shown.get(head - 1)
+                if above is None or not above.strip():
+                    continue
+                _rows, refusals = config.gfm_table(text, header)
+                assert refusals and "blank line above the header" in refusals[0], (
+                    kind,
+                    indent,
+                    refusals,
+                )
+
 
 class Test_module:
     @pytest.mark.parametrize(
@@ -1863,6 +1905,38 @@ class Test_module:
             assert sha is None and why in said, (said, bad)
         _sha, said = config.baseline_commit("# Migration config\n")
         assert "Baseline commit" not in said, said
+
+    def test_a_hook_reader_copied_without_the_walk_names_it(self, tmp_path):
+        """#667. This module imports `hooks/blocks.py`, the walk the hook-path
+        readers share. It is a module, not a script: gates and scripts import
+        it, a gate that raises is skipped and said at the end of the turn
+        (`hooks/dispatch.py`, #28), and a script catches the error or names the
+        file first. So a copy without the walk raises one `ImportError` whose
+        sentence names the path and what the file is for.
+        `tests/test_routing.py` holds `hooks/routing.py` to the same."""
+        name, siblings = TARGET.rsplit("/", 1)[1], []
+        alone = tmp_path / "hooks"
+        alone.mkdir()
+        for file in (name, *siblings):
+            with open(os.path.join(ROOT, "hooks", file), encoding="utf-8") as f:
+                (alone / file).write_text(f.read(), encoding="utf-8")
+        done = subprocess.run(
+            [
+                sys.executable,
+                "-c",
+                f"import sys; sys.path.insert(0, {str(alone)!r}); import {name[:-3]}",
+            ],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+        assert done.returncode != 0, done.stderr
+        last = done.stderr.strip().splitlines()[-1]
+        assert last.startswith("ImportError: cannot read "), last
+        assert names_path(os.path.join(str(alone), "blocks.py"), last), last
+        assert "tells a live row from one quoted in a fence or parked in a comment" in (
+            last
+        ), last
 
 
 test_census = census_case(TARGET)

@@ -8,7 +8,11 @@ round records and the closing records, judged as a ready or a draft pull
 request through the event payload GitHub writes. Each copy is the reset.
 `Test_module` holds the case that reads this module's source for a call of
 `unverified_check.py#settled` and no second definition of it, which #942
-moved from `tests/test_unverified_rows_close.py`.
+moved from `tests/test_unverified_rows_close.py`; the copy run without its
+siblings, from `tests/test_a_script_copied_alone_exits_2.py`; and the
+framer's mark after a U+2028, `frame_foot`'s one case, from
+`tests/test_every_reader_ends_a_line_where_gfm_does.py`. The last two came in
+its round 9 fix pass, each a case of this module alone.
 """
 
 import functools
@@ -21,7 +25,15 @@ import subprocess
 import sys
 
 import pytest
-from conftest import BASELINE, census_case, chain_check_run, parity_file, write
+from conftest import (
+    BASELINE,
+    LS,
+    census_case,
+    chain_check_run,
+    names_path,
+    parity_file,
+    write,
+)
 from conftest import commit_everything as commit
 from conftest import git_out as git
 from conftest import load_module as load
@@ -3044,6 +3056,57 @@ class Test_module:
             for node in ast.walk(tree)
             if isinstance(node, ast.FunctionDef) and node.name == "settled"
         ], f"{'/'.join(script)} defines a second `settled`"
+
+    @pytest.mark.parametrize(
+        "args, purpose, absent",
+        [(["--baseline", "HEAD", "--root", "{root}"], "the shared reader", None)],
+        ids=["unverified_check.py"],
+    )
+    def test_a_script_copied_alone_exits_2_and_names_what_it_misses(
+        self, tmp_path, args, purpose, absent
+    ):
+        """#590. A copy of this script taken without its siblings exits 2, with
+        a sentence naming the missing path and what it is for: 2 means the
+        input or the tree was unusable and nothing was read, and a sibling that
+        is not beside the command is that kind. It loads the shared reader at
+        import and `hooks/routing.py` after argument parsing, so it is given
+        its one required flag. It quotes the `OSError`, whose path Windows
+        repr-escapes, which `names_path` reads."""
+        script = TARGET
+        name = script.rsplit("/", 1)[1]
+        alone = tmp_path / "alone"
+        alone.mkdir()
+        copy = alone / name
+        with open(os.path.join(ROOT, *script.split("/")), encoding="utf-8") as f:
+            copy.write_text(f.read(), encoding="utf-8")
+        repo = tmp_path / "repo"
+        repo.mkdir()
+        done = subprocess.run(
+            [sys.executable, str(copy), *(a.format(root=repo) for a in args)],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            cwd=str(repo),
+        )
+        assert done.returncode == 2, (done.returncode, done.stderr)
+        assert "Traceback" not in done.stderr, done.stderr
+        assert names_path(str(alone), done.stderr), (
+            f"the refusal does not name the missing path: {done.stderr}"
+        )
+        assert purpose in done.stderr, (
+            f"the refusal does not say what the missing file is for: {done.stderr}"
+        )
+        if absent:
+            assert absent not in done.stderr, done.stderr
+
+    def test_the_framers_mark_is_the_last_line_a_renderer_shows(self):
+        """S10 of #664. The mark stands after a U+2028 on the file's last line,
+        which GFM does not end a line at, so the last line does not begin with
+        one."""
+        spec = f"# spec\n\nprose{LS}Framed 2026-01-01 by framer, before the build.\n"
+        assert chain.frame_foot(reader, spec)[0] is None
+        whole = "# spec\n\nprose\nFramed 2026-01-01 by framer, before the build.\n"
+        assert chain.frame_foot(reader, whole)[0] == ("2026-01-01", "framer")
 
 
 # --- left where they stand, for #923: they read the shipped documents --------------
