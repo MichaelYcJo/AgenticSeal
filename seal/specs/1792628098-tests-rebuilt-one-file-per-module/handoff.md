@@ -1,6 +1,6 @@
 # Handoff: 1792628098-tests-rebuilt-one-file-per-module (#942)
 
-Written 2026-10-22 by the orchestrator, when the owner paused the build after phase 5's first proof under the new rule, and brought up to date on 2026-10-23 by the smith spawns that rebuilt the modules since. The branch is `chore/942-tests-rebuilt-one-file-per-module`, cut from `release/v0.22.3` at 6046f062. The tree this file describes is ca726662 and the commit that updates this file.
+Written 2026-10-22 by the orchestrator, when the owner paused the build after phase 5's first proof under the new rule, and brought up to date on 2026-10-23 by the smith spawns that rebuilt the modules since. The branch is `chore/942-tests-rebuilt-one-file-per-module`, cut from `release/v0.22.3` at 6046f062. The tree this file describes is da3eae09 and the commit that updates this file.
 
 ## Where the build stands
 
@@ -8,7 +8,7 @@ Written 2026-10-22 by the orchestrator, when the owner paused the build after ph
 |---|---|
 | 1 to 4 | built: `bin/test-layout`, the slow-case report, the censuses in `tests/censuses.py`, the helper twins in `tests/conftest.py` |
 | 5 | closed at b770ca64: 11 modules rebuilt, plus the `mutation-check` batch mode |
-| 6 | open: the move check at 6e7214be, its two sets at 43324e4e; Batch B's `hooks/` groups 1 to 23, from 0a86c1b4 to ca726662, 27 modules placed, `hooks/config.py` last in groups 21 to 23, the creation flow in `tests/e2e/creation/`, the worktree guard's light files in its one file, the commit gate's guarantee arm in `tests/test_commitgate.py`, and every commit gate case the work moves in its file. The framer's survey at 0b134a29 gave every `check:` line the remaining groups meet a verdict in `spec.md`; the installer's line, for `hooks/githooks.py` and `hooks/hook-install.py`, waits on `questions.md` Q10, whose default is wait. `hooks/cmdline.py` and `hooks/cmdline_base.py` remain in `hooks/` (`phases/phase-6.md` *What remains in phase 6*) |
+| 6 | open: the move check at 6e7214be, its two sets at 43324e4e; Batch B's `hooks/` groups 1 to 26, from 0a86c1b4 to da3eae09, 28 modules placed, `hooks/config.py` in groups 21 to 23 and `hooks/cmdline.py` last in groups 24 to 26, the creation flow in `tests/e2e/creation/`, the worktree guard's light files in its one file, the commit gate's guarantee arm in `tests/test_commitgate.py`, and every commit gate case the work moves in its file. The framer's survey at 0b134a29 gave every `check:` line the remaining groups meet a verdict in `spec.md`; the installer's line, for `hooks/githooks.py` and `hooks/hook-install.py`, waits on `questions.md` Q10, whose default is wait. `hooks/cmdline_base.py` and `hooks/git/` have nothing to move; the six other directories have not started (`phases/phase-6.md` *What remains in phase 6*) |
 | 7 | not started |
 | Review | round 1 covered phases 1 to 4 at 8aa42bf8; its nine findings are answered, eight fixed at c6d2bfc4 and one deferred to phase 7. Round 2 verified round 1's closes and reviewed phase 5 at cfb846b2; its four findings are fixed, answered in `rounds/round-2.md` at ac965ee7. Two commit-flow gaps from the orchestrator's kill matrix (issue #1014) are closed at 5a207e20 |
 
@@ -62,6 +62,9 @@ Seconds are macOS wall time on a shared machine, from each module's record.
 | 23 | ca726662 | `hooks/config.py`'s pact readers, from the signer file and the seven cases `tests/test_pact_check.py` held | `134 old cases, 333 items against 333 at c6c1d8b03de3, 7 failed` | two bodies read `PACT_TEXT`, one merge; 87 mutants over the module, 12 survivors: 5 old gaps, and 7 the oracle file kills through cases that did not move |
 | 24 | 93bf39da | the heredoc-data file: S4 and S5 to `hooks/cmdline.py`'s new file, S6 to `hooks/tokens.py`'s | `4 old cases, 215 items against 215 at 687388b5ae85, 0 failed` | the move check |
 | 25 | eb207a6d | `hooks/cmdline.py`'s cases of the walk, reserved-word, wrapper and no-shape files | `65 old cases, 661 items against 661 at 3cf118239946, 0 failed` | the move check; the module's mutants run in group 26 |
+| 26 | da3eae09 | `hooks/cmdline.py`'s cases of the reader and path files, and the reader file's S13 to the guard's file | `367 old cases, 1189 items against 1189 at 0e561e86de7a, 26 failed` | thirteen bodies renamed apart; 120 mutants over `hooks/cmdline.py`, 17 survivors, every one an old gap; 70 over the guard, all red |
+
+`hooks/cmdline_base.py` and `hooks/git/` have no case of their own to move, and their records say why.
 
 `phases/phase-6.md` holds each group's command, cases and seconds, mutants and cases left in place.
 
@@ -96,7 +99,7 @@ The owner replaced the 100-mutant table on 2026-10-22 (`spec.md` *The proof of e
 2. Place `hooks/root-migrate.py#move`'s empty directory, which the rebuild found and pinned as it is (`overview.md` *Not done*).
 3. The `## Rule changes` items for `docs/one-root-by-lifetime.md` and its Korean twin are in `spec.md` since 93a009c6, and the worktree guard's since 099119b8.
 4. The `## Rule changes` items the fifth spawn found missing are in `spec.md` since 0b134a29, with *The check lines the remaining groups meet* for the lines outside `docs/`; groups 16 to 20 moved on them.
-5. The rest of phase 6's Batch B, `hooks/cmdline.py` and `hooks/cmdline_base.py` (`phases/phase-6.md` *What remains in phase 6*, which records what was read for `hooks/cmdline.py`'s group), the seven other directories, and phase 7, `--all`, the `.test_durations` refresh and the closing memo.
+5. The rest of phase 6's Batch B, the six directories outside `hooks/` and `hooks/git/`, starting with `skills/verify/scripts/` (`phases/phase-6.md` *What remains in phase 6*, which records what the eighth spawn scanned for it), and phase 7, `--all`, the `.test_durations` refresh and the closing memo.
 6. A round verifying round 2's fix pass and the move check, then a round over phases 6 and 7, the broad gate, the sealer, the pull request into `release/v0.22.3`, and then the release preparation.
 
 ## How a smith spawn for the next modules reads
