@@ -236,6 +236,47 @@ The mutants sit at `already_asked`'s `basename`, dot names, existing marker and 
 
 **The boundary** (`executed`). At the tree committed as df48707c: the two files, `tests/test_lease_liveness.py`, the commit flow, the censuses, the `git_listing` files, `tests/test_chain_hooks_hardening.py`, `tests/test_test_layout.py` and `tests/test_conftest.py`, 26 files: 1,897 passed. The shards module: the known red alone. `bin/test-layout --check` exits 0, 158 files read, 130 declaring no `TARGET`; `bin/rules --check` and `bin/unverified-check seal/specs/` exit 0. Ruff clean on each changed file.
 
+### The third spawn, after the framer's amendment at 066e619b
+
+**What this spawn was asked.** First, re-wrap `CONTRIBUTING.md`'s launcher paragraph, which CI run 39895069406 at 1b0e7c23 failed on line 127 at 118 columns, and name the framer's `## Rule changes` items and Q10's wait in `handoff.md`. Then the held-back `hooks/` groups in the order `questions.md` gives, one commit per group: the dispatcher with `hooks/console.py` and the creation flow; routing; the implementer family; optin; `hooks/worktree_consent.py`, then the worktree guard's light files; the sealer stamp, its queue and `hooks/commitgate.py`, written anew; the commit gate's light cases; then the shared readers, one group each. `hooks/githooks.py` and `hooks/hook-install.py` wait on Q10. After the first group that empties a file a `check:` line names, run `bin/rules --check` and stop if it refuses.
+
+**Whether the frame holds** (`read`). It holds. `spec.md` *Rule changes* carries an item for each `check:` line the groups above empty or whose rule their cases hold, and `.github/scripts/rules.py#target_problem` refuses a target that does not exist or is not a file, and reads nothing inside it.
+
+**CI at 1b0e7c23** (`executed`, `gh run view 39895069406 --log-failed`). Two cases failed: `tests/test_docs_line_wrap.py::test_prose_stays_within_the_wrap_limit[CONTRIBUTING.md]` on the macOS, ubuntu and Windows legs, and `test_the_durations_file_prices_the_suite`, the known red. Every file groups 1 to 6 wrote passed on the Windows and ubuntu legs. 5639d076 re-wraps the paragraph; the wrap module passes, 39 cases.
+
+### Batch B, `hooks/`, group 7, at 9c70ddbf
+
+**The modules.** `hooks/dispatch.py`, whose cases were the ten of `tests/test_dispatch.py`, 31 of `tests/test_a_gate_that_fails_says_so.py` and the dispatcher's of `tests/test_console_is_not_utf8.py`, now `tests/test_dispatch.py` with `TARGET`; `hooks/console.py`, whose case runs the commit gate alone, now `tests/test_console.py`; and the creation flow, the six cases of `tests/test_a_creation_is_judged_before_git_runs.py`, now `tests/e2e/creation/test_creation_flow.py` with `TARGET = "hooks/dispatch.py"`, one scenario class, `Test_a_creation_is_judged_before_git_runs`. `tests/test_a_gate_that_fails_says_so.py` keeps its case that reads `docs/commit-review-gate-spec.md` *Registration*, which is #923's and which the section's `## Rule changes` item keeps on the line. `tests/test_console_is_not_utf8.py` keeps routing's case for routing's group.
+
+**The emptied file a `check:` line names** (`executed`). `tests/test_a_creation_is_judged_before_git_runs.py` holds a docstring naming the flow and no case. With it so, `bin/rules --check` exits 0 and prints `rules: all 249 check lines in 62 rule files hold.` The framer's reading of `rules.py#target_problem` is the one the tree gives: the file exists, and nothing reads what it holds.
+
+**The move check** (`executed`):
+
+`bin/test-layout --moved 5639d076 --from tests/test_dispatch.py tests/test_a_gate_that_fails_says_so.py tests/test_console_is_not_utf8.py tests/test_a_creation_is_judged_before_git_runs.py --to tests/test_dispatch.py tests/test_console.py tests/e2e/creation/test_creation_flow.py tests/test_a_gate_that_fails_says_so.py tests/test_console_is_not_utf8.py tests/test_a_creation_is_judged_before_git_runs.py`
+
+`test-layout: moved: 51 old cases, 59 items against 59 at 5639d076e5d3, 2 failed`, exit 1. The two lines are one edit made on purpose: the console case the dispatcher runs called its file's `dispatch(group, payload, encoding)`, and `tests/test_dispatch.py` holds the failure report's `dispatch(hooks, group, body, cwd=None)`, so the case calls its helper as `dispatch_under`. Narrowed per Q8's default: the creation flow's own old file, `--from tests/test_a_creation_is_judged_before_git_runs.py --to tests/e2e/creation/test_creation_flow.py tests/test_a_creation_is_judged_before_git_runs.py`, ends `6 old cases, 8 items against 8 at 5639d076e5d3, 0 failed`, exit 0; the dispatcher and the console, which share `tests/test_console_is_not_utf8.py`, end `45 old cases, 51 items against 51 at 5639d076e5d3, 2 failed`, so both run the mutants. `--pairs` names no pair in the three new files.
+
+**Helpers.** `KOREAN`, `HOSTILE`, `_console_repo_template`, `opted_in_repo` and the `korean_repo` fixture serve three files, so they moved to `tests/conftest.py`; the fixture's definition is the same in both trees, so the fixture condition holds. The console file's `decision_of` read a finished process's bytes and conftest's read text, so conftest's now reads either. The failure report's helpers moved with its cases into `tests/test_dispatch.py`.
+
+**The names rewritten.** `hooks/dispatch.py`'s docstring of `toplevel` and its `entry_point` exemption, `skills/verify/scripts/seal_stamp.py`'s comment on `MESSAGE_RESERVE` (`tests/test_dispatch.py#longest_report`), `tests/censuses.py#entry_point`'s docstring and `tests/test_gates_do_not_fail_open.py`'s docstring name the new files. `seal/follow-up.md`'s row on `console.to_utf8()` still names the old file as the one enumerating `hooks/`, a measurement of 2026-09-22 that phase 3's censuses had already overtaken, and stands.
+
+**The mutation tables** (`executed`, one `bin/mutation-check` batch per module over the new file with `-x`; the old column in an archive of 5639d076, against the three old files, for the survivors only).
+
+| Module | Mutants | New column | Old column | Old gaps |
+|---|---|---|---|---|
+| `hooks/dispatch.py` | 50 | 48 red, 2 survived, 190.3 s | 2 survived | `main` running a known group's gates for an unknown group: the refusing case runs in a repository not opted in, where those gates are silent; `main`'s event name, which no case reads |
+| `hooks/console.py` | 3 | 2 red, 1 survived | 1 survived | `to_utf8` leaving stdout unconfigured: the commit gate prints JSON with every non-ASCII character escaped, so any console carries it |
+
+The dispatcher's mutants sit at `run_gate`'s phase, its `SystemExit` catch in `main()` and at load, and its argv swap; `readable`'s object test, reason test and message test; `classify`'s readable test and text strip; `merge`'s rank, kept message and joined text; `path_part`'s dot names; `toplevel`'s `.git` test; `common_dir`'s directory test and its git question; `opted_in`'s cannot-tell answer and its asked answer; `capped`'s astral width and its comparison; `first_line`'s line; `record`'s session test, seen test, opt-in test, name cap, exclusive create and place; `read_record`'s object test; `flat`'s join; `describe`'s load expansion, decided groups, group cap, message cap, gate cap and cause; `draw`'s subagent test, opt-in test, file-time fallback, claim, order and count; `beside`'s object test and empty answer; `report`'s record call, the order beside the stamp and the empty group; and `main`'s unknown group, unreadable output, the `stop` draw and the event name. The console's sit at the reconfigure call and at the stdout and stdin entries of `STREAMS`. No case was added: every survivor is an old gap.
+
+**Cases and seconds** (`executed`, serial, pytest's own figure): 59 items in 12.54 s before, at 5639d076 in an archive with the worktree's `.venv`; 62 items in 12.11 s after, over the three new files and the three old ones. Each "after" counts the census cases.
+
+**The real-git cases kept.** The flow's every case: a clone with the installed stubs, the dispatcher run below a shell named `claude`, the command run by bash, then `post-bash`, and the world read afterwards. In `tests/test_dispatch.py`, the cases that run a copy of `hooks/` against the `repo` fixture, where the records land in the git common dir, and `Test_module::test_the_walk_agrees_with_its_twin_in_sealer_stamp`, which adds a linked worktree.
+
+**Phase 4's survivors** (`executed`). h14, `q` not quoting, re-run against the creation flow: SURVIVED, 9 passed. No path in the flow needs quoting, so it stays an old gap.
+
+**The boundary** (`executed`). At the tree committed as 9c70ddbf: the six files, every test file naming `decision_of`, `opted_in_repo`, `korean_repo`, `HOSTILE` or `KOREAN`, the `git_listing` files, the censuses, `tests/test_test_layout.py`, `tests/test_conftest.py`, `tests/test_chain_hooks_hardening.py`, `tests/test_seal_stamp.py` and `tests/test_gates_do_not_fail_open.py`, 40 files: 2,196 passed. `bin/test-layout --check` exits 0, 160 files read, 129 declaring no `TARGET`; `bin/rules --check` exits 0. Ruff checks and formats each changed `.py` file clean.
+
 ### What `hooks/` holds back
 
 **Three groups wait for a rule change** (`read`). A `check:` line names a file whose cases would all leave it, or whose rule the moving cases hold, and the smith edits nothing under `docs/`:
