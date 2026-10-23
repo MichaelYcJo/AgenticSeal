@@ -1023,6 +1023,24 @@ The seventeen survivors are old gaps: no moved case reads a `${…}` holding a `
 
 **The boundary** (`executed`). At the tree committed as ffb0bd4b: the changed file, the `git_listing` files, the censuses, `tests/test_test_layout.py`, `tests/test_conftest.py` and `tests/test_chain_hooks_hardening.py`, 23 files: 2,456 passed and 3 skipped. `bin/test-layout --check` exits 0, 166 files read, 121 declaring no `TARGET`; `bin/rules --check` exits 0 with 249 check lines; `bin/unverified-check seal/specs/` exits 0. Ruff checks and formats the file clean.
 
+### Batch B, `skills/verify/scripts/`, group 28, at b16613b3
+
+**The cases.** `skills/verify/scripts/mutation_check.py`'s single-pair cases, the 28 of `tests/test_a_mutation_clears_one_files_bytecode_and_ends_at_a_timeout.py` that run the command, into `tests/test_mutation_check.py` with their bodies and names: the 25 that call `main` in-process into `Test_main`, beside phase 5's batch cases; the launcher's case, `_end`'s case and the platform's choice of bound, which have no partner in a class of their own, into `Test_module`. The stand-ins and the process helpers they use came with them. The new file's `module` loads the command through conftest's `load_module`; the old one's, which registers it in `sys.modules`, stays with the case that uses it, so the two are not a twin.
+
+**The lines rewritten.** `agents/smith.md` lines 109 and 123 name `tests/test_mutation_check.py` beside the old file, as `spec.md` assigns them. The old file's docstring names where its cases went, and the new file's docstring says what it took.
+
+**Left where they stand.** For #923, in the old file under their names: `test_the_smiths_definition_names_the_command_and_no_directory_to_clear`, `test_the_boundaries_bullet_says_the_command_holds_the_copy`, `test_the_verify_skill_says_what_each_verdict_means_and_what_the_bound_ends` and `test_the_default_bound_is_the_one_both_documents_state`, each reading `agents/smith.md` or the verify skill. They hold the rules of the two lines, so the old file stays on both.
+
+**The move check** (`executed`): `bin/test-layout --moved 6b884f5f --from tests/test_a_mutation_clears_one_files_bytecode_and_ends_at_a_timeout.py tests/test_mutation_check.py --to tests/test_a_mutation_clears_one_files_bytecode_and_ends_at_a_timeout.py tests/test_mutation_check.py` ends `test-layout: moved: 40 old cases, 54 items against 54 at 6b884f5f9f41, 0 failed`, exit 0. No mutation table. `--pairs` names none.
+
+**Cases and seconds** (`executed`, serial, pytest's own figure): 55 items in 11.42 s before over the two files, in an archive of 6b884f5f; 55 in 10.91 s after.
+
+**The real-git cases kept.** None: no case runs git. The cases that run real processes, the bound's and the interrupt's, stay as they were, because the bound is what they hold.
+
+**Phase 4's survivors.** None of h2, h12 and h23 is reached: no moved case calls `read`, `imported_roots` or `repo_relative` (`read`).
+
+**The boundary** (`executed`). At the tree committed as b16613b3: the two changed test files, `tests/test_arm_check.py`, every test file reading `agents/smith.md`, the `git_listing` files, the censuses, `tests/test_test_layout.py`, `tests/test_conftest.py` and `tests/test_chain_hooks_hardening.py`, 44 files: 3,226 passed and 5 skipped. `bin/test-layout --check` exits 0, 166 files read, 121 declaring no `TARGET`; `bin/rules --check` exits 0 with 249 check lines; `bin/unverified-check seal/specs/` exits 0. Ruff checks and formats each changed test file clean.
+
 ### What remains in phase 6
 
 - `hooks/`: `hooks/githooks.py` and `hooks/hook-install.py` wait on Q10. `hooks/answer-clear.py` has a file whose `Test_module` holds its two round trips and no `Test_main`.
