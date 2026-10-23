@@ -1041,6 +1041,22 @@ The seventeen survivors are old gaps: no moved case reads a `${…}` holding a `
 
 **The boundary** (`executed`). At the tree committed as b16613b3: the two changed test files, `tests/test_arm_check.py`, every test file reading `agents/smith.md`, the `git_listing` files, the censuses, `tests/test_test_layout.py`, `tests/test_conftest.py` and `tests/test_chain_hooks_hardening.py`, 44 files: 3,226 passed and 5 skipped. `bin/test-layout --check` exits 0, 166 files read, 121 declaring no `TARGET`; `bin/rules --check` exits 0 with 249 check lines; `bin/unverified-check seal/specs/` exits 0. Ruff checks and formats each changed test file clean.
 
+### Batch B, `skills/verify/scripts/`, group 29, at 31aed13b
+
+**The cases.** `skills/verify/scripts/coordinates.py`'s, 28 of the 29 of `tests/test_a_unit_is_bounded_where_a_parser_decides.py`, into the new `tests/test_coordinates.py` with their bodies: the 20 read through `resolve_unit` into `Test_resolve_unit`, `test_a_symbol_anchor_resolves_through_ast` renamed `test_accepts_a_symbol_anchor_through_ast` and `test_a_python_file_that_will_not_parse_is_refused_naming_the_interpreter` renamed `test_refuses_a_python_file_that_will_not_parse_naming_the_interpreter`; the two of the hash into `Test_content_hash`, renamed `test_accepts_trailing_whitespace_and_blank_lines_as_no_change` and `test_refuses_to_ignore_indentation`; the four of the parse into `Test_py_spans`, two renamed `test_refuses_a_file_that_will_not_parse_with_no_symbols` and `test_accepts_a_file_edited_between_two_reads_with_its_new_spans`; `text_regions`' one and the pact anchor's pattern into `Test_module`. The helpers and tables came with them.
+
+**Left where they stand.** For #923, in the old file under its name: `test_a_quoted_line_resolves_in_any_file`, whose assertion reads `.github/workflows/test.yml`; it imports `places`, `ec` and `RUBY` from the new file, so no helper is defined twice. `docs/the-pact.md` line 85 names the old file, and `spec.md`'s item for *The pact anchor* moves it to `tests/test_coordinates.py`, so the file stays until the settle. `tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py` and `tests/test_every_reader_ends_a_line_where_gfm_does.py` load the module to compare its readers with others', checks across files that stay.
+
+**The move check** (`executed`): `bin/test-layout --moved 7cd34d46 --from tests/test_a_unit_is_bounded_where_a_parser_decides.py --to tests/test_a_unit_is_bounded_where_a_parser_decides.py tests/test_coordinates.py` ends `test-layout: moved: 29 old cases, 50 items against 50 at 7cd34d46115a, 0 failed`, exit 0. No mutation table. `--pairs` names none.
+
+**Cases and seconds** (`executed`, serial, pytest's own figure): 50 items in 0.08 s before, in an archive of 7cd34d46; 51 in 0.10 s after over the two files, the census item among them.
+
+**The real-git cases kept.** None: no case runs git.
+
+**Phase 4's survivors.** None of h2, h12 and h23 is reached: no moved case calls `read`, `imported_roots` or `repo_relative` (`read`).
+
+**The boundary** (`executed`). At the tree committed as 31aed13b, before the commit with the new file staged: the two changed files, `tests/test_pact_check.py`, `tests/test_chain_check.py` and the two files comparing readers, the `git_listing` files, the censuses, `tests/test_test_layout.py`, `tests/test_conftest.py` and `tests/test_chain_hooks_hardening.py`, 28 files: 2,833 passed and 3 skipped. `bin/test-layout --check` exits 0, 167 files read, 121 declaring no `TARGET`; `bin/rules --check` exits 0 with 249 check lines; `bin/unverified-check seal/specs/` exits 0. Ruff checks and formats each changed file clean.
+
 ### What remains in phase 6
 
 - `hooks/`: `hooks/githooks.py` and `hooks/hook-install.py` wait on Q10. `hooks/answer-clear.py` has a file whose `Test_module` holds its two round trips and no `Test_main`.
