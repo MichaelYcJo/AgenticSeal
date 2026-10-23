@@ -6,8 +6,8 @@ Work item `1791089603-one-heredoc-shape-the-reader-matches-exactly-is-data`,
 `spec.md` *The shape*, scenario S4's reader half and S6 with Q3. Every admitted
 string here comes back as its reduced text, and every string that fails one
 clause comes back as None, which is what makes the gate read it as before. The
-gate's half of S4 is in `tests/test_one_heredoc_shape_is_data_to_the_commit_gate.py`,
-read without git, and in `tests/test_commit_review_gate.py::Test_main`.
+gate's half of S4 is in `tests/test_cmdline.py`, read without git, and in
+`tests/test_commit_review_gate.py::Test_main`.
 
 The reader decides where a body ends with an exact line comparison and no
 shell lexer. That is a claim about bash and zsh, and the shell rows measure it

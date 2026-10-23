@@ -11,11 +11,10 @@ its own, so the session id is the reset. The press is a stub of the reader
 `hooks/worktree_consent.py` owns, and whether git's hooks decide a clone is a
 stub of `hooks/githooks.py#decides`; each of those modules has its own file.
 
-How `hooks/cmdline.py` reads each shell shape stays where it stood, in
-`tests/test_a_commit_behind_a_wrapper_or_in_a_substitution_is_judged.py`,
-`tests/test_no_shape_the_base_stops_reads_silent.py` and
-`tests/test_one_heredoc_shape_is_data_to_the_commit_gate.py`, as reading cases
-with no git, for the phase that rebuilds that module.
+How `hooks/cmdline.py` reads each shell shape is `tests/test_cmdline.py`'s,
+reading cases with no git; until #942's phase 6 places the rest there,
+`tests/test_a_commit_behind_a_wrapper_or_in_a_substitution_is_judged.py` and
+`tests/test_no_shape_the_base_stops_reads_silent.py` keep theirs.
 
 #942's phase 6 placed here the gate's cases of
 `tests/test_gate_judges_the_repo_it_commits_to.py`,

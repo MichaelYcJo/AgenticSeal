@@ -23,17 +23,16 @@ import tokens
 
 def _corpora():
     """Every command of the three consent-token corpora: `tokens.given`'s own
-    cases, the commit gate's heredoc cases, and the worktree guard's token
-    cases."""
+    cases, the heredoc commands of its S6 case, and the worktree guard's
+    token cases."""
     import tempfile
 
-    import test_one_heredoc_shape_is_data_to_the_commit_gate as heredoc_cases
     import test_worktree_guard as guard_cases
-    from test_tokens import TOKEN_CASES
+    from test_tokens import TOKEN_CASES, every_case
 
     commands = [command for command, _ in TOKEN_CASES[0] if command is not None]
     with tempfile.TemporaryDirectory() as scratch:
-        commands += list(heredoc_cases.every_case(Path(scratch)))
+        commands += list(every_case(Path(scratch)))
     commands += list(guard_cases.TOKEN_COMMANDS)
     commands += [command for command, _ in guard_cases.BODY_TOKENS.values()]
     commands += [command for command, _ in guard_cases.TYPED_BESIDE_A_BODY.values()]
