@@ -1,6 +1,6 @@
 # Handoff: 1792628098-tests-rebuilt-one-file-per-module (#942)
 
-Written 2026-10-22 by the orchestrator, when the owner paused the build after phase 5's first proof under the new rule, and brought up to date on 2026-10-23 by the smith spawns that rebuilt the modules since. The branch is `chore/942-tests-rebuilt-one-file-per-module`, cut from `release/v0.22.3` at 6046f062. The tree this file describes is b770ca64 and the commit that updates this file.
+Written 2026-10-22 by the orchestrator, when the owner paused the build after phase 5's first proof under the new rule, and brought up to date on 2026-10-23 by the smith spawns that rebuilt the modules since. The branch is `chore/942-tests-rebuilt-one-file-per-module`, cut from `release/v0.22.3` at 6046f062. The tree this file describes is 6e7214be and the commit that updates this file.
 
 ## Where the build stands
 
@@ -8,8 +8,9 @@ Written 2026-10-22 by the orchestrator, when the owner paused the build after ph
 |---|---|
 | 1 to 4 | built: `bin/test-layout`, the slow-case report, the censuses in `tests/censuses.py`, the helper twins in `tests/conftest.py` |
 | 5 | closed at b770ca64: 11 modules rebuilt, plus the `mutation-check` batch mode |
-| 6 and 7 | not started |
-| Review | round 1 covered phases 1 to 4 at 8aa42bf8; its nine findings are answered, eight fixed at c6d2bfc4 and one deferred to phase 7; no verifying round has run yet |
+| 6 | open: its first step, `bin/test-layout --moved`, at 6e7214be; Batch B not started |
+| 7 | not started |
+| Review | round 1 covered phases 1 to 4 at 8aa42bf8; its nine findings are answered, eight fixed at c6d2bfc4 and one deferred to phase 7. Round 2 verified round 1's closes and reviewed phase 5 at cfb846b2; its four findings are fixed, answered in `rounds/round-2.md` at ac965ee7. Two commit-flow gaps from the orchestrator's kill matrix (issue #1014) are closed at 5a207e20 |
 
 The phase records `phases/phase-1.md` to `phases/phase-5.md` hold each module's cases, mutants and cut lines. `overview.md` holds the divergences from the frame.
 
@@ -59,11 +60,11 @@ The owner replaced the 100-mutant table on 2026-10-22 (`spec.md` *The proof of e
 
 ## Left for the next session
 
-1. See the commit flow's 43 cases and the worktree guard's cd case, which 7efbd4c6 and 3e5cbb59 fixed, `tests/test_seal.py`, `tests/test_noninferiority.py` and `tests/test_unverified_check.py`, pass on the Windows legs of the next CI run.
+1. See the commit flow's 43 cases and the worktree guard's cd case, which 7efbd4c6 and 3e5cbb59 fixed, `tests/test_seal.py`, `tests/test_noninferiority.py`, `tests/test_unverified_check.py`, `tests/test_test_layout.py::Test_moved` and the commit flow's two cases of 5a207e20, pass on the Windows legs of the next CI run.
 2. Place `hooks/root-migrate.py#move`'s empty directory, which the rebuild found and pinned as it is (`overview.md` *Not done*).
-3. A `## Rule changes` item, the framer's, for `docs/one-root-by-lifetime.md` and its Korean twin: the `check:` lines that name `seal.py`'s two old files (`overview.md` *Not done*). The worktree guard's sentences are in `spec.md` *Rule changes* since 099119b8.
-4. Phase 6, the remaining shipped modules one commit per directory, its first step the move check, and phase 7, `--all`, the `.test_durations` refresh and the closing memo.
-5. A verifying round over round 1's fixes and phase 5, then a round over phases 6 and 7, the broad gate, the sealer, the pull request into `release/v0.22.3`, and then the release preparation.
+3. The `## Rule changes` items for `docs/one-root-by-lifetime.md` and its Korean twin are in `spec.md` since 93a009c6, and the worktree guard's since 099119b8.
+4. Phase 6's Batch B, the remaining shipped modules one commit per directory, `hooks/` first, and phase 7, `--all`, the `.test_durations` refresh and the closing memo. Before Batch B: whether the move check should take several new files, since a module whose old file is split with another module's cannot pass it as built (`phases/phase-6.md` *What the frame's check cannot pass*), a question for the framer and the orchestrator.
+5. A round verifying round 2's fix pass and the move check, then a round over phases 6 and 7, the broad gate, the sealer, the pull request into `release/v0.22.3`, and then the release preparation.
 
 ## How a smith spawn for the next modules reads
 
