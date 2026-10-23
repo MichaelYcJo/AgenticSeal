@@ -104,8 +104,11 @@ file that keeps cases for a later group. It prints a line opening with
            in two places a case reaches, swapped between the trees,
            compare equal. A case is tested on this condition only where
            it passed the body and fixture conditions, and its line names
-           the first name, in alphabetical order, whose own definition
-           differs
+           every name whose own definition differs, those both trees reach
+           first and then those one tree's reading reaches alone, each run
+           in alphabetical order: `name <name>: its definition differs
+           from the base's` for one name, and `names <name>, <name>: their
+           definitions differ from the base's` for more
 
 It then prints the old cases, both counts and the failures on one last line.
 
@@ -811,12 +814,12 @@ class _Names:
 
 
 def _name_change(before, after):
-    """The first key, in alphabetical order, whose definitions BEFORE and
-    AFTER, `{key: forms}`, read apart where both reached it; else the first
-    key one side reached and the other did not; None where every one reads
-    alike."""
+    """Every key whose definitions BEFORE and AFTER, `{key: forms}`, read
+    apart where both reached it, then every key one side reached and the
+    other did not, each run in alphabetical order; an empty list where every
+    one reads alike."""
     apart = sorted(k for k in before.keys() & after.keys() if before[k] != after[k])
-    return (apart or sorted(before.keys() ^ after.keys()) or [None])[0]
+    return apart + sorted(before.keys() ^ after.keys())
 
 
 def _fixture_change(old, new, names):
@@ -906,10 +909,15 @@ def moved(old, new, old_modules=None, new_modules=None):
                 for at, at_class, fixture in _reached(resolve, before):
                     todo += side.items(at, at_class, fixture)
                 reached.append(side.forms(todo))
-            name = _name_change(*reached)
-            if name is not None:
+            names = _name_change(*reached)
+            if len(names) == 1:
                 lines.append(
-                    f"{where}: name {name}: its definition differs from the base's"
+                    f"{where}: name {names[0]}: its definition differs from the base's"
+                )
+            elif names:
+                lines.append(
+                    f"{where}: names {', '.join(names)}: their definitions differ "
+                    "from the base's"
                 )
     for left in standing.values():
         lines += [

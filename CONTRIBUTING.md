@@ -300,18 +300,21 @@ record of the work item that rebuilt the module, in four parts:
   written anew. A failing case that stands in a file declaring no `TARGET`
   counts for the shipped module whose function it calls as its subject.
   Where it calls no shipped module as its subject, as a check across files
-  or a case reading prose does, it counts for the definition its line
-  names, in the file that defines it in the working tree, and that
-  definition's decision points carry the mutants: each branch of a
-  function, and each entry of a collection the case reads. A module's
-  mutants sit at the decision points where a case accepts or refuses, one
-  or two per class and one more for each further decision point a
-  function holds, so their count follows the module's classes. They run
-  against the new file in one `bin/mutation-check` call with `-x` in its
-  tests command. The old files' column runs only for a mutant the new file
-  lets survive: where the old files miss it too, the table names an old
-  gap, and where they kill it, the new file gets a case seen red on that
-  mutant;
+  or a case reading prose does, it counts for every definition of a name
+  its line names that the working tree's reading reaches, in each file
+  that holds one, less any definition the base's reading also reaches in
+  the same file and as written. Those definitions' decision points carry
+  the mutants: each branch of a function, each entry of a collection the
+  case reads, and, for any other definition, the value it binds, an
+  import's module among them; they run against the cases whose lines send
+  them there and no others. A module's mutants sit at the decision points
+  where a case accepts or refuses, one or two per class and one more for
+  each further decision point a function holds, so their count follows
+  the module's classes. They run against the new file in one
+  `bin/mutation-check` call with `-x` in its tests command. The old files'
+  column runs only for a mutant the new file lets survive: where the old
+  files miss it too, the table names an old gap, and where they kill it,
+  the new file gets a case seen red on that mutant;
 - the module's cases and seconds before and after, from
   `bin/test <files> -q` on the machine that built it;
 - the real-git cases kept, each named;
