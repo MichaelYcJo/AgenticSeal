@@ -170,7 +170,7 @@ def run_gate(filename, payload):
         # failure no longer reads like an allow to NOBODY: `main()` writes it
         # down and the `stop` group says it once per session. The isolation
         # property `tests/test_dispatch.py` and
-        # `tests/test_the_implementer_is_recorded.py` assert is unchanged, and
+        # `tests/test_implementer_mark.py` assert is unchanged, and
         # both cases pass unedited.
         return ""
     finally:

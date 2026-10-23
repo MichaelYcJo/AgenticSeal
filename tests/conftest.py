@@ -1306,6 +1306,60 @@ def with_row(label, answer):
     return two_axis_text().replace("| Branch |", f"| {label} | {answer} |\n| Branch |")
 
 
+# --- the implementer family's declaration and calls -----------------------------
+
+ITEM = "1788137177-a-work-item"
+
+
+def run_dispatch(group, payload, hooks=HOOKS):
+    r = subprocess.run(
+        [sys.executable, os.path.join(hooks, "dispatch.py"), group],
+        input=json.dumps(payload),
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=30,
+    )
+    return r.stdout
+
+
+def declare(repo, implementation="smith", item=ITEM, planning=None):
+    """A declaration for this repo's branch; a `None` answer omits its row."""
+    d = repo / "seal" / "specs" / item
+    d.mkdir(parents=True, exist_ok=True)
+    third = f"| Implementation | {implementation} |\n" if implementation else ""
+    fourth = f"| Planning | {planning} |\n" if planning else ""
+    (d / "routing.md").write_text(
+        f"# {item} -- routing\n\n"
+        "| Axis | Answer |\n|---|---|\n"
+        "| Review | through the review chain |\n"
+        "| Destination | open the pull request |\n"
+        f"{fourth}"
+        f"{third}"
+        f"| Branch | {branch_of(repo)} |\n",
+        encoding="utf-8",
+    )
+    return d
+
+
+def spawn(repo, agent="specseal:smith", session="s1", **extra):
+    return {
+        "tool_name": "Agent",
+        "session_id": session,
+        "tool_input": {"subagent_type": agent, "prompt": "build it", **extra},
+        "cwd": str(repo),
+    }
+
+
+def bash(repo, cmd="git commit -m x", session="s1"):
+    return {
+        "tool_name": "Bash",
+        "session_id": session,
+        "tool_input": {"command": cmd},
+        "cwd": str(repo),
+    }
+
+
 # --- a console the gates cannot encode to --------------------------------------
 
 # Korean, which cp949 encodes and ASCII does not; it is in the payload on
