@@ -9,6 +9,10 @@ the process over one world built for the module: an opted-in repository on
 committed. Each case takes a copy and stages or commits in it. The commit
 gate's other readings, the waiver, the mark and the backstop, run as git runs
 them in the commit flow, `tests/e2e/commit/test_commit_flow.py`.
+
+`Test_pre_commit`'s parity case, a `git diff --cached` that fails, runs in the
+`repo` fixture and came from `tests/test_chain_hooks_hardening.py` (#942's
+phase 6).
 """
 
 import io
@@ -21,14 +25,18 @@ import pytest
 from conftest import (
     ROOT,
     STAMP_ITEM,
+    a_git_whose_diff_fails,
     census_case,
     commit_everything_as_e,
+    declare_routing,
     git,
     git_out,
     guarantee_record,
     load_module,
+    parity_repo,
     queued_values,
     routing_record,
+    stage,
 )
 
 TARGET = "hooks/commitgate.py"
@@ -330,6 +338,31 @@ class Test_pre_commit:
             session = ""
         assert before_the_commit(repo, session) == (0, "")
         assert refusals(repo) == []
+
+    def test_a_diff_git_could_not_take_is_asked_about_at_pre_commit(
+        self, repo, tmp_path, monkeypatch
+    ):
+        """S10 of work item 1791384157 (#868), the git hook. `pre-commit` reads the
+        staged paths with `git diff --cached`; where that fails, the parity arm
+        stands. Red at `5623d728`, where the hook let the commit through. The
+        branch declares `straight to the PR`, which quiets the review arm and
+        leaves the parity arm at the commit (#988)."""
+        if os.name == "nt":
+            pytest.skip("the shim is a POSIX shell script")
+        import io
+
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "hooks"))
+        import commitgate
+
+        parity_repo(repo)
+        declare_routing(repo, review="straight to the PR")
+        stage(repo, "service.py")
+        environ = {"CLAUDE_CODE_SESSION_ID": "s10"}
+        assert commitgate.pre_commit(str(repo), environ, io.StringIO()) == 1
+        monkeypatch.setenv("PATH", a_git_whose_diff_fails(tmp_path))
+        stream = io.StringIO()
+        assert commitgate.pre_commit(str(repo), environ, stream) == 1, stream.getvalue()
+        assert "parity" in stream.getvalue(), stream.getvalue()
 
 
 class Test__record_refusal:

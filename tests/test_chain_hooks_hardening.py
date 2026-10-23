@@ -1,10 +1,10 @@
 """Hardening cases: prose-mention false positives, cycle edges, lease isolation.
 
 The commit gate's cases that hold no rule a `check:` line names this file for
-are in `tests/test_commit_review_gate.py`'s `Test_main` (#942's phase 6). The
-parity arm's stay here: `docs/the-review-and-parity-arms.md` *Parity arm*
-names this file on its `check:` line, and the work item carries no rule change
-for that line.
+are in `tests/test_commit_review_gate.py`'s `Test_main` (#942's phase 6), and
+the parity arm's case of `hooks/commitgate.py#pre_commit` is in
+`tests/test_commitgate.py`. The parity arm's other cases stay here until the
+commit gate's group that places them.
 """
 
 import json
@@ -14,7 +14,16 @@ import subprocess
 import sys
 
 import pytest
-from conftest import decision_of, declare_routing, fired, opt_in, run_hook, stage
+from conftest import (
+    a_git_whose_diff_fails,
+    decision_of,
+    fired,
+    opt_in,
+    parity_only,
+    parity_repo,
+    run_hook,
+    stage,
+)
 
 
 def payload(cmd, repo, session="s1"):
@@ -176,31 +185,6 @@ def test_parity_declaration_is_bootstrappable_not_hand_written():
     )
 
 
-def parity_repo(repo):
-    """Declare the migration config — which now opts into the review arm too.
-
-    It used to be possible to declare parity alone, through the pre-0.10
-    `docs/parity.md`. That address is gone, and the current one lives INSIDE
-    `seal/`, so writing it creates the directory whose existence is the
-    review opt-in. The two arms are still evaluated independently — own
-    marker, own waiver token, own silence rules — but they can no longer be
-    declared independently, and `docs/commit-review-gate-spec.md` says so.
-
-    These cases are about the parity arm on its own, so they carry
-    `[no-review]` to silence the other one. That is the per-command waiver
-    doing exactly its job.
-    """
-    (repo / "seal").mkdir(exist_ok=True)
-    (repo / "seal" / "parity.md").write_text(
-        "| Original repo | org/legacy |\n", encoding="utf-8"
-    )
-
-
-def parity_only(command):
-    """`command` with the review arm waived, so the parity arm answers alone."""
-    return f"{command} [no-review]"
-
-
 def test_parity_repo_asks_when_code_commits_without_a_comparison(repo):
     parity_repo(repo)
     stage(repo, "service.py")
@@ -229,28 +213,6 @@ def test_the_parity_arms_plain_prompt_names_its_own_marker(repo):
     assert "[no-parity]" in reason and "[no-review]" not in reason
 
 
-def a_git_whose_diff_fails(tmp_path):
-    """A directory holding a `git` that exits 128 for any `diff` and runs the
-    real git otherwise (`questions.md` W1 of work item 1791384157: the shim,
-    because it names the failure on every git version)."""
-    import shutil
-    import stat
-
-    real = shutil.which("git")
-    assert real, "no git on PATH"
-    shim = tmp_path / "shim"
-    shim.mkdir()
-    script = shim / "git"
-    script.write_text(
-        "#!/bin/sh\n"
-        'for a in "$@"; do [ "$a" = diff ] && exit 128; done\n'
-        f'exec "{real}" "$@"\n',
-        encoding="utf-8",
-    )
-    script.chmod(script.stat().st_mode | stat.S_IXUSR)
-    return f"{shim}{os.pathsep}{os.environ.get('PATH', '')}"
-
-
 def test_a_diff_git_could_not_take_is_asked_about_by_the_parity_arm(repo, tmp_path):
     """S10 of work item 1791384157 (#868), the PreToolUse reading. Where `git
     diff` fails, the commit's paths are unknown, and a change git could not
@@ -269,32 +231,6 @@ def test_a_diff_git_could_not_take_is_asked_about_by_the_parity_arm(repo, tmp_pa
     )
     assert decision_of(out) == "deny", out
     assert "[no-parity]" in out, out
-
-
-def test_a_diff_git_could_not_take_is_asked_about_at_pre_commit(
-    repo, tmp_path, monkeypatch
-):
-    """S10 of work item 1791384157 (#868), the git hook. `pre-commit` reads the
-    staged paths with `git diff --cached`; where that fails, the parity arm
-    stands. Red at `5623d728`, where the hook let the commit through. The
-    branch declares `straight to the PR`, which quiets the review arm and
-    leaves the parity arm at the commit (#988)."""
-    if os.name == "nt":
-        pytest.skip("the shim is a POSIX shell script")
-    import io
-
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "hooks"))
-    import commitgate
-
-    parity_repo(repo)
-    declare_routing(repo, review="straight to the PR")
-    stage(repo, "service.py")
-    environ = {"CLAUDE_CODE_SESSION_ID": "s10"}
-    assert commitgate.pre_commit(str(repo), environ, io.StringIO()) == 1
-    monkeypatch.setenv("PATH", a_git_whose_diff_fails(tmp_path))
-    stream = io.StringIO()
-    assert commitgate.pre_commit(str(repo), environ, stream) == 1, stream.getvalue()
-    assert "parity" in stream.getvalue(), stream.getvalue()
 
 
 def test_the_backstop_hands_the_parity_arm_none_where_git_could_not_list(

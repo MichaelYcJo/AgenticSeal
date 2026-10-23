@@ -1201,6 +1201,52 @@ def opt_in(repo):
     (repo / "seal").mkdir(exist_ok=True)
 
 
+def parity_repo(repo):
+    """Declare the migration config — which now opts into the review arm too.
+
+    It used to be possible to declare parity alone, through the pre-0.10
+    `docs/parity.md`. That address is gone, and the current one lives INSIDE
+    `seal/`, so writing it creates the directory whose existence is the
+    review opt-in. The two arms are still evaluated independently — own
+    marker, own waiver token, own silence rules — but they can no longer be
+    declared independently, and `docs/commit-review-gate-spec.md` says so.
+
+    These cases are about the parity arm on its own, so they carry
+    `[no-review]` to silence the other one. That is the per-command waiver
+    doing exactly its job.
+    """
+    (repo / "seal").mkdir(exist_ok=True)
+    (repo / "seal" / "parity.md").write_text(
+        "| Original repo | org/legacy |\n", encoding="utf-8"
+    )
+
+
+def parity_only(command):
+    """`command` with the review arm waived, so the parity arm answers alone."""
+    return f"{command} [no-review]"
+
+
+def a_git_whose_diff_fails(tmp_path):
+    """A directory holding a `git` that exits 128 for any `diff` and runs the
+    real git otherwise (`questions.md` W1 of work item 1791384157: the shim,
+    because it names the failure on every git version)."""
+    import stat
+
+    real = shutil.which("git")
+    assert real, "no git on PATH"
+    shim = tmp_path / "shim"
+    shim.mkdir()
+    script = shim / "git"
+    script.write_text(
+        "#!/bin/sh\n"
+        'for a in "$@"; do [ "$a" = diff ] && exit 128; done\n'
+        f'exec "{real}" "$@"\n',
+        encoding="utf-8",
+    )
+    script.chmod(script.stat().st_mode | stat.S_IXUSR)
+    return f"{shim}{os.pathsep}{os.environ.get('PATH', '')}"
+
+
 def dirty(repo):
     """REPO with an uncommitted change to its tracked `f.txt`."""
     (repo / "f.txt").write_text("changed\n", encoding="utf-8")
