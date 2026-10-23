@@ -218,6 +218,15 @@ class Test_parse:
         assert [lab for lab, _ in routing.table_rows(doubled)].count(label) == 2
         assert routing.parse(doubled) is None, doubled
 
+    def test_refuses_a_review_answer_outside_the_vocabulary(self):
+        """The vocabulary is fixed: `maybe later` is not one of the two ways on,
+        so the file is no declaration and the commit gate asks. The gate's own
+        case runs the same answer through the hook; this one asks the parser."""
+        text = two_axis_text().replace(
+            f"| Review | {CHAIN} |", "| Review | maybe later |"
+        )
+        assert routing.parse(text) is None
+
     def test_refuses_an_unreadable_third_axis_as_an_answer_and_keeps_the_declaration(
         self,
     ):
@@ -495,6 +504,27 @@ class Test_module:
             "| Review | through the review chain |\n".encode("utf-16")
         )
         assert routing.declarations(str(repo)) == []
+
+    def test_a_routing_md_that_does_not_parse_is_left_out(self, tmp_path):
+        """A file under a work item that is no declaration is skipped, so the
+        list holds only what `parse` read; the readable one beside it stays.
+        The commit gate's case for a malformed declaration runs the hook; this
+        one asks the reader."""
+        repo = opted_in_repo(tmp_path / "declared" / "repo")
+        specs = repo / "seal" / "specs"
+        (specs / "1780000000-prose").mkdir(parents=True)
+        (specs / "1780000000-prose" / "routing.md").write_text(
+            "we decided to go through the review chain.\n", encoding="utf-8"
+        )
+        (specs / "1780000001-table").mkdir(parents=True)
+        (specs / "1780000001-table" / "routing.md").write_text(
+            two_axis_text(), encoding="utf-8"
+        )
+        found = routing.declarations(str(repo))
+        assert [os.path.basename(os.path.dirname(p)) for p, _ in found] == [
+            "1780000001-table"
+        ]
+        assert found[0][1]["review"] == CHAIN
 
 
 test_census = census_case(TARGET)
