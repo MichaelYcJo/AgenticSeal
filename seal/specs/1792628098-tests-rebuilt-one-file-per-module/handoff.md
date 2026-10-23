@@ -1,6 +1,6 @@
 # Handoff: 1792628098-tests-rebuilt-one-file-per-module (#942)
 
-Written 2026-10-22 by the orchestrator, when the owner paused the build after phase 5's first proof under the new rule, and brought up to date on 2026-10-23 by the smith spawns that rebuilt the modules since. The branch is `chore/942-tests-rebuilt-one-file-per-module`, cut from `release/v0.22.3` at 6046f062. The tree this file describes is 5d6640b2 and the commit that updates this file.
+Written 2026-10-22 by the orchestrator, when the owner paused the build after phase 5's first proof under the new rule, and brought up to date on 2026-10-23 by the smith spawns that rebuilt the modules since. The branch is `chore/942-tests-rebuilt-one-file-per-module`, cut from `release/v0.22.3` at 6046f062. The tree this file describes is f5185d67 and the commit that updates this file.
 
 ## Where the build stands
 
@@ -8,7 +8,7 @@ Written 2026-10-22 by the orchestrator, when the owner paused the build after ph
 |---|---|
 | 1 to 4 | built: `bin/test-layout`, the slow-case report, the censuses in `tests/censuses.py`, the helper twins in `tests/conftest.py` |
 | 5 | closed at b770ca64: 11 modules rebuilt, plus the `mutation-check` batch mode |
-| 6 | open: the move check at 6e7214be, its two sets at 43324e4e; Batch B's `hooks/` groups 1 to 13, from 0a86c1b4 to 5d6640b2, 23 modules placed, the creation flow in `tests/e2e/creation/`, the worktree guard's light files in its one file, and the commit gate's guarantee arm in `tests/test_commitgate.py`. The framer's `## Rule changes` items for the held-back groups are in `spec.md` at 066e619b, and groups 7 to 11 moved on them; the installer's line, for `hooks/githooks.py` and `hooks/hook-install.py`, waits on `questions.md` Q10, whose default is wait |
+| 6 | open: the move check at 6e7214be, its two sets at 43324e4e; Batch B's `hooks/` groups 1 to 14, from 0a86c1b4 to f5185d67, 23 modules placed, the creation flow in `tests/e2e/creation/`, the worktree guard's light files in its one file, the commit gate's guarantee arm in `tests/test_commitgate.py`, and the commit gate's light cases in its file. The framer's `## Rule changes` items for the held-back groups are in `spec.md` at 066e619b, and groups 7 to 14 moved on them; the installer's line, for `hooks/githooks.py` and `hooks/hook-install.py`, waits on `questions.md` Q10, whose default is wait. Five more lines that name files holding the commit gate's cases have no item, so the cases holding their rules stay (`phases/phase-6.md` group 14) |
 | 7 | not started |
 | Review | round 1 covered phases 1 to 4 at 8aa42bf8; its nine findings are answered, eight fixed at c6d2bfc4 and one deferred to phase 7. Round 2 verified round 1's closes and reviewed phase 5 at cfb846b2; its four findings are fixed, answered in `rounds/round-2.md` at ac965ee7. Two commit-flow gaps from the orchestrator's kill matrix (issue #1014) are closed at 5a207e20 |
 
@@ -50,6 +50,7 @@ Seconds are macOS wall time on a shared machine, from each module's record.
 | 11 | e94c6826 | `hooks/worktree_consent.py` | `100 old cases, 165 items against 165 at 167950a6e8bb, 0 failed` | the move check |
 | 12 | c512b123 | `hooks/worktree-guard.py`'s light files | `219 old cases, 358 items against 358 at 56fb82e0646c, 123 failed` | 110 lines the autouse fixture alone, five helper renames, one merge; 70 mutants, all red |
 | 13 | 5d6640b2 | `hooks/sealer-stamp.py`, `hooks/sealer-stamp-queue.py`, `hooks/commitgate.py`'s guarantee arm, written anew | none: rule 3 | 43 mutants over the three, 4 survivors, every one an old gap; 62 items in 35.96 s before, 91 in 10.98 s after |
+| 14 | f5185d67 | `hooks/commit-review-gate.py`'s light cases, less those holding the rules of five lines with no item | `144 old cases, 187 items against 187 at 9818ee1a991f, 90 failed` | 32 lines the autouse fixture alone, the routing helper renamed, two merges; 40 mutants, 6 survivors: 4 old gaps, and 2 the old files kill through cases that did not move |
 
 `phases/phase-6.md` holds each group's command, cases and seconds, mutants and cases left in place.
 
@@ -83,8 +84,9 @@ The owner replaced the 100-mutant table on 2026-10-22 (`spec.md` *The proof of e
 1. See the files phase 6 writes after 1b0e7c23 pass on the Windows and ubuntu legs of the next CI run. CI run 39895069406 at 1b0e7c23 passed every file written before it on those legs, the commit flow, `tests/test_seal.py`, `tests/test_noninferiority.py`, `tests/test_unverified_check.py`, `Test_moved` and groups 1 to 6 among them; it failed `CONTRIBUTING.md`'s line wrap, re-wrapped since, and the durations case.
 2. Place `hooks/root-migrate.py#move`'s empty directory, which the rebuild found and pinned as it is (`overview.md` *Not done*).
 3. The `## Rule changes` items for `docs/one-root-by-lifetime.md` and its Korean twin are in `spec.md` since 93a009c6, and the worktree guard's since 099119b8.
-4. The rest of phase 6's Batch B, `hooks/` from the commit gate's light cases on (`phases/phase-6.md` *What remains in phase 6*) and the seven other directories, and phase 7, `--all`, the `.test_durations` refresh and the closing memo.
-5. A round verifying round 2's fix pass and the move check, then a round over phases 6 and 7, the broad gate, the sealer, the pull request into `release/v0.22.3`, and then the release preparation.
+4. The five `## Rule changes` items group 14 found missing, for `docs/commit-review-gate-spec.md` lines 83, 125 and 139 and `docs/the-review-and-parity-arms.md` lines 52 and 141, which are the framer's to write (`phases/phase-6.md` group 14).
+5. The rest of phase 6's Batch B, `hooks/` from the shared readers on, and the commit gate's cases those five lines hold once their items exist (`phases/phase-6.md` *What remains in phase 6*), the seven other directories, and phase 7, `--all`, the `.test_durations` refresh and the closing memo.
+6. A round verifying round 2's fix pass and the move check, then a round over phases 6 and 7, the broad gate, the sealer, the pull request into `release/v0.22.3`, and then the release preparation.
 
 ## How a smith spawn for the next modules reads
 
