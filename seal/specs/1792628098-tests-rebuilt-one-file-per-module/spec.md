@@ -557,5 +557,4 @@ Framed 2026-10-22 by framer, before the build.
 Reframed 2026-10-23 by framer, after round 3.
 Reframed 2026-10-24 by framer, after round 4.
 Reframed 2026-10-24 by framer, after round 5.
-Reframed 2026-10-24 by framer, after round 5's fix pass.
-Reframed 2026-10-24 by framer, after round 5's second fix pass.
+Reframed 2026-10-24 by framer, after round 5.
