@@ -511,6 +511,10 @@ def no_suite(result):
     result["specseal"]["suite_rev"] = None
 
 
+def no_agent(result):
+    result["specseal"]["agent"] = "nobody"
+
+
 def with_c2(result):
     case = json.loads(json.dumps(result["cases"][0]))
     case.update(name="warden c2", dir="evals/behaviour/warden/c2")
@@ -729,7 +733,7 @@ class Test_apart:
     @pytest.mark.parametrize(
         "text",
         [
-            "x\nexample.com answered it.",
+            "x\n" + "example.com answered it.",
             f"ends at {USER_ROOT}\nand",
             f'"{USER_ROOT}" + x',
         ],
@@ -2352,6 +2356,13 @@ class Test_regrade:
                 "warden c1: its truth",
             ),
             ("own", "wide", [True, False], no_suite, "suite is unknown"),
+            (
+                "own",
+                "wide",
+                [True, False],
+                no_agent,
+                "records no agent or no suite_rev",
+            ),
             ("own", "more", [True, False], with_c2, "warden c2: the suite it ran"),
             ("more", "wide", [True, False], with_c2, "warden c2: the suite at"),
             ("own", "prompt", [True, False], None, "warden c1: the suite at"),
@@ -2367,6 +2378,7 @@ class Test_regrade:
             "the-side-score-does-not-reproduce",
             "a-truth-not-its-suites",
             "no-suite",
+            "an-agent-of-no-suite",
             "a-case-its-own-suite-lacks",
             "a-case-the-target-lacks",
             "a-non-truth-file-differs",
