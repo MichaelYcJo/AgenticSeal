@@ -13,7 +13,9 @@ import subprocess
 import time
 
 import pytest
-from conftest import load_hook_module, opt_in, run_hook
+from conftest import census_case, load_hook_module, opt_in, run_hook
+
+TARGET = "hooks/version-check.py"
 
 
 @pytest.fixture
@@ -45,91 +47,197 @@ def drive(hook, repo, running=(0, 7, 1), remote=(0, 8, 0), monkeypatch=None):
     return buf.getvalue(), calls
 
 
-# --- it speaks only when there is something to say -------------------------
+class Test_main:
+    # --- it speaks only when there is something to say ---------------------
+
+    def test_accepts_a_newer_release_and_warns(self, hook, repo):
+        opt_in(repo)
+        out, _ = drive(hook, repo, running=(0, 7, 1), remote=(0, 8, 0))
+        msg = json.loads(out)["systemMessage"]
+        assert "0.8.0" in msg and "0.7.1" in msg
+
+    def test_accepts_a_warning_that_names_both_commands_in_order(self, hook, repo):
+        opt_in(repo)
+        out, _ = drive(hook, repo)
+        msg = json.loads(out)["systemMessage"]
+        assert msg.index("marketplace update specseal") < msg.index(
+            "update specseal@specseal"
+        )
+        assert "restart" in msg.lower()
+
+    def test_accepts_a_warning_that_names_the_cheap_move_before_the_expensive_one(
+        self, hook, repo
+    ):
+        """`/reload-plugins` costs no session and a restart costs the one you
+        are in, so the cheaper move is named first — and the notice may not
+        oversell it. The experiment behind this
+        (`docs/experiments/2026-09-03-skill-preload-and-the-copy-in-force.md`,
+        run 6) measured one thing: a preloaded skill body handed to a SPAWNED
+        AGENT is re-read at a reload. It measured nothing about hooks and
+        nothing about agent definitions, and its sentinel sat in the running
+        version's own directory, so it says nothing about picking up a newly
+        installed one either.
+
+        THE WHOLE MESSAGE IS PINNED, EXACTLY, because a predicate over this
+        prose cannot be written. Four were tried and each was blind one word
+        over:
+
+          1. the words appear anywhere in the message;
+          2. the words appear in the SENTENCE that makes the claim;
+          3. the clause from `install` to the next comma carries the negation;
+          4. and no adversative from a four-word list follows it.
+
+        `unmeasured, yet it is picked up` walks through all four and tells a
+        user the opposite of what run 6 found. English has more ways to hand
+        an axis back than a list can hold, so this stops being a list.
+
+        What that costs, stated rather than discovered: a legitimate rewording
+        fails this case. That is the cost being accepted, because the wording
+        IS the contract here — it is what a user reads about what was measured,
+        and whoever changes it should have to state the new text deliberately
+        instead of satisfying a checker.
+
+        What this does NOT do is check a REWORDING. An author who changes the
+        notice and pastes the new text in here passes both cases — measured,
+        with the golden brought along each time: an overclaim added to the
+        reload's claim, the gap flipped to `unmeasured, yet it is picked up`,
+        the restart named before the reload, and the `measured` and `skill
+        bodies` labels dropped. Every one left the module at `18 passed`.
+
+        The one property the pair still holds across a rewording is the scope
+        qualifier, because
+        `test_the_notice_agrees_with_the_docstring_about_what_a_reload_re_reads`
+        looks for it independently. Everything else is carried by the message
+        below, which is an instruction to a person rather than a check.
+        """
+        opt_in(repo)
+        out, _ = drive(hook, repo)
+        msg = json.loads(out)["systemMessage"]
+
+        assert msg == (
+            "SpecSeal 0.8.0 is out; this session is running 0.7.1.\n"
+            "Run /specseal:update — it takes the release and tells you what is in "
+            "it, which the version number does not.\n"
+            "By hand: `claude plugin marketplace update specseal` then "
+            "`claude plugin update specseal@specseal`, in that order. The second "
+            "alone reports 'already at the latest version' against stale local "
+            "data.\nThen load it. /reload-plugins costs no session, and what was "
+            "measured is a re-read of preloaded skill bodies out of the copy you "
+            "are already on. Whether it reaches hooks, agent definitions, or the "
+            "version you just installed is unmeasured, so restart for those."
+        ), (
+            "the notice changed. State the new text here deliberately — and check "
+            "it against run 6: the reload's claim carries its subject and the copy "
+            "it re-reads, and all three unmeasured axes are named as unmeasured "
+            "rather than left to silence"
+        )
+
+    def test_refuses_to_speak_when_current(self, hook, repo):
+        opt_in(repo)
+        out, _ = drive(hook, repo, running=(0, 8, 0), remote=(0, 8, 0))
+        assert out == ""
+
+    def test_refuses_to_speak_when_ahead_of_the_newest_tag(self, hook, repo):
+        """A maintainer's working tree is ahead; telling them to downgrade is wrong."""
+        opt_in(repo)
+        out, _ = drive(hook, repo, running=(0, 9, 0), remote=(0, 8, 0))
+        assert out == ""
+
+    # --- the three limits --------------------------------------------------
+
+    def test_refuses_output_and_network_without_the_opt_in(self, hook, repo):
+        out, calls = drive(hook, repo)
+        assert out == ""
+        assert calls == [], "reached the network in a repo that never opted in"
+
+    def test_refuses_to_speak_when_offline(self, hook, repo):
+        opt_in(repo)
+        out, calls = drive(hook, repo, remote=None)
+        assert calls, "did not even try the lookup"
+        assert out == ""
+
+    # --- a hook that crashes must not wedge the session --------------------
+
+    def test_refuses_malformed_stdin_silently(self):
+        assert run_hook("version-check.py", None) == ""
+
+    def test_refuses_a_missing_cwd_silently(self):
+        assert run_hook("version-check.py", {}) == ""
+
+    def test_refuses_a_path_that_is_not_a_repo_silently(self, tmp_path):
+        assert run_hook("version-check.py", {"cwd": str(tmp_path)}) == ""
 
 
-def test_warns_when_a_newer_release_exists(hook, repo):
-    opt_in(repo)
-    out, _ = drive(hook, repo, running=(0, 7, 1), remote=(0, 8, 0))
-    msg = json.loads(out)["systemMessage"]
-    assert "0.8.0" in msg and "0.7.1" in msg
+class Test_due:
+    def test_accepts_a_check_a_day_later(self, hook, repo):
+        opt_in(repo)
+        drive(hook, repo)
+        os.utime(hook.MARKER, (0, 0))
+        out, calls = drive(hook, repo)
+        assert calls, "never rechecked after the interval elapsed"
+        assert json.loads(out)["systemMessage"]
+
+    def test_refuses_a_second_network_call_the_same_day(self, hook, repo):
+        opt_in(repo)
+        drive(hook, repo)
+        out, calls = drive(hook, repo)
+        assert out == ""
+        assert calls == [], "checked twice in one day"
 
 
-def test_the_warning_names_both_commands_in_order(hook, repo):
-    opt_in(repo)
-    out, _ = drive(hook, repo)
-    msg = json.loads(out)["systemMessage"]
-    assert msg.index("marketplace update specseal") < msg.index(
-        "update specseal@specseal"
-    )
-    assert "restart" in msg.lower()
+class Test_retry_soon:
+    def test_accepts_a_failed_lookup_and_costs_minutes_not_the_day(self, hook, repo):
+        """Offline at session start must not spend the notice until tomorrow."""
+        opt_in(repo)
+        drive(hook, repo, remote=None)
+        assert os.path.exists(hook.MARKER), "throttle was never stamped"
+
+        # Still held: a failure must not make every session retry a hanging call.
+        out, calls = drive(hook, repo, running=(0, 7, 1), remote=(0, 8, 0))
+        assert out == "" and not calls, "retried immediately after a failure"
+
+        # RETRY seconds later — not INTERVAL — it asks again and says its piece.
+        # Without the handback the marker would still read as stamped just now,
+        # and twenty minutes off a day leaves this silent.
+        m = os.path.getmtime(hook.MARKER)
+        os.utime(hook.MARKER, (m - hook.RETRY, m - hook.RETRY))
+        out, _ = drive(hook, repo, running=(0, 7, 1), remote=(0, 8, 0))
+        assert "0.8.0" in out
+
+    def test_refuses_a_remote_with_no_tags_and_keeps_the_full_day(self, hook, repo):
+        """An answer, not a failure: nothing to retry for."""
+        opt_in(repo)
+        out, _ = drive(hook, repo, remote=())
+        assert out == ""
+        age = time.time() - os.path.getmtime(hook.MARKER)
+        assert age < hook.RETRY, "backed off as if the lookup had failed"
 
 
-def test_the_warning_names_the_cheap_move_before_the_expensive_one(hook, repo):
-    """`/reload-plugins` costs no session and a restart costs the one you are
-    in, so the cheaper move is named first — and the notice may not oversell
-    it. The experiment behind this
-    (`docs/experiments/2026-09-03-skill-preload-and-the-copy-in-force.md`,
-    run 6) measured one thing: a preloaded skill body handed to a SPAWNED
-    AGENT is re-read at a reload. It measured nothing about hooks and nothing
-    about agent definitions, and its sentinel sat in the running version's own
-    directory, so it says nothing about picking up a newly installed one
-    either.
+class Test_latest:
+    """latest() tells "asked, no tags" from "could not ask" — the throttle
+    branches on it, so a stub in `drive` could not carry these."""
 
-    THE WHOLE MESSAGE IS PINNED, EXACTLY, because a predicate over this prose
-    cannot be written. Four were tried and each was blind one word over:
+    def test_accepts_an_untagged_remote_as_an_answer(self, hook, tmp_path):
+        remote = tmp_path / "untagged.git"
+        subprocess.run(["git", "init", "-q", "--bare", str(remote)], check=True)
+        assert hook.latest(str(remote)) == (), "a reachable remote read as a failure"
 
-      1. the words appear anywhere in the message;
-      2. the words appear in the SENTENCE that makes the claim;
-      3. the clause from `install` to the next comma carries the negation;
-      4. and no adversative from a four-word list follows it.
-
-    `unmeasured, yet it is picked up` walks through all four and tells a user
-    the opposite of what run 6 found. English has more ways to hand an axis
-    back than a list can hold, so this stops being a list.
-
-    What that costs, stated rather than discovered: a legitimate rewording
-    fails this case. That is the cost being accepted, because the wording IS
-    the contract here — it is what a user reads about what was measured, and
-    whoever changes it should have to state the new text deliberately instead
-    of satisfying a checker.
-
-    What this does NOT do is check a REWORDING. An author who changes the
-    notice and pastes the new text in here passes both cases — measured, with
-    the golden brought along each time: an overclaim added to the reload's
-    claim, the gap flipped to `unmeasured, yet it is picked up`, the restart
-    named before the reload, and the `measured` and `skill bodies` labels
-    dropped. Every one left the module at `18 passed`.
-
-    The one property the pair still holds across a rewording is the scope
-    qualifier, because
-    `test_the_notice_agrees_with_the_docstring_about_what_a_reload_re_reads`
-    looks for it independently. Everything else is carried by the message
-    below, which is an instruction to a person rather than a check.
-    """
-    opt_in(repo)
-    out, _ = drive(hook, repo)
-    msg = json.loads(out)["systemMessage"]
-
-    assert msg == (
-        "SpecSeal 0.8.0 is out; this session is running 0.7.1.\n"
-        "Run /specseal:update — it takes the release and tells you what is in "
-        "it, which the version number does not.\n"
-        "By hand: `claude plugin marketplace update specseal` then "
-        "`claude plugin update specseal@specseal`, in that order. The second "
-        "alone reports 'already at the latest version' against stale local "
-        "data.\nThen load it. /reload-plugins costs no session, and what was "
-        "measured is a re-read of preloaded skill bodies out of the copy you "
-        "are already on. Whether it reaches hooks, agent definitions, or the "
-        "version you just installed is unmeasured, so restart for those."
-    ), (
-        "the notice changed. State the new text here deliberately — and check "
-        "it against run 6: the reload's claim carries its subject and the copy "
-        "it re-reads, and all three unmeasured axes are named as unmeasured "
-        "rather than left to silence"
-    )
+    def test_refuses_a_remote_it_cannot_ask(self, hook, tmp_path):
+        assert hook.latest(str(tmp_path / "does-not-exist.git")) is None
 
 
+class Test_parse:
+    def test_accepts_the_repo_tag_format(self, hook):
+        assert hook.parse("v0.7.1") == (0, 7, 1)
+        assert hook.parse("0.7.1") == (0, 7, 1)
+
+    def test_refuses_unrecognised_tag_shapes(self, hook):
+        """A tag scheme this does not know must degrade to silence, not a wrong warn."""
+        for bad in ("specseal--v0.7.1", "release-0.7", "v1.2", "", None, "latest"):
+            assert hook.parse(bad) is None, bad
+
+
+# Left for #923, under its name: its assertion reads the module's docstring.
 def test_the_notice_agrees_with_the_docstring_about_what_a_reload_re_reads(hook):
     """The module docstring scopes a reload to the copy already in force. A
     notice that sells the reload as the way to load the NEW version contradicts
@@ -164,113 +272,4 @@ def test_the_notice_agrees_with_the_docstring_about_what_a_reload_re_reads(hook)
     )
 
 
-def test_silent_when_current(hook, repo):
-    opt_in(repo)
-    out, _ = drive(hook, repo, running=(0, 8, 0), remote=(0, 8, 0))
-    assert out == ""
-
-
-def test_silent_when_ahead_of_the_newest_tag(hook, repo):
-    """A maintainer's working tree is ahead; telling them to downgrade is wrong."""
-    opt_in(repo)
-    out, _ = drive(hook, repo, running=(0, 9, 0), remote=(0, 8, 0))
-    assert out == ""
-
-
-# --- the three limits ------------------------------------------------------
-
-
-def test_no_opt_in_means_no_output_and_no_network(hook, repo):
-    out, calls = drive(hook, repo)
-    assert out == ""
-    assert calls == [], "reached the network in a repo that never opted in"
-
-
-def test_second_run_the_same_day_makes_no_network_call(hook, repo):
-    opt_in(repo)
-    drive(hook, repo)
-    out, calls = drive(hook, repo)
-    assert out == ""
-    assert calls == [], "checked twice in one day"
-
-
-def test_a_day_later_it_checks_again(hook, repo):
-    opt_in(repo)
-    drive(hook, repo)
-    os.utime(hook.MARKER, (0, 0))
-    out, calls = drive(hook, repo)
-    assert calls, "never rechecked after the interval elapsed"
-    assert json.loads(out)["systemMessage"]
-
-
-def test_offline_stays_silent(hook, repo):
-    opt_in(repo)
-    out, calls = drive(hook, repo, remote=None)
-    assert calls, "did not even try the lookup"
-    assert out == ""
-
-
-def test_a_failed_lookup_costs_minutes_not_the_day(hook, repo):
-    """Offline at session start must not spend the notice until tomorrow."""
-    opt_in(repo)
-    drive(hook, repo, remote=None)
-    assert os.path.exists(hook.MARKER), "throttle was never stamped"
-
-    # Still held: a failure must not make every session retry a hanging call.
-    out, calls = drive(hook, repo, running=(0, 7, 1), remote=(0, 8, 0))
-    assert out == "" and not calls, "retried immediately after a failure"
-
-    # RETRY seconds later — not INTERVAL — it asks again and says its piece.
-    # Without the handback the marker would still read as stamped just now,
-    # and twenty minutes off a day leaves this silent.
-    m = os.path.getmtime(hook.MARKER)
-    os.utime(hook.MARKER, (m - hook.RETRY, m - hook.RETRY))
-    out, _ = drive(hook, repo, running=(0, 7, 1), remote=(0, 8, 0))
-    assert "0.8.0" in out
-
-
-def test_a_remote_with_no_tags_keeps_the_full_day(hook, repo):
-    """An answer, not a failure: nothing to retry for."""
-    opt_in(repo)
-    out, _ = drive(hook, repo, remote=())
-    assert out == ""
-    age = time.time() - os.path.getmtime(hook.MARKER)
-    assert age < hook.RETRY, "backed off as if the lookup had failed"
-
-
-def test_an_untagged_remote_answers_rather_than_failing(hook, tmp_path):
-    """latest() tells "asked, no tags" from "could not ask" — the throttle
-    branches on it, so a stub in `drive` could not carry this one."""
-    remote = tmp_path / "untagged.git"
-    subprocess.run(["git", "init", "-q", "--bare", str(remote)], check=True)
-    assert hook.latest(str(remote)) == (), "a reachable remote read as a failure"
-    assert hook.latest(str(tmp_path / "does-not-exist.git")) is None
-
-
-# --- parsing ---------------------------------------------------------------
-
-
-def test_version_parsing_accepts_the_repo_tag_format(hook):
-    assert hook.parse("v0.7.1") == (0, 7, 1)
-    assert hook.parse("0.7.1") == (0, 7, 1)
-
-
-def test_unrecognised_tag_shapes_are_not_versions(hook):
-    """A tag scheme this does not know must degrade to silence, not a wrong warn."""
-    for bad in ("specseal--v0.7.1", "release-0.7", "v1.2", "", None, "latest"):
-        assert hook.parse(bad) is None, bad
-
-
-# --- a hook that crashes must not wedge the session ------------------------
-
-
-def test_malformed_stdin_stays_silent():
-    assert run_hook("version-check.py", None) == ""
-
-
-def test_missing_cwd_stays_silent():
-    assert run_hook("version-check.py", {}) == ""
-
-
-def test_a_path_that_is_not_a_repo_stays_silent(tmp_path):
-    assert run_hook("version-check.py", {"cwd": str(tmp_path)}) == ""
+test_census = census_case(TARGET)

@@ -991,6 +991,36 @@ def load_module(path, name):
     return module
 
 
+def load(relative, name):
+    path = os.path.join(ROOT, *relative.split("/"))
+    spec = importlib.util.spec_from_file_location(name, path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def git_repo(where):
+    where.mkdir(parents=True, exist_ok=True)
+    for args in (
+        ["init", "-q"],
+        ["config", "user.email", "t@t.example"],
+        ["config", "user.name", "t"],
+    ):
+        subprocess.run(
+            ["git", "-C", str(where), *args], check=True, capture_output=True
+        )
+    (where / "f.txt").write_text("one\n", encoding="utf-8")
+    subprocess.run(
+        ["git", "-C", str(where), "add", "-A"], check=True, capture_output=True
+    )
+    subprocess.run(
+        ["git", "-C", str(where), "commit", "-qm", "base"],
+        check=True,
+        capture_output=True,
+    )
+    return where
+
+
 def git(repo, *args, check=True):
     """git driven from Python in REPO, so no Bash line carries a commit
     (contract rule 8); the completed process."""
