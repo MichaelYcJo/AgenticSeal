@@ -301,7 +301,35 @@ The dispatcher's mutants sit at `run_gate`'s phase, its `SystemExit` catch in `m
 
 **The real-git cases kept.** None in `tests/test_routing.py`: the parser reads text, and `declarations` reads a directory. The commit gate's cases in the old file run the hook against the `repo` fixture.
 
-**The boundary** (`executed`). At the tree committed as 4f50aee0: the two files, every test file naming `two_axis_text`, `with_row`, `block_shapes` or `routing`, the `git_listing` files, the censuses, `tests/test_test_layout.py`, `tests/test_conftest.py` and `tests/test_chain_hooks_hardening.py`, 64 files: 4,620 passed and 2 skipped. At 6c126f35, `tests/test_routing.py`: 45 passed. `bin/test-layout --check` exits 0, 160 files read, 128 declaring no `TARGET`; `bin/rules --check` exits 0. Ruff clean on each changed file.
+**The boundary, routing** (`executed`). At the tree committed as 4f50aee0: the two files, every test file naming `two_axis_text`, `with_row`, `block_shapes` or `routing`, the `git_listing` files, the censuses, `tests/test_test_layout.py`, `tests/test_conftest.py` and `tests/test_chain_hooks_hardening.py`, 64 files: 4,620 passed and 2 skipped. At 6c126f35, `tests/test_routing.py`: 45 passed. `bin/test-layout --check` exits 0, 160 files read, 128 declaring no `TARGET`; `bin/rules --check` exits 0. Ruff clean on each changed file.
+
+### Batch B, `hooks/`, group 9, at d8bba633
+
+**The modules.** `hooks/implementer-mark.py`, whose eight cases were the mark's in `tests/test_the_implementer_is_recorded.py`, now `tests/test_implementer_mark.py` (`Test_main`, `Test_module`); and `hooks/implementer-notice.py`, whose fifteen were the notice's, now `tests/test_implementer_notice.py` (`Test_main`). `hooks/implementer.py` has no file: every case reaches it through one of the two hooks, and the mark file loads it to ask `stands`, as `questions.md` says. The old file keeps `test_the_commit_gate_decides_identically_with_the_row_and_without`, which runs the commit gate's hook alone and waits for the commit gate's group; the `check:` line of `docs/commit-review-gate-spec.md` *The implementer mark and notice* moves through its `## Rule changes` item to the two new files and `tests/test_commit_review_gate.py`.
+
+**The move check** (`executed`):
+
+`bin/test-layout --moved 8dedf9e4 --from tests/test_the_implementer_is_recorded.py --to tests/test_implementer_mark.py tests/test_implementer_notice.py tests/test_the_implementer_is_recorded.py`
+
+`test-layout: moved: 24 old cases, 24 items against 24 at 8dedf9e4698c, 3 failed`, exit 1. As first placed it ended `0 failed`. Then `--pairs` named `test_the_other_answer_is_not_a_defect` and `test_an_unreadable_answer_says_nothing_either`, whose bodies differ by one string, and they became `Test_main::test_refuses_an_answer_that_names_no_agent`, parametrized over the two answers; the three lines are that merge. The two modules share the one old file, so both run the mutants, and so does `hooks/implementer.py`, which the moved cases reach.
+
+**Helpers.** `ITEM`, `run_dispatch`, `declare`, `spawn` and `bash` serve the two new files and the old one, so they moved to `tests/conftest.py`. `hooks/dispatch.py`'s comment on the isolation property and `bin/arm-check`'s usage example name the new files.
+
+**The mutation tables** (`executed`, one batch per module with `-x`; the old column in an archive of 8dedf9e4, against the old file, for the survivors only).
+
+| Module | Mutants | New column | Old column | Old gaps |
+|---|---|---|---|---|
+| `hooks/implementer-mark.py` | 4 | 3 red, 1 survived | 1 survived | `main` taking a tool other than `Agent` or `Task`, which no case sends |
+| `hooks/implementer.py`, over both new files | 5 | 3 red, 2 survived | 2 survived | `git_dir` answering on a non-zero exit; `write` writing an empty branch, a detached HEAD |
+| `hooks/implementer-notice.py` | 13 | 8 red, 5 survived | 5 survived | `commits` reading the command without dropping comments and heredoc bodies; `already_told` taking a missing or dot session id; `notify` skipping the opt-in, which `for_branch` already answers with nothing outside an opted-in repository; `main` taking a tool other than Bash; the one-axis line's `no smith was spawned`, which no case reads |
+
+The mutants sit at the mark hook's tool test, agent test, opt-in and branch; `implementer.py`'s git exit, `write`'s branch test, `stands`' comparison and `mark_for`'s qualifier and exact match; and the notice's declared and standing tests in `unfulfilled`, the one-line and joined wording in `line`, `commits`' subcommand test and its cleaning, `already_told`'s record and session tests, `notify`'s opt-in, and `main`'s tool, commit and `githooks.decides` tests. No case was added: every survivor is an old gap.
+
+**Cases and seconds** (`executed`, serial): 24 items in 4.38 s before, in the archive; 26 items in 4.64 s after, over the three files.
+
+**The real-git cases kept.** Every case: the hooks run through the dispatcher against the `repo` fixture, and the mark is a file in the git dir git names.
+
+**The boundary** (`executed`). At the tree committed as d8bba633: the three files, every test file naming `run_dispatch`, `declare`, `spawn`, `ITEM` or `bash(`, every file naming `arm-check`, the `git_listing` files, the censuses, `tests/test_dispatch.py`, `tests/test_test_layout.py`, `tests/test_conftest.py` and `tests/test_chain_hooks_hardening.py`, 82 files: 4,681 passed and 10 skipped. `bin/test-layout --check` exits 0, 162 files read, 128 declaring no `TARGET`; `--pairs` names none in the new files; `bin/rules --check` exits 0. Ruff clean on each changed file.
 
 ### What `hooks/` holds back
 
