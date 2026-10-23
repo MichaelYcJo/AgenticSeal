@@ -583,6 +583,24 @@ OLD_A, OLD_B = "tests/test_old_a.py", "tests/test_old_b.py"
 OLD_C, OLD_D, D = "tests/test_old_c.py", "tests/test_old_d.py", "tests/test_d.py"
 CONFTEST, SHAPES_D = "tests/conftest.py", "tests/shapes_d.py"
 OLD_G, G = "tests/test_old_g.py", "tests/test_g.py"
+# A case that imports inside its own body, and a helper that does.
+INSIDE = (
+    "def test_inside():\n"
+    "    import tempfile\n"
+    "\n"
+    "    from test_e import V\n"
+    "\n"
+    "    assert V and tempfile.gettempdir()\n"
+)
+VIEW = "def view():\n    import test_e\n\n    return test_e.V\n\n\n"
+OLD_H, H = "tests/test_old_h.py", "tests/test_h.py"
+OLD_K, K = "tests/test_old_k.py", "tests/test_k.py"
+INSIDE_NEW = "class Test_module:\n" + textwrap.indent(
+    INSIDE.replace("():", "(self):"), "    "
+)
+VIEW_NEW = (
+    VIEW + "class Test_module:\n    def test_view(self):\n        assert view()\n"
+)
 MARKED = 'import pytest\n\npytestmark = pytest.mark.usefixtures("box")\n\n\n'
 # `test_old_a.py` split between two modules' files, one case to each.
 SPLIT = {
@@ -632,10 +650,12 @@ def _moved_world(tmp_path_factory):
     write(repo, OLD_C, MOVED_OLD_C)
     write(repo, OLD_D, MOVED_OLD_D)
     write(repo, SHAPES_D, SHAPES)
-    write(repo, "tests/test_e.py", "V = 1\n")
+    write(repo, "tests/test_e.py", "V = 1\nW = 1\n")
     write(
         repo, OLD_G, "import test_e\n\n\ndef test_attribute():\n    assert test_e.V\n"
     )
+    write(repo, OLD_H, INSIDE)
+    write(repo, OLD_K, VIEW + "def test_view():\n    assert view()\n")
     write(repo, "tests/data/rows.txt", "a 1\n")
     return repo, commit_everything_as_e(repo, "base")
 
@@ -696,7 +716,8 @@ class Test_moved:
                 ),
                 (NAMED_NEW, {"tests/held.py/rows.txt": "a 1\n"}),
             ]
-        ],
+        ]
+        + [({H: INSIDE_NEW}, {"tests/test_e.py": "V = 1\nW = 2\n"}, (OLD_H,), 1, 1)],
         ids=[
             "every-kind-of-move",
             "a-nested-docstring-re-indented",
@@ -706,6 +727,7 @@ class Test_moved:
             "a-name-a-helper-stores-for-itself-changed",
             "a-name-imported-from-another-test-file",
             "a-directory-named-like-a-module",
+            "a-local-import-beside-a-changed-name-it-does-not-take",
         ],
     )
     def test_accepts_a_pure_move(
@@ -921,6 +943,18 @@ class Test_moved:
                 [f"moved: {OLD_G}::test_attribute: name test_e.V: {DIFFERS}"],
                 (OLD_G,),
             ),
+            (
+                {H: INSIDE_NEW},
+                {"tests/test_e.py": "V = 2\nW = 1\n"},
+                [f"moved: {OLD_H}::test_inside: name V: {DIFFERS}"],
+                (OLD_H,),
+            ),
+            (
+                {K: VIEW_NEW},
+                {"tests/test_e.py": "V = 2\nW = 1\n"},
+                [f"moved: {OLD_K}::test_view: name test_e.V: {DIFFERS}"],
+                (OLD_K,),
+            ),
         ],
         ids=[
             "a-cut",
@@ -949,6 +983,8 @@ class Test_moved:
             "two-changed-names",
             "a-changed-name-beside-one-reached-once",
             "a-changed-attribute-of-another-test-file",
+            "a-changed-name-imported-inside-the-case",
+            "a-changed-attribute-of-a-module-imported-inside-a-helper",
         ],
     )
     def test_refuses_a_cut_a_merge_an_edited_body_and_a_changed_fixture(

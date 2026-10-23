@@ -90,23 +90,32 @@ file that keeps cases for a later group. It prints a line opening with
            directly under `tests/`, a test file among them, is read where
            that module defines it, in the same tree, so a helper moved
            unchanged into `tests/conftest.py` or into another test file
-           passes. A function or class compares as a case's body does, an
-           import as the one alias that binds the name, any other
-           statement as written, and a statement binding the name inside
-           a compound statement as that whole statement. A name bound in
-           neither tree is a builtin's or pytest's, a name bound in one
-           tree only is a change, and so is a name one tree's reading
-           reaches and the other's does not. Each name is compared as the
-           set of its distinct definitions, so one definition reached
-           from two files counts once. The condition has two limits: a
-           name a case reaches only through a string, such as
-           `globals()["x"]`, is not read, and two definitions of one name
-           in two places a case reaches, swapped between the trees,
-           compare equal. A case is tested on this condition only where
-           it passed the body and fixture conditions, and its line names
-           every name whose own definition differs, those both trees reach
-           first and then those one tree's reading reaches alone, each run
-           in alphabetical order: `name <name>: its definition differs
+           passes. Both readings hold for an import made inside a function,
+           or anywhere else inside a case or a definition the reading
+           reaches, as for one at the top of a file: a name such a
+           `from <module> import` binds and the case or definition holding
+           it reads, and a `<module>.<name>` it reads where such an
+           `import <module>` binds the module, are read where that module
+           defines them, and the import statement is compared as part of
+           the case or definition that holds it. A function or class
+           compares as a case's body does, an import as the one alias that
+           binds the name, any other statement as written, and a statement
+           binding the name inside a compound statement as that whole
+           statement. A name bound in neither tree is a builtin's or
+           pytest's, a name bound in one tree only is a change, and so is a
+           name one tree's reading reaches and the other's does not. Each
+           name is compared as the set of its distinct definitions, so one
+           definition reached from two files counts once. The condition has
+           three limits: a name a case reaches only through a string, such
+           as `globals()["x"]`, is not read; a name a star import,
+           `from <module> import *`, brings is bound in neither tree as the
+           condition reads it, so it is not compared; and two definitions
+           of one name in two places a case reaches, swapped between the
+           trees, compare equal. A case is tested on this condition only
+           where it passed the body and fixture conditions, and its line
+           names every name whose own definition differs, those both trees
+           reach first and then those one tree's reading reaches alone, each
+           run in alphabetical order: `name <name>: its definition differs
            from the base's` for one name, and `names <name>, <name>: their
            definitions differ from the base's` for more
 
@@ -720,11 +729,16 @@ class _Names:
         return self._binders[id(body)]
 
     def reads(self, node):
-        """`(names, attributes, own)`: the names NODE reads from the module
-        around it, as Python's own scoping (`symtable`) resolves them, each
-        `(name, attribute)` it reads as `name.attribute`, and each attribute
+        """`(names, attributes, own, local)`: the names NODE reads from the
+        module around it, as Python's own scoping (`symtable`) resolves them,
+        each `(name, attribute)` it reads as `name.attribute`, each attribute
         it reads of its own `self`, outside a function or lambda it defines
-        that takes a `self` of its own."""
+        that takes a `self` of its own, and what an import inside NODE
+        binds, such as one in a function's body, where NODE reads it. That
+        last is `(module, name, key)`: for a name a `from <module> import`
+        binds and NODE reads, the name taken, keyed by the name bound; and
+        for each `<binding>.<attribute>` NODE reads where `import <module>`
+        binds `<binding>`, the attribute, keyed as `<binding>.<attribute>`."""
         if id(node) not in self._reads:
             table = symtable.symtable(ast.unparse(node), "<moved>", "exec")
             names = {s.get_name() for s in table.get_symbols() if s.is_referenced()}
@@ -757,16 +771,37 @@ class _Names:
                 ):
                     own.add(inner.attr)
                 below += ast.iter_child_nodes(inner)
-            self._reads[id(node)] = names, attributes, own
+            loaded = {
+                inner.id
+                for inner in ast.walk(node)
+                if isinstance(inner, ast.Name) and isinstance(inner.ctx, ast.Load)
+            }
+            local = set()
+            for inner in ast.walk(node):
+                if isinstance(inner, ast.ImportFrom):
+                    local |= {
+                        (inner.module or "", alias.name, _alias_name(alias))
+                        for alias in inner.names
+                        if _alias_name(alias) in loaded
+                    }
+                elif isinstance(inner, ast.Import):
+                    local |= {
+                        (alias.name, attribute, f"{owner}.{attribute}")
+                        for alias in inner.names
+                        for owner, attribute in attributes
+                        if owner == _alias_name(alias)
+                    }
+            self._reads[id(node)] = names, attributes, own, local
         return self._reads[id(node)]
 
     def items(self, label, cls, node):
         """What NODE, standing in the file or module LABEL and in CLS where it
         is a method, reads, as `(label, class or None, key, name)`: a name
-        looked up in LABEL; `self.<name>` looked up in CLS; and
-        `<module>.<name>`, where `import <module>` binds a module directly
-        under `tests/`, looked up in that module."""
-        names, attributes, own = self.reads(node)
+        looked up in LABEL; `self.<name>` looked up in CLS; `<module>.<name>`,
+        where `import <module>` binds a module directly under `tests/`,
+        looked up in that module; and what an import inside NODE binds from
+        such a module and NODE reads (`reads`), looked up in that module."""
+        names, attributes, own, local = self.reads(node)
         found = [(label, None, name, name) for name in sorted(names)]
         if cls is not None:
             found += [(label, cls, f"self.{name}", name) for name in sorted(own)]
@@ -780,6 +815,11 @@ class _Names:
                     for alias in statement.names
                     if _alias_name(alias) == owner and alias.name in self.modules
                 ]
+        found += [
+            (module, None, key, name)
+            for module, name, key in sorted(local)
+            if module in self.modules
+        ]
         return found
 
     def forms(self, todo):
@@ -788,8 +828,8 @@ class _Names:
         counts once; an item whose name nothing binds records no form. A
         definition's own reads join TODO, so a name reached through a helper
         is compared itself, and a name imported by `from <module> import`
-        from a module directly under `tests/` is read where that module
-        defines it."""
+        from a module directly under `tests/`, at the top of a file or inside
+        a definition (`items`), is read where that module defines it."""
         found, seen = {}, set()
         while todo:
             label, cls, key, name = todo.pop(0)
