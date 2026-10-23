@@ -1003,6 +1003,26 @@ The seventeen survivors are old gaps: no moved case reads a `${…}` holding a `
 
 **Where `hooks/` stands at da3eae09** (`read`). Groups 16 and 17 placed the commit gate's cases the five lines held, with `hooks/commitgate.py`'s and `hooks/worktree_consent.py`'s that shared their files; groups 18 and 19 placed `hooks/gate.py`'s and `hooks/tokens.py`'s own cases, one each; group 20 emptied the local-mode file; groups 21 to 23 placed `hooks/config.py`, and groups 24 to 26 `hooks/cmdline.py`. `hooks/cmdline_base.py` has no case of its own to place. Only the installer's two modules remain, waiting on Q10.
 
+### The ninth spawn
+
+**What this spawn was asked.** The six directories outside `hooks/` in `plan.md`'s order, `skills/verify/scripts/` first, module by module, grouping the modules whose old files meet; rule 3 where an old file prices at 60 s or more; each group rewriting the lines outside `docs/` that `spec.md` *The check lines the remaining groups meet* assigns it, `agents/smith.md` lines 109 and 123 with `mutation_check.py`'s cases; the group placing `arm_check.py`'s cases correcting `tests/test_arm_check.py`'s docstring; the group placing `seal.py`'s writer cases settling `overview.md`'s row on `docs/one-root-by-lifetime.md` line 223; phase 4's h2, h12 and h23 re-run where a group rebuilds a module whose cases reach one; a case reading a workflow or a document left where it is. A line with no verdict is recorded and left; an item that names too little or too much is a row of `overview.md` for the framer.
+
+**Whether the frame holds** (`read`). It holds for `skills/verify/scripts/`. `agents/smith.md` lines 109 and 123 name `tests/test_a_mutation_clears_one_files_bytecode_and_ends_at_a_timeout.py` at 300abe34, as `spec.md` lines 105 and 106 say they did at 44525de4, and `tests/test_session_cost.py` and `tests/test_arm_check.py` keep the lines `spec.md` names for them.
+
+### Batch B, `skills/verify/scripts/`, group 27, at ffb0bd4b
+
+**The module.** `skills/verify/scripts/deferral_check.py`, whose eleven cases were the whole of `tests/test_deferral_check.py`, which keeps its name and now declares `TARGET`. Every case runs the command, so ten sit in `Test_main` and the launcher's case in `Test_module`. Two are renamed to the pair: `test_accepts_pytest_on_a_pull_request_as_the_answerer` and `test_refuses_a_tree_with_no_ci_as_an_answerer`. No `check:` line names the file. `tests/test_a_reference_root_is_read_and_never_taken.py` names the command in its table of every shipped command, a check across commands, and stays.
+
+**The move check** (`executed`): `bin/test-layout --moved 300abe34 --from tests/test_deferral_check.py --to tests/test_deferral_check.py` ends `test-layout: moved: 11 old cases, 11 items against 11 at 300abe340a60, 0 failed`, exit 0. No mutation table. `--pairs` names none.
+
+**Cases and seconds** (`executed`, serial, pytest's own figure): 11 in 0.32 s before, in an archive of 300abe34; 12 items in 1.13 s after, the census item among them.
+
+**The real-git cases kept.** None: no case runs git.
+
+**Phase 4's survivors.** None of h2, h12 and h23 is reached: no case calls `read`, `imported_roots` or `repo_relative` (`read`).
+
+**The boundary** (`executed`). At the tree committed as ffb0bd4b: the changed file, the `git_listing` files, the censuses, `tests/test_test_layout.py`, `tests/test_conftest.py` and `tests/test_chain_hooks_hardening.py`, 23 files: 2,456 passed and 3 skipped. `bin/test-layout --check` exits 0, 166 files read, 121 declaring no `TARGET`; `bin/rules --check` exits 0 with 249 check lines; `bin/unverified-check seal/specs/` exits 0. Ruff checks and formats the file clean.
+
 ### What remains in phase 6
 
 - `hooks/`: `hooks/githooks.py` and `hooks/hook-install.py` wait on Q10. `hooks/answer-clear.py` has a file whose `Test_module` holds its two round trips and no `Test_main`.
