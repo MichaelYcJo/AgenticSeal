@@ -11,6 +11,9 @@ The workflow readers, `code_line`, `workflow_steps`, `workflow_step` and
 `step_running`, are driven over one fixture workflow, and the block that
 takes `gh`'s login away at import is read from a child process and asked of
 `gh` itself. Those cases came from two files of their own in #942's phase 7.
+The cases of `on_disk`, `shrunken_corpus`, `decline_if_shrunken` and
+`build_tracked_tree` came from `tests/test_a_shrunken_corpus_declines_to_judge.py`
+in #942's round 3 fix pass, and that file keeps its sweep across files.
 
 Seen red before they were committed (contract rule 15): the three accepting
 cases failed against the conftest that still held the failing ceiling, which
@@ -28,7 +31,16 @@ import types
 import censuses
 import conftest
 import pytest
-from conftest import code_line, step_running, workflow_step, workflow_steps
+from conftest import (
+    build_tracked_tree,
+    code_line,
+    decline_if_shrunken,
+    on_disk,
+    shrunken_corpus,
+    step_running,
+    workflow_step,
+    workflow_steps,
+)
 
 TARGET = "tests/conftest.py"
 
@@ -173,9 +185,87 @@ class Test_pytest_terminal_summary:
         assert "test_quick ran" not in out, out
 
 
+class Test_on_disk:
+    def test_accepts_a_listing_split_by_what_the_tree_actually_has(self, tmp_path):
+        root = build_tracked_tree(
+            tmp_path / "r",
+            {"a.md": "one\n", "b/c.md": "two\n", "d.md": "three\n"},
+            deleted=["b/c.md"],
+        )
+        present, missing = on_disk(root, ["a.md", "b/c.md", "d.md"])
+        assert present == ["a.md", "d.md"]
+        assert missing == ["b/c.md"]
+
+    def test_accepts_the_order_it_was_given(self, tmp_path):
+        """A corpus is walked in the order git listed it, and a refusal naming
+        `rel:line` is read against that order."""
+        root = build_tracked_tree(tmp_path / "r", {"a.md": "", "b.md": "", "c.md": ""})
+        present, missing = on_disk(root, ["c.md", "a.md", "b.md"])
+        assert present == ["c.md", "a.md", "b.md"]
+        assert missing == []
+
+    def test_refuses_a_directory_on_the_list_as_a_file_that_is_there(self, tmp_path):
+        """`os.path.isfile` rather than `os.path.exists`: a path git named that
+        is now a directory has no content to read, and `open` would raise on it
+        exactly the way a missing file does."""
+        root = build_tracked_tree(tmp_path / "r", {"a.md": "one\n"})
+        os.mkdir(os.path.join(root, "b"))
+        present, missing = on_disk(root, ["a.md", "b"])
+        assert present == ["a.md"] and missing == ["b"]
+
+
+class Test_decline_if_shrunken:
+    def test_accepts_a_missing_path_and_raises_the_skip_carrying_that_reason(self):
+        with pytest.raises(pytest.skip.Exception) as declined:
+            decline_if_shrunken(["docs/one.md"], "the KEEP allowlist's liveness check")
+        assert str(declined.value) == shrunken_corpus(
+            ["docs/one.md"], "the KEEP allowlist's liveness check"
+        )
+
+    def test_refuses_to_decline_when_nothing_is_missing(self):
+        """The guard must not turn a check off on a whole tree, which is the one
+        way this repair could report less than the crash it replaces."""
+        assert decline_if_shrunken([], "x") is None
+
+
 class Test_module:
     def test_the_value_is_the_one_work_item_1791270165_set(self):
         assert conftest.SLOW_CASE_S == 90
+
+    def test_the_reason_names_every_path_and_what_declined(self):
+        """A count alone is a claim removed from the corpus without a word, which
+        `seal/follow-up.md`'s first row calls the one direction a checker of
+        claims must not fail in. The reader needs the paths in order to judge
+        them by hand."""
+        reason = shrunken_corpus(
+            ["seal/ledger/two.md", "docs/one.md"], "the KEEP allowlist's liveness check"
+        )
+        assert "docs/one.md" in reason
+        assert "seal/ledger/two.md" in reason
+        assert "2 tracked path(s)" in reason
+        assert "the KEEP allowlist's liveness check" in reason
+        assert "not judging" in reason
+
+    def test_the_reason_sorts_the_paths_it_names(self):
+        """The set a caller hands over comes from a walk, so an unsorted reason
+        would read differently run to run for the same tree."""
+        reason = shrunken_corpus(["b.md", "a.md"], "x")
+        assert reason.index("a.md") < reason.index("b.md")
+
+    def test_the_builder_leaves_a_deleted_file_tracked(self, tmp_path):
+        """The fixture shape itself, because a fixture that staged the removal
+        would build the tree this defect is NOT about."""
+        root = build_tracked_tree(
+            tmp_path / "r", {"a.md": "one\n", "b.md": "two\n"}, deleted=["b.md"]
+        )
+        listed = subprocess.run(
+            ["git", "-C", str(root), "ls-files"],
+            capture_output=True,
+            encoding="utf-8",
+            check=True,
+        ).stdout.split()
+        assert listed == ["a.md", "b.md"], listed
+        assert not os.path.exists(os.path.join(root, "b.md"))
 
     @pytest.mark.parametrize(
         "line, code",
