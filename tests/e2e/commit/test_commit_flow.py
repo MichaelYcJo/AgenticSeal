@@ -1626,7 +1626,7 @@ class Test_a_sealed_the_branch_does_not_hold:
         looks like `sealed`, over `deadbee`, is not a `sealed` the commit gate
         judges, so the commit lands; the pull request's check refuses the
         line. One near miss stands for the shapes
-        `tests/test_the_sealer_guarantees.py#NEAR_MISSES` holds for the
+        `tests/test_chain_check.py#NEAR_MISSES` holds for the
         reader."""
         guarantee(world, "deadbee", "Verdict: Sealed")
         g(world.w, "add", "-A", home=world.home, session="")
