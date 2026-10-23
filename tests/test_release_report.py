@@ -2,9 +2,10 @@
 
 The release table carries one row per test file: its priced cases and
 seconds in `.test_durations` at the last release tag and now, slowest now
-first. The rows are a report and never a ceiling. The other cases of this
-script are still in `tests/test_the_release_table_reads_two_trees_and_fails_nothing.py`
-until the batch that rebuilds this module moves them.
+first. The rows are a report and never a ceiling. #942's phase 6 placed here
+the script's other cases from
+`tests/test_the_release_table_reads_two_trees_and_fails_nothing.py`, which
+keeps the case that reads the tests workflow's job.
 
 Seen red before they were committed (contract rule 15): three cases failed
 against the script that printed no test-file rows, and `mutation-check`
@@ -41,6 +42,51 @@ def priced(root, durations):
     root.mkdir()
     (root / ".test_durations").write_text(json.dumps(durations), encoding="utf-8")
     return str(root)
+
+
+AGENT = "---\nname: warden\nskills:\n  - review\n---\n"
+
+
+def tree(root, agent_body, durations, docs):
+    """A tree holding one agent and its one skill, `.test_durations` as
+    `durations`, `CLAUDE.md`, `CONTRIBUTING.md` and `docs/<name>.md` for each
+    of `docs`; returns its path as text."""
+    files = {
+        "agents/warden.md": AGENT + agent_body,
+        "skills/review/SKILL.md": "# review\n",
+        ".test_durations": json.dumps(durations),
+        "CLAUDE.md": "# c\n",
+        "CONTRIBUTING.md": "# contributing\n",
+        **{f"docs/{name}.md": text for name, text in docs.items()},
+    }
+    for rel, text in files.items():
+        path = root / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, "utf-8", newline="\n")
+    return str(root)
+
+
+def job(name, minutes):
+    return {
+        "name": name,
+        "started_at": "2026-10-15T10:00:00Z",
+        "completed_at": f"2026-10-15T10:{minutes:02d}:00Z",
+    }
+
+
+def jobs_file(path, jobs):
+    path.write_text("".join(json.dumps(j) + "\n" for j in jobs), "utf-8")
+    return str(path)
+
+
+def rows_of(out):
+    """`{What: (tag cell, now cell, change cell)}` of the printed table."""
+    rows = {}
+    for line in out.splitlines():
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if line.startswith("| ") and len(cells) == 4 and cells[0] != "What":
+            rows[cells[0]] = tuple(cells[1:])
+    return rows
 
 
 class Test_module_rows:
@@ -84,6 +130,134 @@ class Test_main:
         missing = str(tmp_path / "missing")
         assert report.main(["--against", "v0.0.1", "--at", missing, "--root", now]) == 2
         assert capsys.readouterr().out == ""
+
+    def test_the_release_table_reads_two_trees_and_fails_nothing(
+        self, tmp_path, capsys
+    ):
+        """S9: a grown preload, an agent and a document on one side only and a
+        leg with no run at the tag are each a row, and the exit is 0 whatever
+        they show: the tag's tree and this one side by side, each leg's minutes
+        summed over its pytest jobs, `no run found` where a run has no job
+        list."""
+        at = tree(
+            tmp_path / "at", "x" * 100, {"t::a": 1.0, "t::b": 2.0}, {"gone": "ab\n"}
+        )
+        scout = "---\nname: scout\n---\n"
+        (tmp_path / "at" / "agents" / "scout.md").write_text(
+            scout, "utf-8", newline="\n"
+        )
+        now = tree(
+            tmp_path / "now", "x" * 150, {"t::a": 1.0, "t::b": 3.0}, {"new": "abc\r\n"}
+        )
+        jobs = jobs_file(
+            tmp_path / "jobs.jsonl",
+            [
+                job("pytest (ubuntu-latest, 3.12)", 9),
+                job("pytest (windows-latest, 3.12, 1)", 20),
+                job("pytest (windows-latest, 3.12, 2)", 25),
+                job("lint", 1),
+            ],
+        )
+        code = report.main(
+            ["--against", "v1.2.3", "--at", at, "--root", now, "--ci-jobs", jobs]
+        )
+        out = capsys.readouterr().out
+        assert code == 0, out
+        assert out.startswith("### Against v1.2.3\n"), out
+        assert "| What | v1.2.3 | Now | Change |" in out, out
+        rows = rows_of(out)
+        grown = len(AGENT) + 100 + len("# review\n")
+        assert rows["preload `warden` (bytes)"] == (
+            f"{grown:,}",
+            f"{grown + 50:,}",
+            f"+50 ({50 / grown:+.1%})",
+        ), rows
+        assert rows["preload `scout` (bytes)"] == (f"{len(scout)}", "—", "gone"), rows
+        assert rows["the suite (seconds)"] == ("3", "4", "+1 (+33.3%)"), rows
+        assert rows["`ubuntu` leg (minutes)"] == ("no run found", "9.0", "—"), rows
+        assert rows["`windows` leg (minutes)"] == ("no run found", "45.0", "—"), rows
+        assert rows["`macos` leg (minutes)"] == ("no run found", "no run found", "—")
+        assert rows["`docs/gone.md` (bytes)"] == ("3", "—", "gone"), rows
+        assert rows["`docs/new.md` (bytes)"] == ("—", "4", "new"), rows
+        assert rows["`CLAUDE.md` (bytes)"] == ("4", "4", "+0 (+0.0%)"), rows
+        assert "`CONTRIBUTING.md` (bytes)" in rows, rows
+
+    @pytest.mark.parametrize(
+        "lines",
+        [
+            "",
+            "not json\n",
+            '{"id": 1}\n',
+            json.dumps(job("pytest (ubuntu-latest, 3.12)", 9)) + "\nnot json\n",
+        ],
+        ids=["empty", "not json", "no name", "a job, then a line that is none"],
+    )
+    def test_a_job_list_that_holds_no_run_reads_no_run_found(
+        self, tmp_path, capsys, lines
+    ):
+        """A job list that is empty or is no job list `gh` wrote, even after a
+        job that reads, is no reading, never a traceback or a part of a run, and
+        the table still prints at exit 0."""
+        at = tree(tmp_path / "at", "", {"t::a": 1.0}, {})
+        jobs = tmp_path / "jobs.jsonl"
+        jobs.write_text(lines, "utf-8")
+        argv = ["--against", "v1", "--at", at, "--root", at, "--ci-jobs", str(jobs)]
+        assert report.main([*argv, "--ci-jobs-at", str(tmp_path / "absent")]) == 0
+        rows = rows_of(capsys.readouterr().out)
+        assert rows["`ubuntu` leg (minutes)"] == ("no run found", "no run found", "—")
+
+    @pytest.mark.parametrize(
+        "spoil, said",
+        [
+            ("no tree", "is no directory"),
+            ("no durations", ".test_durations under"),
+            ("durations not json", "cannot be read"),
+            ("durations not seconds", "is no object of case ids to seconds"),
+        ],
+    )
+    def test_a_tree_that_cannot_be_read_is_exit_2(self, tmp_path, capsys, spoil, said):
+        """Nothing was compared, so nothing is printed as if it had been."""
+        at = tree(tmp_path / "at", "", {"t::a": 1.0}, {})
+        durations = os.path.join(at, ".test_durations")
+        if spoil == "no tree":
+            at = str(tmp_path / "nowhere")
+        elif spoil == "no durations":
+            os.remove(durations)
+        elif spoil == "durations not json":
+            with open(durations, "w", encoding="utf-8") as handle:
+                handle.write("{")
+        else:
+            with open(durations, "w", encoding="utf-8") as handle:
+                handle.write('{"t::a": "slow"}')
+        root = tree(tmp_path / "now", "", {"t::a": 1.0}, {})
+        assert report.main(["--against", "v1", "--at", at, "--root", root]) == 2
+        captured = capsys.readouterr()
+        assert captured.out == "", captured.out
+        assert said in captured.err, captured.err
+        assert "Nothing was compared." in captured.err, captured.err
+
+
+class Test_module:
+    def test_the_table_reads_this_tree_against_the_last_tag(self):
+        """The repository's own two trees read: an agent row for every agent
+        this tree defines, three leg rows, and a row for every `docs/*.md`."""
+        rows = report.table(
+            "v0",
+            report.reading(ROOT, report.meter()),
+            report.reading(ROOT, report.meter()),
+            {},
+            {},
+        )
+        found = rows_of(rows)
+        agents = sorted(
+            f[: -len(".md")] for f in os.listdir(os.path.join(ROOT, "agents"))
+        )
+        for agent in agents:
+            assert found[f"preload `{agent}` (bytes)"][2] == "+0 (+0.0%)", agent
+        docs = [f for f in os.listdir(os.path.join(ROOT, "docs")) if f.endswith(".md")]
+        for name in docs:
+            assert f"`docs/{name}` (bytes)" in found, name
+        assert sum(1 for k in found if k.endswith("leg (minutes)")) == 3, found
 
 
 test_census = census_case(TARGET)
