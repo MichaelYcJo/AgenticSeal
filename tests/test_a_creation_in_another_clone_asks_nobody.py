@@ -34,16 +34,16 @@ import shutil
 import sys
 
 import pytest
-from conftest import load_hook_module
-from test_the_guard_asks_once_per_session import (
+from conftest import (
     IDLE,
     ask_entries,
     consent_dir,
     grant,
-    wg,
+    load_hook_module,
     write_transcript,
 )
 from test_the_idle_session_rows_ask_nobody import assert_names_nobody, judge
+from test_worktree_consent import wg
 
 ROWS = {"idle": ([], IDLE, True), "unusable": ([], [], False)}
 

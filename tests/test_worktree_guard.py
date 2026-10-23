@@ -28,8 +28,15 @@ import types
 import uuid
 
 import pytest
-from conftest import census_case, git, git_out, load_hook_module, shell_probe
-from test_the_guard_asks_once_per_session import ask_entries, write_transcript
+from conftest import (
+    ask_entries,
+    census_case,
+    git,
+    git_out,
+    load_hook_module,
+    shell_probe,
+    write_transcript,
+)
 
 TARGET = "hooks/worktree-guard.py"
 

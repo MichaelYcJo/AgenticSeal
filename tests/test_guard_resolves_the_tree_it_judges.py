@@ -19,7 +19,12 @@ import subprocess
 import sys
 
 import pytest
-from conftest import load_hook_module
+from conftest import (
+    BASE_TREE_CHAINS,
+    PLACEMENT_CHAINS,
+    _a_dirty_w_under_a_clean_session,
+    load_hook_module,
+)
 
 wg = load_hook_module("worktree-guard.py", "wg_tree")
 
@@ -129,10 +134,6 @@ def test_an_untokenizable_command_holding_git_is_a_finding_of_its_own():
     assert wg.shape_of(segments[0]) == "switch"
     found = wg._command_findings(wg._judgment_text(command), clean)
     assert [f.kind for f in found] == ["untokenizable"], found
-
-
-def test_segment_cwd_leaves_a_non_git_segment_alone(tmp_path):
-    assert wg.segment_cwd(["echo", "hello"], str(tmp_path)) == str(tmp_path)
 
 
 def test_a_windows_cd_path_is_not_mistaken_for_an_expansion():
@@ -690,39 +691,9 @@ def test_a_chain_past_the_walks_cap_keeps_the_tree_the_base_judged(
 
 # --- #689: the guard and the consent writer read the base's directories ---
 #
-# Each chain below is one where the order of the walk's two threads decided
-# the tree, and every attempt to order them was met by another chain (#689).
-# The guard and the consent writer now read through `hooks/cmdline_base.py`,
-# `86256492`'s reader frozen, so each judges the tree `86256492` judged,
-# which is the dirty `w` bash runs the command in. `{missing}` is never
-# created and `{other}` is a clean repository of its own.
-BASE_TREE_CHAINS = {
-    # Round 3 of #689's report: past `STATE_CAP` the walk collapses, and the
-    # `cd {missing} ||` gives it a readable directory on the branch the `||`
-    # skips, which led the base's thread.
-    "the round-3 chain past the cap": "cd w; "
-    + "2>/dev/null cd nosuch; " * 9
-    + "cd {missing} || ",
-    # PR #690's residuals. A `cd` landed past its redirection into a directory
-    # that does not exist led, so the guard found no repository there and
-    # fell back to the clean session tree.
-    "a landing into a missing directory, then a semicolon": "cd w; "
-    "2>/dev/null cd {missing}; ",
-    "a glued landing into nothing, then one into a repository": "cd w; "
-    "cd>/dev/null {missing} && 2>/dev/null cd {other}\n",
-}
-
-
-def _a_dirty_w_under_a_clean_session(repo, tmp_path):
-    session = tmp_path / "session"
-    session.mkdir()
-    subprocess.run(["git", "-C", str(session), "init", "-q"], check=True)
-    shutil.copytree(repo, session / "w")
-    (session / "w" / "f.txt").write_text("changed on purpose\n", encoding="utf-8")
-    shutil.copytree(repo, session / "clean")
-    other = tmp_path / "O"
-    shutil.copytree(repo, other)
-    return session, other
+# `tests/conftest.py#BASE_TREE_CHAINS` holds the chains where the order of the
+# walk's two threads decided the tree; the consent writer's cases over them
+# are `tests/test_worktree_consent.py`'s.
 
 
 @pytest.mark.parametrize("name", sorted(BASE_TREE_CHAINS))
@@ -744,38 +715,10 @@ def test_the_guard_judges_the_tree_the_base_judged_whatever_the_walk_leads(
     assert top and os.path.samefile(top, session / "w"), (name, top)
 
 
-@pytest.mark.parametrize("name", sorted(BASE_TREE_CHAINS))
-def test_the_consent_writer_files_where_the_base_filed_whatever_the_walk_leads(
-    repo, tmp_path, name
-):
-    """#689, the consent twin. At `542f920b` the writer filed each creation
-    under the walk's first directory, the skipped or unreached one; bash
-    creates from `w`, and `86256492` filed it there."""
-    session, other = _a_dirty_w_under_a_clean_session(repo, tmp_path)
-    chain = BASE_TREE_CHAINS[name].format(
-        missing=tmp_path / "nosuch-either", other=other
-    )
-    acted = wg.worktree_consent.creation_directory(
-        chain + "git worktree add ../wt", str(session)
-    )
-    assert os.path.normpath(acted) == str(session / "w"), (name, acted)
-
-
 # --- #868 In 1: one placement for the guard and the consent writer ---------
 #
-# The two chains where the guard's `wheres[0]` and the writer's first
-# resolved entry disagreed (`spec.md` In 1 of work item 1791384157). bash
-# runs the `||` segment only where the `cd` failed, in the directory the shell
-# was already in, and `;` runs its segment there when the `cd` fails, so the
-# guard's answer is where bash creates in both. `{other}` is a clean
-# repository of its own and `{missing}` is never created.
-PLACEMENT_CHAINS = {
-    **BASE_TREE_CHAINS,
-    "an unreadable segment, then a cd whose failure branch creates": (
-        "eval x ; cd {other} || "
-    ),
-    "a cd into nothing, then a semicolon": "cd {missing} ; ",
-}
+# `tests/conftest.py#PLACEMENT_CHAINS` holds the two chains where the guard's
+# `wheres[0]` and the writer's first resolved entry disagreed.
 
 
 def _the_tree_the_guard_judges_a_creation_in(monkeypatch, capsys, command, cwd):
@@ -789,30 +732,6 @@ def _the_tree_the_guard_judges_a_creation_in(monkeypatch, capsys, command, cwd):
     monkeypatch.setattr(wg, "judge_creation", judged)
     run(monkeypatch, capsys, command, cwd)
     return seen[0] if seen else None
-
-
-@pytest.mark.parametrize(
-    "name",
-    [
-        "an unreadable segment, then a cd whose failure branch creates",
-        "a cd into nothing, then a semicolon",
-    ],
-)
-def test_the_consent_writer_files_a_creation_where_bash_runs_it(repo, tmp_path, name):
-    """S1 and S2 of work item 1791384157. The writer took the first entry of
-    the walk that was not `Unresolved`: the directory the `||` skips in the
-    first chain, and a directory that holds nothing in the second, where no
-    record was written at all. bash creates from the session's own directory
-    in both. Red at `5623d728`, where the writer answered `{other}` and
-    `{missing}`."""
-    session, other = _a_dirty_w_under_a_clean_session(repo, tmp_path)
-    chain = PLACEMENT_CHAINS[name].format(
-        missing=tmp_path / "nosuch-either", other=other
-    )
-    acted = wg.worktree_consent.creation_directory(
-        chain + "git worktree add ../wt f", str(session)
-    )
-    assert os.path.normpath(acted) == str(session), (name, acted)
 
 
 def test_the_guard_policy_says_the_record_is_filed_where_the_guard_judged():
@@ -851,21 +770,6 @@ def test_the_guard_policy_names_the_shell_built_word_limit():
         "expansion makes) is an unrecognised shape",
     ):
         assert gone not in text, gone
-
-
-def test_the_consent_writer_composes_the_creations_own_dash_c(repo, tmp_path):
-    """S3 of work item 1791384157, the half the chains do not reach: the
-    writer files under the directory the creation's own `-C` names, composed
-    onto the directory its segment runs in, as the guard judges it. A
-    relative `-C` after a `cd` is the case `place` composes before it falls
-    back. A break returning the shell's directory survived until this case."""
-    session, other = _a_dirty_w_under_a_clean_session(repo, tmp_path)
-    for command, expected in (
-        (f"git -C {other} worktree add ../wt f", other),
-        ("cd w && git -C ../clean worktree add ../wt f", session / "clean"),
-    ):
-        acted = wg.worktree_consent.creation_directory(command, str(session))
-        assert os.path.samefile(acted, expected), (command, acted)
 
 
 @pytest.mark.parametrize("name", sorted(PLACEMENT_CHAINS))
@@ -957,20 +861,6 @@ def test_a_segment_the_base_reads_no_git_in_does_not_take_the_first_slot(
     assert decision == "deny", (command, decision, reason)
     assert "Blocking this branch switch" in reason, reason
     assert top and os.path.samefile(top, w), (command, top)
-
-
-def test_the_consent_writer_files_the_creation_the_base_filed_behind_a_wider_one(
-    repo, tmp_path
-):
-    """Round 1 of 1790745049, red 1, the consent twin. `86256492` filed under
-    `w`; at `4bc94f05` the first creation, which it did not read as git, was
-    filed under the session's clone."""
-    session, _other = _a_dirty_w_under_a_clean_session(repo, tmp_path)
-    acted = wg.worktree_consent.creation_directory(
-        "2>/dev/null git worktree add ../wt-a; cd w && git worktree add ../wt-b",
-        str(session),
-    )
-    assert os.path.normpath(acted) == str(session / "w"), acted
 
 
 # zsh's precommand words and short loop in front of git (round 1 of

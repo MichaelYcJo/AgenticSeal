@@ -45,13 +45,14 @@ from pathlib import Path
 import pytest
 from conftest import (
     SESSION_VARIABLES,
+    ask_entries,
     census_case,
     load_hook_module,
     ps_names_the_parent_or_skip,
     q,
     symlink_or_skip,
+    write_transcript,
 )
-from test_the_guard_asks_once_per_session import ask_entries, write_transcript
 
 TARGET = "hooks/git/pre-commit.py"
 

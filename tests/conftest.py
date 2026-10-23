@@ -1306,6 +1306,221 @@ def with_row(label, answer):
     return two_axis_text().replace("| Branch |", f"| {label} | {answer} |\n| Branch |")
 
 
+# --- the worktree consent: its record, the routing press, the guard's rows ------
+
+ACTIVE = [(111, "/tree", 1.0, 0.5, "VS Code")]
+IDLE = [(222, "/tree", 400.0, 90.0, "Terminal")]
+
+
+def common_dir(repo):
+    """The clone's git directory — where the record lives.
+
+    `--git-common-dir` rather than `--absolute-git-dir`: the record stands for
+    "this session may split this clone into worktrees", and a linked worktree
+    is the same clone. git answers relatively from a main worktree, so the
+    join is not optional.
+    """
+    out = subprocess.run(
+        ["git", "-C", str(repo), "rev-parse", "--git-common-dir"],
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+    ).stdout.strip()
+    return pathlib.Path(os.path.normpath(os.path.join(str(repo), out)))
+
+
+def consent_dir(repo):
+    return common_dir(repo) / "specseal-worktree-consent"
+
+
+def grant(repo, session="me"):
+    """Write the record by hand — the reader's tests do not need the writer."""
+    d = consent_dir(repo)
+    d.mkdir(parents=True, exist_ok=True)
+    (d / session).write_text("", encoding="utf-8")
+    return d / session
+
+
+ROUTING_QUESTION = "How should this work be routed?"
+ROUTING_OPTIONS = ("automation (Recommended)", "per axis", "no work item")
+
+
+def ask_entries(
+    cwd,
+    answer="automation (Recommended)",
+    options=ROUTING_OPTIONS,
+    multi=False,
+    tool="AskUserQuestion",
+    tool_id="toolu_01routing",
+    result_id=None,
+    question=ROUTING_QUESTION,
+):
+    """One question put and answered: the assistant's `tool_use`, then the
+    `user` entry the harness writes with the structured `toolUseResult`."""
+    asked = {
+        "questions": [
+            {
+                "question": question,
+                "header": "Routing",
+                "multiSelect": multi,
+                "options": [{"label": o, "description": "d"} for o in options],
+            }
+        ]
+    }
+    use = {
+        "type": "assistant",
+        "cwd": str(cwd),
+        "message": {
+            "role": "assistant",
+            "content": [
+                {"type": "tool_use", "id": tool_id, "name": tool, "input": asked}
+            ],
+        },
+    }
+    result = {
+        "type": "user",
+        "cwd": str(cwd),
+        "isSidechain": False,
+        "message": {
+            "role": "user",
+            "content": [
+                {
+                    "type": "tool_result",
+                    "tool_use_id": result_id or tool_id,
+                    "content": f'The user answered: "{question}"="{answer}".',
+                }
+            ],
+        },
+        "toolUseResult": {
+            "questions": [dict(asked["questions"][0])],
+            "answers": {question: answer},
+        },
+    }
+    return [use, result]
+
+
+def write_transcript(root, session, entries, slug="-Users-x-repo"):
+    """`<root>/<slug>/<session>.jsonl`, one JSON object (or raw line) each."""
+    d = pathlib.Path(root) / slug
+    d.mkdir(parents=True, exist_ok=True)
+    path = d / f"{session}.jsonl"
+    with open(path, "w", encoding="utf-8") as f:
+        for e in entries:
+            f.write((e if isinstance(e, str) else json.dumps(e)) + "\n")
+    return path
+
+
+# The texts other test files compare the guard's deny with, for the
+# tracked-changes row under the press (#894, work item 1791779434); the guard's
+# own cases are `tests/test_worktree_guard.py`'s.
+TOKEN = {
+    "en": "[shared-tree-ok] carries the user's answer to switch in this shared tree",
+    "ko": "[shared-tree-ok] 가 공용 트리에서 전환한다는 사용자의 답을 담고 있어",
+}
+
+
+# The press sentence, byte for byte the first frame's: #896 copies it.
+PRESS = {
+    "en": "This session's person pressed `automation` on the routing question, "
+    "so this guard puts no question to them, and none is to be put to them in "
+    "its place.",
+    "ko": "이 세션의 사용자가 라우팅 질문에서 `automation` 을 눌렀습니다. 그래서 "
+    "이 guard 는 사용자에게 아무것도 묻지 않으며, 다른 방법으로 대신 물어서도 "
+    "안 됩니다.",
+}
+
+
+def dirty_deny(lang, lead):
+    """W3: the deny's one text for `dirty(repo)`, issued from inside the tree.
+    Every sentence is a fact the guard read or a fact about the guard; none
+    says what git does for any switch form (the reframe after round 3)."""
+    if lang == "en":
+        return (
+            f"{lead}, so no other row of this guard stops the switch, but 1 "
+            "uncommitted tracked changes are present:\n"
+            "     M  f.txt\n"
+            "\n" + PRESS["en"] + "\n\n"
+            "This row of the guard stops a branch switch while uncommitted "
+            "tracked changes are present, and says nothing of a switch once "
+            "none are.\n"
+            "\n"
+            "The ways on, none of which needs a person. Issue each command on "
+            "its own: this guard reads the tree before a command runs, so `git "
+            "stash && git switch <branch>` on one line meets this same refusal. "
+            "`git commit` and `git stash` are on this guard's list of commands "
+            "that leave the branch where it is, so each passes it when issued "
+            "alone. Which of them fits this switch, and what to run after it, is "
+            "yours to decide.\n"
+            "\n"
+            "Re-issuing this command unchanged meets this same refusal."
+        )
+    return (
+        f"{lead} 이 guard 의 다른 규칙은 이 전환을 막지 않지만, 커밋되지 않은 "
+        "추적 파일 변경이 1건 있습니다:\n"
+        "     M  f.txt\n"
+        "\n" + PRESS["ko"] + "\n\n"
+        "이 guard 의 이 규칙은 커밋되지 않은 추적 파일 변경이 있는 동안 브랜치 "
+        "전환을 막고, 변경이 없으면 전환에 대해 아무 말도 하지 않습니다.\n"
+        "\n"
+        "사람이 없어도 되는 길은 아래와 같습니다. 명령은 하나씩 따로 실행하세요. "
+        "이 guard 는 명령이 실행되기 전에 트리를 읽으므로, `git stash && git "
+        "switch <branch>` 처럼 한 줄에 쓰면 같은 거부를 받습니다. `git commit` 과 "
+        "`git stash` 는 이 guard 가 브랜치를 그대로 두는 명령으로 꼽는 목록에 "
+        "있어, 따로 실행하면 이 guard 를 통과합니다. 이 전환에 어느 쪽이 맞는지, "
+        "그 뒤에 무엇을 실행할지는 직접 정하세요.\n"
+        "\n"
+        "이 명령을 그대로 다시 실행하면 같은 거부를 받습니다."
+    )
+
+
+# #689: the chains where the order of the walk's two threads decided the
+# tree. The guard and the consent writer read through `hooks/cmdline_base.py`,
+# `86256492`'s reader frozen, so each judges the tree `86256492` judged, which
+# is the dirty `w` bash runs the command in. `{missing}` is never created and
+# `{other}` is a clean repository of its own.
+BASE_TREE_CHAINS = {
+    # Round 3 of #689's report: past `STATE_CAP` the walk collapses, and the
+    # `cd {missing} ||` gives it a readable directory on the branch the `||`
+    # skips, which led the base's thread.
+    "the round-3 chain past the cap": "cd w; "
+    + "2>/dev/null cd nosuch; " * 9
+    + "cd {missing} || ",
+    # PR #690's residuals. A `cd` landed past its redirection into a directory
+    # that does not exist led, so the guard found no repository there and
+    # fell back to the clean session tree.
+    "a landing into a missing directory, then a semicolon": "cd w; "
+    "2>/dev/null cd {missing}; ",
+    "a glued landing into nothing, then one into a repository": "cd w; "
+    "cd>/dev/null {missing} && 2>/dev/null cd {other}\n",
+}
+
+
+# #868 In 1: the two chains where the guard's `wheres[0]` and the writer's
+# first resolved entry disagreed (`spec.md` In 1 of work item 1791384157).
+# bash runs the `||` segment only where the `cd` failed, in the directory the
+# shell was already in, and `;` runs its segment there when the `cd` fails, so
+# the guard's answer is where bash creates in both.
+PLACEMENT_CHAINS = {
+    **BASE_TREE_CHAINS,
+    "an unreadable segment, then a cd whose failure branch creates": (
+        "eval x ; cd {other} || "
+    ),
+    "a cd into nothing, then a semicolon": "cd {missing} ; ",
+}
+
+
+def _a_dirty_w_under_a_clean_session(repo, tmp_path):
+    session = tmp_path / "session"
+    session.mkdir()
+    subprocess.run(["git", "-C", str(session), "init", "-q"], check=True)
+    shutil.copytree(repo, session / "w")
+    (session / "w" / "f.txt").write_text("changed on purpose\n", encoding="utf-8")
+    shutil.copytree(repo, session / "clean")
+    other = tmp_path / "O"
+    shutil.copytree(repo, other)
+    return session, other
+
+
 # --- the opt-in's two places, the old name and the throwaway marker -------------
 
 

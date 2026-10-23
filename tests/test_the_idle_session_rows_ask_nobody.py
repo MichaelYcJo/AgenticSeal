@@ -32,18 +32,19 @@ import subprocess
 import sys
 
 import pytest
-from conftest import dirty, load_hook_module
-from test_the_guard_asks_once_per_session import (
+from conftest import (
     ACTIVE,
     IDLE,
     TOKEN,
     ask_entries,
     consent_dir,
+    dirty,
     dirty_deny,
     grant,
-    wg,
+    load_hook_module,
     write_transcript,
 )
+from test_worktree_consent import wg
 
 STOP = "does not know to leave the branch where it is"
 

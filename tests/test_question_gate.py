@@ -17,6 +17,7 @@ import sys
 
 import pytest
 from conftest import (
+    ask_entries,
     census_case,
     decision_of,
     declare_routing,
@@ -26,9 +27,9 @@ from conftest import (
     load_hook_module,
     local_home,
     run_hook,
+    write_transcript,
 )
 from conftest import git_out as git
-from test_the_guard_asks_once_per_session import ask_entries, write_transcript
 
 TARGET = "hooks/question-gate.py"
 

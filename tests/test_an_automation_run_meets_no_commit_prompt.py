@@ -17,7 +17,7 @@ reader accepts. What the gate stops is unchanged, and
 holds that half.
 
 "Under the press" below means a transcript built by the fixture
-`tests/test_the_guard_asks_once_per_session.py` uses, under a projects root
+`tests/test_worktree_consent.py` uses, under a projects root
 this case owns. No case reads a real transcript.
 """
 
@@ -29,9 +29,8 @@ import subprocess
 import sys
 
 import pytest
-from conftest import load_hook_module
+from conftest import ask_entries, load_hook_module, write_transcript
 from test_no_shape_the_base_stops_reads_silent import make_repo, moved_row, q
-from test_the_guard_asks_once_per_session import ask_entries, write_transcript
 
 gate = load_hook_module("commit-review-gate.py", "crg_automation")
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "hooks"))
