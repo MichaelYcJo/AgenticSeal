@@ -1471,8 +1471,9 @@ def command_names_backslashed(command, is_directory):
     about — the built-in check and the directory part; a `)` does not end
     a name, which only matters for a `/` written straight after one; and
     the `&` of `2>&1` is read as a separator, which makes the handle digit
-    after it a "name" with no `/` in it. The `2>&1` case in `tests/test_the_gate_hands_cmd_a_path_it_can_
-    run.py` holds that last one to what it hands over.
+    after it a "name" with no `/` in it. The `2>&1` row of
+    `tests/test_broad_gate.py`'s `Test_handed_to_shell` holds that last one
+    to what it hands over.
 
     **Not rewritten, and named rather than claimed:** a path after `call`,
     `start`, `if`, `else`, `for … do` or `cmd /c`, which `cmd.exe` reads as
