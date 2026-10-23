@@ -122,8 +122,11 @@ def is_wrapped(script):
 
 
 def names(text, script):
-    """Whether `text` mentions the script by filename at all."""
-    return os.path.basename(script) in text
+    """Whether `text` mentions the script by filename at all. A filename
+    standing inside a longer one is another file's name: `tests/test_settle.py`
+    on a `check:` line is not a mention of `settle.py`."""
+    base = re.escape(os.path.basename(script))
+    return re.search(rf"(?<![\w-]){base}", text) is not None
 
 
 def reachable(text, script):
@@ -175,7 +178,7 @@ def command_forms(text, script):
     on nobody being told to type them, and this is the property, asked of the
     tree rather than assumed.
     """
-    pattern = re.compile(rf"{re.escape(os.path.basename(script))}\s+-")
+    pattern = re.compile(rf"(?<![\w-]){re.escape(os.path.basename(script))}\s+-")
     return [
         (number, line)
         for number, line in enumerate(text.splitlines(), 1)
@@ -402,6 +405,18 @@ def test_a_planted_invocation_turns_the_classification_red():
     assert command_forms("    chain_check.py -q\n", script)
     assert not command_forms("`chain_check.py` reads the record.\n", script)
     assert not command_forms("what `chain_check.py new` would say\n", script)
+
+
+def test_a_test_file_named_for_a_script_does_not_name_it():
+    """A `check:` line names test files, and rule 1 names each module's file
+    for its module, so `tests/test_round_record.py` holds the script's
+    filename without mentioning the script. Read as a mention, it asked
+    `agents/warden.md` for locators of two scripts it never names."""
+    script = "skills/x/scripts/round_record.py"
+    assert not names("check: tests/test_round_record.py", script)
+    assert names("`round_record.py` writes the record.", script)
+    assert names("It lives at `skills/x/scripts/round_record.py`.", script)
+    assert not command_forms("bin/test tests/test_round_record.py -q\n", script)
 
 
 def test_a_half_shipped_pair_is_not_a_wrapped_script(monkeypatch):
