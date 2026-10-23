@@ -174,3 +174,48 @@ Group 44's command is group 44's own group, whose module ran 38 mutants at 222bf
 **The real-git cases kept.** The builder's case and the three `on_disk` cases run `git init` through `build_tracked_tree`, because what they hold is what the index lists against what the disk has.
 
 **The boundary** (`executed`, at the tree committed as 4e987021, before the commit over the same bytes). `tests/test_conftest.py`, `tests/test_censuses.py`, `tests/test_test_layout.py`, `tests/test_chain_hooks_hardening.py`, `tests/test_the_rules_claude_md_names_have_one_home.py` and every file `git grep -l "git_listing\|tracked_text_files\|ls-files" tests/` lists less the shards module: 2,432 passed and 3 skipped. The shards module over the whole collection: 18 passed, the durations case among them. `bin/test-layout --check` exits 0, 184 files read, 0 refused, 115 declaring no `TARGET`; `bin/rules --check` and `bin/unverified-check seal/specs/` exit 0; ruff checks and formats each changed file clean, and `--pairs` names none in `tests/test_conftest.py`.
+
+### A test file's import followed, at 32cd06c7
+
+**What was asked.** `plan.md` *Round 4's fix pass*, steps 1 to 5, after `rounds/round-4.md` findings 1 and 2 and the reframe at b120e598: the name condition follows an import from another test file, the condition's statements say what the code reads, every recorded move check runs again, each line naming a case in a file that declares no `TARGET` goes to its subject's mutants, and the records.
+
+**Whether the frame holds** (`read`). It holds for the code: `spec.md` *The proof of equal protection* states the fourth condition with a test file among the modules a `from <module> import` is followed into, and S15 names both rows. The script at a1047bfe is the script at b120e598 (`git diff --stat a1047bfe b120e598 -- skills/verify/scripts/test_layout.py tests/test_test_layout.py` is empty, `executed`). It does not hold for the counts step 4 and step 5 give: *The move checks re-run with a test file's import followed* below has the lines as the re-run printed them.
+
+**What changed** (`executed`, macOS arm64). `_test_modules` takes every `.py` entry directly under `tests/`, test files among them, where it took only the entries whose name does not start with `test_`. So `_Names.forms` follows `from test_x import <name>` into `tests/test_x.py` and `_Names.items` follows `test_x.<name>` after `import test_x`, each read at the base through `git show` and in the working tree from disk. The docstrings of `_test_modules`, `_Names` and `moved` say so. The module docstring's `--moved` part says "for each failure of the conditions below", its `names` entry says that the following reaches any module directly under `tests/`, a test file among them, states that each name is compared as the set of its distinct definitions, ends with the two limits, the string and the swap, and says "passed the body and fixture conditions". `CONTRIBUTING.md` *The test layout*'s move check bullet says the check passes "where every condition `skills/verify/scripts/test_layout.py`'s docstring states for `--moved` holds", and says what a failing case in a file that declares no `TARGET` counts for, in the words of `spec.md` *The proof of equal protection*. Neither file says "four conditions" any more (`git grep -n "four conditions"` over `skills/verify/scripts`, `tests/test_test_layout.py`, `CONTRIBUTING.md`, `agents` and the skills finds only the verify skill's own term, `executed`).
+
+**The rows** (`executed`). `a-name-imported-from-another-test-file` leaves `test_refuses_a_cut_a_merge_an_edited_body_and_a_changed_fixture` for `test_accepts_a_pure_move`: `V = 1` stands in `tests/test_e.py` at the base and in `tests/test_f.py` in the working tree, and the new file imports it from `test_f`. The new refusing row `a-changed-name-in-another-test-file` keeps `from test_e import V` in both trees and writes `V = 2` into the working tree's `tests/test_e.py`, and the check prints `moved: tests/test_old_d.py::test_value: name V: its definition differs from the base's`.
+
+**Seen red** (`executed`). Against the script at a1047bfe, `bin/test tests/test_test_layout.py -q -p no:xdist -k "Test_moved and (a-name-imported-from-another-test-file or a-changed-name-in-another-test-file)"` gave 2 failed: the accepting row exited 1 with the `name V` line, and the refusing row exited 0 with `0 failed`. Built, both pass.
+
+**The mutation table** (`executed`, one `bin/mutation-check` batch over `skills/verify/scripts/test_layout.py` with `--tests "bin/test tests/test_test_layout.py -q -p no:xdist -x -k Test_moved"` at the tree committed as 32cd06c7, the runner a copy outside the tree). The batch carries round 3's 30 mutants, with t4, a test file taken as a module, replaced by its inverse u1, and t3 rebuilt on the changed line, and one more at the changed code, u2. 31 mutants, 30 red and 1 survived, in 217.9 s after a 12.1 s baseline.
+
+| # | Mutation | At 32cd06c7 |
+|---|---|---|
+| k1, r1, b1 to b4, s1, s2, s4, s5, o7, f1 to f3, i1 to i3, o1 to o3, n1, n2, c1, c4, l1, m1, m2, w1 | as at 8dd97a30 (*S15, in round 3's fix pass*) | red |
+| t3 | a path that is no `.py` file taken as a module | red |
+| u1 | a test file left out of the modules, t4's inverse | red |
+| u2 | a `.py` entry whose source cannot be read kept | SURVIVED |
+
+u2 is answered by a reason, not a row. It differs from the code only for an entry directly under `tests/` whose name ends in `.py` and that `git show` at the base or a read in the working tree cannot give, a directory so named or a file nobody can read. No tree of this repository and no fixture of `Test_moved` holds one, and under u2 such an entry makes `ast.parse` raise, so the check stops with a traceback and does not pass a group.
+
+**The boundary** (`executed`, at the tree committed as 32cd06c7, before the commit over the same bytes). `bin/test tests/test_test_layout.py tests/test_docs_line_wrap.py -q -p no:xdist`: 111 passed. `bin/test-layout --check` exits 0, 184 files read, 0 refused, 115 declaring no `TARGET`; `bin/rules --check` exits 0, all 249 check lines holding; `bin/unverified-check seal/specs/` exits 0; `uvx ruff check` and `uvx ruff format --check` pass both changed Python files, one file per run.
+
+### The move checks re-run with a test file's import followed
+
+The three commands this record holds ran as `phases/phase-6.md` *The move checks re-run with a test file's import followed* says, at their commits, with the script at 32cd06c7 (`executed`). 4e987021's command is among them; its middle column is its own record's line, which ran with the script round 3's pass committed at 8dd97a30.
+
+| Command | Commit | Round 3's re-run | With a test file's import followed |
+|---|---|---|---|
+| group 44's, re-run in S14 | cc391101 | `35 old cases, 35 items against 35 at 0cc2609cad5a, 2 failed`, exit 1 | `35 old cases, 35 items against 35 at 0cc2609cad5a, 0 failed`, exit 0 |
+| the conftest helpers' cases | 099cd54d | `15 old cases, 27 items against 27 at b2c300c9c8ea, 1 failed`, exit 1 | `15 old cases, 27 items against 27 at b2c300c9c8ea, 0 failed`, exit 0 |
+| the shrunken corpus file's helper cases | 4e987021 | `31 old cases, 43 items against 43 at 56d2f85689e0, 5 failed`, exit 1 | `31 old cases, 43 items against 43 at 56d2f85689e0, 5 failed`, exit 1 |
+
+Group 44's two lines on `_roller` and the conftest move's one on `TOKENS` are gone: each name was imported from a test file, `tests/test_roll_flow_measurement_issue.py` and `tests/test_conftest.py`, that defines it as the base's file did. 4e987021's five lines stay. They are the sweep cases `test_no_scope_in_the_suite_lists_paths_from_git_without_a_guard`, `test_the_reader_finds_the_helpers_this_work_guarded`, `test_a_planted_unguarded_scope_is_named`, `test_a_test_module_the_tree_deleted_is_not_a_scope_somebody_removed` and `test_an_unguarded_scope_is_named_although_a_module_is_mid_edit`, each on `OPENS_NOTHING`, whose second key the move rewrote to name `tests/test_conftest.py#test_the_builder_leaves_a_deleted_file_tracked`. The file declares no `TARGET`, and the sweep calls no shipped module as its subject, so the line counts for the definition it names, as `questions.md` Q12's default gives it.
+
+**`OPENS_NOTHING`'s mutants** (`executed`, one `bin/mutation-check` batch over `tests/test_a_shrunken_corpus_declines_to_judge.py` with `--tests "bin/test tests/test_a_shrunken_corpus_declines_to_judge.py -q -p no:xdist -x"`, at 32cd06c7 in a scratch clone, the runner a copy outside the tree). One mutant per entry and one for the rewritten key: 3 mutants, 3 red, in 4.8 s after a 2.5 s baseline. No old column ran.
+
+| # | Mutation | At 32cd06c7 |
+|---|---|---|
+| on1 | the entry for `tests/test_the_release_check_watches_what_ships.py#tracked_top_level_entries` names a scope nowhere | red |
+| on2 | the entry for `tests/test_conftest.py#test_the_builder_leaves_a_deleted_file_tracked` names a scope nowhere | red |
+| on3 | that key names the builder case's place before 4e987021, `tests/test_a_shrunken_corpus_declines_to_judge.py` | red |

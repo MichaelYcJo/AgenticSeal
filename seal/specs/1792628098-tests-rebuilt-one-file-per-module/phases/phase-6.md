@@ -1746,3 +1746,106 @@ The mutants sit at `claude_pid`'s exported pid, `claude_ancestor`'s pid floor, e
 **Group 50, `evals/scripts/rule_cases.py` and `seed_defects.py`.** The rule file's named cases run `rule_cases.main`, whose truths `replay_targets.py#truths_with` builds, so both ran: rule_cases' 5 mutants at the warden case's truths and `main`'s writing, and `truths_with`'s 10 at its window, coordinate, range, last line, entry window, missing location, widening, doubled truth, widened body and unknown case, against `tests/test_rule_cases.py`: 15 red. Seed_defects' 14 mutants, at `target_of`'s subject, items, round 1 and round 2, its shared line and the seed, `seed`'s code token, window, repeated text and unit, the scaffold's remote and reflog, the CRLF line, `shared_line`'s count and `targets`' prefixes: 9 red. sd2, a commit adding no work item taken, sd3, a commit with no round 1 taken, sd6, a seed found in a string, sd8, a line whose text occurs twice seeded, and sd9, a line in no unit seeded, survive the group's new files and the old file at f19395a5: old gaps.
 
 **The totals** (`executed`). 20 modules ran 231 new mutants: 193 red and 38 survived. Of the 38, 5 are red on another new file of the group at the head (w2, h2, h6, k7, k9), 32 are old gaps, and 1, a17, is a lost protection answered by a case seen red on it. The four reused tables ran their 37 survivors again, 66 runs over the old files of groups 11, 21, 22, 24 and 25: 8 red, k25 and config's seven, each on a case that stands at the head, and 58 old gaps. No other case was added.
+
+### The move checks re-run with a test file's import followed
+
+**What ran** (`executed`, macOS arm64, in round 4's fix pass). The 49 commands of the section above ran once more, each in a scratch clone of the branch (`git clone --shared`) checked out at the same commit, with `HEAD` in a command read as that section read it, and with `skills/verify/scripts/test_layout.py` as committed at 32cd06c7 copied over the clone's. That script follows `from <module> import` and `<module>.<name>` into every module directly under `tests/`, test files among them (`phases/phase-7.md` *A test file's import followed, at 32cd06c7*). The clone was removed after the runs. The middle column is the section above's last column.
+
+| Group | Commit | Round 3's re-run | With a test file's import followed |
+|---|---|---|---|
+| 1 | 0a86c1b4 | `73 old cases, 74 items against 73 at 43324e4e104e, 23 failed`, exit 1 | `73 old cases, 74 items against 73 at 43324e4e104e, 23 failed`, exit 1 |
+| 2 | ccca432d | `20 old cases, 147 items against 147 at 0a86c1b4c088, 4 failed`, exit 1 | `20 old cases, 147 items against 147 at 0a86c1b4c088, 4 failed`, exit 1 |
+| 3 | e6700896 | `108 old cases, 119 items against 119 at ccca432d83a7, 6 failed`, exit 1 | `108 old cases, 119 items against 119 at ccca432d83a7, 6 failed`, exit 1 |
+| 4 | 714f2df2 | `66 old cases, 180 items against 180 at e945c57c16fc, 4 failed`, exit 1 | `66 old cases, 180 items against 180 at e945c57c16fc, 4 failed`, exit 1 |
+| 5 | 04115ed2 | `17 old cases, 37 items against 37 at 714f2df2eff1, 15 failed`, exit 1 | `17 old cases, 37 items against 37 at 714f2df2eff1, 15 failed`, exit 1 |
+| 6 | df48707c | `18 old cases, 28 items against 28 at 04115ed2da4d, 9 failed`, exit 1 | `18 old cases, 28 items against 28 at 04115ed2da4d, 9 failed`, exit 1 |
+| 7 | 9c70ddbf | `51 old cases, 59 items against 59 at 5639d076e5d3, 19 failed`, exit 1 | `51 old cases, 59 items against 59 at 5639d076e5d3, 19 failed`, exit 1 |
+| 8 | 4f50aee0 | `51 old cases, 69 items against 70 at 459d7944c0d4, 21 failed`, exit 1 | `51 old cases, 69 items against 70 at 459d7944c0d4, 21 failed`, exit 1 |
+| 9 | d8bba633 | `24 old cases, 24 items against 24 at 8dedf9e4698c, 17 failed`, exit 1 | `24 old cases, 24 items against 24 at 8dedf9e4698c, 17 failed`, exit 1 |
+| 10 | 449feefb | `46 old cases, 47 items against 47 at 9197c897c376, 6 failed`, exit 1 | `46 old cases, 47 items against 47 at 9197c897c376, 6 failed`, exit 1 |
+| 11 | e94c6826 | `100 old cases, 165 items against 165 at 167950a6e8bb, 5 failed`, exit 1 | `100 old cases, 165 items against 165 at 167950a6e8bb, 5 failed`, exit 1 |
+| 12 | c512b123 | `219 old cases, 358 items against 358 at 56fb82e0646c, 123 failed`, exit 1 | `219 old cases, 358 items against 358 at 56fb82e0646c, 123 failed`, exit 1 |
+| 14 | f5185d67 | `144 old cases, 187 items against 187 at 9818ee1a991f, 102 failed`, exit 1 | `144 old cases, 187 items against 187 at 9818ee1a991f, 102 failed`, exit 1 |
+| 15 | f1d13be0 | `31 old cases, 142 items against 142 at 06d0f55453fc, 6 failed`, exit 1 | `31 old cases, 142 items against 142 at 06d0f55453fc, 6 failed`, exit 1 |
+| 16 | b8e201e1 | `56 old cases, 71 items against 71 at 0b134a29b35e, 3 failed`, exit 1 | `56 old cases, 71 items against 71 at 0b134a29b35e, 3 failed`, exit 1 |
+| 17 | 67a86c57 | `292 old cases, 409 items against 409 at b8e201e1f012, 114 failed`, exit 1 | `292 old cases, 409 items against 409 at b8e201e1f012, 114 failed`, exit 1 |
+| 18 | 95991e42 | `27 old cases, 27 items against 27 at 67a86c5730f0, 1 failed`, exit 1 | `27 old cases, 27 items against 27 at 67a86c5730f0, 1 failed`, exit 1 |
+| 19 | e1e39bf7 | `2 old cases, 19 items against 19 at 95991e42b3d5, 2 failed`, exit 1 | `2 old cases, 19 items against 19 at 95991e42b3d5, 2 failed`, exit 1 |
+| 20 | 6277911e | `53 old cases, 55 items against 55 at e1e39bf7b23d, 2 failed`, exit 1 | `53 old cases, 55 items against 55 at e1e39bf7b23d, 2 failed`, exit 1 |
+| 21 | 1b3e6978 | `193 old cases, 803 items against 803 at fb0c5dfccd2f, 23 failed`, exit 1 | `193 old cases, 803 items against 803 at fb0c5dfccd2f, 23 failed`, exit 1 |
+| 22 | 10f6ad94 | `65 old cases, 190 items against 190 at 92add28be86b, 5 failed`, exit 1 | `65 old cases, 190 items against 190 at 92add28be86b, 5 failed`, exit 1 |
+| 23 | ca726662 | `134 old cases, 333 items against 333 at c6c1d8b03de3, 79 failed`, exit 1 | `134 old cases, 333 items against 333 at c6c1d8b03de3, 79 failed`, exit 1 |
+| 24 | 93bf39da | `4 old cases, 215 items against 215 at 687388b5ae85, 2 failed`, exit 1 | `4 old cases, 215 items against 215 at 687388b5ae85, 2 failed`, exit 1 |
+| 25 | eb207a6d | `65 old cases, 661 items against 661 at 3cf118239946, 21 failed`, exit 1 | `65 old cases, 661 items against 661 at 3cf118239946, 21 failed`, exit 1 |
+| 26 | da3eae09 | `367 old cases, 1189 items against 1189 at 0e561e86de7a, 100 failed`, exit 1 | `367 old cases, 1189 items against 1189 at 0e561e86de7a, 100 failed`, exit 1 |
+| 27 | ffb0bd4b | `11 old cases, 11 items against 11 at 300abe340a60, 0 failed`, exit 0 | `11 old cases, 11 items against 11 at 300abe340a60, 0 failed`, exit 0 |
+| 28 | b16613b3 | `40 old cases, 54 items against 54 at 6b884f5f9f41, 28 failed`, exit 1 | `40 old cases, 54 items against 54 at 6b884f5f9f41, 28 failed`, exit 1 |
+| 29 | 31aed13b | `29 old cases, 50 items against 50 at 7cd34d46115a, 1 failed`, exit 1 | `29 old cases, 50 items against 50 at 7cd34d46115a, 0 failed`, exit 0 |
+| 30 | 666cedbb | `24 old cases, 25 items against 25 at 2f2d21c97c4f, 0 failed`, exit 0 | `24 old cases, 25 items against 25 at 2f2d21c97c4f, 0 failed`, exit 0 |
+| 31 | 391c7857 | `34 old cases, 46 items against 46 at 17ee85328290, 0 failed`, exit 0 | `34 old cases, 46 items against 46 at 17ee85328290, 0 failed`, exit 0 |
+| 32 | bf6df24b | `63 old cases, 95 items against 95 at 6df0950bb66f, 0 failed`, exit 0 | `63 old cases, 95 items against 95 at 6df0950bb66f, 0 failed`, exit 0 |
+| 33 | c9af3c38 | `194 old cases, 221 items against 221 at 95d02cc818d9, 156 failed`, exit 1 | `194 old cases, 221 items against 221 at 95d02cc818d9, 156 failed`, exit 1 |
+| 34 | 5966150b | `198 old cases, 314 items against 315 at 10667b32ad71, 46 failed`, exit 1 | `198 old cases, 314 items against 315 at 10667b32ad71, 46 failed`, exit 1 |
+| 35 | 2272cd1e | `171 old cases, 329 items against 329 at ffd898ec87dc, 3 failed`, exit 1 | `171 old cases, 329 items against 329 at ffd898ec87dc, 3 failed`, exit 1 |
+| 36 | 19c01e3b | `116 old cases, 246 items against 246 at c30f7d9521c6, 20 failed`, exit 1 | `116 old cases, 246 items against 246 at c30f7d9521c6, 20 failed`, exit 1 |
+| 37 | 809408e5 | `116 old cases, 174 items against 174 at db6541fc96b0, 77 failed`, exit 1 | `116 old cases, 174 items against 174 at db6541fc96b0, 77 failed`, exit 1 |
+| 38 | 4f350b0f | `174 old cases, 330 items against 330 at 809408e5ec2e, 0 failed`, exit 0 | `174 old cases, 330 items against 330 at 809408e5ec2e, 0 failed`, exit 0 |
+| 39 | 46e1ec4c | `38 old cases, 50 items against 50 at 4f350b0f9144, 18 failed`, exit 1 | `38 old cases, 50 items against 50 at 4f350b0f9144, 17 failed`, exit 1 |
+| 40 | 565de415 | `9 old cases, 15 items against 15 at 409d8037ab94, 4 failed`, exit 1 | `9 old cases, 15 items against 15 at 409d8037ab94, 4 failed`, exit 1 |
+| 41 | 56a8ac20 | `22 old cases, 61 items against 61 at 565de4152a2c, 1 failed`, exit 1 | `22 old cases, 61 items against 61 at 565de4152a2c, 0 failed`, exit 0 |
+| 42 | 5e26a264 | `25 old cases, 30 items against 30 at 56a8ac20bf30, 0 failed`, exit 0 | `25 old cases, 30 items against 30 at 56a8ac20bf30, 0 failed`, exit 0 |
+| 43 | 0cc2609c | `12 old cases, 17 items against 17 at 5e26a264b9d6, 0 failed`, exit 0 | `12 old cases, 17 items against 17 at 5e26a264b9d6, 0 failed`, exit 0 |
+| 44 | 222bf69a | `35 old cases, 35 items against 35 at 0cc2609cad5a, 2 failed`, exit 1 | `35 old cases, 35 items against 35 at 0cc2609cad5a, 0 failed`, exit 0 |
+| 45 | efc3a79f | `94 old cases, 102 items against 102 at bc2b976ffa97, 36 failed`, exit 1 | `94 old cases, 102 items against 102 at bc2b976ffa97, 30 failed`, exit 1 |
+| 46 | b68d41d1 | `24 old cases, 33 items against 33 at efc3a79f8793, 0 failed`, exit 0 | `24 old cases, 33 items against 33 at efc3a79f8793, 0 failed`, exit 0 |
+| 47 | 503e2f5e | `42 old cases, 52 items against 52 at b68d41d1caa8, 0 failed`, exit 0 | `42 old cases, 52 items against 52 at b68d41d1caa8, 0 failed`, exit 0 |
+| 48 | f7ef43cc | `47 old cases, 80 items against 80 at 503e2f5e32f4, 2 failed`, exit 1 | `47 old cases, 80 items against 80 at 503e2f5e32f4, 0 failed`, exit 0 |
+| 49 | a4a113f6 | `60 old cases, 95 items against 95 at f7ef43ccac39, 5 failed`, exit 1 | `60 old cases, 95 items against 95 at f7ef43ccac39, 0 failed`, exit 0 |
+| 50 | 52ce0e03 | `26 old cases, 35 items against 35 at f19395a52bea, 15 failed`, exit 1 | `26 old cases, 35 items against 35 at f19395a52bea, 0 failed`, exit 0 |
+
+**What the re-run changed** (`executed`, each command's lines compared with round 3's). 38 commands print round 3's lines word for word. Eight print fewer: groups 29, 41, 44, 48, 49 and 50 now exit 0, group 39 loses its line on `read` and group 45 its six lines on the cases of `tests/test_a_declared_label_reaches_the_tracker.py`. Step 1 changed one reading, so each line gone is a name that a file imports from a test file and that now reads alike where that file defines it. Three print the same count with another name on one case each: group 34's case of `tests/test_the_gate_names_every_step_ci_runs.py` on `ROOT` where it was `reasons`, group 35's case of `tests/test_one_heading_rule_holds_to_commonmark.py` on `uc` where it was `disagreements`, and group 37's two cases on `rules` and `git` where they were `parse` and `OVERVIEW_OPEN`. Each such import now reads alike, and the definition the following reaches behind it differs. No re-run prints a line on a case of a file that declares `TARGET` that round 3's did not print, so no module goes to the mutants by its `TARGET` that round 3 did not send.
+
+**The lines that name a case in a file that declares no `TARGET`** (`executed`, a script outside the tree that reads each named case's file at the command's commit for its `TARGET` and looks the case up by name in it). 29 lines name such a case that stayed in its file while the group changed a name it reads. Round 3's section counted 17 of them, the lines of the groups recorded at exit 0. `plan.md` *Round 4's fix pass* step 4 sends such a line whatever its command was recorded at, so the lines of groups recorded at exit 1 count too: group 1's five on `ROOT`, group 7's one on `ROOT`, group 8's one on `two_axis_text`, group 9's one on `declare`, group 14's twelve on `git`, group 23's one on `URL` and group 34's one. Of round 3's 17, 10 now pass (groups 29, 41, 48, 49 and 50), and 7 still fail: group 16's two on `a_git_whose_diff_fails`, group 19's on `_corpora`, group 22's on `shape_text`, group 35's on `uc` and group 37's two on `rules` and `git`. Each line goes to the subject `spec.md` *The proof of equal protection* gives its case.
+
+| Group | Case, where the line names it | Where it stands at 32cd06c7 | Subject | Proof |
+|---|---|---|---|---|
+| 1 | `tests/test_gates_do_not_fail_open.py::test_a_reader_that_decoded_nothing_answers_empty_rather_than_raising` | `tests/test_optin.py::Test_repo_root::test_refuses_a_reader_that_decoded_nothing_and_answers_empty` | `hooks/optin.py#repo_root` | op1, red |
+| 1 | `::test_a_repository_whose_path_the_locale_cannot_carry_still_resolves` | `tests/test_optin.py::Test_repo_root::test_accepts_a_repository_whose_path_the_locale_cannot_carry` | `hooks/optin.py#repo_root` | op2, red |
+| 1 | `::test_the_common_directory_reader_that_decoded_nothing_answers_empty` | `tests/test_optin.py::Test_git_common_dir::test_refuses_a_reader_that_decoded_nothing_and_answers_empty` | `hooks/optin.py#git_common_dir` | op3, red |
+| 1 | `::test_the_process_probe_survives_output_it_cannot_decode` | `tests/test_worktree_guard.py::Test_lease_owner_alive` | `hooks/worktree-guard.py#lease_owner_alive` | wg1, red |
+| 1 | `::test_the_commit_gates_hint_survives_a_root_with_no_relative_spelling` | `tests/test_commit_review_gate.py::Test_main` | `hooks/commit-review-gate.py`, `main` through `declaration_hint` | group 17's table, g29 and g30 red; g12 and g15 below |
+| 7 | `tests/test_console_is_not_utf8.py::test_a_declaration_that_cannot_be_decoded_is_not_an_answer` | `tests/test_routing.py::Test_module` | `hooks/routing.py#declarations` | rt1, red |
+| 8 | `tests/test_routing_is_recorded.py::test_the_commit_gate_decides_the_same_with_the_new_rows_and_without` | `tests/test_commit_review_gate.py::Test_main` | `hooks/commit-review-gate.py`, `main` | group 17's table; g12 and g15 below |
+| 9 | `tests/test_the_implementer_is_recorded.py::test_the_commit_gate_decides_identically_with_the_row_and_without` | `tests/test_commit_review_gate.py::Test_main` | `hooks/commit-review-gate.py`, `main` | group 17's table; g12 and g15 below |
+| 14 | ten parity cases of `tests/test_chain_hooks_hardening.py`, `test_parity_repo_asks_when_code_commits_without_a_comparison` to `test_both_opt_ins_report_together` | `tests/test_commit_review_gate.py::Test_main` | `hooks/commit-review-gate.py`, `main` through the parity arm | group 17's table; g12 and g15 below |
+| 14 | `tests/test_chain_hooks_hardening.py::test_a_diff_git_could_not_take_is_asked_about_at_pre_commit` | `tests/test_commitgate.py::Test_pre_commit` | `hooks/commitgate.py#pre_commit` | group 16's table in the section above, 7 red |
+| 14, 16 | `tests/test_chain_hooks_hardening.py::test_the_backstop_hands_the_parity_arm_none_where_git_could_not_list` | `tests/test_gate.py::Test_module` | `hooks/commitgate.py#_paths_between` | group 16's table in the section above, 7 red |
+| 16 | `tests/test_chain_hooks_hardening.py::test_a_diff_git_could_not_take_is_asked_about_by_the_parity_arm` | `tests/test_commit_review_gate.py::Test_main` | `hooks/commit-review-gate.py`, `changed_paths` and `touches_code` | group 17's table, g13 and g14 red; g12 and g15 below |
+| 19 | `tests/test_the_old_spellings_reach_the_hook.py::test_the_three_token_reads_answer_as_one` | where it was | the definition `_corpora`, a check across files | cp1 to cp6, old gaps |
+| 22 | `tests/test_the_mode_question_is_asked_once.py::test_the_writer_leaves_a_commented_row_alone` | `tests/test_seal.py::Test_write_row` | `skills/implement/scripts/seal.py#write_row` and `#with_row` | sw1 and sw2, red |
+| 23 | `tests/test_a_signer_declares_its_pact.py::test_s4_the_configs_this_plugin_writes_or_copies_are_silent` | where it was | `hooks/config.py#pact_declaration` | group 23's table, every mutant at `pact_declaration` red |
+| 34 | `tests/test_the_gate_names_every_step_ci_runs.py::test_the_skill_counts_the_steps_with_a_local_answer_and_no_arm` | where it was | the definition `ROOT`, a case reading prose | ro1, red |
+| 35 | `tests/test_one_heading_rule_holds_to_commonmark.py::test_every_tracked_markdown_file` | where it was | `skills/verify/scripts/unverified_check.py#heading_level`, which `disagreements` calls through `uc` | group 35's table in the section above, 6 red |
+| 37 | `tests/test_settle_applies_rule_changes_in_place.py::test_the_skills_example_reads_as_the_skill_says` | where it was | `skills/settle/scripts/rule_changes.py#parse` | group 37's table in the section above; r4 an old gap |
+| 37 | `tests/test_settle_reads_before_it_removes.py::test_a_closed_row_is_told_to_merge_before_its_directory_goes` | where it was | `skills/settle/scripts/settle.py`, its report | group 37's table in the section above; st10, st13, st25 and st27 old gaps |
+
+**Where an earlier table stands** (`read`, each table's record; `executed`, `git diff --stat 208803e6 32cd06c7` over every shipped file and test file named in the table above, empty). Group 16's and group 35's tables in the section above ran at 208803e6 and left no survivor, and their mutants sit at the decision points of `pre_commit`, `_paths_between` and `heading_level`. Group 37's tables ran at 208803e6 with their mutants at `parse` and at `settle.py`'s report, and each survivor ran against group 37's new files at 208803e6, the two case files above among them, and over group 37's old files at db6541fc. Group 23's table ran at ca726662, and every mutant it holds at `pact_declaration` was red. Group 17's table ran at 67a86c57 with one or two mutants at each function of `hooks/commit-review-gate.py`, g13 at `changed_paths`, g14 at `touches_code`, g29 and g30 at `declaration_hint`, and left g12 and g15 at `commit_shape`. None of these files changed between 208803e6 and 32cd06c7.
+
+**The mutants that ran** (`executed`, at 32cd06c7, in a scratch clone of the branch, one `bin/mutation-check` batch per subject with `-x`, the runner a copy outside the tree and `HOME` a directory in the scratch area; the old column in a second scratch clone checked out at each group's base).
+
+| # | Mutation | At 32cd06c7 | Old files |
+|---|---|---|---|
+| op1 | `optin.repo_root` reads a None stdout as text | red, `tests/test_optin.py` | not run |
+| op2 | `optin.repo_root` decodes git's answer as Latin-1 | red | not run |
+| op3 | `optin.git_common_dir` reads a None stdout as text | red | not run |
+| wg1 | `lease_owner_alive` reads a None stdout as text | red, `tests/test_worktree_guard.py` | not run |
+| rt1 | `routing.declarations` catches no decode error | red, `tests/test_routing.py` | not run |
+| sw1 | `with_row` writes past a table the walker refused | red, `tests/test_seal.py` and `tests/test_config.py` | not run |
+| sw2 | `write_row` writes past `with_row`'s refusal | red | not run |
+| ro1 | `ROOT` names `tests/`, not the repository | red, `tests/test_the_gate_names_every_step_ci_runs.py`, at collection | not run |
+| cp1 | `_corpora` keeps a None command of `TOKEN_CASES` | SURVIVED, `tests/test_the_old_spellings_reach_the_hook.py` | SURVIVED at 95991e42, an old gap |
+| cp2 to cp6 | `_corpora` leaves out one of its five sources: `TOKEN_CASES`, the heredoc commands, the guard's `TOKEN_COMMANDS`, `BODY_TOKENS` and `TYPED_BESIDE_A_BODY` | SURVIVED | SURVIVED at 95991e42, old gaps |
+| g12 | `commit_shape` reads no pathspec after `--`, rebuilt from group 14's description | red, `tests/test_commit_review_gate.py`, 51.7 s | ran before the head's verdict: red at 0b134a29 on `test_parity_gate_sees_commits_that_never_touched_the_index`, which stands at 32cd06c7 in `tests/test_commit_review_gate.py`; survived at 43324e4e, 459d7944 and 8dedf9e4 |
+| g15 | `commit_shape` takes a value option's value as a path, rebuilt from group 14's description | SURVIVED, 53.1 s | SURVIVED at 43324e4e, 459d7944, 8dedf9e4, 9818ee1a and 0b134a29, an old gap as groups 14 and 17 found |
+
+These batches ran 16 mutants: 9 red and 7 survived, every survivor an old gap. cp1 to cp6 are new old gaps: the case asserts that three readers agree over the commands `_corpora` gives, so a corpus with fewer commands, or with a None among them, still agrees, at the head and at the base. g12 and g15 are rebuilt from their descriptions, because group 14's batch text is not in the tree; the rebuilt g12 removes the pathspec, which is red where group 14's survived. No protection is lost, and no case was added.
