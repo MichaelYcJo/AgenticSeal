@@ -7,55 +7,13 @@ containment test in `sessions_in_tree` then matched every Claude session on the
 machine, and a single-stream switch was denied by sessions in unrelated
 repositories.
 
-The guard's cases moved to `tests/test_worktree_guard.py` and the consent
-writer's to `tests/test_worktree_consent.py` (#942's phase 6). What stays reads
-the policy and the READMEs, which is #923's, or runs the commit gate, which
-waits for the commit gate's group.
+The guard's cases moved to `tests/test_worktree_guard.py`, the consent
+writer's to `tests/test_worktree_consent.py`, and the commit gate's case that
+says what declining does to `tests/test_commit_review_gate.py` (#942's phase
+6). What stays reads the policy and the READMEs, which is #923's.
 """
 
-import json
 import os
-import subprocess
-
-
-def test_the_commit_gate_says_what_declining_does(tmp_path):
-    """A hook returns allow/deny/ask; declining renders as a bare No.
-
-    The reason string is the only place that can give the decline a
-    destination, and `implement` *1. Read the spec before the code* rejects a question whose no leads nowhere.
-    """
-    from conftest import run_hook
-
-    repo = tmp_path / "repo"
-    (repo / "seal").mkdir(parents=True)
-    git = lambda *a: subprocess.run(
-        ["git", "-C", str(repo), *a], capture_output=True, check=True
-    )
-    subprocess.run(["git", "init", "-q", str(repo)], check=True)
-    (repo / "f.py").write_text("x = 1\n", encoding="utf-8")
-    git("add", "-A")
-    git("-c", "user.email=e@example.com", "-c", "user.name=e", "commit", "-qm", "base")
-    (repo / "f.py").write_text("x = 2\n", encoding="utf-8")
-    git("add", "-A")
-
-    out = run_hook(
-        "commit-review-gate.py",
-        {
-            "tool_name": "Bash",
-            "tool_input": {"command": "git commit -m 'change'"},
-            "cwd": str(repo),
-        },
-    )
-    d = json.loads(out)["hookSpecificOutput"]
-    assert d["permissionDecision"] == "ask"
-    reason = d["permissionDecisionReason"]
-    assert "Approving is the waiver" in reason
-    assert "Declining cancels the commit" in reason, (
-        "the decline branch has no text of its own, so it reads as a dead end"
-    )
-    assert "[no-review]" in reason and "review chain" in reason, (
-        "both continuations have to be named, or the prompt is a yes/no"
-    )
 
 
 def test_the_guard_policy_says_the_record_is_filed_where_the_guard_judged():

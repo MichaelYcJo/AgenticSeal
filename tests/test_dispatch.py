@@ -607,8 +607,8 @@ class Test_record:
     def test_refuses_to_record_where_there_is_nowhere_to_write(self, repo, tmp_path):
         """S13. No session id, or a records directory that cannot be made — a
         FILE of that name, because the CI job runs as root and `chmod` stops
-        nothing there (`tests/test_gates_do_not_fail_open.py` records why). Each
-        leaves the group's stdout what it is with the gate absent, and exits 0.
+        nothing there. Each leaves the group's stdout what it is with the gate
+        absent, and exits 0.
 
         Each side of a comparison gets a session of its own: `mode-gate.py`
         denies the first call of a session and not the next, so two calls under

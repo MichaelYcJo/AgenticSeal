@@ -48,8 +48,8 @@ saying so plainly in the report saves a round trip.
 Path handling that leaves the repository being checked; anything a hook does
 to a tree the user did not ask it to touch; a gate that reports a pass it did
 not establish (**a check that fails open is a security defect here, not a
-correctness one** — `tests/test_gates_do_not_fail_open.py` exists for that
-class alone); command construction that reaches a shell; and any write that
+correctness one**, and each gate's test file holds its cases for that class);
+command construction that reaches a shell; and any write that
 follows a link or changes a mode the user did not choose.
 
 ## What is not

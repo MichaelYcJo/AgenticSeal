@@ -219,7 +219,7 @@ OPENS_NOTHING = {
 #    itself.
 LISTS_A_FIXTURE = {
     "tests/test_optin.py#test_the_local_root_is_never_a_commit_candidate_and_needs_no_gitignore": 1,
-    "tests/test_routing_is_recorded.py#test_an_uncommitted_declaration_silences_the_commit_that_adds_it": 1,
+    "tests/test_commit_review_gate.py#test_an_uncommitted_declaration_silences_the_commit_that_adds_it": 1,
     "tests/test_the_root_migrates_itself.py#test_the_readmes_by_hand_sequence_yields_the_hooks_tracked_set": 1,
     # The hook's cases read what is unstaged and tracked in the copy of the
     # old layout the case took, to assert what the move staged.

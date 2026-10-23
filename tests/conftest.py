@@ -777,6 +777,15 @@ def local_home(repo):
     return home
 
 
+@pytest.fixture
+def local(repo):
+    """The `repo` fixture in local mode: `seal/` under `.git/` and nowhere
+    else."""
+    home = local_home(repo)
+    assert not (repo / "seal").exists()
+    return repo, home
+
+
 def declare_routing(
     repo, item="1787708604-a-work-item", review="through the review chain", home=None
 ):
@@ -1160,6 +1169,11 @@ def linked_worktree(repo, tmp_path):
 def staged(repo):
     """The paths staged in REPO, one per line."""
     return git(repo, "diff", "--cached", "--name-only").stdout
+
+
+def stage(repo, name, body="x\n"):
+    (repo / name).write_text(body, encoding="utf-8")
+    git(repo, "add", name)
 
 
 def write(root, rel, text):

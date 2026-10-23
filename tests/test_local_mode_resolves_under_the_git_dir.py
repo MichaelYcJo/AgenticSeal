@@ -10,19 +10,16 @@ the `repo` fixture with `local_home` and nothing at `<repo>/seal/`.
 The fail direction of every path here is "not opted in" or "nothing written"
 (S10), and the scratch marker under the common directory takes the opt-in
 back in local mode the way it does in shared mode.
+
+The commit gate's cases are in `tests/test_commit_review_gate.py`'s
+`Test_main`, and the `local` fixture in `tests/conftest.py` (#942's phase 6).
 """
 
 import os
 
-import pytest
 from conftest import (
     branch_of,
     decision_of,
-    declare_routing,
-    fired,
-    linked_worktree,
-    local_home,
-    reason_of,
     run_hook,
 )
 
@@ -57,75 +54,6 @@ def declare_smith(repo, home, item=ITEM):
 def write(path, text):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
-
-
-@pytest.fixture
-def local(repo):
-    """The `repo` fixture in local mode: `seal/` under `.git/` and nowhere
-    else."""
-    home = local_home(repo)
-    assert not (repo / "seal").exists()
-    return repo, home
-
-
-# --- the commit gate: reads the declaration, and names where to write it ------
-
-
-def test_the_commit_gate_is_silent_with_a_declaration_under_the_local_root(local):
-    repo, home = local
-    declare_routing(repo, home=home)
-    assert decision_of(run_hook("commit-review-gate.py", bash(repo))) == "silent"
-
-
-def test_the_commit_gate_is_silent_from_a_linked_worktree_too(repo, tmp_path):
-    """The declaration lives in the main tree's common directory; the
-    worktree's branch is what it names."""
-    home = local_home(repo)
-    other = linked_worktree(repo, tmp_path)
-    declare_routing(other, home=home)
-    assert decision_of(run_hook("commit-review-gate.py", bash(other))) == "silent"
-
-
-def test_the_commit_gate_fires_without_one_and_names_the_resolved_path(local):
-    """Q5 (a). The stop text used to spell `seal/specs/<work-item-id>/routing.md`
-    whatever the mode, and a session that typed it in local mode wrote a
-    declaration the gate never reads. The path is under the resolved root,
-    relative to the repository, spelled the way the platform spells it."""
-    repo, _ = local
-    out = run_hook("commit-review-gate.py", bash(repo))
-    assert fired(out)
-    reason = reason_of(out)
-    resolved = os.path.join(".git", "seal", "specs", "<work-item-id>", "routing.md")
-    assert resolved in reason, reason
-    assert "`seal/specs/<work-item-id>/routing.md`" not in reason, (
-        "the literal shared-mode spelling is still offered in local mode"
-    )
-
-
-def test_the_stop_text_from_a_linked_worktree_is_a_path_a_person_can_type(
-    repo, tmp_path
-):
-    """From a linked worktree the resolved root is outside the tree, so the
-    relative path climbs out of it — typeable, where `.git/seal/…` names a
-    FILE's child there."""
-    home = local_home(repo)
-    other = linked_worktree(repo, tmp_path)
-    out = run_hook("commit-review-gate.py", bash(other))
-    assert fired(out)
-    resolved = os.path.join(
-        os.path.relpath(home, other), "specs", "<work-item-id>", "routing.md"
-    )
-    assert resolved in reason_of(out), reason_of(out)
-
-
-def test_in_shared_mode_the_stop_text_still_names_the_tree_root(repo):
-    """The other half of Q5: a shared repository is told `seal/specs/…`,
-    the path it always was."""
-    (repo / "seal").mkdir()
-    out = run_hook("commit-review-gate.py", bash(repo))
-    assert fired(out)
-    resolved = os.path.join("seal", "specs", "<work-item-id>", "routing.md")
-    assert resolved in reason_of(out), reason_of(out)
 
 
 # --- the implementer notice: prints the path it resolved --------------------

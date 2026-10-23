@@ -1,4 +1,11 @@
-"""Hardening cases: prose-mention false positives, cycle edges, lease isolation."""
+"""Hardening cases: prose-mention false positives, cycle edges, lease isolation.
+
+The commit gate's cases that hold no rule a `check:` line names this file for
+are in `tests/test_commit_review_gate.py`'s `Test_main` (#942's phase 6). The
+parity arm's stay here: `docs/the-review-and-parity-arms.md` *Parity arm*
+names this file on its `check:` line, and the work item carries no rule change
+for that line.
+"""
 
 import json
 import os
@@ -7,7 +14,7 @@ import subprocess
 import sys
 
 import pytest
-from conftest import decision_of, declare_routing, fired, opt_in, run_hook
+from conftest import decision_of, declare_routing, fired, opt_in, run_hook, stage
 
 
 def payload(cmd, repo, session="s1"):
@@ -27,96 +34,6 @@ def git(repo, *a):
         errors="replace",
         check=False,
     )
-
-
-# --- gate: prose mentions must not gate (regression for the fixed FP) -----
-
-
-def test_gate_ignores_echoed_git_commit(repo):
-    opt_in(repo)
-    assert (
-        decision_of(
-            run_hook("commit-review-gate.py", payload("echo git commit -m x", repo))
-        )
-        == "silent"
-    )
-
-
-def test_gate_ignores_heredoc_mentions(repo):
-    opt_in(repo)
-    cmd = "cat > doc.md <<EOF\nrun: git commit -m x\nEOF"
-    assert (
-        decision_of(run_hook("commit-review-gate.py", payload(cmd, repo))) == "silent"
-    )
-
-
-def test_gate_catches_heredoc_message_commit(repo):
-    # The commit form Claude Code itself is instructed to use: the message
-    # arrives via $(cat <<'EOF' ...) inside double quotes. A quote-blind
-    # splitter shredded this and the gate stayed silent.
-    opt_in(repo)
-    cmd = "git commit -m \"$(cat <<'EOF'\nfix: thing\n\nbody\nEOF\n)\""
-    assert fired(run_hook("commit-review-gate.py", payload(cmd, repo)))
-
-
-def test_gate_catches_separators_inside_message(repo):
-    opt_in(repo)
-    for cmd in (
-        'git commit -m "fix && update deps"',
-        'git commit -m "a; b"',
-        'git commit -m "line1\nline2"',
-    ):
-        assert fired(run_hook("commit-review-gate.py", payload(cmd, repo))), cmd
-
-
-def test_gate_fails_closed_on_unparseable_commit(repo):
-    # Unbalanced quotes defeat tokenization; if git+commit appear anyway,
-    # asking beats exempting exactly the commands too gnarly to parse.
-    opt_in(repo)
-    assert fired(
-        run_hook("commit-review-gate.py", payload('git commit -m "unbalanced', repo))
-    )
-    assert (
-        decision_of(
-            run_hook("commit-review-gate.py", payload('echo "unbalanced git', repo))
-        )
-        == "silent"
-    )
-
-
-def test_gate_catches_commit_after_cd_chain(repo):
-    opt_in(repo)
-    assert fired(
-        run_hook("commit-review-gate.py", payload("cd sub && git commit -m x", repo))
-    )
-
-
-def test_gate_catches_env_prefixed_commit(repo):
-    opt_in(repo)
-    cmd = "GIT_AUTHOR_DATE=2026-01-01T00:00:00 git commit -m x"
-    assert fired(run_hook("commit-review-gate.py", payload(cmd, repo)))
-
-
-def test_gate_rearms_after_commit_moves_head(repo):
-    opt_in(repo)
-    gd = git(repo, "rev-parse", "--absolute-git-dir").stdout.strip()
-    head = git(repo, "rev-parse", "HEAD").stdout.strip()
-    with open(os.path.join(gd, "specseal-reviewed"), "w", encoding="utf-8") as f:
-        f.write(head)
-    (repo / "f.txt").write_text("more\n", encoding="utf-8")
-    git(repo, "commit", "-qam", "next")  # cycle closes, mark goes stale
-    assert fired(run_hook("commit-review-gate.py", payload("git commit -m x", repo)))
-
-
-def test_gate_ignores_non_bash_tools(repo):
-    opt_in(repo)
-    p = {
-        "tool_name": "Write",
-        "session_id": "s",
-        "tool_input": {"file_path": str(repo / "x")},
-        "cwd": str(repo),
-    }
-    assert decision_of(run_hook("commit-review-gate.py", p)) == "silent"
 
 
 # --- packaging sanity ------------------------------------------------------
@@ -282,11 +199,6 @@ def parity_repo(repo):
 def parity_only(command):
     """`command` with the review arm waived, so the parity arm answers alone."""
     return f"{command} [no-review]"
-
-
-def stage(repo, name, body="x\n"):
-    (repo / name).write_text(body, encoding="utf-8")
-    git(repo, "add", name)
 
 
 def test_parity_repo_asks_when_code_commits_without_a_comparison(repo):
@@ -472,35 +384,6 @@ def test_parity_gate_ignores_document_only_commits(repo):
     )
 
 
-@pytest.mark.rule("review-arm-asks")
-@pytest.mark.parametrize("path", ["docs/policies/note.md", "seal/ledger.md"])
-def test_the_review_arm_asks_on_a_document_only_commit(repo, path):
-    """The parity arm's line at `docs/` and `seal/` is the parity arm's alone.
-
-    The review arm asks whether anybody reads the change before it lands, and
-    in a repository that runs this workflow `docs/` is the policy the code
-    conforms to. #518 measured it: #514's fold, which changed `docs/`,
-    `seal/` and four test files, produced seven fixed findings, all located
-    in `docs/`, one of them 🔴, and 26 fixed findings across every round
-    record sit in the ledger alone. So a commit confined to either root meets
-    the review arm exactly as a code change does
-    (`docs/the-review-and-parity-arms.md` *Review arm*). One path per root, because the line can leak by halves:
-    an exemption for `seal/` alone passes every `docs/` case. This case is
-    what fails if `touches_code`, or either half of it, is ever shared
-    between the arms.
-    """
-    (repo / "seal").mkdir(exist_ok=True)
-    (repo / path).parent.mkdir(parents=True, exist_ok=True)
-    stage(repo, path, "text\n")
-    out = run_hook("commit-review-gate.py", payload("git commit -m x", repo))
-    assert decision_of(out) == "deny", (
-        f"a commit confined to {path} passed the review arm with no "
-        "declaration, no review mark and no waiver"
-    )
-    reason = json.loads(out)["hookSpecificOutput"]["permissionDecisionReason"]
-    assert "[no-review]" in reason
-
-
 @pytest.mark.parametrize("path", ["docs/policies/note.md", "seal/ledger.md"])
 def test_a_document_only_commit_wakes_one_arm_and_not_two(repo, path):
     """In a migration repository the same commit wakes the review arm alone:
@@ -520,7 +403,9 @@ def test_a_document_only_commit_wakes_one_arm_and_not_two(repo, path):
 
 
 def test_the_review_arms_missing_path_line_is_written_where_it_is_met():
-    """The two cases above pin the code half; this pins the prose half.
+    """The case above and `tests/test_commit_review_gate.py`'s
+    `test_the_review_arm_asks_on_a_document_only_commit` pin the code half;
+    this pins the prose half.
 
     A reader who finds `touches_code` beside the review arm can take its
     absence for an oversight, as #518 did. The review arm's decision table and

@@ -20,22 +20,94 @@ with no git, for the phase that rebuilds that module.
 
 import io
 import json
+import os
+import subprocess
 import sys
 import types
 import uuid
 
 import pytest
-from conftest import census_case, declare_routing, git, load_hook_module, q
+from conftest import (
+    bash,
+    branch_of,
+    census_case,
+    decision_of,
+    declare_routing,
+    fired,
+    git,
+    git_dir,
+    git_repo,
+    home,
+    legacy,
+    linked_worktree,
+    load,
+    load_hook_module,
+    local_home,
+    opt_in,
+    payload,
+    q,
+    reason_of,
+    run_hook,
+    scratch,
+    stage,
+    with_row,
+)
 
 TARGET = "hooks/commit-review-gate.py"
 
 gate = load_hook_module("commit-review-gate.py", "crg_under_test")
 Unresolved = gate.Unresolved
+routing = load_hook_module("routing.py", "specseal_routing_for_the_commit_gate")
+gate_module = load_hook_module("gate.py", "specseal_gate_for_routing_tests")
+optin = load("hooks/optin.py", "specseal_optin_failopen")
 
 C = "git commit -m x"
 WAIVER = "[no-review]"
 CONSTRUCT = "contains something the gate cannot read as a plain command"
 AUTOMATION = "pressed `automation` on the routing question"
+CHOICE_DIR = gate.CHOICE_DIR
+CHAIN = "through the review chain"
+DIRECT = "straight to the PR"
+
+
+def declare(
+    repo,
+    review=CHAIN,
+    destination="open the pull request",
+    branch=None,
+    item="1787708604-a-work-item",
+    body=None,
+    implementation=None,
+    planning=None,
+):
+    """Write a routing declaration, or arbitrary `body` when given.
+
+    `implementation` and `planning` are both left out by default, which is
+    what every declaration written before those axes existed looks like.
+    """
+    d = repo / "seal" / "specs" / item
+    d.mkdir(parents=True, exist_ok=True)
+    if body is None:
+        third = f"| Implementation | {implementation} |\n" if implementation else ""
+        fourth = f"| Planning | {planning} |\n" if planning else ""
+        body = (
+            f"# {item} -- routing\n\n"
+            "| Axis | Answer |\n"
+            "|---|---|\n"
+            f"| Review | {review} |\n"
+            f"| Destination | {destination} |\n"
+            f"{fourth}"
+            f"{third}"
+            f"| Branch | {branch or branch_of(repo)} |\n"
+        )
+    path = d / "routing.md"
+    path.write_text(body, encoding="utf-8")
+    return path
+
+
+def commit_gate(repo, cmd="git commit -m x", **kw):
+    """The hook's output for CMD typed in REPO, run as the harness runs it."""
+    return run_hook("commit-review-gate.py", payload(cmd, repo, **kw))
 
 
 def _repository(path, declared=False, parity=False):
@@ -707,6 +779,909 @@ class Test_main:
         got = decision(monkeypatch, capsys, f": '{WAIVER}'; {C}", world.parity)
         assert got[0] == "deny" and "migration config" in got[1], got
         assert "No review is recorded" not in got[1], got
+
+    # --- the hook as the harness runs it, in a repository of each case's own -
+
+    def test_gate_silent_without_opt_in(self, repo):
+        assert (
+            decision_of(
+                run_hook("commit-review-gate.py", payload("git commit -m x", repo))
+            )
+            == "silent"
+        )
+
+    def test_gate_denies_so_the_user_is_offered_both_ways_on(self, repo):
+        """Declining an `ask` is a bare "No": the user who wanted the other way on
+        has to retype the command. A deny gives the model the turn back."""
+        opt_in(repo)
+        out = run_hook("commit-review-gate.py", payload("git commit -m x", repo))
+        assert decision_of(out) == "deny"
+        reason = json.loads(out)["hookSpecificOutput"]["permissionDecisionReason"]
+        assert "AskUserQuestion" in reason
+        assert "[no-review]" in reason and "review chain" in reason.lower()
+
+    def test_the_next_attempt_gets_the_plain_prompt(self, repo):
+        """Denying every time would trap a session whose answer the gate cannot
+        read off the command. The fallback is the prompt this gate always had."""
+        opt_in(repo)
+        assert (
+            decision_of(
+                run_hook("commit-review-gate.py", payload("git commit -m x", repo))
+            )
+            == "deny"
+        )
+        out = run_hook("commit-review-gate.py", payload("git commit -m x", repo))
+        assert decision_of(out) == "ask"
+        reason = json.loads(out)["hookSpecificOutput"]["permissionDecisionReason"]
+        assert "Approving is the waiver" in reason
+
+    def test_a_different_session_is_asked_the_question_too(self, repo):
+        opt_in(repo)
+        assert (
+            decision_of(
+                run_hook("commit-review-gate.py", payload("git commit -m x", repo))
+            )
+            == "deny"
+        )
+        assert (
+            decision_of(
+                run_hook(
+                    "commit-review-gate.py",
+                    payload("git commit -m x", repo, session="s2"),
+                )
+            )
+            == "deny"
+        )
+
+    def test_an_unwritable_marker_counts_as_already_asked(self, repo):
+        """A marker that cannot be recorded means the question is treated as
+        asked. Inverted, the deny repeats forever in exactly the environments
+        that cannot write, and the commit never lands."""
+        opt_in(repo)
+        # Unwritable on BOTH platforms. `os.chmod(gd, 0o500)` is a no-op for a
+        # directory on Windows -- the mode bits are accepted and the write still
+        # succeeds -- so the gate recorded the question, answered `silent`, and
+        # the rule this case states went unheld on the one platform where an
+        # unwritable git-dir is most likely.
+        #
+        # Occupying the marker directory's own name with a file raises `OSError`
+        # everywhere: `makedirs(..., exist_ok=True)` re-raises when the name it
+        # finds is not a directory.
+        gd = git_dir(repo)
+        with open(os.path.join(gd, CHOICE_DIR), "w", encoding="utf-8") as f:
+            f.write("not a directory")
+        assert (
+            decision_of(
+                run_hook("commit-review-gate.py", payload("git commit -m x", repo))
+            )
+            == "ask"
+        )
+
+    def test_a_session_id_with_separators_stays_inside_the_git_dir(self, repo):
+        """The id names a file. Measured on the sibling guard: `../../escaped`
+        put an empty file at the repository root."""
+        opt_in(repo)
+        run_hook(
+            "commit-review-gate.py",
+            payload("git commit -m x", repo, session="../../escaped"),
+        )
+        assert not (repo / "escaped").exists()
+        assert os.path.isfile(
+            os.path.join(git_dir(repo), "specseal-commit-choice", "escaped")
+        )
+
+    def test_without_a_session_id_it_asks_instead_of_denying(self, repo):
+        """No id means nowhere to record that the question was asked, and a deny
+        would then repeat forever. `ask` cannot loop: approving is the way out."""
+        opt_in(repo)
+        p = payload("git commit -m x", repo)
+        del p["session_id"]
+        assert decision_of(run_hook("commit-review-gate.py", p)) == "ask"
+
+    def test_gate_allows_when_cycle_reviewed(self, repo):
+        opt_in(repo)
+        head = subprocess.run(
+            ["git", "-C", str(repo), "rev-parse", "HEAD"],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+        ).stdout.strip()
+        with open(
+            os.path.join(git_dir(repo), "specseal-reviewed"), "w", encoding="utf-8"
+        ) as f:
+            f.write(head)
+        assert (
+            decision_of(
+                run_hook("commit-review-gate.py", payload("git commit -m x", repo))
+            )
+            == "silent"
+        )
+
+    def test_gate_ignores_non_commit_and_bypass_tag(self, repo):
+        opt_in(repo)
+        assert (
+            decision_of(run_hook("commit-review-gate.py", payload("git log", repo)))
+            == "silent"
+        )
+        assert (
+            decision_of(
+                run_hook(
+                    "commit-review-gate.py",
+                    payload("git commit -m x [no-review]", repo),
+                )
+            )
+            == "silent"
+        )
+
+    def test_the_marker_inside_a_message_is_prose_not_a_waiver(self, repo):
+        """`-m "drop [no-review] from the docs"` describes work; it does not waive.
+
+        A substring test cannot tell a waiver from a sentence about one, and the
+        message body is where people write sentences."""
+        opt_in(repo)
+        assert fired(
+            run_hook(
+                "commit-review-gate.py", payload('git commit -m "x [no-review]"', repo)
+            )
+        )
+
+    def test_gate_ignores_echoed_git_commit(self, repo):
+        opt_in(repo)
+        assert (
+            decision_of(
+                run_hook("commit-review-gate.py", payload("echo git commit -m x", repo))
+            )
+            == "silent"
+        )
+
+    def test_gate_ignores_heredoc_mentions(self, repo):
+        opt_in(repo)
+        cmd = "cat > doc.md <<EOF\nrun: git commit -m x\nEOF"
+        assert (
+            decision_of(run_hook("commit-review-gate.py", payload(cmd, repo)))
+            == "silent"
+        )
+
+    def test_gate_catches_separators_inside_message(self, repo):
+        opt_in(repo)
+        for cmd in (
+            'git commit -m "fix && update deps"',
+            'git commit -m "a; b"',
+            'git commit -m "line1\nline2"',
+        ):
+            assert fired(run_hook("commit-review-gate.py", payload(cmd, repo))), cmd
+
+    def test_gate_fails_closed_on_unparseable_commit(self, repo):
+        # Unbalanced quotes defeat tokenization; if git+commit appear anyway,
+        # asking beats exempting exactly the commands too gnarly to parse.
+        opt_in(repo)
+        assert fired(
+            run_hook(
+                "commit-review-gate.py", payload('git commit -m "unbalanced', repo)
+            )
+        )
+        assert (
+            decision_of(
+                run_hook("commit-review-gate.py", payload('echo "unbalanced git', repo))
+            )
+            == "silent"
+        )
+
+    def test_gate_rearms_after_commit_moves_head(self, repo):
+        opt_in(repo)
+        gd = git(repo, "rev-parse", "--absolute-git-dir").stdout.strip()
+        head = git(repo, "rev-parse", "HEAD").stdout.strip()
+        with open(os.path.join(gd, "specseal-reviewed"), "w", encoding="utf-8") as f:
+            f.write(head)
+        (repo / "f.txt").write_text("more\n", encoding="utf-8")
+        git(repo, "commit", "-qam", "next")  # cycle closes, mark goes stale
+        assert fired(
+            run_hook("commit-review-gate.py", payload("git commit -m x", repo))
+        )
+
+    def test_gate_ignores_non_bash_tools(self, repo):
+        opt_in(repo)
+        p = {
+            "tool_name": "Write",
+            "session_id": "s",
+            "tool_input": {"file_path": str(repo / "x")},
+            "cwd": str(repo),
+        }
+        assert decision_of(run_hook("commit-review-gate.py", p)) == "silent"
+
+    @pytest.mark.rule("review-arm-asks")
+    @pytest.mark.parametrize("path", ["docs/policies/note.md", "seal/ledger.md"])
+    def test_the_review_arm_asks_on_a_document_only_commit(self, repo, path):
+        """The parity arm's line at `docs/` and `seal/` is the parity arm's alone.
+
+        The review arm asks whether anybody reads the change before it lands, and
+        in a repository that runs this workflow `docs/` is the policy the code
+        conforms to. #518 measured it: #514's fold, which changed `docs/`,
+        `seal/` and four test files, produced seven fixed findings, all located
+        in `docs/`, one of them blocking, and 26 fixed findings across every
+        round record sit in the ledger alone. So a commit confined to either
+        root meets the review arm exactly as a code change does
+        (`docs/the-review-and-parity-arms.md` *Review arm*). One path per root,
+        because the line can leak by halves: an exemption for `seal/` alone
+        passes every `docs/` case. This case is what fails if `touches_code`,
+        or either half of it, is ever shared between the arms.
+        """
+        (repo / "seal").mkdir(exist_ok=True)
+        (repo / path).parent.mkdir(parents=True, exist_ok=True)
+        stage(repo, path, "text\n")
+        out = run_hook("commit-review-gate.py", payload("git commit -m x", repo))
+        assert decision_of(out) == "deny", (
+            f"a commit confined to {path} passed the review arm with no "
+            "declaration, no review mark and no waiver"
+        )
+        reason = json.loads(out)["hookSpecificOutput"]["permissionDecisionReason"]
+        assert "[no-review]" in reason
+
+    def test_the_commit_gate_says_what_declining_does(self, tmp_path):
+        """A hook returns allow/deny/ask; declining renders as a bare No.
+
+        The reason string is the only place that can give the decline a
+        destination, and `implement` *1. Read the spec before the code* rejects
+        a question whose no leads nowhere.
+        """
+        from conftest import run_hook
+
+        repo = tmp_path / "repo"
+        (repo / "seal").mkdir(parents=True)
+        git = lambda *a: subprocess.run(
+            ["git", "-C", str(repo), *a], capture_output=True, check=True
+        )
+        subprocess.run(["git", "init", "-q", str(repo)], check=True)
+        (repo / "f.py").write_text("x = 1\n", encoding="utf-8")
+        git("add", "-A")
+        git(
+            "-c",
+            "user.email=e@example.com",
+            "-c",
+            "user.name=e",
+            "commit",
+            "-qm",
+            "base",
+        )
+        (repo / "f.py").write_text("x = 2\n", encoding="utf-8")
+        git("add", "-A")
+
+        out = run_hook(
+            "commit-review-gate.py",
+            {
+                "tool_name": "Bash",
+                "tool_input": {"command": "git commit -m 'change'"},
+                "cwd": str(repo),
+            },
+        )
+        d = json.loads(out)["hookSpecificOutput"]
+        assert d["permissionDecision"] == "ask"
+        reason = d["permissionDecisionReason"]
+        assert "Approving is the waiver" in reason
+        assert "Declining cancels the commit" in reason, (
+            "the decline branch has no text of its own, so it reads as a dead end"
+        )
+        assert "[no-review]" in reason and "review chain" in reason, (
+            "both continuations have to be named, or the prompt is a yes/no"
+        )
+
+    def test_the_commit_gates_hint_survives_a_root_with_no_relative_spelling(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        r"""Round 1 of #80, the blocking finding 1. The stop text names the
+        declaration under the resolved root, relative to the repository, and
+        `os.path.relpath` is what builds that. On Windows a linked worktree on
+        another drive than the main tree makes `ntpath.relpath` raise
+        (`ValueError: path is on mount 'D:', start on mount 'C:'`). The gate
+        built the hint before it had judged anything, so the exception left
+        `main()`, `dispatch.py`'s crash isolation swallowed it, and empty stdout
+        is an allow: a commit went through in an opted-in repository, unjudged.
+
+        The raise is induced rather than found, so the case runs on every leg.
+        What is asserted is the direction: the gate still stops, and the path it
+        names is the absolute one — there is no relative spelling of a path on
+        another drive, and the absolute path is the one to type. `gate` here is
+        a copy of the module loaded for this case alone.
+        """
+        gate = load("hooks/commit-review-gate.py", "specseal_gate_failopen")
+        repo = git_repo(tmp_path / "repo")
+        (repo / ".git" / "seal").mkdir()
+        home = optin.home(str(repo))
+        assert home and os.path.isabs(home), home
+
+        def refuses(path, start=None):
+            raise ValueError("path is on mount 'D:', start on mount 'C:'")
+
+        monkeypatch.setattr(os.path, "relpath", refuses)
+        monkeypatch.setattr(
+            sys,
+            "stdin",
+            io.StringIO(
+                json.dumps(
+                    {
+                        "tool_name": "Bash",
+                        "session_id": "failopen-relpath",
+                        "tool_input": {"command": "git commit -m x"},
+                        "cwd": str(repo),
+                    }
+                )
+            ),
+        )
+        gate.main()
+        out = capsys.readouterr().out
+        assert out.strip(), (
+            "the gate printed nothing — an allow for a commit it never judged"
+        )
+        decision = json.loads(out)["hookSpecificOutput"]
+        assert decision["permissionDecision"] in ("deny", "ask"), decision
+        expected = os.path.join(home, "specs", "<work-item-id>", "routing.md")
+        assert expected in decision["permissionDecisionReason"], decision[
+            "permissionDecisionReason"
+        ]
+
+    # --- the opt-in: `seal/` read at the first of two places ------------------
+
+    @pytest.mark.parametrize(
+        "cmd",
+        [
+            "git commit -m x",
+            "cd sub && git commit -m x",
+            # The commit form Claude Code itself is instructed to use: the
+            # message arrives via $(cat <<'EOF' ...) inside double quotes. A
+            # quote-blind splitter shredded this and the gate stayed silent.
+            "git commit -m \"$(cat <<'EOF'\nfix: thing\n\nbody\nEOF\n)\"",
+            "GIT_AUTHOR_DATE=2026-01-01T00:00:00 git commit -m x",
+        ],
+        ids=[
+            "a-plain-commit",
+            "after-a-cd-chain",
+            "a-heredoc-message",
+            "an-env-prefix",
+        ],
+    )
+    def test_commit_gate_fires_on_the_new_home(self, repo, cmd):
+        home(repo)
+        assert fired(run_hook("commit-review-gate.py", payload(cmd, repo)))
+
+    def test_commit_gate_stays_silent_on_the_legacy_marker(self, repo):
+        """S3: every gate is silent over `.specseal/`, and the only thing that
+        speaks is the migration hook at session start."""
+        legacy(repo)
+        out = run_hook("commit-review-gate.py", payload("git commit -m x", repo))
+        assert decision_of(out) == "silent"
+
+    def test_the_commit_gate_is_silent_in_a_scratch_repository(self, repo):
+        home(repo)
+        scratch(repo)
+        out = run_hook("commit-review-gate.py", payload("git commit -m x", repo))
+        assert decision_of(out) == "silent"
+
+    def test_the_commit_gate_still_fires_beside_a_scratch_DIRECTORY(self, repo):
+        """The gate-level half of the file-not-directory rule."""
+        home(repo)
+        (repo / ".git" / "specseal-scratch").mkdir()
+        assert fired(
+            run_hook("commit-review-gate.py", payload("git commit -m x", repo))
+        )
+
+    def test_a_scratch_repository_gives_no_standing_over_a_target_it_cannot_read(
+        self, repo
+    ):
+        """The stop for an unreadable target is the session's own repository
+        speaking, so the marker has to reach that too — otherwise the probe that
+        prompted issue #68 keeps prompting, one door along."""
+        home(repo)
+        scratch(repo)
+        out = run_hook(
+            "commit-review-gate.py", payload('git -C "$WT" commit -m x', repo)
+        )
+        assert decision_of(out) == "silent"
+
+    # --- local mode: the declaration under `<git-common-dir>/seal/` -----------
+
+    def test_the_commit_gate_is_silent_with_a_declaration_under_the_local_root(
+        self, local
+    ):
+        repo, home = local
+        declare_routing(repo, home=home)
+        assert decision_of(run_hook("commit-review-gate.py", bash(repo))) == "silent"
+
+    def test_the_commit_gate_is_silent_from_a_linked_worktree_too(self, repo, tmp_path):
+        """The declaration lives in the main tree's common directory; the
+        worktree's branch is what it names."""
+        home = local_home(repo)
+        other = linked_worktree(repo, tmp_path)
+        declare_routing(other, home=home)
+        assert decision_of(run_hook("commit-review-gate.py", bash(other))) == "silent"
+
+    def test_the_commit_gate_fires_without_one_and_names_the_resolved_path(self, local):
+        """Q5 (a). The stop text used to spell `seal/specs/<work-item-id>/routing.md`
+        whatever the mode, and a session that typed it in local mode wrote a
+        declaration the gate never reads. The path is under the resolved root,
+        relative to the repository, spelled the way the platform spells it."""
+        repo, _ = local
+        out = run_hook("commit-review-gate.py", bash(repo))
+        assert fired(out)
+        reason = reason_of(out)
+        resolved = os.path.join(".git", "seal", "specs", "<work-item-id>", "routing.md")
+        assert resolved in reason, reason
+        assert "`seal/specs/<work-item-id>/routing.md`" not in reason, (
+            "the literal shared-mode spelling is still offered in local mode"
+        )
+
+    def test_the_stop_text_from_a_linked_worktree_is_a_path_a_person_can_type(
+        self, repo, tmp_path
+    ):
+        """From a linked worktree the resolved root is outside the tree, so the
+        relative path climbs out of it — typeable, where `.git/seal/…` names a
+        FILE's child there."""
+        home = local_home(repo)
+        other = linked_worktree(repo, tmp_path)
+        out = run_hook("commit-review-gate.py", bash(other))
+        assert fired(out)
+        resolved = os.path.join(
+            os.path.relpath(home, other), "specs", "<work-item-id>", "routing.md"
+        )
+        assert resolved in reason_of(out), reason_of(out)
+
+    def test_in_shared_mode_the_stop_text_still_names_the_tree_root(self, repo):
+        """The other half of Q5: a shared repository is told `seal/specs/…`,
+        the path it always was."""
+        (repo / "seal").mkdir()
+        out = run_hook("commit-review-gate.py", bash(repo))
+        assert fired(out)
+        resolved = os.path.join("seal", "specs", "<work-item-id>", "routing.md")
+        assert resolved in reason_of(out), reason_of(out)
+
+    # --- the routing declaration is read, both ways ---------------------------
+
+    @pytest.mark.rule("routing-read-first")
+    @pytest.mark.parametrize("review", [CHAIN, DIRECT], ids=["chain", "direct"])
+    def test_a_declared_item_commits_without_a_prompt(self, repo, review):
+        """S1 and S4. The whole point: the answer was given, so it is not
+        asked again; and declaring is the routing answer, so requiring
+        `[no-review]` as well would be requiring the same answer twice."""
+        opt_in(repo)
+        declare(repo, review=review)
+        assert decision_of(commit_gate(repo)) == "silent"
+
+    def test_no_declaration_behaves_exactly_as_before(self, repo):
+        """S2. The gate a repository that declares nothing meets is unchanged."""
+        opt_in(repo)
+        assert decision_of(commit_gate(repo)) == "deny"
+        assert decision_of(commit_gate(repo)) == "ask"
+
+    def test_a_malformed_declaration_does_not_silence_the_gate(self, repo):
+        """S3. Toward asking, never toward silence -- a gate a corrupt file turns
+        off has nothing left to do but stay quiet."""
+        opt_in(repo)
+        declare(repo, body="# routing\n\nwe decided to go through the review chain.\n")
+        assert fired(commit_gate(repo))
+
+    def test_an_unknown_answer_is_not_an_answer(self, repo):
+        """The vocabulary is fixed. `maybe` is not one of the two ways on."""
+        opt_in(repo)
+        declare(repo, review="maybe later")
+        assert fired(commit_gate(repo))
+
+    def test_an_empty_routing_directory_changes_nothing(self, repo):
+        opt_in(repo)
+        (repo / "seal" / "routing").mkdir(parents=True)
+        assert fired(commit_gate(repo))
+
+    def test_another_branch_s_declaration_does_not_apply_here(self, repo):
+        """Declarations accumulate over a repository's life. Without a scope, the
+        first work item ever declared would silence the gate forever."""
+        opt_in(repo)
+        declare(repo, review=CHAIN, branch="feature/somewhere-else")
+        assert fired(commit_gate(repo))
+
+    def test_two_declarations_for_one_branch_are_ambiguous(self, repo):
+        """Two answers for the same branch is not an answer. Toward asking."""
+        opt_in(repo)
+        declare(repo, review=CHAIN, item="1787708604-one")
+        declare(repo, review=DIRECT, item="1787708605-two")
+        assert fired(commit_gate(repo))
+
+    def test_a_declaration_for_another_branch_leaves_this_one_readable(self, repo):
+        """One stale declaration must not make a live one ambiguous."""
+        opt_in(repo)
+        declare(repo, review=CHAIN, item="1787708604-here")
+        declare(repo, review=CHAIN, item="1787700000-elsewhere", branch="feature/old")
+        assert decision_of(commit_gate(repo)) == "silent"
+
+    def test_an_uncommitted_declaration_silences_the_commit_that_adds_it(self, repo):
+        """The fact the gate's first option rests on, asserted directly.
+
+        `declarations()` opens the path rather than asking git, so a declaration
+        that exists only in the working tree is already in force. That is what
+        makes "write the declaration first" a real way out of a work item's FIRST
+        commit: there is no order in which the file must be committed before it
+        counts, and so no first-commit waiver to spend. The tests above rely on
+        this without saying so -- none of them commits the file -- and an
+        unstated premise is one a later change moves silently.
+        """
+        opt_in(repo)
+        path = declare(repo)
+        tracked = subprocess.run(
+            ["git", "-C", str(repo), "ls-files", "--error-unmatch", str(path)],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+        assert tracked.returncode != 0, "the premise is an UNCOMMITTED declaration"
+        assert decision_of(commit_gate(repo)) == "silent"
+
+    def test_the_first_prompt_names_the_declaration_as_a_way_out(self, repo):
+        """Three ways out, and the prompt named two.
+
+        A session starting a work item was handed "review it first" and "commit
+        without a review" -- the two answers that do not fit -- and none of the
+        one that does. Measured: a session read the missing option as a
+        chicken-and-egg the design does not have and put it to the user twice.
+        """
+        opt_in(repo)
+        out = commit_gate(repo)
+        assert decision_of(out) == "deny"
+        reason = reason_of(out)
+        assert '1. "Declare the routing"' in reason
+        # The way the platform spells it: the path is joined under the resolved
+        # root (#80, Q5), so on Windows it arrives with backslashes.
+        assert os.path.join("seal", "specs", "<work-item-id>", "routing.md") in reason
+        assert "IN A COMMAND OF ITS OWN" in reason, (
+            "the option stopped saying the one thing that makes it work"
+        )
+
+    def test_the_first_option_does_not_let_the_model_pick_the_review_answer(self, repo):
+        """`straight to the PR` written by the model is a waiver with no word in it.
+
+        The option tells the model to write the declaration and said nothing about
+        which Review answer to write. `straight to the PR` silences this arm for
+        every later commit on the branch, and at the pull request `chain_check.py`
+        requires the broad run's `broad-gate.md` of it and no reviewer's record -- so
+        a model filling that row in for itself takes the waiver the option below
+        spells out, and takes it more quietly: the
+        `[no-review]` form leaves the word in the command where a reader can point
+        at it, and this leaves nothing anywhere but one line of a file it was just
+        told to write.
+        """
+        opt_in(repo)
+        reason = reason_of(commit_gate(repo))
+        assert "USER'S answer" in reason, (
+            "the option stopped saying who decides the Review row"
+        )
+        for spelling in ("through the review chain", "straight to the PR"):
+            assert spelling in reason, f"the option names only one answer: {spelling}"
+
+    def test_the_first_option_says_what_the_direct_answer_owes(self, repo):
+        """A8 of #241, for the one carrier a whole-file substring cannot read.
+
+        The option said `straight to the PR` is the one CI requires nothing for,
+        which has been false since `chain_check.py#direct_seal` required the
+        broad run's `broad-gate.md` at a ready pull request. A model reading the
+        option as written would tell the user the direct answer is unchecked.
+        """
+        opt_in(repo)
+        reason = reason_of(commit_gate(repo))
+        assert "requires nothing" not in reason, (
+            "the option still says the direct answer requires nothing"
+        )
+        assert "broad-gate.md" in reason, (
+            "the option does not say what the direct answer owes at the pull request"
+        )
+        assert "USER'S answer" in reason and "straight to the PR" in reason
+
+    def test_the_first_prompt_counts_the_options_it_lists(self, repo):
+        """The header tells the model to offer EXACTLY that many.
+
+        Written down rather than derived, the number goes stale the moment an
+        option is added -- and the model obeys the number, so the third option is
+        the one it drops.
+        """
+        opt_in(repo)
+        reason = reason_of(commit_gate(repo))
+        assert "exactly these three options:" in reason
+        assert "these two options" not in reason
+        for label in (
+            '1. "Declare the routing"',
+            '2. "Review it first"',
+            '3. "Commit without a review"',
+        ):
+            assert label in reason, f"the prompt lost `{label}`"
+
+    def test_the_second_prompt_names_it_too(self, repo):
+        """The `ask` prompt is what every attempt after the first reaches.
+
+        Leaving it at two ways sent a session that had just read the third option
+        back to a sentence saying there were only two.
+        """
+        opt_in(repo)
+        assert decision_of(commit_gate(repo)) == "deny"
+        out = commit_gate(repo)
+        assert decision_of(out) == "ask"
+        reason = reason_of(out)
+        # The same platform spelling as the first prompt's assertion above: the
+        # windows leg of PR #95 (run 33643327406) failed on the `/` literal here
+        # after phase 1 had fixed only the first one.
+        assert os.path.join("seal", "specs", "<work-item-id>", "routing.md") in reason
+        assert "for any commit" in reason, (
+            "the two-way sentence must scope itself once a third way follows it"
+        )
+
+    def test_the_third_way_names_its_arm_where_two_are_listed(self, repo):
+        """`this arm` points at nothing in a prompt that lists two of them.
+
+        With review and parity both firing, `ask_reason` prints the two states
+        together and then the review arm's sentence. Written as "it silences this
+        arm ... re-issue the commit unchanged" it made a promise the gate does not
+        keep: executed, writing the declaration and re-issuing gets the parity arm
+        and one more prompt. The sentence has to name the arm it belongs to and
+        say what it does NOT do.
+        """
+        opt_in(repo)
+        (repo / "seal" / "parity.md").write_text(
+            "# migration config\n", encoding="utf-8"
+        )
+        (repo / "code.py").write_text("x = 1\n", encoding="utf-8")
+        subprocess.run(
+            ["git", "-C", str(repo), "add", "-A"], check=True, capture_output=True
+        )
+        assert decision_of(commit_gate(repo)) == "deny"
+        reason = reason_of(commit_gate(repo))
+        assert "[no-review]" in reason and "[no-parity]" in reason, (
+            "this case is only about the prompt where BOTH arms are listed"
+        )
+        assert "REVIEW arm" in reason, (
+            "the third way does not say which of the two arms it is a way out of"
+        )
+        assert "`straight to the PR`, it silences NOTHING ELSE" in reason, (
+            "the sentence still reads as though the commit then goes through"
+        )
+        # #988: the chain answer quiets the parity arm too, and the sentence
+        # that says what the declaration silences says so.
+        assert "`through the review chain`, it silences the parity arm too" in reason
+        # Case-insensitive: the first version of this check read the lower-case
+        # spelling only, and a mutation that opened the sentence with `Re-issue`
+        # walked straight through it.
+        assert "re-issue the commit unchanged" not in reason.lower(), (
+            "`unchanged` promises a commit the other arm still stops"
+        )
+
+    def test_the_parity_arm_gains_no_third_way(self, repo):
+        """Nothing declares a comparison against the original in advance.
+
+        The routing sentence rides on the review arm, so an arm that has no such
+        way out must not inherit one -- offering it there would name a file that
+        silences nothing. Under `straight to the PR` the parity arm still stands
+        at the commit (#988, `questions.md` Q1), which is where its prompt is
+        read.
+        """
+        opt_in(repo)
+        (repo / "seal" / "parity.md").write_text(
+            "# migration config\n", encoding="utf-8"
+        )
+        declare(repo, review=DIRECT)
+        (repo / "code.py").write_text("x = 1\n", encoding="utf-8")
+        subprocess.run(
+            ["git", "-C", str(repo), "add", "-A"], check=True, capture_output=True
+        )
+        assert decision_of(commit_gate(repo)) == "deny"
+        reason = reason_of(commit_gate(repo))
+        assert "[no-parity]" in reason
+        # The PROPERTY, not a filename. `"routing.md" not in reason` said the same
+        # thing today and would go red on a parity prompt that got MORE accurate --
+        # one that says in so many words that a declaration does not silence this
+        # arm. What must not happen is the review arm's sentence riding along.
+        assert "There is a third way" not in reason, (
+            "the parity arm inherited the review arm's `also` sentence"
+        )
+
+    def test_a_direct_declaration_does_not_waive_the_parity_arm(self, repo):
+        """S2 of #988. Under `straight to the PR` no review round exists to
+        record a comparison against the original, so the declaration quiets the
+        review arm alone and a code commit still meets the parity arm."""
+        opt_in(repo)
+        (repo / "seal" / "parity.md").write_text(
+            "# migration config\n", encoding="utf-8"
+        )
+        declare(repo, review=DIRECT)
+        (repo / "code.py").write_text("x = 1\n", encoding="utf-8")
+        subprocess.run(
+            ["git", "-C", str(repo), "add", "-A"], check=True, capture_output=True
+        )
+        out = commit_gate(repo)
+        assert fired(out)
+        reason = json.loads(out)["hookSpecificOutput"]["permissionDecisionReason"]
+        assert "[no-parity]" in reason
+        assert "[no-review]" not in reason
+
+    @pytest.mark.rule("parity-quiet-under-the-chain")
+    def test_a_chain_declaration_quiets_the_parity_arm(self, repo):
+        """S1 of #988, through `gate.arms_missing` and the PreToolUse reading.
+        In a review chain the warden compares the change with the original after
+        the smith has committed it, and each round record carries that
+        comparison to the pull request. So a code commit on a branch declaring
+        the review chain meets neither arm, while the same commit with no
+        declaration meets the parity arm."""
+        opt_in(repo)
+        (repo / "seal" / "parity.md").write_text(
+            "# migration config\n", encoding="utf-8"
+        )
+        (repo / "code.py").write_text("x = 1\n", encoding="utf-8")
+        subprocess.run(
+            ["git", "-C", str(repo), "add", "-A"], check=True, capture_output=True
+        )
+
+        def missing():
+            return gate_module.arms_missing(
+                str(repo), str(repo), {gate_module.REVIEW}, lambda: ["code.py"]
+            )
+
+        assert missing() == [gate_module.PARITY]
+        declare(repo, review=CHAIN)
+        assert missing() == []
+        assert decision_of(commit_gate(repo)) == "silent"
+        assert decision_of(commit_gate(repo)) == "silent"
+
+    def test_no_review_still_waives_one_command_on_its_own(self, repo):
+        """S5. The token keeps its meaning for a commit with no work item."""
+        opt_in(repo)
+        assert (
+            decision_of(commit_gate(repo, cmd="git commit -m x [no-review]"))
+            == "silent"
+        )
+
+    def test_declaring_creates_the_root_and_the_root_is_the_opt_in(self, repo):
+        """Since 0.4.0 the whole work item lives under `seal/`, so writing the
+        first declaration creates the root, and the root's presence IS the
+        opt-in (`docs/one-root-by-lifetime.md`, "The opt-in signal is the root
+        itself"). Two cases used to pin the opposite -- that a declaration under
+        `specs/` created no `.specseal/` -- because answering where a work item
+        was going must not switch four gates on in a repository that never asked.
+        That hazard is answered differently now: the once-per-repo moment of the
+        `implement` skill creates `seal/` on purpose and says so, and a session
+        that writes a declaration is one that has been through it. What this
+        case pins is the consequence, so a reader finds it stated rather than
+        inferred: a declared repository is an opted-in repository, and the
+        declaration it just wrote silences the review arm for the branch it
+        names."""
+        assert not (repo / "seal").exists()
+        declare(repo, review=CHAIN)
+        assert (repo / "seal").is_dir(), "the declaration lives under the root"
+        assert decision_of(commit_gate(repo)) == "silent"  # opted in, and declared
+
+    def test_a_declaration_for_another_branch_leaves_the_gate_asking(self, repo):
+        """The root exists once anything is declared, so the gate is on; but a
+        declaration naming some OTHER branch is not this commit's answer."""
+        declare(repo, review=CHAIN, branch="somebody-elses-branch")
+        assert (repo / "seal").is_dir()
+        assert fired(commit_gate(repo))
+
+    def test_a_routing_only_work_item_is_a_whole_work_item(self, repo):
+        """Below the SDD ladder nothing is written -- no `spec.md`, no closing
+        memo -- so those changes used to leave no trace at all. They are most of
+        what the gate sees, which is why they get an id and a directory."""
+        opt_in(repo)
+        path = declare(repo, review=DIRECT, item="1787700000-a-typo-fix")
+        assert sorted(os.listdir(path.parent)) == ["routing.md"]
+        assert decision_of(commit_gate(repo)) == "silent"
+
+    def test_the_commit_gate_decides_the_same_with_the_row_and_without_it(self, repo):
+        """S1 + S3 at the gate rather than at the parser. Adding the axis must not
+        move the decision the two older axes produce."""
+        opt_in(repo)
+        declare(repo, review=CHAIN)
+        assert decision_of(commit_gate(repo)) == "silent"
+        declare(repo, review=CHAIN, implementation="smith")
+        assert decision_of(commit_gate(repo)) == "silent"
+        declare(repo, review=CHAIN, implementation="whoever gets to it")
+        assert decision_of(commit_gate(repo)) == "silent"
+
+    def test_the_commit_gate_decides_the_same_with_the_planning_row_and_without(
+        self, repo
+    ):
+        """S9 at the gate rather than at the parser, the shape the third axis's own
+        case has. A backticked, capitalised or absent answer decides exactly what
+        the declaration without the row decides."""
+        opt_in(repo)
+        declare(repo, review=CHAIN)
+        assert decision_of(commit_gate(repo)) == "silent"
+        for answer in ("framer", "the session", "`framer`", "Framer", "whoever"):
+            declare(repo, review=CHAIN, planning=answer)
+            assert decision_of(commit_gate(repo)) == "silent", answer
+
+    def test_the_commit_gate_decides_identically_with_the_row_and_without(self, repo):
+        """S11 of the implementer axis, the load-bearing half: notice, never
+        denial. Byte-identical, because the reason text is what a session acts
+        on."""
+        opt_in(repo)
+        declare(repo, implementation=None)
+        without = run_hook("commit-review-gate.py", bash(repo))
+        declare(repo, implementation="smith")
+        with_row = run_hook("commit-review-gate.py", bash(repo, session="s2"))
+        assert without == with_row == "", (without, with_row)
+
+    def test_a_review_label_written_twice_makes_the_gate_ask(self, repo):
+        """S5 at the gate: a doubled strict label is no declaration, so the
+        commit gate asks as it does for any `routing.md` that will not parse.
+        Seen red against the last-wins parser: silent."""
+        opt_in(repo)
+        path = declare(repo, review=CHAIN)
+        body = path.read_text(encoding="utf-8")
+        path.write_text(
+            body.replace(f"| Review | {CHAIN} |\n", f"| Review | {CHAIN} |\n" * 2),
+            encoding="utf-8",
+        )
+        assert fired(commit_gate(repo))
+
+    def test_the_commit_gate_decides_the_same_with_the_new_rows_and_without(self, repo):
+        """S9's shape at the gate for both new rows.
+
+        These two rows are the furthest from the gate of any in the file — nothing
+        reads them at a commit at all — so the property to pin is that adding them
+        moves no decision the four older rows produce.
+        """
+        opt_in(repo)
+        declare(repo, review=CHAIN)
+        assert decision_of(commit_gate(repo)) == "silent"
+        for label, answers in (
+            (routing.AUTOMATION, ("yes", "no", "`yes`", "unattended", "")),
+            (routing.ANSWER_PRESSED, ("automation", "per axis", "Automation", "")),
+        ):
+            for answer in answers:
+                declare(
+                    repo,
+                    review=CHAIN,
+                    body=with_row(label, answer).replace(
+                        "| Branch | feature/x |", f"| Branch | {branch_of(repo)} |"
+                    ),
+                )
+                assert decision_of(commit_gate(repo)) == "silent", f"{label} = {answer}"
+
+
+class Test_touches_code:
+    def test_accepts_a_code_change_alongside_the_home_directory(self, repo):
+        gate = load_hook_module("commit-review-gate.py", "commit_review_gate")
+        (repo / "seal").mkdir()
+        (repo / "seal" / "ledger.md").write_text("# ledger\n", encoding="utf-8")
+        (repo / "app.py").write_text("x = 1\n", encoding="utf-8")
+        subprocess.run(
+            ["git", "-C", str(repo), "add", "-A"], check=True, capture_output=True
+        )
+        assert gate.touches_code(
+            str(repo), gate.commit_invocations("git commit -m x")[0]
+        )
+
+    def test_refuses_the_home_directory_as_code(self, repo):
+        """The parity gate compares code against an original; `seal/` is neither.
+
+        Asking there would train people to click through the prompt, which costs
+        more than the check is worth."""
+        gate = load_hook_module("commit-review-gate.py", "commit_review_gate")
+        (repo / "seal").mkdir()
+        (repo / "seal" / "ledger.md").write_text("# ledger\n", encoding="utf-8")
+        subprocess.run(
+            ["git", "-C", str(repo), "add", "-A"], check=True, capture_output=True
+        )
+        assert not gate.touches_code(
+            str(repo), gate.commit_invocations("git commit -m x")[0]
+        )
+
+
+class Test_module:
+    def test_a_mark_that_is_not_utf8_reads_as_text_rather_than_raising(self, tmp_path):
+        """#741's D7, at the one hook read whose handler catches `OSError` alone.
+
+        On a cp1252 machine the unnamed read never raised, because cp1252 decodes
+        almost any byte; strict UTF-8 raises `UnicodeDecodeError`. Inside a hook
+        that raise reaches `dispatch.py`'s `except Exception`, which is an allow,
+        so naming the encoding must not be what turns a stray byte into a pass."""
+        crg = load_hook_module("commit-review-gate.py", "crg_for_the_encoding_case")
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+        (git_dir / "specseal-reviewed").write_bytes(b"\xffabc\n")
+        got = crg.read_mark(str(tmp_path), ".git", "specseal-reviewed")
+        assert got == "\N{REPLACEMENT CHARACTER}abc", repr(got)
 
 
 test_census = census_case(TARGET)

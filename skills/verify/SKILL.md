@@ -71,7 +71,7 @@ module changes.
 
 ```
 arm-check hooks/commit-review-gate.py
-arm-check hooks/commit-review-gate.py --tests "bin/test tests/test_chain_hooks.py -q"
+arm-check hooks/commit-review-gate.py --tests "bin/test tests/test_commit_review_gate.py -q"
 ```
 
 With no `--tests` it lists the arms and mutates nothing. With `--tests` it
