@@ -1,10 +1,10 @@
 """Hardening cases: prose-mention false positives, cycle edges, lease isolation.
 
-The commit gate's cases that hold no rule a `check:` line names this file for
-are in `tests/test_commit_review_gate.py`'s `Test_main` (#942's phase 6), and
-the parity arm's case of `hooks/commitgate.py#pre_commit` is in
-`tests/test_commitgate.py`. The parity arm's other cases stay here until the
-commit gate's group that places them.
+The commit gate's cases, the parity arm's among them, are in
+`tests/test_commit_review_gate.py`'s `Test_main` (#942's phase 6), and the
+parity arm's case of `hooks/commitgate.py#pre_commit` is in
+`tests/test_commitgate.py`. The backstop's case below waits for
+`hooks/gate.py`'s group.
 """
 
 import json
@@ -14,25 +14,7 @@ import subprocess
 import sys
 
 import pytest
-from conftest import (
-    a_git_whose_diff_fails,
-    decision_of,
-    fired,
-    opt_in,
-    parity_only,
-    parity_repo,
-    run_hook,
-    stage,
-)
-
-
-def payload(cmd, repo, session="s1"):
-    return {
-        "tool_name": "Bash",
-        "session_id": session,
-        "tool_input": {"command": cmd},
-        "cwd": str(repo),
-    }
+from conftest import a_git_whose_diff_fails, stage
 
 
 def git(repo, *a):
@@ -185,54 +167,6 @@ def test_parity_declaration_is_bootstrappable_not_hand_written():
     )
 
 
-def test_parity_repo_asks_when_code_commits_without_a_comparison(repo):
-    parity_repo(repo)
-    stage(repo, "service.py")
-    cmd = parity_only("git commit -m x")
-    out = run_hook("commit-review-gate.py", payload(cmd, repo))
-    assert decision_of(out) == "deny"
-    reason = json.loads(out)["hookSpecificOutput"]["permissionDecisionReason"]
-    assert "[no-parity]" in reason
-    assert "[no-review]" not in reason, (
-        "the parity arm fired alone — naming the review marker sends the user "
-        "to the one token that does not silence it"
-    )
-
-
-def test_the_parity_arms_plain_prompt_names_its_own_marker(repo):
-    """The closing sentence used to be hardcoded to `[no-review]`, so a commit
-    stopped by the parity arm alone was told to re-issue with a token that
-    changes nothing here."""
-    parity_repo(repo)
-    stage(repo, "service.py")
-    cmd = parity_only("git commit -m x")
-    run_hook("commit-review-gate.py", payload(cmd, repo))  # spends it
-    out = run_hook("commit-review-gate.py", payload(cmd, repo))
-    assert decision_of(out) == "ask"
-    reason = json.loads(out)["hookSpecificOutput"]["permissionDecisionReason"]
-    assert "[no-parity]" in reason and "[no-review]" not in reason
-
-
-def test_a_diff_git_could_not_take_is_asked_about_by_the_parity_arm(repo, tmp_path):
-    """S10 of work item 1791384157 (#868), the PreToolUse reading. Where `git
-    diff` fails, the commit's paths are unknown, and a change git could not
-    list is not a change confined to `docs/` and `seal/`, so the parity arm
-    asks. Red at `5623d728`, where the failure read as an empty diff and the
-    arm said nothing."""
-    if os.name == "nt":
-        pytest.skip("the shim is a POSIX shell script")
-    parity_repo(repo)
-    stage(repo, "service.py")
-    path = a_git_whose_diff_fails(tmp_path)
-    out = run_hook(
-        "commit-review-gate.py",
-        payload(parity_only("git commit -m x"), repo),
-        env={"PATH": path},
-    )
-    assert decision_of(out) == "deny", out
-    assert "[no-parity]" in out, out
-
-
 def test_the_backstop_hands_the_parity_arm_none_where_git_could_not_list(
     repo, tmp_path, monkeypatch
 ):
@@ -296,48 +230,6 @@ def test_the_policy_says_one_reader_reads_a_token_and_a_failed_diff_asks():
         assert sentence in _folded(name), (name, sentence)
 
 
-def test_parity_mark_matching_head_allows(repo):
-    parity_repo(repo)
-    stage(repo, "service.py")
-    gd = git(repo, "rev-parse", "--absolute-git-dir").stdout.strip()
-    head = git(repo, "rev-parse", "HEAD").stdout.strip()
-    with open(os.path.join(gd, "specseal-parity"), "w", encoding="utf-8") as f:
-        f.write(head)
-    cmd = parity_only("git commit -m x")
-    assert (
-        decision_of(run_hook("commit-review-gate.py", payload(cmd, repo))) == "silent"
-    )
-
-
-def test_parity_gate_ignores_document_only_commits(repo):
-    # Asking on a docs-only commit trains people to click through the prompt.
-    parity_repo(repo)
-    (repo / "docs" / "policies").mkdir(parents=True, exist_ok=True)
-    stage(repo, "docs/policies/note.md", "text\n")
-    cmd = parity_only("git commit -m x")
-    assert (
-        decision_of(run_hook("commit-review-gate.py", payload(cmd, repo))) == "silent"
-    )
-
-
-@pytest.mark.parametrize("path", ["docs/policies/note.md", "seal/ledger.md"])
-def test_a_document_only_commit_wakes_one_arm_and_not_two(repo, path):
-    """In a migration repository the same commit wakes the review arm alone:
-    the parity arm's silence on `docs/` and `seal/` holds, and the review
-    arm's question does not borrow either half of it."""
-    parity_repo(repo)
-    (repo / path).parent.mkdir(parents=True, exist_ok=True)
-    stage(repo, path, "text\n")
-    out = run_hook("commit-review-gate.py", payload("git commit -m x", repo))
-    assert decision_of(out) == "deny"
-    reason = json.loads(out)["hookSpecificOutput"]["permissionDecisionReason"]
-    assert "[no-review]" in reason
-    assert "[no-parity]" not in reason, (
-        "the parity arm woke on a docs-only commit, so the question names a "
-        "comparison nothing could have made"
-    )
-
-
 def test_the_review_arms_missing_path_line_is_written_where_it_is_met():
     """The case above and `tests/test_commit_review_gate.py`'s
     `test_the_review_arm_asks_on_a_document_only_commit` pin the code half;
@@ -377,63 +269,6 @@ def test_the_review_arms_missing_path_line_is_written_where_it_is_met():
     ), "the wake/quiet table no longer says the review arm reads no paths"
 
 
-def test_parity_gate_silent_without_the_declaration(repo):
-    stage(repo, "service.py")
-    assert (
-        decision_of(run_hook("commit-review-gate.py", payload("git commit -m x", repo)))
-        == "silent"
-    )
-
-
-def test_no_parity_escape_is_visible_in_the_command(repo):
-    parity_repo(repo)
-    stage(repo, "service.py")
-    assert (
-        decision_of(
-            run_hook(
-                "commit-review-gate.py",
-                payload(parity_only("git commit -m x [no-parity]"), repo),
-            )
-        )
-        == "silent"
-    )
-
-
-def test_parity_gate_sees_commits_that_never_touched_the_index(repo):
-    """`-a` and a trailing pathspec both skip staging.
-
-    The gate read only `git diff --cached`, so these two forms — the ones
-    people type by hand — reported an empty change and the gate went silent
-    on them."""
-    parity_repo(repo)
-    (repo / "f.txt").write_text(
-        "one\ntwo\nfour\n", encoding="utf-8"
-    )  # tracked, never staged
-    for cmd in (
-        "git commit -am x",
-        "git commit -a -m x",
-        "git commit -m x f.txt",
-        "git commit -mfix f.txt",
-        "git commit -m x -- f.txt",
-    ):
-        one = parity_only(cmd)
-        assert fired(run_hook("commit-review-gate.py", payload(one, repo))), one
-
-
-def test_an_unstaged_document_change_still_does_not_ask(repo):
-    """The `-a` fix must not turn every docs commit into a prompt."""
-    parity_repo(repo)
-    (repo / "docs").mkdir(exist_ok=True)
-    (repo / "docs" / "note.md").write_text("text\n", encoding="utf-8")
-    git(repo, "add", "docs/note.md")
-    git(repo, "commit", "-qm", "docs")
-    (repo / "docs" / "note.md").write_text("more text\n", encoding="utf-8")
-    cmd = parity_only("git commit -am x")
-    assert (
-        decision_of(run_hook("commit-review-gate.py", payload(cmd, repo))) == "silent"
-    )
-
-
 def test_user_invoked_skills_do_not_carry_trigger_scaffolding():
     """`Use when:` / `NOT for:` exist to route the model's own choice.
 
@@ -452,37 +287,6 @@ def test_user_invoked_skills_do_not_carry_trigger_scaffolding():
     assert not offenders, (
         f"user-invoked skills carrying auto-trigger scaffolding: {offenders}"
     )
-
-
-def test_declaring_the_migration_config_opts_into_the_review_arm_too(repo):
-    """The two opt-ins stopped being independently declarable at 0.10.
-
-    `docs/review-chain-spec.md` claimed a repo could have `.specseal/parity.md`
-    and no `.specseal/`, which the path makes impossible. The claim survived
-    because the pre-0.10 `docs/parity.md` could still produce that state, and
-    the tests here used it. Removing that address is what made the claim
-    visible; the document now says the arms are evaluated independently and
-    declared together.
-    """
-    parity_repo(repo)
-    stage(repo, "service.py")
-    out = run_hook("commit-review-gate.py", payload("git commit -m x", repo))
-    reason = json.loads(out)["hookSpecificOutput"]["permissionDecisionReason"]
-    assert "specseal-reviewed" in reason and "specseal-parity" in reason
-
-
-def test_both_opt_ins_report_together(repo):
-    parity_repo(repo)
-    opt_in(repo)
-    stage(repo, "service.py")
-    out = run_hook("commit-review-gate.py", payload("git commit -m x", repo))
-    assert decision_of(out) == "deny"
-    reason = json.loads(out)["hookSpecificOutput"]["permissionDecisionReason"]
-    assert "specseal-reviewed" in reason and "specseal-parity" in reason, reason
-    # Two axes waived independently, so two questions — but ONE call, because
-    # a second call is a second interruption for a decision made at once.
-    assert "BOTH questions in ONE call" in reason
-    assert "[no-review]" in reason and "[no-parity]" in reason
 
 
 NUMBER_WORDS = {

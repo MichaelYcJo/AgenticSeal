@@ -1226,6 +1226,30 @@ def parity_only(command):
     return f"{command} [no-review]"
 
 
+def staged_repo(path, declared=False, review="straight to the PR"):
+    """An opted-in repository with one commit and a staged change.
+
+    `declared` writes a routing declaration answering `review`. Its default
+    is `straight to the PR`, because the cases that add a migration config
+    judge the parity arm as the one `[no-review]` does not answer, and a
+    declaration answering `through the review chain` quiets that arm at the
+    commit (#988)."""
+    path.mkdir(parents=True)
+    run = lambda *a: subprocess.run(
+        ["git", "-C", str(path), *a], check=True, capture_output=True
+    )
+    run("init", "-q")
+    (path / "f").write_text("1\n", encoding="utf-8")
+    run("add", "f")
+    run("-c", "user.email=e@example.com", "-c", "user.name=e", "commit", "-qm", "b")
+    (path / "f").write_text("2\n", encoding="utf-8")
+    run("add", "f")
+    (path / "seal").mkdir()
+    if declared:
+        declare_routing(path, review=review)
+    return path
+
+
 def a_git_whose_diff_fails(tmp_path):
     """A directory holding a `git` that exits 128 for any `diff` and runs the
     real git otherwise (`questions.md` W1 of work item 1791384157: the shim,
@@ -1275,6 +1299,21 @@ def iso(minutes_ago):
 def q(text):
     """TEXT quoted for a shell."""
     return shlex.quote(str(text))
+
+
+def sh(path):
+    r"""`path` as one shell word.
+
+    These commands are read the way the harness hands them over: a string
+    that a POSIX shell is about to run, because the `Bash` matcher in
+    `hooks/hooks.json` is the only PreToolUse entry that carries commit
+    commands. Interpolating a native path raw made the test string mean
+    something else on Windows -- the shell drops an unquoted backslash, so
+    `git -C C:\Users\x` arrived at the gate as `C:UsersX` and the
+    second target resolved under the first. Nothing about the gate was wrong
+    there; the test was writing a command no shell would carry.
+    """
+    return shlex.quote(str(path))
 
 
 def payload(cmd, repo, session="s1"):

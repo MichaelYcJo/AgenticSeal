@@ -196,7 +196,7 @@ OPENED_ONLY_BEHIND = {
 # 4. Immune by construction: the name comes from git and so does the content,
 #    so there is no tree state in which one exists without the other.
 CONTENT_FROM_GIT = {
-    "tests/test_gate_judges_the_repo_it_commits_to.py#released_hooks": (
+    "tests/test_commit_review_gate.py#released_hooks": (
         "reads the last release's hooks out of a tag, file by file, through "
         "git — the working tree is never consulted"
     ),

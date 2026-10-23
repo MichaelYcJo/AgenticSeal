@@ -11,8 +11,9 @@ source. The writer files a creation under the clone the guard judged, through
 the guard's own placement. The guard's reading of both is
 `tests/test_worktree_guard.py`'s.
 
-The cases come from `tests/test_the_guard_asks_once_per_session.py` and
-`tests/test_guard_resolves_the_tree_it_judges.py` (#942's phase 6).
+The cases come from `tests/test_the_guard_asks_once_per_session.py`,
+`tests/test_guard_resolves_the_tree_it_judges.py` and
+`tests/test_an_automation_run_meets_no_commit_prompt.py` (#942's phase 6).
 """
 
 import json
@@ -32,6 +33,7 @@ from conftest import (
     grant,
     load_hook_module,
     run_hook,
+    staged_repo,
     write_transcript,
 )
 
@@ -93,6 +95,9 @@ def post(repo, tool="Bash", command="git worktree add ../wt feature/x", **extra)
 # A transcript line cut off mid-write: not JSON, and it carries both words the
 # reader's prefilter looks for, so it reaches the parser.
 TRUNCATED = '{"type": "user", "toolUseResult": {"answers": {"AskUserQuestion'
+
+# The session a transcript of a press is written under.
+PRESSED = "pressed"
 
 
 def other_clone(tmp_path):
@@ -603,6 +608,25 @@ class Test_automation_answered:
         write_transcript(projects, "me", [use, result])
         assert wc.automation_answered(str(repo), "me") is False
         assert wc.automation_answered(str(repo), "me", "/x/\x00y/me.jsonl") is False
+
+    def test_an_answer_to_another_question_leaves_the_press_standing(
+        self, projects, tmp_path
+    ):
+        """Only an answer to the routing question takes the press back. A later
+        question the model put for something else is not a routing answer, and
+        reading it as one would put a prompt back in front of a person who said
+        nobody would be answering."""
+        repo = staged_repo(tmp_path / "repo")
+        first = ask_entries(repo, tool_id="toolu_01first")
+        other = ask_entries(
+            repo,
+            answer="yes",
+            options=("yes", "no"),
+            question="Which name?",
+            tool_id="toolu_01other",
+        )
+        write_transcript(projects, PRESSED, first + other)
+        assert wc.automation_answered(str(repo), PRESSED)
 
 
 class Test_segment_cwd:

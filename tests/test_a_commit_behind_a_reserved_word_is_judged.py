@@ -21,17 +21,20 @@ segment is read as the command word, and the segment's directory is
 unresolved, which is a stop wherever the session's own repository opted in.
 Nothing the base read as a commit reads differently, because every segment the
 new reading reaches began with a word the base's reading refused.
+
+The cases here read the command with no git and no shell, each row how
+`hooks/cmdline.py` reads one shape, for the phase of #942 that rebuilds that
+module. The three that run the gate's `main` over `SHAPES` are in
+`tests/test_commit_review_gate.py`'s `Test_main`, which imports `SHAPES` and
+`HERE` from here (#942's phase 6).
 """
 
 import functools
-import io
-import json
 import os
 import sys
 
 import pytest
 from conftest import commit_found, load_hook_module
-from test_no_shape_the_base_stops_reads_silent import make_repo
 
 gate = load_hook_module("commit-review-gate.py", "crg_reserved_words")
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "hooks"))
@@ -173,50 +176,3 @@ def test_the_guard_reads_the_same_command_word(tmp_path):
     ):
         parsed = cmdline.parse_git(tokens)
         assert parsed and parsed[0] == sub, tokens
-
-
-def say(monkeypatch, capsys, command, cwd):
-    payload = {
-        "tool_name": "Bash",
-        "tool_input": {"command": command},
-        "cwd": str(cwd),
-        "session_id": "s",
-    }
-    monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps(payload)))
-    gate.main()
-    printed = capsys.readouterr().out.strip()
-    return (
-        json.loads(printed)["hookSpecificOutput"]["permissionDecision"]
-        if printed
-        else "silent"
-    )
-
-
-@pytest.mark.parametrize("name", sorted(SHAPES))
-def test_the_gate_stops_the_commit(monkeypatch, capsys, tmp_path, name):
-    """Through `main()`, in an opted-in repository with no declaration: every
-    shape stops, where at `ade83e4e` every one of them was silent."""
-    repo = make_repo(tmp_path / "repo")
-    assert say(monkeypatch, capsys, SHAPES[name][0], repo) == "deny", name
-
-
-def test_a_declared_repository_still_stops_a_commit_it_cannot_place(
-    monkeypatch, capsys, tmp_path
-):
-    """An unresolved directory stops before any declaration is read, the way
-    the multi-line spelling always has; the negated commit, which runs where
-    the shell is, stays silent in a declared repository like any commit."""
-    repo = make_repo(tmp_path / "repo", declared=True)
-    for name, (command, where) in SHAPES.items():
-        expected = "silent" if where == HERE else "deny"
-        assert say(monkeypatch, capsys, command, repo) == expected, name
-        for marker in (repo / ".git" / "specseal-commit-choice").glob("*"):
-            marker.unlink()
-
-
-def test_a_heredoc_body_that_loops_over_a_commit_stops(monkeypatch, capsys, tmp_path):
-    """`_hides_a_commit` reads a body through the same `parse_git`."""
-    repo = make_repo(tmp_path / "repo")
-    body = f"bash <<'EOF'\nfor d in a; do {C}; done\nEOF"
-    assert gate._hides_a_commit(body.split("\n", 1)[1].rsplit("\n", 1)[0])
-    assert say(monkeypatch, capsys, body, repo) == "deny"
