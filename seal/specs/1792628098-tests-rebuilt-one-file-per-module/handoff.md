@@ -1,6 +1,6 @@
 # Handoff: 1792628098-tests-rebuilt-one-file-per-module (#942)
 
-Written 2026-10-22 by the orchestrator, when the owner paused the build after phase 5's first proof under the new rule, and brought up to date on 2026-10-23 by the smith spawns that rebuilt the modules since. The branch is `chore/942-tests-rebuilt-one-file-per-module`, cut from `release/v0.22.3` at 6046f062. The tree this file describes is df48707c and the commit that updates this file.
+Written 2026-10-22 by the orchestrator, when the owner paused the build after phase 5's first proof under the new rule, and brought up to date on 2026-10-23 by the smith spawns that rebuilt the modules since. The branch is `chore/942-tests-rebuilt-one-file-per-module`, cut from `release/v0.22.3` at 6046f062. The tree this file describes is e94c6826 and the commit that updates this file.
 
 ## Where the build stands
 
@@ -8,7 +8,7 @@ Written 2026-10-22 by the orchestrator, when the owner paused the build after ph
 |---|---|
 | 1 to 4 | built: `bin/test-layout`, the slow-case report, the censuses in `tests/censuses.py`, the helper twins in `tests/conftest.py` |
 | 5 | closed at b770ca64: 11 modules rebuilt, plus the `mutation-check` batch mode |
-| 6 | open: the move check at 6e7214be, its two sets at 43324e4e; Batch B's `hooks/` groups 1 to 6 at 0a86c1b4, ccca432d, e6700896, 714f2df2, 04115ed2 and df48707c, 12 modules placed. The framer's `## Rule changes` items for the held-back groups are in `spec.md` at 066e619b; the installer's line, for `hooks/githooks.py` and `hooks/hook-install.py`, waits on `questions.md` Q10, whose default is wait |
+| 6 | open: the move check at 6e7214be, its two sets at 43324e4e; Batch B's `hooks/` groups 1 to 11, from 0a86c1b4 to e94c6826, 21 modules placed and the creation flow in `tests/e2e/creation/`. The framer's `## Rule changes` items for the held-back groups are in `spec.md` at 066e619b, and groups 7 to 11 moved on them; the installer's line, for `hooks/githooks.py` and `hooks/hook-install.py`, waits on `questions.md` Q10, whose default is wait |
 | 7 | not started |
 | Review | round 1 covered phases 1 to 4 at 8aa42bf8; its nine findings are answered, eight fixed at c6d2bfc4 and one deferred to phase 7. Round 2 verified round 1's closes and reviewed phase 5 at cfb846b2; its four findings are fixed, answered in `rounds/round-2.md` at ac965ee7. Two commit-flow gaps from the orchestrator's kill matrix (issue #1014) are closed at 5a207e20 |
 
@@ -43,6 +43,11 @@ Seconds are macOS wall time on a shared machine, from each module's record.
 | 4 | 714f2df2 | `hooks/mode-gate.py` | `66 old cases, 180 items against 180 at e945c57c16fc, 4 failed` | one merge; 16 mutants, 4 survivors, every one an old gap |
 | 5 | 04115ed2 | `hooks/answers.py`, `hooks/answer-write.py`, `hooks/answer-clear.py` | `17 old cases, 37 items against 37 at 714f2df2eff1, 0 failed` | the move check |
 | 6 | df48707c | `hooks/hooksession.py` | `18 old cases, 28 items against 28 at 04115ed2da4d, 0 failed` | the move check |
+| 7 | 9c70ddbf | `hooks/dispatch.py`, `hooks/console.py`, the creation flow | `51 old cases, 59 items against 59 at 5639d076e5d3, 2 failed` | one helper call renamed; 53 mutants over the two modules, 3 survivors, every one an old gap |
+| 8 | 4f50aee0, 6c126f35 | `hooks/routing.py` | `51 old cases, 69 items against 70 at 459d7944c0d4, 4 failed` | one merge; 16 mutants, 5 survivors, 3 old gaps and 2 red after a case each |
+| 9 | d8bba633 | `hooks/implementer-mark.py`, `hooks/implementer-notice.py` | `24 old cases, 24 items against 24 at 8dedf9e4698c, 3 failed` | one merge; 22 mutants over the two hooks and `hooks/implementer.py`, 8 survivors, every one an old gap |
+| 10 | 449feefb | `hooks/optin.py` | `46 old cases, 47 items against 47 at 9197c897c376, 6 failed` | three cases request the file's fixture; 15 mutants, 5 survivors, every one an old gap |
+| 11 | e94c6826 | `hooks/worktree_consent.py` | `100 old cases, 165 items against 165 at 167950a6e8bb, 0 failed` | the move check |
 
 `phases/phase-6.md` holds each group's command, cases and seconds, mutants and cases left in place.
 
@@ -76,7 +81,7 @@ The owner replaced the 100-mutant table on 2026-10-22 (`spec.md` *The proof of e
 1. See the files phase 6 writes after 1b0e7c23 pass on the Windows and ubuntu legs of the next CI run. CI run 39895069406 at 1b0e7c23 passed every file written before it on those legs, the commit flow, `tests/test_seal.py`, `tests/test_noninferiority.py`, `tests/test_unverified_check.py`, `Test_moved` and groups 1 to 6 among them; it failed `CONTRIBUTING.md`'s line wrap, re-wrapped since, and the durations case.
 2. Place `hooks/root-migrate.py#move`'s empty directory, which the rebuild found and pinned as it is (`overview.md` *Not done*).
 3. The `## Rule changes` items for `docs/one-root-by-lifetime.md` and its Korean twin are in `spec.md` since 93a009c6, and the worktree guard's since 099119b8.
-4. The rest of phase 6's Batch B, `hooks/` and the seven other directories, on the framer's `## Rule changes` items of 066e619b, and phase 7, `--all`, the `.test_durations` refresh and the closing memo.
+4. The rest of phase 6's Batch B, `hooks/` from the worktree guard's light files on (`phases/phase-6.md` *What remains in phase 6*) and the seven other directories, and phase 7, `--all`, the `.test_durations` refresh and the closing memo.
 5. A round verifying round 2's fix pass and the move check, then a round over phases 6 and 7, the broad gate, the sealer, the pull request into `release/v0.22.3`, and then the release preparation.
 
 ## How a smith spawn for the next modules reads
