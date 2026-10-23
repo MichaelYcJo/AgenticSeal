@@ -305,8 +305,10 @@ def root_files(home):
     always produces the same zip and the same digest.
 
     **This is the only walk.** The zip's members and the digests the manifest
-    records come from this one list, and `tests/test_seal.py::Test_export`
-    asserts the zip's namelist against it. Two enumerations would
+    records come from this one list. `tests/test_seal.py::Test_export`
+    asserts the zip's namelist equal to `MEMBERS`, the manifest and then the
+    sorted paths this walk gives for the case's root, and
+    `Test_root_files` holds the walk's order. Two enumerations would
     drift at the seam — the manifest recording what one of them saw while the
     reminder compares against what the other sees — and the difference would
     read as a work item somebody changed.
