@@ -15,7 +15,7 @@ Some facts were carried from earlier rounds and not established again. That `hoo
 severity: should
 location: `agents/warden.md:99`, `seal/specs/1792628098-tests-rebuilt-one-file-per-module/spec.md:109`
 evidence: executed `grep -nE "read_bytes|unchanged|untouched|never writes|writes nothing|getmtime|st_mtime" tests/test_chain_check.py tests/test_unverified_check.py`, `grep -nE "open\(|write_text|write_bytes|rmtree|os\.remove|os\.unlink|os\.rename|os\.replace|makedirs|mkdir|shutil\." skills/code-review/scripts/chain_check.py skills/verify/scripts/unverified_check.py`, `mutation-check skills/code-review/scripts/chain_check.py with c6 --tests "pytest -q -p no:xdist tests/test_chain_check.py -k test_accepts_every_declaration_added_changed_or_deleted"`, `mutation-check skills/verify/scripts/unverified_check.py with u1 --tests "pytest -q -p no:xdist tests/test_unverified_check.py -k test_accepts_a_walk_from_the_root_leaving_a_team_specs_out"`
-verdict: open
+verdict: fixed 11057142
 regression: round-11#2
 
 The unit is the set of files `agents/warden.md:99` names, with the ground `spec.md:109` gives for it. 13b45a32 changed it in answer to round 11's finding 2: it removed the case each of the three receiving files stood on and kept all five files on new grounds. 6105b494 wrote those grounds into the frame. The frame keeps a file on a line only while a case in it goes red when what the rule states breaks (`questions.md:26`), and line 99's rule states that the plugin never writes there (`agents/warden.md:96-98`); the fix removed the one assertion in two of the files about a team's files after a run, kept the two files on mutants that widen what a check reads, and the framer's amendment wrote that ground as "reads or writes" beside the same cell's write-only ground for `tests/test_routing.py`, so the defect came from the frame as amended, and the work item goes back to its framer. The route is the same by the other rule too. Line 99 was round 11's finding 1's unit, which took a fix pass, so this is a second regression on one unit.
@@ -36,7 +36,7 @@ spec.md, the row for agents/warden.md line 99 (the framer's), in place:
 
 The fix touches no OS boundary. `bin/rules --check` and `tests/test_a_document_that_names_a_script_says_how_to_reach_it.py` read line 99, and both are the boundary for the commit.
 
-answer:
+answer: The framer's half landed first: 329619c7 rewrote `spec.md` line 109 to the write ground alone, so the line names `tests/test_root_migrate.py` in place of the fix block's `tests/test_config.py`. 11057142 rewrites `agents/warden.md` line 99 to the old file, `tests/test_settle.py` and `tests/test_root_migrate.py`. In `tests/test_root_migrate.py`, `Test_main::test_accepts_only_work_items_under_specs_and_names_the_rest` holds the rule. It went red on three mutants that let `old_items` or `tracked_marks` take a team's directory carrying no mark, and the hook then moved that directory. `phases/phase-7.md` *Warden line 99 rewritten on a write ground, in round 12's fix pass* records the four mutants and the boundary. `bin/rules --check` and the script reader's module pass there.
 
 ## Confirmations
 
