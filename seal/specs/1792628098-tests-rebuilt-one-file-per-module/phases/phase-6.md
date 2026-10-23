@@ -1057,6 +1057,22 @@ The seventeen survivors are old gaps: no moved case reads a `${…}` holding a `
 
 **The boundary** (`executed`). At the tree committed as 31aed13b, before the commit with the new file staged: the two changed files, `tests/test_pact_check.py`, `tests/test_chain_check.py` and the two files comparing readers, the `git_listing` files, the censuses, `tests/test_test_layout.py`, `tests/test_conftest.py` and `tests/test_chain_hooks_hardening.py`, 28 files: 2,833 passed and 3 skipped. `bin/test-layout --check` exits 0, 167 files read, 121 declaring no `TARGET`; `bin/rules --check` exits 0 with 249 check lines; `bin/unverified-check seal/specs/` exits 0. Ruff checks and formats each changed file clean.
 
+### Batch B, `skills/verify/scripts/`, group 30, at 666cedbb
+
+**The cases.** `skills/verify/scripts/payload_meter.py`'s, the 24 of `tests/test_the_payload_meter_says_what_it_measured.py`, into the new `tests/test_payload_meter.py` with their bodies: the 18 read through `measure` into `Test_measure`, `test_the_composition_table_counts_bytes_and_chars_per_file_and_in_total` renamed `test_accepts_a_tree_with_bytes_and_chars_per_file_and_in_total` and `test_a_transcript_that_never_spawned_the_baseline_agent_refuses` renamed `test_refuses_a_transcript_that_never_spawned_the_baseline_agent`; the two of `sections_of` into `Test_sections_of`, renamed `test_refuses_a_heading_inside_a_fence_as_a_section` and `test_accepts_a_heading_after_a_line_the_shared_rule_does_not_fence`; `heading_starts`' one, the two that run the command and the launcher's into `Test_module`. The module-scoped `meter` fixture came with them unchanged, with the helpers. The old file is named by `docs/the-agent-set.md` line 107, whose item moves it to `tests/test_payload_meter.py`, so it keeps a docstring and no case.
+
+**Left where they stand.** `tests/test_a_section_marked_for_one_role_reaches_only_that_role.py` loads the module for `agents_in` and checks the shipped agents' preloaded sections against the role markers, a check across files that stays; so does `tests/test_a_script_copied_alone_exits_2.py`, whose one parametrized case runs each of several shipped scripts copied alone.
+
+**The move check** (`executed`): `bin/test-layout --moved 2f2d21c9 --from tests/test_the_payload_meter_says_what_it_measured.py --to tests/test_payload_meter.py` ends `test-layout: moved: 24 old cases, 25 items against 25 at 2f2d21c97c4f, 0 failed`, exit 0. No mutation table. `--pairs` names none.
+
+**Cases and seconds** (`executed`, serial, pytest's own figure): 25 items in 0.20 s before, in an archive of 2f2d21c9; 26 in 0.26 s after, the census item among them.
+
+**The real-git cases kept.** None: no case runs git.
+
+**Phase 4's survivors.** None of h2, h12 and h23 is reached: no moved case calls `read`, `imported_roots` or `repo_relative` (`read`).
+
+**The boundary** (`executed`). At the tree committed as 666cedbb, before the commit with the new file staged: the two changed files, the two files above that load the module, `tests/test_every_orchestrator_act_names_its_delivery.py`, `tests/test_the_suite_has_a_command_that_is_cheap_twice.py`, the `git_listing` files, the censuses, `tests/test_test_layout.py`, `tests/test_conftest.py` and `tests/test_chain_hooks_hardening.py`, 28 files: 2,601 passed and 3 skipped. `bin/test-layout --check` exits 0, 168 files read, 121 declaring no `TARGET`; `bin/rules --check` exits 0 with 249 check lines; `bin/unverified-check seal/specs/` exits 0. Ruff checks and formats each changed file clean.
+
 ### What remains in phase 6
 
 - `hooks/`: `hooks/githooks.py` and `hooks/hook-install.py` wait on Q10. `hooks/answer-clear.py` has a file whose `Test_module` holds its two round trips and no `Test_main`.
