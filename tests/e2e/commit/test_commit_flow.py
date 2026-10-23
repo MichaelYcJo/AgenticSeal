@@ -297,7 +297,7 @@ def as_the_tool_spells_it(command):
     failed on ubuntu's 5.2 (#692, after the chain: CI run 36965695916). The
     harness's own string cannot be replaced, because `eval` is not its last
     command; the argv `ps` shows for it is the one
-    `tests/test_the_old_spellings_reach_the_hook.py#shell` records."""
+    `tests/conftest.py#shell` records."""
     return f"eval {q(command)} < /dev/null && pwd -P >/dev/null"
 
 

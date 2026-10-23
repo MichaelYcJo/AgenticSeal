@@ -8,6 +8,7 @@ import ast
 import atexit
 import datetime
 import importlib.util
+import io
 import json
 import os
 import pathlib
@@ -1025,6 +1026,27 @@ def lease_dir(repo):
     d = os.path.join(str(repo), ".git", "specseal-leases")
     os.makedirs(d, exist_ok=True)
     return d
+
+
+# Two Bash calls for the answer store's cases: one carrying a waiver, one not.
+A = ": '[no-review]'; bin/test && git commit -m a"
+B = "git commit -m b"
+
+
+def shell(command):
+    """The argv the Bash tool's shell carries for COMMAND, as `ps -ww -o
+    args=` printed it on macOS in this harness: the command inside `eval
+    '…'`, each `'` written `'"'"'`, and a newline as `\\012`."""
+    quoted = command.replace("'", "'\"'\"'").replace("\n", "\\012")
+    return (
+        "/bin/zsh -c source /Users/x/.claude/shell-snapshots/snapshot-zsh-1.sh "
+        f"2>/dev/null || true && eval '{quoted}' < /dev/null && pwd -P >| /tmp/c"
+    )
+
+
+def run(module, monkeypatch, payload):
+    monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps(payload)))
+    module.main()
 
 
 # A `config.md` text with its `Item | Value` table; `{rows}` takes the rows.
