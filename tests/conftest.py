@@ -1105,6 +1105,85 @@ def run(module, monkeypatch, payload):
 TABLE = "# Repository config\n\n| Item | Value |\n|---|---|\n{rows}"
 
 
+@pytest.fixture
+def config():
+    return load_hook_module("config.py", "specseal_config_for_tests")
+
+
+# The config texts the reader's cases in `tests/test_config.py` and the
+# writer's in `tests/test_the_mode_question_is_asked_once.py` both read. A row
+# that parses comes first in the piped table, because the walker stops at the
+# first line it refuses (#415, #871).
+PIPED_TABLE = (
+    "# Repository config\n\n"
+    "| Item | Value |\n|---|---|\n"
+    "| Record language | English |\n"
+    "| Broad gate | bin/test -q \\| tee out.txt |\n"
+    "| Mode | shared |\n"
+    "| Commit and pull request language | English |\n"
+)
+
+# #429: a fenced example above the live table. Two cases build on these
+# bytes: the writer's drives the write over them, and the unclosed-fence case
+# uses them as a canary, so a refusal wide enough to swallow a file whose
+# fence IS closed turns it red.
+FENCED_ABOVE = (
+    "# Repository config\n\n"
+    "An example of the format, copied out of `templates/config.md`:\n\n"
+    "```markdown\n"
+    "| Item | Value |\n"
+    "|---|---|\n"
+    "| Mode | local |\n"
+    "| Broad gate | EXAMPLE |\n"
+    "```\n\n"
+    "| Item | Value |\n"
+    "|---|---|\n"
+    "| Mode | shared |\n"
+    "| Broad gate | bin/test -q |\n"
+)
+
+# The same shape with nothing parsed above the fence: the live table's only
+# line will not parse, and before the fence rule the example below supplied
+# the rows.
+FENCED_BELOW_A_TABLE_THAT_NEVER_BEGAN = (
+    "| Item | Value |\n"
+    "|---|---|\n"
+    "| Broad gate | bin/test -q | tee out.txt |\n"
+    "```markdown\n"
+    "| Mode | local |\n"
+    "| Broad gate | EXAMPLE |\n"
+    "```\n"
+)
+
+# A fenced line that will not parse, standing ABOVE the first live row; the
+# walker refuses the live row below the fence and never quotes the fenced one
+# (#871).
+FENCED_REFUSAL = (
+    "| Item | Value |\n"
+    "|---|---|\n"
+    "```markdown\n"
+    "| Broad gate | bin/test -q | tee out.txt |\n"
+    "```\n"
+    "| Mode | shared |\n"
+)
+
+# The walker's sentence for a live row written under a comment that sits
+# inside the table: GFM ends the table at the comment, so the row below it is
+# not one of the table's rows (#871).
+UNDER_THE_COMMENT = "ends above `| Mode | shared |`, a row the walk never reaches"
+
+
+def crlf(text):
+    return text.replace("\n", "\r\n")
+
+
+def shape_text(name):
+    """`tests/block_shapes.py`'s shape NAME as one text, each line ended."""
+    from block_shapes import SHAPES
+
+    return "\n".join(SHAPES[name]) + "\n"
+
+
 def opt_in_shared(repo):
     (repo / "seal").mkdir(exist_ok=True)
     return repo / "seal"
