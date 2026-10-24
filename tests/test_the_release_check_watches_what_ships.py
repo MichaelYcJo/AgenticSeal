@@ -27,6 +27,7 @@ import re
 import subprocess
 
 import pytest
+from conftest import read
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 WORKFLOW = os.path.join(ROOT, ".github", "workflows", "hygiene.yml")
@@ -69,11 +70,6 @@ STAYS_HOME = {
     "ruff.toml",
     ".test_durations",  # what CI's Windows and macOS shards are divided by (#841, #864)
 }
-
-
-def read(path):
-    with open(path, encoding="utf-8") as f:
-        return f.read()
 
 
 def ships_pattern():

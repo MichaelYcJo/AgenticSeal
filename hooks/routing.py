@@ -170,6 +170,7 @@ def table_rows(text):
     this module fails in.
     """
     rows = []
+    # exempt from splitlines: lines the GFM walk numbers
     for _index, line in shown(text.splitlines(), text):
         line = line.strip()
         if not line.startswith("|"):

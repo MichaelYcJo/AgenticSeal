@@ -355,6 +355,7 @@ def order(root, ref, ids, specs="seal/specs"):
         errors="replace",
     )  # fmt: skip
     first, commit = {}, None
+    # exempt from splitlines: git output
     for line in r.stdout.splitlines():
         if line.startswith("\0"):
             commit = line[1:]

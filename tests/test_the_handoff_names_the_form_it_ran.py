@@ -14,12 +14,9 @@ Since 0.22.0 the handoff rule is `docs/the-review-record.md` *The handoff*
 
 import os
 
+from conftest import flat
+
 ROOT = os.path.join(os.path.dirname(__file__), "..")
-
-
-def flat(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as handle:
-        return " ".join(handle.read().split())
 
 
 def test_the_handoff_says_which_form_of_a_command_it_carries():

@@ -143,6 +143,7 @@ def released(root, ref):
         return None
     prefix = SPECS + "/"
     found = set()
+    # exempt from splitlines: git output
     for line in r.stdout.splitlines():
         if line.startswith(prefix):
             rest = line[len(prefix) :]
@@ -172,7 +173,8 @@ SETTLED = (
     "directory, so a fresh checkout of this state has no {specs}/ at all.\n"
 )
 
-# The rule arm's headings. Pinned by `tests/test_settle_reads_before_it_removes.py`.
+# The rule arm's headings. Pinned by `tests/test_settle.py`, and the kept
+# heading's remedy also by `tests/test_settle_reads_before_it_removes.py`.
 RULE_HEADING = (
     "retired by the rule — released, no `spec.md`, nothing open; "
     "`settle --apply`\nremoves these, because a moment states no rule:"

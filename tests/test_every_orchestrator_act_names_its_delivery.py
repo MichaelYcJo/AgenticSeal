@@ -82,6 +82,7 @@ import importlib.util
 import os
 
 import pytest
+from conftest import read_lossy as _read
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 NEIGHBOUR = os.path.join(
@@ -115,11 +116,6 @@ def _reader():
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
-
-
-def _read(path):
-    with open(path, encoding="utf-8", errors="replace") as handle:
-        return handle.read()
 
 
 def _bare(cell):

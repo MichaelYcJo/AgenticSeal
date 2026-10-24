@@ -123,12 +123,12 @@ interpreter it says which to install. What runs before any floor is checked
 (a hook, a git hook, the launcher, `bin/test`'s runner, and every module one
 of them loads in its own process) runs on whatever `python3` starts it.
 `ruff.toml` lints that code at the version its `per-file-target-version`
-names, and `tests/test_a_script_says_which_interpreter_it_needs.py` derives
-the set, holds every file of it to that table, and refuses in it the syntax
-`ast` rejects at that version and the two constructs ruff pushes toward above
-it, `zip(..., strict=)` and `datetime.UTC`. Nothing runs that code at that
-version, so a standard-library module or an annotation only a newer
-`python3` has, as `tomllib` or `str | None` in a signature, passes both.
+names, and `tests/test_launch.py` derives the set, holds every file of it to
+that table, and refuses in it the syntax `ast` rejects at that version and the
+two constructs ruff pushes toward above it, `zip(..., strict=)` and
+`datetime.UTC`. Nothing runs that code at that version, so a standard-library
+module or an annotation only a newer `python3` has, as `tomllib` or
+`str | None` in a signature, passes both.
 
 The fallback runs the suite without writing a `.venv` into the tree, and it
 resolves and installs its environment on every call, close to sixty
@@ -152,14 +152,14 @@ table against the last release tag and fails nothing; and the hygiene
 workflow that guards releases. A change to any hook needs a test that fails
 without it, as the counterfeit rule below says.
 
-**A case has a budget, and so does each leg.** A case whose call runs longer
-than `CASE_CEILING_S` in `tests/conftest.py` fails with one line naming it
-and its seconds, locally as in CI. The contributor makes it cheaper, splits
-it, or samples what it walks. On a machine running other suites at the same
-time, a case can pass that ceiling on load alone;
-`SPECSEAL_CASE_CEILING_S=<seconds>` raises it for one run, and CI never sets
-it. The ceiling reads a case's call only: time spent building a fixture in
-setup is not held to it. Each `pytest` leg in `test.yml` carries a
+**A slow case is named, and each leg has a budget.** A case whose call runs
+longer than `SLOW_CASE_S` in `tests/conftest.py` is named with its seconds in
+the run's terminal summary, locally as in CI, and nothing fails for it: a
+loaded machine moves a call by four times, so a time reading is a report.
+The contributor who sees a case named makes it cheaper, splits it, or samples
+what it walks. The report reads a case's call only: time spent building a
+fixture in setup is the module's, and the release table's row for each test
+file is where that shows. Each `pytest` leg in `test.yml` carries a
 `timeout-minutes`, and the comment beside the values says which runs they
 were set from.
 
@@ -222,6 +222,109 @@ to work on this repository too: narrow runs while the work is still being
 edited, everything after the review rounds settle, and nothing edited between
 that run and the pull request.
 
+## The test layout
+
+**Each shipped module has one test file, and the file names its module
+once.** The file is `tests/test_<stem>.py`. The stem is the module's file
+name without `.py`, with each hyphen written as an underscore, and where two
+shipped modules share a stem, the parent directory's name goes before it.
+The first assignment after the file's imports is
+`TARGET = "<tracked path>"`. A file whose cases run a `bin/` command names
+the script that command runs. The file holds one class per public top-level
+function of the module, `Test_<name>`, with the name spelt as the code spells
+it, and a class or a private function of the module may have a class too.
+Each such class holds a case named `test_accepts_<what>` for good input and
+one named `test_refuses_<what>` for bad input. What the module does as a
+whole goes in `Test_module`. A flow across modules lives under
+`tests/e2e/<flow>/`: its `TARGET` names the command or hook the flow starts
+from, and each of its classes is a scenario that keeps the same two cases.
+A case whose assertion reads a shipped document names that document as
+`TARGET`, and its classes take any name. A helper two test files use is
+defined once, in `tests/conftest.py`. Each module file ends with
+`test_census = census_case(TARGET)`, which runs every census in
+`tests/censuses.py` over its module, and a line a census flags on purpose
+carries `# exempt from <census>: <why>` on its own line above it, where the
+census reads it and refuses it once it excuses nothing.
+`bin/test-layout --check` refuses a file that declares `TARGET` and breaks
+this, and lists the files that do not declare one yet. A contributor writing
+a case first reads its class and the pairs `bin/test-layout --pairs` names
+in it.
+check: tests/test_test_layout.py tests/test_censuses.py
+
+**A module's old cases get one verdict each when the module is rebuilt.**
+The contributor rebuilding a module reads its functions first and lists the
+classes its file must have. Then each old case that exercises the module is
+placed in its class as it stands, merged into a case of the class that
+already covers it, cut, or rewritten. A case whose assertion reads a
+document's prose stays where it is, and so does a case whose rows pin how
+another module reads a shape, until the module it pins is rebuilt. A case is
+cut only where the mutation table shows that every mutation it kills is
+killed by another case, or where the behaviour it guarded has left the tree.
+check: none reader: the warden at review
+
+**A module's tests are written anew from the code when its old files cost
+past the threshold.** The threshold is 60 seconds of the module's old files in
+`.test_durations`, or a pair `bin/test-layout --pairs` names inside one of
+the module's classes. Every other module's old cases are placed and merged.
+A module written anew takes its accepting and refusing cases from reading
+the code, one class per function, and its old cases are read for their
+inputs.
+check: none reader: the warden at review
+
+**A rewritten module builds its world once and reads a command without
+git.** Its fixture repositories are built once, in a module-scoped fixture.
+A case that writes into them takes a copy, and the copy is the reset; where
+no case writes more than a marker keyed by a session id, each case makes its
+own session id, and that is the reset. A case about how a command is read
+runs neither real git nor a real shell; the real-git cases that stay are the
+ones showing that the reading and git agree. A case samples one input of
+each kind where the mutation table shows the sample kills what enumerating
+the whole input space killed. These bind the rewrite and nothing in CI: the
+seconds the record states are read by the release table, not by a gate.
+check: none reader: the warden at review
+
+**A rebuilt module's record carries its move check or its mutation table,
+and one line per removed case.** The contributor writes it into the phase
+record of the work item that rebuilt the module, in four parts:
+
+- the move check, `bin/test-layout --moved <base> --from <old file>...
+  --to <new file>...`, with its command and its last line. One run covers
+  a group, the modules of one shipped directory or a smaller group rebuilt
+  together, and names every old file the group's cases came from after
+  `--from` and every new file the group wrote after `--to`; an old file
+  that keeps cases for a later group stands in both lists. It passes where
+  every condition `skills/verify/scripts/test_layout.py`'s docstring
+  states for `--moved` holds. Where it exits 0, the group's cases were
+  only moved and the record has no mutation table. Where it exits 1, each
+  module of the group carries the mutation table, and so does a module
+  written anew. A failing case that stands in a file declaring no `TARGET`
+  counts for the shipped module whose function it calls as its subject.
+  Where it calls no shipped module as its subject, as a check across files
+  or a case reading prose does, it counts for every definition of a name
+  its line names that the working tree's reading reaches, in each file
+  that holds one, less any definition the base's reading also reaches in
+  the same file and as written. Those definitions' decision points carry
+  the mutants: each branch of a function, each entry of a collection the
+  case reads, and, for any other definition, the value it binds, an
+  import's module among them; they run against the cases whose lines send
+  them there and no others. A module's mutants sit at the decision points
+  where a case accepts or refuses, one or two per class and one more for
+  each further decision point a function holds, so their count follows
+  the module's classes. They run against the new file in one
+  `bin/mutation-check` call with `-x` in its tests command. The old files'
+  column runs only for a mutant the new file lets survive: where the old
+  files miss it too, the table names an old gap, and where they kill it,
+  the new file gets a case seen red on that mutant;
+- the module's cases and seconds before and after, from
+  `bin/test <files> -q` on the machine that built it;
+- the real-git cases kept, each named;
+- one line per old case cut or rewritten: its name, what it guarded, and the
+  case or tree fact that holds it now; and the names of the cases left
+  where they stand because they read prose, or because they wait for the
+  module they pin, with that module named.
+
+check: none reader: the warden at review
+
 ## What a change to a gate must carry
 
 The gates decide whether someone's commit or branch switch proceeds, so a
@@ -282,9 +385,9 @@ a question is not its difficulty, it is when it arrives.
   expecting to.
 
 - **No real identifiers.** Examples, fixtures, and docs use `example.com`
-  and `/Users/x/` only. `tests/test_no_real_identifiers.py` enforces it in
-  CI, and a contributor extends its allowlist deliberately, never to make a
-  test pass.
+  and `/Users/x/` only. The `real_identifiers` census in `tests/censuses.py`
+  enforces it in CI, and a contributor extends its allowlist deliberately,
+  never to make a test pass.
   The rule is held this hard because a real domain, path or organisation
   name inlined into an example is the leak that forces a rewrite of the
   repository's history.
@@ -293,12 +396,11 @@ a question is not its difficulty, it is when it arrives.
   `encoding=` takes the locale's, which is cp1252 on the Windows leg and
   UTF-8 everywhere else, so that leg is the only one that sees it. The call
   names `encoding="utf-8"`. Every hook entry point also opens its `__main__`
-  with `console.to_utf8()`.
-  `tests/test_every_file_the_plugin_reads_or_writes_names_its_encoding.py`
-  enforces the first over every tracked `.py` and the second over `hooks/`,
-  and a contributor classifies a unit in its `ALLOWED` deliberately, never to
-  make a test pass. A `python3 -c` line in a skill or a workflow is outside its
-  reach, so its writer names the encoding there.
+  with `console.to_utf8()`. The `encoding` and `entry_point` censuses in
+  `tests/censuses.py` enforce the first over every tracked `.py` and the
+  second over `hooks/`, and a contributor exempts a line deliberately, never
+  to make a test pass. A `python3 -c` line in a skill or a workflow is outside
+  their reach, so its writer names the encoding there.
 - **Functional files are English-only.** Skills, agents, hooks, and commands
   load into model context, where a translated mirror would drift. Korean
   belongs in human-facing docs (`README.ko.md`). The `writing-style` skill

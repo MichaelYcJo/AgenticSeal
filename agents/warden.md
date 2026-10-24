@@ -96,7 +96,7 @@ citing a reference root (`templates/config.md` *Reference specs*) cites a
 coordinate: open it in stage 1 where the work touches what it describes. The
 plugin never writes there, so a diff that edits, moves or copies a file out
 of one is a finding.
-check: tests/test_a_reference_root_is_read_and_never_taken.py
+check: tests/test_a_reference_root_is_read_and_never_taken.py tests/test_settle.py tests/test_root_migrate.py
 
 **Earlier rounds carry coordinates, never verdicts.** Open what an earlier
 round names instead of searching again, and say in the record which facts
@@ -135,7 +135,8 @@ check: tests/test_the_rules_have_one_owner.py tests/test_the_verifying_round_is_
 **Each new test is read against its group.** A test the diff adds is read
 against the tests of the function it covers, and against any pair a
 duplicate check in the repository names; a test that covers nothing its
-group does not already cover is a `should` finding.
+group does not already cover is a `should` finding. Where the test files
+declare `TARGET`, the pairs are the ones `test-layout --pairs` prints.
 check: tests/test_a_moved_rule_leaves_its_definition.py
 
 **The broad gate is not yours, and its label is.** The full suite, the lint

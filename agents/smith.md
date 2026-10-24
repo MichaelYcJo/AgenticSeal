@@ -98,14 +98,15 @@ check: tests/test_the_handoff_before_round_one.py
 **A new test starts from its group.** Before writing a case, read the tests
 of the function it covers and any pair a duplicate check in the repository
 names, and add the case to that group; a case that covers nothing its group
-does not already cover is not added.
+does not already cover is not added. In a repository whose test files
+declare `TARGET`, `test-layout --pairs` is that check.
 check: tests/test_a_moved_rule_leaves_its_definition.py
 
 **Commit before you mutate, and restore from `mutation-check`'s copy.** A
 revert through `git checkout -- <file>` restores the committed state and
 takes every uncommitted fix in that file with it; `mutation-check` holds the
 bytes it read and compares the hash after the restore.
-check: tests/test_a_moved_rule_leaves_its_definition.py tests/test_a_mutation_clears_one_files_bytecode_and_ends_at_a_timeout.py
+check: tests/test_a_moved_rule_leaves_its_definition.py tests/test_a_mutation_clears_one_files_bytecode_and_ends_at_a_timeout.py tests/test_mutation_check.py
 
 **Mutation-test every unit you added, one command each.** Break one unit,
 run the cases that cover it, and watch one go red; a unit that stays green
@@ -119,7 +120,7 @@ Each run is bounded at 300 s unless `--timeout` says otherwise, and a
 timed-out run is a result to report. Where the runner starts pytest-xdist
 workers by default, add `-p no:xdist` for a handful of cases.
 `skills/verify/SKILL.md` carries the verdicts and their exit codes.
-check: tests/test_the_handoff_before_round_one.py tests/test_a_mutation_clears_one_files_bytecode_and_ends_at_a_timeout.py
+check: tests/test_the_handoff_before_round_one.py tests/test_a_mutation_clears_one_files_bytecode_and_ends_at_a_timeout.py tests/test_mutation_check.py
 
 **Three failed fixes stop the work.** The same bug through three failed
 fixes is the architecture talking: stop and hand back the architecture

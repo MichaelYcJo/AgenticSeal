@@ -25,7 +25,8 @@ cost its trace's `result` event carries (spend, seconds and `modelUsage`,
 every model's tokens) and its tool calls (every `tool_use` block in the
 trace, the session's and the agent's), beside the preload's bytes. The
 record is kept whole as `report_text`, with each user path and host that
-`tests/test_no_real_identifiers.py` refuses replaced by the fixture one.
+the `real_identifiers` census in `tests/censuses.py` refuses replaced by the
+fixture one.
 Whenever `compare` or `regrade` reads a side, a run's findings are the
 `### ` sections of the record's one `## Findings` section, split by
 `chain_check.py#finding_spans` over the lines its shared reader leaves, so a
@@ -54,8 +55,8 @@ the new side did not, whatever its graders, a case run a different number
 of times, a run whose `modelUsage` is missing or short of a count, or
 one whose trace cannot be read or holds no tool call is no result, never a
 pass.
-`tests/test_a_rewritten_definition_proved_non_inferior.py` recomputes the
-record. Nothing in the tree makes a later edit owe a run.
+`tests/test_noninferiority.py` recomputes the record. Nothing in the tree
+makes a later edit owe a run.
 
 **A side already paid for is read again under another suite's truths
 without a run.** `noninferiority.py regrade --side IN.json --suite-rev REV

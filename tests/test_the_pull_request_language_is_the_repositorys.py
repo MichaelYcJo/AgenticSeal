@@ -25,19 +25,9 @@ import os
 import subprocess
 
 import pytest
-from conftest import local_home
+from conftest import flat, local_home, read
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
-
-
-def read(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as handle:
-        return handle.read()
-
-
-def flat(*parts):
-    """The file as one line, so a pinned phrase survives re-wrapping."""
-    return " ".join(read(*parts).split())
 
 
 SKILL = ("skills", "commit-pr-convention", "SKILL.md")
@@ -621,56 +611,6 @@ def test_the_mirrors_home_is_resolved_and_excludes_the_git_directory(parts, who)
     )
 
 
-LANGUAGE_ROW = "Commit and pull request language"
-
-
-def test_a_separator_below_the_rows_is_refused_as_a_delimiter_row_out_of_place():
-    """tests-todo row 9, from round 2 🟡 5, first shape — shape 8 of #871.
-    cmark-gfm shows a stray separator as one of the table's rows, so the
-    walker refuses it, naming it, and an item below it is that refusal
-    rather than an absent row. The rows above it are read. Seen red against
-    the stop rule, which ended the table there in silence."""
-    text = (
-        "| Item | Value |\n"
-        "|---|---|\n"
-        f"| {LANGUAGE_ROW} | Korean |\n"
-        "|---|---|\n"
-        "| Something else | x |\n"
-    )
-    reader = _config_reader()
-    assert items(text) == [(LANGUAGE_ROW, "Korean")]
-    value, said = reader.config_value(text, "Something else")
-    assert value is None and "stops at `|---|---|`, a delimiter row out of place" in (
-        said or ""
-    ), said
-
-
-def test_a_repeated_header_is_read_as_a_row_and_the_doubled_item_is_refused():
-    """tests-todo row 9, second shape — shape 9 of #871. A second
-    `| Item | Value |` line under the table with no delimiter row of its own
-    is one of this table's rows to cmark-gfm, so the walker reads it as one,
-    and the row below it with it: the language is then written twice, which
-    has no value. Seen red against the stop rule, which ended the table at
-    the repeated header and read `Korean`."""
-    text = (
-        "| Item | Value |\n"
-        "|---|---|\n"
-        f"| {LANGUAGE_ROW} | Korean |\n"
-        "| Item | Value |\n"
-        f"| {LANGUAGE_ROW} | English |\n"
-    )
-    reader = _config_reader()
-    assert items(text) == [
-        (LANGUAGE_ROW, "Korean"),
-        ("Item", "Value"),
-        (LANGUAGE_ROW, "English"),
-    ]
-    assert reader.config_value(text, LANGUAGE_ROW) == (
-        None,
-        f"`{LANGUAGE_ROW}` appears 2 times — one value",
-    )
-
-
 def test_a_mirror_named_for_a_country_is_caught():
     """tests-todo row 10, from round 2 🟡 7 — the can-it-fail half.
 
@@ -688,18 +628,6 @@ def test_a_mirror_named_for_a_country_is_caught():
         "the two codes this repository's mirrors actually use must be known, "
         "or every mirror reads as a near miss"
     )
-
-
-def test_a_blank_line_above_the_first_row_ends_the_table_and_the_row_is_refused():
-    """#871. A blank line under the delimiter row ends the table to
-    cmark-gfm, so the row below it is not one of the table's rows: the
-    walker refuses it as a row the walk never reaches, and the item it names
-    is that refusal rather than an absent row. Seen red against the stop
-    rule, which stepped past the blank line and read `Korean`."""
-    text = f"| Item | Value |\n|---|---|\n\n| {LANGUAGE_ROW} | Korean |\n"
-    assert items(text) == []
-    value, said = _config_reader().config_value(text, LANGUAGE_ROW)
-    assert value is None and "a row the walk never reaches" in (said or ""), said
 
 
 def test_the_documents_name_every_shape_the_walker_refuses_and_its_edit():
@@ -779,7 +707,7 @@ def test_this_file_loads_the_one_reader_and_not_a_copy_of_it():
     `hooks/config.py#config_rows` right up until one of them moved.
 
     Asserted by where the code was COMPILED, the way
-    `tests/test_the_mode_question_is_asked_once.py#test_the_command_and_the_gate_read_one_parser`
+    `tests/test_seal.py#Test_module::test_the_command_and_the_gate_read_one_parser`
     already asserts it for `seal.py`: this file loads that module under a
     name of its own, so the two module objects differ while the
     implementation behind them must not. An `import` check alone would not
@@ -794,59 +722,8 @@ def test_this_file_loads_the_one_reader_and_not_a_copy_of_it():
     assert items("| Item | Value |\n|---|---|\n| a | b \\| c |\n") == [("a", "b | c")]
 
 
-def test_the_check_can_fail():
-    """A parser that finds a row in anything is not a parser."""
-    assert items("# a document with no table\n\nprose.\n") == []
-    assert items("| Field | Value |\n|---|---|\n| a | b |\n") == [], (
-        "`parity.md`'s header is `| Field | Value |`; matching it here would "
-        "make this reader agree with a file it is not reading"
-    )
-    assert items("| Item | Value |\n|---|---|\n| a | b |\n") == [("a", "b")], (
-        "the separator is being read as a row again"
-    )
-
-
-def test_a_row_of_another_table_ends_this_one():
-    """tests-todo row 3, from round 1 🟡 6.
-
-    A three-cell row used to be skipped as though it were not there, so
-    everything after it was absorbed. The interesting half is the LAST
-    assertion: the danger was never the odd row itself, it was the ordinary
-    row behind it arriving as though it belonged here.
-    """
-    text = (
-        "| Item | Value |\n"
-        "|---|---|\n"
-        "| Commit and pull request language | Korean |\n"
-        "| a | b | c |\n"
-        "| Something else | x |\n"
-    )
-    assert items(text) == [("Commit and pull request language", "Korean")], (
-        "a row of a different table did not end this one"
-    )
-    assert ("Something else", "x") not in items(text), (
-        "the row behind the foreign one was read as part of this table"
-    )
-
-
-def test_a_second_table_further_down_is_not_read_as_more_rows():
-    """The same property at document scale, which is what `config.md`
-    actually looks like: a table, prose, then another table."""
-    text = (
-        "| Item | Value |\n"
-        "|---|---|\n"
-        "| Commit and pull request language | Korean |\n"
-        "\n"
-        "## notes\n"
-        "\n"
-        "| Item | Value |\n"
-        "|---|---|\n"
-        "| Commit and pull request language | English |\n"
-    )
-    assert items(text) == [("Commit and pull request language", "Korean")], (
-        "the first table's answer must win; a second one further down is "
-        "prose about the first, not more rows of it"
-    )
+# The row reader's own cases, the ones that call `items` on a text written
+# for them, are in `tests/test_config.py` since #942's phase 6.
 
 
 # --- every template has a reader --------------------------------------------

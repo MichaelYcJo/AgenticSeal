@@ -33,17 +33,12 @@ import os
 import re
 
 import pytest
-from conftest import build_tracked_tree, posix_id
+from conftest import build_tracked_tree, posix_id, read
 from test_release_hygiene import LOADED, tracked
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 GUIDE = os.path.join(ROOT, "CONTRIBUTING.md")
 HEADING = "## Opening a pull request"
-
-
-def read(path):
-    with open(path, encoding="utf-8") as handle:
-        return handle.read()
 
 
 def section(text, heading=HEADING):

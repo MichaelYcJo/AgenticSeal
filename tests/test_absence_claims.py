@@ -11,12 +11,9 @@ produces them.
 
 import os
 
+from conftest import read
+
 ROOT = os.path.join(os.path.dirname(__file__), "..")
-
-
-def read(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
-        return f.read()
 
 
 def test_the_skill_applies_the_able_to_fail_condition_to_the_search():

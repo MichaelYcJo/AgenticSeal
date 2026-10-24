@@ -518,8 +518,8 @@ def only_creates_a_worktree(command: str, cwd: str, windows=None) -> bool:
          That is the trade this whole docstring already makes for `$` and
          `>`: a wrong silence leaves the call to the user's settings, a wrong
          allow signs for an arbitrary binary.
-         `test_the_command_word_class_is_what_the_allow_covers` pins members
-         of each verdict group.
+         `tests/test_worktree_guard.py::Test_only_creates_a_worktree` pins
+         members of each verdict group.
       2. no `ELSEWHERE` character in any token, which is the expansion and
          redirection family the first test does not reach.
 
@@ -599,6 +599,7 @@ def proc_cwd(pid: int):
             encoding="utf-8",
             errors="replace",
         )
+        # exempt from splitlines: a tool's output
         for line in r.stdout.splitlines():
             if line.startswith("n"):
                 return line[1:]
@@ -907,6 +908,7 @@ def lease_owner_alive(pid: int):
             )
         except Exception:
             return None
+        # exempt from splitlines: a tool's output
         rows = (line.split() for line in (r.stdout or "").splitlines() if line.strip())
         return any(len(cols) >= 2 and cols[1] == str(pid) for cols in rows)
     try:
@@ -1130,6 +1132,7 @@ def sessions_in_tree(top: str, own_session_id: str = ""):
             errors="replace",
         )
         pids = set()
+        # exempt from splitlines: a tool's output
         for line in r.stdout.splitlines():
             line = line.strip()
             if not line:
@@ -1274,6 +1277,7 @@ def tracked_changes(cwd: str) -> list[tuple[str, str]]:
             encoding="utf-8",
             errors="replace",
         )
+        # exempt from splitlines: git output
         return [(line[:2], line[3:]) for line in r.stdout.splitlines() if line.strip()]
     except Exception:
         return []
@@ -2075,8 +2079,10 @@ def judge_creation(
 # not here, on the owner's answer P1 (a): the list grows by a measured row,
 # never by a reading. Which ones leave the branch was read off what each
 # does (`spec.md` In 5), and one form of each row is run against git by
-# `test_no_listed_form_moves_head_under_git`, which found `rebase`'s
-# branch-naming form in round 1 of work item 1791270162.
+# `tests/test_worktree_guard.py`'s
+# `test_accepts_no_listed_form_that_moves_head_under_git`; the case it was
+# rebuilt from found `rebase`'s branch-naming form in round 1 of work item
+# 1791270162.
 #
 # Not here, on purpose: `switch` (the ladder's), `checkout` (listed only with
 # a path after `--`, `_restores`), `worktree` (listed unless it adds one,
@@ -2824,7 +2830,8 @@ def stop_unrecognised(findings, trees, pressed, before_ask=None, switch_on_line=
     BEFORE_ASK runs on the `ask` path only, for the reason `choose` gives
     its own: the deny stops the whole line, while approving an ask runs every
     segment of it, so a creation on the same line is judged first
-    (`test_the_guard_is_never_silent_where_the_writer_records`). A
+    (`tests/test_worktree_guard.py`'s
+    `test_refuses_to_be_silent_where_the_writer_records`). A
     `git switch` on the line (SWITCH_ON_LINE) makes the stop a `deny` for
     the same reason: approving would run the switch past the rows of *A. Branch switch*, in a
     tree this reason does not describe (round 1 of work item 1791270162,

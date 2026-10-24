@@ -28,6 +28,8 @@ definition's section, and `/tmp/run.txt` standing in the skill.
 
 import os
 
+from conftest import read
+
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 WARDEN = os.path.join(ROOT, "agents", "warden.md")
@@ -37,11 +39,6 @@ VERIFY = os.path.join(ROOT, "skills", "verify", "SKILL.md")
 
 CLONE = "<scratchpad>/<work-item-id>/round-<n>/clone"
 ROUND_HOME = "<scratchpad>/<work-item-id>/round-<n>/"
-
-
-def read(path):
-    with open(path, encoding="utf-8") as handle:
-        return handle.read()
 
 
 def section(path, heading):

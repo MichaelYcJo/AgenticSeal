@@ -20,7 +20,7 @@ script's sibling imports and its own path behave as they would.
 
 **This file is the floor's one source.** `.github/scripts/run_tests.py`
 reads `FLOOR` from it. `ruff.toml`'s `target-version` cannot import, so
-`tests/test_a_script_says_which_interpreter_it_needs.py` holds it equal.
+`tests/test_launch.py` holds it equal.
 
 **Its syntax is the oldest Python 3's.** No f-string, no walrus, nothing
 keyword-only, and no import above the check that a new release added: a
@@ -98,5 +98,6 @@ def main(argv):
     return 0
 
 
+# exempt from entry_point: the launcher imports nothing before its floor check
 if __name__ == "__main__":
     sys.exit(main(sys.argv))

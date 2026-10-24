@@ -728,6 +728,7 @@ def refused_broad_row(home):
     rows, refusals = config.config_table(text)
     if not refusals or any(item == ROW for _index, item, _value in rows):
         return None
+    # exempt from splitlines: lines the GFM walk numbers
     shown = config.unfenced(text.splitlines(), text)
     return next((line for _index, line in shown if names_this_row(line)), None)
 
@@ -757,6 +758,7 @@ def stopping_line(text, refused):
     quoted = STOPPED_AT.search(refused)
     if quoted is None:
         return None, None
+    # exempt from splitlines: lines the GFM walk numbers
     shown = list(config.unfenced(text.splitlines(), text))
     header = next(
         (
@@ -786,6 +788,7 @@ def rows_written_below(text, index):
     #430's condition: a sentence about rows below a line is false where
     none is written below it, and the walker's sentence says so flat."""
     config = load(CONFIG_READER, "specseal_config_for_broad_gate")
+    # exempt from splitlines: lines the GFM walk numbers
     for line_index, line in config.unfenced(text.splitlines(), text):
         if line_index <= index:
             continue
@@ -834,6 +837,7 @@ def hidden_row_at(home, kind):
     text = config_text(home)
     if text is None:
         return None, None
+    # exempt from splitlines: lines the GFM walk numbers
     lines = text.splitlines()
     hidden, _opened_at = config.hidden_lines(lines, text)
     return next(
@@ -904,6 +908,7 @@ def fence_left_open(home, above=None):
     text = config_text(home)
     if text is None:
         return False
+    # exempt from splitlines: lines the GFM walk numbers
     opened_at = config.fence_map(text.splitlines(), text)[1]
     if opened_at is None:
         return False
@@ -1201,6 +1206,7 @@ class Check:
         return self.code != 0
 
     def first_lines(self, n=QUOTED):
+        # exempt from splitlines: a tool's output
         lines = [ln.rstrip() for ln in self.text.splitlines() if ln.strip()]
         return lines[:n]
 
@@ -1465,8 +1471,9 @@ def command_names_backslashed(command, is_directory):
     about — the built-in check and the directory part; a `)` does not end
     a name, which only matters for a `/` written straight after one; and
     the `&` of `2>&1` is read as a separator, which makes the handle digit
-    after it a "name" with no `/` in it. The `2>&1` case in `tests/test_the_gate_hands_cmd_a_path_it_can_
-    run.py` holds that last one to what it hands over.
+    after it a "name" with no `/` in it. The `2>&1` row of
+    `tests/test_broad_gate.py`'s `Test_handed_to_shell` holds that last one
+    to what it hands over.
 
     **Not rewritten, and named rather than claimed:** a path after `call`,
     `start`, `if`, `else`, `for … do` or `cmd /c`, which `cmd.exe` reads as
@@ -1776,6 +1783,7 @@ def read_record(directory, key, worktree):
             continue
     for _, _, text in sorted(found):
         parsed, unread = [], 0
+        # exempt from splitlines: the recorder's JSON lines, which escape every separator
         for line in text.splitlines():
             if not line.strip():
                 continue
@@ -2155,6 +2163,7 @@ def job_steps(text, job):
     this repository refuses an empty list rather than counting zero
     unclassified steps.
     """
+    # exempt from splitlines: YAML keys
     lines = text.splitlines()
     try:
         # Found by walking rather than by splitting on `"\njobs:\n"`: that

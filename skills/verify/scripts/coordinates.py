@@ -34,6 +34,7 @@ PACT_NAME = r"[A-Za-z0-9_.-]+"
 PACT_ANCHOR_RE = re.compile(
     r"(?<![A-Za-z0-9_.@/-])pact:(?P<name>" + PACT_NAME + r")/"
     r"(?P<locator>\"(?:[^\"\n]|\\\")+\")"
+    # exempt from coordinate_grammar: the grammar itself
     r"@(?P<hash>[0-9a-f]{6,12})"
 )
 

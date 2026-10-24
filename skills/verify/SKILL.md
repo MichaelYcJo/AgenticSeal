@@ -71,7 +71,7 @@ module changes.
 
 ```
 arm-check hooks/commit-review-gate.py
-arm-check hooks/commit-review-gate.py --tests "bin/test tests/test_chain_hooks.py -q"
+arm-check hooks/commit-review-gate.py --tests "bin/test tests/test_commit_review_gate.py -q"
 ```
 
 With no `--tests` it lists the arms and mutates nothing. With `--tests` it
@@ -178,6 +178,16 @@ The first line printed is the verdict, then the command's own output:
 
 So `mutation-check … && mutation-check …` stops at the first unit nothing
 watches, or at the first run that could not say.
+
+**Several mutants of one file go in one call.** Give `--replace OLD NEW` once
+per mutant. Every pair is checked before anything runs, and one that does not
+land exactly once refuses the whole call. The baseline then runs once, and
+each mutant is written alone, run once and restored, in the order given. The
+call prints `mutant <n>: <verdict>` per pair and a line counting the
+verdicts, and exits 1 where any mutant survived, 2 where none did and a run
+measured nothing, and 0 where every mutant is red. Put `-x` in `--tests`, so
+each mutant's run stops at the first case that notices it; the command does
+not stop the cases itself.
 
 **Why the cache beside the file, and not `tests/__pycache__`.** CPython runs
 a cached `.pyc` instead of the source whenever the size and whole-second

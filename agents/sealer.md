@@ -141,4 +141,4 @@ and keeps the earlier verdict on the `Target SHA` row as
 `; earlier run: <sha> <word>`, its verdict's word alone. The row holds
 `<sha> against <base>`, each one word, then those entries, and nothing
 else; any other text is refused at the row.
-check: tests/test_the_sealer_guarantees.py
+check: tests/test_the_sealer_guarantees.py tests/test_chain_check.py

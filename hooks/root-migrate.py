@@ -32,7 +32,7 @@ The move, in order (`seal/specs/1788331011-…/spec.md`, "The move, in order"):
      have named, and every 0.3.x work item carried `routing.md` (#688)
   4. the root is appended to `~/.claude/specseal/root-migrated`
 
-Boundaries, each pinned in `tests/test_the_root_migrates_itself.py`:
+Boundaries, each pinned in `tests/test_root_migrate.py`:
 
   - **never over uncommitted work** — anything `git status --porcelain` reports
     under `.specseal/` or `specs/`, or a git that cannot answer, refuses the
@@ -116,6 +116,7 @@ class MoveError(Exception):
 def attempted(root):
     try:
         with open(MARKER, encoding="utf-8") as f:
+            # exempt from splitlines: a marker file of root paths
             return root in f.read().splitlines()
     except OSError:
         return False
@@ -170,6 +171,7 @@ def dirty(root):
         return True
     if r.returncode != 0:
         return True
+    # exempt from splitlines: git output
     for line in r.stdout.splitlines():
         if len(line) < 2:
             continue

@@ -1395,8 +1395,7 @@ def token_thirds(turns):
     Every site in this module that converts a number to an `int` carries a
     guard: a finiteness test on the same operand in the enclosing
     conditional, or a `try` catching both `OverflowError` and `ValueError`.
-    The class is not a list anybody maintains —
-    `tests/test_a_derived_number_reaching_an_int_carries_a_guard.py`
+    The class is not a list anybody maintains — `tests/test_session_cost.py`
     enumerates the sites from this file's own syntax tree and decides
     membership by invoking Python's integer-conversion protocol on an
     operand, so a conversion written under any name at all is a member. Add
@@ -2882,6 +2881,7 @@ def open_log(label):
         ]
     )
     if code != 0:
+        # exempt from splitlines: a tool's output
         first = (err or out or "").strip().splitlines()
         return UNREADABLE, (
             "`gh` is not on PATH" if code is None else f"exit {code}"

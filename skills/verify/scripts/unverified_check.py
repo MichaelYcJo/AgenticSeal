@@ -106,7 +106,7 @@ _BLOCKS = _load_blocks()
 # `#section_lines` and `publish_release_note.py#section_body`, which end a
 # released section at the next `## ` line on purpose (#586);
 # `tests/test_release_hygiene.py#overwide_rows`, which keeps no fence state;
-# and the oracle walk in `tests/test_unverified_rows_close.py`. A new reader
+# and the oracle walk in `tests/test_unverified_check.py`. A new reader
 # that decides by line whether it stands inside a fence belongs in one of
 # these two lists.
 fence_opener = _BLOCKS.fence_opener
@@ -115,8 +115,8 @@ fence_closes = _BLOCKS.fence_closes
 # of markdown or record text reads its lines through `gfm_lines`, this
 # module's callers and the scripts that load it among them, because two
 # readers of one text that split it two ways disagree about which line an
-# index names; `tests/test_every_reader_ends_a_line_where_gfm_does.py` holds
-# the remaining splitters to it.
+# index names; the `splitlines` census in `tests/censuses.py` holds the
+# remaining splitters to it.
 GFM_LINE_RE = _BLOCKS.GFM_LINE_RE
 gfm_lines = _BLOCKS.gfm_lines
 
@@ -445,9 +445,12 @@ def heading_level(line):
     quoted in a closed fence is never asked. Setext headings are not read:
     every one markdown-it finds in this repository is a front-matter line
     under its `---` closer, which GitHub renders as a table.
-    `tests/test_one_heading_rule_holds_to_commonmark.py` holds this to
-    markdown-it's ATX headings, through `tests/commonmark_oracle.py`, and
-    says so the day a setext heading appears in a body.
+    `tests/test_unverified_check.py`'s `Test_heading_level` holds this to
+    markdown-it's ATX headings, through `tests/commonmark_oracle.py`, over
+    the frame's shapes and a generated corpus;
+    `tests/test_one_heading_rule_holds_to_commonmark.py` holds every tracked
+    `.md` file to them, and says so the day a setext heading appears in a
+    body.
 
     It used to be spelled in five places: here inline in
     `_paragraph_ends_at`, as `startswith("#")` in `headings` and in
@@ -504,7 +507,7 @@ def _paragraph_ends_at(line):
     # which are paragraph text — and on the issue references this repository
     # writes constantly, 944 lines of them (round 6, finding 4). Four spaces
     # is paragraph text too, a lazy continuation line, and the oracle
-    # `tests/test_unverified_rows_close.py#block_ends_at` has bounded it all
+    # `tests/test_unverified_check.py#block_ends_at` has bounded it all
     # along (#491's round-7 comment).
     if heading_level(line) is not None:
         return True
@@ -1235,6 +1238,7 @@ def overviews_at(root, ref, prefixes):
         if loaded and p != "." and config.under_reference_root(p, roots)
     ]
     out = []
+    # exempt from splitlines: git output
     for rel in r.stdout.splitlines():
         if os.path.basename(rel) != OVERVIEW:
             continue
@@ -1357,6 +1361,7 @@ def tree_at(root, ref, directory):
         encoding="utf-8",
         errors="replace",
     )
+    # exempt from splitlines: git output
     return r.stdout.splitlines() if r.returncode == 0 else []
 
 

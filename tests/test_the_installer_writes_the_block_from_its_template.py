@@ -18,18 +18,13 @@ import os
 import subprocess
 
 import pytest
-from conftest import shell_probe
+from conftest import read, shell_probe
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 TEMPLATE = os.path.join(ROOT, "templates", "claude-md-block.md")
 INSTALL = os.path.join(ROOT, "install.sh")
 UNINSTALL = os.path.join(ROOT, "uninstall.sh")
 START, END = "<!-- specseal:start -->", "<!-- specseal:end -->"
-
-
-def read(path):
-    with open(path, encoding="utf-8") as f:
-        return f.read()
 
 
 def block_of(text):

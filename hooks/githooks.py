@@ -170,6 +170,7 @@ def read_stub(path):
         return None
     except OSError:
         return (False, "", "")
+    # exempt from splitlines: a hook file this plugin wrote
     lines = head.splitlines()
     if len(lines) < 2 or not lines[1].startswith(MARKER):
         return (False, "", "")

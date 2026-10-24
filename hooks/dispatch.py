@@ -67,7 +67,7 @@ NAME_CAP = 40
 # `(gate, phase, exception)` where phase is "load" or "run". Kept beside the
 # return value rather than inside it: `run_gate` returns a gate's stdout, and
 # a case replaces it with a function returning one
-# (`tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py#test_the_stop_group_reports_the_stop_event`).
+# (`tests/test_dispatch.py#Test_main.test_accepts_the_stop_group_and_names_its_event`).
 # One invocation is one process, so the list starts empty for each.
 FAILED = []
 
@@ -170,7 +170,7 @@ def run_gate(filename, payload):
         # failure no longer reads like an allow to NOBODY: `main()` writes it
         # down and the `stop` group says it once per session. The isolation
         # property `tests/test_dispatch.py` and
-        # `tests/test_the_implementer_is_recorded.py` assert is unchanged, and
+        # `tests/test_implementer_mark.py` assert is unchanged, and
         # both cases pass unedited.
         return ""
     finally:
@@ -301,7 +301,7 @@ def toplevel(cwd):
     The twin of `hooks/sealer-stamp.py#toplevel`, and duplicated rather than
     imported: that module imports `console` and `optin` at load, so reaching
     it would make the report depend on the modules whose failure it reports.
-    `tests/test_a_gate_that_fails_says_so.py` holds the two to one answer."""
+    `tests/test_dispatch.py` holds the two to one answer."""
     if not cwd:
         return ""
     here = os.path.abspath(cwd)
@@ -370,6 +370,7 @@ def capped(text, cap):
 def first_line(exc):
     """The first non-blank line of `exc`'s message, capped at `MESSAGE_CAP`
     UTF-16 units by `capped`."""
+    # exempt from splitlines: an exception's message
     lines = str(exc).strip().splitlines()
     return capped(lines[0].strip() if lines else "", MESSAGE_CAP)
 
@@ -628,6 +629,7 @@ def main():
         print(merged)
 
 
+# exempt from entry_point: its own reconfigure loop, held by test_dispatch
 if __name__ == "__main__":
     # THE entry point, and the only one that matters in production: `hooks.json`
     # spawns this file and nothing else, and it loads each gate with

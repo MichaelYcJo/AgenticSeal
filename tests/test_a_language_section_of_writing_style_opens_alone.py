@@ -18,6 +18,8 @@ import glob
 import os
 import re
 
+from conftest import read
+
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 SKILL = "skills/writing-style/SKILL.md"
 
@@ -40,18 +42,13 @@ HEADING_SPAN = re.compile(r"`(## [^`]+)`")
 # under `## 구성 규칙`, and the `check:` line each of the three ends with.
 WRITING_RULES = "### 에이전트와 검사가 읽는 글은 한 가지로만 읽히게 쓴다"
 WRITING_RULE_CHECKS = (
-    "check: tests/test_the_rules_command_reads_each_rule_off_its_test.py"
-    " tests/test_settle_applies_rule_changes_in_place.py"
-    " tests/test_no_living_file_writes_the_section_sign.py"
+    "check: tests/test_rules.py"
+    " tests/test_rule_changes.py"
+    " tests/test_censuses.py"
     " tests/test_the_agent_contract_holds_the_universal_rules.py",
     "check: tests/test_one_word_one_meaning.py",
     "check: none reader: the warden at review",
 )
-
-
-def read(rel):
-    with open(os.path.join(ROOT, rel), encoding="utf-8") as f:
-        return f.read()
 
 
 def headings(text):

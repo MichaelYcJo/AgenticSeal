@@ -1,4 +1,4 @@
-"""The three helpers five modules now share, and the sentence a person reads.
+"""Every scope of the suite that lists paths from git, held to the guard.
 
 `git ls-files` lists the index, so a tracked file the working tree has deleted
 is on the list and not on disk. Five helpers in this suite used to open every
@@ -12,111 +12,25 @@ A case that reads the corpus to prove an entry is still ALIVE is not: to it a
 skipped file and a deleted entry are the same evidence, so a silent skip buys
 it a false alarm. Those decline, through `decline_if_shrunken`.
 
-**The reason string is why this module exists.** It is text a person reads at
-a release and acts on, which contract rule 14 says has to
-be pinned in the commit that writes it — and `seal/follow-up.md`'s seventh
-row is that omission in an earlier release, a refusal whose second half
-nothing held. The three call sites pin their own `what`; the shape is pinned
-here, once, because one function produces all three sentences.
+The cases of the helpers themselves, `on_disk`, `shrunken_corpus`,
+`decline_if_shrunken` and `build_tracked_tree`, are in `tests/test_conftest.py`
+since #942's round 3 fix pass; `shrunken_corpus`'s sentence, the one a person
+reads at a release, is pinned there. This file keeps the sweep below, which
+checks across files.
 """
 
 import ast
 import os
-import subprocess
 import warnings
 
 import pytest
 from conftest import (
-    build_tracked_tree,
     decline_if_shrunken,
     git_listing,
     on_disk,
-    shrunken_corpus,
 )
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
-
-
-def test_on_disk_splits_a_listing_by_what_the_tree_actually_has(tmp_path):
-    root = build_tracked_tree(
-        tmp_path / "r",
-        {"a.md": "one\n", "b/c.md": "two\n", "d.md": "three\n"},
-        deleted=["b/c.md"],
-    )
-    present, missing = on_disk(root, ["a.md", "b/c.md", "d.md"])
-    assert present == ["a.md", "d.md"]
-    assert missing == ["b/c.md"]
-
-
-def test_on_disk_keeps_the_order_it_was_given(tmp_path):
-    """A corpus is walked in the order git listed it, and a refusal naming
-    `rel:line` is read against that order."""
-    root = build_tracked_tree(tmp_path / "r", {"a.md": "", "b.md": "", "c.md": ""})
-    present, missing = on_disk(root, ["c.md", "a.md", "b.md"])
-    assert present == ["c.md", "a.md", "b.md"]
-    assert missing == []
-
-
-def test_a_directory_on_the_list_is_not_a_file_that_is_there(tmp_path):
-    """`os.path.isfile` rather than `os.path.exists`: a path git named that
-    is now a directory has no content to read, and `open` would raise on it
-    exactly the way a missing file does."""
-    root = build_tracked_tree(tmp_path / "r", {"a.md": "one\n"})
-    os.mkdir(os.path.join(root, "b"))
-    present, missing = on_disk(root, ["a.md", "b"])
-    assert present == ["a.md"] and missing == ["b"]
-
-
-def test_the_reason_names_every_path_and_what_declined():
-    """A count alone is a claim removed from the corpus without a word, which
-    `seal/follow-up.md`'s first row calls the one direction a checker of
-    claims must not fail in. The reader needs the paths in order to judge
-    them by hand."""
-    reason = shrunken_corpus(
-        ["seal/ledger/two.md", "docs/one.md"], "the KEEP allowlist's liveness check"
-    )
-    assert "docs/one.md" in reason
-    assert "seal/ledger/two.md" in reason
-    assert "2 tracked path(s)" in reason
-    assert "the KEEP allowlist's liveness check" in reason
-    assert "not judging" in reason
-
-
-def test_the_reason_sorts_the_paths_it_names():
-    """The set a caller hands over comes from a walk, so an unsorted reason
-    would read differently run to run for the same tree."""
-    reason = shrunken_corpus(["b.md", "a.md"], "x")
-    assert reason.index("a.md") < reason.index("b.md")
-
-
-def test_declining_is_silent_when_nothing_is_missing():
-    """The guard must not turn a check off on a whole tree, which is the one
-    way this repair could report less than the crash it replaces."""
-    assert decline_if_shrunken([], "x") is None
-
-
-def test_declining_raises_the_skip_carrying_that_reason():
-    with pytest.raises(pytest.skip.Exception) as declined:
-        decline_if_shrunken(["docs/one.md"], "the KEEP allowlist's liveness check")
-    assert str(declined.value) == shrunken_corpus(
-        ["docs/one.md"], "the KEEP allowlist's liveness check"
-    )
-
-
-def test_the_builder_leaves_a_deleted_file_tracked(tmp_path):
-    """The fixture shape itself, because a fixture that staged the removal
-    would build the tree this defect is NOT about."""
-    root = build_tracked_tree(
-        tmp_path / "r", {"a.md": "one\n", "b.md": "two\n"}, deleted=["b.md"]
-    )
-    listed = subprocess.run(
-        ["git", "-C", str(root), "ls-files"],
-        capture_output=True,
-        encoding="utf-8",
-        check=True,
-    ).stdout.split()
-    assert listed == ["a.md", "b.md"], listed
-    assert not os.path.exists(os.path.join(root, "b.md"))
 
 
 # --- the class, re-enumerated over tests/ -----------------------------------
@@ -152,14 +66,16 @@ SHARED_GUARD = "on_disk"
 # 1. It applies the shared predicate. The reader checks the code rather than
 #    the row: the name has to be mentioned in the scope.
 APPLIES_THE_SHARED_GUARD = {
-    "tests/test_no_real_identifiers.py#tracked_text_files": 1,
+    # #942's sweep of every census over each tracked file no module file
+    # declares. It judges what it finds, so it skips the missing half.
+    "tests/test_censuses.py#test_every_file_no_module_file_declares_meets_every_census": 1,
     "tests/test_no_document_names_the_old_roots.py#tracked": 1,
     "tests/test_release_hygiene.py#tracked": 1,
     "tests/test_a_release_is_sized_by_a_criterion.py#tracked": 1,
-    "tests/test_a_script_says_which_interpreter_it_needs.py#floor_carriers": 1,
+    "tests/test_launch.py#floor_carriers": 1,
     # #929's census of what runs before any floor: it returns the missing
     # half, and its liveness half hands that to `decline_if_shrunken`.
-    "tests/test_a_script_says_which_interpreter_it_needs.py#before_any_floor": 1,
+    "tests/test_launch.py#before_any_floor": 1,
     "tests/test_one_word_one_meaning.py#test_no_live_text_says_the_word_0_19_0_renamed": 1,
     # The reader itself. It lists the modules it is about to parse, and a
     # module listed and not on disk would end the enumeration at it --
@@ -169,20 +85,12 @@ APPLIES_THE_SHARED_GUARD = {
     # rose, so a file listed and not on disk can lower a count and never
     # raise one; it skips the missing half and does not decline.
     "tests/test_no_passage_is_pasted_into_a_second_file.py#corpus": 1,
-    # #741's two walks, the encoding half's corpus and the hook entry points.
-    # Each returns the missing half, and its liveness half hands that to
-    # `decline_if_shrunken`.
-    "tests/test_every_file_the_plugin_reads_or_writes_names_its_encoding.py#tracked_python": 1,
-    "tests/test_every_file_the_plugin_reads_or_writes_names_its_encoding.py#entry_points": 1,
     # #867's heading rule held to markdown-it over every tracked `.md`. Both
     # its callers judge what they find, so it skips the missing half.
     "tests/test_one_heading_rule_holds_to_commonmark.py#tracked_markdown": 1,
     # #967's T5 reads every tracked file for a citation of `implement`'s
     # headings. It judges what it finds, so it skips the missing half.
     "tests/test_the_set_a_work_item_always_has.py#cited_files": 1,
-    # #1005's sweep for the section sign over every tracked living file. It
-    # judges what it finds, so it skips the missing half.
-    "tests/test_no_living_file_writes_the_section_sign.py#signs": 1,
 }
 
 # 2. It guards its own list by another predicate, which predates this work.
@@ -202,7 +110,7 @@ OPENED_ONLY_BEHIND = {
 # 4. Immune by construction: the name comes from git and so does the content,
 #    so there is no tree state in which one exists without the other.
 CONTENT_FROM_GIT = {
-    "tests/test_gate_judges_the_repo_it_commits_to.py#released_hooks": (
+    "tests/test_commit_review_gate.py#released_hooks": (
         "reads the last release's hooks out of a tag, file by file, through "
         "git — the working tree is never consulted"
     ),
@@ -214,7 +122,7 @@ OPENS_NOTHING = {
         "takes the first path segment of each line and returns a set of "
         "top-level names; no path in it is ever opened"
     ),
-    "tests/test_a_shrunken_corpus_declines_to_judge.py#test_the_builder_leaves_a_deleted_file_tracked": (
+    "tests/test_conftest.py#test_the_builder_leaves_a_deleted_file_tracked": (
         "asserts what the listing says about a fixture repository, which is "
         "the fixture shape itself rather than a corpus"
     ),
@@ -224,18 +132,20 @@ OPENS_NOTHING = {
 #    the case put there. A guard would be asserting the fixture against
 #    itself.
 LISTS_A_FIXTURE = {
-    "tests/test_optin_home.py#test_the_local_root_is_never_a_commit_candidate_and_needs_no_gitignore": 1,
-    "tests/test_routing_is_recorded.py#test_an_uncommitted_declaration_silences_the_commit_that_adds_it": 1,
-    "tests/test_the_mode_is_a_row_and_a_command.py#test_the_recovery_commands_work_where_they_are_printed": 1,
-    "tests/test_the_mode_is_a_row_and_a_command.py#test_an_ignored_workflow_path_is_not_reported_as_staged": 1,
-    "tests/test_the_root_migrates_itself.py#test_every_move_is_staged_and_history_follows_the_file": 1,
-    "tests/test_the_root_migrates_itself.py#test_the_readme_is_rewritten_from_the_new_template": 1,
-    "tests/test_the_root_migrates_itself.py#test_an_ignored_file_directly_under_the_old_root_does_not_stop_the_move": 1,
+    "tests/test_optin.py#test_the_local_root_is_never_a_commit_candidate_and_needs_no_gitignore": 1,
+    "tests/test_commit_review_gate.py#test_an_uncommitted_declaration_silences_the_commit_that_adds_it": 1,
     "tests/test_the_root_migrates_itself.py#test_the_readmes_by_hand_sequence_yields_the_hooks_tracked_set": 1,
-    # #688: both read `git diff --cached --name-only` in the fixture the case
-    # built, to assert that a team's directory was not staged for a move.
-    "tests/test_the_root_migrates_itself.py#test_an_id_shaped_directory_without_the_marks_stays_and_is_named": 1,
-    "tests/test_the_root_migrates_itself.py#test_a_mark_git_does_not_track_is_not_a_mark": 1,
+    # The hook's cases read what is unstaged and tracked in the copy of the
+    # old layout the case took, to assert what the move staged.
+    "tests/test_root_migrate.py#unstaged": 1,
+    "tests/test_root_migrate.py#tracked": 1,
+    # What a case staged in its own copy of a world: the hook's move in
+    # `tests/test_root_migrate.py`, and `seal mode`'s switch and the
+    # workflow it stages in `tests/test_seal.py`.
+    "tests/conftest.py#staged": 1,
+    # The paths the commit gate's guarantee arm is handed, staged in the
+    # case's own copy of the commit gate's world.
+    "tests/test_commitgate.py#paths_of": 1,
 }
 
 # One call per scope everywhere today. Spelled as a map rather than as "one

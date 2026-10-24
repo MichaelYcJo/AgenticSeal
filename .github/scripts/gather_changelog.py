@@ -307,6 +307,7 @@ def insert(changelog_text, block, version):
         # the entries above the heading wherever the two disagreed (#664).
         at = len(reader.gfm_lines(changelog_text[: found.start()]))
         end = next(
+            # exempt from heading_rule: the changelog's own version line
             (n for n in range(at + 1, len(lines)) if lines[n].startswith("## ")),
             len(lines),
         )
@@ -323,6 +324,7 @@ def insert(changelog_text, block, version):
             tail.pop(0)
         joined = "\n".join([*lines[:end], "", *entries, "", *tail])
         return joined.rstrip("\n") + "\n"
+    # exempt from heading_rule: the changelog's own version line
     at = next((n for n, line in enumerate(lines) if line.startswith("## ")), None)
     if at is None:
         at = len(lines)

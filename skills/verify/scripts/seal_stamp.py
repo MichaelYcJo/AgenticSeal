@@ -178,7 +178,7 @@ MESSAGE_LIMIT = 10000
 # `dispatch.describe`, every gate this plugin names and three foreign ones,
 # in every group it names and a foreign one, at every phase, with every field
 # past its cap -- a record an older or newer plugin wrote;
-# `tests/test_a_gate_that_fails_says_so.py#longest_report` is the
+# `tests/test_dispatch.py#longest_report` is the
 # measurement). Before #722 the name had no cap, so a class from outside the
 # plugin with a long enough name passed the reserve with two gates. The caps
 # count the same units, so a name or a text outside the BMP keeps these
@@ -228,6 +228,7 @@ def read_chart(path):
     saved with a byte-order mark as the same chart, rather than refusing its
     first line as one character too long."""
     with open(path, encoding="utf-8-sig") as handle:
+        # exempt from splitlines: the disc's mark chart, a grid of two characters
         lines = handle.read().splitlines()
     n = DISC_CELLS
     c, field = (n - 1) / 2, n / 2 - GROOVE_INSET
@@ -434,7 +435,8 @@ def strip_ansi(s):
 # cut ref would read as a whole ref.
 #
 # Stated here and measured over there, and neither may move without the other
-# going red: `test_the_panel_value_width_is_what_the_stamp_actually_gives`
+# going red: `tests/test_seal_stamp.py`'s
+# `Test_stamp::test_accepts_a_value_as_wide_as_the_panel_at_eighty_columns`
 # draws a value of this width and measures the stamp's widest line.
 PANEL_VALUE_WIDTH = 41
 ELISION = "..."
@@ -1083,6 +1085,7 @@ def queue_for_guarantee(top, common, session, now=None):
     )
     items = [
         found.group(1)
+        # exempt from splitlines: git output
         for path in (touched or "").splitlines()
         for found in [GUARANTEE_PATH.match(path.strip())]
         if found
@@ -1229,6 +1232,7 @@ def _queue_one(chain, top, common, session, name, now):
         target=target,
         cell=cell,
         gate_text=gate_text,
+        # exempt from splitlines: git output
         rounds=listed.splitlines(),
         branch=branch,
         item=os.path.join(top, *rel.split("/")),
@@ -1378,8 +1382,8 @@ def queue_for_local_guarantee(path, session, now=None):
 # Neutral values in the stamp's shape, so `seal-stamp` shows a person what a
 # sealed guarantee's commit draws without one having been committed — every
 # row `guarantee_rows` can return, the conditional ones included, in its
-# order; a case in `tests/test_the_seal_is_taken_once_by_the_sealer.py`
-# holds the labels against `guarantee_rows`'. Since #975 the stamp carries
+# order; a case in `tests/test_seal_stamp.py`'s `Test_module` holds the
+# labels against `guarantee_rows`'. Since #975 the stamp carries
 # what the records say and no suite counts: those are the broad gate's
 # report's, which the gate prints as text.
 SAMPLE_ROWS = [

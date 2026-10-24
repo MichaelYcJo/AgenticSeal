@@ -387,6 +387,7 @@ def render(root, text):
 def main(argv=None):
     """Read DOC and print its walk, or check every rule file with `--check`;
     the exit code says which, as the module docstring lists."""
+    # exempt from splitlines: the docstring's first line
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("doc", nargs="?")
     parser.add_argument(

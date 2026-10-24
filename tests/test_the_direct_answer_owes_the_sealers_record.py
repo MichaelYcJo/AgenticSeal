@@ -18,14 +18,14 @@ a file never carried the false sentence — it named the two answers and what
 neither owes — only the standing half is pinned.
 
 The commit gate's option is pinned through the rendered prompt in
-`tests/test_routing_is_recorded.py`, because its text is a Python literal
+`tests/test_commit_review_gate.py`, because its text is a Python literal
 split across lines, which a whole-file substring cannot read.
 """
 
 import os
 
 import pytest
-from conftest import REVIEW_CHAIN_DOCS, review_chain_text
+from conftest import REVIEW_CHAIN_DOCS, flat, review_chain_text
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -48,7 +48,7 @@ DIRECT_REQUIRES = {
     # The corrected docstring's own words, because that file also carries a
     # case whose docstring names the sealer's record — a pin on the bare
     # phrase would be satisfied by the case and not by the correction.
-    ("tests", "test_routing_is_recorded.py"): (
+    ("tests", "test_commit_review_gate.py"): (
         "requires nothing of it at the pull request",
         "requires " + STANDS + " of it and no reviewer's record",
     ),
@@ -58,11 +58,6 @@ DIRECT_REQUIRES = {
 # direct answer was checked *by the token in every command* — false since the
 # declaration silenced the review arm for either answer.
 TOKEN_SENTENCE = "the direct answer by the token in every command"
-
-
-def flat(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as handle:
-        return " ".join(handle.read().split())
 
 
 @pytest.mark.parametrize("parts", sorted(DIRECT_REQUIRES))

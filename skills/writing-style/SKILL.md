@@ -265,7 +265,7 @@ seal* 은 감사하는 쪽만 밝히고 감사받는 것은 밝히지 않는다.
 줄에서 거절되어야 한다. 조금 틀린 철자를 말없이 지나치는 검사는 그 줄을 읽지
 않은 것과 같다. 사례는 `plan.md` 의 승인 줄이다. 그 줄 뒤에 문장 하나를
 덧붙이자, 그 줄을 읽던 검사는 승인이 없다고 읽었다.
-check: tests/test_the_rules_command_reads_each_rule_off_its_test.py tests/test_settle_applies_rule_changes_in_place.py tests/test_no_living_file_writes_the_section_sign.py tests/test_the_agent_contract_holds_the_universal_rules.py
+check: tests/test_rules.py tests/test_rule_changes.py tests/test_censuses.py tests/test_the_agent_contract_holds_the_universal_rules.py
 
 **저장소가 정의한 용어는 정의한 뜻으로만 쓰고, 같은 것을 다른 말로 바꿔 부르지
 않는다.** 한 대상을 두 낱말로 부르면 읽는 쪽은 둘을 다른 것으로 읽는다. 한

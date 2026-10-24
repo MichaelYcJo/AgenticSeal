@@ -4,8 +4,9 @@ or a person reads says the same thing about where the root lives.
 The work item is `seal/specs/1788354065-the-tree-that-must-stay-clean-has-no-
 way-to-opt-in/`; the clauses named per case are its spec's. The hooks resolve
 the root in code (`hooks/optin.py#home_at`) and are pinned by
-`tests/test_optin_home.py` and `tests/test_local_mode_resolves_under_the_git_
-dir.py`. What is pinned HERE is the text: the one question the `implement`
+`tests/test_optin.py`, `tests/test_commit_review_gate.py` and
+`tests/test_implementer_notice.py`. What is pinned HERE
+is the text: the one question the `implement`
 skill asks, the sentence a session needs, the workflow template shared mode
 installs and the reason local mode has none, and the switch the READMEs give.
 
@@ -19,7 +20,7 @@ import re
 import subprocess
 
 import pytest
-from conftest import local_home, shell_probe
+from conftest import local_home, read, shell_probe
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -27,11 +28,6 @@ COMMON_DIR = "$(git rev-parse --git-common-dir)/seal/"
 # The sentence a session reads (Q1 of the work item's `questions.md`): the
 # same rule `hooks/optin.py` states, moved to where a session looks.
 SESSION_RULE = "`$(git rev-parse --git-common-dir)/seal/` otherwise"
-
-
-def read(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
-        return f.read()
 
 
 def section(text, heading, level):

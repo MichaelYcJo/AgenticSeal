@@ -19,7 +19,7 @@ import os
 import re
 import subprocess
 
-from conftest import on_disk, review_chain_text
+from conftest import on_disk, read, review_chain_text
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 
@@ -56,11 +56,6 @@ ROOT = os.path.join(os.path.dirname(__file__), "..")
 # double space. Applied to `.py` members only, because a markdown file has no
 # literals to join and a fold there would cut through quoted shell commands.
 LITERAL_SEAM = re.compile(r"([\"'])\s*(?:[fFrRbBuU]{0,2})\1")
-
-
-def read(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
-        return f.read()
 
 
 def flat(*parts):
@@ -961,7 +956,8 @@ RENAMED_RECORDS = (
     "seal/specs/",
 )
 RENAMED_COMPAT = (
-    "tests/test_a_signer_declares_its_pact.py",
+    "tests/conftest.py",
+    "tests/test_config.py",
     "tests/test_one_table_walker_reads_what_gfm_renders.py",
     "tests/test_pact_check.py",
 )

@@ -21,19 +21,10 @@ import glob
 import os
 import re
 
+from conftest import flat, read
 from test_the_agent_contract_holds_the_universal_rules import HEADING
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
-
-
-def read(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
-        return f.read()
-
-
-def flat(*parts):
-    """The file as one line, so an assertion is not pinning where it wraps."""
-    return " ".join(read(*parts).split())
 
 
 def read_at(path):

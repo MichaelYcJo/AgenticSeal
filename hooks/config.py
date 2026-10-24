@@ -519,6 +519,7 @@ def rows_named_below(text, index, item):
     walk."""
     begins = gfm_line_starts(text)
     count = 0
+    # exempt from splitlines: lines the GFM walk numbers
     for at, line in unfenced(text.splitlines(), text):
         if at <= index or not begins[at]:
             continue
@@ -604,7 +605,7 @@ NO_REFERENCE = "none"
 REFERENCE_NAME = "specs"
 # The plugin's own root in the tree, `hooks/optin.py#HOME`. Spelled here so
 # this reader needs no second sibling, and held equal to that one by
-# `tests/test_a_reference_root_is_read_and_never_taken.py`.
+# `tests/test_config.py`.
 HOME = "seal"
 
 
@@ -927,6 +928,7 @@ def declared_pacts(home):
 # starts are CommonMark 4.6's seven kinds, measured against cmark-gfm one tag
 # name at a time; an autolink, `<https://…>`, is not one of them, and the
 # renderer reads it as one of the table's rows.
+# exempt from heading_rule: the table walker's table end, held to cmark-gfm
 ATX_HEADING = re.compile(r"#{1,6}(?:[ \t]|$)")
 THEMATIC_BREAK = re.compile(r"(?:(?:\*[ \t]*){3,}|(?:-[ \t]*){3,}|(?:_[ \t]*){3,})$")
 BLOCK_QUOTE = re.compile(r">")
@@ -1079,6 +1081,7 @@ def gfm_line_starts(text):
     line GFM begins. `str.splitlines` also ends a line at eight characters
     GFM reads as part of the line -- a form feed, U+2028 and six more -- so
     a piece after one of them is more of the GFM line above it."""
+    # exempt from splitlines: the walk's own pieces, each asked if it starts a line
     pieces = text.splitlines(keepends=True)
     return [
         at == 0 or pieces[at - 1].endswith(GFM_LINE_ENDS) for at in range(len(pieces))
@@ -1141,6 +1144,7 @@ def gfm_table(text, header):
     width = len(header)
     shape = "a one-cell row" if width == 1 else f"a {width}-cell row"
     written = "`|" + " … |" * width + "`"
+    # exempt from splitlines: lines the GFM walk numbers
     lines = text.splitlines()
     shown = list(unfenced(lines, text))
     at = next(
@@ -1283,6 +1287,7 @@ def read_table(text, header):
     if not (refusals and refusals[0].startswith("holds no ")):
         named = f"`| {' | '.join(old)} |`" if old else None
         glued = [
+            # exempt from splitlines: the line gfm_table numbered, split as it was
             text.splitlines()[line - 1].strip()
             for line, cells in rows
             if holds_old and cells == old

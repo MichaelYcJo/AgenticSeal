@@ -27,6 +27,8 @@ Each case here was seen red before the prose it pins landed (contract rule 15).
 import os
 import re
 
+from conftest import read
+
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 
 SKILL = ("skills", "commit-pr-convention", "SKILL.md")
@@ -39,11 +41,6 @@ ROWS = [
     "Records' share of the diff",
     "Broad gate: whether it has run",
 ]
-
-
-def read(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as handle:
-        return handle.read()
 
 
 def body_section():
