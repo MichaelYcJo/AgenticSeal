@@ -25,8 +25,8 @@ them reads the way CI does.
 
 | Item | Who must answer |
 |---|---|
-| `cmd.exe` runs `where/q cmd` as `where` plus its switch and exits 0 (A6, `questions.md` M1) | CI's `windows-latest` leg at the pull request |
-| The full suite, lint and typecheck over the finished branch | the sealer's one broad run, after the review rounds settle |
+| closed `cmd.exe` runs `where/q cmd` as `where` plus its switch and exits 0 (A6, `questions.md` M1) | #607's `windows-latest` leg ran `test_a_switch_against_a_program_runs_on_the_real_platform` green, a case that fails rather than skips on Windows |
+| closed The full suite, lint and typecheck over the finished branch | #607, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
 
 ## Not done
 

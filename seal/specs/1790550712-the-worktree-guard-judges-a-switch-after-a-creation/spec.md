@@ -200,6 +200,13 @@ text a person reads in the cases S1 to S3, S6, S8 and S9 name.
 Ledger coordinates this work cites or drifts are listed in `plan.md`
 §*Ledger rows this work re-reads*.
 
+## Rule changes
+
+- nothing
+  why: written: a switch after a creation judged between the ladder's halves, and a
+    sidechain answer refused, in docs/worktree-guard-spec.md *Creation consent*;
+    internal: the counts it re-derived, its records.
+
 ## Open questions → questions.md
 
 One row a person may overturn (Q1, whose default is already applied), three

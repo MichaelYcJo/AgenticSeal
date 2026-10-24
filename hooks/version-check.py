@@ -138,6 +138,7 @@ def latest(repo):
         return None
     found = [
         tuple(int(g) for g in m.groups())
+        # exempt from splitlines: git output
         for m in (TAG.search(line) for line in proc.stdout.splitlines())
         if m
     ]

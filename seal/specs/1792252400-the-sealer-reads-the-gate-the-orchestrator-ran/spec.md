@@ -282,6 +282,12 @@ one the item ships with, pass or fail. Nothing here asks the owner mid-run.
   model sides), `reference-sealer.json` (phase 6, the renamed suite on the
   decided model). Raw output stays outside the tree.
 
+## Rule changes
+
+- nothing
+  why: written: the orchestrator runs the broad gate and the sealer reads its record, in
+    docs/the-broad-gate.md.
+
 ## Removes
 
 | Removes | Coordinate | Where it lands, or why it can go |

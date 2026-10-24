@@ -6,7 +6,6 @@ file that outlives it, and a supported-Python floor that three files state
 differently.
 """
 
-import ast
 import json
 import os
 import re
@@ -97,10 +96,10 @@ LOADED = (
 VERSION_TOKEN = re.compile(r"(?<![\w.])[vV]?(\d+\.\d+\.\d+)(?!\.\d)")
 
 # The value the repository already tells an author to write where a real
-# version would be wrong. `docs/issues-and-milestones.md` §"A rolling log is
-# titled after the version it rolled from" is where that decision was made and
-# where the reason for it sits; the check's own message points a reader there
-# rather than restating it.
+# version would be wrong. The paragraph of `docs/issues-and-milestones.md` that
+# opens **A rolling log is titled after the version it rolled from** is where
+# that decision was made and where the reason for it sits; the check's own
+# message points a reader there rather than restating it.
 #
 # It is exempt in EVERY loaded file rather than at one coordinate, because the
 # whole point of an illustrative value is that the next author may write it
@@ -109,14 +108,11 @@ VERSION_TOKEN = re.compile(r"(?<![\w.])[vV]?(\d+\.\d+\.\d+)(?!\.\d)")
 ILLUSTRATIVE_VERSION = "1.2.3"
 
 RECORDS_OF_A_MOMENT = (
-    "docs/one-root-by-lifetime.md",
-    "docs/one-root-by-lifetime.ko.md",
     # A trailing slash is a PREFIX, not a path. `docs/experiments/` holds
     # dated records of what was measured on a particular day, on a particular
     # build of a particular tool — the file name carries the date. Rewriting
-    # the version an experiment ran against would falsify the record, which is
-    # the same argument the two exact paths above already carry, applied to
-    # a directory whose every future file has it too. That is what makes a
+    # the version an experiment ran against would falsify the record, and
+    # every future file of the directory has the same argument. That is what makes a
     # prefix defensible here where `docs/issues-and-milestones.md` — a
     # standing document edited every release — is not (#179).
     "docs/experiments/",
@@ -136,12 +132,6 @@ VERSIONS_OF_ANOTHER_PRODUCT = {
     ("docs/the-commit-gate-inside-git.md", "2.39.5"): "git's, a build #692 measured",
     ("docs/the-commit-gate-inside-git.md", "2.43.0"): "git's, a build #692 measured",
     ("docs/the-commit-gate-inside-git.md", "2.50.1"): "git's, a build #692 measured",
-    ("docs/worktree-guard-spec.md", "2.54.0"): (
-        "git's, the build whose `git checkout -h` and `git switch -h` the "
-        "guard's option table was taken from, named in §*Known limits* "
-        "(#764). A table read off an unnamed git is not a measurement, and "
-        "no release of SpecSeal makes the number wrong"
-    ),
     ("skills/implement/scripts/seal.py", "4.4.17"): (
         "bash's, named in a comment about the glob behaviour of that release"
     ),
@@ -153,14 +143,12 @@ VERSIONS_OF_ANOTHER_PRODUCT = {
     ("skills/verify/scripts/broad_gate.py", "2.54.0"): (
         "git's, named in `names_a_branch`'s docstring as the build on which "
         "`--branch` was measured to EXPAND `@{-N}` and then check what it "
-        "expanded to. The row above is the same fact about a different "
-        "docstring, and the reason is the row above's reason: a property "
-        "read off an unnamed git is not a measurement, and this one is the "
-        "grounds for a guard a reader can otherwise only take on trust "
-        "(#461). The pair is what makes this an entry rather than a reword — "
-        "the class is *a loaded file naming the tool build a measurement was "
-        "taken on*, it now has two members, and the exemption is keyed on "
-        "(file, token) so neither one lets the number through anywhere else"
+        "expanded to. A property read off an unnamed git is not a "
+        "measurement, and this one is the grounds for a guard a reader can "
+        "otherwise only take on trust (#461). The class is *a loaded file "
+        "naming the tool build a measurement was taken on*, and the "
+        "exemption is keyed on (file, token) so the number gets through "
+        "nowhere else"
     ),
     # A pytest build and a pytest-xdist build had rows here, keyed on
     # `broad_gate.py`, for the comments over the JUnit report and the
@@ -171,15 +159,15 @@ VERSIONS_OF_ANOTHER_PRODUCT = {
     ("CONTRIBUTING.md", "4.2.0"): (
         "markdown-it-py's, the parser the suite's CommonMark oracle reads, "
         "pinned in `.github/scripts/run_tests.py#MARKDOWN_IT` (#667). The "
-        "fallback commands in §*Running the checks* carry the pin so they "
+        "fallback commands in *Running the checks* carry the pin so they "
         "install the parser the oracle is held to, and a case holds them to "
         "the runner's constant; no release of SpecSeal makes the number wrong"
     ),
     ("CONTRIBUTING.md", "12.3.0"): (
-        "Pillow's, the imaging library the release seal is decoded with, pinned "
-        "in `.github/scripts/run_tests.py#PILLOW` (#718). The class is the "
-        "row above's: the fallback commands carry the pin so they install "
-        "the version the suite's pixel case is held to, and a case holds "
+        "Pillow's, the imaging library the release seal is drawn and read "
+        "with, pinned in `.github/scripts/run_tests.py#PILLOW` (#718, #1009). "
+        "The class is the row above's: the fallback commands carry the pin so "
+        "they install the version the suite's pixel cases are held to, and a case holds "
         "them to the runner's constant; no release of SpecSeal makes the "
         "number wrong"
     ),
@@ -320,13 +308,13 @@ def what_to_write_instead():
     return (
         f"Write the illustrative {ILLUSTRATIVE_VERSION} instead, and say "
         "beside it why the number is not real — the paragraph at "
-        '`docs/issues-and-milestones.md` §"A rolling log is titled after the '
-        'version it rolled from" already does exactly that, and is the model '
+        "`docs/issues-and-milestones.md` that opens **A rolling log is titled "
+        "after the version it rolled from** already does exactly that, and is the model "
         "to follow. If the number belongs to another product, declare it in "
         "`VERSIONS_OF_ANOTHER_PRODUCT` with the product it names. If the "
         "file's whole job is to name a moment, it belongs in "
-        '`RECORDS_OF_A_MOMENT` with the argument CONTRIBUTING.md §"What a '
-        'change to a gate must carry" asks for. A version BELOW the running '
+        "`RECORDS_OF_A_MOMENT` with the argument `CONTRIBUTING.md` *What a "
+        "change to a gate must carry* asks for. A version BELOW the running "
         "one, or one this repository has TAGGED, is history and is already "
         "allowed — nothing needs doing to it. "
         "And if the number is not a release at all — a date written with "
@@ -394,6 +382,13 @@ def test_the_message_has_a_route_for_every_token_the_check_refuses():
         f"`3.13.9` has, and the one {sorted(VERSIONS_OF_ANOTHER_PRODUCT)} is"
     )
     assert "RECORDS_OF_A_MOMENT" in routes, "no route for a record of a moment"
+    # Contract rule 14: the two places the routes send a reader, by the
+    # heading or the paragraph's bold lead a reader finds them under.
+    assert (
+        "the paragraph at `docs/issues-and-milestones.md` that opens **A "
+        "rolling log is titled after the version it rolled from**"
+    ) in routes, routes
+    assert "`CONTRIBUTING.md` *What a change to a gate must carry*" in routes, routes
     assert "BELOW" in routes, "the message does not say history is already allowed"
     assert "TAGGED" in routes, (
         "the message does not say a tagged version is history too (#363), so "
@@ -553,8 +548,8 @@ def test_the_illustrative_version_is_not_one_this_repository_could_ship():
         f"the illustrative version {ILLUSTRATIVE_VERSION} is now the running "
         "version, so the exemption in `timers_in` hides the defect it was "
         "written beside. Choose a value this repository will not reach and "
-        'rewrite the paragraph at `docs/issues-and-milestones.md` §"A '
-        'rolling log is titled after the version it rolled from" with it'
+        "rewrite the paragraph at `docs/issues-and-milestones.md` that opens "
+        "**A rolling log is titled after the version it rolled from** with it"
     )
     shipped = shipped_versions()
     assert shipped, "CHANGELOG.md records no releases — this case is blind"
@@ -602,9 +597,7 @@ def test_no_loaded_file_names_a_version_at_or_above_the_running_one():
 
     - `RECORDS_OF_A_MOMENT` — files whose whole job is to name a moment.
       `seal/specs/`, `CHANGELOG.md` and `changelog/` are outside the scanned
-      set entirely.
-      `docs/one-root-by-lifetime.md` is the 0.4.0 design and says so in every
-      other paragraph, and `docs/experiments/` holds dated measurements whose
+      set entirely. `docs/experiments/` holds dated measurements whose
       numbers are the reading.
     - `ILLUSTRATIVE_VERSION` — the value the repository already tells authors
       to write, with its own case above asserting it is not a real one.
@@ -749,12 +742,10 @@ def test_the_illustrative_version_is_allowed_in_any_loaded_file():
 
 
 def test_a_record_of_a_moment_keeps_every_version_it_names():
-    """Both shapes of entry: an exact path, and `docs/experiments/` as a
-    prefix covering every dated record written under it, now and later."""
+    """`docs/experiments/` as a prefix covers every dated record written
+    under it, now and later; the exact-path shape is the order case's
+    below."""
     text = "measured on 2.1.259, which is above anything this plugin ships"
-    assert (
-        timers_in("docs/one-root-by-lifetime.md", text, RUNNING_IN_THE_FIXTURES) == []
-    )
     assert (
         timers_in(
             "docs/experiments/2026-09-03-skill-preload-and-the-copy-in-force.md",
@@ -1112,8 +1103,8 @@ def test_no_section_accumulates_entries_in_the_shared_file():
     name means somebody went back to the shared file, which is issue #46.
 
     The order still matters and is still checked — by
-    `test_the_changelog_is_gathered_at_release.py`, against the gather script
-    that produces it, which is the only thing that writes a section now.
+    `tests/test_gather_changelog.py`, against the gather script that
+    produces it, which is the only thing that writes a section now.
     """
     with open(os.path.join(ROOT, "CHANGELOG.md"), encoding="utf-8") as f:
         headings = re.findall(r"^## (.+)$", f.read(), re.M)
@@ -1218,10 +1209,10 @@ def test_the_release_target_is_asked_before_the_work_starts():
         # Collapsed, because both files wrap these sentences at different
         # columns and a literal match would be asserting the line breaks.
         text = " ".join(text.split())
-        assert "a PR into `main` is a release" in text, (
+        assert "A pull request into `main` is a release" in text, (
             f"{parts[-1]} stopped saying which base branch means a release"
         )
-        assert "release branch is not" in text, (
+        assert "release branch is not a release" in text, (
             f"{parts[-1]} stopped saying which base branch does NOT release"
         )
         assert "accumulates" in text, (
@@ -1247,22 +1238,6 @@ def test_the_release_target_is_asked_before_the_work_starts():
         )
 
 
-def _closer():
-    """The release-closing script, imported so its regexes can be read.
-
-    Round 2: every string the first version of this case pinned also lives in
-    the module docstring, so the whole script could be replaced by a seven-line
-    stub carrying those words and all twelve tests passed. A string search
-    cannot see what a regex matches."""
-    import importlib.util
-
-    path = os.path.join(ROOT, ".github", "scripts", "close_issues_on_release.py")
-    spec = importlib.util.spec_from_file_location("close_issues_on_release", path)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
-
-
 def test_the_token_stays_the_smallest_that_can_close_an_issue():
     """Read the permissions block as a mapping, not as text.
 
@@ -1285,342 +1260,6 @@ def test_the_token_stays_the_smallest_that_can_close_an_issue():
     )
     assert re.search(r"^\s*branches:\s*\[main\]\s*$", workflow, re.M), (
         "the push trigger no longer names `main` alone"
-    )
-
-
-def test_the_script_closes_and_takes_off_one_named_label_and_nothing_else():
-    """Parse the source; never search it.
-
-    The arguments go one per line, so `issue reopen` cannot occur as a literal
-    and a forbidden-substring list over the raw text forbids nothing. Folding
-    the source first was the answer to that for a long time, and it is not
-    enough: a fold normalises whitespace and nothing else, so a comment
-    between two words of the argv defeats it just as the line breaks did. Two
-    review rounds of #450 each found that from a different side. The reader is
-    `ast` now and the fold is gone.
-
-    **What the parse closes, and what it does not.** It closes layout — the
-    argv wrapped one word per line, a comment between two of its words, any
-    whitespace at all — because the tree does not carry layout. It does NOT
-    close a value that is not a string literal. `words` keeps only
-    `ast.Constant` strings and `issue_argvs` compares the first three of them
-    against `["gh", "issue", verb]`, so a name anywhere in those three
-    positions is dropped, the prefix shifts by one, and the verb is never
-    matched. Measured in round 3 of #450 and again in its fix pass, four
-    spellings of a planted `gh issue reopen`: plain and comment-separated both
-    red this case; `GH = "gh"` used as the first word, and the verb moved into
-    a module constant, both leave it green.
-
-    So this reader is strictly stronger than the fold and blind in a place the
-    fold was blind too. Closing that means resolving module-level names before
-    comparing, which is a different checker with its own argument to make;
-    `seal/follow-up.md` carries it with the repository owner named.
-
-    **This used to say `only ever closes`, and #450 changed what is true.**
-    The script now also removes `size: now` from the issue it is closing —
-    the moment `docs/issues-and-milestones.md` had already named as where a
-    spent sizing label comes off, with nothing acting on it. So `issue edit`
-    is no longer forbidden outright; what is forbidden is `issue edit` in any
-    form but `--remove-label`, because the property being protected was never
-    the verb. It is that a re-run and a force-push are safe to reason about,
-    and both acts are idempotent: the close skips an issue already closed,
-    and the removal is guarded by a read saying the label is there.
-
-    Adding a label here would not be. That is the sibling's act
-    (`label_merged_on_release_branch.py`, at the squash rather than at the
-    close), and a second writer of labels is how two scripts come to disagree
-    about which is the current answer.
-    """
-    # **Every claim in this case is parsed, and none is searched.**
-    #
-    # Round 1's finding 6 was that two flag assertions were not bound to the
-    # call they judged, and bound them through `ast`. Round 2's finding 1 was
-    # that the binding was then made conditional on the reader it replaced:
-    # the block ran under `if edits:`, where `edits` was a folded-substring
-    # count with `assert edits <= 1` above it — and that passes at ZERO. So
-    # any re-spelling the substring missed took the count to zero, skipped the
-    # parse, and left the case asserting nothing at all about what the script
-    # edits. Measured by the round: the argv rewritten across lines with one
-    # comment between its words and `"--add-assignee", "someone"` added exits
-    # 0, while the script assigns a person on every label removal.
-    #
-    # **The same blindness was under the five forbidden verbs**, which is the
-    # class rather than the coordinate (`agent-contract` §12): they were
-    # substring searches too, so a re-spelled `gh issue reopen` walked past
-    # them for exactly the reason the `edit` one did. The folded reader is
-    # gone from this case entirely; there is one reader and it does not care
-    # how the argv is laid out.
-    tree = ast.parse(read_text(".github", "scripts", "close_issues_on_release.py"))
-    # BOTH argv shapes this file uses: `run("gh", …)` spreads the words as
-    # call arguments, and `subprocess.run(["gh", …], …)` passes a list. The
-    # one `issue edit` is written the second way, and a reader that knew only
-    # the first parsed zero calls and asserted nothing — measured, on the
-    # first spelling of round 1's fix.
-    argvs = [node.elts for node in ast.walk(tree) if isinstance(node, ast.List)]
-    argvs += [node.args for node in ast.walk(tree) if isinstance(node, ast.Call)]
-
-    def words(argv):
-        return [
-            a.value
-            for a in argv
-            if isinstance(a, ast.Constant) and isinstance(a.value, str)
-        ]
-
-    def issue_argvs(verb):
-        """Every `gh issue <verb>` argv in the script, however it is laid out."""
-        return [argv for argv in argvs if words(argv)[:3] == ["gh", "issue", verb]]
-
-    # **What this gave up, recorded rather than restored.** The folded form
-    # asserted `'"gh", "issue", "close", str(issue),' in folded` — the verb
-    # AND that the fourth word of that argv is the issue number. This checks
-    # the count, which the folded form did not check at all, and reads no
-    # operand: a close rewritten to act on something other than `issue`
-    # passes. The trade is taken deliberately and is the same one the `edit`
-    # argv below already makes, where the flags are read and the operand is
-    # not — an operand is a variable name, and a name is exactly what this
-    # reader cannot resolve (see the docstring). Pinning it would mean
-    # asserting on an `ast.Name`'s spelling, which breaks on a rename that
-    # changes nothing. Round 3 of #450 named the silence; this comment is it.
-    closes = issue_argvs("close")
-    assert len(closes) == 1, (
-        f"{len(closes)} `gh issue close` argv lists; the script exists to "
-        "close, exactly once, in one place"
-    )
-    for forbidden in ("reopen", "delete", "create", "comment", "transfer"):
-        assert not issue_argvs(forbidden), (
-            f"the script gained `issue {forbidden}`. Closing and taking off "
-            "one named label is what makes a re-run and a force-push safe to "
-            "reason about"
-        )
-    edit_calls = issue_argvs("edit")
-    # EXACTLY one, never `<= 1`: the label removal is behaviour this case
-    # pins, so a script that stopped editing is a script that stopped
-    # spending the label, and the old `<= 1` was what let the whole block be
-    # skipped at zero.
-    assert len(edit_calls) == 1, (
-        f"{len(edit_calls)} `gh issue edit` argv lists; there is one, and it "
-        "is the removal of a spent sizing label"
-    )
-    flags = {word for word in words(edit_calls[0]) if word.startswith("--")}
-    assert flags == {"--repo", "--remove-label"}, (
-        f"the one `gh issue edit` carries {sorted(flags)}. It may carry "
-        "`--remove-label` and nothing else that writes: adding a label is "
-        "the sibling's act at the squash, and any other write is not the "
-        "removal this case says the one edit is"
-    )
-
-
-def test_only_a_keyword_before_a_number_closes_anything():
-    """The regexes, read rather than searched for.
-
-    The fenced `Closes #88` in `docs/branch-and-release.md` is the example a
-    person copies, so a pull request body quoting the document must not close
-    the issue the document names — and bodies here quote documents routinely.
-    """
-    m = _closer()
-    assert m.keywords_in("Closes #88") == ["88"]
-    assert m.keywords_in("Closes #88, closes #92") == ["88", "92"]
-    assert m.keywords_in("Part of #90") == []
-    assert m.keywords_in("see #90 and #92") == [], (
-        "a bare number with no keyword closes an issue"
-    )
-    assert m.keywords_in("```\nCloses #88\n```") == [], (
-        "a fenced example closes the issue it names"
-    )
-    assert m.keywords_in("see `Closes #54` in the doc") == [], (
-        "an inline code span closes the issue it names"
-    )
-    assert m.keywords_in("```\nCloses #1\n```\nCloses #88") == ["88"], (
-        "prose after a fence stopped being read"
-    )
-    assert m.MERGED_PR.search("feat: a thing (#100)").group(1) == "100"
-    assert m.MERGED_PR.search("fix: the (#61) thing was wrong") is None, (
-        "a number mid-subject is read as a merged pull request"
-    )
-
-
-# --- #266: the shapes the two patterns gave up ------------------------------
-#
-# Review round 1 of work item 1788844400 enumerated five well-formed shapes
-# `FENCE` and `SPAN` did not mask, by construction rather than by reading. A
-# closing keyword inside any of them was read as a claim, so a RELEASE closed
-# the issue. Three are masked now and two are deliberately not; each of the
-# five has a case, so a later widening or narrowing is a red rather than a
-# drift. The direction is stated at the patterns: masking more closes fewer,
-# and an unclosed issue is visible and re-runnable where a wrong close is a
-# false record on the tracker.
-
-
-def test_a_tilde_fence_masks_a_keyword():
-    """`~~~` is a fence to CommonMark and to GitHub, and it was invisible here
-    because the pattern spelled backticks."""
-    m = _closer()
-    assert m.keywords_in("~~~\nCloses #1\n~~~\nCloses #4") == ["4"], (
-        "a keyword inside a tilde fence closes the issue it names"
-    )
-    # A fence closes on ITS delimiter. Read as any delimiter, this one ends
-    # at the backticks and the keyword after them is prose.
-    assert m.keywords_in("~~~\n```\nCloses #1\n~~~\nCloses #4") == ["4"], (
-        "a tilde fence was closed by a backtick line inside it"
-    )
-
-
-def test_a_fence_indented_under_a_list_item_masks_a_keyword():
-    """A fence inside a list item is indented to the item's content, and the
-    pattern anchored the delimiter at column 0."""
-    m = _closer()
-    body = "- the example:\n  ```\n  Closes #2\n  ```\nCloses #4"
-    assert m.keywords_in(body) == ["4"], (
-        "a keyword inside a fence indented under a list item closes the issue"
-    )
-
-
-def test_a_double_backtick_span_masks_a_keyword():
-    """A span opened with two backticks closes with two, and may hold a
-    single backtick inside. The one-backtick pattern read `` ``#150`` `` as
-    two EMPTY spans with the number in prose between them."""
-    m = _closer()
-    assert m.keywords_in("Closes ``#3``\nCloses #4") == ["4"], (
-        "a double-backtick span around the number leaves the keyword read"
-    )
-    assert m.keywords_in("see ``Closes #3`` there\nCloses #4") == ["4"], (
-        "a double-backtick span around the whole claim leaves it read"
-    )
-    # The inner backtick is UNPAIRED on purpose: with a pair, the one-backtick
-    # arm masks the claim anyway and the double form's reach is unmeasured.
-    assert m.keywords_in("see ``Closes #3 ` x`` and Closes #4") == ["4"], (
-        "a double-backtick span holding a single backtick is cut at the inner backtick"
-    )
-
-
-def test_a_four_space_indented_block_is_still_read_as_a_claim():
-    """Deliberately unmasked. Four spaces open an indented code block to
-    CommonMark, and they are ALSO how this repository's pull request bodies
-    continue a bullet's text onto the next line — so masking the shape would
-    drop real claims, which is the wrong direction for a closer. Stated at
-    the pattern; this case turns a future widening into a decision."""
-    m = _closer()
-    assert m.keywords_in("- a bullet whose text\n    Closes #5") == ["5"]
-
-
-def test_an_html_comment_is_still_read_as_a_claim():
-    """Deliberately unmasked, and for a different reason: whether GitHub
-    acts on a keyword inside a comment is unmeasured
-    (`docs/issues-and-milestones.md` §*A keyword claims the one number after
-    it*), and a measurement needs a scratch pull request on a tracker. Until
-    it is taken the shape stays as it was."""
-    m = _closer()
-    assert m.keywords_in("<!-- Closes #6 -->") == ["6"]
-
-
-def _offline(monkeypatch, m, closed):
-    """Shut every door this module has to the tracker, and make an escape loud.
-
-    **Why this exists** — CI, 2026-09-22, on the pull request that merged
-    #450. Three cases below stubbed `arrived`, `pull_request_body`,
-    `issue_state` and `run`, and that was the whole set of readers `main`
-    used. The label work added one more: `main` now asks `issue_labels`
-    whether the issue carries a spent `size: now`, and that goes through
-    `_issue_api`, which nothing here had stubbed. So all three walked into a
-    live `gh api` call.
-
-    **They passed anyway on every machine that ran them**, because `gh` is
-    authenticated on a developer's laptop and under the broad gate. CI's
-    pytest job has no `GH_TOKEN`, correctly, and it was the first party in
-    the whole run that could see it: `SystemExit: gh api issues/88 failed`,
-    on both the ubuntu and macOS legs, against `4164 passed`.
-
-    That is the defect worth naming: **a case that reaches the network cannot
-    fail for the reason it claims to test**, and whether it passes depends on
-    who is logged in rather than on the code. Stubbing the one reader that
-    leaked would have fixed the instance; this closes the class.
-
-    Two doors, and both are shut here:
-
-    - `_issue_api` is the only READ into the tracker, and `issue_state`,
-      `pull_request_body` and `issue_labels` all go through it. Cases that
-      stub those three by name keep their own stubs; this catches whatever
-      they did not name, now or later.
-    - `subprocess.run` is what `run` and `drop_label` reach for, and it
-      RAISES rather than returning a stub, so a future path that escapes
-      fails loudly and identically for everyone instead of passing for
-      whoever holds a token.
-    """
-
-    def no_network(*args, **kwargs):
-        raise AssertionError(
-            f"this case reached the network: {args[0] if args else kwargs}. "
-            "A case that calls `gh` passes or fails on whether the runner is "
-            "authenticated, not on the code under test — CI caught exactly "
-            "that on #500 and no local run could have"
-        )
-
-    monkeypatch.setattr(m.subprocess, "run", no_network)
-    # An issue that exists and carries no labels: consistent with the
-    # `issue_state` stubs above it, and it leaves `spent` False, so no case
-    # here changes what it asserts.
-    monkeypatch.setattr(m, "_issue_api", lambda repo, number: ({"labels": []}, True))
-    monkeypatch.setattr(m, "run", lambda *a: closed.append(a) or "")
-    # The close goes through `attempt` since #536, so a refusal cannot end
-    # the run; it is the third door, and every close through it succeeds.
-    monkeypatch.setattr(m, "attempt", lambda *a: closed.append(a) or (True, ""))
-
-
-def test_it_closes_the_issue_the_keyword_named_and_nothing_else(monkeypatch):
-    """Swapping the key and value in `wanted` would close the pull requests
-    instead of the issues, and no string check can see that."""
-    m = _closer()
-    closed = []
-    monkeypatch.setattr(m, "arrived", lambda b, a: ["feat: a thing (#100)"])
-    monkeypatch.setattr(m, "pull_request_body", lambda r, n: "Closes #88\ncloses #92")
-    monkeypatch.setattr(m, "issue_state", lambda r, n: "closed" if n == 92 else "open")
-    _offline(monkeypatch, m, closed)
-    monkeypatch.setenv("AFTER", "x")
-    monkeypatch.setenv("REPO", "example/repo")
-    monkeypatch.delenv("DRY_RUN", raising=False)
-    m.main()
-    assert [a[3] for a in closed] == ["88"], (
-        f"it closed {[a[3] for a in closed]}. #88 is the open issue the keyword "
-        "named; #92 was already closed"
-    )
-
-
-def test_a_number_that_names_nothing_does_not_kill_the_run(monkeypatch):
-    """Round 2: the fix for `(#61)` reached one call site and not the other.
-
-    A typo in a merged body — `Closes #9999` — sent a 404 through the shared
-    `run`, which exits. Issues after it in sorted order stayed open, and a
-    re-run died in the same place."""
-    m = _closer()
-    closed = []
-    monkeypatch.setattr(m, "arrived", lambda b, a: ["feat: a thing (#100)"])
-    monkeypatch.setattr(m, "pull_request_body", lambda r, n: "Closes #9999\ncloses #88")
-    monkeypatch.setattr(m, "issue_state", lambda r, n: None if n == 9999 else "open")
-    _offline(monkeypatch, m, closed)
-    monkeypatch.setenv("AFTER", "x")
-    monkeypatch.setenv("REPO", "example/repo")
-    monkeypatch.delenv("DRY_RUN", raising=False)
-    m.main()
-    assert [a[3] for a in closed] == ["88"], (
-        f"it closed {[a[3] for a in closed]}. A number naming nothing must be "
-        "stepped over, not fatal, and the issues after it must still close"
-    )
-
-
-def test_dry_run_writes_nothing(monkeypatch):
-    m = _closer()
-    closed = []
-    monkeypatch.setattr(m, "arrived", lambda b, a: ["feat: a thing (#100)"])
-    monkeypatch.setattr(m, "pull_request_body", lambda r, n: "Closes #88")
-    monkeypatch.setattr(m, "issue_state", lambda r, n: "open")
-    _offline(monkeypatch, m, closed)
-    monkeypatch.setenv("AFTER", "x")
-    monkeypatch.setenv("REPO", "example/repo")
-    monkeypatch.setenv("DRY_RUN", "1")
-    m.main()
-    assert closed == [], (
-        "DRY_RUN wrote. It exists because this script was run by hand for its "
-        "output during development and closed a real issue"
     )
 
 
@@ -1745,11 +1384,6 @@ def test_the_document_says_where_an_issue_actually_closes():
         "sequence got the old answer and stopped -- and then wrote no "
         "`Closes #N` for the workflow to read"
     )
-    for pr in ("#37", "#38", "#39"):
-        assert pr in doc, (
-            f"{pr} is gone — a rule with no incident behind it is prose, and "
-            "these three are what the rule was written from"
-        )
     pointer = " ".join(read_text("CONTRIBUTING.md").split())
     assert "which issues a release closes" in pointer, (
         "CONTRIBUTING's release section stopped naming this among what "
@@ -1833,7 +1467,7 @@ def test_this_repository_has_one_root_laid_out_by_lifetime():
     is the silence every gate would give this repository.
 
     S7 of #944: the evidence ledger does not come back. A rule is held by the
-    test its `Enforced by:` line names, and nothing reads a ledger file."""
+    test its `check:` line names, and nothing reads a ledger file."""
     seal = os.path.join(ROOT, "seal")
     for rel in ("README.md", "follow-up.md"):
         assert os.path.isfile(os.path.join(seal, rel)), rel

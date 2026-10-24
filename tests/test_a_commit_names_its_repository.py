@@ -1,6 +1,6 @@
 """An agent commits with its repository written out, and the rule says why.
 
-Contract §16 is the written half of work item `1790644505` (#662, #665). The
+Contract rule 16 is the written half of work item `1790644505` (#662, #665). The
 gate half refuses, in an `automation` run, every commit it stops; this half is
 what makes the refusal rare. Both were measured to be needed: in the
 milestone-49 run three of the four stops that reached the person began
@@ -9,27 +9,22 @@ orchestrator's loop over a variable met the gate in all three milestone runs.
 
 A rule that ships only as prose has to be held by something, or the next
 sweep removes it and nothing notices (`tests/test_edits_go_through_the_edit_
-tool.py` records how §9 learned that). So each reason is pinned on its own,
-the way §9's pair is, and the pairing sentence with them: one reason alone
-reads as a style preference. The section points at §8 and §9 rather than
+tool.py` records how contract rule 9 learned that). So each reason is pinned
+on its own, the way that rule's pair is, and the pairing sentence with them:
+one reason alone reads as a style preference. The rule points at contract
+rule 8 and contract rule 9 rather than
 restating them, and `tests/test_a_moved_rule_leaves_its_definition.py` is
 what refuses a copy.
 """
 
 import os
-import re
 
-from conftest import load_hook_module
+from conftest import load_hook_module, read
+from test_the_agent_contract_holds_the_universal_rules import HEADING
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 CONTRACT = ("skills", "agent-contract", "SKILL.md")
 ORCHESTRATION = ("skills", "implement", "orchestration.md")
-HEADING = re.compile(r"^## §(\d+) (.+)$", re.M)
-
-
-def read(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
-        return f.read()
 
 
 def section(number):
@@ -70,21 +65,21 @@ def test_the_second_reason_is_what_the_gate_can_read():
 
 def test_it_points_at_the_probe_and_edit_rules_rather_than_restating_them():
     _, body = section(16)
-    assert "§8" in body and "§9" in body
+    assert "rule 8" in body and "rule 9" in body
     for copied in ("subprocess.run", "An edit must be able to fail"):
-        assert copied not in body, f"§16 restates a neighbour: {copied!r}"
+        assert copied not in body, f"rule 16 restates a neighbour: {copied!r}"
 
 
 def test_the_orchestrator_commits_its_routing_files_the_same_way():
     """The loop over `$wt`, `$1` and `$d` was the orchestrator's, in all three
     milestone runs on disk."""
     text = " ".join(read(*ORCHESTRATION).split())
-    assert "contract §16" in text
+    assert "contract rule 16" in text
     assert "each work item's `routing.md` in a command of its own" in text
 
 
 def test_the_contract_still_does_not_trip_the_commit_gate():
     """A session patching the contract meets the gate if its prose reads as a
-    commit; §16 is the section most likely to, being about commits."""
+    commit; rule 16 is the one most likely to, being about commits."""
     gate = load_hook_module("commit-review-gate.py", "crg_seventeen")
     assert not gate._hides_a_commit(read(*CONTRACT))

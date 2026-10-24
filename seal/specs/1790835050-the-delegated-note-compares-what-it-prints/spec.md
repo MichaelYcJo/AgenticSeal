@@ -171,6 +171,12 @@ evidence (contract §5).
   `session_cost.py#report_spawns@<new hash>` and the case's
   `tests/test_session_cost.py#<case>@<hash>`, with how it was seen red.
 
+## Rule changes
+
+- nothing
+  why: internal: the delegated note decides on the minute the column prints, held by
+    tests/test_session_cost.py.
+
 ## Open questions → questions.md
 
 Anything a planner must answer lives in questions.md, not inline — unanswered

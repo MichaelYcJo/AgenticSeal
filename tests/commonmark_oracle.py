@@ -159,7 +159,7 @@ def _starts(pieces):
 
 def commonmark_lines(text):
     """TEXT's lines as CommonMark ends them, each with its own ending: at LF,
-    CR or CRLF, and nowhere else (the specification's §2.1). Written from the
+    CR or CRLF, and nowhere else (the specification's section 2.1). Written from the
     specification by a scan, not taken from anything this oracle checks."""
     out, line, index = [], "", 0
     while index < len(text):

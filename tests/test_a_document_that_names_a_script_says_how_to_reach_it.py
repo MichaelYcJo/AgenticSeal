@@ -15,7 +15,7 @@ run the script at all, so the typed half is the half those segments never
 touched.
 
 What this file pins is the looking half, as a property of the class rather
-than of the instance the ticket named -- `skills/agent-contract/SKILL.md` §12,
+than of the instance the ticket named -- contract rule 12,
 *do not fix the coordinate, enumerate the class*. The ticket named three
 documents; there were nine, and the one the four segments actually hand-wrote
 from (`templates/sdd-round.md`, seven mentions) was not among the three.
@@ -41,7 +41,7 @@ Scope is what an agent's startup payload can contain: `agents/`, `skills/` and
 it does not ship, no agent's payload holds it, and its readers have the whole
 clone to `git grep`.
 
-Shown red before it was committed (§15): against the tree as it stood, this
+Shown red before it was committed (contract rule 15): against the tree as it stood, this
 file failed on all nine of `round_record.py`'s documents and on
 `chain_check.py` having no classification, and the command-form case was
 driven red by planting an invocation in a shipped document.
@@ -52,6 +52,7 @@ import os
 import re
 
 import pytest
+from conftest import read
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 BIN = os.path.join(ROOT, "bin")
@@ -64,6 +65,10 @@ SHIPPED_ROOTS = ("agents", "skills", "templates")
 # third state is the one `bin/` itself was in before work item 1788302682 --
 # a gap somebody notices while writing something up.
 NO_WRAPPER = {
+    "rule_changes.py": (
+        "A module `settle.py` and `unverified_check.py` load by path, with no "
+        "command line of its own: no shipped document shows it with a flag."
+    ),
     "chain_check.py": (
         "Named in four shipped documents and shown with a flag in none of "
         "them -- which is what `test_an_unwrapped_script_is_shown_in_no_"
@@ -81,11 +86,6 @@ NO_WRAPPER = {
         "a user-facing change with no defect behind it (#318)."
     ),
 }
-
-
-def read(path):
-    with open(path, encoding="utf-8") as handle:
-        return handle.read()
 
 
 def scripts():
@@ -122,8 +122,11 @@ def is_wrapped(script):
 
 
 def names(text, script):
-    """Whether `text` mentions the script by filename at all."""
-    return os.path.basename(script) in text
+    """Whether `text` mentions the script by filename at all. A filename
+    standing inside a longer one is another file's name: `tests/test_settle.py`
+    on a `check:` line is not a mention of `settle.py`."""
+    base = re.escape(os.path.basename(script))
+    return re.search(rf"(?<![\w-]){base}", text) is not None
 
 
 def reachable(text, script):
@@ -175,7 +178,7 @@ def command_forms(text, script):
     on nobody being told to type them, and this is the property, asked of the
     tree rather than assumed.
     """
-    pattern = re.compile(rf"{re.escape(os.path.basename(script))}\s+-")
+    pattern = re.compile(rf"(?<![\w-]){re.escape(os.path.basename(script))}\s+-")
     return [
         (number, line)
         for number, line in enumerate(text.splitlines(), 1)
@@ -248,8 +251,8 @@ def test_every_script_a_shipped_document_names_is_wrapped_or_classified(script):
     assert os.access(posix, os.X_OK), (
         f"`bin/{command}` ships without its executable bit, so the command "
         "resolves on PATH and then refuses. The form this generalises -- "
-        "`tests/test_unverified_rows_close.py::test_the_wrapper_is_present_"
-        "and_executable` -- asks for file, twin, exec bit and target"
+        "`tests/test_unverified_check.py::Test_module::test_the_wrapper_is_"
+        "present_and_executable` -- asks for file, twin, exec bit and target"
     )
 
 
@@ -340,7 +343,7 @@ def test_a_document_with_no_locator_is_caught():
 
 
 def test_the_failure_message_offers_a_repair_that_actually_works():
-    """§14: a message a person reads and acts on is pinned by a case.
+    """Contract rule 14: a message a person reads and acts on is pinned by a case.
 
     The repair the message names has to be one the rule accepts. For a
     hyphenless command it cannot be, so the message says the path and says
@@ -402,6 +405,18 @@ def test_a_planted_invocation_turns_the_classification_red():
     assert command_forms("    chain_check.py -q\n", script)
     assert not command_forms("`chain_check.py` reads the record.\n", script)
     assert not command_forms("what `chain_check.py new` would say\n", script)
+
+
+def test_a_test_file_named_for_a_script_does_not_name_it():
+    """A `check:` line names test files, and rule 1 names each module's file
+    for its module, so `tests/test_round_record.py` holds the script's
+    filename without mentioning the script. Read as a mention, it asked
+    `agents/warden.md` for locators of two scripts it never names."""
+    script = "skills/x/scripts/round_record.py"
+    assert not names("check: tests/test_round_record.py", script)
+    assert names("`round_record.py` writes the record.", script)
+    assert names("It lives at `skills/x/scripts/round_record.py`.", script)
+    assert not command_forms("bin/test tests/test_round_record.py -q\n", script)
 
 
 def test_a_half_shipped_pair_is_not_a_wrapped_script(monkeypatch):

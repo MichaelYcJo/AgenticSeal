@@ -26,9 +26,9 @@ written once.
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the typecheck: this run ran only the phase slices the plan names | the sealer, once after the review rounds settle |
-| The time a pass takes when it reaches its bound over a large ledger: no row in this repository's ledger reaches it, so only the test trees measured it | the reviewer, or a later work item that meets a real cycle |
-| The rebase onto #822's rename: `docs/the-pact.md`'s one sentence and the cases appended to `tests/test_a_signatory_records_a_pact_change.py` | whichever of #822 and #824 squashes second, per `plan.md` §*Overlap with #822* |
+| closed The full suite, the repository-wide lint and the typecheck: this run ran only the phase slices the plan names | #829, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
+| closed The time a pass takes when it reaches its bound over a large ledger: no row in this repository's ledger reaches it, so only the test trees measured it | 5b1f6fae removed `--reverify` and the ledger |
+| closed The rebase onto #822's rename: `docs/the-pact.md`'s one sentence and the cases appended to `tests/test_a_signatory_records_a_pact_change.py` | 4b363e68 removed the test module, and #827 and #829 both merged with the suite green |
 
 ## Not done
 

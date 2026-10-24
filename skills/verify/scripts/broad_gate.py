@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """broad-gate — the one broad run, taken once after the rounds settle.
 
-Issue #30. `CLAUDE.md` §*Verification Scope* says the full suite, the
+Issue #30. The CLAUDE.md block's **Verification Scope** rule
+(`templates/claude-md-block.md`) says the full suite, the
 repository-wide lint and the typecheck run once, after the review rounds
-settle, and for three releases nobody was assigned that run: contract §2
+settle, and for three releases nobody was assigned that run: contract rule 2
 forbade it to the smith and the warden, and the orchestrator that took it by
 default kept hundreds of output lines in the one context a release cannot
 replace. This command is the run, as a thing the orchestrator types once,
@@ -50,14 +51,14 @@ the same commit on the same check (#423). Where resolving MOVES the answer
 one line says so and the run continues; where it does not, nothing extra
 prints. Nothing is fetched.
 
-Every exit code is read directly off the subprocess (`agent-contract` §1),
+Every exit code is read directly off the subprocess (contract rule 1),
 and every check's output is kept in a file under `--keep-output` so the
 report can quote a failing check's first lines and name where the rest is.
 A check that fails does not stop the ones after it: the failure form names
 every check that failed, which is what a reader acts on.
 
 **On a failing test the comparison against the base is reactive and
-mechanical** (`skills/verify/SKILL.md` §*The broad gate*). The row runs with
+mechanical** (`skills/verify/orchestration.md` *The broad gate*). The row runs with
 a pytest recorder of the gate's own loaded (`recording_env`), which writes
 down, inside each pytest process the row starts, every test it ran and its
 outcome. Only when the repository's command fails AND that record holds
@@ -373,7 +374,7 @@ def gate_copy(root, plugin=PLUGIN, running=None, installed=None):
     prints. Versions are not compared: within a release cycle the tree's
     `plugin.json` equals the installed one until the release bumps it, so a
     branch that changed the gate — #475 itself — would print nothing exactly
-    when it matters (`plan.md` §*Alternatives considered*).
+    when it matters (`plan.md` *Alternatives considered*).
     """
     running = __file__ if running is None else running
     if not under(running, root):
@@ -455,7 +456,7 @@ def moved_line(root, base):
     None where the given spelling and the resolved one are the same commit.
 
     Printed and then the run continues. A refusal was the ticket's second
-    direction and `plan.md` §*Alternatives considered* rejected it: its only
+    direction and `plan.md` *Alternatives considered* rejected it: its only
     repair is a `git fetch` and a second nine-minute gate, performed by a
     person the run has no way to ask, and it fires on the ordinary release
     case where a sibling merges while this branch is open.
@@ -601,7 +602,7 @@ def resolve_base(root, given):
          1 measured it (finding 3).
 
     Nothing is fetched. A remote-tracking ref is only as fresh as the last
-    fetch, and #423 §*Not this* refuses a check that moves refs to make
+    fetch, and #423 *Not this* refuses a check that moves refs to make
     itself pass — an unattended run may have no credentials. What this buys
     is that the gate asks the question the merge is judged by; what it cannot
     buy is that the answer is current, which is why the ref is named in what
@@ -634,7 +635,7 @@ def resolve_base(root, given):
 def seal_home(root):
     """`<root>/seal/` where it exists, else `<git-common-dir>/seal/`, else
     None — the two places every `seal/…` path in this plugin resolves to
-    (`agent-contract` §11), read in that order."""
+    (contract rule 11), read in that order."""
     shared = os.path.join(root, SEAL_DIR)
     if os.path.isdir(shared):
         return shared
@@ -727,6 +728,7 @@ def refused_broad_row(home):
     rows, refusals = config.config_table(text)
     if not refusals or any(item == ROW for _index, item, _value in rows):
         return None
+    # exempt from splitlines: lines the GFM walk numbers
     shown = config.unfenced(text.splitlines(), text)
     return next((line for _index, line in shown if names_this_row(line)), None)
 
@@ -756,6 +758,7 @@ def stopping_line(text, refused):
     quoted = STOPPED_AT.search(refused)
     if quoted is None:
         return None, None
+    # exempt from splitlines: lines the GFM walk numbers
     shown = list(config.unfenced(text.splitlines(), text))
     header = next(
         (
@@ -785,6 +788,7 @@ def rows_written_below(text, index):
     #430's condition: a sentence about rows below a line is false where
     none is written below it, and the walker's sentence says so flat."""
     config = load(CONFIG_READER, "specseal_config_for_broad_gate")
+    # exempt from splitlines: lines the GFM walk numbers
     for line_index, line in config.unfenced(text.splitlines(), text):
         if line_index <= index:
             continue
@@ -833,6 +837,7 @@ def hidden_row_at(home, kind):
     text = config_text(home)
     if text is None:
         return None, None
+    # exempt from splitlines: lines the GFM walk numbers
     lines = text.splitlines()
     hidden, _opened_at = config.hidden_lines(lines, text)
     return next(
@@ -903,6 +908,7 @@ def fence_left_open(home, above=None):
     text = config_text(home)
     if text is None:
         return False
+    # exempt from splitlines: lines the GFM walk numbers
     opened_at = config.fence_map(text.splitlines(), text)[1]
     if opened_at is None:
         return False
@@ -988,7 +994,7 @@ def missing_row(home):
             "— not this gate's reader, not the mode gate's, and not "
             "`seal mode`'s writer. The row is not absent: it is written where "
             f"nothing reads it, and there is no command to run.\n{where}\n"
-            "`templates/config.md` §*What is refused, and what stays allowed* "
+            "`templates/config.md` *What is refused, and what stays allowed* "
             "is where the rule says so, and `/specseal:config` is the door to "
             "the file. Nothing ran."
         )
@@ -1010,7 +1016,7 @@ def missing_row(home):
             "commented out, and there is no command to run.\n"
             "If it is the command to run, take the row out of the "
             "comment and into the `| Item | Value |` table.\n"
-            "`templates/config.md` §*What is refused, and what stays allowed* "
+            "`templates/config.md` *What is refused, and what stays allowed* "
             "is where the rule says so, and `/specseal:config` is the door to "
             "the file. Nothing ran."
         )
@@ -1019,12 +1025,12 @@ def missing_row(home):
         "there is no command to run — and choosing one is not this "
         "session's to do. There is no default because a row is a thing a "
         "person wrote, and what the broad run covers is exactly that "
-        "(`skills/verify/SKILL.md` §*The Seal Test*): a session that picks a "
+        "(`skills/verify/SKILL.md` *The Seal Test*): a session that picks a "
         "command here checks its own choice.\n"
         "Take it to whoever owns the repository. `/specseal:config` is where "
         f"they answer it — it shows every row and adds this one with its "
-        "section — and `templates/config.md` §*Choosing a value — the "
-        "criterion* is what they choose against. Nothing ran."
+        "section — and `templates/config.md` *The criterion for choosing "
+        "a value* is what they choose against. Nothing ran."
     )
 
 
@@ -1083,7 +1089,7 @@ def walker_refusal(home, mine):
         )
     return (
         f"broad-gate: {os.path.join(home, CONFIG)} {said}.\n{where}{escape}\n"
-        "`templates/config.md` §*What is refused, and what stays allowed* is "
+        "`templates/config.md` *What is refused, and what stays allowed* is "
         "where the rule says so, and `/specseal:config` is the door to the "
         "file. Nothing ran."
     )
@@ -1124,7 +1130,7 @@ def not_as_written(home, command):
 
     **The criterion has two halves: the value must run as the command it
     reads as, and the exit code the gate reads must be that command's.**
-    `templates/config.md` §*Broad gate* owns it, owns the list of refused
+    `templates/config.md` *Broad gate* owns it, owns the list of refused
     forms and owns the list of what stays allowed, each with its reason.
     This function is the half that acts; a form belongs here only by failing
     one of those halves there.
@@ -1180,7 +1186,7 @@ def not_as_written(home, command):
         f"    as meant:   | {ROW} | {rewritten} |\n"
         "Nothing ran, and nothing was repaired: the row is a person's to "
         "write, and a value quietly fixed here would leave the file still "
-        "wrong. `templates/config.md` §*Broad gate* lists what is refused "
+        "wrong. `templates/config.md` *Broad gate* lists what is refused "
         "and what stays allowed, with the reason for each, and "
         "`/specseal:config` is the door to the row."
     )
@@ -1200,6 +1206,7 @@ class Check:
         return self.code != 0
 
     def first_lines(self, n=QUOTED):
+        # exempt from splitlines: a tool's output
         lines = [ln.rstrip() for ln in self.text.splitlines() if ln.strip()]
         return lines[:n]
 
@@ -1464,8 +1471,9 @@ def command_names_backslashed(command, is_directory):
     about — the built-in check and the directory part; a `)` does not end
     a name, which only matters for a `/` written straight after one; and
     the `&` of `2>&1` is read as a separator, which makes the handle digit
-    after it a "name" with no `/` in it. The `2>&1` case in `tests/test_the_gate_hands_cmd_a_path_it_can_
-    run.py` holds that last one to what it hands over.
+    after it a "name" with no `/` in it. The `2>&1` row of
+    `tests/test_broad_gate.py`'s `Test_handed_to_shell` holds that last one
+    to what it hands over.
 
     **Not rewritten, and named rather than claimed:** a path after `call`,
     `start`, `if`, `else`, `for … do` or `cmd /c`, which `cmd.exe` reads as
@@ -1473,7 +1481,7 @@ def command_names_backslashed(command, is_directory):
     existed; and a command name after a redirection at the start of a
     command (`>out bin/test`), where this scan stops treating the rest as
     command position. None is worse than the row handed as written, and
-    `templates/config.md` §*Broad gate* states the rule and these examples.
+    `templates/config.md` *Broad gate* states the rule and these examples.
 
     **Judged where the row starts, and bounded there, named rather than
     claimed:** a directory an earlier command in the same row makes, or
@@ -1483,7 +1491,7 @@ def command_names_backslashed(command, is_directory):
     program the row calls with a glued switch (an `xcopy/` directory)
     makes `xcopy/e` read as a path; `cmd.exe` itself is ambiguous in that
     tree, and a blank before the switch (`xcopy /e`) is never rewritten.
-    `templates/config.md` §*Broad gate* states both.
+    `templates/config.md` *Broad gate* states both.
     """
     out = []
     at_command = True  # the next word read is a command name
@@ -1775,6 +1783,7 @@ def read_record(directory, key, worktree):
             continue
     for _, _, text in sorted(found):
         parsed, unread = [], 0
+        # exempt from splitlines: the recorder's JSON lines, which escape every separator
         for line in text.splitlines():
             if not line.strip():
                 continue
@@ -2154,6 +2163,7 @@ def job_steps(text, job):
     this repository refuses an empty list rather than counting zero
     unclassified steps.
     """
+    # exempt from splitlines: YAML keys
     lines = text.splitlines()
     try:
         # Found by walking rather than by splitting on `"\njobs:\n"`: that
@@ -2236,13 +2246,6 @@ PARTITION = (
         "the mode the row declares is the mode the folder is in",
         MODE_NAME,
         None,
-    ),
-    (
-        "the CLAUDE.md block is the template's, line for line",
-        None,
-        "runs `.github/scripts/claude_block.py` over this repository's own "
-        "CLAUDE.md. The plugin does not ship that script, and a repository "
-        "that wants it run names it in the `Broad gate` row",
     ),
     (
         "both READMEs move together",
@@ -2630,7 +2633,7 @@ def panel(
     repository's row came back with — continued under `suite` until #717
     took it off. NOT `("lint", "clean")` either: the row is
     one shell command line and nothing in it says which part is a linter
-    (`templates/config.md` §*Broad gate*), so `clean` over a row with no
+    (`templates/config.md` *Broad gate*), so `clean` over a row with no
     linter in it is the gate's report asserting a check that never ran."""
     stamp = stamp_module()
     fit = stamp.fit
@@ -2908,7 +2911,7 @@ def gate(args, ascii_marks=False):
     # (`compare_at_base`, which runs it once, unchanged, at the base) is
     # reached only after the run below, so this refusal closes it by
     # reachability rather than by a second guard in a second place (`spec.md`
-    # §*The class, enumerated by construction*). It runs the very row this
+    # *The class, enumerated by construction*). It runs the very row this
     # refusal passed (#825).
     unrunnable = not_as_written(home, command)
     if unrunnable:
@@ -2918,7 +2921,7 @@ def gate(args, ascii_marks=False):
         raise Refused(f"broad-gate: {root} has no HEAD to run over — nothing ran")
     # The one read of `args.base` in this file, and the count is held by a
     # case: a seventh consumer written later cannot take the unresolved value
-    # without that case going red (`spec.md` §*The class, enumerated by
+    # without that case going red (`spec.md` *The class, enumerated by
     # construction*). Every check below asks `base.commit`, which is the
     # commit CI will compare against. The readers of `base.given`, the
     # caller's spelling, are none of them a check: `moved_line`, which exists

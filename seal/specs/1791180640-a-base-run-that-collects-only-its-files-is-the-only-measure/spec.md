@@ -368,6 +368,12 @@ was run against a3aa139a's `broad_gate.py` and failed there (§15).
   ` --collect-only -o verbosity_test_cases=-2 -vv` appended to
   `PYTEST_ADDOPTS`, passed through `run`'s existing `env`.
 
+## Rule changes
+
+- nothing
+  why: internal: the base run collects only the failing files, held by
+    tests/test_the_seal_is_taken_once_by_the_sealer.py.
+
 ## Open questions → questions.md
 
 `questions.md` beside this file. One row is a person's and does not block:

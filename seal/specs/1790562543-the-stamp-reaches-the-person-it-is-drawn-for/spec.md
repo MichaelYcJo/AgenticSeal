@@ -204,6 +204,12 @@ them, per `CLAUDE.md` §*a change writes fragments*:
   `seal-stamp`, and it forges a file in the git dir rather than a line in a
   reply.
 
+## Rule changes
+
+- nothing
+  why: written: a Stop hook draws the stamp once, last on the screen, in
+    docs/the-review-record.md; overturned: the broad gate's signal, at f1c9932d.
+
 ## Open questions → questions.md
 
 Anything a planner must answer lives in questions.md, not inline. No row

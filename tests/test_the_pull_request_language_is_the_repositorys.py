@@ -25,19 +25,9 @@ import os
 import subprocess
 
 import pytest
-from conftest import local_home
+from conftest import flat, local_home, read
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
-
-
-def read(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as handle:
-        return handle.read()
-
-
-def flat(*parts):
-    """The file as one line, so a pinned phrase survives re-wrapping."""
-    return " ".join(read(*parts).split())
 
 
 SKILL = ("skills", "commit-pr-convention", "SKILL.md")
@@ -174,6 +164,36 @@ def test_branch_names_stay_ascii():
     for parts, who in ((SKILL, "the skill"), (TEMPLATE, "the template")):
         text = flat(*parts)
         assert "ASCII" in text, f"{who} does not hold branch names to ASCII"
+
+
+BRANCH_SHAPES = (
+    "A branch cut from an issue is `<prefix>/<issue number>-<slug>`.",
+    "A branch for two issues joins their numbers with a hyphen: `feat/110-117-<slug>`.",
+    "A change with no issue has the slug alone: `<prefix>/<slug>`.",
+    "A release branch is `release/vX.Y.Z`.",
+)
+
+
+def test_branch_names_state_the_issue_number_rule_once():
+    """S6 of #940. The issue-number rule lives in *Branch names*, in place:
+    the four shapes are stated there, the exclusion list links the section
+    rather than restating a shape, and no example carries a number that is
+    not an issue's, which `perf/403-…` did."""
+    text = read(*SKILL)
+    assert "## Branch names" in text, "the section was renamed; this case is now blind"
+    section = " ".join(text.split("## Branch names", 1)[1].split("\n## ", 1)[0].split())
+    for shape in BRANCH_SHAPES:
+        assert shape in section, f"*Branch names* does not state {shape!r}"
+    head = " ".join(text.split("## Branch names", 1)[0].split())
+    assert "<kebab-case-slug>" not in flat(*SKILL), (
+        "a second statement of the branch shape is back"
+    )
+    assert "*Branch names* below states their shape" in head, (
+        "the exclusion list no longer links the section that states the shape"
+    )
+    assert "perf/403" not in flat(*SKILL), (
+        "the example whose number reads as an issue under the rule is back"
+    )
 
 
 def test_the_response_language_stays_out_of_the_repository_file():
@@ -591,56 +611,6 @@ def test_the_mirrors_home_is_resolved_and_excludes_the_git_directory(parts, who)
     )
 
 
-LANGUAGE_ROW = "Commit and pull request language"
-
-
-def test_a_separator_below_the_rows_is_refused_as_a_delimiter_row_out_of_place():
-    """tests-todo row 9, from round 2 🟡 5, first shape — shape 8 of #871.
-    cmark-gfm shows a stray separator as one of the table's rows, so the
-    walker refuses it, naming it, and an item below it is that refusal
-    rather than an absent row. The rows above it are read. Seen red against
-    the stop rule, which ended the table there in silence."""
-    text = (
-        "| Item | Value |\n"
-        "|---|---|\n"
-        f"| {LANGUAGE_ROW} | Korean |\n"
-        "|---|---|\n"
-        "| Something else | x |\n"
-    )
-    reader = _config_reader()
-    assert items(text) == [(LANGUAGE_ROW, "Korean")]
-    value, said = reader.config_value(text, "Something else")
-    assert value is None and "stops at `|---|---|`, a delimiter row out of place" in (
-        said or ""
-    ), said
-
-
-def test_a_repeated_header_is_read_as_a_row_and_the_doubled_item_is_refused():
-    """tests-todo row 9, second shape — shape 9 of #871. A second
-    `| Item | Value |` line under the table with no delimiter row of its own
-    is one of this table's rows to cmark-gfm, so the walker reads it as one,
-    and the row below it with it: the language is then written twice, which
-    has no value. Seen red against the stop rule, which ended the table at
-    the repeated header and read `Korean`."""
-    text = (
-        "| Item | Value |\n"
-        "|---|---|\n"
-        f"| {LANGUAGE_ROW} | Korean |\n"
-        "| Item | Value |\n"
-        f"| {LANGUAGE_ROW} | English |\n"
-    )
-    reader = _config_reader()
-    assert items(text) == [
-        (LANGUAGE_ROW, "Korean"),
-        ("Item", "Value"),
-        (LANGUAGE_ROW, "English"),
-    ]
-    assert reader.config_value(text, LANGUAGE_ROW) == (
-        None,
-        f"`{LANGUAGE_ROW}` appears 2 times — one value",
-    )
-
-
 def test_a_mirror_named_for_a_country_is_caught():
     """tests-todo row 10, from round 2 🟡 7 — the can-it-fail half.
 
@@ -658,18 +628,6 @@ def test_a_mirror_named_for_a_country_is_caught():
         "the two codes this repository's mirrors actually use must be known, "
         "or every mirror reads as a near miss"
     )
-
-
-def test_a_blank_line_above_the_first_row_ends_the_table_and_the_row_is_refused():
-    """#871. A blank line under the delimiter row ends the table to
-    cmark-gfm, so the row below it is not one of the table's rows: the
-    walker refuses it as a row the walk never reaches, and the item it names
-    is that refusal rather than an absent row. Seen red against the stop
-    rule, which stepped past the blank line and read `Korean`."""
-    text = f"| Item | Value |\n|---|---|\n\n| {LANGUAGE_ROW} | Korean |\n"
-    assert items(text) == []
-    value, said = _config_reader().config_value(text, LANGUAGE_ROW)
-    assert value is None and "a row the walk never reaches" in (said or ""), said
 
 
 def test_the_documents_name_every_shape_the_walker_refuses_and_its_edit():
@@ -749,7 +707,7 @@ def test_this_file_loads_the_one_reader_and_not_a_copy_of_it():
     `hooks/config.py#config_rows` right up until one of them moved.
 
     Asserted by where the code was COMPILED, the way
-    `tests/test_the_mode_question_is_asked_once.py#test_the_command_and_the_gate_read_one_parser`
+    `tests/test_seal.py#Test_module::test_the_command_and_the_gate_read_one_parser`
     already asserts it for `seal.py`: this file loads that module under a
     name of its own, so the two module objects differ while the
     implementation behind them must not. An `import` check alone would not
@@ -764,59 +722,8 @@ def test_this_file_loads_the_one_reader_and_not_a_copy_of_it():
     assert items("| Item | Value |\n|---|---|\n| a | b \\| c |\n") == [("a", "b | c")]
 
 
-def test_the_check_can_fail():
-    """A parser that finds a row in anything is not a parser."""
-    assert items("# a document with no table\n\nprose.\n") == []
-    assert items("| Field | Value |\n|---|---|\n| a | b |\n") == [], (
-        "`parity.md`'s header is `| Field | Value |`; matching it here would "
-        "make this reader agree with a file it is not reading"
-    )
-    assert items("| Item | Value |\n|---|---|\n| a | b |\n") == [("a", "b")], (
-        "the separator is being read as a row again"
-    )
-
-
-def test_a_row_of_another_table_ends_this_one():
-    """tests-todo row 3, from round 1 🟡 6.
-
-    A three-cell row used to be skipped as though it were not there, so
-    everything after it was absorbed. The interesting half is the LAST
-    assertion: the danger was never the odd row itself, it was the ordinary
-    row behind it arriving as though it belonged here.
-    """
-    text = (
-        "| Item | Value |\n"
-        "|---|---|\n"
-        "| Commit and pull request language | Korean |\n"
-        "| a | b | c |\n"
-        "| Something else | x |\n"
-    )
-    assert items(text) == [("Commit and pull request language", "Korean")], (
-        "a row of a different table did not end this one"
-    )
-    assert ("Something else", "x") not in items(text), (
-        "the row behind the foreign one was read as part of this table"
-    )
-
-
-def test_a_second_table_further_down_is_not_read_as_more_rows():
-    """The same property at document scale, which is what `config.md`
-    actually looks like: a table, prose, then another table."""
-    text = (
-        "| Item | Value |\n"
-        "|---|---|\n"
-        "| Commit and pull request language | Korean |\n"
-        "\n"
-        "## notes\n"
-        "\n"
-        "| Item | Value |\n"
-        "|---|---|\n"
-        "| Commit and pull request language | English |\n"
-    )
-    assert items(text) == [("Commit and pull request language", "Korean")], (
-        "the first table's answer must win; a second one further down is "
-        "prose about the first, not more rows of it"
-    )
+# The row reader's own cases, the ones that call `items` on a text written
+# for them, are in `tests/test_config.py` since #942's phase 6.
 
 
 # --- every template has a reader --------------------------------------------
@@ -1074,14 +981,15 @@ def _round_record_fields():
     """What a round record carries: every label and section of the grammar
     table `chain_check.py` loads, read from the table rather than copied,
     and the two graded headings. The finding heading's `Line` cell is a
-    pattern, and an old spelling's row is what no record carries."""
+    pattern, and an old spelling stands in a table of its own, which no
+    record carries. Two lines are owed only where their condition holds,
+    `original:` in a repository that declares `seal/parity.md` and
+    `reopens:` on a finding that raises an earlier close, so the template's
+    one finding shows the other relation, `regression:`, and neither of
+    these."""
     chain = _chain()
-    rows = chain.GRAMMAR.items()
-    return [
-        key
-        for key, row in rows
-        if row.where != chain.NOWHERE and key != chain.HEADING_ROW
-    ] + GRADED_HEADINGS
+    left_out = (chain.HEADING_ROW, chain.ORIGINAL_ROW, chain.REOPENS_ROW)
+    return [key for key in chain.GRAMMAR if key not in left_out] + GRADED_HEADINGS
 
 
 ROUND_RECORD_FIELDS = _round_record_fields()
@@ -1205,17 +1113,22 @@ def _literal_strings():
     unverified = _checker(
         "unverified_check", "skills", "verify", "scripts", "unverified_check.py"
     )
+    rules = _checker("rule_changes", "skills", "settle", "scripts", "rule_changes.py")
+    fields = {f"{f}:" for need, may in rules.GRAMMAR.values() for f in need + may}
     found = {
         chain.TARGET,
         chain.BROAD_GATE,
         unverified.HEADING,
         unverified.CLOSED,
         *unverified.HEADER,
+        f"## {rules.HEADING}",
+        *rules.GRAMMAR,
+        *fields,
     }
     return sorted(found)
 
 
-GRAMMAR_TABLE = "`docs/the-review-record.md` §*The round record*"
+GRAMMAR_TABLE = "`docs/the-review-record.md` *The round record*"
 
 
 def test_the_exclusion_list_points_at_the_grammar_table_and_restates_none_of_it():
@@ -1272,7 +1185,7 @@ ROW_READERS = [
     ("skills", "code-review", "SKILL.md"),
     # Phases 3 and 4 of #107 re-pointed both definitions' rows here: the
     # record-language section was in two of them in near-identical words and
-    # in the third not at all, and it is §11 of the agent contract now. That
+    # in the third not at all, and it is contract rule 11 now. That
     # neither definition kept a copy is held by
     # `tests/test_a_moved_rule_leaves_its_definition.py`, so removing a row
     # from this list is a move rather than a deletion.

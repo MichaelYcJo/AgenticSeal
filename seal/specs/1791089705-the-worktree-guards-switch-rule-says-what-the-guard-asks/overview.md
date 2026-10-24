@@ -28,7 +28,7 @@ the code to the three words it used to get wrong.
 
 | Item | Who must answer |
 |---|---|
-| the full suite, lint and typecheck over the repository | the sealer, after the review rounds settle |
+| closed the full suite, lint and typecheck over the repository | #765, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
 
 ## Not done
 

@@ -27,9 +27,9 @@ code names, so it is seen whole.
 
 | Item | Who must answer |
 |---|---|
-| That a real seal of 0.17.0, drawn by the hook, is shown whole rather than as a preview on the owner's screen (`spec.md` §*What cannot be checked*) | the repository owner, on the first real seal after 0.17.0 is installed |
-| How the sheet reads on a light terminal background and on a dark one (`questions.md` Q2; the contrast figures are in `phases/phase-3.md`) | the repository owner, on the first real seal on each background |
-| What the installed 0.16.0 hook draws over a values file this branch's gate writes, during this release's own run: its rope-and-gold drawing over the new rows, which reading puts under the limit (`questions.md` Q3) | the repository owner, on the first real seal of this branch |
+| closed That a real seal of 0.17.0, drawn by the hook, is shown whole rather than as a preview on the owner's screen (`spec.md` §*What cannot be checked*) | 149ca9ec replaced the letter with the 28-cell seal; what a screen shows is the limit in `docs/the-review-record.md` *The stamp* |
+| closed How the sheet reads on a light terminal background and on a dark one (`questions.md` Q2; the contrast figures are in `phases/phase-3.md`) | 149ca9ec removed the sheet; the stamp's two backgrounds are the limit in `docs/the-review-record.md` *The stamp* |
+| closed What the installed 0.16.0 hook draws over a values file this branch's gate writes, during this release's own run: its rope-and-gold drawing over the new rows, which reading puts under the limit (`questions.md` Q3) | f1c9932d removed the values file the gate wrote |
 
 ## Not done
 

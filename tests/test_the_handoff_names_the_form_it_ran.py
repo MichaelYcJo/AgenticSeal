@@ -8,18 +8,15 @@ review rounds and two fix passes all ran it and reported clean, and the
 unscoped read at the pull request found fifteen drifted rows and one broken
 claim — every one in a file the branch had touched.
 
-Since 0.22.0 the handoff rule is `docs/the-review-record.md` §*The handoff*
+Since 0.22.0 the handoff rule is `docs/the-review-record.md` *The handoff*
 (#923).
 """
 
 import os
 
+from conftest import flat
+
 ROOT = os.path.join(os.path.dirname(__file__), "..")
-
-
-def flat(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as handle:
-        return " ".join(handle.read().split())
 
 
 def test_the_handoff_says_which_form_of_a_command_it_carries():

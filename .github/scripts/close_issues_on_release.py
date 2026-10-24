@@ -105,13 +105,14 @@ MERGED_PR = re.compile(r"\(#(\d+)\)\s*$")
 # by a re-run, where an issue closed on a quoted example is a false record.
 # `issue_claims_check.py` imports these two, so it widens with them.
 #
-# Two shapes stay unmasked, on purpose, and each has a case pinning it in
-# `tests/test_release_hygiene.py`. A four-space indented block is an indented
-# code block to CommonMark and is ALSO how this repository's pull request
-# bodies continue a bullet onto the next line, so masking it would drop real
-# claims -- the wrong direction for a closer. Whether GitHub acts on a keyword
-# inside an HTML comment is unmeasured (`docs/issues-and-milestones.md`
-# §*A keyword claims the one number after it*); until somebody measures it on a
+# Two shapes stay unmasked, on purpose, and each has a row pinning it in
+# `tests/test_close_issues_on_release.py#Test_keywords_in`. A four-space
+# indented block is an indented code block to CommonMark and is ALSO how this
+# repository's pull request bodies continue a bullet onto the next line, so
+# masking it would drop real claims -- the wrong direction for a closer.
+# Whether GitHub acts on a keyword inside an HTML comment is unmeasured
+# (`docs/issues-and-milestones.md`
+# *A keyword claims the one number after it*); until somebody measures it on a
 # scratch pull request the shape is read as it always was.
 #
 # A fence is three backticks or three tildes, indented or not, closed by the
@@ -385,7 +386,9 @@ def arrived(before, after):
             "WARNING: no `before` commit — reading only the tip. Any pull "
             "request behind it in this push is not seen."
         )
+        # exempt from splitlines: git output
         return run("git", "log", "-1", "--format=%s", after).splitlines()
+    # exempt from splitlines: git output
     return run("git", "log", "--format=%s", f"{before}..{after}").splitlines()
 
 

@@ -31,7 +31,7 @@ closed as a class, and a case now holds every example the rules give.
 
 | Item | Who must answer |
 |---|---|
-| the full suite, the repository-wide lint and the format check (the broad gate) | the sealer, once, after the review rounds settle |
+| closed the full suite, the repository-wide lint and the format check (the broad gate) | #631, merged with lint, the format check and the suite green on the ubuntu, macOS and Windows legs |
 
 ## Not done
 

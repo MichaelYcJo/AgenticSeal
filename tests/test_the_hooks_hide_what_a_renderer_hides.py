@@ -1,7 +1,7 @@
 """The hook readers hide what a CommonMark renderer hides, and nothing else (#667).
 
 `seal/specs/1790645290-the-hooks-and-the-rider-check-read-fences-and-comments-
-by-one-rule/spec.md` §*The acceptance property* is what this module holds.
+by-one-rule/spec.md` *The acceptance property* is what this module holds.
 For every line L of a document, with `base(L)` a reader's reading at
 `release/v0.16.0` and `renderer(L)` the oracle's:
 
@@ -11,20 +11,21 @@ For every line L of a document, with `base(L)` a reader's reading at
   3. on every shape the frame names, the reader gives its expected answer.
 
 Halves 1 and 2 run here, over the frame's shapes and a seeded generated
-corpus. Half 3 is each reader's own case table, in the module that already
-holds that reader's cases.
+corpus. Half 3 is each reader's own case table, in the module that holds that
+reader's cases: the walk's own answers are `tests/test_blocks.py`'s (#942's
+phase 6).
 
 The oracle comes first, and it is the first thing held: before any reader
 moved, it had to give the frame's *Renderer* column on every shape, which the
 frame derived by reading the specification and could not execute (its Q2).
 """
 
-import ast
 import os
 
 import commonmark_oracle as oracle
 import pytest
-from block_shapes import BREAKS, CLOSE, OPEN, RENDERER, SHAPES
+from block_shapes import BREAKS, CLOSE, INLINE_KINDS, OPEN, RENDERER, SHAPES
+from conftest import imported_roots
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -34,18 +35,6 @@ NBSP = chr(0xA0)
 
 
 # --- the oracle is independent, and it says what the frame read -------------
-
-
-def imported_roots(path):
-    with open(path, encoding="utf-8") as handle:
-        tree = ast.parse(handle.read())
-    roots = set()
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Import):
-            roots.update(alias.name.split(".")[0] for alias in node.names)
-        elif isinstance(node, ast.ImportFrom):
-            roots.add((node.module or "").split(".")[0] if not node.level else ".")
-    return roots
 
 
 def test_the_oracle_imports_the_parser_and_nothing_of_this_repositorys():
@@ -64,7 +53,7 @@ def test_the_oracle_imports_the_parser_and_nothing_of_this_repositorys():
 @pytest.mark.parametrize("name", sorted(SHAPES))
 def test_the_oracle_gives_the_frames_renderer_column(name):
     """S1, and the frame's Q2. The *Renderer* column was derived by reading
-    CommonMark §4.5, §4.6 and §6.6 and was not executed; the parser gives it
+    CommonMark section 4.5, section 4.6 and section 6.6 and was not executed; the parser gives it
     on every shape. Where the two disagreed, the oracle would win and the
     divergence would be recorded in `overview.md`."""
     assert oracle.hidden_lines(SHAPES[name]) == RENDERER[name]
@@ -98,7 +87,7 @@ def test_the_oracle_gives_the_frames_renderer_column(name):
         # CRLF is the same document
         (["```\r", "x\r", "```\r", "y\r"], {0: "fence", 1: "fence", 2: "fence"}),
         # markdown-it-py 4.2.0 runs an inline comment past a closer that a
-        # `-` precedes, which CommonMark 0.31.2 §6.6 does not: a comment's
+        # `-` precedes, which CommonMark 0.31.2 section 6.6 does not: a comment's
         # text may not hold `-->`. Pinned by name (#667 round 1, ⬜ 4), so a
         # wider corpus meets the divergence here, and so the walk, which
         # follows the specification, is never "fixed" toward the parser.
@@ -308,18 +297,6 @@ def test_the_strips_set_is_the_one_measured():
     assert not {" ", "\t"} & dropped
 
 
-# Inline raw HTML other than a comment that can run past a line ending, with
-# a closer that does not put `>` at a line's start (#673). A declaration's
-# closer is written `a>` for that reason.
-INLINE_KINDS = [
-    ("<![CDATA[ a", "]]>"),
-    ("<? a", "?>"),
-    ("<!DOCTYPE a", "a>"),
-    ('<span title="a', '">'),
-    ("<span title='a", "'>"),
-]
-
-
 @pytest.mark.parametrize("name", sorted(BREAKS))
 def test_the_oracle_reads_the_text_not_a_readers_split(name):
     """#667 round 1, 🟡 1. `hidden_text` hands the parser TEXT, broken where
@@ -359,9 +336,8 @@ def test_the_oracle_reads_the_text_not_a_readers_split(name):
 
 # --- the corpus: the frame's shapes, the old cases, and a generated set -----
 
-# `tests/test_unverified_rows_close.py#FENCE_SHAPES`, the delimiter rule's own
-# shapes, and 1790635413's `COMMENT_SHAPES` at `4edc5de6`: every line of each
-# is a place a reading of fences or comments has had to be right.
+# 1790635413's `COMMENT_SHAPES` at `4edc5de6`: every line of each is a place a
+# reading of fences or comments has had to be right.
 COMMENT_SHAPES = [
     [OPEN, "| a | b |", CLOSE, "| c | d |"],
     [OPEN + " x", "| a | b |"],
@@ -725,107 +701,3 @@ def test_the_routing_reader_hides_something():
         lines = SHAPES[name]
         skipped = set(range(len(lines))) - {i for i, _ in routing.shown(lines)}
         assert skipped == RENDERER[name], name
-
-
-def test_a_piece_inside_its_lines_open_comment_is_the_only_piece_unsure():
-    """#667 round 2, 🟡 1, `walk_text`'s own answer. A piece after a break
-    inside an inline comment its line left open is uncertain; a piece of a
-    fenced line stays fenced and claimed; a piece that starts before the
-    line's opener is claimed live. Each of the three conditions is one
-    line of this case."""
-    ls = BREAKS["LS"]
-    inside = blocks.walk_text(f"a {OPEN} x{ls}| r |\n{CLOSE}\n")
-    assert inside.uncertain[:2] == [False, True], inside.uncertain
-    fenced = blocks.walk_text(f"```\nx {OPEN} a{ls}y\n```\n")
-    assert (fenced.kinds[2], fenced.uncertain[2]) == (blocks.FENCED, False)
-    before = blocks.walk_text(f"a{ls}b {OPEN} c\n\nd\n")
-    assert before.uncertain[:2] == [False, False], before.uncertain
-
-
-# An opener and a closer of every other kind of inline raw HTML, with a
-# closer that can stand at a line's start or directly after the opener (#673).
-# The closing tag's closer is `>` and is only ever written on the same line.
-INLINE_OPEN_CLOSE = [
-    *INLINE_KINDS,
-    ("<span", 'a="b">'),
-    ("</span", ">"),
-]
-
-
-def test_a_piece_inside_other_inline_html_its_line_left_open_is_unsure():
-    """#673's S4, `walk_text`'s own answer. A piece after a break inside
-    CDATA, a processing instruction, a declaration or a tag its line left
-    open is uncertain; a piece after one its line closed is claimed; a piece
-    of a fenced line stays fenced and claimed. And an opener a renderer does
-    not honour does not step over one it does."""
-    ls = BREAKS["LS"]
-    for opener, closer in INLINE_OPEN_CLOSE:
-        inside = blocks.walk_text(f"a {opener}{ls}{closer} x\n\nd\n")
-        assert inside.uncertain[:2] == [False, True], (opener, inside.uncertain)
-        closed = blocks.walk_text(f"a {opener} {closer}{ls}| r |\n\nd\n")
-        assert closed.uncertain[:2] == [False, False], (opener, closed.uncertain)
-        fenced = blocks.walk_text(f"```\nx {opener}{ls}y\n```\n")
-        assert (fenced.kinds[2], fenced.uncertain[2]) == (blocks.FENCED, False)
-    nested = blocks.walk_text(f"a `<?` <![CDATA[ b ?> c{ls}| r |\n]]>\n")
-    assert nested.uncertain[:2] == [False, True], nested.uncertain
-    # a `>` inside a quoted value does not end the tag
-    quoted = blocks.walk_text(f'a <span title="b>c{ls}d">\n\ne\n')
-    assert quoted.uncertain[:2] == [False, True], quoted.uncertain
-    # `<?>` does not close a processing instruction: the `?` is the opener's
-    instruction = blocks.walk_text(f"a <?>{ls}| r |\n?>\n\nd\n")
-    assert instruction.uncertain[:2] == [False, True], instruction.uncertain
-    # a closer before its opener closes nothing
-    early = blocks.walk_text(f"a ?> <? b{ls}| r |\n?>\n\nd\n")
-    assert early.uncertain[:2] == [False, True], early.uncertain
-    # a `>` inside a single-quoted value does not end the tag either
-    single = blocks.walk_text(f"a <span title='b>c{ls}d'>\n\ne\n")
-    assert single.uncertain[:2] == [False, True], single.uncertain
-
-
-@pytest.mark.parametrize("opener", [o for o, _ in INLINE_OPEN_CLOSE[:-1]])
-def test_a_paragraph_left_inside_other_inline_html_is_unsure_to_its_end(opener):
-    """#673's S5, `walk`'s paragraph state. The lines after a line that
-    leaves CDATA, a processing instruction, a declaration or a tag open are
-    uncertain to the paragraph's end, because the walk does not follow that
-    construct's end across lines; a blank line ends it. A `-->` does not end
-    it either, where the comment it closes is one the parser never formed."""
-    found = blocks.walk([f"a {opener}", "b", "c", "", "d"])
-    assert found.uncertain == [False, True, True, False, False], found.uncertain
-    past = blocks.walk([f"a {opener}", "b " + CLOSE + " c", "d", "", "e"])
-    assert past.uncertain == [False, True, True, False, False], past.uncertain
-    fake = blocks.walk(["a `" + OPEN + "` b", "c <? d " + CLOSE + " e", "f", "", "g"])
-    assert fake.uncertain == [False, True, True, False, False], fake.uncertain
-
-
-def test_an_unclosed_fence_is_reported_at_the_reader_line_it_starts():
-    """#667 round 1, 🟡 1. `walk_text` answers per reader line, and a fence
-    opener whose info string holds a U+2028 is one GFM line and two reader
-    lines. The opener that never closes is the first of them, the one a
-    person can be sent to; the piece after the break opens nothing."""
-    text = "```" + BREAKS["LS"] + "x\n| a |\n"
-    walked = blocks.walk_text(text)
-    assert walked.unclosed == [0], walked.unclosed
-    assert len(walked.kinds) == len(text.splitlines()) == 3
-
-
-def test_the_walks_line_rule_is_the_readers():
-    """#667 round 1, 🟡 1. `hooks/blocks.py#gfm_lines` is a copy of
-    `skills/verify/scripts/unverified_check.py#gfm_lines`, the precedent work
-    item A set for #664's class: a hook imports nothing from `skills/`, so
-    the copy is held to the original here, over every break `str.splitlines`
-    makes and CommonMark does not, and the three it does."""
-    import importlib.util
-
-    path = os.path.join(
-        HERE, "..", "skills", "verify", "scripts", "unverified_check.py"
-    )
-    spec = importlib.util.spec_from_file_location("specseal_uc_for_the_walk", path)
-    reader = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(reader)
-    texts = ["", "a", "a\n", "a\r\nb\rc\nd", "\n\n", "a\r", "a\r\r\n"]
-    texts += [f"a{brk}b\n{brk}\nc{brk}" for brk in BREAKS.values()]
-    for text in texts:
-        for keepends in (False, True):
-            assert blocks.gfm_lines(text, keepends) == reader.gfm_lines(
-                text, keepends
-            ), (text, keepends)

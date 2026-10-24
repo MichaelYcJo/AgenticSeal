@@ -178,6 +178,11 @@ Listed so nobody reopens them; the grounds are in the rows above or in `plan.md`
 8. `notes` runs at a `second` too, before the framer is spawned, so the framer reads corrected records (S9).
 9. The notes commit is bounded by the ⬜ definition, not by path, and the broad gate is its reader — the default `questions.md` Q1 states, with the alternative that is one arm.
 
+## Rule changes
+
+- nothing
+  why: overturned: notes and close left with the generator (8350c578).
+
 ## Open questions → questions.md
 
 One row a person answers (Q1, the default is built), two a measurement settles, two the work settles.

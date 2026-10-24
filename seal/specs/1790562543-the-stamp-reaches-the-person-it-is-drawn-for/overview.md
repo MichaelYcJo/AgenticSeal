@@ -23,9 +23,9 @@ file the gate writes only over a green run with a written cell.
 |---|---|
 | closed S17: on a real sealer run, the stamp appears after the orchestrator's text, unfolded, in colour, once | seen on the owner's screen 2026-09-28, during the 0.15.7 run, with the branch's hook registered for that session: the stamp came after the reply's text, unfolded, in colour, once, with line 1 as `Stop says: SEALED b8898260 against d71265b9 · 1790562543-…` (PR #650's body carries the account) |
 | closed Q1: whether a `Stop` hook's `systemMessage` enters the model's context on the next turn | executed 2026-09-28 over this session's transcript: each draw is stored as an `attachment` of type `hook_success` whose model-facing `content` is empty and whose `stdout` holds the drawing, and no stamp text reached the model's context across three draws |
-| Q3: whether the early-draw window occurs, a stamp drawn above the text it belongs under | a measurement, by the orchestrator on the next release run |
-| Q4: the block form through the hook on Windows (Windows Terminal, and a cp949 console) | the owner, or whoever next runs a session on Windows |
-| The full suite, the repository-wide lint and the typecheck | the sealer, once, after the review rounds settle |
+| closed Q3: whether the early-draw window occurs, a stamp drawn above the text it belongs under | a person's screen: the limit in `docs/the-review-record.md` *The stamp* that neither the screen nor the order of the text above it is checked |
+| closed Q4: the block form through the hook on Windows (Windows Terminal, and a cp949 console) | a person's screen: the limit in `docs/the-review-record.md` *The stamp* that no case, hook or workflow can observe one |
+| closed The full suite, the repository-wide lint and the typecheck | #650, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
 
 ## Not done
 

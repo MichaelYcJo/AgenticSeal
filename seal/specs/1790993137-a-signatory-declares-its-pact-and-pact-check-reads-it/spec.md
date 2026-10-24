@@ -286,6 +286,11 @@ The exit codes are in item 9.
 `chain_check.py#frame`, `skills/implement/scripts/seal.py#normalise_remote`,
 `bin/correction-check` (the wrapper to copy).
 
+## Rule changes
+
+- nothing
+  why: written: the pact, its signers, the anchor and pact-check, in docs/the-pact.md.
+
 ## Open questions → questions.md
 
 None of the rows blocks the build. The owner's 2026-10-03 answers cover every

@@ -19,7 +19,7 @@ import os
 import re
 import subprocess
 
-from conftest import on_disk, review_chain_text
+from conftest import on_disk, read, review_chain_text
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 
@@ -56,11 +56,6 @@ ROOT = os.path.join(os.path.dirname(__file__), "..")
 # double space. Applied to `.py` members only, because a markdown file has no
 # literals to join and a fold there would cut through quoted shell commands.
 LITERAL_SEAM = re.compile(r"([\"'])\s*(?:[fFrRbBuU]{0,2})\1")
-
-
-def read(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
-        return f.read()
 
 
 def flat(*parts):
@@ -152,7 +147,7 @@ def test_the_bound_is_on_the_review_run_and_never_on_the_cycle():
 
 def test_the_smith_calls_the_whole_thing_a_review_run():
     smith = flat("agents", "smith.md")
-    assert "bounded as `docs/the-review-record.md` §*The run* states" in smith
+    assert "bounded as `docs/the-review-record.md` *The run* states" in smith
     assert "the cycle is bounded" not in smith
 
 
@@ -161,15 +156,19 @@ def test_the_smith_calls_the_whole_thing_a_review_run():
 
 def test_the_row_that_could_not_be_true_is_corrected_not_reworded():
     """It was true only after the first review mark landed, and false for
-    every commit before it — the defect in #52 stated as a sentence."""
-    # The routing section is the orchestrator's half since #292, so the
-    # correction lives in `orchestration.md`; the old row must be in neither.
+    every commit before it — the defect in #52 stated as a sentence.
+
+    The narrated correction beside the routing section left with #940:
+    history goes to git and the changelog, and the section states the rule
+    that holds, that the declaration quiets the review arm for either
+    answer. What stays pinned is that the old row is in neither file."""
     skill = read("skills", "implement", "SKILL.md")
     orchestration = read("skills", "implement", "orchestration.md")
     for text in (skill, orchestration):
         assert "| Through the review chain | it needs no marker at all" not in text
-    assert 'used to carry "no marker at all"' in orchestration, (
-        "dropping the row leaves the next reader unable to tell it was wrong"
+    assert "for **either** review answer" in orchestration, (
+        "the routing section stopped saying the declaration quiets the review "
+        "arm whichever reviewer it names"
     )
 
 
@@ -202,6 +201,7 @@ SEAL_SWEPT = (
     # 🟡 10 again: the list closed where somebody had already looked.
     ("agents", "framer.md"),
     ("skills", "verify", "SKILL.md"),
+    ("skills", "verify", "orchestration.md"),
     ("skills", "code-review", "orchestration.md"),
     ("skills", "code-review", "SKILL.md"),
     ("skills", "implement", "SKILL.md"),
@@ -424,8 +424,7 @@ def test_the_gate_never_says_sealed():
 # the `seal/` root, a script or a command (`seal-stamp`, `seal_stamp`,
 # `seal mode`, `seal.py`, `seal-mark.txt`), the sealer, the chain arm's
 # `--sealing` flag and `chain_check.SEALING`, the verdict word in backticks,
-# the Seal Test, a work item the sealer sealed, and the fold markers that name
-# spec directories. `questions.md` Q6 (a) keeps the code names and the concept
+# the Seal Test, a work item the sealer sealed, and an HTML comment. `questions.md` Q6 (a) keeps the code names and the concept
 # name. A name goes on past its `-`, `_` or `.`, so a `seal.` that closes a
 # sentence is the word and stays refused. `sealed_names` and `CHAIN_SEALING` need no entry: `_` is a word
 # character, so the word below never starts or ends inside them.
@@ -475,8 +474,8 @@ def test_the_gate_sweep_reads_a_seal_that_ends_a_sentence():
 # --- "the stamp" — the sealer's, never the broad gate's --------------------
 
 # #975: the stamp is drawn once per work item from the sealer's `sealed`
-# (`docs/the-review-record.md` §*The stamp*), and `docs/the-broad-gate.md`
-# §*Where the stamp is drawn* is gone. Read by construction rather than by a
+# (`docs/the-review-record.md` *The stamp*), and `docs/the-broad-gate.md`
+# *Where the stamp is drawn* is gone. Read by construction rather than by a
 # list of sentences: the gate, possessive or not, with at most three words
 # before `stamp`, each of which may carry an apostrophe (`gate's stamp`,
 # `gate draws a stamp`, `gate's run draws the stamp`, `gate's run's stamp`,
@@ -543,7 +542,7 @@ def test_the_stamp_sweep_reads_the_gates_run_and_the_passive():
 
 # The seventh word, and the one this repository's own measurement vocabulary
 # rests on: the per-segment bars in `docs/the-review-record.md`,
-# `skills/verify/SKILL.md` §*Measure the segment*, and the flow log all read
+# `skills/verify/orchestration.md` *Measure the segment*, and the flow log all read
 # `segment` as one agent's own stretch of a chain.
 #
 # Naming a report mode `--segments` beside `--spawns` is what put a second
@@ -556,7 +555,7 @@ def test_the_stamp_sweep_reads_the_gates_run_and_the_passive():
 #
 # The word was load-bearing before this work started, which is why the mode's
 # name is paid for here rather than assumed.
-SEGMENT_OWNER = ("skills", "verify", "SKILL.md")
+SEGMENT_OWNER = ("skills", "verify", "orchestration.md")
 
 # The files that carried the loose sentence, all three of them shipped and
 # all three read together by anyone working on the meter. Records are not
@@ -564,6 +563,7 @@ SEGMENT_OWNER = ("skills", "verify", "SKILL.md")
 # when they were written — which is the same boundary the seal sweep draws.
 SEGMENT_SWEPT = (
     ("skills", "verify", "SKILL.md"),
+    ("skills", "verify", "orchestration.md"),
     ("skills", "verify", "scripts", "session_cost.py"),
     ("tests", "test_session_cost.py"),
 )
@@ -859,24 +859,19 @@ def test_the_pacts_words_keep_one_meaning():
 PACT_RENAMED = re.compile(r"signator(?:y|ies)", re.IGNORECASE)
 # The two places that DISCUSS the old word rather than use it, each named by
 # the span it removes, on the `SEAL_EXCLUDED` precedent: the policy's
-# statement about the old header, from its fold marker to the end of that
+# statement about the old header, from its opening to the end of that
 # statement, and the one unit of `hooks/config.py` that writes the old tuple
 # and the rename sentence (a `PACT_PRINTED` member, read alone).
 PACT_RENAMED_SPANS = {
-    "docs/the-pact.md": "<!-- specs/1791239490-a-repository-that-keeps-a-pact-is-a-signer -->",
+    "docs/the-pact.md": "**A pact headed with the word 0.18.x used still reads",
     "hooks/config.py renamed_header": None,
 }
-# A fold marker names the work item a statement came from, and a released
-# work item's id keeps the word it was minted with
-# (`1790993137-a-signatory-declares-…`). It is a process record's name, not
-# a use of the word, so markers are blanked before the sweep.
-FOLD_MARKER = re.compile(r"<!-- specs/[^ ]+ -->")
 
 
 def without_the_policy_span(where, text):
     """TEXT, as written, flattened with the policy's statement about the old
-    header taken out: from its fold marker to the end of its paragraph, a
-    heading at the start of a line, or the next fold marker, whichever comes
+    header taken out: from its opening to the end of its paragraph, a
+    heading at the start of a line, or an HTML comment, whichever comes
     first. The statement is one paragraph, so the exemption ends where the
     statement does, whatever follows it -- a setext heading's own text and an
     underline of one character included (round 1 of #822, white 2; round 2,
@@ -927,7 +922,6 @@ def test_no_pact_text_names_a_signer_the_way_0_18_did():
             if PACT_RENAMED_SPANS[where] is None:
                 continue
             text = without_the_policy_span(where, read("docs", "the-pact.md"))
-        text = FOLD_MARKER.sub("", text)
         said = PACT_RENAMED.findall(text)
         assert not said, (
             f"{where} names a signer the way 0.18.x did: {said} — the word is "
@@ -956,13 +950,14 @@ def test_no_pact_text_names_a_signer_the_way_0_18_did():
 #   it from `hooks/config.py#renamed_header` would pass with that constant
 #   changed while every 0.18.x pact stopped reading; and this module, whose
 #   pattern and comments name the word in order to refuse it;
-# - the two spans `PACT_RENAMED_SPANS` names, and fold markers.
+# - the two spans `PACT_RENAMED_SPANS` names.
 RENAMED_RECORDS = (
     "changelog/",
     "seal/specs/",
 )
 RENAMED_COMPAT = (
-    "tests/test_a_signer_declares_its_pact.py",
+    "tests/conftest.py",
+    "tests/test_config.py",
     "tests/test_one_table_walker_reads_what_gfm_renders.py",
     "tests/test_pact_check.py",
 )
@@ -1015,7 +1010,6 @@ def test_no_live_text_says_the_word_0_19_0_renamed():
             )
             lines = text.splitlines()
             text = "\n".join(lines[: unit.lineno - 1] + lines[unit.end_lineno :])
-        text = FOLD_MARKER.sub("", text)
         pattern = PACT_HEADER_WORD if rel in RENAMED_COMPAT else PACT_RENAMED
         said.extend(f"{rel}: {m.group(0)}" for m in pattern.finditer(text))
     assert not said, (

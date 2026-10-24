@@ -30,8 +30,8 @@ Usage:
                                          post that reading, and what it says,
                                          to the repository's measurement log
 
-**Why `--post` exists, in one sentence.** `skills/verify/SKILL.md` §*Measure
-the segment, and feed the flow log* wrote the posting procedure out in full —
+**Why `--post` exists, in one sentence.** `skills/verify/orchestration.md`
+*Measure the segment, and feed the flow log* wrote the posting procedure out in full —
 which label, how to tell a repository that never made the log from one whose
 log somebody closed, which of the two logs a reading belongs to — and nothing
 typed it, so the meter sat unreferenced through a full day of measurements
@@ -59,8 +59,8 @@ between the two modes. `--spawns` slices THIS transcript into bands over the
 orchestrator's own minutes; `--segments` opens the OTHER transcripts, one row
 per agent this run spawned, and given a resumed agent's own transcript it
 reads that one file, one row per stretch of work (#637) — each row one
-agent's own stretch either way. `skills/verify/SKILL.md` §*Measure the segment*
-owns that distinction and `tests/test_one_word_one_meaning.py` holds it.
+agent's own stretch either way. `skills/verify/orchestration.md` *Measure the
+segment* owns that distinction and `tests/test_one_word_one_meaning.py` holds it.
 """
 
 import argparse
@@ -1064,7 +1064,7 @@ def analyse(calls, turns, delegated=()):
     `unnamed` and nothing else. `read` is judged after `test`, `lint/type`
     and `build`, so no call enters or leaves the repeats figures, and
     `report_segments` says that too. The three changes are carried in
-    `skills/verify/SKILL.md`, where a person taking a reading meets them.
+    `skills/verify/orchestration.md`, where a person taking a reading meets them.
     Every other number here is untouched, `command_s` and `model_s`
     included.
 
@@ -1395,8 +1395,7 @@ def token_thirds(turns):
     Every site in this module that converts a number to an `int` carries a
     guard: a finiteness test on the same operand in the enclosing
     conditional, or a `try` catching both `OverflowError` and `ValueError`.
-    The class is not a list anybody maintains —
-    `tests/test_a_derived_number_reaching_an_int_carries_a_guard.py`
+    The class is not a list anybody maintains — `tests/test_session_cost.py`
     enumerates the sites from this file's own syntax tree and decides
     membership by invoking Python's integer-conversion protocol on an
     operand, so a conversion written under any name at all is a member. Add
@@ -1501,9 +1500,10 @@ def opening_stamp(path):
 
 
 # What a harness writes into a running agent's own transcript when the
-# coordinator sends it a new message. `skills/verify/SKILL.md` §*Measure the
-# segment* prescribes the hand split at exactly these rows, in exactly these
-# words, and until now nothing asserted it against a file.
+# coordinator sends it a new message. `skills/verify/orchestration.md`
+# *Measure the segment, and feed the flow log* prescribes the hand split at
+# exactly these rows, in exactly these words, and until now nothing asserted it
+# against a file.
 #
 # **Measured over the 350 segment transcripts on one machine before this was
 # written.** 41 of them hold an idle gap at or above `analyse`'s 900-second
@@ -1754,7 +1754,7 @@ def measure_segments(path, calls):
     PLAIN reading — exactly what a person running this script against that
     one transcript gets today, taken over one slice's calls and turns where
     the coordinator restarted it. That is the point: the mode replaces the hand
-    method named in `skills/verify/SKILL.md`, so a row has to be the same
+    method named in `skills/verify/orchestration.md`, so a row has to be the same
     number that method produced, not a second meter with its own rules.
 
     A row's tokens cover that segment's OWN file only. The run total sums the
@@ -1805,7 +1805,7 @@ def measure_segments(path, calls):
         # carrying one name, so counting rows makes this climb with every
         # resume -- which is the failure `segment_slices` gives every slice
         # the file's name to avoid, undone one function later. `report_breaches`
-        # reconciles the §6 count against this number, so a row count makes a
+        # reconciles the contract rule 6 count against this number, so a row count makes a
         # run whose counts agree print that they do not, and sends a reader
         # looking for a child transcript that was never missing. Measured on
         # the machine this was written on: one of 43 runs already reads 3 for
@@ -1831,7 +1831,7 @@ def measure_segments(path, calls):
     # nothing for this.
     #
     # `unnamed` stays 0 and is computed above, before this: it counts WALKED
-    # transcripts, and the given file is not one. Counted here, the §6
+    # transcripts, and the given file is not one. Counted here, the rule 6
     # reconciliation would print a disagreement for an agent that spawned
     # nothing. `own_file` is present in this case alone, so every other
     # reading's dict is what it was.
@@ -2346,7 +2346,7 @@ LABEL_WIDTH = 30
 # #640. Each segment kind's bar on tools per turn, keyed by the basename of
 # the spawn's `subagent_type` after its last `:`, so `specseal:warden` and
 # `warden` are one kind. The values are `docs/the-review-record.md`
-# §*The per-segment bars*: the protocol's name for the kind,
+# *The per-segment bars*: the protocol's name for the kind,
 # and its bar, or None where the protocol exempts the kind from this ratio.
 #
 # Constants rather than read from the protocol at run time, because this
@@ -2406,7 +2406,7 @@ def segment_label(row):
 def report_breaches(segments):
     """#343: an `Agent` call made INSIDE a segment, named where it happened.
 
-    `skills/agent-contract/SKILL.md` §6 withholds four acts from every agent
+    Contract rule 6 withholds four acts from every agent
     whatever its own definition says, and one of them is spawning. Delivery
     is not what failed: round 1 of #120 spawned two agents and disclosed
     neither, with the rule already in that agent's payload, in a section the
@@ -2422,8 +2422,8 @@ def report_breaches(segments):
     exit code is a later work item's, and it will be choosing against
     readings rather than against a guess.
 
-    **It says who §6 reaches, because the walk cannot tell.** §6 binds the
-    agents this plugin spawns. An `Agent` call in a segment's transcript is
+    **It says who contract rule 6 reaches, because the walk cannot tell.** The
+    rule binds the agents this plugin spawns. An `Agent` call in a segment's transcript is
     all this file can see, and a `subagent_type` from somewhere else — one
     whose own procedure instructs the fan-out — looks exactly the same.
     Measured over the 43 runs on the machine this was written on: 13 carry
@@ -2449,26 +2449,26 @@ def report_breaches(segments):
     if not calls and not unnamed:
         return
     if breaches:
-        print("\n  §6 — an agent spawned another agent")
+        print("\n  Contract rule 6 — an agent spawned another agent")
         for row in breaches:
             print(
                 f"    {segment_label(row).strip()} made "
                 f"{plural(row['spawns'], '`Agent` call')} in its own transcript"
             )
         print(
-            "\n  `skills/agent-contract/SKILL.md` §6 withholds four acts from "
-            "every agent\n  whatever its own definition says: post nothing, "
-            "push nothing, open no pull\n  request, and spawn no agent. This "
-            "line notices and stops nothing — the\n  transcript it read is on "
-            "the machine that ran the agent, in no commit and on\n  no CI "
-            "runner, and a report a person already runs at every segment "
-            "boundary is\n  what that leaves."
+            "\n  Contract rule 6 in `skills/agent-contract/SKILL.md` withholds "
+            "four acts\n  from every agent whatever its own definition says: "
+            "post nothing, push\n  nothing, open no pull request, and spawn no "
+            "agent. This line notices and\n  stops nothing — the transcript it "
+            "read is on the machine that ran the\n  agent, in no commit and on "
+            "no CI runner, and a report a person already\n  runs at every "
+            "segment boundary is what that leaves."
         )
         print(
-            "\n  §6 binds the agents this plugin spawns. A row above naming "
-            "an agent from\n  somewhere else is still a spawn made inside a "
-            "segment and still worth\n  seeing, but which rule it answers to "
-            "is for that agent's own definition\n  to say."
+            "\n  Contract rule 6 binds the agents this plugin spawns. A row above "
+            "naming an\n  agent from somewhere else is still a spawn made inside "
+            "a segment and still\n  worth seeing, but which rule it answers to "
+            "is for that agent's own\n  definition to say."
         )
     # An agent's own file (#637) was read with no parent in view, so there is
     # no second count to hold this one against: `unnamed` is 0 by
@@ -2573,8 +2573,8 @@ def report_segments(segments, path):
     zeroes about a join nobody attempted.
 
     **This is the reading the hand method produced one transcript at a
-    time.** `skills/verify/SKILL.md` §*Measure the segment* put a
-    `session_cost.py` run at the end of every smith and warden segment, which
+    time.** `skills/verify/orchestration.md` *Measure the segment, and feed
+    the flow log* put a `session_cost.py` run at the end of every smith and warden segment, which
     means opening each segment's file by hand and, for a resumed one,
     splitting it by eye. The rows below are that, for every segment of a run,
     in one command.
@@ -2797,7 +2797,7 @@ def newest(directory):
 
 # --- posting the reading to the flow log --------------------------------------
 #
-# `skills/verify/SKILL.md` §*Measure the segment, and feed the flow log* wrote
+# `skills/verify/orchestration.md` *Measure the segment, and feed the flow log* wrote
 # this procedure out in full and nothing typed it: which label to look up, how
 # to tell a repository that never created the log from one whose log somebody
 # closed, and which of the two logs a reading belongs to. #330 measured what
@@ -2814,7 +2814,7 @@ def newest(directory):
 # posting a judgment nobody made.
 ROLLING_LABEL = "flow-measurement"
 
-# The four states `skills/verify/SKILL.md` enumerates, plus the one it does not
+# The four states `skills/verify/orchestration.md` enumerates, plus the one it does not
 # because it is about the machine rather than the tracker.
 NO_HISTORY, LOG_CLOSED, ONE_OPEN, MANY_OPEN, UNREADABLE = (
     "no history",
@@ -2835,7 +2835,7 @@ def run_gh(args):
 
     The one place this module touches a network, and the seam every case
     below replaces. The exit code is read straight off the subprocess
-    (`agent-contract` §1) rather than through a pipe.
+    (contract rule 1) rather than through a pipe.
 
     A `gh` that is not on PATH comes back with `None` for the code — a
     different fact from a lookup that ran and failed, and the caller treats
@@ -2881,6 +2881,7 @@ def open_log(label):
         ]
     )
     if code != 0:
+        # exempt from splitlines: a tool's output
         first = (err or out or "").strip().splitlines()
         return UNREADABLE, (
             "`gh` is not on PATH" if code is None else f"exit {code}"
@@ -3001,8 +3002,8 @@ def emit(args, render, path=None):
     `~/.claude/projects/-Users-x-<repo>/<session-id>.jsonl`, so the path
     carries the account name twice and the session id once; `--post` writes
     into an issue tracker, where the repair for a published one is a person
-    deleting a comment. `CONTRIBUTING.md` §*Hooks stay local and quiet*
-    states the repository's position on what may leave the machine — *anything
+    deleting a comment. `CONTRIBUTING.md` *House rules*, in its bullet
+    **Hooks stay local and quiet**, states the repository's position on what may leave the machine — *anything
     that would send repository contents, paths, or prompts is not on the
     table* — and it binds hooks rather than this, which is why the rule is
     written here rather than cited.

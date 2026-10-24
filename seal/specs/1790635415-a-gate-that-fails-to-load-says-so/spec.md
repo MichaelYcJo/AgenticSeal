@@ -268,6 +268,13 @@ in its phase record.
 - **Whether a person reads the line.** This is the same as for every
   `systemMessage` this plugin prints.
 
+## Rule changes
+
+- nothing
+  why: written: a failing gate is said once at turn end, in docs/commit-review-gate-spec.md
+    *Registration*; internal: the record's path and the draw's order, held by
+    tests/test_a_gate_that_fails_says_so.py.
+
 ## Open questions → questions.md
 
 Anything a planner must answer lives in questions.md, not inline — unanswered

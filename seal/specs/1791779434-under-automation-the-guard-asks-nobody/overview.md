@@ -29,11 +29,11 @@ the press is there to read.
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the typecheck: `unverified`, because the broad run is the sealer's, once, after the rounds settle | the orchestrator, through the sealer |
-| M3: whether the deny loops, that is, how many dirty-row denies a session meets at the next `automation` run, how many were the same switch re-issued, and whether any guard `ask` reached a person | the orchestrator of the next `automation` run, from its own transcript |
-| M4: whether a model told less finishes what it started, that is, stashes left with no pop or apply after them and commits left on a detached HEAD with no branch named | the orchestrator of the next `automation` run, from its own transcript |
-| That a `/clear` and a new `claude` start issue a new session id. M2 measured only that `--resume` and compaction keep it | the orchestrator, at the next `/clear` of a run, by the transcript's file name |
-| Windows: the dirty row is reached there only under `[shared-tree-ok]` from the detection-unusable row, which S3 covers on macOS with the session count stubbed. Read from the code, not run on Windows | the Windows CI leg at the pull request |
+| closed The full suite, the repository-wide lint and the typecheck: `unverified`, because the broad run is the sealer's, once, after the rounds settle | #897, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
+| closed M3: whether the deny loops, that is, how many dirty-row denies a session meets at the next `automation` run, how many were the same switch re-issued, and whether any guard `ask` reached a person | another session's behaviour: the re-issue bullet of `docs/worktree-guard-spec.md` *Known limits* |
+| closed M4: whether a model told less finishes what it started, that is, stashes left with no pop or apply after them and commits left on a detached HEAD with no branch named | another session's behaviour: the same bullet of `docs/worktree-guard-spec.md` *Known limits* |
+| closed That a `/clear` and a new `claude` start issue a new session id. M2 measured only that `--resume` and compaction keep it | a live harness: the press bullet of `docs/worktree-guard-spec.md` *Known limits* |
+| closed Windows: the dirty row is reached there only under `[shared-tree-ok]` from the detection-unusable row, which S3 covers on macOS with the session count stubbed. Read from the code, not run on Windows | #997's `windows-latest` leg ran the guard's modules green |
 
 ## Not done
 

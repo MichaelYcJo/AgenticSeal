@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """seal-stamp — the sealer's stamp, drawn from a `sealed` guarantee.
 
-Issue #30 §*What it prints*, redrawn by #717 and #832, and since #975 drawn
+Issue #30 *What it prints*, redrawn by #717 and #832, and since #975 drawn
 once per work item from the sealer's verdict rather than the broad gate's
 run. Two things side by side on the terminal's own background, and nothing
 else: at the left a wax disc with the disc's mark pressed into it, and three
@@ -68,10 +68,10 @@ The gate imports `sealed_names`, `ref_is_commit`, `is_utf8(stream)`,
 imports `queue_for_guarantee`; the edit gate imports
 `queue_for_local_guarantee`; the hook imports `pending`, `read_values`,
 `claim` and `stamp`.
-`.github/scripts/release_seal.py`, which the tag push runs, drew a
-release's seal from this module's cells as a PNG, one cell to one rectangle
-(#718), until #832 drew it from the owner's SVG instead. That script is the
-repository's own and the plugin ships nothing that runs it. The command
+`.github/scripts/release_seal.py`, which the tag push runs, reads `build`
+and draws a release's seal as a PNG from its cells, one cell to one square
+block of pixels (#1009). That script is the repository's own and the plugin
+ships nothing that runs it. The command
 exists so a person can see the drawing without a guarantee committed, and
 so a values file no hook drew can still be drawn by hand.
 
@@ -125,7 +125,7 @@ TITLE_RED = (196, 40, 44)
 # case shadow — `m` the wax edge and `.` the field, as #30 had them; `M n N`
 # the rim lit, mid and dark; `X` the disc's mark's face, and `Y` and `y` its
 # highlight and its drop shadow, as #717 had them; `x` its inner shadow. The
-# framer chose them (`spec.md` §*Data & interfaces*): the twin is for a
+# framer chose them (`spec.md` *Data & interfaces*): the twin is for a
 # console that cannot draw half-blocks, and no decision of the owner's names
 # its letters. Every disc cell is exactly one of these colours, so a cell's
 # letter is a lookup (`letter_row`).
@@ -178,7 +178,7 @@ MESSAGE_LIMIT = 10000
 # `dispatch.describe`, every gate this plugin names and three foreign ones,
 # in every group it names and a foreign one, at every phase, with every field
 # past its cap -- a record an older or newer plugin wrote;
-# `tests/test_a_gate_that_fails_says_so.py#longest_report` is the
+# `tests/test_dispatch.py#longest_report` is the
 # measurement). Before #722 the name had no cap, so a class from outside the
 # plugin with a long enough name passed the reserve with two gates. The caps
 # count the same units, so a name or a text outside the BMP keeps these
@@ -228,6 +228,7 @@ def read_chart(path):
     saved with a byte-order mark as the same chart, rather than refusing its
     first line as one character too long."""
     with open(path, encoding="utf-8-sig") as handle:
+        # exempt from splitlines: the disc's mark chart, a grid of two characters
         lines = handle.read().splitlines()
     n = DISC_CELLS
     c, field = (n - 1) / 2, n / 2 - GROOVE_INSET
@@ -434,7 +435,8 @@ def strip_ansi(s):
 # cut ref would read as a whole ref.
 #
 # Stated here and measured over there, and neither may move without the other
-# going red: `test_the_panel_value_width_is_what_the_stamp_actually_gives`
+# going red: `tests/test_seal_stamp.py`'s
+# `Test_stamp::test_accepts_a_value_as_wide_as_the_panel_at_eighty_columns`
 # draws a value of this width and measures the stamp's widest line.
 PANEL_VALUE_WIDTH = 41
 ELISION = "..."
@@ -924,7 +926,7 @@ def label(values):
 # audited commit standing in HEAD's history, so a squash or a cherry-pick of
 # the guarantee elsewhere queues nothing; the guarantee reading `sealed` at
 # an earlier commit of that history (`sealed_before`); and the `Target SHA`
-# row's `; earlier run: <sha> <verdict>` chain — a `sealed` after a `sealed`
+# row's `; earlier run: <sha> <word>` chain — a `sealed` after a `sealed`
 # was stamped at the first. The last two hold across clones. The chain skips
 # one kind of entry, a `sealed` this clone recorded refusing
 # (`refused_here`). In shared mode the commit gate writes that record when it
@@ -971,7 +973,7 @@ CHAIN_CHECK = os.path.join(
 # hook draws nothing, and says nothing, where it cannot: a `python3` that
 # cannot load this file, a main session whose working directory is outside
 # this clone, a plugin older than the hook (`docs/the-review-record.md`
-# §*The stamp*).
+# *The stamp*).
 QUEUED = (
     "specseal: the stamp for {id} is drawn at the end of this turn from "
     "{path}; where none appears, `seal-stamp --from {command}` draws it"
@@ -1083,6 +1085,7 @@ def queue_for_guarantee(top, common, session, now=None):
     )
     items = [
         found.group(1)
+        # exempt from splitlines: git output
         for path in (touched or "").splitlines()
         for found in [GUARANTEE_PATH.match(path.strip())]
         if found
@@ -1229,6 +1232,7 @@ def _queue_one(chain, top, common, session, name, now):
         target=target,
         cell=cell,
         gate_text=gate_text,
+        # exempt from splitlines: git output
         rounds=listed.splitlines(),
         branch=branch,
         item=os.path.join(top, *rel.split("/")),
@@ -1378,8 +1382,8 @@ def queue_for_local_guarantee(path, session, now=None):
 # Neutral values in the stamp's shape, so `seal-stamp` shows a person what a
 # sealed guarantee's commit draws without one having been committed — every
 # row `guarantee_rows` can return, the conditional ones included, in its
-# order; a case in `tests/test_the_seal_is_taken_once_by_the_sealer.py`
-# holds the labels against `guarantee_rows`'. Since #975 the stamp carries
+# order; a case in `tests/test_seal_stamp.py`'s `Test_module` holds the
+# labels against `guarantee_rows`'. Since #975 the stamp carries
 # what the records say and no suite counts: those are the broad gate's
 # report's, which the gate prints as text.
 SAMPLE_ROWS = [

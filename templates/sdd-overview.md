@@ -1,20 +1,12 @@
-# <work item> — overview
-
-<!-- The closing memo (implement skill, step 4). Not a summary of the work:
-`git diff --stat` holds the file list and the diff holds the detail. Only what
-the diff cannot show goes here, and each part is written when it happens rather
-than reconstructed at the end. A rule that must outlive this work item goes
-to its home under `docs/` with the test that holds it, not here. -->
+# Overview: <work item>
 
 ## Scope confirmation
 
-<Second-rung work only — it alters nothing observable and is more than one
-line. The one line that replaces `plan.md`. Delete otherwise.>
+<second-rung work only: the one line that replaces `plan.md`; delete otherwise>
 
 ## Why this work exists
 
-<One line: why it was worth doing and what the result changes for whoever runs
-it. Not a walk through the diff.>
+<one line: why it was worth doing and what the result changes for whoever runs it>
 
 ## Where spec and implementation diverged
 
@@ -24,38 +16,14 @@ it. Not a walk through the diff.>
 
 ## Not verified
 
-<!-- Read by `unverified-check`, so the shape is fixed: this table, or a single
-line starting `none — <why>`. Leaving the placeholder row below fails the
-check — fill it in or write the `none` line instead.
-
-An item is closed by marking it, never by deleting the row: the Item cell
-opens with the word `closed`, lower case, then the item.
-
-    | closed <the item, kept> | <what closed it: the run, the session, the date> |
-
-So an open item never opens with that word. An open item whose own text
-begins with the word `closed` reads as closed, and nothing refuses it:
-
-    | closed issues are not re-read | the owner |
-
-Word such an item to open with another word. An unmarked row counts open.
-Deleting the row — or this whole file — fails the next pull request, which is
-what keeps "I verified it" and "I tidied it away" from being the same edit.
-
-What the check compares is the NUMBER of rows, not their text, so the second
-cell is read by people rather than by it: a closing that leaves the original
-answerer in place still passes. -->
-
 | Item | Who must answer |
 |---|---|
 | <what was not verified> | <who or what can answer it> |
 
 ## Not done
 
-<Deliberate leavings — what was within reach and not taken, and on what
-grounds. Prose, because these are decisions rather than pending claims. Or
-"nothing".>
+<what was within reach and deliberately not taken, with its grounds, or "nothing">
 
 ## Fed back into the spec
 
-<Clauses this work added, marked as inferred-during-implementation — or "none".>
+<clauses this work added, marked as inferred during implementation, or "none">

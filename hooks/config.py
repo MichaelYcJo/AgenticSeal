@@ -24,7 +24,7 @@ names rather than keeping a second copy.
 
 **Not in `optin.py`, deliberately.** That module's docstring says there is no
 config key and everything in it fails toward *not opted in*; the root's
-existence is the opt-in and `docs/one-root-by-lifetime.md` §*The opt-in signal
+existence is the opt-in and `docs/one-root-by-lifetime.md` *The opt-in signal
 is the root itself* is the clause. The `Mode` row decides nothing about opting
 in -- it RECORDS an answer -- and putting it in that module would read as the
 clause being softened.
@@ -187,7 +187,7 @@ def hidden_lines(lines, text=None):
 
     A line that declares something is not taken on doubt where the older
     reading would not take it, the second of the three answers
-    `docs/the-record-layout.md` §*The fold, and what tells it from a
+    `docs/the-record-layout.md` *The fold, and what tells it from a
     deletion* gives: a row this hides is no declaration, so a hook says
     nothing and a gate asks, and `broad-gate` names a fence left open.
 
@@ -264,7 +264,7 @@ def unfenced(lines, text=None):
 
     **Why a table inside a fence is not the table.** `config.md`'s header
     comment points its reader at `templates/config.md`, a document of EXAMPLE
-    tables, and `skills/config/SKILL.md` §*Procedure* step 3 tells a session
+    tables, and `skills/config/SKILL.md` *Procedure* step 3 tells a session
     to copy a block of that template -- one holding a fenced
     `| Broad gate | ... |` row -- into the repository's own file, naming no
     position for it. So a fenced example above the live table, or above a
@@ -413,7 +413,7 @@ def config_text(home):
       - a hook that may not stop -- `hooks/mode-gate.py` -- reads a refusal
         as nothing it can act on and says nothing, because a gate that
         refuses wrongly is an outage nobody can get past (`CONTRIBUTING.md`
-        §*What a change to a gate must carry*);
+        *What a change to a gate must carry*);
       - a command a person runs prints the sentence and exits 2 with nothing
         judged, because a command that reads a written row as absent acts as
         if the person had written none.
@@ -519,6 +519,7 @@ def rows_named_below(text, index, item):
     walk."""
     begins = gfm_line_starts(text)
     count = 0
+    # exempt from splitlines: lines the GFM walk numbers
     for at, line in unfenced(text.splitlines(), text):
         if at <= index or not begins[at]:
             continue
@@ -596,7 +597,7 @@ def declared_mode(home):
 # `specs` as history: a REFERENCE ROOT, read when a change touches what it
 # describes and never moved, edited, absorbed or deleted. The checks that read
 # a record ask `under_reference_root` before they read a path, so none of them
-# carries a test of its own (`templates/config.md` §*Reference specs*).
+# carries a test of its own (`templates/config.md` *Reference specs*).
 
 REFERENCE_ROW = "Reference specs"
 NO_REFERENCE = "none"
@@ -604,7 +605,7 @@ NO_REFERENCE = "none"
 REFERENCE_NAME = "specs"
 # The plugin's own root in the tree, `hooks/optin.py#HOME`. Spelled here so
 # this reader needs no second sibling, and held equal to that one by
-# `tests/test_a_reference_root_is_read_and_never_taken.py`.
+# `tests/test_config.py`.
 HOME = "seal"
 
 
@@ -678,6 +679,30 @@ def under_reference_root(rel, roots):
     return any(joined == p or joined.startswith(p + "/") for p in roots)
 
 
+# --- the policy root (#953) -------------------------------------------------
+
+POLICY_ROW = "Policy root"
+POLICY_DEFAULT = "docs"
+
+
+def policy_root(home):
+    """The repository-relative directory `<home>/config.md`'s `Policy root`
+    row names, without a leading `./` or a trailing `/`, or `docs`.
+
+    No root, no file, no such row, an empty value, a refusal and a value
+    that leaves the repository (an absolute path or a `..` part) all read as
+    `docs`, the directory every repository read before the row existed.
+    `templates/config.md` *The fold's values* states the row."""
+    value = declared_value(home, POLICY_ROW)[0] if home else None
+    rel = (value or "").strip().replace("\\", "/")
+    while rel.startswith("./"):
+        rel = rel[2:]
+    rel = rel.rstrip("/")
+    if not rel or rel.startswith("/") or ".." in rel.split("/"):
+        return POLICY_DEFAULT
+    return rel
+
+
 # --- the pact a signer declares (#647) -------------------------------------
 #
 # A work item can commit in more than one repository, and where those
@@ -696,7 +721,6 @@ def under_reference_root(rel, roots):
 # the print and the refusal are about the same row.
 
 PACT_ROW = "Pact"
-# The separator `Over the ceiling` already uses between its entries.
 PACT_SEPARATOR = ";"
 # A pact's name in an anchor, `pact:<name>/"<heading path>"@<hash>`: the last
 # path segment of the pact's repository's normalised origin URL. The class is
@@ -832,7 +856,7 @@ def pact_declaration(text):
 
     **Only the `Pact` row is read.** A row of any other item is no answer
     about a pact, a `Pact notify` row an earlier release read included
-    (`templates/config.md` §*Pact*).
+    (`templates/config.md` *Pact*).
 
     **A table the walker refuses is refused here too** (#871). Its
     sentences are appended after every other refusal: a `Pact` row below
@@ -904,6 +928,7 @@ def declared_pacts(home):
 # starts are CommonMark 4.6's seven kinds, measured against cmark-gfm one tag
 # name at a time; an autolink, `<https://…>`, is not one of them, and the
 # renderer reads it as one of the table's rows.
+# exempt from heading_rule: the table walker's table end, held to cmark-gfm
 ATX_HEADING = re.compile(r"#{1,6}(?:[ \t]|$)")
 THEMATIC_BREAK = re.compile(r"(?:(?:\*[ \t]*){3,}|(?:-[ \t]*){3,}|(?:_[ \t]*){3,})$")
 BLOCK_QUOTE = re.compile(r">")
@@ -1056,6 +1081,7 @@ def gfm_line_starts(text):
     line GFM begins. `str.splitlines` also ends a line at eight characters
     GFM reads as part of the line -- a form feed, U+2028 and six more -- so
     a piece after one of them is more of the GFM line above it."""
+    # exempt from splitlines: the walk's own pieces, each asked if it starts a line
     pieces = text.splitlines(keepends=True)
     return [
         at == 0 or pieces[at - 1].endswith(GFM_LINE_ENDS) for at in range(len(pieces))
@@ -1118,6 +1144,7 @@ def gfm_table(text, header):
     width = len(header)
     shape = "a one-cell row" if width == 1 else f"a {width}-cell row"
     written = "`|" + " … |" * width + "`"
+    # exempt from splitlines: lines the GFM walk numbers
     lines = text.splitlines()
     shown = list(unfenced(lines, text))
     at = next(
@@ -1260,6 +1287,7 @@ def read_table(text, header):
     if not (refusals and refusals[0].startswith("holds no ")):
         named = f"`| {' | '.join(old)} |`" if old else None
         glued = [
+            # exempt from splitlines: the line gfm_table numbered, split as it was
             text.splitlines()[line - 1].strip()
             for line, cells in rows
             if holds_old and cells == old
@@ -1331,6 +1359,48 @@ def _signer(refusal):
     return refusal.replace("every row below it", "every signer below it")
 
 
+# --- the migration config's baseline (#988) --------------------------------
+#
+# `seal/parity.md` is written from `templates/parity.md`, a `| Field | Value |`
+# table whose `Baseline commit` cell holds the SHA the original's coordinates
+# refer to, in its first code span. `chain_check.py` compares each round
+# record's `original:` line with it, and reads it through this one function.
+
+PARITY_TABLE = ("Field", "Value")
+BASELINE_ROW = "Baseline commit"
+BASELINE_SHA = re.compile(r"[0-9a-f]{7,40}")
+FIRST_CODE_SPAN = re.compile(r"`([^`]*)`")
+
+
+def baseline_commit(text):
+    """`(sha, None)` for the migration config TEXT whose one `Baseline
+    commit` row holds 7 to 40 lowercase hex digits, and nothing else, in the
+    first code span of its value; else `(None, why)`.
+
+    The table is read by `read_table`, so a table GFM renders no row of is
+    no row here. No table, no such row, the row written twice, and a first
+    code span holding anything but a SHA, the template's `<SHA>` among them,
+    are each a `why` that reads after the file's name."""
+    rows, refusals, header = read_table(text, PARITY_TABLE)
+    if header is None:
+        return None, refusals[0]
+    found = [cells[1] for _line, cells in rows if cells[0] == BASELINE_ROW]
+    if not found:
+        table = f"`| {' | '.join(PARITY_TABLE)} |`"
+        said = f"holds no `{BASELINE_ROW}` row in its {table} table"
+        return None, "; ".join([said, *refusals])
+    if len(found) > 1:
+        return None, f"holds {len(found)} `{BASELINE_ROW}` rows, and one names it"
+    span = FIRST_CODE_SPAN.search(found[0])
+    if span is None or not BASELINE_SHA.fullmatch(span.group(1)):
+        return None, (
+            f"has a `{BASELINE_ROW}` row whose value is {found[0]}, and the "
+            "commit is the first code span of that value, 7 to 40 lowercase "
+            "hex digits"
+        )
+    return span.group(1), None
+
+
 # --- the word 0.18.x wrote (#822) ------------------------------------------
 #
 # Until 0.19.0 every repository of a work item that keeps a pact had another
@@ -1338,7 +1408,7 @@ def _signer(refusal):
 # regenerates. It still reads (`read_table`), and both commands print the
 # sentence below where they read one. This unit is the one place the old word is written, which is
 # what lets `tests/test_one_word_one_meaning.py` refuse it everywhere else and
-# exclude this unit by name (`docs/the-pact.md` §*The words*).
+# exclude this unit by name (`docs/the-pact.md` *The words*).
 RENAMED_IN = "0.19.0"
 
 

@@ -2,7 +2,7 @@
 name: learn
 description: |
   Record an insight that cost real debugging effort and cannot be recovered
-  from a search — project-specific causes, dependency quirks, the reason
+  from a search: project-specific causes, dependency quirks, the reason
   behind an architectural choice.
   Use when: something was just figured out the hard way and the next session
   would otherwise pay for it again.
@@ -10,18 +10,18 @@ description: |
   minutes, or facts the code and git history already carry.
 ---
 
-# learn — write down only what a search cannot return
+# learn, write down only what a search cannot return
 
 Most of what a session discovers is recoverable: the code holds it, git
 holds it, a search answers it in five minutes. What is not recoverable is
-the thing that cost hours and leaves no trace — the dependency quirk, the
-reason an abstraction is shaped that way. Record that and nothing else.
+the thing that cost hours and leaves no trace, such as the dependency quirk or
+the reason an abstraction is shaped that way. Record that and nothing else.
 
 ## Save Criteria (must meet ALL)
-1. **Non-Googleable** - Can't find answer in 5-min search
-2. **Project-specific** - Tied to this codebase/setup
-3. **Hard-won** - Required real debugging effort
-4. **Actionable** - Includes specific files, lines, code
+1. **Non-Googleable**: no five-minute search finds the answer
+2. **Project-specific**: tied to this codebase or setup
+3. **Hard-won**: it took real debugging effort
+4. **Actionable**: it includes specific files, lines, code
 
 ## What to Save
 - Bug patterns unique to this project
@@ -51,10 +51,10 @@ Save to: `~/.claude/projects/<project>/memory/`
 [What went wrong]
 
 ## Root Cause
-[Why it happened - specific to this project]
+[Why it happened, specific to this project]
 
 ## Solution
-[What fixed it - with file paths and code]
+[What fixed it, with file paths and code]
 
 ## Prevention
 [How to avoid this in the future]

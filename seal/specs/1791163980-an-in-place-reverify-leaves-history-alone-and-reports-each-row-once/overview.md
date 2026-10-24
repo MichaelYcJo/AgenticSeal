@@ -29,7 +29,7 @@ An in-place `--reverify` re-stamped and re-dated readings `--strict` no longer j
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository lint and the typecheck at this branch's head | the sealer, after the review rounds settle |
+| closed The full suite, the repository lint and the typecheck at this branch's head | #801, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
 
 ## Not done
 

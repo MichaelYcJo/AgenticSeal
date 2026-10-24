@@ -64,6 +64,12 @@ The policy documents in docs/ outrank this file; cite them, don't restate. -->
 - `.github/scripts/budget_check.py`: `expected_level(base_level, ratio)` beside `price_problems`, returning `seconds(base_level * ratio)` with a `Reads: nothing` line; `price_problems` and the `restate` branch of `check` call it, and that expression appears nowhere else in the file.
 - `seal/specs/1791876665-each-budget-ratchets-and-every-pull-request-measures-it/spec.md`, the `slow-file:<path>` row's Kind cell, and `questions.md`, the gate-or-report bullet: `report`, with the measurement that moved it (one union moves a single file 0.67 to 1.72 times the level from the next, #931) and `suite-seconds` named as the gate. The row's unit, measurer and starting ceiling stay as they were.
 
+## Rule changes
+
+- nothing
+  why: internal: every run's Windows shards measure the durations, held by
+    tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py.
+
 ## Removes
 
 | Removes | Coordinate | Where it lands, or why it can go |

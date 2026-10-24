@@ -30,7 +30,7 @@ forbidden, and the page names each row that sits under its kind's bar.
 
 | Item | Who must answer |
 |---|---|
-| The full suite, repository-wide lint and the broad gate over the tip | the orchestrator, through the sealer after the review rounds settle (contract §2) |
+| closed The full suite, repository-wide lint and the broad gate over the tip | #696, merged with lint and the suite green on the ubuntu, macOS and Windows legs |
 | A warden row graded on a real transcript: the run measured in phase 4 had no warden segment yet, so only framer and smith rows met the grade outside fixtures | the orchestrator, at the `--segments` reading it takes after this item's first review round |
 | `questions.md` Q2 — a framer spawned after this ships, reading its tools per turn and whether it finishes | the orchestrator of the first framer spawn after this merges, posting its `--segments` row to the open `flow-measurement` log |
 

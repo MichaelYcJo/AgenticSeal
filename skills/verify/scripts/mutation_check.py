@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run one mutation of one unit, and say whether a case noticed.
+"""Run mutations of one file, each alone, and say whether a case noticed it.
 
 #641, with #129. `agents/smith.md` asks the implementer to break every unit it
 added, one at a time, and watch a case go red. Typed by hand that is three
@@ -42,6 +42,25 @@ own output. The bound applies to each of the two runs.
 Exit 2 is everything that measured nothing, so `mutation-check ... &&
 mutation-check ...` stops at the first unit nothing watches or the first run
 that could not say.
+
+**Several mutants in one call.** `--replace OLD NEW` given more than once is
+a batch, #942's instrument for a module's sample of mutants:
+
+    mutation-check <file> --replace OLD1 NEW1 --replace OLD2 NEW2 ... --tests "<command> -x"
+
+Every pair is checked against the file as it is before anything runs, and
+one that does not land exactly once refuses the whole batch, naming the
+pair by its place. The command then runs once against the file as it is,
+and each mutant is written alone, run once and restored, in the order
+given. One line is printed per pair, `mutant <n>: <verdict>`, with its
+seconds; a run with no verdict adds its detail and its output beneath. A
+last line counts the verdicts. The exit is 1 where any mutant survived, 2
+where none did and a run measured nothing, and 0 where every mutant is red.
+A run with no verdict does not stop the batch, but `no baseline`, `not
+restored` and `interrupted` do. Stopping each mutant's run at its first
+failing case is the tests command's job, not this one's: pass `-x` in
+`--tests`, and a red mutant then costs only the cases up to the first one
+that notices it. One pair is the single run above, printed as it always was.
 
 **The bound ends what the run started, not only the process it spawned.**
 `subprocess.run`'s timeout kills the direct child, and `bin/test` execs a
@@ -116,6 +135,8 @@ NOT_RESTORED = "not restored"
 INTERRUPTED = "interrupted"
 NO_BASELINE = "no baseline"
 COULD_NOT_RUN = "could not run"
+# The first item a batch yields where the cases pass against the file as it is.
+BASELINE = "baseline"
 
 EXIT = {RED: 0, SURVIVED: 1}
 
@@ -175,7 +196,7 @@ def mutated(text: str, old: str, new: str, path: str) -> str:
 
 def strategy(os_name: str) -> str:
     """What the bound ends on this platform. Takes the platform as an
-    argument so the Windows half is pinned from any machine (contract §13)."""
+    argument so the Windows half is pinned from any machine (contract rule 13)."""
     return CHILD if os_name == "nt" else GROUP
 
 
@@ -298,59 +319,24 @@ def mutation_run(
     `Refused` before any run; `NO_BASELINE` when the cases fail before the
     write; `NotRestored` when the restore did not land, which replaces
     whatever the run said."""
-    with open(path, "rb") as f:
-        original = f.read()
-    original_sha = hashlib.sha256(original).hexdigest()
-    try:
-        text = original.decode("utf-8")
-    except UnicodeDecodeError as exc:
-        raise Refused(f"{path} is not UTF-8 text ({exc}); nothing was written") from exc
+    original, original_sha, text = _held(path)
     after = mutated(text, old, new, path)
+    env = _environment()
 
-    # Both halves of the bytecode step, as `arm_check.run_arms` has them: the
-    # removal takes what was there before the run, and the variable stops the
-    # run writing more. The removal is repeated after the restore for a
-    # command that builds its own environment and writes the mutant's `.pyc`
-    # anyway.
-    env = dict(os.environ)
-    env["PYTHONDONTWRITEBYTECODE"] = "1"
-
-    # The cases must pass against the file as it is first. Otherwise a failure
-    # under the mutation says nothing about the mutation: a `-k` that selects
-    # nothing exits 5, a mistyped module exits 4, a case already failing exits
-    # 1, and each read `red` -- *a case watches this unit* -- for a unit no
-    # case ran against (round 1, 🔴 1). Every removal is handed `cwd`: a
-    # relative `PYTHONPYCACHEPREFIX` names a mirror under the directory the
-    # cases import from, not this process's (round 1, ⬜ 7; #703).
+    # Every removal is handed `cwd`: a relative `PYTHONPYCACHEPREFIX` names a
+    # mirror under the directory the cases import from, not this process's
+    # (round 1, ⬜ 7; #703).
     clear_bytecode_cache(path, cwd=cwd)
     # The restore's reach starts here, at the baseline, not at the write: the
     # cases may write the file themselves, and every exit -- an interrupt in
     # the baseline included -- is reported as the file holding the bytes it
-    # held before the command started (round 3, 🟡 15). The compare below
-    # restores only bytes that differ, so a baseline that leaves the file
-    # alone still writes nothing.
+    # held before the command started (round 3, 🟡 15). The compare in
+    # `_put_back` restores only bytes that differ, so a baseline that leaves
+    # the file alone still writes nothing.
     try:
-        before, detail, output = run_cases(command, cwd=cwd, env=env, timeout=timeout)
-        if before == RED:
-            # The baseline's own exit, `(exit N)` from `run_cases`' red detail:
-            # pytest's 5 and 4 are what tell a mistyped `-k` from a failing case.
-            exited = detail[detail.rfind("(exit ") :]
-            return (
-                NO_BASELINE,
-                f"the cases fail against the file as it is {exited}, so a failure "
-                f"under the mutation would say nothing about it. The break was "
-                f"never written",
-                output,
-            )
-        if before != SURVIVED:
-            # A sentence of its own, so it reads as the verdict's and not as the
-            # last clause of the detail's (round 2, ⬜ 12).
-            return (
-                before,
-                f"{detail}. This was the run against the file as it is, before "
-                f"the mutation was written",
-                output,
-            )
+        refusal = _baseline(command, cwd=cwd, env=env, timeout=timeout)
+        if refusal:
+            return refusal
         with open(path, "wb") as f:
             f.write(after.encode("utf-8"))
         # Again after the write: the baseline's cases may have written the
@@ -358,31 +344,147 @@ def mutation_run(
         clear_bytecode_cache(path, cwd=cwd)
         return run_cases(command, cwd=cwd, env=env, timeout=timeout)
     finally:
+        _put_back(path, original, original_sha, cwd)
+
+
+def batch_run(
+    path: str,
+    pairs,
+    command: list[str],
+    *,
+    cwd: str,
+    timeout: float | None = DEFAULT_TIMEOUT,
+):
+    """Run the cases once against the file as it is, then once against each
+    pair's mutation alone, restoring the file after each. A generator of
+    `(verdict, detail, output, seconds)`.
+
+    The first item is the baseline's: `BASELINE` where the cases passed, and
+    otherwise the verdict that measured nothing, after which nothing more is
+    yielded and no mutant was written. Then one item per pair, in the order
+    given. `Refused` comes before any run, naming the first pair that does
+    not land exactly once; `NotRestored` ends the batch where it happens."""
+    original, original_sha, text = _held(path)
+    afters = []
+    for number, (old, new) in enumerate(pairs, 1):
         try:
-            # Only over bytes that differ. A write that never reached the file
-            # -- it was read-only before the command started -- leaves nothing
-            # to put back, and a restore tried anyway raises the same error
-            # and reads `not restored` over the original (round 2, 🟡 9). A
-            # file that cannot be read, or that the cases removed, differs.
-            try:
-                with open(path, "rb") as f:
-                    on_disk = hashlib.sha256(f.read()).hexdigest()
-            except OSError:
-                on_disk = None
-            if on_disk != original_sha:
-                restore(path, original, original_sha)
-        except RuntimeError as exc:
-            raise NotRestored(str(exc)) from exc
-        except BaseException as exc:
-            # A write that raised -- the cases made the file read-only or
-            # removed its directory, or a second Ctrl-C landed inside the
-            # write -- is a restore that did not land as surely as a hash
-            # that differs (round 1, 🟡 2).
-            raise NotRestored(
-                f"{path} was not restored: writing it back raised "
-                f"{type(exc).__name__}: {exc}."
-            ) from exc
-        clear_bytecode_cache(path, cwd=cwd)
+            afters.append(mutated(text, old, new, path))
+        except Refused as exc:
+            raise Refused(f"pair {number}: {exc}") from exc
+    env = _environment()
+
+    clear_bytecode_cache(path, cwd=cwd)
+    started = time.monotonic()
+    try:
+        refusal = _baseline(command, cwd=cwd, env=env, timeout=timeout)
+    finally:
+        _put_back(path, original, original_sha, cwd)
+    seconds = time.monotonic() - started
+    if refusal:
+        yield (*refusal, seconds)
+        return
+    yield BASELINE, "the cases pass against the file as it is", "", seconds
+
+    for after in afters:
+        started = time.monotonic()
+        try:
+            with open(path, "wb") as f:
+                f.write(after.encode("utf-8"))
+            result = run_cases(command, cwd=cwd, env=env, timeout=timeout)
+        finally:
+            # The restore clears the bytecode after it, so the next mutant's
+            # run meets none of what this one's cases wrote.
+            _put_back(path, original, original_sha, cwd)
+        yield (*result, time.monotonic() - started)
+
+
+def _held(path: str):
+    """The file's bytes, their sha256 and their text, read once before any
+    write; `Refused` for a file that is not UTF-8."""
+    with open(path, "rb") as f:
+        original = f.read()
+    original_sha = hashlib.sha256(original).hexdigest()
+    try:
+        text = original.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise Refused(f"{path} is not UTF-8 text ({exc}); nothing was written") from exc
+    return original, original_sha, text
+
+
+def _environment() -> dict:
+    """The cases' environment.
+
+    Both halves of the bytecode step, as `arm_check.run_arms` has them: the
+    removal takes what was there before the run, and the variable stops the
+    run writing more. The removal is repeated after the restore for a
+    command that builds its own environment and writes the mutant's `.pyc`
+    anyway."""
+    env = dict(os.environ)
+    env["PYTHONDONTWRITEBYTECODE"] = "1"
+    return env
+
+
+def _baseline(command, *, cwd, env, timeout):
+    """The run against the file as it is: `None` where the cases passed, and
+    otherwise `(verdict, detail, output)` saying why nothing was measured.
+
+    The cases must pass against the file as it is first. Otherwise a failure
+    under the mutation says nothing about the mutation: a `-k` that selects
+    nothing exits 5, a mistyped module exits 4, a case already failing exits
+    1, and each read `red` -- *a case watches this unit* -- for a unit no case
+    ran against (round 1, 🔴 1)."""
+    before, detail, output = run_cases(command, cwd=cwd, env=env, timeout=timeout)
+    if before == RED:
+        # The baseline's own exit, `(exit N)` from `run_cases`' red detail:
+        # pytest's 5 and 4 are what tell a mistyped `-k` from a failing case.
+        exited = detail[detail.rfind("(exit ") :]
+        return (
+            NO_BASELINE,
+            f"the cases fail against the file as it is {exited}, so a failure "
+            f"under the mutation would say nothing about it. The break was "
+            f"never written",
+            output,
+        )
+    if before != SURVIVED:
+        # A sentence of its own, so it reads as the verdict's and not as the
+        # last clause of the detail's (round 2, ⬜ 12).
+        return (
+            before,
+            f"{detail}. This was the run against the file as it is, before "
+            f"the mutation was written",
+            output,
+        )
+    return None
+
+
+def _put_back(path: str, original: bytes, original_sha: str, cwd: str) -> None:
+    """Restore the file from the held bytes where it differs, then remove its
+    bytecode; `NotRestored` where the restore did not land."""
+    try:
+        # Only over bytes that differ. A write that never reached the file
+        # -- it was read-only before the command started -- leaves nothing
+        # to put back, and a restore tried anyway raises the same error
+        # and reads `not restored` over the original (round 2, 🟡 9). A
+        # file that cannot be read, or that the cases removed, differs.
+        try:
+            with open(path, "rb") as f:
+                on_disk = hashlib.sha256(f.read()).hexdigest()
+        except OSError:
+            on_disk = None
+        if on_disk != original_sha:
+            restore(path, original, original_sha)
+    except RuntimeError as exc:
+        raise NotRestored(str(exc)) from exc
+    except BaseException as exc:
+        # A write that raised -- the cases made the file read-only or
+        # removed its directory, or a second Ctrl-C landed inside the
+        # write -- is a restore that did not land as surely as a hash
+        # that differs (round 1, 🟡 2).
+        raise NotRestored(
+            f"{path} was not restored: writing it back raised "
+            f"{type(exc).__name__}: {exc}."
+        ) from exc
+    clear_bytecode_cache(path, cwd=cwd)
 
 
 def main(argv=None) -> int:
@@ -390,19 +492,23 @@ def main(argv=None) -> int:
     parser = argparse.ArgumentParser(
         prog="mutation-check",
         description=(
-            "Run one mutation of one unit: write it, run the cases, restore "
-            "the file from held bytes, and say whether a case noticed."
+            "Run one mutation of one unit, or one per --replace pair: write "
+            "it, run the cases, restore the file from held bytes, and say "
+            "whether a case noticed."
         ),
     )
     parser.add_argument("path", help="the file to mutate; any UTF-8 text file")
     parser.add_argument(
         "--replace",
         nargs=2,
+        action="append",
         metavar=("OLD", "NEW"),
         required=True,
         help=(
             "literal text, no regex. OLD must occur exactly once or nothing "
-            "is written; NEW may be empty"
+            "is written; NEW may be empty. Given more than once, each pair is "
+            "a mutant of one batch: the baseline runs once, then each mutant "
+            "once, and -x in --tests stops each run at its first failure"
         ),
     )
     parser.add_argument(
@@ -432,10 +538,21 @@ def main(argv=None) -> int:
 
     started = time.monotonic()
     try:
+        if len(args.replace) > 1:
+            return _report_batch(
+                batch_run(
+                    args.path,
+                    args.replace,
+                    command,
+                    cwd=args.cwd or os.getcwd(),
+                    timeout=args.timeout or None,
+                ),
+                started,
+            )
         verdict, detail, output = mutation_run(
             args.path,
-            args.replace[0],
-            args.replace[1],
+            args.replace[0][0],
+            args.replace[0][1],
             command,
             cwd=args.cwd or os.getcwd(),
             timeout=args.timeout or None,
@@ -473,14 +590,53 @@ def main(argv=None) -> int:
             flush=True,
         )
         return 2
-    elapsed = time.monotonic() - started
-    # `timed out after 300s: ...` reads as one phrase; the others are a word
-    # and what it means.
-    joint = " " if verdict == TIMED_OUT else ": "
-    print(f"{verdict}{joint}{detail} ({elapsed:.1f}s)", flush=True)
+    print(_line(verdict, detail, time.monotonic() - started), flush=True)
     if output.strip():
         print(output.rstrip("\n"), flush=True)
     return EXIT.get(verdict, 2)
+
+
+def _line(verdict: str, detail: str, seconds: float, lead: str = "") -> str:
+    """One printed verdict. `timed out after 300s: ...` reads as one phrase;
+    the others are a word and what it means."""
+    joint = " " if verdict == TIMED_OUT else ": "
+    return f"{lead}{verdict}{joint}{detail} ({seconds:.1f}s)"
+
+
+def _report_batch(results, started: float) -> int:
+    """Print a batch as it runs, one line per mutant, and return its exit.
+
+    A red or a SURVIVED is one line, because thirty of them with the cases'
+    output each would bury the one that matters; a run that measured nothing
+    says why and shows its output."""
+    first = next(results)
+    if first[0] != BASELINE:
+        verdict, detail, output, seconds = first
+        print(_line(verdict, detail, seconds), flush=True)
+        if output.strip():
+            print(output.rstrip("\n"), flush=True)
+        return 2
+    print(_line(*first[:2], first[3]), flush=True)
+    verdicts = []
+    for number, (verdict, detail, output, seconds) in enumerate(results, 1):
+        verdicts.append(verdict)
+        lead = f"mutant {number}: "
+        if verdict in EXIT:
+            print(f"{lead}{verdict} ({seconds:.1f}s)", flush=True)
+            continue
+        print(_line(verdict, detail, seconds, lead), flush=True)
+        if output.strip():
+            print(output.rstrip("\n"), flush=True)
+    red, survived = verdicts.count(RED), verdicts.count(SURVIVED)
+    print(
+        f"mutation-check: {len(verdicts)} mutants, {red} red, {survived} "
+        f"SURVIVED, {len(verdicts) - red - survived} with no verdict "
+        f"({time.monotonic() - started:.1f}s)",
+        flush=True,
+    )
+    if survived:
+        return 1
+    return 0 if red == len(verdicts) else 2
 
 
 if __name__ == "__main__":

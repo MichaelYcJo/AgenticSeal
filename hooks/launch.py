@@ -20,7 +20,7 @@ script's sibling imports and its own path behave as they would.
 
 **This file is the floor's one source.** `.github/scripts/run_tests.py`
 reads `FLOOR` from it. `ruff.toml`'s `target-version` cannot import, so
-`tests/test_a_script_says_which_interpreter_it_needs.py` holds it equal.
+`tests/test_launch.py` holds it equal.
 
 **Its syntax is the oldest Python 3's.** No f-string, no walrus, nothing
 keyword-only, and no import above the check that a new release added: a
@@ -30,7 +30,7 @@ It sits in `hooks/` because each wrapper it serves reaches it relative to
 itself, as `$here/../hooks/launch.py`, and `hooks/` already ships the modules the
 scripts share. `hooks/hooks.json` does not run through it: a gate that fails
 is skipped and said, and the call goes ahead
-(`docs/commit-review-gate-spec.md` §*Registration*), where exit 2 from a hook
+(`docs/commit-review-gate-spec.md` *Registration*), where exit 2 from a hook
 is the harness's word for blocking the call.
 
 Exit codes: 2 for an interpreter below the floor or no script named, with
@@ -98,5 +98,6 @@ def main(argv):
     return 0
 
 
+# exempt from entry_point: the launcher imports nothing before its floor check
 if __name__ == "__main__":
     sys.exit(main(sys.argv))

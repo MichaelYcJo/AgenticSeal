@@ -26,7 +26,7 @@ working with a printed line instead of a refusal.
 
 | Item | Who must answer |
 |---|---|
-| the full suite, the repository-wide lint and the typecheck over the finished branch | the sealer, once, after the review rounds settle |
+| closed the full suite, the repository-wide lint and the typecheck over the finished branch | #827, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
 
 ## Not done
 

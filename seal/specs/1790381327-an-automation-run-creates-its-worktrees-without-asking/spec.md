@@ -208,6 +208,13 @@ issue, and #237's invariant stays whole.
   joined by `, `, measured in four other transcripts).
 - No file format of this repository changes; no new record is written.
 
+## Rule changes
+
+- nothing
+  why: written: the press as the second consent, and the Agent path that counts no session,
+    in docs/worktree-guard-spec.md *B* and *Creation consent*; internal: the transcript
+    reader's checks, held by its tests.
+
 ## Open questions → questions.md
 
 Four rows, none of which blocks the build: two for a person (Q1, Q2) with

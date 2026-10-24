@@ -183,6 +183,12 @@ the cases that hold the ledger's rules. None of them changes a shipped script.
   by grep: D1 (`0.15.1.md`, on the edit-arm section) and R4 (`0.9.1.md`, on
   §*The fix surface*). Rows added: two, in the fragment.
 
+## Rule changes
+
+- nothing
+  why: overturned: the ledger, its release files and their cell count left the tree at
+    5b1f6fae, and docs/round-record-spec.md at 8350c578.
+
 ## Open questions → questions.md
 
 One row needs a person. It does not block the build, and it has a default.

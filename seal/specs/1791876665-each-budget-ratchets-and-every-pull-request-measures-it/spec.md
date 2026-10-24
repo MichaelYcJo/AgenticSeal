@@ -66,6 +66,11 @@ A line is a **rule line** from a line opening with `**` to the next `Enforced by
 
 `seal/budgets.md` — a `## Budgets` table `| Budget | Unit | Ceiling | Slack | Kind |`, and two per-file tables, `## Slow test files` `| File | Seconds ceiling |` and `## Docs history lines` `| File | Lines ceiling |`, each read by the one checker through the repository's GFM table walker (`hooks/config.py`). `budget_check.py` — `--baseline <ref>` (merge base, as `unverified_check.py` resolves it), `--pr-body-env <VAR>`, `--base-ref <branch>`, `--ci-jobs <file>`, `--trend <tag>`; writes `$GITHUB_STEP_SUMMARY` when set, stdout otherwise; names no machine path. Ledger rows: this spec's clauses anchored to the checker's units and their tests, in `seal/ledger/1791876665-….md`.
 
+## Rule changes
+
+- nothing
+  why: overturned: seal/budgets.md, budget_check.py and their job left the tree at 8350c578.
+
 ## Removes
 
 nothing — every existing ceiling (`timeout-minutes`, `CASE_CEILING_S`, `Document line ceiling`) keeps its reader; the budgets sit beside them, and the one `CONTRIBUTING.md` sentence the new job makes false is rewritten in place, not removed.

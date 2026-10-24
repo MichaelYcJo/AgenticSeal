@@ -486,6 +486,12 @@ refusal and the guard still stand, and failed there.
 - Kept files under `--keep-output`: `suite.txt`, `suite-at-base.txt`,
   `records/head-<token>-<pid>.jsonl`, `records/base-<token>-<pid>.jsonl`.
 
+## Rule changes
+
+- nothing
+  why: internal: the gate reads the counts its pytest plugin recorded, held by
+    tests/test_the_recorder_writes_what_its_process_ran.py.
+
 ## Open questions → questions.md
 
 `questions.md` beside this file. One row is a person's and does not block:

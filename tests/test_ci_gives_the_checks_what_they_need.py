@@ -47,7 +47,7 @@ WORKFLOWS = os.path.join(ROOT, ".github", "workflows")
 
 # Events GitHub does NOT include by default, and that a workflow needs where
 # it runs the one script that reads draft state: `chain_check.py` excuses a
-# draft (`docs/the-review-record.md` §*What the check reads at the pull
+# draft (`docs/the-review-record.md` *What the check reads at the pull
 # request*), so leaving draft state has to re-run it.
 DRAFT_EVENTS = ("ready_for_review", "converted_to_draft")
 DRAFT_READER = "chain_check.py"
@@ -260,7 +260,7 @@ def matrix_include_entries(text):
 # A matrix in this repository's shape, with a commented entry, a trailing
 # comment, a single-quoted value, a value holding a `#`, a key of the job
 # that ends the matrix and a second job's matrix. Neutral values
-# only (`CONTRIBUTING.md` §*House rules*, *No real identifiers*).
+# only (`CONTRIBUTING.md` *House rules*, *No real identifiers*).
 MATRIX = """\
 name: tests
 
@@ -413,7 +413,7 @@ def shallow_pytest_jobs(text):
 # Every way a job here has been seen to call pytest, each on a shallow
 # checkout, and one that only names the job: round 1's 🟡 3 of work item
 # 1791876667 found the first four unselected. Neutral values only
-# (`CONTRIBUTING.md` §*House rules*, *No real identifiers*).
+# (`CONTRIBUTING.md` *House rules*, *No real identifiers*).
 SHALLOW_RUNNERS = {
     "uvx-pytest": "uvx --with pytest pytest tests/ -q",
     "uv-run-pytest": "uv run pytest tests/ -q",
@@ -543,3 +543,19 @@ def test_a_newer_pull_request_run_cancels_the_older_and_no_other_run_waits():
             f"`{CANCEL_ON_PULL_REQUEST}` cancels a pull request's run and "
             "no other"
         )
+
+
+def test_every_pytest_leg_has_a_timeout_and_the_job_reads_it():
+    """Each `pytest` leg of `test.yml` carries a `timeout-minutes` past which
+    GitHub fails the job (#841). It moved here from the slow-case module when
+    that module's ceiling became a report (#942)."""
+    text = read("test.yml")
+    entries = matrix_include_entries(text)
+    assert entries
+    budgets = [e.get("timeout", "") for e in entries]
+    assert all(b.isdigit() for b in budgets), f"a leg with no timeout: {entries}"
+    assert all(int(b) > 0 for b in budgets), entries
+    job = jobs(text)["pytest"]
+    assert "\n    timeout-minutes: ${{ matrix.timeout }}\n" in job, (
+        "the job does not read the matrix's timeout"
+    )

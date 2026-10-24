@@ -167,6 +167,12 @@ move whose two hashes agree records nothing. Policy outranks the ticket
 - **Moves recorded before this release keep their old hash.** No migration
   runs: a record is permanent and never edited.
 
+## Rule changes
+
+- nothing
+  why: overturned: the re-verify and the pact-change trigger left with the ledger
+    (5b1f6fae).
+
 ## Open questions → questions.md
 
 Anything a planner must answer lives in questions.md, not inline — unanswered

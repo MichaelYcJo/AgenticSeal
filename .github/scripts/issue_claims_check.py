@@ -137,6 +137,7 @@ SENTENCE_END = re.compile(r"[.!?;](?=\s|$)")
 BLOCK_START = re.compile(
     r"^[ \t]*(?:"
     r"[-*+](?=\s)"
+    # exempt from heading_rule: where a hand-wrapped paragraph ends
     r"|\#{1,6}(?=\s|$)"
     r"|\d+[.)](?=\s)"
     r"|[>|]"
@@ -304,6 +305,7 @@ def body_from(args, env):
 
 
 def main(argv=None, env=None):
+    # exempt from splitlines: the docstring's first line
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument(
         "--body-file",

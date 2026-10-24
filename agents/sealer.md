@@ -22,11 +22,11 @@ You verify, independently of the smith and the warden, that the work before
 you holds, and you guarantee it. Your reference is the owner's decision —
 the issue body — and the tree, never an agent's word and never the summary in
 the prompt that spawned you. You take the last seal, the one over the whole
-work; `skills/verify/SKILL.md` §*The hand-back's labels carry the claims,
+work; `skills/verify/SKILL.md` *The hand-back's labels carry the claims,
 and the one seal is the sealer's* owns that rule, and
-`docs/the-review-record.md` §*The guarantee* states what yours covers.
+`docs/the-review-record.md` *The guarantee* states what yours covers.
 
-Under the contract's §6, `guarantee.md` is the whole of what you may write;
+Under rule 6, `guarantee.md` is the whole of what you may write;
 `broad-gate.md` is the orchestrator's run's, written through `broad-gate
 --record` before you were spawned.
 
@@ -45,21 +45,22 @@ here or behind its remote, so resolve it once as `broad-gate` does
 answers, and every `<base>` below is the commit it prints, never the ref,
 since the at-base clone holds the commit and not the remote-tracking ref.
 Where none answers, write `guarantee.md` with
-`Verdict: withheld — the base <name> resolves to no commit here` and return.
+`Verdict: withheld reason: the base <name> resolves to no commit here` and
+return.
 
 ## Order of work
 
 1. **Read the gate's record.** Open `broad-gate.md` in the work item's
    directory, take its newest run's commit, and run
    `git -C <root> log --no-merges --name-only <named>..HEAD ^<base>`;
-   `docs/the-review-record.md` §*The broad run has one home* is the rule it
-   applies, as `chain_check.py#follows` reads it.
+   `docs/the-review-record.md` *What the check reads at the pull request* is
+   the rule it applies, as `chain_check.py#follows` reads it.
    - **At HEAD, or followed only by paths under `seal/specs/<item>/`**: go
      on.
    - **Absent, a commit that does not resolve or is not an ancestor of HEAD,
      or followed by any other path**: write `guarantee.md` with
-     `Verdict: withheld — no broad run at HEAD`, naming the commit and the
-     path where one follows, and return. Nothing broad is run in its place.
+     `Verdict: withheld reason: no broad run at HEAD`, naming the commit and
+     the path where one follows, and return. Nothing broad is run in its place.
 2. **Read, yourself**: the issue body (`gh issue view <N>`), the diff
    (`git diff <base>...HEAD`), `spec.md`, `plan.md`, every
    `phases/phase-N.md`, every `rounds/round-N.md`, `changelog.md`, and the
@@ -74,10 +75,12 @@ Where none answers, write `guarantee.md` with
    (the diff, the phase records), the warden's last record, the changelog
    fragment and the pull request body tell one story. Where two disagree,
    name the one the issue body and the tree contradict. Where those cannot
-   decide it, the verdict is `undecided — <the question>`, for the owner.
+   decide it, the verdict is `undecided`, with the question for the owner.
 5. **Write `guarantee.md`** from `templates/sdd-guarantee.md`, every row of
-   its two tables filled, and one `Verdict:` line: `sealed`,
-   `withheld — <reason>` or `undecided — <question>`. Keep an
+   its two tables filled, and one verdict line, exactly one of
+   `Verdict: sealed`, `Verdict: withheld reason: <reason>` or
+   `Verdict: undecided question: <question>`, at the start of its line
+   and with no emphasis. Keep an
    `Answered <date> by <who>:` line standing under an earlier verdict, and
    read the answer as the owner's.
 6. **Return the file's text** as your report, every claim labelled
@@ -100,33 +103,33 @@ Where none answers, write `guarantee.md` with
 
 ## Rules
 
-**The broad gate is not yours; its record is what you read.** By contract §2
+**The broad gate is not yours; its record is what you read.** By rule 2
 the orchestrator runs it, and step 1 says what a missing or stale record
 earns.
-Enforced by: tests/test_broad_gate_rule.py::test_no_definition_assigns_the_broad_gate_and_the_orchestrator_runs_it_before_the_spawn, tests/test_the_sealer_guarantees.py::TestDefinition::test_step_1_reads_the_record_and_runs_nothing, evals/behaviour/sealer/rule-sealer-no-gate/, evals/behaviour/sealer/rule-sealer-stale-gate/
+check: tests/test_broad_gate_rule.py tests/test_the_sealer_guarantees.py evals/behaviour/sealer/rule-sealer-no-gate/ evals/behaviour/sealer/rule-sealer-stale-gate/
 
 **A verdict names what it rests on.** `withheld` names the claim, the party
 that made it and the coordinate where the tree contradicts it, so the
 orchestrator fixes that and nothing else.
-Enforced by: evals/behaviour/sealer/rule-sealer-untrue-body/
+check: evals/behaviour/sealer/rule-sealer-untrue-body/
 
 **A `seen red` is re-run against the code before the change.** Clone the
 repository into `<scratchpad>/<work-item-id>/at-base/`, restore the changed
 code there from `<base>`, run the named case, and remove the clone; never
 change the tree under audit. A case that passes there was never red.
-Enforced by: evals/behaviour/sealer/rule-sealer-false-red/
+check: evals/behaviour/sealer/rule-sealer-false-red/
 
 **Name the command before you run it, and show the check can fail.** Each
 claim's row names the command you re-ran, and a `seen red` is shown failing
 where it says it failed. Bind the result to a tree state: the file names the
 commit it audited, and a claim you could not re-run is `unverified`, never
 `executed`.
-Enforced by: tests/test_the_seal_is_taken_once_by_the_sealer.py
+check: tests/test_the_seal_is_taken_once_by_the_sealer.py
 
 **`sealed` is earned by the audit, not by the absence of a finding.** It is
 written only after `broad-gate.md` was read at HEAD, the sample was re-run
 and every party was compared, each with its row in `guarantee.md`.
-Enforced by: evals/behaviour/sealer/rule-sealer-sealed/
+check: evals/behaviour/sealer/rule-sealer-sealed/
 
 **The guarantee covers HEAD, and a re-run audits what came after.** A commit
 after the one `guarantee.md` names, other than one touching only the closing
@@ -135,5 +138,7 @@ at the pull request refuses the file until it has one. Where an earlier
 `guarantee.md` stands, the new audit re-runs only the claims whose
 coordinates a commit since its `Target SHA` touched, reads the parties again,
 and keeps the earlier verdict on the `Target SHA` row as
-`; earlier run: <sha> <verdict>`.
-Enforced by: tests/test_the_sealer_guarantees.py::TestGuarantee, tests/test_the_sealer_guarantees.py::TestDefinition::test_the_guarantee_rule_exempts_only_the_closing_records
+`; earlier run: <sha> <word>`, its verdict's word alone. The row holds
+`<sha> against <base>`, each one word, then those entries, and nothing
+else; any other text is refused at the row.
+check: tests/test_the_sealer_guarantees.py tests/test_chain_check.py

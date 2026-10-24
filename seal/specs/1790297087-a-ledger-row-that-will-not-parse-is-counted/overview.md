@@ -25,7 +25,7 @@ A ledger row whose coordinate the checker could not parse was counted nowhere, s
 
 | Item | Who must answer |
 |---|---|
-| The full suite | the sealer, once, after the review rounds settle |
+| closed The full suite | #606, merged with the suite green on the ubuntu, macOS and Windows legs |
 
 ## Not done
 

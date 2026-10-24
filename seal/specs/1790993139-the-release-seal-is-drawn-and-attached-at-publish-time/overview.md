@@ -26,9 +26,9 @@ failure leaves the note exactly as it is published today.
 
 | Item | Who must answer |
 |---|---|
-| Which font `ubuntu-latest` gives `font()` (`questions.md` Q11) | the work: the first CI run of the pixel case under `-s`, and the first live run at a tag, whose log names it |
-| That the `seal` job runs at a tag on GitHub's runners and its edit shows the image on the release page (`questions.md` Q9 for the browsers) | the repository owner, at 0.18.0's tag push: the job log's rows and font line, and the release page in Chrome, Firefox and Safari |
-| The full suite, lint and typecheck over the branch (the broad gate) | the sealer, once the review rounds settle |
+| closed Which font `ubuntu-latest` gives `font()` (`questions.md` Q11) | 149ca9ec removed `font()`; the seal is drawn from `release-seal.svg` by `rsvg-convert` |
+| closed That the `seal` job runs at a tag on GitHub's runners and its edit shows the image on the release page (`questions.md` Q9 for the browsers) | the `seal` job at the `v0.22.2` tag, run 39332461097, drew `seal.png`, attached it and put it in the note; how a browser shows it is the limit sentence in `docs/branch-and-release.md` *Cutting a release* |
+| closed The full suite, lint and typecheck over the branch (the broad gate) | #997, the release carrying the work, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
 
 ## Not done
 

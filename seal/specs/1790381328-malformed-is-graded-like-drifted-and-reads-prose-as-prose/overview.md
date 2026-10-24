@@ -26,8 +26,8 @@ which is what the owner answered for #606's Q1.
 
 | Item | Who must answer |
 |---|---|
-| the full suite, repository-wide lint and format at this branch's tip (`unverified`) | the sealer, once the review rounds settle |
-| the `windows-latest` leg over the new non-ASCII parameters (`org/repo#299에서`, `“org/repo#299”`, `docs/a.md#1장` in docstrings) | CI at the pull request |
+| closed the full suite, repository-wide lint and format at this branch's tip (`unverified`) | #621, merged with lint and the suite green on the ubuntu, macOS and Windows legs |
+| closed the `windows-latest` leg over the new non-ASCII parameters (`org/repo#299에서`, `“org/repo#299”`, `docs/a.md#1장` in docstrings) | #621's `windows-latest` leg ran the suite green |
 
 ## Not done
 

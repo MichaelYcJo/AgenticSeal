@@ -170,6 +170,12 @@ regression tests' skeleton. The word rule for the gate's heads is
 - **`chain_check.py`**: `SEALED = "sealed"` unchanged — it is the verdict
   word; `earlier_verdicts(cell)` added.
 
+## Rule changes
+
+- nothing
+  why: written: the gate draws nothing and the stamp is drawn from the sealer's verdict, in
+    docs/the-broad-gate.md and docs/the-review-record.md.
+
 ## Removes
 
 | Removes | Coordinate | Where it lands, or why it can go |

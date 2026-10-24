@@ -5,7 +5,10 @@ import os
 import subprocess
 import sys
 
-from conftest import load_hook_module
+import pytest
+from conftest import census_case, load_hook_module
+
+TARGET = "hooks/lint-python.py"
 
 lp = load_hook_module("lint-python.py", "lint_py")
 
@@ -20,61 +23,6 @@ def run_hook_stdin(payload, tmp_path):
         encoding="utf-8",
         errors="replace",
     )
-
-
-def test_non_python_file_never_reaches_the_formatter(monkeypatch, tmp_path):
-    called = []
-    monkeypatch.setattr(
-        lp, "resolve_runner", lambda: called.append("resolved") or ["ruff"]
-    )
-    monkeypatch.setattr(lp.sys, "argv", ["lint-python.py", str(tmp_path / "notes.md")])
-    lp.main()
-    assert called == [], "a non-.py path must not even look for a runner"
-
-
-def test_python_file_runs_check_fix_then_format(monkeypatch, tmp_path):
-    (tmp_path / "ruff.toml").write_text("line-length = 88\n", encoding="utf-8")
-    f = tmp_path / "m.py"
-    f.write_text("x = 1\n", encoding="utf-8")
-    invocations = []
-    monkeypatch.setattr(lp, "resolve_runner", lambda: ["ruff"])
-    monkeypatch.setattr(
-        lp.subprocess, "run", lambda cmd, **k: invocations.append(cmd) or None
-    )
-    monkeypatch.setattr(lp.sys, "argv", ["lint-python.py", str(f)])
-    lp.main()
-    assert [c[1] for c in invocations] == ["check", "format"], invocations
-    assert "--fix" in invocations[0] and invocations[0][-1] == str(f)
-
-
-def test_missing_runner_is_silent(monkeypatch, tmp_path):
-    f = tmp_path / "m.py"
-    f.write_text("x = 1\n", encoding="utf-8")
-    monkeypatch.setattr(lp, "resolve_runner", lambda: None)
-    monkeypatch.setattr(
-        lp.subprocess,
-        "run",
-        lambda *a, **k: (_ for _ in ()).throw(AssertionError("must not run")),
-    )
-    monkeypatch.setattr(lp.sys, "argv", ["lint-python.py", str(f)])
-    lp.main()  # no exception == pass
-
-
-def test_a_failing_formatter_never_blocks_the_edit(monkeypatch, tmp_path):
-    f = tmp_path / "m.py"
-    f.write_text("x = 1\n", encoding="utf-8")
-    monkeypatch.setattr(lp, "resolve_runner", lambda: ["ruff"])
-    monkeypatch.setattr(
-        lp.subprocess, "run", lambda *a, **k: (_ for _ in ()).throw(OSError("boom"))
-    )
-    monkeypatch.setattr(lp.sys, "argv", ["lint-python.py", str(f)])
-    lp.main()  # swallowed — a formatter crash must not wedge the session
-
-
-def test_malformed_payload_exits_zero(tmp_path):
-    for payload in ("not json at all", "{}", json.dumps({"tool_input": {}})):
-        r = run_hook_stdin(payload, tmp_path)
-        assert r.returncode == 0, (payload, r.stderr)
 
 
 # --- the project decides -----------------------------------------------------
@@ -109,55 +57,123 @@ def _ran(monkeypatch, tmp_path, path, env=None):
     return calls
 
 
-def test_a_project_with_ruff_toml_is_formatted(monkeypatch, tmp_path):
-    f = _py_in(tmp_path, config={"ruff.toml": "line-length = 88\n"})
-    assert _ran(monkeypatch, tmp_path, f)
+class Test_uses_ruff:
+    @pytest.mark.parametrize(
+        "config",
+        [
+            {"ruff.toml": "line-length = 88\n"},
+            {".ruff.toml": "line-length = 88\n"},
+            {"pyproject.toml": "[tool.ruff]\nline-length = 88\n"},
+        ],
+        ids=["ruff-toml", "dotted-ruff-toml", "pyproject-tool-ruff"],
+    )
+    def test_accepts_a_project_that_configures_ruff(
+        self, monkeypatch, tmp_path, config
+    ):
+        f = _py_in(tmp_path, config=config)
+        assert _ran(monkeypatch, tmp_path, f)
+
+    def test_accepts_config_found_from_a_subdirectory(self, monkeypatch, tmp_path):
+        (tmp_path / "ruff.toml").write_text("line-length = 88\n", encoding="utf-8")
+        sub = tmp_path / "src" / "pkg"
+        sub.mkdir(parents=True)
+        f = sub / "m.py"
+        f.write_text("x = 1\n", encoding="utf-8")
+        assert _ran(monkeypatch, tmp_path, f)
+
+    @pytest.mark.parametrize(
+        "config",
+        [
+            {"pyproject.toml": '[project]\nname = "x"\n'},
+            {"pyproject.toml": "[tool.black]\nline-length = 100\n"},
+        ],
+        ids=["pyproject-alone", "black"],
+    )
+    def test_refuses_a_pyproject_without_a_tool_ruff_table(
+        self, monkeypatch, tmp_path, config
+    ):
+        """A pyproject.toml says nothing about formatting, and a project using
+        black is left alone."""
+        f = _py_in(tmp_path, config=config)
+        assert _ran(monkeypatch, tmp_path, f) == []
+
+    def test_refuses_a_project_with_no_formatter(self, monkeypatch, tmp_path):
+        assert _ran(monkeypatch, tmp_path, _py_in(tmp_path)) == []
+
+    def test_refuses_to_search_past_a_repository_boundary(self, monkeypatch, tmp_path):
+        """A parent checkout's settings must not speak for a nested one."""
+        (tmp_path / "ruff.toml").write_text("line-length = 88\n", encoding="utf-8")
+        nested = tmp_path / "vendor" / "other"
+        (nested / ".git").mkdir(parents=True)
+        f = nested / "m.py"
+        f.write_text("x = 1\n", encoding="utf-8")
+        assert _ran(monkeypatch, tmp_path, f) == []
 
 
-def test_a_dotted_ruff_toml_counts_too(monkeypatch, tmp_path):
-    f = _py_in(tmp_path, config={".ruff.toml": "line-length = 88\n"})
-    assert _ran(monkeypatch, tmp_path, f)
+class Test_main:
+    def test_accepts_a_python_file_and_runs_check_fix_then_format(
+        self, monkeypatch, tmp_path
+    ):
+        (tmp_path / "ruff.toml").write_text("line-length = 88\n", encoding="utf-8")
+        f = tmp_path / "m.py"
+        f.write_text("x = 1\n", encoding="utf-8")
+        invocations = []
+        monkeypatch.setattr(lp, "resolve_runner", lambda: ["ruff"])
+        monkeypatch.setattr(
+            lp.subprocess, "run", lambda cmd, **k: invocations.append(cmd) or None
+        )
+        monkeypatch.setattr(lp.sys, "argv", ["lint-python.py", str(f)])
+        lp.main()
+        assert [c[1] for c in invocations] == ["check", "format"], invocations
+        assert "--fix" in invocations[0] and invocations[0][-1] == str(f)
+
+    def test_refuses_a_non_python_file_before_it_looks_for_a_runner(
+        self, monkeypatch, tmp_path
+    ):
+        called = []
+        monkeypatch.setattr(
+            lp, "resolve_runner", lambda: called.append("resolved") or ["ruff"]
+        )
+        monkeypatch.setattr(
+            lp.sys, "argv", ["lint-python.py", str(tmp_path / "notes.md")]
+        )
+        lp.main()
+        assert called == [], "a non-.py path must not even look for a runner"
+
+    def test_refuses_quietly_where_no_runner_is_found(self, monkeypatch, tmp_path):
+        f = tmp_path / "m.py"
+        f.write_text("x = 1\n", encoding="utf-8")
+        monkeypatch.setattr(lp, "resolve_runner", lambda: None)
+        monkeypatch.setattr(
+            lp.subprocess,
+            "run",
+            lambda *a, **k: (_ for _ in ()).throw(AssertionError("must not run")),
+        )
+        monkeypatch.setattr(lp.sys, "argv", ["lint-python.py", str(f)])
+        lp.main()  # no exception == pass
+
+    def test_refuses_to_let_a_failing_formatter_block_the_edit(
+        self, monkeypatch, tmp_path
+    ):
+        f = tmp_path / "m.py"
+        f.write_text("x = 1\n", encoding="utf-8")
+        monkeypatch.setattr(lp, "resolve_runner", lambda: ["ruff"])
+        monkeypatch.setattr(
+            lp.subprocess, "run", lambda *a, **k: (_ for _ in ()).throw(OSError("boom"))
+        )
+        monkeypatch.setattr(lp.sys, "argv", ["lint-python.py", str(f)])
+        lp.main()  # swallowed — a formatter crash must not wedge the session
+
+    def test_refuses_a_malformed_payload_with_exit_zero(self, tmp_path):
+        for payload in ("not json at all", "{}", json.dumps({"tool_input": {}})):
+            r = run_hook_stdin(payload, tmp_path)
+            assert r.returncode == 0, (payload, r.stderr)
+
+    def test_refuses_where_the_off_switch_is_set_even_with_ruff_configured(
+        self, monkeypatch, tmp_path
+    ):
+        f = _py_in(tmp_path, config={"ruff.toml": "line-length = 88\n"})
+        assert _ran(monkeypatch, tmp_path, f, env={"SPECSEAL_LINT": "off"}) == []
 
 
-def test_pyproject_with_a_tool_ruff_table_counts(monkeypatch, tmp_path):
-    f = _py_in(tmp_path, config={"pyproject.toml": "[tool.ruff]\nline-length = 88\n"})
-    assert _ran(monkeypatch, tmp_path, f)
-
-
-def test_pyproject_alone_does_not(monkeypatch, tmp_path):
-    """A pyproject.toml says nothing about formatting."""
-    f = _py_in(tmp_path, config={"pyproject.toml": '[project]\nname = "x"\n'})
-    assert _ran(monkeypatch, tmp_path, f) == []
-
-
-def test_a_project_using_black_is_left_alone(monkeypatch, tmp_path):
-    f = _py_in(tmp_path, config={"pyproject.toml": "[tool.black]\nline-length = 100\n"})
-    assert _ran(monkeypatch, tmp_path, f) == []
-
-
-def test_a_project_with_no_formatter_is_left_alone(monkeypatch, tmp_path):
-    assert _ran(monkeypatch, tmp_path, _py_in(tmp_path)) == []
-
-
-def test_config_is_found_from_a_subdirectory(monkeypatch, tmp_path):
-    (tmp_path / "ruff.toml").write_text("line-length = 88\n", encoding="utf-8")
-    sub = tmp_path / "src" / "pkg"
-    sub.mkdir(parents=True)
-    f = sub / "m.py"
-    f.write_text("x = 1\n", encoding="utf-8")
-    assert _ran(monkeypatch, tmp_path, f)
-
-
-def test_the_search_stops_at_a_repository_boundary(monkeypatch, tmp_path):
-    """A parent checkout's settings must not speak for a nested one."""
-    (tmp_path / "ruff.toml").write_text("line-length = 88\n", encoding="utf-8")
-    nested = tmp_path / "vendor" / "other"
-    (nested / ".git").mkdir(parents=True)
-    f = nested / "m.py"
-    f.write_text("x = 1\n", encoding="utf-8")
-    assert _ran(monkeypatch, tmp_path, f) == []
-
-
-def test_the_off_switch_wins_even_where_ruff_is_configured(monkeypatch, tmp_path):
-    f = _py_in(tmp_path, config={"ruff.toml": "line-length = 88\n"})
-    assert _ran(monkeypatch, tmp_path, f, env={"SPECSEAL_LINT": "off"}) == []
+test_census = census_case(TARGET)

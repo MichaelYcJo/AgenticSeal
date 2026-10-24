@@ -16,16 +16,9 @@ Each case here was shown red before the prose it pins landed (#29).
 import os
 import re
 
+from conftest import flat, read
+
 ROOT = os.path.join(os.path.dirname(__file__), "..")
-
-
-def read(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
-        return f.read()
-
-
-def flat(*parts):
-    return " ".join(read(*parts).split())
 
 
 # --- the handoff before round 1 ---------------------------------------------
@@ -65,8 +58,8 @@ def test_the_implementer_documents_point_at_the_section():
         )
 
     # Phase 4 of #107 re-pointed the second half. The rule that a fact with
-    # no coordinate and no label is an assertion nobody has opened is §5 of
-    # the agent contract, which every agent receives at startup -- the smith
+    # no coordinate and no label is an assertion nobody has opened is
+    # contract rule 5, which every agent receives at startup -- the smith
     # was one of two definitions stating it and the scribe stated it nowhere.
     # What stays in the definitions is the ROUTE: the section a prompt's
     # facts arrive under, which is what this case is about.
@@ -88,9 +81,9 @@ def test_the_protocol_no_longer_states_the_rules_it_points_at():
     source a paste-back would bring."""
     protocol = flat(*PROTOCOL)
     for phrase, whose in (
-        ("never `cmd | tail; echo $?`", "the contract's §1"),
-        ("enumerate the class, do not fix the coordinate", "the contract's §12"),
-        ("Do not push, do not open a pull request", "the contract's §6"),
+        ("never `cmd | tail; echo $?`", "contract rule 1"),
+        ("enumerate the class, do not fix the coordinate", "contract rule 12"),
+        ("Do not push, do not open a pull request", "contract rule 6"),
         ("make a `uv` venv", "`agents/warden.md`"),
         ("Mutation-test every unit added", "`agents/smith.md`"),
     ):
@@ -118,11 +111,11 @@ def test_the_smiths_definition_mandates_mutating_every_unit_it_added():
     `test_the_agent_contract_holds_the_universal_rules.py` pins from the
     other side; this row pointed at a definition and nothing pinned it.
 
-    Contract §15 is the neighbour, not this rule. It asks that a case be
+    Contract rule 15 is the neighbour, not this rule. It asks that a case be
     seen red on the day it is planted; this asks that every unit the branch
     added be broken before the branch leaves the implementer's hands. Both
     halves are asserted -- the act and its timing -- because a definition
-    that kept only the act would read as §15 restated, which
+    that kept only the act would read as contract rule 15 restated, which
     `test_a_moved_rule_leaves_its_definition.py` would then be right to
     refuse."""
     smith = flat("agents", "smith.md")
@@ -178,15 +171,15 @@ def test_the_protocol_names_the_progress_channel_and_the_stall_signal():
 def test_the_smiths_contract_does_not_demand_what_a_serial_loop_cannot_give():
     """The batching rule lands on the smith with the caveat that keeps it
     honest: an edit-test loop is serial, and a rule that ignores that is a
-    demand the work cannot meet. The caveat is contract §10's; the bar it
-    points at has one home, `docs/the-review-record.md` §*The per-segment
+    demand the work cannot meet. The caveat is contract rule 10's; the bar it
+    points at has one home, `docs/the-review-record.md` *The per-segment
     bars*, and no definition carries a copy since #957."""
     contract = flat("skills", "agent-contract", "SKILL.md")
     assert "An edit-test loop is serial" in contract, (
         "the contract stopped conceding what a serial loop cannot give, so "
         "the batching rule became a demand the work cannot meet"
     )
-    assert "§*The per-segment bars*" in contract, (
+    assert "`docs/the-review-record.md` *The per-segment bars*" in contract, (
         "the contract stopped pointing at the bars, and a figure with no home "
         "is one that measures the wrong agent"
     )
@@ -194,11 +187,9 @@ def test_the_smiths_contract_does_not_demand_what_a_serial_loop_cannot_give():
 
 def framer_rule(text, lead):
     """The `agents/framer.md` rule paragraph opening with `**<lead>**`, up to
-    its `Enforced by:` line. Scoped so a phrase elsewhere in the definition
-    cannot hold one of the claims below up after the rule itself lost it."""
-    match = re.search(
-        rf"^\*\*{re.escape(lead)}\*\*(.*?)^Enforced by:", text, re.M | re.S
-    )
+    its `check:` line. Scoped so a phrase elsewhere in the definition cannot
+    hold one of the claims below up after the rule itself lost it."""
+    match = re.search(rf"^\*\*{re.escape(lead)}\*\*(.*?)^check: ", text, re.M | re.S)
     assert match, (
         f"`agents/framer.md` has no rule opening `**{lead}**`. The opening was "
         "typed into spawn prompts from 0.12.3 and lived in no file (#640); a "
@@ -228,12 +219,12 @@ def test_the_framers_definition_carries_its_opening():
         "the bound says how large a call may be and not what it may not be, "
         "which is the opening burst #456's stalls are the evidence about"
     )
-    assert "§10" in rule, "the bound stopped citing the rule it applies"
-    # Round 1's 🟡 3. §10 says the files the handoff names go out in one
+    assert "rule 10" in rule, "the bound stopped citing the rule it applies"
+    # Round 1's 🟡 3. Contract rule 10 says the files the handoff names go out in one
     # call, so a bound with no exception for them contradicts the rule the
     # bullet says it applies.
     assert "whatever their number" in rule, (
-        "the bound reaches the files the spawn prompt names, which §10 says "
+        "the bound reaches the files the spawn prompt names, which rule 10 says "
         "go out in one call"
     )
     assert "read by range" in rule and "sed -n" in rule, (
@@ -347,7 +338,11 @@ def test_the_bars_and_the_run_level_table_judge_different_things():
         "the section does not say which instrument judges what, so a reader "
         "holding a segment's numbers meets one bar and no run"
     )
-    assert "skills/verify/SKILL.md" in section, (
+    # `docs/` is not edited by a pull request: #940 moved the table to
+    # `skills/verify/orchestration.md`, and its `## Rule changes` item moves
+    # this citation at the settle after its release. Until then the section
+    # names the old path, and either path names the owner.
+    assert any(path in section for path in OWNER_PATHS), (
         "the section names no owner for the table, so a reader arriving for "
         "its rows leaves with neither them nor the path to them"
     )
@@ -386,11 +381,15 @@ def test_the_bars_and_the_run_level_table_judge_different_things():
     )
 
 
-# One fragment per row of the table in `skills/verify/SKILL.md` §*Measure the
-# segment, and feed the flow log*, taken verbatim. Refused in the bars section
-# above and held to the owner below.
+# The table's owner, and the path `docs/the-review-record.md` named before
+# #940's rule change is applied.
+OWNER_PATHS = ("skills/verify/orchestration.md", "skills/verify/SKILL.md")
+
+# One fragment per row of the table in `skills/verify/orchestration.md`
+# *Measure the segment, and feed the flow log*, taken verbatim. Refused in the
+# bars section above and held to the owner below.
 TABLE_ROWS = (
-    "Rounds — finding and verifying",
+    "Rounds, finding and verifying",
     "Wall clock, routing commit to last record",
     "Commits, by kind",
     "Findings by severity",
@@ -421,11 +420,11 @@ def test_the_refused_rows_are_the_owners_own():
     that section legitimately. That half is a reader's, and saying so is the
     point of writing it down -- a list that reads as though it closed the
     class is worse than one nobody expected to."""
-    owner = read("skills", "verify", "SKILL.md")
+    owner = read("skills", "verify", "orchestration.md")
     for row in TABLE_ROWS:
         assert row in owner, (
             f"{row!r} is no longer a row of the table in "
-            "`skills/verify/SKILL.md`, so the refusal above guards a string "
+            "`skills/verify/orchestration.md`, so the refusal above guards a string "
             "nobody would paste. Re-take these from the owner's table"
         )
 

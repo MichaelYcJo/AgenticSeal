@@ -227,6 +227,12 @@ measured entry's: `282.0` minutes.
 - No new file, marker, environment variable, payload field or reader. No
   change to `hooks/hooks.json`.
 
+## Rule changes
+
+- nothing
+  why: written: the choice rows under the press, in docs/worktree-guard-spec.md
+    *Choice sites*.
+
 ## Removes
 
 | Removes | Coordinate | Where it lands, or why it can go |

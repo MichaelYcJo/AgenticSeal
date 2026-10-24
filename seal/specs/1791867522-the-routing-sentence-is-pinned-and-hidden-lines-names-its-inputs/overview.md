@@ -25,7 +25,7 @@ Round 3 of #872 found the routing half of the liveness statement had no test beh
 
 | Item | Who must answer |
 |---|---|
-| the full suite, repository lint and typecheck: unverified here, by contract §2 | the sealer, once the rounds settle |
+| closed the full suite, repository lint and typecheck: unverified here, by contract §2 | #927, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
 
 ## Not done
 

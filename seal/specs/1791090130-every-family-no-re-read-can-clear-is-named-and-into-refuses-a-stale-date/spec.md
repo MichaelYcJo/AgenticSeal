@@ -203,6 +203,11 @@ to exit 1), and the handover says which.
   *a row was left*.
 - New file I/O, if any, names `encoding="utf-8"` (#757).
 
+## Rule changes
+
+- nothing
+  why: overturned: evidence-check, its families and --into left the tree at 5b1f6fae.
+
 ## Open questions → questions.md
 
 None blocks the build. `questions.md` holds two measurement rows, two rows

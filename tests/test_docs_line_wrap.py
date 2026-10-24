@@ -34,7 +34,6 @@ the thing with value.
 import fnmatch
 import importlib.util
 import os
-import re
 import unicodedata
 
 import pytest
@@ -42,30 +41,6 @@ import pytest
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 
 LIMIT = 88
-
-# Spelled the way `skills/verify/scripts/unverified_check.py#FOLD_MARKER`
-# spells it, because what this skips has to be exactly what that reads: a
-# line this skipped and the reader did not would be an unwrapped line nobody
-# checks, and a line the reader accepted and this did not is the wrap limit
-# refusing a fold record.
-FOLD_MARKER = re.compile(r"<!-- specs/\S+ -->")
-
-
-def _fold_check():
-    path = os.path.join(ROOT, "skills", "settle", "scripts", "fold_check.py")
-    spec = importlib.util.spec_from_file_location("specseal_fold_check_wrap", path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-# The `Enforced by:` lines are asked of the shape's own reader rather than
-# spelled a second time here, for the reason the marker above is spelled from
-# its reader: a skip wider than the reader leaves unwrapped lines nobody
-# checks. `fold_check.enforced_lines` names only a statement's line of
-# targets — not `nothing — <why>`, whose reason is prose, and not one outside
-# any statement.
-fold_check = _fold_check()
 
 
 def _rules():
@@ -76,14 +51,14 @@ def _rules():
     return module
 
 
-# In a rule file a line of targets outside any statement has a reader too:
-# `rules --check` resolves every `Enforced by:` line a rule file shows, which
-# is how an agent definition closes each rule (#957).
+# The check lines are asked of their reader rather than spelled a second time
+# here: a skip wider than the reader leaves unwrapped lines nobody checks.
+# `rules --check` reads every such line a rule file shows (#957).
 rules = _rules()
 
 
 def is_rule_file(relative):
-    """Whether `rules --check` reads RELATIVE's `Enforced by:` lines."""
+    """Whether `rules --check` reads RELATIVE's check lines."""
     return any(fnmatch.fnmatch(relative, p) for p in rules.RULE_FILES)
 
 
@@ -195,9 +170,7 @@ COVERED = [
     # so the limit is doing visible work here rather than tidying a source.
     ".github/PULL_REQUEST_TEMPLATE.md",
     # The policy documents the first fold wrote. Each was written wrapped,
-    # so each goes in at birth with no sweep to owe — and each is a document
-    # a work item's spec was folded INTO, which is what puts the fold marker
-    # above in the way of the limit.
+    # so each goes in at birth with no sweep to owe.
     "docs/the-broad-gate.md",
     "docs/measuring-a-run.md",
     "docs/the-agent-set.md",
@@ -225,38 +198,22 @@ def prose_lines(text, rule_file=False):
 
     Skipped: YAML frontmatter, fenced code, table rows, images and block
     quotes (all wrap on their own terms or not at all), any line carrying a
-    URL, which cannot be broken, a fold marker, which cannot be broken
-    either, and an `Enforced by:` line of targets.
+    URL, which cannot be broken, and a check line.
 
-    **An `Enforced by:` line of targets is not prose either.** The shape
-    counts exactly one such line per statement, so a wrapped one is two lines
-    and a broken shape, and a single `path::test` target already overflows
-    the limit for most tests in this repository. The lines skipped are the
-    ones `fold_check.enforced_lines` returns and, in a RULE_FILE, the ones
-    `rules.py#enforcer_lines` reads as targets, and no others, so a
-    `nothing — <why>` line, and outside a rule file one outside any
-    statement, are still held here.
-
-    **A fold marker is not prose.** `<!-- specs/<work-item-id> -->` is the
-    record `settle` reads to know a work item's spec was absorbed by a policy
-    document, and the reader matches it whole:
-    `^<!-- specs/(\\S+) -->$`. Wrapping it makes it stop being a fold record,
-    so the retirement refuses the directory it covers — the line is fixed at
-    the length of the id it names, and the id is
-    `<unix-epoch-seconds>-<slug>` with nothing bounding the slug.
-
-    Measured when the first fold landed: of 88 markers, one reached 89
-    columns and the rest fit. So this is not a limit somebody can stay under
-    by choosing shorter words in the document — it is decided by a directory
-    name chosen months earlier, in another work item, by whoever opened it.
+    **A check line is not prose either.** Its reader reads one line, so a
+    wrapped one is a broken target or a reader cut short, and two test paths
+    already overflow the limit. The lines skipped are the check lines
+    `rules.py#check_lines` finds in a RULE_FILE and `rules.py#parse` reads,
+    and no others, so a line it refuses, and every line outside a rule file,
+    are still held here.
     """
     lines = text.splitlines()
-    enforced = set(fold_check.enforced_lines(text))
+    enforced = set()
     if rule_file:
-        enforced |= {
+        enforced = {
             number
-            for number, _heading, value in rules.enforcer_lines(text)
-            if rules.targets_of(value)
+            for number, _heading, line in rules.check_lines(text)
+            if not rules.parse(line)[2]
         }
     fenced = fenced_numbers(lines)
     in_frontmatter = lines[:1] == ["---"]
@@ -269,10 +226,6 @@ def prose_lines(text, rule_file=False):
         if number in fenced or stripped.startswith(("|", "![", ">")):
             continue
         if "http://" in line or "https://" in line:
-            continue
-        # The raw line, not `stripped`: the reader anchors the marker at
-        # column 0 with nothing after it, so an indented one is no fold record.
-        if FOLD_MARKER.fullmatch(line):
             continue
         if number in enforced:
             continue
@@ -292,40 +245,6 @@ def test_prose_stays_within_the_wrap_limit(relative):
         f"{relative}:{number} is {width} columns (limit {LIMIT})"
         for number, width in over
     )
-
-
-def test_a_fold_marker_is_skipped_and_the_line_beside_it_is_not():
-    """The skip is exactly one line wide.
-
-    A marker cannot be wrapped without ceasing to be a fold record, so it is
-    skipped; everything else in the file is still prose. The pair matters
-    because a skip written one line too wide would take the folded sentence
-    with it, and a folded sentence is the prose this limit exists for.
-    """
-    marker = "<!-- specs/1789969379-a-conflict-resolved-by-side-reverts-the-other-sides-corrections -->"
-    assert display_width(marker) > LIMIT, (
-        "the marker this case is about now fits, so it proves nothing — pick "
-        "a longer work item id"
-    )
-    over_long_prose = "word " * 30
-    numbers = [n for n, _line in prose_lines(f"{marker}\n{over_long_prose}\n")]
-    assert numbers == [2], (
-        f"the marker is line 1 and the prose is line 2; prose_lines yielded {numbers}"
-    )
-
-
-def test_a_marker_that_is_not_on_a_line_of_its_own_is_still_prose():
-    """A marker quoted inside a sentence is a description, not a fold record
-    — the same rule `unverified_check.folded_items` reads it by — so the
-    sentence carrying it wraps like any other."""
-    line = "The comment " + "<!-- specs/x -->" + " is what records a fold, " * 4
-    assert display_width(line) > LIMIT
-    assert [n for n, _ in prose_lines(line + "\n")] == [1]
-    # Nor is an indented one: the reader matches the raw line from column 0,
-    # so a skip that stripped first would pass a line nobody reads as a fold.
-    indented = "  <!-- specs/" + "an-indented-marker-" * 5 + " -->"
-    assert display_width(indented) > LIMIT
-    assert [n for n, _ in prose_lines(indented + "\n")] == [1]
 
 
 def test_the_check_can_fail():
@@ -372,62 +291,39 @@ def test_a_fence_is_read_by_the_shared_rule():
     ], "a fence under a list item is a fence to this check, with a wider opener"
 
 
-# A target wider than the limit on its own: 13 columns of prefix and a path
-# with a `::name`, the shape #565's retrofit writes into covered documents.
+# Two targets wider than the limit together, as rule files write them.
 WIDE_TARGET = (
-    "tests/test_a_document_has_room_for_the_next_fold.py::"
-    "test_the_record_layout_states_the_values_the_config_rows_hold"
+    "tests/test_a_document_has_room_for_the_next_fold.py "
+    "tests/test_the_rules_command_reads_each_rule_off_its_test.py"
 )
+WIDE_READER = "none reader: " + "the warden at review " * 4
 
 
-def test_an_enforced_by_line_with_targets_is_skipped_and_the_next_line_is_not():
-    """S7. A line of paths cannot be wrapped without ceasing to be the one
-    `Enforced by:` line the shape counts, so it is skipped the way a marker
-    is — exactly the lines the shipped reader reads as one — and the prose
-    after it is still prose."""
-    line = f"Enforced by: {WIDE_TARGET}"
-    assert display_width(line) > LIMIT
-    after = "word " * 30
-    text = f"# D\n\n<!-- specs/1790154762-a-fold -->\n**Rule.**\n{line}\n{after}\n"
-    numbers = [n for n, _line in prose_lines(text)]
-    assert 5 not in numbers, f"the Enforced-by line was read as prose: {numbers}"
-    assert 6 in numbers and 4 in numbers, numbers
-
-
-def test_a_line_of_targets_in_a_rule_file_is_skipped_wherever_it_stands():
-    """A rule file's `Enforced by:` line of targets is not prose, inside a
-    fold statement or not (#957).
+def test_a_check_line_in_a_rule_file_is_skipped_wherever_it_stands():
+    """A rule file's check line is not prose, inside a rule paragraph or not
+    (#957), with targets or with a reader.
 
     An agent definition closes each rule with one such line, and
-    `rules --check` reads every one in a rule file as targets and resolves
-    each, so a wrapped line is a broken target. The skip is that reader's:
-    `rules.py#enforcer_lines` naming targets, in a file `RULE_FILES` names. A
-    `nothing — <why>` line is still prose, and outside a rule file a loose
+    `rules --check` reads every one in a rule file, so a wrapped line is a
+    broken target. The skip is that reader's: `rules.py#check_lines` read by
+    `rules.py#parse`, in a file `RULE_FILES` names. Outside a rule file the
     line is still held, which the case below keeps."""
-    loose = f"Enforced by: {WIDE_TARGET}"
-    reason = "Enforced by: nothing — " + "only a reader can tell this " * 3
-    text = f"# D\n\n**Rule.** It holds.\n{loose}\n\n**Other.** It too.\n{reason}\n"
+    loose = f"check: {WIDE_TARGET}"
+    reader = f"check: {WIDE_READER}"
+    assert display_width(loose) > LIMIT and display_width(reader) > LIMIT
+    text = f"# D\n\n**Rule.** It holds.\n{loose}\n\n**Other.** It too.\n{reader}\n"
     numbers = [n for n, _ in prose_lines(text, rule_file=True)]
-    assert 4 not in numbers, numbers
-    assert 3 in numbers and 7 in numbers, numbers
+    assert 4 not in numbers and 7 not in numbers, numbers
+    assert 3 in numbers and 6 in numbers, numbers
     assert 4 in [n for n, _ in prose_lines(text)]
     assert is_rule_file("agents/warden.md")
     assert is_rule_file("skills/code-review/SKILL.md")
     assert not is_rule_file("README.md")
 
 
-def test_an_enforced_by_line_the_reader_does_not_read_is_still_prose():
-    """S8. The skip is no wider than the reader: a `nothing — <why>` line,
-    whose reason is prose, and an `Enforced by:` line outside any statement
-    both stay under the limit."""
-    reason = "Enforced by: nothing — " + "only a reader can tell this " * 3
-    assert display_width(reason) > LIMIT
-    text = f"<!-- specs/1790154762-a-fold -->\n**Rule.**\n{reason}\n"
-    assert 3 in [n for n, _ in prose_lines(text)]
-    loose = f"Enforced by: {WIDE_TARGET}"
-    for text, number in (
-        (f"# D\n\n{loose}\n", 3),
-        (f"<!-- specs/1790154762-a-fold -->\n**Rule.**\n\n## Next\n\n{loose}\n", 6),
-        (f"```\n<!-- specs/1790154762-a-fold -->\n```\n{loose}\n", 4),
-    ):
-        assert number in [n for n, _ in prose_lines(text)], text
+def test_a_line_the_reader_refuses_is_still_prose():
+    """S8. The skip is no wider than the reader: a spelling `rules --check`
+    refuses stays under the limit in a rule file."""
+    for label in ("Enforced by:", "Check:", "check: none"):
+        text = f"# D\n\n{label} {WIDE_TARGET}\n"
+        assert 3 in [n for n, _ in prose_lines(text, rule_file=True)], text

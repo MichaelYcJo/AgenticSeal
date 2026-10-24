@@ -10,7 +10,7 @@ runs, so a git hook never sees them; this reads them out of the command and
 It is the one text read the redesign keeps, and its failure direction is why
 it may: a token it cannot read costs one refusal naming the git-native
 spelling, and a token it reads has exactly the standing tokens always had --
-`docs/worktree-guard-spec.md` §*Choice sites* calls it an audit trail, not an
+`docs/worktree-guard-spec.md` *Choice sites* calls it an audit trail, not an
 authorization. `steps_around_hooks` fails the same way round: a word it reads
 that meant nothing costs one judgment by the reading git's hooks replace.
 Nothing here names a directory or decides where an action lands.

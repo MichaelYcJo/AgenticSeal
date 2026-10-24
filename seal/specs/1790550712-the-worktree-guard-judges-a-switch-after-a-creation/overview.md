@@ -31,10 +31,10 @@ classes by the cases that hold them rather than by figures nobody can re-run.
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the typecheck | the sealer, once, after the review rounds settle |
-| Whether the create-then-switch shape occurs in anyone else's sessions. Q4 counted 0 of 44 creation commands over this machine's 728 transcripts only | nobody can measure another person's history from this repository; the PR body states the count as this machine's |
-| The switch arm against a live concurrent session rather than a patched `sessions_in_tree` | #24, already open |
-| The new cases on Windows. None of them uses a backslash spelling, which is the one shape `test_a_path_qualified_git_carries_no_allow` already branches on | the CI matrix's Windows leg |
+| closed The full suite, the repository-wide lint and the typecheck | #633, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
+| closed Whether the create-then-switch shape occurs in anyone else's sessions. Q4 counted 0 of 44 creation commands over this machine's 728 transcripts only | another person's sessions: the counts bullet of `docs/worktree-guard-spec.md` *Known limits* |
+| closed The switch arm against a live concurrent session rather than a patched `sessions_in_tree` | a live session: the bullet *No case runs the switch arm against a live concurrent session* in `docs/worktree-guard-spec.md` *Known limits* |
+| closed The new cases on Windows. None of them uses a backslash spelling, which is the one shape `test_a_path_qualified_git_carries_no_allow` already branches on | #997's `windows-latest` leg ran them green |
 
 ## Not done
 

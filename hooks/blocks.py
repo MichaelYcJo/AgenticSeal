@@ -15,9 +15,9 @@ This is the one walk both read.
      three or more backticks or tildes, no backtick in a backtick opener's
      info string, and a closer of the same character at least as long with
      nothing after it but spaces. `fence_opener` and `fence_closes` below are
-     that rule, the same one `skills/verify/scripts/unverified_check.py#
-     fence_opener` states; `tests/test_unverified_rows_close.py` holds the two
-     in step.
+     that rule, written once: `skills/verify/scripts/unverified_check.py` and
+     the record readers ask this copy, since a hook imports nothing from
+     `skills/` and the import goes the other way (#1005).
   2. An HTML comment block (4.6, type 2): a line that begins with `<!--`, to
      the first line holding `-->`, which may be the start line itself.
 
@@ -86,8 +86,10 @@ import re
 # A fenced code block's delimiter line, as CommonMark spells one: up to three
 # spaces of indentation, then a run of three or more backticks or three or
 # more tildes, then the info string. Four or more spaces is an indented code
-# block instead and never a fence. This is the pattern `hooks/config.py#FENCE`
-# held until #667 moved it here; that name re-exports this one.
+# block instead and never a fence, and reading one as a delimiter inverts the
+# fence state for the rest of the file (#491). This is the pattern
+# `hooks/config.py#FENCE` held until #667 moved it here; that name re-exports
+# this one.
 FENCE = re.compile(r"^ {0,3}(?P<run>`{3,}|~{3,})(?P<info>.*)$")
 
 OPENER = "<" + "!--"
@@ -107,11 +109,9 @@ CONTAINER = re.compile(r"^(?:[ \t]*(?:>|(?:[-+*]|\d{1,9}[.)])(?=[ \t]|$)))*[ \t]
 # also ends one at U+2028, U+2029, NEL, a form feed, a vertical tab and
 # `\x1c` to `\x1e`, and a `<!--` or a fence run after one of those starts a
 # line for that split and no line for a renderer (#667 round 1, 🟡 1; #664's
-# class). This and `gfm_lines` are a copy of `skills/verify/scripts/
-# unverified_check.py#GFM_LINE_RE` and `#gfm_lines`, work item A's precedent:
-# a hook imports nothing from `skills/`, and `tests/test_the_hooks_hide_what_
-# a_renderer_hides.py#test_the_walks_line_rule_is_the_readers` holds the two
-# in step.
+# class). This and `gfm_lines` are the one line split every reader of
+# markdown or record text reads its lines through;
+# `skills/verify/scripts/unverified_check.py` asks them (#1005).
 GFM_LINE_RE = re.compile(r"[^\r\n]*(?:\r\n|\r|\n)|[^\r\n]+\Z")
 # What a line that starts a block this walk does not follow looks like, once
 # the container run is taken off: a fence run, or any HTML start.
@@ -372,7 +372,7 @@ def walk(lines):
 def gfm_lines(text, keepends=False):
     """TEXT's lines as GFM reads them, the way `str.splitlines` returns them
     otherwise: no trailing empty line, and each line's end kept only when
-    KEEPENDS asks. `unverified_check.py#gfm_lines`, copied (see `GFM_LINE_RE`).
+    KEEPENDS asks.
     """
     lines = GFM_LINE_RE.findall(text)
     return lines if keepends else [line.rstrip("\r\n") for line in lines]
@@ -412,6 +412,7 @@ def walk_text(text):
     renderer_starts = _starts(renderer)
     kinds, uncertain, of = [], [], []
     line = 0
+    # exempt from splitlines: lines the GFM walk numbers
     for start in _starts(text.splitlines(keepends=True)):
         while line + 1 < len(renderer_starts) and renderer_starts[line + 1] <= start:
             line += 1

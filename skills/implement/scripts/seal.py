@@ -305,8 +305,10 @@ def root_files(home):
     always produces the same zip and the same digest.
 
     **This is the only walk.** The zip's members and the digests the manifest
-    records come from this one list, and `test_the_records_can_be_carried_out_
-    and_in.py` asserts the zip's namelist against it. Two enumerations would
+    records come from this one list. `tests/test_seal.py::Test_export`
+    asserts the zip's namelist equal to `MEMBERS`, the manifest and then the
+    sorted paths this walk gives for the case's root, and
+    `Test_root_files` holds the walk's order. Two enumerations would
     drift at the seam — the manifest recording what one of them saw while the
     reminder compares against what the other sees — and the difference would
     read as a work item somebody changed.
@@ -1349,9 +1351,8 @@ CONFIG_PATHSPEC = f"{optin.HOME}/{CONFIG}"
 # The line CI's own workflow uses to clone this plugin. A file at WORKFLOW
 # carrying it is one this plugin wrote; a file that does not is somebody
 # else's with our name, and the switch leaves it alone rather than deleting
-# it. `tests/test_the_mode_is_a_row_and_a_command.py` asserts the template
-# still contains this, so the marker cannot drift away from what it
-# identifies.
+# it. `tests/test_seal.py::Test_module` asserts the template still contains
+# this, so the marker cannot drift away from what it identifies.
 PLUGIN_CLONE = "https://github.com/MichaelYcJo/SpecSeal.git"
 
 # The version placeholder in `templates/hygiene.yml`. A workflow written with
@@ -1466,6 +1467,7 @@ def with_row(text, value):
     adding one may make two.
     """
     row = f"| {ROW_ITEM} | {value} |"
+    # exempt from splitlines: lines the GFM walk numbers
     lines = text.splitlines(keepends=True)
     ending = line_ending(lines)
     doubled = doubled_modes(lines)
@@ -1564,6 +1566,7 @@ def write_row(home, value):
         # about (#429, round 2). That shape is repaired above; the branch
         # stays because the next member of the class must not be misdescribed
         # either.
+        # exempt from splitlines: lines the GFM walk numbers
         if fence_map(new.splitlines(), new)[1] is not None:
             return (
                 f"{path} has a fenced code block that is never closed, and "
@@ -1604,8 +1607,8 @@ def porcelain(repo, *paths):
     **Both paths this command stages, not just the root.** The switch stages
     a removal or an addition of the workflow file too, and a guard watching
     only the root would leave that path's uncommitted work to be taken by
-    `git rm`. Enumerating the class is the point; `spec.md` §"What the switch
-    touches" lists all five.
+    `git rm`. Enumerating the class is the point; `spec.md` *What the switch
+    touches* lists all five.
 
     An unanswerable question reads as dirty, the direction
     `hooks/root-migrate.py#dirty` takes: moving on a guess is the one
@@ -1624,6 +1627,7 @@ def porcelain(repo, *paths):
         return [f"git status could not be run ({exc})"]
     if done.returncode != 0:
         return [(done.stderr or "").strip() or f"git status exited {done.returncode}"]
+    # exempt from splitlines: git output
     return [line for line in (done.stdout or "").splitlines() if line.strip()]
 
 
@@ -1730,6 +1734,7 @@ def other_worktrees(repo):
     # function is next opened.
     here = os.path.realpath(repo)
     found = []
+    # exempt from splitlines: git output
     for line in git(repo, "worktree", "list", "--porcelain").splitlines():
         if line.startswith("worktree "):
             path = line[len("worktree ") :].strip()
@@ -1955,6 +1960,7 @@ def mode_refusal(home):
         return refused
     if text is None:
         return ""
+    # exempt from splitlines: lines the GFM walk numbers
     doubled = doubled_modes(text.splitlines(keepends=True))
     if doubled:
         return f"{config_path(home)} {doubled}"
@@ -2067,14 +2073,17 @@ def gitlinks_under_root(repo):
             f"git ls-files exited {done.returncode}"
         )
     return [
-        line for line in (done.stdout or "").splitlines() if line.startswith("160000")
+        line
+        # exempt from splitlines: git output
+        for line in (done.stdout or "").splitlines()
+        if line.startswith("160000")
     ], ""
 
 
 def refusals(repo, home, shared, local, wanted):
     """Every reason not to switch, gathered before anything is written.
 
-    The list is the class in `spec.md` §"What the switch touches", walked in
+    The list is the class in `spec.md` *What the switch touches*, walked in
     order, rather than the guards a reader thinks of first. The one act that
     is NOT preflighted is the workflow file, because it is the last step and
     a second run finishes it — the resume is what makes preflighting it
@@ -2161,7 +2170,7 @@ def refusals(repo, home, shared, local, wanted):
 def switch(args, repo, home, shared, local, current, wanted):
     """Move the root, write the row, stage the index, carry the workflow file.
 
-    In the order of `spec.md` §"Order, and what a stopped run leaves": the
+    In the order of `spec.md` *Order, and what a stopped run leaves*: the
     rename first, because it is the step that can fail for reasons outside
     this command and until it succeeds nothing has happened. Every step after
     it is idempotent, so `seal mode <the same mode>` finishes a stopped run —

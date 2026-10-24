@@ -22,9 +22,9 @@ lost.
 
 | Item | Who must answer |
 |---|---|
-| The oracle and the property on the Windows and Linux legs | CI's test matrix at the pull request |
-| The full suite, lint and typecheck over the finished branch | the sealer, once the review rounds settle |
-| Q7's corpus time on the slowest CI leg, Windows; it was measured on macOS alone | CI's Windows leg at the pull request, whose log times the module |
+| closed The oracle and the property on the Windows and Linux legs | #997's `ubuntu-latest` and `windows-latest` legs ran the suite green |
+| closed The full suite, lint and typecheck over the finished branch | #672, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
+| closed Q7's corpus time on the slowest CI leg, Windows; it was measured on macOS alone | #997's four `windows-latest` shards finished green inside their budget |
 | A no-break space after a closing fence run: the shared delimiter rule (`unverified_check.py#fence_closes`, and `hooks/blocks.py#fence_closes` in step with it) reads it as a closer with `str.strip`, and CommonMark does not. The walk claims nothing below such an opener, so no reader here gives a third answer, but every other reader of the shared rule still reads it that way | the orchestrator, who decides whether it is filed against the shared rule |
 
 ## Not done

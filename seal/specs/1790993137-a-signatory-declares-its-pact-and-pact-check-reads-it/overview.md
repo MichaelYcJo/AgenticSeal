@@ -28,7 +28,7 @@ repository says where the signatories disagree with it.
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the typecheck at this branch's tip | the sealer, once the review rounds settle |
+| closed The full suite, the repository-wide lint and the typecheck at this branch's tip | #735, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
 
 ## Not done
 

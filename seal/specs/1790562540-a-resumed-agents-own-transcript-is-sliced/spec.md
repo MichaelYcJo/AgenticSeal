@@ -207,6 +207,12 @@ for the token walk, so the result can be reused.
 count this work prints is a `len()`, which needs no conversion, so none
 should be added.
 
+## Rule changes
+
+- nothing
+  why: written: a segment is measured from its own transcript, in docs/measuring-a-run.md;
+    internal: slicing a resumed agent's transcript, held by tests/test_session_cost.py.
+
 ## Open questions → questions.md
 
 No row needs a person. Q1 is a measurement and Q2 is the work's.

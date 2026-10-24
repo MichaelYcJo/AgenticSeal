@@ -4,19 +4,19 @@ description: |
   Readiness check before implementing: does something equivalent already
   exist, is the API verified against the installed version, is the cause of
   the bug actually understood rather than guessed. Reports which checks are
-  unsatisfied — no score, since any single miss is the whole answer.
+  unsatisfied, with no score, since any single miss is the whole answer.
   Use when: about to build something non-trivial against an unfamiliar
   library, a suspected duplicate, or a bug whose cause is still a hypothesis.
-  NOT for: firing on your own while the framer is driving — it calls this
-  from inside the frame when readiness is the open question. Not for typo,
-  config, or one-line changes.
+  NOT for: firing on its own while the framer is driving; the framer calls
+  this from inside the frame when readiness is the open question. Not for
+  typo, config, or one-line changes.
 ---
 
-# confidence-check — is the ground under this actually known?
+# confidence-check, is the ground under this actually known?
 
 Three things get assumed at the start of implementation and are wrong often
 enough to be worth a minute: that nothing equivalent already exists, that
-the API is what you remember, and that the bug's cause is understood rather
+the API is as remembered, and that the bug's cause is understood rather
 than guessed. Settle them before writing, not after.
 
 ## Five checks
@@ -26,12 +26,12 @@ than guessed. Settle them before writing, not after.
    - Check if existing code can be extended instead
 
 2. **Architecture compliant**
-   - Uses existing stack/patterns in the project
+   - Uses existing stack and patterns in the project
    - No unnecessary new dependencies
    - Follows project's established conventions
 
 3. **Official docs reviewed**
-   - Library/framework API verified against current version
+   - Library or framework API verified against current version
    - Breaking changes checked if upgrading
 
 4. **Working reference found**
@@ -44,16 +44,15 @@ than guessed. Settle them before writing, not after.
 
 ## What to do with the answers
 
-**Any check unsatisfied — say which, and ask.** All five satisfied — proceed.
-That is the whole rule, and it is what the old weighted score already encoded:
-the weights summed to 85 without any one of them, so a single miss could never
-reach the "proceed" band. The percentage carried no information the list of
-failed checks did not, while looking like a measurement.
+**Where any check is unsatisfied, say which, and ask. Where all five are
+satisfied, proceed.** That is the whole rule, and it is why no score is kept:
+a single miss is the whole answer, so a percentage carries nothing the list of
+unsatisfied checks does not, while looking like a measurement.
 
-It also invited the wrong move. A number can be nudged — one check called
-"partial" instead of "failed" lifts the total past a threshold, and nothing in
-the report shows that happened. A named unsatisfied check cannot be nudged; it
-is either answered or still open.
+A number also invites the wrong move. It can be nudged: one check called
+"partial" instead of "failed" lifts a total past a threshold, and nothing in
+the report shows that happened. A named unsatisfied check cannot be nudged;
+it is either answered or still open.
 
 An unsatisfied check is **not** a reason to stop. It is a thing to say out loud
 before writing code, so the person who can settle it gets the chance. Most are
@@ -63,17 +62,17 @@ settled in one exchange.
 
 ```
 Ready:      <checks satisfied, one line each>
-Not ready:  <check> — <what is missing, and what would settle it>
-Unknowable here: <check> — <who can answer>
+Not ready:  <check>: <what is missing, and what would settle it>
+Unknowable here: <check>: <who can answer>
 
-<Proceeding / Asking first>, because <the one sentence that follows from above>.
+<Proceeding, or Asking first>, because <the one sentence that follows from above>.
 ```
 
 Never report a check as satisfied because it was skipped. A check nobody walked
-is "not ready", the same as one that failed — the reader cannot tell the two
+is "not ready", the same as one that failed: the reader cannot tell the two
 apart otherwise, and only one of them is safe.
 
 ## Skip When
-- Typo/comment fixes
+- Typo or comment fixes
 - Simple config changes
 - One-line changes with obvious correctness

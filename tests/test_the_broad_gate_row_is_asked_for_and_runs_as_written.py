@@ -24,6 +24,8 @@ body of the commit that added it.
 import os
 import re
 
+from conftest import read
+
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 TEMPLATE = ("templates", "config.md")
@@ -33,11 +35,6 @@ SEALER = ("agents", "sealer.md")
 REVIEW_ORCH = ("skills", "code-review", "orchestration.md")
 
 REFUSED_AND_ALLOWED = "### What is refused, and what stays allowed"
-
-
-def read(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as handle:
-        return handle.read()
 
 
 def flat(text):
@@ -72,7 +69,7 @@ def table(text, header):
     tables live under one heading, so it merged them: the pipe row could be
     moved into the refused table with every case still green, and the refused
     loop below could pair a form with another form's reason. That is the
-    §14 artifact for this change asserting nothing about its own content, in a
+    contract rule 14 artifact for this change asserting nothing about its own content, in a
     release whose whole subject is a check that could not fail.
     """
     assert header in text, f"{header!r} is not a table in this section"
@@ -153,7 +150,7 @@ def test_the_criterion_sits_beside_the_list_rather_than_only_the_list():
 
 
 def test_the_template_says_a_refused_value_is_refused_and_not_repaired():
-    """#402 §*Not this*. Stripping makes a wrong value silently work, leaves
+    """#402 *Not this*. Stripping makes a wrong value silently work, leaves
     the file still wrong, and teaches the next person that backticks were
     fine."""
     body = flat(section(read(*TEMPLATE), REFUSED_AND_ALLOWED, 3))
@@ -324,7 +321,7 @@ def test_the_allowed_list_says_how_a_pipe_is_written():
 # and `phases/phase-5.md` recorded that the old sentence should survive
 # nowhere. It survived outside the message, in the two places somebody meets
 # BEFORE the message — the module's own header, and the template paragraph
-# directly above the section this branch added. `agent-contract` §14 is the
+# directly above the section this branch added. Contract rule 14 is the
 # grounds: the documents that explain a changed behaviour change with it.
 
 GATE_SCRIPT = ("skills", "verify", "scripts", "broad_gate.py")
@@ -397,14 +394,16 @@ def test_the_paragraph_above_the_lists_no_longer_says_it_names_what_to_write():
     assert "does **not** name a command to write" in paragraph, (
         "the paragraph no longer says what the message stopped doing"
     )
-    assert "#401" in paragraph, (
-        "the paragraph asserts the change without the report behind it"
+    # #940: the reason is stated as a fact about the reader, not as the
+    # issue that reported it.
+    assert "the one party that may not choose one" in paragraph, (
+        "the paragraph asserts the change without the reason behind it"
     )
 
 
 # --- A8: the criterion has one home, and rule 3 was folded into it ----------
 
-CRITERION = "### Choosing a value — the criterion"
+CRITERION = "### The criterion for choosing a value"
 
 THREE_RULES = [
     "red repository-wide for reasons unrelated to any branch",
@@ -542,7 +541,11 @@ def test_the_absent_row_refusal_says_whose_the_row_is_and_where_it_is_answered()
     said = missing_row_text()
     assert "a row is a thing a person wrote" in said
     assert "/specseal:config" in said
-    assert "Choosing a value — the criterion" in said
+    assert (
+        "`templates/config.md` *The criterion for choosing a value* is what "
+        "they choose against"
+    ) in said
+    assert "(`skills/verify/SKILL.md` *The Seal Test*)" in said
     assert "Nothing ran" in said
 
 
@@ -556,7 +559,7 @@ def test_the_row_refusal_is_a_persons_and_the_sealer_chooses_no_command():
     assert "the row is a person's" in sealer
     # The paragraph on its own, not the file: asserted against the whole file
     # a phrase elsewhere would carry it, which is the counterfeit
-    # `agent-contract` §15 exists to catch.
+    # contract rule 15 exists to catch.
     paragraph = read(*REVIEW_ORCH).split(
         "**A refusal about the `Broad gate` row goes to a person", 1
     )[1]
@@ -577,6 +580,9 @@ def test_the_review_orchestrator_stops_the_run_rather_than_filling_the_row_in():
     assert "A refusal about the `Broad gate` row goes to a person" in orchestrator
     assert "open no pull request until they have" in orchestrator
     assert "/specseal:config" in orchestrator
-    assert "#401" in orchestrator, (
-        "the instruction is asserted without the measurement behind it"
-    )
+    # #401 is the measured instance; since #940 the file gives its reason in
+    # the present tense rather than the issue number.
+    assert (
+        "A row filled in to get past the refusal makes the broad run cover a "
+        "command the person never saw." in orchestrator
+    ), "the instruction is asserted without the reason behind it"

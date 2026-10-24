@@ -301,6 +301,11 @@ New claims (the new grading, the notice, each rule (a) edge, the glued
 marks, the two pins) go in
 `seal/ledger/1790381328-malformed-is-graded-like-drifted-and-reads-prose-as-prose.md`.
 
+## Rule changes
+
+- nothing
+  why: overturned: evidence-check and its MALFORMED grade left the tree at 5b1f6fae.
+
 ## Open questions → questions.md
 
 No row needs a person: the owner's one decision was taken in the batch, and

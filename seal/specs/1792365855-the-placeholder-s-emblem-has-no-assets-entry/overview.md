@@ -20,8 +20,8 @@ The emblems page keeps every emblem the stamp has carried, and the one on every 
 
 | Item | Who must answer |
 |---|---|
-| `placeholder-s.ans` printed with `cat` in a truecolour terminal. Its bytes are the tag's own `stamp` output, compared with `cmp`, and its preview was looked at; the file itself was not printed in a terminal | the owner, through the orchestrator |
-| How the preview's three new styles read beside a real terminal's: dim drawn at half opacity, bold as Menlo Bold, green as xterm's (0, 205, 0). No earlier preview carried them, so no file fixed them, and the README now states them as the rule | the owner, through the orchestrator |
+| closed `placeholder-s.ans` printed with `cat` in a truecolour terminal. Its bytes are the tag's own `stamp` output, compared with `cmp`, and its preview was looked at; the file itself was not printed in a terminal | a screen: the limit in `docs/the-review-record.md` *The stamp* that no case, hook or workflow can observe one |
+| closed How the preview's three new styles read beside a real terminal's: dim drawn at half opacity, bold as Menlo Bold, green as xterm's (0, 205, 0). No earlier preview carried them, so no file fixed them, and the README now states them as the rule | a screen: the limit in `docs/the-review-record.md` *The stamp* that no case, hook or workflow can observe one |
 
 ## Not done
 

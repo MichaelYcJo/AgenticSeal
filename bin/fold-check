@@ -6,7 +6,6 @@
 #
 # Resolves the script relative to this file, not the caller's cwd, so it works
 # from any directory. Arguments pass straight through:
-#   fold-check                     fold-check --shape-from 0
-#   fold-check --ceiling 1000
+#   fold-check                     fold-check --ceiling 1000
 here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 exec python3 "$here/../hooks/launch.py" "$here/../skills/settle/scripts/fold_check.py" "$@"

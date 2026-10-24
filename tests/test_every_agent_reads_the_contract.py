@@ -1,6 +1,6 @@
 """Every agent definition has one shape and preloads the contract alone.
 
-`spec.md` §*The shape of a definition* of #957: frontmatter whose `skills:`
+`spec.md` *The shape of a definition* of #957: frontmatter whose `skills:`
 list is `agent-contract` and nothing else, one opening sentence naming the
 contract, identical in every definition, then `## Job`, `## Order of work`,
 `## Never` and `## Rules`, in that order. Every other skill is opened at the
@@ -19,7 +19,8 @@ import os
 import re
 
 import pytest
-from conftest import posix_id
+from conftest import read
+from conftest import repo_relative as name
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -32,15 +33,6 @@ SECTIONS = ("## Job", "## Order of work", "## Never", "## Rules")
 # A backticked path into the plugin's own tree. A placeholder (`<…>`), a glob,
 # a `path::name` target and a `path#anchor` are not paths and are not read.
 PLUGIN_PATH = re.compile(r"`((?:skills|templates|docs|agents)/[A-Za-z0-9._/-]*)`")
-
-
-def read(path):
-    with open(path, encoding="utf-8") as handle:
-        return handle.read()
-
-
-def name(path):
-    return posix_id(os.path.relpath(path, ROOT))
 
 
 def split(text):
@@ -107,7 +99,7 @@ def test_the_sentence_names_the_contract():
     """The sentence names a file that is the contract, so a sentence pointing
     at another skill that happens to exist is red here rather than nowhere."""
     with open(os.path.join(ROOT, CONTRACT), encoding="utf-8") as handle:
-        assert "## §1 " in handle.read(), f"{CONTRACT} carries no numbered rules"
+        assert "## 1 " in handle.read(), f"{CONTRACT} carries no numbered rules"
 
 
 # --- the shape ---------------------------------------------------------------
@@ -133,13 +125,13 @@ def test_every_file_a_step_names_exists(path):
 
     A step opens a skill by its path, so a renamed skill leaves an
     instruction an agent meets as *file not found* mid-run; `rules --check`
-    reads only `Enforced by:` targets, and no other case reads the paths a
+    reads only `check:` targets, and no other case reads the paths a
     step names."""
     assert missing_paths(read(path)) == [], name(path)
 
 
 # The ways a definition is allowed to close its own list of durable writes.
-# Under the contract's §6 a definition's named writes are its permission, so
+# Under contract rule 6 a definition's named writes are its permission, so
 # every definition says where that list stops, and each phrase names WRITING
 # as its subject so only a sentence about what the agent writes can match it.
 BOUNDS = (
@@ -153,7 +145,7 @@ BOUNDS = (
 @pytest.mark.parametrize("path", AGENTS, ids=name)
 def test_every_definition_bounds_what_it_writes(path):
     """A definition that names writes and never says where the list stops
-    reads its own examples as a floor, and under §6 every sentence about
+    reads its own examples as a floor, and under contract rule 6 every sentence about
     producing something becomes a grant."""
     text = " ".join(read(path).split())
     assert any(bound in text for bound in BOUNDS), (
@@ -191,7 +183,7 @@ It does a sixth thing; a write not named here is a write you do not make.
 ## Rules
 
 **A rule.** It holds.
-Enforced by: nothing — a planted definition
+check: none reader: a planted definition
 """
 
 

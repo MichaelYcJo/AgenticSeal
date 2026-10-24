@@ -9,12 +9,10 @@ looked. Two documents share this table; drift between them is the bug.
 
 import os
 
+import pytest
+from conftest import read
+
 ROOT = os.path.join(os.path.dirname(__file__), "..")
-
-
-def read(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
-        return f.read()
 
 
 def test_the_table_asks_what_a_second_actor_does():
@@ -67,18 +65,20 @@ def test_legacy_parity_still_points_at_that_table():
 
 def test_the_record_of_a_comparison_names_its_writer():
     """T5 of #970 (C5 of #2): the parity mark is written by the party that
-    compared, the warden in a review round and a session that compared
-    without one, and the scribe and the smith write none.
+    compared, the warden in a review round and the orchestrator where it
+    compared with no review round, and the scribe and the smith write none.
 
     The section said *you*, so a smith or a scribe opening the skill read
-    itself as the writer of a mark its definition does not name."""
+    itself as the writer of a mark its definition does not name. Since #940
+    the second writer is named as a party rather than as "a session", which
+    the scribe, the smith and the warden each are too."""
     text = read("skills", "legacy-parity", "SKILL.md")
     heading = "\n## Recording the comparison\n"
     assert heading in text, "`legacy-parity` lost its section on the record"
     body = " ".join(text.split(heading, 1)[1].split("\n## ", 1)[0].split())
     for clause in (
         "the warden in a review round",
-        "a session where it compared without one",
+        "the orchestrator where it compared with no review round",
         "The scribe and the smith write none.",
     ):
         assert clause in body, f"the record of a comparison lost {clause!r}"
@@ -108,7 +108,7 @@ def test_the_preset_block_carries_the_routing_decision():
     A session that just commits never reads it and meets the gate at the commit
     instead — measured on a repository where <git-dir>/specseal-reviewed had
     never been written at all."""
-    preset = read("CLAUDE.md").split("<!-- specseal:end -->")[0]
+    preset = read("templates", "claude-md-block.md")
     assert "Routing, decided at the start" in preset
     assert "seal/specs/<work-item-id>/routing.md" in preset
     assert "[no-review]" in preset and "[no-parity]" in preset
@@ -147,7 +147,7 @@ def test_a_later_round_re_runs_an_executed_line():
     instead spends the round on a search the earlier one already named, and
     a deleted probe is the case that needs saying: it comes back from its
     `## Probes` row. The record's document states it beside the line, and
-    the review skill's §*Earlier rounds*, which the warden follows, says it
+    `skills/code-review/SKILL.md` *Earlier rounds*, which the warden follows, says it
     where a round reads the earlier records."""
     record = " ".join(read("docs", "the-review-record.md").split())
     for said in (
@@ -162,9 +162,12 @@ def test_a_later_round_re_runs_an_executed_line():
         "Where you weigh an earlier finding, re-run its `evidence: executed` "
         "line rather than re-deriving the claim"
     )
-    assert said in rounds, f"§*Earlier rounds* lost `{said}`"
+    assert said in rounds, (
+        f"`skills/code-review/SKILL.md` *Earlier rounds* lost `{said}`"
+    )
 
 
+@pytest.mark.rule("old-table-shape-refused")
 def test_a_record_written_before_a_line_was_added_is_no_finding():
     """S10 (#985): a record written before the grammar gained a line lacks
     it, and a later round that judges it by the new grammar reports a defect
@@ -186,7 +189,22 @@ def test_implement_and_the_preset_block_do_not_drift():
     the skill side of the pair is `orchestration.md` — the file the session
     that asks the question reads, and no smith spawn preloads."""
     implement = " ".join(read("skills", "implement", "orchestration.md").split())
-    preset = " ".join(read("CLAUDE.md").split("<!-- specseal:end -->")[0].split())
+    preset = " ".join(read("templates", "claude-md-block.md").split())
+    # The answers each box writes are the orchestration file's alone since
+    # #940: the block states the rules and leaves the vocabulary to the file
+    # a session asking the question reads.
+    for only in (
+        "through the review chain",
+        "straight to the PR",
+        "open the pull request",
+        "stop before the pull request",
+        "What is checked is the answer",
+        "each box is a row of",
+        # The third axis. A document still saying two would send a session to
+        # a template whose row it never asked about.
+        "`the session`",
+    ):
+        assert only in implement, f"the skill lost `{only}`"
     for both in (
         "seal/specs/<work-item-id>/routing.md",
         # The write is its own command. Both documents mandate it and the
@@ -195,10 +213,6 @@ def test_implement_and_the_preset_block_do_not_drift():
         # check for itself, because a batched write leaves nothing on disk to
         # look at.
         "in a command of its own",
-        "through the review chain",
-        "straight to the PR",
-        "open the pull request",
-        "stop before the pull request",
         # The SHAPE of the asking, not just its vocabulary. The rule against
         # asking the axes separately is worth nothing if only one document
         # carries it, and the preset block is the one a session that never
@@ -218,11 +232,6 @@ def test_implement_and_the_preset_block_do_not_drift():
         # question 1 now goes alone and the boxes follow only under
         # `per axis`.
         "Ask question 1 alone; the boxes in a second call only under `per axis`.",
-        "What is checked is the answer",
-        "each box is a row of",
-        # The third axis. A document still saying two would send a session to
-        # a template whose row it never asked about.
-        "`the session`",
     ):
         assert both in implement, f"the skill lost `{both}`"
         assert both in preset, f"the preset block lost `{both}`"
@@ -230,16 +239,16 @@ def test_implement_and_the_preset_block_do_not_drift():
 
 def test_the_fix_pass_resumes_the_implementer():
     """A fix pass as a fresh spawn re-establishes what the implementing
-    session already holds. Measured three times with no counterexample —
-    282 calls / 45 minutes fresh (#33) against 30 / 3.9 (#29) and 26 / 5.2
-    (the #57 chain) resumed — and an expectation with no number behind it
-    reads as style advice (work item 1788277657, round 1's tests-todo)."""
-    skill = read("skills", "code-review", "orchestration.md")
+    session already holds. The measurements behind the rule (#33, #29, the
+    #57 chain) are history since #940, and the file states the rule and its
+    reason in the present tense: the resumed session holds what the fixes
+    need, and a fresh spawn holds none of it."""
+    skill = " ".join(read("skills", "code-review", "orchestration.md").split())
     assert "resuming the session that built the branch" in skill, (
         "the orchestrator sections lost the sentence saying how the fixing "
         "session is obtained"
     )
-    assert "282 calls and 45 minutes" in skill, "the measurement went"
+    assert "A fresh spawn holds none of it" in skill, "the reason went"
     assert "the fresh spawn is the only option left" in skill, (
         "the fallback for a session that no longer exists went"
     )

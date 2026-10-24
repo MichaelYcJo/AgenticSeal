@@ -1,6 +1,6 @@
 # Pact
 
-<!-- seal/pact.md — the one copy of what two or more repositories keep
+<!-- seal/pact.md is the one copy of what two or more repositories keep
 together (`docs/the-pact.md`). It lives in one of them, the pact's
 repository, and every repository of a work item that keeps it is a
 signer, that one included.
@@ -13,7 +13,7 @@ is a pact every signer has to re-read for changes that were never theirs.
 **The table below lists every OTHER signer** by its origin remote URL. The
 pact's repository does not list itself: it cites its own clauses as it cites
 any other heading of its own. Each signer listed here names this repository in
-its own `seal/config.md`, in a `Pact` row (`templates/config.md` §*Pact*).
+its own `seal/config.md`, in a `Pact` row (`templates/config.md` *Pact*).
 `pact-check` refuses a relationship recorded on one side only.
 
 **Every `##` heading below the table is a clause**, and a `###` under it

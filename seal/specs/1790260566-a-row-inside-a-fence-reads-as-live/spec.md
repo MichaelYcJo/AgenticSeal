@@ -147,6 +147,13 @@ loads, and each walk keeps the state its own question needs.
 - No CLI flag, exit code or message is added. A changed verdict is the only
   output change, and each one is pinned by the case listed above.
 
+## Rule changes
+
+- nothing
+  why: written: the shared fence rule, in docs/the-record-layout.md *Whether a line is live
+    is asked by what the line does*; overturned: the ledger readers, gone with the ledger
+    (5b1f6fae).
+
 ## Open questions → questions.md
 
 Q1 goes to a person and carries a default the build proceeds on. Q2 to Q4

@@ -25,7 +25,7 @@ the window the orchestration document orders (#598 instance 4).
 
 | Item | Who must answer |
 |---|---|
-| the full suite, lint and typecheck over the whole tree | the sealer, once, after the review rounds settle |
+| closed the full suite, lint and typecheck over the whole tree | #608, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
 
 ## Not done
 

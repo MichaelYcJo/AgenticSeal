@@ -201,6 +201,12 @@ case does.
   in `tests/test_the_record_is_written_in_words.py` leaves with the code
   that reads it.
 
+## Rule changes
+
+- nothing
+  why: written outside docs/: the scribe's job, in agents/scribe.md and
+    skills/legacy-parity/SKILL.md; its limit in docs/the-agent-set.md.
+
 ## Removes
 
 | Removes | Coordinate | Where it lands, or why it can go |

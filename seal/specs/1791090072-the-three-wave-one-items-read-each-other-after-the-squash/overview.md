@@ -26,7 +26,7 @@ After the three wave-one items of 0.18.1 squashed, no reading recorded what `fak
 
 | Item | Who must answer |
 |---|---|
-| The full suite, lint and typecheck over the whole repository | the sealer, in its one broad run before the pull request is marked ready |
+| closed The full suite, lint and typecheck over the whole repository | #766, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
 
 ## Not done
 

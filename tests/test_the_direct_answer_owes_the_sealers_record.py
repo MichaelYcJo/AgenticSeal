@@ -18,14 +18,14 @@ a file never carried the false sentence — it named the two answers and what
 neither owes — only the standing half is pinned.
 
 The commit gate's option is pinned through the rendered prompt in
-`tests/test_routing_is_recorded.py`, because its text is a Python literal
+`tests/test_commit_review_gate.py`, because its text is a Python literal
 split across lines, which a whole-file substring cannot read.
 """
 
 import os
 
 import pytest
-from conftest import REVIEW_CHAIN_DOCS, review_chain_text
+from conftest import REVIEW_CHAIN_DOCS, flat, review_chain_text
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -48,11 +48,10 @@ DIRECT_REQUIRES = {
     # The corrected docstring's own words, because that file also carries a
     # case whose docstring names the sealer's record — a pin on the bare
     # phrase would be satisfied by the case and not by the correction.
-    ("tests", "test_routing_is_recorded.py"): (
+    ("tests", "test_commit_review_gate.py"): (
         "requires nothing of it at the pull request",
         "requires " + STANDS + " of it and no reviewer's record",
     ),
-    ("templates", "sdd-routing.md"): (None, STANDS),
 }
 
 # The closing paragraph of the orchestration skill's routing section said the
@@ -61,14 +60,9 @@ DIRECT_REQUIRES = {
 TOKEN_SENTENCE = "the direct answer by the token in every command"
 
 
-def flat(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as handle:
-        return " ".join(handle.read().split())
-
-
 @pytest.mark.parametrize("parts", sorted(DIRECT_REQUIRES))
 def test_each_carrier_says_what_the_direct_answer_requires(parts):
-    """A8. A reader opening any of the seven places finds what `straight to
+    """A8. A reader opening any of these places finds what `straight to
     the PR` requires at a ready pull request and no sentence saying it
     requires nothing. Seen red by restoring one of the old sentences."""
     gone, stands = DIRECT_REQUIRES[parts]
@@ -123,5 +117,7 @@ def test_the_release_checklist_names_the_waiver_as_the_no_work_item_answer():
     token in front of each commit — rather than stepping around a gate."""
     text = flat("docs", "release-checklist.md")
     assert "`no work item` answer" in text, (
-        "§4 does not name the waiver as the routing question's `no work item` answer"
+        "`docs/release-checklist.md` *4. Commit, push, open the first pull "
+        "request* does not name the waiver as the routing question's `no work "
+        "item` answer"
     )

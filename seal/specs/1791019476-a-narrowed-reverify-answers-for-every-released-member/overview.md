@@ -22,8 +22,8 @@ A `--reverify` narrowed to the file holding a folded or a fragment re-read used 
 
 | Item | Who must answer |
 |---|---|
-| The full suite, lint and typecheck over the whole repository | the sealer, once the review rounds settle |
-| S8's `evidence-check --strict .` at 0 drifted: 9 rows the integration branch re-stamps stay drifted on this branch, and the merge conflicts at lines 17–18 and 29–30 of #736's fragment | the orchestrator, when `origin/release/v0.18.0` is merged in and the strict run repeated |
+| closed The full suite, lint and typecheck over the whole repository | #743, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
+| closed S8's `evidence-check --strict .` at 0 drifted: 9 rows the integration branch re-stamps stay drifted on this branch, and the merge conflicts at lines 17–18 and 29–30 of #736's fragment | 5b1f6fae removed `evidence-check` and the ledger rows it read |
 
 ## Not done
 

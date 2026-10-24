@@ -308,6 +308,12 @@ set after the edit is what `evidence-check` names):
 Rows this work adds — one per S1 to S6 unit, anchored on the unit — go in
 `seal/ledger/1790815615-the-seal-names-what-it-sealed-and-counts-only-the-steps-that-run.md`.
 
+## Rule changes
+
+- nothing
+  why: written: what the run prints and the steps it counts, in docs/the-broad-gate.md;
+    overturned: the values file the hook drew, at f1c9932d.
+
 ## Open questions → questions.md
 
 Every judgment the ticket left open that the tree could answer is answered

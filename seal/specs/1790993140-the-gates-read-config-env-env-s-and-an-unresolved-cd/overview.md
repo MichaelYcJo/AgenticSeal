@@ -31,7 +31,7 @@ named as a limit by a count over the recorded runs: #678's question is wired,
 
 | Item | Who must answer |
 |---|---|
-| Which git global options take a separate value on the gits CI's Linux and Windows legs install (M1 ran on 2.54.0 only) | CI's legs, when the pull request runs |
+| closed Which git global options take a separate value on the gits CI's Linux and Windows legs install (M1 ran on 2.54.0 only) | #997's `ubuntu-latest` and `windows-latest` legs ran the `--config-env` cases green |
 | Whether this plugin's git hook stub sees a session for `env -S '-i git commit'` where a lease stands (`spec.md`'s table calls that half unverified and not needed by this build; the PreToolUse reading judges the shape either way) | the reviewer, if they want the stub's half; nothing here depends on it |
 
 ## Not done

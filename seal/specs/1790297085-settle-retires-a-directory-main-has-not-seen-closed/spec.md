@@ -68,6 +68,13 @@ rule a document already states, or one the owner decided (#586). -->
 
 **Measured by the framer, 2026-09-25** (each script copied alone into a scratch directory, `python3.12`, exit read with `; echo $?`): `fold_check.py --root <empty>` → 1, sentence naming `hooks/optin.py`; `settle.py --root <empty>` → 1, sentence naming `hooks/optin.py` as "where the fold record is read from"; `chain_check.py --baseline HEAD --root <repo>` → **2**, "the shared reader would not load ([Errno 2] …)"; `round_record.py new` → 1, `FileNotFoundError` traceback. `grep -l '^## \|^##$' seal/specs/*/changelog.md` → no file, so no fragment in the tree is refused by #586's fix today.
 
+## Rule changes
+
+- nothing
+  why: written: the gather refuses a fragment's own section line, in
+    docs/branch-and-release.md and docs/the-record-layout.md; internal: a loader's exit 2,
+    held by its tests; overturned: settle --retire, replaced at ac83bdf3.
+
 ## Open questions → questions.md
 
 Framed 2026-09-25 by framer, before the build.

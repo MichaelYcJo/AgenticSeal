@@ -11,18 +11,15 @@ produces them.
 
 import os
 
+from conftest import read
+
 ROOT = os.path.join(os.path.dirname(__file__), "..")
-
-
-def read(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
-        return f.read()
 
 
 def test_the_skill_applies_the_able_to_fail_condition_to_the_search():
     verify = read("skills", "verify", "SKILL.md")
     assert "An absence claim is only as good as the search behind it" in verify
-    assert "run it against a case you know is\npresent" in verify, (
+    assert "run it against a case known to be\npresent" in verify, (
         "condition 2 applied to the search is the operative part"
     )
     assert '"not there"' in verify, (

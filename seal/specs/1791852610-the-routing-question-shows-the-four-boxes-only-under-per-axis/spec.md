@@ -142,6 +142,12 @@ of the code; S5 is what makes it a fact.
 specifies, with `multiSelect: true`, in the stated order. Nothing reads its
 result: the declaration is what the session writes from it, as before.
 
+## Rule changes
+
+- nothing
+  why: written outside docs/: question 1 asked alone, in skills/implement/orchestration.md
+    and CLAUDE.md.
+
 ## Removes
 
 | Removes | Coordinate | Where it lands, or why it can go |

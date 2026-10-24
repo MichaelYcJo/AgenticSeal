@@ -196,7 +196,7 @@ def test_the_two_releases_are_cited_without_a_version_number():
         "the release that replaced the deleted checklist with a gate",
     ):
         assert citation in doc, f"{OWNER} no longer cites {citation!r}"
-    assert "named rather than numbered on purpose" in doc, (
+    assert "named rather than numbered, so the description reads the same" in doc, (
         "without this note a later author, for whom both numbers have become "
         "history, replaces the descriptions with numbers and is right to"
     )
@@ -244,7 +244,7 @@ def test_the_label_is_two_states_and_nothing_schedules_from_it():
     # thing it protected was still true. What a reader must not come away
     # with is that something SCHEDULES from the label, because then a stale
     # one reads as a blocked release. So the sentence says that, and the
-    # assertion follows it (`skills/agent-contract/SKILL.md` §14: a change to
+    # assertion follows it (contract rule 14: a change to
     # what a person reads documents it and pins it, in the same commit).
     assert "**Nothing schedules from this label**" in doc, (
         "a reader who thinks something schedules from the label reads a stale "

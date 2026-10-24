@@ -407,6 +407,12 @@ after the edit is what `evidence-check` names):
   and outside any case; the first real seal of this branch is the reading
   (`questions.md` Q3).
 
+## Rule changes
+
+- nothing
+  why: overturned: the letter and its sheet, by the 28-cell seal at 149ca9ec; the stamp is
+    docs/the-review-record.md's.
+
 ## Open questions → questions.md
 
 Every judgment the issue left open that the tree could answer is answered

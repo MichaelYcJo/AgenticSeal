@@ -318,6 +318,12 @@ No cutoff is added, and `item_began_at` is read by nothing this work adds.
   and §*The fix range*, rule 17's sentence, and the records §*Reframed after
   round 3* lists. The `fixed` refusal's string is unchanged.
 
+## Rule changes
+
+- nothing
+  why: overturned: the record cells it read the range for were rewritten at 8350c578;
+    internal: a range read as its own commits, held by its tests.
+
 ## Open questions → questions.md
 
 Anything a planner must answer lives in questions.md, not inline. No row

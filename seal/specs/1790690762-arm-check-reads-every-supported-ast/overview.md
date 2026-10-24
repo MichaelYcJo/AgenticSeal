@@ -22,9 +22,9 @@ Python where they differ.
 
 | Item | Who must answer |
 |---|---|
-| S7: the `arm-check-grammar` job's two legs pass on GitHub's runners | CI, on this item's pull request |
+| closed S7: the `arm-check-grammar` job's two legs pass on GitHub's runners | #685's `arm-check-grammar (3.13)` and `(3.14)` legs ran green |
 | `questions.md` Q1: the whole suite on 3.14. A broad gate through `bin/test` here runs on the 3.13 `.venv` and does not answer it | the sealer, who chooses how to run it on 3.14 |
-| The whole suite, lint and typecheck on this branch | the sealer's broad gate, after the review rounds |
+| closed The whole suite, lint and typecheck on this branch | #685, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
 
 ## Not done
 

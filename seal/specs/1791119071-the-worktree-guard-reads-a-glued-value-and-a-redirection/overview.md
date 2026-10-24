@@ -32,8 +32,8 @@ them, and a file restore keeps its silence because the tree still decides.
 
 | Item | Who must answer |
 |---|---|
-| the full suite, lint and typecheck over the repository | the sealer, after the review rounds settle |
-| A7 against any git but 2.54.0 (CI's ubuntu, macOS and Windows gits) | CI's run of `test_the_option_table_binds_the_installed_git` on the pull request |
+| closed the full suite, lint and typecheck over the repository | #788, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
+| closed A7 against any git but 2.54.0 (CI's ubuntu, macOS and Windows gits) | its subject left the tree: 3d78c220 (#850) took the option table and `test_the_option_table_binds_the_installed_git` out |
 
 ## Not done
 

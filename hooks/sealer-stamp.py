@@ -61,7 +61,7 @@ stands in front of it — where this draws nothing and the line `post-commit`
 printed into the commit's output, or in local mode the edit gate's message,
 which names the file and `seal-stamp --from`, is what remains. The same line
 is what remains where the main session's working directory is outside the
-clone the stamp was queued in, and where its plugin predates this hook; `docs/the-review-record.md` §*The
+clone the stamp was queued in, and where its plugin predates this hook; `docs/the-review-record.md` *The
 stamp* states these and the places no file is written at all.
 
 It draws; it never stops anything. `hooks/implementer.py`'s stance holds: a

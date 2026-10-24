@@ -123,6 +123,7 @@ def merge_base(base, head="HEAD"):
 
 
 def subjects_since(point, head="HEAD"):
+    # exempt from splitlines: git output
     return closer.run("git", "log", "--format=%s", f"{point}..{head}").splitlines()
 
 

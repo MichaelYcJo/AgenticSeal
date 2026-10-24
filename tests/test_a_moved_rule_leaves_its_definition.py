@@ -5,7 +5,7 @@ home for every universal rule, and each `agents/*.md` keeps only its own
 application. Phases 3 and 4 did the moving. Nothing checked that it was a
 move.
 
-Measured 2026-09-03 by the orchestrator, at `e51fd0b`: §9's body was pasted
+Measured 2026-09-03 by the orchestrator, at `e51fd0b`: contract rule 9's body was pasted
 back into `agents/warden.md` under a new heading, and `test_broad_gate_rule`,
 `test_edits_go_through_the_edit_tool`, `test_every_agent_reads_the_contract`
 and `test_the_agent_contract_holds_the_universal_rules` were all green -- 81
@@ -18,13 +18,13 @@ with a green suite the whole way.
 
 ## Where this draws the line
 
-A definition MAY cite a section by its number and say what the rule means
+A definition MAY cite a rule by its number and say what the rule means
 for its own role, in its own words -- that is the application form, and
 phases 3 and 4 kept several deliberately: the warden's audit of the
 `unverified` label, its `## Not judged` row, the #36 cost of a
 prompt landing during a round; the smith's 1.08-1.17, its
 hand-back as the place both answers land, its own waiver example as the
-patch §9's gate reads a commit out of. Every one of those is about one
+patch contract rule 9's gate reads a commit out of. Every one of those is about one
 agent, and none of them is the rule.
 
 What a definition may NOT do is carry the contract's own sentences. So the
@@ -43,22 +43,25 @@ counterfeit `CONTRIBUTING.md` refuses.
 `WINDOW` comes from the tree rather than from taste. Measured across all
 three definitions after phase 4, the longest run any KEPT application shares
 with any section is 10 words (`agents/smith.md`'s `a bare word is a pathspec
-and git rejects it`, which §8 and the design gate's waiver paragraph both
-spelled because both were about the same git fact; the warden's 9-word echo
-of §6 was the next). Both left with their rewrites (#957, #967), and the
-widest kept run since is 8 words, `agents/sealer.md` with §2 (the framer's
-8 with §5 left with its rewrite, #968). The smallest run a REAL duplication produced, measured on
-the same files before phase 4 removed them, is 25 words (§10), then 31 (§9),
-37 (the old §16, now part of §11), 59 (§11) and 66 (§3). Fifteen sits between 10 and 25 with margin
+and git rejects it`, which contract rule 8 and the design gate's waiver
+paragraph both spelled because both were about the same git fact; the
+warden's 9-word echo of contract rule 6 was the next). Both left with their
+rewrites (#957, #967), and the widest kept run since is 8 words,
+`agents/sealer.md` with contract rule 2 (the framer's 8 with contract rule 5
+left with its rewrite, #968). The smallest run a REAL duplication produced,
+measured on the same files before phase 4 removed them, is 25 words
+(contract rule 10), then 31 (contract rule 9), 37 (the old rule 16, now part
+of contract rule 11), 59 (contract rule 11) and 66 (contract rule 3).
+Fifteen sits between 10 and 25 with margin
 on both sides, and both ends of that margin are printed by
 `test_the_window_sits_between_what_was_measured`, so a later edit that
 narrows the gap is red rather than silently mis-tuned.
 
-The list of sections is derived from the contract, never typed here. A
+The list of rules is derived from the contract, never typed here. A
 hand-copied list is a second source that disagrees with the first, and this
 repository has been bitten by exactly that -- `ROUND_RECORD_FIELDS` in
 `tests/test_the_pull_request_language_is_the_repositorys.py` carries the
-scar. A section added as §21 is checked on the day it lands, and so is a
+scar. A rule added as number 21 is checked on the day it lands, and so is a
 fourth agent definition, because both come from a glob.
 """
 
@@ -67,13 +70,14 @@ import os
 import re
 
 import pytest
-from conftest import posix_id
+from conftest import flattened as flat
+from conftest import read
+from conftest import repo_relative as name
+from test_the_agent_contract_holds_the_universal_rules import HEADING
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 CONTRACT = os.path.join(ROOT, "skills", "agent-contract", "SKILL.md")
 AGENTS = sorted(glob.glob(os.path.join(ROOT, "agents", "*.md")))
-
-HEADING = re.compile(r"^## §(\d+) (.+)$", re.M)
 
 # A run of this many consecutive words is longer than any phrase two of these
 # documents share by writing about the same mechanism, and shorter than the
@@ -88,17 +92,8 @@ LONGEST_KEPT_APPLICATION = 10
 SMALLEST_REAL_DUPLICATION = 25
 
 
-def read(path):
-    with open(path, encoding="utf-8") as handle:
-        return handle.read()
-
-
-def flat(text):
-    return " ".join(text.split())
-
-
 def sections(text):
-    """{number: body} for every `## §N` in the contract, heading excluded.
+    """{number: body} for every `## <N>` in the contract, heading excluded.
 
     The heading is left out on purpose: a heading is a label, and a
     definition that names the same subject in its own heading is doing the
@@ -112,10 +107,6 @@ def sections(text):
 
 
 SECTIONS = sections(read(CONTRACT))
-
-
-def name(path):
-    return posix_id(os.path.relpath(path, ROOT))
 
 
 def runs(body, window=WINDOW):
@@ -164,13 +155,14 @@ def test_the_globs_find_the_definitions_and_the_sections():
 def test_no_definition_carries_a_sections_own_sentences(path, number):
     """One case per section per definition, so a failure names both.
 
-    Both axes are derived: a §21 added tomorrow and a fourth agent added
+    Both axes are derived: a rule 21 added tomorrow and a fourth agent added
     tomorrow are each checked on the day they land, which is the miss with no
     other symptom."""
     duplicated = copied(SECTIONS[number], read(path))
     assert not duplicated, (
-        f"{name(path)} carries §{number}'s own words: {duplicated[0]!r}. "
-        f"A definition may cite §{number} and say what it means for its role, "
+        f"{name(path)} carries contract rule {number}'s own words: "
+        f"{duplicated[0]!r}. A definition may cite rule {number} and say what "
+        "it means for its role, "
         "in its own words; carrying the contract's sentences is the "
         "duplication the contract was written to end, and it is invisible in "
         "a diff that only adds"
@@ -194,7 +186,8 @@ def test_the_window_sits_between_what_was_measured():
         ),
     )
     assert widest[0] < WINDOW, (
-        f"{widest[1]} now shares {widest[0]} words with §{widest[2]}, which "
+        f"{widest[1]} now shares {widest[0]} words with contract rule "
+        f"{widest[2]}, which "
         f"is at or over the {WINDOW}-word window. Either that application "
         "prose has drifted into a copy, or it needs rewording -- do not "
         "raise the window, which is what makes the copy invisible"
@@ -213,7 +206,8 @@ def test_the_window_sits_between_what_was_measured():
     # the walk that would answer it.
     assert widest[0] <= LONGEST_KEPT_APPLICATION, (
         f"the longest kept application is now {widest[0]} words "
-        f"({widest[1]}, §{widest[2]}), where {LONGEST_KEPT_APPLICATION} was "
+        f"({widest[1]}, contract rule {widest[2]}), where "
+        f"{LONGEST_KEPT_APPLICATION} was "
         "measured at phase 4. The margin under the window is shrinking; "
         "re-measure both ends before this case is the one that fails"
     )
@@ -227,13 +221,13 @@ def test_the_window_sits_between_what_was_measured():
 
 
 def paste_back(definition, number):
-    """A definition with §N's body pasted back in under a new heading.
+    """A definition with contract rule N's body pasted back in under a new heading.
 
     This is the orchestrator's mutation of 2026-09-03, in the module rather
     than in a transcript: it is the exact edit a session makes when it
     decides a definition ought to state the rule too."""
     return definition.rstrip("\n") + (
-        f"\n\n## The rule §{number} states\n\n{SECTIONS[number].strip()}\n"
+        f"\n\n## What rule {number} states\n\n{SECTIONS[number].strip()}\n"
     )
 
 
@@ -245,8 +239,8 @@ def test_pasting_a_section_body_back_into_a_definition_is_caught(path, number):
     experiment rather than the rule."""
     mutated = paste_back(read(path), number)
     assert copied(SECTIONS[number], mutated), (
-        f"§{number} pasted whole into {name(path)} is not caught, so that "
-        "section's body holds no run of "
+        f"contract rule {number} pasted whole into {name(path)} is not caught, "
+        "so that rule's body holds no run of "
         f"{WINDOW} words -- it is too short for this check to see"
     )
 
@@ -364,11 +358,11 @@ def test_a_citation_is_not_a_copy():
     named here and asserted clean."""
     kept = {
         ("agents", "warden.md"): (
-            "so it goes through the `Edit` or `Write` tool (§9)",
+            "so it goes through the `Edit` or `Write` tool (rule 9)",
             "whether that label is honest",
             "a row of `## Not judged`",
         ),
-        # The smith's waiver example, its RIDER and its pointer at §8 left
+        # The smith's waiver example, its RIDER and its pointer at rule 8 left
         # with its rewrite (#967): the waiver is one rule sentence now, held
         # by `test_the_smiths_four_rules_stand_with_their_enforcers`.
         ("agents", "smith.md"): (
@@ -385,7 +379,8 @@ def test_a_citation_is_not_a_copy():
             )
         for number, body in SECTIONS.items():
             assert not copied(body, definition), (
-                f"{'/'.join(parts)}'s application prose reads as a copy of §{number}"
+                f"{'/'.join(parts)}'s application prose reads as a copy of "
+                f"contract rule {number}"
             )
 
 
@@ -490,7 +485,7 @@ SENTENCE_END = re.compile(r"[.!?](?=\s|$)")
 
 def test_the_smiths_four_rules_stand_with_their_enforcers():
     """T3 of #967: S4's four rules each keep their paragraph, their clauses
-    and an `Enforced by:` line, and the waiver stays one sentence.
+    and a `check:` line, and the waiver stays one sentence.
 
     These four have no eval case that plants their breach, so a later trim
     could drop any of them with every grader green — #107's failure, a rule
@@ -498,14 +493,14 @@ def test_the_smiths_four_rules_stand_with_their_enforcers():
     for lead, clauses in SMITHS_FOUR_RULES.items():
         paragraph = smith_rule(lead)
         assert paragraph, f"`agents/smith.md` lost the rule {lead!r}"
-        assert re.search(r"^Enforced by: \S", paragraph, re.M), (
-            f"{lead!r} has no `Enforced by:` line, so nothing names what holds it"
+        assert re.search(r"^check: \S", paragraph, re.M), (
+            f"{lead!r} has no `check:` line, so nothing names what holds it"
         )
         said = flat(paragraph)
         for clause in clauses:
             assert clause in said, f"{lead!r} lost {clause!r}"
     waiver = smith_rule("The waiver is one command's.")
-    body = waiver.split("**", 2)[2].split("\nEnforced by:", 1)[0]
+    body = waiver.split("**", 2)[2].split("\ncheck:", 1)[0]
     assert len(SENTENCE_END.findall(body)) == 1, (
         "the waiver is stated in more than one sentence again, which is the "
         f"narration the rewrite removed: {flat(body)!r}"
@@ -515,7 +510,7 @@ def test_the_smiths_four_rules_stand_with_their_enforcers():
 def test_the_smiths_fix_pass_writes_two_lines_and_sweeps_what_its_range_reworded():
     """The smith's half of the fix pass: the two lines it writes, the
     coordinate it appends, and the sweep for every other place stating a rule
-    its range reworded (contract §12). The record's grammar is
+    its range reworded (contract rule 12). The record's grammar is
     `docs/the-review-record.md`'s and is held there; this holds the
     definition's paragraph, which no other case reads."""
     paragraph = flat(
@@ -570,7 +565,7 @@ SCRIBES_RULES = {
 
 def test_the_scribes_rules_stand_with_their_enforcers():
     """T3 of #970: the scribe's rules keep their paragraphs, their clauses and
-    an `Enforced by:` line, it opens `legacy-parity` at step 1, and where no
+    a `check:` line, it opens `legacy-parity` at step 1, and where no
     original resolves it returns `original not found` instead of asking.
 
     No case runs the scribe (#957's Q3), so a trim could drop any of these
@@ -584,8 +579,8 @@ def test_the_scribes_rules_stand_with_their_enforcers():
             (p for p in rules.split("\n\n") if p.startswith(f"**{lead}**")), ""
         )
         assert paragraph, f"`agents/scribe.md` lost the rule {lead!r}"
-        assert re.search(r"^Enforced by: \S", paragraph, re.M), (
-            f"{lead!r} has no `Enforced by:` line, so nothing names what holds it"
+        assert re.search(r"^check: \S", paragraph, re.M), (
+            f"{lead!r} has no `check:` line, so nothing names what holds it"
         )
         said = flat(paragraph)
         for clause in clauses:
@@ -614,8 +609,8 @@ def figures(text):
 
 @pytest.mark.parametrize("path", AGENTS, ids=name)
 def test_no_definition_states_a_tools_per_turn_figure(path):
-    """T5: the per-segment bars live in `docs/the-review-record.md` §*The
-    per-segment bars*, and contract §10 says no definition states a second
+    """T5: the per-segment bars live in `docs/the-review-record.md` *The
+    per-segment bars*, and contract rule 10 says no definition states a second
     copy. A copy in a definition drifts from the table and is read first."""
     assert not figures(read(path)), f"{name(path)}: {figures(read(path))}"
 

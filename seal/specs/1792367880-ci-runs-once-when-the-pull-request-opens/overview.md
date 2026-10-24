@@ -25,7 +25,7 @@ Each pull request paid for CI more than once: marking a draft ready re-ran the w
 
 | Item | Who must answer |
 |---|---|
-| GitHub runs `hygiene` and not `tests` when a draft is marked ready, a second push cancels the first push's `tests` and `hygiene` runs, and a push to `main` is neither held nor cancelled | the orchestrator, by `gh run list --branch <branch>` on this work item's pull request (`questions.md` Q1) |
+| closed GitHub runs `hygiene` and not `tests` when a draft is marked ready, a second push cancels the first push's `tests` and `hygiene` runs, and a push to `main` is neither held nor cancelled | GitHub's behaviour, read by `gh run list`: the limit sentence in `docs/branch-and-release.md` *Cutting a release* |
 | closed The sealer's definition changed in three sentences (`phases/phase-2.md` names them), and its behaviour on the five-case suite was not measured | measured by the orchestrator twice against #976's side: at 62c38876 fail on rule 4 alone, at 95ab5fd0 fail on rule 5 alone by 0.9% with all 68 graders passing, recorded and shipped under the owner's rule for a rule-5-only fail (`evals/sealer-phase-3.md`, `evals/sealer-phase-3b.md`, `changelog.md`) |
 
 ## Not done

@@ -20,11 +20,21 @@ tree's `bin/` first.
 on the old tree and on the new one, judged on outcome first and then on
 cost, each against the baseline and none against an absolute.**
 `scripts/noninferiority.py run` runs one agent's cases on one side and
-records, per run, the graders, the report's finding rows and the cost its
-trace's `result` event carries (spend, seconds and `modelUsage`, every
-model's tokens) and its tool calls (every `tool_use` block in the trace,
-the session's and the agent's), beside the preload's bytes. `compare` writes
-the record the five pass rules of `noninferiority.py#verdict` judge:
+records, per run, the graders, the round record the session printed and the
+cost its trace's `result` event carries (spend, seconds and `modelUsage`,
+every model's tokens) and its tool calls (every `tool_use` block in the
+trace, the session's and the agent's), beside the preload's bytes. The
+record is kept whole as `report_text`, with each user path and host that
+the `real_identifiers` census in `tests/censuses.py` refuses replaced by the
+fixture one.
+Whenever `compare` or `regrade` reads a side, a run's findings are the
+`### ` sections of the record's one `## Findings` section, split by
+`chain_check.py#finding_spans` over the lines its shared reader leaves, so a
+`location:` line in a fence or a comment is no finding, and a finding in a
+shape the check refuses still counts. A `truth-` grader over the round
+record is graded on those findings, so recall and the false-finding rate
+are read by one reader. `compare` writes the record the five pass rules of
+`noninferiority.py#verdict` judge:
 
 1. recall has not fallen, except by one find where every truth grader that
    lost it is still found by at least one new run;
@@ -45,20 +55,33 @@ the new side did not, whatever its graders, a case run a different number
 of times, a run whose `modelUsage` is missing or short of a count, or
 one whose trace cannot be read or holds no tool call is no result, never a
 pass.
-`tests/test_a_rewritten_definition_proved_non_inferior.py` recomputes the
-record. Nothing in the tree makes a later edit owe a run.
+`tests/test_noninferiority.py` recomputes the record. Nothing in the tree
+makes a later edit owe a run.
 
 **A side already paid for is read again under another suite's truths
 without a run.** `noninferiority.py regrade --side IN.json --suite-rev REV
 --out OUT.json` grades each run of IN on REV's `truth-` graders, the
-grader's regex searched over the run's report rows. It writes OUT naming
+grader's regex searched over the run's findings. It writes OUT naming
 REV's suite and the one IN's runs answered, which a side regraded again
-keeps. It refuses, naming the case, a side whose
-own suite does not give back from its rows the truth results it recorded,
+keeps. It refuses, naming the case, a side whose own suite does not give
+back, from each run's whole `report_text`, the truth results it recorded,
 and a suite at REV that differs from IN's in anything but `truth-` graders
 or holds other cases: a change to a prompt, a scaffold or a `shape-` grader
 asks the agent something its runs never answered, and only a run measures
 that.
+
+**A side that keeps no `report_text` is refused.** `compare` and `regrade`
+exit 2 on such a side, naming its file: it was taken before #986, it keeps
+the rows the old reader matched and not the record, and no reader can read
+it again. Its committed record stays as it was judged, and `check` and
+`model`, which read a record and no side, still read it.
+
+**A warden comparison compares two sides taken from the same point.** The
+squash commit that lands #986 on `release/v0.22.3` is that point for the
+warden's suite: from it, both sides run the seeded cases built at round 1's
+target and both keep `report_text`. No side taken before it compares with
+one taken after it, and `compare` refuses such a pair twice over, since the
+suite trees differ and the earlier side keeps no text.
 
 **Every grader reads an outcome, never a sentence of a definition.** A
 `truth-` grader is a real or seeded defect the report names, a `shape-`
@@ -74,7 +97,7 @@ case:
 | Generator | Cases |
 |---|---|
 | `scripts/replay_targets.py` | `warden/replay-*`: a round record's target, each finding the next round confirmed fixed a `truth-` grader |
-| `scripts/seed_defects.py` | `warden/seeded-*`: a shipped diff with one mutation in a unit it touched, the mutated line its `truth-` grader |
+| `scripts/seed_defects.py` | `warden/seeded-*`: a shipped work item's round 1 target, against round 1's base, with one mutation in a unit the build added, amended into the target with the target's own committer and date, and neither a copy of the unmutated target commit nor a remote left in the clone; the mutated line is a `truth-` grader, and so is each finding round 1 fixed that round 2 confirmed |
 | `scripts/rule_cases.py` | `<agent>/rule-*`: a fixture repository the agent works in, graded on what it produced |
 
 All three also read `scripts/recurred_truths.json`. A real defect a case

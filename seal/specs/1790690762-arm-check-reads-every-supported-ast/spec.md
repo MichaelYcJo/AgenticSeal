@@ -199,6 +199,12 @@ Under `### Fixed`, one bullet, written for a plugin user:
   every Python from 3.12 to 3.14, so a table that is right for one interpreter
   and wrong for another no longer passes unnoticed (#684).
 
+## Rule changes
+
+- nothing
+  why: written: a module's arms are enumerated and mutated, in docs/the-broad-gate.md;
+    internal: the node tables per Python, held by tests/test_arm_check.py and its CI job.
+
 ## Open questions → questions.md
 
 Nothing here waits on a person. `questions.md` lists the judgments the ticket

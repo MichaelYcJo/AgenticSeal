@@ -33,7 +33,7 @@ or a hook manager put there, and never writes over a file without it (P1).
 
 **The stub embeds the installed plugin's absolute path.** A git hook runs from
 git, not from the harness, so `CLAUDE_PLUGIN_ROOT` is not in its environment
-(measured, spec §*What the tree answered* 9). The path goes stale when the
+(measured, its `spec.md` *What the tree answered* 9). The path goes stale when the
 plugin moves to a new version directory, so the stub tests it and exits 0 when
 it is gone -- an uninstalled plugin leaves a stub that does nothing -- and the
 installer rewrites it at the next session start or Bash call in the clone.
@@ -170,6 +170,7 @@ def read_stub(path):
         return None
     except OSError:
         return (False, "", "")
+    # exempt from splitlines: a hook file this plugin wrote
     lines = head.splitlines()
     if len(lines) < 2 or not lines[1].startswith(MARKER):
         return (False, "", "")

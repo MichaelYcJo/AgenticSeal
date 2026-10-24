@@ -4,8 +4,8 @@
 0.4.0 laid the plugin's tree out by lifetime under one root. `.specseal/` held
 the records that outlive a work item; `specs/<id>/` held a
 work item's documents and its review records; both are `seal/` now, and the
-opt-in is that root's presence (`docs/one-root-by-lifetime.md`, "What happens
-to the existing directories at the switch"). Nothing reads the old names after
+opt-in is that root's presence (`docs/one-root-by-lifetime.md`, "What first
+setup asks"). Nothing reads the old names after
 that release except this hook, so a repository still holding the old layout
 gets silence from every gate until this runs. That silence is the fail
 direction the design record keeps on purpose, and this hook is what ends it.
@@ -32,7 +32,7 @@ The move, in order (`seal/specs/1788331011-…/spec.md`, "The move, in order"):
      have named, and every 0.3.x work item carried `routing.md` (#688)
   4. the root is appended to `~/.claude/specseal/root-migrated`
 
-Boundaries, each pinned in `tests/test_the_root_migrates_itself.py`:
+Boundaries, each pinned in `tests/test_root_migrate.py`:
 
   - **never over uncommitted work** — anything `git status --porcelain` reports
     under `.specseal/` or `specs/`, or a git that cannot answer, refuses the
@@ -116,6 +116,7 @@ class MoveError(Exception):
 def attempted(root):
     try:
         with open(MARKER, encoding="utf-8") as f:
+            # exempt from splitlines: a marker file of root paths
             return root in f.read().splitlines()
     except OSError:
         return False
@@ -170,6 +171,7 @@ def dirty(root):
         return True
     if r.returncode != 0:
         return True
+    # exempt from splitlines: git output
     for line in r.stdout.splitlines():
         if len(line) < 2:
             continue
@@ -426,7 +428,7 @@ def run_moves(root, units):
         # with ENOTDIR, which is what this used to rest on; Windows'
         # `RemoveDirectoryW` removes a directory link itself, whatever is
         # behind it, and deleted a team's linked `specs/` from the working
-        # tree (PR #700's windows leg, #688; contract §13).
+        # tree (PR #700's windows leg, #688; contract rule 13).
         if os.path.islink(path):
             continue
         try:

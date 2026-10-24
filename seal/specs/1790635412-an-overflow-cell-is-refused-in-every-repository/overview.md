@@ -31,10 +31,10 @@ it `OVERFLOW` in every repository that installs the plugin.
 
 | Item | Who must answer |
 |---|---|
-| the full suite, the repository-wide lint and the typecheck at the branch's tip | the sealer, spawned by the orchestrator after the review rounds settle |
-| A10's `os.sep` normalisation and the advisor's path on Windows | CI's `windows-latest` leg at the pull request |
-| the README command rows, which no case holds | the review chain (warden) |
-| how GitHub renders the escaped pipes in `SKILL.md`'s new verdict row and Known-limits bullet | the review chain, on the pull request's rendered file view |
+| closed the full suite, the repository-wide lint and the typecheck at the branch's tip | #659, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
+| closed A10's `os.sep` normalisation and the advisor's path on Windows | #659's `windows-latest` leg ran the suite green; 5b1f6fae then removed `evidence-check` and its advisor |
+| closed the README command rows, which no case holds | 5b1f6fae removed `evidence-check` and its README rows |
+| closed how GitHub renders the escaped pipes in `SKILL.md`'s new verdict row and Known-limits bullet | 5b1f6fae removed `skills/evidence-check/SKILL.md` |
 
 ## Not done
 

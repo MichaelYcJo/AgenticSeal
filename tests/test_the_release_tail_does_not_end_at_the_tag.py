@@ -26,11 +26,11 @@ the moment a word is added earlier in the paragraph — the reader
 `tests/test_a_release_is_sized_by_a_criterion.py` already uses, for the reason
 its own docstring gives.
 
-**Shown red before it was committed (§15).** Each case was run against the two
+**Shown red before it was committed (contract rule 15).** Each case was run against the two
 documents with the sentence or box it pins removed; the mutations and what
 each case said were recorded in
 phase 2 of work item `1790076050-the-release-tail-is-three-acts-no-document-names`,
-whose rule `docs/branch-and-release.md` §*Cutting a release* now carries.
+whose rule `docs/branch-and-release.md` *Cutting a release* now carries.
 """
 
 import os
@@ -39,6 +39,7 @@ import re
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 CHECKLIST = "docs/release-checklist.md"
+AFTER_THE_MERGE = "*6. After the merge*"
 BRANCHING = "docs/branch-and-release.md"
 
 # The two commands the boxes carry. Each is a real invocation, and the second
@@ -73,7 +74,7 @@ def section(rel, heading):
 
 
 def after_the_tag():
-    """`docs/release-checklist.md` §6 from the tag push onward.
+    """`docs/release-checklist.md` *6. After the merge* from the tag push onward.
 
     A5's *Then* is about what FOLLOWS the tag. A box above `git tag` is one a
     reader working down the file ticks against the release before this one.
@@ -105,12 +106,14 @@ def test_two_boxes_follow_the_tag_and_each_carries_its_command():
     tail = after_the_tag()
     for command, _ in COMMANDS:
         assert command in flat(tail), (
-            f"{CHECKLIST} §6 does not carry {command!r} after the tag, so the "
+            f"{CHECKLIST} {AFTER_THE_MERGE} does not carry {command!r} after "
+            "the tag, so the "
             "box it answers is one a reader cannot act on"
         )
         owning = [b for b in boxes(tail) if command in b]
         assert owning, (
-            f"{command!r} is in §6 but not inside a box — a command beside a "
+            f"{command!r} is in {AFTER_THE_MERGE} but not inside a box — a "
+            "command beside a "
             "step is the shape #386 measured being skipped three times"
         )
 
@@ -179,14 +182,15 @@ def test_the_directory_box_says_it_never_fails_a_release():
     assert "resubmit" not in box.lower(), (
         "the box sends the reader to resubmit, which is wrong for both kinds of listing"
     )
-    # Round 1's 🟡 3: the box's heading and §6's opening said the command
+    # Round 1's 🟡 3: the box's heading and the step's opening said the command
     # answers for the directory, the claim this box exists to withdraw.
     assert box.startswith(
         "- [ ] **The marketplace files and the directory's page have been read**"
     ), f"the box's heading still says the directory answered: {box[:80]!r}"
     tail = flat(after_the_tag())
     assert "names the page that answers the rest" in tail, (
-        "§6's opening still says each box carries the command that answers it"
+        f"the opening of {AFTER_THE_MERGE} still says each box carries the "
+        "command that answers it"
     )
     # Round 1's 🟡 5: the day count was true once and is not a standing fact.
     assert "once went twenty-eight days" in box, (
@@ -225,7 +229,8 @@ def test_each_box_names_something_that_exists():
         if path is None:
             continue
         assert os.path.exists(os.path.join(ROOT, path)), (
-            f"{CHECKLIST} §6 tells a reader to run {command!r} and {path} is "
+            f"{CHECKLIST} {AFTER_THE_MERGE} tells a reader to run {command!r} "
+            f"and {path} is "
             "not in the tree"
         )
 
@@ -241,9 +246,9 @@ def squash_rule():
     part of the document does not satisfy these assertions.
     """
     text = read(BRANCHING)
-    start = text.index("**What breaks when the last row is squashed**")
+    start = text.index("**What breaks when the last row is squashed.**")
     rest = text[start:]
-    end = rest.index("**This is enforced, and it was not always.**")
+    end = rest.index("**Two rulesets enforce the merge methods.**")
     return flat(rest[:end])
 
 
@@ -252,7 +257,7 @@ def test_an_outside_directory_is_in_the_enumeration():
     both of which this repository can repair. The third reader cannot be
     repaired from here, which is the whole reason it is worth writing down."""
     rule = squash_rule()
-    assert "A third reader points at those commits now" in rule, (
+    assert "A third reader of those commits is outside this repository" in rule, (
         f"{BRANCHING}'s squash rule no longer names the reader that arrived "
         "from outside the repository"
     )
@@ -261,7 +266,7 @@ def test_an_outside_directory_is_in_the_enumeration():
         "the enumeration says a directory is a reader without saying what it "
         "pins, which is the fact that makes it one"
     )
-    assert "docs/release-checklist.md` §6" in rule, (
+    assert "docs/release-checklist.md` *6. After the merge*" in rule, (
         "nothing points from the rule to the box that reads what is pinned"
     )
     # Round 1's 🟡 4: the record line closing this paragraph's fold said a
@@ -307,15 +312,14 @@ def test_the_fixed_name_sentence_sits_beside_it():
 def release_tail_rule():
     """The standing statement the second fold wrote for this work item.
 
-    From its fold marker in §*Cutting a release* to the next `###` heading, so
-    the third-reader paragraph further down, which carries the same marker,
-    is not read as part of it.
+    From its opening in *Cutting a release* to the next `###` heading, so
+    the third-reader paragraph further down is not read as part of it.
     """
     text = read(BRANCHING)
-    marker = (
-        "<!-- specs/1790076050-the-release-tail-is-three-acts-no-document-names -->"
+    start = text.index(
+        "**Every act the release performs once it reaches `main` belongs to a "
+        "machine or\nto a command that answers it"
     )
-    start = text.index(marker) + len(marker)
     rest = text[start:]
     return flat(rest[: rest.index("### Work accumulates on a release branch")])
 

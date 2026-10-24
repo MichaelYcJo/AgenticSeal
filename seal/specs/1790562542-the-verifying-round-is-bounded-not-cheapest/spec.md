@@ -100,6 +100,12 @@ No code path, no schema, no output. The interfaces are four sentences a
 session reads and acts on (C1–C4), one test docstring (C5), one test needle
 (C6), one new test module, a changelog fragment and ledger rows.
 
+## Rule changes
+
+- nothing
+  why: written: a verifying round's target is the fixes' diff, in docs/the-review-record.md
+    *The run*.
+
 ## Open questions → questions.md
 
 Q1 (a measurement) is the only open row, and it does not block the build.

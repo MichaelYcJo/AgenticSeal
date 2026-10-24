@@ -210,6 +210,12 @@ not hold the same cases, naming the case each time. `compare`, `check` and
 `971-warden-phase-3-<rev>.md`, where `<rev>` is the first eight hex digits
 of the commit that lands the new suite.
 
+## Rule changes
+
+- nothing
+  why: internal: each false row is classed and a side is graded again, held by
+    tests/test_a_rewritten_definition_proved_non_inferior.py.
+
 ## Removes
 
 nothing — the work adds truths, a subcommand and records. Every sentence it

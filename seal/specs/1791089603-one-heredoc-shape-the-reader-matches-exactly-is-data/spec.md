@@ -190,6 +190,12 @@ with no git hooks installed. "Stops" means not silent, with and without the
 - **I/O**: any file a new test writes or reads names `encoding="utf-8"`, because #741's encoding check lands first.
 - **Ledger**: rows a re-read moves for `commit-review-gate.py#main` or `#commit_invocations` sit in released files (`Ledger frozen from | 1790993141`). Their re-reads go into `seal/ledger/1791089603-one-heredoc-shape-the-reader-matches-exactly-is-data.md` through `evidence-check --reverify --into`.
 
+## Rule changes
+
+- nothing
+  why: written: the one heredoc shape that is data, in docs/commit-review-gate-spec.md;
+    internal: the clause-by-clause grounds, held by hooks/one_heredoc.py and its tests.
+
 ## Open questions → questions.md
 
 The judgments the tickets left open that the tree answered are listed at the

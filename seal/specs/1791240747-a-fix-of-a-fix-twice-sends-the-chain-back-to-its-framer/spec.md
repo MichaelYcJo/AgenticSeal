@@ -304,6 +304,12 @@ landing `landings` should not have accepted, not the depth walk.
   and the label. **Platform honesty:** git and the AST only; nothing here
   inspects a process.
 
+## Rule changes
+
+- nothing
+  why: written: a regression routed by comparing the fix with the frame, and a second one
+    sent to the framer, in docs/the-review-record.md *The run*.
+
 ## Open questions → questions.md
 
 The judgments the tree answered and the three rows it could not are in

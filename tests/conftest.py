@@ -1,17 +1,20 @@
 """The suite's shared helpers and fixtures, and the environment every case runs in.
 
 The module body sets that environment for every case and every child: the
-locale, git's template and maintenance, `gh`'s login and `PATH`. It reads
-the case ceiling from it too, and a ceiling that is not a positive number
-raises.
+locale, git's template and maintenance, `gh`'s login and `PATH`.
 """
 
+import ast
 import atexit
+import datetime
+import functools
 import importlib.util
+import io
 import json
 import os
 import pathlib
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -50,7 +53,7 @@ def review_chain_text(root):
 # comment is got it slightly differently: a flag in a comment counted as a
 # base (#462), and a comment naming a script moved the region a case sliced
 # out (#482). These three helpers are the one reading, driven over fixtures
-# in `tests/test_a_workflow_is_read_the_one_way.py`. They are a test helper
+# in `tests/test_conftest.py`. They are a test helper
 # and refuse nothing.
 
 
@@ -289,45 +292,6 @@ def decline_if_shrunken(missing, what):
         pytest.skip(shrunken_corpus(missing, what))
 
 
-def cutoff_item_is_traceable(root, reader, cutoff):
-    """`(ok, how)` for "the work item a cutoff constant names can be found".
-
-    Several rules in this suite are keyed to the id of the work item that
-    wrote them, and each pins that the id names a real work item rather than
-    a typo — a constant with a digit wrong excuses exactly the records it was
-    written to hold. The pin was `the directory is under seal/specs/`, which
-    stops being the question the moment `settle --retire` runs: the fold
-    removes a released work item's directory on purpose, and a rule whose
-    cutoff points into one would go red for the tree being TIDIED.
-
-    **So the question moves to where the fold already answers it.**
-    `skills/verify/scripts/unverified_check.py#folded_items` exists to tell a
-    fold from a deletion — both leave a directory absent — and it answers by
-    reading the `<!-- specs/<id> -->` marker off the top level of `docs/`, on
-    a live line. A work item is traceable when its directory is still there
-    OR a policy document absorbed it. A directory that is simply gone is
-    neither, and that is still a typo or a deletion, which is what these
-    cases were pinning all along.
-
-    `reader` is the caller's already-loaded `unverified_check` module, so this
-    imports nothing and every caller keeps its own loader.
-    """
-    prefix = f"{cutoff}-"
-    specs = os.path.join(root, "seal", "specs")
-    if os.path.isdir(specs):
-        if any(d.startswith(prefix) for d in os.listdir(specs)):
-            return True, "its directory is under seal/specs/"
-    folded = sorted(i for i in reader.folded_items(root) if i.startswith(prefix))
-    if folded:
-        return True, f"docs/ records the fold of {folded[0]}"
-    return False, (
-        f"no work item `{cutoff}-…` is under seal/specs/ and no top-level "
-        "docs/ file carries its `<!-- specs/<id> -->` marker on a live line, "
-        "so the cutoff names a work item this tree cannot show — a typo in "
-        "the constant, or a directory removed without a policy absorbing it"
-    )
-
-
 def gathered_entry(root, work_item_id):
     """The text a release file under `changelog/` carries for a work item
     whose fragment was gathered, or None when no marker for it is there.
@@ -335,7 +299,7 @@ def gathered_entry(root, work_item_id):
     A changelog fragment moves once, the way a ledger fragment does:
     `gather_changelog.py` writes `<!-- specs/<id> -->` above the fragment's
     body in the release's own file, `changelog/X.Y.Z.md` since #728, and
-    `settle --retire` later removes the directory the fragment lived in. So a
+    `settle --apply` later removes the directory the fragment lived in. So a
     case pinning what a fragment says reads the fragment while it exists and
     this block after. The block runs from the marker to the next marker line
     or heading, which is where the gatherer puts the next entry.
@@ -607,7 +571,11 @@ def run_hook(filename, payload, env=None):
 
 
 def decision_of(stdout):
-    """'silent' when a hook allowed by staying quiet, else its decision."""
+    """'silent' when a hook allowed by staying quiet, else its decision.
+    STDOUT is the hook's output as text, or the finished process whose
+    output is bytes, as a case run on a hostile console holds it."""
+    if isinstance(stdout, subprocess.CompletedProcess):
+        stdout = stdout.stdout.decode("utf-8")
     if not stdout.strip():
         return "silent"
     return json.loads(stdout)["hookSpecificOutput"]["permissionDecision"]
@@ -810,6 +778,15 @@ def local_home(repo):
     return home
 
 
+@pytest.fixture
+def local(repo):
+    """The `repo` fixture in local mode: `seal/` under `.git/` and nowhere
+    else."""
+    home = local_home(repo)
+    assert not (repo / "seal").exists()
+    return repo, home
+
+
 def declare_routing(
     repo, item="1787708604-a-work-item", review="through the review chain", home=None
 ):
@@ -869,81 +846,95 @@ def repo(tmp_path, _repo_template):
     return d
 
 
-# --- a slow case names itself (#841) -----------------------------------------
+# --- a slow case is named (#841, #942) ----------------------------------------
 #
-# The Windows leg grew from 7 to 40 minutes in two weeks and no run said which
-# case had grown: a wall-clock total hides the case that pushed it. A case
-# whose call runs longer than this fails, on every platform and under
-# `bin/test` as in CI, with a sentence naming it and its seconds.
-#
-# Set by `questions.md` Q6's rule (a) of work item 1791270165: 1.5 times the
-# slowest call on the Windows leg after its phases 3 and 4, rounded up to 30 s.
-# That call is `tests/test_no_shape_the_base_stops_reads_silent.py::
-# test_no_shape_the_base_stops_reads_silent` at 55.77 s in run 37469595104,
-# the slowest of the runs measured (55.13 s in run 37457228586, 52.49 s in
-# 37458654434, 29.91 s in 37465328899). The same case ran 36.44 s in run
-# 37429940700 on the same code: the runner alone moves a case by 1.5 times
-# between runs, which is why the base is the slowest run and not the last one.
-#
-# A run on a machine busier than the runners it was set from may raise it for
-# that run alone, through `CEILING_VARIABLE`. Phase 4 of work item 1791270165
-# measured a case at up to four times its figure on a laptop running other
-# sessions' suites, which is past this constant's margin over the slowest
-# local case (38.30 s). CI sets nothing, so CI and the gate read 90 unless a
-# person sets the variable on purpose.
-CASE_CEILING_DEFAULT_S = 90
-CEILING_VARIABLE = "SPECSEAL_CASE_CEILING_S"
+# A wall-clock total hides the case that pushed it, so the run names each
+# case whose call ran past this many seconds, in its terminal summary, and
+# fails nothing for it (`CONTRIBUTING.md` *Running the checks* says why).
+# Work item 1791270165 set the value at 1.5 times the slowest call on the
+# Windows leg, rounded up to 30 s.
+SLOW_CASE_S = 90
 
 
-def ceiling_from(environ):
-    """The ceiling for this run: Q6's 90 unless `CEILING_VARIABLE` holds a
-    positive number of seconds. An empty value is unset; anything else
-    stops the run with a sentence naming the variable, rather than with
-    `int()`'s traceback."""
-    raw = environ.get(CEILING_VARIABLE, "").strip()
-    if not raw:
-        return CASE_CEILING_DEFAULT_S
-    try:
-        seconds = float(raw)
-    except ValueError:
-        seconds = 0.0
-    if not seconds > 0:
-        raise ValueError(
-            f"{CEILING_VARIABLE}={raw!r} is not a positive number of seconds; "
-            f"unset it for the {CASE_CEILING_DEFAULT_S} s ceiling"
-        )
-    return int(seconds) if seconds.is_integer() else seconds
+def slow_lines(reports):
+    """One line for each call in REPORTS that ran past `SLOW_CASE_S`, naming
+    the case and its seconds, slowest first. A setup or a teardown is not
+    read: fixture building is a module's cost, not a case's."""
+    slow = [r for r in reports if r.when == "call" and r.duration > SLOW_CASE_S]
+    slow.sort(key=lambda r: -r.duration)
+    return [
+        f"slow case: {r.nodeid} ran {r.duration:.1f} s, past SLOW_CASE_S of {SLOW_CASE_S} s"
+        for r in slow
+    ]
 
 
-CASE_CEILING_S = ceiling_from(os.environ)
+def pytest_terminal_summary(terminalreporter):
+    """Write `slow_lines` over every report of the run. Under xdist the
+    controller holds the workers' reports, so one summary names them all."""
+    reports = [r for kind in terminalreporter.stats.values() for r in kind]
+    reports = [r for r in reports if hasattr(r, "when") and hasattr(r, "duration")]
+    for line in slow_lines(reports):
+        terminalreporter.write_line(line)
 
 
-def over_the_ceiling(nodeid, seconds):
-    """The sentence a call of `seconds` fails with, or None at or under
-    `CASE_CEILING_S`, read when the call ends. It names the variable, for
-    the person whose machine was busy rather than whose case grew."""
-    if seconds <= CASE_CEILING_S:
-        return None
-    return (
-        f"{nodeid} ran {seconds:.1f} s, over the {CASE_CEILING_S} s ceiling "
-        f"(#841). On a machine running other suites, {CEILING_VARIABLE}="
-        "<seconds> raises it for one run; CI never sets it"
+# --- a module's file runs the censuses over its module (#942) ------------------
+
+
+def census_case(target):
+    """The case a module file ends with, `test_census = census_case(TARGET)`:
+    every census in `tests/censuses.py` over TARGET, so the run a
+    contributor makes of one module judges that module under every census."""
+
+    def test_census():
+        import censuses
+
+        problems = censuses.judge(target)
+        assert not problems, "\n".join(problems)
+
+    test_census.__doc__ = f"Every census in tests/censuses.py over {target}."
+    return test_census
+
+
+# --- the marker a check line names --------------------------------------------
+
+
+def pytest_configure(config):
+    """Register `rule`, the marker a gate test carries for the `check:` line
+    that names it (`.github/scripts/rules.py#markers`), so pytest reads it
+    without an unknown-mark warning."""
+    config.addinivalue_line(
+        "markers", "rule(name): the rule a `check:` line names by this marker"
     )
 
 
-@pytest.hookimpl(hookwrapper=True)
-def pytest_runtest_makereport(item, call):
-    """A passing call over the ceiling is reported failed, with
-    `over_the_ceiling`'s sentence as the whole of its report. A call that
-    failed already keeps its own report: its failure is the news."""
-    outcome = yield
-    report = outcome.get_result()
-    if report.when != "call" or not report.passed:
-        return
-    sentence = over_the_ceiling(item.nodeid, call.duration)
-    if sentence is not None:
-        report.outcome = "failed"
-        report.longrepr = sentence
+def rule_carriers(marker):
+    """The qualified names of the tests that carry MARKER, as
+    `.github/scripts/rules.py#markers` reads them over this repository, so a
+    case pinning a rule's check line reads its tests the one way."""
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    path = os.path.join(root, ".github", "scripts", "rules.py")
+    spec = importlib.util.spec_from_file_location("specseal_rules_carriers", path)
+    rules = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(rules)
+    return {name for _path, name, _doc in rules.markers(root).get(marker, [])}
+
+
+# Every character `str.splitlines` ends a line at and GFM does not.
+SPLITLINES_ONLY = [chr(c) for c in (0x0B, 0x0C, 0x1C, 0x1D, 0x1E, 0x85, 0x2028, 0x2029)]
+# Two of them by name, built from the code point, for the readers' cases that
+# put one mid-line: an escape typed into an editing tool can come back as the
+# character itself.
+LS = chr(0x2028)
+FF = chr(0x0C)
+
+
+def texts():
+    """Every shape the copies could part on: each line end GFM has, each of
+    the eight mid-line and at a line end, no trailing newline, and nothing."""
+    out = ["", "a", "a\n", "a\n\n", "\n", "a\nb", "a\r\nb\r\n", "a\rb\r", "a\r\n\r\n"]
+    for char in SPLITLINES_ONLY:
+        out += [f"a{char}b\n", f"a{char}\nb", f"{char}", f"a\n{char}\n\nc{char}"]
+    return out
 
 
 # --- the durations file prices the suite (#874) -------------------------------
@@ -983,3 +974,1151 @@ def posix_id(value, sep=os.sep):
     if not isinstance(value, str):
         return None
     return value.replace(sep, "/")
+
+
+def names_path(path, text):
+    """Whether `text` names `path`, as written or as an `OSError` spells it.
+
+    `str(OSError)` quotes the filename with `repr`, which doubles every
+    backslash, so on Windows the path a refusal quotes from one is not the
+    path as written. `chain_check.py` quotes one; the three loaders #590
+    fixed write the path themselves."""
+    return path in text or repr(path)[1:-1] in text
+
+
+# --- helpers more than one test module uses (#942) ----------------------------
+#
+# Each was defined byte-identically in two or more test modules. A module
+# imports the one it needs. A helper that reads a module the case loaded
+# itself, such as the worktree guard or the chain check, takes that module as
+# its first argument, and the case's module binds it with `functools.partial`.
+
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+
+def read(*parts):
+    """The text of the file at PARTS, joined under the repository root; an
+    absolute path is read where it stands."""
+    with open(os.path.join(ROOT, *parts), encoding="utf-8") as handle:
+        return handle.read()
+
+
+def read_lossy(path):
+    """The text of the file at PATH, each byte that is not UTF-8 read as the
+    replacement character."""
+    with open(path, encoding="utf-8", errors="replace") as handle:
+        return handle.read()
+
+
+def flat(*parts):
+    """`read`'s text as one line, so a pinned phrase survives re-wrapping."""
+    return flattened(read(*parts))
+
+
+def flattened(text):
+    """TEXT as one line, each run of whitespace one space."""
+    return " ".join(text.split())
+
+
+def repo_relative(path):
+    """PATH relative to the repository root, written with `/`."""
+    return posix_id(os.path.relpath(path, ROOT))
+
+
+def load_module(path, name):
+    """The Python file at PATH, run as a module named NAME, the arguments in
+    `load_hook_module`'s order."""
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def load(relative, name):
+    path = os.path.join(ROOT, *relative.split("/"))
+    spec = importlib.util.spec_from_file_location(name, path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def git_repo(where):
+    where.mkdir(parents=True, exist_ok=True)
+    for args in (
+        ["init", "-q"],
+        ["config", "user.email", "t@t.example"],
+        ["config", "user.name", "t"],
+    ):
+        subprocess.run(
+            ["git", "-C", str(where), *args], check=True, capture_output=True
+        )
+    (where / "f.txt").write_text("one\n", encoding="utf-8")
+    subprocess.run(
+        ["git", "-C", str(where), "add", "-A"], check=True, capture_output=True
+    )
+    subprocess.run(
+        ["git", "-C", str(where), "commit", "-qm", "base"],
+        check=True,
+        capture_output=True,
+    )
+    return where
+
+
+def lease_dir(repo):
+    d = os.path.join(str(repo), ".git", "specseal-leases")
+    os.makedirs(d, exist_ok=True)
+    return d
+
+
+# Two Bash calls for the answer store's cases: one carrying a waiver, one not.
+A = ": '[no-review]'; bin/test && git commit -m a"
+B = "git commit -m b"
+
+
+def shell(command):
+    """The argv the Bash tool's shell carries for COMMAND, as `ps -ww -o
+    args=` printed it on macOS in this harness: the command inside `eval
+    '…'`, each `'` written `'"'"'`, and a newline as `\\012`."""
+    quoted = command.replace("'", "'\"'\"'").replace("\n", "\\012")
+    return (
+        "/bin/zsh -c source /Users/x/.claude/shell-snapshots/snapshot-zsh-1.sh "
+        f"2>/dev/null || true && eval '{quoted}' < /dev/null && pwd -P >| /tmp/c"
+    )
+
+
+def stub_process_tree(monkeypatch, start, tree):
+    """`ps -o ppid=,comm= -p <pid>` against a fixture tree of {pid: (ppid, comm)},
+    the walk starting at START as this process's parent.
+
+    Only `ps` is faked; everything else (git, notably) reaches the real
+    subprocess, so a hook's `main` can still resolve the repo. The hooks
+    read `os.getppid` and `subprocess.run` off the modules every caller
+    shares, so those are what is replaced.
+    """
+    import types
+
+    real_run = subprocess.run
+    monkeypatch.setattr(os, "getppid", lambda: start)
+
+    def fake_run(cmd, **kwargs):
+        if not (isinstance(cmd, (list, tuple)) and cmd and cmd[0] == "ps"):
+            return real_run(cmd, **kwargs)
+        pid = int(cmd[-1])
+        if pid not in tree:
+            return types.SimpleNamespace(stdout="")
+        ppid, comm = tree[pid]
+        return types.SimpleNamespace(stdout=f"{ppid} {comm}\n")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+
+def run(module, monkeypatch, payload):
+    monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps(payload)))
+    module.main()
+
+
+# A `config.md` text with its `Item | Value` table; `{rows}` takes the rows.
+TABLE = "# Repository config\n\n| Item | Value |\n|---|---|\n{rows}"
+
+
+@pytest.fixture
+def config():
+    return load_hook_module("config.py", "specseal_config_for_tests")
+
+
+# The config texts the reader's cases in `tests/test_config.py` and the
+# writer's in `tests/test_seal.py` both read. A row
+# that parses comes first in the piped table, because the walker stops at the
+# first line it refuses (#415, #871).
+PIPED_TABLE = (
+    "# Repository config\n\n"
+    "| Item | Value |\n|---|---|\n"
+    "| Record language | English |\n"
+    "| Broad gate | bin/test -q \\| tee out.txt |\n"
+    "| Mode | shared |\n"
+    "| Commit and pull request language | English |\n"
+)
+
+# #429: a fenced example above the live table. Two cases build on these
+# bytes: the writer's drives the write over them, and the unclosed-fence case
+# uses them as a canary, so a refusal wide enough to swallow a file whose
+# fence IS closed turns it red.
+FENCED_ABOVE = (
+    "# Repository config\n\n"
+    "An example of the format, copied out of `templates/config.md`:\n\n"
+    "```markdown\n"
+    "| Item | Value |\n"
+    "|---|---|\n"
+    "| Mode | local |\n"
+    "| Broad gate | EXAMPLE |\n"
+    "```\n\n"
+    "| Item | Value |\n"
+    "|---|---|\n"
+    "| Mode | shared |\n"
+    "| Broad gate | bin/test -q |\n"
+)
+
+# The same shape with nothing parsed above the fence: the live table's only
+# line will not parse, and before the fence rule the example below supplied
+# the rows.
+FENCED_BELOW_A_TABLE_THAT_NEVER_BEGAN = (
+    "| Item | Value |\n"
+    "|---|---|\n"
+    "| Broad gate | bin/test -q | tee out.txt |\n"
+    "```markdown\n"
+    "| Mode | local |\n"
+    "| Broad gate | EXAMPLE |\n"
+    "```\n"
+)
+
+# A fenced line that will not parse, standing ABOVE the first live row; the
+# walker refuses the live row below the fence and never quotes the fenced one
+# (#871).
+FENCED_REFUSAL = (
+    "| Item | Value |\n"
+    "|---|---|\n"
+    "```markdown\n"
+    "| Broad gate | bin/test -q | tee out.txt |\n"
+    "```\n"
+    "| Mode | shared |\n"
+)
+
+# The walker's sentence for a live row written under a comment that sits
+# inside the table: GFM ends the table at the comment, so the row below it is
+# not one of the table's rows (#871).
+UNDER_THE_COMMENT = "ends above `| Mode | shared |`, a row the walk never reaches"
+
+
+def crlf(text):
+    return text.replace("\n", "\r\n")
+
+
+def shape_text(name):
+    """`tests/block_shapes.py`'s shape NAME as one text, each line ended."""
+    from block_shapes import SHAPES
+
+    return "\n".join(SHAPES[name]) + "\n"
+
+
+def opt_in_shared(repo):
+    (repo / "seal").mkdir(exist_ok=True)
+    return repo / "seal"
+
+
+def write_config(home, text):
+    """TEXT written as `<home>/config.md`, HOME made where it is missing."""
+    os.makedirs(str(home), exist_ok=True)
+    with open(os.path.join(str(home), "config.md"), "w", encoding="utf-8") as f:
+        f.write(text)
+
+
+def write_unreadable(home, shape):
+    """`<home>/config.md` in one of the two unreadable shapes that hold on
+    macOS, Linux and Windows alike: a directory of that name, and bytes that
+    do not decode as UTF-8. A permission bit is left out on purpose: Windows
+    and a root user both read through it."""
+    path = os.path.join(str(home), "config.md")
+    if shape == "directory":
+        os.mkdir(path)
+    else:
+        with open(path, "wb") as f:
+            f.write(b"| Item | Value |\n|---|---|\n| Mode | \xff\xfe shared |\n")
+    return path
+
+
+def git(repo, *args, check=True):
+    """git driven from Python in REPO, so no Bash line carries a commit
+    (contract rule 8); the completed process."""
+    return subprocess.run(
+        ["git", "-C", str(repo), *args],
+        check=check,
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+
+
+def git_out(repo, *args):
+    """`git`'s standard output in REPO, stripped."""
+    return git(repo, *args).stdout.strip()
+
+
+def commit_everything(repo, message):
+    """Every change in REPO committed under MESSAGE; the new HEAD."""
+    git_out(repo, "add", "-A")
+    git_out(repo, "commit", "-qm", message)
+    return git_out(repo, "rev-parse", "HEAD")
+
+
+def commit_everything_as_e(repo, message):
+    """`commit_everything`, by the author `e <e@example.com>`."""
+    git_out(repo, "add", "-A")
+    identity = ["-c", "user.email=e@example.com", "-c", "user.name=e"]
+    git_out(repo, *identity, "commit", "-qm", message)
+    return git_out(repo, "rev-parse", "HEAD")
+
+
+def branch_of(repo):
+    """The branch REPO's HEAD is on, or `HEAD` when it is detached."""
+    return git(repo, "rev-parse", "--abbrev-ref", "HEAD", check=False).stdout.strip()
+
+
+def git_dir(repo):
+    """REPO's git directory, an absolute path."""
+    return git(repo, "rev-parse", "--absolute-git-dir", check=False).stdout.strip()
+
+
+def linked_worktree(repo, tmp_path):
+    """A worktree of REPO at TMP_PATH/linked, on `feature/x`."""
+    other = tmp_path / "linked"
+    git(repo, "worktree", "add", "-q", str(other), "feature/x")
+    assert os.path.isfile(other / ".git"), "a linked worktree carries a .git FILE"
+    return other
+
+
+def staged(repo):
+    """The paths staged in REPO, one per line."""
+    return git(repo, "diff", "--cached", "--name-only").stdout
+
+
+def stage(repo, name, body="x\n"):
+    (repo / name).write_text(body, encoding="utf-8")
+    git(repo, "add", name)
+
+
+def write(root, rel, text):
+    """TEXT written at REL under ROOT, its directories made."""
+    path = pathlib.Path(root) / rel
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+
+
+def opt_in(repo):
+    """REPO opted in to the workflow, in shared mode."""
+    (repo / "seal").mkdir(exist_ok=True)
+
+
+def parity_repo(repo):
+    """Declare the migration config — which now opts into the review arm too.
+
+    It used to be possible to declare parity alone, through the pre-0.10
+    `docs/parity.md`. That address is gone, and the current one lives INSIDE
+    `seal/`, so writing it creates the directory whose existence is the
+    review opt-in. The two arms are still evaluated independently — own
+    marker, own waiver token, own silence rules — but they can no longer be
+    declared independently, and `docs/commit-review-gate-spec.md` says so.
+
+    These cases are about the parity arm on its own, so they carry
+    `[no-review]` to silence the other one. That is the per-command waiver
+    doing exactly its job.
+    """
+    (repo / "seal").mkdir(exist_ok=True)
+    (repo / "seal" / "parity.md").write_text(
+        "| Original repo | org/legacy |\n", encoding="utf-8"
+    )
+
+
+def parity_only(command):
+    """`command` with the review arm waived, so the parity arm answers alone."""
+    return f"{command} [no-review]"
+
+
+def staged_repo(path, declared=False, review="straight to the PR"):
+    """An opted-in repository with one commit and a staged change.
+
+    `declared` writes a routing declaration answering `review`. Its default
+    is `straight to the PR`, because the cases that add a migration config
+    judge the parity arm as the one `[no-review]` does not answer, and a
+    declaration answering `through the review chain` quiets that arm at the
+    commit (#988)."""
+    path.mkdir(parents=True)
+    run = lambda *a: subprocess.run(
+        ["git", "-C", str(path), *a], check=True, capture_output=True
+    )
+    run("init", "-q")
+    (path / "f").write_text("1\n", encoding="utf-8")
+    run("add", "f")
+    run("-c", "user.email=e@example.com", "-c", "user.name=e", "commit", "-qm", "b")
+    (path / "f").write_text("2\n", encoding="utf-8")
+    run("add", "f")
+    (path / "seal").mkdir()
+    if declared:
+        declare_routing(path, review=review)
+    return path
+
+
+def a_git_whose_diff_fails(tmp_path):
+    """A directory holding a `git` that exits 128 for any `diff` and runs the
+    real git otherwise (`questions.md` W1 of work item 1791384157: the shim,
+    because it names the failure on every git version)."""
+    import stat
+
+    real = shutil.which("git")
+    assert real, "no git on PATH"
+    shim = tmp_path / "shim"
+    shim.mkdir()
+    script = shim / "git"
+    script.write_text(
+        "#!/bin/sh\n"
+        'for a in "$@"; do [ "$a" = diff ] && exit 128; done\n'
+        f'exec "{real}" "$@"\n',
+        encoding="utf-8",
+    )
+    script.chmod(script.stat().st_mode | stat.S_IXUSR)
+    return f"{shim}{os.pathsep}{os.environ.get('PATH', '')}"
+
+
+def dirty(repo):
+    """REPO with an uncommitted change to its tracked `f.txt`."""
+    (repo / "f.txt").write_text("changed\n", encoding="utf-8")
+
+
+def imported_roots(path):
+    """The top-level names the module at PATH imports, `.` for a relative
+    import."""
+    with open(path, encoding="utf-8") as handle:
+        tree = ast.parse(handle.read())
+    roots = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            roots.update(alias.name.split(".")[0] for alias in node.names)
+        elif isinstance(node, ast.ImportFrom):
+            roots.add((node.module or "").split(".")[0] if not node.level else ".")
+    return roots
+
+
+def iso(minutes_ago):
+    """The UTC time MINUTES_AGO, as a transcript writes it."""
+    t = datetime.datetime.now(datetime.UTC) - datetime.timedelta(minutes=minutes_ago)
+    return t.isoformat().replace("+00:00", "Z")
+
+
+def q(text):
+    """TEXT quoted for a shell."""
+    return shlex.quote(str(text))
+
+
+def sh(path):
+    r"""`path` as one shell word.
+
+    These commands are read the way the harness hands them over: a string
+    that a POSIX shell is about to run, because the `Bash` matcher in
+    `hooks/hooks.json` is the only PreToolUse entry that carries commit
+    commands. Interpolating a native path raw made the test string mean
+    something else on Windows -- the shell drops an unquoted backslash, so
+    `git -C C:\Users\x` arrived at the gate as `C:UsersX` and the
+    second target resolved under the first. Nothing about the gate was wrong
+    there; the test was writing a command no shell would carry.
+    """
+    return shlex.quote(str(path))
+
+
+def payload(cmd, repo, session="s1"):
+    """The JSON a PreToolUse hook reads for a Bash command CMD typed in REPO
+    by SESSION."""
+    return {
+        "tool_name": "Bash",
+        "session_id": session,
+        "tool_input": {"command": cmd},
+        "cwd": str(repo),
+    }
+
+
+def reason_of(out):
+    """The reason a hook's decision gives."""
+    return json.loads(out)["hookSpecificOutput"]["permissionDecisionReason"]
+
+
+def run_gate(command, cwd, session=None):
+    """The commit gate's output for COMMAND typed in CWD."""
+    gate_payload = {
+        "tool_name": "Bash",
+        "tool_input": {"command": command},
+        "cwd": str(cwd),
+    }
+    if session:
+        gate_payload["session_id"] = session
+    return run_hook("commit-review-gate.py", gate_payload)
+
+
+def config_table(*rows):
+    """A `seal/config.md` holding one row per `(item, value)` in ROWS."""
+    return "# config\n\n| Item | Value |\n|---|---|\n" + "".join(
+        f"| {item} | {value} |\n" for item, value in rows
+    )
+
+
+# A full commit id for a migration config's `Baseline commit` row.
+BASELINE = "0123456789abcdef0123456789abcdef01234567"
+
+
+def parity_file(sha):
+    """`templates/parity.md` with its `Baseline commit` placeholder replaced
+    by SHA, or left standing where SHA is None."""
+    text = pathlib.Path(ROOT, "templates", "parity.md").read_text(encoding="utf-8")
+    assert text.count("`<SHA>`") == 1
+    return text if sha is None else text.replace("`<SHA>`", f"`{sha}`")
+
+
+# --- the pact's world ---------------------------------------------------------
+#
+# `skills/verify/scripts/pact_check.py`'s cases in `tests/test_pact_check.py`
+# and the cases of `tests/test_config.py` that run it over a table the walker
+# refuses share one world: the pact's repository, whose `seal/pact.md` carries
+# one clause committed as v1 and then v2 on `main` and v3 on a side branch HEAD
+# does not hold, and a signer beside it, which names the pact in its
+# `seal/config.md`.
+
+
+@functools.cache
+def pact_check_modules():
+    """`(pact_check, its evidence reader)`, loaded once, so the world's
+    `check` and the cases that patch the module reach one module."""
+    pc = load_module(
+        os.path.join(ROOT, "skills", "verify", "scripts", "pact_check.py"),
+        "pact_check_under_test",
+    )
+    return pc, pc.load(pc.CHECKER, "evidence_for_pact_tests")
+
+
+PACT_URL = "git@example.com:org/orders-api.git"
+SIGNER_URL = "https://example.com/org/orders-web"
+MOBILE_URL = "https://example.com/org/orders-mobile"
+LOCATOR = '"## Order response shape / ### Fields"'
+PACT = "seal/pact.md"
+SPEC = "seal/specs/1790000000-x/spec.md"
+V1, V2, V3 = "id, total", "id, total, currency", "id, total, currency, tax"
+# The pact a signer's `Pact` row names in the reader's cases, and what
+# `hooks/config.py#pact_declaration` answers for it.
+URL = PACT_URL
+ORDERS = [(URL, "example.com/org/orders-api", "orders-api")]
+
+
+def pact(fields, signers=(SIGNER_URL,)):
+    rows = "".join(f"| {s} |\n" for s in signers)
+    return (
+        "# Pact\n\n| Signer |\n|---|\n"
+        + rows
+        + f"\n## Order response shape\n\n### Fields\n\n{fields}\n\n## Errors\n\nx\n"
+    )
+
+
+def old_header(text):
+    return text.replace("| Signer |\n|---|", "| Signatory |\n|---|", 1)
+
+
+def clause(fields):
+    pc, checker = pact_check_modules()
+    digest, why = pc.clause_hash(checker, pact(fields), LOCATOR)
+    assert why is None
+    return digest
+
+
+def signer_config(*rows):
+    return "# config\n\n| Item | Value |\n|---|---|\n| Mode | shared |\n" + "".join(
+        f"| {item} | {value} |\n" for item, value in rows
+    )
+
+
+def grounding_row(anchor):
+    return f"| `{anchor}` | the field list, built against it |\n"
+
+
+def init(d, url):
+    d.mkdir(parents=True)
+    git_out(d, "init", "-q", "-b", "main")
+    git_out(d, "remote", "add", "origin", url)
+
+
+# The name `_template` commits by, as `tests/test_pact_check.py` imports it.
+commit = commit_everything_as_e
+
+
+@pytest.fixture(scope="module")
+def _template(tmp_path_factory):
+    """The pact's repository and the signer as siblings under `work/`, and
+    an empty HOME, built once for the module."""
+    base = tmp_path_factory.mktemp("pact-world")
+    (base / "home").mkdir()
+    api = base / "work" / "orders-api"
+    init(api, PACT_URL)
+    write(api, PACT, pact(V1))
+    commit(api, "pact v1")
+    write(api, PACT, pact(V2))
+    commit(api, "pact v2")
+    git(api, "switch", "-qc", "side")
+    write(api, PACT, pact(V3))
+    commit(api, "pact v3")
+    git(api, "switch", "-q", "main")
+    web = base / "work" / "orders-web"
+    init(web, SIGNER_URL)
+    write(web, "seal/config.md", signer_config(("Pact", PACT_URL)))
+    commit(web, "signer")
+    return base
+
+
+class World:
+    """A copy of the module's world under one case's directory."""
+
+    def __init__(self, template, tmp_path):
+        self.tmp = tmp_path
+        shutil.copytree(template, tmp_path / "w", symlinks=True)
+        base = tmp_path / "w"
+        self.home = base / "home"
+        self.api = base / "work" / "orders-api"
+        self.web = base / "work" / "orders-web"
+
+    def cite(self, digest, locator=LOCATOR, where=SPEC):
+        anchor = f"pact:orders-api/{locator}@{digest}"
+        write(self.web, where, grounding_row(anchor))
+        return anchor
+
+    def run(self, root=None):
+        """(exit, the printed lines run together) for `check` at ROOT, the
+        pact's repository by default."""
+        pc, _checker = pact_check_modules()
+        out = io.StringIO()
+        code = pc.check(str(root or self.api), out=out, home_dir=str(self.home))
+        return code, " ".join(out.getvalue().split())
+
+    def map(self, *rows):
+        write(
+            self.home,
+            ".claude/specseal/pact-paths.md",
+            "| Remote | Path |\n|---|---|\n"
+            + "".join(f"| {r} | {p} |\n" for r, p in rows),
+        )
+
+
+@pytest.fixture
+def world(_template, tmp_path):
+    return World(_template, tmp_path)
+
+
+def chain_check_run(chain, root, capsys, *extra):
+    """CHAIN, the loaded chain check, run on ROOT against `main`; its exit
+    code and what it printed."""
+    code = chain.main(["--baseline", "main", "--root", str(root), *extra])
+    return code, capsys.readouterr().out
+
+
+def commit_found(gate, command, cwd):
+    """The first commit GATE, a loaded commit gate, finds in COMMAND typed in
+    CWD."""
+    return gate.commit_invocations(command, str(cwd))[0]
+
+
+def guard_decision(wg, monkeypatch, capsys, repo, command, sessions=([], [], True)):
+    """WG, a loaded worktree guard, run on COMMAND in REPO with SESSIONS in
+    its tree; its decision and reason, or `("silent", "")`."""
+    monkeypatch.setattr(wg, "sessions_in_tree", lambda top, own="": sessions)
+    monkeypatch.setattr(
+        wg,
+        "load_input",
+        lambda: {
+            "tool_name": "Bash",
+            "session_id": "me",
+            "tool_input": {"command": command},
+            "cwd": str(repo),
+        },
+    )
+    try:
+        wg.main()
+    except SystemExit:
+        pass
+    out = capsys.readouterr().out.strip()
+    if not out:
+        return "silent", ""
+    d = json.loads(out)["hookSpecificOutput"]
+    return d["permissionDecision"], d["permissionDecisionReason"]
+
+
+@pytest.fixture
+def projects(monkeypatch, tmp_path):
+    """A projects root this case owns. Every loaded copy of the worktree
+    guard imports the one `worktree_consent` by its plain name, so one patch
+    reaches every copy."""
+    root = tmp_path / "projects"
+    root.mkdir()
+    monkeypatch.setattr(sys.modules["worktree_consent"], "PROJECTS_ROOT", str(root))
+    return root
+
+
+# --- a routing declaration as text ----------------------------------------------
+
+
+def two_axis_text(branch="feature/x"):
+    """A declaration in the shape every one written before the third axis had."""
+    return (
+        "| Axis | Answer |\n|---|---|\n"
+        "| Review | through the review chain |\n"
+        "| Destination | open the pull request |\n"
+        f"| Branch | {branch} |\n"
+    )
+
+
+def with_row(label, answer):
+    """`two_axis_text()` with one more row in front of `Branch`."""
+    return two_axis_text().replace("| Branch |", f"| {label} | {answer} |\n| Branch |")
+
+
+# --- the worktree consent: its record, the routing press, the guard's rows ------
+
+ACTIVE = [(111, "/tree", 1.0, 0.5, "VS Code")]
+IDLE = [(222, "/tree", 400.0, 90.0, "Terminal")]
+
+
+def common_dir(repo):
+    """The clone's git directory — where the record lives.
+
+    `--git-common-dir` rather than `--absolute-git-dir`: the record stands for
+    "this session may split this clone into worktrees", and a linked worktree
+    is the same clone. git answers relatively from a main worktree, so the
+    join is not optional.
+    """
+    out = subprocess.run(
+        ["git", "-C", str(repo), "rev-parse", "--git-common-dir"],
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+    ).stdout.strip()
+    return pathlib.Path(os.path.normpath(os.path.join(str(repo), out)))
+
+
+def consent_dir(repo):
+    return common_dir(repo) / "specseal-worktree-consent"
+
+
+def grant(repo, session="me"):
+    """Write the record by hand — the reader's tests do not need the writer."""
+    d = consent_dir(repo)
+    d.mkdir(parents=True, exist_ok=True)
+    (d / session).write_text("", encoding="utf-8")
+    return d / session
+
+
+ROUTING_QUESTION = "How should this work be routed?"
+ROUTING_OPTIONS = ("automation (Recommended)", "per axis", "no work item")
+
+
+def ask_entries(
+    cwd,
+    answer="automation (Recommended)",
+    options=ROUTING_OPTIONS,
+    multi=False,
+    tool="AskUserQuestion",
+    tool_id="toolu_01routing",
+    result_id=None,
+    question=ROUTING_QUESTION,
+):
+    """One question put and answered: the assistant's `tool_use`, then the
+    `user` entry the harness writes with the structured `toolUseResult`."""
+    asked = {
+        "questions": [
+            {
+                "question": question,
+                "header": "Routing",
+                "multiSelect": multi,
+                "options": [{"label": o, "description": "d"} for o in options],
+            }
+        ]
+    }
+    use = {
+        "type": "assistant",
+        "cwd": str(cwd),
+        "message": {
+            "role": "assistant",
+            "content": [
+                {"type": "tool_use", "id": tool_id, "name": tool, "input": asked}
+            ],
+        },
+    }
+    result = {
+        "type": "user",
+        "cwd": str(cwd),
+        "isSidechain": False,
+        "message": {
+            "role": "user",
+            "content": [
+                {
+                    "type": "tool_result",
+                    "tool_use_id": result_id or tool_id,
+                    "content": f'The user answered: "{question}"="{answer}".',
+                }
+            ],
+        },
+        "toolUseResult": {
+            "questions": [dict(asked["questions"][0])],
+            "answers": {question: answer},
+        },
+    }
+    return [use, result]
+
+
+def write_transcript(root, session, entries, slug="-Users-x-repo"):
+    """`<root>/<slug>/<session>.jsonl`, one JSON object (or raw line) each."""
+    d = pathlib.Path(root) / slug
+    d.mkdir(parents=True, exist_ok=True)
+    path = d / f"{session}.jsonl"
+    with open(path, "w", encoding="utf-8") as f:
+        for e in entries:
+            f.write((e if isinstance(e, str) else json.dumps(e)) + "\n")
+    return path
+
+
+# The texts other test files compare the guard's deny with, for the
+# tracked-changes row under the press (#894, work item 1791779434); the guard's
+# own cases are `tests/test_worktree_guard.py`'s.
+TOKEN = {
+    "en": "[shared-tree-ok] carries the user's answer to switch in this shared tree",
+    "ko": "[shared-tree-ok] 가 공용 트리에서 전환한다는 사용자의 답을 담고 있어",
+}
+
+
+# The press sentence, byte for byte the first frame's: #896 copies it.
+PRESS = {
+    "en": "This session's person pressed `automation` on the routing question, "
+    "so this guard puts no question to them, and none is to be put to them in "
+    "its place.",
+    "ko": "이 세션의 사용자가 라우팅 질문에서 `automation` 을 눌렀습니다. 그래서 "
+    "이 guard 는 사용자에게 아무것도 묻지 않으며, 다른 방법으로 대신 물어서도 "
+    "안 됩니다.",
+}
+
+
+def dirty_deny(lang, lead):
+    """W3: the deny's one text for `dirty(repo)`, issued from inside the tree.
+    Every sentence is a fact the guard read or a fact about the guard; none
+    says what git does for any switch form (the reframe after round 3)."""
+    if lang == "en":
+        return (
+            f"{lead}, so no other row of this guard stops the switch, but 1 "
+            "uncommitted tracked changes are present:\n"
+            "     M  f.txt\n"
+            "\n" + PRESS["en"] + "\n\n"
+            "This row of the guard stops a branch switch while uncommitted "
+            "tracked changes are present, and says nothing of a switch once "
+            "none are.\n"
+            "\n"
+            "The ways on, none of which needs a person. Issue each command on "
+            "its own: this guard reads the tree before a command runs, so `git "
+            "stash && git switch <branch>` on one line meets this same refusal. "
+            "`git commit` and `git stash` are on this guard's list of commands "
+            "that leave the branch where it is, so each passes it when issued "
+            "alone. Which of them fits this switch, and what to run after it, is "
+            "yours to decide.\n"
+            "\n"
+            "Re-issuing this command unchanged meets this same refusal."
+        )
+    return (
+        f"{lead} 이 guard 의 다른 규칙은 이 전환을 막지 않지만, 커밋되지 않은 "
+        "추적 파일 변경이 1건 있습니다:\n"
+        "     M  f.txt\n"
+        "\n" + PRESS["ko"] + "\n\n"
+        "이 guard 의 이 규칙은 커밋되지 않은 추적 파일 변경이 있는 동안 브랜치 "
+        "전환을 막고, 변경이 없으면 전환에 대해 아무 말도 하지 않습니다.\n"
+        "\n"
+        "사람이 없어도 되는 길은 아래와 같습니다. 명령은 하나씩 따로 실행하세요. "
+        "이 guard 는 명령이 실행되기 전에 트리를 읽으므로, `git stash && git "
+        "switch <branch>` 처럼 한 줄에 쓰면 같은 거부를 받습니다. `git commit` 과 "
+        "`git stash` 는 이 guard 가 브랜치를 그대로 두는 명령으로 꼽는 목록에 "
+        "있어, 따로 실행하면 이 guard 를 통과합니다. 이 전환에 어느 쪽이 맞는지, "
+        "그 뒤에 무엇을 실행할지는 직접 정하세요.\n"
+        "\n"
+        "이 명령을 그대로 다시 실행하면 같은 거부를 받습니다."
+    )
+
+
+# #689: the chains where the order of the walk's two threads decided the
+# tree. The guard and the consent writer read through `hooks/cmdline_base.py`,
+# `86256492`'s reader frozen, so each judges the tree `86256492` judged, which
+# is the dirty `w` bash runs the command in. `{missing}` is never created and
+# `{other}` is a clean repository of its own.
+BASE_TREE_CHAINS = {
+    # Round 3 of #689's report: past `STATE_CAP` the walk collapses, and the
+    # `cd {missing} ||` gives it a readable directory on the branch the `||`
+    # skips, which led the base's thread.
+    "the round-3 chain past the cap": "cd w; "
+    + "2>/dev/null cd nosuch; " * 9
+    + "cd {missing} || ",
+    # PR #690's residuals. A `cd` landed past its redirection into a directory
+    # that does not exist led, so the guard found no repository there and
+    # fell back to the clean session tree.
+    "a landing into a missing directory, then a semicolon": "cd w; "
+    "2>/dev/null cd {missing}; ",
+    "a glued landing into nothing, then one into a repository": "cd w; "
+    "cd>/dev/null {missing} && 2>/dev/null cd {other}\n",
+}
+
+
+# #868 In 1: the two chains where the guard's `wheres[0]` and the writer's
+# first resolved entry disagreed (`spec.md` In 1 of work item 1791384157).
+# bash runs the `||` segment only where the `cd` failed, in the directory the
+# shell was already in, and `;` runs its segment there when the `cd` fails, so
+# the guard's answer is where bash creates in both.
+PLACEMENT_CHAINS = {
+    **BASE_TREE_CHAINS,
+    "an unreadable segment, then a cd whose failure branch creates": (
+        "eval x ; cd {other} || "
+    ),
+    "a cd into nothing, then a semicolon": "cd {missing} ; ",
+}
+
+
+def _a_dirty_w_under_a_clean_session(repo, tmp_path):
+    session = tmp_path / "session"
+    session.mkdir()
+    subprocess.run(["git", "-C", str(session), "init", "-q"], check=True)
+    shutil.copytree(repo, session / "w")
+    (session / "w" / "f.txt").write_text("changed on purpose\n", encoding="utf-8")
+    shutil.copytree(repo, session / "clean")
+    other = tmp_path / "O"
+    shutil.copytree(repo, other)
+    return session, other
+
+
+# --- a work item's closing records, as the stamp's queue gates read them -------
+#
+# `tests/test_commitgate.py` and `tests/test_sealer_stamp_queue.py` write them.
+
+STAMP_ITEM = "1799000000-an-item"
+
+
+def guarantee_record(target, base, verdict, earlier=""):
+    """A `guarantee.md` in `templates/sdd-guarantee.md`'s shape: its `Target
+    SHA` row, with EARLIER after it, and one `Verdict:` line."""
+    return (
+        "# an item — guarantee\n\n| Field | Value |\n|---|---|\n"
+        f"| Target SHA | {target} against {base}{earlier} |\n"
+        f"| Broad gate | {target} against {base} |\n\nVerdict: {verdict}\n"
+    )
+
+
+def routing_record(branch="feat/x"):
+    """A `routing.md` in `templates/sdd-routing.md`'s shape, naming BRANCH in
+    its `Branch` row, or with no `Branch` row where BRANCH is None."""
+    rows = (
+        "| Axis | Answer |\n|---|---|\n"
+        "| Review | through the review chain |\n"
+        "| Destination | open the pull request |\n"
+    )
+    return rows + (f"| Branch | {branch} |\n" if branch else "")
+
+
+def queued_values(repo):
+    """Every values file under REPO's `.git/specseal-stamp`, drawn or not."""
+    found = []
+    for directory, _dirs, names in os.walk(repo / ".git" / "specseal-stamp"):
+        found += [os.path.join(directory, n) for n in names if n.endswith(".json")]
+    return sorted(found)
+
+
+# --- the opt-in's two places, the old name and the throwaway marker -------------
+
+
+def home(repo):
+    (repo / "seal").mkdir(exist_ok=True)
+
+
+def legacy(repo):
+    (repo / ".specseal").mkdir(exist_ok=True)
+    (repo / ".specseal" / "map.md").write_text("# map\n", encoding="utf-8")
+
+
+def scratch(repo):
+    (repo / ".git" / "specseal-scratch").write_text("", encoding="utf-8")
+
+
+# --- the implementer family's declaration and calls -----------------------------
+
+ITEM = "1788137177-a-work-item"
+
+
+def run_dispatch(group, payload, hooks=HOOKS):
+    r = subprocess.run(
+        [sys.executable, os.path.join(hooks, "dispatch.py"), group],
+        input=json.dumps(payload),
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=30,
+    )
+    return r.stdout
+
+
+def declare(repo, implementation="smith", item=ITEM, planning=None):
+    """A declaration for this repo's branch; a `None` answer omits its row."""
+    d = repo / "seal" / "specs" / item
+    d.mkdir(parents=True, exist_ok=True)
+    third = f"| Implementation | {implementation} |\n" if implementation else ""
+    fourth = f"| Planning | {planning} |\n" if planning else ""
+    (d / "routing.md").write_text(
+        f"# {item} -- routing\n\n"
+        "| Axis | Answer |\n|---|---|\n"
+        "| Review | through the review chain |\n"
+        "| Destination | open the pull request |\n"
+        f"{fourth}"
+        f"{third}"
+        f"| Branch | {branch_of(repo)} |\n",
+        encoding="utf-8",
+    )
+    return d
+
+
+def declare_smith(repo, home, item=ITEM):
+    """A declaration under `home` whose third axis says `smith`."""
+    d = home / "specs" / item
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "routing.md").write_text(
+        f"# {item} -- routing\n\n"
+        "| Axis | Answer |\n|---|---|\n"
+        "| Review | through the review chain |\n"
+        "| Destination | open the pull request |\n"
+        "| Implementation | smith |\n"
+        f"| Branch | {branch_of(repo)} |\n",
+        encoding="utf-8",
+    )
+    return d
+
+
+def spawn(repo, agent="specseal:smith", session="s1", **extra):
+    return {
+        "tool_name": "Agent",
+        "session_id": session,
+        "tool_input": {"subagent_type": agent, "prompt": "build it", **extra},
+        "cwd": str(repo),
+    }
+
+
+def bash(repo, cmd="git commit -m x", session="s1"):
+    return {
+        "tool_name": "Bash",
+        "session_id": session,
+        "tool_input": {"command": cmd},
+        "cwd": str(repo),
+    }
+
+
+# --- a console the gates cannot encode to --------------------------------------
+
+# Korean, which cp949 encodes and ASCII does not; it is in the payload on
+# purpose, because the payload carries the user's own command text, which is
+# where the non-ASCII in production actually is.
+KOREAN = "한글"
+
+# Consoles that cannot carry what the gates say. `ascii` is the sharpest and is
+# not hypothetical: it is what a bare `LC_ALL=C` gives a POSIX runner.
+HOSTILE = ["cp949", "ascii", "latin-1"]
+
+
+_CONSOLE_REPO_TEMPLATE = None
+
+
+def _console_repo_template():
+    """A repo with one committed file, built once per process -- `opted_in_repo`
+    is called once per case of the hostile-console cases, always onto this
+    shape."""
+    global _CONSOLE_REPO_TEMPLATE
+    if _CONSOLE_REPO_TEMPLATE is None:
+        d = pathlib.Path(tempfile.mkdtemp(prefix="specseal-console-repo-template-"))
+        d = d / "repo"
+        d.mkdir(parents=True)
+        git = lambda *a: subprocess.run(
+            ["git", "-C", str(d), *a], check=True, capture_output=True
+        )
+        git("init", "-q")
+        git("config", "user.email", "t@t.example")
+        git("config", "user.name", "t")
+        (d / "f.txt").write_text("one\n", encoding="utf-8")
+        git("add", "-A")
+        git("commit", "-qm", "base")
+        atexit.register(shutil.rmtree, d, True)
+        _CONSOLE_REPO_TEMPLATE = d
+    return _CONSOLE_REPO_TEMPLATE
+
+
+def opted_in_repo(where):
+    """A repository the commit gate fires in, at a path holding non-ASCII."""
+    shutil.copytree(_console_repo_template(), where)
+    (where / "seal").mkdir(exist_ok=True)
+    return where
+
+
+@pytest.fixture
+def korean_repo(tmp_path):
+    return opted_in_repo(tmp_path / KOREAN / "repo")
+
+
+# A spec's `## Rule changes` and the history `settle` reads, shared by
+# `tests/test_rule_changes.py`, `tests/test_settle.py` and the cases the two
+# old settle files keep.
+
+
+def spec(changes):
+    """A spec whose `## Rule changes` section holds CHANGES, with a section
+    on either side so the reader has to find where it ends."""
+    return (
+        "# a work item\n\n## Scope\n\nIn.\n\n## Rule changes\n\n"
+        f"{changes}\n\n## Open questions\n\nNone.\n"
+    )
+
+
+def line_of(text, needle):
+    return text.split("\n").index(needle) + 1
+
+
+DOC = """\
+# A policy
+
+## S
+
+Before. old sentence. After.
+
+### S child
+
+Child text.
+
+## T
+
+x.
+
+T's text.
+
+## U
+
+Last.
+"""
+
+
+def op(kind, section=None, old=None, new=None, file="docs/a.md"):
+    lines = [f"- {kind}", f"  file: {file}"]
+    for name, value in (("section", section), ("from", old), ("to", new)):
+        if value is not None:
+            lines.append(f"  {name}: {value}")
+    return "\n".join(lines)
+
+
+@pytest.fixture
+def tree(tmp_path):
+    """Four work items: three released, one that arrives after the commit.
+
+    `delta` is this branch's own unreleased work.
+    """
+    repo = tmp_path / "repo"
+    (repo / "docs").mkdir(parents=True)
+    (repo / "docs" / "one-root.md").write_text("# a policy\n\nA rule.\n", "utf-8")
+    (repo / "seal").mkdir()
+    (repo / "seal" / "README.md").write_text("# seal\n", encoding="utf-8")
+    for name in ("1700000001-alpha", "1700000002-beta", "1700000003-gamma"):
+        item = repo / "seal" / "specs" / name
+        item.mkdir(parents=True)
+        (item / "spec.md").write_text(f"# {name}\n\nWhat it decided.\n", "utf-8")
+    git(repo, "init", "-q")
+    git(repo, "config", "user.email", "x@example.com")
+    git(repo, "config", "user.name", "x")
+    git(repo, "add", "-A")
+    git(repo, "commit", "-qm", "released")
+    later = repo / "seal" / "specs" / "1700000004-delta"
+    later.mkdir()
+    (later / "spec.md").write_text("# delta\n\nIn flight.\n", encoding="utf-8")
+    return repo

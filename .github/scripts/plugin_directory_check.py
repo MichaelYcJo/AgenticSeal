@@ -6,7 +6,7 @@ Until 2026-09-16 everybody running this plugin had installed it themselves, so
 a release that never reached them was one the owner could see was missing. A
 listing in the directory -- the catalog people browse inside Claude -- removes
 that: the people it reaches are people the owner cannot name, and
-`docs/release-checklist.md` §6 had no box that looked (#417).
+`docs/release-checklist.md` *6. After the merge* had no box that looked (#417).
 
 **The directory itself is not read here, because no script can read it.**
 Measured 2026-10-07: three of its pages answered HTTP 403 with a challenge
@@ -61,11 +61,11 @@ thing, and it is a listing of somebody else's file: the shapes in it are not
 this repository's to hold steady.
 
 **It reads over HTTPS through `api.github.com`** rather than a raw-content
-host. `tests/test_no_real_identifiers.py` allows `github.com` and every
-subdomain of it, and is silent on the host GitHub serves raw file bodies
-from; extending that allowlist to read a file the documented API already
-serves would spend the repository's own rule for nothing -- and the sweep
-refuses the host's NAME in the tree, so a comment explaining the choice by
+host. The `real_identifiers` census in `tests/censuses.py` allows
+`github.com` and every subdomain of it, and is silent on the host GitHub
+serves raw file bodies from; extending that allowlist to read a file the
+documented API already serves would spend the repository's own rule for
+nothing -- and the census refuses the host's NAME in the tree, so a comment explaining the choice by
 spelling it out is itself the violation. No credentials are needed for a
 public
 file. `.claude-plugin/marketplace.json` is the path -- measured, the root
@@ -94,7 +94,7 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 # The two repositories holding the marketplace files, and the two pages a
 # person opens for the directory's own answer. They live here rather than in a
 # document because they are real organisations' addresses: `CONTRIBUTING.md`
-# §*House rules*, *No real identifiers*, keeps them out of prose and fixtures,
+# *House rules*, *No real identifiers*, keeps them out of prose and fixtures,
 # and the script that reads or names them is where a reader can check what was
 # actually read and what was not.
 MARKETPLACES = (

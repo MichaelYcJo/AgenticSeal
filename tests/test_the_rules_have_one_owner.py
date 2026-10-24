@@ -15,6 +15,7 @@ import os
 import re
 
 import pytest
+from conftest import flat
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -37,32 +38,22 @@ CONFIG_SKILL = ("skills", "config", "SKILL.md")
 ROUND_TEMPLATE = ("templates", "sdd-round.md")
 
 ONE_SEAL_IS_FINAL = (
-    "`skills/verify/SKILL.md` §*The hand-back's labels carry the claims, and "
+    "`skills/verify/SKILL.md` *The hand-back's labels carry the claims, and "
     "the one seal is the sealer's* owns that rule"
 )
 AFTER_THE_SEAL = (
-    "`skills/code-review/orchestration.md` §*Orchestrator: the pull request "
+    "`skills/code-review/orchestration.md` *Orchestrator: the pull request "
     "opens once the sealer seals, and a phase is re-run* owns"
 )
 CONTRIBUTING = ("CONTRIBUTING.md",)
 CRITERION_OWNER = (
-    "`templates/config.md` §*Choosing a value — the criterion* owns the criterion"
+    "`templates/config.md` *The criterion for choosing a value* owns the criterion"
 )
 FRAGMENT_OWNER = (
-    "`docs/the-record-layout.md` §*A commit after the build brings its "
+    "`docs/the-record-layout.md` *A commit after the build brings its "
     "changelog fragment along* owns that rule"
 )
-RUN_OWNS_THE_RULE = "`docs/the-review-record.md` §*The run* owns that rule"
-
-
-def read(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as handle:
-        return handle.read()
-
-
-def flat(*parts):
-    """The file as one line, so a pinned phrase survives re-wrapping."""
-    return " ".join(read(*parts).split())
+RUN_OWNS_THE_RULE = "`docs/the-review-record.md` *The run* owns that rule"
 
 
 # rule → (owner, the sentence the owner states, {link carrier: how it names
@@ -117,10 +108,10 @@ RULES = {
         RECORD,
         "A leftover finding takes the first rung that fits.",
         # The smith's copy of the ladder left with #967. Filing is the
-        # orchestrator's act (the ladder's own `Enforced by:` says so), and a
+        # orchestrator's act (the ladder's own `check:` line says so), and a
         # smith hands a leftover back with its answerer (its step 10).
         {
-            TRACKER: "`docs/the-review-record.md` §*The run* owns where a filed "
+            TRACKER: "`docs/the-review-record.md` *The run* owns where a filed "
             "finding goes",
         },
     ),
@@ -189,7 +180,7 @@ def test_the_orchestrator_writes_the_body_file_the_sealer_reads():
     a pull request already open on the stated limit's path. Round 1 of #943
     reverted each of the first three and this module stayed green."""
     text = flat(*ORCH)
-    assert "once the pull request body is written to a file" in text
+    assert "once you have written the pull request body to a file" in text
     assert "the issue and the file holding the pull request body" in text
     assert "`gh pr create --body-file <that file>`" in text
     assert "`gh api -X PATCH repos/<owner>/<repo>/pulls/<N> -F body=@<file>`" in text
@@ -213,7 +204,7 @@ def test_a_run_that_stops_before_the_pull_request_pushes_nothing():
     ) in text
     assert (
         "Under `stop before the pull request` push nothing: name the "
-        "platform risk in the handback"
+        "platform risk in the hand-back"
     ) in text
 
 
@@ -231,19 +222,26 @@ def test_the_owner_states_the_dispatch_step_and_the_limit():
     ) in text
 
 
+# Where step 2 of the order inside a ticket opens.
+STEP_2 = "2. The framer writes `spec.md`, `plan.md` and `questions.md`."
+
+
 def test_the_order_opens_the_pull_request_after_the_sealer():
-    """`skills/implement/orchestration.md` §*Orchestrator: the order inside a
+    """`skills/implement/orchestration.md` *Orchestrator: the order inside a
     ticket* is what a session reads to know what comes after the smith. #943
     moved the pull request from between the build and the rounds to after
     the sealer, so no step of the order opens, keeps or readies a draft."""
     text = flat(*ORCH_IMPL)
-    step = text[text.index("2. spec · plan") : text.index("3. The pull request body")]
+    step = text[text.index(STEP_2) : text.index("3. The pull request body")]
     # 1790815611 (#638) wrote the orchestrator's preflight in as the step
     # before the sealer's spawn, and #969 the broad run after it: the sealer
-    # reads the run's record, so the run comes before the spawn.
+    # reads the run's record, so the run comes before the spawn. Since #940
+    # the step says it in words rather than arrows.
     assert (
-        "smith → warden rounds → `broad-gate --preflight`, yours → `broad-gate "
-        "--record`, yours → sealer → the pull request opens (" in step
+        "spawns the smith (*The plan is approved at the spawn* below). The "
+        "warden's rounds follow, then `broad-gate --preflight` and `broad-gate "
+        "--record`, both run by the orchestrator, then the sealer, and then the "
+        "pull request opens (" in step
     ), step
     assert "draft" not in step, step
 
@@ -254,7 +252,7 @@ def test_the_order_no_longer_defers_the_framer_to_a_ticket():
     escape clause for the interval, which closed when `agents/framer.md`
     landed."""
     step = flat(*ORCH_IMPL)
-    step = step[step.index("2. spec · plan") : step.index("3. The pull request body")]
+    step = step[step.index(STEP_2) : step.index("3. The pull request body")]
     assert "framer" in step, "step 2 stopped naming who draws the frame"
     for gone in ("once #84 exists", "the session until then"):
         assert gone not in step, (
@@ -268,13 +266,13 @@ def test_a_regression_is_a_defect_a_fix_passs_own_commit_made():
     a `regression:` line names a defect a fix pass's own commit introduced,
     and a defect in a unit a build phase made, which the framer designed and
     the owner approved, is an ordinary finding of new work, so its round
-    gets its fix pass. The document states it, and the template and the
-    warden, who write the line, say the same."""
+    gets its fix pass. The document states it, and the warden, who writes
+    the line, says the same."""
     run = flat(*RECORD)
     run = run[run.index("## The run") : run.index("## The handoff")]
     assert "A regression is a defect a fix pass's own commit introduced." in run
     assert "is an ordinary finding of new work" in run
-    for carrier in (RECORD, WARDEN, ("templates", "sdd-round.md")):
+    for carrier in (RECORD, WARDEN):
         text = flat(*carrier)
         assert "a fix pass's own commits added or changed" in text, (
             f"{'/'.join(carrier)} does not say a `regression:` line is for a "
@@ -309,25 +307,26 @@ def the_run():
     return text[text.index("## The run") : text.index("## The handoff")]
 
 
+@pytest.mark.rule("run-ends-with-verifying-round")
 def test_a_close_that_does_not_hold_reopens_it():
     """The owner's decision of 2026-10-16, on round 8 of work item
     1791933022 (S9, S26): a close that does not hold where no fix pass's
     commit made the defect is raised again on a `reopens:` line, as an
-    ordinary finding that gets its fix pass. §*The run* says so; every
+    ordinary finding that gets its fix pass. *The run* says so; every
     carrier that names the channel's `confirms:` and `regression:` lines in
     one sentence names `reopens:` in it too; and the orchestration's
     verifying-round section ends the run only where the check does."""
     reopened = [
         s for s in sentences(the_run()) if "`reopens:`" in s and "does not hold" in s
     ]
-    assert reopened, "§*The run* does not say a close that does not hold reopens"
+    assert reopened, "*The run* does not say a close that does not hold reopens"
     assert any(
         "where no fix pass's commit made the defect" in s
         and "gets its fix pass" in s
         and "framer" not in s
         for s in reopened
     ), reopened
-    for carrier in (RECORD, ROUND_TEMPLATE, WARDEN, SKILL, ORCH):
+    for carrier in (RECORD, WARDEN, SKILL, ORCH):
         both = [
             s
             for s in sentences(flat(*carrier))
@@ -385,7 +384,7 @@ def test_a_regression_is_routed_by_comparing_the_fix_with_the_frame():
         "A second regression on the same unit after a fix-pass route goes to the "
         "framer whatever the comparison says.",
     ):
-        assert route in run, f"§*The run* no longer says {route!r}"
+        assert route in run, f"*The run* no longer says {route!r}"
     assert "### A regression is routed by comparing the fix with the frame" in flat(
         *ORCH
     )
@@ -422,11 +421,11 @@ def test_the_cap_counts_from_the_last_design_change():
         "followed by one verifying round, whatever the count",
         "is not an extension",
     ):
-        assert said in run, f"§*The run* no longer says {said!r}"
+        assert said in run, f"*The run* no longer says {said!r}"
     assert (
         "A second regression on the same unit after a fix-pass route goes to the "
         "framer whatever the comparison says." in run
-    ), "§*The run* lost the loop guard"
+    ), "*The run* lost the loop guard"
     for carrier in (ORCH, ("README.md",)):
         assert "counted from the last design change" in flat(*carrier), (
             f"{'/'.join(carrier)} caps rounds without saying where the count starts"
@@ -434,8 +433,8 @@ def test_the_cap_counts_from_the_last_design_change():
     assert "마지막 설계 변경" in flat("README.ko.md"), (
         "README.ko.md caps rounds without saying where the count starts"
     )
-    assert "counting from round <S>" in flat(*ROUND_TEMPLATE), (
-        "the template's extension line does not say where the count started"
+    assert "counting from round 1:" in run, (
+        "*The run*'s extension line does not say where the count started"
     )
     assert "the record that stopped the run" not in flat(*FRAMER), (
         "agents/framer.md still reads a regression's round as the end of the run"

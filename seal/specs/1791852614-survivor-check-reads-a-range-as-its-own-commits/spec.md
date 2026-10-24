@@ -169,6 +169,11 @@ a whole branch is `A...B`, which `parse_range` already resolves.
   anchor on `corrected` or `parse_range` moves (`docs/the-evidence-ledger.md`
   §*A released row is read again in the branch's fragment*).
 
+## Rule changes
+
+- nothing
+  why: overturned: the survivor sweep left with the ledger (5b1f6fae).
+
 ## Removes
 
 | Removes | Coordinate | Where it lands, or why it can go |

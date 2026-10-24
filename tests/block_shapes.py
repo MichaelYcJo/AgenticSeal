@@ -1,5 +1,5 @@
 """The shapes `seal/specs/1790645290-the-hooks-and-the-rider-check-read-
-fences-and-comments-by-one-rule/spec.md` §*The shapes* names, as lines (#667).
+fences-and-comments-by-one-rule/spec.md` *The shapes* names, as lines (#667).
 
 Data and nothing else. Each shape is the document one row of that table is
 about, and `RENDERER` is the frame's *Renderer* column turned into the lines
@@ -32,10 +32,21 @@ BREAKS = {
     "RS": chr(0x1E),
 }
 
+# Inline raw HTML other than a comment that can run past a line ending, with
+# a closer that does not put `>` at a line's start (#673). A declaration's
+# closer is written `a>` for that reason.
+INLINE_KINDS = [
+    ("<![CDATA[ a", "]]>"),
+    ("<? a", "?>"),
+    ("<!DOCTYPE a", "a>"),
+    ('<span title="a', '">'),
+    ("<span title='a", "'>"),
+]
+
 CHAIN = "through the review chain"
 DIRECT = "straight to the PR"
 
-# `tests/test_routing_is_recorded.py#two_axis_text`, as lines.
+# `tests/conftest.py#two_axis_text`, as lines.
 TABLE = [
     "| Axis | Answer |",
     "|---|---|",
@@ -285,7 +296,7 @@ def span(first, last):
 
 
 # The frame's *Renderer* column as hidden lines, derived by reading the
-# CommonMark specification (§4.5 fences, §4.6 HTML blocks, §6.6 inline raw
+# CommonMark specification (section 4.5 fences, section 4.6 HTML blocks, section 6.6 inline raw
 # HTML) and GFM's table extension, before anything was parsed.
 RENDERER = {
     "C1": set(),

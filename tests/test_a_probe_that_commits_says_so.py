@@ -9,33 +9,30 @@ its own prompt, and that prompt is written by a different session every time.
 So the instruction lives where every future spawn reads it. Until phase 3 of
 #107 that meant both agent files, because one agent knowing it is how this
 reached a user in the first place — and two files carrying it in near-identical
-words is how a third agent inherited neither. It is now §8 of the agent
-contract, which every agent receives at startup, so the cases below are
+words is how a third agent inherited neither. It is now contract rule 8,
+which every agent receives at startup, so the cases below are
 re-pointed there rather than deleted: a rule that moves with no case behind it
 is a rule that can move again into nothing.
 
-The smith is why this is worth a section rather than a third copy. It writes
+The smith is why this is worth a rule rather than a third copy. It writes
 probes too, and no file ever told it any of this.
 """
 
 import os
-import re
+
+from conftest import read
+from test_the_agent_contract_holds_the_universal_rules import HEADING
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 CONTRACT = os.path.join("skills", "agent-contract", "SKILL.md")
-HEADING = re.compile(r"^## §(\d+) ", re.M)
-
-
-def read(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
-        return f.read()
 
 
 def section(number):
-    """§N's body, so a shape that drifts into another section is not a pass.
+    """Rule N's body, so a shape that drifts into another rule is not a pass.
 
-    The whole file would let §8 be emptied while the words survive under §9,
-    which breaks the number a spawn prompt cites and nothing would say so."""
+    The whole file would let rule 8 be emptied while the words survive under
+    rule 9, which breaks the number a spawn prompt cites and nothing would say
+    so."""
     text = read(CONTRACT)
     heads = list(HEADING.finditer(text))
     for i, m in enumerate(heads):
@@ -43,7 +40,7 @@ def section(number):
             continue
         end = heads[i + 1].start() if i + 1 < len(heads) else len(text)
         return " ".join(text[m.end() : end].split())
-    raise AssertionError(f"the contract has no §{number}")
+    raise AssertionError(f"the contract has no rule {number}")
 
 
 def test_the_contract_carries_all_three_shapes():
@@ -92,33 +89,33 @@ def test_the_reviewer_still_says_why_the_rule_reaches_its_own_edits():
         "the reviewer stopped being told who the prompt reaches during a "
         "round, which is the half that makes the rule its own"
     )
-    assert "§8" in warden, (
+    assert "rule 8" in warden, (
         "the pointer went, so the shapes are reachable only by an agent that "
         "already knows to look for them"
     )
 
 
 def test_the_procedure_a_reviewer_follows_carries_the_leavings_rule_too():
-    """Round 1, finding 1 of #120: §7 was widened in the contract and the skill
+    """Round 1, finding 1 of #120: contract rule 7 was widened and the skill
     a warden actually loads still stated the named file as the whole obligation.
 
-    That is §12 applied to this work item's own headline fix -- the rule was
-    corrected at its coordinate and the class was not closed. The class is
-    enumerable by construction rather than by sweeping: `test_tmp_*` appears in
-    exactly two shipped documents, §7 itself and this skill, and every other
-    file that mentions probes either points at §7 (`agents/scribe.md`) or does
-    not state the rule at all.
+    That is contract rule 12 applied to this work item's own headline fix --
+    the rule was corrected at its coordinate and the class was not closed. The
+    class is enumerable by construction rather than by sweeping: `test_tmp_*`
+    appears in exactly two shipped documents, contract rule 7 itself and this
+    skill, and every other file that mentions probes either points at rule 7
+    (`agents/scribe.md`) or does not state the rule at all.
 
-    The skill is the closer document to the act, and §7's own story is a
+    The skill is the closer document to the act, and rule 7's own story is a
     reviewer who followed the file half to the letter, deleted its probe files,
     said so in its report, and left a git worktree behind. The document that
     reviewer follows is this one."""
     skill = " ".join(read("skills", "code-review", "SKILL.md").split())
     assert "everything else it made goes with it" in skill, (
         "the Probes row states deleting the named file as the whole "
-        "obligation again, which is the reading §7 was rewritten to end"
+        "obligation again, which is the reading rule 7 was rewritten to end"
     )
-    assert "Contract §7 is about leavings, not files" in skill, (
+    assert "Contract rule 7 is about leavings, not files" in skill, (
         "the row's qualifier has no rule behind it, so a reviewer who reads "
         "`everything else it made` has nothing saying what that covers"
     )
@@ -127,9 +124,9 @@ def test_the_procedure_a_reviewer_follows_carries_the_leavings_rule_too():
 def test_the_fact_finder_points_at_the_rule_it_no_longer_restates():
     """`agents/scribe.md` once carried the three shapes verbatim. Its rule
     *Constraints, enums and defaults are read, not probed* says what reading
-    settles for an original, and points at §8 for a probe that commits."""
+    settles for an original, and points at rule 8 for a probe that commits."""
     scribe = " ".join(read("agents", "scribe.md").split())
-    assert "§8" in scribe, "the fact-finder can no longer reach the shapes"
+    assert "rule 8" in scribe, "the fact-finder can no longer reach the shapes"
     assert "read, not probed" in scribe, (
         "the scribe's own half — what an original settles by reading — went "
         "with the shapes it used to sit beside"

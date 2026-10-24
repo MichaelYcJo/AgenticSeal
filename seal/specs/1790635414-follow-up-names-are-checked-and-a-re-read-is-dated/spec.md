@@ -201,6 +201,12 @@ F and P go in that file. New cases for R go in
 - **Ledger coordinates** for the new claims go in this work item's fragment
   as each phase closes.
 
+## Rule changes
+
+- nothing
+  why: overturned: evidence-check, its follow-up reading and its re-read dates left the tree
+    at 5b1f6fae.
+
 ## Open questions → questions.md
 
 No row blocks the build. `questions.md` lists the judgments this frame made

@@ -181,6 +181,11 @@ No CLI, flag, exit code or report section changes. What changes:
 - Ledger rows this work anchors go in the fragment. The coordinates are
   `path#unit@hash`, never a line.
 
+## Rule changes
+
+- nothing
+  why: overturned: the survivor sweep left the tree at 5b1f6fae.
+
 ## Open questions → questions.md
 
 No row needs a person. Two measurements and one piece of the work are

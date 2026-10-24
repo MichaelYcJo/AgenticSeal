@@ -195,6 +195,12 @@ D7 and `docs/the-record-layout.md` both say *each is under 500 lines*. The paren
 - **D10. Tests follow their text, and the absence reader covers all five documents** (S3's rule). No pin is loosened. A pin that read a moved sentence reads it in the file that now holds it.
 - **D11. No new test or checker.** Verification of S1 and S5 is by `test_tmp_*` probes run once and deleted (contract §7), as #526's citation check was. This work alters text that people and agents read, so it sits on the ladder's top rung. It adds no behaviour that a planted case would pin, beyond what K2's existing pins already hold.
 
+## Rule changes
+
+- nothing
+  why: internal: a cut of one document into three along its headings, which the tree holds;
+    it states no rule.
+
 ## Open questions → questions.md
 
 Every question a person would decide is decided by this frame, with its grounds above and its row in `questions.md`. The measurements and the work's own questions are listed there with who answers each.

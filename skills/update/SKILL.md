@@ -1,14 +1,15 @@
 ---
 name: update
-description: Update the plugin to the newest release and say what changed — runs both commands in the right order, then names the entries you are getting.
+description: Update the plugin to the newest release and say what changed. Runs both commands in the right order, then names the entries the user is getting.
 disable-model-invocation: true
 ---
 
-# /specseal:update — take the release, and see what is in it
+# /specseal:update, take the release and see what is in it
 
-Two commands in a fixed order, and one thing neither of them does: tell you
-what you are getting. Running them by hand answers "you are now on <version>",
-which is a number, not a reason to reload or restart.
+The user runs this command; the session running it follows the procedure
+below and reports to the user. Two commands run in a fixed order, and neither
+of them says what the user is getting: run by hand they answer "you are now
+on <version>", which is a number, not a reason to reload or restart.
 
 ## Procedure
 
@@ -24,19 +25,18 @@ claude plugin update specseal@specseal
 ```
 
 Both, in that order. The first pulls the marketplace clone; the second
-installs from it. Running only the second reports *already at the latest
-version* against whatever the clone last knew — the failure is silent and
+installs from it. Run alone, the second reports *already at the latest
+version* against whatever the clone last knew: the failure is silent and
 looks like success.
 
 If the second command reports it is already current, say so and stop. Nothing
 arrived, so there is nothing to load and neither move below is needed.
 
-**2b. Read the installed copy before you believe the installer.** The install
+**2b. Read the installed copy before believing the installer.** The install
 path is keyed by the version string, and extraction is skipped when a
-directory by that name already exists — so on a machine that had one from an
+directory by that name already exists. So on a machine that had one from an
 earlier numbering, the installer reports success, writes the right commit
-SHA beside it, and the copy that loads is whatever was already there.
-Measured the day this step was written: eight releases old (#157). The
+SHA beside it, and the copy that loads is whatever was already there. The
 summary in step 3 cannot see that, because it reads the marketplace clone,
 which is correct; it is the installed copy that is stale. Read the one path
 the installer records and compare:
@@ -49,7 +49,7 @@ grep -m1 '^## ' "$p/CHANGELOG.md"        # must name the version step 2 reported
 | Result | What happens |
 |---|---|
 | the heading names the version the installer reported | go on to step 3 |
-| a mismatch | **stop before step 3.** The update did not land. Say so, name both versions — the one the installer reported and the one the installed `CHANGELOG.md` heads — and print the repair below for the user to type. Do not summarise: a summary of what they should be getting is exactly what made this failure invisible |
+| a mismatch | **stop before step 3.** The update did not land. Say so, name both versions (the one the installer reported and the one the installed `CHANGELOG.md` heads), and print the repair below for the user to type. Give no summary: a summary of what the user should be getting is exactly what makes this failure invisible |
 
 The repair replaces the stale directory from the marketplace clone, and it is
 the user's to type rather than this procedure's to run, because it deletes a
@@ -61,13 +61,12 @@ rsync -a --exclude '.git' ~/.claude/plugins/marketplaces/specseal/ "$p/"
 mkdir -p "$p/.in_use"
 ```
 
-Two cautions, both measured the same day. `.in_use/` under a version
-directory holds PID files — a running session pins its own version — so never
-delete a directory whose `.in_use/` names a live PID; the `mv` above leaves
-the stale copy in place under another name for that reason. And
-`installed_plugins.json` names exactly one `installPath`: deleting that
-directory breaks the install, while any other version directory is free to
-remove.
+Two cautions. `.in_use/` under a version directory holds PID files, because a
+running session pins its own version, so a directory whose `.in_use/` names a
+live PID is never deleted; the `mv` above leaves the stale copy in place under
+another name for that reason. And `installed_plugins.json` names exactly one
+`installPath`: deleting that directory breaks the install, while any other
+version directory is free to remove.
 
 **3. Name what changed.** Each release's notes are a file of their own in the
 refreshed marketplace clone, `~/.claude/plugins/marketplaces/specseal/changelog/<X.Y.Z>.md`,
@@ -77,64 +76,66 @@ after the old version up to the new one, oldest first, and summarize every
 entry in them. Lead each with what it changes for the user, not with the
 release number.
 
-Two kinds deserve to be called out on their own line, because a user who skips
-them gets surprised later:
+Two kinds get a line of their own, because a user who skips them is
+surprised later:
 
-- **behavior that changes without being asked for** — a new gate, a gate that
-  fires where it did not, anything that writes to their tree
-- **anything they have to do** — a path that moved, a setting that was renamed,
-  a compatibility fallback with an expiry
+- **behavior that changes without being asked for**: a new gate, a gate that
+  fires where it did not, anything that writes to the user's tree;
+- **anything the user has to do**: a path that moved, a setting that was
+  renamed, a compatibility fallback with an expiry.
 
 **4. Take the preset block if it moved.** The markers decide what is safe here.
 Everything between `<!-- specseal:start -->` and `<!-- specseal:end -->` is
 preset-owned and everything outside it is the user's, so replacing the region
-cannot touch a line they wrote. `install.sh` relies on that boundary and so
+cannot touch a line the user wrote. `install.sh` relies on that boundary and so
 does `preset-setup`, which replaces an older block without asking and diffs
 only the remainder.
 
 `claude plugin update` installs agents, skills, and hooks and never opens
 `CLAUDE.md`, so without this step a release changes a rule while the
-always-loaded file keeps stating the old one. Measured on this repository: the
-block changed in two of thirteen releases, and the first went four releases
-before anyone noticed.
+always-loaded file keeps stating the old one.
 
 ```bash
 diff <(sed -n '/specseal:start/,/specseal:end/p' ~/.claude/plugins/marketplaces/specseal/templates/claude-md-block.md) \
      <(sed -n '/specseal:start/,/specseal:end/p' ~/.claude/CLAUDE.md)
 ```
 
-`templates/claude-md-block.md` is the block's one source; the plugin
-repository's own `CLAUDE.md` carries a generated copy, held identical to it
-in CI, and is not what to diff against.
+`templates/claude-md-block.md` is the block's one source, and no other file
+carries a copy. A session in a clone of the plugin's own repository reads the
+installed block too, which is the last release's, not the clone's:
+`bash install.sh "$HOME/.claude/CLAUDE.md"`, run from that clone, writes the
+clone's block there. `--project`, or option 2 at the script's prompt, writes
+a copy into the clone's own `CLAUDE.md`, which
+`tests/test_the_installer_writes_the_block_from_its_template.py` refuses.
 
-Compare the scope that holds the block — `./CLAUDE.md` instead when the project
-owns it.
+Compare the scope that holds the block: `./CLAUDE.md` instead where the
+project owns it.
 
 | Result | What happens |
 |---|---|
 | No difference | nothing is said; the block is current |
 | The block differs | back up to `CLAUDE.md.bak`, replace the marker region, and name the rules that arrived. No question is asked, because the markers already say those bytes were never the user's |
-| No block on the machine | they never installed the preset. Say so and stop — writing one in is an install, and an update is what was asked for |
+| No block on the machine | the user never installed the preset. Say so and stop: writing one in is an install, and an update is what was asked for |
 
 One case still needs a person. If a rule that just arrived also appears in the
 user's own text outside the markers, the file now states it twice, and the copy
-to remove is theirs. Name the overlap and point at `/specseal:preset-setup`,
+to remove is the user's. Name the overlap and point at `/specseal:preset-setup`,
 which classifies it and proposes the deletion through an approved diff.
 
 **5. Name both moves, cheapest first, and say what each one is known to do.**
-It is safe to finish what you are doing either way: the running session keeps
+The user can finish the work in hand either way: the running session keeps
 the version it started with, because the old directory stays in the plugin
 cache and `$CLAUDE_PLUGIN_ROOT` still resolves to it. Nothing is half-updated
 and nothing breaks mid-session.
 
-Then say what loads it. The two moves cost very different things — one ends
-the session you are in and the other does not — so they are worth telling
-apart, and the evidence behind them is not the same either:
+Then say what loads it. The two moves cost very different things (one ends
+the session in progress and the other does not), and the evidence behind them
+is not the same either:
 
 | Move | What it is known to do | On what evidence |
 |---|---|---|
 | `/reload-plugins` | re-reads preloaded skill bodies out of the copy in force, which is what a spawned agent is handed | **measured.** Run 6 of `docs/experiments/2026-09-03-skill-preload-and-the-copy-in-force.md`: a sentinel in the version cache came back PRESENT after a reload, and ABSENT in run 5 without one |
-| the same command, for anything else — hooks, agent definitions, or moving a running session onto a newly installed version | unknown | **not measured.** The experiment touched none of the three, and its sentinel sat in the *running* version's own directory, so it shows a re-read of the copy already loaded and nothing about picking up a new one |
+| the same command, for anything else: hooks, agent definitions, or moving a running session onto a newly installed version | unknown | **not measured.** The experiment touched none of the three, and its sentinel sat in the *running* version's own directory, so it shows a re-read of the copy already loaded and nothing about picking up a new one |
 | restarting Claude Code | starts a session on the newly installed version, with its skills, hooks and agent definitions | the move with no open question |
 
 Say *not measured* rather than *not needed*. The difference is the whole
@@ -151,24 +152,25 @@ the agent. That is run 6's own method, one artifact over.
 ## What this does not do
 
 **It does not restart or reload anything.** Both are the user's to type.
-Ending a session is their call and their unfinished work is in it — and a
-built-in CLI command is not a skill, so `/reload-plugins` is not something
-this procedure can invoke on their behalf either. Naming the cheaper move and
-running it are different acts, and only the first is this command's job.
+Ending a session is the user's call and the user's unfinished work is in it,
+and a built-in CLI command is not a skill, so `/reload-plugins` is not
+something this procedure can invoke on the user's behalf either. Naming the
+cheaper move and running it are different acts, and only the first is this
+command's job.
 
 **It does not delete anything the user wrote.** The preset block is replaced
 inside its markers, which is the whole of what the plugin owns. An overlap with
-their own text outside the markers is reported, never resolved — that deletion
-goes through `preset-setup`'s approved diff.
+the user's own text outside the markers is reported, never resolved: that
+deletion goes through `preset-setup`'s approved diff.
 
 **It does not decide the update is wanted.** If a release changes behavior the
-user relies on, the summary in step 3 is where they find that out — which is
-why the summary comes with the update rather than after it.
+user relies on, the summary in step 3 is where the user finds that out, which
+is why the summary comes with the update rather than after it.
 
 ## Output
 
 ```
-Updated: <old> → <new>            (or: already on <version>, nothing to do)
+Updated: <old> to <new>           (or: already on <version>, nothing to do)
 
 What you are getting:
 - <what changes for the user> (<version>)

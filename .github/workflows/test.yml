@@ -141,7 +141,7 @@ jobs:
       # markdown-it-py is the parser the suite's CommonMark oracle reads
       # (#667), pinned: `.github/scripts/run_tests.py#MARKDOWN_IT` is the one
       # place the version is chosen, and a case holds this line to it.
-      # Pillow decodes the release seal in its pixel case (#718, #832),
+      # Pillow draws the release seal and its pixel cases read it (#1009),
       # pinned in `run_tests.py#PILLOW` and held to this line the same way, so
       # the pin runs on all three operating systems.
       # cmarkgfm is GitHub's renderer, which the table walker's oracle reads
@@ -241,7 +241,8 @@ jobs:
   # bytes, the suite's seconds, each leg's minutes and each document's bytes
   # beside the same reading at the last release tag, appended to this job's
   # summary. It fails nothing, and whoever prepares the release reads it
-  # (`docs/release-checklist.md` §2); `.github/scripts/release_report.py` is
+  # (`docs/release-checklist.md` *2. Gather, bump*);
+  # `.github/scripts/release_report.py` is
   # the rule. The tag's minutes are its own commit's `tests` run on `main`.
   #
   # After the suite, whatever its verdict: a red leg still spent its minutes.

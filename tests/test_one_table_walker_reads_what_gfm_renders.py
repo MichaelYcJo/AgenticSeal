@@ -10,7 +10,7 @@ refuses.** No shape yields cells cmark-gfm does not render.
 **The corpus is enumerated by construction, not from examples.** Round 3 of
 #735 found the walk's silent drop (an autolink row) with 21 shapes its author
 had not written, after the walk had passed 14 its author had. So the line kinds
-below are every block start CommonMark 0.29 lists in §4 (leaf blocks) and §5
+below are every block start CommonMark 0.29 lists in section 4 (leaf blocks) and section 5
 (container blocks), taken section by section, with the near misses each
 section states beside its starts; the GFM extensions' own line shapes (a
 table's delimiter and rows, a task list item, an extended autolink); and the
@@ -28,17 +28,24 @@ What the enumeration leaves out, and why:
     the walker returns a cell's source and the renderer its text, so the two
     differ by design. The rows here are plain, and a cell's content is the
     reader's to judge, not the walk's;
-  - a line ending other than LF: `tests/test_every_reader_ends_a_line_where_
-    gfm_does.py` holds where a line ends, for every reader.
+  - a line ending other than LF: `hooks/blocks.py#gfm_lines` is where a
+    line ends, `tests/test_blocks.py` holds it, and
+    `tests/test_every_reader_ends_a_line_where_gfm_does.py` holds its copies
+    to it.
+
+The walker's cases that ask no oracle, a hidden line above the header and
+the two pieces after a break GFM does not honour, are in
+`tests/test_config.py` since #942's phase 6, and the refusal of a line shown
+directly above the header since its round 9 fix pass; that case reads this
+file's corpus, `HEADERS`, `KINDS`, `INDENTS` and `document`, from here.
 """
 
-import ast
 import os
 import random
 
 import gfm_table_oracle as oracle
 import pytest
-from conftest import load_hook_module
+from conftest import imported_roots, load_hook_module
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 config = load_hook_module("config.py", "config_for_the_table_walker")
@@ -51,7 +58,7 @@ HEADERS = {
     "config": ("Item", "Value"),
 }
 
-# CommonMark 0.29 §4.6, HTML block start condition 6: the block-level tag
+# CommonMark 0.29 section 4.6, HTML block start condition 6: the block-level tag
 # names, written out from the specification rather than from the walker.
 TYPE_6 = [
     "address",
@@ -121,7 +128,7 @@ TYPE_6 = [
 # Every kind is a list of lines. The comment before each group is the section
 # of the specification it is taken from.
 KINDS = {
-    # §4.1 thematic breaks, each character, spaced and not, and a near miss.
+    # section 4.1 thematic breaks, each character, spaced and not, and a near miss.
     "break ***": ["***"],
     "break ---": ["---"],
     "break ___": ["___"],
@@ -129,27 +136,27 @@ KINDS = {
     "break - - -": ["- - -"],
     "break _ _ _": ["_ _ _"],
     "not a break **": ["**"],
-    # §4.2 ATX headings, the widest and the empty one, and two near misses.
+    # section 4.2 ATX headings, the widest and the empty one, and two near misses.
     "heading #": ["# h"],
     "heading ######": ["###### h"],
     "heading, empty": ["#"],
     "not a heading #######": ["####### h"],
     "not a heading #h": ["#h"],
-    # §4.3 setext underlines (`---` is above).
+    # section 4.3 setext underlines (`---` is above).
     "setext ===": ["==="],
     "setext =": ["="],
-    # §4.4 indented code, and indented code that holds a container's marker,
+    # section 4.4 indented code, and indented code that holds a container's marker,
     # which four columns make code rather than a container.
     "indented code": ["    code"],
     "indented code, a list marker": ["    - x"],
     "indented code, a quote marker": ["    > q"],
-    # §4.5 fenced code: closed, unclosed, and a backtick info string.
+    # section 4.5 fenced code: closed, unclosed, and a backtick info string.
     "fence ```": ["```", "x", "```"],
     "fence ~~~": ["~~~", "x", "~~~"],
     "fence ```, unclosed": ["```"],
     "fence ~~~, unclosed": ["~~~"],
     "not a fence ```a`b": ["```a`b"],
-    # §4.6 HTML blocks, the seven start conditions.
+    # section 4.6 HTML blocks, the seven start conditions.
     "html 1 <script>": ["<script>"],
     "html 1 <pre>": ["<pre>"],
     "html 1 <style>": ["<style>"],
@@ -184,8 +191,8 @@ KINDS = {
     "not html 7, unfinished": ["<span"],
     "not html 7, unquoted": ['<a href="x"'],
     # What may interrupt a paragraph, which decides whether a line above the
-    # header leaves a block open: §4.6 says the seventh kind may not, and
-    # §5.2 that a list item may only with text after a bullet or the number 1.
+    # header leaves a block open: section 4.6 says the seventh kind may not, and
+    # section 5.2 that a list item may only with text after a bullet or the number 1.
     "after a paragraph, html 7": ["text", "<span>"],
     "after a paragraph, html 6": ["text", "<div>"],
     "after a paragraph, list -": ["text", "- x"],
@@ -196,17 +203,17 @@ KINDS = {
     "after a list item, a break": ["- x", "***"],
     "after a list item, a comment": ["- x", "<!-- c -->"],
     "after a list item, a fence": ["- x", "```", "x", "```"],
-    # §4.7 a link reference definition.
+    # section 4.7 a link reference definition.
     "link reference": ["[x]: https://example.com"],
-    # §4.8 a paragraph line.
+    # section 4.8 a paragraph line.
     "paragraph": ["text"],
-    # §4.9 blank lines (the indentation makes the whitespace-only ones).
+    # section 4.9 blank lines (the indentation makes the whitespace-only ones).
     "blank": [""],
-    # §5.1 block quotes.
+    # section 5.1 block quotes.
     "quote > q": ["> q"],
     "quote >": [">"],
     "quote >q": [">q"],
-    # §5.2 list items, each marker, the widest number, empty ones, near misses.
+    # section 5.2 list items, each marker, the widest number, empty ones, near misses.
     "list -": ["- x"],
     "list +": ["+ x"],
     "list *": ["* x"],
@@ -340,18 +347,6 @@ def disagreement(header, text):
 # --- the oracle is independent ---------------------------------------------
 
 
-def imported_roots(path):
-    with open(path, encoding="utf-8") as handle:
-        tree = ast.parse(handle.read())
-    roots = set()
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Import):
-            roots.update(alias.name.split(".")[0] for alias in node.names)
-        elif isinstance(node, ast.ImportFrom):
-            roots.add((node.module or "").split(".")[0] if not node.level else ".")
-    return roots
-
-
 def test_the_oracle_imports_the_renderer_and_nothing_of_this_repositorys():
     """The oracle shares no code with the walk it checks, as
     `tests/commonmark_oracle.py` shares none with the hook readers (#667)."""
@@ -437,34 +432,6 @@ def test_every_delimiter_gfm_accepts_is_read(which):
         if not ok:
             wrong.append(f"{spelled!r}: walker {got} {refusals}, GFM {want}")
     assert not wrong, "\n".join(wrong)
-
-
-@pytest.mark.parametrize("which", sorted(HEADERS))
-def test_a_line_directly_above_the_header_is_refused(which):
-    """Whether cmark-gfm renders a table under a line depends on the block
-    state above it, which the walker does not track, so a non-blank line the
-    walk is shown directly above a header is refused with the blank-line
-    remedy (round 1, yellow 5). This reverses the build's first choice,
-    which mirrored cmark-gfm's interruption rules line by line and was found
-    reading tables cmark-gfm does not render in shapes the corpus did not
-    reach. A kind whose last line `unfenced` hides, or a blank line, leaves
-    a gap or a blank above the header and is not this rule's."""
-    header = HEADERS[which]
-    for kind, lines in KINDS.items():
-        for indent in INDENTS:
-            text = document(header, lines, "before the header", indent)
-            split = text.splitlines()
-            head = split.index("| " + " | ".join(header) + " |")
-            shown = dict(config.unfenced(split, text))
-            above = shown.get(head - 1)
-            if above is None or not above.strip():
-                continue
-            _rows, refusals = config.gfm_table(text, header)
-            assert refusals and "blank line above the header" in refusals[0], (
-                kind,
-                indent,
-                refusals,
-            )
 
 
 def test_the_shapes_round_1_measured_are_refused():
@@ -676,29 +643,6 @@ def test_a_pipe_after_an_even_run_of_backslashes_is_refused(cell):
 
 
 @pytest.mark.parametrize(
-    "above",
-    ["text\n```\nx\n```\n", "text\n" + "<" + "!-- c -->\n"],
-    ids=[
-        "a closed fence directly above, under a paragraph",
-        "a closed comment directly above, under a paragraph",
-    ],
-)
-def test_a_hidden_line_directly_above_the_header_is_refused(above):
-    """**The trade** (round 2, yellow 15). cmark-gfm renders both of these
-    tables, and until round 2 the walker read them, because `unfenced` hides
-    the closing fence or comment and the walk saw a gap above the header.
-    The walker now judges the line above as written, hidden or not, because
-    the same hidden line is what hid a header cmark-gfm does not render: a
-    fence inside a kind 6-7 HTML block, or a list item a fence-only reading
-    hid. So these are refused with the blank-line remedy, as a paragraph
-    directly above already is (round 1, yellow 5). Every template and the
-    writer leave the blank line."""
-    text = f"# Pact\n\n{above}| Signer |\n|---|\n| https://example.com/org/a |\n"
-    _rows, refusals = config.gfm_table(text, ("Signer",))
-    assert refusals and "blank line above the header" in refusals[0], refusals
-
-
-@pytest.mark.parametrize(
     "text",
     [
         "- x\n\n  | Signer |\n|---|\n| {u} |\n",
@@ -744,44 +688,6 @@ def test_a_heading_inside_the_list_item_does_not_end_it():
     assert oracle.rows_under(text, ("Signer",)) is None, text
     _rows, refusals = config.gfm_table(text, ("Signer",))
     assert refusals and "indented under a list item" in refusals[0], refusals
-
-
-@pytest.mark.parametrize("name", ["LS", "PS", "NEL", "FF", "VT", "FS", "GS", "RS"])
-def test_a_signer_after_a_break_gfm_does_not_honour_is_no_signer(name):
-    """#871 round 2, the deferred half of yellow 7. A signer row after a
-    character only `str.splitlines` ends a line at is more of the row above
-    it to cmark-gfm, which shows one signer (measured for FF and U+2028 by
-    the round's reviewer). The walk reads the first and refuses the second,
-    for every table it walks, so `pact_signers` names one signer and the
-    refusal. Seen red against 4dfb3d0d: two signers, no refusal."""
-    from block_shapes import BREAKS
-
-    a, b = "https://example.com/org/a", "https://example.com/org/b"
-    text = f"# Pact\n\n| Signer |\n|---|\n| {a} |{BREAKS[name]}| {b} |\n"
-    rows, refusals = config.gfm_table(text, ("Signer",))
-    assert [c for _l, c in rows] == [(a,)], rows
-    assert refusals and "not a row of its own to GFM" in refusals[0], refusals
-    signers, said, _header = config.pact_signers(text)
-    assert [s[0] for s in signers] == [a], signers
-    assert any("not a row of its own to GFM" in s for s in said), said
-
-
-@pytest.mark.parametrize("name", ["LS", "FF"])
-def test_a_heading_after_a_break_does_not_end_the_rows_nobody_reads(name):
-    """#871 round 2, yellow 7's class after the table's end. A heading piece
-    after a character only `str.splitlines` ends a line at is more of the
-    line above to GFM, not a heading, so a line written `| … |` under it is
-    still a row nobody reads, and is refused. Seen red against 4dfb3d0d,
-    where the piece ended the walk's look for such rows."""
-    from block_shapes import BREAKS
-
-    text = (
-        "| Item | Value |\n|---|---|\n| Mode | shared |\n\n"
-        f"x{BREAKS[name]}## Notes\n| Broad gate | y |\n"
-    )
-    rows, refusals = config.gfm_table(text, ("Item", "Value"))
-    assert [c for _l, c in rows] == [("Mode", "shared")], rows
-    assert refusals and "ends above `| Broad gate | y |`" in refusals[0], refusals
 
 
 def test_a_list_marker_in_indented_code_is_no_list_item():

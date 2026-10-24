@@ -253,6 +253,12 @@ The rows at 1.0 are sentences of 10 or 11 words that are identical, too short fo
 - **Ledger.** Rows go into `seal/ledger/1791076836-every-rule-claude-md-restates-has-one-home.md`, one for each home section this work states or relies on. **Changelog.** `seal/specs/1791076836-…/changelog.md`.
 - No hook, script, workflow or config row changes.
 
+## Rule changes
+
+- nothing
+  why: written: a rule has one home and a copy is the defect, in docs/the-record-layout.md;
+    internal: the paste ratchet, held by its test.
+
 ## Open questions → questions.md
 
 Every row there has either been decided by this frame, with its grounds written in, or belongs to the work or to the orchestrator. None blocks the build.

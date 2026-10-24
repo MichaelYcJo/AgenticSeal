@@ -241,6 +241,12 @@ and repeated in the pull request.
 - **Messages.** None new. `templates/config.md`'s existing sentence widens
   (S10).
 
+## Rule changes
+
+- nothing
+  why: internal: the hooks' walk leaves a piece inside inline HTML uncertain, held by
+    tests/test_the_hooks_hide_what_a_renderer_hides.py.
+
 ## Open questions → questions.md
 
 One row needs a person, Q1, and it does not block the build: its default is

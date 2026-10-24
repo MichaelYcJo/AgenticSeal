@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
-# Prints a document's sections with what each `Enforced by:` target's
-# docstring says it guards, as `rules <doc>` instead of a long path, or
-# checks that every target in every rule file resolves, as `rules --check`.
+# Prints a document's sections with what each `check:` target's docstring
+# says it guards, as `rules <doc>` instead of a long path, or reads every
+# check line in every rule file, as `rules --check`.
 # It reads and prints; it writes nothing.
 #
 # Resolves the script relative to this file, not the caller's cwd, so it works

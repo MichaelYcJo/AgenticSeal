@@ -21,7 +21,7 @@ registry test module's own statement of the rule (round 5 ⬜ 3).
 
 | Item | Who must answer |
 |---|---|
-| the full suite, lint and typecheck at the head | the sealer, after the review rounds settle |
+| closed the full suite, lint and typecheck at the head | #901, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
 | closed that each of the 189 `Reads:` lines says what its unit reads today: each is the inventory's reading of 2026-10-07 carried over for a unit whose hash has not moved since, and was not read against the code again | withdrawn: phase 4 (ef8fb33c) restored the 44 files, so no such line is in the tree; rounds 1 to 3 had read them and made 71 findings of a false line, at most 68 of them distinct lines |
 | closed phase 4, `hooks/worktree-guard.py`'s units | gone with the reframe (`plan.md` §*Phases*): this branch changes the guard at no commit, and its units declare when next touched |
 

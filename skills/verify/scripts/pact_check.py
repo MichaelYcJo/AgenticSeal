@@ -114,7 +114,7 @@ def shown(path, repo=None, home_dir=None, flavour=os.path):
     FLAVOUR is the path module whose separators and drive rule apply;
     `ntpath` is what a case passes, so the Windows spelling is exercised on
     every platform rather than resting on a POSIX guarantee
-    (`agent-contract` §13).
+    (contract rule 13).
     """
     seps = "".join(s for s in (flavour.sep, flavour.altsep) if s)
 
@@ -163,7 +163,7 @@ NOT_FOUND, ONE_SIDED, REFUSED, UNREADABLE = (
 # (round 1 of #647, yellow 4).
 #
 # **The grammar, in one rule** (round 2, yellow 13; round 3 of #735, yellow
-# 19), stated for a reader in `docs/the-pact.md` §*The pact anchor*: a token
+# 19), stated for a reader in `docs/the-pact.md` *The pact anchor*: a token
 # begins an anchor where `pact:<name>` is followed at once by `/` or `#`, or
 # where the rest of an anchor follows with its `/` missing -- a quoted heading
 # path closed by `@`, or `@` and a hash, at once or after one mark or one
@@ -261,6 +261,7 @@ def path_map(config, home_dir):
     row = re.compile(
         rf"^\|\s*(?P<remote>{config.CELL}+?)\s*\|\s*(?P<path>{config.CELL}+?)\s*\|\s*$"
     )
+    # exempt from splitlines: lines the GFM walk numbers
     for _index, line in config.unfenced(text.splitlines(), text):
         if not seen_header:
             seen_header = bool(MAP_HEADER.match(line))

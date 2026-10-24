@@ -197,6 +197,12 @@ fixture's interpreter lacks `xdist`, and says so in its skip reason.
 - Changelog fragment:
   `seal/specs/1791119069-a-cd-rows-failing-path-is-measured-under-its-own-directory/changelog.md`.
 
+## Rule changes
+
+- nothing
+  why: internal: a row's failing file is measured at the base under the row's own
+    directory, held by tests/test_the_seal_is_taken_once_by_the_sealer.py.
+
 ## Open questions → questions.md
 
 `questions.md` beside this file. Q1 and Q4 are closed; Q2 is a measurement

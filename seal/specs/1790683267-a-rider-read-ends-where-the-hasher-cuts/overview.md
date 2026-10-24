@@ -20,8 +20,8 @@ The rider check read some riders past the line its hash cuts, so a stamp was has
 
 | Item | Who must answer |
 |---|---|
-| the full suite, repository-wide lint and typecheck over this branch | the sealer, once the review rounds settle |
-| the new cases and the fix on Linux and Windows; only macOS ran them here | CI's Linux and Windows legs on the pull request |
+| closed the full suite, repository-wide lint and typecheck over this branch | #683, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
+| closed the new cases and the fix on Linux and Windows; only macOS ran them here | #683's `ubuntu-latest` and `windows-latest` legs ran the suite green; the rider check itself left the tree at af9c924b |
 
 ## Not done
 

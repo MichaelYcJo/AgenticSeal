@@ -4,8 +4,9 @@ or a person reads says the same thing about where the root lives.
 The work item is `seal/specs/1788354065-the-tree-that-must-stay-clean-has-no-
 way-to-opt-in/`; the clauses named per case are its spec's. The hooks resolve
 the root in code (`hooks/optin.py#home_at`) and are pinned by
-`tests/test_optin_home.py` and `tests/test_local_mode_resolves_under_the_git_
-dir.py`. What is pinned HERE is the text: the one question the `implement`
+`tests/test_optin.py`, `tests/test_commit_review_gate.py` and
+`tests/test_implementer_notice.py`. What is pinned HERE
+is the text: the one question the `implement`
 skill asks, the sentence a session needs, the workflow template shared mode
 installs and the reason local mode has none, and the switch the READMEs give.
 
@@ -19,7 +20,7 @@ import re
 import subprocess
 
 import pytest
-from conftest import local_home, shell_probe
+from conftest import local_home, read, shell_probe
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -27,11 +28,6 @@ COMMON_DIR = "$(git rev-parse --git-common-dir)/seal/"
 # The sentence a session reads (Q1 of the work item's `questions.md`): the
 # same rule `hooks/optin.py` states, moved to where a session looks.
 SESSION_RULE = "`$(git rev-parse --git-common-dir)/seal/` otherwise"
-
-
-def read(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
-        return f.read()
 
 
 def section(text, heading, level):
@@ -117,7 +113,7 @@ def test_the_parity_question_follows_the_mode_question():
 
 # --- A9 of #401: the broad command is the second question, not a later one --
 #
-# `templates/config.md` §*Broad gate* says the row is a thing a PERSON wrote
+# `templates/config.md` *Broad gate* says the row is a thing a PERSON wrote
 # and that the seal covers exactly that. Nothing ever asked for it: grepped
 # before this work, the bootstrap carried two `Ask, once` steps and neither
 # was this one, and no command in `bin/` or `seal.py` wrote the row. So the
@@ -266,7 +262,7 @@ def test_the_criterion_is_named_by_pointer_and_not_restated():
     rule 12). A bootstrap that spelled the three rules out would be its third
     carrier and the next place for them to disagree."""
     pointer = paragraph(bootstrap(), "**Name the criterion; do not restate it.**")
-    assert "§*Choosing a value — the criterion* owns the criterion" in pointer
+    assert "*The criterion for choosing a value* owns the criterion" in pointer
     boot = flat(bootstrap())
     assert "red repository-wide" not in boot, (
         "the bootstrap restates a rule instead of pointing at its owner"
@@ -285,7 +281,7 @@ def test_the_row_is_written_after_seal_mode_and_carries_its_section():
     """`seal mode` writes a config file holding only `Mode`, so the row lands
     afterwards — and it lands the way `/specseal:config` step 3 lands one, the
     row AND its section, because the documentation beside it is the half a
-    person reads. No new writer: `skills/config/SKILL.md` §*What this does not
+    person reads. No new writer: `skills/config/SKILL.md` *What this does not
     do* refuses a generic setter for a file people edit by hand."""
     boot = flat(bootstrap())
     assert "Then the `Broad gate` row" in boot
@@ -308,20 +304,24 @@ def test_the_row_is_written_after_seal_mode_and_carries_its_section():
 
 
 def test_a_decline_leaves_no_trace_and_the_asymmetry_with_the_mode_is_stated():
-    """The mode row records its answer because #151 measured what its absence
-    costs: a never-asked repository got shared mode SILENTLY. Nothing about
-    this row is silent — a repository that declined and one that was never
-    asked meet the same refusal and are told the same correct thing — so a
-    trace would separate two states nothing treats differently.
+    """The mode row records its answer because a never-asked repository got
+    shared mode SILENTLY (#151). Nothing about this row is silent — a
+    repository that declined and one that was never asked meet the same
+    refusal and are told the same correct thing — so a trace would separate
+    two states nothing treats differently.
 
-    Read from the decline paragraph alone. `#151` also stands in the mode
-    paragraph of the same section, where it has been since before this row
-    existed, so a case reading the whole section cannot fail by losing the
-    argument it is named for — which is what round 1's 🟡 7 measured here.
+    Read from the decline paragraph alone. The mode paragraph of the same
+    section argues its own row, so a case reading the whole section cannot
+    fail by losing the argument it is named for — which is what round 1's
+    🟡 7 measured here. The issue number left the paragraph with #940; the
+    argument it stood for is what is pinned.
     """
     decline = paragraph(bootstrap(), "**A decline writes nothing at all.**")
     assert "no sentinel" in decline
-    assert "#151" in decline, "the asymmetry with the mode row is asserted, not argued"
+    assert "would separate two states nothing treats differently" in decline
+    assert "The mode row is the opposite" in decline, (
+        "the asymmetry with the mode row is asserted, not argued"
+    )
 
 
 def test_the_sentence_that_said_nowhere_else_is_gone():
@@ -374,7 +374,7 @@ def test_a_bare_specs_is_asked_and_only_the_plugins_marks_are_told():
         # Phases 3 and 4 of #107 re-pointed both definitions' rows here. The
         # sentence was in two of them verbatim and in the third not at all,
         # and the agent without it is the one that reads `seal/parity.md`. It
-        # is §11 of the contract now, which every agent receives at startup.
+        # is contract rule 11 now, which every agent receives at startup.
         ("skills", "agent-contract", "SKILL.md"),
     ],
 )
@@ -387,7 +387,7 @@ def test_the_session_rule_appears_once(parts):
 @pytest.mark.parametrize("agent", ["warden.md", "smith.md"])
 def test_no_definition_carries_its_own_copy_of_the_root_rule(agent):
     """The move has to be a move. A definition that keeps the sentence beside
-    the contract's is the duplication §11 was written to end, and it is
+    the contract's is the duplication contract rule 11 was written to end, and it is
     invisible in a diff that only adds."""
     assert SESSION_RULE not in read("agents", agent), (
         f"agents/{agent} still spells the root rule out, so the tree holds "
@@ -419,7 +419,7 @@ def test_the_template_runs_the_two_shipped_checks_from_the_plugin_at_its_tag():
     assert "skills/code-review/scripts/chain_check.py" in t
     assert t.count("--baseline") >= 2
     assert "seal/specs/" in t
-    # The check reads a record's `Target SHA` as an ancestor of HEAD only,
+    # The check reads a round record's `target:` line as an ancestor of HEAD only,
     # so the template fetches no pull-request heads (#923).
     assert "refs/pull/" not in t
     assert "v<version>" in t, "the plugin is not pinned to its tag"
@@ -631,6 +631,21 @@ def test_the_seal_readme_is_the_template_verbatim():
     assert read("seal", "README.md") == read("templates", "seal-README.md")
 
 
+def test_the_seal_readme_points_at_the_drain_and_restates_none_of_it():
+    """Round 2 of #940, finding 2. Who moves a work item's open rows, when
+    and where each goes is `skills/implement/SKILL.md` section 6's alone; a
+    second statement here drifted from it on all three. The README names the
+    section and carries no destination of its own."""
+    text = read("templates", "seal-README.md")
+    rules = flat(text.split("\n## Export rules\n", 1)[1].split("\n## ", 1)[0])
+    heading = "### 6. Drain the rows before the broad run, and keep the records"
+    assert heading in read("skills", "implement", "SKILL.md")
+    cited = "`skills/implement/SKILL.md` " + f"*{heading[4:]}*"
+    assert cited in rules, rules
+    for copied in ("| Item still here |", "follow-up.md", "open-questions"):
+        assert copied not in rules, (copied, rules)
+
+
 # --- Q8: the design record agrees with the code -----------------------------
 
 
@@ -658,47 +673,33 @@ def test_the_record_no_longer_says_the_checks_would_refuse(parts, wrong):
 
 
 @pytest.mark.parametrize(
-    "parts, decided, left_open",
+    "parts, opt_in, setup, stamp",
     [
         (
             ("docs", "one-root-by-lifetime.md"),
-            "## Decided after the thread",
-            "## Decisions left open",
+            "## The opt-in signal is the root itself",
+            "## What first setup asks",
+            "that hook stamps the repository as moved",
         ),
         (
             ("docs", "one-root-by-lifetime.ko.md"),
-            "## 스레드 뒤에 정해진 것",
-            "## 결정을 남겨 둔 것",
+            "## 옵트인 신호는 루트 자체다",
+            "## 처음 설정에서 무엇을 묻는가",
+            "그 훅은 저장소에 옮겼다는 표시를 남기므로",
         ),
     ],
 )
-def test_the_scratch_row_moved_from_left_open_to_decided(parts, decided, left_open):
+def test_the_design_record_states_the_setup_rules_where_they_rule(
+    parts, opt_in, setup, stamp
+):
+    """The opt-out sits with the opt-in it takes back, and the question's
+    shape, the workflow it installs and the migration hook's stamp sit with
+    first setup, in both editions."""
     text = read(*parts)
-    assert "specseal-scratch" in section(text, decided, 2), "/".join(parts)
-    assert "scratch" not in section(text, left_open, 2), "/".join(parts)
-
-
-@pytest.mark.parametrize(
-    "parts, decided",
-    [
-        (("docs", "one-root-by-lifetime.md"), "## Decided after the thread"),
-        (("docs", "one-root-by-lifetime.ko.md"), "## 스레드 뒤에 정해진 것"),
-    ],
-)
-def test_the_decided_table_carries_this_work_items_rows(parts, decided):
-    body = section(read(*parts), decided, 2)
-    rows = [line for line in body.splitlines() if line.startswith("| ")]
-    for needle in (
-        "templates/hygiene.yml",
-        COMMON_DIR,
-        "AskUserQuestion",
-        "specseal-scratch",
-    ):
-        assert any(needle in row for row in rows), (
-            f"{'/'.join(parts)}: no row names {needle}"
-        )
-    stamp = [row for row in rows if re.search(r"stamp|스탬프|표시", row)]
-    assert stamp, f"{'/'.join(parts)}: the migration hook's stamp rule has no row"
+    assert "specseal-scratch" in section(text, opt_in, 2), "/".join(parts)
+    body = " ".join(section(text, setup, 2).split())
+    for needle in ("templates/hygiene.yml", COMMON_DIR, "AskUserQuestion", stamp):
+        assert needle in body, f"{'/'.join(parts)}: {setup} does not name {needle}"
 
 
 # --- #151: the route that actually happens, and the state it leaves ---------
@@ -706,9 +707,9 @@ def test_the_decided_table_carries_this_work_items_rows(parts, decided):
 # The bootstrap above is where the mode question lives, and the cases in this
 # file all reach it by reading the skill. That is not how a session gets
 # there. `install.sh` copies the block between `<!-- specseal:start -->` and
-# `<!-- specseal:end -->` — `templates/claude-md-block.md`, of which this
-# repository's `CLAUDE.md` carries a generated copy — into
-# `~/.claude/CLAUDE.md`, so the block loads in EVERY project on the machine —
+# `<!-- specseal:end -->` — `templates/claude-md-block.md`, the block's one
+# source — into `~/.claude/CLAUDE.md`, so the block loads in EVERY project on
+# the machine —
 # including one that has never seen SpecSeal —
 # and it tells a session to write `seal/specs/<id>/routing.md` before the
 # first edit. That write creates `seal/`. Creating `seal/` opts the repository
@@ -725,22 +726,19 @@ START, END = "<!-- specseal:start -->", "<!-- specseal:end -->"
 def preset():
     """Exactly the text `install.sh` copies, markers included.
 
-    Read from the generated copy in `CLAUDE.md`, which
-    `.github/scripts/claude_block.py --check` holds identical to
-    `templates/claude-md-block.md`, the installer's source. Extracted the way
-    the installer extracts it rather than by reading the whole file: a
-    sentence added BELOW `specseal:end` reaches this repository and reaches
-    no user, and a case that read the whole file could not tell the two
-    apart.
+    Read from `templates/claude-md-block.md`, the installer's source, and
+    extracted the way the installer extracts it rather than by reading the
+    whole file: a line outside the markers reaches no user, and a case that
+    read the whole file could not tell the two apart.
     """
-    text = read("CLAUDE.md")
+    text = read("templates", "claude-md-block.md")
     assert START in text and END in text, "the preset markers moved"
     return text[text.index(START) : text.index(END) + len(END)]
 
 
 def routing_rule():
     """The preset's routing bullet, its line breaks folded."""
-    return paragraph(preset(), "- **Routing, decided at the start**")
+    return paragraph(preset(), "- **Routing, decided at the start.**")
 
 
 def test_the_preset_sends_a_fresh_repository_to_the_bootstrap():
@@ -755,8 +753,26 @@ def test_the_preset_sends_a_fresh_repository_to_the_bootstrap():
         "the routing rule instructs the write before it names the bootstrap, "
         "which is the order that made #151 happen"
     )
-    assert "implement" in lead
+    # The file the Bootstrap moved to, not the skill a `Skill implement` load
+    # carries, which no longer holds it.
+    assert "skills/implement/orchestration.md" in lead
     assert "neither" in lead, "the rule does not say WHICH repositories it means"
+
+
+def test_the_preset_writes_no_declaration_under_no_work_item():
+    """Round 1 of #940, finding 1. The write is conditioned on the answer,
+    and the block names the file that states question 1 and the boxes, so a
+    session in a rooted repository that reads only the block neither writes
+    a declaration nobody gave nor asks a question it has no text for."""
+    rule = routing_rule()
+    lead = rule[: rule.index("write `seal/specs/")]
+    assert "Except under `no work item`" in lead, (
+        "the routing rule writes routing.md under every answer, `no work item` included"
+    )
+    assert "*Orchestrator: how the work is routed*" in lead, (
+        "the routing rule names question 1 and the boxes without naming the "
+        "section that states them"
+    )
 
 
 def test_the_preset_names_both_places_the_root_can_be():
@@ -768,12 +784,15 @@ def test_the_preset_names_both_places_the_root_can_be():
     assert "git rev-parse --git-common-dir" in lead
 
 
-def test_the_preset_says_the_write_is_what_opts_the_repository_in():
-    """Without the consequence the sentence is a detour with no reason, and a
-    rule with no reason is the one that gets skipped when the work is
-    obvious."""
+def test_the_preset_says_whose_decision_the_place_is():
+    """The block keeps the rule and leaves the reason (#940): where the root
+    lands is the user's decision. That the write creates the root and opts
+    the repository in is the Bootstrap's, which the same sentence sends a
+    session to first."""
     rule = routing_rule()
-    assert "opts the repository in" in rule
+    assert "Creating the root is what opts the repository in" in flat(bootstrap()), (
+        "the Bootstrap no longer says creating the root opts the repository in"
+    )
     assert "user's decision" in rule, (
         "the rule does not say whose decision the place is, which is the "
         "whole of what #151 lost"

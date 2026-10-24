@@ -24,11 +24,11 @@ A base whose own pytest a test killed part-way gave `new` for the file it crashe
 
 | Item | Who must answer |
 |---|---|
-| The two gate cases (S1, S2) on Linux and Windows, where `os._exit` in a test also ends plain pytest without `pytest_sessionfinish` | CI's three-platform `pytest` job, at the pull request |
+| closed The two gate cases (S1, S2) on Linux and Windows, where `os._exit` in a test also ends plain pytest without `pytest_sessionfinish` | #851's `ubuntu-latest` and `windows-latest` legs ran the suite green |
 | A worker xdist starts in place of a crashed one, inside a live run: not provoked, read only (the terminal reporter keeps the crash report, which holds the old worker) | warden, in this work item's review round |
 | A recorder that stops writing for a reason other than a dead process, such as a full disk: the record then holds no `end` line and reads as unended, by the same branch S1 drives; not provoked | warden, in this work item's review round |
-| The full suite, the repository-wide lint and the typecheck | the sealer, once, after the review rounds settle |
-| The xdist `-x` gate case and the `KeyboardInterrupt` and `pytest.exit()` gate cases on Linux and Windows | CI's three-platform `pytest` job, at the pull request |
+| closed The full suite, the repository-wide lint and the typecheck | #851, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
+| closed The xdist `-x` gate case and the `KeyboardInterrupt` and `pytest.exit()` gate cases on Linux and Windows | #851's `ubuntu-latest` and `windows-latest` legs ran the suite green |
 | closed The `end` exits on a pytest older than 9.1.1 — answered by round 2: measured on 6.1.0 and 7.0.0 with the recorder loaded, the same `end` values as 9.1.1; exit 3 read there, not run | warden, round 2 |
 
 ## Not done

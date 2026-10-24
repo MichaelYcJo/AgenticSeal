@@ -21,8 +21,8 @@ The ledger readers disagreed about where a fenced block starts and ends, so a qu
 
 | Item | Who must answer |
 |---|---|
-| The full suite, lint and typecheck over the finished branch | the sealer, once the review rounds settle |
-| Behaviour on Linux and Windows. The phases are pure text processing and were run on macOS only | CI's test matrix, whose Linux and Windows legs run at the pull request |
+| closed The full suite, lint and typecheck over the finished branch | #593, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
+| closed Behaviour on Linux and Windows. The phases are pure text processing and were run on macOS only | #997's `ubuntu-latest` and `windows-latest` legs ran the suite green |
 
 ## Not done
 

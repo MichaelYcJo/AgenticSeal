@@ -72,12 +72,12 @@ laid out by **lifetime**, not by who wrote it:
 
 | Root | Lifetime | Test | Authority |
 |---|---|---|---|
-| `docs/` | Permanent, cumulative | Must still be true in 6 months | **Norms, ratified by humans.** Read when the repository has them. A work item does not create one: the documentation convention is the project's. The one writer that does is `settle`, which folds a released work item's spec into a `docs/` policy and then retires the directory — and a session running it is following `skills/settle/SKILL.md`, not this one |
+| `docs/` | Permanent, cumulative | Must still be true in 6 months | **Norms, ratified by humans.** Read when the repository has them; the documentation convention is the project's. The policy root (`docs/` unless `seal/config.md`'s `Policy root` names another) is the baseline, and a pull request does not edit it. A spec states its changes in `## Rule changes`, `settle --apply` applies them after the release (`skills/settle/SKILL.md`), and the policy in force is the baseline plus the rule changes of every unsettled spec, in merge order |
 | `seal/specs/<work-item-id>/` | One work item | Its role ends when this work ships (SDD, overview, round records) | The contract this work executes against. A human approves `plan.md`, which is why this is a repository document and not tool state |
 | `seal/`, everything above `specs/` | Permanent | Everything this plugin maintains | Written and read by machines: the repository's config, the migration config, the follow-up list |
 
 A `specs/` the project kept before the plugin is neither root: it is a
-**reference root**, as `templates/config.md` §*Reference specs* says — history
+**reference root**, as `templates/config.md` *Reference specs* says — history
 read where the work touches what it describes, cited in `spec.md` where it was
 read, and never written by anything this skill produces.
 
@@ -98,7 +98,7 @@ read. What sits directly under it is permanent; what sits under
 
 ```
 seal/
-├── README.md         the export rules, for sessions that never load this skill
+├── README.md         what the root holds, and where the export rules are
 ├── parity.md         migration config, only when declared
 ├── pact.md           the pact, only in the repository that holds one
 ├── follow-up.md      schedulable items in a repository with no tracker
@@ -107,8 +107,8 @@ seal/
     │                 the framer's where one runs, the session's where none does
     ├── spec.md · plan.md · questions.md · overview.md
     ├── rounds/
-    │   └── round-N.md    one review round — closed at merge, removed by
-    │                     `settle --retire-process` after its release
+    │   └── round-N.md    one review round — closed at merge, removed with
+    │                     its spec at the settle that applies it
     ├── broad-gate.md     the one broad run, written by `broad-gate --record`
     └── guarantee.md      the sealer's verdict, from `templates/sdd-guarantee.md`
 ```
@@ -153,8 +153,8 @@ it or dropping it.
   be that prerequisite.** If so, include the item in this change and delete its
   row; what remains in that file is the definition of remaining scope.
 - Verify clause numbers a ticket cites. Tickets are written before (or drift
-  from) the documents they cite; a missing clause means writing it is part of
-  this work, with a freshly allocated number.
+  from) the documents they cite; a missing clause is an `add` in the spec's
+  `## Rule changes`, with a freshly allocated number.
 - A spawn prompt's facts arrive under `docs/the-review-record.md`'s
   handoff: coordinates rather than prose, each fact labelled
   executed, read, or unverified. A fact with no coordinate and no label is an
@@ -217,10 +217,12 @@ first.
 surfaces after it is written down rather than raised: a decision only a person
 can make goes to `questions.md`, a finding you neither fixed nor answered to
 `seal/follow-up.md` with an answerer named — a deferral to nobody is how
-"someone will look at it" becomes nobody did (`verify` §The answerer has to
-exist) — and what was deliberately left goes to the overview's Not done
+"someone will look at it" becomes nobody did (`skills/verify/SKILL.md` *The
+answerer has to exist*) — and what was deliberately left goes to the overview's Not done
 section. Each is named in the PR body, because a leftover nobody can find was
-not handed over.
+not handed over. On a branch whose `routing.md` answers `Automation` with
+`yes`, `hooks/question-gate.py` holds this, and `docs/the-review-record.md`
+*The run* is the rule.
 
 The test for whether something is a question or a row: would a different
 answer change what you build *now*? If it would not, raising it spends a
@@ -231,11 +233,12 @@ waits for the reply spends more.
 
 **Each scenario is built the same way: its case first, seen red against the
 tree as it stands, then the code, then the case green.** A rule the work
-states or changes ends with `Enforced by:` naming that case — in its home
+states or changes ends with a `check:` line naming that case — in its home
 under `docs/`, or in the *Verifiable how* cell of the spec's scenario table —
 so the case is the record that the rule holds, and CI running the suite is
-the check. A rule no case can hold says `Enforced by: nothing — <why>`, and
-the why is what a reviewer reads it by.
+the check. A rule no case can hold says `check: none reader: <who reads it>`,
+and the reader is who holds it instead. The grammar is
+`skills/settle/SKILL.md` *A rule has one shape*.
 
 This is the input for the reviewer and the next ticket: a case somebody can
 run rather than a reading somebody did. A judgment settled by opening code
@@ -253,9 +256,9 @@ committing, and two things can drive that cost to nothing:
 
 Read both off the repository before leaning on them. One that merges without
 squashing keeps every commit in its history, and one with no declaration meets
-the review question at each commit. **A declaration does not silence the
-parity arm**: the two opt-ins are independent, so where a migration config is
-declared a code-touching commit still meets that one. The wake/quiet table in
+the review question at each commit. **Where a migration config is declared,
+the parity arm has quiet terms of its own**, and only one of the two review
+answers is among them. The wake/quiet table in
 `skills/implement/orchestration.md` says what wakes and quiets each arm, and
 it is the only place that says it.
 
@@ -330,7 +333,19 @@ it observable* is not something anyone can check, and it is not a way out.
 `questions.md` is not on that ladder: it starts with the batch collected
 before the first edit (step 1) and gains a row whenever a decision only a
 human can make appears later, at any size. A late one still gets written — the
-batch is what keeps it from being the only way they arrive.
+batch is what keeps it from being the only way they arrive. A question is a
+row there and never a sentence of `spec.md`, because an unanswered question
+in prose reads as decided.
+
+**A row's `Who can answer` cell takes one of three values.** **a person**:
+what the product should be, or a value somebody has to be accountable for,
+and the only kind of row that blocks the build. **a measurement**: a probe,
+a command or a count settles it, so a person is the wrong instrument and a
+row queued behind one wastes a round trip. **the work**: unknowable at
+framing time; the phase that meets it decides it there and records a
+divergence row, and it does not travel back to the framer. **The framer
+opens rows and does not own their answers**: the `Status` column is written
+by whoever answered, as `answered <date> by <who>`, never by whoever asked.
 
 A work item's directory is `seal/specs/<unix-epoch-seconds>-<slug>/` (e.g.
 `seal/specs/1784780439-center-list-sort/`), bootstrapped from `templates/`. The
@@ -340,7 +355,7 @@ without a registry — take it from `date +%s` when creating the directory.
 | File | Starts from | Written by | Holds | When |
 |---|---|---|---|---|
 | `routing.md` | `templates/sdd-routing.md` | the session that spawns the work, from the batch it asked — never a subagent, which has no way to put the question to anybody | the routing answer | before the first edit, and so before a framer is spawned |
-| `spec.md` | `templates/sdd-spec.md` | the framer | WHAT — scope, mandatory user scenarios & acceptance, grounding clauses, and the framer's mark at its foot, with a `Reframed … after round <N>.` line under it for each time the review chain sent the work item back (`docs/the-review-record.md` §*The run* owns that rule) | before implementing |
+| `spec.md` | `templates/sdd-spec.md` | the framer | WHAT — scope, mandatory user scenarios & acceptance, grounding clauses, the rule changes `settle` applies to the policy root (`## Rule changes`), and the framer's mark at its foot, with a `Reframed … after round <N>.` line under it for each time the review chain sent the work item back (`docs/the-review-record.md` *The run* owns that rule) | before implementing |
 | `plan.md` | `templates/sdd-plan.md` | the framer | HOW — phases as vertical slices, alternatives with failure scenarios; this is the Design Gate's artifact, and its `Approved <date> by <who>` line is the record that the gate happened | before implementing (gated work) |
 | `questions.md` | `templates/sdd-questions.md` | the framer opens the rows; each row's `Who can answer` cell names who closes it | decisions only a human can make — extracted so nothing ships on a silent assumption | one batch before the first edit, then as they arise |
 | `overview.md` | `templates/sdd-overview.md` | the builder | the closing memo — one line of purpose, then what the diff cannot show (below) | opened at the first divergence, unverified item, or fed-back clause; closed when implementation ends |
@@ -373,13 +388,33 @@ it** — never the boilerplate the contract, this skill, and `agents/smith.md`
 already carry, which every phase gets told by definition and none of them
 need repeated in their own record. Copy it in when the phase closes: what
 the spawn prompt or task description said this phase, specifically, had to
-build.
+build. The section is how a reader opening the record later, with the spawn
+prompt gone, tells a scope the orchestrator gave the phase from one the phase
+invented. `## What this phase found` holds what building the phase taught
+that `plan.md`'s cells do not: a decision settled while writing the code, a
+constraint found only by trying, anything the next phase needs. A discovery
+reaches the next phase only through that section or through the orchestrator
+retyping it into the next spawn prompt, and the second goes missing without
+a trace when the orchestrator does not.
 
 **`plan.md`'s Phases table is the task list, and there is no other.** Each
 phase carries a **Verified by** column, so it cannot be called done the way a
 checkbox can be ticked, and a **Status** column that is empty or holds the
 commit that closed the phase. A commit asserts a **past** state that someone
-can open, so a tick and the word `done` are refused where a hash is not.
+can open, so a tick and the word `done` are refused where a hash is not. The
+party that builds a phase fills its cell as the phase closes, not at the end.
+Where feature branches squash, those commits stop resolving at the merge, and
+**a rebase during the work does the same earlier and more quietly**, because
+the orphaned object still answers `git cat-file` in the worktree that wrote
+it; **the party that rebases the branch re-reads the column after the
+rebase**. Nothing measures from the column, which is why that is tolerable.
+
+**`spec.md` ends with its frame's mark**, `Framed <date> by <who>, before the
+build.`, where `<who>` is the `Planning` row's answer in `routing.md`,
+`framer` or `the session`; `chain_check.py` refuses a `Planning | framer`
+work item whose mark names anyone else. The mark, `plan.md`'s approval line
+and `routing.md`'s `Answered` line share one shape, the verb, the date, who
+and the moment, so the three stay one convention.
 
 ### 4. The closing memo — only what the diff cannot show
 
@@ -406,11 +441,17 @@ is written, so this is
    *inferred during implementation* so planners know they may overturn them.
 
 A memo whose last three sections are empty is correct and four lines long.
+`## Not done` holds what was within reach and deliberately not taken, with
+its grounds, in prose, because those are decisions rather than pending
+claims.
 
 **`## Not verified` is read by a machine, so it has one shape** — a
-`| Item | Who must answer |` table, or the line `none — <why>`. Any other
-spelling of the heading or the header row fails the check rather than reporting
-zero, because zero reads as "everything has been closed".
+`| Item | Who must answer |` table, or alone the no-change block
+`skills/settle/SKILL.md` *Rule changes* states, `- nothing` with its one
+field `why:`. Any other spelling of the heading, the header row or the block
+fails the check rather than reporting zero, because zero reads as "everything
+has been closed". The template's placeholder row fails it too, until it is
+filled in or the block replaces the table.
 
 An item is closed by marking it, never by deleting it: the Item cell opens
 with the word `closed`, lower case, then the item.
@@ -440,7 +481,7 @@ and findings from execution are labeled separately.
 
 A session fixing review feedback starts at `seal/specs/<work-item-id>/rounds/`,
 **not** at the inline comments: the warden writes `round-N.md`, and the next
-review round reads it (`docs/the-review-record.md` §*The round record*).
+review round reads it (`docs/the-review-record.md` *The round record*).
 
 A finding is a claim too, and it arrives from someone who did not write the
 code. Open the coordinate and judge it yourself: fix what holds, and where it
@@ -454,26 +495,33 @@ rebuilt — only re-checked for whether the finding is now fixed.
 
 **A fix pass rewrites the `verdict:` line and writes the `answer:` line of
 each open finding in `rounds/round-N.md`, and writes no phase record** —
-`docs/the-review-record.md` §*The round record* names the three closing
+`docs/the-review-record.md` *The round record* names the three closing
 verdicts. A `fixed` commit must touch a path the finding's `location:`
 names; where the fix went somewhere else, the pass appends that coordinate
 to the line and says so in `answer:`. The build's phases keep theirs.
 
 A fix that changes what the work item ships brings the work item's
 `changelog.md` along, because the release gathers that fragment as it stands;
-`docs/the-record-layout.md` §*A commit after the build brings its changelog
+`docs/the-record-layout.md` *A commit after the build brings its changelog
 fragment along* owns that rule.
 
-### 6. Close before merge — drain the rows, keep the records
+### 6. Drain the rows before the broad run, and keep the records
 
-Before the PR merges, every unresolved row must move out:
+**The orchestrator moves every unresolved row out once the last round record
+has no finding open, and before it runs `broad-gate --preflight`**, whichever
+party `routing.md`'s `Implementation` row names: the orchestrator opens the
+pull request, and every commit after the broad run, a `seal/follow-up.md` row
+among them, leaves `broad-gate.md` stale for the sealer
+(`skills/code-review/orchestration.md` *Orchestrator: the pull request opens
+once the sealer seals, and a phase is re-run*). A row is out when it stands
+at its destination below:
 
 | Remaining item | Destination |
 |---|---|
-| Doable within this PR | Do it now — merging is the last moment anyone is looking |
+| Doable within this pull request | done now, by the party that builds the work item, and reviewed by a verifying round before the broad run |
 | Waiting on prerequisite work | `seal/follow-up.md` |
-| Needs a decision | The policy document's open-questions section |
+| Needs a decision | An `add` in `spec.md`'s `## Rule changes` to the policy document's open-questions section |
 
 Each finding that moves out reads `deferred <home>` in its round record. The
-records themselves stay through the merge. `settle --retire-process` removes
-them after the release, when no round is left to inherit from them.
+records themselves stay through the merge, and leave with their spec at the
+settle that applies it.

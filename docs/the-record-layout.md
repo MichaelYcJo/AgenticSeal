@@ -1,7 +1,7 @@
-# The record layout — where each kind of record lives
+# The record layout
 
-This repository keeps a dozen kinds of record, and every one of them has one
-home. This document is the index: one table per place, each row naming a file
+Where each kind of record lives. Every kind of record this repository keeps
+has one home, and this document is the index: one table per place, each row naming a file
 or a file shape and the one question it answers. A reader looking for a rule
 or a record opens this index and then one file.
 
@@ -16,16 +16,17 @@ is found, the copy is the defect.
 |---|---|---|---|
 | The changelog | `seal/specs/<work-item-id>/changelog.md` while a work item is open; `changelog/<X.Y.Z>.md`, the release's own file, once its release gathers it | each release file is under target, and is the unit | the file name, by version, and `CHANGELOG.md`, which heads each release newest first with a link to its file |
 | A work item's files | `seal/specs/<work-item-id>/` | each file under target | the table under *seal/specs/<work-item-id>/* below |
-| The repository's rules | `CLAUDE.md` for the rules a session must hold, `CONTRIBUTING.md` for a contributor's procedure, and the `docs/` document each one links to | each file under target | this document, and the *docs/* table below |
+| The repository's rules | `CLAUDE.md` for the rules a session must hold, `CONTRIBUTING.md` for a contributor's procedure, and the `docs/` document each one links to | each file under target | this document, and `docs/README.md` |
 | The configuration | `seal/config.md`, one row per item; `templates/config.md` documents every row | under target | the `Item` column |
 | The follow-up list | `seal/follow-up.md`, one row per item that waits on a named party | under target | its rows, each naming who answers it |
 
 ## The size a reader takes whole
 
-**A file a reader is meant to take whole stays at or under 1,000 lines.** The
-ceiling is `seal/config.md`'s `Document line ceiling` row, and `fold-check`
-holds every `docs/` document to it that `Over the ceiling` does not list.
-Enforced by: tests/test_a_document_has_room_for_the_next_fold.py::test_every_document_in_docs_is_under_the_ceiling_or_frozen
+**A file a reader is meant to take whole fits one read.** The row and the
+estimate are `templates/config.md` *The fold's values*, and what a document
+past it owes is `skills/settle/SKILL.md` *A document past its ceiling is
+split, never trimmed*.
+check: tests/test_a_document_has_room_for_the_next_fold.py
 
 ## A change writes fragments, never a shared file
 
@@ -38,11 +39,11 @@ because that line ends the released section, and the gather refuses a
 fragment that has one.
 
 **The fragments are gathered at the release, by one command in one commit**,
-and `docs/release-checklist.md` §*2. Gather, bump* holds it. The fragments are
+and `docs/release-checklist.md` *2. Gather, bump* holds it. The fragments are
 concatenated into the release's own file, `changelog/X.Y.Z.md`, and the
 release's heading goes into the index, `CHANGELOG.md`. A fragment lives from
 the work item's first entry to the release that ships it.
-Enforced by: tests/test_the_changelog_is_gathered_at_release.py::test_the_release_sequence_names_the_gather_step, tests/test_the_changelog_is_gathered_at_release.py::test_a_gather_writes_the_release_file_and_its_index_entry
+check: tests/test_the_changelog_is_gathered_at_release.py
 
 ## A commit after the build brings its changelog fragment along
 
@@ -53,71 +54,36 @@ changes behaviour can leave it describing something that no longer ships. The
 rule binds whoever writes the commit: the smith's fix pass, a fix written after
 the last round, and an integration commit after a sibling's squash, which the
 orchestrator writes. A commit that changes nothing a release note states owes
-the fragment nothing. 0.18.2 shipped three fragments their own review rounds had
-made false, and #795 corrected them by hand before the release.
-Enforced by: nothing — the next round's warden reads the fragment against the
-diff, and the sealer reads the changelog against the tree.
+the fragment nothing.
+check: none reader: the next round's warden and the sealer
 
 ## The fold, and what tells it from a deletion
 
-The fold's procedure is `skills/settle/SKILL.md`. This section holds this
-repository's values for it and the rules its readers share.
+The procedure is `skills/settle/SKILL.md`. This section holds the rules its
+readers share.
 
-<!-- specs/1790154761-folded-statements-pile-into-one-spec -->
-**Every folded statement has the fold's shape: the cutoff binds every statement
-from work item `0` on.** The shape and the placement rule are stated in
-`skills/settle/SKILL.md` §*2. Write one standing statement per
-rule*, and this section holds only this repository's values for them. The
-cutoff is the id in the marker, and ids are epoch-prefixed, so it is a
-comparison rather than a list.
-Enforced by: skills/settle/scripts/fold_check.py::bound, tests/test_a_folded_statement_names_what_enforces_it.py::test_every_bound_statement_in_docs_has_the_shape
+**A removed work item directory is a settle, not a deletion, when replaying
+it gives what the tree holds.** Each directory a pull request removes whole
+is judged as it stood at the merge base: nothing in its record open, and
+either no rule to replay (it wrote no `spec.md`, or its spec has no
+`## Rule changes` or holds the no-change block) or the replay holds. The replay applies
+every removed spec's rule changes, in merge order, over the merge base's
+`docs/`, and each text an applied operation names must occur as often across
+`docs/` at HEAD as in the replay, whitespace collapsed. So a
+later spec may rewrite what an earlier one placed, and a split along headings
+in the same pull request passes. One predicate,
+`unverified_check.py#settled`, answers `settle`, `unverified-check
+--baseline` and `chain-check`, and a refusal keeps the directory, the cheaper
+mistake.
+check: a-settle-is-no-deletion
 
-<!-- specs/1790154761-folded-statements-pile-into-one-spec -->
-<!-- specs/1790208643-the-spec-is-split-and-its-sentences-are-settled -->
-**A document over the line ceiling takes no new statement.** The ceiling is
-the one §*The size a reader takes whole* states, at or under 1000 lines. A
-document the next fold would take past it is split along its own headings
-first, its fold markers carried across whole, or the rule goes to the
-document for its own sub-subject. No document is listed over the ceiling
-now. The cutoff, the ceiling and the list are rows of this repository's
-`seal/config.md`, which `fold-check` reads, and a pin holds the rows and this
-section to the same numbers.
-Enforced by: skills/settle/scripts/fold_check.py::ceiling_problems, tests/test_a_document_has_room_for_the_next_fold.py::test_the_record_layout_states_the_values_the_config_rows_hold
-
-<!-- specs/1790039346-settle-reads-a-marker-inside-a-commented-out-draft -->
-**A marker counts only on a live line, and one function decides what live
-means.** A line begins live when it begins outside a fenced block, outside an
-HTML comment and outside a code span. A marker quoted inside a fence is a
-description; one inside a commented-out draft is a parked one; neither
-records a fold, and both used to excuse a removal nothing had absorbed. Every
-reader of the fold record asks the same function,
-`unverified_check.py#live_lines`, so the rule cannot be spelled twice and
-drift.
-Enforced by: tests/test_unverified_rows_close.py::test_a_marker_inside_a_commented_out_draft_is_not_a_fold_record, tests/test_unverified_rows_close.py::test_a_marker_inside_a_fenced_block_is_not_a_fold_record, tests/test_unverified_rows_close.py::test_a_marker_below_the_top_level_of_docs_is_not_a_fold_record
-
-Where markdown will not answer without a block model — a backtick run with no
-partner on its own line is literal text if the paragraph ends first and a code
-span if it does not — both readings are computed and a line is live only
-where both call it live. Nothing decides where the block ends; the
-disagreement is resolved toward keeping a work item's directory. The cost is
-a fold reported as a deletion, which a person sees at exit 1 and can act on,
-and that is the cheaper of the two mistakes.
-
-The fold reads the top level of `docs/` and no deeper. A fold writes into a
-flat policy directory — merge into a document that exists, create one only
-for an area with none — so a marker below the top level is somebody's notes,
-and a scratch file quoting one excused a removal nothing had absorbed.
-
-<!-- specs/1790076070-the-fold-ships-and-the-corpus-is-still-on-disk -->
-<!-- specs/1790138190-settle-leaves-twelve-directories-with-no-way-out -->
 **A released work item that wrote no `spec.md` states no rule, and it is
 retired by that rule, with no marker.** Such an item was below the SDD
 ladder: a release entry, a renumbering, a CI repair, a pull request's record.
-Those are records of a moment, and a moment states nothing to fold — which is
-also why nothing has to be carried out of one, so `settle` prints these under
-their own heading and `settle --retire` removes them without writing a marker
-into `docs/` (#517). **One condition narrows it: nothing in the record may
-still be open.** An open `## Not verified` row is a claim with an answerer
+Those are records of a moment, and a moment states no rule, so nothing has
+to be carried out of one: `settle` prints these under their own heading and
+`settle --apply` removes them without writing into `docs/`. **One condition
+narrows it: nothing in the record may still be open.** An open `## Not verified` row is a claim with an answerer
 rather than a rule, so a directory holding one
 is kept and named with its rows, and closing each row — a row re-homed is
 closed too, `closed` naming where it went — in a pull request merged before the one
@@ -126,45 +92,30 @@ readers ask the rule of the merge base, so a closure in the same pull request
 as the removal is still open where they look. `settle` asks it at the merge
 base of `--released-at` and `HEAD`, which is where they look until the base
 moves past the fork and earlier after, and keeps a directory whose closure
-has reached the working branch and not that base (#602). One predicate
-decides the rule,
-and `settle`, `unverified-check` and `chain-check` all ask it, so the three
-cannot disagree about one tree. Whether the item wrote a
+has reached the working branch and not that base. Whether the item wrote a
 `spec.md` is asked of its history, so a spec deleted in one commit, or in an
 earlier pull request, and the directory in the next is still a deletion. That
 condition is a judgment the repository owner may overturn. An item that did
-write a `spec.md` is folded where that spec's rule belongs.
-Enforced by: tests/test_settle_reads_before_it_removes.py::test_the_rule_arm_removes_it_with_no_marker, tests/test_settle_reads_before_it_removes.py::test_a_closure_the_base_has_not_seen_keeps_the_directory
+write a `spec.md` leaves when `settle --apply` applies its rule changes.
+check: tests/test_settle_reads_before_it_removes.py
 
-<!-- specs/1790027178-a-shipped-spec-waits-for-a-settle-that-was-never-built -->
-**A released work item's directory is folded into a policy document and then
-removed, and the removal is the second half of the fold, never its own act.**
-Removed first, a directory would take with it reasoning no document had
-absorbed, and nothing recovers that. The command reads and lists;
-the session judges and writes. Folding *only what is still true* is a
-judgment about truth, so the tool writes no sentence into a policy document
-and its second arm removes only what one of them already absorbed. The
-marker is the fold's record, and there is no second file: a folded sentence
-carries `<!-- specs/<work-item-id> -->` on a line of its own, and that comment
-is read to know what has been folded, so no second record has to agree with
-it, and an interrupted run resumes from what `docs/` already holds. The removal of a directory and a branch deleting one
-are otherwise byte-identical to every reader; the marker is what tells them
-apart, which is why a reader of removed work reports a fold rather than a
-deletion.
-Enforced by: tests/test_settle_reads_before_it_removes.py::test_retire_removes_only_what_docs_records
+**A released spec's rule changes are applied to `docs/` in place, and its
+directory goes with them, never before.** `settle --apply` replays each
+released spec's `## Rule changes` in merge order, writes what applies, and
+removes each applied directory whole; a spec it cannot place applies nothing
+and its directory stays. The judgment was made when the spec was written and
+reviewed, so applying it judges nothing, and no sentence is written by hand.
+No marker is written.
+check: tests/test_settle_applies_rule_changes_in_place.py tests/test_settle_reads_before_it_removes.py
 
-<!-- specs/1790138190-settle-leaves-twelve-directories-with-no-way-out -->
-**A fold is not a work item.** It opens no directory under `seal/specs/`. Its
-commits are waived one command at a time and its judgment is reviewed at its
-pull request (#517). What it leaves already has a home — the marker, the pull
-request, git history — so it keeps no log of its own. Were it a work item,
-each fold would leave a directory for the next one to retire, and the folds
-would never end; `skills/settle/SKILL.md` §*A fold is not a work item* is the
-procedure.
-Enforced by: tests/test_settle_reads_before_it_removes.py::test_the_skill_says_a_fold_is_not_a_work_item_and_owes_no_range_row
+**A settle is not a work item.** It opens no directory under `seal/specs/`.
+Its commits are waived one command at a time and what it applied is reviewed
+at its pull request. What it leaves already has a home, the pull request and
+git history, so it keeps no log of its own. Were it a work item, each settle
+would leave a directory for the next one to remove, and settling would never
+end; `skills/settle/SKILL.md` *A settle is not a work item* is the procedure.
+check: tests/test_settle_reads_before_it_removes.py
 
-<!-- specs/1790076070-the-fold-ships-and-the-corpus-is-still-on-disk -->
-<!-- specs/1790119502-four-shipped-work-items-wait-unfolded -->
 **A population floor over the records is replaced, never lowered.** A check
 asserting that a sweep of `seal/specs/` read *enough* — `len(records) > 200` —
 is answering *did the walk read anything* with a literal that stops being true
@@ -173,33 +124,21 @@ compares the walk against an independent listing of the same tree —
 `git ls-tree HEAD` — which holds at any size, and a property the real corpus no
 longer exercises moves to a record built in `tmp_path`. A repair is green
 before the fold and after it; one green only once the directories are gone is
-a lowering. `skills/settle/SKILL.md` §3 gives the three answers.
-Enforced by: tests/test_settle_reads_before_it_removes.py::test_the_skill_names_the_floors_a_fold_has_to_answer
+a lowering. `skills/settle/SKILL.md` *Answer every check that reads the
+corpus* gives the three answers.
+check: tests/test_settle_reads_before_it_removes.py
 
-<!-- specs/1791384153-a-ledger-rows-claim-is-the-test-that-enforces-it -->
-**`path::name` has one resolver.** An `Enforced by:` target names a unit as
-pytest spells a node id, so a method is `::Class::method`, and `fold-check`
-and `rules --check` read it through
-`skills/settle/scripts/fold_check.py#target_problem`, which looks the name up
-through `coordinates.py#named_unit`. A name is looked up where it is
-defined. A `def` or `class` its file defines once is accepted, and so is a
-file alone. A name defined twice names no one unit and is refused.
-Enforced by: tests/test_a_folded_statement_names_what_enforces_it.py::test_a_method_resolves_in_pytests_spelling, tests/test_a_folded_statement_names_what_enforces_it.py::test_the_target_is_resolved_by_named_unit, tests/test_a_folded_statement_names_what_enforces_it.py::test_a_name_defined_twice_is_no_target
+**A document with a `.ko.md` edition changes with it, heading for heading.**
+The two editions are prose in two languages, so the check compares what is
+language-neutral: the sequence of heading levels. Whether a Korean paragraph
+says what its English one says is review's to read. `CONTRIBUTING.md` *House
+rules* owns the rule.
+check: tests/test_both_editions_carry_the_same_folds.py
 
-<!-- specs/1790154761-folded-statements-pile-into-one-spec -->
-**A fold into a document with a `.ko.md` edition is a fold into both, under
-the same heading position.** The two editions are prose in two languages, so
-the check compares what is language-neutral: the sequence of heading levels,
-and the fold-marker ids under each heading position. Whether a Korean
-paragraph says what its English one says is review's to read.
-`CONTRIBUTING.md` §*House rules* owns the rule.
-Enforced by: tests/test_both_editions_carry_the_same_folds.py::disagreements
-
-<!-- specs/1791852615-whether-a-ledger-line-is-live-has-seven-rules -->
 **Whether a line is live is asked by what the line does, and the four
 readers that ask it give three answers.** These are all four readers, grouped
 by the kind of line they read, with the cost each answer is chosen against.
-Enforced by: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py::test_the_statement_names_each_reader_under_its_answer, tests/test_routing_is_recorded.py::test_the_routing_shapes_read_as_the_frame_expects, tests/test_routing_is_recorded.py::test_a_declaration_below_a_comment_opener_nobody_closed_still_reads
+check: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py tests/test_routing_is_recorded.py
 
 - **A line that HOLDS something — a claim or an anchor — is read on
   doubt.** The coordinate kernel's `quoted_lines`, which its `unquoted` and
@@ -208,8 +147,8 @@ Enforced by: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py
   read. What this protects is that a claim never leaves a record in silence.
   The wrong answer is loud instead: `BROKEN`, a refused name or exit 2, and a
   person answers it with an edit or a marker.
-  Enforced by: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py::test_each_reader_gives_its_stated_answer_on_each_shape
-- **A line that EXCUSES or DECLARES something — a fold marker, a
+  check: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py
+- **A line that EXCUSES or DECLARES something — a changelog marker, a
   `seal/config.md` row, a `routing.md` row — is not taken on doubt, except
   where a declaring reader keeps an older reading that took it.**
   `unverified_check.py#live_lines` parks a line inside any fence or comment,
@@ -218,84 +157,54 @@ Enforced by: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py
   wherever its walk is unsure, the fence-only reading it gave before the walk:
   a row below a fence nobody closed declares nothing, and a row below a
   comment opener nobody closed still declares unless a fence that closes
-  holds it, because that reading never hid one and work item 1790645290
-  was bound to miss no row the older reading saw. `hooks/routing.py#shown`,
+  holds it, because that reading never hid one, and the walk may miss no row
+  the older reading saw. `hooks/routing.py#shown`,
   which reads a `routing.md` and is not one of the four, keeps the reading
   it gave before the walk the same way, and that reading hid nothing: a row
   below a fence or a comment opener nobody closed still declares there,
   unless a fence that closes holds it. Those rows are the places a line
   nobody wrote live declares something; at every other fence or comment,
   what this protects is that nothing is excused or declared by a line
-  nobody wrote live. The wrong answer is a fold reported as a deletion at
-  exit 1, a hook that says nothing, or a gate that asks.
-  Enforced by: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py::test_each_reader_gives_its_stated_answer_on_each_shape
+  nobody wrote live. The wrong answer is a statement left unbound, a hook
+  that says nothing, or a gate that asks.
+  check: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py
 - **A line a record's rows are COUNTED on is blanked the same way on both
   sides of a comparison.** `unverified_check.py#readable` blanks comment text
   and fenced lines with the indices intact, and a region nobody closed to the
   end of the file. So the working tree and the base revision count the same
   table, and the readers that judge a record refuse a hidden table as absent
   rather than read it as empty.
-  Enforced by: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py::test_each_reader_gives_its_stated_answer_on_each_shape
+  check: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py
 
-No one rule serves all three kinds. The holding bias would let a fold marker
-quoted in an example excuse a removal nothing absorbed, and the excusing bias
+No one rule serves all three kinds. The holding bias would let a changelog
+marker quoted in an example stand for an entry nobody gathered, and the excusing bias
 would drop a parked row without a word. A reader of a new kind of line is a
 fourth answer, and it is argued against these three.
 
-<!-- specs/1790138190-settle-leaves-twelve-directories-with-no-way-out -->
 **A `seal/` root with no work item under it is the state a complete fold ends
 in, and it reads as settled, never as unusable.** Git keeps no empty
-directory, so the state is two: the tree that ran `settle --retire` holds an
+directory, so the state is two: the tree that ran `settle --apply` holds an
 empty `seal/specs/`, and a fresh checkout of that commit holds none. Read as
-unusable, `settle` exited 2 on its own finished work, and `unverified-check
---baseline` read the root's own `specs` path as a typo, which would turn every
+unusable, `settle` would exit 2 on its own finished work, and `unverified-check
+--baseline` would read the root's own `specs` path as a typo, turning every
 pull request after a complete fold red, the shipped `templates/hygiene.yml`
 included. Only that one path is settled; any other missing path is still
 refused, which keeps a misspelt path from passing in silence.
-Enforced by: tests/test_settle_reads_before_it_removes.py::test_a_settled_root_is_green_and_says_so, tests/test_unverified_rows_close.py::test_the_roots_own_specs_path_is_settled_when_nothing_is_under_it
-
-<!-- specs/1790076070-the-fold-ships-and-the-corpus-is-still-on-disk -->
-**A fold marker on a line of its own is exempt from the wrap limit.** The
-marker is matched whole, so wrapping a long work item id stops it being a fold
-record, and `tests/test_docs_line_wrap.py` skips a line that is exactly one
-marker rather than asking a document to choose between the two.
-Enforced by: tests/test_docs_line_wrap.py::test_a_fold_marker_is_skipped_and_the_line_beside_it_is_not
+check: an-empty-root-is-settled
 
 ## The unverified record, and the baseline it is read against
 
-<!-- specs/1788873600-the-baseline-is-the-moving-pull-request-base -->
 **A baseline reference is resolved once, to a merge base, and every arm reads
 that commit.** A branch name is not a commit: it moves while the pull request
 is open, so two arms reading it a second apart can compare against two
 different trees. The report names the revision it actually compared against,
 and a reference sharing no history with the head is exit 2 — a comparison
 against nothing is not a comparison.
-Enforced by: tests/test_unverified_rows_close.py::test_a_row_the_base_gained_after_the_fork_is_not_a_deletion, tests/test_unverified_rows_close.py::test_a_work_item_squashed_after_the_fork_is_not_this_branchs_removal
+check: one-merge-base
 
 ## docs/
 
-The standing policy. A `docs/` document outranks the work items' specs, and
-a work item that finds one wrong corrects it.
-
-| File | The question it answers |
-|---|---|
-| `docs/branch-and-release.md` | where a branch is cut from, how it merges back, and what carries the version |
-| `docs/commit-review-gate-spec.md` | how the gates are registered, what the PreToolUse reading of a commit decides where git cannot, and what the implementer mark says |
-| `docs/issues-and-milestones.md` | what the issue tracker's fields mean here, and which of them anything reads |
-| `docs/measuring-a-run.md` | what a segment of a run measures, and where the reading goes |
-| `docs/one-root-by-lifetime.md` and its `.ko.md` edition | the design 0.4.0 started from: one root, laid out by lifetime |
-| `docs/release-checklist.md` | what to type on the day of a release, in order |
-| `docs/the-agent-set.md` | how the rules are split between the agents a work item spawns |
-| `docs/the-broad-gate.md` | who takes the one broad run, what it runs, and what it may say |
-| `docs/the-commit-gate-inside-git.md` | what git decides inside a commit, what its hooks cannot see, and which reading judges each state of a repository |
-| `docs/the-reader-registry.md` | how a frame names what its work removes |
-| `docs/the-record-layout.md` | this index: where each kind of record lives, which file a change writes, when a later commit brings the changelog fragment along, and the fold's values and what tells it from a deletion |
-| `docs/the-review-and-parity-arms.md` | what each opt-in arm of the commit gate wants, and the routing declaration that moves the review arm's check to the pull request |
-| `docs/the-review-record.md` | what a review round leaves in the tree, what the pull-request check reads of it, the run's bound and end, and how work is handed to an agent |
-| `docs/worktree-guard-spec.md` | what the worktree guard refuses, and why |
-
-`docs/experiments/` holds dated scratch documents and is no policy; a fold
-never writes there.
+The standing policy. Its index is `docs/README.md`.
 
 ## seal/
 
@@ -314,7 +223,8 @@ common directory otherwise.
 
 One work item's records, from its first commit to the `settle` fold that
 retires the directory. Which file each agent writes is
-`skills/implement/SKILL.md` §3's table; this one says what each file answers.
+`skills/implement/SKILL.md` *3. The SDD file set*; this table says what each
+file answers.
 
 | File | The question it answers |
 |---|---|
@@ -330,16 +240,14 @@ retires the directory. Which file each agent writes is
 | `guarantee.md` | whether the sealer sealed the work, against the issue and the tree |
 
 **The files keep these paths and stop mattering at two different times.**
-`routing.md` and the SDD set (`spec.md`, `plan.md`, `questions.md`,
-`overview.md`, `changelog.md`) stay until the `settle` fold retires the
-directory. The process record (`rounds/`, `phases/`, `broad-gate.md`,
-`guarantee.md`, and a `handoff.md` or `pr.*.md` where one was written) is
-read by no check after
-the release that ships the work item, and `settle --retire-process` removes
-it at the next release, fold or no fold, as the first act of
-`docs/release-checklist.md` §*2b*. What the SDD set still cites of it
-resolves at the tag of that release.
-Enforced by: tests/test_settle_retires_the_process_record.py::test_the_process_record_leaves_and_the_sdd_set_stays
+`routing.md`, the SDD set (`spec.md`, `plan.md`, `questions.md`,
+`overview.md`, `changelog.md`) and the process record (`rounds/`, `phases/`,
+`broad-gate.md`, `guarantee.md`, and a `handoff.md` or `pr.*.md` where one
+was written) stay until `settle --apply` applies the spec's rule changes,
+and then the directory goes whole (`docs/release-checklist.md` *2b*). What
+a document still cites of it resolves at the tag of the release that
+shipped it.
+check: tests/test_settle_applies_rule_changes_in_place.py
 
 ## The root records
 
@@ -357,7 +265,7 @@ index keeps the same line above the link to the file, because the update
 skill an installed copy already carries checks that an update landed by the
 first `## ` line of `CHANGELOG.md`. The GitHub Release reads the release's
 own file.
-Enforced by: tests/test_the_changelog_is_gathered_at_release.py::test_the_index_and_the_release_files_agree
+check: tests/test_the_changelog_is_gathered_at_release.py
 
 **A `CLAUDE.md` row that points at a home carries three things: the home's
 path and section, the moment a session needs the rule, and the act in one
@@ -366,4 +274,4 @@ table, reasoning or history. Only the home's sentences are pinned, so a stale
 value in a row is a reviewer's finding. No two rule documents may share more
 15-word runs than their pair was measured at, which does not see a rule
 restated in fresh words.
-Enforced by: tests/test_the_rules_claude_md_names_have_one_home.py, tests/test_no_passage_is_pasted_into_a_second_file.py
+check: tests/test_the_rules_claude_md_names_have_one_home.py tests/test_no_passage_is_pasted_into_a_second_file.py

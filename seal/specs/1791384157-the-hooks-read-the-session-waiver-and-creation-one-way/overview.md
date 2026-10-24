@@ -41,9 +41,9 @@ reframes, the guard names it as a limit beside #886's shapes instead.
 
 | Item | Who must answer |
 |---|---|
-| Whether a hook process the harness spawns sees `CLAUDE_PID` (`questions.md` M1, the hook half); the Bash-child half was executed in phase 1 | the repository owner |
-| Windows: the consent writer reading through the backslash-doubling adapter, the lease route and the stub without `CLAUDECODE`, and the S10 cases, which skip there because the `git` shim is a POSIX script; all read, none run on Windows | the repository owner, through the CI Windows leg at the pull request |
-| The full suite, lint and typecheck over the whole tree | the sealer, spawned by the orchestrator after the review rounds |
+| closed Whether a hook process the harness spawns sees `CLAUDE_PID` (`questions.md` M1, the hook half); the Bash-child half was executed in phase 1 | a live harness: the bullet *No case runs the stubs under a live Claude Code session* in `docs/the-commit-gate-inside-git.md` *Known limits of the commit gate inside git* |
+| closed Windows: the consent writer reading through the backslash-doubling adapter, the lease route and the stub without `CLAUDECODE`, and the S10 cases, which skip there because the `git` shim is a POSIX script; all read, none run on Windows | #997's `windows-latest` leg ran these modules green, the S10 cases skipping on their stated condition |
+| closed The full suite, lint and typecheck over the whole tree | #881, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
 
 ## Not done
 

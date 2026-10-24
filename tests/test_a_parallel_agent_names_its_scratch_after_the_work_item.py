@@ -10,7 +10,7 @@ two wardens cloned to the same `r2clone`, a third's clone had its HEAD moved
 by a foreign checkout for fifty-five seconds, and two sealers wrote
 `broad-gate.out` over each other.
 
-The class (`agent-contract` §12) is *an instruction that names a scratch
+The class (contract rule 12) is *an instruction that names a scratch
 location with a name any parallel agent would also pick*, and the repair is
 the same in each of its three instances: the location carries the work item
 id, which no two work items share, and the round where there is one. This
@@ -19,14 +19,16 @@ reads and a sentence can be dropped without a case going red.
 
 What it cannot pin is obedience: a spawn prompt that names a different
 directory still wins in the moment, and nothing in the tree reads a prompt.
-`plan.md` §*Failure scenario* of the work item says so.
+`plan.md` *Failure scenario* of the work item says so.
 
-Shown red before the sentences were written (§15): against the tree at
+Shown red before the sentences were written (contract rule 15): against the tree at
 `5d51b319`, all three cases failed — no `<work-item-id>` in either
 definition's section, and `/tmp/run.txt` standing in the skill.
 """
 
 import os
+
+from conftest import read
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -37,11 +39,6 @@ VERIFY = os.path.join(ROOT, "skills", "verify", "SKILL.md")
 
 CLONE = "<scratchpad>/<work-item-id>/round-<n>/clone"
 ROUND_HOME = "<scratchpad>/<work-item-id>/round-<n>/"
-
-
-def read(path):
-    with open(path, encoding="utf-8") as handle:
-        return handle.read()
 
 
 def section(path, heading):
@@ -59,11 +56,11 @@ def test_the_wardens_clone_is_named_for_the_work_item_and_the_round():
     and the round, under the scratchpad the harness names — so two wardens
     alive at once, on two work items, cannot pick the same directory. Every
     probe, capture or fixture the round makes outside the clone sits beside
-    it, which is also what makes *every one of them is gone* (§7) answerable
+    it, which is also what makes *every one of them is gone* (contract rule 7) answerable
     by the agent that made them."""
     where = section(WARDEN, "Rules")
     assert CLONE in where, (
-        "agents/warden.md §Rules does not name the clone directory "
+        "`agents/warden.md` *Rules* does not name the clone directory "
         f"as `{CLONE}`, so two parallel wardens can clone to one name"
     )
     assert ROUND_HOME in where, (

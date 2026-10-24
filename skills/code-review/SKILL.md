@@ -35,7 +35,7 @@ only a person can answer stays a question. Do not edit it.
 Review beyond the changed files: new code that calls into untouched files
 puts their conditions and boundaries into effect for the first time, so
 follow every call the change introduces.
-Enforced by: evals/behaviour/warden/rule-warden-one-finding/
+check: evals/behaviour/warden/rule-warden-one-finding/
 
 ## Comparison axes
 
@@ -65,7 +65,7 @@ name this change's own axes before starting: money and rounding, time zones,
 resource lifetime, migration ordering, pagination while writes land, whatever
 the diff touches. Walk them like the rest. An axis you could not judge is a
 row of `## Not judged`, never a silent pass.
-Enforced by: tests/test_review_axes.py::test_the_table_asks_what_a_second_actor_does, tests/test_review_axes.py::test_the_table_asks_the_security_questions, tests/test_review_axes.py::test_the_table_says_it_is_a_floor
+check: tests/test_review_axes.py
 
 ## Probes and regression tests
 
@@ -74,7 +74,7 @@ Enforced by: tests/test_review_axes.py::test_the_table_asks_what_a_second_actor_
 | Probe | a temporary test that settles what reading cannot | you write it, run it once and delete it, named `test_tmp_*` — and everything else it made goes with it; what it settled goes into the record's `## Probes` |
 | Regression test | a test that should exist and does not | you do not write it: it is a `should` finding whose `location:` names the file it belongs in |
 
-Contract §7 is about leavings, not files: a worktree, a branch, a clone or a
+Contract rule 7 is about leavings, not files: a worktree, a branch, a clone or a
 virtual environment a probe made for itself goes too. Batch the probe cases
 into one file and run it once. Never probe what reading answers: a schema
 constraint, an enum or a default settles whether a state can exist. Leave a
@@ -84,7 +84,7 @@ A fixture chain is `&&`, never `|`: a pipe feeds one command's output to the
 next instead of ordering them, and the chain can sit waiting on stdin with
 nothing arriving. Give any call that could run long a timeout you chose
 rather than one you assumed.
-Enforced by: tests/test_a_probe_that_commits_says_so.py::test_the_procedure_a_reviewer_follows_carries_the_leavings_rule_too, tests/test_a_probe_does_not_outlive_its_round.py::test_the_probe_rules_say_a_fixture_chain_is_and, tests/test_a_probe_does_not_outlive_its_round.py::test_the_probe_rules_ask_for_a_timeout_somebody_chose
+check: tests/test_a_probe_that_commits_says_so.py tests/test_a_probe_does_not_outlive_its_round.py
 
 ## Earlier rounds
 
@@ -100,17 +100,17 @@ introduced the defect. Where you weigh an earlier finding, re-run its
 `evidence: executed` line rather than re-deriving the claim; a probe it names
 is written again from its `## Probes` row. A record written before the
 `evidence:` row lacks the line, and that is no finding.
-Enforced by: tests/test_review_axes.py::test_a_later_round_inherits_no_verdict_anywhere, tests/test_the_rules_have_one_owner.py::test_a_close_that_does_not_hold_reopens_it, tests/test_review_axes.py::test_a_later_round_re_runs_an_executed_line
+check: tests/test_review_axes.py tests/test_the_rules_have_one_owner.py
 
 ## The record
 
 A round writes `seal/specs/<work-item-id>/rounds/round-N.md` from
 `templates/sdd-round.md`. Every labelled line and heading follows its row of
-the grammar table in `docs/the-review-record.md` §*The round record*, which
-the check reads and which is the grammar's one statement. The prose follows
+the grammar table in `docs/the-review-record.md` *The round record*, which
+the check reads; that section is the grammar's one statement. The prose follows
 `Record language` in the `seal/` root's `config.md`, English where the row
 is absent; field names, headings and vocabulary words stay English
-(`templates/config.md` §*What no row governs*).
+(`templates/config.md` *What no row governs*).
 
 - A finding is a defect. `must` is a spec violation or a defect to fix
   before merge; `should` is a defect the release would ship, a tool doing
@@ -128,7 +128,8 @@ is absent; field names, headings and vocabulary words stay English
   `executed`. The check cannot tell such a claim from another; the round
   reading the record does.
 - Each finding gives why it matters and its grounds, then the paste-ready
-  fix in a fenced block, then its `answer:` line.
+  fix in a fenced block, then its `answer:` line. The grounds open with why
+  the earlier close does not hold where `reopens:` stands.
 - What this round confirmed holds is a `confirms:` entry, and what it could
   not judge a row of `## Not judged` naming who answers it; neither is a
   finding.
@@ -136,7 +137,7 @@ is absent; field names, headings and vocabulary words stay English
   block under it. A mark quoted from the code under review is written as its
   code point (`U+1F7E1`) or in words, never as the character.
 
-Enforced by: tests/test_chain_check.py::TestGrammar::test_the_table_loads_and_every_line_matches_its_row_whole, tests/test_chain_check.py::TestGrammar::test_the_warden_and_the_review_skill_name_every_line_a_finding_needs, tests/test_the_record_is_written_in_words.py::test_no_file_an_agent_reads_carries_an_emoji_or_a_proof_block, evals/behaviour/warden/rule-warden-one-finding/
+check: tests/test_chain_check.py tests/test_the_record_is_written_in_words.py evals/behaviour/warden/rule-warden-one-finding/
 
 **Paste-ready means the snippet cannot mislead on its own.** Mark a name the
 tree does not have at the line that uses it:
@@ -161,4 +162,4 @@ resolution, file modes, symlinks, a subprocess's working directory, encoding
 - A claim a fix writes into a document closes when a test pins the document,
   not when the sentence lands.
 
-Enforced by: nothing — a reviewer's judgment, which the next round reads
+check: none reader: the next round

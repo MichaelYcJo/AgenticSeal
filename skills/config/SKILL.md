@@ -1,22 +1,21 @@
 ---
 name: config
-description: Show what this repository decided for itself and change any of it — the languages it writes in, where its records live, and the command its broad gate runs. Reads seal/config.md, and routes a change to whatever owns that row.
+description: Show what this repository decided for itself and change any of it, such as the languages it writes in, where its records live, and the command its broad gate runs. Reads seal/config.md, and routes a change to whatever owns that row.
 disable-model-invocation: true
 ---
 
-# /specseal:config — what this repository decided, and how to decide otherwise
+# /specseal:config, what this repository decided and how to decide otherwise
 
 `seal/config.md` holds what a repository says about itself. Every row has a
-default, an absent row is not an error, and until now the only way to see any
-of it was to open a file nobody has a reason to open.
-
-First setup asks its questions once and never again. This is how to ask them
-later.
+default, and an absent row is not an error. A person runs this command to see
+every row and to change one; the session running it follows the procedure
+below. First setup asks its questions once and never again, and this command
+is how a person answers them again later.
 
 ## Where the file is
 
 `<repo>/seal/config.md` where that directory exists, and
-`$(git rev-parse --git-common-dir)/seal/config.md` otherwise — local mode,
+`$(git rev-parse --git-common-dir)/seal/config.md` otherwise: local mode,
 where the root sits under the common git directory. Resolve it that way rather
 than spelling the first place and stopping.
 
@@ -28,25 +27,24 @@ ran to look.
 
 ## Procedure
 
-**1. Show every row, present or not.** Read the file, and print all nine with
-their current values — including the ones the file does not carry, with the
-default and where it comes from. A row a repository never set is the most
-likely one somebody wants to change, and showing only what is present hides
-exactly those.
+**1. Show every row, present or not.** Read the file, and print every row of
+the table below with its current value, including the ones the file does not
+carry, with the default and where it comes from. A row a repository never set
+is the most likely one somebody wants to change, and showing only what is
+present hides exactly those.
 
 | Row | Default | What it governs |
 |---|---|---|
 | `Commit and pull request language` | English | the commit subject and body, the pull request title and body, and a review report posted as a pull-request comment |
 | `Record language` | English | the prose in `spec.md`, `plan.md`, `overview.md`, `questions.md`, `changelog.md`, and a round record's cells |
 | `Mode` | *the folder decides* | which of the two places the root should live at |
-| `Broad gate` | *none — `broad-gate` refuses without it* | the one shell command line `broad-gate` runs once the review rounds settle: the full suite, the repository-wide lint, the typecheck |
-| `Fold shape from` | *not declared — the shape is not checked* | the work-item id from which `fold-check` holds a folded statement to `settle`'s shape; `0` binds every statement |
-| `Document line ceiling` | *not declared — no length is checked* | how many lines a top-level `docs/*.md` may reach before a fold must split it or place its rule elsewhere |
-| `Over the ceiling` | `none` | the documents listed over that ceiling, each with its fold markers frozen until the home it names splits it |
+| `Broad gate` | *none: `broad-gate` refuses without it* | the one shell command line `broad-gate` runs once the review rounds settle: the full suite, the repository-wide lint, the typecheck |
+| `Document token ceiling` | *not declared: no length is checked* | the estimated tokens past which `fold-check` reports a top-level policy document as one to split |
+| `Policy root` | `docs` | the directory of the ratified policy documents, which `settle --apply` writes |
 | `Reference specs` | *every directory named `specs` outside the root* | the directories this repository kept its own specifications in, which the plugin reads as history and never takes |
-| `Pact` | *none — no pact is held elsewhere* | the origin remote URL of the repository holding a pact this repository signs, several separated by `;` |
+| `Pact` | *none: no pact is held elsewhere* | the origin remote URL of the repository holding a pact this repository signs, several separated by `;` |
 
-**Every way of not naming a language lands on English** — no file, no such
+**Every way of not naming a language lands on English**: no file, no such
 row, an empty value, a file that does not parse. Say the default and the
 reason rather than showing a blank. **The `Broad gate` row has no default
 at all**: absent, `broad-gate` names the row and exits 2 with nothing run,
@@ -55,57 +53,56 @@ and say what happens without it.
 
 **2. For the mode, show what is true as well as what is written.** That row is
 what the repository *wants*; the folder's location is what it *has*, and the
-two are separate on purpose. Run `seal mode` and report what it says — the
-folder, the row, and whether they agree. Do not read the row yourself for this
-one: `seal mode` is what the pull-request checks run, and a second reader is a
-second answer.
+two are separate on purpose. Run `seal mode` and report what it says: the
+folder, the row, and whether they agree. Do not read the row directly for
+this one: `seal mode` is what the pull-request checks run, and a second
+reader is a second answer.
 
 **3. Take a change, and route it.**
 
 - **A language row, or the `Broad gate` row,** is only a row. Edit the value
   in place, leaving the rest of the file as it is. Where the file carries no
-  such row at all — the stub `seal mode` writes has only `Mode`, and that is
-  every repository that has set its mode — take the row **and the prose
-  under `## Broad gate` down to but not including `### What is refused, and
-  what stays allowed`** from `$CLAUDE_PLUGIN_ROOT/templates/config.md`,
-  rather than writing a bare row. The documentation beside it is the half a
+  such row at all (the stub `seal mode` writes has only `Mode`, and that is
+  every repository that has set its mode), copy from
+  `$CLAUDE_PLUGIN_ROOT/templates/config.md` the row **with its `## Broad
+  gate` section, stopping where its `### What is refused, and what stays
+  allowed` subsection starts**, rather than writing a bare row. The documentation beside it is the half a
   person reads, and a repository that reached this file through `seal mode`
   has none of it.
 
   **The copied block lands BELOW the live table, and its fenced example row
   is not a row.** That block carries a fenced `| Broad gate | … |` line as an
   illustration of the format, and a table inside a code fence is read by no
-  walk of that table — not the gates' reader, not the mode gate's, and not
-  `seal mode`'s writer. Pasted above the live table, or above a table that has
-  no parseable row yet, that example used to be the table every gate read, and
-  the broad run ran its command (#429). Put the prose under the table the
-  repository actually answers in, and where the `Broad gate` row exists only
-  inside a fence, `broad-gate` quotes that line and says to move it.
+  walk of that table: not the gates' reader, not the mode gate's, and not
+  `seal mode`'s writer. Pasted above the live table, or above a table that
+  has no parseable row yet, that example would be the table every gate
+  reads, and the broad run would run its command. Put the prose under the
+  table the repository actually answers in; where the `Broad gate` row exists
+  only inside a fence, `broad-gate` quotes that line and says to move it.
 
   **The two lists and the criterion are pointed at, never copied down.** They
   are the plugin's, they change when the plugin changes, and a frozen copy in
   somebody's `seal/config.md` is a copy that says something false about the
-  tool at the next release — which is what the criterion's one-home rule is
+  tool at the next release, which is what the criterion's one-home rule is
   for. Point at `$CLAUDE_PLUGIN_ROOT/templates/config.md` for both. The
   `Broad gate` value is one shell command line, run from the repository
   root.
 
   **How to choose that value is written down, and not here.**
-  `templates/config.md` §*Choosing a value — the criterion* owns the
-  criterion — three rules, with the reason for each — and this bullet used
-  to carry the third of them on its own. Read it to the person before they
-  answer, rather than summarising it back to them.
+  `templates/config.md` *The criterion for choosing a value* owns the
+  criterion: three rules, with the reason for each. Read it to the person
+  before they answer, rather than summarising it back to them.
 
   **A value carrying a `|` is written `\|`.** The file is markdown and a
   cell of that table ends at a bare pipe, so `bin/test -q \| tee out.txt` is
-  the row that runs that command — the reader reduces exactly those two
-  characters to a plain pipe before any shell sees it, and leaves every other
-  backslash alone, so a Windows path keeps its separators.
+  the row that runs that command. `templates/config.md` *What is refused, and
+  what stays allowed* says how the reader turns the escape back into a pipe
+  and why a Windows path keeps its backslashes.
 
   **The table is read the way GitHub shows it, or refused.** Each
   refusal names its line and the fix; rows above that line still count, and
   rows below it are refused with it, never treated as missing. Read these to
-  the person in your own words:
+  the person in plain words:
 
   - a bare pipe in a value (GitHub shows the row cut off at the pipe):
     write it `\|`;
@@ -125,21 +122,21 @@ second answer.
   silent.
 
   **The `Broad gate` row is looked at before it is run**, and a value that
-  would not run as the command it reads as is refused with nothing run —
+  would not run as the command it reads as is refused with nothing run:
   the whole command wrapped in backticks or in `$(…)`, or a trailing `&`.
   Nothing is stripped or repaired: rewriting the row is the person's act,
-  which is what brings them here. `templates/config.md` §*What is refused,
+  which is what brings them here. `templates/config.md` *What is refused,
   and what stays allowed* lists the three forms and the ones that stay
   legal, each with its reason, and it is where this is decided.
-- **A fold row** — `Fold shape from`, `Document line ceiling` or
-  `Over the ceiling` — is only a row too. Edit or add it in place, and point
-  at `$CLAUDE_PLUGIN_ROOT/templates/config.md` §*The fold's values* for what
+- **A fold row**, `Document token ceiling` or `Policy root`, is only a row
+  too. Edit or add it in place, and point at
+  `$CLAUDE_PLUGIN_ROOT/templates/config.md` *The fold's values* for what
   each accepts and what an absent one means, rather than restating it. A
   value `fold-check` will not parse makes it exit 2 naming the row, so run it
   once after the edit.
 - **`Reference specs` or `Pact`** is only a row too. Edit or add it in
   place, and point at `$CLAUDE_PLUGIN_ROOT/templates/config.md`
-  §*Reference specs* or §*Pact* for what each accepts and what an absent one
+  *Reference specs* or *Pact* for what each accepts and what an absent one
   means. A `Pact` row is read strictly by `pact-check` at the pact's
   repository, so a value it will not parse is named there.
 - **The mode row moves files.** Run `seal mode local` or `seal mode shared`.

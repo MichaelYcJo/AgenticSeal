@@ -35,7 +35,7 @@ no row here and nothing notices. The check reads the marker, not the meaning
 marker is already load-bearing for a different reason, so a heading without
 it costs something immediately and visibly.
 
-Red-first, per the contract's §15. Each case below builds a temp root with
+Red-first, per contract rule 15. Each case below builds a temp root with
 one defect in it and asserts the finding names that defect.
 
 **Eight planted trees carry a defect, and all eight are listed.** A list
@@ -82,6 +82,7 @@ import importlib.util
 import os
 
 import pytest
+from conftest import read_lossy as _read
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 NEIGHBOUR = os.path.join(
@@ -115,11 +116,6 @@ def _reader():
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
-
-
-def _read(path):
-    with open(path, encoding="utf-8", errors="replace") as handle:
-        return handle.read()
 
 
 def _bare(cell):

@@ -21,17 +21,10 @@ import glob
 import os
 import re
 
+from conftest import flat, read
+from test_the_agent_contract_holds_the_universal_rules import HEADING
+
 ROOT = os.path.join(os.path.dirname(__file__), "..")
-
-
-def read(*parts):
-    with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
-        return f.read()
-
-
-def flat(*parts):
-    """The file as one line, so an assertion is not pinning where it wraps."""
-    return " ".join(read(*parts).split())
 
 
 def read_at(path):
@@ -51,8 +44,17 @@ def test_verify_says_when_not_only_what():
     ):
         assert row in scope, f"the Scope table lost its `{row}` row"
     assert "against the base commit" in scope
-    assert "Nothing edits between the broad run and the PR" in scope
     assert "broad seal" not in scope
+    # Since #940 the broad gate is the orchestrator's half of the skill, and
+    # the file the smith and the sealer open carries no copy of it.
+    gate = read("skills", "verify", "orchestration.md")
+    assert "## The broad gate\n" in gate
+    assert "## The broad gate" not in scope
+    assert "Nothing edits between the broad run and the PR" in gate
+    assert "against the base commit" in gate
+    opening = " ".join(gate.split("\n## ", 1)[0].split())
+    assert "The orchestrator reads both." in opening
+    assert "The smith and the sealer open that one and never this one" in opening
 
 
 def test_the_broad_gate_section_states_its_own_timing():
@@ -63,7 +65,7 @@ def test_the_broad_gate_section_states_its_own_timing():
 
     The baseline is the same failure one step further in: it is reached for
     once an unexplained failure appears, not before one exists."""
-    scope = read("skills", "verify", "SKILL.md")
+    scope = read("skills", "verify", "orchestration.md")
     section = scope.split("## The broad gate")[1].split("\n## ")[0]
     flat = " ".join(section.split())  # re-wrapping a paragraph is not a regression
     assert "after the review rounds settle" in flat, (
@@ -76,8 +78,9 @@ def test_the_broad_gate_section_states_its_own_timing():
         "the baseline stopped naming the event that calls for it"
     )
     # #943 renamed the section that owns when the run comes; a citation left
-    # at the old name points at a heading no file has.
-    assert f"`skills/code-review/orchestration.md` §*{SPAWN_SECTION}* owns when" in (
+    # at the old name points at a heading no file has. Since #940 the
+    # citation is the backticked path and the heading in italics.
+    assert f"`skills/code-review/orchestration.md` *{SPAWN_SECTION}* owns when" in (
         flat
     ), "the broad gate section no longer names the owner of when the run comes"
 
@@ -88,7 +91,7 @@ def test_the_owner_names_the_row_the_phrase_stood_for():
     own, and a reader deciding whether the gate is due has to pick one. The
     condition is the last round record with no finding open, which the check
     at the pull request reads."""
-    owner = flat("skills", "verify", "SKILL.md")
+    owner = flat("skills", "verify", "orchestration.md")
     assert "the last `rounds/round-N.md` has no finding open" in owner, (
         "the broad gate's own section stopped naming the row, and the phrase "
         "it leaves behind names no particular rounds"
@@ -99,7 +102,7 @@ def test_verify_prices_the_run_that_repeats():
     """Scope decides how often; it says nothing about what each run costs, and
     the narrow run is the one that multiplies."""
     scope = read("skills", "verify", "SKILL.md")
-    assert "## The cost of the run you repeat" in scope
+    assert "## The cost of a run that repeats" in scope
     assert "recipe in a comment" in scope  # line-wrapped in the source
     assert "Capture once, filter locally" in scope, (
         "re-running a check to see its output differently returns nothing new"
@@ -107,13 +110,13 @@ def test_verify_prices_the_run_that_repeats():
 
 
 def test_the_implementers_bar_is_not_the_reviewers_and_has_one_home():
-    """Contract §10 points each kind of segment at its bar in
-    `docs/the-review-record.md` §*The per-segment bars*, and the implementing
+    """Contract rule 10 points each kind of segment at its bar in
+    `docs/the-review-record.md` *The per-segment bars*, and the implementing
     row is not judged by tools per turn: an edit-test loop judged by the
     reviewer's bar is asked for what a serial loop cannot give. Since #957
     no definition carries a second copy of a bar."""
     contract = flat("skills", "agent-contract", "SKILL.md")
-    assert "`docs/the-review-record.md` §*The per-segment bars*" in contract
+    assert "`docs/the-review-record.md` *The per-segment bars*" in contract
     bars = flat("docs", "the-review-record.md")
     assert "never tools per turn" in bars, (
         "the implementing row lost the sentence that keeps it off the reviewer's bar"
@@ -121,7 +124,7 @@ def test_the_implementers_bar_is_not_the_reviewers_and_has_one_home():
 
 
 def test_the_smith_puts_both_answers_in_the_hand_back():
-    """What stayed with the implementer when §2 and §3 moved.
+    """What stayed with the implementer when contract rule 2 and contract rule 3 moved.
 
     The rule is the contract's and is asserted against it below. This is the
     half that is nobody else's: WHERE the two answers land. The smith's
@@ -135,7 +138,7 @@ def test_the_smith_puts_both_answers_in_the_hand_back():
     disclosure half is asserted here because the smith is where it is
     disclosed."""
     smith = flat("agents", "smith.md")
-    assert "§2" in smith and "§3" in smith, (
+    assert "rule 2" in smith and "rule 3" in smith, (
         "the implementer can no longer reach the rules its hand-back answers"
     )
     assert "the suite labelled `unverified`" in smith, (
@@ -151,26 +154,26 @@ def test_the_smith_puts_both_answers_in_the_hand_back():
         "override stays invisible"
     )
     assert "hand-back" in smith, (
-        "the destination went. Without it §3's disclosure sentence has "
+        "the destination went. Without it rule 3's disclosure sentence has "
         "nowhere named to land, which is the gap the warden's field fills"
     )
 
 
 def contract_section(number):
-    """The body of `## §N` in the contract, heading excluded.
+    """The body of `## <N>` in the contract, heading excluded.
 
     Scoped rather than whole-file, because the thing #120 has to keep out is
     a WORD -- `orchestrator` -- that the contract says legitimately elsewhere
     (its opening paragraph, about the prompt a round arrives in). A whole-file
     absence check would either fail on that sentence or be dropped."""
     text = read("skills", "agent-contract", "SKILL.md")
-    heads = list(re.finditer(r"^## §(\d+) (.+)$", text, re.M))
+    heads = list(HEADING.finditer(text))
     for index, match in enumerate(heads):
         if int(match.group(1)) != number:
             continue
         end = heads[index + 1].start() if index + 1 < len(heads) else len(text)
         return " ".join(text[match.end() : end].split())
-    raise AssertionError(f"the contract has no §{number}")
+    raise AssertionError(f"the contract has no rule {number}")
 
 
 # What a definition says when it hands its agent the run: the command typed
@@ -185,7 +188,7 @@ RUN = "broad-gate --base <base> --record <item>"
 
 
 def test_no_definition_assigns_the_broad_gate_and_the_orchestrator_runs_it_before_the_spawn():
-    """S2 of #969. Contract §2 says no agent runs the broad gate and names the
+    """S2 of #969. Contract rule 2 says no agent runs the broad gate and names the
     orchestrator's command; no file under `agents/` hands its agent the run;
     and the orchestration names the preflight, the run, its log and its commit
     before the sentence that spawns the sealer.
@@ -193,22 +196,24 @@ def test_no_definition_assigns_the_broad_gate_and_the_orchestrator_runs_it_befor
     Protects: a definition taking the run back, which is the second run of a
     suite #957 measured at 240K tokens; and the orchestration spawning the
     sealer before the run, which leaves it a record that is absent or stale.
-    It replaces the three cases that pinned the interim §2, the count of
+    It replaces the three cases that pinned the interim rule 2, the count of
     silent definitions and the preflight's order, because each held one third
     of one fact and none held the run's place in the order."""
     contract = " ".join(read("skills", "agent-contract", "SKILL.md").split())
     body = contract_section(2)
     assert "no agent runs any of the three" in body, (
-        "§2 stopped forbidding the broad gate to every agent"
+        "contract rule 2 stopped forbidding the broad gate to every agent"
     )
     assert RUN in body and "orchestrator" in body, (
-        "§2 stopped naming the orchestrator's command"
+        "contract rule 2 stopped naming the orchestrator's command"
     )
     assert body.index(RUN) < body.index("spawns the sealer"), (
-        "§2 names the spawn before the run it waits for"
+        "contract rule 2 names the spawn before the run it waits for"
     )
     for named in ("but the sealer", "Where the run is yours"):
-        assert named not in body, f"§2 still names an agent as runner: {named!r}"
+        assert named not in body, (
+            f"contract rule 2 still names an agent as runner: {named!r}"
+        )
     assert "Hand over with the suite labelled `unverified`" in contract, (
         "the label went, and a suite that is simply not mentioned reads as a "
         "suite that passed"
@@ -241,11 +246,11 @@ def test_no_definition_assigns_the_broad_gate_and_the_orchestrator_runs_it_befor
 
 
 def test_no_definition_promises_the_suite_once_the_rounds_settle():
-    """Round 1, finding 2 of #120. `agents/warden.md` read *§2 keeps the suite
-    out of your hands UNTIL the rounds settle*, which says it becomes the
+    """Round 1, finding 2 of #120. `agents/warden.md` read *rule 2 keeps the
+    suite out of your hands UNTIL the rounds settle*, which says it becomes the
     warden's afterwards.
 
-    Under the old §2 that was a harmless imprecision about a prohibition with
+    Under the old contract rule 2 that was a harmless imprecision about a prohibition with
     a holder who was not an agent. Under the new one it is false in a way a
     reader can act on: this file assigns none of the three, and since #969 no
     definition does, because the orchestrator runs the gate. The hazard is
@@ -270,7 +275,7 @@ def test_no_definition_promises_the_suite_once_the_rounds_settle():
         text = " ".join(read_at(path).split())
         assert "until the rounds settle" not in text.lower(), (
             f"{os.path.basename(path)} promises the suite once the rounds "
-            "settle. §2 has no such release for anyone: an agent takes the "
+            "settle. Contract rule 2 has no such release for anyone: an agent takes the "
             "broad gate when its own definition assigns it, and never later"
         )
 
@@ -278,7 +283,7 @@ def test_no_definition_promises_the_suite_once_the_rounds_settle():
 def test_the_warden_audits_the_scope_of_a_seal():
     """What stayed with the reviewer: the audit, which is nobody else's.
 
-    §2 says the reviewer does not run the suite. It does not say what the
+    Contract rule 2 says the reviewer does not run the suite. It does not say what the
     reviewer does INSTEAD, and that half is an application of the rule rather
     than the rule -- a seal is audited by the second person looking, and the
     warden is the only agent that is one."""
@@ -350,13 +355,16 @@ def test_the_preset_block_states_the_rule_the_loaded_files_assume():
     An agent file needs the agent spawned and a skill needs the skill invoked.
     A session working this repo directly does neither, so the preset block --
     always in front of it -- is the only copy it will ever read."""
-    preset = read("CLAUDE.md").split("<!-- specseal:end -->")[0]
+    preset = read("templates", "claude-md-block.md").split("<!-- specseal:end -->")[0]
     assert "<!-- specseal:start -->" in preset, "the preset markers moved"
     assert "Verification Scope" in preset, (
         "the always-loaded block lost the rule that bounds a broad run"
     )
     assert "Batch independent reads and runs" in preset, (
         "the always-loaded block lost the batching rule"
+    )
+    assert "Never cut the investigation." in preset, (
+        "the batching rule lost its bound: fewer trips, never fewer checks"
     )
 
 
@@ -408,7 +416,9 @@ def test_the_order_inside_a_ticket_puts_the_preflight_before_the_sealer():
         )
     )
     assert PREFLIGHT in text, "the order does not name the preflight"
-    assert text.index(PREFLIGHT) < text.index("sealer → the pull request"), text
+    assert text.index(PREFLIGHT) < text.index("then the sealer, and then the pull"), (
+        text
+    )
 
 
 EXAMPLE_ROW = (
@@ -441,10 +451,7 @@ def test_the_skill_says_the_preflight_is_not_the_broad_gate():
     sealed. The sealer's own definition never mentions it — the sealer does
     not preflight, and its four acts are unchanged."""
     text = joined(
-        section(
-            read("skills", "verify", "SKILL.md"),
-            "The broad gate — after the rounds, then compare against the base",
-        )
+        section(read("skills", "verify", "orchestration.md"), "The broad gate")
     )
     assert PREFLIGHT in text, "the broad gate section does not name the preflight"
     at = text.index(PREFLIGHT)

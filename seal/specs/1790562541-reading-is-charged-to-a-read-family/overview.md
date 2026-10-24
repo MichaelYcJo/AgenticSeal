@@ -29,7 +29,7 @@ readings and named a `sed -n`; `session-cost` now charges it to `read`, and
 
 | Item | Who must answer |
 |---|---|
-| the full suite, repository-wide lint and format — this build ran each phase's module, the modules that read what it edited, and ruff on the two edited Python files | the sealer, once, after the review rounds settle |
+| closed the full suite, repository-wide lint and format — this build ran each phase's module, the modules that read what it edited, and ruff on the two edited Python files | #651, merged with lint and the suite green on the ubuntu, macOS and Windows legs |
 | bash's heredoc join was asked of the darwin system bash only | the reviewer, if a Linux bash reading matters; POSIX states the same join |
 | bash 5.3's `${ cmd; }` running `cmd` was read from its manual, not run (no bash 5.3 on this machine); round 1's fix keeps `${` followed by a space or `\|` out of `read` on that reading | anyone with bash 5.3; the pattern errs toward `other` if the reading is wrong |
 
