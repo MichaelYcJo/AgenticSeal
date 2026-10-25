@@ -22,7 +22,7 @@
 In:
 
 1. **The edit check.** A new `PreToolUse` gate on `Write|Edit|NotebookEdit`, `hooks/routing-edit-gate.py`, refuses an edit of a file in an opted-in repository's worktree while no routing declaration names that worktree's branch and the session has not recorded that its change belongs to no work item. `seal no-work-item` writes that record.
-2. **The pull-request check.** Every session commit in an opted-in repository carries the trailer `SpecSeal-Routing: <work-item-id>` or `SpecSeal-Routing: no work item`. `chain-check` fails a ready pull request where one of its own commits names a work item that no declaration it judges names. A commit without the trailer is not judged.
+2. **The pull-request check.** Every session commit in a repository whose root is shared carries the trailer `SpecSeal-Routing: <work-item-id>` or `SpecSeal-Routing: no work item`; at a local root none does. At a shared root, `chain-check` fails a ready pull request where one of its own commits, committed by its author, names a work item that no declaration it judges names; at a local root such a trailer is printed and never refused. A commit without the trailer is not judged, and neither is one whose committer email differs from its author email, compared case-folded.
 3. **The parity arm's last commit-time case moves to the pull request.** Under `straight to the PR`, where `seal/parity.md` is declared and the change reaches outside the document roots, the sealer's `guarantee.md` carries one `original:` line naming the baseline, read as a round record's line is read.
 4. **Git's other jobs move to session hooks.** In shared mode the stamp is queued at the write of `guarantee.md`, as local mode does already, and the refusal record is written there in both modes. The implementer notice keeps only its `post-bash` reading.
 5. **Nothing is installed into git any more.** The three stubs, the installer's write path, `hooks/commitgate.py`, the arms inside git, the text reading `hooks/commit-review-gate.py`, the old waiver's carriers (`hooks/answers.py`, `hooks/answer-write.py`, `hooks/answer-clear.py`), the review mark and the parity mark are removed. `hooks/stub-remove.py` takes out, at session start, the stubs an earlier release wrote.
@@ -67,7 +67,7 @@ Out:
 
 **The no-work-item record.** `<git-common-dir>/specseal-no-work-item/<session-id>`, an empty file, the id reduced to its basename. `seal no-work-item` reads the session from `CLAUDE_CODE_SESSION_ID` and the clone from its working directory, or from `--root`, and writes nothing where either is missing. Records older than a day are pruned when one is written, as leases are.
 
-**The trailer.** One line in the commit message's trailer block, `SpecSeal-Routing: <work-item-id>` or `SpecSeal-Routing: no work item`. It is read with git's own trailer parser, `git log --no-merges --format=%(trailers:key=SpecSeal-Routing,valueonly) <base>..HEAD`, so the key matches as git matches it.
+**The trailer.** One line in the commit message's trailer block, `SpecSeal-Routing: <work-item-id>` or `SpecSeal-Routing: no work item`, written at a shared root only. It is read with git's own trailer parser, `git log --no-merges --reverse -z --format=%H%x1f%ae%x1f%ce%x1f%(trailers:key=SpecSeal-Routing,valueonly,separator=%x1e) <base>..HEAD`, so the key matches as git matches it, and a commit whose author and committer emails differ, case-folded, is skipped (`chain_check.py#routing_trailers`).
 
 **Registration.** `hooks/hooks.json` gains `PreToolUse` with matcher `Write|Edit|NotebookEdit` running `dispatch.py pre-edit`. `hooks/dispatch.py#GROUPS` gains `"pre-edit": ("routing-edit-gate.py",)`, drops `hook-install.py`, `answer-write.py` and `commit-review-gate.py` from `pre-bash` and `answer-clear.py` from `post-bash`, and replaces `hook-install.py` in `session-start` with `stub-remove.py`.
 
@@ -78,12 +78,12 @@ Out:
 | Review arm on an undeclared branch | `pre-commit` and `reference-transaction` through `gate.py#arms_missing`; the text reading where git cannot | the edit check, before the first edit, and the trailer arm at the pull request |
 | Review mark `specseal-reviewed` | read by the review arm only; written by the orchestrator (`skills/code-review/orchestration.md`) | nothing: no reader is left, so the write goes too |
 | Parity arm under `straight to the PR` | `pre-commit` and the text reading, against `specseal-parity` | the sealer's `original:` line in `guarantee.md`, read by `chain-check` |
-| Parity arm on an undeclared branch | `pre-commit` and the text reading | the trailer arm refuses the work-item commits first; `no work item` stands as `[no-parity]` did, visible in history |
+| Parity arm on an undeclared branch | `pre-commit` and the text reading | at a shared root the trailer arm refuses a session's own work-item commits first; `no work item` stands as `[no-parity]` did, visible in history |
 | Parity mark `specseal-parity` | written by `legacy-parity`, read by the parity arm only | nothing: no reader is left |
 | Waivers `[no-review]`, `[no-parity]`, `git -c specseal.waive=` | read by the arms; the bare word carried to git by `answers.py`, `answer-write.py`, `answer-clear.py` | `seal no-work-item` for edits, the trailer's `no work item` for the pull request |
 | Session test (a person's commit is not judged) | `hooksession.py#session`, leases, the stub's short-cut | nothing to decide: no stub runs, so a person's commit runs no SpecSeal code |
 | Automation press in a refusal | `gate.py#refusal`, `commit-review-gate.py` | the edit check's deny text |
-| Sequencer commits not judged | `commitgate.py#_sequencer_commit` | the edit check reads a paused rebase's branch; commits are not judged locally at all |
+| Sequencer commits not judged | `commitgate.py#_sequencer_commit` | the edit check reads a paused rebase's branch, and allows a detached HEAD whose commit a declared branch holds; commits are not judged locally at all |
 | `sealed` over a commit the branch does not hold | `pre-commit` refuses the commit and writes the refusal record | the pull request's guarantee arm refuses the landed row as stale (it already does), and the write-time queue writes the refusal record in both modes |
 | `--no-verify` backstop | `reference-transaction` | nothing to back up: there is no local refusal to skip |
 | Implementer notice | `post-commit`, and `post-bash` where git does not decide | `post-bash` alone, always |
@@ -158,8 +158,9 @@ Out:
     clone.** It
     is `<git-common-dir>/specseal-no-work-item/<session-id>`, the session read
     from `CLAUDE_CODE_SESSION_ID`. Nothing verifies who ran it, the standing
-    the per-command waiver had: an audit trail, in the transcript and in each
-    commit's trailer at the pull request, not an authorization. A record that
+    the per-command waiver had: an audit trail, in the transcript and, at a
+    shared root, in each commit's trailer at the pull request, not an
+    authorization. A record that
     cannot be read is no record.
     check: tests/test_routing_edit_gate.py tests/test_seal.py
 
@@ -178,7 +179,8 @@ Out:
     call runs the same hooks and carries the main session's id. A `sed -i`, a
     redirection or a script writes a file with no edit tool, which is why every
     agent edits through the `Edit` tool (`skills/agent-contract/SKILL.md` rule
-    9), and the pull request's trailer arm is what remains for such a change.
+    9), and at a shared root the pull request's trailer arm, as *At the pull
+    request* below states, is what remains for such a change.
     check: none reader: the orchestrator on the first live run after a change here
 
     ## At the pull request
@@ -396,7 +398,7 @@ Out:
   file: docs/the-review-and-parity-arms.md
   section: The declaration, and where the check went
   from: | nothing readable, or no file | the review arm's table above | pass, with a notice saying nothing was checked |
-  to: | nothing readable, or no file | refused, unless the session recorded that its change belongs to no work item | a commit whose `SpecSeal-Routing` trailer names a work item fails it; otherwise pass, with a notice saying nothing was checked |
+  to: | nothing readable, or no file | refused, unless the session recorded that its change belongs to no work item | each commit's `SpecSeal-Routing` trailer is judged as `docs/the-routing-check.md` *At the pull request* states; nothing else is checked, and a notice says so |
 - change
   file: docs/the-review-and-parity-arms.md
   section: The declaration, and where the check went
@@ -440,7 +442,7 @@ Out:
     |---|---|
     | through the review chain | each round record's `original:` line |
     | straight to the PR | one `original:` line in the sealer's `guarantee.md` |
-    | none | nowhere: a commit whose `SpecSeal-Routing` trailer names a work item fails the pull request first, and one reading `no work item` stands as the per-command waiver did, visible in history |
+    | none | nowhere: each commit's `SpecSeal-Routing` trailer is judged as `docs/the-routing-check.md` *At the pull request* states, and one reading `no work item` stands as the per-command waiver did, visible in history |
     | any, for a change confined to `docs/`, `seal/` | nothing is owed: nothing there can be compared against an original |
 - change
   file: docs/the-review-and-parity-arms.md
