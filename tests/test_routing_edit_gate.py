@@ -122,6 +122,19 @@ class Test_main:
         out = run(repo / "f.txt")
         assert decision_of(out) == "deny"
         assert reason_of(out) == attended(os.path.realpath(repo), branch_of(repo))
+        # A `Write` may create the directories above its file.
+        assert decision_of(run(repo / "src" / "new.py", tool="Write")) == "deny"
+
+    def test_a_detached_head_names_no_branch_and_is_refused(self, repo):
+        opt_in(repo)
+        git(repo, "switch", "-q", "--detach")
+        said = reason_of(run(repo / "f.txt"))
+        assert (
+            f"`f.txt` is in `{os.path.realpath(repo)}`, which runs the SpecSeal "
+            "workflow, and HEAD is detached there, so no routing declaration can "
+            "name its branch. The routing is decided before the first edit.\n\n"
+        ) in said, said
+        assert "naming `the branch you check out`" in said, said
 
     def test_under_the_automation_press_the_refusal_names_no_question_tool(self, repo):
         """S8: the person pressed `automation`, read from this session's own
@@ -231,20 +244,39 @@ class Test_main:
         assert decision_of(run(notebook, tool="NotebookEdit")) == "silent"
 
     @pytest.mark.parametrize(
-        "event",
+        "tool, tool_input",
         [
-            {"tool_name": "Bash", "tool_input": {"command": "echo x > f.txt"}},
-            {"tool_name": "Edit", "tool_input": {"file_path": "f.txt"}},
-            {"tool_name": "Edit", "tool_input": {}},
-            {"tool_name": "Edit", "tool_input": None},
+            ("Read", {"file_path": "{repo}/f.txt"}),
+            ("Edit", {"file_path": "sub/f.txt"}),
+            ("Edit", {}),
+            ("Edit", None),
         ],
         ids=["another tool", "a relative path", "no path", "no input"],
     )
-    def test_a_call_naming_no_absolute_path_is_not_judged(self, repo, event):
-        """The edit tools take an absolute path, and the gate reads no `cwd`
-        to make one, so a call naming none places no file."""
+    def test_a_call_naming_no_absolute_edit_path_is_not_judged(
+        self, repo, tool, tool_input
+    ):
+        """Only the edit tools are judged. They take an absolute path, and
+        the gate reads no `cwd` to make one, so a relative path places no
+        file, even where it names a directory under the hook's own working
+        directory."""
         opt_in(repo)
-        assert decision_of(run_hook(GATE, {**event, "cwd": str(repo)})) == "silent"
+        (repo / "sub").mkdir()
+        if tool_input:
+            tool_input = {
+                k: v.format(repo=os.path.realpath(repo)) for k, v in tool_input.items()
+            }
+        event = {"tool_name": tool, "tool_input": tool_input, "cwd": str(repo)}
+        r = subprocess.run(
+            [sys.executable, os.path.join(HOOKS, GATE)],
+            input=json.dumps(event),
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=30,
+            cwd=str(repo),
+        )
+        assert decision_of(r.stdout) == "silent", r.stderr
 
     # --- S7: a paused rebase -------------------------------------------------
 
