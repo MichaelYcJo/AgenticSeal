@@ -36,6 +36,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import optin
@@ -364,6 +365,64 @@ def for_branch(root, branch):
 def declared(cwd, root):
     """The routing answer in force for `cwd`, or None when there is not one."""
     return for_branch(root, current_branch(cwd))
+
+
+# The record that a session's change belongs to no work item: an empty file
+# per session under the common git directory, written by `seal no-work-item`
+# and read by `hooks/routing-edit-gate.py`. The rule is
+# `docs/the-routing-check.md` *The edit check*.
+NO_WORK_ITEM = "specseal-no-work-item"
+# A record older than this is pruned when one is written, as a lease is.
+NO_WORK_ITEM_AGE = 86400
+
+
+def session_name(session):
+    """SESSION's id as a file name, or "" where it cannot be one. The id is
+    reduced to its basename, so a separator in it cannot name a file
+    elsewhere."""
+    name = os.path.basename(str(session or "").strip())
+    return "" if name in ("", ".", "..") else name
+
+
+def no_work_item_path(common, session):
+    """`<common>/specseal-no-work-item/<session>`, or "" where either is
+    missing."""
+    name = session_name(session)
+    if not common or not name:
+        return ""
+    return os.path.join(common, NO_WORK_ITEM, name)
+
+
+def no_work_item(common, session):
+    """Whether SESSION recorded, in the clone whose common git directory is
+    COMMON, that its change belongs to no work item. A record that cannot be
+    read is no record."""
+    path = no_work_item_path(common, session)
+    return bool(path) and os.path.isfile(path)
+
+
+def record_no_work_item(common, session, now=None):
+    """Write SESSION's record under COMMON and prune the stale ones; the
+    record's path, or "" where it could not be written."""
+    path = no_work_item_path(common, session)
+    if not path:
+        return ""
+    try:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8"):
+            pass
+    except OSError:
+        return ""
+    cutoff = (now if now is not None else time.time()) - NO_WORK_ITEM_AGE
+    where = os.path.dirname(path)
+    for name in os.listdir(where):
+        stale = os.path.join(where, name)
+        try:
+            if stale != path and os.stat(stale).st_mtime < cutoff:
+                os.unlink(stale)
+        except OSError:
+            pass
+    return path
 
 
 def item_dir(root, branch):

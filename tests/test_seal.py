@@ -463,8 +463,18 @@ class Test_refuse_without_hooks:
                 "it is the walk config.py reads config.md through",
                 None,
             ),
+            (
+                ["mode", "--check"],
+                "it is what writes the record `seal no-work-item` leaves",
+                None,
+            ),
+            (
+                ["mode", "--check"],
+                "it names the variable a session's id is read from",
+                None,
+            ),
         ],
-        ids=["optin.py", "config.py", "blocks.py"],
+        ids=["optin.py", "config.py", "blocks.py", "routing.py", "hooksession.py"],
     )
     def test_a_script_copied_alone_exits_2_and_names_what_it_misses(
         self, tmp_path, args, purpose, absent
@@ -3192,6 +3202,76 @@ class Test_check:
             )
 
 
+class Test_no_work_item:
+    """`seal no-work-item` records, for this session in this clone, that its
+    change belongs to no work item, so `hooks/routing-edit-gate.py` lets its
+    edits through (#1027, S4)."""
+
+    def record(self, repo, session="s1"):
+        return os.path.join(
+            os.path.realpath(repo), ".git", "specseal-no-work-item", session
+        )
+
+    def test_accepts_the_session_variable_and_writes_its_record(
+        self, take, capsys, monkeypatch
+    ):
+        repo = take("plain")
+        monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "s1")
+        code, out = said(capsys, repo, "no-work-item")
+        assert code == 0, out
+        assert os.path.isfile(self.record(repo))
+        assert out == (
+            f"recorded: this session's change in {os.path.realpath(repo)} "
+            "belongs to no work "
+            f"item ({self.record(repo)}), so its edits there go ahead.\n"
+        )
+
+    def test_refuses_with_no_session_variable_and_writes_nothing(self, take, capsys):
+        repo = take("plain")
+        code, out = said(capsys, repo, "no-work-item")
+        assert code == 1
+        assert not os.path.exists(os.path.dirname(self.record(repo)))
+        assert out == (
+            "seal: no CLAUDE_CODE_SESSION_ID in this environment, so no session "
+            "can be named and nothing was recorded. Run this from the session's "
+            "own Bash tool.\n"
+        )
+
+    def test_refuses_outside_a_repository_and_writes_nothing(
+        self, tmp_path, capsys, monkeypatch
+    ):
+        monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "s1")
+        code, out = said(capsys, tmp_path, "no-work-item")
+        assert code == 1
+        assert out == (
+            f"seal: {tmp_path} is in no git repository, so nothing was recorded.\n"
+        )
+
+    def test_root_names_the_clone_from_anywhere(
+        self, take, tmp_path, capsys, monkeypatch
+    ):
+        repo = take("plain")
+        monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "s1")
+        code, _ = said(capsys, tmp_path, "no-work-item", "--root", str(repo))
+        assert code == 0
+        assert os.path.isfile(self.record(repo))
+
+    def test_a_record_older_than_a_day_is_pruned_when_one_is_written(
+        self, take, capsys, monkeypatch
+    ):
+        repo = take("plain")
+        old, fresh = self.record(repo, "old"), self.record(repo, "fresh")
+        for path in (old, fresh):
+            write(os.path.dirname(path), os.path.basename(path), "")
+        day_and_a_minute = 86400 + 60
+        stale = os.stat(old).st_mtime - day_and_a_minute
+        os.utime(old, (stale, stale))
+        monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "s1")
+        assert said(capsys, repo, "no-work-item")[0] == 0
+        assert not os.path.exists(old)
+        assert os.path.isfile(fresh) and os.path.isfile(self.record(repo))
+
+
 class Test_main:
     @pytest.mark.parametrize(
         "argv, called",
@@ -3200,13 +3280,14 @@ class Test_main:
             (["export", "--check"], "check"),
             (["import", "x.zip"], "import_"),
             (["mode", "local"], "mode"),
+            (["no-work-item"], "no_work_item"),
         ],
     )
     def test_accepts_each_subcommand_and_hands_it_on(
         self, monkeypatch, tmp_path, argv, called
     ):
         seen = []
-        for name in ("export", "check", "import_", "mode"):
+        for name in ("export", "check", "import_", "mode", "no_work_item"):
             monkeypatch.setattr(
                 SEAL, name, lambda *a, _name=name: seen.append(_name) or 0
             )

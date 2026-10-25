@@ -437,6 +437,14 @@ commits it, because the check happens at the pull request and CI sees only
 what is in the tree. Below the SDD ladder this may be the only file a work
 item gets.
 
+**The first edit is held by a gate.** `hooks/routing-edit-gate.py` refuses a
+`Write`, `Edit` or `NotebookEdit` of a file in the repository while no
+`routing.md` names the branch checked out where the file is. A file under the
+`seal/` root is never refused, so the declaration can always be written
+first. Under `no work item` the session runs `seal no-work-item` once, before
+its first edit: it records, for this session in this clone, that the change
+belongs to no work item, and the gate then lets its edits through.
+
 **The orchestrator writes the file in a command of its own, never batched
 with the commit.** The declaration is read from the working tree
 (`hooks/routing.py`'s `declarations()` opens the path rather than asking

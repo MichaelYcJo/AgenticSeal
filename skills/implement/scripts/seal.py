@@ -26,6 +26,12 @@ runnable, and the section on the mode below this one is its reasoning:
   seal mode local|shared      switch, and write the row
   seal mode --apply           switch to whatever the row says
 
+One more subcommand records a fact about the session rather than the root:
+
+  seal no-work-item           this session's change in this clone belongs
+                              to no work item, so the edit check lets its
+                              edits through
+
 **The root is its own directory, and that is what makes the export safe.**
 Beside it under the git directory sit the smith mark, the worktree choices,
 the review and parity marks, the throwaway opt-out, any lease file and this
@@ -107,6 +113,9 @@ HOOK_PURPOSES = {
     # `config.py` imports it, so a `hooks/` without it fails that import.
     "blocks.py": "it is the walk config.py reads config.md through, which "
     "tells a live row from one quoted in a fence or parked in a comment",
+    "routing.py": "it is what writes the record `seal no-work-item` leaves, "
+    "which the edit check reads",
+    "hooksession.py": "it names the variable a session's id is read from",
 }
 
 
@@ -139,7 +148,9 @@ def refuse_without_hooks(hooks=HOOKS):
 refuse_without_hooks()
 sys.path.insert(0, HOOKS)
 import config as repo_config  # noqa: E402
+import hooksession  # noqa: E402
 import optin  # noqa: E402
+import routing  # noqa: E402
 
 # The manifest's shape. An import refuses a number it does not know rather
 # than guessing at fields: a zip whose fields moved, read by a build that
@@ -2411,6 +2422,39 @@ def check(cwd):
     return 0
 
 
+# --- a change that belongs to no work item -----------------------------------
+
+
+def no_work_item(args, cwd):
+    """Record, for this session in this clone, that its change belongs to no
+    work item, so `hooks/routing-edit-gate.py` lets its edits through. The
+    session is `CLAUDE_CODE_SESSION_ID`'s and the clone is `--root`'s, or the
+    working directory's; where either is missing nothing is written. The rule
+    is `docs/the-routing-check.md` *The edit check*."""
+    where = args.root or cwd
+    repo = optin.repo_root(where)
+    if not repo:
+        print(f"seal: {where} is in no git repository, so nothing was recorded.")
+        return 1
+    session = os.environ.get(hooksession.SESSION_VARIABLE, "")
+    if not routing.session_name(session):
+        print(
+            f"seal: no {hooksession.SESSION_VARIABLE} in this environment, so no "
+            "session can be named and nothing was recorded. Run this from the "
+            "session's own Bash tool."
+        )
+        return 1
+    path = routing.record_no_work_item(optin.git_common_dir(repo), session)
+    if not path:
+        print(f"seal: the record could not be written under {repo}'s git directory.")
+        return 1
+    print(
+        f"recorded: this session's change in {repo} belongs to no work item "
+        f"({path}), so its edits there go ahead."
+    )
+    return 0
+
+
 # --- entry point ------------------------------------------------------------
 
 
@@ -2475,7 +2519,19 @@ def main(argv=None, cwd=None):
         "--apply", action="store_true", help="switch to whatever the `Mode` row says"
     )
 
+    nw = sub.add_parser(
+        "no-work-item",
+        help="record that this session's change belongs to no work item, so "
+        "its edits in this clone go ahead",
+    )
+    nw.add_argument(
+        "--root",
+        help="the repository to record it in. Default: the working directory's",
+    )
+
     args = parser.parse_args(argv)
+    if args.command == "no-work-item":
+        return no_work_item(args, cwd)
     if args.command == "export":
         return check(cwd) if args.check else export(args, cwd)
     if args.command == "mode":

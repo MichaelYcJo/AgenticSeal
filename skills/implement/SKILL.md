@@ -193,6 +193,15 @@ that leads nowhere — the session that answers it is holding finished work with
 no destination, which is a gate wearing the shape of a question. A yes/no is
 the tell. Ask which of two named paths instead, and say what each one does.
 
+**The first edit waits for the routing answer, and a gate holds that.**
+`hooks/routing-edit-gate.py` refuses a `Write`, `Edit` or `NotebookEdit` of
+a file in an opted-in repository while no `routing.md` names the branch
+checked out where the file is and the session has not run
+`seal no-work-item`. A file under the `seal/` root or one git ignores is not
+judged, so the declaration can always be written first. `seal no-work-item`
+records, for this session in this clone, that its change belongs to no work
+item.
+
 **A waiver is one command's, and it is the implementer's.** `[no-review]`
 still works and is unchanged: it waives **one command**, where a
 `routing.md` declaration routes **a work item** — the file the session

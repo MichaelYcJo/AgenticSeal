@@ -94,6 +94,9 @@ GROUPS = {
     "pre-agent": ("worktree-guard.py", "implementer-mark.py"),
     "pre-skill": ("review-skill-gate.py",),
     "pre-question": ("question-gate.py",),
+    # The routing check at the edit tools: the first edit on a branch no
+    # `routing.md` names is refused (#1027).
+    "pre-edit": ("routing-edit-gate.py",),
     "post-bash": (
         "implementer-notice.py",
         "session-lease.py",
