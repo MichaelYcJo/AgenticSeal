@@ -21,7 +21,7 @@
 
 In:
 
-1. **The edit check.** A new `PreToolUse` gate on `Write|Edit|NotebookEdit`, `hooks/routing-edit-gate.py`, refuses an edit of a file in an opted-in repository's worktree while no routing declaration names that worktree's branch and the session has not recorded that its change belongs to no work item. `seal no-work-item` writes that record.
+1. **The edit check.** A new `PreToolUse` gate on `Write|Edit|NotebookEdit`, `hooks/routing-edit-gate.py`, refuses an edit of a file in an opted-in repository's worktree while no routing declaration names that worktree's branch and the session has not recorded, on that branch, that its change belongs to no work item. `seal no-work-item` writes that record for the branch checked out where it runs.
 2. **The pull-request check.** Every session commit in a repository whose root is shared carries the trailer `SpecSeal-Routing: <work-item-id>` or `SpecSeal-Routing: no work item`; at a local root none does. At a shared root, `chain-check` fails a ready pull request where one of its own commits, committed by its author, names a work item that no declaration it judges names; at a local root such a trailer is printed and never refused. A commit without the trailer is not judged, and neither is one whose committer email differs from its author email, compared case-folded.
 3. **The parity arm's last commit-time case moves to the pull request.** Under `straight to the PR`, where `seal/parity.md` is declared and the change reaches outside the document roots, the sealer's `guarantee.md` carries one `original:` line naming the baseline, read as a round record's line is read.
 4. **Git's other jobs move to session hooks.** In shared mode the stamp is queued at the write of `guarantee.md`, as local mode does already, and the refusal record is written there in both modes. The implementer notice keeps only its `post-bash` reading.
@@ -44,7 +44,7 @@ Out:
 | S1 undeclared edit refused | Given an opted-in repository on a branch no `routing.md` names and no no-work-item record for the session, when the session calls `Edit` on `src/a.py`, then the gate denies with a reason naming the declaration path and `seal no-work-item` | `tests/test_routing_edit_gate.py`, payload in process |
 | S2 declared edit allowed | Given a `routing.md` naming the checked-out branch, for either `Review` answer, when the session edits any file, then the gate is silent | `tests/test_routing_edit_gate.py` |
 | S3 the declaration can be written | Given no declaration, when the session writes `seal/specs/<id>/routing.md` under either root, then the gate is silent | `tests/test_routing_edit_gate.py`, shared and local mode |
-| S4 no work item | Given no declaration, when `seal no-work-item` has run in this clone under this session's `CLAUDE_CODE_SESSION_ID`, then an edit is allowed; under another session id it is denied | `tests/test_routing_edit_gate.py`, `tests/test_seal.py` |
+| S4 no work item | Given no declaration, when `seal no-work-item` has run in this clone under this session's `CLAUDE_CODE_SESSION_ID` with a branch checked out, then an edit on that branch is allowed; under another session id, or on another branch of the clone, it is denied; on a detached HEAD outside a paused rebase `seal no-work-item` records nothing and exits 1 | `tests/test_routing_edit_gate.py`, `tests/test_seal.py` |
 | S5 the edited file decides | Given the payload's `cwd` in a repository that has not opted in and `file_path` in a worktree of one that has, then the edited file's repository and branch are judged, and in the reverse case nothing is | `tests/test_routing_edit_gate.py` |
 | S6 not judged | A file git ignores, a file outside every repository, a file in a repository that has not opted in, and `NotebookEdit`'s `notebook_path` under a declared branch are all silent | `tests/test_routing_edit_gate.py` |
 | S7 paused rebase | Given a rebase paused on a conflict of a declared branch, with HEAD detached, when the session edits the conflicted file, then the branch the rebase names is read and the edit goes ahead | `tests/test_routing_edit_gate.py` |
@@ -65,7 +65,7 @@ Out:
 
 **The edit gate's payload.** `tool_name` among `Write`, `Edit`, `NotebookEdit`; `tool_input.file_path`, or `tool_input.notebook_path` for `NotebookEdit`; `session_id`; `transcript_path` for the press. The `cwd` is not read for the target.
 
-**The no-work-item record.** `<git-common-dir>/specseal-no-work-item/<session-id>`, an empty file, the id reduced to its basename. `seal no-work-item` reads the session from `CLAUDE_CODE_SESSION_ID` and the clone from its working directory, or from `--root`, and writes nothing where either is missing. Records older than a day are pruned when one is written, as leases are.
+**The no-work-item record.** `<git-common-dir>/specseal-no-work-item/<session-id>`, the id reduced to its basename, holding one branch name per line. `seal no-work-item` reads the session from `CLAUDE_CODE_SESSION_ID`, the clone from its working directory or from `--root`, and the branch from that worktree, resolved as the edit gate resolves it (the branch checked out, else the branch a paused rebase names). It writes nothing where any of the three is missing, and adds the branch as a line where the session's record does not name it yet. The edit gate allows an edit only where the record names the branch of the edited file's worktree. Records older than a day are pruned when one is written, as leases are.
 
 **The trailer.** One line in the commit message's trailer block, `SpecSeal-Routing: <work-item-id>` or `SpecSeal-Routing: no work item`, written at a shared root only. It is read with git's own trailer parser, `git log --no-merges --reverse -z --format=%H%x1f%ae%x1f%ce%x1f%(trailers:key=SpecSeal-Routing,valueonly,separator=%x1e) <base>..HEAD`, so the key matches as git matches it, and a commit whose author and committer emails differ, case-folded, is skipped (`chain_check.py#routing_trailers`).
 
@@ -153,11 +153,18 @@ Out:
     governs.
     check: tests/test_routing_edit_gate.py
 
-    **A change that belongs to no work item is recorded per session by
-    `seal no-work-item`, and the record lets that session edit in that
-    clone.** It
-    is `<git-common-dir>/specseal-no-work-item/<session-id>`, the session read
-    from `CLAUDE_CODE_SESSION_ID`. Nothing verifies who ran it, the standing
+    **A change that belongs to no work item is recorded per session and per
+    branch by `seal no-work-item`, and the record lets that session edit on
+    that branch only.** It is
+    `<git-common-dir>/specseal-no-work-item/<session-id>`, one line per
+    branch, the session read from `CLAUDE_CODE_SESSION_ID` and the branch
+    from the worktree it ran in: the branch checked out there, or the branch
+    a paused rebase there names. A run on a second branch adds a line. On a
+    detached HEAD outside a paused rebase no branch is named, so nothing is
+    recorded and `seal no-work-item` exits 1. The session's edits on a branch
+    its record does not name are judged as if it had no record, so a session
+    that recorded a change of no work item and then starts a work item on a
+    new branch meets the refusal there. Nothing verifies who ran it, the standing
     the per-command waiver had: an audit trail, in the transcript and, at a
     shared root, in each commit's trailer at the pull request, not an
     authorization. A record that
@@ -166,7 +173,9 @@ Out:
 
     **A refusal is a deny addressed to the model, with the same text every
     time.** It names the declaration to write, at the path `routing.md` takes
-    under the repository's root, and `seal no-work-item`. Where the person
+    under the repository's root, and `seal no-work-item`. Where HEAD is
+    detached, it names checking out a branch in place of
+    `seal no-work-item`, which records nothing there. Where the person
     pressed `automation` on the routing question, read through
     `hooks/worktree_consent.py#automation_answered`, it names no question
     tool; otherwise it tells the model to put the routing question to the
@@ -398,15 +407,15 @@ Out:
   file: docs/the-review-and-parity-arms.md
   section: The declaration, and where the check went
   from: | nothing readable, or no file | the review arm's table above | pass, with a notice saying nothing was checked |
-  to: | nothing readable, or no file | refused, unless the session recorded that its change belongs to no work item | each commit's `SpecSeal-Routing` trailer is judged as `docs/the-routing-check.md` *At the pull request* states; nothing else is checked, and a notice says so |
+  to: | nothing readable, or no file | refused, unless the session recorded, on that branch, that its change belongs to no work item | each commit's `SpecSeal-Routing` trailer is judged as `docs/the-routing-check.md` *At the pull request* states; nothing else is checked, and a notice says so |
 - change
   file: docs/the-review-and-parity-arms.md
   section: The declaration, and where the check went
   from: **There is no standing waiver: a declaration moves the review arm's check to
     the pull request, and the waiver stays per command.**
   to: **There is no standing waiver: a declaration moves the review arm's check to
-    the pull request, and a change no work item owns is recorded per session,
-    never per branch.**
+    the pull request, and a change no work item owns is recorded for one
+    session on one branch, and stands for no other session.**
 - change
   file: docs/the-review-and-parity-arms.md
   section: The declaration, and where the check went
