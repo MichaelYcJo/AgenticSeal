@@ -19,7 +19,7 @@ sites are the new units. The finding below stands in one of them.
 severity: should
 location: `seal/specs/1792935671-the-routing-check-moves-to-the-sessions-tools/spec.md:269`, `tests/test_question_gate.py:5-6`, `hooks/implementer-mark.py:64-69`
 evidence: executed `bin/test -q -s -p no:xdist -p no:cacheprovider tests/test_tmp_round6.py`, `git grep -n "checked-out branch\|checked out branch\|the branch checked out" -- docs hooks skills`
-verdict: open
+verdict: fixed 21999f7f
 regression: round-5#1
 
 The unit is `hooks/implementer-mark.py:64-69`, the mark's write. The frame
@@ -74,7 +74,7 @@ writes the branch name, resolved as the edit gate resolves it (the branch checke
 `hooks/routing.py` and refuses `AskUserQuestion` there, except for the routing
 ```
 
-answer:
+answer: The finding holds, and the sentence's grounds route it to an ordinary fix pass: the fix applied round 5's paste-ready direction and left the frame's sentence on the old fact, which is how the fix was written, not a frame that is wrong. The orchestrator rewrote `spec.md:269` in 4bb8482c to say the mark names the branch checked out, else the branch a paused rebase names; the spec's rule changes still parse, 55 operations and no error (executed). The smith rewrote the module docstring of `tests/test_question_gate.py` in 21999f7f in the words of `spec.md` line 68, and left `hooks/implementer-mark.py` unchanged because its comment, rewritten in a6740978, already says the branch is resolved as the edit gate resolves it (read by the smith). `docs/commit-review-gate-spec.md:204` keeps the old sentence until the settle removes that file whole, as the finding says. No behaviour changed, and `tests/test_question_gate.py` and `tests/test_implementer_mark.py` pass (executed by the smith).
 
 ## Confirmations
 
