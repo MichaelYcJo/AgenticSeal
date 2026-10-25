@@ -9,7 +9,7 @@ target: 6bfead52 against release/v0.22.4
 severity: should
 location: `skills/code-review/scripts/chain_check.py:2174-2190`, `skills/commit-pr-convention/SKILL.md:138-158`, `seal/specs/1792935671-the-routing-check-moves-to-the-sessions-tools/spec.md:181-187`
 evidence: executed `python3 <scratchpad>/1792935671-the-routing-check-moves-to-the-sessions-tools/round-1/test_tmp_round1.py`
-verdict: open
+verdict: fixed 43abdbea
 
 The convention tells every session in an opted-in repository to end each
 commit with `SpecSeal-Routing: <work-item-id>`
@@ -62,14 +62,14 @@ not run SpecSeal.
 The same restriction goes into the `spec.md` rule text at lines 181-187 and
 into the `no work item` sentence of `templates/claude-md-block.md:16`.
 
-answer:
+answer: The finding holds, and 43abdbea takes the record's direction: `trailer_findings` takes `local`, `main` passes `local_root(root, routing)`, and a work item's trailer at a local root is the notice `LOCAL_TRAILER` ("printed, not judged"), never `UNDECLARED_TRAILER`, whose way on local mode never takes. `tests/test_chain_check.py::Test_routing_trailers::test_a_work_item_trailer_at_a_local_root_is_printed_not_refused` was red at the tree before the fix (exit 1 with the refusal) and goes red again under `mutation-check` with `elif local:` made false (executed). The convention in `skills/commit-pr-convention/SKILL.md` and the `no work item` sentence of `templates/claude-md-block.md` now restrict the trailer to a shared root, and every other sentence stating the trailer for `no work item` says "where the root is shared": both READMEs (the switch row, the root-move paragraph, the first limit), `skills/implement/orchestration.md` (question 1's exit row, the exit paragraph, the declaration paragraph, the standing-waiver paragraph), `skills/settle/SKILL.md` and `changelog.md` (executed: `git grep -n trailer` over the READMEs, agents, skills, templates and hooks). The `spec.md` rule text at 181-187 is the framer's file and not a write my definition names, so `overview.md` carries the divergence row "Where a commit carries the trailer" saying the settle would apply the unrestricted text; the orchestrator answers whether `spec.md` is amended before the settle.
 
 ### 2. A person's cherry-pick of a session commit is judged, and fails a pull request that declares nothing
 
 severity: should
 location: `skills/code-review/scripts/chain_check.py:2053-2086`, `seal/specs/1792935671-the-routing-check-moves-to-the-sessions-tools/spec.md:189-197`, `seal/specs/1792935671-the-routing-check-moves-to-the-sessions-tools/overview.md:11`
 evidence: executed `python3 <scratchpad>/1792935671-the-routing-check-moves-to-the-sessions-tools/round-1/test_tmp_round1.py`
-verdict: open
+verdict: fixed 43abdbea
 
 The owner's decision 4 (`spec.md:9`) is that the pull-request rule judges
 only commits a session made, never a teammate's own. The trailer is the
@@ -130,14 +130,14 @@ judged: it carries a trailer somebody else wrote." The docstring of
 `tests/test_chain_check.py` pins a cherry-pick whose committer differs from
 its author as not judged.
 
-answer:
+answer: The finding holds, and 43abdbea takes the record's reading of "made by a session": a commit whose committer email is not its author email is not judged, compared case-folded as git records them, and GitHub's squash is one case of it, so the `SQUASH_COMMITTER` test left `routing_trailers` (`carried_by` keeps it for declarations). No other reading holds better: the harness's co-author trailer survives a person's cherry-pick, and dates move with any rebase, while git records the committer on every commit; the cost is that a person's own cherry-pick of their own session's commit, same identity, is still judged, which the docstring states. `tests/test_chain_check.py::Test_routing_trailers::test_a_commit_its_author_did_not_commit_is_not_judged` was red at the tree before the fix (exit 1, the cherry-picked trailer refused), the GitHub-squash case passes unchanged with its docstring naming the wider rule, and `mutation-check` removing the author test turned two cases of `Test_routing_trailers` red (executed). The `routing_trailers` docstring states the rule and its precondition; `overview.md`'s row "Which commits the trailer arm reads" now names the author-and-committer test and says the `spec.md` rule text at 194-196 still reads "merges left out" alone, which is the framer's file and not a write my definition names; the orchestrator answers whether it is amended before the settle.
 
 ### 3. A detached checkout of a declared branch's own commit is refused, which stops a warden's or smith's probe mid-run
 
 severity: should
 location: `hooks/routing-edit-gate.py:192-218`, `hooks/routing-edit-gate.py:21-24`, `seal/specs/1792935671-the-routing-check-moves-to-the-sessions-tools/spec.md:137-139`, `tests/test_routing_edit_gate.py:128`
 evidence: executed `python3 <scratchpad>/1792935671-the-routing-check-moves-to-the-sessions-tools/round-1/test_tmp_detached.py`
-verdict: open
+verdict: fixed 43abdbea
 
 The gate reads a detached HEAD as no branch outside a paused rebase, as
 `spec.md:137-139` says. But the plugin's own agents edit in detached
@@ -206,14 +206,14 @@ branch already holds." `tests/test_routing_edit_gate.py:128` splits into
 two cases: a detached HEAD on a declared branch's commit goes ahead, and one
 on a commit no declared branch holds is refused.
 
-answer:
+answer: The finding holds, and 43abdbea takes the record's direction: `detached_on_declared` lets a detached HEAD through where a branch some declaration names holds it under `refs/heads/<branch>` or `refs/remotes/*/<branch>`, reached only on the refusal path after `for_branch` finds nothing, and the module docstring states the exception. `tests/test_routing_edit_gate.py:128` stays for a tree with no declaration, and two cases join it: `test_accepts_a_detached_head_at_a_commit_a_declared_branch_holds` (the branch's head and its parent by the local name, and a `--no-local` clone detached at `origin/feature/x`, a name holding a `/`, with no local branch of it) was red at the tree before the fix (`deny` at the head), and `test_refuses_a_detached_head_no_declared_branch_holds` (a commit only an undeclared branch holds, the declaration in its tree) went red under `mutation-check` with the ancestor test forced true; removing the exception and removing the remote-tracking pattern each turned the accept case red (executed). No README or skill sentence states the detached-HEAD rule (executed: `git grep -n -i detached` over the READMEs, agents and skills); `changelog.md` names the exception, and `overview.md`'s row "A detached HEAD" says the `spec.md` rule text at 137-139 does not carry it yet, the framer's file and not a write my definition names; the orchestrator answers whether it is amended before the settle.
 
 ### 4. The placeholder test file says the settle removes it, and nothing in the settle removes a test file
 
 severity: should
 location: `tests/test_the_retired_rules_await_their_settle.py:11-12`, `seal/specs/1792935671-the-routing-check-moves-to-the-sessions-tools/overview.md:13-14`
 evidence: read `skills/settle/scripts/settle.py:590-605`, `tests/test_the_retired_rules_await_their_settle.py:11-12`
-verdict: open
+verdict: fixed 43abdbea
 
 The account was: "The settle that applies the work item removes this file
 with the documents" (`tests/test_the_retired_rules_await_their_settle.py:11-12`),
@@ -246,7 +246,7 @@ deletes it, with the five caseless files `docs/` names for it, as issue
 The two `overview.md` rows end the same way: "Nothing removes them on its
 own; issue #<N> asks the settle's pull request to delete them."
 
-answer:
+answer: The finding holds, and 43abdbea writes issue #1028, which the orchestrator filed, where the record held its placeholder: the docstring of `tests/test_the_retired_rules_await_their_settle.py` now says nothing removes the file on its own because `settle` touches no file under `tests/`, and that the pull request settling this work item deletes it with the five caseless files, as #1028 asks; the two `overview.md` rows end "issue #1028 asks the settle's pull request to delete them" and "to delete it". The other places that could state the old claim were swept (executed: `git grep -n -i` for "settle removes" and "removes this file with" outside `docs/` and released history): the five caseless files say only that `docs/` names them until the rule change is settled, which stands; `phases/phase-5.md` line 17 keeps the old sentence because a phase record is what was true when it was written. No case changes: the fix is a docstring and two record cells, and `rules --check` holds all 249 lines (executed).
 
 ## Confirmations
 
