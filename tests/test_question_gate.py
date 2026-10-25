@@ -2,8 +2,10 @@
 
 The person who pressed `automation` was told nothing stops to ask, and in
 0.22.3 four framer questions reached them anyway, with the prose rule loaded
-(#1002). The gate reads the checked-out branch's declaration through
-`hooks/routing.py` and refuses `AskUserQuestion` there, except for the routing
+(#1002). The gate reads the declaration of the branch resolved as the edit
+gate resolves it (the branch checked out, else the branch a paused rebase
+names), through `routing.worktree_branch` in `hooks/routing.py`, and refuses
+`AskUserQuestion` there, except for the routing
 question put alone, which a resumed run has to put again, until the session
 has answered it.
 """
