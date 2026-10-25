@@ -17,7 +17,7 @@ The records under `seal/specs/` lose the template comments they carried, and the
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and format check, at the branch head | the orchestrator, through `broad-gate` after the review rounds settle |
+| closed the full suite, the repository-wide lint and format check, at the branch head | `broad-gate.md`: BROAD GATE PASSED at `a3954eaa` against `4d5a6917`, ruff check and format clean, the suite 7740 passed and 14 skipped, chain-check exit 0 |
 
 ## Not done
 
