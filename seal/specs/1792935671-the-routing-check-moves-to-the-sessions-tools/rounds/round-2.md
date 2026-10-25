@@ -9,7 +9,7 @@ target: 888f9b66, fixes 6bfead52..888f9b66
 severity: should
 location: `tests/test_the_retired_rules_await_their_settle.py:11-14`, `seal/specs/1792935671-the-routing-check-moves-to-the-sessions-tools/overview.md:15`
 evidence: executed `gh issue view 1028 --json title,state,body`
-verdict: open
+verdict: deferred #1028
 reopens: round-1#4
 
 The close of round 1's finding 4 does not hold for five of the six files it
@@ -49,14 +49,14 @@ lines: `tests/test_a_commit_behind_a_reserved_word_is_judged.py`,
 `tests/test_the_waiver_can_be_typed.py`; `rules --check` holds after it.
 ```
 
-answer:
+answer: The finding holds, and its repair is outside the tree: the orchestrator rewrote #1028's *Done when* on 2026-10-26, and it now names `tests/test_the_retired_rules_await_their_settle.py` and the five caseless files, each by path, with `rules --check` holding after it (executed: `gh issue view 1028`). The docstring ("deletes it, with the five caseless files `docs/` names for it, as issue #1028 asks") and the `overview.md` row ("issue #1028 asks the settle's pull request to delete them") now say what #1028 says, so neither changed. One file neither the finding nor #1028 names is the same class: `tests/test_the_hooks_are_installed_where_git_runs_them.py`, kept with no case in phase 6 because `docs/the-commit-gate-inside-git.md` line 37 names it (`phases/phase-6.md`); its docstring says only that it stays until that document goes, but nothing deletes it either, and the orchestrator answers whether #1028 takes it too.
 
 ### 2. A detached HEAD that only an undeclared `<declared>/<more>` branch holds is let through
 
 severity: should
 location: `hooks/routing-edit-gate.py:156-175`, `tests/test_routing_edit_gate.py`
 evidence: executed `python3 <scratchpad>/1792935671-the-routing-check-moves-to-the-sessions-tools/round-2/test_tmp_round2.py`
-verdict: open
+verdict: fixed 04dd6c6a
 regression: round-1#3
 
 The unit is `hooks/routing-edit-gate.py#detached_on_declared`, added by
@@ -108,14 +108,14 @@ docstring and the amended rule text both say `refs/heads/<branch>`.
         assert decision_of(run(repo / "f.txt")) == "deny"
 ```
 
-answer:
+answer: The finding holds, and 04dd6c6a takes the record's direction: `detached_on_declared` skips a `refs/heads/` ref that is not `refs/heads/<name>` itself, with a comment saying why, and keeps the remote pattern, whose glob git matches whole (my round-1 case already passes a `--no-local` clone detached at `origin/feature/x`). `declare_routing` takes no branch, so `test_refuses_a_detached_head_only_a_longer_branch_name_holds` declares `x` from a checked-out `x`, deletes `x`, and detaches at an undeclared `x/sub` one commit ahead; it was red before the fix (`silent`), and `mutation-check` removing the filter turns it red again (executed). `changelog.md` now says the branch's own name counts and a longer `<branch>/more` does not; the module docstring and `spec.md` *The edit check* already say `refs/heads/<branch>`, which the code now matches.
 
 ### 3. The edit gate now spells the declaration path with `/`, against the platform spelling the implementer notice pins for the same file
 
 severity: should
 location: `hooks/routing-edit-gate.py:189-218`, `tests/test_routing_edit_gate.py:79-111`, `tests/test_routing_edit_gate.py:128-146`
 evidence: read `hooks/routing-edit-gate.py:189-212`, `hooks/implementer-notice.py:160-168`, `tests/test_implementer_notice.py:157`, `tests/test_implementer_notice.py:181`, `hooks/optin.py:86-93`, `hooks/question-gate.py:57-62`
-verdict: open
+verdict: fixed 04dd6c6a
 regression: round-1
 
 The unit is `hooks/routing-edit-gate.py#declaration_hint` and `#reason`,
@@ -183,14 +183,14 @@ HINT = os.path.join("seal", "specs", "<work-item-id>", "routing.md")
         assert "`src\\new.py` is in" in said, said
 ```
 
-answer:
+answer: The finding holds, and 04dd6c6a takes the record's direction: `declaration_hint` and `reason` are back on `os.path.join` and the platform's spelling, and the docstring now cites `hooks/implementer-notice.py` and `hooks/optin.py` for the rule. The two Windows-failing cases compute their expected text by that rule, through `HINT = os.path.join("seal", "specs", "<work-item-id>", "routing.md")` in `attended()` and `pressed()`, as `tests/test_implementer_notice.py` does; contract rule 18's preference for fixing the code does not apply, because the cases encoded the wrong expectation and the code followed the tree's rule before a314f3a7. The `/` case is rewritten as `test_the_declaration_path_is_spelled_the_platforms_way_on_windows`, which runs both units under `ntpath` and asserts Windows' spelling for the hint, an absolute root on another drive and the edited file beside its root; it was red against the `/` code (shown while that code stood in the tree), and `mutation-check` putting the `/` join back turns it red (executed). No other place states the `/` rule: `changelog.md`, `overview.md` and the docstrings were searched (executed: `git grep -n -i` for "with `/` on every", "written with `/`" and the CI run's number), and the remaining hits are machine coordinates and test ids, a separate rule. The two instances my round-1 hand-back offered, `hooks/question-gate.py#shown` and `hooks/implementer-notice.py`, follow the tree's rule and are withdrawn.
 
 ### 4. `spec.md` still states the unrestricted trailer rule in three places its amendment did not reach
 
 severity: should
 location: `seal/specs/1792935671-the-routing-check-moves-to-the-sessions-tools/spec.md:25`, `seal/specs/1792935671-the-routing-check-moves-to-the-sessions-tools/spec.md:399`, `seal/specs/1792935671-the-routing-check-moves-to-the-sessions-tools/spec.md:443`
 evidence: read `seal/specs/1792935671-the-routing-check-moves-to-the-sessions-tools/spec.md:25`, `seal/specs/1792935671-the-routing-check-moves-to-the-sessions-tools/spec.md:399`, `seal/specs/1792935671-the-routing-check-moves-to-the-sessions-tools/spec.md:443`, `seal/specs/1792935671-the-routing-check-moves-to-the-sessions-tools/spec.md:186-211`
-verdict: open
+verdict: fixed 59b86822
 
 The framer's account is that `888f9b66` makes the spec "state the trailer
 rule once". `f221c3db` rewrote the rule in *At the pull request*
@@ -231,14 +231,14 @@ the framing phase, so this finding names no earlier one.
     | none | nowhere: a work item's `SpecSeal-Routing` trailer is judged first, as `docs/the-routing-check.md` *At the pull request* states, and one reading `no work item` stands as the per-command waiver did, visible in history |
 ```
 
-answer:
+answer: The finding holds, and the framer fixed it in 59b86822, which is in `spec.md` alone: it rewrote lines 25 (*Scope* item 2), 70, 81, 86, 160-163 and 181 to the trailer rule at a shared root with the author-and-committer test, and replaced the restatements at 399 and 443, the two rows of `docs/the-review-and-parity-arms.md`'s tables, with references to `docs/the-routing-check.md` *At the pull request* (read: `git show 59b86822`, whose hunks sit at those lines). No change of mine was needed.
 
 ### 5. Three `overview.md` rows say `spec.md` does not yet state the rules it states since `f221c3db`
 
 severity: should
 location: `seal/specs/1792935671-the-routing-check-moves-to-the-sessions-tools/overview.md:11-13`
 evidence: read `seal/specs/1792935671-the-routing-check-moves-to-the-sessions-tools/overview.md:11-13`, `seal/specs/1792935671-the-routing-check-moves-to-the-sessions-tools/spec.md:137-143`, `seal/specs/1792935671-the-routing-check-moves-to-the-sessions-tools/spec.md:186-211`
-verdict: open
+verdict: fixed 04dd6c6a
 regression: round-1
 
 The unit is the three divergence rows `43abdbea` wrote into `overview.md`,
@@ -269,7 +269,7 @@ untrue too.
 ... `spec.md` *The edit check* states the exception since `f221c3db` |
 ```
 
-answer:
+answer: The finding holds, and 04dd6c6a rewrites the three rows' last sentences to the current fact: the trailer-arm row says `spec.md` *At the pull request* states the author-and-committer test since `f221c3db`; the trailer row says `spec.md` states the shared-root rule in *At the pull request* since `f221c3db` and in *Scope* item 2 and the two rewritten tables since `59b86822`; the detached-HEAD row says *The edit check* states the exception since `f221c3db` and that finding 2 made the code match the declared branch's own name. `unverified-check` reads every overview with none unreadable (executed).
 
 ## Confirmations
 
