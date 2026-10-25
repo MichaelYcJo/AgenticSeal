@@ -3,8 +3,7 @@
 This file is the orchestrator's: the session that spawns the warden and the
 smith for each round, verifies what they report and opens the pull request.
 It holds the procedure for **running** a review run: obtaining a fix pass,
-ending the run, opening the pull request, verifying the warden's report, and
-closing the cycle.
+ending the run, opening the pull request, and verifying the warden's report.
 
 `skills/code-review/SKILL.md` is the other half and holds the review itself:
 the two stages, the comparison axes, the probe rules, the cross-session
@@ -323,15 +322,3 @@ coordinates yourself:
 
 Also check whether HEAD moved during the review; if source changed, those
 verdicts need a re-pass, and the next round's `target:` line names the new HEAD.
-
-## Orchestrator: closing the cycle
-
-Once the report is verified, mark the reviewed state so the commit gate's
-review arm can recognize the cycle. The warden never writes this mark: a
-review that certifies itself is what the gate exists to catch.
-
-```bash
-git rev-parse HEAD > "$(git rev-parse --git-dir)/specseal-reviewed"
-```
-
-A commit closes the cycle; the next change starts an unreviewed one.

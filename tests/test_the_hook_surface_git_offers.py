@@ -257,61 +257,6 @@ def test_post_checkout_tells_a_creation_from_a_switch_and_runs_in_the_tree(tmp_p
     assert Path(switched[2]) == d.resolve()
 
 
-WAIVE_LOG = r"""if [ "$1" = "" ] || [ "$1" = prepared ]; then
-  printf '%s=%s\n' "${1:-pre-commit}" "$(git config --get specseal.waive)" >>"$W_LOG"
-fi
-[ -n "$1" ] && cat >/dev/null
-exit 0
-"""
-
-
-def test_a_dash_c_waiver_reaches_both_hooks_and_a_message_does_not(tmp_path):
-    d, hooks = repo(tmp_path)
-    hook(hooks, "pre-commit", WAIVE_LOG)
-    hook(hooks, "reference-transaction", WAIVE_LOG)
-    log = tmp_path / "w.log"
-    env = {"W_LOG": str(log)}
-    with open(d / "f.py", "a", encoding="utf-8") as f:
-        f.write("b = 2\n")
-    g(d, "-c", "specseal.waive=review", "commit", "-q", "-am", "x", env=env)
-    first = log.read_text(encoding="utf-8").splitlines()
-    assert "pre-commit=review" in first
-    assert "prepared=review" in first
-    log.unlink()
-    with open(d / "f.py", "a", encoding="utf-8") as f:
-        f.write("c = 3\n")
-    g(d, "commit", "-q", "-am", "specseal.waive=review later", env=env)
-    second = log.read_text(encoding="utf-8").splitlines()
-    assert "pre-commit=" in second
-    assert not any(line.endswith("=review") for line in second), second
-
-
-CACHED_LOG = r"""git diff --cached --name-only | tr '\n' ' ' >>"$C_LOG"
-echo >>"$C_LOG"
-exit 0
-"""
-
-
-def test_pre_commit_sees_the_paths_a_dash_a_and_a_pathspec_commit_record(tmp_path):
-    d, hooks = repo(tmp_path)
-    hook(hooks, "pre-commit", CACHED_LOG)
-    log = tmp_path / "c.log"
-    env = {"C_LOG": str(log)}
-    with open(d / "f.py", "a", encoding="utf-8") as f:
-        f.write("b = 2\n")
-    (d / "g.py").write_text("e = 5\n", encoding="utf-8")
-    g(d, "add", "g.py")
-    g(d, "commit", "-q", "-a", "-m", "dash-a", env=env)
-    with open(d / "f.py", "a", encoding="utf-8") as f:
-        f.write("c = 3\n")
-    with open(d / "g.py", "a", encoding="utf-8") as f:
-        f.write("i = 7\n")
-    g(d, "add", "g.py")
-    g(d, "commit", "-q", "-m", "pathspec", "f.py", env=env)
-    lines = [line.split() for line in log.read_text(encoding="utf-8").splitlines()]
-    assert lines == [["f.py", "g.py"], ["f.py"]]
-
-
 # M12: which command hands reference-transaction GIT_AUTHOR_DATE. It is the
 # criterion the `--no-verify` backstop keys on (owner's answer of 2026-10-01 in
 # `questions.md` P4): a commit pre-commit did not judge is refused, and nothing

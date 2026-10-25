@@ -285,7 +285,7 @@ A single-select question, put alone:
 |---|---|---|
 | 1 | **automation** | Every party runs: the framer frames it, `smith` builds it, `warden` reviews it, the orchestrator takes the broad run, the sealer audits it, and the pull request opens. **This is the last question: nothing stops to ask again.** |
 | 2 | **per axis** | The four boxes below are the answer. |
-| 3 | **no work item** | No work item is opened: no frame, no review, no seal, no `routing.md`, and this session writes the change itself. Every commit needs `[no-review]` typed in front of it, and nothing checks this change at the pull request. |
+| 3 | **no work item** | No work item is opened: no frame, no review, no seal, no `routing.md`, and this session writes the change itself. The session runs `seal no-work-item` before its first edit, every commit ends with the trailer `SpecSeal-Routing: no work item`, and the pull request's check only lists those commits. |
 
 **A label names what it turns off, not where it ends.** A label that names a
 destination is read as what runs: `straight to the PR` was read as *call no
@@ -295,8 +295,8 @@ happen.
 
 **The exit is last.** It is the least-verified path and one click, so it
 sits where a reader's eye lands last, and its description states the cost.
-It stays cheap to press and expensive to use: `[no-review]` waives one
-command, typed in front of each, a price none of the other answers pays.
+It stays visible in use: every commit it covers says `no work item` in its
+trailer, and the pull request's check prints each one.
 
 **A run resumed in a new session puts question 1 through `AskUserQuestion`
 again, before the first spawn.** Where the declaration answers `Automation`
@@ -445,70 +445,42 @@ first. Under `no work item` the session runs `seal no-work-item` once, before
 its first edit: it records, for this session in this clone, that the change
 belongs to no work item, and the gate then lets its edits through.
 
-**The orchestrator writes the file in a command of its own, never batched
-with the commit.** The declaration is read from the working tree
-(`hooks/routing.py`'s `declarations()` opens the path rather than asking
-git), so a `routing.md` on disk silences the review arm for the very commit
-that adds it, and no first-commit waiver is needed. Where this plugin's git
-hooks run, git itself decides the commit, and the write lands either way. In
-a clone whose git hooks slot is somebody else's, the gate is a
-`PreToolUse` hook that denies the whole Bash call, so `write routing.md &&
-git add && git commit` in one call writes nothing, and the declaration the
-gate then reports missing is the file that was lost. The separate command is
-the one shape both readings accept, and it costs nothing where the git hooks
-run. This is the one place the batching rule misleads: the commit is not
-independent of the write. The commit goes the same way: each work item's
-`routing.md` in a command of its own, the worktree's path written out after
-`git -C`, never a loop over a variable naming it (contract rule 16).
+**The orchestrator writes the file with the `Write` tool, then commits it.**
+The declaration is read from the working tree (`hooks/routing.py`'s
+`declarations()` opens the path rather than asking git), so the edits after
+the write go through before the commit lands. The commit goes as every
+commit does: each work item's `routing.md` in a command of its own, the
+worktree's path written out after `git -C`, never a loop over a variable
+naming it (contract rule 16).
 
 What the four combinations do:
 
 | Review | Destination | During the work | At the end | What CI checks |
 |---|---|---|---|---|
-| chain | open the PR | the review arm stays silent | the PR opens | a round record is required, and the broad run's `broad-gate.md` beside it |
-| chain | stop before the PR | the review arm stays silent | the branch is handed back, committed and unpushed | **nothing runs**; the orchestrator says so in the handback |
-| direct | open the PR | the review arm stays silent | the orchestrator takes the broad run, the sealer audits it, then the PR opens | the broad run's `broad-gate.md` in the work item's directory, at a SHA, against the base, and no round record; the answer turns off the reviewer alone |
-| direct | stop before the PR | the review arm stays silent | the branch is handed back | **nothing runs**; the orchestrator says so in the handback, and the broad run's record is owed when a pull request opens |
+| chain | open the PR | edits go through | the PR opens | a round record is required, and the broad run's `broad-gate.md` beside it |
+| chain | stop before the PR | edits go through | the branch is handed back, committed and unpushed | **nothing runs**; the orchestrator says so in the handback |
+| direct | open the PR | edits go through | the orchestrator takes the broad run, the sealer audits it, then the PR opens | the broad run's `broad-gate.md` in the work item's directory, at a SHA, against the base, and no round record; the answer turns off the reviewer alone |
+| direct | stop before the PR | edits go through | the branch is handed back | **nothing runs**; the orchestrator says so in the handback, and the broad run's record is owed when a pull request opens |
 
-That column is about the review arm. The gate has two arms, they are
-separate opt-ins, and each has terms that **wake** it and terms that
-**quiet** it:
-
-| | Review arm | Parity arm |
-|---|---|---|
-| **Wakes when** | `seal/` exists in the repository the commit lands in, whatever the change touches; a commit confined to `docs/` and `seal/` wakes it too | `seal/parity.md` exists there, **and** the change touches something outside `docs/` and `seal/` |
-| **Quiets when** | a `routing.md` declaration names this branch, for either answer; the review mark stands at HEAD, written by the review chain; `[no-review]` rides in front of one command | a `routing.md` declaration names this branch and answers `through the review chain`; the parity mark stands at HEAD, written by a recorded comparison against the original; `[no-parity]` rides in front of one command |
-
-A declaration answering `through the review chain` quiets both arms at the
-commit, because the warden compares the change with the original after the
-smith has committed it, and each round record carries that comparison on its
-`original:` line, which the pull request's check reads. A declaration
-answering `straight to the PR` quiets the review arm alone: no review round
-exists to record a comparison, so a migration repository still meets the
-parity arm on a code-touching commit, and under the `automation` press that
-commit is refused and handed back at the end of the run. A commit confined
-to `docs/` and `seal/` never wakes the parity arm, which is why the
-`routing.md` commit costs nothing even in a migration repository.
-
-The chain answer moves the parity check to a pull-request check, and three
-shapes leave code nobody compared with nothing that reads it. In local mode the
+**Where a migration config is declared, the comparison with the original is
+recorded where the answer puts it**: in each round record under `through
+the review chain`, and in the sealer's `guarantee.md` under `straight to the
+PR`. A change confined to `docs/` and `seal/` owes none
+(`skills/legacy-parity/SKILL.md` *Recording the comparison*). Two shapes
+leave code nobody compared with nothing that reads it. In local mode the
 root sits under the common git directory and nothing under it is committed,
-so no pull-request check reads a round record, the cost the review arm's
-declaration already carries there. A repository whose
-`.github/workflows/hygiene.yml` pins a plugin release older than this rule
-runs a `chain-check` that reads no `original:` line, until a person moves
-the pin's `v<version>` to the installed release. And a declaration rewritten
-from `through the review chain` to `straight to the PR` after code was
-committed leaves those commits compared by nobody, because the check reads
-the answer at HEAD.
+so no pull-request check reads a round record or a guarantee. And a
+repository whose `.github/workflows/hygiene.yml` pins a plugin release older
+than this rule runs a `chain-check` that reads no `original:` line, until a
+person moves the pin's `v<version>` to the installed release.
 
-The declaration is what the commit gate reads, for **either** review answer,
-so a declared work item commits silently whichever reviewer it named, and CI
-reads the same file at the pull request. Work never headed for a reviewer,
-such as a release chore or a documentation pass, declares `straight to the
-PR`. For a change belonging to no work item, `[no-review]` in front of each
-command is the waiver, spelled as `skills/implement/SKILL.md` *1. Read the
-spec before the code* spells it.
+The declaration is what the edit check reads, for **either** review answer,
+so a declared work item edits whichever reviewer it named, and CI reads the
+same file at the pull request. Work never headed for a reviewer, such as a
+release chore or a documentation pass, declares `straight to the PR`. For a
+change belonging to no work item, the session runs `seal no-work-item`, and
+each commit's trailer reads `no work item`
+(`skills/commit-pr-convention/SKILL.md`).
 
 **Which branch the pull request lands on is decided with the routing
 question.** A pull request into the release branch is not a release: its
@@ -529,12 +501,14 @@ repository gathers fragments, basing on `main` means running the gather,
 because `main` is the branch where the entries are due; the contribution
 guide names the command.
 
-What must not happen instead is a standing waiver: a session-level switch
-that turns the gate off leaves it nothing to do but stay quiet. The routing
-declaration is not that switch. It moves the check rather than removing it:
-the chain answer is checked at the pull request against the round record,
-the direct answer against the broad run's `broad-gate.md` at the same place,
-and no third value means no enforcement anywhere. What the direct answer
+What must not happen instead is a standing waiver nobody sees: a switch
+that turns the check off and leaves no trace. The routing declaration is not
+that switch. It moves the check rather than removing it: the chain answer is
+checked at the pull request against the round record, the direct answer
+against the broad run's `broad-gate.md` at the same place, and no third
+value means no enforcement anywhere. Nor is `seal no-work-item`: every commit
+it covers says `no work item` in its trailer, which the pull request's check
+prints. What the direct answer
 turns off is the reviewer, and the broad run is owed just the same. Deciding
 at the start moves the question to the minute where answering it costs a
 reply rather than a stopped run.
@@ -640,11 +614,11 @@ one.
 | Orchestrator: the order inside a ticket | `skills/implement/orchestration.md` | still a sentence | Nothing reads the order. Each step it sequences has a row of its own, and what the sequence itself asserts, which party runs when, is in no file a check opens. A run that opened the pull request after the rounds leaves the same tree as one that opened it before them |
 | The plan is approved at the spawn | `skills/implement/orchestration.md` | part of its parent's act | The approval line of the step where its parent's order spawns the smith, and the rules the spawn prompt is written to. It names no act of its own |
 | Orchestrator: Bootstrap | `skills/implement/orchestration.md` | check: `hooks/mode-gate.py` | A root with no `Mode` row in `config.md` is exactly nobody was asked, and this gate stops the next command until `seal mode` writes it. It reaches the mode question alone. Nothing reads the `Broad gate` proposal, so a repository that was never offered candidates meets `bin/broad-gate`'s own refusal after the rounds have settled, and nothing checks that the workflow file was written from the template with the version substituted |
-| Orchestrator: Parity setup | `skills/implement/orchestration.md` | still a sentence | The four fields are derived by hand and nothing reads the result. The commit gate's parity arm wakes on `seal/parity.md` existing, so a setup that never happened is silence rather than a refusal, and a guessed original produces a file that parses |
+| Orchestrator: Parity setup | `skills/implement/orchestration.md` | still a sentence | The four fields are derived by hand and nothing reads the result. The pull request's parity arm wakes on `seal/parity.md` existing, so a setup that never happened is silence rather than a refusal, and a guessed original produces a file that parses |
 | Orchestrator: how the work is routed | `skills/implement/orchestration.md` | check: `hooks/routing-edit-gate.py` | The first `Write`, `Edit` or `NotebookEdit` is refused until a declaration naming the branch stands under the `seal/` root or the session ran `seal no-work-item`, and `templates/claude-md-block.md` carries the question's shape into every session on the machine. What neither reaches is the shape of the asking: a declaration built from four separate questions parses exactly like one built from the asking this section mandates |
 | Question 1 | `skills/implement/orchestration.md` | part of its parent's act | The three options of the first `AskUserQuestion` call its parent describes, put alone. It names no act of its own |
 | Question 2 | `skills/implement/orchestration.md` | part of its parent's act | The four boxes of the second call, put only after a `per axis` answer, and the ceiling on how many there may be. It names no act of its own |
-| What the answer writes | `skills/implement/orchestration.md` | check: `skills/code-review/scripts/chain_check.py` | It refuses a `Review` or `Destination` value outside the vocabulary at the pull request, and `hooks/routing.py` parses the same rows at every commit. The three optional rows are read by nothing that refuses: `hooks/implementer-notice.py` says one line after a commit where a declared agent left no mark, and blocks nothing |
+| What the answer writes | `skills/implement/orchestration.md` | check: `skills/code-review/scripts/chain_check.py` | It refuses a `Review` or `Destination` value outside the vocabulary at the pull request, and `hooks/routing.py` parses the same rows at every edit. The three optional rows are read by nothing that refuses: `hooks/implementer-notice.py` says one line after a commit where a declared agent left no mark, and blocks nothing |
 | A work item that commits in more than one repository | `skills/implement/orchestration.md` | check: `hooks/routing-edit-gate.py` | In each opted-in repository the first edit is refused until a declaration naming that repository's branch stands there, so a repository the step skipped is noticed at its first edit. What it does not reach: an id minted twice is legitimate in a signer's own work item and nothing tells the two apart, and a missing `Pact` row is noticed only when somebody runs `bin/pact-check` at the pact's repository, which refuses a relationship recorded on one side |
 | Orchestrator: which of these acts runs itself | `skills/implement/orchestration.md` | check: `tests/test_every_orchestrator_act_names_its_delivery.py` | The test reads this table against the headings of both files, in both directions. What it reads is the marker rather than the meaning, so a heading with no prefix puts its act in neither the table nor the test |
 | Orchestrator: a fix pass resumes the implementer | `skills/code-review/orchestration.md` | still a sentence | A resumed fix pass and a fresh spawn leave identical trees, so nothing at the pull request can tell them apart, and the choice of session is in no file |
@@ -652,4 +626,3 @@ one.
 | A regression is routed by comparing the fix with the frame | `skills/code-review/orchestration.md` | still a sentence | The warden's `regression:` line routes nothing mechanical, and neither does the sentence of its grounds the route reads: `skills/code-review/scripts/chain_check.py` reads the line only as a reference to an earlier finding, and the `Reframed` line only for its author against the declaration, and the sealer reads the records |
 | Orchestrator: the pull request opens once the sealer seals, and a phase is re-run | `skills/code-review/orchestration.md` | still a sentence | A pull request opened before the sealer leaves the same tree as one opened after it, so nothing reads the timing, nothing records that a platform-specific change ran `gh workflow run tests` before the broad run, and nothing records that a closed phase's suite and lint were re-run before the next phase spawned. What is delivered is the step the section ends on: `skills/code-review/scripts/chain_check.py` fails a ready pull request whose `broad-gate.md` is absent or names a commit other than HEAD, which is what makes the orchestrator's broad run and the sealer's spawn after it happen. The step before that run, `broad-gate --preflight`, is recorded nowhere either, and a session that skips it loses time and nothing else: the broad run asks the same arms and refuses the same way |
 | Orchestrator: verify before posting | `skills/code-review/orchestration.md` | still a sentence | The four checks are readings the orchestrator takes before posting, and nothing in the tree records that any of them happened. The one part a record carries is the new HEAD on the next round's `target:` line where HEAD moved |
-| Orchestrator: closing the cycle | `skills/code-review/orchestration.md` | still a sentence | Nothing reads whether the cycle was closed: the review mark it once wrote has had no reader since #1027 took the commit gate out of git, and the pull request's check reads the round records instead |

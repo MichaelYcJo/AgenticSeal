@@ -422,14 +422,13 @@ def test_both_readmes_list_the_stamp_hook():
                 "item's branch leaves an empty file under "
                 "`<git-common-dir>/specseal-stamp-refused/`, written by the edit "
                 "hook in either mode, which nothing prunes",
-                "Beside the arms, `pre-commit` refuses the commit of a work item's "
-                "`guarantee.md` reading `sealed` over a commit the branch does not "
-                "hold",
             ),
             (
                 "the broad gate left for this session",
                 "a sealed broad-gate run writes",
                 "a `sealed` the plugin refused leaves",
+                # #1027 phase 7: the git hooks' row went with the hooks.
+                "Beside the arms, `pre-commit` refuses",
             ),
         ),
         (
@@ -440,13 +439,12 @@ def test_both_readmes_list_the_stamp_hook():
                 "감사한 커밋이 작업 항목 브랜치에 없어 거절된 `sealed` 는 "
                 "`<git-common-dir>/specseal-stamp-refused/` 아래에 빈 파일을 "
                 "남깁니다. 어느 모드에서든 편집 훅이 씁니다.",
-                "팔과 별도로, `pre-commit` 은 브랜치에 없는 커밋을 감사한 `sealed` "
-                "`guarantee.md` 의 커밋을 거부하고",
             ),
             (
                 "광역 관문이 이 세션 앞으로",
                 "광역 관문 실행은 도장에 들어갈 값을",
                 "플러그인이 거절한 `sealed`",
+                "팔과 별도로, `pre-commit` 은",
             ),
         ),
     ):

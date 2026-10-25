@@ -536,7 +536,13 @@ def test_the_exit_names_what_does_not_run_rather_than_where_it_ends():
             f"the exit's label names a destination (`{label}`), which is the "
             "defect the measured instance is an instance of"
         )
-    for noun in ("no frame", "no review", "no seal", "no `routing.md`", "[no-review]"):
+    for noun in (
+        "no frame",
+        "no review",
+        "no seal",
+        "no `routing.md`",
+        "`seal no-work-item`",
+    ):
         assert noun in description, (
             f"the exit's description does not name `{noun}`, so a person "
             "pressing it cannot see what they are turning off"
@@ -920,12 +926,12 @@ def test_the_skill_names_where_the_answer_is_written():
     assert "Committed" in skill or "committed" in skill
 
 
-def test_the_skill_keeps_the_token_as_a_per_command_waiver():
-    """The two are independent, and coupling them would ask for one answer
-    twice — then stop a session for not repeating itself."""
+def test_the_skill_names_the_record_and_no_per_command_waiver():
+    """#1027: nothing reads `[no-review]` any more, so the skill that taught
+    it as the way past the gate names the record that replaced it."""
     skill = flat(read("skills", "implement", "SKILL.md"))
-    assert "waives **one command**" in skill
-    assert "routes **a work item**" in skill
+    assert "`seal no-work-item`" in skill
+    assert "[no-review]" not in skill and "waives **one command**" not in skill
 
 
 def test_the_skill_refuses_a_standing_waiver_and_says_why_this_is_not_one():

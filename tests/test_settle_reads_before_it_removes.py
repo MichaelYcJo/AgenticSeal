@@ -157,7 +157,11 @@ def test_the_skill_says_a_settle_is_not_a_work_item_and_owes_no_range_row():
     )
     assert "## A settle is not a work item" in skill()
     assert "A settle opens no directory under `seal/specs/`" in text
-    assert "`: '[no-review]';`" in text, "the skill does not say how a settle commits"
+    assert "`seal no-work-item`" in text, "the skill does not say how a settle edits"
+    assert "`SpecSeal-Routing: no work item`" in text, (
+        "the skill does not say how a settle commits"
+    )
+    assert "[no-review]" not in text, "the skill still names the retired waiver"
     assert "reviewed at its pull request" in text
     assert "keeps no log" in text
 

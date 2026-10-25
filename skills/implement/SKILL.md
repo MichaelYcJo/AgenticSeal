@@ -202,26 +202,6 @@ judged, so the declaration can always be written first. `seal no-work-item`
 records, for this session in this clone, that its change belongs to no work
 item.
 
-**A waiver is one command's, and it is the implementer's.** `[no-review]`
-still works and is unchanged: it waives **one command**, where a
-`routing.md` declaration routes **a work item** — the file the session
-that spawned you wrote before the first edit
-(`skills/implement/orchestration.md`), which keeps the review arm of the
-commit gate silent for every commit of a declared branch, for either review
-answer. Coupling them would ask for the same answer twice and stop a
-session for not repeating itself. Where no declaration is in force — no
-file, a branch it does not name, or a file that will not parse — the gate
-stops the commit, as it always did. Where this plugin's git hooks run,
-git refuses it and prints the ways on into the command's output; in a
-clone whose hooks slot is somebody else's, the PreToolUse reading asks.
-For a change that belongs to no work item at all, the token is still the
-way past, and it goes in FRONT of the command, quotes included:
-`: '[no-review]'; git commit …` (and `[no-parity]` too where a migration
-config is declared). After `git commit` a bare word is a pathspec and git
-rejects the whole command. `git -c specseal.waive=review commit …` is the
-same waiver in git's own spelling, and it is the one the refusal names
-first.
-
 **Once the batch is answered, the session runs to the pull request.** What
 surfaces after it is written down rather than raised: a decision only a person
 can make goes to `questions.md`, a finding you neither fixed nor answered to
@@ -254,22 +234,14 @@ run rather than a reading somebody did. A judgment settled by opening code
 and leaving no case behind gets redone by every session that follows — the
 single largest avoidable cost in multi-session work.
 
-**Commit at the smallest step that stands on its own.** What an intermediate
-commit costs is a property of the repository rather than a fact about
-committing, and two things can drive that cost to nothing:
-
-- feature branches **squash** into their base, so every commit the branch
-  wrote stops existing at the merge and none is left for anyone to read;
-- a `routing.md` declaration is in force, which silences the review arm of the
-  commit gate for either answer (`skills/implement/orchestration.md`).
-
-Read both off the repository before leaning on them. One that merges without
-squashing keeps every commit in its history, and one with no declaration meets
-the review question at each commit. **Where a migration config is declared,
-the parity arm has quiet terms of its own**, and only one of the two review
-answers is among them. The wake/quiet table in
-`skills/implement/orchestration.md` says what wakes and quiets each arm, and
-it is the only place that says it.
+**Commit at the smallest step that stands on its own.** No gate stops a
+commit: the routing is checked at the edit tools and at the pull request
+(`docs/the-routing-check.md`). What an intermediate commit costs is a
+property of the repository rather than a fact about committing: where
+feature branches **squash** into their base, every commit the branch wrote
+stops existing at the merge and none is left for anyone to read. Read that
+off the repository before leaning on it; one that merges without squashing
+keeps every commit in its history.
 
 What committing *buys* is a separate matter, and that one holds everywhere. A
 review round records the commit it read, so work still sitting in the working

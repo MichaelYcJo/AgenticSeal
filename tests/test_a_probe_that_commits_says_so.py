@@ -1,21 +1,14 @@
-"""Neither agent file said how to write a scratch-repo probe that commits.
+"""What the agent files say about a probe, now that no gate reads its commit.
 
-Issue #82. A review agent spawned to run round 1 wrote its probes with shell
-variables, two of them reached a user who was not driving the session as
-permission prompts inside five minutes, and the agent was stopped to end them
-— which cost the review round. The agent had been told to use literal paths in
-its own prompt, and that prompt is written by a different session every time.
-
-So the instruction lives where every future spawn reads it. Until phase 3 of
-#107 that meant both agent files, because one agent knowing it is how this
-reached a user in the first place — and two files carrying it in near-identical
-words is how a third agent inherited neither. It is now contract rule 8,
-which every agent receives at startup, so the cases below are
-re-pointed there rather than deleted: a rule that moves with no case behind it
-is a rule that can move again into nothing.
-
-The smith is why this is worth a rule rather than a third copy. It writes
-probes too, and no file ever told it any of this.
+Issue #82. A review agent spawned to run round 1 wrote probes that committed
+with shell variables, two of them reached a user who was not driving the
+session as permission prompts inside five minutes, and the agent was stopped
+to end them. The shapes that avoided the prompt became contract rule 8, and
+#1027 retired that rule: no gate reads a commit any more, so a probe's commit
+reaches nobody. What stays is rule 7's: a probe leaves nothing behind, and
+its files are edits under rule 9. The cases below hold that each definition
+that once pointed at rule 8 points at what is left, and that the old shapes
+are gone with it.
 """
 
 import os
@@ -28,11 +21,7 @@ CONTRACT = os.path.join("skills", "agent-contract", "SKILL.md")
 
 
 def section(number):
-    """Rule N's body, so a shape that drifts into another rule is not a pass.
-
-    The whole file would let rule 8 be emptied while the words survive under
-    rule 9, which breaks the number a spawn prompt cites and nothing would say
-    so."""
+    """Rule N's body, so a shape that drifts into another rule is not a pass."""
     text = read(CONTRACT)
     heads = list(HEADING.finditer(text))
     for i, m in enumerate(heads):
@@ -43,56 +32,37 @@ def section(number):
     raise AssertionError(f"the contract has no rule {number}")
 
 
-def test_the_contract_carries_all_three_shapes():
-    """S9. Three shapes avoid the prompt and a session needs all three: the
-    one to prefer, the one for a single Bash command, and the waiver."""
+def test_the_retired_rule_keeps_its_number_and_none_of_its_shapes():
+    """#1027. The numbering rule keeps rule 8 as one line; a shape left in it
+    would send a probe after a gate that is gone."""
     body = section(8)
-    assert 'subprocess.run(["git", "-C", d, "commit"' in body, (
-        "the shape that carries no Bash command line at all"
-    )
-    assert "git -C /abs/path/r1" in body, "the written-out path, which is the Bash form"
-    assert ": '[no-review]';" in body, "the waiver"
+    assert "Retired by #1027" in body
+    for gone in ("subprocess.run", "git -C /abs/path/r1", "[no-review]", "keyboard"):
+        assert gone not in body, f"rule 8 still carries {gone!r}"
 
 
-def test_the_contract_says_the_waiver_goes_in_front():
-    """After `git commit` a bare word is a pathspec and git rejects the whole
-    command, so a session told only the token writes one that cannot run."""
-    assert "pathspec" in section(8), "nothing says why the token goes in front"
+def test_no_definition_points_a_probe_at_the_retired_rule():
+    """A pointer at rule 8 now reaches one line that says nothing about how
+    to probe; each definition that had one points at rules 7 and 9."""
+    for name in ("warden.md", "scribe.md", "smith.md"):
+        text = " ".join(read("agents", name).split())
+        assert "rule 8" not in text, f"agents/{name} still points at rule 8"
 
 
-def test_the_contract_says_a_loop_variable_is_still_unreadable():
-    """The reader fills in a name the command assigned itself and cannot fill
-    a loop variable, so a session told only the first half writes
-    `for n in 1 2; do git -C "$SB/r$n" …` and gets the prompt anyway."""
-    assert "loop variable" in section(8), (
-        "nothing says which names the reader still cannot fill"
-    )
-
-
-def test_the_contract_says_who_the_prompt_reaches():
-    """Without the reason this reads as a style rule, and a session under
-    pressure drops style rules first."""
-    body = section(8)
-    assert "keyboard" in body, "nothing says the prompt reaches a person"
-
-
-def test_the_reviewer_still_says_why_the_rule_reaches_its_own_edits():
+def test_the_reviewer_still_says_a_probe_file_is_an_edit():
     """What stayed in `agents/warden.md` is the application, not the shapes.
 
-    The warden edits less than the smith and would read a rule about probes
-    that commit as somebody else's. Its own paragraph is what says a scratch
-    fixture and a patched file are edits too, and it is the one place the #36
-    cost is stated for a round that is running rather than for work."""
+    The warden edits less than the smith and would read a rule about edits as
+    somebody else's. Its own paragraph is what says a scratch fixture and a
+    patched file are edits too."""
     warden = " ".join(read("agents", "warden.md").split())
-    assert "#36" in warden, "the reviewer's own copy of the incident went"
-    assert "not driving the session" in warden, (
-        "the reviewer stopped being told who the prompt reaches during a "
-        "round, which is the half that makes the rule its own"
+    assert "rule 7" in warden and "rule 9" in warden, (
+        "the pointer went, so the probe rules are reachable only by an agent "
+        "that already knows to look for them"
     )
-    assert "rule 8" in warden, (
-        "the pointer went, so the shapes are reachable only by an agent that "
-        "already knows to look for them"
-    )
+    assert "A probe leaves nothing, and its files are edits" in warden
+    for gone in ("reaches no gate", "gives the commit gate a command to read"):
+        assert gone not in warden, f"agents/warden.md still says {gone!r}"
 
 
 def test_the_procedure_a_reviewer_follows_carries_the_leavings_rule_too():
@@ -121,13 +91,15 @@ def test_the_procedure_a_reviewer_follows_carries_the_leavings_rule_too():
     )
 
 
-def test_the_fact_finder_points_at_the_rule_it_no_longer_restates():
-    """`agents/scribe.md` once carried the three shapes verbatim. Its rule
-    *Constraints, enums and defaults are read, not probed* says what reading
-    settles for an original, and points at rule 8 for a probe that commits."""
+def test_the_fact_finder_reads_first_and_leaves_nothing():
+    """`agents/scribe.md` once carried the three shapes verbatim, then a
+    pointer at rule 8. Its rule *Constraints, enums and defaults are read,
+    not probed* says what reading settles for an original, and points at
+    rule 7 for a probe it does run."""
     scribe = " ".join(read("agents", "scribe.md").split())
-    assert "rule 8" in scribe, "the fact-finder can no longer reach the shapes"
     assert "read, not probed" in scribe, (
-        "the scribe's own half — what an original settles by reading — went "
-        "with the shapes it used to sit beside"
+        "the scribe's own half -- what an original settles by reading -- went"
+    )
+    assert "leaves nothing behind (rule 7)" in scribe, (
+        "the fact-finder can no longer reach the rule for a probe it runs"
     )

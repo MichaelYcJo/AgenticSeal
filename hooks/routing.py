@@ -8,8 +8,7 @@ had already named.
 
 A declaration lives at `seal/specs/<work-item-id>/routing.md` and is committed.
 Committed is the load-bearing part: the check moves to the pull request, and CI
-sees only what is in the tree. `<git-dir>/specseal-reviewed` cannot travel
-there and never will.
+sees only what is in the tree; nothing under the git directory travels there.
 
 Beside the work item rather than at the root's top level, because a work item
 begins and ends in one directory and routing is its first fact. It also gives

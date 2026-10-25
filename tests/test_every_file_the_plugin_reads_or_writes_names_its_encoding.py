@@ -2,9 +2,7 @@
 
 The census itself, and the hook entry points' `console.to_utf8()`, are the
 `encoding` and `entry_point` censuses in `tests/censuses.py` since #942,
-with their cases in `tests/test_censuses.py`. The case that reads
-`hooks/commit-review-gate.py#read_mark` over a mark that is not UTF-8 is in
-`tests/test_commit_review_gate.py`'s `Test_module`. What stays here reads
+with their cases in `tests/test_censuses.py`. What stays here reads
 `CONTRIBUTING.md`'s prose, which is #923's.
 """
 

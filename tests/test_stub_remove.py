@@ -178,7 +178,6 @@ class Test_module:
         everywhere = {g for gates in dispatch.GROUPS.values() for g in gates}
         for gone in (
             "hook-install.py",
-            "commit-review-gate.py",
             "answer-write.py",
             "answer-clear.py",
         ):

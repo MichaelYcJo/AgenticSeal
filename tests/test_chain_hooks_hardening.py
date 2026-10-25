@@ -212,12 +212,8 @@ def test_the_review_arms_missing_path_line_is_written_where_it_is_met():
         "| a `routing.md` declaration names this branch, for either answer | "
         "silent" in review_arm
     ), "the review arm's table lost the declaration, one of its three quieters"
-
-    wake = flat("skills", "implement", "orchestration.md")
-    assert (
-        "whatever the change touches; a commit confined to `docs/` and "
-        "`seal/` wakes it too" in wake
-    ), "the wake/quiet table no longer says the review arm reads no paths"
+    # The wake/quiet table of `skills/implement/orchestration.md` left with
+    # #1027's phase 7, with the commit gate whose arms it described.
 
 
 def test_user_invoked_skills_do_not_carry_trigger_scaffolding():

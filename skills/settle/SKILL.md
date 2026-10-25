@@ -223,9 +223,11 @@ The plugin sets no ceiling; a repository states its own.
 ## A settle is not a work item
 
 **A settle opens no directory under `seal/specs/`**: no `routing.md`, no
-frame, no round records, and the routing question is not asked for it. Every
-commit carries `: '[no-review]';` in front of the command, quotes included,
-and what it applied is reviewed at its pull request. It keeps no log: what
+frame, no round records, and the routing question is not asked for it. It
+edits under `seal no-work-item`, its commits carry
+`SpecSeal-Routing: no work item` as their trailer
+(`skills/commit-pr-convention/SKILL.md`), and what it applied is reviewed at
+its pull request. It keeps no log: what
 changed is the diff, and the removed specs are in git history. A settle that
 opened a work item would leave a directory for the next settle to remove, and
 settling would never end.

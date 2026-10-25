@@ -82,7 +82,7 @@ def test_the_start_is_the_moment_before_the_first_edit():
 
 
 GRAINS = {
-    "commit-review-gate": "once per session per repo",
+    "mode-gate": "once per session per repo",
     "review-skill-gate": "once per session per working tree",
     "worktree-guard": "once per session per repository per direction",
 }
@@ -107,14 +107,6 @@ def test_the_korean_readme_states_the_same_grains():
         "세션·레포·방향당 한 번",
     ):
         assert grain in ko, grain
-
-
-def test_the_per_command_marker_says_per_command_in_both_readmes():
-    """`[no-review]` waives ONE command. Spelled `once`, it read as once per
-    session, which is a waiver nobody built."""
-    assert "for **that one command**" in read("README.md")
-    assert "**그 명령 하나만**" in read("README.ko.md")
-    assert "skips the review gate once" not in read("README.md")
 
 
 def test_the_worktree_spec_is_still_the_model():
@@ -293,12 +285,11 @@ def test_the_owner_states_that_one_seal_is_final():
 
 
 def test_the_two_definitions_name_what_they_actually_keep():
-    """`agents/warden.md` called `<git-dir>/specseal-reviewed`, the mark that
-    a review happened, the seal. The warden names that file as the
-    reviewer's own mark, which it never writes, and claims no seal."""
+    """`agents/warden.md` once called `<git-dir>/specseal-reviewed`, the mark
+    that a review happened, the seal. #1027 removed the mark with the commit
+    gate that read it; the warden names neither, and claims no seal."""
     warden = flat("agents", "warden.md")
-    assert "Write `<git-dir>/specseal-reviewed`" in warden
-    assert "the reviewer never writes its own mark" in warden
+    assert "specseal-reviewed" not in warden
     assert "You keep the seal:" not in warden, (
         "the opening claims a word the sealer's definition claims two files "
         "over, and a reader opens them together"

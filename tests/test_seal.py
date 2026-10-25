@@ -89,8 +89,8 @@ CLOSING = (
 BESIDE_THE_ROOT = (
     "specseal-implementer",
     "specseal-planner",
-    "specseal-reviewed",
-    "specseal-parity",
+    "specseal-no-work-item",
+    "specseal-stamp-refused",
     "specseal-last-export.json",
     "specseal-session-lease",
 )

@@ -64,24 +64,25 @@ def test_legacy_parity_still_points_at_that_table():
 
 
 def test_the_record_of_a_comparison_names_its_writer():
-    """T5 of #970 (C5 of #2): the parity mark is written by the party that
-    compared, the warden in a review round and the orchestrator where it
-    compared with no review round, and the scribe and the smith write none.
+    """T5 of #970 (C5 of #2): the record of a comparison is written by the
+    party that compared, and the scribe and the smith write none.
 
     The section said *you*, so a smith or a scribe opening the skill read
-    itself as the writer of a mark its definition does not name. Since #940
-    the second writer is named as a party rather than as "a session", which
-    the scribe, the smith and the warden each are too."""
+    itself as the writer of a record its definition does not name. #1027
+    removed the parity mark and gave the comparison under `straight to the
+    PR` to the sealer (`questions.md` Q1's default), so the writers are the
+    warden in each round record and the sealer in `guarantee.md`."""
     text = read("skills", "legacy-parity", "SKILL.md")
     heading = "\n## Recording the comparison\n"
     assert heading in text, "`legacy-parity` lost its section on the record"
     body = " ".join(text.split(heading, 1)[1].split("\n## ", 1)[0].split())
     for clause in (
-        "the warden in a review round",
-        "the orchestrator where it compared with no review round",
-        "The scribe and the smith write none.",
+        "| through the review chain | the warden, in each round record |",
+        "| straight to the PR | the sealer, once, in `guarantee.md` |",
+        "the scribe and the smith record none",
     ):
         assert clause in body, f"the record of a comparison lost {clause!r}"
+    assert "specseal-parity" not in body, "the section still writes the mark"
 
 
 def test_the_resolution_order_ends_with_the_caller_asking():
@@ -105,13 +106,15 @@ def test_the_resolution_order_ends_with_the_caller_asking():
 def test_the_preset_block_carries_the_routing_decision():
     """The rule lived only in `implement`, which loads when the skill is invoked.
 
-    A session that just commits never reads it and meets the gate at the commit
-    instead — measured on a repository where <git-dir>/specseal-reviewed had
-    never been written at all."""
+    A session that never invokes it would meet the gate at its first edit
+    instead. Under `no work item` the block names the record and the trailer
+    that replaced the per-command waiver (#1027)."""
     preset = read("templates", "claude-md-block.md")
     assert "Routing, decided at the start" in preset
     assert "seal/specs/<work-item-id>/routing.md" in preset
-    assert "[no-review]" in preset and "[no-parity]" in preset
+    assert "`seal no-work-item`" in preset
+    assert "`SpecSeal-Routing: no work item`" in preset
+    assert "[no-review]" not in preset and "[no-parity]" not in preset
 
 
 def test_a_later_round_inherits_no_verdict_anywhere():

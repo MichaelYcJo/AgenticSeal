@@ -277,7 +277,7 @@ run.
 
 **A bare "the seal" is ambiguous the moment more than one exists, so every
 reference to an INSTANCE names whose**: the sealer's seal, the warden's
-review mark. The concept and its formats stay bare: the Seal Test, a
+round record. The concept and its formats stay bare: the Seal Test, a
 counterfeit seal, SpecSeal itself. The shape to watch for is a sentence that
 names one party and leaves the seal anonymous: *the warden's audit of the
 seal* names an auditor and not what is audited.

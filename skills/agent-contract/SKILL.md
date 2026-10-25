@@ -101,21 +101,11 @@ even when your probe's run created it. The question is whose the thing is,
 never who happened to trigger it.
 check: tests/test_the_agent_contract_holds_the_universal_rules.py
 
-## 8 Drive git from Python when a probe needs a repository
+## 8 Retired: no gate reads a probe's commit
 
-A probe that commits reaches the commit gate exactly as real work does, and
-the prompt lands on whoever is at the keyboard — which, in a round you are
-running, is nobody who is driving the session. Prefer
-`subprocess.run(["git", "-C", d, "commit", …])` from a Python script: no
-Bash command line carries the commit, so no gate reads one, and several
-probes in one script cost one tool call rather than one each. From Bash,
-write the path out — `git -C /abs/path/r1 …` — because the reader also fills
-in a name the command assigned itself, but not a loop variable, so a loop
-over `$n` still prompts once per value. The waiver, `: '[no-review]';` in
-front of the command, is the last resort: it waives one command, quotes
-included and before it, because after the subcommand a bare word is a
-pathspec and git rejects it.
-check: tests/test_a_probe_that_commits_says_so.py
+Retired by #1027, which removed every gate that read a commit; nothing
+replaced it, and a probe's leavings are rule 7's.
+check: tests/test_the_agent_contract_holds_the_universal_rules.py
 
 ## 9 Edits go through the `Edit` tool
 
@@ -125,45 +115,12 @@ pattern misses, and the miss surfaces at the next check as another edit and
 another run. Where the environment leaves no choice, assert that every
 substitution matched.
 
-And no Bash command line exists, so the commit gate has nothing to read. The
-gate reads a heredoc body as shell, on purpose, with one exception named
-below, and two kinds of segment count. One is a segment whose command word
-is `git` with the `commit` subcommand, whatever the outer command does with
-the body — a patch to a file carrying shell commands as test data, or to a
-document showing a waiver example verbatim, can leave a commit in command
-position. That is why a fixture file can read clean whole and trip as a
-fragment: what counts is the position, never the presence of the word. A
-string a shell would run is a position too — the one `sh -c` is handed, or
-the inside of `$( … )` or a backtick pair — so a file whose strings hold a
-commit there trips whole. The other has no commit in it at all: an `eval`
-whose argument holds a variable, a command substitution or a glob
-stops the session, because nothing can tell what it reduces to without
-running the shell, and the gate fails closed. So searching your patch for a
-commit and finding none does not clear it.
-
-The exception is one shape the gate matches byte for byte, and its body is
-data: `cat`, `tee` or `python3 -` fed by `<<` and a delimiter in single
-quotes, on a first line with nothing before the command, and nothing after
-the terminator when the body goes to a file. Any other spelling of the same
-body is read as shell, and the exception changes nothing about the first
-reason: an edit made through the shell still cannot fail the way an `Edit`
-call does. The grammar, slot by slot, has one home, and a session spelling a
-heredoc any other way reads it there first: `docs/commit-review-gate-spec.md`
-*A file edit goes through the `Edit` tool*.
-
-That second reason is about a reader, and since #692 the reader judges a
-commit only where git's hooks cannot: a clone whose hooks slot is somebody
-else's, an opted-in clone no session has reached yet, a target it cannot
-place from a session whose own clone carries no hooks, and every command
-whose shape is not known plain (only `git`'s plain commits beside a few
-harmless words like `cd` and `echo`, with nothing a shell parses again and
-no assignment, are plain). Everywhere else — every
-opted-in clone a session reaches, unless `core.hooksPath` or a hook file it
-did not write holds the slot — git judges
-a commit inside the commit, in the worktree it lands in, and no command text
-is read for it (`docs/the-commit-gate-inside-git.md` *The commit gate inside
-git*). The first reason holds everywhere, and it is the one that makes this
-rule yours.
+And the routing check sees only the edit tools. `hooks/routing-edit-gate.py`
+refuses a `Write`, `Edit` or `NotebookEdit` on a branch no routing
+declaration names, before the edit lands; a `sed -i`, a redirection or a
+script writes a file with no edit tool, so an edit through the shell is
+invisible to it, and only the pull request's trailer arm is left to catch
+the change (`docs/the-routing-check.md` *The edit check*).
 check: tests/test_edits_go_through_the_edit_tool.py
 
 ## 10 Batch independent reads and runs
@@ -226,21 +183,14 @@ check: tests/test_the_agent_contract_holds_the_universal_rules.py
 
 Commit with the repository's absolute path written out after `git -C`, in a
 command of its own. Where a `cd` comes first, join it to the commit with `&&`
-and nothing else. A probe's commit is rule 8's, and a file edit is rule 9's.
+and nothing else. A file edit is rule 9's.
 
-Two reasons, and they are two different facts about the gate. First, your
-shell starts in the session's directory at every call, so a command reaches
-your worktree through a `cd`, and whatever follows a `;` or a new line after
-that `cd` also runs where a failed `cd` leaves the shell: the session's own
-directory. The gate judges the commit in both places, because both can
-happen, and the session's directory is usually one no declaration names.
-Second, the gate reads a command before the shell expands it, so a loop
-variable in the path names no directory at all, and a commit it cannot place
-stops the same way. Both are about the reading of a command, which judges a
-commit only where git's hooks cannot — rule 9 names the four places — and the
-shape above is still the one to write: a person reading the transcript can
-follow it, and it is the only one the reading can place where it still
-judges.
+Your shell starts in the session's directory at every call, so a command
+reaches your worktree through a `cd`, and whatever follows a `;` or a new
+line after that `cd` also runs where a failed `cd` leaves the shell: the
+session's own directory. A commit written with its path out lands where it
+says whichever way the `cd` went, and a person reading the transcript can
+see where that is.
 check: tests/test_a_commit_names_its_repository.py
 
 ## 17 Clean up only what you started

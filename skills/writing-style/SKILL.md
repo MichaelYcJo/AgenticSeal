@@ -232,8 +232,8 @@ PR 본문의 기준은 이것이다 — **파일을 하나도 열지 않고 읽�
 
 | 나쁨 | 좋음 |
 |---|---|
-| the seal | the sealer's seal · the warden's review mark · the smith's labels |
-| 리뷰 표시 | warden 이 남기는 리뷰 표시 |
+| the seal | the sealer's seal · the warden's round record · the smith's labels |
+| 회차 기록 | warden 이 쓰는 회차 기록 |
 
 판단 기준은 **그 문장에서 주인이 둘 이상일 수 있는가**다. 찾아야 할 모양은 한
 쪽만 이름을 갖고 나머지가 익명으로 남은 문장이다 — *the warden's audit of the
