@@ -125,6 +125,26 @@ class Test_main:
         # A `Write` may create the directories above its file.
         assert decision_of(run(repo / "src" / "new.py", tool="Write")) == "deny"
 
+    def test_the_declaration_path_is_written_with_slashes_on_windows(self, monkeypatch):
+        """CI run 40209166795, Windows: the refusal said
+        `seal\\specs\\<work-item-id>\\routing.md`. A repository path shown to
+        a person is written with `/` on every platform, so the hint is built
+        with Windows' path rules here and still reads with `/`, and so does an
+        absolute root on another drive."""
+        import ntpath
+        import types
+
+        monkeypatch.setattr(gate, "os", types.SimpleNamespace(path=ntpath, sep="\\"))
+        monkeypatch.setattr(gate.optin, "home_at", lambda top: r"C:\r\seal")
+        assert gate.declaration_hint(r"C:\r") == "seal/specs/<work-item-id>/routing.md"
+        assert (
+            gate.declaration_hint(r"D:\w")
+            == "C:/r/seal/specs/<work-item-id>/routing.md"
+        )
+        # The edited file, in the same refusal, the same way.
+        said = gate.reason(r"C:\r\src\new.py", r"C:\r", "feat", False)
+        assert "`src/new.py` is in" in said, said
+
     def test_a_detached_head_names_no_branch_and_is_refused(self, repo):
         opt_in(repo)
         git(repo, "switch", "-q", "--detach")

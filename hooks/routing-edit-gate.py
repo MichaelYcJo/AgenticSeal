@@ -162,7 +162,8 @@ def ignored(top, path):
 
 def declaration_hint(top):
     """The declaration path a refusal tells a session to write, relative to
-    `top` and spelled the way the platform spells it.
+    `top` and written with `/` on every platform, as a repository path shown
+    to a person is (CI run 40209166795 showed Windows' `\\`).
 
     Under the root this repository resolves to: in local mode that root is
     under the git directory. A linked worktree on another Windows drive has no
@@ -175,12 +176,14 @@ def declaration_hint(top):
         rel = os.path.relpath(home, top)
     except ValueError:
         rel = home
-    return os.path.join(rel, optin.WORK_ITEMS, "<work-item-id>", routing.FILENAME)
+    parts = (rel.replace(os.sep, "/"), optin.WORK_ITEMS, "<work-item-id>")
+    return "/".join((*parts, routing.FILENAME))
 
 
 def reason(path, top, branch, pressed):
     """The whole text of the refusal."""
-    shown = os.path.relpath(os.path.realpath(path), os.path.realpath(top))
+    rel = os.path.relpath(os.path.realpath(path), os.path.realpath(top))
+    shown = rel.replace(os.sep, "/")
     named = branch or NO_BRANCH
     state = (STATE if branch else DETACHED).format(file=shown, top=top, branch=named)
     ways = (PRESSED if pressed else ATTENDED).format(
