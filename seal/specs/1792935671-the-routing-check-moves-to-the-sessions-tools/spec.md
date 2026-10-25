@@ -266,7 +266,7 @@ Out:
 
     | Hook | Fires | Does |
     |---|---|---|
-    | `implementer-mark` (`pre-agent`) | an Agent or Task spawn whose `subagent_type` is `framer` or `smith` | writes the checked-out branch name to `<git-dir>/specseal-planner` or `<git-dir>/specseal-implementer`, and prints nothing |
+    | `implementer-mark` (`pre-agent`) | an Agent or Task spawn whose `subagent_type` is `framer` or `smith` | writes the name of the branch checked out, else of the branch a paused rebase names, to `<git-dir>/specseal-planner` or `<git-dir>/specseal-implementer`, and prints nothing |
     | `implementer-notice` (`post-bash`) | a command that invokes `git commit` | where the branch's declaration names an agent on an axis and no mark of that axis stands for the branch, prints one line naming the file, one line for both axes where both are unfulfilled, once per session per repository; silent for an axis whose mark stands, whose row is absent or outside its vocabulary, or which answers `the session` |
 
     Neither hook can deny or ask. A mark is keyed on the branch, because a work
