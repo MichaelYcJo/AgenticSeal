@@ -1,6 +1,6 @@
 # Implementation Plan: 1792935671-the-routing-check-moves-to-the-sessions-tools
 
-Approved <date> by <who>, when `smith` was spawned.
+Approved 2026-10-25 by the orchestrator under the owner's automation answer, when `smith` was spawned for phases 1 to 4.
 
 ## Summary
 
