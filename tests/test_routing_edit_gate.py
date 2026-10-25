@@ -156,6 +156,51 @@ class Test_main:
         ) in said, said
         assert "naming `the branch you check out`" in said, said
 
+    def test_accepts_a_detached_head_at_a_commit_a_declared_branch_holds(
+        self, repo, tmp_path
+    ):
+        """Round 1 of #1027, finding 3: a warden's clone at the reviewed SHA
+        and a red-first clone of an earlier commit are detached checkouts of
+        a declared branch. The branch is found under its local name, or under
+        a remote-tracking one where the clone has no local branch of it."""
+        opt_in(repo)
+        base = branch_of(repo)
+        declare_routing(repo)
+        git(repo, "add", "seal")
+        git(repo, "commit", "-qm", "declare")
+        (repo / "f.txt").write_text("later\n", encoding="utf-8")
+        git(repo, "commit", "-qam", "later")
+        # The branch's head, and an earlier commit of it, by the local name.
+        for at in (base, f"{base}~1"):
+            git(repo, "switch", "-q", "--detach", at)
+            assert decision_of(run(repo / "f.txt")) == "silent", at
+        git(repo, "switch", "-q", base)
+        # A clone with no local branch of that name: the remote-tracking one,
+        # for a branch name holding a `/`.
+        git(repo, "switch", "-q", "feature/x")
+        declare_routing(repo, item="1787708605-another")
+        git(repo, "add", "seal")
+        git(repo, "commit", "-qm", "declare feature/x")
+        git(repo, "switch", "-q", base)
+        clone = tmp_path / "clone"
+        git_run(tmp_path, "clone", "-q", "--no-local", str(repo), str(clone))
+        git(clone, "switch", "-q", "--detach", "origin/feature/x")
+        assert git(clone, "branch", "--list", "feature/x") == ""
+        assert decision_of(run(clone / "f.txt")) == "silent"
+
+    def test_refuses_a_detached_head_no_declared_branch_holds(self, repo):
+        """The same tree, holding the declaration, at a commit only an
+        undeclared branch holds: still refused."""
+        opt_in(repo)
+        declare_routing(repo)
+        git(repo, "add", "seal")
+        git(repo, "commit", "-qm", "declare")
+        git(repo, "switch", "-q", "-c", "side")
+        (repo / "f.txt").write_text("side\n", encoding="utf-8")
+        git(repo, "commit", "-qam", "side")
+        git(repo, "switch", "-q", "--detach")
+        assert decision_of(run(repo / "f.txt")) == "deny"
+
     def test_under_the_automation_press_the_refusal_names_no_question_tool(self, repo):
         """S8: the person pressed `automation`, read from this session's own
         transcript, so the deny puts nothing to them."""

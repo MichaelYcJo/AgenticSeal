@@ -8,8 +8,10 @@ documents and rewrites the third section, and the policy root changes only
 when `settle --apply` applies that. `rules --check` reads every check line in
 the tree as it stands (`tests/test_rules.py::Test_main::
 test_every_check_line_in_the_tree_holds`), so each marker is carried here by
-a class with no case: nothing of the retired rule is left to test. The settle
-that applies the work item removes this file with the documents.
+a class with no case: nothing of the retired rule is left to test. Nothing
+removes this file on its own, because `settle` touches no file under
+`tests/`: the pull request that settles this work item deletes it, with the
+five caseless files `docs/` names for it, as issue #1028 asks.
 """
 
 import pytest

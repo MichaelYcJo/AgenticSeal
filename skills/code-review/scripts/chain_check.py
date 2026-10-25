@@ -2043,6 +2043,11 @@ UNDECLARED_TRAILER = (
     "this pull request judges names that work item: commit its `routing.md`, "
     "naming this branch, or correct the trailer"
 )
+LOCAL_TRAILER = (
+    f"commit {{sha}} carries `{TRAILER}: {{item}}` in a repository whose root "
+    "is local, where no routing declaration is committed for it to name: "
+    "printed, not judged"
+)
 NO_WORK_ITEM_TRAILER = (
     f"commit {{sha}} carries `{TRAILER}: {NO_WORK_ITEM}`: its session recorded "
     "that the change belongs to no work item, and nothing here checks it "
@@ -2055,17 +2060,20 @@ def routing_trailers(root, base):
     request's own commits, oldest first, or None where git cannot list them.
 
     The commits are `base..HEAD` with merges left out, read by git's own
-    trailer parser so the key matches as git matches it. A squash GitHub
-    committed (`carried_by`'s rule: committer `noreply@github.com`, subject
-    ending `(#N)`) closed another pull request, which judged its trailer, so
-    it is not this pull request's own."""
+    trailer parser so the key matches as git matches it. A commit someone
+    other than its author committed is not judged: a person's cherry-pick or
+    rebase of a session's commit, and GitHub's squash or rebase-merge, carry
+    a trailer their committer did not write, and a session's own commit is
+    committed by its author (round 1 of #1027, finding 2). The two emails are
+    compared as git records them, case-folded, so a session whose committer
+    email differs from its author email is not judged either."""
     out = git(
         root,
         "log",
         "--no-merges",
         "--reverse",
         "-z",
-        f"--format=%H%x1f%ce%x1f%s%x1f%(trailers:key={TRAILER},valueonly,separator=%x1e)",
+        f"--format=%H%x1f%ae%x1f%ce%x1f%(trailers:key={TRAILER},valueonly,separator=%x1e)",
         f"{base}..HEAD",
     )
     if out is None:
@@ -2075,10 +2083,8 @@ def routing_trailers(root, base):
         parts = entry.strip("\n").split("\x1f")
         if len(parts) != 4:
             continue
-        sha, committer, subject, values = parts
-        if committer.strip().lower() == SQUASH_COMMITTER and SQUASH_SUBJECT.search(
-            subject.strip()
-        ):
+        sha, author, committer, values = parts
+        if author.strip().lower() != committer.strip().lower():
             continue
         for value in values.split("\x1e"):
             if value.strip():
@@ -2086,14 +2092,19 @@ def routing_trailers(root, base):
     return found
 
 
-def trailer_findings(trailers, judged):
+def trailer_findings(trailers, judged, local=False):
     """`(problems, notices)` for TRAILERS, each `(commit, value)`: a value
     naming a work item that is not among JUDGED, the ids of the declarations
-    this pull request judges, is a problem; `no work item` is a notice."""
+    this pull request judges, is a problem; `no work item` is a notice. Where
+    LOCAL, the root is under the common git directory and no declaration is
+    ever committed, so a work item's value is a notice too (round 1 of #1027,
+    finding 1)."""
     problems, notices = [], []
     for sha, value in trailers:
         if value == NO_WORK_ITEM:
             notices.append(("", 0, NO_WORK_ITEM_TRAILER.format(sha=sha[:8])))
+        elif local:
+            notices.append(("", 0, LOCAL_TRAILER.format(sha=sha[:8], item=value)))
         elif value not in judged:
             problems.append(("", 0, UNDECLARED_TRAILER.format(sha=sha[:8], item=value)))
     return problems, notices
@@ -2179,7 +2190,9 @@ def main(argv=None):
         )
         return 2
     judged_ids = {os.path.basename(os.path.dirname(rel)) for rel in declarations}
-    problems, notices = trailer_findings(trailers, judged_ids)
+    problems, notices = trailer_findings(
+        trailers, judged_ids, local=bool(local_root(root, routing))
+    )
     kind = "error" if strict else "notice"
     if not declarations:
         print(reader.annotate("notice", "", 0, why))

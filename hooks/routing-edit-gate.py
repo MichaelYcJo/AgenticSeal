@@ -21,7 +21,11 @@ lands in a commit; and one outside every opted-in repository.
 **A detached HEAD names no branch, except during a paused rebase**, where the
 branch the rebase names (`rebase-merge/head-name`, else
 `rebase-apply/head-name`, under the worktree's git directory) stands for it,
-so resolving a conflict on a declared branch is never refused.
+so resolving a conflict on a declared branch is never refused, **and at a
+commit that a declared branch already holds**, under its local name or a
+remote-tracking one, so a warden's clone at the reviewed commit and a
+red-first clone of an earlier one edit without a stop. A detached HEAD at
+any other commit is refused.
 
 The declaration is read through `routing.for_branch`, so every way it cannot
 be read is no declaration, and the edit is refused. The no-work-item record
@@ -149,6 +153,28 @@ def rebase_branch(top):
     return ""
 
 
+def detached_on_declared(top):
+    """Whether TOP's detached HEAD is a commit that a branch some declaration
+    names already holds, under `refs/heads/<branch>` or any
+    `refs/remotes/<remote>/<branch>`: a clone at a reviewed commit, or a
+    red-first check of an earlier commit of that branch. Commits made there
+    reach a pull request only through a branch, which this gate and the
+    trailer arm judge (round 1 of #1027, finding 3)."""
+    names = {d["branch"] for _, d in routing.declarations(top) if d.get("branch")}
+    for name in sorted(names):
+        code, out = git(
+            top,
+            "for-each-ref",
+            "--format=%(refname)",
+            f"refs/heads/{name}",
+            f"refs/remotes/*/{name}",
+        )
+        for ref in out.split() if code == 0 else []:
+            if git(top, "merge-base", "--is-ancestor", "HEAD", ref)[0] == 0:
+                return True
+    return False
+
+
 def ignored(top, path):
     """Whether git ignores PATH in TOP's worktree. A test git cannot answer
     is no answer, and the file is judged."""
@@ -207,6 +233,8 @@ def decide(event):
         return None
     branch = routing.current_branch(top) or rebase_branch(top)
     if routing.for_branch(top, branch):
+        return None
+    if not branch and detached_on_declared(top):
         return None
     if ignored(top, path):
         return None

@@ -135,9 +135,12 @@ so the two cannot be in different languages without one of them being wrong
 at the merge. That is why one row answers for all four surfaces rather than
 one row each.
 
-**A session's commit in an opted-in repository ends with one
-`SpecSeal-Routing:` trailer, naming its work item or reading `no work
-item`.** The work item is its directory's name under `seal/specs/`, the one
+**A session's commit in a repository whose root is shared (`<repo>/seal/`)
+ends with one `SpecSeal-Routing:` trailer, naming its work item or reading
+`no work item`.** In local mode a commit carries none: no declaration it
+could name is ever committed, and the history belongs to a team that does
+not run SpecSeal; `chain-check` prints a work item's trailer it meets there
+and judges none. The work item is its directory's name under `seal/specs/`, the one
 the branch's `routing.md` sits in; `no work item` is the value where the
 session ran `seal no-work-item`. The trailer stands in the message's last
 paragraph, beside any other trailer, so git's trailer parser reads it:

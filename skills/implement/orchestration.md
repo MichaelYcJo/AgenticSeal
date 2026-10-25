@@ -285,7 +285,7 @@ A single-select question, put alone:
 |---|---|---|
 | 1 | **automation** | Every party runs: the framer frames it, `smith` builds it, `warden` reviews it, the orchestrator takes the broad run, the sealer audits it, and the pull request opens. **This is the last question: nothing stops to ask again.** |
 | 2 | **per axis** | The four boxes below are the answer. |
-| 3 | **no work item** | No work item is opened: no frame, no review, no seal, no `routing.md`, and this session writes the change itself. The session runs `seal no-work-item` before its first edit, every commit ends with the trailer `SpecSeal-Routing: no work item`, and the pull request's check only lists those commits. |
+| 3 | **no work item** | No work item is opened: no frame, no review, no seal, no `routing.md`, and this session writes the change itself. The session runs `seal no-work-item` before its first edit; where the root is shared, every commit ends with the trailer `SpecSeal-Routing: no work item`, and the pull request's check only lists those commits. |
 
 **A label names what it turns off, not where it ends.** A label that names a
 destination is read as what runs: `straight to the PR` was read as *call no
@@ -295,8 +295,9 @@ happen.
 
 **The exit is last.** It is the least-verified path and one click, so it
 sits where a reader's eye lands last, and its description states the cost.
-It stays visible in use: every commit it covers says `no work item` in its
-trailer, and the pull request's check prints each one.
+It stays visible in use where the root is shared: every commit it covers
+says `no work item` in its trailer, and the pull request's check prints each
+one.
 
 **A run resumed in a new session puts question 1 through `AskUserQuestion`
 again, before the first spawn.** Where the declaration answers `Automation`
@@ -479,7 +480,7 @@ so a declared work item edits whichever reviewer it named, and CI reads the
 same file at the pull request. Work never headed for a reviewer, such as a
 release chore or a documentation pass, declares `straight to the PR`. For a
 change belonging to no work item, the session runs `seal no-work-item`, and
-each commit's trailer reads `no work item`
+where the root is shared each commit's trailer reads `no work item`
 (`skills/commit-pr-convention/SKILL.md`).
 
 **Which branch the pull request lands on is decided with the routing
@@ -506,9 +507,9 @@ that turns the check off and leaves no trace. The routing declaration is not
 that switch. It moves the check rather than removing it: the chain answer is
 checked at the pull request against the round record, the direct answer
 against the broad run's `broad-gate.md` at the same place, and no third
-value means no enforcement anywhere. Nor is `seal no-work-item`: every commit
-it covers says `no work item` in its trailer, which the pull request's check
-prints. What the direct answer
+value means no enforcement anywhere. Nor is `seal no-work-item`: where the
+root is shared, every commit it covers says `no work item` in its trailer,
+which the pull request's check prints. What the direct answer
 turns off is the reviewer, and the broad run is owed just the same. Deciding
 at the start moves the question to the minute where answering it costs a
 reply rather than a stopped run.

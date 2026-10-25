@@ -2934,7 +2934,8 @@ class Test_routing_trailers:
         self, undeclared, capsys
     ):
         """A merge's message is not a commit of the pull request, and a squash
-        GitHub committed was judged at the pull request it closed."""
+        GitHub committed was judged at the pull request it closed: its
+        committer is not its author, one case of the rule below."""
         root = undeclared
         git(root, "switch", "-q", "-c", "side", "main")
         write(root, "s.txt", "s\n")
@@ -2954,6 +2955,47 @@ class Test_routing_trailers:
         write(root, "q.txt", "q\n")
         commit_saying(
             root, "feat: elsewhere (#7)", f"SpecSeal-Routing: {ROUTED}", env=GITHUB
+        )
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert ROUTED not in out, out
+
+    def test_a_work_item_trailer_at_a_local_root_is_printed_not_refused(
+        self, undeclared, capsys
+    ):
+        """Round 1 of #1027, finding 1: in local mode no declaration is ever
+        committed, so a trailer naming a work item could match none. A ready
+        pull request prints it and passes."""
+        root = undeclared
+        os.makedirs(os.path.join(root, ".git", "seal", "specs", ROUTED))
+        write(root, "a.txt", "a\n")
+        named = commit_saying(root, "feat: a", f"SpecSeal-Routing: {ROUTED}")
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert chain.LOCAL_TRAILER.format(sha=named[:8], item=ROUTED) in out, out
+        assert chain.LOCAL_TRAILER.format(sha="x", item="y") == (
+            "commit x carries `SpecSeal-Routing: y` in a repository whose root "
+            "is local, where no routing declaration is committed for it to "
+            "name: printed, not judged"
+        )
+        assert "commit its `routing.md`" not in out, out
+
+    def test_a_commit_its_author_did_not_commit_is_not_judged(self, undeclared, capsys):
+        """Round 1 of #1027, finding 2: a person's `cherry-pick -x` of a
+        session's commit is the person's commit, carrying a trailer the
+        person did not write. Its committer is not its author, which is how
+        git records every commit somebody else carried, GitHub's squash
+        among them; a session's own commit is committed by its author."""
+        root = undeclared
+        git(root, "switch", "-q", "-c", "session", "main")
+        write(root, "s.txt", "s\n")
+        picked = commit_saying(root, "feat: s", f"SpecSeal-Routing: {ROUTED}")
+        git(root, "switch", "-q", "feature/t")
+        subprocess.run(
+            ["git", "-C", str(root), "cherry-pick", "-x", picked],
+            check=True,
+            capture_output=True,
+            env={**os.environ, "GIT_COMMITTER_EMAIL": "person@example.com"},
         )
         code, out = check(root, capsys)
         assert code == 0, out

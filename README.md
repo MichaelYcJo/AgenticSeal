@@ -275,7 +275,7 @@ wrong for every other machine.
 
 | Switch | Effect |
 |---|---|
-| `seal no-work-item` | marks this session, in this clone, as doing work outside any work item, so the edit hook lets it edit. Each commit it then makes ends with the trailer `SpecSeal-Routing: no work item`, and the pull request's check prints those commits |
+| `seal no-work-item` | marks this session, in this clone, as doing work outside any work item, so the edit hook lets it edit. Where the root is shared, each commit it then makes ends with the trailer `SpecSeal-Routing: no work item`, and the pull request's check prints those commits (`skills/commit-pr-convention/SKILL.md`) |
 | `[worktree-ok]` in a worktree command | softens the single-stream worktree deny to ask. Read as a bare word, so it does not count inside a quoted message, and not inside a here-document body either. An Agent call with `isolation: "worktree"` has no command line and takes no token — it asks outright instead |
 | `[shared-tree-ok]` in a switch command | you already chose the shared tree — the switch goes through where the guard could not tell (idle sessions, unreadable environment). Read as a bare word, and not inside a here-document body. Ignored while another session is active, and while the tree is dirty |
 | `WORKTREE_GUARD_IDLE_MIN=n` | idle threshold in minutes (default 5) |
@@ -352,8 +352,8 @@ moved every gate is silent there.
 The move happens once, at the first session start after updating. The hook
 renames every file with a staged `git mv` (history follows), prints one line
 saying what moved, and stops there: you review `git diff --cached` and
-commit. That commit belongs to no work item, so a session making it ends
-it with the trailer `SpecSeal-Routing: no work item`.
+commit. That commit belongs to no work item, so a session making it in
+shared mode ends it with the trailer `SpecSeal-Routing: no work item`.
 
 Only the plugin's own work items move out of `specs/`: a directory named
 `<unix-seconds>-<slug>` where git tracks a `routing.md`, or a file under
@@ -585,10 +585,11 @@ What this does not do is as load-bearing as what it does.
 - **The gates put the decision to you or to the model; they do not block.**
   The edit hook refuses an edit on an undeclared branch and names the ways
   on, and `seal no-work-item` is one command any session can run; what it
-  leaves is the `no work item` trailer on each commit, which the pull
-  request's check prints. It is a record for a session about to edit
-  unrouted work, not a security control — an edit made through the shell
-  never reaches it, and a person's own commit is never judged.
+  leaves, where the root is shared, is the `no work item` trailer on each
+  commit, which the pull request's check prints. It is a record for a
+  session about to edit unrouted work, not a security control — an edit
+  made through the shell never reaches it, and a person's own commit is
+  never judged.
 - **`rules --check` proves a named test exists, not that it asserts the rule.**
   A target that resolves while the test checks something else reads clean,
   and a rule written as `check: none reader: <who>` is held by its reader
