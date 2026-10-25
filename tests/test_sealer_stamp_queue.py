@@ -143,7 +143,7 @@ class Test_shaped:
 
 class Test_load_stamp:
     def test_accepts_the_shipped_seal_stamp(self):
-        assert callable(gate.load_stamp().queue_for_local_guarantee)
+        assert callable(gate.load_stamp().queue_for_written_guarantee)
 
     def test_refuses_nothing_itself_and_lets_main_stay_silent(
         self, local, edited, monkeypatch
@@ -188,16 +188,20 @@ class Test_main:
         assert os.path.dirname(written) == str(repo / ".git" / "specseal-stamp" / "s-1")
 
     @pytest.mark.rule("stamp-drawn-once")
-    def test_refuses_a_shared_mode_guarantee_post_commit_queues(
+    def test_accepts_a_shared_mode_sealed_guarantee_at_its_write(
         self, local, edited, tmp_path
     ):
-        """1792363231 S5, the gate's half: a `sealed` under `<repo>/seal/`,
-        whose stamp `post-commit` queues at the commit, queues nothing here."""
+        """#1027 S13, the gate's half: a `sealed` written under `<repo>/seal/`
+        is queued at the write, as a local root's is, for the payload's
+        session and under the clone's common dir."""
         repo, path = local
         shared = repo / "seal" / "specs" / STAMP_ITEM
         shutil.copytree(path.parent, shared)
-        assert edited(payload(shared / "guarantee.md", repo)) == ""
-        assert queued_values(repo) == []
+        shutil.rmtree(path.parent)
+        out = edited(payload(shared / "guarantee.md", tmp_path))
+        (written,) = queued_values(repo)
+        assert os.path.dirname(written) == str(repo / ".git" / "specseal-stamp" / "s-1")
+        assert json.loads(out) == {"systemMessage": queued_line(written)}
 
     @pytest.mark.rule("stamp-drawn-once")
     @pytest.mark.parametrize(

@@ -213,12 +213,13 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
     from conftest import rule_carriers
 
     held = rule_carriers("stamp-drawn-once")
-    local, shared = "Test_queue_for_local_guarantee.", "Test_queue_for_guarantee."
+    local, shared = "Test_queue_for_written_guarantee.", "Test_queue_for_guarantee."
     for case in (
         local + "test_a_local_mode_sealed_guarantee_queues_one_stamp",
         local + "test_a_local_mode_second_sealed_queues_nothing",
         local + "test_a_local_mode_guarantee_off_its_branch_queues_nothing",
-        "Test_main.test_refuses_a_shared_mode_guarantee_post_commit_queues",
+        local + "test_a_shared_mode_sealed_guarantee_queues_one_stamp_at_its_write",
+        "Test_main.test_accepts_a_shared_mode_sealed_guarantee_at_its_write",
         "Test_main.test_accepts_a_local_mode_sealed_guarantee",
         "Test_main.test_accepts_a_subagents_write_for_the_main_session",
         "Test_main.test_refuses_any_other_edit_before_it_loads_seal_stamp",
@@ -347,7 +348,7 @@ def test_the_policy_states_the_refusal_record_and_names_its_cases():
     from conftest import rule_carriers
 
     held = rule_carriers("refused-sealed-leaves-a-record")
-    local, shared = "Test_queue_for_local_guarantee.", "Test_queue_for_guarantee."
+    local, shared = "Test_queue_for_written_guarantee.", "Test_queue_for_guarantee."
     for case in (
         "Test_pre_commit.test_refuses_a_sealed_off_the_history_and_records_the_refusal",
         "Test_post_commit.test_refuses_to_draw_again_over_a_refused_row_of_a_drawn_seal",

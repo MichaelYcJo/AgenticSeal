@@ -11,11 +11,12 @@ from the broad gate's run, which draws nothing. In shared mode git's
 it landed in, and `seal_stamp.queue_for_guarantee` writes the stamp's rows to
 a values file under `<git-common-dir>/specseal-stamp/<session>/`, keyed by
 `CLAUDE_CODE_SESSION_ID`, which every Bash call of a session and of its
-subagents carries as the MAIN session's id and git hands its hooks. In local
-mode no commit carries the root, so `hooks/sealer-stamp-queue.py` writes the
-same file at the `Write` or `Edit` of the guarantee
-(`seal_stamp.queue_for_local_guarantee`), keyed by the payload's
-`session_id`, which a subagent's write carries as the main session's.
+subagents carries as the MAIN session's id and git hands its hooks. In either
+mode `hooks/sealer-stamp-queue.py` writes the same file at the `Write` or
+`Edit` of the guarantee (`seal_stamp.queue_for_written_guarantee`), keyed by
+the payload's `session_id`, which a subagent's write carries as the main
+session's; in shared mode the one queued first stands, since the work item
+is stamped once.
 
 This hook draws each undrawn file of its own session once, as a JSON
 `systemMessage` from `Stop`. That surface was measured on the owner's screen

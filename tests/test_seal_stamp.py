@@ -6,8 +6,8 @@ shell runs under them but the one case that runs the command a person types.
 The values files are written under a case's own directory. Git runs where the
 module asks git: the shared writer over one repository built once for the
 module and copied for each case, where a second common directory stands for a
-second clone of it, and the local writer over one local-mode repository built
-the same way.
+second clone of it, and the write-time writer over that repository and over
+one local-mode repository built the same way.
 """
 
 import ast
@@ -1475,6 +1475,19 @@ class Test_sealed_before:
         commit(shared.repo, "later")
         assert stamp.sealed_before(chain, str(shared.repo), GUARANTEE) is False
 
+    @pytest.mark.rule("refused-sealed-leaves-a-record")
+    def test_skips_a_sealed_this_clone_recorded_refusing(self, shared):
+        """#1027 S14: no gate stops a refused row from becoming history, so
+        the history skips a `sealed` this clone recorded refusing, as the
+        earlier-run chain does; another clone's history still counts it."""
+        write(shared.repo, "x.txt", "later\n")
+        commit(shared.repo, "later")
+        before = (chain, str(shared.repo), GUARANTEE)
+        assert stamp.sealed_before(*before, common=shared.common, ident=ITEM_ID)
+        stamp.record_refusal(shared.common, ITEM_ID, shared.target)
+        assert not stamp.sealed_before(*before, common=shared.common, ident=ITEM_ID)
+        assert stamp.sealed_before(*before)
+
     def test_refuses_a_root_commit_which_has_no_history(self, tmp_path):
         write(tmp_path, GUARANTEE, guarantee_text("deadbee", "main"))
         git(tmp_path, "init", "-q", "-b", "main")
@@ -1517,7 +1530,21 @@ def item_dir(item):
 
 
 def queue_local(item, session="s-1", name="guarantee.md"):
-    return stamp.queue_for_local_guarantee(str(item_dir(item) / name), session)
+    return stamp.queue_for_written_guarantee(str(item_dir(item) / name), session)
+
+
+def queue_written(item, session="s-1"):
+    """The writer at the write of the shared root's `guarantee.md`."""
+    return stamp.queue_for_written_guarantee(str(item.repo / GUARANTEE), session)
+
+
+def uncommitted(item):
+    """The shared repository with its closing records' commit undone and the
+    records left on disk, the work item's `routing.md` naming `feat/x` beside
+    them: the moment the sealer's `Write` lands, before anything commits it."""
+    git(item.repo, "reset", "-q", "HEAD~1")
+    write(item.repo, f"seal/specs/{ITEM_NAME}/routing.md", routing_text())
+    return item
 
 
 def off_branch_commit(repo):
@@ -1553,7 +1580,67 @@ def _a_branch_gone(item):
     write(item_dir(item), "routing.md", routing_text("feat/merged"))
 
 
-class Test_queue_for_local_guarantee:
+class Test_queue_for_written_guarantee:
+    @pytest.mark.rule("stamp-drawn-once")
+    def test_a_shared_mode_sealed_guarantee_queues_one_stamp_at_its_write(self, shared):
+        """#1027 S13: the sealer's `Write` under the shared root queues the
+        work item's one values file, as local mode's does. A second write of
+        the same verdict queues nothing, and neither does the commit that
+        carries it, which `post-commit` reads until it is removed."""
+        uncommitted(shared)
+        said = queue_written(shared)
+        (written,) = queued(shared.common)
+        real = os.path.realpath(written)
+        assert said == [
+            stamp.QUEUED.format(id=ITEM_ID, path=real, command=stamp.quote(real))
+        ]
+        assert stamp.read_values(written)["rows"][:3] == [
+            ("SEALED", ""),
+            ("tree", shared.target),
+            ("", "feat/x"),
+        ]
+        assert queue_written(shared, session="s-2") == []
+        commit(shared.repo, "the closing records")
+        assert queue(shared) == []
+        assert queued(shared.common) == [written]
+
+    @pytest.mark.rule("stamp-drawn-once")
+    def test_a_shared_mode_sealed_already_in_the_history_queues_nothing(self, shared):
+        """#1027 S13: a `sealed` HEAD's history carries was stamped where it
+        was made, so a write of the guarantee over it queues nothing, even in
+        a clone holding no values file."""
+        write(shared.repo, f"seal/specs/{ITEM_NAME}/routing.md", routing_text())
+        assert queue_written(shared) == [] and queued(shared.common) == []
+
+    @pytest.mark.rule("refused-sealed-leaves-a-record")
+    def test_a_shared_mode_seal_refused_then_committed_then_resealed_draws_once(
+        self, shared
+    ):
+        """#1027 S14: a `sealed` over a commit `feat/x` does not hold queues
+        nothing, records the refusal and says so; the stale row is committed,
+        since no gate stops it any more, and the new audit that keeps it as
+        an earlier run draws the stamp once."""
+        uncommitted(shared)
+        off = off_branch_commit(shared.repo)
+        write(shared.repo, GUARANTEE, guarantee_text(off, shared.base))
+        assert queue_written(shared) == [
+            f"specseal: no stamp was queued for {ITEM_ID}: its guarantee.md names "
+            f"{off}, which feat/x does not hold; a new audit at the head of "
+            "feat/x draws it"
+        ]
+        refused = pathlib.Path(shared.common) / "specseal-stamp-refused"
+        assert os.listdir(refused) == [f"{ITEM_ID}-{off}"]
+        assert queued(shared.common) == []
+        commit(shared.repo, "the stale row")
+        earlier = f"; earlier run: {off} sealed"
+        write(
+            shared.repo,
+            GUARANTEE,
+            guarantee_text(shared.target, shared.base, earlier=earlier),
+        )
+        assert queue_written(shared)
+        assert len(queued(shared.common)) == 1
+
     @pytest.mark.rule("stamp-drawn-once")
     @pytest.mark.parametrize("linked", [False, True], ids=["main checkout", "linked"])
     def test_a_local_mode_sealed_guarantee_queues_one_stamp(
@@ -1739,18 +1826,13 @@ class Test_queue_for_local_guarantee:
         assert queue_local(local) == [] and queued(local.common) == []
 
     @pytest.mark.rule("stamp-drawn-once")
-    def test_refuses_a_shared_root_and_a_file_that_is_not_the_guarantee(
-        self, local, shared
+    def test_refuses_a_root_not_in_force_and_a_file_that_is_not_the_guarantee(
+        self, local
     ):
-        """1792363231 S5, the writer's half: a `guarantee.md` under
-        `<repo>/seal/` is the commit's to queue, and so is one under the common
-        dir of a repository that also has `<repo>/seal/`; the same text in
-        another file of a local work item, or a work item's copy outside
-        `seal/specs/`, is no guarantee."""
-        write(shared.repo, f"seal/specs/{ITEM_NAME}/routing.md", routing_text())
-        assert (
-            stamp.queue_for_local_guarantee(str(shared.repo / GUARANTEE), "s-1") == []
-        )
+        """1792363231 S5, the writer's half: a `guarantee.md` under the common
+        dir of a repository that also has `<repo>/seal/` is under no root in
+        force; the same text in another file of a local work item, or a work
+        item's copy outside `seal/specs/`, is no guarantee."""
         notes = item_dir(local) / "notes.md"
         notes.write_text(
             (item_dir(local) / "guarantee.md").read_text(encoding="utf-8"),
@@ -1760,10 +1842,10 @@ class Test_queue_for_local_guarantee:
         elsewhere = pathlib.Path(local.common) / "seal" / "notes" / ITEM_NAME
         shutil.copytree(item_dir(local), elsewhere)
         guarantee = str(elsewhere / "guarantee.md")
-        assert stamp.queue_for_local_guarantee(guarantee, "s-1") == []
+        assert stamp.queue_for_written_guarantee(guarantee, "s-1") == []
         (local.repo / "seal").mkdir()
         assert queue_local(local) == []
-        assert queued(shared.common) == [] and queued(local.common) == []
+        assert queued(local.common) == []
 
 
 # --- a person's command -------------------------------------------------------------

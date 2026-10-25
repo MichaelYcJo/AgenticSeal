@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-"""PostToolUse(Write|Edit): queue a local-mode work item's stamp at the write
-of its `sealed` guarantee (work item 1792363231).
+"""PostToolUse(Write|Edit): queue a work item's stamp at the write of its
+`sealed` guarantee, under either root (work item 1792363231, #1027).
 
-In local mode the `seal/` root sits under the git common dir, and no commit
-ever carries it, so git's `post-commit`, which queues the stamp in shared
-mode (#975), never sees the sealer's `guarantee.md`. This gate sees the
-write instead. After a `Write` or `Edit` whose file is
-`…/seal/specs/<id>/guarantee.md`, it hands the path and the payload's
-session to `seal_stamp.queue_for_local_guarantee`, which says whether the
-file is a local root's guarantee and whether its verdict queues the work
-item's one stamp. `hooks/sealer-stamp.py` draws what was queued at the main
-session's `Stop`, unchanged.
+The stamp is queued where the verdict comes to read `sealed`: at the write,
+in shared mode as in local mode (`docs/the-review-record.md` *The stamp*).
+After a `Write` or `Edit` whose file is `…/seal/specs/<id>/guarantee.md`, it
+hands the path and the payload's session to
+`seal_stamp.queue_for_written_guarantee`, which says whether the file is the
+guarantee under the repository's root in force and whether its verdict
+queues the work item's one stamp, and records a refusal where the verdict
+names a commit its branch does not hold. `hooks/sealer-stamp.py` draws what
+was queued at the main session's `Stop`, unchanged.
 
 The repository is the edited file's, never the payload's `cwd`, for the
 reason `hooks/session-lease.py` gives: a session can edit a tree its working
@@ -76,7 +76,7 @@ def main():
     if not session or not isinstance(path, str) or not shaped(path):
         return
     try:
-        lines = load_stamp().queue_for_local_guarantee(path, session)
+        lines = load_stamp().queue_for_written_guarantee(path, session)
     except (Exception, SystemExit):
         return
     if lines:
