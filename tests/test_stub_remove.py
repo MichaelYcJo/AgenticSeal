@@ -16,7 +16,7 @@ import stat
 import subprocess
 import sys
 
-from conftest import census_case, git, git_repo, load_hook_module, run_hook
+from conftest import census_case, git, git_repo, load_hook_module
 
 TARGET = "hooks/stub-remove.py"
 
@@ -65,10 +65,20 @@ def plant(directory, name, text, executable=True):
 
 
 def start(cwd, session="s1"):
-    return run_hook(
-        GATE,
-        {"hook_event_name": "SessionStart", "session_id": session, "cwd": str(cwd)},
+    """Run the hook as a session start would; its stdout. Every failure is
+    silent, so a run that exits non-zero or writes to stderr fails here."""
+    r = subprocess.run(
+        [sys.executable, os.path.join(HOOKS, GATE)],
+        input=json.dumps(
+            {"hook_event_name": "SessionStart", "session_id": session, "cwd": str(cwd)}
+        ),
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=30,
     )
+    assert (r.returncode, r.stderr) == (0, ""), r.stderr
+    return r.stdout
 
 
 def snapshot(path):
