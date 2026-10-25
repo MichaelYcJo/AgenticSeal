@@ -21,8 +21,8 @@ naming an earlier finding as regressed or reopened.
 severity: should
 location: `hooks/routing.py:424-426`, `hooks/implementer-mark.py:68`, `hooks/question-gate.py:7-11`, `tests/test_question_gate.py`, `tests/test_implementer_mark.py`
 evidence: executed `python3 <scratchpad>/1792935671-the-routing-check-moves-to-the-sessions-tools/round-5/test_tmp_round5.py`
-verdict: open
-answer:
+verdict: fixed a6740978
+answer: The finding holds, and a6740978 takes the record's direction: `hooks/routing.py#declared` and `hooks/implementer-mark.py` resolve the branch through `routing.worktree_branch`, and `hooks/question-gate.py`'s docstring now names that function and the branch with no commit yet. `tests/test_question_gate.py::Test_main::test_refuses_on_a_branch_with_no_commit_yet` and `tests/test_implementer_mark.py::Test_main::test_accepts_a_smith_spawn_on_a_branch_with_no_commit_yet` were red before the fix, and `mutation-check` putting either reader back on `current_branch` turns its case red (executed by the smith). The two other callers stay on `current_branch`: `hooks/implementer-notice.py` runs only after a command that commits, when the branch is born, and a failed first commit owes no notice; `skills/code-review/scripts/chain_check.py` reads `GITHUB_HEAD_REF` first, and locally a branch with no commit has no range to judge (read by the smith and the orchestrator). The orchestrator re-ran the five touched modules at 131706f2: 456 passed (executed).
 
 Round 4 finding 1 has one cause. `routing.current_branch` runs
 `git rev-parse --abbrev-ref HEAD`, which fails on a branch with no commit,
