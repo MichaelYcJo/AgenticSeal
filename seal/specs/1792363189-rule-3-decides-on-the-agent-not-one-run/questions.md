@@ -1,8 +1,5 @@
 # rule 3 decides on the agent, not on one run (#966) — questions for the planner
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/questions.md — decisions only a human can make,
-extracted so nothing ships on a silent assumption. -->
-
 **What the tree answered, so nobody reopens it.** #966's decision leaves the
 statistic's details open. Each was settled from the tree, and the grounds
 are where a reviewer can open them.

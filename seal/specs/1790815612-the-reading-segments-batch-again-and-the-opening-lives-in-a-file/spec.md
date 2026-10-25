@@ -1,8 +1,5 @@
 # Feature Specification: the reading segments batch again, and the opening lives in a file
 
-<!-- seal/specs/1790815612-the-reading-segments-batch-again-and-the-opening-lives-in-a-file/spec.md — WHAT this work delivers and how we'll know.
-The policy documents in docs/ outrank this file; cite them, don't restate. -->
-
 Ticket #640, release 0.17.0's item C. Two things, and they are one ticket
 because one meter has to read what the other changes.
 

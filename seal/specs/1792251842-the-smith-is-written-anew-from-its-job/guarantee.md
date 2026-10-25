@@ -1,10 +1,5 @@
 # 1792251842-the-smith-is-written-anew-from-its-job — guarantee
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/guarantee.md, written by the
-sealer alone and committed by the orchestrator beside `broad-gate.md`.
-`docs/the-review-record.md` §*The guarantee* holds the rules and
-`agents/sealer.md` the order of work. -->
-
 | Field | Value |
 |---|---|
 | Target SHA | 70aee8ca against origin/release/v0.22.1 @ 4a6e24f6; earlier run: cded3056 withheld; earlier run: 830a7209 withheld |
@@ -15,10 +10,6 @@ Followed this branch's `agents/sealer.md` and `templates/sdd-guarantee.md` (#969
 This run audits what came after cded3056. `git diff --stat cded3056 HEAD` names `guarantee.md` and `overview.md` of this work item and nothing else, and `git diff --quiet 830a7209 HEAD` outside this work item's directory exits 0, so no code, test, definition, workflow or eval record changed since either earlier run: the rows marked *carried* were executed at 830a7209, the rows marked *carried from cded3056* at cded3056, and both stand as they came; the rows marked *this run* were executed at 70aee8ca.
 
 ## Claims re-run
-
-<!-- One row per act of `agents/sealer.md` step 3, whatever the act, and one
-per thing the act checks. `Result` reads `holds`, or `does not hold — <what
-came back>`, and a `does not hold` is what the verdict names. -->
 
 | Claim | Source | Command | Result |
 |---|---|---|---|
@@ -66,9 +57,5 @@ came back>`, and a `does not hold` is what the verdict names. -->
 | the last round (round 4) | round 3's one finding fixed at 65c596fd, nothing new, the chain converged | the tree; nothing a round reads changed after 977b0408 | none |
 | the changelog | the smith's shape and preload, no proof block anywhere, the words in place of marks, the per-agent table, and since cded3056 the warden's own `agents/warden.md` among #969's changes | the tree, `phases/phase-4.md:28-31` and `overview.md:32` on #969's changes; the eval records, commit coordinates and trace counts | none. The framer's two whole reads of `templates/sdd-routing.md` carry one word of #969's that the list does not name, outside the read set as the issue defines it |
 | the pull request body | the same change and table, the spend, the merge, the two CI runs, four rounds; since the repair, every comparison carries #969's contract §2 and the warden's its `agents/warden.md` sentence | every figure, coordinate and CI run it names; the changelog, which it names as the text a user reads | none false; it names the warden's sentence and leaves the warden's three other #969 files to the changelog |
-
-<!-- One line: `sealed`, `withheld — <the claim, its party, its coordinate>`
-or `undecided — <the question, for the owner>`. An owner's answer is a line
-under it, `Answered <date> by <who>: <answer>`, which the next run keeps. -->
 
 Verdict: sealed

@@ -1,26 +1,6 @@
 # Implementation Plan: settle squashes specs into docs/ in place (#953)
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/plan.md — HOW, in phases. This is the Design Gate's
-artifact: where the work alters observable behaviour, approval of this plan is
-the gate. -->
-
 Approved 2026-10-20 by the orchestrator, under the owner's `automation` answer and on `questions.md` Q1–Q5's stated assumptions, when `smith` was spawned for phases 1 and 2; phases 3–5 follow in a second spawn.
-
-<!-- The line above is the record that the gate happened. Fill it in at the
-spawn: reading this plan and spawning the builder IS the approval, so nothing
-extra is being asked for here — only that the approval stop living in a
-transcript. A later session, a reviewer and CI all read the tree, and a plan
-with nobody's name on it is indistinguishable from one nobody approved.
-
-Where the session builds the work itself, `<who>` is still a person and the
-moment is still the first edit rather than a spawn — say so in place of the
-clause about `smith`, and keep the shape.
-
-That shape is `templates/sdd-routing.md`'s, whose `Answered <date> by <who>,
-before the first edit.` line records the other batch the same way: the verb,
-the date, who, and the moment it was given. The two are pinned against each
-other, so neither spelling can drift into a second convention for one kind of
-fact. -->
 
 ## Summary
 

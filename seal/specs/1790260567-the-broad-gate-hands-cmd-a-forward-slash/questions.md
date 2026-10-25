@@ -1,7 +1,5 @@
 # the broad gate hands cmd.exe a forward slash, and a case reaches a live gh (#448, #510) — questions for the planner
 
-<!-- seal/specs/1790260567-the-broad-gate-hands-cmd-a-forward-slash/questions.md -->
-
 **No row here needs a person.** Every row has a default that lets the build
 go ahead. Two rows are measurements and one belongs to the work.
 

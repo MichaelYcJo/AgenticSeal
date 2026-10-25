@@ -1,10 +1,5 @@
 # Guarantee: 1792540458-on-demand-files-state-the-current-rule
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/guarantee.md is written by the
-sealer alone and committed by the orchestrator beside `broad-gate.md`.
-`docs/the-review-record.md` *The guarantee* holds the rules and
-`agents/sealer.md` the order of work. -->
-
 | Field | Value |
 |---|---|
 | Target SHA | e0ce992e9103328640158dc4862d2e697b33c8e1 against b3154f436405182f5a1d486f55b9c879c8d383fd; earlier run: 8e4d1a64 withheld |

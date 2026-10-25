@@ -1,20 +1,11 @@
 # 1792368015-every-finding-carries-an-evidence-line — guarantee
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/guarantee.md, written by the
-sealer alone and committed by the orchestrator beside `broad-gate.md`.
-`docs/the-review-record.md` §*The guarantee* holds the rules and
-`agents/sealer.md` the order of work. -->
-
 | Field | Value |
 |---|---|
 | Target SHA | b8c96ad2 against c26a791e; earlier run: bf60b581 withheld |
 | Broad gate | 58a2100e against c26a791e |
 
 ## Claims re-run
-
-<!-- One row per act of `agents/sealer.md` step 3, whatever the act, and one
-per thing the act checks. `Result` reads `holds`, or `does not hold — <what
-came back>`, and a `does not hold` is what the verdict names. -->
 
 This run audits b8c96ad2. The one commit since the earlier run's bf60b581
 is b8c96ad2, and it touches only this file (`git log --no-merges

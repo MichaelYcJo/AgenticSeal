@@ -1,8 +1,5 @@
 # Feature Specification: a base session that died part-way is not read as finished (#849)
 
-<!-- seal/specs/1791327652-a-base-session-that-died-part-way-is-not-read-as-finished/spec.md — WHAT this work delivers and how we'll know.
-The policy documents in docs/ outrank this file; cite them, don't restate. -->
-
 ## Grounding
 
 | Policy clause | What it fixes for this work |

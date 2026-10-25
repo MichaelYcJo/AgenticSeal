@@ -1,8 +1,5 @@
 # Feature Specification: the changelog is one file per release (#728)
 
-<!-- seal/specs/1791076834-the-changelog-is-one-file-per-release/spec.md — WHAT this work delivers and how we'll know.
-The policy documents in docs/ outrank this file; cite them, don't restate. -->
-
 `CHANGELOG.md` is 8,891 lines at e141980a, with 44 `## X.Y.Z — <date>`
 sections (0.0.1 through 0.18.0) and 170 `<!-- specs/<id> -->` marker lines
 (read: `wc -l`, `grep -c '^## '`, `grep -c '^<!-- specs/'` on the worktree at

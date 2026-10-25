@@ -1,10 +1,5 @@
 # 1791180640-a-base-run-that-collects-only-its-files-is-the-only-measure — questions for the planner
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/questions.md — decisions only a human can make,
-extracted so nothing ships on a silent assumption. Before adding a row,
-check the inheritance rule: if policy is silent but existing behavior
-answers it, inherit and record — only genuinely NEW rules belong here. -->
-
 **Decided from the tree, so nobody reopens them.** The owner's decision left
 "how to know a run collected nothing but its handed files" open, and the
 spawn left five more judgments open. The tree and measurement answered each:

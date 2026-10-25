@@ -1,10 +1,5 @@
 # the hooks and the rider check read fences and comments by one rule (#667, #658) — questions for the planner
 
-<!-- seal/specs/1790645290-the-hooks-and-the-rider-check-read-fences-and-comments-by-one-rule/questions.md — decisions only a human can make,
-extracted so nothing ships on a silent assumption. Before adding a row,
-check the inheritance rule: if policy is silent but existing behavior
-answers it, inherit and record — only genuinely NEW rules belong here. -->
-
 **One row needs a person: Q1.** It blocks phase 1, and phase 1 comes first on
 purpose, because the lesson of `1790635413` is that the readers were built before
 anything independent could check them. Every other row is a measurement or the

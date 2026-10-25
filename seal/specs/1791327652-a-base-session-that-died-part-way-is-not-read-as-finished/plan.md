@@ -1,9 +1,5 @@
 # Implementation Plan: a base session that died part-way is not read as finished (#849)
 
-<!-- seal/specs/1791327652-a-base-session-that-died-part-way-is-not-read-as-finished/plan.md — HOW, in phases. This is the Design Gate's
-artifact: where the work alters observable behaviour, approval of this plan is
-the gate. -->
-
 Approved 2026-10-07 by the orchestrating session under the owner's `automation` answer, when `smith` was spawned.
 
 ## Summary

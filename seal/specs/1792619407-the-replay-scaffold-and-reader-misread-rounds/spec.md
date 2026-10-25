@@ -1,9 +1,5 @@
 # Feature Specification: the seeded scaffold hides the shipped rounds, and the harness reader miscounts findings (#986)
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/spec.md holds WHAT this work
-delivers and how we'll know. The policy documents in docs/ outrank this file;
-the framer cites them and does not restate them. -->
-
 ## Grounding
 
 | Policy clause | What it fixes for this work |

@@ -1,8 +1,5 @@
 # Feature Specification: rule 3 decides on the agent, not on one run (#966)
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/spec.md — WHAT this work delivers and how we'll know.
-The policy documents in docs/ outrank this file; cite them, don't restate. -->
-
 ## Grounding
 
 No document under `docs/` states the evaluation's rules. Their one home is

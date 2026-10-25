@@ -1,9 +1,5 @@
 # Implementation Plan: the config table is read by the walker cmark-gfm holds (#871)
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/plan.md — HOW, in phases. This is the Design Gate's
-artifact: where the work alters observable behaviour, approval of this plan is
-the gate. -->
-
 Approved 2026-10-13 by the orchestrating session, under the owner's `automation` answer, when `smith` was spawned.
 
 ## Summary

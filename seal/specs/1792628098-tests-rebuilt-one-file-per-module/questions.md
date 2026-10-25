@@ -1,8 +1,5 @@
 # tests rebuilt one file per module (#942) — questions for the planner
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/questions.md — decisions only a human can make,
-extracted so nothing ships on a silent assumption. -->
-
 Under `routing.md`'s `Automation` row nobody answers a row during the run. The build proceeds on each row's default, and the pull request body names the rows it built on.
 
 ## What the tree answered, so nobody reopens it

@@ -1,11 +1,5 @@
 # 1790815614-a-joined-projects-specs-is-read-and-never-taken — overview
 
-<!-- The closing memo (implement skill, step 4). Not a summary of the work:
-`git diff --stat` holds the file list and the diff holds the detail. Only what
-the diff cannot show goes here, and each part is written when it happens rather
-than reconstructed at the end. Facts that must outlive this work item go to the
-evidence ledger, not here. -->
-
 📋 implement applied
 · spec:     `spec.md`, `plan.md`, `questions.md`, `routing.md` of this work item; `CLAUDE.md` §*The goal*, §*Repo rule — a change writes fragments*; `docs/one-root-by-lifetime.md` §*The change in four lines*, §*Decided after the thread*, §*What happens to the existing directories at the switch*; `docs/review-chain-spec.md` §*The survivor sweep*; `skills/implement/orchestration.md` §*Orchestrator: Bootstrap*; `templates/config.md`; `hooks/root-migrate.py`, `hooks/config.py`, `hooks/optin.py#home_at`, `#git_common_dir`; `survivor_check.py`, `unverified_check.py`, `settle.py#SPECS`, `correction_check.py`'s ledger constants, `hooks/routing.py#WORK_ITEMS`, `evidence_check.py#default_patterns`; `agents/smith.md`'s rider
 · evidence: `seal/ledger/1790815614-….md` rows B1–B4, A1, F1, C1, D1, D2, D3, C2, added; 58 existing rows across fourteen `seal/releases/*.md` re-read with dated notes and re-stamped, `0.15.1.md` C2 corrected in place

@@ -1,8 +1,5 @@
 # Feature Specification: the routing question shows the four boxes only under `per axis`
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/spec.md — WHAT this work delivers and how we'll know.
-The policy documents in docs/ outrank this file; cite them, don't restate. -->
-
 Issue #911, milestone 59 (`release: 0.21.1`). The routing question is asked
 as two questions in one `AskUserQuestion` call, and the harness shows every
 question of a call at once. So a person who presses `automation` or `no work

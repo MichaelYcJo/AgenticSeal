@@ -1,8 +1,5 @@
 # Feature Specification: 1791019475-a-restore-is-asked-no-switch-question-and-env-options-are-whole
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/spec.md — WHAT this work delivers and how we'll know.
-The policy documents in docs/ outrank this file; cite them, don't restate. -->
-
 #737 carries what #733's capped round 3 deferred. Two defects are in this
 release's branch and nowhere in 0.17.0, and one test gap sits beside them:
 
@@ -221,16 +218,5 @@ passes at `2b1dcb1f`. "A dirty `w`" means
 Q1 (`--quoting-style`), Q2 (#738), Q3 (whether the comparisons stay as
 probes) and the D rows are decided by this frame and listed there. No row
 needs a person.
-
-<!-- The line below is the framer's mark, and it is the only evidence in the
-     TREE that the framing happened — the existing framer mark lives in the
-     repository's git dir, and a git dir does not travel, so CI cannot see it.
-     Fill in the date and `<who>`; `<who>` takes the two values the `Planning`
-     row of `routing.md` takes, `framer` or `the session`, and a mark that
-     disagrees with that row is refused at the pull request rather than
-     guessed at.
-     The shape — verb, date, who, the moment — is the one `routing.md` and
-     `plan.md` already end with, which is what keeps three feet-lines from
-     becoming three conventions. -->
 
 Framed 2026-10-03 by framer, before the build.

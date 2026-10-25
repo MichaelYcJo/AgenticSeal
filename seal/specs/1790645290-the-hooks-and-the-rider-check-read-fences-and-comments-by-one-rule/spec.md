@@ -1,8 +1,5 @@
 # Feature Specification: the hooks and the rider check read fences and comments by one rule (#667, #658)
 
-<!-- seal/specs/1790645290-the-hooks-and-the-rider-check-read-fences-and-comments-by-one-rule/spec.md — WHAT this work delivers and how we'll know.
-The policy documents in docs/ outrank this file; cite them, don't restate. -->
-
 ## Grounding
 
 | Policy clause | What it fixes for this work |

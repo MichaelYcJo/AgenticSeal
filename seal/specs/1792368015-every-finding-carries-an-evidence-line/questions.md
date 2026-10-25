@@ -1,10 +1,5 @@
 # 1792368015-every-finding-carries-an-evidence-line — questions for the planner
 
-<!-- seal/specs/1792368015-every-finding-carries-an-evidence-line/questions.md — decisions only a human can make,
-extracted so nothing ships on a silent assumption. Before adding a row,
-check the inheritance rule: if policy is silent but existing behavior
-answers it, inherit and record — only genuinely NEW rules belong here. -->
-
 ## Decided from the tree, so nobody reopens them
 
 The issue and the spawn prompt left these open. The tree answers each one,

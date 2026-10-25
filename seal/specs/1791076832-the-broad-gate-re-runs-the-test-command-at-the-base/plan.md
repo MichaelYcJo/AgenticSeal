@@ -1,9 +1,5 @@
 # Implementation Plan: the broad gate re-runs the test command at the base
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/plan.md — HOW, in phases. This is the Design Gate's
-artifact: where the work alters observable behaviour, approval of this plan is
-the gate. -->
-
 Approved 2026-10-04 by the repository owner, whose `automation` answer covers this item, when `smith` was spawned.
 
 Q1 and Q2 take the frame's defaults (yes; state both orders and recommend neither), under that same answer.

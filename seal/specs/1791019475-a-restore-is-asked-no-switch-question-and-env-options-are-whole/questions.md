@@ -1,10 +1,5 @@
 # 1791019475-a-restore-is-asked-no-switch-question-and-env-options-are-whole — questions for the planner
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/questions.md — decisions only a human can make,
-extracted so nothing ships on a silent assumption. Before adding a row,
-check the inheritance rule: if policy is silent but existing behavior
-answers it, inherit and record — only genuinely NEW rules belong here. -->
-
 **No row here needs a person.** The run is unattended and nobody is left to
 ask. The spawn prompt said that where a person would decide, the frame
 chooses a stated default with its grounds. Each such row is ticked as decided

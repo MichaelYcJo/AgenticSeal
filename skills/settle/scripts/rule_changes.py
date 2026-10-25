@@ -10,10 +10,14 @@ specs to the policy root's documents in memory, in the order it is handed,
 each spec whole or not at all. `order` and `conflicts` read merge order from
 git. `settle` writes what `replay` returns; nothing here writes a file.
 
-Headings, fences and comments are read through
+Headings and fences are read through
 `skills/verify/scripts/unverified_check.py` (`live_lines`, `heading_level`,
-`liveness`, `gfm_lines`), loaded by path, so this
-module spells no fence or heading rule of its own.
+`liveness`, `gfm_lines`, `blank_fences`, `comment_lines`), loaded by path,
+so this module spells no fence or heading rule of its own. A spec is a
+record and carries no HTML comment, so `parse` reads it with no comment
+state and refuses a section line that begins with `<!--` (#1012); `headings`
+keeps the comment state for `apply_op` and `overlapping`, which read the
+policy documents.
 """
 
 import collections
@@ -58,11 +62,12 @@ def heading_text(line):
     return re.sub(r"(^|\s+)#+\s*$", "", text).strip()
 
 
-def headings(lines):
-    """`[(index, level, text)]` for every live heading in LINES."""
+def headings(lines, comments=True):
+    """`[(index, level, text)]` for every live heading in LINES. `comments`
+    is `live_lines`'s: `parse` reads a spec with none."""
     r = reader()
     out = []
-    for n, (line, live) in enumerate(r.live_lines(lines)):
+    for n, (line, live) in enumerate(r.live_lines(lines, comments=comments)):
         level = r.heading_level(line) if live else None
         if level is not None:
             out.append((n, level, heading_text(line)))
@@ -81,7 +86,7 @@ def parse(text, policy_root):
     the heading, at any level, is refused at its line."""
     r = reader()
     lines = r.gfm_lines(text)
-    marks = headings(lines)
+    marks = headings(lines, comments=False)
     found = [(n, lv) for n, lv, t in marks if lv == 2 and t == HEADING]
     near = [
         n
@@ -98,15 +103,16 @@ def parse(text, policy_root):
         return Parsed([], None, [(found[1][0] + 1, "a second `## Rule changes`")])
     start = found[0][0]
     end = next((n for n, lv, _ in marks if n > start and lv <= 2), len(lines))
-    live = [flag for _, flag in r.live_lines(lines)]
-    # `live_lines` ANDs two readings. In this one a code span never leaves
-    # its line, so a line dead here is in a comment or a fence, read fence
-    # first as `live_lines` reads it, and is skipped. A fence's opener is
-    # live, so a fence inside the section is refused at that line as no
-    # field. A line live here and dead in `live` begins inside a code span
-    # an earlier line opened, and is refused (#988), before the comment
-    # skip, since a comment opener inside a span is text.
-    literal = r.liveness(lines, spans_cross_lines=False)
+    live = [flag for _, flag in r.live_lines(lines, comments=False)]
+    # `live_lines` ANDs two readings, here with no comment state, since a
+    # spec carries no comment (#1012). In this one a code span never leaves
+    # its line, so a line dead here is in a fence and is skipped. A fence's
+    # opener is live, so a fence inside the section is refused at that line
+    # as no field. A line live here and dead in `live` begins inside a code
+    # span an earlier line opened, and is refused (#988), before a line
+    # beginning with `<!--` is, since an opener inside a span is text.
+    literal = r.liveness(lines, spans_cross_lines=False, comments=False)
+    commented = set(r.comment_lines(r.blank_fences(lines)))
 
     body = []
     for n in range(start + 1, end):
@@ -118,7 +124,9 @@ def parse(text, policy_root):
                 "opens it"
             )
             return Parsed([], None, [(n + 1, why)])
-        if line.lstrip().startswith("<!--") or not literal[n]:
+        if n in commented:
+            return Parsed([], None, [(n + 1, r.COMMENT_LINE)])
+        if not literal[n]:
             continue
         body.append((n + 1, line))
     while body and not body[-1][1].strip():

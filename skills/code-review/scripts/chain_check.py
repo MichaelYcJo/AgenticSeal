@@ -976,8 +976,8 @@ def confirmations_span(reader, lines):
 def findings(reader, lines, rel):
     """`([Finding], errors)` for a record's findings.
 
-    `lines` are `reader.readable`'s, so a labelled line inside a fence or a
-    comment is no line. The one `## Findings` section is split at its `### `
+    `lines` are `reader.readable`'s, so a labelled line inside a fence is no
+    line. The one `## Findings` section is split at its `### `
     headings, and each finding is read by `finding_of` against the rows the
     table places in a finding. Before any of it, a line anywhere in the
     record that means a label or an old spelling and is not spelt as the
@@ -1144,40 +1144,37 @@ def finding_of(lines, first, stop, heading, rel):
 
 
 def unclosed(reader, text, rel):
-    """[(rel, line, why)] for a `<!--` comment or a fence in `text` that
-    never closes, at the line that opened it.
+    """[(rel, line, why)] for a fence in `text` that never closes, at the
+    line that opened it.
 
-    `reader.readable` blanks such a region to the end of the file, so every
+    `reader.readable` blanks such a fence to the end of the file, so every
     `### ` heading and `verdict:` line after it would vanish and the record
-    would read as having nothing open. The walk is `readable`'s own, in its
-    order: comments on the raw lines, then fences on what the comments left."""
-    raw = reader.gfm_lines(text or "")
-    # `comment_scan` says which state each line began in; a blank line after
-    # the last says whether the file ended inside a comment, and the last line
-    # that began outside one and ended inside is where it opened.
-    began = [outside for outside, _kept in reader.comment_scan([*raw, ""])]
-    errors = []
-    if not began[-1]:
-        opened = max(i for i in range(len(raw)) if began[i] and not began[i + 1])
-        errors.append(
-            (
-                rel,
-                opened + 1,
-                "a `<!--` comment opened here never closes, so every line after "
-                "it is hidden from the check",
-            )
+    would read as having nothing open. The walk is `readable`'s own,
+    `fence_spans` on the raw lines; a comment is text to it (#1012), and a
+    line that begins one is `comment_lines`' to refuse."""
+    return [
+        (
+            rel,
+            first + 1,
+            "a fence opened here never closes, so every line after it is "
+            "hidden from the check",
         )
-    for first, last in reader.fence_spans(reader.strip_comments(raw)):
-        if last is None:
-            errors.append(
-                (
-                    rel,
-                    first + 1,
-                    "a fence opened here never closes, so every line after it is "
-                    "hidden from the check",
-                )
-            )
-    return errors
+        for first, last in reader.fence_spans(reader.gfm_lines(text or ""))
+        if last is None
+    ]
+
+
+def comment_lines(reader, text, rel):
+    """[(rel, line, why)] for each line of `text` outside every fence that
+    begins with `<!--`, at its line, with the shared reader's one message
+    (`unverified_check.py#comment_lines`, #1012).
+
+    A record carries no HTML comment, and the check keeps no comment state,
+    so it reads a comment as text; a line that begins one is refused rather
+    than read as part of the record. The read of a round record, a
+    `guarantee.md` and a `broad-gate.md` each ask this."""
+    lines = reader.readable(text or "")
+    return [(rel, n + 1, reader.COMMENT_LINE) for n in reader.comment_lines(lines)]
 
 
 def counted(rel, key, said, scope, first=-1, heading=None):
@@ -1235,9 +1232,10 @@ def record_lines(reader, lines, rel, key):
 
 def read_whole(reader, text, rel):
     """`(lines, findings, errors, outside)` for one record, read once:
-    `readable`'s lines, `findings` over them with `unclosed`'s refusals
-    first and `record_lines`' after, and `{key: match or None}` for every
-    row the table places outside every finding."""
+    `readable`'s lines, `findings` over them with `comment_lines`' and
+    `unclosed`'s refusals first and `record_lines`' after, and
+    `{key: match or None}` for every row the table places outside every
+    finding."""
     lines = reader.readable(text or "")
     found, errors = findings(reader, lines, rel)
     outside, said = {}, []
@@ -1245,15 +1243,17 @@ def read_whole(reader, text, rel):
         if row.where == OUTSIDE_FINDINGS:
             outside[key], refused = record_lines(reader, lines, rel, key)
             said += refused
-    return lines, found, unclosed(reader, text, rel) + errors + said, outside
+    first = comment_lines(reader, text, rel) + unclosed(reader, text, rel)
+    return lines, found, first + errors + said, outside
 
 
 def record_findings(reader, text, rel):
-    """`findings` over a record's text, with `unclosed`'s refusals first and
-    `record_lines`' after, for every row the table places outside every
-    finding: the one reader the arm, the panel and the release seal read a
-    record through, so a region that hides findings, or a record naming no
-    commit it reviewed, fails closed for each of them."""
+    """`findings` over a record's text, with `comment_lines`' and
+    `unclosed`'s refusals first and `record_lines`' after, for every row the
+    table places outside every finding: the one reader the arm, the panel
+    and the release seal read a record through, so a comment line, a fence
+    that hides findings, or a record naming no commit it reviewed, fails
+    closed for each of them."""
     _lines, found, errors, _outside = read_whole(reader, text, rel)
     return found, errors
 
@@ -1796,7 +1796,8 @@ def originals_of(reader, routing, root, paths, items):
 
 def broad_gate(reader, root, item, base):
     """[(path, line, problem)] for the work item's `broad-gate.md`: absent,
-    unreadable, or naming a run behind HEAD."""
+    a line that begins with `<!--` (`comment_lines`), unreadable, or naming
+    a run behind HEAD."""
     rel = f"{item}/{BROAD_GATE_FILE}"
     text = read_record(root, rel)
     if text is None:
@@ -1809,18 +1810,19 @@ def broad_gate(reader, root, item, base):
                 "the sealer, and the run writes it on a green run",
             )
         ]
+    problems = comment_lines(reader, text, rel)
     sha = newest_run(reader, text)
     if sha is None:
-        return [(rel, 0, f"no SHA in its `{BROAD_GATE}` row")]
+        return [*problems, (rel, 0, f"no SHA in its `{BROAD_GATE}` row")]
     behind = follows(root, sha, base, item)
     if behind is None:
-        return []
-    return [(rel, 0, follows_reason(behind, "the newest broad-gate run"))]
+        return problems
+    return [*problems, (rel, 0, follows_reason(behind, "the newest broad-gate run"))]
 
 
 def verdicts_of(reader, text):
-    """[(line number, line)] for every line outside comments and fences that
-    means the verdict (`MEANT_VERDICT`), whatever its spelling, trailing
+    """[(line number, line)] for every line outside fences that means the
+    verdict (`MEANT_VERDICT`), whatever its spelling, trailing
     whitespace removed. An indent is markup, a code block at four spaces, so
     an indented line is handed back with its indent and no shape reads it
     whole."""
@@ -1860,10 +1862,10 @@ def target_row(reader, text):
 def guarantee(reader, root, item, base):
     """[(path, line, problem)] for the work item's `guarantee.md`: absent, no
     commit, a commit with anything but the closing records after it, an
-    earlier run that is not `EARLIER_ENTRY` whole, a comment or fence that
-    never closes (`unclosed`), a word of
-    `RETIRED_VERDICTS` on its `Verdict:` line, a verdict line in none of the
-    three shapes, or one that does not read `sealed`."""
+    earlier run that is not `EARLIER_ENTRY` whole, a line that begins with
+    `<!--` (`comment_lines`), a fence that never closes (`unclosed`), a word
+    of `RETIRED_VERDICTS` on its `Verdict:` line, a verdict line in none of
+    the three shapes, or one that does not read `sealed`."""
     rel = f"{item}/{GUARANTEE_FILE}"
     text = read_record(root, rel)
     if text is None:
@@ -1902,7 +1904,9 @@ def guarantee(reader, root, item, base):
                     f"{TARGET_WRITTEN}, and nothing else",
                 )
             )
-    # A region nobody closed hides the verdict line; name where it opened.
+    # A comment line is text to the check, and a fence nobody closed hides
+    # the verdict line; name each at its line.
+    problems.extend(comment_lines(reader, text, rel))
     problems.extend(unclosed(reader, text, rel))
     verdicts = verdicts_of(reader, text)
     if len(verdicts) != 1:

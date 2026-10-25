@@ -1,9 +1,5 @@
 # Feature Specification: arm-check reads every supported `ast`
 
-<!-- seal/specs/1790690762-arm-check-reads-every-supported-ast/spec.md — WHAT
-this work delivers and how we'll know. The policy documents in docs/ outrank
-this file; cite them, don't restate. -->
-
 Milestone 49 (0.16.0), item L: #684. Item K's broad gate (#683) found it when
 `bin/test` built its `.venv` on Python 3.14. This branch is cut from
 `release/v0.16.0` at `346b4af7`.

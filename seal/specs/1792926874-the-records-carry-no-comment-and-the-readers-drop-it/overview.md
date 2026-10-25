@@ -1,0 +1,28 @@
+# Overview: 1792926874-the-records-carry-no-comment-and-the-readers-drop-it
+
+## Why this work exists
+
+The records under `seal/specs/` lose the template comments they carried, and the readers of a record lose the comment state that produced three reader defects in 0.22.3; a record line that begins with `<!--` is refused at its line by the reader that reads it.
+
+## Where spec and implementation diverged
+
+| Divergence | Spec says / code did | Chosen | Grounds |
+|---|---|---|---|
+| How many record files the strip changes | `spec.md` *Scope* item 1 and *Removes*: "273 of them outside every fence, in 208 files". The strip changed 173 files | 173, the reader's count | The frame's awk count included `routing.md`, which *Scope* item 5 keeps: 35 `routing.md` files hold a comment, and 208 less 35 is 173. The shared reader at the phase base, skipping fenced lines, finds comments in 173 files that are not `routing.md` (executed, `phases/phase-1.md`) |
+| How many specs the strip changes | `spec.md` S11 and `plan.md` row 1: "the 41 `spec.md` files the strip changes". The strip changed 40 | 40 parsed for S11, and all 42 parsed besides | 41 is the count of work items the backlog settle left. Of their specs, `1792627930-the-section-sign-is-still-syntax/spec.md` quotes `<!--` only in code spans, so the strip leaves it as it is (executed) |
+| Which replay readers read with the judging reader | `spec.md` *Data & interfaces*: "`labelled`, `labelled_round` and the readers after them read a record's lines with the reader of the commit that judged it". `labelled` keeps this tree's reader | `labelled_round` and the reads after it take the judging reader; `labelled` keeps this tree's | `labelled` decides the shape before anything judges the record, and a check before 0.22.0 has no `target:` label to ask. The round template carried no label-led line at `v0.20.0`, `v0.21.0` or `v0.21.1`, and from `v0.22.0` a record carries a real `target:` line (executed, `phases/phase-2.md`) |
+| How many inline comments the strip removes | `spec.md` *Scope* item 1: "Five are bare inline comments, `<!-- NAME NOT IN TREE -->`". The strip removed 11 | 11, every one the reader found | The marker stands on 11 lines of `seal/specs/1791384158-the-broad-gate-reads-its-counts-from-the-recorder/`, 10 in `spec.md` and 1 in `plan.md` (executed: the strip's own list of removals that start after a line's first character) |
+
+## Not verified
+
+| Item | Who must answer |
+|---|---|
+| closed the full suite, the repository-wide lint and format check, at the branch head | `broad-gate.md`: BROAD GATE PASSED at `a3954eaa` against `4d5a6917`, ruff check and format clean, the suite 7740 passed and 14 skipped, chain-check exit 0 |
+
+## Not done
+
+A strip command for a consuming repository's records was not built: `questions.md` Q1 is the owner's, and its default (a) ships none.
+
+## Fed back into the spec
+
+none

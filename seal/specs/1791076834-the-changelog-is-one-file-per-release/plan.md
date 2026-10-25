@@ -1,9 +1,5 @@
 # Implementation Plan: the changelog is one file per release (#728)
 
-<!-- seal/specs/1791076834-the-changelog-is-one-file-per-release/plan.md — HOW, in phases. This is the Design Gate's
-artifact: where the work alters observable behaviour, approval of this plan is
-the gate. -->
-
 Approved 2026-10-04 by the repository owner, whose `automation` answer covers this item, when `smith` was spawned.
 
 ## Summary

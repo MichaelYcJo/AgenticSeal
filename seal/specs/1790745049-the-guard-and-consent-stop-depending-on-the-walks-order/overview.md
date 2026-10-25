@@ -1,11 +1,5 @@
 # 1790745049-the-guard-and-consent-stop-depending-on-the-walks-order — overview
 
-<!-- The closing memo (implement skill, step 4). Not a summary of the work:
-`git diff --stat` holds the file list and the diff holds the detail. Only what
-the diff cannot show goes here, and each part is written when it happens rather
-than reconstructed at the end. Facts that must outlive this work item go to the
-evidence ledger, not here. -->
-
 📋 implement applied
 · spec:     `routing.md`; `docs/worktree-guard-spec.md` §*Which tree, when the command walks to it* and §*Unknowns resolve conservatively*; `docs/commit-review-gate-spec.md` §*A `cd` the gate cannot read*; 1790660768's ledger rows I2, I9, I12–I15 and changelog; 1790644505's E9, E10, E12, E16
 · evidence: `seal/ledger/1790745049-the-guard-and-consent-stop-depending-on-the-walks-order.md` M1–M4 added; I13 corrected and I2, I9, I12, I14, I15 re-read in 1790660768's fragment; E9, E10, E12, E16 re-read in 1790644505's; one row re-read in `seal/releases/0.4.0.md`

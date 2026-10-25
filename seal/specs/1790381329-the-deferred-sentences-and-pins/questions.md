@@ -1,10 +1,5 @@
 # the deferred sentences and pins — questions for the planner
 
-<!-- seal/specs/1790381329-the-deferred-sentences-and-pins/questions.md — decisions only a human can make,
-extracted so nothing ships on a silent assumption. Before adding a row,
-check the inheritance rule: if policy is silent but existing behavior
-answers it, inherit and record — only genuinely NEW rules belong here. -->
-
 **No row needs a person, and none blocks the build.** Every row below has a
 default the build proceeds on.
 

@@ -1,8 +1,5 @@
 # Feature Specification: under automation, a mid-run question is refused
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/spec.md — WHAT this work delivers and how we'll know.
-The policy documents in docs/ outrank this file; cite them, don't restate. -->
-
 Issue #1002. In 0.22.3 the orchestrating session put four framer questions to
 the owner through `AskUserQuestion` on runs routed `automation`, with
 `skills/implement/SKILL.md` §1 loaded. That section says the session runs to

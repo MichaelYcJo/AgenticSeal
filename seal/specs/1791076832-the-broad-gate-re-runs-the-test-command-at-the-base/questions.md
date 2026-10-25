@@ -1,10 +1,5 @@
 # the broad gate re-runs the test command at the base — questions for the planner
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/questions.md — decisions only a human can make,
-extracted so nothing ships on a silent assumption. Before adding a row,
-check the inheritance rule: if policy is silent but existing behavior
-answers it, inherit and record — only genuinely NEW rules belong here. -->
-
 Nobody was asked anything during this run (`routing.md`: `Answer pressed` =
 `automation`). Every row below therefore carries the default the build uses,
 and none of them blocks it.

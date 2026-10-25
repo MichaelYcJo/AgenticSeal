@@ -1,9 +1,5 @@
 # 1792540458-on-demand-files-state-the-current-rule — phase 3
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/phases/phase-<N>.md — what this phase
-of the build did, written by the implementer when the phase closes. It is the
-build side's counterpart of `rounds/round-N.md`. -->
-
 | Field | Value |
 |---|---|
 | Phase | 3 |

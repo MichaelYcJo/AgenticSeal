@@ -1,11 +1,5 @@
 # every file the plugin reads or writes names its encoding (#741) — overview
 
-<!-- The closing memo (implement skill, step 4). Not a summary of the work:
-`git diff --stat` holds the file list and the diff holds the detail. Only what
-the diff cannot show goes here, and each part is written when it happens rather
-than reconstructed at the end. Facts that must outlive this work item go to the
-evidence ledger, not here. -->
-
 📋 implement applied
 · spec:     seal/specs/1791076830-every-file-the-plugin-reads-or-writes-names-its-encoding/{spec,plan,questions}.md (K1–K4, D1–D8, S1–S10); CONTRIBUTING.md §House rules; hooks/console.py module docstring; tests/test_a_script_says_which_interpreter_it_needs.py#CLASSIFIED and its liveness half; tests/conftest.py#git_listing, #on_disk, #decline_if_shrunken
 · evidence: seal/ledger/1791076830-every-file-the-plugin-reads-or-writes-names-its-encoding.md — E1–E5 added, and 74 `Re-read ·` rows for the released rows the edits drifted (M3)

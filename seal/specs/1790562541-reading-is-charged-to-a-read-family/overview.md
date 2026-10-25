@@ -1,9 +1,5 @@
 # 1790562541-reading-is-charged-to-a-read-family — overview
 
-<!-- The closing memo (implement skill, step 4). Not a summary of the work:
-`git diff --stat` holds the file list and the diff holds the detail. Only what
-the diff cannot show goes here. -->
-
 📋 implement applied
 · spec:     this item's spec.md, plan.md, questions.md, routing.md; docs/measuring-a-run.md §*What a measurement must survive*; the #377 item's round-3 report §*Paste-ready fixes* and overview §*Not done*; seal/releases/0.15.6.md N1–N6, 0.9.4.md S1–S2
 · evidence: seal/ledger/1790562541-reading-is-charged-to-a-read-family.md R1–R7 added; 26 rows re-read and re-stamped over nine ledger files, N1–N3 corrected in place

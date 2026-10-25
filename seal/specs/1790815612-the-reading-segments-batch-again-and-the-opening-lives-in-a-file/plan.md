@@ -1,9 +1,5 @@
 # Implementation Plan: the reading segments batch again, and the opening lives in a file
 
-<!-- seal/specs/1790815612-the-reading-segments-batch-again-and-the-opening-lives-in-a-file/plan.md — HOW, in phases. This is the Design Gate's
-artifact: where the work alters observable behaviour, approval of this plan is
-the gate. -->
-
 Approved 2026-10-01 by the repository owner, when `smith` was spawned.
 
 ## Summary

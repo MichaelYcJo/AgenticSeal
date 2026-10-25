@@ -1,11 +1,5 @@
 # 1791076834-the-changelog-is-one-file-per-release — overview
 
-<!-- The closing memo (implement skill, step 4). Not a summary of the work:
-`git diff --stat` holds the file list and the diff holds the detail. Only what
-the diff cannot show goes here, and each part is written when it happens rather
-than reconstructed at the end. Facts that must outlive this work item go to the
-evidence ledger, not here. -->
-
 📋 implement applied
 · spec:     `docs/the-record-layout.md` F2, §*Every kind of record*, §*The size a reader takes whole*, §*A change writes fragments*, §*The root records*; `docs/the-evidence-ledger.md` §*A released row is read again in the branch's fragment*; `docs/review-chain-spec.md` §*What the sweep reads*; this work item's `spec.md`, `plan.md`, `questions.md`
 · evidence: `seal/ledger/1791076834-the-changelog-is-one-file-per-release.md` — 6 new rows, 57 `Re-read ·` rows and 10 `Corrected ·` rows citing released rows

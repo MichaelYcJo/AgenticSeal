@@ -266,6 +266,50 @@ class Test_module:
         assert rt.written_at(rel, ["v1.0.0"]) == written
         assert rt.written_at("seal/specs/i/rounds/round-9.md", ["v1.0.0"]) is None
 
+    def test_a_labelled_record_is_read_by_the_reader_that_judged_it(self, monkeypatch):
+        """S10 of #1012: a record at a release tag can carry a template
+        comment, and the reader of the commit that wrote it hid the comment
+        while this tree's reads it as text. The record's lines are read by
+        the reader that judged it, so a `location:` line inside the comment
+        is no finding's location. Seen red against the generator that judged
+        with the commit's reader and read with this tree's: it took the
+        comment's line."""
+        rt = load_script("replay_targets")
+        check, reader = rt.record_reader()
+
+        class Judged:
+            """This tree's reader as a reader before #1012 read a record: a
+            comment's lines are blank, and none is refused."""
+
+            def __getattr__(self, name):
+                return getattr(reader, name)
+
+            def readable(self, text):
+                lines, inside = reader.readable(text), False
+                for i, line in enumerate(lines):
+                    opens = line.lstrip().startswith("<!--")
+                    if inside or opens:
+                        inside = "-->" not in line
+                        lines[i] = ""
+                return lines
+
+            def comment_lines(self, lines):
+                return []
+
+        monkeypatch.setattr(rt, "checks_at", lambda at: (check, Judged()))
+        text = LABELLED_ROUND_1.replace(
+            "severity: must\n",
+            "<!-- guidance copied from the template\nlocation: `src/z.py:1`\n-->\n"
+            "severity: must\n",
+        )
+        rel = "seal/specs/i/rounds/round-1.md"
+        read, why = rt.labelled_round(text, rel, 1, at="abc1234")
+        assert why == ""
+        assert read["findings"] == [
+            (1, "a fixed defect", "`src/a.py:12`, `docs/a.md`", True),
+            (2, "a finding that does not hold", "`src/b.py:3`", False),
+        ]
+
     def test_targets_reads_the_next_round_by_the_commit_that_wrote_it(
         self, monkeypatch
     ):

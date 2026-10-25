@@ -1,10 +1,5 @@
 # Feature Specification: every file the plugin reads or writes names its encoding (#741)
 
-<!-- seal/specs/1791076830-every-file-the-plugin-reads-or-writes-names-its-encoding/spec.md
-     WHAT this work delivers and how we will know. The policy documents in
-     docs/ outrank this file; it cites them rather than restating them.
-     Record language: `seal/config.md` has no `Record language` row, so English. -->
-
 **Why this exists.** A file opened, read or written without `encoding=` uses
 the locale's encoding. That is UTF-8 on macOS and on the ubuntu runner, and
 cp1252 on `windows-latest`, so the class is invisible everywhere except the one
@@ -283,16 +278,5 @@ to make a test pass*. The test module's own docstring carries the reasoning
 Every judgment the ticket left open is decided above with its grounds, and
 listed in `questions.md` as decided by the frame. Nothing there waits on a
 person.
-
-<!-- The line below is the framer's mark, and it is the only evidence in the
-     TREE that the framing happened — the existing framer mark lives in the
-     repository's git dir, and a git dir does not travel, so CI cannot see it.
-     Fill in the date and `<who>`; `<who>` takes the two values the `Planning`
-     row of `routing.md` takes, `framer` or `the session`, and a mark that
-     disagrees with that row is refused at the pull request rather than
-     guessed at.
-     The shape — verb, date, who, the moment — is the one `routing.md` and
-     `plan.md` already end with, which is what keeps three feet-lines from
-     becoming three conventions. -->
 
 Framed 2026-10-04 by framer, before the build.

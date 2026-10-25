@@ -1,11 +1,5 @@
 # 1792363189-rule-3-decides-on-the-agent-not-one-run — overview
 
-<!-- The closing memo (implement skill, step 4). Not a summary of the work:
-`git diff --stat` holds the file list and the diff holds the detail. Only what
-the diff cannot show goes here, and each part is written when it happens rather
-than reconstructed at the end. A rule that must outlive this work item goes
-to its home under `docs/` with the test that holds it, not here. -->
-
 ## Why this work exists
 
 Rule 3 of the behaviour evaluation judged each shape and reach grader on its own over two runs, so one run of one grader could fail a rewrite whose passes rose; it now adds up a side's passes and names a grader lost on every run, the statistic the owner chose on 2026-10-19.

@@ -1,8 +1,5 @@
 # 1792252400-the-sealer-reads-the-gate-the-orchestrator-ran — overview
 
-<!-- The closing memo (implement skill, step 4). Opened at phase 1's divergence
-and closed by phase 7. Only what the diff cannot show goes here. -->
-
 ## Why this work exists
 
 The broad gate becomes the orchestrator's one command before the sealer is

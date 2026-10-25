@@ -1,10 +1,5 @@
 # settle squashes specs into docs/ in place (#953) — questions for the planner
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/questions.md — decisions only a human can make,
-extracted so nothing ships on a silent assumption. Before adding a row,
-check the inheritance rule: if policy is silent but existing behavior
-answers it, inherit and record — only genuinely NEW rules belong here. -->
-
 **What the ticket left open and the tree answered**, so nobody reopens it.
 Each line names where the answer was read.
 

@@ -1,9 +1,5 @@
 # Implementation Plan: the record of truth is tests, not coordinates (#944)
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/plan.md — HOW, in phases. This is the Design Gate's
-artifact: where the work alters observable behaviour, approval of this plan is
-the gate. -->
-
 Approved 2026-10-14 by the repository owner, when `smith` was spawned.
 
 **Decided after phase 5, built as phase 6 before review:** `seal.py`'s ledger path (`LEDGER_DIR`, the fragment branch of `work_item_of`) is this item's leftover, so it leaves here, not in a new issue. **The kernel also moves out of `skills/evidence-check/`** (owner, 2026-10-14), overturning alternative G: the old name points at a feature that no longer exists. Its home is named for what it does, resolving `path#unit` coordinates: `skills/verify/scripts/coordinates.py`, beside `unverified_check.py`, the one module it loads, with `pact_check.py` beside it. Each of the 16 importers was checked first; the five loaders left each still use it, so none was deleted (`phases/phase-6.md`). S9 holds for the ledger and the sweep.

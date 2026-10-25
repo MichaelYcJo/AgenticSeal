@@ -151,11 +151,21 @@ PLACEHOLDER = re.compile(r"^<[^>]*>$")
 # family, and the byte-order mark. None of them make a marker into a claim.
 INVISIBLE = "\ufe0f\ufe0e\u200b\u200c\u200d\u2060\ufeff"
 SEPARATOR = re.compile(r"^:?-+:?$")
-# The two delimiters of an HTML comment. `live_lines` scans for them directly:
-# it holds the comment state itself, so neither is looked for while it is
-# inside a fence or a code span, and nothing blanks either one out of the text.
+# The two delimiters of an HTML comment. `live_lines` scans for them directly
+# for the callers that read files other than records: it holds the comment
+# state itself, so neither is looked for while it is inside a fence or a code
+# span. A record carries no comment, and `comment_lines` finds a record line
+# that begins with OPENER for the reader that refuses it (#1012).
 OPENER = "<!--"
 CLOSER = "-->"
+# What each reader of a record says of a line `comment_lines` finds, spelt
+# once: `check_text` here, `chain_check.py` for a round record, a
+# `guarantee.md` and a `broad-gate.md`, and `rule_changes.py#parse` for a
+# spec's `## Rule changes`.
+COMMENT_LINE = (
+    "the line begins with `<!--`, and a record carries no HTML comment: the "
+    "check reads one as text, so delete the comment"
+)
 # A run of backticks. `live_lines` needs it as it scans for code spans.
 BACKTICKS = re.compile(r"`+")
 SKIP_DIRS = {
@@ -221,80 +231,17 @@ def visible(s):
     return s.translate({ord(c): None for c in INVISIBLE}).strip()
 
 
-def comment_scan(lines):
-    """`(the line began outside a comment, its text outside comments)`, each.
-
-    One scanner, because two readers of this file want two different things
-    out of the same walk and a second copy of the walk is what
-    `check_text`'s docstring spent three review rounds undoing. `strip_comments`
-    wants the text; `opens_outside_a_comment` wants the state the line STARTED
-    in, which the text cannot answer — a changelog marker IS a comment, so a
-    genuine one and one sitting inside a commented-out draft both come back
-    with nothing kept.
-
-    **A code span opened first wins** (CommonMark 6.1): an opener inside a
-    span closed on the same line is text, as the page shows it. A backtick
-    run with no closer of its own length on its line is literal, which is
-    `liveness`'s reading A, and the walk goes on after it. A span wrapped
-    across lines is therefore read as literal backticks.
-
-    The line is walked by index: the opener is looked for once and again
-    only after the walk passes it, so a line with no opener costs one
-    search however many spans it holds.
-    """
-    inside = False
-    for line in lines:
-        began = not inside
-        kept, pos, start = [], 0, -1
-        while pos < len(line):
-            if inside:
-                end = line.find(CLOSER, pos)
-                if end == -1:
-                    break
-                pos, inside = end + len(CLOSER), False
-                continue
-            if start < pos:
-                start = line.find(OPENER, pos)
-            if start == -1:
-                kept.append(line[pos:])
-                break
-            run = BACKTICKS.search(line, pos, start)
-            if run:
-                width = run.end() - run.start()
-                closer = next(
-                    (
-                        m
-                        for m in BACKTICKS.finditer(line, run.end())
-                        if m.end() - m.start() == width
-                    ),
-                    None,
-                )
-                upto = closer.end() if closer else run.end()
-                kept.append(line[pos:upto])
-                pos = upto
-                continue
-            kept.append(line[pos:start])
-            pos, inside = start + len(OPENER), True
-        yield began, "".join(kept)
-
-
-def strip_comments(lines):
-    """The same lines with HTML comment content blanked out, indices intact.
-
-    A record started from a template before #1005 keeps the comment that
-    explained a section beside it. The guidance is not rows, and it is not
-    prose where a table belongs; #1012 retires this state once those records
-    are stripped."""
-    return [kept for _, kept in comment_scan(lines)]
-
-
 def fence_spans(lines):
     """`[(first, last)]` for each fenced block in `lines`, delimiters
     included, with `last` None for a block that is never closed.
 
-    The walk for a reader with no comment or code-span state of its own. A
-    reader that has either — `liveness` — walks with
-    `fence_opener` and `fence_closes` directly, because whether a line can
+    The walk where only the fence delimiter rule decides where a fence
+    opens: no comment state and no code-span state is kept (#1012). In this
+    module `closed_fence_lines` and `blank_fences` walk it, and `readable`
+    through `blank_fences`. Callers in other scripts are found with
+    `git grep`, and no list of them is kept here to go stale. A walk that
+    keeps a comment or a code-span state, `liveness`, asks `fence_opener`
+    and `fence_closes` directly instead, because there whether a line can
     open a fence at all depends on the state it began in.
 
     **An unclosed block is reported, not decided.** `blank_fences` blanks it
@@ -347,7 +294,22 @@ def blank_fences(lines):
     return out
 
 
-def liveness(lines, spans_cross_lines):
+def comment_lines(lines):
+    """The indices of LINES whose text, leading whitespace removed, begins
+    with `OPENER` — the lines a reader of a record refuses with
+    `COMMENT_LINE` (#1012).
+
+    LINES are `readable`'s, so a line inside a fence is blank and never
+    found. A record carries no HTML comment, and its readers keep no comment
+    state, so a comment they met would read as text; this is where they
+    find one instead. An `OPENER` anywhere later in a line is text, in a code
+    span or not, and is not found: refusing it would need a code-span state
+    in `readable` and every reader of a record through it, the state #1000
+    broke."""
+    return [n for n, line in enumerate(lines) if line.lstrip().startswith(OPENER)]
+
+
+def liveness(lines, spans_cross_lines, comments=True):
     """Whether each line BEGINS live, under one of the two span readings.
 
     `spans_cross_lines` is the only thing that differs between them, and it is
@@ -355,9 +317,14 @@ def liveness(lines, spans_cross_lines):
     run with no partner on its own line is literal text if the paragraph ends
     before its partner, and a code span if it does not. `live_lines` runs this
     twice rather than deciding. `rule_changes.py#parse` reads the reading
-    with `spans_cross_lines=False` as well: a line dead there is in a fence
-    or a comment, and a line live there and dead in `live_lines` begins
-    inside a code span an earlier line opened.
+    with `spans_cross_lines=False` as well: a line dead there is in a fence,
+    and a line live there and dead in `live_lines` begins inside a code span
+    an earlier line opened.
+
+    `comments` False keeps no comment state, so `OPENER` is text: the
+    reading of a record, which carries no comment, for
+    `rule_changes.py#parse` (#1012). Every caller that reads a file other
+    than a record keeps the default.
 
     Everything else is shared and is not a guess. Inside a fence nothing is
     read but the closing fence; inside a comment nothing is markdown, so
@@ -400,7 +367,7 @@ def liveness(lines, spans_cross_lines):
                     break
                 pos, span = closer.end(), None
             else:
-                opener = line.find(OPENER, pos)
+                opener = line.find(OPENER, pos) if comments else -1
                 run = BACKTICKS.search(line, pos)
                 if opener != -1 and (run is None or opener < run.start()):
                     pos, comment = opener + len(OPENER), True
@@ -548,8 +515,9 @@ def _partner_ahead(lines, start_line, width):
     return False
 
 
-def live_lines(lines):
+def live_lines(lines, comments=True):
     """`(the line, it begins live)` for each line — both readings, ANDed.
+    `comments` is `liveness`'s, handed to both.
 
     A line that excuses or declares something is not taken on doubt, the
     second of the three answers `docs/the-record-layout.md` *The fold, and
@@ -604,9 +572,9 @@ def live_lines(lines):
     omission with a shape that could, and the gather's marker pattern is
     line-anchored, so a marker indented four spaces is not read as one.
 
-    **What this may not touch.** `comment_scan`, `strip_comments`,
-    `blank_fences` and `readable` serve the other gates — `check_text` and
-    `chain_check.py`. None of them is on this path. What this scan and
+    **What this may not touch.** `blank_fences` and `readable` keep no
+    comment state, because a record carries no comment, and they serve the
+    readers of a record (#1012). Neither is on this path. What this scan and
     `blank_fences` DO share is the fence delimiter, `fence_opener` and
     `fence_closes`, because two spellings of it is what #491 found: the
     three-space bound had landed here and not one function over. They share
@@ -616,28 +584,32 @@ def live_lines(lines):
     trip and ends a line where GFM does already.
     """
     lines = list(lines)
-    literal = liveness(lines, spans_cross_lines=False)
-    crossing = liveness(lines, spans_cross_lines=True)
+    literal = liveness(lines, spans_cross_lines=False, comments=comments)
+    crossing = liveness(lines, spans_cross_lines=True, comments=comments)
     for n, line in enumerate(lines):
         yield line, literal[n] and crossing[n]
 
 
 def readable(text):
-    """The lines a reader should judge: no comment text, no fenced blocks.
+    """The lines a reader of a record should judge: no fenced blocks.
 
     A line a record's rows are counted on is blanked the same way on both
     sides of a comparison, the third of the three answers
     `docs/the-record-layout.md` *The fold, and what tells it from a
-    deletion* gives: a region nobody closed is blanked to the end, and the
+    deletion* gives: a fence nobody closed is blanked to the end, and the
     readers that judge a record refuse the table it hid as absent, while
     `broad_gate.py`'s label, which never stops a run that passed, is
     printed without it.
+
+    **A comment is text here.** A record carries no HTML comment, so this
+    keeps no comment state, and the reader of a record refuses a line that
+    begins with `OPENER` at its line (`comment_lines`, #1012).
 
     Every read starts here — the working tree and the base revision alike —
     which is what keeps the two sides of the comparison counting the same
     table. Its lines are `gfm_lines(text)`, so an index into what this
     returns is an index into `gfm_lines(text)` and into no other split."""
-    return blank_fences(strip_comments(gfm_lines(text)))
+    return blank_fences(gfm_lines(text))
 
 
 def headings(lines):
@@ -906,8 +878,18 @@ def check_text(text, heading=HEADING, strict_header=True):
     refuses it naming the no-change block. Nothing else relaxes. A legacy
     header still has to be a two-cell row whose first column is `Item`, and
     every other row below it is read exactly as the working tree's rows are.
-    The relaxation ends when every base carries the canonical wording."""
+    The relaxation ends when every base carries the canonical wording.
+
+    **A comment line is refused on both sides, and nothing relaxes it.**
+    The first line that begins with `OPENER` is refused at its line before
+    any section is looked for (`comment_lines`, #1012). At a base revision
+    that refusal is the `--baseline` loop's `not compared` notice, because
+    nobody can edit a commit that already happened."""
     lines = readable(text)
+
+    commented = comment_lines(lines)
+    if commented:
+        return [], [], [(commented[0] + 1, COMMENT_LINE)]
 
     found = sections(lines, heading)
     if not found:

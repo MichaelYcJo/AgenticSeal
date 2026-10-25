@@ -1,8 +1,5 @@
 # 1790381329-the-deferred-sentences-and-pins — overview
 
-<!-- The closing memo (implement skill, step 4). Only what the diff cannot
-show. Opened at phase 3 and kept as the work goes; closed at phase 7. -->
-
 📋 implement applied
 · spec:     spec.md, plan.md, questions.md of this work item; `CLAUDE.md` (fragments, ledger rows); `skills/agent-contract/SKILL.md` §12, §14, §15; `docs/the-evidence-ledger.md` §*A correction a merge dropped*; issues #610, #611, #612, #613, #615, #616
 · evidence: C1–C5 in `seal/ledger/1790381329-the-deferred-sentences-and-pins.md`; re-read and re-stamped rows in `seal/releases/0.4.0.md`, `0.5.0.md`, `0.8.0.md`, `0.8.1.md`, `0.9.3.md`, `0.10.0.md`, `0.11.4.md`, `0.12.0.md`, `0.13.0.md`, `0.13.1.md`, `0.14.0.md`, `0.15.0.md`, `0.15.3.md`, `0.15.4.md`; corrected in place: 0.13.0 S1, 0.15.4 S1 ×2

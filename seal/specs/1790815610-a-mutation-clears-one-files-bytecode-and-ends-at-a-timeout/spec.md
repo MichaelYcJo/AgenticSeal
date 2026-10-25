@@ -1,9 +1,5 @@
 # Feature Specification: a mutation clears one file's bytecode and ends at a timeout
 
-<!-- seal/specs/1790815610-a-mutation-clears-one-files-bytecode-and-ends-at-a-timeout/spec.md
-— WHAT this work delivers and how we'll know. The policy documents in docs/
-outrank this file; cite them, don't restate. -->
-
 Milestone `release: 0.17.0`, item A: #641, with #129 as its correctness twin.
 This branch is cut from `release/v0.17.0` at `cd24f516`. The owner put all six
 0.17.0 items in scope on 2026-10-01 and pressed `automation`.

@@ -1,11 +1,5 @@
 # arm-check reads every supported `ast` — questions for the planner
 
-<!-- seal/specs/1790690762-arm-check-reads-every-supported-ast/questions.md —
-decisions only a human can make, extracted so nothing ships on a silent
-assumption. Before adding a row, check the inheritance rule: if policy is
-silent but existing behavior answers it, inherit and record — only genuinely
-NEW rules belong here. -->
-
 **No row here blocks the build.** The ticket and the spawn left these
 judgments open, and the tree answered each of them. They are listed so nobody
 reopens them, each with where its grounds are, so a reviewer can overturn one

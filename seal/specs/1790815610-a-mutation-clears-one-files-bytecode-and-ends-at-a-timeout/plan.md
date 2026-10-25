@@ -1,13 +1,6 @@
 # Implementation Plan: a mutation clears one file's bytecode and ends at a timeout
 
-<!-- seal/specs/1790815610-a-mutation-clears-one-files-bytecode-and-ends-at-a-timeout/plan.md
-— HOW, in phases. This is the Design Gate's artifact: where the work alters
-observable behaviour, approval of this plan is the gate. -->
-
 Approved 2026-10-01 by the repository owner, when `smith` was spawned.
-
-<!-- The line above is the record that the gate happened. Fill it in at the
-spawn: reading this plan and spawning the builder IS the approval. -->
 
 ## Summary
 

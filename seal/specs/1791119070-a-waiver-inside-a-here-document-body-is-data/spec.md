@@ -1,8 +1,5 @@
 # Feature Specification: a waiver inside a here-document body is data
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/spec.md — WHAT this work delivers and how we'll know.
-The policy documents in docs/ outrank this file; cite them, don't restate. -->
-
 #773, found by round 1 of #769 (work item
 `1791089603-one-heredoc-shape-the-reader-matches-exactly-is-data`, shipped in
 0.18.1; its records are read on the local backup ref of that branch). The

@@ -1,9 +1,5 @@
 # Implementation Plan: the warden's real false-finding rate is unknown (#971)
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/plan.md — HOW, in phases. This is the Design Gate's
-artifact: where the work alters observable behaviour, approval of this plan is
-the gate. -->
-
 Approved 2026-10-19 by the orchestrator, under the owner's `automation` answer and Q1's answer (phases 1–4; phase 5 is #985's), when `smith` was spawned.
 
 ## Summary

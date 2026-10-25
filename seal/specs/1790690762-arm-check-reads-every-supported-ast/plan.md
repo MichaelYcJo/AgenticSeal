@@ -1,13 +1,6 @@
 # Implementation Plan: arm-check reads every supported `ast`
 
-<!-- seal/specs/1790690762-arm-check-reads-every-supported-ast/plan.md — HOW,
-in phases. This is the Design Gate's artifact: where the work alters
-observable behaviour, approval of this plan is the gate. -->
-
 Approved 2026-09-29 by the orchestrating session, when `smith` was spawned.
-
-<!-- The line above is the record that the gate happened. Fill it in at the
-spawn: reading this plan and spawning the builder IS the approval. -->
 
 ## Summary
 

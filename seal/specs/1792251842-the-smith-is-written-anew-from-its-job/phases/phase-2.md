@@ -1,9 +1,5 @@
 # 1792251842-the-smith-is-written-anew-from-its-job — phase 2
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/phases/phase-<N>.md — what this phase
-of the build did, written by the implementer when the phase closes. It is the
-build side's counterpart of `rounds/round-N.md`. -->
-
 | Field | Value |
 |---|---|
 | Phase | 2 |

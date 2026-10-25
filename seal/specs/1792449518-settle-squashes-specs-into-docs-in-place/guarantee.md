@@ -1,10 +1,5 @@
 # 1792449518-settle-squashes-specs-into-docs-in-place — guarantee
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/guarantee.md, written by the
-sealer alone and committed by the orchestrator beside `broad-gate.md`.
-`docs/the-review-record.md` §*The guarantee* holds the rules and
-`agents/sealer.md` the order of work. -->
-
 | Field | Value |
 |---|---|
 | Target SHA | 0b9bb0ae against adac0891; earlier run: 48486293 withheld |

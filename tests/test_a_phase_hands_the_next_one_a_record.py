@@ -14,10 +14,10 @@ per-segment record the review chain already has in `templates/sdd-round.md`
 
   the field table    `Phase`, `Commit` — nothing more, because a phase has
                      no `target:` commit to squash away
-  the two sections    ship outside HTML comments, as placeholders rather
-                     than filled claims — a template whose only mention of
-                     a section is commented out ships a record that is
-                     missing it the moment someone copies the file
+  the two sections    ship as headings the record reader reads, with
+                     placeholders rather than filled claims — a template
+                     whose section a reader does not find ships a record
+                     that is missing it the moment someone copies the file
   no removal table    what a work item takes out of the tree is named once,
                      in `spec.md`'s `## Removes`, which the review reads
                      (#835); a per-phase table was a second record of the
@@ -29,9 +29,9 @@ per-segment record the review chain already has in `templates/sdd-round.md`
 
 The placeholder check mirrors
 `test_the_fixes_name_their_surface.py::test_the_template_rows_are_rows_a_session_can_copy`,
-reading through the same `strip_comments` `chain_check.py` itself loads —
-counted outside comments, because a row whose only mention is commented out
-is absent to any reader that strips comments first, template included.
+reading through the same `readable` `chain_check.py` itself loads, which
+blanks fenced lines and keeps no comment state, because a record carries no
+comment (#1012).
 """
 
 import importlib.util
@@ -55,7 +55,7 @@ REMOVES_RULE = os.path.join(ROOT, "docs", "the-reader-registry.md")
 
 
 def reader_module():
-    """`unverified_check.py`'s `strip_comments` — the same reader
+    """`unverified_check.py`, whose `readable` is the same reader
     `chain_check.py` loads for `rounds/round-N.md`. A second implementation
     here would be free to drift from what actually reads these records."""
     spec = importlib.util.spec_from_file_location(
@@ -67,19 +67,19 @@ def reader_module():
     return module
 
 
-def stripped_lines():
-    return reader_module().strip_comments(read(PHASE_TEMPLATE).splitlines())
+def template_lines():
+    return reader_module().readable(read(PHASE_TEMPLATE))
 
 
 def section_body(lines, heading):
     """The non-blank lines between `heading` and the next `## ` heading (or
-    end of file), from lines already run through `strip_comments`."""
+    end of file), from lines already run through `readable`."""
     start = None
     for i, line in enumerate(lines):
         if line.strip() == heading:
             start = i + 1
             break
-    assert start is not None, f"heading not found outside comments: {heading}"
+    assert start is not None, f"heading not found: {heading}"
     body = []
     for line in lines[start:]:
         if line.strip().startswith("## "):
@@ -93,11 +93,11 @@ def section_body(lines, heading):
 
 
 def test_the_field_table_is_phase_and_commit():
-    lines = stripped_lines()
+    lines = template_lines()
     header_idx = next(
         (i for i, line in enumerate(lines) if line.strip().startswith("| Field")), None
     )
-    assert header_idx is not None, "no `| Field | Value |` header outside comments"
+    assert header_idx is not None, "no `| Field | Value |` header"
     # The field table ends at the first `## ` heading — rows past it belong
     # to the removal table further down, not to this one.
     end = next(
@@ -129,21 +129,21 @@ def test_the_field_table_is_phase_and_commit():
 # --- the two sections exist and ship placeholders, not claims ---------------
 
 
-def test_both_sections_exist_outside_comments():
-    lines = stripped_lines()
+def test_both_sections_exist():
+    lines = template_lines()
     present = {line.strip() for line in lines}
     for heading in SECTIONS:
         assert heading in present, (
-            f"`{heading}` is missing outside HTML comments — a heading only "
-            "a comment carries is a heading a copied file does not have"
+            f"`{heading}` is missing — a heading the template does not carry "
+            "is a heading a copied file does not have"
         )
 
 
 def test_asked_and_found_sections_ship_a_placeholder():
-    lines = stripped_lines()
+    lines = template_lines()
     for heading in ("## What this phase was asked", "## What this phase found"):
         body = section_body(lines, heading)
-        assert body, f"`{heading}` has no content outside comments"
+        assert body, f"`{heading}` has no content"
         text = " ".join(line.strip() for line in body)
         assert text.startswith("<") and text.endswith(">"), (
             f"`{heading}` ships `{text}` — a template must offer a "
@@ -166,11 +166,10 @@ def test_a_phase_record_carries_no_removal_table():
 
 
 def test_the_spec_template_carries_the_removes_section_above_the_mark():
-    """S8 of #835. The section ships outside comments, with the three-column
-    table and a placeholder row, and the framer's mark is still the last
-    line."""
+    """S8 of #835. The section ships with the three-column table and a
+    placeholder row, and the framer's mark is still the last line."""
     raw = read(SPEC_TEMPLATE)
-    lines = reader_module().strip_comments(raw.splitlines())
+    lines = reader_module().readable(raw)
     body = section_body(lines, "## Removes")
     rows = [line.strip() for line in body if line.strip().startswith("|")]
     assert rows[0] == "| Removes | Coordinate | Where it lands, or why it can go |"
@@ -190,7 +189,7 @@ def test_the_spec_template_carries_the_rule_changes_section_above_removes():
     """#953. The section ships empty, above `## Removes`, and the framer, who
     fills it, is pointed at the one statement of its grammar."""
     raw = read(SPEC_TEMPLATE)
-    lines = reader_module().strip_comments(raw.splitlines())
+    lines = reader_module().readable(raw)
     assert section_body(lines, "## Rule changes") == []
     assert raw.index("## Rule changes") < raw.index("## Removes")
     framer = " ".join(read(FRAMER_AGENT).split())

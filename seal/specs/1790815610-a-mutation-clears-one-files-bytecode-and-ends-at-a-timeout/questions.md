@@ -1,11 +1,5 @@
 # a mutation clears one file's bytecode and ends at a timeout — questions for the planner
 
-<!-- seal/specs/1790815610-a-mutation-clears-one-files-bytecode-and-ends-at-a-timeout/questions.md
-— decisions only a human can make, extracted so nothing ships on a silent
-assumption. Before adding a row, check the inheritance rule: if policy is
-silent but existing behavior answers it, inherit and record — only genuinely
-NEW rules belong here. -->
-
 **No row here blocks the build.** The two tickets and the spawn left the
 judgments below open, and the tree answered each of them. They are listed so
 nobody reopens them, each with where its grounds are, so a reviewer can

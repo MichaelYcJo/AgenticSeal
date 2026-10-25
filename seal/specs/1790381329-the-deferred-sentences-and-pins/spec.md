@@ -1,8 +1,5 @@
 # Feature Specification: the deferred sentences and pins (#610, #611, #612, #613, #615, #616)
 
-<!-- seal/specs/1790381329-the-deferred-sentences-and-pins/spec.md — WHAT this work delivers and how we'll know.
-The policy documents in docs/ outrank this file; cite them, don't restate. -->
-
 ## Grounding
 
 | Policy clause | What it fixes for this work |

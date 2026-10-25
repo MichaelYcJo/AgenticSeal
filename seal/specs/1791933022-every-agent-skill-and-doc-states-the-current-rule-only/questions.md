@@ -1,8 +1,5 @@
 # every agent, skill and doc states the current rule only — questions for the planner
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/questions.md — decisions only a human can make,
-extracted so nothing ships on a silent assumption. -->
-
 **Judgments the ticket left open that the tree answered** — listed so nobody
 reopens them; the grounds are in `spec.md` and `plan.md` §*Alternatives
 considered*. Re-read on 2026-10-15 against #923's body as rewritten that day.

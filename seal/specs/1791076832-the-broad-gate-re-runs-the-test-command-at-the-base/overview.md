@@ -1,11 +1,5 @@
 # 1791076832-the-broad-gate-re-runs-the-test-command-at-the-base — overview
 
-<!-- The closing memo (implement skill, step 4). Not a summary of the work:
-`git diff --stat` holds the file list and the diff holds the detail. Only what
-the diff cannot show goes here, and each part is written when it happens rather
-than reconstructed at the end. Facts that must outlive this work item go to the
-evidence ledger, not here. -->
-
 📋 implement applied
 · spec:     `spec.md`, `plan.md`, `questions.md` of this work item; `templates/config.md` §*Broad gate* (§*What is refused, and what stays allowed*, §*Choosing a value — the criterion*); `skills/verify/SKILL.md` §*The broad gate*; `docs/the-evidence-ledger.md` §*A released row is read again in the branch's fragment*; `docs/the-record-layout.md` §*A change writes fragments, never a shared file*; `skills/agent-contract/SKILL.md` §6, §12, §14, §15
 · evidence: `seal/ledger/1791076832-the-broad-gate-re-runs-the-test-command-at-the-base.md` — B1–B4, `Corrected · S5`, and 44 `Re-read ·` rows

@@ -1,10 +1,5 @@
 # reading is charged to a `read` family — questions for the planner
 
-<!-- seal/specs/1790562541-reading-is-charged-to-a-read-family/questions.md — decisions only a human can make,
-extracted so nothing ships on a silent assumption. Before adding a row,
-check the inheritance rule: if policy is silent but existing behavior
-answers it, inherit and record — only genuinely NEW rules belong here. -->
-
 **No open row needs a person, and none blocks the build.** Q1 is the one
 question a person had to answer, and the owner answered it before the first
 edit. Every other row has a default the build proceeds on.

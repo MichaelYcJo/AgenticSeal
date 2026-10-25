@@ -1,10 +1,5 @@
 # 1792252400-the-sealer-reads-the-gate-the-orchestrator-ran — guarantee
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/guarantee.md, written by the
-sealer alone and committed by the orchestrator beside `broad-gate.md`.
-`docs/the-review-record.md` §*The guarantee* holds the rules and
-`agents/sealer.md` the order of work. -->
-
 | Field | Value |
 |---|---|
 | Target SHA | c38fbb896fbd7e00a9b84799c6d7d659d875b07f against 2fc33333bcfef5f0fa9e7d6d7bc6469366c6f2ff (`release/v0.22.1`, resolved as `origin/release/v0.22.1`; `@{upstream}` and the local name do not answer in the worktree); earlier run: c0e0a8de withheld |

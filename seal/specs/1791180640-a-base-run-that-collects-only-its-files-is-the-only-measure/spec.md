@@ -1,8 +1,5 @@
 # Feature Specification: a base run that collects only its files is the only measure (#789, #812, #807)
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/spec.md — WHAT this work delivers and how we'll know.
-The policy documents in docs/ outrank this file; cite them, don't restate. -->
-
 #789 (and its comment), #812 and #807, read 2026-10-05 at a3aa139a. This is
 a redesign the repository owner chose after the 3+ fix rule
 (`routing.md` §*Why this way*). The first build of #789 (work item
@@ -379,16 +376,5 @@ was run against a3aa139a's `broad_gate.py` and failed there (§15).
 `questions.md` beside this file. One row is a person's and does not block:
 its default is what this frame builds. The others are a measurement's or
 the work's.
-
-<!-- The line below is the framer's mark, and it is the only evidence in the
-     TREE that the framing happened — the existing framer mark lives in the
-     repository's git dir, and a git dir does not travel, so CI cannot see it.
-     Fill in the date and `<who>`; `<who>` takes the two values the `Planning`
-     row of `routing.md` takes, `framer` or `the session`, and a mark that
-     disagrees with that row is refused at the pull request rather than
-     guessed at.
-     The shape — verb, date, who, the moment — is the one `routing.md` and
-     `plan.md` already end with, which is what keeps three feet-lines from
-     becoming three conventions. -->
 
 Framed 2026-10-05 by framer, before the build.
