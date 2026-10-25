@@ -3243,6 +3243,18 @@ class Test_no_work_item:
         assert said(capsys, repo, "no-work-item")[0] == 0
         assert self.recorded(repo) == "main\nfeature/x\n"
 
+    def test_accepts_a_branch_with_no_commit_yet_and_writes_it(
+        self, tmp_path, capsys, monkeypatch
+    ):
+        """HEAD names `main` before the first commit, and that is the branch
+        recorded, not a detached HEAD (round 4 of #1027, finding 1)."""
+        repo = tmp_path / "fresh"
+        git(tmp_path, "init", "-q", "-b", "main", str(repo))
+        monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "s1")
+        code, out = said(capsys, repo, "no-work-item")
+        assert code == 0, out
+        assert self.recorded(repo) == "main\n"
+
     def test_refuses_a_detached_head_and_writes_nothing(
         self, take, capsys, monkeypatch
     ):

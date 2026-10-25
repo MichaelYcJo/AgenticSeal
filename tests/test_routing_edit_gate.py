@@ -195,8 +195,9 @@ class Test_main:
 
     def test_a_detached_head_names_no_branch_and_is_refused(self, repo):
         """S4 and S8 on a detached HEAD: the ways on start by checking out a
-        branch, and neither text offers `seal no-work-item` where HEAD is,
-        attended or under the `automation` press."""
+        branch, and both texts, attended and under the `automation` press,
+        name `seal no-work-item` only as a run on that branch, because on a
+        detached HEAD it records nothing."""
         opt_in(repo)
         git(repo, "switch", "-q", "--detach")
         top = os.path.realpath(repo)
@@ -328,6 +329,20 @@ class Test_main:
         assert decision_of(run(repo / "f.txt", session="s2")) == "deny"
         git(repo, "switch", "-q", "feature/x")
         assert decision_of(run(repo / "f.txt")) == "deny"
+
+    def test_accepts_the_recording_session_on_a_branch_with_no_commit_yet(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """S4 before the first commit: HEAD names `main`, which has no commit,
+        and `seal no-work-item` run there lets this session's edit through
+        (round 4 of #1027, finding 1)."""
+        fresh = tmp_path / "fresh"
+        git_run(tmp_path, "init", "-q", "-b", "main", str(fresh))
+        opt_in(fresh)
+        monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", SESSION)
+        assert SEAL.main(["no-work-item"], cwd=str(fresh)) == 0
+        capsys.readouterr()
+        assert decision_of(run(fresh / "f.txt", tool="Write")) == "silent"
 
     def test_a_record_naming_no_branch_lets_nothing_through(self, repo):
         """The record an earlier build wrote is an empty file, which names no

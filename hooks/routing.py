@@ -333,12 +333,32 @@ def rebase_branch(cwd):
     return ""
 
 
+def unborn_branch(cwd):
+    """The branch HEAD names before its first commit, or "" where HEAD is
+    detached or git cannot answer. `rev-parse --abbrev-ref HEAD` fails on a
+    branch with no commit; `symbolic-ref` reads the name HEAD points at
+    without resolving it to a commit, and exits 1 on a detached HEAD."""
+    try:
+        out = subprocess.run(
+            ["git", "-C", cwd or ".", "symbolic-ref", "-q", "--short", "HEAD"],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=5,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return ""
+    return out.stdout.strip() if out.returncode == 0 else ""
+
+
 def worktree_branch(cwd):
-    """The branch CWD's worktree is on: the one checked out, else the one a
-    paused rebase there names, or "" where neither names one. The edit gate
-    and `seal no-work-item` both resolve the branch here, so the record names
-    the branch the gate reads."""
-    return current_branch(cwd) or rebase_branch(cwd)
+    """The branch CWD's worktree is on: the one checked out, the one HEAD
+    names before its first commit, else the one a paused rebase there names,
+    or "" where none names one. The edit gate and `seal no-work-item` both
+    resolve the branch here, so the record names the branch the gate reads.
+    `unborn_branch` runs only where `current_branch` found none, so a branch
+    with a commit costs no second `git` call."""
+    return current_branch(cwd) or unborn_branch(cwd) or rebase_branch(cwd)
 
 
 def declarations(root):
