@@ -4,9 +4,9 @@
 The rule is `docs/the-review-record.md` *The run*. This file holds what the
 rule rests on.
 
-The declaration is read through `routing.declared`, the call the commit gate's
-PreToolUse reading makes, so a linked worktree, a root under the common git
-directory and a detached HEAD resolve the same way for both. Every way of not
+The declaration is read through `routing.declared`, so a linked worktree, a
+root under the common git directory and a detached HEAD resolve the way
+`hooks/routing.py` resolves them for every reader. Every way of not
 reading it (no `seal/`, no branch, a file that does not parse, two files for
 one branch) is the attended answer, and the gate prints nothing.
 
@@ -34,7 +34,7 @@ one-issue flow, and is a limit rather than a mechanism.
 A gate whose own reason says to ask with the question tool meets this
 refusal too, and its question states no default: the session takes none of
 the ways on that question offers, and hands the stop back at the end of the
-run, as the commit gate's reason under `automation` says.
+run.
 
 Failure direction: it blocks more. A wrong deny costs one default the pull
 request body names; a wrong allow is the stopped run this gate exists to end.

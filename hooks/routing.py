@@ -222,7 +222,8 @@ def parse(text):
     `hooks/question-gate.py`, only refuses a question, so an absent or
     unreadable row leaves the run attended. A required row would turn all 84
     declarations already committed here into "not a declaration", which
-    re-opens the commit gate on every branch that already answered.
+    turns the edit gate's refusal back on for every branch that already
+    answered.
 
     **What it reads is `table_rows`', which skips a row a renderer does not
     show** (#667): a table wholly inside a fenced block, or inside a comment

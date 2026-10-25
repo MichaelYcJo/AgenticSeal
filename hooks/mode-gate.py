@@ -58,9 +58,9 @@ tree the command came from, because a local root is one folder every worktree
 of the clone shares -- `marker_dir` below owns that, and asking twice about
 one folder is what it was measured doing.
 
-**No waiver token.** The two arms of the commit gate each carry one because
-each is about whether a CHANGE was checked, and a change can honestly be
-exempt. This is about setup, the way on takes one command, and a token would
+**No waiver token.** The commit gate's two arms each carried one until
+#1027, because each was about whether a CHANGE was checked, and a change can
+honestly be exempt. This is about setup, the way on takes one command, and a token would
 build exactly the standing exemption `docs/the-review-and-parity-arms.md`
 refuses. `ask` is the escape hatch, and it is one an unattended run can take.
 
@@ -78,9 +78,9 @@ import config as repo_config
 import console
 import optin
 
-# One marker file per session per repository, and NOT the commit gate's
-# directory. Sharing it would make answering one question silence the other,
-# and the two are different questions that can arrive in the same session.
+# One marker file per session per repository, in a directory no other gate
+# writes. Sharing one would make answering one question silence another, and
+# different questions can arrive in the same session.
 CHOICE_DIR = "specseal-mode-choice"
 # The session's SECOND and last prompt: the approvable retry the deny tells
 # the model to make. Its own directory, because the deny and the ask are two

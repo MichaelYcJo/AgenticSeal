@@ -1715,9 +1715,9 @@ def records(reader, routing, root, item, rel, base):
     return problems
 
 
-# The parity arm at the pull request (#988). A routing declaration answering
-# the review chain quiets the commit gate's parity arm, and each round record
-# then carries the comparison on its `original:` line, which these read.
+# The parity arm at the pull request (#988). Under a routing declaration
+# answering the review chain, each round record carries the comparison on its
+# `original:` line, which these read.
 NO_ORIGINAL = (
     f"no `{ORIGINAL_ROW}` line: `{{config}}` declares a migration and this "
     "pull request changes a path outside the document roots, so each round "
@@ -1738,10 +1738,9 @@ NO_BASELINE = (
 
 
 def parity_readers():
-    """`(config, gate)`: `hooks/config.py` and `hooks/gate.py`, loaded by path
-    in that order, because `config.py` puts `hooks/` on `sys.path` and
-    `gate.py`'s own `import optin` needs it there, in a process that loaded
-    no routing reader first. Raises what `load` raises."""
+    """`(config, gate)`: `hooks/config.py` and `hooks/gate.py`, loaded by path.
+    `gate.py` imports nothing since #1027, so the order no longer matters.
+    Raises what `load` raises."""
     config = load(os.path.join(HOOKS, "config.py"), "specseal_config_for_parity")
     gate = load(os.path.join(HOOKS, "gate.py"), "specseal_gate_for_parity")
     return config, gate

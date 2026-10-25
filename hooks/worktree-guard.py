@@ -211,8 +211,7 @@ except (Exception, SystemExit):
 # underscore where every other gate here carries a hyphen.
 #
 # `hooksession` beside it: which process is a Claude session is one test,
-# `hooksession.is_claude`, shared with the lease writer and the commit gate's
-# lease route (#868).
+# `hooksession.is_claude`, shared with the lease writer (#868).
 import hooksession
 import worktree_consent
 from cmdline_base import apply_chdir, parse_git
@@ -1121,8 +1120,7 @@ def sessions_in_tree(top: str, own_session_id: str = ""):
     """
     # `pgrep -x claude` was observed to silently miss live sessions on macOS,
     # so enumerate with ps and match the executable basename ourselves, by
-    # the one test the lease writer and the commit gate's lease route use
-    # (`hooksession.is_claude`, #868).
+    # the one test the lease writer uses (`hooksession.is_claude`, #868).
     try:
         r = subprocess.run(
             ["ps", "-axo", "pid=,comm="],
