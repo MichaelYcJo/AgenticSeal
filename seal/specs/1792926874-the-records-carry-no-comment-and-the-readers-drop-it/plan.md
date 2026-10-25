@@ -53,7 +53,7 @@ A file whose comparison fails is written only after the smith reads the differen
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
 | 1 | One commit: the strip of *Scope* item 1, the comment state removed from the readers of item 2, the refusal of item 3 with its message pinned, the docstrings rewritten, and every case that pinned the old state rewritten or removed | `tests/test_unverified_check.py`, `tests/test_chain_check.py`, `tests/test_rule_changes.py`, `tests/test_seal_stamp.py`, `tests/test_noninferiority.py`, `tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py`, `tests/test_a_phase_hands_the_next_one_a_record.py`, `tests/test_a_record_carries_no_comment.py`, and S9's four files, green; S1's comparison and S2's command, their output in the phase record; S11's parse of the 41 specs; `unverified_check.py --baseline <phase base> seal/specs/`, its exit code and its notices; each new case shown red against the old code (contract rule 15) | 3ae1bbed |
-| 2 | `evals/scripts/replay_targets.py` reads a historic record's lines with the reader of the commit that judged it (*Scope* item 4) | `tests/test_replay_targets.py` green; S10, `--list` at the phase's base and head identical, and `--case` for each committed replay case regenerating identical files | |
+| 2 | `evals/scripts/replay_targets.py` reads a historic record's lines with the reader of the commit that judged it (*Scope* item 4) | `tests/test_replay_targets.py` green; S10, `--list` at the phase's base and head identical, and `--case` for each committed replay case regenerating identical files | 0635a040 |
 
 ## Operational impact
 
