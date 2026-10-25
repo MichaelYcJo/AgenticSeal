@@ -167,11 +167,10 @@ def declaration_hint(top):
     Under the root this repository resolves to: in local mode that root is
     under the git directory. A linked worktree on another Windows drive has no
     relative spelling (`ntpath.relpath` raises), and the absolute path is the
-    one to type there (round 1 of #80, red 1).
+    one to type there (round 1 of #80, red 1). `decide` refuses only where
+    that root exists, so it is always found here.
     """
     home = optin.home_at(top)
-    if not home:
-        return f"{routing.WORK_ITEMS}/<work-item-id>/{routing.FILENAME}"
     try:
         rel = os.path.relpath(home, top)
     except ValueError:
