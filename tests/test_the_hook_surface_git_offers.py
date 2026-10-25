@@ -373,8 +373,10 @@ def test_only_git_commit_hands_reference_transaction_an_author_date(tmp_path):
 def test_a_sequencer_that_stopped_on_a_conflict_commits_with_the_date(tmp_path):
     """Round 1 of #692 (🟡 7): what M12 left out. A cherry-pick or a rebase
     that stopped on a conflict finishes through a child `git commit`, which
-    hands the hook the date -- so the backstop has to tell git's own commit
-    from a person's another way (`hooks/commitgate.py#_sequencer_commit`)."""
+    hands the hook the date -- so a hook that judged commits had to tell
+    git's own commit from a person's another way. No hook of this plugin
+    judges commits since #1027; the fact stays pinned for whoever weighs one
+    again."""
     d, hooks = repo(tmp_path)
     # A rebase commits on a detached HEAD, so its line names `HEAD`.
     hook(

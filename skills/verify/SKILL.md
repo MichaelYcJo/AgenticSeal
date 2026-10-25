@@ -70,8 +70,8 @@ ever asked it of**, and a count of them taken by hand is wrong as soon as the
 module changes.
 
 ```
-arm-check hooks/commit-review-gate.py
-arm-check hooks/commit-review-gate.py --tests "bin/test tests/test_commit_review_gate.py -q"
+arm-check hooks/routing-edit-gate.py
+arm-check hooks/routing-edit-gate.py --tests "bin/test tests/test_routing_edit_gate.py -q"
 ```
 
 With no `--tests` it lists the arms and mutates nothing. With `--tests` it
@@ -269,8 +269,7 @@ run.
   that earned it: the stamp is drawn from the sealer's `guarantee.md` reading
   `sealed`, once per work item, at the end of the turn in which that file is
   written. The edit hook writes the values it is drawn from at the file's
-  write, under either root, and in shared mode git's `post-commit` does at
-  its commit where no write queued it; the `Stop` hook draws them in the
+  write, under either root, and the `Stop` hook draws them in the
   orchestrator's session
   (`docs/the-review-record.md` *The stamp*). The broad gate draws nothing:
   its line reads `BROAD GATE PASSED` or `BROAD GATE FAILED` and judges

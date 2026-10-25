@@ -233,7 +233,6 @@ SEAL_SWEPT = (
     # stamp it is, so they are swept too.
     ("hooks", "sealer-stamp.py"),
     ("hooks", "dispatch.py"),
-    ("hooks", "commitgate.py"),
     ("bin", "seal-stamp"),
     ("bin", "broad-gate"),
     ("docs", "the-broad-gate.md"),
@@ -660,7 +659,8 @@ def test_folding_the_seam_cannot_hide_an_instance_it_would_have_found():
     closed set and not a short list of examples — and because the closure
     rests on the member lists, it stops holding the moment a `.py` member
     joins a sweep. So the members are pinned below too. #975 added the third
-    sweep, `GATE_PHRASES` over `GATE_SWEPT`, and three hooks to `SEAL_SWEPT`.
+    sweep, `GATE_PHRASES` over `GATE_SWEPT`, and three hooks to `SEAL_SWEPT`;
+    #1027 took one of them, `hooks/commitgate.py`, out with the file.
 
     WHAT THIS CASE STILL CANNOT SEE: whether a phrase was added to a sweep
     without going through the constants. See `SEAL_BARE`'s comment for why
@@ -685,7 +685,6 @@ def test_folding_the_seam_cannot_hide_an_instance_it_would_have_found():
         "tests/test_session_cost.py",
         "hooks/sealer-stamp.py",
         "hooks/dispatch.py",
-        "hooks/commitgate.py",
     }, (
         "the set of members `flat` folds has moved, so the closure this case "
         "rests on has to be re-taken: every phrase the sweep over "

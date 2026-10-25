@@ -160,15 +160,32 @@ def ignored(top, path):
     return code == 0
 
 
+def declaration_hint(top):
+    """The declaration path a refusal tells a session to write, relative to
+    `top` and spelled the way the platform spells it.
+
+    Under the root this repository resolves to: in local mode that root is
+    under the git directory. A linked worktree on another Windows drive has no
+    relative spelling (`ntpath.relpath` raises), and the absolute path is the
+    one to type there (round 1 of #80, red 1).
+    """
+    home = optin.home_at(top)
+    if not home:
+        return f"{routing.WORK_ITEMS}/<work-item-id>/{routing.FILENAME}"
+    try:
+        rel = os.path.relpath(home, top)
+    except ValueError:
+        rel = home
+    return os.path.join(rel, optin.WORK_ITEMS, "<work-item-id>", routing.FILENAME)
+
+
 def reason(path, top, branch, pressed):
     """The whole text of the refusal."""
-    import gate
-
     shown = os.path.relpath(os.path.realpath(path), os.path.realpath(top))
     named = branch or NO_BRANCH
     state = (STATE if branch else DETACHED).format(file=shown, top=top, branch=named)
     ways = (PRESSED if pressed else ATTENDED).format(
-        hint=gate.declaration_hint(top), branch=named
+        hint=declaration_hint(top), branch=named
     )
     return "\n\n".join([HEADER, state, ways, UNCHANGED])
 

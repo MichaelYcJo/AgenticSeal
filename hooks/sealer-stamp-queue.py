@@ -24,8 +24,8 @@ The group runs this after every file edit in every repository. So the edit's
 shape is matched first, from the payload alone: a `Write` or `Edit`, a
 session, and a path ending `/seal/specs/<id>/guarantee.md`. `seal_stamp.py`
 is loaded only after that, and it is this gate's only way to `git`. Every
-failure is silent, the shape `hooks/commitgate.py#post_commit` has: the
-stamp is a thing shown to a person and never a reason to stop an edit.
+failure is silent: the stamp is a thing shown to a person and never a reason
+to stop an edit.
 """
 
 import importlib.util
@@ -54,8 +54,7 @@ def shaped(path):
 
 
 def load_stamp():
-    """`seal_stamp.py`, loaded the way `hooks/commitgate.py#_stamp_module`
-    loads it."""
+    """`seal_stamp.py`, loaded by path from the plugin's `skills/`."""
     spec = importlib.util.spec_from_file_location(
         "specseal_seal_stamp_for_the_edit_gate", STAMP
     )

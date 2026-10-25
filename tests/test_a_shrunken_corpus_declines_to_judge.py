@@ -137,9 +137,6 @@ LISTS_A_FIXTURE = {
     # `tests/test_root_migrate.py`, and `seal mode`'s switch and the
     # workflow it stages in `tests/test_seal.py`.
     "tests/conftest.py#staged": 1,
-    # The paths the commit gate's guarantee arm is handed, staged in the
-    # case's own copy of the commit gate's world.
-    "tests/test_commitgate.py#paths_of": 1,
 }
 
 # One call per scope everywhere today. Spelled as a map rather than as "one

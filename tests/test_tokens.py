@@ -27,30 +27,33 @@ cmdline = load_hook_module("cmdline.py", "cmdline_for_the_base_reads")
 
 TOKEN_CASES = (
     [
-        (": '[no-review]'; git commit -m x", ("[no-review]",)),
+        (": '[worktree-ok]'; git commit -m x", ("[worktree-ok]",)),
         ("git worktree add ../wt f  # [worktree-ok]", ("[worktree-ok]",)),
         ("(git worktree add ../wt f [worktree-ok])", ("[worktree-ok]",)),
         (
-            ": '[no-review]' '[no-parity]'; git commit -m x",
-            ("[no-review]", "[no-parity]"),
+            ": '[worktree-ok]' '[shared-tree-ok]'; git commit -m x",
+            ("[worktree-ok]", "[shared-tree-ok]"),
         ),
-        ('git commit -m "drop [no-review] later"', ()),
-        ("git commit -m x[no-review]", ()),
-        ("echo 'it''s [no-review]", ()),
+        ('git commit -m "drop [worktree-ok] later"', ()),
+        ("git commit -m x[worktree-ok]", ()),
+        ("echo 'it''s [worktree-ok]", ()),
         ("git commit -m x", ()),
         # #773, S4: a here-document body is data. Red at `94d7b2e0` for the
         # two body rows; the rest are green there and stay green.
         (
-            "python3 - <<'EOF'\nnote = \"[no-review]\"\nEOF\ngit -C ../r commit -m x",
+            "python3 - <<'EOF'\nnote = \"[worktree-ok]\"\nEOF\ngit -C ../r commit -m x",
             (),
         ),
-        ("cat > f <<EOF\n[no-review]\nEOF\ngit -C ../r commit -m x", ()),
+        ("cat > f <<EOF\n[worktree-ok]\nEOF\ngit -C ../r commit -m x", ()),
         (
-            ": '[no-review]'; cat > f <<EOF\nbody\nEOF\ngit commit -m x",
-            ("[no-review]",),
+            ": '[worktree-ok]'; cat > f <<EOF\nbody\nEOF\ngit commit -m x",
+            ("[worktree-ok]",),
         ),
-        ("cat > f <<EOF\nbody\nEOF\ngit commit -m x  # [no-review]", ("[no-review]",)),
-        ('cat <<EOF\n"\nEOF\necho [no-review] "\n"', ()),
+        (
+            "cat > f <<EOF\nbody\nEOF\ngit commit -m x  # [worktree-ok]",
+            ("[worktree-ok]",),
+        ),
+        ('cat <<EOF\n"\nEOF\necho [worktree-ok] "\n"', ()),
         (None, ()),
         # #868, phase 1 of work item 1791384157: the words read before a split
         # fails are read, so the documented comment form with an apostrophe
@@ -61,11 +64,11 @@ TOKEN_CASES = (
             ("[shared-tree-ok]",),
         ),
         (
-            ": '[no-review]'; git commit -q -m x\ncat > f <<'EOF'\nit's\nEOF",
-            ("[no-review]",),
+            ": '[worktree-ok]'; git commit -q -m x\ncat > f <<'EOF'\nit's\nEOF",
+            ("[worktree-ok]",),
         ),
         ("git status  # it's [worktree-ok]", ()),
-        ("git commit -m 'x [no-review]", ()),
+        ("git commit -m 'x [worktree-ok]", ()),
     ],
     [
         "the no-op form",
@@ -98,7 +101,7 @@ TOKEN_CASES = (
 # the token. Each command is built from named parts -- the opener, the body,
 # the suffix -- and is never run.
 
-WAIVER = "[no-review]"
+WAIVER = "[worktree-ok]"
 
 
 def commit_into(repo):

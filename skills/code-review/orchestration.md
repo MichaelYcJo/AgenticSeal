@@ -229,11 +229,12 @@ commit: a `git clone` of the branch worktree copies its branches and none
 of its `origin/` refs, so spawn the sealer again with the branch worktree
 itself as its clone, where `origin/<base>` or, with no remote, `<base>`
 resolves.
-Where `pre-commit` refuses the commit of `guarantee.md` because its row names
-a commit the branch does not hold, spawn the sealer again at HEAD and commit
-what it writes; never edit the row by hand. The hook recorded the refusal,
-so the new audit, which keeps the refused verdict on its row, draws the
-work item's stamp (`docs/the-commit-gate-inside-git.md`).
+Where the guarantee's row names a commit the branch does not hold, which
+the pull request's check refuses as stale, spawn the sealer again at HEAD
+and commit what it writes; never edit the row by hand. The stamp's writer
+recorded the refusal at the write, so the new audit, which keeps the refused
+verdict on its row, draws the work item's stamp (`docs/the-review-record.md`
+*The stamp*).
 
 **The preflight is yours, and it is not the broad gate.** It runs every
 arm of the gate except the `Broad gate` row, in the gate's order and over the
@@ -258,9 +259,7 @@ work item from the sealer's verdict: where the one `Verdict:` of
 `guarantee.md` reads `sealed`, the sealer's own `Write` of it queues the
 stamp's values, under either root, and the `Stop` hook draws them after your
 text. The line naming them is the edit hook's message, shown to the person
-at that write. It is not in the sealer's report and does not reach you. In
-shared mode, where no write queued them, git's `post-commit` writes them
-when you commit the file and prints the same line into the commit's output.
+at that write. It is not in the sealer's report and does not reach you.
 So put the result text first in that turn:
 what was sealed, the lines worth quoting, and what happens next. Then end
 the turn, and the drawing lands last with nothing after it. Draw none
@@ -271,16 +270,16 @@ the ref and the commit it was compared against, the panel's rows follow it
 as text, and the report's last line says `broad-gate.md` is written and not
 committed: CI reads HEAD, so commit it before you push, or the one
 broad run is recorded nowhere CI looks. On a red run relay the `BROAD GATE
-FAILED` lines. Wherever a commit's line names `seal-stamp --from`, quote
+FAILED` lines. Wherever a line you read names `seal-stamp --from`, quote
 it as it stands: that command is the person's to type, and never yours. The
 edit hook's line never reaches you. Where no stamp appeared, name the file
 under `<git-common-dir>/specseal-stamp/<session>/` whose name holds the work
 item's id, and leave `seal-stamp --from <that file>` to the person. The line
 names the command because the hook draws nothing and says nothing where it
 cannot: a `python3` that cannot load `seal_stamp.py`, a working directory
-outside the clone, or a plugin older than the hook. Where git's hooks slot is
-somebody else's no line prints and no stamp is drawn, and the pull request's
-check is what says the work item was sealed.
+outside the clone, or a plugin older than the hook. Where no edit hook saw
+the guarantee written, no line prints and no stamp is drawn, and the pull
+request's check is what says the work item was sealed.
 
 **A refusal about the `Broad gate` row goes to a person, and the run stops
 until they answer.** Your broad run comes back exit 2 two ways that are

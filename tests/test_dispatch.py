@@ -498,8 +498,8 @@ class Test_merge:
         assert d.merge(["first\n", "", "second\n"], "PostToolUse") == "first\nsecond"
 
     def test_refuses_to_drop_a_line_said_once_beside_a_neighbours_decision(self):
-        """#692: `hook-install.py` says its line once per session, so a `deny`
-        beside it in the same group must not drop it."""
+        """#692: a gate that says its line once per session, as `stub-remove.py`
+        does, must not lose it to a `deny` beside it in the same group."""
         d = dispatch_module()
         out = json.loads(
             d.merge(
@@ -525,13 +525,11 @@ class Test_opted_in:
         hooks = hooks_copy(tmp_path, {"optin.py": BROKEN})
         dispatch(hooks, "pre-bash", bash(repo, "s-x"))
         # One file time for all of them, as a coarse file system gives: the order
-        # said is `pre-bash`'s own order, which is not name order here. The git
-        # hook installer imports `optin.py` too, and it runs first (#692).
+        # said is `pre-bash`'s own order, which is not name order here.
         for path in (repo / ".git" / RECORDS / "s-x").iterdir():
             os.utime(path, ns=(10**18, 10**18))
         lines = said(stop(hooks, repo, "s-x"))
         assert gates_said(lines) == [
-            "hook-install.py",
             "worktree-guard.py",
             "mode-gate.py",
             "sealer-stamp.py",
@@ -820,19 +818,11 @@ class Test_draw:
     @pytest.mark.parametrize(
         "broken, named",
         [
-            (
-                {"cmdline.py": BROKEN},
-                ["answer-write.py", "implementer-notice.py"],
-            ),
+            ({"cmdline.py": BROKEN}, ["implementer-notice.py"]),
             ({"cmdline_base.py": BROKEN}, ["worktree-guard.py", "worktree_consent.py"]),
             (
                 {"cmdline.py": BROKEN, "cmdline_base.py": BROKEN},
-                [
-                    "answer-write.py",
-                    "worktree-guard.py",
-                    "implementer-notice.py",
-                    "worktree_consent.py",
-                ],
+                ["worktree-guard.py", "implementer-notice.py", "worktree_consent.py"],
             ),
         ],
         ids=["cmdline", "cmdline_base", "both"],
@@ -842,8 +832,8 @@ class Test_draw:
     ):
         """S6. A broken shared reader names every gate that imports it, once, and
         no gate that does not. `cmdline.py` is imported by
-        `implementer-notice.py`, and since #773 by `answer-write.py` through
-        `tokens.given`, whose read leaves the heredoc bodies out; since #689
+        `implementer-notice.py`, and the worktree guard reaches it through
+        `tokens.given` only inside a guarded read; since #689
         `cmdline_base.py`, the reader frozen at `86256492`, is imported by the
         worktree guard and `worktree_consent.py`. The worktree guard's import
         of `cmdline.py` is guarded, so a broken `cmdline.py` does not name it.
@@ -865,9 +855,12 @@ class Test_draw:
         for path in (repo / ".git" / RECORDS / "s-x").iterdir():
             os.utime(path, ns=(10**18, 10**18))
         lines = said(stop(hooks, repo, "s-x"))
-        assert lines[0] == f"SpecSeal: {len(named)} gates failed and were skipped", (
-            lines
+        label = (
+            LABEL_ONE
+            if len(named) == 1
+            else f"SpecSeal: {len(named)} gates failed and were skipped"
         )
+        assert lines[0] == label, lines
         assert gates_said(lines) == named, lines
         assert lines[-1] == CLOSING
 
@@ -884,7 +877,7 @@ class Test_draw:
         directory.mkdir(parents=True)
         carried = (
             ("worktree-guard.py", [10**18, 0]),
-            ("answer-write.py", [10**18, 1]),
+            ("routing-edit-gate.py", [10**18, 1]),
             ("mode-gate.py", [10**18 + 5, 0]),
         )
         for gate, at in carried:
@@ -904,7 +897,7 @@ class Test_draw:
         lines = said(stop(hooks_copy(tmp_path, {}), repo, "s-x"))
         assert gates_said(lines) == [
             "worktree-guard.py",
-            "answer-write.py",
+            "routing-edit-gate.py",
             "mode-gate.py",
             "version-check.py",
             "session-lease.py",
@@ -1175,21 +1168,16 @@ class Test_main:
 
 
 class Test_module:
-    def test_the_installer_runs_before_the_gates_it_serves(self):
-        """#692: first in `pre-bash`, so a stub that went missing is back before
-        the command runs; last at `session-start`, after the root migrations."""
+    def test_no_group_installs_into_git_or_reads_a_commit_before_it_runs(self):
+        """#1027 S16: `pre-bash` holds the worktree guard and the mode gate
+        and nothing that reads a commit or carries a waiver to git, and
+        `session-start` runs the stub remover after the root migration, in
+        place of the installer."""
         d = dispatch_module()
-        assert d.GROUPS["pre-bash"][0] == "hook-install.py"
-        assert d.GROUPS["session-start"][-1] == "hook-install.py"
-
-    def test_the_hook_is_wired_into_session_start_before_the_git_hooks(self):
-        """The dispatch group is the only thing that runs hooks in production, and
-        the git hooks are installed into the root this one may just have moved, so
-        the order is part of the contract."""
-        dispatch = load_hook_module("dispatch.py", "dispatch_for_root")
-        group = dispatch.GROUPS["session-start"]
-        assert "root-migrate.py" in group
-        assert group.index("root-migrate.py") < group.index("hook-install.py")
+        assert d.GROUPS["pre-bash"] == ("worktree-guard.py", "mode-gate.py")
+        group = d.GROUPS["session-start"]
+        assert group.index("root-migrate.py") < group.index("stub-remove.py")
+        assert not any("install" in g for gates in d.GROUPS.values() for g in gates)
 
     def test_a_message_is_its_first_line_and_capped(self):
         d = load(os.path.join(HOOKS, "dispatch.py"), "dispatch_for_the_cap")

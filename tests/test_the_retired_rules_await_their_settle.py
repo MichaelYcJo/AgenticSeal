@@ -32,3 +32,10 @@ class Test_judged_inside_the_commit:
 class Test_text_reading_stands_aside:
     """`docs/the-commit-gate-inside-git.md`: the text reading stood aside
     where git decided. The text reading is gone."""
+
+
+@pytest.mark.rule("sealed-off-the-branch-refused")
+class Test_sealed_off_the_branch_refused:
+    """`docs/the-commit-gate-inside-git.md`: `pre-commit` refused the commit
+    of a `sealed` over a commit the branch does not hold. The stamp's writer
+    refuses it at the write now, under `refused-sealed-leaves-a-record`."""

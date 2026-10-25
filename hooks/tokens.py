@@ -1,11 +1,5 @@
-"""The bare words of a command, read for consent tokens and nothing else
-(#692).
-
-`questions.md` P3, answer (a), keeps the old waiver and answer spellings --
-`: '[no-review]'; git commit …` -- working beside the git-native
-`git -c specseal.waive=review` form. A shell drops those words before git
-runs, so a git hook never sees them; this reads them out of the command and
-`hooks/answers.py` hands them to the hook.
+"""The bare words of a command, read for the worktree guard's consent tokens
+and nothing else (#692, #868).
 
 Its failure direction is why a text read may stay: a token it cannot read
 costs one refusal, and a token it reads has exactly the standing tokens
@@ -16,12 +10,12 @@ where an action lands.
 The rules are the two consent reads 0.16.0 had, joined:
 
   * **a bare word, never a substring** -- inside a quoted message it is prose
-    (`git commit -m "drop [no-review] later"`), which the reads this one
+    (`echo "we agreed on [worktree-ok] yesterday"`), which the reads this one
     replaced both refused to read as consent;
   * **comments are read** -- the documented form writes the token in one;
-  * **a here-document body reads nothing** (#773) -- a waiver is typed in
-    front of a command, and a body is text the command only carries, so a
-    token inside one silenced a commit nobody waived. `without_bodies` is the
+  * **a here-document body reads nothing** (#773) -- a token is typed with
+    a command, and a body is text the command only carries, so a token
+    inside one consented to what nobody agreed to. `without_bodies` is the
     text a consent read reads, and a token counts only where the command as
     written carries it too, so leaving the bodies out can only refuse. A new
     consent read starts here, and since #780 the worktree guard's
@@ -43,20 +37,19 @@ The rules are the two consent reads 0.16.0 had, joined:
     A quote this splitter cannot close is not always one bash refuses, and
     ANSI-C quoting is the known disagreement, in both directions: `$'it\\'s'`
     is one closed word to bash, while shlex closes the quote at `\\'` and
-    reads the rest as a quote that never closes. So a waiver typed after
-    `git commit -m $'it\\'s'` is refused although bash runs the command, and
+    reads the rest as a quote that never closes. So a token typed after
+    `echo $'it\\'s'` is refused although bash runs the command, and
     a token inside `echo $'it\\'s [shared-tree-ok] x'` is read although bash
     quotes it, as every base read did too (round 1 of work item 1791384157,
-    white 6). The waiver typed in front is the way on in the first.
+    white 6). The token typed in front is the way on in the first.
 
 **This is the one reader of a consent token** (#868). The worktree guard's
-`has_token` and the old spelling handed to the git hooks
-(`hooks/answer-write.py`) both answer `token in given(command)`.
+`has_token` answers `token in given(command)`.
 """
 
 import shlex
 
-KNOWN = ("[no-review]", "[no-parity]", "[worktree-ok]", "[shared-tree-ok]")
+KNOWN = ("[worktree-ok]", "[shared-tree-ok]")
 
 
 def without_bodies(command):

@@ -1287,174 +1287,6 @@ def queued(common):
     return sorted(found)
 
 
-def queue(item, common=None, session="s-1"):
-    return stamp.queue_for_guarantee(str(item.repo), common or item.common, session)
-
-
-class Test_queue_for_guarantee:
-    @pytest.mark.rule("stamp-drawn-once")
-    def test_a_sealed_guarantees_commit_queues_one_stamp(self, shared):
-        """#975 S4 and S9: one values file for the session, named by the work
-        item's id and the audited commit, the line naming it and the command
-        quoted for a path that holds a space, and rows read from the records
-        at the commit, nothing measured again and no `scale`."""
-        said = queue(shared)
-        (path,) = queued(shared.common)
-        assert os.path.dirname(path) == os.path.join(
-            shared.common, "specseal-stamp", "s-1"
-        )
-        assert os.path.basename(path).endswith(f"-{ITEM_ID}-{shared.target}.json")
-        assert said == [
-            f"specseal: the stamp for {ITEM_ID} is drawn at the end of this turn "
-            f"from {path}; where none appears, `seal-stamp --from "
-            f"{stamp.quote(path)}` draws it"
-        ]
-        read = stamp.read_values(path)
-        assert read["rows"] == [
-            ("SEALED", ""),
-            ("tree", shared.target),
-            ("", "feat/x"),
-            ("base", shared.base),
-            ("item", ITEM_ID),
-            None,
-            ("gate", f"✓ {shared.target}"),
-            ("rounds", "2"),
-        ]
-        assert {k: read[k] for k in ("tree", "base", "from", "branch", "pr")} == {
-            "tree": shared.target,
-            "base": shared.base,
-            "from": None,
-            "branch": "feat/x",
-            "pr": None,
-        }
-        assert read["item"] == str(shared.repo / "seal" / "specs" / ITEM_NAME)
-        assert read["session"] == "s-1" and "scale" not in read
-
-    @pytest.mark.rule("stamp-drawn-once")
-    def test_accepts_a_reseal_after_withheld_and_a_detached_head(self, shared):
-        """#975 S6: an earlier run that withheld does not count. On a
-        detached HEAD the branch is left out of the file and the rows."""
-        earlier = "; earlier run: abc1234 withheld"
-        amended(shared, guarantee_text(shared.target, shared.base, earlier=earlier))
-        git(shared.repo, "checkout", "-q", "--detach")
-        assert queue(shared)
-        (path,) = queued(shared.common)
-        read = stamp.read_values(path)
-        assert read["branch"] is None and ("", "feat/x") not in read["rows"]
-
-    @pytest.mark.rule("stamp-drawn-once")
-    def test_accepts_an_earlier_sealed_this_clone_refused(self, shared):
-        """1792363231 S14: a `sealed` the commit gate refused in this clone and
-        recorded is no stamp, so the new audit that keeps it on its row
-        draws the work item's one."""
-        earlier = "; earlier run: deadbee1 sealed"
-        amended(shared, guarantee_text(shared.target, shared.base, earlier=earlier))
-        assert queue(shared) == []
-        stamp.record_refusal(shared.common, ITEM_ID, "deadbee1")
-        assert queue(shared)
-        assert len(queued(shared.common)) == 1
-
-    @pytest.mark.rule("stamp-drawn-once")
-    @pytest.mark.parametrize(
-        "verdict",
-        [
-            "withheld reason: the README is stale",
-            "sealed\n\nVerdict: withheld reason: x",
-            "Sealed",
-        ],
-        ids=["withheld", "two-verdicts", "a-near-miss"],
-    )
-    def test_a_withheld_or_undecided_guarantee_queues_nothing(self, shared, verdict):
-        """#975 S5 and S7 of #1000: a guarantee that does not read one
-        `sealed` queues nothing and says nothing, nor does a later commit
-        that does not touch it."""
-        amended(shared, guarantee_text(shared.target, shared.base, verdict))
-        assert queue(shared) == []
-        write(shared.repo, "README.md", "x\n")
-        commit(shared.repo, "something else")
-        assert queue(shared) == [] and queued(shared.common) == []
-
-    @pytest.mark.rule("record-comment-line-refused")
-    def test_a_guarantee_holding_a_comment_line_queues_nothing(self, shared):
-        """S8 of #1012: a sealed guarantee holding a line that begins `<!--`
-        is one the pull request refuses, so it queues no stamp."""
-        text = guarantee_text(shared.target, shared.base)
-        amended(shared, text.replace("Verdict:", "<!-- a note -->\n\nVerdict:"))
-        assert queue(shared) == [] and queued(shared.common) == []
-
-    @pytest.mark.rule("stamp-drawn-once")
-    def test_a_second_sealed_verdict_queues_nothing(self, shared):
-        """#975 S7: a row whose earlier run reads `sealed` was stamped at it."""
-        earlier = "; earlier run: bbb2222 sealed; earlier run: abc1234 withheld"
-        amended(shared, guarantee_text(shared.target, shared.base, earlier=earlier))
-        assert queue(shared) == [] and queued(shared.common) == []
-
-    @pytest.mark.rule("stamp-drawn-once")
-    def test_a_recommit_of_the_same_guarantee_queues_no_second_file(self, shared):
-        """#975 S8: an amend, and a re-seal whose row was written fresh, find
-        the first file, pending or drawn, under any session of the clone."""
-        assert queue(shared, session="s-1")
-        git(shared.repo, *SIGNED, "commit", "--amend", "-qm", "again")
-        assert queue(shared, session="s-2") == []
-        (first,) = queued(shared.common)
-        stamp.claim(first)
-        write(shared.repo, "x.txt", "a fix after the seal\n")
-        new = commit(shared.repo, "a fix")[:7]
-        sealed_again(shared, guarantee_text(new, shared.base))
-        assert queue(shared, session="s-3") == []
-        assert queued(shared.common) == [stamp.drawn_path(first)]
-
-    @pytest.mark.rule("stamp-drawn-once")
-    def test_refuses_a_seal_another_clone_carries_from_its_history(
-        self, shared, tmp_path
-    ):
-        """#975 rounds 3 and 5: a clone holding no values file for the work
-        item, here a second common dir, queues nothing for a commit that
-        edits a guarantee read `sealed` earlier in HEAD's history, whatever
-        the newer row says."""
-        other = str(tmp_path / "other-common")
-        write(
-            shared.repo,
-            GUARANTEE,
-            (shared.repo / GUARANTEE).read_text(encoding="utf-8") + "\na note\n",
-        )
-        commit(shared.repo, "a note, no new run")
-        assert queue(shared, other) == []
-        write(shared.repo, "x.txt", "a fix\n")
-        new = commit(shared.repo, "a fix")[:7]
-        sealed_again(shared, guarantee_text(new, shared.base))
-        assert queue(shared, other) == [] and queued(other) == []
-
-    @pytest.mark.rule("stamp-drawn-once")
-    def test_refuses_a_guarantee_whose_audited_commit_is_off_the_history(
-        self, shared, tmp_path
-    ):
-        """#975: a squash of the branch carries the verdict onto a commit
-        whose history does not hold the audited commit, so another clone
-        queues nothing."""
-        other = str(tmp_path / "other-common")
-        git(shared.repo, "switch", "-q", "main")
-        git(shared.repo, "merge", "--squash", "feat/x")
-        commit(shared.repo, "the squash")
-        assert queue(shared, other) == [] and queued(other) == []
-
-    @pytest.mark.rule("refused-sealed-leaves-a-record")
-    @pytest.mark.rule("sealed-off-the-branch-refused")
-    def test_a_sealed_committed_past_the_stub_keeps_the_gap(self, shared):
-        """1792363231 S13: a `sealed` over a commit nobody has, committed past
-        the commit gate, queues nothing and writes no record, and the repair
-        that keeps that run on its row queues nothing either: the gap is a
-        missing stamp, Q8's direction, pinned as a limit."""
-        amended(shared, guarantee_text("deadbee", shared.base))
-        assert queue(shared) == []
-        earlier = "; earlier run: deadbee sealed"
-        sealed_again(
-            shared, guarantee_text(shared.target, shared.base, earlier=earlier)
-        )
-        assert queue(shared) == [] and queued(shared.common) == []
-        assert not os.path.exists(os.path.join(shared.common, "specseal-stamp-refused"))
-
-
 class Test_sealed_before:
     def test_accepts_a_sealed_at_an_earlier_commit_whatever_it_named(self, shared):
         """#975 round 5: the history counts a `sealed` whatever its target,
@@ -1464,8 +1296,11 @@ class Test_sealed_before:
         commit(shared.repo, "later")
         assert stamp.sealed_before(chain, str(shared.repo), GUARANTEE) is True
 
-    def test_refuses_the_head_commits_own_verdict_and_two_verdicts(self, shared):
-        assert stamp.sealed_before(chain, str(shared.repo), GUARANTEE) is False
+    def test_counts_the_head_commits_own_verdict_and_refuses_two_verdicts(self, shared):
+        """It is asked at a write no commit carries yet, so HEAD's own
+        `sealed` counts; a commit holding two verdicts, or none that reads
+        `sealed`, does not."""
+        assert stamp.sealed_before(chain, str(shared.repo), GUARANTEE) is True
         two = "sealed\n\nVerdict: withheld"
         amended(shared, guarantee_text(shared.target, shared.base, two))
         sealed_again(
@@ -1488,11 +1323,14 @@ class Test_sealed_before:
         assert not stamp.sealed_before(*before, common=shared.common, ident=ITEM_ID)
         assert stamp.sealed_before(*before)
 
-    def test_refuses_a_root_commit_which_has_no_history(self, tmp_path):
+    def test_refuses_a_repository_with_no_commit_and_counts_a_root_one(self, tmp_path):
+        """An unborn branch has no history: `git log HEAD` exits 128 and the
+        answer is no. A root commit carrying the verdict is history."""
         write(tmp_path, GUARANTEE, guarantee_text("deadbee", "main"))
         git(tmp_path, "init", "-q", "-b", "main")
-        commit(tmp_path, "the root")
         assert stamp.sealed_before(chain, str(tmp_path), GUARANTEE) is False
+        commit(tmp_path, "the root")
+        assert stamp.sealed_before(chain, str(tmp_path), GUARANTEE) is True
 
 
 # --- the stamp queued at a local-mode guarantee's write ---------------------------
@@ -1585,8 +1423,8 @@ class Test_queue_for_written_guarantee:
     def test_a_shared_mode_sealed_guarantee_queues_one_stamp_at_its_write(self, shared):
         """#1027 S13: the sealer's `Write` under the shared root queues the
         work item's one values file, as local mode's does. A second write of
-        the same verdict queues nothing, and neither does the commit that
-        carries it, which `post-commit` reads until it is removed."""
+        the same verdict queues nothing, before the commit that carries it and
+        after."""
         uncommitted(shared)
         said = queue_written(shared)
         (written,) = queued(shared.common)
@@ -1601,7 +1439,7 @@ class Test_queue_for_written_guarantee:
         ]
         assert queue_written(shared, session="s-2") == []
         commit(shared.repo, "the closing records")
-        assert queue(shared) == []
+        assert queue_written(shared, session="s-3") == []
         assert queued(shared.common) == [written]
 
     @pytest.mark.rule("stamp-drawn-once")
