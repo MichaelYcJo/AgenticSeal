@@ -20,7 +20,7 @@ gate's split refusal texts and `#reason`; and `seal no-work-item` in
 severity: should
 location: `hooks/routing.py:336-341`, `skills/implement/scripts/seal.py:2450-2456`, `hooks/routing-edit-gate.py:254`, `tests/test_seal.py:3246`
 evidence: executed `python3 <scratchpad>/1792935671-the-routing-check-moves-to-the-sessions-tools/round-4/test_tmp_round4.py`
-verdict: open
+verdict: fixed 6030237f
 
 The smith recorded this in `phases/phase-8.md` as a limit with no case, and
 asked for a reader. The claim is that `routing.current_branch` returns ""
@@ -86,14 +86,14 @@ instead, the limit sentence and the corrected texts belong in `spec.md`
 *Rule changes* *The edit check*, so they land in
 `docs/the-routing-check.md` at settle.
 
-answer:
+answer: The finding holds, and 6030237f takes the record's direction: `hooks/routing.py#unborn_branch` reads `git symbolic-ref -q --short HEAD`, and `#worktree_branch` tries it after `current_branch` and before `rebase_branch`, so `seal no-work-item` and the gate resolve an unborn branch by its name, and a detached HEAD or a paused rebase still falls through as before. `tests/test_seal.py::Test_no_work_item::test_accepts_a_branch_with_no_commit_yet_and_writes_it` and `tests/test_routing_edit_gate.py::Test_main::test_accepts_the_recording_session_on_a_branch_with_no_commit_yet` were red before the fix, and `mutation-check` removing the fallback or dropping `--short` turns them red (executed by the smith). The orchestrator re-ran its own probe at 6030237f: a `git init -b main` with a `seal/` root and no commit resolves `main` (executed). `phases/phase-8.md` now says the limit is closed by this fix (a9203f93).
 
 ### 2. The frame's sentence on the detached refusal reads two ways, and the code follows only one of them
 
 severity: should
 location: `seal/specs/1792935671-the-routing-check-moves-to-the-sessions-tools/spec.md:175-178`, `seal/specs/1792935671-the-routing-check-moves-to-the-sessions-tools/plan.md:59`
 evidence: read `seal/specs/1792935671-the-routing-check-moves-to-the-sessions-tools/spec.md:175-178`, `hooks/routing-edit-gate.py:85-108`, `tests/test_routing_edit_gate.py:196-207`
-verdict: open
+verdict: fixed 5e171b5f
 
 This is the smith's first judgement call. `spec.md` *Rule changes*, the
 paragraph opening *A refusal is a deny addressed to the model*, says that
@@ -128,7 +128,7 @@ In `plan.md` row 8, the clause becomes: "and its detached-HEAD refusal
 names checking out a branch before `seal no-work-item`, which records
 nothing on a detached HEAD".
 
-answer:
+answer: The finding holds, and the frame changes as the record says, with the code as it stands: 5e171b5f, written by the orchestrator, puts the record's sentence into `spec.md` *Rule changes*, the paragraph opening *A refusal is a deny addressed to the model*, and the record's clause into `plan.md` row 8; the spec's rule changes still parse, 55 operations and no error (executed). The test docstring that took the other reading, `tests/test_routing_edit_gate.py::Test_main::test_a_detached_head_names_no_branch_and_is_refused`, now says both texts name `seal no-work-item` only as a run on the branch checked out first (6030237f, by the smith).
 
 ## Confirmations
 
