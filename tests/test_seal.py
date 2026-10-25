@@ -3226,15 +3226,21 @@ class Test_no_work_item:
             f"item ({self.record(repo)}), so its edits there go ahead.\n"
         )
 
-    def test_refuses_with_no_session_variable_and_writes_nothing(self, take, capsys):
+    @pytest.mark.parametrize("value", [None, ".", ".."], ids=["unset", "dot", "dots"])
+    def test_refuses_a_session_variable_naming_no_session_and_writes_nothing(
+        self, take, capsys, monkeypatch, value
+    ):
+        """A value that is no file name would name the records' directory or
+        its parent, so it names no session."""
         repo = take("plain")
+        if value is not None:
+            monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", value)
         code, out = said(capsys, repo, "no-work-item")
         assert code == 1
         assert not os.path.exists(os.path.dirname(self.record(repo)))
         assert out == (
-            "seal: no CLAUDE_CODE_SESSION_ID in this environment, so no session "
-            "can be named and nothing was recorded. Run this from the session's "
-            "own Bash tool.\n"
+            "seal: CLAUDE_CODE_SESSION_ID names no session in this environment, "
+            "so nothing was recorded. Run this from the session's own Bash tool.\n"
         )
 
     def test_refuses_outside_a_repository_and_writes_nothing(

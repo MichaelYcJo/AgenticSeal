@@ -2439,9 +2439,9 @@ def no_work_item(args, cwd):
     session = os.environ.get(hooksession.SESSION_VARIABLE, "")
     if not routing.session_name(session):
         print(
-            f"seal: no {hooksession.SESSION_VARIABLE} in this environment, so no "
-            "session can be named and nothing was recorded. Run this from the "
-            "session's own Bash tool."
+            f"seal: {hooksession.SESSION_VARIABLE} names no session in this "
+            "environment, so nothing was recorded. Run this from the session's "
+            "own Bash tool."
         )
         return 1
     path = routing.record_no_work_item(optin.git_common_dir(repo), session)
