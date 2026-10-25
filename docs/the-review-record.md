@@ -178,8 +178,10 @@ check: tests/test_chain_check.py
 
 ## What the check reads at the pull request
 
-**`chain_check.py` reads the declaration, the frame, the records, the broad
-gate's file and the sealer's guarantee, and nothing else of a round record.** It judges the
+**`chain_check.py` reads the declaration, the frame, the `## Rule changes`
+section of each `spec.md` it parses, the records, the broad gate's
+file and the sealer's guarantee, and nothing else of a round
+record.** It judges the
 `routing.md` naming the pull request's branch and every one its own commits
 add or change. A ready pull request fails on any refusal, each named
 `path:line  why`; a draft, or a run that observed no pull request, prints the
@@ -264,6 +266,25 @@ bytes unchanged is neither judged nor missed, because the pull request that
 only moved it did not make it.
 check: tests/test_chain_check.py
 
+**The check parses the `## Rule changes` section of the `spec.md` of
+every work item whose `routing.md` it judges, and of every work item
+`spec.md` the pull request's own commits add or change, with
+`skills/settle/scripts/rule_changes.py`, the one reader of that
+section, and a section the reader refuses is a refusal at the line the
+reader names, carrying the reader's reason.** `settle` reads the
+section after the release and applies nothing from a spec whose
+section does not parse, so a section first read there is a rule
+change that never lands, with no pull request left to fix it in. A
+declared work item can edit another work item's section without
+touching that work item's `routing.md`, which is why the diff is read
+as well as the declarations. A pull request that declares nothing
+reads no `spec.md`. A `spec.md` a squash of another pull request
+carried, and one the pull request only moved, are read at the pull
+request that made them. A `spec.md` with no `## Rule changes` section
+is left alone, as `settle` leaves it. The refusal reads a fact from
+the file and puts no question to a person.
+check: rule-changes-read-at-the-pull-request
+
 ## The guarantee
 
 **The sealer is the final, independent guarantor: it verifies, independently
@@ -283,8 +304,14 @@ check: tests/test_the_sealer_guarantees.py
 
 **Its verdict is `guarantee.md`, from `templates/sdd-guarantee.md`**: the
 commit and base, the broad gate's result, the claims re-run, the parties
-compared, and one `Verdict:` line — `sealed`, `withheld — <reason>`, or
-`undecided — <question>`. An undecided question is the owner's: the
+compared, and one `Verdict:` line, `sealed`,
+`withheld reason: <the claim, its party, its coordinate>` or
+`undecided question: <the question, for the owner>`, written exactly so
+and with no emphasis. Any other spelling of the line is refused at it.
+The `Target SHA` row holds `<sha> against <base>`, each one word, then
+nothing or one `; earlier run: <sha> <word>` entry per earlier run, with
+`against <base>` after its SHA where it names one and its verdict's
+word alone; any other text on the row is refused at it. An undecided question is the owner's: the
 answer goes on a line under the verdict, and the sealer runs again at the
 new HEAD.
 check: tests/test_the_sealer_guarantees.py

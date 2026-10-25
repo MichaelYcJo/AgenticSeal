@@ -82,12 +82,14 @@ jobs:
           # slowest shard stays under 12 minutes on the figures of run
           # 37458654434 (7,530 s of cases, 1,974 s unsharded), with the
           # arithmetic in
-          # `seal/specs/1791270165-the-windows-test-leg-is-measured-and-cut/phases/phase-3.md`.
+          # `seal/specs/1791270165-the-windows-test-leg-is-measured-and-cut/phases/phase-3.md`
+          # at `5f11923f^`.
           # Three is the smallest macOS count the same arithmetic puts under
           # 12 minutes on run 37577753583's 1,185 s of cases, with a factor
           # of 1.45 for the slowest group (the file gives three groups of
           # 2,513 s, 2,517 s and 2,505 s), in
-          # `seal/specs/1791384162-the-macos-test-leg-runs-in-shards/plan.md`.
+          # `seal/specs/1791384162-the-macos-test-leg-runs-in-shards/plan.md`
+          # at `67694cba`.
           # Measured in run 37700567455: the slowest macOS shard took 6 m 56 s,
           # and the three ran 12,827 cases between them, ubuntu's count at
           # the same SHA. ubuntu stays one job.

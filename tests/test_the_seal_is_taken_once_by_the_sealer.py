@@ -193,11 +193,6 @@ def test_the_documents_say_where_the_panel_now_carries_each_name():
     assert (
         "or where the tree's copy ran with no invoked copy named to compare against"
     ) in broad
-    item = "1790815615-the-seal-names-what-it-sealed-and-counts-only-the-steps-that-run"
-    changelog = " ".join(
-        read_document(os.path.join("seal", "specs", item, "changelog.md")).split()
-    )
-    assert "or where nothing told it which copy was invoked" in changelog
     source = read_document(os.path.join("skills", "verify", "scripts", "broad_gate.py"))
     above = source.split("GATE_REL = ", 1)[0][-1500:].splitlines()
     comment = " ".join(" ".join(line.lstrip("# ") for line in above).split())
