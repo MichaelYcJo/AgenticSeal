@@ -1,6 +1,6 @@
 # Implementation Plan: #1012 the records carry no comment and the readers drop it
 
-Approved <date> by <who>, when `smith` was spawned.
+Approved 2026-10-25 by the orchestrator under the owner's automation answer, when `smith` was spawned for phases 1 and 2.
 
 ## Summary
 
