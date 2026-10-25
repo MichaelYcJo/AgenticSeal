@@ -10,8 +10,9 @@ closed, and every truth `recurred_truths.json` adds for the case or widens
 writes today. A record comes in one of two shapes:
 
   labelled   0.22.0's record (`docs/the-review-record.md` *The round
-             record*), read through the `chain_check.py` of the commit that
-             last wrote it, with the grammar that commit's
+             record*), judged by the `chain_check.py` of the commit that
+             last wrote it and its lines read by that commit's reader
+             (#1012), with the grammar that commit's
              `docs/the-review-record.md` holds, so each record is judged by
              the grammar in force when it was written (the owner's decision
              on #985) and a line the grammar gained later is not owed; a
@@ -160,8 +161,10 @@ def load_check(path, name):
 
 @functools.cache
 def record_reader():
-    """`(chain_check, its shared reader)`: the reader of a labelled record's
-    lines, `chain_check.py` beside this tree, loaded once."""
+    """`(chain_check, its shared reader)`, `chain_check.py` beside this tree,
+    loaded once: the check and reader of a record no commit wrote
+    (`checks_at`), and the reader `labelled` decides a record's shape
+    with."""
     check = load_check(CHECK, "specseal_chain_check")
     return check, check.SHARED_READER
 
@@ -227,7 +230,14 @@ def checks_at(at):
 
 def labelled(text):
     """True for a record in 0.22.0's labelled lines: one whose readable
-    lines hold a `target:` line, which no table record carries."""
+    lines hold a `target:` line, which no table record carries.
+
+    This tree's reader decides it, because the shape is decided before any
+    check judges the record, and the check of a commit before 0.22.0 has no
+    `target:` label to ask. A comment line begins with `<!--`, so a
+    `target:` line inside a comment is one a comment's inner line opens
+    with, and the round template carried none in any comment at any
+    release tag before 0.22.0."""
     check, reader = record_reader()
     return any(
         check.label_of(line) == check.TARGET_ROW for line in reader.readable(text)
@@ -245,10 +255,20 @@ def labelled_round(text, rel, n, at=None):
 
     A record that check refuses is `(None, the first refusal)`, so a replay
     reads only what the pull request accepted, by the grammar it was
-    accepted under."""
-    judge, judged_by = checks_at(at)
-    found, errors = judge.round_of(judged_by, text, rel, n)
-    check, reader = record_reader()
+    accepted under.
+
+    **Its lines are read by the reader that judged it**, AT's
+    `unverified_check.py`, never by this tree's: a record at a release tag
+    can carry a template comment,
+    which the reader of its commit hid and this tree's reads as text since
+    #1012, so a label-shaped line inside the comment would be read as the
+    record's own."""
+    judge, reader = checks_at(at)
+    found, errors = judge.round_of(reader, text, rel, n)
+    # The labels and the finding split are this tree's check's, which names
+    # them the same way for every record it reads; a commit's check spells
+    # its helpers as that commit did, and only its `round_of` is asked.
+    check, _ = record_reader()
     if errors:
         _rel, line, why = errors[0]
         return None, f"the check refuses the record at line {line}: {why}"
