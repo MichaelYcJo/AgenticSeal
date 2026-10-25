@@ -174,8 +174,9 @@ Out:
     **A refusal is a deny addressed to the model, with the same text every
     time.** It names the declaration to write, at the path `routing.md` takes
     under the repository's root, and `seal no-work-item`. Where HEAD is
-    detached, it names checking out a branch in place of
-    `seal no-work-item`, which records nothing there. Where the person
+    detached, its ways on start by checking out a branch, and they name
+    `seal no-work-item` only as a run on that branch, because on a detached
+    HEAD it records nothing. Where the person
     pressed `automation` on the routing question, read through
     `hooks/worktree_consent.py#automation_answered`, it names no question
     tool; otherwise it tells the model to put the routing question to the
