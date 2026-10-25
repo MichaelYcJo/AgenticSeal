@@ -9,7 +9,7 @@ target: 62e0b133 against release/v0.22.4
 severity: must
 location: `tests/test_unverified_check.py:1371-1380`, `skills/verify/scripts/unverified_check.py:165-168`
 evidence: executed `git grep -n -F 'delete the comment' 62e0b133 -- tests evals`, `git grep -n -F 'carries no HTML comment: the' 62e0b133 -- tests evals`, `git grep -n COMMENT_LINE 62e0b133 -- tests`
-verdict: open
+verdict: fixed 32ff54c4
 
 `spec.md` *Data & interfaces* says of `chain_check.py`: "The new message is pinned by a test (contract rule 14)". Contract rule 14 names the test that pins the new text. Each of the ten test references to the message compares a refusal against the constant itself, `UC.COMMENT_LINE` or `reader.COMMENT_LINE`. That comparison holds whatever the constant says, so an edit that empties or rewords the message passes every case. The two searches for the message's words under `tests/` and `evals/` find nothing. The phase record's `mutation-check` list (`phases/phase-1.md`, 17 mutants) mutates where the refusal stands, never what it says.
 
@@ -25,14 +25,14 @@ The fix pins the words once, in the shared reader's refusing case, `Test_check_t
         assert UC.check_text(text) == ([], [], [(line, said)])
 ```
 
-answer:
+answer: The finding holds, and 32ff54c4 pins the words as the fix gives them, in `Test_check_text::test_refuses_a_comment_line_at_its_line`, whose docstring says why the words are pinned there once. The other nine references still compare against the constant, which pins that each reader uses the one message. Executed: `mutation-check` with `delete the comment` reworded to `remove the comment` turned that case red and left the other 11 `comment_line` cases green, and a second mutant that emptied the message's second half was red too. The changelog fragment does not quote the message, so it does not change.
 
 ### 2. The `fence_spans` docstring says no reader of a record keeps a code-span state, and `rule_changes.py#parse` reads a spec with one
 
 severity: should
 location: `skills/verify/scripts/unverified_check.py:238-239`
 evidence: read `skills/verify/scripts/unverified_check.py:238-242`, `skills/settle/scripts/rule_changes.py:13-20`, `skills/settle/scripts/rule_changes.py:106-115`
-verdict: open
+verdict: fixed 32ff54c4
 
 The phase-1 docstring says `fence_spans` is "the walk for a reader with no comment or code-span state of its own, which is every reader of a record (#1012)". `rule_changes.py`'s module text, rewritten by the same commit, calls a spec a record. Its `parse` reads that spec through `live_lines(lines, comments=False)` and `liveness(..., spans_cross_lines=False, comments=False)`, which keep the code-span state that #988 needed (`rule_changes.py:106` and `:114`). So the two docstrings state opposite facts about one reader. An agent who changes `parse` and trusts the first one would route it onto `fence_spans` and lose the #988 refusal. The fix narrows the clause to the readers it is true of.
 
@@ -45,7 +45,7 @@ The phase-1 docstring says `fence_spans` is "the walk for a reader with no comme
     began in.
 ```
 
-answer:
+answer: The finding holds, and 32ff54c4 writes the fix's docstring into `fence_spans`. Executed: `git grep -n -i -E 'code-span state|every reader of a record|readers? of a record keeps?|keep no comment state|keeps no comment state|record readers?'` outside `seal/specs/`, `changelog/` and `.test_durations` found one more statement of the same claim. `comment_lines` said refusing a mid-line opener "would need a code-span state in every record reader", which `parse` already has. The same commit narrows it to `readable` and every reader of a record through it. The other hits stand, because each names a reader that keeps no comment state and never claims a code-span state: `unverified_check.py`'s `live_lines` docstring names `check_text` and `chain_check.py`, and its `readable` docstring and `chain_check.py#comment_lines` speak of the comment state alone. The two cases in `tests/test_rule_changes.py` say that `parse` keeps no comment state, which holds. The docstrings change nothing the work item ships, so `changelog.md` stays as it is.
 
 ## Confirmations
 
