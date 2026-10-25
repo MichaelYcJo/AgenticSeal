@@ -235,9 +235,10 @@ def fence_spans(lines):
     """`[(first, last)]` for each fenced block in `lines`, delimiters
     included, with `last` None for a block that is never closed.
 
-    The walk for a reader with no comment or code-span state of its own,
-    which is every reader of a record (#1012). A reader that has either —
-    `liveness` — walks with `fence_opener` and `fence_closes` directly,
+    The walk for a reader with no comment or code-span state of its own:
+    `readable`, and through it `check_text` and `chain_check.py` (#1012).
+    A reader that has either — `liveness`, and `rule_changes.py#parse`
+    through it — walks with `fence_opener` and `fence_closes` directly,
     because whether a line can open a fence at all depends on the state it
     began in.
 
@@ -301,7 +302,8 @@ def comment_lines(lines):
     state, so a comment they met would read as text; this is where they
     find one instead. An `OPENER` anywhere later in a line is text, in a code
     span or not, and is not found: refusing it would need a code-span state
-    in every record reader, the state #1000 broke."""
+    in `readable` and every reader of a record through it, the state #1000
+    broke."""
     return [n for n, line in enumerate(lines) if line.lstrip().startswith(OPENER)]
 
 

@@ -1371,13 +1371,20 @@ class Test_check_text:
     def test_refuses_a_comment_line_at_its_line(self):
         """S6 of #1012: the guidance comment an overview started before #1005
         carries is refused at its first line, before any row is counted,
-        where the reader that kept a comment state read past it."""
+        where the reader that kept a comment state read past it. The words
+        are pinned here, once, because they are all a consuming repository
+        is told to do (contract rule 14); every other case compares against
+        the constant, which pins that each reader says the one message."""
         text = memo(
             "## Not verified\n\n<!-- guidance:\n| closed <item> | <what closed it> |"
             "\n-->\n\n" + CANONICAL.split("\n", 2)[2] + "<!-- a second -->\n"
         )
         line = text.splitlines().index("<!-- guidance:") + 1
-        assert UC.check_text(text) == ([], [], [(line, UC.COMMENT_LINE)])
+        said = (
+            "the line begins with `<!--`, and a record carries no HTML comment: "
+            "the check reads one as text, so delete the comment"
+        )
+        assert UC.check_text(text) == ([], [], [(line, said)])
 
 
 # --- the walk and the paths it compares ---------------------------------------
