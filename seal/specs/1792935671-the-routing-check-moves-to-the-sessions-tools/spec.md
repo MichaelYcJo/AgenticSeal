@@ -513,10 +513,7 @@ Out:
   section: What the check reads at the pull request
   to: **On every pull request, the check reads the `SpecSeal-Routing` trailer of
     each of its own commits, as `docs/the-routing-check.md` *At the pull
-    request* states.** A commit naming a work item that no declaration the
-    pull request judges names fails a ready pull request, with the commit and
-    the work item named; one reading `no work item` is printed; a commit with
-    no such trailer is not read.
+    request* states.**
     check: routing-trailer-at-the-pull-request
 - change
   file: docs/the-review-record.md
