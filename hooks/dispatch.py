@@ -108,8 +108,8 @@ GROUPS = {
     # RAN, which is the whole of why the record is evidence a command text
     # cannot forge.
     "post-agent": ("worktree_consent.py",),
-    # `sealer-stamp-queue.py` queues a local-mode stamp at the write of its
-    # `sealed` guarantee, which no commit carries (work item 1792363231);
+    # `sealer-stamp-queue.py` queues a work item's stamp at the write of its
+    # `sealed` guarantee, under either root (work item 1792363231, #1027);
     # `sealer-stamp.py` in `stop` draws it.
     "post-edit": ("lint-python.py", "session-lease.py", "sealer-stamp-queue.py"),
     # The git hooks are installed last, into the root the migration above may

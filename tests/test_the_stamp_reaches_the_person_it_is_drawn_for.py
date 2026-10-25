@@ -154,17 +154,19 @@ def test_the_orchestrator_is_told_the_stamp_is_drawn_for_it():
 def test_the_form_bullet_says_what_draws_the_final_seal():
     """S16, `verify`'s half, and #975 S13. The **Form** bullet said
     `broad-gate` draws the stamp when every check passed; the stamp is the
-    sealer's now, drawn once per work item from its `sealed` guarantee at
-    that file's commit, and the gate draws nothing. 1792363231 S7: in local
-    mode, at its write."""
+    sealer's now, drawn once per work item from its `sealed` guarantee, and
+    the gate draws nothing. #1027 S13: queued at that file's write under
+    either root, and in shared mode at its commit where no write queued
+    it."""
     text = flat("skills", "verify", "SKILL.md")
     assert "`broad-gate` prints the disc on success alone" not in text
     assert "`broad-gate` draws the stamp" not in text
     for said in (
         "the stamp is drawn from the sealer's `guarantee.md` reading `sealed`, "
         "once per work item",
-        "git's `post-commit` writes the values it is drawn from, or in local "
-        "mode the edit hook does at the file's write",
+        "The edit hook writes the values it is drawn from at the file's write, "
+        "under either root, and in shared mode git's `post-commit` does at its "
+        "commit where no write queued it",
         "the `Stop` hook draws them in the orchestrator's session",
         "The broad gate draws nothing",
     ):
@@ -414,22 +416,26 @@ def test_both_readmes_list_the_stamp_hook():
         ):
             assert gone not in text, (edition, gone)
         assert "게이트 열하나 중 여덟" not in text, edition
-    # #975 S11: both editions say the stamp's values are written at the
-    # commit of a sealed guarantee, and neither says the broad gate leaves
-    # them. 1792363231 S7: or, in local mode, at its write; and the refusal
-    # record's directory stands beside the values' among the side effects.
+    # #975 S11: both editions say where the stamp's values are written, and
+    # neither says the broad gate leaves them. #1027 S13: at the write of a
+    # sealed guarantee under either root, and in shared mode at its commit
+    # where no write queued it; and the refusal record's directory stands
+    # beside the values' among the side effects, written by the edit hook in
+    # either mode.
     for edition, said, gone in (
         (
             "README.md",
             (
-                "queued at the commit of a work item's `guarantee.md` reading "
-                "`sealed`, or in local mode at its write",
-                "the commit of a `guarantee.md` reading `sealed`, or in local mode "
-                "its write, writes the stamp's values under",
+                "queued at the write of a work item's `guarantee.md` reading "
+                "`sealed` (the next row), or in shared mode at its commit where "
+                "no write queued it",
+                "the write of a `guarantee.md` reading `sealed`, or in shared mode "
+                "its commit where no write queued it, writes the stamp's values "
+                "under",
                 "a `sealed` refused because its audited commit is not on the work "
                 "item's branch leaves an empty file under "
-                "`<git-common-dir>/specseal-stamp-refused/`, written by the commit "
-                "gate in shared mode and by the edit hook in local mode",
+                "`<git-common-dir>/specseal-stamp-refused/`, written by the edit "
+                "hook in either mode and by the commit gate in shared mode",
                 "Beside the arms, `pre-commit` refuses the commit of a work item's "
                 "`guarantee.md` reading `sealed` over a commit the branch does not "
                 "hold",
@@ -443,14 +449,14 @@ def test_both_readmes_list_the_stamp_hook():
         (
             "README.ko.md",
             (
-                "작업 항목의 `guarantee.md` 가 `sealed` 로 커밋될 때, local 모드에서는 "
-                "그렇게 쓰일 때 남는",
-                "`sealed` 로 읽히는 `guarantee.md` 를 커밋하면, local 모드에서는 그렇게 "
-                "쓰면 도장에 들어갈 값을",
+                "작업 항목의 `guarantee.md` 가 `sealed` 로 쓰일 때, shared 모드에서 "
+                "쓰기가 쌓지 않았으면 커밋될 때 남는",
+                "`sealed` 로 읽히는 `guarantee.md` 를 쓸 때, shared 모드에서는 쓰기가 "
+                "쌓지 않았다면 그것을 커밋할 때, 도장에 들어갈 값을",
                 "감사한 커밋이 작업 항목 브랜치에 없어 거절된 `sealed` 는 "
                 "`<git-common-dir>/specseal-stamp-refused/` 아래에 빈 파일을 "
-                "남깁니다. shared 모드에서는 커밋 게이트가, local 모드에서는 편집 "
-                "훅이 씁니다.",
+                "남깁니다. 어느 모드에서든 편집 훅이 쓰고, shared 모드에서는 커밋 "
+                "게이트도 씁니다.",
                 "팔과 별도로, `pre-commit` 은 브랜치에 없는 커밋을 감사한 `sealed` "
                 "`guarantee.md` 의 커밋을 거부하고",
             ),
