@@ -1,9 +1,5 @@
 # Implementation Plan: the broad gate reads its counts and the stop reason from its recorder, and the stamp's dead scale dial is retired (#869, #852, #853)
 
-<!-- seal/specs/1791384158-the-broad-gate-reads-its-counts-from-the-recorder/plan.md — HOW, in phases. This is the Design Gate's
-artifact: where the work alters observable behaviour, approval of this plan is
-the gate. -->
-
 Approved 2026-10-08 by the repository owner, when `smith` was spawned.
 
 ## Summary
@@ -182,7 +178,7 @@ so #835's registry can take the rows as they are; this item removes two
   unchanged. A mistyped variable reads as no record, and the job then says
   `no seal` with the reason and exits 0, as it does today for a JUnit file
   it cannot read. `SUITE_XML` is read nowhere after this; the checklist's
-  by-hand path names `SUITE_RECORDS` and `SUITE_KEY`. <!-- NAME NOT IN TREE -->
+  by-hand path names `SUITE_RECORDS` and `SUITE_KEY`.
 - **A `--scale` on either command is refused by argparse** (`unrecognized
   arguments`, exit 2). Nothing in the tree types it: `agents/sealer.md`,
   the skills and both READMEs name no `--scale`, and an installed gate older

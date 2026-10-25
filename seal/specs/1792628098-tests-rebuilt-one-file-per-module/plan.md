@@ -1,9 +1,5 @@
 # Implementation Plan: tests rebuilt one file per module (#942)
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/plan.md — HOW, in phases. This is the Design Gate's
-artifact: where the work alters observable behaviour, approval of this plan is
-the gate. -->
-
 Approved 2026-10-22 by the orchestrator, under the owner's `automation` answer and the owner's answers to Q1 and Q2, when `smith` was spawned.
 Amended 2026-10-23 by the owner, phase 6: a module the move check passes is proved by that check alone, and the mutants run only where it fails.
 Amended 2026-10-23 by the framer, after phase 5 closed: the mutant count is stated by its rule and not by a figure, and `spec.md` *Rule changes* carries the four `check:` lines of `docs/one-root-by-lifetime.md` and its Korean edition that named `seal.py`'s two old files.

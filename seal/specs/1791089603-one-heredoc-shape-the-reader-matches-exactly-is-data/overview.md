@@ -1,11 +1,5 @@
 # 1791089603-one-heredoc-shape-the-reader-matches-exactly-is-data — overview
 
-<!-- The closing memo (implement skill, step 4). Not a summary of the work:
-`git diff --stat` holds the file list and the diff holds the detail. Only what
-the diff cannot show goes here, and each part is written when it happens rather
-than reconstructed at the end. Facts that must outlive this work item go to the
-evidence ledger, not here. -->
-
 📋 implement applied
 · spec:     `spec.md` §*The shape* clauses A–F, §*Why this shape*, §*#739's three refusals*, S1–S10; `plan.md` phases 1–3 and alternatives B–H; `questions.md` Q1–Q5; `docs/commit-review-gate-spec.md` §*A file edit goes through the `Edit` tool*, §*Two readings that prompted that run stay as they are*, §*Only what the shell would EXECUTE is read as commands*; `skills/agent-contract/SKILL.md` §9
 · evidence: `seal/ledger/1791089603-one-heredoc-shape-the-reader-matches-exactly-is-data.md` — eight `Re-read ·` rows (E1, E2, E6, E9, E17, E18, G8, C1) and three `Corrected ·` rows (E3, E7, I10)

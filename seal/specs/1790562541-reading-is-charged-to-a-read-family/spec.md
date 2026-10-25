@@ -1,8 +1,5 @@
 # Feature Specification: reading is charged to a `read` family (#642)
 
-<!-- seal/specs/1790562541-reading-is-charged-to-a-read-family/spec.md — WHAT this work delivers and how we'll know.
-The policy documents in docs/ outrank this file; cite them, don't restate. -->
-
 ## Grounding
 
 | Policy clause | What it fixes for this work |

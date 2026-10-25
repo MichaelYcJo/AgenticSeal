@@ -1,8 +1,5 @@
 # Feature Specification: what an agent opens on demand states the current rule, and the CLAUDE.md block has one copy (#940)
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/spec.md — WHAT this work delivers and how we'll know.
-The policy documents in docs/ outrank this file; cite them, don't restate. -->
-
 ## Grounding
 
 | Policy clause | What it fixes for this work |
@@ -316,19 +313,5 @@ the old text; `plan.md` *Technical context* states that window.
 
 Anything a planner must answer lives in questions.md, not inline — unanswered
 questions buried in prose read as decided.
-
-<!-- The line below is the framer's mark, and it is the only evidence in the
-     TREE that the framing happened — the existing framer mark lives in the
-     repository's git dir, and a git dir does not travel, so CI cannot see it.
-     Fill in the date and `<who>`; `<who>` takes the two values the `Planning`
-     row of `routing.md` takes, `framer` or `the session`, and a mark that
-     disagrees with that row is refused at the pull request rather than
-     guessed at.
-     The shape — verb, date, who, the moment — is the one `routing.md` and
-     `plan.md` already end with, which is what keeps three feet-lines from
-     becoming three conventions.
-     A reframe adds `Reframed <date> by <who>, after round <N>.` UNDER this
-     line when the review chain sends the work item back to its framer. It is
-     never in this template; only a reframe writes it. -->
 
 Framed 2026-10-21 by framer, before the build.

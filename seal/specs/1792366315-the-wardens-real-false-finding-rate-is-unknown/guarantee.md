@@ -1,10 +1,5 @@
 # 1792366315-the-wardens-real-false-finding-rate-is-unknown — guarantee
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/guarantee.md, written by the
-sealer alone and committed by the orchestrator beside `broad-gate.md`.
-`docs/the-review-record.md` §*The guarantee* holds the rules and
-`agents/sealer.md` the order of work. -->
-
 | Field | Value |
 |---|---|
 | Target SHA | 3a38f1dd against 43cbc361; earlier run: f29e6b89 withheld |

@@ -1,7 +1,5 @@
 # Feature Specification: the broad gate hands cmd.exe a forward slash, and a case reaches a live gh (#448, #510)
 
-<!-- seal/specs/1790260567-the-broad-gate-hands-cmd-a-forward-slash/spec.md -->
-
 Two defects in one instrument, the sealer's one broad run. Each one makes the
 run say something other than what happened.
 

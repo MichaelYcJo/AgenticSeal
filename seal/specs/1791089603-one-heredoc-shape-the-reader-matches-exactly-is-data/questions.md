@@ -1,10 +1,5 @@
 # one heredoc shape the reader matches exactly is data (#739, #763) — questions for the planner
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/questions.md — decisions only a human can make,
-extracted so nothing ships on a silent assumption. Before adding a row,
-check the inheritance rule: if policy is silent but existing behavior
-answers it, inherit and record — only genuinely NEW rules belong here. -->
-
 ## Judgments the tickets left open that the tree answered (decided by the framer)
 
 Each is settled from the tree, with the grounds where a reviewer can open them.

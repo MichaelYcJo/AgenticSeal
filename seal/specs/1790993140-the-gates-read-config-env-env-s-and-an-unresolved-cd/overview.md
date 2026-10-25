@@ -1,11 +1,5 @@
 # 1790993140-the-gates-read-config-env-env-s-and-an-unresolved-cd — overview
 
-<!-- The closing memo (implement skill, step 4). Not a summary of the work:
-`git diff --stat` holds the file list and the diff holds the detail. Only what
-the diff cannot show goes here, and each part is written when it happens rather
-than reconstructed at the end. Facts that must outlive this work item go to the
-evidence ledger, not here. -->
-
 📋 implement applied
 · spec:     `spec.md`, `plan.md`, `questions.md` (D1–D10, M1–M3, W1); `CLAUDE.md` §*The goal a design is chosen against*; `docs/commit-review-gate-spec.md` §*A `cd` the gate cannot read* (the #670 statement); `docs/worktree-guard-spec.md` §*Which tree*, §*Creation consent*, §*Unknowns resolve conservatively*, §*Known limits*
 · evidence: `seal/ledger/1790993140-the-gates-read-config-env-env-s-and-an-unresolved-cd.md` K1–K7 added; 22 rows in `seal/releases/0.9.1.md`, `0.15.5.md`, `0.15.6.md`, `0.16.0.md` and `0.17.0.md` re-read and re-stamped, four of them corrected in place (I9, M1, M2, M3) and one corrected in its notes (M4)

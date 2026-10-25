@@ -1,10 +1,5 @@
 # under automation, a mid-run question is refused — questions for the planner
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/questions.md — decisions only a human can make,
-extracted so nothing ships on a silent assumption. Before adding a row,
-check the inheritance rule: if policy is silent but existing behavior
-answers it, inherit and record — only genuinely NEW rules belong here. -->
-
 ## Answered from the tree, not to be reopened
 
 - **When the declaration cannot be read, the gate passes.** This is the

@@ -1,8 +1,5 @@
 # Feature Specification: a joined project's `specs/` is read and never taken
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/spec.md — WHAT this work delivers and how we'll know.
-The policy documents in docs/ outrank this file; cite them, don't restate. -->
-
 #688. A person joins a project that already has its own `specs/` and wants
 to use SpecSeal there. Today the bootstrap reads that directory as the 0.3.x
 layout and skips the shared/local question, and the session-start hook
@@ -241,16 +238,5 @@ the tree.
 Anything a planner must answer lives in questions.md, not inline —
 unanswered questions buried in prose read as decided. `questions.md`'s head
 lists what this frame decided from the tree, so nobody reopens it.
-
-<!-- The line below is the framer's mark, and it is the only evidence in the
-     TREE that the framing happened — the existing framer mark lives in the
-     repository's git dir, and a git dir does not travel, so CI cannot see it.
-     Fill in the date and `<who>`; `<who>` takes the two values the `Planning`
-     row of `routing.md` takes, `framer` or `the session`, and a mark that
-     disagrees with that row is refused at the pull request rather than
-     guessed at.
-     The shape — verb, date, who, the moment — is the one `routing.md` and
-     `plan.md` already end with, which is what keeps three feet-lines from
-     becoming three conventions. -->
 
 Framed 2026-10-01 by framer, before the build.

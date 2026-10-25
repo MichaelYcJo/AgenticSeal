@@ -1,8 +1,5 @@
 # Feature Specification: a gate decides at the moment of the action, not from the text (#692)
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/spec.md — WHAT this work delivers and how we'll know.
-The policy documents in docs/ outrank this file; cite them, don't restate. -->
-
 ## Grounding
 
 | Policy clause | What it fixes for this work |
@@ -410,8 +407,5 @@ name the test file each lands in.
 
 Four for a person (P1–P4), eleven measurements (M1–M11), six for the work
 (W1–W6), and the head of that file lists what this section already decided.
-
-<!-- The line below is the framer's mark, and it is the only evidence in the
-     TREE that the framing happened. -->
 
 Framed 2026-10-01 by framer, before the build.

@@ -1,8 +1,5 @@
 # Feature Specification: a fix of a fix twice sends the chain back to its framer
 
-<!-- seal/specs/1791240747-a-fix-of-a-fix-twice-sends-the-chain-back-to-its-framer/spec.md — WHAT this work delivers and how we'll know.
-The policy documents in docs/ outrank this file; cite them, don't restate. -->
-
 Issue #823. In two 0.18.3 review chains a fix pass wrote code and the next
 round's finding was a regression inside the code that fix pass had just
 written, twice in a row, and nothing counted it. The 3+ Fix Rule fired once in

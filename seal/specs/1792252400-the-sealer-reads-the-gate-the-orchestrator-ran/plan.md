@@ -1,9 +1,5 @@
 # Implementation Plan: the sealer reads the gate the orchestrator ran (#969)
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/plan.md — HOW, in phases. This is the Design Gate's
-artifact: where the work alters observable behaviour, approval of this plan is
-the gate. -->
-
 Approved 2026-10-18 by the orchestrator under the owner's delegation of that night (a plan that follows the orchestrator's stated design is approved by the orchestrator), when `smith` was spawned. Q1 and Q2 run on their defaults until the owner answers.
 
 ## Summary

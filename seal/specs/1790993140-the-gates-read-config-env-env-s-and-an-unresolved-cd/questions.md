@@ -1,10 +1,5 @@
 # 1790993140-the-gates-read-config-env-env-s-and-an-unresolved-cd — questions for the planner
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/questions.md — decisions only a human can make,
-extracted so nothing ships on a silent assumption. Before adding a row,
-check the inheritance rule: if policy is silent but existing behavior
-answers it, inherit and record — only genuinely NEW rules belong here. -->
-
 **No row here needs a person.** The owner answered once, on 2026-10-03: #686
 and #678's guard half are decided by a count over the recorded runs, zero
 stops builds the ask and one or more keeps the fallback with the count named.

@@ -61,7 +61,7 @@ FENCED_FIX = (
     "location: `src/a.py:11`\nverdict: open\n\n"
     "```\nlocation: `src/a.py:40`\n```\n"
 )
-UNCLOSED = "Why <!-- and nothing closes this.\n\n"
+UNCLOSED = "Why it matters.\n\n~~~\nand nothing closes this.\n\n"
 RESULT = {
     "type": "result",
     "subtype": "success",
@@ -769,8 +769,7 @@ class Test_finding_rows:
                     "### 1. a defect\n\nseverity: must\nlocation: `src/b.py:1`\n"
                     "verdict: open\n",
                     before="location: `src/a.py:10`\n",
-                    after="\n## Not judged\n\nlocation: `src/a.py:12`\n\n"
-                    "<!--\nlocation: `src/a.py:11`\n-->\n",
+                    after="\n## Not judged\n\nlocation: `src/a.py:12`\n",
                 ),
                 ["location: `src/b.py:1`"],
             ),
@@ -789,7 +788,6 @@ class Test_finding_rows:
         [
             (three_findings({1: UNCLOSED}), 3),
             (three_findings({1: "```\n## Not judged\n```\n\n", 3: UNCLOSED}), 3),
-            (three_findings({1: "```\n<!-- the head of a template\n```\n\n"}), 3),
             (
                 three_findings(
                     {1: UNCLOSED, 2: "```\n### 9. a quoted finding heading\n```\n\n"}
@@ -798,24 +796,13 @@ class Test_finding_rows:
             ),
             (three_findings({}).replace("### 2.", "## Findings\n\n### 2.", 1), 3),
             (three_findings({}).replace("## Findings\n", "## Findings (3)\n", 1), 3),
-            (
-                three_findings(
-                    {
-                        1: "Why <!-- an opener <!-- inside one\n\n",
-                        3: "```\nlocation: `src/c.py:9`\n",
-                    }
-                ),
-                3,
-            ),
         ],
         ids=[
-            "a comment that never closes",
+            "a fence that never closes",
             "a fenced heading beside it",
-            "an opener inside a closed fence",
             "a fenced finding heading",
             "a second findings section",
             "a misspelt findings heading",
-            "nested and repeated openers",
         ],
     )
     def test_refuses_a_record_the_check_cannot_read_by_an_empty_row_per_heading(

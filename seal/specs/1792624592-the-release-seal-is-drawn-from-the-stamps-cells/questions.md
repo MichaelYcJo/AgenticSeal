@@ -1,11 +1,5 @@
 # Questions for the planner: the release seal is drawn from the stamp's cells (#1009)
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/questions.md holds the decisions
-only a human can make, extracted so nothing ships on a silent assumption.
-Before adding a row, the framer checks the inheritance rule: where policy is
-silent but existing behaviour answers the question, the framer inherits that
-answer and records it; only a new rule belongs here. -->
-
 ## What the ticket left open and the tree answered
 
 Nobody needs to reopen these; each names where its answer was read.

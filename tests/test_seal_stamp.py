@@ -1374,6 +1374,14 @@ class Test_queue_for_guarantee:
         commit(shared.repo, "something else")
         assert queue(shared) == [] and queued(shared.common) == []
 
+    @pytest.mark.rule("record-comment-line-refused")
+    def test_a_guarantee_holding_a_comment_line_queues_nothing(self, shared):
+        """S8 of #1012: a sealed guarantee holding a line that begins `<!--`
+        is one the pull request refuses, so it queues no stamp."""
+        text = guarantee_text(shared.target, shared.base)
+        amended(shared, text.replace("Verdict:", "<!-- a note -->\n\nVerdict:"))
+        assert queue(shared) == [] and queued(shared.common) == []
+
     @pytest.mark.rule("stamp-drawn-once")
     def test_a_second_sealed_verdict_queues_nothing(self, shared):
         """#975 S7: a row whose earlier run reads `sealed` was stamped at it."""
@@ -1615,6 +1623,17 @@ class Test_queue_for_local_guarantee:
             item_dir(local),
             "guarantee.md",
             guarantee_text(local.target, local.base, verdict),
+        )
+        assert queue_local(local) == [] and queued(local.common) == []
+
+    @pytest.mark.rule("record-comment-line-refused")
+    def test_a_local_mode_guarantee_holding_a_comment_line_queues_nothing(self, local):
+        """S8 of #1012, for the guarantee read from disk."""
+        text = guarantee_text(local.target, local.base)
+        write(
+            item_dir(local),
+            "guarantee.md",
+            text.replace("Verdict:", "<!-- a note -->\n\nVerdict:"),
         )
         assert queue_local(local) == [] and queued(local.common) == []
 

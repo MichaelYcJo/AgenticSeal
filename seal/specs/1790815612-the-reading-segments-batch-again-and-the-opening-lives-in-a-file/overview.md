@@ -1,11 +1,5 @@
 # 1790815612-the-reading-segments-batch-again-and-the-opening-lives-in-a-file — overview
 
-<!-- The closing memo (implement skill, step 4). Not a summary of the work:
-`git diff --stat` holds the file list and the diff holds the detail. Only what
-the diff cannot show goes here, and each part is written when it happens rather
-than reconstructed at the end. Facts that must outlive this work item go to the
-evidence ledger, not here. -->
-
 📋 implement applied
 · spec:     this work item's routing.md, spec.md (I1–I11, S1–S15), plan.md (phases 1–4), questions.md (A1, A2, Q1–Q5); docs/review-handoff-protocol.md §After the run — the per-segment bars and §Status; skills/agent-contract/SKILL.md §10; agents/framer.md whole; CLAUDE.md §fragments
 · evidence: seal/ledger/1790815612-the-reading-segments-batch-again-and-the-opening-lives-in-a-file.md P1–P4, G1–G3 added; 22 rows re-read and re-stamped in seal/ledger.md and eight seal/releases files, two of them corrected in place (0.4.0.md, 0.15.7.md A2)

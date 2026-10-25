@@ -1,11 +1,5 @@
 # 1792251842-the-smith-is-written-anew-from-its-job — overview
 
-<!-- The closing memo (implement skill, step 4). Not a summary of the work:
-`git diff --stat` holds the file list and the diff holds the detail. Only what
-the diff cannot show goes here, and each part is written when it happens rather
-than reconstructed at the end. A rule that must outlive this work item goes
-to its home under `docs/` with the test that holds it, not here. -->
-
 ## Why this work exists
 
 The smith's definition is written to the warden's shape and preloads the

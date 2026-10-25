@@ -1,10 +1,5 @@
 # 1791384158-the-broad-gate-reads-its-counts-from-the-recorder — questions for the planner
 
-<!-- seal/specs/1791384158-the-broad-gate-reads-its-counts-from-the-recorder/questions.md — decisions only a human can make,
-extracted so nothing ships on a silent assumption. Before adding a row,
-check the inheritance rule: if policy is silent but existing behavior
-answers it, inherit and record — only genuinely NEW rules belong here. -->
-
 **Decided from the tree, so nobody reopens them.** The three tickets left
 these open and the tree answered each; the grounds are in `spec.md`
 §*Read by this frame* and `plan.md` §*Alternatives considered*.

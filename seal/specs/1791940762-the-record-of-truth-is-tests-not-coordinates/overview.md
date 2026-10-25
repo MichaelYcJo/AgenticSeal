@@ -1,10 +1,5 @@
 # the record of truth is tests, not coordinates (#944) — overview
 
-<!-- The closing memo (implement skill, step 4). Not a summary of the work:
-`git diff --stat` holds the file list and the diff holds the detail. Only what
-the diff cannot show goes here, and each part is written when it happens rather
-than reconstructed at the end. -->
-
 ## Why this work exists
 
 The ledger re-read 1,421 prose claims to confirm 1,420, so the record of truth

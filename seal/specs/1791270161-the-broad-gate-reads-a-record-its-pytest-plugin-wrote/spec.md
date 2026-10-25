@@ -1,8 +1,5 @@
 # Feature Specification: the broad gate reads a record its pytest plugin wrote (#825)
 
-<!-- seal/specs/1791270161-the-broad-gate-reads-a-record-its-pytest-plugin-wrote/spec.md — WHAT this work delivers and how we'll know.
-The policy documents in docs/ outrank this file; cite them, don't restate. -->
-
 #825 and its comments, #807, #813, #815, #816 and #818, read 2026-10-06 at
 a9d7b0e5 (the tip of `release/v0.20.0`). This is the fifth design of the
 base comparison and the owner chose its direction in the issue: alternative
@@ -499,15 +496,6 @@ its default is what this frame builds. Two are measurements for phase 1 and
 three are the work's. The reframe adds one measurement, Q-M3, for phase 5's
 first act: that the attribute a worker sets on a report arrives on the
 controller's copy, on each build the recorder was measured on.
-
-<!-- The line below is the framer's mark, and it is the only evidence in the
-     TREE that the framing happened — the existing framer mark lives in the
-     repository's git dir, and a git dir does not travel, so CI cannot see it.
-     `<who>` takes the two values the `Planning` row of `routing.md` takes,
-     `framer` or `the session`, and a mark that disagrees with that row is
-     refused at the pull request rather than guessed at.
-     A reframe adds `Reframed <date> by <who>, after round <N>.` UNDER this
-     line when the review chain sends the work item back to its framer. -->
 
 Framed 2026-10-06 by framer, before the build.
 Reframed 2026-10-06 by framer, after round 3.

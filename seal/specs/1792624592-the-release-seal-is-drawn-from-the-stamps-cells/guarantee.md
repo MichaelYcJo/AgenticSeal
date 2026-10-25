@@ -1,10 +1,5 @@
 # Guarantee: 1792624592-the-release-seal-is-drawn-from-the-stamps-cells
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/guarantee.md is written by the
-sealer alone and committed by the orchestrator beside `broad-gate.md`.
-`docs/the-review-record.md` *The guarantee* holds the rules and
-`agents/sealer.md` the order of work. -->
-
 | Field | Value |
 |---|---|
 | Target SHA | 97ac7878 against a16acb40; earlier run: 001098c2 withheld |

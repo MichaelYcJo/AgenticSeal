@@ -1,21 +1,6 @@
 # Implementation Plan: the release seal is drawn from the stamp's cells (#1009)
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/plan.md holds HOW, in phases. It
-is the Design Gate's artifact: where the work alters observable behaviour,
-approval of this plan is the gate. -->
-
 Approved 2026-10-22 by the orchestrator, under the owner's `automation` answer and Q1's default, when `smith` was spawned.
-
-<!-- The line above is the record that the gate happened. The orchestrator
-writes it when it spawns the build, in the shape and on the terms
-`skills/implement/orchestration.md` *The plan is approved at the spawn*
-states, including the shape where `routing.md` answers `Implementation`
-with `the session`. A later session, a reviewer and CI all read the tree,
-and a plan with nobody's name on it cannot be told from one nobody approved.
-The line shares its shape with `templates/sdd-routing.md`'s `Answered <date>
-by <who>, before the first edit.`: the verb, the date, who, and the moment.
-The two are pinned against each other, so neither spelling can drift into a
-second convention for one kind of fact. -->
 
 ## Summary
 

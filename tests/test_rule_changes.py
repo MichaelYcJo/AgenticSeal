@@ -158,26 +158,47 @@ class Test_parse:
         for heading in ("## Rules changes", "## Rule changes made", "## Changes"):
             assert parse(f"# x\n\n{heading}\n\nText.\n") == rules.Parsed(None, None, [])
 
-    def test_a_section_quoted_in_a_fence_or_a_comment_is_not_read(self):
+    def test_a_section_quoted_in_a_fence_is_not_read(self):
         fenced = "# x\n\n```\n## Rule changes\n\n- remove\n  file: docs/a.md\n```\n"
         assert parse(fenced).ops is None
+
+    @pytest.mark.rule("record-comment-line-refused")
+    def test_a_comment_line_in_the_section_is_refused_at_its_line(self):
+        """S7 of #1012: the reader keeps no comment state, so a section line
+        that begins with `<!--` is refused at its line and the spec applies
+        nothing. The reader that skipped it read the block below as the
+        section."""
+        opener = "<!-- the grammar is the skill's"
         commented = spec(
-            "<!-- the grammar is the skill's\n- remove\n  file: docs/a.md -->\n"
-            "- nothing\n  why: a reason."
+            f"{opener}\n- remove\n  file: docs/a.md -->\n- nothing\n  why: a reason."
         )
         parsed = parse(commented)
-        assert parsed.errors == [] and parsed.nothing == "a reason."
+        said = rules.reader().COMMENT_LINE
+        assert parsed.errors == [(line_of(commented, opener), said)]
+        assert parsed.ops == [] and parsed.nothing is None
+
+    def test_an_opener_nobody_closes_above_the_section_hides_no_operation(self):
+        """S7 of #1012: a `<!--` later in a line above the section is text,
+        so the heading and every operation below it are read. The reader that
+        kept a comment state read the section as absent."""
+        text = (
+            "# a work item\n\nProse quoting a bare <!-- opener.\n\n"
+            "## Rule changes\n\n- add\n  file: docs/a.md\n  to: A rule.\n"
+            "- add\n  file: docs/b.md\n  to: Another.\n\n## Open questions\n\nNone.\n"
+        )
+        parsed = parse(text)
+        assert parsed.errors == [], parsed.errors
+        assert [o.file for o in parsed.ops] == ["docs/a.md", "docs/b.md"]
 
     def test_a_line_that_begins_inside_a_code_span_is_refused_at_its_line(self):
         """Round 1 of #988, finding 2. A value's code span opened at the end of
         one line and closed on the next leaves the second line beginning inside
         the span, which the shared reader reads as not live. The reader dropped
-        such a line as it drops a comment, so the section parsed clean and
+        such a line as it dropped a comment, so the section parsed clean and
         settle wrote the value without it. It is refused at its line, and the
-        spec applies nothing; a comment's lines are still skipped."""
+        spec applies nothing."""
         wrapped = "    the review chain` carries one line."
         text = spec(
-            "<!-- guidance, never an operation\n  - remove -->\n"
             "- add\n  file: docs/a.md\n  section: S\n"
             "  to: **Rule.** A branch declaring `through\n"
             f"{wrapped}"
@@ -197,7 +218,7 @@ class Test_parse:
             "`through the review chain`\ncarries one line."
         )
         # Round 3 of #988: the line inside the span opens with `<!--`, which the
-        # span makes text, so it is refused too and not skipped as a comment.
+        # span makes text, so it is refused as the span's, not as a comment.
         opener = "    <!-- the review chain` carries"
         commented = text.replace(f"\n{wrapped}", f"\n{opener}\n    one line. -->")
         [(line, why)] = parse(commented).errors
@@ -209,12 +230,14 @@ class Test_parse:
         code, not a comment, as `live_lines` reads it. The reader that refused a
         wrapped span read it as a comment that ran to the next closer, so a
         section after such a fence parsed as empty (shape A), or kept only the
-        operations after a later comment closed it, with no error (shape B)."""
+        operations after a later comment closed it, with no error (shape B).
+        Since #1012 the reader keeps no comment state, and the shapes hold
+        what it reads."""
         fence = "# a work item\n\n```html\n<!-- an example of a comment\n```\n\n"
         adds = [f"- add\n  file: docs/{name}.md\n  to: A rule." for name in "abc"]
         shape_b = (
             f"{fence}## Rule changes\n\n{adds[0]}\n{adds[1]}\n"
-            f"<!-- the third one -->\n{adds[2]}\n\n## Open questions\n\nNone.\n"
+            f"{adds[2]}\n\n## Open questions\n\nNone.\n"
         )
         parsed = parse(shape_b)
         assert parsed.errors == [], parsed.errors

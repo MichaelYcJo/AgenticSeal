@@ -1323,29 +1323,56 @@ class Test_record_findings:
         found, errors = chain.record_findings(reader, quoted, "r.md")
         assert errors == [] and [f.number for f in found] == [1, 2], errors
 
+    def test_accepts_a_bare_opener_later_in_a_line_as_text(self):
+        """S4 of #1012: a `<!--` nothing closes, after the start of an
+        `answer:` line, is text, so every finding after it is read. The
+        reader that kept a comment state refused it as a comment that never
+        closes."""
+        text = record(
+            "abc1234",
+            [
+                finding(1, "rejected").replace(
+                    "answer: \n", "answer: a bare <!-- opens nothing\n"
+                ),
+                finding(2, "open"),
+            ],
+        )
+        found, errors = chain.record_findings(reader, text, "r.md")
+        assert errors == [] and [f.number for f in found] == [1, 2], errors
+
     @pytest.mark.rule("round-record-read-by-label")
-    def test_refuses_a_fence_or_comment_that_never_closes_at_its_opener(self):
-        """A fence or a comment that never closes hides every line after it,
-        so the record is refused at the opener's line, and what the reader
-        could still see is read as well."""
-        hidden = finding(2, "open")
-        for opener, why in (("~~~python\n", "fence"), ("<!-- a note\n", "comment")):
-            text = record(
-                "abc1234",
-                [
-                    finding(1, "rejected").replace("answer: \n", "answer: \n" + opener),
-                    hidden,
-                ],
-            )
-            found, errors = chain.record_findings(reader, text, "r.md")
-            lines = text.splitlines()
-            second = lines.index("### 2. the parser drops a row")
-            line = 1 + max(
-                i for i, ln in enumerate(lines[:second]) if ln == opener.rstrip("\n")
-            )
-            assert [(rel, n) for rel, n, _why in errors] == [("r.md", line)], errors
-            assert why in errors[0][2] and "never closes" in errors[0][2]
-            assert [f.heading for f in found] == ["### 1. the parser drops a row"]
+    def test_refuses_a_fence_that_never_closes_at_its_opener(self):
+        """A fence that never closes hides every line after it, so the record
+        is refused at the opener's line, and what the reader could still see
+        is read as well."""
+        opener = "~~~python"
+        text = record(
+            "abc1234",
+            [
+                finding(1, "rejected").replace("answer: \n", f"answer: \n{opener}\n"),
+                finding(2, "open"),
+            ],
+        )
+        found, errors = chain.record_findings(reader, text, "r.md")
+        line = text.splitlines().index(opener) + 1
+        assert [(rel, n) for rel, n, _why in errors] == [("r.md", line)], errors
+        assert "fence" in errors[0][2] and "never closes" in errors[0][2]
+        assert [f.heading for f in found] == ["### 1. the parser drops a row"]
+
+    @pytest.mark.rule("record-comment-line-refused")
+    def test_refuses_a_comment_line_at_its_line(self):
+        """S3 of #1012: a record line that begins with `<!--` is refused at
+        that line, and every finding is still read, since the check reads the
+        comment as text. The reader that kept a comment state read past it."""
+        note = "<!-- a note -->"
+        text = record(
+            "abc1234",
+            [finding(1, "rejected"), f"{note}\n\n" + finding(2, "open")],
+        )
+        found, errors = chain.record_findings(reader, text, "r.md")
+        line = text.splitlines().index(note) + 1
+        assert errors == [("r.md", line, reader.COMMENT_LINE)], errors
+        assert [f.number for f in found] == [1, 2]
 
 
 class Test_confirmations:
@@ -2232,10 +2259,9 @@ class Test_verdicts_of:
         assert chain.verdict_word("Verdict: sealed, but the README is stale") is None
         assert chain.verdict_word("Verdict: withheld") is None
 
-    def test_refuses_a_verdict_in_a_comment_and_reads_two_lines_as_two(self):
+    def test_refuses_to_read_two_verdict_lines_as_one(self):
         text = guarantee("abc1234", "sealed").replace(
-            "Verdict: sealed",
-            "<!-- Verdict: sealed -->\nVerdict: sealed\n**Verdict:** with",
+            "Verdict: sealed", "Verdict: sealed\n**Verdict:** with"
         )
         found = chain.verdicts_of(reader, text)
         assert [v for _n, v in found] == ["Verdict: sealed", "**Verdict:** with"]
@@ -2408,11 +2434,11 @@ class Test_guarantee:
             (rel, 0, "0 `Verdict:` lines; the guarantee carries one")
         ]
         hidden = guarantee(head, "sealed").replace(
-            "## The parties", "<!-- a note\n\n## The parties"
+            "## The parties", "~~~\n\n## The parties"
         )
         write(root, rel, hidden)
-        commit(root, "a comment nobody closed")
-        opener = hidden.splitlines().index("<!-- a note") + 1
+        commit(root, "a fence nobody closed")
+        opener = hidden.splitlines().index("~~~") + 1
         problems = chain.guarantee(reader, str(root), ITEM, "main")
         assert [(p, n) for p, n, _why in problems] == [(rel, opener), (rel, 0)]
         assert "never closes" in problems[0][2], problems
@@ -2436,6 +2462,23 @@ class Test_guarantee:
         write(root, rel, text)
         commit(root, "a claim quoting the opener")
         assert chain.guarantee(reader, str(root), ITEM, "main") == []
+
+    @pytest.mark.rule("record-comment-line-refused")
+    def test_refuses_a_comment_line_at_its_line(self, item):
+        """S5 of #1012: a verdict quoted in a comment above the verdict line
+        is refused at its line, and the line below it is still the one
+        verdict. The reader that kept a comment state passed it."""
+        root, sha = item
+        rel = f"{ITEM}/guarantee.md"
+        text = guarantee(sha, "sealed").replace(
+            "Verdict: sealed", "<!-- Verdict: sealed -->\nVerdict: sealed"
+        )
+        write(root, rel, text)
+        commit(root, "a verdict in a comment")
+        line = text.splitlines().index("<!-- Verdict: sealed -->") + 1
+        assert chain.guarantee(reader, str(root), ITEM, "main") == [
+            (rel, line, reader.COMMENT_LINE)
+        ]
 
     @pytest.mark.rule("ready-needs-sealed")
     @pytest.mark.parametrize("line", NEAR_MISSES)
@@ -2533,6 +2576,44 @@ class Test_guarantee:
                 "commit `broad-gate.md` first"
             ) in line, line
             assert "still stands" not in line, line
+
+
+class Test_broad_gate:
+    def test_accepts_a_run_at_head(self, item):
+        root, _sha = item
+        assert chain.broad_gate(reader, str(root), ITEM, "main") == []
+
+    @pytest.mark.rule("record-comment-line-refused")
+    def test_refuses_a_comment_line_at_its_line(self, item):
+        """S5 of #1012: a `broad-gate.md` line that begins with `<!--` is
+        refused at its line, beside what the run's row says."""
+        root, sha = item
+        rel = f"{ITEM}/broad-gate.md"
+        write(
+            root,
+            rel,
+            "<!-- the gate's guidance -->\n\n"
+            f"| Field | Value |\n|---|---|\n| Broad gate | {sha} against main |\n",
+        )
+        commit(root, "a comment in the gate record")
+        assert chain.broad_gate(reader, str(root), ITEM, "main") == [
+            (rel, 1, reader.COMMENT_LINE)
+        ]
+
+
+class Test_comment_lines:
+    def test_accepts_a_record_whose_lines_open_no_comment(self):
+        """An opener quoted in a code span, later in a line or inside a fence
+        begins no line (*Scope* item 3 of #1012)."""
+        text = "a `<!--` b\nprose <!-- open\n```\n<!-- quoted\n```\n"
+        assert chain.comment_lines(reader, text, "r.md") == []
+
+    def test_refuses_each_comment_line_at_its_line(self):
+        text = "# r\n\n<!-- one -->\nprose\n   <!-- two\n"
+        assert chain.comment_lines(reader, text, "r.md") == [
+            ("r.md", 3, reader.COMMENT_LINE),
+            ("r.md", 5, reader.COMMENT_LINE),
+        ]
 
 
 # --- the declaration for this branch, in local mode (#225) --------------------------

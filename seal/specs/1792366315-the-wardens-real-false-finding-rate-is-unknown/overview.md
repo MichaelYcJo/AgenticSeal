@@ -1,11 +1,5 @@
 # 1792366315-the-wardens-real-false-finding-rate-is-unknown — overview
 
-<!-- The closing memo (implement skill, step 4). Not a summary of the work:
-`git diff --stat` holds the file list and the diff holds the detail. Only what
-the diff cannot show goes here, and each part is written when it happens rather
-than reconstructed at the end. A rule that must outlive this work item goes
-to its home under `docs/` with the test that holds it, not here. -->
-
 ## Why this work exists
 
 The warden's false-finding rate counted every real defect a case does not list

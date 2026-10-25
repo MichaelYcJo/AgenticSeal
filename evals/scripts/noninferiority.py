@@ -291,17 +291,17 @@ def finding_rows(text):
     `location:` lines joined by a newline, or the empty string where it has
     none. A finding is a `### ` section of the one `## Findings` section,
     split by `chain_check.py#finding_spans` over the lines its shared reader
-    leaves, so a line in a fence or a comment is no line. A section the
-    check would refuse is still one row.
+    leaves, so a line in a fence is no line and a comment is text (#1012). A
+    section the check would refuse is still one row.
 
     A record the check cannot read or cannot split is one production reads
-    as no finding: one holding a comment or fence that never closes
+    as no finding: one holding a fence that never closes
     (`chain_check.py#unclosed`), after whose opener no reading is certain to
     find every finding, and one with no `## Findings` section or with two,
     which `finding_spans` refuses. It gives one empty row for each raw line
-    at the finding heading level, a fenced or commented one included, so
-    every one is false, the count errs toward more false rows, and an empty
-    row finds no truth."""
+    at the finding heading level, a fenced one included, so every one is
+    false, the count errs toward more false rows, and an empty row finds no
+    truth."""
     check, reader = rt.record_reader()
     lines = reader.readable(text)
     _section, spans, error = check.finding_spans(reader, lines)

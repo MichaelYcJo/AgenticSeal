@@ -1,11 +1,5 @@
 # Questions for the planner: an automation run stops at the parity arm
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/questions.md holds the decisions
-only a human can make, extracted so nothing ships on a silent assumption.
-Before adding a row, the framer checks the inheritance rule: where policy is
-silent but existing behaviour answers the question, the framer inherits that
-answer and records it; only a new rule belongs here. -->
-
 ## What the tree answered, so nobody reopens it
 
 The issue left these open and the repository settled them; the grounds are

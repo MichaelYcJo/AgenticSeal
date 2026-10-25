@@ -1,11 +1,5 @@
 # Questions for the planner: the seeded scaffold hides the shipped rounds, and the harness reader miscounts findings (#986)
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/questions.md holds the decisions
-only a human can make, extracted so nothing ships on a silent assumption.
-Before adding a row, the framer checks the inheritance rule: where policy is
-silent but existing behaviour answers the question, the framer inherits that
-answer and records it; only a new rule belongs here. -->
-
 ## Decided from the tree, so nobody reopens them
 
 - **Which cases defect 1 is in.** The seeded cases, not the replay cases.

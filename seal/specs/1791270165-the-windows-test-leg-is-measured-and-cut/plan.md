@@ -1,9 +1,5 @@
 # Implementation Plan: the Windows test leg is measured and cut (#841)
 
-<!-- seal/specs/1791270165-the-windows-test-leg-is-measured-and-cut/plan.md — HOW, in phases. This is the Design Gate's
-artifact: where the work alters observable behaviour, approval of this plan is
-the gate. -->
-
 Approved 2026-10-06 by the orchestrating session under the owner's `per axis` answer (smith named), when `smith` was spawned.
 
 ## Summary

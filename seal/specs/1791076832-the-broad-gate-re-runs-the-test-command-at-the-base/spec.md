@@ -1,8 +1,5 @@
 # Feature Specification: the broad gate re-runs the test command at the base
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/spec.md — WHAT this work delivers and how we'll know.
-The policy documents in docs/ outrank this file; cite them, don't restate. -->
-
 Two defects found at #743's first seal (2026-10-03), one work item because
 both are about what a seal's verdict can be trusted to say:
 

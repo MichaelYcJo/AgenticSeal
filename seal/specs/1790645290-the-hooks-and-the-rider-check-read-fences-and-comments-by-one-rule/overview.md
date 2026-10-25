@@ -1,8 +1,5 @@
 # 1790645290-the-hooks-and-the-rider-check-read-fences-and-comments-by-one-rule — overview
 
-<!-- The closing memo (implement skill, step 4). Only what the diff cannot
-show, each part written when it happened. -->
-
 ## Why this work exists
 
 The commit gate, the mode and broad gates and the rider check each decided by

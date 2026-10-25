@@ -1,8 +1,5 @@
 # Feature Specification: the smith is written anew from its job (#967)
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/spec.md — WHAT this work delivers and how we'll know.
-The policy documents in docs/ outrank this file; cite them, don't restate. -->
-
 This item is one of the four the owner split out of #957 on 2026-10-17. The
 frame it builds on is #957's, merged at 2fc33333:
 `seal/specs/1792126889-every-agent-is-written-anew-from-its-job/spec.md`

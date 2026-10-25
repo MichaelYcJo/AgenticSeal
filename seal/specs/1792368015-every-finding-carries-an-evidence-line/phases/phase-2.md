@@ -1,9 +1,5 @@
 # 1792368015-every-finding-carries-an-evidence-line — phase 2
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/phases/phase-<N>.md — what this phase
-of the build did, written by the implementer when the phase closes. It is the
-build side's counterpart of `rounds/round-N.md`. -->
-
 | Field | Value |
 |---|---|
 | Phase | 2 |

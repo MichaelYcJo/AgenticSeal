@@ -1,8 +1,5 @@
 # Feature Specification: every finding carries an evidence line the check reads
 
-<!-- seal/specs/1792368015-every-finding-carries-an-evidence-line/spec.md — WHAT this work delivers and how we'll know.
-The policy documents in docs/ outrank this file; cite them, don't restate. -->
-
 #971's classing found one `wrong` finding on each side, and each stated what
 the tree has or lacks without checking it
 (`seal/specs/1792366315-the-wardens-real-false-finding-rate-is-unknown/evals/false-rows.md:112`

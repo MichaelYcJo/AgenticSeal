@@ -1,12 +1,5 @@
 # every file the plugin reads or writes names its encoding (#741) — questions for the planner
 
-<!-- seal/specs/1791076830-every-file-the-plugin-reads-or-writes-names-its-encoding/questions.md
-     The run is unattended (routing.md: Automation yes, Answer pressed
-     automation), and the owner answered once, for all of milestone 53. So no
-     row here waits on a person. Each row a person would decide is decided by
-     this frame, with the answer written in and the grounds in spec.md, and a
-     person may overturn it by opening what the frame opened. -->
-
 **Judgments the ticket left open that the tree answered.** They are listed so
 nobody reopens them. Each one's grounds are in `spec.md`.
 

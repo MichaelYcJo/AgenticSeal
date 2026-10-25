@@ -1,9 +1,5 @@
 # Implementation Plan: reading is charged to a `read` family (#642)
 
-<!-- seal/specs/1790562541-reading-is-charged-to-a-read-family/plan.md — HOW, in phases. This is the Design Gate's
-artifact: where the work alters observable behaviour, approval of this plan is
-the gate. -->
-
 Approved 2026-09-28 by the orchestrating session, under the owner's `automation` answer, when `smith` was spawned.
 
 ## Summary

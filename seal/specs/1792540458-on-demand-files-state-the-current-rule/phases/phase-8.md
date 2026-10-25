@@ -1,9 +1,5 @@
 # Phase 8: 1792540458-on-demand-files-state-the-current-rule
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/phases/phase-<N>.md holds what this
-phase of the build did, written by the party that builds it when the phase
-closes. It is the build side's counterpart of `rounds/round-N.md`. -->
-
 | Field | Value |
 |---|---|
 | Phase | 8 |

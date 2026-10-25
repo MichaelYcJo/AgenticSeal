@@ -1071,7 +1071,9 @@ def guarantee_rows(target, branch, base, ident, run, rounds):
 def queue_for_guarantee(top, common, session, now=None):
     """The lines `post-commit` prints for the commit at HEAD of `top`: one
     per work item whose `guarantee.md` the commit touched, reads one
-    `Verdict:` of `sealed`, carries no earlier run reading `sealed`, read
+    `Verdict:` of `sealed`, holds no line that begins with `<!--`
+    (`chain_check.py#comment_lines`, #1012), carries no earlier run
+    reading `sealed`, read
     no `sealed` at an earlier commit of HEAD's history, has no values file
     in the clone already, and audited a commit in HEAD's history. Each
     writes one values file for `session` under `common` first. An earlier
@@ -1198,6 +1200,9 @@ def _queue_one(chain, top, common, session, name, now):
     verdicts = chain.verdicts_of(reader, text)
     if len(verdicts) != 1 or chain.verdict_word(verdicts[0][1]) != chain.SEALED:
         return None
+    # A line that begins with `<!--` is one the pull request refuses (#1012).
+    if chain.comment_lines(reader, text, rel):
+        return None
     target = chain.target_of(reader, text)
     if target is None:
         return None
@@ -1289,7 +1294,8 @@ def queue_for_local_guarantee(path, session, now=None):
     `<common>` is the repository's git common dir and `seal/` under it is
     the repository's root (`optin.home_at`): a repository with
     `<repo>/seal/` is shared mode, whose stamp the commit queues. It then
-    queues where the file reads one `Verdict:` of `sealed`, its `Target SHA`
+    queues where the file reads one `Verdict:` of `sealed` and holds no line
+    that begins with `<!--`, its `Target SHA`
     row names a commit and carries no earlier run reading `sealed`, the
     clone holds no values file for the work item, and the audited commit is
     an ancestor of the branch the work item's `routing.md` names in its
@@ -1328,6 +1334,9 @@ def queue_for_local_guarantee(path, session, now=None):
     reader = chain.SHARED_READER
     verdicts = chain.verdicts_of(reader, text)
     if len(verdicts) != 1 or chain.verdict_word(verdicts[0][1]) != chain.SEALED:
+        return []
+    # A line that begins with `<!--` is one the pull request refuses (#1012).
+    if chain.comment_lines(reader, text, real):
         return []
     target = chain.target_of(reader, text)
     if target is None:

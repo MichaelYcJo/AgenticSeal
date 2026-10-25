@@ -398,85 +398,6 @@ class Test_visible:
         assert UC.visible(" a  b ") == "a  b"
 
 
-class Test_comment_scan:
-    def test_accepts_each_line_with_the_state_it_began_in(self):
-        lines = [
-            "prose <!-- open",
-            "still inside",
-            "closed --> and prose again",
-            "<!-- specs/x-1 -->",
-        ]
-        assert list(UC.comment_scan(lines)) == [
-            (True, "prose "),
-            (False, ""),
-            (False, " and prose again"),
-            (True, ""),
-        ]
-
-    @pytest.mark.parametrize(
-        "lines, kept",
-        [
-            # Round 1 of #1000, finding 2: a table cell quoting the opener in
-            # a code span, as two merged guarantees do.
-            (["| `<!-- specs/` | y |", "Verdict: sealed"], None),
-            # A double-backtick span holding a single backtick and the opener.
-            (["a ``x `<!--` y`` b", "after"], None),
-            # A run with no partner on its line is literal, so the opener
-            # after it opens a comment.
-            (["a ` b <!-- c", "hidden", "--> d"], ["a ` b ", "", " d"]),
-            (["`a` <!-- c --> e", "x"], ["`a`  e", "x"]),
-            # Inside a comment backticks are ordinary characters.
-            (["<!-- `x --> y`", "z"], [" y`", "z"]),
-        ],
-        ids=[
-            "a cell",
-            "a doubled span",
-            "an unpartnered run",
-            "a span, then a comment",
-            "backticks in a comment",
-        ],
-    )
-    def test_refuses_an_opener_a_code_span_quotes(self, lines, kept):
-        """CommonMark 6.1 gives a code span opened first precedence over an
-        HTML comment inside it."""
-        scanned = [text for _began, text in UC.comment_scan(lines)]
-        assert scanned == (lines if kept is None else kept)
-
-    @pytest.mark.parametrize(
-        "tail", ["", "<!--"], ids=["no opener", "an opener at the end"]
-    )
-    def test_the_comment_scan_is_not_quadratic_in_backtick_runs(self, tail):
-        """Round 2 of #1000, finding 1: 800000 characters of closed code
-        spans, with no opener or with one at the end, and a line of backtick
-        runs each without a partner of its own length, are each read inside
-        the bound. The linear scan takes under 0.2 s on the first; the scan
-        that sliced the line again per span took 54 s at 800000. The bound
-        sits an order of magnitude from each, so a loaded runner does not
-        fail it."""
-        for line in (
-            "`a` " * 200000 + tail,
-            "".join("`" * k + "x" for k in range(1, 400)) + tail,
-        ):
-            start = time.monotonic()
-            UC.strip_comments([line, "-->"])
-            assert time.monotonic() - start < 5.0, len(line)
-
-
-class Test_strip_comments:
-    def test_accepts_comment_text_blanked_with_the_lines_kept(self):
-        """A record started from a template before #1005 keeps the comment
-        that explained a section beside it; #1012 retires the state."""
-        lines = ["a <!-- b", "c", "d --> e"]
-        assert UC.strip_comments(lines) == ["a ", "", " e"]
-
-    def test_refuses_a_walk_of_its_own(self, monkeypatch):
-        """A second copy of the walk inside `strip_comments` would answer as
-        the real one does, so the scanner is replaced and the reader has to
-        answer from the stub."""
-        monkeypatch.setattr(UC, "comment_scan", lambda lines: iter([(False, "S")]))
-        assert UC.strip_comments(["a <!-- b"]) == ["S"]
-
-
 class Test_fence_spans:
     def test_accepts_each_closed_block_with_its_delimiters(self):
         lines = ["a", "```", "x", "```", "~~~", "y", "~~~"]
@@ -508,6 +429,21 @@ class Test_blank_fences:
         assert UC.blank_fences(["a", "```", "x", "b"]) == ["a", "", "", ""]
 
 
+class Test_comment_lines:
+    def test_accepts_each_line_that_begins_with_the_opener(self):
+        """*Scope* item 3 of #1012: a record carries no HTML comment, so a
+        line whose text, leading whitespace removed, begins with `<!--` is
+        found at its own index, for the reader of the record to refuse."""
+        lines = UC.readable("# r\n\n<!-- a note -->\n  <!-- indented\nprose\n")
+        assert UC.comment_lines(lines) == [2, 3]
+
+    def test_refuses_an_opener_later_in_a_line_or_inside_a_fence(self):
+        """A `<!--` after the start of a line is text, in a code span or not,
+        and one inside a fence is part of a quotation `readable` blanks."""
+        text = "a `<!--` b\nprose <!-- open\n```\n<!-- quoted\n```\n"
+        assert UC.comment_lines(UC.readable(text)) == []
+
+
 class Test_liveness:
     SPAN = ("a span opens `here", "<!-- specs/s-6 -->", "and closes` there")
 
@@ -534,6 +470,18 @@ class Test_liveness:
 
     def test_refuses_lines_a_span_reaching_across_them_parks(self):
         assert UC.liveness(self.SPAN, spans_cross_lines=True) == [True, False, False]
+
+    def test_reads_an_opener_as_text_where_the_caller_keeps_no_comment_state(self):
+        """#1012: `rule_changes.py#parse` reads a record with `comments=False`,
+        so an opener opens nothing and a fence after it is a fence."""
+        lines = ["<!-- open", "```", "-->", "```", "after"]
+        assert UC.liveness(lines, spans_cross_lines=False, comments=False) == [
+            True,
+            True,
+            False,
+            False,
+            True,
+        ]
 
 
 # The heading rule held to `tests/commonmark_oracle.py`, which reads
@@ -832,6 +780,16 @@ class Test_live_lines:
         assert answer[0] is True
         assert answer[1] is not opens
 
+    def test_reads_an_opener_as_text_where_the_caller_keeps_no_comment_state(self):
+        """#1012: both readings take the keyword, so a heading after an
+        opener nobody closed begins live for `rule_changes.py#parse`."""
+        lines = ["prose <!-- open", "## Rule changes"]
+        assert [live for _, live in UC.live_lines(lines, comments=False)] == [
+            True,
+            True,
+        ]
+        assert [live for _, live in UC.live_lines(lines)] == [True, False]
+
     def test_the_scan_decides_a_fence_before_a_comment_or_a_span(self):
         """A fence opener owns its whole line, so a comment opener on it is
         fenced content and opens nothing."""
@@ -859,9 +817,11 @@ class Test_live_lines:
 
 
 class Test_readable:
-    def test_accepts_the_lines_with_comments_and_fences_blanked(self):
+    def test_accepts_the_lines_with_fences_blanked_and_a_comment_as_text(self):
+        """#1012: a record carries no comment, so `readable` keeps none of
+        the comment state and a comment comes back as the text it is."""
         text = "a\n<!-- b -->\n```\n| x | y |\n```\n| c | d |\n"
-        assert UC.readable(text) == ["a", "", "", "", "", "| c | d |"]
+        assert UC.readable(text) == ["a", "<!-- b -->", "", "", "", "| c | d |"]
 
     def test_refuses_an_indented_delimiter_as_a_fence(self):
         """Four spaces before a run of backticks is never a delimiter
@@ -891,13 +851,6 @@ class Test_readable:
         openers = {first for first, _ in UC.fence_spans(lines)}
         parked = {n for n, (_, live) in enumerate(UC.live_lines(lines)) if not live}
         assert parked == fenced - openers, parked
-
-    def test_readable_would_erase_every_fold_record(self):
-        """Why the pair `check_text` uses is the wrong reader for a marker:
-        it blanks the marker, which `live_lines` reads live."""
-        marker = ["<!-- specs/1780000000-work -->", "A standing statement."]
-        assert UC.readable("\n".join(marker))[0] == ""
-        assert next(iter(UC.live_lines(marker)))[1] is True
 
 
 class Test_headings:
@@ -1330,13 +1283,6 @@ class Test_check_text:
                 + "\n~~~markdown\n| Item | Who must answer |\n~~~\n\n| a third item | someone |\n",
                 3,
             ),
-            # A guidance comment an overview started before #1005 keeps;
-            # #1012 retires the state.
-            (
-                "## Not verified\n\n<!-- guidance:\n| closed <item> | <what closed it> |\n-->\n\n"
-                + CANONICAL.split("\n", 2)[2],
-                2,
-            ),
             # Round 1 of #1000: a row quoting the opener in a code span hides
             # no row below it.
             (
@@ -1346,13 +1292,22 @@ class Test_check_text:
                 ),
                 2,
             ),
+            # #1012: a bare opener later in a line is text, so it hides no row
+            # below it either.
+            (
+                CANONICAL.replace(
+                    "| how the gate renders in a TUI |",
+                    "| whether a bare <!-- in a cell hides rows |",
+                ),
+                2,
+            ),
         ],
         ids=[
             "the table",
             "a fenced example",
             "a tilde fence",
-            "a guidance comment",
             "an opener in a span",
+            "a bare opener mid-line",
         ],
     )
     def test_accepts_the_rows_of_the_one_section(self, section, count):
@@ -1411,6 +1366,18 @@ class Test_check_text:
     )
     def test_refuses_no_section_two_sections_and_an_empty_one(self, text, error):
         assert UC.check_text(text)[2] == [error]
+
+    @pytest.mark.rule("record-comment-line-refused")
+    def test_refuses_a_comment_line_at_its_line(self):
+        """S6 of #1012: the guidance comment an overview started before #1005
+        carries is refused at its first line, before any row is counted,
+        where the reader that kept a comment state read past it."""
+        text = memo(
+            "## Not verified\n\n<!-- guidance:\n| closed <item> | <what closed it> |"
+            "\n-->\n\n" + CANONICAL.split("\n", 2)[2] + "<!-- a second -->\n"
+        )
+        line = text.splitlines().index("<!-- guidance:") + 1
+        assert UC.check_text(text) == ([], [], [(line, UC.COMMENT_LINE)])
 
 
 # --- the walk and the paths it compares ---------------------------------------
@@ -1960,6 +1927,25 @@ class Test_main:
         out = capsys.readouterr().out
         assert "2 rows at HEAD, 1 here" in out
         assert "Re-add the row, its Item cell opening with the word `closed`" in out
+
+    @pytest.mark.rule("record-comment-line-refused")
+    def test_accepts_a_base_holding_a_comment_line_as_not_compared(
+        self, plain, tmp_path, capsys
+    ):
+        """S6 of #1012: a base overview holding a line that begins `<!--` is
+        named as not compared, never counted as zero rows, and the exit code
+        is the working tree's, because nobody can edit a commit that already
+        happened. A row deleted in the stripping commit goes uncompared once."""
+        d = copy_of(plain, tmp_path)
+        path = d / "specs" / WORK / "overview.md"
+        replace_in(path, "## Not verified\n", "## Not verified\n\n<!-- guidance -->\n")
+        commit_everything_as_e(d, "an overview from an old template")
+        replace_in(path, "\n<!-- guidance -->\n", "")
+        drop_line(path, WINDOWS)
+        assert run([str(d), "--baseline", "HEAD"]) == 0
+        out = capsys.readouterr().out
+        named = out.split("not compared against HEAD:")[1]
+        assert WORK in named and UC.COMMENT_LINE in named, out
 
     @pytest.mark.parametrize(
         "change, argv, gone",

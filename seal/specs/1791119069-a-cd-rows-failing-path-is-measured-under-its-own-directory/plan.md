@@ -1,28 +1,8 @@
 # Implementation Plan: a cd row's failing path is measured under its own directory (#761)
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/plan.md — HOW, in phases. This is the Design Gate's
-artifact: where the work alters observable behaviour, approval of this plan is
-the gate. -->
-
 Approved 2026-10-04 by the orchestrator under the owner's `automation` routing, when `smith` was spawned.
 
 Re-approved 2026-10-04 by the orchestrator after the re-frame at d22b105b (phase 1 broke approach A's premise; Q4 answered), when phases 2 and 3 were resumed.
-
-<!-- The line above is the record that the gate happened. Fill it in at the
-spawn: reading this plan and spawning the builder IS the approval, so nothing
-extra is being asked for here — only that the approval stop living in a
-transcript. A later session, a reviewer and CI all read the tree, and a plan
-with nobody's name on it is indistinguishable from one nobody approved.
-
-Where the session builds the work itself, `<who>` is still a person and the
-moment is still the first edit rather than a spawn — say so in place of the
-clause about `smith`, and keep the shape.
-
-That shape is `templates/sdd-routing.md`'s, whose `Answered <date> by <who>,
-before the first edit.` line records the other batch the same way: the verb,
-the date, who, and the moment it was given. The two are pinned against each
-other, so neither spelling can drift into a second convention for one kind of
-fact. -->
 
 ## Summary
 

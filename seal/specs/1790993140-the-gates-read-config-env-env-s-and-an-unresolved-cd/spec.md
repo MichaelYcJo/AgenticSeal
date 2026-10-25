@@ -1,8 +1,5 @@
 # Feature Specification: the gates read `--config-env`, `env -S`, and an unresolved `cd`
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/spec.md — WHAT this work delivers and how we'll know.
-The policy documents in docs/ outrank this file; cite them, don't restate. -->
-
 Three issues, one reader family. #716 is two commits the commit gate's text
 reading does not find. #678's guard half and #686 are two places where the
 worktree guard's frozen reading is silent while bash acts somewhere it did

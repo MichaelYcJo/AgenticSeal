@@ -1,8 +1,5 @@
 # Feature Specification: one heredoc shape the reader matches exactly is data (#739, #763)
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/spec.md — WHAT this work delivers and how we'll know.
-The policy documents in docs/ outrank this file; cite them, don't restate. -->
-
 **On purpose, this file holds no command string that passes the gate, old or
 new.** The shape is given as a grammar with named slots, the refusals and the
 review findings are named by mechanism, and the tests named in the acceptance
@@ -202,16 +199,5 @@ The judgments the tickets left open that the tree answered are listed at the
 head of `questions.md`. Q1 (the moved row) carries the owner's answer from
 #760. Q2 (the recorded forms of refusals 2 and 3 stay refused) is decided at
 the frame's default, and the owner can overturn it at approval.
-
-<!-- The line below is the framer's mark, and it is the only evidence in the
-     TREE that the framing happened — the existing framer mark lives in the
-     repository's git dir, and a git dir does not travel, so CI cannot see it.
-     Fill in the date and `<who>`; `<who>` takes the two values the `Planning`
-     row of `routing.md` takes, `framer` or `the session`, and a mark that
-     disagrees with that row is refused at the pull request rather than
-     guessed at.
-     The shape — verb, date, who, the moment — is the one `routing.md` and
-     `plan.md` already end with, which is what keeps three feet-lines from
-     becoming three conventions. -->
 
 Framed 2026-10-04 by framer, before the build.

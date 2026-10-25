@@ -1,8 +1,5 @@
 # Feature Specification: a cd row's failing path is measured under its own directory (#761)
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/spec.md — WHAT this work delivers and how we'll know.
-The policy documents in docs/ outrank this file; cite them, don't restate. -->
-
 Found by round 2 of #758 (work item
 `1791076832-the-broad-gate-re-runs-the-test-command-at-the-base`, read at
 `refs/backup/0.18.1/local/fix/747-the-broad-gate-re-runs-the-test-command-at-the-base`,

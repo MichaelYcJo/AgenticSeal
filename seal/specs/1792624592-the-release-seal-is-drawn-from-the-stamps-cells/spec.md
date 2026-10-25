@@ -1,9 +1,5 @@
 # Feature Specification: the release seal is drawn from the stamp's cells (#1009)
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/spec.md holds WHAT this work
-delivers and how we'll know. The policy documents in docs/ outrank this file;
-the framer cites them and does not restate them. -->
-
 ## Grounding
 
 | Policy clause | What it fixes for this work |
@@ -159,16 +155,5 @@ the framer cites them and does not restate them. -->
 
 Anything a planner must answer lives in questions.md, not inline: unanswered
 questions buried in prose read as decided.
-
-<!-- The line below is the frame's mark in the tree; `agents/framer.md` says
-     why CI needs it. Whoever drew the frame fills in the date and `<who>`,
-     which takes the two values the `Planning` row of `routing.md` takes,
-     `framer` or `the session`; a mark that disagrees with that row is
-     refused at the pull request rather than guessed at. The shape (verb,
-     date, who, the moment) is the one `routing.md` and `plan.md` end with,
-     which keeps three such lines from becoming three conventions.
-     A reframe adds `Reframed <date> by <who>, after round <N>.` UNDER this
-     line when the review chain sends the work item back to its framer. It is
-     never in this template; only a reframe writes it. -->
 
 Framed 2026-10-22 by framer, before the build.

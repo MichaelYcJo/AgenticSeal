@@ -1,9 +1,5 @@
 # Implementation Plan: every agent, skill and doc states the current rule only
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/plan.md — HOW, in phases. This is the Design Gate's
-artifact: where the work alters observable behaviour, approval of this plan is
-the gate. -->
-
 Approved 2026-10-14 by the repository owner, when `smith` was spawned.
 Approved 2026-10-15 by the repository owner, when `smith` was spawned for the reframed plan.
 Approved 2026-10-15 by the repository owner, for the replanned phases 1–7, when `smith` was spawned for phase 1's second act.

@@ -1,10 +1,5 @@
 # the reading segments batch again, and the opening lives in a file — questions for the planner
 
-<!-- seal/specs/1790815612-the-reading-segments-batch-again-and-the-opening-lives-in-a-file/questions.md — decisions only a human can make,
-extracted so nothing ships on a silent assumption. Before adding a row,
-check the inheritance rule: if policy is silent but existing behavior
-answers it, inherit and record — only genuinely NEW rules belong here. -->
-
 **No row needs a person, and none blocks the build.** The owner pressed
 `automation` for the whole release on 2026-10-01 (`routing.md`), and the one
 question the ticket addressed to the owner — item 3, *separate model from

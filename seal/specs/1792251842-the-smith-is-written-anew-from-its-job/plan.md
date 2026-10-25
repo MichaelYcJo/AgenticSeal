@@ -1,9 +1,5 @@
 # Implementation Plan: the smith is written anew from its job (#967)
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/plan.md — HOW, in phases. This is the Design Gate's
-artifact: where the work alters observable behaviour, approval of this plan is
-the gate. -->
-
 Approved 2026-10-18 by the orchestrator under the owner's delegation of that night (a plan that follows the orchestrator's stated design is approved by the orchestrator), when `smith` was spawned.
 
 ## Summary

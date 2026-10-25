@@ -1,10 +1,5 @@
 # Guarantee: 1792619407-the-replay-scaffold-and-reader-misread-rounds
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/guarantee.md is written by the
-sealer alone and committed by the orchestrator beside `broad-gate.md`.
-`docs/the-review-record.md` *The guarantee* holds the rules and
-`agents/sealer.md` the order of work. -->
-
 | Field | Value |
 |---|---|
 | Target SHA | 24482f01 against eae7f0ad |

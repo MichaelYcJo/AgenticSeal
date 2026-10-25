@@ -1,8 +1,5 @@
 # Feature Specification: the Windows test leg is measured and cut (#841)
 
-<!-- seal/specs/1791270165-the-windows-test-leg-is-measured-and-cut/spec.md — WHAT this work delivers and how we'll know.
-The policy documents in docs/ outrank this file; cite them, don't restate. -->
-
 ## Grounding
 
 | Policy clause | What it fixes for this work |

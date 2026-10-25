@@ -1,9 +1,5 @@
 # Implementation Plan: under automation, a mid-run question is refused
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/plan.md — HOW, in phases. This is the Design Gate's
-artifact: where the work alters observable behaviour, approval of this plan is
-the gate. -->
-
 Approved 2026-10-21 by the orchestrator, under the owner's `automation` answer, when `smith` was spawned for phases 1 and 2.
 
 ## Summary

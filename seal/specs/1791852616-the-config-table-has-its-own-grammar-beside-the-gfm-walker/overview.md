@@ -1,11 +1,5 @@
 # the config table is read by the walker cmark-gfm holds (#871) — overview
 
-<!-- The closing memo (implement skill, step 4). Not a summary of the work:
-`git diff --stat` holds the file list and the diff holds the detail. Only what
-the diff cannot show goes here, and each part is written when it happens rather
-than reconstructed at the end. Facts that must outlive this work item go to the
-evidence ledger, not here. -->
-
 📋 implement applied
 · spec:     `spec.md` (every section, S1–S9, §*Data & interfaces*, `## Removes`), `plan.md` (phases, alternatives, operational impact), `questions.md` Q1–Q6, `docs/the-reader-registry.md` §§*The four classes*, *Who declares*, *The census*, *A frame names what its work removes*, `docs/the-evidence-ledger.md` §*A released row is read again in the branch's fragment*, `templates/config.md`, `skills/config/SKILL.md`, `skills/agent-contract/SKILL.md`
 · evidence: `seal/ledger/1791852616-the-config-table-has-its-own-grammar-beside-the-gfm-walker.md` — N1–N12 for the new units, eighteen `Corrected ·` rows for the released claims the stop rule's removal made false, and the `Re-read ·` rows `evidence-check --reverify --into` wrote for the rest

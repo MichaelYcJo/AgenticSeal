@@ -1,9 +1,5 @@
 # Implementation Plan: the gates read `--config-env`, `env -S`, and an unresolved `cd`
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/plan.md — HOW, in phases. This is the Design Gate's
-artifact: where the work alters observable behaviour, approval of this plan is
-the gate. -->
-
 Approved 2026-10-03 by the repository owner, whose `automation` answer covers this item, when `smith` was spawned.
 
 ## Summary

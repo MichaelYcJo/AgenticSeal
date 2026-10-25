@@ -1,15 +1,6 @@
 # Implementation Plan: rule 3 decides on the agent, not on one run (#966)
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/plan.md — HOW, in phases. This is the Design Gate's
-artifact: where the work alters observable behaviour, approval of this plan is
-the gate. -->
-
 Approved 2026-10-19 by the orchestrator, under the owner's `automation` answer, when `smith` was spawned.
-
-<!-- The line above is the record that the gate happened. Fill it in at the
-spawn: reading this plan and spawning the builder IS the approval, so nothing
-extra is being asked for here — only that the approval stop living in a
-transcript. -->
 
 ## Summary
 

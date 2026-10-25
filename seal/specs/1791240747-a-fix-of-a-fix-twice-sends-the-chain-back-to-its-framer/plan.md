@@ -1,9 +1,5 @@
 # Implementation Plan: a fix of a fix twice sends the chain back to its framer
 
-<!-- seal/specs/1791240747-a-fix-of-a-fix-twice-sends-the-chain-back-to-its-framer/plan.md — HOW, in phases. This is the Design Gate's
-artifact: where the work alters observable behaviour, approval of this plan is
-the gate. -->
-
 Approved 2026-10-06 by the repository owner, whose `automation` answer covers this item, when `smith` was spawned.
 Approved 2026-10-06 by the repository owner, whose `automation` answer covers this item, when `smith` was spawned for the redesign after round 3.
 

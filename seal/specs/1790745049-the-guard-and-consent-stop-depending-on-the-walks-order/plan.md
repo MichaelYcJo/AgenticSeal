@@ -1,9 +1,5 @@
 # Implementation Plan: the guard and consent stop depending on the walk's order
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/plan.md — HOW, in phases. This is the Design Gate's
-artifact: where the work alters observable behaviour, approval of this plan is
-the gate. -->
-
 Approved 2026-09-30 by the orchestrating session, when `smith` was spawned.
 
 ## Summary

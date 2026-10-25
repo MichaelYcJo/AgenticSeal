@@ -1,10 +1,5 @@
 # 1791270161-the-broad-gate-reads-a-record-its-pytest-plugin-wrote — questions for the planner
 
-<!-- seal/specs/1791270161-the-broad-gate-reads-a-record-its-pytest-plugin-wrote/questions.md — decisions only a human can make,
-extracted so nothing ships on a silent assumption. Before adding a row,
-check the inheritance rule: if policy is silent but existing behavior
-answers it, inherit and record — only genuinely NEW rules belong here. -->
-
 **Decided from the tree, so nobody reopens them.** #825 fixed the direction
 and left the mechanism's shape and two issues' fate open. The tree, and
 pytest's own source in the built environment, answered each (`spec.md`

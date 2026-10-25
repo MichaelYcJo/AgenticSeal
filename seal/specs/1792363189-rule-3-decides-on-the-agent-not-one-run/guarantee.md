@@ -1,10 +1,5 @@
 # 1792363189-rule-3-decides-on-the-agent-not-one-run — guarantee
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/guarantee.md, written by the
-sealer alone and committed by the orchestrator beside `broad-gate.md`.
-`docs/the-review-record.md` §*The guarantee* holds the rules and
-`agents/sealer.md` the order of work. -->
-
 | Field | Value |
 |---|---|
 | Target SHA | fc310e84 against 769f2aa4; earlier run: a754ab94 withheld |

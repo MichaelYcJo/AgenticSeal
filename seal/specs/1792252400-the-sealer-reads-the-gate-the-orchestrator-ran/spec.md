@@ -1,8 +1,5 @@
 # Feature Specification: the sealer reads the gate the orchestrator ran (#969)
 
-<!-- seal/specs/<unix-epoch-seconds>-<slug>/spec.md — WHAT this work delivers and how we'll know.
-The policy documents in docs/ outrank this file; cite them, don't restate. -->
-
 Split from #957 by the owner on 2026-10-17, one issue per agent. This frame
 builds on #957's merged frame at
 `seal/specs/1792126889-every-agent-is-written-anew-from-its-job/spec.md`
