@@ -2147,6 +2147,19 @@ class Test_originals_of:
         assert code == 0, out
 
     @pytest.mark.rule("parity-in-the-guarantee")
+    def test_a_missing_guarantee_is_named_once(self, item, capsys):
+        """A guarantee git does not carry is the guarantee arm's refusal, and
+        no second one asks it for an `original:` line."""
+        root, _audited = item
+        direct_migrating(root, None)
+        git(root, "rm", "-q", f"{ITEM}/guarantee.md")
+        commit(root, "no guarantee")
+        code, out = check(root, capsys)
+        assert code == 1, out
+        assert "git carries no guarantee file" in out, out
+        assert "no `original:` line" not in out, out
+
+    @pytest.mark.rule("parity-in-the-guarantee")
     def test_a_direct_guarantee_owes_nothing_for_the_document_roots_alone(
         self, item, capsys
     ):
