@@ -99,12 +99,12 @@ def test_the_policy_states_the_budget_and_names_its_case():
 def test_the_orchestrator_is_told_the_stamp_is_drawn_for_it():
     """S16, the orchestrator's half (contract rule 14), and #975 S13. The rule
     sits in the section that spawns the sealer: the stamp is drawn at the end
-    of the turn in which the sealer's `sealed` guarantee is committed, the
+    of the turn in which the sealer's report arrives, its `Write` of a
+    `sealed` guarantee having queued it under either root (#1027 S13), the
     result text comes first, the orchestrator draws none — by `seal-stamp` or
     by relaying a log, which 0.15.6 did — the broad run's lines are quoted as
     `BROAD GATE PASSED` and `BROAD GATE FAILED`, and no line of the run says
-    `SEALED`. 1792363231 S7: in local mode the stamp is drawn at the end of
-    the turn in which the sealer's report arrives. Round 1's finding 2: the
+    `SEALED`. Round 1's finding 2 of 1792363231: the
     edit hook's line is shown to the person at the sealer's write and never
     reaches the orchestrator, so it is not told to quote that line; where no
     stamp appeared, it names the values file and leaves the command to the
@@ -121,14 +121,13 @@ def test_the_orchestrator_is_told_the_stamp_is_drawn_for_it():
         "Where `pre-commit` refuses the commit of `guarantee.md` because its row "
         "names a commit the branch does not hold, spawn the sealer again at HEAD "
         "and commit what it writes; never edit the row by hand.",
-        "**The stamp is drawn for you at the end of the turn in which "
-        "`guarantee.md` reading `sealed` is committed, or in local mode the turn "
-        "in which the sealer's report arrives, and you never draw one.**",
-        "In local mode no commit carries `guarantee.md`: the sealer's own "
-        "`Write` of it queues the values. The line naming them is the edit "
-        "hook's message, shown to the person at that write. It is not in the "
-        "sealer's report and does not reach you.",
-        "In local mode no such line reaches you. Where no stamp appeared, name "
+        "**The stamp is drawn for you at the end of the turn in which the "
+        "sealer's report arrives, and you never draw one.**",
+        "the sealer's own `Write` of it queues the stamp's values, under either "
+        "root, and the `Stop` hook draws them after your text. The line naming "
+        "them is the edit hook's message, shown to the person at that write. It "
+        "is not in the sealer's report and does not reach you.",
+        "The edit hook's line never reaches you. Where no stamp appeared, name "
         "the file under `<git-common-dir>/specseal-stamp/<session>/` whose name "
         "holds the work item's id, and leave `seal-stamp --from <that file>` to "
         "the person.",
@@ -141,7 +140,7 @@ def test_the_orchestrator_is_told_the_stamp_is_drawn_for_it():
         # Round 1's yellow 1 of #400: the command is named on the line that
         # points at a values file, and it stays the person's wherever it
         # appears.
-        "Wherever the commit's line names `seal-stamp --from`, quote it as it "
+        "Wherever a commit's line names `seal-stamp --from`, quote it as it "
         "stands: that command is the person's to type, and never yours.",
     ):
         assert said in section, said

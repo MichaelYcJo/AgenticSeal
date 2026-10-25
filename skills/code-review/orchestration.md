@@ -249,19 +249,19 @@ prints no `BROAD GATE` line, so nothing it prints reads as the broad run's.
 An orchestrator that skips the preflight loses only time: the broad run asks
 the same arms, and refuses the same way after its suite.
 
-**The stamp is drawn for you at the end of the turn in which `guarantee.md`
-reading `sealed` is committed, or in local mode the turn in which the
-sealer's report arrives, and you never draw one.** The broad run
+**The stamp is drawn for you at the end of the turn in which the sealer's
+report arrives, and you never draw one.** The broad run
 draws nothing: its stdout opens `BROAD GATE PASSED` or `BROAD GATE FAILED`,
 which say whether the broad command passed and judge nothing. The stamp means
 every party verified the work item, the sealer last, so it is drawn once per
-work item from the sealer's verdict: when you commit its `guarantee.md` and
-the one `Verdict:` reads `sealed`, git's `post-commit` writes the stamp's
-values and prints one line naming them, and the `Stop` hook draws them after
-your text. In local mode no commit carries `guarantee.md`: the sealer's own
-`Write` of it queues the values. The line naming them is the edit hook's
-message, shown to the person at that write. It is not in the sealer's
-report and does not reach you. So put the result text first in that turn:
+work item from the sealer's verdict: where the one `Verdict:` of
+`guarantee.md` reads `sealed`, the sealer's own `Write` of it queues the
+stamp's values, under either root, and the `Stop` hook draws them after your
+text. The line naming them is the edit hook's message, shown to the person
+at that write. It is not in the sealer's report and does not reach you. In
+shared mode, where no write queued them, git's `post-commit` writes them
+when you commit the file and prints the same line into the commit's output.
+So put the result text first in that turn:
 what was sealed, the lines worth quoting, and what happens next. Then end
 the turn, and the drawing lands last with nothing after it. Draw none
 yourself, neither with `seal-stamp` nor by relaying a log: a relayed log
@@ -271,9 +271,9 @@ the ref and the commit it was compared against, the panel's rows follow it
 as text, and the report's last line says `broad-gate.md` is written and not
 committed: CI reads HEAD, so commit it before you push, or the one
 broad run is recorded nowhere CI looks. On a red run relay the `BROAD GATE
-FAILED` lines. Wherever the commit's line names `seal-stamp --from`, quote
-it as it stands: that command is the person's to type, and never yours. In
-local mode no such line reaches you. Where no stamp appeared, name the file
+FAILED` lines. Wherever a commit's line names `seal-stamp --from`, quote
+it as it stands: that command is the person's to type, and never yours. The
+edit hook's line never reaches you. Where no stamp appeared, name the file
 under `<git-common-dir>/specseal-stamp/<session>/` whose name holds the work
 item's id, and leave `seal-stamp --from <that file>` to the person. The line
 names the command because the hook draws nothing and says nothing where it
