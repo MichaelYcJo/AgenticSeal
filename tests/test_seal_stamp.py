@@ -1605,6 +1605,14 @@ class Test_queue_for_written_guarantee:
         assert queued(shared.common) == [written]
 
     @pytest.mark.rule("stamp-drawn-once")
+    def test_a_shared_root_in_an_opted_out_repository_queues_nothing(self, shared):
+        """`seal/` under a worktree is the root only while the repository
+        runs the workflow; the throwaway marker takes it back."""
+        uncommitted(shared)
+        write(shared.common, "specseal-scratch", "")
+        assert queue_written(shared) == [] and queued(shared.common) == []
+
+    @pytest.mark.rule("stamp-drawn-once")
     def test_a_shared_mode_sealed_already_in_the_history_queues_nothing(self, shared):
         """#1027 S13: a `sealed` HEAD's history carries was stamped where it
         was made, so a write of the guarantee over it queues nothing, even in
