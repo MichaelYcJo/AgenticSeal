@@ -6,8 +6,13 @@ Run by CI on every pull request (`.github/workflows/hygiene.yml`). It judges
 the `seal/specs/<id>/routing.md` naming the pull request's branch and every
 one its own commits add or change. One that reached the branch inside another
 pull request's squash was judged at that pull request and is named, not
-judged (`carried_by`). The arms are seven:
+judged (`carried_by`). The arms are eight:
 
+  trailer       on every pull request, a declaration or none: each
+                `SpecSeal-Routing` trailer of the pull request's own commits
+                names a work item a judged declaration names, or reads
+                `no work item`, which is printed (`routing_trailers`); a
+                commit with no such trailer is not judged
   declaration   the file parses as a routing declaration; one the pull
                 request removed is accepted where the work item was retired
   frame         `Planning | framer`: `spec.md` and `plan.md` are committed,
@@ -30,12 +35,14 @@ judged (`carried_by`). The arms are seven:
                 `regression:` lines, and none stands in the last record; the
                 last record's `target:` commit is HEAD, or every commit after
                 it touches only the work item's own directory
-  original      `Review | through the review chain`, where git carries
-                `seal/parity.md` at HEAD and the pull request changes a path
-                outside the document roots `hooks/gate.py#touches_code`
-                reads: the config's `Baseline commit` row names a SHA
-                (`hooks/config.py#baseline_commit`), and every round record
-                carries one `original:` line naming it (`originals_of`)
+  original      where git carries `seal/parity.md` at HEAD and the pull
+                request changes a path outside the document roots
+                `hooks/gate.py#touches_code` reads: the config's `Baseline
+                commit` row names a SHA (`hooks/config.py#baseline_commit`),
+                and one `original:` line naming it stands in every round
+                record under `Review | through the review chain`, and in
+                `guarantee.md` under `Review | straight to the PR`
+                (`originals_of`)
   broad gate    `broad-gate.md`'s newest run is HEAD, or every commit after it
                 touches only the work item's own directory
   guarantee     `guarantee.md` names HEAD, or every commit after it touches
@@ -52,7 +59,7 @@ Usage:
 `--worktree` reads the records from the working tree instead of HEAD, for a
 check before the commit; CI never passes it. `--sealing` is the broad gate's
 own run, before it writes `broad-gate.md` and the sealer `guarantee.md`: those
-two arms print and do not fail.
+two arms, and the guarantee's `original:` line, print and do not fail.
 
 Exit: 0 nothing to refuse · 1 a refusal, each named `path:line  why` (a
 GitHub annotation in CI) · 2 the check could not run, a grammar table it
@@ -1740,12 +1747,24 @@ def parity_readers():
     return config, gate
 
 
-def original_of(reader, text, rel, sha, config):
-    """[(rel, line, problem)] for one round record's `original:` line, held
+NO_GUARANTEE_ORIGINAL = (
+    f"no `{ORIGINAL_ROW}` line: `{{config}}` declares a migration, this work "
+    "item answers `straight to the PR`, and this pull request changes a path "
+    "outside the document roots, so no round record compares it and the "
+    f"sealer's guarantee carries `{ORIGINAL_ROW} {{sha}}`, the migration "
+    "config's baseline, written once it compared the audited commit with the "
+    "original through `legacy-parity`"
+)
+
+
+def original_of(reader, text, rel, sha, config, missing=NO_ORIGINAL):
+    """[(rel, line, problem)] for one record's `original:` line, held
     against SHA, the `Baseline commit` of the migration config at CONFIG:
-    a record with no such line, and one naming a commit that is not a prefix
-    of SHA and of which SHA is not a prefix. A line the grammar table
-    refuses, standing in a finding, a second one, or one spelt otherwise, is
+    a record with no such line, said as MISSING, and one naming a commit
+    that is not a prefix of SHA and of which SHA is not a prefix. The record
+    is a round record, or the guarantee of a work item declaring `straight
+    to the PR`, read by the same rule. A line the grammar table refuses,
+    standing in a finding, a second one, or one spelt otherwise, is
     `read_whole`'s refusal at that line, and none is added here."""
     lines, _found, _errors, outside = read_whole(reader, text, rel)
     at = [
@@ -1754,7 +1773,7 @@ def original_of(reader, text, rel, sha, config):
         if ORIGINAL_ROW in (label_of(line), misspelt(line))
     ]
     if not at:
-        return [(rel, 0, NO_ORIGINAL.format(config=config, sha=sha))]
+        return [(rel, 0, missing.format(config=config, sha=sha))]
     found = outside[ORIGINAL_ROW]
     if found is None:
         return []
@@ -1764,16 +1783,19 @@ def original_of(reader, text, rel, sha, config):
     return [(rel, at[0] + 1, OTHER_ORIGINAL.format(said=said, sha=sha))]
 
 
-def originals_of(reader, routing, root, paths, items):
+def originals_of(reader, routing, root, paths, items, direct=()):
     """[(path, line, problem)] for the round records of ITEMS, each declared
-    through the review chain, where git carries the migration config at HEAD
-    and PATHS, this pull request's, reach outside the document roots;
+    through the review chain, and the `guarantee.md` of DIRECT, each
+    declared `straight to the PR`, where git carries the migration config at
+    HEAD and PATHS, this pull request's, reach outside the document roots;
     `hooks/gate.py#touches_code` decides that, and paths git could not list
-    reach outside them. A config whose `Baseline commit` names no SHA is one
-    refusal naming it. None where `hooks/` would not load, said on stderr."""
+    reach outside them. A guarantee git does not carry is `guarantee`'s
+    refusal, and none is added here. A config whose `Baseline commit` names
+    no SHA is one refusal naming it. None where `hooks/` would not load,
+    said on stderr."""
     config = f"{routing.optin.HOME}/{routing.optin.PARITY_CONFIG}"
     text = read_record(root, config)
-    if text is None or not items:
+    if text is None or not (items or direct):
         return []
     try:
         reads, gate = parity_readers()
@@ -1791,6 +1813,13 @@ def originals_of(reader, routing, root, paths, items):
     for item in items:
         for rel in round_records(routing, root, item):
             found.extend(original_of(reader, read_record(root, rel), rel, sha, config))
+    for item in direct:
+        rel = f"{item}/{GUARANTEE_FILE}"
+        said = read_record(root, rel)
+        if said is not None:
+            found.extend(
+                original_of(reader, said, rel, sha, config, NO_GUARANTEE_ORIGINAL)
+            )
     return found
 
 
@@ -2006,6 +2035,70 @@ SETTLE_SAYS = (
     "holds every rule change its spec states"
 )
 
+# The trailer a session's commit ends with (`docs/the-routing-check.md` *At
+# the pull request*), and its one value that names no work item.
+TRAILER = "SpecSeal-Routing"
+NO_WORK_ITEM = "no work item"
+UNDECLARED_TRAILER = (
+    f"commit {{sha}} carries `{TRAILER}: {{item}}`, and no routing declaration "
+    "this pull request judges names that work item: commit its `routing.md`, "
+    "naming this branch, or correct the trailer"
+)
+NO_WORK_ITEM_TRAILER = (
+    f"commit {{sha}} carries `{TRAILER}: {NO_WORK_ITEM}`: its session recorded "
+    "that the change belongs to no work item, and nothing here checks it "
+    "further"
+)
+
+
+def routing_trailers(root, base):
+    """`[(commit, value)]` for each `SpecSeal-Routing` trailer of this pull
+    request's own commits, oldest first, or None where git cannot list them.
+
+    The commits are `base..HEAD` with merges left out, read by git's own
+    trailer parser so the key matches as git matches it. A squash GitHub
+    committed (`carried_by`'s rule: committer `noreply@github.com`, subject
+    ending `(#N)`) closed another pull request, which judged its trailer, so
+    it is not this pull request's own."""
+    out = git(
+        root,
+        "log",
+        "--no-merges",
+        "--reverse",
+        "-z",
+        f"--format=%H%x1f%ce%x1f%s%x1f%(trailers:key={TRAILER},valueonly,separator=%x1e)",
+        f"{base}..HEAD",
+    )
+    if out is None:
+        return None
+    found = []
+    for entry in out.split("\0"):
+        parts = entry.strip("\n").split("\x1f")
+        if len(parts) != 4:
+            continue
+        sha, committer, subject, values = parts
+        if committer.strip().lower() == SQUASH_COMMITTER and SQUASH_SUBJECT.search(
+            subject.strip()
+        ):
+            continue
+        for value in values.split("\x1e"):
+            if value.strip():
+                found.append((sha.strip(), value.strip()))
+    return found
+
+
+def trailer_findings(trailers, judged):
+    """`(problems, notices)` for TRAILERS, each `(commit, value)`: a value
+    naming a work item that is not among JUDGED, the ids of the declarations
+    this pull request judges, is a problem; `no work item` is a notice."""
+    problems, notices = [], []
+    for sha, value in trailers:
+        if value == NO_WORK_ITEM:
+            notices.append(("", 0, NO_WORK_ITEM_TRAILER.format(sha=sha[:8])))
+        elif value not in judged:
+            problems.append(("", 0, UNDECLARED_TRAILER.format(sha=sha[:8], item=value)))
+    return problems, notices
+
 
 def retired(reader, root, fork, records):
     """The work item directories of the removed declarations a settle
@@ -2079,9 +2172,23 @@ def main(argv=None):
         print("chain-check: reading the working tree (--worktree); CI reads HEAD")
     for rel, line, message in carried:
         print(reader.annotate("notice", rel, line, message))
+    trailers = routing_trailers(root, args.baseline)
+    if trailers is None:
+        print(
+            f"chain-check: cannot read the commits after {args.baseline}",
+            file=sys.stderr,
+        )
+        return 2
+    judged_ids = {os.path.basename(os.path.dirname(rel)) for rel in declarations}
+    problems, notices = trailer_findings(trailers, judged_ids)
+    kind = "error" if strict else "notice"
     if not declarations:
         print(reader.annotate("notice", "", 0, why))
-        return 0
+        for rel, line, message in notices:
+            print(reader.annotate("notice", rel, line, message))
+        for rel, line, message in problems:
+            print(reader.annotate(kind, rel, line, message))
+        return 1 if problems and strict else 0
 
     fork = reader.merge_base(root, args.baseline)
     # A declared work item's commit can write another work item's section
@@ -2092,7 +2199,7 @@ def main(argv=None):
         for item in edited_work_items(root, args.baseline, paths, moved, routing)
         if item not in judged
     ]
-    problems, notices, chained = [], [], []
+    chained, direct = [], []
     texts = {rel: read_record(root, rel) for rel in declarations}
     by_settle = retired(reader, root, fork, texts)
     for rel in declarations:
@@ -2132,6 +2239,8 @@ def main(argv=None):
         if declared["review"] == routing.CHAIN:
             problems.extend(records(reader, routing, root, item, rel, args.baseline))
             chained.append(item)
+        else:
+            direct.append(item)
         gate = broad_gate(reader, root, item, args.baseline)
         gate += guarantee(reader, root, item, args.baseline)
         if args.sealing:
@@ -2142,14 +2251,19 @@ def main(argv=None):
     if found is None:
         return 2
     problems.extend(found)
-    found = originals_of(reader, routing, root, paths, chained)
+    found = originals_of(reader, routing, root, paths, chained, direct)
     if found is None:
         return 2
-    problems.extend(found)
+    for rel, line, message in found:
+        # The guarantee's line is the sealer's to write, so `--sealing` reads
+        # it as it reads every other guarantee check.
+        if args.sealing and rel.endswith(f"/{GUARANTEE_FILE}"):
+            notices.append((rel, line, f"{SEALING_SAYS}: {message}"))
+        else:
+            problems.append((rel, line, message))
 
     for rel, line, message in notices:
         print(reader.annotate("notice", rel, line, message))
-    kind = "error" if strict else "notice"
     for rel, line, message in problems:
         print(reader.annotate(kind, rel, line, message))
     return 1 if problems and strict else 0

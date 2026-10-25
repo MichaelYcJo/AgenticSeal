@@ -82,7 +82,14 @@ return.
    `Verdict: undecided question: <question>`, at the start of its line
    and with no emphasis. Keep an
    `Answered <date> by <who>:` line standing under an earlier verdict, and
-   read the answer as the owner's.
+   read the answer as the owner's. Where git carries `seal/parity.md`, the
+   work item's `routing.md` answers `straight to the PR` and the diff
+   changes a path outside `docs/` and `seal/`, no round record compares the
+   change with the original, so you do: compare the audited commit with the
+   original through `skills/legacy-parity/SKILL.md`, then write one
+   `original: <sha>` line under the first table, `<sha>` being the migration
+   config's `Baseline commit`. A comparison you could not make is a
+   `withheld` verdict naming it, never a line.
 6. **Return the file's text** as your report, every claim labelled
    `executed`, `read` or `unverified`.
 
