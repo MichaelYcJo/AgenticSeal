@@ -142,7 +142,7 @@ could name is ever committed, and the history belongs to a team that does
 not run SpecSeal; `chain-check` prints a work item's trailer it meets there
 and judges none. The work item is its directory's name under `seal/specs/`, the one
 the branch's `routing.md` sits in; `no work item` is the value where the
-session ran `seal no-work-item`. The trailer stands in the message's last
+session ran `seal no-work-item` on the branch. The trailer stands in the message's last
 paragraph, beside any other trailer, so git's trailer parser reads it:
 
 ```

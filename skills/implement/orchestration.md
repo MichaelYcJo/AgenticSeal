@@ -442,9 +442,11 @@ item gets.
 `Write`, `Edit` or `NotebookEdit` of a file in the repository while no
 `routing.md` names the branch checked out where the file is. A file under the
 `seal/` root is never refused, so the declaration can always be written
-first. Under `no work item` the session runs `seal no-work-item` once, before
-its first edit: it records, for this session in this clone, that the change
-belongs to no work item, and the gate then lets its edits through.
+first. Under `no work item` the session runs `seal no-work-item` once on the
+branch it edits, before its first edit: it records, for this session on that
+branch, that the change belongs to no work item, and the gate then lets its
+edits on that branch through. A session that moves to another branch runs it
+there again.
 
 **The orchestrator writes the file with the `Write` tool, then commits it.**
 The declaration is read from the working tree (`hooks/routing.py`'s
@@ -616,7 +618,7 @@ one.
 | The plan is approved at the spawn | `skills/implement/orchestration.md` | part of its parent's act | The approval line of the step where its parent's order spawns the smith, and the rules the spawn prompt is written to. It names no act of its own |
 | Orchestrator: Bootstrap | `skills/implement/orchestration.md` | check: `hooks/mode-gate.py` | A root with no `Mode` row in `config.md` is exactly nobody was asked, and this gate stops the next command until `seal mode` writes it. It reaches the mode question alone. Nothing reads the `Broad gate` proposal, so a repository that was never offered candidates meets `bin/broad-gate`'s own refusal after the rounds have settled, and nothing checks that the workflow file was written from the template with the version substituted |
 | Orchestrator: Parity setup | `skills/implement/orchestration.md` | still a sentence | The four fields are derived by hand and nothing reads the result. The pull request's parity arm wakes on `seal/parity.md` existing, so a setup that never happened is silence rather than a refusal, and a guessed original produces a file that parses |
-| Orchestrator: how the work is routed | `skills/implement/orchestration.md` | check: `hooks/routing-edit-gate.py` | The first `Write`, `Edit` or `NotebookEdit` is refused until a declaration naming the branch stands under the `seal/` root or the session ran `seal no-work-item`, and `templates/claude-md-block.md` carries the question's shape into every session on the machine. What neither reaches is the shape of the asking: a declaration built from four separate questions parses exactly like one built from the asking this section mandates |
+| Orchestrator: how the work is routed | `skills/implement/orchestration.md` | check: `hooks/routing-edit-gate.py` | The first `Write`, `Edit` or `NotebookEdit` is refused until a declaration naming the branch stands under the `seal/` root or the session ran `seal no-work-item` on that branch, and `templates/claude-md-block.md` carries the question's shape into every session on the machine. What neither reaches is the shape of the asking: a declaration built from four separate questions parses exactly like one built from the asking this section mandates |
 | Question 1 | `skills/implement/orchestration.md` | part of its parent's act | The three options of the first `AskUserQuestion` call its parent describes, put alone. It names no act of its own |
 | Question 2 | `skills/implement/orchestration.md` | part of its parent's act | The four boxes of the second call, put only after a `per axis` answer, and the ceiling on how many there may be. It names no act of its own |
 | What the answer writes | `skills/implement/orchestration.md` | check: `skills/code-review/scripts/chain_check.py` | It refuses a `Review` or `Destination` value outside the vocabulary at the pull request, and `hooks/routing.py` parses the same rows at every edit. The three optional rows are read by nothing that refuses: `hooks/implementer-notice.py` says one line after a commit where a declared agent left no mark, and blocks nothing |

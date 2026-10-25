@@ -197,10 +197,11 @@ the tell. Ask which of two named paths instead, and say what each one does.
 `hooks/routing-edit-gate.py` refuses a `Write`, `Edit` or `NotebookEdit` of
 a file in an opted-in repository while no `routing.md` names the branch
 checked out where the file is and the session has not run
-`seal no-work-item`. A file under the `seal/` root or one git ignores is not
-judged, so the declaration can always be written first. `seal no-work-item`
-records, for this session in this clone, that its change belongs to no work
-item.
+`seal no-work-item` on that branch. A file under the `seal/` root or one git
+ignores is not judged, so the declaration can always be written first.
+`seal no-work-item` records, for this session on the branch checked out
+where it runs, that its change belongs to no work item; on a detached HEAD
+it records nothing.
 
 **Once the batch is answered, the session runs to the pull request.** What
 surfaces after it is written down rather than raised: a decision only a person
