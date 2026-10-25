@@ -149,6 +149,20 @@ def bash(repo, session, command="git commit -m x", **extra):
     return body
 
 
+def edit(repo, session, name="f.txt", **extra):
+    """An `Edit` of NAME in REPO, which the routing check at the edit tools
+    refuses on a branch no declaration names."""
+    body = {
+        "hook_event_name": "PreToolUse",
+        "tool_name": "Edit",
+        "session_id": session,
+        "tool_input": {"file_path": str(repo / name)},
+        "cwd": str(repo),
+    }
+    body.update(extra)
+    return body
+
+
 def stop(hooks, repo, session, **extra):
     body = {"hook_event_name": "Stop", "session_id": session, "cwd": str(repo)}
     body.update(extra)
@@ -341,14 +355,14 @@ class Test_run_gate:
     ):
         d = dispatch_module()
         monkeypatch.setattr(
-            d, "GROUPS", {"g": ("nonexistent-gate.py", "commit-review-gate.py")}
+            d, "GROUPS", {"g": ("nonexistent-gate.py", "routing-edit-gate.py")}
         )
         (repo / "seal").mkdir()
         out = io.StringIO()
         argv, stdin = sys.argv, sys.stdin
         try:
             sys.argv = ["dispatch.py", "g"]
-            sys.stdin = io.StringIO(json.dumps(payload("git commit -m x", repo)))
+            sys.stdin = io.StringIO(json.dumps(edit(repo, "s1")))
             import contextlib
 
             with contextlib.redirect_stdout(out):
@@ -361,8 +375,8 @@ class Test_run_gate:
         self, repo, tmp_path, monkeypatch
     ):
         """S7. A module body calling `sys.exit(0)` used to escape `run_gate`,
-        whose catch was `Exception` alone, and end the whole group: the commit
-        gate after it never decided. Seen red against the phase-1 tree, where
+        whose catch was `Exception` alone, and end the whole group: the gate
+        after it never decided. Seen red against the phase-1 tree, where
         `main()` raised `SystemExit` and printed nothing. The shape of the
         crashing-gate case above, run against a copy so the planted gate never
         enters the live `hooks/`."""
@@ -370,11 +384,11 @@ class Test_run_gate:
         hooks = hooks_copy(tmp_path, {"exits-at-load.py": "import sys\nsys.exit(0)\n"})
         d = load(hooks / "dispatch.py", "dispatch_for_s7")
         monkeypatch.setattr(
-            d, "GROUPS", {"g": ("exits-at-load.py", "commit-review-gate.py")}
+            d, "GROUPS", {"g": ("exits-at-load.py", "routing-edit-gate.py")}
         )
         out = io.StringIO()
         monkeypatch.setattr(sys, "argv", ["dispatch.py", "g"])
-        monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps(bash(repo, "s-x"))))
+        monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps(edit(repo, "s-x"))))
         with contextlib.redirect_stdout(out):
             d.main()
         assert decision_of(out.getvalue()) == "deny", out.getvalue()
@@ -443,6 +457,8 @@ class Test_classify:
             hooks = hooks_copy(
                 tmp_path / f"h{n}",
                 {
+                    # The neighbour's deny, which the planted shape must not take.
+                    "worktree-guard.py": printing(decision("deny", "r")),
                     "mode-gate.py": printing(shape),
                     "version-check.py": printing('{"systemMessage": "m"}'),
                     "root-migrate.py": printing(shape),
@@ -516,7 +532,6 @@ class Test_opted_in:
         lines = said(stop(hooks, repo, "s-x"))
         assert gates_said(lines) == [
             "hook-install.py",
-            "commit-review-gate.py",
             "worktree-guard.py",
             "mode-gate.py",
             "sealer-stamp.py",
@@ -535,7 +550,7 @@ class Test_opted_in:
     ):
         """S8. A globally installed plugin does not write into, or speak about,
         a repository that does not run the workflow."""
-        hooks = hooks_copy(tmp_path, {"commit-review-gate.py": BROKEN})
+        hooks = hooks_copy(tmp_path, {"mode-gate.py": BROKEN})
         dispatch(hooks, "pre-bash", bash(repo, "s-x"))
         assert not (repo / ".git" / RECORDS).exists()
         assert stop(hooks, repo, "s-x") == ""
@@ -616,8 +631,8 @@ class Test_record:
         denies the first call of a session and not the next, so two calls under
         one id differ on that gate's state and say nothing about this one."""
         opted_in(repo)
-        broken = hooks_copy(tmp_path / "a", {"commit-review-gate.py": BROKEN})
-        absent = hooks_copy(tmp_path / "b", {"commit-review-gate.py": None})
+        broken = hooks_copy(tmp_path / "a", {"mode-gate.py": BROKEN})
+        absent = hooks_copy(tmp_path / "b", {"mode-gate.py": None})
 
         nameless = bash(repo, "")
         del nameless["session_id"]
@@ -639,15 +654,15 @@ class Test_record:
         escape — `hooks/worktree-guard.py#already_asked` measured `../../escaped`
         putting a file at the repository root."""
         opted_in(repo)
-        hooks = hooks_copy(tmp_path, {"commit-review-gate.py": BROKEN})
+        hooks = hooks_copy(tmp_path, {"mode-gate.py": BROKEN})
         dispatch(hooks, "pre-bash", bash(repo, "../../escaped"))
         assert not (repo / "escaped").exists()
         assert not (repo / ".git" / "escaped").exists()
-        assert records(repo, "escaped") == ["commit-review-gate.py.pending"]
+        assert records(repo, "escaped") == ["mode-gate.py.pending"]
         # `..` has no separator to strip, and would name the records directory's
         # parent: the common dir itself.
         dispatch(hooks, "pre-bash", bash(repo, ".."))
-        assert not (repo / ".git" / "commit-review-gate.py.pending").exists()
+        assert not (repo / ".git" / "mode-gate.py.pending").exists()
 
 
 class Test_describe:
@@ -681,8 +696,8 @@ class Test_describe:
         among the failures and not among the groups whose other gates decided.
 
         Changed by #689: the guard and the consent writer load `cmdline_base.py`,
-        so that module is broken beside `cmdline.py`, which the commit gate
-        loads."""
+        so that module is broken beside `cmdline.py`, which
+        `implementer-notice.py` loads."""
         opted_in(repo)
         hooks = hooks_copy(tmp_path, {"cmdline.py": BROKEN, "cmdline_base.py": BROKEN})
         dispatch(hooks, "pre-bash", bash(repo, "s-x"))
@@ -707,8 +722,8 @@ class Test_describe:
         assert consent.endswith(
             "; calls went ahead without it, and the other gates in post-bash still decided."
         ), consent
-        assert by_gate["commit-review-gate.py"].startswith(
-            "commit-review-gate.py failed to load in pre-bash ("
+        assert by_gate["implementer-notice.py"].startswith(
+            "implementer-notice.py failed to load in post-bash ("
         ), by_gate
 
         # A failure while running depends on the payload, so the same two-group
@@ -778,24 +793,24 @@ class Test_draw:
         """S1, S3, S4, S12, S14. Seen red against the `dispatch.py` that only
         swallowed, where `stop` printed nothing at all."""
         opted_in(repo)
-        hooks = hooks_copy(tmp_path, {"commit-review-gate.py": BROKEN})
+        hooks = hooks_copy(tmp_path, {"mode-gate.py": BROKEN})
 
         dispatch(hooks, "pre-bash", bash(repo, "s-x"))
-        assert records(repo, "s-x") == ["commit-review-gate.py.pending"]
+        assert records(repo, "s-x") == ["mode-gate.py.pending"]
         lines = said(stop(hooks, repo, "s-x"))
         assert lines[0] == LABEL_ONE, lines
         assert lines[1].startswith(
-            "commit-review-gate.py failed to load in pre-bash (SyntaxError: "
+            "mode-gate.py failed to load in pre-bash (SyntaxError: "
         ), lines
         assert lines[1].endswith(
             "); calls went ahead without it, and the other gates in pre-bash still decided."
         ), lines
         assert lines[2:] == [CLOSING], lines
-        assert records(repo, "s-x") == ["commit-review-gate.py.reported"]
+        assert records(repo, "s-x") == ["mode-gate.py.reported"]
 
         # S3: the same session, the same broken gate: nothing new, nothing said.
         dispatch(hooks, "pre-bash", bash(repo, "s-x"))
-        assert records(repo, "s-x") == ["commit-review-gate.py.reported"]
+        assert records(repo, "s-x") == ["mode-gate.py.reported"]
         assert stop(hooks, repo, "s-x") == ""
 
         # S4: another session is told for itself.
@@ -807,14 +822,13 @@ class Test_draw:
         [
             (
                 {"cmdline.py": BROKEN},
-                ["answer-write.py", "commit-review-gate.py", "implementer-notice.py"],
+                ["answer-write.py", "implementer-notice.py"],
             ),
             ({"cmdline_base.py": BROKEN}, ["worktree-guard.py", "worktree_consent.py"]),
             (
                 {"cmdline.py": BROKEN, "cmdline_base.py": BROKEN},
                 [
                     "answer-write.py",
-                    "commit-review-gate.py",
                     "worktree-guard.py",
                     "implementer-notice.py",
                     "worktree_consent.py",
@@ -827,13 +841,12 @@ class Test_draw:
         self, repo, tmp_path, broken, named
     ):
         """S6. A broken shared reader names every gate that imports it, once, and
-        no gate that does not. `cmdline.py` is imported by the commit gate and
+        no gate that does not. `cmdline.py` is imported by
         `implementer-notice.py`, and since #773 by `answer-write.py` through
         `tokens.given`, whose read leaves the heredoc bodies out; since #689
         `cmdline_base.py`, the reader frozen at `86256492`, is imported by the
-        worktree guard and `worktree_consent.py`. The commit gate's own import
-        of `worktree_consent` is guarded, so a broken `cmdline_base.py` does not
-        name it.
+        worktree guard and `worktree_consent.py`. The worktree guard's import
+        of `cmdline.py` is guarded, so a broken `cmdline.py` does not name it.
 
         Changed by #689 twice. Round 1's fix pass broke both readers at once to
         keep four gates named, which lost the per-module "no gate that does not"
@@ -871,7 +884,7 @@ class Test_draw:
         directory.mkdir(parents=True)
         carried = (
             ("worktree-guard.py", [10**18, 0]),
-            ("commit-review-gate.py", [10**18, 1]),
+            ("answer-write.py", [10**18, 1]),
             ("mode-gate.py", [10**18 + 5, 0]),
         )
         for gate, at in carried:
@@ -891,7 +904,7 @@ class Test_draw:
         lines = said(stop(hooks_copy(tmp_path, {}), repo, "s-x"))
         assert gates_said(lines) == [
             "worktree-guard.py",
-            "commit-review-gate.py",
+            "answer-write.py",
             "mode-gate.py",
             "version-check.py",
             "session-lease.py",
@@ -1028,12 +1041,18 @@ class Test_report:
         self, repo, tmp_path
     ):
         """S2. The report leaves the failing call's own stdout alone: a broken
-        commit gate and an absent one give the same bytes."""
+        gate and an absent one give the same bytes, the routing check's deny
+        beside them included."""
         opted_in(repo)
-        broken = hooks_copy(tmp_path / "a", {"commit-review-gate.py": BROKEN})
-        absent = hooks_copy(tmp_path / "b", {"commit-review-gate.py": None})
+        broken = hooks_copy(tmp_path / "a", {"mode-gate.py": BROKEN})
+        absent = hooks_copy(tmp_path / "b", {"mode-gate.py": None})
         assert dispatch(broken, "pre-bash", bash(repo, "s-a")) == dispatch(
             absent, "pre-bash", bash(repo, "s-b")
+        )
+        broken = hooks_copy(tmp_path / "c", {"routing-edit-gate.py": BROKEN})
+        absent = hooks_copy(tmp_path / "d", {"routing-edit-gate.py": None})
+        assert dispatch(broken, "pre-edit", edit(repo, "s-c")) == dispatch(
+            absent, "pre-edit", edit(repo, "s-d")
         )
 
     def test_refuses_plain_text_at_stop_and_the_records_wait(
@@ -1055,8 +1074,8 @@ class Test_report:
         empty `cwd` must not fall back to the directory the process happens to
         stand in, which is a repository here."""
         opted_in(repo)
-        broken = hooks_copy(tmp_path / "a", {"commit-review-gate.py": BROKEN})
-        absent = hooks_copy(tmp_path / "b", {"commit-review-gate.py": None})
+        broken = hooks_copy(tmp_path / "a", {"mode-gate.py": BROKEN})
+        absent = hooks_copy(tmp_path / "b", {"mode-gate.py": None})
         for payload in ("not json", "[1, 2]"):
             assert dispatch(broken, "pre-bash", payload) == dispatch(
                 absent, "pre-bash", payload
@@ -1243,9 +1262,9 @@ class Test_module:
         # Local mode, so the worktree's branch, which has no `seal/`, is opted
         # in from both trees.
         (repo / ".git" / "seal").mkdir()
-        hooks = hooks_copy(tmp_path, {"commit-review-gate.py": BROKEN})
+        hooks = hooks_copy(tmp_path, {"mode-gate.py": BROKEN})
         dispatch(hooks, "pre-bash", bash(tree, "s-x"))
-        assert records(repo, "s-x") == ["commit-review-gate.py.pending"]
+        assert records(repo, "s-x") == ["mode-gate.py.pending"]
         assert said(stop(hooks, repo, "s-x"))[0] == LABEL_ONE
 
 

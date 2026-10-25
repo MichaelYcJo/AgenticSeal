@@ -36,7 +36,7 @@ what now refuses it.
 import os
 
 import pytest
-from conftest import flat, load_hook_module, read
+from conftest import flat
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 CONTRACT = ("skills", "agent-contract", "SKILL.md")
@@ -208,48 +208,6 @@ def test_the_implementer_keeps_the_half_that_makes_the_rule_its_own():
         "the smith stopped being told which of its acts rule 9 rules out, and it "
         "is the agent that edits most"
     )
-
-
-def test_the_contract_file_does_not_itself_trip_the_commit_gate():
-    """A patch to the file carrying the waiver example must not become the
-    thing it warns about.
-
-    Re-pointed in phase 3 of #107. `agents/warden.md` used to carry the
-    `[no-review]` example in its probe table and was asserted here; contract
-    rule 8 carries it now. The hazard did NOT come with it unchanged, and
-    saying it had would have been a case that cannot fail — measured while
-    re-pointing: the warden's apostrophe mutation (`the fragment's own
-    quoting`, which flipped its quote state and pushed its table row into
-    command position) leaves the contract clean at 21 apostrophes, whether
-    the paragraph goes above rule 1 or above rule 8.
-
-    What differs is the example itself. The warden's table row spelled the
-    waiver AND the command it waives on one line, so a quote flip had a
-    `git commit` to promote. Rule 8 writes the token without a command after it,
-    so today there is nothing to promote. That is the state this case holds:
-    the realistic edit is a future one completing the example, and it trips
-    immediately. `agents/smith.md` is deliberately not asserted — it has
-    tripped at its own waiver example since before this work, and pinning
-    that would be pinning a defect as a requirement.
-    """
-    gate = load_hook_module("commit-review-gate.py", "crg_edit_tool")
-    text = read(*CONTRACT)
-    assert ": '[no-review]';" in text, (
-        "the example this case exists to guard is gone; the case would pass "
-        "on a file that no longer carries the hazard"
-    )
-    assert not gate._hides_a_commit(text), (
-        "the agent contract now reads as carrying a commit. An odd number of "
-        "apostrophes in added prose flips the reader's quote state, which "
-        "puts the `[no-review]` example in rule 8 into command position — a "
-        "session patching this file would meet the gate"
-    )
-
-
-def test_the_reviewer_file_still_does_not_trip_the_gate():
-    """The warden lost the waiver example to contract rule 8, and must stay clean."""
-    gate = load_hook_module("commit-review-gate.py", "crg_edit_tool")
-    assert not gate._hides_a_commit(read("agents", "warden.md"))
 
 
 def test_the_rule_names_the_one_heredoc_shape_it_does_not_read():

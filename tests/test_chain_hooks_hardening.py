@@ -1,9 +1,9 @@
 """Hardening cases: prose-mention false positives, cycle edges, lease isolation.
 
-The commit gate's cases, the parity arm's among them, are in
-`tests/test_commit_review_gate.py`'s `Test_main` (#942's phase 6), the parity
-arm's case of `hooks/commitgate.py#pre_commit` is in `tests/test_commitgate.py`,
-and the backstop's path reader's is in `tests/test_gate.py`.
+The parity arm's case of `hooks/commitgate.py#pre_commit` is in
+`tests/test_commitgate.py`, and the backstop's path reader's is in
+`tests/test_gate.py`. The commit gate's text reading and its cases left with
+#1027's phase 5.
 """
 
 import json
@@ -184,9 +184,8 @@ def test_the_policy_says_one_reader_reads_a_token_and_a_failed_diff_asks():
 
 
 def test_the_review_arms_missing_path_line_is_written_where_it_is_met():
-    """The case above and `tests/test_commit_review_gate.py`'s
-    `test_the_review_arm_asks_on_a_document_only_commit` pin the code half;
-    this pins the prose half.
+    """The prose half of the review arm's missing path line, whose code half
+    left with the commit gate's text reading (#1027).
 
     A reader who finds `touches_code` beside the review arm can take its
     absence for an oversight, as #518 did. The review arm's decision table and

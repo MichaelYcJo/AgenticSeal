@@ -19,7 +19,7 @@ what refuses a copy.
 
 import os
 
-from conftest import load_hook_module, read
+from conftest import read
 from test_the_agent_contract_holds_the_universal_rules import HEADING
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
@@ -76,10 +76,3 @@ def test_the_orchestrator_commits_its_routing_files_the_same_way():
     text = " ".join(read(*ORCHESTRATION).split())
     assert "contract rule 16" in text
     assert "each work item's `routing.md` in a command of its own" in text
-
-
-def test_the_contract_still_does_not_trip_the_commit_gate():
-    """A session patching the contract meets the gate if its prose reads as a
-    commit; rule 16 is the one most likely to, being about commits."""
-    gate = load_hook_module("commit-review-gate.py", "crg_seventeen")
-    assert not gate._hides_a_commit(read(*CONTRACT))

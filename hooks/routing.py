@@ -334,7 +334,7 @@ def declarations(root):
             # it, and swallowing that as "no declaration" is how a gate goes
             # quiet for a reason nobody wrote down. A
             # declaration that is not valid UTF-8 used to raise out of
-            # `declarations()` -> `commit-review-gate.py` -> `dispatch.py`'s
+            # `declarations()` -> the gate that read it -> `dispatch.py`'s
             # `except Exception: return ""`, which is no output, which the
             # harness reads as approval. The module docstring says everything
             # here fails toward "no declaration"; a file nobody can decode is

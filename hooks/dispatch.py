@@ -87,7 +87,6 @@ GROUPS = {
     "pre-bash": (
         "hook-install.py",
         "answer-write.py",
-        "commit-review-gate.py",
         "worktree-guard.py",
         "mode-gate.py",
     ),

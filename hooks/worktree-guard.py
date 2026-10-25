@@ -176,8 +176,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import cmdline_base as cmdline
 import console
 
-# The commit gate's wider reader, under a name of its own so the binding above
-# keeps meaning the frozen one. Since #826 it reads what the frozen reading
+# The wider reader, `hooks/cmdline.py`, under a name of its own so the binding
+# above keeps meaning the frozen one. Since #826 it reads what the frozen reading
 # does not: the string a shell is handed, an `eval`'s argument, a substitution
 # body, and a git behind a redirection or a zsh precommand word (`shape_of`,
 # `_command_findings`). It never takes the first slot (#689), and it names a
@@ -185,11 +185,11 @@ import console
 # directory the frozen walk placed that segment in (`_finding_tree`). A
 # string handed to a shell is not read for one. The import is guarded because
 # this guard's own rows do not need it:
-# a broken `hooks/cmdline.py` must not take the ACTIVE deny down with the
-# commit gate, so where it fails to load the bare word `git` in such a place
-# is the finding (`_BARE_GIT`) -- a broken reader costs a stop where the tree
-# matters, never a silence -- and the commit gate's own failure still names
-# the module.
+# a broken `hooks/cmdline.py` must not take the ACTIVE deny down with it, so
+# where it fails to load the bare word `git` in such a place is the finding
+# (`_BARE_GIT`) -- a broken reader costs a stop where the tree matters, never
+# a silence -- and `implementer-notice.py`'s own failure still names the
+# module.
 # `SystemExit` beside `Exception`, as `hooks/dispatch.py` catches a module
 # body that exits (round 1 of 1790993140, white 5).
 try:
@@ -197,8 +197,8 @@ try:
 except (Exception, SystemExit):
     wide = None
 
-# The one consent-token reader, shared with the commit gate (#773, #780,
-# #868): `has_token` is `tokens.given`. Guarded like the import above,
+# The one consent-token reader (#773, #780, #868): `has_token` is
+# `tokens.given`. Guarded like the import above,
 # because this guard's rows do not need it: where it cannot load, no token is
 # read, which costs a prompt and never a silence.
 try:
@@ -301,7 +301,7 @@ def walk_command(command: str, cwd: str, windows=None):
     decides what to do with that; see `main`.
 
     The walk is `hooks/cmdline_base.py`'s, the reader frozen at `86256492`,
-    and never the commit gate's wider one (#689). `main` judges the first
+    and never the wider one, `hooks/cmdline.py` (#689). `main` judges the first
     switch and the first creation, each in the first directory of its
     segment, so both which segments are git and the order of their
     directories pick the tree, and every way of ordering the wider reading
@@ -309,7 +309,7 @@ def walk_command(command: str, cwd: str, windows=None):
     own segment's tree (#826). The cost is that a `cd` behind a redirection (`2>/dev/null
     cd W`) does not move the tree judged here, and a git behind one
     (`2>/dev/null git switch x`) is not read as git, both as at `86256492`,
-    while the commit gate reads both. Since #826 the second is an
+    while the wider reader reads both. Since #826 the second is an
     unrecognised shape (`shape_of`), stopped where the tree matters; the
     first stays a known limit (#686).
     """
@@ -388,8 +388,7 @@ def has_token(command: str, token: str) -> bool:
     **No substring fallback for a command that does not parse cleanly**: a
     quote that never closes ends the read, and nothing inside it is a word.
     Measured: `git worktree add ../wt f && echo "we agreed on [worktree-ok]
-    yesterday` carries the token as a substring and gives no consent. Since
-    #868 the commit gate's `has_marker` reads the same way.
+    yesterday` carries the token as a substring and gives no consent.
 
     **Comments are NOT dropped here**, and that is the one way this read
     differs from the judgment read `split_command` does. A retry token is
@@ -408,8 +407,8 @@ def has_token(command: str, token: str) -> bool:
     there lowered the single-stream deny to an ask.
 
     Every one of those rules is `hooks/tokens.py#given`'s, the one reader of
-    a consent token (#868): this guard, the commit gate and the old spelling
-    handed to the git hooks split a command one way. Where `hooks/cmdline.py`
+    a consent token (#868): this guard and the old spelling handed to the git
+    hooks split a command one way. Where `hooks/cmdline.py`
     cannot load, or the body read raises for any other reason, the frozen
     reader's `drop_heredoc_bodies` finds the bodies instead, handed to
     `given` as its fallback: falling back to the command as written would
@@ -2153,8 +2152,8 @@ LEAVES_THE_TREE = frozenset(
 _BARE_GIT = re.compile(r"(?<![\w.\-])git(?![\w.\-/])")
 
 # How deep a substitution body inside a body is read before the reading
-# counts as one it could not finish, which stops: the bound the commit gate
-# puts on the same walk (`NESTING_READ` in `hooks/commit-review-gate.py`).
+# counts as one it could not finish, which stops: the bound the commit gate's
+# text reading put on the same walk until #1027 removed it.
 BODY_DEPTH = 32
 
 # The openers of a substitution, for the text test alone.
@@ -2353,9 +2352,9 @@ def _eval_text(tokens) -> str:
     """The text `eval` would run, or "" where TOKENS is no `eval`.
 
     `hooks/cmdline.py#command_strings` returns no string for `eval "git
-    switch x"` (W3 of work item 1791270162), so the word is found the way the
-    commit gate's `_eval_argument` finds it: `command_word`, past a
-    redirection on the second reading, and past `builtin`."""
+    switch x"` (W3 of work item 1791270162), so the word is found by
+    `command_word`, past a redirection on the second reading, and past
+    `builtin`."""
     for redirections in (False, True):
         word, _unplaced = wide.command_word(list(tokens), "eval", redirections)
         while word and os.path.basename(word[0]) == "builtin":
@@ -2610,8 +2609,8 @@ def tree_matters(top, session_id, eff_cwd, seen=None):
 def automation_pressed(top, session, transcript_path):
     """True when this session's person pressed `automation`, read from TOP.
 
-    The reader and its wrapping are the commit gate's
-    (`hooks/commit-review-gate.py#automation_pressed`): `top` is the root of
+    The reader and its wrapping were the commit gate's text reading's until
+    #1027 removed it: `top` is the root of
     the session's OWN directory, because the question is whether anybody is
     at the keyboard, and every way of not reading the press is False, which
     costs an `ask` where the opposite would cost a deny nobody can answer.
@@ -3081,8 +3080,7 @@ def main():
         unrecognised.append((first, finding, tokens, walked[first][1]))
     # A substitution body and an untokenizable command belong to no one
     # segment, so they are judged in the session's own tree: the fallback
-    # #686 gives a directory the walk cannot place, and the stand-in the
-    # commit gate judges a body's commit against (`_unresolved_base`).
+    # #686 gives a directory the walk cannot place.
     unrecognised += [
         (len(walked), finding, None, ()) for finding in _command_findings(judged, clean)
     ]

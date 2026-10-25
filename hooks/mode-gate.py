@@ -94,8 +94,8 @@ def already_asked(git_dir, session, choice_dir=CHOICE_DIR):
     Records it when it was not. A marker that cannot be written counts as
     already asked: one missed question beats a deny the session cannot get
     past, and in a run with nobody at the keyboard that deny is an outage
-    rather than a cost. The same rule as `hooks/commit-review-gate.py`, and
-    not the same marker.
+    rather than a cost. The same rule the worktree guard keeps, and not the
+    same marker.
 
     `git_dir` is absolute, which `git_dir_of` guarantees by resolving git's
     answer against the root. The sibling this was copied from takes a `cwd`

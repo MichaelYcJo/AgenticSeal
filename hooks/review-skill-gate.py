@@ -77,8 +77,8 @@ review as a subagent."""
 def git(args, cwd):
     """Run a git command in `cwd`; "" on any failure.
 
-    The same helper the sibling gate carries (`commit-review-gate.py`), so
-    the two hooks reach a git dir by one route instead of two."""
+    The helper the commit gate's text reading carried until #1027 removed
+    it; kept here because this gate still reaches a git dir by it."""
     try:
         out = subprocess.run(
             ["git", *args],
@@ -124,8 +124,8 @@ def already_asked(cwd, session):
     # directories in the working tree. It comes from the harness rather than
     # from prose, and an existing marker is never overwritten because of the
     # `os.path.exists` return below -- so this is a stray write, not a
-    # bypass. `hooks/commit-review-gate.py:already_asked` guards its own id
-    # and is the shape to copy.
+    # bypass. `hooks/worktree-guard.py#already_asked` guards its own id and
+    # is the shape to copy.
     path = os.path.join(gd, MARKER_DIR, str(session))
     if os.path.exists(path):
         return True
