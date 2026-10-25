@@ -408,6 +408,22 @@ class Test_replay:
         assert docs["docs/a.md"] == "# A policy\n\n## T\n\nT's text.\n\n## U\n\nLast.\n"
 
     @pytest.mark.parametrize(
+        "doc, after",
+        [
+            ("# Gate\n\nIntro.\n\n## Gate\n\nBody.\n\n### Limits\n\nMore.\n", None),
+            ("# P\n\n## Gate\n\n### Gate\n\nx.\n\n## T\n\ny.\n", "# P\n\n## T\n\ny.\n"),
+        ],
+        ids=["the title and its first section", "a section and its sub-section"],
+    )
+    def test_a_remove_naming_nested_headings_takes_the_outer_one(self, doc, after):
+        """S18 in memory: a `remove` with no `from` whose section names two
+        headings, one holding the other, takes the outer one; a document it
+        leaves empty is None in `documents`, which is a deletion."""
+        docs, applied, refused = replay(doc, ("a", op("remove", "Gate")))
+        assert (applied, refused) == (["a"], [])
+        assert docs == {"docs/a.md": after}
+
+    @pytest.mark.parametrize(
         "change, reason",
         [
             (op("change", "S", "not there.", "y."), "not in"),
@@ -440,6 +456,9 @@ class Test_replay:
     def test_a_heading_or_a_text_found_twice_is_refused(self):
         doc = DOC + "\n## S\n\nold sentence.\n"
         _, _, refused = replay(doc, ("a", op("change", "S", "old sentence.", "y.")))
+        assert "2 times" in refused[0][2], refused
+        # Two headings side by side, neither holding the other, name no outer.
+        _, _, refused = replay(doc, ("a", op("remove", "S")))
         assert "2 times" in refused[0][2], refused
         doc = DOC.replace("After.", "After. old sentence.")
         _, _, refused = replay(doc, ("a", op("change", "S", "old sentence.", "y.")))

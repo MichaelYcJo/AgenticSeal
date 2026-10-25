@@ -607,6 +607,39 @@ class Test_main:
         assert reader.settled(str(repo), "HEAD", sorted(both)) == both
         assert reader.settled(str(repo), "HEAD", ["seal/specs/1700000009-a"]) == set()
 
+    def test_apply_deletes_a_document_its_removal_leaves_empty(self, repo, capfd):
+        """S18: the document's title and its first section read alike, so the
+        removal names both and takes the outer one. The file goes, the index
+        row naming it goes in the same spec, `fold-check` names nothing after
+        the apply, and the readers count the removal settled."""
+        (repo / "docs" / "gate.md").write_text(
+            "# Gate\n\nIntro.\n\n## Gate\n\nBody.\n", encoding="utf-8"
+        )
+        row = "| `docs/gate.md` | the gate |"
+        (repo / "docs" / "README.md").write_text(
+            "# docs\n\n| File | The question it answers |\n|---|---|\n"
+            f"| `docs/a.md` | a policy |\n{row}\n",
+            encoding="utf-8",
+        )
+        commit(repo, "gate")
+        item(
+            repo,
+            "1700000001-a",
+            op("remove", "Gate", file="docs/gate.md")
+            + "\n"
+            + op("remove", "docs", row, file="docs/README.md"),
+        )
+        commit(repo, "a")
+        code, text = apply(repo, capfd)
+        assert code == 0, text
+        assert not (repo / "docs" / "gate.md").exists(), text
+        assert "deleted docs/gate.md: a removal left it empty\n" in text, text
+        assert settle.AFTER_HEADING not in text, text
+        assert (repo / "docs" / "a.md").read_text(encoding="utf-8") == DOC
+        reader = settle.load(settle.READER, "specseal_reader_for_a_deletion")
+        directory = "seal/specs/1700000001-a"
+        assert reader.settled(str(repo), "HEAD", [directory]) == {directory}
+
     @pytest.mark.parametrize(
         "change, half",
         [

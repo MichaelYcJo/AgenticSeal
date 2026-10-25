@@ -558,8 +558,9 @@ def write_after(root, policy, out):
 
 
 def apply(found, root, out):
-    """Write what the replay applies into the policy root, then remove each applied
-    directory and each spec-less one the rule arm retires.
+    """Write what the replay applies into the policy root, deleting each
+    document a removal left empty, then remove each applied directory and
+    each spec-less one the rule arm retires.
 
     **The candidates are read from the tree again, not taken from `survey`**:
     a classification made for a printed list is not a guard on a destructive
@@ -588,6 +589,11 @@ def apply(found, root, out):
         out.write(f"wrote {policy}/README.md, the index, with the root\n")
     for rel, text in plan["documents"].items():
         path = under(root, rel)
+        if text is None:
+            if os.path.isfile(path):
+                os.remove(path)
+            out.write(f"deleted {rel}: a removal left it empty\n")
+            continue
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w", encoding="utf-8", newline="") as f:
             f.write(text)

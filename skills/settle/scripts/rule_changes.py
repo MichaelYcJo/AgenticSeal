@@ -215,7 +215,9 @@ def _cut(text, s, e):
 
 
 def apply_op(text, op):
-    """`(new text, None)`, or `(None, why)` where OP cannot be placed in TEXT."""
+    """`(new text, None)`; `(None, None)` where a `remove` leaves TEXT empty,
+    so the document is deleted; or `(None, why)` where OP cannot be placed
+    in TEXT."""
     if op.kind == "add" and op.section is None:
         if text is not None:
             return None, f"{op.file} exists, and an add with no section creates one"
@@ -227,16 +229,22 @@ def apply_op(text, op):
     at = [(n, lv) for n, lv, t in marks if t == op.section]
     if not at:
         return None, f"no heading `{op.section}` in {op.file}"
-    if len(at) > 1:
-        return None, f"heading `{op.section}` appears {len(at)} times in {op.file}"
     h, level = at[0]
     end = next((n for n, lv, _ in marks if n > h and lv <= level), len(lines))
+    # A whole-section removal whose heading text the section's own
+    # sub-headings repeat names the outer one: a title and the first section
+    # under it often read alike, and the outer range holds every other match.
+    nested = op.kind == "remove" and op.old is None and all(n < end for n, _ in at)
+    if len(at) > 1 and not nested:
+        return None, f"heading `{op.section}` appears {len(at)} times in {op.file}"
     nl = "\r\n" if "\r\n" in text else "\n"
 
     if op.kind == "remove" and op.old is None:
         out = "".join(lines[:h] + lines[end:])
+        if not out.strip():
+            return None, None
         if end == len(lines):
-            out = out.rstrip("\r\n") + nl if out.strip() else ""
+            out = out.rstrip("\r\n") + nl
         return out, None
 
     if op.kind == "add":
@@ -317,7 +325,8 @@ def replay(read, specs, held):
     record, a conflict). A spec applies all of its operations or none, and a
     spec after a refused one at a place overlapping one of its own
     (`overlapping`) waits, so a later spec never applies under an earlier
-    one. `documents` holds every changed text."""
+    one. `documents` holds every changed text, and None for a document a
+    removal left empty, which the writer deletes."""
     documents, applied, refused, blocked = {}, [], [], {}
     same = overlapping(read)
     for work_item, ops in specs:

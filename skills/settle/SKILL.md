@@ -52,16 +52,19 @@ line, indented two spaces:
 |---|---|---|
 | `add` | `file`, `to`; `section` optional | puts `to` at the end of the section's own text, before its first sub-heading. With no `section` it creates `file`, and is refused where `file` exists |
 | `change` | `file`, `section`, `from`, `to` | rewrites `from` where it stands |
-| `remove` | `file`, `section`; `from` optional | deletes `from`, or with no `from` the whole section, up to the next heading of its level or higher |
+| `remove` | `file`, `section`; `from` optional | deletes `from`, or with no `from` the whole section, up to the next heading of its level or higher. A document the removal leaves empty is deleted |
 | `nothing` | `why` | changes no rule, and stands alone in the section |
 
 - `file` is a top-level `.md` file of the policy root, `seal/config.md`'s
   `Policy root` row (`docs` when absent), joined with `/` and holding no `\`
   or `:`. A name that differs from another document's only in case is held,
   because a case-insensitive disk reads the two as one. `section` is a heading's
-  text at any level, and appears once in the file. `from` appears once in
-  the section, compared with runs of whitespace collapsed; every other
-  character, emoji included, is matched as itself.
+  text at any level, and appears once in the file, except in a `remove` with
+  no `from`: where its text names more than one heading and the first one's
+  section holds every other, that outer section is removed, which is how a
+  document whose title and first section read alike is removed whole.
+  `from` appears once in the section, compared with runs of whitespace
+  collapsed; every other character, emoji included, is matched as itself.
 - A value continues on the lines below it indented four spaces, and lands
   with that indent removed. A code span closes on the line that opens it: a
   line that begins inside a span an earlier line opened is refused at its
