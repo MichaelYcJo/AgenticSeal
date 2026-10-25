@@ -170,6 +170,13 @@ def detached_on_declared(top):
             f"refs/remotes/*/{name}",
         )
         for ref in out.split() if code == 0 else []:
+            # `for-each-ref` also matches a pattern with no glob as a prefix
+            # ending at a slash, so `refs/heads/feat` lists
+            # `refs/heads/feat/sub`; only the declared name itself counts.
+            # The remote pattern holds a glob, which git matches whole
+            # (round 2 of #1027, finding 2).
+            if ref.startswith("refs/heads/") and ref != f"refs/heads/{name}":
+                continue
             if git(top, "merge-base", "--is-ancestor", "HEAD", ref)[0] == 0:
                 return True
     return False
@@ -188,8 +195,9 @@ def ignored(top, path):
 
 def declaration_hint(top):
     """The declaration path a refusal tells a session to write, relative to
-    `top` and written with `/` on every platform, as a repository path shown
-    to a person is (CI run 40209166795 showed Windows' `\\`).
+    `top` and spelled the way the platform spells it, as
+    `hooks/implementer-notice.py` spells the same file: the root arrives
+    `normpath`ed (`hooks/optin.py`), so `os.path.join` keeps one dialect.
 
     Under the root this repository resolves to: in local mode that root is
     under the git directory. A linked worktree on another Windows drive has no
@@ -202,14 +210,12 @@ def declaration_hint(top):
         rel = os.path.relpath(home, top)
     except ValueError:
         rel = home
-    parts = (rel.replace(os.sep, "/"), optin.WORK_ITEMS, "<work-item-id>")
-    return "/".join((*parts, routing.FILENAME))
+    return os.path.join(rel, optin.WORK_ITEMS, "<work-item-id>", routing.FILENAME)
 
 
 def reason(path, top, branch, pressed):
     """The whole text of the refusal."""
-    rel = os.path.relpath(os.path.realpath(path), os.path.realpath(top))
-    shown = rel.replace(os.sep, "/")
+    shown = os.path.relpath(os.path.realpath(path), os.path.realpath(top))
     named = branch or NO_BRANCH
     state = (STATE if branch else DETACHED).format(file=shown, top=top, branch=named)
     ways = (PRESSED if pressed else ATTENDED).format(

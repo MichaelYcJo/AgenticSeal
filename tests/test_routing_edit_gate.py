@@ -75,6 +75,12 @@ def branch_of(repo):
     return git(repo, "rev-parse", "--abbrev-ref", "HEAD")
 
 
+# The declaration path the refusal names, spelled the platform's way, as
+# `hooks/implementer-notice.py` spells the same file
+# (`tests/test_implementer_notice.py`).
+HINT = os.path.join("seal", "specs", "<work-item-id>", "routing.md")
+
+
 # The two texts a person reads (contract rule 14), pinned whole.
 def attended(repo, branch):
     return (
@@ -85,7 +91,7 @@ def attended(repo, branch):
         "Do not choose for the user. Put the routing question to them with the "
         "AskUserQuestion tool, as `skills/implement/orchestration.md` "
         "*Orchestrator: how the work is routed* states. Then write the "
-        "declaration at `seal/specs/<work-item-id>/routing.md` from "
+        f"declaration at `{HINT}` from "
         f"`templates/sdd-routing.md`, naming `{branch}`, or, where they answer "
         "`no work item`, run `seal no-work-item` once in this clone. Then edit "
         "again.\n\n"
@@ -104,7 +110,7 @@ def pressed(repo, branch):
         "place.\n\n"
         "The ways on, none of which needs a person:\n"
         "  1. Where this edit belongs to the work item the run was routed for, "
-        "write its declaration at `seal/specs/<work-item-id>/routing.md` from "
+        f"write its declaration at `{HINT}` from "
         f"`templates/sdd-routing.md`, naming `{branch}`, and edit again.\n"
         "  2. Where it belongs to no work item, run `seal no-work-item` once "
         "in this clone, and edit again.\n\n"
@@ -125,25 +131,27 @@ class Test_main:
         # A `Write` may create the directories above its file.
         assert decision_of(run(repo / "src" / "new.py", tool="Write")) == "deny"
 
-    def test_the_declaration_path_is_written_with_slashes_on_windows(self, monkeypatch):
-        """CI run 40209166795, Windows: the refusal said
-        `seal\\specs\\<work-item-id>\\routing.md`. A repository path shown to
-        a person is written with `/` on every platform, so the hint is built
-        with Windows' path rules here and still reads with `/`, and so does an
-        absolute root on another drive."""
+    def test_the_declaration_path_is_spelled_the_platforms_way_on_windows(
+        self, monkeypatch
+    ):
+        """Under Windows' path rules the refusal names the declaration and
+        the edited file in Windows' spelling, one dialect with the root it
+        prints, as `hooks/implementer-notice.py` names the same file
+        (`hooks/optin.py` says why), and an absolute root on another drive
+        whole. CI run 40209166795 failed two cases here that had pinned `/`;
+        round 2 of #1027, finding 3, put the expectation on the tree's rule."""
         import ntpath
         import types
 
         monkeypatch.setattr(gate, "os", types.SimpleNamespace(path=ntpath, sep="\\"))
         monkeypatch.setattr(gate.optin, "home_at", lambda top: r"C:\r\seal")
-        assert gate.declaration_hint(r"C:\r") == "seal/specs/<work-item-id>/routing.md"
+        assert gate.declaration_hint(r"C:\r") == r"seal\specs\<work-item-id>\routing.md"
         assert (
             gate.declaration_hint(r"D:\w")
-            == "C:/r/seal/specs/<work-item-id>/routing.md"
+            == r"C:\r\seal\specs\<work-item-id>\routing.md"
         )
-        # The edited file, in the same refusal, the same way.
         said = gate.reason(r"C:\r\src\new.py", r"C:\r", "feat", False)
-        assert "`src/new.py` is in" in said, said
+        assert "`src\\new.py` is in `C:\\r`" in said, said
 
     def test_a_detached_head_names_no_branch_and_is_refused(self, repo):
         opt_in(repo)
@@ -198,6 +206,24 @@ class Test_main:
         git(repo, "switch", "-q", "-c", "side")
         (repo / "f.txt").write_text("side\n", encoding="utf-8")
         git(repo, "commit", "-qam", "side")
+        git(repo, "switch", "-q", "--detach")
+        assert decision_of(run(repo / "f.txt")) == "deny"
+
+    def test_refuses_a_detached_head_only_a_longer_branch_name_holds(self, repo):
+        """Round 2 of #1027, finding 2: `for-each-ref refs/heads/x` also
+        lists `refs/heads/x/sub`. A declaration naming `x`, with no branch
+        `x` left, and an undeclared `x/sub` holding HEAD: still refused."""
+        opt_in(repo)
+        git(repo, "switch", "-q", "-c", "x")
+        declare_routing(repo)
+        git(repo, "add", "seal")
+        git(repo, "commit", "-qm", "declare x")
+        git(repo, "switch", "-q", "-c", "keep")
+        git(repo, "branch", "-q", "-D", "x")
+        git(repo, "switch", "-q", "-c", "x/sub")
+        (repo / "f.txt").write_text("sub\n", encoding="utf-8")
+        git(repo, "commit", "-qam", "sub")
+        git(repo, "branch", "-q", "-D", "keep")
         git(repo, "switch", "-q", "--detach")
         assert decision_of(run(repo / "f.txt")) == "deny"
 
