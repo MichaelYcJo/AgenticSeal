@@ -476,6 +476,17 @@ class Test_parse:
         assert all(omitted.values()), omitted
 
 
+class Test_record_no_work_item:
+    def test_refuses_no_branch_and_writes_nothing(self, tmp_path):
+        """A detached HEAD outside a paused rebase names no branch, and no
+        branch is never recorded, so the record's directory is not even
+        made. `tests/test_seal.py` *Test_no_work_item* holds what a run with
+        a branch writes."""
+        assert routing.record_no_work_item(str(tmp_path), "s1", "") == ""
+        assert not os.path.exists(tmp_path / routing.NO_WORK_ITEM)
+        assert routing.no_work_item(str(tmp_path), "s1", "") is False
+
+
 class Test_module:
     def test_the_template_and_the_committed_declarations_still_parse(self):
         """R10's floor, S11. `templates/sdd-routing.md` carries its table and a
