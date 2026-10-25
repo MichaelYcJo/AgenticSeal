@@ -207,6 +207,24 @@ class Test_main:
         assert decision_of(run(wt)) == "deny"
         assert decision_of(run(repo)) == "silent"
 
+    def test_refuses_on_a_branch_with_no_commit_yet(self, tmp_path):
+        """A new repository's `main` has no commit, and its declaration names
+        `main` with `Automation` `yes`: the branch resolves as the edit gate
+        resolves it, so the question is refused (round 5 of #1027,
+        finding 1)."""
+        fresh = tmp_path / "fresh"
+        git(tmp_path, "init", "-q", "-b", "main", str(fresh))
+        item = declare(fresh)
+        path = item / routing.FILENAME
+        text = path.read_text(encoding="utf-8")
+        # `declare_routing` reads the branch with `rev-parse --abbrev-ref`,
+        # which prints `HEAD` before the first commit.
+        assert "| Branch | HEAD |" in text, text
+        path.write_text(
+            text.replace("| Branch | HEAD |", "| Branch | main |"), encoding="utf-8"
+        )
+        assert decision_of(run(fresh)) == "deny"
+
     def test_refuses_under_a_root_in_the_common_git_directory(self, repo):
         declare(repo, home=local_home(repo))
         assert not (repo / "seal").exists()

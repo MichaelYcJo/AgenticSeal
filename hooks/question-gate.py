@@ -5,8 +5,9 @@ The rule is `docs/the-review-record.md` *The run*. This file holds what the
 rule rests on.
 
 The declaration is read through `routing.declared`, so a linked worktree, a
-root under the common git directory and a detached HEAD resolve the way
-`hooks/routing.py` resolves them for every reader. Every way of not
+root under the common git directory, a branch with no commit yet, a paused
+rebase and a detached HEAD resolve through `routing.worktree_branch`, as the
+edit gate resolves them. Every way of not
 reading it (no `seal/`, no branch, a file that does not parse, two files for
 one branch) is the attended answer, and the gate prints nothing.
 

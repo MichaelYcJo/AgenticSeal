@@ -422,8 +422,11 @@ def for_branch(root, branch):
 
 
 def declared(cwd, root):
-    """The routing answer in force for `cwd`, or None when there is not one."""
-    return for_branch(root, current_branch(cwd))
+    """The routing answer in force for `cwd`, or None when there is not one.
+    The branch is resolved as the edit gate resolves it (`worktree_branch`),
+    so a branch with no commit yet and a paused rebase read the declaration
+    that names them."""
+    return for_branch(root, worktree_branch(cwd))
 
 
 # The record that a session's change belongs to no work item: a file per

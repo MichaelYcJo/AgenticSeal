@@ -64,8 +64,9 @@ def main():
     # The branch, not the HEAD sha: a work item commits many times and neither
     # the framer nor the implementer changes when it does. A sha would go stale
     # at the first commit and turn the notice into a line printed after every
-    # one.
-    implementer.write(cwd, routing.current_branch(cwd), mark)
+    # one. It is resolved as the edit gate resolves it, so a branch with no
+    # commit yet and a paused rebase get the mark their declaration reads.
+    implementer.write(cwd, routing.worktree_branch(cwd), mark)
 
 
 if __name__ == "__main__":
