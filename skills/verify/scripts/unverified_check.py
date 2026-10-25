@@ -235,12 +235,14 @@ def fence_spans(lines):
     """`[(first, last)]` for each fenced block in `lines`, delimiters
     included, with `last` None for a block that is never closed.
 
-    The walk for a reader with no comment or code-span state of its own:
-    `readable`, and through it `check_text` and `chain_check.py` (#1012).
-    A reader that has either — `liveness`, and `rule_changes.py#parse`
-    through it — walks with `fence_opener` and `fence_closes` directly,
-    because whether a line can open a fence at all depends on the state it
-    began in.
+    The walk where only the fence delimiter rule decides where a fence
+    opens: no comment state and no code-span state is kept (#1012). In this
+    module `closed_fence_lines` and `blank_fences` walk it, and `readable`
+    through `blank_fences`. Callers in other scripts are found with
+    `git grep`, and no list of them is kept here to go stale. A walk that
+    keeps a comment or a code-span state, `liveness`, asks `fence_opener`
+    and `fence_closes` directly instead, because there whether a line can
+    open a fence at all depends on the state it began in.
 
     **An unclosed block is reported, not decided.** `blank_fences` blanks it
     to the end, because a gate reading a record treats it as quoted. A reader of a
@@ -570,9 +572,9 @@ def live_lines(lines, comments=True):
     omission with a shape that could, and the gather's marker pattern is
     line-anchored, so a marker indented four spaces is not read as one.
 
-    **What this may not touch.** `blank_fences` and `readable` serve the
-    readers of a record — `check_text` and `chain_check.py` — which keep no
-    comment state (#1012). Neither is on this path. What this scan and
+    **What this may not touch.** `blank_fences` and `readable` keep no
+    comment state, because a record carries no comment, and they serve the
+    readers of a record (#1012). Neither is on this path. What this scan and
     `blank_fences` DO share is the fence delimiter, `fence_opener` and
     `fence_closes`, because two spellings of it is what #491 found: the
     three-space bound had landed here and not one function over. They share
