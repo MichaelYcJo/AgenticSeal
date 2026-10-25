@@ -50,7 +50,7 @@ Out:
 | S7 paused rebase | Given a rebase paused on a conflict of a declared branch, with HEAD detached, when the session edits the conflicted file, then the branch the rebase names is read and the edit goes ahead | `tests/test_routing_edit_gate.py` |
 | S8 press | Under the `automation` press the deny names no question tool; attended, it tells the model to put the routing question with `AskUserQuestion` | `tests/test_routing_edit_gate.py` |
 | S9 subagent | A subagent's `Edit` in an undeclared opted-in scratch repository meets the same deny | executed once by the orchestrator in a live session (`questions.md` Q3); no case can run the harness |
-| S10 trailer arm | Given a ready pull request with no declaration, when one of its commits carries `SpecSeal-Routing: <id>`, then `chain-check` exits 1 naming the commit and the id; one reading `no work item` is printed as a notice; a commit without the trailer is not named | `tests/test_chain_check.py` under marker `routing-trailer-at-the-pull-request` |
+| S10 trailer arm | Given a ready pull request with no declaration at a shared root, when one of its commits, committed by its author, carries `SpecSeal-Routing: <id>`, then `chain-check` exits 1 naming the commit and the id; one reading `no work item` is printed as a notice; a commit without the trailer is not named | `tests/test_chain_check.py` under marker `routing-trailer-at-the-pull-request` |
 | S11 a teammate's pull request | Given commits with the harness's `Co-Authored-By` trailer and no `SpecSeal-Routing`, then `chain-check` judges nothing about them | `tests/test_chain_check.py` |
 | S12 parity under the direct answer | Given `seal/parity.md` and a `straight to the PR` work item changing code, a ready pull request fails while `guarantee.md` holds no `original:` line naming the baseline, and passes with one | `tests/test_chain_check.py` under marker `parity-in-the-guarantee` |
 | S13 shared-mode stamp | Given shared mode, when the sealer's `Write` leaves `seal/specs/<id>/guarantee.md` reading `sealed` over a commit the declared branch holds, then the stamp is queued once, and the `Stop` hook draws it; a second write of the same verdict queues nothing | `tests/test_sealer_stamp_queue.py`, `tests/test_seal_stamp.py` |
@@ -134,8 +134,13 @@ Out:
     recorded that its change belongs to no work item.** The repository and
     the branch are the edited file's: its path is resolved to a worktree,
     never the payload's `cwd`, because a session can edit a tree its working
-    directory is not in. A detached HEAD names no branch, except during a
-    paused rebase, where the branch the rebase names stands for it. The tool
+    directory is not in. A detached HEAD names no branch, with two
+    exceptions. During a paused rebase the branch the rebase names stands for
+    it. And a detached HEAD whose commit a branch some declaration names
+    already holds, under `refs/heads/<branch>` or a remote-tracking
+    `refs/remotes/<remote>/<branch>`, is allowed, because commits made there
+    reach a pull request only through a branch, which this gate and the
+    trailer arm judge. The tool
     input is a path, so no command is read. Every way the declaration cannot
     be read is no declaration, as `docs/the-review-and-parity-arms.md` states.
     check: tests/test_routing_edit_gate.py
@@ -178,22 +183,31 @@ Out:
 
     ## At the pull request
 
-    **A session's commit in an opted-in repository ends with one trailer,
-    `SpecSeal-Routing:`, naming its work item or reading `no work item`.** It
-    tells a session's commit from a person's: the harness's co-author trailer
-    is carried by any Claude Code session, a teammate's who does not use this
-    plugin included, and a person's own commit carries neither.
+    **A session's commit in a repository whose root is shared ends with one
+    trailer, `SpecSeal-Routing:`, naming its work item or reading
+    `no work item`; at a local root a commit carries none.** It tells a
+    session's commit from a person's: the harness's co-author trailer is
+    carried by any Claude Code session, a teammate's who does not use this
+    plugin included, and a person's own commit carries neither. At a local
+    root no declaration is ever committed for a trailer to name, and the
+    history belongs to a team that does not run this plugin.
     `skills/commit-pr-convention/SKILL.md` is where a session reads it.
     check: skills/commit-pr-convention/SKILL.md
 
-    **`chain-check` fails a ready pull request where one of its own commits
-    carries a `SpecSeal-Routing` trailer naming a work item that no
-    declaration it judges names, and prints each commit whose trailer reads
-    `no work item`.** A commit with no such trailer is not judged, so a
-    teammate's never is, and neither is a session's that dropped the trailer:
-    that is what judging no teammate costs. The commits are the pull
-    request's own, merges left out, and the trailer is read by git's own
-    trailer parser.
+    **At a shared root, `chain-check` fails a ready pull request where one of
+    its own commits, committed by its author, carries a `SpecSeal-Routing`
+    trailer naming a work item that no declaration it judges names, and
+    prints each commit whose trailer reads `no work item`.** A commit with no
+    such trailer is not judged, so a teammate's never is, and neither is a
+    session's that dropped the trailer: that is what judging no teammate
+    costs. A commit whose committer email differs from its author email,
+    compared case-folded, is not judged either, because its committer did not
+    write the trailer: GitHub's squash is one such commit, and a person's
+    cherry-pick or rebase under another identity is another. The cost is that
+    a person's cherry-pick of their own session's commit under the same
+    identity is still judged. At a local root a work item's trailer is printed
+    as a notice and never refused. The commits are the pull request's own,
+    merges left out, and the trailer is read by git's own trailer parser.
     check: routing-trailer-at-the-pull-request
 - add
   file: docs/the-session-hooks.md
