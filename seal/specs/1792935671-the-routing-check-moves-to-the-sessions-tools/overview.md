@@ -24,7 +24,7 @@ The routing check governed the session but ran inside git, so it reached a perso
 
 | Item | Who must answer |
 |---|---|
-| Whether the `PreToolUse` edit hook fires for a subagent's `Edit` and its deny stops the edit (`questions.md` Q3, `spec.md` S9) | the owner, in a live session after an installed release carries the hook |
+| closed whether the `PreToolUse` edit hook fires for a subagent's `Edit` and its deny stops the edit (`questions.md` Q3, `spec.md` S9) | answered 2026-10-26 by the orchestrator's live measurement at `126ee7b5`: the main session's `Write` and a subagent's `Write` were both denied and neither file was written (`questions.md` Q3) |
 | closed the full suite, the repository-wide lint and format check, and the typecheck at the branch head | `broad-gate.md`: BROAD GATE PASSED at `ad19f73a` against `97bf7a9a`, ruff check and format clean, the suite 6,491 passed and 14 skipped, chain-check exit 0; the repository has no typecheck to run (#951 adds one) |
 | closed `tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py::test_the_durations_file_prices_the_suite`, red at the working tree after phase 6: 1,378 entries of `.test_durations` (25.6% of its seconds) name cases the suite no longer collects. `spec.md` *Removes* leaves the file to the recorder at the next broad run, and `CONTRIBUTING.md` *Running the checks* refreshes it from a CI artifact | `d88696b7` refreshed the file from run 40209166795's `test-durations` artifact (7,725 to 6,499 entries); the case passed locally, and runs 40211291821 and 40212628767 passed on every leg |
 
@@ -36,4 +36,10 @@ The rule-9 departure of phase 4 is recorded here because no other file holds it:
 
 ## Fed back into the spec
 
-none
+Each clause below was inferred during implementation, from a review finding or an owner's answer, and written into `spec.md` by the orchestrator:
+
+- The trailer is written and judged at a shared root only, and a local root's trailer is printed, never refused (inferred during implementation, round 1 finding 1; `f221c3db`, `59b86822`).
+- A commit whose committer email differs from its author email is not judged (inferred during implementation, round 1 finding 2; `f221c3db`).
+- A detached HEAD at a commit a declared branch holds, under its own local or remote-tracking name, edits (inferred during implementation, round 1 finding 3 and round 2 finding 2; `f221c3db`, `59b86822`).
+- The no-work-item record names its branch, and lets the session edit on that branch only (the owner's answer to `questions.md` Q7; `df57fee9`).
+- The detached-HEAD refusal names checking out a branch before `seal no-work-item` (inferred during implementation, round 4 finding 2; `5e171b5f`).
