@@ -28,9 +28,9 @@ runnable, and the section on the mode below this one is its reasoning:
 
 One more subcommand records a fact about the session rather than the root:
 
-  seal no-work-item           this session's change in this clone belongs
-                              to no work item, so the edit check lets its
-                              edits through
+  seal no-work-item           this session's change on the branch checked
+                              out here belongs to no work item, so the edit
+                              check lets its edits on that branch through
 
 **The root is its own directory, and that is what makes the export safe.**
 Beside it under the git directory sit the smith mark, the worktree choices,
@@ -2426,11 +2426,14 @@ def check(cwd):
 
 
 def no_work_item(args, cwd):
-    """Record, for this session in this clone, that its change belongs to no
-    work item, so `hooks/routing-edit-gate.py` lets its edits through. The
-    session is `CLAUDE_CODE_SESSION_ID`'s and the clone is `--root`'s, or the
-    working directory's; where either is missing nothing is written. The rule
-    is `docs/the-routing-check.md` *The edit check*."""
+    """Record, for this session on the branch checked out in the worktree at
+    `--root` or the working directory, that its change belongs to no work
+    item, so `hooks/routing-edit-gate.py` lets its edits on that branch
+    through. The session is `CLAUDE_CODE_SESSION_ID`'s, and the branch is
+    resolved as the edit gate resolves it (`routing.worktree_branch`): the
+    branch checked out, else the branch a paused rebase there names. Where
+    the repository, the session or the branch is missing, nothing is written.
+    The rule is `docs/the-routing-check.md` *The edit check*."""
     where = args.root or cwd
     repo = optin.repo_root(where)
     if not repo:
@@ -2444,13 +2447,20 @@ def no_work_item(args, cwd):
             "own Bash tool."
         )
         return 1
-    path = routing.record_no_work_item(optin.git_common_dir(repo), session)
+    branch = routing.worktree_branch(repo)
+    if not branch:
+        print(
+            f"seal: HEAD is detached in {repo}, so no branch can be recorded and "
+            "nothing was. Check out a branch there first, then run this again."
+        )
+        return 1
+    path = routing.record_no_work_item(optin.git_common_dir(repo), session, branch)
     if not path:
         print(f"seal: the record could not be written under {repo}'s git directory.")
         return 1
     print(
-        f"recorded: this session's change in {repo} belongs to no work item "
-        f"({path}), so its edits there go ahead."
+        f"recorded: this session's change on `{branch}` in {repo} belongs to no "
+        f"work item ({path}), so its edits on that branch go ahead."
     )
     return 0
 
@@ -2521,12 +2531,13 @@ def main(argv=None, cwd=None):
 
     nw = sub.add_parser(
         "no-work-item",
-        help="record that this session's change belongs to no work item, so "
-        "its edits in this clone go ahead",
+        help="record that this session's change on the branch checked out "
+        "belongs to no work item, so its edits on that branch go ahead",
     )
     nw.add_argument(
         "--root",
-        help="the repository to record it in. Default: the working directory's",
+        help="the worktree whose checked-out branch is recorded. Default: the "
+        "working directory's",
     )
 
     args = parser.parse_args(argv)

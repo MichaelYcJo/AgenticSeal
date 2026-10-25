@@ -3,8 +3,8 @@
 The routing is decided before the first edit, so the check sits at the edit
 tools: a `Write`, `Edit` or `NotebookEdit` of a file in an opted-in
 repository's worktree is refused while no routing declaration names the
-branch checked out there and the session has not run `seal no-work-item`
-(#1027). The edited file's repository and branch are judged, never the
+branch checked out there and the session has not run `seal no-work-item` on
+that branch (#1027). The edited file's repository and branch are judged, never the
 payload's `cwd`. Files under the `seal/` root, files git ignores and files
 outside every opted-in repository are not judged.
 """
@@ -93,7 +93,7 @@ def attended(repo, branch):
         "*Orchestrator: how the work is routed* states. Then write the "
         f"declaration at `{HINT}` from "
         f"`templates/sdd-routing.md`, naming `{branch}`, or, where they answer "
-        "`no work item`, run `seal no-work-item` once in this clone. Then edit "
+        f"`no work item`, run `seal no-work-item` once on `{branch}`. Then edit "
         "again.\n\n"
         "Re-issuing this edit unchanged meets this same refusal."
     )
@@ -113,7 +113,47 @@ def pressed(repo, branch):
         f"write its declaration at `{HINT}` from "
         f"`templates/sdd-routing.md`, naming `{branch}`, and edit again.\n"
         "  2. Where it belongs to no work item, run `seal no-work-item` once "
-        "in this clone, and edit again.\n\n"
+        f"on `{branch}`, and edit again.\n\n"
+        "Re-issuing this edit unchanged meets this same refusal."
+    )
+
+
+# Where HEAD is detached no branch is named, and `seal no-work-item` records
+# nothing there, so the ways on start by checking out a branch.
+def detached(repo):
+    return (
+        "SpecSeal refused this edit; nothing was written.\n\n"
+        f"`f.txt` is in `{repo}`, which runs the SpecSeal workflow, and HEAD is "
+        "detached there, so no routing declaration can name its branch. The "
+        "routing is decided before the first edit.\n\n"
+    )
+
+
+def attended_detached(repo):
+    return detached(repo) + (
+        "Do not choose for the user. Put the routing question to them with the "
+        "AskUserQuestion tool, as `skills/implement/orchestration.md` "
+        "*Orchestrator: how the work is routed* states. Then check out a "
+        f"branch in `{repo}`, and write its declaration at `{HINT}` from "
+        "`templates/sdd-routing.md`, naming that branch, or, where they answer "
+        "`no work item`, run `seal no-work-item` once on it, because on a "
+        "detached HEAD it records nothing. Then edit again.\n\n"
+        "Re-issuing this edit unchanged meets this same refusal."
+    )
+
+
+def pressed_detached(repo):
+    return detached(repo) + (
+        "This session's person pressed `automation` on the routing question, "
+        "so no question is put to them, and none is to be put to them in its "
+        "place.\n\n"
+        "The ways on, none of which needs a person:\n"
+        "  1. Where this edit belongs to the work item the run was routed for, "
+        f"check out its branch in `{repo}`, write its declaration at `{HINT}` "
+        "from `templates/sdd-routing.md`, naming that branch, and edit again.\n"
+        f"  2. Where it belongs to no work item, check out a branch in `{repo}`, "
+        "run `seal no-work-item` once on it, and edit again; on a detached HEAD "
+        "it records nothing.\n\n"
         "Re-issuing this edit unchanged meets this same refusal."
     )
 
@@ -154,15 +194,17 @@ class Test_main:
         assert "`src\\new.py` is in `C:\\r`" in said, said
 
     def test_a_detached_head_names_no_branch_and_is_refused(self, repo):
+        """S4 and S8 on a detached HEAD: the ways on start by checking out a
+        branch, and neither text offers `seal no-work-item` where HEAD is,
+        attended or under the `automation` press."""
         opt_in(repo)
         git(repo, "switch", "-q", "--detach")
-        said = reason_of(run(repo / "f.txt"))
-        assert (
-            f"`f.txt` is in `{os.path.realpath(repo)}`, which runs the SpecSeal "
-            "workflow, and HEAD is detached there, so no routing declaration can "
-            "name its branch. The routing is decided before the first edit.\n\n"
-        ) in said, said
-        assert "naming `the branch you check out`" in said, said
+        top = os.path.realpath(repo)
+        assert reason_of(run(repo / "f.txt")) == attended_detached(top)
+        write_transcript(
+            os.path.dirname(str(repo)), SESSION, ask_entries(repo), slug="transcripts"
+        )
+        assert reason_of(run(repo / "f.txt")) == pressed_detached(top)
 
     def test_accepts_a_detached_head_at_a_commit_a_declared_branch_holds(
         self, repo, tmp_path
@@ -271,17 +313,32 @@ class Test_main:
 
     # --- S4: a change that belongs to no work item ---------------------------
 
-    def test_accepts_the_session_that_recorded_no_work_item_and_no_other(
+    def test_accepts_the_session_that_recorded_no_work_item_on_that_branch_only(
         self, repo, monkeypatch, capsys
     ):
         """S4: `seal no-work-item` run under this session's id lets its edits
-        through in this clone; another session's edit is still refused."""
+        through on the branch it ran on; another session's edit there, and
+        this session's edit on another branch of the same clone, are still
+        refused (`questions.md` Q7 of #1027, answer (b))."""
         opt_in(repo)
         monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", SESSION)
         assert SEAL.main(["no-work-item"], cwd=str(repo)) == 0
         capsys.readouterr()
         assert decision_of(run(repo / "f.txt")) == "silent"
         assert decision_of(run(repo / "f.txt", session="s2")) == "deny"
+        git(repo, "switch", "-q", "feature/x")
+        assert decision_of(run(repo / "f.txt")) == "deny"
+
+    def test_a_record_naming_no_branch_lets_nothing_through(self, repo):
+        """The record an earlier build wrote is an empty file, which names no
+        branch, so it lets no edit through."""
+        opt_in(repo)
+        where = git(repo, "rev-parse", "--absolute-git-dir")
+        records = os.path.join(where, "specseal-no-work-item")
+        os.makedirs(records)
+        with open(os.path.join(records, SESSION), "w", encoding="utf-8"):
+            pass
+        assert decision_of(run(repo / "f.txt")) == "deny"
 
     # --- S5: the edited file decides -----------------------------------------
 

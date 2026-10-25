@@ -3203,28 +3203,81 @@ class Test_check:
 
 
 class Test_no_work_item:
-    """`seal no-work-item` records, for this session in this clone, that its
-    change belongs to no work item, so `hooks/routing-edit-gate.py` lets its
-    edits through (#1027, S4)."""
+    """`seal no-work-item` records, for this session on the branch checked out
+    where it runs, that its change belongs to no work item, so
+    `hooks/routing-edit-gate.py` lets its edits on that branch through
+    (#1027, S4; `questions.md` Q7, answer (b))."""
 
     def record(self, repo, session="s1"):
         return os.path.join(
             os.path.realpath(repo), ".git", "specseal-no-work-item", session
         )
 
-    def test_accepts_the_session_variable_and_writes_its_record(
+    def recorded(self, repo, session="s1"):
+        with open(self.record(repo, session), encoding="utf-8", newline="") as f:
+            return f.read()
+
+    def test_accepts_the_session_variable_and_writes_its_branch(
         self, take, capsys, monkeypatch
     ):
         repo = take("plain")
         monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "s1")
         code, out = said(capsys, repo, "no-work-item")
         assert code == 0, out
-        assert os.path.isfile(self.record(repo))
+        assert self.recorded(repo) == "main\n"
         assert out == (
-            f"recorded: this session's change in {os.path.realpath(repo)} "
-            "belongs to no work "
-            f"item ({self.record(repo)}), so its edits there go ahead.\n"
+            f"recorded: this session's change on `main` in "
+            f"{os.path.realpath(repo)} belongs to no work item "
+            f"({self.record(repo)}), so its edits on that branch go ahead.\n"
         )
+
+    def test_a_second_branch_adds_a_line_and_the_same_branch_adds_none(
+        self, take, capsys, monkeypatch
+    ):
+        repo = take("plain")
+        monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "s1")
+        assert said(capsys, repo, "no-work-item")[0] == 0
+        git(repo, "switch", "-q", "feature/x")
+        assert said(capsys, repo, "no-work-item")[0] == 0
+        assert self.recorded(repo) == "main\nfeature/x\n"
+        assert said(capsys, repo, "no-work-item")[0] == 0
+        assert self.recorded(repo) == "main\nfeature/x\n"
+
+    def test_refuses_a_detached_head_and_writes_nothing(
+        self, take, capsys, monkeypatch
+    ):
+        repo = take("plain")
+        git(repo, "switch", "-q", "--detach")
+        monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "s1")
+        code, out = said(capsys, repo, "no-work-item")
+        assert code == 1
+        assert not os.path.exists(os.path.dirname(self.record(repo)))
+        assert out == (
+            f"seal: HEAD is detached in {os.path.realpath(repo)}, so no branch "
+            "can be recorded and nothing was. Check out a branch there first, "
+            "then run this again.\n"
+        )
+
+    def test_a_paused_rebase_records_the_branch_it_names(
+        self, take, capsys, monkeypatch
+    ):
+        """HEAD is detached while the rebase waits on a conflict, and the
+        branch the rebase names is the one recorded, as the edit gate
+        resolves it."""
+        repo = take("plain")
+        identity = ["-c", "user.email=e@example.com", "-c", "user.name=e"]
+        git(repo, "switch", "-q", "feature/x")
+        write(repo, "f.txt", "feature\n")
+        commit_everything_as_e(repo, "feature")
+        git(repo, "switch", "-q", "main")
+        write(repo, "f.txt", "base\n")
+        commit_everything_as_e(repo, "base")
+        git(repo, "switch", "-q", "feature/x")
+        assert git(repo, *identity, "rebase", "main", check=False).returncode != 0
+        assert git_out(repo, "rev-parse", "--abbrev-ref", "HEAD") == "HEAD"
+        monkeypatch.setenv("CLAUDE_CODE_SESSION_ID", "s1")
+        assert said(capsys, repo, "no-work-item")[0] == 0
+        assert self.recorded(repo) == "feature/x\n"
 
     @pytest.mark.parametrize("value", [None, ".", ".."], ids=["unset", "dot", "dots"])
     def test_refuses_a_session_variable_naming_no_session_and_writes_nothing(

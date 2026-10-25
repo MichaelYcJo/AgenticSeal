@@ -5,8 +5,8 @@ The rule is `docs/the-routing-check.md` *The edit check*. The routing is
 decided before the first edit, so this gate checks that moment itself: a
 `Write`, `Edit` or `NotebookEdit` of a file in an opted-in repository's
 worktree is refused while no routing declaration names the branch checked out
-there and the session has not recorded, through `seal no-work-item`, that its
-change belongs to no work item.
+there and the session has not recorded, through `seal no-work-item` on that
+branch, that its change belongs to no work item.
 
 **The edited file decides, never the payload's `cwd`.** The file's path is
 resolved to the worktree that holds it, because a session can edit a tree its
@@ -19,9 +19,9 @@ root, so the declaration can always be written; one git ignores, which never
 lands in a commit; and one outside every opted-in repository.
 
 **A detached HEAD names no branch, except during a paused rebase**, where the
-branch the rebase names (`rebase-merge/head-name`, else
-`rebase-apply/head-name`, under the worktree's git directory) stands for it,
-so resolving a conflict on a declared branch is never refused, **and at a
+branch the rebase names stands for it (`routing.worktree_branch`, which
+`seal no-work-item` resolves its branch through too), so resolving a
+conflict on a declared branch is never refused, **and at a
 commit that a declared branch already holds**, under its local name or a
 remote-tracking one, so a warden's clone at the reviewed commit and a
 red-first clone of an earlier one edit without a stop. A detached HEAD at
@@ -29,9 +29,12 @@ any other commit is refused.
 
 The declaration is read through `routing.for_branch`, so every way it cannot
 be read is no declaration, and the edit is refused. The no-work-item record
-is `routing.no_work_item`'s. The refusal reads the person's `automation` press
+is `routing.no_work_item`'s, and it lets an edit through only on a branch it
+names. The refusal reads the person's `automation` press
 through `worktree_consent.automation_answered`: pressed, it names no question
-tool; otherwise it tells the model to put the routing question.
+tool; otherwise it tells the model to put the routing question. Where HEAD is
+detached, its ways on start by checking out a branch, because
+`seal no-work-item` records nothing there.
 
 The checks run cheapest-first on the path an allowed edit takes, because this
 gate runs before every edit in an opted-in repository: the root, the `seal/`
@@ -64,25 +67,44 @@ DETACHED = (
     "detached there, so no routing declaration can name its branch. The "
     "routing is decided before the first edit."
 )
-# What a declaration names where HEAD is detached.
-NO_BRANCH = "the branch you check out"
-PRESSED = (
+# The opening of the ways on under the person's `automation` press, and of
+# the attended text, each followed by the ways for a branch or for a
+# detached HEAD, where `seal no-work-item` records nothing.
+PRESS = (
     "This session's person pressed `automation` on the routing question, so "
     "no question is put to them, and none is to be put to them in its place.\n\n"
     "The ways on, none of which needs a person:\n"
+)
+PRESSED = PRESS + (
     "  1. Where this edit belongs to the work item the run was routed for, "
     "write its declaration at `{hint}` from `templates/sdd-routing.md`, naming "
     "`{branch}`, and edit again.\n"
-    "  2. Where it belongs to no work item, run `seal no-work-item` once in "
-    "this clone, and edit again."
+    "  2. Where it belongs to no work item, run `seal no-work-item` once on "
+    "`{branch}`, and edit again."
 )
-ATTENDED = (
+PRESSED_DETACHED = PRESS + (
+    "  1. Where this edit belongs to the work item the run was routed for, "
+    "check out its branch in `{top}`, write its declaration at `{hint}` from "
+    "`templates/sdd-routing.md`, naming that branch, and edit again.\n"
+    "  2. Where it belongs to no work item, check out a branch in `{top}`, "
+    "run `seal no-work-item` once on it, and edit again; on a detached HEAD it "
+    "records nothing."
+)
+ASK = (
     "Do not choose for the user. Put the routing question to them with the "
     "AskUserQuestion tool, as `skills/implement/orchestration.md` "
-    "*Orchestrator: how the work is routed* states. Then write the declaration "
-    "at `{hint}` from `templates/sdd-routing.md`, naming `{branch}`, or, where "
-    "they answer `no work item`, run `seal no-work-item` once in this clone. "
-    "Then edit again."
+    "*Orchestrator: how the work is routed* states. "
+)
+ATTENDED = ASK + (
+    "Then write the declaration at `{hint}` from `templates/sdd-routing.md`, "
+    "naming `{branch}`, or, where they answer `no work item`, run "
+    "`seal no-work-item` once on `{branch}`. Then edit again."
+)
+ATTENDED_DETACHED = ASK + (
+    "Then check out a branch in `{top}`, and write its declaration at `{hint}` "
+    "from `templates/sdd-routing.md`, naming that branch, or, where they "
+    "answer `no work item`, run `seal no-work-item` once on it, because on a "
+    "detached HEAD it records nothing. Then edit again."
 )
 UNCHANGED = "Re-issuing this edit unchanged meets this same refusal."
 
@@ -134,23 +156,6 @@ def git(top, *args):
     except (OSError, subprocess.SubprocessError):
         return None, ""
     return r.returncode, r.stdout or ""
-
-
-def rebase_branch(top):
-    """The branch a paused rebase in TOP's worktree names, or ""."""
-    code, out = git(top, "rev-parse", "--absolute-git-dir")
-    git_dir = out.strip() if code == 0 else ""
-    if not git_dir:
-        return ""
-    for state in ("rebase-merge", "rebase-apply"):
-        try:
-            with open(os.path.join(git_dir, state, "head-name"), encoding="utf-8") as f:
-                name = f.read().strip()
-        except (OSError, UnicodeDecodeError):
-            continue
-        prefix = "refs/heads/"
-        return name[len(prefix) :] if name.startswith(prefix) else ""
-    return ""
 
 
 def detached_on_declared(top):
@@ -216,12 +221,21 @@ def declaration_hint(top):
 def reason(path, top, branch, pressed):
     """The whole text of the refusal."""
     shown = os.path.relpath(os.path.realpath(path), os.path.realpath(top))
-    named = branch or NO_BRANCH
-    state = (STATE if branch else DETACHED).format(file=shown, top=top, branch=named)
-    ways = (PRESSED if pressed else ATTENDED).format(
-        hint=declaration_hint(top), branch=named
+    if branch:
+        state = STATE
+        ways = PRESSED if pressed else ATTENDED
+    else:
+        state = DETACHED
+        ways = PRESSED_DETACHED if pressed else ATTENDED_DETACHED
+    hint = declaration_hint(top)
+    return "\n\n".join(
+        [
+            HEADER,
+            state.format(file=shown, top=top, branch=branch),
+            ways.format(hint=hint, top=top, branch=branch),
+            UNCHANGED,
+        ]
     )
-    return "\n\n".join([HEADER, state, ways, UNCHANGED])
 
 
 def decide(event):
@@ -237,7 +251,7 @@ def decide(event):
     home = optin.home_at(top, common)
     if not home or inside(path, home):
         return None
-    branch = routing.current_branch(top) or rebase_branch(top)
+    branch = routing.worktree_branch(top)
     if routing.for_branch(top, branch):
         return None
     if not branch and detached_on_declared(top):
@@ -245,7 +259,7 @@ def decide(event):
     if ignored(top, path):
         return None
     session = event.get("session_id")
-    if routing.no_work_item(common, session):
+    if routing.no_work_item(common, session, branch):
         return None
     import worktree_consent
 

@@ -302,6 +302,45 @@ def current_branch(cwd):
     return "" if name == "HEAD" else name
 
 
+def rebase_branch(cwd):
+    """The branch a paused rebase in CWD's worktree names, or "".
+
+    `rebase-merge/head-name`, else `rebase-apply/head-name`, under the
+    worktree's own git directory: HEAD is detached while the rebase waits on
+    a conflict, and the branch it names is the one the work is on.
+    """
+    try:
+        out = subprocess.run(
+            ["git", "-C", cwd or ".", "rev-parse", "--absolute-git-dir"],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=5,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return ""
+    git_dir = out.stdout.strip() if out.returncode == 0 else ""
+    if not git_dir:
+        return ""
+    for state in ("rebase-merge", "rebase-apply"):
+        try:
+            with open(os.path.join(git_dir, state, "head-name"), encoding="utf-8") as f:
+                name = f.read().strip()
+        except (OSError, UnicodeDecodeError):
+            continue
+        prefix = "refs/heads/"
+        return name[len(prefix) :] if name.startswith(prefix) else ""
+    return ""
+
+
+def worktree_branch(cwd):
+    """The branch CWD's worktree is on: the one checked out, else the one a
+    paused rebase there names, or "" where neither names one. The edit gate
+    and `seal no-work-item` both resolve the branch here, so the record names
+    the branch the gate reads."""
+    return current_branch(cwd) or rebase_branch(cwd)
+
+
 def declarations(root):
     """Every readable declaration under `root`, as (path, parsed) pairs.
 
@@ -367,9 +406,11 @@ def declared(cwd, root):
     return for_branch(root, current_branch(cwd))
 
 
-# The record that a session's change belongs to no work item: an empty file
-# per session under the common git directory, written by `seal no-work-item`
-# and read by `hooks/routing-edit-gate.py`. The rule is
+# The record that a session's change belongs to no work item: a file per
+# session under the common git directory, holding one branch name per line,
+# UTF-8, each line ending in a newline. `seal no-work-item` adds the branch it
+# ran on, and `hooks/routing-edit-gate.py` lets the session's edits through on
+# a branch a line names and on no other. The rule is
 # `docs/the-routing-check.md` *The edit check*.
 NO_WORK_ITEM = "specseal-no-work-item"
 # A record older than this is pruned when one is written, as a lease is.
@@ -393,24 +434,42 @@ def no_work_item_path(common, session):
     return os.path.join(common, NO_WORK_ITEM, name)
 
 
-def no_work_item(common, session):
+def no_work_item_branches(path):
+    """The branches the record at PATH names, one per line. A record that
+    cannot be read names none. The lines are split at `\\n` alone, so no
+    other character a branch name may hold ends one."""
+    try:
+        with open(path, encoding="utf-8", newline="") as f:
+            text = f.read()
+    except (OSError, UnicodeDecodeError):
+        return []
+    return [line for line in text.split("\n") if line]
+
+
+def no_work_item(common, session, branch):
     """Whether SESSION recorded, in the clone whose common git directory is
-    COMMON, that its change belongs to no work item. A record that cannot be
-    read is no record."""
+    COMMON, that its change on BRANCH belongs to no work item: true only
+    where a line of its record equals BRANCH. No branch is never recorded."""
     path = no_work_item_path(common, session)
-    return bool(path) and os.path.isfile(path)
+    return bool(path and branch) and branch in no_work_item_branches(path)
 
 
-def record_no_work_item(common, session, now=None):
-    """Write SESSION's record under COMMON and prune the stale ones; the
-    record's path, or "" where it could not be written."""
+def record_no_work_item(common, session, branch, now=None):
+    """Add BRANCH to SESSION's record under COMMON, where it does not name it
+    yet, and prune the stale records; the record's path, or "" where nothing
+    could be written. No branch writes nothing. The record is rewritten on
+    every run, so a run on a branch it already names keeps it from the
+    prune."""
     path = no_work_item_path(common, session)
-    if not path:
+    if not path or not branch:
         return ""
+    branches = no_work_item_branches(path)
+    if branch not in branches:
+        branches.append(branch)
     try:
         os.makedirs(os.path.dirname(path), exist_ok=True)
-        with open(path, "w", encoding="utf-8"):
-            pass
+        with open(path, "w", encoding="utf-8", newline="") as f:
+            f.write("".join(f"{name}\n" for name in branches))
     except OSError:
         return ""
     cutoff = (now if now is not None else time.time()) - NO_WORK_ITEM_AGE
