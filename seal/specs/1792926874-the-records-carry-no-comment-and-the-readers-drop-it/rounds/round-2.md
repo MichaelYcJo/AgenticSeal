@@ -9,7 +9,7 @@ target: 0c532fe8, fixes b8a3697d..0c532fe8
 severity: should
 location: `skills/verify/scripts/unverified_check.py:238-243`, `skills/verify/scripts/unverified_check.py:573-575`
 evidence: read `skills/verify/scripts/unverified_check.py:238-243`, `skills/settle/scripts/rule_changes.py:115`, `skills/verify/scripts/unverified_check.py:289`, `skills/code-review/scripts/chain_check.py:1162`, `skills/verify/scripts/unverified_check.py:334-346`, `skills/verify/scripts/unverified_check.py:368`, `skills/verify/scripts/unverified_check.py:386-387`, `skills/verify/scripts/unverified_check.py:573-575`
-verdict: open
+verdict: fixed 09326125
 regression: round-1#2
 
 The unit is the docstring of `unverified_check.py#fence_spans`, which `32ff54c4` rewrote. `plan.md` *Phases* row 1 and `spec.md` *Data & interfaces* ask for the docstrings that describe the comment state to be rewritten in place, `#fence_spans` among them. The fix pasted round 1's own suggested text, and the defect came from that text. Round 1 read `rule_changes.py:106-115` for the code-span state of `parse`, and did not check the `blank_fences` call on line 115 against the split its own text draws.
@@ -46,7 +46,7 @@ and lines 573-575 of `live_lines`' docstring:
     comment state (#1012). Neither is on this path. What this scan and
 ```
 
-answer:
+answer: The finding holds, and 09326125 fixes it without pasting this round's text, so that no list of callers goes stale again. Executed: `git grep -n -E '(fence_spans|blank_fences|readable)\(' -- . ':(exclude)tests' ':(exclude)seal/specs'`. It finds `fence_spans` called at `unverified_check.py:272` (`closed_fence_lines`) and `:289` (`blank_fences`), and at `chain_check.py:1162` (`unclosed`). It finds `blank_fences` at `unverified_check.py:610` (`readable`) and `rule_changes.py:115` (`parse`). It finds `readable` at `unverified_check.py:886` (`check_text`), at `chain_check.py:396, 1176, 1239, 1413, 1448, 1830, 1855`, at `seal_stamp.py:1209, 1344`, at `noninferiority.py:306` and at `replay_targets.py:243, 275`. `fence_spans`' docstring now names only the callers inside its own module, `closed_fence_lines` and `blank_fences`, and `readable` through `blank_fences`. It says that callers in other scripts are found with `git grep`, and that `liveness` asks `fence_opener` and `fence_closes` directly because it keeps a comment or code-span state. `live_lines`' sentence now says that `blank_fences` and `readable` keep no comment state and serve the readers of a record, and it names no reader. The sweep, executed with `git grep -n -E 'fence_spans|blank_fences|closed_fence_lines'` over the tree outside `seal/specs/`, `changelog/` and `.test_durations`, found the following, and each stands. `unverified_check.py:90-111` lists who asks the delimiter rule, `fence_spans` and through it `blank_fences` and `closed_fence_lines`, then `liveness` and `_paragraph_ends_at`, which the code holds. `chain_check.py#unclosed` says its walk is `readable`'s own, `fence_spans` on the raw lines, which is what `readable` does. `rule_changes.py`'s module text lists the functions it calls, `blank_fences` among them. `tests/test_docs_line_wrap.py:281` names the rule, not its callers. `tests/test_unverified_rows_close.py:298` names the three walks that case compares, which is a claim about that case, not about who walks `fence_spans`.
 
 ## Confirmations
 
