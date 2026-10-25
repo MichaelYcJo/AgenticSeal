@@ -26,7 +26,7 @@ The routing check governed the session but ran inside git, so it reached a perso
 |---|---|
 | Whether the `PreToolUse` edit hook fires for a subagent's `Edit` and its deny stops the edit (`questions.md` Q3, `spec.md` S9) | the owner, in a live session after an installed release carries the hook |
 | The full suite, the repository-wide lint and format check, and the typecheck at the branch head | the orchestrator's broad run |
-| `tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py::test_the_durations_file_prices_the_suite`, red at the working tree after phase 6: 1,378 entries of `.test_durations` (25.6% of its seconds) name cases the suite no longer collects. `spec.md` *Removes* leaves the file to the recorder at the next broad run, and `CONTRIBUTING.md` *Running the checks* refreshes it from a CI artifact | the orchestrator, from the branch's `tests` run, before the broad gate |
+| closed `tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py::test_the_durations_file_prices_the_suite`, red at the working tree after phase 6: 1,378 entries of `.test_durations` (25.6% of its seconds) name cases the suite no longer collects. `spec.md` *Removes* leaves the file to the recorder at the next broad run, and `CONTRIBUTING.md` *Running the checks* refreshes it from a CI artifact | `d88696b7` refreshed the file from run 40209166795's `test-durations` artifact (7,725 to 6,499 entries); the case passed locally, and runs 40211291821 and 40212628767 passed on every leg |
 
 ## Not done
 
