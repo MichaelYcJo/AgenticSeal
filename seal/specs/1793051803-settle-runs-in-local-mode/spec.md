@@ -110,8 +110,11 @@ carry no trailer, as no local-mode commit does.
     repository on a host `gh` cannot ask cannot settle in local mode, and
     the exit-2 sentence says so. A branch name a later work item reuses
     after an earlier pull request from it merged reads that later work item
-    as released; the one-issue flow cuts one branch per issue, so it never
-    produces this.
+    as released, and so does a merged pull request from a fork whose branch
+    has the same name, since `gh pr list --head` matches a branch's name and
+    not its owner. The one-issue flow names each branch after its issue,
+    which makes either match unlikely and does not rule out the second
+    (round 1 finding 1).
 
 ### Out
 
@@ -188,9 +191,10 @@ carry no trailer, as no local-mode commit does.
     presence at `--released-at` cannot say that it shipped. What reaches
     that ref is its pull request's merge commit, which the GitHub
     command-line tool names whatever the merge method was, and the merge
-    commits give the merge order. A work item with no `Branch` row, no
-    merged pull request from its branch, or a merge commit `--released-at`
-    does not reach is unreleased and stays. The settling session writes the
+    commits give the merge order. A work item whose `routing.md`
+    `hooks/routing.py` does not read as a declaration naming a branch, with
+    no merged pull request from its branch, or with no listed merge commit
+    `--released-at` reaches is unreleased and stays. The settling session writes the
     committed policy root as in shared mode, creating it with its index
     where it is absent, and `settle --apply` removes each released local
     directory whose record holds no open row. No commit holds what it
