@@ -2,6 +2,8 @@
 
 Approved 2026-10-26 by the orchestrator under the owner's automation answer, when `smith` was spawned for phases 1 and 2.
 
+Approved 2026-10-26 by the orchestrator under the owner's automation answer, when `smith` was spawned for phase 3.
+
 ## Summary
 
 Two phases. Phase 1 makes every step of `templates/hygiene.yml` pass a pull
