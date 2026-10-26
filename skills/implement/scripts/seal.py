@@ -3,7 +3,8 @@
 
 Three subcommands over one directory. `mode` says which of the two places
 the root is at and moves it between them; `export` and `import` carry a copy
-of it to another clone.
+of it to another clone. A fourth, `pr-checks`, writes and removes the
+workflow that checks pull requests against the committed root.
 
 In local mode the work-item records live under the common git directory, so a new machine or a re-clone starts with nothing and CI's checks
 cannot run. That is the mode's whole trade-off
@@ -25,6 +26,17 @@ runnable, and the section on the mode below this one is its reasoning:
                               disagree. This is what CI runs
   seal mode local|shared      switch, and write the row
   seal mode --apply           switch to whatever the row says
+
+The switch moves the root and nothing else. Whether CI checks pull requests
+is a second answer, and its record is the workflow file itself, so no row
+says it (#952):
+
+  seal pr-checks              whether .github/workflows/hygiene.yml is this
+                              plugin's, and the release it pins; writes nothing
+  seal pr-checks install      write it pinned to this release, and stage it;
+                              refused unless seal/ is in the tree
+  seal pr-checks remove       take out the file this plugin wrote, and stage
+                              the removal where git tracked it
 
 One more subcommand records a fact about the session rather than the root:
 
@@ -1318,12 +1330,13 @@ def write_members(archive, into):
 # --- the mode: a row that is declared, and a folder that decides ------------
 #
 # `README.md`'s *Shared or local* section carried both directions as two shell
-# lines — a `mv`, a commit, and the workflow file copied in or deleted by
-# hand. They are correct, and a person who has not read that section has no
-# way to arrive at them. This is that section made runnable, plus the four
-# things a `mv` cannot do: refuse when the other root is already there, refuse
-# when the tree is dirty under what it is about to stage, carry the workflow
-# file, and write the row so the file and the folder agree afterwards.
+# lines, a `mv` and a commit. They are correct, and a person who has not read
+# that section has no way to arrive at them. This is that section made
+# runnable, plus the three things a `mv` cannot do: refuse when the other
+# root is already there, refuse when the tree is dirty under what it is about
+# to stage, and write the row so the file and the folder agree afterwards.
+# The workflow file is not among them: `.github/` is `seal pr-checks`'s
+# (#952).
 #
 # **Nothing at runtime reads the row.** Every hook resolves the root through
 # `hooks/optin.py#home_at`, which reads `<repo>/seal/` then
@@ -1347,7 +1360,7 @@ ROW_ITEM = repo_config.ROW_ITEM
 LOCAL, SHARED = repo_config.LOCAL, repo_config.SHARED
 MODES = repo_config.MODES
 
-# The workflow shared mode installs, as GIT spells a pathspec: forward
+# The workflow `seal pr-checks install` writes, as GIT spells a pathspec: forward
 # slashes on every platform. `under()` turns it into a path for this
 # filesystem. The two dialects live as separate strings rather than one
 # string used for both, because a literal separator inside an
@@ -1361,10 +1374,12 @@ CONFIG_PATHSPEC = f"{optin.HOME}/{CONFIG}"
 
 # The line CI's own workflow uses to clone this plugin. A file at WORKFLOW
 # carrying it is one this plugin wrote; a file that does not is somebody
-# else's with our name, and the switch leaves it alone rather than deleting
+# else's with our name, and `seal pr-checks` neither overwrites nor removes
 # it. `tests/test_seal.py::Test_module` asserts the template still contains
 # this, so the marker cannot drift away from what it identifies.
 PLUGIN_CLONE = "https://github.com/MichaelYcJo/SpecSeal.git"
+# The release a workflow's clone line pins, which `seal pr-checks` reports.
+PIN = re.compile(r"--branch\s+(\S+)")
 
 # The version placeholder in `templates/hygiene.yml`. A workflow written with
 # it still in place fails CI's `git clone --branch` on the first pull
@@ -1794,22 +1809,69 @@ def plugin_workflow():
     return text.replace(PLACEHOLDER, "v" + version)
 
 
+def workflow_at(repo):
+    """What stands at WORKFLOW in `repo`: (kind, text or reason).
+
+    `plugin`, a regular file that reads and carries PLUGIN_CLONE, with its
+    text; `absent`, with ""; or, with the clause that says why the file is
+    not this plugin's, `link`, `unreadable` or `other`. The one reader the
+    three forms of `seal pr-checks` share, so the report, the install and the
+    removal tell this plugin's file from somebody else's by one rule.
+    """
+    path = under(repo, WORKFLOW)
+    if not os.path.lexists(path):
+        return "absent", ""
+    if os.path.islink(path):
+        return "link", "is a symbolic link"
+    try:
+        with open(path, encoding="utf-8") as handle:
+            text = handle.read()
+    except (OSError, ValueError) as exc:
+        return "unreadable", f"could not be read ({exc})"
+    if PLUGIN_CLONE not in text:
+        return "other", "does not carry this plugin's clone line"
+    return "plugin", text
+
+
+def pinned(text):
+    """The release the clone line in `text` pins, or ""."""
+    found = PIN.search(text)
+    return found.group(1) if found else ""
+
+
 def install_workflow(repo):
     """Write the pull-request checks; (what happened, the line to print).
 
-    Never overwrites — the same stance the `implement` skill's bootstrap
-    takes at first setup, and the same one the rest of this command takes.
+    Refused where `<repo>/seal/` is not a directory, because the checks read
+    committed records and only a root in the tree is committed. Never
+    overwrites: this plugin's own file already there is reported with the
+    release it pins, and anybody else's is left alone.
     """
-    path = under(repo, WORKFLOW)
-    if os.path.lexists(path):
-        return "kept", (
-            f"  {WORKFLOW} was already there and was left alone — check that "
-            "it runs the checks you want"
+    shared, _local = optin.home_paths(repo)
+    if not shared or not os.path.isdir(shared):
+        return "no-root", (
+            f"{WORKFLOW} was NOT written: {optin.HOME}/ is not in this tree, "
+            "and the checks read committed records, which only a root in the "
+            f"tree has. `seal mode {SHARED}` puts it in the tree."
         )
+    kind, found = workflow_at(repo)
+    if kind == "plugin":
+        return "installed", (
+            f"{WORKFLOW} is already this plugin's, pinned to "
+            f"{pinned(found) or 'no release its clone line names'}, so nothing "
+            "was written"
+        )
+    if kind != "absent":
+        return "kept", (
+            f"{WORKFLOW} is there and {found}: it is not "
+            "this plugin's file, so nothing was written. Move it aside and run "
+            "this again, or add the checks to it by hand."
+        )
+    path = under(repo, WORKFLOW)
     version = plugin_version()
     if not version:
         return "no-version", (
-            f"  {WORKFLOW} was NOT written: the plugin's version could not be "
+            f"{WORKFLOW} was NOT written: the plugin's version could not be "
             f"read from {os.path.join(PLUGIN_ROOT, '.claude-plugin', 'plugin.json')}, "
             f"and a workflow still carrying `{PLACEHOLDER}` fails CI's clone "
             "on the first pull request. Copy templates/hygiene.yml in by hand "
@@ -1820,13 +1882,13 @@ def install_workflow(repo):
         with open(source, encoding="utf-8") as handle:
             text = handle.read()
     except (OSError, ValueError) as exc:
-        return "unreadable", f"  {WORKFLOW} was NOT written: {source} — {exc}"
+        return "unreadable", f"{WORKFLOW} was NOT written: {source} — {exc}"
     if PLACEHOLDER not in text:
         # The substitution has to be able to fail. A template that stopped
         # carrying the placeholder would be written pinned to whatever it
         # says instead, and nothing would report it.
         return "no-placeholder", (
-            f"  {WORKFLOW} was NOT written: {source} no longer carries "
+            f"{WORKFLOW} was NOT written: {source} no longer carries "
             f"`{PLACEHOLDER}`, so the version could not be pinned. This is a "
             "defect in the plugin — report it rather than working around it."
         )
@@ -1837,16 +1899,15 @@ def install_workflow(repo):
             handle.write(text)
     except (OSError, ValueError) as exc:
         return "failed", (
-            f"  {WORKFLOW} was NOT written: {exc}. Copy "
+            f"{WORKFLOW} was NOT written: {exc}. Copy "
             "templates/hygiene.yml in by hand, or run this command again."
         )
-    # The return code here for the reason the root's `git add` reads it, one
-    # screen down: `git()` answers "" for a failure, and an ignore rule
-    # matching `.github/` reaches this one. Measured 2026-09-03 — the file was
-    # written, nothing entered the index, and the command said `staged it`
-    # and `Now commit`. The switch to shared exists to get the checks running,
-    # so a workflow that never reaches the commit is the whole point lost,
-    # silently.
+    # The return code here for the reason the root's `git add` in `switch`
+    # reads it: `git()` answers "" for a failure, and an ignore rule matching
+    # `.github/` reaches this one. Measured 2026-09-03 — the file was written,
+    # nothing entered the index, and the command said `staged it` and `Now
+    # commit`. This command exists to get the checks running, so a workflow
+    # that never reaches the commit is the whole point lost, silently.
     done = subprocess.run(
         ["git", "-C", repo, "add", "--", WORKFLOW],
         capture_output=True,
@@ -1856,77 +1917,67 @@ def install_workflow(repo):
     )
     if done.returncode != 0:
         return "unstaged", (
-            f"  {WORKFLOW} was written (pinned to v{version}) but could NOT "
+            f"{WORKFLOW} was written (pinned to v{version}) but could NOT "
             f"be staged: {(done.stderr or '').strip()}\n"
-            f"  A commit now would not carry it, so the pull-request checks "
+            f"A commit now would not carry it, so the pull-request checks "
             f"would never run. An ignore rule matching {WORKFLOW} or "
             f"`.github/` is the usual cause. Run `git add -f :/{WORKFLOW}` "
             "yourself, or take the rule out."
         )
-    return "written", f"  wrote {WORKFLOW} (pinned to v{version}) and staged it"
+    return "written", f"wrote {WORKFLOW} (pinned to v{version}) and staged it"
 
 
 def remove_workflow(repo):
     """Remove the pull-request checks; (what happened, the line to print).
 
-    **Not tidiness.** Measured 2026-09-03 in a repository with no `seal/`:
-    `unverified_check.py` exits 2 for a path that is nowhere and
-    `chain_check.py` exits 0 having examined nothing. A workflow left behind
-    after a switch to local gets both — a build that is red forever for a
-    repository doing the right thing, and a review-chain check reporting a
-    pass it never earned.
+    It needs no root: a workflow that outlived its root is the case it is
+    for. Left in a local-mode repository, every step of the workflow
+    examines nothing and passes (`unverified_check.py#absent_root`), so this
+    is the person's choice and never a repair.
 
     A file this plugin did not write is left alone: deleting somebody's
     workflow because it shares a name is the destructive direction.
     """
     path = under(repo, WORKFLOW)
-    if not os.path.lexists(path):
-        return "absent", ""
-    if os.path.islink(path):
+    kind, text = workflow_at(repo)
+    if kind == "absent":
+        return "absent", f"there is no {WORKFLOW}, so there is nothing to remove"
+    if kind == "link":
         return "kept", (
-            f"  {WORKFLOW} is a symbolic link, so it is not this plugin's "
-            "file to remove — left alone. The checks it runs read committed "
-            "files, and local mode commits none."
+            f"{WORKFLOW} {text}, so it is not this plugin's file to remove — "
+            "left alone."
         )
-    try:
-        with open(path, encoding="utf-8") as handle:
-            text = handle.read()
-    except (OSError, ValueError) as exc:
+    if kind == "unreadable":
         return "kept", (
-            f"  {WORKFLOW} could not be read ({exc}), so it was left alone. "
-            "Check by hand whether it is this plugin's."
+            f"{WORKFLOW} {text}, so it was left alone. Check by hand whether "
+            "it is this plugin's."
         )
-    if PLUGIN_CLONE not in text:
+    if kind == "other":
         return "kept", (
-            f"  {WORKFLOW} was not written by this plugin, so it was left "
-            "alone. Its checks read committed files and local mode commits "
-            "none, so whatever it runs there will read nothing."
+            f"{WORKFLOW} was not written by this plugin, so it was left alone."
         )
     if not tracked(repo, WORKFLOW):
         # git holds no copy, so removing it would take the only one — unless
-        # this plugin can write it back byte for byte, which is exactly the
-        # state the way back it names creates: the switch to shared wrote the
-        # file and staged it, `git reset` untracked it again, and the switch
-        # back then left it behind. Round 1's guard was reasoned about
-        # SOMEBODY ELSE'S file and applied to one this command had written a
-        # moment earlier.
+        # this plugin can write it back byte for byte, which is the state
+        # `seal pr-checks install` followed by a `git reset` leaves. Round 1's
+        # guard was reasoned about SOMEBODY ELSE'S file and applied to one
+        # this command had written a moment earlier.
         if text != plugin_workflow():
             return "kept", (
-                f"  {WORKFLOW} is not tracked and is not byte for byte what "
+                f"{WORKFLOW} is not tracked and is not byte for byte what "
                 "this plugin writes NOW — it may be somebody's own, or this "
                 "plugin's from another release, since the file is pinned to "
                 "the version that wrote it. Either way git holds no copy and "
                 "removing it would take the only one, so it is left alone. "
-                "Its checks read committed files and local mode commits none, "
-                "so look at it and delete it yourself."
+                "Look at it and delete it yourself."
             )
         try:
             os.remove(path)
         except OSError as exc:
-            return "failed", f"  {WORKFLOW} could not be removed: {exc}"
+            return "failed", f"{WORKFLOW} could not be removed: {exc}"
         return "removed", (
-            f"  removed {WORKFLOW} — untracked, and byte for byte this "
-            "plugin's, so `seal mode shared` writes it back"
+            f"removed {WORKFLOW} — untracked, and byte for byte this "
+            "plugin's, so `seal pr-checks install` writes it back"
         )
     done = subprocess.run(
         ["git", "-C", repo, "rm", "--quiet", "--", WORKFLOW],
@@ -1937,9 +1988,49 @@ def remove_workflow(repo):
     )
     if done.returncode != 0:
         return "failed", (
-            f"  {WORKFLOW} could not be removed: {(done.stderr or '').strip()}"
+            f"{WORKFLOW} could not be removed: {(done.stderr or '').strip()}"
         )
-    return "removed", f"  removed {WORKFLOW} and staged the removal"
+    return "removed", f"removed {WORKFLOW} and staged the removal"
+
+
+def pr_checks(args, cwd):
+    """`seal pr-checks [install|remove]`: report, write or remove the
+    workflow. Exit 0 for a report, a file written or already this plugin's,
+    and a file removed or nothing there; 1 for every refusal, which writes
+    and removes nothing, and for a file written that git would not stage.
+
+    The report is one of three states: installed, with the release the file
+    pins; not installed; or a file at WORKFLOW this plugin did not write."""
+    repo = optin.repo_root(cwd)
+    if not repo:
+        print("not inside a git repository — seal works on a clone")
+        return 1
+    if args.action == "install":
+        kind, line = install_workflow(repo)
+        print(line)
+        return 0 if kind in ("written", "installed") else 1
+    if args.action == "remove":
+        kind, line = remove_workflow(repo)
+        print(line)
+        return 0 if kind in ("removed", "absent") else 1
+    kind, found = workflow_at(repo)
+    if kind == "plugin":
+        print(
+            f"installed: {WORKFLOW} is this plugin's pull-request checks, "
+            f"pinned to {pinned(found) or 'no release its clone line names'}. "
+            "`seal pr-checks remove` takes them out."
+        )
+    elif kind == "absent":
+        print(
+            f"not installed: there is no {WORKFLOW}. `seal pr-checks install` "
+            f"writes it where {optin.HOME}/ is in the tree."
+        )
+    else:
+        print(
+            f"not this plugin's: {WORKFLOW} is there and {found}, so this "
+            "plugin's checks are not installed and that file is left alone."
+        )
+    return 0
 
 
 def say_report(repo, home, shared, local, current, kind, value):
@@ -2095,10 +2186,8 @@ def refusals(repo, home, shared, local, wanted):
     """Every reason not to switch, gathered before anything is written.
 
     The list is the class in `spec.md` *What the switch touches*, walked in
-    order, rather than the guards a reader thinks of first. The one act that
-    is NOT preflighted is the workflow file, because it is the last step and
-    a second run finishes it — the resume is what makes preflighting it
-    unnecessary.
+    order, rather than the guards a reader thinks of first. The switch
+    stages nothing outside the root, so nothing outside it is guarded.
     """
     if not local:
         return ["the common git directory could not be resolved"]
@@ -2148,14 +2237,10 @@ def refusals(repo, home, shared, local, wanted):
     # somebody already made by hand is the one state whose deletions are not
     # work in progress — see `indexed`.
     moved = os.path.isdir(destination) and not os.path.lexists(source)
-    lines = [
-        line
-        for line in porcelain(repo, optin.HOME, WORKFLOW)
-        if indexed(line, moved=moved)
-    ]
+    lines = [line for line in porcelain(repo, optin.HOME) if indexed(line, moved=moved)]
     if lines:
         found.append(
-            "the tree is not clean under the paths this would stage:\n  "
+            "the tree is not clean under the path this would stage:\n  "
             + "\n  ".join(lines)
             + "\nCommit or stash them first. `git rm -r --cached` takes a "
             "staged edit out of the index and prints nothing about it, so a "
@@ -2179,7 +2264,8 @@ def refusals(repo, home, shared, local, wanted):
 
 
 def switch(args, repo, home, shared, local, current, wanted):
-    """Move the root, write the row, stage the index, carry the workflow file.
+    """Move the root, write the row, and stage the index; `.github/` is left
+    alone, and the pull-request checks are `seal pr-checks`'s.
 
     In the order of `spec.md` *Order, and what a stopped run leaves*: the
     rename first, because it is the step that can fail for reasons outside
@@ -2200,12 +2286,12 @@ def switch(args, repo, home, shared, local, current, wanted):
     if wanted == SHARED:
         print(
             "Going to shared mode puts the records in the tree. Until you "
-            f"commit, `git reset -- :/{optin.HOME} :/{WORKFLOW}` and then "
+            f"commit, `git reset -- :/{optin.HOME}` and then "
             "`seal mode local` walk the whole thing back — the switch stages, "
             "and the guard refuses a switch over a staged change. The "
             "pathspec is there because a bare `git reset` unstages the whole "
-            "index, and this guard has never looked outside those two paths. "
-            "`:/` makes each path mean the same thing from any directory — a "
+            "index, and this guard has never looked outside that path. "
+            "`:/` makes the path mean the same thing from any directory — a "
             "git pathspec is read from where you stand, and without it the "
             "command exits 0 having unstaged nothing when you are not at the "
             "root. Every command this file hands you to run carries it, for "
@@ -2291,9 +2377,11 @@ def switch(args, repo, home, shared, local, current, wanted):
                 print(f"  staged the removal of {optin.HOME}/ from the tree")
         else:
             print(f"  nothing under {optin.HOME}/ was tracked")
-        _, line = remove_workflow(repo)
-        if line:
-            print(line)
+        if workflow_at(repo)[0] == "plugin":
+            print(
+                f"  {WORKFLOW} stays: in local mode its checks examine nothing "
+                "and pass, and `seal pr-checks remove` takes them out"
+            )
     else:
         # The return code, not the call. `git()` reads a failure as "" — and
         # `git add` exits non-zero for an ignore rule matching the root, or a
@@ -2318,14 +2406,16 @@ def switch(args, repo, home, shared, local, current, wanted):
             )
         else:
             print(f"  staged {optin.HOME}/")
-        _, line = install_workflow(repo)
-        if line:
-            print(line)
+        if workflow_at(repo)[0] == "absent":
+            print(
+                "  no pull-request checks are installed: `seal pr-checks "
+                f"install` writes {WORKFLOW}"
+            )
 
     print("\nNow commit. The switch is what the commit records:\n  git commit")
     if moved and wanted == SHARED:
         print(
-            f"Until then, `git reset -- :/{optin.HOME} :/{WORKFLOW}` and then "
+            f"Until then, `git reset -- :/{optin.HOME}` and then "
             "`seal mode local` puts it back — the switch stages, and the "
             "guard refuses a switch over a staged change. The pathspec is "
             "there because a bare `git reset` unstages the whole index."
@@ -2353,8 +2443,8 @@ def mode(args, cwd):
                 return 1
             # A check that fails where there is nothing to check teaches
             # people to delete the check. A workflow that outlived its root
-            # already goes red on `unverified_check.py`, which exits 2 for a
-            # path that is nowhere; this one has nothing to add to that.
+            # examines nothing on every step, `unverified_check.py` included
+            # (`absent_root`), and this one has nothing to add to that.
             print("no seal/ here, so nothing is declared and nothing can disagree.")
             return 0
         return no_root(repo, shared, local)
@@ -2529,6 +2619,20 @@ def main(argv=None, cwd=None):
         "--apply", action="store_true", help="switch to whatever the `Mode` row says"
     )
 
+    pc = sub.add_parser(
+        "pr-checks",
+        help="report, write or remove the workflow that checks pull requests "
+        "against the committed root",
+    )
+    pc.add_argument(
+        "action",
+        nargs="?",
+        choices=("install", "remove"),
+        help="write .github/workflows/hygiene.yml pinned to this release, or "
+        "take out the one this plugin wrote. With none, whether it is "
+        "installed is reported",
+    )
+
     nw = sub.add_parser(
         "no-work-item",
         help="record that this session's change on the branch checked out "
@@ -2543,6 +2647,8 @@ def main(argv=None, cwd=None):
     args = parser.parse_args(argv)
     if args.command == "no-work-item":
         return no_work_item(args, cwd)
+    if args.command == "pr-checks":
+        return pr_checks(args, cwd)
     if args.command == "export":
         return check(cwd) if args.check else export(args, cwd)
     if args.command == "mode":

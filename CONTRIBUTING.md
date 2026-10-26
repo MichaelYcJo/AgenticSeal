@@ -210,12 +210,14 @@ as *unknown*, not as ready, and passes every other call to the `gh` behind
 it. A case that means a draft or a ready pull request says so with
 `gh_answers`.
 
-Two steps of the hygiene workflow ship to user repositories as well, as
-`templates/hygiene.yml`: the unverified-rows tally and the chain check, run
-from a clone of this repository at the release the user installed. The
-`implement` skill writes it at a shared-mode first setup, so a change to
-either step here reaches a user at their next first setup, and the template
-has to keep telling the same story as the workflow.
+Three steps of the hygiene workflow ship to user repositories as well, as
+`templates/hygiene.yml`: the unverified-rows tally, the chain check and the
+mode check, run from a clone of this repository at the release the user
+installed. `seal pr-checks install` writes it, at first setup or later, so a
+change to any of them here reaches a user at their next install, and the
+template has to keep telling the same story as the workflow. Every step
+passes a pull request that declares nothing, and
+`tests/e2e/teammate/test_teammate_flow.py` runs each one to hold that.
 
 The broad runs come once, at the end. The `verify` skill's scope rule applies
 to work on this repository too: narrow runs while the work is still being

@@ -2,8 +2,9 @@
 
 Rebuilt by #942's phase 5 from `tests/test_the_records_can_be_carried_out_and_in.py`
 and `tests/test_the_mode_is_a_row_and_a_command.py`. `seal` carries a clone's
-`seal/` root to another clone (`export`, `import`) and moves it between the
-two places it can live (`mode`).
+`seal/` root to another clone (`export`, `import`), moves it between the
+two places it can live (`mode`), and writes or removes the pull-request
+checks (`pr-checks`).
 
 The units that read a name, a zip, a file or a config text run in the
 process on a case's own directory, with no git. The commands run through
@@ -2472,21 +2473,76 @@ class Test_plugin_workflow:
         assert SEAL.plugin_workflow() == ""
 
 
+class Test_workflow_at:
+    def test_accepts_the_file_this_plugin_writes_as_its_own(self, take):
+        repo = take("shared")
+        workflow_in(repo, SEAL.plugin_workflow(), commit=False)
+        assert SEAL.workflow_at(str(repo)) == ("plugin", SEAL.plugin_workflow())
+
+    @pytest.mark.parametrize(
+        "shape, kind",
+        [
+            ("absent", "absent"),
+            ("a link", "link"),
+            ("not utf-8", "unreadable"),
+            ("no clone line", "other"),
+        ],
+    )
+    def test_refuses_every_other_file_as_not_this_plugins(
+        self, take, tmp_path, shape, kind
+    ):
+        """One rule tells this plugin's file from somebody else's: a regular
+        file that reads and carries the plugin's clone line."""
+        repo = take("shared")
+        path = os.path.join(str(repo), WORKFLOW_PATH)
+        if shape == "a link":
+            os.makedirs(os.path.dirname(path))
+            symlink_or_skip(str(tmp_path / "nowhere.yml"), path)
+        elif shape == "not utf-8":
+            workflow_in(repo, "x", commit=False)
+            open(path, "wb").write(b"\xff" + SEAL.PLUGIN_CLONE.encode())
+        elif shape == "no clone line":
+            workflow_in(repo, "name: hygiene\njobs: {}\n", commit=False)
+        assert SEAL.workflow_at(str(repo))[0] == kind
+
+
+class Test_pinned:
+    def test_accepts_the_release_the_clone_line_names(self):
+        assert SEAL.pinned("git clone --depth 1 --branch v1.2.3 \\\n") == "v1.2.3"
+
+    def test_refuses_a_file_naming_no_release(self):
+        assert SEAL.pinned("name: hygiene\n") == ""
+
+
 class Test_install_workflow:
-    def test_accepts_a_clone_without_one_by_writing_it_pinned_and_staged(self, take):
-        repo = take("plain")
+    def test_accepts_a_shared_root_by_writing_it_pinned_and_staged(self, take):
+        repo = take("shared")
         version = SEAL.plugin_version()
         assert SEAL.install_workflow(str(repo)) == (
             "written",
-            f"  wrote .github/workflows/hygiene.yml (pinned to v{version}) and staged it",
+            f"wrote .github/workflows/hygiene.yml (pinned to v{version}) and staged it",
         )
         text = open(os.path.join(str(repo), WORKFLOW_PATH), encoding="utf-8").read()
         assert SEAL.PLACEHOLDER not in text and f"--branch v{version}" in text
         assert staged(repo) == ".github/workflows/hygiene.yml\n"
 
+    def test_accepts_its_own_file_already_there_by_naming_the_pin(self, take):
+        """S5: a repository set up by an older release keeps its file and its
+        pin; installing again writes nothing."""
+        repo = take("shared")
+        old = SEAL.plugin_workflow().replace(f"v{SEAL.plugin_version()}", "v0.1.0")
+        path = workflow_in(repo, old)
+        assert SEAL.install_workflow(str(repo)) == (
+            "installed",
+            ".github/workflows/hygiene.yml is already this plugin's, pinned to "
+            "v0.1.0, so nothing was written",
+        )
+        assert open(path, encoding="utf-8").read() == old and staged(repo) == ""
+
     @pytest.mark.parametrize(
         "shape, kind",
         [
+            ("no shared root", "no-root"),
             ("a file there", "kept"),
             ("no version", "no-version"),
             ("no template", "unreadable"),
@@ -2497,14 +2553,14 @@ class Test_install_workflow:
     def test_refuses_to_overwrite_or_to_write_what_it_cannot_pin_or_stage(
         self, take, tmp_path, monkeypatch, shape, kind
     ):
-        repo = take("plain")
+        repo = take("local" if shape == "no shared root" else "shared")
         path = os.path.join(str(repo), WORKFLOW_PATH)
         if shape == "a file there":
             workflow_in(repo, "name: someone else's\n", commit=False)
         elif shape == "an ignored directory":
             write(repo, ".gitignore", ".github/\n")
             commit_everything_as_e(repo, "ignore the workflow's directory")
-        else:
+        elif shape != "no shared root":
             version, template = '{"version": "1.2.3"}', "--branch v<version>\n"
             if shape == "no version":
                 version = None
@@ -2519,13 +2575,18 @@ class Test_install_workflow:
         assert found == kind, line
         if shape == "a file there":
             assert open(path, encoding="utf-8").read() == "name: someone else's\n"
-            assert "was already there and was left alone" in line
+            assert "is not this plugin's file, so nothing was written" in line
         elif shape == "an ignored directory":
             assert os.path.isfile(path) and staged(repo) == ""
             assert "`git add -f :/.github/workflows/hygiene.yml`" in line
         else:
             assert not os.path.lexists(path)
             assert "was NOT written" in line
+        if shape == "no shared root":
+            assert (
+                "the checks read committed records" in line
+                and "`seal mode shared` puts it in the tree" in line
+            )
         if shape == "no version":
             assert (
                 "version could not be read" in line and "templates/hygiene.yml" in line
@@ -2544,16 +2605,17 @@ class Test_remove_workflow:
         assert not os.path.lexists(path)
         if tracked:
             assert (
-                line == "  removed .github/workflows/hygiene.yml and staged the removal"
+                line == "removed .github/workflows/hygiene.yml and staged the removal"
             )
             assert any(entry.startswith("D  .github/") for entry in status(repo))
         else:
             assert "untracked, and byte for byte this plugin's" in line
+            assert "`seal pr-checks install` writes it back" in line
 
     @pytest.mark.parametrize(
         "shape, why",
         [
-            ("absent", ""),
+            ("absent", "there is no .github/workflows/hygiene.yml"),
             ("a link", "is a symbolic link, so it is not this plugin's file"),
             ("not utf-8", "could not be read ("),
             ("not this plugin's", "was not written by this plugin"),
@@ -2581,8 +2643,7 @@ class Test_remove_workflow:
         assert found == ("absent" if shape == "absent" else "kept"), line
         assert why in line, line
         assert os.path.lexists(path) == (shape != "absent")
-        if shape == "not this plugin's":
-            assert "whatever it runs there will read nothing" in line
+        assert "local mode" not in line, line
 
 
 class Test_say_report:
@@ -2812,10 +2873,16 @@ class Test_refusals:
             "an untracked file and the row it wrote",
             "moved by hand",
             "a submodule beside the root",
+            "an edited workflow",
         ],
     )
     def test_accepts_a_tree_the_switch_loses_nothing_of(self, take, shape):
+        """The switch stages nothing under `.github/`, so an edit there is
+        not its to lose."""
         repo = take("beside" if shape.startswith("a submodule") else "shared")
+        if shape == "an edited workflow":
+            workflow_in(repo, "name: hygiene\n")
+            workflow_in(repo, "name: hygiene\n# edited\n", commit=False)
         if shape == "an untracked file and the row it wrote":
             config_at(repo, HEAD)
             commit_everything_as_e(repo, "a config with no Mode row")
@@ -2850,15 +2917,11 @@ class Test_refusals:
             ),
             (
                 "a staged edit",
-                "the tree is not clean under the paths this would stage:\n  M  seal/follow-up.md\n",
+                "the tree is not clean under the path this would stage:\n  M  seal/follow-up.md\n",
             ),
             (
                 "a staged deletion",
-                "the tree is not clean under the paths this would stage:\n  D  seal/follow-up.md\n",
-            ),
-            (
-                "an edited workflow",
-                "the tree is not clean under the paths this would stage:\n   M .github/workflows/hygiene.yml\n",
+                "the tree is not clean under the path this would stage:\n  D  seal/follow-up.md\n",
             ),
             (
                 "a config that is a link",
@@ -2888,9 +2951,6 @@ class Test_refusals:
             git(repo, "add", "--", "seal/follow-up.md")
         elif shape == "a staged deletion":
             git(repo, "rm", "--quiet", "--", "seal/follow-up.md")
-        elif shape == "an edited workflow":
-            workflow_in(repo, "name: hygiene\n")
-            workflow_in(repo, "name: hygiene\n# edited\n", commit=False)
         elif shape == "a config that is a link":
             symlink_or_skip(
                 os.path.join(str(repo), "seal", "follow-up.md"),
@@ -2918,6 +2978,9 @@ class Test_switch:
     def test_accepts_shared_to_local_by_moving_staging_and_writing_the_row(
         self, take, capsys
     ):
+        """S4: the plugin's workflow, committed, stays in the tree and out of
+        the index, the output names the command that takes it out, and going
+        back leaves `.github/` as it was."""
         repo = take("shared")
         workflow = workflow_in(repo, SEAL.plugin_workflow())
         shared, local = roots(repo)
@@ -2925,11 +2988,20 @@ class Test_switch:
         assert code == 0, out
         assert not os.path.exists(shared)
         assert listed(local) == sorted([*RECORDS, "config.md"])
-        assert all(line.startswith("D ") for line in status(repo)), status(repo)
+        assert all(line.startswith("D  seal/") for line in status(repo)), status(repo)
         assert declared_in(repo) == ("mode", "local")
-        assert not os.path.exists(workflow)
-        assert "  removed .github/workflows/hygiene.yml and staged the removal\n" in out
+        assert open(workflow, encoding="utf-8").read() == SEAL.plugin_workflow()
+        assert (
+            "  .github/workflows/hygiene.yml stays: in local mode its checks "
+            "examine nothing and pass, and `seal pr-checks remove` takes them out\n"
+        ) in out
         assert "`seal export` here and `seal import` there" in out
+        commit_everything_as_e(repo, "the switch to local")
+        code, out = said(capsys, repo, "mode", "shared")
+        assert code == 0, out
+        assert open(workflow, encoding="utf-8").read() == SEAL.plugin_workflow()
+        assert not any(".github" in line for line in status(repo)), status(repo)
+        assert "seal pr-checks install" not in out, out
 
     def test_accepts_local_to_shared_and_says_the_commit_is_the_door(
         self, take, capsys
@@ -2941,20 +3013,20 @@ class Test_switch:
         assert not os.path.exists(local)
         assert listed(shared) == sorted([*RECORDS, "config.md"])
         assert staged(repo).splitlines() == sorted(
-            [
-                ".github/workflows/hygiene.yml",
-                *(f"seal/{rel}" for rel in [*RECORDS, "config.md"]),
-            ]
+            f"seal/{rel}" for rel in [*RECORDS, "config.md"]
         )
+        assert not os.path.lexists(os.path.join(str(repo), WORKFLOW_PATH))
         assert declared_in(repo) == ("mode", "shared")
         assert out.index("history") < out.index("Now commit")
+        assert out.count("`git reset -- :/seal`") == 2, out
         assert (
-            out.count("`git reset -- :/seal :/.github/workflows/hygiene.yml`") == 2
-        ), out
+            "  no pull-request checks are installed: `seal pr-checks install` "
+            "writes .github/workflows/hygiene.yml\n"
+        ) in out
 
     def test_accepts_the_way_back_it_names_from_a_subdirectory(self, take, capsys):
         """The way back is spelled with `:/`, so it works from where a person
-        stands, and it walks back the workflow the switch wrote."""
+        stands."""
         repo = take("local")
         write(repo, "docs/x.md", "x\n")
         commit_everything_as_e(repo, "a subdirectory")
@@ -2971,7 +3043,6 @@ class Test_switch:
         code, out = said(capsys, repo / "docs", "mode", "local")
         assert code == 0, out
         assert not (repo / "seal").exists()
-        assert not os.path.lexists(os.path.join(str(repo), WORKFLOW_PATH))
 
     @pytest.mark.parametrize("wanted", ["local", "shared"])
     def test_accepts_a_run_stopped_after_the_move_as_one_to_finish(
@@ -3058,38 +3129,16 @@ class Test_switch:
         assert "Nothing else has run." in out and '  mv "' in out
         assert after == before
 
-    @pytest.mark.parametrize("ignored", ["seal/", ".github/"])
-    def test_refuses_to_call_a_stage_git_turned_down_staged(
-        self, take, capsys, ignored
-    ):
-        """And the command it names instead works from a subdirectory."""
+    def test_refuses_to_call_a_stage_git_turned_down_staged(self, take, capsys):
         repo = take("local")
-        write(repo, ".gitignore", ignored + "\n")
+        write(repo, ".gitignore", "seal/\n")
         write(repo, "docs/x.md", "x\n")
         commit_everything_as_e(repo, "an ignore rule")
         code, out = said(capsys, repo / "docs", "mode", "shared")
         assert code == 0, out
         assert "could NOT be staged" in out
-        if ignored == "seal/":
-            assert "A commit now would record nothing." in out
-            assert "staged seal/\n" not in out
-            return
-        assert "the pull-request checks would never run." in out
-        assert ".github" not in staged(repo)
-        (prescribed,) = [
-            span
-            for line in out.splitlines()
-            for span in line.split("`")[1::2]
-            if span.startswith("git add -f")
-        ]
-        done = subprocess.run(
-            prescribed.split(),
-            cwd=str(repo / "docs"),
-            capture_output=True,
-            encoding="utf-8",
-        )
-        assert done.returncode == 0, done.stderr
-        assert ".github/workflows/hygiene.yml" in staged(repo)
+        assert "A commit now would record nothing." in out
+        assert "staged seal/\n" not in out
 
 
 class Test_mode:
@@ -3147,6 +3196,100 @@ class Test_mode:
         if row is None:
             assert "  | Mode | local |\n" in out
         assert snapshot(repo) == before
+
+
+class Test_pr_checks:
+    """S3 and S5: the checks are a command of their own, and the workflow
+    file is the one record of whether they are installed."""
+
+    def test_accepts_install_report_and_remove_in_turn(self, take, capsys):
+        repo = take("shared")
+        version = SEAL.plugin_version()
+        assert said(capsys, repo, "pr-checks") == (
+            0,
+            "not installed: there is no .github/workflows/hygiene.yml. "
+            "`seal pr-checks install` writes it where seal/ is in the tree.\n",
+        )
+        code, out = said(capsys, repo, "pr-checks", "install")
+        assert code == 0, out
+        assert out == (
+            f"wrote .github/workflows/hygiene.yml (pinned to v{version}) and staged it\n"
+        )
+        commit_everything_as_e(repo, "the checks")
+        code, out = said(capsys, repo, "pr-checks", "install")
+        assert code == 0 and "already this plugin's, pinned to v" in out, out
+        assert said(capsys, repo, "pr-checks") == (
+            0,
+            "installed: .github/workflows/hygiene.yml is this plugin's "
+            f"pull-request checks, pinned to v{version}. `seal pr-checks remove` "
+            "takes them out.\n",
+        )
+        code, out = said(capsys, repo, "pr-checks", "remove")
+        assert code == 0, out
+        assert not os.path.lexists(os.path.join(str(repo), WORKFLOW_PATH))
+        code, out = said(capsys, repo, "pr-checks", "remove")
+        assert code == 0, out
+        assert "there is no .github/workflows/hygiene.yml" in out
+
+    def test_accepts_remove_where_the_root_left_the_tree(self, take, capsys):
+        """A workflow that outlived its root is the case `remove` is for."""
+        repo = take("local")
+        workflow_in(repo, SEAL.plugin_workflow())
+        code, out = said(capsys, repo, "pr-checks", "remove")
+        assert code == 0, out
+        assert "D  .github/workflows/hygiene.yml" in status(repo)
+
+    def test_refuses_install_in_local_mode_and_writes_nothing(self, take, capsys):
+        repo = take("local")
+        before = snapshot(repo)
+        code, out = said(capsys, repo, "pr-checks", "install")
+        assert code == 1, out
+        assert "the checks read committed records" in out
+        assert snapshot(repo) == before
+
+    @pytest.mark.parametrize("action", ["", "install", "remove"])
+    def test_refuses_somebody_elses_file_and_leaves_it(self, take, capsys, action):
+        repo = take("shared")
+        path = workflow_in(repo, "name: hygiene\njobs: {}\n")
+        code, out = said(capsys, repo, "pr-checks", *([action] if action else []))
+        assert code == (0 if not action else 1), out
+        assert open(path, encoding="utf-8").read() == "name: hygiene\njobs: {}\n"
+        if not action:
+            assert out == (
+                "not this plugin's: .github/workflows/hygiene.yml is there and "
+                "does not carry this plugin's clone line, so this plugin's checks "
+                "are not installed and that file is left alone.\n"
+            )
+
+    def test_refuses_to_call_an_install_git_turned_down_staged(self, take, capsys):
+        """And the command it names instead works from a subdirectory."""
+        repo = take("shared")
+        write(repo, ".gitignore", ".github/\n")
+        write(repo, "docs/x.md", "x\n")
+        commit_everything_as_e(repo, "an ignore rule")
+        code, out = said(capsys, repo / "docs", "pr-checks", "install")
+        assert code == 1, out
+        assert "the pull-request checks would never run." in out
+        assert ".github" not in staged(repo)
+        (prescribed,) = [
+            span
+            for line in out.splitlines()
+            for span in line.split("`")[1::2]
+            if span.startswith("git add -f")
+        ]
+        done = subprocess.run(
+            prescribed.split(),
+            cwd=str(repo / "docs"),
+            capture_output=True,
+            encoding="utf-8",
+        )
+        assert done.returncode == 0, done.stderr
+        assert ".github/workflows/hygiene.yml" in staged(repo)
+
+    def test_refuses_outside_a_repository(self, capsys, tmp_path):
+        code, out = said(capsys, tmp_path, "pr-checks")
+        assert code == 1, out
+        assert "not inside a git repository" in out
 
 
 class Test_check:
@@ -3352,13 +3495,16 @@ class Test_main:
             (["import", "x.zip"], "import_"),
             (["mode", "local"], "mode"),
             (["no-work-item"], "no_work_item"),
+            (["pr-checks"], "pr_checks"),
+            (["pr-checks", "install"], "pr_checks"),
+            (["pr-checks", "remove"], "pr_checks"),
         ],
     )
     def test_accepts_each_subcommand_and_hands_it_on(
         self, monkeypatch, tmp_path, argv, called
     ):
         seen = []
-        for name in ("export", "check", "import_", "mode", "no_work_item"):
+        for name in ("export", "check", "import_", "mode", "no_work_item", "pr_checks"):
             monkeypatch.setattr(
                 SEAL, name, lambda *a, _name=name: seen.append(_name) or 0
             )
@@ -3373,6 +3519,7 @@ class Test_main:
             ["mode", "local", "--apply"],
             ["mode", "--check", "--apply"],
             ["mode", "local", "--check"],
+            ["pr-checks", "add"],
         ],
         ids=[
             "no subcommand",
@@ -3380,6 +3527,7 @@ class Test_main:
             "a mode and apply",
             "check and apply",
             "a mode and check",
+            "no action",
         ],
     )
     def test_refuses_arguments_with_two_answers_or_none(self, capsys, tmp_path, argv):

@@ -57,6 +57,20 @@ class Test_main:
         assert "committed" in said
         assert str(repo / "seal") in said
 
+    def test_refuses_with_options_that_leave_the_checks_to_their_own_command(
+        self, repo
+    ):
+        """S7 of #952: moving the root installs and removes nothing under
+        `.github/`, so neither option promises the workflow."""
+        opt_in_shared(repo)
+        said = " ".join(reason_of(run_hook(GATE, payload("ls", repo))).split())
+        shared = said.split('2. "Shared"')[1].split('3. "Local"')[0]
+        local = said.split('3. "Local"')[1]
+        assert "Nothing is installed under .github/" in shared, shared
+        assert "`seal pr-checks install`" in shared, shared
+        assert "A workflow file already in the tree stays" in local, local
+        assert "checks are installed" not in shared and "removed" not in local
+
     def test_refuses_on_the_first_command_not_at_the_commit(self, repo):
         """The budget decided this, not the act #151 names. Scoping the gate to a
         commit puts the question beside the review arm's, at minute thirty, on a

@@ -420,16 +420,16 @@ table.
 ### Shared or local
 
 The first time your session works in a repository it asks one question, once,
-and never again: where `seal/` lives. Whichever place holds the folder is the
-mode; there is no config key, and a repository with `seal/` at either place
-is not asked.
+and never again: where `seal/` lives, and whether CI checks pull requests
+against it. Whichever place holds the folder is the mode; there is no config
+key, and a repository with `seal/` at either place is not asked.
 
-| | Shared (the default) | Local |
-|---|---|---|
-| Where `seal/` lives | `<repo>/seal/`, committed | `$(git rev-parse --git-common-dir)/seal/` — under the common git dir, which is `.git/` in a main tree |
-| What setup installs | the pull-request checks, `.github/workflows/hygiene.yml` written from the plugin's `templates/hygiene.yml` only if no file is there | nothing; the tree is untouched |
-| Fits | your own repository, or one where a committed `seal/` bothers nobody | a repository whose tree must not carry this plugin's files: a company repository, a contribution to someone else's project |
-| Gives up | nothing | CI — the checks read committed files — and every other machine or re-clone, which starts empty |
+| | Shared, records only (the default) | Shared, with pull-request checks | Local |
+|---|---|---|---|
+| Where `seal/` lives | `<repo>/seal/`, committed | `<repo>/seal/`, committed | `$(git rev-parse --git-common-dir)/seal/` — under the common git dir, which is `.git/` in a main tree |
+| What setup installs | nothing under `.github/` | the pull-request checks, `.github/workflows/hygiene.yml` written from the plugin's `templates/hygiene.yml` only if no file is there | nothing; the tree is untouched |
+| Fits | your own repository, or one where a committed `seal/` bothers nobody | a repository where every pull request should be checked against the records | a repository whose tree must not carry this plugin's files: a company repository, a contribution to someone else's project |
+| Gives up | CI's checks, until you add them later | nothing | CI — the checks read committed files — and every other machine or re-clone, which starts empty |
 
 Local mode sits under the git directory rather than behind a `.gitignore`
 line because a linked worktree checks out committed files only, so an ignored
@@ -447,12 +447,28 @@ seal mode shared     # move it into the tree
 The move itself is two shell lines, printed further down. What the command
 adds is everything around them: it refuses when the other mode's root is
 already there, refuses over a submodule under the root, refuses when the
-index carries a change under `seal/` or at the workflow's own path — `git rm
--r --cached` takes a staged edit out of the index without a word about it —
-carries `.github/workflows/hygiene.yml` in and out where it can and says so
-where it cannot, and writes the mode into `seal/config.md` so the file and
-the folder agree afterwards. The hooks
-need no restart: the next command reads the folder where it is.
+index carries a change under `seal/` — `git rm -r --cached` takes a staged
+edit out of the index without a word about it — and writes the mode into
+`seal/config.md` so the file and the folder agree afterwards. It moves the
+root and nothing else: `.github/` is left as it was. The hooks need no
+restart: the next command reads the folder where it is.
+
+**The pull-request checks are a command of their own**, whichever answer
+first setup was given:
+
+```bash
+seal pr-checks           # whether .github/workflows/hygiene.yml is this plugin's, and the release it pins
+seal pr-checks install   # write it pinned to the release you run, and stage it
+seal pr-checks remove    # take out the file this plugin wrote
+```
+
+`install` refuses where `seal/` is not in the tree, because the checks read
+committed records, and it never overwrites a file it did not write. Every
+step of the workflow passes a pull request that declares nothing, so a
+teammate who never used the plugin is not stopped by it. The file keeps the
+release it names until you edit its `--branch` line, or remove it and
+install it again. No config row says whether the checks are installed; the
+file is the record.
 
 **The row says what you want; the folder says what you have.** Nothing at
 runtime reads the row — every gate finds the root by looking for it, in the
@@ -475,12 +491,10 @@ out of the tree, and every other clone loses them at the next pull — `seal
 export` here and `seal import` there is how a teammate gets a copy. Going to
 shared is the one to be sure about: once you commit, the records are in the
 history, and taking them out of the tree later does not take them out of it.
-Until that commit, `git reset -- :/seal :/.github/workflows/hygiene.yml` and
-then
-`seal mode local` walk the whole thing back — the switch stages, and the guard
-refuses a switch over a staged change. The pathspec is there because a bare
-`git reset` unstages the whole index, and the guard has never looked outside
-those two paths.
+Until that commit, `git reset -- :/seal` and then `seal mode local` walk the
+whole thing back — the switch stages, and the guard refuses a switch over a
+staged change. The pathspec is there because a bare `git reset` unstages the
+whole index, and the guard has never looked outside that path.
 
 By hand it is a move and a commit, from the repository root — both paths are
 asked of git, so a subdirectory as the working directory lands them in the
@@ -493,13 +507,9 @@ mv "$(git rev-parse --git-common-dir)/seal" "$(git rev-parse --show-toplevel)/se
 git rm -r --cached "$(git rev-parse --show-toplevel)/seal" && mv "$(git rev-parse --show-toplevel)/seal" "$(git rev-parse --git-common-dir)/seal"
 ```
 
-Doing it that way leaves the workflow file where it was, and that is the half
-worth knowing about. Copy `$CLAUDE_PLUGIN_ROOT/templates/hygiene.yml` in with
-`v<version>` replaced by the release you run, or delete
-`.github/workflows/hygiene.yml`. Left behind after a move to local it runs
-checks that read committed files in a repository that commits none: one of
-them goes red on every pull request forever, and the other goes green having
-examined nothing.
+Doing it that way leaves `.github/` alone, as `seal mode` does. A workflow
+left behind after a move to local examines nothing on every step and passes,
+because no root is in the tree; `seal pr-checks remove` takes it out.
 
 Between two machines the move is not available, because the other machine has
 no folder to move. That is what `seal export` and `seal import` below are for,

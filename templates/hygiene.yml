@@ -2,27 +2,22 @@
 # request committed: the review chain's round record, and the closing memo's
 # rows of what nobody verified.
 #
-# Setup: the `implement` skill writes this file to
-# .github/workflows/hygiene.yml at first setup, in shared mode only, and only
-# when nothing is there yet; an existing file is never overwritten. It pins
-# `v<version>` below to the plugin version installed at that moment, so the
-# checks come from the release that wrote the file. The line moves when a
-# person edits it, or deletes this file and lets the next first setup write
-# it again.
+# Setup: `seal pr-checks install` writes this file to
+# .github/workflows/hygiene.yml, at first setup under the answer "shared,
+# with pull-request checks" or at any time later, and only when nothing is
+# there yet; an existing file is never overwritten. It pins `v<version>`
+# below to the plugin version installed at that moment, so the checks come
+# from the release that wrote the file. The line moves when a person edits
+# it, or runs `seal pr-checks remove` and then `seal pr-checks install`.
 #
-# Why local mode installs no copy: both checks read committed files
+# Why it refuses in local mode: the checks read committed files
 # (`chain_check.py` lists `seal/specs/` with `git ls-tree HEAD`, and
 # `unverified_check.py` diffs against `--baseline <ref>`), and local mode
 # keeps the root under the git directory, where nothing is ever committed.
-# A workflow left there is red forever: `unverified_check.py` exits 2 for a
-# path that is nowhere, and since nothing here carries `continue-on-error`
-# or `if: always()`, the job stops, and the steps after it, `chain_check.py`
-# among them, never run; that check would have exited 0 for a repository
-# that declared nothing, green having examined nothing. The build is red for
-# a repository doing the right thing. The way to get CI is the switch to
-# shared mode:
-# `seal mode shared` moves the root into the tree, stages it, and writes this
-# file pinned to the plugin release it runs, and whoever ran it commits.
+# `seal mode` moves the root and leaves this file alone, so a copy can stay
+# after a switch to local. There every step examines nothing and passes: no
+# `seal/` is in the tree, so nothing is declared, and a pull request that
+# declares nothing owes nothing. `seal pr-checks remove` takes the copy out.
 #
 # Done by hand instead: a person copies this file to
 # .github/workflows/hygiene.yml and replaces v<version> with the tag of the

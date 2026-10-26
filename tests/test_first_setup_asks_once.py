@@ -7,8 +7,9 @@ the root in code (`hooks/optin.py#home_at`) and are pinned by
 `tests/test_optin.py`, `tests/test_commit_review_gate.py` and
 `tests/test_implementer_notice.py`. What is pinned HERE
 is the text: the one question the `implement`
-skill asks, the sentence a session needs, the workflow template shared mode
-installs and the reason local mode has none, and the switch the READMEs give.
+skill asks, the sentence a session needs, the workflow template
+`seal pr-checks install` writes and what local mode does to it, and the
+switch the READMEs give.
 
 Every case was executed against the documents as they stood at 7e44106,
 before any of them was edited, and every case failed; the output is in the
@@ -65,26 +66,37 @@ def both_halves():
     return read(*SKILL) + read(*ORCH)
 
 
-# --- S4: one question, two options, shared first --------------------------
+# --- S4: one question, three options, records only first ------------------
+
+RECORDS_ONLY = "**shared, records only**"
+WITH_CHECKS = "**shared, with pull-request checks**"
 
 
-def test_the_two_options_are_named_in_order_with_shared_as_the_default():
+def test_the_three_options_are_named_in_order_with_records_only_as_the_default():
+    """#952: where the records live and whether CI checks pull requests are
+    two answers, and the default installs nothing that can stop a teammate."""
     boot = bootstrap()
     assert "AskUserQuestion" in boot
-    shared, local = boot.index("**shared**"), boot.index("**local**")
-    assert shared < local, "local is offered before shared"
-    assert "default" in boot[shared:local], "shared is not marked as the default"
+    first, second = boot.index(RECORDS_ONLY), boot.index(WITH_CHECKS)
+    local = boot.index("**local**")
+    assert first < second < local, "the options are not in their order"
+    assert "default" in boot[first:second], "records only is not the default"
+    assert "**shared**" not in boot, "a two-option label is still offered"
 
 
 def test_each_option_says_what_it_creates_and_what_it_installs():
+    """S2 of #952: records only writes nothing under `.github/`, and the
+    checks are the command's to write."""
     boot = bootstrap()
-    shared = paragraph(boot, "**shared**")
+    records = paragraph(boot, RECORDS_ONLY)
+    checks = paragraph(boot, WITH_CHECKS)
     local = paragraph(boot, "**local**")
-    assert "creates `<repo>/seal/`" in shared
-    assert "routing commit" in shared, (
+    assert "creates `<repo>/seal/`" in records
+    assert "routing commit" in records, (
         "the shared option does not say what carries the root"
     )
-    assert "hygiene" in shared, "the shared option does not say what it installs"
+    assert "writes nothing under `.github/`" in records, records
+    assert "`seal pr-checks install`" in checks, checks
     assert f"creates `{COMMON_DIR}`" in local
     assert "installs nothing" in local
     assert "touches nothing in the tree" in local
@@ -341,7 +353,7 @@ def test_an_unmoved_old_layout_is_not_asked_but_told():
     of offering local mode beside a layout the hook will move into the tree."""
     boot = bootstrap()
     assert "0.3.x layout" in boot
-    assert boot.index("0.3.x layout") < boot.index("**shared**")
+    assert boot.index("0.3.x layout") < boot.index(RECORDS_ONLY)
     assert "moves it" in boot
 
 
@@ -361,7 +373,7 @@ def test_a_bare_specs_is_asked_and_only_the_plugins_marks_are_told():
     bare = paragraph(boot, BARE_SPECS)
     assert "go on to the question" in bare, bare
     assert "leave the directory where it is" in bare, bare
-    assert boot.index(told[:40]) < boot.index(BARE_SPECS) < boot.index("**shared**")
+    assert boot.index(told[:40]) < boot.index(BARE_SPECS) < boot.index(RECORDS_ONLY)
 
 
 # --- Q1: the sentence a session reads, once in each place -----------------
@@ -406,7 +418,7 @@ def test_the_session_rule_sits_in_the_layout_section_of_the_skill():
     )
 
 
-# --- S5 and S7: what shared mode installs, and why local mode has none ------
+# --- S5 and S7: what `seal pr-checks install` writes, and local mode --------
 
 
 def template():
@@ -434,53 +446,34 @@ def test_the_rows_that_read_this_repository_do_not_travel(stays_home):
     assert stays_home not in template()
 
 
-def test_the_template_header_says_why_local_mode_installs_none():
-    header = "\n".join(
-        line
-        for line in template().split("\nname:", 1)[0].splitlines()
-        if line.startswith("#")
+def test_the_template_header_says_who_writes_it_and_what_local_mode_does_to_it():
+    """#952: `seal pr-checks install` writes the file and refuses in local
+    mode, and a copy left after a switch to local examines nothing and
+    passes, which phase 1 made true of every step."""
+    header = flat(
+        "\n".join(
+            line
+            for line in template().split("\nname:", 1)[0].splitlines()
+            if line.startswith("#")
+        )
     )
-    assert "local mode" in header
-    # Both directions, not one. Round 1 of #104 found the header carrying the
-    # two exit codes correctly and the conclusion drawn from them wrong: a
-    # step that exits 2 is not a green build. `unverified_check.py` is red
-    # forever and `chain_check.py` reports a pass it never earned, and the
-    # header has to say both or it teaches the milder half.
-    assert "red forever" in header
-    # And why only red. Round 2 of #104 found the previous wording — "fails in
-    # both directions at once" — describing something the workflow does not
-    # do: `unverified_check.py` runs before `chain_check.py` and nothing
-    # carries `continue-on-error`, so the job stops and the second check never
-    # runs at all. Right exit codes, wrong conclusion, for the second time on
-    # the same sentence.
-    assert "never run" in header
-    assert "examined nothing" in header
-    assert "exits 2" in header
-    assert "seal mode shared" in header, (
-        "the header does not name the command that gets CI"
-    )
+    assert "`seal pr-checks install` writes" in header, header
+    assert "refuses in local mode" in header, header
+    assert "examines nothing and passes" in header, header
+    assert "`seal pr-checks remove`" in header, header
+    assert "red forever" not in header, header
 
 
 def test_the_skill_writes_the_workflow_only_when_absent_and_local_installs_nothing():
+    """The orchestrator runs the command rather than writing the file, so
+    the file has one writer (#952)."""
     boot = flat(bootstrap())
     assert "templates/hygiene.yml" in boot
     assert ".github/workflows/hygiene.yml" in boot
     assert "only when" in boot and "absent" in boot
     assert "never overwritten" in boot
     assert "installs nothing" in boot
-
-
-def test_the_version_is_read_from_the_plugin_root_and_not_from_the_tree():
-    """Round 1 of #80, 🟡 4. The bootstrap said to read `version` from "the
-    plugin's `.claude-plugin/plugin.json`" with no path. The session sits in
-    the user's repository and that file sits in the plugin cache; a wrong read
-    leaves `v<version>` in the workflow, and CI's `git clone --branch` fails.
-    `skills/update/SKILL.md` already spells the path; the bootstrap does too,
-    with the one-line command that reads it."""
-    boot = flat(bootstrap())
-    assert "$CLAUDE_PLUGIN_ROOT/.claude-plugin/plugin.json" in boot
-    assert "python3 -c" in boot, "no command reads the version"
-    assert 'os.environ["CLAUDE_PLUGIN_ROOT"]' in boot
+    assert "then runs `seal pr-checks install`" in boot, boot
 
 
 # --- S8 and S1: the READMEs -----------------------------------------------
@@ -501,9 +494,10 @@ def test_the_readme_gives_both_moves_under_first_run(readme):
     assert f'git add "{TOP}"' in body
     assert f'git rm -r --cached "{TOP}"' in body
     assert f'mv "{TOP}" "{COMMON}"' in body
-    assert "$CLAUDE_PLUGIN_ROOT/templates/hygiene.yml" in body, (
-        "the workflow is installed by hand, from the plugin's cache"
+    assert "seal pr-checks install" in body and "seal pr-checks remove" in body, (
+        "the checks are their own command, and the section does not name it"
     )
+    assert "`git reset -- :/seal`" in body and "reset -- :/seal :/" not in body
     assert "seal export" in body and "seal import" in body, (
         "the move is only available where both folders are on one machine, so "
         "this section has to point at the pair that works between two (#81). "
