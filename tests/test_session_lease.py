@@ -23,6 +23,7 @@ from conftest import (
     lease_dir,
     load_hook_module,
     payload,
+    run,
     run_hook,
     stub_process_tree,
 )
@@ -77,6 +78,24 @@ def run_main_in_process(repo, monkeypatch, session, filed=None):
         return json.load(f)
 
 
+class Test_git_dir:
+    def test_accepts_a_repository_and_answers_its_absolute_git_dir(self, repo):
+        assert sl.git_dir(str(repo)) == git_dir(repo)
+
+    def test_refuses_a_failed_git_whatever_it_printed(self, repo, monkeypatch):
+        """A git that exits non-zero answers nothing, even where it wrote a
+        path: the exit is the answer, and the lease goes nowhere rather than
+        under a directory a failed call named (#1017, the body's `git_dir` row
+        on a non-zero exit). The real git prints nothing on a failure, so the
+        failure is faked to remove that guarantee (contract rule 13)."""
+
+        def failed(cmd, **kwargs):
+            return subprocess.CompletedProcess(cmd, 128, stdout="/x/.git\n", stderr="")
+
+        monkeypatch.setattr(sl.subprocess, "run", failed)
+        assert sl.git_dir(str(repo)) is None
+
+
 class Test_main:
     # --- which repository a call leases --------------------------------------
 
@@ -100,6 +119,69 @@ class Test_main:
         }
         run_hook("session-lease.py", p)
         assert session in leases_of(repo)
+
+    def test_accepts_a_notebook_edit_and_leases_the_notebooks_repo(
+        self, repo, tmp_path
+    ):
+        """`NotebookEdit` names its file under `notebook_path`, and it is an
+        edit like the other two (#1017, round 3's s6)."""
+        p = {
+            "tool_name": "NotebookEdit",
+            "session_id": "sess-nb",
+            "tool_input": {"notebook_path": str(repo / "n.ipynb")},
+            "cwd": str(tmp_path),
+        }
+        run_hook("session-lease.py", p)
+        assert leases_of(repo) == ["sess-nb"]
+
+    def test_refuses_a_tool_that_is_neither_bash_nor_an_editor(self, repo):
+        """A `Read` in the repository touches nothing, so it leases nothing
+        (#1017, the body's tool-test row)."""
+        p = {
+            "tool_name": "Read",
+            "session_id": "sess-read",
+            "tool_input": {"file_path": str(repo / "f.txt")},
+            "cwd": str(repo),
+        }
+        run_hook("session-lease.py", p)
+        assert leases_of(repo) == []
+
+    def test_refuses_a_target_that_is_no_directory_whatever_git_answers(
+        self, repo, monkeypatch
+    ):
+        """An edited path whose parent is a FILE names no directory to lease.
+        The real git refuses such a directory too, so `git_dir` is faked to
+        answer for any path, which removes that guarantee (contract rule 13;
+        #1017, the body's directory-test row and round 3's s9)."""
+        (repo / "f.txt").write_text("x\n", encoding="utf-8")
+        answer = git_dir(repo)
+        monkeypatch.setattr(sl, "git_dir", lambda path: answer)
+        p = {
+            "tool_name": "Write",
+            "session_id": "sess-file",
+            "tool_input": {"file_path": str(repo / "f.txt" / "inner.txt")},
+            "cwd": str(repo),
+        }
+        run(sl, monkeypatch, p)
+        assert leases_of(repo) == []
+
+    def test_refuses_a_call_outside_any_repo_without_raising(
+        self, tmp_path, monkeypatch
+    ):
+        """Where `git_dir` finds no repository the hook returns, in the process
+        and not by an exception the harness reports (#1017, the body's
+        `git_dir` row outside a repository and round 3's s10)."""
+        run(sl, monkeypatch, payload("ls", tmp_path, session="sess-out"))
+        assert not os.path.exists(tmp_path / "specseal-leases")
+
+    def test_accepts_a_session_id_with_a_separator_and_files_it_by_its_basename(
+        self, repo
+    ):
+        """The id names a file under `specseal-leases/`, so only its last part
+        is used, and a separator in it cannot reach another directory (#1017,
+        the body's session-id row)."""
+        run_hook("session-lease.py", payload("ls", repo, session="nested/sess-n"))
+        assert leases_of(repo) == ["sess-n"]
 
     def test_accepts_a_bash_call_in_a_subdirectory_and_leases_the_repo_root(self, repo):
         (repo / "sub").mkdir()
@@ -215,6 +297,21 @@ class Test_main:
         assert "pid" not in rec
         assert rec["host"] == socket.gethostname()
 
+    def test_refuses_to_record_a_pid_when_reading_the_owner_raises(
+        self, repo, monkeypatch
+    ):
+        """Any error reading the owner records no pid, and the lease is still
+        written: a lease is a safety net, never a blocker (#1017, round 3's
+        s12)."""
+
+        def broken(environ=None):
+            raise RuntimeError("the reader failed")
+
+        monkeypatch.setattr(sl.hooksession, "claude_pid", broken)
+        rec = run_main_in_process(repo, monkeypatch, "sess-broken")
+        assert "pid" not in rec
+        assert rec["host"] == socket.gethostname()
+
     @pytest.mark.parametrize("payload", [None, ""])
     @pytest.mark.parametrize("environment", [None, ""])
     def test_refuses_a_pid_beside_no_session_id_on_either_side(
@@ -263,6 +360,18 @@ class Test_main:
             run_lease_hook(repo, "sess-y")
         finally:
             os.chmod(d, 0o700)
+
+    def test_refuses_to_raise_where_the_lease_directory_cannot_be_made(
+        self, repo, monkeypatch
+    ):
+        """A FILE where the lease directory goes makes the write fail on every
+        platform, which a mode bit does not on Windows. The failure stays in
+        the hook (#1017, the body's write-error row)."""
+        blocker = os.path.join(git_dir(repo), "specseal-leases")
+        with open(blocker, "w", encoding="utf-8") as f:
+            f.write("not a directory")
+        run(sl, monkeypatch, payload("ls", repo, session="sess-z"))
+        assert os.path.isfile(blocker)
 
 
 test_census = census_case(TARGET)
