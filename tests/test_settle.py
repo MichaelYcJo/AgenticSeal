@@ -860,6 +860,27 @@ class Test_main:
         ), text
         assert "not in the tree" not in text, text
 
+    def test_a_shared_run_from_a_subdirectory_reads_the_repositorys_top(
+        self, repo, gh, capfd
+    ):
+        """Round 2 finding 1 of #955: `main` resolves the root to the
+        repository's top in both modes, so a shared run from a subdirectory
+        prints what a run from the top prints. It used to refuse, saying the
+        repository had no seal/specs/ at either place, which was false there."""
+        item(repo, "1700000001-a", op("add", "S", new="Rule."))
+        commit(repo, "released a")
+        top = dry_run(repo, capfd)
+        assert top[0] == 0, top[1]
+        assert group_text(top[1]).startswith(
+            "    place: docs/a.md section `S`, at docs/a.md:3-9\n"
+        ), top[1]
+        below = str(repo / "docs")
+        code = settle.main(["--root", below, "--released-at", "main"])
+        out = capfd.readouterr()
+        assert (code, out.out + out.err) == top, out.out + out.err
+        assert "at either place" not in out.err, out.err
+        assert gh.calls() == [], gh.calls()
+
     def test_the_local_dry_runs_texts_say_what_they_hold(self, capsys):
         """Contract rule 14 for #955's dry run: the sentences a person acts
         on are pinned, not only their presence. `--released-at`'s help names
