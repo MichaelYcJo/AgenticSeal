@@ -245,8 +245,10 @@ def question_reason(root, home):
         "should travel with the repository.\n"
         '    3. "Local" — run `seal mode local`. The root moves under the '
         "common git directory, and nothing about this repository is "
-        "committed. A workflow file already in the tree stays, and its "
-        "checks examine nothing in this mode. Choose it when the records "
+        "committed. A workflow file already in the tree stays. Pinned to "
+        "this release, its checks examine nothing in this mode; pinned to an "
+        "older one, they fail every pull request until its `--branch` line "
+        "moves or `seal pr-checks remove` takes it out. Choose it when the records "
         "should not leave this machine.\n\n"
         "Then run what they picked. Re-issuing the command instead reaches "
         "the ordinary approval prompt, where approving proceeds and records "

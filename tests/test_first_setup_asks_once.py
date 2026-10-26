@@ -482,6 +482,24 @@ READMES = {
     "README.md": ("## First run", "### Shared or local"),
     "README.ko.md": ("## 처음 실행", "### shared 인가 local 인가"),
 }
+# What a workflow left after a move to local does, by its pin (round 1 of
+# #952, finding 2): one at this release passes, an older one fails.
+LEFT_BEHIND = {
+    "README.md": (
+        "A workflow left behind after a move to local and pinned to this "
+        "release examines nothing on every step and passes",
+        "One pinned to an older release fails every pull request there until "
+        "its `--branch` line moves to this release or `seal pr-checks remove` "
+        "takes it out.",
+    ),
+    "README.ko.md": (
+        "local 로 옮긴 뒤 남은 워크플로가 이 릴리스로 고정되어 있으면 모든 "
+        "단계에서 아무것도 보지 않고 통과합니다.",
+        "그보다 오래된 릴리스로 고정된 워크플로는 `--branch` 줄을 이 릴리스로 "
+        "옮기거나 `seal pr-checks remove` 로 빼기 전까지 그곳의 모든 PR 을 "
+        "실패시킵니다.",
+    ),
+}
 
 
 @pytest.mark.parametrize("readme", sorted(READMES))
@@ -498,6 +516,8 @@ def test_the_readme_gives_both_moves_under_first_run(readme):
         "the checks are their own command, and the section does not name it"
     )
     assert "`git reset -- :/seal`" in body and "reset -- :/seal :/" not in body
+    for sentence in LEFT_BEHIND[readme]:
+        assert sentence in flat(body), sentence
     assert "seal export" in body and "seal import" in body, (
         "the move is only available where both folders are on one machine, so "
         "this section has to point at the pair that works between two (#81). "

@@ -69,6 +69,13 @@ class Test_main:
         assert "Nothing is installed under .github/" in shared, shared
         assert "`seal pr-checks install`" in shared, shared
         assert "A workflow file already in the tree stays" in local, local
+        # Round 1 of #952, finding 2: the gate fires for a root with no
+        # `Mode` row, an old bootstrap, so its workflow is likely an old pin.
+        assert (
+            "Pinned to this release, its checks examine nothing in this mode; "
+            "pinned to an older one, they fail every pull request until its "
+            "`--branch` line moves or `seal pr-checks remove` takes it out."
+        ) in local, local
         assert "checks are installed" not in shared and "removed" not in local
 
     def test_refuses_on_the_first_command_not_at_the_commit(self, repo):

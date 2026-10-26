@@ -501,9 +501,11 @@ git rm -r --cached "$(git rev-parse --show-toplevel)/seal" && mv "$(git rev-pars
 ```
 
 그렇게 해도 `seal mode` 와 마찬가지로 `.github/` 에는 손대지 않습니다.
-local 로 옮긴 뒤 남은 워크플로는 모든 단계에서 아무것도 보지 않고
-통과합니다. 트리에 루트가 없기 때문입니다. `seal pr-checks remove` 가
-그것을 뺍니다.
+local 로 옮긴 뒤 남은 워크플로가 이 릴리스로 고정되어 있으면 모든
+단계에서 아무것도 보지 않고 통과합니다. 트리에 루트가 없기 때문입니다.
+그보다 오래된 릴리스로 고정된 워크플로는 `--branch` 줄을 이 릴리스로
+옮기거나 `seal pr-checks remove` 로 빼기 전까지 그곳의 모든 PR 을
+실패시킵니다.
 
 기계가 둘이면 이 방법을 쓸 수 없습니다. 다른 기계에는 옮길 폴더 자체가
 없기 때문입니다. 아래의 `seal export` 와 `seal import` 가 그것을 위한

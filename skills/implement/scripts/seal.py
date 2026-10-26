@@ -1839,6 +1839,35 @@ def pinned(text):
     return found.group(1) if found else ""
 
 
+def left_workflow_line(text):
+    """What `seal mode local` says of this plugin's workflow, `text`, which
+    the switch leaves in the tree.
+
+    Pinned to the installed release, the steps read a tree with no root as
+    nothing declared and pass. Pinned to an older one they fail every pull
+    request there, so any other pin, and a version that cannot be read, is
+    named with the two ways out rather than promised to pass (#952).
+    """
+    pin, version = pinned(text), plugin_version()
+    if version and pin == "v" + version:
+        return (
+            f"{WORKFLOW} stays: in local mode its checks examine nothing and "
+            "pass, and `seal pr-checks remove` takes them out"
+        )
+    named = pin or "no release its clone line names"
+    here = (
+        f"pinned to {named} and not to the installed v{version}"
+        if version
+        else f"pinned to {named}, and the installed release could not be read"
+    )
+    to = f"v{version}" if version else "the installed release"
+    return (
+        f"{WORKFLOW} stays, {here}: a release before this one fails every pull "
+        f"request with no {optin.HOME}/ in the tree. Move its `--branch` line "
+        f"to {to}, or run `seal pr-checks remove`"
+    )
+
+
 def install_workflow(repo):
     """Write the pull-request checks; (what happened, the line to print).
 
@@ -1931,9 +1960,11 @@ def remove_workflow(repo):
     """Remove the pull-request checks; (what happened, the line to print).
 
     It needs no root: a workflow that outlived its root is the case it is
-    for. Left in a local-mode repository, every step of the workflow
-    examines nothing and passes (`unverified_check.py#absent_root`), so this
-    is the person's choice and never a repair.
+    for. Left in a local-mode repository and pinned to this release, every
+    step of the workflow examines nothing and passes
+    (`unverified_check.py#absent_root`), so there it is the person's choice
+    and never a repair; pinned to an older release, it is the way out of a
+    workflow that fails every pull request (`left_workflow_line`).
 
     A file this plugin did not write is left alone: deleting somebody's
     workflow because it shares a name is the destructive direction.
@@ -2377,11 +2408,9 @@ def switch(args, repo, home, shared, local, current, wanted):
                 print(f"  staged the removal of {optin.HOME}/ from the tree")
         else:
             print(f"  nothing under {optin.HOME}/ was tracked")
-        if workflow_at(repo)[0] == "plugin":
-            print(
-                f"  {WORKFLOW} stays: in local mode its checks examine nothing "
-                "and pass, and `seal pr-checks remove` takes them out"
-            )
+        kind, text = workflow_at(repo)
+        if kind == "plugin":
+            print(f"  {left_workflow_line(text)}")
     else:
         # The return code, not the call. `git()` reads a failure as "" — and
         # `git add` exits non-zero for an ignore rule matching the root, or a
@@ -2442,9 +2471,10 @@ def mode(args, cwd):
                 )
                 return 1
             # A check that fails where there is nothing to check teaches
-            # people to delete the check. A workflow that outlived its root
-            # examines nothing on every step, `unverified_check.py` included
-            # (`absent_root`), and this one has nothing to add to that.
+            # people to delete the check. A workflow pinned to this release
+            # that outlived its root examines nothing on every step,
+            # `unverified_check.py` included (`absent_root`), and this one has
+            # nothing to add to that.
             print("no seal/ here, so nothing is declared and nothing can disagree.")
             return 0
         return no_root(repo, shared, local)

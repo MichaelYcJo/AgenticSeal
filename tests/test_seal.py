@@ -3003,6 +3003,44 @@ class Test_switch:
         assert not any(".github" in line for line in status(repo)), status(repo)
         assert "seal pr-checks install" not in out, out
 
+    @pytest.mark.parametrize(
+        "pin, installed",
+        [("v0.1.0", True), ("", True), (None, False)],
+        ids=["an-older-release", "no-release-named", "a-version-it-cannot-read"],
+    )
+    def test_accepts_shared_to_local_and_names_a_pin_that_is_not_the_installed_release(
+        self, take, capsys, monkeypatch, pin, installed
+    ):
+        """Round 1 of #952, finding 2: a workflow pinned to another release,
+        or one beside a version that cannot be read, is not promised to pass.
+        The line names the pin and the two ways out."""
+        repo = take("shared")
+        version = SEAL.plugin_version()
+        text = SEAL.plugin_workflow()
+        if pin is not None:
+            old = f"--branch v{version} "
+            assert old in text, text
+            text = text.replace(old, f"--branch {pin} " if pin else "")
+        workflow_in(repo, text)
+        if not installed:
+            monkeypatch.setattr(SEAL, "plugin_version", lambda: "")
+        code, out = said(capsys, repo, "mode", "local")
+        assert code == 0, out
+        named = pin if pin is not None else f"v{version}"
+        here = (
+            f"pinned to {named or 'no release its clone line names'} and not to "
+            f"the installed v{version}"
+            if installed
+            else f"pinned to {named}, and the installed release could not be read"
+        )
+        to = f"v{version}" if installed else "the installed release"
+        assert (
+            f"  .github/workflows/hygiene.yml stays, {here}: a release before "
+            "this one fails every pull request with no seal/ in the tree. Move "
+            f"its `--branch` line to {to}, or run `seal pr-checks remove`\n"
+        ) in out
+        assert "examine nothing" not in out, out
+
     def test_accepts_local_to_shared_and_says_the_commit_is_the_door(
         self, take, capsys
     ):
