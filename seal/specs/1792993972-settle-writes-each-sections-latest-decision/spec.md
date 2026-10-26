@@ -351,6 +351,14 @@ neither writes `docs/` nor judges."
     `settle` leaves it.
   to: A `spec.md` with no `## Rule changes` section is left alone here, and
     the settle reads such a spec whole.
+- change
+  file: docs/the-record-layout.md
+  section: seal/specs/<work-item-id>/
+  from: stay until `settle --apply` applies the spec's rule changes,
+    and then the directory goes whole
+  to: stay until the settle: the settling session writes the spec's
+    sections, and `settle --apply` removes the directory whole once its
+    record holds no open row
 
 ## Removes
 
