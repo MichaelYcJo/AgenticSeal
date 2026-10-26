@@ -439,6 +439,32 @@ class Test_move:
         assert (proj / "specs" / ITEM / "routing.md").is_file()
         assert (proj / "specs" / ITEM / "rounds" / "round-1.md").is_file()
 
+    def test_refuses_to_remove_a_directory_an_ignored_file_holds_under_any_rmdir(
+        self, hook, proj, monkeypatch
+    ):
+        """An ignored file keeps its directory, and the item's above it, on
+        disk. Contract rule 13: `rmdir` is given a semantics that removes a
+        directory whatever it holds, so the case pins `move`'s own reading of
+        emptiness and not the platform's refusal."""
+        real = os.rmdir
+
+        def rmdir_whatever_it_holds(path, *args, **kwargs):
+            for here, dirs, files in os.walk(path, topdown=False):
+                for name in files:
+                    os.unlink(os.path.join(here, name))
+                for name in dirs:
+                    real(os.path.join(here, name))
+            real(path, *args, **kwargs)
+
+        write(proj, ".gitignore", ".DS_Store\n")
+        commit(proj, "ignore the finder's file")
+        write(proj, f"specs/{ITEM}/rounds/.DS_Store", "\0")
+        write(proj, f"seal/specs/{ITEM}/spec.md", "# already here\n")
+        monkeypatch.setattr(hook.os, "rmdir", rmdir_whatever_it_holds)
+        hook.move(str(proj), f"specs/{ITEM}", f"seal/specs/{ITEM}")
+        assert (proj / "seal" / "specs" / ITEM / "rounds" / "round-1.md").is_file()
+        assert (proj / "specs" / ITEM / "rounds" / ".DS_Store").is_file()
+
 
 class Test_rewrite_readme:
     def test_accepts_the_moved_readme_as_the_templates_text_staged(self, hook, proj):
