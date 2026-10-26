@@ -79,7 +79,7 @@ carries the two policy sentences the settle will write.
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
 | 1 | `settle` and `settle --apply` run in local mode: the refusal goes, the records root, released through `gh` with the three unreleased states and the `gh` refusal, the spec read from disk, the merge-commit order in `rule_changes.py`, the dry run's local lines and the settled local root (`spec.md` *In* items 1 to 9). In the same commits, `settle.py`'s docstring and `skills/settle/SKILL.md` state it, with the three limits (*In* items 10 and 11) | S1 to S10, each case seen red first; the modules `tests/test_settle.py`, `tests/test_rule_changes.py` and `tests/test_settle_reads_before_it_removes.py` run green | e1815c53 |
-| 2 | What else stood on the refusal: `seal_stamp.py#queue_for_written_guarantee`'s docstring rewritten (*In* item 10), and a `git grep` for every remaining statement that `settle` refuses or retires no local-mode work item, outside `docs/` and `seal/specs/`, each rewritten or named in the phase record. S12 run over this `spec.md` | S11 and S12; `tests/test_seal_stamp.py` runs green | |
+| 2 | What else stood on the refusal: `seal_stamp.py#queue_for_written_guarantee`'s docstring rewritten (*In* item 10), and a `git grep` for every remaining statement that `settle` refuses or retires no local-mode work item, outside `docs/` and `seal/specs/`, each rewritten or named in the phase record. S12 run over this `spec.md` | S11 and S12; `tests/test_seal_stamp.py` runs green | c814dcc9 |
 
 ## Operational impact
 
