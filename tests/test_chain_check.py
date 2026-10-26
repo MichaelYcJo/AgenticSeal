@@ -3400,10 +3400,10 @@ class Test_retired:
         code, out = check(root, capsys)
         assert code == 0, out
         assert (
-            "no `seal/` is at HEAD, so nothing is declared: the routing "
-            "declarations this pull request deletes left the tree with the "
-            "root, and the review-chain check judged the commit trailers and "
-            "nothing else"
+            "the tree the check reads has no top-level `seal` entry, so nothing "
+            "is declared: the routing declarations this pull request deletes "
+            "left the tree with the root, and the review-chain check judged the "
+            "commit trailers and nothing else"
         ) in out
         assert "does not carry this file at HEAD" not in out
         real = chain.git

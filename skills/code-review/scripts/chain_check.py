@@ -15,8 +15,10 @@ judged (`carried_by`). The arms are eight:
                 commit with no such trailer is not judged
   declaration   the file parses as a routing declaration; one the pull
                 request removed is accepted where the work item was retired,
-                and none is judged where HEAD has no top-level `seal` entry,
-                which the pull request moving the root to local mode leaves
+                and none is judged where the tree the check reads has no
+                top-level `seal` entry, which the pull request moving the
+                root to local mode leaves; that tree is HEAD, and the working
+                tree under `--worktree`
   frame         `Planning | framer`: `spec.md` and `plan.md` are committed,
                 `spec.md` ends with the framer's mark, and every `Reframed`
                 line under it names the framer
@@ -2039,9 +2041,10 @@ SETTLE_SAYS = (
 # The pull request that moves the root to local mode deletes every
 # declaration with the root (#952).
 ROOT_LEFT_SAYS = (
-    "no `{home}/` is at HEAD, so nothing is declared: the routing declarations "
-    "this pull request deletes left the tree with the root, and the "
-    "review-chain check judged the commit trailers and nothing else"
+    "the tree the check reads has no top-level `{home}` entry, so nothing is "
+    "declared: the routing declarations this pull request deletes left the "
+    "tree with the root, and the review-chain check judged the commit "
+    "trailers and nothing else"
 )
 
 # The trailer a session's commit ends with (`docs/the-routing-check.md` *At
