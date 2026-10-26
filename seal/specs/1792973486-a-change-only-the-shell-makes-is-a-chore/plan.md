@@ -1,6 +1,6 @@
 # Implementation Plan: a change only the shell makes is a chore
 
-Approved <date> by <who>, when `smith` was spawned.
+Approved 2026-10-26 by the orchestrator under the owner's automation answer, when `smith` was spawned.
 
 ## Summary
 
