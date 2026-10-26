@@ -18,10 +18,9 @@ The owner's principle that a change only the shell makes is a chore, and that no
 
 ## Not done
 
-No changelog fragment is written. The change is one principle in this repository's own `CLAUDE.md`, which a consuming repository never receives, and it changes no gate, hook, skill or template the plugin ships; `skills/implement/SKILL.md` and `plan.md` row 1 ask none (read by the smith, `phases/phase-1.md`).
-
 The session memory that held the principle before this work is removed by the orchestrator once this pull request merges, as issue #1031's *Done when* says; it is outside the repository, so no commit here can remove it.
 
 ## Fed back into the spec
 
-none
+- The principle names a gate that stops a session, the routing check among them, and not every check: the checks every pull request runs judge a change no work item owns as any other (inferred during implementation, round 1 finding 2; `bb01b549`).
+- The example is an identifier renamed across files by `sed`, because a file renamed with `git mv` inside a work item is work the work item owns (inferred during implementation, round 1 finding 1; `bb01b549`).
