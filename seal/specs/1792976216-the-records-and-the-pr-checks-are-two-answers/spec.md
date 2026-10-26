@@ -104,7 +104,8 @@ The issue was written on 2026-10-16 against 0.22.2. Read at `02ee12de`:
      committed, as `install` leaves it, is the untracked case for git, which
      keeps no committed copy of it: where the index and the working file are
      both byte for byte what `install` would write now, the removal is forced
-     past git's staged-changes refusal and staged, so `install` then `remove`
+     past git's staged-changes refusal, which takes the file out of the index
+     and off the disk, so `install` then `remove`
      before a commit leaves nothing under `.github/` (the sealer, at
      `55aea15d`). It refuses, exit 1 and nothing removed, for a symbolic
      link, a file it cannot read, a file without the clone line, an untracked
