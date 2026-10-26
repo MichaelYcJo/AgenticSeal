@@ -205,6 +205,14 @@ carry no trailer, as no local-mode commit does.
   from: since `settle` retires no local-mode work item
   to: since a local-mode work item stays under the root until the settle
     after its release removes it
+- change
+  file: docs/one-root-by-lifetime.md
+  section: The dependency rule
+  from: and it still resolves
+    through git history once the folder is gone
+  to: and where the root is shared it still resolves through git history
+    once the folder is gone; in local mode no history holds the folder, so
+    the pointer names a work item that has left
 
 ## Removes
 
