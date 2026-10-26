@@ -3418,8 +3418,10 @@ class Test_pr_checks:
         blob = git_out(repo, "hash-object", "-w", "--", rel)
         os.remove(os.path.join(str(repo), WORKFLOW_PATH))
         done = subprocess.run(
-            ["git", "-C", str(repo), "update-index", "--index-info"],
-            input="".join(f"100644 {blob} {n}\t{rel}\n" for n in (1, 2, 3)),
+            ["git", "-C", str(repo), "update-index", "-z", "--index-info"],
+            # NUL-terminated: in text mode Python writes "\n" as os.linesep,
+            # so on Windows each path would end in a carriage return.
+            input="".join(f"100644 {blob} {n}\t{rel}\0" for n in (1, 2, 3)),
             capture_output=True,
             encoding="utf-8",
         )
