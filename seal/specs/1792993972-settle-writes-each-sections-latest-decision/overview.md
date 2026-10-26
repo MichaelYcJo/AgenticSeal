@@ -25,7 +25,8 @@ removal of a directory that stood at the base as a settle.
 
 | Item | Who must answer |
 |---|---|
-| The new and rewritten cases of `tests/test_settle.py`, `tests/test_rule_changes.py`, `tests/test_unverified_check.py` and `tests/test_chain_check.py` on Windows | the Windows test legs of this pull request's CI |
+| closed the new and rewritten cases of `tests/test_settle.py`, `tests/test_rule_changes.py`, `tests/test_unverified_check.py` and `tests/test_chain_check.py` on Windows | the branch's `tests` workflow run 40292155366 at `548a7a4b` passed every leg, the four Windows groups included |
+| closed the full suite, the repository-wide lint and format check, and the typecheck at the branch head | `broad-gate.md` records the run at `8a32ccac` against `2974871d`; its printed report read BROAD GATE PASSED, ruff check and format clean, the suite 6,522 passed and 14 skipped, chain-check exit 0. The repository has no typecheck to run (#951 adds one) |
 
 ## Not done
 
