@@ -3336,6 +3336,29 @@ class Test_pr_checks:
         gone = ["D  .github/workflows/hygiene.yml"] if committed else []
         assert status(repo) == sorted(before + gone)
 
+    def test_refuses_a_staged_file_without_the_clone_line_deleted_by_hand(
+        self, take, capsys
+    ):
+        """The index may hold the only copy of somebody's file, so its copy
+        is read by the rule a working file is."""
+        repo = take("shared")
+        rel = WORKFLOW_PATH.replace(os.sep, "/")
+        write(repo, rel, "name: mine\n")
+        git(repo, "add", "--", rel)
+        os.remove(os.path.join(str(repo), WORKFLOW_PATH))
+        before = snapshot(repo)
+        code, out = said(capsys, repo, "pr-checks", "remove")
+        assert code == 1, out
+        assert out == (
+            "there is no .github/workflows/hygiene.yml in the working tree, "
+            "and the index holds a copy that does not carry this plugin's "
+            "clone line, so it was left alone: the index may hold the only "
+            "copy of somebody's file. Look at it with `git diff --cached` and "
+            "take it out yourself.\n"
+        )
+        assert snapshot(repo) == before
+        assert git(repo, "cat-file", "blob", f":{rel}").stdout == "name: mine\n"
+
     def test_accepts_remove_where_the_root_left_the_tree(self, take, capsys):
         """A workflow that outlived its root is the case `remove` is for."""
         repo = take("local")

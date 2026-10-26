@@ -2008,6 +2008,18 @@ def remove_workflow(repo):
         # staged, or a committed copy whose deletion is not staged (round 5,
         # finding 1). `git rm` of a path missing from the working tree exits
         # 0 and drops its index entry in both states (measured, round 5).
+        # The index copy is read by the rule a working file is: the index
+        # may hold the only copy of somebody's file, so one without the
+        # clone line is left alone.
+        staged = staged_text(repo, WORKFLOW)
+        if staged is None or PLUGIN_CLONE not in staged:
+            return "kept", (
+                f"there is no {WORKFLOW} in the working tree, and the index "
+                "holds a copy that does not carry this plugin's clone line, "
+                "so it was left alone: the index may hold the only copy of "
+                "somebody's file. Look at it with `git diff --cached` and take "
+                "it out yourself."
+            )
         done = subprocess.run(
             ["git", "-C", repo, "rm", "--quiet", "--", WORKFLOW],
             capture_output=True,
