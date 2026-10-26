@@ -13,7 +13,7 @@ of the branch at `1d9c9b72`.
 severity: should
 location: `CLAUDE.md:19`, `seal/specs/1792973486-a-change-only-the-shell-makes-is-a-chore/spec.md:34-38`
 evidence: executed `git log --diff-filter=R -M --format='%h %s' -6 61a8455a`, `grep -n -E 'Write|Edit|NotebookEdit|tool_name' hooks/routing-edit-gate.py`
-verdict: open
+verdict: fixed 8e656460
 
 The new sentence names three examples of a change that would be routed
 `no work item`: a formatter run, a dependency bump, and a rename made through
@@ -49,14 +49,14 @@ a formatter run, a dependency bump or an identifier renamed across files by
 only such a change passes through is not a weakness to close. A rule's proof
 ```
 
-answer:
+answer: The finding holds. The orchestrator rewrote `spec.md` *Scope* item 1 in bb01b549 with the record's example, an identifier renamed across files by `sed`, and added a sentence saying a file renamed with `git mv` inside a work item is work the work item owns; the spec still parses, with the no-change block and no error (executed). The smith put the new sentences into `CLAUDE.md` in 8e656460, word for word; `git diff --word-diff 61a8455a -- CLAUDE.md` shows only added words (executed by the smith).
 
 ### 2. A gate or a check reaches the checks that run on every pull request, where the principle is false
 
 severity: should
 location: `CLAUDE.md:17-21`, `seal/specs/1792973486-a-change-only-the-shell-makes-is-a-chore/spec.md:34-38`, `seal/specs/1792973486-a-change-only-the-shell-makes-is-a-chore/questions.md:10-17`
 evidence: read `CONTRIBUTING.md:53-64`, `.github/workflows/test.yml:3-11`, `.github/workflows/hygiene.yml:3-16`, `skills/agent-contract/SKILL.md:118-123`, `seal/specs/1792973486-a-change-only-the-shell-makes-is-a-chore/questions.md:10-17`
-verdict: open
+verdict: fixed 8e656460
 
 The issue asks for a sentence saying "a gate guards the work the workflow
 governs". The frame widened `A gate` to `A gate or a check`
@@ -102,14 +102,14 @@ a gap in that kind of gate which
 only such a change passes through is not a weakness to close. A rule's proof
 ```
 
-answer:
+answer: The finding holds, and the record's direction is taken: the principle now names a gate that stops a session, the routing check among them. The owner's ground, given to the orchestrator in conversation, was SpecSeal stepping into a session, not the checks every pull request runs. The orchestrator rewrote `spec.md` *Scope* item 1 and the wording entry of `questions.md` in bb01b549, adding a sentence that the checks every pull request runs are not that kind of gate and are not exempted; the smith put the sentences into `CLAUDE.md` in 8e656460, with `only such a change passes through` on one line, which `git grep` outside `seal/specs/` finds at `CLAUDE.md:22` alone (executed by the smith).
 
 ### 3. The work item has no changelog fragment, and the repository records a CLAUDE.md rule change in the changelog
 
 severity: should
 location: `seal/specs/1792973486-a-change-only-the-shell-makes-is-a-chore/changelog.md`, `seal/specs/1792973486-a-change-only-the-shell-makes-is-a-chore/overview.md:21`
 evidence: executed `for d in seal/specs/*/; do [ -f "$d/changelog.md" ] || echo "$d"; done`, `git grep -n 'changelog.md' -- skills/verify/scripts skills/code-review/scripts .github/scripts skills/implement/scripts agents/sealer.md docs/the-review-record.md`
-verdict: open
+verdict: fixed cc20b733
 
 `overview.md:21` claims no fragment is owed because the change "is one
 principle in this repository's own `CLAUDE.md`, which a consuming repository
@@ -158,7 +158,7 @@ The fragment goes to `seal/specs/1792973486-a-change-only-the-shell-makes-is-a-c
 in the words the sentence holds once findings 1 and 2 are answered, and
 `overview.md` *Not done* loses its first paragraph in the same commit.
 
-answer:
+answer: The finding holds; the orchestrator's reading that a `CLAUDE.md`-only change owes no fragment was wrong against the repository's practice the record cites. The smith wrote `changelog.md` in d1390952 from the record's draft, stating the narrowed principle and that nothing the plugin installs into a consuming repository changes; `tests/test_the_changelog_is_gathered_at_release.py` and the fragment's two other readers pass (executed by the smith). The orchestrator removed the no-fragment paragraph from `overview.md` *Not done* in cc20b733, a separate commit rather than the same one, because the smith's fix pass does not edit `overview.md`.
 
 ## Confirmations
 
