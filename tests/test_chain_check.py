@@ -3414,6 +3414,22 @@ class Test_retired:
         code, out = check(root, capsys)
         assert code == 1 and "does not carry this file at HEAD" in out, out
 
+    @pytest.mark.rule("nothing-declared-nothing-owed")
+    def test_accepts_under_worktree_a_root_the_working_tree_no_longer_has(
+        self, branch, ready, capsys, tmp_path
+    ):
+        """Round 3 of #952, finding 2: a switch to local mode, run and not
+        committed, leaves no `seal` in the working tree, so under `--worktree`
+        nothing is declared, as CI reads the same change once it is committed."""
+        root, _code = branch
+        remove_an_earlier_item(root, applied=False)
+        shutil.move(str(root / "seal"), str(tmp_path / "moved-seal"))
+        git(root, "add", "-A", "seal")
+        code, out = check(root, capsys, "--worktree")
+        assert code == 0, out
+        assert "so nothing is declared" in out
+        assert "does not carry this file at HEAD" not in out
+
     def test_judges_a_root_the_working_tree_has_under_worktree(
         self, branch, ready, capsys
     ):
