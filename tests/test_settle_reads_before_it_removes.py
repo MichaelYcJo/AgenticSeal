@@ -90,17 +90,16 @@ def test_the_skill_says_the_session_writes_the_latest_decision_and_asks_nobody()
 
 
 def test_the_skill_states_the_settling_sessions_procedure():
-    """S11, #1033's *In* item 3, in order: the dry run, each group written as
-    its latest decision with the code winning, the superseded operations
-    settled unapplied, the specs read whole, every row decided and closed,
-    the defaults written down, the documents' checks, `--apply`, the broad
-    gate once, and the pull request body. Round 1 of #1033, finding 5: a row
-    that fits two kinds has one reading, and the documents' checks name
-    their set and what counts as done, so a check that reads every document
-    rather than one by name runs at step 6 and not first at the broad gate.
-    Round 2 of #1033, finding 1: the set and its command are one reading, so
-    a module that joins a document's path from its parts or reads a README
-    by name is in both."""
+    """S11 and S13, #1033's *In* item 3, in order: the dry run, each group
+    written as its latest decision with the code winning, the superseded
+    operations settled unapplied, the specs read whole, every row decided and
+    closed, the defaults written down, each rule's `check:` targets,
+    `--apply`, the broad gate, and the pull request body. Round 1 of #1033,
+    finding 5: a row that fits two kinds has one reading. Round 3 of #1033,
+    finding 1: step 6 holds no searched set of test modules, since no search
+    of the tests' text lists every check that reads what the session wrote,
+    and step 8's broad gate is the one run that reads every check, run again
+    after a fix."""
     text = flat(skill())
     procedure = text.split("## The settling session's procedure")[1].split("## ")[0]
     steps = [
@@ -113,19 +112,18 @@ def test_the_skill_states_the_settling_sessions_procedure():
         "A row that fits more than one kind takes the first that fits, in the "
         "table's order",
         "take a default and write it down",
-        "Run, over what you wrote, each rule's `check:` targets and every "
-        "module under `tests/` whose text holds the policy root's directory "
-        "name as a word or the name of a file you changed",
-        "`git grep -l -w -F -e docs -e <name> -- tests/`",
-        "with one `-e <name>` for each file you changed",
-        "The step is done when every one of those modules passes",
+        "Run each rule's `check:` targets over what you wrote",
+        "The step is done when every `check:` target passes",
+        "step 8 runs every one",
         "Run `settle --apply`.",
-        "Run the repository's `Broad gate` row once.",
+        "It is the one run that reads every check",
+        "The step is done when the row passes with no edit after it",
         "Open the pull request.",
     ]
     at = [procedure.find(step) for step in steps]
     assert -1 not in at, [s for s, n in zip(steps, at, strict=True) if n < 0]
     assert at == sorted(at), "the procedure's steps are out of order"
+    assert "git grep" not in procedure, "step 6 still searches the tests' text"
     for kind in ("moot", "answered", "a measurement nobody has taken"):
         assert f"| {kind} |" in procedure, kind
     # questions.md Q1's default: one issue per distinct measurement.

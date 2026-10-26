@@ -200,23 +200,23 @@ does not parse, an unordered pair and an open row are all shown.
    re-homes it as a `seal/follow-up.md` row.
 5. Where the tree does not decide, take a default and write it down for the
    pull request body.
-6. Run, over what you wrote, each rule's `check:` targets and every
-   module under `tests/` whose text holds the policy root's directory
-   name as a word or the name of a file you changed. Where the root is
-   `docs/`, that set is what `git grep -l -w -F -e docs -e <name> -- tests/`
-   lists, with one `-e <name>` for each file you changed, such as
-   `-e the-record-layout.md -e README.md`. The directory name finds the
-   checks that read every document rather than one by name, such as a
-   line-length or a duplicated-passage check, which no `check:` line
-   names, and a module that joins a document's path from its parts. A
-   file's name finds a module that opens that file without the directory,
-   such as one reading a README. Where a case fails because a pin under
-   `tests/` or a copy such as a README row still states the old fact,
-   change that pin or copy, and name each in the pull request body. Then
-   run the dry run again: a `to` not found is where you reworded, which the
-   body explains. The step is done when every one of those modules passes.
+6. Run each rule's `check:` targets over what you wrote, and change what a
+   failure shows still standing on the old fact. Then run the dry run
+   again: a `to` not found is where you reworded, which the body explains.
+   The step is done when every `check:` target passes. It does not look
+   for the other checks that read what you wrote, such as a line-length
+   check, a pin on a sentence you rewrote, or a check that reads the
+   corpus: a search of the tests' text finds a module only by how it
+   spells a path, so no such search lists them all, and step 8 runs every
+   one.
 7. Run `settle --apply`.
-8. Run the repository's `Broad gate` row once.
+8. Run the repository's `Broad gate` row. It is the one run that reads
+   every check. Where a case fails because a pin under `tests/` or a copy
+   such as a README row still states the old fact, change that pin or
+   copy, and name each in the pull request body. Where a check that reads
+   the corpus fails, answer it as *Answer every check that reads the
+   corpus* says. Run the failing modules until they pass, then run the
+   row again. The step is done when the row passes with no edit after it.
 9. Open the pull request. Its body lists, per group, the decision and its
    grounds (the spec ids in merge order, the superseded operations, the code
    coordinate), the rows by kind with what closed each, the defaults it
