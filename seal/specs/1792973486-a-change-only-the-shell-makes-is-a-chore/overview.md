@@ -2,7 +2,7 @@
 
 ## Why this work exists
 
-The owner's principle that a change only the shell makes is a chore, and that no gate is built to catch it, stood in one session's memory; it now stands in `CLAUDE.md`, which every session and agent here reads.
+The owner's principle that a gate that stops a session guards the work a work item owns, so that a gap only a change routed `no work item` passes through is not a weakness to close, stood in one session's memory; it now stands in `CLAUDE.md`, which every session and agent here reads.
 
 ## Where spec and implementation diverged
 
