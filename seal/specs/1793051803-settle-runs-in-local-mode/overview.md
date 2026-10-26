@@ -22,8 +22,8 @@ removes the released local directories.
 
 | Item | Who must answer |
 |---|---|
-| the new and rewritten cases of `tests/test_settle.py` and `tests/test_settle_reads_before_it_removes.py` on Windows, where the `gh` stub is a `gh.cmd` that `shutil.which` finds through `PATHEXT` | the branch's `tests` workflow run, its four Windows groups, read by the orchestrator |
-| the full suite, the repository-wide lint and format check, and the typecheck at the branch head | the orchestrator's `broad-gate --base <base> --record 1793051803-settle-runs-in-local-mode` run, read by the sealer |
+| closed the new and rewritten cases of `tests/test_settle.py` and `tests/test_settle_reads_before_it_removes.py` on Windows, where the `gh` stub is a `gh.cmd` that `shutil.which` finds through `PATHEXT` | the branch's `tests` workflow run 40418119834 at `49a2dd0d` passed every leg, the four Windows groups included |
+| closed the full suite, the repository-wide lint and format check, and the typecheck at the branch head | `broad-gate.md` records the run at `ac1b08a3` against `91d57028`; its printed report read BROAD GATE PASSED, ruff check and format clean, the suite 6,550 passed and 14 skipped, chain-check exit 0. The repository has no typecheck to run (#951 adds one) |
 
 ## Not done
 
