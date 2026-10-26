@@ -53,7 +53,7 @@ The changelog fragment's `Limits` bullet takes the same clause. Contract
 rule 14: `test_the_module_and_the_skill_both_say_how_local_mode_settles`
 gains the new sentence among its pinned phrases.
 
-answer:
+answer: 3093c521 replaces the limit's last sentence in `skills/settle/SKILL.md` with the round's text, gives the changelog fragment's Limits bullet the fork clause, and pins both new phrases in `test_the_module_and_the_skill_both_say_how_local_mode_settles` with "never produces this" asserted absent; the pin was seen red against the old sentence, and a mutant naming a clone for the fork went red. No guard. `spec.md` *In* item 11 and *Out*, `plan.md` *Technical context* and `questions.md` A8 still say the flow cannot produce the shape; they are the frame's and stand for its owner.
 
 ### 2. Run from a subdirectory, local mode reads the policy root under that subdirectory and reports every document as not in the tree
 
@@ -105,7 +105,7 @@ The regression case belongs in `tests/test_settle.py` `Test_main`. It runs
 the `local` fixture with `--root` at a subdirectory and asserts the place
 line names `docs/a.md:3-9`.
 
-answer:
+answer: 662dae5c resolves `root` through `optin.repo_root` in `settle.py#main`, in both modes, and adds `Test_main::test_a_local_run_from_a_subdirectory_reads_the_repositorys_top`, seen red first with the place line "the document is not in the tree in the working tree", and red again under the mutant that drops the line. Shared mode run from a subdirectory now reads the repository instead of refusing with a false "no seal/specs/ at either place"; run from the top it is unchanged. `overview.md` records it as a divergence from *Out* "Shared mode", `phases/phase-1.md` names it, and the changelog fragment gains a bullet for it.
 
 ### 3. Two unreleased reasons tell the person something the input does not say
 
@@ -187,7 +187,7 @@ unreadable `Review` row: a `routing.md` with a `Branch` row and a `Review`
 answer outside the vocabulary, whose reason is the new `NO_BRANCH` and for
 which `gh` is not asked.
 
-answer:
+answer: 53972b46 takes the round's proposal: a list entry that is not an object refuses like a non-list answer, a pull request listed with no merge commit stays in the list and reads `#<n> with no merge commit` in the not-reached reason, and `NO_BRANCH` names `hooks/routing.py`. The skill's three states, the module docstring's, `declared_branch`'s docstring, the changelog fragment, `overview.md` *Fed back into the spec* and `phases/phase-1.md` say the same. The two pinned cases are rewritten (the null case renamed `test_a_pull_request_listed_with_no_merge_commit_is_named_as_such`), `test_a_local_routing_md_routing_py_does_not_read_names_no_branch` is added, and S5 gains an `entry` state; all five were seen red against the old code, and four mutants of the new lines went red. GitHub's GraphQL reference types `PullRequest.mergeCommit` as a nullable `Commit` beside a non-null `merged`, so the schema allows the shape; it does not say how often it occurs. `spec.md` *In* item 3 and its `## Rule changes` `add` still say "no `Branch` row"; they are the frame's.
 
 ### 4. The skill still says the removed specs are in git history, which no local-mode settle makes true
 
@@ -233,7 +233,7 @@ holds them, and the dry run names `seal export` for whoever wants a copy.
 Add the operation to `spec.md` `## Rule changes` and re-run
 `rule_changes.py#parse` over the file (S12).
 
-answer:
+answer: ef9048c7 rewrites *A settle is not a work item* in `skills/settle/SKILL.md` as the round proposes and pins the new sentence in `test_the_skill_says_a_settle_is_not_a_work_item_and_owes_no_range_row`, seen red under the old sentence. The `docs/one-root-by-lifetime.md` operation is the orchestrator's ef5e520c in `spec.md` `## Rule changes`. `docs/the-record-layout.md:114` stands, as the round says: it is about what the settle wrote.
 
 ### 5. Two of the new sentences have two readings
 
@@ -269,7 +269,7 @@ verdict: open
         "branch (default: origin/main)",
 ```
 
-answer:
+answer: 9cfb9820 rewrites both sentences to the round's text: the skill's *Where it reads* bullet names `<git-common-dir>/seal/specs/<id>/`, and `--released-at`'s help says "this ref reaches". The bullet is pinned in the S10 case and the help in `test_the_local_dry_runs_texts_say_what_they_hold`, each seen red under the old wording.
 
 ### 6. Two readings of released that the smith chose on purpose have no case
 
@@ -327,7 +327,7 @@ gave for each choice is the only thing that holds it.
 Contract rule 15: each is seen red under its mutant, `reaches` replaced by
 `_ancestor` and `prs` cut to `prs[:1]`.
 
-answer:
+answer: 9f854538 adds `test_a_released_at_given_as_the_merge_commit_reaches_it` and `test_the_first_listed_pull_request_the_ref_reaches_is_taken` to `Test_main`. With `mutation-check` after the commit, the first went red with `reaches` returning `rule_changes._ancestor(root, commit, ref)` ("0 work items"), and the second with the search cut to `prs[:1]`; the file was restored from the held bytes each time.
 
 ## Confirmations
 
