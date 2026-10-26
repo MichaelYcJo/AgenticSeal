@@ -11,11 +11,13 @@ answer was read, so a reader can overturn it by opening the same place.
    `seal/config.md` passes all three steps. The live failures are a root
    whose work items carry no `overview.md`, and no root at all (`spec.md`
    *Scope*, *What the tree says today*).
-2. **`chain_check.py` and `seal mode --check` need no change.** Executed: both
-   exit 0 for a teammate's pull request on all three bases probed. The mode
-   check judges the repository's state, which a teammate's change does not
-   touch; a disagreement reaches a base only through a pull request merged
-   red.
+2. **`seal mode --check` needs no change, and `chain_check.py` needs one.**
+   Executed: both exit 0 for a teammate's pull request on all three bases
+   probed. The mode check judges the repository's state, which a teammate's
+   change does not touch; a disagreement reaches a base only through a pull
+   request merged red. Round 1 (finding 1, executed) found the chain step
+   refusing the pull request that moves a root to local mode with the checks
+   kept, so `spec.md` *In* item 6 reads no root at HEAD as nothing declared.
 3. **The `Mode` row keeps its two values**, `local` and `shared`, read by
    `hooks/config.py#declared_mode`, the mode gate and `seal mode --apply`.
    Whether the checks are installed is not a place, so it is not a mode

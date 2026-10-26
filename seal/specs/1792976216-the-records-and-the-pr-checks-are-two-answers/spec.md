@@ -115,8 +115,16 @@ The issue was written on 2026-10-16 against 0.22.2. Read at `02ee12de`:
    longer stages it. Every printed and documented
    `git reset -- :/seal :/.github/workflows/hygiene.yml` becomes
    `git reset -- :/seal`. After a switch to local, where the plugin's file
-   is in the tree, the switch prints one line: the checks stay, they examine
-   nothing in local mode, and `seal pr-checks remove` takes them out. After a
+   is in the tree, the switch prints one line, chosen by the file's pin
+   against the installed release (round 1, finding 2). Pinned to the
+   installed release, the line says the checks stay, they examine nothing in
+   local mode, and `seal pr-checks remove` takes them out. Pinned to another
+   release, or where either version cannot be read, the line names the pin,
+   says a release before this one fails every pull request with no `seal/`
+   in the tree, and names the two ways out: move its `--branch` line to the
+   installed release, or run `seal pr-checks remove`. The mode gate's
+   *Local* option, the two READMEs and the changelog fragment say the same
+   of a workflow left after a switch to local. After a
    switch to shared, where no such file is there, it prints one line naming
    `seal pr-checks install`.
 5. **The mode gate's three options stop promising the workflow.**
@@ -137,9 +145,17 @@ The issue was written on 2026-10-16 against 0.22.2. Read at `02ee12de`:
      row exists to read.
 
    Every other path holding no `overview.md` stays exit 2, as does every
-   path that is missing and not spelled `seal/specs`. `chain_check.py` and
-   `seal mode --check` already exit 0 for such a pull request and are not
-   changed.
+   path that is missing and not spelled `seal/specs`. `seal mode --check`
+   already exits 0 for such a pull request and is not changed.
+
+   `chain_check.py` exits 0 for a teammate's pull request, and refuses the
+   pull request that moves a root to local mode with the checks kept: that
+   pull request deletes every `routing.md`, and the check refuses each
+   deleted declaration HEAD does not carry (round 1, finding 1). Where HEAD
+   has no top-level `seal` entry, `chain_check.py#main` reads nothing as
+   declared, as `unverified_check.py`'s no-root state does, and judges the
+   trailers as for any pull request that declares nothing. Where git cannot
+   answer whether HEAD has the entry, the declarations stay judged.
 7. **One case runs every step of `templates/hygiene.yml` against a pull
    request that touches nothing under `seal/`.** It lives at
    `tests/e2e/teammate/test_teammate_flow.py`, `TARGET =
@@ -158,6 +174,10 @@ The issue was written on 2026-10-16 against 0.22.2. Read at `02ee12de`:
    `config.md`; a root whose `specs/` holds a work item with `routing.md`
    and `spec.md` and no `overview.md`; and a root whose work item carries an
    `overview.md` with an open `## Not verified` row and a round record.
+   A second case runs the same steps on the pull request that moves the
+   root to local mode: the fourth base with the plugin's workflow committed,
+   and a head commit that ran `seal mode local` (round 1, finding 1). It is
+   seen red at the phase 2 commit on the chain step before it passes.
 8. **Every place that says what shared mode installs, or that `seal mode`
    carries the workflow, says the new rule.** The table under *Places*
    below lists each, found by search, with what this work does to it.
@@ -190,14 +210,17 @@ and `workflows/hygiene` over the tree at `02ee12de`, `CHANGELOG.md` and
 | `skills/settle/SKILL.md` line 34 and `skills/settle/scripts/settle.py` lines 36 and 679 | `seal mode shared` moves the root into the tree | kept: about the root only; #955 rewrites settle in local mode |
 | `skills/code-review/orchestration.md:168`, `skills/verify/orchestration.md:62`, `docs/release-checklist.md`, `docs/issues-and-milestones.md`, `docs/the-review-record.md:66`, `.github/` | this repository's own `hygiene` workflow | kept: the issue leaves this repository's workflow alone |
 | the unsettled specs under `seal/specs/` | none states in its `## Rule changes` that shared mode installs the workflow or that `seal mode` carries it (executed: an `awk` over each `spec.md`'s *Rule changes* for `hygiene`, `seal mode`, `pull-request checks`, `shared mode` and `first setup`). `1792619408-an-automation-run-stops-at-the-parity-arm` names a `hygiene.yml` pinned to an older release, still true | kept; a released work item's records are history and are not rewritten |
+| `tests/test_first_setup_asks_once.py#test_the_record_no_longer_says_the_checks_would_refuse` (lines 659 to 666) | asserts that `docs/one-root-by-lifetime.md` and its Korean edition carry `examined nothing` and `red forever`, the sentences this spec's `## Rule changes` retire | the fix pass of round 1 removes those two asserts and the comment above them, and keeps the first assert (round 1, finding 3; contract rule 19) |
+| `skills/code-review/scripts/chain_check.py#main` (lines 2162 to 2170 and 2220 to 2231 at `3f2f5a5d`) | every deleted `routing.md` is a declaration, and one HEAD does not carry is refused | the fix pass of round 1: with no top-level `seal` entry at HEAD nothing is declared (*In* item 6) |
 | `tests/test_first_setup_asks_once.py` (lines 71 to 91, 409 to 480, 495 to 510), `tests/test_seal.py` (`Test_install_workflow`, `Test_remove_workflow`, `Test_refusals`, `Test_switch`, `Test_mode`, `Test_main`), `tests/test_mode_gate.py`, `tests/test_unverified_check.py` | pin the two options, the workflow carry, the header's red-forever wording and the exit 2 | phases 1 and 2 rewrite the pins to the new text, each seen red first (contract rule 15) |
 
 ### Out
 
 - SpecSeal's own `.github/workflows/hygiene.yml`. The issue leaves it
   untouched; it is this repository's.
-- Any change to `chain_check.py` and to `seal mode --check`. Both already
-  exit 0 for a pull request that declares nothing (executed). The mode check
+- Any change to `seal mode --check`, and any change to `chain_check.py` but
+  the one of *In* item 6. Both already exit 0 for a teammate's pull request
+  (executed). The mode check
   judges the state of the repository rather than the pull request, and a
   disagreement reaches a base only through a pull request merged red, so it
   does not gate a teammate whose base is sound.
@@ -205,6 +228,11 @@ and `workflows/hygiene` over the tree at `02ee12de`, `CHANGELOG.md` and
   keeps the release its file names until a person edits the `--branch`
   line, or runs `seal pr-checks remove`, then `seal pr-checks install`, and
   commits. The changelog fragment says so.
+- A `seal/` that is a symbolic link to a directory outside the tree. Git
+  commits the link and not the records behind it, so the checks
+  `seal pr-checks install` writes there read nothing. The first setup never
+  makes that layout, so it is a limit and not a refusal: the build adds no
+  guard for it.
 - #955, settle in local mode, and #1030, settle applying every released
   spec. Shared coordinates, which whoever lands second rebases onto:
   `docs/one-root-by-lifetime.md` *Shared or local* (#955 may change its
@@ -305,9 +333,13 @@ phase writes `changelog.md` under `### Changed`:
     committed records. `seal pr-checks remove` takes out a workflow this
     plugin wrote and leaves any other file alone. No config row says whether
     the checks are installed: the file says it, and a second record would be
-    a second answer. A workflow left in a local-mode repository examines
-    nothing, as `docs/the-record-layout.md` *The unverified record, and the
-    baseline it is read against* states.
+    a second answer. A workflow pinned to a release that has the no-root
+    state, left in a local-mode repository, examines nothing and passes, as
+    `docs/the-record-layout.md` *The unverified record, and the baseline it
+    is read against* states. One pinned to an older release fails every
+    pull request there until its `--branch` line moves or
+    `seal pr-checks remove` takes it out, and `seal mode local` names the
+    pin when it leaves such a file.
     check: tests/test_seal.py
 - change
   file: docs/one-root-by-lifetime.ko.md
@@ -352,10 +384,14 @@ phase writes `changelog.md` under `### Changed`:
     아니면 거절합니다. 검사는 커밋된 기록을 읽기 때문입니다.
     `seal pr-checks remove` 는 이 플러그인이 쓴 워크플로를 빼고, 다른 파일은
     그대로 둡니다. 검사가 설치되었는지를 말하는 설정 행은 없습니다. 파일이
-    그것을 말하고, 두 번째 기록은 두 번째 답이 되기 때문입니다. local 모드
-    저장소에 남은 워크플로는 아무것도 보지 않습니다.
-    `docs/the-record-layout.md` *The unverified record, and the baseline it is
-    read against* 가 그것을 말합니다.
+    그것을 말하고, 두 번째 기록은 두 번째 답이 되기 때문입니다. 루트가 없는
+    상태를 아는 릴리스로 고정된 워크플로는 local 모드 저장소에 남아도
+    아무것도 보지 않고 통과합니다. `docs/the-record-layout.md` *The
+    unverified record, and the baseline it is read against* 가 그것을
+    말합니다. 그보다 오래된 릴리스로 고정된 워크플로는 `--branch` 줄을
+    옮기거나 `seal pr-checks remove` 로 빼기 전까지 그곳의 모든 PR 을
+    실패시키고, `seal mode local` 은 그런 파일을 남길 때 고정된 릴리스를
+    알려 줍니다.
     check: tests/test_seal.py
 - change
   file: docs/branch-and-release.md
@@ -378,6 +414,18 @@ phase writes `changelog.md` under `### Changed`:
     to local mode is not read as deleting its records. Every other path
     holding no `overview.md` is still exit 2, which keeps a misspelt path
     from passing in silence.
+    check: nothing-declared-nothing-owed
+- add
+  file: docs/the-review-record.md
+  section: What the check reads at the pull request
+  to: **Where HEAD has no top-level `seal` entry, the check reads nothing as
+    declared.** The pull request that moves a root to local mode deletes
+    every `routing.md` with the root, and a deleted declaration HEAD does
+    not carry is otherwise refused. With no root in the tree there is
+    nothing to declare, so the check judges the trailers as for any pull
+    request that declares nothing, as the unverified check reads the same
+    tree. Where git cannot say whether HEAD has the entry, the declarations
+    stay judged.
     check: nothing-declared-nothing-owed
 
 ## Removes
