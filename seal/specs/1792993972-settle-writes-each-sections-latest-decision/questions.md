@@ -23,7 +23,7 @@ answer was read, so a reviewer can overturn it by opening the same place.
    because the settle wrote `to` text verbatim and could write no sentence
    by hand (`round-1.md` finding 3, `round-2.md` finding 1, `round-3.md`
    finding 1 of `1792976216`). The settling session now writes the text and
-   runs the documents' checks over it. A pull-request check of a spec's `to`
+   runs the repository's broad gate over it, which reads every check. A pull-request check of a spec's `to`
    texts would read text the settle will reword, which `CLAUDE.md` *The rule
    a mechanism is kept against* calls a reading guessed from words: a
    report, never a gate.
@@ -74,10 +74,13 @@ answer was read, so a reviewer can overturn it by opening the same place.
     CI readers asked rows at the merge base (`settle.py` module docstring,
     *The rule arm*). Once the predicate no longer asks rows there, a closure
     in the working tree is the only fact `--apply` needs.
-11. **A11 The settle runs the repository's `Broad gate` row once before its
-    pull request.** `seal/config.md` names it, and the backlog settle ran the
-    same commands (#1024's body, *How it was checked*). A settle is not a
-    work item, so `broad-gate --record` does not apply to it.
+11. **A11 The settle's pull request opens on a passing run of the
+    repository's `Broad gate` row with no edit after it.** `seal/config.md`
+    names the row, and the backlog settle ran the same commands (#1024's
+    body, *How it was checked*). The row is the one run that reads every
+    check, so a failure there is fixed and the row run again (`plan.md`
+    *Technical context*, *Step 6 after round 3*). A settle is not a work
+    item, so `broad-gate --record` does not apply to it.
 12. **A12 A spec with no `## Rule changes`, and one whose section does not
     parse, leave like any other.** Today the first stays forever and the
     second is refused. None of the 41 released specs is either (executed: a

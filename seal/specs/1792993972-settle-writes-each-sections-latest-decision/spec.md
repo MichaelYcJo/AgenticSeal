@@ -12,6 +12,8 @@
 | `docs/the-review-record.md` *What the check reads at the pull request* | `chain-check` parses each `## Rule changes` with `rule_changes.py#parse` and refuses a section that does not parse. Kept, with the sentence on what `settle` then does rewritten |
 | `docs/the-review-and-parity-arms.md` *The declaration, and where the check went* | A declaration whose directory a settle removed is asked `unverified_check.py#settled` at the merge base. Kept, with the sentence on what a retirement is rewritten |
 | `skills/implement/SKILL.md` *Document layout — two roots, three lifetimes* | Defines the policy in force as the baseline plus every unsettled spec's rule changes in merge order. Rewritten to the latest decision at each section |
+| `CLAUDE.md` *The rule a mechanism is kept against*, again | "When fixes chase one mechanism's edge cases, ask what it decides." Two fix passes (`ffeadf29`, `72fc2c58`) rewrote the set of test modules step 6 of the settling session's procedure searches for, and round 3 proposed a further spelling for it. That set decides nothing: step 8's broad gate is the run that passes or fails the settle. So step 6 runs the named `check:` targets and step 8 is where every other check shows (`plan.md` *Technical context*, *Step 6 after round 3*) |
+| `README.md` *The broad checks run once, after the review rounds settle* (lines 68 to 76) and `seal/config.md` line 10 | The broad run is taken once the edits are done, and "nothing edits between that run and the PR". The repository's `Broad gate` row runs `ruff check`, `ruff format --check` and `bin/test -q`, the whole suite. A failure at that run is an edit, which spends it, so the settle runs the row again after its fix; the pull request still opens on a run with no edit after it |
 | `CONTRIBUTING.md` *What a change to a gate must carry* | The pull request states the failure direction (the predicate allows more: any whole removal of a directory that stood at the base), a prompt budget of zero, and what it removes |
 | `.github/workflows/hygiene.yml` lines 157 to 195 | CI runs `unverified_check.py --baseline origin/<base_ref> seal/specs/` and `chain_check.py --baseline origin/<base_ref>` from the tree. On the release pull request the base is `main`, where the 41 held records still hold open rows (executed: `git ls-tree origin/main seal/specs/` lists all 41), so any predicate that reads rows at the base keeps the release pull request red after a settle that decided them |
 
@@ -79,10 +81,13 @@ neither writes `docs/` nor judges."
    issue, `gh issue create`, or as a `seal/follow-up.md` row where the
    repository has no tracker), and close it in the record with `closed` and
    what closed it; where the tree does not decide, take a default and write it
-   down; run the documents' checks over what it wrote and change whatever the
-   written sections leave standing on an old fact (a pin under `tests/`, a
-   README copy), naming each in the pull request body; run `settle --apply`;
-   run the repository's `Broad gate` row once; open the pull request whose body
+   down; run each rule's `check:` targets over what it wrote, then the dry
+   run again; run `settle --apply`; run the repository's `Broad gate` row,
+   the one run that reads every check, change whatever the written sections
+   leave standing on an old fact (a pin under `tests/`, a README copy),
+   naming each in the pull request body, and run the row again after any
+   such change, so that the pull request opens on a passing run with no
+   edit after it (S13 states the two steps); open the pull request whose body
    lists, per group, the decision and its grounds, the superseded operations,
    the rows by kind with what closed each, the defaults under the decisions it
    leaves open, the answers for the checks that read the corpus, and how it
@@ -168,6 +173,30 @@ neither writes `docs/` nor judges."
 | S10 the real corpus | Given the tree at the build's head. When `python3 skills/settle/scripts/settle.py --released-at origin/main` runs, read-only, then it lists the groups of the six released specs that state rule changes, refuses none, and lists every open row of the 41 released records | executed by the smith, the counts and the group headings recorded in the phase record; no `--apply` |
 | S11 the procedure is written | Given `skills/settle/SKILL.md`. Then it states the settling session's steps of *In* item 3, the replacement sentence of *The design in one paragraph*, and that nobody is asked; the sentence "The spec decides; the command applies" is gone | cases in `tests/test_settle_reads_before_it_removes.py` replacing `test_the_skill_says_the_spec_judges_and_the_command_applies`, `test_the_skill_says_the_directory_goes_with_the_rule_it_applied` and `test_the_skill_states_how_the_changes_land`, each seen red |
 | S12 the rule changes parse | Given this `spec.md`. When `chain_check.py` reads it, then its `## Rule changes` parses | `rule_changes.py#parse` over this file, run by the smith |
+| S13 the checks the settling session runs | Given `skills/settle/SKILL.md` *The settling session's procedure*. Then step 6 names each rule's `check:` targets and the dry run as what it runs, is done when every `check:` target passes, says why it does not look for the other checks that read what the session wrote, and holds no search of the tests' text; step 8 says the `Broad gate` row is the one run that reads every check, says how a failure on an old fact is changed and named, and is done when the row passes with no edit after it. The text below is the target, written into the skill as it stands | `tests/test_settle_reads_before_it_removes.py::test_the_skill_states_the_settling_sessions_procedure` rewritten, seen red against `27177bf2`'s skill text and green after |
+
+The target text of S13, steps 6 to 8 of `skills/settle/SKILL.md` *The
+settling session's procedure*:
+
+```markdown
+6. Run each rule's `check:` targets over what you wrote, and change what a
+   failure shows still standing on the old fact. Then run the dry run
+   again: a `to` not found is where you reworded, which the body explains.
+   The step is done when every `check:` target passes. It does not look
+   for the other checks that read what you wrote, such as a line-length
+   check, a pin on a sentence you rewrote, or a check that reads the
+   corpus: a search of the tests' text finds a module only by how it
+   spells a path, so no such search lists them all, and step 8 runs every
+   one.
+7. Run `settle --apply`.
+8. Run the repository's `Broad gate` row. It is the one run that reads
+   every check. Where a case fails because a pin under `tests/` or a copy
+   such as a README row still states the old fact, change that pin or
+   copy, and name each in the pull request body. Where a check that reads
+   the corpus fails, answer it as *Answer every check that reads the
+   corpus* says. Run the failing modules until they pass, then run the
+   row again. The step is done when the row passes with no edit after it.
+```
 
 ## Data & interfaces
 
@@ -372,6 +401,7 @@ neither writes `docs/` nor judges."
 | The open-row and replay conditions of the predicate | `skills/verify/scripts/unverified_check.py#settled`; `unverified_check.py#wrote_a_spec` where nothing else calls it | the predicate reads the whole removal of a directory that stood at the base (`docs/the-record-layout.md` *The fold, and what tells it from a deletion*, rewritten above) |
 | "The spec decides; the command applies. The step moves and does not verify", and *What this does not do* "It does not verify" | `skills/settle/SKILL.md` *settle — apply what released specs decided* and *What this does not do* | the replacement sentence in *Scope*, written into the skill |
 | *What `--apply` does*, its four bullets (merge order wins, whole or not at all, in place, a directory goes only with what it applied) | `skills/settle/SKILL.md` *What `--apply` does* | rewritten in place to *In* items 1 and 2 |
+| Step 6's search of the tests' text for the modules that read a changed file, its command `git grep -l -w -F -e docs -e <name> -- tests/`, its sentence on what the set holds, and step 8's "once" | `skills/settle/SKILL.md` *The settling session's procedure* steps 6 and 8; the three strings of `tests/test_settle_reads_before_it_removes.py::test_the_skill_states_the_settling_sessions_procedure` that pin them; the clause of `changelog.md` naming the modules it runs. This branch added each (step 8's "once" at `48e2a428`, the search at `ffeadf29` and `72fc2c58`), so the pull request's diff against the base shows neither the search nor its removal; phase 3's diff shows the removal | step 8, the `Broad gate` row, runs every check after `--apply`, and is run again after a fix (S13) |
 | The cases that pin the replay, the holds, the conflict and the base rule | `tests/test_rule_changes.py::Test_replay` (all eleven cases); in `tests/test_settle.py`, `Test_apply::test_an_open_memo_row_keeps_a_spec_less_directory`, `test_a_closure_the_base_has_not_seen_keeps_the_directory`, `test_an_uncommitted_closure_keeps_the_directory`, `test_a_closure_the_base_has_seen_lets_the_directory_go`, `test_a_base_that_moved_past_the_fork_names_the_merge_that_moves_it`, `test_refuses_a_survey_with_no_base` (both), `test_the_predicate_is_what_settle_asks`, `Test_main::test_two_specs_on_parallel_branches_at_one_place_are_a_conflict`, `test_apply_rewrites_in_place_and_removes_the_directory`, `test_apply_follows_merge_order`, `test_what_apply_removed_is_settled_for_the_readers`, `test_apply_deletes_a_document_its_removal_leaves_empty`, `test_a_rule_change_half_applied_is_not_settled`, `test_apply_refuses_a_conflict_and_keeps_both`, `test_apply_writes_nothing_of_a_refused_spec`, `test_an_open_record_row_holds_its_spec`, `test_a_section_that_does_not_parse_keeps_its_directory`, `test_the_text_applied_is_the_spec_as_released`, `test_a_spec_no_commit_adds_is_held`, `test_apply_creates_the_policy_root_the_config_names`, `test_a_name_that_differs_only_in_case_is_held`, `test_a_shallow_clone_is_not_told_the_refs_share_no_commit`, `test_no_merge_base_is_refused_and_nothing_is_removed`, `Test_module::test_the_base_heading_says_where_the_closure_has_to_go`, `test_the_predicate_asks_every_condition_itself`, `test_every_reader_of_a_retirement_calls_the_one_predicate`; in `tests/test_settle_reads_before_it_removes.py`, `test_a_closed_row_is_told_to_merge_before_its_directory_goes`, `test_the_documents_say_the_closure_has_to_reach_the_base`, `test_the_skill_says_the_spec_judges_and_the_command_applies`, `test_the_skill_says_the_directory_goes_with_the_rule_it_applied`, `test_the_skill_states_how_the_changes_land`; in `tests/test_unverified_check.py`, the `Test_settled` cases and the two `a-settle-is-no-deletion` cases that pin the rows and the replay, and `Test_rule_changes::test_accepts_the_one_reader_of_a_specs_rule_changes`'s `replay` assertion | each is retired with the behaviour it pins, or rewritten to S1 to S11, which replace them; a case kept where its behaviour stays (the readers, the citations, the local-mode refusal, the settled root, the case-insensitive name where the dry run still reports it) is the build's to keep, and the phase record names which |
 
 ## Open questions
@@ -379,3 +409,4 @@ neither writes `docs/` nor judges."
 None here: each is a row of `questions.md`.
 
 Framed 2026-10-26 by framer, before the build.
+Reframed 2026-10-26 by framer, after round 3.
