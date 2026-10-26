@@ -21,7 +21,7 @@ not letting a pull request escape a declaration of its own
 severity: should
 location: `skills/settle/SKILL.md:203-212`, `tests/test_settle_reads_before_it_removes.py:113-115`, `seal/specs/1792993972-settle-writes-each-sections-latest-decision/changelog.md:6`
 evidence: executed `git grep -l -F docs/ -- tests/`, `git grep -l -E '"docs"' -- tests/`, `git grep -l -e the-record-layout -e release-checklist -e the-review-and-parity-arms -e the-review-record -e README -e 'settle/SKILL' -e 'skills/settle' -- tests/`
-verdict: open
+verdict: fixed 72fc2c58
 regression: round-1#5
 
 Step 6 of `skills/settle/SKILL.md` *The settling session's procedure* is the
@@ -94,7 +94,7 @@ The changelog fragment's bullet changes with it: "runs each rule's
 `check:` targets and every test module naming the policy root's directory
 or a file it changed over what it wrote".
 
-answer:
+answer: The finding holds, and as the first regression on this unit it took an ordinary fix pass. The smith fixed it in 72fc2c58: step 6 now names its set as every `tests/` module whose text holds the policy root's directory name as a word or the name of a file the session changed, and gives `git grep -l -w -F -e docs -e <name> -- tests/` with one `-e <name>` per changed file, which finds exactly that set. It takes the proposal's per-file names but matches the directory with `-w docs` rather than `docs/`, so a module joining a document's path from its parts is found by the directory itself, and the file names find the modules that open a file without it, such as a README reader. Over this spec's four documents and both READMEs the command lists 118 files, including `tests/test_a_rider_reaches_its_file.py`, `tests/test_review_axes.py`, `tests/test_unverified_rows_close.py` and `tests/test_the_root_migrates_itself.py`, and misses none of the modules naming README, `"docs"`, `docs/` or a changed document's name (executed by the smith). `test_the_skill_states_the_settling_sessions_procedure` pins the set, the command and the per-file clause, red against ffeadf29's text and green after, and the changelog fragment names a changed file beside the directory.
 
 ## Confirmations
 
