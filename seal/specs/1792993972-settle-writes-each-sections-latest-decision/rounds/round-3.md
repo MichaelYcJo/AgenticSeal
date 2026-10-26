@@ -23,7 +23,7 @@ repeat.
 severity: should
 location: `skills/settle/SKILL.md:203-217`, `tests/test_settle_reads_before_it_removes.py:116-121`, `seal/specs/1792993972-settle-writes-each-sections-latest-decision/changelog.md:6`
 evidence: executed `git grep -l -w -F -e docs -e the-review-record.md -- tests/`, `bin/test tests/test_one_heading_rule_holds_to_commonmark.py -q`, `bin/test $(cat probe_set.txt) -q`
-verdict: open
+verdict: deferred the frame
 regression: round-2#1
 
 The unit is step 6 of `skills/settle/SKILL.md` *The settling session's
@@ -127,7 +127,7 @@ is absent from the current text, so a revert leaves it red:
 The changelog bullet's clause becomes "runs each rule's `check:` targets
 and every test module that reads a file it changed over what it wrote".
 
-answer:
+answer: Routed to the framer, not to a fix pass. It is the second regression on step 6 of `skills/settle/SKILL.md`, whose first (round-2#1) was routed to a fix pass, and `skills/code-review/orchestration.md` *A regression is routed by comparing the fix with the frame* sends such a unit to the framer whatever the comparison says. The framer is spawned with rounds 1 to 3 as its input.
 
 ## Confirmations
 
