@@ -12,8 +12,7 @@ work items and a tracked overview under `build/`, a clone whose second
 overview is a tracked link to the first, a clone whose base
 revisions are written the way the corpus was before it was normalised, a
 clone with a moved base branch beside its work branch, a clone of work items
-a settle can remove, a clone whose spec was dropped on the far side of a
-merge, a clone with a `seal/` root beside a team's own `specs/`, a
+a settle can remove, a clone with a `seal/` root beside a team's own `specs/`, a
 `seal/` root with no `specs/`, and a `seal/` root whose one work item holds
 no overview. A case that writes into a world takes a copy,
 and the copy is the reset. No world holds a file a case runs, so the copies
@@ -272,24 +271,6 @@ def settle(tmp_path_factory):
     d = _committed(tmp_path_factory.mktemp("settle"), files)
     git(d, "rm", "-q", f"specs/{DROPPED}/spec.md")
     commit_everything_as_e(d, "an earlier pull request drops it")
-    return d
-
-
-@pytest.fixture(scope="module")
-def merged(tmp_path_factory):
-    """A spec added and dropped on `release`, which reached `main` through a
-    merge commit whose result matches the parent that never held it."""
-    d = _committed(tmp_path_factory.mktemp("merged"), {"README.md": "r\n"})
-    git(d, "switch", "-qc", "release")
-    write(d, "seal/specs/1780000009-x/routing.md", "# x routing\n")
-    write(d, "seal/specs/1780000009-x/spec.md", "# a spec\n\nA rule.\n")
-    commit_everything_as_e(d, "a work item with a spec")
-    git(d, "rm", "-q", "seal/specs/1780000009-x/spec.md")
-    commit_everything_as_e(d, "the spec, dropped")
-    git(d, "switch", "-q", "main")
-    write(d, "other.md", "o\n")
-    commit_everything_as_e(d, "main moves")
-    git(d, "merge", "-q", "--no-ff", "-m", "release into main", "release")
     return d
 
 
@@ -1700,20 +1681,10 @@ class Test_show:
 
 class Test_rule_changes:
     def test_accepts_the_one_reader_of_a_specs_rule_changes(self):
-        rules = UC.rule_changes()
-        assert callable(rules.parse) and callable(rules.replay)
+        assert callable(UC.rule_changes().parse)
 
     def test_refuses_to_load_it_twice(self):
         assert UC.rule_changes() is UC.rule_changes()
-
-
-class Test_policy_documents:
-    def test_accepts_each_file_under_the_policy_root(self, settle):
-        assert UC.policy_documents(str(settle), "HEAD", "docs") == {"docs/a.md": DOC}
-        assert UC.policy_documents(str(settle), None, "docs") == {"docs/a.md": DOC}
-
-    def test_refuses_a_policy_root_that_is_not_there(self, settle):
-        assert UC.policy_documents(str(settle), "HEAD", "rules") == {}
 
 
 class Test_open_record_rows:
@@ -1739,50 +1710,32 @@ class Test_open_record_rows:
         )
 
 
-class Test_wrote_a_spec:
-    @pytest.mark.parametrize("directory", [DROPPED, SETTLE_A])
-    def test_accepts_a_spec_written_once_and_one_still_there(self, settle, directory):
-        """Round 1's finding 3: a spec an earlier commit deleted was still
-        written, so its directory is no spec-less work item."""
-        assert UC.wrote_a_spec(str(settle), "HEAD", f"specs/{directory}") is True
-
-    def test_accepts_a_spec_dropped_on_the_far_side_of_a_merge(self, merged):
-        """Round 2's finding 6: at the merge the path matches the parent that
-        never held it, so `git log` without `--full-history` follows that
-        parent alone."""
-        assert UC.wrote_a_spec(str(merged), "HEAD", "seal/specs/1780000009-x") is True
-        assert not UC.settled(str(merged), "HEAD", ["seal/specs/1780000009-x"])
-
-    def test_accepts_a_history_git_cannot_read_as_a_spec_written(self, tmp_path):
-        """*Never wrote one* is the answer that removes the directory."""
-        assert UC.wrote_a_spec(str(tmp_path), None, "seal/specs/1780000009-x") is True
-
-    def test_refuses_a_directory_that_never_wrote_one(self, settle):
-        assert UC.wrote_a_spec(str(settle), None, f"specs/{CLOSED_ITEM}") is False
-
-
 class Test_settled:
-    def test_accepts_a_spec_less_item_and_one_whose_spec_states_no_rule(self, settle):
-        dirs = [f"specs/{CLOSED_ITEM}", f"specs/{SETTLE_C}"]
-        assert UC.settled(str(settle), "HEAD", dirs) == set(dirs)
-
-    def test_accepts_an_item_whose_rule_the_policy_root_holds_here(
-        self, settle, tmp_path
-    ):
-        d = copy_of(settle, tmp_path)
-        write(d, "docs/a.md", DOC + "\nA new rule.\n")
-        assert UC.settled(str(d), "HEAD", [f"specs/{SETTLE_A}"]) == {
-            f"specs/{SETTLE_A}"
-        }
-
-    def test_refuses_an_open_row_a_dropped_spec_a_rule_not_held_and_an_unread_one(
-        self, settle
-    ):
+    def test_accepts_every_directory_that_stood_at_the_ref(self, settle):
+        """S6 at the predicate (#1033): a directory that stood at the ref is
+        settled whatever its record and its spec say: an open row, a spec an
+        earlier commit dropped, a rule `docs/` does not hold, a section that
+        does not parse, a spec with no section, and no spec at all."""
         dirs = [
             f"specs/{n}"
-            for n in (OPEN_ITEM, DROPPED, SETTLE_A, SETTLE_BAD, "1780000099-none")
+            for n in (
+                OPEN_ITEM,
+                DROPPED,
+                SETTLE_A,
+                SETTLE_BAD,
+                SETTLE_C,
+                CLOSED_ITEM,
+            )
         ]
-        assert UC.settled(str(settle), "HEAD", dirs) == set()
+        assert UC.settled(str(settle), "HEAD", dirs) == set(dirs)
+
+    @pytest.mark.parametrize(
+        "ref, name",
+        [("HEAD", "1780000099-none"), ("nosuch", OPEN_ITEM)],
+        ids=["a directory the ref never held", "a ref that does not resolve"],
+    )
+    def test_refuses_a_directory_the_ref_does_not_hold(self, settle, ref, name):
+        assert UC.settled(str(settle), ref, [f"specs/{name}"]) == set()
 
 
 class Test_settled_root:
@@ -1952,13 +1905,21 @@ class Test_main:
 
     def test_accepts_the_baseline_help_naming_both_places(self, capsys):
         """#612: the `--baseline` help is a rendered line (contract rule
-        14), and it names the fork point and the base's tip."""
+        14), and it names the fork point and the base's tip. Since #1033 it
+        and the module's docstring say what reads as a settle, and nothing
+        about the records or `docs/`."""
         with pytest.raises(SystemExit):
             UC.main(["--help"])
         rendered = " ".join(capsys.readouterr().out.split())
         assert (
             "the fork point on a branch checkout and the base's tip in CI" in rendered
         )
+        said = "stood at the merge base and is gone whole, which reads as a settle"
+        assert said in rendered, rendered
+        assert "holding every rule change" not in rendered, rendered
+        doc = " ".join(UC.__doc__.split())
+        assert "unless its whole directory stood at the base and is gone" in doc
+        assert "unless a settle removed its directory whole" not in doc
 
     # `--baseline`: a row and a record leave by being closed.
 
@@ -2010,23 +1971,19 @@ class Test_main:
         assert WORK in named and UC.COMMENT_LINE in named, out
 
     @pytest.mark.parametrize(
-        "change, argv, gone",
-        [
-            ("delete one and rename the other", ["."], 2),
-            ("delete both", ["."], 2),
-            ("delete specs", ["specs"], 2),
-            ("delete the item", [f"specs/{WORK}/overview.md"], 1),
-        ],
-        ids=["a file and a rename", "every overview", "the scan path", "two levels"],
+        "change, gone, settled",
+        [("delete one and rename the other", 1, 1), ("delete both", 2, 0)],
+        ids=["a file and a rename", "every overview"],
     )
     def test_refuses_a_record_that_left_whole(
-        self, plain, tmp_path, capsys, change, argv, gone
+        self, plain, tmp_path, capsys, change, gone, settled
     ):
-        """Deleting the file was cheaper and quieter than deleting a row, and
-        a rename reads the same way, said out loud. A scan that finds nothing
-        because every overview left reports the deletion rather than an
-        empty scan, and a scan path deleted wholesale is compared rather than
-        called a bad argument, two levels gone too."""
+        """Deleting the file was cheaper and quieter than deleting a row, said
+        out loud. A scan that finds nothing because every overview left
+        reports the deletion rather than an empty scan. Since #1033 a
+        directory gone whole reads as a settle, so a renamed one is named
+        settled at its old path; its rows are listed where it went and are
+        counted against nothing at the old one."""
         d = copy_of(plain, tmp_path)
         item = d / "specs" / WORK
         if change == "delete one and rename the other":
@@ -2035,13 +1992,34 @@ class Test_main:
         if change == "delete both":
             os.remove(item / "overview.md")
             os.remove(d / "specs" / OTHER / "overview.md")
-        if change == "delete specs":
-            shutil.rmtree(d / "specs")
-        if change == "delete the item":
-            shutil.rmtree(item)
+        assert run([str(d), "--baseline", "HEAD"]) == 1
+        out = capsys.readouterr().out
+        assert out.count("present at HEAD and not here") == gone, out
+        assert out.count("settled: the directory stood at HEAD") == settled, out
+
+    @pytest.mark.parametrize(
+        "change, argv",
+        [
+            ("delete specs", ["specs"]),
+            ("delete the item", [f"specs/{WORK}/overview.md"]),
+        ],
+        ids=["the scan path", "two levels"],
+    )
+    def test_accepts_a_scan_path_gone_whole_as_a_settle(
+        self, plain, tmp_path, capsys, change, argv
+    ):
+        """A scan path deleted wholesale is compared rather than called a bad
+        argument, two levels gone too. Each directory under it stood at the
+        base and is gone whole, which reads as a settle since #1033: the
+        limit that work item states for a whole removal outside a settle,
+        whose diff shows it to its review."""
+        d = copy_of(plain, tmp_path)
+        shutil.rmtree(d / "specs" if change == "delete specs" else d / "specs" / WORK)
         paths = [os.path.join(str(d), *a.split("/")) for a in argv]
-        assert run([*paths, "--baseline", "HEAD"]) == 1
-        assert capsys.readouterr().out.count("present at HEAD and not here") == gone
+        assert run([*paths, "--baseline", "HEAD"]) == 0
+        out = capsys.readouterr().out
+        assert "present at HEAD and not here" not in out, out
+        assert "settled: the directory stood at HEAD" in out, out
 
     def test_refuses_an_unreadable_section_without_reporting_a_deletion(
         self, plain, tmp_path, capsys
@@ -2273,57 +2251,65 @@ class Test_main:
     def test_a_settled_work_item_is_not_read_as_this_branchs_deletion(
         self, settle, tmp_path, capsys
     ):
-        """A released directory removed whole, with nothing open, whose rule
-        changes `docs/` holds, that states none, or that never wrote a spec,
-        is a settle and not this branch's deletion (S9 and S11 of the settle
-        work, A6 of #517). It is named rather than passed over in silence, in
-        the line a person reads in the hygiene workflow's output."""
+        """S6 of #1033: a directory that stood at the merge base and is gone
+        whole is a settle and not this branch's deletion, whatever its record
+        held there and whatever `docs/` holds of its spec: an open row, a rule
+        `docs/` does not hold, a spec an earlier commit dropped, a section
+        that does not parse, a spec with no section, and no spec. It is named
+        rather than passed over in silence, in the line a person reads in the
+        hygiene workflow's output."""
         d = copy_of(settle, tmp_path)
-        removed = [SETTLE_A, SETTLE_C, CLOSED_ITEM]
+        removed = [OPEN_ITEM, SETTLE_A, DROPPED, SETTLE_BAD, SETTLE_C, CLOSED_ITEM]
         for name in removed:
             shutil.rmtree(d / "specs" / name)
-        write(d, "docs/a.md", DOC + "\nA new rule.\n")
         assert run([str(d), "--baseline", "HEAD"]) == 0
         out = capsys.readouterr().out
         assert "present at HEAD and not here" not in out, out
         named = out.split("not deleted from the record:")[1]
-        assert "3 settled" in out and all(n in named for n in removed), out
+        assert "6 settled" in out and all(n in named for n in removed), out
         assert (
-            "settled: at HEAD nothing in its record was open, and `docs/` holds "
-            "every rule change its spec states"
+            "settled: the directory stood at HEAD and is gone whole, which "
+            "reads as a settle"
         ) in " ".join(out.split())
         # A path whose every overview a settle removed reads no overview and
         # is still no empty scan.
         assert run([str(d / "specs" / SETTLE_C), "--baseline", "HEAD"]) == 0
 
     @pytest.mark.rule("a-settle-is-no-deletion")
-    def test_a_removal_whose_rule_docs_does_not_hold_still_fails(
+    def test_a_squash_that_closes_and_removes_a_directory_is_a_settle(
         self, settle, tmp_path, capsys
     ):
-        """S10: two directories leave together, and `docs/` holds one of
-        their rules."""
+        """S7 of #1033, the release pull request: the base holds the
+        directory with its rows open, and one squash commit on the head
+        removed it whole. Asked at that base, the directory is settled."""
         d = copy_of(settle, tmp_path)
-        shutil.rmtree(d / "specs" / SETTLE_A)
-        shutil.rmtree(d / "specs" / SETTLE_B)
-        write(d, "docs/a.md", DOC + "\nA new rule.\n")
-        assert run([str(d), "--baseline", "HEAD"]) == 1
-        deleted = capsys.readouterr().out.split("rows left the record")[1]
-        assert SETTLE_B in deleted and SETTLE_A not in deleted
+        git(d, "branch", "release-base")
+        git(d, "rm", "-rq", f"specs/{OPEN_ITEM}")
+        commit_everything_as_e(d, "the settle, squashed")
+        assert run([str(d), "--baseline", "release-base"]) == 0
+        out = " ".join(capsys.readouterr().out.split())
+        assert "1 settled" in out and OPEN_ITEM in out, out
+        assert "and not here" not in out, out
 
     def test_refuses_a_removal_no_settle_explains(self, settle, tmp_path, capsys):
-        """An open row at the base, a spec an earlier merge deleted, and a
-        memo deleted from a directory that stays are deletions whatever the
-        predicate would say, and each is named."""
+        """S8: a memo deleted from a directory that stays is a deletion
+        whatever the predicate would say, open rows or closed, and each is
+        named. Since #1033 a directory removed whole is a settle, so an open
+        row and a dropped spec no longer make one a deletion, and the message
+        names the one shape left: the directory still stands. A renamed
+        directory is gone whole from its old path, so the message says nothing
+        of a rename."""
         d = copy_of(settle, tmp_path)
-        shutil.rmtree(d / "specs" / OPEN_ITEM)
-        shutil.rmtree(d / "specs" / DROPPED)
+        os.remove(d / "specs" / OPEN_ITEM / "overview.md")
         os.remove(d / "specs" / CLOSED_ITEM / "overview.md")
         assert run([str(d), "--baseline", "HEAD"]) == 1
         out = capsys.readouterr().out
         lines = [ln for ln in out.split("\n") if "present at HEAD and not here" in ln]
-        for name in (OPEN_ITEM, DROPPED, CLOSED_ITEM):
+        for name in (OPEN_ITEM, CLOSED_ITEM):
             assert sum(name in ln for ln in lines) == 1, (name, out)
-        assert "settled" not in out, out
+        for ln in lines:
+            assert "its directory still stands, so this is no settle" in ln, out
+        assert "settled" not in out and "renamed" not in out, out
 
     def test_refuses_to_decide_a_removal_without_the_one_predicate(
         self, settle, tmp_path, monkeypatch
@@ -2336,7 +2322,7 @@ class Test_main:
         monkeypatch.setattr(
             UC,
             "settled",
-            lambda root, ref, dirs, here=None: asked.extend(dirs) or set(),
+            lambda root, ref, dirs: asked.extend(dirs) or set(),
         )
         assert run([str(d), "--baseline", "HEAD"]) == 1
         assert asked == [f"specs/{CLOSED_ITEM}"], asked

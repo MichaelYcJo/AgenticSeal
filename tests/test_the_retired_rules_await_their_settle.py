@@ -5,7 +5,7 @@
 their `check:` lines. The work item retired what they name: the commit gate
 inside git and its text reading. Its `## Rule changes` removes the first two
 documents and rewrites the third section, and the policy root changes only
-when `settle --apply` applies that. `rules --check` reads every check line in
+at the settle that writes those sections. `rules --check` reads every check line in
 the tree as it stands (`tests/test_rules.py::Test_main::
 test_every_check_line_in_the_tree_holds`), so each marker is carried here by
 a class with no case: nothing of the retired rule is left to test. Nothing

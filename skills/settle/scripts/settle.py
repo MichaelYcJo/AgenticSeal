@@ -1,35 +1,43 @@
 #!/usr/bin/env python3
-"""settle — apply the rule changes released specs state to the policy root.
+"""settle — show the released specs by section, and remove what a settle leaves.
 
-  settle                        the dry run: what `--apply` would write and remove
-  settle --apply                apply them in place, and remove what they settle
+  settle                        the dry run: each group of released specs that
+                                name one section, the specs to read whole, every
+                                open row, and what `--apply` removes
+  settle --apply                remove each released work item directory whose
+                                record holds no open row
   settle --released-at REF      what counts as released (default origin/main)
   settle --root DIR             a repository other than this one
 
 **Released means present on the branch the release merges to**, which is why
 `--released-at` names a ref rather than a date.
 
-**Each released spec's `## Rule changes` is applied in merge order, whole or
-not at all.** `rule_changes.py` reads and replays the sections; this writes
-the result into the policy root (`seal/config.md`'s `Policy root` row,
-`docs` when absent, creating it with its index where it is absent) and
-removes each applied spec's directory whole, its
-process record included. A spec it cannot place, one whose record still holds
-an open row, and two that merge order cannot decide at one place apply
-nothing, and their directories stay. A spec with no section was written before
-the section existed: it is named and kept. No marker is written. The judgment
-was made when the spec was written and reviewed, so applying it judges
-nothing.
+**The specs say what was decided and in what order, the code says what holds
+now, and the settling session writes each section as the latest decision the
+code bears out. The script reads and removes; it neither writes `docs/` nor
+judges.** `skills/settle/SKILL.md` is the settling session's procedure.
 
-**The rule arm.** A released work item that wrote no `spec.md` states no rule,
-and it goes when nothing in its record is open (#517's D3). Whether a
-directory qualifies is `unverified_check.py#settled`, the predicate
-every CI reader asks of the merge base, asked here of the working tree and of
-the merge base of `--released-at` and `HEAD` (#602). A CI reader on a pull
-request stands on the merge ref, so its merge base is the base branch's tip:
-the same commit as this one until the base moves past the fork. A row closed
-here and still open at that base keeps its directory, under a heading naming
-the base and, where the base has moved, the merge that moves it.
+**The dry run is the timeline.** Each released spec's `## Rule changes` is
+read as `--released-at` holds it, through `rule_changes.py`. The specs whose
+operations name one place, a file and a section, are one group, two places
+one group where `rule_changes.py#overlapping` says they can name one text, and
+each group is listed in merge order (`rule_changes.py#order`). Each operation
+carries its spec's coordinate and two facts read from the working tree:
+whether its `from` is found in the section, and whether its `to` is. Two specs
+in one group whose adding commits no ancestry orders are marked unordered for
+the settling session to order by content. A spec whose section does not parse,
+or that has none, is listed to read whole. Every open `## Not verified` row of
+every released record is listed with the backticked paths it names and
+whether each is in the working tree. Nothing is refused or held in the dry
+run.
+
+**`--apply` removes, and only that.** It removes every released work item
+directory whose record holds no open row in the working tree, whether or not
+it wrote a `spec.md`, and prints the rows each removed record closed, with
+what closed each. A directory whose record still holds an open row, or one
+that cannot be read, is kept and named with its rows. It writes no policy
+document: the settling session has written them by then, and `fold-check`'s
+lines over the policy root are printed after the removals.
 
 **Local mode is refused rather than reported on.** A root under the common
 git directory is never committed, so no ref holds the work item directories
@@ -37,17 +45,13 @@ and nothing removed from them could be recovered. `seal mode shared` moves the
 root into the tree. A repository that opted out with the scratch marker, an
 empty FILE read the way `hooks/optin.py#home_at` reads it, is refused too.
 
-Exit codes: 0 the report was produced, `--apply` refused and kept nothing (a
-spec with no `## Rule changes` is left in place and counted, not refused), or
-the root holds no work item, which is the state a complete settle reaches · 1
-`--apply` refused or kept something — a spec it could not place, a record
-with an open row, or a spec-less directory whose closure has not reached the
-merge base of `--released-at` and `HEAD` · 2 the arguments or the tree were
-unusable: a `--released-at` ref that does not resolve, a `--released-at` ref
-sharing no commit with `HEAD` or a clone too shallow to reach the one they
-share, a root at neither place, a root in local mode, a repository that opted
-out, and a sibling script that is not beside it. An interpreter below the
-floor never reaches this file through `bin/settle`: `hooks/launch.py`
+Exit codes: 0 the report was produced, `--apply` kept nothing, or the root
+holds no work item, which is the state a complete settle reaches; 1 `--apply`
+kept a directory whose record holds an open row or cannot be read; 2 the
+arguments or the tree were unusable: a `--released-at` ref that does not
+resolve, a root at neither place, a root in local mode, a repository that
+opted out, and a sibling script that is not beside it. An interpreter below
+the floor never reaches this file through `bin/settle`: `hooks/launch.py`
 refuses it with 2 first.
 """
 
@@ -168,244 +172,230 @@ def read_text(root, rel):
 
 # What a settled root prints, for the dry run and `--apply` alike.
 SETTLED = (
-    "settle: {specs}/ in {root} holds no work item — nothing to apply and "
+    "settle: {specs}/ in {root} holds no work item — nothing to show and "
     "nothing to remove. A complete settle ends here, and git keeps no empty "
     "directory, so a fresh checkout of this state has no {specs}/ at all.\n"
 )
 
-# The rule arm's headings. Pinned by `tests/test_settle.py`, and the kept
-# heading's remedy also by `tests/test_settle_reads_before_it_removes.py`.
-RULE_HEADING = (
-    "retired by the rule — released, no `spec.md`, nothing open; "
-    "`settle --apply`\nremoves these, because a moment states no rule:"
+# The dry run's headings, each pinned by `tests/test_settle.py`.
+GROUPS_HEADING = (
+    "groups: the released specs whose rule changes name one section, in merge "
+    "order.\nThe settling session writes each section as its group's latest "
+    "decision, checked\nagainst the code (`skills/settle/SKILL.md`); `from` and "
+    "`to` say whether that text\nis in the section now:"
 )
-RULE_KEPT_HEADING = (
-    "kept by the rule — no `spec.md`, but the record still holds an open "
-    "row, which\nleaves by being closed (`closed` with what closed it) in a pull "
-    "request merged before the\none that retires the directory, and merged "
-    "to the branch the release merges to,\nnever with it:"
+UNORDERED = (
+    "unordered: {a} and {b}: no ancestry orders the commits that add their "
+    "spec.md,\n        so order them by content"
 )
-# #602: nothing is open in the tree, and the base still holds a row open.
-# `{base}` is `unverified_check.py#base_label`'s spelling of the merge base of
-# `--released-at` and `HEAD`; `RULE_MOVED_HEADING` is the case where the ref
-# has moved past the fork.
-RULE_BASE_HEADING = (
-    "kept until the closure reaches {base} — no `spec.md` and nothing open "
-    "here, but\nthe record there still holds an open row, and the CI readers "
-    "ask the rule there.\nMerge the closure to the branch the release merges "
-    "to first; the directory goes\nin a later pull request:"
+WHOLE_HEADING = (
+    "to read whole: released specs no group holds, for the settling session "
+    "to read\nand write any rule they state the same way:"
 )
-RULE_MOVED_HEADING = (
-    "kept: the closure has not reached {base} — no `spec.md` and nothing open "
-    "here, but\nthe record there still holds an open row. {ref} has moved past "
-    "that commit: where\n{ref} already holds the closure, merge {ref} into this "
-    "branch and run `settle`\nagain; otherwise merge the closure to {ref} "
-    "first. The directory goes in a later\npull request:"
+NO_SECTION = "no `## Rule changes` section"
+NOTHING_HEADING = "the no-change block (`- {nothing}`), so no section to write:"
+ROWS_HEADING = (
+    "open rows: every open `## Not verified` row of every released record, for "
+    "the\nsettling session to decide as moot, answered or a measurement to "
+    "re-home, and\nclose with `closed` and what closed it:"
 )
-PREMODEL_HEADING = (
-    "no `## Rule changes` — written before the section existed, so nothing "
-    "applies and\nthe directory stays:"
+REMOVES_HEADING = (
+    "what `settle --apply` removes: each released directory whose record "
+    "holds no open row:"
 )
-REMOVES_HEADING = "what `settle --apply` would remove:"
 READERS_HEADING = (
     "checks that read `seal/specs` — each owes an answer "
     "(`skills/settle/SKILL.md`\n*Answer every check that reads the corpus*) "
     "before the directories go:"
 )
 
-# What `report` and `apply` print for a survey that carries no base.
-NO_BASE_SAYS = (
-    "nothing read and nothing removed: no merge base between --released-at "
-    "and HEAD was handed to this, and the rule arm asks its predicate there.\n"
-)
+
+# A backticked span that names a repository path: a `/` in it, or a file
+# name with one of the extensions this repository's files carry. What
+# follows `#` or `::`, and a `:<line>` range, point inside the file and are
+# not part of its path.
+SPAN_RE = re.compile(r"`([^`\s]+)`")
+FILE_NAME_RE = re.compile(r"[\w.-]+\.(?:py|md|cmd|sh|ps1|yml|yaml|json|toml|txt)")
 
 
-def base_heading(found):
-    """The heading for a directory kept at the base: the ref's own commit,
-    where the CI readers ask too, or a fork the ref has moved past."""
-    if found.get("base_moved"):
-        return RULE_MOVED_HEADING.format(base=found["base_label"], ref=found["ref"])
-    return RULE_BASE_HEADING.format(base=found["base_label"])
+def named_paths(item):
+    """The repository paths an open row's ITEM names in backticks, in order."""
+    out = []
+    for span in SPAN_RE.findall(item):
+        path = re.split(r"#|::", span, maxsplit=1)[0]
+        path = re.sub(r":\d+(-\d+)?$", "", path).removeprefix("./")
+        if not path or path.startswith(("/", "~", "-")) or "<" in path:
+            continue
+        if ("/" in path or FILE_NAME_RE.fullmatch(path)) and path not in out:
+            out.append(path)
+    return out
 
 
-def write_rule_kept(kept, out, base=None):
-    """Each spec-less directory the rule arm keeps, with every open row.
-
-    With `base`, the rows are the ones open at that revision, and a directory
-    kept there with no row open is absent at the base or wrote a `spec.md` in
-    its history there, which the line says."""
-    where = f" at {base}" if base else ""
-    for work_item_id, rows in kept:
-        out.write(f"    {work_item_id}\n")
-        for name, item in rows:
-            out.write(f"        open in {name}{where}: {item}\n")
-        if not rows and base:
-            out.write(
-                f"        the rule does not hold at {base}: the directory is "
-                "absent there, or its history there wrote a `spec.md`\n"
-            )
-        elif not rows:
-            out.write(
-                "        the rule's predicate refused it with nothing open read\n"
-            )
+def tracked_names(root):
+    """The base names of every tracked file, so a row naming `spec.md` or
+    `broad_gate.py` alone is looked for by name."""
+    r = subprocess.run(["git", "-C", root, "ls-files", "-z"], capture_output=True)
+    listed = (
+        r.stdout.decode("utf-8", "replace").split("\0") if r.returncode == 0 else []
+    )
+    return {rel.rsplit("/", 1)[-1] for rel in listed if rel}
 
 
-def rule_arm(root, base, ids, reader):
-    """`(retired, kept here, kept at the base)` for the spec-less IDS.
+def in_tree(root, work_item_id, path, names):
+    """Whether PATH, as an open row of WORK_ITEM_ID names it, is in the
+    working tree: under the root, under the work item's own directory, or,
+    for a bare file name, as the name of a tracked file."""
+    rel = path.rstrip("/")
+    if os.path.exists(under(root, rel)):
+        return True
+    if os.path.exists(under(root, f"{SPECS}/{work_item_id}/{rel}")):
+        return True
+    return "/" not in rel and rel in names
 
-    The tree is asked first, so a directory with a row open on disk stays
-    under *kept by the rule*; then the base, since a closure the base has not
-    seen passes the tree and fails the release pull request (#602)."""
-    retired, kept, base_kept = [], [], []
-    dirs = [f"{SPECS}/{work_item_id}" for work_item_id in ids]
-    here, at_base = reader.settled(root, None, dirs), reader.settled(root, base, dirs)
+
+def open_rows(root, ids, reader):
+    """`[(id, [(file, item, [(path, in the tree)])])]` for each of IDS whose
+    record holds an open row in the working tree
+    (`unverified_check.py#open_record_rows`)."""
+    out, names = [], None
     for work_item_id in ids:
-        directory = f"{SPECS}/{work_item_id}"
-        if directory not in here:
-            kept.append((work_item_id, reader.open_record_rows(root, None, directory)))
-        elif directory not in at_base:
-            base_kept.append(
-                (work_item_id, reader.open_record_rows(root, base, directory))
+        rows = reader.open_record_rows(root, None, f"{SPECS}/{work_item_id}")
+        if not rows:
+            continue
+        names = tracked_names(root) if names is None else names
+        out.append(
+            (
+                work_item_id,
+                [
+                    (
+                        name,
+                        item,
+                        [
+                            (p, in_tree(root, work_item_id, p, names))
+                            for p in named_paths(item)
+                        ],
+                    )
+                    for name, item in rows
+                ],
             )
-        else:
-            retired.append(work_item_id)
-    return retired, kept, base_kept
+        )
+    return out
 
 
-def rule_plan(root, ref, base, ids, reader):
-    """What `--apply` does with the released specs IDS, replayed in memory.
+def facts(root, op, rules):
+    """`[(field, found)]` for one operation, read from the working tree:
+    whether its `from` and its `to` are in the lines its place spans. Where
+    the place is not there, neither is."""
+    text = read_text(root, op.file)
+    span, _ = rules.section_lines(text, op.section)
+    region = ""
+    if span:
+        lines = rules.reader().gfm_lines(text)
+        region = "\n".join(lines[span[0] - 1 : span[1]])
+    return [
+        (field, bool(span) and bool(rules.pattern(value).search(region)))
+        for field, value in (("from", op.old), ("to", op.new))
+        if value
+    ]
 
-    Each spec is read as REF holds it. One with no `## Rule changes` is
-    `premodel`. One whose section does not parse, whose record holds an open
-    row here or at BASE, whose adding commit is not on REF, or that conflicts
-    with another at one place is held, and `rule_changes.replay` refuses it
-    and waits every later spec at its places."""
+
+def timeline(root, ref, ids, reader):
+    """The released specs IDS as the dry run shows them.
+
+    Each `spec.md` is read as REF holds it, the text that was reviewed and
+    released. A spec with operations joins the groups `rule_changes.py#group`
+    forms in merge order; one whose section does not parse, or that has
+    none, is to be read whole; one holding the no-change block has nothing
+    to write; a directory with no `spec.md` states no rule."""
     rules = load(RULES, "specseal_rule_changes")
     policy = reader.policy_root(root)
-    parsed, premodel = {}, []
+    parsed, whole, nothing, spec_less = {}, [], [], []
     for work_item_id in ids:
+        if not has_spec(root, work_item_id):
+            spec_less.append(work_item_id)
+            continue
         text = reader.show(root, ref, f"{SPECS}/{work_item_id}/spec.md") or ""
         found = rules.parse(text, policy)
-        if found.ops is None:
-            premodel.append(work_item_id)
+        if found.errors:
+            whole.append((work_item_id, *found.errors[0]))
+        elif found.ops is None:
+            whole.append((work_item_id, 0, NO_SECTION))
+        elif not found.ops:
+            nothing.append(work_item_id)
         else:
-            parsed[work_item_id] = found
+            parsed[work_item_id] = found.ops
     ordered = rules.order(root, ref, list(parsed), SPECS)
-    held = {i: list(p.errors) for i, p in parsed.items() if p.errors}
-    # On a case-insensitive disk two names that differ only in case are one
-    # file, and the second write would erase the first spec's change.
-    top = under(root, policy)
-    known = {f"{policy}/{n}" for n in (os.listdir(top) if os.path.isdir(top) else [])}
-    known |= {op.file for p in parsed.values() for op in p.ops or []}
-    for work_item_id, found in parsed.items():
-        for op in found.ops or []:
-            if any(k != op.file and k.casefold() == op.file.casefold() for k in known):
-                held.setdefault(work_item_id, []).append(
-                    (op.line, f"{op.file} differs from another document only in case")
-                )
-    for work_item_id, commit in ordered:
-        why = held.setdefault(work_item_id, [])
-        if commit is None:
-            why.append((0, f"no commit on {ref} adds its spec.md"))
-        directory = f"{SPECS}/{work_item_id}"
-        rows = reader.open_record_rows(root, None, directory) or (
-            reader.open_record_rows(root, base, directory)
+    commits = dict(ordered)
+    same = rules.overlapping(lambda rel: read_text(root, rel))
+    groups = []
+    for places, ops in rules.group([(i, parsed[i]) for i, _ in ordered], same):
+        members = list(dict.fromkeys(i for i, _ in ops))
+        groups.append(
+            {
+                "places": [
+                    (p, *rules.section_lines(read_text(root, p[0]), p[1]))
+                    for p in places
+                ],
+                "ops": [(i, o, facts(root, o, rules)) for i, o in ops],
+                "unordered": rules.unordered(root, [(i, commits[i]) for i in members]),
+            }
         )
-        if rows:
-            why.append((0, f"its record holds an open row: {rows[0][1]}"))
-    held = {i: why for i, why in held.items() if why}
-    entries = [(i, c, parsed[i].ops) for i, c in ordered if i not in held]
-
-    def read(rel):
-        return read_text(root, rel)
-
-    for work_item_id, (other, at) in rules.conflicts(root, entries, read).items():
-        held[work_item_id] = [
-            (0, f"a conflict with {other} at {rules.where(at)}: "
-                "merge order cannot decide them")
-        ]  # fmt: skip
-    documents, applied, refused = rules.replay(
-        read, [(i, parsed[i].ops) for i, _ in ordered], held
-    )
     return {
-        "parsed": parsed,
-        "premodel": premodel,
-        "documents": documents,
-        "applied": applied,
-        "refused": refused,
+        "groups": groups,
+        "whole": whole,
+        "nothing": nothing,
+        "spec_less": spec_less,
+        "with_rules": len(parsed),
     }
 
 
-def write_outcome(plan, out):
-    """The refusals, the specs with nothing to apply, and the pre-model ones."""
-    if plan["refused"]:
-        out.write("\nrefused — nothing of the spec applies, and its directory stays:\n")
-        for work_item_id, line, why in plan["refused"]:
-            where = f"spec.md:{line}" if line else "spec.md"
-            out.write(f"    {work_item_id}  {where}  {why}\n")
-    nothing = [i for i in plan["applied"] if not plan["parsed"][i].ops]
-    if nothing:
-        no_change = load(READER, "specseal_unverified_reader").NOTHING
-        out.write(f"\nno rule to apply (`- {no_change}`):\n")
-        out.write("".join(f"    {i}\n" for i in nothing))
-    if plan["premodel"]:
-        out.write(f"\n{PREMODEL_HEADING}\n")
-        out.write("".join(f"    {i}\n" for i in plan["premodel"]))
+def place_line(p, span, why):
+    """A group's place as a person reads it, with its lines or why none."""
+    file, section = p
+    named = f"{file} section `{section}`" if section else f"{file}, the whole document"
+    if span:
+        return f"place: {named}, at {file}:{span[0]}-{span[1]}"
+    return f"place: {named}: {why} in the working tree"
 
 
-def write_rule_arm(found, retired, kept, base_kept, out, heading=True):
-    if retired and heading:
-        out.write(f"\n{RULE_HEADING}\n")
-        out.write("".join(f"    {i}\n" for i in retired))
-    if kept:
-        out.write(f"\n{RULE_KEPT_HEADING}\n")
-        write_rule_kept(kept, out)
-    if base_kept:
-        out.write(f"\n{base_heading(found)}\n")
-        write_rule_kept(base_kept, out, base=found["base_label"])
+def op_line(work_item_id, op, found):
+    """One operation of a group: its kind, its spec's coordinate and what the
+    working tree holds of its texts."""
+    where = f"{SPECS}/{work_item_id}/spec.md:{op.line}"
+    said = (
+        ", ".join(f"{f} {'found' if ok else 'not found'}" for f, ok in found)
+        or "the whole section"
+    )
+    return f"{op.kind}  {work_item_id}  {where}  {said}"
 
 
 # --- the dry run -----------------------------------------------------------
 
 
 def survey(root, ref):
-    """What the dry run prints, and where `--apply` gets *released* and the base.
+    """What the dry run prints, and where `--apply` gets *released*.
 
     **`--apply` does not take its candidates from here.** It reads the
-    directories, the specs and the records from the tree again, because a
+    directories and the records from the tree again, because a
     classification made for a printed list is not a guard on a destructive
-    act. What it takes from here is `released`, `ref` and `base`, the merge
-    base of `ref` and `HEAD` (#602), which only git answers.
+    act. What it takes from here is `released`, which only git answers.
 
-    None where `ref` does not resolve. Where it shares no commit with `HEAD`,
-    the dict holds `base` None and nothing else: the rule arm asks its
-    predicate of the base, and asked of `None` it would ask the working tree
-    alone."""
+    None where `ref` does not resolve."""
     present = work_items(root)
     on_base = released(root, ref)
     if on_base is None:
         return None
     reader = load(READER, "specseal_unverified_reader")
-    base = reader.merge_base(root, ref)
-    if base is None:
-        return {"base": None, "base_label": None}
-    ref_commit = reader.commit_of(root, ref)
+    ids = [i for i in present if i in on_base]
     found = {
-        "base": base,
-        "base_label": reader.base_label(ref, ref_commit, base),
-        "base_moved": base != ref_commit,
         "ref": ref,
-        "released": [i for i in present if i in on_base],
+        "released": ids,
         "unreleased": [i for i in present if i not in on_base],
+        "timeline": timeline(root, ref, ids, reader),
+        "rows": open_rows(root, ids, reader),
+        "nothing": reader.NOTHING,
     }
-    with_spec = [i for i in found["released"] if has_spec(root, i)]
-    spec_less = [i for i in found["released"] if not has_spec(root, i)]
-    found["rule"], found["rule_kept"], found["rule_base_kept"] = rule_arm(
-        root, base, spec_less, reader
-    )
-    found["plan"] = rule_plan(root, ref, base, with_spec, reader)
-    found["removes"] = found["plan"]["applied"] + found["rule"]
-    found["citations"], found["readers"] = citations(root, found["removes"])
+    found["citations"], found["readers"] = citations(root, ids)
     return found
 
 
@@ -472,77 +462,83 @@ def citations(root, work_item_ids):
 
 
 def report(found, ref, out):
-    """The dry run: pending changes in merge order, refusals, what `--apply`
-    would remove. A survey with no base is refused at exit 2, as `apply`
-    refuses one."""
-    if not found.get("base"):
-        out.write(NO_BASE_SAYS)
-        return 2
+    """The dry run: the groups, the specs to read whole, the open rows and
+    what `--apply` removes. It refuses nothing, so it exits 0."""
     write = out.write
-    plan = found["plan"]
-    specs = len(plan["parsed"]) + len(plan["premodel"])
+    t = found["timeline"]
+    rows = dict(found["rows"])
+    count = sum(len(r) for r in rows.values())
+    total = len(found["released"])
     write(
-        f"released with a spec.md: {specs} work item{plural(specs)}, "
-        f"{len(plan['applied'])} to apply\n"
+        f"released at {ref}: {total} work item{plural(total)}; "
+        f"{len(found['unreleased'])} unreleased and untouched\n"
+        f"    {t['with_rules']} state rule changes, {len(t['nothing'])} hold the "
+        f"no-change block, {len(t['whole'])} to read whole, "
+        f"{len(t['spec_less'])} wrote no spec.md\n"
+        f"    {len(t['groups'])} group{plural(len(t['groups']))}; {count} open "
+        f"row{plural(count)} in {len(rows)} record{plural(len(rows))}\n"
     )
-    write(
-        f"(released = present at {ref}; {len(found['unreleased'])} "
-        "unreleased and untouched)\n"
-    )
-    write(
-        f"no spec.md: {len(found['rule'])} to retire by the rule, "
-        f"{len(found['rule_kept'])} kept by it, "
-        f"{len(found['rule_base_kept'])} kept because the closure has not "
-        f"reached {found['base_label']}\n"
-    )
-    pending = {}
-    for work_item_id in plan["applied"]:
-        for op in plan["parsed"][work_item_id].ops:
-            where = f"section `{op.section}`" if op.section else "a new document"
-            pending.setdefault(op.file, []).append(
-                f"        {op.kind} {where}  {work_item_id} spec.md:{op.line}"
-            )
-    if pending:
-        write("\npending rule changes, in merge order:\n")
-        for file, lines in pending.items():
-            write(f"    {file}\n" + "\n".join(lines) + "\n")
-    write_outcome(plan, out)
-    write_rule_arm(
-        found, found["rule"], found["rule_kept"], found["rule_base_kept"], out
-    )
-    if found["removes"]:
+    if t["groups"]:
+        write(f"\n{GROUPS_HEADING}\n")
+        for n, g in enumerate(t["groups"], 1):
+            write(f"\ngroup {n}\n")
+            for p, span, why in g["places"]:
+                write(f"    {place_line(p, span, why)}\n")
+            for k, (work_item_id, op, said) in enumerate(g["ops"], 1):
+                write(f"    {k}. {op_line(work_item_id, op, said)}\n")
+            for a, b in g["unordered"]:
+                write(f"    {UNORDERED.format(a=a, b=b)}\n")
+    if t["whole"]:
+        write(f"\n{WHOLE_HEADING}\n")
+        for work_item_id, line, why in t["whole"]:
+            where = f"{SPECS}/{work_item_id}/spec.md" + (f":{line}" if line else "")
+            write(f"    {work_item_id}  {where}  {why}\n")
+    if t["nothing"]:
+        write(f"\n{NOTHING_HEADING.format(nothing=found['nothing'])}\n")
+        write("".join(f"    {i}\n" for i in t["nothing"]))
+    if t["spec_less"]:
+        write("\nno `spec.md`, so no rule stated:\n")
+        write("".join(f"    {i}\n" for i in t["spec_less"]))
+    if rows:
+        write(f"\n{ROWS_HEADING}\n")
+        for work_item_id, held in found["rows"]:
+            write(f"    {work_item_id}\n")
+            for name, item, paths in held:
+                write(f"        open in {name}: {item}\n")
+                for path, present in paths:
+                    there = "in the tree" if present else "not in the tree"
+                    write(f"            `{path}` {there}\n")
+    if found["released"]:
         write(f"\n{REMOVES_HEADING}\n")
-        for work_item_id in found["removes"]:
-            write(f"    {SPECS}/{work_item_id}/\n")
+        for work_item_id in found["released"]:
+            held = len(rows.get(work_item_id, []))
+            when = f"once its {held} open row{plural(held)} close" if held else "now"
+            write(f"    {SPECS}/{work_item_id}/  {when}\n")
             for where in found["citations"].get(work_item_id, []):
                 write(f"        cited from {where}\n")
         write(f"\n{READERS_HEADING}\n")
         for rel in found["readers"] or ["none under tests/"]:
             write(f"    {rel}\n")
     write(
-        "\nNothing was written and nothing was removed; `settle --apply` does both.\n"
+        "\nNothing was written and nothing was removed. The settling session "
+        "writes the\nsections and closes the rows; `settle --apply` removes.\n"
     )
     return 0
 
 
 # --- the apply -------------------------------------------------------------
 
-# The index `--apply` writes when it creates the policy root; `fold-check`
-# then names the row each document is owed.
-INDEX = (
-    "# {policy}\n\nThe index of this policy root: one row per topic, naming "
-    "its file.\n\n| File | The question it answers |\n|---|---|\n"
-)
 AFTER_HEADING = (
-    "after applying — the index and the one read, as `fold-check` reads them; "
-    "neither\nrefuses anything here:"
+    "after the removals — the index and the one read, as `fold-check` reads "
+    "them; neither\nrefuses anything here:"
 )
 
 
 def write_after(root, policy, out):
     """The index rows owed and the documents past `Document token ceiling`,
-    read by `fold_check.py` over what `--apply` wrote. A row it cannot read
-    is said in its own sentence, never as a traceback after the writes."""
+    read by `fold_check.py` over the policy root the settling session wrote.
+    A row it cannot read is said in its own sentence, never as a traceback
+    after the removals."""
     fold = load(FOLD_CHECK, "specseal_fold_check_for_settle")
     try:
         ceiling = fold.declared(fold.seal_home(root))[0]
@@ -557,74 +553,63 @@ def write_after(root, policy, out):
         out.write(f"\n{AFTER_HEADING}\n" + "".join(f"    {i}\n" for i in lines))
 
 
+def closed_rows(root, directory, reader):
+    """`[(item, what closed it)]` for each closed row of DIRECTORY's record
+    in the working tree, read by `unverified_check.py#check_text`."""
+    text = read_text(root, f"{directory}/{reader.OVERVIEW}")
+    if text is None:
+        return []
+    _, closed, _ = reader.check_text(text)
+    return [(item, who) for _, item, who in closed]
+
+
 def apply(found, root, out):
-    """Write what the replay applies into the policy root, deleting each
-    document a removal left empty, then remove each applied directory and
-    each spec-less one the rule arm retires.
+    """Remove each released directory whose record holds no open row in the
+    working tree, printing the rows its record closed, and keep and name
+    each one that still holds a row.
 
     **The candidates are read from the tree again, not taken from `survey`**:
     a classification made for a printed list is not a guard on a destructive
-    act. `found` gives *released*, `ref` and the base, which only git answers.
-    A `found` with no base is refused at exit 2 before anything is read.
-
-    The documents are written before any directory is removed, so a run cut
-    short keeps every spec whose rule it may not have written."""
-    base = found.get("base")
-    if not base:
-        out.write(NO_BASE_SAYS)
-        return 2
+    act. `found` gives *released*, which only git answers."""
     reader = load(READER, "specseal_unverified_reader")
     ids = sorted(set(work_items(root)) & set(found["released"]))
-    plan = rule_plan(
-        root, found["ref"], base, [i for i in ids if has_spec(root, i)], reader
-    )
-    retired, kept, base_kept = rule_arm(
-        root, base, [i for i in ids if not has_spec(root, i)], reader
-    )
-    policy = reader.policy_root(root)
-    if plan["documents"] and not os.path.isdir(under(root, policy)):
-        os.makedirs(under(root, policy))
-        with open(under(root, f"{policy}/README.md"), "w", encoding="utf-8") as f:
-            f.write(INDEX.format(policy=policy))
-        out.write(f"wrote {policy}/README.md, the index, with the root\n")
-    for rel, text in plan["documents"].items():
-        path = under(root, rel)
-        if text is None:
-            if os.path.isfile(path):
-                os.remove(path)
-            out.write(f"deleted {rel}: a removal left it empty\n")
+    removed, kept = 0, 0
+    for work_item_id in ids:
+        directory = f"{SPECS}/{work_item_id}"
+        rows = reader.open_record_rows(root, None, directory)
+        if rows:
+            kept += 1
+            out.write(
+                f"kept {directory}/: its record holds {len(rows)} open "
+                f"row{plural(len(rows))}; close each (`closed` with what closed "
+                "it) and run `settle --apply` again\n"
+            )
+            for name, item in rows:
+                out.write(f"    open in {name}: {item}\n")
             continue
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        with open(path, "w", encoding="utf-8", newline="") as f:
-            f.write(text)
-        out.write(f"wrote {rel}\n")
-    for work_item_id in plan["applied"] + retired:
-        shutil.rmtree(under(root, f"{SPECS}/{work_item_id}"))
-        why = (
-            "  (no `spec.md` — retired by the rule)" if work_item_id in retired else ""
-        )
-        out.write(f"removed {SPECS}/{work_item_id}/{why}\n")
-    write_outcome(plan, out)
-    write_rule_arm(found, retired, kept, base_kept, out, heading=False)
-    if plan["documents"]:
+        closed = closed_rows(root, directory, reader)
+        shutil.rmtree(under(root, directory))
+        removed += 1
+        out.write(f"removed {directory}/\n")
+        for item, who in closed:
+            out.write(f"    closed in {reader.OVERVIEW}: {item}\n")
+            out.write(f"        what closed it: {who}\n")
+    policy = reader.policy_root(root)
+    if os.path.isdir(under(root, policy)):
         write_after(root, policy, out)
-    applied, removed = len(plan["applied"]), len(plan["applied"]) + len(retired)
-    held = len(plan["refused"]) + len(kept) + len(base_kept)
-    left = len(plan["premodel"])
     out.write(
-        f"\napplied {applied} spec{plural(applied)} and removed {removed} "
-        f"director{plural(removed, 'ies', 'y')}; {held} refused or kept"
-        + (f"; {left} with no `## Rule changes`, left in place" if left else "")
-        + "\n"
+        f"\nremoved {removed} director{plural(removed, 'ies', 'y')}; kept {kept}, "
+        f"each with a row to close\n"
     )
-    return 1 if held else 0
+    return 1 if kept else 0
 
 
 def main(argv=None):
     """The dry run or the apply; the exit code is the verdict."""
     ap = argparse.ArgumentParser(
         prog="settle",
-        description="Apply the rule changes released specs state to the policy root.",
+        description="Show the released specs' rule changes by section, and "
+        "remove released work item directories.",
     )
     ap.add_argument(
         "--root", default=None, help="repository root (default: the one this is run in)"
@@ -634,15 +619,13 @@ def main(argv=None):
         default="origin/main",
         metavar="REF",
         help="the branch a release merges to. A work item is released when "
-        "its directory is present there, and a record is asked for open rows "
-        "at the merge base of this and HEAD too (default: origin/main)",
+        "its directory is present there (default: origin/main)",
     )
     ap.add_argument(
         "--apply",
         action="store_true",
-        help="apply each released spec's rule changes to the policy root in merge order, "
-        "whole or not at all, and remove each applied directory and each "
-        "released one with no spec.md and nothing open",
+        help="remove each released work item directory whose record holds no "
+        "open row in the working tree, and name each one kept",
     )
     args = ap.parse_args(argv)
 
@@ -691,20 +674,8 @@ def main(argv=None):
         sys.stderr.write(
             f"settle: --released-at {args.released_at} does not resolve in {root} — nothing was "
             "read. Without it every work item reads as unreleased and this "
-            "would report nothing to apply, which is the one answer it must "
+            "would report nothing to settle, which is the one answer it must "
             "not give by accident.\n"
-        )
-        return 2
-    # #602: with no merge base the predicate would be asked of the working
-    # tree alone, so both arms refuse rather than report what `--apply` then
-    # refuses.
-    if found["base"] is None:
-        sys.stderr.write(
-            f"settle: --released-at {args.released_at} and HEAD share no commit "
-            f"in {root}, or this clone is too shallow to reach the one they "
-            "share (`git fetch --unshallow`) — nothing was read. The rule arm "
-            "asks whether a record is closed at their merge base, and there is "
-            "none to ask.\n"
         )
         return 2
     if args.apply:

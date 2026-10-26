@@ -1,25 +1,23 @@
 """`skills/settle/scripts/settle.py`, one class per function.
 
-`settle` reads before it removes: what counts as released, the rule arm for a
-spec-less directory, the merge base it asks at and the root it refuses
-(#458, closing #83). It applies each released spec's `## Rule changes` to the
-policy root in place, in merge order, and refuses what it cannot place
-(#953). `Test_report` and `Test_apply` drive the two arms over the `tree`
-fixture's history; `Test_main` runs the command over a repository whose
-merge order git holds. `Test_module` holds the loader, the headings, the
-launcher, and two answers the command takes from its siblings,
-`unverified_check.py#settled` and `rule_changes.py#order`, asked over the
-repositories this file builds, the case that reads this module's source
-for a call of `settled` and no second definition of it, the copy run without
-its siblings, and `SPECS` held under `seal/`.
+`settle` reads before it removes: what counts as released and the root it
+refuses (#458, closing #83). Its dry run groups the released specs whose
+`## Rule changes` name one section, in merge order, lists the specs to read
+whole and every open row, and refuses nothing; `--apply` removes each
+released directory whose record holds no open row in the working tree and
+writes no policy document (#1033). `Test_report` and `Test_apply` drive the
+two arms over the `tree` fixture's history; `Test_main` runs the command over
+a repository whose merge order git holds. `Test_module` holds the loader, the
+launcher, the answer the command takes from `rule_changes.py#order`, asked
+over the repositories this file builds, the copy run without its siblings,
+and `SPECS` held under `seal/`.
 
 #942's phase 6 placed these cases from
 `tests/test_settle_reads_before_it_removes.py` and
 `tests/test_settle_applies_rule_changes_in_place.py`, which keep the cases
 that read the skill, the documents, the READMEs, the checklist and the cheat
-sheets. The source-reading case came from `tests/test_unverified_rows_close.py`.
-The copy's case came from `tests/test_a_script_copied_alone_exits_2.py` and
-the `SPECS` case from `tests/test_a_reference_root_is_read_and_never_taken.py`
+sheets. The copy's case came from `tests/test_a_script_copied_alone_exits_2.py`
+and the `SPECS` case from `tests/test_a_reference_root_is_read_and_never_taken.py`
 in #942's round 9 fix pass, each a case of this module alone.
 """
 
@@ -100,6 +98,11 @@ def specs_dir(repo, name):
     return repo / "seal" / "specs" / name
 
 
+def group_text(text, n=1):
+    """The lines of the dry run's group N."""
+    return text.split(f"\ngroup {n}\n")[1].split("\n\n")[0]
+
+
 OPEN = (
     "# x — overview\n\n## Not verified\n\n| Item | Who must answer |\n"
     "|---|---|\n| a claim nobody ran | the repository owner |\n"
@@ -115,7 +118,7 @@ def configure(repo, *rows):
 
 def no_rule(repo, work_item_id):
     """Give a released spec a `## Rule changes` that changes nothing, and
-    commit it, so `--apply` removes its directory."""
+    commit it."""
     path = repo / "seal" / "specs" / work_item_id / "spec.md"
     path.write_text(
         path.read_text(encoding="utf-8")
@@ -199,9 +202,9 @@ def at(repo, ref, *args):
 
 
 def closed_after_base(repo):
-    """S4's tree: the moment released with its row open at `BASE`, and a
-    later commit on the working branch closing it — the 0.15.3 shape, where
-    the closure reached the release branch and not `main`."""
+    """The moment released with its row open at `BASE`, and a later commit on
+    the working branch closing it — the 0.15.3 shape, where the closure
+    reached the release branch and not `main`."""
     moment(repo, overview=OVERVIEW_OPEN)
     git(repo, "branch", BASE)
     (repo / "seal" / "specs" / MOMENT / "overview.md").write_text(
@@ -231,24 +234,37 @@ def settled_repo(tmp_path, keep_empty_dir):
 
 
 class Test_report:
-    def test_accepts_a_spec_with_no_rule_changes_and_lists_it_kept(self, tree):
-        """A spec written before the section existed has nothing to replay, so it
-        is named under its own heading and stays."""
+    def test_accepts_a_spec_with_no_rule_changes_and_lists_it_to_read_whole(self, tree):
+        """S4's dry run half: a spec with no section joins no group, so the
+        settling session reads it whole; it is not left in place."""
         code, text = run(tree)
         assert code == 0, text
-        assert "released with a spec.md: 3 work items, 0 to apply\n" in text, text
-        listed = text.split(settle.PREMODEL_HEADING)[1].split("\n\n")[0] + "\n"
+        listed = text.split(settle.WHOLE_HEADING)[1].split("\n\n")[0] + "\n"
         for name in ("1700000001-alpha", "1700000002-beta", "1700000003-gamma"):
-            assert f"    {name}\n" in listed, text
+            where = f"seal/specs/{name}/spec.md"
+            assert f"    {name}  {where}  {settle.NO_SECTION}\n" in listed, text
+        assert "released at HEAD: 3 work items; 1 unreleased and untouched\n" in (
+            text
+        ), text
 
-    def test_the_report_writes_nothing_and_removes_nothing(self, tree):
+    def test_refuses_nothing_and_writes_and_removes_nothing(self, tree):
+        """The dry run holds nothing back: a section that does not parse and
+        an open row are shown at exit 0, and the tree is left as it was."""
+        (tree / "seal" / "specs" / "1700000001-alpha" / "spec.md").write_text(
+            spec("- rename\n  file: docs/one-root.md\n  to: x"), encoding="utf-8"
+        )
+        git(tree, "add", "--", "seal/specs/1700000001-alpha")
+        git(tree, "commit", "-qm", "alpha does not parse")
+        moment(tree, overview=OVERVIEW_OPEN)
         before = sorted(
             str(p.relative_to(tree)) for p in tree.rglob("*") if p.is_file()
         )
-        run(tree)
+        code, text = run(tree)
         after = sorted(str(p.relative_to(tree)) for p in tree.rglob("*") if p.is_file())
         assert before == after, "the report touched the tree"
-        assert "Nothing was written and nothing was removed" in run(tree)[1]
+        assert code == 0, text
+        assert "refused" not in text and "kept" not in text, text
+        assert "Nothing was written and nothing was removed" in text, text
 
     def test_an_unreleased_work_item_is_not_a_candidate(self, tree):
         """Released means present on the branch the release merges to, so this
@@ -257,50 +273,50 @@ class Test_report:
         assert "1700000004-delta" not in text, text
         assert "1 unreleased and untouched" in text, text
 
-    def test_a_spec_less_directory_is_listed_under_its_own_heading(self, tree):
-        """D3: `settle` prints these under their own heading rather than with
-        the specs, because there is nothing to apply."""
+    def test_a_spec_less_directory_is_listed_as_stating_no_rule(self, tree):
+        """D3: a directory with no `spec.md` states no rule, so it is listed
+        apart from the specs, and its record's rows with every other's."""
         moment(tree, overview=OVERVIEW_CLOSED)
         code, text = run(tree)
         assert code == 0, text
-        assert "retired by the rule" in text, text
-        assert MOMENT in text.split("retired by the rule")[1], text
-        premodel = text.split(settle.PREMODEL_HEADING)[1].split("\n\n")[0]
-        assert MOMENT not in premodel, text
+        stated = text.split("no `spec.md`, so no rule stated:\n")[1].split("\n\n")[0]
+        assert stated == f"    {MOMENT}", text
+        assert MOMENT not in text.split(settle.WHOLE_HEADING)[1].split("\n\n")[0]
 
-    def test_the_report_does_not_promise_what_the_retirement_refuses(self, tree):
-        """S7. The report used to list the directory under *retired by the rule*,
-        the heading that says `settle --apply` removes what it lists, while the
-        CI readers would refuse the removal."""
-        closed_after_base(tree)
-        code, text = at(tree, BASE)
+    def test_every_open_row_is_listed_with_the_paths_it_names(self, tree):
+        """The open rows are a report the settling session decides from, so
+        each carries the backticked paths it names and whether each is in the
+        working tree, a bare file name found as a tracked file's name or in
+        the work item's own directory."""
+        row = (
+            "the run of `docs/one-root.md` and `gone/away.py` at "
+            "`tests/x.py::Test_y`, per `questions.md`, `one-root.md` and `cmd.exe`"
+        )
+        moment(tree, overview=OVERVIEW_OPEN.replace("a claim nobody ran", row))
+        (tree / "seal" / "specs" / MOMENT / "questions.md").write_text(
+            "# q\n", encoding="utf-8"
+        )
+        code, text = run(tree)
         assert code == 0, text
-        assert settle.RULE_HEADING not in text, text
-        assert "0 to retire by the rule" in text, text
-        assert settle.RULE_BASE_HEADING.format(base=BASE) in text, text
-        kept = text.split(settle.RULE_BASE_HEADING.format(base=BASE))[1]
-        assert MOMENT in kept and "a claim nobody ran" in kept, text
-        # #611, round 3 of 1790297085 ⬜ 3: bc63b91d reworded the summary line and
-        # nothing pinned the new words (contract rule 14).
-        assert f"1 kept because the closure has not reached {BASE}" in text, text
-
-    def test_refuses_a_survey_with_no_base(self, tree):
-        """Round 1, ⬜ 4. `report` is the third reader of `survey`'s dict, and it
-        refuses a base-less one the way `apply` does rather than raising
-        `KeyError` on the keys that dict does not carry."""
-        moment(tree, overview=OVERVIEW_CLOSED)
-        out = io.StringIO()
-        code = settle.report({"base": None, "base_label": None}, "HEAD", out=out)
-        assert code == 2, out.getvalue()
-        assert "no merge base" in out.getvalue(), out.getvalue()
+        rows = text.split(f"{settle.ROWS_HEADING}\n")[1].split("\n\n")[0]
+        assert rows == (
+            f"    {MOMENT}\n"
+            f"        open in overview.md: {row}\n"
+            "            `docs/one-root.md` in the tree\n"
+            "            `gone/away.py` not in the tree\n"
+            "            `tests/x.py` not in the tree\n"
+            "            `questions.md` in the tree\n"
+            "            `one-root.md` in the tree"
+        ), text
+        assert "1 open row in 1 record\n" in text, text
 
     def test_the_report_lists_what_an_apply_would_remove(self, tree):
         """D1's table: the command reports by itself the paths outside
         `seal/specs/` that cite into what `--apply` would remove, and the
         `tests/` files that read `seal/specs` — what #514's frame found by
-        hand."""
+        hand. A directory still holding a row is listed with when it goes."""
         no_rule(tree, "1700000001-alpha")
-        moment(tree)
+        moment(tree, overview=OVERVIEW_OPEN)
         (tree / "docs" / "cites.md").write_text(
             "See `seal/specs/1700000001-alpha/spec.md` for the decision.\n"
             f"And `seal/specs/{MOMENT[:11]}…/routing.md` for the moment.\n"
@@ -315,10 +331,12 @@ class Test_report:
         git(tree, "commit", "-qm", "citations")
         _, text = run(tree)
         takes = text.split(settle.REMOVES_HEADING)[1]
-        assert f"seal/specs/{MOMENT}/" in takes, text
+        assert "    seal/specs/1700000001-alpha/  now\n" in takes, text
+        assert f"    seal/specs/{MOMENT}/  once its 1 open row close\n" in takes, text
         assert "docs/cites.md:1" in takes, text
         assert "docs/cites.md:2" in takes, "an abbreviated path is a citation too"
-        assert "1700000002-beta" not in takes, "a marker or a bare id is not a path"
+        beta = takes.split("seal/specs/1700000002-beta/")[1].split("seal/specs/")[0]
+        assert "cited from" not in beta, "a marker or a bare id is not a path"
         assert "tests/test_reads.py" in text.split("checks that read")[1], text
         # Contract rule 14: the heading a person reads names the section that
         # says what each check owes, by its heading text.
@@ -328,13 +346,18 @@ class Test_report:
 
 
 class Test_apply:
-    def test_accepts_a_spec_that_states_no_rule_and_removes_only_it(self, tree):
+    def test_accepts_every_released_directory_with_no_open_row(self, tree):
+        """S4's apply half: a spec holding the no-change block and specs with
+        no `## Rule changes` leave alike, and the unreleased one stays."""
         no_rule(tree, "1700000001-alpha")
         code, text = run(tree, "--apply")
         assert code == 0, text
-        assert not (tree / "seal" / "specs" / "1700000001-alpha").exists()
-        assert (tree / "seal" / "specs" / "1700000002-beta").exists(), (
-            "a spec with no `## Rule changes` was removed"
+        for name in ("1700000001-alpha", "1700000002-beta", "1700000003-gamma"):
+            assert not (tree / "seal" / "specs" / name).exists(), text
+            assert f"removed seal/specs/{name}/\n" in text, text
+        assert (tree / "seal" / "specs" / "1700000004-delta").exists(), text
+        assert text.endswith(
+            "\nremoved 3 directories; kept 0, each with a row to close\n"
         )
 
     def test_apply_leaves_a_team_specs_of_the_same_name_on_disk(self, tree):
@@ -356,112 +379,60 @@ class Test_apply:
         ) == "# the team's design\n"
         assert (team / "spec.md").is_file()
 
-    def test_the_rule_arm_removes_it_with_no_marker(self, tree):
+    def test_a_removed_record_prints_each_row_it_closed_and_writes_no_document(
+        self, tree
+    ):
+        """What closed each row is copied into the settle's pull request body,
+        so `--apply` prints it; the policy root is the settling session's."""
         moment(tree, overview=OVERVIEW_CLOSED)
         before = docs_text(tree)
         code, text = run(tree, "--apply")
-        assert not (tree / "seal" / "specs" / MOMENT).exists(), text
-        assert docs_text(tree) == before, "the rule arm wrote a marker into docs/"
-        assert f"removed seal/specs/{MOMENT}/" in text, text
-        assert "no `spec.md`" in text, text
-        # The fixture's other released items carry a spec and no marker, so they
-        # stay; nothing refused, so the run is clean.
         assert code == 0, text
-        assert (tree / "seal" / "specs" / "1700000001-alpha").exists()
+        assert not (tree / "seal" / "specs" / MOMENT).exists(), text
+        assert docs_text(tree) == before, "the apply wrote into docs/"
+        assert (
+            f"removed seal/specs/{MOMENT}/\n"
+            "    closed in overview.md: a claim\n"
+            "        what closed it: run on 2026-01-01\n"
+        ) in text, text
 
-    def test_an_open_memo_row_keeps_a_spec_less_directory(self, tree):
-        """G2: D3 is true of the spec and false of the memo. An open
-        `## Not verified` row is a claim with an answerer, and it leaves by being
-        closed or re-homed — never with the directory."""
-        moment(tree, overview=OVERVIEW_OPEN)
-        _, text = run(tree)
-        assert "kept by the rule" in text, text
-        assert "a claim nobody ran" in text.split("kept by the rule")[1], text
-        code, text = run(tree, "--apply")
+    def test_an_open_row_keeps_its_directory_and_a_closure_on_disk_lets_it_go(
+        self, repo, capfd
+    ):
+        """S3: the open row keeps the directory, named, at exit 1; closed in
+        the working tree and not committed, the next `--apply` removes it,
+        prints the row with what closed it, and exits 0. Nothing waits for
+        the closure to reach a base."""
+        item(repo, "1700000001-a", op("add", "S", new="Rule."))
+        overview = specs_dir(repo, "1700000001-a") / "overview.md"
+        overview.write_text(OPEN, encoding="utf-8")
+        commit(repo, "a")
+        code, text = apply(repo, capfd)
         assert code == 1, text
-        assert (tree / "seal" / "specs" / MOMENT).exists(), text
-        assert "a claim nobody ran" in text, text
+        assert specs_dir(repo, "1700000001-a").exists(), text
+        assert (
+            "kept seal/specs/1700000001-a/: its record holds 1 open row; close "
+            "each (`closed` with what closed it) and run `settle --apply` again\n"
+            "    open in overview.md: a claim nobody ran\n"
+        ) in text, text
+        overview.write_text(OVERVIEW_CLOSED, encoding="utf-8")
+        code, text = apply(repo, capfd)
+        assert code == 0, text
+        assert not specs_dir(repo, "1700000001-a").exists(), text
+        assert "    closed in overview.md: a claim\n" in text, text
+        assert (repo / "docs" / "a.md").read_text(encoding="utf-8") == DOC
 
-    def test_a_closure_the_base_has_not_seen_keeps_the_directory(self, tree):
-        """S4. The row is closed on the working branch and open at the base the
-        release merges to. Both CI readers ask the rule of the merge base, so a
-        retirement here would turn the release pull request red (#602, #598's
-        second instance). It is kept, and the output names the base and the row
-        open there."""
+    def test_a_closure_the_released_ref_has_not_seen_lets_the_directory_go(self, tree):
+        """S3 at a base: the row is closed on the working branch and open at
+        `--released-at`. The working tree is the fact `--apply` reads, so the
+        directory goes (#602's base condition is gone)."""
         closed_after_base(tree)
         code, text = at(tree, BASE, "--apply")
-        assert (tree / "seal" / "specs" / MOMENT).exists(), text
-        assert code == 1, text
-        assert settle.RULE_BASE_HEADING.format(base=BASE) in text, text
-        kept = text.split(settle.RULE_BASE_HEADING.format(base=BASE))[1]
-        assert MOMENT in kept and "a claim nobody ran" in kept, text
-        assert f"removed seal/specs/{MOMENT}/" not in text, text
-
-    def test_an_uncommitted_closure_keeps_the_directory(self, tree):
-        """S5. The same shape with the closure only on disk: the base is `HEAD`
-        itself, where the row is still open."""
-        moment(tree, overview=OVERVIEW_OPEN)
-        (tree / "seal" / "specs" / MOMENT / "overview.md").write_text(
-            OVERVIEW_CLOSED, encoding="utf-8"
-        )
-        code, text = at(tree, "HEAD", "--apply")
-        assert (tree / "seal" / "specs" / MOMENT).exists(), text
-        assert code == 1, text
-        assert "a claim nobody ran" in text, text
-
-    def test_a_closure_the_base_has_seen_lets_the_directory_go(self, tree):
-        """S6, the counter-case that keeps S4 from passing by refusing
-        everything: once the closure has merged into the base, the rule holds at
-        both and the directory goes with no marker."""
-        closed_after_base(tree)
-        git(tree, "branch", "-f", BASE, "HEAD")
-        code, text = at(tree, BASE, "--apply")
-        assert not (tree / "seal" / "specs" / MOMENT).exists(), text
-        assert f"removed seal/specs/{MOMENT}/" in text, text
         assert code == 0, text
+        assert not (tree / "seal" / "specs" / MOMENT).exists(), text
+        assert f"removed seal/specs/{MOMENT}/\n" in text, text
 
-    def test_a_base_that_moved_past_the_fork_names_the_merge_that_moves_it(self, tree):
-        """Round 1, 🟡 1. `main` took the closure after this branch forked, and
-        this branch never merged it back. CI asks at `main`'s tip and would pass;
-        `settle` asks at the fork and keeps the directory. That keeps more than
-        it must, which is the safe direction, but the remedy it prints has to be
-        the one that works: merge `main` in."""
-        moment(tree, overview=OVERVIEW_OPEN)
-        git(tree, "branch", "-M", "main")
-        git(tree, "switch", "-qc", "work")
-        ov = tree / "seal" / "specs" / MOMENT / "overview.md"
-        ov.write_text(OVERVIEW_CLOSED, encoding="utf-8")
-        git(tree, "add", "--", f"seal/specs/{MOMENT}")
-        git(tree, "commit", "-qm", "close on work")
-        git(tree, "switch", "-q", "main")
-        ov.write_text(OVERVIEW_CLOSED, encoding="utf-8")
-        git(tree, "add", "--", f"seal/specs/{MOMENT}")
-        git(tree, "commit", "-qm", "hotfix: close on main")
-        git(tree, "switch", "-q", "work")
-        code, text = at(tree, "main", "--apply")
-        assert (tree / "seal" / "specs" / MOMENT).exists(), text
-        assert code == 1, text
-        flat_text = " ".join(text.split())
-        assert "merge main into this branch" in flat_text, text
-        # Round 2, ⬜ 4: the fork is a fixed past commit, so nothing waits for a
-        # closure to reach it; the heading says it has not.
-        assert "kept: the closure has not reached the merge-base of main" in flat_text
-        assert "kept until the closure reaches the merge-base" not in flat_text, text
-        assert "the CI readers ask the rule there" not in flat_text, text
-
-    def test_refuses_a_survey_with_no_base(self, tree):
-        """`apply`'s own guard, for a caller that hands it a survey `main` would
-        have refused: the predicate asked of `None` is asked of the tree alone,
-        which is the answer #602 removed, so nothing is read and nothing goes."""
-        moment(tree, overview=OVERVIEW_CLOSED)
-        found = settle.survey(str(tree), "HEAD")
-        found["base"] = None
-        out = io.StringIO()
-        assert settle.apply(found, str(tree), out=out) == 2, out.getvalue()
-        assert (tree / "seal" / "specs" / MOMENT).exists(), out.getvalue()
-        assert "no merge base" in out.getvalue(), out.getvalue()
-
-    def test_an_unreadable_memo_keeps_a_spec_less_directory(self, tree):
+    def test_refuses_an_unreadable_memo_and_keeps_its_directory(self, tree):
         """A section this cannot read is a count it does not know, never zero."""
         moment(tree, overview="# x — overview\n\n## Not checked\n")
         code, text = run(tree, "--apply")
@@ -476,71 +447,79 @@ class Test_apply:
         _, text = run(tree, "--apply")
         assert item.exists(), text
 
-    def test_the_predicate_is_what_settle_asks(self, tree, monkeypatch):
-        """One predicate, asked by every reader. With it answering nothing, the
-        rule arm lists nothing."""
-        moment(tree)
-        reader = settle.load(settle.READER, "specseal_unverified_reader")
-        real_load = settle.load
-        monkeypatch.setattr(reader, "settled", lambda root, ref, dirs, here=None: set())
-        monkeypatch.setattr(
-            settle,
-            "load",
-            lambda path, name: (
-                reader if path == settle.READER else real_load(path, name)
-            ),
-        )
-        _, text = run(tree, "--apply")
-        assert (tree / "seal" / "specs" / MOMENT).exists(), text
-
-    def test_an_apply_with_nothing_to_do_is_no_refusal(self, tree):
-        """Exit 1 is a refusal, and a tree whose specs predate the section
-        refuses nothing: the run says what it did, which is nothing, and exits
-        0."""
-        before = sorted(
-            str(p.relative_to(tree)) for p in tree.rglob("*") if p.is_file()
-        )
-        code, text = run(tree, "--apply")
-        assert code == 0, text
-        assert "applied 0 specs and removed 0 directories; 0 refused or kept" in text
-        # The summary is the line read to decide whether the settle is finished,
-        # so the specs it leaves in place are counted there too (round 1, 8).
-        assert "; 3 with no `## Rule changes`, left in place\n" in text, text
-        after = sorted(str(p.relative_to(tree)) for p in tree.rglob("*") if p.is_file())
-        assert before == after, text
-
 
 class Test_main:
-    def test_the_dry_run_lists_pending_changes_in_merge_order_and_writes_nothing(
-        self, repo, capfd
-    ):
-        """S8, and S5's order: B was added after A on one line of history, so B
-        is listed after A whatever their ids say."""
+    def test_two_specs_on_one_sentence_are_one_group_in_merge_order(self, repo, capfd):
+        """S1: B was added after A on one line of history, so B is listed
+        after A whatever their ids say. A's `from` no longer matches, since
+        the section holds the sentence as A left it, and nothing is refused;
+        with both records holding no row, `--apply` removes both and writes
+        no document."""
+        (repo / "docs" / "a.md").write_text(
+            DOC.replace("old sentence.", "y."), encoding="utf-8"
+        )
+        commit(repo, "the section as A left it")
         item(repo, "1700000009-a", op("change", "S", "old sentence.", "y."))
         commit(repo, "a")
         item(repo, "1700000001-b", op("change", "S", "y.", "z."))
-        item(repo, "1700000002-c", op("remove", "Nowhere"))
-        commit(repo, "b and c")
+        commit(repo, "b")
         before = files(repo)
         code, text = dry_run(repo, capfd)
         assert code == 0, text
         assert files(repo) == before, "the dry run wrote to the tree"
-        pending = text.split("pending rule changes")[1].split("\n\n")[0]
-        assert "docs/a.md" in pending
-        assert pending.index("1700000009-a") < pending.index("1700000001-b"), text
-        refused = text.split("refused")[1]
-        assert "1700000002-c" in refused and "spec.md:" in refused, text
-        removes = text.split("what `settle --apply` would remove")[1]
-        assert "1700000009-a" in removes and "1700000001-b" in removes, text
-        assert "1700000002-c" not in removes, text
+        assert "refused" not in text, text
+        line = line_of(spec(op("change", "S", "y.", "z.")), "- change")
+        assert group_text(text) == (
+            "    place: docs/a.md section `S`, at docs/a.md:3-9\n"
+            f"    1. change  1700000009-a  seal/specs/1700000009-a/spec.md:{line}"
+            "  from not found, to found\n"
+            f"    2. change  1700000001-b  seal/specs/1700000001-b/spec.md:{line}"
+            "  from found, to not found"
+        ), text
+        assert "\ngroup 2\n" not in text, text
+        docs = {k: v for k, v in files(repo).items() if k.startswith("docs")}
+        code, text = apply(repo, capfd)
+        assert code == 0, text
+        assert not specs_dir(repo, "1700000009-a").exists(), text
+        assert not specs_dir(repo, "1700000001-b").exists(), text
+        assert {k: v for k, v in files(repo).items() if k.startswith("docs")} == docs
+
+    def test_a_stale_from_is_listed_and_neither_refused_nor_waited_on(
+        self, repo, capfd
+    ):
+        """S2: an operation whose `from` matches nothing, and one whose
+        heading is not there, are history in their groups; a later spec at
+        the same place is listed after them, and the directories go."""
+        item(repo, "1700000001-a", op("change", "S", "not there.", "y."))
+        item(repo, "1700000002-c", op("remove", "Nowhere"))
+        commit(repo, "a and c")
+        item(repo, "1700000003-b", op("add", "S", new="Rule."))
+        commit(repo, "b")
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        assert "refused" not in text and "waits" not in text, text
+        first = group_text(text, 1)
+        assert "1. change  1700000001-a" in first, text
+        assert "from not found, to not found" in first, text
+        assert "2. add  1700000003-b" in first and "to not found" in first, text
+        assert group_text(text, 2).startswith(
+            "    place: docs/a.md section `Nowhere`: no heading `Nowhere` in the "
+            "working tree\n    1. remove  1700000002-c  "
+        ), text
+        assert group_text(text, 2).endswith("  the whole section"), text
+        code, text = apply(repo, capfd)
+        assert code == 0, text
+        for name in ("1700000001-a", "1700000002-c", "1700000003-b"):
+            assert not specs_dir(repo, name).exists(), text
 
     @pytest.mark.parametrize("section", ["S", "S child"])
-    def test_two_specs_on_parallel_branches_at_one_place_are_a_conflict(
+    def test_two_specs_on_parallel_branches_at_one_place_are_one_group_unordered(
         self, repo, capfd, section
     ):
-        """S6: ancestry cannot order them, so neither applies there, and both are
-        printed for the owner. A sub-section is inside its section's range, so it
-        is the same place."""
+        """S5: ancestry cannot order them, so they are one group with the
+        pair marked for the settling session to order by content, and nothing
+        is refused. A sub-section is inside its section's range, so it is the
+        same place."""
         git(repo, "switch", "-qc", "one")
         item(repo, "1700000001-a", op("change", "S", "old sentence.", "y."))
         commit(repo, "a")
@@ -551,187 +530,53 @@ class Test_main:
         git(repo, "switch", "-q", "main")
         git(repo, "merge", "-q", "--no-ff", "-m", "one", "one")
         git(repo, "merge", "-q", "--no-ff", "-m", "two", "two")
-        _, text = dry_run(repo, capfd)
-        refused = text.split("refused")[1]
-        for name in ("1700000001-a", "1700000002-b"):
-            assert name in refused, text
-        assert "conflict" in refused, text
-        assert "would remove" not in text, text
-
-    def test_apply_rewrites_in_place_and_removes_the_directory(self, repo, capfd):
-        """S1: the change lands where the text stood, the rest is byte-identical,
-        no marker is written, and the directory goes whole, its process record
-        included."""
-        item(repo, "1700000001-a", op("change", "S", "old sentence.", "New rule."))
-        rounds = specs_dir(repo, "1700000001-a") / "rounds"
-        rounds.mkdir()
-        (rounds / "round-1.md").write_text("# round 1\n", encoding="utf-8")
-        commit(repo, "a")
-        code, text = apply(repo, capfd)
+        code, text = dry_run(repo, capfd)
         assert code == 0, text
-        after = (repo / "docs" / "a.md").read_text(encoding="utf-8")
-        assert after == DOC.replace("old sentence.", "New rule."), after
-        assert "<!-- specs/" not in after
-        assert not specs_dir(repo, "1700000001-a").exists(), text
-        assert "removed seal/specs/1700000001-a/" in text, text
+        assert "refused" not in text, text
+        group = group_text(text)
+        assert "1700000001-a" in group and "1700000002-b" in group, text
+        said = settle.UNORDERED.format(a="1700000001-a", b="1700000002-b")
+        assert f"    {said}" in group, text
+        assert "\ngroup 2\n" not in text, text
 
-    def test_apply_follows_merge_order(self, repo, capfd):
-        """S5: B was added after A on one line of history, so B applies over A
-        although its id sorts first."""
-        item(repo, "1700000009-a", op("change", "S", "old sentence.", "y."))
-        commit(repo, "a")
-        item(repo, "1700000001-b", op("change", "S", "y.", "z."))
-        commit(repo, "b")
-        code, text = apply(repo, capfd)
-        assert code == 0, text
-        assert "Before. z. After." in (repo / "docs" / "a.md").read_text(
-            encoding="utf-8"
-        )
-        assert not specs_dir(repo, "1700000009-a").exists()
-        assert not specs_dir(repo, "1700000001-b").exists()
-
-    @pytest.mark.rule("a-settle-is-no-deletion")
-    def test_what_apply_removed_is_settled_for_the_readers(self, repo, capfd):
-        """S9 from `settle`'s side: the CI readers ask
-        `unverified_check.py#settled` of the base, and what `--apply` removed
-        passes it. It answers for the set one pull request removes: B rewrote
-        the text A placed, so A asked alone does not hold."""
-        item(repo, "1700000009-a", op("change", "S", "old sentence.", "y."))
-        commit(repo, "a")
-        item(repo, "1700000001-b", op("change", "S", "y.", "z."))
-        commit(repo, "b")
-        code, text = apply(repo, capfd)
-        assert code == 0, text
-        reader = settle.load(settle.READER, "specseal_reader_for_settled")
-        both = {"seal/specs/1700000009-a", "seal/specs/1700000001-b"}
-        assert reader.settled(str(repo), "HEAD", sorted(both)) == both
-        assert reader.settled(str(repo), "HEAD", ["seal/specs/1700000009-a"]) == set()
-
-    def test_apply_deletes_a_document_its_removal_leaves_empty(self, repo, capfd):
-        """S18: the document's title and its first section read alike, so the
-        removal names both and takes the outer one. The file goes, the index
-        row naming it goes in the same spec, `fold-check` names nothing after
-        the apply, and the readers count the removal settled."""
-        (repo / "docs" / "gate.md").write_text(
-            "# Gate\n\nIntro.\n\n## Gate\n\nBody.\n", encoding="utf-8"
-        )
-        row = "| `docs/gate.md` | the gate |"
-        (repo / "docs" / "README.md").write_text(
-            "# docs\n\n| File | The question it answers |\n|---|---|\n"
-            f"| `docs/a.md` | a policy |\n{row}\n",
-            encoding="utf-8",
-        )
-        commit(repo, "gate")
-        item(
-            repo,
-            "1700000001-a",
-            op("remove", "Gate", file="docs/gate.md")
-            + "\n"
-            + op("remove", "docs", row, file="docs/README.md"),
-        )
-        commit(repo, "a")
-        code, text = apply(repo, capfd)
-        assert code == 0, text
-        assert not (repo / "docs" / "gate.md").exists(), text
-        assert "deleted docs/gate.md: a removal left it empty\n" in text, text
-        assert settle.AFTER_HEADING not in text, text
-        assert (repo / "docs" / "a.md").read_text(encoding="utf-8") == DOC
-        reader = settle.load(settle.READER, "specseal_reader_for_a_deletion")
-        directory = "seal/specs/1700000001-a"
-        assert reader.settled(str(repo), "HEAD", [directory]) == {directory}
-
-    @pytest.mark.parametrize(
-        "change, half",
-        [
-            (op("remove", "T"), lambda doc: doc),
-            (
-                op("change", "S", "old sentence.", "New rule."),
-                lambda doc: doc.replace("old sentence.", "old sentence. New rule."),
-            ),
-        ],
-        ids=["a section left in place", "the old text left beside the new"],
-    )
-    def test_a_rule_change_half_applied_is_not_settled(self, repo, capfd, change, half):
-        """S10 per operation: each text an operation names is counted, the
-        heading of a removed section and the `from` of a change included."""
-        item(repo, "1700000001-a", change)
-        commit(repo, "a")
-        reader = settle.load(settle.READER, "specseal_reader_for_half")
-        directory = "seal/specs/1700000001-a"
-        doc = repo / "docs" / "a.md"
-        doc.write_text(half(DOC), encoding="utf-8")
-        assert reader.settled(str(repo), "HEAD", [directory]) == set()
-        doc.write_text(DOC, encoding="utf-8")
-        code, text = apply(repo, capfd)
-        assert code == 0, text
-        assert reader.settled(str(repo), "HEAD", [directory]) == {directory}
-
-    def test_apply_refuses_a_conflict_and_keeps_both(self, repo, capfd):
-        """S6."""
-        for branch, name, change in (
-            ("one", "1700000001-a", op("change", "S", "old sentence.", "y.")),
-            ("two", "1700000002-b", op("add", "S", new="Rule.")),
-        ):
-            git(repo, "switch", "-qc", branch, "main")
-            item(repo, name, change)
-            commit(repo, name)
-        git(repo, "switch", "-q", "main")
-        git(repo, "merge", "-q", "--no-ff", "-m", "one", "one")
-        git(repo, "merge", "-q", "--no-ff", "-m", "two", "two")
-        code, text = apply(repo, capfd)
-        assert code == 1, text
-        assert (repo / "docs" / "a.md").read_text(encoding="utf-8") == DOC
-        assert specs_dir(repo, "1700000001-a").exists()
-        assert specs_dir(repo, "1700000002-b").exists()
-        assert "conflict" in text, text
-
-    def test_apply_writes_nothing_of_a_refused_spec(self, repo, capfd):
-        """S4 and S7: the first operation would apply, the second cannot, so
-        neither does; the refusal names the spec, the line and the reason."""
-        both = op("change", "S", "old sentence.", "y.") + "\n" + op("remove", "Nowhere")
-        item(repo, "1700000001-a", both)
-        commit(repo, "a")
-        code, text = apply(repo, capfd)
-        assert code == 1, text
-        assert (repo / "docs" / "a.md").read_text(encoding="utf-8") == DOC
-        assert specs_dir(repo, "1700000001-a").exists()
-        line = line_of(spec(both), "- remove")
-        assert f"1700000001-a  spec.md:{line}  no heading `Nowhere`" in text, text
-
-    def test_an_open_record_row_holds_its_spec(self, repo, capfd):
-        """Nothing open is one of the three things a settled directory holds; a
-        row still open is a claim with an answerer, and it never leaves with the
-        directory."""
-        item(repo, "1700000001-a", op("add", "S", new="Rule."))
-        (specs_dir(repo, "1700000001-a") / "overview.md").write_text(
-            OPEN, encoding="utf-8"
-        )
-        commit(repo, "a")
-        code, text = apply(repo, capfd)
-        assert code == 1, text
-        assert (repo / "docs" / "a.md").read_text(encoding="utf-8") == DOC
-        assert specs_dir(repo, "1700000001-a").exists()
-        assert "a claim nobody ran" in text, text
-
-    def test_nothing_to_apply_leaves_and_a_spec_with_no_section_stays(
-        self, repo, capfd
-    ):
-        """A spec whose section is the no-change block states that no rule
-        changes, so its directory goes, named under the block. A spec with no
-        section was written before it existed, so there is nothing to replay and
-        it is kept and named, which is not a refusal."""
-        item(repo, "1700000001-a", "- nothing\n  why: a release entry.")
+    def test_a_spec_that_joins_no_group_is_read_whole_and_goes(self, repo, capfd):
+        """S4: a section that does not parse is listed to read whole with the
+        reader's reason at its line, beside a spec with no section, and with
+        no open row both leave."""
+        bad = "- rename\n  file: docs/a.md\n  to: x"
+        item(repo, "1700000001-a", bad)
         old = specs_dir(repo, "1700000002-old")
         old.mkdir(parents=True)
         (old / "spec.md").write_text("# old\n\n## Scope\n\nIn.\n", encoding="utf-8")
         commit(repo, "a and old")
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        whole = text.split(settle.WHOLE_HEADING)[1].split("\n\n")[0]
+        line = line_of(spec(bad), "- rename")
+        assert (
+            f"    1700000001-a  seal/specs/1700000001-a/spec.md:{line}  `rename` "
+            "is not one of"
+        ) in whole, text
+        assert (
+            f"    1700000002-old  seal/specs/1700000002-old/spec.md  {settle.NO_SECTION}"
+        ) in whole, text
         code, text = apply(repo, capfd)
         assert code == 0, text
         assert not specs_dir(repo, "1700000001-a").exists(), text
-        assert "no rule to apply (`- nothing`):\n    1700000001-a\n" in text, text
-        assert old.exists(), text
-        assert "1700000002-old" in text.split("no `## Rule changes`")[1], text
-        assert (repo / "docs" / "a.md").read_text(encoding="utf-8") == DOC
+        assert not old.exists(), text
+
+    def test_the_no_change_block_is_listed_with_no_section_to_write(self, repo, capfd):
+        """A spec whose section is the no-change block states that no rule
+        changes, so it joins no group and is listed under the block."""
+        item(repo, "1700000001-a", "- nothing\n  why: a release entry.")
+        commit(repo, "a")
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        assert (
+            "the no-change block (`- nothing`), so no section to write:\n"
+            "    1700000001-a\n"
+        ) in text, text
+        assert "\ngroup 1\n" not in text, text
 
     @pytest.mark.parametrize("flag", ["--retire", "--retire-process"])
     def test_the_retired_flags_are_an_argument_error(self, repo, flag, capfd):
@@ -741,44 +586,30 @@ class Test_main:
             settle.main(["--root", str(repo), "--released-at", "main", flag])
         assert raised.value.code == 2
 
-    def test_a_section_that_does_not_parse_keeps_its_directory(self, repo, capfd):
-        """A parse error leaves the spec no operations, which must not read as a
-        spec with nothing to apply."""
-        item(repo, "1700000001-a", "- rename\n  file: docs/a.md\n  to: x")
-        commit(repo, "a")
-        code, text = apply(repo, capfd)
-        assert code == 1, text
-        assert specs_dir(repo, "1700000001-a").exists(), text
-        assert "`rename` is not one of" in text, text
-
-    def test_the_text_applied_is_the_spec_as_released(self, repo, capfd):
-        """An edit on disk after the release is not what was reviewed."""
-        item(repo, "1700000001-a", op("add", "U", new="Released."))
-        commit(repo, "a")
-        item(repo, "1700000001-a", op("add", "U", new="Edited later."))
-        code, text = apply(repo, capfd)
-        assert code == 0, text
-        after = (repo / "docs" / "a.md").read_text(encoding="utf-8")
-        assert after.endswith("Last.\n\nReleased.\n"), after
-
     def test_a_spec_moved_into_place_is_ordered_by_the_commit_that_moved_it(
         self, repo, capfd
     ):
         """git reads a moved directory as a rename, never as an add, unless it is
-        told not to; the spec would then have no place in the order."""
+        told not to; the spec would then have no place in the order, and be
+        listed last and unordered."""
         item(repo, "1700000001-old", op("add", "U", new="Rule."))
         commit(repo, "old")
         git(repo, "mv", "seal/specs/1700000001-old", "seal/specs/1700000002-new")
         commit(repo, "renamed")
-        code, text = apply(repo, capfd)
+        item(repo, "1700000003-b", op("add", "U", new="B."))
+        commit(repo, "b")
+        code, text = dry_run(repo, capfd)
         assert code == 0, text
-        assert not specs_dir(repo, "1700000002-new").exists(), text
+        group = group_text(text)
+        assert group.index("1700000002-new") < group.index("1700000003-b"), text
+        assert "unordered" not in group, text
 
-    def test_a_spec_no_commit_adds_is_held(self, repo, capfd, monkeypatch):
+    def test_a_spec_no_commit_adds_is_marked_unordered(self, repo, capfd, monkeypatch):
         """Where the history cannot place a spec, it has no place in the order,
-        and it is held rather than applied first or last."""
+        and the group says so rather than listing it as ordered."""
         item(repo, "1700000001-a", op("add", "U", new="Rule."))
-        commit(repo, "a")
+        item(repo, "1700000002-b", op("add", "U", new="B."))
+        commit(repo, "a and b")
         real = settle.load
 
         def load(path, name):
@@ -790,49 +621,14 @@ class Test_main:
             return module
 
         monkeypatch.setattr(settle, "load", load)
-        code, text = apply(repo, capfd)
-        assert code == 1, text
-        assert "no commit on main adds its spec.md" in text, text
-        assert specs_dir(repo, "1700000001-a").exists()
-
-    def test_apply_creates_the_policy_root_the_config_names(self, repo, capfd):
-        """S14: with `Policy root` naming `policy/` and no such directory, the
-        first `--apply` creates it with its index, writes there, touches no
-        `docs/`, and names the index row the new document is owed. The readers
-        replay into the same root."""
-        configure(repo, ("Policy root", "policy"))
-        item(repo, "1700000001-a", op("add", new="# New", file="policy/new.md"))
-        commit(repo, "a")
-        before = files(repo)
-        code, text = apply(repo, capfd)
+        code, text = dry_run(repo, capfd)
         assert code == 0, text
-        assert (repo / "policy" / "new.md").read_text(encoding="utf-8") == "# New\n"
-        assert (repo / "policy" / "README.md").is_file(), text
-        docs = {k: v for k, v in files(repo).items() if k.startswith("docs")}
-        assert docs == {k: v for k, v in before.items() if k.startswith("docs")}
-        assert "policy/README.md has no row naming policy/new.md" in text, text
-        reader = settle.load(settle.READER, "specseal_reader_for_policy_root")
-        directory = "seal/specs/1700000001-a"
-        assert reader.settled(str(repo), "HEAD", [directory]) == {directory}
-
-    @pytest.mark.parametrize(
-        "names", [("docs/A.md",), ("docs/new.md", "docs/NEW.md")], ids=["disk", "specs"]
-    )
-    def test_a_name_that_differs_only_in_case_is_held(self, repo, capfd, names):
-        """On a case-insensitive disk two such names are one file, and the second
-        write would erase the first spec's change while its directory went."""
-        for n, name in enumerate(names, 1):
-            item(repo, f"170000000{n}-a", op("add", new="# X", file=name))
-        commit(repo, "case")
-        before = files(repo)
-        code, text = apply(repo, capfd)
-        assert code == 1, text
-        assert "differs from another document only in case" in text, text
-        assert files(repo) == before, text
+        said = settle.UNORDERED.format(a="1700000001-a", b="1700000002-b")
+        assert said in group_text(text), text
 
     def test_apply_names_a_document_past_the_ceiling(self, repo, capfd):
-        """Scope 5: after applying, each document past `Document token ceiling`
-        is named as one to split, and that refuses nothing."""
+        """Scope 5: after the removals, each document past `Document token
+        ceiling` is named as one to split, and that refuses nothing."""
         configure(repo, ("Document token ceiling", "10"))
         item(repo, "1700000001-a", op("add", "U", new="Released."))
         commit(repo, "a")
@@ -843,72 +639,7 @@ class Test_main:
             in text.split("past the ceiling")[0].rsplit("\n", 1)[-1]
         ), text
         assert "past the ceiling of 10: split it along its own headings" in text, text
-
-    def test_a_shallow_clone_is_not_told_the_refs_share_no_commit(
-        self, tree, tmp_path, capsys
-    ):
-        """Round 1, ⬜ 3. A depth-1 clone of related history has no merge base
-        either, and the refusal names that state too, the way `chain_check.py`'s
-        does, so the reader looks at the clone's depth rather than at the ref."""
-        moment(tree, overview=OVERVIEW_CLOSED)
-        git(tree, "branch", "-M", "main")
-        git(tree, "switch", "-qc", "work")
-        (tree / "docs" / "later.md").write_text("# later\n", encoding="utf-8")
-        git(tree, "add", "--", "docs")
-        git(tree, "commit", "-qm", "on work")
-        git(tree, "switch", "-q", "main")
-        (tree / "docs" / "main.md").write_text("# on main\n", encoding="utf-8")
-        git(tree, "add", "--", "docs")
-        git(tree, "commit", "-qm", "on main")
-        shallow = tmp_path / "shallow"
-        subprocess.run(
-            [
-                "git",
-                "clone",
-                "-q",
-                "--depth",
-                "1",
-                "--no-single-branch",
-                "-b",
-                "work",
-                f"file://{tree}",
-                str(shallow),
-            ],
-            check=True,
-            capture_output=True,
-        )
-        code = settle.main(["--root", str(shallow), "--released-at", "origin/main"])
-        err = " ".join(capsys.readouterr().err.split())
-        assert code == 2, err
-        assert "too shallow" in err and "git fetch --unshallow" in err, err
-        assert (shallow / "seal" / "specs" / MOMENT).exists()
-
-    @pytest.mark.parametrize("apply", [False, True])
-    def test_no_merge_base_is_refused_and_nothing_is_removed(self, tree, apply, capsys):
-        """S8. A `--released-at` sharing no history with `HEAD` has no merge
-        base, so there is no revision to ask the rule of. Exit 2, the ref named,
-        nothing read — never the working tree's answer alone."""
-        moment(tree, overview=OVERVIEW_CLOSED)
-        empty = subprocess.run(
-            ["git", "-C", str(tree), "mktree"],
-            input="",
-            capture_output=True,
-            encoding="utf-8",
-            check=True,
-        ).stdout.strip()
-        lone = subprocess.run(
-            ["git", "-C", str(tree), "commit-tree", empty, "-m", "unrelated"],
-            capture_output=True,
-            encoding="utf-8",
-            check=True,
-        ).stdout.strip()
-        git(tree, "branch", "unrelated", lone)
-        argv = ["--root", str(tree), "--released-at", "unrelated"]
-        code = settle.main(argv + (["--apply"] if apply else []))
-        err = capsys.readouterr().err
-        assert code == 2, err
-        assert "--released-at unrelated" in err and "share no commit" in err, err
-        assert (tree / "seal" / "specs" / MOMENT).exists()
+        assert settle.AFTER_HEADING in text, text
 
     def test_refuses_local_mode_rather_than_reading_an_empty_repository(self, tmp_path):
         """Round 1, finding 3. `settle` looked only at `<root>/seal/specs`, so a
@@ -1109,54 +840,15 @@ class Test_module:
         nothing to do."""
         assert settle.survey(str(tree), "no/such/ref") is None
 
-    def test_the_base_heading_says_where_the_closure_has_to_go(self):
-        """Contract rule 14: the sentence a person acts on is pinned, not only its presence."""
-        heading = flat(settle.RULE_BASE_HEADING.format(base="origin/main"))
-        assert "origin/main" in heading, heading
-        assert "the branch the release merges to" in heading, heading
-        assert "a later pull request" in heading, heading
-
-    @pytest.mark.parametrize("ref", [None, "HEAD"])
-    def test_the_predicate_asks_every_condition_itself(self, tree, ref):
-        """`settle` sorts by `spec.md` before the predicate decides, so through
-        `settle` alone the predicate's own conditions are never seen. The CI
-        readers ask it of a merge-base where neither check has run, so each
-        condition is asked here directly, of the working tree and of a ref."""
-        reader = settle.load(settle.READER, "specseal_unverified_reader_rule")
-        moment(tree, overview=OVERVIEW_CLOSED)
-        moment(tree, name="1700000008-with-memo", overview=OVERVIEW_OPEN)
-        unapplied = tree / "seal" / "specs" / "1700000002-beta" / "spec.md"
-        unapplied.write_text(
-            "# beta\n\n## Rule changes\n\n- add\n  file: docs/one-root.md\n"
-            "  section: a policy\n  to: A rule nobody applied.\n",
-            encoding="utf-8",
+    def test_the_dry_runs_headings_say_who_decides(self):
+        """Contract rule 14: the sentences a person acts on are pinned, not only
+        their presence."""
+        assert "writes each section as its group's latest decision" in flat(
+            settle.GROUPS_HEADING
         )
-        git(tree, "commit", "-qam", "beta states a rule")
-        root = str(tree)
-
-        def ok(name):
-            directory = f"seal/specs/{name}"
-            return reader.settled(root, ref, [directory]) == {directory}
-
-        assert ok(MOMENT)
-        assert ok("1700000001-alpha"), "a spec with no `## Rule changes` was refused"
-        assert not ok("1700000002-beta"), (
-            "a rule the tree does not hold read as applied"
-        )
-        assert not ok("1700000008-with-memo")
-        assert not ok("1700009999-nowhere"), (
-            "a directory that never existed was settled"
-        )
-        # Round 1's finding 3: a spec an earlier commit deleted was still written.
-        dropped = moment(tree, name="1700000009-spec-dropped")
-        (dropped / "spec.md").write_text("# a spec\n\nA rule.\n", encoding="utf-8")
-        git(tree, "add", "--", "seal/specs/1700000009-spec-dropped")
-        git(tree, "commit", "-qm", "a spec")
-        git(tree, "rm", "-q", "seal/specs/1700000009-spec-dropped/spec.md")
-        git(tree, "commit", "-qm", "the spec, dropped")
-        assert not ok("1700000009-spec-dropped"), (
-            "a directory whose spec.md an earlier commit deleted read as one that wrote none"
-        )
+        assert "order them by content" in flat(settle.UNORDERED)
+        assert "moot, answered or a measurement to re-home" in flat(settle.ROWS_HEADING)
+        assert "close with `closed` and what closed it" in flat(settle.ROWS_HEADING)
 
     def test_the_command_is_reachable_by_the_name_a_document_gives_it(self):
         """A6. The pair rule is `tests/test_a_document_that_names_a_script_says_
@@ -1240,35 +932,6 @@ class Test_module:
         ]
         assert "does not take its candidates from here" in doc["survey"], doc["survey"]
         assert "not taken from `survey`" in doc["apply"], doc["apply"]
-
-    def test_every_reader_of_a_retirement_calls_the_one_predicate(self):
-        """Three parties ask whether a removed directory was settled, and a
-        predicate spelled in each would take the next condition in one and not
-        the others. The behaviour is pinned per reader in its own module; this
-        pins that this one reaches the answer by calling `settled` on the
-        module that owns it, so a reader that re-derives the rule inline goes
-        red here even while it agrees today. `tests/test_chain_check.py` holds
-        `chain_check.py` to the same."""
-        import ast
-
-        script = TARGET.split("/")
-        with open(os.path.join(ROOT, *script), encoding="utf-8") as f:
-            tree = ast.parse(f.read())
-        calls = [
-            node
-            for node in ast.walk(tree)
-            if isinstance(node, ast.Call)
-            and isinstance(node.func, ast.Attribute)
-            and node.func.attr == "settled"
-        ]
-        assert calls, (
-            f"{'/'.join(script)} decides a removal without asking the predicate"
-        )
-        assert not [
-            node
-            for node in ast.walk(tree)
-            if isinstance(node, ast.FunctionDef) and node.name == "settled"
-        ], f"{'/'.join(script)} defines a second `settled`"
 
     @pytest.mark.parametrize(
         "args, purpose, absent",

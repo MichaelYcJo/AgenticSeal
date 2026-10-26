@@ -433,7 +433,7 @@ plugin sets no value; these rows are where a repository states its own.
 | Row | Value | Absent |
 |---|---|---|
 | `Document token ceiling` | a positive whole number of estimated tokens. A top-level document of the policy root past it is reported as one to split | no length is checked |
-| `Policy root` | the repository-relative directory of the ratified policy documents, which `settle --apply` writes and every reader of them reads | `docs` |
+| `Policy root` | the repository-relative directory of the ratified policy documents, which the settle writes and every reader of them reads | `docs` |
 
 **The estimate is a document's UTF-8 bytes halved, rounded up.** Measured
 English ran 2.85 bytes a token and mixed Korean 2.15, so halving

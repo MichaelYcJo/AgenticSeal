@@ -22,9 +22,10 @@ It fails for what the author can always fix:
               here, and zero reads as "everything has been closed" — the worst
               available failure, because it is indistinguishable from success
   fewer rows  a table that lost rows against the base, or an `overview.md`
-              that was there and is not (`--baseline REF`) — unless a settle
-              removed its directory whole, which `settled` answers for every
-              reader. Such a directory is named as settled and counted apart
+              that was there and is not (`--baseline REF`) — unless its whole
+              directory stood at the base and is gone, which reads as a
+              settle and which `settled` answers for every reader. Such a
+              directory is named as settled and counted apart
   no baseline the ref itself does not resolve, or it shares no history with
               HEAD. That is exit 2, not a pass: a comparison against nothing
               is not a comparison
@@ -583,9 +584,7 @@ def live_lines(lines, comments=True):
     `fence_closes`, because two spellings of it is what #491 found: the
     three-space bound had landed here and not one function over. They share
     the line split too: `readable` and every caller that hands this lines
-    split the text with `gfm_lines` (#664), except the `settle.py` caller,
-    which splits newline-translated text on `"\\n"` for a byte-for-byte round
-    trip and ends a line where GFM does already.
+    split the text with `gfm_lines` (#664).
     """
     lines = list(lines)
     literal = liveness(lines, spans_cross_lines=False, comments=comments)
@@ -1248,13 +1247,12 @@ def overviews_at(root, ref, prefixes):
     return out
 
 
-SPEC = "spec.md"
 _rules = None
 
 
 def rule_changes():
     """`skills/settle/scripts/rule_changes.py`, the one reader of a spec's
-    `## Rule changes` and its replay, loaded by path once."""
+    `## Rule changes`, loaded by path once."""
     global _rules
     if _rules is None:
         here = os.path.dirname(os.path.abspath(__file__))
@@ -1265,73 +1263,20 @@ def rule_changes():
     return _rules
 
 
-def policy_documents(root, ref, policy):
-    """`{path: text}` for each file under the directory POLICY at REF, the
-    disk when None."""
-    return {rel: _text_at(root, ref, rel) or "" for rel in tree_at(root, ref, policy)}
+def settled(root, ref, directories):
+    """The DIRECTORIES that stood at REF, each a settle where it is gone whole.
 
-
-def settled(root, ref, directories, here=None):
-    """The DIRECTORIES a settle removed, each judged as it stood at REF.
-
-    **The one predicate, and every reader of a removal asks it**: `settle` of
-    the working tree (REF None) and of the merge base, and `--baseline` below
-    and `chain_check.py` of the merge base they already compute. Its rule is
-    `docs/the-record-layout.md` *The fold, and what tells it from a
-    deletion*. A directory is settled when it existed at REF with nothing
-    open in its record (`open_record_rows`), and either it states no rule or
-    its rules hold at HERE, the disk when None.
-
-    It states no rule when it never wrote a `spec.md`, asked of history
-    (`wrote_a_spec`), or when its `spec.md` at REF has no `## Rule changes`
-    or one holding the no-change block. Otherwise `rule_changes.py` replays every
-    such directory here in merge order over REF's policy root, and each text
-    an applied operation names occurs as often across the policy root at
-    HERE as in the replay. Asked of the set, a later spec may rewrite what an
-    earlier one placed; counted across files, a split along headings
-    passes."""
-    out, pending, policy = set(), {}, None
-    for directory in directories:
-        paths = tree_at(root, ref, directory)
-        if not paths or open_record_rows(root, ref, directory):
-            continue
-        if f"{directory}/{SPEC}" not in paths:
-            if not wrote_a_spec(root, ref, directory):
-                out.add(directory)
-            continue
-        # Loaded where a spec is read, so a directory with none needs neither.
-        rules, policy = rule_changes(), policy or policy_root(root)
-        parsed = rules.parse(_text_at(root, ref, f"{directory}/{SPEC}") or "", policy)
-        if not parsed.errors and not parsed.ops:
-            out.add(directory)
-        elif not parsed.errors:
-            pending[directory] = parsed.ops
-    if not pending:
-        return out
-    ordered = []
-    for parent in sorted({os.path.dirname(d) for d in pending}):
-        ids = [os.path.basename(d) for d in pending if os.path.dirname(d) == parent]
-        found = rules.order(root, ref or "HEAD", ids, parent)
-        ordered += [f"{parent}/{work_item_id}" for work_item_id, _ in found]
-    documents, applied, _ = rules.replay(
-        lambda rel: _text_at(root, ref, rel), [(d, pending[d]) for d in ordered], {}
-    )
-    # A document the replay deleted is None there, and counts nothing.
-    replayed = [
-        t
-        for t in {**policy_documents(root, ref, policy), **documents}.values()
-        if t is not None
-    ]
-    now = list(policy_documents(root, here, policy).values())
-
-    def count(text, texts):
-        return sum(len(rules.pattern(text).findall(t)) for t in texts)
-
-    for directory in applied:
-        names = [t for o in pending[directory] for t in (o.old, o.new, o.section)]
-        if all(count(t, replayed) == count(t, now) for t in names if t):
-            out.add(directory)
-    return out
+    **The one predicate, and every reader of a removal asks it**:
+    `--baseline` below and `chain_check.py`, each of the merge base it
+    already computes, and each handing it only directories absent on its
+    head side. Its rule is `docs/the-record-layout.md` *The fold, and what
+    tells it from a deletion*. A directory is settled when it held a file at
+    REF. What its record held there and what the policy root holds of its
+    spec are not read: the settling session writes each section in its own
+    words, and the settle's pull request states each decision for review.
+    A directory a pull request empties only in part never reaches here,
+    since its callers pass only the directories that are gone."""
+    return {d for d in directories if tree_at(root, ref, d)}
 
 
 def tree_at(root, ref, directory):
@@ -1370,8 +1315,8 @@ def _text_at(root, ref, rel):
 def open_record_rows(root, ref, directory):
     """`[(file, what is open)]` for a work item's record at `ref`.
 
-    The rows the rule arm refuses to take with a directory: every open item in
-    `overview.md`'s `## Not verified`. Each is a claim with an answerer rather
+    The rows `settle --apply` refuses to take with a directory, and its dry
+    run lists: every open item in `overview.md`'s `## Not verified`. Each is a claim with an answerer rather
     than a rule, and #514's frame measured the loss this prevents — the only
     record that a production workflow was red sat in a retiring overview (its
     L2).
@@ -1394,45 +1339,6 @@ def open_record_rows(root, ref, directory):
         for _, item, _who in rows:
             found.append((OVERVIEW, item))
     return found
-
-
-def wrote_a_spec(root, ref, directory):
-    """Whether any commit reachable from `ref` (HEAD when None) touched
-    `directory/spec.md`.
-
-    D3 names a work item that WROTE no spec, which is a question about
-    history rather than about one tree. Asked of the merge base alone, a spec
-    deleted by an earlier merged pull request read as never written, and the
-    next pull request retired the directory with no marker while every reader
-    passed both (round 1's finding 3).
-
-    A git failure answers *wrote one*, which keeps the directory. A shallow
-    clone cut short of the deletion answers *never*, which is the reading
-    before this existed; the CI checkout fetches the whole history.
-    """
-    r = subprocess.run(
-        [
-            "git",
-            "-C",
-            root,
-            "log",
-            # Without it, a merge commit whose result matches one parent for
-            # this path is followed down that parent alone, and a spec added
-            # and dropped on the other side is pruned. Every release reaches
-            # `main` through such a merge, so the next release read a spec
-            # its predecessor dropped as never written (round 2's finding 6).
-            "--full-history",
-            "-1",
-            "--format=%H",
-            ref or "HEAD",
-            "--",
-            f"{directory}/{SPEC}",
-        ],
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-    )
-    return r.returncode != 0 or bool(r.stdout.strip())
 
 
 def settled_root(path):
@@ -1564,10 +1470,9 @@ def main(argv=None):
         "commit is the fork point on a branch checkout and the base's tip in "
         "CI, whose checkout of a pull request is the head already merged into "
         "REF; either way a work item squashed into REF after this branch was "
-        "cut is not this branch's removal. Nor is a directory a settle "
-        "removed whole: nothing open in it at the merge base, and docs/ "
-        "holding every rule change its spec states. It is named as settled "
-        "rather than reported as a deletion",
+        "cut is not this branch's removal. Nor is a work item directory "
+        "that stood at the merge base and is gone whole, which reads as a "
+        "settle. It is named as settled rather than reported as a deletion",
     )
     args = ap.parse_args(argv)
 
@@ -1738,7 +1643,6 @@ def main(argv=None):
             }
         )
         by_settle = settled(root, base, removed)
-        policy = policy_root(root) if by_settle else None
         for rel in gone:
             if os.path.dirname(rel) in by_settle:
                 # Named rather than passed over in silence: a removal this arm
@@ -1748,8 +1652,8 @@ def main(argv=None):
                         "notice",
                         display_path(os.path.join(root, rel), cwd),
                         1,
-                        f"settled: at {named} nothing in its record was open, "
-                        f"and `{policy}/` holds every rule change its spec states",
+                        f"settled: the directory stood at {named} and is gone "
+                        "whole, which reads as a settle",
                     )
                 )
                 continue
@@ -1764,9 +1668,8 @@ def main(argv=None):
                         display_path(os.path.join(root, rel), cwd),
                         1,
                         f"present at {named} and not here. Whatever it "
-                        "recorded as unverified left with it — a renamed "
-                        "directory reads the same way, and says so out loud "
-                        "rather than dropping the rows",
+                        "recorded as unverified left with it, and its "
+                        "directory still stands, so this is no settle",
                     )
                 )
 

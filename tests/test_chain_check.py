@@ -1680,7 +1680,10 @@ class Test_frame:
 RULES = reader.rule_changes()
 # The refusal's text before the parser's reason, pinned here so an edit to
 # `chain.RULE_CHANGES_SAYS` meets a case.
-SAYS = "`## Rule changes` does not parse, and `settle` applies nothing from this spec: "
+SAYS = (
+    "`## Rule changes` does not parse, so `settle` cannot group this spec by the "
+    "sections it names and the settle has to read it whole: "
+)
 CONTINUED = "- nothing\n  why: a reason\n  that continues two spaces in\n"
 PROSE = "- add\n  file: docs/policy.md\n  to: A rule.\n\nA paragraph under the item.\n"
 NOTHING = "- nothing\n  why: a reason\n"
@@ -3329,10 +3332,10 @@ class Test_main:
 OLD_ITEM = "seal/specs/1788000000-an-earlier-item"
 
 
-def remove_an_earlier_item(root, applied, whole=True):
+def remove_an_earlier_item(root, applied, whole=True, open_row=False):
     """Declare an earlier work item on `main`, bring it into the branch, and
     remove its directory there, or only its declaration, with or without its
-    rule change applied."""
+    rule change applied, and with or without an open row in its record."""
     git(root, "switch", "-q", "main")
     # Close enough to the branch's own declaration for git's rename detection
     # to pair the two, which `changed` reads without.
@@ -3346,6 +3349,13 @@ def remove_an_earlier_item(root, applied, whole=True):
         f"{OLD_ITEM}/spec.md",
         "# a spec\n\n## Rule changes\n\n- add\n  file: docs/policy.md\n  to: A rule.\n",
     )
+    if open_row:
+        write(
+            root,
+            f"{OLD_ITEM}/overview.md",
+            "# x\n\n## Not verified\n\n| Item | Who must answer |\n|---|---|\n"
+            "| a claim nobody ran | the repository owner |\n",
+        )
     commit(root, "an earlier item, declared")
     git(root, "switch", "-q", "feature/x")
     git(root, "merge", "-q", "--no-edit", "main")
@@ -3357,30 +3367,35 @@ def remove_an_earlier_item(root, applied, whole=True):
 
 @pytest.mark.rule("a-declaration-removed")
 class Test_retired:
-    def test_accepts_a_declaration_a_settle_removed(self, branch, draft, capsys):
-        """A `routing.md` that `settle --apply` removed is a deletion in the
-        diff, and `docs/` holding its rule change is what tells it from one."""
+    @pytest.mark.parametrize(
+        "applied, open_row",
+        [(False, True), (True, False)],
+        ids=["an-open-row-and-no-rule-in-docs", "a-closed-record-and-its-rule-in-docs"],
+    )
+    def test_accepts_a_declaration_a_settle_removed(
+        self, branch, draft, capsys, applied, open_row
+    ):
+        """S6 of #1033: a `routing.md` whose whole directory stood at the
+        merge base and is gone is a settle, whatever its record held there and
+        whatever `docs/` holds of its spec. The notice says what was read."""
         root, _code = branch
-        remove_an_earlier_item(root, applied=True)
+        remove_an_earlier_item(root, applied=applied, open_row=open_row)
         _code, out = check(root, capsys)
-        assert "retired: a settle" in out and "1788000000-an-earlier-item" in out
+        assert f"{OLD_ITEM}/routing.md:0  {chain.SETTLE_SAYS}" in out, out
+        # Contract rule 14: the words a person reads, not only the constant.
+        assert (
+            "retired: a settle — the work item's directory stood at the merge "
+            "base and is gone whole"
+        ) in out, out
         assert "does not carry this file at HEAD" not in out
 
-    @pytest.mark.parametrize(
-        "applied, whole, uncommitted",
-        [(False, True, False), (True, False, False), (False, True, True)],
-        ids=["nothing-absorbs-it", "the-directory-stays", "only-the-working-tree"],
-    )
-    def test_refuses_a_declaration_deleted_with_nothing_absorbing_it(
-        self, branch, draft, capsys, applied, whole, uncommitted
+    def test_refuses_a_declaration_deleted_beside_a_directory_that_stays(
+        self, branch, draft, capsys
     ):
-        """A deletion with nothing absorbing it, a `routing.md` deleted beside
-        a `spec.md` that stays, and a rule change only the working tree holds,
-        which CI's read of HEAD does not see."""
+        """S8: a `routing.md` deleted beside a `spec.md` that stays is a
+        deletion: a settle takes the whole directory."""
         root, _code = branch
-        remove_an_earlier_item(root, applied=applied, whole=whole)
-        if uncommitted:
-            write(root, "docs/policy.md", "A rule.\n")
+        remove_an_earlier_item(root, applied=True, whole=False)
         _code, out = check(root, capsys)
         assert "does not carry this file at HEAD" in out
         assert "retired:" not in out
@@ -3392,7 +3407,9 @@ class Test_retired:
         """Round 1 of #952, finding 1: the pull request that takes `seal/`
         out of the tree deletes every declaration with it, and with no
         `seal` at HEAD nothing is declared. Where git cannot say whether HEAD
-        has it, the declarations stay judged."""
+        has it, the declarations stay judged, and since #1033 each one whose
+        directory stood at the merge base and is gone whole reads as a
+        settle."""
         root, _code = branch
         remove_an_earlier_item(root, applied=False)
         git(root, "rm", "-rq", "seal")
@@ -3412,7 +3429,8 @@ class Test_retired:
             chain, "git", lambda r, *a: None if a == unanswered else real(r, *a)
         )
         code, out = check(root, capsys)
-        assert code == 1 and "does not carry this file at HEAD" in out, out
+        assert "so nothing is declared" not in out, out
+        assert f"{OLD_ITEM}/routing.md:0  {chain.SETTLE_SAYS}" in out, out
 
     @pytest.mark.rule("nothing-declared-nothing-owed")
     def test_accepts_under_worktree_a_root_the_working_tree_no_longer_has(
@@ -3459,13 +3477,14 @@ class Test_retired:
 
 class Test_module:
     def test_every_reader_of_a_retirement_calls_the_one_predicate(self):
-        """Three parties ask whether a removed directory was settled, and a
-        predicate spelled in each would take the next condition in one and not
-        the others. The behaviour is pinned per reader in its own module; this
-        pins that this one reaches the answer by calling `settled` on the
-        module that owns it, so a reader that re-derives the rule inline goes
-        red here even while it agrees today. `tests/test_settle.py` holds
-        `settle.py` to the same."""
+        """Two parties ask whether a removed directory was settled,
+        `unverified-check --baseline` and this one, and a predicate spelled in
+        each would take the next condition in one and not the other. The
+        behaviour is pinned per reader in its own module; this pins that this
+        one reaches the answer by calling `settled` on the module that owns
+        it, so a reader that re-derives the rule inline goes red here even
+        while it agrees today. `settle` asks no predicate since #1033: it
+        reads the open rows of the working tree."""
         import ast
 
         script = TARGET.split("/")
