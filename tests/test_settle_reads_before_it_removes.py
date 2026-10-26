@@ -94,18 +94,25 @@ def test_the_skill_states_the_settling_sessions_procedure():
     its latest decision with the code winning, the superseded operations
     settled unapplied, the specs read whole, every row decided and closed,
     the defaults written down, the documents' checks, `--apply`, the broad
-    gate once, and the pull request body."""
+    gate once, and the pull request body. Round 1 of #1033, finding 5: a row
+    that fits two kinds has one reading, and the documents' checks name
+    their set and what counts as done, so a check that reads every document
+    rather than one by name runs at step 6 and not first at the broad gate."""
     text = flat(skill())
     procedure = text.split("## The settling session's procedure")[1].split("## ")[0]
     steps = [
         "Run `settle`, the dry run",
         "Write the section as the latest decision states it",
-        "the code is the later fact and the section states what the code does",
+        "Where the code has moved past that decision, write what the code does",
         "is superseded: it is settled with its group and not applied",
         "Read each spec listed to read whole",
         "close it in its record with `closed` and what closed it",
+        "A row that fits more than one kind takes the first that fits, in the "
+        "table's order",
         "take a default and write it down",
-        "Run the repository's checks over what you wrote",
+        "Run, over what you wrote, each rule's `check:` targets and every "
+        "module under `tests/` whose text names the policy root's directory",
+        "The step is done when every one of those modules passes",
         "Run `settle --apply`.",
         "Run the repository's `Broad gate` row once.",
         "Open the pull request.",
@@ -239,7 +246,8 @@ def test_both_cheat_sheets_carry_the_command(edition):
     reader actually types from. `CONTRIBUTING.md` requires the two editions to
     move together and the hygiene workflow only warns about it. Since #1033
     the row says the settling session writes each section and `--apply`
-    writes no document."""
+    writes no document, and it links the procedure's section rather than
+    restating it (round 1 of #1033, finding 2)."""
     text = document(edition)
     assert "`settle [--apply]`" in text, (
         f"{edition}'s cheat sheet has no row for the command"
@@ -248,6 +256,7 @@ def test_both_cheat_sheets_carry_the_command(edition):
     with open(os.path.join(ROOT, edition), encoding="utf-8") as f:
         row = f.read().split("`settle [--apply]`")[1].split("\n")[0]
     assert "`## Rule changes`" in row, row
+    assert "`skills/settle/SKILL.md` *The settling session's procedure*" in row, row
     assert "retire" not in row, row
     assert "`HEAD`" not in row, "the row still says the base is asked"
 

@@ -174,11 +174,11 @@ does not parse, an unordered pair and an open row are all shown.
 1. Run `settle`, the dry run, on the preparation branch.
 2. For each group, read every operation in merge order, the section as it
    stands, and the code the rule names, its `check:` targets first. Write
-   the section as the latest decision states it, in your own words; where
-   the code has moved past that decision, the code is the later fact and the
-   section states what the code does. An earlier operation the latest one
-   restates is superseded: it is settled with its group and not applied.
-   The rest of the document stays as it was, and no marker is written.
+   the section as the latest decision states it, in your own words. Where
+   the code has moved past that decision, write what the code does. An
+   earlier operation the latest one restates is superseded: it is settled
+   with its group and not applied. The rest of the document stays as it
+   was, and no marker is written.
 3. Read each spec listed to read whole, and write any rule it states the
    same way.
 4. Decide each open row against the tree, and close it in its record with
@@ -190,17 +190,26 @@ does not parse, an unordered pair and an open row are all shown.
    | answered | another record or a later run already answered it | that record or run, named |
    | a measurement nobody has taken | it names a run, a platform or a reading no record holds | the issue it is re-homed to |
 
+   A row that fits more than one kind takes the first that fits, in the
+   table's order: a measurement of a unit the tree no longer holds can no
+   longer be taken, so it is moot.
+
    A measurement is re-homed with one issue per distinct measurement
    (`gh issue create`), its body listing each row it would answer with the
    row's work item, its text and its answerer. A repository with no tracker
    re-homes it as a `seal/follow-up.md` row.
 5. Where the tree does not decide, take a default and write it down for the
    pull request body.
-6. Run the repository's checks over what you wrote, each rule's `check:`
-   targets first, then the dry run again: a `to` not found is where you
-   reworded, which the body explains. Change whatever the written sections
-   leave standing on an old fact, such as a pin under `tests/` or a README
-   copy, and name each in the pull request body.
+6. Run, over what you wrote, each rule's `check:` targets and every
+   module under `tests/` whose text names the policy root's directory
+   (`git grep -l -F docs/ -- tests/` where the root is `docs/`). That set
+   holds the checks that read every document rather than one by name, such
+   as a line-length or a duplicated-passage check, which no `check:` line
+   names. Where a case fails because a pin under `tests/` or a copy such as
+   a README row still states the old fact, change that pin or copy, and
+   name each in the pull request body. Then run the dry run again: a `to`
+   not found is where you reworded, which the body explains. The step is
+   done when every one of those modules passes.
 7. Run `settle --apply`.
 8. Run the repository's `Broad gate` row once.
 9. Open the pull request. Its body lists, per group, the decision and its
