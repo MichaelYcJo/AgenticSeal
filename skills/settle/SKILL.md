@@ -201,15 +201,20 @@ does not parse, an unordered pair and an open row are all shown.
 5. Where the tree does not decide, take a default and write it down for the
    pull request body.
 6. Run, over what you wrote, each rule's `check:` targets and every
-   module under `tests/` whose text names the policy root's directory
-   (`git grep -l -F docs/ -- tests/` where the root is `docs/`). That set
-   holds the checks that read every document rather than one by name, such
-   as a line-length or a duplicated-passage check, which no `check:` line
-   names. Where a case fails because a pin under `tests/` or a copy such as
-   a README row still states the old fact, change that pin or copy, and
-   name each in the pull request body. Then run the dry run again: a `to`
-   not found is where you reworded, which the body explains. The step is
-   done when every one of those modules passes.
+   module under `tests/` whose text holds the policy root's directory
+   name as a word or the name of a file you changed. Where the root is
+   `docs/`, that set is what `git grep -l -w -F -e docs -e <name> -- tests/`
+   lists, with one `-e <name>` for each file you changed, such as
+   `-e the-record-layout.md -e README.md`. The directory name finds the
+   checks that read every document rather than one by name, such as a
+   line-length or a duplicated-passage check, which no `check:` line
+   names, and a module that joins a document's path from its parts. A
+   file's name finds a module that opens that file without the directory,
+   such as one reading a README. Where a case fails because a pin under
+   `tests/` or a copy such as a README row still states the old fact,
+   change that pin or copy, and name each in the pull request body. Then
+   run the dry run again: a `to` not found is where you reworded, which the
+   body explains. The step is done when every one of those modules passes.
 7. Run `settle --apply`.
 8. Run the repository's `Broad gate` row once.
 9. Open the pull request. Its body lists, per group, the decision and its

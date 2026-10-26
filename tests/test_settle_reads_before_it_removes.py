@@ -97,7 +97,10 @@ def test_the_skill_states_the_settling_sessions_procedure():
     gate once, and the pull request body. Round 1 of #1033, finding 5: a row
     that fits two kinds has one reading, and the documents' checks name
     their set and what counts as done, so a check that reads every document
-    rather than one by name runs at step 6 and not first at the broad gate."""
+    rather than one by name runs at step 6 and not first at the broad gate.
+    Round 2 of #1033, finding 1: the set and its command are one reading, so
+    a module that joins a document's path from its parts or reads a README
+    by name is in both."""
     text = flat(skill())
     procedure = text.split("## The settling session's procedure")[1].split("## ")[0]
     steps = [
@@ -111,7 +114,10 @@ def test_the_skill_states_the_settling_sessions_procedure():
         "table's order",
         "take a default and write it down",
         "Run, over what you wrote, each rule's `check:` targets and every "
-        "module under `tests/` whose text names the policy root's directory",
+        "module under `tests/` whose text holds the policy root's directory "
+        "name as a word or the name of a file you changed",
+        "`git grep -l -w -F -e docs -e <name> -- tests/`",
+        "with one `-e <name>` for each file you changed",
         "The step is done when every one of those modules passes",
         "Run `settle --apply`.",
         "Run the repository's `Broad gate` row once.",
