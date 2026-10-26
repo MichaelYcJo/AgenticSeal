@@ -13,7 +13,7 @@ established this round in a `git clone --no-local` of the repository at
 severity: must
 location: `.test_durations`, `seal/specs/1792993972-settle-writes-each-sections-latest-decision/overview.md:36-38`
 evidence: executed `bin/test tests -q -p no:xdist -k test_the_durations_file_prices_the_suite`, `gh run view 40282308738 --log-failed`
-verdict: open
+verdict: fixed 1caa3293
 
 The `tests` workflow run 40282308738 at `a82541df` concluded `failure`.
 Three legs failed (ubuntu, macos group 3, windows group 4), each on the one
@@ -40,14 +40,14 @@ mv <dir>/.test_durations .test_durations   # LF line ends already; commit it
 The `overview.md` *Not done* paragraph on `.test_durations` goes in the same
 commit, since the claim it makes no longer holds.
 
-answer:
+answer: The finding holds. The smith refreshed `.test_durations` in 1caa3293 from run 40282308738's `test-durations` artifact: the 96 entries the suite no longer collects are gone and the 133 new cases carry the artifact's prices, rendered as `durations_union.rendered` writes the file and written with Edit, since the whole artifact is too large to write in one call; the other 6,403 entries keep their prices. `test_the_durations_file_prices_the_suite` was red with the old file and is green after (executed by the smith). `overview.md` *Not done* now states the file's state instead of calling it unmanaged.
 
 ### 2. Applied to `docs/`, two of the rule changes collide with text this branch wrote, the class #952 met
 
 severity: should
 location: `README.md:262`, `skills/settle/SKILL.md:175-181`, `tests/test_settle_reads_before_it_removes.py:103`
 evidence: executed `bin/test $(git grep -l -e the-record-layout -e release-checklist -e the-review-and-parity-arms -e the-review-record -- tests/ | grep -E '^tests/test_[^/]*[.]py$') tests/test_docs_line_wrap.py tests/test_rules.py tests/test_settle.py tests/test_rule_changes.py -q`
-verdict: open
+verdict: fixed ffeadf29
 
 The probe applied this spec's eight `## Rule changes` operations, as written,
 to the clone's four documents, then ran the 49 modules that read them. Three
@@ -96,14 +96,14 @@ The pin `tests/test_settle_reads_before_it_removes.py:103` holds step 2's
 sentence ("the code is the later fact and the section states what the code
 does"), so that line changes to the new wording in the same commit.
 
-answer:
+answer: The finding holds. The smith fixed it in ffeadf29: the `README.md` settle row now points to `skills/settle/SKILL.md` *The settling session's procedure* in a sentence of its own, with `README.ko.md` changed with it so the two editions match, and step 2 of the skill is rewritten in its own words. In a scratch clone with all nine rule changes applied to `docs/`, the 75 modules that read the changed documents, the READMEs and the skill gave 3,312 passed and one failure, the spec-less pin A9 leaves red by design; with 14a110e1's README and skill the two passage cases are red on the two 15-word runs this record names (executed by the smith).
 
 ### 3. A sentence of the policy root still says `settle --apply` applies the spec's rule changes, and no rule change rewrites it
 
 severity: should
 location: `seal/specs/1792993972-settle-writes-each-sections-latest-decision/spec.md:199-354`, `docs/the-record-layout.md:242-250`
 evidence: executed `grep -n 'section: seal/specs' seal/specs/1792993972-settle-writes-each-sections-latest-decision/spec.md`, `git grep -n -i -E 'settle[^.]{0,40}appl' -- docs/`
-verdict: open
+verdict: fixed 423896f8
 
 `docs/the-record-layout.md` *seal/specs/<work-item-id>/* says the files
 "stay until `settle --apply` applies the spec's rule changes, and then the
@@ -131,14 +131,14 @@ old fact change with it, and the policy root changes only through
 Add it to `spec.md` `## Rule changes` and re-run `rule_changes.py#parse`
 over the file (S12).
 
-answer:
+answer: The finding holds. The orchestrator added the record's operation to `spec.md` `## Rule changes` at 423896f8, rewriting `docs/the-record-layout.md` *seal/specs/<work-item-id>/*; the spec parses with nine operations and no error, and the new one's section and `from` are found in the policy (executed).
 
 ### 4. The deletion message still says a renamed directory reads as a deletion; it now reads as a settle
 
 severity: should
 location: `skills/verify/scripts/unverified_check.py:1670-1674`, `tests/test_unverified_check.py:2293-2306`
 evidence: read `skills/verify/scripts/unverified_check.py:1594-1600`, `skills/verify/scripts/unverified_check.py:1641-1674`, `tests/test_unverified_check.py:1978-1997`
-verdict: open
+verdict: fixed 14a110e1
 
 The error `unverified-check --baseline` prints for a removed `overview.md`
 ends "a renamed directory reads the same way, and says so out loud rather
@@ -175,14 +175,14 @@ Contract rule 14: `test_refuses_a_removal_no_settle_explains`
 (`tests/test_unverified_check.py:2293`), whose memo removals are the shape
 that still reaches this message, pins the new words.
 
-answer:
+answer: The finding holds. The smith fixed it in 14a110e1: the deletion message says the record left with the directory still standing, so it is no settle, and no longer says a renamed directory reads the same way; the docstring of `test_refuses_a_record_that_left_whole` that said the rows are read where it went is corrected with it, and the changelog fragment names the new message. The case was red before and green after, and a mutant of the new wording is red (executed by the smith).
 
 ### 5. The settling session's procedure leaves two decisions with two readings
 
 severity: should
 location: `skills/settle/SKILL.md:184-203`, `tests/test_settle_reads_before_it_removes.py:108`
 evidence: executed `grep -n -i -E 'first (row|kind) that|in that order|before the others|wins' skills/settle/SKILL.md`, `grep -n -E 'test_docs_line_wrap|no_passage|line_wrap|passage' skills/settle/SKILL.md`
-verdict: open
+verdict: fixed ffeadf29
 
 `CLAUDE.md` *Repo rule: text an agent or a check reads has one reading*
 asks each instruction to name who acts, when, on which file and what counts
@@ -222,7 +222,7 @@ as done. Two steps fall short, and both searches return nothing.
 The pin `tests/test_settle_reads_before_it_removes.py:108` holds step 6's
 opening words, so it changes with the step.
 
-answer:
+answer: The finding holds. The smith fixed it in ffeadf29: step 4 of the skill says a row that fits two kinds takes the first that fits in the table's order, with the reason, and step 6 names what the settling session runs over the sections it wrote (each rule's `check:` target and every `tests/` module that names the policy root directory) and that it is done when they all pass. `test_the_skill_states_the_settling_sessions_procedure` pins the new sentences, red before and green after (executed by the smith).
 
 ## Confirmations
 
