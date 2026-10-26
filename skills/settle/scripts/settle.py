@@ -56,9 +56,10 @@ the common git directory in local mode, and is printed as `seal/specs/<id>/`.
 The policy root, the tracked files the citations are read from, and `tests/`
 are read from the repository's top in both. The dry run's first line names a
 local root, each released local work item is listed with its pull request's
-number and its merge commit, and each unreleased one with why: no `Branch`
-row to ask about, no merged pull request from its branch, or no merge commit
-`--released-at` reaches. What `--apply` removes there no commit holds, and
+number and its merge commit, and each unreleased one with why: no
+`routing.md` that `hooks/routing.py` reads as a declaration naming a branch,
+no merged pull request from its branch, or no listed merge commit
+`--released-at` reaches, a pull request listed with none among them. What `--apply` removes there no commit holds, and
 the dry run names `seal export` for a copy. A `gh` that cannot be asked
 refuses the run, since every local work item would then read as unreleased.
 A repository that opted out with the scratch marker, an empty FILE read the
@@ -207,10 +208,10 @@ class Unasked(Exception):
 
 
 def merged_pull_requests(root, branch):
-    """`[(number, merge commit)]` for the pull requests from BRANCH that have
-    merged, as `gh` lists them, asked from the repository's top. Raises
-    `Unasked` where `gh` is not on PATH, does not run, exits non-zero or
-    answers anything but a list."""
+    """`[(number, merge commit or None)]` for the pull requests from BRANCH
+    that have merged, as `gh` lists them, asked from the repository's top.
+    Raises `Unasked` where `gh` is not on PATH, does not run, exits non-zero
+    or answers anything but a list of objects."""
     found = shutil.which(GH)
     if found is None:
         raise Unasked(f"`{GH}` is not on PATH")
@@ -234,19 +235,26 @@ def merged_pull_requests(root, branch):
         answer = json.loads(r.stdout)
     except ValueError:
         answer = None
-    if not isinstance(answer, list):
+    if not isinstance(answer, list) or not all(isinstance(pr, dict) for pr in answer):
         raise Unasked(f"{asked} did not answer a list of pull requests")
     out = []
     for pr in answer:
-        merge = pr.get("mergeCommit") if isinstance(pr, dict) else None
+        merge = pr.get("mergeCommit")
         commit = merge.get("oid") if isinstance(merge, dict) else None
-        if isinstance(commit, str) and commit:
-            out.append((pr.get("number"), commit))
+        out.append(
+            (pr.get("number"), commit if isinstance(commit, str) and commit else None)
+        )
     return out
 
 
 # Why a local work item is unreleased, each pinned by `tests/test_settle.py`.
-NO_BRANCH = "no `routing.md` names a branch in its `Branch` row, so `gh` was not asked"
+# A `routing.md` that `hooks/routing.py#parse` does not read, such as one whose
+# `Review` answer is outside the vocabulary, names no branch whatever rows it
+# holds, so the reason names the reader rather than the row.
+NO_BRANCH = (
+    "no `routing.md` that `hooks/routing.py` reads as a declaration names a "
+    "branch, so `gh` was not asked"
+)
 NO_PULL_REQUEST = "no pull request from `{branch}` has merged"
 NOT_REACHED = (
     "{ref} reaches no merge commit of the pull requests from `{branch}` that "
@@ -256,7 +264,8 @@ NOT_REACHED = (
 
 def declared_branch(records, work_item_id, routing):
     """The `Branch` row of the work item's `routing.md`, read by
-    `hooks/routing.py#parse`, or None where there is no file or no row."""
+    `hooks/routing.py#parse`, or None where there is no file, no row, or a
+    file `parse` does not read as a declaration."""
     path = under(records, f"{SPECS}/{work_item_id}/{routing.FILENAME}")
     try:
         with open(path, encoding="utf-8") as f:
@@ -289,9 +298,13 @@ def released_local(root, records, ref, ids):
         if not prs:
             why[work_item_id] = NO_PULL_REQUEST.format(branch=branch)
             continue
-        reached = next(((n, c) for n, c in prs if reaches(root, ref, c)), None)
+        reached = next(
+            ((n, c) for n, c in prs if c is not None and reaches(root, ref, c)), None
+        )
         if reached is None:
-            listed = ", ".join(f"#{n} at {c}" for n, c in prs)
+            listed = ", ".join(
+                f"#{n} at {c}" if c else f"#{n} with no merge commit" for n, c in prs
+            )
             why[work_item_id] = NOT_REACHED.format(
                 ref=ref, branch=branch, listed=listed
             )

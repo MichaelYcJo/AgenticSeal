@@ -52,9 +52,14 @@ it is handed, `policy_root` reading a local `config.md` through `home_at`,
   is <path>, under the git directory`. A `released in local mode` list gives
   `<id>  pull request #<n>  merge commit <oid>`, and an `unreleased in local
   mode and untouched` list gives `<id>  <why>`. The three reasons read: "no
-  `routing.md` names a branch in its `Branch` row, so `gh` was not asked";
-  "no pull request from `<branch>` has merged"; and "`<ref>` reaches no merge
-  commit of the pull requests from `<branch>` that merged: #<n> at <oid>".
+  `routing.md` that `hooks/routing.py` reads as a declaration names a
+  branch, so `gh` was not asked"; "no pull request from `<branch>` has
+  merged"; and "`<ref>` reaches no merge commit of the pull requests from
+  `<branch>` that merged: #<n> at <oid>", where a pull request listed with
+  no merge commit reads `#<n> with no merge commit`. Round 1 finding 3's fix
+  pass reworded the first and added the last; the first said "no
+  `routing.md` names a branch in its `Branch` row", which a file with a
+  `Branch` row and an unreadable `Review` row contradicts.
   The removal heading in local mode adds "In local mode no commit holds these
   directories; `seal export` takes a copy for whoever wants one". An
   unordered pair says "no ancestry orders their pull requests' merge
@@ -66,13 +71,14 @@ it is handed, `policy_root` reading a local `config.md` through `home_at`,
 - The `gh` refusal is one sentence, `UNASKED`, naming `gh`, what it said,
   and the limit "a repository on a host `gh` cannot ask cannot settle in
   local mode". Three answers are refused: `gh` absent from `PATH`, a query
-  that exits non-zero, and an answer at exit 0 that is not a list. The third
-  would produce the same silent zero as the first two.
+  that exits non-zero, and an answer at exit 0 that is not a list of
+  objects. The third would produce the same silent zero as the first two;
+  round 1 finding 3's fix pass widened it from a list to a list of objects.
 - `gh` is found with `shutil.which` and run by the path it returns, as
   `chain_check.py#pull_request_from_gh` does, so a `gh.cmd` on Windows is
   run. The query is bounded at `GH_TIMEOUT`, 60 s. A timeout is a refusal.
-- A listed pull request whose `mergeCommit` is null counts as no merged pull
-  request. Where several merged pull requests come from one branch, the
+- A listed pull request whose `mergeCommit` is null leaves the item
+  unreleased, named as one with no merge commit. Where several merged pull requests come from one branch, the
   first one `gh` lists whose merge commit the ref reaches is taken.
 - In local mode `--released-at` is checked with `git rev-parse --verify`
   before `gh` is asked, so a ref that does not resolve gets the existing

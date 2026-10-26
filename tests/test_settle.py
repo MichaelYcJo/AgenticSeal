@@ -324,6 +324,14 @@ def gh(tmp_path, monkeypatch):
     return Gh(home)
 
 
+# Why a local work item that names no branch is unreleased, as a person reads
+# it: a file `hooks/routing.py#parse` does not read names none, whatever rows
+# it holds.
+NO_BRANCH = (
+    "no `routing.md` that `hooks/routing.py` reads as a declaration names a "
+    "branch, so `gh` was not asked"
+)
+
 ROUTED = """# {name} — routing
 
 | Axis | Answer |
@@ -975,7 +983,7 @@ class Test_main:
         assert "    closed in overview.md: a claim\n" in text, text
 
     @pytest.mark.parametrize("arm", [False, True], ids=["report", "apply"])
-    @pytest.mark.parametrize("state", ["absent", "fails", "garbled"])
+    @pytest.mark.parametrize("state", ["absent", "fails", "garbled", "entry"])
     def test_refuses_a_gh_that_cannot_be_asked_in_local_mode(
         self, local, gh, capfd, monkeypatch, state, arm
     ):
@@ -988,8 +996,10 @@ class Test_main:
         if state == "absent":
             monkeypatch.setattr(settle, "GH", "specseal-no-such-gh")
             said = "`specseal-no-such-gh` is not on PATH"
-        elif state == "garbled":
-            gh.say('{"message": "Not Found"}')
+        elif state in ("garbled", "entry"):
+            # A list whose entry is not an object is as garbled as an answer
+            # that is no list (round 1 finding 3).
+            gh.say('{"message": "Not Found"}' if state == "garbled" else "[11]")
             said = "`gh pr list --head feat/1-a` did not answer a list of pull requests"
         else:
             gh.fail("HTTP 401: Bad credentials (https://api.github.com/graphql)")
@@ -1032,16 +1042,21 @@ class Test_main:
         assert "released at main: 2 work items; 0 unreleased" in text, text
         assert len(gh.calls()) == 1, gh.calls()
 
-    def test_a_pull_request_listed_with_no_merge_commit_has_not_merged(
+    def test_a_pull_request_listed_with_no_merge_commit_is_named_as_such(
         self, local, gh, capfd
     ):
         """A listed pull request whose `mergeCommit` is null names nothing git
-        can reach, so it counts as no merged pull request."""
+        can reach, so the item is unreleased. `gh` was asked for merged pull
+        requests and listed it, so the reason names it as one with no merge
+        commit rather than saying none merged (round 1 finding 3)."""
         local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
         gh.merged("feat/1-a", (11, None))
         code, text = dry_run(local, capfd)
         assert code == 0, text
-        assert "    1700000001-a  no pull request from `feat/1-a` has merged\n" in text
+        assert (
+            "    1700000001-a  main reaches no merge commit of the pull requests "
+            "from `feat/1-a` that merged: #11 with no merge commit\n"
+        ) in text, text
 
     def test_shared_mode_never_asks_gh(self, repo, gh, capfd):
         """S6 of #955: a shared root's work items are released by presence at
@@ -1073,10 +1088,29 @@ class Test_main:
         code, text = dry_run(local, capfd)
         assert code == 0, text
         unreleased = text.split(settle.UNMERGED_HEADING + "\n")[1].split("\n\n")[0]
-        why = (
-            "no `routing.md` names a branch in its `Branch` row, so `gh` was not asked"
+        assert unreleased == (
+            f"    1700000001-a  {NO_BRANCH}\n    1700000002-b  {NO_BRANCH}"
+        ), text
+        assert gh.calls() == [], gh.calls()
+
+    def test_a_local_routing_md_routing_py_does_not_read_names_no_branch(
+        self, local, gh, capfd
+    ):
+        """A `routing.md` with a `Branch` row whose `Review` answer is outside
+        the vocabulary is no declaration to `hooks/routing.py#parse`, so the
+        item is unreleased and `gh` is not asked. The reason says the file is
+        not read as a declaration, since a person who opens it finds the
+        `Branch` row there (round 1 finding 3)."""
+        local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
+        path = local_dir(local, "1700000001-a") / "routing.md"
+        text = path.read_text(encoding="utf-8")
+        path.write_text(
+            text.replace("| Review | through", "| Review | Through"), encoding="utf-8"
         )
-        assert unreleased == (f"    1700000001-a  {why}\n    1700000002-b  {why}"), text
+        code, text = dry_run(local, capfd)
+        assert code == 0, text
+        unreleased = text.split(settle.UNMERGED_HEADING + "\n")[1].split("\n\n")[0]
+        assert unreleased == f"    1700000001-a  {NO_BRANCH}", text
         assert gh.calls() == [], gh.calls()
 
     def test_a_local_repository_with_no_policy_root_settles(self, local, gh, capfd):

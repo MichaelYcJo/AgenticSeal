@@ -300,6 +300,9 @@ def test_the_module_and_the_skill_both_say_how_local_mode_settles():
         "their merge commits' place in `git rev-list --topo-order --reverse`",
         "with its pull request's number and its merge commit",
         "which of the three states holds",
+        "no `routing.md` that `hooks/routing.py` reads as a declaration naming "
+        "a branch",
+        "a pull request listed with no merge commit among them",
         "`seal export` takes a copy for whoever wants one",
         "removes each released local directory whose record holds no open row",
         "Shared mode never asks `gh`",

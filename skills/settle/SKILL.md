@@ -262,9 +262,11 @@ request's merge commit, whatever the merge method was.
   item's `routing.md` and asks
   `gh pr list --head <branch> --state merged --json number,mergeCommit`
   from the repository's top, once per branch. A work item is unreleased,
-  and untouched, in three states: no `routing.md` or no `Branch` row, no
-  merged pull request from that branch, or no listed merge commit reachable
-  from `--released-at`. Shared mode never asks `gh`.
+  and untouched, in three states: no `routing.md` that `hooks/routing.py`
+  reads as a declaration naming a branch, no merged pull request from that
+  branch, or no listed merge commit reachable from `--released-at`, a pull
+  request listed with no merge commit among them. Shared mode never asks
+  `gh`.
 - **A `gh` that cannot be asked stops the run.** Where `gh` is not on
   `PATH` or its query fails, `settle` exits 2 with one sentence naming `gh`
   and what it said, and reads and removes nothing. Every work item would
