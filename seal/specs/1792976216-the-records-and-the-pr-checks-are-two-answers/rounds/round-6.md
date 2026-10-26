@@ -9,7 +9,7 @@ target: dc07a4ea, fixes 2cf62b72..dc07a4ea
 severity: should
 location: `skills/implement/scripts/seal.py:2003-2038`, `tests/test_seal.py:3316-3360`, `seal/specs/1792976216-the-records-and-the-pr-checks-are-two-answers/spec.md:113-119`
 evidence: executed `python3 test_tmp_remove_states.py`, `bin/mutation-check skills/implement/scripts/seal.py --replace 'if staged is None or PLUGIN_CLONE not in staged:' 'if PLUGIN_CLONE not in staged:' --tests "bin/test tests/test_seal.py -q -p no:xdist -k 'Test_pr_checks or Test_remove_workflow'"`, `git grep -n deleted_by_hand dc07a4ea -- tests`
-verdict: open
+verdict: fixed 1fb674c7
 regression: round-5#1
 
 The unit is the `kind == "absent"` arm of `remove_workflow`
@@ -116,7 +116,7 @@ clone line and, where HEAD lacks the path, byte for byte what `install`
 writes now, or where HEAD carries it, equal to HEAD's copy, it takes out of
 the index with `git rm`".
 
-answer:
+answer: The finding holds, and it is routed to an ordinary fix pass: it is the first regression on `remove_workflow` in this run, and its comparison sentence places the defect in how the fix was written, against a frame sentence with a second reading. The orchestrator rewrote `spec.md` *In* item 3 at 5a210589 to name the two index copies `remove` may take for a hand-deleted file, the copy HEAD carries or what `install` writes now, and at the next commit added that the copy must carry the clone line first, as the smith found the two cases alone would take somebody else's committed file. The smith fixed it in 1fb674c7: an index copy git cannot give is refused and named unreadable, one without the clone line is refused as before, and the rest leave the index only where `git diff --cached --quiet` says the index equals HEAD or the copy equals `plugin_workflow()`. Four refusing cases were seen red against 5a210589, two new accepting and refusing ids were seen red by mutants, 27 `Test_pr_checks` and `Test_remove_workflow` cases pass, and five mutants of the condition are all red (executed by the smith).
 
 ## Confirmations
 

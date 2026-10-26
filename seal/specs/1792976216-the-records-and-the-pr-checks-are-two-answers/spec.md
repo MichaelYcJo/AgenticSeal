@@ -113,9 +113,9 @@ The issue was written on 2026-10-16 against 0.22.2. Read at `02ee12de`:
      differs. Where the working file is gone and the index still holds it,
      as after a person deletes it by hand, it takes the index copy out with
      `git rm` and says so, so the next commit does not carry it (round 5,
-     finding 1), in exactly two cases: the index copy is byte for byte the
-     copy HEAD carries, or it is byte for byte what `install` would write
-     now. Either way a copy survives the removal, in HEAD or in what
+     finding 1), only where the index copy carries the clone line and, beyond
+     that, in exactly two cases: the index copy is byte for byte the copy
+     HEAD carries, or it is byte for byte what `install` would write now. Either way a copy survives the removal, in HEAD or in what
      `install` writes back. Every other index copy is refused, exit 1 and
      nothing removed, because the index may hold the only copy of an edit:
      a staged edit, a copy pinned to another release, somebody else's file,
