@@ -100,9 +100,16 @@ The issue was written on 2026-10-16 against 0.22.2. Read at `02ee12de`:
      would not stage is exit 1 with the existing `git add -f` sentence.
    - `seal pr-checks remove` takes out a file this plugin wrote: `git rm`
      where git tracks it, a plain delete where it is untracked and byte for
-     byte what `install` would write now. It refuses, exit 1 and nothing
-     removed, for a symbolic link, a file it cannot read, a file without the
-     clone line, and an untracked file that differs. Where nothing is there
+     byte what `install` would write now. A file staged and not yet
+     committed, as `install` leaves it, is the untracked case for git, which
+     keeps no committed copy of it: where the index and the working file are
+     both byte for byte what `install` would write now, the removal is forced
+     past git's staged-changes refusal and staged, so `install` then `remove`
+     before a commit leaves nothing under `.github/` (the sealer, at
+     `55aea15d`). It refuses, exit 1 and nothing removed, for a symbolic
+     link, a file it cannot read, a file without the clone line, an untracked
+     file that differs, and a staged file whose index or working copy
+     differs. Where nothing is there
      it says so and exits 0. It needs no root, because a workflow that
      outlived its root is the case it exists for.
 
