@@ -9,7 +9,7 @@ target: e2b1e994, fixes 352fc126..e2b1e994
 severity: must
 location: `tests/test_seal.py:3420-3425`, `tests/test_seal.py:3427`
 evidence: executed `gh -R MichaelYcJo/SpecSeal run view 40269788492 --log-failed`, `python3 -I test_tmp_crlf_index_info.py`, `bin/mutation-check tests/test_seal.py --replace <the two lines at 3421-3422> <the two lines below>`
-verdict: open
+verdict: fixed 24fe948a
 regression: round-6#1
 
 The unit is `Test_pr_checks.test_refuses_an_index_entry_it_cannot_read_deleted_by_hand`, which `1fb674c7` added for round 6's finding 1. The frame, `spec.md` *In* item 3 and the phase 2 row of `plan.md`, asks that `seal pr-checks remove` refuse and name an index entry it cannot read, such as an unmerged path, and names no fixture. The fix built that state by writing three stage lines to `git update-index --index-info` through `subprocess.run(..., input=..., encoding="utf-8")`. The defect came from how that fixture was written, not from the frame.
@@ -35,7 +35,7 @@ The fix below, applied as a mutant in the round's clone, left the case and the c
         )
 ```
 
-answer:
+answer: The finding holds. Counted from the reframe after round 3, this is the third finding round, so the finding takes the filing ladder's first rung: the branch owns the unit, and the fix goes in the diff. The unit is the case `1fb674c7` added, not the hand-deleted branch round 6 found, so it is that case's first regression. The smith fixed it in 24fe948a: the case feeds `git update-index -z --index-info` three NUL-terminated records, so text-mode stdin has no newline to translate. It was shown red on macOS with the old lines written as Windows writes them (`assert 0 == 3` at `tests/test_seal.py:3427`), green after, and mutants dropping `-z` or changing the terminator are red. The branch's other stdin writes were searched and none is in the same shape (executed by the smith). The Windows leg is read by the orchestrator from the branch's `tests` run after this commit.
 
 ## Confirmations
 
