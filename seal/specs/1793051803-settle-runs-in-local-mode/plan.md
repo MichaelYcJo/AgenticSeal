@@ -1,6 +1,6 @@
 # Implementation Plan: settle runs in local mode (#955)
 
-Approved <date> by <who>, when `smith` was spawned.
+Approved 2026-10-27 by the orchestrator, when `smith` was spawned.
 
 ## Summary
 
