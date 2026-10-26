@@ -110,7 +110,10 @@ The issue was written on 2026-10-16 against 0.22.2. Read at `02ee12de`:
      `55aea15d`). It refuses, exit 1 and nothing removed, for a symbolic
      link, a file it cannot read, a file without the clone line, an untracked
      file that differs, and a staged file whose index or working copy
-     differs. Where nothing is there
+     differs. Where the working file is gone and the index still holds it,
+     as after a person deletes it by hand, it takes it out of the index with
+     `git rm` and says so, so the next commit does not carry it (round 5,
+     finding 1). Where nothing is there, in the working tree or the index,
      it says so and exits 0. It needs no root, because a workflow that
      outlived its root is the case it exists for.
 

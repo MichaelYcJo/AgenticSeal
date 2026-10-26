@@ -21,7 +21,7 @@ nothing.
 | Item | Who must answer |
 |---|---|
 | closed whether the flow cases of `tests/e2e/teammate/test_teammate_flow.py` run or skip on the Windows legs of `.github/workflows/test.yml` (`questions.md` Q2) | the `tests` workflow run 40264357704 on the branch at `895db45e` passed every leg, and the flow cases ran on `windows-latest` with 3.37s and 2.83s in its durations report (`questions.md` Q2, answered (a)) |
-| closed the full suite, the repository-wide lint and format check, and the typecheck at the branch head | `broad-gate.md`: BROAD GATE PASSED at `4b63982f` against `02ee12de`, ruff check and format clean, the suite 6,552 passed and 14 skipped, chain-check exit 0; the repository has no typecheck to run (#951 adds one) |
+| The full suite, the repository-wide lint and format check, and the typecheck at the branch head. The broad run at `4b63982f` passed, and `83ccc9ae` changed `skills/implement/scripts/seal.py` and `tests/test_seal.py` after it (round 5, finding 3) | the orchestrator, by `broad-gate` once round 5's findings are answered |
 | Whether the settle applies this spec in merge order, behind the specs the merge-order replay refused for reasons outside this branch. Phase 3 replayed this spec alone onto `docs/` at `02ee12de` | #1033, which redesigns the settle to group specs by section, and the settle that applies this release's specs |
 
 ## Not done
