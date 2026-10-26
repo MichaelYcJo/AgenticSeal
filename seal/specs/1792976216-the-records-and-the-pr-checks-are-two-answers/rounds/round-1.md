@@ -9,7 +9,7 @@ target: 3f2f5a5d against release/v0.22.4
 severity: must
 location: `skills/code-review/scripts/chain_check.py:2162-2170`, `skills/code-review/scripts/chain_check.py:2220-2231`, `skills/implement/scripts/seal.py:2380-2384`, `tests/e2e/teammate/test_teammate_flow.py`, `seal/specs/1792976216-the-records-and-the-pr-checks-are-two-answers/spec.md:199-203`
 evidence: executed `python3 test_tmp_round1_probe.py`
-verdict: open
+verdict: fixed 2c9e2a19
 
 Before this branch, `seal mode local` staged the workflow's removal in the
 same change as the root's (`remove_workflow`, called from `switch`). So the
@@ -79,14 +79,14 @@ commit that ran `seal mode local` (the plugin's workflow committed at the
 base). And `spec.md:199-203` gets a sentence naming the switching pull
 request as the shape that needs the chain step changed.
 
-answer:
+answer: The finding holds. The orchestrator amended `spec.md` in 60f3ea14: *In* item 6 now reads no top-level `seal` entry at HEAD as nothing declared in `chain_check.py#main`, keeping the declarations judged where git cannot answer; *In* item 7 adds the switching pull request as a second flow case; *Out* and `questions.md` answered item 2 no longer say the chain step needs no change; a `## Rule changes` `add` to `docs/the-review-record.md` *What the check reads at the pull request* states the rule. The smith's fix pass found two policy sentences that still said a deleted declaration is always judged, and the orchestrator added a `change` for each in 64a73e7b; all 17 items parse and place against `docs/` (executed, `rule_changes.py#parse` and `apply_op`). The smith fixed it in 2c9e2a19 with a new reason line, `ROOT_LEFT_SAYS`, and two cases: `tests/e2e/teammate/test_teammate_flow.py#test_accepts_the_pull_request_that_moves_the_root_to_local_mode`, seen red on the chain step before the fix (`git does not carry this file at HEAD`), and `tests/test_chain_check.py` `Test_retired::test_accepts_every_declaration_leaving_with_the_root`; the narrow set gave 703 passed (executed by the smith).
 
 ### 2. A workflow pinned to a release before this one stays through `seal mode local` and fails every later pull request, while the switch and the mode gate say it passes
 
 severity: should
 location: `skills/implement/scripts/seal.py:2380-2384`, `hooks/mode-gate.py:246-250`, `README.md:510-512`, `README.ko.md:503-506`, `seal/specs/1792976216-the-records-and-the-pr-checks-are-two-answers/changelog.md:8`
 evidence: executed `python3 test_tmp_round1_probe.py`
-verdict: open
+verdict: fixed 3b5543fb
 
 This is the population `spec.md` S5 and `plan.md:77-83` (*Operational
 impact*) describe: a repository bootstrapped before this change, with the
@@ -150,14 +150,14 @@ pr-checks remove` takes it out." Each new text gets a pin in the case that
 holds its file (`tests/test_seal.py` `Test_switch`, `tests/test_mode_gate.py`,
 `tests/test_first_setup_asks_once.py`), seen red first.
 
-answer:
+answer: The finding holds. The orchestrator amended `spec.md` *In* item 4 and the two `one-root-by-lifetime` rule changes in 60f3ea14: the line the switch prints is chosen by the workflow's pin against the installed release. The smith fixed it in 3b5543fb: `seal.py#left_workflow_line` names a pin that is not the installed release, or one that cannot be read, and the two ways out; the mode gate's *Local* option, `README.md`, `README.ko.md` and the changelog fragment say the same. Six new pins in `tests/test_seal.py` `Test_switch`, `tests/test_mode_gate.py` and `tests/test_first_setup_asks_once.py` were seen red first (6 failed), then 786 passed with the six modules that read the changed documents (executed by the smith). The fragment carries no pin, because a case reading a work item's `changelog.md` would fail once settle removes the directory.
 
 ### 3. A case pins the red-forever sentences this spec retires, so the settle that applies the spec turns two cases red
 
 severity: should
 location: `tests/test_first_setup_asks_once.py:659-666`
 evidence: executed `python3 test_tmp_round1_probe2.py`
-verdict: open
+verdict: fixed 68b5f358
 
 `test_the_record_no_longer_says_the_checks_would_refuse` asserts that
 `docs/one-root-by-lifetime.md` and its Korean edition carry `examined nothing`
@@ -200,7 +200,7 @@ def test_the_record_no_longer_says_the_checks_would_refuse(parts, wrong):
     assert wrong not in text, "/".join(parts)
 ```
 
-answer:
+answer: The finding holds, and the repository's practice the record cites is taken. The orchestrator added the case to `spec.md` *Places* in 60f3ea14. The smith removed the two asserts and the comment above them in 68b5f358 and kept the first assert; a search of `tests/` for the four retired phrases finds only cases pinning other sentences (executed by the smith).
 
 ## Confirmations
 
