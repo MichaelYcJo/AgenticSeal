@@ -31,11 +31,17 @@ In:
    reason to keep it.` (`CLAUDE.md:17`), and before `A rule's proof is the
    test or behaviour eval its`. The text, exactly:
 
-   > A gate or a check guards the work a work item owns. A change that would
-   > be routed `no work item`, such as a formatter run, a dependency bump or a
-   > rename made through the shell, is outside that work, so a gap in a gate
-   > or a check that only such a change passes through is not a weakness to
-   > close.
+   > A gate that stops a session, the routing check among them, guards the
+   > work a work item owns. A change that would be routed `no work item`, such
+   > as a formatter run, a dependency bump or an identifier renamed across
+   > files by `sed`, is outside that work, so a gap in that kind of gate which
+   > only such a change passes through is not a weakness to close.
+
+   The checks that run on every pull request are not that kind of gate: they
+   run on a change no work item owns as on any other, and the principle does
+   not exempt them (round 1, finding 2). A file renamed with `git mv` inside
+   a work item is work the work item owns, which is why the example is an
+   identifier renamed by `sed` (round 1, finding 1).
 
    The build reflows the paragraph's line breaks around the insertion and
    changes no other word of the section.

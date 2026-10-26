@@ -8,9 +8,11 @@ nobody reopens them:
   owner named the section, and the first sentence is the weighing the new
   sentences apply (`plan.md` *Alternatives considered*, rows one and two).
 - **Its wording.** `spec.md` *Scope* item 1, reworded from the
-  orchestrator's draft in two places. `A gate` becomes `A gate or a check`,
-  because the owner's ground covers any mechanism and the section already
-  speaks of checks. `The work the workflow governs` becomes `the work a work
+  orchestrator's draft. `A gate` becomes `A gate that stops a session, the
+  routing check among them`, because the owner's ground was SpecSeal stepping
+  into a session, and the checks every pull request runs still judge a
+  change no work item owns (round 1, finding 2, which narrowed the frame's
+  first wording `A gate or a check`). `The work the workflow governs` becomes `the work a work
   item owns`, tied to the routing answer `no work item`, because `workflow`
   is defined nowhere in the file and the routing answer is. `Route past a
   gate` is not used, because `routed` already carries the routing meaning in
