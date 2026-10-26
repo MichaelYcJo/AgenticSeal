@@ -14,7 +14,7 @@ declared, so no parity comparison applies.
 severity: should
 location: `skills/settle/SKILL.md:294-300`, `skills/settle/scripts/settle.py:209-245`, `seal/specs/1793051803-settle-runs-in-local-mode/changelog.md:8`, `tests/test_settle_reads_before_it_removes.py:293-311`
 evidence: executed `gh pr list --help`, `grep -n 'gh.merged(' tests/test_settle.py`
-verdict: open
+verdict: fixed 3093c521
 
 `settle.py#merged_pull_requests` asks `gh pr list --head <branch> --state
 merged`. The help text of `gh` says of `--head`: "Filter by head branch
@@ -60,7 +60,7 @@ answer: 3093c521 replaces the limit's last sentence in `skills/settle/SKILL.md` 
 severity: should
 location: `skills/settle/scripts/settle.py:876-881`
 evidence: executed `bin/test tests/test_tmp_round1_subdir.py -q -p no:xdist -s`
-verdict: open
+verdict: fixed 662dae5c
 
 `settle.py#main` takes `root` from `--root`, or from the working directory,
 and never resolves it to the repository's top. In shared mode a subdirectory
@@ -112,7 +112,7 @@ answer: 662dae5c resolves `root` through `optin.repo_root` in `settle.py#main`, 
 severity: should
 location: `skills/settle/scripts/settle.py:239-250`, `skills/settle/scripts/settle.py:257-297`, `skills/settle/SKILL.md:264-267`, `tests/test_settle.py:1016-1024`, `tests/test_settle.py:1043-1061`
 evidence: executed `bin/test tests/test_tmp_round1_probe.py -q -p no:xdist -s`
-verdict: open
+verdict: fixed 53972b46
 
 The smith reported one reading the frame does not cover: a `routing.md`
 whose `Review` row `hooks/routing.py#parse` cannot read parses to nothing,
@@ -194,7 +194,7 @@ answer: 53972b46 takes the round's proposal: a list entry that is not an object 
 severity: should
 location: `skills/settle/SKILL.md:344-346`, `docs/one-root-by-lifetime.md:31-36`, `seal/specs/1793051803-settle-runs-in-local-mode/spec.md:179-207`
 evidence: executed `git grep -n -i -E 'git history|in history|recover' -- docs skills templates agents README.md seal/README.md`
-verdict: open
+verdict: fixed ef9048c7
 
 *A settle is not a work item* says "It keeps no log: what changed is the
 diff, and the removed specs are in git history." In local mode no commit
@@ -240,7 +240,7 @@ answer: ef9048c7 rewrites *A settle is not a work item* in `skills/settle/SKILL.
 severity: should
 location: `skills/settle/SKILL.md:257-260`, `skills/settle/scripts/settle.py:860-867`
 evidence: read `skills/settle/SKILL.md:257-260`, `skills/settle/scripts/settle.py:860-867`
-verdict: open
+verdict: fixed 9cfb9820
 
 `CLAUDE.md` *Repo rule: text an agent or a check reads has one reading*.
 
@@ -276,7 +276,7 @@ answer: 9cfb9820 rewrites both sentences to the round's text: the skill's *Where
 severity: should
 location: `tests/test_settle.py:1016`
 evidence: executed `grep -n 'gh.merged(' tests/test_settle.py`, `bin/test tests/test_tmp_round1_probe.py -q -p no:xdist -s`
-verdict: open
+verdict: fixed 9f854538
 
 The smith claimed two choices. The first is that `settle.py#reaches` asks
 git itself, not through `rule_changes.py#_ancestor`, because `_ancestor`
