@@ -482,22 +482,19 @@ READMES = {
     "README.md": ("## First run", "### Shared or local"),
     "README.ko.md": ("## 처음 실행", "### shared 인가 local 인가"),
 }
-# What a workflow left after a move to local does, by its pin (round 1 of
-# #952, finding 2): one at this release passes, an older one fails.
+# A workflow left after a move to local stays, and which pin passes is the
+# rule's home to say, linked rather than restated (round 2 of #952, finding 1).
 LEFT_BEHIND = {
     "README.md": (
-        "A workflow left behind after a move to local and pinned to this "
-        "release examines nothing on every step and passes",
-        "One pinned to an older release fails every pull request there until "
-        "its `--branch` line moves to this release or `seal pr-checks remove` "
-        "takes it out.",
+        "A workflow left behind after a move to local stays in the tree, and "
+        "`docs/one-root-by-lifetime.md` *Shared or local* says which pin passes "
+        "there and how to move one that fails.",
     ),
     "README.ko.md": (
-        "local 로 옮긴 뒤 남은 워크플로가 이 릴리스로 고정되어 있으면 모든 "
-        "단계에서 아무것도 보지 않고 통과합니다.",
-        "그보다 오래된 릴리스로 고정된 워크플로는 `--branch` 줄을 이 릴리스로 "
-        "옮기거나 `seal pr-checks remove` 로 빼기 전까지 그곳의 모든 PR 을 "
-        "실패시킵니다.",
+        "local 로 옮긴 뒤에도 워크플로는 트리에 남고, 어느 고정이 그곳에서 "
+        "통과하는지와 실패하는 고정을 어떻게 옮기는지는 "
+        "`docs/one-root-by-lifetime.ko.md` *shared 인가 local 인가* 가 "
+        "말합니다.",
     ),
 }
 

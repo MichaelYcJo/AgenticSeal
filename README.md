@@ -508,10 +508,9 @@ git rm -r --cached "$(git rev-parse --show-toplevel)/seal" && mv "$(git rev-pars
 ```
 
 Doing it that way leaves `.github/` alone, as `seal mode` does. A workflow
-left behind after a move to local and pinned to this release examines nothing
-on every step and passes, because no root is in the tree. One pinned to an
-older release fails every pull request there until its `--branch` line moves
-to this release or `seal pr-checks remove` takes it out.
+left behind after a move to local stays in the tree, and
+`docs/one-root-by-lifetime.md` *Shared or local* says which pin passes there
+and how to move one that fails.
 
 Between two machines the move is not available, because the other machine has
 no folder to move. That is what `seal export` and `seal import` below are for,
