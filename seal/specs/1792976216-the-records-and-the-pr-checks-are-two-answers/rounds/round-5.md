@@ -9,7 +9,7 @@ target: 2cf62b72, fixes d0ba9fba..2cf62b72
 severity: should
 location: `skills/implement/scripts/seal.py:2002-2003`, `tests/test_seal.py:3239`, `seal/specs/1792976216-the-records-and-the-pr-checks-are-two-answers/spec.md:113-114`
 evidence: executed `python3 test_tmp_remove_states.py`
-verdict: open
+verdict: fixed 0aaa5e41
 
 The fix at `83ccc9ae` makes `remove` read the index where the working file
 is there. It does not read the index where the working file is gone. The
@@ -83,14 +83,14 @@ first.
         )
 ```
 
-answer:
+answer: The finding holds, and the fix stays inside the command rather than taking a limit sentence, because the command's own report was false. The orchestrator amended `spec.md` *In* item 3 at 111f4e32, then at a3fec95a after the smith showed the first wording would take an index copy that is somebody else's: the index copy of a hand-deleted file is read by the same rule as a working file. The smith fixed it in 43975a1c (an index copy this plugin wrote leaves the index with `git rm`, exit 0, cases for `AD` and ` D` seen red on the old message) and 0aaa5e41 (any other index copy is refused, exit 1, nothing removed, seen red against 5a4011eb). 21 `Test_pr_checks` and `Test_remove_workflow` cases pass, and four mutants of the new condition are all red (executed by the smith).
 
 ### 2. The module docstring says `remove` stages the removal where git tracked the file, and after `install` the forced removal stages nothing
 
 severity: should
 location: `skills/implement/scripts/seal.py:38-39`
 evidence: read `skills/implement/scripts/seal.py:38-39`, `skills/implement/scripts/seal.py:1708-1728`, `skills/implement/scripts/seal.py:2042-2075`
-verdict: open
+verdict: fixed 5a4011eb
 
 The module docstring's command list says `seal pr-checks remove` will "take
 out the file this plugin wrote, and stage the removal where git tracked it"
@@ -119,14 +119,14 @@ reading* refuses.
                               removal where HEAD carries it
 ```
 
-answer:
+answer: The finding holds. The smith rewrote the command list line in 5a4011eb: `remove` takes the file this plugin wrote out of the working tree and the index, and stages the deletion where HEAD carries it, which has one reading. A search for the same statement found the frame's two `where git tracks it` sentences, which the orchestrator rewrote to `where HEAD carries it` at a3fec95a; every other text says only that `remove` takes out the file this plugin wrote, still true (read by the smith).
 
 ### 3. `overview.md` says the broad run closed the suite at the branch head, and code changed after that run
 
 severity: should
 location: `seal/specs/1792976216-the-records-and-the-pr-checks-are-two-answers/overview.md:24`
 evidence: executed `git diff --stat 4b63982f 2cf62b72 -- skills tests`, `python3 skills/code-review/scripts/chain_check.py --baseline origin/release/v0.22.4`
-verdict: open
+verdict: fixed 111f4e32
 
 `overview.md:24` closes the row for the full suite, lint and format "at the
 branch head" on the broad run at `4b63982f`. `83ccc9ae` came after that run.
@@ -147,7 +147,7 @@ back to open until that run.
 | The full suite, the repository-wide lint and format check, and the typecheck at the branch head. The broad run at `4b63982f` predates `83ccc9ae`, which changed `skills/implement/scripts/seal.py` and `tests/test_seal.py`; the repository has no typecheck to run (#951 adds one) | the orchestrator, by `broad-gate`, after the review rounds settle |
 ```
 
-answer:
+answer: The finding holds. The orchestrator reopened the overview's suite row at 111f4e32, naming the broad run at 4b63982f and the commits after it, with the orchestrator's next `broad-gate` run as its answerer; the row closes again on that run.
 
 ## Confirmations
 
