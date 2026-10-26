@@ -33,9 +33,14 @@ after this merges into `release/v0.22.4`, with the tree's script
 (`plan.md` *Operational impact*); S10 ran the dry run read-only and nothing
 else.
 
-The stale `Test_replay`, `Test_policy_documents` and `Test_wrote_a_spec`
-entries in `.test_durations`. That file is the durations CI unions after a run
-(`.github/scripts/durations_union.py`), not a list kept by hand.
+The prices of the cases `.test_durations` already held. The branch's removals
+left 96 entries the suite no longer collects, which turned
+`test_the_durations_file_prices_the_suite` red on run 40282308738, so the file
+now takes that run's `test-durations` artifact's entry set: the 96 entries go
+and the 133 cases the file lacked take the artifact's prices. The other 6,403
+entries keep their committed prices, because the artifact rewrites every line
+of the file and an edit made through the `Edit` tool carries the changed
+entries only; the next refresh from a `tests` run replaces them.
 
 ## Fed back into the spec
 
