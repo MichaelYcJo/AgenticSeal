@@ -415,15 +415,15 @@ class Test_move:
     ):
         hook.move(str(proj), ".specseal/map", "seal/map")
         assert (proj / "seal" / "map" / f"{ITEM}.md").is_file()
+        write(proj, f"specs/{ITEM}/phases/deep/p.md", "# two directories down\n")
+        commit(proj, "a file two directories down the item")
         write(proj, f"seal/specs/{ITEM}/spec.md", "# already here\n")
         hook.move(str(proj), f"specs/{ITEM}", f"seal/specs/{ITEM}")
-        assert (proj / "seal" / "specs" / ITEM / "rounds" / "round-1.md").is_file()
+        for rel in ("rounds/round-1.md", "phases/deep/p.md", "routing.md"):
+            assert (proj / "seal" / "specs" / ITEM / rel).is_file(), rel
         assert not (proj / "seal" / "specs" / ITEM / ITEM).exists()
-        # The walk removes each emptied directory below the item; the item's
-        # own directory, listed before its `rounds/` went, stays on disk
-        # empty, and git sees nothing there.
         assert not (proj / "specs" / ITEM / "rounds").exists(), "an emptied one stayed"
-        assert list((proj / "specs" / ITEM).iterdir()) == []
+        assert not (proj / "specs" / ITEM).exists(), "the item's directory stayed"
 
     def test_refuses_a_file_already_at_its_destination_and_moves_the_marks_last(
         self, hook, proj
@@ -467,6 +467,19 @@ class Test_run_moves:
         commit(proj, "only SpecSeal's work items under specs/")
         assert hook.run_moves(str(proj), hook.moves(str(proj))) == (5, None)
         assert not (proj / ".specseal").exists() and not (proj / "specs").exists()
+
+    def test_accepts_an_item_merged_into_one_that_exists_and_takes_away_specs(
+        self, hook, proj
+    ):
+        """#1018: the item is merged file by file, its directory goes with
+        the files, and `specs/` is then empty and goes too."""
+        git(proj, "rm", "-rq", "specs/notes")
+        commit(proj, "only SpecSeal's work items under specs/")
+        write(proj, f"seal/specs/{ITEM}/spec.md", "# already here\n")
+        assert hook.run_moves(str(proj), hook.moves(str(proj))) == (5, None)
+        assert (proj / "seal" / "specs" / ITEM / "rounds" / "round-1.md").is_file()
+        assert not (proj / "specs" / ITEM).exists(), "the item's directory stayed"
+        assert not (proj / "specs").exists(), "specs/ stayed"
 
     def test_refuses_to_go_past_a_unit_that_stopped_and_counts_what_moved(
         self, hook, proj, monkeypatch
@@ -633,8 +646,11 @@ class Test_main:
         self, hook, proj, mark, text
     ):
         """B3 and round 2 of #688: either mark is the proof on its own, and
-        each moves last, so a stop at a taken `spec.md` strands nothing."""
+        each moves last, so a stop at a taken `spec.md` strands nothing. The
+        first start empties `phases/` and stops; the start that finishes the
+        item removes it and the item's directory (#1016)."""
         write(proj, f"specs/{ONE_MARK}/{mark}", text)
+        write(proj, f"specs/{ONE_MARK}/phases/phase-1.md", "# phase 1\n")
         write(proj, f"specs/{ONE_MARK}/spec.md", "# the old spec\n")
         write(proj, f"seal/specs/{ONE_MARK}/spec.md", "# the newer spec\n")
         commit(proj, "an item with one mark, its spec.md taken")
@@ -645,8 +661,10 @@ class Test_main:
         assert "moved 1 work item into seal/" in out, out
         assert (proj / "seal" / "specs" / ONE_MARK / mark).is_file()
         assert (proj / "seal" / "specs" / ONE_MARK / "spec.md").is_file()
+        assert (proj / "seal" / "specs" / ONE_MARK / "phases" / "phase-1.md").is_file()
         assert tracked(proj, f"specs/{ONE_MARK}") == ""
-        assert not (proj / "specs" / ONE_MARK / "rounds").exists()
+        assert not (proj / "specs" / ONE_MARK).exists(), "the item's directory stayed"
+        assert f"specs/{ONE_MARK}" not in out, out
 
     def test_accepts_two_items_named_in_the_plural(self, hook, proj):
         write(proj, f"specs/{ONE_MARK}/routing.md", ROUTING)
