@@ -14,8 +14,10 @@ judged (`carried_by`). The arms are eight:
                 `no work item`, which is printed (`routing_trailers`); a
                 commit with no such trailer is not judged
   declaration   the file parses as a routing declaration; one the pull
-                request removed is accepted where the work item was retired,
-                and none is judged where the tree the check reads has no
+                request removed is accepted where its work item's directory
+                stood at the merge base and is gone whole, which reads as a
+                settle (`retired`), and none is judged where the tree the
+                check reads has no
                 top-level `seal` entry, which the pull request moving the
                 root to local mode leaves; that tree is HEAD, and the working
                 tree under `--worktree`
@@ -23,7 +25,7 @@ judged (`carried_by`). The arms are eight:
                 `spec.md` ends with the framer's mark, and every `Reframed`
                 line under it names the framer
   rule changes  the `## Rule changes` section parses with
-                `rule_changes.parse`, the one reader `settle` applies, in
+                `rule_changes.parse`, the one reader `settle` groups by, in
                 the `spec.md` of each judged work item under either
                 `Planning` answer, and, on a pull request that declares at
                 least one work item, in every work item `spec.md` its own
@@ -1575,15 +1577,15 @@ def frame(reader, routing, root, item, declared):
 
 SPEC_FILE = "spec.md"
 RULE_CHANGES_SAYS = (
-    "`## Rule changes` does not parse, and `settle` applies nothing from this "
-    "spec: {reason}"
+    "`## Rule changes` does not parse, so `settle` cannot group this spec by the "
+    "sections it names and the settle has to read it whole: {reason}"
 )
 
 
 def rule_changes_read(reader, root, item):
     """[(path, line, problem)] for the work item's `spec.md` whose
     `## Rule changes` section `rule_changes.parse`, the one reader `settle`
-    applies, refuses; [] where git carries no spec. The reader is reached
+    groups by, refuses; [] where git carries no spec. The reader is reached
     through `unverified_check.py#rule_changes`, which raises where it will
     not load."""
     rel = f"{item}/{SPEC_FILE}"
@@ -2034,8 +2036,8 @@ def declared_for_this_branch(root, routing):
 
 
 SETTLE_SAYS = (
-    "retired: a settle — nothing open at the merge base, and the policy root "
-    "holds every rule change its spec states"
+    "retired: a settle — the work item's directory stood at the merge base "
+    "and is gone whole"
 )
 
 # The pull request that moves the root to local mode deletes every
@@ -2124,12 +2126,14 @@ def trailer_findings(trailers, judged, local=False):
 
 
 def retired(reader, root, fork, records):
-    """The work item directories of the removed declarations a settle
-    removed whole, asked of the one predicate, `unverified_check.py#settled`,
-    at the merge base. RECORDS maps each declaration to its text at HEAD."""
+    """The work item directories of the removed declarations that read as a
+    settle: each stood at the merge base and is gone whole, asked of the one
+    predicate, `unverified_check.py#settled`. RECORDS maps each declaration
+    to its text at HEAD; a directory the disk still holds is a deletion of
+    part of it, and never reaches the predicate."""
     gone = [os.path.dirname(rel) for rel, text in records.items() if text is None]
     gone = [d for d in gone if not os.path.isdir(os.path.join(root, d))]
-    return reader.settled(root, fork, gone, None if WORKTREE else "HEAD")
+    return reader.settled(root, fork, gone)
 
 
 def main(argv=None):

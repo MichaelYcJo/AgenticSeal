@@ -2,11 +2,11 @@
 
 The grammar of a spec's `## Rule changes` is `skills/settle/SKILL.md` *Rule
 changes*, and this module is its one reader (#953). `Test_parse` asks the
-reader directly; `Test_section_lines` and `Test_group` read the places a
-settle shows over one document in memory (#1033); `Test_replay` replays
-specs over one document in memory. Merge order and the ancestry `unordered`
-reads are facts only git holds, so the cases that read them run `settle`
-over a repository and are in `tests/test_settle.py`.
+reader directly; `Test_pattern`, `Test_section_lines` and `Test_group` read
+the texts and places a settle shows over one document in memory (#1033).
+Merge order and the ancestry `unordered` reads are facts only git holds, so
+the cases that read them run `settle` over a repository and are in
+`tests/test_settle.py`.
 
 #942's phase 6 placed these cases from
 `tests/test_settle_applies_rule_changes_in_place.py`, which keeps the case
@@ -63,14 +63,6 @@ ALL_SHAPES = """\
   to: # New"""
 
 
-def replay(doc, *specs, held=None):
-    """`(documents, applied, refused)` for SPECS, `(id, changes)` in merge
-    order, over one document `docs/a.md` holding DOC."""
-    texts = {"docs/a.md": doc}
-    ordered = [(i, parse(spec(c)).ops) for i, c in specs]
-    return rules.replay(texts.get, ordered, held or {})
-
-
 class Test_parse:
     def test_accepts_each_shape_as_one_operation_with_its_line(self):
         text = spec(ALL_SHAPES)
@@ -117,8 +109,9 @@ class Test_parse:
         assert parsed.nothing == why
 
     def test_a_spec_with_no_section_is_told_apart_from_an_empty_one(self):
-        """A spec written before the section existed has nothing to replay; an
-        empty section is a frame nobody filled in, and it is refused."""
+        """A spec written before the section existed joins no group and is
+        read whole; an empty section is a frame nobody filled in, and it is
+        refused."""
         assert parse("# old\n\n## Scope\n\nIn.\n").ops is None
         assert parse(spec("")).errors
 
@@ -442,156 +435,22 @@ class Test_group:
         ], groups
 
 
-class Test_replay:
-    def test_accepts_a_change_and_rewrites_the_text_where_it_stands(self):
-        """S1: the rest of the document is byte-identical."""
-        docs, applied, refused = replay(
-            DOC, ("a", op("change", "S", "old sentence.", "New rule."))
+class Test_pattern:
+    def test_accepts_a_rewrapped_text_and_reads_non_ascii_as_itself(self):
+        """The dry run says whether a `from` or a `to` is in its section, and
+        a sentence a document wraps differently is still the same text."""
+        found = rules.pattern("rule that wraps — here 🙂 now.").search(
+            "A rule that\nwraps — here 🙂 now.\n"
         )
-        assert (applied, refused) == (["a"], [])
-        assert docs["docs/a.md"] == DOC.replace("old sentence.", "New rule.")
-
-    def test_a_rewrapped_sentence_still_matches_and_non_ascii_is_plain_text(self):
-        doc = "# P\n\n## S\n\nA rule that\nwraps — here 🙂 now.\n"
-        docs, applied, _ = replay(
-            doc,
-            ("a", op("change", "S", "rule that wraps — here 🙂 now.", "rule.")),
-        )
-        assert applied == ["a"]
-        assert docs["docs/a.md"] == "# P\n\n## S\n\nA rule.\n"
-
-    def test_an_add_ends_its_section_before_the_next_heading(self):
-        """S2. A section with a sub-heading takes the rule at the end of its own
-        text, so it is not read as the sub-section's."""
-        docs, applied, _ = replay(DOC, ("a", op("add", "T", new="Rule.")))
-        assert applied == ["a"]
-        assert "T's text.\n\nRule.\n\n## U\n" in docs["docs/a.md"]
-        docs, _, _ = replay(DOC, ("a", op("add", "S", new="Rule.")))
-        assert "After.\n\nRule.\n\n### S child\n" in docs["docs/a.md"]
-        docs, _, _ = replay(DOC, ("a", op("add", "U", new="Rule.")))
-        assert docs["docs/a.md"].endswith("Last.\n\nRule.\n")
-
-    def test_a_remove_takes_the_text_or_the_whole_section(self):
-        """S3: the section goes up to the next heading of its level or higher."""
-        docs, applied, _ = replay(
-            DOC, ("a", op("remove", "T", "x.")), ("b", op("remove", "S"))
-        )
-        assert applied == ["a", "b"]
-        assert docs["docs/a.md"] == "# A policy\n\n## T\n\nT's text.\n\n## U\n\nLast.\n"
+        assert found and found.group().startswith("rule that\nwraps")
 
     @pytest.mark.parametrize(
-        "doc, after",
-        [
-            ("# Gate\n\nIntro.\n\n## Gate\n\nBody.\n\n### Limits\n\nMore.\n", None),
-            ("# P\n\n## Gate\n\n### Gate\n\nx.\n\n## T\n\ny.\n", "# P\n\n## T\n\ny.\n"),
-        ],
-        ids=["the title and its first section", "a section and its sub-section"],
+        "text, region",
+        [("tex", "T's text."), ("e", "Before. old sentence.")],
+        ids=["a word at the start of another", "a letter inside a word"],
     )
-    def test_a_remove_naming_nested_headings_takes_the_outer_one(self, doc, after):
-        """S18 in memory: a `remove` with no `from` whose section names two
-        headings, one holding the other, takes the outer one; a document it
-        leaves empty is None in `documents`, which is a deletion."""
-        docs, applied, refused = replay(doc, ("a", op("remove", "Gate")))
-        assert (applied, refused) == (["a"], [])
-        assert docs == {"docs/a.md": after}
-
-    @pytest.mark.parametrize(
-        "change, reason",
-        [
-            (op("change", "S", "not there.", "y."), "not in"),
-            (op("change", "S", "x.", "y."), "not in"),
-            (op("change", "Nowhere", "x.", "y."), "no heading"),
-            (op("remove", "S", "e"), "not in"),
-            (op("change", "T", "tex", "y"), "not in"),
-            (op("remove", "S", file="docs/absent.md"), "does not exist"),
-            (op("add", new="# again"), "exists"),
-        ],
-        ids=[
-            "text-absent",
-            "text-in-another-section",
-            "heading-absent",
-            "a-word-inside-another",
-            "a-word-inside-another-at-the-end",
-            "file-absent",
-            "add-over-a-document",
-        ],
-    )
-    def test_refuses_a_spec_whose_place_it_cannot_find(self, change, reason):
-        """S4: nothing applies, and the refusal names the spec, the line and the
-        reason."""
-        docs, applied, refused = replay(DOC, ("a", change))
-        assert applied == [] and docs == {}
-        [(work_item, line, why)] = refused
-        assert work_item == "a" and line == line_of(spec(change), change.split("\n")[0])
-        assert reason in why, why
-
-    def test_a_heading_or_a_text_found_twice_is_refused(self):
-        doc = DOC + "\n## S\n\nold sentence.\n"
-        _, _, refused = replay(doc, ("a", op("change", "S", "old sentence.", "y.")))
-        assert "2 times" in refused[0][2], refused
-        # Two headings side by side, neither holding the other, name no outer.
-        _, _, refused = replay(doc, ("a", op("remove", "S")))
-        assert "2 times" in refused[0][2], refused
-        doc = DOC.replace("After.", "After. old sentence.")
-        _, _, refused = replay(doc, ("a", op("change", "S", "old sentence.", "y.")))
-        assert "2 times" in refused[0][2], refused
-
-    def test_a_heading_inside_a_fence_is_not_a_place(self):
-        doc = "# P\n\n```\n## S\n```\n\n## T\n\nx.\n"
-        _, _, refused = replay(doc, ("a", op("add", "S", new="Rule.")))
-        assert "no heading" in refused[0][2], refused
-
-    def test_a_spec_applies_all_of_its_operations_or_none(self):
-        """S7."""
-        both = op("change", "S", "old sentence.", "y.") + "\n" + op("remove", "Nowhere")
-        docs, applied, refused = replay(DOC, ("a", both))
-        assert applied == [] and docs == {}
-        assert refused[0][1] == line_of(spec(both), "- remove")
-
-    def test_the_later_spec_applies_over_the_earlier_one(self):
-        """S5, in memory."""
-        docs, applied, _ = replay(
-            DOC,
-            ("a", op("change", "S", "old sentence.", "y.")),
-            ("b", op("change", "S", "y.", "z.")),
-        )
-        assert applied == ["a", "b"]
-        assert "Before. z. After." in docs["docs/a.md"]
-
-    def test_a_spec_after_a_refused_one_at_its_place_waits(self):
-        """Applying it now would let the earlier spec apply over it at the next
-        settle, so the newer one would not win."""
-        _, applied, refused = replay(
-            DOC,
-            ("a", op("change", "S", "not there.", "y.")),
-            ("b", op("add", "S", new="Rule.")),
-            ("c", op("add", "T", new="Rule.")),
-        )
-        assert applied == ["c"]
-        assert [r[0] for r in refused] == ["a", "b"]
-        assert "waits on a," in refused[1][2], refused
-
-    def test_a_spec_at_a_section_holding_or_held_by_a_refused_ones_waits(self):
-        """A section's range holds its sub-sections, so `S` and `S child` can
-        name one text; a section beside them cannot."""
-        _, applied, refused = replay(
-            DOC,
-            ("a", op("change", "S", "not there.", "y.")),
-            ("b", op("change", "S child", "Child text.", "z.")),
-            ("c", op("add", "T", new="Rule.")),
-        )
-        assert applied == ["c"], refused
-        assert "waits on a, refused earlier at docs/a.md section `S`" in refused[1][2]
-
-    def test_a_held_spec_applies_nothing_and_holds_its_places(self):
-        _, applied, refused = replay(
-            DOC,
-            ("a", op("add", "S", new="One.")),
-            ("b", op("add", "S", new="Two.")),
-            held={"a": [(0, "its record holds an open row")]},
-        )
-        assert applied == []
-        assert refused[0] == ("a", 0, "its record holds an open row")
+    def test_refuses_a_word_inside_another(self, text, region):
+        assert rules.pattern(text).search(region) is None
 
 
 test_census = census_case(TARGET)
