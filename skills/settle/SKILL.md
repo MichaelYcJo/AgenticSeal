@@ -296,8 +296,11 @@ request's merge commit, whatever the merge method was.
 directory is removed by hand. A repository on a host `gh` cannot ask cannot
 settle in local mode, and the exit-2 sentence says so. A branch name that a
 later work item reuses, after an earlier pull request from it merged, reads
-that later work item as released; the one-issue flow cuts one branch per
-issue, so it never produces this.
+that later work item as released. So does a merged pull request from a fork
+whose branch has the same name, since `gh pr list --head` matches a branch's
+name and not its owner. The one-issue flow names each branch after its
+issue, which makes either match unlikely; it does not rule out the second,
+because the flow does not name a fork's branches.
 
 ## A released work item with no `spec.md`
 

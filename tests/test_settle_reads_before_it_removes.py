@@ -307,5 +307,11 @@ def test_the_module_and_the_skill_both_say_how_local_mode_settles():
         "and its directory is removed by hand",
         "A repository on a host `gh` cannot ask cannot settle in local mode",
         "reads that later work item as released",
+        "So does a merged pull request from a fork whose branch has the same "
+        "name, since `gh pr list --head` matches a branch's name and not its "
+        "owner",
+        "it does not rule out the second, because the flow does not name a "
+        "fork's branches",
     ):
         assert said in section, said
+    assert "never produces this" not in section, section
