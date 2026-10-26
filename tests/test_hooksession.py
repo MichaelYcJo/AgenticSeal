@@ -51,4 +51,26 @@ class Test_claude_pid:
         assert hooksession.claude_pid() is None
 
 
+class Test_claude_ancestor:
+    def test_accepts_the_nearest_ancestor_named_claude(self, monkeypatch):
+        import hooksession
+
+        stub_process_tree(
+            monkeypatch,
+            100,
+            {100: (60, "/bin/zsh"), 60: (50, "claude"), 50: (1, "claude")},
+        )
+        assert hooksession.claude_ancestor() == 60
+
+    def test_refuses_pid_1_even_where_it_is_named_claude(self, monkeypatch):
+        """Pid 1 is never a session's own process, the floor `claude_pid`
+        keeps for `CLAUDE_PID` too: a lease naming pid 1 would read as live
+        for as long as the machine, or a container whose first process it is,
+        stays up (#1017, round 3's h3)."""
+        import hooksession
+
+        stub_process_tree(monkeypatch, 100, {100: (1, "/bin/zsh"), 1: (0, "claude")})
+        assert hooksession.claude_ancestor() is None
+
+
 test_census = census_case(TARGET)
