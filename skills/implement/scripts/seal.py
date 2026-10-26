@@ -35,8 +35,9 @@ says it (#952):
                               plugin's, and the release it pins; writes nothing
   seal pr-checks install      write it pinned to this release, and stage it;
                               refused unless seal/ is in the tree
-  seal pr-checks remove       take out the file this plugin wrote, and stage
-                              the removal where git tracked it
+  seal pr-checks remove       take out the file this plugin wrote, from the
+                              working tree and the index; where HEAD carries
+                              it, the deletion is staged for you to commit
 
 One more subcommand records a fact about the session rather than the root:
 
