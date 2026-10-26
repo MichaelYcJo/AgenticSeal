@@ -123,8 +123,12 @@ The issue was written on 2026-10-16 against 0.22.2. Read at `02ee12de`:
    says a release before this one fails every pull request with no `seal/`
    in the tree, and names the two ways out: move its `--branch` line to the
    installed release, or run `seal pr-checks remove`. The mode gate's
-   *Local* option, the two READMEs and the changelog fragment say the same
-   of a workflow left after a switch to local. After a
+   *Local* option and the changelog fragment say the same of a workflow
+   left after a switch to local. The two READMEs do not restate it: each
+   says in one sentence that a workflow left after a move to local stays,
+   and links to `docs/one-root-by-lifetime.md` *Shared or local* (the
+   Korean README to its Korean edition), which holds the rule once the
+   settle applies this spec (round 2, finding 1). After a
    switch to shared, where no such file is there, it prints one line naming
    `seal pr-checks install`.
 5. **The mode gate's three options stop promising the workflow.**
@@ -151,11 +155,16 @@ The issue was written on 2026-10-16 against 0.22.2. Read at `02ee12de`:
    `chain_check.py` exits 0 for a teammate's pull request, and refuses the
    pull request that moves a root to local mode with the checks kept: that
    pull request deletes every `routing.md`, and the check refuses each
-   deleted declaration HEAD does not carry (round 1, finding 1). Where HEAD
-   has no top-level `seal` entry, `chain_check.py#main` reads nothing as
-   declared, as `unverified_check.py`'s no-root state does, and judges the
-   trailers as for any pull request that declares nothing. Where git cannot
-   answer whether HEAD has the entry, the declarations stay judged.
+   deleted declaration HEAD does not carry (round 1, finding 1). Where the
+   tree the check reads has no top-level `seal` entry, `chain_check.py#main`
+   reads nothing as declared and judges the trailers as for any pull request
+   that declares nothing. The tree the check reads is HEAD, and the working
+   tree under `--worktree`, the same tree it reads the declarations from
+   (round 2, finding 2). Where git cannot answer whether HEAD has the entry,
+   the declarations stay judged. An entry that is not a directory is still
+   an entry, so the declarations are judged there; `unverified_check.py`'s
+   no-root state asks for a directory, and the two are not described as one
+   reading (round 2, finding 3).
 7. **One case runs every step of `templates/hygiene.yml` against a pull
    request that touches nothing under `seal/`.** It lives at
    `tests/e2e/teammate/test_teammate_flow.py`, `TARGET =
@@ -418,28 +427,28 @@ phase writes `changelog.md` under `### Changed`:
 - add
   file: docs/the-review-record.md
   section: What the check reads at the pull request
-  to: **Where HEAD has no top-level `seal` entry, the check reads nothing as
-    declared.** The pull request that moves a root to local mode deletes
-    every `routing.md` with the root, and a deleted declaration HEAD does
-    not carry is otherwise refused. With no root in the tree there is
-    nothing to declare, so the check judges the trailers as for any pull
-    request that declares nothing, as the unverified check reads the same
-    tree. Where git cannot say whether HEAD has the entry, the declarations
-    stay judged.
+  to: **Where the tree the check reads has no top-level `seal` entry, the
+    check reads nothing as declared.** The tree is HEAD, and the working
+    tree under `--worktree`. The pull request that moves a root to local
+    mode deletes every `routing.md` with the root, and a deleted declaration
+    is otherwise refused. With no `seal` entry there is nothing to declare,
+    so the check judges the trailers as for any pull request that declares
+    nothing. Where git cannot say whether HEAD has the entry, the
+    declarations stay judged.
     check: nothing-declared-nothing-owed
 - change
   file: docs/the-review-record.md
   section: What the check reads at the pull request
   from: is two declarations and the deletion is judged.
-  to: is two declarations and the deletion is judged, wherever HEAD still
-    has a `seal` root.
+  to: is two declarations and the deletion is judged, except where the tree
+    the check reads has no top-level `seal` entry.
 - change
   file: docs/the-review-and-parity-arms.md
   section: The declaration, and where the check went
   from: where it does not, the refusal stands.
-  to: where it does not, the refusal stands, unless HEAD has no top-level
-    `seal` entry, where nothing is declared (`docs/the-review-record.md`
-    *What the check reads at the pull request*).
+  to: where it does not, the refusal stands, except where the tree the check
+    reads has no top-level `seal` entry (`docs/the-review-record.md` *What
+    the check reads at the pull request*).
 
 ## Removes
 
