@@ -1,0 +1,4 @@
+### Fixed
+
+- **The root migration removes every directory its move emptied (#1016, #1018).** The migration from `specs/<id>/` into `seal/specs/<id>/` left the work item's directory on disk, empty, and `specs/` with it, in two cases: when the item was merged into a `seal/specs/<id>/` that already existed, and when a move an earlier session stopped was finished. The session-start notice then named the moved item as left where it is and "not a SpecSeal work item". The move now lists each directory again when it reaches it and removes it when that listing is empty, the deepest first. A directory holding an ignored file, such as `.DS_Store`, still stays.
+  - **Limits**: a repository the migration already finished is not revisited, so an empty `specs/<id>/` an earlier release left there stays until it is removed by hand. A Windows junction placed by hand under a work item's directory is walked into, and the empty directories behind it are removed too.
