@@ -3382,6 +3382,11 @@ class Test_retired:
         remove_an_earlier_item(root, applied=applied, open_row=open_row)
         _code, out = check(root, capsys)
         assert f"{OLD_ITEM}/routing.md:0  {chain.SETTLE_SAYS}" in out, out
+        # Contract rule 14: the words a person reads, not only the constant.
+        assert (
+            "retired: a settle — the work item's directory stood at the merge "
+            "base and is gone whole"
+        ) in out, out
         assert "does not carry this file at HEAD" not in out
 
     def test_refuses_a_declaration_deleted_beside_a_directory_that_stays(

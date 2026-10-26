@@ -1905,13 +1905,21 @@ class Test_main:
 
     def test_accepts_the_baseline_help_naming_both_places(self, capsys):
         """#612: the `--baseline` help is a rendered line (contract rule
-        14), and it names the fork point and the base's tip."""
+        14), and it names the fork point and the base's tip. Since #1033 it
+        and the module's docstring say what reads as a settle, and nothing
+        about the records or `docs/`."""
         with pytest.raises(SystemExit):
             UC.main(["--help"])
         rendered = " ".join(capsys.readouterr().out.split())
         assert (
             "the fork point on a branch checkout and the base's tip in CI" in rendered
         )
+        said = "stood at the merge base and is gone whole, which reads as a settle"
+        assert said in rendered, rendered
+        assert "holding every rule change" not in rendered, rendered
+        doc = " ".join(UC.__doc__.split())
+        assert "unless its whole directory stood at the base and is gone" in doc
+        assert "unless a settle removed its directory whole" not in doc
 
     # `--baseline`: a row and a record leave by being closed.
 
