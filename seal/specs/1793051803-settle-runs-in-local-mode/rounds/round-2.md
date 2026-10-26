@@ -18,7 +18,7 @@ code at `137d0a9c`.
 severity: should
 location: `tests/test_settle.py:844-861`, `skills/settle/scripts/settle.py:893-897`
 evidence: executed `bin/test tests/test_tmp_round2_probe.py -q -p no:xdist -s`, `grep -n -- '"--root"' tests/test_settle.py`
-verdict: open
+verdict: fixed 6d4412ac
 regression: round-1#2
 
 The unit is the line `root = optin.repo_root(root) or root` in
