@@ -2178,11 +2178,19 @@ def main(argv=None):
         else:
             declarations.add(rel)
     declarations = sorted(declarations)
-    # With no `seal` entry at HEAD nothing is declared, as
-    # `unverified_check.py#absent_root` reads the same tree. Where git cannot
-    # answer, `git()` is None and the declarations stay judged.
+    # Where the tree the check reads has no top-level `seal` entry, nothing is
+    # declared: the pull request moving the root to local mode leaves it so.
+    # That tree is HEAD, and the working tree under `--worktree`, where
+    # `read_record` and `changed` read the declarations from. An entry is
+    # anything at that name, a file or a link as much as a directory, so a
+    # `seal` that is not a directory keeps the declarations judged. Where git
+    # cannot answer, `git()` is None and the declarations stay judged.
     home = routing.optin.HOME
-    if declarations and git(root, "ls-tree", "HEAD", "--", home) == "":
+    if WORKTREE:
+        gone = not os.path.lexists(os.path.join(root, home))
+    else:
+        gone = git(root, "ls-tree", "HEAD", "--", home) == ""
+    if declarations and gone:
         declarations, why = [], ROOT_LEFT_SAYS.format(home=home)
 
     state, where = pull_request_state(root)

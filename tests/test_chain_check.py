@@ -3414,6 +3414,32 @@ class Test_retired:
         code, out = check(root, capsys)
         assert code == 1 and "does not carry this file at HEAD" in out, out
 
+    def test_judges_a_root_the_working_tree_has_under_worktree(
+        self, branch, ready, capsys
+    ):
+        """Round 2 of #952, finding 2: under `--worktree` the tree the check
+        reads is the working tree, so a root it holds and HEAD does not is a
+        root, and the declaration naming the branch in it is judged."""
+        root, _code = branch
+        git(root, "rm", "-rq", "--cached", "seal")
+        git(root, "commit", "-qm", "the root leaves HEAD and stays on disk")
+        code, out = check(root, capsys, "--worktree")
+        assert "so nothing is declared" not in out, out
+        assert code == 1 and f"{ITEM}/guarantee.md:0  the guarantee is behind" in out
+
+    def test_judges_the_declarations_where_the_working_tree_has_seal_as_a_file(
+        self, branch, ready, capsys
+    ):
+        """Round 2 of #952, finding 3: a `seal` that is not a directory is
+        still an entry, so under `--worktree` the declarations it replaced
+        stay judged."""
+        root, _code = branch
+        shutil.rmtree(root / "seal")
+        write(root, "seal", "not a root\n")
+        code, out = check(root, capsys, "--worktree")
+        assert "so nothing is declared" not in out, out
+        assert code == 0 and f"{MERGED_ITEM}/routing.md:0  retired: a settle" in out
+
 
 class Test_module:
     def test_every_reader_of_a_retirement_calls_the_one_predicate(self):
