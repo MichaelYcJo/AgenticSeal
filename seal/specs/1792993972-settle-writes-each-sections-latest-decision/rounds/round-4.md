@@ -24,7 +24,7 @@ measure of step 6's old searched set (106 modules for one changed file).
 severity: should
 location: `tests/test_settle_reads_before_it_removes.py:92-126`, `skills/settle/SKILL.md:203-219`
 evidence: executed `bin/mutation-check skills/settle/SKILL.md --tests "bin/test tests/test_settle_reads_before_it_removes.py tests/test_settle.py tests/test_no_passage_is_pasted_into_a_second_file.py -q -p no:xdist"`, `bin/mutation-check skills/settle/SKILL.md --tests "bin/test tests/test_settle_reads_before_it_removes.py tests/test_settle.py -q -p no:xdist"`, `git grep -n -e 'name each in the pull request body' -e 'run the row again' -e 'dry run again' -- tests/`
-verdict: open
+verdict: fixed 3ac7cddb
 
 `spec.md` S13 says what the rewritten case verifies. For step 6, it is that
 the step names each rule's `check:` targets and the dry run as what it runs.
@@ -89,7 +89,7 @@ Where the corpus clause should be pinned too, the string
 `flattened` helper joins the wrapped lines, so each string matches as
 written.
 
-answer:
+answer: The finding holds. The smith fixed it in 3ac7cddb: the case gains the five strings in the round's order (step 6's fix and second dry run, step 8's naming in the pull request body, its corpus answer and its second run), plus two clauses S13 names that the case also left unpinned, step 6's reason it does not search ("finds a module only by how it spells a path") and step 8's "Run the repository's `Broad gate` row.". `bin/mutation-check skills/settle/SKILL.md` over the case with seven `--replace` pairs, one per clause: baseline green, 7 mutants, 7 red, 0 survived; the four modules of the pass give 66 passed (executed by the smith).
 
 ## Confirmations
 
