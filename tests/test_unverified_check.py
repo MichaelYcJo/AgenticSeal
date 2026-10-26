@@ -1811,18 +1811,22 @@ class Test_absent_root:
         assert UC.absent_root(str(tmp_path / "seal" / "specs")) is True
 
     @pytest.mark.parametrize(
-        "state", ["a root", "a subdirectory", "no repository", "another parent"]
+        "state",
+        ["a root", "a subdirectory", "no repository", "another parent", "a typo"],
     )
-    def test_refuses_a_root_a_subdirectory_no_repository_and_another_parent(
+    def test_refuses_a_root_a_subdirectory_no_repository_and_another_name(
         self, sealed, tmp_path, state
     ):
-        """Absence is read only at a working tree's top level: from anywhere
-        else the path is a mistyped one, as it always was."""
+        """Absence is read only at a working tree's top level and under the
+        one spelling: anything else is a mistyped path, as it always was."""
+        if state == "a typo":
+            git(tmp_path, "init", "-q")
         path = {
             "a root": sealed / "seal" / "specs",
             "a subdirectory": sealed / "seal" / "seal" / "specs",
             "no repository": tmp_path / "seal" / "specs",
             "another parent": sealed / "other" / "specs",
+            "a typo": tmp_path / "seal" / "spces",
         }[state]
         assert UC.absent_root(str(path)) is False
 
