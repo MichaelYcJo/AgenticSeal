@@ -38,11 +38,8 @@ settle --released-at REF     what counts as released (default origin/main)
 
 The script is `skills/settle/scripts/settle.py`, and `bin/settle` is on the
 Bash tool's PATH while the plugin is enabled. It needs python 3.12 or newer.
-
-**It refuses to run in local mode.** A `seal/` root under the common git
-directory is never committed, so no ref holds the work item directories and
-nothing removed from them could be recovered. `seal mode shared` moves the
-root into the tree and `settle` works from there.
+Where the `seal/` root is under the common git directory, *In local mode*
+below says what changes.
 
 ## Rule changes
 
@@ -148,17 +145,19 @@ over an unsettled work item.
 ## What the dry run shows
 
 `settle` reads the work items released at `--released-at`, each `spec.md`
-as that ref holds it, and writes nothing:
+as that ref holds it, or in local mode as its directory holds it, and writes
+nothing:
 
 - **Each group**: the specs whose operations name one place, a file and a
   section, in merge order. Two places are one group where one section holds
   the other, because a section's range holds its sub-sections. A spec's
   place in the order is the first commit on `--released-at` that adds its
-  `spec.md`. The group opens with each place's lines in the working tree,
-  or the words saying its heading is not there, and lists each operation
-  with its spec's coordinate and whether its `from` and its `to` are found
-  in the section now. Two specs whose adding commits no ancestry orders are
-  marked `unordered`, for the settling session to order by content.
+  `spec.md`, or in local mode its pull request's merge commit's place on
+  `--released-at`. The group opens with each place's lines in the working
+  tree, or the words saying its heading is not there, and lists each
+  operation with its spec's coordinate and whether its `from` and its `to`
+  are found in the section now. Two specs whose commits no ancestry orders
+  are marked `unordered`, for the settling session to order by content.
 - **The specs to read whole**: one whose `## Rule changes` does not parse,
   with the reader's reason, and one with no such section.
 - **Every open `## Not verified` row** of every released record, each with
@@ -245,6 +244,60 @@ arguments or the tree are unusable. Its last line counts each.
 what it describes and cited in the `spec.md` whose rule changes it informed.
 `settle` never writes there, and neither does the settling session:
 `--apply` removes only under `seal/specs/`.
+
+## In local mode
+
+**In local mode `settle` reads the work items under the common git
+directory, and a work item is released when the pull request from the
+branch its `routing.md` names has merged, its merge commit reachable from
+`--released-at`.** No ref holds a local work item's directory, so presence
+at a ref cannot say that it shipped. What reaches the ref is its pull
+request's merge commit, whatever the merge method was.
+
+- **Where it reads.** Every `seal/specs/<id>/` path is read and removed
+  under `$(git rev-parse --git-common-dir)/seal/`, and printed as
+  `seal/specs/<id>/`. The policy root, the tracked files the citations are
+  read from, and `tests/` are read from the repository's top.
+- **What released means.** `settle` reads the `Branch` row of each work
+  item's `routing.md` and asks
+  `gh pr list --head <branch> --state merged --json number,mergeCommit`
+  from the repository's top, once per branch. A work item is unreleased,
+  and untouched, in three states: no `routing.md` or no `Branch` row, no
+  merged pull request from that branch, or no listed merge commit reachable
+  from `--released-at`. Shared mode never asks `gh`.
+- **A `gh` that cannot be asked stops the run.** Where `gh` is not on
+  `PATH` or its query fails, `settle` exits 2 with one sentence naming `gh`
+  and what it said, and reads and removes nothing. Every work item would
+  otherwise read as unreleased, and the run would say there is nothing to
+  settle.
+- **The spec and the order.** Each `spec.md` is read from its directory,
+  since no ref holds it. The released specs are listed by their merge
+  commits' place in `git rev-list --topo-order --reverse` of
+  `--released-at`, and two whose merge commits no ancestry orders are marked
+  `unordered`.
+- **What the dry run adds.** Its first line names the root's path and says
+  it is local mode. Each released work item is listed with its pull
+  request's number and its merge commit, for the settle's pull request body
+  to cite, and each unreleased one with which of the three states holds.
+  The heading of what `--apply` removes says that no commit holds those
+  directories, and that `seal export` takes a copy for whoever wants one.
+- **What `--apply` does.** It removes each released local directory whose
+  record holds no open row, from the git directory, and keeps and names one
+  that holds a row, with the exit codes *What `--apply` does* states. No
+  commit holds what it removes, and none needs to: a work item's records
+  end their role when it ships, and the settling session closes its rows
+  first.
+- **The settling session's procedure is the same.** It writes the
+  repository's committed policy root, and creates it with its index where
+  it is absent (*The index*).
+
+**The limits, which no guard covers.** A work item whose branch reached
+`--released-at` without a pull request reads as unreleased, and its
+directory is removed by hand. A repository on a host `gh` cannot ask cannot
+settle in local mode, and the exit-2 sentence says so. A branch name that a
+later work item reuses, after an earlier pull request from it merged, reads
+that later work item as released; the one-issue flow cuts one branch per
+issue, so it never produces this.
 
 ## A released work item with no `spec.md`
 
