@@ -9,7 +9,7 @@ target: d1647de2, fixes 3f2f5a5d..d1647de2
 severity: should
 location: `README.md:510-514`, `README.ko.md:503-508`, `tests/test_first_setup_asks_once.py:485-502`, `seal/specs/1792976216-the-records-and-the-pr-checks-are-two-answers/spec.md:126-127`
 evidence: executed `python3 test_tmp_round2_rules.py --write`, `bin/test tests/test_no_passage_is_pasted_into_a_second_file.py -q`
-verdict: open
+verdict: fixed ccc786ef
 regression: round-1#2
 
 The unit is the paragraph after the by-hand move in `README.md` *Shared or
@@ -75,14 +75,14 @@ LEFT_BEHIND = {
 `spec.md:126-127` then reads that the two READMEs name the pin's effect and
 link to *Shared or local*, rather than "say the same".
 
-answer:
+answer: The finding holds. The orchestrator amended `spec.md` *In* item 4 in 4cdfef95: the two READMEs say in one sentence that a workflow left after a move to local stays, and link to `docs/one-root-by-lifetime.md` *Shared or local* and its Korean edition, which hold the rule once the settle applies this spec. The smith fixed it in ccc786ef and rewrote the `LEFT_BEHIND` pin, seen red on both READMEs first. In a scratch clone, all 17 rule changes applied to `docs/` with no error, and `tests/test_no_passage_is_pasted_into_a_second_file.py` with `tests/test_first_setup_asks_once.py` gave 57 passed. The same replay with the READMEs at d1647de2 failed the two cases this record names (executed by the smith).
 
 ### 2. Under `--worktree` the no-root test reads HEAD while the declarations come from the working tree, so a new uncommitted root goes unjudged with a false cause
 
 severity: should
 location: `skills/code-review/scripts/chain_check.py:2181-2186`, `seal/specs/1792976216-the-records-and-the-pr-checks-are-two-answers/spec.md:151-158`, `tests/test_chain_check.py`
 evidence: executed `bin/test tests/e2e/teammate/test_tmp_round2_probe.py -p no:xdist -s -q`
-verdict: open
+verdict: fixed c09d050a
 regression: round-1#1
 
 The unit is the no-root test that `2c9e2a19` added to `chain_check.py#main`,
@@ -144,14 +144,14 @@ then says "at HEAD, or in the working tree under `--worktree`". If the fix
 pass keeps HEAD instead, the shape goes into `spec.md` *Out* as a limit, with
 the false cause named.
 
-answer:
+answer: The finding holds, and the record's first fix is taken: under `--worktree` the check reads the working tree for the `seal` entry, the tree it reads the declarations from. The orchestrator amended `spec.md` *In* item 6 and the three rule changes in 4cdfef95. The smith fixed it in c09d050a with `os.path.lexists` under `--worktree` and `git ls-tree HEAD` otherwise, and added two cases to `tests/test_chain_check.py` `Test_retired`: a root on disk and not at HEAD is judged, seen red against the old code, and a `seal` that is a file in the working tree is judged, seen red by a mutation from `lexists` to `isdir` (executed by the smith).
 
 ### 3. The rule changes state when nothing is declared in three terms, and one of them is false at a `seal` that is not a directory
 
 severity: should
 location: `seal/specs/1792976216-the-records-and-the-pr-checks-are-two-answers/spec.md:418-435`, `seal/specs/1792976216-the-records-and-the-pr-checks-are-two-answers/spec.md:155-156`, `skills/code-review/scripts/chain_check.py:2181-2182`
 evidence: executed `bin/test tests/e2e/teammate/test_tmp_round2_probe.py -p no:xdist -s -q`, `python3 test_tmp_round2_rules.py`
-verdict: open
+verdict: fixed 14031ecd
 regression: round-1#1
 
 The unit is the `add` and the first `change` to `docs/the-review-record.md`
@@ -213,7 +213,7 @@ the comment at `chain_check.py:2181-2182` drops "as
 difference at a `seal` that is not a directory. Finding 2's fix, if taken,
 adds the `--worktree` reading to the same `add`.
 
-answer:
+answer: The finding holds. The orchestrator rewrote the `add` and the two `change` items in 4cdfef95 so the condition has one term, the tree the check reads has no top-level `seal` entry, with the `add` as its one statement. The sentence saying the check reads the tree as the unverified check does is gone, and `spec.md` *In* item 6 says the two are not one reading. All 17 items parse and place against `docs/` (executed). The smith used the same term in the code comment (c09d050a), and in `ROOT_LEFT_SAYS`, the module docstring and the changelog fragment (14031ecd), with the case's pin seen red first (executed by the smith).
 
 ## Confirmations
 
