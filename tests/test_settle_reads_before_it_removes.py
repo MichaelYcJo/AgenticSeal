@@ -171,6 +171,12 @@ def test_the_skill_says_a_settle_is_not_a_work_item_and_owes_no_range_row():
     assert "[no-review]" not in text, "the skill still names the retired waiver"
     assert "reviewed at its pull request" in text
     assert "keeps no log" in text
+    # Round 1 finding 4 of #955: no commit holds a local work item, so git
+    # history keeps the removed specs only where the root is shared.
+    assert (
+        "Where the root is shared the removed specs are in git history; in "
+        "local mode no commit holds them"
+    ) in text, text
 
 
 def test_the_skill_says_it_fails_no_build():

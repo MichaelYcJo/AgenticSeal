@@ -348,7 +348,9 @@ Where the root is shared, its commits carry
 `SpecSeal-Routing: no work item` as their trailer
 (`skills/commit-pr-convention/SKILL.md`). What it wrote is reviewed at
 its pull request. It keeps no log: what
-changed is the diff, and the removed specs are in git history. A settle that
+changed is the diff. Where the root is shared the removed specs are in git
+history; in local mode no commit holds them, and the dry run names
+`seal export` for whoever wants a copy. A settle that
 opened a work item would leave a directory for the next settle to remove, and
 settling would never end.
 
