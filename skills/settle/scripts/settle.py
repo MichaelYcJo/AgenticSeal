@@ -874,9 +874,9 @@ def main(argv=None):
         default="origin/main",
         metavar="REF",
         help="the branch a release merges to. A work item is released when "
-        "its directory is present there, or in local mode when it reaches the "
-        "merge commit of the pull request from the work item's branch "
-        "(default: origin/main)",
+        "its directory is present there, or in local mode when this ref "
+        "reaches the merge commit of the pull request from the work item's "
+        "branch (default: origin/main)",
     )
     ap.add_argument(
         "--apply",

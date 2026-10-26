@@ -860,9 +860,16 @@ class Test_main:
         ), text
         assert "not in the tree" not in text, text
 
-    def test_the_local_dry_runs_texts_say_what_they_hold(self):
+    def test_the_local_dry_runs_texts_say_what_they_hold(self, capsys):
         """Contract rule 14 for #955's dry run: the sentences a person acts
-        on are pinned, not only their presence."""
+        on are pinned, not only their presence. `--released-at`'s help names
+        the ref as what reaches the merge commit (round 1 finding 5)."""
+        with pytest.raises(SystemExit):
+            settle.main(["--help"])
+        assert (
+            "or in local mode when this ref reaches the merge commit of the pull "
+            "request from the work item's branch"
+        ) in flat(capsys.readouterr().out)
         assert "each with the pull request that merged it" in flat(
             settle.MERGED_HEADING
         )

@@ -255,7 +255,8 @@ at a ref cannot say that it shipped. What reaches the ref is its pull
 request's merge commit, whatever the merge method was.
 
 - **Where it reads.** Every `seal/specs/<id>/` path is read and removed
-  under `$(git rev-parse --git-common-dir)/seal/`, and printed as
+  under `$(git rev-parse --git-common-dir)`, so a work item's directory is
+  `<git-common-dir>/seal/specs/<id>/`, and it is printed as
   `seal/specs/<id>/`. The policy root, the tracked files the citations are
   read from, and `tests/` are read from the repository's top.
 - **What released means.** `settle` reads the `Branch` row of each work

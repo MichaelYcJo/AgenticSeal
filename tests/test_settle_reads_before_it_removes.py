@@ -299,6 +299,7 @@ def test_the_module_and_the_skill_both_say_how_local_mode_settles():
     section = flat(skill().split("\n## In local mode\n")[1].split("\n## ")[0])
     for said in (
         "under the common git directory",
+        "so a work item's directory is `<git-common-dir>/seal/specs/<id>/`",
         "the pull request from the branch its `routing.md` names has merged",
         "reachable from `--released-at`",
         "`gh pr list --head <branch> --state merged --json number,mergeCommit`",
