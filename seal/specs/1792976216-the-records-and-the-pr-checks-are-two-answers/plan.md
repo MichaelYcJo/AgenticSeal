@@ -11,6 +11,18 @@ workflow out of `seal mode`, and rewrites every text that said otherwise.
 Phase 1 goes first because phase 2's new header and docs say a workflow left
 in local mode examines nothing, which is true only after phase 1.
 
+Review round 3 sent the work item back to the framer: two of its findings
+were second regressions, one on the rule-change items that state the no-root
+condition and one on the chain step's no-root test under `--worktree`. The
+reframe puts the two rule-change corrections into `spec.md` itself (round 3,
+findings 1 and 3), and adds phase 3. Phase 3 plants the one case the no-root
+test lacks, shows that every answer of that test has a case, replays the
+rule changes onto `docs/` and runs the documents' own cases over the result,
+and closes the build with `overview.md`. The two regressions had one cause.
+The frame accepted a unit on less than its applied form: the rule changes on
+parsing and placing, and the test on its cases passing. S8 and S9 now ask for
+the applied form.
+
 ## Technical context
 
 - **The checks.** `templates/hygiene.yml` runs four steps after
@@ -49,6 +61,29 @@ in local mode examines nothing, which is true only after phase 1.
   by hand. `seal pr-checks` then reports *not installed*, which is true, and
   nothing else disagrees, because no row claims otherwise. Under a config row
   this was a disagreement for some check to fail on.
+- **The no-root test of phase 3.** `skills/code-review/scripts/chain_check.py#main`
+  lines 2191 to 2197 at `2f41bbf9`: `gone` comes from `os.path.lexists`
+  under `--worktree` and from `git ls-tree HEAD -- seal` otherwise, and a
+  `git()` of None keeps the declarations judged. `tests/test_chain_check.py`
+  `Test_retired` (lines 3359 to 3450) holds a case for four of its five
+  answers; the case round 3 finding 2 drafted is the fifth, and the round ran
+  it as a probe, passing at `64a13a36` and failing against `gone = False`
+  (executed by the round).
+- **The replay of phase 3.** `skills/settle/scripts/rule_changes.py#parse`
+  (line 83) reads `## Rule changes`, and `apply_op` (line 217) writes a
+  `change` item's `to` lines as they stand after the text before `from` on
+  its line. That is why a `to` line's width is only known applied. Rounds 2
+  and 3 each built this replay as a probe in a clone, and no command in
+  `bin/` runs it.
+- **Failure scenario of phase 3, six months on.** A later work item changes
+  the chain step's no-root test again and its frame accepts it on its cases
+  passing, as this one did before the reframe. S9's mutants are a probe, and
+  nothing re-runs them. What stays is five cases, one per answer, so a later
+  edit that drops an answer turns one of them red. The replay is a probe
+  too. In this work item, phase 3 and the verifying round run it. In a later
+  work item, a rule-change `to` text that the settle would show too wide, or
+  copied, or pinned by a case, is found by a reviewer who builds the replay,
+  or else at the settle (`questions.md` Q4).
 
 ## Alternatives considered
 
@@ -64,6 +99,11 @@ in local mode examines nothing, which is true only after phase 1.
 | H. Keep the base comparison when no `seal/` root is in the tree | The pull request that runs `seal mode local` with the workflow kept deletes every `overview.md`, and the deletion arm fails it with no way out but removing the checks in the same pull request | Refused: with no root in the tree nothing is declared, and the diff shows the whole root leaving |
 | I. Add a fourth option, *Shared, with pull-request checks*, to the mode gate | The gate reaches a root that exists and skipped the bootstrap; a fourth option states the bootstrap's split a second time, in a deny reason a model relays | Refused: the gate's *Shared* option names `seal pr-checks install`, which is the same choice one command later |
 | J. Leave the bootstrap writing the file by hand, as now, beside the new command | Two writers of one file: the bootstrap's one-liner and `install_workflow`. A fix to one, such as the staging check, misses the other | Refused: the bootstrap runs the command |
+| K. Keep the working-tree reading of the no-root test under `--worktree`, and add the case for its one unpinned answer | A later edit to the test that changes what `os.path.lexists` is asked still meets five cases, so the failure left is a sixth shape nobody listed; the six round 3 ran are in its confirmations | **Chosen** (reframe after round 3). The premise that keeps the structure, checked: under `--worktree`, `read_record` and `changed` read the declarations from the working tree (`docs/the-review-and-parity-arms.md` lines 112 to 114, read), so the no-root test reads the tree the declarations come from. Round 3 ran six tree shapes through both readings and found them as `spec.md` *In* item 6 says (executed by the round) |
+| L. Replace the working-tree reading: ask HEAD in both modes, and state the uncommitted switch as a limit in *Out* | A session that runs `chain-check --worktree` after `seal mode local` and before the commit is refused on every `routing.md` with "git does not carry this file at HEAD", which CI accepts once the switch is committed. A new untracked root goes unjudged, and the check prints a cause that is false (round 2, finding 2, executed by that round) | Refused: K's premise holds, and L brings back both of round 2's shapes |
+| M. Add a check or a case at the pull request that applies every unsettled spec's `## Rule changes` and runs the documents' own cases over the result | It judges every unsettled spec, so it goes red today on the three specs the merge-order replay already refuses (round 2, `## Not judged`), and it gates a pull request on specs outside its branch. It is a new gate, which owes the argument `CONTRIBUTING.md` *What a change to a gate must carry* asks for | Refused for this work item; whether the class earns a gate is `questions.md` Q4 |
+| N. Carry S8's applied half as a probe: phase 3 replays this spec's items onto `docs/` at `02ee12de` and runs the documents' cases, and the verifying round does the same | The probe leaves nothing in the tree, so the next work item meets the class with only a reviewer's replay (above) | **Chosen**, with M left to Q4 |
+| O. State the no-root rule in the `add` alone, and drop the two `change` items that qualify "the deletion is judged" and "the refusal stands" | The two sentences then read as absolute beside an `add` that says otherwise, the two readings round 1's fix pass found and `64a73e7b` qualified. `CLAUDE.md` *Repo rule: text an agent or a check reads has one reading* refuses that | Refused: three items, with the `add` as the one statement and each `change` naming it or its term |
 
 ## Phases
 
@@ -71,6 +111,7 @@ in local mode examines nothing, which is true only after phase 1.
 |---|---|---|---|
 | 1 | `unverified_check.py`: the two exit-0 states of `spec.md` *In* item 6, its docstring's exit codes, and cases in `tests/test_unverified_check.py` marked `nothing-declared-nothing-owed`; the flow case `tests/e2e/teammate/test_teammate_flow.py` of *In* item 7, with the same marker | the case seen red at `02ee12de` on the two failing bases and green after; `bin/test tests/test_unverified_check.py tests/e2e/teammate -q`; `bin/test-layout --check tests/e2e/teammate/test_teammate_flow.py`; `python3 skills/code-review/scripts/chain_check.py --baseline release/v0.22.4` on the branch, which reads this spec's `## Rule changes` (scenario S8) | 4d019bcc |
 | 2 | `seal pr-checks` and the switch without the carry (*In* items 3 and 4), `bin/seal`'s comment, the mode gate's options (item 5), the bootstrap's three options (item 1), `templates/hygiene.yml`'s header, `templates/seal-README.md` and `seal/README.md`, `skills/config/SKILL.md`, `README.md`, `README.ko.md`, `CONTRIBUTING.md`, every test pin `spec.md` *Places* lists, and `changelog.md` from `spec.md` *Data & interfaces* | each rewritten pin seen red against phase 1's commit first; `bin/test tests/test_seal.py tests/test_mode_gate.py tests/test_first_setup_asks_once.py tests/test_the_mode_is_a_row_and_a_command.py tests/e2e/teammate -q`; `git grep -n -e 'workflows/hygiene' -e 'install_workflow' -e 'red forever'` outside `docs/`, `changelog/`, `CHANGELOG.md` and `seal/specs/` finds only the coordinates `spec.md` *Places* keeps | ce6b9afe |
+| 3 | The reframe after round 3. In `tests/test_chain_check.py` `Test_retired`, the case for the no-root test's fifth answer, marked `nothing-declared-nothing-owed`: under `--worktree`, a switch to local run and not committed leaves no `seal` in the working tree, so nothing is declared (round 3 finding 2's draft, `spec.md` *In* item 6). S9: each of the five answers dropped by a mutant in turn, each mutant killed by a case, and where one survives, its case added. S8's applied half: this spec's 17 items replayed onto `docs/` at `02ee12de` in a scratch clone, and the modules whose code names a changed document, `README.md`, `README.ko.md` or `docs/` run over the result. `overview.md` from `templates/sdd-overview.md`, as the build's last phase. No source file and no changelog line change. A replay that fails is a divergence for the phase record and the hand-back, because `spec.md` is the framer's | the new case seen red against `gone = False` in the `if WORKTREE:` arm, then green; `bin/test tests/test_chain_check.py tests/e2e/teammate tests/test_unverified_check.py -q`; the five mutants of S9, each run once with `bin/test tests/test_chain_check.py -q`, the source restored after each, and the killing case named in `phases/phase-3.md`; the replay, the documents' modules green over the applied `docs/` except a case that also fails with `docs/` as committed, then `docs/` restored; `python3 skills/code-review/scripts/chain_check.py --baseline release/v0.22.4` for the parse half; `bin/test tests/test_chain_hooks_hardening.py -q` with `overview.md` in place (round 3, `## Not judged`) | |
 
 ## Operational impact
 
@@ -87,3 +128,5 @@ in local mode examines nothing, which is true only after phase 1.
 - **`seal mode local` no longer removes the workflow.** The switch prints the
   command that does.
 - No new dependency, environment variable or config row.
+- Phase 3 changes nothing a consuming repository receives, so the changelog
+  fragment stays as phase 2 and the fix passes left it.

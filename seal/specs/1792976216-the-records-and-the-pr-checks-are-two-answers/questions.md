@@ -70,6 +70,24 @@ answer was read, so a reader can overturn it by opening the same place.
     changes: the default first setup, the command that writes the workflow,
     `seal mode`'s switch, and `unverified-check` at the next pin (`spec.md`
     *Data & interfaces*, last table).
+16. **The reframe after round 3 takes the round's two rule-change
+    corrections into `spec.md` as written.** The `change` to
+    `docs/the-review-and-parity-arms.md` wraps after "except where the tree",
+    and the `add` to `docs/the-review-record.md` says a deleted declaration is
+    otherwise "judged", the word of the paragraph *The check reads the diff as
+    declarations*. Round 3 applied both and ran the five document modules its
+    finding 1 names, 81 passed (executed by the round). The framer's own
+    in-memory apply of the 17 items with `rule_changes.py#parse` and
+    `apply_op` refused none and left no new line over 88 columns in
+    `docs/the-review-and-parity-arms.md` (executed; no case was run).
+17. **The chain step's no-root test keeps its working-tree reading under
+    `--worktree`.** It reads the tree the declarations come from, and the
+    one answer no case reached gets its case in phase 3 (`plan.md` rows K
+    and L).
+18. **A workflow pinned to a release newer than the installed one is a
+    limit, not a version comparison.** The advice `seal mode local` prints
+    there, followed, leaves a workflow that passes (`spec.md` *Out*). This
+    closes the row rounds 2 and 3 carried under `## Not judged`.
 
 ## Open
 
@@ -78,3 +96,4 @@ answer was read, so a reader can overturn it by opening the same place.
 | Q1 | The issue says the answer *is recorded where the mode row is, so `seal mode --check` and the hooks read one source*. Is a record in `seal/config.md` wanted, beside the workflow file? The tree cannot answer it because the ticket asks for it in words, and `CLAUDE.md` *The rule a mechanism is kept against* (a fact has one source; nothing is kept beside the tree to stay in step with it) asks the opposite, and a ticket ranks below policy (`skills/implement/SKILL.md` *1. Read the spec before the code*) | a person: the owner | (a) The workflow file is the record. `seal pr-checks` reads it, no row is added, and every existing repository reads correctly with nothing migrated. (b) A `Pull-request checks` row, written by the bootstrap and by `seal pr-checks`, and compared with the file by `seal mode --check`: a new disagreement that either fails a teammate's pull request that deletes the file, or is never read; an absent row in every existing repository has to be filled from the file. (c) A third `Mode` value: `Mode` answers two questions, and every existing `shared` repository with a workflow disagrees with itself after the upgrade | (a), built in phase 2 | open |
 | Q2 | Does the flow case of phase 1 run on the Windows legs of `.github/workflows/test.yml`, where `bash` and a symbolic link to the tree may not be available? Reading cannot tell; a run on that leg can | a measurement: the pull request's CI run on `windows-latest` | (a) It runs there as on Linux. (b) It skips through `tests/conftest.py#symlink_or_skip` where `$RUNNER_TEMP/specseal` cannot be made to resolve to the tree, which costs nothing the template needs, since `templates/hygiene.yml` pins `ubuntu-latest` | (b) where the link cannot be made, (a) elsewhere | open |
 | Q3 | Does `bin/test-layout --check` accept `tests/e2e/teammate/test_teammate_flow.py` with a document as its `TARGET`, and its classes as scenarios? The layout text allows both; only the checker's run says whether it reads them together | the work: phase 1, which records a divergence row where it moves the file | (a) As framed. (b) Another directory or file name the checker accepts, with the marker and the four bases unchanged | (a) | answered 2026-10-26 by the work: phase 1 ran `bin/test-layout --check tests/e2e/teammate/test_teammate_flow.py tests/test_unverified_check.py`, which printed `2 files read, 0 refused, 0 declare no TARGET`, so the file stays where the frame put it (`phases/phase-1.md`) |
+| Q4 | Does the class of round 1 finding 3, round 2 finding 1 and round 3 finding 1 earn a gate: a check or a case at the pull request that applies a spec's `## Rule changes` to the policy root and runs the documents' own cases over the result? Each of the three was a case green on the branch and red at the settle, and each was found by a reviewer's replay. The tree cannot answer it, because it adds a gate over every unsettled spec, and `CLAUDE.md` *The rule a mechanism is kept against* weighs a mechanism by what it catches against what it costs, which is the owner's judgment. The answer does not change what #952 builds | a person: the owner | (a) No gate. A frame's acceptance carries the replay as a probe, as S8 does here, and a reviewer builds it. (b) An issue of its own, for a check that applies each judged spec's items and runs the cases that read the changed documents. It has to decide what it does with the specs the merge-order replay already refuses for reasons outside the pull request, three today (round 2, `## Not judged`). (c) A case in `tests/` over every unsettled spec: it goes red on those three specs today, so it needs the same decision first | (a) for this work item; the orchestrator relays the row to the owner in the pull request body | open |

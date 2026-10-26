@@ -152,10 +152,11 @@ The issue was written on 2026-10-16 against 0.22.2. Read at `02ee12de`:
    path that is missing and not spelled `seal/specs`. `seal mode --check`
    already exits 0 for such a pull request and is not changed.
 
-   `chain_check.py` exits 0 for a teammate's pull request, and refuses the
-   pull request that moves a root to local mode with the checks kept: that
-   pull request deletes every `routing.md`, and the check refuses each
-   deleted declaration HEAD does not carry (round 1, finding 1). Where the
+   Before round 1's fix pass, `chain_check.py` exited 0 for a teammate's
+   pull request and refused the pull request that moves a root to local
+   mode with the checks kept: that pull request deletes every `routing.md`,
+   and the check judged each deleted declaration, accepting one a settle
+   retired and refusing the rest (round 1, finding 1). Where the
    tree the check reads has no top-level `seal` entry, `chain_check.py#main`
    reads nothing as declared and judges the trailers as for any pull request
    that declares nothing. The tree the check reads is HEAD, and the working
@@ -164,7 +165,10 @@ The issue was written on 2026-10-16 against 0.22.2. Read at `02ee12de`:
    the declarations stay judged. An entry that is not a directory is still
    an entry, so the declarations are judged there; `unverified_check.py`'s
    no-root state asks for a directory, and the two are not described as one
-   reading (round 2, finding 3).
+   reading (round 2, finding 3). The test has five answers: under each of the
+   two readings, the entry gone and the entry there, and under CI's reading
+   git not answering. Each answer has a case of its own, which a mutant
+   dropping that answer turns red (scenario S9; round 3, finding 2).
 7. **One case runs every step of `templates/hygiene.yml` against a pull
    request that touches nothing under `seal/`.** It lives at
    `tests/e2e/teammate/test_teammate_flow.py`, `TARGET =
@@ -220,7 +224,8 @@ and `workflows/hygiene` over the tree at `02ee12de`, `CHANGELOG.md` and
 | `skills/code-review/orchestration.md:168`, `skills/verify/orchestration.md:62`, `docs/release-checklist.md`, `docs/issues-and-milestones.md`, `docs/the-review-record.md:66`, `.github/` | this repository's own `hygiene` workflow | kept: the issue leaves this repository's workflow alone |
 | the unsettled specs under `seal/specs/` | none states in its `## Rule changes` that shared mode installs the workflow or that `seal mode` carries it (executed: an `awk` over each `spec.md`'s *Rule changes* for `hygiene`, `seal mode`, `pull-request checks`, `shared mode` and `first setup`). `1792619408-an-automation-run-stops-at-the-parity-arm` names a `hygiene.yml` pinned to an older release, still true | kept; a released work item's records are history and are not rewritten |
 | `tests/test_first_setup_asks_once.py#test_the_record_no_longer_says_the_checks_would_refuse` (lines 659 to 666) | asserts that `docs/one-root-by-lifetime.md` and its Korean edition carry `examined nothing` and `red forever`, the sentences this spec's `## Rule changes` retire | the fix pass of round 1 removes those two asserts and the comment above them, and keeps the first assert (round 1, finding 3; contract rule 19) |
-| `skills/code-review/scripts/chain_check.py#main` (lines 2162 to 2170 and 2220 to 2231 at `3f2f5a5d`) | every deleted `routing.md` is a declaration, and one HEAD does not carry is refused | the fix passes of rounds 1 and 2: where the tree the check reads has no top-level `seal` entry, nothing is declared (*In* item 6) |
+| `skills/code-review/scripts/chain_check.py#main` (lines 2162 to 2170 and 2220 to 2231 at `3f2f5a5d`) | every deleted `routing.md` is a declaration, and one HEAD does not carry is refused unless a settle retired it | the fix passes of rounds 1 and 2: where the tree the check reads has no top-level `seal` entry, nothing is declared (*In* item 6) |
+| `tests/test_chain_check.py` `Test_retired` (lines 3359 to 3450 at `2f41bbf9`) | cases for four of the no-root test's five answers; none for the working tree without the entry under `--worktree`, so a mutant that never gives that answer passes every case (round 3, finding 2, executed by the round) | phase 3: the case for that answer, seen red against the mutant first (S9) |
 | `tests/test_first_setup_asks_once.py` (lines 71 to 91, 409 to 480, 495 to 510), `tests/test_seal.py` (`Test_install_workflow`, `Test_remove_workflow`, `Test_refusals`, `Test_switch`, `Test_mode`, `Test_main`), `tests/test_mode_gate.py`, `tests/test_unverified_check.py` | pin the two options, the workflow carry, the header's red-forever wording and the exit 2 | phases 1 and 2 rewrite the pins to the new text, each seen red first (contract rule 15) |
 
 ### Out
@@ -242,6 +247,34 @@ and `workflows/hygiene` over the tree at `02ee12de`, `CHANGELOG.md` and
   `seal pr-checks install` writes there read nothing. The first setup never
   makes that layout, so it is a limit and not a refusal: the build adds no
   guard for it.
+- A check or a case at the pull request that applies a spec's
+  `## Rule changes` and runs the documents' own cases over the result. Three
+  rounds of this run found that class by hand, and a check would find it in
+  every later work item. It is a new gate over every unsettled spec, so it
+  would go red today on the three specs the merge-order replay already
+  refuses for reasons outside this branch (round 2, `## Not judged`), and it
+  owes the argument `CONTRIBUTING.md` *What a change to a gate must carry*
+  asks for. This work carries the class as S8's applied half, run as a
+  probe; whether the class earns a gate is `questions.md` Q4.
+- A workflow pinned to a release newer than the installed one. The line
+  `seal mode local` prints names the pin and advises moving the `--branch`
+  line to the installed release (`seal.py#left_workflow_line`). Followed,
+  that advice leaves a workflow that passes, because the installed release
+  runs this line and so has the no-root state. The shape needs a person
+  whose plugin is older than the one that wrote the workflow, which the
+  one-issue flow does not produce, so it is a limit and the build adds no
+  version comparison (rounds 2 and 3, `## Not judged`).
+- Under `--worktree`, a top level the check cannot search. `os.path.lexists`
+  answers False on any `OSError`, so the no-root test then reads nothing as
+  declared, where CI's `git()` answering None keeps the declarations judged.
+  Where the top level cannot be searched, the check can read nothing else
+  there either (round 3, confirmations, read by the round).
+- A `seal/` directory left empty, or holding only an ignored file, after a
+  committed switch to local mode. Under `--worktree` it is an entry and the
+  declarations are judged, while CI reads nothing declared, so the local run
+  is the stricter of the two. `seal mode local` moves the root with one
+  rename and leaves no such directory (round 3, confirmations, executed by
+  the round).
 - #955, settle in local mode, and #1030, settle applying every released
   spec. Shared coordinates, which whoever lands second rebases onto:
   `docs/one-root-by-lifetime.md` *Shared or local* (#955 may change its
@@ -262,7 +295,8 @@ and `workflows/hygiene` over the tree at `02ee12de`, `CHANGELOG.md` and
 | S5 An upgraded shared repository keeps its workflow and is not asked | Given a shared repository bootstrapped before this change, with a `Mode` row and the plugin's workflow pinned to an older release, when a session of this release starts there, then nothing under `.github/` changes, the mode gate stays silent, and `seal pr-checks` reports the old pin | the mode gate's silence on a declared row is `tests/test_mode_gate.py`; the report is `Test_pr_checks`; that no shipped code writes the workflow outside `seal pr-checks install` is read by the warden (`git grep install_workflow`) |
 | S6 The unverified check reads two more states as nothing owed | Given `seal/specs/` with work items and no `overview.md`, or no `seal/` at all, when `unverified-check --baseline <ref> seal/specs/` runs, then it exits 0 naming the state; given another path holding no overview, or a misspelt path, it still exits 2 | `tests/test_unverified_check.py`, marker `nothing-declared-nothing-owed` |
 | S7 The mode gate stops promising the workflow | Given a root with no `Mode` row, when the gate denies its first command, then its *Shared* option names `seal pr-checks install` and says nothing is installed, and its *Local* option says a workflow in the tree stays | `tests/test_mode_gate.py` |
-| S8 The rule changes parse and apply | Given this spec, when the reader in `skills/settle/scripts/rule_changes.py` reads `## Rule changes`, then every item parses and each `from` appears once in its section of the policy in force | `chain_check.py --baseline release/v0.22.4` on the branch, which asks that reader for this judged work item, run by the smith at phase 1's close |
+| S8 The rule changes parse, apply, and leave the documents' own cases green | Given this spec, when the reader in `skills/settle/scripts/rule_changes.py` reads `## Rule changes`, then every item parses and each `from` appears once in its section of the policy in force. When every item is applied in order to `docs/` at `02ee12de`, as `settle --apply` would apply it, then every test module whose code names a changed document, `README.md`, `README.ko.md` or `docs/` passes, except a case that fails with `docs/` as committed too. Rounds 1, 2 and 3 each found a case green on the branch and red at that settle, and `settle --apply` writes no sentence by hand | the parse half: `chain_check.py --baseline release/v0.22.4` on the branch, which asks that reader for this judged work item. The applied half: a replay in a scratch clone, `parse` then `apply_op` for each item in order, then `bin/test` over those modules, and the same modules with `docs/` restored; run by the smith at phase 3's close as a probe, and by the verifying round |
+| S9 Each answer of the chain step's no-root test has a case | Given `chain_check.py#main`'s test for a top-level `seal` entry, when each of its five answers is dropped by a mutant in turn (HEAD without the entry, HEAD with it, git not answering, and under `--worktree` the working tree without the entry and with it), then at least one case in `tests/test_chain_check.py` fails against each mutant | `tests/test_chain_check.py` `Test_retired`, marker `nothing-declared-nothing-owed`; each mutant run once by the smith at phase 3, and named in its phase record |
 
 ## Data & interfaces
 
@@ -431,7 +465,7 @@ phase writes `changelog.md` under `### Changed`:
     check reads nothing as declared.** The tree is HEAD, and the working
     tree under `--worktree`. The pull request that moves a root to local
     mode deletes every `routing.md` with the root, and a deleted declaration
-    is otherwise refused. With no `seal` entry there is nothing to declare,
+    is otherwise judged. With no `seal` entry there is nothing to declare,
     so the check judges the trailers as for any pull request that declares
     nothing. Where git cannot say whether HEAD has the entry, the
     declarations stay judged.
@@ -446,9 +480,9 @@ phase writes `changelog.md` under `### Changed`:
   file: docs/the-review-and-parity-arms.md
   section: The declaration, and where the check went
   from: where it does not, the refusal stands.
-  to: where it does not, the refusal stands, except where the tree the check
-    reads has no top-level `seal` entry (`docs/the-review-record.md` *What
-    the check reads at the pull request*).
+  to: where it does not, the refusal stands, except where the tree
+    the check reads has no top-level `seal` entry (`docs/the-review-record.md`
+    *What the check reads at the pull request*).
 
 ## Removes
 
@@ -470,3 +504,4 @@ phase writes `changelog.md` under `### Changed`:
 None here: each is a row of `questions.md`.
 
 Framed 2026-10-26 by framer, before the build.
+Reframed 2026-10-26 by framer, after round 3.
