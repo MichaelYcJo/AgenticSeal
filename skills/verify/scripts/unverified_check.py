@@ -54,10 +54,14 @@ on purpose — see `check_file`.
 
 Exit codes: 0 the record is readable (open items are reported, not punished) ·
 1 a section could not be read, or rows were deleted · 2 the path or arguments
-were unusable, which includes a scan that found no overview at all — except
-under a `seal/` root's own `specs` path holding no work item, empty or absent,
-which is the state a complete settle ends in and exits 0 saying so
-(`settled_root`).
+were unusable, which includes a scan that found no overview at all. Three
+states of a `seal/` root's own `specs` path are exit 0 instead, each saying
+which it is, because a pull request in any of them declares nothing and owes
+nothing: the path holding no work item, empty or absent, which is the state a
+complete settle ends in (`settled_root`); no `seal/` directory at the working
+tree's top level, read before any base is (`absent_root`); and work items none
+of which carries an `overview.md`, where the base comparison found nothing
+deleted (`unwritten_root`).
 """
 
 import argparse
@@ -1463,6 +1467,58 @@ SETTLED = (
 )
 
 
+def absent_root(path):
+    """Whether `path` is the `seal/specs` path of a working tree's top level
+    that holds no `seal/` directory.
+
+    That is a repository whose records are in local mode, under the git
+    directory, or that never had any, and a teammate's pull request against
+    it declares nothing (#952). Read at the top level only, the directory
+    `git rev-parse --show-toplevel` names, so a `seal/specs` typed from
+    anywhere else is still the mistyped path it always was.
+    """
+    p = os.path.abspath(path)
+    parent = os.path.dirname(p)
+    top = os.path.dirname(parent)
+    if os.path.basename(p) != "specs" or os.path.basename(parent) != "seal":
+        return False
+    if os.path.isdir(parent) or not os.path.isdir(top):
+        return False
+    found = repo_root(top)
+    return found is not None and os.path.samefile(found, top)
+
+
+ABSENT = (
+    "unverified-check: {path} has no `seal/` root in this tree, so nothing "
+    "here is declared: there is no record to read and nothing to compare "
+    "against the base. A root in local mode sits under the git directory and "
+    "is never committed"
+)
+
+
+def unwritten_root(path):
+    """Whether `path` is a `seal/` root's own `specs` directory holding work
+    items, none of which carries an `overview.md`.
+
+    Every work item that never opened a closing memo is in this state, and a
+    pull request against it has no row to read (#952). `main` asks it only
+    once the base comparison found nothing deleted and nothing settled.
+    """
+    p = os.path.abspath(path)
+    parent = os.path.dirname(p)
+    if os.path.basename(p) != "specs" or os.path.basename(parent) != "seal":
+        return False
+    if not os.path.isdir(p) or settled_root(p):
+        return False
+    return not overviews([p])
+
+
+UNWRITTEN = (
+    "unverified-check: {path} holds work items and none of them carries an "
+    "`overview.md`, so no `## Not verified` row exists to read"
+)
+
+
 def under_root(root, rel):
     """The disk path of a `/`-joined repository-relative path."""
     return os.path.join(root, *rel.split("/"))
@@ -1514,6 +1570,14 @@ def main(argv=None):
         "rather than reported as a deletion",
     )
     args = ap.parse_args(argv)
+
+    # Before the base is resolved: the pull request that moves a root to
+    # local mode takes every overview out of the tree, and with no root in it
+    # nothing is declared, so that move is not this branch's deletion.
+    if all(absent_root(p) for p in args.path):
+        for p in args.path:
+            print(ABSENT.format(path=p))
+        return 0
 
     missing = [p for p in args.path if not os.path.exists(p) and not settled_root(p)]
     if missing and not args.baseline:
@@ -1709,6 +1773,10 @@ def main(argv=None):
     if not files and not deleted and not settles:
         if all(settled_root(p) for p in args.path):
             print(SETTLED.format(path=", ".join(args.path)))
+            return 0
+        if all(settled_root(p) or unwritten_root(p) for p in args.path):
+            for p in args.path:
+                print((SETTLED if settled_root(p) else UNWRITTEN).format(path=p))
             return 0
         print(
             f"unverified-check: no {OVERVIEW} found under "

@@ -13,8 +13,9 @@ overview is a tracked link to the first, a clone whose base
 revisions are written the way the corpus was before it was normalised, a
 clone with a moved base branch beside its work branch, a clone of work items
 a settle can remove, a clone whose spec was dropped on the far side of a
-merge, a clone with a `seal/` root beside a team's own `specs/`, and a
-`seal/` root with no `specs/`. A case that writes into a world takes a copy,
+merge, a clone with a `seal/` root beside a team's own `specs/`, a
+`seal/` root with no `specs/`, and a `seal/` root whose one work item holds
+no overview. A case that writes into a world takes a copy,
 and the copy is the reset. No world holds a file a case runs, so the copies
 are plain copies.
 """
@@ -315,6 +316,19 @@ def joined(tmp_path_factory):
 def sealed(tmp_path_factory):
     """A `seal/` root with no `specs/`, the tree a complete settle leaves."""
     return _committed(tmp_path_factory.mktemp("sealed"), {"seal/ledger.md": "# l\n"})
+
+
+@pytest.fixture(scope="module")
+def unwritten(tmp_path_factory):
+    """A `seal/` root whose one work item has a routing and a spec and never
+    opened a closing memo."""
+    return _committed(
+        tmp_path_factory.mktemp("unwritten"),
+        {
+            f"seal/specs/{WORK}/routing.md": f"# {WORK} routing\n",
+            f"seal/specs/{WORK}/spec.md": "# a spec\n",
+        },
+    )
 
 
 def run(argv):
@@ -1791,6 +1805,43 @@ class Test_settled_root:
         assert UC.settled_root(str(path)) is False
 
 
+class Test_absent_root:
+    def test_accepts_the_specs_path_of_a_top_level_holding_no_root(self, tmp_path):
+        git(tmp_path, "init", "-q")
+        assert UC.absent_root(str(tmp_path / "seal" / "specs")) is True
+
+    @pytest.mark.parametrize(
+        "state", ["a root", "a subdirectory", "no repository", "another parent"]
+    )
+    def test_refuses_a_root_a_subdirectory_no_repository_and_another_parent(
+        self, sealed, tmp_path, state
+    ):
+        """Absence is read only at a working tree's top level: from anywhere
+        else the path is a mistyped one, as it always was."""
+        path = {
+            "a root": sealed / "seal" / "specs",
+            "a subdirectory": sealed / "seal" / "seal" / "specs",
+            "no repository": tmp_path / "seal" / "specs",
+            "another parent": sealed / "other" / "specs",
+        }[state]
+        assert UC.absent_root(str(path)) is False
+
+
+class Test_unwritten_root:
+    def test_accepts_a_roots_specs_holding_work_items_and_no_overview(self, unwritten):
+        assert UC.unwritten_root(str(unwritten / "seal" / "specs")) is True
+
+    @pytest.mark.parametrize("state", ["an overview", "no work item", "another parent"])
+    def test_refuses_an_overview_no_work_item_and_another_parent(self, tmp_path, state):
+        (tmp_path / "seal" / "specs").mkdir(parents=True)
+        path = tmp_path / ("other" if state == "another parent" else "seal") / "specs"
+        if state == "another parent":
+            write(tmp_path, f"other/specs/{WORK}/spec.md", "# a spec\n")
+        if state == "an overview":
+            memo_at(tmp_path / "seal", CANONICAL)
+        assert UC.unwritten_root(str(path)) is False
+
+
 class Test_under_root:
     def test_accepts_a_slash_joined_path_as_the_disk_spells_it(self):
         assert UC.under_root("r", "specs/a/overview.md") == os.path.join(
@@ -2310,6 +2361,70 @@ class Test_main:
     @pytest.mark.parametrize("baseline", [True, False], ids=["baseline", "plain"])
     def test_refuses_any_other_missing_path_as_a_typo(self, sealed, capsys, baseline):
         argv = [str(sealed / "seal" / "spces")] + (
+            ["--baseline", "HEAD"] if baseline else []
+        )
+        assert run(argv) == 2
+        assert "no such path" in capsys.readouterr().err
+
+    # A pull request that declares nothing owes nothing (#952).
+
+    @pytest.mark.rule("nothing-declared-nothing-owed")
+    @pytest.mark.parametrize("baseline", [True, False], ids=["baseline", "plain"])
+    def test_accepts_no_root_in_the_tree_and_compares_nothing_against_the_base(
+        self, joined, tmp_path, capsys, baseline
+    ):
+        """S6: the pull request that moves a root to local mode with the
+        workflow kept takes every overview out of the tree. With no root
+        there nothing is declared, so the base is not read and the move is
+        not this branch's deletion."""
+        d = copy_of(joined, tmp_path)
+        shutil.rmtree(d / "seal")
+        argv = [str(d / "seal" / "specs")] + (
+            ["--baseline", "HEAD"] if baseline else []
+        )
+        assert run(argv) == 0
+        out = capsys.readouterr()
+        said = " ".join((out.out + out.err).split())
+        assert "has no `seal/` root in this tree" in said, said
+        assert "present at HEAD" not in said and "open: 0" not in said, said
+
+    @pytest.mark.rule("nothing-declared-nothing-owed")
+    @pytest.mark.parametrize("baseline", [True, False], ids=["baseline", "plain"])
+    def test_accepts_work_items_none_of_which_opened_a_closing_memo(
+        self, unwritten, capsys, baseline
+    ):
+        """S6: every work item that never opened an `overview.md` holds no
+        row to read, and that was exit 2, `nothing was checked`."""
+        argv = [str(unwritten / "seal" / "specs")] + (
+            ["--baseline", "HEAD"] if baseline else []
+        )
+        assert run(argv) == 0
+        out = capsys.readouterr()
+        said = " ".join((out.out + out.err).split())
+        assert "none of them carries an `overview.md`" in said, said
+        assert "open: 0" not in said, said
+
+    @pytest.mark.rule("nothing-declared-nothing-owed")
+    def test_refuses_a_memo_deleted_from_a_work_item_that_stays(
+        self, joined, tmp_path, capsys
+    ):
+        """The second state holds only where the base comparison found
+        nothing deleted: a root whose last overview left is still a
+        deletion."""
+        d = copy_of(joined, tmp_path)
+        os.remove(d / OURS / "overview.md")
+        write(d, f"{OURS}/spec.md", "# a spec\n")
+        assert run([str(d / "seal" / "specs"), "--baseline", "HEAD"]) == 1
+        assert "present at HEAD and not here" in capsys.readouterr().out
+
+    @pytest.mark.rule("nothing-declared-nothing-owed")
+    @pytest.mark.parametrize("baseline", [True, False], ids=["baseline", "plain"])
+    def test_refuses_a_missing_root_below_the_top_level_as_a_typo(
+        self, sealed, capsys, baseline
+    ):
+        """Absence is read at the working tree's top level only, so a
+        `seal/specs` typed from the wrong directory still names nothing."""
+        argv = [str(sealed / "seal" / "seal" / "specs")] + (
             ["--baseline", "HEAD"] if baseline else []
         )
         assert run(argv) == 2
