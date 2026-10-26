@@ -22,7 +22,7 @@ none of those files. Every verdict below was reached in this round.
 severity: should
 location: `CLAUDE.md:21-22`, `seal/specs/1792973486-a-change-only-the-shell-makes-is-a-chore/spec.md:37-38`
 evidence: read `CLAUDE.md:17-22`, `seal/specs/1792973486-a-change-only-the-shell-makes-is-a-chore/spec.md:34-38`
-verdict: open
+verdict: fixed 76ae375a
 regression: round-1#2
 
 The unit is the second new sentence of `CLAUDE.md` *The rule a mechanism is
@@ -85,14 +85,14 @@ is the test or behaviour eval its `check:` line names. A fact has one source,
 The changelog fragment states the same clause, and finding 2's block carries
 the new words for it.
 
-answer:
+answer: The finding holds, and the sentence's grounds route it to an ordinary fix pass: the clause came from round 1's paste-ready block, applied as given, so the defect is in how the fix was written, not in the frame. The orchestrator put the record's clause into `spec.md` *Scope* item 1 in eb56b648, and the spec still parses with the no-change block and no error (executed). The smith put the same clause into `CLAUDE.md` in 76ae375a, word for word; `git diff --word-diff 61a8455a -- CLAUDE.md` shows only added words, and `only such a change passes through` stands on one line at `CLAUDE.md:21`, the one hit outside `seal/specs/` (executed by the smith).
 
 ### 2. The changelog fragment says no gate is built to catch a change only the shell makes, a claim the `CLAUDE.md` sentence does not make
 
 severity: should
 location: `seal/specs/1792973486-a-change-only-the-shell-makes-is-a-chore/changelog.md:3-11`
 evidence: executed `python3 -I -c "import re;print([('only the shell makes' in re.sub(r'\s+',' ',open(p).read())) for p in ('CLAUDE.md','seal/specs/1792973486-a-change-only-the-shell-makes-is-a-chore/changelog.md')])"`
-verdict: open
+verdict: fixed 67ac87f4
 regression: round-1#3
 
 The unit is the fragment's third sentence, at `changelog.md:8-11`, which
@@ -135,7 +135,7 @@ takes finding 1's wording for the gap clause.
   plugin installs into a consuming repository changes.
 ```
 
-answer:
+answer: The finding holds, and it is routed to an ordinary fix pass for the same reason as finding 1. The smith replaced the fragment with the record's block in 67ac87f4; the whitespace-normalised fragment no longer holds `only the shell makes`, and `tests/test_the_changelog_is_gathered_at_release.py` passes (executed by the smith). The smith also found the same broader claim in `overview.md` *Why this work exists* ("no gate is built to catch it"), which the orchestrator rewrote in 4eb9cf31 to state the principle as `CLAUDE.md` does.
 
 ## Confirmations
 
