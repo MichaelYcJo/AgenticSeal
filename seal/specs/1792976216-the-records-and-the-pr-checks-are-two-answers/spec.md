@@ -427,6 +427,19 @@ phase writes `changelog.md` under `### Changed`:
     tree. Where git cannot say whether HEAD has the entry, the declarations
     stay judged.
     check: nothing-declared-nothing-owed
+- change
+  file: docs/the-review-record.md
+  section: What the check reads at the pull request
+  from: is two declarations and the deletion is judged.
+  to: is two declarations and the deletion is judged, wherever HEAD still
+    has a `seal` root.
+- change
+  file: docs/the-review-and-parity-arms.md
+  section: The declaration, and where the check went
+  from: where it does not, the refusal stands.
+  to: where it does not, the refusal stands, unless HEAD has no top-level
+    `seal` entry, where nothing is declared (`docs/the-review-record.md`
+    *What the check reads at the pull request*).
 
 ## Removes
 
