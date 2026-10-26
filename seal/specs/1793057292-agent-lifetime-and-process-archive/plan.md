@@ -1,5 +1,7 @@
 # Implementation Plan: #945 an agent lives one phase, the orchestrator's steps sit where it acts, two re-checks leave, and each release records how the process changed
 
+Approved 2026-10-27 by the orchestrator, when `smith` was spawned.
+
 ## Summary
 
 Four parts, built in four phases. The meter first: `session-cost --segments`
