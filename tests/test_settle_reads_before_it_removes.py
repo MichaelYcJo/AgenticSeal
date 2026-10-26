@@ -99,7 +99,9 @@ def test_the_skill_states_the_settling_sessions_procedure():
     finding 1: step 6 holds no searched set of test modules, since no search
     of the tests' text lists every check that reads what the session wrote,
     and step 8's broad gate is the one run that reads every check, run again
-    after a fix."""
+    after a fix. Round 4 of #1033, finding 1: each clause of steps 6 and 8
+    that S13 names is pinned, step 6's fix and second dry run and step 8's
+    failure path among them."""
     text = flat(skill())
     procedure = text.split("## The settling session's procedure")[1].split("## ")[0]
     steps = [
@@ -113,10 +115,17 @@ def test_the_skill_states_the_settling_sessions_procedure():
         "table's order",
         "take a default and write it down",
         "Run each rule's `check:` targets over what you wrote",
+        "and change what a failure shows still standing on the old fact",
+        "Then run the dry run again",
         "The step is done when every `check:` target passes",
+        "finds a module only by how it spells a path",
         "step 8 runs every one",
         "Run `settle --apply`.",
+        "Run the repository's `Broad gate` row.",
         "It is the one run that reads every check",
+        "change that pin or copy, and name each in the pull request body",
+        "answer it as *Answer every check that reads the corpus* says",
+        "then run the row again",
         "The step is done when the row passes with no edit after it",
         "Open the pull request.",
     ]
