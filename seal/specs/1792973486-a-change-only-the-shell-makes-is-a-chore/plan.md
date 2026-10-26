@@ -72,7 +72,7 @@ pasted copy and not a reworded one, so that one is a reviewer's finding.
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | The two sentences of `spec.md` *Scope* item 1 in `CLAUDE.md` *The rule a mechanism is kept against*, after its first sentence, with the paragraph's lines reflowed and no other word changed | `git diff --word-diff 61a8455a -- CLAUDE.md` (S1); `git grep -n 'only such a change passes through'` finds `CLAUDE.md` alone outside `seal/specs/` (S2); `bin/test tests/test_rules.py tests/test_the_rules_claude_md_names_have_one_home.py tests/test_no_passage_is_pasted_into_a_second_file.py tests/test_one_word_one_meaning.py tests/test_a_release_is_sized_by_a_criterion.py -q` (S5) | |
+| 1 | The two sentences of `spec.md` *Scope* item 1 in `CLAUDE.md` *The rule a mechanism is kept against*, after its first sentence, with the paragraph's lines reflowed and no other word changed | `git diff --word-diff 61a8455a -- CLAUDE.md` (S1); `git grep -n 'only such a change passes through'` finds `CLAUDE.md` alone outside `seal/specs/` (S2); `bin/test tests/test_rules.py tests/test_the_rules_claude_md_names_have_one_home.py tests/test_no_passage_is_pasted_into_a_second_file.py tests/test_one_word_one_meaning.py tests/test_a_release_is_sized_by_a_criterion.py -q` (S5) | 77761ea9 |
 
 ## Operational impact
 
