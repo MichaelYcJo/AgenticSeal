@@ -3385,6 +3385,77 @@ class Test_retired:
         assert "does not carry this file at HEAD" in out
         assert "retired:" not in out
 
+    @pytest.mark.rule("nothing-declared-nothing-owed")
+    def test_accepts_every_declaration_leaving_with_the_root(
+        self, branch, ready, capsys, monkeypatch
+    ):
+        """Round 1 of #952, finding 1: the pull request that takes `seal/`
+        out of the tree deletes every declaration with it, and with no
+        `seal` at HEAD nothing is declared. Where git cannot say whether HEAD
+        has it, the declarations stay judged."""
+        root, _code = branch
+        remove_an_earlier_item(root, applied=False)
+        git(root, "rm", "-rq", "seal")
+        commit(root, "the root leaves the tree")
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert (
+            "the tree the check reads has no top-level `seal` entry, so nothing "
+            "is declared: the routing declarations this pull request deletes "
+            "left the tree with the root, and the review-chain check judged the "
+            "commit trailers and nothing else"
+        ) in out
+        assert "does not carry this file at HEAD" not in out
+        real = chain.git
+        unanswered = ("ls-tree", "HEAD", "--", "seal")
+        monkeypatch.setattr(
+            chain, "git", lambda r, *a: None if a == unanswered else real(r, *a)
+        )
+        code, out = check(root, capsys)
+        assert code == 1 and "does not carry this file at HEAD" in out, out
+
+    @pytest.mark.rule("nothing-declared-nothing-owed")
+    def test_accepts_under_worktree_a_root_the_working_tree_no_longer_has(
+        self, branch, ready, capsys, tmp_path
+    ):
+        """Round 3 of #952, finding 2: a switch to local mode, run and not
+        committed, leaves no `seal` in the working tree, so under `--worktree`
+        nothing is declared, as CI reads the same change once it is committed."""
+        root, _code = branch
+        remove_an_earlier_item(root, applied=False)
+        shutil.move(str(root / "seal"), str(tmp_path / "moved-seal"))
+        git(root, "add", "-A", "seal")
+        code, out = check(root, capsys, "--worktree")
+        assert code == 0, out
+        assert "so nothing is declared" in out
+        assert "does not carry this file at HEAD" not in out
+
+    def test_judges_a_root_the_working_tree_has_under_worktree(
+        self, branch, ready, capsys
+    ):
+        """Round 2 of #952, finding 2: under `--worktree` the tree the check
+        reads is the working tree, so a root it holds and HEAD does not is a
+        root, and the declaration naming the branch in it is judged."""
+        root, _code = branch
+        git(root, "rm", "-rq", "--cached", "seal")
+        git(root, "commit", "-qm", "the root leaves HEAD and stays on disk")
+        code, out = check(root, capsys, "--worktree")
+        assert "so nothing is declared" not in out, out
+        assert code == 1 and f"{ITEM}/guarantee.md:0  the guarantee is behind" in out
+
+    def test_judges_the_declarations_where_the_working_tree_has_seal_as_a_file(
+        self, branch, ready, capsys
+    ):
+        """Round 2 of #952, finding 3: a `seal` that is not a directory is
+        still an entry, so under `--worktree` the declarations it replaced
+        stay judged."""
+        root, _code = branch
+        shutil.rmtree(root / "seal")
+        write(root, "seal", "not a root\n")
+        code, out = check(root, capsys, "--worktree")
+        assert "so nothing is declared" not in out, out
+        assert code == 0 and f"{MERGED_ITEM}/routing.md:0  retired: a settle" in out
+
 
 class Test_module:
     def test_every_reader_of_a_retirement_calls_the_one_predicate(self):

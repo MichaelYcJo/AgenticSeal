@@ -15,7 +15,8 @@ where to read: nothing that must survive is allowed to live only there.
 It lives at one of two places, and its presence at either is what opts the
 repository into the workflow. There is no config key. **Shared mode** keeps
 it at `<repo>/seal/` and commits it (gitignored files don't follow worktrees
-or other machines), so CI and every clone read it. **Local mode** keeps the
+or other machines), so every clone reads it and CI can check pull requests
+against it. **Local mode** keeps the
 same root at `$(git rev-parse --git-common-dir)/seal/`, under the common git
 directory: every linked worktree of the clone shares it, nothing under it is
 ever a commit candidate, and no `.gitignore` line is needed. What local mode
@@ -23,10 +24,12 @@ gives up is CI, because the pull-request checks read committed files, and
 any other machine, which starts empty.
 
 **`seal mode local` and `seal mode shared` switch between the two.** Each
-moves the root, stages the change, moves `.github/workflows/hygiene.yml` in
-or out of the tree where it can, says so where it cannot, and records the
-mode in `config.md` beside this file; whoever ran the command commits the
-change. `seal mode` alone says where the root is and what that row claims,
+moves the root, stages the change and records the mode in `config.md`
+beside this file, and leaves `.github/` alone; whoever ran the command
+commits the change. Whether CI checks pull requests is a second answer:
+`seal pr-checks install` writes `.github/workflows/hygiene.yml` where this
+root is in the tree, `seal pr-checks remove` takes it out, and
+`seal pr-checks` says which is the case. `seal mode` alone says where the root is and what that row claims,
 and `seal mode --check`, which the pull-request checks run, exits non-zero
 when the two disagree. Nothing reads the row at runtime: the folder's
 location is the only signal. The by-hand move asks git for both paths, so

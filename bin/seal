@@ -10,5 +10,7 @@
 #   seal export --output ~/keys   seal import seal-repo-2026-09-03.zip
 #   seal mode                     seal mode --check
 #   seal mode local               seal mode shared
+#   seal pr-checks                seal pr-checks install
+#   seal pr-checks remove
 here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 exec python3 "$here/../hooks/launch.py" "$here/../skills/implement/scripts/seal.py" "$@"

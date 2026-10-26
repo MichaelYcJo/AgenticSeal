@@ -100,26 +100,21 @@ session-start hook moves nothing out of it either: the plugin writes only to
 its own root.
 
 1. The orchestrator asks once, with one `AskUserQuestion` carrying **two
-   questions**: the mode, and the `Broad gate` row. The mode's two options
+   questions**: the mode, and the `Broad gate` row. The mode's three options
    come first, in this order:
 
-   - **shared** (the default, listed first) creates `<repo>/seal/` in the
-     tree; the routing commit made before the first edit carries it. It
-     installs the pull-request checks: `.github/workflows/hygiene.yml`,
-     written from `templates/hygiene.yml` only when that path is absent. An
-     existing file is never overwritten, and the orchestrator says so when it
-     leaves one alone. Before writing it, the orchestrator replaces
-     `v<version>` in the template with the version of the installed plugin,
-     prefixed with `v`, so CI checks with the release that wrote the file.
-     The version is read from `$CLAUDE_PLUGIN_ROOT/.claude-plugin/plugin.json`
-     and never from a file in the tree, because the session sits in the
-     user's repository and the plugin in its cache; a wrong read leaves
-     `v<version>` in the workflow, and CI's `git clone --branch` fails on it.
-     One line reads it:
-
-     ```bash
-     python3 -c 'import json, os; print("v" + json.load(open(os.path.join(os.environ["CLAUDE_PLUGIN_ROOT"], ".claude-plugin", "plugin.json"), encoding="utf-8"))["version"])'
-     ```
+   - **shared, records only** (the default, listed first) creates
+     `<repo>/seal/` in the tree; the routing commit made before the first
+     edit carries it. It writes nothing under `.github/`, so nothing it
+     installs can stop a teammate's pull request.
+   - **shared, with pull-request checks** does the same, and then the
+     orchestrator installs the checks with `seal pr-checks install`, run
+     after `seal mode` below. That command writes
+     `.github/workflows/hygiene.yml` from `templates/hygiene.yml` only when
+     that path is absent, pinned to the release of the installed plugin, and
+     stages it, so the routing commit carries it too. An existing file is
+     never overwritten, and the orchestrator relays the line the command
+     prints when it leaves one alone.
    - **local** creates `$(git rev-parse --git-common-dir)/seal/`, installs
      nothing, and touches nothing in the tree. The path is spelled through
      the common git directory rather than through `.git`, which is a file in
@@ -134,11 +129,13 @@ its own root.
    both is shared.
 
    **The answer is not a door that shuts.** `seal mode` reports where the
-   root is, and `seal mode local` or `seal mode shared` moves it, carrying
-   the workflow file and writing the mode into `seal/config.md` on the way.
-   The orchestrator says so in one line when it creates the root, because
-   the question is asked once and the person answering it does not yet know
-   what they will want.
+   root is, and `seal mode local` or `seal mode shared` moves it, writing the
+   mode into `seal/config.md` on the way and leaving `.github/` alone.
+   `seal pr-checks` reports whether the checks are installed, and
+   `seal pr-checks install` and `seal pr-checks remove` put them in and take
+   them out. The orchestrator says so in one line when it creates the root,
+   because the question is asked once and the person answering it does not
+   yet know what they will want.
 
    **The second question is the `Broad gate` row, and it is a proposal
    rather than a blank.** That row is the one value in this flow only a
@@ -192,7 +189,10 @@ its own root.
    the same bytes.
    `hooks/mode-gate.py` reads the absence and stops the next command to ask
    this same question, so running the command here keeps the person who just
-   answered from being asked twice.
+   answered from being asked twice. Under **shared, with pull-request
+   checks**, the orchestrator then runs `seal pr-checks install` and relays
+   the line it prints; an exit 1 is that line's refusal, and the setup goes
+   on without the checks.
 
    **Then the `Broad gate` row, where a command was chosen.** `seal mode` has
    just written a config file carrying `Mode` and nothing else, so the
@@ -616,7 +616,7 @@ one.
 |---|---|---|---|
 | Orchestrator: the order inside a ticket | `skills/implement/orchestration.md` | still a sentence | Nothing reads the order. Each step it sequences has a row of its own, and what the sequence itself asserts, which party runs when, is in no file a check opens. A run that opened the pull request after the rounds leaves the same tree as one that opened it before them |
 | The plan is approved at the spawn | `skills/implement/orchestration.md` | part of its parent's act | The approval line of the step where its parent's order spawns the smith, and the rules the spawn prompt is written to. It names no act of its own |
-| Orchestrator: Bootstrap | `skills/implement/orchestration.md` | check: `hooks/mode-gate.py` | A root with no `Mode` row in `config.md` is exactly nobody was asked, and this gate stops the next command until `seal mode` writes it. It reaches the mode question alone. Nothing reads the `Broad gate` proposal, so a repository that was never offered candidates meets `bin/broad-gate`'s own refusal after the rounds have settled, and nothing checks that the workflow file was written from the template with the version substituted |
+| Orchestrator: Bootstrap | `skills/implement/orchestration.md` | check: `hooks/mode-gate.py` | A root with no `Mode` row in `config.md` is exactly nobody was asked, and this gate stops the next command until `seal mode` writes it. It reaches the mode question alone. Nothing reads the `Broad gate` proposal, so a repository that was never offered candidates meets `bin/broad-gate`'s own refusal after the rounds have settled. The workflow file is written by `seal pr-checks install`, whose substitution of the version `tests/test_seal.py` holds, and nothing checks that the orchestrator ran it under the second answer |
 | Orchestrator: Parity setup | `skills/implement/orchestration.md` | still a sentence | The four fields are derived by hand and nothing reads the result. The pull request's parity arm wakes on `seal/parity.md` existing, so a setup that never happened is silence rather than a refusal, and a guessed original produces a file that parses |
 | Orchestrator: how the work is routed | `skills/implement/orchestration.md` | check: `hooks/routing-edit-gate.py` | The first `Write`, `Edit` or `NotebookEdit` is refused until a declaration naming the branch stands under the `seal/` root or the session ran `seal no-work-item` on that branch, and `templates/claude-md-block.md` carries the question's shape into every session on the machine. What neither reaches is the shape of the asking: a declaration built from four separate questions parses exactly like one built from the asking this section mandates |
 | Question 1 | `skills/implement/orchestration.md` | part of its parent's act | The three options of the first `AskUserQuestion` call its parent describes, put alone. It names no act of its own |

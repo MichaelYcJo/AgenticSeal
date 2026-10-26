@@ -14,7 +14,11 @@ judged (`carried_by`). The arms are eight:
                 `no work item`, which is printed (`routing_trailers`); a
                 commit with no such trailer is not judged
   declaration   the file parses as a routing declaration; one the pull
-                request removed is accepted where the work item was retired
+                request removed is accepted where the work item was retired,
+                and none is judged where the tree the check reads has no
+                top-level `seal` entry, which the pull request moving the
+                root to local mode leaves; that tree is HEAD, and the working
+                tree under `--worktree`
   frame         `Planning | framer`: `spec.md` and `plan.md` are committed,
                 `spec.md` ends with the framer's mark, and every `Reframed`
                 line under it names the framer
@@ -2034,6 +2038,15 @@ SETTLE_SAYS = (
     "holds every rule change its spec states"
 )
 
+# The pull request that moves the root to local mode deletes every
+# declaration with the root (#952).
+ROOT_LEFT_SAYS = (
+    "the tree the check reads has no top-level `{home}` entry, so nothing is "
+    "declared: the routing declarations this pull request deletes left the "
+    "tree with the root, and the review-chain check judged the commit "
+    "trailers and nothing else"
+)
+
 # The trailer a session's commit ends with (`docs/the-routing-check.md` *At
 # the pull request*), and its one value that names no work item.
 TRAILER = "SpecSeal-Routing"
@@ -2168,6 +2181,20 @@ def main(argv=None):
         else:
             declarations.add(rel)
     declarations = sorted(declarations)
+    # Where the tree the check reads has no top-level `seal` entry, nothing is
+    # declared: the pull request moving the root to local mode leaves it so.
+    # That tree is HEAD, and the working tree under `--worktree`, where
+    # `read_record` and `changed` read the declarations from. An entry is
+    # anything at that name, a file or a link as much as a directory, so a
+    # `seal` that is not a directory keeps the declarations judged. Where git
+    # cannot answer, `git()` is None and the declarations stay judged.
+    home = routing.optin.HOME
+    if WORKTREE:
+        gone = not os.path.lexists(os.path.join(root, home))
+    else:
+        gone = git(root, "ls-tree", "HEAD", "--", home) == ""
+    if declarations and gone:
+        declarations, why = [], ROOT_LEFT_SAYS.format(home=home)
 
     state, where = pull_request_state(root)
     unseen = state == "unknown" and not event_payload_present()

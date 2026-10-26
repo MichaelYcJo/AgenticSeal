@@ -137,11 +137,15 @@ LISTS_A_FIXTURE = {
     # `tests/test_root_migrate.py`, and `seal mode`'s switch and the
     # workflow it stages in `tests/test_seal.py`.
     "tests/conftest.py#staged": 1,
+    # #952's round 6 case writes stages 1 to 3 of one path into the index of
+    # the repository it took, and counts that path's unmerged entries before
+    # and after `seal pr-checks remove`, once each; it opens no listed path.
+    "tests/test_seal.py#test_refuses_an_index_entry_it_cannot_read_deleted_by_hand": 2,
 }
 
-# One call per scope everywhere today. Spelled as a map rather than as "one
-# each" so a SECOND call inside a classified scope goes red — the call-site
-# unit, which is the decision copied from the model.
+# Spelled as a map of call counts rather than as "one each" so a further call
+# inside a classified scope goes red — the call-site unit, which is the
+# decision copied from the model.
 PATH_LIST_CALLS = {
     **APPLIES_THE_SHARED_GUARD,
     **dict.fromkeys(GUARDS_ITS_OWN_LIST, 1),
