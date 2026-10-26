@@ -1,6 +1,6 @@
 # Implementation Plan: where the records live and whether CI checks pull requests are two answers (#952)
 
-Approved <date> by <who>, when `smith` was spawned.
+Approved 2026-10-26 by the orchestrator under the owner's automation answer, when `smith` was spawned for phases 1 and 2.
 
 ## Summary
 
