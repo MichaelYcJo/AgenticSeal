@@ -2000,7 +2000,29 @@ def remove_workflow(repo):
     path = under(repo, WORKFLOW)
     kind, text = workflow_at(repo)
     if kind == "absent":
-        return "absent", f"there is no {WORKFLOW}, so there is nothing to remove"
+        if not tracked(repo, WORKFLOW):
+            return "absent", f"there is no {WORKFLOW}, so there is nothing to remove"
+        # Gone from the working tree is not gone from the next commit, which
+        # is made from the index: a person deleted by hand the file `install`
+        # staged, or a committed copy whose deletion is not staged (round 5,
+        # finding 1). `git rm` of a path missing from the working tree exits
+        # 0 and drops its index entry in both states (measured, round 5).
+        done = subprocess.run(
+            ["git", "-C", repo, "rm", "--quiet", "--", WORKFLOW],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=30,
+        )
+        if done.returncode != 0:
+            return "failed", (
+                f"{WORKFLOW} could not be removed: {(done.stderr or '').strip()}"
+            )
+        return "removed", (
+            f"there was no {WORKFLOW} in the working tree, but the index still "
+            "held it; took it out of the index, so the next commit does not "
+            "carry it"
+        )
     if kind == "link":
         return "kept", (
             f"{WORKFLOW} {text}, so it is not this plugin's file to remove — "

@@ -3313,6 +3313,29 @@ class Test_pr_checks:
         assert snapshot(repo) == before
         assert open(path, encoding="utf-8").read() == on_disk
 
+    @pytest.mark.parametrize("committed", [False, True], ids=["AD", " D"])
+    def test_accepts_remove_of_a_file_deleted_by_hand_the_index_still_holds(
+        self, take, capsys, committed
+    ):
+        """Round 5, finding 1: a commit is made from the index, so a file
+        gone from the working tree is not gone from the next commit."""
+        repo = take("shared")
+        before = status(repo)
+        code, out = said(capsys, repo, "pr-checks", "install")
+        assert code == 0, out
+        if committed:
+            commit_everything_as_e(repo, "the checks")
+        os.remove(os.path.join(str(repo), WORKFLOW_PATH))
+        code, out = said(capsys, repo, "pr-checks", "remove")
+        assert code == 0, out
+        assert out == (
+            "there was no .github/workflows/hygiene.yml in the working tree, "
+            "but the index still held it; took it out of the index, so the "
+            "next commit does not carry it\n"
+        )
+        gone = ["D  .github/workflows/hygiene.yml"] if committed else []
+        assert status(repo) == sorted(before + gone)
+
     def test_accepts_remove_where_the_root_left_the_tree(self, take, capsys):
         """A workflow that outlived its root is the case `remove` is for."""
         repo = take("local")
