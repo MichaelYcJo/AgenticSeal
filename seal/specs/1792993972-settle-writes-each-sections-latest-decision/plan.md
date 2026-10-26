@@ -1,6 +1,6 @@
 # Implementation Plan: settle writes each section's latest decision (#1033)
 
-Approved <date> by <who>, when `smith` was spawned.
+Approved 2026-10-26 by the orchestrator under the owner's automation answer, when `smith` was spawned for phases 1 and 2.
 
 ## Summary
 
