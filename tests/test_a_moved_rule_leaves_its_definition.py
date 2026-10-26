@@ -363,12 +363,9 @@ def test_a_citation_is_not_a_copy():
             "a row of `## Not judged`",
         ),
         # The smith's waiver example, its RIDER and its pointer at rule 8 left
-        # with its rewrite (#967): the waiver is one rule sentence now, held
-        # by `test_the_smiths_four_rules_stand_with_their_enforcers`.
-        ("agents", "smith.md"): (
-            "hand-back",
-            "the last way past the gate and never the first",
-        ),
+        # with its rewrite (#967), and the one waiver sentence left with
+        # #1027, which removed what it waived.
+        ("agents", "smith.md"): ("hand-back",),
     }
     for parts, phrases in kept.items():
         definition = read(os.path.join(ROOT, *parts))
@@ -456,7 +453,8 @@ def smith_rule(lead):
 
 
 # The four rules decision 1 of #967 names, each by its lead and the clauses
-# that make it the rule rather than its title.
+# that make it the rule rather than its title. #1027 retired the fourth, *The
+# waiver is one command's.*, with the gate it waived.
 SMITHS_FOUR_RULES = {
     "A new test starts from its group.": (
         "Before writing a case, read the tests of the function it covers",
@@ -471,16 +469,7 @@ SMITHS_FOUR_RULES = {
         "The same bug through three failed fixes is the architecture talking",
         "Three returns through the broad gate read the same way",
     ),
-    "The waiver is one command's.": (
-        "`: '[no-review]'; git commit …`",
-        "`git -c specseal.waive=review commit …`",
-        "the last way past the gate and never the first",
-    ),
 }
-
-# A sentence ends at one of these when whitespace or the end follows it, so a
-# dot inside `specseal.waive` or a file name is not an end.
-SENTENCE_END = re.compile(r"[.!?](?=\s|$)")
 
 
 def test_the_smiths_four_rules_stand_with_their_enforcers():
@@ -499,11 +488,8 @@ def test_the_smiths_four_rules_stand_with_their_enforcers():
         said = flat(paragraph)
         for clause in clauses:
             assert clause in said, f"{lead!r} lost {clause!r}"
-    waiver = smith_rule("The waiver is one command's.")
-    body = waiver.split("**", 2)[2].split("\ncheck:", 1)[0]
-    assert len(SENTENCE_END.findall(body)) == 1, (
-        "the waiver is stated in more than one sentence again, which is the "
-        f"narration the rewrite removed: {flat(body)!r}"
+    assert smith_rule("The waiver is one command's.") == "", (
+        "the smith still states a waiver nothing reads since #1027"
     )
 
 

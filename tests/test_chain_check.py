@@ -2109,6 +2109,79 @@ class Test_originals_of:
         assert code == 2, err
         assert "the parity readers would not load (a planted failure)" in err
 
+    @pytest.mark.rule("parity-in-the-guarantee")
+    def test_refuses_a_direct_guarantee_with_no_original_line_and_accepts_one(
+        self, item, capsys
+    ):
+        """S12: under `straight to the PR` no round records a comparison, so
+        in a migration repository the sealer's `guarantee.md` carries the
+        `original:` line, and a ready pull request changing code fails
+        without it, names a guarantee naming another commit, and passes with
+        the baseline. `--sealing` reads the missing line as a notice, as it
+        reads every other guarantee check."""
+        root, _audited = item
+        rel = f"{ITEM}/guarantee.md"
+        direct_migrating(root, None)
+        code, out = check(root, capsys)
+        assert code == 1, out
+        says = chain.NO_GUARANTEE_ORIGINAL.format(config=PARITY, sha=BASELINE)
+        for words in (
+            f"no `original:` line: `{PARITY}` declares a migration, this work "
+            "item answers `straight to the PR`",
+            f"the sealer's guarantee carries `original: {BASELINE}`",
+            "once it compared the audited commit with the original through "
+            "`legacy-parity`",
+        ):
+            assert words in says, says
+        assert f"{rel}:0  {says}" in out.splitlines(), out
+        code, out = check(root, capsys, "--sealing")
+        assert code == 0, out
+        direct_migrating(root, "fedcba9876543210")
+        code, out = check(root, capsys)
+        assert code == 1, out
+        assert chain.OTHER_ORIGINAL.format(said="fedcba9876543210", sha=BASELINE) in (
+            out
+        )
+        direct_migrating(root, BASELINE[:10])
+        code, out = check(root, capsys)
+        assert code == 0, out
+
+    @pytest.mark.rule("parity-in-the-guarantee")
+    def test_a_missing_guarantee_is_named_once(self, item, capsys):
+        """A guarantee git does not carry is the guarantee arm's refusal, and
+        no second one asks it for an `original:` line."""
+        root, _audited = item
+        direct_migrating(root, None)
+        git(root, "rm", "-q", f"{ITEM}/guarantee.md")
+        commit(root, "no guarantee")
+        code, out = check(root, capsys)
+        assert code == 1, out
+        assert "git carries no guarantee file" in out, out
+        assert "no `original:` line" not in out, out
+
+    @pytest.mark.rule("parity-in-the-guarantee")
+    def test_a_direct_guarantee_owes_nothing_for_the_document_roots_alone(
+        self, item, capsys
+    ):
+        """S12: a change confined to `docs/` and `seal/` has no original to
+        compare with, and a repository declaring no migration owes nothing."""
+        root, _audited = item
+        assert check(root, capsys)[0] == 0
+        git(root, "switch", "-q", "main")
+        write(root, PARITY, parity_file(BASELINE))
+        commit(root, f"{PARITY} on the base")
+        git(root, "switch", "-q", "-c", "feature/docs")
+        write(
+            root,
+            f"{ITEM}/routing.md",
+            SEALED_ROUTING.replace("feature/g", "feature/docs"),
+        )
+        write(root, "docs/a.md", "# a policy\n")
+        commit(root, "a documentation pass")
+        reseal(root, None)
+        code, out = check(root, capsys)
+        assert code == 0, out
+
 
 class Test_original_of:
     def test_accepts_a_line_naming_the_baseline_by_a_prefix(self):
@@ -2241,6 +2314,36 @@ def item(tmp_path, monkeypatch):
     # the plain line it prints everywhere else.
     monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
     return d, audited
+
+
+def reseal(root, original):
+    """The closing records naming HEAD, committed; the guarantee carries
+    `original: ORIGINAL` under its table where ORIGINAL is given."""
+    head = git(root, "rev-parse", "HEAD")
+    write(
+        root,
+        f"{ITEM}/broad-gate.md",
+        f"| Field | Value |\n|---|---|\n| Broad gate | {head} against main |\n",
+    )
+    text = guarantee(head, "sealed")
+    if original is not None:
+        text = text.replace(
+            "\n## Claims re-run", f"\noriginal: {original}\n\n## Claims re-run"
+        )
+    write(root, f"{ITEM}/guarantee.md", text)
+    commit(root, "the closing records, again")
+
+
+def direct_migrating(root, original):
+    """`main` declares a migration whose baseline is `BASELINE`, merged once
+    into the `item` fixture's `feature/g`; then `reseal`."""
+    if not (root / PARITY).exists():
+        git(root, "switch", "-q", "main")
+        write(root, PARITY, parity_file(BASELINE))
+        commit(root, f"{PARITY} on the base")
+        git(root, "switch", "-q", "feature/g")
+        git(root, "merge", "-q", "--no-edit", "main")
+    reseal(root, original)
 
 
 class Test_verdicts_of:
@@ -2731,6 +2834,181 @@ class Test_declared_for_this_branch:
         assert code == 0, out
         assert ADD_THE_FILE in out, out
         assert "local mode" not in out, out
+
+
+# --- the routing trailer at the pull request -------------------------------------------
+
+ROUTED = "1792000000-a-routed-item"
+
+
+def commit_saying(d, *paragraphs, env=None):
+    """Every change in D committed with PARAGRAPHS as its message, an empty
+    commit where nothing changed; the new HEAD."""
+    git(d, "add", "-A")
+    message = [a for p in paragraphs for a in ("-m", p)]
+    subprocess.run(
+        ["git", "-C", str(d), "commit", "-q", "--allow-empty", *message],
+        check=True,
+        capture_output=True,
+        env={**os.environ, **(env or {})},
+    )
+    return git(d, "rev-parse", "HEAD")
+
+
+@pytest.fixture
+def undeclared(tmp_path, monkeypatch):
+    """`feature/t`, which no declaration names, judged as a ready pull
+    request: `main` holds one file."""
+    d = tmp_path / "t"
+    init(d)
+    write(d, "f.txt", "one\n")
+    commit(d, "base")
+    git(d, "switch", "-q", "-c", "feature/t")
+    event(tmp_path, monkeypatch, False)
+    return d
+
+
+@pytest.mark.rule("routing-trailer-at-the-pull-request")
+class Test_routing_trailers:
+    def test_refuses_a_commit_naming_a_work_item_no_declaration_names(
+        self, undeclared, tmp_path, monkeypatch, capsys
+    ):
+        """S10: a commit whose `SpecSeal-Routing` trailer names a work item no
+        declaration names fails a ready pull request, naming the commit and
+        the item; one reading `no work item` is printed as a notice; one with
+        no such trailer is not named. A draft prints the same lines and
+        passes."""
+        root = undeclared
+        write(root, "a.txt", "a\n")
+        named = commit_saying(root, "feat: a", f"SpecSeal-Routing: {ROUTED}")
+        write(root, "b.txt", "b\n")
+        none = commit_saying(root, "chore: b", "SpecSeal-Routing: no work item")
+        write(root, "c.txt", "c\n")
+        bare = commit_saying(root, "chore: c")
+        code, out = check(root, capsys)
+        assert code == 1, out
+        lines = out.splitlines()
+        assert chain.UNDECLARED_TRAILER.format(sha=named[:8], item=ROUTED) in lines
+        assert chain.NO_WORK_ITEM_TRAILER.format(sha=none[:8]) in lines
+        assert bare[:8] not in out, out
+        assert chain.UNDECLARED_TRAILER.format(sha="x", item="y") == (
+            "commit x carries `SpecSeal-Routing: y`, and no routing declaration "
+            "this pull request judges names that work item: commit its "
+            "`routing.md`, naming this branch, or correct the trailer"
+        )
+        assert chain.NO_WORK_ITEM_TRAILER.format(sha="x") == (
+            "commit x carries `SpecSeal-Routing: no work item`: its session "
+            "recorded that the change belongs to no work item, and nothing "
+            "here checks it further"
+        )
+        event(tmp_path, monkeypatch, True)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert chain.UNDECLARED_TRAILER.format(sha=named[:8], item=ROUTED) in out
+
+    def test_accepts_a_commit_naming_the_work_item_its_declaration_names(
+        self, branch, ready, capsys
+    ):
+        root, _code = branch
+        commit_saying(root, "chore: e", "SpecSeal-Routing: 1791999999-a-work-item")
+        seal(root)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert "SpecSeal-Routing" not in out, out
+
+    def test_a_teammates_commit_is_never_judged(self, undeclared, capsys):
+        """S11: the harness's co-author trailer, which any Claude Code
+        session carries, is not the session's routing trailer."""
+        root = undeclared
+        write(root, "a.txt", "a\n")
+        commit_saying(
+            root,
+            "feat: a teammate's change",
+            "Co-Authored-By: Claude <noreply@example.com>",
+        )
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert "SpecSeal-Routing" not in out, out
+
+    def test_a_merge_and_a_squash_github_committed_are_not_its_own(
+        self, undeclared, capsys
+    ):
+        """A merge's message is not a commit of the pull request, and a squash
+        GitHub committed was judged at the pull request it closed: its
+        committer is not its author, one case of the rule below."""
+        root = undeclared
+        git(root, "switch", "-q", "-c", "side", "main")
+        write(root, "s.txt", "s\n")
+        commit(root, "side")
+        git(root, "switch", "-q", "feature/t")
+        git(
+            root,
+            "merge",
+            "-q",
+            "--no-ff",
+            "-m",
+            "merge side",
+            "-m",
+            f"SpecSeal-Routing: {ROUTED}",
+            "side",
+        )
+        write(root, "q.txt", "q\n")
+        commit_saying(
+            root, "feat: elsewhere (#7)", f"SpecSeal-Routing: {ROUTED}", env=GITHUB
+        )
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert ROUTED not in out, out
+
+    def test_a_work_item_trailer_at_a_local_root_is_printed_not_refused(
+        self, undeclared, capsys
+    ):
+        """Round 1 of #1027, finding 1: in local mode no declaration is ever
+        committed, so a trailer naming a work item could match none. A ready
+        pull request prints it and passes."""
+        root = undeclared
+        os.makedirs(os.path.join(root, ".git", "seal", "specs", ROUTED))
+        write(root, "a.txt", "a\n")
+        named = commit_saying(root, "feat: a", f"SpecSeal-Routing: {ROUTED}")
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert chain.LOCAL_TRAILER.format(sha=named[:8], item=ROUTED) in out, out
+        assert chain.LOCAL_TRAILER.format(sha="x", item="y") == (
+            "commit x carries `SpecSeal-Routing: y` in a repository whose root "
+            "is local, where no routing declaration is committed for it to "
+            "name: printed, not judged"
+        )
+        assert "commit its `routing.md`" not in out, out
+
+    def test_a_commit_its_author_did_not_commit_is_not_judged(self, undeclared, capsys):
+        """Round 1 of #1027, finding 2: a person's `cherry-pick -x` of a
+        session's commit is the person's commit, carrying a trailer the
+        person did not write. Its committer is not its author, which is how
+        git records every commit somebody else carried, GitHub's squash
+        among them; a session's own commit is committed by its author."""
+        root = undeclared
+        git(root, "switch", "-q", "-c", "session", "main")
+        write(root, "s.txt", "s\n")
+        picked = commit_saying(root, "feat: s", f"SpecSeal-Routing: {ROUTED}")
+        git(root, "switch", "-q", "feature/t")
+        subprocess.run(
+            ["git", "-C", str(root), "cherry-pick", "-x", picked],
+            check=True,
+            capture_output=True,
+            env={**os.environ, "GIT_COMMITTER_EMAIL": "person@example.com"},
+        )
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert ROUTED not in out, out
+
+    def test_refuses_to_run_where_the_commits_cannot_be_read(
+        self, undeclared, capsys, monkeypatch
+    ):
+        monkeypatch.setattr(chain, "routing_trailers", lambda root, base: None)
+        code = chain.main(["--baseline", "main", "--root", str(undeclared)])
+        err = capsys.readouterr().err
+        assert code == 2, err
+        assert "cannot read the commits after main" in err, err
 
 
 # --- main: the arms over a pull request ----------------------------------------------

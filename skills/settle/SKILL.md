@@ -52,16 +52,19 @@ line, indented two spaces:
 |---|---|---|
 | `add` | `file`, `to`; `section` optional | puts `to` at the end of the section's own text, before its first sub-heading. With no `section` it creates `file`, and is refused where `file` exists |
 | `change` | `file`, `section`, `from`, `to` | rewrites `from` where it stands |
-| `remove` | `file`, `section`; `from` optional | deletes `from`, or with no `from` the whole section, up to the next heading of its level or higher |
+| `remove` | `file`, `section`; `from` optional | deletes `from`, or with no `from` the whole section, up to the next heading of its level or higher. A document the removal leaves empty is deleted |
 | `nothing` | `why` | changes no rule, and stands alone in the section |
 
 - `file` is a top-level `.md` file of the policy root, `seal/config.md`'s
   `Policy root` row (`docs` when absent), joined with `/` and holding no `\`
   or `:`. A name that differs from another document's only in case is held,
   because a case-insensitive disk reads the two as one. `section` is a heading's
-  text at any level, and appears once in the file. `from` appears once in
-  the section, compared with runs of whitespace collapsed; every other
-  character, emoji included, is matched as itself.
+  text at any level, and appears once in the file, except in a `remove` with
+  no `from`: where its text names more than one heading and the first one's
+  section holds every other, that outer section is removed, which is how a
+  document whose title and first section read alike is removed whole.
+  `from` appears once in the section, compared with runs of whitespace
+  collapsed; every other character, emoji included, is matched as itself.
 - A value continues on the lines below it indented four spaces, and lands
   with that indent removed. A code span closes on the line that opens it: a
   line that begins inside a span an earlier line opened is refused at its
@@ -220,9 +223,12 @@ The plugin sets no ceiling; a repository states its own.
 ## A settle is not a work item
 
 **A settle opens no directory under `seal/specs/`**: no `routing.md`, no
-frame, no round records, and the routing question is not asked for it. Every
-commit carries `: '[no-review]';` in front of the command, quotes included,
-and what it applied is reviewed at its pull request. It keeps no log: what
+frame, no round records, and the routing question is not asked for it. It
+edits under `seal no-work-item`, run on the branch the settle is made on.
+Where the root is shared, its commits carry
+`SpecSeal-Routing: no work item` as their trailer
+(`skills/commit-pr-convention/SKILL.md`). What it applied is reviewed at
+its pull request. It keeps no log: what
 changed is the diff, and the removed specs are in git history. A settle that
 opened a work item would leave a directory for the next settle to remove, and
 settling would never end.

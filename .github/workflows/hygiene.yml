@@ -166,10 +166,14 @@ jobs:
       # round. Recording the answer lets it stay quiet, and that is only
       # allowed because the check moved here rather than disappearing.
       #
-      # It never fails for a pull request that declared NOTHING, for the same
-      # reasoning the step above gives for an honest open row: a build that
-      # goes red for one teaches people to write none. On a pull request that
-      # is not a draft it fails for what the author can fix: a declaration
+      # A pull request that declared NOTHING fails only where one of its own
+      # commits carries a `SpecSeal-Routing` trailer naming a work item. A
+      # commit with no such trailer, a teammate's among them, is not judged,
+      # for the same reasoning the step above gives for an honest open row:
+      # a build that goes red for what nobody claimed teaches people to
+      # claim nothing. On a pull request that is not a draft it fails for
+      # what the author can fix: a trailer naming a work item no judged
+      # declaration names, a declaration
       # that says "through the review chain" with no committed round record, a
       # declaration that cannot be read, a work item `spec.md` whose
       # `## Rule changes` does not parse, where the work item is judged or

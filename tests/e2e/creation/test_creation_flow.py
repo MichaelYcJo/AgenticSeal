@@ -1,17 +1,17 @@
-"""The creation flow: a worktree creation is judged before git runs, in a clone
-carrying this plugin's git hooks too (#692, `questions.md` P6, answer (a)).
+"""The creation flow: a worktree creation is judged before git runs (#692,
+`questions.md` P6, answer (a)).
 
 Round 1 found that taking a creation back after git made it cannot undo what
 the creation did on the way: `-B` resets an existing branch before any hook
 runs, `--no-checkout` and `--orphan` run no `post-checkout` at all, `--lock`
 leaves a tree one `--force` cannot remove, and a Bash creation naming
 `.claude/worktrees/` bought the session's consent. The owner's answer is the
-switch arm's: 0.16.0's reading decides before the command runs, wherever the
-clone's hooks are.
+switch arm's: 0.16.0's reading decides before the command runs. Since #1027
+no hook of this plugin runs inside git at all.
 
 Each case is what the harness does with one Bash call -- `pre-bash`, the
-command only if nothing denied or asked, then `post-bash` -- in a real clone
-the installer has written its stubs into. The oracle is the world afterwards:
+command only if nothing denied or asked, then `post-bash` -- in a real
+clone. The oracle is the world afterwards:
 a branch's tip, a directory on disk, the consent record. Never what a reading
 said. The flow starts where the harness hands the call over, at
 `hooks/dispatch.py`. The cases come from
@@ -29,7 +29,6 @@ import pytest
 from conftest import (
     ask_entries,
     census_case,
-    load_hook_module,
     ps_names_the_parent_or_skip,
     q,
     symlink_or_skip,
@@ -46,14 +45,8 @@ GUARD_COUNT_NEEDS_PS = (
 )
 
 HOOKS = Path(__file__).resolve().parents[3] / "hooks"
-install_mod = load_hook_module("hook-install.py", "hook_install_for_creation")
-
 BASH = shutil.which("bash")
-# The stubs are the subject of every case here, so each case installs them.
-pytestmark = [
-    pytest.mark.skipif(BASH is None, reason="no bash to run commands in"),
-    pytest.mark.usefixtures("git_hooks_installed"),
-]
+pytestmark = [pytest.mark.skipif(BASH is None, reason="no bash to run commands in")]
 SESSION = "s-create"
 
 
@@ -102,8 +95,6 @@ class Clone:
         self.git("add", "f.txt")
         self.git("commit", "-q", "-m", "existing's own")
         self.git("switch", "-q", "main")
-        assert install_mod.install(str(self.top), "installer")
-        assert (self.top / ".git" / "hooks" / "pre-commit").is_file()
 
     def git(self, *args):
         return subprocess.run(
@@ -137,8 +128,8 @@ class Clone:
         second creation met the single-stream refusal, while in CI, with no
         `claude` anywhere, the count was unusable and the same creation met
         the confirmation prompt instead (#692, after the chain: CI run
-        36965695916). A symlink to bash, so `ps` names it `claude`, for the
-        reasons `tests/e2e/commit/test_commit_flow.py#fake_claude` gives."""
+        36965695916). A symlink to bash, so `ps` names it `claude`: the guard
+        reads the executable's name and nothing else."""
         link = self.tmp / "bin" / "claude"
         if not link.exists():
             link.parent.mkdir(exist_ok=True)

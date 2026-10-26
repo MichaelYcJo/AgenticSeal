@@ -476,6 +476,34 @@ class Test_parse:
         assert all(omitted.values()), omitted
 
 
+class Test_record_no_work_item:
+    def test_accepts_a_branch_into_the_empty_record_an_earlier_build_left(
+        self, tmp_path
+    ):
+        """The record the build at `126ee7b5` wrote is an empty file. It names
+        no branch, so it lets nothing through, and a run on a branch adds
+        that branch as its first line."""
+        common = str(tmp_path)
+        path = os.path.join(common, routing.NO_WORK_ITEM, "s1")
+        os.makedirs(os.path.dirname(path))
+        with open(path, "w", encoding="utf-8"):
+            pass
+        assert routing.no_work_item(common, "s1", "main") is False
+        assert routing.record_no_work_item(common, "s1", "main") == path
+        with open(path, encoding="utf-8", newline="") as f:
+            assert f.read() == "main\n"
+        assert routing.no_work_item(common, "s1", "main") is True
+
+    def test_refuses_no_branch_and_writes_nothing(self, tmp_path):
+        """A detached HEAD outside a paused rebase names no branch, and no
+        branch is never recorded, so the record's directory is not even
+        made. `tests/test_seal.py` *Test_no_work_item* holds what a run with
+        a branch writes."""
+        assert routing.record_no_work_item(str(tmp_path), "s1", "") == ""
+        assert not os.path.exists(tmp_path / routing.NO_WORK_ITEM)
+        assert routing.no_work_item(str(tmp_path), "s1", "") is False
+
+
 class Test_module:
     def test_the_template_and_the_committed_declarations_still_parse(self):
         """R10's floor, S11. `templates/sdd-routing.md` carries its table and a

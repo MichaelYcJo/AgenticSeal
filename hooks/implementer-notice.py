@@ -13,7 +13,7 @@ the commonest state there is — a declaration copied from the template and
 answered on both optional rows, by a session that then framed and built the
 work itself.
 
-**Why here and not at the commit gate.** A `PreToolUse` gate that allows
+**Why after the call and not before it.** A `PreToolUse` gate that allows
 produces no output — allowing IS silence, and there is no spelling for "let
 this through and also say something". A notice emitted from there would be a
 notice nobody sees. `PostToolUse` is the nearest site whose output is read, and
@@ -26,9 +26,10 @@ records that this session has been told here; a second commit says nothing, and
 an unwritable marker counts as already told — one missed reminder beats a line
 printed after every commit for the rest of a session.
 
-**Which repository.** The session's own, resolved from `cwd`. A commit aimed at another repository with
-`git -C` is not judged here: following it would mean re-deriving every target
-the commit gate derives, to decide whether to print one line.
+**Which repository.** The session's own, resolved from `cwd`. A commit aimed
+at another repository with `git -C` is not judged here: following it would
+mean deriving every target a shell could reach, to decide whether to print
+one line.
 
 Reminder-only (PostToolUse cannot block). Active only in repositories with
 `seal/` at the root.
@@ -40,7 +41,6 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import console
-import githooks
 import implementer
 import optin
 import routing
@@ -105,10 +105,9 @@ def commits(command):
 
     Borrowed from `cmdline` rather than matched with a regex, so that a
     heredoc line or a comment mentioning `git commit` does not produce a
-    reminder about work nobody committed. The deeper forms the commit gate
-    chases — an `eval` argument, a body an interpreter runs from stdin — are
-    deliberately not chased here: missing one costs a reminder, and the gate
-    that has to be right about them is the one that can stop a commit.
+    reminder about work nobody committed. The deeper forms -- an `eval`
+    argument, a body an interpreter runs from stdin -- are deliberately not
+    chased: missing one costs a reminder, never a stop.
     """
     segments, _clean = split_segments(drop_heredoc_bodies(drop_comments(command)))
     for tokens in segments:
@@ -142,12 +141,8 @@ def already_told(cwd, session):
 
 
 def notify(cwd, session):
-    """The one line for a commit that happened in `cwd`, or "".
-
-    Called by `hooks/git/post-commit.py`, where git running the hook is the
-    fact that a commit happened, in the worktree it landed in (#692), and by
-    `main` below for a clone whose hooks slot is foreign.
-    """
+    """The one line for a commit that happened in `cwd`, or "", for `main`
+    below after a Bash call that commits."""
     top = optin.repo_root(cwd)
     if not top or not optin.opted_in(cwd):
         return ""
@@ -186,10 +181,6 @@ def main():
         return
 
     cwd = payload.get("cwd") or "."
-    # Where this plugin's git hooks run, `post-commit` says this line for the
-    # commit git actually made, so the reading of the command stands aside.
-    if githooks.decides(optin.repo_root(cwd)):
-        return
     said = notify(cwd, payload.get("session_id"))
     if said:
         print(said)

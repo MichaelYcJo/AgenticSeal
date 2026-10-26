@@ -1,10 +1,8 @@
 """`hooks/hooksession.py`: which process is the session's `claude`.
 
-The lease writer, the commit gate's lease route and the worktree guard's
-count all ask this module which pid is the session's. The cases come from
-`tests/test_lease_liveness.py` by way of `tests/test_session_lease.py`
-(#942's phase 6). The commit flow keeps the scenarios that read a lease back
-through `from_lease` and `session`.
+The lease writer and the worktree guard's count both ask this module which
+pid is the session's. The cases come from `tests/test_lease_liveness.py` by
+way of `tests/test_session_lease.py` (#942's phase 6).
 """
 
 import os
@@ -27,8 +25,7 @@ class Test_claude_pid:
         /bin/zsh, with claude two levels up. Recording getppid() would name a
         process that dies constantly, and every dead shell would retire a live
         session's lease. The lease writer's own walk (`owner_pid`) left with #868;
-        it asks `hooks/hooksession.py#claude_pid`, the reader the commit gate's
-        lease route asks too."""
+        it asks `hooks/hooksession.py#claude_pid`."""
         import hooksession
 
         stub_process_tree(monkeypatch, 100, {100: (50, "/bin/zsh"), 50: (1, "claude")})

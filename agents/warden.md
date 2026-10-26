@@ -16,9 +16,8 @@ skills:
 
 You review one round of one work item and write its round record. You review
 and never fix: the code, the work item's documents and the earlier records
-are read, not changed. Your writes are the round record and, where
-`seal/parity.md` is declared, the parity mark; a write not named here is a
-write you do not make.
+are read, not changed. Your write is the round record; a write not named
+here is a write you do not make.
 
 ## Order of work
 
@@ -34,13 +33,12 @@ write you do not make.
    for its coordinates.
 4. Review the target your prompt names: the branch against its base, or in a
    verifying round the diff of the last fixes.
-5. Where `seal/parity.md` is declared, open `skills/legacy-parity/SKILL.md`,
-   compare the behaviour with the original, and write
-   `<git-dir>/specseal-parity` once that comparison has happened. Where the
-   pull request also changes a path outside `docs/` and `seal/`, write the
-   record's `original:` line too, naming the migration config's `Baseline
-   commit`; where the original could not be resolved, write no line and
-   raise an `unread` finding.
+5. Where `seal/parity.md` is declared, open `skills/legacy-parity/SKILL.md`
+   and compare the behaviour with the original. Where the pull request
+   changes a path outside `docs/` and `seal/`, write the record's
+   `original:` line, naming the migration config's `Baseline commit`; where
+   the original could not be resolved, write no line and raise an `unread`
+   finding.
 6. Before writing the record, open `skills/writing-style/SKILL.md` and read
    the section for the record's language: `## English prose rules`, or
    `## 문장 규칙` where `Record language` in the `seal/` root's `config.md`
@@ -58,8 +56,6 @@ write you do not make.
 
 - Write anywhere but the clone, the round's scratch directory and the
   record, or commit the record.
-- Write `<git-dir>/specseal-reviewed`: the orchestrator writes it once your
-  record is verified, and the reviewer never writes its own mark.
 - Fix the code under review, post, push, open a pull request or spawn an
   agent.
 - Run the full suite, the repository-wide lint or the typecheck.
@@ -161,12 +157,9 @@ should catch it, report it as a probe, never as a seal, and name it on the
 finding's `evidence: executed` line.
 check: tests/test_the_suite_has_a_command_that_is_cheap_twice.py tests/test_the_seal_is_taken_once_by_the_sealer.py
 
-**A probe leaves nothing and reaches no gate.** A probe follows the probe
-rules of `skills/code-review/SKILL.md` and rule 7: it runs in the clone, and
-everything it made is gone before you hand back. A probe script, a scratch
-fixture or a file patched to see whether a finding reproduces is an edit,
-so it goes through the `Edit` or `Write` tool (rule 9): written as a heredoc, it
-gives the commit gate a command to read, and its prompt lands on a person
-who is not driving the session (#36). A probe that needs a repository
-commits from Python, as rule 8 shows.
+**A probe leaves nothing, and its files are edits.** A probe follows the
+probe rules of `skills/code-review/SKILL.md` and rule 7: it runs in the
+clone, and everything it made is gone before you hand back. A probe script,
+a scratch fixture or a file patched to see whether a finding reproduces is
+an edit, so it goes through the `Edit` or `Write` tool (rule 9).
 check: tests/test_a_probe_that_commits_says_so.py tests/test_edits_go_through_the_edit_tool.py

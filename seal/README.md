@@ -43,7 +43,7 @@ themselves. `seal export` zips this root alone; `seal import` merges a zip
 back and never overwrites a file, so a name already here keeps its bytes and
 the incoming copy lands beside it as `<name>.incoming<ext>`. What sits
 *beside* this root under the git directory is what must not travel: the
-smith mark, the worktree choices, the review and parity marks, any lease, and
+smith mark, the worktree choices, any lease, and
 the last export's manifest at `specseal-last-export.json`. The export walks
 this directory and nothing else, which is why the root has to be its own.
 

@@ -3060,7 +3060,7 @@ def gate(args, ascii_marks=False):
     # and — the file being in the working tree while CI reads HEAD (#666) —
     # the line saying so, only where git still sees it uncommitted. Nothing
     # is drawn and no values file is written: the stamp is the sealer's,
-    # queued at the commit of a `guarantee.md` reading `sealed`.
+    # queued at the write of a `guarantee.md` reading `sealed`.
     names = stamp_module().sealed_names(tree, base.commit, branch, base.ref)
     lines = [GATE_PASSED.format(names=names)]
     lines += report_lines(rows, ascii_marks=args.shape or ascii_marks)

@@ -135,6 +135,31 @@ so the two cannot be in different languages without one of them being wrong
 at the merge. That is why one row answers for all four surfaces rather than
 one row each.
 
+**A session's commit in a repository whose root is shared (`<repo>/seal/`)
+ends with one `SpecSeal-Routing:` trailer, naming its work item or reading
+`no work item`.** In local mode a commit carries none: no declaration it
+could name is ever committed, and the history belongs to a team that does
+not run SpecSeal; `chain-check` prints a work item's trailer it meets there
+and judges none. The work item is its directory's name under `seal/specs/`, the one
+the branch's `routing.md` sits in; `no work item` is the value where the
+session ran `seal no-work-item` on the branch. The trailer stands in the message's last
+paragraph, beside any other trailer, so git's trailer parser reads it:
+
+```
+feat: the edit check refuses an undeclared branch
+
+SpecSeal-Routing: 1792935671-the-routing-check-moves-to-the-sessions-tools
+Co-Authored-By: <the harness's co-author line>
+```
+
+The value is a field, not prose, so it stays as spelt in every language. It
+tells a session's commit from a person's: the harness's co-author trailer is
+carried by any Claude Code session, a teammate's who does not use this plugin
+included, and a person's own commit carries neither. `chain-check` fails a
+ready pull request whose commit names a work item no declaration it judges
+names, and does not judge a commit with no such trailer
+(`docs/the-routing-check.md` *At the pull request*).
+
 ## Pull request titles
 
 **The same prefix vocabulary as the commits, and the same language.**

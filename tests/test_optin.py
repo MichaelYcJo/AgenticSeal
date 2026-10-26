@@ -531,9 +531,16 @@ class Test_module:
     ):
         repo, home = local
         (repo / ".git" / "specseal-scratch").write_text("", encoding="utf-8")
+        # Before any declaration, where the edit gate would otherwise refuse.
+        edit = {
+            "tool_name": "Edit",
+            "session_id": "s1",
+            "tool_input": {"file_path": str(repo / "a.py")},
+            "cwd": str(repo),
+        }
+        assert decision_of(run_hook("routing-edit-gate.py", edit)) == "silent"
         declare_smith(repo, home)
 
-        assert decision_of(run_hook("commit-review-gate.py", bash(repo))) == "silent"
         assert (
             decision_of(
                 run_hook(

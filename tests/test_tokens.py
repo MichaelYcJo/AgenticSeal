@@ -2,8 +2,8 @@
 
 The bare-word case came from `tests/test_the_old_spellings_reach_the_hook.py`
 (#942's phase 6), with `TOKEN_CASES`, which that file's three-reads case still
-reads as one of its corpora. How the commit gate and the worktree guard read a
-token through this module is each gate's own file's.
+reads as one of its corpora. How the worktree guard reads a token through
+this module is that gate's own file's.
 
 `Test_module`'s S6 came from
 `tests/test_one_heredoc_shape_is_data_to_the_commit_gate.py` (#942's phase
@@ -12,6 +12,7 @@ waiver inside a here-document body is data, and neither read honours a token
 the base read did not (#773).
 """
 
+import shlex
 import sys
 
 import pytest
@@ -22,34 +23,37 @@ TARGET = "hooks/tokens.py"
 # `tokens` imports `hooksession` by its plain name, as the hooks do.
 sys.path.insert(0, HOOKS)
 tokens = load_hook_module("tokens.py", "tokens_under_test")
-gate = load_hook_module("commit-review-gate.py", "crg_one_heredoc")
+cmdline = load_hook_module("cmdline.py", "cmdline_for_the_base_reads")
 
 TOKEN_CASES = (
     [
-        (": '[no-review]'; git commit -m x", ("[no-review]",)),
+        (": '[worktree-ok]'; git commit -m x", ("[worktree-ok]",)),
         ("git worktree add ../wt f  # [worktree-ok]", ("[worktree-ok]",)),
         ("(git worktree add ../wt f [worktree-ok])", ("[worktree-ok]",)),
         (
-            ": '[no-review]' '[no-parity]'; git commit -m x",
-            ("[no-review]", "[no-parity]"),
+            ": '[worktree-ok]' '[shared-tree-ok]'; git commit -m x",
+            ("[worktree-ok]", "[shared-tree-ok]"),
         ),
-        ('git commit -m "drop [no-review] later"', ()),
-        ("git commit -m x[no-review]", ()),
-        ("echo 'it''s [no-review]", ()),
+        ('git commit -m "drop [worktree-ok] later"', ()),
+        ("git commit -m x[worktree-ok]", ()),
+        ("echo 'it''s [worktree-ok]", ()),
         ("git commit -m x", ()),
         # #773, S4: a here-document body is data. Red at `94d7b2e0` for the
         # two body rows; the rest are green there and stay green.
         (
-            "python3 - <<'EOF'\nnote = \"[no-review]\"\nEOF\ngit -C ../r commit -m x",
+            "python3 - <<'EOF'\nnote = \"[worktree-ok]\"\nEOF\ngit -C ../r commit -m x",
             (),
         ),
-        ("cat > f <<EOF\n[no-review]\nEOF\ngit -C ../r commit -m x", ()),
+        ("cat > f <<EOF\n[worktree-ok]\nEOF\ngit -C ../r commit -m x", ()),
         (
-            ": '[no-review]'; cat > f <<EOF\nbody\nEOF\ngit commit -m x",
-            ("[no-review]",),
+            ": '[worktree-ok]'; cat > f <<EOF\nbody\nEOF\ngit commit -m x",
+            ("[worktree-ok]",),
         ),
-        ("cat > f <<EOF\nbody\nEOF\ngit commit -m x  # [no-review]", ("[no-review]",)),
-        ('cat <<EOF\n"\nEOF\necho [no-review] "\n"', ()),
+        (
+            "cat > f <<EOF\nbody\nEOF\ngit commit -m x  # [worktree-ok]",
+            ("[worktree-ok]",),
+        ),
+        ('cat <<EOF\n"\nEOF\necho [worktree-ok] "\n"', ()),
         (None, ()),
         # #868, phase 1 of work item 1791384157: the words read before a split
         # fails are read, so the documented comment form with an apostrophe
@@ -60,11 +64,11 @@ TOKEN_CASES = (
             ("[shared-tree-ok]",),
         ),
         (
-            ": '[no-review]'; git commit -q -m x\ncat > f <<'EOF'\nit's\nEOF",
-            ("[no-review]",),
+            ": '[worktree-ok]'; git commit -q -m x\ncat > f <<'EOF'\nit's\nEOF",
+            ("[worktree-ok]",),
         ),
         ("git status  # it's [worktree-ok]", ()),
-        ("git commit -m 'x [no-review]", ()),
+        ("git commit -m 'x [worktree-ok]", ()),
     ],
     [
         "the no-op form",
@@ -92,12 +96,12 @@ TOKEN_CASES = (
 # --- #773: a waiver inside a here-document body is data -----------------------
 #
 # Work item `1791119070-a-waiver-inside-a-here-document-body-is-data`,
-# scenario S6. Both consent reads, `has_marker` and `hooks/tokens.py#given`
-# for the git hook, read the command without its here-document bodies, and
-# only where the base read also found the token. Each command is built from
-# named parts -- the opener, the body, the suffix -- and is never run.
+# scenario S6. The consent read, `hooks/tokens.py#given`, reads the command
+# without its here-document bodies, and only where the base read also found
+# the token. Each command is built from named parts -- the opener, the body,
+# the suffix -- and is never run.
 
-WAIVER = "[no-review]"
+WAIVER = "[worktree-ok]"
 
 
 def commit_into(repo):
@@ -138,7 +142,8 @@ DOCUMENTED = {
         "python3 - <<'EOF'\nprint(1)\nEOF\n{commit}  # {w}"
     ),
     # #868: an apostrophe AFTER the token in its comment keeps it; one before
-    # it is `tests/test_commit_review_gate.py::Test_has_marker`'s refusal.
+    # it reads nothing, `TOKEN_CASES`' "a comment whose apostrophe comes
+    # before the token".
     "a trailing comment with an apostrophe after the waiver": (
         "cat > {scratch} <<EOF\nbody\nEOF\n{commit}  # {w} -- it's a probe"
     ),
@@ -160,35 +165,44 @@ def s5_shell_body(target, in_front=False):
     return f"bash <<EOF\n: '{WAIVER}'; {commit}\nEOF\n"
 
 
-# Two commands where taking the body out turns the raw text's split around, so
+# A command where taking the body out turns the raw text's split around, so
 # the read without bodies finds the token where the base read did not
-# (`plan.md` alternative F). Neither is a command a shell would run; each is
-# here because the AND is the only thing that refuses it.
-#   * the body's lone `"` quotes the token in the raw text; without the body,
-#     the quote after the token never closes and the substring fallback reads
-#     it (has_marker's half);
-#   * the raw text never closes its last quote and reads nothing; without the
-#     body, every quote closes and the token is a bare word (given's half).
+# (`plan.md` alternative F). It is no command a shell would run, and it is
+# here because the AND is the only thing that refuses it: the raw text never
+# closes its last quote and reads nothing; without the body, every quote
+# closes and the token is a bare word.
 NEWLY_READ = {
-    "has_marker": f'cat <<EOF\n"\nEOF\necho {WAIVER} "',
     "given": f'cat <<EOF\n"\nEOF\necho {WAIVER} "\n"',
 }
 
 
 def base_marker(command):
-    """`has_marker` as it stood at `94d7b2e0`: the strict scan over the raw
-    command where it splits cleanly, the substring test where it does not."""
-    segments, clean = gate.split_segments(command)
+    """The commit gate's `has_marker` as it stood at `94d7b2e0`: the strict
+    scan over the raw command where it splits cleanly, the substring test
+    where it does not. Half of the base `given` is held against."""
+    segments, clean = cmdline.split_segments(command)
     if not clean:
         return WAIVER in command
     return any(tok == WAIVER for toks in segments for tok in toks)
 
 
+def base_words(command):
+    """Every bare word of `command`, comments included, () for one that does
+    not split: the split `given` read at `94d7b2e0`."""
+    lexer = shlex.shlex(command or "", posix=True, punctuation_chars=";&|<>")
+    lexer.commenters = ""
+    lexer.whitespace_split = True
+    try:
+        return tuple(lexer)
+    except ValueError:
+        return ()
+
+
 def base_given(command):
     """`tokens.given` as it stood at `94d7b2e0`: the bare words of the raw
     command."""
-    found = {w.strip("()") for w in gate.tokens.words(command)}
-    return {t for t in gate.tokens.KNOWN if t in found}
+    found = {w.strip("()") for w in base_words(command)}
+    return {t for t in tokens.KNOWN if t in found}
 
 
 def every_case(tmp_path):
@@ -212,24 +226,21 @@ class Test_module:
     @pytest.mark.rule("how-a-stop-is-put")
     @pytest.mark.rule("executed-text-is-read")
     def test_s6_neither_read_honours_a_token_the_base_did_not(self, tmp_path):
-        """S6. For every command above, each read finds a token only where the
-        base read found it. `NEWLY_READ` turns red the moment either read drops
+        """S6. For every command above, the read finds a token only where a
+        base read found it. `NEWLY_READ` turns red the moment the read drops
         the AND with its base read; the rest are green at `94d7b2e0` by
         definition.
 
-        Since #868 the two reads are one (`has_marker` is `tokens.given`), and
-        it reads the words before a split fails, so its base is the two base
-        reads together: it finds a token only where one of them did. The
-        documented comment with an apostrophe after the waiver is the case the
-        strict base `given` refused and `has_marker` read."""
+        Since #868 the two reads were one, and it reads the words before a
+        split fails, so its base is the two base reads together: it finds a
+        token only where one of them did. The documented comment with an
+        apostrophe after the waiver is the case the strict base `given`
+        refused and the commit gate's `has_marker` read."""
         for command in every_case(tmp_path):
             bases = base_given(command) | ({WAIVER} if base_marker(command) else set())
-            assert not gate.has_marker(command, WAIVER) or base_marker(command), command
-            assert set(gate.tokens.given(command)) <= bases, command
-        assert not base_marker(NEWLY_READ["has_marker"])
-        assert not gate.has_marker(NEWLY_READ["has_marker"], WAIVER)
+            assert set(tokens.given(command)) <= bases, command
         assert not base_given(NEWLY_READ["given"])
-        assert gate.tokens.given(NEWLY_READ["given"]) == ()
+        assert tokens.given(NEWLY_READ["given"]) == ()
 
 
 test_census = census_case(TARGET)

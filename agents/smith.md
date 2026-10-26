@@ -128,12 +128,6 @@ question. Three returns through the broad gate read the same way: a fourth
 says the narrow scope misses a class of breakage.
 check: tests/test_a_moved_rule_leaves_its_definition.py
 
-**The waiver is one command's.** For a change belonging to no work item,
-`: '[no-review]'; git commit …` (with `[no-parity]` where a migration config
-is declared) or `git -c specseal.waive=review commit …` waives one command,
-and it is the last way past the gate and never the first.
-check: tests/test_a_moved_rule_leaves_its_definition.py
-
 **Find the runner, and type the narrow form.** A wrapper in `bin/`, or
 whatever the contribution guide names first, is cheap on the second call;
 run one module at a time (`docs/the-review-record.md` *The handoff*).

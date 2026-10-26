@@ -82,7 +82,7 @@ def test_the_start_is_the_moment_before_the_first_edit():
 
 
 GRAINS = {
-    "commit-review-gate": "once per session per repo",
+    "mode-gate": "once per session per repo",
     "review-skill-gate": "once per session per working tree",
     "worktree-guard": "once per session per repository per direction",
 }
@@ -107,14 +107,6 @@ def test_the_korean_readme_states_the_same_grains():
         "세션·레포·방향당 한 번",
     ):
         assert grain in ko, grain
-
-
-def test_the_per_command_marker_says_per_command_in_both_readmes():
-    """`[no-review]` waives ONE command. Spelled `once`, it read as once per
-    session, which is a waiver nobody built."""
-    assert "for **that one command**" in read("README.md")
-    assert "**그 명령 하나만**" in read("README.ko.md")
-    assert "skips the review gate once" not in read("README.md")
 
 
 def test_the_worktree_spec_is_still_the_model():
@@ -233,7 +225,6 @@ SEAL_SWEPT = (
     # stamp it is, so they are swept too.
     ("hooks", "sealer-stamp.py"),
     ("hooks", "dispatch.py"),
-    ("hooks", "commitgate.py"),
     ("bin", "seal-stamp"),
     ("bin", "broad-gate"),
     ("docs", "the-broad-gate.md"),
@@ -294,12 +285,11 @@ def test_the_owner_states_that_one_seal_is_final():
 
 
 def test_the_two_definitions_name_what_they_actually_keep():
-    """`agents/warden.md` called `<git-dir>/specseal-reviewed`, the mark that
-    a review happened, the seal. The warden names that file as the
-    reviewer's own mark, which it never writes, and claims no seal."""
+    """`agents/warden.md` once called `<git-dir>/specseal-reviewed`, the mark
+    that a review happened, the seal. #1027 removed the mark with the commit
+    gate that read it; the warden names neither, and claims no seal."""
     warden = flat("agents", "warden.md")
-    assert "Write `<git-dir>/specseal-reviewed`" in warden
-    assert "the reviewer never writes its own mark" in warden
+    assert "specseal-reviewed" not in warden
     assert "You keep the seal:" not in warden, (
         "the opening claims a word the sealer's definition claims two files "
         "over, and a reader opens them together"
@@ -660,7 +650,8 @@ def test_folding_the_seam_cannot_hide_an_instance_it_would_have_found():
     closed set and not a short list of examples — and because the closure
     rests on the member lists, it stops holding the moment a `.py` member
     joins a sweep. So the members are pinned below too. #975 added the third
-    sweep, `GATE_PHRASES` over `GATE_SWEPT`, and three hooks to `SEAL_SWEPT`.
+    sweep, `GATE_PHRASES` over `GATE_SWEPT`, and three hooks to `SEAL_SWEPT`;
+    #1027 took one of them, `hooks/commitgate.py`, out with the file.
 
     WHAT THIS CASE STILL CANNOT SEE: whether a phrase was added to a sweep
     without going through the constants. See `SEAL_BARE`'s comment for why
@@ -685,7 +676,6 @@ def test_folding_the_seam_cannot_hide_an_instance_it_would_have_found():
         "tests/test_session_cost.py",
         "hooks/sealer-stamp.py",
         "hooks/dispatch.py",
-        "hooks/commitgate.py",
     }, (
         "the set of members `flat` folds has moved, so the closure this case "
         "rests on has to be re-taken: every phrase the sweep over "

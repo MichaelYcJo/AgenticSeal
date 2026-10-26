@@ -1312,7 +1312,12 @@ def settled(root, ref, directories, here=None):
     documents, applied, _ = rules.replay(
         lambda rel: _text_at(root, ref, rel), [(d, pending[d]) for d in ordered], {}
     )
-    replayed = list({**policy_documents(root, ref, policy), **documents}.values())
+    # A document the replay deleted is None there, and counts nothing.
+    replayed = [
+        t
+        for t in {**policy_documents(root, ref, policy), **documents}.values()
+        if t is not None
+    ]
     now = list(policy_documents(root, here, policy).values())
 
     def count(text, texts):

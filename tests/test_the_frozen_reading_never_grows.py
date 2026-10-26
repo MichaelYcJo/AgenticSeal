@@ -73,17 +73,15 @@ def test_only_the_two_fallback_arms_read_it():
     assert readers == ["hooks/worktree-guard.py", "hooks/worktree_consent.py"]
 
 
-# --- S10: the switch is judged by the guard where git decides the commits -----
+# --- S10: the switch is judged by the guard -------------------------------------
 
-guard = load_hook_module("worktree-guard.py", "guard_beside_the_git_hooks")
-install_mod = load_hook_module("hook-install.py", "hook_install_beside_the_switch")
+guard = load_hook_module("worktree-guard.py", "guard_for_the_switch")
 
 
-def test_s10_a_switch_in_a_git_decided_clone_is_still_judged_by_the_guard(
-    tmp_path, monkeypatch, capsys, git_hooks_installed
-):
-    """The stubs judge commits and creations; a switch has no hook that can
-    refuse it before the tree moves, so the guard's reading stands there."""
+def test_s10_a_switch_is_judged_by_the_guard(tmp_path, monkeypatch, capsys):
+    """A switch has no git hook that can refuse it before the tree moves, so
+    the guard's reading stands there. The case once ran in a clone carrying
+    this plugin's git hooks; since #1027 no clone carries them."""
     env = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
     env.update(
         HOME=str(tmp_path / "home"),
@@ -114,11 +112,6 @@ def test_s10_a_switch_in_a_git_decided_clone_is_still_judged_by_the_guard(
     g("add", ".")
     g("commit", "-q", "-m", "init")
     g("branch", "other")
-    assert install_mod.install(str(r), "s1")
-    sys.path.insert(0, str(ROOT / "hooks"))
-    import githooks
-
-    assert githooks.decides(str(r))
     (r / "f.py").write_text("a = 2\n", encoding="utf-8")
     monkeypatch.setattr(guard, "sessions_in_tree", lambda top, own="": ([], [], True))
     payload = {

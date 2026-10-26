@@ -78,46 +78,28 @@ CLOSING = (
 )
 
 GROUPS = {
-    # The installer goes first: a stub that went missing or stale is back
-    # before the command runs, and the gates after it ask whether git decides
-    # in the clone they are about to judge (`hooks/githooks.py#decides`).
-    #
-    # `answer-write.py` hands the old consent tokens to those hooks (P3), and
-    # `answer-clear.py` in `post-bash` takes them back when the call is over.
-    "pre-bash": (
-        "hook-install.py",
-        "answer-write.py",
-        "commit-review-gate.py",
-        "worktree-guard.py",
-        "mode-gate.py",
-    ),
+    "pre-bash": ("worktree-guard.py", "mode-gate.py"),
     "pre-agent": ("worktree-guard.py", "implementer-mark.py"),
     "pre-skill": ("review-skill-gate.py",),
     "pre-question": ("question-gate.py",),
-    "post-bash": (
-        "implementer-notice.py",
-        "session-lease.py",
-        "worktree_consent.py",
-        "answer-clear.py",
-    ),
+    # The routing check at the edit tools: the first edit on a branch no
+    # `routing.md` names is refused (#1027).
+    "pre-edit": ("routing-edit-gate.py",),
+    "post-bash": ("implementer-notice.py", "session-lease.py", "worktree_consent.py"),
     # The AFTER half of the worktree guard, and the only group that exists for
     # one gate. It cannot join `pre-agent`: what it records is that the call
     # RAN, which is the whole of why the record is evidence a command text
     # cannot forge.
     "post-agent": ("worktree_consent.py",),
-    # `sealer-stamp-queue.py` queues a local-mode stamp at the write of its
-    # `sealed` guarantee, which no commit carries (work item 1792363231);
+    # `sealer-stamp-queue.py` queues a work item's stamp at the write of its
+    # `sealed` guarantee, under either root (work item 1792363231, #1027);
     # `sealer-stamp.py` in `stop` draws it.
     "post-edit": ("lint-python.py", "session-lease.py", "sealer-stamp-queue.py"),
-    # The git hooks are installed last, into the root the migration above may
-    # just have moved.
-    "session-start": (
-        "version-check.py",
-        "root-migrate.py",
-        "hook-install.py",
-    ),
+    # The git hook stubs an earlier release wrote are taken out of the clone
+    # the session starts in (#1027).
+    "session-start": ("version-check.py", "root-migrate.py", "stub-remove.py"),
     # The end of a main-session turn, where the stamp a `sealed` guarantee's
-    # commit queued is drawn after the text it belongs under (#400, #975).
+    # write queued is drawn after the text it belongs under (#400, #975).
     # One gate, like `post-agent`,
     # because nothing else here has anything to say when a turn ends.
     "stop": ("sealer-stamp.py",),
@@ -259,8 +241,8 @@ def merge(outputs, event_name):
                 ),
             }
         }
-        # A gate that only says something -- `hook-install.py`'s once-per-session
-        # line -- is kept beside a neighbour's decision rather than dropped by
+        # A gate that only says something -- a line said once per session --
+        # is kept beside a neighbour's decision rather than dropped by
         # it: the line is said once, so dropping it once loses it.
         said = [
             j["systemMessage"]
