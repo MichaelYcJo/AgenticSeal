@@ -2,9 +2,11 @@
 
 The grammar of a spec's `## Rule changes` is `skills/settle/SKILL.md` *Rule
 changes*, and this module is its one reader (#953). `Test_parse` asks the
-reader directly; `Test_replay` replays specs over one document in memory.
-Merge order is a fact only git holds, so the cases that read it run
-`settle` over a repository and are in `tests/test_settle.py`.
+reader directly; `Test_section_lines` and `Test_group` read the places a
+settle shows over one document in memory (#1033); `Test_replay` replays
+specs over one document in memory. Merge order and the ancestry `unordered`
+reads are facts only git holds, so the cases that read them run `settle`
+over a repository and are in `tests/test_settle.py`.
 
 #942's phase 6 placed these cases from
 `tests/test_settle_applies_rule_changes_in_place.py`, which keeps the case
@@ -368,6 +370,76 @@ class Test_parse:
         assert parsed.errors[0][0] == second, parsed.errors
         assert "`- nothing` is the section's one item" in parsed.errors[0][1]
         assert parsed.nothing is None and parsed.ops == []
+
+
+class Test_section_lines:
+    @pytest.mark.parametrize(
+        "section, span",
+        [("S", (3, 9)), ("S child", (7, 9)), ("U", (17, 19)), (None, (1, 19))],
+        ids=["a section and its sub-section", "a sub-section", "the last", "whole"],
+    )
+    def test_accepts_a_heading_and_spans_its_text(self, section, span):
+        """The section runs to its last line of text before the next heading
+        of its level or higher, so the coordinate a group opens with names
+        the lines a person reads."""
+        assert rules.section_lines(DOC, section) == (span, None)
+
+    @pytest.mark.parametrize(
+        "text, section, why",
+        [
+            (None, "S", "the document is not in the tree"),
+            (DOC, "Nowhere", "no heading `Nowhere`"),
+            (DOC + "\n## S\n\nAgain.\n", "S", "heading `S` appears 2 times"),
+            ("# P\n\n```\n## S\n```\n", "S", "no heading `S`"),
+        ],
+        ids=["no document", "no heading", "twice", "in a fence"],
+    )
+    def test_refuses_a_place_that_is_not_there_once(self, text, section, why):
+        assert rules.section_lines(text, section) == (None, why)
+
+
+class Test_group:
+    def test_accepts_specs_at_one_place_as_one_group_in_the_order_handed(self):
+        """S1 in memory: the places a section's range holds are one group with
+        it, a section beside them is another, and a spec with operations at
+        both is in both."""
+        specs = [
+            ("a", parse(spec(op("change", "S", "old sentence.", "y."))).ops),
+            (
+                "b",
+                parse(
+                    spec(
+                        op("add", "T", new="Rule.")
+                        + "\n"
+                        + op("add", "S child", new="R.")
+                    )
+                ).ops,
+            ),
+            ("c", parse(spec(op("change", "S", "y.", "z."))).ops),
+        ]
+        groups = rules.group(specs, rules.overlapping({"docs/a.md": DOC}.get))
+        got = [(places, [(i, o.section) for i, o in ops]) for places, ops in groups]
+        assert got == [
+            (
+                [("docs/a.md", "S"), ("docs/a.md", "S child")],
+                [("a", "S"), ("b", "S child"), ("c", "S")],
+            ),
+            ([("docs/a.md", "T")], [("b", "T")]),
+        ], got
+
+    def test_refuses_to_join_another_files_place_to_a_whole_document(self):
+        """An operation with no section names the whole document, which holds
+        every section of it; another file is another group."""
+        specs = [
+            ("a", parse(spec(op("add", "T", new="Rule."))).ops),
+            ("b", parse(spec(op("remove", "U", file="docs/b.md"))).ops),
+            ("c", parse(spec(op("add", new="# New", file="docs/a.md"))).ops),
+        ]
+        groups = rules.group(specs, rules.overlapping({"docs/a.md": DOC}.get))
+        assert [places for places, _ in groups] == [
+            [("docs/a.md", "T"), ("docs/a.md", None)],
+            [("docs/b.md", "U")],
+        ], groups
 
 
 class Test_replay:

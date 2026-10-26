@@ -5,10 +5,13 @@ The grammar is `skills/settle/SKILL.md` *Rule changes*. `GRAMMAR` below is
 the one spelling of its operations in code; the item lines, their fields and
 the no-change block are spelt once in `unverified_check.py`, which reads
 `## Not verified` with the same block. `parse` reads a section into operations,
-refusing at its line any block that does not match whole. `replay` applies
+refusing at its line any block that does not match whole. `order` reads merge
+order from git, `group` joins the released specs whose operations name one
+place into one group, `unordered` names the pairs inside a group that no
+ancestry orders, and `section_lines` finds a section's lines in a document.
+`settle` prints what they read; nothing here writes a file. `replay` applies
 specs to the policy root's documents in memory, in the order it is handed,
-each spec whole or not at all. `order` and `conflicts` read merge order from
-git. `settle` writes what `replay` returns; nothing here writes a file.
+each spec whole or not at all, for `unverified_check.py#settled`.
 
 Headings and fences are read through
 `skills/verify/scripts/unverified_check.py` (`live_lines`, `heading_level`,
@@ -16,8 +19,8 @@ Headings and fences are read through
 so this module spells no fence or heading rule of its own. A spec is a
 record and carries no HTML comment, so `parse` reads it with no comment
 state and refuses a section line that begins with `<!--` (#1012); `headings`
-keeps the comment state for `apply_op` and `overlapping`, which read the
-policy documents.
+keeps the comment state for `section_lines`, `apply_op` and `overlapping`,
+which read the policy documents.
 """
 
 import collections
@@ -193,6 +196,30 @@ def pattern(old):
     if re.search(r"\w$", words[-1]):
         pat += r"(?!\w)"
     return re.compile(pat)
+
+
+def section_lines(text, section):
+    """`((first, last), None)`: the lines, counted from 1, that SECTION spans
+    in TEXT, from its heading to its last line of text before the next
+    heading of its level or higher, and the whole document where SECTION is
+    None; or `(None, why)` where the document is absent or the heading is not
+    there once. Headings are read as `apply_op` reads them."""
+    if text is None:
+        return None, "the document is not in the tree"
+    lines = reader().gfm_lines(text)
+    if section is None:
+        return (1, len(lines)), None
+    marks = headings(lines)
+    at = [(n, lv) for n, lv, t in marks if t == section]
+    if not at:
+        return None, f"no heading `{section}`"
+    if len(at) > 1:
+        return None, f"heading `{section}` appears {len(at)} times"
+    h, level = at[0]
+    end = next((n for n, lv, _ in marks if n > h and lv <= level), len(lines))
+    while end > h + 1 and not lines[end - 1].strip():
+        end -= 1
+    return (h + 1, end), None
 
 
 def _cut(text, s, e):
@@ -395,19 +422,54 @@ def _ancestor(root, a, b):
     )
 
 
-def conflicts(root, entries, read):
-    """`{id: (other id, place)}` for specs at overlapping places
-    (`overlapping`) where ancestry cannot order their adding commits.
-    ENTRIES is `[(id, commit, [Op])]`; READ is `replay`'s."""
-    out, same = {}, overlapping(read)
-    for n, (a, ca, ops_a) in enumerate(entries):
-        for b, cb, ops_b in entries[n + 1 :]:
-            shared = sorted(
-                {p for p in map(place, ops_a) for q in map(place, ops_b) if same(p, q)},
-                key=str,
-            )
-            if not shared or _ancestor(root, ca, cb) or _ancestor(root, cb, ca):
+def group(specs, same):
+    """`[(places, [(id, Op)])]` for SPECS, `[(id, [Op])]` in merge order.
+
+    Two places are one group where SAME (`overlapping`) says they can name
+    one text, and a place joins every group it overlaps, so a group is the
+    history of one rule. Each group lists its places and its operations in
+    the order SPECS hands them, and the groups come in the order of their
+    first operation. A spec with operations at two places that cannot name
+    one text is in two groups."""
+    places = []
+    for _, ops in specs:
+        for o in ops:
+            if place(o) not in places:
+                places.append(place(o))
+    parent = list(range(len(places)))
+
+    def find(n):
+        while parent[n] != n:
+            parent[n] = parent[parent[n]]
+            n = parent[n]
+        return n
+
+    for n, p in enumerate(places):
+        for m in range(n):
+            if same(p, places[m]):
+                parent[find(n)] = find(m)
+    # A group is first met at its first place, and places are in the order
+    # of the operations that name them, so the dict keeps the groups' order.
+    out = {}
+    for n, p in enumerate(places):
+        out.setdefault(find(n), ([], []))[0].append(p)
+    for work_item, ops in specs:
+        for o in ops:
+            out[find(places.index(place(o)))][1].append((work_item, o))
+    return list(out.values())
+
+
+def unordered(root, commits):
+    """`[(a, b)]` for the ids of COMMITS, `[(id, commit)]` in merge order,
+    whose adding commits no ancestry orders: commits on two branches, or a
+    commit None, which `order` hands an id no commit adds."""
+    out = []
+    for n, (a, ca) in enumerate(commits):
+        for b, cb in commits[n + 1 :]:
+            if a == b:
                 continue
-            out.setdefault(a, (b, shared[0]))
-            out.setdefault(b, (a, shared[0]))
+            if None in (ca, cb) or not (
+                ca == cb or _ancestor(root, ca, cb) or _ancestor(root, cb, ca)
+            ):
+                out.append((a, b))
     return out
