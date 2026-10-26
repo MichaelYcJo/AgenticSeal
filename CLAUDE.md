@@ -18,8 +18,8 @@ it costs**; existing is no reason to keep it. A gate that stops a session,
 the routing check among them, guards the work a work item owns. A change
 that would be routed `no work item`, such as a formatter run, a dependency
 bump or an identifier renamed across files by `sed`, is outside that work, so
-a gap in that kind of gate which
-only such a change passes through is not a weakness to close. A rule's proof
+where only such a change passes through a gap in that kind of gate, the gap
+is not a weakness to close. A rule's proof
 is the test or behaviour eval its `check:` line names. A fact has one source,
 and every other place links to it. A check gates only a fact it reads; a
 noisy reading, or one guessed from words, is a report. Nothing is kept beside
