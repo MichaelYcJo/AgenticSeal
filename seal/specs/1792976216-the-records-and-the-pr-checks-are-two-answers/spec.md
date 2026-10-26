@@ -99,7 +99,7 @@ The issue was written on 2026-10-16 against 0.22.2. Read at `02ee12de`:
      already there it reports the pin and exits 0. A file written that git
      would not stage is exit 1 with the existing `git add -f` sentence.
    - `seal pr-checks remove` takes out a file this plugin wrote: `git rm`
-     where git tracks it, a plain delete where it is untracked and byte for
+     where HEAD carries it, a plain delete where it is untracked and byte for
      byte what `install` would write now. A file staged and not yet
      committed, as `install` leaves it, is the untracked case for git, which
      keeps no committed copy of it: where the index and the working file are
@@ -111,9 +111,12 @@ The issue was written on 2026-10-16 against 0.22.2. Read at `02ee12de`:
      link, a file it cannot read, a file without the clone line, an untracked
      file that differs, and a staged file whose index or working copy
      differs. Where the working file is gone and the index still holds it,
-     as after a person deletes it by hand, it takes it out of the index with
-     `git rm` and says so, so the next commit does not carry it (round 5,
-     finding 1). Where nothing is there, in the working tree or the index,
+     as after a person deletes it by hand, it reads the index copy by the
+     same rule as a working file: one this plugin wrote, carrying the clone
+     line, it takes out of the index with `git rm` and says so, so the next
+     commit does not carry it (round 5, finding 1); any other index copy it
+     refuses, exit 1 and nothing removed, because the index may hold the
+     only copy of somebody's file. Where nothing is there, in the working tree or the index,
      it says so and exits 0. It needs no root, because a workflow that
      outlived its root is the case it exists for.
 
@@ -317,7 +320,7 @@ and `workflows/hygiene` over the tree at `02ee12de`, `CHANGELOG.md` and
 |---|---|---|
 | `seal pr-checks` | nothing | 0, with one of three states |
 | `seal pr-checks install` | `.github/workflows/hygiene.yml`, staged | 0 written or already the plugin's; 1 refused, nothing written, or written and not staged; 2 a `hooks/` module missing or a usage error |
-| `seal pr-checks remove` | the removal, staged where tracked | 0 removed or nothing there; 1 refused, nothing removed; 2 as above |
+| `seal pr-checks remove` | the file out of the working tree and the index, the deletion staged where HEAD carries it | 0 removed or nothing there; 1 refused, nothing removed; 2 as above |
 
 The existing `install_workflow`, `remove_workflow` and `plugin_workflow` are
 its body. `install_workflow` gains the root precondition and the
