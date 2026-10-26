@@ -1049,6 +1049,34 @@ class Test_main:
         assert "released at main: 2 work items; 0 unreleased" in text, text
         assert len(gh.calls()) == 1, gh.calls()
 
+    def test_a_released_at_given_as_the_merge_commit_reaches_it(self, local, gh, capfd):
+        """`reaches` asks git itself because `rule_changes.py#_ancestor`
+        answers False for two equal commits, so a `--released-at` naming the
+        merge commit still reads the item as released (round 1 finding 6)."""
+        local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
+        oid = merge(local, "feat/1-a")
+        gh.merged("feat/1-a", (11, oid))
+        code = settle.main(["--root", str(local), "--released-at", oid])
+        out = capfd.readouterr()
+        assert code == 0, out.err
+        assert f"released at {oid}: 1 work item;" in out.out, out.out
+
+    def test_the_first_listed_pull_request_the_ref_reaches_is_taken(
+        self, local, gh, capfd
+    ):
+        """Several merged pull requests from one branch: one the ref does not
+        reach does not hide a later-listed one it does (round 1 finding 6)."""
+        git(local, "branch", "other")
+        local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
+        stray = merge(local, "feat/1-a", into="other")
+        git(local, "switch", "-q", "main")
+        git(local, "merge", "-q", "--no-ff", "-m", "m", "feat/1-a")
+        reached = git(local, "rev-parse", "HEAD").strip()
+        gh.merged("feat/1-a", (12, stray), (11, reached))
+        code, text = dry_run(local, capfd)
+        assert code == 0, text
+        assert f"1700000001-a  pull request #11  merge commit {reached}" in text, text
+
     def test_a_pull_request_listed_with_no_merge_commit_is_named_as_such(
         self, local, gh, capfd
     ):
