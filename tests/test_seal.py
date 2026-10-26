@@ -3313,18 +3313,25 @@ class Test_pr_checks:
         assert snapshot(repo) == before
         assert open(path, encoding="utf-8").read() == on_disk
 
-    @pytest.mark.parametrize("committed", [False, True], ids=["AD", " D"])
+    @pytest.mark.parametrize("state", ["AD", " D", " D, another release"])
     def test_accepts_remove_of_a_file_deleted_by_hand_the_index_still_holds(
-        self, take, capsys, committed
+        self, take, capsys, state
     ):
         """Round 5, finding 1: a commit is made from the index, so a file
-        gone from the working tree is not gone from the next commit."""
+        gone from the working tree is not gone from the next commit. Round 6,
+        finding 1: the index copy is taken where a copy survives it, in what
+        `install` writes back or, for another release's pin, in HEAD."""
         repo = take("shared")
         before = status(repo)
-        code, out = said(capsys, repo, "pr-checks", "install")
-        assert code == 0, out
-        if committed:
-            commit_everything_as_e(repo, "the checks")
+        if state == " D, another release":
+            old = SEAL.plugin_workflow().replace(f"v{SEAL.plugin_version()}", "v0.1.0")
+            assert old != SEAL.plugin_workflow()
+            workflow_in(repo, old)
+        else:
+            code, out = said(capsys, repo, "pr-checks", "install")
+            assert code == 0, out
+            if state == " D":
+                commit_everything_as_e(repo, "the checks")
         os.remove(os.path.join(str(repo), WORKFLOW_PATH))
         code, out = said(capsys, repo, "pr-checks", "remove")
         assert code == 0, out
@@ -3333,18 +3340,22 @@ class Test_pr_checks:
             "but the index still held it; took it out of the index, so the "
             "next commit does not carry it\n"
         )
-        gone = ["D  .github/workflows/hygiene.yml"] if committed else []
+        gone = [] if state == "AD" else ["D  .github/workflows/hygiene.yml"]
         assert status(repo) == sorted(before + gone)
 
+    @pytest.mark.parametrize("committed", [False, True], ids=["AD", " D"])
     def test_refuses_a_staged_file_without_the_clone_line_deleted_by_hand(
-        self, take, capsys
+        self, take, capsys, committed
     ):
-        """The index may hold the only copy of somebody's file, so its copy
-        is read by the rule a working file is."""
+        """The index may hold the only copy of somebody's file, and a file
+        HEAD carries is still somebody's, so a copy without the clone line is
+        left alone whether or not HEAD holds it too."""
         repo = take("shared")
         rel = WORKFLOW_PATH.replace(os.sep, "/")
         write(repo, rel, "name: mine\n")
         git(repo, "add", "--", rel)
+        if committed:
+            commit_everything_as_e(repo, "somebody's workflow")
         os.remove(os.path.join(str(repo), WORKFLOW_PATH))
         before = snapshot(repo)
         code, out = said(capsys, repo, "pr-checks", "remove")
@@ -3358,6 +3369,73 @@ class Test_pr_checks:
         )
         assert snapshot(repo) == before
         assert git(repo, "cat-file", "blob", f":{rel}").stdout == "name: mine\n"
+
+    @pytest.mark.parametrize(
+        "state", ["AD, a staged edit", "AD, another release", "MD, a staged edit"]
+    )
+    def test_refuses_an_index_copy_no_other_copy_keeps_deleted_by_hand(
+        self, take, capsys, state
+    ):
+        """Round 6, finding 1: with the working file gone, git's own `rm`
+        does not refuse a staged change, so an index copy that is neither
+        HEAD's nor what `install` writes now would go with nothing left of
+        it."""
+        repo = take("shared")
+        rel = WORKFLOW_PATH.replace(os.sep, "/")
+        mine = SEAL.plugin_workflow() + "# mine\n"
+        if state == "AD, a staged edit":
+            code, out = said(capsys, repo, "pr-checks", "install")
+            assert code == 0, out
+        elif state == "AD, another release":
+            mine = SEAL.plugin_workflow().replace(f"v{SEAL.plugin_version()}", "v0.1.0")
+            assert mine != SEAL.plugin_workflow()
+        else:
+            workflow_in(repo, SEAL.plugin_workflow())
+        write(repo, rel, mine)
+        git(repo, "add", "--", rel)
+        os.remove(os.path.join(str(repo), WORKFLOW_PATH))
+        before = snapshot(repo)
+        code, out = said(capsys, repo, "pr-checks", "remove")
+        assert code == 1, out
+        assert out == (
+            "there is no .github/workflows/hygiene.yml in the working tree, "
+            "and the index holds a copy that is neither byte for byte the "
+            "copy HEAD carries nor byte for byte what this plugin writes NOW, "
+            "so it was left alone: removing it would take the only copy of "
+            "that edit with it. Look at it with `git diff --cached` and take "
+            "it out yourself.\n"
+        )
+        assert snapshot(repo) == before
+        assert git(repo, "cat-file", "blob", f":{rel}").stdout == mine
+
+    def test_refuses_an_index_entry_it_cannot_read_deleted_by_hand(self, take, capsys):
+        """Round 6, finding 1: an unmerged path has no copy at stage 0 for
+        git to give, and the refusal says so rather than naming a clone line
+        it never read."""
+        repo = take("shared")
+        rel = WORKFLOW_PATH.replace(os.sep, "/")
+        write(repo, rel, SEAL.plugin_workflow())
+        blob = git_out(repo, "hash-object", "-w", "--", rel)
+        os.remove(os.path.join(str(repo), WORKFLOW_PATH))
+        done = subprocess.run(
+            ["git", "-C", str(repo), "update-index", "--index-info"],
+            input="".join(f"100644 {blob} {n}\t{rel}\n" for n in (1, 2, 3)),
+            capture_output=True,
+            encoding="utf-8",
+        )
+        assert done.returncode == 0, done.stderr
+        assert len(git_out(repo, "ls-files", "--unmerged", "--", rel).splitlines()) == 3
+        before = snapshot(repo)
+        code, out = said(capsys, repo, "pr-checks", "remove")
+        assert code == 1, out
+        assert out == (
+            "there is no .github/workflows/hygiene.yml in the working tree, "
+            "and the index's copy of it could not be read, as for a path left "
+            "unmerged, so it was left alone. Look at it with `git status` and "
+            "take it out yourself.\n"
+        )
+        assert snapshot(repo) == before
+        assert len(git_out(repo, "ls-files", "--unmerged", "--", rel).splitlines()) == 3
 
     def test_accepts_remove_where_the_root_left_the_tree(self, take, capsys):
         """A workflow that outlived its root is the case `remove` is for."""

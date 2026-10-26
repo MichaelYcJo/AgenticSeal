@@ -2007,18 +2007,44 @@ def remove_workflow(repo):
         # is made from the index: a person deleted by hand the file `install`
         # staged, or a committed copy whose deletion is not staged (round 5,
         # finding 1). `git rm` of a path missing from the working tree exits
-        # 0 and drops its index entry in both states (measured, round 5).
-        # The index copy is read by the rule a working file is: the index
-        # may hold the only copy of somebody's file, so one without the
-        # clone line is left alone.
+        # 0 and drops its index entry in both states (measured, round 5),
+        # and with the file gone git's refusal of a staged change does not
+        # fire, so it would drop a staged edit unasked (measured, round 6).
+        # The index copy is taken only where a copy survives it: byte for
+        # byte the copy HEAD carries, or what `install` writes back now.
         staged = staged_text(repo, WORKFLOW)
-        if staged is None or PLUGIN_CLONE not in staged:
+        if staged is None:
+            return "kept", (
+                f"there is no {WORKFLOW} in the working tree, and the index's "
+                "copy of it could not be read, as for a path left unmerged, so "
+                "it was left alone. Look at it with `git status` and take it "
+                "out yourself."
+            )
+        if PLUGIN_CLONE not in staged:
             return "kept", (
                 f"there is no {WORKFLOW} in the working tree, and the index "
                 "holds a copy that does not carry this plugin's clone line, "
                 "so it was left alone: the index may hold the only copy of "
                 "somebody's file. Look at it with `git diff --cached` and take "
                 "it out yourself."
+            )
+        # Exit 0 where the index's blob and mode are HEAD's. Every other
+        # exit is read as "not HEAD's", so the arm fails closed: 1 where they
+        # differ, HEAD lacks the path, or the branch has no commit (git
+        # 2.50.1 compares with the empty tree there, measured round 6).
+        as_head = subprocess.run(
+            ["git", "-C", repo, "diff", "--cached", "--quiet", "--", WORKFLOW],
+            capture_output=True,
+            timeout=30,
+        )
+        if not (as_head.returncode == 0 or staged == plugin_workflow()):
+            return "kept", (
+                f"there is no {WORKFLOW} in the working tree, and the index "
+                "holds a copy that is neither byte for byte the copy HEAD "
+                "carries nor byte for byte what this plugin writes NOW, so it "
+                "was left alone: removing it would take the only copy of that "
+                "edit with it. Look at it with `git diff --cached` and take it "
+                "out yourself."
             )
         done = subprocess.run(
             ["git", "-C", repo, "rm", "--quiet", "--", WORKFLOW],
