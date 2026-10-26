@@ -14,7 +14,7 @@ The owner's principle that a gate that stops a session guards the work a work it
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and format check, and the typecheck at the branch head | the orchestrator's broad run; the repository has no typecheck to run (#951 adds one) |
+| closed the full suite, the repository-wide lint and format check, and the typecheck at the branch head | `broad-gate.md`: BROAD GATE PASSED at `dcf03000` against `61a8455a`, ruff check and format clean, the suite 6,501 passed and 14 skipped, chain-check exit 0; the repository has no typecheck to run (#951 adds one) |
 
 ## Not done
 
