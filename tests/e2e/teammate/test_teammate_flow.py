@@ -6,15 +6,18 @@ every pull request, a teammate's who never used the plugin among them. Each
 case builds such a repository on one of four bases, puts a teammate's branch
 on it that changes `README.md` alone, and runs every `run:` block of the
 template under `bash`, its text unchanged apart from GitHub's expression for
-the base branch. The plugin's clone is the one step not run: the tree under
-test stands where the clone puts it, `$RUNNER_TEMP/specseal`. The oracle is
-each step's exit code, never what a step printed.
+the base branch. A second case runs the same steps on the pull request that
+moves the root to local mode with the checks kept. The plugin's clone is the
+one step not run: the tree under test stands where the clone puts it,
+`$RUNNER_TEMP/specseal`. The oracle is each step's exit code, never what a
+step printed.
 """
 
 import json
 import os
 import shutil
 import subprocess
+import sys
 import textwrap
 
 import pytest
@@ -35,6 +38,8 @@ pytestmark = [pytest.mark.skipif(BASH is None, reason="no bash to run the steps 
 
 BASE = "main"
 BRANCH = "teammate"
+SWITCH = "to-local"
+SEAL = os.path.join(ROOT, "skills", "implement", "scripts", "seal.py")
 # The one expression the template's `run:` blocks carry, and what GitHub
 # puts in its place for a pull request into BASE.
 BASE_REF = "${{ github.base_ref }}"
@@ -77,6 +82,7 @@ none
 """
 
 ITEM = f"seal/specs/{WORK}"
+OPEN_ROW_AND_ROUND = "a work item with an open row and a round record"
 BASES = {
     "no root": {},
     "a root holding only its config": {"seal/config.md": CONFIG},
@@ -85,7 +91,7 @@ BASES = {
         f"{ITEM}/routing.md": ROUTING,
         f"{ITEM}/spec.md": SPEC,
     },
-    "a work item with an open row and a round record": {
+    OPEN_ROW_AND_ROUND: {
         "seal/config.md": CONFIG,
         f"{ITEM}/routing.md": ROUTING,
         f"{ITEM}/spec.md": SPEC,
@@ -115,24 +121,72 @@ def run_blocks(text):
     return out
 
 
-def teammate_repository(tmp_path, files):
+def without_this_run(environ):
+    """ENVIRON less the git, GitHub and runner variables of the run this
+    suite is in."""
+    return {
+        k: v
+        for k, v in environ.items()
+        if not k.startswith(("GIT_", "GITHUB_", "RUNNER_"))
+    }
+
+
+def seal(repo, *argv):
+    """`seal <argv>` from the tree under test, run in REPO; it has to exit 0."""
+    ran = subprocess.run(
+        [sys.executable, SEAL, *argv],
+        cwd=repo,
+        env=without_this_run(os.environ),
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=120,
+    )
+    assert ran.returncode == 0, f"seal {' '.join(argv)}: {ran.stdout}{ran.stderr}"
+
+
+def base_repository(tmp_path, files, checks=False):
     """A repository whose `main` holds FILES and a README, reachable as
-    `origin/main`, with the teammate's branch on it changing the README."""
+    `origin/main`; where CHECKS, `seal pr-checks install` wrote the plugin's
+    workflow into the same commit."""
     d = tmp_path / "repo"
     d.mkdir()
     git(d, "init", "-q", "-b", BASE)
     write(d, "README.md", "# a project\n")
     for rel, text in files.items():
         write(d, rel, text)
+    if checks:
+        seal(d, "pr-checks", "install")
     commit_everything_as_e(d, "the base")
     git(d, "update-ref", f"refs/remotes/origin/{BASE}", BASE)
+    return d
+
+
+def teammate_repository(tmp_path, files):
+    """`base_repository` on FILES, with the teammate's branch on it changing
+    the README."""
+    d = base_repository(tmp_path, files)
     git(d, "switch", "-qc", BRANCH)
     write(d, "README.md", "# a project\n\nA sentence a teammate added.\n")
     commit_everything_as_e(d, "a teammate edits the README")
     return d
 
 
-def runner_env(tmp_path):
+def switching_repository(tmp_path):
+    """`base_repository` on the base with an open row and a round record and
+    the plugin's workflow, with a branch whose one commit is what
+    `seal mode local` staged. The local root is moved aside afterwards, as a
+    checkout in CI holds none."""
+    d = base_repository(tmp_path, BASES[OPEN_ROW_AND_ROUND], checks=True)
+    git(d, "switch", "-qc", SWITCH)
+    seal(d, "mode", "local")
+    commit_everything_as_e(d, "the switch to local")
+    common = git(d, "rev-parse", "--path-format=absolute", "--git-common-dir")
+    os.rename(os.path.join(common.stdout.strip(), "seal"), tmp_path / "local-root")
+    return d
+
+
+def runner_env(tmp_path, branch=BRANCH):
     """The variables GitHub sets for a pull request from BRANCH into BASE
     that is not a draft, with `$RUNNER_TEMP/specseal` resolving to the tree
     under test, and none of the variables of the run this suite is in."""
@@ -141,16 +195,12 @@ def runner_env(tmp_path):
     symlink_or_skip(ROOT, runner / "specseal")
     event = tmp_path / "event.json"
     event.write_text(json.dumps({"pull_request": {"draft": False}}), encoding="utf-8")
-    env = {
-        k: v
-        for k, v in os.environ.items()
-        if not k.startswith(("GIT_", "GITHUB_", "RUNNER_"))
-    }
+    env = without_this_run(os.environ)
     env.update(
         RUNNER_TEMP=str(runner),
         GITHUB_ACTIONS="true",
         GITHUB_BASE_REF=BASE,
-        GITHUB_HEAD_REF=BRANCH,
+        GITHUB_HEAD_REF=branch,
         GITHUB_EVENT_NAME="pull_request",
         GITHUB_EVENT_PATH=str(event),
     )
@@ -179,32 +229,46 @@ def steps_to_run(text):
     return [(name, script) for name, script in blocks if CLONE not in script]
 
 
+def failed_steps(repo, env):
+    """Every step of the template that exited non-zero in REPO under ENV,
+    with what it printed."""
+    steps = steps_to_run(template())
+    assert steps, "the template has no step to run"
+    failed = []
+    for name, script in steps:
+        ran = subprocess.run(
+            [BASH, "-e", "-c", script.replace(BASE_REF, BASE)],
+            cwd=repo,
+            env=env,
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=120,
+        )
+        if ran.returncode != 0:
+            failed.append(f"{name}: exit {ran.returncode}\n{ran.stdout}{ran.stderr}")
+    return failed
+
+
 class Test_a_pull_request_that_declares_nothing_owes_nothing:
     """S1: on each of the four bases, a pull request changing `README.md`
-    alone passes every step the template runs."""
+    alone passes every step the template runs, and so does the pull request
+    that moves the root to local mode with the checks kept."""
 
     @pytest.mark.rule("nothing-declared-nothing-owed")
     @pytest.mark.parametrize("base", sorted(BASES))
     def test_accepts_a_teammates_pull_request_on_every_base(self, tmp_path, base):
-        steps = steps_to_run(template())
-        assert steps, "the template has no step to run"
         repo = teammate_repository(tmp_path, BASES[base])
-        env = runner_env(tmp_path)
-        failed = []
-        for name, script in steps:
-            ran = subprocess.run(
-                [BASH, "-e", "-c", script.replace(BASE_REF, BASE)],
-                cwd=repo,
-                env=env,
-                capture_output=True,
-                encoding="utf-8",
-                errors="replace",
-                timeout=120,
-            )
-            if ran.returncode != 0:
-                failed.append(
-                    f"{name}: exit {ran.returncode}\n{ran.stdout}{ran.stderr}"
-                )
+        failed = failed_steps(repo, runner_env(tmp_path))
+        assert not failed, "\n\n".join(failed)
+
+    @pytest.mark.rule("nothing-declared-nothing-owed")
+    def test_accepts_the_pull_request_that_moves_the_root_to_local_mode(self, tmp_path):
+        """Round 1 of #952, finding 1: the switch deletes every `routing.md`
+        with the root, and with no root at HEAD nothing is declared."""
+        repo = switching_repository(tmp_path)
+        assert not (repo / "seal").exists()
+        failed = failed_steps(repo, runner_env(tmp_path, SWITCH))
         assert not failed, "\n\n".join(failed)
 
     def test_refuses_a_template_whose_second_step_needs_the_network(self):

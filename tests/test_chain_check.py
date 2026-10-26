@@ -3385,6 +3385,35 @@ class Test_retired:
         assert "does not carry this file at HEAD" in out
         assert "retired:" not in out
 
+    @pytest.mark.rule("nothing-declared-nothing-owed")
+    def test_accepts_every_declaration_leaving_with_the_root(
+        self, branch, ready, capsys, monkeypatch
+    ):
+        """Round 1 of #952, finding 1: the pull request that takes `seal/`
+        out of the tree deletes every declaration with it, and with no
+        `seal` at HEAD nothing is declared. Where git cannot say whether HEAD
+        has it, the declarations stay judged."""
+        root, _code = branch
+        remove_an_earlier_item(root, applied=False)
+        git(root, "rm", "-rq", "seal")
+        commit(root, "the root leaves the tree")
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert (
+            "no `seal/` is at HEAD, so nothing is declared: the routing "
+            "declarations this pull request deletes left the tree with the "
+            "root, and the review-chain check judged the commit trailers and "
+            "nothing else"
+        ) in out
+        assert "does not carry this file at HEAD" not in out
+        real = chain.git
+        unanswered = ("ls-tree", "HEAD", "--", "seal")
+        monkeypatch.setattr(
+            chain, "git", lambda r, *a: None if a == unanswered else real(r, *a)
+        )
+        code, out = check(root, capsys)
+        assert code == 1 and "does not carry this file at HEAD" in out, out
+
 
 class Test_module:
     def test_every_reader_of_a_retirement_calls_the_one_predicate(self):
