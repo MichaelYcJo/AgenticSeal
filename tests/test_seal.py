@@ -3269,6 +3269,50 @@ class Test_pr_checks:
         assert code == 0, out
         assert "there is no .github/workflows/hygiene.yml" in out
 
+    def test_accepts_remove_straight_after_install_before_a_commit(self, take, capsys):
+        """The sealer at `55aea15d`: `install` stages the file, and git
+        refuses a plain `git rm` of a file staged and never committed."""
+        repo = take("shared")
+        before = status(repo)
+        code, out = said(capsys, repo, "pr-checks", "install")
+        assert code == 0, out
+        code, out = said(capsys, repo, "pr-checks", "remove")
+        assert code == 0, out
+        assert out == (
+            "removed .github/workflows/hygiene.yml and took it out of the "
+            "index — staged, never committed, and byte for byte this plugin's, "
+            "so `seal pr-checks install` writes it back\n"
+        )
+        assert not os.path.lexists(os.path.join(str(repo), ".github"))
+        assert status(repo) == before
+
+    @pytest.mark.parametrize("edited", ["index", "working copy"])
+    def test_refuses_a_staged_file_that_differs_and_leaves_it(
+        self, take, capsys, edited
+    ):
+        repo = take("shared")
+        code, out = said(capsys, repo, "pr-checks", "install")
+        assert code == 0, out
+        path = os.path.join(str(repo), WORKFLOW_PATH)
+        mine = SEAL.plugin_workflow() + "# mine\n"
+        write(repo, WORKFLOW_PATH.replace(os.sep, "/"), mine)
+        if edited == "index":
+            git(repo, "add", "--", WORKFLOW_PATH.replace(os.sep, "/"))
+            write(repo, WORKFLOW_PATH.replace(os.sep, "/"), SEAL.plugin_workflow())
+        before = snapshot(repo)
+        on_disk = open(path, encoding="utf-8").read()
+        code, out = said(capsys, repo, "pr-checks", "remove")
+        assert code == 1, out
+        assert out == (
+            ".github/workflows/hygiene.yml is staged and never committed, and "
+            "its staged copy or its working copy is not byte for byte what this "
+            "plugin writes NOW, so it is left alone: git holds no committed "
+            "copy, and removing it would take that edit with it. Look at it "
+            "and delete it yourself.\n"
+        )
+        assert snapshot(repo) == before
+        assert open(path, encoding="utf-8").read() == on_disk
+
     def test_accepts_remove_where_the_root_left_the_tree(self, take, capsys):
         """A workflow that outlived its root is the case `remove` is for."""
         repo = take("local")

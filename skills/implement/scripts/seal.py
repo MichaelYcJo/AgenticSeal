@@ -1728,6 +1728,34 @@ def tracked(repo, rel):
     return bool([p for p in (done.stdout or "").split("\0") if p])
 
 
+def committed(repo, rel):
+    """True when HEAD carries REL; False on a branch with no commit yet."""
+    _text, why = git_asked(repo, "cat-file", "-e", f"HEAD:{rel}")
+    return not why
+
+
+def staged_text(repo, rel):
+    """The index's copy of REL, decoded as `open()` reads the working file,
+    or None where git could not give it.
+
+    Not `git_asked`, which strips: a trailing newline is part of what is
+    compared byte for byte. Text mode turns CRLF into LF the way the working
+    file's read does, so a checkout that converts line endings compares one
+    file with itself.
+    """
+    try:
+        done = subprocess.run(
+            ["git", "-C", repo, "cat-file", "blob", f":{rel}"],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=15,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return done.stdout if done.returncode == 0 else None
+
+
 def other_worktrees(repo):
     """Every other worktree of this clone, by path.
 
@@ -2010,8 +2038,25 @@ def remove_workflow(repo):
             f"removed {WORKFLOW} — untracked, and byte for byte this "
             "plugin's, so `seal pr-checks install` writes it back"
         )
+    force = []
+    if not committed(repo, WORKFLOW):
+        # Staged and never committed, which is how `install` leaves it: git
+        # keeps no committed copy, so this is the untracked case above, and
+        # git's own `rm` refuses it with "has changes staged in the index"
+        # (the sealer, at `55aea15d`). Forced only where the index AND the
+        # working file are what this plugin writes now, so the force takes
+        # nothing `install` cannot write back.
+        if not (text == plugin_workflow() == staged_text(repo, WORKFLOW)):
+            return "kept", (
+                f"{WORKFLOW} is staged and never committed, and its staged "
+                "copy or its working copy is not byte for byte what this "
+                "plugin writes NOW, so it is left alone: git holds no "
+                "committed copy, and removing it would take that edit with "
+                "it. Look at it and delete it yourself."
+            )
+        force = ["--force"]
     done = subprocess.run(
-        ["git", "-C", repo, "rm", "--quiet", "--", WORKFLOW],
+        ["git", "-C", repo, "rm", "--quiet", *force, "--", WORKFLOW],
         capture_output=True,
         encoding="utf-8",
         errors="replace",
@@ -2020,6 +2065,12 @@ def remove_workflow(repo):
     if done.returncode != 0:
         return "failed", (
             f"{WORKFLOW} could not be removed: {(done.stderr or '').strip()}"
+        )
+    if force:
+        return "removed", (
+            f"removed {WORKFLOW} and took it out of the index — staged, never "
+            "committed, and byte for byte this plugin's, so `seal pr-checks "
+            "install` writes it back"
         )
     return "removed", f"removed {WORKFLOW} and staged the removal"
 
