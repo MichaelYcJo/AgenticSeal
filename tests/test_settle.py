@@ -257,6 +257,9 @@ except OSError:
 if "fail" in answers:
     sys.stderr.write(answers["fail"] + "\\n")
     sys.exit(4)
+if "raw" in answers:
+    sys.stdout.write(answers["raw"] + "\\n")
+    sys.exit(0)
 branch = args[args.index("--head") + 1] if "--head" in args else ""
 sys.stdout.write(json.dumps(answers.get("branches", {}).get(branch, [])) + "\\n")
 """
@@ -267,24 +270,31 @@ class Gh:
 
     def __init__(self, home):
         self.home = home
-        self.branches, self.failure = {}, None
+        self.answers = {"branches": {}}
         self.write()
 
     def write(self):
-        answers = {"branches": self.branches}
-        if self.failure is not None:
-            answers["fail"] = self.failure
-        (self.home / "answers.json").write_text(json.dumps(answers), encoding="utf-8")
+        (self.home / "answers.json").write_text(
+            json.dumps(self.answers), encoding="utf-8"
+        )
 
     def merged(self, branch, *prs):
-        """BRANCH's merged pull requests, `(number, merge commit)` each."""
-        self.branches[branch] = [
-            {"number": n, "mergeCommit": {"oid": oid}} for n, oid in prs
+        """BRANCH's merged pull requests, `(number, merge commit)` each; a
+        merge commit of None is a pull request listed with none."""
+        self.answers["branches"][branch] = [
+            {"number": n, "mergeCommit": None if oid is None else {"oid": oid}}
+            for n, oid in prs
         ]
         self.write()
 
     def fail(self, message):
-        self.failure = message
+        """Exit non-zero with MESSAGE on stderr."""
+        self.answers["fail"] = message
+        self.write()
+
+    def say(self, raw):
+        """Exit 0 with RAW on stdout, whatever was asked."""
+        self.answers["raw"] = raw
         self.write()
 
     def calls(self):
@@ -909,12 +919,21 @@ class Test_main:
         a second run removes the kept one."""
         local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
         local_item(local, "1700000002-b", "feat/2-b", op("add", "U", new="B."))
-        local_item(
-            local, "1700000003-c", "feat/3-c", op("add", "T", new="C."), overview=OPEN
+        row = OPEN.replace("a claim nobody ran", "a claim about `questions.md`")
+        held = local_item(
+            local, "1700000003-c", "feat/3-c", op("add", "T", new="C."), overview=row
         )
+        (held / "questions.md").write_text("# q\n", encoding="utf-8")
         gh.merged("feat/1-a", (11, merge(local, "feat/1-a")))
         gh.merged("feat/3-c", (13, merge(local, "feat/3-c")))
         before = files(local)
+        code, text = dry_run(local, capfd)
+        rows = text.split(f"{settle.ROWS_HEADING}\n")[1].split("\n\n")[0]
+        assert rows == (
+            "    1700000003-c\n"
+            "        open in overview.md: a claim about `questions.md`\n"
+            "            `questions.md` in the tree"
+        ), text
         code, text = apply(local, capfd)
         assert code == 1, text
         assert not local_dir(local, "1700000001-a").exists(), text
@@ -924,7 +943,7 @@ class Test_main:
         assert (
             "kept seal/specs/1700000003-c/: its record holds 1 open row; close "
             "each (`closed` with what closed it) and run `settle --apply` again\n"
-            "    open in overview.md: a claim nobody ran\n"
+            "    open in overview.md: a claim about `questions.md`\n"
         ) in text, text
         assert files(local) == before, "the apply wrote or removed in the tree"
         (local_dir(local, "1700000003-c") / "overview.md").write_text(
@@ -937,7 +956,7 @@ class Test_main:
         assert "    closed in overview.md: a claim\n" in text, text
 
     @pytest.mark.parametrize("arm", [False, True], ids=["report", "apply"])
-    @pytest.mark.parametrize("state", ["absent", "fails"])
+    @pytest.mark.parametrize("state", ["absent", "fails", "garbled"])
     def test_refuses_a_gh_that_cannot_be_asked_in_local_mode(
         self, local, gh, capfd, monkeypatch, state, arm
     ):
@@ -950,6 +969,9 @@ class Test_main:
         if state == "absent":
             monkeypatch.setattr(settle, "GH", "specseal-no-such-gh")
             said = "`specseal-no-such-gh` is not on PATH"
+        elif state == "garbled":
+            gh.say('{"message": "Not Found"}')
+            said = "`gh pr list --head feat/1-a` did not answer a list of pull requests"
         else:
             gh.fail("HTTP 401: Bad credentials (https://api.github.com/graphql)")
             said = (
@@ -966,6 +988,41 @@ class Test_main:
         assert (
             "a repository on a host `gh` cannot ask cannot settle in local mode"
         ) in flat(text), text
+
+    def test_a_released_at_ref_that_does_not_resolve_is_refused_in_local_mode(
+        self, local, gh, capfd
+    ):
+        """The `--released-at` refusal holds in local mode too, before `gh`
+        is asked: a ref nothing can read would make every merge commit
+        unreachable, the quiet zero by another door."""
+        local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
+        code = settle.main(["--root", str(local), "--released-at", "no/such/ref"])
+        text = capfd.readouterr().err
+        assert code == 2, text
+        assert "--released-at no/such/ref does not resolve" in text, text
+        assert gh.calls() == [], gh.calls()
+
+    def test_gh_is_asked_once_for_a_branch_two_items_name(self, local, gh, capfd):
+        """`gh` is asked once per branch, so two work items naming one branch,
+        the reused-branch limit, cost one query and both read as released."""
+        local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
+        local_item(local, "1700000002-b", "feat/1-a", op("add", "U", new="B."))
+        gh.merged("feat/1-a", (11, merge(local, "feat/1-a")))
+        code, text = dry_run(local, capfd)
+        assert code == 0, text
+        assert "released at main: 2 work items; 0 unreleased" in text, text
+        assert len(gh.calls()) == 1, gh.calls()
+
+    def test_a_pull_request_listed_with_no_merge_commit_has_not_merged(
+        self, local, gh, capfd
+    ):
+        """A listed pull request whose `mergeCommit` is null names nothing git
+        can reach, so it counts as no merged pull request."""
+        local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
+        gh.merged("feat/1-a", (11, None))
+        code, text = dry_run(local, capfd)
+        assert code == 0, text
+        assert "    1700000001-a  no pull request from `feat/1-a` has merged\n" in text
 
     def test_shared_mode_never_asks_gh(self, repo, gh, capfd):
         """S6 of #955: a shared root's work items are released by presence at
