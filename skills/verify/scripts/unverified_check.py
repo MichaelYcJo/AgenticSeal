@@ -1668,9 +1668,8 @@ def main(argv=None):
                         display_path(os.path.join(root, rel), cwd),
                         1,
                         f"present at {named} and not here. Whatever it "
-                        "recorded as unverified left with it — a renamed "
-                        "directory reads the same way, and says so out loud "
-                        "rather than dropping the rows",
+                        "recorded as unverified left with it, and its "
+                        "directory still stands, so this is no settle",
                     )
                 )
 

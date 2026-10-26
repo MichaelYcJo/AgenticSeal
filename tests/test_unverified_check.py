@@ -1982,7 +1982,8 @@ class Test_main:
         out loud. A scan that finds nothing because every overview left
         reports the deletion rather than an empty scan. Since #1033 a
         directory gone whole reads as a settle, so a renamed one is named
-        settled and its rows are read where it went."""
+        settled at its old path; its rows are listed where it went and are
+        counted against nothing at the old one."""
         d = copy_of(plain, tmp_path)
         item = d / "specs" / WORK
         if change == "delete one and rename the other":
@@ -2294,7 +2295,10 @@ class Test_main:
         """S8: a memo deleted from a directory that stays is a deletion
         whatever the predicate would say, open rows or closed, and each is
         named. Since #1033 a directory removed whole is a settle, so an open
-        row and a dropped spec no longer make one a deletion."""
+        row and a dropped spec no longer make one a deletion, and the message
+        names the one shape left: the directory still stands. A renamed
+        directory is gone whole from its old path, so the message says nothing
+        of a rename."""
         d = copy_of(settle, tmp_path)
         os.remove(d / "specs" / OPEN_ITEM / "overview.md")
         os.remove(d / "specs" / CLOSED_ITEM / "overview.md")
@@ -2303,7 +2307,9 @@ class Test_main:
         lines = [ln for ln in out.split("\n") if "present at HEAD and not here" in ln]
         for name in (OPEN_ITEM, CLOSED_ITEM):
             assert sum(name in ln for ln in lines) == 1, (name, out)
-        assert "settled" not in out, out
+        for ln in lines:
+            assert "its directory still stands, so this is no settle" in ln, out
+        assert "settled" not in out and "renamed" not in out, out
 
     def test_refuses_to_decide_a_removal_without_the_one_predicate(
         self, settle, tmp_path, monkeypatch
