@@ -6,7 +6,8 @@ the one spelling of its operations in code; the item lines, their fields and
 the no-change block are spelt once in `unverified_check.py`, which reads
 `## Not verified` with the same block. `parse` reads a section into operations,
 refusing at its line any block that does not match whole. `order` reads merge
-order from git, `group` joins the released specs whose operations name one
+order from git, `merge_order` reads it in local mode from the merge commits
+`settle` hands it, `group` joins the released specs whose operations name one
 place into one group, `unordered` names the pairs inside a group that no
 ancestry orders, and `section_lines` finds a section's lines in a document.
 `settle` prints what they read; nothing here writes a file.
@@ -291,6 +292,21 @@ def order(root, ref, ids, specs="seal/specs"):
     return [(i, first[i]) for i in known] + [(i, None) for i in ids if i not in first]
 
 
+def merge_order(root, ref, pairs):
+    """PAIRS, `[(id, commit)]`, sorted by each commit's place in `git rev-list
+    --topo-order --reverse REF`: the merge order of local-mode specs, which
+    no commit adds, read from their pull requests' merge commits. A pair
+    whose commit REF does not reach comes last, in the order handed."""
+    r = subprocess.run(
+        ["git", "-C", root, "rev-list", "--topo-order", "--reverse", ref],
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    place = {commit: n for n, commit in enumerate(r.stdout.split())}
+    return sorted(pairs, key=lambda pair: place.get(pair[1], len(place)))
+
+
 def _ancestor(root, a, b):
     return (
         a != b
@@ -341,8 +357,9 @@ def group(specs, same):
 
 def unordered(root, commits):
     """`[(a, b)]` for the ids of COMMITS, `[(id, commit)]` in merge order,
-    whose adding commits no ancestry orders: commits on two branches, or a
-    commit None, which `order` hands an id no commit adds."""
+    whose commits no ancestry orders: commits on two branches, or a commit
+    None, which `order` hands an id no commit adds. The commits are the ones
+    that add each spec, or in local mode its pull request's merge commit."""
     out = []
     for n, (a, ca) in enumerate(commits):
         for b, cb in commits[n + 1 :]:

@@ -5,9 +5,12 @@ refuses (#458, closing #83). Its dry run groups the released specs whose
 `## Rule changes` name one section, in merge order, lists the specs to read
 whole and every open row, and refuses nothing; `--apply` removes each
 released directory whose record holds no open row in the working tree and
-writes no policy document (#1033). `Test_report` and `Test_apply` drive the
+writes no policy document (#1033). In local mode it reads the root under the
+git directory and asks `gh` which pull request merged from each work item's
+branch (#955). `Test_report` and `Test_apply` drive the
 two arms over the `tree` fixture's history; `Test_main` runs the command over
-a repository whose merge order git holds. `Test_module` holds the loader, the
+a repository whose merge order git holds, and over a local root with a `gh`
+stub on PATH. `Test_module` holds the loader, the
 launcher, the answer the command takes from `rule_changes.py#order`, asked
 over the repositories this file builds, the copy run without its siblings,
 and `SPECS` held under `seal/`.
@@ -22,6 +25,7 @@ in #942's round 9 fix pass, each a case of this module alone.
 """
 
 import io
+import json
 import os
 import subprocess
 import sys
@@ -231,6 +235,159 @@ def settled_repo(tmp_path, keep_empty_dir):
     if keep_empty_dir:
         (repo / "seal" / "specs").mkdir()
     return repo
+
+
+# --- a root in local mode, and the `gh` it asks (#955) ----------------------
+#
+# The local cases run `main` in process, with a `gh` stub first on PATH that
+# answers `gh pr list --head <branch>` from a file beside it and logs every
+# call. The suite runs with `gh` logged out (`tests/conftest.py`), so no local
+# case reaches the real one.
+
+GH_STUB = """import json, os, sys
+HERE = os.path.dirname(os.path.abspath(__file__))
+args = sys.argv[1:]
+with open(os.path.join(HERE, "calls.jsonl"), "a", encoding="utf-8") as f:
+    f.write(json.dumps(args) + "\\n")
+try:
+    with open(os.path.join(HERE, "answers.json"), encoding="utf-8") as f:
+        answers = json.load(f)
+except OSError:
+    answers = {}
+if "fail" in answers:
+    sys.stderr.write(answers["fail"] + "\\n")
+    sys.exit(4)
+if "raw" in answers:
+    sys.stdout.write(answers["raw"] + "\\n")
+    sys.exit(0)
+branch = args[args.index("--head") + 1] if "--head" in args else ""
+sys.stdout.write(json.dumps(answers.get("branches", {}).get(branch, [])) + "\\n")
+"""
+
+
+class Gh:
+    """A `gh` on PATH that answers each branch as `merged` says, or fails."""
+
+    def __init__(self, home):
+        self.home = home
+        self.answers = {"branches": {}}
+        self.write()
+
+    def write(self):
+        (self.home / "answers.json").write_text(
+            json.dumps(self.answers), encoding="utf-8"
+        )
+
+    def merged(self, branch, *prs):
+        """BRANCH's merged pull requests, `(number, merge commit)` each; a
+        merge commit of None is a pull request listed with none."""
+        self.answers["branches"][branch] = [
+            {"number": n, "mergeCommit": None if oid is None else {"oid": oid}}
+            for n, oid in prs
+        ]
+        self.write()
+
+    def fail(self, message):
+        """Exit non-zero with MESSAGE on stderr."""
+        self.answers["fail"] = message
+        self.write()
+
+    def say(self, raw):
+        """Exit 0 with RAW on stdout, whatever was asked."""
+        self.answers["raw"] = raw
+        self.write()
+
+    def calls(self):
+        log = self.home / "calls.jsonl"
+        if not log.exists():
+            return []
+        return [json.loads(x) for x in log.read_text(encoding="utf-8").splitlines()]
+
+
+@pytest.fixture
+def gh(tmp_path, monkeypatch):
+    home = tmp_path / "gh-stub"
+    home.mkdir()
+    script = home / "gh_stub.py"
+    script.write_text(GH_STUB, encoding="utf-8")
+    if os.name == "nt":
+        (home / "gh.cmd").write_text(
+            f'@"{sys.executable}" "{script}" %*\r\n', encoding="utf-8"
+        )
+    else:
+        stub = home / "gh"
+        stub.write_text(
+            f'#!/bin/sh\nexec "{sys.executable}" "{script}" "$@"\n', encoding="utf-8"
+        )
+        stub.chmod(0o755)
+    monkeypatch.setenv("PATH", str(home) + os.pathsep + os.environ["PATH"])
+    return Gh(home)
+
+
+# Why a local work item that names no branch is unreleased, as a person reads
+# it: a file `hooks/routing.py#parse` does not read names none, whatever rows
+# it holds.
+NO_BRANCH = (
+    "no `routing.md` that `hooks/routing.py` reads as a declaration names a "
+    "branch, so `gh` was not asked"
+)
+
+ROUTED = """# {name} — routing
+
+| Axis | Answer |
+|---|---|
+| Review | through the review chain |
+| Destination | open the pull request |
+| Branch | {branch} |
+"""
+
+
+@pytest.fixture
+def local(tmp_path):
+    """A repository whose `seal/` root is under its git directory, with
+    `docs/a.md` committed on `main` and no work item yet."""
+    repo = tmp_path / "repo"
+    (repo / "docs").mkdir(parents=True)
+    (repo / "docs" / "a.md").write_text(DOC, encoding="utf-8")
+    git(repo, "init", "-q", "-b", "main")
+    git(repo, "config", "user.email", "x@example.com")
+    git(repo, "config", "user.name", "x")
+    commit(repo, "base")
+    (repo / ".git" / "seal" / "specs").mkdir(parents=True)
+    return repo
+
+
+def local_dir(repo, name):
+    return repo / ".git" / "seal" / "specs" / name
+
+
+def local_item(repo, name, branch=None, changes=None, overview=None):
+    """A local work item: a `routing.md` naming BRANCH where one is given,
+    a `spec.md` holding CHANGES where they are given, and an overview."""
+    path = local_dir(repo, name)
+    path.mkdir(parents=True)
+    if branch is not None:
+        text = ROUTED.format(name=name, branch=branch)
+        (path / "routing.md").write_text(text, encoding="utf-8")
+    if changes is not None:
+        (path / "spec.md").write_text(spec(changes), encoding="utf-8")
+    if overview is not None:
+        (path / "overview.md").write_text(overview, encoding="utf-8")
+    return path
+
+
+def merge(repo, branch, into="main"):
+    """Merge a commit of BRANCH into INTO with a merge commit, the way a pull
+    request from BRANCH merges, and return the merge commit."""
+    git(repo, "switch", "-q", into)
+    git(repo, "switch", "-qc", branch)
+    work = repo / "work"
+    work.mkdir(exist_ok=True)
+    (work / f"{branch.replace('/', '-')}.txt").write_text(branch, encoding="utf-8")
+    commit(repo, f"work of {branch}")
+    git(repo, "switch", "-q", into)
+    git(repo, "merge", "-q", "--no-ff", "-m", f"merge {branch}", branch)
+    return git(repo, "rev-parse", "HEAD").strip()
 
 
 class Test_report:
@@ -641,36 +798,401 @@ class Test_main:
         assert "past the ceiling of 10: split it along its own headings" in text, text
         assert settle.AFTER_HEADING in text, text
 
-    def test_refuses_local_mode_rather_than_reading_an_empty_repository(self, tmp_path):
-        """Round 1, finding 3. `settle` looked only at `<root>/seal/specs`, so a
-        local-mode repository holding work items was told it had none — and the
-        sentence written for local mode, behind the `--released-at` refusal, could
-        never be printed because this check fired first and always.
+    def test_local_mode_lists_a_released_and_an_unreleased_item(self, local, gh, capfd):
+        """S1 of #955. The root is under the git directory, so `settle` reads
+        it there: the item whose branch's pull request merged into `main` is
+        released, with its pull request and merge commit, and its rule joins
+        a group; the other is unreleased because nothing merged from its
+        branch. `gh` is asked once per branch, and the run writes and removes
+        nothing. A repository holding work items is never told it has none,
+        the half of the old local-mode refusal's case that stays."""
+        local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="Rule."))
+        local_item(local, "1700000002-b", "feat/2-b", op("add", "U", new="B."))
+        oid = merge(local, "feat/1-a")
+        gh.merged("feat/1-a", (11, oid))
+        before = files(local)
+        records = sorted(p for p in (local / ".git" / "seal").rglob("*"))
+        code, text = dry_run(local, capfd)
+        assert code == 0, text
+        home = os.path.join(str(local), ".git", "seal")
+        assert text.split("\n")[0] == (
+            f"local mode: the seal/ root is {home}, under the git directory"
+        ), text
+        assert "released at main: 1 work item; 1 unreleased and untouched\n" in text
+        released = text.split(settle.MERGED_HEADING + "\n")[1].split("\n\n")[0]
+        assert released == f"    1700000001-a  pull request #11  merge commit {oid}"
+        unreleased = text.split(settle.UNMERGED_HEADING + "\n")[1].split("\n\n")[0]
+        assert unreleased == (
+            "    1700000002-b  no pull request from `feat/2-b` has merged"
+        ), text
+        assert "1. add  1700000001-a  seal/specs/1700000001-a/spec.md:" in (
+            group_text(text)
+        ), text
+        assert "1700000002-b" not in group_text(text), text
+        assert "\ngroup 2\n" not in text, text
+        assert settle.REMOVES_HEADING_LOCAL in text, text
+        assert "    seal/specs/1700000001-a/  now\n" in text, text
+        assert "has nothing to settle" not in text, text
+        assert files(local) == before, "the dry run wrote to the tree"
+        assert sorted(p for p in (local / ".git" / "seal").rglob("*")) == records
+        query = ["pr", "list", "--head", "{}", "--state", "merged"]
+        query += ["--json", "number,mergeCommit"]
+        assert gh.calls() == [
+            [a.format(b) for a in query] for b in ("feat/1-a", "feat/2-b")
+        ], gh.calls()
 
-        Resolving the root is half of it. With the root found, the run would go on
-        to ask git which work items are released, git would answer with none — an
-        uncommitted root has no path in any tree — and the report would say there
-        is nothing to fold. That is the quiet zero by another door, so the state
-        is named instead."""
-        repo = tmp_path / "repo"
-        (repo / "docs").mkdir(parents=True)
-        git(repo, "init", "-q")
-        item = repo / ".git" / "seal" / "specs" / "1700000001-alpha"
-        item.mkdir(parents=True)
-        (item / "spec.md").write_text("# a\n", encoding="utf-8")
-        r = subprocess.run(
-            [sys.executable, SCRIPT, "--root", str(repo), "--released-at", "HEAD"],
-            capture_output=True,
-            encoding="utf-8",
+    def test_a_local_run_from_a_subdirectory_reads_the_repositorys_top(
+        self, local, gh, capfd
+    ):
+        """Round 1 finding 2 of #955: from a subdirectory the local root is
+        still found under the git directory, so the policy root has to be read
+        from the repository's top too, or a document that is there reads as
+        absent and the settling session is sent to write it."""
+        local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="Rule."))
+        gh.merged("feat/1-a", (11, merge(local, "feat/1-a")))
+        below = str(local / "docs")
+        code = settle.main(["--root", below, "--released-at", "main"])
+        out = capfd.readouterr()
+        text = out.out + out.err
+        assert code == 0, text
+        assert group_text(text).startswith(
+            "    place: docs/a.md section `S`, at docs/a.md:3-9\n"
+        ), text
+        assert "not in the tree" not in text, text
+
+    def test_a_shared_run_from_a_subdirectory_reads_the_repositorys_top(
+        self, repo, gh, capfd
+    ):
+        """Round 2 finding 1 of #955: `main` resolves the root to the
+        repository's top in both modes, so a shared run from a subdirectory
+        prints what a run from the top prints. It used to refuse, saying the
+        repository had no seal/specs/ at either place, which was false there."""
+        item(repo, "1700000001-a", op("add", "S", new="Rule."))
+        commit(repo, "released a")
+        top = dry_run(repo, capfd)
+        assert top[0] == 0, top[1]
+        assert group_text(top[1]).startswith(
+            "    place: docs/a.md section `S`, at docs/a.md:3-9\n"
+        ), top[1]
+        below = str(repo / "docs")
+        code = settle.main(["--root", below, "--released-at", "main"])
+        out = capfd.readouterr()
+        assert (code, out.out + out.err) == top, out.out + out.err
+        assert "at either place" not in out.err, out.err
+        assert gh.calls() == [], gh.calls()
+
+    def test_the_local_dry_runs_texts_say_what_they_hold(self, capsys):
+        """Contract rule 14 for #955's dry run: the sentences a person acts
+        on are pinned, not only their presence. `--released-at`'s help names
+        the ref as what reaches the merge commit (round 1 finding 5)."""
+        with pytest.raises(SystemExit):
+            settle.main(["--help"])
+        assert (
+            "or in local mode when this ref reaches the merge commit of the pull "
+            "request from the work item's branch"
+        ) in flat(capsys.readouterr().out)
+        assert "each with the pull request that merged it" in flat(
+            settle.MERGED_HEADING
         )
-        assert r.returncode == 2, r.stdout + r.stderr
-        assert "which is local mode" in r.stderr, r.stderr
-        assert "seal mode shared" in r.stderr, (
-            "the refusal does not say how to get out of it"
+        assert "unreleased in local mode and untouched, each with why" in flat(
+            settle.UNMERGED_HEADING
         )
-        assert "has nothing to settle" not in r.stderr, (
-            "a repository holding a work item is still being told it has none"
+        removes = flat(settle.REMOVES_HEADING_LOCAL)
+        assert "In local mode no commit holds these directories" in removes
+        assert "`seal export` takes a copy for whoever wants one" in removes
+        assert "no ancestry orders their pull requests' merge commits" in flat(
+            settle.UNORDERED_LOCAL
         )
+
+    def test_local_specs_are_listed_in_the_order_their_pull_requests_merged(
+        self, local, gh, capfd
+    ):
+        """S2 of #955, one line of history: B was created after A and merged
+        before it, so B is listed first, and ancestry orders the pair."""
+        local_item(local, "1700000001-a", "feat/1-a", op("change", "S", "y.", "z."))
+        local_item(
+            local, "1700000002-b", "feat/2-b", op("change", "S", "old sentence.", "y.")
+        )
+        gh.merged("feat/2-b", (12, merge(local, "feat/2-b")))
+        gh.merged("feat/1-a", (11, merge(local, "feat/1-a")))
+        code, text = dry_run(local, capfd)
+        assert code == 0, text
+        group = group_text(text)
+        assert "    1. change  1700000002-b  " in group, text
+        assert "    2. change  1700000001-a  " in group, text
+        assert "unordered" not in group, text
+
+    def test_two_local_merges_no_ancestry_orders_are_marked_unordered(
+        self, local, gh, capfd
+    ):
+        """S2 of #955, two lines of history: each pull request merged into a
+        branch of its own, and `main` merged both, so no ancestry orders the
+        two merge commits and the pair is marked."""
+        local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
+        local_item(local, "1700000002-b", "feat/2-b", op("add", "S", new="B."))
+        git(local, "branch", "one")
+        git(local, "branch", "two")
+        gh.merged("feat/1-a", (11, merge(local, "feat/1-a", into="one")))
+        gh.merged("feat/2-b", (12, merge(local, "feat/2-b", into="two")))
+        git(local, "switch", "-q", "main")
+        git(local, "merge", "-q", "--no-ff", "-m", "one", "one")
+        git(local, "merge", "-q", "--no-ff", "-m", "two", "two")
+        code, text = dry_run(local, capfd)
+        assert code == 0, text
+        said = settle.UNORDERED_LOCAL.format(a="1700000001-a", b="1700000002-b")
+        assert f"    {said}" in group_text(text), text
+
+    def test_a_merge_commit_the_ref_does_not_reach_leaves_the_item(
+        self, local, gh, capfd
+    ):
+        """S3 of #955: the pull request merged into a branch `--released-at`
+        does not reach, so the item is unreleased with that reason, and
+        `--apply` keeps it."""
+        git(local, "branch", "other")
+        local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="Rule."))
+        oid = merge(local, "feat/1-a", into="other")
+        git(local, "switch", "-q", "main")
+        gh.merged("feat/1-a", (11, oid))
+        code, text = dry_run(local, capfd)
+        assert code == 0, text
+        assert (
+            f"    1700000001-a  main reaches no merge commit of the pull requests "
+            f"from `feat/1-a` that merged: #11 at {oid}\n"
+        ) in text, text
+        assert "released at main: 0 work items; 1 unreleased and untouched\n" in text
+        code, text = apply(local, capfd)
+        assert code == 0, text
+        assert local_dir(local, "1700000001-a").exists(), text
+
+    def test_apply_in_local_mode_removes_under_the_git_directory_alone(
+        self, local, gh, capfd
+    ):
+        """S4 of #955: the released item whose record holds no open row goes
+        from under the git directory, the one holding a row is kept and its
+        row named, the unreleased one stays, and nothing under the
+        repository's top is written or removed; with the row closed on disk,
+        a second run removes the kept one."""
+        local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
+        local_item(local, "1700000002-b", "feat/2-b", op("add", "U", new="B."))
+        row = OPEN.replace("a claim nobody ran", "a claim about `questions.md`")
+        held = local_item(
+            local, "1700000003-c", "feat/3-c", op("add", "T", new="C."), overview=row
+        )
+        (held / "questions.md").write_text("# q\n", encoding="utf-8")
+        gh.merged("feat/1-a", (11, merge(local, "feat/1-a")))
+        gh.merged("feat/3-c", (13, merge(local, "feat/3-c")))
+        before = files(local)
+        code, text = dry_run(local, capfd)
+        rows = text.split(f"{settle.ROWS_HEADING}\n")[1].split("\n\n")[0]
+        assert rows == (
+            "    1700000003-c\n"
+            "        open in overview.md: a claim about `questions.md`\n"
+            "            `questions.md` in the tree"
+        ), text
+        code, text = apply(local, capfd)
+        assert code == 1, text
+        assert not local_dir(local, "1700000001-a").exists(), text
+        assert local_dir(local, "1700000002-b").exists(), text
+        assert local_dir(local, "1700000003-c").exists(), text
+        assert "removed seal/specs/1700000001-a/\n" in text, text
+        assert (
+            "kept seal/specs/1700000003-c/: its record holds 1 open row; close "
+            "each (`closed` with what closed it) and run `settle --apply` again\n"
+            "    open in overview.md: a claim about `questions.md`\n"
+        ) in text, text
+        assert files(local) == before, "the apply wrote or removed in the tree"
+        (local_dir(local, "1700000003-c") / "overview.md").write_text(
+            OVERVIEW_CLOSED, encoding="utf-8"
+        )
+        code, text = apply(local, capfd)
+        assert code == 0, text
+        assert not local_dir(local, "1700000003-c").exists(), text
+        assert local_dir(local, "1700000002-b").exists(), text
+        assert "    closed in overview.md: a claim\n" in text, text
+
+    @pytest.mark.parametrize("arm", [False, True], ids=["report", "apply"])
+    @pytest.mark.parametrize("state", ["absent", "fails", "garbled", "entry"])
+    def test_refuses_a_gh_that_cannot_be_asked_in_local_mode(
+        self, local, gh, capfd, monkeypatch, state, arm
+    ):
+        """S5 of #955: with no `gh` to ask, every local item would read as
+        unreleased and the run would report nothing to settle, the quiet zero
+        the `--released-at` refusal is written against. So it exits 2, names
+        `gh` and what it said, and removes nothing."""
+        local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
+        gh.merged("feat/1-a", (11, merge(local, "feat/1-a")))
+        if state == "absent":
+            monkeypatch.setattr(settle, "GH", "specseal-no-such-gh")
+            said = "`specseal-no-such-gh` is not on PATH"
+        elif state in ("garbled", "entry"):
+            # A list whose entry is not an object is as garbled as an answer
+            # that is no list (round 1 finding 3).
+            gh.say('{"message": "Not Found"}' if state == "garbled" else "[11]")
+            said = "`gh pr list --head feat/1-a` did not answer a list of pull requests"
+        else:
+            gh.fail("HTTP 401: Bad credentials (https://api.github.com/graphql)")
+            said = (
+                "`gh pr list --head feat/1-a` exited 4: HTTP 401: Bad "
+                "credentials (https://api.github.com/graphql)"
+            )
+        code, text = dry_run(local, capfd, *(["--apply"] if arm else []))
+        assert code == 2, text
+        assert local_dir(local, "1700000001-a").exists(), text
+        assert text.startswith(
+            f"settle: `gh` cannot be asked which pull requests merged: {said}. "
+            "Nothing was read and nothing was removed."
+        ), text
+        assert (
+            "a repository on a host `gh` cannot ask cannot settle in local mode"
+        ) in flat(text), text
+
+    def test_a_released_at_ref_that_does_not_resolve_is_refused_in_local_mode(
+        self, local, gh, capfd
+    ):
+        """The `--released-at` refusal holds in local mode too, before `gh`
+        is asked: a ref nothing can read would make every merge commit
+        unreachable, the quiet zero by another door."""
+        local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
+        code = settle.main(["--root", str(local), "--released-at", "no/such/ref"])
+        text = capfd.readouterr().err
+        assert code == 2, text
+        assert "--released-at no/such/ref does not resolve" in text, text
+        assert gh.calls() == [], gh.calls()
+
+    def test_gh_is_asked_once_for_a_branch_two_items_name(self, local, gh, capfd):
+        """`gh` is asked once per branch, so two work items naming one branch,
+        the reused-branch limit, cost one query and both read as released."""
+        local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
+        local_item(local, "1700000002-b", "feat/1-a", op("add", "U", new="B."))
+        gh.merged("feat/1-a", (11, merge(local, "feat/1-a")))
+        code, text = dry_run(local, capfd)
+        assert code == 0, text
+        assert "released at main: 2 work items; 0 unreleased" in text, text
+        assert len(gh.calls()) == 1, gh.calls()
+
+    def test_a_released_at_given_as_the_merge_commit_reaches_it(self, local, gh, capfd):
+        """`reaches` asks git itself because `rule_changes.py#_ancestor`
+        answers False for two equal commits, so a `--released-at` naming the
+        merge commit still reads the item as released (round 1 finding 6)."""
+        local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
+        oid = merge(local, "feat/1-a")
+        gh.merged("feat/1-a", (11, oid))
+        code = settle.main(["--root", str(local), "--released-at", oid])
+        out = capfd.readouterr()
+        assert code == 0, out.err
+        assert f"released at {oid}: 1 work item;" in out.out, out.out
+
+    def test_the_first_listed_pull_request_the_ref_reaches_is_taken(
+        self, local, gh, capfd
+    ):
+        """Several merged pull requests from one branch: one the ref does not
+        reach does not hide a later-listed one it does (round 1 finding 6)."""
+        git(local, "branch", "other")
+        local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
+        stray = merge(local, "feat/1-a", into="other")
+        git(local, "switch", "-q", "main")
+        git(local, "merge", "-q", "--no-ff", "-m", "m", "feat/1-a")
+        reached = git(local, "rev-parse", "HEAD").strip()
+        gh.merged("feat/1-a", (12, stray), (11, reached))
+        code, text = dry_run(local, capfd)
+        assert code == 0, text
+        assert f"1700000001-a  pull request #11  merge commit {reached}" in text, text
+
+    def test_a_pull_request_listed_with_no_merge_commit_is_named_as_such(
+        self, local, gh, capfd
+    ):
+        """A listed pull request whose `mergeCommit` is null names nothing git
+        can reach, so the item is unreleased. `gh` was asked for merged pull
+        requests and listed it, so the reason names it as one with no merge
+        commit rather than saying none merged (round 1 finding 3)."""
+        local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
+        gh.merged("feat/1-a", (11, None))
+        code, text = dry_run(local, capfd)
+        assert code == 0, text
+        assert (
+            "    1700000001-a  main reaches no merge commit of the pull requests "
+            "from `feat/1-a` that merged: #11 with no merge commit\n"
+        ) in text, text
+
+    def test_shared_mode_never_asks_gh(self, repo, gh, capfd):
+        """S6 of #955: a shared root's work items are released by presence at
+        `--released-at`, so neither command asks `gh`, even for an item whose
+        `routing.md` names a branch."""
+        item(repo, "1700000001-a", op("add", "S", new="Rule."))
+        (specs_dir(repo, "1700000001-a") / "routing.md").write_text(
+            ROUTED.format(name="1700000001-a", branch="feat/1-a"), encoding="utf-8"
+        )
+        commit(repo, "a")
+        code, text = dry_run(repo, capfd)
+        assert code == 0, text
+        code, text = apply(repo, capfd)
+        assert code == 0, text
+        assert not specs_dir(repo, "1700000001-a").exists(), text
+        assert gh.calls() == [], gh.calls()
+
+    def test_a_local_item_with_no_branch_is_unreleased_and_gh_is_not_asked(
+        self, local, gh, capfd
+    ):
+        """S7 of #955: one item has no `routing.md`, the other's has no
+        `Branch` row, so there is no branch to ask about."""
+        local_item(local, "1700000001-a", changes=op("add", "S", new="A."))
+        routing = ROUTED.format(name="1700000002-b", branch="x")
+        local_item(local, "1700000002-b", changes=op("add", "S", new="B."))
+        (local_dir(local, "1700000002-b") / "routing.md").write_text(
+            routing.replace("| Branch | x |\n", ""), encoding="utf-8"
+        )
+        code, text = dry_run(local, capfd)
+        assert code == 0, text
+        unreleased = text.split(settle.UNMERGED_HEADING + "\n")[1].split("\n\n")[0]
+        assert unreleased == (
+            f"    1700000001-a  {NO_BRANCH}\n    1700000002-b  {NO_BRANCH}"
+        ), text
+        assert gh.calls() == [], gh.calls()
+
+    def test_a_local_routing_md_routing_py_does_not_read_names_no_branch(
+        self, local, gh, capfd
+    ):
+        """A `routing.md` with a `Branch` row whose `Review` answer is outside
+        the vocabulary is no declaration to `hooks/routing.py#parse`, so the
+        item is unreleased and `gh` is not asked. The reason says the file is
+        not read as a declaration, since a person who opens it finds the
+        `Branch` row there (round 1 finding 3)."""
+        local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
+        path = local_dir(local, "1700000001-a") / "routing.md"
+        text = path.read_text(encoding="utf-8")
+        path.write_text(
+            text.replace("| Review | through", "| Review | Through"), encoding="utf-8"
+        )
+        code, text = dry_run(local, capfd)
+        assert code == 0, text
+        unreleased = text.split(settle.UNMERGED_HEADING + "\n")[1].split("\n\n")[0]
+        assert unreleased == f"    1700000001-a  {NO_BRANCH}", text
+        assert gh.calls() == [], gh.calls()
+
+    def test_a_local_repository_with_no_policy_root_settles(self, local, gh, capfd):
+        """S9 of #955: a local-mode repository has no `docs/` until the
+        settling session creates it. The dry run says the new document is not
+        there, and `--apply` removes the item and reads no policy root."""
+        git(local, "rm", "-rq", "docs")
+        commit(local, "no policy root")
+        local_item(
+            local,
+            "1700000001-a",
+            "feat/1-a",
+            op("add", new="# New", file="docs/new.md"),
+        )
+        gh.merged("feat/1-a", (11, merge(local, "feat/1-a")))
+        code, text = dry_run(local, capfd)
+        assert code == 0, text
+        assert group_text(text).startswith(
+            "    place: docs/new.md, the whole document: the document is not in "
+            "the tree"
+        ), text
+        code, text = apply(local, capfd)
+        assert code == 0, text
+        assert not local_dir(local, "1700000001-a").exists(), text
+        assert settle.AFTER_HEADING not in text, text
+        assert not (local / "docs").exists()
 
     def test_a_repository_with_no_root_at_either_place_says_so(self, tmp_path):
         """The other arm of the same resolution, kept apart from local mode
@@ -817,6 +1339,21 @@ class Test_main:
         assert "holds no work item" in r.stdout, r.stdout + r.stderr
         assert "A complete settle ends here" in r.stdout, r.stdout
 
+    @pytest.mark.rule("an-empty-root-is-settled")
+    @pytest.mark.parametrize("arm", [False, True], ids=["report", "apply"])
+    def test_accepts_a_settled_local_root_and_names_it(self, local, arm, capfd):
+        """S8 of #955: a local root with no work item is settled too. The
+        sentence names the root under the git directory, and says nothing
+        about a fresh checkout, which carries no local root."""
+        code, text = dry_run(local, capfd, *(["--apply"] if arm else []))
+        assert code == 0, text
+        home = os.path.join(str(local), ".git", "seal")
+        assert text == (
+            f"settle: {home} is the seal/ root, in local mode, and its specs/ "
+            "holds no work item — nothing to show and nothing to remove. A "
+            "complete settle ends here.\n"
+        ), text
+
 
 class Test_module:
     def test_merge_order_is_the_commit_that_adds_the_spec(self, repo):
@@ -833,6 +1370,21 @@ class Test_module:
         ids = ["1700000001-a", "1700000002-b"]
         found = [i for i, _ in rules.order(str(repo), "HEAD", ids)]
         assert found == ["1700000002-b", "1700000001-a"], found
+
+    def test_merge_order_of_local_specs_is_their_merge_commits_place(self, repo):
+        """#955: no commit adds a local spec, so `rule_changes.py#merge_order`
+        sorts `(id, merge commit)` pairs by each commit's place on the ref,
+        whatever order they are handed in. A commit the ref does not reach
+        comes last."""
+        a = merge(repo, "feat/1-a")
+        b = merge(repo, "feat/2-b")
+        stray = "0" * 40
+        pairs = [("1700000002-b", b), ("1700000003-c", stray), ("1700000001-a", a)]
+        assert rules.merge_order(str(repo), "HEAD", pairs) == [
+            ("1700000001-a", a),
+            ("1700000002-b", b),
+            ("1700000003-c", stray),
+        ]
 
     def test_a_ref_that_does_not_resolve_is_refused_rather_than_empty(self, tree):
         """The quiet zero this is written against: a ref nothing can read makes
@@ -866,6 +1418,10 @@ class Test_module:
         [
             ("READER", "it is where a record's open rows are read from"),
             ("OPTIN", "it is what finds the repository's seal/ root"),
+            (
+                "ROUTING",
+                "it is what reads the branch a local work item's `routing.md` names",
+            ),
             ("RULES", "it is what reads a spec's `## Rule changes`"),
             (
                 "FOLD_CHECK",

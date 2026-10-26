@@ -171,6 +171,12 @@ def test_the_skill_says_a_settle_is_not_a_work_item_and_owes_no_range_row():
     assert "[no-review]" not in text, "the skill still names the retired waiver"
     assert "reviewed at its pull request" in text
     assert "keeps no log" in text
+    # Round 1 finding 4 of #955: no commit holds a local work item, so git
+    # history keeps the removed specs only where the root is shared.
+    assert (
+        "Where the root is shared the removed specs are in git history; in "
+        "local mode no commit holds them"
+    ) in text, text
 
 
 def test_the_skill_says_it_fails_no_build():
@@ -274,18 +280,48 @@ def test_both_cheat_sheets_carry_the_command(edition):
     assert "`HEAD`" not in row, "the row still says the base is asked"
 
 
-def test_the_module_and_the_skill_both_say_local_mode_is_refused():
-    """Round 2, finding 3 — contract rule 14's other half. The exit-code list named three
-    causes of exit 2 and there were four, and the one document a session reads
-    before it folds said nothing about the refusal at all. A person whose root
-    sits under the git directory meets a stop no document predicted."""
+def test_the_module_and_the_skill_both_say_how_local_mode_settles():
+    """S10 of #955, contract rule 14. Since #955 `settle` reads a local root,
+    so neither text says it refuses one. The skill states where the work
+    items are read and removed, what released means there and how the order
+    is read, what the dry run adds and what `--apply` removes, and the three
+    limits; the docstring's exit-code list names a `gh` that cannot be asked
+    and no longer a root in local mode. Round 2's finding 3 of #458 holds
+    still: every cause of exit 2 is in the list."""
     with open(SCRIPT, encoding="utf-8") as f:
-        head = f.read().split('"""')[1]
-    assert "Exit codes" in head, "the docstring no longer documents exit codes"
-    assert "local mode" in head, "exit 2 covers a local-mode root and the list does not"
-    assert "opted out" in head, "exit 2 covers the opt-out and the list does not"
-    text = flat(skill())
-    assert "refuses to run in local mode" in text, (
-        "the skill never tells a session that this command stops in local mode"
-    )
-    assert "seal mode shared" in text, "the skill does not give the way out"
+        head = flat(f.read().split('"""')[1])
+    exits = head.split("Exit codes")[1]
+    assert "a root in local mode" not in exits, exits
+    assert "a `gh` that is not on PATH or whose query fails" in exits, exits
+    assert "opted out" in exits, "exit 2 covers the opt-out and the list does not"
+    assert "Local mode is refused" not in head, head
+    assert "refuses to run in local mode" not in flat(skill())
+    section = flat(skill().split("\n## In local mode\n")[1].split("\n## ")[0])
+    for said in (
+        "under the common git directory",
+        "so a work item's directory is `<git-common-dir>/seal/specs/<id>/`",
+        "the pull request from the branch its `routing.md` names has merged",
+        "reachable from `--released-at`",
+        "`gh pr list --head <branch> --state merged --json number,mergeCommit`",
+        "Each `spec.md` is read from its directory",
+        "their merge commits' place in `git rev-list --topo-order --reverse`",
+        "with its pull request's number and its merge commit",
+        "which of the three states holds",
+        "no `routing.md` that `hooks/routing.py` reads as a declaration naming "
+        "a branch",
+        "a pull request listed with no merge commit among them",
+        "`seal export` takes a copy for whoever wants one",
+        "removes each released local directory whose record holds no open row",
+        "Shared mode never asks `gh`",
+        "reached `--released-at` without a pull request reads as unreleased, "
+        "and its directory is removed by hand",
+        "A repository on a host `gh` cannot ask cannot settle in local mode",
+        "reads that later work item as released",
+        "So does a merged pull request from a fork whose branch has the same "
+        "name, since `gh pr list --head` matches a branch's name and not its "
+        "owner",
+        "it does not rule out the second, because the flow does not name a "
+        "fork's branches",
+    ):
+        assert said in section, said
+    assert "never produces this" not in section, section

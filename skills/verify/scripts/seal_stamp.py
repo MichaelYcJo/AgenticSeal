@@ -1226,7 +1226,8 @@ def queue_for_written_guarantee(path, session, now=None):
     and the values files share the common dir, so a values file for the id,
     pending or drawn, is a complete record of the work item's stamp in this
     clone. The branch is what keeps a `sealed` written long ago quiet, since
-    `settle` retires no local-mode work item. Where the branch stands and
+    a local-mode work item stays under the root until the settle after its
+    release removes it. Where the branch stands and
     does not hold the audited commit, the refusal is recorded
     (`record_refusal`) and the one line returned is `NOT_ON_BRANCH`; a
     branch that is gone or unnamed says nothing. Raises whatever reading the

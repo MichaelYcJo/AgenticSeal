@@ -9,8 +9,15 @@
   settle --released-at REF      what counts as released (default origin/main)
   settle --root DIR             a repository other than this one
 
-**Released means present on the branch the release merges to**, which is why
-`--released-at` names a ref rather than a date.
+**Released means shipped on the branch the release merges to**, which is why
+`--released-at` names a ref rather than a date. Where the root is shared, a
+work item is released when its directory is present at that ref. In local
+mode the root is under the common git directory and no ref holds a work
+item's directory, so a work item is released when the pull request from the
+branch its `routing.md` names has merged and that pull request's merge commit
+is reachable from the ref. `gh pr list --head <branch> --state merged` names
+the merge commit whatever the merge method was; it is asked once per branch,
+and only in local mode.
 
 **The specs say what was decided and in what order, the code says what holds
 now, and the settling session writes each section as the latest decision the
@@ -18,13 +25,16 @@ code bears out. The script reads and removes; it neither writes `docs/` nor
 judges.** `skills/settle/SKILL.md` is the settling session's procedure.
 
 **The dry run is the timeline.** Each released spec's `## Rule changes` is
-read as `--released-at` holds it, through `rule_changes.py`. The specs whose
+read through `rule_changes.py`, as `--released-at` holds it where the root is
+shared and from its directory in local mode. The specs whose
 operations name one place, a file and a section, are one group, two places
 one group where `rule_changes.py#overlapping` says they can name one text, and
-each group is listed in merge order (`rule_changes.py#order`). Each operation
+each group is listed in merge order: the commits that add each spec
+(`rule_changes.py#order`), or in local mode the pull requests' merge commits
+(`rule_changes.py#merge_order`). Each operation
 carries its spec's coordinate and two facts read from the working tree:
 whether its `from` is found in the section, and whether its `to` is. Two specs
-in one group whose adding commits no ancestry orders are marked unordered for
+in one group whose commits no ancestry orders are marked unordered for
 the settling session to order by content. A spec whose section does not parse,
 or that has none, is listed to read whole. Every open `## Not verified` row of
 every released record is listed with the backticked paths it names and
@@ -39,24 +49,36 @@ that cannot be read, is kept and named with its rows. It writes no policy
 document: the settling session has written them by then, and `fold-check`'s
 lines over the policy root are printed after the removals.
 
-**Local mode is refused rather than reported on.** A root under the common
-git directory is never committed, so no ref holds the work item directories
-and nothing removed from them could be recovered. `seal mode shared` moves the
-root into the tree. A repository that opted out with the scratch marker, an
-empty FILE read the way `hooks/optin.py#home_at` reads it, is refused too.
+**In local mode the work items are read and removed under the git
+directory.** Every `seal/specs/<id>/` path is read under the directory that
+holds the resolved root, the repository's top where the root is shared and
+the common git directory in local mode, and is printed as `seal/specs/<id>/`.
+The policy root, the tracked files the citations are read from, and `tests/`
+are read from the repository's top in both. The dry run's first line names a
+local root, each released local work item is listed with its pull request's
+number and its merge commit, and each unreleased one with why: no
+`routing.md` that `hooks/routing.py` reads as a declaration naming a branch,
+no merged pull request from its branch, or no listed merge commit
+`--released-at` reaches, a pull request listed with none among them. What `--apply` removes there no commit holds, and
+the dry run names `seal export` for a copy. A `gh` that cannot be asked
+refuses the run, since every local work item would then read as unreleased.
+A repository that opted out with the scratch marker, an empty FILE read the
+way `hooks/optin.py#home_at` reads it, is refused.
 
 Exit codes: 0 the report was produced, `--apply` kept nothing, or the root
 holds no work item, which is the state a complete settle reaches; 1 `--apply`
 kept a directory whose record holds an open row or cannot be read; 2 the
 arguments or the tree were unusable: a `--released-at` ref that does not
-resolve, a root at neither place, a root in local mode, a repository that
-opted out, and a sibling script that is not beside it. An interpreter below
+resolve, a root at neither place, a repository that opted out, in local mode
+a `gh` that is not on PATH or whose query fails, and a sibling script that is
+not beside it. An interpreter below
 the floor never reaches this file through `bin/settle`: `hooks/launch.py`
 refuses it with 2 first.
 """
 
 import argparse
 import importlib.util
+import json
 import os
 import re
 import shutil
@@ -66,6 +88,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")
 OPTIN = os.path.join(HERE, "..", "..", "..", "hooks", "optin.py")
+ROUTING = os.path.join(HERE, "..", "..", "..", "hooks", "routing.py")
 RULES = os.path.join(HERE, "rule_changes.py")
 FOLD_CHECK = os.path.join(HERE, "fold_check.py")
 
@@ -73,12 +96,17 @@ FOLD_CHECK = os.path.join(HERE, "fold_check.py")
 PURPOSES = {
     READER: "it is where a record's open rows are read from",
     OPTIN: "it is what finds the repository's seal/ root",
+    ROUTING: "it is what reads the branch a local work item's `routing.md` names",
     RULES: "it is what reads a spec's `## Rule changes`",
     FOLD_CHECK: "it is what reads the index and the one read after an apply",
 }
 
 SPECS = "seal/specs"
 TESTS = "tests/"
+
+# The command asked in local mode, once per branch, and how long it may take.
+GH = "gh"
+GH_TIMEOUT = 60
 
 
 def under(root, rel):
@@ -120,9 +148,10 @@ def load(path, name):
 # --- what the tree says ----------------------------------------------------
 
 
-def work_items(root):
-    """Every work item id with a directory under `seal/specs/`, in id order."""
-    top = under(root, SPECS)
+def work_items(records):
+    """Every work item id with a directory under `seal/specs/` in RECORDS,
+    the directory holding the `seal/` root, in id order."""
+    top = under(records, SPECS)
     if not os.path.isdir(top):
         return []
     return sorted(
@@ -156,9 +185,137 @@ def released(root, ref):
     return found
 
 
-def has_spec(root, work_item_id):
+def resolves(root, ref):
+    """Whether REF names a commit in the repository at ROOT."""
+    r = subprocess.run(
+        ["git", "-C", root, "rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}"],
+        capture_output=True,
+    )
+    return r.returncode == 0
+
+
+def reaches(root, ref, commit):
+    """Whether COMMIT is reachable from REF, REF itself included."""
+    r = subprocess.run(
+        ["git", "-C", root, "merge-base", "--is-ancestor", commit, ref],
+        capture_output=True,
+    )
+    return r.returncode == 0
+
+
+class Unasked(Exception):
+    """`gh` could not be asked; the message says what it said."""
+
+
+def merged_pull_requests(root, branch):
+    """`[(number, merge commit or None)]` for the pull requests from BRANCH
+    that have merged, as `gh` lists them, asked from the repository's top.
+    Raises `Unasked` where `gh` is not on PATH, does not run, exits non-zero
+    or answers anything but a list of objects."""
+    found = shutil.which(GH)
+    if found is None:
+        raise Unasked(f"`{GH}` is not on PATH")
+    asked = f"`{GH} pr list --head {branch}`"
+    query = ["--head", branch, "--state", "merged", "--json", "number,mergeCommit"]
+    try:
+        r = subprocess.run(
+            [found, "pr", "list", *query],
+            cwd=root,
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=GH_TIMEOUT,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise Unasked(f"{asked} did not run ({exc})") from exc
+    if r.returncode != 0:
+        said = (r.stderr or r.stdout or "").strip().partition("\n")[0].strip()
+        raise Unasked(f"{asked} exited {r.returncode}" + (f": {said}" if said else ""))
+    try:
+        answer = json.loads(r.stdout)
+    except ValueError:
+        answer = None
+    if not isinstance(answer, list) or not all(isinstance(pr, dict) for pr in answer):
+        raise Unasked(f"{asked} did not answer a list of pull requests")
+    out = []
+    for pr in answer:
+        merge = pr.get("mergeCommit")
+        commit = merge.get("oid") if isinstance(merge, dict) else None
+        out.append(
+            (pr.get("number"), commit if isinstance(commit, str) and commit else None)
+        )
+    return out
+
+
+# Why a local work item is unreleased, each pinned by `tests/test_settle.py`.
+# A `routing.md` that `hooks/routing.py#parse` does not read, such as one whose
+# `Review` answer is outside the vocabulary, names no branch whatever rows it
+# holds, so the reason names the reader rather than the row.
+NO_BRANCH = (
+    "no `routing.md` that `hooks/routing.py` reads as a declaration names a "
+    "branch, so `gh` was not asked"
+)
+NO_PULL_REQUEST = "no pull request from `{branch}` has merged"
+NOT_REACHED = (
+    "{ref} reaches no merge commit of the pull requests from `{branch}` that "
+    "merged: {listed}"
+)
+
+
+def declared_branch(records, work_item_id, routing):
+    """The `Branch` row of the work item's `routing.md`, read by
+    `hooks/routing.py#parse`, or None where there is no file, no row, or a
+    file `parse` does not read as a declaration."""
+    path = under(records, f"{SPECS}/{work_item_id}/{routing.FILENAME}")
+    try:
+        with open(path, encoding="utf-8") as f:
+            declared = routing.parse(f.read())
+    except (OSError, UnicodeDecodeError):
+        return None
+    return (declared or {}).get("branch") or None
+
+
+def released_local(root, records, ref, ids):
+    """`(merged, why)` for the local work items IDS: `merged` is `{id:
+    (number, merge commit)}` for each one released, `why` is `{id: reason}`
+    for each one that is not.
+
+    A work item is released when a pull request from the branch its
+    `routing.md` names has merged and REF reaches its merge commit; `gh` is
+    asked once per branch, and not for a work item that names none. Raises
+    `Unasked` where `gh` cannot be asked: every work item would then read as
+    unreleased, and the run would say there is nothing to settle."""
+    routing = load(ROUTING, "specseal_routing_for_settle")
+    asked, merged, why = {}, {}, {}
+    for work_item_id in ids:
+        branch = declared_branch(records, work_item_id, routing)
+        if branch is None:
+            why[work_item_id] = NO_BRANCH
+            continue
+        if branch not in asked:
+            asked[branch] = merged_pull_requests(root, branch)
+        prs = asked[branch]
+        if not prs:
+            why[work_item_id] = NO_PULL_REQUEST.format(branch=branch)
+            continue
+        reached = next(
+            ((n, c) for n, c in prs if c is not None and reaches(root, ref, c)), None
+        )
+        if reached is None:
+            listed = ", ".join(
+                f"#{n} at {c}" if c else f"#{n} with no merge commit" for n, c in prs
+            )
+            why[work_item_id] = NOT_REACHED.format(
+                ref=ref, branch=branch, listed=listed
+            )
+        else:
+            merged[work_item_id] = reached
+    return merged, why
+
+
+def has_spec(records, work_item_id):
     """Whether the work item's directory holds a `spec.md` on disk."""
-    return os.path.isfile(under(root, f"{SPECS}/{work_item_id}/spec.md"))
+    return os.path.isfile(under(records, f"{SPECS}/{work_item_id}/spec.md"))
 
 
 def read_text(root, rel):
@@ -176,6 +333,28 @@ SETTLED = (
     "nothing to remove. A complete settle ends here, and git keeps no empty "
     "directory, so a fresh checkout of this state has no {specs}/ at all.\n"
 )
+# A checkout carries no local root, so the fresh checkout goes unsaid there.
+SETTLED_LOCAL = (
+    "settle: {home} is the seal/ root, in local mode, and its specs/ holds no "
+    "work item — nothing to show and nothing to remove. A complete settle "
+    "ends here.\n"
+)
+# The refusal where `gh` cannot be asked, in local mode alone.
+UNASKED = (
+    "settle: `gh` cannot be asked which pull requests merged: {why}. Nothing "
+    "was read and nothing was removed. In local mode a work item is released "
+    "when the pull request from the branch its `routing.md` names has merged, "
+    "and `gh` is what names that pull request's merge commit, so a repository "
+    "on a host `gh` cannot ask cannot settle in local mode.\n"
+)
+
+# The dry run's local lines, each pinned by `tests/test_settle.py`.
+LOCAL_LINE = "local mode: the seal/ root is {home}, under the git directory\n"
+MERGED_HEADING = (
+    "released in local mode, each with the pull request that merged it and "
+    "its\nmerge commit, for the settle's pull request body to cite:"
+)
+UNMERGED_HEADING = "unreleased in local mode and untouched, each with why:"
 
 # The dry run's headings, each pinned by `tests/test_settle.py`.
 GROUPS_HEADING = (
@@ -187,6 +366,10 @@ GROUPS_HEADING = (
 UNORDERED = (
     "unordered: {a} and {b}: no ancestry orders the commits that add their "
     "spec.md,\n        so order them by content"
+)
+UNORDERED_LOCAL = (
+    "unordered: {a} and {b}: no ancestry orders their pull requests' merge "
+    "commits,\n        so order them by content"
 )
 WHOLE_HEADING = (
     "to read whole: released specs no group holds, for the settling session "
@@ -202,6 +385,11 @@ ROWS_HEADING = (
 REMOVES_HEADING = (
     "what `settle --apply` removes: each released directory whose record "
     "holds no open row:"
+)
+REMOVES_HEADING_LOCAL = (
+    "what `settle --apply` removes: each released directory whose record "
+    "holds no open row.\nIn local mode no commit holds these directories; "
+    "`seal export` takes a copy for\nwhoever wants one:"
 )
 READERS_HEADING = (
     "checks that read `seal/specs` — each owes an answer "
@@ -241,25 +429,26 @@ def tracked_names(root):
     return {rel.rsplit("/", 1)[-1] for rel in listed if rel}
 
 
-def in_tree(root, work_item_id, path, names):
+def in_tree(root, records, work_item_id, path, names):
     """Whether PATH, as an open row of WORK_ITEM_ID names it, is in the
-    working tree: under the root, under the work item's own directory, or,
-    for a bare file name, as the name of a tracked file."""
+    working tree: under the repository's top ROOT, under the work item's own
+    directory in RECORDS, or, for a bare file name, as the name of a tracked
+    file."""
     rel = path.rstrip("/")
     if os.path.exists(under(root, rel)):
         return True
-    if os.path.exists(under(root, f"{SPECS}/{work_item_id}/{rel}")):
+    if os.path.exists(under(records, f"{SPECS}/{work_item_id}/{rel}")):
         return True
     return "/" not in rel and rel in names
 
 
-def open_rows(root, ids, reader):
+def open_rows(root, records, ids, reader):
     """`[(id, [(file, item, [(path, in the tree)])])]` for each of IDS whose
-    record holds an open row in the working tree
+    record under RECORDS holds an open row in the working tree
     (`unverified_check.py#open_record_rows`)."""
     out, names = [], None
     for work_item_id in ids:
-        rows = reader.open_record_rows(root, None, f"{SPECS}/{work_item_id}")
+        rows = reader.open_record_rows(records, None, f"{SPECS}/{work_item_id}")
         if not rows:
             continue
         names = tracked_names(root) if names is None else names
@@ -271,7 +460,7 @@ def open_rows(root, ids, reader):
                         name,
                         item,
                         [
-                            (p, in_tree(root, work_item_id, p, names))
+                            (p, in_tree(root, records, work_item_id, p, names))
                             for p in named_paths(item)
                         ],
                     )
@@ -299,22 +488,31 @@ def facts(root, op, rules):
     ]
 
 
-def timeline(root, ref, ids, reader):
+def timeline(root, ref, ids, reader, records, merged=None):
     """The released specs IDS as the dry run shows them.
 
-    Each `spec.md` is read as REF holds it, the text that was reviewed and
-    released. A spec with operations joins the groups `rule_changes.py#group`
-    forms in merge order; one whose section does not parse, or that has
-    none, is to be read whole; one holding the no-change block has nothing
-    to write; a directory with no `spec.md` states no rule."""
+    Where the root is shared, each `spec.md` is read as REF holds it, the
+    text that was reviewed and released, and the merge order is the commits
+    that add the specs (`rule_changes.py#order`). In local mode no ref holds
+    a spec, so it is read from its directory under RECORDS, and the merge
+    order is the merge commits MERGED names, `{id: (number, merge commit)}`
+    (`rule_changes.py#merge_order`). A spec with operations joins the groups
+    `rule_changes.py#group` forms in merge order; one whose section does not
+    parse, or that has none, is to be read whole; one holding the no-change
+    block has nothing to write; a directory with no `spec.md` states no
+    rule."""
     rules = load(RULES, "specseal_rule_changes")
     policy = reader.policy_root(root)
     parsed, whole, nothing, spec_less = {}, [], [], []
     for work_item_id in ids:
-        if not has_spec(root, work_item_id):
+        if not has_spec(records, work_item_id):
             spec_less.append(work_item_id)
             continue
-        text = reader.show(root, ref, f"{SPECS}/{work_item_id}/spec.md") or ""
+        rel = f"{SPECS}/{work_item_id}/spec.md"
+        if merged is None:
+            text = reader.show(root, ref, rel) or ""
+        else:
+            text = read_text(records, rel) or ""
         found = rules.parse(text, policy)
         if found.errors:
             whole.append((work_item_id, *found.errors[0]))
@@ -324,7 +522,11 @@ def timeline(root, ref, ids, reader):
             nothing.append(work_item_id)
         else:
             parsed[work_item_id] = found.ops
-    ordered = rules.order(root, ref, list(parsed), SPECS)
+    if merged is None:
+        ordered = rules.order(root, ref, list(parsed), SPECS)
+    else:
+        pairs = [(i, merged[i][1]) for i in parsed]
+        ordered = rules.merge_order(root, ref, pairs)
     commits = dict(ordered)
     same = rules.overlapping(lambda rel: read_text(root, rel))
     groups = []
@@ -372,27 +574,57 @@ def op_line(work_item_id, op, found):
 # --- the dry run -----------------------------------------------------------
 
 
-def survey(root, ref):
+def records_of(root, home):
+    """`(local, records)` for the repository at ROOT whose resolved `seal/`
+    root is HOME: whether it is in local mode, and the directory every
+    `seal/specs/<id>/` path is read and removed under. That is ROOT where the
+    root is shared, and the common git directory that holds it in local mode;
+    every other read stays on ROOT."""
+    local = os.path.realpath(home) != os.path.realpath(under(root, "seal"))
+    return local, (os.path.dirname(home) if local else root)
+
+
+def survey(root, ref, home=None):
     """What the dry run prints, and where `--apply` gets *released*.
+
+    HOME is the resolved `seal/` root, `<root>/seal` when it is None. Where
+    it is anywhere else the root is in local mode: the work items are read
+    under the directory holding it, and released is asked of `gh` and git
+    (`released_local`) rather than read from REF's tree.
 
     **`--apply` does not take its candidates from here.** It reads the
     directories and the records from the tree again, because a
     classification made for a printed list is not a guard on a destructive
-    act. What it takes from here is `released`, which only git answers.
+    act. What it takes from here is `released`, which only git answers, and
+    in local mode `gh` with git, and `records`, the directory the root is in.
 
-    None where `ref` does not resolve."""
-    present = work_items(root)
-    on_base = released(root, ref)
-    if on_base is None:
-        return None
+    None where `ref` does not resolve. Raises `Unasked` where local mode
+    needs `gh` and it cannot be asked."""
+    home = home or under(root, "seal")
+    local, records = records_of(root, home)
+    present = work_items(records)
+    merged, why = None, {}
+    if local:
+        if not resolves(root, ref):
+            return None
+        merged, why = released_local(root, records, ref, present)
+        on_base = set(merged)
+    else:
+        on_base = released(root, ref)
+        if on_base is None:
+            return None
     reader = load(READER, "specseal_unverified_reader")
     ids = [i for i in present if i in on_base]
     found = {
         "ref": ref,
+        "local": home if local else None,
+        "records": records,
         "released": ids,
         "unreleased": [i for i in present if i not in on_base],
-        "timeline": timeline(root, ref, ids, reader),
-        "rows": open_rows(root, ids, reader),
+        "merged": merged or {},
+        "why": why,
+        "timeline": timeline(root, ref, ids, reader, records, merged),
+        "rows": open_rows(root, records, ids, reader),
         "nothing": reader.NOTHING,
     }
     found["citations"], found["readers"] = citations(root, ids)
@@ -463,12 +695,18 @@ def citations(root, work_item_ids):
 
 def report(found, ref, out):
     """The dry run: the groups, the specs to read whole, the open rows and
-    what `--apply` removes. It refuses nothing, so it exits 0."""
+    what `--apply` removes. It refuses nothing, so it exits 0. In local mode
+    it names the root first, lists each released work item with the pull
+    request that merged it and each unreleased one with why, and says no
+    commit holds what `--apply` removes."""
     write = out.write
     t = found["timeline"]
+    local = found["local"]
     rows = dict(found["rows"])
     count = sum(len(r) for r in rows.values())
     total = len(found["released"])
+    if local:
+        write(LOCAL_LINE.format(home=local))
     write(
         f"released at {ref}: {total} work item{plural(total)}; "
         f"{len(found['unreleased'])} unreleased and untouched\n"
@@ -478,6 +716,18 @@ def report(found, ref, out):
         f"    {len(t['groups'])} group{plural(len(t['groups']))}; {count} open "
         f"row{plural(count)} in {len(rows)} record{plural(len(rows))}\n"
     )
+    if local and found["released"]:
+        write(f"\n{MERGED_HEADING}\n")
+        for work_item_id in found["released"]:
+            number, commit = found["merged"][work_item_id]
+            write(
+                f"    {work_item_id}  pull request #{number}  merge commit {commit}\n"
+            )
+    if local and found["unreleased"]:
+        write(f"\n{UNMERGED_HEADING}\n")
+        for work_item_id in found["unreleased"]:
+            write(f"    {work_item_id}  {found['why'][work_item_id]}\n")
+    unordered = UNORDERED_LOCAL if local else UNORDERED
     if t["groups"]:
         write(f"\n{GROUPS_HEADING}\n")
         for n, g in enumerate(t["groups"], 1):
@@ -487,7 +737,7 @@ def report(found, ref, out):
             for k, (work_item_id, op, said) in enumerate(g["ops"], 1):
                 write(f"    {k}. {op_line(work_item_id, op, said)}\n")
             for a, b in g["unordered"]:
-                write(f"    {UNORDERED.format(a=a, b=b)}\n")
+                write(f"    {unordered.format(a=a, b=b)}\n")
     if t["whole"]:
         write(f"\n{WHOLE_HEADING}\n")
         for work_item_id, line, why in t["whole"]:
@@ -509,7 +759,7 @@ def report(found, ref, out):
                     there = "in the tree" if present else "not in the tree"
                     write(f"            `{path}` {there}\n")
     if found["released"]:
-        write(f"\n{REMOVES_HEADING}\n")
+        write(f"\n{REMOVES_HEADING_LOCAL if local else REMOVES_HEADING}\n")
         for work_item_id in found["released"]:
             held = len(rows.get(work_item_id, []))
             when = f"once its {held} open row{plural(held)} close" if held else "now"
@@ -553,10 +803,11 @@ def write_after(root, policy, out):
         out.write(f"\n{AFTER_HEADING}\n" + "".join(f"    {i}\n" for i in lines))
 
 
-def closed_rows(root, directory, reader):
+def closed_rows(records, directory, reader):
     """`[(item, what closed it)]` for each closed row of DIRECTORY's record
-    in the working tree, read by `unverified_check.py#check_text`."""
-    text = read_text(root, f"{directory}/{reader.OVERVIEW}")
+    under RECORDS in the working tree, read by
+    `unverified_check.py#check_text`."""
+    text = read_text(records, f"{directory}/{reader.OVERVIEW}")
     if text is None:
         return []
     _, closed, _ = reader.check_text(text)
@@ -566,17 +817,21 @@ def closed_rows(root, directory, reader):
 def apply(found, root, out):
     """Remove each released directory whose record holds no open row in the
     working tree, printing the rows its record closed, and keep and name
-    each one that still holds a row.
+    each one that still holds a row. The directories are under
+    `found["records"]`: the repository's top ROOT, or in local mode the
+    common git directory.
 
     **The candidates are read from the tree again, not taken from `survey`**:
     a classification made for a printed list is not a guard on a destructive
-    act. `found` gives *released*, which only git answers."""
+    act. `found` gives *released*, which only git answers, and in local mode
+    `gh` with git."""
     reader = load(READER, "specseal_unverified_reader")
-    ids = sorted(set(work_items(root)) & set(found["released"]))
+    records = found["records"]
+    ids = sorted(set(work_items(records)) & set(found["released"]))
     removed, kept = 0, 0
     for work_item_id in ids:
         directory = f"{SPECS}/{work_item_id}"
-        rows = reader.open_record_rows(root, None, directory)
+        rows = reader.open_record_rows(records, None, directory)
         if rows:
             kept += 1
             out.write(
@@ -587,8 +842,8 @@ def apply(found, root, out):
             for name, item in rows:
                 out.write(f"    open in {name}: {item}\n")
             continue
-        closed = closed_rows(root, directory, reader)
-        shutil.rmtree(under(root, directory))
+        closed = closed_rows(records, directory, reader)
+        shutil.rmtree(under(records, directory))
         removed += 1
         out.write(f"removed {directory}/\n")
         for item, who in closed:
@@ -619,7 +874,9 @@ def main(argv=None):
         default="origin/main",
         metavar="REF",
         help="the branch a release merges to. A work item is released when "
-        "its directory is present there (default: origin/main)",
+        "its directory is present there, or in local mode when this ref "
+        "reaches the merge commit of the pull request from the work item's "
+        "branch (default: origin/main)",
     )
     ap.add_argument(
         "--apply",
@@ -633,6 +890,11 @@ def main(argv=None):
     # The root is resolved through the one resolver, `hooks/optin.py#home_at`,
     # handed the common git directory this also needs for the opt-out sentence.
     optin = load(OPTIN, "specseal_optin")
+    # The repository's top, as `fold_check.py` resolves it: the policy root,
+    # the tracked files and `tests/` are read from it, and a subdirectory
+    # holds none of them. `repo_root` answers "" outside a repository, where
+    # ROOT stays as given and the no-root refusal below answers.
+    root = optin.repo_root(root) or root
     common = optin.git_common_dir(root)
     home = optin.home_at(root, common)
     if not home:
@@ -653,23 +915,21 @@ def main(argv=None):
             "none has nothing to settle.\n"
         )
         return 2
-    if os.path.realpath(home) != os.path.realpath(under(root, "seal")):
-        sys.stderr.write(
-            f"settle: the seal root of {root} is {home}, which is local mode "
-            "— nothing was read. Local mode never commits the root, so no ref "
-            "holds the work item directories, nothing in them can be called "
-            "released, and nothing removed from them could be recovered. "
-            "`seal mode shared` moves the root into the tree, and this "
-            "command works from there.\n"
-        )
-        return 2
+    local, records = records_of(root, home)
     # A settled root is not an unusable one (#517): an empty `seal/specs/`, or
     # none in a fresh checkout of that commit, is where a complete settle ends.
-    if not work_items(root):
-        sys.stdout.write(SETTLED.format(root=root, specs=SPECS))
+    if not work_items(records):
+        if local:
+            sys.stdout.write(SETTLED_LOCAL.format(home=home))
+        else:
+            sys.stdout.write(SETTLED.format(root=root, specs=SPECS))
         return 0
 
-    found = survey(root, args.released_at)
+    try:
+        found = survey(root, args.released_at, home)
+    except Unasked as refused:
+        sys.stderr.write(UNASKED.format(why=refused))
+        return 2
     if found is None:
         sys.stderr.write(
             f"settle: --released-at {args.released_at} does not resolve in {root} — nothing was "
