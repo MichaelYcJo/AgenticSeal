@@ -69,7 +69,7 @@ It stands in `Test_main` beside
 rule 15: seen red with `optin.repo_root` answering "" (the case then exits 2
 with the refusal).
 
-answer:
+answer: 6d4412ac adds `Test_main::test_a_shared_run_from_a_subdirectory_reads_the_repositorys_top` beside the local case, and `overview.md`'s divergence row names both cases. It is the round's case with two changes. `item` gets `op(...)` and not `[op(...)]`, because `spec()` puts its argument into `## Rule changes` as text, so a list would put the list's repr there. And the run from the top must exit 0 and place group 1 at `docs/a.md:3-9`, so the equality compares a real dry run. Before the commit, `mutation-check` over `settle.py` saw the case red under two mutants, and the held bytes were restored each time. The first keeps the refusal for shared mode only, resolving to the top only where the top has no `seal/`; the new case exits 2 with "has no seal/specs/ at either place", and the local case stays green. The second has `optin.repo_root` answering ""; both subdirectory cases fail.
 
 ## Confirmations
 
