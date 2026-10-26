@@ -290,7 +290,7 @@ class Test_report:
         the work item's own directory."""
         row = (
             "the run of `docs/one-root.md` and `gone/away.py` at "
-            "`tests/x.py::Test_y`, per `questions.md` and `cmd.exe`"
+            "`tests/x.py::Test_y`, per `questions.md`, `one-root.md` and `cmd.exe`"
         )
         moment(tree, overview=OVERVIEW_OPEN.replace("a claim nobody ran", row))
         (tree / "seal" / "specs" / MOMENT / "questions.md").write_text(
@@ -305,7 +305,8 @@ class Test_report:
             "            `docs/one-root.md` in the tree\n"
             "            `gone/away.py` not in the tree\n"
             "            `tests/x.py` not in the tree\n"
-            "            `questions.md` in the tree"
+            "            `questions.md` in the tree\n"
+            "            `one-root.md` in the tree"
         ), text
         assert "1 open row in 1 record\n" in text, text
 
