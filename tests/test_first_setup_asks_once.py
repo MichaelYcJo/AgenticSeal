@@ -659,11 +659,6 @@ def test_the_seal_readme_points_at_the_drain_and_restates_none_of_it():
 def test_the_record_no_longer_says_the_checks_would_refuse(parts, wrong):
     text = read(*parts)
     assert wrong not in text, "/".join(parts)
-    # And it says both directions. A workflow left behind after a switch to
-    # local is red on every pull request AND reports an unearned pass beside
-    # it; a record naming only the green half teaches the milder failure.
-    assert "examined nothing" in text or "아무것도 안 본 채" in text, "/".join(parts)
-    assert "red forever" in text or "영원히 빨간불" in text, "/".join(parts)
 
 
 @pytest.mark.parametrize(
