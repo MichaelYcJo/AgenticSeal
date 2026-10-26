@@ -9,7 +9,7 @@ target: 64a13a36, fixes d1647de2..64a13a36
 severity: should
 location: `seal/specs/1792976216-the-records-and-the-pr-checks-are-two-answers/spec.md:449-451`, `docs/the-review-and-parity-arms.md:110`
 evidence: executed `python3 -I test_tmp_round3_rules.py clone --write`, `bin/test tests/test_docs_line_wrap.py -q`, `python3 -I test_tmp_round3_rules.py clone --spec-ref=d1647de2 --write`
-verdict: open
+verdict: deferred the frame
 regression: round-2#3
 
 The unit is the `change` item to `docs/the-review-and-parity-arms.md` *The
@@ -60,14 +60,14 @@ line 110 is 81 columns and line 111 is 74. `tests/test_docs_line_wrap.py`,
     *What the check reads at the pull request*).
 ```
 
-answer:
+answer: Routed to the framer, not to a fix pass. Findings 1 and 2 are second regressions: round 2 already routed a regression on each unit to a fix pass (round-2#3 for the rule change, round-2#2 for the `--worktree` reading), and `skills/code-review/orchestration.md` *A regression is routed by comparing the fix with the frame* sends such a unit to the framer whatever the sentence says. Finding 3 is in the `add` whose wording round-2#3 sent to a fix pass, so it goes with them. Every open finding closes `deferred the frame`, and the framer is spawned with rounds 1 to 3 as its input.
 
 ### 2. No case reaches the `--worktree` answer that the root is gone, so a mutant that never gives it passes every case
 
 severity: should
 location: `tests/test_chain_check.py:3417-3441`, `skills/code-review/scripts/chain_check.py:2192-2193`
 evidence: executed `bin/test tests/test_chain_check.py tests/e2e/teammate/test_teammate_flow.py tests/test_unverified_check.py -q`, `bin/test tests/test_tmp_round3_probe.py -q -k accepts_under_worktree`, `git grep -l -e --worktree -- tests evals`
-verdict: open
+verdict: deferred the frame
 regression: round-2#2
 
 The unit is the `if WORKTREE:` arm that `c09d050a` added to
@@ -116,14 +116,14 @@ passes at `64a13a36` and fails against the mutant at `assert code == 0`
         assert "does not carry this file at HEAD" not in out
 ```
 
-answer:
+answer: Routed to the framer, not to a fix pass. Findings 1 and 2 are second regressions: round 2 already routed a regression on each unit to a fix pass (round-2#3 for the rule change, round-2#2 for the `--worktree` reading), and `skills/code-review/orchestration.md` *A regression is routed by comparing the fix with the frame* sends such a unit to the framer whatever the sentence says. Finding 3 is in the `add` whose wording round-2#3 sent to a fix pass, so it goes with them. Every open finding closes `deferred the frame`, and the framer is spawned with rounds 1 to 3 as its input.
 
 ### 3. The `add` says a deleted declaration is otherwise refused, but one a settle retired is accepted
 
 severity: should
 location: `seal/specs/1792976216-the-records-and-the-pr-checks-are-two-answers/spec.md:433-434`
 evidence: executed `bin/test tests/test_tmp_round3_probe.py -p no:xdist -s -q`, `python3 -I test_tmp_round3_rules.py clone --write`
-verdict: open
+verdict: deferred the frame
 regression: round-1#1
 
 The unit is the `add` to `docs/the-review-record.md` *What the check reads at
@@ -155,7 +155,7 @@ The fix uses the paragraph's own word. The round applied it with finding
     is otherwise judged. With no `seal` entry there is nothing to declare,
 ```
 
-answer:
+answer: Routed to the framer, not to a fix pass. Findings 1 and 2 are second regressions: round 2 already routed a regression on each unit to a fix pass (round-2#3 for the rule change, round-2#2 for the `--worktree` reading), and `skills/code-review/orchestration.md` *A regression is routed by comparing the fix with the frame* sends such a unit to the framer whatever the sentence says. Finding 3 is in the `add` whose wording round-2#3 sent to a fix pass, so it goes with them. Every open finding closes `deferred the frame`, and the framer is spawned with rounds 1 to 3 as its input.
 
 ## Confirmations
 
