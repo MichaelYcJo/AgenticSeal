@@ -20,9 +20,9 @@ nothing.
 
 | Item | Who must answer |
 |---|---|
-| Whether the flow cases of `tests/e2e/teammate/test_teammate_flow.py` run or skip on the Windows legs of `.github/workflows/test.yml` (`questions.md` Q2) | the pull request's CI run on `windows-latest`, read by the orchestrator |
-| The full suite, the repository-wide lint and the typecheck. No phase ran them, as contract rule 2 gives them to the broad gate after the review rounds settle | the orchestrator, by `broad-gate` |
-| Whether the settle applies this spec in merge order, behind the specs the merge-order replay refused for reasons outside this branch. Phase 3 replayed this spec alone onto `docs/` at `02ee12de` | the orchestrator, at the settle that applies this release's specs |
+| closed whether the flow cases of `tests/e2e/teammate/test_teammate_flow.py` run or skip on the Windows legs of `.github/workflows/test.yml` (`questions.md` Q2) | the `tests` workflow run 40264357704 on the branch at `895db45e` passed every leg, and the flow cases ran on `windows-latest` with 3.37s and 2.83s in its durations report (`questions.md` Q2, answered (a)) |
+| closed the full suite, the repository-wide lint and format check, and the typecheck at the branch head | `broad-gate.md`: BROAD GATE PASSED at `4b63982f` against `02ee12de`, ruff check and format clean, the suite 6,552 passed and 14 skipped, chain-check exit 0; the repository has no typecheck to run (#951 adds one) |
+| Whether the settle applies this spec in merge order, behind the specs the merge-order replay refused for reasons outside this branch. Phase 3 replayed this spec alone onto `docs/` at `02ee12de` | #1033, which redesigns the settle to group specs by section, and the settle that applies this release's specs |
 
 ## Not done
 
