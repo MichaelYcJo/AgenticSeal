@@ -833,6 +833,25 @@ class Test_main:
             [a.format(b) for a in query] for b in ("feat/1-a", "feat/2-b")
         ], gh.calls()
 
+    def test_a_local_run_from_a_subdirectory_reads_the_repositorys_top(
+        self, local, gh, capfd
+    ):
+        """Round 1 finding 2 of #955: from a subdirectory the local root is
+        still found under the git directory, so the policy root has to be read
+        from the repository's top too, or a document that is there reads as
+        absent and the settling session is sent to write it."""
+        local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="Rule."))
+        gh.merged("feat/1-a", (11, merge(local, "feat/1-a")))
+        below = str(local / "docs")
+        code = settle.main(["--root", below, "--released-at", "main"])
+        out = capfd.readouterr()
+        text = out.out + out.err
+        assert code == 0, text
+        assert group_text(text).startswith(
+            "    place: docs/a.md section `S`, at docs/a.md:3-9\n"
+        ), text
+        assert "not in the tree" not in text, text
+
     def test_the_local_dry_runs_texts_say_what_they_hold(self):
         """Contract rule 14 for #955's dry run: the sentences a person acts
         on are pinned, not only their presence."""

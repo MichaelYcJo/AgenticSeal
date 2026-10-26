@@ -877,6 +877,11 @@ def main(argv=None):
     # The root is resolved through the one resolver, `hooks/optin.py#home_at`,
     # handed the common git directory this also needs for the opt-out sentence.
     optin = load(OPTIN, "specseal_optin")
+    # The repository's top, as `fold_check.py` resolves it: the policy root,
+    # the tracked files and `tests/` are read from it, and a subdirectory
+    # holds none of them. `repo_root` answers "" outside a repository, where
+    # ROOT stays as given and the no-root refusal below answers.
+    root = optin.repo_root(root) or root
     common = optin.git_common_dir(root)
     home = optin.home_at(root, common)
     if not home:

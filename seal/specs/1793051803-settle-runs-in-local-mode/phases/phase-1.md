@@ -34,6 +34,13 @@ it is handed, `policy_root` reading a local `config.md` through `home_at`,
   `rule_changes.py#order` stands there in `Test_module`. The new case,
   `test_merge_order_of_local_specs_is_their_merge_commits_place`, stands
   beside it. This divergence goes to `overview.md` in phase 2.
+- **The root is resolved to the repository's top, in both modes** (round
+  1 finding 2's fix pass). This phase took `root` from `--root` or the
+  working directory as given, so a local run from a subdirectory read the
+  policy root there and called a document that is there absent.
+  `settle.py#main` now resolves it through `optin.repo_root`, and a shared
+  run from a subdirectory reads the repository rather than refusing. That
+  diverges from *Out* "Shared mode", and `overview.md` records it.
 - **`_ancestor` is not shared.** It answers False when its two commits are
   equal, so a `--released-at` given as the merge commit's own hash would
   read as not reaching it. `settle.py#reaches` asks
