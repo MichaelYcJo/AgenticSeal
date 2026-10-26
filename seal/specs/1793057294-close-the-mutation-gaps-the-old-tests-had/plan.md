@@ -1,6 +1,6 @@
 # Implementation Plan: close the mutation gaps the old tests had (#1017)
 
-Approved <date> by <who>, when `smith` was spawned.
+Approved 2026-10-27 by the orchestrator, when `smith` was spawned.
 
 ## Summary
 
