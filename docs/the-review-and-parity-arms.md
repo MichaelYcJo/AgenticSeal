@@ -19,14 +19,14 @@ check: tests/test_routing_edit_gate.py tests/test_chain_check.py
 
 ### Review arm
 
-**The review arm is the routing check, and it runs at a session's edit
-tools and at the pull request, never at the commit.** What it refuses, what
-it reads and what waives it are `docs/the-routing-check.md`. A change
-confined to `docs/` meets it as any other change does, because `docs/` is
-the policy the code conforms to and review finds defects there as it does
-in code. A documentation pass that should reach nobody is routed that way
-before the first edit, by declaring `straight to the PR`; it is never
-inferred from the paths it touches.
+**The review arm is the routing check.** Where it runs is *The two arms*
+above; what it refuses, what it reads and what lets an edit through without
+a declaration are `docs/the-routing-check.md`. A change confined to `docs/`
+meets it as any other change does, because `docs/` is the policy the code
+conforms to and review finds defects there as it does in code. A
+documentation pass that should reach nobody is routed that way before the
+first edit, by declaring `straight to the PR`; it is never inferred from
+the paths it touches.
 check: tests/test_routing_edit_gate.py
 
 #### The declaration, and where the check went
@@ -81,6 +81,8 @@ What it costs:
   the edit check's refusal for a convention, and the plugin cannot detect
   that state.
 - Deleting the routing file brings the edit check's refusal back.
+- In local mode nothing under the root is committed, so no pull-request
+  check reads a declaration or a round record.
 
 **A declaration the pull request retired is not one it made**, and neither is
 one it only renamed. The rename is how a root move renames every declaration
@@ -125,24 +127,22 @@ one. Writing it for work nobody compared turns "nobody checked" into
 "someone checked and it was fine", the one claim the parity methodology
 exists to keep honest.
 
-**A declaration answering `through the review chain` moves the parity
-arm's check to the round records, and one answering `straight to the PR`
-to the sealer's guarantee.** In a review chain the warden compares the
-change with the original after the smith has committed it, so a check at
-the commit would meet each build commit before any comparison of it
-exists. The comparison the chain does make is recorded in each round
-record, where CI reads it, and what the check reads is
-`docs/the-review-record.md` *What the check reads at the pull request*.
+**The parity arm is checked at the pull request, in the record the table
+above names for each answer, because a comparison exists only after the
+change it compares.** In a review chain the warden compares the change with
+the original after the smith has committed it, so a check at the commit
+would meet each build commit before any comparison of it exists. What the
+check reads is `docs/the-review-record.md` *What the check reads at the pull
+request*.
 Under `straight to the PR` no review round records a comparison, so the
 sealer compares the audited commit with the original through
 `legacy-parity` and writes the line in `guarantee.md`, where the check
 reads it as it reads a round record's. A branch that declares the chain and
 never opens a pull request is checked by nothing, which is the cost the
 review arm's declaration already states. Three more shapes leave code
-nobody compared with nothing that reads it. In local mode the root sits
-under the common git directory and nothing under it is committed, so no
-pull-request check reads a round record, the cost the review arm's
-declaration already carries there. A repository whose
+nobody compared with nothing that reads it. In local mode no pull-request
+check reads a round record, the cost the review arm's declaration already
+states. A repository whose
 `.github/workflows/hygiene.yml` pins a plugin release older than this rule
 runs a `chain-check` that reads no `original:` line, until a person moves
 the pin's `v<version>` to the installed release. And a declaration

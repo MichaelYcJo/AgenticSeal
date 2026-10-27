@@ -287,9 +287,8 @@ check: tests/test_close_issues_on_release.py
 
 ## An issue is its body and its comments together
 
-Corrections, measurements and improvements land as comments, and the question
-a reader is answering, *what does this ticket now ask for*, is answered by
-reading all of them and then judging.
+Corrections, measurements and improvements land as comments, and the body is
+what answers *what does this ticket now ask for*.
 
 **A decision is folded into the body in place, and the comment that
 carried it records why.** A body that contradicts a comment leaves the
@@ -301,11 +300,12 @@ folded into the frame instead (`skills/implement/orchestration.md`
 *Orchestrator: the order inside a ticket*).
 check: none reader: the framer at every frame
 
-The exception is an issue that is a **log rather than a ticket**: `#51`
-and the rolling `flow-measurement` log. There the body IS the current state
-and is maintained: a better baseline replaces the table, an observation that
-gets an answer is rewritten where it stands, and the comments are the evidence
-a change was made on rather than the answer. `#51`'s own body says so at the
+An issue that is a **log rather than a ticket**, `#51` and the rolling
+`flow-measurement` log, keeps its body the same way with different
+comments: the body is the current state of a measurement, a better baseline
+replaces the table, an observation that gets an answer is rewritten where
+it stands, and the comments are the readings a change was made on rather
+than decisions. `#51`'s own body says so at the
 top, because the distinction is not guessable from the outside.
 
 ## An issue is titled like a commit

@@ -365,7 +365,7 @@ def test_both_readmes_list_the_stamp_hook():
     for edition, count, opt_in, effects, clause in (
         (
             "README.md",
-            "Nine of the twelve gates",
+            "Nine of the thirteen gates",
             # The opt-in list's own words: the count sentence names the stamp
             # hooks too, so the bare name would pass with the list unchanged.
             "the two implementer hooks, the two stamp hooks and the version check.",
@@ -378,7 +378,7 @@ def test_both_readmes_list_the_stamp_hook():
         ),
         (
             "README.ko.md",
-            "게이트 열둘 중 아홉",
+            "게이트 열셋 중 아홉",
             "구현자 훅 둘, 도장 훅 둘, 버전 확인이다.",
             "다음 부수 효과는 밝혀 둡니다",
             "도장 훅은 그린 뒤 그 파일의 이름을 바꿀 뿐 지우지 않습니다",
@@ -395,6 +395,10 @@ def test_both_readmes_list_the_stamp_hook():
             "Seven of the ten",
             "게이트 열 중 일곱",
             "Eight of the eleven",
+            # The routing edit gate replaced the commit gate (#1027) and
+            # stub-remove joined the table, so the count went to thirteen.
+            "Nine of the twelve",
+            "게이트 열둘 중 아홉",
             "Four side effects",
             "네 가지 부수 효과",
         ):

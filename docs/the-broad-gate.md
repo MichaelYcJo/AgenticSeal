@@ -27,17 +27,14 @@ Its stdout opens `BROAD GATE PASSED` or `BROAD GATE FAILED` over the branch,
 the tree and the base it measured; a passing run prints its panel's rows as
 text under that line, the same bytes on a terminal as on a pipe, and writes
 no values file and no drawing. The verdict word `sealed` is the sealer's,
-and the stamp is drawn from that verdict at its commit, or in local mode at
-its write (`docs/the-review-record.md` *The stamp*), so a green suite is
-never read as a sealed work item.
+and the stamp is drawn from that verdict at its write, in either mode
+(`docs/the-review-record.md` *The stamp*), so a green suite is never read as
+a sealed work item.
 check: tests/test_one_word_one_meaning.py tests/test_the_seal_is_taken_once_by_the_sealer.py
 
-**A shared rule is settled against the agents that exist.** A rule kept only
-in whoever last wrote a spawn prompt goes missing without a trace, and a rule
-copied into two definitions goes out of step in one of them. What every agent
-is bound by lives in one file every agent receives before its first tool
-call; what one agent alone does lives in that agent's definition. The test a
-shared rule has to pass is that no role needs an exception to it.
+Where a rule every agent is bound by lives, and where one agent's own rule
+lives, is `docs/the-agent-set.md` *One contract every agent receives, and
+one definition each*.
 
 **A suite that is not mentioned reads as a suite that passed.** An agent's
 handover carries the suite labelled `unverified` with the orchestrator named

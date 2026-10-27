@@ -268,13 +268,13 @@ file answers.
 | `broad-gate.md` | the orchestrator's one broad run, on either routing answer |
 | `guarantee.md` | whether the sealer sealed the work, against the issue and the tree |
 
-**The files keep these paths and stop mattering at two different times.**
-`routing.md`, the SDD set (`spec.md`, `plan.md`, `questions.md`,
-`overview.md`, `changelog.md`) and the process record (`rounds/`, `phases/`,
-`broad-gate.md`, `guarantee.md`, and a `pr.*.md` where one was written)
-stay until the settle: the settling session writes the spec's sections, and
-`settle --apply` removes the directory whole once its record holds no open
-row (`docs/release-checklist.md` *2b*). What a document still cites of it
+**The files keep these paths until the settle after their release, and
+leave together.** `routing.md`, the SDD set (`spec.md`, `plan.md`,
+`questions.md`, `overview.md`, `changelog.md`) and the process record
+(`rounds/`, `phases/`, `broad-gate.md`, `guarantee.md`, and a `pr.*.md`
+where one was written) go with the directory, whole, when the settle
+removes it (*The fold, and what tells it from a deletion* above, and
+`docs/release-checklist.md` *2b*). What a document still cites of it
 resolves at the tag of the release that shipped it.
 check: tests/test_settle.py
 

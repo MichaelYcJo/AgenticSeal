@@ -1,6 +1,6 @@
 ---
 name: A gate blocked or allowed the wrong thing
-about: The commit gate, worktree guard, or another gate made a wrong call
+about: The routing edit gate, worktree guard, or another gate made a wrong call
 labels: gate
 ---
 

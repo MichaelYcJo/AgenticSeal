@@ -103,12 +103,12 @@ seal/
 ├── pact.md           the pact, only in the repository that holds one
 ├── follow-up.md      schedulable items in a repository with no tracker
 └── specs/<work-item-id>/
-    ├── routing.md    the routing answer, written before the first edit —
-    │                 the framer's where one runs, the session's where none does
+    ├── routing.md    the routing answer, written by the session before the
+    │                 first edit; a framer reads it and never writes it
     ├── spec.md · plan.md · questions.md · overview.md
     ├── rounds/
     │   └── round-N.md    one review round — closed at merge, removed with
-    │                     its spec at the settle that applies it
+    │                     its work item at the settle after its release
     ├── broad-gate.md     the one broad run, written by `broad-gate --record`
     └── guarantee.md      the sealer's verdict, from `templates/sdd-guarantee.md`
 ```
@@ -507,5 +507,5 @@ below:
 | Needs a decision | An `add` in `spec.md`'s `## Rule changes` to the policy document's open-questions section |
 
 Each finding that moves out reads `deferred <home>` in its round record. The
-records themselves stay through the merge, and leave with their spec at the
-settle that applies it.
+records themselves stay through the merge, and leave with their work item's
+directory at the settle after its release.

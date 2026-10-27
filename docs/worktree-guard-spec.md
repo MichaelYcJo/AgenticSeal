@@ -131,9 +131,10 @@ reason names each tree that matters and why, because approving the `ask` runs
 the line in every one of them; where one is ACTIVE, it describes the ACTIVE
 trees alone. A reason that describes one tree calls it "this tree", whichever
 tree it is: with the session's own tree clean and `W` dirty,
-`git -C W checkout x` asks about "this tree" and means `W`. A git the commit
-gate's wider reading reads as a segment of its own (behind a redirection or a
-zsh precommand word) is judged in the tree its own `-C` names, and so is a git
+`git -C W checkout x` asks about "this tree" and means `W`. A git the wider
+reading of `hooks/cmdline.py` (*Which tree*) reads as a segment of its own
+(behind a redirection or a zsh precommand word) is judged in the tree its own
+`-C` names, and so is a git
 an `&` cut apart (`2>&1 git -C W switch x`), from the directory its first part
 runs in. A body and a command that would not split belong to no one segment
 and are judged in the session's own tree.
@@ -425,20 +426,17 @@ whole command is tokenized first, and only when that fails does the check
 drop to per-segment scanning. Unquoted prose still passes:
 `git switch x && echo the [shared-tree-ok] token is documented` goes silent.
 
-**Where the token is read from.** The command, and only the command. Not
-from a here-document body: a token counts only where the command as written
-and the command with its here-document bodies taken out both carry it, the
-rule `hooks/tokens.py#given` reads every token by
-(`hooks/tokens.py#without_bodies`). Where `hooks/cmdline.py` cannot load, the
-frozen reader finds the bodies. The Agent or Task path has no command line and
-reads no token.
-
 **A token counts only where it is typed outside every here-document body,
 and a command that does not split carries none from where its split
-fails.** `hooks/tokens.py#given` keeps comments, because a token may be
-written in one, and skips every heredoc body, a body a shell runs
-included. A token inside a quote that never closes, or after an apostrophe
-in a comment (`# don't [worktree-ok]`), is read as nothing.
+fails.** The token is read from the command, and only the command:
+`hooks/tokens.py#given` takes it only where the command as written and the
+command with its here-document bodies taken out
+(`hooks/tokens.py#without_bodies`) both carry it, a body a shell runs
+included. It keeps comments, because a token may be written in one. Where
+`hooks/cmdline.py` cannot load, the frozen reader finds the bodies. A token
+inside a quote that never closes, or after an apostrophe in a comment
+(`# don't [worktree-ok]`), is read as nothing. The Agent or Task path has no
+command line and reads no token.
 check: executed-text-is-read
 
 | Token | Answer it carries | Effect |

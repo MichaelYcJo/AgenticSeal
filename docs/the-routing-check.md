@@ -84,11 +84,11 @@ check: tests/test_routing_edit_gate.py
 
 **The check reaches a subagent's edits as it reaches the main session's,
 and an edit made through the shell reaches neither.** A subagent's tool
-call runs the same hooks and carries the main session's id. A `sed -i`, a
-redirection or a script writes a file with no edit tool, which is why every
-agent edits through the `Edit` tool (`skills/agent-contract/SKILL.md` rule
-9), and at a shared root the pull request's trailer arm, as *At the pull
-request* below states, is what remains for such a change.
+call runs the same hooks and carries the main session's id. A shell write
+calls no edit tool, which is why every agent edits through the `Edit` tool
+(`skills/agent-contract/SKILL.md` rule 9), and at a shared root the pull
+request's trailer arm, as *At the pull request* below states, is what
+remains for such a change.
 check: none reader: the orchestrator on the first live run after a change here
 
 ## At the pull request

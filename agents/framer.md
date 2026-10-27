@@ -57,7 +57,7 @@ make.
    item belongs inside your scope where this work is its prerequisite. The
    earlier work items under `seal/specs/`, their round records included
    where they still stand: a work item's round records leave with its
-   directory at the settle that applies its spec, and are read at its
+   directory at the settle after its release, and are read at its
    release tag after that (`git show v<X.Y.Z>:<path>`). A decision those
    rounds argued through is not argued again in your `plan.md`. The process
    archive of the highest version, `seal/process/<X.Y.Z>.md`, once, where

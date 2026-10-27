@@ -111,7 +111,7 @@ Cross-session memory lives in the repo, not the session:
 
 | Root | Lifetime | Holds |
 |---|---|---|
-| `seal/` | permanent | everything this plugin maintains — the follow-up list, the repository's own config (the two language rows and the mode live there), the migration config — and, beneath it, the work items. Its existence is also what opts the repository in, for the hooks that read it — the commit gate, the mode gate, the review-skill gate, the review-history guard, the two implementer hooks, the two stamp hooks and the version check. worktree-guard and session-lease act in every git repo regardless, and lint-python follows ruff (see Where below) |
+| `seal/` | permanent | everything this plugin maintains — the follow-up list, the repository's own config (the two language rows and the mode live there), the migration config — and, beneath it, the work items. Its existence is also what opts the repository in, for the hooks that read it — the routing edit gate, the question gate, the mode gate, the review-skill gate, the two implementer hooks, the two stamp hooks and the version check. worktree-guard, session-lease and stub-remove act in every git repo regardless, and lint-python follows ruff (see Where below) |
 | `seal/specs/<id>/` | one work item | SDD set: spec, plan, questions, and a closing memo holding only what the diff cannot show. A human approves `plan.md`, which is why this is a repository document and not tool state |
 | `docs/` | permanent | whatever policy documents the repository already keeps; the documentation convention is the project's. A work item states its rule changes in its spec instead of editing them, and the settle after the release writes each section as the latest decision those changes state (`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*) |
 
@@ -160,6 +160,7 @@ them (measured: 220ms → 104ms before a Bash call, 323ms → 120ms after). A ga
 that fails to load or crashes is skipped and the call goes ahead; at the end of
 the turn you are told which gate it was, once per session. Full decision
 tables:
+[docs/the-routing-check.md](./docs/the-routing-check.md) ·
 [docs/worktree-guard-spec.md](./docs/worktree-guard-spec.md) ·
 [docs/the-review-and-parity-arms.md](./docs/the-review-and-parity-arms.md) ·
 [docs/the-review-record.md](./docs/the-review-record.md).
@@ -180,15 +181,16 @@ tables:
 | sealer-stamp-queue | after a Write or Edit of a work item's `guarantee.md` | in either mode, queues the work item's stamp for the main session's `Stop` when the write leaves `guarantee.md` reading `sealed` over a commit on the branch its `routing.md` names, once per work item, and prints the line naming the queued file and `seal-stamp --from`; where that branch does not hold the commit, it queues nothing, records the refusal and says so in one line. Any other edit is passed over on its path alone, before anything is loaded or any `git` runs | `seal/` at the root, or under the common git dir in local mode — silent elsewhere |
 | lint-python | after Write/Edit/NotebookEdit on a `.py` file | runs `ruff check --fix` then `ruff format` on that file — autofixes included, so code changes, not just layout (uv → uvx → global ruff; skips silently if none). `SPECSEAL_LINT=off` disables it | **a project that configures ruff** — `ruff.toml`, `.ruff.toml`, or `[tool.ruff]` in `pyproject.toml`, searched up to the repo root. Silent everywhere else |
 
-The commit gate is not the only place the review chain is enforced any more,
-and for work that declares its route it is no longer the place at all. A work
-item writes `seal/specs/<id>/routing.md` before its first edit — which way it goes,
-and whether it opens a pull request — and the gate reads that instead of
-guessing from the absence of a mark. The check moved to the pull request: CI
-reads the same file out of the diff and, for anything routed through the
-chain, requires a committed round record with no finding left unanswered. A
-pull request that declared neither way is not failed; it gets a notice saying
-nothing was checked.
+A work item writes `seal/specs/<id>/routing.md` before its first edit — which
+way it goes, and whether it opens a pull request — and the routing edit gate
+refuses an edit on a branch no declaration names, so the route is chosen
+before the work rather than guessed after it. The review itself is checked at
+the pull request: CI reads the same file out of the diff and, for anything
+routed through the chain, requires a committed round record with no finding
+left unanswered. A pull request that declared neither way is judged by its
+commits' `SpecSeal-Routing` trailers alone
+([docs/the-routing-check.md](./docs/the-routing-check.md)), and a notice says
+nothing else was checked.
 
 A round's findings are closed after it ends, by whoever writes the
 fixes, and the round that follows is what reads them — except after the last
@@ -381,19 +383,20 @@ rmdir .specseal specs                        # git mv leaves them empty on disk;
 
 ## First run
 
-Nine of the twelve gates wake only under a condition: the commit gate, the
-mode gate, the review-history reminder, the two implementer hooks, the
+Nine of the thirteen gates wake only under a condition: the routing edit
+gate, the question gate, the mode gate, the two implementer hooks, the
 review-skill gate, the two stamp hooks and the version check act in a
 repo that has a `seal/` directory at its root or under its git directory, and
 stay silent everywhere else. You never create it by hand — your session builds
 it the first time it works in a repo, after asking one question (*Shared or
 local*, below), and it is the only directory this plugin adds to your tree —
-plus, in shared mode, one workflow file under `.github/workflows/`; in local
-mode, nothing at all.
+plus, where you choose the pull-request checks, one workflow file under
+`.github/workflows/`; in local mode, nothing at all.
 
-The other three carry their own conditions. worktree-guard and session-lease
-act in every git repo. lint-python acts only where the project has configured
-ruff — configuring ruff is a project saying it wants ruff, and nothing else is.
+The other four carry their own conditions. worktree-guard, session-lease and
+stub-remove act in every git repo. lint-python acts only where the project
+has configured ruff — configuring ruff is a project saying it wants ruff, and
+nothing else is.
 Read the Where column above before installing globally.
 
 Agents run only when you name one:
@@ -527,8 +530,8 @@ seal export                 # writes seal-<repo>-<date>.zip beside the clone
 seal import <the zip>       # takes one in, overwriting nothing
 ```
 
-The zip holds the root and nothing else. The smith mark, the worktree
-choices, the review and parity marks and every lease sit *beside* the root
+The zip holds the root and nothing else. The implementer marks, the worktree
+choices, the `seal no-work-item` records and every lease sit *beside* the root
 under the git directory, so none of them travels — the export walks the root,
 which is why the root has to be its own directory. A symbolic link inside it
 is skipped and named rather than followed. Alongside the files goes a
@@ -614,10 +617,11 @@ What this does not do is as load-bearing as what it does.
   `target:` commit fails a ready pull request; on a draft it prints and names the
   verifying round, and *Ready for review* re-runs the check. The way out costs
   no round — one verifying round at the diff of those fixes.
-- **A parity mark says someone compared, not that they compared well.** The
-  gate checks that a comparison was recorded for this HEAD; the quality of
-  that comparison is the reviewer's, and writing the mark for work you did not
-  compare turns "nobody checked" into "someone checked and it was fine".
+- **An `original:` line says someone compared, not that they compared well.**
+  The pull request's check reads that a comparison was recorded, in each
+  round record or in the sealer's guarantee. The quality of that comparison
+  is whoever wrote the line's, and a line written where nobody compared turns
+  "nobody checked" into "someone checked and it was fine".
 - **Session detection is heuristic.** Extension-hosted sessions aren't named
   `claude`, and a session editing this tree from another cwd leaves no trace
   here. Leases close most of that gap, but only for sessions that have run a

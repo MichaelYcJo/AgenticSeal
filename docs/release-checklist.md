@@ -101,18 +101,20 @@ The first prints each group of released specs whose rule changes name one
 section, in merge order, and every open row of every released record.
 Between the first and the second, the session running the settle writes each
 section as its group's latest decision, checked against the code, and closes
-each open row with what closed it, asking nobody (`skills/settle/SKILL.md` is
-the procedure). The second removes every released work item directory whose
-record holds no open row, and names any it keeps. `fold-check` then reads
+each open row with what closed it, asking nobody. The second removes every
+released work item directory whose record holds no open row, and names any
+it keeps. `fold-check` then reads
 the documents the settle wrote, and names each one past its ceiling as one
 to split (`skills/settle/SKILL.md` *A document past its ceiling is split,
 never trimmed*). The settle's pull request body states each decision with
 its grounds and lists the defaults it took, and the owner reviews it.
 
 `skills/settle/SKILL.md` is the procedure. **A settle is not a work item**:
-it opens no directory under `seal/specs/`, and its commit carries the
-trailer `SpecSeal-Routing: no work item`. It owes an answer for every
-check in this repository carrying a population floor over `seal/specs/`.
+it opens no directory under `seal/specs/`, its session runs
+`seal no-work-item` on the settle's branch before the first edit, and each
+of its commits carries the trailer `SpecSeal-Routing: no work item`, as
+step 4 shows. It owes an answer for every check in this repository carrying
+a population floor over `seal/specs/`.
 
 ## 3. Verify before committing
 

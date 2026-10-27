@@ -310,7 +310,7 @@ round's target with the original through `legacy-parity`. A round that
 could not resolve the original writes no line and raises an `unread`
 finding, so the refusal stands until a round compares. What the check
 cannot read is whether the comparison was a good one, which is the
-warden's, as it is for the parity mark.
+warden's.
 check: parity-at-the-pull-request
 
 **Where `seal/parity.md` is declared and the change reaches outside
