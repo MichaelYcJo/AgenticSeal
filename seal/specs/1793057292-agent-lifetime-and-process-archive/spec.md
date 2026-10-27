@@ -29,13 +29,12 @@
 2. **A fix pass resumes the implementer only while its context is small.**
    The implementer is the smith that wrote the last commit the round
    reviewed. A fix pass resumes it while its largest per-turn context, read
-   with `session-cost --segments` on its own transcript, is below 461,000
+   with `session-cost --segments` on its own transcript, is below 806,241
    tokens, and is a fresh spawn handed the round record and the phase records
    otherwise. A fix pass also takes a fresh spawn where the implementer's
    session no longer exists, as today. The figure is the largest context a
-   fresh smith reached in the 0.22.0 run, by the owner's comment of
-   2026-10-14 on #945 (`read`, not `executed`). Phase 1 measures it again
-   (`questions.md` Q3).
+   fresh, never-resumed smith reached in the 0.22.0 run, measured by phase 1
+   with the new column (`executed`, `phases/phase-1.md`; `questions.md` Q3).
 3. **`session-cost --segments` reports each segment's largest per-turn
    context.** It is a column of the table and a key of each `--json` row,
    and it gates nothing.
