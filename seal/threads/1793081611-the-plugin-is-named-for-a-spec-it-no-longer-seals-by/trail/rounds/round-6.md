@@ -11,7 +11,7 @@ This round reads the commits after round 5's target, `850c6c40..71c717bf`, and n
 severity: should
 location: `seal/threads/1793081611-the-plugin-is-named-for-a-spec-it-no-longer-seals-by/trail/rounds/round-5.md:14`, `seal/threads/1793081611-the-plugin-is-named-for-a-spec-it-no-longer-seals-by/trail/rounds/round-5.md:17`
 evidence: read `seal/threads/1793081611-the-plugin-is-named-for-a-spec-it-no-longer-seals-by/trail/rounds/round-5.md:14`, `seal/threads/1793081611-the-plugin-is-named-for-a-spec-it-no-longer-seals-by/trail/rounds/round-5.md:17`, `seal/threads/1793081611-the-plugin-is-named-for-a-spec-it-no-longer-seals-by/trail/rounds/round-5.md:43`, `tests/test_broad_gate.py:1978-1986`, `skills/verify/scripts/broad_gate.py:2473-2506`
-verdict: open
+verdict: fixed ed49b7a4
 
 The sealer and every later round read round 5's confirmations as settled facts, so a wrong one is a sentence an agent acts on. The sealer did act on it: it sealed at 8e71764d, and the pull request's next Windows run failed.
 
