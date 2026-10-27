@@ -4820,6 +4820,18 @@ class Test_main:
         assert exit_info.value.code == 2
         assert "separately" in capsys.readouterr().err
 
+    def test_refuses_the_printed_segment_report_under_json(self, run_with_segments):
+        """`--json` is read by a program, and `--segments` beside it asks for the
+        rows inside that reading. The printed page there is text the program
+        cannot parse."""
+        proc = run(["--segments", "--json", str(run_with_segments)])
+        assert proc.returncode == 0, proc.stderr
+        rows = json.loads(proc.stdout)["segments"]["rows"]
+        assert [row["agent"] for row in rows] == [
+            "specseal:smith",
+            "specseal:warden",
+        ], rows
+
 
 class Test_emit:
     """The `--post` cases run through `main`, where `emit` decides between
@@ -5091,6 +5103,35 @@ class Test_emit:
         assert module.main() == 0
         assert "command" in capsys.readouterr().out
 
+    def test_refuses_to_post_the_absolute_spelling_of_a_path_given_relative(
+        self, monkeypatch, tmp_path
+    ):
+        """A path given relative has an absolute spelling too, and a line
+        printing that spelling carries every directory above the file. `emit`
+        replaces both spellings of the one path, the longer first."""
+        module = _cost()
+        monkeypatch.chdir(tmp_path)
+        given = os.path.join("runs", "t.jsonl")
+        says = tmp_path / "says.md"
+        says.write_text("a reading\n", encoding="utf-8")
+        posted = {}
+
+        def post(body, said, label):
+            posted["body"] = body
+            return 0
+
+        monkeypatch.setattr(module, "post", post)
+        args = module.argparse.Namespace(
+            post=True, says=str(says), label=module.ROLLING_LABEL
+        )
+
+        def render():
+            print(f"# {os.path.abspath(given)}")
+
+        assert module.emit(args, render, given) == 0
+        assert os.getcwd() not in posted["body"], posted
+        assert "t.jsonl" in posted["body"], posted
+
 
 class Test_post:
     # --- A6: a repository that never made the log is the expected case ------------
@@ -5271,6 +5312,232 @@ class Test_post:
             seen = _gh(monkeypatch, module, listing=listing)
             module.post("r", "s", "flow-measurement")
             assert _opened(seen) == [], listing
+
+
+class Test_newest:
+    @staticmethod
+    def project_of(module, directory):
+        """Where `~/.claude/projects` keeps DIRECTORY's transcripts, by the slug
+        rule `newest` states: every character that is not a letter, a digit or
+        a hyphen of the absolute path becomes a hyphen."""
+        slug = re.sub(r"[^A-Za-z0-9-]", "-", os.path.abspath(directory))
+        return os.path.join(module.PROJECTS, slug)
+
+    def test_accepts_the_latest_transcript_under_a_directorys_project(
+        self, monkeypatch, tmp_path
+    ):
+        """`--latest` reads the transcript written last under the directory's
+        project, a segment's nested one included. The projects root is moved
+        under the case, so no home directory is read."""
+        module = load_script()
+        monkeypatch.setattr(module, "PROJECTS", str(tmp_path / "projects"))
+        work = tmp_path / "work"
+        work.mkdir()
+        project = self.project_of(module, work)
+        older = os.path.join(project, "a.jsonl")
+        newer = os.path.join(project, "a", "subagents", "agent-b.jsonl")
+        for offset, path in enumerate((older, newer)):
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, "w", encoding="utf-8") as handle:
+                handle.write("{}\n")
+            os.utime(path, (1_000_000 + offset, 1_000_000 + offset))
+        assert module.newest(str(work)) == newer
+
+    def test_refuses_a_directory_with_no_project_or_no_transcript(
+        self, monkeypatch, tmp_path
+    ):
+        module = load_script()
+        monkeypatch.setattr(module, "PROJECTS", str(tmp_path / "projects"))
+        work = tmp_path / "work"
+        work.mkdir()
+        assert module.newest(str(work)) is None
+        os.makedirs(self.project_of(module, work))
+        assert module.newest(str(work)) is None
+
+
+class Test_report_segments:
+    def test_accepts_a_run_whose_segments_are_all_named_with_no_word_on_the_unnamed(
+        self, run_with_segments
+    ):
+        out = " ".join(segment_report(run_with_segments).split())
+        assert "0 segments named by nobody" in out, out
+        assert "A segment named by nobody carries" not in out, out
+
+    def test_refuses_to_print_an_unnamed_segment_without_saying_why_it_has_no_name(
+        self, segment_that_spawned
+    ):
+        """A row labelled by its path and not by an agent reads as a defect of
+        the page unless the page says the two ways a segment goes unnamed."""
+        out = " ".join(segment_report(segment_that_spawned).split())
+        assert "1 segment named by nobody" in out, out
+        assert (
+            "A segment named by nobody carries its transcript's path instead" in out
+        ), out
+
+
+class Test_report_breaches:
+    def test_accepts_a_run_with_no_spawn_and_no_unnamed_segment_as_nothing_to_say(
+        self, capsys
+    ):
+        load_script().report_breaches({"rows": [{"spawns": 0}], "unnamed": 0})
+        assert capsys.readouterr().out == ""
+
+    def test_refuses_to_stay_silent_where_a_segment_is_unnamed_and_nothing_spawned(
+        self, capsys
+    ):
+        """One spawn arrives twice, so a transcript the parent could not name
+        in a run where no segment made an `Agent` call is two counts that
+        disagree, and the page says so."""
+        load_script().report_breaches({"rows": [{"spawns": 0}], "unnamed": 1})
+        out = " ".join(capsys.readouterr().out.split())
+        assert (
+            "0 `Agent` calls inside a segment, against 1 segment the parent could "
+            "not name, and the two do not agree." in out
+        ), out
+
+
+class Test_report:
+    @staticmethod
+    def two_turns_of_two(tmp_path, second_check):
+        """The plain reading of two turns that each send two calls, a ratio of
+        2.00, with `pytest -q` first and SECOND_CHECK in the second turn."""
+        lines = [
+            message(
+                0,
+                [use("a", "pytest -q"), use("b", "git status --short")],
+                message_id="m1",
+            ),
+            plain_result(10, "a"),
+            plain_result(10, "b"),
+            message(
+                15,
+                [use("c", second_check), use("d", "git log --oneline -5")],
+                message_id="m2",
+            ),
+            plain_result(20, "c"),
+            plain_result(20, "d"),
+        ]
+        path = tmp_path / "t.jsonl"
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        proc = run([str(path)])
+        assert proc.returncode == 0, proc.stderr
+        return proc.stdout
+
+    def test_accepts_a_batched_run_with_no_repeat_as_nothing_obvious(self, tmp_path):
+        out = self.two_turns_of_two(tmp_path, "ruff check .")
+        assert "nothing obvious" in out, out
+        assert "repeats" not in out, out
+
+    def test_refuses_nothing_obvious_beside_a_repeat(self, tmp_path):
+        """The ratio clears the batching advisory, and a check re-run for a
+        result already in hand is still time that could go elsewhere, so the
+        page names it and does not also say nothing is obvious."""
+        out = self.two_turns_of_two(tmp_path, "pytest -q")
+        assert "repeats" in out, out
+        assert "nothing obvious" not in out, out
+
+
+class Test_resume_cuts:
+    def test_accepts_the_coordinators_message_as_a_cut(self, tmp_path):
+        module = load_script()
+        path = tmp_path / "agent.jsonl"
+        path.write_text(coordinator_message(9000) + "\n", encoding="utf-8")
+        assert module.resume_cuts(str(path)) == [module.parse_time(stamp_at(9000))]
+
+    def test_refuses_the_coordinators_words_on_a_row_the_harness_did_not_mark(
+        self, tmp_path
+    ):
+        """The harness marks the row it writes with `isMeta`. The same words on
+        an unmarked user row are somebody quoting the sentence, and cutting
+        there would split one stretch of work in two."""
+        row = json.loads(coordinator_message(9000))
+        del row["isMeta"]
+        path = tmp_path / "agent.jsonl"
+        path.write_text(json.dumps(row) + "\n", encoding="utf-8")
+        assert load_script().resume_cuts(str(path)) == []
+
+
+class Test_subagent_transcripts:
+    def test_accepts_every_transcript_under_subagents_nested_ones_included(
+        self, tmp_path
+    ):
+        path = write_run(tmp_path, ["{}"], {"agent-a.jsonl": ["{}"]})
+        nested = tmp_path / "main" / "subagents" / "deeper" / "agent-b.jsonl"
+        nested.parent.mkdir()
+        nested.write_text("{}\n", encoding="utf-8")
+        assert load_script().subagent_transcripts(str(path)) == sorted(
+            [str(tmp_path / "main" / "subagents" / "agent-a.jsonl"), str(nested)]
+        )
+
+    def test_refuses_a_transcript_beside_subagents_rather_than_in_it(self, tmp_path):
+        path = write_run(tmp_path, ["{}"], {"agent-a.jsonl": ["{}"]})
+        (tmp_path / "main" / "stray.jsonl").write_text("{}\n", encoding="utf-8")
+        assert load_script().subagent_transcripts(str(path)) == [
+            str(tmp_path / "main" / "subagents" / "agent-a.jsonl")
+        ]
+
+
+class Test_token_thirds:
+    def test_accepts_three_inputs_as_one_mean_each(self):
+        turns = [("t1", 10), ("t2", 20), ("t3", 30)]
+        assert load_script().token_thirds(turns) == [10, 20, 30]
+
+    def test_refuses_two_inputs_as_too_few_for_thirds(self):
+        assert load_script().token_thirds([("t1", 10), ("t2", 20)]) == []
+
+
+class Test_analyse:
+    def test_accepts_a_model_gap_under_fifteen_minutes(self, tmp_path):
+        lines = call("a", 0, 10, "git status --short")
+        lines += call("b", 909, 910, "git log --oneline -5")
+        assert batch_data(tmp_path, lines)["model_s"] == 899
+
+    def test_refuses_a_model_gap_of_fifteen_minutes_or_more(self, tmp_path):
+        """A gap that long is a wait, not the model thinking: `resume_cuts`
+        and `report_segments` both rest on the walk dropping it."""
+        lines = call("a", 0, 10, "git status --short")
+        lines += call("b", 910, 911, "git log --oneline -5")
+        assert batch_data(tmp_path, lines)["model_s"] == 0
+
+    def test_refuses_an_unnamed_command_run_twice_as_a_repeat(self, tmp_path):
+        """The repeats figures keep the families whose second run produces a
+        result already in hand. A command no family names may change the world
+        each time it runs."""
+        lines = call("a", 0, 10, "terraform apply")
+        lines += call("b", 15, 25, "terraform apply")
+        data = batch_data(tmp_path, lines)
+        assert data["by_family"]["other"]["calls"] == 2, data["by_family"]
+        assert (data["repeat_exact_s"], data["repeat_same_work_s"]) == (0, 0)
+
+
+class Test_load:
+    def test_accepts_a_stamped_call_as_one_call_and_one_turn(self, tmp_path):
+        path = tmp_path / "t.jsonl"
+        path.write_text("\n".join(call("a", 0, 10, "pytest -q")) + "\n", "utf-8")
+        calls, turns = load_script().load(str(path))
+        assert [c["command"] for c in calls] == ["pytest -q"]
+        assert len(turns) == 1
+
+    def test_refuses_a_row_with_no_timestamp_as_a_turn(self, tmp_path):
+        row = json.loads(turn(0, use("a", "pytest -q")))
+        del row["timestamp"]
+        path = tmp_path / "t.jsonl"
+        lines = [json.dumps(row), *call("b", 20, 30, "git status --short")]
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        calls, turns = load_script().load(str(path))
+        assert [c["command"] for c in calls] == ["git status --short"]
+        assert len(turns) == 1, turns
+
+
+class Test_count:
+    def test_accepts_a_finite_number_as_itself(self):
+        module = load_script()
+        assert [module.count(value) for value in (0, 12, 2.5)] == [0, 12, 2.5]
+
+    def test_refuses_a_non_finite_float_as_zero(self):
+        module = load_script()
+        for value in (math.nan, math.inf, -math.inf):
+            assert module.count(value) == 0, value
 
 
 class Test_family:
