@@ -216,7 +216,7 @@ files with 0 refused, and `--pairs` prints the six pairs named above.
 
 **The failure.** The `tests` run 40446828473 is the first run of the
 `pull_request` event on #1057, at 88c27ed5. Three cases phase 5 added failed
-on the ubuntu, macOS and Windows legs alike:
+on each leg whose shard held them, ubuntu, macOS group 1 and Windows group 1:
 `Test_declared_for_this_branch::test_accepts_the_one_routing_md_under_the_work_items_beside_a_decoy`,
 under both parameters, and
 `Test_declared_for_this_branch::test_refuses_two_committed_declarations_naming_the_branch`
