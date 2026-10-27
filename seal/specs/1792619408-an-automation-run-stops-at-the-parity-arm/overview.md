@@ -18,7 +18,7 @@ In a repository that declares `seal/parity.md`, an `automation` run stopped at t
 
 | Item | Who must answer |
 |---|---|
-| the full suite, the repository-wide lint and the typecheck at this branch's HEAD | the orchestrator's broad run, `broad-gate --base release/v0.22.3 --record seal/specs/1792619408-an-automation-run-stops-at-the-parity-arm` |
+| closed the full suite, the repository-wide lint and the typecheck at this branch's HEAD | answered by `broad-gate.md` and `guarantee.md`: the broad run's log reads BROAD GATE PASSED at e32feee0 against cb943ea0, the suite at 7445 passed and 13 skipped, chain-check exit 0; `seal/config.md`'s `Broad gate` row names no typecheck (read) |
 
 ## Not done
 

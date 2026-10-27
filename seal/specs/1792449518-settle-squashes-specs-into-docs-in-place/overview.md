@@ -29,7 +29,7 @@ place, so no session hand-writes policy prose beside a marker.
 | Item | Who must answer |
 |---|---|
 | closed the full suite and the repository-wide lint over this branch | the orchestrator's broad run at feb20458, `broad-gate.md`: 7311 passed, 12 skipped, ruff check and format clean. The repository runs no typecheck (#951) |
-| Q4: whether bytes halved is a safe estimate for dense Hangul or symbol-heavy text | a measurement, now a report and not a gate, so a wrong estimate names a document or misses one and refuses nothing |
+| closed Q4: whether bytes halved is a safe estimate for dense Hangul or symbol-heavy text | moved 2026-10-27 to MichaelYcJo/SpecSeal#1079, a measurement nobody has taken: the estimate is still the one `tests/test_fold_check.py#test_the_estimate_is_utf8_bytes_halved_rounded_up` pins |
 
 ## Not done
 

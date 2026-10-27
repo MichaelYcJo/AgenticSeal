@@ -16,8 +16,8 @@ The release note's seal was a second drawing of the stamp, an SVG that `rsvg-con
 | Item | Who must answer |
 |---|---|
 | closed `tests/test_no_real_identifiers.py::test_only_neutral_domains` was red from 46a773ea through ed9ec343 on three frame lines writing out the W3C's namespace host | the framer's 5e2b93de reworded them; `bin/test tests/test_no_real_identifiers.py -q` exit 0, 6 passed (executed by the framer) |
-| the full suite and the repository-wide lint at this branch's head | the orchestrator's broad run |
-| the `seal` job at a real tag push draws the new PNG, attaches it and shows it 168 CSS pixels wide | the release run at the v0.22.3 tag, read by the owner |
+| closed the full suite and the repository-wide lint at this branch's head | answered by `broad-gate.md` and `guarantee.md`: BROAD GATE PASSED at 53f8cedf against eae7f0ad, ruff check and format clean, 7425 passed and 13 skipped, chain exit 0 (read) |
+| closed the `seal` job at a real tag push draws the new PNG, attaches it and shows it 168 CSS pixels wide | answered by publish-release run 40070760336 at the v0.22.3 tag, conclusion success: release v0.22.3 carries `seal.png`, and its note shows it at `width="168"` (read, `gh release view v0.22.3`) |
 
 ## Not done
 

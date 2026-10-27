@@ -22,7 +22,7 @@ nothing.
 |---|---|
 | closed whether the flow cases of `tests/e2e/teammate/test_teammate_flow.py` run or skip on the Windows legs of `.github/workflows/test.yml` (`questions.md` Q2) | the `tests` workflow run 40264357704 on the branch at `895db45e` passed every leg, and the flow cases ran on `windows-latest` with 3.37s and 2.83s in its durations report (`questions.md` Q2, answered (a)) |
 | closed the full suite, the repository-wide lint and format check, and the typecheck at the branch head | `broad-gate.md` records the run at `80f60abd` against `02ee12de`, after rounds 5 to 9; its printed report read BROAD GATE PASSED, ruff check and format clean, the suite 6,564 passed and 14 skipped, chain-check exit 0. The branch's `tests` workflow run 40271486400 at `f8f65ea4` passed every leg, Windows included. The repository has no typecheck to run (#951 adds one) |
-| Whether the settle applies this spec in merge order, behind the specs the merge-order replay refused for reasons outside this branch. Phase 3 replayed this spec alone onto `docs/` at `02ee12de` | #1033, which redesigns the settle to group specs by section, and the settle that applies this release's specs |
+| closed Whether the settle applies this spec in merge order, behind the specs the merge-order replay refused for reasons outside this branch. Phase 3 replayed this spec alone onto `docs/` at `02ee12de` | answered by #1033's redesign, merged as #1035, and this settle's dry run at 434334d9: every operation of this spec is listed in its section's group in merge order, with no spec to read whole and no unordered pair (executed, `settle.py --released-at origin/release/v0.22.4`) |
 
 ## Not done
 

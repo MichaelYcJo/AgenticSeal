@@ -23,7 +23,7 @@ The files an agent opens on demand carried history and restated rules, and the C
 
 | Item | Who must answer |
 |---|---|
-| that the rewritten files leave each agent no worse at its cases, which only the paid non-inferiority run measures; this work reads bytes, a census and a review instead (`questions.md` Q1, default (c)), and the owner can order it at the pull request | the repository owner |
+| closed that the rewritten files leave each agent no worse at its cases, which only the paid non-inferiority run measures; this work reads bytes, a census and a review instead (`questions.md` Q1, default (c)), and the owner can order it at the pull request | moved 2026-10-27 to MichaelYcJo/SpecSeal#1081, a measurement nobody has taken: no record holds a paid non-inferiority run over these files |
 | closed the full suite and the repository-wide lint over the branch | the orchestrator's broad run at f1c0e1a7, `broad-gate.md`: 7393 passed, 13 skipped, ruff check and format clean. The repository runs no typecheck (#951) |
 
 ## Not done

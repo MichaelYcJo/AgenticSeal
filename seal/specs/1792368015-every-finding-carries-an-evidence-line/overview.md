@@ -21,7 +21,7 @@ stops at the pull request instead of reaching a release.
 |---|---|
 | closed The full suite, the repository-wide lint and the typecheck at the build's last commit | the orchestrator's `broad-gate --base release/v0.22.2 --record <item>` at 58a2100e, exit 0: 7598 passed, 14 skipped, chain exit 0 (`broad-gate.md`); the run at 12660916 failed on the encoding census, fixed at ffed3c38 and reviewed in round 3 |
 | closed Whether the warden writes the line on every finding and keeps earlier records' missing lines out of its findings (`questions.md` Q4) | phase 3's side at ba2a3187: all 39 findings of its 18 records carry the line, 28 of them `executed`, and none raises a record written before the row (executed, `phases/phase-3.md`) |
-| Whether a line-bounded search, which the absence rule asks for, costs finds in general: `traces/005.jsonl:153` of phase 3's raw output missed a phrase wrapped across two lines | a later warden measurement on #971's suite, after 0.22.2, scheduled by the orchestrator |
+| closed Whether a line-bounded search, which the absence rule asks for, costs finds in general: `traces/005.jsonl:153` of phase 3's raw output missed a phrase wrapped across two lines | moved 2026-10-27 to MichaelYcJo/SpecSeal#1078, a measurement nobody has taken: no record after 0.22.2 holds the warden measurement |
 | closed Whether `replay_targets.py` losing every labelled record written before the row is accepted, as Q2 accepted the release panel's `not read` | the owner answered on 2026-10-19 that each record is read with the grammar of its own time. Built in 0a843334, and `--list` names 31 targets again (executed) |
 
 ## Not done

@@ -18,8 +18,8 @@ record template stops carrying comments that every record then copies.
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and the typecheck at the branch's head | the orchestrator, through `broad-gate` after the review rounds settle |
-| The paid non-inferiority run for the five rewritten preloads | the repository owner, at the pull request (`questions.md` Q3 default: not run; rule 4 of `evals/README.md` is read for free in each phase record) |
+| closed The full suite, the repository-wide lint and the typecheck at the branch's head | answered by `broad-gate.md` and `guarantee.md`: BROAD GATE PASSED at 5992b4d3 against 0d62145a, 7481 passed and 13 skipped, chain exit 0; `seal/config.md`'s `Broad gate` row names no typecheck (read) |
+| closed The paid non-inferiority run for the five rewritten preloads | moved 2026-10-27 to MichaelYcJo/SpecSeal#1081, a measurement nobody has taken: no record holds the paid run |
 
 ## Not done
 

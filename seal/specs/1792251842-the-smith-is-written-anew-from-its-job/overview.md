@@ -34,7 +34,7 @@ named in each row hold the detail.
 
 | Item | Who must answer |
 |---|---|
-| `CLAUDE.md:69` still names *a seal block* as a format name, and decision 1's grep finds it | the repository owner: a subagent does not edit `CLAUDE.md` |
+| closed `CLAUDE.md:69` still names *a seal block* as a format name, and decision 1's grep finds it | moot: `CLAUDE.md` no longer names *a seal block*; `git grep -n 'seal block' CLAUDE.md` finds nothing at 434334d9 (executed) |
 | closed `skills/writing-style/SKILL.md:225` still lists *the smith's seal* as an instance | a6a0c692, phase 3, 2026-10-18: the row now reads *the sealer's seal · the warden's review mark · the smith's labels* |
 | closed `agents/sealer.md` and `skills/verify/SKILL.md` are edited here and by #969 in its own worktree | the merge 16e8d4c8, 2026-10-18: `agents/sealer.md` conflicted and keeps #969's sentence with this item's section title; `skills/verify/SKILL.md` merged without a conflict (row above) |
 | closed the full suite on this branch | #974, merged with lint and the suite green on the ubuntu, macOS and Windows legs |

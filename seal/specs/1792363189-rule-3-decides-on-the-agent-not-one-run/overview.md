@@ -16,7 +16,7 @@ Rule 3 of the behaviour evaluation judged each shape and reach grader on its own
 
 | Item | Who must answer |
 |---|---|
-| Whether `model` (`noninferiority.py#cheaper_model`) should follow rule 3's aggregation; it still compares per grader | the repository owner, `questions.md` Q1; the default `leave it` ships until answered |
+| closed Whether `model` (`noninferiority.py#cheaper_model`) should follow rule 3's aggregation; it still compares per grader | answered by the default: `questions.md` Q1's `leave it` shipped in 0.22.2 through #982 and release pull request #997, which the owner merged into `main` on 2026-10-19, and `evals/scripts/noninferiority.py#cheaper_model` still compares per grader at 434334d9 (default taken by the 0.22.4 settle) |
 
 ## Not done
 
