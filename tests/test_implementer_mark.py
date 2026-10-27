@@ -115,6 +115,14 @@ class Test_main:
             for mark in (implementer.IMPLEMENTATION_MARK, implementer.PLANNING_MARK):
                 assert not os.path.exists(mark_path(repo, mark)), f"{agent} -> {mark}"
 
+    def test_refuses_a_tool_other_than_agent_or_task_naming_smith(self, repo):
+        """Only a spawn leaves the mark. A call of another tool whose input
+        happens to name `smith` spawned nothing, so the notice must still be
+        free to fire (#1017, the body's `main` row on another tool)."""
+        opt_in(repo)
+        run_dispatch("pre-agent", {**spawn(repo), "tool_name": "Bash"})
+        assert not os.path.exists(mark_path(repo, implementer.IMPLEMENTATION_MARK))
+
     def test_refuses_a_repository_that_never_opted_in(self, repo):
         """S4. A globally installed plugin must not write into repositories that
         never asked for the workflow."""
