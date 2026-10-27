@@ -64,7 +64,7 @@ def worked_branch(root):
 # Precondition: `git(root, *args)` returns a CompletedProcess, as in `move`.
 ```
 
-answer:
+answer: The fix is a limit sentence, not the guard this record proposes. `hooks/root-migrate.py`'s docstring, in its boundary *on any branch*, now states a second limit, not guarded: nothing reads where HEAD points, so a session start on a detached HEAD (a tag, an old commit, a bisect step, a rebase stopped on a conflict) or during a merge, cherry-pick or revert stages the move there as well, and the commit that operation makes carries it. The reason stands with it: a session in this plugin's flow starts on its work item's own branch, so the flow does not produce that shape, and the owner's standing rule gives a shape the flow does not produce a limit sentence rather than a guard. No case is added. No document under `docs/` states the move's boundaries. `docs/the-record-layout.md` *The files keep these paths until the settle after their release, and leave together* states when the move runs, "at the session start of each branch whose tree still holds them", and names the hook, and the limit does not contradict it. `docs/one-root-by-lifetime.md` now cites the docstring's boundaries (finding 2).
 
 ### 2. The policy still says the hook stamps the repository so a local-mode repository's old branch is never moved into its tree, and a test pins that sentence
 
@@ -123,7 +123,7 @@ local 모드로 옮긴 저장소에서는 전환 전에 만든 브랜치의 `sea
 # `move`.
 ```
 
-answer:
+answer: Both editions of *What first setup asks* are rewritten in place to this record's text. The session-start hook moves the work items on each branch whose tree still holds them, no stamp stands between a branch and its move, and in a repository that left shared mode for local mode a branch cut before the switch has its own `seal/` moved and marked in the tree, which the hooks read first. The sentence cites `hooks/root-migrate.py`'s boundaries, and it states the same fact as the docstring's first limit sentence. `tests/test_first_setup_asks_once.py::test_the_design_record_states_the_setup_rules_where_they_rule` takes `move` as its fourth parameter and pins "on each branch whose tree still holds them" and "앞선 배치가 남아 있는 브랜치마다", and its docstring names the migration hook's move. The change corrects prose, so no red-first case is written. `git grep` for "stamps the repository", "옮겼다는 표시", "keep clean" and "chose to keep" finds no other living line. `changelog/0.5.0.md` is a released version, and `.test_durations` is the runner's cache, which the runner rewrites.
 
 ### 3. `test_refuses_to_write_the_tree_beside_a_local_root` names a refusal the hook no longer makes, and pins only what the 0.3.x case already pins
 
@@ -167,7 +167,7 @@ The class is the cases and sentences that still state the stamp's protection of 
         assert first_line(layout / "seal" / "README.md") == ROOT_MARKER
 ```
 
-answer:
+answer: Replaced, not removed. The old case's 0.3.x half is already pinned by `test_refuses_to_read_another_tools_specs_or_the_0_3_x_root`. Its linked-worktree half is pinned by no other case in `tests/test_root_migrate.py`, and the limit the docstring states had no case. `test_accepts_a_branch_cut_before_a_switch_to_local_mode_moved_in_its_tree` stands in its place as this record proposes. On `main`, after `git rm -r seal` and a marked `.git/seal/`, the session start prints nothing, and so does the start in a linked worktree of `main`. On `old-shared`, cut before the switch, the start prints "agentic:moved seal/specs/ into seal/" and `seal/README.md` opens with the marker.
 
 ## Confirmations
 
