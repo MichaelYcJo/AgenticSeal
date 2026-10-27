@@ -99,12 +99,18 @@ largest after the comment.
 in the 0.22.0 run, and that is #923 phase 3's 806,241. Phase 2 writes the
 number, and two readings of the question would write a different one.
 Read over the fresh smiths the comment could have seen, the figure is
-487,998, not the comment's 461,000. Under 806,241, #930's smith would have
-been resumed through its fourth slice, which read 778,563, and spawned
-fresh from its fifth. Under 487,998, it would have been spawned fresh from
-its second. The figure is the orchestrator's to choose for phase 2, and
-Q3's `Status` cell is the orchestrator's to write, because `questions.md` is
-not among the files this phase writes.
+487,998, not the comment's 461,000. The fix-pass rule
+(`skills/code-review/orchestration.md` *Orchestrator: a phase is a fresh
+smith, and a fix pass resumes the implementer*) reads the implementer's
+largest context before the pass and resumes below the threshold. Held
+against the table above, the threshold alone gives this for #930's smith.
+Under 487,998, it would have been resumed for its second slice, because its
+first read 377,894, and spawned fresh from its third, because its second
+read 569,013. Under 806,241, it would have been resumed through its fifth
+slice, because its fourth read 778,563, and spawned fresh from its sixth,
+because its fifth read 904,072. The figure is the orchestrator's to choose
+for phase 2, and Q3's `Status` cell is the orchestrator's to write, because
+`questions.md` is not among the files this phase writes.
 
 **The function reads a file and answers per window, not per slice**
 (the work). `spec.md` *Data & interfaces* names a function computing one

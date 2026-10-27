@@ -22,8 +22,10 @@ release can record how the way of working changed in `seal/process/`.
 
 | Item | Who must answer |
 |---|---|
-| closed the full suite, the repository-wide lint and format check, and the typecheck at the branch head | `broad-gate.md` records the run at `236a596d` against `5bab081e`; its printed report read BROAD GATE PASSED, ruff check and format clean, the suite 6,561 passed and 14 skipped, chain-check exit 0. The repository has no typecheck to run (#951 adds one) |
-| closed the cases on Linux and Windows: every case of this work item ran on macOS only, and the removed step ran on `ubuntu-latest` | the branch's `tests` workflow run 40430474904 at `08469dff` passed every leg, the four Windows groups included; the commit after it adds only round 2's record |
+| closed the full suite, the repository-wide lint and format check, and the typecheck at `236a596d`, the head before phase 5 | `broad-gate.md` records the run at `236a596d` against `5bab081e`; its printed report read BROAD GATE PASSED, ruff check and format clean, the suite 6,561 passed and 14 skipped, chain-check exit 0. The repository has no typecheck to run (#951 adds one) |
+| closed the cases on Linux and Windows: every case of this work item ran on macOS only, and the removed step ran on `ubuntu-latest` | the branch's `tests` workflow run 40430474904 at `08469dff` passed every leg, the four Windows groups included. Of the commits after it, only phase 5's `1718924d` changes a file outside this work item's records; the row below holds it |
+| phase 5's `1718924d`, which changes `.github/scripts/release_report.py` and `tests/test_release_report.py`: the full suite, the repository-wide lint and format check, and the cases on Linux and Windows. Phase 5's narrow run read its two modules on macOS only | the orchestrator, at the next broad run and the branch's next `tests` workflow run |
+| the archive's row in the `release-report` job's summary: the job runs only on a pull request into `main`, and no `seal/process/*.md` exists until a release preparation writes one, so no CI run has printed the row | whoever prepares the release that ships this work item, reading the release pull request's table |
 | closed the framer's line in `agents/framer.md` step 4: S14 names no case, and no case pins the line | the warden read it at round 1, whose finding 1 made it name `templates/process.md` (2e6c40ed), and round 2 confirmed it and opened nothing |
 | closed the sentence that the orchestrator deletes the `plan.md` line naming the comments to fold, in the commit that folds them: no case pins it | the warden read it at round 1, whose finding 6 named the orchestrator as its writer (5be7d538), and round 2 confirmed it and opened nothing |
 
@@ -92,7 +94,8 @@ Inferred during implementation, for a planner to overturn:
   whose stamp does not parse is dropped, as `segment_slices` drops a turn.
 - The orchestrator is the party that folds a decision into the frame, and the
   line `plan.md` carries until the fold sits on a line of its own below the
-  approval line.
+  approval line where the plan carries one, and below the title where it
+  does not.
 - The `mergeable` paragraph names `MERGEABLE` as the answer under which CI is
   waited on, so all three values `gh` returns have a reading.
 - `broad_gate.py#failed_form` pads to the widest failing name, a rule kept
