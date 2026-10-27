@@ -21,10 +21,10 @@ it.
 
 | Item | Who must answer |
 |---|---|
-| The fix and S4 on the Linux and Windows legs. Locally only macOS ran them | the orchestrator, by the branch's `tests` workflow run after the push |
+| closed the fix and S4 on the Linux and Windows legs. Locally only macOS ran them | the branch's `tests` workflow run 40425810821 at `087d676e` passed every leg, the four Windows groups included; the commit after it adds only round 3's record |
 | The junction limit in `move`'s docstring: that the walk enters a Windows junction under `src` and removes the empty directories behind it. It was read from `os.walk`'s source and never run on Windows | the repository owner, who directed that the limit gets a sentence and no guard |
 | The held-open limit in `move`'s docstring: that on Windows, where another process holds a directory open and its removal fails, that directory and every one above it stay. Round 1's probe simulated the failing `os.rmdir` on macOS, and nothing ran it on Windows | the repository owner, who directed that the limit gets a sentence and no guard |
-| The full suite, the repository-wide lint and format check, and the typecheck at the branch head | the orchestrator, by `broad-gate --record` once the review rounds settle |
+| closed the full suite, the repository-wide lint and format check, and the typecheck at the branch head | `broad-gate.md` records the run at `f416c213` against `fa7d1374`; its printed report read BROAD GATE PASSED, ruff check and format clean, the suite 6,551 passed and 14 skipped, chain-check exit 0. The repository has no typecheck to run (#951 adds one) |
 
 ## Not done
 
