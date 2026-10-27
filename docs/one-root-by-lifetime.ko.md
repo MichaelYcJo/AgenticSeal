@@ -103,9 +103,9 @@ check: tests/test_optin.py
 옮긴다고 알리기만 합니다(`skills/implement/orchestration.md` 의 부트스트랩).
 플러그인 이름이 AgenticSeal 로 바뀌기 전에 설치한 저장소는 트리에 앞선
 배치가 남아 있는 브랜치마다 세션 시작 훅이 작업 항목을 스레드 배치로
-옮깁니다. 브랜치와 그 이동 사이를 막는 표시는 없습니다. 그래서 shared
+옮깁니다. 이미 옮겼다는 기록이 브랜치의 이동을 막지 않습니다. 그래서 shared
 모드에서 local 모드로 옮긴 저장소에서는 전환 전에 만든 브랜치의 `seal/` 이
-트리 안에서 옮겨지고 표시가 붙으며, 훅은 그 루트를 먼저 읽습니다
+트리 안에서 옮겨지고 표식이 붙으며, 훅은 그 루트를 먼저 읽습니다
 (`hooks/root-migrate.py` 의 경계).
 check: tests/test_first_setup_asks_once.py
 
