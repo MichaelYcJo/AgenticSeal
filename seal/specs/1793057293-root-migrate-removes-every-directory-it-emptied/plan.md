@@ -58,9 +58,11 @@ seen red on CI's three operating systems before the fix lands.
   scenario: a person places a directory link or a Windows junction under a
   work item's directory by hand. Python's `os.walk` does not walk into a
   symbolic link, and on Windows it walks into a junction, so the walk could
-  remove empty directories inside the junction's target. Git checks out
-  neither, and the one-issue flow cannot produce one, so `move`'s docstring
-  states it as a limit and nothing guards it.
+  remove empty directories inside the junction's target. The one-issue
+  flow cannot produce a junction, so `move`'s docstring states it as a
+  limit and nothing guards it. A directory link needs no limit: git moves
+  a tracked one before the walk, and the walk does not enter an untracked
+  one.
 
 ## Alternatives considered
 

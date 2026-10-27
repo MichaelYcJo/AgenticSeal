@@ -55,9 +55,11 @@ does today.
    left behind are removed." is rewritten in place to say that every
    directory under `src` holding nothing when the walk reaches it is
    removed, deepest first, `src` included, and that one an ignored file
-   holds stays. One limit sentence follows it: a directory link or a Windows
-   junction placed under `src` by hand is not something git checks out,
-   and the walk is not guarded against one (the direction above).
+   holds stays. One limit sentence follows it: a Windows junction placed under
+   `src` by hand is walked into, and the walk is not guarded against one
+   (the direction above). A directory link needs no sentence: git moves a
+   tracked one before the walk, and the walk does not enter an untracked
+   one (round 1 confirmed both by probe).
 5. **The cases.** The two cases that pin the defect are rewritten to refuse
    it, and two are added (*User scenarios & acceptance*). Every case is
    seen red before the fix lands, locally and on CI's three legs

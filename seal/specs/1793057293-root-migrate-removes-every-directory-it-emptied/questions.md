@@ -39,9 +39,11 @@ the answer was read, so a reviewer can overturn it by opening the same place.
    No agent pushes (contract rule 6), so the push and the dispatch are the
    orchestrator's.
 8. **A8 What guards a directory link or a Windows junction placed under a
-   work item's directory.** Nothing. Git checks out neither, the one-issue
-   flow cannot produce one, and `move`'s docstring states it as a limit
-   (the owner's direction in the spawn prompt).
+   work item's directory.** Nothing. A directory link needs nothing: git
+   moves a tracked one before the walk, and the walk does not enter an
+   untracked one. A junction is walked into; the one-issue flow cannot
+   produce one, and `move`'s docstring states it as a limit (the owner's
+   direction in the spawn prompt).
 9. **A9 Whether a rule changes.** No. `docs/` states nothing about what the
    root migration removes (executed `git grep`, `spec.md` *Grounding*).
 
