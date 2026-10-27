@@ -128,8 +128,9 @@ and start a new session, and the move runs"*, and stops. The `seal`
 subcommands read it the same way and write nothing beside it.
 
 **A `<repo>/seal/` whose `README.md` opens with neither the marker nor one of
-those headings is the project's own.** The marker is the first line of `templates/seal-README.md`,
-and a package or a tool can keep a directory named `seal` for itself. The
+those headings is the project's own.** The marker is the first line of
+`templates/seal-README.md`, and a package or a tool can keep a directory
+named `seal` for itself. The
 orchestrator writes nothing into it and offers neither shared option, because
 `<repo>/seal/` is the shared root's one place. The root goes under the git
 directory, at `$(git rev-parse --git-common-dir)/seal/`, as the local option

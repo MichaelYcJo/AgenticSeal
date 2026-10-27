@@ -155,11 +155,12 @@ nothing:
   place in the order is the first commit on `--released-at` that adds its
   `frame/design.md`, or its design at the path it held before the session-start
   move brought it into `seal/threads/` (`rule_changes.py#EARLIER`), or in local
-  mode its pull request's merge commit's place on `--released-at`. The group opens with each place's lines in the working
-  tree, or the words saying its heading is not there, and lists each
-  operation with its spec's coordinate and whether its `from` and its `to`
-  are found in the section now. Two specs whose commits no ancestry orders
-  are marked `unordered`, for the settling session to order by content.
+  mode its pull request's merge commit's place on `--released-at`. The group
+  opens with each place's lines in the working tree, or the words saying its
+  heading is not there, and lists each operation with its spec's coordinate
+  and whether its `from` and its `to` are found in the section now. Two specs
+  whose commits no ancestry orders are marked `unordered`, for the settling
+  session to order by content.
 - **The specs to read whole**: one whose `## Rule changes` does not parse,
   with the reader's reason, and one with no such section.
 - **Every open `## Not verified` row** of every released record, each with
