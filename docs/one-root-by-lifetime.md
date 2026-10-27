@@ -14,7 +14,7 @@ long each file lives.** "Owns" means the plugin creates, moves and removes it
 and its checkers define the formats, the way `.github/` is GitHub's. Three
 lifetimes, each with one home: a session's state sits beside the root under
 the common git directory and is never committed; a work item's directory,
-`seal/specs/<id>/`, lives until the settle writes its spec's sections and
+`seal/threads/<id>/`, lives until the settle writes its spec's sections and
 removes it;
 everything else under `seal/`, with `docs/` and `CHANGELOG.md`, is
 permanent. The layout, file by file, is `skills/implement/SKILL.md`
@@ -22,13 +22,16 @@ permanent. The layout, file by file, is `skills/implement/SKILL.md`
 
 **The plugin writes only to its own root.** A `specs/` directory anywhere
 else is the project's own, read as history and never taken
-(`templates/config.md` *Reference specs*). Where the root is, as a path a
+(`templates/config.md` *Reference specs*), and no code of the plugin opens a
+top-level `specs/` or `.specseal/`: the 0.3.x layout moves by hand, with the
+commands README.md *Coming up from 0.3.x* gives, and that section says it is
+the only path. Where the root is, as a path a
 session can type, is stated once, in contract rule 11.
 check: tests/test_no_document_names_the_old_roots.py tests/test_optin.py
 
 ## The dependency rule
 
-**Anything that must outlive a release may not read `seal/specs/<id>/` after
+**Anything that must outlive a release may not read `seal/threads/<id>/` after
 the merge.** `settle` removes the directory, so every permanent purpose
 treats it as already gone. A round record's `target:` line is read only while
 its pull request is open. A comment naming a work item, above a released
@@ -38,7 +41,7 @@ local mode no history holds the folder, so the pointer names a work item
 that has left. Every check in a repository
 that reads the corpus owes an answer when a settle removes part of it
 (`skills/settle/SKILL.md` *Answer every check that reads the corpus*). A new
-reader of `seal/specs/<id>/` after the merge is a finding for the review
+reader of `seal/threads/<id>/` after the merge is a finding for the review
 that meets it.
 
 **Behind it is a wider rule: nothing may need to be found and updated when
@@ -52,10 +55,21 @@ record.
 
 ## The opt-in signal is the root itself
 
-**A repository is opted in when `seal/` exists at its mode's location**:
-`<repo>/seal/` in shared mode, `$(git rev-parse --git-common-dir)/seal/` in
-local mode. The hooks look at the two places in that order; whichever exists
-says both "on" and which mode. Nothing else is read, and there is no config
+**A repository is opted in when `seal/` exists at its mode's location and
+its `README.md` opens with the plugin's marker**: `<repo>/seal/` in shared
+mode, `$(git rev-parse --git-common-dir)/seal/` in local mode. The marker is
+the first line of `templates/seal-README.md`, written at first setup and by
+the migration of a repository installed before the plugin was renamed
+AgenticSeal. The hooks look at the
+two places in that order; whichever exists with the marker says both "on"
+and which mode. A `seal/` whose README opens with a heading an earlier
+release wrote (`hooks/optin.py#EARLIER_HEADINGS`) is that release's root,
+which the session-start migration rewrites to the marker; until it does,
+it reads as not opted in, and first setup creates no second root beside
+it. A `seal/` whose README opens with neither is a project's own directory,
+as a package named `seal` has one, and reads as not opted in; first setup
+that meets one writes nothing into it and keeps the root under the git
+directory. Nothing else is read, and there is no config
 key: a git config key, a marker under `.git/` or a fetched ref would say
 twice what the folder already says.
 
@@ -68,7 +82,7 @@ A collaborator who never installed the plugin runs nothing in either mode,
 because the hooks are the plugin's. The fail direction is that no folder at
 either place means not opted in, and a hook that cannot tell does nothing.
 A throwaway repository turns the gates off with an empty file,
-`.git/specseal-scratch`, under the common git directory, which no commit can
+`.git/agentic-scratch`, under the common git directory, which no commit can
 carry to another clone.
 check: tests/test_optin.py
 
@@ -90,11 +104,15 @@ order, the first the default, each saying what it does:
 
 A repository with `seal/` at either place has been through this and is never
 asked again; the mode is read from where the folder is. A repository still on
-the layout that came before the root is told, not asked, and the session-start
-hook moves it once (`skills/implement/orchestration.md`, its bootstrap). Once
-a root exists at either place, that hook stamps the repository as moved, so a
-local-mode repository that later checks out an old branch is not moved into
-the tree it chose to keep clean.
+the 0.3.x layout is told, not asked, that it moves by hand with the commands
+README.md *Coming up from 0.3.x* gives (`skills/implement/orchestration.md`,
+its bootstrap). A repository installed before the plugin was renamed
+AgenticSeal has its work items moved into the thread layout by the
+session-start hook, on each branch whose tree still holds them. No stamp
+stands between a branch and its move. So in a repository that left shared
+mode for local mode, a branch cut before the switch has its own `seal/`
+moved and marked in the tree, and the hooks read that root first
+(`hooks/root-migrate.py`, its boundaries).
 check: tests/test_first_setup_asks_once.py
 
 ### Shared or local
@@ -171,18 +189,22 @@ check: tests/test_first_setup_asks_once.py tests/test_optin.py tests/test_seal.p
 
 ## Naming
 
-**The product is SpecSeal, and bare `seal` is the vocabulary inside it**: the
-root `seal/`, the `seal export` / `seal import` commands, "the seal" for the
-record.
+**The product is AgenticSeal, and bare `seal` names the result inside it**:
+the root `seal/`, the `seal` command line, the sealer, "the seal" for the
+record. The plugin's `name` and the prefix of every agent and skill is
+`agentic`; the marketplace is `agenticseal`; the commit trailer is
+`Seal-Routing:`. Every identifier is lowercase with no separator, and
+`AgenticSeal` is written only where a person reads the brand.
 
 | Name | Its one sentence |
 |---|---|
-| SpecSeal | seals a spec to the code that implements it |
+| AgenticSeal | the plugin, whose one sentence is the first line of README.md under its title, and the `description` of `.claude-plugin/plugin.json` |
 | `seal/` | the root, visible beside `docs/`, because the work items in flight are what people read while a pull request is open |
-| `seal/specs/<id>/` | a work item's directory, named for the primary artifact it holds |
+| `seal/threads/<id>/` | a work item's directory: one thread, one issue, one branch, one pull request, with `frame/` for the design before the build, `trail/` for what passed between the parties, and `routing.md`, `changelog.md`, `guarantee.md` and `gaps.md` at its top, each record placed by what it is and never by which agent wrote it |
+| framer, crafter, proofer, sealer, tracer | the agents, each named for its part of one order, which `docs/the-agent-set.md` *One contract every agent receives, and one definition each* states |
 
-A directory says what is in it to whoever opens it first, so no directory is
-named for a metaphor; smith and warden stay agent personas. Every shipped
+A directory and an agent say what each is to whoever meets it first, so
+neither is named for a metaphor. Every shipped
 artifact is written in English, because the plugin is for others and every
 token is paid for. The language a repository's own records and pull requests
 are written in is that repository's answer, below.

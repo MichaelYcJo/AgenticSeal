@@ -62,7 +62,7 @@ def redirection_width(tokens, i):
 
     Asked only where a program word may stand, or where a host's string is
     picked, and every reader that asks it keeps the answer it gave without it
-    (`spec.md` decision 1 of work item 1790660768): a word that merely looks
+    (`frame/design.md` decision 1 of work item 1790660768): a word that merely looks
     like a redirection there can only add a reading.
     """
     if i >= len(tokens):
@@ -741,7 +741,7 @@ UNPLACED = frozenset({"case", "coproc", "function"})
 # `WRAPPERS` alone and stopped at the first word it did not know, so `exec`,
 # `nice`, `timeout` and `xargs` in front of `git commit` read as no commit. The
 # enumeration and how it was found are in work item 1790644505's
-# `phases/phase-5.md`: POSIX's utilities that execute an operand, GNU
+# `trail/phases/phase-5.md`: POSIX's utilities that execute an operand, GNU
 # coreutils' "Modified command invocation" chapter and its `g`-prefixed names
 # on macOS, util-linux's scheduling and namespace tools, the privilege tools,
 # the tracers, and `find`, `parallel`, `watch` and `script`. Directly followed
@@ -949,7 +949,7 @@ def reparsed_texts(tokens, env_words=True):
         elif word in ("watch", "parallel"):
             # `parallel` runs each of its arguments through a shell (#674). It
             # is read for a commit written out, which costs nothing where none
-            # is; placing its command word is a parser (`spec.md` *Scope*).
+            # is; placing its command word is a parser (`frame/design.md` *Scope*).
             texts += [t for t in rest if not t.startswith("-")]
         elif word in ("env", "genv"):
             # env's words are walked once under GNU's grammar and, for `env`

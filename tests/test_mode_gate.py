@@ -4,7 +4,7 @@ Issue #151: a session created `seal/` and started working, and nothing asked
 about shared or local mode. The gate asks on the session's first command in
 a repository whose root records no `Mode`, once as a deny and once as an
 ask, and then says nothing. The scenario ids are
-`seal/specs/1788817289-local-mode-from-first-setup-to-the-gate/spec.md`'s.
+`aa687d35:seal/specs/1788817289-local-mode-from-first-setup-to-the-gate/spec.md`'s.
 The cases come from `tests/test_the_mode_question_is_asked_once.py` (#942's
 phase 6).
 """
@@ -21,6 +21,7 @@ from conftest import (
     git_dir,
     load_hook_module,
     local_home,
+    mark_root,
     opt_in_shared,
     payload,
     reason_of,
@@ -257,7 +258,7 @@ class Test_already_asked:
         Sharing a directory would collapse the budget to a single prompt and lose
         the approvable retry the deny's own reason tells the model to make.
         """
-        gate = load_hook_module(GATE, "specseal_mode_gate_markers")
+        gate = load_hook_module(GATE, "agentic_mode_gate_markers")
         assert gate.CHOICE_DIR != gate.RETRY_DIR
         opt_in_shared(repo)
         run_hook(GATE, payload("ls", repo))
@@ -270,7 +271,7 @@ class Test_already_asked:
         the deny repeats forever in exactly the environments that cannot write."""
         opt_in_shared(repo)
         with open(
-            os.path.join(git_dir(repo), "specseal-mode-choice"), "w", encoding="utf-8"
+            os.path.join(git_dir(repo), "agentic-mode-choice"), "w", encoding="utf-8"
         ) as f:
             f.write("not a directory")
         assert decision_of(run_hook(GATE, payload("git commit -m x", repo))) == "ask"
@@ -287,7 +288,7 @@ class Test_already_asked:
         """A dot names no file, so it counts as asked and nothing is made for
         it, not even the marker directory (#1017, the body's `.` and `..`
         row)."""
-        gate = load_hook_module(GATE, "specseal_mode_gate_dots")
+        gate = load_hook_module(GATE, "agentic_mode_gate_dots")
         before = sorted(os.listdir(git_dir(repo)))
         assert gate.already_asked(git_dir(repo), session) is True
         assert sorted(os.listdir(git_dir(repo))) == before
@@ -295,7 +296,7 @@ class Test_already_asked:
 
 class Test_git_dir_of:
     def test_accepts_a_repository_and_answers_its_git_dir(self, repo):
-        gate = load_hook_module(GATE, "specseal_mode_gate_git_dir")
+        gate = load_hook_module(GATE, "agentic_mode_gate_git_dir")
         assert gate.git_dir_of(str(repo)) == os.path.normpath(git_dir(repo))
 
     def test_refuses_a_failed_git_whatever_it_printed(self, repo, monkeypatch):
@@ -303,7 +304,7 @@ class Test_git_dir_of:
         path. The real git prints nothing on a failure, so the failure is
         faked to remove that guarantee (contract rule 13; #1017, the body's
         `git_dir_of` row)."""
-        gate = load_hook_module(GATE, "specseal_mode_gate_failed_git")
+        gate = load_hook_module(GATE, "agentic_mode_gate_failed_git")
 
         def failed(cmd, **kwargs):
             return subprocess.CompletedProcess(cmd, 128, stdout=".git\n", stderr="")
@@ -346,7 +347,7 @@ class Test_marker_dir:
         put the marker under whatever directory the hook process happened to start
         in — a different file each time, which is a question asked again.
         """
-        gate = load_hook_module(GATE, "specseal_mode_gate_absolute")
+        gate = load_hook_module(GATE, "agentic_mode_gate_absolute")
         for which in ("--absolute-git-dir", "--git-common-dir"):
             answer = gate.git_dir_of(str(repo), which)
             assert os.path.isabs(answer), f"{which} answered {answer!r}"
@@ -366,7 +367,7 @@ class Test_marker_dir:
             check=True,
             capture_output=True,
         )
-        (side / "seal").mkdir()
+        mark_root(side / "seal")
         assert decision_of(run_hook(GATE, payload("ls", repo))) == "deny"
         assert decision_of(run_hook(GATE, payload("ls", side))) == "deny"
 
@@ -375,7 +376,7 @@ class Test_module:
     def test_the_gate_is_in_the_pre_bash_group(self):
         """A gate `hooks/hooks.json` never reaches decides nothing. The dispatch
         group is the wiring, and it is the half a passing gate cannot report on."""
-        dispatch = load_hook_module("dispatch.py", "specseal_dispatch_for_mode_gate")
+        dispatch = load_hook_module("dispatch.py", "agentic_dispatch_for_mode_gate")
         assert GATE in dispatch.GROUPS["pre-bash"]
 
 

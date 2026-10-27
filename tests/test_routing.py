@@ -1,7 +1,7 @@
 """`hooks/routing.py`: the routing answer is recorded, so the gate stops
 re-deriving it.
 
-A declaration at `seal/specs/<work-item-id>/routing.md` is what the commit gate
+A declaration at `seal/threads/<work-item-id>/routing.md` is what the commit gate
 reads. Failure direction: a declaration that cannot be read is not a
 declaration, and an optional row that cannot be read is unanswered while the
 declaration stands. What the commit gate does with an answer is its own file's.
@@ -31,7 +31,7 @@ from conftest import (
 
 TARGET = "hooks/routing.py"
 
-routing = load_hook_module("routing.py", "specseal_routing")
+routing = load_hook_module("routing.py", "agentic_routing")
 
 CHAIN = "through the review chain"
 DIRECT = "straight to the PR"
@@ -70,8 +70,9 @@ def with_planning(answer):
     return two_axis_text().replace("| Branch |", f"| Planning | {answer} |\n| Branch |")
 
 
-# The shape ids are `seal/specs/1790645290-the-hooks-and-the-rider-check-read-
-# fences-and-comments-by-one-rule/spec.md` *The shapes*, the texts
+# The shape ids are
+# `0ed5dd3b:seal/specs/1790645290-the-hooks-and-the-rider-check-read-fences-and-comments-by-one-rule/spec.md`
+# *The shapes*, the texts
 # `tests/block_shapes.py`'s. "red at base" means the case fails with
 # `hooks/routing.py` from `3911a8cf`; "pins" means it passes there too.
 
@@ -123,6 +124,16 @@ class Test_parse:
                 "| Branch |", f"| Implementation | {answer} |\n| Branch |"
             )
             assert routing.parse(text)["implementation"] == answer, answer
+
+    def test_accepts_the_answer_written_before_the_rename_as_the_crafter(self):
+        """A declaration written before the plugin was renamed AgenticSeal
+        names the implementer by its old name, and the move copies it byte
+        for byte, so it reads as `crafter` until the next minor release."""
+        text = two_axis_text().replace(
+            "| Branch |",
+            f"| Implementation | {routing.OLD_BY_CRAFTER} |\n| Branch |",
+        )
+        assert routing.parse(text)["implementation"] == routing.BY_CRAFTER
 
     def test_accepts_the_fourth_axis_where_it_is_there(self):
         """The vocabulary is `framer` and `the session`, and the second is the same
@@ -340,10 +351,10 @@ class Test_parse:
         assert parsed["implementation"] is None
 
         text = two_axis_text().replace(
-            "| Branch |", "| Implementation | smith |\n| Branch |"
+            "| Branch |", "| Implementation | crafter |\n| Branch |"
         )
         parsed = routing.parse(text)
-        assert parsed["implementation"] == routing.BY_SMITH
+        assert parsed["implementation"] == routing.BY_CRAFTER
         assert parsed["planning"] is None
 
     def test_refuses_any_optional_row_answering_for_another(self, repo):
@@ -355,7 +366,7 @@ class Test_parse:
         """
         keys = {
             routing.PLANNING: ("planning", routing.BY_FRAMER),
-            routing.IMPLEMENTATION: ("implementation", routing.BY_SMITH),
+            routing.IMPLEMENTATION: ("implementation", routing.BY_CRAFTER),
             routing.AUTOMATION: ("automation", routing.AUTOMATION_YES),
             routing.ANSWER_PRESSED: ("pressed", routing.PRESSED_AUTOMATION),
         }
@@ -461,7 +472,7 @@ class Test_parse:
 
         root = os.path.join(os.path.dirname(__file__), "..")
         found = sorted(
-            glob.glob(os.path.join(root, "seal", "specs", "*", "routing.md"))
+            glob.glob(os.path.join(root, "seal", "threads", "*", "routing.md"))
         )
         # `assert found` and the vacuity guard over `omitted` stood here, and both
         # were floors a fold turns red (#517). The first asked whether the glob
@@ -471,7 +482,7 @@ class Test_parse:
         # optional row, which is a question about what the repository happens to
         # hold, and it moves to
         # `test_an_absent_optional_row_reads_as_nothing_over_a_built_declaration`.
-        specs = os.path.join(root, "seal", "specs")
+        specs = os.path.join(root, "seal", "threads")
         listed = sorted(
             os.path.join(specs, n, "routing.md")
             for n in (os.listdir(specs) if os.path.isdir(specs) else [])
@@ -497,7 +508,7 @@ class Test_parse:
 class Test_declarations:
     def test_accepts_a_declaration_under_the_repositorys_root(self, tmp_path):
         repo = opted_in_repo(tmp_path / "declared" / "repo")
-        item = repo / "seal" / "specs" / "1780000000-work"
+        item = repo / "seal" / "threads" / "1780000000-work"
         item.mkdir(parents=True)
         (item / "routing.md").write_text(two_axis_text(), encoding="utf-8")
         found = routing.declarations(str(repo))
@@ -573,7 +584,7 @@ class Test_module:
         import routing
 
         repo = opted_in_repo(tmp_path / "declared" / "repo")
-        item = repo / "seal" / "specs" / "1780000000-work"
+        item = repo / "seal" / "threads" / "1780000000-work"
         item.mkdir(parents=True)
         # Valid UTF-16, which is not valid UTF-8 anywhere in it.
         (item / "routing.md").write_bytes(
@@ -587,7 +598,7 @@ class Test_module:
         The commit gate's case for a malformed declaration runs the hook; this
         one asks the reader."""
         repo = opted_in_repo(tmp_path / "declared" / "repo")
-        specs = repo / "seal" / "specs"
+        specs = repo / "seal" / "threads"
         (specs / "1780000000-prose").mkdir(parents=True)
         (specs / "1780000000-prose" / "routing.md").write_text(
             "we decided to go through the review chain.\n", encoding="utf-8"
@@ -642,7 +653,7 @@ class Test_module:
         `tests/test_settle.py` holds `settle.py#SPECS` to the same, and
         `tests/test_a_reference_root_is_read_and_never_taken.py` classifies
         every shipped command by what keeps it off a reference root."""
-        assert routing.WORK_ITEMS == "seal/specs"
+        assert routing.WORK_ITEMS == "seal/threads"
 
 
 test_census = census_case(TARGET)

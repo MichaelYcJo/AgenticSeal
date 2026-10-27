@@ -28,7 +28,7 @@ import sys
 import types
 
 import pytest
-from conftest import census_case
+from conftest import census_case, mark_root
 from conftest import load_module as load
 
 TARGET = ".github/scripts/release_seal.py"
@@ -54,7 +54,7 @@ ROWS = [
 
 
 def seal():
-    return load(SCRIPT, "specseal_release_seal_for_tests")
+    return load(SCRIPT, "agentic_release_seal_for_tests")
 
 
 def stamp(name):
@@ -164,12 +164,12 @@ def tree(tmp_path, branch="feat/12-an-item", verdicts=()):
     """A repository root holding one work item that declares `branch`, with
     one round record per entry of `verdicts`, each a list of `verdict:`
     values, one finding each."""
-    item = tmp_path / "seal" / "specs" / "1700000000-an-item"
-    (item / "rounds").mkdir(parents=True)
+    item = mark_root(tmp_path / "seal") / "threads" / "1700000000-an-item"
+    (item / "trail" / "rounds").mkdir(parents=True)
     (item / "routing.md").write_text(ROUTING.format(branch=branch), encoding="utf-8")
     for n, values in enumerate(verdicts, 1):
         found = "".join(finding(i, value) for i, value in enumerate(values, 1))
-        (item / "rounds" / f"round-{n}.md").write_text(
+        (item / "trail" / "rounds" / f"round-{n}.md").write_text(
             ROUND.format(n=n, findings=found), encoding="utf-8"
         )
     return str(tmp_path)
@@ -495,7 +495,13 @@ class Test_chain_counts:
             ],
         )
         record = (
-            tmp_path / "seal" / "specs" / "1700000000-an-item" / "rounds" / "round-2.md"
+            tmp_path
+            / "seal"
+            / "threads"
+            / "1700000000-an-item"
+            / "trail"
+            / "rounds"
+            / "round-2.md"
         )
         text = record.read_text(encoding="utf-8")
         answered = text.replace(
@@ -560,9 +566,9 @@ class Test_chain_counts:
         nobody can count: the rounds row is not read, and the log names it.
         Seen red at `7966a9f9`, which drew `(1, 0, 0, None)`."""
         root = tree(tmp_path)
-        item = tmp_path / "seal" / "specs" / "1700000000-an-item"
-        (item / "rounds").rmdir()
-        (item / "rounds").write_text("# round 1\n", encoding="utf-8")
+        item = tmp_path / "seal" / "threads" / "1700000000-an-item"
+        (item / "trail" / "rounds").rmdir()
+        (item / "trail" / "rounds").write_text("# round 1\n", encoding="utf-8")
         assert seal().chain_counts(root, [pr(20, "feat/12-an-item")]) == (
             1,
             None,
@@ -591,7 +597,9 @@ class Test_chain_counts:
         which the row shows as `not read`, and the log names the file; the items
         and rounds it could count stand."""
         root = tree(tmp_path, verdicts=[["deferred #12"]])
-        record = tmp_path / "seal" / "specs" / "1700000000-an-item" / "rounds"
+        record = (
+            tmp_path / "seal" / "threads" / "1700000000-an-item" / "trail" / "rounds"
+        )
         (record / "round-2.md").write_text(OLD_ROUND.format(n=2), encoding="utf-8")
         counts = seal().chain_counts(root, [pr(20, "feat/12-an-item")])
         assert counts == (1, 2, 0, None), counts

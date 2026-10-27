@@ -1,6 +1,6 @@
 ---
 type: 'regex'
-target: {source: 'file', path: 'seal/specs/1790000030-guarantee-no-gate/guarantee.md'}
+target: {source: 'file', path: 'seal/threads/1790000030-guarantee-no-gate/guarantee.md'}
 pattern: '^Verdict:\s*\**withheld\b'
 flags: 'm'
 ---

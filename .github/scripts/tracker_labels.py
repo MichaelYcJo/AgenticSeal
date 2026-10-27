@@ -100,9 +100,9 @@ closer = signal.closer
 # The colour is `chain: capped`'s. That is this repository's other
 # `<subject>: <state>` label and the shape `size: now`'s name was taken from
 # -- the specifying section says so in as many words -- so two labels of one
-# shape read as one shape on the tracker. `spec.md` *Judgments* 11 expected
-# the topic labels' family instead; they carry five different colours between
-# them, so there was no one family colour to join, and `overview.md` records
+# shape read as one shape on the tracker. `frame/design.md` *Judgments* 11
+# expected the topic labels' family instead; they carry five different colours
+# between them, so there was no one family colour to join, and `gaps.md` records
 # the divergence. Nothing turns on it either way.
 LABELS = (
     {

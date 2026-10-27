@@ -102,7 +102,7 @@ def load_reader(path=READER):
     """`unverified_check.py` as a module."""
     import importlib.util
 
-    spec = importlib.util.spec_from_file_location("specseal_unverified_reader", path)
+    spec = importlib.util.spec_from_file_location("agentic_unverified_reader", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module

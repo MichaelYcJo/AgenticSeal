@@ -299,7 +299,7 @@ def gathered_entry(root, work_item_id):
     A changelog fragment moves once, the way a ledger fragment does:
     `gather_changelog.py` writes `<!-- specs/<id> -->` above the fragment's
     body in the release's own file, `changelog/X.Y.Z.md` since #728, and
-    `settle --apply` later removes the directory the fragment lived in. So a
+    `seal settle --apply` later removes the directory the fragment lived in. So a
     case pinning what a fragment says reads the fragment while it exists and
     this block after. The block runs from the marker to the next marker line
     or heading, which is where the gatherer puts the next entry.
@@ -348,7 +348,7 @@ os.environ["SPECSEAL_LANG"] = "en"
 # each have to remember. An empty template still leaves a complete repository:
 # `config`, `HEAD`, `objects/` and `refs/` are `git init`'s own work, not the
 # template's.
-_EMPTY_GIT_TEMPLATE = tempfile.mkdtemp(prefix="specseal-empty-git-template-")
+_EMPTY_GIT_TEMPLATE = tempfile.mkdtemp(prefix="agentic-empty-git-template-")
 os.environ["GIT_TEMPLATE_DIR"] = _EMPTY_GIT_TEMPLATE
 atexit.register(shutil.rmtree, _EMPTY_GIT_TEMPLATE, True)
 
@@ -390,8 +390,8 @@ GH_CREDENTIALS = (
     "GITHUB_ENTERPRISE_TOKEN",
 )
 # Not a credential: what `gh` finds in place of one.
-NOT_A_GH_TOKEN = "specseal-suite-runs-with-gh-logged-out"
-_EMPTY_GH_CONFIG = tempfile.mkdtemp(prefix="specseal-empty-gh-config-")
+NOT_A_GH_TOKEN = "agentic-suite-runs-with-gh-logged-out"
+_EMPTY_GH_CONFIG = tempfile.mkdtemp(prefix="agentic-empty-gh-config-")
 os.environ["GH_CONFIG_DIR"] = _EMPTY_GH_CONFIG
 atexit.register(shutil.rmtree, _EMPTY_GH_CONFIG, True)
 for _name in GH_CREDENTIALS:
@@ -411,7 +411,7 @@ os.environ["GH_ENTERPRISE_TOKEN"] = NOT_A_GH_TOKEN
 # A child that imports this file again -- an xdist worker, a probe that runs
 # it -- inherits a PATH that already holds a parent's stubs, so the real `gh`
 # is looked for past every one of them.
-GH_STUB_PREFIX = "specseal-gh-stubs-"
+GH_STUB_PREFIX = "agentic-gh-stubs-"
 REAL_GH = shutil.which(
     "gh",
     path=os.pathsep.join(
@@ -491,7 +491,7 @@ os.environ["PATH"] = gh_answers(dict(os.environ), "unknown")["PATH"]
 # imports the module by its plain name, so one attribute on `sys.modules`
 # covers every copy of the guard a test module loaded. A case that needs a
 # transcript points it somewhere else itself.
-_NO_TRANSCRIPTS = tempfile.mkdtemp(prefix="specseal-no-transcripts-")
+_NO_TRANSCRIPTS = tempfile.mkdtemp(prefix="agentic-no-transcripts-")
 atexit.register(shutil.rmtree, _NO_TRANSCRIPTS, True)
 
 
@@ -503,7 +503,7 @@ def _no_real_transcripts(monkeypatch):
 
 
 # What a Claude Code session exports to every Bash child, and so to every git
-# hook a fixture repository's stub runs (#692, `phases/phase-1.md` M4). A
+# hook a fixture repository's stub runs (#692, `trail/phases/phase-1.md` M4). A
 # suite run from inside a session inherits them and CI does not, so a stub
 # would judge a fixture's commit on one and stay silent on the other (P2).
 # Every case starts with none of them; a case about a session sets its own.
@@ -528,6 +528,24 @@ def load_hook_module(filename, name):
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
+
+
+# `hooks/optin.py#MARKER`: a `seal/` is the plugin's root only where its
+# `README.md` opens with this line, so every helper below that builds a root
+# writes it.
+ROOT_MARKER = load_hook_module("optin.py", "agentic_optin_for_fixtures").MARKER
+
+
+def mark_root(home):
+    """HOME made a directory whose `README.md` opens with the marker, the way
+    first setup leaves a root, and returned. A README already there is left
+    as it is."""
+    home = pathlib.Path(home)
+    home.mkdir(parents=True, exist_ok=True)
+    readme = home / "README.md"
+    if not readme.exists():
+        readme.write_text(ROOT_MARKER + "\n", encoding="utf-8")
+    return home
 
 
 def run_hook(filename, payload, env=None):
@@ -748,8 +766,7 @@ def local_home(repo):
         errors="replace",
     ).stdout.strip()
     home = pathlib.Path(os.path.normpath(os.path.join(str(repo), common))) / "seal"
-    home.mkdir(parents=True, exist_ok=True)
-    return home
+    return mark_root(home)
 
 
 @pytest.fixture
@@ -779,7 +796,7 @@ def declare_routing(
         encoding="utf-8",
         errors="replace",
     ).stdout.strip()
-    d = (pathlib.Path(home) if home else repo / "seal") / "specs" / item
+    d = mark_root(home if home else repo / "seal") / "threads" / item
     d.mkdir(parents=True, exist_ok=True)
     (d / "routing.md").write_text(
         f"# {item} -- routing\n\n"
@@ -793,13 +810,13 @@ def declare_routing(
 
 
 def rounds_dir(item):
-    """`<item>/rounds/`, created. Where the round records live.
+    """`<item>/trail/rounds/`, created. Where the round records live.
 
-    A helper rather than `item / "rounds"` at each call site: the tests that
-    write a record are the ones that would keep the old flat path alive, and
-    one spelling is what makes moving it again a single edit.
+    A helper rather than `item / "trail" / "rounds"` at each call site: the
+    tests that write a record are the ones that would keep an old path alive,
+    and one spelling is what makes moving it again a single edit.
     """
-    d = item / "rounds"
+    d = item / "trail" / "rounds"
     d.mkdir(parents=True, exist_ok=True)
     return d
 
@@ -887,7 +904,7 @@ def rule_carriers(marker):
     case pinning a rule's check line reads its tests the one way."""
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     path = os.path.join(root, ".github", "scripts", "rules.py")
-    spec = importlib.util.spec_from_file_location("specseal_rules_carriers", path)
+    spec = importlib.util.spec_from_file_location("agentic_rules_carriers", path)
     rules = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(rules)
     return {name for _path, name, _doc in rules.markers(root).get(marker, [])}
@@ -917,7 +934,7 @@ def texts():
 # test_the_durations_file_prices_the_suite` compares the suite's collection
 # with `.test_durations`, and on a shard the items a case can see are only the
 # shard's own: `pytest-split` replaces the list with the group.
-COLLECTED_NODE_IDS = "specseal_collected_node_ids"
+COLLECTED_NODE_IDS = "agentic_collected_node_ids"
 
 
 def pytest_collection_modifyitems(session, items):
@@ -1039,7 +1056,7 @@ def git_repo(where):
 
 
 def lease_dir(repo):
-    d = os.path.join(str(repo), ".git", "specseal-leases")
+    d = os.path.join(str(repo), ".git", "agentic-leases")
     os.makedirs(d, exist_ok=True)
     return d
 
@@ -1081,7 +1098,7 @@ TABLE = "# Repository config\n\n| Item | Value |\n|---|---|\n{rows}"
 
 @pytest.fixture
 def config():
-    return load_hook_module("config.py", "specseal_config_for_tests")
+    return load_hook_module("config.py", "agentic_config_for_tests")
 
 
 # The config texts the reader's cases in `tests/test_config.py` and the
@@ -1159,8 +1176,7 @@ def shape_text(name):
 
 
 def opt_in_shared(repo):
-    (repo / "seal").mkdir(exist_ok=True)
-    return repo / "seal"
+    return mark_root(repo / "seal")
 
 
 def write_config(home, text):
@@ -1253,7 +1269,7 @@ def write(root, rel, text):
 
 def opt_in(repo):
     """REPO opted in to the workflow, in shared mode."""
-    (repo / "seal").mkdir(exist_ok=True)
+    mark_root(repo / "seal")
 
 
 def staged_repo(path, declared=False, review="straight to the PR"):
@@ -1271,7 +1287,7 @@ def staged_repo(path, declared=False, review="straight to the PR"):
     run("-c", "user.email=e@example.com", "-c", "user.name=e", "commit", "-qm", "b")
     (path / "f").write_text("2\n", encoding="utf-8")
     run("add", "f")
-    (path / "seal").mkdir()
+    mark_root(path / "seal")
     if declared:
         declare_routing(path, review=review)
     return path
@@ -1383,7 +1399,7 @@ SIGNER_URL = "https://example.com/org/orders-web"
 MOBILE_URL = "https://example.com/org/orders-mobile"
 LOCATOR = '"## Order response shape / ### Fields"'
 PACT = "seal/pact.md"
-SPEC = "seal/specs/1790000000-x/spec.md"
+SPEC = "seal/threads/1790000000-x/frame/design.md"
 V1, V2, V3 = "id, total", "id, total, currency", "id, total, currency, tax"
 # The pact a signer's `Pact` row names in the reader's cases, and what
 # `hooks/config.py#pact_declaration` answers for it.
@@ -1440,6 +1456,7 @@ def _template(tmp_path_factory):
     api = base / "work" / "orders-api"
     init(api, PACT_URL)
     write(api, PACT, pact(V1))
+    mark_root(api / "seal")
     commit(api, "pact v1")
     write(api, PACT, pact(V2))
     commit(api, "pact v2")
@@ -1450,6 +1467,7 @@ def _template(tmp_path_factory):
     web = base / "work" / "orders-web"
     init(web, SIGNER_URL)
     write(web, "seal/config.md", signer_config(("Pact", PACT_URL)))
+    mark_root(web / "seal")
     commit(web, "signer")
     return base
 
@@ -1481,7 +1499,7 @@ class World:
     def map(self, *rows):
         write(
             self.home,
-            ".claude/specseal/pact-paths.md",
+            ".claude/agentic/pact-paths.md",
             "| Remote | Path |\n|---|---|\n"
             + "".join(f"| {r} | {p} |\n" for r, p in rows),
         )
@@ -1577,7 +1595,7 @@ def common_dir(repo):
 
 
 def consent_dir(repo):
-    return common_dir(repo) / "specseal-worktree-consent"
+    return common_dir(repo) / "agentic-worktree-consent"
 
 
 def grant(repo, session="me"):
@@ -1743,7 +1761,7 @@ BASE_TREE_CHAINS = {
 
 
 # #868 In 1: the two chains where the guard's `wheres[0]` and the writer's
-# first resolved entry disagreed (`spec.md` In 1 of work item 1791384157).
+# first resolved entry disagreed (`frame/design.md` In 1 of work item 1791384157).
 # bash runs the `||` segment only where the `cd` failed, in the directory the
 # shell was already in, and `;` runs its segment there when the `cd` fails, so
 # the guard's answer is where bash creates in both.
@@ -1797,9 +1815,9 @@ def routing_record(branch="feat/x"):
 
 
 def queued_values(repo):
-    """Every values file under REPO's `.git/specseal-stamp`, drawn or not."""
+    """Every values file under REPO's `.git/agentic-stamp`, drawn or not."""
     found = []
-    for directory, _dirs, names in os.walk(repo / ".git" / "specseal-stamp"):
+    for directory, _dirs, names in os.walk(repo / ".git" / "agentic-stamp"):
         found += [os.path.join(directory, n) for n in names if n.endswith(".json")]
     return sorted(found)
 
@@ -1808,7 +1826,7 @@ def queued_values(repo):
 
 
 def home(repo):
-    (repo / "seal").mkdir(exist_ok=True)
+    mark_root(repo / "seal")
 
 
 def legacy(repo):
@@ -1817,7 +1835,7 @@ def legacy(repo):
 
 
 def scratch(repo):
-    (repo / ".git" / "specseal-scratch").write_text("", encoding="utf-8")
+    (repo / ".git" / "agentic-scratch").write_text("", encoding="utf-8")
 
 
 # --- the implementer family's declaration and calls -----------------------------
@@ -1837,9 +1855,9 @@ def run_dispatch(group, payload, hooks=HOOKS):
     return r.stdout
 
 
-def declare(repo, implementation="smith", item=ITEM, planning=None):
+def declare(repo, implementation="crafter", item=ITEM, planning=None):
     """A declaration for this repo's branch; a `None` answer omits its row."""
-    d = repo / "seal" / "specs" / item
+    d = mark_root(repo / "seal") / "threads" / item
     d.mkdir(parents=True, exist_ok=True)
     third = f"| Implementation | {implementation} |\n" if implementation else ""
     fourth = f"| Planning | {planning} |\n" if planning else ""
@@ -1856,23 +1874,23 @@ def declare(repo, implementation="smith", item=ITEM, planning=None):
     return d
 
 
-def declare_smith(repo, home, item=ITEM):
-    """A declaration under `home` whose third axis says `smith`."""
-    d = home / "specs" / item
+def declare_crafter(repo, home, item=ITEM):
+    """A declaration under `home` whose third axis says `crafter`."""
+    d = mark_root(home) / "threads" / item
     d.mkdir(parents=True, exist_ok=True)
     (d / "routing.md").write_text(
         f"# {item} -- routing\n\n"
         "| Axis | Answer |\n|---|---|\n"
         "| Review | through the review chain |\n"
         "| Destination | open the pull request |\n"
-        "| Implementation | smith |\n"
+        "| Implementation | crafter |\n"
         f"| Branch | {branch_of(repo)} |\n",
         encoding="utf-8",
     )
     return d
 
 
-def spawn(repo, agent="specseal:smith", session="s1", **extra):
+def spawn(repo, agent="agentic:crafter", session="s1", **extra):
     return {
         "tool_name": "Agent",
         "session_id": session,
@@ -1911,7 +1929,7 @@ def _console_repo_template():
     shape."""
     global _CONSOLE_REPO_TEMPLATE
     if _CONSOLE_REPO_TEMPLATE is None:
-        d = pathlib.Path(tempfile.mkdtemp(prefix="specseal-console-repo-template-"))
+        d = pathlib.Path(tempfile.mkdtemp(prefix="agentic-console-repo-template-"))
         d = d / "repo"
         d.mkdir(parents=True)
         git = lambda *a: subprocess.run(
@@ -1931,7 +1949,7 @@ def _console_repo_template():
 def opted_in_repo(where):
     """A repository the commit gate fires in, at a path holding non-ASCII."""
     shutil.copytree(_console_repo_template(), where)
-    (where / "seal").mkdir(exist_ok=True)
+    mark_root(where / "seal")
     return where
 
 
@@ -1998,18 +2016,21 @@ def tree(tmp_path):
     repo = tmp_path / "repo"
     (repo / "docs").mkdir(parents=True)
     (repo / "docs" / "one-root.md").write_text("# a policy\n\nA rule.\n", "utf-8")
-    (repo / "seal").mkdir()
-    (repo / "seal" / "README.md").write_text("# seal\n", encoding="utf-8")
+    mark_root(repo / "seal")
     for name in ("1700000001-alpha", "1700000002-beta", "1700000003-gamma"):
-        item = repo / "seal" / "specs" / name
-        item.mkdir(parents=True)
-        (item / "spec.md").write_text(f"# {name}\n\nWhat it decided.\n", "utf-8")
+        item = repo / "seal" / "threads" / name
+        (item / "frame").mkdir(parents=True)
+        (item / "frame" / "design.md").write_text(
+            f"# {name}\n\nWhat it decided.\n", "utf-8"
+        )
     git(repo, "init", "-q")
     git(repo, "config", "user.email", "x@example.com")
     git(repo, "config", "user.name", "x")
     git(repo, "add", "-A")
     git(repo, "commit", "-qm", "released")
-    later = repo / "seal" / "specs" / "1700000004-delta"
-    later.mkdir()
-    (later / "spec.md").write_text("# delta\n\nIn flight.\n", encoding="utf-8")
+    later = repo / "seal" / "threads" / "1700000004-delta"
+    (later / "frame").mkdir(parents=True)
+    (later / "frame" / "design.md").write_text(
+        "# delta\n\nIn flight.\n", encoding="utf-8"
+    )
     return repo

@@ -24,7 +24,7 @@ import subprocess
 import sys
 
 import pytest
-from conftest import census_case, git, git_out, load_module, write
+from conftest import census_case, git, git_out, load_module, mark_root, write
 from conftest import commit_everything_as_e as commit
 
 TARGET = "skills/verify/scripts/seal_stamp.py"
@@ -33,7 +33,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 GUARANTEE_TEMPLATE = ROOT / "templates" / "sdd-guarantee.md"
 ITEM_NAME = "1799000000-an-item"
 ITEM_ID = "1799000000"
-GUARANTEE = f"seal/specs/{ITEM_NAME}/guarantee.md"
+GUARANTEE = f"seal/threads/{ITEM_NAME}/guarantee.md"
 SIGNED = ("-c", "user.name=e", "-c", "user.email=e@example.com")
 
 stamp = load_module(ROOT / TARGET, "seal_stamp_under_test")
@@ -111,7 +111,7 @@ TALL_ROWS = [
 
 # The rows the owner's chosen reference was drawn over (`frames.py`'s `ROWS`
 # behind the title row), and the reference itself, chosen on 2026-10-07:
-# design 3 of `frames.py` (`spec.md` decision 6 and S3 of work item
+# design 3 of `frames.py` (`frame/design.md` decision 6 and S3 of work item
 # 1791270164), transcribed from its SGR stream by a script that read no line of
 # `seal_stamp.py`. The twin's lines, and the disc's twenty-eight half-rows,
 # each half its colour's letter and a space off the disc.
@@ -235,7 +235,7 @@ def owners_disc(chart, x, y):
 
 
 def owners_cell(top, bottom):
-    """One cell of the disc as `spec.md` *Data & interfaces* of work item
+    """One cell of the disc as `frame/design.md` *Data & interfaces* of work item
     1791270164 writes it."""
     if top and bottom:
         return ("▀", top, bottom, None)
@@ -284,7 +284,7 @@ def what_a_terminal_shows(line):
 
 
 def state_changes(cells):
-    """How many SGRs `spec.md` S11 of work item 1791270164 says CELLS write,
+    """How many SGRs `frame/design.md` S11 of work item 1791270164 says CELLS write,
     counted from the cells: one per cell whose foreground, background or
     style differs from what is set, a blank keeping the foreground and the
     style as set but not a background."""
@@ -318,7 +318,7 @@ def values(**changed):
         "from": "origin/base",
         "branch": "feat/x",
         "pr": "#12",
-        "item": f"/x/seal/specs/{ITEM_NAME}",
+        "item": f"/x/seal/threads/{ITEM_NAME}",
         "session": "s-1",
         "rows": SMALL_ROWS,
     }
@@ -368,7 +368,7 @@ class Test_module:
         assert stamp.MESSAGE_BUDGET == stamp.MESSAGE_LIMIT - 1000
 
     def test_the_sample_carries_every_row_a_sealed_guarantee_draws(self):
-        """`seal-stamp` with no arguments shows what a stamp draws, so its
+        """`seal stamp` with no arguments shows what a stamp draws, so its
         labels are `guarantee_rows`' with every conditional row present, in
         order, and each value in the shape that function writes it."""
         rows = stamp.guarantee_rows("c46fd2db", "feature", "1e2bed90", "1", "c46", 3)
@@ -393,13 +393,13 @@ class Test_module:
                 assert row[1].startswith("✓ ") == given[1].startswith("✓ ")
 
     def test_accepts_the_command_a_person_types_on_a_pipe(self):
-        """`bin/seal-stamp` with stdout a pipe draws the twin: the form is
+        """`bin/seal stamp` with stdout a pipe draws the twin: the form is
         asked of the stream before `__main__` reconfigures it."""
-        wrapper = ROOT / "bin" / "seal-stamp"
+        wrapper = ROOT / "bin" / "seal"
         command = (
-            [os.environ.get("COMSPEC", "cmd.exe"), "/c", f"{wrapper}.cmd"]
+            [os.environ.get("COMSPEC", "cmd.exe"), "/c", f"{wrapper}.cmd", "stamp"]
             if os.name == "nt"
-            else [str(wrapper)]
+            else [str(wrapper), "stamp"]
         )
         out = subprocess.run(
             command,
@@ -454,7 +454,7 @@ class Test_read_chart:
         with pytest.raises(ValueError) as refused:
             stamp.read_chart(str(broken))
         assert str(refused.value) == (
-            f"seal-stamp: the disc's mark chart {broken} is not 28 lines of 28 "
+            f"seal stamp: the disc's mark chart {broken} is not 28 lines of 28 "
             f"characters over `.M` with every `M` inside the disc's field ({fault}). "
             "Nothing was drawn."
         )
@@ -636,7 +636,7 @@ class Test_wrapped:
 class Test_item_value:
     def test_accepts_the_digits_before_the_first_dash(self, tmp_path):
         assert stamp.item_value(str(tmp_path / "1790815615-the-seal")) == "1790815615"
-        assert stamp.item_value("seal/specs/1-a-b/") == "1"
+        assert stamp.item_value("seal/threads/1-a-b/") == "1"
 
     def test_refuses_to_cut_a_name_with_no_dash(self):
         assert stamp.item_value("plain") == "plain"
@@ -972,11 +972,11 @@ class Test_session_key:
 class Test_values_dir:
     def test_accepts_the_sessions_directory_under_the_common_dir(self):
         assert stamp.values_dir("/c", "s-1") == os.path.join(
-            "/c", "specseal-stamp", "s-1"
+            "/c", "agentic-stamp", "s-1"
         )
 
     def test_refuses_a_session_that_would_leave_the_values_dir(self):
-        values_dir = os.path.join("/c", "specseal-stamp")
+        values_dir = os.path.join("/c", "agentic-stamp")
         assert stamp.values_dir("/c", "../x") == os.path.join(values_dir, "x")
         assert stamp.values_dir("/c", None) == os.path.join(values_dir, "none")
 
@@ -998,7 +998,7 @@ class Test_drawn_path:
 class Test_write_values:
     def test_accepts_the_values_under_a_name_that_sorts_oldest_first(self, tmp_path):
         path = stamp.write_values(str(tmp_path), "s-1", values(), now=7, key="9-abc")
-        assert path == str(tmp_path / "specseal-stamp" / "s-1" / "7-9-abc.json")
+        assert path == str(tmp_path / "agentic-stamp" / "s-1" / "7-9-abc.json")
         assert json.loads(pathlib.Path(path).read_text(encoding="utf-8")) == json.loads(
             json.dumps(values())
         )
@@ -1006,7 +1006,7 @@ class Test_write_values:
 
     def test_refuses_a_name_without_the_tree_where_no_key_is_given(self, tmp_path):
         path = stamp.write_values(str(tmp_path), "../../x", values(tree="a/b"), now=3)
-        assert path == str(tmp_path / "specseal-stamp" / "x" / "3-b.json")
+        assert path == str(tmp_path / "agentic-stamp" / "x" / "3-b.json")
         later = os.path.basename(stamp.write_values(str(tmp_path), "x", {}))
         moment, _, tail = later.partition("-")
         assert tail == "tree.json" and int(moment) > 10**18, later
@@ -1042,14 +1042,14 @@ class Test_read_values:
         with pytest.raises(ValueError) as refused:
             stamp.read_values(str(path))
         said = str(refused.value)
-        assert said.startswith(f"seal-stamp: {path} is not a stamp's values file: ")
+        assert said.startswith(f"seal stamp: {path} is not a stamp's values file: ")
         assert why in said and said.endswith("Nothing was drawn."), said
 
     def test_refuses_a_file_that_cannot_be_read(self, tmp_path):
         missing = tmp_path / "gone.json"
         with pytest.raises(ValueError) as refused:
             stamp.read_values(str(missing))
-        assert str(refused.value).startswith(f"seal-stamp: {missing} cannot be read (")
+        assert str(refused.value).startswith(f"seal stamp: {missing} cannot be read (")
 
 
 class Test_pending:
@@ -1128,7 +1128,7 @@ class Test_already_queued:
         assert not stamp.already_queued(str(tmp_path), "7")
         stamp.write_values(str(tmp_path), "s-1", {}, now=1, key="8-abc")
         stamp.write_values(str(tmp_path), "s-1", {"tree": "7"}, now=2)
-        write(tmp_path / "specseal-stamp", "a-file", "")
+        write(tmp_path / "agentic-stamp", "a-file", "")
         assert not stamp.already_queued(str(tmp_path), "7")
 
 
@@ -1164,7 +1164,7 @@ class Test_guarantee_rows:
 class Test_record_refusal:
     def test_accepts_an_empty_file_named_by_the_id_and_the_target(self, tmp_path):
         stamp.record_refusal(str(tmp_path), "1799", "deadbee")
-        recorded = tmp_path / "specseal-stamp-refused" / "1799-deadbee"
+        recorded = tmp_path / "agentic-stamp-refused" / "1799-deadbee"
         assert recorded.read_text(encoding="utf-8") == ""
 
     def test_refuses_to_raise_where_the_record_cannot_be_written(self, tmp_path):
@@ -1220,14 +1220,14 @@ def routing_text(branch="feat/x"):
 
 
 def closing_records(item, target, base):
-    """Two round records, a file in `rounds/` that is not one, `broad-gate.md`
+    """Two round records, a file in `trail/rounds/` that is not one, `trail/gate.md`
     naming TARGET, and `guarantee.md` reading `sealed` over it."""
-    write(item, "rounds/round-1.md", "x\n")
-    write(item, "rounds/round-2.md", "x\n")
-    write(item, "rounds/notes.md", "x\n")
+    write(item, "trail/rounds/round-1.md", "x\n")
+    write(item, "trail/rounds/round-2.md", "x\n")
+    write(item, "trail/rounds/notes.md", "x\n")
     write(
         item,
-        "broad-gate.md",
+        "trail/gate.md",
         f"| Field | Value |\n|---|---|\n| Broad gate | {target} against {base} |\n",
     )
     write(item, "guarantee.md", guarantee_text(target, base))
@@ -1242,6 +1242,7 @@ def _shared(tmp_path_factory):
     d.mkdir()
     git(d, "init", "-q", "-b", "main")
     write(d, "seal/config.md", "# config\n")
+    mark_root(d / "seal")
     commit(d, "x")
     git(d, "switch", "-qc", "feat/x")
     write(d, "work.txt", "the work\n")
@@ -1250,7 +1251,7 @@ def _shared(tmp_path_factory):
         git_out(d, "rev-parse", "--short", "HEAD"),
         git_out(d, "rev-parse", "--short", "main"),
     )
-    closing_records(d / "seal" / "specs" / ITEM_NAME, target, base)
+    closing_records(d / "seal" / "threads" / ITEM_NAME, target, base)
     commit(d, "the closing records")
     return d, target, base
 
@@ -1282,7 +1283,7 @@ def amended(item, text):
 def queued(common):
     """Every values file under COMMON, drawn or not."""
     found = []
-    for directory, _dirs, names in os.walk(pathlib.Path(common) / "specseal-stamp"):
+    for directory, _dirs, names in os.walk(pathlib.Path(common) / "agentic-stamp"):
         found += [os.path.join(directory, n) for n in names if n.endswith(".json")]
     return sorted(found)
 
@@ -1349,7 +1350,7 @@ def _local(tmp_path_factory):
     git(d, "switch", "-qc", "feat/x")
     write(d, "work.txt", "the work\n")
     target, base = commit(d, "the work")[:7], git_out(d, "rev-parse", "--short", "main")
-    item = d / ".git" / "seal" / "specs" / ITEM_NAME
+    item = mark_root(d / ".git" / "seal") / "threads" / ITEM_NAME
     closing_records(item, target, base)
     write(item, "routing.md", routing_text())
     return d, target, base
@@ -1364,7 +1365,7 @@ def local(tmp_path, _local):
 
 
 def item_dir(item):
-    return pathlib.Path(item.common) / "seal" / "specs" / ITEM_NAME
+    return pathlib.Path(item.common) / "seal" / "threads" / ITEM_NAME
 
 
 def queue_local(item, session="s-1", name="guarantee.md"):
@@ -1381,7 +1382,7 @@ def uncommitted(item):
     records left on disk, the work item's `routing.md` naming `feat/x` beside
     them: the moment the sealer's `Write` lands, before anything commits it."""
     git(item.repo, "reset", "-q", "HEAD~1")
-    write(item.repo, f"seal/specs/{ITEM_NAME}/routing.md", routing_text())
+    write(item.repo, f"seal/threads/{ITEM_NAME}/routing.md", routing_text())
     return item
 
 
@@ -1447,7 +1448,7 @@ class Test_queue_for_written_guarantee:
         """`seal/` under a worktree is the root only while the repository
         runs the workflow; the throwaway marker takes it back."""
         uncommitted(shared)
-        write(shared.common, "specseal-scratch", "")
+        write(shared.common, "agentic-scratch", "")
         assert queue_written(shared) == [] and queued(shared.common) == []
 
     @pytest.mark.rule("stamp-drawn-once")
@@ -1455,7 +1456,7 @@ class Test_queue_for_written_guarantee:
         """#1027 S13: a `sealed` HEAD's history carries was stamped where it
         was made, so a write of the guarantee over it queues nothing, even in
         a clone holding no values file."""
-        write(shared.repo, f"seal/specs/{ITEM_NAME}/routing.md", routing_text())
+        write(shared.repo, f"seal/threads/{ITEM_NAME}/routing.md", routing_text())
         assert queue_written(shared) == [] and queued(shared.common) == []
 
     @pytest.mark.rule("refused-sealed-leaves-a-record")
@@ -1470,11 +1471,11 @@ class Test_queue_for_written_guarantee:
         off = off_branch_commit(shared.repo)
         write(shared.repo, GUARANTEE, guarantee_text(off, shared.base))
         assert queue_written(shared) == [
-            f"specseal: no stamp was queued for {ITEM_ID}: its guarantee.md names "
+            f"agentic: no stamp was queued for {ITEM_ID}: its guarantee.md names "
             f"{off}, which feat/x does not hold; a new audit at the head of "
             "feat/x draws it"
         ]
-        refused = pathlib.Path(shared.common) / "specseal-stamp-refused"
+        refused = pathlib.Path(shared.common) / "agentic-stamp-refused"
         assert os.listdir(refused) == [f"{ITEM_ID}-{off}"]
         assert queued(shared.common) == []
         commit(shared.repo, "the stale row")
@@ -1529,7 +1530,7 @@ class Test_queue_for_written_guarantee:
         self, local
     ):
         """1792363231 S3: an earlier `withheld` does not count; a work item
-        with no `rounds/` reads `0`, and a `broad-gate.md` that is not UTF-8
+        with no `trail/rounds/` reads `0`, and a `trail/gate.md` that is not UTF-8
         is no row."""
         earlier = "; earlier run: abc1234 withheld"
         write(
@@ -1537,8 +1538,8 @@ class Test_queue_for_written_guarantee:
             "guarantee.md",
             guarantee_text(local.target, local.base, earlier=earlier),
         )
-        shutil.rmtree(item_dir(local) / "rounds")
-        (item_dir(local) / "broad-gate.md").write_bytes(b"\xff\xfe")
+        shutil.rmtree(item_dir(local) / "trail" / "rounds")
+        (item_dir(local) / "trail" / "gate.md").write_bytes(b"\xff\xfe")
         assert queue_local(local)
         (written,) = queued(local.common)
         rows = stamp.read_values(written)["rows"]
@@ -1619,10 +1620,10 @@ class Test_queue_for_written_guarantee:
         named = given(local)
         said = queue_local(local)
         assert queued(local.common) == []
-        refused = pathlib.Path(local.common) / "specseal-stamp-refused"
+        refused = pathlib.Path(local.common) / "agentic-stamp-refused"
         if named:
             assert said == [
-                f"specseal: no stamp was queued for {ITEM_ID}: its guarantee.md "
+                f"agentic: no stamp was queued for {ITEM_ID}: its guarantee.md "
                 f"names {named}, which feat/x does not hold; a new audit at the "
                 "head of feat/x draws it"
             ]
@@ -1678,7 +1679,7 @@ class Test_queue_for_written_guarantee:
         """1792363231 S5, the writer's half: a `guarantee.md` under the common
         dir of a repository that also has `<repo>/seal/` is under no root in
         force; the same text in another file of a local work item, or a work
-        item's copy outside `seal/specs/`, is no guarantee."""
+        item's copy outside `seal/threads/`, is no guarantee."""
         notes = item_dir(local) / "notes.md"
         notes.write_text(
             (item_dir(local) / "guarantee.md").read_text(encoding="utf-8"),
@@ -1689,7 +1690,7 @@ class Test_queue_for_written_guarantee:
         shutil.copytree(item_dir(local), elsewhere)
         guarantee = str(elsewhere / "guarantee.md")
         assert stamp.queue_for_written_guarantee(guarantee, "s-1") == []
-        (local.repo / "seal").mkdir()
+        mark_root(local.repo / "seal")
         assert queue_local(local) == []
         assert queued(local.common) == []
 

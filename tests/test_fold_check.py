@@ -1,7 +1,7 @@
 """`skills/settle/scripts/fold_check.py`, one class per function.
 
 A document fits one read, and the policy root has one index (#953).
-`fold-check` reports each top-level document of the policy root whose
+`seal fold` reports each top-level document of the policy root whose
 estimate is past the `Document token ceiling` row as one to split along its
 own headings, and exits 0 on it: the estimate is a guess from bytes, so it is
 a report and not a gate. Its index arm refuses a `<policy root>/README.md`
@@ -25,14 +25,14 @@ import subprocess
 import sys
 
 import pytest
-from conftest import census_case, load_module, names_path
+from conftest import census_case, load_module, mark_root, names_path
 
 TARGET = "skills/settle/scripts/fold_check.py"
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
 SCRIPT = os.path.join(ROOT, "skills", "settle", "scripts", "fold_check.py")
 
-fold_check = load_module(SCRIPT, "specseal_fold_check")
+fold_check = load_module(SCRIPT, "agentic_fold_check")
 
 
 def declared():
@@ -42,7 +42,7 @@ def declared():
 
 
 def command(*args):
-    """`fold-check` as a person types it, run on this interpreter."""
+    """`seal fold` as a person types it, run on this interpreter."""
     done = subprocess.run(
         [sys.executable, SCRIPT, *args],
         capture_output=True,
@@ -67,7 +67,7 @@ def config_root(tmp_path, rows, policy="docs"):
     table header, with one short document under the policy root."""
     (tmp_path / policy).mkdir()
     (tmp_path / policy / "a.md").write_text("# A\n", encoding="utf-8")
-    (tmp_path / "seal").mkdir()
+    mark_root(tmp_path / "seal")
     table = "".join(f"| {item} | {value} |\n" for item, value in rows)
     (tmp_path / "seal" / "config.md").write_text(
         f"# Repository config\n\n| Item | Value |\n|---|---|\n{table}",
@@ -90,7 +90,7 @@ class Test_main:
         assert f" under {policy}/ to {ceiling} estimated tokens" in out, out
         for rel, tokens in fold_check.past_ceiling(ROOT, policy, ceiling):
             assert f"{rel} is about {tokens} tokens, past the ceiling" in out, out
-        assert f"fold-check: the index {policy}/README.md names every document" in out
+        assert f"seal fold: the index {policy}/README.md names every document" in out
 
     def test_a_document_past_the_ceiling_is_named_and_the_run_exits_0(self, tmp_path):
         """S12: the owner's answer of 2026-10-20 makes the ceiling a report. A
@@ -99,7 +99,7 @@ class Test_main:
         code, out, err = command("--root", root, "--ceiling", "25000")
         assert code == 0, (code, out, err)
         assert (
-            "fold-check: docs/big.md is about 25001 tokens, past the ceiling of "
+            "seal fold: docs/big.md is about 25001 tokens, past the ceiling of "
             "25000: split it along its own headings\n"
         ) in out, out
         assert "docs/at.md is about" not in out, out
@@ -150,15 +150,13 @@ class Test_main:
         root = tree(tmp_path, {**files, "README.md": INDEX + rows})
         code, out, err = command("--root", root)
         assert code == 0, (code, out, err)
-        assert "fold-check: the index docs/README.md names every document\n" in out
+        assert "seal fold: the index docs/README.md names every document\n" in out
 
     def test_with_no_index_the_index_is_not_checked_and_the_run_says_so(self, tmp_path):
         root = tree(tmp_path, {"a.md": "# A\n"})
         code, out, _ = command("--root", root, "--ceiling", "10")
         assert code == 0, out
-        assert (
-            "fold-check: there is no docs/README.md, so no index was checked\n" in out
-        )
+        assert "seal fold: there is no docs/README.md, so no index was checked\n" in out
 
     def test_a_root_that_declares_no_ceiling_and_has_no_index_checks_nothing(
         self, tmp_path
@@ -170,7 +168,7 @@ class Test_main:
         config = os.path.join(root, "seal", "config.md")
         assert code == 0, (out, err)
         assert out == (
-            f"fold-check: `Document token ceiling` is not declared in {config}, and "
+            f"seal fold: `Document token ceiling` is not declared in {config}, and "
             "there is no docs/README.md, so nothing was checked\n"
         ), out
 
@@ -184,7 +182,7 @@ class Test_main:
         config = os.path.join(root, "seal", "config.md")
         assert code == 0, (out, err)
         assert out == (
-            f"fold-check: `Document token ceiling` is not declared in {config}, and "
+            f"seal fold: `Document token ceiling` is not declared in {config}, and "
             "there is no docs/README.md, so nothing was checked\n"
         ), out
 
@@ -209,9 +207,9 @@ class Test_main:
         config = os.path.join(root, "seal", "config.md")
         assert code == 0, out
         assert out == (
-            f"fold-check: `Document token ceiling` is not declared in {config}, so "
+            f"seal fold: `Document token ceiling` is not declared in {config}, so "
             "no document's length was checked\n"
-            "fold-check: the index docs/README.md names every document\n"
+            "seal fold: the index docs/README.md names every document\n"
         ), out
 
     def test_the_policy_root_row_moves_every_check_there(self, tmp_path):
@@ -248,11 +246,11 @@ class Test_main:
         code, out, err = command("--root", root)
         config = os.path.join(root, "seal", "config.md")
         assert code == 2 and not out, (out, err)
-        assert err == f"fold-check: in {config}, {says} — nothing was checked\n", err
+        assert err == f"seal fold: in {config}, {says} — nothing was checked\n", err
 
     @pytest.mark.parametrize("row", ["Document token ceiling"])
     def test_a_row_written_twice_is_refused_and_nothing_is_checked(self, tmp_path, row):
-        """S1 of #867, `fold-check`'s half. A row written twice has no value, by
+        """S1 of #867, `seal fold`'s half. A row written twice has no value, by
         `hooks/config.py#value_of`'s rule: the run exits 2 naming the row and the
         count, and nothing is checked."""
         root = config_root(tmp_path, [(row, "10"), (row, "20")])
@@ -260,14 +258,14 @@ class Test_main:
         config = os.path.join(root, "seal", "config.md")
         assert code == 2 and not out, (out, err)
         assert err == (
-            f"fold-check: in {config}, `{row}` appears 2 times — one value — nothing "
+            f"seal fold: in {config}, `{row}` appears 2 times — one value — nothing "
             "was checked\n"
         ), err
 
     def test_a_row_the_walker_did_not_read_is_refused_and_nothing_is_checked(
         self, tmp_path
     ):
-        """S4 of #871, `fold-check`'s case. A `Document token ceiling` row under
+        """S4 of #871, `seal fold`'s case. A `Document token ceiling` row under
         a line the table walker refuses is one it never read, so the run exits 2
         in the walker's sentence, naming the line, and nothing is checked. A
         refusal below every row this command reads touches none of them, so
@@ -301,7 +299,7 @@ class Test_main:
 
     @pytest.mark.parametrize("shape", ["directory", "undecodable"])
     def test_an_unreadable_config_is_refused_not_read_as_no_row(self, tmp_path, shape):
-        """S3 of #867, `fold-check`'s half. A `config.md` that is there and will
+        """S3 of #867, `seal fold`'s half. A `config.md` that is there and will
         not read is refused at exit 2 naming the path, never read as no row."""
         root = config_root(tmp_path, [("Document token ceiling", "10")])
         config = tmp_path / "seal" / "config.md"
@@ -349,12 +347,12 @@ class Test_main:
         Both of the states `home_at` answers "" for are pinned whole (contract rule 14)."""
         root = config_root(tmp_path, [("Document token ceiling", "10")])
         git_init(root)
-        (tmp_path / ".git" / "specseal-scratch").write_text("", encoding="utf-8")
+        (tmp_path / ".git" / "agentic-scratch").write_text("", encoding="utf-8")
         code, out, err = command("--root", root)
         assert code == 0, (out, err)
         assert out == (
-            f"fold-check: `Document token ceiling` is not declared in {root}, which "
-            "has opted out — `specseal-scratch` is under its git directory, so its "
+            f"seal fold: `Document token ceiling` is not declared in {root}, which "
+            "has opted out — `agentic-scratch` is under its git directory, so its "
             "seal/config.md is not read, and there is no docs/README.md, so nothing "
             "was checked\n"
         ), out
@@ -365,7 +363,7 @@ class Test_main:
         code, out, err = command("--root", str(tmp_path))
         assert code == 0, (out, err)
         assert out == (
-            f"fold-check: `Document token ceiling` is not declared in {tmp_path}, "
+            f"seal fold: `Document token ceiling` is not declared in {tmp_path}, "
             "which has no seal/ root at either place, and there is no "
             "docs/README.md, so nothing was checked\n"
         ), out
@@ -377,7 +375,7 @@ class Test_module:
 
     def test_a_fold_row_written_again_below_the_stop_has_no_value(self, tmp_path):
         """#871 round 2, yellow 9. A row read above a line the walk refused and
-        written again below it has no value, in fold-check as in
+        written again below it has no value, in `seal fold` as in
         `config_value`."""
         (tmp_path / "config.md").write_text(
             "# c\n\n| Item | Value |\n|---|---|\n"

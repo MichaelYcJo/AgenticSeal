@@ -7,7 +7,7 @@ the definition under `agents/`, every `SKILL.md` its `skills:` list injects,
 and the two `CLAUDE.md` files the harness adds (the repository's and
 `~/.claude/CLAUDE.md`). The prefix is cached for five minutes, and no two
 spawns of one agent in a review chain fall inside five minutes of each other
-(#292, `spec.md` *Measured before the first edit*) — so in a chain it is
+(#292, `frame/design.md` *Measured before the first edit*) — so in a chain it is
 written on every spawn. This reads the tree and says what that prefix is.
 
   bytes, chars    counted from the files.
@@ -47,7 +47,7 @@ the calibration refuses, or no `agents/*.md` under the root · 2 nothing ran:
 beside this script, `--sections` was given and `unverified_check.py`, the
 fence rule it splits by, is not beside it, or the arguments were unusable
 (argparse's usage error). An interpreter below the floor never reaches this
-file through `bin/payload-meter`: `hooks/launch.py` refuses it with 2 first.
+file through `seal payload`: `hooks/launch.py` refuses `seal` with 2 first.
 
 Two things the ratio has to know about the machine it was measured on. A
 skill name resolves to `~/.claude/skills/<name>/SKILL.md` when the user has
@@ -61,7 +61,7 @@ is reported.
 And one thing the ratio has to know about the TREE: a spawn read the files
 as they stood when it was made. Calibrating against a transcript after the
 tree changed divides that spawn's token count by bytes it never read — the
-first after-run of #292 put smith at 2.49 B/token against the 2.87 its spawn
+first after-run of #292 put the crafter at 2.49 B/token against the 2.87 its spawn
 paid, and +979 tokens on a file whose bytes had not moved. So with
 `--baseline` given, an agent whose smallest spawn is the one the baseline was
 calibrated from, over a different byte count, keeps the baseline's ratio, is
@@ -112,13 +112,13 @@ def _session_cost():
     path = os.path.join(HERE, "session_cost.py")
     if not os.path.isfile(path):
         sys.stderr.write(
-            f"payload-meter: cannot read {path}, and it is what reads a "
+            f"seal payload: cannot read {path}, and it is what reads a "
             "transcript's spawns and finds their subagent transcripts. This "
             "command ships beside it under `skills/`; a copy of one script "
             "taken on its own is not a plugin. Nothing was measured.\n"
         )
         raise SystemExit(2)
-    spec = importlib.util.spec_from_file_location("specseal_session_cost", path)
+    spec = importlib.util.spec_from_file_location("agentic_session_cost", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -137,16 +137,14 @@ def _fence_rule():
         path = os.path.join(HERE, "unverified_check.py")
         if not os.path.isfile(path):
             sys.stderr.write(
-                f"payload-meter: cannot read {path}, and it is what says which "
+                f"seal payload: cannot read {path}, and it is what says which "
                 "lines of a skill stand inside a fenced example, so --sections "
                 "cannot split one. This command ships beside it under "
                 "`skills/`; a copy of one script taken on its own is not a "
                 "plugin. Nothing was measured.\n"
             )
             raise SystemExit(2)
-        spec = importlib.util.spec_from_file_location(
-            "specseal_unverified_reader", path
-        )
+        spec = importlib.util.spec_from_file_location("agentic_unverified_reader", path)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         _reader = module
@@ -430,7 +428,7 @@ def first_prefix(path, helpers):
 
 
 def short_name(subagent_type):
-    """`specseal:smith` → `smith`; `general-purpose` stays as it is."""
+    """`agentic:crafter` → `crafter`; `general-purpose` stays as it is."""
     return subagent_type.rsplit(":", 1)[-1]
 
 
@@ -763,7 +761,7 @@ def _signed(value):
 
 
 def render(data):
-    lines = [f"# payload-meter — {data['root']} ({data['measured_at']})", ""]
+    lines = [f"# seal payload — {data['root']} ({data['measured_at']})", ""]
     calibration = data.get("calibration")
     if calibration:
         base = calibration["baseline"]
@@ -915,10 +913,10 @@ def main():
             baseline_agent=args.baseline_agent,
         )
     except CalibrationError as error:
-        print(f"payload-meter: {error}", file=sys.stderr)
+        print(f"seal payload: {error}", file=sys.stderr)
         return 1
     if not data["agents"]:
-        print(f"payload-meter: no agents/*.md under {args.root}", file=sys.stderr)
+        print(f"seal payload: no agents/*.md under {args.root}", file=sys.stderr)
         return 1
     if args.json:
         print(json.dumps(data, indent=2, ensure_ascii=False))

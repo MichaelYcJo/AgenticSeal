@@ -69,7 +69,7 @@ nothing -- and the census refuses the host's NAME in the tree, so a comment expl
 spelling it out is itself the violation. No credentials are needed for a
 public
 file. `.claude-plugin/marketplace.json` is the path -- measured, the root
-`marketplace.json` both the ticket and `spec.md` name is 404 in both
+`marketplace.json` both the ticket and `frame/design.md` name is 404 in both
 repositories.
 
   plugin_directory_check.py             read both, report

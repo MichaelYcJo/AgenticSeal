@@ -9,7 +9,7 @@ template under `bash`, its text unchanged apart from GitHub's expression for
 the base branch. A second case runs the same steps on the pull request that
 moves the root to local mode with the checks kept. The plugin's clone is the
 one step not run: the tree under test stands where the clone puts it,
-`$RUNNER_TEMP/specseal`. The oracle is each step's exit code, never what a
+`$RUNNER_TEMP/agentic`. The oracle is each step's exit code, never what a
 step printed.
 """
 
@@ -26,6 +26,7 @@ from conftest import (
     census_case,
     commit_everything_as_e,
     git,
+    mark_root,
     symlink_or_skip,
     workflow_steps,
     write,
@@ -81,7 +82,7 @@ target: 1a2b3c4 against main
 none
 """
 
-ITEM = f"seal/specs/{WORK}"
+ITEM = f"seal/threads/{WORK}"
 OPEN_ROW_AND_ROUND = "a work item with an open row and a round record"
 BASES = {
     "no root": {},
@@ -89,14 +90,14 @@ BASES = {
     "a work item with no overview": {
         "seal/config.md": CONFIG,
         f"{ITEM}/routing.md": ROUTING,
-        f"{ITEM}/spec.md": SPEC,
+        f"{ITEM}/frame/design.md": SPEC,
     },
     OPEN_ROW_AND_ROUND: {
         "seal/config.md": CONFIG,
         f"{ITEM}/routing.md": ROUTING,
-        f"{ITEM}/spec.md": SPEC,
-        f"{ITEM}/overview.md": OVERVIEW,
-        f"{ITEM}/rounds/round-1.md": ROUND,
+        f"{ITEM}/frame/design.md": SPEC,
+        f"{ITEM}/gaps.md": OVERVIEW,
+        f"{ITEM}/trail/rounds/round-1.md": ROUND,
     },
 }
 
@@ -155,6 +156,8 @@ def base_repository(tmp_path, files, checks=False):
     write(d, "README.md", "# a project\n")
     for rel, text in files.items():
         write(d, rel, text)
+    if (d / "seal").is_dir():
+        mark_root(d / "seal")
     if checks:
         seal(d, "pr-checks", "install")
     commit_everything_as_e(d, "the base")
@@ -188,11 +191,11 @@ def switching_repository(tmp_path):
 
 def runner_env(tmp_path, branch=BRANCH):
     """The variables GitHub sets for a pull request from BRANCH into BASE
-    that is not a draft, with `$RUNNER_TEMP/specseal` resolving to the tree
+    that is not a draft, with `$RUNNER_TEMP/agentic` resolving to the tree
     under test, and none of the variables of the run this suite is in."""
     runner = tmp_path / "runner"
     runner.mkdir()
-    symlink_or_skip(ROOT, runner / "specseal")
+    symlink_or_skip(ROOT, runner / "agentic")
     event = tmp_path / "event.json"
     event.write_text(json.dumps({"pull_request": {"draft": False}}), encoding="utf-8")
     env = without_this_run(os.environ)

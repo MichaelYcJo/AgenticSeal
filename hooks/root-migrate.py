@@ -1,14 +1,21 @@
 #!/usr/bin/env python3
-"""SessionStart: the old roots move into `seal/`, once per repository.
+"""SessionStart: a layout an earlier release wrote moves into the current one,
+wherever the checked-out tree still holds it.
 
-0.4.0 laid the plugin's tree out by lifetime under one root. `.specseal/` held
-the records that outlive a work item; `specs/<id>/` held a
-work item's documents and its review records; both are `seal/` now, and the
-opt-in is that root's presence (`docs/one-root-by-lifetime.md`, "What first
-setup asks"). Nothing reads the old names after
-that release except this hook, so a repository still holding the old layout
-gets silence from every gate until this runs. That silence is the fail
-direction the design record keeps on purpose, and this hook is what ends it.
+`moves` lists the units, each a `(kind, src, dst)` of repository-relative
+paths: a root an earlier release wrote, its README opening with a heading in
+`optin.EARLIER_HEADINGS`, has `seal/README.md` rewritten from the template so it opens
+with `optin.MARKER`, and each 0.22.x work item under `seal/specs/<id>/` moves
+into `seal/threads/<id>/`, each name at its thread path (`THREAD_PATHS`). In
+local mode `local_moves` lists the same units under the git directory, and
+they move by rename. At every session start, whether or not the tree has
+anything left to move, each state file beside the root and each entry of
+`~/.claude/specseal/` takes the plugin's name (`rename_state`): that state is
+the clone's and the machine's, not the tree's, so a clone that pulls a tree
+another person moved still holds its own. The 0.3.x layout is not a unit: no code of the
+plugin opens its two directories, a top-level `specs/` may be another tool's,
+and README.md *Coming up from 0.3.x* gives the commands that move it by hand
+(`docs/one-root-by-lifetime.md`, "The plugin writes only to its own root").
 
 Writing to a tree unasked is licensed on three grounds: the tree is the
 plugin's own, every step is a staged `git mv` or a rewrite of a file git
@@ -16,62 +23,43 @@ already tracks, and `git diff --cached` shows the whole of it with the old
 text safe in history. The notice ends "review the diff and commit" because
 the write is the beginning of a review.
 
-The move, in order (`seal/specs/1788331011-…/spec.md`, "The move, in order"):
+Boundaries, each pinned in `tests/test_root_migrate.py` except the second
+limit under **on any branch**, which is stated and not pinned:
 
-  1. `.specseal/README.md` → `seal/README.md`, then overwritten from
-     `templates/seal-README.md` — the file is plugin-owned and its old text
-     describes a layout that no longer exists
-  2. every other entry under `.specseal/` → `seal/<same name>`
-  3. each `specs/<id>/` whose name is `<unix seconds>-<slug>` AND that carries
-     one of the plugin's marks directly under it, as git tracks it —
-     `routing.md`, or a file under `rounds/` — → `seal/specs/<id>/`;
-     anything else under `specs/` stays and is named, because `specs/`
-     stops being SpecSeal's directory
-     and a project may have had one first. A name is not the proof: a team's
-     own `spec.md` and `plan.md` can sit under a directory `date +%s` could
-     have named, and every 0.3.x work item carried `routing.md` (#688)
-  4. the root is appended to `~/.claude/specseal/root-migrated`
-
-Boundaries, each pinned in `tests/test_root_migrate.py`:
-
-  - **never over uncommitted work** — anything `git status --porcelain` reports
-    under `.specseal/` or `specs/`, or a git that cannot answer, refuses the
-    whole move with one line and stamps nothing
-  - **only what git tracks** — the units come from `git ls-files`, so an
-    ignored file under the old roots is not a unit and stays where it is;
-    `.specseal/` may remain on disk holding nothing else
-  - **only what carries the plugin's marks** — an id-shaped `specs/<x>/`
-    where git tracks neither `routing.md` nor a file under `rounds/` is a
-    team's directory, whatever an empty or ignored one on disk says: it is not
-    moved, and the printed line names it with that reason. A repository holding nothing else of the old layout hears
-    nothing at all
-  - **once per repository** — a completed move stamps the marker, and so does
-    a repository that has nothing old left and a root at EITHER place,
-    `<repo>/seal/` or `<git-common-dir>/seal/`, so switching to an old branch
-    later does not move it again — into a tree that local mode (#80) chose
-    to keep clean, in the second case
-  - **a stopped move resumes** — a step that fails stops the run, prints what
-    moved and what did not, and stamps nothing; the next session start moves
-    what remains and stamps only when nothing old is left
-  - **a throwaway repository is left alone** — `.specseal/scratch` used to say
-    so, and a repository still carrying it is not moved; the marker's
-    successor is `.git/specseal-scratch`
-  - **a symbolic link is refused, not half-moved** — git tracks a link as one
-    blob, so a linked `.specseal/` or a linked `specs/` holding work items
-    lists no units; either is refused with a line naming the by-hand
-    section and nothing is stamped
+  - **never over uncommitted work** — anything `git status --porcelain`
+    reports under a directory a unit comes from, or a git that cannot answer,
+    refuses the whole move with one line
+  - **only what git tracks** — a unit's files come from `git ls-files`, so an
+    ignored file under a source directory is not moved and stays where it is,
+    and the directory may remain on disk holding nothing else
+  - **on any branch** — no stamp stands between a branch and its move: every
+    session start lists what the checked-out tree holds, so a branch cut
+    before the move and checked out after it moves at its own session start.
+    The move never puts a root into a tree, because every unit comes from a
+    root `ours` accepts under the directory the branch itself carries. One
+    limit, not guarded: in a repository that left shared mode for local mode,
+    a branch cut before that switch has its own `seal/` moved and marked
+    beside the local root, and the hooks read it first, as they read it
+    before the rename. A second limit, not guarded: nothing reads where HEAD
+    points, so a session start on a detached HEAD (a tag, an old commit, a
+    bisect step, a rebase stopped on a conflict) or during a merge,
+    cherry-pick or revert stages the move there as well, and the commit that
+    operation makes carries it. A session in this plugin's flow starts on its
+    work item's own branch, so the flow does not produce that shape
+  - **a stopped move resumes** — a step that fails stops the run and prints
+    what moved and what did not; the next session start moves what remains
   - **silent when there is nothing to do**
 """
 
-# RIDER: this file is a reader of the OLD tree — `.specseal/` and a top-level
-# `specs/` — and of nothing under `seal/specs/<id>/`. It can be deleted once
-# no repository is left to migrate, and nothing else has to change when it
-# goes; `hooks/dispatch.py`'s session-start group is the one place that names
-# it.
+# RIDER: this file is a reader of a layout an earlier release wrote, and of
+# nothing the current layout holds. It can be deleted once no repository is
+# left to migrate; `hooks/dispatch.py`'s session-start group is the one place
+# that names it, and `optin.EARLIER_HEADINGS` with its readers goes with it.
 
+import importlib.util
 import json
 import os
-import re
+import posixpath
 import subprocess
 import sys
 
@@ -80,24 +68,58 @@ import console
 import optin
 
 HOOKS = os.path.dirname(os.path.abspath(__file__))
-STATE_DIR = os.path.join(os.path.expanduser("~"), ".claude", "specseal")
-MARKER = os.path.join(STATE_DIR, "root-migrated")
+# The directory under `~/.claude/` the plugin keeps its state in, under the
+# name through 0.22.x and under the plugin's `name` since. Every session
+# start merges the first into the second, entry by entry.
+OLD_STATE_DIR = os.path.join(os.path.expanduser("~"), ".claude", "specseal")
+STATE_DIR = os.path.join(os.path.expanduser("~"), ".claude", "agentic")
+# The cache `hooks/version-check.py` rewrites once a day, which a session
+# start of this release writes into `STATE_DIR` before this hook runs: where
+# the new directory holds one, the old one is dropped rather than kept.
+CACHE = "version-check"
 TEMPLATE = os.path.join(HOOKS, "..", "templates", "seal-README.md")
+# The `seal` command, whose `workflow_at` is the one reader that tells this
+# plugin's pull-request workflow from anybody else's.
+SEAL = os.path.join(HOOKS, "..", "skills", "implement", "scripts", "seal.py")
 
-OLD_HOME = ".specseal"
-OLD_ITEMS = "specs"
-OLD_SCRATCH = "scratch"
 NEW = optin.HOME
-# The shape `date +%s` and a slug produce. `specs/` may hold other things in
-# a project that had the directory before the plugin arrived; those stay.
-ITEM_RE = re.compile(r"^[0-9]{9,10}-[A-Za-z0-9._-]+$")
-# What makes an id-shaped directory the plugin's: `routing.md`, or a file
-# under `rounds/`, directly under it and tracked by git (`tracked_marks`;
-# round 1 of #688 found an empty or ignored `rounds/` read from the disk
-# making a team's directory one). The shape is necessary and not
-# sufficient — `spec.md`, `plan.md` and `overview.md` are names a team's own
-# specification may use, so they are not marks (#688).
-MARKS = ("routing.md", "rounds")
+# Where a work item stood through 0.22.x, under the root. A `seal/` whose
+# README opens with neither `optin.MARKER` nor one of
+# `optin.EARLIER_HEADINGS` is a project's own and is never read here.
+EARLIER_ITEMS = f"{NEW}/specs"
+README = f"{NEW}/{optin.README}"
+# Where each name at the top of a 0.22.x work item stands in its thread; a
+# name not listed (`routing.md`, `changelog.md`, `guarantee.md`, a `pr.*.md`)
+# keeps its name at the thread's top.
+THREAD_PATHS = {
+    "spec.md": optin.DESIGN,
+    "plan.md": optin.PLAN,
+    "questions.md": optin.QUESTIONS,
+    "overview.md": optin.GAPS,
+    "broad-gate.md": optin.GATE,
+    "phases": optin.PHASES,
+    "rounds": optin.ROUNDS,
+}
+# The state files an earlier release wrote under the git directory, each
+# renamed from `specseal-` to `agentic-` at session start.
+OLD_PREFIX, NEW_PREFIX = "specseal-", "agentic-"
+STATE_NAMES = (
+    "scratch",
+    "no-work-item",
+    "leases",
+    "planner",
+    "implementer",
+    "implementer-notice",
+    "gate-failure",
+    "mode-choice",
+    "mode-retry",
+    "review-choice",
+    "worktree-choice",
+    "worktree-consent",
+    "stamp",
+    "stamp-refused",
+    "last-export.json",
+)
 
 
 class MoveError(Exception):
@@ -111,24 +133,6 @@ class MoveError(Exception):
         self.path = path
         self.error = error
         self.resumable = resumable
-
-
-def attempted(root):
-    try:
-        with open(MARKER, encoding="utf-8") as f:
-            # exempt from splitlines: a marker file of root paths
-            return root in f.read().splitlines()
-    except OSError:
-        return False
-
-
-def stamp(root):
-    try:
-        os.makedirs(STATE_DIR, exist_ok=True)
-        with open(MARKER, "a", encoding="utf-8") as f:
-            f.write(root + "\n")
-    except OSError:
-        pass
 
 
 def under(root, rel):
@@ -146,11 +150,17 @@ def git(root, *args):
     )
 
 
-def dirty(root):
-    """True when anything under the old roots is uncommitted — or git cannot
-    say. Work in progress outranks the move, and an unanswerable question is
-    treated as work in progress: moving on a guess is the one direction this
-    hook must never fail in.
+def sources(units):
+    """The directories the units come from, each once and sorted: what
+    `dirty` reads and what `run_moves` removes once the moves empty it."""
+    return sorted({posixpath.dirname(src) for _, src, _ in units})
+
+
+def dirty(root, units):
+    """True when anything under a directory the units come from is
+    uncommitted — or git cannot say. Work in progress outranks the move, and
+    an unanswerable question is treated as work in progress: moving on a
+    guess is the one direction this hook must never fail in.
 
     One shape is not work in progress: a staged rename or deletion with a
     clean worktree (`R ` and `D ` in porcelain's two columns). That is what
@@ -159,14 +169,15 @@ def dirty(root):
     a worktree change, anything untracked, and anything staged as an
     addition or a modification still refuses.
 
-    A `git ls-files` that cannot answer is the same case: `entries()` then
-    lists the directory, which is the listing 🔴 1 replaced, so the move is
-    refused here before that listing can move anything.
+    A `git ls-files` that cannot answer is the same case, because the units
+    are what it lists, and it is refused here before a guess can move
+    anything.
     """
-    if tracked_names(root, OLD_HOME) is None or tracked_names(root, OLD_ITEMS) is None:
+    roots = sources(units)
+    if any(tracked_names(root, rel) is None for rel in roots):
         return True
     try:
-        r = git(root, "status", "--porcelain", "--", OLD_HOME, OLD_ITEMS)
+        r = git(root, "status", "--porcelain", "--", *roots)
     except (OSError, subprocess.SubprocessError):
         return True
     if r.returncode != 0:
@@ -186,11 +197,11 @@ def tracked_names(root, rel):
     cannot say.
 
     Every step of the move is a `git mv`, so a unit is what git tracks. An
-    ignored file directly under `.specseal/` (`.DS_Store` is macOS's default)
-    passes `dirty()`, which reads porcelain, and then stops `git mv` for good:
-    every session start met the same unit, and the tree stayed half-moved
-    with `seal/` present and `routing.md` still at the old path. Listing the
-    directory was the defect; git's own list is the fix.
+    ignored file directly under a source directory (`.DS_Store` is macOS's
+    default) passes `dirty()`, which reads porcelain, and then stops `git mv`
+    for good: every session start met the same unit, and the tree stayed
+    half-moved. Listing the directory was the defect; git's own list is the
+    fix.
     """
     try:
         r = git(root, "ls-files", "-z", "--", rel)
@@ -220,101 +231,87 @@ def entries(root, rel):
         return []
 
 
-def marked(root, name):
-    """True when `specs/<name>` is an id-shaped directory carrying one of
-    the plugin's `MARKS` directly under it ON DISK. Read for the symbolic-link
-    refusal alone, because git lists nothing behind a link; what moves is
-    decided by `tracked_marks`, from git, as the units are."""
-    if not ITEM_RE.match(name):
+def heading(base):
+    """The first line of `base`'s `seal/README.md`, its end stripped, or None
+    where it cannot be read."""
+    try:
+        with open(under(base, README), encoding="utf-8") as f:
+            return f.readline().rstrip("\r\n")
+    except (OSError, UnicodeDecodeError):
+        return None
+
+
+def ours(base):
+    """True when `base`'s `seal/` is a root this plugin wrote: its README
+    opens with the marker, or with the heading an earlier release wrote."""
+    if os.path.islink(under(base, NEW)):
         return False
-    here = under(root, f"{OLD_ITEMS}/{name}")
-    routing, rounds = MARKS
-    return os.path.isfile(os.path.join(here, routing)) or os.path.isdir(
-        os.path.join(here, rounds)
-    )
+    return heading(base) in (optin.MARKER, *optin.EARLIER_HEADINGS)
 
 
-def tracked_marks(root):
-    """The id-shaped names under `specs/` whose mark git TRACKS directly
-    under them — `specs/<name>/routing.md`, or a file under
-    `specs/<name>/rounds/` — or None when git cannot say. `old_items` then
-    reads the marks from the disk, so the run still has units and `dirty()`
-    refuses it. An empty answer would read as nothing old left, and `main`'s
-    stamp branch, which comes before `dirty()`, would stamp over a work item
-    that has not moved (round 2 of #688, 🟡 1).
-
-    The move's units come from git (`tracked_names`), and so do its marks.
-    Git tracks no empty directory and no ignored file, so a mark that is
-    either leaves `git status` clean, and read from the disk it made a
-    team's directory a work item (round 1 of #688, 🟡 1)."""
-    try:
-        r = git(root, "ls-files", "-z", "--", OLD_ITEMS)
-    except (OSError, subprocess.SubprocessError):
-        return None
-    if r.returncode != 0:
-        return None
-    routing, rounds = MARKS
-    names = set()
-    for path in r.stdout.split("\0"):
-        parts = path.split("/")
-        if len(parts) < 3 or parts[0] != OLD_ITEMS or not ITEM_RE.match(parts[1]):
-            continue
-        if (len(parts) == 3 and parts[2] == routing) or (
-            len(parts) > 3 and parts[2] == rounds
-        ):
-            names.add(parts[1])
-    return names
-
-
-def unmarked(root, name, marks):
-    """True when `specs/<name>` has a work item's shape and none of the marks
-    git tracks: the case the printed line gives its own reason for."""
-    return (
-        ITEM_RE.match(name) is not None
-        and os.path.isdir(under(root, f"{OLD_ITEMS}/{name}"))
-        and name not in marks
-    )
-
-
-def old_items(root):
-    """(SpecSeal work items under `specs/`, everything else on disk there).
-
-    The first list is what moves and comes from git, each one carrying a
-    mark git tracks; the second is what the printed line names as left
-    behind and comes from the directory, because what stays on disk is what
-    a person will see there.
-    """
-    marks = tracked_marks(root)
-    items = [
-        n
-        for n in entries(root, OLD_ITEMS)
-        if (n in marks if marks is not None else marked(root, n))
-    ]
-    try:
-        names = sorted(os.listdir(under(root, OLD_ITEMS)))
-    except OSError:
-        names = []
-    return items, [n for n in names if n not in items]
+def units_from(base, listing):
+    """The units still to move under `base`, in the order they move, as
+    (kind, src, dst): the README's rewrite first where it does not open
+    with the marker, then every name at the top of each work item under
+    `seal/specs/` into `seal/threads/<id>/` at its thread path. `listing`
+    answers what is under a path: `entries` over what git tracks in shared
+    mode, the directory in local mode."""
+    if not ours(base):
+        return []
+    units = []
+    if heading(base) != optin.MARKER:
+        units.append(("readme", README, README))
+    for item in listing(base, EARLIER_ITEMS):
+        for name in listing(base, f"{EARLIER_ITEMS}/{item}"):
+            new = THREAD_PATHS.get(name, name)
+            units.append(
+                (
+                    "other",
+                    f"{EARLIER_ITEMS}/{item}/{name}",
+                    f"{NEW}/{optin.WORK_ITEMS}/{item}/{new}",
+                )
+            )
+    return units
 
 
 def moves(root):
-    """The units still to move, in the spec's order, as (kind, src, dst).
+    """The units still to move in shared mode, through `entries`.
 
-    Computed from what git tracks as it stands, which is what makes a stopped
-    move resume: a unit that already moved is not there to be listed.
+    A `readme` unit is the template's text written over `seal/README.md`.
+    The list is computed from what git tracks as it stands, which is what
+    makes a stopped move resume: a unit that already moved is not there to
+    be listed.
     """
-    units = []
-    names = entries(root, OLD_HOME)
-    if "README.md" in names:
-        units.append(("readme", f"{OLD_HOME}/README.md", f"{NEW}/README.md"))
-    for name in names:
-        if name == "README.md":
-            continue
-        units.append(("other", f"{OLD_HOME}/{name}", f"{NEW}/{name}"))
-    items, _ = old_items(root)
-    for name in items:
-        units.append(("item", f"{OLD_ITEMS}/{name}", f"{NEW}/specs/{name}"))
-    return units
+    return units_from(root, entries)
+
+
+def on_disk(base, rel):
+    """What is under `rel` as names, sorted: a local root holds nothing git
+    tracks, so its listing is the directory's."""
+    path = under(base, rel)
+    if not os.path.isdir(path) or os.path.islink(path):
+        return []
+    try:
+        return sorted(os.listdir(path))
+    except OSError:
+        return []
+
+
+def local_moves(common):
+    """The units still to move under the local root, `<common>/seal/`."""
+    return units_from(common, on_disk)
+
+
+def local_move(common, src, dst):
+    """`src` to `dst` under the git directory, a plain rename: nothing there
+    is tracked, so there is nothing to stage."""
+    if os.path.lexists(under(common, dst)):
+        raise taken(src, dst)
+    try:
+        os.makedirs(os.path.dirname(under(common, dst)), exist_ok=True)
+        os.rename(under(common, src), under(common, dst))
+    except OSError as exc:
+        raise MoveError(src, str(exc)) from exc
 
 
 def git_mv(root, src, dst):
@@ -353,18 +350,18 @@ def move(root, src, dst):
     """`src` to `dst`, whole when nothing is at `dst` yet.
 
     When `dst` already exists — the state a stopped run leaves — a directory
-    is moved file by file, because `git mv dir existing-dir` would put it
-    INSIDE the destination. A file already at its destination is the person's
-    to settle (a merge of a branch bootstrapped on the new layout leaves
-    exactly that), and is named rather than tried. Then every directory under
-    `src` that holds nothing when the walk reaches it is removed, the deepest
-    first and `src` last, whichever run emptied it, unless its removal fails;
-    one an ignored file holds stays, with every directory above it. Two
-    limits, not guarded. A Windows junction placed under `src` by hand, which
-    git does not track, is walked into, and the empty directories behind it
-    are removed too. Where the removal of a directory fails, as on Windows
-    when another process holds it open, that directory and every one above it
-    stay, and nothing is removed by mistake.
+    is moved file by file, in the order git lists them, because `git mv dir
+    existing-dir` would put it INSIDE the destination. A file already at its
+    destination is the person's to settle (a merge of a branch bootstrapped
+    on the new layout leaves exactly that), and is named rather than tried.
+    Then every directory under `src` that holds nothing when the walk reaches
+    it is removed, the deepest first and `src` last, whichever run emptied
+    it, unless its removal fails; one an ignored file holds stays, with every
+    directory above it. Two limits, not guarded. A Windows junction placed
+    under `src` by hand, which git does not track, is walked into, and the
+    empty directories behind it are removed too. Where the removal of a
+    directory fails, as on Windows when another process holds it open, that
+    directory and every one above it stay, and nothing is removed by mistake.
     """
     if not os.path.isdir(under(root, src)):
         if os.path.exists(under(root, dst)):
@@ -377,18 +374,7 @@ def move(root, src, dst):
     r = git(root, "ls-files", "-z", "--", src)
     if r.returncode != 0:
         raise MoveError(src, (r.stderr or "").strip() or "git ls-files failed")
-    # The marks move last. A run stopped at any other file leaves the item
-    # marked as git tracks it, so the next start still finds a work item and
-    # resumes it; moved first, they left a `spec.md` the line told the person
-    # to keep with no mark beside it, and the next start stamped over it
-    # (round 2 of #688, 🟡 2). The stopped file itself always stays at `src`.
-    routing, rounds = MARKS
-
-    def a_mark(rel):
-        tail = rel[len(src) + 1 :]
-        return tail == routing or tail.startswith(rounds + "/")
-
-    for rel in sorted((p for p in r.stdout.split("\0") if p), key=a_mark):
+    for rel in sorted(p for p in r.stdout.split("\0") if p):
         target = dst + rel[len(src) :]
         if os.path.exists(under(root, target)):
             raise taken(rel, target)
@@ -405,10 +391,11 @@ def move(root, src, dst):
             pass
 
 
-def rewrite_readme(root, dst):
-    """Step 3's second half: the moved README becomes the new template's text.
+def rewrite_readme(root, dst, stage=True):
+    """A `readme` unit: the README becomes the template's text, staged in
+    shared mode, so it opens with the marker.
 
-    A template that cannot be read leaves the moved file as it was — a README
+    A template that cannot be read leaves the file as it was — a README
     describing the old layout is the state Q5 weighed, and it beats stopping
     the move for a file that is not the move.
     """
@@ -419,50 +406,169 @@ def rewrite_readme(root, dst):
             f.write(text)
     except OSError:
         return
-    git(root, "add", "--", dst)
+    if stage:
+        git(root, "add", "--", dst)
 
 
-def run_moves(root, units):
-    """(units moved, the error that stopped the run or None)."""
+def run_moves(root, units, local=False):
+    """(units moved, the error that stopped the run or None). A `readme`
+    unit whose source is its destination is a rewrite and nothing moves;
+    any other `readme` unit moves first. `local` moves by rename under the
+    git directory instead of by `git mv`."""
     done = 0
     for kind, src, dst in units:
         try:
-            move(root, src, dst)
+            if src != dst:
+                (local_move if local else move)(root, src, dst)
             if kind == "readme":
-                rewrite_readme(root, dst)
+                rewrite_readme(root, dst, stage=not local)
         except MoveError as exc:
             return done, exc
         done += 1
-    for old in (OLD_HOME, OLD_ITEMS):
-        path = under(root, old)
-        # A link is never this cleanup's to remove. POSIX `rmdir` refuses one
-        # with ENOTDIR, which is what this used to rest on; Windows'
-        # `RemoveDirectoryW` removes a directory link itself, whatever is
-        # behind it, and deleted a team's linked `specs/` from the working
-        # tree (PR #700's windows leg, #688; contract rule 13).
-        if os.path.islink(path):
-            continue
-        try:
-            os.rmdir(path)
-        except OSError:
-            pass  # something else is in it, or it is already gone
+    for old in sources(units):
+        # The source directory, then each one above it that the moves left
+        # empty, up to the root: `seal/specs/<id>/`, then `seal/specs/`.
+        while old:
+            path = under(root, old)
+            # A link is never this cleanup's to remove. POSIX `rmdir` refuses
+            # one with ENOTDIR; Windows' `RemoveDirectoryW` removes a
+            # directory link itself, whatever is behind it, and deleted a
+            # team's linked `specs/` from the working tree (PR #700's windows
+            # leg, #688; contract rule 13).
+            if os.path.islink(path) or old == NEW:
+                break
+            try:
+                os.rmdir(path)
+            except OSError:
+                break  # something else is in it, or it is already gone
+            old = posixpath.dirname(old)
     return done, None
 
 
-def has_root(root):
-    """True when `seal/` is a directory at either place the root can be."""
-    if os.path.isdir(under(root, NEW)):
-        return True
-    common = optin.git_common_dir(root)
-    return bool(common) and os.path.isdir(os.path.join(common, NEW))
+def rename_state(root):
+    """Each state file an earlier release wrote beside the root, under the
+    git directory and the common one, and each entry of
+    `~/.claude/specseal/`, renamed to the plugin's name where the new name
+    is not taken. A `root` of "" (a session started outside a repository)
+    merges only the directory under `~/.claude/`. Silent, safe to run at
+    every session start, never over an entry already at its new name, and a
+    rename that fails leaves the old file where it was."""
+    places = set()
+    if root:
+        common = optin.git_common_dir(root)
+        if common:
+            places.add(common)
+        try:
+            r = git(root, "rev-parse", "--absolute-git-dir")
+            if r.returncode == 0 and r.stdout.strip():
+                places.add(r.stdout.strip())
+        except (OSError, subprocess.SubprocessError):
+            pass
+    pairs = [
+        (os.path.join(p, OLD_PREFIX + n), os.path.join(p, NEW_PREFIX + n))
+        for p in sorted(places)
+        for n in STATE_NAMES
+    ]
+    # `~/.claude/agentic/` may already stand: a session start of this release
+    # writes `version-check` there before this hook runs. So the old
+    # directory is merged, entry by entry, rather than renamed whole.
+    pairs.extend(
+        (os.path.join(OLD_STATE_DIR, n), os.path.join(STATE_DIR, n))
+        for n in on_disk(OLD_STATE_DIR, ".")
+    )
+    if os.path.isdir(OLD_STATE_DIR):
+        try:
+            os.makedirs(STATE_DIR, exist_ok=True)
+        except OSError:
+            pass
+    for old, new in pairs:
+        if os.path.lexists(old) and not os.path.lexists(new):
+            try:
+                os.rename(old, new)
+            except OSError:
+                pass
+    old_cache = os.path.join(OLD_STATE_DIR, CACHE)
+    if os.path.isfile(old_cache) and os.path.lexists(os.path.join(STATE_DIR, CACHE)):
+        try:
+            os.remove(old_cache)
+        except OSError:
+            pass
+    # Gone once every entry moved; any other entry the new directory already
+    # held keeps the old directory, and that file, where they were.
+    try:
+        os.rmdir(OLD_STATE_DIR)
+    except OSError:
+        pass
 
 
 def say(message):
     print(json.dumps({"systemMessage": message}))
 
 
+def listed(dirs):
+    """`a/` or `a/ and b/`, the way the notices name directories."""
+    return " and ".join(f"{d}/" for d in dirs)
+
+
+def origins(units):
+    """What the notice names as moved: each unit's source directory cut to
+    its first two names, once and sorted, so thirty work items under
+    `seal/specs/` read as `seal/specs/`; a README rewritten in place moves
+    nothing and is not named."""
+    return sorted(
+        {
+            "/".join(posixpath.dirname(src).split("/")[:2])
+            for _, src, dst in units
+            if src != dst
+        }
+    )
+
+
+def stale_workflow(root):
+    """The path of the tree's pull-request workflow where a release before
+    the rename wrote it, or "": `seal.py#workflow_at` reads it as this
+    plugin's and its clone line names the repository's old name, so it runs
+    a release that reads work items under `seal/specs/` and the old trailer,
+    and after the move it examines nothing and passes. A `seal` command that
+    will not load says "", and the line goes out without the tail."""
+    try:
+        spec = importlib.util.spec_from_file_location("agentic_seal_for_move", SEAL)
+        seal = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(seal)
+        kind, text = seal.workflow_at(root)
+    except (Exception, SystemExit):
+        return ""
+    return seal.WORKFLOW if kind == "plugin" and seal.PLUGIN_CLONE not in text else ""
+
+
+def moved_line(units, tail):
+    """The one line a finished move says, ending with TAIL."""
+    if not origins(units):
+        return f"agentic:wrote the marker into {README} {tail}"
+    return f"agentic:moved {listed(origins(units))} into {NEW}/ {tail}"
+
+
+def migrate_local(common):
+    """The move under the local root: no git, so no dirty check and nothing
+    staged; the line as in shared mode, and nothing said where nothing is
+    left to move."""
+    units = local_moves(common)
+    if not units:
+        return
+    done, error = run_moves(common, units, local=True)
+    if error is not None:
+        say(
+            f"agentic:moved {done} of {len(units)} into {NEW}/ under the git "
+            f"directory and stopped at {error.path}: {error.error}. The next "
+            "session start continues."
+        )
+        return
+    say(moved_line(units, "under the git directory, where nothing is committed"))
+
+
 def main():
-    """Move the old roots once, and say in one line what moved."""
+    """Rename the state, move what the checked-out tree still holds, and say
+    in one line what moved."""
     try:
         event = json.load(sys.stdin) or {}
         cwd = event.get("cwd")
@@ -470,66 +576,38 @@ def main():
         return
     if not cwd or not os.path.isdir(cwd):
         return
-    # NOT `optin.opted_in`: the old layout is exactly what does not opt in any
-    # more, and a hook gated on the new signal would never meet what it moves.
+    # NOT `optin.opted_in`: a layout still to move is one the gates may not
+    # read as opted in, and a hook gated on the opt-in would never meet it.
     root = optin.repo_root(cwd)
+    rename_state(root)
     if not root:
         return
-    if os.path.islink(under(root, OLD_HOME)):
-        # Git tracks the link as one blob, so the home lists no units: the
-        # work items would move, the marker would be stamped, and the files
-        # behind the link would never move. Refused before anything else,
-        # every session start, until the link is gone.
+
+    if ours(root) and os.path.islink(under(root, EARLIER_ITEMS)):
+        # Git tracks the link as one blob, so it lists no work items behind
+        # it: the README would be rewritten to open with the marker, so the
+        # root would read as moved, and the files behind the link would never
+        # move. Refused before anything else, every session start, until the
+        # link is gone.
         say(
-            f"specseal: {OLD_HOME}/ is a symbolic link, which git tracks as the "
-            "link and not as its files — not moving it. Move by hand (README, "
-            '"Coming up from 0.3.x") and remove the link.'
+            f"agentic:{EARLIER_ITEMS}/ is a symbolic link, which git tracks as the "
+            "link and not as its files — not moving it. Replace the link with "
+            "the directory it points at, commit, and the next session start "
+            f"moves it into {NEW}/{optin.WORK_ITEMS}/."
         )
         return
 
     units = moves(root)
     if not units:
-        # Nothing old left. Stamped so that checking out a branch that still
-        # carries the old layout later finds the once-per-repository rule
-        # already answered, rather than a move staged onto that branch.
-        #
-        # Either place, read directly rather than through `optin.home_at`,
-        # so the scratch marker does not hide the root from this rule. A
-        # local-mode repository (#80) keeps the root under the git directory
-        # and was never stamped by the tree-only test: it re-listed the old
-        # names at every session start, and an old branch checked out later
-        # was moved INTO the tree the person chose to keep clean.
-        if not attempted(root) and has_root(root):
-            stamp(root)
+        common = optin.git_common_dir(root)
+        if common:
+            migrate_local(common)
         return
-    if attempted(root):
-        return  # once per repository; the silent gates are the backstop (Q8)
-    if os.path.exists(under(root, f"{OLD_HOME}/{OLD_SCRATCH}")):
+    if dirty(root, units):
         say(
-            "specseal: .specseal/scratch says this repository is throwaway — "
-            "not migrating it. Delete the file if it is not."
-        )
-        return
-    if os.path.islink(under(root, OLD_ITEMS)) and any(
-        marked(root, n) for n in old_items(root)[1]
-    ):
-        # The same blob on the other root. Git lists no work items behind
-        # the link, so the home would move, the items would be named as
-        # "not tracked" and left, and the marker stamped over work items that
-        # never moved. After the unit and marker checks, so
-        # a migrated repository stays silent; a linked `specs/` holding no
-        # MARKED directory is a team's, not SpecSeal's, and is not refused.
-        say(
-            f"specseal: {OLD_ITEMS}/ is a symbolic link holding work items, which "
-            "git tracks as the link and not as its files — not moving it. Move by "
-            'hand (README, "Coming up from 0.3.x") and remove the link.'
-        )
-        return
-    if dirty(root):
-        say(
-            "specseal: .specseal/ and specs/ are the old layout, but they carry "
+            f"agentic:the old layout under {listed(origins(units) or [NEW])} holds "
             "uncommitted changes — not touching work in progress. Commit, then "
-            f"the next session start moves them into {NEW}/."
+            f"the next session start moves it into {NEW}/."
         )
         return
 
@@ -541,39 +619,20 @@ def main():
             else "Settle that by hand, then the next session start continues."
         )
         say(
-            f"specseal: moved {done} of {len(units)} into {NEW}/ and stopped at "
+            f"agentic:moved {done} of {len(units)} into {NEW}/ and stopped at "
             f"{error.path}: {error.error}. {tail}"
         )
         return
-    stamp(root)
-
-    had_home = any(kind != "item" for kind, _, _ in units)
-    items = sum(1 for kind, _, _ in units if kind == "item")
-    what = " and ".join(
-        part
-        for part in (
-            f"{OLD_HOME}/" if had_home else "",
-            f"{items} work item{'' if items == 1 else 's'}" if items else "",
+    tail = "— review the diff and commit"
+    workflow = stale_workflow(root)
+    if workflow:
+        tail += (
+            ", and run `seal pr-checks install` with it: the workflow at "
+            f"{workflow} clones a release before the rename, which reads work "
+            f"items under {EARLIER_ITEMS}/, so after this move it examines "
+            "nothing and passes every pull request"
         )
-        if part
-    )
-    _, left = old_items(root)
-    marks = tracked_marks(root) or set()
-    shaped = [n for n in left if unmarked(root, n, marks)]
-    groups = (
-        ([n for n in left if n not in shaped], "not tracked as a SpecSeal work item"),
-        (
-            shaped,
-            "no routing.md or rounds/ that git tracks — not a SpecSeal work item",
-        ),
-    )
-    left_lines = "; ".join(
-        f"left {', '.join(f'{OLD_ITEMS}/{n}' for n in names)} where it is ({why})"
-        for names, why in groups
-        if names
-    )
-    tail = f" ({left_lines})" if left_lines else ""
-    say(f"specseal: moved {what} into {NEW}/{tail} — review the diff and commit")
+    say(moved_line(units, tail))
 
 
 if __name__ == "__main__":

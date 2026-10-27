@@ -14,7 +14,7 @@ file, for every interpreter tag; runs the cases with
 compares the hash; and prints one verdict whose exit code says which of three
 things happened. Every fixture of those cases lives under `tmp_path`, and
 every process a case starts is reaped or proven dead before the case returns.
-The old file keeps the cases that read the smith's definition and the verify
+The old file keeps the cases that read the crafter's definition and the verify
 skill.
 """
 
@@ -36,7 +36,7 @@ TARGET = "skills/verify/scripts/mutation_check.py"
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 mc = load_module(ROOT / TARGET, "mutation_check_under_test")
-WRAPPER = os.path.join(ROOT, "bin", "mutation-check")
+WRAPPER = os.path.join(ROOT, "bin", "seal")
 
 # The stand-in for a test command. It logs the target's text and whether any
 # cached bytecode of the target existed when it ran, then writes that
@@ -160,7 +160,7 @@ SECONDS = r" \(\d+\.\ds\)$"
 
 def module():
     """The command, loaded afresh from its path, for a case that patches it."""
-    return load_module(ROOT / TARGET, "specseal_mutation_check")
+    return load_module(ROOT / TARGET, "agentic_mutation_check")
 
 
 def run(argv, capsys):
@@ -226,7 +226,7 @@ def plant_import_cache(path):
 
     Written by `py_compile` rather than by importing, because an import
     honours `PYTHONDONTWRITEBYTECODE` -- and this module is itself run under
-    `mutation-check`, which sets it, whenever a unit of the command is
+    `seal mutate`, which sets it, whenever a unit of the command is
     mutated. Planted by import, the cache is never written there and the case
     goes red on its own precondition whatever the mutation was: measured
     while mutating this module's script, 2026-10-01."""
@@ -412,8 +412,7 @@ class Test_main:
         assert re.match(r"mutant 1: red" + SECONDS, lines[1]), out
         assert re.match(r"mutant 2: red" + SECONDS, lines[2]), out
         assert re.match(
-            r"mutation-check: 2 mutants, 2 red, 0 SURVIVED, 0 with no verdict"
-            + SECONDS,
+            r"seal mutate: 2 mutants, 2 red, 0 SURVIVED, 0 with no verdict" + SECONDS,
             lines[3],
         ), out
         assert len(lines) == 4, out
@@ -603,7 +602,7 @@ class Test_main:
         target.write_text("VALUE = 1\n", encoding="utf-8")
         other = tmp_path / "other"
         other.mkdir()
-        prefix = "specseal-prefix-703"
+        prefix = "agentic-prefix-703"
         monkeypatch.setattr(sys, "pycache_prefix", os.path.join(str(other), prefix))
         planted = importlib.util.cache_from_source(str(target))
         # The prefix the clear reads is the environment's, as a session's would be.
@@ -640,7 +639,7 @@ class Test_main:
     def test_a_same_length_mutation_reads_red_over_a_trusted_cache(
         self, tmp_path, capsys
     ):
-        """#641's *what must not break*, and the smith's loop in miniature:
+        """#641's *what must not break*, and the crafter's loop in miniature:
         `WINDOW = 15` to `25` read green once, because the interpreter ran the
         cached original.
 
@@ -813,7 +812,7 @@ class Test_main:
         self, tmp_path, capsys, cases
     ):
         """Not from `HEAD`: `git checkout -- <file>` takes every uncommitted fix in
-        the file with it, which is the round's work `agents/smith.md`'s
+        the file with it, which is the round's work `agents/crafter.md`'s
         Boundaries says was wiped once. The cases here rewrite the file, or remove
         it, so the restore has something to undo besides the mutation."""
         target = tmp_path / "target.py"
@@ -944,7 +943,7 @@ class Test_main:
         """Round 1, 🔴 1: a non-zero exit is red only when the cases passed
         against the file as it was. Otherwise a mistyped `-k` -- pytest's exit 5
         -- reads *a case watches this unit* for a file no case ran against, and
-        the smith hands over on it. So the cases run once against the file as it
+        the crafter hands over on it. So the cases run once against the file as it
         is, and a failure there is `no baseline`, exit 2, with the break never
         written."""
         target = tmp_path / "target.py"
@@ -1148,7 +1147,7 @@ class Test_main:
     def test_a_negative_bound_is_refused_rather_than_timing_every_run_out(
         self, tmp_path, capsys
     ):
-        """`arm-check` refuses it for the same reason: a bound below zero ends
+        """`seal arms` refuses it for the same reason: a bound below zero ends
         every run before it starts, and a verdict nobody measured follows."""
         target = tmp_path / "target.py"
         target.write_text("VALUE = 1\n", encoding="utf-8")
@@ -1174,7 +1173,7 @@ class Test_main:
     def test_a_markdown_file_is_mutated_and_restored_the_same_way(
         self, tmp_path, capsys
     ):
-        """The smith's unit is often a sentence: `agents/*.md` and `skills/*.md`
+        """The crafter's unit is often a sentence: `agents/*.md` and `skills/*.md`
         are what a session reads and acts on, and contract rule 14 pins them by case."""
         target = tmp_path / "notes.md"
         text = "# Notes\n\nThe sentence a case pins. Another one stays.\n"
@@ -1393,13 +1392,14 @@ class Test_module:
         os.name == "nt", reason="the POSIX wrapper; its .cmd twin is read, not run"
     )
     def test_the_command_a_session_types_reaches_the_script(self, tmp_path):
-        """`bin/mutation-check`, run the way the Bash tool runs it, through the
+        """`bin/seal mutate`, run the way the Bash tool runs it, through the
         shell: the verdict and the exit code arrive unchanged."""
         target = tmp_path / "target.py"
         target.write_text("VALUE = 1\n", encoding="utf-8")
         done = subprocess.run(
             [
                 WRAPPER,
+                "mutate",
                 str(target),
                 "--replace",
                 "1",

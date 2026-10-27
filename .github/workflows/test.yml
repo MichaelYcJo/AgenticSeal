@@ -37,7 +37,7 @@ jobs:
       fail-fast: false
       matrix:
         # The whole suite, at the stated floor on every platform. A newer
-        # Python is not run here: `arm-check-grammar` below runs
+        # Python is not run here: `arms-grammar` below runs
         # `tests/test_arm_check.py`, whose node-type tables are known to
         # depend on the interpreter, at the versions it names. Whether any
         # other module's result depends on the interpreter has not been
@@ -82,14 +82,12 @@ jobs:
           # slowest shard stays under 12 minutes on the figures of run
           # 37458654434 (7,530 s of cases, 1,974 s unsharded), with the
           # arithmetic in
-          # `seal/specs/1791270165-the-windows-test-leg-is-measured-and-cut/phases/phase-3.md`
-          # at `5f11923f^`.
+          # `62161701:seal/specs/1791270165-the-windows-test-leg-is-measured-and-cut/phases/phase-3.md`.
           # Three is the smallest macOS count the same arithmetic puts under
           # 12 minutes on run 37577753583's 1,185 s of cases, with a factor
           # of 1.45 for the slowest group (the file gives three groups of
           # 2,513 s, 2,517 s and 2,505 s), in
-          # `seal/specs/1791384162-the-macos-test-leg-runs-in-shards/plan.md`
-          # at `67694cba`.
+          # `67694cba:seal/specs/1791384162-the-macos-test-leg-runs-in-shards/plan.md`.
           # Measured in run 37700567455: the slowest macOS shard took 6 m 56 s,
           # and the three ran 12,827 cases between them, ubuntu's count at
           # the same SHA. ubuntu stays one job.
@@ -134,7 +132,7 @@ jobs:
       # stood then; by 2026-10-06 the windows job took 37-40 minutes. The
       # current per-case figures are each leg's own `--durations` table below,
       # recorded with their run ids in
-      # `seal/specs/1791270165-the-windows-test-leg-is-measured-and-cut/phases/phase-1.md`.
+      # `62161701:seal/specs/1791270165-the-windows-test-leg-is-measured-and-cut/phases/phase-1.md`.
       # Each test builds its own repository under `tmp_path`, or copies one a
       # session or module fixture built once in its own worker and only reads
       # (#841), so no test writes where another reads, the spawns can be run
@@ -212,7 +210,7 @@ jobs:
           overwrite: true
           retention-days: 7
 
-  # `arm-check`'s node-type tables have to hold on every supported Python,
+  # `seal arms`'s node-type tables have to hold on every supported Python,
   # and whether they do depends on the interpreter reading them: 3.14 added
   # the t-string node types and removed five constant aliases, and the
   # `pytest` job above runs only the floor, so nothing unattended saw it
@@ -221,7 +219,7 @@ jobs:
   # below refuses a bound of it, or the Python just below one, that no leg
   # here runs. A Python that changes
   # the grammar again is caught by adding its leg.
-  arm-check-grammar:
+  arms-grammar:
     strategy:
       fail-fast: false
       matrix:

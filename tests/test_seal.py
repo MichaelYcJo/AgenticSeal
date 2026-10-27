@@ -47,6 +47,7 @@ from conftest import (
     FENCED_REFUSAL,
     PIPED_TABLE,
     ROOT,
+    ROOT_MARKER,
     UNDER_THE_COMMENT,
     census_case,
     commit_everything_as_e,
@@ -57,6 +58,7 @@ from conftest import (
     load_hook_module,
     load_module,
     local_home,
+    mark_root,
     names_path,
     shape_text,
     staged,
@@ -68,16 +70,18 @@ from conftest import (
 TARGET = "skills/implement/scripts/seal.py"
 
 SEAL = load_module(os.path.join(ROOT, *TARGET.split("/")), "seal_under_test")
+OPTIN = load_hook_module("optin.py", "optin_for_seal_cases")
 
 ITEM = "1788000000-a-work-item"
 SSH = "git@example.com:org/thing.git"
 HTTPS = "https://example.com/org/thing"
 ELSEWHERE = "git@example.com:org/somewhere-else.git"
 RECORDS = {
+    "README.md": ROOT_MARKER + "\n",
     "follow-up.md": "# follow-up\n",
-    f"specs/{ITEM}/plan.md": "# rows\n",
-    f"specs/{ITEM}/routing.md": "# routing\n",
-    f"specs/{ITEM}/spec.md": "# spec\n",
+    f"threads/{ITEM}/plan.md": "# rows\n",
+    f"threads/{ITEM}/routing.md": "# routing\n",
+    f"threads/{ITEM}/design.md": "# spec\n",
 }
 MEMBERS = ["manifest.json", *(f"seal/{rel}" for rel in sorted(RECORDS))]
 # The import's last line: a collided pair is a reading for a person.
@@ -88,12 +92,12 @@ CLOSING = (
 # Session state that sits beside the root under the common git directory.
 # None may be in a zip, and a new file beside the root joins the list.
 BESIDE_THE_ROOT = (
-    "specseal-implementer",
-    "specseal-planner",
-    "specseal-no-work-item",
-    "specseal-stamp-refused",
-    "specseal-last-export.json",
-    "specseal-session-lease",
+    "agentic-implementer",
+    "agentic-planner",
+    "agentic-no-work-item",
+    "agentic-stamp-refused",
+    "agentic-last-export.json",
+    "agentic-session-lease",
 )
 WORKFLOW_PATH = os.path.join(".github", "workflows", "hygiene.yml")
 HEAD = "| Item | Value |\n|---|---|\n"
@@ -129,7 +133,8 @@ def clone_at(d, remote=None):
 
 
 def holding(home, records=RECORDS):
-    """HOME with each of RECORDS written under it."""
+    """HOME, a root, with each of RECORDS written under it."""
+    mark_root(home)
     for rel, text in records.items():
         write(home, rel, text)
     return home
@@ -386,10 +391,14 @@ class Test_module:
         destination.mkdir()
         outside = tmp_path / "outside"
         outside.mkdir()
-        symlink_or_skip(str(outside), str(destination / "specs"))
-        archive = zipped(tmp_path / "h.zip", None, [("specs/1788-x/spec.md", "LANDED")])
+        symlink_or_skip(str(outside), str(destination / "threads"))
+        archive = zipped(
+            tmp_path / "h.zip", None, [("threads/1788-x/design.md", "LANDED")]
+        )
         zipfile.ZipFile(archive).extractall(destination)
-        assert (outside / "1788-x" / "spec.md").read_text(encoding="utf-8") == "LANDED"
+        assert (outside / "1788-x" / "design.md").read_text(
+            encoding="utf-8"
+        ) == "LANDED"
 
     def test_the_command_and_the_gate_read_one_parser(self, config):
         """`seal mode` writes the row and the gate reads it. Two readers of one
@@ -397,7 +406,7 @@ class Test_module:
         this one rather than keeping a copy."""
         root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         path = os.path.join(root, "skills", "implement", "scripts", "seal.py")
-        spec = importlib.util.spec_from_file_location("specseal_seal_one_parser", path)
+        spec = importlib.util.spec_from_file_location("agentic_seal_one_parser", path)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         # By where the code was COMPILED, not by object identity: this test loads
@@ -651,15 +660,15 @@ class Test_work_item_of:
     @pytest.mark.parametrize(
         "rel, item",
         [
-            ("specs/1788-x/spec.md", "1788-x"),
-            ("specs/1788-y/rounds/round-1.md", "1788-y"),
+            ("threads/1788-x/design.md", "1788-x"),
+            ("threads/1788-y/trail/rounds/round-1.md", "1788-y"),
         ],
     )
     def test_accepts_a_path_under_a_work_items_directory(self, rel, item):
         assert SEAL.work_item_of(rel) == item
 
     @pytest.mark.parametrize(
-        "rel", ["follow-up.md", "specs/1788-x", "notes/1788-x/a.md"]
+        "rel", ["follow-up.md", "threads/1788-x", "notes/1788-x/a.md"]
     )
     def test_refuses_a_path_in_no_work_item(self, rel):
         assert SEAL.work_item_of(rel) == ""
@@ -668,19 +677,19 @@ class Test_work_item_of:
 class Test_work_item_digests:
     def test_accepts_each_item_as_the_digest_of_its_files(self, tmp_path):
         holding(tmp_path)
-        write(tmp_path, "specs/1788000001-another/spec.md", "# another\n")
+        write(tmp_path, "threads/1788000001-another/design.md", "# another\n")
         files = SEAL.root_files(str(tmp_path))[0]
         found = SEAL.work_item_digests(files)
         assert found == {
             item: SEAL.digest(
-                sorted(e for e in files if e[0].startswith(f"specs/{item}/"))
+                sorted(e for e in files if e[0].startswith(f"threads/{item}/"))
             )
             for item in (ITEM, "1788000001-another")
         }
 
     def test_refuses_a_file_that_belongs_to_no_item(self, tmp_path):
         write(tmp_path, "follow-up.md", "x")
-        write(tmp_path, "specs/loose.md", "x")
+        write(tmp_path, "threads/loose.md", "x")
         assert SEAL.work_item_digests(SEAL.root_files(str(tmp_path))[0]) == {}
 
 
@@ -825,7 +834,7 @@ class Test_export:
         assert status(repo) == [], "the export dirtied the working tree"
         assert out.startswith("wrote "), out
         assert (
-            f"{os.path.basename(written)}\n  4 files from .git/seal, 1 work item\n"
+            f"{os.path.basename(written)}\n  5 files from .git/seal, 1 work item\n"
         ) in out
         assert out.endswith(f"  seal import {os.path.basename(written)}\n"), out
         assert "was left out" not in out
@@ -837,7 +846,7 @@ class Test_export:
         repo = take("local")
         for name in BESIDE_THE_ROOT:
             write(repo / ".git", name, "session state\n")
-        write(repo / ".git", "specseal-worktree-choice/a-branch", "x")
+        write(repo / ".git", "agentic-worktree-choice/a-branch", "x")
         assert said(capsys, repo, "export")[0] == 0
         with zipfile.ZipFile(only_zip(tmp_path)) as archive:
             assert archive.namelist() == MEMBERS
@@ -846,10 +855,10 @@ class Test_export:
         self, take, capsys, tmp_path
     ):
         repo = take("local")
-        write(repo / ".git", "specseal-implementer", "secret-branch\n")
+        write(repo / ".git", "agentic-implementer", "secret-branch\n")
         _shared, local = roots(repo)
         symlink_or_skip(
-            os.path.join("..", "specseal-implementer"), os.path.join(local, "leak.md")
+            os.path.join("..", "agentic-implementer"), os.path.join(local, "leak.md")
         )
         code, out = said(capsys, repo, "export")
         assert code == 0, out
@@ -914,10 +923,10 @@ class Test_export:
         assert "(shared mode)" in out and "(local mode)" in out
         assert not (plain / "seal").exists() and not (plain / ".git" / "seal").exists()
         local = take("local")
-        write(local / ".git", "specseal-scratch", "")
+        write(local / ".git", "agentic-scratch", "")
         code, out = said(capsys, local, "export")
         assert code == 1
-        assert "marked throwaway (specseal-scratch" in out
+        assert "marked throwaway (agentic-scratch" in out
 
     @pytest.mark.parametrize("shape", ["a file", "a broken link"])
     def test_refuses_a_partial_name_somebody_holds(self, take, capsys, tmp_path, shape):
@@ -1016,7 +1025,7 @@ class Test_no_root:
             "The first time your session works in a repository it asks which one, "
             "and creates it.\n"
         )
-        assert "smith" not in out
+        assert "crafter" not in out
 
     def test_refuses_a_directory_outside_git_and_a_throwaway_clone(self, take, capsys):
         assert SEAL.no_root("", "", "") == 1
@@ -1024,16 +1033,16 @@ class Test_no_root:
             "not inside a git repository — seal works on a clone\n"
         )
         repo = take("plain")
-        write(repo / ".git", "specseal-scratch", "")
+        write(repo / ".git", "agentic-scratch", "")
         assert SEAL.no_root(str(repo), "", "") == 1
-        assert "marked throwaway (specseal-scratch" in capsys.readouterr().out
+        assert "marked throwaway (agentic-scratch" in capsys.readouterr().out
 
 
 class Test_state_path:
     def test_accepts_a_clone_as_a_file_beside_the_root(self, _worlds):
         repo = _worlds / "local"
         assert same(
-            SEAL.state_path(str(repo)), repo / ".git" / "specseal-last-export.json"
+            SEAL.state_path(str(repo)), repo / ".git" / "agentic-last-export.json"
         )
 
     def test_refuses_a_directory_outside_git(self, tmp_path):
@@ -1059,7 +1068,7 @@ class Test_write_state:
 class Test_read_state:
     def test_accepts_what_the_last_export_wrote(self, take):
         repo = take("local")
-        write(repo / ".git", "specseal-last-export.json", '{"items": {"a": "b"}}')
+        write(repo / ".git", "agentic-last-export.json", '{"items": {"a": "b"}}')
         assert SEAL.read_state(str(repo)) == {"items": {"a": "b"}}
 
     @pytest.mark.parametrize(
@@ -1068,9 +1077,9 @@ class Test_read_state:
     def test_refuses_a_state_it_cannot_read_as_none(self, take, text):
         repo = take("local")
         if text == "\udcff":
-            (repo / ".git" / "specseal-last-export.json").write_bytes(b"\xff{")
+            (repo / ".git" / "agentic-last-export.json").write_bytes(b"\xff{")
         elif text is not None:
-            write(repo / ".git", "specseal-last-export.json", text)
+            write(repo / ".git", "agentic-last-export.json", text)
         assert SEAL.read_state(str(repo)) is None
 
 
@@ -1087,7 +1096,7 @@ class Test_unsafe:
     @pytest.mark.parametrize(
         "info",
         [
-            member("seal/specs/x/spec.md"),
+            member("seal/threads/x/design.md"),
             member("manifest.json"),
             member("manifest.json/"),
             member("seal/a.md", SEAL.MEMBER_LIMIT),
@@ -1135,7 +1144,7 @@ class Test_linked_path:
         return zipped(
             tmp_path / "z.zip",
             {"format": 1},
-            [("seal/specs/w/spec.md", "w"), ("seal/follow-up.md", "f")],
+            [("seal/threads/w/design.md", "w"), ("seal/follow-up.md", "f")],
         )
 
     def test_accepts_a_root_no_member_reaches_through_a_link(self, tmp_path):
@@ -1145,7 +1154,7 @@ class Test_linked_path:
         with opened(self.archive(tmp_path)) as archive:
             assert SEAL.linked_path(str(into), archive) == ""
 
-    @pytest.mark.parametrize("name", ["specs", "follow-up.md"])
+    @pytest.mark.parametrize("name", ["threads", "follow-up.md"])
     def test_refuses_a_link_on_a_members_way_or_at_its_name(self, tmp_path, name):
         into = tmp_path / "root"
         into.mkdir()
@@ -1249,8 +1258,18 @@ class Test_place:
 class Test_destination_root:
     def dirs(self, tmp_path, *names):
         for name in names:
-            (tmp_path / name).mkdir()
+            mark_root(tmp_path / name)
         return str(tmp_path / "shared"), str(tmp_path / "local")
+
+    def test_accepts_a_projects_own_seal_beside_the_local_root_as_one_root(
+        self, tmp_path
+    ):
+        """A `<repo>/seal/` whose README does not open with the marker is the
+        project's own, so beside a local root it is no second root, and the
+        copy lands in the local one."""
+        shared, local = self.dirs(tmp_path, "local")
+        write(tmp_path, "shared/README.md", "# seal\n\nThis package's notes.\n")
+        assert SEAL.destination_root("", local, shared, local, None) == (local, "")
 
     @pytest.mark.parametrize(
         "home, into, want",
@@ -1288,6 +1307,22 @@ class Test_destination_root:
 
 
 class Test_import_:
+    def test_refuses_beside_a_root_an_earlier_release_wrote(
+        self, take, exported, capsys
+    ):
+        """A `<repo>/seal/` whose README opens with a heading an earlier
+        release wrote is that release's root, waiting for the session-start
+        move, as `hooks/root-migrate.py#ours` reads it: `seal import` puts no
+        second root under the git directory, and neither `seal mode` nor
+        `seal pr-checks install` sends the person to first setup."""
+        plain = take("plain")
+        write(plain, "seal/README.md", f"{OPTIN.EARLIER_HEADINGS[0]}\n\nold\n")
+        line = SEAL.earlier_root() + "\n"
+        assert said(capsys, plain, "import", str(exported)) == (1, line)
+        assert not os.path.exists(roots(plain)[1]), "a second root was made"
+        assert said(capsys, plain, "mode") == (1, line)
+        assert said(capsys, plain, "pr-checks", "install") == (1, line)
+
     def test_accepts_missing_records_as_added_and_asks_nothing(
         self, take, exported, capsys
     ):
@@ -1295,9 +1330,10 @@ class Test_import_:
         code, out = said(capsys, other, "import", str(exported))
         assert code == 0, out
         assert listed(roots(other)[1]) == sorted(RECORDS)
+        # The README every root opens with is the one record already there.
         assert out.startswith(
             "imported into .git/seal\n  4 files added\n"
-            "  0 files already here, byte for byte\n"
+            "  1 file already here, byte for byte\n"
             "  0 files landed beside an existing one\n"
         ), out
         assert "another repository" not in out, "two spellings of one remote differ"
@@ -1308,17 +1344,17 @@ class Test_import_:
         assert said(capsys, other, "import", str(exported))[0] == 0
         code, out = said(capsys, other, "import", str(exported))
         assert code == 0, out
-        assert "  4 files already here, byte for byte\n" in out
+        assert "  5 files already here, byte for byte\n" in out
         assert listed(roots(other)[1]) == sorted(RECORDS)
 
     def test_accepts_a_taken_name_by_landing_beside_it(self, take, exported, capsys):
         other = take("other")
         local = roots(other)[1]
-        write(local, f"specs/{ITEM}/plan.md", "# mine\n")
-        write(local, f"specs/{ITEM}/plan.incoming.md", "# earlier\n")
+        write(local, f"threads/{ITEM}/plan.md", "# mine\n")
+        write(local, f"threads/{ITEM}/plan.incoming.md", "# earlier\n")
         code, out = said(capsys, other, "import", str(exported))
         assert code == 0, out
-        work = os.path.join(local, "specs", ITEM)
+        work = os.path.join(local, "threads", ITEM)
         assert (
             open(os.path.join(work, "plan.md"), encoding="utf-8").read() == "# mine\n"
         )
@@ -1328,7 +1364,7 @@ class Test_import_:
         )
         assert (
             f"  1 file landed beside an existing one:\n"
-            f"    specs/{ITEM}/plan.md  ->  specs/{ITEM}/plan.incoming-2.md\n"
+            f"    threads/{ITEM}/plan.md  ->  threads/{ITEM}/plan.incoming-2.md\n"
         ) in out
 
     @pytest.mark.parametrize(
@@ -1345,7 +1381,7 @@ class Test_import_:
     ):
         other = take("other")
         shared, local = roots(other)
-        os.rmdir(local)
+        shutil.rmtree(local)
         code, out = said(capsys, other, "import", str(exported), *into)
         assert code == 0, out
         assert listed(shared if where == "shared" else local) == sorted(RECORDS)
@@ -1381,7 +1417,7 @@ class Test_import_:
         )
         code, out = said(capsys, other, "import", str(foreign), "--allow-other-repo")
         assert code == 0, out
-        assert listed(roots(other)[1]) == ["follow-up.md"]
+        assert listed(roots(other)[1]) == ["README.md", "follow-up.md"]
         unanswered(monkeypatch, CONFIG_GET_REMOTE, TIMED_OUT)
         code, out = said(
             capsys, other, "import", str(exported), "--allow-unreadable-remote"
@@ -1429,7 +1465,7 @@ class Test_import_:
         z = zipped(
             tmp_path / "z.zip",
             {"format": 1, "remote": "", **fields},
-            [("seal/specs/w/spec.md", "# w\n")],
+            [("seal/threads/w/design.md", "# w\n")],
         )
         code, out = said(capsys, other, "import", str(z), *flags)
         assert code == 0, out
@@ -1611,7 +1647,7 @@ class Test_import_:
             info = zipfile.ZipInfo(name)
             if name == "seal/leak.md":
                 info.external_attr = (0o120777 << 16) | 0o200000
-            archive.writestr(info, "../specseal-implementer")
+            archive.writestr(info, "../agentic-implementer")
         code, out = said(capsys, other, "import", str(hostile))
         assert code == 1, out
         assert out.startswith(f"{hostile} holds members this command will not write:\n")
@@ -1691,21 +1727,21 @@ class Test_import_:
     @pytest.mark.parametrize("into", [["--into", "local"], ["--into", "shared"], []])
     def test_refuses_two_roots_whatever_into_says(self, take, exported, capsys, into):
         other = take("other")
-        (other / "seal").mkdir()
+        mark_root(other / "seal")
         before = snapshot(other)
         code, out = said(capsys, other, "import", str(exported), *into)
         assert code == 1, out
         assert out.startswith("both roots exist") and "read first" in out
         assert snapshot(other) == before
 
-    @pytest.mark.parametrize("name", ["specs", "follow-up.md"])
+    @pytest.mark.parametrize("name", ["threads", "follow-up.md"])
     def test_refuses_a_link_where_a_record_goes(
         self, take, exported, capsys, tmp_path, name
     ):
         other = take("other")
         outside = tmp_path / "outside"
         outside.mkdir()
-        target = outside if name == "specs" else outside / "follow-up.md"
+        target = outside if name == "threads" else outside / "follow-up.md"
         symlink_or_skip(str(target), os.path.join(roots(other)[1], name))
         code, out = said(capsys, other, "import", str(exported))
         assert code == 1, out
@@ -1755,12 +1791,12 @@ class Test_import_:
         self, take, capsys, tmp_path
     ):
         other = take("other")
-        shut = os.path.join(roots(other)[1], "specs")
+        shut = os.path.join(roots(other)[1], "threads")
         os.mkdir(shut)
         z = zipped(
             tmp_path / "into.zip",
             {"format": 1, "remote": ""},
-            [("seal/specs/x.md", "x")],
+            [("seal/threads/x.md", "x")],
         )
         os.chmod(shut, 0o555)
         try:
@@ -1781,8 +1817,8 @@ class Test_write_members:
         z = tmp_path / "z.zip"
         with zipfile.ZipFile(z, "w") as archive:
             archive.writestr("manifest.json", "{}")
-            archive.writestr(zipfile.ZipInfo("seal/specs/"), "")
-            archive.writestr("seal/specs/w/spec.md", "w\n")
+            archive.writestr(zipfile.ZipInfo("seal/threads/"), "")
+            archive.writestr("seal/threads/w/design.md", "w\n")
             archive.writestr("seal/follow-up.md", "theirs\n")
         with opened(z) as archive:
             counts, collisions, refused = SEAL.write_members(archive, str(into))
@@ -1792,7 +1828,7 @@ class Test_write_members:
         assert listed(into) == [
             "follow-up.incoming.md",
             "follow-up.md",
-            "specs/w/spec.md",
+            "threads/w/design.md",
         ]
 
     def test_refuses_a_name_that_became_a_link_and_names_it(
@@ -1903,7 +1939,7 @@ class Test_with_row:
         writer, which appended a second table to the end of the file."""
         root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         path = os.path.join(root, "skills", "implement", "scripts", "seal.py")
-        spec = importlib.util.spec_from_file_location("specseal_seal_for_871", path)
+        spec = importlib.util.spec_from_file_location("agentic_seal_for_871", path)
         seal = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(seal)
 
@@ -1936,9 +1972,7 @@ class Test_with_row:
 
         root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         path = os.path.join(root, "skills", "implement", "scripts", "seal.py")
-        spec = importlib.util.spec_from_file_location(
-            "specseal_seal_for_429_crlf", path
-        )
+        spec = importlib.util.spec_from_file_location("agentic_seal_for_429_crlf", path)
         seal = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(seal)
         written, refused = seal.with_row(crlf(FENCED_ABOVE), "local")
@@ -2031,7 +2065,7 @@ class Test_write_row:
         """
         root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         path = os.path.join(root, "skills", "implement", "scripts", "seal.py")
-        spec = importlib.util.spec_from_file_location("specseal_seal_for_415", path)
+        spec = importlib.util.spec_from_file_location("agentic_seal_for_415", path)
         seal = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(seal)
 
@@ -2067,9 +2101,7 @@ class Test_write_row:
         """
         root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         path = os.path.join(root, "skills", "implement", "scripts", "seal.py")
-        spec = importlib.util.spec_from_file_location(
-            "specseal_seal_for_415_bare", path
-        )
+        spec = importlib.util.spec_from_file_location("agentic_seal_for_415_bare", path)
         seal = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(seal)
 
@@ -2101,7 +2133,7 @@ class Test_write_row:
         """
         root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         path = os.path.join(root, "skills", "implement", "scripts", "seal.py")
-        spec = importlib.util.spec_from_file_location("specseal_seal_for_429", path)
+        spec = importlib.util.spec_from_file_location("agentic_seal_for_429", path)
         seal = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(seal)
 
@@ -2171,7 +2203,7 @@ class Test_write_row:
         """
         root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         path = os.path.join(root, "skills", "implement", "scripts", "seal.py")
-        spec = importlib.util.spec_from_file_location("specseal_seal_unclosed", path)
+        spec = importlib.util.spec_from_file_location("agentic_seal_unclosed", path)
         seal = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(seal)
 
@@ -2233,7 +2265,7 @@ class Test_write_row:
         """
         root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         path = os.path.join(root, "skills", "implement", "scripts", "seal.py")
-        spec = importlib.util.spec_from_file_location("specseal_seal_no_ending", path)
+        spec = importlib.util.spec_from_file_location("agentic_seal_no_ending", path)
         seal = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(seal)
 
@@ -2279,7 +2311,7 @@ class Test_write_row:
 
         root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         path = os.path.join(root, "skills", "implement", "scripts", "seal.py")
-        spec = importlib.util.spec_from_file_location("specseal_seal_for_667_r1", path)
+        spec = importlib.util.spec_from_file_location("agentic_seal_for_667_r1", path)
         seal = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(seal)
 
@@ -2306,7 +2338,7 @@ class Test_write_row:
         it: neither the commented row nor the live one is rewritten."""
         root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         path = os.path.join(root, "skills", "implement", "scripts", "seal.py")
-        spec = importlib.util.spec_from_file_location("specseal_seal_for_667", path)
+        spec = importlib.util.spec_from_file_location("agentic_seal_for_667", path)
         seal = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(seal)
 
@@ -2332,7 +2364,7 @@ class Test_write_row:
         red against the generic read-back sentence."""
         root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         path = os.path.join(root, "skills", "implement", "scripts", "seal.py")
-        spec = importlib.util.spec_from_file_location("specseal_seal_for_871_r1", path)
+        spec = importlib.util.spec_from_file_location("agentic_seal_for_871_r1", path)
         seal = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(seal)
         from block_shapes import OPEN
@@ -2473,11 +2505,35 @@ class Test_plugin_workflow:
         assert SEAL.plugin_workflow() == ""
 
 
+# The clone line every workflow a release before 0.23.0 wrote carries: the
+# repository under its name before #1051.
+OLD_CLONE = "https://github.com/MichaelYcJo/SpecSeal.git"
+
+
+def old_slug_workflow(pin="v0.22.4"):
+    """The workflow a release before 0.23.0 wrote: this release's template,
+    cloned at the old slug and pinned to an old release."""
+    return (
+        SEAL.plugin_workflow()
+        .replace(SEAL.PLUGIN_CLONE, OLD_CLONE)
+        .replace(f"v{SEAL.plugin_version()}", pin)
+    )
+
+
 class Test_workflow_at:
     def test_accepts_the_file_this_plugin_writes_as_its_own(self, take):
         repo = take("shared")
         workflow_in(repo, SEAL.plugin_workflow(), commit=False)
         assert SEAL.workflow_at(str(repo)) == ("plugin", SEAL.plugin_workflow())
+
+    def test_accepts_a_file_cloning_the_old_slug_as_its_own(self, take):
+        """#1051: through 0.23.x a workflow carrying the clone line of the
+        repository's name before the rename is this plugin's, so the report,
+        the install and the removal treat it as they treat their own."""
+        repo = take("shared")
+        old = old_slug_workflow()
+        workflow_in(repo, old, commit=False)
+        assert SEAL.workflow_at(str(repo)) == ("plugin", old)
 
     @pytest.mark.parametrize(
         "shape, kind",
@@ -2539,10 +2595,27 @@ class Test_install_workflow:
         )
         assert open(path, encoding="utf-8").read() == old and staged(repo) == ""
 
+    def test_accepts_its_own_file_under_the_old_slug_by_rewriting_it(self, take):
+        """#1051: a workflow a release before the rename wrote clones the
+        plugin from the repository's old name. Install writes the template
+        over it, at the new slug and pinned to this release, and stages it."""
+        repo = take("shared")
+        path = workflow_in(repo, old_slug_workflow())
+        version = SEAL.plugin_version()
+        assert SEAL.install_workflow(str(repo)) == (
+            "written",
+            f"rewrote .github/workflows/hygiene.yml, which cloned the plugin "
+            f"from the repository's name before the rename, at the new name "
+            f"(pinned to v{version}) and staged it",
+        )
+        assert open(path, encoding="utf-8").read() == SEAL.plugin_workflow()
+        assert staged(repo) == ".github/workflows/hygiene.yml\n"
+
     @pytest.mark.parametrize(
         "shape, kind",
         [
             ("no shared root", "no-root"),
+            ("a project's own seal", "no-root"),
             ("a file there", "kept"),
             ("no version", "no-version"),
             ("no template", "unreadable"),
@@ -2553,14 +2626,17 @@ class Test_install_workflow:
     def test_refuses_to_overwrite_or_to_write_what_it_cannot_pin_or_stage(
         self, take, tmp_path, monkeypatch, shape, kind
     ):
-        repo = take("local" if shape == "no shared root" else "shared")
+        no_root = ("no shared root", "a project's own seal")
+        repo = take("local" if shape in no_root else "shared")
         path = os.path.join(str(repo), WORKFLOW_PATH)
         if shape == "a file there":
             workflow_in(repo, "name: someone else's\n", commit=False)
         elif shape == "an ignored directory":
             write(repo, ".gitignore", ".github/\n")
             commit_everything_as_e(repo, "ignore the workflow's directory")
-        elif shape != "no shared root":
+        elif shape == "a project's own seal":
+            write(repo, "seal/README.md", "# seal\n\nThis package's notes.\n")
+        elif shape not in no_root:
             version, template = '{"version": "1.2.3"}', "--branch v<version>\n"
             if shape == "no version":
                 version = None
@@ -2582,7 +2658,7 @@ class Test_install_workflow:
         else:
             assert not os.path.lexists(path)
             assert "was NOT written" in line
-        if shape == "no shared root":
+        if shape in no_root:
             assert (
                 "the checks read committed records" in line
                 and "`seal mode shared` puts it in the tree" in line
@@ -2935,7 +3011,7 @@ class Test_refusals:
         repo = take("under" if shape == "a submodule under the root" else "shared")
         shared, local = roots(repo)
         if shape == "both roots":
-            os.mkdir(local)
+            mark_root(local)
         elif shape == "two rows":
             config_at(repo, TWO_MODE_ROWS)
         elif shape == "a git that cannot answer":
@@ -2972,6 +3048,16 @@ class Test_refusals:
             f"{local} is a symbolic link, not the root itself. Moving it would "
             "move the link and leave the records where they are."
         ]
+
+    def test_refuses_a_projects_own_seal_as_a_destination_not_as_two_roots(self, take):
+        """A `<repo>/seal/` whose README does not open with the marker is no
+        second root, so switching to shared is refused for the directory in
+        the way, which nothing here overwrites."""
+        repo = take("local")
+        write(repo, "seal/README.md", "# seal\n\nThis package's notes.\n")
+        found = refusals_of(repo, "shared")
+        assert any("already exists, and nothing here overwrites" in f for f in found)
+        assert not any("both roots exist" in f for f in found), found
 
 
 class Test_switch:
@@ -3508,7 +3594,7 @@ class Test_check:
 
     def test_accepts_a_change_as_one_line_and_writes_nothing(self, take, capsys):
         repo, local = self.exported_once(take, capsys)
-        write(local, f"specs/{ITEM}/spec.md", "# edited\n")
+        write(local, f"threads/{ITEM}/design.md", "# edited\n")
         before = listed(local)
         code, out = said(capsys, repo, "export", "--check")
         assert (code, out) == (0, "1 work items changed since the last export\n")
@@ -3522,8 +3608,8 @@ class Test_check:
         assert said(capsys, repo, "export", "--check")[1] == (
             "0 work items changed since the last export\n"
         )
-        write(local, "specs/1788000001-another/spec.md", "# another\n")
-        shutil.rmtree(os.path.join(local, "specs", ITEM))
+        write(local, "threads/1788000001-another/design.md", "# another\n")
+        shutil.rmtree(os.path.join(local, "threads", ITEM))
         assert said(capsys, repo, "export", "--check")[1] == (
             "2 work items changed since the last export\n"
         )
@@ -3534,7 +3620,7 @@ class Test_check:
     def test_refuses_to_count_against_no_export(self, take, capsys, state):
         repo = take("local")
         if state is not None:
-            write(repo / ".git", "specseal-last-export.json", state)
+            write(repo / ".git", "agentic-last-export.json", state)
         code, out = said(capsys, repo, "export", "--check")
         assert code == 0
         assert (
@@ -3561,7 +3647,7 @@ class Test_no_work_item:
 
     def record(self, repo, session="s1"):
         return os.path.join(
-            os.path.realpath(repo), ".git", "specseal-no-work-item", session
+            os.path.realpath(repo), ".git", "agentic-no-work-item", session
         )
 
     def recorded(self, repo, session="s1"):
@@ -3718,6 +3804,41 @@ class Test_main:
             )
         assert SEAL.main(argv, cwd=str(tmp_path)) == 0
         assert seen == [called]
+
+    @pytest.mark.parametrize(
+        "name, script",
+        [
+            ("gate", "skills/verify/scripts/broad_gate.py"),
+            ("settle", "skills/settle/scripts/settle.py"),
+            ("cost", "skills/verify/scripts/session_cost.py"),
+            ("mutate", "skills/verify/scripts/mutation_check.py"),
+            ("unverified", "skills/verify/scripts/unverified_check.py"),
+            ("arms", "skills/verify/scripts/arm_check.py"),
+            ("deferrals", "skills/verify/scripts/deferral_check.py"),
+            ("fold", "skills/settle/scripts/fold_check.py"),
+            ("pact", "skills/verify/scripts/pact_check.py"),
+            ("payload", "skills/verify/scripts/payload_meter.py"),
+            ("stamp", "skills/verify/scripts/seal_stamp.py"),
+            ("layout", "skills/verify/scripts/test_layout.py"),
+            ("rules", ".github/scripts/rules.py"),
+        ],
+    )
+    def test_accepts_each_tool_and_hands_its_script_every_argument(
+        self, monkeypatch, tmp_path, name, script
+    ):
+        """#1051: one command, one subcommand per tool. Each subcommand runs
+        the script its `bin/` wrapper ran, on this interpreter, with every
+        argument after the name handed on untouched, `--help` among them, so
+        the script's own parser answers it."""
+        handed = []
+        monkeypatch.setattr(
+            SEAL, "hand_over", lambda command: handed.append(command) or 0
+        )
+        argv = ["--base", "origin/main", "x y", "--help"]
+        assert SEAL.main([name, *argv], cwd=str(tmp_path)) == 0
+        path = os.path.normpath(os.path.join(ROOT, *script.split("/")))
+        assert os.path.isfile(path), path
+        assert handed == [[sys.executable, path, *argv]]
 
     @pytest.mark.parametrize(
         "argv",

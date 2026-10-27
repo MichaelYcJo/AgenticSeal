@@ -6,14 +6,14 @@ the absence of a review mark, and a mark only exists after a review passes.
 Every commit of every round was stopped on its way to the reviewer the answer
 had already named.
 
-A declaration lives at `seal/specs/<work-item-id>/routing.md` and is committed.
+A declaration lives at `seal/threads/<work-item-id>/routing.md` and is committed.
 Committed is the load-bearing part: the check moves to the pull request, and CI
 sees only what is in the tree; nothing under the git directory travels there.
 
 Beside the work item rather than at the root's top level, because a work item
 begins and ends in one directory and routing is its first fact. It also gives
 the work below the SDD ladder somewhere to exist: those items write no
-`spec.md`, so until now they left no trace anywhere, and they are most of what
+`frame/design.md`, so until now they left no trace anywhere, and they are most of what
 the gate sees.
 
 Imported by the gate and by the hygiene check rather than copied into each --
@@ -69,9 +69,15 @@ OPEN_PR = "open the pull request"
 STOP_BEFORE_PR = "stop before the pull request"
 DESTINATION_ANSWERS = (OPEN_PR, STOP_BEFORE_PR)
 
-BY_SMITH = "smith"
+BY_CRAFTER = "crafter"
+# The answer a declaration written before the plugin was renamed AgenticSeal
+# carries for `BY_CRAFTER`, which the session-start move copies byte for byte;
+# `parse` reads it as `BY_CRAFTER`, and the next minor release removes that
+# reading, as it removes `chain_check.py#OLD_TRAILER`.
+# exempt from old_names: the answer a declaration written before the rename carries
+OLD_BY_CRAFTER = "smith"
 BY_SESSION = "the session"
-IMPLEMENTATION_ANSWERS = (BY_SMITH, BY_SESSION)
+IMPLEMENTATION_ANSWERS = (BY_CRAFTER, BY_SESSION)
 
 # The fourth axis. `BY_SESSION` is reused rather than aliased under a second
 # name: one string, one vocabulary, and a second spelling of it is the shape
@@ -108,7 +114,7 @@ AUTOMATION_ANSWERS = (AUTOMATION_YES, AUTOMATION_NO)
 #
 # Only two of question 1's three options ever reach this row. The third,
 # `no work item`, opens no directory and writes no declaration at all, which is
-# the hole `spec.md` names as a ticket of its own rather than closing here.
+# the hole `frame/design.md` names as a ticket of its own rather than closing here.
 ANSWER_PRESSED = "Answer pressed"
 PRESSED_AUTOMATION = "automation"
 PRESSED_PER_AXIS = "per axis"
@@ -213,7 +219,7 @@ def parse(text):
 
     The two optional rows are read independently of each other. One answered
     and one absent is a common state -- a session that framed the work itself
-    and spawned `smith` to build it -- so neither may stand in for the other.
+    and spawned `crafter` to build it -- so neither may stand in for the other.
 
     `Automation` and `Answer pressed` are the fifth and sixth rows and they are
     read on the same looser terms, for the same reason one step further along:
@@ -249,6 +255,8 @@ def parse(text):
     destination = found.get(DESTINATION)
     branch = found.get(BRANCH)
     implementation = found.get(IMPLEMENTATION)
+    if implementation == OLD_BY_CRAFTER:
+        implementation = BY_CRAFTER
     planning = found.get(PLANNING)
     automation = found.get(AUTOMATION)
     pressed = found.get(ANSWER_PRESSED)
@@ -370,7 +378,7 @@ def declarations(root):
 
     `root` is the repository root; the work items are under whichever `seal/`
     `optin.home_at` finds for it, and a repository with none has no
-    declarations — the same silence as a `seal/specs/` that is not there.
+    declarations — the same silence as a `seal/threads/` that is not there.
     """
     home = optin.home_at(root)
     if not home:
@@ -435,7 +443,7 @@ def declared(cwd, root):
 # ran on, and `hooks/routing-edit-gate.py` lets the session's edits through on
 # a branch a line names and on no other. The rule is
 # `docs/the-routing-check.md` *The edit check*.
-NO_WORK_ITEM = "specseal-no-work-item"
+NO_WORK_ITEM = "agentic-no-work-item"
 # A record older than this is pruned when one is written, as a lease is.
 NO_WORK_ITEM_AGE = 86400
 
@@ -449,7 +457,7 @@ def session_name(session):
 
 
 def no_work_item_path(common, session):
-    """`<common>/specseal-no-work-item/<session>`, or "" where either is
+    """`<common>/agentic-no-work-item/<session>`, or "" where either is
     missing."""
     name = session_name(session)
     if not common or not name:
@@ -511,7 +519,7 @@ def item_dir(root, branch):
     """The work-item directory the declaration for `branch` lives in, or "".
 
     This is what makes a review round writable before a pull request exists.
-    The round records live one level down, in `rounds/`, so whatever resolves
+    The round records live two levels down, in `trail/rounds/`, so whatever resolves
     the declaration resolves them too, and the branch is the only key
     available at the moment a round closes.
 
@@ -526,8 +534,8 @@ def item_dir(root, branch):
 
 ROUND_RE = re.compile(r"round-(\d+)\.md")
 
-# The subdirectory the records live in, under the work item.
-ROUNDS_DIR = "rounds"
+# The subdirectory the records live in, under the work item, `/`-joined.
+ROUNDS_DIR = optin.ROUNDS
 
 
 def round_number(name):
@@ -546,7 +554,7 @@ def _ordered(where):
 
     Filtered BEFORE the sort, not after. Both callers below hand this a
     directory that holds other things -- the work item's own directory holds
-    `routing.md` and the rest of the SDD set, and `rounds/` holds whatever a
+    `routing.md` and the rest of the SDD set, and `trail/rounds/` holds whatever a
     repository chooses to put beside its records -- and `sorted` comparing
     None against an int raises rather than ordering. Nothing here may assume
     a directory of records only.
@@ -555,9 +563,9 @@ def _ordered(where):
         names = os.listdir(where)
     except NotADirectoryError:
         # A `rounds` that is a FILE, not a directory. Round 1 reached it by
-        # following this release's own migration command: `git mv
-        # <item>/round-*.md <item>/rounds/` fails because `git mv` does not
-        # create its destination, and dropping the trailing slash is what a
+        # following an earlier release's own migration command: a `git mv` of
+        # each round record into a `rounds` directory fails because `git mv`
+        # does not create its destination, and dropping the trailing slash is what a
         # person tries next -- which succeeds for a single record and renames
         # it to a file called `rounds`. Both readers then said the work item
         # held no round record while git carried the review's whole text, and
@@ -573,11 +581,11 @@ def _ordered(where):
 
 
 def rounds(item):
-    """Every round record in a work item's `rounds/`, lowest round first.
+    """Every round record in a work item's `trail/rounds/`, lowest round first.
 
     Numerically, not by name, for the reason `round_number` gives.
 
-    `rounds/` rather than the work-item directory itself, because `round-N`
+    `trail/rounds/` rather than the work-item directory itself, because `round-N`
     is the one member of the SDD set that is plural and unbounded: six
     records beside six other files was the worst case here, and the structure
     should say which member grows.
@@ -616,9 +624,9 @@ def rounds_unreadable(item):
     is a review whose whole text git is still carrying while every reader
     reports that none happened.
 
-    Reached by following this release's own migration command. `git mv
-    <item>/round-*.md <item>/rounds/` fails -- `git mv` does not create its
-    destination -- and dropping the trailing slash succeeds for a single
+    Reached by following an earlier release's own migration command. A
+    `git mv` of each round record into a `rounds` directory fails -- `git mv`
+    does not create its destination -- and dropping the trailing slash succeeds for a single
     record, renaming it to a file named `rounds`.
     """
     if not item:

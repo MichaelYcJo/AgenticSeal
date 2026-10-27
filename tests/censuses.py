@@ -869,7 +869,7 @@ def floor_syntax(rel, root=None):
 SIGN = "\N{SECTION SIGN}"
 # The records of a moment keep what they said when they were written, and
 # `evals/behaviour/`'s cases are generated from records.
-RECORDS = ("seal/specs/", "changelog/", "CHANGELOG.md", "evals/behaviour/")
+RECORDS = ("seal/threads/", "changelog/", "CHANGELOG.md", "evals/behaviour/")
 
 
 def section_sign(rel, root=None):
@@ -981,6 +981,155 @@ def real_identifiers(rel, root=None):
     return _held("real_identifiers", rel, text, flagged)
 
 
+# --- old_names (#1051) ----------------------------------------------------------
+#
+# The plugin was renamed AgenticSeal in one release: its prefix, its agents,
+# its record layout and its command line each have one spelling, #1051's
+# mapping, and a living file that writes the old one names a thing that no
+# longer exists. The census reads every tracked text file outside the records
+# below, so a name the sweep missed, or one a later edit brings back, is a
+# line with its coordinate.
+#
+# Each alternative is one old name, or one family of them. The pattern is
+# built from halves, so this file does not write the names it refuses.
+_OLD = "spec" + "seal"
+OLD_NAME = re.compile(
+    "|".join(
+        (
+            # The brand, the plugin's old `name` and prefix, every identifier
+            # and variable spelt after it, and the old trailer key.
+            _OLD,
+            # The tagline the one sentence replaced.
+            "specs, " + "sealed",
+            # The agents now named crafter, proofer and tracer.
+            r"\b(?:" + "smi" + "th|war" + "den|scr" + r"ibe)\b",
+            # A work item's directory, now `seal/threads/<id>/`.
+            "seal/" + r"specs\b",
+            # The frame's design and the closing memo, now `frame/design.md`
+            # and `gaps.md`; a document named for its subject, such as
+            # `docs/worktree-guard-spec.md`, is not the record.
+            r"(?<![\w-])(?:" + "sp" + "ec|over" + r"view)\.md\b",
+            # The broad run's record, now `trail/gate.md`, and the command
+            # now `seal gate`; `docs/the-broad-gate.md` names the act.
+            r"(?<!the-)broad" + "-gate",
+            # The hand-offs, now under a thread's `trail/`.
+            r"(?<!trail/)\b(?:pha" + "ses|rou" + "nds)/",
+            # The commands `seal <subcommand>` replaced.
+            r"\b(?:session-" + "cost|mutation-" + "check|unverified-" + "check"
+            r"|arm-" + "check|deferral-" + "check|fold-" + "check|pact-" + "check"
+            r"|payload-" + "meter|seal-" + "stamp|test-" + r"layout)\b",
+        )
+    ),
+    re.IGNORECASE,
+)
+# The old spellings a living file keeps on purpose, each for a reader that
+# still meets it, and each taken out of a line before OLD_NAME reads it.
+KEPT_OLD_NAMES = (
+    # The trailer key a commit made before the rename carries, which
+    # `chain_check.py#OLD_TRAILER` reads until the next minor release.
+    "Spec" + "Seal-Routing",
+    # The CLAUDE.md block markers every release before the rename wrote,
+    # which `install.sh`, `uninstall.sh`, `/agentic:update` and
+    # `/agentic:preset-setup` replace with the block under the new ones.
+    f"<!-- {_OLD}:start -->",
+    f"<!-- {_OLD}:end -->",
+    # The second line of every git hook stub an earlier release wrote, which
+    # `hooks/stub-remove.py#MARKER` reads so it removes only its own stubs.
+    f"# {_OLD}-git-hook",
+    # The clone line a workflow written before the rename carries, which
+    # `seal.py#workflow_at` reads as this plugin's so that it is rewritten.
+    "MichaelYcJo/Spec" + "Seal.git",
+    # The install a user made before the rename, which README.md *Install*
+    # removes by its old names.
+    f"{_OLD}@{_OLD}",
+    f"marketplace remove {_OLD}",
+    # The `renames` entry of `.claude-plugin/marketplace.json`, which carries
+    # the plugin's old name to its new one and is append-only.
+    f'"{_OLD}": "agentic"',
+    # The 0.3.x directory that README.md *Coming up from 0.3.x* moves by hand.
+    f".{_OLD}",
+    # The two variables a person sets in their own environment, which no
+    # migration reaches: a new name would turn the format hook back on, or
+    # the guard's prompts back to the locale, for whoever set the old one,
+    # and this release changes no behaviour.
+    f"{_OLD.upper()}_LINT",
+    f"{_OLD.upper()}_LANG",
+)
+# A released work item's record cited at the commit that holds it, as
+# `<commit>:<path>`, the form `git show` opens as written: the settle removed
+# the directory, the session-start move does not rewrite history, so the old
+# path is the only one any commit holds. Taken out of a line before OLD_NAME
+# reads it, whole, so the record names inside the path pass with it.
+HISTORY_PATH = re.compile(
+    r"(?<![\w/:])[0-9a-f]{7,40}:"
+    + "seal/"
+    + r"specs/[0-9]{10}-[a-z0-9-]+(?:/[\w.-]+)*/?"
+)
+# The records of a moment, which keep the names they were written under. A
+# released changelog entry and the archive of a release's way of working
+# keep the name the release shipped under (#1051). A thread is read against
+# the commits it names until the settle after its release removes it, and
+# the thread that renames a name quotes the name it renames. The truths
+# measured on recorded eval runs name the trees those runs read.
+# `.test_durations` is the cache the test runner rewrites.
+OLD_NAME_RECORDS = (
+    "changelog/",
+    "CHANGELOG.md",
+    "seal/process/",
+    "seal/threads/",
+    "evals/scripts/recurred_truths.json",
+    ".test_durations",
+)
+# A replayed or seeded eval case holds a run at a recorded commit, so its
+# bytes are the record (`evals/README.md`).
+RECORDED_CASE = re.compile(r"^evals/behaviour/[^/]+/(?:replay|seeded)-")
+# The migration and its cases spell the 0.22.x layout and the state names a
+# session start moves from, which is the one place those names are read.
+# `hooks/cmdline_base.py` is, below its rider, `86256492`'s `hooks/cmdline.py`
+# byte for byte, which `tests/test_the_frozen_reading_never_grows.py` holds,
+# so no line of it can change or carry an exemption. The replay and seeded
+# cases' generators read round records at the 0.22.x layout every committed
+# case was cut from, each such line exempted at the generator, and their
+# cases build those records.
+KEPT_FILES = (
+    "hooks/root-migrate.py",
+    "tests/test_root_migrate.py",
+    "tests/test_the_root_migrates_itself.py",
+    "hooks/cmdline_base.py",
+    "tests/test_replay_targets.py",
+    "tests/test_seed_defects.py",
+)
+
+
+def old_names(rel, root=None):
+    """No living file writes a name the rename to AgenticSeal replaced:
+    the brand, the old prefix and identifiers, the old agents, the old
+    record layout, the old commands and the tagline. A spelling kept on
+    purpose is in KEPT_OLD_NAMES, a record or a file of KEPT_FILES is passed over
+    whole, a released work item's record passes only cited at a commit
+    (HISTORY_PATH), and any other line that keeps an old name carries its
+    exemption. A file that is not UTF-8 text is not read."""
+    if rel.startswith(OLD_NAME_RECORDS + KEPT_FILES) or RECORDED_CASE.match(rel):
+        return []
+    text = _text(rel, root)
+    if text is None:
+        return []
+    flagged = {}
+    for number, line in enumerate(text.split("\n"), 1):
+        for kept in KEPT_OLD_NAMES:
+            line = line.replace(kept, "")
+        line = HISTORY_PATH.sub("", line)
+        found = OLD_NAME.search(line)
+        if found:
+            flagged[number] = (
+                f"`{found.group(0)}` is a name the rename to AgenticSeal "
+                "replaced; write the new one from #1051's mapping, or put "
+                "`# exempt from old_names: <why>` on its own line above a "
+                "line that keeps it on purpose"
+            )
+    return _held("old_names", rel, text, flagged)
+
+
 CENSUSES = (
     encoding,
     entry_point,
@@ -990,6 +1139,7 @@ CENSUSES = (
     floor_syntax,
     section_sign,
     real_identifiers,
+    old_names,
 )
 
 

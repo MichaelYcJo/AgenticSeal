@@ -1,7 +1,7 @@
 """review-skill-gate — the built-in review skill asks before it displaces ours.
 
 Claude Code ships a `code-review` skill of its own. When the model picks it
-in a repo that also carries specseal's, the user gets a bug-and-cleanup sweep
+in a repo that also carries AgenticSeal's, the user gets a bug-and-cleanup sweep
 where they expected a spec-compliance review — and only finds out after the
 review has already run. The gate turns that into one prompt beforehand.
 """
@@ -65,7 +65,7 @@ class Test_main:
             "permissionDecisionReason"
         ]
         assert "AskUserQuestion" in reason
-        assert "/specseal:code-review" in reason
+        assert "/agentic:code-review" in reason
         assert "/code-review" in reason
 
     def test_refuses_without_a_session_id_by_asking_instead_of_denying(self, repo):
@@ -84,12 +84,12 @@ class Test_main:
 
     def test_accepts_our_own_skill(self, repo):
         opt_in(repo)
-        assert decision_of(run("specseal:code-review", repo)) == "silent"
+        assert decision_of(run("agentic:code-review", repo)) == "silent"
 
     @pytest.mark.parametrize(
         "names",
         [
-            ("debug", "specseal:implement", "code-reviewer", "review"),
+            ("debug", "agentic:implement", "code-reviewer", "review"),
             ("acme:code-review", "code-review-strict", "my-code-review"),
         ],
         ids=["unrelated", "merely-contains-it"],
@@ -173,7 +173,7 @@ class Test_already_asked:
             encoding="utf-8",
             errors="replace",
         ).stdout.strip()
-        assert os.path.isfile(os.path.join(gd, "specseal-review-choice", "s1"))
+        assert os.path.isfile(os.path.join(gd, "agentic-review-choice", "s1"))
         # The isolation runs the other way too: the worktree's marker did not
         # spend the main tree's question, so the same session is still asked
         # there. That is what "once per session per working tree" means, and

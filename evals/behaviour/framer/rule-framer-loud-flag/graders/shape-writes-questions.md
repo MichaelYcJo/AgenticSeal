@@ -1,5 +1,5 @@
 ---
 type: 'file_exists'
-path: 'seal/specs/1790000021-loud-flag/questions.md'
+path: 'seal/threads/1790000021-loud-flag/frame/questions.md'
 ---
-The frame writes `questions.md`.
+The frame writes `frame/questions.md`.

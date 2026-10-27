@@ -26,7 +26,7 @@ Modelled on `tests/test_the_suite_has_a_command_that_is_cheap_twice.py`'s
 `running_the_checks()`, which reads one `CONTRIBUTING.md` section to the next
 heading and asserts what that section names. (`plan.md` and `questions.md` Q6
 name that helper `contributing_section`; no helper of that name exists, and
-the correction is recorded in `phases/phase-1.md`.)
+the correction is recorded in `trail/phases/phase-1.md`.)
 """
 
 import os
@@ -95,11 +95,11 @@ def test_the_section_says_the_base_branch_is_what_the_refusal_is_about():
     "thing",
     [
         "routing.md",
-        "spec.md",
-        "plan.md",
+        "frame/design.md",
+        "frame/plan.md",
         "review round record",
         "changelog.md",
-        "overview.md",
+        "gaps.md",
         ".claude-plugin/plugin.json",
     ],
 )
@@ -181,7 +181,7 @@ def test_no_contributor_facing_surface_names_a_concrete_release_branch(surface):
 RELEASE_BRANCH = re.compile(r"release/v\d+\.\d+\.\d+")
 
 # A concrete name that is history rather than a timer: a branch that shipped
-# under another version. (The smith's dated measurement left with its RIDER in
+# under another version. (The crafter's dated measurement left with its RIDER in
 # #967.) Each is the sentence that carries the
 # name, whitespace-collapsed, so the name is allowed where that sentence
 # stands and nowhere else in the file — the shape `test_release_hygiene.py`

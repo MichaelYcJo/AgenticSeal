@@ -41,6 +41,6 @@ def test_the_root_readme_and_its_template_say_it_too():
         with open(os.path.join(ROOT, *parts), encoding="utf-8") as handle:
             text = handle.read()
         assert "seal export" in text and "seal import" in text, "/".join(parts)
-        assert "specseal-last-export.json" in text, (
+        assert "agentic-last-export.json" in text, (
             "/".join(parts) + " does not name the state that must not travel"
         )

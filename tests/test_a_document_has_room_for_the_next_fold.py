@@ -1,7 +1,7 @@
-"""What is left of `fold-check`'s old file: the two cases that read the
+"""What is left of `seal fold`'s old file: the two cases that read the
 cheat sheets and the settle skill, which wait for #923.
 
-#942's phase 6 placed the cases that run `fold-check` or call
+#942's phase 6 placed the cases that run `seal fold` or call
 `skills/settle/scripts/fold_check.py` in `tests/test_fold_check.py`, which
 `docs/the-record-layout.md` *The size a reader takes whole* names on its
 `check:` line.
@@ -16,10 +16,10 @@ ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
 
 @pytest.mark.parametrize("edition", ["README.md", "README.ko.md"])
 def test_both_cheat_sheets_point_to_the_checks_home(edition):
-    """Round 1, finding 9: the `fold-check` row described the freeze after it
+    """Round 1, finding 9: the `seal fold` row described the freeze after it
     was gone. It now points to the rows' one statement and restates none."""
     with open(os.path.join(ROOT, edition), encoding="utf-8") as f:
-        row = next(line for line in f if line.startswith("| `fold-check [--ceiling"))
+        row = next(line for line in f if line.startswith("| `seal fold [--ceiling"))
     assert "`templates/config.md` *The fold's values*" in row, row
     assert "frozen" not in row and "고정" not in row, row
 

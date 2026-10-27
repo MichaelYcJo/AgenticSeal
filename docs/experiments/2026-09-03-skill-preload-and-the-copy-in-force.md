@@ -39,8 +39,8 @@ fact.
 ## Method
 
 Take a skill an agent already preloads (`writing-style`, listed in
-`agents/smith.md`'s `skills:`). Add `user-invocable: false` to its
-frontmatter and one sentinel line to its body. Spawn `specseal:smith` with a
+`agents/crafter.md`'s `skills:`). Add `user-invocable: false` to its
+frontmatter and one sentinel line to its body. Spawn `agentic:crafter` with a
 prompt that forbids every tool and asks one question: *is the sentinel in
 the text you were given at startup?* Read the answer. Restore the file from
 a backup taken before the edit and verify it is byte-identical to the clone.

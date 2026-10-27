@@ -1,7 +1,7 @@
 ---
 name: agent-contract
 description: |
-  The rules every SpecSeal agent works under — smith, warden, scribe, and any
+  The rules every AgenticSeal agent works under — crafter, proofer, tracer, and any
   agent added after them. Not a command to run: the harness injects it into
   each agent at startup through the `skills:` list in the agent's definition,
   and an orchestrator session may load it to be bound by the same rules.
@@ -39,7 +39,7 @@ Run the tests for the slice you touched while you work, and your module and
 the ones it touches at a phase boundary. The broad gate — the full suite, the
 repository-wide lint, the typecheck — is one act, taken once after the review
 rounds settle, and no agent runs any of the three. The orchestrator runs
-`broad-gate --base <base> --record <item>` with nothing else running, then
+`seal gate --base <base> --record <item>` with nothing else running, then
 spawns the sealer, which reads the record that run wrote. Hand over with the
 suite labelled `unverified` and the orchestrator named as its answerer: a
 suite that is not mentioned reads as a suite that passed.
@@ -139,7 +139,9 @@ check: tests/test_a_moved_rule_leaves_its_definition.py
 ## 11 Where the `seal/` root is, and the language its records are written in
 
 Every `seal/…` path here and in the skills means `<repo>/seal/` where that
-directory exists, and `$(git rev-parse --git-common-dir)/seal/` otherwise —
+directory exists and its `README.md` opens with the marker
+`hooks/optin.py#MARKER` holds, and
+`$(git rev-parse --git-common-dir)/seal/` otherwise —
 local mode, where the root sits under the common git directory and nothing
 under it is committed. A repository with both is shared, and no config key
 decides it. The prose in the records follows `Record language` in

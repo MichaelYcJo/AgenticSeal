@@ -83,7 +83,7 @@ def meter():
             "cannot read skills/verify/scripts/payload_meter.py, which measures "
             "an agent's preload"
         )
-    spec = importlib.util.spec_from_file_location("specseal_release_meter", METER)
+    spec = importlib.util.spec_from_file_location("agentic_release_meter", METER)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module

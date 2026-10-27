@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# specseal uninstaller — the exact inverse of install.sh.
+# AgenticSeal uninstaller — the exact inverse of install.sh.
 #
 # install.sh only ever writes the marker block into a CLAUDE.md, so this
 # removes only that block. It never touches skills/, agents/, commands/, or
@@ -12,8 +12,13 @@ set -euo pipefail
 # Usage: bash uninstall.sh [target-CLAUDE.md]   (default: ~/.claude/CLAUDE.md)
 
 TARGET="${1:-$HOME/.claude/CLAUDE.md}"
-START='<!-- specseal:start -->'
-END='<!-- specseal:end -->'
+START='<!-- agentic:start -->'
+END='<!-- agentic:end -->'
+# The markers every release before the rename to AgenticSeal wrote; a block
+# between them is removed the same way, and the minor release after the
+# rename removes this.
+OLD_START='<!-- specseal:start -->'
+OLD_END='<!-- specseal:end -->'
 
 GREEN='\033[0;32m'; YELLOW='\033[1;33m'; NC='\033[0m'
 info() { echo -e "${GREEN}[info]${NC} $1"; }
@@ -22,6 +27,9 @@ warn() { echo -e "${YELLOW}[warn]${NC} $1"; }
 if [ ! -f "$TARGET" ]; then
     warn "$TARGET not found — nothing to remove."
 else
+    if ! grep -qF "$START" "$TARGET" && grep -qF "$OLD_START" "$TARGET"; then
+        START="$OLD_START"; END="$OLD_END"
+    fi
     if grep -qF "$START" "$TARGET"; then
         # Without the end marker the awk below would delete everything after
         # START — refuse instead of guessing where the block ends.
@@ -44,4 +52,4 @@ fi
 
 echo ""
 info "The plugin uninstalls separately:"
-echo "       claude → /plugin uninstall specseal"
+echo "       claude → /plugin uninstall agentic"

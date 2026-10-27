@@ -11,6 +11,7 @@ outside every opted-in repository are not judged.
 
 import json
 import os
+import shutil
 import subprocess
 import sys
 
@@ -24,6 +25,7 @@ from conftest import (
     load_hook_module,
     load_module,
     local_home,
+    mark_root,
     reason_of,
     run_hook,
     write_transcript,
@@ -67,7 +69,7 @@ def run(path, **kwargs):
 
 
 def opt_in(repo):
-    (repo / "seal").mkdir(exist_ok=True)
+    mark_root(repo / "seal")
     return repo
 
 
@@ -78,14 +80,14 @@ def branch_of(repo):
 # The declaration path the refusal names, spelled the platform's way, as
 # `hooks/implementer-notice.py` spells the same file
 # (`tests/test_implementer_notice.py`).
-HINT = os.path.join("seal", "specs", "<work-item-id>", "routing.md")
+HINT = os.path.join("seal", "threads", "<work-item-id>", "routing.md")
 
 
 # The two texts a person reads (contract rule 14), pinned whole.
 def attended(repo, branch):
     return (
-        "SpecSeal refused this edit; nothing was written.\n\n"
-        f"`f.txt` is in `{repo}`, which runs the SpecSeal workflow, and no "
+        "AgenticSeal refused this edit; nothing was written.\n\n"
+        f"`f.txt` is in `{repo}`, which runs the AgenticSeal workflow, and no "
         f"routing declaration names `{branch}`, the branch checked out there. "
         "The routing is decided before the first edit.\n\n"
         "Do not choose for the user. Put the routing question to them with the "
@@ -101,8 +103,8 @@ def attended(repo, branch):
 
 def pressed(repo, branch):
     return (
-        "SpecSeal refused this edit; nothing was written.\n\n"
-        f"`f.txt` is in `{repo}`, which runs the SpecSeal workflow, and no "
+        "AgenticSeal refused this edit; nothing was written.\n\n"
+        f"`f.txt` is in `{repo}`, which runs the AgenticSeal workflow, and no "
         f"routing declaration names `{branch}`, the branch checked out there. "
         "The routing is decided before the first edit.\n\n"
         "This session's person pressed `automation` on the routing question, "
@@ -122,8 +124,8 @@ def pressed(repo, branch):
 # nothing there, so the ways on start by checking out a branch.
 def detached(repo):
     return (
-        "SpecSeal refused this edit; nothing was written.\n\n"
-        f"`f.txt` is in `{repo}`, which runs the SpecSeal workflow, and HEAD is "
+        "AgenticSeal refused this edit; nothing was written.\n\n"
+        f"`f.txt` is in `{repo}`, which runs the AgenticSeal workflow, and HEAD is "
         "detached there, so no routing declaration can name its branch. The "
         "routing is decided before the first edit.\n\n"
     )
@@ -185,10 +187,12 @@ class Test_main:
 
         monkeypatch.setattr(gate, "os", types.SimpleNamespace(path=ntpath, sep="\\"))
         monkeypatch.setattr(gate.optin, "home_at", lambda top: r"C:\r\seal")
-        assert gate.declaration_hint(r"C:\r") == r"seal\specs\<work-item-id>\routing.md"
+        assert (
+            gate.declaration_hint(r"C:\r") == r"seal\threads\<work-item-id>\routing.md"
+        )
         assert (
             gate.declaration_hint(r"D:\w")
-            == r"C:\r\seal\specs\<work-item-id>\routing.md"
+            == r"C:\r\seal\threads\<work-item-id>\routing.md"
         )
         said = gate.reason(r"C:\r\src\new.py", r"C:\r", "feat", False)
         assert "`src\\new.py` is in `C:\\r`" in said, said
@@ -210,7 +214,7 @@ class Test_main:
     def test_accepts_a_detached_head_at_a_commit_a_declared_branch_holds(
         self, repo, tmp_path
     ):
-        """Round 1 of #1027, finding 3: a warden's clone at the reviewed SHA
+        """Round 1 of #1027, finding 3: a proofer's clone at the reviewed SHA
         and a red-first clone of an earlier commit are detached checkouts of
         a declared branch. The branch is found under its local name, or under
         a remote-tracking one where the clone has no local branch of it."""
@@ -303,12 +307,12 @@ class Test_main:
         shared root and under the local one, while a file outside the root
         is refused in both modes."""
         opt_in(repo)
-        record = repo / "seal" / "specs" / "1700000000-x" / "routing.md"
+        record = repo / "seal" / "threads" / "1700000000-x" / "routing.md"
         assert decision_of(run(record, tool="Write")) == "silent"
         assert decision_of(run(repo / "f.txt")) == "deny"
-        (repo / "seal").rmdir()
+        shutil.rmtree(repo / "seal")
         home = local_home(repo)
-        record = home / "specs" / "1700000000-x" / "routing.md"
+        record = home / "threads" / "1700000000-x" / "routing.md"
         assert decision_of(run(record, tool="Write", cwd=repo)) == "silent"
         assert decision_of(run(repo / "f.txt")) == "deny"
 
@@ -349,7 +353,7 @@ class Test_main:
         branch, so it lets no edit through."""
         opt_in(repo)
         where = git(repo, "rev-parse", "--absolute-git-dir")
-        records = os.path.join(where, "specseal-no-work-item")
+        records = os.path.join(where, "agentic-no-work-item")
         os.makedirs(records)
         with open(os.path.join(records, SESSION), "w", encoding="utf-8"):
             pass

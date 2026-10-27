@@ -20,14 +20,21 @@ this file names every shipped check and what keeps it off a reference root.
 import os
 import re
 
+from conftest import load_module
+
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+SEAL = load_module(
+    os.path.join(ROOT, "skills", "implement", "scripts", "seal.py"),
+    "seal_for_the_reference_root",
+)
 
 
 # --- D3: every shipped check, and what keeps it off a reference root ---------
 #
 # The failure this file's plan names for six months out: a check added later
 # walks the tree without asking the predicate, and the class reopens one
-# script at a time. So every command `bin/` ships is named here with what
+# script at a time. So every command `bin/` ships, and every subcommand
+# `seal.py#TOOLS` hands to a script, is named here with what
 # keeps it off a team's `specs/`, and a command nobody classified turns this
 # red. A check that walks no `specs/` says so; one pinned to the root names
 # the constant it rests on, which its module's file holds under `seal/`:
@@ -38,7 +45,7 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 # `tests/test_unverified_check.py`'s walk from the root over a team's
 # unreadable overview, `tests/test_settle.py`'s apply beside a team directory
 # of the removed work item's id, and `tests/test_chain_check.py`'s
-# `Test_changed_routing`, which takes a declaration only under `seal/specs/`.
+# `Test_changed_routing`, which takes a declaration only under `seal/threads/`.
 
 PREDICATE = "asks hooks/config.py#under_reference_root"
 PINNED = "reads the plugin's root by a constant under seal/"
@@ -46,20 +53,20 @@ NO_WALK = "walks no specs/ directory"
 NOT_A_CHECK = "is not a check of the tree"
 
 SHIPPED = {
-    "unverified-check": (PREDICATE, "the walk and the base, by one rule"),
-    "settle": (PINNED, "settle.py#SPECS; its citation scan reads as a citer"),
-    "pact-check": (PINNED, "pact_check.py#anchor_files, under each signer's root"),
-    "broad-gate": (NO_WALK, "runs the row, chain_check.py and seal.py mode"),
-    "fold-check": (NO_WALK, "reads the top level of docs/ and seal/config.md"),
-    "rules": (NO_WALK, "reads the one document it is named and its targets"),
-    "arm-check": (NO_WALK, "reads the Python files it is named"),
-    "mutation-check": (NO_WALK, "breaks and restores the one file it is named"),
-    "test-layout": (NO_WALK, "reads tests/ and the modules its files name"),
-    "deferral-check": (NO_WALK, "reads the pull request body and round records"),
+    "seal unverified": (PREDICATE, "the walk and the base, by one rule"),
+    "seal settle": (PINNED, "settle.py#SPECS; its citation scan reads as a citer"),
+    "seal pact": (PINNED, "pact_check.py#anchor_files, under each signer's root"),
+    "seal gate": (NO_WALK, "runs the row, chain_check.py and seal.py mode"),
+    "seal fold": (NO_WALK, "reads the top level of docs/ and seal/config.md"),
+    "seal rules": (NO_WALK, "reads the one document it is named and its targets"),
+    "seal arms": (NO_WALK, "reads the Python files it is named"),
+    "seal mutate": (NO_WALK, "breaks and restores the one file it is named"),
+    "seal layout": (NO_WALK, "reads tests/ and the modules its files name"),
+    "seal deferrals": (NO_WALK, "reads the pull request body and round records"),
     "seal": (NOT_A_CHECK, "the mode command, writing seal/config.md"),
-    "seal-stamp": (NOT_A_CHECK, "draws the sealer's stamp from a sealed guarantee"),
-    "session-cost": (NOT_A_CHECK, "measures a transcript"),
-    "payload-meter": (NOT_A_CHECK, "measures a spawn's payload"),
+    "seal stamp": (NOT_A_CHECK, "draws the sealer's stamp from a sealed guarantee"),
+    "seal cost": (NOT_A_CHECK, "measures a transcript"),
+    "seal payload": (NOT_A_CHECK, "measures a spawn's payload"),
     "test": (NOT_A_CHECK, "this repository's own suite runner"),
 }
 
@@ -69,9 +76,10 @@ def test_every_shipped_command_is_classified():
         name
         for name in os.listdir(os.path.join(ROOT, "bin"))
         if not name.endswith(".cmd")
-    }
+    } | {f"seal {name}" for name in SEAL.TOOLS}
     assert shipped == set(SHIPPED), (
-        "a command in bin/ is not classified here, or a classified one left: "
+        "a command in bin/ or a `seal` subcommand is not classified here, or "
+        "a classified one left: "
         f"{sorted(shipped ^ set(SHIPPED))}. Say what keeps it off a team's "
         "specs/ — the predicate, a constant under seal/, or no walk at all"
     )
@@ -87,11 +95,11 @@ def test_every_shipped_command_is_classified():
 
 POINTER = "`templates/config.md` *Reference specs*"
 READERS = {
-    "agents/framer.md": ("cite", "spec.md"),
-    "agents/smith.md": ("cite", "spec.md"),
-    "agents/warden.md": ("stage 1", "spec.md"),
-    "skills/settle/SKILL.md": ("cite", "spec.md"),
-    "skills/implement/SKILL.md": ("cite", "spec.md"),
+    "agents/framer.md": ("cite", "frame/design.md"),
+    "agents/crafter.md": ("cite", "frame/design.md"),
+    "agents/proofer.md": ("stage 1", "frame/design.md"),
+    "skills/settle/SKILL.md": ("cite", "frame/design.md"),
+    "skills/implement/SKILL.md": ("cite", "frame/design.md"),
 }
 
 
@@ -108,7 +116,7 @@ def paragraph_naming(text, phrase):
 # of the paragraph that points at the row (#967).
 NEVER_LINE = {
     "agents/framer.md": "- Write in a reference root, or move, edit or copy a file out of one.",
-    "agents/smith.md": "- Write in a reference root, or move, edit or copy a file out of one.",
+    "agents/crafter.md": "- Write in a reference root, or move, edit or copy a file out of one.",
 }
 
 
@@ -124,15 +132,3 @@ def test_each_reader_says_when_it_reads_a_reference_root_and_where_it_cites_it()
             assert NEVER_LINE[rel] in never, (rel, never)
         else:
             assert re.search(r"\bnever writ", said), (rel, said)
-
-
-def test_the_seal_readme_says_nothing_writes_the_old_names():
-    """The sentence used to say nothing READS a top-level `specs/`, which a
-    reference root now contradicts; what is true of it is that nothing
-    writes there, and what moves is the plugin's own marked work items."""
-    for rel in ("templates/seal-README.md", "seal/README.md"):
-        text = open(os.path.join(ROOT, rel), encoding="utf-8").read()
-        flat = " ".join(text.split())
-        assert "Nothing writes `.specseal/` or a top-level `specs/`" in flat, rel
-        assert "Nothing reads `.specseal/`" not in flat, rel
-        assert "`routing.md` or `rounds/`" in flat, rel

@@ -38,8 +38,8 @@ import optin
 MARKER = "# specseal-git-hook"
 
 REMOVED = (
-    "SpecSeal removed the git hooks an earlier release of it wrote in "
-    "{directory}: {names}. Nothing of SpecSeal runs inside git any more, and a "
+    "AgenticSeal removed the git hooks an earlier release of it wrote in "
+    "{directory}: {names}. Nothing of AgenticSeal runs inside git any more, and a "
     "hook file without the line `{marker}` was left as it was."
 )
 

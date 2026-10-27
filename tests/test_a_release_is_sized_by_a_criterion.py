@@ -17,7 +17,7 @@ still name a line number. The sentences here are hand-wrapped at 88 columns
 (`test_docs_line_wrap.py`), so a phrase pinned as written on one line breaks
 the moment a word is added earlier in the paragraph — and a phrase SEARCHED
 for on one line is missed the moment its wrap falls inside it. Phase 1 of this
-work item found the same thing from the other side: `spec.md` proposed
+work item found the same thing from the other side: `frame/design.md` proposed
 `git grep -n "three or four is the size"` as the absence check, and that
 command exits 1 against the UNEDITED document, because the line wrapped
 between `three` and `or four`. A check that passes before the change is no
@@ -67,7 +67,7 @@ SCANNED = (
 SUFFIXES = (".md", ".py")
 
 # Every shape a second statement of a release's size could take, and the old
-# wording literally. `seal/specs/` is outside `SCANNED` on purpose: an earlier
+# wording literally. `seal/threads/` is outside `SCANNED` on purpose: an earlier
 # work item's records state what was true at their own SHA and are not
 # rewritten.
 #

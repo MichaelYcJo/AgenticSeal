@@ -16,7 +16,7 @@ puts the suite at SUITE-REV's `evals/behaviour/` into it, and runs
 for is saved before anything reads it**: the eval's JSON, every run's trace
 and the measured preload go to `<out>.raw/` beside `--out`, and only then is
 each directory the eval kept removed. `--out` is the saved side with these
-additions under `specseal`: the preload's hashes and bytes, each run's
+additions under `agentic`: the preload's hashes and bytes, each run's
 `report_text` (the round record its session printed, whole, with what
 the `real_identifiers` census in `tests/censuses.py` refuses masked), cost (its trace's
 `result` event: `total_cost_usd`, `duration_ms`, `modelUsage`) and tool
@@ -86,7 +86,7 @@ import replay_targets as rt
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
 SUITE = "evals/behaviour"
-AGENTS = ("warden", "smith", "framer", "sealer", "scribe")
+AGENTS = ("proofer", "crafter", "framer", "sealer", "tracer")
 CLT_GIT = "/Library/Developer/CommandLineTools/usr/bin/git"
 # The end of a round record's path: `round-N.md`, or `<...>-report.md` on a
 # run taken before 0.22.0. A side keeps the record a session printed from
@@ -220,7 +220,7 @@ def identifier_scan():
     has no pytest.
 
     A census module that will not load stops the run."""
-    spec = importlib.util.spec_from_file_location("specseal_identifier_scan", SCAN)
+    spec = importlib.util.spec_from_file_location("agentic_identifier_scan", SCAN)
     scan = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(scan)
     return scan
@@ -325,7 +325,7 @@ def text_of(case, i, run):
     """The record run I of CASE kept, `report_text`.
 
     A run that keeps none raises ValueError naming the case and the run."""
-    text = (run.get("specseal") or {}).get("report_text")
+    text = (run.get("agentic") or {}).get("report_text")
     if not isinstance(text, str):
         raise ValueError(f"{case}, run {i}, {UNREAD}")
     return text
@@ -542,7 +542,7 @@ def save_side(raw, saved, meta):
 
 
 def annotate(saved):
-    """The side SAVED holds, with `specseal` added: the preload's hashes and
+    """The side SAVED holds, with `agentic` added: the preload's hashes and
     bytes, each run's `report_text`, cost and tool calls read from its saved
     trace, and whether the side was cut short.
 
@@ -556,14 +556,14 @@ def annotate(saved):
     for key, run in runs_of(result):
         rel = meta["traces"].get(key)
         trace = os.path.join(saved, rel) if rel else None
-        run["specseal"] = {
+        run["agentic"] = {
             "report_text": report_text(trace) if trace else "",
             "cost": run_cost(trace) if trace else None,
             "tool_calls": tool_calls(trace) if trace else None,
         }
         if run.get("error"):
             cut = True
-    result["specseal"] = {
+    result["agentic"] = {
         "agent": meta["agent"],
         "preload": meta["preload"],
         "preload_bytes": meta.get("preload_bytes"),
@@ -608,7 +608,7 @@ def run_side(a):
         return write_side(a.from_raw, a.out)
     if not a.agent:
         raise SystemExit("run needs --agent, or --from-raw")
-    work = tempfile.mkdtemp(prefix="specseal-eval-")
+    work = tempfile.mkdtemp(prefix="agentic-eval-")
     try:
         tree = os.path.join(work, "tree")
         if a.rev:
@@ -713,10 +713,10 @@ def side_numbers(result):
                 rows += 1
                 if not any(t.search(row) for t in truths):
                     false += 1
-            costs.append((run.get("specseal") or {}).get("cost") or {})
-            calls.append((run.get("specseal") or {}).get("tool_calls"))
+            costs.append((run.get("agentic") or {}).get("cost") or {})
+            calls.append((run.get("agentic") or {}).get("tool_calls"))
     seconds = pooled(c.get("duration_ms") for c in costs)
-    meta = result.get("specseal") or {}
+    meta = result.get("agentic") or {}
     started = result.get("startedAt", "")
     digest = hashlib.sha256(json.dumps(result, sort_keys=True).encode()).hexdigest()[
         :12
@@ -1478,7 +1478,7 @@ def regrade(a):
     except ValueError as e:
         print(f"{a.side}: {e}", file=sys.stderr)
         return 2
-    meta = result.get("specseal") or {}
+    meta = result.get("agentic") or {}
     agent, own = meta.get("agent"), meta.get("suite_rev")
     if agent not in AGENTS or not own:
         print(
@@ -1519,8 +1519,8 @@ def regrade(a):
     if problems:
         print("\n".join(problems), file=sys.stderr)
         return 2
-    out["specseal"] = dict(
-        out.get("specseal", {}),
+    out["agentic"] = dict(
+        out.get("agentic", {}),
         suite_rev=target,
         suite_tree=suite_tree(target, agent),
         # The suite the runs answered, kept through any number of regrades.

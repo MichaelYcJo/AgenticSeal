@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""test-layout: whether each test file stands where the test layout puts it.
+"""seal layout: whether each test file stands where the test layout puts it.
 
-  test-layout --check [paths]         refuse a file that breaks the layout
-  test-layout --check --all [paths]   refuse a file that declares no TARGET too
-  test-layout --pairs [paths]         name two cases of a class that look alike
-  test-layout --moved BASE --from OLD... --to NEW...
+  seal layout --check [paths]         refuse a file that breaks the layout
+  seal layout --check --all [paths]   refuse a file that declares no TARGET too
+  seal layout --pairs [paths]         name two cases of a class that look alike
+  seal layout --moved BASE --from OLD... --to NEW...
                                       whether the NEW files hold the OLD
                                       files' cases, only moved
 
@@ -1083,7 +1083,7 @@ def _moved_main(root, base, olds, news):
         _test_modules([TESTS + name for name in present], lambda p: _read(root, p)),
     )
     python = _interpreter(root)
-    holder = tempfile.mkdtemp(prefix="test-layout-moved-")
+    holder = tempfile.mkdtemp(prefix="seal-layout-moved-")
     tree = os.path.join(holder, "base")
     try:
         added = _git(root, "worktree", "add", "--detach", "--quiet", tree, sha)
@@ -1106,7 +1106,7 @@ def _moved_main(root, base, olds, news):
         print(line)
     cases = sum(len(_all_cases(ast.parse(source))) for source in old.values())
     print(
-        f"test-layout: moved: {cases} old cases, {after} items against {before} "
+        f"seal layout: moved: {cases} old cases, {after} items against {before} "
         f"at {sha[:12]}, {len(lines)} failed",
         flush=True,
     )
@@ -1171,7 +1171,7 @@ def _read_tests(root, paths):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(
-        prog="test-layout",
+        prog="seal layout",
         description="Whether each test file stands where the test layout puts it.",
     )
     mode = parser.add_mutually_exclusive_group(required=True)
@@ -1222,23 +1222,23 @@ def main(argv=None):
         start = os.path.dirname(os.path.abspath(args.news[0]))
         root = _toplevel(start)
         if root is None:
-            print(f"test-layout: {start} is not inside a git repository", flush=True)
+            print(f"seal layout: {start} is not inside a git repository", flush=True)
             return 2
         try:
             return _moved_main(root, args.moved, args.olds, args.news)
         except Unreadable as exc:
-            print(f"test-layout: {exc}", flush=True)
+            print(f"seal layout: {exc}", flush=True)
             return 2
     first = args.paths[0] if args.paths else os.getcwd()
     start = first if os.path.isdir(first) else os.path.dirname(os.path.abspath(first))
     root = _toplevel(start)
     if root is None:
-        print(f"test-layout: {start} is not inside a git repository", flush=True)
+        print(f"seal layout: {start} is not inside a git repository", flush=True)
         return 2
     missing = [path for path in args.paths if not os.path.exists(path)]
     if missing:
         print(
-            f"test-layout: {', '.join(missing)} names no file or directory",
+            f"seal layout: {', '.join(missing)} names no file or directory",
             flush=True,
         )
         return 2
@@ -1247,7 +1247,7 @@ def main(argv=None):
         lines = pairs(tests)
         for line in lines:
             print(line)
-        print(f"test-layout: {len(tests)} files read, {len(lines)} pairs", flush=True)
+        print(f"seal layout: {len(tests)} files read, {len(lines)} pairs", flush=True)
         return 0
     # Helpers are compared over every test file and `tests/conftest.py`,
     # whatever the paths name; the paths choose the files judged.
@@ -1268,7 +1268,7 @@ def main(argv=None):
         1 for line in refused + reported if line.endswith(f"declares no {TARGET_NAME}")
     )
     print(
-        f"test-layout: {len(tests)} files read, {len(refused)} refused, "
+        f"seal layout: {len(tests)} files read, {len(refused)} refused, "
         f"{undeclared} declare no {TARGET_NAME}",
         flush=True,
     )

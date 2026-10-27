@@ -92,9 +92,9 @@ whose owner has not called it skips this step, and the work items wait on
 disk for the settle the owner calls.
 
 ```bash
-settle
-settle --apply
-fold-check
+seal settle
+seal settle --apply
+seal fold
 ```
 
 The first prints each group of released specs whose rule changes name one
@@ -103,18 +103,18 @@ Between the first and the second, the session running the settle writes each
 section as its group's latest decision, checked against the code, and closes
 each open row with what closed it, asking nobody. The second removes every
 released work item directory whose record holds no open row, and names any
-it keeps. `fold-check` then reads
+it keeps. `seal fold` then reads
 the documents the settle wrote, and names each one past its ceiling as one
 to split (`skills/settle/SKILL.md` *A document past its ceiling is split,
 never trimmed*). The settle's pull request body states each decision with
 its grounds and lists the defaults it took, and the owner reviews it.
 
 `skills/settle/SKILL.md` is the procedure. **A settle is not a work item**:
-it opens no directory under `seal/specs/`, its session runs
+it opens no directory under `seal/threads/`, its session runs
 `seal no-work-item` on the settle's branch before the first edit, and each
-of its commits carries the trailer `SpecSeal-Routing: no work item`, as
+of its commits carries the trailer `Seal-Routing: no work item`, as
 step 4 shows. It owes an answer for every check in this repository carrying
-a population floor over `seal/specs/`.
+a population floor over `seal/threads/`.
 
 ## 3. Verify before committing
 
@@ -152,10 +152,10 @@ check: tests/test_a_shrunken_corpus_declines_to_judge.py tests/test_conftest.py
 The commit belongs to no work item: it is the routing question's
 `no work item` answer (`skills/implement/orchestration.md` *Question 1*), and
 that answer's recorded form is `seal no-work-item`, run in step 1 before the
-first edit, and the trailer `SpecSeal-Routing: no work item` on each commit:
+first edit, and the trailer `Seal-Routing: no work item` on each commit:
 
 ```bash
-git commit -m "chore: release X.Y.Z — <what the fragments say>" -m "SpecSeal-Routing: no work item"
+git commit -m "chore: release X.Y.Z — <what the fragments say>" -m "Seal-Routing: no work item"
 git push -u origin chore/the-fragments-become-X.Y.Z
 gh pr create --base release/vX.Y.Z --head chore/the-fragments-become-X.Y.Z \
   --title "chore: release X.Y.Z — <the same line>" --body-file <file>
@@ -195,7 +195,7 @@ run and swing on the same code, so they are read and never acted on alone.
 **Each release clears what grew.** The test file rows are a report and never
 a ceiling: a heavily exercised module needs the cases it needs. The owner
 reads the rows whose seconds or cases grew most since the tag and sweeps each
-such module with one `bin/mutation-check` call carrying a mutant per class,
+such module with one `bin/seal mutate` call carrying a mutant per class,
 for cases that kill nothing another case does not. The sweep's cuts land in
 a work item of the next release with one line per cut case, the shape
 `CONTRIBUTING.md` *The test layout* gives.
@@ -271,8 +271,8 @@ python3 .github/scripts/plugin_directory_check.py   # what the marketplace files
       To draw one by hand, from a checkout at the tag, with a `python3` that
       imports Pillow, run the suite with the broad gate's recorder loaded
       (`PYTHONPATH="$PWD/skills/verify/scripts/pytest_record"`,
-      `PYTEST_ADDOPTS='-p specseal_pytest_record'`, and
-      `SPECSEAL_RECORD_DIR` and `SPECSEAL_RECORD_KEY` naming a directory
+      `PYTEST_ADDOPTS='-p agentic_pytest_record'`, and
+      `AGENTIC_RECORD_DIR` and `AGENTIC_RECORD_KEY` naming a directory
       that exists and a key you choose), then run
       `DRY_RUN=1 python3 .github/scripts/release_seal.py` with `TAG`,
       `REPO`, `SUITE_RECORDS` (that directory) and `SUITE_KEY` (that key)
@@ -296,14 +296,14 @@ python3 .github/scripts/plugin_directory_check.py   # what the marketplace files
       live by the listing's publish setting, which by default waits for
       somebody to select Publish (`claude.com/docs/plugins/submit`, *Publish
       a passing version*). A Console listing is answered on the Console
-      page. SpecSeal's listing is a Console listing, by the repository
+      page. The plugin's listing is a Console listing, by the repository
       owner's reading of the Console page on 2026-10-07, and a Console
       listing takes no new
       version until a person moves it to the portal
       (`claude.com/docs/directory/publish`, *Move an earlier submission to
       the developer portal*), so no release reaches the directory through it
-      until then. Whether it shows up at all is what a search for SpecSeal
-      inside Claude answers. Neither that search nor the Console page, which
+      until then. Whether it shows up at all is what a search for the
+      plugin inside Claude answers. Neither that search nor the Console page, which
       sits behind the owner's login, is open to a script or a case here:
       both answers are the owner's reading.
 

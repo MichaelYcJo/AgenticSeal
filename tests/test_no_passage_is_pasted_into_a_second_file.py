@@ -4,7 +4,7 @@
 the home of links to that home and does not restate it, and that where a copy
 is found the copy is the defect. Nothing found copies. Four were measured
 before this module existed, each arriving as a paste: #107's contract section
-pasted back into `agents/warden.md`, #292's `CLAUDE.md` block that was 95 %
+pasted back into `agents/proofer.md`, #292's `CLAUDE.md` block that was 95 %
 its template, #715's `CLAUDE.md` and `CONTRIBUTING.md` sentences that
 disagreed, and #730's merge table in `CLAUDE.md`, which had gone false where
 its home had not.
@@ -33,8 +33,8 @@ catch a paraphrase would have to decide when two sentences say the same
 thing, which no constant can hold: at any similarity that catches a
 paraphrase it also matches a heading against the sentence that links it.
 The paraphrase half was measured once, by hand, and its result is recorded in
-`seal/specs/1791076836-every-rule-claude-md-restates-has-one-home/spec.md`
-*The method and its result* at `67694cba` rather than checked.
+`67694cba:seal/specs/1791076836-every-rule-claude-md-restates-has-one-home/spec.md`
+*The method and its result* rather than checked.
 
 **Why a ratchet.** The tree already holds copies, measured into `BASELINE`
 below, and moving them is #755's work, cluster by cluster. So the check fails
@@ -191,32 +191,32 @@ def tree():
 BASELINE = {
     # Sanctioned: the opening paragraph every agent definition carries,
     # which tests/test_every_agent_reads_the_contract.py requires word for
-    # word. framer-smith adds the shared `skills:` list, and smith-warden
-    # adds debt of its own (cluster b of the remainder issue). The framer's
-    # entries were measured on its rewrite (#968): the opening, the step
-    # sentence saying whose `skills/` paths are, the step opening
-    # `writing-style` by section, and with the smith the reference-root
-    # sentence and its `## Never` line, each the same words in every
-    # definition of #957's shape. framer-scribe was measured again at the
-    # merge of `release/v0.22.2`, once #970 gave the scribe the same
+    # word. crafter-framer adds the shared `skills:` list, and
+    # crafter-proofer adds debt of its own (cluster b of the remainder
+    # issue). The framer's entries were measured on its rewrite (#968): the
+    # opening, the step sentence saying whose `skills/` paths are, the step
+    # opening `writing-style` by section, and with the crafter the
+    # reference-root sentence and its `## Never` line, each the same words in
+    # every definition of #957's shape. framer-tracer was measured again at
+    # the merge of `release/v0.22.2`, once #970 gave the tracer the same
     # step sentence.
-    ("agents/framer.md", "agents/scribe.md"): 4,
+    ("agents/crafter.md", "agents/framer.md"): 24,
+    ("agents/crafter.md", "agents/proofer.md"): 18,
+    ("agents/crafter.md", "agents/sealer.md"): 14,
+    ("agents/crafter.md", "agents/tracer.md"): 4,
+    ("agents/framer.md", "agents/proofer.md"): 31,
     ("agents/framer.md", "agents/sealer.md"): 14,
-    ("agents/framer.md", "agents/smith.md"): 24,
-    ("agents/framer.md", "agents/warden.md"): 31,
-    ("agents/scribe.md", "agents/sealer.md"): 5,
-    ("agents/scribe.md", "agents/smith.md"): 4,
-    ("agents/scribe.md", "agents/warden.md"): 4,
-    ("agents/sealer.md", "agents/smith.md"): 14,
-    ("agents/sealer.md", "agents/warden.md"): 14,
-    ("agents/smith.md", "agents/warden.md"): 18,
+    ("agents/framer.md", "agents/tracer.md"): 4,
+    ("agents/proofer.md", "agents/sealer.md"): 14,
+    ("agents/proofer.md", "agents/tracer.md"): 4,
+    ("agents/sealer.md", "agents/tracer.md"): 5,
     # Debt, every entry below. Lowered to the counts measured at #940's
     # last phase; each pair that measured zero left the table.
     ("README.md", "skills/config/SKILL.md"): 22,
     ("README.md", "skills/implement/SKILL.md"): 2,
     ("README.md", "skills/implement/orchestration.md"): 1,
     ("README.md", "skills/parity-setup/SKILL.md"): 1,
-    ("agents/smith.md", "skills/implement/SKILL.md"): 3,
+    ("agents/crafter.md", "skills/implement/SKILL.md"): 3,
     ("docs/one-root-by-lifetime.md", "skills/implement/SKILL.md"): 4,
     ("docs/the-agent-set.md", "skills/implement/SKILL.md"): 20,
     ("skills/agent-contract/SKILL.md", "skills/implement/SKILL.md"): 1,
@@ -270,9 +270,7 @@ def test_a_paste_into_the_block_template_is_named():
     texts = tree()
     paste = a_sentence_of(texts["CONTRIBUTING.md"])
     rel = "templates/claude-md-block.md"
-    planted = texts[rel].replace(
-        "specseal:start -->", "specseal:start -->\n" + paste, 1
-    )
+    planted = texts[rel].replace("agentic:start -->", "agentic:start -->\n" + paste, 1)
     assert planted != texts[rel]
     texts[rel] = planted
     assert [f for f in over_baseline(texts, BASELINE) if rel in f]

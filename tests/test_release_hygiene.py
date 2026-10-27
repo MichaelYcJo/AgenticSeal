@@ -77,7 +77,7 @@ LOADED = (
 #
 # `\w` — a preceding word character makes the token part of a DIFFERENT
 # identifier rather than another spelling of this one. `py3.13.9` names
-# CPython, and no release of SpecSeal makes that number wrong. That is the
+# CPython, and no release of AgenticSeal makes that number wrong. That is the
 # asymmetry with the trailing side, where `rc1` is a prerelease of the SAME
 # version and so is a timer: what precedes a version renames it, what follows
 # it qualifies it.
@@ -120,7 +120,7 @@ RECORDS_OF_A_MOMENT = (
 
 # A version that belongs to somebody else's product is above this plugin's
 # running version by accident of arithmetic, and it is not a timer: no release
-# of SpecSeal makes it wrong. Pinned to the file it is written in, so the
+# of AgenticSeal makes it wrong. Pinned to the file it is written in, so the
 # exemption stays a fact about one comment rather than a hole the token can
 # walk through anywhere.
 VERSIONS_OF_ANOTHER_PRODUCT = {
@@ -135,7 +135,7 @@ VERSIONS_OF_ANOTHER_PRODUCT = {
     ("skills/implement/scripts/seal.py", "2.50.1"): (
         "git's, named in `remote_url`'s docstring as the build whose exit "
         "codes were measured. An exit code read off an unnamed git is not a "
-        "measurement, and no release of SpecSeal makes the number wrong (#111)"
+        "measurement, and no release of AgenticSeal makes the number wrong (#111)"
     ),
     ("skills/verify/scripts/broad_gate.py", "2.54.0"): (
         "git's, named in `names_a_branch`'s docstring as the build on which "
@@ -158,14 +158,14 @@ VERSIONS_OF_ANOTHER_PRODUCT = {
         "pinned in `.github/scripts/run_tests.py#MARKDOWN_IT` (#667). The "
         "fallback commands in *Running the checks* carry the pin so they "
         "install the parser the oracle is held to, and a case holds them to "
-        "the runner's constant; no release of SpecSeal makes the number wrong"
+        "the runner's constant; no release of AgenticSeal makes the number wrong"
     ),
     ("CONTRIBUTING.md", "12.3.0"): (
         "Pillow's, the imaging library the release seal is drawn and read "
         "with, pinned in `.github/scripts/run_tests.py#PILLOW` (#718, #1009). "
         "The class is the row above's: the fallback commands carry the pin so "
         "they install the version the suite's pixel cases are held to, and a case holds "
-        "them to the runner's constant; no release of SpecSeal makes the "
+        "them to the runner's constant; no release of AgenticSeal makes the "
         "number wrong"
     ),
     ("CONTRIBUTING.md", "2025.10.22"): (
@@ -174,7 +174,7 @@ VERSIONS_OF_ANOTHER_PRODUCT = {
         "is the two rows above: the fallback commands carry the pin so they "
         "install the renderer the walker's property case is held to, and a "
         "case holds them to the runner's constant; the package numbers its "
-        "releases by date, and no release of SpecSeal makes the number wrong"
+        "releases by date, and no release of AgenticSeal makes the number wrong"
     ),
     ("skills/verify/scripts/seal_stamp.py", "2.1.287"): (
         "Claude Code's, named above `MESSAGE_LIMIT` as the build on which the "
@@ -182,7 +182,7 @@ VERSIONS_OF_ANOTHER_PRODUCT = {
         "(#717). The class is the git rows' above, a loaded file naming the "
         "tool build a measurement was taken on: the limit is the harness's to "
         "move, and the comment says the same probe at two sizes is the whole "
-        "re-measurement; no release of SpecSeal makes the number wrong"
+        "re-measurement; no release of AgenticSeal makes the number wrong"
     ),
 }
 
@@ -593,7 +593,7 @@ def test_no_loaded_file_names_a_version_at_or_above_the_running_one():
     Three exemptions, each argued where it is declared rather than here:
 
     - `RECORDS_OF_A_MOMENT` — files whose whole job is to name a moment.
-      `seal/specs/`, `CHANGELOG.md` and `changelog/` are outside the scanned
+      `seal/threads/`, `CHANGELOG.md` and `changelog/` are outside the scanned
       set entirely. `docs/experiments/` holds dated measurements whose
       numbers are the reading.
     - `ILLUSTRATIVE_VERSION` — the value the repository already tells authors
@@ -735,7 +735,7 @@ def test_the_illustrative_version_is_allowed_in_any_loaded_file():
     assert (
         timers_in("docs/issues-and-milestones.md", text, RUNNING_IN_THE_FIXTURES) == []
     )
-    assert timers_in("agents/warden.md", text, RUNNING_IN_THE_FIXTURES) == []
+    assert timers_in("agents/proofer.md", text, RUNNING_IN_THE_FIXTURES) == []
 
 
 def test_a_record_of_a_moment_keeps_every_version_it_names():
@@ -1033,7 +1033,7 @@ def test_the_python_floor_is_the_same_number_everywhere():
 def test_update_tells_the_user_when_the_preset_block_changed():
     """`claude plugin update` installs the plugin, never the CLAUDE.md block.
 
-    The block arrives only through `install.sh` or `/specseal:preset-setup`,
+    The block arrives only through `install.sh` or `/agentic:preset-setup`,
     both run by hand -- so a release can change a rule while every installed
     machine keeps stating the old one. The update command has to look and say
     so, or the change reaches no session that was already running."""
@@ -1041,10 +1041,10 @@ def test_update_tells_the_user_when_the_preset_block_changed():
         os.path.join(ROOT, "skills", "update", "SKILL.md"), encoding="utf-8"
     ) as f:
         update = f.read()
-    assert "specseal:start" in update, (
+    assert "agentic:start" in update, (
         "the update command stopped comparing the preset block"
     )
-    assert "/specseal:preset-setup" in update, (
+    assert "/agentic:preset-setup" in update, (
         "the update command names no way to take a changed block"
     )
     assert "does not delete anything the user wrote" in update.lower(), (
@@ -1094,7 +1094,7 @@ def test_no_section_accumulates_entries_in_the_shared_file():
     This case used to check that it sat ABOVE every dated section, after a
     rebase conflict resolved the wrong way sank it below one. That ordering
     stopped being the problem when the section stopped existing: entries
-    accumulate as `seal/specs/<work-item-id>/changelog.md` fragments now, and
+    accumulate as `seal/threads/<work-item-id>/changelog.md` fragments now, and
     the
     release gathers them into a dated section at the top. A heading by that
     name means somebody went back to the shared file, which is issue #46.
@@ -1108,7 +1108,7 @@ def test_no_section_accumulates_entries_in_the_shared_file():
     found = [h for h in headings if h.lower().startswith("unreleased")]
     assert not found, (
         f"CHANGELOG.md carries {found} again. An entry goes in "
-        "seal/specs/<work-item-id>/changelog.md; `gather_changelog.py --version "
+        "seal/threads/<work-item-id>/changelog.md; `gather_changelog.py --version "
         "X.Y.Z` is what writes a section here"
     )
 
@@ -1190,11 +1190,11 @@ def test_the_release_target_is_asked_before_the_work_starts():
     # The branch question is part of the routing section, which is the
     # orchestrator's half of `implement` since #292; the yes/no tell it
     # answers to stays in the implementer's half. The skill is read as both.
-    # `agents/smith.md` carried the same paragraph until #967: the smith opens
+    # `agents/crafter.md` carried the same paragraph until #967: the crafter opens
     # no pull request and asks nothing, so the question is not its own, and
     # what stays for it is the absence below.
-    assert "## Unreleased" not in " ".join(read_text("agents", "smith.md").split()), (
-        "smith.md prescribes a changelog heading again"
+    assert "## Unreleased" not in " ".join(read_text("agents", "crafter.md").split()), (
+        "crafter.md prescribes a changelog heading again"
     )
     for parts, text in (
         (
@@ -1217,7 +1217,7 @@ def test_the_release_target_is_asked_before_the_work_starts():
         )
         # Round 1, 🔴 7. This used to require the literal `## Unreleased`, and
         # that is a heading THIS repository no longer has: entries accumulate
-        # as `seal/specs/<work-item-id>/changelog.md` fragments. A `smith`
+        # as `seal/threads/<work-item-id>/changelog.md` fragments. A `crafter`
         # reading
         # its own contract therefore either created the heading — reddening
         # `test_no_section_accumulates_entries_in_the_shared_file` — or
@@ -1270,7 +1270,9 @@ def test_no_korean_pr_body_claims_a_close_that_did_not_happen():
     named #54, the issue this work item leaves open on purpose."""
     import glob
 
-    for path in sorted(glob.glob(os.path.join(ROOT, "seal", "specs", "*", "pr.ko.md"))):
+    for path in sorted(
+        glob.glob(os.path.join(ROOT, "seal", "threads", "*", "pr.ko.md"))
+    ):
         text = open(path, encoding="utf-8").read()
         for line in text.splitlines():
             if "닫습니다" in line and "#" in line and "닫히지" not in line:
@@ -1473,12 +1475,12 @@ def test_this_repository_has_one_root_laid_out_by_lifetime():
         f"the ledger is back at {', '.join(leftovers)}. It left the tree in "
         "#944 and nothing reads it; a rule names the test that holds it instead"
     )
-    # `seal/specs/` is absent after a complete fold, because git keeps no
+    # `seal/threads/` is absent after a complete fold, because git keeps no
     # empty directory, and that is the laid-out state. `assert items` stood here — some work item carries a routing.md
     # — and it was a floor of one (#517); what it was about holds at any
-    # size and is stronger: every entry under `seal/specs/` is a work item,
+    # size and is stronger: every entry under `seal/threads/` is a work item,
     # whole, which starts with the declaration written before its first edit.
-    specs = os.path.join(seal, "specs")
+    specs = os.path.join(seal, "threads")
     if os.path.isdir(specs):
         loose = [
             n
@@ -1486,7 +1488,7 @@ def test_this_repository_has_one_root_laid_out_by_lifetime():
             if not os.path.isfile(os.path.join(specs, n, "routing.md"))
         ]
         assert not loose, (
-            f"seal/specs/ holds something that is not a work item: {loose}"
+            f"seal/threads/ holds something that is not a work item: {loose}"
         )
     for old in (".specseal", "specs"):
         assert not os.path.exists(os.path.join(ROOT, old)), (

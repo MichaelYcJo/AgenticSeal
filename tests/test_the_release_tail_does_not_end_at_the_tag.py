@@ -199,14 +199,14 @@ def test_the_directory_box_says_it_never_fails_a_release():
 
 
 def test_the_directory_box_records_which_kind_of_listing_it_is_with_a_date():
-    """#858 A6. Nothing in the tree can see SpecSeal's listing move from the
+    """#858 A6. Nothing in the tree can see the plugin's listing move from the
     Console to the portal, so the sentence saying which kind it is carries
     whose reading it is and when — a reader can then tell it has aged — and
     says what that kind means for a release and where the move is
     documented."""
     sentences = re.split(r"(?<=\.) ", directory_box())
-    kind = [s for s in sentences if "SpecSeal's listing is a Console listing" in s]
-    assert kind, "the box does not say which kind of listing SpecSeal's is"
+    kind = [s for s in sentences if "The plugin's listing is a Console listing" in s]
+    assert kind, "the box does not say which kind of listing the plugin's is"
     assert re.search(r"\b\d{4}-\d{2}-\d{2}\b", kind[0]), (
         f"the kind sentence carries no date: {kind[0]!r}"
     )

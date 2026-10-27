@@ -7,7 +7,7 @@ description: |
   Use when: a written design exists and someone needs to know how far the
   implementation has drifted from it.
   NOT for: checking that a rule's `check:` targets resolve
-  (`rules --check`), judging ported behavior against an original (`legacy-parity`), or reviewing
+  (`seal rules --check`), judging ported behavior against an original (`legacy-parity`), or reviewing
   a diff (`code-review`).
 ---
 

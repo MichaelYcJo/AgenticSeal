@@ -4,11 +4,11 @@ The record's facts are its labelled lines; a mark the check does not read is
 a mark a reader has to sort, and sorting marks is what four rounds of this
 repository found read wrong. So no file an agent reads as instruction carries
 an emoji or a proof block: every definition, every skill's `SKILL.md` and
-every template (T6 of `1792251842-the-smith-is-written-anew-from-its-job`,
+every template (T6 of work item 1792251842, which wrote the crafter anew,
 which took over T39's four files). Each verdict word means one thing, too: a
 repair with no commit on the branch closes `deferred <where it was
 repaired>`, one a commit made closes `fixed <commit>`, and `rejected` is a
-finding that does not hold (T41, `spec.md` of
+finding that does not hold (T41, `frame/design.md` of
 `1791933022-every-agent-skill-and-doc-states-the-current-rule-only`,
 *What a round records*).
 """

@@ -1,7 +1,7 @@
 ---
 type: 'tool_used'
 tool: 'Write'
-input_match: '"file_path"\s*:\s*"[^"]*/home/cwd/(?!seal\/specs\/1790000023-word-count\/)'
+input_match: '"file_path"\s*:\s*"[^"]*/home/cwd/(?!seal\/threads\/1790000023-word-count\/)'
 max: 0
 min: 0
 ---

@@ -7,7 +7,7 @@ produce and what holds them.
 
 ## The round record
 
-**A round is one file the warden writes.** `seal/specs/<id>/rounds/round-N.md`,
+**A round is one file the proofer writes.** `seal/threads/<id>/trail/rounds/round-N.md`,
 from `templates/sdd-round.md`, in the branch worktree under review: a
 `target:` line, then `## Findings` with one `### <n>. <symptom>` section per
 finding, `## Confirmations` where the round confirmed something,
@@ -87,7 +87,7 @@ every check that reads a record stops.
 check: tests/test_chain_check.py
 
 **A finding's `verdict:` decides it, and severity is for people.** The
-warden writes `open`; the fix pass answers with `fixed <commit>`,
+proofer writes `open`; the fix pass answers with `fixed <commit>`,
 `rejected` (the finding does not hold, and `answer:` says why) or
 `deferred <home>`. `severity:` is `must` (fix before merge) or `should`
 (fix, or say why not); the check holds it to its row and decides nothing on
@@ -122,8 +122,8 @@ check: tests/test_chain_check.py
 missing, that nothing catches, calls or states it, names the search that
 found nothing, because no coordinate opened can show an absence. The check
 reads the line's shape and never whether a claim is one of absence; the
-warden who writes the line and the round that reads it judge that.
-check: none reader: the warden and the next round
+proofer who writes the line and the round that reads it judge that.
+check: none reader: the proofer and the next round
 
 **A later round re-runs an `executed` line rather than re-deriving the
 claim.** Where it weighs an earlier finding, it runs the commands the line
@@ -164,7 +164,7 @@ finding owes nothing. Round 1 has no earlier record, so its entries read
 check: tests/test_chain_check.py
 
 **Every round file stays, so a finding can be followed from the round that
-found it to the commit that closed it.** The next round's warden reads the
+found it to the commit that closed it.** The next round's proofer reads the
 earlier records directly; nothing summarises them. They leave with their
 work item's directory, which the settle after its release removes.
 check: tests/test_settle.py
@@ -179,8 +179,8 @@ check: tests/test_chain_check.py
 ## What the check reads at the pull request
 
 **`chain_check.py` reads the declaration, the frame, the `## Rule changes`
-section of each `spec.md` it parses, the records, the broad gate's
-file, the sealer's guarantee, the `SpecSeal-Routing` trailers of the pull
+section of each `frame/design.md` it parses, the records, the broad gate's
+file, the sealer's guarantee, the `Seal-Routing` trailers of the pull
 request's own commits and, where `seal/parity.md` is declared, the
 migration config's `Baseline commit`, and nothing else of a round
 record.** It judges the
@@ -219,7 +219,7 @@ the check reads a comment as text. Each refusal names the record, the line and t
 finding's heading. No emoji is read, and neither severity nor answer
 decides anything. It errs two ways where the
 shape holds and the fact does not: a `fixed` commit that touches a named
-path and fixes nothing passes, and the verifying round's warden, whose
+path and fixes nothing passes, and the verifying round's proofer, whose
 `confirms:` line the check then requires, is who reads the fix; and a fence
 closed on the wrong line hides the lines between it and its false closer
 without being unclosed, which the orchestrator's reading of each record
@@ -230,15 +230,15 @@ check: round-record-read-by-label
 **The last record is at HEAD, or only the work item's own records follow
 it, and none of its findings is `fixed` or `rejected`.** A commit after the
 last record's `target:` commit that touches a file outside
-`seal/specs/<id>/` is a fix nobody reviewed, and the refusal names it and
+`seal/threads/<id>/` is a fix nobody reviewed, and the refusal names it and
 says a verifying round is owed. So is a `fixed` or `rejected` finding of the
 last record, since no round after it read the fix or the rejection; a last
 record whose findings all read `deferred <home>`, or that holds none,
 passes.
 check: last-record-at-head
 
-**The broad run has one home, `broad-gate.md`, on either routing answer.**
-`broad-gate --record <item>` writes `<tree> against <base>` there on a green
+**The broad run has one home, `trail/gate.md`, on either routing answer.**
+`seal gate --record <item>` writes `<tree> against <base>` there on a green
 run, newest first, every earlier run kept behind it as `; earlier run: …`. At
 a ready pull request its newest run is HEAD, or only the work item's records
 follow it.
@@ -273,9 +273,9 @@ bytes unchanged is neither judged nor missed, because the pull request that
 only moved it did not make it.
 check: tests/test_chain_check.py
 
-**The check parses the `## Rule changes` section of the `spec.md` of
+**The check parses the `## Rule changes` section of the `frame/design.md` of
 every work item whose `routing.md` it judges, and of every work item
-`spec.md` the pull request's own commits add or change, with
+`frame/design.md` the pull request's own commits add or change, with
 `skills/settle/scripts/rule_changes.py`, the one reader of that
 section, and a section the reader refuses is a refusal at the line the
 reader names, carrying the reader's reason.** `settle` groups the
@@ -286,9 +286,9 @@ spec, with no pull request left to fix it in. A
 declared work item can edit another work item's section without
 touching that work item's `routing.md`, which is why the diff is read
 as well as the declarations. A pull request that declares nothing
-reads no `spec.md`. A `spec.md` a squash of another pull request
+reads no `frame/design.md`. A `frame/design.md` a squash of another pull request
 carried, and one the pull request only moved, are read at the pull
-request that made them. A `spec.md` with no `## Rule changes` section
+request that made them. A `frame/design.md` with no `## Rule changes` section
 is left alone here, and the settle reads such a spec whole. The refusal
 reads a fact from the file and puts no question to a person.
 check: rule-changes-read-at-the-pull-request
@@ -305,12 +305,12 @@ judged. A ready pull request fails while a round record holds no
 `Baseline commit` row's SHA are not one a prefix of the other, and a
 migration config whose `Baseline commit` holds no SHA fails it too. Each
 refusal names the record, or the config, and both commits where two are
-compared. The warden writes the line in the round where it compared that
+compared. The proofer writes the line in the round where it compared that
 round's target with the original through `legacy-parity`. A round that
 could not resolve the original writes no line and raises an `unread`
 finding, so the refusal stands until a round compares. What the check
 cannot read is whether the comparison was a good one, which is the
-warden's.
+proofer's.
 check: parity-at-the-pull-request
 
 **Where `seal/parity.md` is declared and the change reaches outside
@@ -325,7 +325,7 @@ check cannot read is whether the comparison was a good one, which is the
 sealer's.
 check: parity-in-the-guarantee
 
-**On every pull request, the check reads the `SpecSeal-Routing` trailer of
+**On every pull request, the check reads the `Seal-Routing` trailer of
 each of its own commits, as `docs/the-routing-check.md` *At the pull
 request* states.**
 check: routing-trailer-at-the-pull-request
@@ -343,11 +343,11 @@ check: nothing-declared-nothing-owed
 ## The guarantee
 
 **The sealer is the final, independent guarantor: it verifies, independently
-of the smith and the warden, that the work before it holds.** Its
+of the crafter and the proofer, that the work before it holds.** Its
 reference is the issue body and the tree, never an agent's word or the
 orchestrator's summary. It runs after the pull request body and the
 changelog fragment are written and the orchestrator's broad run has written
-`broad-gate.md`, on both routing answers; it reads that record and runs
+`trail/gate.md`, on both routing answers; it reads that record and runs
 nothing broad, and its order of work is `agents/sealer.md`'s.
 
 **It checks a claim against the fact, and the parties against each other.**
@@ -372,7 +372,7 @@ new HEAD.
 check: tests/test_the_sealer_guarantees.py tests/test_chain_check.py
 
 **A ready pull request passes only where `guarantee.md` names HEAD and reads
-`sealed`.** Only the closing records, `broad-gate.md` and `guarantee.md`,
+`sealed`.** Only the closing records, `trail/gate.md` and `guarantee.md`,
 may follow the commit it names, since every other file on the branch is one
 the sealer audited. `withheld`, `undecided`, an unfilled template, two
 `Verdict:` lines or a stale commit each fail naming the file; a draft prints
@@ -396,11 +396,11 @@ drawn from that verdict and never from the broad gate's run, which comes
 before the sealer has read anything and draws nothing
 (`docs/the-broad-gate.md` *One act, one owner*). A `post-edit` gate,
 `hooks/sealer-stamp-queue.py`, runs after each `Write` or `Edit` of a
-`seal/specs/<id>/guarantee.md` under either root. Where its one `Verdict:`
+`seal/threads/<id>/guarantee.md` under either root. Where its one `Verdict:`
 reads `sealed`, it writes the stamp's values under
-`<git-common-dir>/specseal-stamp/<session>/` for the payload's session,
+`<git-common-dir>/agentic-stamp/<session>/` for the payload's session,
 which a subagent's write carries as the main session's, and says one line
-naming the file and `seal-stamp --from <path>` as its message. A `Stop` hook draws each undrawn file
+naming the file and `seal stamp --from <path>` as its message. A `Stop` hook draws each undrawn file
 of its own session once, after that turn's text, and a subagent's end draws
 nothing. `withheld` and `undecided` queue nothing. Once per work item is held
 by what the clone and the tree carry, with no count beside them: a values
@@ -442,7 +442,7 @@ skips a `sealed` this clone recorded, so the sealer's new audit draws the
 work item's one stamp.** The new audit keeps the refused verdict on its
 `Target SHA` row as `; earlier run: <sha> sealed`, and without a record the
 chain would count that entry as the stamp. The record is an empty file,
-`<git-common-dir>/specseal-stamp-refused/<id>-<target>`, beside the values
+`<git-common-dir>/agentic-stamp-refused/<id>-<target>`, beside the values
 directory and never listed with it. One writer leaves it, for a row that
 stands in its own clone and nowhere else: `hooks/sealer-stamp-queue.py`, in
 either mode, where the `Branch` row's branch stands and does not hold the
@@ -477,7 +477,7 @@ what one message can carry stays pending and is drawn at the next turn's
 end, and a single stamp that does not fit with its disc by itself is the
 only one drawn as the text block with no disc. A stamp can
 come out without its disc or a turn later, and a session that ends first
-leaves it for `seal-stamp --from`. `seal-stamp` is not budgeted, because it
+leaves it for `seal stamp --from`. `seal stamp` is not budgeted, because it
 is no hook's message.
 check: tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py tests/test_sealer_stamp.py
 
@@ -519,7 +519,7 @@ hook draws nothing and says nothing where the main session's `python3`
 cannot load `seal_stamp.py`, since no launcher stands in front of a hook;
 where that session's working directory is outside the clone the stamp was
 queued in; or where its plugin predates the hook. Where a file was written,
-the edit hook's message names `seal-stamp --from <path>`, and a stamp that did not appear is drawn by
+the edit hook's message names `seal stamp --from <path>`, and a stamp that did not appear is drawn by
 hand from it, once. Where none was, the pull request's check is what says the
 work item was sealed.
 No case, hook or workflow can observe a screen.
@@ -539,7 +539,7 @@ check: run-ends-with-verifying-round
 
 **A run has three finding rounds by default, counted from the last design
 change, and extends one round at a time while the findings shrink.** A
-design change is a reframe, or a new phase the owner approved in `plan.md`,
+design change is a reframe, or a new phase the owner approved in `frame/plan.md`,
 so the first finding round that reviews new work starts the count again at
 one, whatever the record's number. Past the third round of the count the
 orchestrator spawns one more finding round only while the latest round
@@ -549,7 +549,7 @@ round, whatever the count, which reads that fix and is not an extension. A
 second regression it finds on the same unit goes to the framer, as the next
 paragraph says, and anything else it leaves open past the cap takes the
 ladder. Each extension is one line in that round's record, written by the
-warden from the reason the spawn prompt gives:
+proofer from the reason the spawn prompt gives:
 
 ```
 Extended past round 3, counting from round 1: round 3 found 2, round 2 found 4, and none is a regression.
@@ -562,24 +562,24 @@ check: tests/test_the_rules_have_one_owner.py
 **A regression is routed by comparing the fix with the frame.** A
 regression is a defect a fix pass's own commit introduced. Where a finding
 stands in a unit a fix pass's own commits added or changed, and those
-commits introduced its defect, the warden writes its `regression:` line,
+commits introduced its defect, the proofer writes its `regression:` line,
 naming the finding whose fix made the unit
 as `round-<N>#<n>`, or that round as `round-<N>` where no finding named the
 unit, and names the unit first in the grounds. Then one sentence of the
-grounds says what the frame says, from the phase's `plan.md` row and
-`spec.md`, what the fix did, and where the defect came from. No label
+grounds says what the frame says, from the phase's `frame/plan.md` row and
+`frame/design.md`, what the fix did, and where the defect came from. No label
 carries that sentence, and the orchestrator routes the round on it, at any
 round of the run. Where the fix built what the frame says and the defect is
 still there, the frame is wrong, and the round gets no fix pass: the work
 item goes back to its framer, who writes
 `Reframed <date> by <who>, after round <N>.` under the mark at the foot of
-`spec.md`, and the run goes on with the redesign's build and its rounds.
+`frame/design.md`, and the run goes on with the redesign's build and its rounds.
 Where the fix departed from the frame, or the defect came from how the fix
 was written, a paste-ready fix taken from a review record among them, the
-round gets an ordinary fix pass, and the smith is told what the frame says.
+round gets an ordinary fix pass, and the crafter is told what the frame says.
 A second regression on the same unit after a fix-pass route goes to the
 framer whatever the comparison says. A defect in a unit a build phase made,
-one the framer designed and the owner approved in `plan.md`, is an ordinary
+one the framer designed and the owner approved in `frame/plan.md`, is an ordinary
 finding of new work, with no `regression:` line, even where the round that
 finds it reads that phase. A close that does not hold where no fix pass's
 commit made the defect, a `rejected` finding that holds after all or a
@@ -593,7 +593,7 @@ third rung, not the default:
 
 | Rung | When it fits | Where the finding goes |
 |---|---|---|
-| 1 | the branch owns the unit, or the smith answers the finding with grounds | the diff, or the round record with the grounds |
+| 1 | the branch owns the unit, or the crafter answers the finding with grounds | the diff, or the round record with the grounds |
 | 2 | an open issue already owns the ground | a comment on that issue; the verdict reads `deferred #N` |
 | 3 | the finding names a party who agreed to act on it | a new issue labelled `from-review`, or a `seal/follow-up.md` row where there is no tracker; the verdict reads `deferred #N` |
 | 4 | it names nobody | the round record alone, and the pull request body |
@@ -605,7 +605,7 @@ question tool is refused on every call.** The person who answered the
 routing question was promised that nothing stops to ask, and a
 question put at minute thirty waits for somebody who is not there.
 The session builds on the default the question states, records that
-default in the work item's `questions.md` as one row, and names it in
+default in the work item's `frame/questions.md` as one row, and names it in
 the pull request body, where the owner can overturn it. The routing
 question put alone, single-select and with its text, goes through
 while this session's transcript can be read and holds no answer to
@@ -640,7 +640,7 @@ means and what the other is for; a runner the repository ships is named, not
 typed into every prompt, and the form handed over is the narrow one.
 check: tests/test_the_handoff_before_round_one.py
 
-**While an agent runs, `plan.md`'s Status column is the readout.** The
+**While an agent runs, `frame/plan.md`'s Status column is the readout.** The
 implementer fills it with the commit that closed each phase, so the
 orchestrator opens it rather than asking, and the stall signal is the time
 since it last advanced. After the run, `skills/verify/scripts/session_cost.py`

@@ -21,7 +21,7 @@ round 9 fix pass, each a case of one helper of this module.
 
 Seen red before they were committed (contract rule 15): the three accepting
 cases failed against the conftest that still held the failing ceiling, which
-had neither `SLOW_CASE_S` nor a summary hook, and `mutation-check` turned
+had neither `SLOW_CASE_S` nor a summary hook, and `seal mutate` turned
 each refusing case red by breaking the condition it pins.
 """
 
@@ -58,7 +58,7 @@ CONFTEST = os.path.join(HERE, "conftest.py")
 TOKENS = ("GH_TOKEN", "GITHUB_TOKEN", "GH_ENTERPRISE_TOKEN", "GITHUB_ENTERPRISE_TOKEN")
 
 # Pinned verbatim: the conftest's placeholder, which is not a credential.
-NOT_A_GH_TOKEN = "specseal-suite-runs-with-gh-logged-out"
+NOT_A_GH_TOKEN = "agentic-suite-runs-with-gh-logged-out"
 
 # Run the conftest's import-time code in a child whose environment carries
 # every token and a config directory of its own, and report what is left.

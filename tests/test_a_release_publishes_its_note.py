@@ -139,7 +139,7 @@ def test_the_workflow_fires_on_the_tag_and_writes_one_release_one_asset_one_edit
     assert len(held) == 5, held
     assert not any("apt-get" in line for step in held for line in step), held
     pillow = module(
-        os.path.join(SCRIPTS, "run_tests.py"), "specseal_run_tests_for_the_seal_job"
+        os.path.join(SCRIPTS, "run_tests.py"), "agentic_run_tests_for_the_seal_job"
     ).PILLOW
     installs = [
         n
@@ -179,9 +179,9 @@ def test_the_workflow_fires_on_the_tag_and_writes_one_release_one_asset_one_edit
     assert said["PYTHONPATH"] == (
         "${{ github.workspace }}/skills/verify/scripts/pytest_record"
     ), said
-    assert said["PYTEST_ADDOPTS"] == "-p specseal_pytest_record", said
-    assert said["SUITE_RECORDS"] == said["SPECSEAL_RECORD_DIR"], said
-    assert said["SUITE_KEY"] == said["SPECSEAL_RECORD_KEY"], said
+    assert said["PYTEST_ADDOPTS"] == "-p agentic_pytest_record", said
+    assert said["SUITE_RECORDS"] == said["AGENTIC_RECORD_DIR"], said
+    assert said["SUITE_KEY"] == said["AGENTIC_RECORD_KEY"], said
     assert not any(
         "junitxml" in line or "SUITE_XML" in line for line in text.splitlines()
     )

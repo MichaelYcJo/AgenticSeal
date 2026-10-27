@@ -8,7 +8,7 @@ opens with one line naming them: `## 먼저`, `## 구성 규칙`, and the
 per-document section for the text being written. And a step that names a
 heading by its spelling breaks silently when the heading is renamed, so every
 heading an agent's `writing-style` step names must stand in the file (T7 and
-S8 of `1792251842-the-smith-is-written-anew-from-its-job`).
+S8 of work item 1792251842, which wrote the crafter's definition anew).
 
 The home is a module of its own rather than the payload meter's: nothing here
 reads what the meter measures, only what an agent opening a section finds.
@@ -23,8 +23,8 @@ from conftest import read
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 SKILL = "skills/writing-style/SKILL.md"
 
-# The two sections an agent opens alone, spelled as `agents/warden.md` and
-# `agents/smith.md` name them.
+# The two sections an agent opens alone, spelled as `agents/proofer.md` and
+# `agents/crafter.md` name them.
 LANGUAGE_SECTIONS = ("## 문장 규칙", "## English prose rules")
 
 # What each section's first paragraph names: the two language-agnostic
@@ -47,7 +47,7 @@ WRITING_RULE_CHECKS = (
     " tests/test_censuses.py"
     " tests/test_the_agent_contract_holds_the_universal_rules.py",
     "check: tests/test_one_word_one_meaning.py",
-    "check: none reader: the warden at review",
+    "check: none reader: the proofer at review",
 )
 
 
@@ -106,9 +106,9 @@ def test_each_language_section_of_writing_style_opens_alone():
             )
 
     named = named_by_agents()
-    assert set(LANGUAGE_SECTIONS) <= named.get("agents/warden.md", set()), (
-        "agents/warden.md's record step no longer names both language sections "
-        f"by heading; it names {sorted(named.get('agents/warden.md', set()))}"
+    assert set(LANGUAGE_SECTIONS) <= named.get("agents/proofer.md", set()), (
+        "agents/proofer.md's record step no longer names both language sections "
+        f"by heading; it names {sorted(named.get('agents/proofer.md', set()))}"
     )
     dangling = [
         f"{rel}: {span}"

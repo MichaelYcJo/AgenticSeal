@@ -1,5 +1,5 @@
 ---
 type: 'file_exists'
-path: 'seal/specs/1790000024-document-helpers/plan.md'
+path: 'seal/threads/1790000024-document-helpers/frame/plan.md'
 ---
-The frame writes `plan.md`.
+The frame writes `frame/plan.md`.

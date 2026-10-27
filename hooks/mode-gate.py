@@ -9,7 +9,7 @@ monorepo that would not have wanted its records committed has them committed,
 and the way back is a documented sequence rather than a setting.
 
 **Nothing observed it.** #151, reported from a repository's first work item
-under SpecSeal: the session created `seal/` and started working, and no
+under AgenticSeal: the session created `seal/` and started working, and no
 question was asked. Three files each said something correct and the three
 together left no route to the question -- `hooks/optin.py` says the root's
 existence IS the declaration, `skills/implement/orchestration.md`
@@ -17,7 +17,7 @@ existence IS the declaration, `skills/implement/orchestration.md`
 (`templates/claude-md-block.md`, which `install.sh` copies into
 `~/.claude/CLAUDE.md`, so it loads in every project on the machine) tells a
 session to write
-`seal/specs/<id>/routing.md` before the first edit. That write creates the
+`seal/threads/<id>/routing.md` before the first edit. That write creates the
 root. The question lived in a skill the session had no reason to load.
 
 So this names the state rather than hoping a document is read. A root with no
@@ -81,11 +81,11 @@ import optin
 # One marker file per session per repository, in a directory no other gate
 # writes. Sharing one would make answering one question silence another, and
 # different questions can arrive in the same session.
-CHOICE_DIR = "specseal-mode-choice"
+CHOICE_DIR = "agentic-mode-choice"
 # The session's SECOND and last prompt: the approvable retry the deny tells
 # the model to make. Its own directory, because the deny and the ask are two
 # different questions and each is spent once.
-RETRY_DIR = "specseal-mode-retry"
+RETRY_DIR = "agentic-mode-retry"
 
 
 def already_asked(git_dir, session, choice_dir=CHOICE_DIR):
@@ -225,7 +225,7 @@ def marker_dir(root, home, common=None):
 def question_reason(root, home):
     """The first prompt: a deny whose reason hands the choice to the user."""
     return (
-        f"{root} runs the SpecSeal workflow — its root is at {home} — and "
+        f"{root} runs the AgenticSeal workflow — its root is at {home} — and "
         "nothing records which mode that root is in. Creating the root is "
         "what opts a repository in, and the mode it landed in decides "
         "something nobody was asked: shared mode COMMITS the root, so every "
@@ -259,7 +259,7 @@ def question_reason(root, home):
 def ask_reason(root, home):
     """The plain prompt, for the attempts after the first in a session."""
     return (
-        f"{root} runs the SpecSeal workflow — root at {home} — and nothing "
+        f"{root} runs the AgenticSeal workflow — root at {home} — and nothing "
         "records which mode that root is in, so `seal mode` has not been run "
         "here.\n\n"
         "Approving proceeds and records nothing: the state stays as it is and "

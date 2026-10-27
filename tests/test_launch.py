@@ -128,7 +128,7 @@ class Test_main:
         assert out.returncode == 2, (out.returncode, out.stderr)
         assert "Traceback" not in out.stderr, out.stderr
         assert not out.stdout, out.stdout
-        launch = load(LAUNCH, "specseal_launch_refusal")
+        launch = load(LAUNCH, "agentic_launch_refusal")
         monkeypatch.setattr(launch, "FLOOR", (99, 0))
         assert launch.main(["launch.py", script, "0"]) == 2
         assert not (tmp_path / "scripts" / "ran").exists(), (
@@ -149,7 +149,7 @@ class Test_module:
         """The refusal is written before anything sets up stderr, so a path the
         console cannot encode would end it in a traceback, on the machine that
         has no other way of being told what is wrong."""
-        launch = load(LAUNCH, "specseal_launch_ascii")
+        launch = load(LAUNCH, "agentic_launch_ascii")
         sentence = launch.refusal(
             "/Users/x/코드/round_record.py", (3, 9, 6), "/Users/x/파이썬/python3"
         )
@@ -160,9 +160,9 @@ class Test_module:
         """`hooks/launch.py` is the one file that spells the floor, the runner
         builds its virtualenv against the launcher's number, and `ruff.toml`,
         which cannot import, lints at that number."""
-        floor = tuple(load(LAUNCH, "specseal_launch_floor").FLOOR)
+        floor = tuple(load(LAUNCH, "agentic_launch_floor").FLOOR)
         assert floor_carriers() == {"hooks/launch.py": floor}, floor_carriers()
-        assert tuple(load(RUNNER, "specseal_runner_floor").FLOOR) == floor
+        assert tuple(load(RUNNER, "agentic_runner_floor").FLOOR) == floor
         m = re.search(r'target-version = "py(\d)(\d+)"', read(RUFF))
         assert m, "ruff.toml lost its target-version"
         assert (int(m.group(1)), int(m.group(2))) == floor, (

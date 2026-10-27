@@ -4,7 +4,7 @@ description: Walk a test-strategy pass, deciding which level each test belongs a
 disable-model-invocation: true
 ---
 
-# /specseal:testing, put each test where it can actually fail
+# /agentic:testing, put each test where it can actually fail
 
 Coverage counts what ran, not what was checked, so a suite can be green and
 prove nothing. Two questions decide the shape: at which level can this break

@@ -65,37 +65,37 @@ def test_legacy_parity_still_points_at_that_table():
 
 def test_the_record_of_a_comparison_names_its_writer():
     """T5 of #970 (C5 of #2): the record of a comparison is written by the
-    party that compared, and the scribe and the smith write none.
+    party that compared, and the tracer and the crafter write none.
 
-    The section said *you*, so a smith or a scribe opening the skill read
+    The section said *you*, so a crafter or a tracer opening the skill read
     itself as the writer of a record its definition does not name. #1027
     removed the parity mark and gave the comparison under `straight to the
     PR` to the sealer (`questions.md` Q1's default), so the writers are the
-    warden in each round record and the sealer in `guarantee.md`."""
+    proofer in each round record and the sealer in `guarantee.md`."""
     text = read("skills", "legacy-parity", "SKILL.md")
     heading = "\n## Recording the comparison\n"
     assert heading in text, "`legacy-parity` lost its section on the record"
     body = " ".join(text.split(heading, 1)[1].split("\n## ", 1)[0].split())
     for clause in (
-        "| through the review chain | the warden, in each round record |",
+        "| through the review chain | the proofer, in each round record |",
         "| straight to the PR | the sealer, once, in `guarantee.md` |",
-        "the scribe and the smith record none",
+        "the tracer and the crafter record none",
     ):
         assert clause in body, f"the record of a comparison lost {clause!r}"
-    assert "specseal-parity" not in body, "the section still writes the mark"
+    assert "-parity`" not in body, "the section still writes the mark"
 
 
 def test_the_resolution_order_ends_with_the_caller_asking():
     """S4 of #970, the skill's half (round 1, finding 1): the order ends with
     the caller asking and recording, and a reader that cannot ask returns
-    `original not found`. T3 holds the scribe's half; this is the text every
+    `original not found`. T3 holds the tracer's half; this is the text every
     reader of the skill opens, and the base's wording made the reader ask."""
     text = read("skills", "legacy-parity", "SKILL.md")
     heading = "\n## The migration config\n"
     assert heading in text, "`legacy-parity` lost its migration-config section"
     body = " ".join(text.split(heading, 1)[1].split("\n## ", 1)[0].split())
     for clause in (
-        "it lives in `~/.claude/specseal/parity-paths.md`",
+        "it lives in `~/.claude/agentic/parity-paths.md`",
         "the caller asks the user and records the answer",
         "a reader that cannot ask returns `original not found` with what it tried",
         "A comparison against a guessed original proves nothing.",
@@ -111,9 +111,9 @@ def test_the_preset_block_carries_the_routing_decision():
     that replaced the per-command waiver (#1027)."""
     preset = read("templates", "claude-md-block.md")
     assert "Routing, decided at the start" in preset
-    assert "seal/specs/<work-item-id>/routing.md" in preset
+    assert "seal/threads/<work-item-id>/routing.md" in preset
     assert "`seal no-work-item`" in preset
-    assert "`SpecSeal-Routing: no work item`" in preset
+    assert "`Seal-Routing: no work item`" in preset
     assert "[no-review]" not in preset and "[no-parity]" not in preset
 
 
@@ -121,16 +121,16 @@ def test_a_later_round_inherits_no_verdict_anywhere():
     """A sentence saying axes carry "without re-walking" outranks a corrected
     sentence twenty lines below it; the old handoff protocol had both at once.
     The record's documents now say only what carries: where to look. The
-    warden's definition carries the table of which facts may be carried, and
+    proofer's definition carries the table of which facts may be carried, and
     a verdict is on its re-derived side."""
     skill = " ".join(read("skills", "code-review", "SKILL.md").split())
     record = " ".join(read("docs", "the-review-record.md").split())
-    warden = " ".join(read("agents", "warden.md").split())
+    proofer = " ".join(read("agents", "proofer.md").split())
     for stale in ("inherit judged axes", "without re-walking"):
         for where, text in (
             ("SKILL.md", skill),
             ("the-review-record.md", record),
-            ("warden.md", warden),
+            ("proofer.md", proofer),
         ):
             assert stale not in text, (
                 f"verdict inheritance came back as `{stale}` in {where}"
@@ -140,8 +140,8 @@ def test_a_later_round_inherits_no_verdict_anywhere():
     )
     assert (
         "| Where a subsystem lives, what a helper is for | Any verdict, on any axis |"
-        in warden
-    ), "the warden's table no longer puts every verdict on the re-derived side"
+        in proofer
+    ), "the proofer's table no longer puts every verdict on the re-derived side"
 
 
 def test_a_later_round_re_runs_an_executed_line():
@@ -150,7 +150,7 @@ def test_a_later_round_re_runs_an_executed_line():
     instead spends the round on a search the earlier one already named, and
     a deleted probe is the case that needs saying: it comes back from its
     `## Probes` row. The record's document states it beside the line, and
-    `skills/code-review/SKILL.md` *Earlier rounds*, which the warden follows, says it
+    `skills/code-review/SKILL.md` *Earlier rounds*, which the proofer follows, says it
     where a round reads the earlier records."""
     record = " ".join(read("docs", "the-review-record.md").split())
     for said in (
@@ -190,7 +190,7 @@ def test_implement_and_the_preset_block_do_not_drift():
 
     The routing section is `implement`'s orchestrator half since #292, so
     the skill side of the pair is `orchestration.md` — the file the session
-    that asks the question reads, and no smith spawn preloads."""
+    that asks the question reads, and no crafter spawn preloads."""
     implement = " ".join(read("skills", "implement", "orchestration.md").split())
     preset = " ".join(read("templates", "claude-md-block.md").split())
     # The answers each box writes are the orchestration file's alone since
@@ -209,7 +209,7 @@ def test_implement_and_the_preset_block_do_not_drift():
     ):
         assert only in implement, f"the skill lost `{only}`"
     for both in (
-        "seal/specs/<work-item-id>/routing.md",
+        "seal/threads/<work-item-id>/routing.md",
         # The write is its own command. Both documents mandate it and the
         # commit gate's first prompt now names it as a way out, so all three
         # drift together or not at all -- and this is the one the gate cannot

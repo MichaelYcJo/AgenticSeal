@@ -3,7 +3,7 @@
 Issue #156. The cases here read the `bin/` wrappers, the workflows,
 `CONTRIBUTING.md` *Running the checks*, the handoff protocol and the agent
 definitions that send a reader to the runner, and wait for #923;
-`agents/smith.md` and `agents/warden.md` name this file on their `check:`
+`agents/crafter.md` and `agents/proofer.md` name this file on their `check:`
 lines.
 
 #942's phase 6 placed the cases of `.github/scripts/run_tests.py`'s
@@ -91,7 +91,7 @@ def test_the_runner_behind_the_wrapper_says_the_same_thing():
 
 def test_the_wrapper_points_at_the_contract_rather_than_inviting_a_full_run():
     """`bin/test` with no arguments runs the whole suite, which
-    contract rule 2 forbids to smith and warden. The file
+    contract rule 2 forbids to crafter and proofer. The file
     a session reads before typing it says so, and names where the rule is.
 
     Re-pointed by #30 from `orchestrator` to `sealer`, and back by #969, which
@@ -136,7 +136,7 @@ def test_both_wrappers_say_the_same_thing_when_the_runner_is_missing():
     windows = read(os.path.join(BIN, "test.cmd"))
     for fragment in (
         "has no runner beside it",
-        "Run it from a clone of the SpecSeal repository",
+        "Run it from a clone of the AgenticSeal repository",
     ):
         assert fragment in posix, f"bin/test no longer says: {fragment}"
         assert fragment in windows, (
@@ -215,7 +215,7 @@ def test_the_section_names_the_parser_and_where_it_is_pinned():
 # A command nobody is pointed at costs what the old one cost. Three documents
 # carry the pointing, and each is a sentence somebody reads and acts on:
 # `CONTRIBUTING.md` for a person in a clone, the handoff protocol for the
-# orchestrator writing a spawn prompt, and `agents/smith.md` for the segment
+# orchestrator writing a spawn prompt, and `agents/crafter.md` for the segment
 # that was not told.
 def flat(*parts):
     """The file as one line, so a pinned phrase survives re-wrapping."""
@@ -351,50 +351,50 @@ def test_the_protocol_hands_over_the_narrow_form():
     assert "the form handed over is the narrow one" in record
 
 
-def test_smith_finds_the_runner_before_inventing_a_command():
+def test_crafter_finds_the_runner_before_inventing_a_command():
     """The prompt is what went missing, so the fix cannot live in the prompt.
-    `agents/smith.md` reaches every segment at startup with nobody typing
+    `agents/crafter.md` reaches every segment at startup with nobody typing
     anything."""
-    smith = flat("agents", "smith.md")
-    assert "Find the runner, and type the narrow form." in smith, (
+    crafter = flat("agents", "crafter.md")
+    assert "Find the runner, and type the narrow form." in crafter, (
         "a segment whose prompt omits the runner has nothing telling it one "
         "exists, which is what the repeats measured"
     )
-    assert "run one module at a time" in smith, (
-        "smith is pointed at a command that runs the full suite and not at "
+    assert "run one module at a time" in crafter, (
+        "crafter is pointed at a command that runs the full suite and not at "
         "the form contract rule 2 leaves it"
     )
-    assert HANDOFF_LINK in smith, (
+    assert HANDOFF_LINK in crafter, (
         "the rule is restated rather than linked, so the two carriers can drift apart"
     )
 
 
-def test_warden_finds_the_runner_before_building_its_own():
+def test_proofer_finds_the_runner_before_building_its_own():
     """The class is every segment that runs a test, and the fix reached one of
-    them. `agents/warden.md` told a reviewer to build a `uv` venv in its clone
+    them. `agents/proofer.md` told a reviewer to build a `uv` venv in its clone
     and named no runner, so a review round paid for an environment the
     repository already had built -- the same cost, on the segment that runs
-    more cases than the smith does. Both definitions ship to user
+    more cases than the crafter does. Both definitions ship to user
     repositories, so neither may name a command that exists only here."""
-    warden = flat("agents", "warden.md")
-    assert "Find the runner before you build your own" in warden, (
+    proofer = flat("agents", "proofer.md")
+    assert "Find the runner before you build your own" in proofer, (
         "the reviewing segment is still told to assemble its own environment "
         "with nothing telling it a shipped runner may exist"
     )
-    assert "Type the narrow form, one module" in warden, (
-        "warden is pointed at a command that runs the full suite and not at "
+    assert "Type the narrow form, one module" in proofer, (
+        "proofer is pointed at a command that runs the full suite and not at "
         "the form contract rule 2 leaves it"
     )
-    assert HANDOFF_LINK in warden, (
+    assert HANDOFF_LINK in proofer, (
         "the rule is restated rather than linked, so the two carriers can drift apart"
     )
-    assert "make a `uv` venv inside the clone" in warden, (
+    assert "make a `uv` venv inside the clone" in proofer, (
         "the fallback went with the addition — a repository that ships no "
         "runner leaves the reviewer with nothing at all"
     )
 
 
-@pytest.mark.parametrize("definition", ["smith.md", "warden.md"])
+@pytest.mark.parametrize("definition", ["crafter.md", "proofer.md"])
 def test_no_agent_definition_names_this_repositorys_own_command(definition):
     """`agents/` is copied into every install, so a definition naming
     `bin/test` sends a user's segment after a file their repository does not

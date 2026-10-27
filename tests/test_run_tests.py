@@ -44,7 +44,7 @@ REAL_RUN = subprocess.run
 
 
 def _load_runner():
-    spec = importlib.util.spec_from_file_location("specseal_run_tests", SCRIPT)
+    spec = importlib.util.spec_from_file_location("agentic_run_tests", SCRIPT)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod

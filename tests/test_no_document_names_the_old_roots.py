@@ -15,13 +15,14 @@ below with its reason, so the allowlist cannot grow without one:
     history — the `<!-- specs/<id> -->` text in the changelog and the ledger;
   - a sentence about the migration itself, worded as past.
 
-`hooks/root-migrate.py` reads the old names on purpose and is a `.py` file,
-so it is outside the scanned suffixes; so are the round records, overviews
-and plans of released work items under `seal/specs/`, which record what was
-true at their SHA. `README.md` and `README.ko.md` moved together in phase 3
-of the work item, because the hygiene workflow warns when they do not, and
-their "coming up from 0.3.x" section is the one place a person is told how
-the move happens and how to make it by hand — its lines are the third kind.
+No code reads the old names, and `tests/test_the_root_migrates_itself.py`
+holds that for `hooks/`; the round records, overviews and plans of released
+work items under `seal/threads/` are outside the scanned files, because they
+record what was true at their SHA. `README.md` and `README.ko.md` move
+together, because the hygiene workflow warns when they do not, and their
+"coming up from 0.3.x" section is the one place a person is told how to make
+the move by hand, which is the only path there is — its lines are the third
+kind.
 """
 
 import os
@@ -32,8 +33,8 @@ from conftest import build_tracked_tree, decline_if_shrunken, git_listing, on_di
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 
-# `.specseal/` anywhere; `specs/<` unless it is `seal/specs/<` or part of a
-# longer path segment.
+# `.specseal/` anywhere; `specs/<` unless it follows a `/` (the 0.22.x
+# `seal/` layout the migration names) or is part of a longer path segment.
 OLD_ROOT = re.compile(r"\.specseal/|(?<![\w/.])specs/<")
 
 SCANNED = (
@@ -57,16 +58,12 @@ SUFFIXES = (".md", ".yml", ".sh")
 # checked to still occur somewhere, so a reason cannot outlive its line.
 KEEP = {
     "<!-- specs/<work-item-id> -->": "the marker text in the changelog and the ledger is unchanged (Q2)",
-    "`.specseal/scratch`": "the predecessor of `.git/specseal-scratch`, named as past",
-    "`.specseal/` or a top-level `specs/`": "the README saying what nothing reads any more",
-    "`.specseal/`, or a top-level `specs/` with an entry named": (
-        "the bootstrap naming the 0.3.x layout it tells rather than asks (#688)"
-    ),
-    "└── specs/<work-item-id>/": "the tree under `seal/` in the README, relative to it",
-    "└── specs/<작업항목-id>/": "the same tree in the Korean README",
-    "(`.specseal/`, `specs/<id>/`)": "the READMEs naming the 0.3.x layout as what the move leaves",
+    "`.specseal/scratch`": "the predecessor of `.git/agentic-scratch`, named as past",
+    "(`.specseal/`, `specs/<id>/`)": "the READMEs naming the 0.3.x layout the by-hand move leaves",
     "git mv .specseal/": "the by-hand move in the READMEs' coming-up section",
     "git mv specs/<id>": "the by-hand move's last step, one work item at a time",
+    "`specs/` or `.specseal/`": "the policy naming the 0.3.x roots no code opens",
+    "`specs/` 나 `.specseal/`": "the same policy in the Korean edition",
 }
 
 
@@ -179,7 +176,7 @@ def test_the_scan_covers_something():
     [
         "rows go in `.specseal/map/<work-item-id>.md`",
         "the gate reads `specs/<work-item-id>/routing.md`",
-        "<!-- specs/<unix-epoch-seconds>-<slug>/spec.md — WHAT",
+        "<!-- specs/<unix-epoch-seconds>-<slug>/design.md — WHAT",
         "opt-in: `.specseal/` at the repo root",
     ],
 )
@@ -191,9 +188,9 @@ def test_the_check_can_fail(line):
     "line",
     [
         "rows go in `seal/ledger/<work-item-id>.md`",
-        "the gate reads `seal/specs/<work-item-id>/routing.md`",
+        "the gate reads `seal/threads/<work-item-id>/routing.md`",
         "one `###` section marked with `<!-- specs/<work-item-id> -->`",
-        "the file `.git/specseal-scratch`",
+        "the file `.git/agentic-scratch`",
     ],
 )
 def test_the_new_root_and_the_kept_forms_pass(line):

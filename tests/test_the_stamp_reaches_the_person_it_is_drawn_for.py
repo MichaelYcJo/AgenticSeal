@@ -25,7 +25,7 @@ GATE = os.path.join(ROOT, "skills", "verify", "scripts", "broad_gate.py")
 
 
 def stamp_module():
-    return load_module(STAMP, "specseal_seal_stamp_for_its_values")
+    return load_module(STAMP, "agentic_seal_stamp_for_its_values")
 
 
 def seal_stamp(*args):
@@ -100,7 +100,7 @@ def test_the_orchestrator_is_told_the_stamp_is_drawn_for_it():
     sits in the section that spawns the sealer: the stamp is drawn at the end
     of the turn in which the sealer's report arrives, its `Write` of a
     `sealed` guarantee having queued it under either root (#1027 S13), the
-    result text comes first, the orchestrator draws none — by `seal-stamp` or
+    result text comes first, the orchestrator draws none — by `seal stamp` or
     by relaying a log, which 0.15.6 did — the broad run's lines are quoted as
     `BROAD GATE PASSED` and `BROAD GATE FAILED`, and no line of the run says
     `SEALED`. Round 1's finding 2 of 1792363231: the
@@ -127,19 +127,19 @@ def test_the_orchestrator_is_told_the_stamp_is_drawn_for_it():
         "them is the edit hook's message, shown to the person at that write. It "
         "is not in the sealer's report and does not reach you.",
         "The edit hook's line never reaches you. Where no stamp appeared, name "
-        "the file under `<git-common-dir>/specseal-stamp/<session>/` whose name "
-        "holds the work item's id, and leave `seal-stamp --from <that file>` to "
+        "the file under `<git-common-dir>/agentic-stamp/<session>/` whose name "
+        "holds the work item's id, and leave `seal stamp --from <that file>` to "
         "the person.",
         "The broad run draws nothing: its stdout opens `BROAD GATE PASSED` or "
         "`BROAD GATE FAILED`",
         "So put the result text first",
-        "Draw none yourself, neither with `seal-stamp` nor by relaying a log: a "
+        "Draw none yourself, neither with `seal stamp` nor by relaying a log: a "
         "relayed log shows the person the stamp twice",
         "On a red run relay the `BROAD GATE FAILED` lines.",
         # Round 1's yellow 1 of #400: the command is named on the line that
         # points at a values file, and it stays the person's wherever it
         # appears.
-        "Wherever a line you read names `seal-stamp --from`, quote it as it "
+        "Wherever a line you read names `seal stamp --from`, quote it as it "
         "stands: that command is the person's to type, and never yours.",
     ):
         assert said in section, said
@@ -151,13 +151,13 @@ def test_the_orchestrator_is_told_the_stamp_is_drawn_for_it():
 
 def test_the_form_bullet_says_what_draws_the_final_seal():
     """S16, `verify`'s half, and #975 S13. The **Form** bullet said
-    `broad-gate` draws the stamp when every check passed; the stamp is the
+    `seal gate` draws the stamp when every check passed; the stamp is the
     sealer's now, drawn once per work item from its `sealed` guarantee, and
     the gate draws nothing. #1027 S13: queued at that file's write under
     either root."""
     text = flat("skills", "verify", "SKILL.md")
-    assert "`broad-gate` prints the disc on success alone" not in text
-    assert "`broad-gate` draws the stamp" not in text
+    assert "`seal gate` prints the disc on success alone" not in text
+    assert "`seal gate` draws the stamp" not in text
     for said in (
         "the stamp is drawn from the sealer's `guarantee.md` reading `sealed`, "
         "once per work item",
@@ -175,7 +175,7 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
     carry, and a second statement saying what the screen shows has no case.
     That statement names every place the hook is silent — a foreign hooks
     slot, a `python3` that cannot load `seal_stamp.py`, a main session
-    outside the clone, a plugin older than the hook — and `seal-stamp --from
+    outside the clone, a plugin older than the hook — and `seal stamp --from
     <path>` for where a file was written.
 
     1792363231 S7 and S8, and #1027: the rule names the one trigger, the
@@ -198,7 +198,7 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
     ) in rule
     for local in (
         "`hooks/sealer-stamp-queue.py`",
-        "after each `Write` or `Edit` of a `seal/specs/<id>/guarantee.md` "
+        "after each `Write` or `Edit` of a `seal/threads/<id>/guarantee.md` "
         "under either root",
         "an ancestor of the branch the work item's `routing.md` names in its "
         "`Branch` row",
@@ -285,7 +285,7 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
         "brought from another branch of the clone",
     ):
         assert guard not in unchecked, guard
-    assert "names `seal-stamp --from <path>`" in unchecked
+    assert "names `seal stamp --from <path>`" in unchecked
     assert (
         "The line reaches the person as the edit hook's message, and nobody "
         "has watched that message on a screen yet."
@@ -322,7 +322,7 @@ def test_the_policy_states_the_refusal_record_and_names_its_cases():
         1,
     )[1].split("**The hook holds its whole message under a budget", 1)[0]
     for said in (
-        "`<git-common-dir>/specseal-stamp-refused/<id>-<target>`",
+        "`<git-common-dir>/agentic-stamp-refused/<id>-<target>`",
         "`; earlier run: <sha> sealed`",
         "One writer leaves it, for a row that stands in its own clone and "
         "nowhere else: `hooks/sealer-stamp-queue.py`, in either mode, where "
@@ -371,9 +371,9 @@ def test_both_readmes_list_the_stamp_hook():
             "the two implementer hooks, the two stamp hooks and the version check.",
             "These side effects are worth stating outright",
             # The clause's own words (round 2's white 2): the gate-table row
-            # carries `specseal-stamp/` too, so the bare directory passed
+            # carries `agentic-stamp/` too, so the bare directory passed
             # with the side effect deleted.
-            "`<git-common-dir>/specseal-stamp/`, which the stamp hook renames "
+            "`<git-common-dir>/agentic-stamp/`, which the stamp hook renames "
             "once drawn and nothing prunes",
         ),
         (
@@ -419,12 +419,12 @@ def test_both_readmes_list_the_stamp_hook():
                 "values under",
                 "a `sealed` refused because its audited commit is not on the work "
                 "item's branch leaves an empty file under "
-                "`<git-common-dir>/specseal-stamp-refused/`, written by the edit "
+                "`<git-common-dir>/agentic-stamp-refused/`, written by the edit "
                 "hook in either mode, which nothing prunes",
             ),
             (
                 "the broad gate left for this session",
-                "a sealed broad-gate run writes",
+                "a sealed broad gate run writes",
                 "a `sealed` the plugin refused leaves",
                 # #1027 phase 7: the git hooks' row went with the hooks.
                 "Beside the arms, `pre-commit` refuses",
@@ -436,7 +436,7 @@ def test_both_readmes_list_the_stamp_hook():
                 "작업 항목의 `guarantee.md` 가 `sealed` 로 쓰일 때 남는",
                 "`sealed` 로 읽히는 `guarantee.md` 를 쓸 때 도장에 들어갈 값을",
                 "감사한 커밋이 작업 항목 브랜치에 없어 거절된 `sealed` 는 "
-                "`<git-common-dir>/specseal-stamp-refused/` 아래에 빈 파일을 "
+                "`<git-common-dir>/agentic-stamp-refused/` 아래에 빈 파일을 "
                 "남깁니다. 어느 모드에서든 편집 훅이 씁니다.",
             ),
             (
@@ -474,7 +474,7 @@ def test_the_sealer_is_told_the_gate_draws_nothing_and_neither_does_it():
     # 1792363231 S9: a local-mode verdict is never committed.
     assert "your committed `sealed`" not in text
     assert "from its own run" not in text, "the stamp is not the run's"
-    assert "seal-stamp --from" not in text, (
+    assert "seal stamp --from" not in text, (
         "the sealer is told to pass on a stamp command from a run it did not take"
     )
     assert "the drawing arrives as letters" not in text
@@ -490,7 +490,7 @@ def test_the_sealer_is_told_the_gate_draws_nothing_and_neither_does_it():
 def test_the_stamp_says_why_it_has_no_scale_and_neither_command_offers_one():
     """S13 (#853). The comment where the scale stood says there is none and
     why — the disc has one size since #832 — so the next reader does not
-    look for the dial; `seal-stamp` with no argument draws the sample, and
+    look for the dial; `seal stamp` with no argument draws the sample, and
     neither command's help names a scale."""
     mod = stamp_module()
     with open(STAMP, encoding="utf-8") as handle:

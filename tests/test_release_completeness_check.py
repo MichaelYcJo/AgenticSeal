@@ -41,7 +41,7 @@ REPO = "example/repo"
 
 def gate():
     spec = importlib.util.spec_from_file_location(
-        "specseal_release_completeness_for_tests", SCRIPT
+        "agentic_release_completeness_for_tests", SCRIPT
     )
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)

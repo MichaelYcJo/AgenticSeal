@@ -10,7 +10,7 @@ own `seal/config.md`:
 
 The row has one reader, `hooks/config.py#pact_declaration`, which both
 `chain_check.py` (prints) and `pact_check.py` (refuses) ask. That reader's
-cases (S1-S3 of the work item's `spec.md`) and the `Signer` table's are in
+cases (S1-S3 of the work item's `frame/design.md`) and the `Signer` table's are in
 `tests/test_config.py` since #942's phase 6, and `seal.py`'s re-export of
 its normaliser is in `tests/test_seal.py`. What stays here reads the configs
 and templates this plugin ships through the reader, and the routing step's
@@ -42,7 +42,7 @@ def test_s4_the_configs_this_plugin_writes_or_copies_are_silent():
     and without the `Pact` row `orchestration.md` writes into the table --
     and `templates/config.md` copied whole, which
     `skills/commit-pr-convention/SKILL.md` tells a session to do, give no
-    refusal to the reader `pact-check` reads strictly. Each is read from the
+    refusal to the reader `seal pact` reads strictly. Each is read from the
     tree, not retyped."""
     seal = load_hook_module(
         os.path.join("..", "skills", "implement", "scripts", "seal.py"),
@@ -69,7 +69,7 @@ def test_s4_the_configs_this_plugin_writes_or_copies_are_silent():
 
 
 def test_the_template_and_the_config_skill_carry_the_pact_row_alone():
-    """`templates/config.md` documents the `Pact` row and `/specseal:config`
+    """`templates/config.md` documents the `Pact` row and `/agentic:config`
     shows it; neither carries a `Pact notify` row, and the template says
     once what one left in a config does."""
     template = flat("templates", "config.md")

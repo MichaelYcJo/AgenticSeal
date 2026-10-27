@@ -1,4 +1,4 @@
-"""`/specseal:config` — the door to `seal/config.md`.
+"""`/agentic:config` — the door to `seal/config.md`.
 
 Issue #105. Three rows exist and the only way to see them was to open a file
 nobody has a reason to open. The skill is instructions rather than a program,
@@ -28,7 +28,7 @@ ROWS = (
     "Record language",
     "Mode",
     "Broad gate",
-    # The fold's values, read by `fold-check` (#566, #953).
+    # The fold's values, read by `seal fold` (#566, #953).
     "Document token ceiling",
     "Policy root",
     # The reference roots (#688), missing from the skill until #647 counted
@@ -140,7 +140,7 @@ def test_the_root_is_resolved_rather_than_spelled():
 def test_the_bootstrap_names_the_way_back_to_its_own_questions():
     """S7. A person who answers a question in a batch has no reason to expect
     a way back to it, so the batch has to say there is one."""
-    assert "/specseal:config" in flat(*BOOTSTRAP), (
+    assert "/agentic:config" in flat(*BOOTSTRAP), (
         "first setup asks three questions and names nothing that changes the "
         "answers later"
     )
@@ -177,4 +177,4 @@ def test_the_skill_refuses_to_grow_a_schema():
 @pytest.mark.parametrize("parts", [("README.md",), ("README.ko.md",)])
 def test_both_readmes_list_it(parts):
     """A door nobody is told about is the file all over again."""
-    assert "/specseal:config" in read(*parts), f"{parts[0]} does not list it"
+    assert "/agentic:config" in read(*parts), f"{parts[0]} does not list it"

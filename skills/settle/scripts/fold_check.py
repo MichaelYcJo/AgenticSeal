@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""fold-check — hold the policy root's documents to one read and one index.
+"""seal fold — hold the policy root's documents to one read and one index.
 
 `skills/settle/SKILL.md` gives a document one read and the policy root one
 index. This is the reader of both, shipped (#566, #953).
 
-  fold-check                     every check, with the values seal/config.md states
-  fold-check --ceiling N         report documents past N estimated tokens, this run
-  fold-check --root DIR          a repository other than this one
+  seal fold                      every check, with the values seal/config.md states
+  seal fold --ceiling N          report documents past N estimated tokens, this run
+  seal fold --root DIR           a repository other than this one
 
 The policy root is `seal/config.md`'s `Policy root` row, `docs` when absent,
 read through `hooks/config.py#policy_root`, and every check reads its top
@@ -43,8 +43,8 @@ one that names documents past the ceiling · 1 an index out of step, each
 problem on a line of its own · 2 the root, a value or a file it had to read
 was unusable, such as a document that is not UTF-8, and no result was
 printed, or a sibling script it loads is not beside it. An interpreter below
-the floor never reaches this file through `bin/fold-check`: `hooks/launch.py`
-refuses it with 2 first.
+the floor never reaches this file through `seal fold`: `hooks/launch.py`
+refuses `seal` with 2 first.
 """
 
 import argparse
@@ -83,14 +83,14 @@ def load(path, name, purpose):
     a copy missing its sibling read as a finding (#590)."""
     if not os.path.isfile(path):
         sys.stderr.write(
-            f"fold-check: cannot read {path}, and {purpose}. This command "
+            f"seal fold: cannot read {path}, and {purpose}. This command "
             "ships beside it in the plugin; a copy of one script taken on its "
             "own is not a plugin. Nothing was read.\n"
         )
         raise SystemExit(2)
     spec = importlib.util.spec_from_file_location(name, path)
     if spec is None or spec.loader is None:
-        sys.stderr.write(f"fold-check: cannot load {path}, and {purpose}.\n")
+        sys.stderr.write(f"seal fold: cannot load {path}, and {purpose}.\n")
         raise SystemExit(2)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -105,7 +105,7 @@ def reader():
     if "reader" not in _loaded:
         _loaded["reader"] = load(
             READER,
-            "specseal_unverified_reader_for_folds",
+            "agentic_unverified_reader_for_folds",
             "it is where a document's lines and table rows are read from",
         )
     return _loaded["reader"]
@@ -210,7 +210,7 @@ def optin():
     if "optin" not in _loaded:
         _loaded["optin"] = load(
             OPTIN,
-            "specseal_optin_for_folds",
+            "agentic_optin_for_folds",
             "it is what finds the repository's seal/ root",
         )
     return _loaded["optin"]
@@ -249,7 +249,7 @@ def config_reader():
     """`hooks/config.py`, the one reader of `seal/config.md`, or exit 2."""
     return load(
         CONFIG_READER,
-        "specseal_config_for_folds",
+        "agentic_config_for_folds",
         "it is what reads the rows of seal/config.md",
     )
 
@@ -337,30 +337,28 @@ def run(root, values, where, out):
     names = documents(root, policy)
     if ceiling is None:
         out.write(
-            f"fold-check: `{CEILING_ROW}` is not declared in {where}, so no "
+            f"seal fold: `{CEILING_ROW}` is not declared in {where}, so no "
             "document's length was checked\n"
         )
     else:
         past = past_ceiling(root, policy, ceiling)
         out.write(
-            f"fold-check: held {plural(len(names), 'document')} under {policy}/ "
+            f"seal fold: held {plural(len(names), 'document')} under {policy}/ "
             f"to {ceiling} estimated tokens, {len(past)} past it\n"
         )
         for line in past_ceiling_lines(past, ceiling):
-            out.write(f"fold-check: {line}\n")
+            out.write(f"seal fold: {line}\n")
     found = index_problems(root, policy)
     if found is None:
-        out.write(
-            f"fold-check: there is no {policy}/{INDEX}, so no index was checked\n"
-        )
+        out.write(f"seal fold: there is no {policy}/{INDEX}, so no index was checked\n")
     elif not found:
-        out.write(f"fold-check: the index {policy}/{INDEX} names every document\n")
+        out.write(f"seal fold: the index {policy}/{INDEX} names every document\n")
     return found or []
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(
-        prog="fold-check",
+        prog="seal fold",
         description="Hold the policy root's documents to one read and one "
         "index, with the values seal/config.md states.",
     )
@@ -377,7 +375,7 @@ def main(argv=None):
     root = os.path.abspath(args.root or os.getcwd())
     if not os.path.isdir(root):
         sys.stderr.write(
-            f"fold-check: {root} is not a directory — nothing was checked\n"
+            f"seal fold: {root} is not a directory — nothing was checked\n"
         )
         return 2
     if args.root is None:
@@ -391,20 +389,20 @@ def main(argv=None):
     try:
         ceiling, policy = declared(home)
     except Unusable as refused:
-        sys.stderr.write(f"fold-check: in {where}, {refused} — nothing was checked\n")
+        sys.stderr.write(f"seal fold: in {where}, {refused} — nothing was checked\n")
         return 2
     if args.ceiling is not None:
         ceiling = args.ceiling
     index = os.path.join(root, *policy.split("/"), INDEX)
     if ceiling is None and not os.path.isfile(index):
         sys.stdout.write(
-            f"fold-check: `{CEILING_ROW}` is not declared in {where}, and there "
+            f"seal fold: `{CEILING_ROW}` is not declared in {where}, and there "
             f"is no {policy}/{INDEX}, so nothing was checked\n"
         )
         return 0
     if not os.path.isdir(os.path.join(root, *policy.split("/"))):
         sys.stderr.write(
-            f"fold-check: {root} has no {policy}/ directory — nothing was checked\n"
+            f"seal fold: {root} has no {policy}/ directory — nothing was checked\n"
         )
         return 2
     # The run's lines are held until it has a result, so a file it cannot read
@@ -413,7 +411,7 @@ def main(argv=None):
     try:
         problems = run(root, (ceiling, policy), where, out)
     except Unusable as refused:
-        sys.stderr.write(f"fold-check: {refused} — no result was printed\n")
+        sys.stderr.write(f"seal fold: {refused} — no result was printed\n")
         return 2
     sys.stdout.write(out.getvalue())
     for problem in problems:

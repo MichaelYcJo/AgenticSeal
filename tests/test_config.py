@@ -13,7 +13,7 @@ walker held to cmark-gfm, the reader's cases of
 `tests/test_the_mode_question_is_asked_once.py`, whose writer's cases are in
 `tests/test_seal.py`, the pact readers' of `tests/test_a_signer_declares_its_pact.py`, and the
 seven cases `tests/test_pact_check.py` left for this module, which run
-`pact-check` over the pact's world in `tests/conftest.py`. Each case keeps
+`seal pact` over the pact's world in `tests/conftest.py`. Each case keeps
 its body, except two that read the pact's text as `PACT_TEXT`, because
 `PACT` is the world's path to it; a name its old file defined for it is
 defined here, and a fixture or text two files read is `tests/conftest.py`'s.
@@ -56,6 +56,7 @@ from conftest import (
     load_hook_module,
     load_module,
     local_home,
+    mark_root,
     names_path,
     old_header,
     opt_in_shared,
@@ -91,7 +92,7 @@ LIVE = [("Mode", "shared"), ("Broad gate", "bin/test -q")]
 
 # The pact readers' texts, from `tests/test_a_signer_declares_its_pact.py`.
 # The pact's text is `PACT_TEXT` here: `PACT` is the pact's path, which the
-# cases that run `pact-check` over the world write to.
+# cases that run `seal pact` over the world write to.
 CONFIG_TOP = "# config\n\n| Item | Value |\n|---|---|\n| Mode | shared |\n"
 CONFIG = CONFIG_TOP + f"| Pact | {URL} |\n"
 
@@ -259,7 +260,7 @@ def _config_reader():
 
 @pytest.fixture
 def seal():
-    spec = importlib.util.spec_from_file_location("specseal_seal", SCRIPT)
+    spec = importlib.util.spec_from_file_location("agentic_seal", SCRIPT)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -278,7 +279,7 @@ class Test_reference_roots:
         roots = config.reference_roots(home)
         assert roots == ("specs", "docs/adr", "design", "tools/notes"), roots
         for rel in (
-            "specs/x/spec.md",
+            "specs/x/design.md",
             "docs/adr/0001.md",
             "design/a.md",
             "specs",
@@ -300,15 +301,15 @@ class Test_reference_roots:
             roots = config.reference_roots(home)
             assert roots is None, (body, roots)
             for rel in (
-                "specs/x/spec.md",
+                "specs/x/design.md",
                 "docs/specs/y.md",
                 "a/b/specs/c/d.md",
-                "specs\\x\\spec.md",
+                "specs\\x\\design.md",
             ):
                 assert config.under_reference_root(rel, roots), rel
             for rel in (
-                "seal/specs/1790000000-x/spec.md",
-                "docs/spec.md",
+                "seal/threads/1790000000-x/design.md",
+                "docs/design.md",
                 "specsheet/a",
             ):
                 assert not config.under_reference_root(rel, roots), rel
@@ -320,7 +321,7 @@ class Test_reference_roots:
         write_config(str(stray), table(("Reference specs", "docs/adr")))
         monkeypatch.chdir(stray)
         assert config.reference_roots("") == ()
-        assert not config.under_reference_root("specs/x/spec.md", ())
+        assert not config.under_reference_root("specs/x/design.md", ())
 
     def test_refuses_a_row_written_twice_or_a_file_that_will_not_read(self, tmp_path):
         """#867. A `Reference specs` row written twice has no value, by
@@ -342,7 +343,7 @@ class Test_reference_roots:
         write_config(home, table(("Reference specs", "None")))
         roots = config.reference_roots(home)
         assert roots == (), roots
-        assert not config.under_reference_root("specs/x/spec.md", roots)
+        assert not config.under_reference_root("specs/x/design.md", roots)
 
     def test_a_row_inside_a_fence_is_not_a_row(self, tmp_path):
         """`hooks/config.py#unfenced` filters in front of the table walk, so a
@@ -359,13 +360,17 @@ class Test_reference_roots:
     def test_the_plugins_own_root_is_never_a_reference_root(self, tmp_path):
         """A reference root is outside the root by definition; a prefix naming
         `seal/` or anything under it is dropped, and the default never reaches
-        `seal/specs/` either."""
+        `seal/threads/` either."""
         home = str(tmp_path / "seal")
-        write_config(home, table(("Reference specs", "seal/specs, seal, specs")))
+        write_config(home, table(("Reference specs", "seal/threads, seal, specs")))
         roots = config.reference_roots(home)
         assert roots == ("specs",), roots
-        assert not config.under_reference_root("seal/specs/1790000000-x/spec.md", roots)
-        assert not config.under_reference_root("seal/specs/1790000000-x/spec.md", None)
+        assert not config.under_reference_root(
+            "seal/threads/1790000000-x/design.md", roots
+        )
+        assert not config.under_reference_root(
+            "seal/threads/1790000000-x/design.md", None
+        )
         optin = load_hook_module("optin.py", "optin_for_the_root_name")
         assert config.HOME == optin.HOME, "the reader spells the root another way"
 
@@ -379,10 +384,10 @@ class Test_reference_roots:
         optin = load_hook_module("optin.py", "optin_for_reference_roots")
         common = optin.git_common_dir(str(repo))
         home = os.path.join(common, "seal")
-        os.makedirs(home)
+        mark_root(home)
         assert optin.home_at(str(repo), common) == home, "the fixture is not local mode"
         assert config.reference_roots(home) is None
-        assert config.under_reference_root("specs/x/spec.md", None)
+        assert config.under_reference_root("specs/x/design.md", None)
         write_config(home, table(("Reference specs", "docs/adr")))
         assert config.reference_roots(home) == ("docs/adr",)
 
@@ -613,7 +618,7 @@ class Test_config_rows:
         assert config.config_rows(header + tight_last) == [], (
             "a backslash against the closing pipe is markdown's escaped pipe, so "
             "the line has no closing pipe left and is not a row. If this returns "
-            "a row the pattern changed and `spec.md` *What this repair cannot "
+            "a row the pattern changed and `frame/design.md` *What this repair cannot "
             "see* is now wrong"
         )
         assert config.config_rows(header + tight_first) == [], (
@@ -684,7 +689,7 @@ class Test_config_rows:
         )
 
     def test_what_counts_as_a_fence_is_commonmarks_rule_as_far_as_it_goes(self, config):
-        """Q3 of `questions.md`, decided and pinned. `spec.md` *Data &
+        """Q3 of `questions.md`, decided and pinned. `frame/design.md` *Data &
         interfaces* fixes the rule for the shapes that matter; the residue is
         CommonMark's own edge cases, resolved toward *not a fence* wherever the
         specification leaves room, because that is the direction that keeps a
@@ -769,7 +774,7 @@ class Test_config_rows:
         where `<!--` begins one: it refuses at the header, naming an HTML block
         GFM does not see. The direction is the refusing one and no row is read
         that GFM does not show; the sentence's cause is the walker's limit on
-        these eight characters, named in the work item's `overview.md`."""
+        these eight characters, named in the work item's `gaps.md`."""
         from block_shapes import BREAKS, OPEN
 
         text = (
@@ -955,7 +960,7 @@ class Test_config_value:
             == []
         ), "a blank line is the table ending, not a row somebody wrote"
 
-        gate = load_hook_module(GATE, "specseal_mode_gate_for_415")
+        gate = load_hook_module(GATE, "agentic_mode_gate_for_415")
         home = opt_in_shared(repo)
         write_config(home, text)
         answer = gate.undeclared(str(repo))
@@ -1135,7 +1140,7 @@ class Test_config_table:
     def test_refuses_a_fenced_pipe_line_as_a_line_somebody_wrote(self, config):
         """A3. The walk that read ON past the stopping line treated any line
         beginning with a pipe as a line somebody wrote as a row — so a line
-        inside an example block came back as refused, and `broad-gate` quotes a
+        inside an example block came back as refused, and `seal gate` quotes a
         refused line back at the person as their own.
 
         Re-pinned by #871: the fence directly under the delimiter row ends the
@@ -1242,7 +1247,7 @@ class Test_config_table:
 class Test_fence_map:
     def test_refuses_to_name_a_fence_inside_a_closed_comment(self, config, tmp_path):
         """S8, C2. The comment closes, so the fence line inside it opens nothing,
-        and neither `broad-gate`'s `fence_left_open` nor `seal.py`'s write guard,
+        and neither `seal gate`'s `fence_left_open` nor `seal.py`'s write guard,
         which both ask `fence_map`'s second value, names a fence nobody left
         open. Red at base: the fence ran to the end and was named."""
         lines = SHAPES["C2"]
@@ -1258,14 +1263,14 @@ class Test_fence_map:
             "scripts",
             "broad_gate.py",
         )
-        spec = importlib.util.spec_from_file_location("specseal_gate_for_667", path)
+        spec = importlib.util.spec_from_file_location("agentic_gate_for_667", path)
         gate = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(gate)
         assert gate.fence_left_open(str(home)) is False
 
     def test_accepts_a_fence_nobody_closed_as_the_one_named(self, config):
         """C14, pinned from the other side: the fence that hides the live table
-        is the one `fence_map` reports, so `broad-gate` still says *close that
+        is the one `fence_map` reports, so `seal gate` still says *close that
         fence*."""
         assert config.fence_map(SHAPES["C14"])[1] == 0
 
@@ -1274,7 +1279,7 @@ class Test_fence_map:
         fence quoted in the comment to the end, so it would name THAT line, which
         opens nothing; the walk sees the tilde fence below the table never close,
         and the line under it is hidden because of it. That is the fence
-        `broad-gate` has to tell the person to close."""
+        `seal gate` has to tell the person to close."""
         lines = [*SHAPES["C2"], "", "~~~", "| Broad gate | bin/test -q |"]
         assert config.fence_map(lines)[1] == lines.index("~~~")
         assert config.config_rows("\n".join(lines)) == [("Mode", "shared")]
@@ -1314,7 +1319,7 @@ class Test_unfenced:
             assert value is None and UNDER_THE_COMMENT in said, said
 
     def test_accepts_every_line_under_a_mid_line_comment(self, config):
-        """C13, the residual `spec.md` *Scope* names. A renderer hides the first
+        """C13, the residual `frame/design.md` *Scope* names. A renderer hides the first
         pipe-line behind a lone backtick and a mid-line `<!--`, and knowing that
         needs code spans and the paragraph's extent, which is where all three of
         1790635413's rounds lost ground. The base reads it, so reading it is not
@@ -1376,7 +1381,7 @@ class Test_pact_declaration:
         """`templates/config.md` *Pact*: a `Pact notify` row left in the table
         is read by nobody, with a `Pact` row or without one, so neither a value
         outside the vocabulary the row once had nor the row written twice is
-        refused. Seen red by `mutation-check` against a reader that refused the
+        refused. Seen red by `seal mutate` against a reader that refused the
         row (phase 8 of 1791940762)."""
         assert config.pact_declaration(table(("Pact", URL), *rows)) == (ORDERS, [])
         assert config.pact_declaration(table(*rows)) == ([], [])
@@ -1436,7 +1441,7 @@ class Test_pact_declaration:
             [BARE_PIPE],
         )
         # The arm a doubled `Pact` returns from early keeps the walker's sentence
-        # last too: seen red by `mutation-check` dropping it on that arm alone.
+        # last too: seen red by `seal mutate` dropping it on that arm alone.
         doubled = CONFIG + "| Pact | git@example.com:org/b.git |\n" + bad
         assert config.pact_declaration(doubled) == (
             [],
@@ -1446,7 +1451,7 @@ class Test_pact_declaration:
 
 class Test_declared_pacts:
     def test_an_unreadable_config_is_no_declaration(self, tmp_path):
-        """`declared_pacts` is what `pact-check` reads a signer's row
+        """`declared_pacts` is what `seal pact` reads a signer's row
         through. No file is no row; a file that is there and will not read is
         None, which the caller refuses, because a written row read as absent is
         the silence the reader exists to end."""
@@ -1940,7 +1945,7 @@ class Test_module:
         empty value and one that leaves the repository read as `docs`."""
         from conftest import load_hook_module
 
-        config = load_hook_module("config.py", "specseal_config_for_policy_root")
+        config = load_hook_module("config.py", "agentic_config_for_policy_root")
         (tmp_path / "config.md").write_text(
             f"| Item | Value |\n|---|---|\n| Policy root | {value} |\n",
             encoding="utf-8",

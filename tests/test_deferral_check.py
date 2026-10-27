@@ -1,4 +1,4 @@
-"""deferral-check: does anything other than this session actually run the
+"""seal deferrals: does anything other than this session actually run the
 check being deferred?
 
 The failure this exists for: a session narrowed its run to one domain and
@@ -168,10 +168,21 @@ class Test_main:
 
 
 class Test_module:
-    def test_wrapper_is_present_and_executable(self):
-        wrapper = os.path.join(os.path.dirname(__file__), "..", "bin", "deferral-check")
-        assert os.path.isfile(wrapper), "bin/deferral-check missing"
-        assert os.access(wrapper, os.X_OK), "bin/deferral-check not executable"
+    @pytest.mark.skipif(
+        os.name == "nt", reason="the POSIX command; bin/seal.cmd is its Windows twin"
+    )
+    def test_the_command_is_present_and_runs_the_script(self):
+        wrapper = os.path.join(os.path.dirname(__file__), "..", "bin", "seal")
+        assert os.path.isfile(wrapper), "bin/seal missing"
+        assert os.access(wrapper, os.X_OK), "bin/seal not executable"
+        done = subprocess.run(
+            [wrapper, "deferrals", "--help"],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+        assert done.returncode == 0, done.stderr
+        assert done.stdout.startswith("usage: seal deferrals"), done.stdout
 
 
 test_census = census_case(TARGET)

@@ -4,9 +4,9 @@ Issue #292, phase 2. `skills/code-review/SKILL.md` marked the sections
 addressed to the session that spawns agents with an `Orchestrator:` heading
 prefix, and #265 moved them out to `orchestration.md` — a file no `skills:`
 list names, so no spawn pays for it. `implement` had the same kind of
-section under no marker at all, and every `smith` spawn read the bootstrap
+section under no marker at all, and every `crafter` spawn read the bootstrap
 question, the parity setup and the routing tables: procedure for an act
-`agents/smith.md` forbids the agent (asking a person, writing `routing.md`).
+`agents/crafter.md` forbids the agent (asking a person, writing `routing.md`).
 
 The marker is the convention; this module is what makes it a rule. It
 derives the agents from the `agents/*.md` glob and each definition's own
@@ -30,7 +30,7 @@ states for itself.
 Red-first, per contract rule 15: the planted cases build a temp tree with
 the defect in it, and the real-tree case was seen red on this repository at
 the commit that marked `implement`'s three sections before moving them —
-`seal/specs/1788993115-a-payload-is-written-again-on-every-spawn/phases/phase-2.md`
+`aa687d35:seal/specs/1788993115-a-payload-is-written-again-on-every-spawn/phases/phase-2.md`
 names it.
 """
 
@@ -50,7 +50,7 @@ READER = os.path.join(ROOT, "skills", "verify", "scripts", "unverified_check.py"
 
 
 def _reader():
-    spec = importlib.util.spec_from_file_location("specseal_unverified_reader", READER)
+    spec = importlib.util.spec_from_file_location("agentic_unverified_reader", READER)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -294,7 +294,7 @@ def test_a_listed_skill_the_tree_does_not_ship_is_named(tmp_path):
 
 def test_no_agent_preloads_a_section_marked_for_the_orchestrator():
     """Red between the commit that marked `implement`'s three sections and
-    the one that moved them (`phases/phase-2.md` names both). The agents are
+    the one that moved them (`trail/phases/phase-2.md` names both). The agents are
     asserted first: `findings` derives them from `agents/*.md`, so a tree
     with no such file has nothing to check, and a check over nothing is
     green over nothing (round 1, finding 5). The two shapes that gave `[]` --

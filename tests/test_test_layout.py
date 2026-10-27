@@ -1,4 +1,4 @@
-"""`test-layout` holds the test layout, and these are its cases (#942).
+"""`seal layout` holds the test layout, and these are its cases (#942).
 
 Every case but one reads fixture text handed to the script's functions, so
 no case builds a repository or runs git: `check` takes the tracked paths
@@ -8,9 +8,9 @@ repository's own `tests/` is the suite case the layout rests on: it runs
 `--check` there and fails when a file in the layout breaks it.
 
 Seen red before they were committed (contract rule 15): every case failed
-against the tree without the script, and `mutation-check` broke each refusal
+against the tree without the script, and `seal mutate` broke each refusal
 in turn and watched a case of its class fail (the work item's
-`phases/phase-1.md`).
+`trail/phases/phase-1.md`).
 """
 
 import importlib.util
@@ -25,7 +25,7 @@ TARGET = "skills/verify/scripts/test_layout.py"
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 _SPEC = importlib.util.spec_from_file_location(
-    "specseal_test_layout_under_test", os.path.join(ROOT, TARGET)
+    "agentic_test_layout_under_test", os.path.join(ROOT, TARGET)
 )
 layout = importlib.util.module_from_spec(_SPEC)
 _SPEC.loader.exec_module(layout)
@@ -772,9 +772,9 @@ class Test_moved:
         )
         out = capsys.readouterr().out
         assert code == 0, out
-        assert "moved:" not in out.replace("test-layout: moved:", "")
+        assert "moved:" not in out.replace("seal layout: moved:", "")
         assert out.splitlines()[-1] == (
-            f"test-layout: moved: {cases} old cases, {items} items against {items} "
+            f"seal layout: moved: {cases} old cases, {items} items against {items} "
             f"at {base[:12]}, 0 failed"
         )
         assert others == 0, "the base's worktree was left behind"

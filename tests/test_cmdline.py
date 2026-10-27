@@ -535,7 +535,7 @@ class Test_parse_git:
 class Test_merged_view:
     @pytest.mark.parametrize("name", sorted(MERGED))
     def test_accepts_the_cut_operators_glued_back(self, name):
-        """#674, `spec.md` decision 3: the cut operators glued back, as a view."""
+        """#674, `frame/design.md` decision 3: the cut operators glued back, as a view."""
         command, tokens = MERGED[name]
         items, _clean = cmdline.split_segments_with_separators(command)
         groups = cmdline.merged_view(items)

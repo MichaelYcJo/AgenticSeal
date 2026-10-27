@@ -1941,7 +1941,7 @@ def token_totals(paths):
                     # `output_tokens` GROWS across them -- the last row carries
                     # the completed count. Keeping the first summed however
                     # much had been emitted when that row was written, so a
-                    # warden round that produced a full findings report read
+                    # proofer round that produced a full findings report read
                     # as 62 output tokens across 20 turns, three tokens a
                     # turn. Measured over the 180 transcripts on the machine
                     # that found it: 9,098 of 13,425 messages are split, and
@@ -2425,8 +2425,8 @@ def report_spawns(spawns, path, total_calls, run_span=0.0):
 LABEL_WIDTH = 30
 
 # #640. Each segment kind's bar on tools per turn, keyed by the basename of
-# the spawn's `subagent_type` after its last `:`, so `specseal:warden` and
-# `warden` are one kind. The values are `docs/the-review-record.md`
+# the spawn's `subagent_type` after its last `:`, so `agentic:proofer` and
+# `proofer` are one kind. The values are `docs/the-review-record.md`
 # *The per-segment bars*: the protocol's name for the kind,
 # and its bar, or None where the protocol exempts the kind from this ratio.
 #
@@ -2436,12 +2436,12 @@ LABEL_WIDTH = 30
 # turns red when one moves alone.
 #
 # A kind missing from the table has no bar and is UNGRADED, which is not the
-# same as exempt: `sealer` and `scribe` have no measured band, and a number
+# same as exempt: `sealer` and `tracer` have no measured band, and a number
 # nobody produced is not one to grade them against. The page counts them.
 SEGMENT_BARS = {
-    "warden": ("reviewing", 1.8),
+    "proofer": ("reviewing", 1.8),
     "framer": ("framing", 1.4),
-    "smith": ("implementing", None),
+    "crafter": ("implementing", None),
 }
 
 
@@ -2629,7 +2629,7 @@ def report_grades(rows):
     )
     print(
         f"\n  {len(graded)} graded, {len(exempt)} exempt, {ungraded} ungraded.\n"
-        f"  The bars are {known}. A smith row is\n  exempt: an edit-test loop is "
+        f"  The bars are {known}. A crafter row is\n  exempt: an edit-test loop is "
         "serial, and the protocol judges it on `repeats = 0`\n  rather than on "
         "this ratio. A row with no bar — a kind not listed, a row no spawn\n  "
         "named — is ungraded, and so is a graded kind's segment that made no "
@@ -2638,7 +2638,7 @@ def report_grades(rows):
     print(
         "\n  The bar is a lens for rounds of ordinary size and never a refusal "
         "threshold, so\n  this page refuses nothing and exits 0. A small round "
-        "has few independent batches\n  to rise on. A warden's verifying round "
+        "has few independent batches\n  to rise on. A proofer's verifying round "
         "is exempt by the protocol, and this page\n  cannot tell one from a "
         "finding round, so a reader applies that exemption by hand."
     )
@@ -2655,7 +2655,7 @@ def report_segments(segments, path):
 
     **This is the reading the hand method produced one transcript at a
     time.** `skills/verify/orchestration.md` *Measure the segment, and feed
-    the flow log* put a `session_cost.py` run at the end of every smith and warden segment, which
+    the flow log* put a `session_cost.py` run at the end of every crafter and proofer segment, which
     means opening each segment's file by hand and, for a resumed one,
     splitting it by eye. The rows below are that, for every segment of a run,
     in one command.
@@ -2870,8 +2870,8 @@ def newest(directory):
     # `~/.claude/projects` encodes a cwd by replacing every non-alphanumeric
     # character, not just the separator. Replacing `os.sep` alone is right on
     # POSIX by coincidence and wrong on Windows, where a drive letter keeps its
-    # colon: `C:\GitHub\SpecSeal` became `C:-GitHub-SpecSeal` and the real
-    # directory is `C--GitHub-SpecSeal`, so `session-cost --latest .` reported
+    # colon: `C:\GitHub\AgenticSeal` became `C:-GitHub-AgenticSeal` and the real
+    # directory is `C--GitHub-AgenticSeal`, so `seal cost --latest .` reported
     # "no transcript found" for a directory that is right there. Measured.
     # `hooks/worktree-guard.py` `project_slug` states the same rule; the two
     # trees do not import each other, so this names it rather than sharing it.

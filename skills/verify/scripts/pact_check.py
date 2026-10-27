@@ -13,8 +13,8 @@ in its specs' Grounding. This command reads every signer from the pact's
 repository and grades each of those anchors against the clause as the pact
 holds it now.
 
-  pact-check            in the pact's repository
-  pact-check ROOT       the pact's repository at ROOT
+  seal pact             in the pact's repository
+  seal pact ROOT        the pact's repository at ROOT
 
 **Local only.** No CI runs it: a signer's pull request can read one
 repository, and this needs all of them (#647's decision 2). What a signer's
@@ -25,7 +25,7 @@ CI does instead is print the relationship, `chain_check.py#pact_notices`.
 The pact's `| Signer |` table lists them by origin remote URL, and a
 checkout is found for each, in this order and with nothing guessed:
 
-  1. `~/.claude/specseal/pact-paths.md`, a `| Remote | Path |` table kept per
+  1. `~/.claude/agentic/pact-paths.md`, a `| Remote | Path |` table kept per
      machine and never committed, keyed by remote URL compared normalised;
   2. every sibling directory of the pact's repository whose origin remote
      normalises to the signer's -- exactly one of them.
@@ -86,16 +86,16 @@ HOOKS = os.path.join(HERE, "..", "..", "..", "hooks")
 CHECKER = os.path.join(HERE, "coordinates.py")
 PACT_FILE = "pact.md"
 CONFIG_FILE = "config.md"
-MAP_PARTS = (".claude", "specseal", "pact-paths.md")
+MAP_PARTS = (".claude", "agentic", "pact-paths.md")
 # Read through the native path; named in every sentence by the one spelling
 # the documents use on every platform, so a Windows run does not print
-# `~/.claude\specseal\pact-paths.md`.
+# `~/.claude\agentic\pact-paths.md`.
 MAP = os.path.join(*MAP_PARTS)
 MAP_SHOWN = "~/" + "/".join(MAP_PARTS)
 
 
 def shown(path, repo=None, home_dir=None, flavour=os.path):
-    """PATH as every line of `pact-check` prints it, on every platform:
+    """PATH as every line of `seal pact` prints it, on every platform:
     relative to REPO where it lies inside that repository, `~/`-relative
     where it lies under HOME_DIR, and otherwise whole, with `/` for every
     separator.
@@ -195,7 +195,7 @@ def load(path, name):
     """A sibling module by path, or a sentence and exit 2."""
     if not os.path.isfile(path):
         sys.stderr.write(
-            f"pact-check: cannot read {shown(path, home_dir=os.path.expanduser('~'))}, "
+            f"seal pact: cannot read {shown(path, home_dir=os.path.expanduser('~'))}, "
             "which this command reads the pact "
             "through. It ships in the plugin beside this script; a copy of one "
             "script taken on its own is not a plugin. Nothing was read.\n"
@@ -325,9 +325,9 @@ def checkout(config, signer, root, mapped, home_dir=None):
 
 def anchor_files(home):
     """Every file of a signer's root its pact anchors are read from: every
-    work item's `spec.md`.
+    thread's `frame/design.md`.
     """
-    return sorted(glob.glob(os.path.join(home, "specs", "*", "spec.md")))
+    return sorted(glob.glob(os.path.join(home, "threads", "*", "frame", "design.md")))
 
 
 class History:
@@ -445,9 +445,9 @@ def grade(checker, pact_text, history, locator, want):
 
 def check(root, out=sys.stdout, home_dir=None):
     """Read the pact at ROOT and every signer; print; return the exit."""
-    config = load(os.path.join(HOOKS, "config.py"), "specseal_config_for_pact")
-    optin = load(os.path.join(HOOKS, "optin.py"), "specseal_optin_for_pact")
-    checker = load(CHECKER, "specseal_evidence_for_pact")
+    config = load(os.path.join(HOOKS, "config.py"), "agentic_config_for_pact")
+    optin = load(os.path.join(HOOKS, "optin.py"), "agentic_optin_for_pact")
+    checker = load(CHECKER, "agentic_evidence_for_pact")
     home_dir = home_dir or os.path.expanduser("~")
 
     def say(line):
@@ -456,7 +456,7 @@ def check(root, out=sys.stdout, home_dir=None):
     repo = optin.repo_root(os.path.abspath(root))
     if not repo:
         say(
-            f"pact-check: {shown(root, home_dir=home_dir)} is not in a git "
+            f"seal pact: {shown(root, home_dir=home_dir)} is not in a git "
             "repository — nothing was read"
         )
         return 2
@@ -464,7 +464,7 @@ def check(root, out=sys.stdout, home_dir=None):
     pact_path = os.path.join(home, PACT_FILE) if home else ""
     if not home or not os.path.lexists(pact_path):
         say(
-            f"pact-check: {shown(repo, home_dir=home_dir)} holds no "
+            f"seal pact: {shown(repo, home_dir=home_dir)} holds no "
             f"seal/{PACT_FILE}, so there is no pact "
             "to reconcile here — run it in the repository that holds the pact"
         )
@@ -480,7 +480,7 @@ def check(root, out=sys.stdout, home_dir=None):
     name = config.pact_name(mine)
     if not name:
         say(
-            f"pact-check: {shown(repo, home_dir=home_dir)} has no origin remote, "
+            f"seal pact: {shown(repo, home_dir=home_dir)} has no origin remote, "
             "so the name every pact "
             "anchor carries cannot be derived — set `origin` and run it again"
         )
@@ -621,7 +621,7 @@ def check(root, out=sys.stdout, home_dir=None):
         )
 
     summary = (
-        f"pact-check: the pact `{name}` — {read_count} of {len(signers)} "
+        f"seal pact: the pact `{name}` — {read_count} of {len(signers)} "
         f"signer{'' if len(signers) == 1 else 's'} read · "
         + " · ".join(f"{counts[s]} {s.lower()}" for s in counts)
     )
@@ -644,12 +644,12 @@ def renamed(config, where, header, current, say):
     In no exit class: the file reads exactly as under CURRENT (#822)."""
     old, sentence = config.renamed_header(current)
     if header is not None and header == old:
-        say(f"pact-check: {where} {sentence}")
+        say(f"seal pact: {where} {sentence}")
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(
-        prog="pact-check",
+        prog="seal pact",
         description="At the pact's repository: does every signer still "
         "agree with the pact?",
     )

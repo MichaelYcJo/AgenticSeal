@@ -11,8 +11,9 @@ character turned into a line break.
 One splitter, `hooks/blocks.py#gfm_lines`, which `unverified_check.py` hands
 its callers, is what
 every such reader now reads, and two readers of one text split it alike. The
-scenarios are `seal/specs/1790655302-every-reader-ends-a-line-where-gfm-does/
-spec.md`'s at `67694cba`, numbered as it numbers them, and each was seen red at `2e392d46`
+scenarios are
+`67694cba:seal/specs/1790655302-every-reader-ends-a-line-where-gfm-does/spec.md`'s,
+numbered as it numbers them, and each was seen red at `2e392d46`
 before it was committed.
 
 Every one of the eight is built from its code point, never typed: an escape
@@ -53,7 +54,7 @@ def _load(name, path):
     return module
 
 
-reader = _load("specseal_reader_for_gfm_lines", READER)
+reader = _load("agentic_reader_for_gfm_lines", READER)
 
 
 # --- S17: one splitter, and its copies agree ---------------------------------
@@ -64,8 +65,8 @@ def test_every_copy_of_the_splitter_is_the_readers():
     #1005; `arm_check._lines` splits Python source where `ast` does, ends
     kept, and the coordinate kernel asks the reader itself. All are one rule,
     held equal here."""
-    checker = _load("specseal_checker_for_gfm_lines", CHECKER)
-    arm_check = _load("specseal_arm_check_for_gfm_lines", ARM_CHECK)
+    checker = _load("agentic_checker_for_gfm_lines", CHECKER)
+    arm_check = _load("agentic_arm_check_for_gfm_lines", ARM_CHECK)
     for text in texts():
         want = reader.gfm_lines(text)
         assert checker.gfm_lines(text) == want, repr(text)

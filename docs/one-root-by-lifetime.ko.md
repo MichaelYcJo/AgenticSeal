@@ -14,7 +14,7 @@
 만들고 옮기고 지우며, 그 형식을 플러그인의 검사기가 정한다는 뜻입니다.
 `.github/` 가 GitHub 의 것인 것과 같습니다. 수명은 셋이고 각각 집이 하나입니다.
 세션의 상태는 루트 옆, 공통 git 디렉터리 아래에 있고 커밋되지 않습니다. 작업
-항목의 디렉터리 `seal/specs/<id>/` 는 settle 이 그 spec 의 절을 쓰고
+항목의 디렉터리 `seal/threads/<id>/` 는 settle 이 그 spec 의 절을 쓰고
 디렉터리를 지울 때까지 삽니다. 그 밖의 `seal/` 아래 파일은 `docs/`, `CHANGELOG.md` 와 함께
 영구적입니다. 파일 하나하나의 배치는 `skills/implement/SKILL.md` *Document
 layout — two roots, three lifetimes* 와 `docs/the-record-layout.md` 에
@@ -22,13 +22,16 @@ layout — two roots, three lifetimes* 와 `docs/the-record-layout.md` 에
 
 **플러그인은 자기 루트에만 씁니다.** 그 밖의 자리에 있는 `specs/` 디렉터리는
 프로젝트 자신의 것이고, 이력으로 읽을 뿐 가져가지 않습니다
-(`templates/config.md` *Reference specs*). 세션이 칠 수 있는 경로로 루트가
+(`templates/config.md` *Reference specs*). 플러그인의 어떤 코드도 최상위
+`specs/` 나 `.specseal/` 을 열지 않습니다. 0.3.x 배치는 README.md *Coming up
+from 0.3.x* 가 주는 명령으로 손으로 옮기고, 그 절은 그것이 유일한 길이라고
+말합니다. 세션이 칠 수 있는 경로로 루트가
 어디 있는지는 contract rule 11 한 곳에 적혀 있습니다.
 check: tests/test_no_document_names_the_old_roots.py tests/test_optin.py
 
 ## 종속 규칙
 
-**릴리스보다 오래 살아야 하는 것은 병합 뒤에 `seal/specs/<id>/` 를 읽어서는
+**릴리스보다 오래 살아야 하는 것은 병합 뒤에 `seal/threads/<id>/` 를 읽어서는
 안 됩니다.** `settle` 이 이 디렉터리를 지우므로, 영구적인 용도에서는 이미
 없는 것으로 취급합니다. 라운드 기록의 `target:` 줄은 그 PR 이 열려 있는
 동안만 읽힙니다. 릴리스된 changelog 항목 위에서 작업 항목의 이름을 적은
@@ -36,7 +39,7 @@ check: tests/test_no_document_names_the_old_roots.py tests/test_optin.py
 이력에서 찾을 수 있습니다. local 모드에서는 그 폴더를 담은 이력이 없으므로,
 그 주석은 이미 떠난 작업 항목의 이름만 가리킵니다. 저장소에서 이 묶음을 읽는 검사는 모두, settle 이 그 일부를 지울 때
 답을 내야 합니다(`skills/settle/SKILL.md` *Answer every check that reads the
-corpus*). 병합 뒤에 `seal/specs/<id>/` 를 새로 읽는 코드는 그것을 만난 리뷰가
+corpus*). 병합 뒤에 `seal/threads/<id>/` 를 새로 읽는 코드는 그것을 만난 리뷰가
 지적할 일입니다.
 
 **그 뒤에 있는 더 넓은 규칙은, 무엇이 움직일 때 다른 것을 찾아서 고쳐야 하는
@@ -49,10 +52,19 @@ corpus*). 병합 뒤에 `seal/specs/<id>/` 를 새로 읽는 코드는 그것을
 
 ## 옵트인 신호는 루트 자체다
 
-**저장소가 옵트인한 것은 그 모드의 자리에 `seal/` 이 있을 때입니다.** shared
-모드면 `<repo>/seal/`, local 모드면 `$(git rev-parse --git-common-dir)/seal/`
-입니다. 훅은 두 자리를 그 순서로 보고, 있는 쪽이 "켜졌다" 와 "어느 모드인가"
-를 함께 말해 줍니다. 그 밖에는 아무것도 읽지 않고, 설정 키도 없습니다. git
+**저장소가 옵트인한 것은 그 모드의 자리에 `seal/` 이 있고 그 `README.md` 가
+플러그인의 표식으로 시작할 때입니다.** shared 모드면 `<repo>/seal/`, local
+모드면 `$(git rev-parse --git-common-dir)/seal/` 입니다. 표식은
+`templates/seal-README.md` 의 첫 줄이고, 처음 설정과, 플러그인 이름이 AgenticSeal 로
+바뀌기 전에 설치된 저장소의 이전이 이것을 씁니다. 훅은 두 자리를 그 순서로 보고, 표식과 함께
+있는 쪽이 "켜졌다" 와 "어느 모드인가" 를 함께 말해 줍니다. README 가 이전
+릴리스가 쓴 제목(`hooks/optin.py#EARLIER_HEADINGS`)으로 시작하는 `seal/` 은
+그 릴리스의 루트이고, 세션 시작의 이전이 표식으로 다시 씁니다. 그 전까지는
+옵트인하지 않은 것으로 읽고, 처음 설정은 그 옆에 두 번째 루트를 만들지
+않습니다. README 가 그 어느 쪽으로도 시작하지 않는
+`seal/` 은 `seal` 이라는 패키지가 가진 것처럼 프로젝트 자신의 디렉터리이고,
+옵트인하지 않은 것으로 읽습니다. 그런 디렉터리를 만난 처음 설정은 그 안에
+아무것도 쓰지 않고 루트를 git 디렉터리 아래에 둡니다. 그 밖에는 아무것도 읽지 않고, 설정 키도 없습니다. git
 설정 키도, `.git/` 아래의 표시 파일도, 가져온 ref 도 폴더가 이미 하는 말을
 두 번 하는 셈입니다.
 
@@ -65,7 +77,7 @@ corpus*). 병합 뒤에 `seal/specs/<id>/` 를 새로 읽는 코드는 그것을
 훅이 플러그인의 것이기 때문입니다. 실패 방향은, 두 자리 어디에도 폴더가
 없으면 옵트인하지 않은 것이고, 판단하지 못하는 훅은 아무것도 하지 않는
 것입니다. 버릴 저장소는 공통 git 디렉터리 아래의 빈 파일
-`.git/specseal-scratch` 하나로 게이트를 끕니다. 어떤 커밋도 이 파일을 다른
+`.git/agentic-scratch` 하나로 게이트를 끕니다. 어떤 커밋도 이 파일을 다른
 클론으로 옮기지 못합니다.
 check: tests/test_optin.py
 
@@ -86,12 +98,15 @@ check: tests/test_optin.py
   읽는데 local 모드는 아무것도 커밋하지 않기 때문입니다.
 
 두 자리 중 어디든 `seal/` 이 있는 저장소는 이미 이 과정을 거쳤으므로 다시
-묻지 않습니다. 모드는 폴더가 있는 자리로 읽습니다. 루트가 생기기 전의
-배치에 머물러 있는 저장소에는 묻지 않고 알리기만 하며, 세션 시작 훅이 한 번
-옮깁니다(`skills/implement/orchestration.md` 의 부트스트랩). 어느 자리에든
-루트가 생기면 그 훅은 저장소에 옮겼다는 표시를 남기므로, 나중에 옛 브랜치를
-체크아웃한 local 모드 저장소가 깨끗하게 두기로 한 트리 안으로 옮겨지지
-않습니다.
+묻지 않습니다. 모드는 폴더가 있는 자리로 읽습니다. 0.3.x 배치에 머물러 있는
+저장소에는 묻지 않고, README.md *Coming up from 0.3.x* 의 명령으로 직접
+옮긴다고 알리기만 합니다(`skills/implement/orchestration.md` 의 부트스트랩).
+플러그인 이름이 AgenticSeal 로 바뀌기 전에 설치한 저장소는 트리에 앞선
+배치가 남아 있는 브랜치마다 세션 시작 훅이 작업 항목을 스레드 배치로
+옮깁니다. 이미 옮겼다는 기록이 브랜치의 이동을 막지 않습니다. 그래서 shared
+모드에서 local 모드로 옮긴 저장소에서는 전환 전에 만든 브랜치의 `seal/` 이
+트리 안에서 옮겨지고 표식이 붙으며, 훅은 그 루트를 먼저 읽습니다
+(`hooks/root-migrate.py` 의 경계).
 check: tests/test_first_setup_asks_once.py
 
 ### shared 인가 local 인가
@@ -166,18 +181,22 @@ check: tests/test_first_setup_asks_once.py tests/test_optin.py tests/test_seal.p
 
 ## 이름
 
-**제품 이름은 SpecSeal 이고, 그 안의 어휘는 맨 `seal` 입니다.** 루트 `seal/`,
-`seal export` / `seal import` 명령, 기록을 가리키는 "the seal" 입니다.
+**제품 이름은 AgenticSeal 이고, 그 안에서 맨 `seal` 은 결과를 가리킵니다.**
+루트 `seal/`, `seal` 명령줄, sealer, 기록을 가리키는 "the seal" 입니다.
+플러그인의 `name` 과 모든 에이전트·스킬의 접두어는 `agentic` 이고,
+마켓플레이스는 `agenticseal`, 커밋 트레일러는 `Seal-Routing:` 입니다. 모든
+식별자는 구분자 없는 소문자이고, `AgenticSeal` 은 사람이 브랜드를 읽는 자리에만
+씁니다.
 
 | 이름 | 한 문장 |
 |---|---|
-| SpecSeal | spec 을 그것을 구현한 코드에 봉인한다 |
+| AgenticSeal | 플러그인. 그 한 문장은 README.ko.md 제목 아래 첫 줄과 `.claude-plugin/plugin.json` 의 `description` 에 있다 |
 | `seal/` | 루트. PR 이 열려 있는 동안 사람이 읽는 것이 진행 중인 작업 항목이므로, `docs/` 옆에 보이게 둔다 |
-| `seal/specs/<id>/` | 작업 항목의 디렉터리. 담고 있는 주된 산출물의 이름을 딴다 |
+| `seal/threads/<id>/` | 작업 항목의 디렉터리. 스레드 하나가 이슈 하나, 브랜치 하나, PR 하나다. 빌드 전의 설계는 `frame/`, 당사자 사이에 오간 것은 `trail/` 에 두고, 맨 위에 `routing.md`, `changelog.md`, `guarantee.md`, `gaps.md` 를 둔다. 기록은 무엇인가로 자리를 정하고, 어느 에이전트가 썼는가로 정하지 않는다 |
+| framer, crafter, proofer, sealer, tracer | 에이전트. 각 이름은 한 순서 안의 자기 몫을 말하고, 그 순서는 `docs/the-agent-set.md` *One contract every agent receives, and one definition each* 에 있다 |
 
-디렉터리는 처음 여는 사람에게 무엇이 들어 있는지 말해야 하므로, 비유로 이름
-붙인 디렉터리는 없습니다. smith 와 warden 은 에이전트 페르소나로만 씁니다.
-배포되는 산출물은 모두 영어로 씁니다. 플러그인은 남을 위한 것이고 토큰마다
+디렉터리와 에이전트는 처음 만나는 사람에게 자기가 무엇인지 말해야 하므로,
+어느 쪽도 비유로 이름 붙이지 않습니다. 배포되는 산출물은 모두 영어로 씁니다. 플러그인은 남을 위한 것이고 토큰마다
 값을 치르기 때문입니다. 저장소 자신의 기록과 PR 을 어느 언어로 쓰는지는 그
 저장소가 정할 일이고, 아래에 적습니다.
 

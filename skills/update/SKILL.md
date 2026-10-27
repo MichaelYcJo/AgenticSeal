@@ -4,7 +4,7 @@ description: Update the plugin to the newest release and say what changed. Runs 
 disable-model-invocation: true
 ---
 
-# /specseal:update, take the release and see what is in it
+# /agentic:update, take the release and see what is in it
 
 The user runs this command; the session running it follows the procedure
 below and reports to the user. Two commands run in a fixed order, and neither
@@ -20,8 +20,8 @@ session actually loaded, which is the one the user is comparing against.
 **2. Refresh the marketplace, then install.**
 
 ```bash
-claude plugin marketplace update specseal
-claude plugin update specseal@specseal
+claude plugin marketplace update agenticseal
+claude plugin update agentic@agenticseal
 ```
 
 Both, in that order. The first pulls the marketplace clone; the second
@@ -42,7 +42,7 @@ which is correct; it is the installed copy that is stale. Read the one path
 the installer records and compare:
 
 ```bash
-p=$(python3 -c "import json,os;d=json.load(open(os.path.expanduser('~/.claude/plugins/installed_plugins.json'),encoding='utf-8'));print(d['plugins']['specseal@specseal'][0]['installPath'])")
+p=$(python3 -c "import json,os;d=json.load(open(os.path.expanduser('~/.claude/plugins/installed_plugins.json'),encoding='utf-8'));print(d['plugins']['agentic@agenticseal'][0]['installPath'])")
 grep -m1 '^## ' "$p/CHANGELOG.md"        # must name the version step 2 reported
 ```
 
@@ -57,7 +57,7 @@ directory a session may be holding:
 
 ```bash
 mv "$p" "$p.stale.bak"
-rsync -a --exclude '.git' ~/.claude/plugins/marketplaces/specseal/ "$p/"
+rsync -a --exclude '.git' ~/.claude/plugins/marketplaces/agenticseal/ "$p/"
 mkdir -p "$p/.in_use"
 ```
 
@@ -69,7 +69,7 @@ another name for that reason. And `installed_plugins.json` names exactly one
 version directory is free to remove.
 
 **3. Name what changed.** Each release's notes are a file of their own in the
-refreshed marketplace clone, `~/.claude/plugins/marketplaces/specseal/changelog/<X.Y.Z>.md`,
+refreshed marketplace clone, `~/.claude/plugins/marketplaces/agenticseal/changelog/<X.Y.Z>.md`,
 and `CHANGELOG.md` beside them is only the index: one heading per release,
 newest first, each with a link to its file. Read the file of every release
 after the old version up to the new one, oldest first, and summarize every
@@ -85,7 +85,7 @@ surprised later:
   renamed, a compatibility fallback with an expiry.
 
 **4. Take the preset block if it moved.** The markers decide what is safe here.
-Everything between `<!-- specseal:start -->` and `<!-- specseal:end -->` is
+Everything between `<!-- agentic:start -->` and `<!-- agentic:end -->` is
 preset-owned and everything outside it is the user's, so replacing the region
 cannot touch a line the user wrote. `install.sh` relies on that boundary and so
 does `preset-setup`, which replaces an older block without asking and diffs
@@ -96,8 +96,8 @@ only the remainder.
 always-loaded file keeps stating the old one.
 
 ```bash
-diff <(sed -n '/specseal:start/,/specseal:end/p' ~/.claude/plugins/marketplaces/specseal/templates/claude-md-block.md) \
-     <(sed -n '/specseal:start/,/specseal:end/p' ~/.claude/CLAUDE.md)
+diff <(sed -n '/agentic:start/,/agentic:end/p' ~/.claude/plugins/marketplaces/agenticseal/templates/claude-md-block.md) \
+     <(sed -n '/agentic:start/,/agentic:end/p' ~/.claude/CLAUDE.md)
 ```
 
 `templates/claude-md-block.md` is the block's one source, and no other file
@@ -115,11 +115,12 @@ project owns it.
 |---|---|
 | No difference | nothing is said; the block is current |
 | The block differs | back up to `CLAUDE.md.bak`, replace the marker region, and name the rules that arrived. No question is asked, because the markers already say those bytes were never the user's |
+| A block between `<!-- specseal:start -->` and `<!-- specseal:end -->`, the markers every release before the rename to AgenticSeal wrote, and none under the new markers | the same as a block that differs: back up, replace that region with the block under the new markers, and name the rules that arrived. `bash install.sh` does the same |
 | No block on the machine | the user never installed the preset. Say so and stop: writing one in is an install, and an update is what was asked for |
 
 One case still needs a person. If a rule that just arrived also appears in the
 user's own text outside the markers, the file now states it twice, and the copy
-to remove is the user's. Name the overlap and point at `/specseal:preset-setup`,
+to remove is the user's. Name the overlap and point at `/agentic:preset-setup`,
 which classifies it and proposes the deletion through an approved diff.
 
 **5. Name both moves, cheapest first, and say what each one is known to do.**

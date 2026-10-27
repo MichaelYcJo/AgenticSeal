@@ -31,6 +31,7 @@ def stub(target, version="0.22.3"):
     return (
         "#!/bin/sh\n"
         f"# specseal-git-hook {version}\n"
+        # exempt from old_names: the bytes of the stub an earlier release wrote
         "# Written by the SpecSeal plugin (hooks/hook-install.py), which rewrites\n"
         "# it when the installed plugin moves and never touches a hook file\n"
         "# without the line above. Removing the plugin leaves this a no-op.\n"
@@ -102,9 +103,9 @@ class Test_main:
         assert left == ["commit-msg", "pre-push"], left
         assert {p: snapshot(p) for p in (own, husky)} == before
         assert said == (
-            f"SpecSeal removed the git hooks an earlier release of it wrote in "
+            f"AgenticSeal removed the git hooks an earlier release of it wrote in "
             f"{hooks}: pre-commit, reference-transaction and post-commit. "
-            "Nothing of SpecSeal runs inside git any more, and a hook file "
+            "Nothing of AgenticSeal runs inside git any more, and a hook file "
             "without the line `# specseal-git-hook` was left as it was."
         )
 
@@ -144,9 +145,7 @@ class Test_main:
         outside.mkdir()
         assert start(outside).strip() == ""
 
-    def test_accepts_a_persons_commit_that_runs_no_specseal_code_after_it(
-        self, tmp_path
-    ):
+    def test_accepts_a_persons_commit_that_runs_no_plugin_code_after_it(self, tmp_path):
         """S17. The stub ran the plugin copy whose path it names while that
         copy is on disk: a commit made before the session started runs it, and
         one made after runs nothing of it."""
@@ -186,8 +185,13 @@ class Test_module:
         assert not os.path.exists(os.path.join(HOOKS, "git")), "hooks/git/ is back"
 
     def test_the_dispatcher_carries_the_message(self, tmp_path):
+        """The real session-start group, run with `HOME` under the case's own
+        directory: the group renames and merges the plugin's state under
+        `~/.claude/` at every start, and must never reach the machine's own."""
         repo = git_repo(tmp_path / "repo")
         plant(common_hooks(repo), "pre-commit", stub("/x/hooks/git/pre-commit.py"))
+        home = tmp_path / "home"
+        home.mkdir()
         r = subprocess.run(
             [sys.executable, os.path.join(HOOKS, "dispatch.py"), "session-start"],
             input=json.dumps(
@@ -201,8 +205,9 @@ class Test_module:
             encoding="utf-8",
             errors="replace",
             timeout=60,
+            env={**os.environ, "HOME": str(home), "USERPROFILE": str(home)},
         )
-        assert "SpecSeal removed the git hooks" in r.stdout, r.stdout + r.stderr
+        assert "AgenticSeal removed the git hooks" in r.stdout, r.stdout + r.stderr
 
 
 test_census = census_case(TARGET)

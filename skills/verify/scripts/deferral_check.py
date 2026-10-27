@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""deferral-check — resolve the answerer named in an `unverified` row.
+"""seal deferrals — resolve the answerer named in an `unverified` row.
 
 Condition 4 lets a claim go out unproven as long as it says *who or what
 answers it*. Nothing checked that the answerer existed. The measured failure:
@@ -234,7 +234,7 @@ def inspect(root, kind):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(
-        prog="deferral-check",
+        prog="seal deferrals",
         description="Resolve the answerer named in an `unverified` row.",
     )
     ap.add_argument("path", nargs="?", default=".")
@@ -248,7 +248,7 @@ def main(argv=None):
 
     root = os.path.abspath(args.path)
     if not os.path.isdir(root):
-        print(f"deferral-check: no such path: {args.path}", file=sys.stderr)
+        print(f"seal deferrals: no such path: {args.path}", file=sys.stderr)
         return 2
 
     kinds = KINDS if args.kind == "all" else (args.kind,)

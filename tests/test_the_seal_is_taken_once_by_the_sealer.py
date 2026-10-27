@@ -20,12 +20,12 @@ from test_the_agent_contract_holds_the_universal_rules import HEADING
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 GATE = os.path.join(ROOT, "skills", "verify", "scripts", "broad_gate.py")
 RECORDER_SOURCE = os.path.join(
-    ROOT, "skills", "verify", "scripts", "pytest_record", "specseal_pytest_record.py"
+    ROOT, "skills", "verify", "scripts", "pytest_record", "agentic_pytest_record.py"
 )
 
 
 def gate_module():
-    return load_module(GATE, "specseal_broad_gate_for_tests")
+    return load_module(GATE, "agentic_broad_gate_for_tests")
 
 
 # =============================================================================
@@ -128,7 +128,7 @@ def test_this_repositorys_own_config_is_answered_exactly_as_before(tmp_path):
     no refusal to build at all. Run before and after each phase.
     """
     module = gate_module()
-    config = module.load(module.CONFIG_READER, "specseal_config_for_this_case")
+    config = module.load(module.CONFIG_READER, "agentic_config_for_this_case")
     home = os.path.join(ROOT, "seal")
     text = open(os.path.join(home, "config.md"), encoding="utf-8").read()
 
@@ -163,7 +163,7 @@ def test_the_documents_name_the_line_that_says_to_commit_the_cell():
         read_document(os.path.join("skills", "code-review", "orchestration.md")).split()
     )
     assert (
-        "the report's last line says `broad-gate.md` is written and not committed: "
+        "the report's last line says `trail/gate.md` is written and not committed: "
         "CI reads HEAD, so commit it before you push"
     ) in orchestration
 
@@ -188,7 +188,7 @@ def test_the_documents_say_where_the_panel_now_carries_each_name():
     assert "names the ref on the row under the commit" not in verify
     # Round 1's 🟡 4 and ⬜ 5: the third arm, which fires on every seal an
     # installed copy older than #666 redirects, because it hands over no
-    # invoked path to compare against. The sealer describes no panel row
+    # invoked path to compare against. The sealer detracers no panel row
     # since it became the guarantor (#923), so the documents that do are read.
     assert (
         "or where the tree's copy ran with no invoked copy named to compare against"
@@ -199,9 +199,9 @@ def test_the_documents_say_where_the_panel_now_carries_each_name():
     assert "or where no invoked copy was handed over to compare" in comment
 
 
-def test_the_docstrings_describe_the_letter_and_the_rows_it_carries():
+def test_the_docstrings_detracer_the_letter_and_the_rows_it_carries():
     """#717, S7 for the code's own prose (contract rule 14). The stamp
-    module's docstring describes the letter and the twin's characters rather
+    module's docstring detracers the letter and the twin's characters rather
     than a rope and golds; the gate's module docstring and `panel`'s row
     diagram list the rows the panel carries now; the comment above
     `SAMPLE_ROWS` says which rows left. #832, the owner's frame and layout
@@ -294,7 +294,7 @@ def test_the_documents_name_the_ci_also_row():
     # #940: the document carried a count of the steps a feature branch's run
     # leaves unanswered, and it went stale when a step left the workflow. The
     # gate prints the count; the document states no copy of it.
-    assert "A run on a SpecSeal feature branch reads `CI also ·" not in verify
+    assert "feature branch reads `CI also ·" not in verify
     assert "A feature seal of" not in verify
     assert "value is 41 columns and a step name is a sentence" in verify
     assert "value is 23 columns" not in verify
@@ -310,7 +310,7 @@ def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
     and each starts with the word that marks it unmeasured; the five the
     record replaced are asserted gone. Every document that tells a reader
     what the gate's words mean names `new?` beside the other two, so a sealer
-    handing it on and a smith reading it are both told it is not `new`."""
+    handing it on and a crafter reading it are both told it is not `new`."""
     gate = gate_module()
     assert gate.NOT_MEASURED == "new? not measured"
     earns = (
@@ -324,7 +324,7 @@ def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
     causes = (
         "the row started no pytest, because a part before its runner failed "
         "or it has none; none it started loaded the recorder; or the one that "
-        "did could not write its record and warned 'specseal_pytest_record: no "
+        "did could not write its record and warned 'agentic_pytest_record: no "
         "record written' in "
     )
     assert (
@@ -394,7 +394,7 @@ def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
         "session's record is under records/)"
     )
     with open(RECORDER_SOURCE, encoding="utf-8") as handle:
-        assert "specseal_pytest_record: no record written" in handle.read()
+        assert "agentic_pytest_record: no record written" in handle.read()
     assert gate.NOT_REACHED.format(code=2) == (
         "new? not measured: the row ran once at the base and exited 2, and no "
         "pytest it ran there collected this file, so the run may have ended "
@@ -418,7 +418,7 @@ def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
     readers = {
         # #969: the orchestrator meets the gate's words now, not the sealer.
         ("skills", "code-review", "orchestration.md"): "`new?`",
-        ("agents", "smith.md"): "`new?` means nothing at the base measured that file",
+        ("agents", "crafter.md"): "`new?` means nothing at the base measured that file",
         ("skills", "verify", "orchestration.md"): "**New?**",
         ("README.md",): "new? → not measured at the base",
         ("README.ko.md",): "new? → base 에서 재지 못했다",
@@ -518,7 +518,7 @@ def test_the_measurement_its_cost_and_its_limits_are_told_where_the_row_is_writt
         "On a failing test the gate compares each failing file with the base "
         "from a record, never from what pytest printed.",
         "the recorder's directory first on `PYTHONPATH`, `-p "
-        "specseal_pytest_record` appended to `PYTEST_ADDOPTS`, and a key made "
+        "agentic_pytest_record` appended to `PYTEST_ADDOPTS`, and a key made "
         "fresh for the run.",
         "A pytest a test starts, and an xdist worker, inherit no key and write "
         "nothing, so nothing a test prints or runs changes a word.",
@@ -693,7 +693,7 @@ def test_what_a_line_names_a_file_by_is_told_where_each_reader_meets_it():
                 "verify",
                 "scripts",
                 "pytest_record",
-                "specseal_pytest_record.py",
+                "agentic_pytest_record.py",
             )
         ).split()
     )
@@ -767,22 +767,22 @@ def test_what_a_line_names_a_file_by_is_told_where_each_reader_meets_it():
 # Part 3 — the owner, and the fourth definition
 # =============================================================================
 
-# `agents/smith.md` and `agents/warden.md` each carried the rule with no owner
+# `agents/crafter.md` and `agents/proofer.md` each carried the rule with no owner
 # in it: *the full suite is the orchestrator's*. #30 named the sealer in both.
 # Both were written anew since (#957, #967) and name no runner: the run's
 # owner moves from the sealer to the orchestrator in #969, and contract rule 2 is
 # where a reader finds it. What each definition still owes is the coverage
-# probe, in its own words. The warden's words are #985's absence rule: a
+# probe, in its own words. The proofer's words are #985's absence rule: a
 # claim that nothing catches a finding is a probe, named on the finding's
 # `evidence: executed` line.
 SEALER = os.path.join(ROOT, "agents", "sealer.md")
 PROBE = {
-    "smith.md": (
+    "crafter.md": (
         "Asking whether the suite catches something is a coverage probe, a "
         "different act: run it over the module that should catch it and "
         "report it as a probe."
     ),
-    "warden.md": (
+    "proofer.md": (
         "A claim of absence, such as nothing in the suite catching this, is a "
         "probe: run it over the module that should catch it, report it as a "
         "probe, never as a seal, and name it on the finding's `evidence: "
@@ -840,24 +840,24 @@ def test_the_definition_separates_a_coverage_probe_from_a_seal(definition):
     )
 
 
-def test_the_warden_says_what_comes_due():
-    """The warden's report is what ends the rounds, so it is the one segment
+def test_the_proofer_says_what_comes_due():
+    """The proofer's report is what ends the rounds, so it is the one segment
     positioned to say the gate is next. Saying so without naming what is
     spawned leaves the orchestrator to remember the sealer exists."""
-    warden = agent("warden.md")
+    proofer = agent("proofer.md")
     assert (
         "what comes due is the orchestrator's broad run, and the sealer's "
         "spawn after it"
-    ) in " ".join(warden.split()), (
-        "the warden says the broad run is next and does not say who takes it"
+    ) in " ".join(proofer.split()), (
+        "the proofer says the broad run is next and does not say who takes it"
     )
 
 
 # Every party that could be written in as the broad gate's runner. A runner
-# named in the smith's definition is a sentence #969 makes false by moving the
-# run, from a worktree that does not touch this file (`spec.md` decision 6 of
+# named in the crafter's definition is a sentence #969 makes false by moving the
+# run, from a worktree that does not touch this file (`frame/design.md` decision 6 of
 # work item 1792251842).
-RUNNERS = ("sealer", "orchestrator", "warden", "framer", "scribe", "session", "owner")
+RUNNERS = ("sealer", "orchestrator", "proofer", "framer", "tracer", "session", "owner")
 # A sentence anywhere in the file that hands the run to somebody: a party, then
 # a verb of taking it, then the run, inside one sentence.
 HANDS_THE_RUN = re.compile(
@@ -867,26 +867,26 @@ HANDS_THE_RUN = re.compile(
 )
 
 
-def test_the_smith_names_no_runner_of_the_broad_gate():
-    """T4 of #967 (S5): the smith says it does not run the broad gate and
+def test_the_crafter_names_no_runner_of_the_broad_gate():
+    """T4 of #967 (S5): the crafter says it does not run the broad gate and
     names nobody who does; contract rule 2 holds who does.
 
     This replaced a case that asserted *Then the sealer takes the broad gate
     once*. #969 moves the run to the orchestrator in a worktree beside this
     one, so either owner written here is false in one of the two trees."""
-    smith = agent("smith.md")
-    start = smith.index("**The broad gate is not yours, and its label is.**")
-    rule = smith[start : smith.index(" check: ", start)]
+    crafter = agent("crafter.md")
+    start = crafter.index("**The broad gate is not yours, and its label is.**")
+    rule = crafter[start : crafter.index(" check: ", start)]
     assert "You do not run the full suite, the lint or the typecheck" in rule, (
-        "the smith's gate rule stopped saying the run is not the smith's"
+        "the crafter's gate rule stopped saying the run is not the crafter's"
     )
     assert "rule 2 holds who does" in rule, (
         "the rule stopped pointing at where the runner is named"
     )
     named = [party for party in RUNNERS if re.search(rf"\b{party}", rule, re.I)]
-    assert not named, f"the smith's gate rule names {named}: {rule}"
-    handed = HANDS_THE_RUN.findall(smith)
-    assert not handed, f"`agents/smith.md` hands the broad gate to somebody: {handed}"
+    assert not named, f"the crafter's gate rule names {named}: {rule}"
+    handed = HANDS_THE_RUN.findall(crafter)
+    assert not handed, f"`agents/crafter.md` hands the broad gate to somebody: {handed}"
 
 
 # --- S7 the fourth definition ------------------------------------------------
@@ -924,10 +924,10 @@ def test_the_sealer_names_the_one_write_its_definition_is_allowed():
     every assertion below is unchanged and only the name and the grounds are.
 
     Since the sealer became the guarantor (#923) its one write is
-    `guarantee.md`, and `broad-gate.md` is the gate's, through its command."""
+    `guarantee.md`, and `trail/gate.md` is the gate's, through its command."""
     text = " ".join(sealer_text().split())
     assert "rule 6" in text, "the sealer cannot reach the rule that names its one write"
-    assert "through `broad-gate --record`" in text, (
+    assert "through `seal gate --record`" in text, (
         "the gate's file does not name the command that makes it, so the "
         "sealer cannot tell its own write from the gate's"
     )
@@ -974,7 +974,7 @@ def test_the_window_the_sealer_shipped_under_is_closed():
     the window's own words are absent, and what the section was standing
     against is now a positive assignment.
 
-    The two facts `spec.md` requires the definition to keep -- rule 6 and the one
+    The two facts `frame/design.md` requires the definition to keep -- rule 6 and the one
     cell -- are asserted by
     `test_the_sealer_names_the_one_write_its_definition_is_allowed` above, which
     is where they belong; repeating them here would make two cases fail for one

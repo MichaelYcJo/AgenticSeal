@@ -117,7 +117,7 @@ def s1_program_body(target):
 
 
 # Openers the one-shape reader refuses, each feeding a body no shell runs:
-# `spec.md` case 3.
+# `frame/design.md` case 3.
 OUTSIDE_THE_SHAPE = {
     "a sink with an unquoted delimiter": "cat > {scratch} <<EOF",
     "a sink with a double-quoted delimiter": 'cat > {scratch} <<"EOF"',

@@ -49,7 +49,7 @@ def test_the_accumulation_section_no_longer_exists():
     unreleased = [h for h in headings if h.lower().startswith("unreleased")]
     assert not unreleased, (
         f"CHANGELOG.md has {unreleased} again. An entry goes in "
-        "seal/specs/<work-item-id>/changelog.md, and the release gathers them"
+        "seal/threads/<work-item-id>/changelog.md, and the release gathers them"
     )
 
 
@@ -112,12 +112,12 @@ def test_the_documents_send_a_change_to_its_own_fragment():
     that waits on the fragment, before the preflight."""
     for parts in (("docs", "the-record-layout.md"), ("docs", "branch-and-release.md")):
         text = flat(*parts)
-        assert "seal/specs/<work-item-id>/changelog.md" in text, (
+        assert "seal/threads/<work-item-id>/changelog.md" in text, (
             "/".join(parts) + " does not name the file a change writes"
         )
     review = flat("skills", "code-review", "orchestration.md")
     assert (
-        "The party that builds the work item writes that fragment: the smith, or "
+        "The party that builds the work item writes that fragment: the crafter, or "
         "you where `routing.md` answers `Implementation` with `the session` "
         "(`docs/the-record-layout.md` *A change writes fragments, never a shared "
         "file*)."
@@ -160,7 +160,7 @@ def test_this_work_item_wrote_its_own_fragment():
     the marker `gather_changelog.py` wrote above its body is the proof it
     existed — a hand edit of the released notes leaves no marker behind."""
     item = "1788229400-every-branch-appends-to-the-same-two-files"
-    frag = os.path.join(ROOT, "seal", "specs", item, "changelog.md")
+    frag = os.path.join(ROOT, "seal", "threads", item, "changelog.md")
     if os.path.isfile(frag):
         with open(frag, encoding="utf-8") as f:
             assert f.read().strip(), "the fragment is empty"

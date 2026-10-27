@@ -14,7 +14,7 @@ is a pact every signer has to re-read for changes that were never theirs.
 pact's repository does not list itself: it cites its own clauses as it cites
 any other heading of its own. Each signer listed here names this repository in
 its own `seal/config.md`, in a `Pact` row (`templates/config.md` *Pact*).
-`pact-check` refuses a relationship recorded on one side only.
+`seal pact` refuses a relationship recorded on one side only.
 
 **Every `##` heading below the table is a clause**, and a `###` under it
 narrows inside it. A signer cites a clause as
@@ -23,7 +23,7 @@ narrows inside it. A signer cites a clause as
 
 where `<name>` is the last path segment of this repository's normalised
 origin URL and `<hash>` is the content hash of the clause's region that
-`pact-check` prints. A `SUPERSEDED` or `UNMATCHED` line from `pact-check` names the
+`seal pact` prints. A `SUPERSEDED` or `UNMATCHED` line from `seal pact` names the
 clause's current hash, so a new citation can be written with `@00000000` and
 corrected from its first report.
 

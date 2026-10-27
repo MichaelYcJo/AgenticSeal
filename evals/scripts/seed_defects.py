@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Generate the warden's seeded cases from the last release's shipped diffs.
+"""Generate the proofer's seeded cases from the last release's shipped diffs.
 
 A seeded case is the tree a shipped work item's round 1 reviewed, with one
 mutation in it. For a squash commit the release branch shipped, the
-generator reads the item's `rounds/round-1.md` at that commit, through
+generator reads the item's round 1 record at that commit, through
 `replay_targets.py#round_target` for either record shape, and builds the
 case at round 1's target against round 1's base. No round record exists in
 that tree, and every branch commit its files name is an ancestor of the
@@ -24,7 +24,7 @@ rule, since the tree at round 1's target holds the defects round 1 found.
 The seed lands on no line the window of such a finding accepts. A real
 defect that runs recurred on is a truth of the case too, where
 `recurred_truths.json` adds it (`replay_targets.py#truths_with`). The
-operators are `mutation-check`'s vocabulary, a replacement that lands
+operators are `seal mutate`'s vocabulary, a replacement that lands
 exactly once in the file.
 
 A case keeps the name `seeded-<the squash commit's first 8 hex>`, which
@@ -34,7 +34,7 @@ Usage:
   seed_defects.py --list                 every shipped commit and the
                                          mutation it would carry
   seed_defects.py --count 4 [--out DIR]  write the COUNT smallest under DIR
-                                         (evals/behaviour/warden/)
+                                         (evals/behaviour/proofer/)
   seed_defects.py --case NAME [--out DIR]
                                          write the named case alone
                                          (`seeded-<commit[:8]>`), from any
@@ -89,6 +89,7 @@ TOKEN = {
     " - 1": "-",
     "if not ": "not",
 }
+# exempt from old_names: the 0.22.x layout of the records its cases come from
 SPEC = re.compile(r"^seal/specs/(?P<item>[^/]+)/")
 SUBJECT = re.compile(r"\(#\d+\)$")
 
@@ -199,6 +200,7 @@ def target_of(commit):
     if len(items) != 1:
         return None, f"adds {len(items)} work items' routing.md"
     item = items[0]
+    # exempt from old_names: the 0.22.x layout of the records its cases come from
     rounds = f"{commit}:seal/specs/{item}/rounds"
     first = rt.git("show", f"{rounds}/round-1.md", check=False)
     if not first:
@@ -321,8 +323,9 @@ def scaffold(t, url):
 def prompt(t):
     """The case prompt: the orchestrator's one spawn of a fresh round 1, at
     HEAD against round 1's base."""
+    # exempt from old_names: the 0.22.x layout of the tree the case rebuilds
     report = f"seal/specs/{t['item']}/rounds/round-1.md"
-    return f"""You are the review orchestrator of this repository. Spawn exactly one `specseal:warden` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Review, edit and commit nothing yourself. When it returns, run `cat {report}` once and reply with the report's path.
+    return f"""You are the review orchestrator of this repository. Spawn exactly one `agentic:proofer` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Review, edit and commit nothing yourself. When it returns, run `cat {report}` once and reply with the report's path.
 
 BEGIN PROMPT
 
@@ -341,6 +344,7 @@ def graders(t):
     each finding round 1 closed fixed that round 2 confirmed, and whatever
     the input file of recurred truths adds for the case at round 1's
     target."""
+    # exempt from old_names: the 0.22.x layout of the tree the case rebuilds
     report = f"seal/specs/{t['item']}/rounds/round-1.md"
     seeded = (
         "seeded",
@@ -355,7 +359,7 @@ def graders(t):
         )
         for truth in t["truths"]
     ]
-    out = behaviour.report_shape("warden", report)
+    out = behaviour.report_shape("proofer", report)
     for name, pattern, body in rt.truths_with(
         case_name(t), [seeded, *found], t["target"]
     ):
@@ -397,8 +401,8 @@ def main(argv=None):
     for t in chosen:
         behaviour.write_case(
             os.path.join(a.out, case_name(t)),
-            name=f"warden {case_name(t)}",
-            tags=["behaviour", "warden", "seeded"],
+            name=f"proofer {case_name(t)}",
+            tags=["behaviour", "proofer", "seeded"],
             prompt=prompt(t),
             scaffold=scaffold(t, url),
             graders=graders(t),

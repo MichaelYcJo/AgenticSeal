@@ -27,7 +27,7 @@ Each entry is two files, and no code reads either of them:
 The source of each entry is its tag, not a copy of the old code. The
 command under each entry draws it again from the tag. It loads that tag's
 `skills/verify/scripts/seal_stamp.py` and calls `stamp` over the module's
-`SAMPLE_ROWS` directly, because `seal-stamp` on a pipe prints the letter
+`SAMPLE_ROWS` directly, because `seal stamp` on a pipe prints the letter
 twin rather than the colours. Each lily's command passes `DEFAULT_SCALE`
 as well. From 0.20.0 the module reads its mark from `seal-mark.txt` beside
 it, so the placeholder S's command writes the tag's chart into a temporary

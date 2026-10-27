@@ -13,7 +13,7 @@ description: |
 
 Extends `implement` and `code-review` when the work is a migration, the same
 behavior rebuilt on different technology, in a repository that declares
-`seal/parity.md`. A scribe reads the sections that find and trace the
+`seal/parity.md`. A tracer reads the sections that find and trace the
 original: *The migration config*, *What the original sends* and *The
 original's coordinates*. The sections that judge and record are its caller's.
 
@@ -28,7 +28,7 @@ check: none reader: the parity review
 
 A migrating repository commits `seal/parity.md`, written from
 `templates/parity.md`, which holds its fields. A machine-local checkout path
-never goes in it: it lives in `~/.claude/specseal/parity-paths.md`, keyed by
+never goes in it: it lives in `~/.claude/agentic/parity-paths.md`, keyed by
 the origin remote URL, so worktrees and second checkouts resolve to one entry.
 
 The original resolves in this order: the recorded path, a sibling directory of
@@ -100,18 +100,18 @@ check: tests/test_the_record_is_written_in_words.py tests/test_review_axes.py
 ## Recording the comparison
 
 The comparison is recorded in the tree, by the party that compared, once
-coordinates were opened, behavior read and verdicts given; the scribe and
-the smith record none. Where the pull request changes a path outside `docs/`
+coordinates were opened, behavior read and verdicts given; the tracer and
+the crafter record none. Where the pull request changes a path outside `docs/`
 and `seal/`, the record is an `original:` line naming the migration config's
 `Baseline commit`, and where it lands follows the routing answer:
 
 | The declaration says | Who writes the `original:` line, and where |
 |---|---|
-| through the review chain | the warden, in each round record |
+| through the review chain | the proofer, in each round record |
 | straight to the PR | the sealer, once, in `guarantee.md` |
 
 The pull-request check reads that line (`docs/the-review-record.md` *The
-round record*). A warden that could not resolve the original writes no line
+round record*). A proofer that could not resolve the original writes no line
 and raises an `unread` finding, and a sealer that could not compare writes a
 `withheld` verdict naming it (`agents/sealer.md`). A line for work nobody
 compared turns

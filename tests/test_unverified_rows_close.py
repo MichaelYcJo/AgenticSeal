@@ -43,7 +43,7 @@ CANONICAL = """## Not verified
 def write(tmp_path, section, name="1780000000-work"):
     d = tmp_path / "specs" / name
     d.mkdir(parents=True)
-    p = d / "overview.md"
+    p = d / "gaps.md"
     p.write_text(
         f"# {name} — overview\n\n## Not done\n\nsomething.\n\n{section}",
         encoding="utf-8",
@@ -86,7 +86,7 @@ def test_the_skill_shows_the_word(tmp_path):
     ) as f:
         text = f.read()
     example = next(ln for ln in text.splitlines() if ln.startswith("| closed "))
-    p = tmp_path / "overview.md"
+    p = tmp_path / "gaps.md"
     p.write_text(
         f"# memo\n\n## Not verified\n\n| Item | Who must answer |\n|---|---|\n{example}\n",
         encoding="utf-8",
@@ -139,14 +139,12 @@ def collapsed(*parts):
 def test_the_template_is_the_shape_the_checker_reads(tmp_path):
     """Template and checker drift apart silently otherwise: every new work
     item would copy a section the release check then refuses."""
-    with open(
-        os.path.join(ROOT, "templates", "sdd-overview.md"), encoding="utf-8"
-    ) as f:
+    with open(os.path.join(ROOT, "templates", "sdd-gaps.md"), encoding="utf-8") as f:
         template = f.read()
 
     d = tmp_path / "specs" / "1780000000-work"
     d.mkdir(parents=True)
-    p = d / "overview.md"
+    p = d / "gaps.md"
 
     p.write_text(template, encoding="utf-8")
     _, _, err = uc.check_file(str(p))
@@ -173,39 +171,37 @@ def test_the_memo_no_longer_asks_for_what_the_diff_holds():
 
 
 def test_the_memo_keeps_one_line_of_purpose():
-    """Below the six-file line no `spec.md` is written, so this line is the
+    """Below the six-file line no `frame/design.md` is written, so this line is the
     only place the purpose stays in the repository."""
     skill = collapsed("skills", "implement", "SKILL.md")
     assert "Why this work exists and what the result changes — **one line**" in skill
     assert "the only place the purpose stays in the repository" in skill
-    with open(
-        os.path.join(ROOT, "templates", "sdd-overview.md"), encoding="utf-8"
-    ) as f:
+    with open(os.path.join(ROOT, "templates", "sdd-gaps.md"), encoding="utf-8") as f:
         assert "## Why this work exists" in f.read()
 
 
 def test_the_ladder_does_not_still_say_at_the_end():
     """Three of the four parts are written when they happen. A ladder that
-    still says `overview.md at the end` contradicts the step above it, and the
+    still says `gaps.md at the end` contradicts the step above it, and the
     contradiction is what sessions resolve by reconstructing at the end. The
-    smith's copy of the ladder left with #967; it opens the skill instead."""
+    crafter's copy of the ladder left with #967; it opens the skill instead."""
     skill = collapsed("skills", "implement", "SKILL.md")
-    assert "`overview.md` at the end" not in skill
+    assert "`gaps.md` at the end" not in skill
     assert (
         "opened at the first divergence, unverified item, or fed-back clause" in skill
     )
-    assert "`overview.md` at the end" not in collapsed("agents", "smith.md")
+    assert "`gaps.md` at the end" not in collapsed("agents", "crafter.md")
 
 
 def test_the_skill_states_the_closing_convention():
     """The writer of a row is the one who has to know how it closes."""
     skill = collapsed("skills", "implement", "SKILL.md")
     assert "closed by marking it, never by deleting it" in skill
-    assert "unverified-check --baseline" in skill
-    # #945 took the step out of CI: a deleted row is the warden's to read in
+    assert "seal unverified --baseline" in skill
+    # #945 took the step out of CI: a deleted row is the proofer's to read in
     # the overview's diff, and no check at the pull request refuses it.
     assert "No check at the pull request refuses a deleted row" in skill
-    assert "the warden reads the overview's diff" in skill
+    assert "the proofer reads the overview's diff" in skill
     assert "fails the next pull request" not in skill
 
 
@@ -253,7 +249,7 @@ def test_the_documents_state_the_merge_base_footing(doc, tip, false_sentence):
     these files had reason to name a merge base."""
     text = open(os.path.join(ROOT, doc), encoding="utf-8").read()
     assert "merge-base" in text or "merge base" in text, (
-        f"{doc} describes `unverified-check --baseline` and does not say the "
+        f"{doc} describes `seal unverified --baseline` and does not say the "
         "comparison is against the merge base"
     )
     flat_text = " ".join(text.replace("#", " ").split())
@@ -300,11 +296,11 @@ def test_the_fence_walks_agree_shape_by_shape(lines):
     from conftest import load_hook_module
 
     spec = importlib.util.spec_from_file_location(
-        "specseal_config_for_fence_walks", os.path.join(ROOT, "hooks", "config.py")
+        "agentic_config_for_fence_walks", os.path.join(ROOT, "hooks", "config.py")
     )
     config = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(config)
-    blocks = load_hook_module("blocks.py", "specseal_blocks_for_fence_walks")
+    blocks = load_hook_module("blocks.py", "agentic_blocks_for_fence_walks")
     fenced = set()
     for first, last in uc.fence_spans(lines):
         fenced.update(range(first, len(lines) if last is None else last + 1))

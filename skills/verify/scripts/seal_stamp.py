@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""seal-stamp — the sealer's stamp, drawn from a `sealed` guarantee.
+"""seal stamp — the sealer's stamp, drawn from a `sealed` guarantee.
 
 Issue #30 *What it prints*, redrawn by #717 and #832, and since #975 drawn
 once per work item from the sealer's verdict rather than the broad gate's
@@ -30,7 +30,7 @@ for the disc, `m` its wax edge, `M n N` its rim lit, mid and dark, `.` its
 field, `X Y x` the disc's mark's face, highlight and inner shadow and `y`
 its drop shadow; the text as itself, with the owner's `·`, `✓`, `─` and
 `→` written `.`, `+`, `-` and `>` — for a console that cannot render
-half-blocks, and for `seal-stamp` on a pipe. The twin is chosen when
+half-blocks, and for `seal stamp` on a pipe. The twin is chosen when
 stdout is not a UTF-8 terminal, or on `--shape`. An agent's report carries
 neither: no Bash call's pipe is drawn on.
 
@@ -56,9 +56,9 @@ the file: `queue_for_written_guarantee` and `write_values`, `read_values`,
 a file is drawn once whoever draws it.
 
 Usage:
-  seal-stamp                      the stamp over sample rows, for a person
-  seal-stamp --shape              the letter twin
-  seal-stamp --from <file>        a queued stamp's values file, drawn once
+  seal stamp                      the stamp over sample rows, for a person
+  seal stamp --shape              the letter twin
+  seal stamp --from <file>        a queued stamp's values file, drawn once
 
 The gate imports `sealed_names`, `ref_is_commit`, `is_utf8(stream)`,
 `text_lines`, `TWIN_ASCII` and the panel's text rules; the edit gate imports
@@ -73,8 +73,8 @@ so a values file no hook drew can still be drawn by hand.
 
 Exit codes: 0 printed · 2 refused — a values file that is unreadable or
 drawn already; nothing was written on 2. An interpreter below the floor never
-reaches this file through `bin/seal-stamp`: `hooks/launch.py` refuses it with
-2 first.
+reaches this file through `seal stamp`: `hooks/launch.py` refuses `seal`
+with 2 first.
 """
 
 import argparse
@@ -91,7 +91,7 @@ import time
 
 # --- the disc's colours --------------------------------------------------
 #
-# The owner's frame of 2026-10-07 (#832, `spec.md` decision 5 of work item
+# The owner's frame of 2026-10-07 (#832, `frame/design.md` decision 5 of work item
 # 1791270164), named as the owner's `seal28.py` names them: `WAX_EDGE`; the
 # rim, lit from the upper left in three steps, `RIM_LIT`, `RIM_MID` and
 # `RIM_DARK`, whose lit and dark the groove inside it takes the other way
@@ -121,7 +121,7 @@ TITLE_RED = (196, 40, 44)
 # case shadow — `m` the wax edge and `.` the field, as #30 had them; `M n N`
 # the rim lit, mid and dark; `X` the disc's mark's face, and `Y` and `y` its
 # highlight and its drop shadow, as #717 had them; `x` its inner shadow. The
-# framer chose them (`spec.md` *Data & interfaces*): the twin is for a
+# framer chose them (`frame/design.md` *Data & interfaces*): the twin is for a
 # console that cannot draw half-blocks, and no decision of the owner's names
 # its letters. Every disc cell is exactly one of these colours, so a cell's
 # letter is a lookup (`letter_row`).
@@ -168,9 +168,9 @@ MESSAGE_LIMIT = 10000
 # see: `hooks/dispatch.py#report` prepends the session's gate-failure report
 # to this same message after the hook has printed. The longest report it can
 # write, with each exception's type name and each gate's name cut at
-# `NAME_CAP` and its text at `MESSAGE_CAP`, is 564 UTF-16 units for one failed
-# gate and 972 for two, separator included; a third, at 1,378, would pass the
-# limit beside a stamp at the budget (measured 2026-10-03 over
+# `NAME_CAP` and its text at `MESSAGE_CAP`, is 567 UTF-16 units for one failed
+# gate and 975 for two, separator included; a third, at 1,381, would pass the
+# limit beside a stamp at the budget (measured 2026-10-27 over
 # `dispatch.describe`, every gate this plugin names and three foreign ones,
 # in every group it names and a foreign one, at every phase, with every field
 # past its cap -- a record an older or newer plugin wrote;
@@ -208,7 +208,7 @@ LIT_AT = 0.35
 # `assets/seals/candidates/` is the same `.M` text.
 CHART_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "seal-mark.txt")
 CHART_MALFORMED = (
-    "seal-stamp: the disc's mark chart {path} is not {n} lines of {n} "
+    "seal stamp: the disc's mark chart {path} is not {n} lines of {n} "
     "characters over `.M` with every `M` inside the disc's field ({fault}). "
     "Nothing was drawn."
 )
@@ -353,7 +353,7 @@ def colour_code(ground, colour):
 
 
 def colour_row(cells):
-    """One line of the block form, lean (#832, `spec.md` S11, after the
+    """One line of the block form, lean (#832, `frame/design.md` S11, after the
     owner's `frames.py#encode`). A code only where the next visible cell's
     foreground, background or style differs from what is set; every part of
     that change in one SGR; no reset inside the line, and `RESET` at its end
@@ -392,7 +392,7 @@ def colour_row(cells):
 
 
 def letter_row(cells):
-    """One line of the letter twin over the same cells (#832, `spec.md`
+    """One line of the letter twin over the same cells (#832, `frame/design.md`
     S4): a half-block's `KEY` letter — its foreground's, which is the top
     half's colour on `▀` and the bottom half's on `▄` — the text's own
     character with `TWIN_ASCII` applied, and a space for an empty cell.
@@ -420,7 +420,7 @@ def strip_ansi(s):
 # (`queue_for_written_guarantee`) composes rows too, and the gate's plain report
 # imports them from here, so both write a row by one set of rules.
 
-# How many columns a panel value is given (#832, `spec.md` S5a of work item
+# How many columns a panel value is given (#832, `frame/design.md` S5a of work item
 # 1791270164): the widest that keeps the stamp's widest line inside an
 # 80-column terminal, the floor a command line's output is held to. The open
 # layout has no frame, so the terminal is the bound: 28 columns of disc, `GAP`
@@ -499,7 +499,7 @@ def item_value(item):
 
 # --- the stamp: the disc at the left, the text block at the right ---------
 #
-# #832, the owner's layout of 2026-10-07 (`spec.md` decision 6 of work item
+# #832, the owner's layout of 2026-10-07 (`frame/design.md` decision 6 of work item
 # 1791270164, the owner's `frames.py#design_open`): no parchment, no edge, no
 # frame and no background outside the disc, the text in the terminal's own
 # colours. #717's sheet, which the text was written on, is retired.
@@ -531,7 +531,7 @@ def text_cells(text, style=None, fg=None):
 
 
 def text_lines(rows):
-    """The text block of `rows`, as lines of cells (#832, `spec.md` S3a).
+    """The text block of `rows`, as lines of cells (#832, `frame/design.md` S3a).
 
     Where the first row is the panel's title row, `("SEALED", "")`, the
     first line is `SEALED ` bold in `TITLE_RED` and a dim rule of
@@ -566,7 +566,7 @@ def text_lines(rows):
 def compose(rows, disc=True):
     """The stamp of `rows` as lines of cells (see the writers above), with
     its width and height and where the disc stands: `Letter(cells, width,
-    height, disc)` (#832, `spec.md` S3, the owner's layout of 2026-10-07).
+    height, disc)` (#832, `frame/design.md` S3, the owner's layout of 2026-10-07).
 
     The disc — `disc` False leaves it off, which is the rung `fitted` steps
     down to — stands at column 0, `DISC_CELLS` wide and
@@ -710,7 +710,7 @@ def ref_is_commit(ref, base):
 def pick_shape(stream):
     """True when `stream` gets the letter twin: anything that is not a UTF-8
     terminal. A console on another codepage draws UTF-8 half-blocks as
-    mojibake, and a pipe has no terminal to draw colour on, so `seal-stamp`
+    mojibake, and a pipe has no terminal to draw colour on, so `seal stamp`
     on one prints the twin. Asked BEFORE the stream is reconfigured to UTF-8 — after
     that call every stream answers `utf-8`, and a cp949 console would get the
     blocks it cannot draw."""
@@ -756,19 +756,19 @@ def is_terminal(stream):
 # session of the same clone does not draw, and take, a stamp that is not its
 # own.
 
-VALUES_DIR = "specseal-stamp"
+VALUES_DIR = "agentic-stamp"
 # The key of a stamp no Claude Code session was found for. No hook reads it;
-# `seal-stamp --from` is how such a file is drawn.
+# `seal stamp --from` is how such a file is drawn.
 NO_SESSION = "none"
 PENDING = ".json"
 DRAWN = ".drawn.json"
 
-VALUES_UNREADABLE = "seal-stamp: {path} cannot be read ({why}). Nothing was drawn."
+VALUES_UNREADABLE = "seal stamp: {path} cannot be read ({why}). Nothing was drawn."
 VALUES_MALFORMED = (
-    "seal-stamp: {path} is not a stamp's values file: {why}. Nothing was drawn."
+    "seal stamp: {path} is not a stamp's values file: {why}. Nothing was drawn."
 )
 VALUES_DRAWN = (
-    "seal-stamp: {path} was drawn already, and a stamp's values are drawn "
+    "seal stamp: {path} was drawn already, and a stamp's values are drawn "
     "once. Nothing was drawn; the values stay in {drawn}."
 )
 
@@ -952,8 +952,8 @@ CHAIN_CHECK = os.path.join(
 # this clone, a plugin older than the hook (`docs/the-review-record.md`
 # *The stamp*).
 QUEUED = (
-    "specseal: the stamp for {id} is drawn at the end of this turn from "
-    "{path}; where none appears, `seal-stamp --from {command}` draws it"
+    "agentic: the stamp for {id} is drawn at the end of this turn from "
+    "{path}; where none appears, `seal stamp --from {command}` draws it"
 )
 # The line the write-time writer returns where its `guarantee.md` names a
 # commit the work item's branch does not hold. No pull request's check reads
@@ -961,14 +961,14 @@ QUEUED = (
 # seen; in shared mode the pull request's check refuses it as stale too. It
 # names no command: nothing was queued to draw.
 NOT_ON_BRANCH = (
-    "specseal: no stamp was queued for {id}: its guarantee.md names "
+    "agentic: no stamp was queued for {id}: its guarantee.md names "
     "{target}, which {branch} does not hold; a new audit at the head of "
     "{branch} draws it"
 )
 
 
 def quote(path, windows=None):
-    """`path` quoted for the shell a person types `seal-stamp --from` into:
+    """`path` quoted for the shell a person types `seal stamp --from` into:
     double quotes on Windows, `shlex.quote` elsewhere, so a checkout whose
     path holds a space prints a command that runs as printed.
     `broad_gate.quote` says why double quotes are `cmd.exe`'s."""
@@ -989,10 +989,10 @@ def _git(cwd, *args):
 
 
 def _chain_check():
-    """`chain_check.py`, whose readers of `guarantee.md` and `broad-gate.md`
+    """`chain_check.py`, whose readers of `guarantee.md` and `trail/gate.md`
     are the ones the pull request's check uses, so the row has one grammar."""
     spec = importlib.util.spec_from_file_location(
-        "specseal_chain_check_for_the_stamp", CHAIN_CHECK
+        "agentic_chain_check_for_the_stamp", CHAIN_CHECK
     )
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -1031,7 +1031,7 @@ def guarantee_rows(target, branch, base, ident, run, rounds):
     """The stamp's rows for a sealed guarantee (#975, `questions.md` Q1's
     answer (a)): what the records at the commit say and nothing measured
     again — the title, the audited commit with the branch under it, the
-    base, the work item's id, a blank, then the newest run `broad-gate.md`
+    base, the work item's id, a blank, then the newest run `trail/gate.md`
     names and the count of round records. A row whose record is absent is
     left out; `rounds` reads `0` where the work item had none."""
     rows = [TITLE_ROW, ("tree", fit(target))]
@@ -1089,7 +1089,7 @@ def sealed_before(chain, top, path, common=None, ident=None):
 # after the fact, so nothing asks ancestry at read time, which is what
 # #975's rounds 3 to 6 kept regressing on.
 
-REFUSED_DIR = "specseal-stamp-refused"
+REFUSED_DIR = "agentic-stamp-refused"
 # The shortest SHA a record is matched on; shorter spellings find none.
 SHORTEST_SHA = 7
 
@@ -1107,7 +1107,7 @@ def _same_commit(one, other):
 def record_refusal(common, ident, target):
     """Record that this clone refused work item `ident`'s `sealed` over
     `target` and drew nothing for it: an empty file
-    `<common>/specseal-stamp-refused/<ident>-<target>`, written by the
+    `<common>/agentic-stamp-refused/<ident>-<target>`, written by the
     write-time writer at its branch refusal. Beside `VALUES_DIR` and not in it, so neither `pending`,
     `already_queued` nor the `Stop` hook lists it. Per clone, not per
     session, because the refused row stands in this clone alone. A record
@@ -1144,8 +1144,8 @@ def _queue_values(
     """Write one work item's stamp for `session` under `common` and return
     the line that names it, once `queue_for_written_guarantee` has read the
     records from disk and the guarantee passed its refusals. `cell` is the
-    `Target SHA` row, `gate_text` the `broad-gate.md` beside the guarantee or
-    None, `rounds` the paths of what its `rounds/` holds and `branch` the
+    `Target SHA` row, `gate_text` the `trail/gate.md` beside the guarantee or
+    None, `rounds` the paths of what its `trail/rounds/` holds and `branch` the
     branch the audited commit stands on, or "" where none is named."""
     reader = chain.SHARED_READER
     key = f"{ident}-{target}"
@@ -1212,7 +1212,7 @@ def queue_for_written_guarantee(path, session, now=None):
 
     It reads the file from disk at its write, the moment the verdict comes
     to read `sealed`, in shared mode as in local mode (`docs/the-review-record.md`
-    *The stamp*). `path` must be `<root>/specs/<id>/guarantee.md`, where
+    *The stamp*). `path` must be `<root>/threads/<id>/guarantee.md`, where
     `<root>` is the repository's root in force (`optin.home_at`, through
     `written_root`): `<repo>/seal/` in shared mode, `<common>/seal/` in local
     mode. It then queues where the file reads one `Verdict:` of `sealed` and
@@ -1238,10 +1238,10 @@ def queue_for_written_guarantee(path, session, now=None):
     specs = os.path.dirname(item)
     seal = os.path.dirname(specs)
     names = (os.path.basename(real), os.path.basename(specs), os.path.basename(seal))
-    if names != ("guarantee.md", "specs", "seal"):
+    if names != ("guarantee.md", "threads", "seal"):
         return []
     chain = _chain_check()
-    routing = chain.load(chain.ROUTING, "specseal_routing_for_the_stamp")
+    routing = chain.load(chain.ROUTING, "agentic_routing_for_the_stamp")
     found = written_root(routing, seal)
     if found is None:
         return []
@@ -1289,7 +1289,7 @@ def queue_for_written_guarantee(path, session, now=None):
         record_refusal(common, ident, target)
         return [NOT_ON_BRANCH.format(id=ident, target=target, branch=branch)]
     try:
-        rounds = os.listdir(os.path.join(item, "rounds"))
+        rounds = os.listdir(os.path.join(item, "trail", "rounds"))
     except OSError:
         rounds = []
     line = _queue_values(
@@ -1310,7 +1310,7 @@ def queue_for_written_guarantee(path, session, now=None):
 
 # --- a person's command --------------------------------------------------
 
-# Neutral values in the stamp's shape, so `seal-stamp` shows a person what a
+# Neutral values in the stamp's shape, so `seal stamp` shows a person what a
 # sealed guarantee's commit draws without one having been committed — every
 # row `guarantee_rows` can return, the conditional ones included, in its
 # order; a case in `tests/test_seal_stamp.py`'s `Test_module` holds the
@@ -1335,7 +1335,7 @@ def main(argv=None, console_wants_letters=None):
     `reconfigure` changes the one object `sys.stdout` and `sys.__stdout__`
     both name; a direct call may leave it to be asked here."""
     parser = argparse.ArgumentParser(
-        prog="seal-stamp",
+        prog="seal stamp",
         description="Print the sealer's stamp — what the commit of a sealed "
         "guarantee draws.",
     )

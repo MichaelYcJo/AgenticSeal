@@ -77,11 +77,11 @@ def module(path, name):
 
 
 def publisher():
-    return module(SCRIPT, "specseal_publish_release_note_for_tests")
+    return module(SCRIPT, "agentic_publish_release_note_for_tests")
 
 
 def gatherer():
-    return module(GATHERER, "specseal_gather_changelog_for_publish_tests")
+    return module(GATHERER, "agentic_gather_changelog_for_publish_tests")
 
 
 class Releases:
@@ -414,7 +414,7 @@ class Test_main:
         assert fold.endswith(link), fold[-200:]
         assert "the release before it" not in body, "an older release reached the note"
         assert body.index(mod.UPDATE_HEADING) < body.index("<details>")
-        assert "/specseal:update" in body
+        assert "/agentic:update" in body
 
     def test_a_release_with_no_outside_contribution_thanks_nobody(
         self, monkeypatch, tmp_path

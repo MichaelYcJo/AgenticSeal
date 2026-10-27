@@ -217,7 +217,7 @@ def test_the_response_language_stays_out_of_the_repository_file():
 def test_the_mirror_is_named_for_its_own_language():
     """S7. `pr.ko.md` meant "the Korean translation of an English body". Read
     as "the mirror, in Korean" it needs no rename here and generalises: the
-    twelve files in `seal/specs/` are already correct, because this
+    twelve files in `seal/threads/` are already correct, because this
     repository's pull request language is English.
 
     Both directions are asserted. One alone reads as an example rather than
@@ -358,7 +358,7 @@ def _config_reader():
     import importlib.util
 
     path = os.path.join(ROOT, *CONFIG_READER)
-    spec = importlib.util.spec_from_file_location("specseal_config_for_pr_lang", path)
+    spec = importlib.util.spec_from_file_location("agentic_config_for_pr_lang", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module

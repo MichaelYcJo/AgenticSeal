@@ -1,6 +1,6 @@
 ---
 type: 'regex'
-target: {source: 'file', path: 'seal/specs/1790000022-keep-trailing-space/plan.md'}
+target: {source: 'file', path: 'seal/threads/1790000022-keep-trailing-space/frame/plan.md'}
 pattern: '^\| Phase \| Delivers \| Verified by \| Status \|'
 flags: 'm'
 ---

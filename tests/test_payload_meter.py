@@ -9,7 +9,7 @@ reports bytes, characters and tokens. Bytes and characters are counted;
 tokens are never — they are either MEASURED from a transcript, by
 `--calibrate`, or ESTIMATED from a bytes-per-token ratio, and the label on
 each figure says which. A bare token number is the defect this module
-exists to refuse, because the six calibration spawns in `spec.md` showed
+exists to refuse, because the six calibration spawns in `frame/design.md` showed
 bytes tracking tokens at 2.7 to 3.4 per token across three agents.
 
 The fixtures are a hand-built tree with known sizes and a hand-built
@@ -555,11 +555,11 @@ class Test_measure:
     def test_a_user_level_skill_shadows_the_trees_and_the_ratio_says_so(
         self, meter, tmp_path
     ):
-        """Measured on the machine that wrote this: `agents/smith.md` lists
+        """Measured on the machine that wrote this: `agents/crafter.md` lists
         `writing-style`, the harness resolved the bare name to
         `~/.claude/skills/writing-style/SKILL.md` (25,834 B) rather than the
         plugin's (19,762 B), and adding the difference is what brought the
-        warden's ratio to the scribe's. The row reports the tree's file, notes
+        proofer's ratio to the tracer's. The row reports the tree's file, notes
         the shadow, and the calibration divides by the bytes the spawn READ."""
         root, home = a_tree(tmp_path)
         shadow = home / ".claude" / "skills" / "alpha" / "SKILL.md"
@@ -639,7 +639,7 @@ class Test_measure:
     ):
         """The measured token count belongs to the bytes that spawn READ. Divided
         by the bytes the tree holds now it is a ratio nobody measured, and the
-        first after-run of #292 printed exactly that: smith at 2.49 B/token
+        first after-run of #292 printed exactly that: the crafter at 2.49 B/token
         against the 2.87 its spawn paid, and +979 tokens on a file whose bytes
         had not moved. When the baseline names the same spawn over other bytes,
         the baseline's ratio is kept, the row says so, and nothing in the run
@@ -815,9 +815,9 @@ class Test_measure:
         assert "skills/alpha/SKILL.md" in paths and "skills/beta/SKILL.md" in paths
 
     def test_the_baseline_agent_may_be_named_with_its_namespace(self, meter, tmp_path):
-        """Round 1, finding 4. The refusal listed `specseal:scribe` among the
+        """Round 1, finding 4. The refusal listed `agentic:tracer` among the
         agents the transcript spawned and refused `--baseline-agent
-        specseal:scribe` in the same breath, because `seen` is keyed by the
+        agentic:tracer` in the same breath, because `seen` is keyed by the
         short name and the argument was compared raw."""
         root, home = a_tree(tmp_path)
         transcript = a_transcript(
@@ -853,7 +853,7 @@ class Test_measure:
 class Test_sections_of:
     def test_refuses_a_heading_inside_a_fence_as_a_section(self, meter, tmp_path):
         """Round 1, finding 2. A skill quotes headings as examples inside a
-        fence, and `--sections` listed four of `agents/warden.md`'s fenced
+        fence, and `--sections` listed four of `agents/proofer.md`'s fenced
         template headings as sections with real byte counts — a number that
         sends #120 to cut an example. The check one file over already reads a
         fence as a quotation; the meter reads it the same way, and the pieces
@@ -1003,23 +1003,29 @@ class Test_module:
         assert data["root"] == "plugin"
         assert "measured_at" in data
 
-    # --- the wrapper pair -------------------------------------------------------
+    # --- the command ------------------------------------------------------------
 
-    def test_both_wrappers_ship_and_point_at_the_meter(self):
+    def test_the_command_a_person_types_runs_the_meter(self):
         """`bin/` is on the Bash tool's PATH while the plugin is enabled, and
-        cmd.exe resolves the `.cmd` twin through PATHEXT.
-        `tests/test_the_suite_has_a_command_that_is_cheap_twice.py` pins the
-        pairing for every entry; this pins that the pair runs THIS script."""
-        posix = os.path.join(BIN, "payload-meter")
-        windows = os.path.join(BIN, "payload-meter.cmd")
-        assert os.path.isfile(posix), "bin/payload-meter missing"
-        assert os.path.isfile(windows), "bin/payload-meter.cmd missing"
-        with open(posix, encoding="utf-8") as handle:
-            assert "skills/verify/scripts/payload_meter.py" in handle.read()
-        with open(windows, encoding="utf-8") as handle:
-            text = handle.read()
-        assert "skills\\verify\\scripts\\payload_meter.py" in text
-        assert "py -3" in text and "python " in text
+        cmd.exe resolves `bin/seal.cmd` through PATHEXT; `seal payload` hands
+        its arguments to THIS script, whose help names what it measures."""
+        wrapper = os.path.join(BIN, "seal")
+        command = (
+            [os.environ.get("COMSPEC", "cmd.exe"), "/c", f"{wrapper}.cmd"]
+            if os.name == "nt"
+            else [wrapper]
+        )
+        done = subprocess.run(
+            [*command, "payload", "--help"],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=120,
+        )
+        assert done.returncode == 0, done.stderr
+        assert "what each agent's startup payload is made of" in done.stdout, (
+            done.stdout
+        )
 
     def test_the_real_tree_runs_and_names_every_shipped_agent(self, tmp_path):
         """The meter's default root is the plugin root resolved from its own

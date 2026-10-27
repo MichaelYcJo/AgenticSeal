@@ -2,7 +2,7 @@
 """PreToolUse gate: two skills answer to "review", so let the user pick.
 
 Claude Code ships a skill named `code-review`, and this plugin ships
-`specseal:code-review`. Their descriptions overlap on "review a PR or diff",
+`agentic:code-review`. Their descriptions overlap on "review a PR or diff",
 so a request that meant one can land on the other. The wrong direction is not
 symmetric: the built-in runs a bug-and-cleanup sweep, and the user learns it
 was the wrong review only after paying for a whole one.
@@ -55,8 +55,8 @@ import console
 import optin
 
 BUILTIN = "code-review"
-OURS = "specseal:code-review"
-MARKER_DIR = "specseal-review-choice"
+OURS = "agentic:code-review"
+MARKER_DIR = "agentic-review-choice"
 
 REASON = f"""\
 `{BUILTIN}` is Claude Code's built-in skill, not this plugin's, and this repo \
@@ -66,11 +66,11 @@ Ask with the AskUserQuestion tool, offering exactly these two options:
 
   1. "Built-in review" — /{BUILTIN}: bugs, duplication, and cleanup
      across the diff.
-  2. "SpecSeal review" — /{OURS}: spec compliance first, then
+  2. "AgenticSeal review" — /{OURS}: spec compliance first, then
      quality, inheriting the verdicts of earlier review rounds.
 
 Then run the one they pick; retrying the built-in will go through. \
-The user may also prefer `@agent-specseal:warden`, which runs the SpecSeal \
+The user may also prefer `@agent-agentic:proofer`, which runs the AgenticSeal \
 review as a subagent."""
 
 
