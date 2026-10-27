@@ -616,25 +616,28 @@ class Test_main:
         assert not (layout / "seal" / "specs").exists()
         assert first_line(layout / "seal" / "README.md") == ROOT_MARKER
 
-    def test_refuses_to_write_the_tree_beside_a_local_root(self, hook, fresh, tmp_path):
-        """S9 of #80: with only a marked `.git/seal/` the hook says nothing,
-        and a branch carrying the 0.3.x layout checked out later puts nothing
-        into the tree the person chose to keep clean. A linked worktree,
-        which reads the main tree's root, is as silent."""
-        git(fresh, "checkout", "-q", "-b", "old-layout")
-        write(fresh, ".specseal/README.md", OLD_README)
-        write(fresh, f"specs/{ITEM}/routing.md", ROUTING)
-        commit(fresh, "the 0.3.x layout")
-        git(fresh, "checkout", "-q", "main")
-        mark_root(fresh / ".git" / "seal")
-        assert start(hook, fresh) == ""
-        git(fresh, "checkout", "-q", "old-layout")
-        assert start(hook, fresh) == ""
-        assert not (fresh / "seal").exists(), "the old layout was moved into the tree"
-        assert git(fresh, "status", "--porcelain").stdout == ""
+    def test_accepts_a_branch_cut_before_a_switch_to_local_mode_moved_in_its_tree(
+        self, hook, layout, tmp_path
+    ):
+        """The limit `hooks/root-migrate.py`'s docstring states: a repository
+        that left shared mode for local mode still carries its 0.22.x `seal/`
+        on a branch cut before the switch, and that branch's session start
+        moves it in the tree and marks it, so the hooks read it before the
+        local root. The local-mode branch, and a linked worktree of it, hear
+        nothing."""
+        git(layout, "switch", "-qc", "old-shared")
+        git(layout, "switch", "-q", "main")
+        git(layout, "rm", "-rq", "seal")
+        commit(layout, "left shared mode")
+        mark_root(layout / ".git" / "seal")
+        assert start(hook, layout) == ""
         linked = tmp_path / "linked"
-        git(fresh, "worktree", "add", "-q", str(linked), "-b", "feature/x", "main")
+        git(layout, "worktree", "add", "-q", str(linked), "-b", "feature/x", "main")
         assert start(hook, linked) == ""
+        git(layout, "switch", "-q", "old-shared")
+        said = message(start(hook, layout))
+        assert said.startswith("agentic:moved seal/specs/ into seal/"), said
+        assert first_line(layout / "seal" / "README.md") == ROOT_MARKER
 
     def test_accepts_a_0_22_x_repository_moved_end_to_end_in_shared_mode(
         self, hook, layout
