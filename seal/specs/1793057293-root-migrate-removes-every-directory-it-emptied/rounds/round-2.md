@@ -52,7 +52,7 @@ so nothing is lost.
  | Whether S3 stands as a case of its own | ...
 ```
 
-answer:
+answer: The fix pass took the fenced fix. 3de79fd3 deletes the row from `overview.md`'s *Where spec and implementation diverged*, and its facts stand in `spec.md` *In* item 4. A `git grep` for "not something git checks out" over the work item, rounds left out, now finds only `phases/phase-2.md:44`. That closed phase record quotes the sentence as what phase 2 found, so it stands.
 
 ### 2. The docstring gained a second limit that the frame's one limit sentence does not name, and no divergence row records it
 
@@ -93,7 +93,7 @@ missing.
 +| What `move`'s docstring says where the removal of a directory fails | *In* item 4: every directory under `src` "holding nothing when the walk reaches it is removed", and "One limit sentence follows it", the junction's / 3fd067a8 adds "unless its removal fails" to that sentence and a second limit: "Where the removal of a directory fails, as on Windows when another process holds it open, that directory and every one above it stay, and nothing is removed by mistake." | the code | Round 1's Not judged row named the edge. Its probe simulated a failing `os.rmdir` on macOS: the directory and every one above it stayed, and nothing raised. The owner's direction (`spec.md` *Grounding*, last row) gives an edge the one-issue flow cannot produce a limit sentence and no guard (`phases/phase-2.md`) |
 ```
 
-answer:
+answer: The fix pass took the fenced row word for word. 3de79fd3 adds it under the S3 row of `overview.md`'s *Where spec and implementation diverged*. Its quotes were checked against `spec.md:54-62`, `spec.md:22` and `hooks/root-migrate.py:358-367` before the commit. `spec.md`'s "One limit sentence follows it" and `plan.md:83` stay as framed, and the new row records the departure from them.
 
 ## Confirmations
 
