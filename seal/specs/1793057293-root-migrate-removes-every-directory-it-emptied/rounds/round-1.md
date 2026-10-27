@@ -14,7 +14,7 @@ declared, so no parity comparison applies.
 severity: should
 location: `tests/test_root_migrate.py:497-508`
 evidence: executed `bin/mutation-check hooks/root-migrate.py --replace "                os.rmdir(here)" "                pass" --replace "if not os.listdir(here):" "if not os.listdir(here) and here != under(root, src):" --replace "    for old in (OLD_HOME, OLD_ITEMS):" "    for old in (OLD_HOME,):" --replace "topdown=False" "topdown=True" --replace "if not os.listdir(here):" "if True:" --tests "bin/test tests/test_root_migrate.py -q -p no:xdist -x -k 'not merged_into_one_that_exists'"`, `bin/test-layout --pairs tests/test_root_migrate.py`
-verdict: open
+verdict: fixed e6d6fcf2
 
 `Test_run_moves::test_accepts_an_item_merged_into_one_that_exists_and_takes_away_specs`
 (the frame's S3) asserts two things after a merge: the item's directory is
