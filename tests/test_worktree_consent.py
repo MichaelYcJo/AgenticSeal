@@ -18,6 +18,7 @@ The cases come from `tests/test_the_guard_asks_once_per_session.py`,
 `payload`, `write_the_transcript` and `SESSION` (#942's phase 7).
 """
 
+import io
 import json
 import os
 import subprocess
@@ -27,6 +28,8 @@ import pytest
 from conftest import (
     BASE_TREE_CHAINS,
     PLACEMENT_CHAINS,
+    ROUTING_OPTIONS,
+    ROUTING_QUESTION,
     _a_dirty_w_under_a_clean_session,
     ask_entries,
     census_case,
@@ -264,6 +267,21 @@ class Test_main:
         payload.pop("tool_response")
         run_hook("worktree_consent.py", payload)
         assert not consent_dir(repo).exists()
+
+    def test_refuses_a_payload_with_no_session_id_where_any_session_is_recorded(
+        self, monkeypatch, repo
+    ):
+        """A payload with no session id names no record, and `main` reads no
+        further. `consent_path` also answers "" for an empty id, so the case
+        hands `main` a `record` that would record any session, to see that the
+        refusal is `main`'s own (contract rule 13)."""
+        written = []
+        monkeypatch.setattr(wc, "record", lambda top, s: written.append(s) or True)
+        payload = post(repo)
+        del payload["session_id"]
+        monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps(payload)))
+        wc.main()
+        assert written == []
 
     def test_refuses_an_agent_without_isolation(self, repo):
         run_hook(
@@ -632,6 +650,28 @@ class Test_automation_answered:
         assert wc.automation_answered(str(repo), PRESSED)
 
 
+def preset_result(**fields):
+    """A structured result pressing the preset on the routing question, which
+    carries FIELDS beside its text and its options."""
+    asked = {
+        "question": ROUTING_QUESTION,
+        "options": [{"label": o, "description": "d"} for o in ROUTING_OPTIONS],
+        **fields,
+    }
+    return {"questions": [asked], "answers": {ROUTING_QUESTION: ROUTING_OPTIONS[0]}}
+
+
+class Test__routing_preset:
+    def test_accepts_the_preset_pressed_on_a_single_select_question(self):
+        assert wc._routing_preset(preset_result(multiSelect=False))
+
+    def test_refuses_a_question_whose_multi_select_is_absent(self):
+        """The routing question is single-select, and `multiSelect` must say
+        so: an absent field is a shape nobody measured, so it is not read as
+        single-select."""
+        assert not wc._routing_preset(preset_result())
+
+
 class Test_segment_cwd:
     def test_accepts_the_C_target_of_the_segment_that_was_judged(self, repo):
         """`main()` asks `segment_cwd` for the `-C` target of the very segment
@@ -728,6 +768,12 @@ class Test_creation_directory:
             chain + "git worktree add ../wt f", str(session)
         )
         assert os.path.normpath(acted) == str(session), (name, acted)
+
+    def test_refuses_a_creation_written_in_a_comment(self, repo):
+        """A comment is not executed, so a `git worktree add` behind a `#`
+        created nothing and is filed nowhere."""
+        command = "echo hi #; git worktree add ../wt f"
+        assert wc.creation_directory(command, str(repo)) == ""
 
 
 class Test_module:
