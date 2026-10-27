@@ -185,8 +185,13 @@ class Test_module:
         assert not os.path.exists(os.path.join(HOOKS, "git")), "hooks/git/ is back"
 
     def test_the_dispatcher_carries_the_message(self, tmp_path):
+        """The real session-start group, run with `HOME` under the case's own
+        directory: the group renames and merges the plugin's state under
+        `~/.claude/` at every start, and must never reach the machine's own."""
         repo = git_repo(tmp_path / "repo")
         plant(common_hooks(repo), "pre-commit", stub("/x/hooks/git/pre-commit.py"))
+        home = tmp_path / "home"
+        home.mkdir()
         r = subprocess.run(
             [sys.executable, os.path.join(HOOKS, "dispatch.py"), "session-start"],
             input=json.dumps(
@@ -200,6 +205,7 @@ class Test_module:
             encoding="utf-8",
             errors="replace",
             timeout=60,
+            env={**os.environ, "HOME": str(home), "USERPROFILE": str(home)},
         )
         assert "AgenticSeal removed the git hooks" in r.stdout, r.stdout + r.stderr
 

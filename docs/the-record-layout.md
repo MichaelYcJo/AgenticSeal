@@ -277,8 +277,8 @@ written) go with the directory, whole, when the settle removes it. A
 repository installed before the plugin was renamed AgenticSeal holds the
 files at their old names in the earlier layout, which
 `hooks/root-migrate.py#THREAD_PATHS` maps onto this one, and the hook moves them into this layout
-once, at the first session start, as staged `git mv` in shared mode and as
-renames under the git directory in local mode
+at the session start of each branch whose tree still holds them, as staged
+`git mv` in shared mode and as renames under the git directory in local mode
 (*The fold, and what tells it from a deletion* above, and
 `docs/release-checklist.md` *2b*). What a document still cites of it
 resolves at the tag of the release that shipped it.
