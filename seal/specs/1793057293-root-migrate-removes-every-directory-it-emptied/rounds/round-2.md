@@ -19,7 +19,7 @@ two modules, and the test-layout pairs.
 severity: should
 location: `seal/specs/1793057293-root-migrate-removes-every-directory-it-emptied/overview.md:17`
 evidence: executed `git grep -n "not something git checks out" f294b3bd -- seal/specs/1793057293-root-migrate-removes-every-directory-it-emptied/spec.md seal/specs/1793057293-root-migrate-removes-every-directory-it-emptied/overview.md`, `git diff d3f6aaf7..f294b3bd -- seal/specs/1793057293-root-migrate-removes-every-directory-it-emptied/spec.md hooks/root-migrate.py`
-verdict: open
+verdict: fixed 3de79fd3
 
 The row says *In* item 4 of `spec.md` reads "a directory link or a Windows
 junction placed under `src` by hand is not something git checks out, and
@@ -59,7 +59,7 @@ answer: The fix pass took the fenced fix. 3de79fd3 deletes the row from `overvie
 severity: should
 location: `seal/specs/1793057293-root-migrate-removes-every-directory-it-emptied/overview.md:13-18`, `hooks/root-migrate.py:358-367`
 evidence: executed `grep -n "removal fails\|holds it open" seal/specs/1793057293-root-migrate-removes-every-directory-it-emptied/overview.md`, `git diff d3f6aaf7..f294b3bd -- hooks/root-migrate.py seal/specs/1793057293-root-migrate-removes-every-directory-it-emptied/overview.md`
-verdict: open
+verdict: fixed 3de79fd3
 regression: round-1
 
 The unit is `move`'s docstring at `hooks/root-migrate.py:358-367`, with the
