@@ -27,7 +27,7 @@ logged out so a case reaching a live `gh` fails locally as it does on CI.
 | closed `cmd.exe` resolves `bin\probe` to `bin\probe.cmd` with the exit code and output passed through (A4, `questions.md` Q1) | #595's `windows-latest` leg ran `tests/test_the_gate_hands_cmd_a_path_it_can_run.py` green |
 | closed No case in the tree reaches a live `gh` now that the suite runs logged out (`spec.md` §*The class, enumerated*) | #595's three legs, logged out, ran the suite green |
 | closed No child process in `tests/` builds its environment through a helper Q3's grep could not see | #595's three legs, logged out whatever the environment says, ran the suite green |
-| A `gh` login kept in the OS keyring is not reached under the suite's environment, because `GH_TOKEN` is set first (round 1's 🟡 1; read from upstream `cli/cli`) | `test_the_token_gh_would_send_is_not_a_login` run on a machine whose `gh` login is in the keyring — not this builder's machine, whose login is in `hosts.yml`, and not CI, which has none |
+| closed A `gh` login kept in the OS keyring is not reached under the suite's environment, because `GH_TOKEN` is set first (round 1's 🟡 1; read from upstream `cli/cli`) | moved 2026-10-27 to MichaelYcJo/SpecSeal#1061, a measurement nobody has taken: no record holds the case run on a machine whose `gh` login is in the keyring |
 
 ## Not done
 

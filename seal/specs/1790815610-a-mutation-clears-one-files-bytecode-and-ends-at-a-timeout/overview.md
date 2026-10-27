@@ -30,10 +30,10 @@ run that hangs, and restores from held bytes.
 
 | Item | Who must answer |
 |---|---|
-| The Windows arm run on Windows: `proc.kill()` ending the direct child, the verdict text it prints, and `bin/mutation-check.cmd` reaching the script | the orchestrator, from the `windows-latest` leg of `.github/workflows/test.yml` on the pull request. That leg runs this module whole: S6, and every other case through the direct-child strategy, but no case times out there, so `proc.kill()` on expiry is still read and not run, and nothing in this repository runs the `.cmd` wrapper |
+| closed The Windows arm run on Windows: `proc.kill()` ending the direct child, the verdict text it prints, and `bin/mutation-check.cmd` reaching the script | moved 2026-10-27 to MichaelYcJo/SpecSeal#1066 for the kill and to MichaelYcJo/SpecSeal#1067 for the wrapper, two measurements nobody has taken |
 | closed The full suite, repository-wide `ruff check` and `ruff format --check`, and the broad gate over this branch | #698, merged with lint and the suite green on the ubuntu, macOS and Windows legs |
 | closed The post-cap `could not start` fix on Windows itself: the `native` parameter of the cannot-start case passing on the `windows-latest` leg | #698's `windows-latest` leg ran the module green at the merged head |
-| How the harness's own command bound did not end #577's 32-minute hang (spec M8) | the orchestrator, who holds the flow log; this work item bounds the run inside the command and does not explain the harness |
+| closed How the harness's own command bound did not end #577's 32-minute hang (spec M8) | moot: the hang was an unbounded mutation-check run in the session #577 logged, closed 2026-09-25. `skills/verify/scripts/mutation_check.py` now ends a run at its own timeout, and the harness is not in the tree, so nothing left here can be measured (default taken by the 0.22.4 settle) |
 
 ## Not done
 

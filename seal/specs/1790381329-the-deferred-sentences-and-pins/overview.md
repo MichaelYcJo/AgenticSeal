@@ -29,7 +29,7 @@ class and pinned on its own example.
 
 | Item | Who must answer |
 |---|---|
-| where `cmd.exe` resumes scanning after an undefined `%NAME%`, and whether `broad_gate.py#as_cmd_expands` agrees; the docstring says it is not modelled and claims nothing either way (`questions.md` Q2) | a Windows run of `cmd.exe` — whoever next changes the broad gate's `cmd.exe` path (#616's *Who acts*) |
+| closed where `cmd.exe` resumes scanning after an undefined `%NAME%`, and whether `broad_gate.py#as_cmd_expands` agrees; the docstring says it is not modelled and claims nothing either way (`questions.md` Q2) | moved 2026-10-27 to MichaelYcJo/SpecSeal#1062, a measurement nobody has taken: no record holds a Windows run of `cmd.exe` over the shape |
 
 ## Not done
 

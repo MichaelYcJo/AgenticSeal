@@ -23,7 +23,7 @@ Python where they differ.
 | Item | Who must answer |
 |---|---|
 | closed S7: the `arm-check-grammar` job's two legs pass on GitHub's runners | #685's `arm-check-grammar (3.13)` and `(3.14)` legs ran green |
-| `questions.md` Q1: the whole suite on 3.14. A broad gate through `bin/test` here runs on the 3.13 `.venv` and does not answer it | the sealer, who chooses how to run it on 3.14 |
+| closed `questions.md` Q1: the whole suite on 3.14. A broad gate through `bin/test` here runs on the 3.13 `.venv` and does not answer it | moved 2026-10-27 to MichaelYcJo/SpecSeal#1065, a measurement nobody has taken: CI's `arm-check-grammar` job runs only `tests/test_arm_check.py` on 3.14, and no record holds a whole run there |
 | closed The whole suite, lint and typecheck on this branch | #685, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
 
 ## Not done

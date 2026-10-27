@@ -25,8 +25,8 @@ forbidden, and the page names each row that sits under its kind's bar.
 | Item | Who must answer |
 |---|---|
 | closed The full suite, repository-wide lint and the broad gate over the tip | #696, merged with lint and the suite green on the ubuntu, macOS and Windows legs |
-| A warden row graded on a real transcript: the run measured in phase 4 had no warden segment yet, so only framer and smith rows met the grade outside fixtures | the orchestrator, at the `--segments` reading it takes after this item's first review round |
-| `questions.md` Q2 — a framer spawned after this ships, reading its tools per turn and whether it finishes | the orchestrator of the first framer spawn after this merges, posting its `--segments` row to the open `flow-measurement` log |
+| closed A warden row graded on a real transcript: the run measured in phase 4 had no warden segment yet, so only framer and smith rows met the grade outside fixtures | answered by MichaelYcJo/SpecSeal#1023, comment 6397451335: #1012's warden round 1 on a real transcript, 57 calls at 1.21 tools per turn, graded against the reviewing bar of 1.8 (read) |
+| closed `questions.md` Q2 — a framer spawned after this ships, reading its tools per turn and whether it finishes | answered by MichaelYcJo/SpecSeal#1023, comment 6397091580: #1012's framer finished in 87 calls over 15.7 minutes at 1.07 tools per turn, against the framing bar of 1.4 (read) |
 
 ## Not done
 
