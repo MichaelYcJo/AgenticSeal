@@ -1443,6 +1443,30 @@ class Test_module:
         found = [i for i, _ in rules.order(str(repo), "HEAD", ids)]
         assert found == ["1700000002-b", "1700000001-a"], found
 
+    def test_merge_order_of_a_moved_thread_is_its_first_add_before_the_move(self, repo):
+        """The session-start move adds every 0.22.x thread's design in one
+        commit, so a moved thread is placed by the commit that first added
+        its design under the earlier path, and two threads moved together
+        keep the order they merged in, not the order of their ids."""
+        old = repo / "seal" / "specs"
+        for name in ("1700000002-b", "1700000001-a"):
+            (old / name).mkdir(parents=True)
+            (old / name / rules.EARLIER[1]).write_text(spec([]), encoding="utf-8")
+            commit(repo, f"{name} is framed under the earlier path")
+        (repo / "seal" / "threads").mkdir()
+        for name in ("1700000001-a", "1700000002-b"):
+            (repo / "seal" / "threads" / name / "frame").mkdir(parents=True)
+            git(
+                repo,
+                "mv",
+                f"{rules.EARLIER[0]}/{name}/{rules.EARLIER[1]}",
+                f"seal/threads/{name}/{rules.DESIGN}",
+            )
+        commit(repo, "the session-start move")
+        ids = ["1700000001-a", "1700000002-b"]
+        found = [i for i, _ in rules.order(str(repo), "HEAD", ids)]
+        assert found == ["1700000002-b", "1700000001-a"], found
+
     def test_merge_order_of_local_specs_is_their_merge_commits_place(self, repo):
         """#955: no commit adds a local spec, so `rule_changes.py#merge_order`
         sorts `(id, merge commit)` pairs by each commit's place on the ref,
