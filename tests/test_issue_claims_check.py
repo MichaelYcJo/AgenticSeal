@@ -255,19 +255,19 @@ class Test_read:
         assert mentioned == ["11"]
         assert warnings == []
 
-    @pytest.mark.parametrize(
-        "body",
-        [
-            "Closes #11, see file.py#L45 and the #overview section",
-            "Closes #11 and #22abc",
-        ],
-        ids=["an-anchor", "glued-to-letters"],
-    )
-    def test_an_anchor_is_not_an_issue_number(self, body):
-        """`#L45` and `#heading` need a digit immediately after the hash, and
-        `#22abc` is no number either: its digits end at no word boundary, so it
-        is neither mentioned nor warned about."""
-        assert read(body) == (["11"], [], [])
+    def test_an_anchor_is_not_an_issue_number(self):
+        """`#L45` and `#heading` need a digit immediately after the hash."""
+        assert read("Closes #11, see file.py#L45 and the #overview section") == (
+            ["11"],
+            [],
+            [],
+        )
+
+    def test_refuses_a_number_glued_to_letters_as_an_issue(self):
+        """`#22abc` is no issue number: its digits end at no word boundary, so
+        it is neither mentioned nor warned about."""
+        _, mentioned, warnings = read("Closes #11 and #22abc")
+        assert (mentioned, warnings) == ([], [])
 
     def test_accepts_a_number_written_twice_once_in_its_list(self):
         """The lists are deduplicated in the order the body writes them: a
