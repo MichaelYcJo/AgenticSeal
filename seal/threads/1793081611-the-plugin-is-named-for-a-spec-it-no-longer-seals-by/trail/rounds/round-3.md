@@ -56,7 +56,7 @@ This finding does not ask for the guard. It asks for the case that pins the limi
         assert f"seal/threads/{ITEM}/routing.md" in cached
 ```
 
-answer:
+answer: fixed in f8732393 by the heading, the finding's second way: the heading now says the second limit under **on any branch** is stated and not pinned. A case pinning it would hold the move staged on a detached HEAD as wanted behaviour, which the limit does not claim, so no case is added. The orchestrator made this fix, as a prose fix too small for a crafter spawn.
 
 ### 2. The Korean edition uses one word for the stamp it denies and for the marker the move writes, two sentences apart
 
@@ -80,7 +80,7 @@ The paragraph reads at `:106` "브랜치와 그 이동 사이를 막는 표시�
 루트를 먼저 읽습니다(`hooks/root-migrate.py` 의 경계).
 ```
 
-answer:
+answer: fixed in f8732393: `:106` now says that a record of an earlier move does not stop a branch's move, without 표시, and `:108` says 표식, the document's word for the README marker. The orchestrator made this fix, as a prose fix too small for a crafter spawn.
 
 ## Confirmations
 
