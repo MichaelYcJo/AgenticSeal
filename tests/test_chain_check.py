@@ -2852,7 +2852,7 @@ class Test_declared_for_this_branch:
         ids=["a-routing-md-outside-the-work-items", "another-file-of-a-work-item"],
     )
     def test_accepts_the_one_routing_md_under_the_work_items_beside_a_decoy(
-        self, repo, decoy
+        self, repo, decoy, monkeypatch
     ):
         """Guards c3 and c4 of #1017: only a `routing.md` under `seal/specs/`
         is a declaration. A team's own `specs/` holding one, or a work item's
@@ -2862,12 +2862,15 @@ class Test_declared_for_this_branch:
         write(repo, declared, DECLARES_FEATURE)
         write(repo, decoy, DECLARES_FEATURE)
         commit_everything_as_e(repo, "a declaration and a decoy")
+        monkeypatch.delenv("GITHUB_HEAD_REF", raising=False)
         assert chain.declared_for_this_branch(str(repo), routing_module) == (
             [declared],
             "",
         )
 
-    def test_refuses_two_committed_declarations_naming_the_branch(self, repo):
+    def test_refuses_two_committed_declarations_naming_the_branch(
+        self, repo, monkeypatch
+    ):
         """Guards g17 of #1017: two committed declarations naming one branch
         are not one answer, so neither is taken."""
         for n in (1, 2):
@@ -2875,6 +2878,7 @@ class Test_declared_for_this_branch:
                 repo, f"seal/specs/179900000{n}-item-{n}/routing.md", DECLARES_FEATURE
             )
         commit_everything_as_e(repo, "two declarations")
+        monkeypatch.delenv("GITHUB_HEAD_REF", raising=False)
         own, why = chain.declared_for_this_branch(str(repo), routing_module)
         assert own == [], own
         assert why.startswith("2 committed declarations name `feature`"), why
