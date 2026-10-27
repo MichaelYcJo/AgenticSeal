@@ -92,6 +92,16 @@ over `seal/threads/` here before the release.
 | Rename this work item's own directory last, after the sealer | CI's `chain_check.py` from the tree reads `seal/threads/` and finds no declaration for the branch while the directory stays at `seal/specs/`, so every push before the last commit fails the trailer arm | Rejected: the move lands in phase 2 with the readers, and *Operational impact* states what the installed gate then needs |
 | State files keep `specseal-` under the git directory and `~/.claude/specseal/` | The census refuses the old prefix, or exempts fifteen constants; a user who reads `.git/specseal-scratch` beside `.git/seal/` meets a name the plugin no longer has | Rejected on the default of Q2; the migration renames each one it meets so no user loses a throwaway marker or a parity path |
 
+## Verification this work item owes
+
+The owner decided this on 2026-10-27. It binds every crafter, proofer and sealer of this work item, and it overrides any "seen red first" wording in the phase rows below. An earlier release spent more than twenty hours making every case fail first one by one, and phase 1 of this one ran nine `mutation-check` runs and about ninety modules one at a time for a rename.
+
+- A name or path that moves is proved by the existing cases passing at the new name or path. It owes no new case, no red run and no `mutation-check`.
+- A case is written new, and seen red once, only for behaviour that did not exist before. Phase 5's census is such a case. No phase runs `mutation-check`.
+- A phase runs the cases its row names, plus the modules `git grep -l` finds reading what it changed, in one `bin/test` command. The orchestrator's broad run after the review rounds is the only sweep of the suite.
+- A proofer does not raise a finding that a moved name or path lacks red-first evidence or a mutation run. A sealer does not withhold over it.
+- Each phase record names the cases it wrote new and the existing cases it relied on.
+
 ## Phases
 
 | Phase | Delivers | Verified by | Status |
