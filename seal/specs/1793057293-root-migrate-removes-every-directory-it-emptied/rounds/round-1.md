@@ -64,7 +64,7 @@ says that S3's scenario is held by S1 together with
 mutation run above found no defect only S3 catches. The case has no
 `.test_durations` entry, so nothing there changes.
 
-answer:
+answer: The fix pass took the fenced fix and found no defect that only S3 catches. e6d6fcf2 deletes `Test_run_moves::test_accepts_an_item_merged_into_one_that_exists_and_takes_away_specs` and adds a row to `overview.md` *Where spec and implementation diverged*. The row says that S1 and `test_accepts_every_unit_and_takes_away_the_emptied_roots` each hold one of S3's two assertions, and that this round's five mutants went red with S3 left out. The same commit drops "as phase 1's S3 does" from `overview.md` *Not done*, which stood on the case. `.test_durations` holds no entry for the case, so it is unchanged. Executed at e6d6fcf2: `bin/mutation-check hooks/root-migrate.py` with this finding's five mutants over the whole module and no `-k`, which printed "5 mutants, 5 red, 0 SURVIVED, 0 with no verdict" and exited 0, with the tree clean afterwards. `bin/test tests/test_root_migrate.py tests/test_the_root_migrates_itself.py -q -p no:xdist` passed 78, one fewer than this round's 79. The Not judged row on a directory another process holds open is answered by 3fd067a8. It gives `move`'s docstring a limit sentence beside the junction's: where the removal of a directory fails, that directory and every one above it stay. The "is removed" sentence now reads "unless its removal fails". The changelog fragment's Limits line, `overview.md` *Not verified* and `phases/phase-2.md` carry the same sentence.
 
 ## Confirmations
 
