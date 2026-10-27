@@ -95,10 +95,10 @@ owner decides each.
 
 | Item | Who must answer |
 |---|---|
-| the full suite and the repository-wide lint and format check at the branch head. `seal/config.md`'s `Broad gate` row names no typecheck. Each phase ran its own modules only | the orchestrator, by `broad-gate --base <base> --record` before the sealer |
-| the cases on Linux and Windows: every phase ran its cases on macOS only, and each case that reads the platform fakes it | the orchestrator, from the pull request's `tests` workflow on its three legs |
-| whether `.test_durations` still prices the suite within its share (`questions.md` Q5): the work item adds 169 lines holding `def test_` (`git diff 5daa931f...HEAD -- tests`) and prices none of them. The build added 171, and review round 1 removed m6's case and k3's. `git diff 134d7203 HEAD` counts 182, because it also holds the 13 the merge of `release/v0.22.4` at 95fa9fb7 brought | the orchestrator's broad gate, through `test_the_durations_file_prices_the_suite`; on a failure the orchestrator refreshes the file from the branch's `tests` run artifact and commits it |
-| m47's case reads GNU env's grammar, `env -iS '' -vS 'git commit'`, from its documentation; GNU env is not installed where phase 3 ran (`phases/phase-3.md`) | the warden, against GNU coreutils' `env` documentation |
+| closed the full suite and the repository-wide lint and format check at the branch head. `seal/config.md`'s `Broad gate` row names no typecheck. Each phase ran its own modules only | `broad-gate.md` records the run at `bf2096ba` against `5daa931f`; its printed report read BROAD GATE PASSED, ruff check and format clean, the suite 6,746 passed and 14 skipped, chain-check exit 0 |
+| closed the cases on Linux and Windows: every phase ran its cases on macOS only, and each case that reads the platform fakes it | the branch's `tests` workflow run 40444267960 at `bf2096ba` passed every leg, the four Windows groups included |
+| closed whether `.test_durations` still prices the suite within its share (`questions.md` Q5): the work item adds 169 lines holding `def test_` (`git diff 5daa931f...HEAD -- tests`) and prices none of them. The build added 171, and review round 1 removed m6's case and k3's. `git diff 134d7203 HEAD` counts 182, because it also holds the 13 the merge of `release/v0.22.4` at 95fa9fb7 brought | `test_the_durations_file_prices_the_suite` passed in the broad run at `bf2096ba` and in run 40444267960, so the share holds and the file is not refreshed |
+| closed m47's case reads GNU env's grammar, `env -iS '' -vS 'git commit'`, from its documentation; GNU env is not installed where phase 3 ran (`phases/phase-3.md`) | review round 1 ran it: GNU coreutils 9.7 `genv` and macOS `env` both ran the second string of `env -iS '' -vS '...'` (`rounds/round-1.md`) |
 
 ## Not done
 
