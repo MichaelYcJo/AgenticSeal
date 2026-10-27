@@ -77,7 +77,7 @@ PRESS = (
 )
 PRESSED = PRESS + (
     "  1. Where this edit belongs to the work item the run was routed for, "
-    "write its declaration at `{hint}` from `templates/sdd-routing.md`, naming "
+    "write its declaration at `{hint}` from `templates/records/sdd-routing.md`, naming "
     "`{branch}`, and edit again.\n"
     "  2. Where it belongs to no work item, run `seal no-work-item` once on "
     "`{branch}`, and edit again."
@@ -85,7 +85,7 @@ PRESSED = PRESS + (
 PRESSED_DETACHED = PRESS + (
     "  1. Where this edit belongs to the work item the run was routed for, "
     "check out its branch in `{top}`, write its declaration at `{hint}` from "
-    "`templates/sdd-routing.md`, naming that branch, and edit again.\n"
+    "`templates/records/sdd-routing.md`, naming that branch, and edit again.\n"
     "  2. Where it belongs to no work item, check out a branch in `{top}`, "
     "run `seal no-work-item` once on it, and edit again; on a detached HEAD it "
     "records nothing."
@@ -96,13 +96,13 @@ ASK = (
     "*Orchestrator: how the work is routed* states. "
 )
 ATTENDED = ASK + (
-    "Then write the declaration at `{hint}` from `templates/sdd-routing.md`, "
+    "Then write the declaration at `{hint}` from `templates/records/sdd-routing.md`, "
     "naming `{branch}`, or, where they answer `no work item`, run "
     "`seal no-work-item` once on `{branch}`. Then edit again."
 )
 ATTENDED_DETACHED = ASK + (
     "Then check out a branch in `{top}`, and write its declaration at `{hint}` "
-    "from `templates/sdd-routing.md`, naming that branch, or, where they "
+    "from `templates/records/sdd-routing.md`, naming that branch, or, where they "
     "answer `no work item`, run `seal no-work-item` once on it, because on a "
     "detached HEAD it records nothing. Then edit again."
 )

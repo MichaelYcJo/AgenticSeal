@@ -73,7 +73,7 @@ def reach(agent):
     )
 
 
-# A finding as `templates/sdd-round.md` writes it: the `## Findings`
+# A finding as `templates/records/sdd-round.md` writes it: the `## Findings`
 # heading, then a `### <n>. ` section, then that section's `verdict:` line,
 # lowercase at the start of a line, before the next heading.
 FINDINGS_SHAPE = (

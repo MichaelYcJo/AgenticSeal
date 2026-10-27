@@ -45,7 +45,7 @@ the layout predates the question, or when the original repository changes.
    none. Never propose creating one.
 
 6. **Write two files.**
-   - `seal/parity.md` from `templates/parity.md`, committed. Coordinate-trust
+   - `seal/parity.md` from `templates/setup/parity.md`, committed. Coordinate-trust
      exceptions start empty.
    - `~/.claude/agentic/parity-paths.md`: the machine-local checkout path,
      keyed by this repository's origin remote URL so worktrees and second

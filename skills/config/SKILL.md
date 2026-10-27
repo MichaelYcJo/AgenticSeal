@@ -29,7 +29,7 @@ bootstrap.
 **No root at either place** means this repository has not been set up. Say so,
 name the `implement` skill's bootstrap as what does it, and stop. Do not
 create the file: the root at one of those two places, with the README first
-setup copies from `templates/seal-README.md`, is what opts a repository in, so
+setup copies from `templates/setup/seal-README.md`, is what opts a repository in, so
 a root is the bootstrap's to create, and a `seal/` made here without that
 README would read as the project's own directory.
 
@@ -74,7 +74,7 @@ pins. No row records that; the file is the record.
   in place, leaving the rest of the file as it is. Where the file carries no
   such row at all (the stub `seal mode` writes has only `Mode`, and that is
   every repository that has set its mode), copy from
-  `$CLAUDE_PLUGIN_ROOT/templates/config.md` the row **with its `## Broad
+  `$CLAUDE_PLUGIN_ROOT/templates/setup/config.md` the row **with its `## Broad
   gate` section, stopping where its `### What is refused, and what stays
   allowed` subsection starts**, rather than writing a bare row. The documentation beside it is the half a
   person reads, and a repository that reached this file through `seal mode`
@@ -94,18 +94,18 @@ pins. No row records that; the file is the record.
   are the plugin's, they change when the plugin changes, and a frozen copy in
   somebody's `seal/config.md` is a copy that says something false about the
   tool at the next release, which is what the criterion's one-home rule is
-  for. Point at `$CLAUDE_PLUGIN_ROOT/templates/config.md` for both. The
+  for. Point at `$CLAUDE_PLUGIN_ROOT/templates/setup/config.md` for both. The
   `Broad gate` value is one shell command line, run from the repository
   root.
 
   **How to choose that value is written down, and not here.**
-  `templates/config.md` *The criterion for choosing a value* owns the
+  `templates/setup/config.md` *The criterion for choosing a value* owns the
   criterion: three rules, with the reason for each. Read it to the person
   before they answer, rather than summarising it back to them.
 
   **A value carrying a `|` is written `\|`.** The file is markdown and a
   cell of that table ends at a bare pipe, so `bin/test -q \| tee out.txt` is
-  the row that runs that command. `templates/config.md` *What is refused, and
+  the row that runs that command. `templates/setup/config.md` *What is refused, and
   what stays allowed* says how the reader turns the escape back into a pipe
   and why a Windows path keeps its backslashes.
 
@@ -127,7 +127,7 @@ pins. No row records that; the file is the record.
   - a row, the header or the delimiter row sharing a line with the line
     above, after a form feed or U+2028: give it a line of its own.
 
-  `templates/config.md` says the same at its head. `seal gate` and
+  `templates/setup/config.md` says the same at its head. `seal gate` and
   `seal mode` print the refusal and run or write nothing, and a hook stays
   silent.
 
@@ -135,17 +135,17 @@ pins. No row records that; the file is the record.
   would not run as the command it reads as is refused with nothing run:
   the whole command wrapped in backticks or in `$(…)`, or a trailing `&`.
   Nothing is stripped or repaired: rewriting the row is the person's act,
-  which is what brings them here. `templates/config.md` *What is refused,
+  which is what brings them here. `templates/setup/config.md` *What is refused,
   and what stays allowed* lists the three forms and the ones that stay
   legal, each with its reason, and it is where this is decided.
 - **A fold row**, `Document token ceiling` or `Policy root`, is only a row
   too. Edit or add it in place, and point at
-  `$CLAUDE_PLUGIN_ROOT/templates/config.md` *The fold's values* for what
+  `$CLAUDE_PLUGIN_ROOT/templates/setup/config.md` *The fold's values* for what
   each accepts and what an absent one means, rather than restating it. A
   value `seal fold` will not parse makes it exit 2 naming the row, so run it
   once after the edit.
 - **`Reference specs` or `Pact`** is only a row too. Edit or add it in
-  place, and point at `$CLAUDE_PLUGIN_ROOT/templates/config.md`
+  place, and point at `$CLAUDE_PLUGIN_ROOT/templates/setup/config.md`
   *Reference specs* or *Pact* for what each accepts and what an absent one
   means. A `Pact` row is read strictly by `seal pact` at the pact's
   repository, so a value it will not parse is named there.

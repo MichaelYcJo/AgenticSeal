@@ -66,12 +66,12 @@ PARITY_CONFIG = "parity.md"
 # file because every gate would then parse one to answer what is a directory
 # test. A directory of this name is not the opt-out — see `home_at()` below.
 SCRATCH = "agentic-scratch"
-# The first line of `templates/seal-README.md`, which first setup and the
+# The first line of `templates/setup/seal-README.md`, which first setup and the
 # migration write into every root: a `seal/` is the plugin's root only where
 # its `README.md` opens with this line. `tests/test_optin.py` pins the
 # template's first line to this value.
 MARKER = "# What AgenticSeal maintains in seal/"
-# The first line `templates/seal-README.md` opened with in the releases before
+# The first line `templates/setup/seal-README.md` opened with in the releases before
 # the rename. A `seal/` whose README opens with one is an earlier release's
 # root, waiting for the move `hooks/root-migrate.py` makes at session start:
 # not opted in until then, and not a project's own directory either, so no

@@ -126,7 +126,7 @@ def test_the_parity_question_follows_the_mode_question():
 
 # --- A9 of #401: the broad command is the second question, not a later one --
 #
-# `templates/config.md` *Broad gate* says the row is a thing a PERSON wrote
+# `templates/setup/config.md` *Broad gate* says the row is a thing a PERSON wrote
 # and that the seal covers exactly that. Nothing ever asked for it: grepped
 # before this work, the bootstrap carried two `Ask, once` steps and neither
 # was this one, and no command in `bin/` or `seal.py` wrote the row. So the
@@ -244,7 +244,7 @@ def test_a_candidate_carrying_a_pipe_is_escaped_where_candidates_are_derived():
 def test_the_question_never_guesses_and_says_so():
     """`Orchestrator: Parity setup` states the rule for the original — *never
     guess* — and the same holds here for the same reason: a row nobody chose
-    is what `templates/config.md` argues against by name."""
+    is what `templates/setup/config.md` argues against by name."""
     row = flat(bootstrap())
     row = row[row.index("The second question") :]
     assert "nothing is guessed" in row
@@ -301,7 +301,7 @@ def test_the_row_is_written_after_seal_mode_and_carries_its_section():
     assert boot.index("Then the `Broad gate` row") > boot.index(
         "Then record the answer: run `seal mode`"
     ), "the row is written before the file `seal mode` creates it in"
-    assert "$CLAUDE_PLUGIN_ROOT/templates/config.md" in boot
+    assert "$CLAUDE_PLUGIN_ROOT/templates/setup/config.md" in boot
     assert "none is being added" in boot, (
         "nothing says a writer is deliberately not being built for this"
     )
@@ -377,7 +377,7 @@ def test_a_projects_own_seal_gets_nothing_and_the_root_goes_under_the_git_dir():
     git directory in local mode, before the mode's options are offered."""
     boot = bootstrap()
     own = paragraph(boot, OWN_SEAL)
-    assert "`templates/seal-README.md`" in own, own
+    assert "`templates/setup/seal-README.md`" in own, own
     assert "writes nothing into it" in own, own
     assert f"`{COMMON_DIR}`" in own, own
     assert "local mode" in own, own
@@ -434,7 +434,7 @@ def test_the_session_rule_sits_in_the_layout_section_of_the_skill():
 
 
 def template():
-    return read("templates", "hygiene.yml")
+    return read("templates", "setup", "hygiene.yml")
 
 
 def test_the_template_runs_the_two_shipped_checks_from_the_plugin_at_its_tag():
@@ -481,7 +481,7 @@ def test_the_skill_writes_the_workflow_only_when_absent_and_local_installs_nothi
     """The orchestrator runs the command rather than writing the file, so
     the file has one writer (#952)."""
     boot = flat(bootstrap())
-    assert "templates/hygiene.yml" in boot
+    assert "templates/setup/hygiene.yml" in boot
     assert ".github/workflows/hygiene.yml" in boot
     assert "only when" in boot and "absent" in boot
     assert "never overwritten" in boot
@@ -644,7 +644,7 @@ def test_the_gates_table_says_the_root_may_sit_under_the_git_dir(readme):
 
 
 @pytest.mark.parametrize(
-    "parts", [("seal", "README.md"), ("templates", "seal-README.md")]
+    "parts", [("seal", "README.md"), ("templates", "setup", "seal-README.md")]
 )
 def test_the_seal_readme_names_both_places(parts):
     text = read(*parts)
@@ -654,7 +654,7 @@ def test_the_seal_readme_names_both_places(parts):
 
 
 def test_the_seal_readme_is_the_template_verbatim():
-    assert read("seal", "README.md") == read("templates", "seal-README.md")
+    assert read("seal", "README.md") == read("templates", "setup", "seal-README.md")
 
 
 MARKER_SAID = "**The first line of this file is the marker.**"
@@ -664,7 +664,7 @@ def test_the_seal_readme_says_its_first_line_is_the_marker():
     """The root's own README tells a person not to edit the line the gates
     read, and what a `seal/` without it is; the 0.3.x paragraph it replaced
     is gone."""
-    text = read("templates", "seal-README.md")
+    text = read("templates", "setup", "seal-README.md")
     said = paragraph(text, MARKER_SAID)
     assert "`hooks/optin.py#MARKER`" in said, said
     assert "never opted in" in said, said
@@ -677,7 +677,7 @@ def test_the_seal_readme_points_at_the_drain_and_restates_none_of_it():
     and where each goes is `skills/implement/SKILL.md` section 6's alone; a
     second statement here drifted from it on all three. The README names the
     section and carries no destination of its own."""
-    text = read("templates", "seal-README.md")
+    text = read("templates", "setup", "seal-README.md")
     rules = flat(text.split("\n## Export rules\n", 1)[1].split("\n## ", 1)[0])
     heading = "### 6. Drain the rows before the broad run, and keep the records"
     assert heading in read("skills", "implement", "SKILL.md")
@@ -734,7 +734,7 @@ def test_the_design_record_states_the_setup_rules_where_they_rule(
     text = read(*parts)
     assert "agentic-scratch" in section(text, opt_in, 2), "/".join(parts)
     body = " ".join(section(text, setup, 2).split())
-    for needle in ("templates/hygiene.yml", COMMON_DIR, "AskUserQuestion", move):
+    for needle in ("templates/setup/hygiene.yml", COMMON_DIR, "AskUserQuestion", move):
         assert needle in body, f"{'/'.join(parts)}: {setup} does not name {needle}"
 
 
@@ -743,7 +743,7 @@ def test_the_design_record_states_the_setup_rules_where_they_rule(
 # The bootstrap above is where the mode question lives, and the cases in this
 # file all reach it by reading the skill. That is not how a session gets
 # there. `install.sh` copies the block between `<!-- agentic:start -->` and
-# `<!-- agentic:end -->` — `templates/claude-md-block.md`, the block's one
+# `<!-- agentic:end -->` — `templates/setup/claude-md-block.md`, the block's one
 # source — into `~/.claude/CLAUDE.md`, so the block loads in EVERY project on
 # the machine —
 # including one that has never seen AgenticSeal —
@@ -762,12 +762,12 @@ START, END = "<!-- agentic:start -->", "<!-- agentic:end -->"
 def preset():
     """Exactly the text `install.sh` copies, markers included.
 
-    Read from `templates/claude-md-block.md`, the installer's source, and
+    Read from `templates/setup/claude-md-block.md`, the installer's source, and
     extracted the way the installer extracts it rather than by reading the
     whole file: a line outside the markers reaches no user, and a case that
     read the whole file could not tell the two apart.
     """
-    text = read("templates", "claude-md-block.md")
+    text = read("templates", "setup", "claude-md-block.md")
     assert START in text and END in text, "the preset markers moved"
     return text[text.index(START) : text.index(END) + len(END)]
 

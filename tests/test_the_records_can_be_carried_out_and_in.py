@@ -37,7 +37,7 @@ def test_the_root_readme_and_its_template_say_it_too():
     """The template is what a first setup bootstraps a user's root from, and
     `tests/test_first_setup_asks_once.py` asserts the two are byte-identical —
     so the rule lands in every repository that opts in, not only this one."""
-    for parts in (("seal", "README.md"), ("templates", "seal-README.md")):
+    for parts in (("seal", "README.md"), ("templates", "setup", "seal-README.md")):
         with open(os.path.join(ROOT, *parts), encoding="utf-8") as handle:
             text = handle.read()
         assert "seal export" in text and "seal import" in text, "/".join(parts)

@@ -148,7 +148,7 @@ COVERED = [
     # The same, and the first `templates/` entry. Its siblings are not here
     # because they hold tree drawings and placeholder rows wider than the
     # limit, and bringing those under is a sweep, not this work item.
-    "templates/config.md",
+    "templates/setup/config.md",
     # Wrapped from their first line, so they go in at birth rather than
     # waiting for a sweep; the directory holds measured platform facts.
     "docs/experiments/README.md",

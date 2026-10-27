@@ -54,9 +54,11 @@ def refusal_over(tmp_path, name, table):
 
 def test_the_template_documents_the_commented_row_sentence():
     """S7's other half (contract rule 14): the sentence a person reads is stated
-    where `templates/config.md` states the fenced one."""
+    where `templates/setup/config.md` states the fenced one."""
     root = os.path.join(os.path.dirname(__file__), "..")
-    with open(os.path.join(root, "templates", "config.md"), encoding="utf-8") as f:
+    with open(
+        os.path.join(root, "templates", "setup", "config.md"), encoding="utf-8"
+    ) as f:
         text = " ".join(f.read().split())
     assert "A row inside an HTML comment that closes is not a row either" in text
     assert "the refusal quotes that line and says it is commented out" in text
@@ -68,7 +70,9 @@ def test_the_template_names_every_inline_html_kind_it_reads_as_before():
     line leaves open, not after a comment opener alone. Each opener a
     person might write is named, and the old list's narrower phrase is gone."""
     root = os.path.join(os.path.dirname(__file__), "..")
-    with open(os.path.join(root, "templates", "config.md"), encoding="utf-8") as f:
+    with open(
+        os.path.join(root, "templates", "setup", "config.md"), encoding="utf-8"
+    ) as f:
         text = " ".join(f.read().split())
     assert "after inline HTML a line leaves open" in text
     for opener in ("<" + "!--", "<![CDATA[", "<?", "<!DOCTYPE"):
@@ -81,7 +85,7 @@ def test_the_documents_state_the_fence_rule_the_refusal_points_at(tmp_path):
     """contract rule 14: a fix that changes what a person sees documents
     it and pins it, in the same commit.
 
-    Two documents and one pointer. `templates/config.md` is the one home of
+    Two documents and one pointer. `templates/setup/config.md` is the one home of
     what this table's format allows, and the refusal sends the reader to a
     named section of it — so the section has to still be there, and it has to
     say the thing the refusal is about. `skills/config/SKILL.md` step 3 is
@@ -89,7 +93,7 @@ def test_the_documents_state_the_fence_rule_the_refusal_points_at(tmp_path):
     carrying a fenced example row and used to name no position for it.
     """
     template = open(
-        os.path.join(ROOT, "templates", "config.md"), encoding="utf-8"
+        os.path.join(ROOT, "templates", "setup", "config.md"), encoding="utf-8"
     ).read()
     skill = open(
         os.path.join(ROOT, "skills", "config", "SKILL.md"), encoding="utf-8"
@@ -111,7 +115,7 @@ def test_the_documents_state_the_fence_rule_the_refusal_points_at(tmp_path):
         "outside every fenced code block",
         "runs to the end of the file",
     ):
-        assert claim in template, f"`templates/config.md` does not say: {claim}"
+        assert claim in template, f"`templates/setup/config.md` does not say: {claim}"
     assert "The copied block lands BELOW the live table" in skill, (
         "the instruction that produces the shape still names no position for "
         "the block it copies"
@@ -422,7 +426,7 @@ def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
         ("skills", "verify", "orchestration.md"): "**New?**",
         ("README.md",): "new? → not measured at the base",
         ("README.ko.md",): "new? → base 에서 재지 못했다",
-        ("templates", "config.md"): "each file reads `new?` with the reason",
+        ("templates", "setup", "config.md"): "each file reads `new?` with the reason",
     }
     for parts, phrase in readers.items():
         with open(os.path.join(ROOT, *parts), encoding="utf-8") as handle:
@@ -511,7 +515,9 @@ def test_the_measurement_its_cost_and_its_limits_are_told_where_the_row_is_writt
     how the gate measures a row at the base, what that costs, and which rows
     it cannot measure, so each sentence a reader acts on is pinned there, and
     every sentence of the mechanism #825 retired is asserted gone."""
-    with open(os.path.join(ROOT, "templates", "config.md"), encoding="utf-8") as handle:
+    with open(
+        os.path.join(ROOT, "templates", "setup", "config.md"), encoding="utf-8"
+    ) as handle:
         text = handle.read()
     for sentence in (
         "| 3 | Every pytest the row runs keeps the environment the gate hands it |",

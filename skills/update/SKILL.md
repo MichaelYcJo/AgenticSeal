@@ -96,11 +96,11 @@ only the remainder.
 always-loaded file keeps stating the old one.
 
 ```bash
-diff <(sed -n '/agentic:start/,/agentic:end/p' ~/.claude/plugins/marketplaces/agenticseal/templates/claude-md-block.md) \
+diff <(sed -n '/agentic:start/,/agentic:end/p' ~/.claude/plugins/marketplaces/agenticseal/templates/setup/claude-md-block.md) \
      <(sed -n '/agentic:start/,/agentic:end/p' ~/.claude/CLAUDE.md)
 ```
 
-`templates/claude-md-block.md` is the block's one source, and no other file
+`templates/setup/claude-md-block.md` is the block's one source, and no other file
 carries a copy. A session in a clone of the plugin's own repository reads the
 installed block too, which is the last release's, not the clone's:
 `bash install.sh "$HOME/.claude/CLAUDE.md"`, run from that clone, writes the

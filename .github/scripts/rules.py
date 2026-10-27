@@ -51,7 +51,7 @@ RULE_FILES = (
     "docs/*.md",
     "skills/*/SKILL.md",
     "skills/*/orchestration.md",
-    "templates/*.md",
+    "templates/*/*.md",
 )
 LABEL = "check: "
 NO_TARGET = "none reader: "

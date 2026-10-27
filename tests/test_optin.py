@@ -563,7 +563,7 @@ class Test_module:
         """The template is what first setup and the migration write into a
         root, so its first line and the constant are one value, pinned here."""
         with open(
-            os.path.join(ROOT, "templates", "seal-README.md"), encoding="utf-8"
+            os.path.join(ROOT, "templates", "setup", "seal-README.md"), encoding="utf-8"
         ) as f:
             assert f.readline().rstrip("\r\n") == optin.MARKER
 

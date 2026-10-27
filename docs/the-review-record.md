@@ -8,7 +8,7 @@ produce and what holds them.
 ## The round record
 
 **A round is one file the proofer writes.** `seal/threads/<id>/trail/rounds/round-N.md`,
-from `templates/sdd-round.md`, in the branch worktree under review: a
+from `templates/records/sdd-round.md`, in the branch worktree under review: a
 `target:` line, then `## Findings` with one `### <n>. <symptom>` section per
 finding, `## Confirmations` where the round confirmed something,
 `## Not judged` and `## Probes`. A finding holds the labelled lines the table
@@ -357,7 +357,7 @@ names none of them, so the list has one home. Each act is one row of
 re-judge the design or the code's quality.
 check: tests/test_the_sealer_guarantees.py
 
-**Its verdict is `guarantee.md`, from `templates/sdd-guarantee.md`**: the
+**Its verdict is `guarantee.md`, from `templates/records/sdd-guarantee.md`**: the
 commit and base, the broad gate's result, the claims re-run, the parties
 compared, and one `Verdict:` line, `sealed`,
 `withheld reason: <the claim, its party, its coordinate>` or

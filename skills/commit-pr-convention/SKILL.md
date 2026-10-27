@@ -76,7 +76,7 @@ that cannot be read or does not parse as that table. A config nobody can read
 must not stop a commit, so the writer meeting any of these writes English and
 carries on rather than asking.
 
-**To create it, copy `templates/config.md` from this plugin into the root and
+**To create it, copy `templates/setup/config.md` from this plugin into the root and
 edit the row meant.** It ships more than one. The mode's row is written
 by `seal mode` from where the folder is, and edited by hand only to ask for
 a move: `seal mode --apply` then moves the folder to what the row says. That
@@ -93,7 +93,7 @@ to change:
   and pasted into a URL. *Branch names* below states their shape.
 - **The field names, section headings and vocabulary a checker reads
   literally**, which belong to the other row's surface and are excluded from
-  both. The whole list is in `templates/config.md` under *What no row
+  both. The whole list is in `templates/setup/config.md` under *What no row
   governs*, and it is derived from the checkers' own constants rather than
   copied: a hand-copied list is a second source that drifts.
 - **Code**: identifiers, comments, docstrings, file names, test function

@@ -13,7 +13,7 @@ is a pact every signer has to re-read for changes that were never theirs.
 **The table below lists every OTHER signer** by its origin remote URL. The
 pact's repository does not list itself: it cites its own clauses as it cites
 any other heading of its own. Each signer listed here names this repository in
-its own `seal/config.md`, in a `Pact` row (`templates/config.md` *Pact*).
+its own `seal/config.md`, in a `Pact` row (`templates/setup/config.md` *Pact*).
 `seal pact` refuses a relationship recorded on one side only.
 
 **Every `##` heading below the table is a clause**, and a `###` under it

@@ -31,7 +31,7 @@ ROOT = os.path.join(os.path.dirname(__file__), "..")
 
 
 SKILL = ("skills", "commit-pr-convention", "SKILL.md")
-TEMPLATE = ("templates", "config.md")
+TEMPLATE = ("templates", "setup", "config.md")
 
 
 # --- the row, and where it is read from -------------------------------------
@@ -389,7 +389,7 @@ def as_language_name(value):
 def mirror_to_refuse(language):
     """The one `pr.<code>.md` that cannot be a mirror, or None.
 
-    None is an answer, not a failure. `templates/config.md` licenses "a
+    None is an answer, not a failure. `templates/setup/config.md` licenses "a
     language's English name" and says the reader is a model rather than a
     lookup table, so a value this dictionary does not hold is a legitimate
     config — round 2 🔴 1, where indexing it raised `KeyError` on `French`
@@ -502,7 +502,7 @@ def test_every_way_of_not_naming_a_language_lands_on_english(what, body, tmp_pat
 def test_a_language_this_file_has_no_code_for_does_not_raise():
     """tests-todo row 5, from round 2 🔴 1.
 
-    `templates/config.md` licenses any language's English name, so `French`
+    `templates/setup/config.md` licenses any language's English name, so `French`
     is a legitimate config. Indexing a three-entry dictionary with it raised
     `KeyError` — not a failing assertion with a message, a traceback — which
     is round 1 🟡 5's own wording: a legitimate config still turned the case
@@ -632,7 +632,7 @@ def test_a_mirror_named_for_a_country_is_caught():
 
 def test_the_documents_name_every_shape_the_walker_refuses_and_its_edit():
     """S8 of #871, in `test_the_skill_names_every_way_of_not_naming_one`'s
-    pattern. `templates/config.md`, `skills/config/SKILL.md` and
+    pattern. `templates/setup/config.md`, `skills/config/SKILL.md` and
     `hooks/config.py#config_rows`' docstring each name the shapes the walker
     refuses with the one edit for each, and none of them still says the
     reader stops at a line and reads on, or that a row below a bad line is
@@ -818,7 +818,7 @@ def unreachable_templates(root, listed):
 def test_every_template_is_named_by_a_document_that_ships():
     """tests-todo row 4, from round 1 🟡 1.
 
-    The finding was that `templates/config.md` was named by nothing except a
+    The finding was that `templates/setup/config.md` was named by nothing except a
     line-width list, so a session told to write `seal/config.md` had no
     source for it. That is a property of the DIRECTORY rather than of the one
     file it was found on: any template no document names is a file a session
@@ -829,7 +829,7 @@ def test_every_template_is_named_by_a_document_that_ships():
 
     Round 2 🟡 4 found the same hole one layer down. Excluding `tests/` and
     then reading `skills/`, `agents/` and `hooks/` whole takes in their
-    PYTHON, and `templates/sdd-round.md` was passing on four comments inside
+    PYTHON, and `templates/records/sdd-round.md` was passing on four comments inside
     `skills/code-review/scripts/chain_check.py`. A comment is not a document
     a session bootstraps from, so the corpus is prose — `.md` only. Two
     narrowings went with it: the glob returned a subdirectory as one entry
@@ -941,7 +941,7 @@ def test_the_templates_check_reads_prose_only_and_descends(repo):
         "templates/sub/buried.md",
     ], (
         "a Python comment was accepted as a reader, which is exactly how "
-        "`templates/sdd-round.md` passed on four comments in chain_check.py"
+        "`templates/records/sdd-round.md` passed on four comments in chain_check.py"
     )
 
     # Row 14. The two documents whose own names git used to mangle are the
@@ -997,12 +997,12 @@ ROUND_RECORD_FIELDS = _round_record_fields()
 
 @pytest.mark.parametrize("field", ROUND_RECORD_FIELDS)
 def test_the_round_template_carries_the_fields_it_is_expected_to(field):
-    """`ROUND_RECORD_FIELDS` is checked against `templates/sdd-round.md`, so
+    """`ROUND_RECORD_FIELDS` is checked against `templates/records/sdd-round.md`, so
     what runs is that the template still carries the fields this list
     expects — a pin on the template, and on nothing else."""
-    assert field in read("templates", "sdd-round.md"), (
+    assert field in read("templates", "records", "sdd-round.md"), (
         f"{field!r} is a field a round record is expected to carry and is "
-        "not in `templates/sdd-round.md`, the file a round starts from"
+        "not in `templates/records/sdd-round.md`, the file a round starts from"
     )
 
 
@@ -1010,7 +1010,7 @@ def test_the_sentence_no_longer_claims_an_order():
     """The absence half. Keeping the corrected sentence beside the old one is
     how two answers ship at once, and this file's method is pinning both."""
     text = flat("skills", "code-review", "SKILL.md")
-    assert "templates/sdd-round.md" in text, (
+    assert "templates/records/sdd-round.md" in text, (
         "the file's only mention in the prose corpus went, which makes it "
         "unreachable again"
     )
@@ -1068,7 +1068,7 @@ def test_the_template_says_the_file_is_optional():
 @pytest.mark.parametrize(
     "parts",
     [
-        ("templates", "seal-README.md"),
+        ("templates", "setup", "seal-README.md"),
         ("seal", "README.md"),
         ("README.md",),
         ("README.ko.md",),
@@ -1137,7 +1137,7 @@ def test_the_exclusion_list_points_at_the_grammar_table_and_restates_none_of_it(
     copies no cell of it: a copy here is a second source that drifts, and
     a repository told the copy reads a list the check no longer holds.
 
-    Protects: the label list coming back into `templates/config.md`, which
+    Protects: the label list coming back into `templates/setup/config.md`, which
     is where it drifted before; no other case reads the list for a cell of
     the table."""
     said = _governs_nothing()
@@ -1177,8 +1177,8 @@ def test_the_exclusion_list_holds_every_string_a_checker_matches(literal):
 # naming the wrong row sends the session to a row that does not exist, and
 # round 1 found two that had drifted with nothing red.
 ROW_READERS = [
-    ("templates", "config.md"),
-    ("templates", "seal-README.md"),
+    ("templates", "setup", "config.md"),
+    ("templates", "setup", "seal-README.md"),
     ("skills", "config", "SKILL.md"),
     ("skills", "implement", "SKILL.md"),
     ("skills", "commit-pr-convention", "SKILL.md"),

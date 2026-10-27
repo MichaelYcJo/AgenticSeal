@@ -6,7 +6,7 @@ estimate is past the `Document token ceiling` row as one to split along its
 own headings, and exits 0 on it: the estimate is a guess from bytes, so it is
 a report and not a gate. Its index arm refuses a `<policy root>/README.md`
 that misses a document, names one twice, or holds a row naming none. The
-rows and the estimate are stated once, in `templates/config.md` *The fold's
+rows and the estimate are stated once, in `templates/setup/config.md` *The fold's
 values*. Every case but three runs the command; `Test_module` holds the
 estimate, the reader of a row written again below the stop, a copy of the
 command run without its siblings, and the line splitter this module no

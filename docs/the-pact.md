@@ -40,7 +40,7 @@ go in `seal/pact.md`. A work item that only commits in several repositories
 gets a routing declaration in each and nothing else. A sentence only one
 repository's code depends on stays in that repository's own documents,
 because a pact that collects those sends every signer to re-read changes
-that were never theirs. `templates/pact.md` states the rule where the file is
+that were never theirs. `templates/setup/pact.md` states the rule where the file is
 begun.
 check: tests/test_a_signer_declares_its_pact.py
 

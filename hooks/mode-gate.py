@@ -14,7 +14,7 @@ question was asked. Three files each said something correct and the three
 together left no route to the question -- `hooks/optin.py` says the root's
 existence IS the declaration, `skills/implement/orchestration.md`
 *Orchestrator: Bootstrap* says the mode question is asked there and nowhere else, and the preset block
-(`templates/claude-md-block.md`, which `install.sh` copies into
+(`templates/setup/claude-md-block.md`, which `install.sh` copies into
 `~/.claude/CLAUDE.md`, so it loads in every project on the machine) tells a
 session to write
 `seal/threads/<id>/routing.md` before the first edit. That write creates the

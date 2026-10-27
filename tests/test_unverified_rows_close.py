@@ -57,7 +57,7 @@ OLD_MARK = chr(0x2705)
 
 # Every shipped text that tells a session how a `## Not verified` row closes.
 CLOSING_TEXTS = [
-    ("templates", "config.md"),
+    ("templates", "setup", "config.md"),
     ("docs", "the-record-layout.md"),
     ("skills", "implement", "SKILL.md"),
     ("skills", "verify", "SKILL.md"),
@@ -139,7 +139,9 @@ def collapsed(*parts):
 def test_the_template_is_the_shape_the_checker_reads(tmp_path):
     """Template and checker drift apart silently otherwise: every new work
     item would copy a section the release check then refuses."""
-    with open(os.path.join(ROOT, "templates", "sdd-gaps.md"), encoding="utf-8") as f:
+    with open(
+        os.path.join(ROOT, "templates", "records", "sdd-gaps.md"), encoding="utf-8"
+    ) as f:
         template = f.read()
 
     d = tmp_path / "specs" / "1780000000-work"
@@ -176,7 +178,9 @@ def test_the_memo_keeps_one_line_of_purpose():
     skill = collapsed("skills", "implement", "SKILL.md")
     assert "Why this work exists and what the result changes — **one line**" in skill
     assert "the only place the purpose stays in the repository" in skill
-    with open(os.path.join(ROOT, "templates", "sdd-gaps.md"), encoding="utf-8") as f:
+    with open(
+        os.path.join(ROOT, "templates", "records", "sdd-gaps.md"), encoding="utf-8"
+    ) as f:
         assert "## Why this work exists" in f.read()
 
 

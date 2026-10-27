@@ -18,7 +18,7 @@ What this file pins is the looking half, as a property of the class rather
 than of the instance the ticket named -- contract rule 12,
 *do not fix the coordinate, enumerate the class*. The ticket named three
 documents; there were nine, and the one the four segments actually hand-wrote
-from (`templates/sdd-round.md`, seven mentions) was not among the three.
+from (`templates/records/sdd-round.md`, seven mentions) was not among the three.
 
 Two rules, and the second is narrower than the first on purpose:
 
@@ -87,15 +87,15 @@ NO_SUBCOMMAND = {
         "them -- which is what `test_a_script_with_no_subcommand_is_shown_in_"
         "no_command_form` asserts, and the whole of it. A flag is the only "
         "sound tell in prose, so a bare mention in a list of checks is not "
-        "caught: `templates/config.md` names it beside three commands. "
+        "caught: `templates/setup/config.md` names it beside three commands. "
         "Every place outside `tests/` that invokes it carries its full path "
-        "-- `.github/workflows/hygiene.yml`, `templates/hygiene.yml` and "
+        "-- `.github/workflows/hygiene.yml`, `templates/setup/hygiene.yml` and "
         "`docs/release-checklist.md` by hand, and "
         "`skills/verify/scripts/broad_gate.py` in code; the test modules that "
         "load it build the "
         "same path -- so it is reachable everywhere it is reached. "
         "A subcommand would also change the row in "
-        "`templates/config.md` that spells the broad gate to a user, which is "
+        "`templates/setup/config.md` that spells the broad gate to a user, which is "
         "a user-facing change with no defect behind it (#318)."
     ),
 }
@@ -337,14 +337,14 @@ def test_the_failure_message_offers_a_repair_that_actually_works():
     otherwise a reader adds `seal`, re-runs, is still red, and has been told
     nothing. That is #318's own shape reproduced inside #318's fix.
 
-    `templates/sdd-plan.md` is the document in both directions because it
+    `templates/records/sdd-plan.md` is the document in both directions because it
     names neither script and carries neither command, so the case is
     guaranteed to fail and its message is the whole of what is being read.
     """
     seal = "skills/implement/scripts/seal.py"
     with pytest.raises(AssertionError) as raised:
         test_a_document_naming_a_script_with_a_command_says_how_to_reach_it(
-            ("templates/sdd-plan.md", seal)
+            ("templates/records/sdd-plan.md", seal)
         )
     message = str(raised.value)
     assert "the command `seal`" not in message, (
@@ -358,7 +358,7 @@ def test_the_failure_message_offers_a_repair_that_actually_works():
     arms = "skills/verify/scripts/arm_check.py"
     with pytest.raises(AssertionError) as raised:
         test_a_document_naming_a_script_with_a_command_says_how_to_reach_it(
-            ("templates/sdd-plan.md", arms)
+            ("templates/records/sdd-plan.md", arms)
         )
     assert "the command `seal arms`" in str(raised.value), (
         "a subcommand still has both accepted forms offered"

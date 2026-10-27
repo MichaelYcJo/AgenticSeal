@@ -77,7 +77,7 @@ STATE_DIR = os.path.join(os.path.expanduser("~"), ".claude", "agentic")
 # start of this release writes into `STATE_DIR` before this hook runs: where
 # the new directory holds one, the old one is dropped rather than kept.
 CACHE = "version-check"
-TEMPLATE = os.path.join(HOOKS, "..", "templates", "seal-README.md")
+TEMPLATE = os.path.join(HOOKS, "..", "templates", "setup", "seal-README.md")
 # The `seal` command, whose `workflow_at` is the one reader that tells this
 # plugin's pull-request workflow from anybody else's.
 SEAL = os.path.join(HOOKS, "..", "skills", "implement", "scripts", "seal.py")

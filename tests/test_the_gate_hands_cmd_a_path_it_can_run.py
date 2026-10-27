@@ -10,7 +10,7 @@ failure form reported the suite as failing. `bin/test.cmd` exists so that
 #942 moved the cases of `skills/verify/scripts/broad_gate.py` from this file
 into `tests/test_broad_gate.py`: `Test_handed_to_shell`,
 `Test_command_names_backslashed`, `Test_run`, `Test_failure_lines` and
-`Test_module` hold them. What stays reads `templates/config.md`, which #923
+`Test_module` hold them. What stays reads `templates/setup/config.md`, which #923
 places.
 """
 
@@ -20,12 +20,12 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 
 def test_the_template_says_which_positions_are_rewritten():
-    """A2, the reader's half (contract rule 14). `templates/config.md` *Broad gate* is
+    """A2, the reader's half (contract rule 14). `templates/setup/config.md` *Broad gate* is
     where a person writing the row learns what `cmd.exe` is handed, and it
     states the rule and names the positions the scan leaves as written —
     the gap `tests/test_broad_gate.py`'s cases pin is only a gap nobody is surprised by while
     it is written down. It must not read as a complete count of them."""
-    path = os.path.join(ROOT, "templates", "config.md")
+    path = os.path.join(ROOT, "templates", "setup", "config.md")
     with open(path, encoding="utf-8") as handle:
         text = handle.read()
     section = text.split("## Broad gate", 1)[1].split("\n## ", 1)[0]
@@ -64,7 +64,9 @@ def test_the_template_says_which_positions_are_rewritten():
         "a directory at the root named like a program the row calls with a "
         "glued switch (an `xcopy/` directory) makes `xcopy/e` read as a path",
     ):
-        assert needle in prose, f"`templates/config.md` *Broad gate* lacks: {needle}"
+        assert needle in prose, (
+            f"`templates/setup/config.md` *Broad gate* lacks: {needle}"
+        )
     assert "Two positions are not rewritten" not in prose, (
         "the template still counts the positions it leaves as written"
     )

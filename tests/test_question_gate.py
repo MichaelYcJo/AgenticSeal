@@ -444,7 +444,7 @@ def test_the_prose_points_to_the_gate_and_no_longer_says_nothing_holds_it():
         ),
         (("hooks", "routing.py"), "Nothing gates on it and nothing can"),
         (("hooks", "routing.py"), "nothing CAN decide one on"),
-        (("templates", "sdd-routing.md"), "can hold a run to it"),
+        (("templates", "records", "sdd-routing.md"), "can hold a run to it"),
     ):
         assert sentence not in flat(*parts), (parts, sentence)
 

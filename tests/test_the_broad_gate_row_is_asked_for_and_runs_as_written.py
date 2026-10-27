@@ -12,7 +12,7 @@ with the failure still on the screen.
 `tests/test_the_seal_is_taken_once_by_the_sealer.py` holds the executed half:
 the gate refusing each form over a fixture repository, and the forms that stay
 allowed still sealing. What is pinned HERE is the text a person reads — what
-`templates/config.md` promises about the row, the criterion for choosing a
+`templates/setup/config.md` promises about the row, the criterion for choosing a
 value and its one owner, and the sentence that sends a session which meets the
 refusal to a person instead of letting it choose.
 
@@ -28,7 +28,7 @@ from conftest import read
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
-TEMPLATE = ("templates", "config.md")
+TEMPLATE = ("templates", "setup", "config.md")
 CONFIG_SKILL = ("skills", "config", "SKILL.md")
 ORCH = ("skills", "implement", "orchestration.md")
 SEALER = ("agents", "sealer.md")
@@ -443,7 +443,7 @@ def test_each_rule_is_carried_with_the_reason_it_is_a_rule():
 
 
 def test_rule_three_was_folded_rather_than_copied_into_a_third_place():
-    """It stood in `templates/config.md` and in `skills/config/SKILL.md`
+    """It stood in `templates/setup/config.md` and in `skills/config/SKILL.md`
     before this work. Writing the criterion without folding would have made
     three copies of the one rule that was already written down —
     `tests/test_the_rules_have_one_owner.py` is the standing check, and this
@@ -542,7 +542,7 @@ def test_the_absent_row_refusal_says_whose_the_row_is_and_where_it_is_answered()
     assert "a row is a thing a person wrote" in said
     assert "/agentic:config" in said
     assert (
-        "`templates/config.md` *The criterion for choosing a value* is what "
+        "`templates/setup/config.md` *The criterion for choosing a value* is what "
         "they choose against"
     ) in said
     assert "(`skills/verify/SKILL.md` *The Seal Test*)" in said

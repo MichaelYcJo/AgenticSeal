@@ -20,7 +20,7 @@ ROOT = os.path.join(os.path.dirname(__file__), "..")
 SKILL = ("skills", "config", "SKILL.md")
 # The bootstrap is `implement`'s orchestrator half since #292.
 BOOTSTRAP = ("skills", "implement", "orchestration.md")
-TEMPLATE = ("templates", "config.md")
+TEMPLATE = ("templates", "setup", "config.md")
 
 
 ROWS = (

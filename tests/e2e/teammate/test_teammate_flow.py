@@ -1,5 +1,5 @@
 """The teammate flow: a pull request that declares nothing passes every step
-of `templates/hygiene.yml` (#952).
+of `templates/setup/hygiene.yml` (#952).
 
 A consuming repository that installed the pull-request checks runs them on
 every pull request, a teammate's who never used the plugin among them. Each
@@ -32,7 +32,7 @@ from conftest import (
     write,
 )
 
-TARGET = "templates/hygiene.yml"
+TARGET = "templates/setup/hygiene.yml"
 
 BASH = shutil.which("bash")
 pytestmark = [pytest.mark.skipif(BASH is None, reason="no bash to run the steps in")]

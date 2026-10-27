@@ -240,7 +240,7 @@ def test_the_template_PARSES_into_the_three_answers_it_ships():
     sys.path.insert(0, os.path.join(ROOT, "hooks"))
     import routing
 
-    template = read("templates", "sdd-routing.md")
+    template = read("templates", "records", "sdd-routing.md")
     parsed = routing.parse(template)
     assert parsed is not None, "the template no longer parses as a declaration"
     assert parsed["review"] == routing.CHAIN
@@ -284,7 +284,7 @@ def test_the_template_PARSES_into_the_FOURTH_axis_it_ships():
     """The fourth axis's vocabulary is read out of the template, never retyped.
 
     `hooks/routing.py`'s `parse()` docstring promises that
-    `templates/sdd-routing.md` is the only spelling a session should copy and
+    `templates/records/sdd-routing.md` is the only spelling a session should copy and
     that a test parses the file so the two cannot drift. This is that test for
     the `Planning` row: every constant the parser accepts is substituted into
     the template's own row and parsed back, so a row labelled `Planner` or a
@@ -300,7 +300,7 @@ def test_the_template_PARSES_into_the_FOURTH_axis_it_ships():
     sys.path.insert(0, os.path.join(ROOT, "hooks"))
     import routing
 
-    template = read("templates", "sdd-routing.md")
+    template = read("templates", "records", "sdd-routing.md")
     parsed = routing.parse(template)
     assert parsed is not None, "the template no longer parses as a declaration"
     assert parsed["planning"] is None, (
@@ -377,7 +377,7 @@ def test_the_template_PARSES_into_the_TWO_NEWEST_rows_it_ships():
     sys.path.insert(0, os.path.join(ROOT, "hooks"))
     import routing
 
-    template = read("templates", "sdd-routing.md")
+    template = read("templates", "records", "sdd-routing.md")
     parsed = routing.parse(template)
     assert parsed is not None, "the template no longer parses as a declaration"
     for key in ("automation", "pressed"):
@@ -458,7 +458,7 @@ def test_question_1_is_asked_alone_and_the_boxes_only_under_per_axis():
     assert len(labelled_table(skill, "Order", "Box")) == 4, (
         "question 2 does not offer exactly four boxes"
     )
-    # ONE spelling, shared with `templates/claude-md-block.md`, because
+    # ONE spelling, shared with `templates/setup/claude-md-block.md`, because
     # `tests/test_review_axes.py` pairs the two
     # documents on this exact phrase — two spellings of one decision is
     # the drift that pair exists to catch.
@@ -813,9 +813,9 @@ def test_the_framer_leaves_a_mark_in_the_tree():
     a line nobody was told to fill in.
     """
     line = "Framed <date> by <who>, before the build."
-    template = read("templates", "sdd-design.md")
+    template = read("templates", "records", "sdd-design.md")
     assert line in template, (
-        "`templates/sdd-design.md` ships no mark, so every spec copied from it "
+        "`templates/records/sdd-design.md` ships no mark, so every spec copied from it "
         "is a frame with no evidence it was framed"
     )
     assert template.rstrip().endswith(line), (
@@ -922,7 +922,7 @@ def test_the_skill_states_all_four_combinations():
 def test_the_skill_names_where_the_answer_is_written():
     skill = flat(read(*ORCH))
     assert "seal/threads/<work-item-id>/routing.md" in skill
-    assert "templates/sdd-routing.md" in skill
+    assert "templates/records/sdd-routing.md" in skill
     assert "Committed" in skill or "committed" in skill
 
 
@@ -1005,11 +1005,11 @@ def test_the_preset_block_carries_it_too():
     work item distributes IS this paragraph. The absence half is the half
     that would have caught it.
 
-    Read from `templates/claude-md-block.md`, the one copy since #940. The
+    Read from `templates/setup/claude-md-block.md`, the one copy since #940. The
     box answers left the block with it: the block states the shape, and
     `skills/implement/orchestration.md` holds what each box writes.
     """
-    for parts in (("templates", "claude-md-block.md"),):
+    for parts in (("templates", "setup", "claude-md-block.md"),):
         text = flat(read(*parts))
         where = "/".join(parts)
         assert "seal/threads/<work-item-id>/routing.md" in text, where

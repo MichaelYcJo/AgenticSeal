@@ -20,7 +20,7 @@ def test_both_cheat_sheets_point_to_the_checks_home(edition):
     was gone. It now points to the rows' one statement and restates none."""
     with open(os.path.join(ROOT, edition), encoding="utf-8") as f:
         row = next(line for line in f if line.startswith("| `seal fold [--ceiling"))
-    assert "`templates/config.md` *The fold's values*" in row, row
+    assert "`templates/setup/config.md` *The fold's values*" in row, row
     assert "frozen" not in row and "고정" not in row, row
 
 

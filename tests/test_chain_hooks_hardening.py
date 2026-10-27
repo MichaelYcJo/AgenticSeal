@@ -124,8 +124,8 @@ def test_parity_declaration_is_bootstrappable_not_hand_written():
     # The migration config is the one declaration a user cannot derive, so the
     # blank-page problem is real: without a template and a place that asks,
     # migration mode is a feature nobody can reach.
-    tpl = os.path.join(ROOT, "templates", "parity.md")
-    assert os.path.isfile(tpl), "templates/parity.md missing"
+    tpl = os.path.join(ROOT, "templates", "setup", "parity.md")
+    assert os.path.isfile(tpl), "templates/setup/parity.md missing"
     body = open(tpl, encoding="utf-8").read()
     for field in (
         "Original repo",
@@ -143,7 +143,9 @@ def test_parity_declaration_is_bootstrappable_not_hand_written():
         os.path.join(ROOT, "skills", "implement", "orchestration.md"),
         encoding="utf-8",
     ).read()
-    assert "templates/parity.md" in implement, "bootstrap never points at the template"
+    assert "templates/setup/parity.md" in implement, (
+        "bootstrap never points at the template"
+    )
     assert "seal/README.md" in implement
 
     setup = os.path.join(ROOT, "skills", "parity-setup", "SKILL.md")

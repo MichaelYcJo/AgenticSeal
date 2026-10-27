@@ -195,7 +195,7 @@ SEAL_SWEPT = (
     ("skills", "code-review", "orchestration.md"),
     ("skills", "code-review", "SKILL.md"),
     ("skills", "implement", "SKILL.md"),
-    ("templates", "config.md"),
+    ("templates", "setup", "config.md"),
     # The review run's documents. `docs/the-review-record.md` replaced the
     # three that carried the record in 0.22.0 (#923).
     ("docs", "the-review-record.md"),
@@ -742,7 +742,7 @@ def test_flat_is_what_folds_the_seam_and_it_folds_python_only():
 # in the two spans `PACT_RENAMED_SPANS` names.
 
 PACT_SWEPT = (
-    ("templates", "pact.md"),
+    ("templates", "setup", "pact.md"),
     ("docs", "the-pact.md"),
 )
 # The two sections that carry the words inside larger documents, read alone.
@@ -752,7 +752,7 @@ PACT_SECTIONS = (
         "### A work item that commits in more than one repository",
     ),
     # Round 1's white 11: the words ship here too.
-    (("templates", "config.md"), "## Pact"),
+    (("templates", "setup", "config.md"), "## Pact"),
 )
 # Files where only the lines naming a pact are the pact's text: the cheat
 # sheets' row and the config skill's rows and bullet.

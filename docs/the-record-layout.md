@@ -17,14 +17,14 @@ is found, the copy is the defect.
 | The changelog | `seal/threads/<work-item-id>/changelog.md` while a work item is open; `changelog/<X.Y.Z>.md`, the release's own file, once its release gathers it | each release file is under target, and is the unit | the file name, by version, and `CHANGELOG.md`, which heads each release newest first with a link to its file |
 | A work item's files | `seal/threads/<work-item-id>/` | each file under target | the table under *seal/threads/<work-item-id>/* below |
 | The repository's rules | `CLAUDE.md` for the rules a session must hold, `CONTRIBUTING.md` for a contributor's procedure, and the `docs/` document each one links to | each file under target | this document, and `docs/README.md` |
-| The configuration | `seal/config.md`, one row per item; `templates/config.md` documents every row | under target | the `Item` column |
+| The configuration | `seal/config.md`, one row per item; `templates/setup/config.md` documents every row | under target | the `Item` column |
 | The follow-up list | `seal/follow-up.md`, one row per item that waits on a named party | under target | its rows, each naming who answers it |
 | The process archive | `seal/process/<X.Y.Z>.md`, one file per release, written at its preparation | each file under target | the file name, by version |
 
 ## The size a reader takes whole
 
 **A file a reader is meant to take whole fits one read.** The row and the
-estimate are `templates/config.md` *The fold's values*, and what a document
+estimate are `templates/setup/config.md` *The fold's values*, and what a document
 past it owes is `skills/settle/SKILL.md` *A document past its ceiling is
 split, never trimmed*.
 check: tests/test_fold_check.py

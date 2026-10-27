@@ -355,7 +355,9 @@ def test_the_preset_block_states_the_rule_the_loaded_files_assume():
     An agent file needs the agent spawned and a skill needs the skill invoked.
     A session working this repo directly does neither, so the preset block --
     always in front of it -- is the only copy it will ever read."""
-    preset = read("templates", "claude-md-block.md").split("<!-- agentic:end -->")[0]
+    preset = read("templates", "setup", "claude-md-block.md").split(
+        "<!-- agentic:end -->"
+    )[0]
     assert "<!-- agentic:start -->" in preset, "the preset markers moved"
     assert "Verification Scope" in preset, (
         "the always-loaded block lost the rule that bounds a broad run"
@@ -435,7 +437,7 @@ def test_the_example_row_goes_lint_first_and_the_arms_are_not_listed_by_hand():
     the seconds-long linters ahead of the suite, as this repository's own row
     does. The prose above it named four of the gate's six arms; it points at
     the one list instead, and says the preflight runs those arms alone."""
-    body = section(read("templates", "config.md"), "Broad gate")
+    body = section(read("templates", "setup", "config.md"), "Broad gate")
     assert EXAMPLE_ROW in body, "the example row is not the lint-first one"
     lead = joined(body).split("```")[0]
     listed = [name for name in BY_HAND if name in lead]

@@ -195,7 +195,7 @@ squash merge, like any other work.
   `chain_check.py` reads a round's `target:` commit only as HEAD or an ancestor
   of it, so the commits a round reviewed are read while the pull request that
   carries them is open, and no step fetches a ref the checkout lacks. The
-  checks ship to user repositories as `templates/hygiene.yml`, run from a
+  checks ship to user repositories as `templates/setup/hygiene.yml`, run from a
   clone of this repository at the release installed when
   `seal pr-checks install` wrote the file, at first setup or later; it
   refuses in local mode, because the checks read committed files and local

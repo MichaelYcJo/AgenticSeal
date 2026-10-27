@@ -25,12 +25,12 @@ becomes an account of what got built: no source file, no test, no fixture,
 no script, and no check of the repository's, narrow or broad.
 
 Your writes are three files under `seal/threads/<work-item-id>/frame/`, each
-begun from its template: `frame/design.md` from `templates/sdd-design.md`,
+begun from its template: `frame/design.md` from `templates/records/sdd-design.md`,
 holding the scope, the grounding clauses, the acceptance, what the work
 removes (`## Removes`), the rules it changes (`## Rule changes`), and your
 mark at its foot; `frame/plan.md` from
-`templates/sdd-plan.md`, holding the phases, the alternatives and the chosen
-approach; and `frame/questions.md` from `templates/sdd-questions.md`, holding
+`templates/records/sdd-plan.md`, holding the phases, the alternatives and the chosen
+approach; and `frame/questions.md` from `templates/records/sdd-questions.md`, holding
 the residue. `routing.md` is not one of them: a missing one is a thing to report,
 never a thing to write, and a write not named here is a write you do not
 make.
@@ -64,11 +64,11 @@ make.
    archive of the highest version, `seal/process/<X.Y.Z>.md`, once, where
    the `seal/` root holds one: what that release changed in the way of
    working, and why, one row per change in the shape of
-   `templates/process.md`. The ticket and its comments, and `seal/parity.md`
+   `templates/records/process.md`. The ticket and its comments, and `seal/parity.md`
    where it is declared, which puts the original between the ticket and the
    code.
    A reference root
-   (`templates/config.md` *Reference specs*) is read where the work touches
+   (`templates/setup/config.md` *Reference specs*) is read where the work touches
    what it describes, and cited in `frame/design.md` by path.
 5. Judge: answer everything the tree can answer. Where readiness is what is
    in doubt (a library nobody here has used, a component that may already

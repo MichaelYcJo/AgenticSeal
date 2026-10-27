@@ -192,7 +192,7 @@ def document(*parts):
 
 
 @pytest.mark.parametrize(
-    "parts", [("seal", "README.md"), ("templates", "seal-README.md")]
+    "parts", [("seal", "README.md"), ("templates", "setup", "seal-README.md")]
 )
 def test_the_seal_readme_says_the_step_exists(parts):
     """Both editions of the same file, which

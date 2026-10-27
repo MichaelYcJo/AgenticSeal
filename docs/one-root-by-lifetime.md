@@ -22,7 +22,7 @@ permanent. The layout, file by file, is `skills/implement/SKILL.md`
 
 **The plugin writes only to its own root.** A `specs/` directory anywhere
 else is the project's own, read as history and never taken
-(`templates/config.md` *Reference specs*), and no code of the plugin opens a
+(`templates/setup/config.md` *Reference specs*), and no code of the plugin opens a
 top-level `specs/` or `.specseal/`: the 0.3.x layout moves by hand, with the
 commands README.md *Coming up from 0.3.x* gives, and that section says it is
 the only path. Where the root is, as a path a
@@ -58,7 +58,7 @@ record.
 **A repository is opted in when `seal/` exists at its mode's location and
 its `README.md` opens with the plugin's marker**: `<repo>/seal/` in shared
 mode, `$(git rev-parse --git-common-dir)/seal/` in local mode. The marker is
-the first line of `templates/seal-README.md`, written at first setup and by
+the first line of `templates/setup/seal-README.md`, written at first setup and by
 the migration of a repository installed before the plugin was renamed
 AgenticSeal. The hooks look at the
 two places in that order; whichever exists with the marker says both "on"
@@ -96,7 +96,7 @@ order, the first the default, each saying what it does:
   carries, and writes nothing under `.github/`.
 - **shared, with pull-request checks** does the same, then runs
   `seal pr-checks install`, which writes `.github/workflows/hygiene.yml`
-  from `templates/hygiene.yml` where that path is absent: a clone of the
+  from `templates/setup/hygiene.yml` where that path is absent: a clone of the
   plugin at the release installed at setup, and the pull-request checks.
 - **local** creates `$(git rev-parse --git-common-dir)/seal/`, touches nothing
   in the tree, and installs nothing, because the checks read committed files
@@ -145,7 +145,7 @@ filled in from where the folder is, the only value that cannot be wrong.
 answers, and the workflow file is the record of the second.** `seal mode`
 moves the root and writes the `Mode` row, and leaves `.github/` alone.
 `seal pr-checks install` writes `.github/workflows/hygiene.yml` from
-`templates/hygiene.yml` where that path is absent, pinned to the installed
+`templates/setup/hygiene.yml` where that path is absent, pinned to the installed
 release, and stages it. It refuses where `<repo>/seal/` is not a directory,
 because the checks read committed records. `seal pr-checks remove` takes out
 a workflow this plugin wrote and leaves any other file alone. No config row
@@ -213,7 +213,7 @@ are written in is that repository's answer, below.
 
 `seal/config.md` is the one file a repository writes about itself, one row
 per item, read by the checkers and editable by hand. The rows that exist are
-documented in `templates/config.md`, and an absent row has a default that is
+documented in `templates/setup/config.md`, and an absent row has a default that is
 stated there rather than left to whoever reads the code.
 
 **A setting nobody can find is a setting nobody has.** Every row is reachable

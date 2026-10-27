@@ -30,7 +30,7 @@ from conftest import commit_everything_as_e as commit
 TARGET = "skills/verify/scripts/seal_stamp.py"
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-GUARANTEE_TEMPLATE = ROOT / "templates" / "sdd-guarantee.md"
+GUARANTEE_TEMPLATE = ROOT / "templates" / "records" / "sdd-guarantee.md"
 ITEM_NAME = "1799000000-an-item"
 ITEM_ID = "1799000000"
 GUARANTEE = f"seal/threads/{ITEM_NAME}/guarantee.md"
@@ -1202,7 +1202,7 @@ Item = collections.namedtuple("Item", "repo common target base")
 
 
 def guarantee_text(target, base, verdict="sealed", earlier=""):
-    """A `guarantee.md` in `templates/sdd-guarantee.md`'s shape."""
+    """A `guarantee.md` in `templates/records/sdd-guarantee.md`'s shape."""
     return (
         "# an item — guarantee\n\n| Field | Value |\n|---|---|\n"
         f"| Target SHA | {target} against {base}{earlier} |\n"

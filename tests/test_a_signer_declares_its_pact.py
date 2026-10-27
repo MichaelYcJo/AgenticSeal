@@ -28,9 +28,11 @@ config = load_hook_module("config.py", "config_for_the_pact")
 
 def _broad_gate_block():
     """The prose `skills/config/SKILL.md` step 3 tells a session to copy
-    below the live table: `templates/config.md` from `## Broad gate` down to
+    below the live table: `templates/setup/config.md` from `## Broad gate` down to
     `### What is refused, and what stays allowed`."""
-    with open(os.path.join(ROOT, "templates", "config.md"), encoding="utf-8") as f:
+    with open(
+        os.path.join(ROOT, "templates", "setup", "config.md"), encoding="utf-8"
+    ) as f:
         text = f.read()
     start = text.index("## Broad gate\n")
     return text[start : text.index("### What is refused, and what stays allowed")]
@@ -40,7 +42,7 @@ def test_s4_the_configs_this_plugin_writes_or_copies_are_silent():
     """S4. This repository's own `seal/config.md`, the stub `seal mode`
     writes, that stub with the copied `## Broad gate` block below it -- with
     and without the `Pact` row `orchestration.md` writes into the table --
-    and `templates/config.md` copied whole, which
+    and `templates/setup/config.md` copied whole, which
     `skills/commit-pr-convention/SKILL.md` tells a session to do, give no
     refusal to the reader `seal pact` reads strictly. Each is read from the
     tree, not retyped."""
@@ -57,7 +59,9 @@ def test_s4_the_configs_this_plugin_writes_or_copies_are_silent():
     assert config.pact_declaration(stub + "\n" + block) == ([], [])
     signed = stub + f"| Pact | {URL} |\n"
     assert config.pact_declaration(signed + "\n" + block) == (ORDERS, [])
-    with open(os.path.join(ROOT, "templates", "config.md"), encoding="utf-8") as f:
+    with open(
+        os.path.join(ROOT, "templates", "setup", "config.md"), encoding="utf-8"
+    ) as f:
         template = f.read()
     assert config.pact_declaration(template) == ([], [])
     filled = template.replace("| Pact |  |\n", f"| Pact | {URL} |\n", 1)
@@ -69,10 +73,10 @@ def test_s4_the_configs_this_plugin_writes_or_copies_are_silent():
 
 
 def test_the_template_and_the_config_skill_carry_the_pact_row_alone():
-    """`templates/config.md` documents the `Pact` row and `/agentic:config`
+    """`templates/setup/config.md` documents the `Pact` row and `/agentic:config`
     shows it; neither carries a `Pact notify` row, and the template says
     once what one left in a config does."""
-    template = flat("templates", "config.md")
+    template = flat("templates", "setup", "config.md")
     skill = flat("skills", "config", "SKILL.md")
     assert f"**`{config.PACT_ROW}`**" in template
     assert f"| `{config.PACT_ROW}` |" in skill

@@ -1154,8 +1154,6 @@ VACATING = (
 # written; the old path is the one that commit holds. Taken out of a line
 # before the census reads it.
 COMMIT_PATH = re.compile(r"(?<![\w/:])[0-9a-f]{7,40}:[\w./-]+")
-# The files that keep a vacated spelling whole, each for the reason above it.
-VACATED_KEPT_FILES = ()
 
 
 def vacated(root=None):
@@ -1180,12 +1178,10 @@ def vacated_paths(rel, root=None):
     for `templates/` and `tests/`. A spelling counts as a word, at the start
     of a path or after a shell variable such as `$CLAUDE_PLUGIN_ROOT/`, and
     not inside a longer path. The records and the recorded cases `old_names`
-    passes are passed over whole, as are VACATED_KEPT_FILES, a path cited
-    at a commit passes, and any other line that keeps an old path carries
-    its exemption. A file that is not UTF-8 text is not read."""
-    if rel.startswith(OLD_NAME_RECORDS + VACATED_KEPT_FILES) or RECORDED_CASE.match(
-        rel
-    ):
+    passes are passed over whole, a path cited at a commit passes, and any
+    other line that keeps an old path carries its exemption. A file that is
+    not UTF-8 text is not read."""
+    if rel.startswith(OLD_NAME_RECORDS) or RECORDED_CASE.match(rel):
         return []
     moved = vacated(root)
     if not moved:

@@ -22,7 +22,7 @@ layout — two roots, three lifetimes* 와 `docs/the-record-layout.md` 에
 
 **플러그인은 자기 루트에만 씁니다.** 그 밖의 자리에 있는 `specs/` 디렉터리는
 프로젝트 자신의 것이고, 이력으로 읽을 뿐 가져가지 않습니다
-(`templates/config.md` *Reference specs*). 플러그인의 어떤 코드도 최상위
+(`templates/setup/config.md` *Reference specs*). 플러그인의 어떤 코드도 최상위
 `specs/` 나 `.specseal/` 을 열지 않습니다. 0.3.x 배치는 README.md *Coming up
 from 0.3.x* 가 주는 명령으로 손으로 옮기고, 그 절은 그것이 유일한 길이라고
 말합니다. 세션이 칠 수 있는 경로로 루트가
@@ -55,7 +55,7 @@ corpus*). 병합 뒤에 `seal/threads/<id>/` 를 새로 읽는 코드는 그것�
 **저장소가 옵트인한 것은 그 모드의 자리에 `seal/` 이 있고 그 `README.md` 가
 플러그인의 표식으로 시작할 때입니다.** shared 모드면 `<repo>/seal/`, local
 모드면 `$(git rev-parse --git-common-dir)/seal/` 입니다. 표식은
-`templates/seal-README.md` 의 첫 줄이고, 처음 설정과, 플러그인 이름이 AgenticSeal 로
+`templates/setup/seal-README.md` 의 첫 줄이고, 처음 설정과, 플러그인 이름이 AgenticSeal 로
 바뀌기 전에 설치된 저장소의 이전이 이것을 씁니다. 훅은 두 자리를 그 순서로 보고, 표식과 함께
 있는 쪽이 "켜졌다" 와 "어느 모드인가" 를 함께 말해 줍니다. README 가 이전
 릴리스가 쓴 제목(`hooks/optin.py#EARLIER_HEADINGS`)으로 시작하는 `seal/` 은
@@ -91,7 +91,7 @@ check: tests/test_optin.py
   그것을 싣습니다. `.github/` 아래에는 아무것도 쓰지 않습니다.
 - **shared, with pull-request checks** 는 같은 일을 한 뒤
   `seal pr-checks install` 을 실행합니다. 이 명령은
-  `.github/workflows/hygiene.yml` 이 없으면 `templates/hygiene.yml` 에서
+  `.github/workflows/hygiene.yml` 이 없으면 `templates/setup/hygiene.yml` 에서
   씁니다. 설정할 때 깔린 릴리스의 플러그인 클론과 PR 검사입니다.
 - **local** 은 `$(git rev-parse --git-common-dir)/seal/` 을 만들고, 트리에는
   아무것도 건드리지 않으며, 아무것도 설치하지 않습니다. 검사는 커밋된 파일을
@@ -137,7 +137,7 @@ check: tests/test_first_setup_asks_once.py
 **기록이 어디 사는가와 CI 가 PR 을 검사하는가는 두 개의 답이고, 둘째의
 기록은 워크플로 파일 자체입니다.** `seal mode` 는 루트를 옮기고 `Mode`
 행을 쓰며, `.github/` 에는 손대지 않습니다. `seal pr-checks install` 은
-`.github/workflows/hygiene.yml` 이 없으면 `templates/hygiene.yml` 에서
+`.github/workflows/hygiene.yml` 이 없으면 `templates/setup/hygiene.yml` 에서
 설치된 릴리스로 고정해 쓰고 스테이지합니다. `<repo>/seal/` 이 디렉터리가
 아니면 거절합니다. 검사는 커밋된 기록을 읽기 때문입니다.
 `seal pr-checks remove` 는 이 플러그인이 쓴 워크플로를 빼고, 다른 파일은
@@ -204,7 +204,7 @@ check: tests/test_first_setup_asks_once.py tests/test_optin.py tests/test_seal.p
 
 `seal/config.md` 는 저장소가 자기에 대해 적는 유일한 파일입니다. 항목마다 한
 행이고, 검사기가 읽으며, 손으로 고칠 수 있습니다. 있는 행은
-`templates/config.md` 에 적혀 있고, 행이 없을 때의 기본값도 코드를 읽는
+`templates/setup/config.md` 에 적혀 있고, 행이 없을 때의 기본값도 코드를 읽는
 사람에게 맡기지 않고 거기에 적혀 있습니다.
 
 **아무도 찾을 수 없는 설정은 아무도 가진 적 없는 설정입니다.** 모든 행은 파일

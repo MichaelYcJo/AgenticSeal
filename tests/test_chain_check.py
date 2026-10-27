@@ -76,7 +76,7 @@ def finding(
     reopens=None,
     evidence="read `f.txt:1`",
 ):
-    """One `### ` section of `## Findings`, in `templates/sdd-round.md`'s
+    """One `### ` section of `## Findings`, in `templates/records/sdd-round.md`'s
     shape, its `verdict:` line reading `verdict` and its `evidence:` line
     `evidence`, or none where that is None."""
     return (
@@ -100,7 +100,7 @@ def confirm(reference, what="the fix holds"):
 
 
 def record(target, findings=(), confirmations="", n=1):
-    """A round record in `templates/sdd-round.md`'s shape: `findings` are
+    """A round record in `templates/records/sdd-round.md`'s shape: `findings` are
     `finding()` sections, `confirmations` entries of `## Confirmations`."""
     return (
         f"# 1791999999-a-work-item — review round {n}\n\n"
@@ -412,7 +412,7 @@ class Test_carried_by:
 # --- grammar ------------------------------------------------------------------------
 
 DOC = ROOT / "docs" / "the-review-record.md"
-TEMPLATE = ROOT / "templates" / "sdd-round.md"
+TEMPLATE = ROOT / "templates" / "records" / "sdd-round.md"
 
 
 def doc_with(tmp_path, old, new):
@@ -570,7 +570,7 @@ class Test_grammar:
         record* is what the check reads: its rows are the nine labels, the
         finding heading, the two sections and the three old spellings, and
         the module's grammar is the document's, read again here. Every line
-        `templates/sdd-round.md` writes of a row matches it whole, and the
+        `templates/records/sdd-round.md` writes of a row matches it whole, and the
         same line with a word after it is refused wherever the row's shape
         ends in fixed words. A row changed in the document changes what the
         readers accept, so no constant stands beside the table."""
@@ -1702,9 +1702,11 @@ CHANGE = (
 
 
 def template_section():
-    """What `templates/sdd-design.md` holds under its `## Rule changes`:
+    """What `templates/records/sdd-design.md` holds under its `## Rule changes`:
     nothing, which is what a framer's skeleton commit carries."""
-    text = (ROOT / "templates" / "sdd-design.md").read_text(encoding="utf-8")
+    text = (ROOT / "templates" / "records" / "sdd-design.md").read_text(
+        encoding="utf-8"
+    )
     section = text.split("\n## Rule changes\n", 1)[1].split("\n## Removes\n", 1)[0]
     assert section.strip() == "", section
     return section
@@ -2266,7 +2268,7 @@ class Test_parity_readers:
 
 # --- the sealer's guarantee (#969, #1000) ------------------------------------------
 
-GUARANTEE_TEMPLATE = ROOT / "templates" / "sdd-guarantee.md"
+GUARANTEE_TEMPLATE = ROOT / "templates" / "records" / "sdd-guarantee.md"
 
 
 def guarantee(sha, verdict):
@@ -3678,7 +3680,7 @@ def test_the_proofer_and_the_review_skill_name_every_line_a_finding_needs():
 
 
 def test_the_template_is_the_record_the_check_reads():
-    """S1 (T29, T38): `templates/sdd-round.md` is a record the check reads:
+    """S1 (T29, T38): `templates/records/sdd-round.md` is a record the check reads:
     one `target:` line and no table above the findings; one finding at
     `open`, located at one coordinate, resting on one `evidence:` line,
     naming the regression `round-1#1`; a `verdict:` written inside its fix

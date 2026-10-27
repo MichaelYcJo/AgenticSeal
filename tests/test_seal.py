@@ -322,7 +322,7 @@ def plugin_at(root, version='{"version": "1.2.3"}', template="--branch v<version
     if version is not None:
         write(root, ".claude-plugin/plugin.json", version)
     if template is not None:
-        write(root, "templates/hygiene.yml", template)
+        write(root, "templates/setup/hygiene.yml", template)
     return str(root)
 
 
@@ -336,7 +336,9 @@ def workflow_in(repo, text, commit=True):
 
 
 def template_text():
-    with open(os.path.join(ROOT, "templates", "hygiene.yml"), encoding="utf-8") as f:
+    with open(
+        os.path.join(ROOT, "templates", "setup", "hygiene.yml"), encoding="utf-8"
+    ) as f:
         return f.read()
 
 
@@ -2665,7 +2667,8 @@ class Test_install_workflow:
             )
         if shape == "no version":
             assert (
-                "version could not be read" in line and "templates/hygiene.yml" in line
+                "version could not be read" in line
+                and "templates/setup/hygiene.yml" in line
             )
 
 

@@ -76,7 +76,7 @@ return.
    fragment and the pull request body tell one story. Where two disagree,
    name the one the issue body and the tree contradict. Where those cannot
    decide it, the verdict is `undecided`, with the question for the owner.
-5. **Write `guarantee.md`** from `templates/sdd-guarantee.md`, every row of
+5. **Write `guarantee.md`** from `templates/records/sdd-guarantee.md`, every row of
    its two tables filled, and one verdict line, exactly one of
    `Verdict: sealed`, `Verdict: withheld reason: <reason>` or
    `Verdict: undecided question: <question>`, at the start of its line

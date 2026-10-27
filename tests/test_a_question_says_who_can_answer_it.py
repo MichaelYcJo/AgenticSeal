@@ -11,7 +11,7 @@ somebody who was never coming.
 
 Two documents carry the consequence and this module pins both.
 
-  the template   `templates/sdd-questions.md` is the file a session types
+  the template   `templates/records/sdd-questions.md` is the file a session types
                  into. The column has to be in the shipped table, because a
                  session bootstraps from the template and never reads the
                  argument for it; the argument, the three values and who
@@ -52,15 +52,15 @@ def flat(*parts):
 
 def test_the_questions_template_carries_the_answerer_column():
     """S7 of #84. The column is in the shipped table or it does not exist:
-    a session copies `templates/sdd-questions.md` and writes rows into
+    a session copies `templates/records/sdd-questions.md` and writes rows into
     whatever header it finds there."""
-    tpl = read("templates", "sdd-questions.md")
+    tpl = read("templates", "records", "sdd-questions.md")
     header = (
         "| # | Question | Who can answer | Options & what each implies "
         "| Default until answered | Status |"
     )
     assert header in tpl, (
-        "`templates/sdd-questions.md` has no `Who can answer` column in its "
+        "`templates/records/sdd-questions.md` has no `Who can answer` column in its "
         "table header. Prose about the three kinds is worth nothing here -- "
         "the header is what a session fills in"
     )

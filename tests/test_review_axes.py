@@ -109,7 +109,7 @@ def test_the_preset_block_carries_the_routing_decision():
     A session that never invokes it would meet the gate at its first edit
     instead. Under `no work item` the block names the record and the trailer
     that replaced the per-command waiver (#1027)."""
-    preset = read("templates", "claude-md-block.md")
+    preset = read("templates", "setup", "claude-md-block.md")
     assert "Routing, decided at the start" in preset
     assert "seal/threads/<work-item-id>/routing.md" in preset
     assert "`seal no-work-item`" in preset
@@ -192,7 +192,7 @@ def test_implement_and_the_preset_block_do_not_drift():
     the skill side of the pair is `orchestration.md` — the file the session
     that asks the question reads, and no crafter spawn preloads."""
     implement = " ".join(read("skills", "implement", "orchestration.md").split())
-    preset = " ".join(read("templates", "claude-md-block.md").split())
+    preset = " ".join(read("templates", "setup", "claude-md-block.md").split())
     # The answers each box writes are the orchestration file's alone since
     # #940: the block states the rules and leaves the vocabulary to the file
     # a session asking the question reads.

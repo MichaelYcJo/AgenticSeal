@@ -214,7 +214,7 @@ def parse(text):
     optional rather than lenient, and it is also the asymmetry to know about: a
     backticked or capitalised answer is rejected loudly in the first two,
     because the gate goes back to asking, and silently here.
-    `templates/sdd-routing.md` is the only spelling a
+    `templates/records/sdd-routing.md` is the only spelling a
     session should copy, and a test parses that file so it cannot drift.
 
     The two optional rows are read independently of each other. One answered

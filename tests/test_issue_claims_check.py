@@ -327,7 +327,7 @@ class Test_main:
     def test_refuses_a_step_that_examined_nothing(self, capsys):
         """No `--body-file` and no `PR_BODY` at all is a misconfigured workflow.
         The alternative is a step that is green having read nothing, which is the
-        failure `templates/hygiene.yml`'s own header argues against."""
+        failure `templates/setup/hygiene.yml`'s own header argues against."""
         assert check.main([], env={}) == 2
         assert "examined nothing" in capsys.readouterr().err
 

@@ -657,7 +657,7 @@ class Test_config_rows:
         looks for another, so an example pasted above the live table WAS the
         table every gate got: the mode, the broad command, every row. The shape
         is invited rather than contrived — `config.md`'s own header comment
-        points at `templates/config.md`, and `skills/config/SKILL.md` step 3
+        points at `templates/setup/config.md`, and `skills/config/SKILL.md` step 3
         tells a session to copy a block of that template, fenced example row
         included, naming no position for it.
         """
@@ -922,7 +922,7 @@ class Test_config_value:
 
     def test_a_fenced_example_of_a_row_does_not_double_the_live_one(self, config):
         """The count is over the rows `config_rows` takes, so the example a
-        person pastes from `templates/config.md` into a fence above the table
+        person pastes from `templates/setup/config.md` into a fence above the table
         (#429) is not a second row."""
         text = (
             "```markdown\n| Item | Value |\n|---|---|\n| Mode | local |\n```\n\n"
@@ -1378,7 +1378,7 @@ class Test_pact_declaration:
         ids=["a value outside the old vocabulary", "written twice"],
     )
     def test_a_pact_notify_row_an_earlier_release_read_is_ignored(self, rows):
-        """`templates/config.md` *Pact*: a `Pact notify` row left in the table
+        """`templates/setup/config.md` *Pact*: a `Pact notify` row left in the table
         is read by nobody, with a `Pact` row or without one, so neither a value
         outside the vocabulary the row once had nor the row written twice is
         refused. Seen red by `seal mutate` against a reader that refused the
@@ -1493,7 +1493,7 @@ class Test_declared_pacts:
     def test_accepts_a_pact_notify_row_an_earlier_release_read_as_nothing(
         self, world, rows
     ):
-        """`templates/config.md` *Pact*: a `Pact notify` row left in a signer's
+        """`templates/setup/config.md` *Pact*: a `Pact notify` row left in a signer's
         table is read by nobody."""
         write(world.web, "seal/config.md", signer_config(("Pact", PACT_URL), *rows))
         world.cite(clause(V2))
@@ -1522,7 +1522,9 @@ class Test_pact_signers:
             ["holds no `| Signer |` table, so it names no signer"],
             None,
         )
-        with open(os.path.join(ROOT, "templates", "pact.md"), encoding="utf-8") as h:
+        with open(
+            os.path.join(ROOT, "templates", "setup", "pact.md"), encoding="utf-8"
+        ) as h:
             signers, refusals, header = config.pact_signers(h.read())
         assert signers == [] and len(refusals) == 1 and "holds a space" in refusals[0]
         assert header == ("Signer",), "the template begins a pact with the new word"

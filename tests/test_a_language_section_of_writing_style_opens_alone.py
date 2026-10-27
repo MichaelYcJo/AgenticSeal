@@ -182,7 +182,7 @@ def test_the_rules_for_text_an_agent_or_a_check_reads_reach_both_languages():
         "CLAUDE.md does not name the writing rules, so a session here writes "
         "a skill before anything points it at them"
     )
-    assert title not in " ".join(read("templates/claude-md-block.md").split()), (
+    assert title not in " ".join(read("templates/setup/claude-md-block.md").split()), (
         "the shipped block carries a line for the writing rules"
     )
     head = " ".join(text.split("\n---\n", 1)[0].split())

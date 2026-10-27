@@ -1,7 +1,7 @@
 """`install.sh` writes the CLAUDE.md block from its one source, and nothing else carries it.
 
 The block between `<!-- agentic:start -->` and `<!-- agentic:end -->` lives
-in `templates/claude-md-block.md`, markers included. `install.sh` cuts it out
+in `templates/setup/claude-md-block.md`, markers included. `install.sh` cuts it out
 with `awk` and writes it into a `CLAUDE.md`; `uninstall.sh` takes it out;
 `/agentic:update` step 4 diffs it against the installed copy, and
 `/agentic:preset-setup` merges it. A block a release before 0.23.0 wrote sits
@@ -24,7 +24,7 @@ import pytest
 from conftest import read, shell_probe
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-TEMPLATE = os.path.join(ROOT, "templates", "claude-md-block.md")
+TEMPLATE = os.path.join(ROOT, "templates", "setup", "claude-md-block.md")
 INSTALL = os.path.join(ROOT, "install.sh")
 UNINSTALL = os.path.join(ROOT, "uninstall.sh")
 START, END = "<!-- agentic:start -->", "<!-- agentic:end -->"
@@ -79,14 +79,14 @@ def test_this_repository_carries_no_copy_of_the_block():
     text = read(os.path.join(ROOT, "CLAUDE.md"))
     assert START not in text and END not in text, (
         "CLAUDE.md carries the block's markers again, which is a second copy "
-        "of `templates/claude-md-block.md` loaded beside the installed one"
+        "of `templates/setup/claude-md-block.md` loaded beside the installed one"
     )
 
 
 def test_install_sh_reads_the_template():
     """The installer reads the block's one source."""
     text = read(INSTALL)
-    assert 'SOURCE="$REPO_DIR/templates/claude-md-block.md"' in text, (
+    assert 'SOURCE="$REPO_DIR/templates/setup/claude-md-block.md"' in text, (
         "install.sh does not read the block from the template"
     )
     assert 'SOURCE="$REPO_DIR/CLAUDE.md"' not in text
@@ -185,7 +185,7 @@ def test_the_runtime_readers_name_the_template_path():
     neither names a copy that no longer exists."""
     for name in ("preset-setup", "update"):
         text = read(os.path.join(ROOT, "skills", name, "SKILL.md"))
-        assert "templates/claude-md-block.md" in text, (
+        assert "templates/setup/claude-md-block.md" in text, (
             f"{name} does not name the template"
         )
         for gone in (

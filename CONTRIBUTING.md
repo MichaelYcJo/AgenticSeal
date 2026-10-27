@@ -212,7 +212,7 @@ it. A case that means a draft or a ready pull request says so with
 `gh_answers`.
 
 Two steps of the hygiene workflow ship to user repositories as well, as
-`templates/hygiene.yml`: the chain check and the mode check, run from a
+`templates/setup/hygiene.yml`: the chain check and the mode check, run from a
 clone of this repository at the release the user installed. `seal pr-checks
 install` writes it, at first setup or later, so a change to either of them
 here reaches a user at their next install, and the template has to keep

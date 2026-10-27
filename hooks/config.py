@@ -81,7 +81,7 @@ CONFIG_TABLE = ("Item", "Value")
 # A CELL is any run of characters that are neither a pipe nor a backslash, or
 # a backslash followed by anything. The second half is markdown's own escape,
 # and this file is markdown: `\|` is how a cell of a markdown table carries a
-# literal pipe, and `templates/config.md` already writes its own cells that
+# literal pipe, and `templates/setup/config.md` already writes its own cells that
 # way (#415). A bare pipe is a cell boundary, as it is to cmark-gfm.
 #
 # **This narrows in exactly one shape, and it is not a defect to repair.** A
@@ -263,7 +263,7 @@ def unfenced(lines, text=None):
     one of the table's rows.
 
     **Why a table inside a fence is not the table.** `config.md`'s header
-    comment points its reader at `templates/config.md`, a document of EXAMPLE
+    comment points its reader at `templates/setup/config.md`, a document of EXAMPLE
     tables, and `skills/config/SKILL.md` *Procedure* step 3 tells a session
     to copy a block of that template -- one holding a fenced
     `| Broad gate | ... |` row -- into the repository's own file, naming no
@@ -370,7 +370,7 @@ def config_rows(text):
     is not this reader's table (#429).
 
     **The shapes the walker refuses, each with its one edit** — the list
-    `templates/config.md` and `skills/config/SKILL.md` give a person, kept
+    `templates/setup/config.md` and `skills/config/SKILL.md` give a person, kept
     beside the reader so the three say one thing:
 
       - a line directly above the header — a comment, prose, a row: leave a
@@ -597,7 +597,7 @@ def declared_mode(home):
 # `specs` as history: a REFERENCE ROOT, read when a change touches what it
 # describes and never moved, edited, absorbed or deleted. The checks that read
 # a record ask `under_reference_root` before they read a path, so none of them
-# carries a test of its own (`templates/config.md` *Reference specs*).
+# carries a test of its own (`templates/setup/config.md` *Reference specs*).
 
 REFERENCE_ROW = "Reference specs"
 NO_REFERENCE = "none"
@@ -692,7 +692,7 @@ def policy_root(home):
     No root, no file, no such row, an empty value, a refusal and a value
     that leaves the repository (an absolute path or a `..` part) all read as
     `docs`, the directory every repository read before the row existed.
-    `templates/config.md` *The fold's values* states the row."""
+    `templates/setup/config.md` *The fold's values* states the row."""
     value = declared_value(home, POLICY_ROW)[0] if home else None
     rel = (value or "").strip().replace("\\", "/")
     while rel.startswith("./"):
@@ -856,7 +856,7 @@ def pact_declaration(text):
 
     **Only the `Pact` row is read.** A row of any other item is no answer
     about a pact, a `Pact notify` row an earlier release read included
-    (`templates/config.md` *Pact*).
+    (`templates/setup/config.md` *Pact*).
 
     **A table the walker refuses is refused here too** (#871). Its
     sentences are appended after every other refusal: a `Pact` row below
@@ -1258,7 +1258,7 @@ def _stops_at(name, line, why):
 
 
 # The pact's own table: every OTHER signer, by origin remote URL, one per
-# row under a `| Signer |` header (`templates/pact.md`).
+# row under a `| Signer |` header (`templates/setup/pact.md`).
 SIGNER_HEADER = ("Signer",)
 
 
@@ -1361,7 +1361,7 @@ def _signer(refusal):
 
 # --- the migration config's baseline (#988) --------------------------------
 #
-# `seal/parity.md` is written from `templates/parity.md`, a `| Field | Value |`
+# `seal/parity.md` is written from `templates/setup/parity.md`, a `| Field | Value |`
 # table whose `Baseline commit` cell holds the SHA the original's coordinates
 # refer to, in its first code span. `chain_check.py` compares each round
 # record's `original:` line with it, and reads it through this one function.

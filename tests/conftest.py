@@ -728,7 +728,7 @@ def posix_row_shell_or_skip():
 
     A case that only reads a REFUSAL needs none of this. `not_as_written` is
     a string test that reaches no shell, and the refusal is right on both
-    platforms — `templates/config.md` names what each shell does with the
+    platforms — `templates/setup/config.md` names what each shell does with the
     forms it lists.
     """
     try:
@@ -1120,7 +1120,7 @@ PIPED_TABLE = (
 # fence IS closed turns it red.
 FENCED_ABOVE = (
     "# Repository config\n\n"
-    "An example of the format, copied out of `templates/config.md`:\n\n"
+    "An example of the format, copied out of `templates/setup/config.md`:\n\n"
     "```markdown\n"
     "| Item | Value |\n"
     "|---|---|\n"
@@ -1366,9 +1366,11 @@ BASELINE = "0123456789abcdef0123456789abcdef01234567"
 
 
 def parity_file(sha):
-    """`templates/parity.md` with its `Baseline commit` placeholder replaced
-    by SHA, or left standing where SHA is None."""
-    text = pathlib.Path(ROOT, "templates", "parity.md").read_text(encoding="utf-8")
+    """`templates/setup/parity.md` with its `Baseline commit` placeholder
+    replaced by SHA, or left standing where SHA is None."""
+    text = pathlib.Path(ROOT, "templates", "setup", "parity.md").read_text(
+        encoding="utf-8"
+    )
     assert text.count("`<SHA>`") == 1
     return text if sha is None else text.replace("`<SHA>`", f"`{sha}`")
 
@@ -1794,7 +1796,7 @@ STAMP_ITEM = "1799000000-an-item"
 
 
 def guarantee_record(target, base, verdict, earlier=""):
-    """A `guarantee.md` in `templates/sdd-guarantee.md`'s shape: its `Target
+    """A `guarantee.md` in `templates/records/sdd-guarantee.md`'s shape: its `Target
     SHA` row, with EARLIER after it, and one `Verdict:` line."""
     return (
         "# an item — guarantee\n\n| Field | Value |\n|---|---|\n"
@@ -1804,7 +1806,7 @@ def guarantee_record(target, base, verdict, earlier=""):
 
 
 def routing_record(branch="feat/x"):
-    """A `routing.md` in `templates/sdd-routing.md`'s shape, naming BRANCH in
+    """A `routing.md` in `templates/records/sdd-routing.md`'s shape, naming BRANCH in
     its `Branch` row, or with no `Branch` row where BRANCH is None."""
     rows = (
         "| Axis | Answer |\n|---|---|\n"

@@ -559,12 +559,13 @@ class Test_record_no_work_item:
 
 class Test_module:
     def test_the_template_and_the_committed_declarations_still_parse(self):
-        """R10's floor, S11. `templates/sdd-routing.md` carries its table and a
+        """R10's floor, S11. `templates/records/sdd-routing.md` carries its table and a
         placeholder line below it, and it still parses; the measurement over
         every committed declaration is in the phase record."""
         root = os.path.join(os.path.dirname(__file__), "..")
         with open(
-            os.path.join(root, "templates", "sdd-routing.md"), encoding="utf-8"
+            os.path.join(root, "templates", "records", "sdd-routing.md"),
+            encoding="utf-8",
         ) as f:
             template = f.read()
         rows = dict(routing.table_rows(template))

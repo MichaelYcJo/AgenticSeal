@@ -8,8 +8,8 @@ left the repository with nothing recording that it had gone missing. #121
 is the broader version: a phase's discoveries have no durable home at all,
 so they live only in a transcript the next phase's session never opens.
 
-`templates/sdd-phase.md` gives the build side the same committed,
-per-segment record the review chain already has in `templates/sdd-round.md`
+`templates/records/sdd-phase.md` gives the build side the same committed,
+per-segment record the review chain already has in `templates/records/sdd-round.md`
 (`docs/the-review-record.md` *The round record*). This module pins:
 
   the field table    `Phase`, `Commit` — nothing more, because a phase has
@@ -41,7 +41,7 @@ import pytest
 from conftest import read
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-PHASE_TEMPLATE = os.path.join(ROOT, "templates", "sdd-phase.md")
+PHASE_TEMPLATE = os.path.join(ROOT, "templates", "records", "sdd-phase.md")
 CRAFTER_AGENT = os.path.join(ROOT, "agents", "crafter.md")
 IMPLEMENT_SKILL = os.path.join(ROOT, "skills", "implement", "SKILL.md")
 
@@ -49,7 +49,7 @@ SECTIONS = (
     "## What this phase was asked",
     "## What this phase found",
 )
-SPEC_TEMPLATE = os.path.join(ROOT, "templates", "sdd-design.md")
+SPEC_TEMPLATE = os.path.join(ROOT, "templates", "records", "sdd-design.md")
 FRAMER_AGENT = os.path.join(ROOT, "agents", "framer.md")
 REMOVES_RULE = os.path.join(ROOT, "docs", "the-reader-registry.md")
 
@@ -244,7 +244,7 @@ def test_crafter_is_told_to_write_the_phase_record():
         "agents/crafter.md does not name `trail/phases/phase-N.md` — a spawned "
         "crafter has no instruction pointing it at the file to write"
     )
-    assert "templates/sdd-phase.md" in crafter, (
+    assert "templates/records/sdd-phase.md" in crafter, (
         "agents/crafter.md does not name the template a phase record starts from"
     )
     assert "Each phase closes with its record" in crafter, (
@@ -262,7 +262,7 @@ def test_skill_file_set_table_carries_the_phase_row():
     assert "trail/phases/phase-N.md" in skill, (
         "skills/implement/SKILL.md's SDD file-set table has no `trail/phases/phase-N.md` row"
     )
-    assert "templates/sdd-phase.md" in skill, (
+    assert "templates/records/sdd-phase.md" in skill, (
         "skills/implement/SKILL.md does not name the template the "
         "`trail/phases/phase-N.md` row starts from"
     )

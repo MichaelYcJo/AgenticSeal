@@ -20,6 +20,9 @@ Seen red before they were committed (contract rule 15): every case failed
 against the tree without `tests/censuses.py`, and `seal mutate` broke each
 census's refusal in turn and watched a case of its class fail. `old_names`
 (#1051) was seen red over the tree at the commit before the rename's sweep.
+`vacated_paths` (#1060) failed its cases before the census existed, and was
+seen red over the tree after `templates/` moved and before its citations were
+swept: 231 lines in 75 files.
 """
 
 import ast

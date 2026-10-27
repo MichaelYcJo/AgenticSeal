@@ -42,13 +42,14 @@ def test_the_config_template_ships_the_row_with_no_value():
     row that is wrong from the moment it is copied — and the fix the command
     then offers is `--apply`, which would move their root into the tree
     through the one door that does not open both ways."""
-    text = read("templates", "config.md")
+    text = read("templates", "setup", "config.md")
     assert "| Mode |  |" in text, "the template's Mode row carries a value"
     assert "## Mode" in text
 
 
 @pytest.mark.parametrize(
-    "parts", [(".github", "workflows", "hygiene.yml"), ("templates", "hygiene.yml")]
+    "parts",
+    [(".github", "workflows", "hygiene.yml"), ("templates", "setup", "hygiene.yml")],
 )
 def test_both_hygiene_workflows_run_the_check(parts):
     """The check has to reach a pull request in this repository AND in every

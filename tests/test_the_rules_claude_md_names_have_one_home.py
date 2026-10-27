@@ -115,7 +115,7 @@ CARRIERS = (
     BRANCHES,
     IMPLEMENT,
     "docs/release-checklist.md",
-    "templates/claude-md-block.md",
+    "templates/setup/claude-md-block.md",
     ".github/scripts/plugin_directory_check.py",
     "tests/test_plugin_directory_check.py",
     "tests/test_conftest.py",

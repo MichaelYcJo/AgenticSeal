@@ -2,7 +2,7 @@
 """seal gate — the one broad run, taken once after the rounds settle.
 
 Issue #30. The CLAUDE.md block's **Verification Scope** rule
-(`templates/claude-md-block.md`) says the full suite, the
+(`templates/setup/claude-md-block.md`) says the full suite, the
 repository-wide lint and the typecheck run once, after the review rounds
 settle, and for three releases nobody was assigned that run: contract rule 2
 forbade it to the crafter and the proofer, and the orchestrator that took it by
@@ -990,7 +990,7 @@ def missing_row(home):
             "— not this gate's reader, not the mode gate's, and not "
             "`seal mode`'s writer. The row is not absent: it is written where "
             f"nothing reads it, and there is no command to run.\n{where}\n"
-            "`templates/config.md` *What is refused, and what stays allowed* "
+            "`templates/setup/config.md` *What is refused, and what stays allowed* "
             "is where the rule says so, and `/agentic:config` is the door to "
             "the file. Nothing ran."
         )
@@ -1012,7 +1012,7 @@ def missing_row(home):
             "commented out, and there is no command to run.\n"
             "If it is the command to run, take the row out of the "
             "comment and into the `| Item | Value |` table.\n"
-            "`templates/config.md` *What is refused, and what stays allowed* "
+            "`templates/setup/config.md` *What is refused, and what stays allowed* "
             "is where the rule says so, and `/agentic:config` is the door to "
             "the file. Nothing ran."
         )
@@ -1025,7 +1025,7 @@ def missing_row(home):
         "command here checks its own choice.\n"
         "Take it to whoever owns the repository. `/agentic:config` is where "
         f"they answer it — it shows every row and adds this one with its "
-        "section — and `templates/config.md` *The criterion for choosing "
+        "section — and `templates/setup/config.md` *The criterion for choosing "
         "a value* is what they choose against. Nothing ran."
     )
 
@@ -1085,7 +1085,7 @@ def walker_refusal(home, mine):
         )
     return (
         f"seal gate: {os.path.join(home, CONFIG)} {said}.\n{where}{escape}\n"
-        "`templates/config.md` *What is refused, and what stays allowed* is "
+        "`templates/setup/config.md` *What is refused, and what stays allowed* is "
         "where the rule says so, and `/agentic:config` is the door to the "
         "file. Nothing ran."
     )
@@ -1126,7 +1126,7 @@ def not_as_written(home, command):
 
     **The criterion has two halves: the value must run as the command it
     reads as, and the exit code the gate reads must be that command's.**
-    `templates/config.md` *Broad gate* owns it, owns the list of refused
+    `templates/setup/config.md` *Broad gate* owns it, owns the list of refused
     forms and owns the list of what stays allowed, each with its reason.
     This function is the half that acts; a form belongs here only by failing
     one of those halves there.
@@ -1182,7 +1182,7 @@ def not_as_written(home, command):
         f"    as meant:   | {ROW} | {rewritten} |\n"
         "Nothing ran, and nothing was repaired: the row is a person's to "
         "write, and a value quietly fixed here would leave the file still "
-        "wrong. `templates/config.md` *Broad gate* lists what is refused "
+        "wrong. `templates/setup/config.md` *Broad gate* lists what is refused "
         "and what stays allowed, with the reason for each, and "
         "`/agentic:config` is the door to the row."
     )
@@ -1477,7 +1477,7 @@ def command_names_backslashed(command, is_directory):
     existed; and a command name after a redirection at the start of a
     command (`>out bin/test`), where this scan stops treating the rest as
     command position. None is worse than the row handed as written, and
-    `templates/config.md` *Broad gate* states the rule and these examples.
+    `templates/setup/config.md` *Broad gate* states the rule and these examples.
 
     **Judged where the row starts, and bounded there, named rather than
     claimed:** a directory an earlier command in the same row makes, or
@@ -1487,7 +1487,7 @@ def command_names_backslashed(command, is_directory):
     program the row calls with a glued switch (an `xcopy/` directory)
     makes `xcopy/e` read as a path; `cmd.exe` itself is ambiguous in that
     tree, and a blank before the switch (`xcopy /e`) is never rewritten.
-    `templates/config.md` *Broad gate* states both.
+    `templates/setup/config.md` *Broad gate* states both.
     """
     out = []
     at_command = True  # the next word read is a command name
@@ -1611,7 +1611,7 @@ def recording_env(keep, key):
     process that finds the key claims it and takes it out of that process's
     environment, so a pytest it starts in turn — one a test spawns, an xdist
     worker — records nothing. A row that replaces either variable rather than
-    adding to it takes the recorder away from its runs; `templates/config.md`
+    adding to it takes the recorder away from its runs; `templates/setup/config.md`
     rule 3 says what that costs."""
     env = dict(os.environ)
     directory = records_dir(keep)
@@ -2043,7 +2043,7 @@ def compare_at_base(root, base, command, files, keep):
     by the path pytest holds for the test or the collector, carried on the
     report from the process that held it, and never by a name pytest made
     from that path, so no rootdir and no argument enters it (#825's reframe
-    after round 3). What `templates/config.md` rule 3 names as left open is
+    after round 3). What `templates/setup/config.md` rule 3 names as left open is
     a test written against this gate's key or its file.
 
     The `run` call stays in this function's own body, one call for the one
@@ -2628,7 +2628,7 @@ def panel(
     repository's row came back with — continued under `suite` until #717
     took it off. NOT `("lint", "clean")` either: the row is
     one shell command line and nothing in it says which part is a linter
-    (`templates/config.md` *Broad gate*), so `clean` over a row with no
+    (`templates/setup/config.md` *Broad gate*), so `clean` over a row with no
     linter in it is the gate's report asserting a check that never ran."""
     stamp = stamp_module()
     fit = stamp.fit

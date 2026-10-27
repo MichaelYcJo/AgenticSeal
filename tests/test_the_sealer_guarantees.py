@@ -1,7 +1,7 @@
 """The sealer's `guarantee.md`: its template, what `chain_check.py` reads of
 it, and the definition that writes it.
 
-`templates/sdd-guarantee.md` is the file the sealer fills, and
+`templates/records/sdd-guarantee.md` is the file the sealer fills, and
 `chain_check.py#guarantee` is the arm that reads it at the pull request: a
 ready pull request passes only where the file names HEAD and its verdict
 reads `sealed`. Each group holds a case on good input and one on bad.
@@ -22,7 +22,7 @@ from conftest import (
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 CHAIN = ROOT / "skills" / "code-review" / "scripts" / "chain_check.py"
 READER = ROOT / "skills" / "verify" / "scripts" / "unverified_check.py"
-TEMPLATE = ROOT / "templates" / "sdd-guarantee.md"
+TEMPLATE = ROOT / "templates" / "records" / "sdd-guarantee.md"
 SEALER = ROOT / "agents" / "sealer.md"
 DOCUMENT = ROOT / "docs" / "the-review-record.md"
 
@@ -154,7 +154,7 @@ class TestDefinition:
 
     def test_the_sealer_writes_the_guarantee_from_the_template(self):
         text = " ".join(SEALER.read_text(encoding="utf-8").split())
-        assert "templates/sdd-guarantee.md" in text
+        assert "templates/records/sdd-guarantee.md" in text
         assert "judges nothing" not in text
 
     def test_step_1_reads_the_record_and_runs_nothing(self):

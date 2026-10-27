@@ -1474,7 +1474,7 @@ OLD_PLUGIN_CLONE = "https://github.com/MichaelYcJo/SpecSeal.git"
 # The release a workflow's clone line pins, which `seal pr-checks` reports.
 PIN = re.compile(r"--branch\s+(\S+)")
 
-# The version placeholder in `templates/hygiene.yml`. A workflow written with
+# The version placeholder in `templates/setup/hygiene.yml`. A workflow written with
 # it still in place fails CI's `git clone --branch` on the first pull
 # request, so a version that cannot be read writes no file at all.
 PLACEHOLDER = "v<version>"
@@ -1496,8 +1496,8 @@ fence_map = repo_config.fence_map
 NEW_CONFIG = """# Repository config
 
 <!-- What this repository says about itself, one row per item. This file was
-created by `seal mode`; `templates/config.md` in the plugin documents every
-row and what an absent one means. -->
+created by `seal mode`; `templates/setup/config.md` in the plugin documents
+every row and what an absent one means. -->
 
 | Item | Value |
 |---|---|
@@ -1919,7 +1919,7 @@ def plugin_workflow():
     version = plugin_version()
     if not version:
         return ""
-    source = os.path.join(PLUGIN_ROOT, "templates", "hygiene.yml")
+    source = os.path.join(PLUGIN_ROOT, "templates", "setup", "hygiene.yml")
     try:
         with open(source, encoding="utf-8") as handle:
             text = handle.read()
@@ -2037,10 +2037,10 @@ def install_workflow(repo):
             f"{WORKFLOW} was NOT written: the plugin's version could not be "
             f"read from {os.path.join(PLUGIN_ROOT, '.claude-plugin', 'plugin.json')}, "
             f"and a workflow still carrying `{PLACEHOLDER}` fails CI's clone "
-            "on the first pull request. Copy templates/hygiene.yml in by hand "
-            "and replace that placeholder with the release you run."
+            "on the first pull request. Copy templates/setup/hygiene.yml in by "
+            "hand and replace that placeholder with the release you run."
         )
-    source = os.path.join(PLUGIN_ROOT, "templates", "hygiene.yml")
+    source = os.path.join(PLUGIN_ROOT, "templates", "setup", "hygiene.yml")
     try:
         with open(source, encoding="utf-8") as handle:
             text = handle.read()
@@ -2063,7 +2063,7 @@ def install_workflow(repo):
     except (OSError, ValueError) as exc:
         return "failed", (
             f"{WORKFLOW} was NOT written: {exc}. Copy "
-            "templates/hygiene.yml in by hand, or run this command again."
+            "templates/setup/hygiene.yml in by hand, or run this command again."
         )
     # The return code here for the reason the root's `git add` in `switch`
     # reads it: `git()` answers "" for a failure, and an ignore rule matching

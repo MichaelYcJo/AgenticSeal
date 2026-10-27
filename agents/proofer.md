@@ -43,7 +43,7 @@ here is a write you do not make.
    the section for the record's language: `## English prose rules`, or
    `## 문장 규칙` where `Record language` in the `seal/` root's `config.md`
    is Korean.
-7. Write the record from `templates/sdd-round.md`, each labelled line as the
+7. Write the record from `templates/records/sdd-round.md`, each labelled line as the
    grammar table in `docs/the-review-record.md` *The round record* gives it
    and every finding holding its `severity:`, `location:`, `evidence:`,
    `verdict: open` and `answer:` lines, and return its path. Before handing
@@ -88,7 +88,7 @@ claim against the code, and say in the record what was claimed and what you
 found: *claimed X; `a.py:41` does Y*. Behaviour called deliberate is grounds
 only where a policy document, the SDD set or a test a rule names says so;
 found in the account alone, it is a question, never a pass. A `frame/design.md`
-citing a reference root (`templates/config.md` *Reference specs*) cites a
+citing a reference root (`templates/setup/config.md` *Reference specs*) cites a
 coordinate: open it in stage 1 where the work touches what it describes. The
 plugin never writes there, so a diff that edits, moves or copies a file out
 of one is a finding.

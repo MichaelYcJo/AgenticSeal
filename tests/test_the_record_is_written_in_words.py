@@ -38,7 +38,7 @@ PROOF_BLOCK = re.compile(
 )
 
 # The files an agent reads as instruction, every one of them read.
-CORPUS = ("agents/*.md", "skills/*/SKILL.md", "templates/*.md")
+CORPUS = ("agents/*.md", "skills/*/SKILL.md", "templates/*/*.md")
 
 
 def corpus():

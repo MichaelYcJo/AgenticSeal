@@ -33,9 +33,9 @@ SEALER = ("agents", "sealer.md")
 FRAMER = ("agents", "framer.md")
 TRACKER = ("docs", "issues-and-milestones.md")
 RECORD_LAYOUT = ("docs", "the-record-layout.md")
-CONFIG_TEMPLATE = ("templates", "config.md")
+CONFIG_TEMPLATE = ("templates", "setup", "config.md")
 CONFIG_SKILL = ("skills", "config", "SKILL.md")
-ROUND_TEMPLATE = ("templates", "sdd-round.md")
+ROUND_TEMPLATE = ("templates", "records", "sdd-round.md")
 
 ONE_SEAL_IS_FINAL = (
     "`skills/verify/SKILL.md` *The hand-back's labels carry the claims, and "
@@ -46,9 +46,7 @@ AFTER_THE_SEAL = (
     "opens once the sealer seals* owns"
 )
 CONTRIBUTING = ("CONTRIBUTING.md",)
-CRITERION_OWNER = (
-    "`templates/config.md` *The criterion for choosing a value* owns the criterion"
-)
+CRITERION_OWNER = "`templates/setup/config.md` *The criterion for choosing a value* owns the criterion"
 FRAGMENT_OWNER = (
     "`docs/the-record-layout.md` *A commit after the build brings its "
     "changelog fragment along* owns that rule"

@@ -1915,7 +1915,7 @@ def guarantee(reader, root, item, base):
                 rel,
                 0,
                 "git carries no guarantee file: the sealer writes it from "
-                "`templates/sdd-guarantee.md` after the orchestrator's broad run",
+                "`templates/records/sdd-guarantee.md` after the orchestrator's broad run",
             )
         ]
     problems = []

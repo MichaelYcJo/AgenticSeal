@@ -41,7 +41,7 @@ else
     fi
 fi
 # The block's one source. No other file in the repository carries a copy.
-SOURCE="$REPO_DIR/templates/claude-md-block.md"
+SOURCE="$REPO_DIR/templates/setup/claude-md-block.md"
 START='<!-- agentic:start -->'
 END='<!-- agentic:end -->'
 # The markers every release before the rename to AgenticSeal wrote. A
@@ -55,8 +55,8 @@ info()  { echo -e "${GREEN}[info]${NC} $1"; }
 warn()  { echo -e "${YELLOW}[warn]${NC} $1"; }
 error() { echo -e "${RED}[error]${NC} $1"; exit 1; }
 
-[ -f "$SOURCE" ] || error "Run this script from the AgenticSeal directory (templates/claude-md-block.md not found)."
-grep -qF "$START" "$SOURCE" || error "templates/claude-md-block.md has no preset markers."
+[ -f "$SOURCE" ] || error "Run this script from the AgenticSeal directory (templates/setup/claude-md-block.md not found)."
+grep -qF "$START" "$SOURCE" || error "templates/setup/claude-md-block.md has no preset markers."
 
 # Extract the managed block (markers included) from the repo file.
 BLOCK="$(awk -v s="$START" -v e="$END" '

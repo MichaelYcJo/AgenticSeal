@@ -66,5 +66,7 @@ def test_the_check_does_not_travel_to_user_repositories(stays_home):
     pins those two the same way. Shipping this one means first deciding it
     belongs under `skills/`, which is a wider change than this issue asks
     for."""
-    with open(os.path.join(ROOT, "templates", "hygiene.yml"), encoding="utf-8") as f:
+    with open(
+        os.path.join(ROOT, "templates", "setup", "hygiene.yml"), encoding="utf-8"
+    ) as f:
         assert stays_home not in f.read()

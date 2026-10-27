@@ -243,7 +243,7 @@ It exits 0 when it kept nothing, 1 when it kept a directory, and 2 when the
 arguments or the tree are unusable. Its last line counts each.
 
 **A reference root is history, never input.** A project's own `specs/`, as
-`templates/config.md` *Reference specs* says, is read where the work touches
+`templates/setup/config.md` *Reference specs* says, is read where the work touches
 what it describes and cited in the `frame/design.md` whose rule changes it informed.
 `seal settle` never writes there, and neither does the settling session:
 `--apply` removes only under `seal/threads/`.

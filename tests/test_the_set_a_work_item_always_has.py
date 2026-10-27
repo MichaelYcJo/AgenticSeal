@@ -41,7 +41,7 @@ ROOT = os.path.join(os.path.dirname(__file__), "..")
 
 
 # Keyed BY FILE. A flat set exempts a line in EVERY document, and round 4
-# pasted a `SKILL.md` exemption into `templates/sdd-gaps.md` — the file a
+# pasted a `SKILL.md` exemption into `templates/records/sdd-gaps.md` — the file a
 # session actually types into — and it passed.
 #
 # What this costs, recorded because round 4 found it unrecorded: re-wrapping
@@ -104,8 +104,8 @@ def test_the_top_rung_names_behaviour_rather_than_a_count():
     for parts in (
         ("skills", "implement", "SKILL.md"),
         ("agents", "crafter.md"),
-        ("templates", "sdd-gaps.md"),
-        ("templates", "sdd-plan.md"),
+        ("templates", "records", "sdd-gaps.md"),
+        ("templates", "records", "sdd-plan.md"),
     ):
         text = read(*parts)
         # A PATTERN, not a list of spellings. Round 2 defeated the list three
@@ -156,7 +156,7 @@ def test_the_rung_gives_both_directions():
 # which are read by people rather than followed by sessions.
 INSTRUCTING = (
     ("seal", "README.md"),
-    ("templates", "seal-README.md"),
+    ("templates", "setup", "seal-README.md"),
     ("skills", "implement", "SKILL.md"),
     ("skills", "feature-planner", "SKILL.md"),
     ("README.md",),
@@ -175,7 +175,7 @@ def test_no_shipped_document_still_names_a_task_list_directory():
 def test_the_two_layout_trees_no_longer_show_it():
     """The tree is the half a session copies. Prose can be skimmed; a tree
     that lists a directory is read as a directory to create."""
-    for parts in (("seal", "README.md"), ("templates", "seal-README.md")):
+    for parts in (("seal", "README.md"), ("templates", "setup", "seal-README.md")):
         text = read(*parts)
         assert "follow-up.md         schedulable items" in text, (
             f"{'/'.join(parts)}: the tree changed shape — re-read it"
@@ -235,7 +235,7 @@ def test_the_skill_lists_the_second_rung_work_and_what_lifts_it():
 def test_the_plan_template_carries_a_status_column():
     """S7. The column has to be in the shipped template, not only in prose:
     a session bootstraps from the template and never reads the argument."""
-    tpl = read("templates", "sdd-plan.md")
+    tpl = read("templates", "records", "sdd-plan.md")
     assert "| Phase | Delivers | Verified by | Status |" in tpl
     assert "|---|---|---|---|" in tpl
 
@@ -321,7 +321,7 @@ def test_the_plan_template_records_who_approved_it_and_when():
     builder IS the approval, so a line dated after the first commit is a
     record of something that did not happen at the gate.
     """
-    line = stamp_line("Approved", "templates", "sdd-plan.md")
+    line = stamp_line("Approved", "templates", "records", "sdd-plan.md")
     assert line.startswith("Approved" + STAMP_CORE), (
         f"the approval line reads `{line}`, which is not the shape the "
         "routing declaration already uses for the same kind of fact"
@@ -338,14 +338,14 @@ def test_the_plan_template_records_who_approved_it_and_when():
 def test_the_approval_line_is_spelled_like_the_routing_answer():
     """The two cannot drift apart, because they are one convention.
 
-    `templates/sdd-routing.md` closes with `Answered <date> by <who>, before
+    `templates/records/sdd-routing.md` closes with `Answered <date> by <who>, before
     the first edit.` — verb, date, who, the moment it was given. The plan's
     approval line is the same record for the other batch. Pinned as a shared
     core rather than as two literals, so a change to either spelling has to
     be made in both or it is red here.
     """
-    approved = stamp_line("Approved", "templates", "sdd-plan.md")
-    answered = stamp_line("Answered", "templates", "sdd-routing.md")
+    approved = stamp_line("Approved", "templates", "records", "sdd-plan.md")
+    answered = stamp_line("Answered", "templates", "records", "sdd-routing.md")
     for verb, line in (("Approved", approved), ("Answered", answered)):
         assert line.startswith(verb + STAMP_CORE), (
             f"`{line}` no longer carries `{STAMP_CORE.strip()}` in the shape "
@@ -370,7 +370,7 @@ def test_the_orchestrator_states_the_approval_line_where_it_spawns_the_build():
     assert heading in text, "the spawn step no longer states the approval line"
     step = text.split(heading, 1)[1].split("\n## ", 1)[0]
     fenced = step.split("```\n", 2)[1].strip() if step.count("```") >= 2 else ""
-    assert fenced == stamp_line("Approved", "templates", "sdd-plan.md"), (
+    assert fenced == stamp_line("Approved", "templates", "records", "sdd-plan.md"), (
         f"the spawn step states the line as `{fenced}`, and the template "
         "every plan is copied from spells it otherwise"
     )

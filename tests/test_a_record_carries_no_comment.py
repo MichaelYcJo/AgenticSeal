@@ -14,18 +14,13 @@ import os
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 OPENER = "<" + "!--"
 
-# The record templates under `templates/`: a work item's records, and the
+# The record templates, `templates/records/`: a work item's records, and the
 # process archive's, whose files live under `seal/process/` (S13 of #945).
-RECORD_TEMPLATES = ("sdd-*.md", "process.md")
 
 
 def templates(root=ROOT):
-    """Every record template under ROOT's `templates/`, sorted."""
-    return sorted(
-        path
-        for pattern in RECORD_TEMPLATES
-        for path in glob.glob(os.path.join(root, "templates", pattern))
-    )
+    """Every record template under ROOT's `templates/records/`, sorted."""
+    return sorted(glob.glob(os.path.join(root, "templates", "records", "*.md")))
 
 
 def comments(root=ROOT):
@@ -55,17 +50,18 @@ def test_no_record_template_carries_a_comment():
 
 
 def test_a_comment_put_back_is_refused_at_its_line(tmp_path):
-    (tmp_path / "templates").mkdir()
-    (tmp_path / "templates" / "sdd-x.md").write_text(
+    (tmp_path / "templates" / "records").mkdir(parents=True)
+    (tmp_path / "templates" / "setup").mkdir()
+    (tmp_path / "templates" / "records" / "sdd-x.md").write_text(
         f"# X\n\n{OPENER} guidance -->\n", encoding="utf-8"
     )
-    (tmp_path / "templates" / "process.md").write_text(
+    (tmp_path / "templates" / "records" / "process.md").write_text(
         f"# Process changes\n{OPENER} guidance -->\n", encoding="utf-8"
     )
-    (tmp_path / "templates" / "config.md").write_text(
+    (tmp_path / "templates" / "setup" / "config.md").write_text(
         f"{OPENER} not a record template -->\n", encoding="utf-8"
     )
     assert comments(str(tmp_path)) == [
-        "templates/process.md:2",
-        "templates/sdd-x.md:3",
+        "templates/records/process.md:2",
+        "templates/records/sdd-x.md:3",
     ]

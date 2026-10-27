@@ -90,10 +90,10 @@ def test_every_shipped_command_is_classified():
 # Each party that reads the tree for a decision is told, in its own file, that
 # a reference root is history: read where the work touches what it describes,
 # cited where it was read, and never written. Each names the row by pointing
-# at `templates/config.md` *Reference specs* rather than restating its
+# at `templates/setup/config.md` *Reference specs* rather than restating its
 # grammar, so the grammar has one home.
 
-POINTER = "`templates/config.md` *Reference specs*"
+POINTER = "`templates/setup/config.md` *Reference specs*"
 READERS = {
     "agents/framer.md": ("cite", "frame/design.md"),
     "agents/crafter.md": ("cite", "frame/design.md"),

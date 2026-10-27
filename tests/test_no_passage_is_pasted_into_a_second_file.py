@@ -15,7 +15,7 @@ every `*.ko.md`, because a Korean edition is a sanctioned mirror in other
 words; everything under `seal/`, which is records; and `CHANGELOG.md`.
 
 **How a file is normalised.** Each file is read whole: `CLAUDE.md` carries
-no copy of `templates/claude-md-block.md` since #940, so no region is
+no copy of `templates/setup/claude-md-block.md` since #940, so no region is
 sanctioned. Fenced code blocks and heading lines are dropped. A quoted
 section name -- a `.md` path followed by `*...*` -- becomes one token, because a link shares its heading's words by
 design; the name may wrap across a line, which is the case the first draft
@@ -269,7 +269,7 @@ def test_a_paste_into_the_block_template_is_named():
     its marker region is named like a paste anywhere else (round 1)."""
     texts = tree()
     paste = a_sentence_of(texts["CONTRIBUTING.md"])
-    rel = "templates/claude-md-block.md"
+    rel = "templates/setup/claude-md-block.md"
     planted = texts[rel].replace("agentic:start -->", "agentic:start -->\n" + paste, 1)
     assert planted != texts[rel]
     texts[rel] = planted
@@ -336,7 +336,7 @@ def test_the_block_template_is_read_whole_and_fences_and_headings_are_not():
     whole (round 1); `CLAUDE.md` carries no copy of it since #940, so no
     region of either file is dropped."""
     texts = tree()
-    rel = "templates/claude-md-block.md"
+    rel = "templates/setup/claude-md-block.md"
     with open(os.path.join(ROOT, rel), encoding="utf-8") as f:
         assert words(texts[rel]) == words(f.read())
     run = " ".join(f"w{i}" for i in range(WINDOW))

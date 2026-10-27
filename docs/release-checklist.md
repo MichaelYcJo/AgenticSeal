@@ -74,7 +74,7 @@ existing section, the section keeps the first gather's date, and
 check: second-gather-appends tests/test_release_hygiene.py
 
 **The preparation commit writes the process archive,
-`seal/process/X.Y.Z.md`, from `templates/process.md`.** The archive records
+`seal/process/X.Y.Z.md`, from `templates/records/process.md`.** The archive records
 what this release changed in the way of working and why, one row per change.
 `CLAUDE.md`, `agents/*.md` and `skills/*/orchestration.md` are the way of
 working, and `git log vA.B.C..HEAD` over those paths, with the milestone's

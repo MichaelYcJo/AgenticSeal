@@ -362,7 +362,7 @@ class Test_rewrite_readme:
         hook.move(str(proj), ".specseal/README.md", "seal/README.md")
         hook.rewrite_readme(str(proj), "seal/README.md")
         with open(
-            os.path.join(ROOT, "templates", "seal-README.md"), encoding="utf-8"
+            os.path.join(ROOT, "templates", "setup", "seal-README.md"), encoding="utf-8"
         ) as handle:
             assert (proj / "seal" / "README.md").read_text(
                 encoding="utf-8"
@@ -704,7 +704,7 @@ class Test_main:
 
 # --- the 0.22.x layout, moved into threads -----------------------------------
 
-# The heading `templates/seal-README.md` opened with through 0.22.x, which is
+# The heading `templates/setup/seal-README.md` opened with through 0.22.x, which is
 # what tells an earlier release's root from a project's own `seal/`.
 OLD_HEADING = "# What this plugin maintains in seal/\n\nthe 0.22.x text\n"
 # A 0.22.x work item's files, and where each one stands in its thread.

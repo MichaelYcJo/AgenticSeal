@@ -1256,7 +1256,7 @@ class Test_handed_to_shell:
             # command position, which the template names as left as written.
             ("if exist x (bin/a) else (bin/b)", "if exist x (bin/a) else (bin/b)"),
             ("for %i in (x/y) do tools/x %i", "for %i in (x/y) do tools/x %i"),
-            # Positions `templates/config.md` names as not rewritten, pinned so
+            # Positions `templates/setup/config.md` names as not rewritten, pinned so
             # the gap stays the one it states.
             ("call bin/test", "call bin/test"),
             (">out.txt bin/test", ">out.txt bin/test"),
@@ -1339,7 +1339,7 @@ class Test_handed_to_shell:
             ("%CD%/bin/test -q", r"%CD%\bin\test -q"),
             ("%cd%/bin/test -q", r"%cd%\bin\test -q"),
             ("%__CD__%bin/test", r"%__CD__%bin\test"),
-            # A substring is not modelled, as `templates/config.md` says (#616):
+            # A substring is not modelled, as `templates/setup/config.md` says (#616):
             # the name it starts is handed as written, although the variable it
             # cuts from names the tree.
             ("%AGENTIC_PROBE_TREE:~0,500%/bin/test -q",) * 2,
@@ -1934,7 +1934,7 @@ class Test_suite_counts:
 
 
 def a_round(*verdicts):
-    """A round record in `templates/sdd-round.md`'s shape, one finding per
+    """A round record in `templates/records/sdd-round.md`'s shape, one finding per
     `verdict:` value."""
     found = "".join(
         f"### {n}. x\n\nseverity: should\nlocation: `a:{n}`\n"
