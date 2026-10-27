@@ -10,7 +10,7 @@ own `seal/config.md`:
 
 The row has one reader, `hooks/config.py#pact_declaration`, which both
 `chain_check.py` (prints) and `pact_check.py` (refuses) ask. That reader's
-cases (S1-S3 of the work item's `spec.md`) and the `Signer` table's are in
+cases (S1-S3 of the work item's `frame/design.md`) and the `Signer` table's are in
 `tests/test_config.py` since #942's phase 6, and `seal.py`'s re-export of
 its normaliser is in `tests/test_seal.py`. What stays here reads the configs
 and templates this plugin ships through the reader, and the routing step's

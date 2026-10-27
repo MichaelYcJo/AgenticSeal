@@ -87,7 +87,7 @@ from pathlib import Path
 # whatever `python3` it finds, not through the launcher, whose docstring says
 # why. Loaded by path, because `hooks/` is not on this file's `sys.path`.
 _LAUNCH = importlib.util.spec_from_file_location(
-    "specseal_launch_for_run_tests",
+    "agentic_launch_for_run_tests",
     os.path.join(
         os.path.dirname(os.path.abspath(__file__)), "..", "..", "hooks", "launch.py"
     ),
@@ -624,8 +624,8 @@ def main(argv=None):
     root = repo_root()
     if not (root / "tests").is_dir():
         print(
-            "bin/test runs SpecSeal's own test suite, and there is no tests "
-            f"directory at {root}. Run it from a clone of the SpecSeal "
+            "bin/test runs AgenticSeal's own test suite, and there is no tests "
+            f"directory at {root}. Run it from a clone of the AgenticSeal "
             "repository.",
             file=sys.stderr,
         )

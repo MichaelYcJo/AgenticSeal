@@ -265,7 +265,7 @@ class Test_parse:
 
     def test_refuses_unrecognised_tag_shapes(self, hook):
         """A tag scheme this does not know must degrade to silence, not a wrong warn."""
-        for bad in ("specseal--v0.7.1", "release-0.7", "v1.2", "", None, "latest"):
+        for bad in ("agentic--v0.7.1", "release-0.7", "v1.2", "", None, "latest"):
             assert hook.parse(bad) is None, bad
 
 

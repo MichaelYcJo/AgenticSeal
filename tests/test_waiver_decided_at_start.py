@@ -1,6 +1,6 @@
 """Where the work is going is decided in the first minute, and written down.
 
-The rule spans four documents — the skill states it, the smith follows it, the
+The rule spans four documents — the skill states it, the crafter follows it, the
 chain spec says what the gate does with it, and the template is what gets
 written. A rule spread across four files fails by one of them quietly dropping
 its part, which no single diff shows.
@@ -38,8 +38,8 @@ AXES = (
     "straight to the PR",
     "open the pull request",
     "stop before the pull request",
-    # The third axis. Its answers are `smith` and `the session`; only the
-    # second is pinned, because `smith` appears in these documents for a dozen
+    # The third axis. Its answers are `crafter` and `the session`; only the
+    # second is pinned, because `crafter` appears in these documents for a dozen
     # unrelated reasons -- it is the name of the agent one of them IS -- and
     # would pass on any of them.
     "the session",
@@ -48,7 +48,7 @@ AXES = (
 
 # The routing section — the axes, the checkbox, the file, the four
 # combinations, the wake/quiet table — is `implement`'s orchestrator half
-# since #292: the session that asks reads `orchestration.md`, and no smith
+# since #292: the session that asks reads `orchestration.md`, and no crafter
 # spawn preloads it. The per-command waiver stays in `SKILL.md`, because
 # the implementer is who types the command.
 ORCH = ("skills", "implement", "orchestration.md")
@@ -143,7 +143,7 @@ def test_every_document_shows_the_third_axis_ROW_not_only_the_count():
     The tuple above cannot carry this one. `the session` occurs nine times in
     `skills/implement/SKILL.md` and only two of them are about the axis, so
     deleting the axis row leaves eight matches standing -- which is the exact
-    reason `smith` was left out of that tuple, applied to the answer that WAS
+    reason `crafter` was left out of that tuple, applied to the answer that WAS
     put in it."""
     rows = [
         ln for ln in read(*ORCH).splitlines() if ln.startswith("| Implementation |")
@@ -162,15 +162,15 @@ def test_every_document_shows_the_third_axis_ROW_not_only_the_count():
     # act. Asserting the answers here again would put the moved rule back in
     # the definition it left, which is what
     # `tests/test_a_moved_rule_leaves_its_definition.py` exists to refuse.
-    smith = flat(read("agents", "crafter.md"))
-    assert "implementation (smith · the session" not in smith, (
+    crafter = flat(read("agents", "crafter.md"))
+    assert "implementation (crafter · the session" not in crafter, (
         "the routing vocabulary is back in `agents/crafter.md`, whose phase 2 "
         "no longer asks the question it belongs to"
     )
 
 
 def test_the_optional_row_ships_the_criterion_that_decides_it():
-    """#120: the row asked `smith` · `the session` and never said how to
+    """#120: the row asked `crafter` · `the session` and never said how to
     answer, so it was answered by habit — and #263 is where that habit was
     measured against the same class of change done in the parent session.
 
@@ -192,20 +192,20 @@ def test_the_optional_row_ships_the_criterion_that_decides_it():
         "the criterion went. The row is back to being answered by habit, "
         "which is the state #263 measured"
     )
-    assert "is a STEP to send to `scribe`" in tpl, (
+    assert "is a STEP to send to `tracer`" in tpl, (
         "the criterion names no destination for discovery, so the axis it "
-        "draws collapses back into `smith` or nothing"
+        "draws collapses back into `crafter` or nothing"
     )
     # Round 1, finding 8. The criterion named three destinations for a row
     # that accepts two values -- `hooks/routing.py`'s IMPLEMENTATION_ANSWERS
-    # is `smith` and `the session` -- and never said what to TYPE. A session
+    # is `crafter` and `the session` -- and never said what to TYPE. A session
     # whose work is finding-out had two readings and the wrong one is
     # permitted by the same comment: line 27 says to delete the row rather
     # than invent a third answer. Deleting it there loses an answer that
     # exists. This row is the one axis nothing contradicts, so a session that
     # guesses gets no correction from anywhere.
     assert "That is a step and not an answer to this row" in tpl, (
-        "the criterion routes discovery to `scribe` and stops, so a session "
+        "the criterion routes discovery to `tracer` and stops, so a session "
         "reading it has a destination and no value to write in the row"
     )
     assert "still answers `the session`" in tpl, (
@@ -228,7 +228,7 @@ def test_the_optional_row_ships_the_criterion_that_decides_it():
 
 
 def test_the_template_PARSES_into_the_three_answers_it_ships():
-    """Round 1, M4: `| Implementor | Smith the agent |` shipped green.
+    """Round 1, M4: `| Implementor | Crafter the agent |` shipped green.
 
     Every check on this file compared strings the test itself supplied, so
     the one reader that decides whether a declaration means anything --
@@ -250,7 +250,7 @@ def test_the_template_PARSES_into_the_three_answers_it_ships():
     # point: a wrong answer in the first two is caught at the next commit
     # because the gate stops recognising the file, and a wrong answer here is
     # never contradicted by anything. So copy-and-never-revisit has to land on
-    # "not answered" rather than on a confident `smith` nobody performed.
+    # "not answered" rather than on a confident `crafter` nobody performed.
     assert parsed["implementation"] is None, (
         "the template pre-answers the one axis nothing checks, which makes "
         "the commonest mistake produce a WRONG record instead of no record"
@@ -494,7 +494,7 @@ def test_the_boxes_are_in_the_stated_order():
 def test_every_box_states_what_UNCHECKED_means():
     """S6. The half a label cannot say, and the half the measured instance
     got wrong — the owner read `straight to the PR` as *call no agents at
-    all*, where it turns off `warden` alone.
+    all*, where it turns off `proofer` alone.
 
     Each phrase is asserted in the box it belongs to rather than anywhere in
     the file, because a document can carry all four words in prose two
@@ -606,14 +606,14 @@ def test_the_framer_asks_nobody_and_writes_no_declaration():
     """S10, after round 1 reversed WHERE the act lands.
 
     **A subagent in this harness has no `AskUserQuestion` and no equivalent.**
-    Measured from two agents independently — `warden` during round 1 and
-    `smith` during its fix pass — each of which, like the framer, declares no
+    Measured from two agents independently — `proofer` during round 1 and
+    `crafter` during its fix pass — each of which, like the framer, declares no
     `tools:` key and inherits the full set: the tool is not in the list and
     `ToolSearch` for it returns `No matching deferred tools found`. So the
     build's first answer told an agent to call a tool it does not have, which
     is the class this repository keeps finding.
 
-    #419's finding survives intact: the acts are not `smith`'s. What was wrong
+    #419's finding survives intact: the acts are not `crafter`'s. What was wrong
     is only where they were sent. They go to the SESSION that spawns the work,
     which has the tool and is already the party that spawns, approves and
     reads back.
@@ -695,7 +695,7 @@ def test_the_framers_acts_are_gather_judge_plan():
     """S11. Judging was in none of the four acts, and both framers spawned in
     the release that found this judged anyway, because the spawn prompt asked.
 
-    A definition that describes collecting and not deciding rewards a framer
+    A definition that detracers collecting and not deciding rewards a framer
     for stopping people. The act is named, and the grounds requirement rides
     with it — a judgment whose grounds nobody can open is not reviewable.
     """
@@ -800,9 +800,9 @@ def test_questions_md_is_the_residue_and_every_row_says_why():
 
 def test_the_framer_leaves_a_mark_in_the_tree():
     """S12. Measured at the frame: 0 of 84 work items carry any mark in
-    `spec.md`, and the definition asked for none.
+    `frame/design.md`, and the definition asked for none.
 
-    `smith` leaves a mark and `warden` writes round records, so the framer was
+    `crafter` leaves a mark and `proofer` writes round records, so the framer was
     the only party in the chain whose work left no evidence that it happened —
     only a claim in a row somebody typed. The existing framer mark is in the
     repository's git dir, and a git dir does not travel, so the check at the
@@ -968,8 +968,8 @@ def test_the_session_runs_to_the_pull_request():
     )
 
 
-def test_the_smith_carries_its_own_half_and_not_the_questions():
-    """The agent file is always in front of the smith; the skill may not be.
+def test_the_crafter_carries_its_own_half_and_not_the_questions():
+    """The agent file is always in front of the crafter; the skill may not be.
 
     **What its own half IS moved, which is why this case is rewritten rather
     than deleted.** It used to carry the routing question's whole vocabulary,
@@ -980,18 +980,18 @@ def test_the_smith_carries_its_own_half_and_not_the_questions():
     A definition that keeps the words of an act it no longer performs is a
     session's instruction to perform it.
 
-    What stays is what a smith still does with the answer somebody else
+    What stays is what a crafter still does with the answer somebody else
     wrote: run to the pull request without coming back, and name an answerer
     for anything it could not close. Since #967 the first half is the first
     line of its `## Never`.
     """
-    smith = flat(read("agents", "crafter.md"))
-    assert "Ask a person anything, or write `routing.md`" in smith
-    assert "answerer" in smith, (
+    crafter = flat(read("agents", "crafter.md"))
+    assert "Ask a person anything, or write `routing.md`" in crafter
+    assert "answerer" in crafter, (
         "a deferral with nobody named is how a follow-up becomes nobody's"
     )
     for count in STALE:
-        assert count not in smith, (
+        assert count not in crafter, (
             f"`{count}` is back in `agents/crafter.md`, which is the routing "
             "question in the definition of the party that does not ask it"
         )

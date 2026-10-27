@@ -121,7 +121,7 @@ def scaffold_gaps(root=EVALS):
 def sealer_grade_gaps(root=EVALS):
     """Each sealer case that does not grade the guarantor's file, or that
     still grades the old sealer's `Broad gate` cell. The sealer's outcome is
-    its verdict in `guarantee.md`; `broad-gate.md` is the script's (#923)."""
+    its verdict in `guarantee.md`; `trail/gate.md` is the script's (#923)."""
     gaps = []
     top = os.path.normpath(os.path.join(root, "behaviour", "sealer"))
     cases = [d for d in case_dirs(root) if os.path.normpath(d).startswith(top + os.sep)]
@@ -171,14 +171,14 @@ def test_a_bound_on_the_sealers_run_that_is_not_zero_is_a_gap(tmp_path):
     (case / "graders").mkdir(parents=True)
     (case / "prompt.md").write_text("x\n", encoding="utf-8")
     (case / "graders" / "shape-verdict.md").write_text(
-        "---\npath: 'seal/specs/i/guarantee.md'\npattern: '^Verdict:'\n---\nv\n",
+        "---\npath: 'seal/threads/i/guarantee.md'\npattern: '^Verdict:'\n---\nv\n",
         encoding="utf-8",
     )
     bound = (
         "---\ntype: 'tool_used'\ntool: 'Bash'\n"
         "input_match: 'seal\\s+gate\\s+--base'\nmax: 0\nmin: 0\n---\ng\n"
     )
-    grader = case / "graders" / "shape-runs-no-broad-gate.md"
+    grader = case / "graders" / "shape-runs-no-broad-run.md"
     grader.write_text(bound, encoding="utf-8")
     assert sealer_grade_gaps(str(tmp_path)) == []
     gap = f"{os.path.join('behaviour', 'sealer', 'c')}: no grader bounds `seal gate --base` at zero"
@@ -214,9 +214,7 @@ def test_each_way_a_committed_case_leaves_the_generator_is_named(tmp_path):
 def load_rule_cases():
     """`evals/scripts/rule_cases.py` as a module, under a name of its own."""
     path = os.path.join(EVALS, "scripts", "rule_cases.py")
-    spec = importlib.util.spec_from_file_location(
-        "specseal_rule_cases_for_layout", path
-    )
+    spec = importlib.util.spec_from_file_location("agentic_rule_cases_for_layout", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -338,7 +336,7 @@ def test_a_tool_used_grader_bounded_at_zero_can_pass():
 
 def test_a_behaviour_prompt_says_where_the_repository_is():
     """The plugin under test sits in a directory the session can see, and it
-    is itself a SpecSeal repository: two of six sealer runs ran the gate
+    is itself an AgenticSeal repository: two of six sealer runs ran the gate
     there and one handed back that failure. Each prompt names the working
     directory as the repository."""
     gaps = []

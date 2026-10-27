@@ -105,7 +105,7 @@ def reader():
     if "reader" not in _loaded:
         _loaded["reader"] = load(
             READER,
-            "specseal_unverified_reader_for_folds",
+            "agentic_unverified_reader_for_folds",
             "it is where a document's lines and table rows are read from",
         )
     return _loaded["reader"]
@@ -210,7 +210,7 @@ def optin():
     if "optin" not in _loaded:
         _loaded["optin"] = load(
             OPTIN,
-            "specseal_optin_for_folds",
+            "agentic_optin_for_folds",
             "it is what finds the repository's seal/ root",
         )
     return _loaded["optin"]
@@ -249,7 +249,7 @@ def config_reader():
     """`hooks/config.py`, the one reader of `seal/config.md`, or exit 2."""
     return load(
         CONFIG_READER,
-        "specseal_config_for_folds",
+        "agentic_config_for_folds",
         "it is what reads the rows of seal/config.md",
     )
 

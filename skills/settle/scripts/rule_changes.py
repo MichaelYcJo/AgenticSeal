@@ -52,7 +52,7 @@ _reader = None
 def reader():
     global _reader
     if _reader is None:
-        spec = importlib.util.spec_from_file_location("specseal_rules_reader", READER)
+        spec = importlib.util.spec_from_file_location("agentic_rules_reader", READER)
         _reader = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(_reader)
     return _reader

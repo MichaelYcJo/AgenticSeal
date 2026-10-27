@@ -1,5 +1,5 @@
 ---
 type: 'file_exists'
-path: 'seal/specs/1790000023-word-count/plan.md'
+path: 'seal/threads/1790000023-word-count/frame/plan.md'
 ---
-The frame writes `plan.md`.
+The frame writes `frame/plan.md`.

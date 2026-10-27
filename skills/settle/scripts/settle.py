@@ -43,7 +43,7 @@ run.
 
 **`--apply` removes, and only that.** It removes every released work item
 directory whose record holds no open row in the working tree, whether or not
-it wrote a `spec.md`, and prints the rows each removed record closed, with
+it wrote a `frame/design.md`, and prints the rows each removed record closed, with
 what closed each. A directory whose record still holds an open row, or one
 that cannot be read, is kept and named with its rows. It writes no policy
 document: the settling session has written them by then, and `seal fold`'s
@@ -287,7 +287,7 @@ def released_local(root, records, ref, ids):
     asked once per branch, and not for a work item that names none. Raises
     `Unasked` where `gh` cannot be asked: every work item would then read as
     unreleased, and the run would say there is nothing to settle."""
-    routing = load(ROUTING, "specseal_routing_for_settle")
+    routing = load(ROUTING, "agentic_routing_for_settle")
     asked, merged, why = {}, {}, {}
     for work_item_id in ids:
         branch = declared_branch(records, work_item_id, routing)
@@ -316,7 +316,7 @@ def released_local(root, records, ref, ids):
 
 
 def has_spec(records, work_item_id):
-    """Whether the work item's directory holds a `spec.md` on disk."""
+    """Whether the work item's directory holds a `frame/design.md` on disk."""
     return os.path.isfile(under(records, f"{SPECS}/{work_item_id}/{DESIGN}"))
 
 
@@ -367,7 +367,7 @@ GROUPS_HEADING = (
 )
 UNORDERED = (
     "unordered: {a} and {b}: no ancestry orders the commits that add their "
-    "spec.md,\n        so order them by content"
+    "frame/design.md,\n        so order them by content"
 )
 UNORDERED_LOCAL = (
     "unordered: {a} and {b}: no ancestry orders their pull requests' merge "
@@ -422,7 +422,7 @@ def named_paths(item):
 
 
 def tracked_names(root):
-    """The base names of every tracked file, so a row naming `spec.md` or
+    """The base names of every tracked file, so a row naming `design.md` or
     `broad_gate.py` alone is looked for by name."""
     r = subprocess.run(["git", "-C", root, "ls-files", "-z"], capture_output=True)
     listed = (
@@ -493,7 +493,7 @@ def facts(root, op, rules):
 def timeline(root, ref, ids, reader, records, merged=None):
     """The released specs IDS as the dry run shows them.
 
-    Where the root is shared, each `spec.md` is read as REF holds it, the
+    Where the root is shared, each `frame/design.md` is read as REF holds it, the
     text that was reviewed and released, and the merge order is the commits
     that add the specs (`rule_changes.py#order`). In local mode no ref holds
     a spec, so it is read from its directory under RECORDS, and the merge
@@ -501,9 +501,9 @@ def timeline(root, ref, ids, reader, records, merged=None):
     (`rule_changes.py#merge_order`). A spec with operations joins the groups
     `rule_changes.py#group` forms in merge order; one whose section does not
     parse, or that has none, is to be read whole; one holding the no-change
-    block has nothing to write; a directory with no `spec.md` states no
+    block has nothing to write; a directory with no `frame/design.md` states no
     rule."""
-    rules = load(RULES, "specseal_rule_changes")
+    rules = load(RULES, "agentic_rule_changes")
     policy = reader.policy_root(root)
     parsed, whole, nothing, spec_less = {}, [], [], []
     for work_item_id in ids:
@@ -615,7 +615,7 @@ def survey(root, ref, home=None):
         on_base = released(root, ref)
         if on_base is None:
             return None
-    reader = load(READER, "specseal_unverified_reader")
+    reader = load(READER, "agentic_unverified_reader")
     ids = [i for i in present if i in on_base]
     found = {
         "ref": ref,
@@ -714,7 +714,7 @@ def report(found, ref, out):
         f"{len(found['unreleased'])} unreleased and untouched\n"
         f"    {t['with_rules']} state rule changes, {len(t['nothing'])} hold the "
         f"no-change block, {len(t['whole'])} to read whole, "
-        f"{len(t['spec_less'])} wrote no spec.md\n"
+        f"{len(t['spec_less'])} wrote no frame/design.md\n"
         f"    {len(t['groups'])} group{plural(len(t['groups']))}; {count} open "
         f"row{plural(count)} in {len(rows)} record{plural(len(rows))}\n"
     )
@@ -749,7 +749,7 @@ def report(found, ref, out):
         write(f"\n{NOTHING_HEADING.format(nothing=found['nothing'])}\n")
         write("".join(f"    {i}\n" for i in t["nothing"]))
     if t["spec_less"]:
-        write("\nno `spec.md`, so no rule stated:\n")
+        write("\nno `frame/design.md`, so no rule stated:\n")
         write("".join(f"    {i}\n" for i in t["spec_less"]))
     if rows:
         write(f"\n{ROWS_HEADING}\n")
@@ -791,7 +791,7 @@ def write_after(root, policy, out):
     read by `fold_check.py` over the policy root the settling session wrote.
     A row it cannot read is said in its own sentence, never as a traceback
     after the removals."""
-    fold = load(FOLD_CHECK, "specseal_fold_check_for_settle")
+    fold = load(FOLD_CHECK, "agentic_fold_check_for_settle")
     try:
         ceiling = fold.declared(fold.seal_home(root))[0]
         lines = list(fold.index_problems(root, policy) or [])
@@ -827,7 +827,7 @@ def apply(found, root, out):
     a classification made for a printed list is not a guard on a destructive
     act. `found` gives *released*, which only git answers, and in local mode
     `gh` with git."""
-    reader = load(READER, "specseal_unverified_reader")
+    reader = load(READER, "agentic_unverified_reader")
     records = found["records"]
     ids = sorted(set(work_items(records)) & set(found["released"]))
     removed, kept = 0, 0
@@ -891,7 +891,7 @@ def main(argv=None):
     root = os.path.abspath(args.root or os.getcwd())
     # The root is resolved through the one resolver, `hooks/optin.py#home_at`,
     # handed the common git directory this also needs for the opt-out sentence.
-    optin = load(OPTIN, "specseal_optin")
+    optin = load(OPTIN, "agentic_optin")
     # The repository's top, as `fold_check.py` resolves it: the policy root,
     # the tracked files and `tests/` are read from it, and a subdirectory
     # holds none of them. `repo_root` answers "" outside a repository, where

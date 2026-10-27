@@ -8,7 +8,7 @@ the script's other cases from
 keeps the case that reads the tests workflow's job.
 
 Seen red before they were committed (contract rule 15): three cases failed
-against the script that printed no test-file rows, and `mutation-check`
+against the script that printed no test-file rows, and `seal mutate`
 turned the fourth, the exit on an unreadable tree, red by letting `main` go
 on past the tree it could not read.
 """
@@ -24,7 +24,7 @@ TARGET = ".github/scripts/release_report.py"
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 _SPEC = importlib.util.spec_from_file_location(
-    "specseal_release_report_under_layout", os.path.join(ROOT, TARGET)
+    "agentic_release_report_under_layout", os.path.join(ROOT, TARGET)
 )
 report = importlib.util.module_from_spec(_SPEC)
 _SPEC.loader.exec_module(report)
@@ -44,7 +44,7 @@ def priced(root, durations):
     return str(root)
 
 
-AGENT = "---\nname: warden\nskills:\n  - review\n---\n"
+AGENT = "---\nname: proofer\nskills:\n  - review\n---\n"
 
 
 def tree(root, agent_body, durations, docs):
@@ -52,7 +52,7 @@ def tree(root, agent_body, durations, docs):
     `durations`, `CLAUDE.md`, `CONTRIBUTING.md` and `docs/<name>.md` for each
     of `docs`; returns its path as text."""
     files = {
-        "agents/warden.md": AGENT + agent_body,
+        "agents/proofer.md": AGENT + agent_body,
         "skills/review/SKILL.md": "# review\n",
         ".test_durations": json.dumps(durations),
         "CLAUDE.md": "# c\n",
@@ -90,14 +90,14 @@ def rows_of(out):
 
 
 class _Kernel:
-    """A stand-in for `payload_meter.py`: one agent, `warden`, whose
+    """A stand-in for `payload_meter.py`: one agent, `proofer`, whose
     composition is ROWS, or raises ERROR where one is given."""
 
     def __init__(self, rows=(), error=None):
         self.rows, self.error = list(rows), error
 
     def agents_in(self, root):
-        return {"warden": "definition"}
+        return {"proofer": "definition"}
 
     def composition(self, root, plugin, agent, definition, verbose):
         if self.error:
@@ -112,12 +112,12 @@ class Test_preloads:
             {"bytes": 5, "share": "skill"},
             {"bytes": 3, "share": "agent"},
         ]
-        assert report.preloads(str(tmp_path), _Kernel(rows)) == {"warden": 13}
+        assert report.preloads(str(tmp_path), _Kernel(rows)) == {"proofer": 13}
 
     def test_refuses_a_definition_it_cannot_read_as_unreadable(self, tmp_path):
         """An `OSError` reading an agent becomes the exit-2 sentence `main`
         prints, never a traceback."""
-        kernel = _Kernel(error=PermissionError(13, "denied", "agents/warden.md"))
+        kernel = _Kernel(error=PermissionError(13, "denied", "agents/proofer.md"))
         with pytest.raises(report.Unreadable, match="an agent definition under"):
             report.preloads(str(tmp_path), kernel)
 
@@ -230,7 +230,7 @@ class Test_main:
         assert "| What | v1.2.3 | Now | Change |" in out, out
         rows = rows_of(out)
         grown = len(AGENT) + 100 + len("# review\n")
-        assert rows["preload `warden` (bytes)"] == (
+        assert rows["preload `proofer` (bytes)"] == (
             f"{grown:,}",
             f"{grown + 50:,}",
             f"+50 ({50 / grown:+.1%})",
@@ -253,7 +253,11 @@ class Test_main:
         of the `seal/` root is no document and has no row."""
         at = tree(tmp_path / "at", "", {"t::a": 1.0}, {})
         now = tree(tmp_path / "now", "", {"t::a": 1.0}, {})
-        for rel in ("seal/process/0.23.0.md", "seal/README.md", "seal/specs/1-x/a.md"):
+        for rel in (
+            "seal/process/0.23.0.md",
+            "seal/README.md",
+            "seal/threads/1-x/a.md",
+        ):
             path = tmp_path / "now" / rel
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text("# 0.23.0\n", "utf-8", newline="\n")

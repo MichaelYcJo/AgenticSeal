@@ -1971,10 +1971,10 @@ def judge_creation(
 
     `git status` classifies to nothing so the walk moved on and the creation
     ladder did run, which is the safe half of the class and the only half
-    `phases/phase-2.md` named. The class is any first segment whose OWN verdict
+    `trail/phases/phase-2.md` named. The class is any first segment whose OWN verdict
     is not `None`: the walk stopped there, the creation ladder never ran, the
     shell created the worktree, and `PostToolUse` minted session-wide consent
-    for a question nobody was asked. That falsified `spec.md`'s *a `git
+    for a question nobody was asked. That falsified `frame/design.md`'s *a `git
     worktree add` runs only if the guard's `deny` did not fire and its `ask`
     was answered yes*, and the "Forgeable by the model: no" row resting on it.
 
@@ -2068,12 +2068,12 @@ def judge_creation(
 # Every git subcommand the recorded runs hold whose plain invocation leaves
 # HEAD's branch where it was. The count beside each is the distinct (command,
 # directory) pairs holding it in cut 1 / cut 2 of phase 1 of work item
-# 1791270162 (its `phases/phase-1.md`, measurement M1: Bash tool uses before
+# 1791270162 (its `trail/phases/phase-1.md`, measurement M1: Bash tool uses before
 # 2026-10-03T11:06:22+09:00 / to 2026-10-06), the way `hooks/tokens.py`'s
 # `PLAIN_GIT` carries its counts. A subcommand the corpus never recorded is
 # not here, on the owner's answer P1 (a): the list grows by a measured row,
 # never by a reading. Which ones leave the branch was read off what each
-# does (`spec.md` In 5), and one form of each row is run against git by
+# does (`frame/design.md` In 5), and one form of each row is run against git by
 # `tests/test_worktree_guard.py`'s
 # `test_accepts_no_listed_form_that_moves_head_under_git`; the case it was
 # rebuilt from found `rebase`'s branch-naming form in round 1 of work item
@@ -2404,7 +2404,7 @@ def _segment_finding(tokens):
 
 def shape_of(tokens):
     """ "listed", "switch", "creation", "unrecognised" or None for one segment
-    of the frozen walk (`spec.md` In 1 of work item 1791270162).
+    of the frozen walk (`frame/design.md` In 1 of work item 1791270162).
 
     A segment the frozen reading reads as git is listed where its subcommand
     is in `LEAVES_THE_TREE`, or is a `checkout` with a path after `--`, or a
@@ -2611,7 +2611,7 @@ def automation_pressed(top, session, transcript_path):
     at the keyboard, and every way of not reading the press is False, which
     costs an `ask` where the opposite would cost a deny nobody can answer.
     The consent RECORD is not read: a creation having run says nothing about
-    who is at the keyboard (`spec.md` In 3, S7)."""
+    who is at the keyboard (`frame/design.md` In 3, S7)."""
     if not session or not top:
         return False
     try:
@@ -2625,7 +2625,7 @@ def automation_pressed(top, session, transcript_path):
 
 def _described(finding):
     """(what, plain) for FINDING in this session's language: what the guard
-    read, and the plain spelling it reads instead (`spec.md` In 3, W1)."""
+    read, and the plain spelling it reads instead (`frame/design.md` In 3, W1)."""
     kind, detail = finding.kind, finding.detail
     if kind == "checkout":
         return (
@@ -2813,7 +2813,7 @@ def stop_unrecognised(findings, trees, pressed, before_ask=None, switch_on_line=
     alone. Where one tree is described, the reason calls it "this tree" and
     reads as it did before.
 
-    One reason text with two readers (`spec.md` In 3): a `deny` to the model
+    One reason text with two readers (`frame/design.md` In 3): a `deny` to the model
     where the person pressed `automation`, which rewrites in the plain
     spelling and meets today's rows on the retry, and an `ask` otherwise. In
     a tree another session is ACTIVE in it is a `deny` either way:
@@ -3082,7 +3082,7 @@ def main():
     ]
     unrecognised.sort(key=lambda found: found[0])
 
-    # The stop of `spec.md` In 3, taken before the ladder because it stops
+    # The stop of `frame/design.md` In 3, taken before the ladder because it stops
     # the whole line. Only where the tree an unrecognised shape names
     # matters: in a clean tree nobody else is in, row 5 of *A. Branch switch* says nothing of a
     # switch, and nothing here says more of a shape that might be one. Each

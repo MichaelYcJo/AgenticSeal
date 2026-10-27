@@ -14,7 +14,7 @@ credit line in the advisory unless you ask for none.
 
 ## What this project is, and where its risk actually sits
 
-SpecSeal is a Claude Code plugin. What ships is Python that runs in two places
+AgenticSeal is a Claude Code plugin. What ships is Python that runs in two places
 a reader should keep separate:
 
 - **`skills/*/scripts/`** — the checkers, run from CI and from a terminal

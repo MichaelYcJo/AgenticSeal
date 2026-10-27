@@ -12,11 +12,11 @@ description: |
 
 # The Seal Test
 
-This file is the smith's and the sealer's: the smith opens it before it hands
+This file is the crafter's and the sealer's: the crafter opens it before it hands
 work back, and the sealer opens it for the conditions, the labels and the
 verdicts it audits against. The orchestrator reads it too. The orchestrator's
 own two acts, the broad gate and the measurement of each segment, are
-`skills/verify/orchestration.md`, which the smith and the sealer do not open.
+`skills/verify/orchestration.md`, which the crafter and the sealer do not open.
 Each instruction below binds the party making a claim, whichever of the three
 it is.
 
@@ -254,7 +254,7 @@ Reporting a `read` as passing is the lie this whole skill exists to prevent.
 
 **The hand-back's labels carry the claims, and the one seal over the whole
 project is the sealer's `guarantee.md`.** An agent hands its claims back under
-condition 4's three labels, and a warden's report says what its review looked
+condition 4's three labels, and a proofer's report says what its review looked
 at; neither is a seal and neither ends in a block.
 
 Two properties tell the sealer's seal apart from every other account of a
@@ -276,10 +276,10 @@ run.
   nothing. So seeing the drawing means the last seal was earned.
 
 **A bare "the seal" is ambiguous the moment more than one exists, so every
-reference to an INSTANCE names whose**: the sealer's seal, the warden's
+reference to an INSTANCE names whose**: the sealer's seal, the proofer's
 round record. The concept and its formats stay bare: the Seal Test, a
-counterfeit seal, SpecSeal itself. The shape to watch for is a sentence that
-names one party and leaves the seal anonymous: *the warden's audit of the
+counterfeit seal, AgenticSeal itself. The shape to watch for is a sentence that
+names one party and leaves the seal anonymous: *the proofer's audit of the
 seal* names an auditor and not what is audited.
 
 ## Scope: cheap and often, broad and once

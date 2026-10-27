@@ -1,13 +1,13 @@
 # verify, the orchestrator's half
 
-This file is the orchestrator's: the session that spawns the smith, the
-warden and the sealer and takes the one broad run between the last of them.
+This file is the orchestrator's: the session that spawns the crafter, the
+proofer and the sealer and takes the one broad run between the last of them.
 It holds the two acts of the verify protocol that no agent takes: the broad
 gate, and the measurement of each segment posted to the flow log.
 
 `skills/verify/SKILL.md` is the other half: the four conditions every claim
 meets, the hand-back's labels, the scope rule and the counterfeits. The
-orchestrator reads both. The smith and the sealer open that one and never
+orchestrator reads both. The crafter and the sealer open that one and never
 this one, because contract rule 2 gives the broad gate to the orchestrator and
 contract rule 6 withholds posting from every agent.
 
@@ -22,7 +22,7 @@ are the expected case rather than the exception: the review chain runs three
 finding rounds by default (`docs/the-review-record.md` *The run*).
 
 **"After the rounds settle" is a row, not a moment, and this is the row: the
-last `rounds/round-N.md` has no finding open.** The phrase alone names no
+last `trail/rounds/round-N.md` has no finding open.** The phrase alone names no
 particular rounds: a work item has build phases with a progression of their
 own and a review chain with its own, so a reader who reaches for the moment
 has to guess, and one who reaches for the record does not.
@@ -46,7 +46,7 @@ Moving it ahead of the rounds means paying it twice.
 `--base` once, before anything runs, to the ref CI will read: the base's
 upstream where the checkout declares one, else `origin/<base>`, else the ref
 as given. Every check it runs takes that one commit: the chain check's
-baseline, the scratch worktree the base comparison checks out, and `broad-gate.md`. A plain
+baseline, the scratch worktree the base comparison checks out, and `trail/gate.md`. A plain
 branch name is a LOCAL ref and a runner has no local branches, so a checkout
 one commit behind its remote would pass green where CI refuses the same
 commit. Where resolving moves the answer the gate prints one line naming both
@@ -75,7 +75,7 @@ names are printed because a number alone sends the reader back to the two
 files this declaration exists to stop them opening. A repository with no
 such workflow sees neither, and nothing else about its run changes. Both are
 counted over the steps CI runs for the base: a step CI does not ask of this
-pull request, such as one of SpecSeal's that runs only on a pull request into
+pull request, such as one of AgenticSeal's that runs only on a pull request into
 `main`, is neither answered nor unanswered, so the count leaves it out and
 the line says how many it left out and why.
 
@@ -83,13 +83,13 @@ the line says how many it left out and why.
 question its step asks. The partition says a step is on the list; two readers
 of one question can still disagree about what they are checking. The gate
 runs every arm at every base, and a case holds that no mirrored step of
-SpecSeal's workflow skips a pull request into `main`; a second case holds
+AgenticSeal's workflow skips a pull request into `main`; a second case holds
 `broad_gate.py#ONLY_AT_MAIN`, the steps that run only into `main`, against
 their guard. The cases read a guard on the base and no other kind of
 condition, so the class stays open for the next kind.
 
 **The arms the plugin ships are the arms the gate can run.** Two steps of
-SpecSeal's own `release` job have a local answer and no arm: one runs a
+AgenticSeal's own `release` job have a local answer and no arm: one runs a
 script under `.github/scripts/`, which no plugin ships, and one is shell
 written inline in the workflow with no script either side can share. A
 repository that wants checks of its own run names them in the `Broad gate`
@@ -152,7 +152,7 @@ and the gate is paid for again.
 
 ## Measure the segment, and feed the flow log
 
-After every smith or warden segment ends, the orchestrator measures its
+After every crafter or proofer segment ends, the orchestrator measures its
 transcript with `skills/verify/scripts/session_cost.py`, typed as
 `seal cost`, and posts the numbers, and what they say, as a comment on one
 of this repository's two measurement logs. Which of the two is not a filing
@@ -283,8 +283,8 @@ segment that just finished, not as a follow-up someone might do later:
    table is that plain reading of another file, or of one stretch of one.
 
    **A segment is one agent's own stretch of a chain, and a spawn cycle is
-   not one.** Every segment has a transcript of its own: a smith's, a
-   warden's, and the orchestrator's, which is one file however many agents
+   not one.** Every segment has a transcript of its own: a crafter's, a
+   proofer's, and the orchestrator's, which is one file however many agents
    the run spawned. The spawn cycles inside that file are bands over the
    orchestrator's own minutes, never segments in their own right. The two
    modes follow the distinction: `--spawns` slices this transcript into
@@ -429,7 +429,7 @@ gathers up.
 | Records' share of the diff | `git diff --numstat` against the base, the record paths above counted apart |
 | Model turns, output tokens, cache write and cache read | `session_cost.py`'s token line over the run's main transcript |
 | Segments: count, minutes and tokens per kind | the agent completion notices, or the subagent transcripts |
-| Broad gate: whether it has run, how many times, and at what SHA | the work item's `broad-gate.md`, which holds one entry per full-suite run, newest first, each a SHA with the base it was compared against; the count is the number of entries, read off the file rather than remembered |
+| Broad gate: whether it has run, how many times, and at what SHA | the work item's `trail/gate.md`, which holds one entry per full-suite run, newest first, each a SHA with the base it was compared against; the count is the number of entries, read off the file rather than remembered |
 
 **The tokens are counted, not estimated, and counted the same way every
 time.** `session_cost.py <the run's main transcript>` prints the token line,

@@ -13,7 +13,7 @@ sees only what is in the tree; nothing under the git directory travels there.
 Beside the work item rather than at the root's top level, because a work item
 begins and ends in one directory and routing is its first fact. It also gives
 the work below the SDD ladder somewhere to exist: those items write no
-`spec.md`, so until now they left no trace anywhere, and they are most of what
+`frame/design.md`, so until now they left no trace anywhere, and they are most of what
 the gate sees.
 
 Imported by the gate and by the hygiene check rather than copied into each --
@@ -108,7 +108,7 @@ AUTOMATION_ANSWERS = (AUTOMATION_YES, AUTOMATION_NO)
 #
 # Only two of question 1's three options ever reach this row. The third,
 # `no work item`, opens no directory and writes no declaration at all, which is
-# the hole `spec.md` names as a ticket of its own rather than closing here.
+# the hole `frame/design.md` names as a ticket of its own rather than closing here.
 ANSWER_PRESSED = "Answer pressed"
 PRESSED_AUTOMATION = "automation"
 PRESSED_PER_AXIS = "per axis"
@@ -546,7 +546,7 @@ def _ordered(where):
 
     Filtered BEFORE the sort, not after. Both callers below hand this a
     directory that holds other things -- the work item's own directory holds
-    `routing.md` and the rest of the SDD set, and `rounds/` holds whatever a
+    `routing.md` and the rest of the SDD set, and `trail/rounds/` holds whatever a
     repository chooses to put beside its records -- and `sorted` comparing
     None against an int raises rather than ordering. Nothing here may assume
     a directory of records only.
@@ -555,9 +555,9 @@ def _ordered(where):
         names = os.listdir(where)
     except NotADirectoryError:
         # A `rounds` that is a FILE, not a directory. Round 1 reached it by
-        # following this release's own migration command: `git mv
-        # <item>/round-*.md <item>/rounds/` fails because `git mv` does not
-        # create its destination, and dropping the trailing slash is what a
+        # following an earlier release's own migration command: a `git mv` of
+        # each round record into a `rounds` directory fails because `git mv`
+        # does not create its destination, and dropping the trailing slash is what a
         # person tries next -- which succeeds for a single record and renames
         # it to a file called `rounds`. Both readers then said the work item
         # held no round record while git carried the review's whole text, and
@@ -616,9 +616,9 @@ def rounds_unreadable(item):
     is a review whose whole text git is still carrying while every reader
     reports that none happened.
 
-    Reached by following this release's own migration command. `git mv
-    <item>/round-*.md <item>/rounds/` fails -- `git mv` does not create its
-    destination -- and dropping the trailing slash succeeds for a single
+    Reached by following an earlier release's own migration command. A
+    `git mv` of each round record into a `rounds` directory fails -- `git mv`
+    does not create its destination -- and dropping the trailing slash succeeds for a single
     record, renaming it to a file named `rounds`.
     """
     if not item:

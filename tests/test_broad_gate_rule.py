@@ -1,7 +1,7 @@
 """The one-broad-run rule spans six documents; drift between them is the bug.
 
-The skill states it, the agent contract binds every agent to it, the smith
-follows it, the warden audits it, two records carry it to the next session,
+The skill states it, the agent contract binds every agent to it, the crafter
+follows it, the proofer audits it, two records carry it to the next session,
 and the preset block states it for a session that loads none of them. A rule
 spread this wide fails by one of them quietly dropping its part, which is
 invisible in any single diff.
@@ -9,8 +9,8 @@ invisible in any single diff.
 Phases 3 and 4 of #107 moved the prohibition and the refusal out of the two
 agent definitions and into `skills/agent-contract/SKILL.md`. The cases moved
 with them rather than being deleted: what each definition still holds is its
-own APPLICATION -- the warden audits the label and has a named field for the
-question, the smith puts both answers in a hand-back the caller can reply in
+own APPLICATION -- the proofer audits the label and has a named field for the
+question, the crafter puts both answers in a hand-back the caller can reply in
 -- and a case asserting the same sentence in two files is the duplication the
 contract was written to end. That duplication has its own module now,
 `tests/test_a_moved_rule_leaves_its_definition.py`, because until phase 4
@@ -46,7 +46,7 @@ def test_verify_says_when_not_only_what():
     assert "against the base commit" in scope
     assert "broad seal" not in scope
     # Since #940 the broad gate is the orchestrator's half of the skill, and
-    # the file the smith and the sealer open carries no copy of it.
+    # the file the crafter and the sealer open carries no copy of it.
     gate = read("skills", "verify", "orchestration.md")
     assert "## The broad gate\n" in gate
     assert "## The broad gate" not in scope
@@ -54,7 +54,7 @@ def test_verify_says_when_not_only_what():
     assert "against the base commit" in gate
     opening = " ".join(gate.split("\n## ", 1)[0].split())
     assert "The orchestrator reads both." in opening
-    assert "The smith and the sealer open that one and never this one" in opening
+    assert "The crafter and the sealer open that one and never this one" in opening
 
 
 def test_the_broad_gate_section_states_its_own_timing():
@@ -92,7 +92,7 @@ def test_the_owner_names_the_row_the_phrase_stood_for():
     condition is the last round record with no finding open, which the check
     at the pull request reads."""
     owner = flat("skills", "verify", "orchestration.md")
-    assert "the last `rounds/round-N.md` has no finding open" in owner, (
+    assert "the last `trail/rounds/round-N.md` has no finding open" in owner, (
         "the broad gate's own section stopped naming the row, and the phrase "
         "it leaves behind names no particular rounds"
     )
@@ -123,39 +123,39 @@ def test_the_implementers_bar_is_not_the_reviewers_and_has_one_home():
     )
 
 
-def test_the_smith_puts_both_answers_in_the_hand_back():
+def test_the_crafter_puts_both_answers_in_the_hand_back():
     """What stayed with the implementer when contract rule 2 and contract rule 3 moved.
 
     The rule is the contract's and is asserted against it below. This is the
-    half that is nobody else's: WHERE the two answers land. The smith's
+    half that is nobody else's: WHERE the two answers land. The crafter's
     handover is a conversation the caller can reply in, so the unverified
     suite and a declined instruction both go in as prose -- which is exactly
-    why the warden, whose handover is a report, needed a named field for the
+    why the proofer, whose handover is a report, needed a named field for the
     same sentence and has one.
 
     Round 1 of the original rule found `Decline` separable from `name`: a
     refusal nobody is told about is the same 28 minutes with a footnote. The
-    disclosure half is asserted here because the smith is where it is
+    disclosure half is asserted here because the crafter is where it is
     disclosed."""
-    smith = flat("agents", "crafter.md")
-    assert "rule 2" in smith and "rule 3" in smith, (
+    crafter = flat("agents", "crafter.md")
+    assert "rule 2" in crafter and "rule 3" in crafter, (
         "the implementer can no longer reach the rules its hand-back answers"
     )
-    assert "the suite labelled `unverified`" in smith, (
+    assert "the suite labelled `unverified`" in crafter, (
         "the suite stopped going over labelled, and a suite that is simply "
         "not mentioned reads as a suite that passed"
     )
-    assert "the orchestrator named as its answerer" in smith, (
+    assert "the orchestrator named as its answerer" in crafter, (
         "the label lost its answerer, and a deferral to nobody is how "
         "`someone will look at it` becomes `nobody did`"
     )
-    assert "saying what was asked and which rule refused it" in smith, (
+    assert "saying what was asked and which rule refused it" in crafter, (
         "the declined instruction stopped being disclosed, which is how an "
         "override stays invisible"
     )
-    assert "hand-back" in smith, (
+    assert "hand-back" in crafter, (
         "the destination went. Without it rule 3's disclosure sentence has "
-        "nowhere named to land, which is the gap the warden's field fills"
+        "nowhere named to land, which is the gap the proofer's field fills"
     )
 
 
@@ -233,8 +233,8 @@ def test_no_definition_assigns_the_broad_gate_and_the_orchestrator_runs_it_befor
     steps = [
         PREFLIGHT,
         RUN,
-        "<scratchpad>/<work-item-id>/broad-gate.log",
-        "commit `broad-gate.md`",
+        "<scratchpad>/<work-item-id>/gate.log",
+        "commit `trail/gate.md`",
         "spawn `sealer`",
     ]
     missing = [step for step in steps if step not in order]
@@ -248,14 +248,14 @@ def test_no_definition_assigns_the_broad_gate_and_the_orchestrator_runs_it_befor
 def test_no_definition_promises_the_suite_once_the_rounds_settle():
     """Round 1, finding 2 of #120. `agents/proofer.md` read *rule 2 keeps the
     suite out of your hands UNTIL the rounds settle*, which says it becomes the
-    warden's afterwards.
+    proofer's afterwards.
 
     Under the old contract rule 2 that was a harmless imprecision about a prohibition with
     a holder who was not an agent. Under the new one it is false in a way a
     reader can act on: this file assigns none of the three, and since #969 no
     definition does, because the orchestrator runs the gate. The hazard is
     live rather than theoretical --
-    `agents/proofer.md`'s own bullet on the broad-gate state puts a reviewer in
+    `agents/proofer.md`'s own bullet on the broad gate's state puts a reviewer in
     exactly the moment the sentence appears to release.
 
     Asserted over the whole glob, not over the one file the finding named,
@@ -280,26 +280,26 @@ def test_no_definition_promises_the_suite_once_the_rounds_settle():
         )
 
 
-def test_the_warden_audits_the_scope_of_a_seal():
+def test_the_proofer_audits_the_scope_of_a_seal():
     """What stayed with the reviewer: the audit, which is nobody else's.
 
     Contract rule 2 says the reviewer does not run the suite. It does not say what the
     reviewer does INSTEAD, and that half is an application of the rule rather
     than the rule -- a seal is audited by the second person looking, and the
-    warden is the only agent that is one."""
-    warden = " ".join(read("agents", "proofer.md").split())
-    assert "whether that label is honest" in warden, (
+    proofer is the only agent that is one."""
+    proofer = " ".join(read("agents", "proofer.md").split())
+    assert "whether that label is honest" in proofer, (
         "the reviewer stopped being told to audit the label, so the only "
         "thing left is the prohibition and the seal goes unchecked"
     )
-    assert "not whether the number is green" in warden, (
+    assert "not whether the number is green" in proofer, (
         "the audit lost the half that says what it is NOT -- a green number "
         "read as an honest label is the failure the audit exists to catch"
     )
 
 
 def test_the_refusal_is_stated_once_and_names_both_directions():
-    """Re-pointed in phase 3 from a per-agent loop over smith and warden.
+    """Re-pointed in phase 3 from a per-agent loop over crafter and proofer.
 
     Round 2's finding stands and is now the contract's to hold: the rule
     reached a second file and the REFUSAL half did not follow it, so the
@@ -326,16 +326,16 @@ def test_the_refusal_is_stated_once_and_names_both_directions():
 def test_the_reviewer_has_a_field_for_the_question_the_default_produces():
     """The reviewer needs somewhere for that question to LAND.
 
-    Its handover is a report, not a conversation -- unlike the smith's, which
+    Its handover is a report, not a conversation -- unlike the crafter's, which
     returns through the chain -- so an unanswered axis would otherwise be
     sealed over by the orchestrator that reads the report. That is why this
     half stayed in `agents/proofer.md` when the rule above it left."""
-    warden = " ".join(read("agents", "proofer.md").split())
-    assert "goes in as a row of `## Not judged` with the caller" in warden, (
+    proofer = " ".join(read("agents", "proofer.md").split())
+    assert "goes in as a row of `## Not judged` with the caller" in proofer, (
         "the reviewer asks a question with no field to ask it in, and a seal "
         "gets taken over an axis nobody decided"
     )
-    assert "a report rather than a conversation" in warden, (
+    assert "a report rather than a conversation" in proofer, (
         "the reason the field exists went, and a field with no reason is the "
         "next one a rewrite drops"
     )

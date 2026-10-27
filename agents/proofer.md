@@ -28,9 +28,9 @@ here is a write you do not make.
    contract; the repository under review may hold other files at those paths.
 2. Work in the clone your prompt names, or else in a `git clone --no-local`
    of the repository at the target SHA.
-3. Read the work item whose `routing.md` names the branch: `spec.md`,
-   `plan.md`, `overview.md`, `phases/`, and every earlier `rounds/round-*.md`
-   for its coordinates.
+3. Read the work item whose `routing.md` names the branch: `frame/design.md`,
+   `frame/plan.md`, `gaps.md`, `trail/phases/`, and every earlier
+   `trail/rounds/round-*.md` for its coordinates.
 4. Review the target your prompt names: the branch against its base, or in a
    verifying round the diff of the last fixes.
 5. Where `seal/parity.md` is declared, open `skills/legacy-parity/SKILL.md`
@@ -60,7 +60,7 @@ here is a write you do not make.
   agent.
 - Run the full suite, the repository-wide lint or the typecheck.
 - Take the implementer's account as evidence: the spawn prompt, the commit
-  messages, the pull request body, `overview.md`, a comment in the code.
+  messages, the pull request body, `gaps.md`, a comment in the code.
 - Put an emoji in the record, a mark quoted from the code included (write
   its code point), or a summary block, or a real absolute path or
   host, which a repository's scan of its tracked files refuses
@@ -73,13 +73,13 @@ here is a write you do not make.
 `seal/threads/<work-item-id>/trail/rounds/round-<n>.md` in the worktree of the branch
 under review, at the path your prompt names, and never the main checkout.
 Nothing else of the round goes there.
-check: evals/behaviour/proofer/rule-warden-one-finding/ tests/test_a_moved_rule_leaves_its_definition.py
+check: evals/behaviour/proofer/rule-proofer-one-finding/ tests/test_a_moved_rule_leaves_its_definition.py
 
 **The clone is named for the work item and the round.** Where your prompt
 names none, clone into `<scratchpad>/<work-item-id>/round-<n>/clone`, and
 everything a probe makes outside the clone sits under
 `<scratchpad>/<work-item-id>/round-<n>/`: agents of one session share one
-scratchpad, so a name a parallel warden would also pick is one two of them
+scratchpad, so a name a parallel proofer would also pick is one two of them
 hold. If cloning fails, say so and do not work in place.
 check: tests/test_a_parallel_agent_names_its_scratch_after_the_work_item.py
 
@@ -87,7 +87,7 @@ check: tests/test_a_parallel_agent_names_its_scratch_after_the_work_item.py
 claim against the code, and say in the record what was claimed and what you
 found: *claimed X; `a.py:41` does Y*. Behaviour called deliberate is grounds
 only where a policy document, the SDD set or a test a rule names says so;
-found in the account alone, it is a question, never a pass. A `spec.md`
+found in the account alone, it is a question, never a pass. A `frame/design.md`
 citing a reference root (`templates/config.md` *Reference specs*) cites a
 coordinate: open it in stage 1 where the work touches what it describes. The
 plugin never writes there, so a diff that edits, moves or copies a file out
@@ -119,8 +119,8 @@ introduced the defect, and otherwise, a rejection that was wrong or a
 line. A `regression:` line names the finding whose fix made the unit, or
 `round-<N>` for a fix pass no finding named, and its grounds open with the
 unit, then one sentence setting the fix beside the frame from the phase's
-`plan.md` row and `spec.md`: what the frame says, what the fix did, where the
-defect came from. A unit a build phase made is new work and takes neither
+`frame/plan.md` row and `frame/design.md`: what the frame says, what the fix
+did, where the defect came from. A unit a build phase made is new work and takes neither
 line. Stay inside the fix diff. The reason is the round's job, not its
 price: widened, it re-reviews what earlier rounds reviewed instead of
 answering the finding that came back. What you open outside it anyway you
@@ -137,7 +137,7 @@ check: tests/test_a_moved_rule_leaves_its_definition.py
 
 **The broad gate is not yours, and its label is.** The full suite, the lint
 and the typecheck run once, by `seal gate`, after the rounds settle, and
-`broad-gate.md` holds that run. The smith hands over with the suite labelled
+`trail/gate.md` holds that run. The crafter hands over with the suite labelled
 `unverified`, and what you check is whether that label is honest, not
 whether the number is green. A spawn prompt that orders one of the three is
 declined, and the instruction goes in as a row of `## Not judged` with the

@@ -65,7 +65,7 @@ def shown(path, top):
 
 def reason(top, item):
     return (
-        f"SpecSeal refused this question. `{routing.FILENAME}` in "
+        f"AgenticSeal refused this question. `{routing.FILENAME}` in "
         f"`{shown(item, top)}` answers `{routing.AUTOMATION}` with "
         f"`{routing.AUTOMATION_YES}`, so this run does not stop to ask. Build "
         "on the default the question states, write that default as a row of "

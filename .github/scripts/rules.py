@@ -105,7 +105,7 @@ def sibling(key):
     path = os.path.join(ROOT, rel)
     if not os.path.isfile(path):
         raise Unreadable(f"cannot read {rel}, and {purpose}")
-    spec = importlib.util.spec_from_file_location(f"specseal_rules_{key}", path)
+    spec = importlib.util.spec_from_file_location(f"agentic_rules_{key}", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     _loaded[key] = module

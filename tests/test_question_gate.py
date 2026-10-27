@@ -41,7 +41,7 @@ ITEM = "1787708604-a-work-item"
 SESSION = "s1"
 
 routing = load_hook_module("routing.py", "routing_for_question_gate")
-optin = load("hooks/optin.py", "specseal_optin_failopen")
+optin = load("hooks/optin.py", "agentic_optin_failopen")
 
 FRAMER_QUESTION = {
     "question": "Which default should the hook print?",
@@ -366,7 +366,7 @@ class Test_reason:
         still refuses, naming the absolute path."""
         from conftest import declare_routing
 
-        gate = load("hooks/question-gate.py", "specseal_question_gate_failopen")
+        gate = load("hooks/question-gate.py", "agentic_question_gate_failopen")
         repo = git_repo(tmp_path / "repo")
         (repo / ".git" / "seal").mkdir()
         item = declare_routing(repo, home=optin.home(str(repo)))
@@ -431,7 +431,7 @@ class Test_module:
 # Left for #923, under its name: its assertion reads prose.
 def test_the_prose_points_to_the_gate_and_no_longer_says_nothing_holds_it():
     """S14: the orchestrator's two documents name the gate, and none of the
-    sentences `spec.md` `## Removes` lists still stands."""
+    sentences `frame/design.md` `## Removes` lists still stands."""
     skill = flat("skills", "implement", "SKILL.md")
     first = skill.split("### 1. Read the spec before the code", 1)[1]
     assert f"`hooks/{GATE}`" in first.split("### 2.", 1)[0]

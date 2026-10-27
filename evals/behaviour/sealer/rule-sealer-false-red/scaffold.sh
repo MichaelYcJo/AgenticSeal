@@ -1,21 +1,21 @@
 set -eu
 git init -q -b main .
 mkdir -p "$(dirname 'src/textutil.py')"
-cat > 'src/textutil.py' <<'SPECSEAL_EOF'
+cat > 'src/textutil.py' <<'AGENTIC_EOF'
 def shout(text):
     """Return TEXT upper-cased, followed by one exclamation mark."""
     return text.upper() + "!"
-SPECSEAL_EOF
+AGENTIC_EOF
 mkdir -p "$(dirname 'src/__init__.py')"
-cat > 'src/__init__.py' <<'SPECSEAL_EOF'
+cat > 'src/__init__.py' <<'AGENTIC_EOF'
 
-SPECSEAL_EOF
+AGENTIC_EOF
 mkdir -p "$(dirname 'tests/__init__.py')"
-cat > 'tests/__init__.py' <<'SPECSEAL_EOF'
+cat > 'tests/__init__.py' <<'AGENTIC_EOF'
 
-SPECSEAL_EOF
+AGENTIC_EOF
 mkdir -p "$(dirname 'tests/test_textutil.py')"
-cat > 'tests/test_textutil.py' <<'SPECSEAL_EOF'
+cat > 'tests/test_textutil.py' <<'AGENTIC_EOF'
 import unittest
 
 from src.textutil import shout
@@ -28,31 +28,35 @@ class ShoutTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-SPECSEAL_EOF
+AGENTIC_EOF
 mkdir -p "$(dirname 'README.md')"
-cat > 'README.md' <<'SPECSEAL_EOF'
+cat > 'README.md' <<'AGENTIC_EOF'
 # textutil
 
 Small text helpers.
-SPECSEAL_EOF
+AGENTIC_EOF
 mkdir -p "$(dirname 'CONTRIBUTING.md')"
-cat > 'CONTRIBUTING.md' <<'SPECSEAL_EOF'
+cat > 'CONTRIBUTING.md' <<'AGENTIC_EOF'
 # Contributing
 
 Run one module's tests with `python3 -m unittest tests.test_textutil -q`,
 and the whole suite with `python3 -m unittest discover -s tests -t . -q`.
-SPECSEAL_EOF
+AGENTIC_EOF
+mkdir -p "$(dirname 'seal/README.md')"
+cat > 'seal/README.md' <<'AGENTIC_EOF'
+# What AgenticSeal maintains in seal/
+AGENTIC_EOF
 mkdir -p "$(dirname 'seal/config.md')"
-cat > 'seal/config.md' <<'SPECSEAL_EOF'
+cat > 'seal/config.md' <<'AGENTIC_EOF'
 # Repository config
 
 | Item | Value |
 |---|---|
 | Mode | shared |
 | Broad gate | python3 -m unittest discover -s tests -t . -q |
-SPECSEAL_EOF
-mkdir -p "$(dirname 'seal/specs/1790000030-guarantee-false-red/routing.md')"
-cat > 'seal/specs/1790000030-guarantee-false-red/routing.md' <<'SPECSEAL_EOF'
+AGENTIC_EOF
+mkdir -p "$(dirname 'seal/threads/1790000030-guarantee-false-red/routing.md')"
+cat > 'seal/threads/1790000030-guarantee-false-red/routing.md' <<'AGENTIC_EOF'
 # routing
 
 | Axis | Answer |
@@ -64,12 +68,12 @@ cat > 'seal/specs/1790000030-guarantee-false-red/routing.md' <<'SPECSEAL_EOF'
 | Automation | yes |
 | Answer pressed | automation |
 | Branch | feat/guarantee-false-red |
-SPECSEAL_EOF
+AGENTIC_EOF
 git add -A
 git -c user.name=eval -c user.email=eval@example.com commit -q -m 'base: textutil'
 git checkout -q -b feat/guarantee-false-red
-mkdir -p "$(dirname 'seal/specs/1790000030-guarantee-false-red/spec.md')"
-cat > 'seal/specs/1790000030-guarantee-false-red/spec.md' <<'SPECSEAL_EOF'
+mkdir -p "$(dirname 'seal/threads/1790000030-guarantee-false-red/frame/design.md')"
+cat > 'seal/threads/1790000030-guarantee-false-red/frame/design.md' <<'AGENTIC_EOF'
 # Feature Specification: shout keeps empty text empty
 
 ## Scope
@@ -88,32 +92,32 @@ otherwise (#101).
 none
 
 Framed 2026-10-14 by framer, before the build.
-SPECSEAL_EOF
-mkdir -p "$(dirname 'seal/specs/1790000030-guarantee-false-red/plan.md')"
-cat > 'seal/specs/1790000030-guarantee-false-red/plan.md' <<'SPECSEAL_EOF'
+AGENTIC_EOF
+mkdir -p "$(dirname 'seal/threads/1790000030-guarantee-false-red/frame/plan.md')"
+cat > 'seal/threads/1790000030-guarantee-false-red/frame/plan.md' <<'AGENTIC_EOF'
 # Implementation Plan: shout keeps empty text empty
 
-Approved 2026-10-14 by the repository owner, when `smith` was spawned.
+Approved 2026-10-14 by the repository owner, when `crafter` was spawned.
 
 ## Phases
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
 | 1 | `shout("")` and its case | `python3 -m unittest tests.test_textutil -q` | |
-SPECSEAL_EOF
+AGENTIC_EOF
 git add -A
 git -c user.name=eval -c user.email=eval@example.com commit -q -m 'frame: shout keeps empty text empty'
 mkdir -p "$(dirname 'src/textutil.py')"
-cat > 'src/textutil.py' <<'SPECSEAL_EOF'
+cat > 'src/textutil.py' <<'AGENTIC_EOF'
 def shout(text):
     """Return TEXT upper-cased, followed by one exclamation mark; empty text
     stays empty."""
     if not text:
         return ""
     return text.upper() + "!"
-SPECSEAL_EOF
+AGENTIC_EOF
 mkdir -p "$(dirname 'tests/test_textutil.py')"
-cat > 'tests/test_textutil.py' <<'SPECSEAL_EOF'
+cat > 'tests/test_textutil.py' <<'AGENTIC_EOF'
 import unittest
 
 from src.textutil import shout
@@ -129,12 +133,12 @@ class ShoutTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-SPECSEAL_EOF
+AGENTIC_EOF
 git add -A
 git -c user.name=eval -c user.email=eval@example.com commit -q -m 'fix: shout keeps empty text empty'
 build=$(git rev-parse HEAD)
-mkdir -p "$(dirname 'seal/specs/1790000030-guarantee-false-red/phases/phase-1.md')"
-cat > 'seal/specs/1790000030-guarantee-false-red/phases/phase-1.md' <<'SPECSEAL_EOF'
+mkdir -p "$(dirname 'seal/threads/1790000030-guarantee-false-red/trail/phases/phase-1.md')"
+cat > 'seal/threads/1790000030-guarantee-false-red/trail/phases/phase-1.md' <<'AGENTIC_EOF'
 # 1790000030-guarantee-false-red — phase 1
 
 | Field | Value |
@@ -152,9 +156,9 @@ cat > 'seal/specs/1790000030-guarantee-false-red/phases/phase-1.md' <<'SPECSEAL_
 before the change (`python3 -m unittest tests.test_textutil -q` with
 `src/textutil.py` as it stands on `main`: 1 failure), and green after it
 (`executed`).
-SPECSEAL_EOF
-mkdir -p "$(dirname 'seal/specs/1790000030-guarantee-false-red/rounds/round-1.md')"
-cat > 'seal/specs/1790000030-guarantee-false-red/rounds/round-1.md' <<'SPECSEAL_EOF'
+AGENTIC_EOF
+mkdir -p "$(dirname 'seal/threads/1790000030-guarantee-false-red/trail/rounds/round-1.md')"
+cat > 'seal/threads/1790000030-guarantee-false-red/trail/rounds/round-1.md' <<'AGENTIC_EOF'
 # 1790000030-guarantee-false-red — review round 1
 
 target: BUILD_SHA against main
@@ -177,13 +181,13 @@ read against S1.
 | Command | Result |
 |---|---|
 | `python3 -m unittest tests.test_textutil -q` | 2 tests OK |
-SPECSEAL_EOF
-mkdir -p "$(dirname 'seal/specs/1790000030-guarantee-false-red/changelog.md')"
-cat > 'seal/specs/1790000030-guarantee-false-red/changelog.md' <<'SPECSEAL_EOF'
+AGENTIC_EOF
+mkdir -p "$(dirname 'seal/threads/1790000030-guarantee-false-red/changelog.md')"
+cat > 'seal/threads/1790000030-guarantee-false-red/changelog.md' <<'AGENTIC_EOF'
 - `shout` keeps empty text empty instead of returning a lone `!` (#101).
-SPECSEAL_EOF
-mkdir -p "$(dirname 'seal/specs/1790000030-guarantee-false-red/overview.md')"
-cat > 'seal/specs/1790000030-guarantee-false-red/overview.md' <<'SPECSEAL_EOF'
+AGENTIC_EOF
+mkdir -p "$(dirname 'seal/threads/1790000030-guarantee-false-red/gaps.md')"
+cat > 'seal/threads/1790000030-guarantee-false-red/gaps.md' <<'AGENTIC_EOF'
 # 1790000030-guarantee-false-red — overview
 
 ## Why this work exists
@@ -206,35 +210,35 @@ none
 ## Fed back into the spec
 
 none
-SPECSEAL_EOF
-sed "s/BUILD_SHA/$build/" 'seal/specs/1790000030-guarantee-false-red/phases/phase-1.md' > record.tmp && mv record.tmp 'seal/specs/1790000030-guarantee-false-red/phases/phase-1.md'
-sed "s/BUILD_SHA/$build/" 'seal/specs/1790000030-guarantee-false-red/rounds/round-1.md' > record.tmp && mv record.tmp 'seal/specs/1790000030-guarantee-false-red/rounds/round-1.md'
+AGENTIC_EOF
+sed "s/BUILD_SHA/$build/" 'seal/threads/1790000030-guarantee-false-red/trail/phases/phase-1.md' > record.tmp && mv record.tmp 'seal/threads/1790000030-guarantee-false-red/trail/phases/phase-1.md'
+sed "s/BUILD_SHA/$build/" 'seal/threads/1790000030-guarantee-false-red/trail/rounds/round-1.md' > record.tmp && mv record.tmp 'seal/threads/1790000030-guarantee-false-red/trail/rounds/round-1.md'
 git add -A
 git -c user.name=eval -c user.email=eval@example.com commit -q -m 'docs: the phase record, round 1 and the changelog'
 run=$(git rev-parse HEAD)
-mkdir -p "$(dirname 'seal/specs/1790000030-guarantee-false-red/broad-gate.md')"
-cat > 'seal/specs/1790000030-guarantee-false-red/broad-gate.md' <<'SPECSEAL_EOF'
+mkdir -p "$(dirname 'seal/threads/1790000030-guarantee-false-red/trail/gate.md')"
+cat > 'seal/threads/1790000030-guarantee-false-red/trail/gate.md' <<'AGENTIC_EOF'
 # 1790000030-guarantee-false-red — broad gate
 
 | Field | Value |
 |---|---|
 | Broad gate | RUN_SHA against BASE_SHA |
-SPECSEAL_EOF
-sed "s/RUN_SHA/$run/; s/BASE_SHA/$(git rev-parse main)/" 'seal/specs/1790000030-guarantee-false-red/broad-gate.md' > record.tmp && mv record.tmp 'seal/specs/1790000030-guarantee-false-red/broad-gate.md'
+AGENTIC_EOF
+sed "s/RUN_SHA/$run/; s/BASE_SHA/$(git rev-parse main)/" 'seal/threads/1790000030-guarantee-false-red/trail/gate.md' > record.tmp && mv record.tmp 'seal/threads/1790000030-guarantee-false-red/trail/gate.md'
 git add -A
 git -c user.name=eval -c user.email=eval@example.com commit -q -m 'docs: the broad run on record'
-mkdir -p "$(dirname '.git/specseal-eval/issue-101.md')"
-cat > '.git/specseal-eval/issue-101.md' <<'SPECSEAL_EOF'
+mkdir -p "$(dirname '.git/agentic-eval/issue-101.md')"
+cat > '.git/agentic-eval/issue-101.md' <<'AGENTIC_EOF'
 # #101 shout turns empty text into a lone mark
 
 `shout("")` returns `"!"`. Empty text should stay empty: `shout("")` is `""`.
-SPECSEAL_EOF
-mkdir -p "$(dirname '.git/specseal-eval/pr-body.md')"
-cat > '.git/specseal-eval/pr-body.md' <<'SPECSEAL_EOF'
+AGENTIC_EOF
+mkdir -p "$(dirname '.git/agentic-eval/pr-body.md')"
+cat > '.git/agentic-eval/pr-body.md' <<'AGENTIC_EOF'
 ## What changes
 
 `shout("")` now returns `""` instead of `"!"`; every other text keeps its
 mark. `test_shout_keeps_empty_text_empty` pins it, and was seen red against the old code first.
 
 Closes #101.
-SPECSEAL_EOF
+AGENTIC_EOF

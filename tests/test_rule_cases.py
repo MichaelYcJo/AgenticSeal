@@ -8,7 +8,7 @@ one reader of a grader file.
 
 #942's phase 6 placed these cases from
 `tests/test_a_rewritten_definition_proved_non_inferior.py`, which keeps
-the case that reads the committed warden cases.
+the case that reads the committed proofer cases.
 """
 
 import json
@@ -22,7 +22,7 @@ TARGET = "evals/scripts/rule_cases.py"
 
 ni = load_script("noninferiority")
 
-RULE = "rule-warden-one-finding"
+RULE = "rule-proofer-one-finding"
 SHOUT_BODY = "`shout_twice` joins the two shouts with no space, against S2.\n"
 
 
@@ -41,7 +41,7 @@ def entry(**over):
         "grader": "truth-no-case",
         "finding": "No case covers `shout_twice`.",
         "locations": ["tests/test_textutil.py"],
-        "from": ["baseline rule-warden-one-finding 0 1"],
+        "from": ["baseline rule-proofer-one-finding 0 1"],
     }
     base.update(over)
     return base
@@ -49,7 +49,7 @@ def entry(**over):
 
 def rule_truths(tmp_path, monkeypatch, *entries):
     """`{file name: text}` of the truth graders `rule_cases.py` writes for
-    the warden's rule case with ENTRIES as its input file."""
+    the proofer's rule case with ENTRIES as its input file."""
     rc = load_script("rule_cases")
     monkeypatch.setattr(rc.rt, "TRUTHS", recurred_file(tmp_path, *entries))
     out = tmp_path / "out"

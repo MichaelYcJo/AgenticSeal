@@ -31,7 +31,7 @@ on:
     # and without them a pull request opened as a draft keeps the green it
     # earned on the draft's terms: pressing Ready for review makes no commit,
     # so nothing re-runs. `chain_check.py` reads the draft state, and fails
-    # an open finding, a record behind HEAD, or a missing `broad-gate.md` or
+    # an open finding, a record behind HEAD, or a missing `trail/gate.md` or
     # `guarantee.md` only once the draft is over.
     types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
 
@@ -63,9 +63,9 @@ jobs:
       # fails for what the author can fix: a trailer naming a work item no
       # judged declaration names, a declaration that says "through the review
       # chain" with no committed round record, a declaration that cannot be
-      # read, a work item `spec.md` whose `## Rule changes` does not parse,
-      # where the work item is judged or the pull request's own commits add
-      # or change that `spec.md`, a round record of a work item reviewed
+      # read, a work item `frame/design.md` whose `## Rule changes` does not
+      # parse, where the work item is judged or the pull request's own commits
+      # add or change that `frame/design.md`, a round record of a work item reviewed
       # through the review chain, or the `guarantee.md` of one routed
       # straight to the pull request, with no `original:` line naming
       # `seal/parity.md`'s `Baseline commit`, where that config is declared
@@ -73,7 +73,7 @@ jobs:
       # finding still
       # `open` or one the check cannot read,
       # a last record behind HEAD or with a finding no round after it read,
-      # no `broad-gate.md` at HEAD, or no `guarantee.md` reading `sealed` at
+      # no `trail/gate.md` at HEAD, or no `guarantee.md` reading `sealed` at
       # HEAD. A round's `target:` commit is read only as HEAD or an ancestor
       # of it, so the check needs no ref the checkout does not already
       # carry.

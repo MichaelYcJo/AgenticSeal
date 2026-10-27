@@ -80,7 +80,7 @@ RECORDS = {
     "follow-up.md": "# follow-up\n",
     f"threads/{ITEM}/plan.md": "# rows\n",
     f"threads/{ITEM}/routing.md": "# routing\n",
-    f"threads/{ITEM}/spec.md": "# spec\n",
+    f"threads/{ITEM}/design.md": "# spec\n",
 }
 MEMBERS = ["manifest.json", *(f"seal/{rel}" for rel in sorted(RECORDS))]
 # The import's last line: a collided pair is a reading for a person.
@@ -96,7 +96,7 @@ BESIDE_THE_ROOT = (
     "agentic-no-work-item",
     "agentic-stamp-refused",
     "agentic-last-export.json",
-    "specseal-session-lease",
+    "agentic-session-lease",
 )
 WORKFLOW_PATH = os.path.join(".github", "workflows", "hygiene.yml")
 HEAD = "| Item | Value |\n|---|---|\n"
@@ -392,10 +392,12 @@ class Test_module:
         outside.mkdir()
         symlink_or_skip(str(outside), str(destination / "threads"))
         archive = zipped(
-            tmp_path / "h.zip", None, [("threads/1788-x/spec.md", "LANDED")]
+            tmp_path / "h.zip", None, [("threads/1788-x/design.md", "LANDED")]
         )
         zipfile.ZipFile(archive).extractall(destination)
-        assert (outside / "1788-x" / "spec.md").read_text(encoding="utf-8") == "LANDED"
+        assert (outside / "1788-x" / "design.md").read_text(
+            encoding="utf-8"
+        ) == "LANDED"
 
     def test_the_command_and_the_gate_read_one_parser(self, config):
         """`seal mode` writes the row and the gate reads it. Two readers of one
@@ -403,7 +405,7 @@ class Test_module:
         this one rather than keeping a copy."""
         root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         path = os.path.join(root, "skills", "implement", "scripts", "seal.py")
-        spec = importlib.util.spec_from_file_location("specseal_seal_one_parser", path)
+        spec = importlib.util.spec_from_file_location("agentic_seal_one_parser", path)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         # By where the code was COMPILED, not by object identity: this test loads
@@ -657,8 +659,8 @@ class Test_work_item_of:
     @pytest.mark.parametrize(
         "rel, item",
         [
-            ("threads/1788-x/spec.md", "1788-x"),
-            ("threads/1788-y/rounds/round-1.md", "1788-y"),
+            ("threads/1788-x/design.md", "1788-x"),
+            ("threads/1788-y/trail/rounds/round-1.md", "1788-y"),
         ],
     )
     def test_accepts_a_path_under_a_work_items_directory(self, rel, item):
@@ -674,7 +676,7 @@ class Test_work_item_of:
 class Test_work_item_digests:
     def test_accepts_each_item_as_the_digest_of_its_files(self, tmp_path):
         holding(tmp_path)
-        write(tmp_path, "threads/1788000001-another/spec.md", "# another\n")
+        write(tmp_path, "threads/1788000001-another/design.md", "# another\n")
         files = SEAL.root_files(str(tmp_path))[0]
         found = SEAL.work_item_digests(files)
         assert found == {
@@ -1022,7 +1024,7 @@ class Test_no_root:
             "The first time your session works in a repository it asks which one, "
             "and creates it.\n"
         )
-        assert "smith" not in out
+        assert "crafter" not in out
 
     def test_refuses_a_directory_outside_git_and_a_throwaway_clone(self, take, capsys):
         assert SEAL.no_root("", "", "") == 1
@@ -1093,7 +1095,7 @@ class Test_unsafe:
     @pytest.mark.parametrize(
         "info",
         [
-            member("seal/threads/x/spec.md"),
+            member("seal/threads/x/design.md"),
             member("manifest.json"),
             member("manifest.json/"),
             member("seal/a.md", SEAL.MEMBER_LIMIT),
@@ -1141,7 +1143,7 @@ class Test_linked_path:
         return zipped(
             tmp_path / "z.zip",
             {"format": 1},
-            [("seal/threads/w/spec.md", "w"), ("seal/follow-up.md", "f")],
+            [("seal/threads/w/design.md", "w"), ("seal/follow-up.md", "f")],
         )
 
     def test_accepts_a_root_no_member_reaches_through_a_link(self, tmp_path):
@@ -1446,7 +1448,7 @@ class Test_import_:
         z = zipped(
             tmp_path / "z.zip",
             {"format": 1, "remote": "", **fields},
-            [("seal/threads/w/spec.md", "# w\n")],
+            [("seal/threads/w/design.md", "# w\n")],
         )
         code, out = said(capsys, other, "import", str(z), *flags)
         assert code == 0, out
@@ -1799,7 +1801,7 @@ class Test_write_members:
         with zipfile.ZipFile(z, "w") as archive:
             archive.writestr("manifest.json", "{}")
             archive.writestr(zipfile.ZipInfo("seal/threads/"), "")
-            archive.writestr("seal/threads/w/spec.md", "w\n")
+            archive.writestr("seal/threads/w/design.md", "w\n")
             archive.writestr("seal/follow-up.md", "theirs\n")
         with opened(z) as archive:
             counts, collisions, refused = SEAL.write_members(archive, str(into))
@@ -1809,7 +1811,7 @@ class Test_write_members:
         assert listed(into) == [
             "follow-up.incoming.md",
             "follow-up.md",
-            "threads/w/spec.md",
+            "threads/w/design.md",
         ]
 
     def test_refuses_a_name_that_became_a_link_and_names_it(
@@ -1920,7 +1922,7 @@ class Test_with_row:
         writer, which appended a second table to the end of the file."""
         root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         path = os.path.join(root, "skills", "implement", "scripts", "seal.py")
-        spec = importlib.util.spec_from_file_location("specseal_seal_for_871", path)
+        spec = importlib.util.spec_from_file_location("agentic_seal_for_871", path)
         seal = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(seal)
 
@@ -1953,9 +1955,7 @@ class Test_with_row:
 
         root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         path = os.path.join(root, "skills", "implement", "scripts", "seal.py")
-        spec = importlib.util.spec_from_file_location(
-            "specseal_seal_for_429_crlf", path
-        )
+        spec = importlib.util.spec_from_file_location("agentic_seal_for_429_crlf", path)
         seal = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(seal)
         written, refused = seal.with_row(crlf(FENCED_ABOVE), "local")
@@ -2048,7 +2048,7 @@ class Test_write_row:
         """
         root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         path = os.path.join(root, "skills", "implement", "scripts", "seal.py")
-        spec = importlib.util.spec_from_file_location("specseal_seal_for_415", path)
+        spec = importlib.util.spec_from_file_location("agentic_seal_for_415", path)
         seal = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(seal)
 
@@ -2084,9 +2084,7 @@ class Test_write_row:
         """
         root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         path = os.path.join(root, "skills", "implement", "scripts", "seal.py")
-        spec = importlib.util.spec_from_file_location(
-            "specseal_seal_for_415_bare", path
-        )
+        spec = importlib.util.spec_from_file_location("agentic_seal_for_415_bare", path)
         seal = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(seal)
 
@@ -2118,7 +2116,7 @@ class Test_write_row:
         """
         root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         path = os.path.join(root, "skills", "implement", "scripts", "seal.py")
-        spec = importlib.util.spec_from_file_location("specseal_seal_for_429", path)
+        spec = importlib.util.spec_from_file_location("agentic_seal_for_429", path)
         seal = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(seal)
 
@@ -2188,7 +2186,7 @@ class Test_write_row:
         """
         root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         path = os.path.join(root, "skills", "implement", "scripts", "seal.py")
-        spec = importlib.util.spec_from_file_location("specseal_seal_unclosed", path)
+        spec = importlib.util.spec_from_file_location("agentic_seal_unclosed", path)
         seal = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(seal)
 
@@ -2250,7 +2248,7 @@ class Test_write_row:
         """
         root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         path = os.path.join(root, "skills", "implement", "scripts", "seal.py")
-        spec = importlib.util.spec_from_file_location("specseal_seal_no_ending", path)
+        spec = importlib.util.spec_from_file_location("agentic_seal_no_ending", path)
         seal = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(seal)
 
@@ -2296,7 +2294,7 @@ class Test_write_row:
 
         root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         path = os.path.join(root, "skills", "implement", "scripts", "seal.py")
-        spec = importlib.util.spec_from_file_location("specseal_seal_for_667_r1", path)
+        spec = importlib.util.spec_from_file_location("agentic_seal_for_667_r1", path)
         seal = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(seal)
 
@@ -2323,7 +2321,7 @@ class Test_write_row:
         it: neither the commented row nor the live one is rewritten."""
         root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         path = os.path.join(root, "skills", "implement", "scripts", "seal.py")
-        spec = importlib.util.spec_from_file_location("specseal_seal_for_667", path)
+        spec = importlib.util.spec_from_file_location("agentic_seal_for_667", path)
         seal = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(seal)
 
@@ -2349,7 +2347,7 @@ class Test_write_row:
         red against the generic read-back sentence."""
         root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         path = os.path.join(root, "skills", "implement", "scripts", "seal.py")
-        spec = importlib.util.spec_from_file_location("specseal_seal_for_871_r1", path)
+        spec = importlib.util.spec_from_file_location("agentic_seal_for_871_r1", path)
         seal = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(seal)
         from block_shapes import OPEN
@@ -3579,7 +3577,7 @@ class Test_check:
 
     def test_accepts_a_change_as_one_line_and_writes_nothing(self, take, capsys):
         repo, local = self.exported_once(take, capsys)
-        write(local, f"threads/{ITEM}/spec.md", "# edited\n")
+        write(local, f"threads/{ITEM}/design.md", "# edited\n")
         before = listed(local)
         code, out = said(capsys, repo, "export", "--check")
         assert (code, out) == (0, "1 work items changed since the last export\n")
@@ -3593,7 +3591,7 @@ class Test_check:
         assert said(capsys, repo, "export", "--check")[1] == (
             "0 work items changed since the last export\n"
         )
-        write(local, "threads/1788000001-another/spec.md", "# another\n")
+        write(local, "threads/1788000001-another/design.md", "# another\n")
         shutil.rmtree(os.path.join(local, "threads", ITEM))
         assert said(capsys, repo, "export", "--check")[1] == (
             "2 work items changed since the last export\n"

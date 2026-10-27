@@ -77,11 +77,11 @@ def module(path, name):
 
 
 def publisher():
-    return module(SCRIPT, "specseal_publish_release_note_for_tests")
+    return module(SCRIPT, "agentic_publish_release_note_for_tests")
 
 
 def gatherer():
-    return module(GATHERER, "specseal_gather_changelog_for_publish_tests")
+    return module(GATHERER, "agentic_gather_changelog_for_publish_tests")
 
 
 class Releases:

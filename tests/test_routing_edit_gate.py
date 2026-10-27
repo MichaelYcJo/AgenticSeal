@@ -86,8 +86,8 @@ HINT = os.path.join("seal", "threads", "<work-item-id>", "routing.md")
 # The two texts a person reads (contract rule 14), pinned whole.
 def attended(repo, branch):
     return (
-        "SpecSeal refused this edit; nothing was written.\n\n"
-        f"`f.txt` is in `{repo}`, which runs the SpecSeal workflow, and no "
+        "AgenticSeal refused this edit; nothing was written.\n\n"
+        f"`f.txt` is in `{repo}`, which runs the AgenticSeal workflow, and no "
         f"routing declaration names `{branch}`, the branch checked out there. "
         "The routing is decided before the first edit.\n\n"
         "Do not choose for the user. Put the routing question to them with the "
@@ -103,8 +103,8 @@ def attended(repo, branch):
 
 def pressed(repo, branch):
     return (
-        "SpecSeal refused this edit; nothing was written.\n\n"
-        f"`f.txt` is in `{repo}`, which runs the SpecSeal workflow, and no "
+        "AgenticSeal refused this edit; nothing was written.\n\n"
+        f"`f.txt` is in `{repo}`, which runs the AgenticSeal workflow, and no "
         f"routing declaration names `{branch}`, the branch checked out there. "
         "The routing is decided before the first edit.\n\n"
         "This session's person pressed `automation` on the routing question, "
@@ -124,8 +124,8 @@ def pressed(repo, branch):
 # nothing there, so the ways on start by checking out a branch.
 def detached(repo):
     return (
-        "SpecSeal refused this edit; nothing was written.\n\n"
-        f"`f.txt` is in `{repo}`, which runs the SpecSeal workflow, and HEAD is "
+        "AgenticSeal refused this edit; nothing was written.\n\n"
+        f"`f.txt` is in `{repo}`, which runs the AgenticSeal workflow, and HEAD is "
         "detached there, so no routing declaration can name its branch. The "
         "routing is decided before the first edit.\n\n"
     )
@@ -214,7 +214,7 @@ class Test_main:
     def test_accepts_a_detached_head_at_a_commit_a_declared_branch_holds(
         self, repo, tmp_path
     ):
-        """Round 1 of #1027, finding 3: a warden's clone at the reviewed SHA
+        """Round 1 of #1027, finding 3: a proofer's clone at the reviewed SHA
         and a red-first clone of an earlier commit are detached checkouts of
         a declared branch. The branch is found under its local name, or under
         a remote-tracking one where the clone has no local branch of it."""

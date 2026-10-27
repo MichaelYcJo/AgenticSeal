@@ -98,7 +98,7 @@ serves, so two agents alive at once cannot pick the same name.** Every agent
 of one session shares one scratchpad, and a name any parallel agent would
 also pick is a file somebody else can overwrite. So the proofer's clone is
 `<scratchpad>/<work-item-id>/round-<n>/clone` with every probe of the round
-beside it, and the orchestrator's broad-gate log carries the work item id.
+beside it, and the orchestrator's `seal gate` log carries the work item id.
 The name lives in the definitions, where a rule arrives by mechanism, and one
 directory per work item and round is what lets the agent that made a leaving
 say every one of them is gone.

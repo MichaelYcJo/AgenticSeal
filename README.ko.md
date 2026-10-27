@@ -1,13 +1,13 @@
-# SpecSeal
+# AgenticSeal
 
 [![tests](https://github.com/MichaelYcJo/AgenticSeal/actions/workflows/test.yml/badge.svg)](https://github.com/MichaelYcJo/AgenticSeal/actions/workflows/test.yml)
 
 [English](./README.md) · **한국어**
 
-**Specs, sealed** — 규칙마다 그 규칙을 지키는 테스트를 적어 두고, CI 가 그
-테스트를 돌립니다.
+아무에게도 묻지 않고 변경을 설계하고, 만들고, 검사하고, 봉인하며, 커밋에 묶인
+봉인으로 끝나는 에이전트 워크플로입니다.
 
-코딩 에이전트는 다 됐다고 말합니다. SpecSeal 은 그 말이 열어 볼 수 있는 흔적을
+코딩 에이전트는 다 됐다고 말합니다. AgenticSeal 은 그 말이 열어 볼 수 있는 흔적을
 남기게 합니다. 흔적은 셋입니다. 에이전트마다 돌려주는 **보고**(주장마다
 `executed`·`read`·`unverified` 중 하나를 붙이고, 돌리지 않은 것은 누가 답할지
 적는다), 첫 편집 전에 편집 훅이
@@ -27,7 +27,7 @@ Claude Code **플러그인**으로 배포됩니다. 인계 규약과 `seal rules
 
 도장은 작아야 도장입니다. [arxiv 2602.11988](https://arxiv.org/abs/2602.11988) 에
 따르면 컨텍스트 파일은 대체로 성공률을 높이지 못하면서 추론 비용만 20% 넘게
-늘립니다. 모델은 SOLID 도 DRY 도 이미 알고 있습니다. SpecSeal 은 기본 동작을
+늘립니다. 모델은 SOLID 도 DRY 도 이미 알고 있습니다. AgenticSeal 은 기본 동작을
 실제로 바꾸는 것만 싣습니다. 나머지는 부를 때 로드되는 스킬이거나, 컨텍스트
 밖에서 도는 훅입니다.
 
@@ -35,11 +35,11 @@ Claude Code **플러그인**으로 배포됩니다. 인계 규약과 `seal rules
 
 | 누구/무엇 | 따르는 스킬 | 실제로 무엇인가 |
 |---|---|---|
-| **framer** (서브에이전트) | `agent-contract` | 아무도 만들기 시작하기 전에 그 작업 항목의 `spec.md` · `plan.md` · `questions.md` 를 쓴다. SDD 사다리가 이미 `spec.md` 를 요구하는 자리에서 띄운다. 저장소를 넓게 읽고, 사다리와 파일 묶음을 정하는 단계에서 `implement` 를 열고, 쓰기 전에 `writing-style` 을 연다. 트리가 답할 수 있는 것은 직접 답하고, 나머지만 `questions.md` 에 남긴다. 라우팅 질문은 framer 를 띄우기 전에 세션이 이미 물었으므로, 그 뒤로는 `plan.md` 승인이 그 작업에서 사람을 부르는 유일한 지점이다. 코드는 쓰지 않는다. 계약서를 쓴 쪽과 그것을 실행하는 쪽이 달라야 warden 의 "스펙 준수 먼저" 가 대조할 문서를 갖는다 |
-| **smith** (Claude Code 서브에이전트) | `agent-contract` | 작업 항목의 한 단계를 스펙에 맞춰 만들거나, 회차 기록 하나를 놓고 수정을 한 번 돈다. 첫 단계에서 `implement` 를 열고, 기록을 쓰기 전에 `writing-style` 을 연다. 돌려주는 보고에는 주장마다 `executed`·`read`·`unverified` 를 붙이고, 전체 스위트는 `unverified` 로 두고 누가 답할지 적는다 |
-| **warden** (서브에이전트) | `agent-contract` | 스펙 준수를 먼저 보고 그다음 품질을 본다. 첫 단계에서 `code-review` 를 열고, 회차 기록을 쓰기 전에 `writing-style` 을 연다. 오케스트레이터가 회차 기록을 검증한 뒤에 그에 따라 움직이고, pull request 검사가 그 기록을 읽는다. 리뷰어가 자기 보고를 직접 검증하지는 않는다 |
-| **scribe** (서브에이전트) | `agent-contract` | 원본 코드가 실제로 하는 일을 `경로#앵커` 좌표로 기록하고, 판정이 아니라 사실만 돌려준다. 첫 단계에서 `legacy-parity` 를 연다. `seal/parity.md` 를 선언한 레포에서만 등장한다 |
-| **sealer** (서브에이전트, Opus) | `agent-contract` | 마지막에 독립적으로 보증하는 쪽이다. 회차가 끝나고 PR 본문과 changelog 가 쓰이고 오케스트레이터가 광역 관문을 한 번 돌린 뒤(`seal gate` 가 `broad-gate.md` 를 쓴다), 그 기록을 읽는다. 광역 검사는 직접 돌리지 않는다. 구현자가 실행했다고 적은 주장 가운데 일부를 다시 돌려 보고, 스펙·구현·마지막 리뷰·changelog·PR 본문을 이슈와 실제 트리에 견주어 읽는다. 판정은 작업 항목의 `guarantee.md` 에 남는다. `sealed`, 트리와 어긋난 곳을 짚은 `withheld`, 또는 소유자에게 넘기는 질문을 단 `undecided` 셋 중 하나다. 설계나 코드 품질을 다시 판정하지는 않는다 |
+| **framer** (서브에이전트) | `agent-contract` | 아무도 만들기 시작하기 전에 그 작업 항목의 `frame/design.md` · `frame/plan.md` · `frame/questions.md` 를 쓴다. SDD 사다리가 이미 설계를 요구하는 자리에서 띄운다. 저장소를 넓게 읽고, 사다리와 파일 묶음을 정하는 단계에서 `implement` 를 열고, 쓰기 전에 `writing-style` 을 연다. 트리가 답할 수 있는 것은 직접 답하고, 나머지만 `questions.md` 에 남긴다. 라우팅 질문은 framer 를 띄우기 전에 세션이 이미 물었으므로, 그 뒤로는 `plan.md` 승인이 그 작업에서 사람을 부르는 유일한 지점이다. 코드는 쓰지 않는다. 계약서를 쓴 쪽과 그것을 실행하는 쪽이 달라야 proofer 의 "스펙 준수 먼저" 가 대조할 문서를 갖는다 |
+| **crafter** (Claude Code 서브에이전트) | `agent-contract` | 작업 항목의 한 단계를 프레임에 맞춰 만들거나, 회차 기록 하나를 놓고 수정을 한 번 돈다. 첫 단계에서 `implement` 를 열고, 기록을 쓰기 전에 `writing-style` 을 연다. 돌려주는 보고에는 주장마다 `executed`·`read`·`unverified` 를 붙이고, 전체 스위트는 `unverified` 로 두고 누가 답할지 적는다 |
+| **proofer** (서브에이전트) | `agent-contract` | 스펙 준수를 먼저 보고 그다음 품질을 본다. 첫 단계에서 `code-review` 를 열고, 회차 기록을 쓰기 전에 `writing-style` 을 연다. 오케스트레이터가 회차 기록을 검증한 뒤에 그에 따라 움직이고, pull request 검사가 그 기록을 읽는다. 리뷰어가 자기 보고를 직접 검증하지는 않는다 |
+| **tracer** (서브에이전트) | `agent-contract` | 원본 코드가 실제로 하는 일을 `경로#앵커` 좌표로 기록하고, 판정이 아니라 사실만 돌려준다. 첫 단계에서 `legacy-parity` 를 연다. `seal/parity.md` 를 선언한 레포에서만 등장한다 |
+| **sealer** (서브에이전트, Opus) | `agent-contract` | 마지막에 독립적으로 보증하는 쪽이다. 회차가 끝나고 PR 본문과 changelog 가 쓰이고 오케스트레이터가 광역 관문을 한 번 돌린 뒤(`seal gate` 가 `trail/gate.md` 를 쓴다), 그 기록을 읽는다. 광역 검사는 직접 돌리지 않는다. 구현자가 실행했다고 적은 주장 가운데 일부를 다시 돌려 보고, 설계·구현·마지막 리뷰·changelog·PR 본문을 이슈와 실제 트리에 견주어 읽는다. 판정은 작업 항목의 `guarantee.md` 에 남는다. `sealed`, 트리와 어긋난 곳을 짚은 `withheld`, 또는 소유자에게 넘기는 질문을 단 `undecided` 셋 중 하나다. 설계나 코드 품질을 다시 판정하지는 않는다 |
 | 스킬 | — | 스물두 개이고 세 묶음이다. 에이전트가 첫 도구 호출 전부터 따르는 한 개는 왼쪽 열에 있다. 열다섯 개는 작업이 그것을 요구할 때 세션이 알아서 로드하고, 에이전트는 그중 자기 단계가 가리키는 것을 그 단계에서 연다 — `audit`, `build-fix`, `checkpoint`, `code-review`, `commit-pr-convention`, `confidence-check`, `debug`, `feature-planner`, `gap-analysis`, `implement`, `learn`, `legacy-parity`, `settle`, `verify`, `writing-style`. 나머지 여섯은 사용자가 이름을 불러야 움직이며 아래 치트시트에 있다 |
 | 훅 | — | 게이트 그 자체. 플러그인이 자동으로 등록하므로 설정을 따로 만질 필요가 없다 |
 | CLAUDE.md 블록 | — | 늘 로드되는 12줄 — 절 제목 넷(`Tooling`·`Safety`·`Session cost`·`Git`)에 규칙 여덟이다. 툴링 하나, 안전 셋, 세션 비용 하나, git 셋. 응답 언어 규칙은 없다. 그것은 사용자 몫이다. 정본은 `templates/claude-md-block.md` 하나이고, `install.sh` 와 `/agentic:update` 가 이것을 `CLAUDE.md` 에 써 넣는다. 사본을 따로 두는 파일은 없다 |
@@ -47,9 +47,9 @@ Claude Code **플러그인**으로 배포됩니다. 인계 규약과 `seal rules
 ## 체인
 
 ```
-smith 가 만든다 → verify (좁게) → warden 이 리뷰한다 → 사용자에게 보고
-      ↑                                                    │
-      └──── 다시 만들기 ↔ 재리뷰, 1~n 회차 ───────────────┘
+crafter 가 만든다 → verify (좁게) → proofer 가 리뷰한다 → 사용자에게 보고
+      ↑                                                       │
+      └──── 다시 만들기 ↔ 재리뷰, 1~n 회차 ──────────────────┘
                           │ 회차 종결
                           ▼
     오케스트레이터 → 광역 관문 — 전 스위트·lint·타입체크, 한 번
@@ -58,7 +58,7 @@ smith 가 만든다 → verify (좁게) → warden 이 리뷰한다 → 사용�
         base 에서도 실패 → follow-up 으로 이름 붙이고 막지 않는다
         new? → base 에서 재지 못했다. 둘 중 하나로 부르기 전에 base 에서 돌려 본다
                           ▼
-    sealer 가 broad-gate.md 를 읽는다 → guarantee.md
+    sealer 가 trail/gate.md 를 읽는다 → guarantee.md
                           ▼
                        PR / 커밋
 편집   → routing.md 가 가리키지 않는 브랜치면 편집 훅이 거부하고 갈 길을 알린다
@@ -68,15 +68,15 @@ smith 가 만든다 → verify (좁게) → warden 이 리뷰한다 → 사용�
 **광역 검사는 리뷰 회차가 끝난 뒤 한 번만 돕니다.** 증거는 트리 상태에 묶이므로,
 회차 앞에서 돌린 전 스위트는 그 회차가 부르는 첫 수정에 깨집니다. 한 작업
 항목에서 실측한 결과 광역 실행 스무 번이 **전부** 이후 편집을 동반했고, 핸드오프까지
-살아남은 실행은 하나도 없었으며, 그 값이 세션 도구 시간의 절반을 넘었습니다. smith 는
+살아남은 실행은 하나도 없었으며, 그 값이 세션 도구 시간의 절반을 넘었습니다. crafter 는
 전 스위트를 `unverified` 로 표시해 넘깁니다. 범위를 좁히는 것이 정직할 수 있는 이유는
 표시를 생략하지 않기 때문입니다. 관문에서는 결과를 base 커밋과 대조합니다. 작업보다
 먼저 있던 실패는 쫓지 않고 follow-up 으로 이름을 붙이며, 그 실행과 PR 사이에는
 아무것도 편집하지 않습니다.
 
-`verify` 는 smith 가 일을 넘기기 전에 스스로 거치는 관문입니다. 검사를 돌리고 출력을
+`verify` 는 crafter 가 일을 넘기기 전에 스스로 거치는 관문입니다. 검사를 돌리고 출력을
 끝까지 읽은 뒤, 주장마다 실행했는지·읽기만 했는지·확인하지 못했는지를 표시합니다.
-warden 은 그 기록을 다시 돌리는 대신 감사합니다. 명령이 실제로 돌았는지, 그
+proofer 는 그 기록을 다시 돌리는 대신 감사합니다. 명령이 실제로 돌았는지, 그
 검사가 실패할 수 있는 것인지, 표시가 정직한지를 봅니다. 결론을 그대로 받는 것과는
 다르며, 코드는 그래도 직접 읽습니다. 나온 보고로 무엇을 할지는
 사용자가 정합니다. 리뷰에는 상한이 있습니다 — **지적을 찾는 회차는 기본이 세
@@ -93,12 +93,12 @@ warden 은 그 기록을 다시 돌리는 대신 감사합니다. 명령이 실�
 멈추면 끝난 일이 아무도 찾지 않는 곳에 남고, 머지하면 체인의 몫이 아닌 결정을 한
 것입니다. 그 PR 을 머지할지, 한 라운드 더 돌릴지, 닫을지는 사용자의 몫입니다.
 
-**warden 은 아무것도 모르는 상태에서 시작합니다.** 서브에이전트로 뜨므로 구현
-대화가 닿지 않고, 넘어가는 것은 글로 적힌 것뿐입니다. diff 와 스펙, 그리고
-작업 항목에 남은 라운드 기록입니다. 유일한 통로는 warden 을 띄우는 프롬프트라서,
-거기에 구현 근거가 실려 있으면 warden 은 그것을 증거가 아니라 작성자의 주장으로
+**proofer 는 아무것도 모르는 상태에서 시작합니다.** 서브에이전트로 뜨므로 구현
+대화가 닿지 않고, 넘어가는 것은 글로 적힌 것뿐입니다. diff 와 프레임, 그리고
+작업 항목에 남은 라운드 기록입니다. 유일한 통로는 proofer 를 띄우는 프롬프트라서,
+거기에 구현 근거가 실려 있으면 proofer 는 그것을 증거가 아니라 작성자의 주장으로
 다루고 제쳐 두었다는 사실을 보고에 적습니다. 통로 자체를 없애려면 새 세션을 열어
-거기서 `@agent-agentic:proofer` 을 부르면 됩니다. 회차 이력은 파일이라 어느
+거기서 `@agent-agentic:proofer` 를 부르면 됩니다. 회차 이력은 파일이라 어느
 쪽이든 그대로 이어집니다.
 
 ## 저장소에 남는 기억
@@ -119,13 +119,15 @@ seal/
 ├── parity.md         이관 설정, 선언했을 때만
 ├── pact.md           여러 저장소가 함께 지키는 계약(pact), 그것을 가진 저장소에만
 ├── follow-up.md      추적기가 없는 레포에서 일정을 잡을 수 있는 항목
-└── specs/<작업항목-id>/
+└── threads/<작업항목-id>/
     ├── routing.md    이 작업을 어느 길로 보낼지, 첫 수정 전에 적는다
-    ├── spec.md · plan.md · questions.md · overview.md
-    ├── rounds/
-    │   └── round-N.md    리뷰 회차 — 커밋해 두었다가 다 옮기고 나면 닫고 남긴다
-    ├── broad-gate.md     한 번의 전체 실행 — 어느 커밋에서, 어느 기준과 견주어
-    └── guarantee.md      sealer 의 판정 — 어느 커밋을 보고 내렸는지와 함께
+    ├── frame/design.md · frame/plan.md · frame/questions.md
+    ├── trail/phases/phase-N.md   빌드 단계 하나가 받은 일과 찾아낸 것
+    ├── trail/rounds/round-N.md   리뷰 회차 — 커밋해 두었다가 다 옮기고 나면 닫고 남긴다
+    ├── trail/gate.md             한 번의 전체 실행 — 어느 커밋에서, 어느 기준과 견주어
+    ├── changelog.md              다음 릴리스 노트에 들어갈 이 작업 항목의 항목
+    ├── gaps.md                   마무리 메모 — diff 로는 보이지 않는 것
+    └── guarantee.md              sealer 의 판정 — 어느 커밋을 보고 내렸는지와 함께
 ```
 
 판단 순서는 정책서가 있는 레포에서는 정책서 > SDD > 코드이고, 없으면 SDD >
@@ -215,7 +217,7 @@ version-check 는 `~/.claude/agentic/` 아래에 시각 파일을 씁니다.
 한 번 PyPI 에서 ruff 를 내려받습니다. version-check 는 이 저장소에 `git ls-remote
 --tags` 를 한 번 보냅니다. `seal/` 이 있는 곳에서 하루 한 번 돌고, 조회가
 실패하면 하루를 기다리지 않고 20분쯤 뒤에 다시 시도합니다. 이때 GitHub 이 알게
-되는 것은 어딘가의 기계가 SpecSeal 을 쓴다는 사실입니다.
+되는 것은 어딘가의 기계가 AgenticSeal 을 쓴다는 사실입니다.
 둘 다 네트워크가 없으면 조용히 넘어갑니다.
 
 일부러 읽는 것도 하나 있습니다. worktree-guard 가 브랜치 전환을 막을 때, 지금
@@ -227,7 +229,7 @@ version-check 는 `~/.claude/agentic/` 아래에 시각 파일을 씁니다.
 
 `seal/parity.md` 에 원본 저장소와 기준 커밋을 적어 두면 3자 판정을 쓸 수
 있습니다. 정책서와 원본, 신규 코드를 나란히 놓고 판정하며, 판단이 갈리면
-**원본을 보존하는 쪽**이 기본값입니다. 이때 scribe 가 원본이 실제로 어떻게
+**원본을 보존하는 쪽**이 기본값입니다. 이때 tracer 가 원본이 실제로 어떻게
 동작하는지 확인해 옵니다. 이 파일이 없는 레포에서는 이 기능이 아예
 나타나지 않습니다.
 
@@ -250,10 +252,10 @@ origin remote 를 키로 저장됩니다. 다른 기계에서는 틀린 값이�
 | 명령 | 역할 |
 |---|---|
 | `seal deferrals . [--kind all]` | `unverified` 로 미룰 때 적은 "누가 답하는가" 가 실재하는지 확인한다. PR 에서 도는 것 · 너무 늦게 도는 것 · 커밋하는 사람 기계에서만 도는 것 · 아무도 안 도는 것을 갈라 준다 |
-| `seal unverified . [--baseline <ref>]` | 그렇게 `unverified` 로 적어 둔 행을 다시 읽어 준다. 무엇이 어느 작업 항목에서 몇 건 열려 있고 누구에게 물어야 하는지를 찍는다. 절을 읽지 못하면 실패한다 — 너그럽게 읽으면 0건이 나오고, 0건은 "다 닫혔다"로 읽히기 때문이다. `--baseline` 을 주면 `git merge-base <ref> HEAD` 가 가리키는 커밋과 행 수를 견준다. 브랜치를 체크아웃해서 돌리면 그 커밋은 이 브랜치가 그 참조에서 갈라진 지점이고, PR 을 base 에 이미 병합한 상태로 체크아웃하는 CI 에서는 base 브랜치의 끝이다. 어느 쪽이든 이 브랜치를 딴 뒤에 base 쪽에 들어온 작업 항목은 이 브랜치가 지운 것으로 치지 않는다. 그 커밋보다 행이 줄었거나 `overview.md` 파일 자체가 없어졌으면 실패한다. 행 하나를 지우고 하나를 넣으면 수가 같아 통과한다 |
+| `seal unverified . [--baseline <ref>]` | 그렇게 `unverified` 로 적어 둔 행을 다시 읽어 준다. 무엇이 어느 작업 항목에서 몇 건 열려 있고 누구에게 물어야 하는지를 찍는다. 절을 읽지 못하면 실패한다 — 너그럽게 읽으면 0건이 나오고, 0건은 "다 닫혔다"로 읽히기 때문이다. `--baseline` 을 주면 `git merge-base <ref> HEAD` 가 가리키는 커밋과 행 수를 견준다. 브랜치를 체크아웃해서 돌리면 그 커밋은 이 브랜치가 그 참조에서 갈라진 지점이고, PR 을 base 에 이미 병합한 상태로 체크아웃하는 CI 에서는 base 브랜치의 끝이다. 어느 쪽이든 이 브랜치를 딴 뒤에 base 쪽에 들어온 작업 항목은 이 브랜치가 지운 것으로 치지 않는다. 그 커밋보다 행이 줄었거나 `gaps.md` 파일 자체가 없어졌으면 실패한다. 행 하나를 지우고 하나를 넣으면 수가 같아 통과한다 |
 | `seal cost --latest` | 세션의 시간이 어디로 갔는지 — 명령 실행, 호출 사이 모델 대기, 이미 나온 결과를 다시 보려고 재실행한 검사, 한 턴에 나간 도구 수. 세션 안에서는 잴 수 없는 값입니다 |
-| `seal cost --segments <트랜스크립트>` | 그 실행이 스폰한 에이전트마다 한 행씩, 각자의 트랜스크립트에서 읽어 찍습니다 — 걸린 시간, 호출 수, 한 턴에 나간 도구 수, 평균 대기, 토큰, 그리고 가장 큰 턴 하나가 읽은 컨텍스트. 이 "걸린 시간"은 다른 어느 칸에도 없습니다. 스폰을 받아들인 시점에 결과를 적는 하네스에서는 `--spawns` 표의 값이 몇 초로 나오는데, 정작 그 에이전트는 이십 분을 돌았기 때문입니다. 중간에 코디네이터가 다시 말을 건 에이전트는 일한 구간마다 한 행으로 갈라서, 두 구간 사이의 대기가 어느 행에도 들어가지 않게 합니다. 실행 전체의 트랜스크립트를 주든 그 에이전트 자신의 트랜스크립트를 주든 똑같이 가릅니다. 에이전트가 또 다른 에이전트를 스폰했으면 그 사실도 한 줄로 찍습니다. 표 아래에는 한 턴에 나간 도구 수가 그 종류의 기준선에 못 미치는 행을 이름으로 찍습니다. 기준선은 warden 과 framer 에만 있고, 편집과 테스트를 번갈아 하는 smith 는 대상이 아닙니다. 기준선이 없어 판정하지 못한 행은 그 수를 함께 찍습니다 |
-| `seal settle [--apply]` | 플래그 없이 돌리면 미리 보기만 합니다. 릴리스된 spec 들의 `## Rule changes` 를 가리키는 절별로 묶어 병합 순서대로 보여 주고, 각 `from` 과 `to` 가 지금 그 절에 있는지 함께 찍습니다. 통째로 읽어야 할 spec, 릴리스된 기록마다 열린 행 전부, `--apply` 가 지울 것도 찍습니다. 아무것도 거부하지 않습니다. 그다음 settle 을 돌리는 세션이 절을 쓰고 열린 행을 판정하며, 누구에게도 묻지 않습니다(`skills/settle/SKILL.md` *The settling session's procedure*). `--apply` 는 문서를 쓰지 않습니다. 기록에 열린 행이 없는 릴리스된 디렉터리를 `spec.md` 가 있든 없든 지우고, 남긴 디렉터리는 이름을 찍습니다 |
+| `seal cost --segments <트랜스크립트>` | 그 실행이 스폰한 에이전트마다 한 행씩, 각자의 트랜스크립트에서 읽어 찍습니다 — 걸린 시간, 호출 수, 한 턴에 나간 도구 수, 평균 대기, 토큰, 그리고 가장 큰 턴 하나가 읽은 컨텍스트. 이 "걸린 시간"은 다른 어느 칸에도 없습니다. 스폰을 받아들인 시점에 결과를 적는 하네스에서는 `--spawns` 표의 값이 몇 초로 나오는데, 정작 그 에이전트는 이십 분을 돌았기 때문입니다. 중간에 코디네이터가 다시 말을 건 에이전트는 일한 구간마다 한 행으로 갈라서, 두 구간 사이의 대기가 어느 행에도 들어가지 않게 합니다. 실행 전체의 트랜스크립트를 주든 그 에이전트 자신의 트랜스크립트를 주든 똑같이 가릅니다. 에이전트가 또 다른 에이전트를 스폰했으면 그 사실도 한 줄로 찍습니다. 표 아래에는 한 턴에 나간 도구 수가 그 종류의 기준선에 못 미치는 행을 이름으로 찍습니다. 기준선은 proofer 와 framer 에만 있고, 편집과 테스트를 번갈아 하는 crafter 는 대상이 아닙니다. 기준선이 없어 판정하지 못한 행은 그 수를 함께 찍습니다 |
+| `seal settle [--apply]` | 플래그 없이 돌리면 미리 보기만 합니다. 릴리스된 spec 들의 `## Rule changes` 를 가리키는 절별로 묶어 병합 순서대로 보여 주고, 각 `from` 과 `to` 가 지금 그 절에 있는지 함께 찍습니다. 통째로 읽어야 할 spec, 릴리스된 기록마다 열린 행 전부, `--apply` 가 지울 것도 찍습니다. 아무것도 거부하지 않습니다. 그다음 settle 을 돌리는 세션이 절을 쓰고 열린 행을 판정하며, 누구에게도 묻지 않습니다(`skills/settle/SKILL.md` *The settling session's procedure*). `--apply` 는 문서를 쓰지 않습니다. 기록에 열린 행이 없는 릴리스된 디렉터리를 `frame/design.md` 가 있든 없든 지우고, 남긴 디렉터리는 이름을 찍습니다 |
 | `seal fold [--ceiling <n>]` | 정책 루트 최상위에서 한 번에 읽히는 크기와 색인을 확인합니다. 무엇을 어떻게 보는지는 `skills/settle/scripts/fold_check.py` 와 그 행을 적은 `templates/config.md` *The fold's values* 에 있습니다. 플래그는 그 실행에서만 행을 대신합니다 |
 | `seal rules <doc> [--root <dir>]` · `seal rules --check [--root <dir>]` | `seal rules <doc>` 는 문서의 제목마다 그 아래 `check:` 줄이 가리키는 테스트를 찍고, 테스트마다 docstring 의 첫 문장을 함께 보여 줍니다. 대상을 찾지 못하면 그 이유를 찍습니다. 규칙의 글은 그 docstring 한 곳에만 있으므로, 문서와 테스트를 나란히 읽을 때 이 명령을 씁니다. 무엇을 찾든 0 으로 끝납니다. `seal rules --check` 는 모든 규칙 파일의 check 줄을 전부 읽고, 문법을 벗어난 줄이나 사라진 대상이 하나라도 있으면 파일·줄·제목을 찍고 1 로 끝납니다. 테스트 하나가 저장소 전체에 대해 이 명령을 돌립니다. 대상은 명령을 친 저장소에서 찾고, 어느 쪽도 아무것도 쓰지 않습니다 |
 | `seal pact [ROOT]` | pact(여러 저장소가 함께 지키는 계약의 원본, `seal/pact.md`)를 가진 저장소에서 돌립니다. pact 가 적어 둔 signer(그 계약에 서명한 저장소)마다 `~/.claude/agentic/pact-paths.md` 나 옆 디렉터리에서 체크아웃을 찾고, 그 저장소의 `Pact` 행이 이 pact 를 가리키는지 확인한 뒤, 거기 적힌 pact 앵커를 하나씩 판정합니다. `SUPERSEDED` 는 signer 가 예전 조항을 보고 만들어졌다는 뜻이고, `NOT TAKEN` 은 pact 가 아직 받아들이지 않은 변경이 어느 브랜치에 있는지 알려 줍니다. `UNMATCHED` 와 `BROKEN` 은 양쪽을 읽거나 좌표를 다시 잡으라는 뜻입니다. 로컬에서만 돕니다. signer 의 CI 는 저장소 하나만 읽을 수 있으므로 관계를 찍기만 하고 아무것도 검증하지 않습니다 |
@@ -297,6 +299,27 @@ claude
 bash install.sh            # 대화형: 전역(~/.claude) 또는 프로젝트(./)
 bash install.sh --project  # 비대화형 프로젝트 범위
 ```
+
+### `specseal@specseal` 에서 오는 경우
+
+이름을 바꾸기 전에는 플러그인을 `specseal@specseal` 로 설치했습니다. Claude
+Code 는 마켓플레이스를 이름으로 알아보는데, 등록이 가리키는 카탈로그가 자기
+이름을 바꾸면 그 등록이 어떻게 되는지는 레퍼런스에 적혀 있지 않습니다. 그래서
+마켓플레이스를 새 이름으로 다시 등록합니다.
+
+```bash
+claude plugin marketplace remove specseal
+claude plugin marketplace add MichaelYcJo/AgenticSeal
+claude plugin install agentic@agenticseal
+```
+
+첫 줄은 `specseal@specseal` 도 함께 지우고 그 캐시도 지웁니다
+(`code.claude.com/docs/en/plugins/cli-reference.md` *plugin marketplace
+remove*). 그다음 `bash install.sh` 를 다시 돌리거나 `/agentic:preset-setup` 을
+실행해, CLAUDE.md 블록이 새 표시와 새 접두사를 갖게 합니다. 옛 설치본의 업데이트
+명령은 옛 이름으로 돌기 때문에 새 이름으로 넘어가게 해 주지 못합니다. 이 세 줄은
+Claude Code 레퍼런스에서 읽은 것이고, 옛 설치본이 있는 기기에서 돌려 본 적은
+없습니다.
 
 ### 업데이트
 
@@ -347,7 +370,7 @@ claude plugin update agentic@agenticseal   # 그다음 적용 — 위 문단 참
 
 `specs/` 에서 옮기는 것은 플러그인이 만든 작업 항목뿐입니다.
 `<unix-seconds>-<slug>` 이름의 디렉터리 가운데 바로 아래에 git 이 추적하는
-`routing.md` 나 `rounds/` 아래 파일이 있는 것만 옮깁니다. 0.3.x 의 작업
+`routing.md` 나 `rounds` 디렉터리 아래 파일이 있는 것만 옮깁니다. 0.3.x 의 작업
 항목은 모두 `routing.md` 를 가지고 있었습니다. 그 밖에 `specs/` 아래 있는
 것은 이름이 무엇이든 프로젝트 자신의 것이므로 그 자리에 둡니다.
 
@@ -358,16 +381,20 @@ claude plugin update agentic@agenticseal   # 그다음 적용 — 위 문단 참
 `.git/agentic-scratch` 입니다.
 
 ```bash
+# exempt from old_names: 0.22.x 의 배치이고, 그 뒤 플러그인이 seal/threads/ 로 옮긴다
 mkdir -p seal/specs
 git mv .specseal/README.md seal/README.md    # 그다음 templates/seal-README.md 로 덮어쓴다
 git mv .specseal/* seal/                     # follow-up.md, parity.md 와 그 안의 나머지 모두
+# exempt from old_names: 0.22.x 의 배치이고, 그 뒤 플러그인이 seal/threads/ 로 옮긴다
 git mv specs/<id> seal/specs/<id>            # 작업 항목마다
 rmdir .specseal specs                        # git mv 는 빈 디렉터리를 디스크에 남긴다. 다른 것이 든 쪽은 남는다
 ```
 
 그다음 `git diff --cached` 를 보고 커밋합니다. 이 커밋은 어느 작업 항목에도
 속하지 않으므로, shared 모드에서 세션이 커밋할 때는 트레일러
-`Seal-Routing: no work item` 으로 끝냅니다.
+`Seal-Routing: no work item` 으로 끝냅니다. 그 뒤 플러그인이 이름을 바꾸기
+전에 설치한 레포를 옮길 때와 같이 작업 항목마다 `seal/threads/<id>/` 로
+옮기고, 그것도 스테이징된 `git mv` 이므로 같은 방법으로 보고 커밋합니다.
 
 ## 처음 실행
 
@@ -401,7 +428,7 @@ ruff 를 설정한다는 것이 그 프로젝트가 ruff 를 원한다는 뜻이
 > agentic:crafter 에이전트로 <티켓> 구현해줘
 ```
 
-smith 는 스펙 체인을 읽고 구현한 뒤 검증까지 마치고, 리뷰는 warden 에게
+crafter 는 스펙 체인을 읽고 구현한 뒤 검증까지 마치고, 리뷰는 proofer 에게
 넘깁니다. 나온 리포트를 어떻게 할지는 사용자가 정합니다. 고칠 수도, 다시
 리뷰를 돌릴 수도, 그대로 커밋할 수도 있습니다.
 
@@ -601,9 +628,9 @@ local 로 바꾸는 `mv` 명령을 알려 줍니다. 릴리스마다 한 번,
   통과로 읽히고, `check: none reader: <읽는 사람>` 으로 적은 규칙은 그 읽는
   사람만 지킵니다.
 - **"광역은 한 번" 은 에이전트가 따르는 규칙이지 게이트가 아닙니다.** 회차 도중에 전
-  스위트를 도는 것을 막는 장치는 없습니다. 있는 것은 지시문과 smith 가 붙인 라벨을
-  warden 이 확인하는 일,
-  그리고 되풀이를 눈에 띄게 만드는 `broad-gate.md` 뿐입니다. 애초에 훅으로는
+  스위트를 도는 것을 막는 장치는 없습니다. 있는 것은 지시문과 crafter 가 붙인 라벨을
+  proofer 가 확인하는 일,
+  그리고 되풀이를 눈에 띄게 만드는 `trail/gate.md` 뿐입니다. 애초에 훅으로는
   구분할 수 없습니다 — 회차가 끝났는지는 실행되는 명령의 속성이 아니니까요.
 - **아무도 읽지 않은 마지막 수정은 한 자리에서만 막힙니다.** 마지막 회차 기록의
   `target:` 커밋 뒤에 커밋이 있으면 리뷰 준비가 된 PR 이 깨집니다. 초안 PR 에서는

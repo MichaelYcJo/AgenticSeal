@@ -502,10 +502,10 @@ def orchestrator(tmp_path):
     and that dropping the spawn from the walk would shorten."""
     lines = []
     lines += call("a", 0, 10, "git status --short")
-    lines += call("b", 15, 18, "cat seal/specs/x/plan.md")
+    lines += call("b", 15, 18, "cat seal/threads/x/frame/plan.md")
     lines += spawn("A", 25, 625, "agentic:crafter", "Build phase 1")
     lines += call("c", 640, 643, "git log --oneline -5")
-    lines += call("d", 650, 651, "cat seal/specs/x/spec.md")
+    lines += call("d", 650, 651, "cat seal/threads/x/frame/design.md")
     lines += spawn("B", 660, 1860, "agentic:proofer", "Review round 1")
     lines += call("e", 1870, 1880, "./bin/test tests/test_x.py -q")
     path = tmp_path / "orchestrator.jsonl"
@@ -583,8 +583,8 @@ def run_with_segments(tmp_path):
     """Two spawns and a transcript for each, opening at its own spawn's
     result stamp — the join's measured shape.
 
-    smith  spawned at 25, accepted at 625; its file holds two calls, 625-641
-    warden spawned at 660, accepted at 1860; its file holds one call
+    crafter  spawned at 25, accepted at 625; its file holds two calls, 625-641
+    proofer spawned at 660, accepted at 1860; its file holds one call
 
     The two segments hold different call counts on purpose: a reading taken
     from the PARENT's columns cannot tell them apart, and one taken from each
@@ -598,12 +598,12 @@ def run_with_segments(tmp_path):
         tmp_path,
         main,
         {
-            "agent-smith.jsonl": [
+            "agent-crafter.jsonl": [
                 *worked(625, "s1", "./bin/test tests/test_x.py -q", output=700),
                 *worked(640, "s2", "ruff check .", cache_write=300),
             ],
-            "agent-warden.jsonl": [
-                *worked(1860, "w1", "cat docs/spec.md", cache_read=40)
+            "agent-proofer.jsonl": [
+                *worked(1860, "w1", "cat docs/design.md", cache_read=40)
             ],
         },
     )
@@ -677,7 +677,7 @@ def grade_lines(out):
 
 
 # 15 calls over 14 turns, 1.07; three single calls, 1.00.
-UNDER_WARDEN = [1] * 13 + [2]
+UNDER_PROOFER = [1] * 13 + [2]
 
 
 SINGLES = [1, 1, 1]
@@ -731,7 +731,7 @@ def resumed_segment(tmp_path):
         tmp_path,
         main,
         {
-            "agent-smith.jsonl": [
+            "agent-crafter.jsonl": [
                 *worked(625, "s1", "./bin/test tests/test_x.py -q", output=500),
                 *worked(640, "s2", "ruff check ."),
                 coordinator_message(9000),
@@ -767,7 +767,7 @@ def segment_that_spawned(tmp_path):
         tmp_path,
         main,
         {
-            "agent-smith.jsonl": [
+            "agent-crafter.jsonl": [
                 *worked(625, "s1"),
                 *spawn("N", 700, 900, "general-purpose", "search the tree"),
                 *worked(910, "s2"),
@@ -787,7 +787,7 @@ def segment_that_spawned(tmp_path):
 # marker-less file keeps the empty branch byte for byte.
 
 
-def own_file(run_path, name="agent-smith.jsonl"):
+def own_file(run_path, name="agent-crafter.jsonl"):
     """The agent's own transcript inside a run `write_run` laid out."""
     return run_path.parent / "main" / "subagents" / name
 
@@ -2657,7 +2657,7 @@ class Test_main:
         Keeping the first row summed however much had been emitted when that row
         was written. Measured over the 180 transcripts on the machine that found
         it: 9,098 of 13,425 messages are split, and the reported `output` was
-        4,976,637 where the completed rows give 8,683,844. One warden segment
+        4,976,637 where the completed rows give 8,683,844. One proofer segment
         read as **62 output tokens across 20 turns** against a real 34,441.
 
         A single-row fixture cannot tell the two behaviours apart, which is why
@@ -2871,7 +2871,7 @@ class Test_main:
     def test_the_framing_and_the_closing_work_are_each_their_own_row(
         self, orchestrator
     ):
-        """`spec.md`: the work outside any cycle is reported rather than dropped.
+        """`frame/design.md`: the work outside any cycle is reported rather than dropped.
 
         The head is the two framing calls before the first spawn went out and the
         tail is the one call after the last spawn's result — the closing work,
@@ -3294,7 +3294,7 @@ class Test_main:
         lines += spawn("A", 5, 7, "agentic:crafter")
         # 300s of silence: the agent running, well under the 900s ceiling.
         lines += call("b", 307, 310, "git log --oneline -5")
-        lines += call("c", 315, 317, "cat seal/specs/x/spec.md")
+        lines += call("c", 315, 317, "cat seal/threads/x/frame/design.md")
         path = tmp_path / "accepted.jsonl"
         path.write_text("\n".join(lines) + "\n", encoding="utf-8")
         rows = spawns_of(path)["rows"]
@@ -3497,12 +3497,14 @@ class Test_main:
             "agentic:proofer",
         ], segments["rows"]
         assert all(row["named"] for row in segments["rows"]), segments["rows"]
-        # Read from each segment's own file: the smith's holds two calls over
-        # 625-641, the warden's one. Neither number is in the parent transcript.
-        smith, warden = segments["rows"]
-        assert (smith["numbers"]["calls"], smith["numbers"]["span_s"]) == (2, 16), smith
-        assert (warden["numbers"]["calls"], warden["numbers"]["span_s"]) == (1, 1), (
-            warden
+        # Read from each segment's own file: the crafter's holds two calls over
+        # 625-641, the proofer's one. Neither number is in the parent transcript.
+        crafter, proofer = segments["rows"]
+        assert (crafter["numbers"]["calls"], crafter["numbers"]["span_s"]) == (2, 16), (
+            crafter
+        )
+        assert (proofer["numbers"]["calls"], proofer["numbers"]["span_s"]) == (1, 1), (
+            proofer
         )
 
     def test_a_segments_tokens_are_its_own_file_and_not_the_runs(
@@ -3546,7 +3548,7 @@ class Test_main:
         self, tmp_path
     ):
         """A subagent of a subagent has no `Agent` call in the parent at all, so
-        no stamp can name it. `spec.md`: it gets a row and the count says how
+        no stamp can name it. `frame/design.md`: it gets a row and the count says how
         many there were — a smaller answer rather than none, which is the
         direction `tool_name` and `count` already take."""
         main = call("a", 0, 10, "git status --short") + spawn(
@@ -3556,7 +3558,7 @@ class Test_main:
             tmp_path,
             main,
             {
-                "agent-smith.jsonl": worked(625, "s1"),
+                "agent-crafter.jsonl": worked(625, "s1"),
                 "inner/agent-deep.jsonl": worked(700, "d1"),
             },
         )
@@ -3627,8 +3629,8 @@ class Test_main:
         for header in ("span", "calls", "t/turn", "gap", "tokens"):
             assert header in out, (header, out)
         # 16s and 1s, printed by `minutes` at one decimal, and each segment's own
-        # token spend: 700 output + 300 cache write for the smith, 40 cache read
-        # for the warden. A column pinned only at zero is a column that could be
+        # token spend: 700 output + 300 cache write for the crafter, 40 cache read
+        # for the proofer. A column pinned only at zero is a column that could be
         # printing anything.
         assert re.search(
             r"^  agentic:crafter\s+0\.3m\s+2\s+[\d.]+\s+\d+s\s+1,000\s+300$", out, re.M
@@ -3670,7 +3672,7 @@ class Test_main:
             tmp_path,
             main,
             {
-                "agent-smith.jsonl": worked(625, "s1"),
+                "agent-crafter.jsonl": worked(625, "s1"),
                 "inner/agent-deep.jsonl": worked(700, "d1"),
             },
         )
@@ -3767,14 +3769,14 @@ class Test_main:
         assert "named by nobody" not in spawns, spawns
         assert "2 spawns found" in spawns, spawns
 
-    def test_a_warden_row_under_its_bar_is_named_with_the_bar(self, tmp_path):
+    def test_a_proofer_row_under_its_bar_is_named_with_the_bar(self, tmp_path):
         """S4. The ratio, the kind's bar and the protocol's name for the kind, on
         one line a reader can post. The prefixed name and the bare one are one
         kind, so a framer spawned as `framer` is graded the way
         `agentic:framer` would be."""
         out = segment_report(
             graded_run(
-                tmp_path, [("agentic:proofer", UNDER_WARDEN), ("framer", SINGLES)]
+                tmp_path, [("agentic:proofer", UNDER_PROOFER), ("framer", SINGLES)]
             )
         )
         assert grade_lines(out) == [
@@ -3793,13 +3795,13 @@ class Test_main:
             "agentic:framer 1.33 tools per turn against the framing bar of 1.4"
         ], out
 
-    def test_a_smith_row_is_never_graded_and_the_page_says_why(self, tmp_path):
+    def test_a_crafter_row_is_never_graded_and_the_page_says_why(self, tmp_path):
         """S6. An edit-test loop is serial, and the protocol judges it on
-        `repeats = 0` and never on tools per turn. A smith at the floor beside a
-        warden under its bar: the warden is named and the smiths are not.
+        `repeats = 0` and never on tools per turn. A crafter at the floor beside a
+        proofer under its bar: the proofer is named and the crafters are not.
 
-        Two smiths, one of them bare, because with one smith and one warden the
-        mutation pass found that counting the WARDEN as exempt instead gives the
+        Two crafters, one of them bare, because with one crafter and one proofer the
+        mutation pass found that counting the PROOFER as exempt instead gives the
         same three numbers."""
         out = segment_report(
             graded_run(
@@ -3807,7 +3809,7 @@ class Test_main:
                 [
                     ("agentic:crafter", SINGLES),
                     ("crafter", SINGLES),
-                    ("agentic:proofer", UNDER_WARDEN),
+                    ("agentic:proofer", UNDER_PROOFER),
                 ],
             )
         )
@@ -3860,11 +3862,11 @@ class Test_main:
 
     def test_a_row_with_no_kind_is_counted_as_ungraded(self, tmp_path):
         """S8. A kind the table does not know, and a row the parent could not
-        name. Neither is named under a bar, the warden beside them still is, and
+        name. Neither is named under a bar, the proofer beside them still is, and
         the ungraded count holds both -- the counted silence rather than the
         silent one."""
         path = graded_run(
-            tmp_path, [("agentic:tracer", SINGLES), ("agentic:proofer", UNDER_WARDEN)]
+            tmp_path, [("agentic:tracer", SINGLES), ("agentic:proofer", UNDER_PROOFER)]
         )
         deep = tmp_path / "main" / "subagents" / "inner" / "agent-deep.jsonl"
         deep.parent.mkdir(parents=True)
@@ -3884,7 +3886,7 @@ class Test_main:
         ], rows
 
     def test_a_row_with_no_paired_call_is_ungraded(self, tmp_path):
-        """S8, the fourth shape. A warden segment that read and thought and
+        """S8, the fourth shape. A proofer segment that read and thought and
         called nothing has a kind and a bar and no ratio, so there is nothing to
         hold against the bar; it is counted as ungraded, never as meeting it."""
         main = call("a", 0, 10, "git status --short") + spawn(
@@ -3952,7 +3954,7 @@ class Test_main:
         """S10. The grade is the segments page's alone. The plain reading of the
         same run keeps its own advisory and gains nothing, and `--spawns` gains
         nothing."""
-        path = graded_run(tmp_path, [("agentic:proofer", UNDER_WARDEN)])
+        path = graded_run(tmp_path, [("agentic:proofer", UNDER_PROOFER)])
         for args in ([str(path)], ["--spawns", str(path)]):
             out = run(args).stdout
             assert "against each kind's bar" not in out, (args, out)
@@ -3966,7 +3968,7 @@ class Test_main:
             tmp_path,
             [
                 ("agentic:crafter", SINGLES),
-                ("proofer", UNDER_WARDEN),
+                ("proofer", UNDER_PROOFER),
                 ("agentic:framer", [2, 2]),
             ],
         )
@@ -4043,7 +4045,7 @@ class Test_main:
             tmp_path,
             main,
             {
-                "agent-smith.jsonl": [
+                "agent-crafter.jsonl": [
                     *worked(625, "s1"),
                     *spawn("N", 700, 701, "general-purpose", "search the tree"),
                 ],
@@ -4091,7 +4093,7 @@ class Test_main:
             tmp_path,
             main,
             {
-                "agent-smith.jsonl": [
+                "agent-crafter.jsonl": [
                     *worked(625, "s1", "./bin/test tests/test_x.py -q"),
                     *worked(2000, "s2", "ruff check ."),
                 ]
@@ -4135,7 +4137,7 @@ class Test_main:
             tmp_path,
             main,
             {
-                "agent-smith.jsonl": [
+                "agent-crafter.jsonl": [
                     *worked(625, "s1"),
                     coordinator_message(9000),
                     coordinator_message(9005),
@@ -4172,7 +4174,7 @@ class Test_main:
             tmp_path,
             main,
             {
-                "agent-smith.jsonl": [
+                "agent-crafter.jsonl": [
                     coordinator_message(625),
                     *worked(626, "s1", "./bin/test tests/test_x.py -q", output=500),
                     *worked(640, "s2", "ruff check ."),
@@ -4204,7 +4206,7 @@ class Test_main:
             tmp_path,
             main,
             {
-                "agent-smith.jsonl": [
+                "agent-crafter.jsonl": [
                     spend(625, message_id="thought", output=100),
                     coordinator_message(9000),
                     spend(9010, message_id="thought-2", output=200),
@@ -4254,12 +4256,12 @@ class Test_main:
             tmp_path,
             main,
             {
-                "agent-smith.jsonl": [
+                "agent-crafter.jsonl": [
                     *worked(625, "s1"),
                     coordinator_message(9000),
                     *worked(9010, "s2"),
                 ],
-                "agent-warden.jsonl": [
+                "agent-proofer.jsonl": [
                     *worked(1200, "w1"),
                     coordinator_message(9500),
                     *worked(9510, "w2"),
@@ -4282,8 +4284,8 @@ class Test_main:
             tmp_path,
             main,
             {
-                "agent-smith.jsonl": [*worked(625, "s1"), *worked(2000, "s2")],
-                "agent-warden.jsonl": [*worked(1200, "w1"), *worked(4000, "w2")],
+                "agent-crafter.jsonl": [*worked(625, "s1"), *worked(2000, "s2")],
+                "agent-proofer.jsonl": [*worked(1200, "w1"), *worked(4000, "w2")],
             },
         )
         out = " ".join(segment_report(path).split())
@@ -4371,7 +4373,7 @@ class Test_main:
             tmp_path,
             main,
             {
-                "agent-smith.jsonl": [
+                "agent-crafter.jsonl": [
                     *worked(625, "s1"),
                     *spawn("N", 700, 900, "general-purpose", "search the tree"),
                 ]
@@ -4410,7 +4412,7 @@ class Test_main:
             tmp_path,
             main,
             {
-                "agent-smith.jsonl": worked(625, "s1"),
+                "agent-crafter.jsonl": worked(625, "s1"),
                 "agent-stampless.jsonl": [stampless, "{ not json", ""],
             },
         )
@@ -4438,7 +4440,7 @@ class Test_main:
             tmp_path,
             main,
             {
-                "agent-smith.jsonl": [
+                "agent-crafter.jsonl": [
                     *worked(625, "s1"),
                     coordinator_message(9000),
                     *worked(9010, "s2"),
@@ -4466,8 +4468,8 @@ class Test_main:
         spans = [row["numbers"]["span_s"] for row in rows]
         assert sum(spans) < plain_of(path)["span_s"] / 100, spans
         out = segment_report(path)
-        assert "agent-smith.jsonl  1/2" in out, out
-        assert "agent-smith.jsonl  2/2" in out, out
+        assert "agent-crafter.jsonl  1/2" in out, out
+        assert "agent-crafter.jsonl  2/2" in out, out
         assert "0 segments found" not in out, out
 
     def test_an_own_file_with_three_stretches_is_three_rows(self, tmp_path):
@@ -4477,7 +4479,7 @@ class Test_main:
             tmp_path,
             call("a", 0, 10, "git status --short"),
             {
-                "agent-smith.jsonl": [
+                "agent-crafter.jsonl": [
                     *worked(625, "s1"),
                     coordinator_message(9000),
                     *worked(9010, "s2"),
@@ -4505,7 +4507,7 @@ class Test_main:
             tmp_path,
             call("a", 0, 10, "git status --short"),
             {
-                "agent-smith.jsonl": [
+                "agent-crafter.jsonl": [
                     *worked(625, "s1"),
                     coordinator_message(9000),
                     coordinator_message(9005),
@@ -4549,7 +4551,7 @@ class Test_main:
         path = write_run(
             tmp_path,
             call("a", 0, 10, "git status --short"),
-            {"agent-smith.jsonl": [*worked(625, "s1"), *worked(640, "s2")]},
+            {"agent-crafter.jsonl": [*worked(625, "s1"), *worked(640, "s2")]},
         )
         own = own_file(path)
         assert segments_of(own) == {
@@ -4604,7 +4606,7 @@ class Test_main:
             tmp_path,
             call("a", 0, 10, "git status --short"),
             {
-                "agent-smith.jsonl": [
+                "agent-crafter.jsonl": [
                     *worked(625, "s1"),
                     coordinator_message(9000),
                     *worked(9010, "s2"),
@@ -4613,7 +4615,7 @@ class Test_main:
             },
         )
         out = " ".join(segment_report(own_file(path)).split())
-        assert "agent-smith.jsonl 2/2 made 1 `Agent` call" in out, out
+        assert "agent-crafter.jsonl 2/2 made 1 `Agent` call" in out, out
         assert "Contract rule 6 binds the agents this plugin spawns" in out, out
         assert "inside a segment, against" not in out, out
         assert "agree" not in out, out
@@ -4627,7 +4629,7 @@ class Test_main:
         assert segments["own_file"] is True, segments
         assert (segments["transcripts"], segments["unnamed"]) == (0, 0), segments
         assert [row["transcript"] for row in segments["rows"]] == [
-            "agent-smith.jsonl"
+            "agent-crafter.jsonl"
         ] * 2, segments["rows"]
         assert not any(row["named"] for row in segments["rows"]), segments["rows"]
         assert "own_file" not in segments_of(resumed_segment), "walked run"
@@ -4647,7 +4649,7 @@ class Test_main:
             coordinator_message(15),
             *spawn("A", 25, 625, "agentic:crafter", "Build phase 1"),
         ]
-        path = write_run(tmp_path, main, {"agent-smith.jsonl": worked(625, "s1")})
+        path = write_run(tmp_path, main, {"agent-crafter.jsonl": worked(625, "s1")})
         segments = segments_of(path)
         assert "own_file" not in segments, segments
         assert [row["agent"] for row in segments["rows"]] == ["agentic:crafter"], (
@@ -4689,7 +4691,7 @@ class Test_main:
             tmp_path,
             call("a", 0, 10, "git status --short"),
             {
-                "agent-smith.jsonl": [
+                "agent-crafter.jsonl": [
                     *worked(625, "s1"),
                     coordinator_message(9000),
                     coordinator_message(9005),
@@ -4712,7 +4714,7 @@ class Test_main:
         walked = write_run(
             marked,
             [*call("a", 0, 10, "git status --short"), coordinator_message(15)],
-            {"agent-smith.jsonl": worked(625, "s1")},
+            {"agent-crafter.jsonl": worked(625, "s1")},
         )
         for path in (
             run_with_segments,
@@ -4734,7 +4736,7 @@ class Test_main:
             tmp_path,
             call("a", 0, 10, "git status --short"),
             {
-                "agent-smith.jsonl": [
+                "agent-crafter.jsonl": [
                     *worked(625, "s1"),
                     *worked(640, "s2"),
                     coordinator_message(9000),
@@ -4756,7 +4758,7 @@ class Test_main:
             tmp_path,
             call("a", 0, 10, "git status --short"),
             {
-                "agent-smith.jsonl": [
+                "agent-crafter.jsonl": [
                     coordinator_message(600),
                     *worked(625, "s1"),
                     *worked(640, "s2"),
@@ -5056,7 +5058,7 @@ class Test_emit:
         self, monkeypatch, capsys, tmp_path, transcript
     ):
         """Round 1's second finding. The invariant is that the numbers are the
-        script's and the sentence is not, and `spec.md` *Scope* states it as *it
+        script's and the sentence is not, and `frame/design.md` *Scope* states it as *it
         refuses to post without a reading* — not without the flag. Enforced
         against the missing flag alone, a `--says` naming an empty file posts a
         fence with nothing above it, which is the shape a session reaches by
@@ -6083,8 +6085,8 @@ class Test_largest_context:
     def test_accepts_a_segments_largest_turn_as_a_json_key_and_a_column(
         self, run_with_segments
     ):
-        """S1. The smith's file holds turns of 0 and 300 (a cache write), the
-        warden's one of 40 (a cache read). Each row carries its largest under
+        """S1. The crafter's file holds turns of 0 and 300 (a cache write), the
+        proofer's one of 40 (a cache read). Each row carries its largest under
         one key, and the page names the column and says what it reads."""
         rows = segments_of(run_with_segments)["rows"]
         assert [row["largest_context"] for row in rows] == [300, 40], rows
@@ -6157,7 +6159,7 @@ class Test_largest_context:
             call("a", 0, 10, "git status --short")
             + spawn("A", 25, 625, "agentic:crafter", "Build phase 1"),
             {
-                "agent-smith.jsonl": [
+                "agent-crafter.jsonl": [
                     *context_turn(625, "s1", cache_read_input_tokens=900),
                     *context_turn(640, "s2", cache_read_input_tokens=100),
                     coordinator_message(9000),
@@ -6173,7 +6175,7 @@ class Test_largest_context:
         """S3. A slice whose call was written with no `usage` block has no
         turn to read, so it carries None and prints a dash: a zero would read
         as a turn that sent nothing."""
-        path = tmp_path / "agent-smith.jsonl"
+        path = tmp_path / "agent-crafter.jsonl"
         lines = [
             *context_turn(625, "s1", cache_read_input_tokens=900),
             coordinator_message(9000),
@@ -6184,8 +6186,8 @@ class Test_largest_context:
         rows = segments_of(path)["rows"]
         assert [row["largest_context"] for row in rows] == [900, None], rows
         out = segment_report(path)
-        assert re.search(r"^  agent-smith\.jsonl  1/2\s.*\s900$", out, re.M), out
-        assert re.search(r"^  agent-smith\.jsonl  2/2\s.*\s—\s+—$", out, re.M), out
+        assert re.search(r"^  agent-crafter\.jsonl  1/2\s.*\s900$", out, re.M), out
+        assert re.search(r"^  agent-crafter\.jsonl  2/2\s.*\s—\s+—$", out, re.M), out
 
 
 class Test_module:
@@ -6294,7 +6296,7 @@ class Test_module:
         is fenced below it so the report's columns survive markdown."""
         module = _cost()
         body = module.comment_body(
-            "agent   span   calls\nsmith   19m    99", "it ran long"
+            "agent   span   calls\ncrafter   19m    99", "it ran long"
         )
         assert body.index("it ran long") < body.index("agent")
         assert "```" in body

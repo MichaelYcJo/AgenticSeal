@@ -67,7 +67,7 @@ PINS = {
     20: "A structure in the tree is a reference, not a constraint",
 }
 
-# The four rules #957 added (spec.md *Rules the rewrite states in place*).
+# The four rules #957 added (frame/design.md *Rules the rewrite states in place*).
 FOUR_RULES = (17, 18, 19, 20)
 
 # A contract citation is `contract rule <N>`, one number each. The contract

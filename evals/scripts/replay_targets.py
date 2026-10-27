@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Generate the warden's replay cases from round records.
+"""Generate the proofer's replay cases from round records.
 
 A replay case is a historical review target: the clone at the commit a
 round record reviewed and the base it was reviewed against. Its truth is
 every finding the round closed `fixed` that the next round confirmed
 closed, and every truth `recurred_truths.json` adds for the case or widens
 (`truths_with`, which the other two generators read too); each is a
-`truth-` grader over the `location:` lines of the round record the warden
+`truth-` grader over the `location:` lines of the round record the proofer
 writes today. A record comes in one of two shapes:
 
   labelled   0.22.0's record (`docs/the-review-record.md` *The round
@@ -26,7 +26,8 @@ writes today. A record comes in one of two shapes:
              numbered red or yellow row, and a green row naming it
 
 Round records come from the working tree and from the last two release
-tags (`git show <tag>:seal/specs/<id>/rounds/round-N.md`); `--case` reads
+tags (`git show <tag>:<the record's path>`, in the layout `RECORD` names);
+`--case` reads
 every release tag, so a committed case still regenerates after the release
 that moved its records out of the last two.
 
@@ -65,6 +66,9 @@ ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
 OUT = os.path.join(ROOT, "evals", "behaviour", "proofer")
 CHECK = os.path.join(ROOT, "skills", "code-review", "scripts", "chain_check.py")
 SHA = re.compile(r"[0-9a-f]{7,40}")
+# The layout every round record a committed case was cut from stands in:
+# each tag this reads was cut before the plugin was renamed AgenticSeal.
+# exempt from old_names: the 0.22.x layout of the records its cases come from
 RECORD = re.compile(r"seal/specs/(?P<item>[^/]+)/rounds/round-(?P<n>\d+)\.md")
 FINDING = re.compile(r"^(?P<marker>🔴|🟡) (?P<k>\d+)$")
 CONFIRMS = re.compile(
@@ -131,11 +135,13 @@ def records(tags, items=None):
         if not wanted(item) or not os.path.isdir(rounds):
             continue
         for name in sorted(os.listdir(rounds)):
+            # exempt from old_names: the 0.22.x layout of the records its cases come from
             m = RECORD.fullmatch(f"seal/specs/{item}/rounds/{name}")
             if m:
                 with open(os.path.join(rounds, name), encoding="utf-8") as f:
                     found[(item, int(m["n"]))] = f.read()
     for tag in tags:
+        # exempt from old_names: the 0.22.x layout of the records its cases come from
         for path in git("ls-tree", "-r", "--name-only", tag, "seal/specs").split("\n"):
             m = RECORD.fullmatch(path)
             key = (m["item"], int(m["n"])) if m else None
@@ -165,7 +171,7 @@ def record_reader():
     loaded once: the check and reader of a record no commit wrote
     (`checks_at`), and the reader `labelled` decides a record's shape
     with."""
-    check = load_check(CHECK, "specseal_chain_check")
+    check = load_check(CHECK, "agentic_chain_check")
     return check, check.SHARED_READER
 
 
@@ -214,7 +220,7 @@ def checks_at(at):
         for rel in CHECK_FILES
     )
     if blobs not in CHECKS:
-        held = tempfile.mkdtemp(prefix="specseal-replay-check-")
+        held = tempfile.mkdtemp(prefix="agentic-replay-check-")
         atexit.register(shutil.rmtree, held, True)
         for rel, blob in zip(CHECK_FILES, blobs, strict=True):
             if blob:
@@ -222,7 +228,7 @@ def checks_at(at):
                 os.makedirs(os.path.dirname(path), exist_ok=True)
                 with open(path, "w", encoding="utf-8") as f:
                     f.write(git("show", blob))
-        name = f"specseal_chain_check_{blobs[0][:12]}_{len(CHECKS)}"
+        name = f"agentic_chain_check_{blobs[0][:12]}_{len(CHECKS)}"
         check = load_check(os.path.join(held, *CHECK_FILES[0].split("/")), name)
         CHECKS[blobs] = (check, check.load(check.READER, f"{name}_reader"))
     return CHECKS[blobs]
@@ -518,7 +524,7 @@ def recurred_truths():
     `widens: true`, and where ±15 lines would reach another truth of the
     case, `window`, the lines either side its locations accept.
 
-    An entry naming a case the warden's suite does not hold stops the run
+    An entry naming a case the proofer's suite does not hold stops the run
     with exit 1, so the file cannot outlive its cases silently."""
     with open(TRUTHS, encoding="utf-8") as f:
         entries = json.load(f)
@@ -603,6 +609,7 @@ def round_target(item, n, text, nxt, wrote, replay=True, landed=None):
     check of the commit that wrote it refuses, is left out with the reason.
     Where REPLAY is set, so is a round with no next round or with no
     truth; `seed_defects.py` builds on a round with neither."""
+    # exempt from old_names: the 0.22.x layout of the records its cases come from
     rel = f"seal/specs/{item}/rounds/round-{n}.md"
     if labelled(text):
         read, why = labelled_round(text, rel, n, wrote(rel))
@@ -626,10 +633,12 @@ def round_target(item, n, text, nxt, wrote, replay=True, landed=None):
         names = "the asked paragraph"
     if not base:
         return None, f"{names} names no base that resolves"
+    # exempt from old_names: the 0.22.x layout of the records its cases come from
     routing = git("show", f"{sha}:seal/specs/{item}/routing.md", check=False)
     branch = field(routing, "Branch")
     if not branch:
         return None, "routing.md at the target names no branch"
+    # exempt from old_names: the 0.22.x layout of the records its cases come from
     following = f"seal/specs/{item}/rounds/round-{n + 1}.md"
     done = set() if nxt is None else confirmed(nxt, n, following, wrote(following))
     truths = []
@@ -701,6 +710,7 @@ def prompt(t):
     """The case prompt: the orchestrator's one spawn, then the report read
     back so the run's trace holds it. The round's asked paragraph ends the
     spawn where its record carried one, and nothing does where it did not."""
+    # exempt from old_names: the 0.22.x layout of the tree the case rebuilds
     report = f"seal/specs/{t['item']}/rounds/round-{t['n']}.md"
     base = f"`{t['base_ref']}` at `{t['base']}`" if t["base_ref"] else f"`{t['base']}`"
     asked = " ".join(t["asked"].split())
@@ -732,6 +742,7 @@ def scaffold(t, url):
 
 def graders(t):
     """Reach, shape and truth graders for one target."""
+    # exempt from old_names: the 0.22.x layout of the tree the case rebuilds
     report = f"seal/specs/{t['item']}/rounds/round-{t['n']}.md"
     own = [
         (

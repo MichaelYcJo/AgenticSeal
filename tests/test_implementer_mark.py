@@ -30,7 +30,7 @@ from conftest import (
 
 TARGET = "hooks/implementer-mark.py"
 
-implementer = load_hook_module("implementer.py", "specseal_implementer")
+implementer = load_hook_module("implementer.py", "agentic_implementer")
 
 
 def mark_path(repo, mark):

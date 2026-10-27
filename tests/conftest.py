@@ -348,7 +348,7 @@ os.environ["SPECSEAL_LANG"] = "en"
 # each have to remember. An empty template still leaves a complete repository:
 # `config`, `HEAD`, `objects/` and `refs/` are `git init`'s own work, not the
 # template's.
-_EMPTY_GIT_TEMPLATE = tempfile.mkdtemp(prefix="specseal-empty-git-template-")
+_EMPTY_GIT_TEMPLATE = tempfile.mkdtemp(prefix="agentic-empty-git-template-")
 os.environ["GIT_TEMPLATE_DIR"] = _EMPTY_GIT_TEMPLATE
 atexit.register(shutil.rmtree, _EMPTY_GIT_TEMPLATE, True)
 
@@ -390,8 +390,8 @@ GH_CREDENTIALS = (
     "GITHUB_ENTERPRISE_TOKEN",
 )
 # Not a credential: what `gh` finds in place of one.
-NOT_A_GH_TOKEN = "specseal-suite-runs-with-gh-logged-out"
-_EMPTY_GH_CONFIG = tempfile.mkdtemp(prefix="specseal-empty-gh-config-")
+NOT_A_GH_TOKEN = "agentic-suite-runs-with-gh-logged-out"
+_EMPTY_GH_CONFIG = tempfile.mkdtemp(prefix="agentic-empty-gh-config-")
 os.environ["GH_CONFIG_DIR"] = _EMPTY_GH_CONFIG
 atexit.register(shutil.rmtree, _EMPTY_GH_CONFIG, True)
 for _name in GH_CREDENTIALS:
@@ -411,7 +411,7 @@ os.environ["GH_ENTERPRISE_TOKEN"] = NOT_A_GH_TOKEN
 # A child that imports this file again -- an xdist worker, a probe that runs
 # it -- inherits a PATH that already holds a parent's stubs, so the real `gh`
 # is looked for past every one of them.
-GH_STUB_PREFIX = "specseal-gh-stubs-"
+GH_STUB_PREFIX = "agentic-gh-stubs-"
 REAL_GH = shutil.which(
     "gh",
     path=os.pathsep.join(
@@ -491,7 +491,7 @@ os.environ["PATH"] = gh_answers(dict(os.environ), "unknown")["PATH"]
 # imports the module by its plain name, so one attribute on `sys.modules`
 # covers every copy of the guard a test module loaded. A case that needs a
 # transcript points it somewhere else itself.
-_NO_TRANSCRIPTS = tempfile.mkdtemp(prefix="specseal-no-transcripts-")
+_NO_TRANSCRIPTS = tempfile.mkdtemp(prefix="agentic-no-transcripts-")
 atexit.register(shutil.rmtree, _NO_TRANSCRIPTS, True)
 
 
@@ -503,7 +503,7 @@ def _no_real_transcripts(monkeypatch):
 
 
 # What a Claude Code session exports to every Bash child, and so to every git
-# hook a fixture repository's stub runs (#692, `phases/phase-1.md` M4). A
+# hook a fixture repository's stub runs (#692, `trail/phases/phase-1.md` M4). A
 # suite run from inside a session inherits them and CI does not, so a stub
 # would judge a fixture's commit on one and stay silent on the other (P2).
 # Every case starts with none of them; a case about a session sets its own.
@@ -533,7 +533,7 @@ def load_hook_module(filename, name):
 # `hooks/optin.py#MARKER`: a `seal/` is the plugin's root only where its
 # `README.md` opens with this line, so every helper below that builds a root
 # writes it.
-ROOT_MARKER = load_hook_module("optin.py", "specseal_optin_for_fixtures").MARKER
+ROOT_MARKER = load_hook_module("optin.py", "agentic_optin_for_fixtures").MARKER
 
 
 def mark_root(home):
@@ -904,7 +904,7 @@ def rule_carriers(marker):
     case pinning a rule's check line reads its tests the one way."""
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     path = os.path.join(root, ".github", "scripts", "rules.py")
-    spec = importlib.util.spec_from_file_location("specseal_rules_carriers", path)
+    spec = importlib.util.spec_from_file_location("agentic_rules_carriers", path)
     rules = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(rules)
     return {name for _path, name, _doc in rules.markers(root).get(marker, [])}
@@ -934,7 +934,7 @@ def texts():
 # test_the_durations_file_prices_the_suite` compares the suite's collection
 # with `.test_durations`, and on a shard the items a case can see are only the
 # shard's own: `pytest-split` replaces the list with the group.
-COLLECTED_NODE_IDS = "specseal_collected_node_ids"
+COLLECTED_NODE_IDS = "agentic_collected_node_ids"
 
 
 def pytest_collection_modifyitems(session, items):
@@ -1098,7 +1098,7 @@ TABLE = "# Repository config\n\n| Item | Value |\n|---|---|\n{rows}"
 
 @pytest.fixture
 def config():
-    return load_hook_module("config.py", "specseal_config_for_tests")
+    return load_hook_module("config.py", "agentic_config_for_tests")
 
 
 # The config texts the reader's cases in `tests/test_config.py` and the
@@ -1761,7 +1761,7 @@ BASE_TREE_CHAINS = {
 
 
 # #868 In 1: the two chains where the guard's `wheres[0]` and the writer's
-# first resolved entry disagreed (`spec.md` In 1 of work item 1791384157).
+# first resolved entry disagreed (`frame/design.md` In 1 of work item 1791384157).
 # bash runs the `||` segment only where the `cd` failed, in the directory the
 # shell was already in, and `;` runs its segment there when the `cd` fails, so
 # the guard's answer is where bash creates in both.
@@ -1929,7 +1929,7 @@ def _console_repo_template():
     shape."""
     global _CONSOLE_REPO_TEMPLATE
     if _CONSOLE_REPO_TEMPLATE is None:
-        d = pathlib.Path(tempfile.mkdtemp(prefix="specseal-console-repo-template-"))
+        d = pathlib.Path(tempfile.mkdtemp(prefix="agentic-console-repo-template-"))
         d = d / "repo"
         d.mkdir(parents=True)
         git = lambda *a: subprocess.run(

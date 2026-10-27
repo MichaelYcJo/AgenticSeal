@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Generate the warden's seeded cases from the last release's shipped diffs.
+"""Generate the proofer's seeded cases from the last release's shipped diffs.
 
 A seeded case is the tree a shipped work item's round 1 reviewed, with one
 mutation in it. For a squash commit the release branch shipped, the
-generator reads the item's `rounds/round-1.md` at that commit, through
+generator reads the item's round 1 record at that commit, through
 `replay_targets.py#round_target` for either record shape, and builds the
 case at round 1's target against round 1's base. No round record exists in
 that tree, and every branch commit its files name is an ancestor of the
@@ -89,6 +89,7 @@ TOKEN = {
     " - 1": "-",
     "if not ": "not",
 }
+# exempt from old_names: the 0.22.x layout of the records its cases come from
 SPEC = re.compile(r"^seal/specs/(?P<item>[^/]+)/")
 SUBJECT = re.compile(r"\(#\d+\)$")
 
@@ -199,6 +200,7 @@ def target_of(commit):
     if len(items) != 1:
         return None, f"adds {len(items)} work items' routing.md"
     item = items[0]
+    # exempt from old_names: the 0.22.x layout of the records its cases come from
     rounds = f"{commit}:seal/specs/{item}/rounds"
     first = rt.git("show", f"{rounds}/round-1.md", check=False)
     if not first:
@@ -321,6 +323,7 @@ def scaffold(t, url):
 def prompt(t):
     """The case prompt: the orchestrator's one spawn of a fresh round 1, at
     HEAD against round 1's base."""
+    # exempt from old_names: the 0.22.x layout of the tree the case rebuilds
     report = f"seal/specs/{t['item']}/rounds/round-1.md"
     return f"""You are the review orchestrator of this repository. Spawn exactly one `agentic:proofer` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Review, edit and commit nothing yourself. When it returns, run `cat {report}` once and reply with the report's path.
 
@@ -341,6 +344,7 @@ def graders(t):
     each finding round 1 closed fixed that round 2 confirmed, and whatever
     the input file of recurred truths adds for the case at round 1's
     target."""
+    # exempt from old_names: the 0.22.x layout of the tree the case rebuilds
     report = f"seal/specs/{t['item']}/rounds/round-1.md"
     seeded = (
         "seeded",

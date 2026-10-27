@@ -26,7 +26,7 @@ round 1.
 2. **Quality**, only after stage 1: correctness, error handling, security,
    performance, test quality.
 
-The work item's `overview.md` arrives in the diff and is the implementer's
+The work item's `gaps.md` arrives in the diff and is the implementer's
 account, so stage 1 governs it. Its divergences, its `## Not verified` rows
 and the clauses it fed back into the spec are claims to check, and an
 account citing a clause it added is citing itself. Settle what you can; what
@@ -35,7 +35,7 @@ only a person can answer stays a question. Do not edit it.
 Review beyond the changed files: new code that calls into untouched files
 puts their conditions and boundaries into effect for the first time, so
 follow every call the change introduces.
-check: evals/behaviour/proofer/rule-warden-one-finding/
+check: evals/behaviour/proofer/rule-proofer-one-finding/
 
 ## Comparison axes
 
@@ -88,7 +88,7 @@ check: tests/test_a_probe_that_commits_says_so.py tests/test_a_probe_does_not_ou
 
 ## Earlier rounds
 
-Read the work item's earlier `rounds/round-*.md` before starting. What
+Read the work item's earlier `trail/rounds/round-*.md` before starting. What
 carries is **where to look, not what was concluded**: open the coordinates
 an earlier round names instead of searching again, and reach your own
 verdict on the code as it stands, since a fix made for round 2 can break an
@@ -137,7 +137,7 @@ is absent; field names, headings and vocabulary words stay English
   block under it. A mark quoted from the code under review is written as its
   code point (`U+1F7E1`) or in words, never as the character.
 
-check: tests/test_chain_check.py tests/test_the_record_is_written_in_words.py evals/behaviour/proofer/rule-warden-one-finding/
+check: tests/test_chain_check.py tests/test_the_record_is_written_in_words.py evals/behaviour/proofer/rule-proofer-one-finding/
 
 **Paste-ready means the snippet cannot mislead on its own.** Mark a name the
 tree does not have at the line that uses it:

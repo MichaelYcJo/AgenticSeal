@@ -28,14 +28,14 @@ lines of each open finding; a write not named here is a write you do not make.
    the root two directories above the base directory the harness printed with
    the contract; the repository you build in may hold other files at those
    paths.
-2. Read the work item: `routing.md`, `spec.md`, `plan.md`, `questions.md`,
-   the earlier `phases/`, `seal/follow-up.md`, and every coordinate the
-   handoff names. Where `seal/parity.md` is declared, open
+2. Read the work item: `routing.md`, `frame/design.md`, `frame/plan.md`,
+   `frame/questions.md`, the earlier `trail/phases/`, `seal/follow-up.md`, and
+   every coordinate the handoff names. Where `seal/parity.md` is declared, open
    `skills/legacy-parity/SKILL.md` before judging anything. A reference root
    (`templates/config.md` *Reference specs*) is read where the work touches
-   what it describes, and cited where `spec.md` cites it.
+   what it describes, and cited where `frame/design.md` cites it.
 3. Say whether the frame holds before you build to it.
-4. Where `routing.md` declares a framer and no `spec.md` is there, stop and
+4. Where `routing.md` declares a framer and no `frame/design.md` is there, stop and
    hand that back.
 5. Build the phase as a vertical slice: each case first, seen red against the
    tree as it stands, then the code, then the case green.
@@ -45,8 +45,8 @@ lines of each open finding; a write not named here is a write you do not make.
    `skills/writing-style/SKILL.md` and read the section for the record's
    language, `## English prose rules`, or `## 문장 규칙` where `Record
    language` in the `seal/` root's `config.md` is Korean; then write
-   `phases/phase-N.md` from `templates/sdd-phase.md`.
-9. In a fix pass, read `rounds/round-N.md` first, judge each finding at its
+   `trail/phases/phase-N.md` from `templates/sdd-phase.md`.
+9. In a fix pass, read `trail/rounds/round-N.md` first, judge each finding at its
    coordinate, and write its two lines instead of steps 5 to 8's record.
 10. Hand back, after the same `writing-style` section: what was done, each
     claim labelled `executed`, `read` or `unverified`, the suite labelled
@@ -76,15 +76,15 @@ lines of each open finding; a write not named here is a write you do not make.
 
 ## Rules
 
-**The frame is judged before it is built to.** A `spec.md` and a `plan.md`
+**The frame is judged before it is built to.** A `frame/design.md` and a `frame/plan.md`
 are a drawing another party made, and a drawing can be wrong about the tree:
 a path its row states, a list it hands you, a file it says exists. Check them
 after the requirements read, before anything is spent. A *no* goes to
-`phases/phase-N.md`'s `## What this phase found` and to the hand-back, never
+`trail/phases/phase-N.md`'s `## What this phase found` and to the hand-back, never
 back to the framer; build to the part that holds.
 check: tests/test_chain_hooks_hardening.py
 
-**A declared frame that is absent stops the build.** A missing `spec.md` is
+**A declared frame that is absent stops the build.** A missing `frame/design.md` is
 not evidence about the rung: hand back that `routing.md` and the directory
 disagree, and do not guess which is true.
 check: tests/test_a_moved_rule_leaves_its_definition.py
@@ -137,17 +137,17 @@ check: tests/test_the_suite_has_a_command_that_is_cheap_twice.py
 
 **The broad gate is not yours, and its label is.** You do not run the full
 suite, the lint or the typecheck; rule 2 holds who does. You hand the
-suite over labelled `unverified`. When a broad-gate failure is handed to you,
+suite over labelled `unverified`. When a broad gate failure is handed to you,
 the word beside each failing file says what it is: `failing on base too`
 predates the work and is a follow-up to name, not a defect to chase;
 `new?` means nothing at the base measured that file, so run it at the base
 yourself before treating it as either.
 check: tests/test_the_seal_is_taken_once_by_the_sealer.py
 
-**Each phase closes with its record.** `phases/phase-N.md` holds what this
-phase was asked and what building it found; `plan.md`'s Status cell holds the
+**Each phase closes with its record.** `trail/phases/phase-N.md` holds what this
+phase was asked and what building it found; `frame/plan.md`'s Status cell holds the
 commit. A removal the frame's `## Removes` did not name is a divergence in
-`overview.md`.
+`gaps.md`.
 check: tests/test_a_phase_hands_the_next_one_a_record.py
 
 **A fix pass writes two lines of each finding and no phase record.** It

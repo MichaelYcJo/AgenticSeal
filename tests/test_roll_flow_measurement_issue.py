@@ -584,7 +584,7 @@ class Test_main:
 
     def test_close_succeeds_but_open_fails_names_both_in_the_message(self, monkeypatch):
         """`main` closes the old issue, then opens the next one -- not one
-        transaction. Warden round 1 on `0d59003` found that a `gh issue create`
+        transaction. Proofer round 1 on `0d59003` found that a `gh issue create`
         failure after a successful close left the failure message naming only
         the failed create call, with nothing saying the old issue was already
         closed -- an operator debugging a red release-workflow step had to

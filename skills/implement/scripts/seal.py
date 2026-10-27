@@ -52,7 +52,7 @@ any arguments, so each script keeps its own parser and its own help, and a
 subcommand is a dispatch and not a copy (#1051).
 
 **The root is its own directory, and that is what makes the export safe.**
-Beside it under the git directory sit the smith mark, the worktree choices,
+Beside it under the git directory sit the crafter mark, the worktree choices,
 the review and parity marks, the throwaway opt-out, any lease file and this
 command's own state. None of that belongs to another machine, and none of it
 is in the zip — not because a list is maintained here, but because the export
@@ -83,8 +83,8 @@ depend on the standard library's sanitiser staying what it is today.
 **Import never overwrites and never asks.** A path that is not there is
 added. A path that is there with the same bytes is left alone. A path that is
 there with different bytes gets the incoming copy beside it as
-`<name>.incoming<ext>` — `specs/<id>/spec.incoming.md` beside
-`specs/<id>/spec.md` — and the collision is reported. A copy is not a sync: which
+`<name>.incoming<ext>` — `threads/<id>/frame/design.incoming.md` beside
+`threads/<id>/frame/design.md` — and the collision is reported. A copy is not a sync: which
 of the two files is right is a judgement the person makes by reading them,
 and there is no answer this command could give that would not sometimes throw
 work away.
@@ -715,7 +715,7 @@ def plural(count, noun):
     export` — so it stays that, and at N=1 it reads `1 work items`. Reading
     the quoted line as a template with a grammar rule attached is a change to
     an acceptance criterion, which is not this command's to make; the work
-    item's `overview.md` records it where the owner can overturn it.
+    item's `gaps.md` records it where the owner can overturn it.
     """
     return f"{count} {noun}" if count == 1 else f"{count} {noun}s"
 
@@ -885,7 +885,7 @@ def linked_path(into, archive):
     item there.
 
     The leaf counts, not only the directories above it. A link named
-    `specs/w1/spec.md` whose target does not exist reads as absent to
+    `threads/w1/frame/design.md` whose target does not exist reads as absent to
     `os.path.exists`, so `place` calls the member ADDED and `open(target,
     "wb")` follows the link and writes outside the root — measured
     2026-09-03, exit 0 with no warning. A link whose target does exist is
@@ -1705,7 +1705,7 @@ def porcelain(repo, *paths):
     **Both paths this command stages, not just the root.** The switch stages
     a removal or an addition of the workflow file too, and a guard watching
     only the root would leave that path's uncommitted work to be taken by
-    `git rm`. Enumerating the class is the point; `spec.md` *What the switch
+    `git rm`. Enumerating the class is the point; `frame/design.md` *What the switch
     touches* lists all five.
 
     An unanswerable question reads as dirty, the direction
@@ -2387,7 +2387,7 @@ def gitlinks_under_root(repo):
     relative gitdir. Measured 2026-09-03: the switch exited 0 and `git
     status` in the moved root died with `fatal: not a git repository`.
 
-    A sixth member of the class `spec.md`'s *What the switch touches* table
+    A sixth member of the class `frame/design.md`'s *What the switch touches* table
     enumerates — the table that says it is enumerated rather than fixed where
     a finding points, and then listed five.
     """
@@ -2416,7 +2416,7 @@ def gitlinks_under_root(repo):
 def refusals(repo, home, shared, local, wanted):
     """Every reason not to switch, gathered before anything is written.
 
-    The list is the class in `spec.md` *What the switch touches*, walked in
+    The list is the class in `frame/design.md` *What the switch touches*, walked in
     order, rather than the guards a reader thinks of first. The switch
     stages nothing outside the root, so nothing outside it is guarded.
     """
@@ -2498,7 +2498,7 @@ def switch(args, repo, home, shared, local, current, wanted):
     """Move the root, write the row, and stage the index; `.github/` is left
     alone, and the pull-request checks are `seal pr-checks`'s.
 
-    In the order of `spec.md` *Order, and what a stopped run leaves*: the
+    In the order of `frame/design.md` *Order, and what a stopped run leaves*: the
     rename first, because it is the step that can fail for reasons outside
     this command and until it succeeds nothing has happened. Every step after
     it is idempotent, so `seal mode <the same mode>` finishes a stopped run —

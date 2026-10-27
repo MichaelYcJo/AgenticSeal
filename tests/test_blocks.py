@@ -16,7 +16,7 @@ from conftest import SPLITLINES_ONLY, census_case, load_hook_module, texts
 
 TARGET = "hooks/blocks.py"
 
-blocks = load_hook_module("blocks.py", "specseal_blocks_under_test")
+blocks = load_hook_module("blocks.py", "agentic_blocks_under_test")
 # The name the splitter's cases read it by, where they read it through
 # `unverified_check.py`, which hands this module's `gfm_lines` to its callers.
 reader = blocks

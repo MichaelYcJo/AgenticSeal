@@ -6,7 +6,7 @@ each work item whole under `seal/threads/<work-item-id>/`, where it stays until
 its release is settled. The settle writes into `docs/` each section the
 released specs' `## Rule changes` name, as their latest decision, and
 `seal settle --apply` removes each released directory whole whose record holds no
-open row, whether or not it wrote a `spec.md`. A settle is not a work item and
+open row, whether or not it wrote a `frame/design.md`. A settle is not a work item and
 opens no directory here.
 `skills/settle/SKILL.md` is the procedure and `skills/settle/scripts/settle.py`
 the command behind it. A work item's directory is safe to delete wholesale
@@ -48,7 +48,7 @@ themselves. `seal export` zips this root alone; `seal import` merges a zip
 back and never overwrites a file, so a name already here keeps its bytes and
 the incoming copy lands beside it as `<name>.incoming<ext>`. What sits
 *beside* this root under the git directory is what must not travel: the
-smith mark, the worktree choices, any lease, and
+crafter mark, the worktree choices, any lease, and
 the last export's manifest at `agentic-last-export.json`. The export walks
 this directory and nothing else, which is why the root has to be its own.
 
@@ -86,14 +86,14 @@ seal/
 ├── parity.md            migration config, only where one is declared
 ├── pact.md              the pact, only in the repository that holds one
 ├── follow-up.md         schedulable items in a repository with no tracker
-└── specs/<work-item-id>/  one work item, whole
+└── threads/<work-item-id>/  one work item, whole
     ├── routing.md         which way it was routed, written before the first edit
-    ├── spec.md, plan.md, questions.md, overview.md, changelog.md
-    ├── phases/
-    │   └── phase-N.md     what one build phase was asked and found
-    ├── rounds/
-    │   └── round-N.md     target SHA, verdicts, paste-ready fixes, executed probes
-    ├── broad-gate.md      the one broad run, at a SHA, against the base
+    ├── frame/design.md, frame/plan.md, frame/questions.md
+    ├── trail/phases/phase-N.md   what one build phase was asked and found
+    ├── trail/rounds/round-N.md   target SHA, verdicts, paste-ready fixes, executed probes
+    ├── trail/gate.md      the one broad run, at a SHA, against the base
+    ├── changelog.md       this work item's entry in the next release's notes
+    ├── gaps.md            the closing memo: what the diff cannot show
     └── guarantee.md       the sealer's verdict on the work, at a SHA
 ```
 

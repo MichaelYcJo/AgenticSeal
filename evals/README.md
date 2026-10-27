@@ -78,7 +78,7 @@ it again. Its committed record stays as it was judged, and `check` and
 
 **A proofer comparison compares two sides taken from the same point.** The
 squash commit that lands #986 on `release/v0.22.3` is that point for the
-proofer's suite, which stood at `evals/behaviour/warden/` until the rename: from it, both sides run the seeded cases built at round 1's
+proofer's suite, whose directory carried the agent's earlier name until the rename: from it, both sides run the seeded cases built at round 1's
 target and both keep `report_text`. No side taken before it compares with
 one taken after it, and `compare` refuses such a pair twice over, since the
 suite trees differ and the earlier side keeps no text.

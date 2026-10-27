@@ -138,7 +138,7 @@ def test_parity_declaration_is_bootstrappable_not_hand_written():
 
     # The bootstrap and the parity setup are the orchestrator's half of the
     # skill since #292, so the file that has to point at the template is
-    # `orchestration.md`, not the `SKILL.md` every smith spawn opens.
+    # `orchestration.md`, not the `SKILL.md` every crafter spawn opens.
     implement = open(
         os.path.join(ROOT, "skills", "implement", "orchestration.md"),
         encoding="utf-8",
@@ -442,7 +442,7 @@ def test_auto_firing_skills_declare_when_not_to_fire():
 # reads them in. AT MODULE LEVEL so a case can assert what they do: the
 # pattern IS the behaviour this repair changes, and a pattern nothing opens is
 # the shape this whole release keeps finding
-# (`seal/specs/1789455558-…/overview.md` — pin the thing the production path
+# (`seal/threads/1789455558-…/gaps.md` — pin the thing the production path
 # calls, never a copy beside it).
 #
 # Matched at a WORD BOUNDARY, and the first draft of this guard was not. A
@@ -537,7 +537,7 @@ def batch_instructions(body):
 
     That is this work item's own subject one layer down, and the fifth
     instance of the class in this release: the cases pinned the pieces and the
-    production path was a copy of them. `seal/specs/1789455558-…/overview.md`
+    production path was a copy of them. `seal/threads/1789455558-…/gaps.md`
     states the rule — pin the function the production path calls, never the
     helper beside it.
     """
@@ -592,7 +592,7 @@ def test_the_sweep_refuses_a_planted_instruction_in_every_spelling():
     assert not list(
         batch_instructions(
             "open every coordinate a task names in one batch; the persona "
-            "the smith writes for and the users who install this plugin are "
+            "the crafter writes for and the users who install this plugin are "
             "not parties to it"
         )
     ), "batching READS is refused, which is the false refusal round 2 bought off"
@@ -631,13 +631,13 @@ def test_the_asking_stems_are_anchored_at_both_ends():
     # *for a question nobody is asking*, which is false of these three.
     #
     # Widening the stem set is refused with grounds in
-    # `seal/specs/1789540097-…/spec.md` *Out*, so this is residue and not a
+    # `seal/threads/1789540097-…/frame/design.md` *Out*, so this is residue and not a
     # defect. It is residue, not correctness.
     for word in ("asker", "answerer", "questioner"):
         assert not ASKING.search(word), (
             f"{word} is an agent noun the back anchor stops. If this line is "
             "ever reversed, it is a widening of what the guard refuses and "
-            "needs the argument `spec.md` *Out* asks for"
+            "needs the argument `frame/design.md` *Out* asks for"
         )
     # The front anchor, which round 2 of #419 bought and this must not undo.
     for word in ("task", "multitasking", "flask"):
@@ -768,7 +768,7 @@ def test_the_questions_are_collected_before_the_work_not_during_it():
     #     a new occurrence would fire. Bounding it at a heading is a change
     #     with its own failure direction — an instruction whose sentence
     #     straddles a heading would pass — and it is ruled out with grounds in
-    #     `seal/specs/1789540097-…/spec.md` *Out*.
+    #     `seal/threads/1789540097-…/frame/design.md` *Out*.
     #   · It reads `*` and not `_`. See `EMPHASIS` above for why.
     #   · It refuses by the WORDS in the window, so a definition that names a
     #     person answering for some other reason within 140 characters of a
@@ -799,7 +799,7 @@ def test_the_questions_are_collected_before_the_work_not_during_it():
     # mechanism a fix pass may not add on top of a unit an earlier fix pass
     # created, and a planted corpus is a change to what the suite guards that
     # `CONTRIBUTING.md` asks a separate argument for. It is in this work item's
-    # `overview.md` *Not verified* with an answerer.
+    # `gaps.md` *Not verified* with an answerer.
     definitions = sorted(glob.glob(os.path.join(ROOT, "agents", "*.md")))
     assert len(definitions) >= 3, f"agents/*.md matched {len(definitions)} files"
     read = []
@@ -848,8 +848,8 @@ def test_the_cycle_is_bounded_and_ends_at_a_pull_request():
     assert "three finding rounds by default" in record, "the review loop lost its bound"
     assert "follow-up.md" in record, "no home recorded for what is left"
     with open(os.path.join(ROOT, "agents", "crafter.md"), encoding="utf-8") as f:
-        smith = f.read()
-    assert "The chain ends at a pull request, never a merge." in smith
+        crafter = f.read()
+    assert "The chain ends at a pull request, never a merge." in crafter
 
 
 # The two skills a definition calls rather than preloads. Neither is in any
@@ -864,7 +864,7 @@ def definitions_naming(skill):
     Which definition calls these is a fact about the tree, and a case that
     types the answer instead of reading it asserts an owner rather than
     checking one. That is what made the pair below go stale together when the
-    gate moved: the name `smith` was in the case, so the tree could change
+    gate moved: the agent's name was in the case, so the tree could change
     under it and only the half that pinned a literal noticed.
     """
     import glob
@@ -901,7 +901,7 @@ def test_the_skills_stand_down_for_whichever_definition_calls_them():
     conversations. The `NOT for` clause is what stopped that, and it names the
     agent it stands down for.
 
-    This case used to read that name as the literal `smith`, which is why the
+    This case used to read that name as a literal, which is why the
     clause and the gate could come apart: 0.11.0 moved the gate to the framer
     and the two SKILL.md files went on naming an agent that no longer calls
     them, with nothing red. The name is read out of the glob now, so the
@@ -925,8 +925,8 @@ def test_the_skills_stand_down_for_whichever_definition_calls_them():
         )
 
 
-def test_the_smith_says_whether_the_frame_holds_before_building_to_it():
-    """S5 of #84. A `spec.md` and a `plan.md` are a drawing another party
+def test_the_crafter_says_whether_the_frame_holds_before_building_to_it():
+    """S5 of #84. A `frame/design.md` and a `frame/plan.md` are a drawing another party
     made, and a drawing can be wrong about the tree it describes. #107's
     phase 1 established that its own stated path could not work before a line
     was written; phase 1 of #84 did it again on a `skills:` list it was
@@ -944,13 +944,13 @@ def test_the_smith_says_whether_the_frame_holds_before_building_to_it():
     back to the framer, which has no interactive phase to route back TO: the
     one moment of human contact belongs to the session that spawns the work,
     before the framer is spawned at all."""
-    smith = " ".join(
+    crafter = " ".join(
         open(os.path.join(ROOT, "agents", "crafter.md"), encoding="utf-8")
         .read()
         .split()
     )
     holds = "Say whether the frame holds before you build to it"
-    assert holds in smith, (
+    assert holds in crafter, (
         "`agents/crafter.md` no longer tells the builder to judge the frame "
         "before building to it. It happened twice unprompted and was recorded "
         "nowhere, which is exactly what a written instruction is for"
@@ -959,16 +959,20 @@ def test_the_smith_says_whether_the_frame_holds_before_building_to_it():
     # that reads the work item, before the step that builds. Found by the
     # steps' own words rather than their numbers, so a step inserted above
     # them moves nothing here.
-    read_at = smith.index("Read the work item:")
-    build_at = smith.index("Build the phase as a vertical slice")
-    assert read_at < smith.index(holds) < build_at, (
+    read_at = crafter.index("Read the work item:")
+    build_at = crafter.index("Build the phase as a vertical slice")
+    assert read_at < crafter.index(holds) < build_at, (
         "the drawing-holds check moved out from between the requirements read "
         "and the build. After the build starts, a frame that does not hold "
         "has already been spent on"
     )
-    rule = smith[smith.index("**The frame is judged before it is built to.**") :]
+    rule = crafter[crafter.index("**The frame is judged before it is built to.**") :]
     rule = rule[: rule.index(" check: ")]
-    for named in ("phases/phase-N.md", "## What this phase found", "the hand-back"):
+    for named in (
+        "trail/phases/phase-N.md",
+        "## What this phase found",
+        "the hand-back",
+    ):
         assert named in rule, (
             f"the rule no longer names `{named}` as where a `no` goes. A "
             "`no` with no destination is a finding that reaches nobody"

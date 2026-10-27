@@ -3,7 +3,7 @@ that fails each of its clauses A-E, and every admitted string cut where a real
 shell cuts it (#739, #763).
 
 Work item `1791089603-one-heredoc-shape-the-reader-matches-exactly-is-data`,
-`spec.md` *The shape*, scenario S4's reader half and S6 with Q3. Every admitted
+`frame/design.md` *The shape*, scenario S4's reader half and S6 with Q3. Every admitted
 string here comes back as its reduced text, and every string that fails one
 clause comes back as None, which is what makes the gate read it as before. The
 gate's half of S4 is in `tests/test_cmdline.py`, read without git, and in

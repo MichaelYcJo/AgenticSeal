@@ -195,7 +195,7 @@ def test_each_allowed_form_is_listed_with_what_it_costs():
 
 def test_both_ampersand_cells_name_both_shells():
     """Round 2's 🟡 2. Finding 5's platform hedge reached the refusal message,
-    `overview.md` and the pull request body, and not the two cells of the list
+    `gaps.md` and the pull request body, and not the two cells of the list
     that owns the form — so the document a person writing the row reads still
     stated `/bin/sh` semantics as though they were every platform's.
 
@@ -318,7 +318,7 @@ def test_the_allowed_list_says_how_a_pipe_is_written():
 # --- Round 1's 🟡 4: the removed design, where a reader opens first ---------
 #
 # Phase 5 changed `missing_row` so it no longer tells the reader what to write,
-# and `phases/phase-5.md` recorded that the old sentence should survive
+# and `trail/phases/phase-5.md` recorded that the old sentence should survive
 # nowhere. It survived outside the message, in the two places somebody meets
 # BEFORE the message — the module's own header, and the template paragraph
 # directly above the section this branch added. Contract rule 14 is the
@@ -518,7 +518,7 @@ def missing_row_text():
     import importlib.util
 
     path = os.path.join(ROOT, "skills", "verify", "scripts", "broad_gate.py")
-    spec = importlib.util.spec_from_file_location("specseal_broad_gate_text", path)
+    spec = importlib.util.spec_from_file_location("agentic_broad_gate_text", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return flat(module.missing_row("/seal"))

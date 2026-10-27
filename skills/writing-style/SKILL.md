@@ -142,7 +142,7 @@ PR 본문의 기준은 이것이다 — **파일을 하나도 열지 않고 읽�
 
 ```
 나쁨   `seal/parity.md` 를 선언한 레포는 3자 판정 — 정책서 ↔ 원본 ↔ 신규,
-       기본값은 원본 보존 — 을 얻고, scribe 가 사실을 가져옵니다.
+       기본값은 원본 보존 — 을 얻고, tracer 가 사실을 가져옵니다.
 좋음   `seal/parity.md` 에 원본 저장소와 기준 커밋을 적어 두면 3자 판정을 쓸 수
        있습니다. 정책서와 원본, 신규 코드를 나란히 놓고 판정하며, 판단이 갈리면
        원본을 보존하는 쪽이 기본값입니다.
@@ -172,7 +172,7 @@ PR 본문의 기준은 이것이다 — **파일을 하나도 열지 않고 읽�
 
 세 가지를 판별한다.
 
-- **고유 용어인가** — 그 제품이 만들어 낸 말(`mark`, `seal`, `smith`)이면 영어를 그대로 쓰고 첫 등장에서 실체를 괄호로 푼다. 억지 번역어를 만들면 원문 문서·코드와 대조가 끊긴다.
+- **고유 용어인가** — 그 제품이 만들어 낸 말(`mark`, `seal`, `crafter`)이면 영어를 그대로 쓰고 첫 등장에서 실체를 괄호로 푼다. 억지 번역어를 만들면 원문 문서·코드와 대조가 끊긴다.
 - **일반 명사인가** — 영어에서도 평범한 단어면 한국어도 평범한 말로 옮긴다.
 - **동음이의어가 있는가** — 그 분야 밖에서 다른 뜻이 먼저 떠오르는 말은 피한다.
 
@@ -232,24 +232,24 @@ PR 본문의 기준은 이것이다 — **파일을 하나도 열지 않고 읽�
 
 | 나쁨 | 좋음 |
 |---|---|
-| the seal | the sealer's seal · the warden's round record · the smith's labels |
-| 회차 기록 | warden 이 쓰는 회차 기록 |
+| the seal | the sealer's seal · the proofer's round record · the crafter's labels |
+| 회차 기록 | proofer 가 쓰는 회차 기록 |
 
 판단 기준은 **그 문장에서 주인이 둘 이상일 수 있는가**다. 찾아야 할 모양은 한
-쪽만 이름을 갖고 나머지가 익명으로 남은 문장이다 — *the warden's audit of the
+쪽만 이름을 갖고 나머지가 익명으로 남은 문장이다 — *the proofer's audit of the
 seal* 은 감사하는 쪽만 밝히고 감사받는 것은 밝히지 않는다.
 
-실제로 `seal` 은 세 가지를 동시에 가리켰다. warden 이 남기는 리뷰 표시, sealer
-가 찍는 도장, smith 의 증명 블록이고, 앞의 둘은 나란히 열리는 두 파일에 있었다.
+실제로 `seal` 은 세 가지를 동시에 가리켰다. proofer 가 남기는 리뷰 표시, sealer
+가 찍는 도장, crafter 의 증명 블록이고, 앞의 둘은 나란히 열리는 두 파일에 있었다.
 
 **이 문장은 보장이 아니다.** 규칙을 적어 두고 다시 깨진 사례가 일곱 건이며,
-고치는 것은 검사다. SpecSeal 자신의 저장소에서는 `seal` 한 낱말만 검사가
+고치는 것은 검사다. AgenticSeal 자신의 저장소에서는 `seal` 한 낱말만 검사가
 걸려 있고(`tests/test_one_word_one_meaning.py`), 남은 낱말을 훑어 찾는 일은
 #331 이다.
 
 ### 에이전트와 검사가 읽는 글은 한 가지로만 읽히게 쓴다
 
-스킬, 에이전트 정의, 템플릿, 프레임(`spec.md`, `plan.md`, `questions.md`)처럼
+스킬, 에이전트 정의, 템플릿, 프레임(`frame/design.md`, `frame/plan.md`, `frame/questions.md`)처럼
 에이전트가 읽고 따르거나 검사가 읽는 글에는 아래 세 규칙이 더해진다. 이 글을
 읽는 쪽은 쓴 사람에게 되물을 수 없다. 그래서 두 번 읽어야 뜻이 정해지는 문장은
 짧아도 비싸다.
@@ -276,16 +276,16 @@ check: tests/test_one_word_one_meaning.py
 
 **무엇을 하라는 문장은 누가, 언제, 어느 파일에서 하고 무엇이 되면 끝인지를
 밝히고, 그중 하나가 빠질 만큼 줄이지 않는다.** 하는 쪽은 orchestrator, framer,
-smith, warden, sealer 처럼 이름으로 적는다. 두 당사자가 함께 여는 파일에서는
+crafter, proofer, sealer 처럼 이름으로 적는다. 두 당사자가 함께 여는 파일에서는
 "you" 나 "the session" 이라고 쓰지 않는다. 그 파일에서 "the session" 은 둘 중
 누구로도 읽힌다. 줄이다가 하는 쪽이나 조건이 빠진 문장은 절약이 아니라 결함이다.
 사례는 셋이다.
 
 - "So is" 로 시작한 문장이 바로 앞이 아닌 다른 절에 붙어 읽혔다(#953 의 sealer).
-- "The one writer that does is `settle`" 이 `docs/` 를 누가 쓰는지 정하는 규칙으로 읽혔다(`seal/specs/1792449518-settle-squashes-specs-into-docs-in-place/spec.md`).
+- "The one writer that does is `settle`" 이 `docs/` 를 누가 쓰는지 정하는 규칙으로 읽혔다(`seal/threads/1792449518-settle-squashes-specs-into-docs-in-place/frame/design.md`).
 - orchestrator 와 구현자가 함께 읽는 파일에서 "the session" 이 둘 중 누구인지 정해지지 않았다.
 
-check: none reader: the warden at review
+check: none reader: the proofer at review
 
 ### 이전 → 이후를 표로 보인다
 

@@ -275,8 +275,8 @@ leave together.** `routing.md`, the frame (`frame/design.md`,
 (`gaps.md`, `changelog.md`, `guarantee.md`, and a `pr.*.md` where one was
 written) go with the directory, whole, when the settle removes it. A
 repository installed before the plugin was renamed AgenticSeal holds the
-files under `seal/specs/<id>/`
-at their old names, and `hooks/root-migrate.py` moves them into this layout
+files at their old names in the earlier layout, which
+`hooks/root-migrate.py#THREAD_PATHS` maps onto this one, and the hook moves them into this layout
 once, at the first session start, as staged `git mv` in shared mode and as
 renames under the git directory in local mode
 (*The fold, and what tells it from a deletion* above, and

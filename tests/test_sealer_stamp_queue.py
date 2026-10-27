@@ -41,7 +41,7 @@ stamp = gate.load_stamp()
 def _local_template(tmp_path_factory):
     """A repository in local mode on `feat/x`, built once: no `seal/` in its
     tree, and under `.git/seal/threads/<item>/` the work item's `routing.md`
-    naming the branch, two round records, `broad-gate.md` and a
+    naming the branch, two round records, `trail/gate.md` and a
     `guarantee.md` reading `sealed` over the branch's commit."""
     repo = tmp_path_factory.mktemp("queue-world") / "repo"
     repo.mkdir()

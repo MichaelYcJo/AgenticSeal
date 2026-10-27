@@ -482,7 +482,7 @@ class Test_main:
         (tmp_path / "changelog" / "README.md").write_text(
             "<!-- specs/1600000000-not-a-release -->\n", encoding="utf-8"
         )
-        gather_mod = load(SCRIPT, "specseal_gather_release_files")
+        gather_mod = load(SCRIPT, "agentic_gather_release_files")
         listed = [v for v, _ in gather_mod.release_files(str(tmp_path))]
         assert listed == ["0.2.0", "0.1.0"], listed
         r = run("--check", root=tmp_path)
@@ -685,7 +685,7 @@ class Test_main:
     ):
         """#664. A U+2028 in a fragment is printed by the dry run as the
         character it is, not turned into a line break."""
-        gather = load(SCRIPT, "specseal_gather_dry_run")
+        gather = load(SCRIPT, "agentic_gather_dry_run")
         root = fragment_tree(tmp_path, f"entry{LS}b\n")
         argv = ["--version", "1.1.0", "--date", "2026-01-02", "--dry-run"]
         assert gather.main([*argv, "--root", str(root)]) == 0
@@ -698,7 +698,7 @@ class Test_module:
         line to go above: the entry follows the index's own text after one blank
         line, and the file ends with one newline. An index that already heads
         the version is returned as it is."""
-        gather_mod = load(SCRIPT, "specseal_gather_first_index_entry")
+        gather_mod = load(SCRIPT, "agentic_gather_first_index_entry")
         text = gather_mod.indexed(INDEX_HEAD, "## 0.1.0 — d", "0.1.0")
         assert text == INDEX_HEAD + entry("## 0.1.0 — d", "0.1.0"), repr(text)
         assert gather_mod.indexed(text, "## 0.1.0 — e", "0.1.0") == text, (
@@ -710,7 +710,7 @@ class Test_module:
         indexed a list `splitlines` had made, so a U+2028 above the section put
         the new entries above its heading, and the file was written back with a
         line break where the character stood."""
-        gather = load(SCRIPT, "specseal_gather_s5")
+        gather = load(SCRIPT, "agentic_gather_s5")
         text = (
             "# Changelog\n\n"
             f"Intro alpha{LS}beta.\n\n"
@@ -742,7 +742,7 @@ class Test_module:
         with the same split. A text read through `open()` never holds a lone CR,
         so counting LF agrees on every file `main` reads; handed one directly,
         the two counts part and the entries land above the heading."""
-        gather = load(SCRIPT, "specseal_gather_index")
+        gather = load(SCRIPT, "agentic_gather_index")
         text = "# Changelog\n\nIntro\rmore.\n\n## 1.1.0 — 2026-01-02\n\nentry a\n"
         block = gather.section("1.1.0", "2026-01-03", [("2-b", "entry b")])
         assert gather.insert(text, block, "1.1.0") == (
@@ -754,13 +754,13 @@ class Test_module:
         """`leaves_open` asks `live_lines` whether a marker written below the
         body would be live. A fence run after a U+2028 is mid-line to GFM, so it
         opens nothing, and the fragment is not refused for one."""
-        gather = load(SCRIPT, "specseal_gather_leaves_open")
+        gather = load(SCRIPT, "agentic_gather_leaves_open")
         assert gather.leaves_open(f"an entry{LS}```\n") is False
 
     def test_a_section_line_is_a_line_that_starts_one(self, tmp_path):
         """`section_lines` names every fragment line starting `## `, by the
         number `grep -n` prints. One after a form feed mid-line starts none."""
-        gather = load(SCRIPT, "specseal_gather_section_lines")
+        gather = load(SCRIPT, "agentic_gather_section_lines")
         root = fragment_tree(tmp_path, f"entry{FF}## not a heading\n\n## one\n")
         assert gather.section_lines(str(root), "2-b") == [(3, "## one")]
 
@@ -769,7 +769,7 @@ class Test_module:
         own to GFM, so the gatherer does not call the fragment gathered; the
         same marker on a line of its own is read, so the empty answer is the
         separator's doing."""
-        gather = load(SCRIPT, "specseal_gather_s6")
+        gather = load(SCRIPT, "agentic_gather_s6")
         text = f"# Changelog\n\n## 1.0.0 — 2026-01-01\n\nold{LS}<!-- specs/1-a -->\n"
         assert gather.live_markers(text) == []
         assert gather.live_markers(text.replace(LS, "\n")) == ["1-a"]

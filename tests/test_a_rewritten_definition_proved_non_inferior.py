@@ -1,4 +1,4 @@
-"""The committed warden cases of the behaviour suite: no location one of a
+"""The committed proofer cases of the behaviour suite: no location one of a
 case's truths accepts is accepted by another, so one finding is never
 counted as two. The case reads the cases under `evals/behaviour/proofer/`.
 
@@ -23,9 +23,9 @@ OPTION = re.compile(
 )
 
 
-def test_no_two_truths_of_a_warden_case_accept_one_location():
+def test_no_two_truths_of_a_proofer_case_accept_one_location():
     """Guards #971 round 1 finding 1: a `location:` line one truth of a
-    committed warden case accepts is accepted by no other truth of that
+    committed proofer case accepts is accepted by no other truth of that
     case, so one finding is never counted as two. Every line each
     generated alternative lists is tried against every other truth."""
     root = os.path.join(ROOT, "evals", "behaviour", "proofer")

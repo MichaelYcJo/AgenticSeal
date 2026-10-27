@@ -1,7 +1,7 @@
 """First setup asks once — shared or local — and every document that a session
 or a person reads says the same thing about where the root lives.
 
-The work item is `seal/specs/1788354065-the-tree-that-must-stay-clean-has-no-
+The work item is `seal/threads/1788354065-the-tree-that-must-stay-clean-has-no-
 way-to-opt-in/`; the clauses named per case are its spec's. The hooks resolve
 the root in code (`hooks/optin.py#home_at`) and are pinned by
 `tests/test_optin.py`, `tests/test_commit_review_gate.py` and
@@ -53,7 +53,7 @@ def flat(text):
 
 SKILL = ("skills", "implement", "SKILL.md")
 # The bootstrap is the orchestrator's half since #292: it asks a person, which
-# a smith spawn may not, so it lives in the file no `skills:` list injects.
+# a crafter spawn may not, so it lives in the file no `skills:` list injects.
 ORCH = ("skills", "implement", "orchestration.md")
 
 
@@ -738,8 +738,8 @@ def test_the_design_record_states_the_setup_rules_where_they_rule(
 # `<!-- agentic:end -->` — `templates/claude-md-block.md`, the block's one
 # source — into `~/.claude/CLAUDE.md`, so the block loads in EVERY project on
 # the machine —
-# including one that has never seen SpecSeal —
-# and it tells a session to write `seal/specs/<id>/routing.md` before the
+# including one that has never seen AgenticSeal —
+# and it tells a session to write `seal/threads/<id>/routing.md` before the
 # first edit. That write creates `seal/`. Creating `seal/` opts the repository
 # in. Every case above passed while that route existed, because none of them
 # read the preset block.

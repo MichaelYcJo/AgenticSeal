@@ -111,7 +111,7 @@ TALL_ROWS = [
 
 # The rows the owner's chosen reference was drawn over (`frames.py`'s `ROWS`
 # behind the title row), and the reference itself, chosen on 2026-10-07:
-# design 3 of `frames.py` (`spec.md` decision 6 and S3 of work item
+# design 3 of `frames.py` (`frame/design.md` decision 6 and S3 of work item
 # 1791270164), transcribed from its SGR stream by a script that read no line of
 # `seal_stamp.py`. The twin's lines, and the disc's twenty-eight half-rows,
 # each half its colour's letter and a space off the disc.
@@ -235,7 +235,7 @@ def owners_disc(chart, x, y):
 
 
 def owners_cell(top, bottom):
-    """One cell of the disc as `spec.md` *Data & interfaces* of work item
+    """One cell of the disc as `frame/design.md` *Data & interfaces* of work item
     1791270164 writes it."""
     if top and bottom:
         return ("▀", top, bottom, None)
@@ -284,7 +284,7 @@ def what_a_terminal_shows(line):
 
 
 def state_changes(cells):
-    """How many SGRs `spec.md` S11 of work item 1791270164 says CELLS write,
+    """How many SGRs `frame/design.md` S11 of work item 1791270164 says CELLS write,
     counted from the cells: one per cell whose foreground, background or
     style differs from what is set, a blank keeping the foreground and the
     style as set but not a background."""
@@ -1220,7 +1220,7 @@ def routing_text(branch="feat/x"):
 
 
 def closing_records(item, target, base):
-    """Two round records, a file in `rounds/` that is not one, `broad-gate.md`
+    """Two round records, a file in `trail/rounds/` that is not one, `trail/gate.md`
     naming TARGET, and `guarantee.md` reading `sealed` over it."""
     write(item, "trail/rounds/round-1.md", "x\n")
     write(item, "trail/rounds/round-2.md", "x\n")
@@ -1530,7 +1530,7 @@ class Test_queue_for_written_guarantee:
         self, local
     ):
         """1792363231 S3: an earlier `withheld` does not count; a work item
-        with no `rounds/` reads `0`, and a `broad-gate.md` that is not UTF-8
+        with no `trail/rounds/` reads `0`, and a `trail/gate.md` that is not UTF-8
         is no row."""
         earlier = "; earlier run: abc1234 withheld"
         write(

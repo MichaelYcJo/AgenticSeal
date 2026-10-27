@@ -5,7 +5,7 @@ Issue #30. The CLAUDE.md block's **Verification Scope** rule
 (`templates/claude-md-block.md`) says the full suite, the
 repository-wide lint and the typecheck run once, after the review rounds
 settle, and for three releases nobody was assigned that run: contract rule 2
-forbade it to the smith and the warden, and the orchestrator that took it by
+forbade it to the crafter and the proofer, and the orchestrator that took it by
 default kept hundreds of output lines in the one context a release cannot
 replace. This command is the run, as a thing the orchestrator types once,
 with nothing else running, before it spawns the sealer (#969).
@@ -27,7 +27,7 @@ What it does, in order, from the repository root:
      ending in a single `&`. No refusal names a command to write: the row is
      a person's, and the message says where they answer it
   2. `chain_check.py --baseline <base> --sealing`   judged by the pull
-     request's state as the check reads it, with `broad-gate.md`, which this
+     request's state as the check reads it, with `trail/gate.md`, which this
      run is about to write, and `guarantee.md`, which the sealer writes after
      it, printed rather than judged
   3. `seal.py mode --check`            the `Mode` row and the folder agree
@@ -79,14 +79,14 @@ plain text (`panel`, `report_lines`) — the tree and its branch, the base
 and the ref it came from, the work item, the suite's counts, the chain's
 exit, how many more steps CI runs than this run answers, and the round
 count when `--record` names a work item, with the deferred findings' homes
-beneath it (`rounds_rows`); and last, where git still sees `broad-gate.md`
+beneath it (`rounds_rows`); and last, where git still sees `trail/gate.md`
 uncommitted, one line saying so: CI reads HEAD. The owner's marks are
 written in ASCII on a console that is not UTF-8, or under `--shape`. A run
 that fails prints `BROAD GATE FAILED` with the same names and the failing
 checks with their first lines (`failed_form`). No run writes a values file
 or a drawing.
 
-`--record <item>` writes `<item>/broad-gate.md` on success, on either routing
+`--record <item>` writes `<item>/trail/gate.md` on success, on either routing
 answer: one `Broad gate` row holding `<tree> against <base commit>`, newest
 first, every earlier run kept behind it as `; earlier run: …`, and a run the
 file already records at the same commit against the same base replaced
@@ -113,7 +113,7 @@ Usage:
 
 Exit codes: 0 passed · 1 failed · 2 refused — no row, no repository, a
 base that does not resolve, a copy of the plugin whose sibling will not
-load (a malformed `seal-mark.txt` among them), a `broad-gate.md` that could
+load (a malformed `seal-mark.txt` among them), a `trail/gate.md` that could
 not be written; nothing ran on 2 except where the refusal names what ran.
 Under `--preflight`: 0 every record arm passed · 1 an arm failed · 2
 refused, with nothing run, `--record` given among the refusals.
@@ -225,7 +225,7 @@ def stamp_module():
     """`seal_stamp.py`, loaded once per process: `panel` asks it the one
     question both of them answer (`ref_is_commit`), and a case drives
     `panel` without a gate around it to have loaded it."""
-    return load(STAMP, "specseal_seal_stamp_for_broad_gate")
+    return load(STAMP, "agentic_seal_stamp_for_broad_gate")
 
 
 def git(root, *args):
@@ -634,7 +634,7 @@ def seal_home(root):
     for itself is never read for a command. The places and the marker are
     `optin`'s; the scratch opt-out is not read here, because a throwaway
     repository still runs its broad command when somebody asks for it."""
-    optin = load(OPTIN, "specseal_optin_for_broad_gate")
+    optin = load(OPTIN, "agentic_optin_for_broad_gate")
     for found in optin.home_paths(root):
         if found and os.path.isdir(found) and optin.marked(found):
             return found
@@ -647,7 +647,7 @@ def config_text(home):
     place the file is opened (#867). Every caller of this one runs after
     `broad_command`, which has already refused a file that will not read,
     so None here is a file that is not there."""
-    config = load(CONFIG_READER, "specseal_config_for_broad_gate")
+    config = load(CONFIG_READER, "agentic_config_for_broad_gate")
     return config.config_text(home)[0]
 
 
@@ -670,7 +670,7 @@ def broad_command(home):
     as the person wrote it. A line below that one naming the row again makes
     it a row written twice, which has no value (`config_value`), and the
     gate refuses it as it refuses any doubled row."""
-    config = load(CONFIG_READER, "specseal_config_for_broad_gate")
+    config = load(CONFIG_READER, "agentic_config_for_broad_gate")
     text, refused = config.config_text(home)
     if refused is not None:
         raise Refused(f"seal gate: {refused}. Nothing ran")
@@ -715,7 +715,7 @@ def refused_broad_row(home):
     `Broad gate` row the walk read, no such line at all, and a file that is
     not there or will not read.
     """
-    config = load(CONFIG_READER, "specseal_config_for_broad_gate")
+    config = load(CONFIG_READER, "agentic_config_for_broad_gate")
     text = config_text(home)
     if text is None:
         return None
@@ -748,7 +748,7 @@ def stopping_line(text, refused):
     shows below the header, the header being the first shown line whose
     cells are the config header, that reads as the quoted text once
     stripped."""
-    config = load(CONFIG_READER, "specseal_config_for_broad_gate")
+    config = load(CONFIG_READER, "agentic_config_for_broad_gate")
     quoted = STOPPED_AT.search(refused)
     if quoted is None:
         return None, None
@@ -781,7 +781,7 @@ def rows_written_below(text, index):
 
     #430's condition: a sentence about rows below a line is false where
     none is written below it, and the walker's sentence says so flat."""
-    config = load(CONFIG_READER, "specseal_config_for_broad_gate")
+    config = load(CONFIG_READER, "agentic_config_for_broad_gate")
     # exempt from splitlines: lines the GFM walk numbers
     for line_index, line in config.unfenced(text.splitlines(), text):
         if line_index <= index:
@@ -827,7 +827,7 @@ def hidden_row_at(home, kind):
     """(index, line) for the first line naming this gate's row that the one
     reader hides as KIND, or (None, None). The kind is the reader's answer,
     `hooks/config.py#hidden_lines`, never a walk of this file's own."""
-    config = load(CONFIG_READER, "specseal_config_for_broad_gate")
+    config = load(CONFIG_READER, "agentic_config_for_broad_gate")
     text = config_text(home)
     if text is None:
         return None, None
@@ -898,7 +898,7 @@ def fence_left_open(home, above=None):
     nothing to do with their row while the act they needed — move it — was the
     sentence they did not get (#429, round 2).
     """
-    config = load(CONFIG_READER, "specseal_config_for_broad_gate")
+    config = load(CONFIG_READER, "agentic_config_for_broad_gate")
     text = config_text(home)
     if text is None:
         return False
@@ -1044,7 +1044,7 @@ def walker_refusal(home, mine):
     dropped where no line written `| … |` stands below it (#430). The
     sentence is the walker's for every table it reads, so it is not changed
     for one caller; this caller trims what is false of the file it holds."""
-    config = load(CONFIG_READER, "specseal_config_for_broad_gate")
+    config = load(CONFIG_READER, "agentic_config_for_broad_gate")
     text = config_text(home)
     said = config.config_table(text)[1][0]
     index, stopped = stopping_line(text, said)
@@ -1571,13 +1571,13 @@ def command_names_backslashed(command, is_directory):
 # `PYTHONPATH`. Beside this file, so a tree that ships its own gate ships its
 # own recorder with it (`gate_copy`).
 RECORDER_DIR = os.path.join(HERE, "pytest_record")
-RECORDER = "specseal_pytest_record"
+RECORDER = "agentic_pytest_record"
 # The four variables a measured run is handed, and the directory under the
 # kept output the records go in. The two the recorder reads are its own
 # module's names, written again here rather than imported, because the
 # recorder runs in the row's interpreter and this file is never loaded there.
-RECORD_KEY_VARIABLE = "SPECSEAL_RECORD_KEY"
-RECORD_DIR_VARIABLE = "SPECSEAL_RECORD_DIR"
+RECORD_KEY_VARIABLE = "AGENTIC_RECORD_KEY"
+RECORD_DIR_VARIABLE = "AGENTIC_RECORD_DIR"
 RECORDS = "records"
 # The kept name of the row's one run at the base.
 BASE_RUN = "suite-at-base"
@@ -1601,7 +1601,7 @@ def records_dir(keep):
 def recording_env(keep, key):
     """The environment a run the gate measures is handed (`#825`): this
     process's own, with the recorder's directory first on `PYTHONPATH`,
-    ` -p specseal_pytest_record` appended to whatever `PYTEST_ADDOPTS` holds,
+    ` -p agentic_pytest_record` appended to whatever `PYTEST_ADDOPTS` holds,
     and the recorder's two variables set — the records directory, made here,
     and `key`.
 
@@ -1676,7 +1676,7 @@ def record_path(path, worktree):
 
     `realpath` on both sides is not optional: pytest reports its rootdir
     resolved, and on macOS a `mkdtemp` directory and that rootdir spell one
-    place `/var/…` and `/private/var/…` (`phases/phase-1.md` of 1791270161).
+    place `/var/…` and `/private/var/…` (`trail/phases/phase-1.md` of 1791270161).
     """
     real = os.path.realpath(path)
     try:
@@ -1718,7 +1718,7 @@ def record_path(path, worktree):
 # exit of a session that ran to its end. Every exit above was measured with
 # the recorder loaded on pytest 6.1, 7.0 and 9.1 (#849 round 2), and again
 # with every stop `stopped` carries on the same three builds and on 9.1 with
-# pytest-xdist 3.8 under `-n 2` (`phases/phase-1.md` of 1791384158). One stop
+# pytest-xdist 3.8 under `-n 2` (`trail/phases/phase-1.md` of 1791384158). One stop
 # shows in neither: a `pytest.exit()` raised by a `pytest_sessionfinish`
 # hook that runs after the recorder's is raised after the `end` line was
 # written, and that session reads as one that ran to its end. One
@@ -1747,7 +1747,7 @@ def read_record(directory, key, worktree):
     test or a failed or skipped collection, and its `outcome` says whether
     it failed. A file's lines are read as a set for the lists — xdist's
     controller is handed one failed collection once per worker
-    (`phases/phase-1.md` of 1791270161) — so a collection is counted once
+    (`trail/phases/phase-1.md` of 1791270161) — so a collection is counted once
     per session however often its line was written, and a `test` line once
     per line, as pytest counts each report. A `test` line whose `category`
     is not a word, or is `""`, counts under none. Files are
@@ -1885,11 +1885,11 @@ EARNS_THE_WORD = (
 # where it shows: a row that started no pytest -- a part before its runner
 # failed, the module's case A5, or a row with no runner at all -- prints no
 # pytest output; a pytest that loaded no recorder prints its own; and the
-# recorder's warning is `specseal_pytest_record: no record written: <error>`.
+# recorder's warning is `agentic_pytest_record: no record written: <error>`.
 NO_RECORD_CAUSES = (
     "the row started no pytest, because a part before its runner failed or "
     "it has none; none it started loaded the recorder; or the one that did "
-    "could not write its record and warned 'specseal_pytest_record: no record "
+    "could not write its record and warned 'agentic_pytest_record: no record "
     "written' in {kept}"
 )
 # Where the row's run at `HEAD` left no record carrying its key: the files
@@ -2048,7 +2048,7 @@ def compare_at_base(root, base, command, files, keep):
     run: the shell sites are `gate` and this function, and a case holds
     that.
     """
-    scratch = tempfile.mkdtemp(prefix="broad-gate-base-")
+    scratch = tempfile.mkdtemp(prefix="seal-gate-base-")
     added = git(root, "worktree", "add", "--detach", scratch, base)
     if added is None:
         # The worktree that was not added still leaves the directory
@@ -2324,7 +2324,7 @@ def workflow_text(root):
 
     None is the ordinary case away from this repository: the plugin ships to
     repositories that have no such workflow, and for them nothing about the
-    run changes (`spec.md` A7). **A file that is there and is not UTF-8 is the
+    run changes (`frame/design.md` A7). **A file that is there and is not UTF-8 is the
     same case**, and it has to be: `UnicodeDecodeError` is a `ValueError`
     rather than an `OSError`, and `main` catches only `Refused`, so a decode
     error raised here ended the whole run on a traceback instead of a verdict
@@ -2371,7 +2371,7 @@ def coverage_line(text, given):
     command the row asked for.
 
     **A step no row classifies is named apart from one a row excludes.**
-    `PARTITION` describes SpecSeal's own `release` job; in another repository
+    `PARTITION` describes AgenticSeal's own `release` job; in another repository
     whose workflow happens to carry that job name, every step is unclassified
     and none of them has a reason written anywhere. Pointing that reader at
     `PARTITION` sends them to a row per step of a workflow they do not run,
@@ -2448,7 +2448,7 @@ def suite_counts(record):
 
 
 def round_records(item):
-    """The `rounds/round-N.md` paths of `item` on disk, lowest round first."""
+    """The `trail/rounds/round-N.md` paths of `item` on disk, lowest round first."""
     try:
         names = os.listdir(os.path.join(item, ROUNDS_DIR))
     except OSError:
@@ -2516,7 +2516,7 @@ def rounds_rows(item):
     records = round_records(item)
     rows = [("rounds", str(len(records)))]
     try:
-        chain = load(CHAIN, "specseal_chain_check_for_broad_gate")
+        chain = load(CHAIN, "agentic_chain_check_for_broad_gate")
     except Refused:  # a label never stops a run that passed
         return rows
     stamp = stamp_module()
@@ -2580,7 +2580,7 @@ def panel(
                 <k> deferred → <homes>     only where k > 0 (`rounds_rows`)
 
     **The result rows carry a `✓`, and the blank before them is a row**
-    (#832, `spec.md` decision 6 of work item 1791270164, the owner's design
+    (#832, `frame/design.md` decision 6 of work item 1791270164, the owner's design
     of 2026-10-07): a `✓` where the arm's count or exit was read,
     `chain ✓ exit <code>`, and a dim `·` before `CI also`'s value, the mark
     of a row that is not a pass.
@@ -2618,7 +2618,7 @@ def panel(
     the only statement a reader gets.** A4 keeps the line silent where the
     two bases agree, so a fork whose base and `origin`'s name one commit
     renders a long `other/…` ref as its tail with the remote hidden — the
-    stated cost of keeping the tail (`phases/phase-3.md`, round 2 finding
+    stated cost of keeping the tail (`trail/phases/phase-3.md`, round 2 finding
     13).
 
     Two rows left with #666, and why: `from` became the row under `base`,
@@ -2659,9 +2659,9 @@ def panel(
     # (`questions.md` W1).
     #
     # Absent where the repository has no such workflow, which is the ordinary
-    # case away from this one: the partition describes SpecSeal's own CI, the
+    # case away from this one: the partition describes AgenticSeal's own CI, the
     # plugin ships to repositories that have none, and for them nothing about
-    # the run changes (`spec.md` A7).
+    # the run changes (`frame/design.md` A7).
     #
     # Over the steps CI runs for THIS base (#666): `unanswered` leaves out the
     # four that run only into `main` on any other base, and the two CI skips
@@ -2866,7 +2866,7 @@ PREFLIGHT_TAIL = (
 ROW_NOT_RUN = " — read, and not run: this is a preflight"
 PREFLIGHT_RECORD = (
     "seal gate: --preflight and --record were both given, and a preflight "
-    "writes nothing — nothing ran. `broad-gate.md` is written by a full run: "
+    "writes nothing — nothing ran. `trail/gate.md` is written by a full run: "
     "`seal gate --base <base> --record <item>`. Drop `--record`"
 )
 
@@ -2903,7 +2903,7 @@ def gate(args, ascii_marks=False):
     # the only one there needs to be: the other surface that runs the row
     # (`compare_at_base`, which runs it once, unchanged, at the base) is
     # reached only after the run below, so this refusal closes it by
-    # reachability rather than by a second guard in a second place (`spec.md`
+    # reachability rather than by a second guard in a second place (`frame/design.md`
     # *The class, enumerated by construction*). It runs the very row this
     # refusal passed (#825).
     unrunnable = not_as_written(home, command)
@@ -2914,7 +2914,7 @@ def gate(args, ascii_marks=False):
         raise Refused(f"seal gate: {root} has no HEAD to run over — nothing ran")
     # The one read of `args.base` in this file, and the count is held by a
     # case: a seventh consumer written later cannot take the unresolved value
-    # without that case going red (`spec.md` *The class, enumerated by
+    # without that case going red (`frame/design.md` *The class, enumerated by
     # construction*). Every check below asks `base.commit`, which is the
     # commit CI will compare against. The readers of `base.given`, the
     # caller's spelling, are none of them a check: `moved_line`, which exists
@@ -2939,7 +2939,7 @@ def gate(args, ascii_marks=False):
         item = os.path.abspath(args.record)
         if not os.path.isdir(item):
             raise Refused(f"seal gate: --record {args.record} is not a directory")
-    keep = args.keep_output or tempfile.mkdtemp(prefix="broad-gate-")
+    keep = args.keep_output or tempfile.mkdtemp(prefix="seal-gate-")
     os.makedirs(keep, exist_ok=True)
     py = sys.executable
     checks = {}
@@ -2982,7 +2982,7 @@ def gate(args, ascii_marks=False):
             SUITE, command, root, keep, shell=True, env=recording_env(keep, head_key)
         )
         head = read_record(records_dir(keep), head_key, root)
-    # `--sealing` (#866): this run writes `broad-gate.md` after it passes, so
+    # `--sealing` (#866): this run writes `trail/gate.md` after it passes, so
     # the check prints that one arm and does not fail on it. The pull request's state
     # is the check's to read -- the payload, else `gh` -- and nothing is
     # written into the environment for it.
@@ -3022,7 +3022,7 @@ def gate(args, ascii_marks=False):
         if args.preflight:
             # The same per-check lines under a first line that names the
             # preflight. The form is kept in one place, and only its head is
-            # the preflight's (`phases/phase-1.md` of 1790815611 says why the
+            # the preflight's (`trail/phases/phase-1.md` of 1790815611 says why the
             # head is replaced here rather than passed in).
             form[0] = preflight_line(PREFLIGHT_FAILED, tree, base.commit)
         sys.stdout.write("\n".join(form) + "\n")
@@ -3063,10 +3063,10 @@ def gate(args, ascii_marks=False):
 # files' bytes to decide whether the panel's `gate` row says anything (#666).
 # Absent, the running copy was invoked directly, or redirected by an installed
 # copy older than #666, which sets no such variable.
-INVOKED_AS_VAR = "SPECSEAL_BROAD_GATE_INVOKED_AS"
+INVOKED_AS_VAR = "AGENTIC_GATE_INVOKED_AS"
 
 # The last line of a recorded run that passed (#666): the gate writes
-# `broad-gate.md` into the working tree and commits nothing, and CI reads HEAD.
+# `trail/gate.md` into the working tree and commits nothing, and CI reads HEAD.
 CELL_UNCOMMITTED = (
     "seal gate: the run is written to {path} and not committed. CI reads "
     "HEAD, so commit it before you push"
@@ -3097,7 +3097,7 @@ def main(argv=None, console_wants_ascii=False):
     found it, negated — `__main__` asks before it reconfigures the
     streams. A caller in process names it, or gets the owner's marks."""
     try:
-        load(STAMP, "specseal_seal_stamp_for_broad_gate")
+        load(STAMP, "agentic_seal_stamp_for_broad_gate")
     except Refused as exc:
         sys.stderr.write(str(exc) + "\n")
         return 2
@@ -3113,7 +3113,7 @@ def main(argv=None, console_wants_ascii=False):
         "--record",
         default=None,
         metavar="ITEM",
-        help="the work item whose broad-gate.md records this run",
+        help="the work item whose trail/gate.md records this run",
     )
     parser.add_argument(
         "--shape",
@@ -3175,7 +3175,7 @@ if __name__ == "__main__":
     # process found it — before the loop below moves every stream to UTF-8
     # (`seal_stamp.py` measured why).
     try:
-        _stamp = load(STAMP, "specseal_seal_stamp_for_broad_gate")
+        _stamp = load(STAMP, "agentic_seal_stamp_for_broad_gate")
     except Refused as _exc:
         sys.stderr.write(str(_exc) + "\n")
         sys.exit(2)

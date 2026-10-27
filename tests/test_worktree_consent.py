@@ -125,8 +125,8 @@ def projects(monkeypatch, tmp_path):
 BOXES_QUESTION = "Under per axis, which of these apply?"
 BOXES = (
     "run end to end without stopping to ask",
-    "implement with smith",
-    "review with warden",
+    "implement with crafter",
+    "review with proofer",
     "open the pull request",
 )
 

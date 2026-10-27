@@ -28,7 +28,7 @@ from conftest import flat
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 CONTRACT = ("skills", "agent-contract", "SKILL.md")
-SMITH = ("agents", "crafter.md")
+CRAFTER = ("agents", "crafter.md")
 CARRIERS = (CONTRACT,)
 
 
@@ -46,7 +46,7 @@ def test_the_rule_names_the_tool_and_pairs_its_two_reasons():
 def test_the_rule_names_the_second_reason():
     """Reason 2 is only here: the routing check refuses at the edit tools,
     so an edit made through the shell reaches no check before the pull
-    request. The warden never loads `implement`, so for every agent this is
+    request. The proofer never loads `implement`, so for every agent this is
     the only place it is stated."""
     for parts in CARRIERS:
         text = flat(*parts)
@@ -82,7 +82,7 @@ def test_no_carrier_claims_a_fact_about_the_reader_repository():
     none of its hooks. `This repository's are` is a claim about the READER's
     repository, and it is false there.
     """
-    for parts in (*CARRIERS, SMITH, ("agents", "proofer.md")):
+    for parts in (*CARRIERS, CRAFTER, ("agents", "proofer.md")):
         text = flat(*parts)
         who = "/".join(parts)
         for loose in (
@@ -104,9 +104,9 @@ def test_the_reviewer_keeps_the_half_that_makes_the_rule_its_own():
     whether a finding reproduces -- and without it contract rule 9 arrives
     at an agent that does not think it is addressed.
     """
-    warden = flat("agents", "proofer.md")
-    assert "rule 9" in warden, "the reviewer can no longer reach the rule"
-    assert "scratch fixture" in warden, (
+    proofer = flat("agents", "proofer.md")
+    assert "rule 9" in proofer, "the reviewer can no longer reach the rule"
+    assert "scratch fixture" in proofer, (
         "the reviewer stopped being told which of its own acts are edits"
     )
 
@@ -114,13 +114,13 @@ def test_the_reviewer_keeps_the_half_that_makes_the_rule_its_own():
 def test_the_implementer_keeps_the_half_that_makes_the_rule_its_own():
     """What stayed in `agents/crafter.md` when contract rule 9 took the rest.
 
-    The reviewer's half answers *are my acts edits at all*. The smith never
+    The reviewer's half answers *are my acts edits at all*. The crafter never
     had that doubt -- it is the agent that edits -- so its half is the act
     itself, named in its `## Never` with the forms a shell edit takes.
     """
-    smith = flat(*SMITH)
-    assert "rule 9" in smith, "the implementer can no longer reach the rule"
-    assert "Edit through the shell: no `sed -i`, no heredoc" in smith, (
-        "the smith stopped being told which of its acts rule 9 rules out, and it "
+    crafter = flat(*CRAFTER)
+    assert "rule 9" in crafter, "the implementer can no longer reach the rule"
+    assert "Edit through the shell: no `sed -i`, no heredoc" in crafter, (
+        "the crafter stopped being told which of its acts rule 9 rules out, and it "
         "is the agent that edits most"
     )

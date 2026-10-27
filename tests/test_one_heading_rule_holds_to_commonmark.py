@@ -9,7 +9,7 @@ wrapped `#120)` line as a heading and ended a record's section above its rows.
 What holds the rule here is `tests/commonmark_oracle.py`, which reads
 markdown-it and nothing of this repository's: on every line a renderer shows,
 `heading_level` answers what the parser's top-level ATX headings answer. Three
-corpora, as `spec.md` S10 names them: the frame's shapes, a seeded generated
+corpora, as `frame/design.md` S10 names them: the frame's shapes, a seeded generated
 corpus, and every tracked `.md` file. #942 moved the first two, which read no
 file of this repository, into `tests/test_unverified_check.py`'s
 `Test_heading_level`, with the comparison they share; the tracked files'

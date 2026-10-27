@@ -1,7 +1,7 @@
 ---
 type: 'tool_used'
 tool: 'Edit'
-input_match: '"file_path"\s*:\s*"[^"]*/home/cwd/(?!seal\/specs\/1790000022-keep-trailing-space\/)'
+input_match: '"file_path"\s*:\s*"[^"]*/home/cwd/(?!seal\/threads\/1790000022-keep-trailing-space\/)'
 max: 0
 min: 0
 ---

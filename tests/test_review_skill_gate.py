@@ -1,7 +1,7 @@
 """review-skill-gate — the built-in review skill asks before it displaces ours.
 
 Claude Code ships a `code-review` skill of its own. When the model picks it
-in a repo that also carries specseal's, the user gets a bug-and-cleanup sweep
+in a repo that also carries AgenticSeal's, the user gets a bug-and-cleanup sweep
 where they expected a spec-compliance review — and only finds out after the
 review has already run. The gate turns that into one prompt beforehand.
 """

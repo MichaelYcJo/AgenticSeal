@@ -71,7 +71,7 @@ NAME_CAP = 40
 # One invocation is one process, so the list starts empty for each.
 FAILED = []
 
-LABEL = "SpecSeal: {count} failed and {verb} skipped"
+LABEL = "AgenticSeal: {count} failed and {verb} skipped"
 CLOSING = (
     "Nothing was blocked, and each gate is said once per session. "
     "Updating or reinstalling the plugin usually repairs it."
@@ -126,7 +126,7 @@ def run_gate(filename, payload):
     phase = "load"
     try:
         spec = importlib.util.spec_from_file_location(
-            f"specseal_gate_{filename.replace('-', '_')[:-3]}", path
+            f"agentic_gate_{filename.replace('-', '_')[:-3]}", path
         )
         module = importlib.util.module_from_spec(spec)
         sys.argv = [path]
@@ -326,7 +326,7 @@ def opted_in(top, common):
     the one state that must not also silence the report of it."""
     try:
         spec = importlib.util.spec_from_file_location(
-            "specseal_optin_for_the_failure_report", os.path.join(HOOKS, "optin.py")
+            "agentic_optin_for_the_failure_report", os.path.join(HOOKS, "optin.py")
         )
         optin = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(optin)

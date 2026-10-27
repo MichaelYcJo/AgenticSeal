@@ -262,7 +262,7 @@ def settle(tmp_path_factory):
     }
     for name, spec in specs.items():
         files[f"specs/{name}/gaps.md"] = memo(CLOSED_SECTION, name)
-        files[f"specs/{name}/spec.md"] = spec
+        files[f"specs/{name}/design.md"] = spec
     for name, section in (
         (CLOSED_ITEM, CLOSED_SECTION),
         (OPEN_ITEM, CANONICAL),
@@ -270,9 +270,9 @@ def settle(tmp_path_factory):
     ):
         files[f"specs/{name}/routing.md"] = f"# {name} routing\n"
         files[f"specs/{name}/gaps.md"] = memo(section, name)
-    files[f"specs/{DROPPED}/spec.md"] = "# a spec\n\nA rule.\n"
+    files[f"specs/{DROPPED}/design.md"] = "# a spec\n\nA rule.\n"
     d = _committed(tmp_path_factory.mktemp("settle"), files)
-    git(d, "rm", "-q", f"specs/{DROPPED}/spec.md")
+    git(d, "rm", "-q", f"specs/{DROPPED}/design.md")
     commit_everything_as_e(d, "an earlier pull request drops it")
     return d
 
@@ -291,6 +291,7 @@ def joined(tmp_path_factory):
         {
             f"{OURS}/gaps.md": memo(CANONICAL, "ours"),
             f"{TEAM}/gaps.md": memo(MALFORMED, "team"),
+            # exempt from old_names: another tool's own file, under a name the plugin once used
             f"{TEAM}/spec.md": "# the team's spec\n",
         },
     )
@@ -1645,7 +1646,7 @@ class Test_overviews_at:
 
 class Test_tree_at:
     def test_accepts_a_directory_at_a_ref_and_on_disk(self, settle):
-        listed = [f"specs/{SETTLE_A}/gaps.md", f"specs/{SETTLE_A}/spec.md"]
+        listed = [f"specs/{SETTLE_A}/design.md", f"specs/{SETTLE_A}/gaps.md"]
         assert UC.tree_at(str(settle), "HEAD", f"specs/{SETTLE_A}") == listed
         assert UC.tree_at(str(settle), None, f"specs/{SETTLE_A}") == listed
 
@@ -2400,7 +2401,7 @@ class Test_main:
         deletion."""
         d = copy_of(joined, tmp_path)
         os.remove(d / OURS / "gaps.md")
-        write(d, f"{OURS}/spec.md", "# a spec\n")
+        write(d, f"{OURS}/frame/design.md", "# a spec\n")
         assert run([str(d / "seal" / "threads"), "--baseline", "HEAD"]) == 1
         assert "present at HEAD and not here" in capsys.readouterr().out
 

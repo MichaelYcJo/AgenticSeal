@@ -593,7 +593,7 @@ def counts(found: list[Arm]) -> dict[str, int]:
 
 #: An exception class nothing raises, spelled as an expression so it needs no
 #: name in the module under test.
-NEVER_RAISED = 'type("_specseal_never_raised", (BaseException,), {})'
+NEVER_RAISED = 'type("_agentic_never_raised", (BaseException,), {})'
 
 
 #: The line terminators `ast` counts, and only those.

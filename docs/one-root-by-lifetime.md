@@ -100,9 +100,12 @@ order, the first the default, each saying what it does:
 
 A repository with `seal/` at either place has been through this and is never
 asked again; the mode is read from where the folder is. A repository still on
-the layout that came before the root is told, not asked, and the session-start
-hook moves it once (`skills/implement/orchestration.md`, its bootstrap). Once
-a root exists at either place, that hook stamps the repository as moved, so a
+the 0.3.x layout is told, not asked, that it moves by hand with the commands
+README.md *Coming up from 0.3.x* gives (`skills/implement/orchestration.md`,
+its bootstrap). A repository installed before the plugin was renamed
+AgenticSeal has its work items moved into the thread layout once, by the
+session-start hook. Once a root exists at either place and nothing of the
+earlier layout is left, that hook stamps the repository as moved, so a
 local-mode repository that later checks out an old branch is not moved into
 the tree it chose to keep clean.
 check: tests/test_first_setup_asks_once.py
@@ -190,7 +193,7 @@ record. The plugin's `name` and the prefix of every agent and skill is
 
 | Name | Its one sentence |
 |---|---|
-| AgenticSeal | a workflow of agents that frames, builds, inspects and seals a change without asking anyone, and ends in a seal bound to a commit |
+| AgenticSeal | the plugin, whose one sentence is the first line of README.md under its title, and the `description` of `.claude-plugin/plugin.json` |
 | `seal/` | the root, visible beside `docs/`, because the work items in flight are what people read while a pull request is open |
 | `seal/threads/<id>/` | a work item's directory: one thread, one issue, one branch, one pull request, with `frame/` for the design before the build, `trail/` for what passed between the parties, and `routing.md`, `changelog.md`, `guarantee.md` and `gaps.md` at its top, each record placed by what it is and never by which agent wrote it |
 | framer, crafter, proofer, sealer, tracer | the agents, each named for its part of one order, which `docs/the-agent-set.md` *One contract every agent receives, and one definition each* states |

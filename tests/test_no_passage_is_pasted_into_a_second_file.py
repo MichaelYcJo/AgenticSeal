@@ -33,7 +33,7 @@ catch a paraphrase would have to decide when two sentences say the same
 thing, which no constant can hold: at any similarity that catches a
 paraphrase it also matches a heading against the sentence that links it.
 The paraphrase half was measured once, by hand, and its result is recorded in
-`seal/specs/1791076836-every-rule-claude-md-restates-has-one-home/spec.md`
+`seal/threads/1791076836-every-rule-claude-md-restates-has-one-home/frame/design.md`
 *The method and its result* at `67694cba` rather than checked.
 
 **Why a ratchet.** The tree already holds copies, measured into `BASELINE`

@@ -158,7 +158,7 @@ def _sibling(name: str, path: str):
     return loaded
 
 
-_ARM_CHECK = _sibling("specseal_arm_check_for_mutation_check", ARM_CHECK)
+_ARM_CHECK = _sibling("agentic_arm_check_for_mutation_check", ARM_CHECK)
 clear_bytecode_cache = _ARM_CHECK.clear_bytecode_cache
 restore = _ARM_CHECK.restore
 command_words = _ARM_CHECK.command_words

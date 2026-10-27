@@ -2,7 +2,7 @@
   "name": "agentic",
   "displayName": "AgenticSeal",
   "version": "0.22.4",
-  "description": "SpecSeal — specs, sealed: an implement/review agent chain with hook enforcement, rules that name the tests holding them, and a tool-agnostic review handoff protocol.",
+  "description": "A workflow of agents that frames, builds, inspects and seals a change without asking anyone, and ends in a seal bound to a commit.",
   "author": {
     "name": "MichaelYcJo"
   },

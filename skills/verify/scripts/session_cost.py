@@ -1941,7 +1941,7 @@ def token_totals(paths):
                     # `output_tokens` GROWS across them -- the last row carries
                     # the completed count. Keeping the first summed however
                     # much had been emitted when that row was written, so a
-                    # warden round that produced a full findings report read
+                    # proofer round that produced a full findings report read
                     # as 62 output tokens across 20 turns, three tokens a
                     # turn. Measured over the 180 transcripts on the machine
                     # that found it: 9,098 of 13,425 messages are split, and
@@ -2655,7 +2655,7 @@ def report_segments(segments, path):
 
     **This is the reading the hand method produced one transcript at a
     time.** `skills/verify/orchestration.md` *Measure the segment, and feed
-    the flow log* put a `session_cost.py` run at the end of every smith and warden segment, which
+    the flow log* put a `session_cost.py` run at the end of every crafter and proofer segment, which
     means opening each segment's file by hand and, for a resumed one,
     splitting it by eye. The rows below are that, for every segment of a run,
     in one command.
@@ -2870,8 +2870,8 @@ def newest(directory):
     # `~/.claude/projects` encodes a cwd by replacing every non-alphanumeric
     # character, not just the separator. Replacing `os.sep` alone is right on
     # POSIX by coincidence and wrong on Windows, where a drive letter keeps its
-    # colon: `C:\GitHub\SpecSeal` became `C:-GitHub-SpecSeal` and the real
-    # directory is `C--GitHub-SpecSeal`, so `seal cost --latest .` reported
+    # colon: `C:\GitHub\AgenticSeal` became `C:-GitHub-AgenticSeal` and the real
+    # directory is `C--GitHub-AgenticSeal`, so `seal cost --latest .` reported
     # "no transcript found" for a directory that is right there. Measured.
     # `hooks/worktree-guard.py` `project_slug` states the same rule; the two
     # trees do not import each other, so this names it rather than sharing it.

@@ -91,7 +91,7 @@ def publisher():
     """`.github/scripts/publish_release_note.py`, which owns the note's
     glance block, the pull request list and how a release is counted."""
     return module(
-        "specseal_publish_release_note", ".github", "scripts", "publish_release_note.py"
+        "agentic_publish_release_note", ".github", "scripts", "publish_release_note.py"
     )
 
 
@@ -99,7 +99,7 @@ def stamp():
     """`skills/verify/scripts/seal_stamp.py`, whose `build` gives the disc's
     cells and their colours, which `draw` paints."""
     return module(
-        "specseal_seal_stamp_for_release_seal",
+        "agentic_seal_stamp_for_release_seal",
         "skills",
         "verify",
         "scripts",
@@ -236,7 +236,7 @@ def gate():
     broad gate's panel reads the same record with (#869): one counter for the
     panel and the release, and no second reader of what pytest printed."""
     return module(
-        "specseal_broad_gate_for_release_seal",
+        "agentic_broad_gate_for_release_seal",
         "skills",
         "verify",
         "scripts",
@@ -294,9 +294,9 @@ def readers():
     ones a gate would read and a change to where records live has to move
     these readers first. The markdown reader is the one the check loaded."""
     chain = module(
-        "specseal_chain_check", "skills", "code-review", "scripts", "chain_check.py"
+        "agentic_chain_check", "skills", "code-review", "scripts", "chain_check.py"
     )
-    return module("specseal_routing", "hooks", "routing.py"), chain, chain.SHARED_READER
+    return module("agentic_routing", "hooks", "routing.py"), chain, chain.SHARED_READER
 
 
 def labels_of(pull):

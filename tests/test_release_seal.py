@@ -54,7 +54,7 @@ ROWS = [
 
 
 def seal():
-    return load(SCRIPT, "specseal_release_seal_for_tests")
+    return load(SCRIPT, "agentic_release_seal_for_tests")
 
 
 def stamp(name):

@@ -15,7 +15,7 @@ description: |
 # commit-pr-convention, the format of commits, pull requests and branches
 
 This skill is read by whoever writes a commit, a pull request or a branch
-name: the smith, and the orchestrator, which also writes the code where
+name: the crafter, and the orchestrator, which also writes the code where
 `routing.md` answers `Implementation` with `the session`. Below, that party
 is **the writer**.
 
@@ -64,8 +64,8 @@ body** (all four, because a squash makes them one text) and the **review
 report posted as a pull-request comment**, which is prose for whoever opens
 that pull request.
 
-**It does not govern the work-item records.** `spec.md`, `plan.md`,
-`overview.md`, `questions.md`, `changelog.md` and `rounds/round-N.md`'s cells
+**It does not govern the work-item records.** `frame/design.md`, `frame/plan.md`,
+`gaps.md`, `frame/questions.md`, `changelog.md` and `trail/rounds/round-N.md`'s cells
 follow a second row, `Record language`, read by the
 `implement` and `code-review` skills. The two are independent: setting one
 does not carry the other.

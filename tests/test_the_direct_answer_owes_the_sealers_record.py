@@ -1,4 +1,4 @@
-"""`straight to the PR` owes the broad run's `broad-gate.md`, and every document
+"""`straight to the PR` owes the broad run's `trail/gate.md`, and every document
 that describes the answer says so (#241).
 
 `chain_check.py#broad_gate` requires that file at a ready pull request: the
@@ -27,7 +27,7 @@ from conftest import REVIEW_CHAIN_DOCS, flat, review_chain_text
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
-STANDS = "the broad run's `broad-gate.md`"
+STANDS = "the broad run's `trail/gate.md`"
 
 # (the sentence that is gone, or None where the file never carried one; the
 # sentence that stands). The standing phrase is one no other sentence of the

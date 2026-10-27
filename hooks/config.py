@@ -109,7 +109,7 @@ CONFIG_SEPARATOR = re.compile(r"^\|[\s:|-]+\|$")
 #
 # **Three or more, and tildes as well as backticks, is a decision with
 # grounds.** This repository's own records wrap a fenced example in FOUR
-# backticks -- #429's body and `rounds/round-3-report.md` both do -- and that
+# backticks -- #429's body and `trail/rounds/round-3-report.md` both do -- and that
 # is exactly the text somebody would paste into `config.md` to document the
 # format. A rule that knew three backticks only would read the inner fence as
 # the outer one's close and leave the live table inside a fence.
@@ -282,7 +282,7 @@ def unfenced(lines, text=None):
     **It takes either spelling of a line.** The ending is stripped here, so
     a file written with LF and one written with CRLF get the same answer.
 
-    The edge cases past `spec.md`'s rule are resolved toward *not a fence*,
+    The edge cases past `frame/design.md`'s rule are resolved toward *not a fence*,
     which is the direction that keeps a live table readable:
 
       - a BACKTICK fence's info string may not itself hold a backtick

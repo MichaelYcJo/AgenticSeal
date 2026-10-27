@@ -143,12 +143,12 @@ jobs:
       # what the author can fix: a trailer naming a work item no judged
       # declaration names, a declaration
       # that says "through the review chain" with no committed round record, a
-      # declaration that cannot be read, a work item `spec.md` whose
+      # declaration that cannot be read, a work item `frame/design.md` whose
       # `## Rule changes` does not parse, where the work item is judged or
-      # the pull request's own commits add or change that `spec.md`, a
+      # the pull request's own commits add or change that `frame/design.md`, a
       # finding still `open` or one the check cannot read, a last record
       # behind HEAD or with a finding no round after it read, no
-      # `broad-gate.md` at HEAD, or no `guarantee.md` reading `sealed` at
+      # `trail/gate.md` at HEAD, or no `guarantee.md` reading `sealed` at
       # HEAD (`docs/the-review-record.md`
       # *What the check reads at the pull request*).
       #

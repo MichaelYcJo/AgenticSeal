@@ -1,4 +1,4 @@
-"""Issue #109 part 1: the instruction "measure every smith/warden segment and
+"""Issue #109 part 1: the instruction "measure every crafter/proofer segment and
 log what it found" used to live only in a person's message
 (`~/.claude/projects/.../memory/measure-every-segment-to-89.md`), retyped
 every session and naming a hardcoded issue number that goes stale the moment
@@ -56,10 +56,10 @@ import os
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 # Since #940 the section is the orchestrator's, in the verify skill's
-# orchestration file; the smith's and the sealer's `SKILL.md` no longer
+# orchestration file; the crafter's and the sealer's `SKILL.md` no longer
 # carries it.
 SKILL = os.path.join(ROOT, "skills", "verify", "orchestration.md")
-SMITHS_SKILL = os.path.join(ROOT, "skills", "verify", "SKILL.md")
+CRAFTERS_SKILL = os.path.join(ROOT, "skills", "verify", "SKILL.md")
 
 SECTION_HEADING = "## Measure the segment, and feed the flow log"
 
@@ -128,20 +128,20 @@ def test_skill_has_no_html_comments_at_all():
     )
 
 
-def test_the_section_is_the_orchestrators_and_the_smiths_skill_names_it():
+def test_the_section_is_the_orchestrators_and_the_crafters_skill_names_it():
     """#940 split the verify skill along its headings: posting is withheld
     from every agent (contract rule 6), so the section is in the orchestrator's
-    file, and the file the smith and the sealer open carries no copy of it.
+    file, and the file the crafter and the sealer open carries no copy of it.
     That file still prices the repeated run, which is the command the
     section uses, and names the orchestrator's file in its opening."""
     assert SECTION_HEADING in read(), "the orchestration file lost the section"
-    smiths = read(SMITHS_SKILL)
-    assert SECTION_HEADING not in smiths, (
-        "the smith's and the sealer's skill still carries the orchestrator's "
+    crafters = read(CRAFTERS_SKILL)
+    assert SECTION_HEADING not in crafters, (
+        "the crafter's and the sealer's skill still carries the orchestrator's "
         "measuring section"
     )
-    assert "## The cost of a run that repeats" in smiths
-    assert "`skills/verify/orchestration.md`" in smiths.split("\n## ", 1)[0], (
+    assert "## The cost of a run that repeats" in crafters
+    assert "`skills/verify/orchestration.md`" in crafters.split("\n## ", 1)[0], (
         "the opening of `skills/verify/SKILL.md` does not say where the "
         "orchestrator's two acts are"
     )
@@ -483,7 +483,7 @@ def labelled(fragment):
 
 def test_the_location_buckets_are_the_repositorys_own_definition_of_a_record():
     """Round 1's finding 3. The row split `ledger` from `record` and the share
-    row counted only `seal/specs/**`, where the review chain's own definition
+    row counted only `seal/threads/**`, where the review chain's own definition
     puts a work item's documents, the ledger and its fragments in ONE bucket:
     a finding in any of them is about the run's paperwork rather than about
     the tool. Two definitions of one word made the same run's share row read
@@ -491,7 +491,7 @@ def test_the_location_buckets_are_the_repositorys_own_definition_of_a_record():
     to be comparable, which two fillings of one row destroy.
 
     A ticket is a request and a ratified document outranks it, so the buckets
-    follow the policy. `overview.md` *Where spec and implementation diverged*
+    follow the policy. `gaps.md` *Where spec and implementation diverged*
     quotes both sides."""
     label, source = labelled("Findings by `Location`")
     assert "ledger" not in label, (
@@ -529,7 +529,7 @@ def test_the_broad_gate_row_asks_for_what_the_file_actually_carries():
     broad gate's record holds one entry per full-suite run, newest first, so
     the count is read off it rather than remembered: the row may ask for it,
     on the one condition that its source says where the count comes from.
-    Since 0.22.0 that record is `broad-gate.md` (#923)."""
+    Since the rename to AgenticSeal that record is `trail/gate.md` (#923, #1051)."""
     label, source = labelled("Broad gate")
     if "how many times" in label:
         assert "one entry per full-suite run" in source, (
@@ -537,7 +537,7 @@ def test_the_broad_gate_row_asks_for_what_the_file_actually_carries():
             "holds one entry per run, so the count comes from somewhere the "
             "next run cannot check"
         )
-    assert "`broad-gate.md`" in source, (
+    assert "`trail/gate.md`" in source, (
         "the row names no file the count is read from, which is the reason "
         "the count went unnoticed in the first place"
     )

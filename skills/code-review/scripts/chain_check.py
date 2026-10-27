@@ -146,7 +146,7 @@ RETIRED_SAYS = (
     "the new word; otherwise run `seal gate --base <base> --record <item>` "
     "and commit `trail/gate.md` first"
 )
-# What a broad-gate entry is separated from the run behind it by. The newest
+# What a gate record's entry is separated from the run behind it by. The newest
 # run stands first; `broad_gate.py#kept_runs` writes the rest behind it.
 EARLIER_RUN = "; earlier run: "
 # The `Target SHA` row has one shape: the commit audited `against` the base,
@@ -505,7 +505,7 @@ def grammar_row(cells, refuse, number, rows, reader):
 # exit 2 naming the file; imported, the error is raised and the importer
 # decides what a check that cannot read a record means to it.
 try:
-    SHARED_READER = load(READER, "specseal_unverified_reader_for_grammar")
+    SHARED_READER = load(READER, "agentic_unverified_reader_for_grammar")
 except (OSError, SyntaxError, ImportError, SystemExit) as _exc:
     if __name__ != "__main__":
         raise
@@ -748,7 +748,7 @@ def read_record(root, rel):
 
 
 def round_records(routing, root, item):
-    """`<item>/rounds/round-N.md` git carries, lowest round first."""
+    """`<item>/trail/rounds/round-N.md` git carries, lowest round first."""
     where = f"{item}/{routing.ROUNDS_DIR}"
     listed = worktree_files(root, where) if WORKTREE else tracked_files(root, where)
     found = []
@@ -1590,7 +1590,7 @@ RULE_CHANGES_SAYS = (
 
 
 def rule_changes_read(reader, root, item):
-    """[(path, line, problem)] for the work item's `spec.md` whose
+    """[(path, line, problem)] for the work item's `frame/design.md` whose
     `## Rule changes` section `rule_changes.parse`, the one reader `settle`
     groups by, refuses; [] where git carries no spec. The reader is reached
     through `unverified_check.py#rule_changes`, which raises where it will
@@ -1735,7 +1735,7 @@ NO_ORIGINAL = (
     f"no `{ORIGINAL_ROW}` line: `{{config}}` declares a migration and this "
     "pull request changes a path outside the document roots, so each round "
     f"record carries `{ORIGINAL_ROW} {{sha}}`, the migration config's "
-    "baseline, written by the warden once it compared the round's target "
+    "baseline, written by the proofer once it compared the round's target "
     "with the original through `legacy-parity`"
 )
 OTHER_ORIGINAL = (
@@ -1754,8 +1754,8 @@ def parity_readers():
     """`(config, gate)`: `hooks/config.py` and `hooks/gate.py`, loaded by path.
     `gate.py` imports nothing since #1027, so the order no longer matters.
     Raises what `load` raises."""
-    config = load(os.path.join(HOOKS, "config.py"), "specseal_config_for_parity")
-    gate = load(os.path.join(HOOKS, "gate.py"), "specseal_gate_for_parity")
+    config = load(os.path.join(HOOKS, "config.py"), "agentic_config_for_parity")
+    gate = load(os.path.join(HOOKS, "gate.py"), "agentic_gate_for_parity")
     return config, gate
 
 
@@ -1846,7 +1846,7 @@ def broad_gate(reader, root, item, base):
             (
                 rel,
                 0,
-                "git carries no broad-gate file: the orchestrator runs "
+                "git carries no gate record: the orchestrator runs "
                 "`seal gate --base <base> --record <item>` before it spawns "
                 "the sealer, and the run writes it on a green run",
             )
@@ -1858,7 +1858,7 @@ def broad_gate(reader, root, item, base):
     behind = follows(root, sha, base, item)
     if behind is None:
         return problems
-    return [*problems, (rel, 0, follows_reason(behind, "the newest broad-gate run"))]
+    return [*problems, (rel, 0, follows_reason(behind, "the newest gate run"))]
 
 
 def verdicts_of(reader, text):
@@ -2166,7 +2166,7 @@ def main(argv=None):
 
     reader = SHARED_READER
     try:
-        routing = load(ROUTING, "specseal_routing")
+        routing = load(ROUTING, "agentic_routing")
     except (OSError, SyntaxError, ImportError, SystemExit) as exc:
         print(f"chain-check: the shared reader would not load ({exc})", file=sys.stderr)
         return 2

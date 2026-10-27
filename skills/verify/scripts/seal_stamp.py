@@ -91,7 +91,7 @@ import time
 
 # --- the disc's colours --------------------------------------------------
 #
-# The owner's frame of 2026-10-07 (#832, `spec.md` decision 5 of work item
+# The owner's frame of 2026-10-07 (#832, `frame/design.md` decision 5 of work item
 # 1791270164), named as the owner's `seal28.py` names them: `WAX_EDGE`; the
 # rim, lit from the upper left in three steps, `RIM_LIT`, `RIM_MID` and
 # `RIM_DARK`, whose lit and dark the groove inside it takes the other way
@@ -121,7 +121,7 @@ TITLE_RED = (196, 40, 44)
 # case shadow — `m` the wax edge and `.` the field, as #30 had them; `M n N`
 # the rim lit, mid and dark; `X` the disc's mark's face, and `Y` and `y` its
 # highlight and its drop shadow, as #717 had them; `x` its inner shadow. The
-# framer chose them (`spec.md` *Data & interfaces*): the twin is for a
+# framer chose them (`frame/design.md` *Data & interfaces*): the twin is for a
 # console that cannot draw half-blocks, and no decision of the owner's names
 # its letters. Every disc cell is exactly one of these colours, so a cell's
 # letter is a lookup (`letter_row`).
@@ -168,9 +168,9 @@ MESSAGE_LIMIT = 10000
 # see: `hooks/dispatch.py#report` prepends the session's gate-failure report
 # to this same message after the hook has printed. The longest report it can
 # write, with each exception's type name and each gate's name cut at
-# `NAME_CAP` and its text at `MESSAGE_CAP`, is 564 UTF-16 units for one failed
-# gate and 972 for two, separator included; a third, at 1,378, would pass the
-# limit beside a stamp at the budget (measured 2026-10-03 over
+# `NAME_CAP` and its text at `MESSAGE_CAP`, is 567 UTF-16 units for one failed
+# gate and 975 for two, separator included; a third, at 1,381, would pass the
+# limit beside a stamp at the budget (measured 2026-10-27 over
 # `dispatch.describe`, every gate this plugin names and three foreign ones,
 # in every group it names and a foreign one, at every phase, with every field
 # past its cap -- a record an older or newer plugin wrote;
@@ -353,7 +353,7 @@ def colour_code(ground, colour):
 
 
 def colour_row(cells):
-    """One line of the block form, lean (#832, `spec.md` S11, after the
+    """One line of the block form, lean (#832, `frame/design.md` S11, after the
     owner's `frames.py#encode`). A code only where the next visible cell's
     foreground, background or style differs from what is set; every part of
     that change in one SGR; no reset inside the line, and `RESET` at its end
@@ -392,7 +392,7 @@ def colour_row(cells):
 
 
 def letter_row(cells):
-    """One line of the letter twin over the same cells (#832, `spec.md`
+    """One line of the letter twin over the same cells (#832, `frame/design.md`
     S4): a half-block's `KEY` letter — its foreground's, which is the top
     half's colour on `▀` and the bottom half's on `▄` — the text's own
     character with `TWIN_ASCII` applied, and a space for an empty cell.
@@ -420,7 +420,7 @@ def strip_ansi(s):
 # (`queue_for_written_guarantee`) composes rows too, and the gate's plain report
 # imports them from here, so both write a row by one set of rules.
 
-# How many columns a panel value is given (#832, `spec.md` S5a of work item
+# How many columns a panel value is given (#832, `frame/design.md` S5a of work item
 # 1791270164): the widest that keeps the stamp's widest line inside an
 # 80-column terminal, the floor a command line's output is held to. The open
 # layout has no frame, so the terminal is the bound: 28 columns of disc, `GAP`
@@ -499,7 +499,7 @@ def item_value(item):
 
 # --- the stamp: the disc at the left, the text block at the right ---------
 #
-# #832, the owner's layout of 2026-10-07 (`spec.md` decision 6 of work item
+# #832, the owner's layout of 2026-10-07 (`frame/design.md` decision 6 of work item
 # 1791270164, the owner's `frames.py#design_open`): no parchment, no edge, no
 # frame and no background outside the disc, the text in the terminal's own
 # colours. #717's sheet, which the text was written on, is retired.
@@ -531,7 +531,7 @@ def text_cells(text, style=None, fg=None):
 
 
 def text_lines(rows):
-    """The text block of `rows`, as lines of cells (#832, `spec.md` S3a).
+    """The text block of `rows`, as lines of cells (#832, `frame/design.md` S3a).
 
     Where the first row is the panel's title row, `("SEALED", "")`, the
     first line is `SEALED ` bold in `TITLE_RED` and a dim rule of
@@ -566,7 +566,7 @@ def text_lines(rows):
 def compose(rows, disc=True):
     """The stamp of `rows` as lines of cells (see the writers above), with
     its width and height and where the disc stands: `Letter(cells, width,
-    height, disc)` (#832, `spec.md` S3, the owner's layout of 2026-10-07).
+    height, disc)` (#832, `frame/design.md` S3, the owner's layout of 2026-10-07).
 
     The disc — `disc` False leaves it off, which is the rung `fitted` steps
     down to — stands at column 0, `DISC_CELLS` wide and
@@ -989,10 +989,10 @@ def _git(cwd, *args):
 
 
 def _chain_check():
-    """`chain_check.py`, whose readers of `guarantee.md` and `broad-gate.md`
+    """`chain_check.py`, whose readers of `guarantee.md` and `trail/gate.md`
     are the ones the pull request's check uses, so the row has one grammar."""
     spec = importlib.util.spec_from_file_location(
-        "specseal_chain_check_for_the_stamp", CHAIN_CHECK
+        "agentic_chain_check_for_the_stamp", CHAIN_CHECK
     )
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -1031,7 +1031,7 @@ def guarantee_rows(target, branch, base, ident, run, rounds):
     """The stamp's rows for a sealed guarantee (#975, `questions.md` Q1's
     answer (a)): what the records at the commit say and nothing measured
     again — the title, the audited commit with the branch under it, the
-    base, the work item's id, a blank, then the newest run `broad-gate.md`
+    base, the work item's id, a blank, then the newest run `trail/gate.md`
     names and the count of round records. A row whose record is absent is
     left out; `rounds` reads `0` where the work item had none."""
     rows = [TITLE_ROW, ("tree", fit(target))]
@@ -1145,7 +1145,7 @@ def _queue_values(
     the line that names it, once `queue_for_written_guarantee` has read the
     records from disk and the guarantee passed its refusals. `cell` is the
     `Target SHA` row, `gate_text` the `trail/gate.md` beside the guarantee or
-    None, `rounds` the paths of what its `rounds/` holds and `branch` the
+    None, `rounds` the paths of what its `trail/rounds/` holds and `branch` the
     branch the audited commit stands on, or "" where none is named."""
     reader = chain.SHARED_READER
     key = f"{ident}-{target}"
@@ -1241,7 +1241,7 @@ def queue_for_written_guarantee(path, session, now=None):
     if names != ("guarantee.md", "threads", "seal"):
         return []
     chain = _chain_check()
-    routing = chain.load(chain.ROUTING, "specseal_routing_for_the_stamp")
+    routing = chain.load(chain.ROUTING, "agentic_routing_for_the_stamp")
     found = written_root(routing, seal)
     if found is None:
         return []

@@ -2,6 +2,6 @@ You are the orchestrator of this repository. Spawn exactly one `agentic:sealer` 
 
 BEGIN PROMPT
 
-Guarantee work item `1790000030-guarantee-stale-gate` on branch `feat/guarantee-stale-gate` in this clone, for issue #101 and its pull request: the base is `main` and the item is `seal/specs/1790000030-guarantee-stale-gate`. There is no tracker and no remote: the issue body is `.git/specseal-eval/issue-101.md` and the pull request body is `.git/specseal-eval/pr-body.md`. The repository is the current working directory, the one `git rev-parse --show-toplevel` names where you start; run every command there.
+Guarantee work item `1790000030-guarantee-stale-gate` on branch `feat/guarantee-stale-gate` in this clone, for issue #101 and its pull request: the base is `main` and the item is `seal/threads/1790000030-guarantee-stale-gate`. There is no tracker and no remote: the issue body is `.git/agentic-eval/issue-101.md` and the pull request body is `.git/agentic-eval/pr-body.md`. The repository is the current working directory, the one `git rev-parse --show-toplevel` names where you start; run every command there.
 
 END PROMPT

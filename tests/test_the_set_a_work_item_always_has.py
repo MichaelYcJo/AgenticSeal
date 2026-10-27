@@ -1,8 +1,8 @@
 """The SDD file set was read two ways at once, and the counts said so.
 
-`seal/specs/` is the root for a work item — its whole lifetime, its whole
+`seal/threads/` is the root for a work item — its whole lifetime, its whole
 contract.
-`spec.md` was a file on a ladder keyed to how many files the work touched. Both
+`frame/design.md` was a file on a ladder keyed to how many files the work touched. Both
 readings live in `skills/implement/SKILL.md`, neither is wrong on its own
 terms, and under the second one 33 of 35 work items here carry only a closing
 memo. That is either correct or a set that quietly fell apart, depending on
@@ -10,7 +10,7 @@ which reading a session happens to hold.
 
 Three things settle it, and each is pinned below.
 
-  the condition   `spec.md` is owed when the work alters observable
+  the condition   `frame/design.md` is owed when the work alters observable
                   behaviour, not when it touches six files. A count also
                   never said WHEN it was taken (issue #54), and a test with
                   no number has no such moment
@@ -77,9 +77,9 @@ def test_the_top_rung_names_behaviour_rather_than_a_count():
     """S6. The rung itself, in the skill the builder opens.
 
     A count is the thing being replaced, so `6+ files` may not survive as the
-    condition anywhere. The smith's copy of the rung left with #967, and the
+    condition anywhere. The crafter's copy of the rung left with #967, and the
     skill is the one place it is stated; the sweep below still reads the
-    smith's definition, so a count written back into it is caught.
+    crafter's definition, so a count written back into it is caught.
     """
     skill = read("skills", "implement", "SKILL.md")
     assert "observable behaviour" in skill, "implement/SKILL.md lost the condition"
@@ -211,7 +211,7 @@ def test_the_skill_lists_the_second_rung_work_and_what_lifts_it():
 
     Round 1 found two documents split: the skill named four kinds of
     second-rung work and `agents/crafter.md` named three, so a change touching
-    only tests was decidable by one and not the other. Since #967 the smith
+    only tests was decidable by one and not the other. Since #967 the crafter
     opens the skill and keeps no copy, so the list has one home, held here.
 
     Whitespace-normalised because the file is wrapped.
@@ -328,7 +328,7 @@ def test_the_plan_template_records_who_approved_it_and_when():
     )
     moment = line[len("Approved" + STAMP_CORE) :]
     assert moment.endswith("."), "the line lost its full stop"
-    assert "smith" in moment, (
+    assert "crafter" in moment, (
         "the approval line no longer names WHEN it is written. Without the "
         "moment it is a signature with no gate behind it -- anybody can add "
         "it after the work is done"
@@ -360,10 +360,10 @@ def test_the_approval_line_is_spelled_like_the_routing_answer():
 
 def test_the_orchestrator_states_the_approval_line_where_it_spawns_the_build():
     """S7 of #940. The approval line's shape is stated once, at the step
-    where the orchestrator spawns the smith, and it is the template's line.
+    where the orchestrator spawns the crafter, and it is the template's line.
 
     Nothing reads the line in a work item, so the statement is what a writer
-    and the warden read it by: the line ends at its full stop, and anything
+    and the proofer read it by: the line ends at its full stop, and anything
     more goes on a line of its own."""
     text = read("skills", "implement", "orchestration.md")
     heading = "### The plan is approved at the spawn"
@@ -405,7 +405,7 @@ def test_the_file_set_names_who_writes_each_file():
     assert "| Written by |" in header[0], (
         "the file table of *3. The SDD file set* does not say who writes each "
         "member of the set. "
-        "`spec.md` written by whoever then builds to it is an account of "
+        "`frame/design.md` written by whoever then builds to it is an account of "
         "what got built, and the table is where a session learns otherwise"
     )
 
@@ -449,7 +449,7 @@ SKILL_NAMED = r"(?:skills/implement/SKILL\.md`?|`implement`)"
 CITED_TITLE = re.compile(SKILL_NAMED + r"(?: | skill's )\*([^*]+)\*")
 # Records of what was true when they were written are not brought to a new
 # heading, so they are not read.
-NOT_CITATIONS = ("seal/specs/", "changelog/", "CHANGELOG.md")
+NOT_CITATIONS = ("seal/threads/", "changelog/", "CHANGELOG.md")
 
 
 def implement_headings(text):

@@ -271,8 +271,8 @@ python3 .github/scripts/plugin_directory_check.py   # what the marketplace files
       To draw one by hand, from a checkout at the tag, with a `python3` that
       imports Pillow, run the suite with the broad gate's recorder loaded
       (`PYTHONPATH="$PWD/skills/verify/scripts/pytest_record"`,
-      `PYTEST_ADDOPTS='-p specseal_pytest_record'`, and
-      `SPECSEAL_RECORD_DIR` and `SPECSEAL_RECORD_KEY` naming a directory
+      `PYTEST_ADDOPTS='-p agentic_pytest_record'`, and
+      `AGENTIC_RECORD_DIR` and `AGENTIC_RECORD_KEY` naming a directory
       that exists and a key you choose), then run
       `DRY_RUN=1 python3 .github/scripts/release_seal.py` with `TAG`,
       `REPO`, `SUITE_RECORDS` (that directory) and `SUITE_KEY` (that key)
@@ -296,14 +296,14 @@ python3 .github/scripts/plugin_directory_check.py   # what the marketplace files
       live by the listing's publish setting, which by default waits for
       somebody to select Publish (`claude.com/docs/plugins/submit`, *Publish
       a passing version*). A Console listing is answered on the Console
-      page. SpecSeal's listing is a Console listing, by the repository
+      page. The plugin's listing is a Console listing, by the repository
       owner's reading of the Console page on 2026-10-07, and a Console
       listing takes no new
       version until a person moves it to the portal
       (`claude.com/docs/directory/publish`, *Move an earlier submission to
       the developer portal*), so no release reaches the directory through it
-      until then. Whether it shows up at all is what a search for SpecSeal
-      inside Claude answers. Neither that search nor the Console page, which
+      until then. Whether it shows up at all is what a search for the
+      plugin inside Claude answers. Neither that search nor the Console page, which
       sits behind the owner's login, is open to a script or a case here:
       both answers are the owner's reading.
 

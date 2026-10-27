@@ -1,4 +1,4 @@
-# Contributing to SpecSeal
+# Contributing to AgenticSeal
 
 ## Opening a pull request
 
@@ -69,7 +69,7 @@ and a maintainer adding a CI step reads the row rather than this sentence.
 | a `routing.md`, `frame/design.md` or `frame/plan.md` under `seal/threads/` | Nothing in CI reads them. They route a maintainer's own session |
 | a review round record | *a declared review chain has the round record it claimed* passes with a notice when no declaration names the branch |
 | a `changelog.md` fragment | *every changelog fragment reached the released file* exits 0 unless the base is `main` |
-| an `overview.md`, or a row inside one | No CI step reads it. It is a maintainer's closing memo for their own work item |
+| a `gaps.md`, or a row inside one | No CI step reads it. It is a maintainer's closing memo for their own work item |
 | a new version in `.claude-plugin/plugin.json` | *a change to what ships must move the version* exits 0 unless the base is `main` |
 | an issue number in the description | the issue-claim step reports what it finds and never fails; an empty description is a description |
 
@@ -263,7 +263,7 @@ document's prose stays where it is, and so does a case whose rows pin how
 another module reads a shape, until the module it pins is rebuilt. A case is
 cut only where the mutation table shows that every mutation it kills is
 killed by another case, or where the behaviour it guarded has left the tree.
-check: none reader: the warden at review
+check: none reader: the proofer at review
 
 **A module's tests are written anew from the code when its old files cost
 past the threshold.** The threshold is 60 seconds of the module's old files in
@@ -272,7 +272,7 @@ the module's classes. Every other module's old cases are placed and merged.
 A module written anew takes its accepting and refusing cases from reading
 the code, one class per function, and its old cases are read for their
 inputs.
-check: none reader: the warden at review
+check: none reader: the proofer at review
 
 **A rewritten module builds its world once and reads a command without
 git.** Its fixture repositories are built once, in a module-scoped fixture.
@@ -284,7 +284,7 @@ ones showing that the reading and git agree. A case samples one input of
 each kind where the mutation table shows the sample kills what enumerating
 the whole input space killed. These bind the rewrite and nothing in CI: the
 seconds the record states are read by the release table, not by a gate.
-check: none reader: the warden at review
+check: none reader: the proofer at review
 
 **A rebuilt module's record carries its move check or its mutation table,
 and one line per removed case.** The contributor writes it into the phase
@@ -326,7 +326,7 @@ record of the work item that rebuilt the module, in four parts:
   where they stand because they read prose, or because they wait for the
   module they pin, with that module named.
 
-check: none reader: the warden at review
+check: none reader: the proofer at review
 
 ## What a change to a gate must carry
 
@@ -359,7 +359,7 @@ adds any mechanism by what it takes away:
   checker, a hook, a CI step, a rule) names the existing one it removes, or
   says why none can go, and with either answer what that one caught against
   what it costs. `CLAUDE.md` *The rule a mechanism is kept against* is why.
-  What goes is listed under its `spec.md`'s `## Removes`, which the review
+  What goes is listed under its `frame/design.md`'s `## Removes`, which the review
   reads against the diff; `docs/the-reader-registry.md` *A frame names what
   its work removes* is the rule.
 

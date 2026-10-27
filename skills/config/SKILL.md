@@ -38,7 +38,7 @@ present hides exactly those.
 | Row | Default | What it governs |
 |---|---|---|
 | `Commit and pull request language` | English | the commit subject and body, the pull request title and body, and a review report posted as a pull-request comment |
-| `Record language` | English | the prose in `spec.md`, `plan.md`, `overview.md`, `questions.md`, `changelog.md`, and a round record's cells |
+| `Record language` | English | the prose in `frame/design.md`, `frame/plan.md`, `gaps.md`, `frame/questions.md`, `changelog.md`, and a round record's cells |
 | `Mode` | *the folder decides* | which of the two places the root should live at |
 | `Broad gate` | *none: `seal gate` refuses without it* | the one shell command line `seal gate` runs once the review rounds settle: the full suite, the repository-wide lint, the typecheck |
 | `Document token ceiling` | *not declared: no length is checked* | the estimated tokens past which `seal fold` reports a top-level policy document as one to split |

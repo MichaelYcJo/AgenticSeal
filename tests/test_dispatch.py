@@ -46,7 +46,7 @@ RECORDS = "agentic-gate-failure"
 
 # The words a person reads (contract rule 14). Pinned whole, so an edit that
 # changes what the line says has to change this too.
-LABEL_ONE = "SpecSeal: 1 gate failed and was skipped"
+LABEL_ONE = "AgenticSeal: 1 gate failed and was skipped"
 CLOSING = (
     "Nothing was blocked, and each gate is said once per session. "
     "Updating or reinstalling the plugin usually repairs it."
@@ -859,7 +859,7 @@ class Test_draw:
         label = (
             LABEL_ONE
             if len(named) == 1
-            else f"SpecSeal: {len(named)} gates failed and were skipped"
+            else f"AgenticSeal: {len(named)} gates failed and were skipped"
         )
         assert lines[0] == label, lines
         assert gates_said(lines) == named, lines

@@ -9,8 +9,8 @@
 # its walk, its `Unresolved`. The commit gate reads `cmdline.py`, untouched.
 #
 # NEVER edit this file, and never add a rule to it. #692 decided where it
-# stays, on the owner's answers of 2026-10-01 (`seal/specs/1790815613-…/
-# questions.md` P4, P5 and P6): no git refuses a branch switch before its tree
+# stays, on the owner's answers of 2026-10-01 (`seal/threads/1790815613-…/
+# frame/questions.md` P4, P5 and P6): no git refuses a branch switch before its tree
 # has moved, and a hook that runs after a worktree creation cannot undo all of
 # it, so the guard's switch and creation arms and the consent writer read the
 # command through this copy on every git, permanently.

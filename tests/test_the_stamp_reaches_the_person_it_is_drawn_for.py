@@ -25,7 +25,7 @@ GATE = os.path.join(ROOT, "skills", "verify", "scripts", "broad_gate.py")
 
 
 def stamp_module():
-    return load_module(STAMP, "specseal_seal_stamp_for_its_values")
+    return load_module(STAMP, "agentic_seal_stamp_for_its_values")
 
 
 def seal_stamp(*args):
@@ -151,13 +151,13 @@ def test_the_orchestrator_is_told_the_stamp_is_drawn_for_it():
 
 def test_the_form_bullet_says_what_draws_the_final_seal():
     """S16, `verify`'s half, and #975 S13. The **Form** bullet said
-    `broad-gate` draws the stamp when every check passed; the stamp is the
+    `seal gate` draws the stamp when every check passed; the stamp is the
     sealer's now, drawn once per work item from its `sealed` guarantee, and
     the gate draws nothing. #1027 S13: queued at that file's write under
     either root."""
     text = flat("skills", "verify", "SKILL.md")
-    assert "`broad-gate` prints the disc on success alone" not in text
-    assert "`broad-gate` draws the stamp" not in text
+    assert "`seal gate` prints the disc on success alone" not in text
+    assert "`seal gate` draws the stamp" not in text
     for said in (
         "the stamp is drawn from the sealer's `guarantee.md` reading `sealed`, "
         "once per work item",
@@ -424,7 +424,7 @@ def test_both_readmes_list_the_stamp_hook():
             ),
             (
                 "the broad gate left for this session",
-                "a sealed broad-gate run writes",
+                "a sealed broad gate run writes",
                 "a `sealed` the plugin refused leaves",
                 # #1027 phase 7: the git hooks' row went with the hooks.
                 "Beside the arms, `pre-commit` refuses",

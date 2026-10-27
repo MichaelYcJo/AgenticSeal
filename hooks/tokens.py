@@ -33,7 +33,7 @@ The rules are the two consent reads 0.16.0 had, joined:
     to the shell, which runs the command, and this splitter, which reads
     comments on purpose, reads its apostrophe as a quote. Over the recorded
     runs that kept four of the guard's tokens and read none the base's reads
-    did not (work item 1791384157, `phases/phase-1.md`).
+    did not (work item 1791384157, `trail/phases/phase-1.md`).
     A quote this splitter cannot close is not always one bash refuses, and
     ANSI-C quoting is the known disagreement, in both directions: `$'it\\'s'`
     is one closed word to bash, while shlex closes the quote at `\\'` and

@@ -117,7 +117,7 @@ def test_the_documents_send_a_change_to_its_own_fragment():
         )
     review = flat("skills", "code-review", "orchestration.md")
     assert (
-        "The party that builds the work item writes that fragment: the smith, or "
+        "The party that builds the work item writes that fragment: the crafter, or "
         "you where `routing.md` answers `Implementation` with `the session` "
         "(`docs/the-record-layout.md` *A change writes fragments, never a shared "
         "file*)."

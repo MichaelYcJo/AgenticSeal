@@ -56,7 +56,7 @@ def shaped(path):
 def load_stamp():
     """`seal_stamp.py`, loaded by path from the plugin's `skills/`."""
     spec = importlib.util.spec_from_file_location(
-        "specseal_seal_stamp_for_the_edit_gate", STAMP
+        "agentic_seal_stamp_for_the_edit_gate", STAMP
     )
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)

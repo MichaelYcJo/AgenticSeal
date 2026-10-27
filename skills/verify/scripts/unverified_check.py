@@ -4,7 +4,7 @@ on a record that cannot be read.
 
 `verify` condition 4 lets a claim go out unproven as long as the row names who
 answers it. Nothing ever read those rows again. The measured failure: a row in
-`seal/specs/1787495842-verify-the-unverified/overview.md` said nobody had seen the
+`seal/threads/1787495842-verify-the-unverified/gaps.md` said nobody had seen the
 gates render in an interactive TUI and named the user as the answerer. Months
 later the user hit exactly that, from the other side, and asked why every gate
 renders as yes/no. The record was accurate and no procedure ever closed it.
@@ -13,7 +13,7 @@ So this reads every `## Not verified` section and reports what is still open.
 It does **not** fail because items are open. Dozens were open the day it was
 written, and a build that goes red for an honest `unverified` row teaches
 people to write none, which voids the condition it is defending. Counting them
-is what `seal unverified seal/specs/` is for; no number is repeated in prose here,
+is what `seal unverified seal/threads/` is for; no number is repeated in prose here,
 because a number in a comment is right for one commit and nobody recounts it.
 
 It fails for what the author can always fix:
@@ -21,7 +21,7 @@ It fails for what the author can always fix:
   malformed   a section that cannot be read. A tolerant parser reports zero
               here, and zero reads as "everything has been closed" — the worst
               available failure, because it is indistinguishable from success
-  fewer rows  a table that lost rows against the base, or an `overview.md`
+  fewer rows  a table that lost rows against the base, or an `gaps.md`
               that was there and is not (`--baseline REF`) — unless its whole
               directory stood at the base and is gone, which reads as a
               settle and which `settled` answers for every reader. Such a
@@ -33,7 +33,7 @@ It fails for what the author can always fix:
 **The base is the merge base, not the ref.** `--baseline REF` names the
 branch a pull request merges into, and that branch moves: the moment one work
 item squashes into it, every sibling branch cut before that squash has the
-squashed item's `overview.md` at the base and never had it at all. So the ref
+squashed item's `gaps.md` at the base and never had it at all. So the ref
 is resolved once, to `git merge-base REF HEAD`, and every read below uses that
 commit. On a branch checkout -- a local run, the broad gate's -- that is the
 fork point. In CI it is the base's tip, because a pull request is checked out
@@ -61,7 +61,7 @@ which it is, because a pull request in any of them declares nothing and owes
 nothing: the path holding no work item, empty or absent, which is the state a
 complete settle ends in (`settled_root`); no `seal/` directory at the working
 tree's top level, read before any base is (`absent_root`); and work items none
-of which carries an `overview.md`, where the base comparison found nothing
+of which carries an `gaps.md`, where the base comparison found nothing
 deleted (`unwritten_root`).
 """
 
@@ -84,7 +84,7 @@ def _load_blocks():
     line split are written. A hook imports nothing from `skills/`, so this
     module asks the hook's copy rather than the other way round."""
     spec = importlib.util.spec_from_file_location(
-        "specseal_blocks_for_unverified", os.path.join(HOOKS, "blocks.py")
+        "agentic_blocks_for_unverified", os.path.join(HOOKS, "blocks.py")
     )
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -169,7 +169,7 @@ OPENER = "<!--"
 CLOSER = "-->"
 # What each reader of a record says of a line `comment_lines` finds, spelt
 # once: `check_text` here, `chain_check.py` for a round record, a
-# `guarantee.md` and a `broad-gate.md`, and `rule_changes.py#parse` for a
+# `guarantee.md` and a `trail/gate.md`, and `rule_changes.py#parse` for a
 # spec's `## Rule changes`.
 COMMENT_LINE = (
     "the line begins with `<!--`, and a record carries no HTML comment: the "
@@ -923,7 +923,7 @@ def check_text(text, heading=HEADING, strict_header=True):
 
 
 def overviews(paths):
-    """Every overview.md under the given paths, in a stable order.
+    """Every gaps.md under the given paths, in a stable order.
 
     **A walk leaves the reference roots out** (#688): a project's own
     `specs/` is a team's document, read as history and never as this
@@ -959,7 +959,7 @@ def config_at(top):
     for name in ("config", "optin"):
         path = os.path.join(HOOKS, f"{name}.py")
         spec = importlib.util.spec_from_file_location(
-            f"specseal_{name}_for_unverified", path
+            f"agentic_{name}_for_unverified", path
         )
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
@@ -1035,8 +1035,8 @@ def git_path(path):
     Every repo-relative path in this file is built by `os.path.relpath` and
     then handed to git — as a `show` argument, or compared against what
     `ls-tree` printed. git answers and accepts `/` on every platform, so on
-    Windows the two sides were built by two rules: `specs\x\overview.md`
-    against `specs/x/overview.md`. `show` returned None and the row check
+    Windows the two sides were built by two rules: `threads\x\gaps.md`
+    against `threads/x/gaps.md`. `show` returned None and the row check
     quietly compared nothing; the presence check matched no path and reported
     every tracked overview as deleted.
 
@@ -1163,7 +1163,7 @@ def merge_base(root, ref):
     This is the revision every comparison below reads, and `ref` is not. The
     baseline a caller passes is the branch the pull request merges into, and
     that branch MOVES: the moment one work item squashes into it, every
-    sibling branch cut before that squash has the squashed item's `overview.md`
+    sibling branch cut before that squash has the squashed item's `gaps.md`
     at the base and never had it at all. On the release that found this, three
     of four branches were refused for exactly that, and the refusal was right
     about what it measured and wrong about what happened (#272).
@@ -1205,7 +1205,7 @@ def base_label(ref, ref_commit, base):
 
 
 def overviews_at(root, ref, prefixes):
-    """Repo-relative `overview.md` paths present at `ref` under `prefixes`.
+    """Repo-relative `gaps.md` paths present at `ref` under `prefixes`.
 
     The scan walks the tree as it is now, so a file deleted wholesale never
     enters it and its rows leave without a word. Deleting the file was
@@ -1232,7 +1232,7 @@ def overviews_at(root, ref, prefixes):
         if os.path.basename(rel) != OVERVIEW:
             continue
         # The same skip list the scan walks with. Built by a different rule,
-        # a tracked overview.md under build/ or node_modules/ would be absent
+        # a tracked gaps.md under build/ or node_modules/ would be absent
         # from every scan and so reported as deleted on every run — a red
         # build the author can only clear by renaming the directory.
         if set(os.path.dirname(rel).split("/")) & SKIP_DIRS:
@@ -1261,7 +1261,7 @@ def rule_changes():
     if _rules is None:
         here = os.path.dirname(os.path.abspath(__file__))
         path = os.path.join(here, "..", "..", "settle", "scripts", "rule_changes.py")
-        spec = importlib.util.spec_from_file_location("specseal_rule_changes", path)
+        spec = importlib.util.spec_from_file_location("agentic_rule_changes", path)
         _rules = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(_rules)
     return _rules
@@ -1320,7 +1320,7 @@ def open_record_rows(root, ref, directory):
     """`[(file, what is open)]` for a work item's record at `ref`.
 
     The rows `seal settle --apply` refuses to take with a directory, and its dry
-    run lists: every open item in `overview.md`'s `## Not verified`. Each is a claim with an answerer rather
+    run lists: every open item in `gaps.md`'s `## Not verified`. Each is a claim with an answerer rather
     than a rule, and #514's frame measured the loss this prevents — the only
     record that a production workflow was red sat in a retiring overview (its
     L2).
@@ -1349,13 +1349,13 @@ def settled_root(path):
     """Whether `path` is a `seal/` root's own `specs` directory with no work
     item under it — empty on disk, or absent while the root is there.
 
-    That is the state a complete settle reaches (#517, `spec.md` G7), and it
+    That is the state a complete settle reaches (#517, `frame/design.md` G7), and it
     is two states: the tree that ran `seal settle --apply` holds an empty
-    `seal/specs/`, and a fresh checkout of the commit holds none, because git
+    `seal/threads/`, and a fresh checkout of the commit holds none, because git
     keeps no empty directory. A person who runs `seal unverified --baseline
-    origin/<base> seal/specs/` after the settle hands this tool that path, and
+    origin/<base> seal/threads/` after the settle hands this tool that path, and
     reading it as a typo would refuse a finished settle. Only this one path is settled: any other path that is
-    missing is still refused, which is what keeps `specs/ spces/` from
+    missing is still refused, which is what keeps `threads/ thraeds/` from
     passing in silence.
     """
     p = os.path.abspath(path)
@@ -1377,13 +1377,13 @@ SETTLED = (
 
 
 def absent_root(path):
-    """Whether `path` is the `seal/specs` path of a working tree's top level
+    """Whether `path` is the `seal/threads` path of a working tree's top level
     that holds no `seal/` directory.
 
     That is a repository whose records are in local mode, under the git
     directory, or that never had any, and a teammate's pull request against
     it declares nothing (#952). Read at the top level only, the directory
-    `git rev-parse --show-toplevel` names, so a `seal/specs` typed from
+    `git rev-parse --show-toplevel` names, so a `seal/threads` typed from
     anywhere else is still the mistyped path it always was.
     """
     p = os.path.abspath(path)
@@ -1407,7 +1407,7 @@ ABSENT = (
 
 def unwritten_root(path):
     """Whether `path` is a `seal/` root's own `specs` directory holding work
-    items, none of which carries an `overview.md`.
+    items, none of which carries an `gaps.md`.
 
     Every work item that never opened a closing memo is in this state, and a
     pull request against it has no row to read (#952). `main` asks it only
@@ -1492,13 +1492,13 @@ def main(argv=None):
         print(f"seal unverified: no such path: {missing[0]}", file=sys.stderr)
         return 2
     # With a baseline, a path that is gone may be the thing being asked about:
-    # a person runs `--baseline origin/<base> seal/specs/`, and a change that
+    # a person runs `--baseline origin/<base> seal/threads/`, and a change that
     # deletes specs/ used to be told it had mistyped an argument. A path that
     # held nothing at the base either is still a typo, and saying so is what
     # keeps `specs/ spces/` from passing in silence. That check needs the
     # repository, so it waits until the baseline block below has resolved one.
 
-    # Resolved before the scan, because deleting every overview.md is the one
+    # Resolved before the scan, because deleting every gaps.md is the one
     # case where the scan finds nothing AND something has to be reported. It
     # used to exit 2 saying "nothing was checked", which reads as a bad
     # argument — and in a repository with one work item, deleting a single

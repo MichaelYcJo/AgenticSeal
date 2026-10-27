@@ -33,7 +33,7 @@ SCRIPT = os.path.join(ROOT, ".github", "scripts", "rules.py")
 
 
 def _load():
-    spec = importlib.util.spec_from_file_location("specseal_rules", SCRIPT)
+    spec = importlib.util.spec_from_file_location("agentic_rules", SCRIPT)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -264,16 +264,16 @@ class Test_main:
         `check: none reader: <who>` names no target and prints its reader."""
         root = tree(
             tmp_path,
-            "## One\n\ncheck: evals/behaviour/warden/a/\n\n"
-            "## Two\n\ncheck: none reader: the warden at review\n",
+            "## One\n\ncheck: evals/behaviour/proofer/a/\n\n"
+            "## Two\n\ncheck: none reader: the proofer at review\n",
         )
-        case = root / "evals" / "behaviour" / "warden" / "a"
+        case = root / "evals" / "behaviour" / "proofer" / "a"
         case.mkdir(parents=True)
         (case / "case.yaml").write_text("name: a\n", "utf-8")
         code, out, _ = run(root, capsys)
         assert code == 0
-        assert "    evals/behaviour/warden/a/: an eval case\n" in out, out
-        assert "    no target, read by the warden at review\n" in out, out
+        assert "    evals/behaviour/proofer/a/: an eval case\n" in out, out
+        assert "    no target, read by the proofer at review\n" in out, out
 
     def test_a_fenced_or_commented_line_is_an_example_and_writes_nothing(
         self, tmp_path, capsys
@@ -319,7 +319,7 @@ class Test_main:
                 "seal rules: all 1 check lines in 1 rule files hold.",
             ),
             (
-                "check: none reader: the warden at review",
+                "check: none reader: the proofer at review",
                 "seal rules: all 1 check lines in 1 rule files hold.",
             ),
             (f"  check: {HELD}", "seal rules: all 1 check lines in 1 rule files hold."),
@@ -357,11 +357,11 @@ class Test_main:
                 f"a line naming no target names its reader: {EXPECTED}",
             ),
             (
-                "check: none reader the warden",
+                "check: none reader the proofer",
                 f"a line naming no target names its reader: {EXPECTED}",
             ),
             (
-                "check: none reader:  the warden",
+                "check: none reader:  the proofer",
                 f"a line naming no target names its reader: {EXPECTED}",
             ),
             (f"check: {HELD}  held-rule", "targets are separated by one space"),
@@ -469,10 +469,10 @@ class Test_main:
         """Every check line a renderer shows is read, inside a rule paragraph or
         not, in an agent definition as in a document."""
         text = doc("A sentence that states no rule.\ncheck: tests/test_gone_a.py\n")
-        code, out = checked(tmp_path, {"agents/warden.md": text}, capsys)
+        code, out = checked(tmp_path, {"agents/proofer.md": text}, capsys)
         assert code == 1, out
         assert (
-            "seal rules: agents/warden.md:6: The heading: tests/test_gone_a.py does not exist"
+            "seal rules: agents/proofer.md:6: The heading: tests/test_gone_a.py does not exist"
             in out
         ), out
 
@@ -490,7 +490,7 @@ class Test_main:
         """An agent's rule can be held by an eval case alone, so
         `evals/behaviour/<agent>/<case>/` is a target, resolving where the
         directory holds `case.yaml`."""
-        case = "evals/behaviour/warden/a-case/"
+        case = "evals/behaviour/proofer/a-case/"
         written = {"docs/a.md": doc(rule(f"check: {case}"))}
         written.update({case + name: text for name, text in files.items()})
         code, out = checked(tmp_path, written, capsys)
@@ -501,8 +501,8 @@ class Test_main:
         """The directory is `<agent>/<case>/`, so an agent's directory alone names
         no case and does not resolve."""
         written = {
-            "docs/a.md": doc(rule("check: evals/behaviour/warden/")),
-            "evals/behaviour/warden/case.yaml": "name: a\n",
+            "docs/a.md": doc(rule("check: evals/behaviour/proofer/")),
+            "evals/behaviour/proofer/case.yaml": "name: a\n",
         }
         code, out = checked(tmp_path, written, capsys)
         assert code == 1, out

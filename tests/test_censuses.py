@@ -13,12 +13,13 @@ The cases came from the modules that held each census whole:
 `test_a_format_has_one_reader.py` (#867), the floor half of
 `test_a_script_says_which_interpreter_it_needs.py`,
 `test_no_living_file_writes_the_section_sign.py` (#1005) and
-`test_no_real_identifiers.py`. The work item's `phases/phase-3.md` names
-every old case and where it went.
+`test_no_real_identifiers.py`. The work item's `trail/phases/phase-3.md`
+names every old case and where it went.
 
 Seen red before they were committed (contract rule 15): every case failed
-against the tree without `tests/censuses.py`, and `mutation-check` broke
-each census's refusal in turn and watched a case of its class fail.
+against the tree without `tests/censuses.py`, and `seal mutate` broke each
+census's refusal in turn and watched a case of its class fail. `old_names`
+(#1051) was seen red over the tree at the commit before the rename's sweep.
 """
 
 import ast
@@ -34,7 +35,7 @@ TARGET = "tests/censuses.py"
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 _LAYOUT = importlib.util.spec_from_file_location(
-    "specseal_layout_for_censuses",
+    "agentic_layout_for_censuses",
     os.path.join(ROOT, "skills", "verify", "scripts", "test_layout.py"),
 )
 layout = importlib.util.module_from_spec(_LAYOUT)
@@ -707,12 +708,12 @@ class Test_floor_syntax:
 
 class Test_section_sign:
     def test_accepts_a_record_a_clean_file_and_one_that_is_not_text(self, tmp_path):
-        plant(tmp_path, "seal/specs/1-x/spec.md", f"see {SIGN}3\n")
+        plant(tmp_path, "seal/threads/1-x/frame/design.md", f"see {SIGN}3\n")
         plant(tmp_path, "evals/behaviour/c.md", f"see {SIGN}3\n")
         (tmp_path / "x.png").write_bytes(b"\xff\xd8\xff")
         root = plant(tmp_path, "hooks/b.py", "# clean\n")
         for rel in (
-            "seal/specs/1-x/spec.md",
+            "seal/threads/1-x/frame/design.md",
             "evals/behaviour/c.md",
             "x.png",
             "hooks/b.py",
@@ -760,6 +761,102 @@ class Test_real_identifiers:
             "domain, and fixtures and examples use example.com; "
             f"{REFUSED_USER_PATH} is a real user path, and fixtures use /Users/x/"
         )
+
+
+OLD = "Spec" + "Seal"
+# One line for each family of old names OLD_NAME refuses, built from halves
+# so this file does not write them, with the spelling each is reported by.
+OLD_SPELLINGS = [
+    (f"the {OLD} workflow", OLD),
+    (f"`{OLD.lower()}:implement`", OLD.lower()),
+    (f"{OLD.upper()}_RECORD_DIR", OLD.upper()),
+    ("Specs, " + "sealed", "Specs, " + "sealed"),
+    ("the " + "smi" + "th builds it", "smi" + "th"),
+    ("the " + "War" + "den reviews it", "War" + "den"),
+    ("`agents/" + "scr" + "ibe.md`", "scr" + "ibe"),
+    ("`seal/" + "specs/1-x/routing.md`", "seal/" + "specs"),
+    ("the frame's `" + "spec" + ".md`", "spec" + ".md"),
+    ("`" + "over" + "view.md` holds it", "over" + "view.md"),
+    ("`broad" + "-gate.md` at HEAD", "broad" + "-gate"),
+    ("`<item>/pha" + "ses/phase-1.md`", "pha" + "ses/"),
+    ("`rounds" + "/round-1.md`", "rounds" + "/"),
+    ("run `mutation" + "-check`", "mutation" + "-check"),
+]
+
+
+class Test_old_names:
+    def test_accepts_the_new_names_kept_spellings_records_and_the_migration(
+        self, tmp_path
+    ):
+        living = (
+            "AgenticSeal, `agentic:crafter`, the proofer and the tracer\n"
+            "`seal/threads/1-x/frame/design.md`, `gaps.md`, `trail/gate.md`\n"
+            "`<thread>/trail/phases/phase-1.md` and `trail/rounds/round-1.md`\n"
+            "`docs/the-broad" + "-gate.md` and `docs/worktree-guard-spec.md`\n"
+            f"a commit made before the rename carries `{OLD}-Routing:`\n"
+            f"<!-- {OLD.lower()}:start --> and <!-- {OLD.lower()}:end -->\n"
+            f"# {OLD.lower()}-git-hook\n"
+            f"git clone https://github.com/MichaelYcJo/{OLD}.git\n"
+            f"claude plugin marketplace remove {OLD.lower()}, then "
+            f"`{OLD.lower()}@{OLD.lower()}` is gone\n"
+            f'"renames": {{"{OLD.lower()}": "agentic"}}\n'
+            f"git mv .{OLD.lower()}/README.md seal/README.md\n"
+        )
+        old = "\n".join(line for line, _ in OLD_SPELLINGS) + "\n"
+        plant(tmp_path, "docs/living.md", living)
+        for rel in (
+            "changelog/0.1.0.md",
+            "CHANGELOG.md",
+            "seal/process/0.1.0.md",
+            "seal/threads/1-x/frame/design.md",
+            "evals/behaviour/proofer/replay-1-r1/prompt.md",
+            "evals/behaviour/proofer/seeded-1/prompt.md",
+            "evals/scripts/recurred_truths.json",
+            "hooks/root-migrate.py",
+            "tests/test_root_migrate.py",
+        ):
+            plant(tmp_path, rel, old)
+        (tmp_path / "x.png").write_bytes(b"\xff\xd8\xff" + OLD.encode())
+        root = plant(
+            tmp_path,
+            "hooks/kept.py",
+            "# exempt from old_names: the old name a reader still meets\n"
+            f'OLD = "{OLD.lower()}"\n',
+        )
+        for rel in (
+            "docs/living.md",
+            "changelog/0.1.0.md",
+            "CHANGELOG.md",
+            "seal/process/0.1.0.md",
+            "seal/threads/1-x/frame/design.md",
+            "evals/behaviour/proofer/replay-1-r1/prompt.md",
+            "evals/behaviour/proofer/seeded-1/prompt.md",
+            "evals/scripts/recurred_truths.json",
+            "hooks/root-migrate.py",
+            "tests/test_root_migrate.py",
+            "x.png",
+            "hooks/kept.py",
+        ):
+            assert censuses.old_names(rel, root) == [], rel
+
+    def test_refuses_each_old_name_at_its_line(self, tmp_path):
+        text = "clean\n" + "\n".join(line for line, _ in OLD_SPELLINGS) + "\n"
+        rel = "evals/behaviour/proofer/rule-x/prompt.md"
+        found = censuses.old_names(rel, plant(tmp_path, rel, text))
+        assert found == [
+            f"{rel}:{number}: old_names: `{spelling}` is a name the rename to "
+            "AgenticSeal replaced; write the new one from #1051's mapping, or "
+            "put `# exempt from old_names: <why>` on its own line above a line "
+            "that keeps it on purpose"
+            for number, (_, spelling) in enumerate(OLD_SPELLINGS, 2)
+        ], found
+
+    def test_refuses_an_old_name_beside_a_kept_spelling(self, tmp_path):
+        text = f"`{OLD}-Routing:` is what the {OLD} trailer was\n"
+        root = plant(tmp_path, "docs/x.md", text)
+        assert [p.split(": ")[0:2] for p in censuses.old_names("docs/x.md", root)] == [
+            ["docs/x.md:1", "old_names"]
+        ]
 
 
 class Test_module:

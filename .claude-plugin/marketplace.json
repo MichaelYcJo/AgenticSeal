@@ -1,6 +1,6 @@
 {
   "name": "agenticseal",
-  "description": "SpecSeal \u2014 specs, sealed: implement/review agent chain, rules that name the tests holding them, hook-enforced gates.",
+  "description": "A workflow of agents that frames, builds, inspects and seals a change without asking anyone, and ends in a seal bound to a commit.",
   "owner": {
     "name": "MichaelYcJo"
   },
@@ -8,7 +8,7 @@
     {
       "name": "agentic",
       "source": "./",
-      "description": "Specs, sealed \u2014 agent chain with hook enforcement, rules that name the tests holding them, review handoff protocol."
+      "description": "A workflow of agents that frames, builds, inspects and seals a change without asking anyone, and ends in a seal bound to a commit."
     }
   ],
   "renames": {

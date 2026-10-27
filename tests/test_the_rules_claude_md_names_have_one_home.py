@@ -23,7 +23,7 @@ pinned here so no carrier restates it.
 
 A needle is a sentence only the home writes and the link row does not need.
 No carrier may contain one, the home aside. The carriers are the files
-`seal/specs/1791076836-every-rule-claude-md-restates-has-one-home/spec.md`
+`seal/threads/1791076836-every-rule-claude-md-restates-has-one-home/frame/design.md`
 at `67694cba` names in its Scope 1-4 and D1, and the release checklist its O3
 names.
 

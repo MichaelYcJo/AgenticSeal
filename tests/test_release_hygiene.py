@@ -77,7 +77,7 @@ LOADED = (
 #
 # `\w` — a preceding word character makes the token part of a DIFFERENT
 # identifier rather than another spelling of this one. `py3.13.9` names
-# CPython, and no release of SpecSeal makes that number wrong. That is the
+# CPython, and no release of AgenticSeal makes that number wrong. That is the
 # asymmetry with the trailing side, where `rc1` is a prerelease of the SAME
 # version and so is a timer: what precedes a version renames it, what follows
 # it qualifies it.
@@ -120,7 +120,7 @@ RECORDS_OF_A_MOMENT = (
 
 # A version that belongs to somebody else's product is above this plugin's
 # running version by accident of arithmetic, and it is not a timer: no release
-# of SpecSeal makes it wrong. Pinned to the file it is written in, so the
+# of AgenticSeal makes it wrong. Pinned to the file it is written in, so the
 # exemption stays a fact about one comment rather than a hole the token can
 # walk through anywhere.
 VERSIONS_OF_ANOTHER_PRODUCT = {
@@ -135,7 +135,7 @@ VERSIONS_OF_ANOTHER_PRODUCT = {
     ("skills/implement/scripts/seal.py", "2.50.1"): (
         "git's, named in `remote_url`'s docstring as the build whose exit "
         "codes were measured. An exit code read off an unnamed git is not a "
-        "measurement, and no release of SpecSeal makes the number wrong (#111)"
+        "measurement, and no release of AgenticSeal makes the number wrong (#111)"
     ),
     ("skills/verify/scripts/broad_gate.py", "2.54.0"): (
         "git's, named in `names_a_branch`'s docstring as the build on which "
@@ -158,14 +158,14 @@ VERSIONS_OF_ANOTHER_PRODUCT = {
         "pinned in `.github/scripts/run_tests.py#MARKDOWN_IT` (#667). The "
         "fallback commands in *Running the checks* carry the pin so they "
         "install the parser the oracle is held to, and a case holds them to "
-        "the runner's constant; no release of SpecSeal makes the number wrong"
+        "the runner's constant; no release of AgenticSeal makes the number wrong"
     ),
     ("CONTRIBUTING.md", "12.3.0"): (
         "Pillow's, the imaging library the release seal is drawn and read "
         "with, pinned in `.github/scripts/run_tests.py#PILLOW` (#718, #1009). "
         "The class is the row above's: the fallback commands carry the pin so "
         "they install the version the suite's pixel cases are held to, and a case holds "
-        "them to the runner's constant; no release of SpecSeal makes the "
+        "them to the runner's constant; no release of AgenticSeal makes the "
         "number wrong"
     ),
     ("CONTRIBUTING.md", "2025.10.22"): (
@@ -174,7 +174,7 @@ VERSIONS_OF_ANOTHER_PRODUCT = {
         "is the two rows above: the fallback commands carry the pin so they "
         "install the renderer the walker's property case is held to, and a "
         "case holds them to the runner's constant; the package numbers its "
-        "releases by date, and no release of SpecSeal makes the number wrong"
+        "releases by date, and no release of AgenticSeal makes the number wrong"
     ),
     ("skills/verify/scripts/seal_stamp.py", "2.1.287"): (
         "Claude Code's, named above `MESSAGE_LIMIT` as the build on which the "
@@ -182,7 +182,7 @@ VERSIONS_OF_ANOTHER_PRODUCT = {
         "(#717). The class is the git rows' above, a loaded file naming the "
         "tool build a measurement was taken on: the limit is the harness's to "
         "move, and the comment says the same probe at two sizes is the whole "
-        "re-measurement; no release of SpecSeal makes the number wrong"
+        "re-measurement; no release of AgenticSeal makes the number wrong"
     ),
 }
 
@@ -1190,11 +1190,11 @@ def test_the_release_target_is_asked_before_the_work_starts():
     # The branch question is part of the routing section, which is the
     # orchestrator's half of `implement` since #292; the yes/no tell it
     # answers to stays in the implementer's half. The skill is read as both.
-    # `agents/crafter.md` carried the same paragraph until #967: the smith opens
+    # `agents/crafter.md` carried the same paragraph until #967: the crafter opens
     # no pull request and asks nothing, so the question is not its own, and
     # what stays for it is the absence below.
     assert "## Unreleased" not in " ".join(read_text("agents", "crafter.md").split()), (
-        "smith.md prescribes a changelog heading again"
+        "crafter.md prescribes a changelog heading again"
     )
     for parts, text in (
         (
@@ -1217,7 +1217,7 @@ def test_the_release_target_is_asked_before_the_work_starts():
         )
         # Round 1, 🔴 7. This used to require the literal `## Unreleased`, and
         # that is a heading THIS repository no longer has: entries accumulate
-        # as `seal/threads/<work-item-id>/changelog.md` fragments. A `smith`
+        # as `seal/threads/<work-item-id>/changelog.md` fragments. A `crafter`
         # reading
         # its own contract therefore either created the heading — reddening
         # `test_no_section_accumulates_entries_in_the_shared_file` — or

@@ -45,7 +45,7 @@ LIMIT = 88
 
 def _rules():
     path = os.path.join(ROOT, ".github", "scripts", "rules.py")
-    spec = importlib.util.spec_from_file_location("specseal_rules_wrap", path)
+    spec = importlib.util.spec_from_file_location("agentic_rules_wrap", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -64,7 +64,7 @@ def is_rule_file(relative):
 
 def _fence_reader():
     path = os.path.join(ROOT, "skills", "verify", "scripts", "unverified_check.py")
-    spec = importlib.util.spec_from_file_location("specseal_fence_rule_wrap", path)
+    spec = importlib.util.spec_from_file_location("agentic_fence_rule_wrap", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -291,7 +291,7 @@ WIDE_TARGET = (
     "tests/test_a_document_has_room_for_the_next_fold.py "
     "tests/test_the_rules_command_reads_each_rule_off_its_test.py"
 )
-WIDE_READER = "none reader: " + "the warden at review " * 4
+WIDE_READER = "none reader: " + "the proofer at review " * 4
 
 
 def test_a_check_line_in_a_rule_file_is_skipped_wherever_it_stands():

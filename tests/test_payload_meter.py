@@ -9,7 +9,7 @@ reports bytes, characters and tokens. Bytes and characters are counted;
 tokens are never — they are either MEASURED from a transcript, by
 `--calibrate`, or ESTIMATED from a bytes-per-token ratio, and the label on
 each figure says which. A bare token number is the defect this module
-exists to refuse, because the six calibration spawns in `spec.md` showed
+exists to refuse, because the six calibration spawns in `frame/design.md` showed
 bytes tracking tokens at 2.7 to 3.4 per token across three agents.
 
 The fixtures are a hand-built tree with known sizes and a hand-built
@@ -559,7 +559,7 @@ class Test_measure:
         `writing-style`, the harness resolved the bare name to
         `~/.claude/skills/writing-style/SKILL.md` (25,834 B) rather than the
         plugin's (19,762 B), and adding the difference is what brought the
-        warden's ratio to the scribe's. The row reports the tree's file, notes
+        proofer's ratio to the tracer's. The row reports the tree's file, notes
         the shadow, and the calibration divides by the bytes the spawn READ."""
         root, home = a_tree(tmp_path)
         shadow = home / ".claude" / "skills" / "alpha" / "SKILL.md"
@@ -639,7 +639,7 @@ class Test_measure:
     ):
         """The measured token count belongs to the bytes that spawn READ. Divided
         by the bytes the tree holds now it is a ratio nobody measured, and the
-        first after-run of #292 printed exactly that: smith at 2.49 B/token
+        first after-run of #292 printed exactly that: the crafter at 2.49 B/token
         against the 2.87 its spawn paid, and +979 tokens on a file whose bytes
         had not moved. When the baseline names the same spawn over other bytes,
         the baseline's ratio is kept, the row says so, and nothing in the run

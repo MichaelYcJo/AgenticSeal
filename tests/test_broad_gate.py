@@ -62,7 +62,7 @@ HYGIENE = str(ROOT / ".github" / "workflows" / "hygiene.yml")
 
 def gate_module():
     """A fresh load of the gate, for the cases that load their own."""
-    return load_module(GATE, "specseal_broad_gate_for_cmd")
+    return load_module(GATE, "agentic_broad_gate_for_cmd")
 
 
 PASSING_TEST = "def test_one():\n    assert True\n"
@@ -1323,16 +1323,16 @@ class Test_handed_to_shell:
         never exists, so without the expansion that row stopped running. `$HOME`
         means nothing to `cmd.exe` and is not expanded."""
         gate = gate_module()
-        monkeypatch.setenv("SPECSEAL_PROBE_TREE", tree)
-        monkeypatch.delenv("SPECSEAL_PROBE_NOWHERE", raising=False)
+        monkeypatch.setenv("AGENTIC_PROBE_TREE", tree)
+        monkeypatch.delenv("AGENTIC_PROBE_NOWHERE", raising=False)
         monkeypatch.delenv("CD", raising=False)
         monkeypatch.delenv("__CD__", raising=False)
         # A `$HOME` that names the tree, so only the expansion's rule can leave
         # it as written.
         monkeypatch.setenv("HOME", tree)
         for row, expected in (
-            ("%SPECSEAL_PROBE_TREE%/bin/test -q", r"%SPECSEAL_PROBE_TREE%\bin\test -q"),
-            ("%SPECSEAL_PROBE_NOWHERE%/bin/x", "%SPECSEAL_PROBE_NOWHERE%/bin/x"),
+            ("%AGENTIC_PROBE_TREE%/bin/test -q", r"%AGENTIC_PROBE_TREE%\bin\test -q"),
+            ("%AGENTIC_PROBE_NOWHERE%/bin/x", "%AGENTIC_PROBE_NOWHERE%/bin/x"),
             ("xcopy/e/i a b", "xcopy/e/i a b"),
             # `CD` is computed by cmd.exe where the environment defines none, and
             # the case deletes it above (round 2, 🟡 1).
@@ -1342,7 +1342,7 @@ class Test_handed_to_shell:
             # A substring is not modelled, as `templates/config.md` says (#616):
             # the name it starts is handed as written, although the variable it
             # cuts from names the tree.
-            ("%SPECSEAL_PROBE_TREE:~0,500%/bin/test -q",) * 2,
+            ("%AGENTIC_PROBE_TREE:~0,500%/bin/test -q",) * 2,
             ("$HOME/x", "$HOME/x"),
         ):
             got = gate.handed_to_shell(row, windows=True, comspec=CMD, root=tree)
@@ -2099,7 +2099,7 @@ NO_RECORD_HERE = (
     "no pytest the row ran here left a record of the gate's recorder (the row "
     "started no pytest, because a part before its runner failed or it has none; "
     "none it started loaded the recorder; or the one that did could not write "
-    "its record and warned 'specseal_pytest_record: no record written' in "
+    "its record and warned 'agentic_pytest_record: no record written' in "
     "suite.txt), so this exit code is not a count of failing tests"
 )
 
@@ -2217,7 +2217,7 @@ def _repo_template(tmp_path_factory):
     write(d, "tests/test_one.py", PASSING_TEST)
     write(d, "seal/config.md", config_of())
     mark_root(d / "seal")
-    write(d, f"{ITEM}/overview.md", OVERVIEW)
+    write(d, f"{ITEM}/gaps.md", OVERVIEW)
     commit(d, "base")
     git(d, "switch", "-qc", "feature")
     write(d, "README.md", "# a fixture\n")
@@ -2460,7 +2460,7 @@ def sealable_repo(tmp_path):
     write(repo, "src/service.py", "def handler(x):\n    return x + 1\n")
     write(repo, "seal/config.md", CONFIG)
     mark_root(repo / "seal")
-    write(repo, f"{ITEM}/overview.md", OVERVIEW)
+    write(repo, f"{ITEM}/gaps.md", OVERVIEW)
     commit(repo, "base")
     git(repo, "switch", "-qc", "feature")
     write(repo, "src/service.py", "def handler(x):\n    return x + 2\n")
@@ -2706,7 +2706,7 @@ class Test_main:
         # left the panel for the stderr line beside the names, asserted below.
         # #832's S5a: the value leads with a dim `·`, which `--shape` writes `.`.
         assert re.search(r"^CI also [·.] 1 more steps$", rendered[0]), rendered[0]
-        width = load_module(STAMP, "specseal_seal_stamp").PANEL_VALUE_WIDTH
+        width = load_module(STAMP, "agentic_seal_stamp").PANEL_VALUE_WIDTH
         value = next(
             v for _, v in [r for r in panel_rows(repo) if r] if "more steps" in v
         )

@@ -94,10 +94,12 @@ check: tests/test_optin.py
   읽는데 local 모드는 아무것도 커밋하지 않기 때문입니다.
 
 두 자리 중 어디든 `seal/` 이 있는 저장소는 이미 이 과정을 거쳤으므로 다시
-묻지 않습니다. 모드는 폴더가 있는 자리로 읽습니다. 루트가 생기기 전의
-배치에 머물러 있는 저장소에는 묻지 않고 알리기만 하며, 세션 시작 훅이 한 번
-옮깁니다(`skills/implement/orchestration.md` 의 부트스트랩). 어느 자리에든
-루트가 생기면 그 훅은 저장소에 옮겼다는 표시를 남기므로, 나중에 옛 브랜치를
+묻지 않습니다. 모드는 폴더가 있는 자리로 읽습니다. 0.3.x 배치에 머물러 있는
+저장소에는 묻지 않고, README.md *Coming up from 0.3.x* 의 명령으로 직접
+옮긴다고 알리기만 합니다(`skills/implement/orchestration.md` 의 부트스트랩).
+플러그인 이름이 AgenticSeal 로 바뀌기 전에 설치한 저장소는 세션 시작 훅이
+작업 항목을 스레드 배치로 한 번 옮깁니다. 어느 자리에든 루트가 있고 앞선
+배치가 하나도 남지 않으면 그 훅은 저장소에 옮겼다는 표시를 남기므로, 나중에 옛 브랜치를
 체크아웃한 local 모드 저장소가 깨끗하게 두기로 한 트리 안으로 옮겨지지
 않습니다.
 check: tests/test_first_setup_asks_once.py
@@ -183,7 +185,7 @@ check: tests/test_first_setup_asks_once.py tests/test_optin.py tests/test_seal.p
 
 | 이름 | 한 문장 |
 |---|---|
-| AgenticSeal | 아무에게도 묻지 않고 변경을 설계하고, 만들고, 검사하고, 봉인하며, 커밋에 묶인 봉인으로 끝나는 에이전트 워크플로 |
+| AgenticSeal | 플러그인. 그 한 문장은 README.ko.md 제목 아래 첫 줄과 `.claude-plugin/plugin.json` 의 `description` 에 있다 |
 | `seal/` | 루트. PR 이 열려 있는 동안 사람이 읽는 것이 진행 중인 작업 항목이므로, `docs/` 옆에 보이게 둔다 |
 | `seal/threads/<id>/` | 작업 항목의 디렉터리. 스레드 하나가 이슈 하나, 브랜치 하나, PR 하나다. 빌드 전의 설계는 `frame/`, 당사자 사이에 오간 것은 `trail/` 에 두고, 맨 위에 `routing.md`, `changelog.md`, `guarantee.md`, `gaps.md` 를 둔다. 기록은 무엇인가로 자리를 정하고, 어느 에이전트가 썼는가로 정하지 않는다 |
 | framer, crafter, proofer, sealer, tracer | 에이전트. 각 이름은 한 순서 안의 자기 몫을 말하고, 그 순서는 `docs/the-agent-set.md` *One contract every agent receives, and one definition each* 에 있다 |

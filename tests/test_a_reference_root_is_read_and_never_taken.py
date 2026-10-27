@@ -45,7 +45,7 @@ SEAL = load_module(
 # `tests/test_unverified_check.py`'s walk from the root over a team's
 # unreadable overview, `tests/test_settle.py`'s apply beside a team directory
 # of the removed work item's id, and `tests/test_chain_check.py`'s
-# `Test_changed_routing`, which takes a declaration only under `seal/specs/`.
+# `Test_changed_routing`, which takes a declaration only under `seal/threads/`.
 
 PREDICATE = "asks hooks/config.py#under_reference_root"
 PINNED = "reads the plugin's root by a constant under seal/"
@@ -95,11 +95,11 @@ def test_every_shipped_command_is_classified():
 
 POINTER = "`templates/config.md` *Reference specs*"
 READERS = {
-    "agents/framer.md": ("cite", "spec.md"),
-    "agents/crafter.md": ("cite", "spec.md"),
-    "agents/proofer.md": ("stage 1", "spec.md"),
-    "skills/settle/SKILL.md": ("cite", "spec.md"),
-    "skills/implement/SKILL.md": ("cite", "spec.md"),
+    "agents/framer.md": ("cite", "frame/design.md"),
+    "agents/crafter.md": ("cite", "frame/design.md"),
+    "agents/proofer.md": ("stage 1", "frame/design.md"),
+    "skills/settle/SKILL.md": ("cite", "frame/design.md"),
+    "skills/implement/SKILL.md": ("cite", "frame/design.md"),
 }
 
 

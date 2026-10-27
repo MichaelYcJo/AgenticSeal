@@ -14,7 +14,7 @@ file, for every interpreter tag; runs the cases with
 compares the hash; and prints one verdict whose exit code says which of three
 things happened. Every fixture of those cases lives under `tmp_path`, and
 every process a case starts is reaped or proven dead before the case returns.
-The old file keeps the cases that read the smith's definition and the verify
+The old file keeps the cases that read the crafter's definition and the verify
 skill.
 """
 
@@ -160,7 +160,7 @@ SECONDS = r" \(\d+\.\ds\)$"
 
 def module():
     """The command, loaded afresh from its path, for a case that patches it."""
-    return load_module(ROOT / TARGET, "specseal_mutation_check")
+    return load_module(ROOT / TARGET, "agentic_mutation_check")
 
 
 def run(argv, capsys):
@@ -602,7 +602,7 @@ class Test_main:
         target.write_text("VALUE = 1\n", encoding="utf-8")
         other = tmp_path / "other"
         other.mkdir()
-        prefix = "specseal-prefix-703"
+        prefix = "agentic-prefix-703"
         monkeypatch.setattr(sys, "pycache_prefix", os.path.join(str(other), prefix))
         planted = importlib.util.cache_from_source(str(target))
         # The prefix the clear reads is the environment's, as a session's would be.
@@ -639,7 +639,7 @@ class Test_main:
     def test_a_same_length_mutation_reads_red_over_a_trusted_cache(
         self, tmp_path, capsys
     ):
-        """#641's *what must not break*, and the smith's loop in miniature:
+        """#641's *what must not break*, and the crafter's loop in miniature:
         `WINDOW = 15` to `25` read green once, because the interpreter ran the
         cached original.
 
@@ -943,7 +943,7 @@ class Test_main:
         """Round 1, 🔴 1: a non-zero exit is red only when the cases passed
         against the file as it was. Otherwise a mistyped `-k` -- pytest's exit 5
         -- reads *a case watches this unit* for a file no case ran against, and
-        the smith hands over on it. So the cases run once against the file as it
+        the crafter hands over on it. So the cases run once against the file as it
         is, and a failure there is `no baseline`, exit 2, with the break never
         written."""
         target = tmp_path / "target.py"
@@ -1173,7 +1173,7 @@ class Test_main:
     def test_a_markdown_file_is_mutated_and_restored_the_same_way(
         self, tmp_path, capsys
     ):
-        """The smith's unit is often a sentence: `agents/*.md` and `skills/*.md`
+        """The crafter's unit is often a sentence: `agents/*.md` and `skills/*.md`
         are what a session reads and acts on, and contract rule 14 pins them by case."""
         target = tmp_path / "notes.md"
         text = "# Notes\n\nThe sentence a case pins. Another one stays.\n"

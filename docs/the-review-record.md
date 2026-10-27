@@ -179,7 +179,7 @@ check: tests/test_chain_check.py
 ## What the check reads at the pull request
 
 **`chain_check.py` reads the declaration, the frame, the `## Rule changes`
-section of each `spec.md` it parses, the records, the broad gate's
+section of each `frame/design.md` it parses, the records, the broad gate's
 file, the sealer's guarantee, the `Seal-Routing` trailers of the pull
 request's own commits and, where `seal/parity.md` is declared, the
 migration config's `Baseline commit`, and nothing else of a round
@@ -273,9 +273,9 @@ bytes unchanged is neither judged nor missed, because the pull request that
 only moved it did not make it.
 check: tests/test_chain_check.py
 
-**The check parses the `## Rule changes` section of the `spec.md` of
+**The check parses the `## Rule changes` section of the `frame/design.md` of
 every work item whose `routing.md` it judges, and of every work item
-`spec.md` the pull request's own commits add or change, with
+`frame/design.md` the pull request's own commits add or change, with
 `skills/settle/scripts/rule_changes.py`, the one reader of that
 section, and a section the reader refuses is a refusal at the line the
 reader names, carrying the reader's reason.** `settle` groups the
@@ -286,9 +286,9 @@ spec, with no pull request left to fix it in. A
 declared work item can edit another work item's section without
 touching that work item's `routing.md`, which is why the diff is read
 as well as the declarations. A pull request that declares nothing
-reads no `spec.md`. A `spec.md` a squash of another pull request
+reads no `frame/design.md`. A `frame/design.md` a squash of another pull request
 carried, and one the pull request only moved, are read at the pull
-request that made them. A `spec.md` with no `## Rule changes` section
+request that made them. A `frame/design.md` with no `## Rule changes` section
 is left alone here, and the settle reads such a spec whole. The refusal
 reads a fact from the file and puts no question to a person.
 check: rule-changes-read-at-the-pull-request
@@ -567,13 +567,13 @@ naming the finding whose fix made the unit
 as `round-<N>#<n>`, or that round as `round-<N>` where no finding named the
 unit, and names the unit first in the grounds. Then one sentence of the
 grounds says what the frame says, from the phase's `frame/plan.md` row and
-`spec.md`, what the fix did, and where the defect came from. No label
+`frame/design.md`, what the fix did, and where the defect came from. No label
 carries that sentence, and the orchestrator routes the round on it, at any
 round of the run. Where the fix built what the frame says and the defect is
 still there, the frame is wrong, and the round gets no fix pass: the work
 item goes back to its framer, who writes
 `Reframed <date> by <who>, after round <N>.` under the mark at the foot of
-`spec.md`, and the run goes on with the redesign's build and its rounds.
+`frame/design.md`, and the run goes on with the redesign's build and its rounds.
 Where the fix departed from the frame, or the defect came from how the fix
 was written, a paste-ready fix taken from a review record among them, the
 round gets an ordinary fix pass, and the crafter is told what the frame says.

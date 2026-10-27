@@ -64,7 +64,7 @@ def module():
     returns None and `@dataclass` raises `AttributeError` on the first field
     — a collection error with nothing in the traceback about names.
     """
-    spec = importlib.util.spec_from_file_location("specseal_arm_check", SCRIPT)
+    spec = importlib.util.spec_from_file_location("agentic_arm_check", SCRIPT)
     loaded = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = loaded
     spec.loader.exec_module(loaded)
@@ -131,7 +131,7 @@ def run_tests_floor():
     """`FLOOR` from `hooks/launch.py`, the one place the supported floor is
     held, and the number `.github/scripts/run_tests.py` builds against."""
     path = os.path.join(ROOT, "hooks", "launch.py")
-    spec = importlib.util.spec_from_file_location("specseal_floor_of_arm_check", path)
+    spec = importlib.util.spec_from_file_location("agentic_floor_of_arm_check", path)
     loaded = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(loaded)
     return tuple(loaded.FLOOR)
@@ -383,7 +383,7 @@ def render(a, b, x, w, items):
 
 
 # A module with two arms: one a case exercises, one it never reaches. The
-# neutral values `spec.md` asks for -- no real host, no real user path.
+# neutral values `frame/design.md` asks for -- no real host, no real user path.
 TWO_ARMS = """\
 def classify(host, flag):
     if host == "example.com":
@@ -473,7 +473,7 @@ found = glob.glob(os.path.join(cache, "under_test.*.pyc"))
 with open(log, "a", encoding="utf-8") as f:
     f.write("cache\\n" if found else "clean\\n")
 os.makedirs(cache, exist_ok=True)
-with open(os.path.join(cache, "under_test.specseal-left-behind.pyc"), "wb") as f:
+with open(os.path.join(cache, "under_test.agentic-left-behind.pyc"), "wb") as f:
     f.write(b"stale")
 """
 
@@ -856,7 +856,7 @@ class Test_module:
         # mutates this module, and the import would then write nothing.
         monkeypatch.setattr(sys, "dont_write_bytecode", False)
         spec = importlib.util.spec_from_file_location(
-            "specseal_cached_probe", module_path
+            "agentic_cached_probe", module_path
         )
         loaded = importlib.util.module_from_spec(spec)
         sys.modules[spec.name] = loaded
@@ -949,7 +949,7 @@ class Test_arms:
         )
 
     def test_an_arm_added_to_the_fixture_moves_the_count(self):
-        """`spec.md`'s second scenario: the enumeration cannot go short when a
+        """`frame/design.md`'s second scenario: the enumeration cannot go short when a
         module gains an arm, and nothing is typed for it to be found.
 
         This is the property the written list did not have. #210's list of reader
@@ -1118,7 +1118,7 @@ class Test_mutate:
         )
         first, second = ARM.arms(source)
         mutated = ARM.mutate(source, first)
-        assert "_specseal_never_raised" in mutated
+        assert "_agentic_never_raised" in mutated
         assert "ValueError" in mutated, "only the mutated member changes"
         ast.parse(mutated)
         assert "OSError" in ARM.mutate(source, second)
@@ -1228,7 +1228,7 @@ class Test_mutate:
             "def f():\n    try:\n        pass\n    except OSError:\n        pass\n"
         )
         (only,) = ARM.arms(sole_source)
-        assert "_specseal_never_raised" in ARM.mutate(sole_source, only, "remove")
+        assert "_agentic_never_raised" in ARM.mutate(sole_source, only, "remove")
 
     def test_a_sole_type_handler_is_measured_by_one_operator_and_not_by_both(
         self, tmp_path
@@ -1260,7 +1260,7 @@ class Test_mutate:
         with pytest.raises(ARM.NoMutationDefined, match="one type left"):
             ARM.mutate(sole, only, "invert")
         # And the measurement itself is not lost -- `remove` splices the same text.
-        assert "_specseal_never_raised" in ARM.mutate(sole, only, "remove")
+        assert "_agentic_never_raised" in ARM.mutate(sole, only, "remove")
 
         one_member = (
             "def f():\n    try:\n        pass\n    except (OSError,):\n        pass\n"
@@ -1280,7 +1280,7 @@ class Test_mutate:
             "        pass\n"
         )
         first, _second = ARM.arms(pair)
-        assert "_specseal_never_raised" in ARM.mutate(pair, first, "invert")
+        assert "_agentic_never_raised" in ARM.mutate(pair, first, "invert")
         assert "except (ValueError):" in ARM.mutate(pair, first, "remove")
 
         # And the run names the un-asked pair rather than skipping it.
@@ -1394,7 +1394,7 @@ class Test_run_arms:
         # because this repository's own suite imports it. Writing is switched on
         # for the plant for the reason the case above gives.
         monkeypatch.setattr(sys, "dont_write_bytecode", False)
-        spec = importlib.util.spec_from_file_location("specseal_planted", module_path)
+        spec = importlib.util.spec_from_file_location("agentic_planted", module_path)
         loaded = importlib.util.module_from_spec(spec)
         sys.modules[spec.name] = loaded
         spec.loader.exec_module(loaded)
@@ -1449,9 +1449,7 @@ class Test_run_arms:
         module_path, _ = two_arms
         other = tmp_path / "other"
         other.mkdir()
-        prefix = (
-            "specseal-prefix-703" if relative else str(tmp_path / "absolute-prefix")
-        )
+        prefix = "agentic-prefix-703" if relative else str(tmp_path / "absolute-prefix")
         monkeypatch.setattr(sys, "pycache_prefix", os.path.join(str(other), prefix))
         planted = importlib.util.cache_from_source(str(module_path))
         # The prefix the clear reads is the environment's, as a session's would be.
@@ -1994,7 +1992,7 @@ class Test__report:
                 calls.append(cmd)
                 if len(calls) == 1:
                     return real_run(cmd, **kwargs)
-                return real_run(["specseal-no-such-command-xyz"], **kwargs)
+                return real_run(["agentic-no-such-command-xyz"], **kwargs)
 
             monkeypatch.setattr(
                 ARM.subprocess, "run", cannot_spawn_after_the_first_call
@@ -2426,7 +2424,7 @@ class Test_main:
         before = module_path.read_bytes()
         os.utime(module_path, ns=(LONG_AGO_NS, LONG_AGO_NS))
 
-        status = ARM.main([str(module_path), "--tests", "specseal-no-such-command-xyz"])
+        status = ARM.main([str(module_path), "--tests", "agentic-no-such-command-xyz"])
 
         first = refusal_line(capsys.readouterr().out)
         assert "FileNotFoundError" in first, (

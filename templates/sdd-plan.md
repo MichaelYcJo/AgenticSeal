@@ -1,6 +1,6 @@
 # Implementation Plan: <work item>
 
-Approved <date> by <who>, when `smith` was spawned.
+Approved <date> by <who>, when `crafter` was spawned.
 
 ## Summary
 

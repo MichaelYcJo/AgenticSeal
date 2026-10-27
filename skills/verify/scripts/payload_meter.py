@@ -7,7 +7,7 @@ the definition under `agents/`, every `SKILL.md` its `skills:` list injects,
 and the two `CLAUDE.md` files the harness adds (the repository's and
 `~/.claude/CLAUDE.md`). The prefix is cached for five minutes, and no two
 spawns of one agent in a review chain fall inside five minutes of each other
-(#292, `spec.md` *Measured before the first edit*) — so in a chain it is
+(#292, `frame/design.md` *Measured before the first edit*) — so in a chain it is
 written on every spawn. This reads the tree and says what that prefix is.
 
   bytes, chars    counted from the files.
@@ -61,7 +61,7 @@ is reported.
 And one thing the ratio has to know about the TREE: a spawn read the files
 as they stood when it was made. Calibrating against a transcript after the
 tree changed divides that spawn's token count by bytes it never read — the
-first after-run of #292 put smith at 2.49 B/token against the 2.87 its spawn
+first after-run of #292 put the crafter at 2.49 B/token against the 2.87 its spawn
 paid, and +979 tokens on a file whose bytes had not moved. So with
 `--baseline` given, an agent whose smallest spawn is the one the baseline was
 calibrated from, over a different byte count, keeps the baseline's ratio, is
@@ -118,7 +118,7 @@ def _session_cost():
             "taken on its own is not a plugin. Nothing was measured.\n"
         )
         raise SystemExit(2)
-    spec = importlib.util.spec_from_file_location("specseal_session_cost", path)
+    spec = importlib.util.spec_from_file_location("agentic_session_cost", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -144,9 +144,7 @@ def _fence_rule():
                 "plugin. Nothing was measured.\n"
             )
             raise SystemExit(2)
-        spec = importlib.util.spec_from_file_location(
-            "specseal_unverified_reader", path
-        )
+        spec = importlib.util.spec_from_file_location("agentic_unverified_reader", path)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         _reader = module

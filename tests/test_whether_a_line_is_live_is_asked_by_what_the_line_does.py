@@ -38,16 +38,16 @@ def _load(name, relative):
     return module
 
 
-checker = _load("specseal_checker_for_liveness", "skills/verify/scripts/coordinates.py")
+checker = _load("agentic_checker_for_liveness", "skills/verify/scripts/coordinates.py")
 reader = _load(
-    "specseal_reader_for_liveness", "skills/verify/scripts/unverified_check.py"
+    "agentic_reader_for_liveness", "skills/verify/scripts/unverified_check.py"
 )
-config = load_hook_module("config.py", "specseal_config_for_liveness")
+config = load_hook_module("config.py", "agentic_config_for_liveness")
 
 WORK_ITEM = "1700000001-alpha"
 # One ledger row, spelled as a table row so every reader reads the same line.
 ROW = (
-    f'| a claim | `seal/specs/{WORK_ITEM}/spec.md#"# alpha"@abcdef12` '
+    f'| a claim | `seal/threads/{WORK_ITEM}/frame/design.md#"# alpha"@abcdef12` '
     "| read | 2026-01-01 | |"
 )
 

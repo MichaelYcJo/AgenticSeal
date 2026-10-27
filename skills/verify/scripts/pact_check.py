@@ -445,9 +445,9 @@ def grade(checker, pact_text, history, locator, want):
 
 def check(root, out=sys.stdout, home_dir=None):
     """Read the pact at ROOT and every signer; print; return the exit."""
-    config = load(os.path.join(HOOKS, "config.py"), "specseal_config_for_pact")
-    optin = load(os.path.join(HOOKS, "optin.py"), "specseal_optin_for_pact")
-    checker = load(CHECKER, "specseal_evidence_for_pact")
+    config = load(os.path.join(HOOKS, "config.py"), "agentic_config_for_pact")
+    optin = load(os.path.join(HOOKS, "optin.py"), "agentic_optin_for_pact")
+    checker = load(CHECKER, "agentic_evidence_for_pact")
     home_dir = home_dir or os.path.expanduser("~")
 
     def say(line):

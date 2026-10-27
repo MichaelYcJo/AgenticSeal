@@ -323,7 +323,7 @@ class Test_main:
         empty. Where neither side names a session the two absences matched, and
         the lease `pid-<ppid>` recorded the inherited 4242. A missing id names no
         session, so the walk answers. `[None-None]` and `[-]` red with
-        `hooks/session-lease.py` at `e0c5a191` (`phases/phase-8.md`)."""
+        `hooks/session-lease.py` at `e0c5a191` (`trail/phases/phase-8.md`)."""
         monkeypatch.setenv("CLAUDE_PID", "4242")
         if environment is None:
             monkeypatch.delenv("CLAUDE_CODE_SESSION_ID", raising=False)

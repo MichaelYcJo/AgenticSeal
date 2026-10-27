@@ -1,4 +1,4 @@
-"""Shared opt-in: does this repository run the specseal workflow?
+"""Shared opt-in: does this repository run the AgenticSeal workflow?
 
 Imported by the gates rather than copied into each, because the answer moved
 once already and four divergent copies is how half of them keep the old answer.

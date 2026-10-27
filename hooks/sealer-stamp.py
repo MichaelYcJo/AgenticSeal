@@ -98,7 +98,7 @@ def load_stamp():
     import raises."""
     try:
         spec = importlib.util.spec_from_file_location(
-            "specseal_seal_stamp_for_the_stop_hook", STAMP
+            "agentic_seal_stamp_for_the_stop_hook", STAMP
         )
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)

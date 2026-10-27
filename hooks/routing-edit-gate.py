@@ -23,7 +23,7 @@ branch the rebase names stands for it (`routing.worktree_branch`, which
 `seal no-work-item` resolves its branch through too), so resolving a
 conflict on a declared branch is never refused, **and at a
 commit that a declared branch already holds**, under its local name or a
-remote-tracking one, so a warden's clone at the reviewed commit and a
+remote-tracking one, so a proofer's clone at the reviewed commit and a
 red-first clone of an earlier one edit without a stop. A detached HEAD at
 any other commit is refused.
 
@@ -56,14 +56,14 @@ import routing
 # `pre-edit` matcher and the `post-edit` matcher are this list joined by `|`.
 TOOLS = ("Write", "Edit", "NotebookEdit")
 
-HEADER = "SpecSeal refused this edit; nothing was written."
+HEADER = "AgenticSeal refused this edit; nothing was written."
 STATE = (
-    "`{file}` is in `{top}`, which runs the SpecSeal workflow, and no routing "
+    "`{file}` is in `{top}`, which runs the AgenticSeal workflow, and no routing "
     "declaration names `{branch}`, the branch checked out there. The routing "
     "is decided before the first edit."
 )
 DETACHED = (
-    "`{file}` is in `{top}`, which runs the SpecSeal workflow, and HEAD is "
+    "`{file}` is in `{top}`, which runs the AgenticSeal workflow, and HEAD is "
     "detached there, so no routing declaration can name its branch. The "
     "routing is decided before the first edit."
 )

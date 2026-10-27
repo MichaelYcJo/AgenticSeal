@@ -32,7 +32,7 @@ TARGET = "skills/settle/scripts/fold_check.py"
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
 SCRIPT = os.path.join(ROOT, "skills", "settle", "scripts", "fold_check.py")
 
-fold_check = load_module(SCRIPT, "specseal_fold_check")
+fold_check = load_module(SCRIPT, "agentic_fold_check")
 
 
 def declared():

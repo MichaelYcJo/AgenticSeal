@@ -33,11 +33,12 @@ def test_the_documents_say_a_spec_less_directory_is_retired_by_the_rule():
     assert "decides every open row of its record before it goes" in policy
     assert "`frame/design.md` states no rule and goes the same way" in policy
     text = flat(skill())
-    assert "A released work item with no `spec.md` states no rule" in text
+    assert "A released work item with no `frame/design.md` states no rule" in text
     assert "it leaves like any other" in text
     for edition in ("README.md", "README.ko.md"):
         assert (
-            "`spec.md`" in document(edition).split("`seal settle [--apply]`")[1][:900]
+            "`frame/design.md`"
+            in document(edition).split("`seal settle [--apply]`")[1][:900]
         ), f"{edition}'s cheat-sheet row does not name the rule arm"
 
 
@@ -151,7 +152,7 @@ def test_the_skill_says_a_from_locates_and_is_no_precondition():
     assert "applies nothing" not in section, "the grammar still says what a replay did"
     apply = text.split("## What `--apply` does")[1].split("## ")[0]
     assert "It writes no policy document." in apply
-    assert "whether or not it wrote a `spec.md`" in apply
+    assert "whether or not it wrote a `frame/design.md`" in apply
 
 
 def test_the_skill_says_a_settle_is_not_a_work_item_and_owes_no_range_row():
@@ -203,8 +204,9 @@ def test_the_seal_readme_says_the_step_exists(parts):
     assert "A settle is not a work item and opens no directory here." in text, (
         f"{'/'.join(parts)} does not say a settle opens no work item (#517)"
     )
-    assert "whose record holds no open row, whether or not it wrote a `spec.md`" in (
-        text
+    assert (
+        "whose record holds no open row, whether or not it wrote a `frame/design.md`"
+        in (text)
     )
     assert "retire-process" not in text and "folds it" not in text
 
@@ -302,7 +304,7 @@ def test_the_module_and_the_skill_both_say_how_local_mode_settles():
         "the pull request from the branch its `routing.md` names has merged",
         "reachable from `--released-at`",
         "`gh pr list --head <branch> --state merged --json number,mergeCommit`",
-        "Each `spec.md` is read from its directory",
+        "Each `frame/design.md` is read from its directory",
         "their merge commits' place in `git rev-list --topo-order --reverse`",
         "with its pull request's number and its merge commit",
         "which of the three states holds",

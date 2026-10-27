@@ -85,16 +85,16 @@ class TestTemplate:
             [c.strip() for c in r] for r in rows
         ]
         # T4, S9 of #969: `sealed` has one meaning in this file. The cell
-        # quotes the run `broad-gate.md` names; it never says `sealed`, which
+        # quotes the run `trail/gate.md` names; it never says `sealed`, which
         # a reader would take for the sealer's verdict.
         cell = next(c[1] for c in rows if c[0].strip() == "Broad gate")
         assert "sealed" not in cell, cell
-        assert "`broad-gate.md` names" in cell, cell
+        assert "`trail/gate.md` names" in cell, cell
 
     def test_the_target_row_keeps_an_earlier_run(self):
         """T3, S5 of #969. A re-run at a new HEAD keeps the earlier verdict on
         the `Target SHA` row as `; earlier run: <sha> <word>`, the form
-        `broad-gate.md` already uses, and the definition re-runs only what a
+        `trail/gate.md` already uses, and the definition re-runs only what a
         commit since touched. Protects: a full re-audit for a records-only
         commit, and an earlier verdict lost when the file is rewritten."""
         text = TEMPLATE.read_text(encoding="utf-8")
@@ -132,7 +132,7 @@ class TestTemplate:
 
 
 def test_every_committed_guarantee_shows_its_one_verdict_line():
-    """Round 1 of #1000, finding 2: each `guarantee.md` under `seal/specs/`
+    """Round 1 of #1000, finding 2: each `guarantee.md` under `seal/threads/`
     gives the reader exactly the one `Verdict:` line it holds. Seen red at
     565dfa24, where two gave none."""
     found = {
@@ -158,7 +158,7 @@ class TestDefinition:
         assert "judges nothing" not in text
 
     def test_step_1_reads_the_record_and_runs_nothing(self):
-        """T2, S1 of #969. Step 1 reads `broad-gate.md` and the commits after
+        """T2, S1 of #969. Step 1 reads `trail/gate.md` and the commits after
         the run it names, and refuses with `withheld reason: no broad run at HEAD`
         where the record is absent or followed by a path outside the work
         item's records; no step of the definition runs `seal gate --base`.
@@ -166,13 +166,13 @@ class TestDefinition:
         Protects: the sealer re-running a suite the orchestrator just ran
         (the 240K-token second run #957 measured), and a sealer that runs
         nothing and still writes a verdict over a run that never happened.
-        Its conduct is the `shape-runs-no-broad-gate` and `truth-no-gate`
+        Its conduct is the `shape-runs-no-broad-run` and `truth-no-gate`
         graders' (`evals/behaviour/sealer/rule-sealer-no-gate/`); this holds
         the words the spawn reads."""
         step = " ".join(
             between(SEALER, "1. **Read the gate's record.**", "2. **").split()
         )
-        assert "`broad-gate.md`" in step, step
+        assert "`trail/gate.md`" in step, step
         assert "log --no-merges --name-only <named>..HEAD ^<base>" in step, step
         assert "`chain_check.py#follows`" in step, step
         assert "`Verdict: withheld reason: no broad run at HEAD`" in step, step
@@ -228,7 +228,7 @@ class TestDefinition:
 
     def test_the_guarantee_rule_exempts_only_the_closing_records(self):
         """Round 1 of #969, finding 1. `chain_check.py#guarantee` lets only
-        `broad-gate.md` and `guarantee.md` follow the commit the guarantee
+        `trail/gate.md` and `guarantee.md` follow the commit the guarantee
         names (`follows(..., only=CLOSING_RECORDS)`); a sealer told that any
         record of the work item may follow keeps an earlier verdict over a
         changelog or phase record it never read, and the check refuses it."""
@@ -236,7 +236,7 @@ class TestDefinition:
             between(SEALER, "**The guarantee covers HEAD", " check: ").split()
         )
         assert (
-            "other than one touching only the closing records, `broad-gate.md` "
+            "other than one touching only the closing records, `trail/gate.md` "
             "and `guarantee.md`, owes a new audit"
         ) in rule, rule
         assert "work item's records" not in rule, rule
@@ -254,18 +254,18 @@ class TestDefinition:
         )
         assert "where resolving the base moved it" in text.lower()
         assert "the tree's copy of the gate" in text
-        assert "`outputs kept under broad-gate-<random>/`" in text
+        assert "`outputs kept under seal-gate-<random>/`" in text
         sealer = " ".join(SEALER.read_text(encoding="utf-8").split())
         assert "outputs kept under" not in sealer
 
     def test_step_3_holds_two_acts_and_reads_no_location(self):
         """T40 (S22): step 3 is the one list of the sealer's acts, and it holds
-        two — the sample of the smith's claims re-run, and the removals
+        two — the sample of the crafter's claims re-run, and the removals
         confirmed absent. Whether a `fixed` commit touches its finding's
         `location:` is the check's to read, so no act of step 3 reads it."""
         step = between(SEALER, "3. **A claim against the fact.**", "4. **")
-        assert "Choose a sample of the smith's `executed`" in step, step
-        assert "For every `## Removes` row of `spec.md`" in step, step
+        assert "Choose a sample of the crafter's `executed`" in step, step
+        assert "For every `## Removes` row of `frame/design.md`" in step, step
         assert "two acts" in step.lower(), step
         assert step.count("For every") == 1, step
         for word in ("touches", "Location", "location", "fixed <commit>"):

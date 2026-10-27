@@ -1,7 +1,7 @@
 ---
 name: settle
 description: |
-  Settle the released work items: show the rule changes their `spec.md`
+  Settle the released work items: show the rule changes their `frame/design.md`
   files state, grouped by the section each names and in merge order, write
   each section of the policy documents (`docs/` unless `Policy root` names
   another) as its group's latest decision, checked against the code, decide
@@ -89,7 +89,7 @@ line, indented two spaces:
 `skills/settle/scripts/rule_changes.py` is the one reader.
 `chain-check` asks the same reader at the pull request, for each work item
 whose `routing.md` it judges and, on a pull request that declares at least
-one work item, for every work item `spec.md` its own commits add or change
+one work item, for every work item `frame/design.md` its own commits add or change
 (`docs/the-review-record.md` *What the check reads at the pull request*).
 
 ## A rule has one shape
@@ -145,7 +145,7 @@ over an unsettled work item.
 
 ## What the dry run shows
 
-`seal settle` reads the work items released at `--released-at`, each `spec.md`
+`seal settle` reads the work items released at `--released-at`, each `frame/design.md`
 as that ref holds it, or in local mode as its directory holds it, and writes
 nothing:
 
@@ -153,7 +153,7 @@ nothing:
   section, in merge order. Two places are one group where one section holds
   the other, because a section's range holds its sub-sections. A spec's
   place in the order is the first commit on `--released-at` that adds its
-  `spec.md`, or in local mode its pull request's merge commit's place on
+  `frame/design.md`, or in local mode its pull request's merge commit's place on
   `--released-at`. The group opens with each place's lines in the working
   tree, or the words saying its heading is not there, and lists each
   operation with its spec's coordinate and whether its `from` and its `to`
@@ -227,7 +227,7 @@ does not parse, an unordered pair and an open row are all shown.
 
 - **It removes every released work item directory whose record holds no
   open row in the working tree**, whole, its process record included,
-  whether or not it wrote a `spec.md`. A row closed on disk and not yet
+  whether or not it wrote a `frame/design.md`. A row closed on disk and not yet
   committed is closed.
 - **It keeps a directory whose record still holds an open row**, or whose
   record cannot be read, and names each row.
@@ -242,7 +242,7 @@ arguments or the tree are unusable. Its last line counts each.
 
 **A reference root is history, never input.** A project's own `specs/`, as
 `templates/config.md` *Reference specs* says, is read where the work touches
-what it describes and cited in the `spec.md` whose rule changes it informed.
+what it describes and cited in the `frame/design.md` whose rule changes it informed.
 `seal settle` never writes there, and neither does the settling session:
 `--apply` removes only under `seal/threads/`.
 
@@ -274,7 +274,7 @@ request's merge commit, whatever the merge method was.
   and what it said, and reads and removes nothing. Every work item would
   otherwise read as unreleased, and the run would say there is nothing to
   settle.
-- **The spec and the order.** Each `spec.md` is read from its directory,
+- **The spec and the order.** Each `frame/design.md` is read from its directory,
   since no ref holds it. The released specs are listed by their merge
   commits' place in `git rev-list --topo-order --reverse` of
   `--released-at`, and two whose merge commits no ancestry orders are marked
@@ -306,9 +306,9 @@ name and not its owner. The one-issue flow names each branch after its
 issue, which makes either match unlikely; it does not rule out the second,
 because the flow does not name a fork's branches.
 
-## A released work item with no `spec.md`
+## A released work item with no `frame/design.md`
 
-A released work item with no `spec.md` states no rule, and it leaves like
+A released work item with no `frame/design.md` states no rule, and it leaves like
 any other: `--apply` removes it once its record holds no open row. The dry
 run lists it as stating no rule, and its open rows with every other record's.
 

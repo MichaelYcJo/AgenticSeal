@@ -1083,7 +1083,7 @@ def _moved_main(root, base, olds, news):
         _test_modules([TESTS + name for name in present], lambda p: _read(root, p)),
     )
     python = _interpreter(root)
-    holder = tempfile.mkdtemp(prefix="test-layout-moved-")
+    holder = tempfile.mkdtemp(prefix="seal-layout-moved-")
     tree = os.path.join(holder, "base")
     try:
         added = _git(root, "worktree", "add", "--detach", "--quiet", tree, sha)

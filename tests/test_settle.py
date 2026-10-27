@@ -51,7 +51,7 @@ SCRIPT = os.path.join(ROOT, "skills", "settle", "scripts", "settle.py")
 settle = load_module(SCRIPT, "settle")
 rules = load_module(
     os.path.join(ROOT, "skills", "settle", "scripts", "rule_changes.py"),
-    "specseal_rule_changes",
+    "agentic_rule_changes",
 )
 
 
@@ -178,7 +178,7 @@ MOMENT = "1700000006-release-0-1-0"
 
 def moment(repo, name=MOMENT, overview=None):
     """A released work item below the SDD ladder: a routing declaration and
-    perhaps a memo, and no `spec.md`. Committed on its own path, so the
+    perhaps a memo, and no `frame/design.md`. Committed on its own path, so the
     unreleased `delta` the fixture leaves on disk stays unreleased."""
     item = repo / "seal" / "threads" / name
     item.mkdir(parents=True)
@@ -370,7 +370,7 @@ def local_dir(repo, name):
 
 def local_item(repo, name, branch=None, changes=None, overview=None):
     """A local work item: a `routing.md` naming BRANCH where one is given,
-    a `spec.md` holding CHANGES where they are given, and an overview."""
+    a `frame/design.md` holding CHANGES where they are given, and an overview."""
     path = local_dir(repo, name)
     path.mkdir(parents=True)
     if branch is not None:
@@ -495,12 +495,14 @@ class Test_report:
         assert "1 unreleased and untouched" in text, text
 
     def test_a_spec_less_directory_is_listed_as_stating_no_rule(self, tree):
-        """D3: a directory with no `spec.md` states no rule, so it is listed
+        """D3: a directory with no `frame/design.md` states no rule, so it is listed
         apart from the specs, and its record's rows with every other's."""
         moment(tree, overview=OVERVIEW_CLOSED)
         code, text = run(tree)
         assert code == 0, text
-        stated = text.split("no `spec.md`, so no rule stated:\n")[1].split("\n\n")[0]
+        stated = text.split("no `frame/design.md`, so no rule stated:\n")[1].split(
+            "\n\n"
+        )[0]
         assert stated == f"    {MOMENT}", text
         assert MOMENT not in text.split(settle.WHOLE_HEADING)[1].split("\n\n")[0]
 
@@ -588,6 +590,7 @@ class Test_apply:
         team = tree / "specs" / "1700000001-alpha"
         team.mkdir(parents=True)
         (team / "design.md").write_text("# the team's design\n", encoding="utf-8")
+        # exempt from old_names: another tool's own file, under a name the plugin once used
         (team / "spec.md").write_text("# the team's spec\n", encoding="utf-8")
         git(tree, "add", "-A")
         git(tree, "commit", "-qm", "a team directory of the same name")
@@ -598,6 +601,7 @@ class Test_apply:
         assert (team / "design.md").read_text(
             encoding="utf-8"
         ) == "# the team's design\n"
+        # exempt from old_names: another tool's own file, under a name the plugin once used
         assert (team / "spec.md").is_file()
 
     def test_a_removed_record_prints_each_row_it_closed_and_writes_no_document(
@@ -1088,8 +1092,8 @@ class Test_main:
         local_item(local, "1700000001-a", "feat/1-a", op("add", "S", new="A."))
         gh.merged("feat/1-a", (11, merge(local, "feat/1-a")))
         if state == "absent":
-            monkeypatch.setattr(settle, "GH", "specseal-no-such-gh")
-            said = "`specseal-no-such-gh` is not on PATH"
+            monkeypatch.setattr(settle, "GH", "agentic-no-such-gh")
+            said = "`agentic-no-such-gh` is not on PATH"
         elif state in ("garbled", "entry"):
             # A list whose entry is not an object is as garbled as an answer
             # that is no list (round 1 finding 3).
@@ -1335,7 +1339,7 @@ class Test_main:
         repo = tmp_path / "repo"
         repo.mkdir()
         git(repo, "init", "-q")
-        optin = settle.load(settle.OPTIN, "specseal_optin_counted")
+        optin = settle.load(settle.OPTIN, "agentic_optin_counted")
         calls, received = [], []
         common_dir, home_at = optin.git_common_dir, optin.home_at
 
@@ -1426,7 +1430,7 @@ class Test_main:
 class Test_module:
     def test_merge_order_is_the_commit_that_adds_the_spec(self, repo):
         """A work item's directory is born with its `routing.md`, often well
-        before its `spec.md`; the order is the spec's, not the directory's."""
+        before its `frame/design.md`; the order is the spec's, not the directory's."""
         early = specs_dir(repo, "1700000001-a")
         early.mkdir(parents=True)
         (early / "routing.md").write_text("# a — routing\n", encoding="utf-8")

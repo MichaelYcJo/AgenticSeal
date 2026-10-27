@@ -527,8 +527,8 @@ def place(tokens, wheres, cwd: str):
     exit and it said nothing at all. This writer took the first entry that
     was not unresolved instead, which is the directory a `||` skips in `eval x
     ; cd A || git worktree add …`, and a directory that holds nothing in `cd
-    <missing> ; git worktree add …`, where it filed no record at all (`spec.md`
-    In 1 of work item 1791384157).
+    <missing> ; git worktree add …`, where it filed no record at all
+    (`frame/design.md` In 1 of work item 1791384157).
 
     The commit gate's text reading stopped on a target like this until #1027
     removed it, and the guard falls back instead. The two protected different

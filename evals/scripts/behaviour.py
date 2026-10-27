@@ -89,7 +89,7 @@ EMOJI_RANGES = (
 
 
 def report_shape(agent, report):
-    """The reach grader and the three shape graders of a warden round
+    """The reach grader and the three shape graders of a proofer round
     record at REPORT: it exists, it carries a finding in the record's shape,
     and it is written in words."""
     return [

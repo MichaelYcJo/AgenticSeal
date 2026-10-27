@@ -1,7 +1,7 @@
 """`hooks/routing.py`: the routing answer is recorded, so the gate stops
 re-deriving it.
 
-A declaration at `seal/specs/<work-item-id>/routing.md` is what the commit gate
+A declaration at `seal/threads/<work-item-id>/routing.md` is what the commit gate
 reads. Failure direction: a declaration that cannot be read is not a
 declaration, and an optional row that cannot be read is unanswered while the
 declaration stands. What the commit gate does with an answer is its own file's.
@@ -31,7 +31,7 @@ from conftest import (
 
 TARGET = "hooks/routing.py"
 
-routing = load_hook_module("routing.py", "specseal_routing")
+routing = load_hook_module("routing.py", "agentic_routing")
 
 CHAIN = "through the review chain"
 DIRECT = "straight to the PR"
@@ -70,8 +70,8 @@ def with_planning(answer):
     return two_axis_text().replace("| Branch |", f"| Planning | {answer} |\n| Branch |")
 
 
-# The shape ids are `seal/specs/1790645290-the-hooks-and-the-rider-check-read-
-# fences-and-comments-by-one-rule/spec.md` *The shapes*, the texts
+# The shape ids are `seal/threads/1790645290-the-hooks-and-the-rider-check-read-
+# fences-and-comments-by-one-rule/frame/design.md` *The shapes*, the texts
 # `tests/block_shapes.py`'s. "red at base" means the case fails with
 # `hooks/routing.py` from `3911a8cf`; "pins" means it passes there too.
 

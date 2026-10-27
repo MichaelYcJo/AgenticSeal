@@ -43,7 +43,7 @@ TARGET = "hooks/optin.py"
 
 @pytest.fixture
 def optin():
-    return load_hook_module("optin.py", "specseal_optin")
+    return load_hook_module("optin.py", "agentic_optin")
 
 
 class Test_repo_root:
@@ -457,11 +457,11 @@ class Test_opted_in:
         for word in ('"config"', "'config'", "environ", "getenv"):
             assert word not in src, f"optin.py reads a key: {word}"
         subprocess.run(
-            ["git", "-C", str(repo), "config", "specseal.mode", "local"],
+            ["git", "-C", str(repo), "config", "agentic.mode", "local"],
             check=True,
             capture_output=True,
         )
-        monkeypatch.setenv("SPECSEAL_MODE", "local")
+        monkeypatch.setenv("AGENTIC_MODE", "local")
         assert not optin.opted_in(str(repo))
         assert optin.home(str(repo)) == ""
 

@@ -1437,7 +1437,7 @@ class Test_confirmations:
         errors = chain.round_of(reader, left_out, "r.md", 1)[1]
         assert [(rel, line) for rel, line, _why in errors] == [("r.md", 0)], errors
         assert said in errors[0][2], errors
-        signed = "signed: the warden\n\n" * ("signed" in new)
+        signed = "signed: the proofer\n\n" * ("signed" in new)
         kept = record("abc1234", [finding(1, "open")], confirm("none") + signed)
         monkeypatch.setattr(chain, "LABELS", (*chain.LABELS, "signed:"))
         assert chain.round_of(reader, kept, "r.md", 1)[1] == []
@@ -1718,7 +1718,7 @@ def spec_with(section):
 
 
 def put_spec(root, text, committed=True):
-    """Write the work item's `spec.md`; where COMMITTED, commit it and the
+    """Write the work item's `frame/design.md`; where COMMITTED, commit it and the
     closing records after it, so the spec is the one thing to refuse."""
     write(root, f"{ITEM}/frame/design.md", text)
     if committed:
@@ -1889,7 +1889,7 @@ class Test_rule_changes_read:
         self, branch, ready, capsys, monkeypatch
     ):
         """S10: exit 2 naming the reader, for the judged item's spec and for
-        an edited spec; a work item with no `spec.md` never reaches it."""
+        an edited spec; a work item with no `frame/design.md` never reaches it."""
         root, _code = branch
         monkeypatch.setattr(chain.SHARED_READER, "rule_changes", will_not_load)
         code, out = check(root, capsys)
@@ -1965,7 +1965,7 @@ class Test_rule_changes_read:
         self, branch, ready, capsys
     ):
         """S16: a move with the bytes unchanged writes no section; another
-        file beside a spec the branch leaves alone, and a `spec.md` one
+        file beside a spec the branch leaves alone, and a `frame/design.md` one
         directory down, write none either."""
         root, _code = branch
         old, new = "seal/threads/1788000001-old", "seal/threads/1788000001-moved"
@@ -1987,7 +1987,7 @@ class Test_rule_changes_read:
 # --- the parity arm at the pull request (#988) -------------------------------------
 
 PARITY = "seal/parity.md"
-routing_module = load(chain.ROUTING, "specseal_routing_for_chain_tests")
+routing_module = load(chain.ROUTING, "agentic_routing_for_chain_tests")
 
 
 def with_original(text, said):
@@ -2033,7 +2033,7 @@ class Test_originals_of:
         for words in (
             f"no `original:` line: `{PARITY}` declares a migration",
             f"each round record carries `original: {BASELINE}`",
-            "written by the warden once it compared the round's target with "
+            "written by the proofer once it compared the round's target with "
             "the original through `legacy-parity`",
         ):
             assert words in says, says
@@ -2274,7 +2274,7 @@ def guarantee(sha, verdict):
         "# 1791999990-a-guaranteed-item — guarantee\n\n"
         "| Field | Value |\n|---|---|\n"
         f"| Target SHA | {sha} against main |\n"
-        f"| Broad gate | {sha} against main, as `broad-gate.md` names it |\n\n"
+        f"| Broad gate | {sha} against main, as `trail/gate.md` names it |\n\n"
         "## Claims re-run\n\n"
         "| Claim | Source | Command | Result |\n|---|---|---|---|\n\n"
         "## The parties\n\n"
@@ -2297,7 +2297,7 @@ SEALED_ROUTING = """# routing
 @pytest.fixture
 def item(tmp_path, monkeypatch):
     """A branch that went straight to the pull request and was sealed: the
-    code, then `broad-gate.md` and `guarantee.md` naming that commit, judged
+    code, then `trail/gate.md` and `guarantee.md` naming that commit, judged
     as a ready pull request. Returns `(root, the audited commit)`."""
     d = tmp_path / "g"
     d.mkdir()
@@ -2650,7 +2650,7 @@ class Test_guarantee:
         """T8, S8 of #969: a `guarantee.md` written before the words changed,
         reading `sound`, `not sound` or `undecidable`, fails a ready pull request
         on its `Verdict:` line, and the line says the word changed and what to
-        do: spawn the sealer again at HEAD where `broad-gate.md` names a run at
+        do: spawn the sealer again at HEAD where `trail/gate.md` names a run at
         HEAD or one followed only by the work item's records, and otherwise run
         the broad gate first (round 1 of #969, finding 4). The line asserts
         nothing about the record it did not read (round 2, finding 2): the same
@@ -2699,7 +2699,7 @@ class Test_broad_gate:
 
     @pytest.mark.rule("record-comment-line-refused")
     def test_refuses_a_comment_line_at_its_line(self, item):
-        """S5 of #1012: a `broad-gate.md` line that begins with `<!--` is
+        """S5 of #1012: a `trail/gate.md` line that begins with `<!--` is
         refused at its line, beside what the run's row says."""
         root, sha = item
         rel = f"{ITEM}/trail/gate.md"
@@ -3303,7 +3303,7 @@ class Test_main:
         self, branch, ready, capsys
     ):
         """S11: a record of the old shape under the declared item has no
-        `## Findings` and is refused by name; a fence the warden never closed
+        `## Findings` and is refused by name; a fence the proofer never closed
         hides the open finding below it and is named at its opener."""
         root, code_sha = branch
         rel = f"{ITEM}/trail/rounds/round-1.md"
@@ -3482,7 +3482,7 @@ class Test_retired:
     def test_refuses_a_declaration_deleted_beside_a_directory_that_stays(
         self, branch, draft, capsys
     ):
-        """S8: a `routing.md` deleted beside a `spec.md` that stays is a
+        """S8: a `routing.md` deleted beside a `frame/design.md` that stays is a
         deletion: a settle takes the whole directory."""
         root, _code = branch
         remove_an_earlier_item(root, applied=True, whole=False)
@@ -3651,7 +3651,7 @@ class Test_module:
 # --- left where they stand, for #923: they read the shipped documents --------------
 
 
-def test_the_warden_and_the_review_skill_name_every_line_a_finding_needs():
+def test_the_proofer_and_the_review_skill_name_every_line_a_finding_needs():
     """S8 (#985): `agents/proofer.md` step 7 and `skills/code-review/SKILL.md`
     *The record* each list the lines a finding carries, and each names
     every row the table places in a finding as `one`, read from the table."""
@@ -3661,8 +3661,8 @@ def test_the_warden_and_the_review_skill_name_every_line_a_finding_needs():
         if row.where == chain.IN_FINDING and row.many == chain.ONE
     ]
     assert "evidence:" in needed, needed
-    warden = " ".join((ROOT / "agents" / "proofer.md").read_text("utf-8").split())
-    step = warden.split("7. Write the record", 1)[1].split("## Never", 1)[0]
+    proofer = " ".join((ROOT / "agents" / "proofer.md").read_text("utf-8").split())
+    step = proofer.split("7. Write the record", 1)[1].split("## Never", 1)[0]
     skill = " ".join(
         (ROOT / "skills" / "code-review" / "SKILL.md").read_text("utf-8").split()
     )
@@ -3670,7 +3670,7 @@ def test_the_warden_and_the_review_skill_name_every_line_a_finding_needs():
     said = said.split("Each finding carries one line of each row", 1)[1]
     said = said.split("The check refuses a finding missing any.", 1)[0]
     for where, text in (
-        ("warden.md step 7", step),
+        ("proofer.md step 7", step),
         ("`skills/code-review/SKILL.md` *The record*", said),
     ):
         missing = [key for key in needed if f"`{key}" not in text]

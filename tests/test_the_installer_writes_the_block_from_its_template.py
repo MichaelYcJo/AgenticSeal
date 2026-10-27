@@ -9,7 +9,7 @@ between `<!-- specseal:start -->` and `<!-- specseal:end -->`, and both
 scripts read it as the block through 0.23.x. This repository's own `CLAUDE.md` carries
 no copy: a session here loads the installed block from `~/.claude/CLAUDE.md`,
 so a copy in the tree was read twice and was the one a consuming repository
-never sees (`seal/specs/1792540458-on-demand-files-state-the-current-rule/plan.md`
+never sees (`seal/threads/1792540458-on-demand-files-state-the-current-rule/frame/plan.md`
 A2).
 
 The cases that ran an installer are kept from the module that held the copy

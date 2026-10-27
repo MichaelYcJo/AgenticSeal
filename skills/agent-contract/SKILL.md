@@ -1,7 +1,7 @@
 ---
 name: agent-contract
 description: |
-  The rules every SpecSeal agent works under — smith, warden, scribe, and any
+  The rules every AgenticSeal agent works under — crafter, proofer, tracer, and any
   agent added after them. Not a command to run: the harness injects it into
   each agent at startup through the `skills:` list in the agent's definition,
   and an orchestrator session may load it to be bound by the same rules.
