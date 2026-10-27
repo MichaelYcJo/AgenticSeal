@@ -387,14 +387,6 @@ class Test_module:
             f"{len(description)}: {description!r}"
         )
 
-    def test_refuses_a_cap_past_the_hundred_characters_github_takes(self):
-        """The cap is GitHub's and no reader here enforces it but the cases:
-        a 101-character description is refused with `HTTP 422 ... (maximum
-        is 100 characters)` (#515). Every description case here and in
-        `tests/test_tracker_labels.py` measures against this constant, so a
-        cap raised past GitHub's passes a description the tracker refuses."""
-        assert signal().LABEL_DESCRIPTION_LIMIT == 100
-
     def test_the_script_only_ever_creates_a_label_and_adds_one(self):
         """Fold the source before matching: the arguments go one per line, so a
         forbidden-substring list over the raw text forbids nothing.

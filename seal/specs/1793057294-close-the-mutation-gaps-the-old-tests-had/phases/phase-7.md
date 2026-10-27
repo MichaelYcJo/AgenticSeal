@@ -22,14 +22,13 @@ the names no input reaches, and totals the seven phases per outcome. Build on
 
 ## The outcomes
 
-17 rows, rebuilt as 16 mutants. 15 rows are killed by a new case, 1 was
-already closed, and 1 left the tree. None is equivalent, and none is a
-finding.
+17 rows, rebuilt as 16 mutants. 14 rows are killed by a new case, 1 was
+already closed, 1 is equivalent, and 1 left the tree. None is a finding.
 
 | Module | Commit | Rows | Mutants | Killed by a new case | Already closed | Equivalent | Left the tree |
 |---|---|---|---|---|---|---|---|
 | `.github/scripts/close_issues_on_release.py` | 6e7d552b | 12 | 11 | 10 | 1 | 0 | 1 |
-| `.github/scripts/label_merged_on_release_branch.py` | d431f2e7 | 3 | 3 | 3 | 0 | 0 | 0 |
+| `.github/scripts/label_merged_on_release_branch.py` | d431f2e7 | 3 | 3 | 2 | 0 | 1 | 0 |
 | `.github/scripts/tracker_labels.py` | cfdf2e7b | 2 | 2 | 2 | 0 | 0 | 0 |
 
 ## How the tables read
@@ -89,7 +88,7 @@ scripts are among them.
 
 | Row | Pair as run | Before | After | Outcome |
 |---|---|---|---|---|
-| m6: `LABEL_DESCRIPTION_LIMIT` is 1000 | `'LABEL_DESCRIPTION_LIMIT = 100'` `'LABEL_DESCRIPTION_LIMIT = 1000'` | SURVIVED, every file | red, `Test_module::test_refuses_a_cap_past_the_hundred_characters_github_takes` | killed by a new case |
+| m6: `LABEL_DESCRIPTION_LIMIT` is 1000 | `'LABEL_DESCRIPTION_LIMIT = 100'` `'LABEL_DESCRIPTION_LIMIT = 1000'` | SURVIVED, every file | SURVIVED | equivalent: no function of this module or of `tracker_labels.py` reads the constant. The description cases of `tests/test_label_merged_on_release_branch.py` and `tests/test_tracker_labels.py` read it as their ruler, so a raised cap changes nothing either script sends. Review round 1 removed the case d431f2e7 added for it, which pinned the number |
 | m9: the label list is read 30 at a time | `'"--repo", repo, "--limit", "1000", "--json", "name"'` `'"--repo", repo, "--json", "name"'` | SURVIVED, every file | red, `Test_existing_labels::test_accepts_every_label_of_a_tracker_past_thirty` | killed by a new case |
 | m11: the label is created in another colour | `'        "0E8A16",'` `'        "FFFFFF",'` | SURVIVED, every file | red, `Test_create_label::test_accepts_the_label_in_the_green_a_hand_made_one_carries` | killed by a new case |
 
@@ -149,13 +148,17 @@ installed here). The case does not remove a guarantee to see a defence
 refuse (contract rule 13). It reproduces the platform's own default, which
 is the condition the `--limit 1000` is written against.
 
-**m6 pins a number, because the number is the decision.**
-`LABEL_DESCRIPTION_LIMIT` is read by no function of its module. Every case
-that holds a description under GitHub's cap reads it, here and in
-`tests/test_tracker_labels.py`, so a raised cap lets a description through
-the suite that the tracker refuses with a 422. The case stands in
-`Test_module`, because no function holds the decision point (`spec.md` *In*
-item 2), and its docstring names #515's refusal.
+**m6 is equivalent, because no shipped code reads the cap.**
+`LABEL_DESCRIPTION_LIMIT` is read by no function of its module or of
+`tracker_labels.py`, whose comment names it. The two description cases, one
+here and one in `tests/test_tracker_labels.py`, read it as their ruler. So
+the decision the mutant changes is made only inside the suite, and no input
+to a shipped function tells 100 from 1000 (`executed`,
+`git grep -n LABEL_DESCRIPTION_LIMIT`). d431f2e7 added a case pinning the
+value at 100. Review round 1 removed it: it wrote GitHub's cap a second time,
+beside the one source `tests/test_tracker_labels.py` reads, and pinned code
+no caller reaches. The name is listed in `overview.md` *Names no input
+reaches*.
 
 **m11's and t4's cases pin a colour value.** The comment above
 `create_label`'s colour says why it is `0E8A16`, and `tracker_labels.py`'s

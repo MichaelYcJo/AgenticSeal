@@ -5,7 +5,7 @@
 #942 proved its rebuilt test files protect what the old ones did, and on the
 way recorded 180 rows, mutants of shipped code or of test helpers that both
 the rebuilt and the old files let survive; each row now has one recorded
-outcome, and the 123 that stood as gaps are each killed by a case seen red on
+outcome, and the 122 that stood as gaps are each killed by a case seen red on
 its mutant.
 
 ## The outcomes across the seven phases
@@ -24,12 +24,12 @@ ran as 145 mutants.
 | 4 | 20 | 20 | 0 | 0 | 0 | 0 |
 | 5 | 18 | 12 | 2 | 2 | 2 | 0 |
 | 6 | 25 | 22 | 0 | 3 | 0 | 0 |
-| 7 | 17 | 15 | 1 | 0 | 1 | 0 |
-| **Total** | **180** | **123** | **9** | **14** | **34** | **0** |
+| 7 | 17 | 14 | 1 | 1 | 1 | 0 |
+| **Total** | **180** | **122** | **9** | **15** | **34** | **0** |
 
 180 is the list `spec.md` *What the list is* defines: the body's 135 rows,
 the three comments' 33, 6 and 4, and the two `specseal_pytest_record.py`
-survivors. Of the 123 kills, 120 are by an added case, 2 by an existing case
+survivors. Of the 122 kills, 119 are by an added case, 2 by an existing case
 given the ruff config it lacked (phase 2), and 1 by a rewritten case (phase
 6, ch6). No row showed a defect in shipped code, so no row is a finding. The
 one change to shipped code is the removal of `gh_json`, which closes c13
@@ -83,6 +83,10 @@ owner decides each.
 - **i7, the whitespace filter of `issue_claims_check.py#segments`.** `read`
   never needs it, and phase 6 gave it a case only because `segments` is
   public and its docstring promises the filter (`phases/phase-6.md`).
+- **m6, `LABEL_DESCRIPTION_LIMIT` in
+  `.github/scripts/label_merged_on_release_branch.py`.** No shipped code
+  reads it. The two description cases read it as their ruler, so it is a
+  test's value kept in a shipped module (`phases/phase-7.md`).
 
 ## Not verified
 
