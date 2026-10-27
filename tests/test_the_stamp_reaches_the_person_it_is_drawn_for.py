@@ -178,33 +178,33 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
     outside the clone, a plugin older than the hook — and `seal-stamp --from
     <path>` for where a file was written.
 
-    1792363231 S7 and S8: the rule names both triggers, the commit in shared
-    mode and the write in local mode, with the local facts that hold once
-    per work item. The unchecked paragraph no longer names local mode among
-    the silences, and no longer hands the never-twice gap to an issue: it
-    names a local guarantee that arrived other than by `Write` or `Edit`, a
-    local verdict whose branch cannot be read, and the limits the commit
-    gate leaves (`spec.md` *Scope*), the coincidence `plan.md`'s path walk
-    found among them, and none of `post-commit`'s removed guards. Red
-    against the paragraph at 769f2aa4, and against 2759a60d's, which still
-    named the guards."""
+    1792363231 S7 and S8, and #1027: the rule names the one trigger, the
+    write under either root, with the local facts that hold once per work
+    item. The unchecked paragraph does not hand the never-twice gap to an
+    issue: it names a guarantee that arrived other than by `Write` or
+    `Edit`, a verdict whose branch cannot be read, and the limits a write
+    no edit hook saw leaves, the coincidence `plan.md`'s path walk found
+    among them, and none of the removed `post-commit` guards. Red against
+    the paragraph at 769f2aa4, and against 2759a60d's, which still named
+    the guards."""
     text = stamp_section()
     screen = "**What the person's screen shows is not checked"
     rule, unchecked = text.split(screen, 1)
     unchecked = screen + unchecked
     assert (
         "**The stamp is drawn once per work item, from the sealer's `sealed`, at "
-        "the end of the turn in which `guarantee.md` came to read it: at its "
-        "commit in shared mode, and at its write in local mode.**"
+        "the end of the turn in which `guarantee.md` came to read it, at its "
+        "write, in either mode.**"
     ) in rule
     for local in (
         "`hooks/sealer-stamp-queue.py`",
-        "after each `Write` or `Edit` of "
-        "`<git-common-dir>/seal/specs/<id>/guarantee.md`",
+        "after each `Write` or `Edit` of a `seal/specs/<id>/guarantee.md` "
+        "under either root",
         "an ancestor of the branch the work item's `routing.md` names in its "
         "`Branch` row",
         "the root and the values directory share the common dir",
-        "`settle` retires no local-mode work item",
+        "a local-mode work item stays under the root until the settle after "
+        "its release removes it",
     ):
         assert local in rule, local
     assert "check: stamp-drawn-once" in rule
@@ -248,7 +248,7 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
         "A `sealed` that drew in another clone, brought onto a copy of its "
         "declared branch that does not hold its audited commit, by hand or by "
         "`checkout`, `cherry-pick -n` or `merge --squash`, is refused at its "
-        "commit and recorded, and the new audit the refusal asks for draws "
+        "write and recorded, and the new audit the refusal asks for draws "
         "again there; it joins that class."
     ) in rule
     assert "no ref of that clone holds" not in rule
@@ -262,11 +262,10 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
     # draw it.
     assert "**Nor is the hook's silence where it cannot draw.**" in unchecked
     for silence in (
-        "where git's hooks slot is somebody else's",
-        "by a shell write or `seal import`",
+        "by a shell write, a commit fetched from elsewhere or `seal import`",
         "names no branch, or a branch the clone no longer holds",
-        "committed past the commit gate",
-        "a clone no session has reached",
+        "where no edit hook saw it written",
+        "under a plugin older than the hook",
         "never the `; earlier run:` chain",
         "a values directory emptied by hand",
         "by coincidence, the very commit a copy of the item on another branch "
@@ -274,9 +273,6 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
         # Round 3's findings 1 and 3 of work item 1792363231.
         "brought onto a copy of its declared branch that does not hold its "
         "audited commit",
-        "where an amend folded the guarantee into the very commit it audited",
-        "a commit that concludes a conflicted merge bringing in a side's "
-        "`sealed` is refused",
         "cannot load `seal_stamp.py`",
         "outside the clone the stamp was queued in",
         "predates the hook",
@@ -291,9 +287,11 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
         assert guard not in unchecked, guard
     assert "names `seal-stamp --from <path>`" in unchecked
     assert (
-        "In local mode the line reaches the person as the edit hook's message, "
-        "and nobody has watched that message on a screen yet."
+        "The line reaches the person as the edit hook's message, and nobody "
+        "has watched that message on a screen yet."
     ) in unchecked
+    for gone in ("commit gate", "post-commit", "pre-commit", "hooks slot"):
+        assert gone not in text, gone
     for gone in (
         # Spelled in two pieces, so S8's `git grep` for the pointer finds the
         # policy clean and not this check on it.
@@ -311,14 +309,12 @@ def test_the_policy_states_the_refusal_record_and_names_its_cases():
     its own: a `sealed` refused because its
     audited commit is not on the branch leaves a record in the clone that
     refused it, and the earlier-run chain skips it, so the sealer's new
-    audit draws the work item's one stamp. It names the two writers, the
-    commit gate in shared mode and the local writer in local mode, the
-    matcher's floor, and that `sealed_before` and `post-commit` ask and
-    write no record; it names none of the guards `post-commit`'s record
-    had; and its `check:` line names the marker the cases that hold each
-    carry. Red at
-    1e956838, whose paragraph described `post-commit`'s record and its
-    four facts."""
+    audit draws the work item's one stamp. #1027: it names the one writer,
+    the edit hook under either root, the matcher's floor, and that
+    `sealed_before` skips a recorded refusal as the chain does; it names
+    none of the guards the removed `post-commit` record had; and its
+    `check:` line names the marker the cases that hold each carry. Red at
+    1e956838, whose paragraph described that record and its four facts."""
     text = stamp_section()
     rule = text.split(
         "**A `sealed` refused because its audited commit is not on the branch "
@@ -328,13 +324,12 @@ def test_the_policy_states_the_refusal_record_and_names_its_cases():
     for said in (
         "`<git-common-dir>/specseal-stamp-refused/<id>-<target>`",
         "`; earlier run: <sha> sealed`",
-        "In shared mode the commit gate writes it when it refuses the commit "
-        "of that row",
-        "In local mode the local writer writes it where the `Branch` row's "
-        "branch stands",
+        "One writer leaves it, for a row that stands in its own clone and "
+        "nowhere else: `hooks/sealer-stamp-queue.py`, in either mode, where "
+        "the `Branch` row's branch stands and does not hold the audited commit.",
+        "In shared mode the pull request's check refuses the same row as stale",
         "at least seven characters",
-        "`sealed_before` asks no record",
-        "`post-commit` writes none",
+        "`sealed_before` skips a `sealed` this clone recorded refusing",
     ):
         assert said in rule, said
     for gone in ("reflog", "patch-equivalent", "No ref of the clone", "must hold"):
