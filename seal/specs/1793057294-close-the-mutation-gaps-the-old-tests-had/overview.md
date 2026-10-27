@@ -5,7 +5,7 @@
 #942 proved its rebuilt test files protect what the old ones did, and on the
 way recorded 180 rows, mutants of shipped code or of test helpers that both
 the rebuilt and the old files let survive; each row now has one recorded
-outcome, and the 122 that stood as gaps are each killed by a case seen red on
+outcome, and the 121 that stood as gaps are each killed by a case seen red on
 its mutant.
 
 ## The outcomes across the seven phases
@@ -20,16 +20,16 @@ ran as 145 mutants.
 | `spec.md` | 30 | 0 | 0 | 0 | 30 | 0 |
 | 1 | 25 | 21 | 1 | 3 | 0 | 0 |
 | 2 | 24 | 18 | 2 | 3 | 1 | 0 |
-| 3 | 21 | 15 | 3 | 3 | 0 | 0 |
+| 3 | 21 | 14 | 3 | 4 | 0 | 0 |
 | 4 | 20 | 20 | 0 | 0 | 0 | 0 |
 | 5 | 18 | 12 | 2 | 2 | 2 | 0 |
 | 6 | 25 | 22 | 0 | 3 | 0 | 0 |
 | 7 | 17 | 14 | 1 | 1 | 1 | 0 |
-| **Total** | **180** | **122** | **9** | **15** | **34** | **0** |
+| **Total** | **180** | **121** | **9** | **16** | **34** | **0** |
 
 180 is the list `spec.md` *What the list is* defines: the body's 135 rows,
 the three comments' 33, 6 and 4, and the two `specseal_pytest_record.py`
-survivors. Of the 122 kills, 119 are by an added case, 2 by an existing case
+survivors. Of the 121 kills, 118 are by an added case, 2 by an existing case
 given the ruff config it lacked (phase 2), and 1 by a rewritten case (phase
 6, ch6). No row showed a defect in shipped code, so no row is a finding. The
 one change to shipped code is the removal of `gh_json`, which closes c13
@@ -49,7 +49,7 @@ row whose function the merge changed, is still red on the case phase 4 named
 | Modules with no commit | `plan.md` *Summary*: "each module lands in one commit" / `hooks/one_heredoc.py`, `hooks/tokens.py` and `hooks/blocks.py` (phase 3) and `skills/implement/scripts/seal.py` (phase 5) have none | the code | each of their rows needed no case: four are equivalent and one, k8, was already closed. Their tables stand in `phases/phase-3.md` and `phases/phase-5.md` |
 | One module, two commits | `plan.md` *Summary*: one commit per module / `.github/scripts/issue_claims_check.py` took 0a1c3676 and fea473fc | the code | at 0a1c3676 `bin/test-layout --pairs` paired i27's case with `test_an_anchor_is_not_an_issue_number`, and folding them rewrote that case's `def` line, which phase 7's check reads as a removed case. fea473fc restores the case unchanged and gives i27 a case of its own (`phases/phase-6.md`) |
 | Rows closed by an existing case | `spec.md` *In* item 1: "a case is added that is seen red on it and green on the code" / phase 2 gave two existing `hooks/lint-python.py` cases the `ruff.toml` they lacked; phase 6 rewrote the case asserting no decline for ch6 | the code | the lint cases built no ruff config, so `uses_ruff` returned before the decision each names, and a new case beside each would assert what the old one meant to; ch6's case could not fail, because the mutant's `pytest.skip` reads as no failure. Each was seen red on its mutant (`phases/phase-2.md`, `phases/phase-6.md`) |
-| Rows equivalent against the real dependency, killed by a case that fakes it | `spec.md` *In* item 1: equivalent where "no input tells the mutant from the code" / 8 rows are recorded killed by a case that removes the guarantee: phase 1's `hooks/session-lease.py#git_dir` and `hooks/mode-gate.py#git_dir_of` on a non-zero exit, and the directory tests of `session-lease`'s target and `optin.repo_root`; phase 2's `hooks/implementer.py#git_dir` and `hooks/review-skill-gate.py#git` on a non-zero exit, and s4 of `hooks/sealer-stamp.py`; phase 3's k3 of `hooks/worktree_consent.py` | the code, with each pair recorded so a warden can read the row as equivalent | contract rule 13: a defence resting on a guarantee is not verified until the guarantee is removed. `phases/phase-2.md` says four of its rows rest on such a guarantee and names three |
+| Rows equivalent against the real dependency, killed by a case that fakes it | `spec.md` *In* item 1: equivalent where "no input tells the mutant from the code" / 7 rows are recorded killed by a case that removes the guarantee: phase 1's `hooks/session-lease.py#git_dir` and `hooks/mode-gate.py#git_dir_of` on a non-zero exit, and the directory tests of `session-lease`'s target and `optin.repo_root`; phase 2's `hooks/implementer.py#git_dir` and `hooks/review-skill-gate.py#git` on a non-zero exit, and s4 of `hooks/sealer-stamp.py` | the code, with each pair recorded so a warden can read the row as equivalent | contract rule 13: a defence resting on a platform guarantee is not verified until the guarantee is removed. `phases/phase-2.md` says four of its rows rest on such a guarantee and names three |
 | The conftest rows' before column | `plan.md` *How a phase rebuilds a row* step 4: a survivor runs against every other test file that loads the module / phase 6 ran the `tests/conftest.py` mutants against `tests/test_conftest.py` alone | the phase 6 row | `plan.md`'s Phases row for phase 6 says so. Every test file runs under `conftest.py`, so step 4's set of files would be the whole suite (`read`) |
 | k8 of `hooks/blocks.py` does not reproduce | the round 3 comment of #1017: k8 survives the rebuilt and the old files / red on `tests/test_the_hooks_hide_what_a_renderer_hides.py` under the table's pair and three other readings | already closed | that file, `tests/commonmark_oracle.py` and `hooks/blocks.py` are byte-identical between 208803e6 and the head, so #942's mutant was likely a replacement none of the four is (`phases/phase-3.md`) |
 | A module's after batch exits 1 | `spec.md` *A gap that stands is closed*: "the module's `bin/mutation-check` batch with `-x` exits 0 at the phase's commit" / where a module holds an equivalent row, or a row closed by a case in another file, its own-file batch prints `SURVIVED` for that row and exits 1 | the code | the outcomes already closed and equivalent leave those mutants standing on the module's own file by definition. Every row killed by a case is `red` in its after column |
@@ -87,6 +87,9 @@ owner decides each.
   `.github/scripts/label_merged_on_release_branch.py`.** No shipped code
   reads it. The two description cases read it as their ruler, so it is a
   test's value kept in a shipped module (`phases/phase-7.md`).
+- **k3, `hooks/worktree_consent.py#main`'s `if not session` return.**
+  `record` refuses an empty session through `consent_path` on its own
+  (`phases/phase-3.md`).
 
 ## Not verified
 

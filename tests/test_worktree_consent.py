@@ -18,7 +18,6 @@ The cases come from `tests/test_the_guard_asks_once_per_session.py`,
 `payload`, `write_the_transcript` and `SESSION` (#942's phase 7).
 """
 
-import io
 import json
 import os
 import subprocess
@@ -267,21 +266,6 @@ class Test_main:
         payload.pop("tool_response")
         run_hook("worktree_consent.py", payload)
         assert not consent_dir(repo).exists()
-
-    def test_refuses_a_payload_with_no_session_id_where_any_session_is_recorded(
-        self, monkeypatch, repo
-    ):
-        """A payload with no session id names no record, and `main` reads no
-        further. `consent_path` also answers "" for an empty id, so the case
-        hands `main` a `record` that would record any session, to see that the
-        refusal is `main`'s own (contract rule 13)."""
-        written = []
-        monkeypatch.setattr(wc, "record", lambda top, s: written.append(s) or True)
-        payload = post(repo)
-        del payload["session_id"]
-        monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps(payload)))
-        wc.main()
-        assert written == []
 
     def test_refuses_an_agent_without_isolation(self, repo):
         run_hook(

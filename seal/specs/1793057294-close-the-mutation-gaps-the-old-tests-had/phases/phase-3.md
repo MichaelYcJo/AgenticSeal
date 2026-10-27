@@ -21,8 +21,8 @@ defaults Q1 to Q5. Fake every decision that reads the platform.
 
 ## The outcomes
 
-21 rows, rebuilt as 21 mutants. 15 rows are killed by a new case, 3 were
-already closed, 3 are equivalent. No row left the tree beyond the ten
+21 rows, rebuilt as 21 mutants. 14 rows are killed by a new case, 3 were
+already closed, 4 are equivalent. No row left the tree beyond the ten
 `hooks/cmdline.py` rows `spec.md` already settles, and no row is a finding.
 
 | Module | Commit | Rows | Mutants | Killed by a new case | Already closed | Equivalent |
@@ -31,7 +31,7 @@ already closed, 3 are equivalent. No row left the tree beyond the ten
 | `hooks/one_heredoc.py` | none | 2 | 2 | 0 | 0 | 2 |
 | `hooks/tokens.py` | none | 1 | 1 | 0 | 0 | 1 |
 | `hooks/blocks.py` | none | 1 | 1 | 0 | 1 | 0 |
-| `hooks/worktree_consent.py` | 2b542a71 | 5 | 5 | 3 | 2 | 0 |
+| `hooks/worktree_consent.py` | 2b542a71 | 5 | 5 | 2 | 2 | 1 |
 | `hooks/config.py` | bde49386 | 5 | 5 | 5 | 0 | 0 |
 
 ## How the tables read
@@ -115,7 +115,7 @@ to `:703` at `79f9c3fd`. Before: `tests/test_worktree_consent.py`, then
 
 | Row | Pair as run | Before | After | Outcome |
 |---|---|---|---|---|
-| k3: `main` records a payload with no session id | `$'    if not session:\n        return\n    tool = data'` `$'    if False:\n        return\n    tool = data'` | SURVIVED, every file | red, `Test_main::test_refuses_a_payload_with_no_session_id_where_any_session_is_recorded` | killed by a new case, with `record` replaced by one that records any session |
+| k3: `main` records a payload with no session id | `$'    if not session:\n        return\n    tool = data'` `$'    if False:\n        return\n    tool = data'` | SURVIVED, every file | SURVIVED | equivalent: past the test, `main` reaches only `record(top, "")`, whose `consent_path` answers "" for an empty id, so nothing is written either way. Review round 1 removed the case 2b542a71 added for it, which replaced `record` |
 | k10: `is_routing_question` takes a label set without counting each once | `'return phrases == sorted(ROUTING_LABELS)'` `'return set(phrases) == set(ROUTING_LABELS)'` | SURVIVED on `tests/test_worktree_consent.py`; red on `tests/test_question_gate.py::Test_routing_question_alone::test_refuses_a_near_miss_of_the_routing_question` | SURVIVED on `tests/test_worktree_consent.py`; the other file is unchanged | already closed |
 | k13: `_routing_preset` reads an absent `multiSelect` as single-select | `'if not is_routing_question(q) or q.get("multiSelect") is not False:'` `'if not is_routing_question(q) or q.get("multiSelect", False) is not False:'` | SURVIVED, every file | red, `Test__routing_preset::test_refuses_a_question_whose_multi_select_is_absent` | killed by a new case |
 | k23: `creation_directory` reads comments | `'text = cmdline.drop_heredoc_bodies(cmdline.drop_comments(command))'` `'text = cmdline.drop_heredoc_bodies(command)'` | SURVIVED, every file | red, `Test_creation_directory::test_refuses_a_creation_written_in_a_comment` | killed by a new case |
@@ -170,12 +170,15 @@ whose corpus is seeded and the same on every run (`executed`). That file,
 a replacement none of these four is, and a warden who has another reading can
 run it against the same files.
 
-**k3 rests on a guarantee the module gives itself, and its case removes it
-(contract rule 13).** With no session id, `consent_path` answers "" and
-`record` writes nothing, so read against the real `record` the mutant is
-equivalent. The case replaces `record` with one that records any session,
-and asserts that `main` hands it nothing. A warden who reads k3 as equivalent
-with the real `record` can rebuild the pair from the table.
+**k3 is equivalent, because the module refuses an empty session twice.**
+With no session id, `consent_path` answers "" and `record` writes nothing,
+and the calls between the test and `record`, `creation_directory` and
+`optin.repo_root`, write nothing either. 2b542a71 added a case that replaced
+`record` with one that records any session, under contract rule 13. Review
+round 1 removed it. That rule is about a platform guarantee, and `record` is
+a function of the module under test, so the case pinned `main`'s call to it
+rather than anything the hook writes. The name is listed in `overview.md`
+*Names no input reaches*.
 
 **m47's case rests on GNU env's grammar, read and not run.** The case reads
 `env -iS '' -vS 'git commit'`. An empty split string splits into no
@@ -213,8 +216,7 @@ against the restored file. The next phase should read no module while that
 module's batch runs.
 
 **No case reads the platform, the process tree or the console without a
-fake.** The k3 case runs `main` in the process, with stdin replaced. The c13
-case moves the working directory with `monkeypatch.chdir`. The c14 case
+fake.** The c13 case moves the working directory with `monkeypatch.chdir`. The c14 case
 builds its `OSError` with an errno and a reason of its own, and builds its
 path with `os.path.join`. The k23 case has no backslash, so the Windows
 doubling changes nothing in it.
