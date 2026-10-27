@@ -91,7 +91,8 @@ both places.
 085530de and f8408d5e change only this work item's records. 1718924d
 changes `.github/scripts/release_report.py` and
 `tests/test_release_report.py`. `overview.md` *Not verified* now says so,
-and the `236a596d` broad run is named as the head before phase 5. Two open
+and names the `236a596d` broad run with the three record commits after it
+and before this phase. Two open
 rows are added. One holds 1718924d for the orchestrator's next broad run
 and the branch's next `tests` run. The other holds the archive's row in the
 job's summary for whoever prepares the release, because the job runs only
