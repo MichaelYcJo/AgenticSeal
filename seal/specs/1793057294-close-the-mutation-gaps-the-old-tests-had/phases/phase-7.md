@@ -211,3 +211,41 @@ files with 0 refused, and `--pairs` prints the six pairs named above.
 `.github/scripts/close_issues_on_release.py` exit 0.
 `git grep -n gh_json -- '*.py'` prints nothing, and
 `git diff 134d7203 HEAD -- tests` removes no line holding `def test_`.
+
+## The pull request's CI found three cases reading the run's branch
+
+**The failure.** The `tests` run 40446828473 is the first run of the
+`pull_request` event on #1057, at 88c27ed5. Three cases phase 5 added failed
+on the ubuntu, macOS and Windows legs alike:
+`Test_declared_for_this_branch::test_accepts_the_one_routing_md_under_the_work_items_beside_a_decoy`,
+under both parameters, and
+`Test_declared_for_this_branch::test_refuses_two_committed_declarations_naming_the_branch`
+(`read`, the orchestrator's `gh run view 40446828473 --log-failed`; the event
+and head are `executed`, `gh run view 40446828473 --json event,headSha`).
+
+**The cause.** The three cases call `chain.declared_for_this_branch` in
+process. That function reads the branch from `GITHUB_HEAD_REF` before the
+checked-out branch (`skills/code-review/scripts/chain_check.py:2005`). A
+`pull_request` run sets `GITHUB_HEAD_REF` to the pull request's branch, so the
+cases judged `test/1017-close-the-mutation-gaps-the-old-tests-had` rather than
+the fixture's `feature`. Every earlier run had no such variable: the local
+runs, and run 40444267960 at bf2096ba, whose event is `workflow_dispatch`
+(`executed`, `gh run view 40444267960 --json event`). The file's other cases
+already clear the variable, through `run_check`'s environment or
+`monkeypatch.delenv`.
+
+**The fix.** 516d0ff6 clears the variable in each of the three cases with
+`monkeypatch.delenv("GITHUB_HEAD_REF", raising=False)`, after the fixture's
+commit and before the call. With `GITHUB_HEAD_REF=some-other-branch` set,
+`bin/test tests/test_chain_check.py -q -p no:xdist -k Test_declared_for_this_branch`
+printed 3 failed and 6 passed at 88c27ed5, and 9 passed at 516d0ff6
+(`executed`).
+
+**The sweep over the work item's other cases.** Each of the 32 test files that
+`git diff --name-only 5daa931f...HEAD -- tests` lists ran on its own, under
+`GITHUB_HEAD_REF`, `GITHUB_BASE_REF`, `GITHUB_EVENT_NAME=pull_request`,
+`GITHUB_REF`, `GITHUB_ACTIONS=true` and `CI=true`, each set to a value no
+fixture uses. Every file exited 0 at 516d0ff6. The one skip, in
+`tests/test_broad_gate.py`, is the case that needs `cmd.exe`, and it skips
+without the variables too (`executed`). No other case read the run's
+environment.
