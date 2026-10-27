@@ -45,6 +45,12 @@ One more subcommand records a fact about the session rather than the root:
                               out here belongs to no work item, so the edit
                               check lets its edits on that branch through
 
+Every other command of the plugin is a subcommand of this one, and `TOOLS`
+says which script each runs. `seal gate --base <base> --record <item>` hands
+`--base <base> --record <item>` to `broad_gate.py` untouched, `--help` among
+any arguments, so each script keeps its own parser and its own help, and a
+subcommand is a dispatch and not a copy (#1051).
+
 **The root is its own directory, and that is what makes the export safe.**
 Beside it under the git directory sit the smith mark, the worktree choices,
 the review and parity marks, the throwaway opt-out, any lease file and this
@@ -113,6 +119,65 @@ import zipfile
 HOOKS = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "hooks"
 )
+PLUGIN = os.path.normpath(os.path.join(HOOKS, ".."))
+
+# The plugin's commands that are not about the root, one subcommand each: the
+# name a person types, the script it runs (from the plugin's root), and the
+# line `seal --help` prints for it.
+TOOLS = {
+    "gate": (
+        "skills/verify/scripts/broad_gate.py",
+        "the one broad run, taken once after the review rounds settle",
+    ),
+    "settle": (
+        "skills/settle/scripts/settle.py",
+        "show the released specs by section, and remove what a settle leaves",
+    ),
+    "cost": (
+        "skills/verify/scripts/session_cost.py",
+        "where a session's minutes went, read from its transcript",
+    ),
+    "mutate": (
+        "skills/verify/scripts/mutation_check.py",
+        "break one unit, run its cases, and say whether one went red",
+    ),
+    "unverified": (
+        "skills/verify/scripts/unverified_check.py",
+        "read what the work items recorded as not verified",
+    ),
+    "arms": (
+        "skills/verify/scripts/arm_check.py",
+        "list a module's arms, and report the ones no case kills",
+    ),
+    "deferrals": (
+        "skills/verify/scripts/deferral_check.py",
+        "resolve the answerer named in an `unverified` row",
+    ),
+    "fold": (
+        "skills/settle/scripts/fold_check.py",
+        "hold the policy root's documents to one read and one index",
+    ),
+    "pact": (
+        "skills/verify/scripts/pact_check.py",
+        "whether every signer still agrees with the pact",
+    ),
+    "payload": (
+        "skills/verify/scripts/payload_meter.py",
+        "what each agent's startup payload is made of, and its cost in tokens",
+    ),
+    "stamp": (
+        "skills/verify/scripts/seal_stamp.py",
+        "draw the sealer's stamp",
+    ),
+    "layout": (
+        "skills/verify/scripts/test_layout.py",
+        "whether each test file stands where the test layout puts it",
+    ),
+    "rules": (
+        ".github/scripts/rules.py",
+        "a document's sections with what their tests guard, or every check line read",
+    ),
+}
 
 # What each module this command imports from `hooks/` is for, in the sentence
 # printed when it is missing. They are checked before the `import` lines,
@@ -2720,17 +2785,51 @@ def no_work_item(args, cwd):
     return 0
 
 
+# --- the tools --------------------------------------------------------------
+
+
+def tool_command(name, argv):
+    """The command line that runs the script `TOOLS` names for `name` with
+    `argv`: this interpreter, which `hooks/launch.py` held to the floor before
+    this file was read, the script's path under the plugin, and the arguments
+    as they were typed."""
+    script = os.path.join(PLUGIN, *TOOLS[name][0].split("/"))
+    return [sys.executable, script, *argv]
+
+
+def hand_over(command):
+    """Run `command` in place of this one and answer its exit code.
+
+    On POSIX the process is replaced, as the `exec` of a `bin/` wrapper
+    replaced it, so the script's signals and exit code are the command's.
+    Windows has no replacement that keeps the exit code, so the script runs
+    as a child and its code is returned, as a `.cmd` wrapper returned it."""
+    if os.name == "nt":
+        return subprocess.call(command)
+    sys.stdout.flush()
+    sys.stderr.flush()
+    os.execv(command[0], command)
+
+
 # --- entry point ------------------------------------------------------------
 
 
 def main(argv=None, cwd=None):
     cwd = cwd or os.getcwd()
+    argv = sys.argv[1:] if argv is None else list(argv)
+    # A tool's arguments are its script's to read, `--help` among them, so
+    # they are handed on before the parser below sees any of them.
+    if argv and argv[0] in TOOLS:
+        return hand_over(tool_command(argv[0], argv[1:]))
     parser = argparse.ArgumentParser(
         prog="seal",
-        description="where this repository's seal/ root lives, and how a copy "
-        "of it travels between clones",
+        description="the plugin's commands: where this repository's seal/ "
+        "root lives, how a copy of it travels between clones, and one "
+        "subcommand for each tool",
     )
     sub = parser.add_subparsers(dest="command", required=True)
+    for name, (_, said) in TOOLS.items():
+        sub.add_parser(name, help=said, add_help=False)
 
     ex = sub.add_parser("export", help="write the root to a zip")
     ex.add_argument("--output", help="the zip's path, or a directory to put it in")

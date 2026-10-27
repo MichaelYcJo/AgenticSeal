@@ -21,7 +21,7 @@ session in that repository is denied and the second is asked, until
 `seal mode` writes the row. Two prompts per session per repository, then
 nothing once the row exists.
 
-**An absent `Broad gate` is a refusal, not a prompt:** `broad-gate` names the
+**An absent `Broad gate` is a refusal, not a prompt:** `seal gate` names the
 row and exits 2 with nothing run, because a run over a command nobody chose
 proves nothing (*Broad gate* below).
 
@@ -32,8 +32,8 @@ neither its first nor its last: it is refused in the sentence
 "`<item>` appears N times — one value". A file that is there and cannot be
 read as UTF-8 text (a directory of that name, or bytes another encoding
 wrote) is refused naming its path; a file that is absent still declares
-nothing. A command a person runs (`fold-check`, `broad-gate`, `seal mode`,
-`pact-check`) prints the refusal and exits 2 with nothing judged, as it does
+nothing. A command a person runs (`seal fold`, `seal gate`, `seal mode`,
+`seal pact`) prints the refusal and exits 2 with nothing judged, as it does
 for a value it cannot parse. A hook says nothing: the mode gate is silent
 rather than asking. Whoever writes the file repairs it by deleting the extra
 row, or by writing the file as UTF-8.
@@ -199,10 +199,10 @@ from the moment it lands.
 
 The repository's own broad command (the full suite, the repository-wide
 lint, the typecheck) as **one shell command line**, run from the repository
-root by `broad-gate` once the review rounds settle. The plugin's own checks
+root by `seal gate` once the review rounds settle. The plugin's own checks
 follow it and are not part of the row; the module docstring of
 `skills/verify/scripts/broad_gate.py` lists them, in the order they run.
-`broad-gate --preflight` runs those checks alone, reading the row and not
+`seal gate --preflight` runs those checks alone, reading the row and not
 running it, and writes nothing; the orchestrator runs it before the sealer is
 spawned.
 
@@ -210,7 +210,7 @@ spawned.
 | Broad gate | uvx ruff check . && uvx ruff format --check . && bin/test -q |
 ```
 
-**An absent row is a refusal, not a default.** `broad-gate` names this row
+**An absent row is a refusal, not a default.** `seal gate` names this row
 and exits 2 with nothing run. It is a refusal rather than a prompt because
 the orchestrator runs the command unattended, with nothing else running, and
 asks nobody anything: a refusal that names whose the row is and where it is
@@ -271,7 +271,7 @@ that check's kept output carries it under the row as written.
 ### What is refused, and what stays allowed
 
 **A value that would not run as the command it reads as is refused, not
-repaired.** `broad-gate` looks at the row before it hands it to a shell,
+repaired.** `seal gate` looks at the row before it hands it to a shell,
 and three forms come back exit 2 with nothing run, the same shape an
 absent row gets. The criterion is one sentence with two halves, and a form
 is refused only for breaking one of them:
@@ -304,7 +304,7 @@ A fence opens at a line indented at most three spaces whose first run is three
 or more backticks or three or more tildes, and closes at the next line of at
 least as many of the same character with nothing after it but spaces. **A
 fence that is never closed runs to the end of the file**, so everything under
-it, the live table included, reads as undeclared: `broad-gate` exits 2 with
+it, the live table included, reads as undeclared: `seal gate` exits 2 with
 a message and the mode question comes back. That is loud rather than quiet,
 which is the trade this rule is written for.
 
@@ -312,7 +312,7 @@ What it prevents is quiet. The block `/agentic:config` copies out of this
 file carries the fenced example row above; pasted above the live table, or
 above a table with no parseable row yet, the example would otherwise be the
 table every gate reads, a broad run over a plausible command nobody chose.
-**`broad-gate` says so by name**: where
+**`seal gate` says so by name**: where
 this gate's row exists only inside a fence, the refusal quotes that line and
 says where it has to move to, rather than reporting the row absent.
 
@@ -340,7 +340,7 @@ rather than paid for by a refusal:
 |---|---|
 | `$(…)` **inside** a longer line | nothing. `pytest -n $(nproc)` still runs as the command it reads as |
 | `;`, `\|\|`, quotes, redirection, variables, globs | the row answers with whatever the composition the repository wrote answers with. That is the repository's own claim about itself, which is what this row already is |
-| a pipe, **written `\|`** | the same, and one thing more. A piped row exits with the pipe's LAST status, so `bin/test -q \| tee out.txt` is green whenever `tee` is: the repository's own claim about itself. **This file is markdown and a cell of it ends at a bare pipe**, so `\|` is how the value carries one, the way every other cell of this table already writes it. The reader reduces exactly those two characters to a plain pipe before any shell sees it, so a value holding Windows path separators is untouched. **A BARE pipe is refused**: GitHub shows that row cut off at the pipe, so the command it shows is not the one written, and `broad-gate` quotes the line, says to write it `\|`, and runs nothing. The walker reads no row below a line it refuses, so a `Mode` row written under it is that refusal rather than an absent row: `seal mode` writes nothing and names the line, and the mode gate says nothing. Written LAST in its table the line has nothing under it, and `broad-gate`'s refusal says the rows below it go unread only where a row is written below it |
+| a pipe, **written `\|`** | the same, and one thing more. A piped row exits with the pipe's LAST status, so `bin/test -q \| tee out.txt` is green whenever `tee` is: the repository's own claim about itself. **This file is markdown and a cell of it ends at a bare pipe**, so `\|` is how the value carries one, the way every other cell of this table already writes it. The reader reduces exactly those two characters to a plain pipe before any shell sees it, so a value holding Windows path separators is untouched. **A BARE pipe is refused**: GitHub shows that row cut off at the pipe, so the command it shows is not the one written, and `seal gate` quotes the line, says to write it `\|`, and runs nothing. The walker reads no row below a line it refuses, so a `Mode` row written under it is that refusal rather than an absent row: `seal mode` writes nothing and names the line, and the mode gate says nothing. Written LAST in its table the line has nothing under it, and `seal gate`'s refusal says the rows below it go unread only where a row is written below it |
 | an `&` anywhere but at the end | the command before it is backgrounded and its status discarded, exactly as a `;` discards one. Unlike a `;`, it may still be running when the gate reports, writing into the tree the report is about. That is `/bin/sh`; `cmd.exe` sequences the two commands instead, so nothing is left running and the status read is the second command's. Telling an operator `&` from a `2>&1` or a quoted `&` needs the shell parser this list exists to avoid, so it stays the row author's own composition. The **trailing** form is refused, because nothing composes after it and the whole line goes to the background |
 
 ### The criterion for choosing a value
@@ -374,10 +374,10 @@ reference root.
 | no `seal/` root at either place | no reference root: the repository has not opted in, and the one layout the plugin read without a root is 0.3.x, whose top-level `specs/` was its own |
 
 **What it governs.** The checks that would read a record leave a reference
-root out: `unverified-check` prunes it from a directory walk while still
+root out: `seal unverified` prunes it from a directory walk while still
 reading a file named to it explicitly. A prefix naming the plugin's own root
 or anything under it is dropped, because the root's records are read whatever
-this row says; `settle --apply` removes only under `seal/threads/`. One reader
+this row says; `seal settle --apply` removes only under `seal/threads/`. One reader
 answers the row, `hooks/config.py#reference_roots`, and one predicate the
 path question, `hooks/config.py#under_reference_root`.
 
@@ -409,20 +409,20 @@ so two pacts whose URLs end in the same segment are refused as ambiguous.
 **A row that will not parse is refused in a sentence**, never read as absent.
 At this repository's pull request `chain-check` prints the sentence and its
 exit status does not move: a signer's CI prints and does not verify.
-`pact-check`, run at the pact's repository, reads the same row through the
+`seal pact`, run at the pact's repository, reads the same row through the
 same reader, `hooks/config.py#pact_declaration`, and exits 2 on it. A `Pact`
-row the table does not hold is no row: `pact-check` then reads the signer as
+row the table does not hold is no row: `seal pact` then reads the signer as
 naming no pact and exits 2 on a relationship recorded on one side only.
 
 **A `Pact notify` row is read by nobody.** No command refuses it, prints it
 or names it, like any item no reader asks for, and whoever next edits the
 file deletes it. No reader names it, because naming it would keep a reader
-for a row that changes nothing, and a refusal would stop `pact-check` at the
+for a row that changes nothing, and a refusal would stop `seal pact` at the
 pact's repository over it.
 
 ## The fold's values
 
-Two rows, read by `fold-check` and `settle` (`skills/settle/SKILL.md`). The
+Two rows, read by `seal fold` and `settle` (`skills/settle/SKILL.md`). The
 plugin sets no value; these rows are where a repository states its own.
 
 ```markdown
@@ -445,7 +445,7 @@ trimmed*.
 refusing.** A `Policy root` value that is empty, absolute or climbs out with
 `..` reads as `docs`. The cost is stated rather than hidden: a row deleted
 while tidying this file turns its check off, and the only trace is the one
-line `fold-check` prints about it.
+line `seal fold` prints about it.
 
 **A value that will not parse is refused.** A ceiling that is not a positive
 whole number exits 2 naming the row, and nothing is checked. The `--ceiling`

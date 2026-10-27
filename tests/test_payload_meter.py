@@ -1003,23 +1003,29 @@ class Test_module:
         assert data["root"] == "plugin"
         assert "measured_at" in data
 
-    # --- the wrapper pair -------------------------------------------------------
+    # --- the command ------------------------------------------------------------
 
-    def test_both_wrappers_ship_and_point_at_the_meter(self):
+    def test_the_command_a_person_types_runs_the_meter(self):
         """`bin/` is on the Bash tool's PATH while the plugin is enabled, and
-        cmd.exe resolves the `.cmd` twin through PATHEXT.
-        `tests/test_the_suite_has_a_command_that_is_cheap_twice.py` pins the
-        pairing for every entry; this pins that the pair runs THIS script."""
-        posix = os.path.join(BIN, "payload-meter")
-        windows = os.path.join(BIN, "payload-meter.cmd")
-        assert os.path.isfile(posix), "bin/payload-meter missing"
-        assert os.path.isfile(windows), "bin/payload-meter.cmd missing"
-        with open(posix, encoding="utf-8") as handle:
-            assert "skills/verify/scripts/payload_meter.py" in handle.read()
-        with open(windows, encoding="utf-8") as handle:
-            text = handle.read()
-        assert "skills\\verify\\scripts\\payload_meter.py" in text
-        assert "py -3" in text and "python " in text
+        cmd.exe resolves `bin/seal.cmd` through PATHEXT; `seal payload` hands
+        its arguments to THIS script, whose help names what it measures."""
+        wrapper = os.path.join(BIN, "seal")
+        command = (
+            [os.environ.get("COMSPEC", "cmd.exe"), "/c", f"{wrapper}.cmd"]
+            if os.name == "nt"
+            else [wrapper]
+        )
+        done = subprocess.run(
+            [*command, "payload", "--help"],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=120,
+        )
+        assert done.returncode == 0, done.stderr
+        assert "what each agent's startup payload is made of" in done.stdout, (
+            done.stdout
+        )
 
     def test_the_real_tree_runs_and_names_every_shipped_agent(self, tmp_path):
         """The meter's default root is the plugin root resolved from its own

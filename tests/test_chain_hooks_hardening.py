@@ -86,24 +86,25 @@ def test_bin_wrapper_resolves_the_checker_from_any_cwd():
     # wrapper must resolve the script relative to itself, never the caller's
     # working directory. Windows can't run a POSIX shebang script directly,
     # so a .cmd sibling ships alongside it -- PATHEXT resolves a bare
-    # `fold-check` to whichever one the platform can execute.
-    posix_wrapper = os.path.join(ROOT, "bin", "fold-check")
-    windows_wrapper = os.path.join(ROOT, "bin", "fold-check.cmd")
-    assert os.path.isfile(posix_wrapper), "bin/fold-check missing"
-    assert os.path.isfile(windows_wrapper), "bin/fold-check.cmd missing"
-    assert os.access(posix_wrapper, os.X_OK), "bin/fold-check not executable"
+    # `seal` to whichever one the platform can execute, and `seal fold`
+    # hands its arguments to the checker.
+    posix_wrapper = os.path.join(ROOT, "bin", "seal")
+    windows_wrapper = os.path.join(ROOT, "bin", "seal.cmd")
+    assert os.path.isfile(posix_wrapper), "bin/seal missing"
+    assert os.path.isfile(windows_wrapper), "bin/seal.cmd missing"
+    assert os.access(posix_wrapper, os.X_OK), "bin/seal not executable"
     target = os.path.join(ROOT, "skills", "settle", "scripts", "fold_check.py")
-    assert os.path.isfile(target), "wrapper points at a missing script"
+    assert os.path.isfile(target), "the subcommand points at a missing script"
     wrapper = windows_wrapper if sys.platform == "win32" else posix_wrapper
     r = subprocess.run(
-        [wrapper, "--help"],
+        [wrapper, "fold", "--help"],
         cwd="/",
         capture_output=True,
         encoding="utf-8",
         errors="replace",
     )
     assert r.returncode == 0, r.stderr
-    assert "usage: fold-check" in r.stdout
+    assert "usage: seal fold" in r.stdout
 
 
 def test_migrated_commands_stay_user_invoked():

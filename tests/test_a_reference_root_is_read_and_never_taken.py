@@ -20,14 +20,21 @@ this file names every shipped check and what keeps it off a reference root.
 import os
 import re
 
+from conftest import load_module
+
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+SEAL = load_module(
+    os.path.join(ROOT, "skills", "implement", "scripts", "seal.py"),
+    "seal_for_the_reference_root",
+)
 
 
 # --- D3: every shipped check, and what keeps it off a reference root ---------
 #
 # The failure this file's plan names for six months out: a check added later
 # walks the tree without asking the predicate, and the class reopens one
-# script at a time. So every command `bin/` ships is named here with what
+# script at a time. So every command `bin/` ships, and every subcommand
+# `seal.py#TOOLS` hands to a script, is named here with what
 # keeps it off a team's `specs/`, and a command nobody classified turns this
 # red. A check that walks no `specs/` says so; one pinned to the root names
 # the constant it rests on, which its module's file holds under `seal/`:
@@ -46,20 +53,20 @@ NO_WALK = "walks no specs/ directory"
 NOT_A_CHECK = "is not a check of the tree"
 
 SHIPPED = {
-    "unverified-check": (PREDICATE, "the walk and the base, by one rule"),
-    "settle": (PINNED, "settle.py#SPECS; its citation scan reads as a citer"),
-    "pact-check": (PINNED, "pact_check.py#anchor_files, under each signer's root"),
-    "broad-gate": (NO_WALK, "runs the row, chain_check.py and seal.py mode"),
-    "fold-check": (NO_WALK, "reads the top level of docs/ and seal/config.md"),
-    "rules": (NO_WALK, "reads the one document it is named and its targets"),
-    "arm-check": (NO_WALK, "reads the Python files it is named"),
-    "mutation-check": (NO_WALK, "breaks and restores the one file it is named"),
-    "test-layout": (NO_WALK, "reads tests/ and the modules its files name"),
-    "deferral-check": (NO_WALK, "reads the pull request body and round records"),
+    "seal unverified": (PREDICATE, "the walk and the base, by one rule"),
+    "seal settle": (PINNED, "settle.py#SPECS; its citation scan reads as a citer"),
+    "seal pact": (PINNED, "pact_check.py#anchor_files, under each signer's root"),
+    "seal gate": (NO_WALK, "runs the row, chain_check.py and seal.py mode"),
+    "seal fold": (NO_WALK, "reads the top level of docs/ and seal/config.md"),
+    "seal rules": (NO_WALK, "reads the one document it is named and its targets"),
+    "seal arms": (NO_WALK, "reads the Python files it is named"),
+    "seal mutate": (NO_WALK, "breaks and restores the one file it is named"),
+    "seal layout": (NO_WALK, "reads tests/ and the modules its files name"),
+    "seal deferrals": (NO_WALK, "reads the pull request body and round records"),
     "seal": (NOT_A_CHECK, "the mode command, writing seal/config.md"),
-    "seal-stamp": (NOT_A_CHECK, "draws the sealer's stamp from a sealed guarantee"),
-    "session-cost": (NOT_A_CHECK, "measures a transcript"),
-    "payload-meter": (NOT_A_CHECK, "measures a spawn's payload"),
+    "seal stamp": (NOT_A_CHECK, "draws the sealer's stamp from a sealed guarantee"),
+    "seal cost": (NOT_A_CHECK, "measures a transcript"),
+    "seal payload": (NOT_A_CHECK, "measures a spawn's payload"),
     "test": (NOT_A_CHECK, "this repository's own suite runner"),
 }
 
@@ -69,9 +76,10 @@ def test_every_shipped_command_is_classified():
         name
         for name in os.listdir(os.path.join(ROOT, "bin"))
         if not name.endswith(".cmd")
-    }
+    } | {f"seal {name}" for name in SEAL.TOOLS}
     assert shipped == set(SHIPPED), (
-        "a command in bin/ is not classified here, or a classified one left: "
+        "a command in bin/ or a `seal` subcommand is not classified here, or "
+        "a classified one left: "
         f"{sorted(shipped ^ set(SHIPPED))}. Say what keeps it off a team's "
         "specs/ — the predicate, a constant under seal/, or no walk at all"
     )

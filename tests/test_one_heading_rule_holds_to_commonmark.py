@@ -2,7 +2,7 @@
 
 `skills/verify/scripts/unverified_check.py#heading_level` is the one rule every
 reader of a section asks: the checker's regions, the chain check's `## Verdicts`, the survivor sweep's ledger headings, the
-payload meter's sections and `unverified-check`'s `## Not verified`. Five of
+payload meter's sections and `seal unverified`'s `## Not verified`. Five of
 them spelled it themselves until #867, two as `startswith("#")`, which read a
 wrapped `#120)` line as a heading and ended a record's section above its rows.
 

@@ -60,7 +60,7 @@ every pull request, and they pass for a different reason: they ask nothing
 of a branch that declared nothing. Those are the review-chain check and the
 issue-claim report. The suite reads one fact
 about the rule files: a `check:` target the change renamed or removed fails
-it, naming the file, the line and the heading, and `bin/rules --check`
+it, naming the file, the line and the heading, and `bin/seal rules --check`
 gives the same answer before the push. Each row below gives its own reason,
 and a maintainer adding a CI step reads the row rather than this sentence.
 
@@ -113,9 +113,10 @@ does not widen that rule. What it makes cheap is `bin/test tests/<file> -q`,
 and that is the form a segment types.
 
 **Python 3.12 is the supported floor**, held as `FLOOR` in `hooks/launch.py`
-so this sentence and the code state one number. Every `bin/` wrapper but
-`bin/test` runs its script through that launcher, which refuses an older
-interpreter with one sentence before the script is read. `bin/test` starts on
+so this sentence and the code state one number. `bin/seal` runs its script
+through that launcher, which refuses an older interpreter with one sentence
+before the script is read, and hands each subcommand's script to the
+interpreter it held. `bin/test` starts on
 whatever `python3` it finds, because its runner is what gets past an old one:
 it builds its virtualenv with an interpreter at that floor or newer, refuses a
 `.venv` it finds below it, and where it finds neither `uv` nor such an
@@ -145,7 +146,7 @@ CI runs these jobs: lint (`ruff check` and `ruff format --check`); the suite
 on ubuntu, macOS and Windows at the floor stated above, macOS and Windows in
 shards that `pytest-split` divides from the one committed `.test_durations`,
 and ubuntu as one job; `durations`, which unions what the Windows shards
-measured; `tests/test_arm_check.py` at 3.13 and 3.14, because `arm-check`'s
+measured; `tests/test_arm_check.py` at 3.13 and 3.14, because `seal arms`'s
 node-type tables are only as true as the interpreter that reads them;
 `release-report`, which on a pull request into `main` only prints the release
 table against the last release tag and fails nothing; and the hygiene
@@ -231,8 +232,8 @@ once.** The file is `tests/test_<stem>.py`. The stem is the module's file
 name without `.py`, with each hyphen written as an underscore, and where two
 shipped modules share a stem, the parent directory's name goes before it.
 The first assignment after the file's imports is
-`TARGET = "<tracked path>"`. A file whose cases run a `bin/` command names
-the script that command runs. The file holds one class per public top-level
+`TARGET = "<tracked path>"`. A file whose cases run a `seal` subcommand names
+the script that subcommand runs. The file holds one class per public top-level
 function of the module, `Test_<name>`, with the name spelt as the code spells
 it, and a class or a private function of the module may have a class too.
 Each such class holds a case named `test_accepts_<what>` for good input and
@@ -247,9 +248,9 @@ defined once, in `tests/conftest.py`. Each module file ends with
 `tests/censuses.py` over its module, and a line a census flags on purpose
 carries `# exempt from <census>: <why>` on its own line above it, where the
 census reads it and refuses it once it excuses nothing.
-`bin/test-layout --check` refuses a file that declares `TARGET` and breaks
+`bin/seal layout --check` refuses a file that declares `TARGET` and breaks
 this, and lists the files that do not declare one yet. A contributor writing
-a case first reads its class and the pairs `bin/test-layout --pairs` names
+a case first reads its class and the pairs `bin/seal layout --pairs` names
 in it.
 check: tests/test_test_layout.py tests/test_censuses.py
 
@@ -266,7 +267,7 @@ check: none reader: the warden at review
 
 **A module's tests are written anew from the code when its old files cost
 past the threshold.** The threshold is 60 seconds of the module's old files in
-`.test_durations`, or a pair `bin/test-layout --pairs` names inside one of
+`.test_durations`, or a pair `bin/seal layout --pairs` names inside one of
 the module's classes. Every other module's old cases are placed and merged.
 A module written anew takes its accepting and refusing cases from reading
 the code, one class per function, and its old cases are read for their
@@ -289,7 +290,7 @@ check: none reader: the warden at review
 and one line per removed case.** The contributor writes it into the phase
 record of the work item that rebuilt the module, in four parts:
 
-- the move check, `bin/test-layout --moved <base> --from <old file>...
+- the move check, `bin/seal layout --moved <base> --from <old file>...
   --to <new file>...`, with its command and its last line. One run covers
   a group, the modules of one shipped directory or a smaller group rebuilt
   together, and names every old file the group's cases came from after
@@ -313,7 +314,7 @@ record of the work item that rebuilt the module, in four parts:
   where a case accepts or refuses, one or two per class and one more for
   each further decision point a function holds, so their count follows
   the module's classes. They run against the new file in one
-  `bin/mutation-check` call with `-x` in its tests command. The old files'
+  `bin/seal mutate` call with `-x` in its tests command. The old files'
   column runs only for a mutant the new file lets survive: where the old
   files miss it too, the table names an old gap, and where they kill it,
   the new file gets a case seen red on that mutant;

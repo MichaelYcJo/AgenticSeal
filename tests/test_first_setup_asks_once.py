@@ -129,7 +129,7 @@ def test_the_parity_question_follows_the_mode_question():
 # and that the seal covers exactly that. Nothing ever asked for it: grepped
 # before this work, the bootstrap carried two `Ask, once` steps and neither
 # was this one, and no command in `bin/` or `seal.py` wrote the row. So the
-# question reached a person only as `broad-gate`'s refusal -- after the review
+# question reached a person only as `seal gate`'s refusal -- after the review
 # rounds had settled, which is the last moment available and the one where
 # whoever is there has every reason to answer it themselves. That is what
 # happened, and it is what #401 reported.

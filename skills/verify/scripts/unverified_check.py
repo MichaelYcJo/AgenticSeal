@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""unverified-check — read what an overview recorded as unverified, and fail
+"""seal unverified — read what an overview recorded as unverified, and fail
 on a record that cannot be read.
 
 `verify` condition 4 lets a claim go out unproven as long as the row names who
@@ -13,7 +13,7 @@ So this reads every `## Not verified` section and reports what is still open.
 It does **not** fail because items are open. Dozens were open the day it was
 written, and a build that goes red for an honest `unverified` row teaches
 people to write none, which voids the condition it is defending. Counting them
-is what `unverified-check seal/specs/` is for; no number is repeated in prose here,
+is what `seal unverified seal/specs/` is for; no number is repeated in prose here,
 because a number in a comment is right for one commit and nobody recounts it.
 
 It fails for what the author can always fix:
@@ -1075,7 +1075,7 @@ def display_path(path, start):
 
     `os.path.relpath` raises `ValueError` on Windows when the two are on
     different drives, and this is the reporting footing for every line the
-    tool prints. Running `unverified-check D:\repo\specs` from `C:\` is
+    tool prints. Running `seal unverified D:\repo\specs` from `C:\` is
     an ordinary thing to do, and it died with a traceback before printing a
     single row. The absolute path is a worse answer than a relative one and a
     far better one than no output at all.
@@ -1319,7 +1319,7 @@ def _text_at(root, ref, rel):
 def open_record_rows(root, ref, directory):
     """`[(file, what is open)]` for a work item's record at `ref`.
 
-    The rows `settle --apply` refuses to take with a directory, and its dry
+    The rows `seal settle --apply` refuses to take with a directory, and its dry
     run lists: every open item in `overview.md`'s `## Not verified`. Each is a claim with an answerer rather
     than a rule, and #514's frame measured the loss this prevents — the only
     record that a production workflow was red sat in a retiring overview (its
@@ -1350,9 +1350,9 @@ def settled_root(path):
     item under it — empty on disk, or absent while the root is there.
 
     That is the state a complete settle reaches (#517, `spec.md` G7), and it
-    is two states: the tree that ran `settle --apply` holds an empty
+    is two states: the tree that ran `seal settle --apply` holds an empty
     `seal/specs/`, and a fresh checkout of the commit holds none, because git
-    keeps no empty directory. A person who runs `unverified-check --baseline
+    keeps no empty directory. A person who runs `seal unverified --baseline
     origin/<base> seal/specs/` after the settle hands this tool that path, and
     reading it as a typo would refuse a finished settle. Only this one path is settled: any other path that is
     missing is still refused, which is what keeps `specs/ spces/` from
@@ -1370,7 +1370,7 @@ def settled_root(path):
 
 
 SETTLED = (
-    "unverified-check: {path} holds no work item and its `seal/` root is "
+    "seal unverified: {path} holds no work item and its `seal/` root is "
     "there — the state a complete settle ends in, so there is nothing to read "
     "and nothing left the record without being closed"
 )
@@ -1398,7 +1398,7 @@ def absent_root(path):
 
 
 ABSENT = (
-    "unverified-check: {path} has no `seal/` root in this tree, so nothing "
+    "seal unverified: {path} has no `seal/` root in this tree, so nothing "
     "here is declared: there is no record to read and nothing to compare "
     "against the base. A root in local mode sits under the git directory and "
     "is never committed"
@@ -1423,7 +1423,7 @@ def unwritten_root(path):
 
 
 UNWRITTEN = (
-    "unverified-check: {path} holds work items and none of them carries an "
+    "seal unverified: {path} holds work items and none of them carries an "
     "`gaps.md`, so no `## Not verified` row exists to read"
 )
 
@@ -1458,7 +1458,7 @@ def annotate(kind, path, line, message):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(
-        prog="unverified-check",
+        prog="seal unverified",
         description="Report open `## Not verified` items; fail on a record "
         "that cannot be read.",
     )
@@ -1489,7 +1489,7 @@ def main(argv=None):
 
     missing = [p for p in args.path if not os.path.exists(p) and not settled_root(p)]
     if missing and not args.baseline:
-        print(f"unverified-check: no such path: {missing[0]}", file=sys.stderr)
+        print(f"seal unverified: no such path: {missing[0]}", file=sys.stderr)
         return 2
     # With a baseline, a path that is gone may be the thing being asked about:
     # a person runs `--baseline origin/<base> seal/specs/`, and a change that
@@ -1512,7 +1512,7 @@ def main(argv=None):
         root = repo_root(real(nearest_existing(args.path[0])))
         if root is None:
             print(
-                f"unverified-check: --baseline {args.baseline} needs a git "
+                f"seal unverified: --baseline {args.baseline} needs a git "
                 f"repository, and {args.path[0]} is not in one — nothing was "
                 "compared",
                 file=sys.stderr,
@@ -1521,7 +1521,7 @@ def main(argv=None):
         ref_commit = commit_of(root, args.baseline)
         if ref_commit is None:
             print(
-                f"unverified-check: --baseline {args.baseline} does not resolve "
+                f"seal unverified: --baseline {args.baseline} does not resolve "
                 f"in {root} — nothing was compared. A shallow checkout or a "
                 "renamed base branch lands here, and passing it would report "
                 "a deletion check that never ran",
@@ -1531,7 +1531,7 @@ def main(argv=None):
         base = merge_base(root, args.baseline)
         if base is None:
             print(
-                f"unverified-check: --baseline {args.baseline} and HEAD "
+                f"seal unverified: --baseline {args.baseline} and HEAD "
                 f"share no history in {root} — nothing was compared. What "
                 "this asks is what THIS branch removed, and without a commit "
                 "they agree on there is no such question to answer",
@@ -1552,7 +1552,7 @@ def main(argv=None):
         ]
         if outside:
             print(
-                f"unverified-check: {outside[0]} is not in {root} — nothing "
+                f"seal unverified: {outside[0]} is not in {root} — nothing "
                 "was compared. Every path is read against the repository the "
                 "first one is in, and this one is on another volume",
                 file=sys.stderr,
@@ -1571,7 +1571,7 @@ def main(argv=None):
         ]
         if typos:
             print(
-                f"unverified-check: no such path: {typos[0]} — and nothing "
+                f"seal unverified: no such path: {typos[0]} — and nothing "
                 f"under it at {named} either, so there is nothing to "
                 "compare it against",
                 file=sys.stderr,
@@ -1685,7 +1685,7 @@ def main(argv=None):
                 print((SETTLED if settled_root(p) else UNWRITTEN).format(path=p))
             return 0
         print(
-            f"unverified-check: no {OVERVIEW} found under "
+            f"seal unverified: no {OVERVIEW} found under "
             f"{', '.join(args.path)} — nothing was checked",
             file=sys.stderr,
         )

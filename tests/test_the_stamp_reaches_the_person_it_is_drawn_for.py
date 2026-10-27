@@ -100,7 +100,7 @@ def test_the_orchestrator_is_told_the_stamp_is_drawn_for_it():
     sits in the section that spawns the sealer: the stamp is drawn at the end
     of the turn in which the sealer's report arrives, its `Write` of a
     `sealed` guarantee having queued it under either root (#1027 S13), the
-    result text comes first, the orchestrator draws none — by `seal-stamp` or
+    result text comes first, the orchestrator draws none — by `seal stamp` or
     by relaying a log, which 0.15.6 did — the broad run's lines are quoted as
     `BROAD GATE PASSED` and `BROAD GATE FAILED`, and no line of the run says
     `SEALED`. Round 1's finding 2 of 1792363231: the
@@ -128,18 +128,18 @@ def test_the_orchestrator_is_told_the_stamp_is_drawn_for_it():
         "is not in the sealer's report and does not reach you.",
         "The edit hook's line never reaches you. Where no stamp appeared, name "
         "the file under `<git-common-dir>/agentic-stamp/<session>/` whose name "
-        "holds the work item's id, and leave `seal-stamp --from <that file>` to "
+        "holds the work item's id, and leave `seal stamp --from <that file>` to "
         "the person.",
         "The broad run draws nothing: its stdout opens `BROAD GATE PASSED` or "
         "`BROAD GATE FAILED`",
         "So put the result text first",
-        "Draw none yourself, neither with `seal-stamp` nor by relaying a log: a "
+        "Draw none yourself, neither with `seal stamp` nor by relaying a log: a "
         "relayed log shows the person the stamp twice",
         "On a red run relay the `BROAD GATE FAILED` lines.",
         # Round 1's yellow 1 of #400: the command is named on the line that
         # points at a values file, and it stays the person's wherever it
         # appears.
-        "Wherever a line you read names `seal-stamp --from`, quote it as it "
+        "Wherever a line you read names `seal stamp --from`, quote it as it "
         "stands: that command is the person's to type, and never yours.",
     ):
         assert said in section, said
@@ -175,7 +175,7 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
     carry, and a second statement saying what the screen shows has no case.
     That statement names every place the hook is silent — a foreign hooks
     slot, a `python3` that cannot load `seal_stamp.py`, a main session
-    outside the clone, a plugin older than the hook — and `seal-stamp --from
+    outside the clone, a plugin older than the hook — and `seal stamp --from
     <path>` for where a file was written.
 
     1792363231 S7 and S8, and #1027: the rule names the one trigger, the
@@ -285,7 +285,7 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
         "brought from another branch of the clone",
     ):
         assert guard not in unchecked, guard
-    assert "names `seal-stamp --from <path>`" in unchecked
+    assert "names `seal stamp --from <path>`" in unchecked
     assert (
         "The line reaches the person as the edit hook's message, and nobody "
         "has watched that message on a screen yet."
@@ -474,7 +474,7 @@ def test_the_sealer_is_told_the_gate_draws_nothing_and_neither_does_it():
     # 1792363231 S9: a local-mode verdict is never committed.
     assert "your committed `sealed`" not in text
     assert "from its own run" not in text, "the stamp is not the run's"
-    assert "seal-stamp --from" not in text, (
+    assert "seal stamp --from" not in text, (
         "the sealer is told to pass on a stamp command from a run it did not take"
     )
     assert "the drawing arrives as letters" not in text
@@ -490,7 +490,7 @@ def test_the_sealer_is_told_the_gate_draws_nothing_and_neither_does_it():
 def test_the_stamp_says_why_it_has_no_scale_and_neither_command_offers_one():
     """S13 (#853). The comment where the scale stood says there is none and
     why — the disc has one size since #832 — so the next reader does not
-    look for the dial; `seal-stamp` with no argument draws the sample, and
+    look for the dial; `seal stamp` with no argument draws the sample, and
     neither command's help names a scale."""
     mod = stamp_module()
     with open(STAMP, encoding="utf-8") as handle:

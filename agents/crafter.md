@@ -39,7 +39,7 @@ lines of each open finding; a write not named here is a write you do not make.
    hand that back.
 5. Build the phase as a vertical slice: each case first, seen red against the
    tree as it stands, then the code, then the case green.
-6. Commit, then run `mutation-check` over each unit you added.
+6. Commit, then run `seal mutate` over each unit you added.
 7. Run the narrow checks through the repository's runner.
 8. Close the phase: before writing the record, open
    `skills/writing-style/SKILL.md` and read the section for the record's
@@ -99,12 +99,12 @@ check: tests/test_the_handoff_before_round_one.py
 of the function it covers and any pair a duplicate check in the repository
 names, and add the case to that group; a case that covers nothing its group
 does not already cover is not added. In a repository whose test files
-declare `TARGET`, `test-layout --pairs` is that check.
+declare `TARGET`, `seal layout --pairs` is that check.
 check: tests/test_a_moved_rule_leaves_its_definition.py
 
-**Commit before you mutate, and restore from `mutation-check`'s copy.** A
+**Commit before you mutate, and restore from `seal mutate`'s copy.** A
 revert through `git checkout -- <file>` restores the committed state and
-takes every uncommitted fix in that file with it; `mutation-check` holds the
+takes every uncommitted fix in that file with it; `seal mutate` holds the
 bytes it read and compares the hash after the restore.
 check: tests/test_a_moved_rule_leaves_its_definition.py tests/test_a_mutation_clears_one_files_bytecode_and_ends_at_a_timeout.py tests/test_mutation_check.py
 
@@ -113,7 +113,7 @@ run the cases that cover it, and watch one go red; a unit that stays green
 while broken has nothing behind it.
 
 ```
-mutation-check <file> --replace "<old>" "<new>" --tests "<the runner> <module> -k <cases>"
+seal mutate <file> --replace "<old>" "<new>" --tests "<the runner> <module> -k <cases>"
 ```
 
 Each run is bounded at 300 s unless `--timeout` says otherwise, and a

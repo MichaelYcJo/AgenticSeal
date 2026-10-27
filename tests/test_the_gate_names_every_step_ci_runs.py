@@ -267,7 +267,7 @@ def test_a_feature_seal_counts_the_steps_ci_runs_for_it():
     assert real_panel_workflow_row("release/x") == "· 2 more steps"
     said = gate.coverage_line(read(HYGIENE), "release/x")
     assert said.startswith(
-        f"broad-gate: {gate.WORKFLOW}'s `release` job runs 4 steps for this base "
+        f"seal gate: {gate.WORKFLOW}'s `release` job runs 4 steps for this base "
         "and this run answers 2. 3 more run only on a pull request into `main`, "
         "so this count leaves them out."
     ), said
@@ -285,7 +285,7 @@ def test_a_release_seal_counts_every_step_ci_runs_for_it():
         assert real_panel_workflow_row(given) == "· 5 more steps", given
         said = gate.coverage_line(read(HYGIENE), given)
         assert said.startswith(
-            f"broad-gate: {gate.WORKFLOW}'s `release` job runs 7 steps for this "
+            f"seal gate: {gate.WORKFLOW}'s `release` job runs 7 steps for this "
             "base and this run answers 2."
         ), said
         assert "leaves" not in said.split("Not answered", 1)[0], said

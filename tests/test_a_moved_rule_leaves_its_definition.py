@@ -461,9 +461,9 @@ SMITHS_FOUR_RULES = {
         "any pair a duplicate check in the repository names",
         "add the case to that group",
     ),
-    "Commit before you mutate, and restore from `mutation-check`'s copy.": (
+    "Commit before you mutate, and restore from `seal mutate`'s copy.": (
         "A revert through `git checkout -- <file>` restores the committed state",
-        "`mutation-check` holds the bytes it read",
+        "`seal mutate` holds the bytes it read",
     ),
     "Three failed fixes stop the work.": (
         "The same bug through three failed fixes is the architecture talking",

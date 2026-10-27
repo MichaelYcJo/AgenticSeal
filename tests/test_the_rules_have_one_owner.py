@@ -180,7 +180,7 @@ def test_the_fix_pass_reads_the_implementers_context_before_it_resumes():
     section = text[text.index(FIX_PASS) : text.index("## Orchestrator: the run ends")]
     for said in (
         "the phase records the earlier phases wrote",
-        "`session-cost --segments <the implementer's agent-*.jsonl>`",
+        "`seal cost --segments <the implementer's agent-*.jsonl>`",
         "the largest value of its `context` column",
         "hands it the round record and the phase records",
         "the largest context a fresh, never-resumed smith reached in the 0.22.0 run",
@@ -300,7 +300,7 @@ def test_the_order_opens_the_pull_request_after_the_sealer():
     # the step says it in words rather than arrows.
     assert (
         "spawns the smith (*The plan is approved at the spawn* below). The "
-        "warden's rounds follow, then `broad-gate --preflight` and `broad-gate "
+        "warden's rounds follow, then `seal gate --preflight` and `seal gate "
         "--record`, both run by the orchestrator, then the sealer, and then the "
         "pull request opens (" in step
     ), step

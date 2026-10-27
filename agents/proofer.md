@@ -101,7 +101,7 @@ stands deferred: say where, and do not write it up again.
 
 | Carried, and re-derived only when its check fails | Re-derived every round |
 |---|---|
-| A rule's `check:` target, which `rules --check` fails when it is gone | Whether the new code satisfies the clause |
+| A rule's `check:` target, which `seal rules --check` fails when it is gone | Whether the new code satisfies the clause |
 | What the original does, which `seal/parity.md` pins to a baseline SHA | Whether the new code matches it |
 | Where a subsystem lives, what a helper is for | Any verdict, on any axis |
 
@@ -132,11 +132,11 @@ check: tests/test_the_rules_have_one_owner.py tests/test_the_verifying_round_is_
 against the tests of the function it covers, and against any pair a
 duplicate check in the repository names; a test that covers nothing its
 group does not already cover is a `should` finding. Where the test files
-declare `TARGET`, the pairs are the ones `test-layout --pairs` prints.
+declare `TARGET`, the pairs are the ones `seal layout --pairs` prints.
 check: tests/test_a_moved_rule_leaves_its_definition.py
 
 **The broad gate is not yours, and its label is.** The full suite, the lint
-and the typecheck run once, by `broad-gate`, after the rounds settle, and
+and the typecheck run once, by `seal gate`, after the rounds settle, and
 `broad-gate.md` holds that run. The smith hands over with the suite labelled
 `unverified`, and what you check is whether that label is honest, not
 whether the number is green. A spawn prompt that orders one of the three is

@@ -86,7 +86,7 @@ What it costs:
 
 **A declaration the pull request retired is not one it made**, and neither is
 one it only renamed. The rename is how a root move renames every declaration
-at once, and the retirement is `settle --apply` removing a released work
+at once, and the retirement is `seal settle --apply` removing a released work
 item's directory whole. A settle is what tells a retirement from a deletion,
 because both leave the file absent at `HEAD`: a declaration whose directory
 is gone is asked `unverified_check.py#settled` at the merge base, the

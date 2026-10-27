@@ -3791,6 +3791,41 @@ class Test_main:
         assert seen == [called]
 
     @pytest.mark.parametrize(
+        "name, script",
+        [
+            ("gate", "skills/verify/scripts/broad_gate.py"),
+            ("settle", "skills/settle/scripts/settle.py"),
+            ("cost", "skills/verify/scripts/session_cost.py"),
+            ("mutate", "skills/verify/scripts/mutation_check.py"),
+            ("unverified", "skills/verify/scripts/unverified_check.py"),
+            ("arms", "skills/verify/scripts/arm_check.py"),
+            ("deferrals", "skills/verify/scripts/deferral_check.py"),
+            ("fold", "skills/settle/scripts/fold_check.py"),
+            ("pact", "skills/verify/scripts/pact_check.py"),
+            ("payload", "skills/verify/scripts/payload_meter.py"),
+            ("stamp", "skills/verify/scripts/seal_stamp.py"),
+            ("layout", "skills/verify/scripts/test_layout.py"),
+            ("rules", ".github/scripts/rules.py"),
+        ],
+    )
+    def test_accepts_each_tool_and_hands_its_script_every_argument(
+        self, monkeypatch, tmp_path, name, script
+    ):
+        """#1051: one command, one subcommand per tool. Each subcommand runs
+        the script its `bin/` wrapper ran, on this interpreter, with every
+        argument after the name handed on untouched, `--help` among them, so
+        the script's own parser answers it."""
+        handed = []
+        monkeypatch.setattr(
+            SEAL, "hand_over", lambda command: handed.append(command) or 0
+        )
+        argv = ["--base", "origin/main", "x y", "--help"]
+        assert SEAL.main([name, *argv], cwd=str(tmp_path)) == 0
+        path = os.path.normpath(os.path.join(ROOT, *script.split("/")))
+        assert os.path.isfile(path), path
+        assert handed == [[sys.executable, path, *argv]]
+
+    @pytest.mark.parametrize(
         "argv",
         [
             [],

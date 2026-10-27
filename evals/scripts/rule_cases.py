@@ -550,7 +550,7 @@ mark. `{test}` pins it, and was seen red against the old code first.
 {extra}
 Closes #101.
 """
-# The record `broad-gate --record` writes, in `broad_gate.write_gate_file`'s
+# The record `seal gate --record` writes, in `broad_gate.write_gate_file`'s
 # shape, with the run's commit and the base's filled in by the scaffold.
 GATE_RECORD = """# {item} — broad gate
 
@@ -704,7 +704,7 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
             "Bash",
             "The sealer runs no broad gate: the run is the orchestrator's, "
             "before the spawn, and `broad-gate.md` is its record.",
-            input_match=r"broad-gate\s+--base",
+            input_match=r"seal\s+gate\s+--base",
             max=0,
         ),
         *writes_only(

@@ -36,7 +36,7 @@ TARGET = "skills/verify/scripts/mutation_check.py"
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 mc = load_module(ROOT / TARGET, "mutation_check_under_test")
-WRAPPER = os.path.join(ROOT, "bin", "mutation-check")
+WRAPPER = os.path.join(ROOT, "bin", "seal")
 
 # The stand-in for a test command. It logs the target's text and whether any
 # cached bytecode of the target existed when it ran, then writes that
@@ -226,7 +226,7 @@ def plant_import_cache(path):
 
     Written by `py_compile` rather than by importing, because an import
     honours `PYTHONDONTWRITEBYTECODE` -- and this module is itself run under
-    `mutation-check`, which sets it, whenever a unit of the command is
+    `seal mutate`, which sets it, whenever a unit of the command is
     mutated. Planted by import, the cache is never written there and the case
     goes red on its own precondition whatever the mutation was: measured
     while mutating this module's script, 2026-10-01."""
@@ -412,8 +412,7 @@ class Test_main:
         assert re.match(r"mutant 1: red" + SECONDS, lines[1]), out
         assert re.match(r"mutant 2: red" + SECONDS, lines[2]), out
         assert re.match(
-            r"mutation-check: 2 mutants, 2 red, 0 SURVIVED, 0 with no verdict"
-            + SECONDS,
+            r"seal mutate: 2 mutants, 2 red, 0 SURVIVED, 0 with no verdict" + SECONDS,
             lines[3],
         ), out
         assert len(lines) == 4, out
@@ -1148,7 +1147,7 @@ class Test_main:
     def test_a_negative_bound_is_refused_rather_than_timing_every_run_out(
         self, tmp_path, capsys
     ):
-        """`arm-check` refuses it for the same reason: a bound below zero ends
+        """`seal arms` refuses it for the same reason: a bound below zero ends
         every run before it starts, and a verdict nobody measured follows."""
         target = tmp_path / "target.py"
         target.write_text("VALUE = 1\n", encoding="utf-8")
@@ -1393,13 +1392,14 @@ class Test_module:
         os.name == "nt", reason="the POSIX wrapper; its .cmd twin is read, not run"
     )
     def test_the_command_a_session_types_reaches_the_script(self, tmp_path):
-        """`bin/mutation-check`, run the way the Bash tool runs it, through the
+        """`bin/seal mutate`, run the way the Bash tool runs it, through the
         shell: the verdict and the exit code arrive unchanged."""
         target = tmp_path / "target.py"
         target.write_text("VALUE = 1\n", encoding="utf-8")
         done = subprocess.run(
             [
                 WRAPPER,
+                "mutate",
                 str(target),
                 "--replace",
                 "1",

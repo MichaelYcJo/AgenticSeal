@@ -46,7 +46,7 @@ directory whose record holds no open row in the working tree, whether or not
 it wrote a `spec.md`, and prints the rows each removed record closed, with
 what closed each. A directory whose record still holds an open row, or one
 that cannot be read, is kept and named with its rows. It writes no policy
-document: the settling session has written them by then, and `fold-check`'s
+document: the settling session has written them by then, and `seal fold`'s
 lines over the policy root are printed after the removals.
 
 **In local mode the work items are read and removed under the git
@@ -72,8 +72,8 @@ arguments or the tree were unusable: a `--released-at` ref that does not
 resolve, a root at neither place, a repository that opted out, in local mode
 a `gh` that is not on PATH or whose query fails, and a sibling script that is
 not beside it. An interpreter below
-the floor never reaches this file through `bin/settle`: `hooks/launch.py`
-refuses it with 2 first.
+the floor never reaches this file through `seal settle`: `hooks/launch.py`
+refuses `seal` with 2 first.
 """
 
 import argparse
@@ -385,11 +385,11 @@ ROWS_HEADING = (
     "re-home, and\nclose with `closed` and what closed it:"
 )
 REMOVES_HEADING = (
-    "what `settle --apply` removes: each released directory whose record "
+    "what `seal settle --apply` removes: each released directory whose record "
     "holds no open row:"
 )
 REMOVES_HEADING_LOCAL = (
-    "what `settle --apply` removes: each released directory whose record "
+    "what `seal settle --apply` removes: each released directory whose record "
     "holds no open row.\nIn local mode no commit holds these directories; "
     "`seal export` takes a copy for\nwhoever wants one:"
 )
@@ -773,7 +773,7 @@ def report(found, ref, out):
             write(f"    {rel}\n")
     write(
         "\nNothing was written and nothing was removed. The settling session "
-        "writes the\nsections and closes the rows; `settle --apply` removes.\n"
+        "writes the\nsections and closes the rows; `seal settle --apply` removes.\n"
     )
     return 0
 
@@ -781,7 +781,7 @@ def report(found, ref, out):
 # --- the apply -------------------------------------------------------------
 
 AFTER_HEADING = (
-    "after the removals — the index and the one read, as `fold-check` reads "
+    "after the removals — the index and the one read, as `seal fold` reads "
     "them; neither\nrefuses anything here:"
 )
 
@@ -839,7 +839,7 @@ def apply(found, root, out):
             out.write(
                 f"kept {directory}/: its record holds {len(rows)} open "
                 f"row{plural(len(rows))}; close each (`closed` with what closed "
-                "it) and run `settle --apply` again\n"
+                "it) and run `seal settle --apply` again\n"
             )
             for name, item in rows:
                 out.write(f"    open in {name}: {item}\n")
@@ -864,7 +864,7 @@ def apply(found, root, out):
 def main(argv=None):
     """The dry run or the apply; the exit code is the verdict."""
     ap = argparse.ArgumentParser(
-        prog="settle",
+        prog="seal settle",
         description="Show the released specs' rule changes by section, and "
         "remove released work item directories.",
     )

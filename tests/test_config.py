@@ -13,7 +13,7 @@ walker held to cmark-gfm, the reader's cases of
 `tests/test_the_mode_question_is_asked_once.py`, whose writer's cases are in
 `tests/test_seal.py`, the pact readers' of `tests/test_a_signer_declares_its_pact.py`, and the
 seven cases `tests/test_pact_check.py` left for this module, which run
-`pact-check` over the pact's world in `tests/conftest.py`. Each case keeps
+`seal pact` over the pact's world in `tests/conftest.py`. Each case keeps
 its body, except two that read the pact's text as `PACT_TEXT`, because
 `PACT` is the world's path to it; a name its old file defined for it is
 defined here, and a fixture or text two files read is `tests/conftest.py`'s.
@@ -92,7 +92,7 @@ LIVE = [("Mode", "shared"), ("Broad gate", "bin/test -q")]
 
 # The pact readers' texts, from `tests/test_a_signer_declares_its_pact.py`.
 # The pact's text is `PACT_TEXT` here: `PACT` is the pact's path, which the
-# cases that run `pact-check` over the world write to.
+# cases that run `seal pact` over the world write to.
 CONFIG_TOP = "# config\n\n| Item | Value |\n|---|---|\n| Mode | shared |\n"
 CONFIG = CONFIG_TOP + f"| Pact | {URL} |\n"
 
@@ -1140,7 +1140,7 @@ class Test_config_table:
     def test_refuses_a_fenced_pipe_line_as_a_line_somebody_wrote(self, config):
         """A3. The walk that read ON past the stopping line treated any line
         beginning with a pipe as a line somebody wrote as a row — so a line
-        inside an example block came back as refused, and `broad-gate` quotes a
+        inside an example block came back as refused, and `seal gate` quotes a
         refused line back at the person as their own.
 
         Re-pinned by #871: the fence directly under the delimiter row ends the
@@ -1247,7 +1247,7 @@ class Test_config_table:
 class Test_fence_map:
     def test_refuses_to_name_a_fence_inside_a_closed_comment(self, config, tmp_path):
         """S8, C2. The comment closes, so the fence line inside it opens nothing,
-        and neither `broad-gate`'s `fence_left_open` nor `seal.py`'s write guard,
+        and neither `seal gate`'s `fence_left_open` nor `seal.py`'s write guard,
         which both ask `fence_map`'s second value, names a fence nobody left
         open. Red at base: the fence ran to the end and was named."""
         lines = SHAPES["C2"]
@@ -1270,7 +1270,7 @@ class Test_fence_map:
 
     def test_accepts_a_fence_nobody_closed_as_the_one_named(self, config):
         """C14, pinned from the other side: the fence that hides the live table
-        is the one `fence_map` reports, so `broad-gate` still says *close that
+        is the one `fence_map` reports, so `seal gate` still says *close that
         fence*."""
         assert config.fence_map(SHAPES["C14"])[1] == 0
 
@@ -1279,7 +1279,7 @@ class Test_fence_map:
         fence quoted in the comment to the end, so it would name THAT line, which
         opens nothing; the walk sees the tilde fence below the table never close,
         and the line under it is hidden because of it. That is the fence
-        `broad-gate` has to tell the person to close."""
+        `seal gate` has to tell the person to close."""
         lines = [*SHAPES["C2"], "", "~~~", "| Broad gate | bin/test -q |"]
         assert config.fence_map(lines)[1] == lines.index("~~~")
         assert config.config_rows("\n".join(lines)) == [("Mode", "shared")]
@@ -1451,7 +1451,7 @@ class Test_pact_declaration:
 
 class Test_declared_pacts:
     def test_an_unreadable_config_is_no_declaration(self, tmp_path):
-        """`declared_pacts` is what `pact-check` reads a signer's row
+        """`declared_pacts` is what `seal pact` reads a signer's row
         through. No file is no row; a file that is there and will not read is
         None, which the caller refuses, because a written row read as absent is
         the silence the reader exists to end."""

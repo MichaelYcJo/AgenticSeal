@@ -1,4 +1,4 @@
-"""`mutation-check`: what the smith's definition and the verify skill say of it.
+"""`seal mutate`: what the smith's definition and the verify skill say of it.
 
 #641, with #129 as its twin. `agents/crafter.md` told the implementer to "clear
 `tests/__pycache__` between mutations", which aims at the wrong cache. It
@@ -63,7 +63,7 @@ def test_the_smiths_definition_names_the_command_and_no_directory_to_clear():
     # Any runner: the definition ships to repositories with no `bin/test`,
     # and `tests/test_the_suite_has_a_command_that_is_cheap_twice.py` holds it
     # to naming none.
-    assert re.search(r"mutation-check \S+ --replace .+? --tests \"", smith), (
+    assert re.search(r"seal mutate \S+ --replace .+? --tests \"", smith), (
         "`agents/crafter.md` does not show the mutation loop as one command, "
         "with its replacement and the cases it runs"
     )
@@ -82,17 +82,17 @@ def test_the_boundaries_bullet_says_the_command_holds_the_copy():
     smith = flat("agents", "crafter.md")
     rule = smith[smith.index("**Commit before you mutate") :]
     rule = rule[: rule.index(" check: ")]
-    assert "`mutation-check` holds the bytes it read" in rule, rule
+    assert "`seal mutate` holds the bytes it read" in rule, rule
 
 
 def test_the_verify_skill_says_what_each_verdict_means_and_what_the_bound_ends():
     """The section a reader opens to learn the command: its verdicts with
     their exit codes, its bound, and what that bound ends on each platform."""
     skill = flat("skills", "verify", "SKILL.md")
-    start = skill.index("#### `mutation-check`")
+    start = skill.index("#### `seal mutate`")
     section = skill[start : skill.index("### 3. Bound to the tree")]
     for said in (
-        "mutation-check <file> --replace",
+        "seal mutate <file> --replace",
         "`red`, exit 0",
         "`SURVIVED`, exit 1",
         "exit 2",
@@ -100,7 +100,7 @@ def test_the_verify_skill_says_what_each_verdict_means_and_what_the_bound_ends()
         "process group",
         "Windows",
         "PYTHONDONTWRITEBYTECODE",
-        "arm-check",
+        "seal arms",
         # Round 1, 🔴 1: the baseline, and the verdict it gives.
         "first runs `--tests` against the file as it is",
         "`no baseline`",

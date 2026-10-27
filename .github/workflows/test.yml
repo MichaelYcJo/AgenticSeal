@@ -212,7 +212,7 @@ jobs:
           overwrite: true
           retention-days: 7
 
-  # `arm-check`'s node-type tables have to hold on every supported Python,
+  # `seal arms`'s node-type tables have to hold on every supported Python,
   # and whether they do depends on the interpreter reading them: 3.14 added
   # the t-string node types and removed five constant aliases, and the
   # `pytest` job above runs only the floor, so nothing unattended saw it

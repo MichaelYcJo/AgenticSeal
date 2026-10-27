@@ -169,9 +169,7 @@ def test_every_page_describing_the_segments_mode_names_its_grade():
         ("README.ko.md", "종류의 기준선에 못 미치는 행"),
     ):
         with open(os.path.join(ROOT, name), encoding="utf-8") as f:
-            row = next(
-                line for line in f if line.startswith("| `session-cost --segments")
-            )
+            row = next(line for line in f if line.startswith("| `seal cost --segments"))
         assert phrase in row, f"{name}'s `--segments` row does not name the grade"
 
 

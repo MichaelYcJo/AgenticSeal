@@ -6,6 +6,10 @@ through this file:
 
     python3 hooks/launch.py <script> [arguments...]
 
+The one such wrapper is `bin/seal`, and each tool `seal` runs as a
+subcommand is handed to the interpreter this file already held to the floor
+(`skills/implement/scripts/seal.py#tool_command`).
+
 `bin/test` hands `.github/scripts/run_tests.py` to the interpreter itself,
 because that script's job begins below the floor: on an older `python3` it
 builds a virtualenv at or above `FLOOR`, with `uv` or a newer interpreter it
@@ -57,8 +61,8 @@ def refusal(script, version, executable):
     """The sentence for `script` on an interpreter below the floor.
 
     The command is the script's name the way its wrapper spells it,
-    `broad_gate.py` as `broad-gate`, so a reader who typed the wrapper
-    can tell what answered. The paths are escaped to ASCII first, and the
+    `seal.py` as `seal` and a `_` as a `-`, so a reader who typed the
+    wrapper can tell what answered. The paths are escaped to ASCII first, and the
     rest of the sentence is ASCII already: it is written before anything sets
     up stderr, and a path the console cannot encode would otherwise end the
     refusal in a traceback.

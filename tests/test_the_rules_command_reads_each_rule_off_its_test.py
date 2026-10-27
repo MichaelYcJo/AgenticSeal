@@ -54,7 +54,7 @@ def test_settle_owns_the_grammar():
         "starts with `check: `",
         "`check: none reader: <who reads it>`",
         '`@pytest.mark.rule("<marker>")`',
-        "It ships `rules --check`",
+        "It ships `seal rules --check`",
         "it is review's to find",
     ):
         assert phrase in section, f"settle no longer says: {phrase!r}"

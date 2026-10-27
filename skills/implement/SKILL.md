@@ -112,7 +112,7 @@ seal/
     │   ├── phases/phase-N.md   one build phase's record
     │   ├── rounds/round-N.md   one review round — closed at merge, removed
     │   │                       with its work item at the settle after its release
-    │   └── gate.md             the one broad run, written by `broad-gate --record`
+    │   └── gate.md             the one broad run, written by `seal gate --record`
     ├── changelog.md  this work item's entry in the next release's notes
     ├── gaps.md       the closing memo
     └── guarantee.md  the sealer's verdict, from `templates/sdd-guarantee.md`
@@ -453,7 +453,7 @@ closed and which only a reader catches: word such an item to open with
 another word. A bare `closed` with nothing after it is refused the same way a
 ticked checkbox is. No check at the pull request refuses a deleted row, or a
 deleted file: the warden reads the overview's diff, where a row that left
-without the word `closed` shows, and `unverified-check --baseline
+without the word `closed` shows, and `seal unverified --baseline
 origin/<base>`, run by a person, names each one. That reading is what keeps
 "I verified it" and "I tidied it away" from being the same edit.
 
@@ -497,7 +497,7 @@ fragment along* owns that rule.
 ### 6. Drain the rows before the broad run, and keep the records
 
 **The orchestrator moves every unresolved row out once the last round record
-has no finding open, and before it runs `broad-gate --preflight`**, whichever
+has no finding open, and before it runs `seal gate --preflight`**, whichever
 party `routing.md`'s `Implementation` row names: the orchestrator opens the
 pull request, and every commit after the broad run, a `seal/follow-up.md` row
 among them, leaves `broad-gate.md` stale for the sealer

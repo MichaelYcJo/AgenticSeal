@@ -8,14 +8,14 @@ runs, and what it is allowed to say.
 ## One act, one owner, and the owner is the orchestrator
 
 **A prohibition needs a holder, and the holder is the orchestrator.** No
-agent runs the broad gate. The orchestrator runs `broad-gate --base <base>
+agent runs the broad gate. The orchestrator runs `seal gate --base <base>
 --record <item>` once the rounds settle, with nothing else running, commits
 the record, and then spawns the sealer, which reads that record and runs
 nothing broad. A run inside an agent would be a second run of a suite the
 orchestrator takes once, and a prohibition with no holder is one every reader
 reasons past.
 
-The run judges nothing. `broad-gate` runs the repository's broad command,
+The run judges nothing. `seal gate` runs the repository's broad command,
 reports what the commands said, and writes the work item's `trail/gate.md`;
 the sealer's own verdict, which follows the run, is a separate file
 (`docs/the-review-record.md` *The guarantee*). A run that judges is a run

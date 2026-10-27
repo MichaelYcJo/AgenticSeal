@@ -180,11 +180,11 @@ def contract_section(number):
 # with a base, or the sentence the sealer carried until #969. Matched over the
 # whole glob, so a sixth definition is read the day it lands.
 TAKES_THE_RUN = (
-    "broad-gate --base",
+    "seal gate --base",
     "the broad gate is yours",
     "spawned for exactly that",
 )
-RUN = "broad-gate --base <base> --record <item>"
+RUN = "seal gate --base <base> --record <item>"
 
 
 def test_no_definition_assigns_the_broad_gate_and_the_orchestrator_runs_it_before_the_spawn():
@@ -370,7 +370,7 @@ def test_the_preset_block_states_the_rule_the_loaded_files_assume():
 
 # --- 1790815611: the record arms run before the sealer is spawned (#638) -------
 
-PREFLIGHT = "broad-gate --preflight"
+PREFLIGHT = "seal gate --preflight"
 SPAWN_SECTION = "Orchestrator: the pull request opens once the sealer seals"
 
 
@@ -424,7 +424,7 @@ EXAMPLE_ROW = (
 )
 BY_HAND = (
     "`evidence-check`",
-    "`unverified-check`",
+    "`seal unverified`",
     "`chain_check.py`",
     "`survivor-check`",
 )

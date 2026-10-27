@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""seal-stamp — the sealer's stamp, drawn from a `sealed` guarantee.
+"""seal stamp — the sealer's stamp, drawn from a `sealed` guarantee.
 
 Issue #30 *What it prints*, redrawn by #717 and #832, and since #975 drawn
 once per work item from the sealer's verdict rather than the broad gate's
@@ -30,7 +30,7 @@ for the disc, `m` its wax edge, `M n N` its rim lit, mid and dark, `.` its
 field, `X Y x` the disc's mark's face, highlight and inner shadow and `y`
 its drop shadow; the text as itself, with the owner's `·`, `✓`, `─` and
 `→` written `.`, `+`, `-` and `>` — for a console that cannot render
-half-blocks, and for `seal-stamp` on a pipe. The twin is chosen when
+half-blocks, and for `seal stamp` on a pipe. The twin is chosen when
 stdout is not a UTF-8 terminal, or on `--shape`. An agent's report carries
 neither: no Bash call's pipe is drawn on.
 
@@ -56,9 +56,9 @@ the file: `queue_for_written_guarantee` and `write_values`, `read_values`,
 a file is drawn once whoever draws it.
 
 Usage:
-  seal-stamp                      the stamp over sample rows, for a person
-  seal-stamp --shape              the letter twin
-  seal-stamp --from <file>        a queued stamp's values file, drawn once
+  seal stamp                      the stamp over sample rows, for a person
+  seal stamp --shape              the letter twin
+  seal stamp --from <file>        a queued stamp's values file, drawn once
 
 The gate imports `sealed_names`, `ref_is_commit`, `is_utf8(stream)`,
 `text_lines`, `TWIN_ASCII` and the panel's text rules; the edit gate imports
@@ -73,8 +73,8 @@ so a values file no hook drew can still be drawn by hand.
 
 Exit codes: 0 printed · 2 refused — a values file that is unreadable or
 drawn already; nothing was written on 2. An interpreter below the floor never
-reaches this file through `bin/seal-stamp`: `hooks/launch.py` refuses it with
-2 first.
+reaches this file through `seal stamp`: `hooks/launch.py` refuses `seal`
+with 2 first.
 """
 
 import argparse
@@ -208,7 +208,7 @@ LIT_AT = 0.35
 # `assets/seals/candidates/` is the same `.M` text.
 CHART_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "seal-mark.txt")
 CHART_MALFORMED = (
-    "seal-stamp: the disc's mark chart {path} is not {n} lines of {n} "
+    "seal stamp: the disc's mark chart {path} is not {n} lines of {n} "
     "characters over `.M` with every `M` inside the disc's field ({fault}). "
     "Nothing was drawn."
 )
@@ -710,7 +710,7 @@ def ref_is_commit(ref, base):
 def pick_shape(stream):
     """True when `stream` gets the letter twin: anything that is not a UTF-8
     terminal. A console on another codepage draws UTF-8 half-blocks as
-    mojibake, and a pipe has no terminal to draw colour on, so `seal-stamp`
+    mojibake, and a pipe has no terminal to draw colour on, so `seal stamp`
     on one prints the twin. Asked BEFORE the stream is reconfigured to UTF-8 — after
     that call every stream answers `utf-8`, and a cp949 console would get the
     blocks it cannot draw."""
@@ -758,17 +758,17 @@ def is_terminal(stream):
 
 VALUES_DIR = "agentic-stamp"
 # The key of a stamp no Claude Code session was found for. No hook reads it;
-# `seal-stamp --from` is how such a file is drawn.
+# `seal stamp --from` is how such a file is drawn.
 NO_SESSION = "none"
 PENDING = ".json"
 DRAWN = ".drawn.json"
 
-VALUES_UNREADABLE = "seal-stamp: {path} cannot be read ({why}). Nothing was drawn."
+VALUES_UNREADABLE = "seal stamp: {path} cannot be read ({why}). Nothing was drawn."
 VALUES_MALFORMED = (
-    "seal-stamp: {path} is not a stamp's values file: {why}. Nothing was drawn."
+    "seal stamp: {path} is not a stamp's values file: {why}. Nothing was drawn."
 )
 VALUES_DRAWN = (
-    "seal-stamp: {path} was drawn already, and a stamp's values are drawn "
+    "seal stamp: {path} was drawn already, and a stamp's values are drawn "
     "once. Nothing was drawn; the values stay in {drawn}."
 )
 
@@ -953,7 +953,7 @@ CHAIN_CHECK = os.path.join(
 # *The stamp*).
 QUEUED = (
     "agentic: the stamp for {id} is drawn at the end of this turn from "
-    "{path}; where none appears, `seal-stamp --from {command}` draws it"
+    "{path}; where none appears, `seal stamp --from {command}` draws it"
 )
 # The line the write-time writer returns where its `guarantee.md` names a
 # commit the work item's branch does not hold. No pull request's check reads
@@ -968,7 +968,7 @@ NOT_ON_BRANCH = (
 
 
 def quote(path, windows=None):
-    """`path` quoted for the shell a person types `seal-stamp --from` into:
+    """`path` quoted for the shell a person types `seal stamp --from` into:
     double quotes on Windows, `shlex.quote` elsewhere, so a checkout whose
     path holds a space prints a command that runs as printed.
     `broad_gate.quote` says why double quotes are `cmd.exe`'s."""
@@ -1310,7 +1310,7 @@ def queue_for_written_guarantee(path, session, now=None):
 
 # --- a person's command --------------------------------------------------
 
-# Neutral values in the stamp's shape, so `seal-stamp` shows a person what a
+# Neutral values in the stamp's shape, so `seal stamp` shows a person what a
 # sealed guarantee's commit draws without one having been committed — every
 # row `guarantee_rows` can return, the conditional ones included, in its
 # order; a case in `tests/test_seal_stamp.py`'s `Test_module` holds the
@@ -1335,7 +1335,7 @@ def main(argv=None, console_wants_letters=None):
     `reconfigure` changes the one object `sys.stdout` and `sys.__stdout__`
     both name; a direct call may leave it to be asked here."""
     parser = argparse.ArgumentParser(
-        prog="seal-stamp",
+        prog="seal stamp",
         description="Print the sealer's stamp — what the commit of a sealed "
         "guarantee draws.",
     )

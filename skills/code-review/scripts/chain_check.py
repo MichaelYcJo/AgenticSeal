@@ -143,7 +143,7 @@ RETIRED_SAYS = (
     f"is a word the verdict no longer uses: the line reads {VERDICT_SHAPES} "
     "now. Where `trail/gate.md` names a run at HEAD, or one followed only by "
     "the work item's records, spawn the sealer again at HEAD, which writes "
-    "the new word; otherwise run `broad-gate --base <base> --record <item>` "
+    "the new word; otherwise run `seal gate --base <base> --record <item>` "
     "and commit `trail/gate.md` first"
 )
 # What a broad-gate entry is separated from the run behind it by. The newest
@@ -1847,7 +1847,7 @@ def broad_gate(reader, root, item, base):
                 rel,
                 0,
                 "git carries no broad-gate file: the orchestrator runs "
-                "`broad-gate --base <base> --record <item>` before it spawns "
+                "`seal gate --base <base> --record <item>` before it spawns "
                 "the sealer, and the run writes it on a green run",
             )
         ]

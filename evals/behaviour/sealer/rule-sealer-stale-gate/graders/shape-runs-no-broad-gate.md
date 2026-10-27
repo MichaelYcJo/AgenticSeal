@@ -1,7 +1,7 @@
 ---
 type: 'tool_used'
 tool: 'Bash'
-input_match: 'broad-gate\s+--base'
+input_match: 'seal\s+gate\s+--base'
 max: 0
 min: 0
 ---

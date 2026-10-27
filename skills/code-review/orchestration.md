@@ -30,7 +30,7 @@ every turn to hold what the record already holds.
 per-turn context is below 806,241 tokens, and is a fresh `smith` spawn
 otherwise.** The implementer is the smith that wrote the last commit the
 round reviewed. Before the fix pass, the orchestrator runs
-`session-cost --segments <the implementer's agent-*.jsonl>` on the
+`seal cost --segments <the implementer's agent-*.jsonl>` on the
 implementer's own transcript, the file the harness's task output named, and
 reads the largest value of its `context` column. Below the threshold, the
 orchestrator resumes the implementer, whose context already holds the files
@@ -38,7 +38,7 @@ it wrote, the tests it ran and the grounds it recorded. At the threshold or
 above it, the orchestrator spawns a fresh smith and hands it the round record
 and the phase records. The threshold is the largest context a fresh,
 never-resumed smith reached in the 0.22.0 run, read with
-`session-cost --segments` over that run's transcripts (#945), so a resumed
+`seal cost --segments` over that run's transcripts (#945), so a resumed
 implementer past it holds more context than any fresh build of that run
 needed. The column reads the largest turn, so a compaction that shrank the
 implementer's context does not lower the reading: the orchestrator then
@@ -221,8 +221,8 @@ The party that builds the work item writes that fragment: the smith, or you
 where `routing.md` answers `Implementation` with `the session`
 (`docs/the-record-layout.md` *A change writes fragments, never a shared
 file*). The preflight and the broad run are yours, and no agent takes either.
-**Run `broad-gate --preflight --base <base>`; on its exit 0, with nothing else
-running, run `broad-gate --base <base> --record <item>`**, which takes the
+**Run `seal gate --preflight --base <base>`; on its exit 0, with nothing else
+running, run `seal gate --base <base> --record <item>`**, which takes the
 one broad pass now that the rounds have settled and, on a green run, writes
 `broad-gate.md`. `skills/verify/orchestration.md` *The broad gate* says what
 the run covers and what each word beside a failing file means. Send its
@@ -304,18 +304,18 @@ at that write. It is not in the sealer's report and does not reach you.
 So put the result text first in that turn:
 what was sealed, the lines worth quoting, and what happens next. Then end
 the turn, and the drawing lands last with nothing after it. Draw none
-yourself, neither with `seal-stamp` nor by relaying a log: a relayed log
+yourself, neither with `seal stamp` nor by relaying a log: a relayed log
 shows the person the stamp twice, the copy without its colour and cut. The
 `BROAD GATE PASSED` line names the branch and the tree the run measured and
 the ref and the commit it was compared against, the panel's rows follow it
 as text, and the report's last line says `broad-gate.md` is written and not
 committed: CI reads HEAD, so commit it before you push, or the one
 broad run is recorded nowhere CI looks. On a red run relay the `BROAD GATE
-FAILED` lines. Wherever a line you read names `seal-stamp --from`, quote
+FAILED` lines. Wherever a line you read names `seal stamp --from`, quote
 it as it stands: that command is the person's to type, and never yours. The
 edit hook's line never reaches you. Where no stamp appeared, name the file
 under `<git-common-dir>/agentic-stamp/<session>/` whose name holds the work
-item's id, and leave `seal-stamp --from <that file>` to the person. The line
+item's id, and leave `seal stamp --from <that file>` to the person. The line
 names the command because the hook draws nothing and says nothing where it
 cannot: a `python3` that cannot load `seal_stamp.py`, a working directory
 outside the clone, or a plugin older than the hook. Where no edit hook saw

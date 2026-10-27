@@ -633,7 +633,7 @@ class Test_apply:
         assert specs_dir(repo, "1700000001-a").exists(), text
         assert (
             "kept seal/threads/1700000001-a/: its record holds 1 open row; close "
-            "each (`closed` with what closed it) and run `settle --apply` again\n"
+            "each (`closed` with what closed it) and run `seal settle --apply` again\n"
             "    open in gaps.md: a claim nobody ran\n"
         ) in text, text
         overview.write_text(OVERVIEW_CLOSED, encoding="utf-8")
@@ -1063,7 +1063,7 @@ class Test_main:
         assert "removed seal/threads/1700000001-a/\n" in text, text
         assert (
             "kept seal/threads/1700000003-c/: its record holds 1 open row; close "
-            "each (`closed` with what closed it) and run `settle --apply` again\n"
+            "each (`closed` with what closed it) and run `seal settle --apply` again\n"
             "    open in gaps.md: a claim about `questions.md`\n"
         ) in text, text
         assert files(local) == before, "the apply wrote or removed in the tree"
@@ -1473,13 +1473,23 @@ class Test_module:
     def test_the_command_is_reachable_by_the_name_a_document_gives_it(self):
         """A6. The pair rule is `tests/test_a_document_that_names_a_script_says_
         how_to_reach_it.py`'s; this is the instance, asked here so a missing twin
-        names this work item rather than a parametrisation."""
-        for name in ("settle", "settle.cmd"):
-            assert os.path.isfile(os.path.join(ROOT, "bin", name)), name
-        assert os.access(os.path.join(ROOT, "bin", "settle"), os.X_OK), (
-            "`bin/settle` ships without its executable bit, so the command "
-            "resolves on PATH and then refuses"
+        names this work item rather than a parametrisation. Since #1051 the
+        name is `seal settle`, run here the way a person types it."""
+        wrapper = os.path.join(ROOT, "bin", "seal")
+        command = (
+            [os.environ.get("COMSPEC", "cmd.exe"), "/c", f"{wrapper}.cmd"]
+            if os.name == "nt"
+            else [wrapper]
         )
+        done = subprocess.run(
+            [*command, "settle", "--help"],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=120,
+        )
+        assert done.returncode == 0, done.stderr
+        assert done.stdout.startswith("usage: seal settle"), done.stdout
 
     @pytest.mark.parametrize(
         "which, phrase",

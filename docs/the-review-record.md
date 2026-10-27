@@ -238,7 +238,7 @@ passes.
 check: last-record-at-head
 
 **The broad run has one home, `trail/gate.md`, on either routing answer.**
-`broad-gate --record <item>` writes `<tree> against <base>` there on a green
+`seal gate --record <item>` writes `<tree> against <base>` there on a green
 run, newest first, every earlier run kept behind it as `; earlier run: …`. At
 a ready pull request its newest run is HEAD, or only the work item's records
 follow it.
@@ -400,7 +400,7 @@ before the sealer has read anything and draws nothing
 reads `sealed`, it writes the stamp's values under
 `<git-common-dir>/agentic-stamp/<session>/` for the payload's session,
 which a subagent's write carries as the main session's, and says one line
-naming the file and `seal-stamp --from <path>` as its message. A `Stop` hook draws each undrawn file
+naming the file and `seal stamp --from <path>` as its message. A `Stop` hook draws each undrawn file
 of its own session once, after that turn's text, and a subagent's end draws
 nothing. `withheld` and `undecided` queue nothing. Once per work item is held
 by what the clone and the tree carry, with no count beside them: a values
@@ -477,7 +477,7 @@ what one message can carry stays pending and is drawn at the next turn's
 end, and a single stamp that does not fit with its disc by itself is the
 only one drawn as the text block with no disc. A stamp can
 come out without its disc or a turn later, and a session that ends first
-leaves it for `seal-stamp --from`. `seal-stamp` is not budgeted, because it
+leaves it for `seal stamp --from`. `seal stamp` is not budgeted, because it
 is no hook's message.
 check: tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py tests/test_sealer_stamp.py
 
@@ -519,7 +519,7 @@ hook draws nothing and says nothing where the main session's `python3`
 cannot load `seal_stamp.py`, since no launcher stands in front of a hook;
 where that session's working directory is outside the clone the stamp was
 queued in; or where its plugin predates the hook. Where a file was written,
-the edit hook's message names `seal-stamp --from <path>`, and a stamp that did not appear is drawn by
+the edit hook's message names `seal stamp --from <path>`, and a stamp that did not appear is drawn by
 hand from it, once. Where none was, the pull request's check is what says the
 work item was sealed.
 No case, hook or workflow can observe a screen.

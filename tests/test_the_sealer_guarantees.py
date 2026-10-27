@@ -161,7 +161,7 @@ class TestDefinition:
         """T2, S1 of #969. Step 1 reads `broad-gate.md` and the commits after
         the run it names, and refuses with `withheld reason: no broad run at HEAD`
         where the record is absent or followed by a path outside the work
-        item's records; no step of the definition runs `broad-gate --base`.
+        item's records; no step of the definition runs `seal gate --base`.
 
         Protects: the sealer re-running a suite the orchestrator just ran
         (the 240K-token second run #957 measured), and a sealer that runs
@@ -199,11 +199,11 @@ class TestDefinition:
             "`Verdict: withheld reason: the base <name> resolves to no commit here`"
         ) in intro, intro
         order = between(SEALER, "## Order of work", "## Never")
-        assert "broad-gate --base" not in order, (
+        assert "seal gate --base" not in order, (
             "a step of the sealer's definition runs the broad gate"
         )
         never = " ".join(between(SEALER, "## Never", "## Rules").split())
-        assert "the typecheck or `broad-gate`" in never, never
+        assert "the typecheck or `seal gate`" in never, never
 
     def test_the_sealer_is_spawned_before_the_pull_request_and_reads_its_body_from_a_file(
         self,

@@ -53,12 +53,12 @@ def _rules():
 
 # The check lines are asked of their reader rather than spelled a second time
 # here: a skip wider than the reader leaves unwrapped lines nobody checks.
-# `rules --check` reads every such line a rule file shows (#957).
+# `seal rules --check` reads every such line a rule file shows (#957).
 rules = _rules()
 
 
 def is_rule_file(relative):
-    """Whether `rules --check` reads RELATIVE's check lines."""
+    """Whether `seal rules --check` reads RELATIVE's check lines."""
     return any(fnmatch.fnmatch(relative, p) for p in rules.RULE_FILES)
 
 
@@ -299,7 +299,7 @@ def test_a_check_line_in_a_rule_file_is_skipped_wherever_it_stands():
     (#957), with targets or with a reader.
 
     An agent definition closes each rule with one such line, and
-    `rules --check` reads every one in a rule file, so a wrapped line is a
+    `seal rules --check` reads every one in a rule file, so a wrapped line is a
     broken target. The skip is that reader's: `rules.py#check_lines` read by
     `rules.py#parse`, in a file `RULE_FILES` names. Outside a rule file the
     line is still held, which the case below keeps."""
@@ -317,7 +317,7 @@ def test_a_check_line_in_a_rule_file_is_skipped_wherever_it_stands():
 
 
 def test_a_line_the_reader_refuses_is_still_prose():
-    """S8. The skip is no wider than the reader: a spelling `rules --check`
+    """S8. The skip is no wider than the reader: a spelling `seal rules --check`
     refuses stays under the limit in a rule file."""
     for label in ("Enforced by:", "Check:", "check: none"):
         text = f"# D\n\n{label} {WIDE_TARGET}\n"

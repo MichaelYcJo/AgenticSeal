@@ -36,9 +36,9 @@ def test_the_documents_say_a_spec_less_directory_is_retired_by_the_rule():
     assert "A released work item with no `spec.md` states no rule" in text
     assert "it leaves like any other" in text
     for edition in ("README.md", "README.ko.md"):
-        assert "`spec.md`" in document(edition).split("`settle [--apply]`")[1][:900], (
-            f"{edition}'s cheat-sheet row does not name the rule arm"
-        )
+        assert (
+            "`spec.md`" in document(edition).split("`seal settle [--apply]`")[1][:900]
+        ), f"{edition}'s cheat-sheet row does not name the rule arm"
 
 
 SKILL = os.path.join(ROOT, "skills", "settle", "SKILL.md")
@@ -104,7 +104,7 @@ def test_the_skill_states_the_settling_sessions_procedure():
     text = flat(skill())
     procedure = text.split("## The settling session's procedure")[1].split("## ")[0]
     steps = [
-        "Run `settle`, the dry run",
+        "Run `seal settle`, the dry run",
         "Write the section as the latest decision states it",
         "Where the code has moved past that decision, write what the code does",
         "is superseded: it is settled with its group and not applied",
@@ -119,7 +119,7 @@ def test_the_skill_states_the_settling_sessions_procedure():
         "The step is done when every `check:` target passes",
         "finds a module only by how it spells a path",
         "step 8 runs every one",
-        "Run `settle --apply`.",
+        "Run `seal settle --apply`.",
         "Run the repository's `Broad gate` row.",
         "It is the one run that reads every check",
         "change that pin or copy, and name each in the pull request body",
@@ -267,12 +267,12 @@ def test_both_cheat_sheets_carry_the_command(edition):
     writes no document, and it links the procedure's section rather than
     restating it (round 1 of #1033, finding 2)."""
     text = document(edition)
-    assert "`settle [--apply]`" in text, (
+    assert "`seal settle [--apply]`" in text, (
         f"{edition}'s cheat sheet has no row for the command"
     )
     # The raw file is read, so the row is the row.
     with open(os.path.join(ROOT, edition), encoding="utf-8") as f:
-        row = f.read().split("`settle [--apply]`")[1].split("\n")[0]
+        row = f.read().split("`seal settle [--apply]`")[1].split("\n")[0]
     assert "`## Rule changes`" in row, row
     assert "`skills/settle/SKILL.md` *The settling session's procedure*" in row, row
     assert "retire" not in row, row

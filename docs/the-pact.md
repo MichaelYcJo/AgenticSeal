@@ -12,18 +12,18 @@ and every repository of such a work item is a signer, the one holding the
 pact included.** The pact is `seal/pact.md` in one of them. That repository
 has no noun of its own: it is the pact's repository, identified by holding
 the file, and where more than one pact can be meant, a text says which by
-naming where it is held. `pact-check` is the command that reads every signer
+naming where it is held. `seal pact` is the command that reads every signer
 from there. The three names are the owner's, and a case holds other words for
 them out of the shipped text.
 check: tests/test_one_word_one_meaning.py tests/test_config.py
 
-**A pact headed with the word 0.18.x used still reads, and `pact-check`
+**A pact headed with the word 0.18.x used still reads, and `seal pact`
 names the rename on it in no exit class.** Through 0.18.x a signer was
 called a signatory, and a pact's `| Signatory |` table carried that word
 into a file nobody regenerates. A file holding no table under the new header
 is read under the old one exactly as it would be under the new; a file
 holding one is read from it alone, and an old header beside it is refused,
-because its rows would otherwise go unread. `pact-check` prints one line
+because its rows would otherwise go unread. `seal pact` prints one line
 naming the file, both headers and the release that renamed them before that
 file's other lines, and its exit is what the new header gives. No command
 rewrites a pact: the line says to rename the header when the file is next
@@ -70,7 +70,7 @@ anchor carries, so two pacts ending in one segment are refused.
 `hooks/config.py#pact_declaration` refuses what will not parse in a sentence
 and stops nothing, so every reader of the row reads the same row. A `Pact`
 row written twice has no value at all: its first row is not the answer. A
-`Pact` row the config table does not hold is no row, so `pact-check` reads
+`Pact` row the config table does not hold is no row, so `seal pact` reads
 that signer as naming no pact, a relationship recorded on one side only.
 check: tests/test_a_signer_declares_its_pact.py tests/test_pact_check.py tests/test_config.py
 
@@ -86,7 +86,7 @@ check: tests/test_pact_check.py tests/test_coordinates.py
 
 **A token begins a pact anchor where `pact:<name>` is followed at once by
 `/` or `#`, or by the rest of an anchor with its `/` missing, and
-`pact-check` refuses a token that begins one and does not go on to parse.**
+`seal pact` refuses a token that begins one and does not go on to parse.**
 The rest of an anchor is a quoted heading path closed by `@`, or `@` and a
 hash, at once or after one mark or one space. The marks are `.`, `-` and `_`,
 which the name itself could otherwise hold, and one of them standing just
@@ -105,14 +105,14 @@ check: tests/test_pact_check.py
 
 **At a pull request nothing reads the pact, and no exit status moves on
 anything about it.** There is no token for a pull request to read another
-repository with, so a signer's CI could see one side only; `pact-check` at the
+repository with, so a signer's CI could see one side only; `seal pact` at the
 pact's repository is where the reconciliation runs.
 `skills/code-review/scripts/chain_check.py` holds no pact arm.
 check: none reader: review
 
-## `pact-check` reconciles, locally
+## `seal pact` reconciles, locally
 
-**`pact-check`, run at the pact's repository, reads every signer the pact
+**`seal pact`, run at the pact's repository, reads every signer the pact
 lists and says which way each mismatch points.** It finds each checkout
 through `~/.claude/agentic/pact-paths.md` or the one sibling directory with
 that origin, guessing nothing; refuses a signer whose config does not
@@ -133,9 +133,9 @@ anchor to it.** A repository that squashes its pact edits loses the
 intermediate clauses, so a signer built against one reads `UNMATCHED`
 where `SUPERSEDED` was true; both are exit 1 and both say to read the two
 sides, so the reading degrades without going quiet. A pact under local mode
-has no history at all, and `pact-check` says so in its summary. A clause's
+has no history at all, and `seal pact` says so in its summary. A clause's
 heading is its address, so rewording the prose is a change every citing
 signer re-reads, and renaming the heading is one each of them has to
-re-coordinate. And `pact-check` runs where a person runs it: nothing on a
+re-coordinate. And `seal pact` runs where a person runs it: nothing on a
 pull request reconciles anything.
 check: tests/test_pact_check.py

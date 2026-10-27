@@ -2871,7 +2871,7 @@ def newest(directory):
     # character, not just the separator. Replacing `os.sep` alone is right on
     # POSIX by coincidence and wrong on Windows, where a drive letter keeps its
     # colon: `C:\GitHub\SpecSeal` became `C:-GitHub-SpecSeal` and the real
-    # directory is `C--GitHub-SpecSeal`, so `session-cost --latest .` reported
+    # directory is `C--GitHub-SpecSeal`, so `seal cost --latest .` reported
     # "no transcript found" for a directory that is right there. Measured.
     # `hooks/worktree-guard.py` `project_slug` states the same rule; the two
     # trees do not import each other, so this names it rather than sharing it.

@@ -7,11 +7,11 @@ concluded the generator does not ship, and hand-wrote the record it writes --
 two of the resulting records had a field wrong in a way only the next round's
 reader caught.
 
-The defect has two halves and a wrapper repairs one. Two of those thirty-six
+The defect has two halves and a command repairs one. Two of those thirty-six
 lines show a command for somebody to TYPE; the other thirty-four describe what
 the generator does, and a reader who meets one goes LOOKING for a filename.
-Three of the four segments were `warden`, whose definition never tells it to
-run the script at all, so the typed half is the half those segments never
+Three of the four segments were the reviewer, whose definition never tells it
+to run the script at all, so the typed half is the half those segments never
 touched.
 
 What this file pins is the looking half, as a property of the class rather
@@ -22,18 +22,21 @@ from (`templates/sdd-round.md`, seven mentions) was not among the three.
 
 Two rules, and the second is narrower than the first on purpose:
 
-  every script a shipped document names   has a `bin/` wrapper pair, or is
-                                          classified below with its reason
+  every script a shipped document names   has a `seal` subcommand in
+                                          `seal.py#TOOLS`, or is classified
+                                          below with its reason
 
-  every shipped document that names a     carries the command or the script's
-  WRAPPED script                          repo-relative path, at least once
+  every shipped document that names a     carries the subcommand or the
+  script with a subcommand                script's repo-relative path, at
+                                          least once
 
-An unwrapped script is exempt from the second rule because it has no command
-to name, and requiring its path in every document that mentions it would touch
-six files for a script nobody is told to run. `test_an_unwrapped_script_is_
-shown_in_no_command_form` is what keeps that exemption from being a loophole:
-the moment a document shows an unwrapped script being invoked, the
-classification stops being true and goes red rather than standing as a note.
+A script with no subcommand is exempt from the second rule because it has no
+command to name, and requiring its path in every document that mentions it
+would touch six files for a script nobody is told to run.
+`test_a_script_with_no_subcommand_is_shown_in_no_command_form` is what keeps
+that exemption from being a loophole: the moment a document shows such a
+script being invoked, the classification stops being true and goes red rather
+than standing as a note.
 
 Scope is what an agent's startup payload can contain: `agents/`, `skills/` and
 `templates/`. `docs/` stays out under
@@ -44,7 +47,9 @@ clone to `git grep`.
 Shown red before it was committed (contract rule 15): against the tree as it stood, this
 file failed on all nine of `round_record.py`'s documents and on
 `chain_check.py` having no classification, and the command-form case was
-driven red by planting an invocation in a shipped document.
+driven red by planting an invocation in a shipped document. Since #1051 the
+commands are `seal` subcommands rather than one `bin/` wrapper each, and the
+cases read `seal.py#TOOLS` where they read `bin/`.
 """
 
 import glob
@@ -52,27 +57,35 @@ import os
 import re
 
 import pytest
-from conftest import read
+from conftest import load_module, read
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-BIN = os.path.join(ROOT, "bin")
+SEAL = load_module(
+    os.path.join(ROOT, "skills", "implement", "scripts", "seal.py"),
+    "seal_for_the_locator_rule",
+)
+
+# The subcommand each script answers to, by the script's file name.
+SUBCOMMANDS = {
+    os.path.basename(script): name for name, (script, _) in SEAL.TOOLS.items()
+}
 
 # What an agent's startup payload can contain. `docs/` is deliberately absent.
 SHIPPED_ROOTS = ("agents", "skills", "templates")
 
-# Scripts that ship without a `bin/` wrapper, and the reason each one keeps
-# none. A script named by a shipped document belongs here or in `bin/`; a
-# third state is the one `bin/` itself was in before work item 1788302682 --
-# a gap somebody notices while writing something up.
-NO_WRAPPER = {
+# Scripts that ship without a `seal` subcommand, and the reason each one keeps
+# none. A script named by a shipped document belongs here or in
+# `seal.py#TOOLS`; a third state is the one `bin/` itself was in before work
+# item 1788302682 -- a gap somebody notices while writing something up.
+NO_SUBCOMMAND = {
     "rule_changes.py": (
         "A module `settle.py` and `unverified_check.py` load by path, with no "
         "command line of its own: no shipped document shows it with a flag."
     ),
     "chain_check.py": (
         "Named in four shipped documents and shown with a flag in none of "
-        "them -- which is what `test_an_unwrapped_script_is_shown_in_no_"
-        "command_form` asserts, and the whole of it. A flag is the only "
+        "them -- which is what `test_a_script_with_no_subcommand_is_shown_in_"
+        "no_command_form` asserts, and the whole of it. A flag is the only "
         "sound tell in prose, so a bare mention in a list of checks is not "
         "caught: `templates/config.md` names it beside three commands. "
         "Every place outside `tests/` that invokes it carries its full path "
@@ -81,7 +94,7 @@ NO_WRAPPER = {
         "`skills/verify/scripts/broad_gate.py` in code; the test modules that "
         "load it build the "
         "same path -- so it is reachable everywhere it is reached. "
-        "A wrapper would also change the row in "
+        "A subcommand would also change the row in "
         "`templates/config.md` that spells the broad gate to a user, which is "
         "a user-facing change with no defect behind it (#318)."
     ),
@@ -104,21 +117,19 @@ def shipped_documents():
 
 
 def command_name(script):
-    """The bare word a wrapper for `script` answers to.
-
-    Underscores to hyphens, which is what every existing pair does.
-    """
-    return os.path.basename(script)[:-3].replace("_", "-")
-
-
-def wrapper_pair(script):
-    """The POSIX wrapper and its `.cmd` twin, whether or not they exist."""
-    posix = os.path.join(BIN, command_name(script))
-    return posix, posix + ".cmd"
+    """The command a person types for `script`: `seal` and its subcommand,
+    or `seal` alone for `seal.py`, the script the command itself runs.
+    None for a script with no subcommand."""
+    base = os.path.basename(script)
+    if base == "seal.py":
+        return "seal"
+    name = SUBCOMMANDS.get(base)
+    return f"seal {name}" if name else None
 
 
 def is_wrapped(script):
-    return all(os.path.isfile(p) for p in wrapper_pair(script))
+    """Whether a person can type a command that runs `script`."""
+    return command_name(script) is not None
 
 
 def names(text, script):
@@ -132,37 +143,25 @@ def names(text, script):
 def reachable(text, script):
     """Whether `text` gives a reader a way to GET to `script`.
 
-    Either accepted form counts. The bare command is what the documents
-    already use for `fold-check` and `session-cost`, and is what a session
-    with the plugin enabled can type, because the loader puts `bin/` on the
-    Bash tool's PATH. The repo-relative path is what a session working inside
-    a clone with the plugin disabled can open.
+    Either accepted form counts. The subcommand is what a session with the
+    plugin enabled can type, because the loader puts `bin/` on the Bash
+    tool's PATH and `bin/seal` is there. The repo-relative path is what a
+    session working inside a clone with the plugin disabled can open.
     """
     command = command_name(script)
-    # A command name with no hyphen in it cannot be told from ordinary
-    # English -- `seal.py` answers to `seal`, and this repository's prose is
-    # made of that word -- so this reader does not take the bare form as a
-    # locator for it. The command is real and `bin/seal` ships; what is
-    # missing is a way to tell the command from the sentence, so for those
-    # scripts the path is the form that counts.
+    # `seal` alone cannot be told from ordinary English -- this repository's
+    # prose is made of that word -- so this reader does not take the bare
+    # command as a locator for `seal.py`, and the path is the form that counts.
     #
-    # The hyphen is a BOUND and not a rule: a hyphenated command reads as an
-    # ordinary compound in prose too. Measured 2026-09-14 over all 43 shipped
-    # documents -- six commands appear as bare words in documents that name
-    # no script at all, `broad-gate` in nine of them, including
-    # `agents/proofer.md:247` (*carry the broad-gate state into your report*).
-    # No case is wrong today, because those documents name no script; the day
-    # one of them does, this reader calls it covered on the strength of that
-    # prose. Both obvious alternatives were measured and both are worse: a
-    # reader that accepts the bare command only where SOMETHING follows it
-    # still passes *the seal after the rounds* and reds a live pair, and one
-    # that demands a FLAG reds `skills/code-review/orchestration.md` for
-    # `evidence_check.py`, where line 442 teaches the command in prose
-    # (*`evidence-check` takes `--ledger`*). So the bound stays and is
-    # written down rather than widened.
-    if "-" not in command:
+    # A subcommand is two words, and two words can be prose too: *the seal
+    # stamp*. So the subcommand counts only where it is shown as a command,
+    # opening an inline code span or a line of a code block, which is how
+    # every document that teaches one writes it. It counts with arguments
+    # after it and not inside a longer word.
+    if command == "seal":
         return script in text
-    typed = re.search(rf"(?<![\w-]){re.escape(command)}(?![\w-])", text) is not None
+    shown = rf"(?:`|^[ \t]*){re.escape(command)}(?![\w-])"
+    typed = re.search(shown, text, re.M) is not None
     return typed or script in text
 
 
@@ -174,9 +173,9 @@ def command_forms(text, script):
     writes the record* names a subcommand and is a description -- but nothing
     writes `chain_check.py --worktree` except to say what to run.
 
-    Used on the scripts that keep no wrapper: the classification below rests
-    on nobody being told to type them, and this is the property, asked of the
-    tree rather than assumed.
+    Used on the scripts that keep no subcommand: the classification below
+    rests on nobody being told to type them, and this is the property, asked
+    of the tree rather than assumed.
     """
     pattern = re.compile(rf"(?<![\w-]){re.escape(os.path.basename(script))}\s+-")
     return [
@@ -187,7 +186,8 @@ def command_forms(text, script):
 
 
 def named_pairs():
-    """(document, script) for every shipped document naming a WRAPPED script.
+    """(document, script) for every shipped document naming a script with a
+    command.
 
     The parametrisation both document cases run over. Built once, at
     collection, so a tenth document naming a script is a case that appears
@@ -204,7 +204,8 @@ def named_pairs():
 
 
 def unwrapped_pairs():
-    """(document, script) for every shipped document naming an unwrapped one."""
+    """(document, script) for every shipped document naming a script with no
+    command."""
     texts = {d: read(os.path.join(ROOT, d)) for d in shipped_documents()}
     return [
         (document, script)
@@ -223,7 +224,9 @@ def label(pair):
 
 
 @pytest.mark.parametrize("script", scripts())
-def test_every_script_a_shipped_document_names_is_wrapped_or_classified(script):
+def test_every_script_a_shipped_document_names_has_a_subcommand_or_is_classified(
+    script,
+):
     """A script a document names either has a command or has a recorded
     reason for having none. Neither answer is safe to leave to whoever
     notices, which is the lesson `bin/` itself paid for."""
@@ -231,39 +234,27 @@ def test_every_script_a_shipped_document_names_is_wrapped_or_classified(script):
     if not any(names(t, script) for t in texts):
         pytest.skip("no shipped document names it, so nobody goes looking")
     base = os.path.basename(script)
-    if base in NO_WRAPPER:
-        assert NO_WRAPPER[base].strip(), (
-            f"{base} is classified as keeping no wrapper with an empty reason "
-            f"-- say why in NO_WRAPPER in {os.path.basename(__file__)}"
+    if base in NO_SUBCOMMAND:
+        assert NO_SUBCOMMAND[base].strip(), (
+            f"{base} is classified as keeping no subcommand with an empty reason "
+            f"-- say why in NO_SUBCOMMAND in {os.path.basename(__file__)}"
         )
         return
-    posix, windows = wrapper_pair(script)
-    command = command_name(script)
-    assert os.path.isfile(posix), (
-        f"a shipped document names {base} and `bin/{command}` does not exist. "
-        f"Write the pair -- model it on `bin/survivor-check` -- or classify "
-        f"{base} in NO_WRAPPER in {os.path.basename(__file__)} with the reason"
-    )
-    assert os.path.isfile(windows), (
-        f"`bin/{command}` ships without its `.cmd` twin, so Windows loses the "
-        "command: a new command means both files or it means one platform"
-    )
-    assert os.access(posix, os.X_OK), (
-        f"`bin/{command}` ships without its executable bit, so the command "
-        "resolves on PATH and then refuses. The form this generalises -- "
-        "`tests/test_unverified_check.py::Test_module::test_the_wrapper_is_"
-        "present_and_executable` -- asks for file, twin, exec bit and target"
+    assert is_wrapped(script), (
+        f"a shipped document names {base} and no `seal` subcommand runs it. "
+        f"Add it to `TOOLS` in `skills/implement/scripts/seal.py`, or classify "
+        f"{base} in NO_SUBCOMMAND in {os.path.basename(__file__)} with the reason"
     )
 
 
-def test_nothing_classified_has_grown_a_wrapper():
+def test_nothing_classified_has_grown_a_subcommand():
     """A classification is a claim about the tree, so it stops being true the
-    moment somebody writes the wrapper. Left standing, it is a note nobody
-    re-reads that says the opposite of what `bin/` holds."""
-    stale = [b for b in NO_WRAPPER if is_wrapped(f"skills/x/scripts/{b}")]
+    moment somebody adds the subcommand. Left standing, it is a note nobody
+    re-reads that says the opposite of what `seal.py#TOOLS` holds."""
+    stale = [b for b in NO_SUBCOMMAND if is_wrapped(f"skills/x/scripts/{b}")]
     assert not stale, (
-        f"{sorted(stale)} now have `bin/` wrappers and are still classified as "
-        f"keeping none -- drop the rows from NO_WRAPPER in "
+        f"{sorted(stale)} now have `seal` subcommands and are still classified "
+        f"as keeping none -- drop the rows from NO_SUBCOMMAND in "
         f"{os.path.basename(__file__)}"
     )
 
@@ -271,7 +262,7 @@ def test_nothing_classified_has_grown_a_wrapper():
 def test_nothing_classified_has_stopped_shipping():
     """A row for a script that no longer exists reads as a live decision."""
     present = {os.path.basename(s) for s in scripts()}
-    gone = sorted(set(NO_WRAPPER) - present)
+    gone = sorted(set(NO_SUBCOMMAND) - present)
     assert not gone, (
         f"{gone} are classified in {os.path.basename(__file__)} and ship from "
         "no skill -- drop the rows with the script"
@@ -282,22 +273,23 @@ def test_nothing_classified_has_stopped_shipping():
 
 
 @pytest.mark.parametrize("pair", named_pairs(), ids=label)
-def test_a_document_naming_a_wrapped_script_says_how_to_reach_it(pair):
-    """The half of #318 a wrapper does not repair: a reader who meets
+def test_a_document_naming_a_script_with_a_command_says_how_to_reach_it(pair):
+    """The half of #318 a command does not repair: a reader who meets
     *`round_record.py new` writes the record* goes looking for a filename, and
     finds nothing. One mention per document is enough -- a document naming a
     script forty times pays one sentence."""
     document, script = pair
     command, text = command_name(script), read(os.path.join(ROOT, document))
     # The repair offered has to be one that works. `reachable` does not read
-    # a hyphenless command as a locator, so offering `seal` to a reader who
-    # then adds it leaves them red with nothing saying why -- #318's own
-    # shape, reproduced inside #318's fix.
+    # the bare `seal` as a locator, so offering it to a reader who then adds
+    # it leaves them red with nothing saying why -- #318's own shape,
+    # reproduced inside #318's fix.
     forms = (
-        f"the path `{script}`. `{command}` has no hyphen in it, so this rule "
+        f"the path `{script}`. `seal` alone is a word of prose, so this rule "
         "does not read the bare command as a locator -- see `reachable`"
-        if "-" not in command
-        else f"either reachable form: the command `{command}`, or the path `{script}`"
+        if command == "seal"
+        else f"either reachable form: the command `{command}`, shown in code, "
+        f"or the path `{script}`"
     )
     assert reachable(text, script), (
         f"{document} names {os.path.basename(script)} and never says where it "
@@ -307,19 +299,19 @@ def test_a_document_naming_a_wrapped_script_says_how_to_reach_it(pair):
 
 
 @pytest.mark.parametrize("pair", unwrapped_pairs(), ids=label)
-def test_an_unwrapped_script_is_shown_in_no_command_form(pair):
+def test_a_script_with_no_subcommand_is_shown_in_no_command_form(pair):
     """What keeps the exemption above from being a loophole. A script with no
-    wrapper is excused the locator rule because nobody is told to type it, and
-    this is that premise asked of the tree rather than assumed."""
+    subcommand is excused the locator rule because nobody is told to type it,
+    and this is that premise asked of the tree rather than assumed."""
     document, script = pair
     base = os.path.basename(script)
     shown = command_forms(read(os.path.join(ROOT, document)), script)
     assert not shown, (
         f"{document} shows {base} being invoked, so the classification in "
-        f"{os.path.basename(__file__)} -- kept unwrapped because no document "
-        "tells anybody to run it -- is no longer true:\n"
+        f"{os.path.basename(__file__)} -- kept with no subcommand because no "
+        "document tells anybody to run it -- is no longer true:\n"
         + "\n".join(f"  {document}:{n}: {line.strip()}" for n, line in shown)
-        + f"\n\nEither write `bin/{command_name(script)}` and its `.cmd` twin, "
+        + "\n\nEither add it to `TOOLS` in `skills/implement/scripts/seal.py`, "
         "or take the invocation out."
     )
 
@@ -330,81 +322,69 @@ def test_an_unwrapped_script_is_shown_in_no_command_form(pair):
 def test_a_document_with_no_locator_is_caught():
     """`reachable` is the whole of the document rule, so a reader that
     answered yes to any mention would make every case above vacuous."""
-    assert not reachable(
-        "`round_record.py new` writes the record.", "skills/x/scripts/round_record.py"
-    )
-    assert reachable(
-        "Run `round-record new --item <dir>`.", "skills/x/scripts/round_record.py"
-    )
-    assert reachable(
-        "It lives at `skills/x/scripts/round_record.py`.",
-        "skills/x/scripts/round_record.py",
-    )
+    arms = "skills/x/scripts/arm_check.py"
+    assert not reachable("`arm_check.py` lists the arms.", arms)
+    assert reachable("Run `seal arms hooks/x.py`.", arms)
+    assert reachable("```\nseal arms hooks/x.py\n```\n", arms)
+    assert reachable("It lives at `skills/x/scripts/arm_check.py`.", arms)
 
 
 def test_the_failure_message_offers_a_repair_that_actually_works():
     """Contract rule 14: a message a person reads and acts on is pinned by a case.
 
-    The repair the message names has to be one the rule accepts. For a
-    hyphenless command it cannot be, so the message says the path and says
-    why -- otherwise a reader adds `seal`, re-runs, is still red, and has
-    been told nothing. That is #318's own shape reproduced inside #318's fix.
+    The repair the message names has to be one the rule accepts. For the bare
+    `seal` it cannot be, so the message says the path and says why --
+    otherwise a reader adds `seal`, re-runs, is still red, and has been told
+    nothing. That is #318's own shape reproduced inside #318's fix.
 
-    `README.md` is the document in both directions because it names no script
-    and carries neither command, so the case is guaranteed to fail and its
-    message is the whole of what is being read.
+    `templates/sdd-plan.md` is the document in both directions because it
+    names neither script and carries neither command, so the case is
+    guaranteed to fail and its message is the whole of what is being read.
     """
     seal = "skills/implement/scripts/seal.py"
     with pytest.raises(AssertionError) as raised:
-        test_a_document_naming_a_wrapped_script_says_how_to_reach_it(
-            ("README.md", seal)
+        test_a_document_naming_a_script_with_a_command_says_how_to_reach_it(
+            ("templates/sdd-plan.md", seal)
         )
     message = str(raised.value)
     assert "the command `seal`" not in message, (
         "the message offers a repair the rule rejects: a reader who adds the "
         f"bare command is still red and learns nothing from it -- {message}"
     )
-    assert seal in message and "no hyphen" in message, (
+    assert seal in message and "a word of prose" in message, (
         f"the message does not name the form that works, or why -- {message}"
     )
 
     arms = "skills/verify/scripts/arm_check.py"
     with pytest.raises(AssertionError) as raised:
-        test_a_document_naming_a_wrapped_script_says_how_to_reach_it(
-            ("README.md", arms)
+        test_a_document_naming_a_script_with_a_command_says_how_to_reach_it(
+            ("templates/sdd-plan.md", arms)
         )
-    assert "the command `arm-check`" in str(raised.value), (
-        "a hyphenated command still has both accepted forms offered"
+    assert "the command `seal arms`" in str(raised.value), (
+        "a subcommand still has both accepted forms offered"
     )
 
 
-def test_a_one_word_command_name_is_not_a_locator():
+def test_the_bare_command_is_not_a_locator():
     """`seal.py` answers to `seal`, and every document in this repository
     contains that word. Read as a locator it makes the rule unfalsifiable for
     that script, which is the one thing Q1's general form was chosen to
     prevent."""
     seal = "skills/implement/scripts/seal.py"
     assert not reachable("The sealer takes the seal after the rounds.", seal)
+    assert not reachable("Run `seal mode` first.", seal)
     assert reachable("It lives at `skills/implement/scripts/seal.py`.", seal)
 
 
-def test_a_locator_inside_a_longer_word_does_not_count():
-    """`round-record` inside `round-record-writer` is a different name, and a
-    substring test would let one satisfy the rule for the other."""
-    script = "skills/x/scripts/round_record.py"
-    assert not reachable("the round-record-writer protocol", script)
-    assert not reachable("a pre-round-record step", script)
-
-
-def test_a_planted_invocation_turns_the_classification_red():
-    """The classification-defence case, driven from a fixture: a document that
-    starts showing an unwrapped script being run has to fail rather than pass
-    quietly. Neutral text, no real path."""
-    script = "skills/x/scripts/chain_check.py"
-    assert command_forms("Run `chain_check.py --worktree` first.\n", script)
-    assert command_forms("    chain_check.py -q\n", script)
-    assert not command_forms("`chain_check.py` reads the record.\n", script)
-    assert not command_forms("what `chain_check.py new` would say\n", script)
+def test_a_subcommand_in_prose_or_inside_a_longer_word_does_not_count():
+    """`seal stamp` in a sentence is two words of prose, and `seal arms`
+    inside `seal arms-length` is a different name; a substring test would
+    let either satisfy the rule."""
+    stamp = "skills/x/scripts/seal_stamp.py"
+    assert not reachable("A seal stamp is drawn once.", stamp)
+    arms = "skills/x/scripts/arm_check.py"
+    assert not reachable("`seal arms-length` is not a command", arms)
+    assert not reachable("`unseal arms` is not a command", arms)
 
 
 def test_a_test_file_named_for_a_script_does_not_name_it():
@@ -419,27 +399,15 @@ def test_a_test_file_named_for_a_script_does_not_name_it():
     assert not command_forms("bin/test tests/test_round_record.py -q\n", script)
 
 
-def test_a_half_shipped_pair_is_not_a_wrapped_script(monkeypatch):
-    """`is_wrapped` asks for BOTH files, and no half-shipped pair exists in the
-    tree to ask it with -- so the twin is taken away here instead.
-
-    It matters because the two enumerations below split on this answer. A
-    POSIX wrapper whose `.cmd` twin was never written is one platform's
-    command, not the repository's; reading it as wrapped would put its
-    documents under the locator rule, pointing every reader at a command
-    Windows cannot run, and would take the script out of the classification
-    rule that would otherwise have caught the missing twin.
-    """
-    script = "skills/verify/scripts/arm_check.py"
-    _, windows = wrapper_pair(script)
-    assert is_wrapped(script), "the fixture is stale: this pair should be whole"
-    real = os.path.isfile
-    monkeypatch.setattr(os.path, "isfile", lambda p: real(p) and p != windows)
-    assert not is_wrapped(script), (
-        "a POSIX wrapper whose `.cmd` twin is missing reads as wrapped, so its "
-        "documents fall under the locator rule while Windows cannot run the "
-        "command and the classification rule never sees the script"
-    )
+def test_a_planted_invocation_turns_the_classification_red():
+    """The classification-defence case, driven from a fixture: a document that
+    starts showing a script with no subcommand being run has to fail rather
+    than pass quietly. Neutral text, no real path."""
+    script = "skills/x/scripts/chain_check.py"
+    assert command_forms("Run `chain_check.py --worktree` first.\n", script)
+    assert command_forms("    chain_check.py -q\n", script)
+    assert not command_forms("`chain_check.py` reads the record.\n", script)
+    assert not command_forms("what `chain_check.py new` would say\n", script)
 
 
 def test_every_mention_lands_in_exactly_one_enumeration():
@@ -460,9 +428,9 @@ def test_every_mention_lands_in_exactly_one_enumeration():
     assert not wrapped & unwrapped, (
         f"a script is enumerated as both wrapped and not: {sorted(wrapped & unwrapped)}"
     )
-    if NO_WRAPPER:
+    if NO_SUBCOMMAND:
         assert unwrapped, (
-            "a script is classified as keeping no wrapper and no document "
+            "a script is classified as keeping no subcommand and no document "
             "reaches the case defending that classification"
         )
 
@@ -473,4 +441,5 @@ def test_the_enumeration_is_not_empty():
     the shape a `glob` typo produces, and it exits zero."""
     assert len(scripts()) >= 10, scripts()
     assert len(shipped_documents()) >= 20, len(shipped_documents())
-    assert named_pairs(), "no shipped document names a wrapped script"
+    assert named_pairs(), "no shipped document names a script with a command"
+    assert len(SUBCOMMANDS) == len(SEAL.TOOLS) == 13, SUBCOMMANDS

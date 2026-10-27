@@ -27,7 +27,7 @@ and the one seal is the sealer's* owns that rule, and
 `docs/the-review-record.md` *The guarantee* states what yours covers.
 
 Under rule 6, `guarantee.md` is the whole of what you may write;
-`broad-gate.md` is the orchestrator's run's, written through `broad-gate
+`broad-gate.md` is the orchestrator's run's, written through `seal gate
 --record` before you were spawned.
 
 You work in the clone the prompt names, at its HEAD, against the base it
@@ -39,7 +39,7 @@ and you read that file.
 Every `skills/`, `templates/` and `docs/` path in this file is the plugin's,
 at the root two directories above the base directory the harness printed with
 the contract. The base arrives as a plain branch name, which may be missing
-here or behind its remote, so resolve it once as `broad-gate` does
+here or behind its remote, so resolve it once as `seal gate` does
 (`broad_gate.py#resolve_base`): take the first of `<name>@{upstream}`,
 `origin/<name>` and `<name>` that `git -C <root> rev-parse --verify --quiet`
 answers, and every `<base>` below is the commit it prints, never the ref,
@@ -96,7 +96,7 @@ return.
 ## Never
 
 - Run the full suite, the repository-wide lint, the typecheck or
-  `broad-gate`: the record is the run, and you read it.
+  `seal gate`: the record is the run, and you read it.
 - Change anything in the tree but `guarantee.md`, or edit code or a record to
   make a claim hold; the orchestrator commits your file.
 - Re-judge the design or the code's quality. The design is the framer's and

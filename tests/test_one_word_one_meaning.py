@@ -223,8 +223,7 @@ SEAL_SWEPT = (
     # stamp it is, so they are swept too.
     ("hooks", "sealer-stamp.py"),
     ("hooks", "dispatch.py"),
-    ("bin", "seal-stamp"),
-    ("bin", "broad-gate"),
+    ("bin", "seal"),
     ("docs", "the-broad-gate.md"),
     # The page that keeps the emblems the stamp has carried. Nothing read it
     # when #975 moved the stamp, so it still called each emblem the broad
@@ -364,8 +363,6 @@ def test_no_instructing_document_leaves_an_instance_anonymous():
 # run). The gate's own files are held to never saying it.
 GATE_SWEPT = (
     ("skills", "verify", "scripts", "broad_gate.py"),
-    ("bin", "broad-gate"),
-    ("bin", "broad-gate.cmd"),
     ("docs", "the-broad-gate.md"),
 )
 
@@ -409,8 +406,8 @@ def test_the_gate_never_says_sealed():
 
 
 # Every `seal` word the gate's files may carry is part of a name: a path under
-# the `seal/` root, a script or a command (`seal-stamp`, `seal_stamp`,
-# `seal mode`, `seal.py`, `seal-mark.txt`), the sealer, the chain arm's
+# the `seal/` root, a script or a command (`seal stamp`, `seal_stamp`,
+# `seal mode`, `seal gate`, `seal.py`, `seal-mark.txt`), the sealer, the chain arm's
 # `--sealing` flag and `chain_check.SEALING`, the verdict word in backticks,
 # the Seal Test, a work item the sealer sealed, and an HTML comment. `questions.md` Q6 (a) keeps the code names and the concept
 # name. A name goes on past its `-`, `_` or `.`, so a `seal.` that closes a
@@ -422,7 +419,7 @@ GATE_SEAL_NAMES = re.compile(
     r"|\bseal/\S*"
     r'|"seal"'
     r"|\bseal[-_.]\w[\w.-]*"
-    r"|\bseal mode\b"
+    r"|\bseal (?:mode|gate|stamp)\b"
     r"|\bsealer\w*"
     r"|specseal\w*"
     r"|--sealing\b|(?-i:\b\w*SEALING\w*\b)"
@@ -455,7 +452,7 @@ def test_the_gate_sweep_reads_a_seal_that_ends_a_sentence():
     closes a sentence is the word, and the sweep refuses it."""
     for line in ('"the broad run is no seal."', "# a run is not a seal."):
         assert GATE_SEAL_WORD.search(GATE_SEAL_NAMES.sub("", line)), line
-    for line in ("`seal-stamp --from`", "seal_stamp.py", "seal-mark.txt"):
+    for line in ("`seal stamp --from`", "seal_stamp.py", "seal-mark.txt"):
         assert not GATE_SEAL_WORD.search(GATE_SEAL_NAMES.sub("", line)), line
 
 
@@ -759,7 +756,7 @@ PACT_SECTIONS = (
 # Files where only the lines naming a pact are the pact's text: the cheat
 # sheets' row and the config skill's rows and bullet.
 PACT_LINES = (("README.md",), ("README.ko.md",), ("skills", "config", "SKILL.md"))
-# The sentences a person is printed: every string constant of `pact-check`.
+# The sentences a person is printed: every string constant of `seal pact`.
 PACT_PRINTED = (
     (("skills", "verify", "scripts", "pact_check.py"), None),
     # The refusals both commands print are written in `hooks/config.py`

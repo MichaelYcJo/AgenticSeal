@@ -73,7 +73,7 @@ that from words, and the settle's pull request states each decision for the
 owner to review. A pull request that removes part of a directory, a
 `gaps.md` from a directory that stays, or a row from a table is still a
 deletion. One predicate, `unverified_check.py#settled`, answers
-`unverified-check --baseline` and `chain-check`. A pull request outside a
+`seal unverified --baseline` and `chain-check`. A pull request outside a
 settle that removes a whole work item directory reads as a settle too; its
 diff shows the removal to its review.
 check: a-settle-is-no-deletion
@@ -88,7 +88,7 @@ another record or a later run already answered is answered, and the closure
 names that record; a row naming a measurement nobody has taken is re-homed
 as an issue, or as a `seal/follow-up.md` row in a repository with no
 tracker. Each is closed in the record, `closed` with what closed it, and
-`settle --apply` removes a directory only once its record holds no open row
+`seal settle --apply` removes a directory only once its record holds no open row
 in the working tree. The settle's pull request body carries every closure,
 an issue carries every re-homed row, and git keeps the record. A released
 work item that wrote no `frame/design.md` states no rule and goes the same way.
@@ -187,9 +187,9 @@ fourth answer, and it is argued against these three.
 
 **A `seal/` root with no work item under it is the state a complete fold ends
 in, and it reads as settled, never as unusable.** Git keeps no empty
-directory, so the state is two: the tree that ran `settle --apply` holds an
+directory, so the state is two: the tree that ran `seal settle --apply` holds an
 empty `seal/threads/`, and a fresh checkout of that commit holds none. Read as
-unusable, `settle` would exit 2 on its own finished work, and `unverified-check
+unusable, `settle` would exit 2 on its own finished work, and `seal unverified
 --baseline` would read the root's own `threads` path as a typo when a person
 runs it after the fold, and refuse a finished settle. Only that one path is
 settled; any other missing path is still refused, which keeps a misspelt
@@ -203,7 +203,7 @@ request from the branch its `routing.md` names has merged and whether
 `--released-at` reaches that merge commit; `skills/settle/SKILL.md` *In
 local mode* gives the states that leave a work item unreleased. The settling
 session writes the committed policy root as in shared mode, and
-`settle --apply` removes each released local directory whose record holds no
+`seal settle --apply` removes each released local directory whose record holds no
 open row, with no commit holding what it removed. The settle's pull request
 changes the policy root alone, so no check reads a removal there, and its
 commits carry no trailer, as no local-mode commit does.
@@ -220,7 +220,7 @@ against nothing is not a comparison.
 check: one-merge-base
 
 **A pull request that declares nothing owes the unverified check nothing.**
-Handed a `seal/` root's own `threads` path, `unverified-check` exits 0 and
+Handed a `seal/` root's own `threads` path, `seal unverified` exits 0 and
 names the state in two more cases beside the settled root: where no `seal/`
 directory is in the tree, and where `threads/` holds work items none of which
 carries a `gaps.md`. There is no row to read, and none could have left.

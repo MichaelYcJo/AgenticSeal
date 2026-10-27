@@ -49,7 +49,7 @@ from conftest import git_out as git
 TARGET = "skills/verify/scripts/pact_check.py"
 
 SCRIPT = os.path.join(ROOT, TARGET)
-WRAPPER = os.path.join(ROOT, "bin", "pact-check")
+WRAPPER = os.path.join(ROOT, "bin", "seal")
 
 # The module and its evidence reader, loaded once in `tests/conftest.py`, so
 # the world's `check` runs and this file patches one module. The world, its
@@ -63,7 +63,7 @@ SPEC_Y = "seal/threads/1790000001-y/frame/design.md"
 
 
 def posix(path):
-    """A path as `pact-check` prints one outside HOME: every separator `/`."""
+    """A path as `seal pact` prints one outside HOME: every separator `/`."""
     return str(path).replace(os.sep, "/")
 
 
@@ -150,10 +150,10 @@ class Test_module:
         """The command run as a person types it, from a directory that is
         not the pact's repository."""
         if os.name == "nt":
-            pytest.skip("the POSIX wrapper; bin/pact-check.cmd is its Windows twin")
+            pytest.skip("the POSIX wrapper; bin/seal.cmd is its Windows twin")
         world.cite(clause(V2))
         done = subprocess.run(
-            ["sh", WRAPPER, str(world.api)],
+            ["sh", WRAPPER, "pact", str(world.api)],
             cwd=str(world.tmp),
             capture_output=True,
             encoding="utf-8",
@@ -225,7 +225,7 @@ class Test_load:
             pc.load(str(tmp_path / "gone.py"), "gone")
         assert stopped.value.code == 2
         err = capsys.readouterr().err
-        assert "pact-check: cannot read " in err and "Nothing was read." in err, err
+        assert "seal pact: cannot read " in err and "Nothing was read." in err, err
 
 
 class Test_near_miss:
@@ -540,7 +540,7 @@ class Test_check:
             f"READ {SIGNER_URL} {posix(world.web)} — 2 pact anchors naming `orders-api`"
         ) in out, out
         assert out.endswith(
-            "pact-check: the pact `orders-api` — 1 of 1 signer read · 2 ok · 0 "
+            "seal pact: the pact `orders-api` — 1 of 1 signer read · 2 ok · 0 "
             "superseded · 0 not taken · 0 unmatched · 0 broken"
         ), out
         assert "heads its table" not in out and "does not parse" not in out, out
@@ -610,7 +610,7 @@ class Test_check:
         code, out = world.run()
         assert code == 1, out
         assert f"NOT FOUND {MOBILE_URL} — " in out, out
-        assert "pact-check: the pact `orders-api` — 1 of 2 signers read · " in out, out
+        assert "seal pact: the pact `orders-api` — 1 of 2 signers read · " in out, out
 
     @pytest.mark.parametrize(
         "header", ["Signer", "Signatory"], ids=["Signer", "old_header"]
@@ -779,7 +779,7 @@ class Test_renamed:
         commit(world.api, "the pact as 0.18.0 began it")
         code, out = world.run()
         rename = (
-            "pact-check: seal/pact.md heads its table `| Signatory |`, the word "
+            "seal pact: seal/pact.md heads its table `| Signatory |`, the word "
             "before 0.19.0 — `| Signer |` is the header now; rename it when the "
             "file is next edited"
         )

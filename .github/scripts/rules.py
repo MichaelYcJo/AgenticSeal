@@ -1,23 +1,23 @@
 #!/usr/bin/env python3
-"""rules: a document's sections with what their tests guard, or every check line read.
+"""seal rules: a document's sections with what their tests guard, or every check line read.
 
-  rules <doc>               every heading of DOC, and under each the targets
+  seal rules <doc>          every heading of DOC, and under each the targets
                             of its `check:` lines, each with the first
                             sentence of its docstring, resolved in the
                             repository the current directory is in
-  rules --check             every `check:` line in every rule file read, and
+  seal rules --check        every `check:` line in every rule file read, and
                             each one that is out of grammar or names a target
                             that does not resolve named
-  rules ... --root DIR      resolve in DIR instead
+  seal rules ... --root DIR resolve in DIR instead
 
 A rule's text lives once, as the first sentence of the docstring of the test
-that holds it, and a rule file lists its tests by `check:` line. `rules <doc>`
+that holds it, and a rule file lists its tests by `check:` line. `seal rules <doc>`
 prints the two together so the whole picture reads without a second copy:
 nothing is written, committed or generated, because a committed copy would be
 a second source and a file every branch rewrites.
 
 The grammar of the line is `skills/settle/SKILL.md` *A rule has one shape*,
-and this module is its one reader. `rules --check` reads every rule file
+and this module is its one reader. `seal rules --check` reads every rule file
 `RULE_FILES` names and every line a renderer shows in it, inside a rule
 paragraph or not. One suite case runs it over the tree, so it is read wherever
 the suite runs.
@@ -25,9 +25,9 @@ the suite runs.
 **How it errs:** it cannot tell a test that exists from one that asserts the
 rule, and a rule written with no `check:` line is read by nobody.
 
-Exit codes: `rules <doc>` 0 the document was read, whatever its lines say.
-`rules --check` 0 every line holds, 1 a line is refused, each named as
-`rules: path:line: heading: why`. 2 for either: a file it had to read cannot
+Exit codes: `seal rules <doc>` 0 the document was read, whatever its lines say.
+`seal rules --check` 0 every line holds, 1 a line is refused, each named as
+`seal rules: path:line: heading: why`. 2 for either: a file it had to read cannot
 be read, a module it reads through is not in the tree, or neither or both of
 DOC and `--check` were given.
 """
@@ -305,13 +305,13 @@ def check(root):
     """Print each refusal and the count read; the exit code is the verdict."""
     found, files, lines = unresolved(root)
     for failure in found:
-        print(f"rules: {failure}")
+        print(f"seal rules: {failure}")
     if found:
         print(
-            f"rules: {len(found)} refused in {lines} check lines of {files} rule files."
+            f"seal rules: {len(found)} refused in {lines} check lines of {files} rule files."
         )
         return 1
-    print(f"rules: all {lines} check lines in {files} rule files hold.")
+    print(f"seal rules: all {lines} check lines in {files} rule files hold.")
     return 0
 
 
@@ -400,13 +400,13 @@ def main(argv=None):
     )
     args = parser.parse_args(argv)
     if args.check == (args.doc is not None):
-        sys.stderr.write("rules: name a document, or --check, and not both.\n")
+        sys.stderr.write("seal rules: name a document, or --check, and not both.\n")
         return 2
     root = os.path.abspath(args.root or os.getcwd())
     try:
         if args.root is None:
             # Typed anywhere inside a repository, the command reads that
-            # repository, as `fold-check` does. `bin/` is on a user's PATH,
+            # repository, as `seal fold` does. `bin/` is on a user's PATH,
             # and the tree this script ships in is the plugin's, not theirs.
             root = sibling("optin").repo_root(root) or root
         if args.check:
@@ -420,11 +420,11 @@ def main(argv=None):
             with open(path, encoding="utf-8") as handle:
                 text = handle.read()
         except (OSError, UnicodeDecodeError) as error:
-            sys.stderr.write(f"rules: cannot read {args.doc}: {error}.\n")
+            sys.stderr.write(f"seal rules: cannot read {args.doc}: {error}.\n")
             return 2
         sys.stdout.write(render(root, text))
     except Unreadable as error:
-        sys.stderr.write(f"rules: {error}.\n")
+        sys.stderr.write(f"seal rules: {error}.\n")
         return 2
     return 0
 

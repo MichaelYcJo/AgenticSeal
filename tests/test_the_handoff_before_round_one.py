@@ -127,7 +127,7 @@ def test_the_smiths_definition_mandates_mutating_every_unit_it_added():
     # Since #967 the act is the rule's lead and the moment is its step in
     # `## Order of work`: after the commit, before the narrow checks and the
     # hand-back.
-    assert "Commit, then run `mutation-check` over each unit you added." in smith
+    assert "Commit, then run `seal mutate` over each unit you added." in smith
     assert "Mutation-test every unit you added, one command each." in smith, (
         "`agents/crafter.md` does not mandate mutating what it added, on that "
         "cadence, at that moment. `spec.md` of work item 1788433011 puts the "

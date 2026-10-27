@@ -18,7 +18,7 @@ SpecSeal is a Claude Code plugin. What ships is Python that runs in two places
 a reader should keep separate:
 
 - **`skills/*/scripts/`** — the checkers, run from CI and from a terminal
-  (`fold-check`, `unverified-check`, `pact-check` and the rest), which read a
+  (`seal fold`, `seal unverified`, `seal pact` and the rest), which read a
   repository's records and the files those records name.
 - **`hooks/`** — gates the harness invokes around commits, branch switches and
   session start. Some of them run without anybody asking, which is the whole

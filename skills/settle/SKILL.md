@@ -7,7 +7,7 @@ description: |
   another) as its group's latest decision, checked against the code, decide
   every open row of their records, then remove their directories.
   Use when: preparing a release and the work items have accumulated; a
-  session asks what `seal/threads/` is still holding, or runs `settle`.
+  session asks what `seal/threads/` is still holding, or runs `seal settle`.
   NOT for: gathering changelog fragments, which release preparation
   already does; anything in a work item that has not shipped.
 ---
@@ -28,16 +28,17 @@ tree does not decide and writes it down, and the owner reviews its pull
 request.
 
 ```
-settle                       the dry run: each group of released specs that
+seal settle                  the dry run: each group of released specs that
                              name one section, the specs to read whole, every
                              open row, and what --apply removes
-settle --apply               remove each released directory whose record
+seal settle --apply          remove each released directory whose record
                              holds no open row
-settle --released-at REF     what counts as released (default origin/main)
+seal settle --released-at REF  what counts as released (default origin/main)
 ```
 
-The script is `skills/settle/scripts/settle.py`, and `bin/settle` is on the
-Bash tool's PATH while the plugin is enabled. It needs python 3.12 or newer.
+The script is `skills/settle/scripts/settle.py`, and `seal settle` runs it;
+`bin/seal` is on the Bash tool's PATH while the plugin is enabled. It needs
+python 3.12 or newer.
 Where the `seal/` root is under the common git directory, *In local mode*
 below says what changes.
 
@@ -118,7 +119,7 @@ stays English in every edition.
   more after `reader:`, a path that is no file of the repository, and a
   marker no test carries.
 
-**What this plugin checks, and what it does not.** It ships `rules --check`
+**What this plugin checks, and what it does not.** It ships `seal rules --check`
 (`.github/scripts/rules.py`), which reads every check line in a rule file and
 refuses one the grammar refuses. Whether a target really enforces
 its rule, whether a rule paragraph carries the line at all, and whether two
@@ -130,7 +131,7 @@ review's to find.
 **`<policy root>/README.md` is the index: one table row per topic, naming
 its file.** A row names its documents as backticked paths, a `.ko.md`
 edition on its English edition's row. A framer picks each `file:` from it.
-Where it exists, `fold-check` refuses a top-level document no row names, one
+Where it exists, `seal fold` refuses a top-level document no row names, one
 named on two rows, and a row that names none. A settling session that
 creates the policy root writes the index with it, and after the removals
 `--apply` names the row each new document is owed.
@@ -144,7 +145,7 @@ over an unsettled work item.
 
 ## What the dry run shows
 
-`settle` reads the work items released at `--released-at`, each `spec.md`
+`seal settle` reads the work items released at `--released-at`, each `spec.md`
 as that ref holds it, or in local mode as its directory holds it, and writes
 nothing:
 
@@ -170,7 +171,7 @@ does not parse, an unordered pair and an open row are all shown.
 
 ## The settling session's procedure
 
-1. Run `settle`, the dry run, on the preparation branch.
+1. Run `seal settle`, the dry run, on the preparation branch.
 2. For each group, read every operation in merge order, the section as it
    stands, and the code the rule names, its `check:` targets first. Write
    the section as the latest decision states it, in your own words. Where
@@ -208,7 +209,7 @@ does not parse, an unordered pair and an open row are all shown.
    corpus: a search of the tests' text finds a module only by how it
    spells a path, so no such search lists them all, and step 8 runs every
    one.
-7. Run `settle --apply`.
+7. Run `seal settle --apply`.
 8. Run the repository's `Broad gate` row. It is the one run that reads
    every check. Where a case fails because a pin under `tests/` or a copy
    such as a README row still states the old fact, change that pin or
@@ -233,7 +234,7 @@ does not parse, an unordered pair and an open row are all shown.
 - **It prints, for each directory it removed, the rows its record closed
   with what closed each**, so the pull request body can copy them.
 - **It writes no policy document.** The settling session has written them
-  by then, and `--apply` prints `fold-check`'s lines over the policy root
+  by then, and `--apply` prints `seal fold`'s lines over the policy root
   after the removals.
 
 It exits 0 when it kept nothing, 1 when it kept a directory, and 2 when the
@@ -242,12 +243,12 @@ arguments or the tree are unusable. Its last line counts each.
 **A reference root is history, never input.** A project's own `specs/`, as
 `templates/config.md` *Reference specs* says, is read where the work touches
 what it describes and cited in the `spec.md` whose rule changes it informed.
-`settle` never writes there, and neither does the settling session:
+`seal settle` never writes there, and neither does the settling session:
 `--apply` removes only under `seal/threads/`.
 
 ## In local mode
 
-**In local mode `settle` reads the work items under the common git
+**In local mode `seal settle` reads the work items under the common git
 directory, and a work item is released when the pull request from the
 branch its `routing.md` names has merged, its merge commit reachable from
 `--released-at`.** No ref holds a local work item's directory, so presence
@@ -259,7 +260,7 @@ request's merge commit, whatever the merge method was.
   `<git-common-dir>/seal/threads/<id>/`, and it is printed as
   `seal/threads/<id>/`. The policy root, the tracked files the citations are
   read from, and `tests/` are read from the repository's top.
-- **What released means.** `settle` reads the `Branch` row of each work
+- **What released means.** `seal settle` reads the `Branch` row of each work
   item's `routing.md` and asks
   `gh pr list --head <branch> --state merged --json number,mergeCommit`
   from the repository's top, once per branch. A work item is unreleased,
@@ -269,7 +270,7 @@ request's merge commit, whatever the merge method was.
   request listed with no merge commit among them. Shared mode never asks
   `gh`.
 - **A `gh` that cannot be asked stops the run.** Where `gh` is not on
-  `PATH` or its query fails, `settle` exits 2 with one sentence naming `gh`
+  `PATH` or its query fails, `seal settle` exits 2 with one sentence naming `gh`
   and what it said, and reads and removes nothing. Every work item would
   otherwise read as unreleased, and the run would say there is nothing to
   settle.
@@ -335,7 +336,7 @@ into a comment.
 ## A document past its ceiling is split, never trimmed
 
 After the removals, `--apply` names each document past the `Document token
-ceiling` row in `seal/config.md`, as `fold-check` does, and neither refuses
+ceiling` row in `seal/config.md`, as `seal fold` does, and neither refuses
 it. Such a document is recommended to be split by topic along its own
 headings, in that pull request or a later one, and nothing is cut to fit.
 The plugin sets no ceiling; a repository states its own.

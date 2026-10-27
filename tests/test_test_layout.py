@@ -1,4 +1,4 @@
-"""`test-layout` holds the test layout, and these are its cases (#942).
+"""`seal layout` holds the test layout, and these are its cases (#942).
 
 Every case but one reads fixture text handed to the script's functions, so
 no case builds a repository or runs git: `check` takes the tracked paths
@@ -772,9 +772,9 @@ class Test_moved:
         )
         out = capsys.readouterr().out
         assert code == 0, out
-        assert "moved:" not in out.replace("test-layout: moved:", "")
+        assert "moved:" not in out.replace("seal layout: moved:", "")
         assert out.splitlines()[-1] == (
-            f"test-layout: moved: {cases} old cases, {items} items against {items} "
+            f"seal layout: moved: {cases} old cases, {items} items against {items} "
             f"at {base[:12]}, 0 failed"
         )
         assert others == 0, "the base's worktree was left behind"

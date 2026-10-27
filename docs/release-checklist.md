@@ -92,9 +92,9 @@ whose owner has not called it skips this step, and the work items wait on
 disk for the settle the owner calls.
 
 ```bash
-settle
-settle --apply
-fold-check
+seal settle
+seal settle --apply
+seal fold
 ```
 
 The first prints each group of released specs whose rule changes name one
@@ -103,7 +103,7 @@ Between the first and the second, the session running the settle writes each
 section as its group's latest decision, checked against the code, and closes
 each open row with what closed it, asking nobody. The second removes every
 released work item directory whose record holds no open row, and names any
-it keeps. `fold-check` then reads
+it keeps. `seal fold` then reads
 the documents the settle wrote, and names each one past its ceiling as one
 to split (`skills/settle/SKILL.md` *A document past its ceiling is split,
 never trimmed*). The settle's pull request body states each decision with
@@ -195,7 +195,7 @@ run and swing on the same code, so they are read and never acted on alone.
 **Each release clears what grew.** The test file rows are a report and never
 a ceiling: a heavily exercised module needs the cases it needs. The owner
 reads the rows whose seconds or cases grew most since the tag and sweeps each
-such module with one `bin/mutation-check` call carrying a mutant per class,
+such module with one `bin/seal mutate` call carrying a mutant per class,
 for cases that kill nothing another case does not. The sweep's cuts land in
 a work item of the next release with one line per cut case, the shape
 `CONTRIBUTING.md` *The test layout* gives.

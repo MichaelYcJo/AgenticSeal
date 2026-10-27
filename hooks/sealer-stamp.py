@@ -54,7 +54,7 @@ that is not JSON, a repository that is not opted in, a file that is not a
 stamp's values. That includes a `python3` that cannot load `seal_stamp.py` —
 a hook runs under whatever `python3` the harness finds, and no launcher
 stands in front of it — where this draws nothing and the edit gate's
-message, which names the file and `seal-stamp --from`, is what remains. The same line
+message, which names the file and `seal stamp --from`, is what remains. The same line
 is what remains where the main session's working directory is outside the
 clone the stamp was queued in, and where its plugin predates this hook; `docs/the-review-record.md` *The
 stamp* states these and the places no file is written at all.
@@ -131,7 +131,7 @@ def drawings(stamp, directory):
     one message carries are claimed (`seal_stamp.admitted`, the owner's rule
     of 2026-10-02): the rest stay pending under their own names, and the
     next `Stop` draws them whole. A session that ends first leaves them for
-    `seal-stamp --from`."""
+    `seal stamp --from`."""
     ready = []
     for path in stamp.pending(directory):
         try:

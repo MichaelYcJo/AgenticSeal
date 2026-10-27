@@ -141,11 +141,11 @@ def sealer_grade_gaps(root=EVALS):
             gaps.append(f"{rel(d, root)}: a grader reads the `Broad gate` cell")
         if not any(
             re.search(r"^tool: 'Bash'$", g, re.M)
-            and re.search(r"^input_match: 'broad-gate\\s\+--base'$", g, re.M)
+            and re.search(r"^input_match: 'seal\\s\+gate\\s\+--base'$", g, re.M)
             and re.search(r"^max: 0$", g, re.M)
             for g in graders
         ):
-            gaps.append(f"{rel(d, root)}: no grader bounds `broad-gate --base` at zero")
+            gaps.append(f"{rel(d, root)}: no grader bounds `seal gate --base` at zero")
     return gaps
 
 
@@ -153,10 +153,10 @@ def test_every_sealer_case_grades_the_guarantee():
     """T18. A sealer case grades the verdict line of `guarantee.md`, and none
     grades the `Broad gate` cell the sealer no longer writes.
 
-    #969 T6: every sealer case also bounds a Bash `broad-gate --base` at zero
+    #969 T6: every sealer case also bounds a Bash `seal gate --base` at zero
     calls. The gate is the orchestrator's run before the spawn, and a sealer
     that runs it again passes every other grader the cases have: #957's
-    phase 3 measured the sealer's first act as `broad-gate --record` in six
+    phase 3 measured the sealer's first act as `seal gate --record` in six
     runs of six."""
     gaps = sealer_grade_gaps()
     assert not gaps, gaps
@@ -176,12 +176,12 @@ def test_a_bound_on_the_sealers_run_that_is_not_zero_is_a_gap(tmp_path):
     )
     bound = (
         "---\ntype: 'tool_used'\ntool: 'Bash'\n"
-        "input_match: 'broad-gate\\s+--base'\nmax: 0\nmin: 0\n---\ng\n"
+        "input_match: 'seal\\s+gate\\s+--base'\nmax: 0\nmin: 0\n---\ng\n"
     )
     grader = case / "graders" / "shape-runs-no-broad-gate.md"
     grader.write_text(bound, encoding="utf-8")
     assert sealer_grade_gaps(str(tmp_path)) == []
-    gap = f"{os.path.join('behaviour', 'sealer', 'c')}: no grader bounds `broad-gate --base` at zero"
+    gap = f"{os.path.join('behaviour', 'sealer', 'c')}: no grader bounds `seal gate --base` at zero"
     for old, new in (
         ("max: 0\n", "max: 1\n"),
         ("tool: 'Bash'", "tool: 'Write'"),

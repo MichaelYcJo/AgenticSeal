@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""broad-gate — the one broad run, taken once after the rounds settle.
+"""seal gate — the one broad run, taken once after the rounds settle.
 
 Issue #30. The CLAUDE.md block's **Verification Scope** rule
 (`templates/claude-md-block.md`) says the full suite, the
@@ -107,9 +107,9 @@ in the failure form's own words.
 not the broad gate and replaces no part of the orchestrator's broad run.
 
 Usage:
-  broad-gate --base <ref> [--root DIR] [--record <item>] [--shape]
-             [--keep-output DIR]
-  broad-gate --preflight --base <ref> [--root DIR] [--keep-output DIR]
+  seal gate --base <ref> [--root DIR] [--record <item>] [--shape]
+            [--keep-output DIR]
+  seal gate --preflight --base <ref> [--root DIR] [--keep-output DIR]
 
 Exit codes: 0 passed · 1 failed · 2 refused — no row, no repository, a
 base that does not resolve, a copy of the plugin whose sibling will not
@@ -215,7 +215,7 @@ def load(path, name):
     except Exception as exc:
         said = str(exc) or type(exc).__name__
         raise Refused(
-            f"broad-gate: {path} will not load, so nothing ran: {said}"
+            f"seal gate: {path} will not load, so nothing ran: {said}"
         ) from exc
     return mod
 
@@ -259,7 +259,7 @@ def branch_name(root):
 
 # --- which copy of the gate runs, and the stamp says which ------------------
 #
-# `bin/broad-gate` on the Bash tool's PATH is the installed plugin's, and this
+# `seal gate` on the Bash tool's PATH is the installed plugin's, and this
 # script resolves every arm relative to itself (`PLUGIN`, above). So a branch
 # that changes the gate was measured by the copy that predates the change,
 # and the stamp could not say which copy drew it — #475, measured twice: seven
@@ -386,13 +386,13 @@ def gate_copy(root, plugin=PLUGIN, running=None, installed=None):
 def running_line(root):
     """The one stderr line every run carries once the root has resolved:
     the running copy's absolute path and which copy it is."""
-    return f"broad-gate: gate {os.path.realpath(__file__)} ({copy_origin(root)})"
+    return f"seal gate: gate {os.path.realpath(__file__)} ({copy_origin(root)})"
 
 
 def redirect_line(root, shipped):
     """What `main` writes before handing the run to the tree's own copy."""
     return (
-        f"broad-gate: {root} ships its own gate; running {shipped} "
+        f"seal gate: {root} ships its own gate; running {shipped} "
         f"(tree {plugin_version(root)}) in place of "
         f"{os.path.realpath(__file__)} (plugin {plugin_version(PLUGIN)})"
     )
@@ -503,7 +503,7 @@ def moved_line(root, base):
         )
     if base.given_commit is None:
         return (
-            f"broad-gate: --base {base.given} names no commit in this "
+            f"seal gate: --base {base.given} names no commit in this "
             f"checkout; {reads}. Every check below was asked about {base.ref}."
         )
     # `--left-right` counts each side of the symmetric difference: what the
@@ -516,7 +516,7 @@ def moved_line(root, base):
         behind, ahead = counts.split()
         apart = f" — {base.ref} is {ahead} ahead and {behind} behind {base.given}"
     return (
-        f"broad-gate: --base {base.given} is {base.given_commit} in this "
+        f"seal gate: --base {base.given} is {base.given_commit} in this "
         f"checkout; {reads}{apart}. Every check below was asked about "
         f"{base.ref}."
     )
@@ -673,13 +673,13 @@ def broad_command(home):
     config = load(CONFIG_READER, "specseal_config_for_broad_gate")
     text, refused = config.config_text(home)
     if refused is not None:
-        raise Refused(f"broad-gate: {refused}. Nothing ran")
+        raise Refused(f"seal gate: {refused}. Nothing ran")
     if text is None:
         return None
     value, refused = config.config_value(text, ROW)
     if refused is not None and refused not in config.config_table(text)[1]:
         raise Refused(
-            f"broad-gate: {os.path.join(home, CONFIG)}: {refused}. Nothing ran"
+            f"seal gate: {os.path.join(home, CONFIG)}: {refused}. Nothing ran"
         )
     return value or None
 
@@ -980,7 +980,7 @@ def missing_row(home):
             "outside every fence, or add that table if the file has none."
         )
         return (
-            f"broad-gate: {os.path.join(home, CONFIG)} has a `{ROW}` line and "
+            f"seal gate: {os.path.join(home, CONFIG)} has a `{ROW}` line and "
             "this is it, written inside a code fence:\n"
             f"    {fenced.strip()}\n"
             "A table inside a code fence is an example of the format and not "
@@ -1000,7 +1000,7 @@ def missing_row(home):
         # it. The one act is the person's: take it out of the comment if it
         # is the command to run.
         return (
-            f"broad-gate: {os.path.join(home, CONFIG)} has a `{ROW}` line and "
+            f"seal gate: {os.path.join(home, CONFIG)} has a `{ROW}` line and "
             "this is it, written inside an HTML comment:\n"
             f"    {commented.strip()}\n"
             "A row inside a comment that closes is parked, not this "
@@ -1015,7 +1015,7 @@ def missing_row(home):
             "the file. Nothing ran."
         )
     return (
-        f"broad-gate: {os.path.join(home, CONFIG)} has no `{ROW}` row, so "
+        f"seal gate: {os.path.join(home, CONFIG)} has no `{ROW}` row, so "
         "there is no command to run — and choosing one is not this "
         "session's to do. There is no default because a row is a thing a "
         "person wrote, and what the broad run covers is exactly that "
@@ -1082,7 +1082,7 @@ def walker_refusal(home, mine):
             "that command."
         )
     return (
-        f"broad-gate: {os.path.join(home, CONFIG)} {said}.\n{where}{escape}\n"
+        f"seal gate: {os.path.join(home, CONFIG)} {said}.\n{where}{escape}\n"
         "`templates/config.md` *What is refused, and what stays allowed* is "
         "where the rule says so, and `/agentic:config` is the door to the "
         "file. Nothing ran."
@@ -1174,7 +1174,7 @@ def not_as_written(home, command):
         return None
     rewritten = (value[len(opener) : -1] if opener else value[:-1]).strip()
     return (
-        f"broad-gate: the `{ROW}` row in {os.path.join(home, CONFIG)} {form}, "
+        f"seal gate: the `{ROW}` row in {os.path.join(home, CONFIG)} {form}, "
         f"{does}.\n"
         f"    as written: | {ROW} | {value} |\n"
         f"    as meant:   | {ROW} | {rewritten} |\n"
@@ -1263,7 +1263,7 @@ HANDED = "cmd.exe was handed:"
 def handed_line(name, handed):
     """The one stderr line a rewritten check prints before it runs."""
     return (
-        f"broad-gate: {name} — cmd.exe reads a `/` in a command name as the "
+        f"seal gate: {name} — cmd.exe reads a `/` in a command name as the "
         f"start of a switch, so a command name that starts in a directory has "
         f"its `/` handed to it as `\\`: {handed}"
     )
@@ -2385,14 +2385,14 @@ def coverage_line(text, given):
     left = left_out_clause(text, given)
     if not short:
         return (
-            f"broad-gate: this run answers every one of the {len(steps)} "
+            f"seal gate: this run answers every one of the {len(steps)} "
             f"`{RELEASE_JOB}` steps {WORKFLOW} runs for this base." + left
         )
     classified = {name for name, _, _ in PARTITION}
     excluded = [step for step in short if step in classified]
     unknown = [step for step in short if step not in classified]
     said = (
-        f"broad-gate: {WORKFLOW}'s `{RELEASE_JOB}` job runs {len(steps)} "
+        f"seal gate: {WORKFLOW}'s `{RELEASE_JOB}` job runs {len(steps)} "
         f"steps for this base and this run answers {len(steps) - len(short)}." + left
     )
     if excluded:
@@ -2483,7 +2483,7 @@ def write_gate_file(item, tree, base):
     except FileNotFoundError:
         pass
     except (OSError, UnicodeDecodeError) as exc:
-        raise Refused(f"broad-gate: {path} could not be read ({exc})") from exc
+        raise Refused(f"seal gate: {path} could not be read ({exc})") from exc
     value = kept_runs(held, f"{tree} against {base}")
     name = os.path.basename(os.path.normpath(item))
     text = (
@@ -2500,7 +2500,7 @@ def write_gate_file(item, tree, base):
         with open(path, "w", encoding="utf-8", newline="\n") as handle:
             handle.write(text)
     except OSError as exc:
-        raise Refused(f"broad-gate: {path} could not be written ({exc})") from exc
+        raise Refused(f"seal gate: {path} could not be written ({exc})") from exc
     return path
 
 
@@ -2865,9 +2865,9 @@ PREFLIGHT_TAIL = (
 # was read — every refusal about it still applies — and not handed to a shell.
 ROW_NOT_RUN = " — read, and not run: this is a preflight"
 PREFLIGHT_RECORD = (
-    "broad-gate: --preflight and --record were both given, and a preflight "
+    "seal gate: --preflight and --record were both given, and a preflight "
     "writes nothing — nothing ran. `broad-gate.md` is written by a full run: "
-    "`broad-gate --base <base> --record <item>`. Drop `--record`"
+    "`seal gate --base <base> --record <item>`. Drop `--record`"
 )
 
 
@@ -2885,13 +2885,13 @@ def gate(args, ascii_marks=False):
     root = repo_root(os.path.abspath(args.root or os.getcwd()))
     if root is None:
         raise Refused(
-            f"broad-gate: {args.root or os.getcwd()} is not in a git repository — "
+            f"seal gate: {args.root or os.getcwd()} is not in a git repository — "
             "nothing ran"
         )
     home = seal_home(root)
     if home is None:
         raise Refused(
-            f"broad-gate: {root} has no seal/ root at either place a root lives "
+            f"seal gate: {root} has no seal/ root at either place a root lives "
             "(`<repo>/seal/`, `<git-common-dir>/seal/`, its README.md opening "
             "with the marker) — this repository is not opted in, and there is "
             "no config to read a command from. Nothing ran"
@@ -2911,7 +2911,7 @@ def gate(args, ascii_marks=False):
         raise Refused(unrunnable)
     head = git(root, "rev-parse", "--short", "HEAD")
     if head is None:
-        raise Refused(f"broad-gate: {root} has no HEAD to run over — nothing ran")
+        raise Refused(f"seal gate: {root} has no HEAD to run over — nothing ran")
     # The one read of `args.base` in this file, and the count is held by a
     # case: a seventh consumer written later cannot take the unresolved value
     # without that case going red (`spec.md` *The class, enumerated by
@@ -2926,7 +2926,7 @@ def gate(args, ascii_marks=False):
     base = resolve_base(root, args.base)
     if base.commit is None:
         raise Refused(
-            f"broad-gate: --base {base.given} does not resolve in {root} — nothing "
+            f"seal gate: --base {base.given} does not resolve in {root} — nothing "
             "ran. A base that cannot be checked out is a base nothing can be "
             "compared against"
         )
@@ -2938,7 +2938,7 @@ def gate(args, ascii_marks=False):
             raise Refused(PREFLIGHT_RECORD)
         item = os.path.abspath(args.record)
         if not os.path.isdir(item):
-            raise Refused(f"broad-gate: --record {args.record} is not a directory")
+            raise Refused(f"seal gate: --record {args.record} is not a directory")
     keep = args.keep_output or tempfile.mkdtemp(prefix="broad-gate-")
     os.makedirs(keep, exist_ok=True)
     py = sys.executable
@@ -2953,7 +2953,7 @@ def gate(args, ascii_marks=False):
     if said:
         sys.stderr.write(said + "\n")
     sys.stderr.write(
-        f"broad-gate: `{ROW}` says: {command}"
+        f"seal gate: `{ROW}` says: {command}"
         + (ROW_NOT_RUN if args.preflight else "")
         + "\n"
     )
@@ -3016,7 +3016,7 @@ def gate(args, ascii_marks=False):
             else:
                 verdicts = {f: NO_RECORD_AT_HEAD for f in failing_files(check.text)}
         failures.append((name, failure_lines(check, verdicts, record)))
-    sys.stderr.write(f"broad-gate: outputs kept under {keep}\n")
+    sys.stderr.write(f"seal gate: outputs kept under {keep}\n")
     if failures:
         form = failed_form(tree, base.commit, failures, branch, base.ref)
         if args.preflight:
@@ -3068,7 +3068,7 @@ INVOKED_AS_VAR = "SPECSEAL_BROAD_GATE_INVOKED_AS"
 # The last line of a recorded run that passed (#666): the gate writes
 # `broad-gate.md` into the working tree and commits nothing, and CI reads HEAD.
 CELL_UNCOMMITTED = (
-    "broad-gate: the run is written to {path} and not committed. CI reads "
+    "seal gate: the run is written to {path} and not committed. CI reads "
     "HEAD, so commit it before you push"
 )
 
@@ -3102,7 +3102,7 @@ def main(argv=None, console_wants_ascii=False):
         sys.stderr.write(str(exc) + "\n")
         return 2
     parser = argparse.ArgumentParser(
-        prog="broad-gate",
+        prog="seal gate",
         description="The one broad run, after the rounds settle: the "
         "repository's command and the plugin's checks, then a report that "
         "says whether they passed. It judges nothing and draws nothing.",

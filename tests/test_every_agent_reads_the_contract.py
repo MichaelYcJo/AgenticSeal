@@ -124,7 +124,7 @@ def test_every_file_a_step_names_exists(path):
     names is a file or directory in the tree (S2).
 
     A step opens a skill by its path, so a renamed skill leaves an
-    instruction an agent meets as *file not found* mid-run; `rules --check`
+    instruction an agent meets as *file not found* mid-run; `seal rules --check`
     reads only `check:` targets, and no other case reads the paths a
     step names."""
     assert missing_paths(read(path)) == [], name(path)

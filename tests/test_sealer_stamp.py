@@ -370,7 +370,7 @@ class Test_main:
         self, repo, stop, monkeypatch
     ):
         """A `python3` that cannot load `seal_stamp.py` draws nothing, and the
-        file stays for `seal-stamp --from`."""
+        file stays for `seal stamp --from`."""
         path = pending_for(repo)
         monkeypatch.setattr(hook, "load_stamp", lambda: None)
         assert stop(repo) == ""

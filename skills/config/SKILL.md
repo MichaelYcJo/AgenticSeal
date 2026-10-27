@@ -40,8 +40,8 @@ present hides exactly those.
 | `Commit and pull request language` | English | the commit subject and body, the pull request title and body, and a review report posted as a pull-request comment |
 | `Record language` | English | the prose in `spec.md`, `plan.md`, `overview.md`, `questions.md`, `changelog.md`, and a round record's cells |
 | `Mode` | *the folder decides* | which of the two places the root should live at |
-| `Broad gate` | *none: `broad-gate` refuses without it* | the one shell command line `broad-gate` runs once the review rounds settle: the full suite, the repository-wide lint, the typecheck |
-| `Document token ceiling` | *not declared: no length is checked* | the estimated tokens past which `fold-check` reports a top-level policy document as one to split |
+| `Broad gate` | *none: `seal gate` refuses without it* | the one shell command line `seal gate` runs once the review rounds settle: the full suite, the repository-wide lint, the typecheck |
+| `Document token ceiling` | *not declared: no length is checked* | the estimated tokens past which `seal fold` reports a top-level policy document as one to split |
 | `Policy root` | `docs` | the directory of the ratified policy documents, which the settle writes |
 | `Reference specs` | *every directory named `specs` outside the root* | the directories this repository kept its own specifications in, which the plugin reads as history and never takes |
 | `Pact` | *none: no pact is held elsewhere* | the origin remote URL of the repository holding a pact this repository signs, several separated by `;` |
@@ -49,7 +49,7 @@ present hides exactly those.
 **Every way of not naming a language lands on English**: no file, no such
 row, an empty value, a file that does not parse. Say the default and the
 reason rather than showing a blank. **The `Broad gate` row has no default
-at all**: absent, `broad-gate` names the row and exits 2 with nothing run,
+at all**: absent, `seal gate` names the row and exits 2 with nothing run,
 because what a command nobody chose reports proves nothing. Show it as absent
 and say what happens without it.
 
@@ -82,7 +82,7 @@ pins. No row records that; the file is the record.
   has no parseable row yet, that example would be the table every gate
   reads, and the broad run would run its command. Put the prose under the
   table the repository actually answers in; where the `Broad gate` row exists
-  only inside a fence, `broad-gate` quotes that line and says to move it.
+  only inside a fence, `seal gate` quotes that line and says to move it.
 
   **The two lists and the criterion are pointed at, never copied down.** They
   are the plugin's, they change when the plugin changes, and a frozen copy in
@@ -121,7 +121,7 @@ pins. No row records that; the file is the record.
   - a row, the header or the delimiter row sharing a line with the line
     above, after a form feed or U+2028: give it a line of its own.
 
-  `templates/config.md` says the same at its head. `broad-gate` and
+  `templates/config.md` says the same at its head. `seal gate` and
   `seal mode` print the refusal and run or write nothing, and a hook stays
   silent.
 
@@ -136,12 +136,12 @@ pins. No row records that; the file is the record.
   too. Edit or add it in place, and point at
   `$CLAUDE_PLUGIN_ROOT/templates/config.md` *The fold's values* for what
   each accepts and what an absent one means, rather than restating it. A
-  value `fold-check` will not parse makes it exit 2 naming the row, so run it
+  value `seal fold` will not parse makes it exit 2 naming the row, so run it
   once after the edit.
 - **`Reference specs` or `Pact`** is only a row too. Edit or add it in
   place, and point at `$CLAUDE_PLUGIN_ROOT/templates/config.md`
   *Reference specs* or *Pact* for what each accepts and what an absent one
-  means. A `Pact` row is read strictly by `pact-check` at the pact's
+  means. A `Pact` row is read strictly by `seal pact` at the pact's
   repository, so a value it will not parse is named there.
 - **The mode row moves files.** Run `seal mode local` or `seal mode shared`.
   It moves the root, stages the change and writes the row, so the file and

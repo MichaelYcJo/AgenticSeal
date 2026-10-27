@@ -29,12 +29,12 @@ has to guess, and one who reaches for the record does not.
 
 **It belongs to the orchestrator, and the four conditions of
 `skills/verify/SKILL.md` are the whole of the run.** No agent runs it:
-`broad-gate --base <base> --record <item>` is the command the orchestrator
+`seal gate --base <base> --record <item>` is the command the orchestrator
 types, with nothing else running, and `skills/code-review/orchestration.md`
 *Orchestrator: the pull request opens once the sealer seals* owns when,
 before the sealer is spawned. The run judges no failure and fixes none; the
 sealer reads its record, and what it guarantees after it
-is `docs/the-review-record.md` *The guarantee*. `broad-gate --preflight`,
+is `docs/the-review-record.md` *The guarantee*. `seal gate --preflight`,
 which the orchestrator runs before the broad run, is not this run: it runs
 the gate's record arms, runs no suite, and writes nothing.
 
@@ -154,7 +154,7 @@ and the gate is paid for again.
 
 After every smith or warden segment ends, the orchestrator measures its
 transcript with `skills/verify/scripts/session_cost.py`, typed as
-`session-cost`, and posts the numbers, and what they say, as a comment on one
+`seal cost`, and posts the numbers, and what they say, as a comment on one
 of this repository's two measurement logs. Which of the two is not a filing
 detail: one of them is deleted at every release, so a reading put in the
 wrong one is a reading thrown away, and the paragraph below is what decides
@@ -177,7 +177,7 @@ number, because a number goes stale the moment its issue closes.
 **One command does the lookup, the four readings below, and the post.**
 
 ```
-session-cost --segments <the run's transcript> --post --says <file|->
+seal cost --segments <the run's transcript> --post --says <file|->
 ```
 
 It resolves the label rather than a number, `--label flow-baseline` reaches

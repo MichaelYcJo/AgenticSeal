@@ -2466,16 +2466,30 @@ class Test_module:
             assert defined not in source, defined
         assert "GFM_LINE_RE = re.compile" not in source
 
-    def test_the_wrapper_is_present_and_executable(self):
+    def test_the_command_is_present_and_runs_the_script(self):
         """`bin/` lands on the Bash tool's PATH while the plugin is enabled,
-        so the wrapper resolves the script relative to itself and a .cmd
-        sibling ships for the platform that cannot run a POSIX shebang."""
-        posix = os.path.join(ROOT, "bin", "unverified-check")
-        windows = os.path.join(ROOT, "bin", "unverified-check.cmd")
-        assert os.path.isfile(posix), "bin/unverified-check missing"
-        assert os.path.isfile(windows), "bin/unverified-check.cmd missing"
-        assert os.access(posix, os.X_OK), "bin/unverified-check not executable"
-        assert os.path.isfile(UC.__file__), "the wrapper points at a missing script"
+        so `bin/seal` resolves its script relative to itself, a .cmd sibling
+        ships for the platform that cannot run a POSIX shebang, and
+        `seal unverified` hands its arguments to this script."""
+        posix = os.path.join(ROOT, "bin", "seal")
+        windows = os.path.join(ROOT, "bin", "seal.cmd")
+        assert os.path.isfile(posix), "bin/seal missing"
+        assert os.path.isfile(windows), "bin/seal.cmd missing"
+        assert os.access(posix, os.X_OK), "bin/seal not executable"
+        command = (
+            [os.environ.get("COMSPEC", "cmd.exe"), "/c", windows]
+            if os.name == "nt"
+            else [posix]
+        )
+        done = subprocess.run(
+            [*command, "unverified", "--help"],
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=120,
+        )
+        assert done.returncode == 0, done.stderr
+        assert done.stdout.startswith("usage: seal unverified"), done.stdout
 
     def test_this_repositorys_own_overviews_are_all_readable(self):
         """The corpus is the real test, and it states the rule for new work:

@@ -3,7 +3,7 @@ fenced code block or an HTML comment block, and where can this module not say?
 
 Two readers decide from a markdown file what a person declared:
 `hooks/config.py` (the `| Item | Value |` table, on every Bash call through
-`mode-gate` and `broad-gate`) and `hooks/routing.py` (the routing
+`mode-gate` and `seal gate`) and `hooks/routing.py` (the routing
 declaration, on every commit and at the pull request). A row quoted in a
 fenced example, or parked in an HTML comment, is not a row anybody gave, and
 each reader used to decide that by a rule of its own or by none (#667, #658).

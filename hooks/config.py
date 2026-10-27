@@ -152,7 +152,7 @@ def fence_map(lines, text=None):
     the file through, and this is the same walk with the state it ENDS in
     kept. A fence
     that runs to the end of the file is the one thing about a fence a caller
-    with somebody to tell has to be able to say: `broad-gate` quoting a live
+    with somebody to tell has to be able to say: `seal gate` quoting a live
     `| Broad gate |` row back as *written inside a code fence* and telling the
     person to move it into a table it is already in is a true sentence about a
     cause that is not the real one, which is the failure #429 was opened about
@@ -189,7 +189,7 @@ def hidden_lines(lines, text=None):
     reading would not take it, the second of the three answers
     `docs/the-record-layout.md` *The fold, and what tells it from a
     deletion* gives: a row this hides is no declaration, so a hook says
-    nothing and a gate asks, and `broad-gate` names a fence left open.
+    nothing and a gate asks, and `seal gate` names a fence left open.
 
     **TEXT is the file LINES were split from, and every caller that has it
     passes it** (#667 round 1, 🟡 1). The readers split with
@@ -221,7 +221,7 @@ def hidden_lines(lines, text=None):
         comment quoting a fence no longer hides the live table under it;
       - **a fence that is never closed still hides everything below it**,
         because that is what it did before and a line below it is one the
-        walk is not sure of. `broad-gate` names that fence
+        walk is not sure of. `seal gate` names that fence
         (`broad_gate.py#fence_left_open`), and `seal mode` asks again;
       - a `<!--` nobody closed hides nothing it did not hide before, and
         switches off no fence below it: it is not a construct at all.
@@ -295,7 +295,7 @@ def unfenced(lines, text=None):
         or a run carrying an info string, is content inside the block;
       - an unclosed fence runs to the end of the file, so what it swallows
         lands on *nothing is declared* -- the direction everything in this
-        module fails in, and loud where it matters: `broad-gate` exits 2 with
+        module fails in, and loud where it matters: `seal gate` exits 2 with
         a message and `seal mode` asks the mode question.
 
     A fence opens wherever its line stands, INCLUDING between two rows of a
@@ -631,14 +631,14 @@ def reference_roots(home):
     default. A reference root is defined against the plugin's root, and a
     repository with none has not opted in: the one layout the plugin ever
     read without a root is 0.3.x, whose top-level `specs/` was the plugin's
-    own, and `unverified-check` still reads that spelling as its records. A
+    own, and `seal unverified` still reads that spelling as its records. A
     person
     joining a project runs the bootstrap, which creates the root, before any
     check reads the tree.
 
     **A refusal reads as the default** (#867): a file that will not read, as
     before, and a `Reference specs` row written twice, which `config_value`
-    gives no value. Its caller, `unverified-check`, is not among the commands
+    gives no value. Its caller, `seal unverified`, is not among the commands
     `config_text` names as refusing: what a refusal costs it is the reading
     every repository had before the row existed, and no record is written or
     lost on it."""
@@ -846,7 +846,7 @@ def pact_declaration(text):
     **It refuses in sentences and stops nothing.** The two callers differ on
     exactly that, and the difference is #647's decision 2: a signer's CI
     prints a refusal as a notice and its exit status does not move, while
-    `pact-check`, run at the pact's repository, exits 2 on one.
+    `seal pact`, run at the pact's repository, exits 2 on one.
 
     No row, an empty value, and a file with no table are one state, *no pact
     is held elsewhere* — the direction everything in this module fails in. A
@@ -860,7 +860,7 @@ def pact_declaration(text):
 
     **A table the walker refuses is refused here too** (#871). Its
     sentences are appended after every other refusal: a `Pact` row below
-    the line it stopped at is one the walk never read. `pact-check` exits 2
+    the line it stopped at is one the walk never read. `seal pact` exits 2
     on it and a signer's CI prints it, the split #647 decided.
     """
     rows, walk_refusals = config_table(text)
@@ -888,15 +888,15 @@ def declared_pacts(home):
     **Not the rule the other readers here keep**, and on purpose (round 1 of
     #647, white 5). They answer an unreadable file as no row, because a gate
     that refuses wrongly stops a session with nobody able to get past it.
-    This reader's caller is `pact-check`, run by a person at the pact's
+    This reader's caller is `seal pact`, run by a person at the pact's
     repository, and a signer whose written rows read as absent is the
     silence `pact_declaration` exists to end. So no file is no row, and a
-    file that will not read is None, which `pact-check` refuses as
+    file that will not read is None, which `seal pact` refuses as
     `UNREADABLE`.
 
     Since #867 every command reading a row takes this reader's side, and
     `config_text` is where the two states are told apart for all of them;
-    this is that answer in the shape `pact-check` reads."""
+    this is that answer in the shape `seal pact` reads."""
     text, refusal = config_text(home)
     if refusal is not None:
         return None
@@ -1354,7 +1354,7 @@ def pact_signers(text):
 
 
 def _signer(refusal):
-    """A walk refusal, in the words `pact-check` has always printed for the
+    """A walk refusal, in the words `seal pact` has always printed for the
     pact's table: a row it leaves unread is a signer."""
     return refusal.replace("every row below it", "every signer below it")
 

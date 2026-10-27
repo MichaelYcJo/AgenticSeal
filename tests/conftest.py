@@ -299,7 +299,7 @@ def gathered_entry(root, work_item_id):
     A changelog fragment moves once, the way a ledger fragment does:
     `gather_changelog.py` writes `<!-- specs/<id> -->` above the fragment's
     body in the release's own file, `changelog/X.Y.Z.md` since #728, and
-    `settle --apply` later removes the directory the fragment lived in. So a
+    `seal settle --apply` later removes the directory the fragment lived in. So a
     case pinning what a fragment says reads the fragment while it exists and
     this block after. The block runs from the marker to the next marker line
     or heading, which is where the gatherer puts the next entry.

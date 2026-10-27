@@ -448,7 +448,7 @@ def _node_arms(node: ast.AST, scope: str, source: str) -> list[Arm]:
         group, withouts = _group_of(members, joiner, test, source)
         # `strict=` is the explicitness B905 asks for and it arrived in 3.10.
         # This script has no version floor and runs under whatever `python3`
-        # `bin/arm-check` finds -- measured on macOS's own, a 3.9, where it
+        # `seal arms` runs on -- measured on macOS's own, a 3.9, where it
         # enumerates this repository's guard and exits 0. `strict=True` would
         # kill it there after argument parsing and the whole walk had
         # succeeded, which is #226 exactly: the message names neither the
@@ -1168,7 +1168,7 @@ def command_words(text, windows=None):
     back `C:pypython.exe`, and nothing could start it (PR #939's
     `windows-latest` leg). There a backslash is the path separator, so it is
     kept, and a quote still groups a word. How it errs: on Windows a `\\"`
-    is not an escaped quote. `mutation-check`'s and `arm-check`'s `--tests`
+    is not an escaped quote. `seal mutate`'s and `seal arms`'s `--tests`
     are split here.
 
     `windows` defaults to this machine's, and is an argument so both
@@ -1187,7 +1187,7 @@ def command_words(text, windows=None):
 def main(argv=None):
     """Enumerate a module's arms, or run them, from the command line."""
     parser = argparse.ArgumentParser(
-        prog="arm-check",
+        prog="seal arms",
         description=(
             "Enumerate a module's arms from its own syntax tree and report "
             "the ones no case kills."

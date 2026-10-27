@@ -197,7 +197,7 @@ def test_the_skill_states_the_closing_convention():
     """The writer of a row is the one who has to know how it closes."""
     skill = collapsed("skills", "implement", "SKILL.md")
     assert "closed by marking it, never by deleting it" in skill
-    assert "unverified-check --baseline" in skill
+    assert "seal unverified --baseline" in skill
     # #945 took the step out of CI: a deleted row is the warden's to read in
     # the overview's diff, and no check at the pull request refuses it.
     assert "No check at the pull request refuses a deleted row" in skill
@@ -249,7 +249,7 @@ def test_the_documents_state_the_merge_base_footing(doc, tip, false_sentence):
     these files had reason to name a merge base."""
     text = open(os.path.join(ROOT, doc), encoding="utf-8").read()
     assert "merge-base" in text or "merge base" in text, (
-        f"{doc} describes `unverified-check --baseline` and does not say the "
+        f"{doc} describes `seal unverified --baseline` and does not say the "
         "comparison is against the merge base"
     )
     flat_text = " ".join(text.replace("#", " ").split())

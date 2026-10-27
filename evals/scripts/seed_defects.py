@@ -24,7 +24,7 @@ rule, since the tree at round 1's target holds the defects round 1 found.
 The seed lands on no line the window of such a finding accepts. A real
 defect that runs recurred on is a truth of the case too, where
 `recurred_truths.json` adds it (`replay_targets.py#truths_with`). The
-operators are `mutation-check`'s vocabulary, a replacement that lands
+operators are `seal mutate`'s vocabulary, a replacement that lands
 exactly once in the file.
 
 A case keeps the name `seeded-<the squash commit's first 8 hex>`, which

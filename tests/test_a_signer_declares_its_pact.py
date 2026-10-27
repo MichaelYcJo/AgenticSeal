@@ -42,7 +42,7 @@ def test_s4_the_configs_this_plugin_writes_or_copies_are_silent():
     and without the `Pact` row `orchestration.md` writes into the table --
     and `templates/config.md` copied whole, which
     `skills/commit-pr-convention/SKILL.md` tells a session to do, give no
-    refusal to the reader `pact-check` reads strictly. Each is read from the
+    refusal to the reader `seal pact` reads strictly. Each is read from the
     tree, not retyped."""
     seal = load_hook_module(
         os.path.join("..", "skills", "implement", "scripts", "seal.py"),

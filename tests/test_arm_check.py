@@ -852,7 +852,7 @@ class Test_module:
 
         # A real cache entry, made the way an import makes one. Writing is
         # switched on for it, because this suite runs under
-        # `PYTHONDONTWRITEBYTECODE=1` whenever `arm-check` or `mutation-check`
+        # `PYTHONDONTWRITEBYTECODE=1` whenever `seal arms` or `seal mutate`
         # mutates this module, and the import would then write nothing.
         monkeypatch.setattr(sys, "dont_write_bytecode", False)
         spec = importlib.util.spec_from_file_location(
@@ -1023,7 +1023,7 @@ class Test_arms:
     @NEEDS_T_STRINGS
     def test_a_module_holding_a_t_string_is_read_rather_than_refused(self):
         """S1 of work item 1790690762. `TemplateStr` and `Interpolation` were in
-        neither table, so on a 3.14 `python3` `arm-check` refused any file with a
+        neither table, so on a 3.14 `python3` `seal arms` refused any file with a
         t-string in it. The arms around and inside one are counted now.
 
         Red how: on Python 3.14 at `346b4af7`, `UnknownNodeType` naming
@@ -1390,7 +1390,7 @@ class Test_run_arms:
         probe.write_text(SEES_CACHE, encoding="utf-8")
 
         # Plant a cache the way an ordinary import does. `hooks/__pycache__` holds
-        # one for `review-history-guard.py` before `arm-check` is ever run,
+        # one for `review-history-guard.py` before `seal arms` is ever run,
         # because this repository's own suite imports it. Writing is switched on
         # for the plant for the reason the case above gives.
         monkeypatch.setattr(sys, "dont_write_bytecode", False)
@@ -1434,7 +1434,7 @@ class Test_run_arms:
         source tree under the prefix, and CPython joins the prefix as given
         (`importlib._bootstrap_external.cache_from_source`). So a RELATIVE prefix
         is read against the directory of the process that imports: the cases'
-        `--cwd`, not `arm-check`'s. Cleared from `arm-check`'s, the stale `.pyc`
+        `--cwd`, not `seal arms`'s. Cleared from `seal arms`'s, the stale `.pyc`
         stays exactly where the cases read it — the defect the clear exists for.
 
         The path the cases read is taken from `cache_from_source` itself, with
@@ -2452,7 +2452,7 @@ class Test_main:
         self, two_arms, tmp_path, capsys, monkeypatch, change
     ):
         """Round 1's 🟡 1. The first run sits outside the `try` whose `finally`
-        restores, so nothing `arm-check` does there writes the module. The cases
+        restores, so nothing `seal arms` does there writes the module. The cases
         can, though: a formatter's round-trip test or a generator that rewrites a
         file in place. At `a340221b` every run ended with the module put back
         from the bytes held, and a refusal must not be the one path that keeps

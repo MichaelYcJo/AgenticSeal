@@ -39,7 +39,7 @@ Run the tests for the slice you touched while you work, and your module and
 the ones it touches at a phase boundary. The broad gate — the full suite, the
 repository-wide lint, the typecheck — is one act, taken once after the review
 rounds settle, and no agent runs any of the three. The orchestrator runs
-`broad-gate --base <base> --record <item>` with nothing else running, then
+`seal gate --base <base> --record <item>` with nothing else running, then
 spawns the sealer, which reads the record that run wrote. Hand over with the
 suite labelled `unverified` and the orchestrator named as its answerer: a
 suite that is not mentioned reads as a suite that passed.

@@ -46,7 +46,7 @@ def test_smith_commits_before_it_mutates():
         "the mutation-loop rule is gone; a loop reverting with "
         "`git checkout --` restores HEAD and takes uncommitted fixes with it"
     )
-    assert "restore from `mutation-check`'s copy" in smith, (
+    assert "restore from `seal mutate`'s copy" in smith, (
         "the rule kept the commit half and lost the restore half, and the "
         "restore half is the one that deleted a round's work"
     )

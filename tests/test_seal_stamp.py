@@ -368,7 +368,7 @@ class Test_module:
         assert stamp.MESSAGE_BUDGET == stamp.MESSAGE_LIMIT - 1000
 
     def test_the_sample_carries_every_row_a_sealed_guarantee_draws(self):
-        """`seal-stamp` with no arguments shows what a stamp draws, so its
+        """`seal stamp` with no arguments shows what a stamp draws, so its
         labels are `guarantee_rows`' with every conditional row present, in
         order, and each value in the shape that function writes it."""
         rows = stamp.guarantee_rows("c46fd2db", "feature", "1e2bed90", "1", "c46", 3)
@@ -393,13 +393,13 @@ class Test_module:
                 assert row[1].startswith("✓ ") == given[1].startswith("✓ ")
 
     def test_accepts_the_command_a_person_types_on_a_pipe(self):
-        """`bin/seal-stamp` with stdout a pipe draws the twin: the form is
+        """`bin/seal stamp` with stdout a pipe draws the twin: the form is
         asked of the stream before `__main__` reconfigures it."""
-        wrapper = ROOT / "bin" / "seal-stamp"
+        wrapper = ROOT / "bin" / "seal"
         command = (
-            [os.environ.get("COMSPEC", "cmd.exe"), "/c", f"{wrapper}.cmd"]
+            [os.environ.get("COMSPEC", "cmd.exe"), "/c", f"{wrapper}.cmd", "stamp"]
             if os.name == "nt"
-            else [str(wrapper)]
+            else [str(wrapper), "stamp"]
         )
         out = subprocess.run(
             command,
@@ -454,7 +454,7 @@ class Test_read_chart:
         with pytest.raises(ValueError) as refused:
             stamp.read_chart(str(broken))
         assert str(refused.value) == (
-            f"seal-stamp: the disc's mark chart {broken} is not 28 lines of 28 "
+            f"seal stamp: the disc's mark chart {broken} is not 28 lines of 28 "
             f"characters over `.M` with every `M` inside the disc's field ({fault}). "
             "Nothing was drawn."
         )
@@ -1042,14 +1042,14 @@ class Test_read_values:
         with pytest.raises(ValueError) as refused:
             stamp.read_values(str(path))
         said = str(refused.value)
-        assert said.startswith(f"seal-stamp: {path} is not a stamp's values file: ")
+        assert said.startswith(f"seal stamp: {path} is not a stamp's values file: ")
         assert why in said and said.endswith("Nothing was drawn."), said
 
     def test_refuses_a_file_that_cannot_be_read(self, tmp_path):
         missing = tmp_path / "gone.json"
         with pytest.raises(ValueError) as refused:
             stamp.read_values(str(missing))
-        assert str(refused.value).startswith(f"seal-stamp: {missing} cannot be read (")
+        assert str(refused.value).startswith(f"seal stamp: {missing} cannot be read (")
 
 
 class Test_pending:

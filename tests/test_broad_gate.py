@@ -574,7 +574,7 @@ class Test_moved_line:
         )
         line = gate.moved_line(root, base)
         assert line == (
-            f"broad-gate: --base solo is {base.given_commit} in this checkout; CI "
+            f"seal gate: --base solo is {base.given_commit} in this checkout; CI "
             f"reads origin/solo, which is {base.commit} — origin/solo is 1 ahead "
             "and 0 behind solo. Every check below was asked about origin/solo."
         )
@@ -592,7 +592,7 @@ class Test_moved_line:
         root, _first, _second = refs
         base = gate.Base("gone", None, "origin/gone", short(root, "origin/gone"))
         assert gate.moved_line(root, base).startswith(
-            "broad-gate: --base gone names no commit in this checkout; CI reads"
+            "seal gate: --base gone names no commit in this checkout; CI reads"
         )
 
     def test_accepts_a_spelling_no_runner_could_hold_without_naming_one(self, refs):
@@ -711,7 +711,7 @@ class Test_broad_command:
     def test_refuses_a_file_that_will_not_read(self, tmp_path):
         mark_root(tmp_path / "seal")
         (tmp_path / "seal" / "config.md").write_bytes(b"| Item | Value |\n\xff\xfe\n")
-        with pytest.raises(gate.Refused, match=r"^broad-gate: .*Nothing ran$"):
+        with pytest.raises(gate.Refused, match=r"^seal gate: .*Nothing ran$"):
             gate.broad_command(str(tmp_path / "seal"))
 
 
@@ -983,7 +983,7 @@ class Test_run:
         )
         kept = pathlib.Path(check.path).read_text(encoding="utf-8").splitlines()
         assert kept[:2] == ["$ bin/echo hi", "cmd.exe was handed: bin\\echo hi"]
-        assert "broad-gate: suite — cmd.exe reads a `/`" in capsys.readouterr().err
+        assert "seal gate: suite — cmd.exe reads a `/`" in capsys.readouterr().err
 
     def test_a_rewritten_row_is_kept_and_said_beside_the_row_as_written(
         self, tree, tmp_path, monkeypatch, capsys
@@ -1012,7 +1012,7 @@ class Test_run:
             "exit 0",
         ], kept
         assert capsys.readouterr().err == (
-            "broad-gate: suite — cmd.exe reads a `/` in a command name as the start "
+            "seal gate: suite — cmd.exe reads a `/` in a command name as the start "
             "of a switch, so a command name that starts in a directory has its `/` "
             f"handed to it as `\\`: {HANDED}\n"
         )
@@ -1831,7 +1831,7 @@ class Test_coverage_line:
             "the mode the row declares is the mode the folder is in",
         )
         assert gate.coverage_line(text, "main") == (
-            "broad-gate: this run answers every one of the 1 `release` steps "
+            "seal gate: this run answers every one of the 1 `release` steps "
             f"{gate.WORKFLOW} runs for this base."
         )
 
@@ -2367,7 +2367,7 @@ class Test_gate:
         assert not (repo / ".git" / "agentic-stamp").exists()
         cell = (repo / ITEM / "trail" / "gate.md").read_text(encoding="utf-8")
         assert f"| {ROW} | {tree} against {base} |" in cell
-        assert f"broad-gate: `{ROW}` says: {SUITE_ROW}" in out.stderr
+        assert f"seal gate: `{ROW}` says: {SUITE_ROW}" in out.stderr
 
     def test_accepts_a_failure_the_base_shares_as_failing_on_base_too(
         self, repo, tmp_path, capsys
@@ -2571,7 +2571,7 @@ class Test_main:
         )
         assert out.returncode == 3
         assert "STUB GATE RAN" in out.stdout and "'--x'" in out.stdout
-        assert f"broad-gate: {repo} ships its own gate; running" in out.stderr
+        assert f"seal gate: {repo} ships its own gate; running" in out.stderr
 
     def test_refuses_to_leave_the_invoked_path_for_a_check_to_read(
         self, tmp_path, monkeypatch, capsys
@@ -2581,7 +2581,7 @@ class Test_main:
         assert gate.main(["--base", "base", "--root", str(tmp_path)]) == 2
         assert gate.INVOKED_AS_VAR not in os.environ
         err = capsys.readouterr().err
-        assert f"broad-gate: gate {os.path.realpath(ROOT / TARGET)} (plugin " in err
+        assert f"seal gate: gate {os.path.realpath(ROOT / TARGET)} (plugin " in err
 
     def test_refuses_a_copy_whose_sibling_will_not_load(self, tmp_path):
         scripts = tmp_path / "plugin" / "skills" / "verify" / "scripts"
@@ -2619,11 +2619,17 @@ class Test_main:
         assert "ships its own gate" not in captured.err
 
     def test_accepts_the_command_a_person_types(self):
-        wrapper = ROOT / "bin" / "broad-gate"
+        wrapper = ROOT / "bin" / "seal"
         command = (
-            [os.environ.get("COMSPEC", "cmd.exe"), "/c", f"{wrapper}.cmd", "--help"]
+            [
+                os.environ.get("COMSPEC", "cmd.exe"),
+                "/c",
+                f"{wrapper}.cmd",
+                "gate",
+                "--help",
+            ]
             if os.name == "nt"
-            else [str(wrapper), "--help"]
+            else [str(wrapper), "gate", "--help"]
         )
         out = subprocess.run(
             command,
@@ -2633,7 +2639,7 @@ class Test_main:
             timeout=120,
         )
         assert out.returncode == 0, out.stderr
-        assert out.stdout.startswith("usage: broad-gate")
+        assert out.stdout.startswith("usage: seal gate")
 
     def test_the_fixture_branch_passes(self, tmp_path):
         """The other cases' starting point: every arm passes on the fixture, so a

@@ -17,7 +17,7 @@ has gone wrong in this repository's history:
 
 So this is the loop as one command:
 
-    mutation-check <file> --replace OLD NEW --tests "<command>" [--timeout S]
+    seal mutate <file> --replace OLD NEW --tests "<command>" [--timeout S]
 
 It refuses a replacement that does not land exactly once, before anything is
 run. It runs the command once against the file as it is, and goes on only if
@@ -39,14 +39,14 @@ own output. The bound applies to each of the two runs.
   not restored     exit 2   the file on disk may still hold the mutation
   interrupted      exit 2   Ctrl-C; the run was ended and the file restored
 
-Exit 2 is everything that measured nothing, so `mutation-check ... &&
-mutation-check ...` stops at the first unit nothing watches or the first run
+Exit 2 is everything that measured nothing, so `seal mutate ... &&
+seal mutate ...` stops at the first unit nothing watches or the first run
 that could not say.
 
 **Several mutants in one call.** `--replace OLD NEW` given more than once is
 a batch, #942's instrument for a module's sample of mutants:
 
-    mutation-check <file> --replace OLD1 NEW1 --replace OLD2 NEW2 ... --tests "<command> -x"
+    seal mutate <file> --replace OLD1 NEW1 --replace OLD2 NEW2 ... --tests "<command> -x"
 
 Every pair is checked against the file as it is before anything runs, and
 one that does not land exactly once refuses the whole batch, naming the
@@ -65,7 +65,7 @@ that notices it. One pair is the single run above, printed as it always was.
 **The bound ends what the run started, not only the process it spawned.**
 `subprocess.run`'s timeout kills the direct child, and `bin/test` execs a
 runner that starts pytest as a child of its own, so a run bounded that way
-leaves the suite running past the verdict -- #313 measured it on `arm-check`,
+leaves the suite running past the verdict -- #313 measured it on `seal arms`,
 and the case for S5 re-measures it here. On POSIX the command runs in a
 session of its own and a timed-out run's whole process group is killed; so
 is the group of a run that exited, which ends whatever the cases left
@@ -490,7 +490,7 @@ def _put_back(path: str, original: bytes, original_sha: str, cwd: str) -> None:
 def main(argv=None) -> int:
     """Run one mutation from the command line and print its verdict."""
     parser = argparse.ArgumentParser(
-        prog="mutation-check",
+        prog="seal mutate",
         description=(
             "Run one mutation of one unit, or one per --replace pair: write "
             "it, run the cases, restore the file from held bytes, and say "
@@ -629,7 +629,7 @@ def _report_batch(results, started: float) -> int:
             print(output.rstrip("\n"), flush=True)
     red, survived = verdicts.count(RED), verdicts.count(SURVIVED)
     print(
-        f"mutation-check: {len(verdicts)} mutants, {red} red, {survived} "
+        f"seal mutate: {len(verdicts)} mutants, {red} red, {survived} "
         f"SURVIVED, {len(verdicts) - red - survived} with no verdict "
         f"({time.monotonic() - started:.1f}s)",
         flush=True,

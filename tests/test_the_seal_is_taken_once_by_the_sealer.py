@@ -927,7 +927,7 @@ def test_the_sealer_names_the_one_write_its_definition_is_allowed():
     `guarantee.md`, and `broad-gate.md` is the gate's, through its command."""
     text = " ".join(sealer_text().split())
     assert "rule 6" in text, "the sealer cannot reach the rule that names its one write"
-    assert "through `broad-gate --record`" in text, (
+    assert "through `seal gate --record`" in text, (
         "the gate's file does not name the command that makes it, so the "
         "sealer cannot tell its own write from the gate's"
     )

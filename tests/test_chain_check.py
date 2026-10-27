@@ -2686,7 +2686,7 @@ class Test_guarantee:
                 "writes the new word"
             ) in line, line
             assert (
-                "otherwise run `broad-gate --base <base> --record <item>` and "
+                "otherwise run `seal gate --base <base> --record <item>` and "
                 "commit `trail/gate.md` first"
             ) in line, line
             assert "still stands" not in line, line
@@ -3568,7 +3568,7 @@ class Test_retired:
 class Test_module:
     def test_every_reader_of_a_retirement_calls_the_one_predicate(self):
         """Two parties ask whether a removed directory was settled,
-        `unverified-check --baseline` and this one, and a predicate spelled in
+        `seal unverified --baseline` and this one, and a predicate spelled in
         each would take the next condition in one and not the other. The
         behaviour is pinned per reader in its own module; this pins that this
         one reaches the answer by calling `settled` on the module that owns
