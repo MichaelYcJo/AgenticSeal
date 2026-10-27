@@ -85,7 +85,7 @@ def values(rows=ROWS, **changed):
         "from": "origin/base",
         "branch": "feat/x",
         "pr": "#12",
-        "item": "/x/seal/specs/1799000000-an-item",
+        "item": "/x/seal/threads/1799000000-an-item",
         "session": "s-1",
         "rows": rows,
     }
@@ -100,7 +100,7 @@ def full_values(tree="aaa1111a"):
         rows=FULL_ROWS,
         tree=tree,
         base="bbb2222b",
-        item=f"/x/seal/specs/1799000000-{name}",
+        item=f"/x/seal/threads/1799000000-{name}",
         branch=f"feat/12-{name}",
         **{"from": "origin/release/v1.2.3"},
     )
@@ -196,7 +196,7 @@ class Test_load_stamp:
 
 class Test_drawings:
     def test_accepts_the_oldest_file_first_and_claims_what_it_draws(self, repo):
-        second = pending_for(repo, now=2, item="/x/seal/specs/1799000001-another")
+        second = pending_for(repo, now=2, item="/x/seal/threads/1799000001-another")
         first = pending_for(repo, now=1)
         directory = os.path.dirname(first)
         drawn = []
@@ -306,7 +306,7 @@ class Test_main:
         assert message(stop(repo / "docs" / "deep")).startswith(LABEL)
         tree = tmp_path / "tree"
         git(repo, "worktree", "add", "-q", str(tree))
-        pending_for(repo, item="/x/seal/specs/1799000001-another")
+        pending_for(repo, item="/x/seal/threads/1799000001-another")
         assert message(stop(tree)).split("\n", 1)[0].endswith("1799000001-another")
 
     @pytest.mark.parametrize(

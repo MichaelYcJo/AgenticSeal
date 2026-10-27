@@ -41,7 +41,7 @@ ROOT = os.path.join(os.path.dirname(__file__), "..")
 
 
 # Keyed BY FILE. A flat set exempts a line in EVERY document, and round 4
-# pasted a `SKILL.md` exemption into `templates/sdd-overview.md` — the file a
+# pasted a `SKILL.md` exemption into `templates/sdd-gaps.md` — the file a
 # session actually types into — and it passed.
 #
 # What this costs, recorded because round 4 found it unrecorded: re-wrapping
@@ -104,7 +104,7 @@ def test_the_top_rung_names_behaviour_rather_than_a_count():
     for parts in (
         ("skills", "implement", "SKILL.md"),
         ("agents", "smith.md"),
-        ("templates", "sdd-overview.md"),
+        ("templates", "sdd-gaps.md"),
         ("templates", "sdd-plan.md"),
     ):
         text = read(*parts)
@@ -422,18 +422,18 @@ def test_the_file_set_names_who_writes_each_file():
         # wrong cell rather than say the table is malformed.
         cells = cells_of(line)
         rows[cells[0]] = dict(zip(columns, cells, strict=True))
-    for name in ("`spec.md`", "`plan.md`", "`questions.md`"):
+    for name in ("`frame/design.md`", "`frame/plan.md`", "`frame/questions.md`"):
         assert "framer" in rows[name]["Written by"], (
             f"{name} is no longer the framer's in the file table, which is the "
             "one place a session reads the set as a whole"
         )
-    for name in ("`overview.md`", "`phases/phase-N.md`"):
+    for name in ("`gaps.md`", "`trail/phases/phase-N.md`"):
         assert "builder" in rows[name]["Written by"], (
             f"{name} is what the building found, so its author is whoever "
             "built it. A table that hands it to the framer asks for a memo "
             "written before the work it is about"
         )
-    assert "Approved <date> by <who>" in rows["`plan.md`"]["Holds"], (
+    assert "Approved <date> by <who>" in rows["`frame/plan.md`"]["Holds"], (
         "the file table stops naming the approval line, so the only document "
         "that describes the whole set never mentions the record of the gate"
     )

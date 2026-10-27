@@ -461,7 +461,7 @@ class Test_parse:
 
         root = os.path.join(os.path.dirname(__file__), "..")
         found = sorted(
-            glob.glob(os.path.join(root, "seal", "specs", "*", "routing.md"))
+            glob.glob(os.path.join(root, "seal", "threads", "*", "routing.md"))
         )
         # `assert found` and the vacuity guard over `omitted` stood here, and both
         # were floors a fold turns red (#517). The first asked whether the glob
@@ -471,7 +471,7 @@ class Test_parse:
         # optional row, which is a question about what the repository happens to
         # hold, and it moves to
         # `test_an_absent_optional_row_reads_as_nothing_over_a_built_declaration`.
-        specs = os.path.join(root, "seal", "specs")
+        specs = os.path.join(root, "seal", "threads")
         listed = sorted(
             os.path.join(specs, n, "routing.md")
             for n in (os.listdir(specs) if os.path.isdir(specs) else [])
@@ -497,7 +497,7 @@ class Test_parse:
 class Test_declarations:
     def test_accepts_a_declaration_under_the_repositorys_root(self, tmp_path):
         repo = opted_in_repo(tmp_path / "declared" / "repo")
-        item = repo / "seal" / "specs" / "1780000000-work"
+        item = repo / "seal" / "threads" / "1780000000-work"
         item.mkdir(parents=True)
         (item / "routing.md").write_text(two_axis_text(), encoding="utf-8")
         found = routing.declarations(str(repo))
@@ -573,7 +573,7 @@ class Test_module:
         import routing
 
         repo = opted_in_repo(tmp_path / "declared" / "repo")
-        item = repo / "seal" / "specs" / "1780000000-work"
+        item = repo / "seal" / "threads" / "1780000000-work"
         item.mkdir(parents=True)
         # Valid UTF-16, which is not valid UTF-8 anywhere in it.
         (item / "routing.md").write_bytes(
@@ -587,7 +587,7 @@ class Test_module:
         The commit gate's case for a malformed declaration runs the hook; this
         one asks the reader."""
         repo = opted_in_repo(tmp_path / "declared" / "repo")
-        specs = repo / "seal" / "specs"
+        specs = repo / "seal" / "threads"
         (specs / "1780000000-prose").mkdir(parents=True)
         (specs / "1780000000-prose" / "routing.md").write_text(
             "we decided to go through the review chain.\n", encoding="utf-8"
@@ -642,7 +642,7 @@ class Test_module:
         `tests/test_settle.py` holds `settle.py#SPECS` to the same, and
         `tests/test_a_reference_root_is_read_and_never_taken.py` classifies
         every shipped command by what keeps it off a reference root."""
-        assert routing.WORK_ITEMS == "seal/specs"
+        assert routing.WORK_ITEMS == "seal/threads"
 
 
 test_census = census_case(TARGET)

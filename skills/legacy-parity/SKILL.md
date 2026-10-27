@@ -28,7 +28,7 @@ check: none reader: the parity review
 
 A migrating repository commits `seal/parity.md`, written from
 `templates/parity.md`, which holds its fields. A machine-local checkout path
-never goes in it: it lives in `~/.claude/specseal/parity-paths.md`, keyed by
+never goes in it: it lives in `~/.claude/agentic/parity-paths.md`, keyed by
 the origin remote URL, so worktrees and second checkouts resolve to one entry.
 
 The original resolves in this order: the recorded path, a sibling directory of

@@ -308,7 +308,7 @@ class Test_reference_roots:
             ):
                 assert config.under_reference_root(rel, roots), rel
             for rel in (
-                "seal/specs/1790000000-x/spec.md",
+                "seal/threads/1790000000-x/spec.md",
                 "docs/spec.md",
                 "specsheet/a",
             ):
@@ -360,13 +360,17 @@ class Test_reference_roots:
     def test_the_plugins_own_root_is_never_a_reference_root(self, tmp_path):
         """A reference root is outside the root by definition; a prefix naming
         `seal/` or anything under it is dropped, and the default never reaches
-        `seal/specs/` either."""
+        `seal/threads/` either."""
         home = str(tmp_path / "seal")
-        write_config(home, table(("Reference specs", "seal/specs, seal, specs")))
+        write_config(home, table(("Reference specs", "seal/threads, seal, specs")))
         roots = config.reference_roots(home)
         assert roots == ("specs",), roots
-        assert not config.under_reference_root("seal/specs/1790000000-x/spec.md", roots)
-        assert not config.under_reference_root("seal/specs/1790000000-x/spec.md", None)
+        assert not config.under_reference_root(
+            "seal/threads/1790000000-x/spec.md", roots
+        )
+        assert not config.under_reference_root(
+            "seal/threads/1790000000-x/spec.md", None
+        )
         optin = load_hook_module("optin.py", "optin_for_the_root_name")
         assert config.HOME == optin.HOME, "the reader spells the root another way"
 

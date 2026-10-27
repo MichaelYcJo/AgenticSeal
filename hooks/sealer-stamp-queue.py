@@ -4,7 +4,7 @@
 
 The stamp is queued where the verdict comes to read `sealed`: at the write,
 in shared mode as in local mode (`docs/the-review-record.md` *The stamp*).
-After a `Write` or `Edit` whose file is `…/seal/specs/<id>/guarantee.md`, it
+After a `Write` or `Edit` whose file is `…/seal/threads/<id>/guarantee.md`, it
 hands the path and the payload's session to
 `seal_stamp.queue_for_written_guarantee`, which says whether the file is the
 guarantee under the repository's root in force and whether its verdict
@@ -22,7 +22,7 @@ nothing here.
 
 The group runs this after every file edit in every repository. So the edit's
 shape is matched first, from the payload alone: a `Write` or `Edit`, a
-session, and a path ending `/seal/specs/<id>/guarantee.md`. `seal_stamp.py`
+session, and a path ending `/seal/threads/<id>/guarantee.md`. `seal_stamp.py`
 is loaded only after that, and it is this gate's only way to `git`. Every
 failure is silent: the stamp is a thing shown to a person and never a reason
 to stop an edit.
@@ -44,11 +44,11 @@ STAMP = os.path.join(
 TOOLS = ("Write", "Edit")
 # Matched against the path with `/` for every separator, so a Windows path
 # matches as a POSIX one does.
-GUARANTEE = re.compile(r"/seal/specs/[^/]+/guarantee\.md$")
+GUARANTEE = re.compile(r"/seal/threads/[^/]+/guarantee\.md$")
 
 
 def shaped(path):
-    """Whether `path` ends in `/seal/specs/<id>/guarantee.md`."""
+    """Whether `path` ends in `/seal/threads/<id>/guarantee.md`."""
     normal = os.path.normpath(path).replace(os.sep, "/")
     return bool(GUARANTEE.search(normal))
 

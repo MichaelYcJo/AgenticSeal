@@ -205,7 +205,7 @@ class Test_main:
         wt = tmp_path / "wt"
         git(repo, "worktree", "add", "-q", str(wt), "-b", "fix/x")
         item = declare(wt)
-        shutil.copytree(item, repo / "seal" / "specs" / ITEM)
+        shutil.copytree(item, repo / "seal" / "threads" / ITEM)
         assert decision_of(run(wt)) == "deny"
         assert decision_of(run(repo)) == "silent"
 
@@ -338,12 +338,12 @@ class Test_reason:
         """Contract rule 14: the reason is what the session acts on."""
         declare(repo)
         reason = reason_of(run(repo))
-        item = os.path.join("seal", "specs", ITEM)
+        item = os.path.join("seal", "threads", ITEM)
         assert reason.count(item) == 1, reason
         for said in (
             f"`{item}`",
             f"`{routing.FILENAME}`",
-            "`questions.md`",
+            "`frame/questions.md` in the same thread",
             f"answers `{routing.AUTOMATION}` with `{routing.AUTOMATION_YES}`",
             "Build on the default the question states",
             "pull request body",

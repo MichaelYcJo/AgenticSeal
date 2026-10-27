@@ -70,7 +70,7 @@ here is a write you do not make.
 ## Rules
 
 **The record goes to the branch worktree.** It is
-`seal/specs/<work-item-id>/rounds/round-<n>.md` in the worktree of the branch
+`seal/threads/<work-item-id>/trail/rounds/round-<n>.md` in the worktree of the branch
 under review, at the path your prompt names, and never the main checkout.
 Nothing else of the round goes there.
 check: evals/behaviour/warden/rule-warden-one-finding/ tests/test_a_moved_rule_leaves_its_definition.py

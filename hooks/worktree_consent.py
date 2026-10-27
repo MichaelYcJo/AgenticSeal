@@ -18,12 +18,12 @@ written AFTER the answer rather than before the question, which is the one
 thing a command text cannot forge.
 
 The record is an empty file at
-`<git-common-dir>/specseal-worktree-consent/<session-id>`. Its existence is the
-whole fact, the way `specseal-worktree-choice/`'s markers and `optin.py`'s
-`specseal-scratch` are. Three things about it were decisions rather than
+`<git-common-dir>/agentic-worktree-consent/<session-id>`. Its existence is the
+whole fact, the way `agentic-worktree-choice/`'s markers and `optin.py`'s
+`agentic-scratch` are. Three things about it were decisions rather than
 defaults:
 
-  A THIRD directory, not a value in `specseal-worktree-choice/create/`. That
+  A THIRD directory, not a value in `agentic-worktree-choice/create/`. That
   marker is written by PreToolUse BEFORE the answer and means "the question was
   put", so sharing one file would let the guard read its own question back as
   consent -- the `has_token` failure one directory over. The two also fail in
@@ -96,7 +96,7 @@ import console
 import optin
 
 # One empty file per session per clone. Its existence is the fact.
-CONSENT_DIR = "specseal-worktree-consent"
+CONSENT_DIR = "agentic-worktree-consent"
 
 # Where the harness writes session transcripts. One constant, so a test points
 # it at a temporary directory and no case can read a real transcript on the

@@ -3,7 +3,7 @@
 are in the tree and agree with HEAD.
 
 Run by CI on every pull request (`.github/workflows/hygiene.yml`). It judges
-the `seal/specs/<id>/routing.md` naming the pull request's branch and every
+the `seal/threads/<id>/routing.md` naming the pull request's branch and every
 one its own commits add or change. One that reached the branch inside another
 pull request's squash was judged at that pull request and is named, not
 judged (`carried_by`). The arms are eight:
@@ -21,17 +21,17 @@ judged (`carried_by`). The arms are eight:
                 top-level `seal` entry, which the pull request moving the
                 root to local mode leaves; that tree is HEAD, and the working
                 tree under `--worktree`
-  frame         `Planning | framer`: `spec.md` and `plan.md` are committed,
-                `spec.md` ends with the framer's mark, and every `Reframed`
-                line under it names the framer
+  frame         `Planning | framer`: `frame/design.md` and `frame/plan.md`
+                are committed, `frame/design.md` ends with the framer's mark,
+                and every `Reframed` line under it names the framer
   rule changes  the `## Rule changes` section parses with
                 `rule_changes.parse`, the one reader `settle` groups by, in
-                the `spec.md` of each judged work item under either
+                the `frame/design.md` of each judged work item under either
                 `Planning` answer, and, on a pull request that declares at
-                least one work item, in every work item `spec.md` its own
-                commits add or change (`edited_work_items`); a spec with no
-                such section, and a work item with no spec, pass
-  records       `Review | through the review chain`: `rounds/` holds at least
+                least one work item, in every work item `frame/design.md` its
+                own commits add or change (`edited_work_items`); a design with
+                no such section, and a work item with no design, pass
+  records       `Review | through the review chain`: `trail/rounds/` holds at least
                 one `round-N.md`; each reads whole against the grammar table
                 of `docs/the-review-record.md` *The round record*, which
                 `grammar` loads at import, and no finding reads `open`; a
@@ -49,7 +49,7 @@ judged (`carried_by`). The arms are eight:
                 record under `Review | through the review chain`, and in
                 `guarantee.md` under `Review | straight to the PR`
                 (`originals_of`)
-  broad gate    `broad-gate.md`'s newest run is HEAD, or every commit after it
+  broad gate    `trail/gate.md`'s newest run is HEAD, or every commit after it
                 touches only the work item's own directory
   guarantee     `guarantee.md` names HEAD, or every commit after it touches
                 only the closing records, and its one `Verdict:` line
@@ -64,7 +64,7 @@ Usage:
 
 `--worktree` reads the records from the working tree instead of HEAD, for a
 check before the commit; CI never passes it. `--sealing` is the broad gate's
-own run, before it writes `broad-gate.md` and the sealer `guarantee.md`: those
+own run, before it writes `trail/gate.md` and the sealer `guarantee.md`: those
 two arms, and the guarantee's `original:` line, print and do not fail.
 
 Exit: 0 nothing to refuse · 1 a refusal, each named `path:line  why` (a
@@ -102,8 +102,13 @@ ROUTING = os.path.join(HOOKS, "routing.py")
 
 TARGET = "Target SHA"
 BROAD_GATE = "Broad gate"
-BROAD_GATE_FILE = "broad-gate.md"
+# A thread's files, relative to its directory: `hooks/optin.py`'s `GATE`,
+# `GUARANTEE`, `DESIGN` and `PLAN`, spelt here because this module loads
+# `routing` only inside the functions that are handed it.
+BROAD_GATE_FILE = "trail/gate.md"
 GUARANTEE_FILE = "guarantee.md"
+SPEC_FILE = "frame/design.md"
+PLAN_FILE = "frame/plan.md"
 # The closing records: the orchestrator's run writes the one, the sealer the
 # other, and they are the only files that may follow the commit the
 # guarantee names, since the sealer audited everything else on the branch.
@@ -135,10 +140,10 @@ MEANT_VERDICT = re.compile(r"[\s*_`>#+-]*verdict[\s*_`]*:", re.IGNORECASE)
 RETIRED_VERDICTS = ("sound", "not sound", "undecidable")
 RETIRED_SAYS = (
     f"is a word the verdict no longer uses: the line reads {VERDICT_SHAPES} "
-    "now. Where `broad-gate.md` names a run at HEAD, or one followed only by "
+    "now. Where `trail/gate.md` names a run at HEAD, or one followed only by "
     "the work item's records, spawn the sealer again at HEAD, which writes "
     "the new word; otherwise run `broad-gate --base <base> --record <item>` "
-    "and commit `broad-gate.md` first"
+    "and commit `trail/gate.md` first"
 )
 # What a broad-gate entry is separated from the run behind it by. The newest
 # run stands first; `broad_gate.py#kept_runs` writes the rest behind it.
@@ -1185,7 +1190,7 @@ def comment_lines(reader, text, rel):
     A record carries no HTML comment, and the check keeps no comment state,
     so it reads a comment as text; a line that begins one is refused rather
     than read as part of the record. The read of a round record, a
-    `guarantee.md` and a `broad-gate.md` each ask this."""
+    `guarantee.md` and a `trail/gate.md` each ask this."""
     lines = reader.readable(text or "")
     return [(rel, n + 1, reader.COMMENT_LINE) for n in reader.comment_lines(lines)]
 
@@ -1455,7 +1460,7 @@ def earlier_verdicts(cell):
 
 
 def newest_run(reader, text):
-    """The commit the newest run of `broad-gate.md`'s `Broad gate` row was
+    """The commit the newest run of `trail/gate.md`'s `Broad gate` row was
     taken at — the first word of its first entry, where that word is
     SHA-shaped — or None."""
     rows = table_rows(reader, reader.readable(text or ""))
@@ -1544,38 +1549,39 @@ def frame(reader, routing, root, item, declared):
         return []
     who = f"`{routing.PLANNING} | {routing.BY_FRAMER}`"
     problems = []
-    spec = read_record(root, f"{item}/spec.md")
+    spec = read_record(root, f"{item}/{SPEC_FILE}")
     if spec is None:
-        problems.append(f"declares {who} and git carries no {item}/spec.md")
-    if read_record(root, f"{item}/plan.md") is None:
-        problems.append(f"declares {who} and git carries no {item}/plan.md")
+        problems.append(f"declares {who} and git carries no {item}/{SPEC_FILE}")
+    if read_record(root, f"{item}/{PLAN_FILE}") is None:
+        problems.append(f"declares {who} and git carries no {item}/{PLAN_FILE}")
     if spec is None:
         return problems
     mark, reframes = frame_foot(reader, spec)
     if mark is None:
         problems.append(
-            f"{item}/spec.md does not end with `Framed <date> by <who>, before "
+            f"{item}/{SPEC_FILE} does not end with `Framed <date> by <who>, before "
             "the build.`, with any `Reframed <date> by <who>, after round <N>.` "
             "lines under it"
         )
     elif mark[0].startswith("<") or mark[1].startswith("<"):
-        problems.append(f"{item}/spec.md ends with the template's unfilled mark")
+        problems.append(f"{item}/{SPEC_FILE} ends with the template's unfilled mark")
     elif mark[1] != routing.BY_FRAMER:
         problems.append(
-            f"{item}/routing.md says {who} and {item}/spec.md's mark says `{mark[1]}`"
+            f"{item}/routing.md says {who} and {item}/{SPEC_FILE}'s mark says `{mark[1]}`"
         )
     for when, by, n in reframes:
         line = f"`Reframed {when} by {by}, after round {n}.`"
         if when.startswith("<") or by.startswith("<"):
-            problems.append(f"{item}/spec.md's foot carries the unfilled line {line}")
+            problems.append(
+                f"{item}/{SPEC_FILE}'s foot carries the unfilled line {line}"
+            )
         elif by != routing.BY_FRAMER:
             problems.append(
-                f"{item}/routing.md says {who} and {item}/spec.md's foot says {line}"
+                f"{item}/routing.md says {who} and {item}/{SPEC_FILE}'s foot says {line}"
             )
     return problems
 
 
-SPEC_FILE = "spec.md"
 RULE_CHANGES_SAYS = (
     "`## Rule changes` does not parse, so `settle` cannot group this spec by the "
     "sections it names and the settle has to read it whole: {reason}"
@@ -1617,17 +1623,17 @@ def rule_changes_of(reader, root, items):
 
 
 def edited_work_items(root, base, paths, moved, routing):
-    """The work item directories whose `spec.md` this pull request's own
-    commits add or change: each path of PATHS that is
-    `<WORK_ITEMS>/<id>/spec.md` exactly, is not in MOVED, and that
+    """The work item directories whose `frame/design.md` this pull request's
+    own commits add or change: each path of PATHS that is
+    `<WORK_ITEMS>/<id>/frame/design.md` exactly, is not in MOVED, and that
     `carried_by` leaves this pull request's, in the order of PATHS."""
-    depth = len(routing.WORK_ITEMS.split("/")) + 2
+    depth = len(routing.WORK_ITEMS.split("/")) + 1 + len(SPEC_FILE.split("/"))
     return [
-        os.path.dirname(p)
+        p[: -len(SPEC_FILE) - 1]
         for p in paths
         if p.startswith(f"{routing.WORK_ITEMS}/")
         and len(p.split("/")) == depth
-        and os.path.basename(p) == SPEC_FILE
+        and p.endswith(f"/{SPEC_FILE}")
         and p not in moved
         and carried_by(root, base, p) is None
     ]
@@ -1829,7 +1835,7 @@ def originals_of(reader, routing, root, paths, items, direct=()):
 
 
 def broad_gate(reader, root, item, base):
-    """[(path, line, problem)] for the work item's `broad-gate.md`: absent,
+    """[(path, line, problem)] for the work item's `trail/gate.md`: absent,
     a line that begins with `<!--` (`comment_lines`), unreadable, or naming
     a run behind HEAD."""
     rel = f"{item}/{BROAD_GATE_FILE}"

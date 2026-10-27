@@ -47,7 +47,7 @@ the layout predates the question, or when the original repository changes.
 6. **Write two files.**
    - `seal/parity.md` from `templates/parity.md`, committed. Coordinate-trust
      exceptions start empty.
-   - `~/.claude/specseal/parity-paths.md`: the machine-local checkout path,
+   - `~/.claude/agentic/parity-paths.md`: the machine-local checkout path,
      keyed by this repository's origin remote URL so worktrees and second
      checkouts resolve to one entry. **This never goes in the committed
      file**: it is wrong for every other machine.

@@ -81,7 +81,7 @@ gets the turn, so where declining has TWO destinations the user sees neither
 and has to retype the command they wanted. Those sites deny instead, and spend
 the reason on an AskUserQuestion instruction naming both -- the shape measured
 in hooks/review-skill-gate.py. Once per session per DIRECTION
-(<git-dir>/specseal-worktree-choice/{create,switch}/<session-id>); every
+(<git-dir>/agentic-worktree-choice/{create,switch}/<session-id>); every
 attempt after that gets the decision the site made before, so a session with
 nobody to answer (headless) pays one extra round trip and then behaves as it
 always did. Direction, not site: within one direction the sites are mutually
@@ -104,7 +104,7 @@ another clone, where this session has created no worktree, they deny on
 every attempt in the same register, naming no way on (#903).
 
 Creation consent is a SECOND session-scoped record and deliberately not part
-of that budget: `<git-common-dir>/specseal-worktree-consent/<session-id>`,
+of that budget: `<git-common-dir>/agentic-worktree-consent/<session-id>`,
 written only by hooks/worktree_consent.py on PostToolUse. The choice marker
 above says "the question was put" and is written before the answer; this one
 says "a creation ran" and is written after it, so one file could not carry
@@ -248,7 +248,7 @@ def tr(en, ko):
 
 
 # One marker file per session per repository. Empty; its existence is the fact.
-CHOICE_DIR = "specseal-worktree-choice"
+CHOICE_DIR = "agentic-worktree-choice"
 
 
 def load_input():
@@ -919,7 +919,7 @@ def lease_owner_alive(pid: int):
 
 
 def lease_dir(top: str):
-    """<git-dir>/specseal-leases for the tree at `top`, or None if there is
+    """<git-dir>/agentic-leases for the tree at `top`, or None if there is
     none to read. In a linked worktree --absolute-git-dir resolves to
     .git/worktrees/<name>, which is deliberate: a lease belongs to the tree
     its session is working in, not to the whole clone."""
@@ -935,7 +935,7 @@ def lease_dir(top: str):
         return None
     if gd.returncode != 0:
         return None
-    d = os.path.join(gd.stdout.strip(), "specseal-leases")
+    d = os.path.join(gd.stdout.strip(), "agentic-leases")
     return d if os.path.isdir(d) else None
 
 
@@ -998,7 +998,7 @@ def dead_session_ids(top: str):
 
 def fresh_leases(top: str, own_session_id: str = "", scanned_pids=frozenset()):
     """DECLARED work streams — leases beat every heuristic. The session-lease
-    hook stamps <git-dir>/specseal-leases/<session-id> on each tool call
+    hook stamps <git-dir>/agentic-leases/<session-id> on each tool call
     touching this tree, which catches what process scanning cannot:
     extension-hosted sessions (comm != claude) and sessions editing this tree
     from another cwd (both observed live).

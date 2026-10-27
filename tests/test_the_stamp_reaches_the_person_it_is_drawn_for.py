@@ -127,7 +127,7 @@ def test_the_orchestrator_is_told_the_stamp_is_drawn_for_it():
         "them is the edit hook's message, shown to the person at that write. It "
         "is not in the sealer's report and does not reach you.",
         "The edit hook's line never reaches you. Where no stamp appeared, name "
-        "the file under `<git-common-dir>/specseal-stamp/<session>/` whose name "
+        "the file under `<git-common-dir>/agentic-stamp/<session>/` whose name "
         "holds the work item's id, and leave `seal-stamp --from <that file>` to "
         "the person.",
         "The broad run draws nothing: its stdout opens `BROAD GATE PASSED` or "
@@ -198,7 +198,7 @@ def test_the_policy_names_what_enforces_the_drawing_and_what_nothing_does():
     ) in rule
     for local in (
         "`hooks/sealer-stamp-queue.py`",
-        "after each `Write` or `Edit` of a `seal/specs/<id>/guarantee.md` "
+        "after each `Write` or `Edit` of a `seal/threads/<id>/guarantee.md` "
         "under either root",
         "an ancestor of the branch the work item's `routing.md` names in its "
         "`Branch` row",
@@ -322,7 +322,7 @@ def test_the_policy_states_the_refusal_record_and_names_its_cases():
         1,
     )[1].split("**The hook holds its whole message under a budget", 1)[0]
     for said in (
-        "`<git-common-dir>/specseal-stamp-refused/<id>-<target>`",
+        "`<git-common-dir>/agentic-stamp-refused/<id>-<target>`",
         "`; earlier run: <sha> sealed`",
         "One writer leaves it, for a row that stands in its own clone and "
         "nowhere else: `hooks/sealer-stamp-queue.py`, in either mode, where "
@@ -371,9 +371,9 @@ def test_both_readmes_list_the_stamp_hook():
             "the two implementer hooks, the two stamp hooks and the version check.",
             "These side effects are worth stating outright",
             # The clause's own words (round 2's white 2): the gate-table row
-            # carries `specseal-stamp/` too, so the bare directory passed
+            # carries `agentic-stamp/` too, so the bare directory passed
             # with the side effect deleted.
-            "`<git-common-dir>/specseal-stamp/`, which the stamp hook renames "
+            "`<git-common-dir>/agentic-stamp/`, which the stamp hook renames "
             "once drawn and nothing prunes",
         ),
         (
@@ -419,7 +419,7 @@ def test_both_readmes_list_the_stamp_hook():
                 "values under",
                 "a `sealed` refused because its audited commit is not on the work "
                 "item's branch leaves an empty file under "
-                "`<git-common-dir>/specseal-stamp-refused/`, written by the edit "
+                "`<git-common-dir>/agentic-stamp-refused/`, written by the edit "
                 "hook in either mode, which nothing prunes",
             ),
             (
@@ -436,7 +436,7 @@ def test_both_readmes_list_the_stamp_hook():
                 "작업 항목의 `guarantee.md` 가 `sealed` 로 쓰일 때 남는",
                 "`sealed` 로 읽히는 `guarantee.md` 를 쓸 때 도장에 들어갈 값을",
                 "감사한 커밋이 작업 항목 브랜치에 없어 거절된 `sealed` 는 "
-                "`<git-common-dir>/specseal-stamp-refused/` 아래에 빈 파일을 "
+                "`<git-common-dir>/agentic-stamp-refused/` 아래에 빈 파일을 "
                 "남깁니다. 어느 모드에서든 편집 훅이 씁니다.",
             ),
             (

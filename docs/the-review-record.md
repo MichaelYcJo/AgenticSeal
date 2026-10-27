@@ -7,7 +7,7 @@ produce and what holds them.
 
 ## The round record
 
-**A round is one file the warden writes.** `seal/specs/<id>/rounds/round-N.md`,
+**A round is one file the warden writes.** `seal/threads/<id>/trail/rounds/round-N.md`,
 from `templates/sdd-round.md`, in the branch worktree under review: a
 `target:` line, then `## Findings` with one `### <n>. <symptom>` section per
 finding, `## Confirmations` where the round confirmed something,
@@ -230,7 +230,7 @@ check: round-record-read-by-label
 **The last record is at HEAD, or only the work item's own records follow
 it, and none of its findings is `fixed` or `rejected`.** A commit after the
 last record's `target:` commit that touches a file outside
-`seal/specs/<id>/` is a fix nobody reviewed, and the refusal names it and
+`seal/threads/<id>/` is a fix nobody reviewed, and the refusal names it and
 says a verifying round is owed. So is a `fixed` or `rejected` finding of the
 last record, since no round after it read the fix or the rejection; a last
 record whose findings all read `deferred <home>`, or that holds none,
@@ -396,9 +396,9 @@ drawn from that verdict and never from the broad gate's run, which comes
 before the sealer has read anything and draws nothing
 (`docs/the-broad-gate.md` *One act, one owner*). A `post-edit` gate,
 `hooks/sealer-stamp-queue.py`, runs after each `Write` or `Edit` of a
-`seal/specs/<id>/guarantee.md` under either root. Where its one `Verdict:`
+`seal/threads/<id>/guarantee.md` under either root. Where its one `Verdict:`
 reads `sealed`, it writes the stamp's values under
-`<git-common-dir>/specseal-stamp/<session>/` for the payload's session,
+`<git-common-dir>/agentic-stamp/<session>/` for the payload's session,
 which a subagent's write carries as the main session's, and says one line
 naming the file and `seal-stamp --from <path>` as its message. A `Stop` hook draws each undrawn file
 of its own session once, after that turn's text, and a subagent's end draws
@@ -442,7 +442,7 @@ skips a `sealed` this clone recorded, so the sealer's new audit draws the
 work item's one stamp.** The new audit keeps the refused verdict on its
 `Target SHA` row as `; earlier run: <sha> sealed`, and without a record the
 chain would count that entry as the stamp. The record is an empty file,
-`<git-common-dir>/specseal-stamp-refused/<id>-<target>`, beside the values
+`<git-common-dir>/agentic-stamp-refused/<id>-<target>`, beside the values
 directory and never listed with it. One writer leaves it, for a row that
 stands in its own clone and nowhere else: `hooks/sealer-stamp-queue.py`, in
 either mode, where the `Branch` row's branch stands and does not hold the

@@ -107,7 +107,7 @@ jobs:
             exit 1
           fi
 
-      # A change writes `seal/specs/<work-item-id>/changelog.md` instead of
+      # A change writes `seal/threads/<work-item-id>/changelog.md` instead of
       # appending to the changelog — three parallel branches shared that one
       # file and nothing else, and the conflict arrived after the broad gate
       # had run, where nothing may be edited.

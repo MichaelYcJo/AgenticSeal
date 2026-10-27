@@ -7,7 +7,7 @@ Deleting it makes the project greenfield again.
 
 Machine-local checkout paths never belong here: they differ per machine and
 would be wrong for everyone else. They live in
-`~/.claude/specseal/parity-paths.md`, keyed by this repo's origin remote URL.
+`~/.claude/agentic/parity-paths.md`, keyed by this repo's origin remote URL.
 
 | Field | Value |
 |---|---|

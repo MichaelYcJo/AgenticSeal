@@ -65,9 +65,9 @@ def git(repo, *args):
 
 
 def item(repo, name, changes):
-    path = repo / "seal" / "specs" / name
-    path.mkdir(parents=True, exist_ok=True)
-    (path / "spec.md").write_text(spec(changes), encoding="utf-8")
+    path = repo / "seal" / "threads" / name
+    (path / "frame").mkdir(parents=True, exist_ok=True)
+    (path / "frame" / "design.md").write_text(spec(changes), encoding="utf-8")
 
 
 def commit(repo, message):
@@ -107,7 +107,7 @@ def apply(repo, capfd):
 
 
 def specs_dir(repo, name):
-    return repo / "seal" / "specs" / name
+    return repo / "seal" / "threads" / name
 
 
 def group_text(text, n=1):
@@ -131,13 +131,13 @@ def configure(repo, *rows):
 def no_rule(repo, work_item_id):
     """Give a released spec a `## Rule changes` that changes nothing, and
     commit it."""
-    path = repo / "seal" / "specs" / work_item_id / "spec.md"
+    path = repo / "seal" / "threads" / work_item_id / "frame" / "design.md"
     path.write_text(
         path.read_text(encoding="utf-8")
         + "\n## Rule changes\n\n- nothing\n  why: a moment.\n",
         encoding="utf-8",
     )
-    git(repo, "add", "--", f"seal/specs/{work_item_id}")
+    git(repo, "add", "--", f"seal/threads/{work_item_id}")
     git(repo, "commit", "-qm", f"{work_item_id} states no rule")
 
 
@@ -180,12 +180,12 @@ def moment(repo, name=MOMENT, overview=None):
     """A released work item below the SDD ladder: a routing declaration and
     perhaps a memo, and no `spec.md`. Committed on its own path, so the
     unreleased `delta` the fixture leaves on disk stays unreleased."""
-    item = repo / "seal" / "specs" / name
+    item = repo / "seal" / "threads" / name
     item.mkdir(parents=True)
     (item / "routing.md").write_text(f"# {name} — routing\n", encoding="utf-8")
     if overview is not None:
-        (item / "overview.md").write_text(overview, encoding="utf-8")
-    git(repo, "add", "--", f"seal/specs/{name}")
+        (item / "gaps.md").write_text(overview, encoding="utf-8")
+    git(repo, "add", "--", f"seal/threads/{name}")
     git(repo, "commit", "-qm", f"released {name}")
     return item
 
@@ -219,16 +219,16 @@ def closed_after_base(repo):
     reached the release branch and not `main`."""
     moment(repo, overview=OVERVIEW_OPEN)
     git(repo, "branch", BASE)
-    (repo / "seal" / "specs" / MOMENT / "overview.md").write_text(
+    (repo / "seal" / "threads" / MOMENT / "gaps.md").write_text(
         OVERVIEW_CLOSED, encoding="utf-8"
     )
-    git(repo, "add", "--", f"seal/specs/{MOMENT}")
+    git(repo, "add", "--", f"seal/threads/{MOMENT}")
     git(repo, "commit", "-qm", "close the row")
 
 
 def settled_repo(tmp_path, keep_empty_dir):
     """A repository whose settle is complete: a `seal/` root with its README,
-    and `seal/specs/` either empty on disk — the tree `--apply` leaves — or
+    and `seal/threads/` either empty on disk — the tree `--apply` leaves — or
     absent, which is what a fresh checkout of that commit has."""
     repo = tmp_path / "repo"
     (repo / "docs").mkdir(parents=True)
@@ -240,7 +240,7 @@ def settled_repo(tmp_path, keep_empty_dir):
     git(repo, "add", "-A")
     git(repo, "commit", "-qm", "settled")
     if keep_empty_dir:
-        (repo / "seal" / "specs").mkdir()
+        (repo / "seal" / "threads").mkdir()
     return repo
 
 
@@ -360,12 +360,12 @@ def local(tmp_path):
     git(repo, "config", "user.email", "x@example.com")
     git(repo, "config", "user.name", "x")
     commit(repo, "base")
-    (mark_root(repo / ".git" / "seal") / "specs").mkdir()
+    (mark_root(repo / ".git" / "seal") / "threads").mkdir()
     return repo
 
 
 def local_dir(repo, name):
-    return repo / ".git" / "seal" / "specs" / name
+    return repo / ".git" / "seal" / "threads" / name
 
 
 def local_item(repo, name, branch=None, changes=None, overview=None):
@@ -377,9 +377,10 @@ def local_item(repo, name, branch=None, changes=None, overview=None):
         text = ROUTED.format(name=name, branch=branch)
         (path / "routing.md").write_text(text, encoding="utf-8")
     if changes is not None:
-        (path / "spec.md").write_text(spec(changes), encoding="utf-8")
+        (path / "frame").mkdir()
+        (path / "frame" / "design.md").write_text(spec(changes), encoding="utf-8")
     if overview is not None:
-        (path / "overview.md").write_text(overview, encoding="utf-8")
+        (path / "gaps.md").write_text(overview, encoding="utf-8")
     return path
 
 
@@ -422,12 +423,12 @@ class Test_tracked_text:
 
 class Test_citations:
     def test_accepts_a_line_citing_a_work_item_twice_as_one_citation(self, repo):
-        """A `tests/` file that reads `seal/specs` is a reader, and its line
+        """A `tests/` file that reads `seal/threads` is a reader, and its line
         citing a work item twice is one citation."""
         (repo / "tests").mkdir()
         (repo / "tests" / "test_reads.py").write_text(
-            'SPECS = "seal/specs"\n'
-            'A = "seal/specs/1700000001-alpha/spec.md seal/specs/1700000001-alpha/plan.md"\n',
+            'SPECS = "seal/threads"\n'
+            'A = "seal/threads/1700000001-alpha/frame/design.md seal/threads/1700000001-alpha/plan.md"\n',
             encoding="utf-8",
         )
         commit(repo, "a reader")
@@ -459,7 +460,7 @@ class Test_report:
         assert code == 0, text
         listed = text.split(settle.WHOLE_HEADING)[1].split("\n\n")[0] + "\n"
         for name in ("1700000001-alpha", "1700000002-beta", "1700000003-gamma"):
-            where = f"seal/specs/{name}/spec.md"
+            where = f"seal/threads/{name}/frame/design.md"
             assert f"    {name}  {where}  {settle.NO_SECTION}\n" in listed, text
         assert "released at HEAD: 3 work items; 1 unreleased and untouched\n" in (
             text
@@ -468,10 +469,12 @@ class Test_report:
     def test_refuses_nothing_and_writes_and_removes_nothing(self, tree):
         """The dry run holds nothing back: a section that does not parse and
         an open row are shown at exit 0, and the tree is left as it was."""
-        (tree / "seal" / "specs" / "1700000001-alpha" / "spec.md").write_text(
+        (
+            tree / "seal" / "threads" / "1700000001-alpha" / "frame" / "design.md"
+        ).write_text(
             spec("- rename\n  file: docs/one-root.md\n  to: x"), encoding="utf-8"
         )
-        git(tree, "add", "--", "seal/specs/1700000001-alpha")
+        git(tree, "add", "--", "seal/threads/1700000001-alpha")
         git(tree, "commit", "-qm", "alpha does not parse")
         moment(tree, overview=OVERVIEW_OPEN)
         before = sorted(
@@ -511,7 +514,7 @@ class Test_report:
             "`tests/x.py::Test_y`, per `questions.md`, `one-root.md` and `cmd.exe`"
         )
         moment(tree, overview=OVERVIEW_OPEN.replace("a claim nobody ran", row))
-        (tree / "seal" / "specs" / MOMENT / "questions.md").write_text(
+        (tree / "seal" / "threads" / MOMENT / "questions.md").write_text(
             "# q\n", encoding="utf-8"
         )
         code, text = run(tree)
@@ -519,7 +522,7 @@ class Test_report:
         rows = text.split(f"{settle.ROWS_HEADING}\n")[1].split("\n\n")[0]
         assert rows == (
             f"    {MOMENT}\n"
-            f"        open in overview.md: {row}\n"
+            f"        open in gaps.md: {row}\n"
             "            `docs/one-root.md` in the tree\n"
             "            `gone/away.py` not in the tree\n"
             "            `tests/x.py` not in the tree\n"
@@ -530,30 +533,30 @@ class Test_report:
 
     def test_the_report_lists_what_an_apply_would_remove(self, tree):
         """D1's table: the command reports by itself the paths outside
-        `seal/specs/` that cite into what `--apply` would remove, and the
-        `tests/` files that read `seal/specs` — what #514's frame found by
+        `seal/threads/` that cite into what `--apply` would remove, and the
+        `tests/` files that read `seal/threads` — what #514's frame found by
         hand. A directory still holding a row is listed with when it goes."""
         no_rule(tree, "1700000001-alpha")
         moment(tree, overview=OVERVIEW_OPEN)
         (tree / "docs" / "cites.md").write_text(
-            "See `seal/specs/1700000001-alpha/spec.md` for the decision.\n"
-            f"And `seal/specs/{MOMENT[:11]}…/routing.md` for the moment.\n"
+            "See `seal/threads/1700000001-alpha/frame/design.md` for the decision.\n"
+            f"And `seal/threads/{MOMENT[:11]}…/routing.md` for the moment.\n"
             "A marker <!-- specs/1700000002-beta --> and a bare 1700000002-beta.\n",
             encoding="utf-8",
         )
         (tree / "tests").mkdir()
         (tree / "tests" / "test_reads.py").write_text(
-            'SPECS = "seal/specs"\n', encoding="utf-8"
+            'SPECS = "seal/threads"\n', encoding="utf-8"
         )
         git(tree, "add", "--", "docs", "tests")
         git(tree, "commit", "-qm", "citations")
         _, text = run(tree)
         takes = text.split(settle.REMOVES_HEADING)[1]
-        assert "    seal/specs/1700000001-alpha/  now\n" in takes, text
-        assert f"    seal/specs/{MOMENT}/  once its 1 open row close\n" in takes, text
+        assert "    seal/threads/1700000001-alpha/  now\n" in takes, text
+        assert f"    seal/threads/{MOMENT}/  once its 1 open row close\n" in takes, text
         assert "docs/cites.md:1" in takes, text
         assert "docs/cites.md:2" in takes, "an abbreviated path is a citation too"
-        beta = takes.split("seal/specs/1700000002-beta/")[1].split("seal/specs/")[0]
+        beta = takes.split("seal/threads/1700000002-beta/")[1].split("seal/threads/")[0]
         assert "cited from" not in beta, "a marker or a bare id is not a path"
         assert "tests/test_reads.py" in text.split("checks that read")[1], text
         # Contract rule 14: the heading a person reads names the section that
@@ -571,9 +574,9 @@ class Test_apply:
         code, text = run(tree, "--apply")
         assert code == 0, text
         for name in ("1700000001-alpha", "1700000002-beta", "1700000003-gamma"):
-            assert not (tree / "seal" / "specs" / name).exists(), text
-            assert f"removed seal/specs/{name}/\n" in text, text
-        assert (tree / "seal" / "specs" / "1700000004-delta").exists(), text
+            assert not (tree / "seal" / "threads" / name).exists(), text
+            assert f"removed seal/threads/{name}/\n" in text, text
+        assert (tree / "seal" / "threads" / "1700000004-delta").exists(), text
         assert text.endswith(
             "\nremoved 3 directories; kept 0, each with a row to close\n"
         )
@@ -581,7 +584,7 @@ class Test_apply:
     def test_apply_leaves_a_team_specs_of_the_same_name_on_disk(self, tree):
         """#688 D3. A project's own `specs/` is read as history and never taken,
         even where a team directory carries the removed work item's very id: the
-        removal is `seal/specs/` whatever else the tree holds (`SPECS`)."""
+        removal is `seal/threads/` whatever else the tree holds (`SPECS`)."""
         team = tree / "specs" / "1700000001-alpha"
         team.mkdir(parents=True)
         (team / "design.md").write_text("# the team's design\n", encoding="utf-8")
@@ -591,7 +594,7 @@ class Test_apply:
         no_rule(tree, "1700000001-alpha")
         code, text = run(tree, "--apply")
         assert code == 0, text
-        assert not (tree / "seal" / "specs" / "1700000001-alpha").exists()
+        assert not (tree / "seal" / "threads" / "1700000001-alpha").exists()
         assert (team / "design.md").read_text(
             encoding="utf-8"
         ) == "# the team's design\n"
@@ -606,11 +609,11 @@ class Test_apply:
         before = docs_text(tree)
         code, text = run(tree, "--apply")
         assert code == 0, text
-        assert not (tree / "seal" / "specs" / MOMENT).exists(), text
+        assert not (tree / "seal" / "threads" / MOMENT).exists(), text
         assert docs_text(tree) == before, "the apply wrote into docs/"
         assert (
-            f"removed seal/specs/{MOMENT}/\n"
-            "    closed in overview.md: a claim\n"
+            f"removed seal/threads/{MOMENT}/\n"
+            "    closed in gaps.md: a claim\n"
             "        what closed it: run on 2026-01-01\n"
         ) in text, text
 
@@ -622,22 +625,22 @@ class Test_apply:
         prints the row with what closed it, and exits 0. Nothing waits for
         the closure to reach a base."""
         item(repo, "1700000001-a", op("add", "S", new="Rule."))
-        overview = specs_dir(repo, "1700000001-a") / "overview.md"
+        overview = specs_dir(repo, "1700000001-a") / "gaps.md"
         overview.write_text(OPEN, encoding="utf-8")
         commit(repo, "a")
         code, text = apply(repo, capfd)
         assert code == 1, text
         assert specs_dir(repo, "1700000001-a").exists(), text
         assert (
-            "kept seal/specs/1700000001-a/: its record holds 1 open row; close "
+            "kept seal/threads/1700000001-a/: its record holds 1 open row; close "
             "each (`closed` with what closed it) and run `settle --apply` again\n"
-            "    open in overview.md: a claim nobody ran\n"
+            "    open in gaps.md: a claim nobody ran\n"
         ) in text, text
         overview.write_text(OVERVIEW_CLOSED, encoding="utf-8")
         code, text = apply(repo, capfd)
         assert code == 0, text
         assert not specs_dir(repo, "1700000001-a").exists(), text
-        assert "    closed in overview.md: a claim\n" in text, text
+        assert "    closed in gaps.md: a claim\n" in text, text
         assert (repo / "docs" / "a.md").read_text(encoding="utf-8") == DOC
 
     def test_a_closure_the_released_ref_has_not_seen_lets_the_directory_go(self, tree):
@@ -647,19 +650,19 @@ class Test_apply:
         closed_after_base(tree)
         code, text = at(tree, BASE, "--apply")
         assert code == 0, text
-        assert not (tree / "seal" / "specs" / MOMENT).exists(), text
-        assert f"removed seal/specs/{MOMENT}/\n" in text, text
+        assert not (tree / "seal" / "threads" / MOMENT).exists(), text
+        assert f"removed seal/threads/{MOMENT}/\n" in text, text
 
     def test_refuses_an_unreadable_memo_and_keeps_its_directory(self, tree):
         """A section this cannot read is a count it does not know, never zero."""
         moment(tree, overview="# x — overview\n\n## Not checked\n")
         code, text = run(tree, "--apply")
         assert code == 1, text
-        assert (tree / "seal" / "specs" / MOMENT).exists(), text
+        assert (tree / "seal" / "threads" / MOMENT).exists(), text
         assert "cannot be read" in text, text
 
     def test_an_unreleased_spec_less_directory_is_not_a_candidate(self, tree):
-        item = tree / "seal" / "specs" / MOMENT
+        item = tree / "seal" / "threads" / MOMENT
         item.mkdir()
         (item / "routing.md").write_text("# routing\n", encoding="utf-8")
         _, text = run(tree, "--apply")
@@ -689,9 +692,9 @@ class Test_main:
         line = line_of(spec(op("change", "S", "y.", "z.")), "- change")
         assert group_text(text) == (
             "    place: docs/a.md section `S`, at docs/a.md:3-9\n"
-            f"    1. change  1700000009-a  seal/specs/1700000009-a/spec.md:{line}"
+            f"    1. change  1700000009-a  seal/threads/1700000009-a/frame/design.md:{line}"
             "  from not found, to found\n"
-            f"    2. change  1700000001-b  seal/specs/1700000001-b/spec.md:{line}"
+            f"    2. change  1700000001-b  seal/threads/1700000001-b/frame/design.md:{line}"
             "  from found, to not found"
         ), text
         assert "\ngroup 2\n" not in text, text
@@ -764,19 +767,21 @@ class Test_main:
         bad = "- rename\n  file: docs/a.md\n  to: x"
         item(repo, "1700000001-a", bad)
         old = specs_dir(repo, "1700000002-old")
-        old.mkdir(parents=True)
-        (old / "spec.md").write_text("# old\n\n## Scope\n\nIn.\n", encoding="utf-8")
+        (old / "frame").mkdir(parents=True)
+        (old / "frame" / "design.md").write_text(
+            "# old\n\n## Scope\n\nIn.\n", encoding="utf-8"
+        )
         commit(repo, "a and old")
         code, text = dry_run(repo, capfd)
         assert code == 0, text
         whole = text.split(settle.WHOLE_HEADING)[1].split("\n\n")[0]
         line = line_of(spec(bad), "- rename")
         assert (
-            f"    1700000001-a  seal/specs/1700000001-a/spec.md:{line}  `rename` "
+            f"    1700000001-a  seal/threads/1700000001-a/frame/design.md:{line}  `rename` "
             "is not one of"
         ) in whole, text
         assert (
-            f"    1700000002-old  seal/specs/1700000002-old/spec.md  {settle.NO_SECTION}"
+            f"    1700000002-old  seal/threads/1700000002-old/frame/design.md  {settle.NO_SECTION}"
         ) in whole, text
         code, text = apply(repo, capfd)
         assert code == 0, text
@@ -812,7 +817,7 @@ class Test_main:
         listed last and unordered."""
         item(repo, "1700000001-old", op("add", "U", new="Rule."))
         commit(repo, "old")
-        git(repo, "mv", "seal/specs/1700000001-old", "seal/specs/1700000002-new")
+        git(repo, "mv", "seal/threads/1700000001-old", "seal/threads/1700000002-new")
         commit(repo, "renamed")
         item(repo, "1700000003-b", op("add", "U", new="B."))
         commit(repo, "b")
@@ -886,13 +891,13 @@ class Test_main:
         assert unreleased == (
             "    1700000002-b  no pull request from `feat/2-b` has merged"
         ), text
-        assert "1. add  1700000001-a  seal/specs/1700000001-a/spec.md:" in (
+        assert "1. add  1700000001-a  seal/threads/1700000001-a/frame/design.md:" in (
             group_text(text)
         ), text
         assert "1700000002-b" not in group_text(text), text
         assert "\ngroup 2\n" not in text, text
         assert settle.REMOVES_HEADING_LOCAL in text, text
-        assert "    seal/specs/1700000001-a/  now\n" in text, text
+        assert "    seal/threads/1700000001-a/  now\n" in text, text
         assert "has nothing to settle" not in text, text
         assert files(local) == before, "the dry run wrote to the tree"
         assert sorted(p for p in (local / ".git" / "seal").rglob("*")) == records
@@ -927,7 +932,7 @@ class Test_main:
         """Round 2 finding 1 of #955: `main` resolves the root to the
         repository's top in both modes, so a shared run from a subdirectory
         prints what a run from the top prints. It used to refuse, saying the
-        repository had no seal/specs/ at either place, which was false there."""
+        repository had no seal/threads/ at either place, which was false there."""
         item(repo, "1700000001-a", op("add", "S", new="Rule."))
         commit(repo, "released a")
         top = dry_run(repo, capfd)
@@ -1047,7 +1052,7 @@ class Test_main:
         rows = text.split(f"{settle.ROWS_HEADING}\n")[1].split("\n\n")[0]
         assert rows == (
             "    1700000003-c\n"
-            "        open in overview.md: a claim about `questions.md`\n"
+            "        open in gaps.md: a claim about `questions.md`\n"
             "            `questions.md` in the tree"
         ), text
         code, text = apply(local, capfd)
@@ -1055,21 +1060,21 @@ class Test_main:
         assert not local_dir(local, "1700000001-a").exists(), text
         assert local_dir(local, "1700000002-b").exists(), text
         assert local_dir(local, "1700000003-c").exists(), text
-        assert "removed seal/specs/1700000001-a/\n" in text, text
+        assert "removed seal/threads/1700000001-a/\n" in text, text
         assert (
-            "kept seal/specs/1700000003-c/: its record holds 1 open row; close "
+            "kept seal/threads/1700000003-c/: its record holds 1 open row; close "
             "each (`closed` with what closed it) and run `settle --apply` again\n"
-            "    open in overview.md: a claim about `questions.md`\n"
+            "    open in gaps.md: a claim about `questions.md`\n"
         ) in text, text
         assert files(local) == before, "the apply wrote or removed in the tree"
-        (local_dir(local, "1700000003-c") / "overview.md").write_text(
+        (local_dir(local, "1700000003-c") / "gaps.md").write_text(
             OVERVIEW_CLOSED, encoding="utf-8"
         )
         code, text = apply(local, capfd)
         assert code == 0, text
         assert not local_dir(local, "1700000003-c").exists(), text
         assert local_dir(local, "1700000002-b").exists(), text
-        assert "    closed in overview.md: a claim\n" in text, text
+        assert "    closed in gaps.md: a claim\n" in text, text
 
     @pytest.mark.parametrize("arm", [False, True], ids=["report", "apply"])
     @pytest.mark.parametrize("state", ["absent", "fails", "garbled", "entry"])
@@ -1277,10 +1282,10 @@ class Test_main:
         repo = tmp_path / "repo"
         (repo / "docs").mkdir(parents=True)
         git(repo, "init", "-q")
-        item = repo / "seal" / "specs" / "1700000001-alpha"
-        item.mkdir(parents=True)
-        (item / "spec.md").write_text("# a\n", encoding="utf-8")
-        (repo / ".git" / "specseal-scratch").write_text("", encoding="utf-8")
+        item = repo / "seal" / "threads" / "1700000001-alpha"
+        (item / "frame").mkdir(parents=True)
+        (item / "frame" / "design.md").write_text("# a\n", encoding="utf-8")
+        (repo / ".git" / "agentic-scratch").write_text("", encoding="utf-8")
         r = subprocess.run(
             [sys.executable, SCRIPT, "--root", str(repo), "--released-at", "HEAD"],
             capture_output=True,
@@ -1288,7 +1293,7 @@ class Test_main:
         )
         assert r.returncode == 2, r.stdout + r.stderr
         assert "has opted out" in r.stderr, r.stderr
-        assert "specseal-scratch" in r.stderr, r.stderr
+        assert "agentic-scratch" in r.stderr, r.stderr
         assert "has nothing to settle" not in r.stderr, (
             "a repository holding a work item is still being told it has none"
         )
@@ -1304,14 +1309,14 @@ class Test_main:
         repo = tmp_path / "repo"
         repo.mkdir()
         git(repo, "init", "-q")
-        (repo / ".git" / "specseal-scratch").mkdir()
+        (repo / ".git" / "agentic-scratch").mkdir()
         r = subprocess.run(
             [sys.executable, SCRIPT, "--root", str(repo), "--released-at", "HEAD"],
             capture_output=True,
             encoding="utf-8",
         )
         assert r.returncode == 2, r.stdout + r.stderr
-        assert "has no seal/specs/ at either place" in r.stderr, r.stderr
+        assert "has no seal/threads/ at either place" in r.stderr, r.stderr
         assert "has opted out" not in r.stderr, (
             "a directory of the marker's name is read as the opt-out, which is the "
             "reading `hooks/optin.py` rejected by name"
@@ -1360,10 +1365,12 @@ class Test_main:
         for a different failure and could not fire in the case it described:
         local mode returns before `survey` is ever called."""
         repo = tmp_path / "repo"
-        (mark_root(repo / "seal") / "specs" / "1700000001-alpha").mkdir(parents=True)
-        (repo / "seal" / "specs" / "1700000001-alpha" / "spec.md").write_text(
-            "# a\n", encoding="utf-8"
+        (mark_root(repo / "seal") / "threads" / "1700000001-alpha" / "frame").mkdir(
+            parents=True
         )
+        (
+            repo / "seal" / "threads" / "1700000001-alpha" / "frame" / "design.md"
+        ).write_text("# a\n", encoding="utf-8")
         git(repo, "init", "-q")
         r = subprocess.run(
             [
@@ -1387,7 +1394,7 @@ class Test_main:
     @pytest.mark.parametrize("keep_empty_dir", [True, False], ids=["empty", "absent"])
     @pytest.mark.parametrize("apply", [False, True], ids=["report", "apply"])
     def test_accepts_a_settled_root_and_says_so(self, tmp_path, keep_empty_dir, apply):
-        """G7. After the last settle a fresh checkout has no `seal/specs/` at
+        """G7. After the last settle a fresh checkout has no `seal/threads/` at
         all and the tree that ran `--apply` has an empty one. Both are the state
         a complete settle reaches, and `settle` used to refuse the first at exit
         2 — so the command could not run on its own finished work."""
@@ -1410,7 +1417,7 @@ class Test_main:
         assert code == 0, text
         home = os.path.join(str(local), ".git", "seal")
         assert text == (
-            f"settle: {home} is the seal/ root, in local mode, and its specs/ "
+            f"settle: {home} is the seal/ root, in local mode, and its threads/ "
             "holds no work item — nothing to show and nothing to remove. A "
             "complete settle ends here.\n"
         ), text
@@ -1606,7 +1613,7 @@ class Test_module:
         same, and `tests/test_a_reference_root_is_read_and_never_taken.py`
         classifies every shipped command by what keeps it off a reference
         root."""
-        assert settle.SPECS == "seal/specs"
+        assert settle.SPECS == "seal/threads"
 
 
 test_census = census_case(TARGET)

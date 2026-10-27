@@ -36,7 +36,7 @@ sl = load_hook_module("session-lease.py", "sl_owner")
 
 
 def leases_of(repo):
-    d = os.path.join(git_dir(repo), "specseal-leases")
+    d = os.path.join(git_dir(repo), "agentic-leases")
     return sorted(os.listdir(d)) if os.path.isdir(d) else []
 
 
@@ -172,12 +172,12 @@ class Test_main:
         and not by an exception the harness reports (#1017, the body's
         `git_dir` row outside a repository and round 3's s10)."""
         run(sl, monkeypatch, payload("ls", tmp_path, session="sess-out"))
-        assert not os.path.exists(tmp_path / "specseal-leases")
+        assert not os.path.exists(tmp_path / "agentic-leases")
 
     def test_accepts_a_session_id_with_a_separator_and_files_it_by_its_basename(
         self, repo
     ):
-        """The id names a file under `specseal-leases/`, so only its last part
+        """The id names a file under `agentic-leases/`, so only its last part
         is used, and a separator in it cannot reach another directory (#1017,
         the body's session-id row)."""
         run_hook("session-lease.py", payload("ls", repo, session="nested/sess-n"))
@@ -203,7 +203,7 @@ class Test_main:
         import time
 
         run_hook("session-lease.py", payload("ls", repo, session="sess-old"))
-        stale = os.path.join(git_dir(repo), "specseal-leases", "sess-old")
+        stale = os.path.join(git_dir(repo), "agentic-leases", "sess-old")
         os.utime(stale, (time.time() - 100000,) * 2)
         run_hook("session-lease.py", payload("ls", repo, session="sess-new"))
         assert leases_of(repo) == ["sess-new"]
@@ -367,7 +367,7 @@ class Test_main:
         """A FILE where the lease directory goes makes the write fail on every
         platform, which a mode bit does not on Windows. The failure stays in
         the hook (#1017, the body's write-error row)."""
-        blocker = os.path.join(git_dir(repo), "specseal-leases")
+        blocker = os.path.join(git_dir(repo), "agentic-leases")
         with open(blocker, "w", encoding="utf-8") as f:
             f.write("not a directory")
         run(sl, monkeypatch, payload("ls", repo, session="sess-z"))

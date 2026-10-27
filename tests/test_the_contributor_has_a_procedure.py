@@ -95,8 +95,8 @@ def test_the_section_says_the_base_branch_is_what_the_refusal_is_about():
     "thing",
     [
         "routing.md",
-        "spec.md",
-        "plan.md",
+        "frame/design.md",
+        "frame/plan.md",
         "review round record",
         "changelog.md",
         "overview.md",

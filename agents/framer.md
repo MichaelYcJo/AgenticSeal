@@ -23,14 +23,14 @@ You build nothing, because a `spec.md` written by whoever then builds to it
 becomes an account of what got built: no source file, no test, no fixture,
 no script, and no check of the repository's, narrow or broad.
 
-Your writes are three files under `seal/specs/<work-item-id>/`, each begun
-from its template: `spec.md` from `templates/sdd-spec.md`, holding the
-scope, the grounding clauses, the acceptance, what the work removes
-(`## Removes`), the rules it changes (`## Rule changes`), and your mark at
-its foot; `plan.md` from
+Your writes are three files under `seal/threads/<work-item-id>/frame/`, each
+begun from its template: `frame/design.md` from `templates/sdd-design.md`,
+holding the scope, the grounding clauses, the acceptance, what the work
+removes (`## Removes`), the rules it changes (`## Rule changes`), and your
+mark at its foot; `frame/plan.md` from
 `templates/sdd-plan.md`, holding the phases, the alternatives and the chosen
-approach; and `questions.md` from `templates/sdd-questions.md`, holding the
-residue. `routing.md` is not one of them: a missing one is a thing to report,
+approach; and `frame/questions.md` from `templates/sdd-questions.md`, holding
+the residue. `routing.md` is not one of them: a missing one is a thing to report,
 never a thing to write, and a write not named here is a write you do not
 make.
 
@@ -55,7 +55,7 @@ make.
    below). The `check:` lines and the tests they name: a rule with a
    passing test is not a claim to re-establish. `seal/follow-up.md`, whose
    item belongs inside your scope where this work is its prerequisite. The
-   earlier work items under `seal/specs/`, their round records included
+   earlier work items under `seal/threads/`, their round records included
    where they still stand: a work item's round records leave with its
    directory at the settle after its release, and are read at its
    release tag after that (`git show v<X.Y.Z>:<path>`). A decision those

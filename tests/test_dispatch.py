@@ -42,7 +42,7 @@ TARGET = "hooks/dispatch.py"
 
 HOOKS = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "hooks"))
 BROKEN = "def broken(:\n"
-RECORDS = "specseal-gate-failure"
+RECORDS = "agentic-gate-failure"
 
 # The words a person reads (contract rule 14). Pinned whole, so an edit that
 # changes what the line says has to change this too.
@@ -240,7 +240,7 @@ STAMP_VALUES = {
     "tree": "aaa1111",
     "base": "bbb2222",
     "from": "origin/base",
-    "item": "/x/seal/specs/1799000000-an-item",
+    "item": "/x/seal/threads/1799000000-an-item",
     "session": "s-1",
     "scale": 0.9,
     "rows": [("SEALED", ""), None, ("tree", "aaa1111"), ("suite", "3 passed")],
@@ -1110,7 +1110,7 @@ class Test_main:
             encoding="utf-8",
             errors="replace",
         ).stdout.strip()
-        assert os.path.isfile(os.path.join(gd, "specseal-leases", "s1"))
+        assert os.path.isfile(os.path.join(gd, "agentic-leases", "s1"))
 
     @pytest.mark.parametrize("encoding", HOSTILE)
     def test_accepts_a_payload_the_console_cannot_decode_and_reaches_a_verdict(

@@ -53,7 +53,7 @@ run follows.
 ### What a contribution is not asked for
 
 This repository runs a spec-driven workflow on itself: work items under
-`seal/specs/`, review rounds, a version that moves once per release. **A
+`seal/threads/`, review rounds, a version that moves once per release. **A
 contribution is asked for none of it.** The version and changelog steps
 belong to a release and exit early on any base but `main`. The others run on
 every pull request, and they pass for a different reason: they ask nothing
@@ -66,7 +66,7 @@ and a maintainer adding a CI step reads the row rather than this sentence.
 
 | A contribution does not write | Why no check asks for it |
 |---|---|
-| a `routing.md`, `spec.md` or `plan.md` under `seal/specs/` | Nothing in CI reads them. They route a maintainer's own session |
+| a `routing.md`, `frame/design.md` or `frame/plan.md` under `seal/threads/` | Nothing in CI reads them. They route a maintainer's own session |
 | a review round record | *a declared review chain has the round record it claimed* passes with a notice when no declaration names the branch |
 | a `changelog.md` fragment | *every changelog fragment reached the released file* exits 0 unless the base is `main` |
 | an `overview.md`, or a row inside one | No CI step reads it. It is a maintainer's closing memo for their own work item |

@@ -26,7 +26,7 @@ machine is one `git ls-remote --tags` to the plugin's own repository: no
 repository contents, no paths, no prompts. Three limits keep it honest:
 
   - only in repos that opted in with `seal/`, like the other gates
-  - once a day, tracked in ~/.claude/specseal/version-check — a lookup that
+  - once a day, tracked in ~/.claude/agentic/version-check — a lookup that
     fails hands the day back and is retried about twenty minutes later
   - silent on every failure — offline, slow, unparseable, anything
 
@@ -52,7 +52,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import console
 import optin
 
-STATE_DIR = os.path.join(os.path.expanduser("~"), ".claude", "specseal")
+STATE_DIR = os.path.join(os.path.expanduser("~"), ".claude", "agentic")
 MARKER = os.path.join(STATE_DIR, "version-check")
 INTERVAL = 24 * 60 * 60
 RETRY = 20 * 60

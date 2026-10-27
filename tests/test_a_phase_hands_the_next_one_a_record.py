@@ -49,7 +49,7 @@ SECTIONS = (
     "## What this phase was asked",
     "## What this phase found",
 )
-SPEC_TEMPLATE = os.path.join(ROOT, "templates", "sdd-spec.md")
+SPEC_TEMPLATE = os.path.join(ROOT, "templates", "sdd-design.md")
 FRAMER_AGENT = os.path.join(ROOT, "agents", "framer.md")
 REMOVES_RULE = os.path.join(ROOT, "docs", "the-reader-registry.md")
 

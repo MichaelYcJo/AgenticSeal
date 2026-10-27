@@ -271,7 +271,7 @@ class Test_already_asked:
         the deny repeats forever in exactly the environments that cannot write."""
         opt_in_shared(repo)
         with open(
-            os.path.join(git_dir(repo), "specseal-mode-choice"), "w", encoding="utf-8"
+            os.path.join(git_dir(repo), "agentic-mode-choice"), "w", encoding="utf-8"
         ) as f:
             f.write("not a directory")
         assert decision_of(run_hook(GATE, payload("git commit -m x", repo))) == "ask"

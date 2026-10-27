@@ -17,7 +17,7 @@ existence IS the declaration, `skills/implement/orchestration.md`
 (`templates/claude-md-block.md`, which `install.sh` copies into
 `~/.claude/CLAUDE.md`, so it loads in every project on the machine) tells a
 session to write
-`seal/specs/<id>/routing.md` before the first edit. That write creates the
+`seal/threads/<id>/routing.md` before the first edit. That write creates the
 root. The question lived in a skill the session had no reason to load.
 
 So this names the state rather than hoping a document is read. A root with no
@@ -81,11 +81,11 @@ import optin
 # One marker file per session per repository, in a directory no other gate
 # writes. Sharing one would make answering one question silence another, and
 # different questions can arrive in the same session.
-CHOICE_DIR = "specseal-mode-choice"
+CHOICE_DIR = "agentic-mode-choice"
 # The session's SECOND and last prompt: the approvable retry the deny tells
 # the model to make. Its own directory, because the deny and the ask are two
 # different questions and each is spent once.
-RETRY_DIR = "specseal-mode-retry"
+RETRY_DIR = "agentic-mode-retry"
 
 
 def already_asked(git_dir, session, choice_dir=CHOICE_DIR):

@@ -756,7 +756,7 @@ def is_terminal(stream):
 # session of the same clone does not draw, and take, a stamp that is not its
 # own.
 
-VALUES_DIR = "specseal-stamp"
+VALUES_DIR = "agentic-stamp"
 # The key of a stamp no Claude Code session was found for. No hook reads it;
 # `seal-stamp --from` is how such a file is drawn.
 NO_SESSION = "none"
@@ -1089,7 +1089,7 @@ def sealed_before(chain, top, path, common=None, ident=None):
 # after the fact, so nothing asks ancestry at read time, which is what
 # #975's rounds 3 to 6 kept regressing on.
 
-REFUSED_DIR = "specseal-stamp-refused"
+REFUSED_DIR = "agentic-stamp-refused"
 # The shortest SHA a record is matched on; shorter spellings find none.
 SHORTEST_SHA = 7
 
@@ -1107,7 +1107,7 @@ def _same_commit(one, other):
 def record_refusal(common, ident, target):
     """Record that this clone refused work item `ident`'s `sealed` over
     `target` and drew nothing for it: an empty file
-    `<common>/specseal-stamp-refused/<ident>-<target>`, written by the
+    `<common>/agentic-stamp-refused/<ident>-<target>`, written by the
     write-time writer at its branch refusal. Beside `VALUES_DIR` and not in it, so neither `pending`,
     `already_queued` nor the `Stop` hook lists it. Per clone, not per
     session, because the refused row stands in this clone alone. A record
@@ -1144,7 +1144,7 @@ def _queue_values(
     """Write one work item's stamp for `session` under `common` and return
     the line that names it, once `queue_for_written_guarantee` has read the
     records from disk and the guarantee passed its refusals. `cell` is the
-    `Target SHA` row, `gate_text` the `broad-gate.md` beside the guarantee or
+    `Target SHA` row, `gate_text` the `trail/gate.md` beside the guarantee or
     None, `rounds` the paths of what its `rounds/` holds and `branch` the
     branch the audited commit stands on, or "" where none is named."""
     reader = chain.SHARED_READER
@@ -1212,7 +1212,7 @@ def queue_for_written_guarantee(path, session, now=None):
 
     It reads the file from disk at its write, the moment the verdict comes
     to read `sealed`, in shared mode as in local mode (`docs/the-review-record.md`
-    *The stamp*). `path` must be `<root>/specs/<id>/guarantee.md`, where
+    *The stamp*). `path` must be `<root>/threads/<id>/guarantee.md`, where
     `<root>` is the repository's root in force (`optin.home_at`, through
     `written_root`): `<repo>/seal/` in shared mode, `<common>/seal/` in local
     mode. It then queues where the file reads one `Verdict:` of `sealed` and
@@ -1238,7 +1238,7 @@ def queue_for_written_guarantee(path, session, now=None):
     specs = os.path.dirname(item)
     seal = os.path.dirname(specs)
     names = (os.path.basename(real), os.path.basename(specs), os.path.basename(seal))
-    if names != ("guarantee.md", "specs", "seal"):
+    if names != ("guarantee.md", "threads", "seal"):
         return []
     chain = _chain_check()
     routing = chain.load(chain.ROUTING, "specseal_routing_for_the_stamp")
@@ -1289,7 +1289,7 @@ def queue_for_written_guarantee(path, session, now=None):
         record_refusal(common, ident, target)
         return [NOT_ON_BRANCH.format(id=ident, target=target, branch=branch)]
     try:
-        rounds = os.listdir(os.path.join(item, "rounds"))
+        rounds = os.listdir(os.path.join(item, "trail", "rounds"))
     except OSError:
         rounds = []
     line = _queue_values(

@@ -25,7 +25,7 @@ CI does instead is print the relationship, `chain_check.py#pact_notices`.
 The pact's `| Signer |` table lists them by origin remote URL, and a
 checkout is found for each, in this order and with nothing guessed:
 
-  1. `~/.claude/specseal/pact-paths.md`, a `| Remote | Path |` table kept per
+  1. `~/.claude/agentic/pact-paths.md`, a `| Remote | Path |` table kept per
      machine and never committed, keyed by remote URL compared normalised;
   2. every sibling directory of the pact's repository whose origin remote
      normalises to the signer's -- exactly one of them.
@@ -86,10 +86,10 @@ HOOKS = os.path.join(HERE, "..", "..", "..", "hooks")
 CHECKER = os.path.join(HERE, "coordinates.py")
 PACT_FILE = "pact.md"
 CONFIG_FILE = "config.md"
-MAP_PARTS = (".claude", "specseal", "pact-paths.md")
+MAP_PARTS = (".claude", "agentic", "pact-paths.md")
 # Read through the native path; named in every sentence by the one spelling
 # the documents use on every platform, so a Windows run does not print
-# `~/.claude\specseal\pact-paths.md`.
+# `~/.claude\agentic\pact-paths.md`.
 MAP = os.path.join(*MAP_PARTS)
 MAP_SHOWN = "~/" + "/".join(MAP_PARTS)
 
@@ -325,9 +325,9 @@ def checkout(config, signer, root, mapped, home_dir=None):
 
 def anchor_files(home):
     """Every file of a signer's root its pact anchors are read from: every
-    work item's `spec.md`.
+    thread's `frame/design.md`.
     """
-    return sorted(glob.glob(os.path.join(home, "specs", "*", "spec.md")))
+    return sorted(glob.glob(os.path.join(home, "threads", "*", "frame", "design.md")))
 
 
 class History:

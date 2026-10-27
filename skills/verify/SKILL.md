@@ -371,7 +371,7 @@ An answerer that exists still answers nothing if nobody returns to the row.
 
 ```
 unverified-check .                                   # what is still open, and where
-unverified-check --baseline origin/main seal/specs/  # and nothing was deleted from it
+unverified-check --baseline origin/main seal/threads/  # and nothing was deleted from it
 ```
 
 It never fails for an open item: punishing an honest row is how sessions learn

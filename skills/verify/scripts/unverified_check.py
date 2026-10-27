@@ -125,7 +125,11 @@ fence_closes = _BLOCKS.fence_closes
 GFM_LINE_RE = _BLOCKS.GFM_LINE_RE
 gfm_lines = _BLOCKS.gfm_lines
 
-OVERVIEW = "overview.md"
+# A thread's closing memo, at the thread's top, and the directory under a
+# `seal/` root that holds the threads: `hooks/optin.py#GAPS` and
+# `#WORK_ITEMS`, which a case holds these two to.
+OVERVIEW = "gaps.md"
+ITEMS = "threads"
 HEADING = "## Not verified"
 HEADER = ("Item", "Who must answer")
 CLOSED = "closed"
@@ -1356,7 +1360,7 @@ def settled_root(path):
     """
     p = os.path.abspath(path)
     parent = os.path.dirname(p)
-    if os.path.basename(p) != "specs" or os.path.basename(parent) != "seal":
+    if os.path.basename(p) != ITEMS or os.path.basename(parent) != "seal":
         return False
     if not os.path.isdir(parent):
         return False
@@ -1385,7 +1389,7 @@ def absent_root(path):
     p = os.path.abspath(path)
     parent = os.path.dirname(p)
     top = os.path.dirname(parent)
-    if os.path.basename(p) != "specs" or os.path.basename(parent) != "seal":
+    if os.path.basename(p) != ITEMS or os.path.basename(parent) != "seal":
         return False
     if os.path.isdir(parent) or not os.path.isdir(top):
         return False
@@ -1411,7 +1415,7 @@ def unwritten_root(path):
     """
     p = os.path.abspath(path)
     parent = os.path.dirname(p)
-    if os.path.basename(p) != "specs" or os.path.basename(parent) != "seal":
+    if os.path.basename(p) != ITEMS or os.path.basename(parent) != "seal":
         return False
     if not os.path.isdir(p) or settled_root(p):
         return False
@@ -1420,7 +1424,7 @@ def unwritten_root(path):
 
 UNWRITTEN = (
     "unverified-check: {path} holds work items and none of them carries an "
-    "`overview.md`, so no `## Not verified` row exists to read"
+    "`gaps.md`, so no `## Not verified` row exists to read"
 )
 
 
@@ -1464,7 +1468,7 @@ def main(argv=None):
         metavar="REF",
         help="the branch this pull request merges into. Also fail when a "
         "table holds fewer rows than it did at `git merge-base REF HEAD`, or "
-        "when an overview.md that existed there is gone — an item leaves by "
+        "when a gaps.md that existed there is gone — an item leaves by "
         "being marked closed, not by the row or the file being deleted. That "
         "commit is the fork point on a branch checkout and the base's tip in "
         "CI, whose checkout of a pull request is the head already merged into "

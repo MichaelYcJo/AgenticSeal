@@ -46,7 +46,7 @@ import optin
 import routing
 from cmdline import drop_comments, drop_heredoc_bodies, parse_git, split_segments
 
-NOTICE_DIR = "specseal-implementer-notice"
+NOTICE_DIR = "agentic-implementer-notice"
 
 # The axes this notice speaks for, in the order the declaration lists them:
 # the key `routing.parse()` returns, the label a person reads in the file, the

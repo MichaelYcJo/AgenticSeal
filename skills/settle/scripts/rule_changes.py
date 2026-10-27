@@ -263,9 +263,13 @@ def overlapping(read):
     return same
 
 
-def order(root, ref, ids, specs="seal/specs"):
+# A thread's design, relative to its directory: `hooks/optin.py#DESIGN`.
+DESIGN = "frame/design.md"
+
+
+def order(root, ref, ids, specs="seal/threads"):
     """`[(id, commit)]` for IDS in merge order: the first commit reachable from
-    REF that adds the id's `spec.md`, in `git log --topo-order --reverse`
+    REF that adds the id's `frame/design.md`, in `git log --topo-order --reverse`
     order, a moved directory counting as added where it lands. An id no such
     commit adds comes last, with commit None."""
     r = subprocess.run(
@@ -285,8 +289,8 @@ def order(root, ref, ids, specs="seal/specs"):
         if line.startswith("\0"):
             commit = line[1:]
             continue
-        parts = line[len(specs) + 1 :].split("/")
-        if line.startswith(specs + "/") and len(parts) == 2 and parts[1] == "spec.md":
+        parts = line[len(specs) + 1 :].split("/", 1)
+        if line.startswith(specs + "/") and len(parts) == 2 and parts[1] == DESIGN:
             first.setdefault(parts[0], commit)
     known = [i for i in first if i in ids]
     return [(i, first[i]) for i in known] + [(i, None) for i in ids if i not in first]

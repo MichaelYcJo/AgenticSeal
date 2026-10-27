@@ -157,7 +157,9 @@ ROUND_RE = re.compile(r"^round-(\d+)\.md$")
 # The run's one record, in the work item's directory, and what separates its
 # newest run from the ones behind it. `chain_check.py` reads both by the same
 # spelling, and a case holds the two equal.
-GATE_FILE = "broad-gate.md"
+# `hooks/optin.py#GATE` and `#ROUNDS`, as disk paths under the thread.
+GATE_FILE = os.path.join("trail", "gate.md")
+ROUNDS_DIR = os.path.join("trail", "rounds")
 EARLIER_RUN = "; earlier run: "
 GATE_ROW = re.compile(r"^\|\s*" + ROW + r"\s*\|(.*)\|\s*$")
 
@@ -2448,13 +2450,13 @@ def suite_counts(record):
 def round_records(item):
     """The `rounds/round-N.md` paths of `item` on disk, lowest round first."""
     try:
-        names = os.listdir(os.path.join(item, "rounds"))
+        names = os.listdir(os.path.join(item, ROUNDS_DIR))
     except OSError:
         return []
     found = sorted(
         (int(m.group(1)), n) for n in names for m in [ROUND_RE.match(n)] if m
     )
-    return [os.path.join(item, "rounds", n) for _, n in found]
+    return [os.path.join(item, ROUNDS_DIR, n) for _, n in found]
 
 
 def kept_runs(held, value):
@@ -2467,7 +2469,7 @@ def kept_runs(held, value):
 
 
 def write_gate_file(item, tree, base):
-    """Write `<item>/broad-gate.md` with `<tree> against <base>` as its newest
+    """Write `<item>/trail/gate.md` with `<tree> against <base>` as its newest
     run, and return its path. Raises `Refused` where it cannot be written."""
     path = os.path.join(item, GATE_FILE)
     held = ""
@@ -2491,6 +2493,10 @@ def write_gate_file(item, tree, base):
         f"| {ROW} | {value} |\n"
     )
     try:
+        # `trail/` is made in a thread that has none yet, and never a
+        # thread: an `--record` naming no directory is refused at the open.
+        if os.path.isdir(item):
+            os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w", encoding="utf-8", newline="\n") as handle:
             handle.write(text)
     except OSError as exc:

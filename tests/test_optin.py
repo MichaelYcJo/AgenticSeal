@@ -412,7 +412,7 @@ class Test_opted_in:
         catching up with them.
         """
         home(repo)
-        (repo / ".git" / "specseal-scratch").mkdir()
+        (repo / ".git" / "agentic-scratch").mkdir()
         assert optin.opted_in(str(repo))
 
     def test_accepts_the_old_scratch_file_as_an_ordinary_file(self, optin, repo):
@@ -580,10 +580,12 @@ class Test_module:
         local root are listed by nothing and staged by nothing: git never lists
         its own directory, so no `.gitignore` line exists for it."""
         home = local_home(repo)
-        item = home / "specs" / "1788000000-a-work-item"
-        (item / "rounds").mkdir(parents=True)
+        item = home / "threads" / "1788000000-a-work-item"
+        (item / "trail" / "rounds").mkdir(parents=True)
         (item / "routing.md").write_text("# routing\n", encoding="utf-8")
-        (item / "rounds" / "round-1.md").write_text("# round 1\n", encoding="utf-8")
+        (item / "trail" / "rounds" / "round-1.md").write_text(
+            "# round 1\n", encoding="utf-8"
+        )
         (home / "ledger").mkdir()
         (home / "ledger" / "1788000000-a-work-item.md").write_text(
             "# rows\n", encoding="utf-8"
@@ -681,7 +683,7 @@ class Test_module:
         self, local
     ):
         repo, home = local
-        (repo / ".git" / "specseal-scratch").write_text("", encoding="utf-8")
+        (repo / ".git" / "agentic-scratch").write_text("", encoding="utf-8")
         # Before any declaration, where the edit gate would otherwise refuse.
         edit = {
             "tool_name": "Edit",

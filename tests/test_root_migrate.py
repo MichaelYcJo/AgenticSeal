@@ -23,6 +23,7 @@ import sys
 import pytest
 from conftest import (
     ROOT,
+    ROOT_MARKER,
     census_case,
     commit_everything_as_e,
     git,
@@ -130,9 +131,11 @@ def fresh(_templates, tmp_path):
 
 @pytest.fixture
 def hook(tmp_path, monkeypatch):
-    """The hook, its marker under the case's own directory."""
+    """The hook, its marker and both state directories under the case's own
+    directory, so no case renames the machine's own `~/.claude/` state."""
+    monkeypatch.setattr(MIGRATE, "OLD_STATE_DIR", str(tmp_path / "old-state"))
     monkeypatch.setattr(MIGRATE, "STATE_DIR", str(tmp_path / "state"))
-    monkeypatch.setattr(MIGRATE, "MARKER", str(tmp_path / "state" / "root-migrated"))
+    monkeypatch.setattr(MIGRATE, "MARKER", str(tmp_path / "state" / "threads-migrated"))
     return MIGRATE
 
 
@@ -202,14 +205,14 @@ class Test_MoveError:
 
 class Test_attempted:
     def test_accepts_a_root_the_marker_lists(self, hook, tmp_path):
-        write(tmp_path, "state/root-migrated", "/x/one\n/x/two\n")
+        write(tmp_path, "state/threads-migrated", "/x/one\n/x/two\n")
         assert hook.attempted("/x/two")
 
     def test_refuses_a_root_only_a_longer_one_begins_with_and_no_marker(
         self, hook, tmp_path
     ):
         assert not hook.attempted("/x/one")
-        write(tmp_path, "state/root-migrated", "/x/one-more\n")
+        write(tmp_path, "state/threads-migrated", "/x/one-more\n")
         assert not hook.attempted("/x/one")
 
 
@@ -219,7 +222,7 @@ class Test_stamp:
     ):
         hook.stamp("/x/one")
         hook.stamp("/x/two")
-        assert (tmp_path / "state" / "root-migrated").read_text(
+        assert (tmp_path / "state" / "threads-migrated").read_text(
             encoding="utf-8"
         ) == "/x/one\n/x/two\n"
 
@@ -698,6 +701,209 @@ class Test_main:
         git(fresh, "worktree", "add", "-q", str(linked), "-b", "feature/x", "main")
         assert start(hook, linked) == ""
         assert stamped(hook, linked)
+
+    def test_accepts_a_0_22_x_repository_moved_end_to_end_in_shared_mode(
+        self, hook, layout
+    ):
+        """Every file of the work item stands at its thread path as a staged
+        rename, `seal/specs/` is gone, the README opens with the marker, the
+        repository is stamped, one line says what moved, and the routing
+        reader finds the declaration at its new place."""
+        said = message(start(hook, layout))
+        assert said.startswith("specseal: moved seal/specs/ into seal/"), said
+        assert said.endswith("review the diff and commit"), said
+        assert thread_files(layout) == moved_to_threads()
+        assert not (layout / "seal" / "specs").exists()
+        assert first_line(layout / "seal" / "README.md") == ROOT_MARKER
+        listed = tracked(layout, "seal").split()
+        assert f"seal/threads/{ITEM}/frame/design.md" in listed
+        assert not any(p.startswith("seal/specs/") for p in listed), listed
+        assert unstaged(layout) == ""
+        assert stamped(hook, layout)
+        routing = load_hook_module("routing.py", "routing_after_the_move")
+        found = [p for p, _ in routing.declarations(str(layout))]
+        assert found == [str(layout / "seal" / "threads" / ITEM / "routing.md")]
+
+    def test_refuses_a_linked_specs_and_moves_nothing(self, hook, fresh, tmp_path):
+        """`seal/specs/` as a symbolic link is one blob to git: the README
+        would be rewritten and the stamp written over work items that never
+        moved, so the move is refused, every session start, until it goes."""
+        write(fresh, "seal/README.md", OLD_HEADING)
+        outside = tmp_path / "elsewhere"
+        write(outside, f"{ITEM}/routing.md", ROUTING)
+        symlink_or_skip(str(outside), str(fresh / "seal" / "specs"))
+        commit(fresh, "a linked specs/")
+        said = message(start(hook, fresh))
+        assert "seal/specs/ is a symbolic link" in said, said
+        assert first_line(fresh / "seal" / "README.md") == OLD_HEADING.split("\n")[0]
+        assert not stamped(hook, fresh)
+
+
+# --- the 0.22.x layout, moved into threads -----------------------------------
+
+# The heading `templates/seal-README.md` opened with through 0.22.x, which is
+# what tells an earlier release's root from a project's own `seal/`.
+OLD_HEADING = "# What this plugin maintains in seal/\n\nthe 0.22.x text\n"
+# A 0.22.x work item's files, and where each one stands in its thread.
+LAYOUT = {
+    "routing.md": "routing.md",
+    "spec.md": "frame/design.md",
+    "plan.md": "frame/plan.md",
+    "questions.md": "frame/questions.md",
+    "overview.md": "gaps.md",
+    "broad-gate.md": "trail/gate.md",
+    "guarantee.md": "guarantee.md",
+    "changelog.md": "changelog.md",
+    "pr.ko.md": "pr.ko.md",
+    "rounds/round-1.md": "trail/rounds/round-1.md",
+    "phases/phase-1.md": "trail/phases/phase-1.md",
+}
+
+
+def lay_out(base, readme=OLD_HEADING):
+    """The 0.22.x layout under BASE/seal/: the README an earlier release
+    wrote, a config row, and one work item holding every file `LAYOUT` maps."""
+    write(base, "seal/README.md", readme)
+    write(base, "seal/config.md", "| Item | Value |\n|---|---|\n")
+    for old in LAYOUT:
+        write(base, f"seal/specs/{ITEM}/{old}", f"# {old}\n")
+    write(
+        base,
+        f"seal/specs/{ITEM}/routing.md",
+        "| Axis | Answer |\n|---|---|\n| Review | through the review chain |\n"
+        "| Destination | open the pull request |\n| Branch | feat/x |\n",
+    )
+
+
+def thread_files(base):
+    """Every file under BASE/seal/threads/, `/`-joined and relative to it."""
+    top = os.path.join(str(base), "seal", "threads")
+    return sorted(
+        os.path.relpath(os.path.join(here, n), top).replace(os.sep, "/")
+        for here, _, names in os.walk(top)
+        for n in names
+    )
+
+
+def moved_to_threads():
+    return sorted(f"{ITEM}/{new}" for new in LAYOUT.values())
+
+
+def first_line(path):
+    with open(path, encoding="utf-8") as f:
+        return f.readline().rstrip("\n")
+
+
+@pytest.fixture
+def layout(fresh):
+    """`fresh` with the 0.22.x layout committed in shared mode."""
+    lay_out(fresh)
+    commit(fresh, "the 0.22.x layout")
+    return fresh
+
+
+class Test_moves:
+    def test_accepts_the_readme_then_each_file_of_a_work_item_into_its_thread(
+        self, hook, layout
+    ):
+        units = hook.moves(str(layout))
+        assert units[0] == ("readme", "seal/README.md", "seal/README.md")
+        assert sorted((src, dst) for _, src, dst in units[1:]) == sorted(
+            (f"seal/specs/{ITEM}/{old.split('/')[0]}", f"seal/threads/{ITEM}/{new}")
+            for old, new in {
+                **{k: v for k, v in LAYOUT.items() if "/" not in k},
+                "rounds": "trail/rounds",
+                "phases": "trail/phases",
+            }.items()
+        )
+
+    @pytest.mark.parametrize(
+        "readme", ["# seal, the project's own package\n", None], ids=["foreign", "none"]
+    )
+    def test_refuses_a_seal_whose_readme_no_release_of_the_plugin_wrote(
+        self, hook, fresh, readme
+    ):
+        """A project's own `seal/`, with a README of its own or none, lists
+        nothing, whatever it holds under `specs/`."""
+        lay_out(fresh)
+        if readme is None:
+            os.remove(fresh / "seal" / "README.md")
+        else:
+            write(fresh, "seal/README.md", readme)
+        commit(fresh, "a seal/ of the project's own")
+        assert hook.moves(str(fresh)) == []
+
+    def test_accepts_a_marked_root_with_no_readme_unit(self, hook, layout):
+        """A root already opening with the marker, as a stopped move leaves
+        it, lists the work items and no README rewrite."""
+        write(layout, "seal/README.md", f"{ROOT_MARKER}\n")
+        commit(layout, "the marker, by hand")
+        kinds = {kind for kind, _, _ in hook.moves(str(layout))}
+        assert kinds == {"other"}
+
+
+class Test_migrate_local:
+    def test_accepts_a_0_22_x_local_root_moved_end_to_end_by_rename(self, hook, fresh):
+        """In local mode the root is under the git directory: the same units
+        move as plain renames, nothing is staged, and the README there opens
+        with the marker."""
+        common = fresh / ".git"
+        lay_out(common)
+        said = message(start(hook, fresh))
+        assert said.startswith("specseal: moved seal/specs/ into seal/"), said
+        assert thread_files(common) == moved_to_threads()
+        assert not (common / "seal" / "specs").exists()
+        assert first_line(common / "seal" / "README.md") == ROOT_MARKER
+        assert git(fresh, "status", "--porcelain").stdout == ""
+        assert stamped(hook, fresh)
+
+    def test_refuses_a_local_seal_whose_readme_no_release_wrote(self, hook, fresh):
+        """A `seal/` under the git directory with a README of its own is no
+        root this plugin wrote: nothing there moves and nothing is said."""
+        common = fresh / ".git"
+        lay_out(common, readme="# a directory of the person's own\n")
+        assert hook.migrate_local(str(fresh), str(common)) is False
+        assert (common / "seal" / "specs" / ITEM / "spec.md").is_file()
+        assert not (common / "seal" / "threads").exists()
+
+
+class Test_rename_state:
+    def test_refuses_to_make_a_state_file_where_no_old_one_stands(self, hook, fresh):
+        """Nothing old, nothing new: the rename invents no file, and leaves
+        a new-named file alone."""
+        write(fresh / ".git", "agentic-scratch", "")
+        before = sorted(os.listdir(fresh / ".git"))
+        hook.rename_state(str(fresh))
+        assert sorted(os.listdir(fresh / ".git")) == before
+        assert not os.path.exists(hook.STATE_DIR)
+
+    def test_accepts_each_old_state_file_renamed_where_no_new_one_stands(
+        self, hook, layout, tmp_path, monkeypatch
+    ):
+        """With the move, a state file an earlier release wrote beside the
+        root, and the directory under `~/.claude/`, take the plugin's new
+        name; one whose new name is already taken is left as it is."""
+        fresh = layout
+        old_home = tmp_path / "home" / "specseal"
+        new_home = tmp_path / "home" / "agentic"
+        write(old_home, "pact-paths.md", "| a | b |\n")
+        monkeypatch.setattr(hook, "OLD_STATE_DIR", str(old_home))
+        monkeypatch.setattr(hook, "STATE_DIR", str(new_home))
+        monkeypatch.setattr(hook, "MARKER", str(new_home / "threads-migrated"))
+        git_dir = fresh / ".git"
+        write(git_dir, "specseal-scratch", "")
+        write(git_dir, "specseal-leases/s1", "x\n")
+        write(git_dir, "specseal-stamp/a", "old\n")
+        write(git_dir, "agentic-stamp/a", "new\n")
+        start(hook, fresh)
+        assert (git_dir / "agentic-scratch").is_file()
+        assert not (git_dir / "specseal-scratch").exists()
+        assert (git_dir / "agentic-leases" / "s1").is_file()
+        old_stamp = git_dir / "specseal-stamp" / "a"
+        assert old_stamp.read_text(encoding="utf-8") == "old\n"
+        assert (git_dir / "agentic-stamp" / "a").read_text(encoding="utf-8") == "new\n"
+        assert (new_home / "pact-paths.md").is_file()
+        assert not old_home.exists()
 
 
 test_census = census_case(TARGET)

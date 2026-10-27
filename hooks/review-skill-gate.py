@@ -56,7 +56,7 @@ import optin
 
 BUILTIN = "code-review"
 OURS = "specseal:code-review"
-MARKER_DIR = "specseal-review-choice"
+MARKER_DIR = "agentic-review-choice"
 
 REASON = f"""\
 `{BUILTIN}` is Claude Code's built-in skill, not this plugin's, and this repo \

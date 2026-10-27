@@ -3,7 +3,13 @@
 once per repository.
 
 `moves` lists the units, each a `(kind, src, dst)` of repository-relative
-paths, and this tree has none. The 0.3.x layout is not a unit: no code of the
+paths: a root an earlier release wrote, its README opening with a heading in
+`OLD_HEADINGS`, has `seal/README.md` rewritten from the template so it opens
+with `optin.MARKER`, and each 0.22.x work item under `seal/specs/<id>/` moves
+into `seal/threads/<id>/`, each name at its thread path (`THREAD_PATHS`). In
+local mode `local_moves` lists the same units under the git directory, and
+they move by rename. With the move, each state file beside the root takes
+the plugin's name (`rename_state`). The 0.3.x layout is not a unit: no code of the
 plugin opens its two directories, a top-level `specs/` may be another tool's,
 and README.md *Coming up from 0.3.x* gives the commands that move it by hand
 (`docs/one-root-by-lifetime.md`, "The plugin writes only to its own root").
@@ -49,11 +55,57 @@ import console
 import optin
 
 HOOKS = os.path.dirname(os.path.abspath(__file__))
-STATE_DIR = os.path.join(os.path.expanduser("~"), ".claude", "specseal")
-MARKER = os.path.join(STATE_DIR, "root-migrated")
+# The directory under `~/.claude/` the plugin keeps its state in, under the
+# name through 0.22.x and under the plugin's `name` since. The move renames
+# the first to the second where only the first stands.
+OLD_STATE_DIR = os.path.join(os.path.expanduser("~"), ".claude", "specseal")
+STATE_DIR = os.path.join(os.path.expanduser("~"), ".claude", "agentic")
+MARKER = os.path.join(STATE_DIR, "threads-migrated")
 TEMPLATE = os.path.join(HOOKS, "..", "templates", "seal-README.md")
 
 NEW = optin.HOME
+# Where a work item stood through 0.22.x, under the root, and the root's
+# README's first line in the releases that wrote one. A `seal/` whose README
+# opens with neither these nor `optin.MARKER` is a project's own and is never
+# read here.
+EARLIER_ITEMS = f"{NEW}/specs"
+OLD_HEADINGS = (
+    "# What this plugin maintains in seal/",
+    "# seal/ — what this plugin maintains",
+)
+README = f"{NEW}/{optin.README}"
+# Where each name at the top of a 0.22.x work item stands in its thread; a
+# name not listed (`routing.md`, `changelog.md`, `guarantee.md`, a `pr.*.md`)
+# keeps its name at the thread's top.
+THREAD_PATHS = {
+    "spec.md": optin.DESIGN,
+    "plan.md": optin.PLAN,
+    "questions.md": optin.QUESTIONS,
+    "overview.md": optin.GAPS,
+    "broad-gate.md": optin.GATE,
+    "phases": optin.PHASES,
+    "rounds": optin.ROUNDS,
+}
+# The state files an earlier release wrote under the git directory, each
+# renamed from `specseal-` to `agentic-` by the move.
+OLD_PREFIX, NEW_PREFIX = "specseal-", "agentic-"
+STATE_NAMES = (
+    "scratch",
+    "no-work-item",
+    "leases",
+    "planner",
+    "implementer",
+    "implementer-notice",
+    "gate-failure",
+    "mode-choice",
+    "mode-retry",
+    "review-choice",
+    "worktree-choice",
+    "worktree-consent",
+    "stamp",
+    "stamp-refused",
+    "last-export.json",
+)
 
 
 class MoveError(Exception):
@@ -183,15 +235,87 @@ def entries(root, rel):
         return []
 
 
-def moves(root):
-    """The units still to move, in the order they move, as (kind, src, dst).
+def heading(base):
+    """The first line of `base`'s `seal/README.md`, its end stripped, or None
+    where it cannot be read."""
+    try:
+        with open(under(base, README), encoding="utf-8") as f:
+            return f.readline().rstrip("\r\n")
+    except (OSError, UnicodeDecodeError):
+        return None
 
-    A `readme` unit's destination is then rewritten from the template. The
-    list is computed from what git tracks as it stands, which is what makes a
-    stopped move resume: a unit that already moved is not there to be listed.
-    No layout this tree reads is still to move, so the list is empty.
+
+def ours(base):
+    """True when `base`'s `seal/` is a root this plugin wrote: its README
+    opens with the marker, or with the heading an earlier release wrote."""
+    if os.path.islink(under(base, NEW)):
+        return False
+    return heading(base) in (optin.MARKER, *OLD_HEADINGS)
+
+
+def units_from(base, listing):
+    """The units still to move under `base`, in the order they move, as
+    (kind, src, dst): the README's rewrite first where it does not open
+    with the marker, then every name at the top of each work item under
+    `seal/specs/` into `seal/threads/<id>/` at its thread path. `listing`
+    answers what is under a path: `entries` over what git tracks in shared
+    mode, the directory in local mode."""
+    if not ours(base):
+        return []
+    units = []
+    if heading(base) != optin.MARKER:
+        units.append(("readme", README, README))
+    for item in listing(base, EARLIER_ITEMS):
+        for name in listing(base, f"{EARLIER_ITEMS}/{item}"):
+            new = THREAD_PATHS.get(name, name)
+            units.append(
+                (
+                    "other",
+                    f"{EARLIER_ITEMS}/{item}/{name}",
+                    f"{NEW}/{optin.WORK_ITEMS}/{item}/{new}",
+                )
+            )
+    return units
+
+
+def moves(root):
+    """The units still to move in shared mode, through `entries`.
+
+    A `readme` unit is the template's text written over `seal/README.md`.
+    The list is computed from what git tracks as it stands, which is what
+    makes a stopped move resume: a unit that already moved is not there to
+    be listed.
     """
-    return []
+    return units_from(root, entries)
+
+
+def on_disk(base, rel):
+    """What is under `rel` as names, sorted: a local root holds nothing git
+    tracks, so its listing is the directory's."""
+    path = under(base, rel)
+    if not os.path.isdir(path) or os.path.islink(path):
+        return []
+    try:
+        return sorted(os.listdir(path))
+    except OSError:
+        return []
+
+
+def local_moves(common):
+    """The units still to move under the local root, `<common>/seal/`."""
+    return units_from(common, on_disk)
+
+
+def local_move(common, src, dst):
+    """`src` to `dst` under the git directory, a plain rename: nothing there
+    is tracked, so there is nothing to stage."""
+    if os.path.lexists(under(common, dst)):
+        raise taken(src, dst)
+    try:
+        os.makedirs(os.path.dirname(under(common, dst)), exist_ok=True)
+        os.rename(under(common, src), under(common, dst))
+    except OSError as exc:
+        raise MoveError(src, str(exc)) from exc
 
 
 def git_mv(root, src, dst):
@@ -271,11 +395,11 @@ def move(root, src, dst):
             pass
 
 
-def rewrite_readme(root, dst):
-    """A `readme` unit's second half: the moved README becomes the template's
-    text.
+def rewrite_readme(root, dst, stage=True):
+    """A `readme` unit: the README becomes the template's text, staged in
+    shared mode, so it opens with the marker.
 
-    A template that cannot be read leaves the moved file as it was — a README
+    A template that cannot be read leaves the file as it was — a README
     describing the old layout is the state Q5 weighed, and it beats stopping
     the move for a file that is not the move.
     """
@@ -286,34 +410,72 @@ def rewrite_readme(root, dst):
             f.write(text)
     except OSError:
         return
-    git(root, "add", "--", dst)
+    if stage:
+        git(root, "add", "--", dst)
 
 
-def run_moves(root, units):
-    """(units moved, the error that stopped the run or None)."""
+def run_moves(root, units, local=False):
+    """(units moved, the error that stopped the run or None). A `readme`
+    unit whose source is its destination is a rewrite and nothing moves;
+    any other `readme` unit moves first. `local` moves by rename under the
+    git directory instead of by `git mv`."""
     done = 0
     for kind, src, dst in units:
         try:
-            move(root, src, dst)
+            if src != dst:
+                (local_move if local else move)(root, src, dst)
             if kind == "readme":
-                rewrite_readme(root, dst)
+                rewrite_readme(root, dst, stage=not local)
         except MoveError as exc:
             return done, exc
         done += 1
     for old in sources(units):
-        path = under(root, old)
-        # A link is never this cleanup's to remove. POSIX `rmdir` refuses one
-        # with ENOTDIR; Windows' `RemoveDirectoryW` removes a directory link
-        # itself, whatever is behind it, and deleted a team's linked `specs/`
-        # from the working tree (PR #700's windows leg, #688; contract
-        # rule 13).
-        if os.path.islink(path):
-            continue
-        try:
-            os.rmdir(path)
-        except OSError:
-            pass  # something else is in it, or it is already gone
+        # The source directory, then each one above it that the moves left
+        # empty, up to the root: `seal/specs/<id>/`, then `seal/specs/`.
+        while old:
+            path = under(root, old)
+            # A link is never this cleanup's to remove. POSIX `rmdir` refuses
+            # one with ENOTDIR; Windows' `RemoveDirectoryW` removes a
+            # directory link itself, whatever is behind it, and deleted a
+            # team's linked `specs/` from the working tree (PR #700's windows
+            # leg, #688; contract rule 13).
+            if os.path.islink(path) or old == NEW:
+                break
+            try:
+                os.rmdir(path)
+            except OSError:
+                break  # something else is in it, or it is already gone
+            old = posixpath.dirname(old)
     return done, None
+
+
+def rename_state(root):
+    """Each state file an earlier release wrote beside the root, under the
+    git directory and the common one, and `~/.claude/specseal/`, renamed to
+    the plugin's name where the new name is not taken. Silent, and a rename
+    that fails leaves the old file where it was."""
+    places = set()
+    common = optin.git_common_dir(root)
+    if common:
+        places.add(common)
+    try:
+        r = git(root, "rev-parse", "--absolute-git-dir")
+        if r.returncode == 0 and r.stdout.strip():
+            places.add(r.stdout.strip())
+    except (OSError, subprocess.SubprocessError):
+        pass
+    pairs = [
+        (os.path.join(p, OLD_PREFIX + n), os.path.join(p, NEW_PREFIX + n))
+        for p in sorted(places)
+        for n in STATE_NAMES
+    ]
+    pairs.append((OLD_STATE_DIR, STATE_DIR))
+    for old, new in pairs:
+        if os.path.lexists(old) and not os.path.lexists(new):
+            try:
+                os.rename(old, new)
+            except OSError:
+                pass
 
 
 def has_root(root):
@@ -333,6 +495,49 @@ def listed(dirs):
     return " and ".join(f"{d}/" for d in dirs)
 
 
+def origins(units):
+    """What the notice names as moved: each unit's source directory cut to
+    its first two names, once and sorted, so thirty work items under
+    `seal/specs/` read as `seal/specs/`; a README rewritten in place moves
+    nothing and is not named."""
+    return sorted(
+        {
+            "/".join(posixpath.dirname(src).split("/")[:2])
+            for _, src, dst in units
+            if src != dst
+        }
+    )
+
+
+def moved_line(units, tail):
+    """The one line a finished move says, ending with TAIL."""
+    if not origins(units):
+        return f"specseal: wrote the marker into {README} {tail}"
+    return f"specseal: moved {listed(origins(units))} into {NEW}/ {tail}"
+
+
+def migrate_local(root, common):
+    """The move under the local root: no git, so no dirty check and nothing
+    staged; the stamp and the line as in shared mode."""
+    units = local_moves(common)
+    if not units:
+        return False
+    if attempted(root):
+        return True
+    rename_state(root)
+    done, error = run_moves(common, units, local=True)
+    if error is not None:
+        say(
+            f"specseal: moved {done} of {len(units)} into {NEW}/ under the git "
+            f"directory and stopped at {error.path}: {error.error}. The next "
+            "session start continues."
+        )
+        return True
+    stamp(root)
+    say(moved_line(units, "under the git directory, where nothing is committed"))
+    return True
+
+
 def main():
     """Move what is still to move once, and say in one line what moved."""
     try:
@@ -348,8 +553,24 @@ def main():
     if not root:
         return
 
+    if ours(root) and os.path.islink(under(root, EARLIER_ITEMS)):
+        # Git tracks the link as one blob, so it lists no work items behind
+        # it: the README would be rewritten, the marker stamped, and the
+        # files behind the link would never move. Refused before anything
+        # else, every session start, until the link is gone.
+        say(
+            f"specseal: {EARLIER_ITEMS}/ is a symbolic link, which git tracks as the "
+            "link and not as its files — not moving it. Replace the link with "
+            "the directory it points at, commit, and the next session start "
+            f"moves it into {NEW}/{optin.WORK_ITEMS}/."
+        )
+        return
+
     units = moves(root)
     if not units:
+        common = optin.git_common_dir(root)
+        if common and migrate_local(root, common):
+            return
         # Nothing old left. Stamped so that checking out a branch that still
         # carries an old layout later finds the once-per-repository rule
         # already answered, rather than a move staged onto that branch.
@@ -367,12 +588,13 @@ def main():
         return  # once per repository; the silent gates are the backstop (Q8)
     if dirty(root, units):
         say(
-            f"specseal: the old layout under {listed(sources(units))} holds "
+            f"specseal: the old layout under {listed(origins(units) or [NEW])} holds "
             "uncommitted changes — not touching work in progress. Commit, then "
             f"the next session start moves it into {NEW}/."
         )
         return
 
+    rename_state(root)
     done, error = run_moves(root, units)
     if error is not None:
         tail = (
@@ -386,10 +608,7 @@ def main():
         )
         return
     stamp(root)
-    say(
-        f"specseal: moved {listed(sources(units))} into {NEW}/ — review the diff "
-        "and commit"
-    )
+    say(moved_line(units, "— review the diff and commit"))
 
 
 if __name__ == "__main__":

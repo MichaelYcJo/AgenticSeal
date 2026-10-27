@@ -59,7 +59,7 @@ pc, checker = pact_check_modules()
 config = pc.load(os.path.join(pc.HOOKS, "config.py"), "config_for_pact_tests")
 
 SIGNER = (SIGNER_URL, config.normalise_remote(SIGNER_URL), "orders-web")
-SPEC_Y = "seal/specs/1790000001-y/spec.md"
+SPEC_Y = "seal/threads/1790000001-y/frame/design.md"
 
 
 def posix(path):
@@ -143,7 +143,7 @@ class Test_module:
             patched.setattr(os.path, "join", ntpath.join)
             windows = load_module(SCRIPT, "pact_check_with_windows_joins")
         _, why = windows.checkout(config, SIGNER, str(tmp_path / "nowhere"), {})
-        assert "~/.claude/specseal/pact-paths.md" in why, why
+        assert "~/.claude/agentic/pact-paths.md" in why, why
         assert "\\" not in why, why
 
     def test_the_wrapper_runs_the_script_from_any_directory(self, world):
@@ -175,10 +175,10 @@ class Test_shown:
                 "seal/config.md",
             ),
             (
-                r"C:\Users\x\.claude\specseal\pact-paths.md",
+                r"C:\Users\x\.claude\agentic\pact-paths.md",
                 None,
                 r"C:\Users\x",
-                "~/.claude/specseal/pact-paths.md",
+                "~/.claude/agentic/pact-paths.md",
             ),
             ("C:/Users/x/work/a\\b.md", r"C:\Users\x\work", None, "a/b.md"),
         ],
@@ -295,7 +295,7 @@ class Test_path_map:
     def test_refuses_to_read_a_row_past_the_tables_end(self, world):
         write(
             world.home,
-            ".claude/specseal/pact-paths.md",
+            ".claude/agentic/pact-paths.md",
             "| Remote | Path |\n|---|---|\n| https://example.com/org/a | /x/a |\n"
             "\nprose\n\n| https://example.com/org/b | /x/b |\n",
         )
@@ -305,7 +305,7 @@ class Test_path_map:
     @pytest.mark.parametrize("shape", ["directory", "dangling link"])
     def test_refuses_a_map_that_is_there_and_will_not_read(self, world, shape):
         """Read as empty, every signer it names would be reported missing."""
-        where = world.home / ".claude" / "specseal" / "pact-paths.md"
+        where = world.home / ".claude" / "agentic" / "pact-paths.md"
         where.parent.mkdir(parents=True)
         if shape == "directory":
             where.mkdir()
@@ -314,7 +314,7 @@ class Test_path_map:
         found, refusal = pc.path_map(config, str(world.home))
         assert found == {}
         assert refusal == (
-            "~/.claude/specseal/pact-paths.md is there and could not be read"
+            "~/.claude/agentic/pact-paths.md is there and could not be read"
         )
 
 
@@ -355,21 +355,25 @@ class Test_checkout:
         assert why == (
             "no checkout of it was found on this machine: add "
             f"`| {PACT_URL} | <the path of its checkout> |` to "
-            "~/.claude/specseal/pact-paths.md"
+            "~/.claude/agentic/pact-paths.md"
         )
 
 
 class Test_anchor_files:
     def test_accepts_every_work_item_s_spec_in_order(self, tmp_path):
-        for rel in ("specs/2-b/spec.md", "specs/1-a/spec.md"):
+        for rel in ("threads/2-b/frame/design.md", "threads/1-a/frame/design.md"):
             write(tmp_path, rel, "x\n")
         assert pc.anchor_files(str(tmp_path)) == [
-            os.path.join(str(tmp_path), "specs", "1-a", "spec.md"),
-            os.path.join(str(tmp_path), "specs", "2-b", "spec.md"),
+            os.path.join(str(tmp_path), "threads", "1-a", "frame", "design.md"),
+            os.path.join(str(tmp_path), "threads", "2-b", "frame", "design.md"),
         ]
 
     def test_refuses_a_work_item_s_other_records_and_a_spec_below_one(self, tmp_path):
-        for rel in ("specs/1-a/plan.md", "specs/1-a/phases/spec.md", "spec.md"):
+        for rel in (
+            "threads/1-a/frame/plan.md",
+            "threads/1-a/trail/phases/design.md",
+            "threads/1-a/design.md",
+        ):
             write(tmp_path, rel, "x\n")
         assert pc.anchor_files(str(tmp_path)) == []
 
@@ -591,7 +595,7 @@ class Test_check:
         assert (
             f"NOT FOUND {SIGNER_URL} — no checkout of it was found on this "
             f"machine: add `| {SIGNER_URL} | <the path of its checkout> |` to "
-            "~/.claude/specseal/pact-paths.md"
+            "~/.claude/agentic/pact-paths.md"
         ) in out, out
         world.map(("git@example.com:org/orders-web.git", moved))
         world.web = moved
@@ -742,12 +746,12 @@ class Test_check:
         assert out == "UNREADABLE seal/pact.md — the pact could not be read", out
 
     def test_refuses_a_map_that_will_not_read(self, world):
-        (world.home / ".claude" / "specseal" / "pact-paths.md").mkdir(parents=True)
+        (world.home / ".claude" / "agentic" / "pact-paths.md").mkdir(parents=True)
         world.cite(clause(V2))
         code, out = world.run()
         assert code == 2, out
         assert (
-            "REFUSED ~/.claude/specseal/pact-paths.md — ~/.claude/specseal/"
+            "REFUSED ~/.claude/agentic/pact-paths.md — ~/.claude/agentic/"
             "pact-paths.md is there and could not be read"
         ) in out, out
 

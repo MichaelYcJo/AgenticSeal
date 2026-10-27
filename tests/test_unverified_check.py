@@ -82,10 +82,10 @@ def memo(section, name=WORK):
 
 
 def memo_at(root, section, name=WORK):
-    """The path of `specs/<name>/overview.md` under ROOT, written as
+    """The path of `specs/<name>/gaps.md` under ROOT, written as
     `memo(section)`."""
-    write(root, f"specs/{name}/overview.md", memo(section, name))
-    return os.path.join(str(root), "specs", name, "overview.md")
+    write(root, f"specs/{name}/gaps.md", memo(section, name))
+    return os.path.join(str(root), "specs", name, "gaps.md")
 
 
 def parse(section, strict_header=True):
@@ -147,9 +147,9 @@ def plain(tmp_path_factory):
     return _committed(
         tmp_path_factory.mktemp("plain"),
         {
-            f"specs/{WORK}/overview.md": memo(CANONICAL),
-            f"specs/{OTHER}/overview.md": memo(CANONICAL, OTHER),
-            "build/x/overview.md": memo(CANONICAL, "x"),
+            f"specs/{WORK}/gaps.md": memo(CANONICAL),
+            f"specs/{OTHER}/gaps.md": memo(CANONICAL, OTHER),
+            "build/x/gaps.md": memo(CANONICAL, "x"),
         },
     )
 
@@ -160,12 +160,12 @@ def linked(tmp_path_factory):
     first's."""
     d = _committed(
         tmp_path_factory.mktemp("linked"),
-        {f"specs/{WORK}/overview.md": memo(CANONICAL)},
+        {f"specs/{WORK}/gaps.md": memo(CANONICAL)},
     )
     (d / "specs" / OTHER).mkdir()
     symlink_or_skip(
-        os.path.join("..", WORK, "overview.md"),
-        str(d / "specs" / OTHER / "overview.md"),
+        os.path.join("..", WORK, "gaps.md"),
+        str(d / "specs" / OTHER / "gaps.md"),
     )
     commit_everything_as_e(d, "a link")
     return d
@@ -194,7 +194,7 @@ LEGACY = {
 def legacy(tmp_path_factory):
     return _committed(
         tmp_path_factory.mktemp("legacy"),
-        {f"specs/{name}/overview.md": memo(s, name) for name, s in LEGACY.items()},
+        {f"specs/{name}/gaps.md": memo(s, name) for name, s in LEGACY.items()},
     )
 
 
@@ -210,16 +210,16 @@ def forked(tmp_path_factory):
     own."""
     d = _committed(
         tmp_path_factory.mktemp("forked"),
-        {f"specs/{WORK}/overview.md": memo(CANONICAL)},
+        {f"specs/{WORK}/gaps.md": memo(CANONICAL)},
     )
     git(d, "branch", "fork")
     git(d, "switch", "-qc", "base")
-    write(d, f"specs/{SIBLING}/overview.md", memo(CANONICAL, SIBLING))
+    write(d, f"specs/{SIBLING}/gaps.md", memo(CANONICAL, SIBLING))
     commit_everything_as_e(d, "another work item, squashed into the base")
     git(d, "switch", "-qc", "gained", "fork")
     write(
         d,
-        f"specs/{WORK}/overview.md",
+        f"specs/{WORK}/gaps.md",
         memo(CANONICAL)
         + "| whether the hooks fire on Windows | the same maintainer |\n",
     )
@@ -261,7 +261,7 @@ def settle(tmp_path_factory):
         SETTLE_BAD: "# bad\n\n## Rule changes\n\nnot an item\n",
     }
     for name, spec in specs.items():
-        files[f"specs/{name}/overview.md"] = memo(CLOSED_SECTION, name)
+        files[f"specs/{name}/gaps.md"] = memo(CLOSED_SECTION, name)
         files[f"specs/{name}/spec.md"] = spec
     for name, section in (
         (CLOSED_ITEM, CLOSED_SECTION),
@@ -269,7 +269,7 @@ def settle(tmp_path_factory):
         (DROPPED, CLOSED_SECTION),
     ):
         files[f"specs/{name}/routing.md"] = f"# {name} routing\n"
-        files[f"specs/{name}/overview.md"] = memo(section, name)
+        files[f"specs/{name}/gaps.md"] = memo(section, name)
     files[f"specs/{DROPPED}/spec.md"] = "# a spec\n\nA rule.\n"
     d = _committed(tmp_path_factory.mktemp("settle"), files)
     git(d, "rm", "-q", f"specs/{DROPPED}/spec.md")
@@ -278,7 +278,7 @@ def settle(tmp_path_factory):
 
 
 TEAM = "specs/1788000001-team-thing"
-OURS = "seal/specs/1790000000-ours"
+OURS = "seal/threads/1790000000-ours"
 MALFORMED = "## Not verified\n\nnot a table, and not a none line either\n"
 
 
@@ -289,8 +289,8 @@ def joined(tmp_path_factory):
     return _committed(
         tmp_path_factory.mktemp("joined"),
         {
-            f"{OURS}/overview.md": memo(CANONICAL, "ours"),
-            f"{TEAM}/overview.md": memo(MALFORMED, "team"),
+            f"{OURS}/gaps.md": memo(CANONICAL, "ours"),
+            f"{TEAM}/gaps.md": memo(MALFORMED, "team"),
             f"{TEAM}/spec.md": "# the team's spec\n",
         },
     )
@@ -309,8 +309,8 @@ def unwritten(tmp_path_factory):
     return _committed(
         tmp_path_factory.mktemp("unwritten"),
         {
-            f"seal/specs/{WORK}/routing.md": f"# {WORK} routing\n",
-            f"seal/specs/{WORK}/spec.md": "# a spec\n",
+            f"seal/threads/{WORK}/routing.md": f"# {WORK} routing\n",
+            f"seal/threads/{WORK}/frame/design.md": "# a spec\n",
         },
     )
 
@@ -1240,7 +1240,7 @@ class Test_check_file:
         assert not errors and len(open_rows) == 2 and not closed_rows
 
     def test_refuses_a_file_it_cannot_open(self, tmp_path):
-        _, _, errors = UC.check_file(str(tmp_path / "overview.md"))
+        _, _, errors = UC.check_file(str(tmp_path / "gaps.md"))
         assert (
             errors and errors[0][0] == 0 and errors[0][1].startswith("cannot be read: ")
         )
@@ -1393,13 +1393,13 @@ class Test_overviews:
         self, tmp_path
     ):
         for rel in ("specs/b", "specs/a", "build/c", "node_modules/d", ".venv/e"):
-            write(tmp_path, f"{rel}/overview.md", memo(CANONICAL))
-        named = str(tmp_path / "specs" / "a" / "overview.md")
+            write(tmp_path, f"{rel}/gaps.md", memo(CANONICAL))
+        named = str(tmp_path / "specs" / "a" / "gaps.md")
         found = UC.overviews([str(tmp_path), named])
         here = os.path.realpath(str(tmp_path))
         assert found == [
-            os.path.join(here, "specs", "a", "overview.md"),
-            os.path.join(here, "specs", "b", "overview.md"),
+            os.path.join(here, "specs", "a", "gaps.md"),
+            os.path.join(here, "specs", "b", "gaps.md"),
         ]
 
     def test_refuses_a_reference_root_on_a_walk_and_reads_it_named(self, joined):
@@ -1456,7 +1456,7 @@ class Test_reference_rule:
     def test_accepts_a_predicate_true_for_a_reference_root(self, joined):
         skip = UC.reference_rule(str(joined))
         assert skip(str(joined / "specs")) is True
-        assert skip(str(joined / "seal" / "specs")) is False
+        assert skip(str(joined / "seal" / "threads")) is False
 
     @pytest.mark.parametrize("where", ["inside", "outside"])
     def test_refuses_to_prune_a_named_root_or_outside_a_repository(
@@ -1484,11 +1484,11 @@ class Test_git_path:
         monkeypatched because `git_path` reads it at call time, so the
         Windows branch runs on every leg."""
         monkeypatch.setattr(os, "sep", "\\")
-        assert UC.git_path("specs\\1780000000-work\\overview.md") == (
-            "specs/1780000000-work/overview.md"
+        assert UC.git_path("specs\\1780000000-work\\gaps.md") == (
+            "specs/1780000000-work/gaps.md"
         )
-        assert UC.git_path("specs/1780000000-work/overview.md") == (
-            "specs/1780000000-work/overview.md"
+        assert UC.git_path("specs/1780000000-work/gaps.md") == (
+            "specs/1780000000-work/gaps.md"
         )
 
     def test_refuses_to_rewrite_a_backslash_in_a_posix_name(self, monkeypatch):
@@ -1502,8 +1502,8 @@ def refuses(path, start=None):
 
 class Test_repo_relative:
     def test_accepts_a_path_inside_the_root(self, tmp_path):
-        inside = os.path.join(str(tmp_path), "specs", "a", "overview.md")
-        assert UC.repo_relative(inside, str(tmp_path)) == "specs/a/overview.md"
+        inside = os.path.join(str(tmp_path), "specs", "a", "gaps.md")
+        assert UC.repo_relative(inside, str(tmp_path)) == "specs/a/gaps.md"
 
     def test_refuses_a_path_with_no_relative_form(self, monkeypatch):
         monkeypatch.setattr(os.path, "relpath", refuses)
@@ -1512,9 +1512,9 @@ class Test_repo_relative:
 
 class Test_display_path:
     def test_accepts_a_path_relative_to_where_the_run_started(self, tmp_path):
-        inside = os.path.join(str(tmp_path), "specs", "overview.md")
+        inside = os.path.join(str(tmp_path), "specs", "gaps.md")
         assert UC.display_path(inside, str(tmp_path)) == os.path.join(
-            "specs", "overview.md"
+            "specs", "gaps.md"
         )
 
     def test_refuses_to_die_on_a_path_with_no_relative_form(self, monkeypatch):
@@ -1522,7 +1522,7 @@ class Test_display_path:
         for every line the tool prints; driven by making it raise, so every
         leg runs it."""
         monkeypatch.setattr(os.path, "relpath", refuses)
-        where = os.path.join("x", "overview.md")
+        where = os.path.join("x", "gaps.md")
         assert UC.display_path(where, os.path.abspath("y")) == os.path.abspath(where)
 
 
@@ -1531,7 +1531,7 @@ class Test_nearest_existing:
         assert UC.nearest_existing(str(tmp_path)) == os.path.abspath(str(tmp_path))
 
     def test_refuses_a_path_two_levels_gone_for_its_nearest_ancestor(self, tmp_path):
-        gone = os.path.join(str(tmp_path), "a", "b", "overview.md")
+        gone = os.path.join(str(tmp_path), "a", "b", "gaps.md")
         assert UC.nearest_existing(gone) == os.path.abspath(str(tmp_path))
 
 
@@ -1564,9 +1564,7 @@ def answering(monkeypatch, word, stdout):
 class Test_repo_root:
     def test_accepts_a_directory_and_a_file_inside_the_repository(self, plain):
         assert same_path(UC.repo_root(str(plain / "specs")), plain)
-        assert same_path(
-            UC.repo_root(str(plain / "specs" / WORK / "overview.md")), plain
-        )
+        assert same_path(UC.repo_root(str(plain / "specs" / WORK / "gaps.md")), plain)
 
     def test_refuses_a_directory_outside_every_repository(self, tmp_path):
         assert UC.repo_root(str(tmp_path)) is None
@@ -1622,15 +1620,13 @@ class Test_base_label:
 
 class Test_overviews_at:
     def test_accepts_the_overviews_under_each_prefix(self, plain):
-        work, other = (f"specs/{n}/overview.md" for n in (WORK, OTHER))
+        work, other = (f"specs/{n}/gaps.md" for n in (WORK, OTHER))
         assert UC.overviews_at(str(plain), "HEAD", ["."]) == [work, other]
         assert UC.overviews_at(str(plain), "HEAD", [f"specs/{WORK}"]) == [work]
 
     def test_accepts_a_reference_root_a_prefix_names(self, joined):
-        assert UC.overviews_at(str(joined), "HEAD", ["."]) == [f"{OURS}/overview.md"]
-        assert UC.overviews_at(str(joined), "HEAD", ["specs"]) == [
-            f"{TEAM}/overview.md"
-        ]
+        assert UC.overviews_at(str(joined), "HEAD", ["."]) == [f"{OURS}/gaps.md"]
+        assert UC.overviews_at(str(joined), "HEAD", ["specs"]) == [f"{TEAM}/gaps.md"]
 
     @pytest.mark.parametrize(
         "ref, prefix",
@@ -1649,7 +1645,7 @@ class Test_overviews_at:
 
 class Test_tree_at:
     def test_accepts_a_directory_at_a_ref_and_on_disk(self, settle):
-        listed = [f"specs/{SETTLE_A}/overview.md", f"specs/{SETTLE_A}/spec.md"]
+        listed = [f"specs/{SETTLE_A}/gaps.md", f"specs/{SETTLE_A}/spec.md"]
         assert UC.tree_at(str(settle), "HEAD", f"specs/{SETTLE_A}") == listed
         assert UC.tree_at(str(settle), None, f"specs/{SETTLE_A}") == listed
 
@@ -1671,12 +1667,10 @@ class Test__text_at:
 
 class Test_show:
     def test_accepts_a_path_at_a_ref(self, plain):
-        assert UC.show(str(plain), "HEAD", f"specs/{WORK}/overview.md") == memo(
-            CANONICAL
-        )
+        assert UC.show(str(plain), "HEAD", f"specs/{WORK}/gaps.md") == memo(CANONICAL)
 
     def test_refuses_a_path_the_ref_does_not_hold(self, plain):
-        assert UC.show(str(plain), "HEAD", "specs/none/overview.md") is None
+        assert UC.show(str(plain), "HEAD", "specs/none/gaps.md") is None
 
 
 # --- what a settle removed ----------------------------------------------------
@@ -1693,8 +1687,8 @@ class Test_rule_changes:
 class Test_open_record_rows:
     def test_accepts_every_open_item_of_the_record(self, settle):
         assert UC.open_record_rows(str(settle), "HEAD", f"specs/{OPEN_ITEM}") == [
-            ("overview.md", "how the gate renders in a TUI"),
-            ("overview.md", "whether Windows hooks fire"),
+            ("gaps.md", "how the gate renders in a TUI"),
+            ("gaps.md", "whether Windows hooks fire"),
         ]
         assert UC.open_record_rows(str(settle), None, f"specs/{CLOSED_ITEM}") == []
 
@@ -1746,25 +1740,25 @@ class Test_settled_root:
     def test_accepts_a_roots_own_specs_with_no_work_item(self, tmp_path, state):
         (tmp_path / "seal").mkdir()
         if state != "absent":
-            (tmp_path / "seal" / "specs").mkdir()
+            (tmp_path / "seal" / "threads").mkdir()
         if state == "a file only":
-            write(tmp_path, "seal/specs/README.md", "r\n")
-        assert UC.settled_root(str(tmp_path / "seal" / "specs")) is True
+            write(tmp_path, "seal/threads/README.md", "r\n")
+        assert UC.settled_root(str(tmp_path / "seal" / "threads")) is True
 
     @pytest.mark.parametrize("state", ["a work item", "another parent", "no root"])
     def test_refuses_a_work_item_another_parent_and_no_root(self, tmp_path, state):
         if state == "a work item":
-            (tmp_path / "seal" / "specs" / WORK).mkdir(parents=True)
+            (tmp_path / "seal" / "threads" / WORK).mkdir(parents=True)
         if state == "another parent":
             (tmp_path / "other").mkdir()
-        path = tmp_path / ("other" if state == "another parent" else "seal") / "specs"
+        path = tmp_path / ("other" if state == "another parent" else "seal") / "threads"
         assert UC.settled_root(str(path)) is False
 
 
 class Test_absent_root:
     def test_accepts_the_specs_path_of_a_top_level_holding_no_root(self, tmp_path):
         git(tmp_path, "init", "-q")
-        assert UC.absent_root(str(tmp_path / "seal" / "specs")) is True
+        assert UC.absent_root(str(tmp_path / "seal" / "threads")) is True
 
     @pytest.mark.parametrize(
         "state",
@@ -1778,10 +1772,10 @@ class Test_absent_root:
         if state == "a typo":
             git(tmp_path, "init", "-q")
         path = {
-            "a root": sealed / "seal" / "specs",
-            "a subdirectory": sealed / "seal" / "seal" / "specs",
-            "no repository": tmp_path / "seal" / "specs",
-            "another parent": sealed / "other" / "specs",
+            "a root": sealed / "seal" / "threads",
+            "a subdirectory": sealed / "seal" / "seal" / "threads",
+            "no repository": tmp_path / "seal" / "threads",
+            "another parent": sealed / "other" / "threads",
             "a typo": tmp_path / "seal" / "spces",
         }[state]
         assert UC.absent_root(str(path)) is False
@@ -1789,23 +1783,23 @@ class Test_absent_root:
 
 class Test_unwritten_root:
     def test_accepts_a_roots_specs_holding_work_items_and_no_overview(self, unwritten):
-        assert UC.unwritten_root(str(unwritten / "seal" / "specs")) is True
+        assert UC.unwritten_root(str(unwritten / "seal" / "threads")) is True
 
     @pytest.mark.parametrize("state", ["an overview", "no work item", "another parent"])
     def test_refuses_an_overview_no_work_item_and_another_parent(self, tmp_path, state):
-        (tmp_path / "seal" / "specs").mkdir(parents=True)
-        path = tmp_path / ("other" if state == "another parent" else "seal") / "specs"
+        (tmp_path / "seal" / "threads").mkdir(parents=True)
+        path = tmp_path / ("other" if state == "another parent" else "seal") / "threads"
         if state == "another parent":
-            write(tmp_path, f"other/specs/{WORK}/spec.md", "# a spec\n")
+            write(tmp_path, f"other/threads/{WORK}/frame/design.md", "# a spec\n")
         if state == "an overview":
-            memo_at(tmp_path / "seal", CANONICAL)
+            write(tmp_path, f"seal/threads/{WORK}/gaps.md", memo(CANONICAL))
         assert UC.unwritten_root(str(path)) is False
 
 
 class Test_under_root:
     def test_accepts_a_slash_joined_path_as_the_disk_spells_it(self):
-        assert UC.under_root("r", "specs/a/overview.md") == os.path.join(
-            "r", "specs", "a", "overview.md"
+        assert UC.under_root("r", "specs/a/gaps.md") == os.path.join(
+            "r", "specs", "a", "gaps.md"
         )
 
     def test_refuses_to_read_the_path_as_one_name(self):
@@ -1843,7 +1837,7 @@ def reported_paths(out):
             path, _, _ = rest.partition(",line=")
             if path:
                 found.append(path)
-        elif "overview.md:" in ln:
+        elif "gaps.md:" in ln:
             found.append(ln.split(":")[0])
     return found
 
@@ -1888,7 +1882,7 @@ class Test_main:
             argv = [str(tmp_path / "spces")]
         if state == "and a root":
             (tmp_path / "seal").mkdir()
-            argv.append(str(tmp_path / "seal" / "specs"))
+            argv.append(str(tmp_path / "seal" / "threads"))
         assert run(argv) == 2
         err = capsys.readouterr().err
         assert ("no such path" if state == "missing" else "nothing was checked") in err
@@ -1932,7 +1926,7 @@ class Test_main:
         """Marking keeps the row, so the count does not fall; and the strict
         reader and the base reader agree about an example added."""
         d = copy_of(plain, tmp_path)
-        path = d / "specs" / WORK / "overview.md"
+        path = d / "specs" / WORK / "gaps.md"
         replace_in(path, "| whether Windows", "| closed whether Windows")
         replace_in(path, TUI + "\n", TUI + "\n\n```\nan example\n```\n\n")
         assert run([str(d), "--baseline", "HEAD"]) == 0
@@ -1948,7 +1942,7 @@ class Test_main:
         """Without it the cheapest way to lower the count stays "delete the
         line", and a closed item and a tidied-up one become one edit."""
         d = copy_of(plain, tmp_path)
-        drop_line(d / "specs" / WORK / "overview.md", WINDOWS)
+        drop_line(d / "specs" / WORK / "gaps.md", WINDOWS)
         assert run([str(d), "--baseline", "HEAD"]) == 1
         out = capsys.readouterr().out
         assert "2 rows at HEAD, 1 here" in out
@@ -1963,7 +1957,7 @@ class Test_main:
         is the working tree's, because nobody can edit a commit that already
         happened. A row deleted in the stripping commit goes uncompared once."""
         d = copy_of(plain, tmp_path)
-        path = d / "specs" / WORK / "overview.md"
+        path = d / "specs" / WORK / "gaps.md"
         replace_in(path, "## Not verified\n", "## Not verified\n\n<!-- guidance -->\n")
         commit_everything_as_e(d, "an overview from an old template")
         replace_in(path, "\n<!-- guidance -->\n", "")
@@ -1990,11 +1984,11 @@ class Test_main:
         d = copy_of(plain, tmp_path)
         item = d / "specs" / WORK
         if change == "delete one and rename the other":
-            os.remove(item / "overview.md")
+            os.remove(item / "gaps.md")
             os.rename(d / "specs" / OTHER, d / "specs" / "1780000001-renamed")
         if change == "delete both":
-            os.remove(item / "overview.md")
-            os.remove(d / "specs" / OTHER / "overview.md")
+            os.remove(item / "gaps.md")
+            os.remove(d / "specs" / OTHER / "gaps.md")
         assert run([str(d), "--baseline", "HEAD"]) == 1
         out = capsys.readouterr().out
         assert out.count("present at HEAD and not here") == gone, out
@@ -2004,7 +1998,7 @@ class Test_main:
         "change, argv",
         [
             ("delete specs", ["specs"]),
-            ("delete the item", [f"specs/{WORK}/overview.md"]),
+            ("delete the item", [f"specs/{WORK}/gaps.md"]),
         ],
         ids=["the scan path", "two levels"],
     )
@@ -2031,7 +2025,7 @@ class Test_main:
         the author to restore rows still in the file."""
         d = copy_of(plain, tmp_path)
         replace_in(
-            d / "specs" / WORK / "overview.md",
+            d / "specs" / WORK / "gaps.md",
             "## Not verified",
             "## Not verified (who must answer)",
         )
@@ -2051,8 +2045,8 @@ class Test_main:
         if in_ci:
             monkeypatch.setenv("GITHUB_ACTIONS", "true")
         d = copy_of(plain, tmp_path)
-        os.remove(d / "specs" / WORK / "overview.md")
-        drop_line(d / "specs" / OTHER / "overview.md", WINDOWS)
+        os.remove(d / "specs" / WORK / "gaps.md")
+        drop_line(d / "specs" / OTHER / "gaps.md", WINDOWS)
         monkeypatch.chdir(d / "specs")
         assert run([".", "--baseline", "HEAD"]) == 1
         paths = reported_paths(capsys.readouterr().out)
@@ -2124,9 +2118,9 @@ class Test_main:
         d = copy_of(plain, tmp_path)
         symlink_or_skip(str(d), str(tmp_path / "link"))
         if change == "a row":
-            drop_line(d / "specs" / WORK / "overview.md", WINDOWS)
+            drop_line(d / "specs" / WORK / "gaps.md", WINDOWS)
         else:
-            os.remove(d / "specs" / WORK / "overview.md")
+            os.remove(d / "specs" / WORK / "gaps.md")
         assert run([str(tmp_path / "link"), "--baseline", "HEAD"]) == 1
 
     # `--baseline` at a base written before the corpus was normalised.
@@ -2150,7 +2144,7 @@ class Test_main:
             "1780000025-none-line": "## Not verified\n\n- nothing\n  why: x\n",
         }
         for name, tree in trees.items():
-            write(d, f"specs/{name}/overview.md", memo(tree, name))
+            write(d, f"specs/{name}/gaps.md", memo(tree, name))
         assert run([str(d / "specs"), "--baseline", "HEAD"]) == 0
         out = capsys.readouterr().out
         named = out.split("not compared against HEAD:")[1]
@@ -2169,7 +2163,7 @@ class Test_main:
         names = ["1780000020-old-heading", "1780000021-old-mark"]
         for name in names:
             tree = memo(CANONICAL.replace(WINDOWS + "\n", ""), name)
-            write(d, f"specs/{name}/overview.md", tree)
+            write(d, f"specs/{name}/gaps.md", tree)
         assert run([str(d / "specs" / n) for n in names] + ["--baseline", "HEAD"]) == 1
         assert capsys.readouterr().out.count("2 rows at HEAD, 1 here") == 2
         for name in names:
@@ -2198,7 +2192,7 @@ class Test_main:
         """The control: a moved base excuses nothing this branch did, and
         the refusal names the merge base it compared, not the ref."""
         d = copy_of(forked, tmp_path)
-        os.remove(d / "specs" / WORK / "overview.md")
+        os.remove(d / "specs" / WORK / "gaps.md")
         assert run([str(d), "--baseline", "base"]) == 1
         out = capsys.readouterr().out
         short = git_out(d, "rev-parse", "HEAD")[:7]
@@ -2209,7 +2203,7 @@ class Test_main:
 
     def test_refuses_a_deleted_row_under_a_moved_base(self, forked, tmp_path, capsys):
         d = copy_of(forked, tmp_path)
-        drop_line(d / "specs" / WORK / "overview.md", WINDOWS)
+        drop_line(d / "specs" / WORK / "gaps.md", WINDOWS)
         assert run([str(d), "--baseline", "base"]) == 1
         assert "2 rows at the merge-base of base and HEAD" in capsys.readouterr().out
 
@@ -2217,7 +2211,7 @@ class Test_main:
         self, forked, tmp_path, capsys
     ):
         d = copy_of(forked, tmp_path)
-        os.remove(d / "specs" / WORK / "overview.md")
+        os.remove(d / "specs" / WORK / "gaps.md")
         assert run([str(d), "--baseline", "fork"]) == 1
         out = capsys.readouterr().out
         assert "present at fork and not here" in out and "merge-base" not in out
@@ -2303,8 +2297,8 @@ class Test_main:
         directory is gone whole from its old path, so the message says nothing
         of a rename."""
         d = copy_of(settle, tmp_path)
-        os.remove(d / "specs" / OPEN_ITEM / "overview.md")
-        os.remove(d / "specs" / CLOSED_ITEM / "overview.md")
+        os.remove(d / "specs" / OPEN_ITEM / "gaps.md")
+        os.remove(d / "specs" / CLOSED_ITEM / "gaps.md")
         assert run([str(d), "--baseline", "HEAD"]) == 1
         out = capsys.readouterr().out
         lines = [ln for ln in out.split("\n") if "present at HEAD and not here" in ln]
@@ -2337,14 +2331,14 @@ class Test_main:
         self, sealed, tmp_path, capsys, keep_empty_dir, baseline
     ):
         """G7: every pull request after a complete fold runs
-        `--baseline origin/<base> seal/specs/`, and the path holds nothing at
+        `--baseline origin/<base> seal/threads/`, and the path holds nothing at
         HEAD and held no overview at the merge base. That was a typo, exit 2,
         so every such pull request went red."""
         d = sealed
         if keep_empty_dir:
             d = copy_of(sealed, tmp_path)
-            (d / "seal" / "specs").mkdir()
-        argv = [str(d / "seal" / "specs")] + (
+            (d / "seal" / "threads").mkdir()
+        argv = [str(d / "seal" / "threads")] + (
             ["--baseline", "HEAD"] if baseline else []
         )
         assert run(argv) == 0
@@ -2372,7 +2366,7 @@ class Test_main:
         not this branch's deletion."""
         d = copy_of(joined, tmp_path)
         shutil.rmtree(d / "seal")
-        argv = [str(d / "seal" / "specs")] + (
+        argv = [str(d / "seal" / "threads")] + (
             ["--baseline", "HEAD"] if baseline else []
         )
         assert run(argv) == 0
@@ -2386,15 +2380,15 @@ class Test_main:
     def test_accepts_work_items_none_of_which_opened_a_closing_memo(
         self, unwritten, capsys, baseline
     ):
-        """S6: every work item that never opened an `overview.md` holds no
+        """S6: every work item that never opened an `gaps.md` holds no
         row to read, and that was exit 2, `nothing was checked`."""
-        argv = [str(unwritten / "seal" / "specs")] + (
+        argv = [str(unwritten / "seal" / "threads")] + (
             ["--baseline", "HEAD"] if baseline else []
         )
         assert run(argv) == 0
         out = capsys.readouterr()
         said = " ".join((out.out + out.err).split())
-        assert "none of them carries an `overview.md`" in said, said
+        assert "none of them carries an `gaps.md`" in said, said
         assert "open: 0" not in said, said
 
     @pytest.mark.rule("nothing-declared-nothing-owed")
@@ -2405,9 +2399,9 @@ class Test_main:
         nothing deleted: a root whose last overview left is still a
         deletion."""
         d = copy_of(joined, tmp_path)
-        os.remove(d / OURS / "overview.md")
+        os.remove(d / OURS / "gaps.md")
         write(d, f"{OURS}/spec.md", "# a spec\n")
-        assert run([str(d / "seal" / "specs"), "--baseline", "HEAD"]) == 1
+        assert run([str(d / "seal" / "threads"), "--baseline", "HEAD"]) == 1
         assert "present at HEAD and not here" in capsys.readouterr().out
 
     @pytest.mark.rule("nothing-declared-nothing-owed")
@@ -2416,8 +2410,8 @@ class Test_main:
         self, sealed, capsys, baseline
     ):
         """Absence is read at the working tree's top level only, so a
-        `seal/specs` typed from the wrong directory still names nothing."""
-        argv = [str(sealed / "seal" / "seal" / "specs")] + (
+        `seal/threads` typed from the wrong directory still names nothing."""
+        argv = [str(sealed / "seal" / "seal" / "threads")] + (
             ["--baseline", "HEAD"] if baseline else []
         )
         assert run(argv) == 2
@@ -2434,16 +2428,16 @@ class Test_main:
         out = capsys.readouterr().out
         assert "1790000000-ours" in out and "team-thing" not in out, out
         d = copy_of(joined, tmp_path)
-        os.remove(d / TEAM / "overview.md")
+        os.remove(d / TEAM / "gaps.md")
         assert run([str(d), "--baseline", "HEAD"]) == 0
 
     def test_refuses_a_team_overview_the_person_names(self, joined, tmp_path, capsys):
         """A person who names the file, or the directory it sits in, has
         asked for it, on both sides of the comparison."""
-        assert run([str(joined / TEAM / "overview.md")]) == 1
+        assert run([str(joined / TEAM / "gaps.md")]) == 1
         assert run([str(joined / "specs")]) == 1
         d = copy_of(joined, tmp_path)
-        os.remove(d / TEAM / "overview.md")
+        os.remove(d / TEAM / "gaps.md")
         capsys.readouterr()
         assert run([str(d / "specs"), "--baseline", "HEAD"]) == 1
         assert "team-thing" in capsys.readouterr().out
@@ -2486,7 +2480,7 @@ class Test_module:
     def test_this_repositorys_own_overviews_are_all_readable(self):
         """The corpus is the real test, and it states the rule for new work:
         a work item that writes an overview writes this section in it."""
-        assert run([os.path.join(ROOT, "seal", "specs")]) == 0
+        assert run([os.path.join(ROOT, "seal", "threads")]) == 0
 
 
 # --- a reading written from the format, for `Test_live_lines` -----------------

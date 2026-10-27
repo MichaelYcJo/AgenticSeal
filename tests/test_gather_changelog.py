@@ -87,7 +87,7 @@ def tree(tmp_path):
         ("1788229400-later", "- **the later one.** What it changes.\n"),
         ("1700000000-earlier", "- **the earlier one.** What it changes.\n"),
     ):
-        d = tmp_path / "seal" / "specs" / work_item_id
+        d = tmp_path / "seal" / "threads" / work_item_id
         d.mkdir(parents=True)
         (d / "changelog.md").write_text(body, encoding="utf-8")
     return tmp_path
@@ -156,7 +156,7 @@ def load(path, name):
 
 def fragment_tree(tmp_path, body):
     """A repository root holding one changelog fragment and a changelog."""
-    item = tmp_path / "seal" / "specs" / "2-b"
+    item = tmp_path / "seal" / "threads" / "2-b"
     item.mkdir(parents=True)
     (item / "changelog.md").write_text(body, encoding="utf-8")
     (tmp_path / "CHANGELOG.md").write_text(
@@ -171,7 +171,7 @@ HEADED = "1788250000-headed"
 
 def headed(tree, body):
     """A third fragment, between the fixture's two in id order."""
-    d = tree / "seal" / "specs" / HEADED
+    d = tree / "seal" / "threads" / HEADED
     d.mkdir(parents=True)
     (d / "changelog.md").write_text(body, encoding="utf-8")
 
@@ -226,7 +226,7 @@ class Test_main:
         directory, writes the release's file, and gives the index its first
         entry below the index's own text."""
         (tmp_path / "CHANGELOG.md").write_text(INDEX_HEAD, encoding="utf-8")
-        d = tmp_path / "seal" / "specs" / "1700000000-earlier"
+        d = tmp_path / "seal" / "threads" / "1700000000-earlier"
         d.mkdir(parents=True)
         (d / "changelog.md").write_text("- the earlier one\n", encoding="utf-8")
         r = run("--version", "0.1.0", "--date", "2026-09-01", root=tmp_path)
@@ -281,7 +281,7 @@ class Test_main:
         two releases with the same number. The section is appended into now, it
         keeps the first gather's date, and the file holds one heading."""
         gather(tree)
-        late = tree / "seal" / "specs" / "1788300001-late"
+        late = tree / "seal" / "threads" / "1788300001-late"
         late.mkdir(parents=True)
         (late / "changelog.md").write_text(
             "- **the late one.** A repair.\n", encoding="utf-8"
@@ -326,7 +326,7 @@ class Test_main:
             "## 0.2.0 — 2026-09-15\n\n<!-- specs/1700000000-earlier -->\n"
             "- the earlier one\n",
         )
-        d = tmp_path / "seal" / "specs" / "1788300001-late"
+        d = tmp_path / "seal" / "threads" / "1788300001-late"
         d.mkdir(parents=True)
         (d / "changelog.md").write_text("- the late one\n", encoding="utf-8")
         r = run("--version", "0.2.0", "--date", "2026-09-16", root=tmp_path)
@@ -345,7 +345,7 @@ class Test_main:
         both. The gatherer never writes an undated heading; a hand edit does."""
         lay_out(tmp_path, "## 0.2.0\n\n- an entry somebody wrote by hand\n")
         listed = index(tmp_path)
-        d = tmp_path / "seal" / "specs" / "1788300001-late"
+        d = tmp_path / "seal" / "threads" / "1788300001-late"
         d.mkdir(parents=True)
         (d / "changelog.md").write_text("- the late one\n", encoding="utf-8")
         dry = run(
@@ -365,7 +365,7 @@ class Test_main:
         entries join, dated as the file has it — not a fresh heading with today's
         date that the write then does not make."""
         gather(tree)
-        late = tree / "seal" / "specs" / "1788300001-late"
+        late = tree / "seal" / "threads" / "1788300001-late"
         late.mkdir(parents=True)
         (late / "changelog.md").write_text(
             "- **the late one.** A repair.\n", encoding="utf-8"
@@ -389,8 +389,8 @@ class Test_main:
     def test_check_fails_while_a_fragment_is_outstanding(self, tree):
         r = run("--check", root=tree)
         assert r.returncode == 1, r.stdout
-        assert "seal/specs/1788229400-later/changelog.md" in r.stdout, r.stdout
-        assert "seal/specs/1700000000-earlier/changelog.md" in r.stdout, r.stdout
+        assert "seal/threads/1788229400-later/changelog.md" in r.stdout, r.stdout
+        assert "seal/threads/1700000000-earlier/changelog.md" in r.stdout, r.stdout
 
     def test_check_passes_once_they_are_gathered(self, tree):
         gather(tree)
@@ -446,7 +446,7 @@ class Test_main:
         """A work item that opened the file and wrote nothing has no entry, and a
         marker with nothing under it would make `--check` green for a change that
         ships unexplained."""
-        d = tree / "seal" / "specs" / "1788300000-empty"
+        d = tree / "seal" / "threads" / "1788300000-empty"
         d.mkdir(parents=True)
         (d / "changelog.md").write_text("\n\n", encoding="utf-8")
         gather(tree)
@@ -490,14 +490,14 @@ class Test_main:
         out = " ".join(r.stdout.split())
         want = "0 changelog fragments, all gathered; 3 work items marked in changelog/"
         assert want in out, out
-        d = tmp_path / "seal" / "specs" / "1788300001-left"
+        d = tmp_path / "seal" / "threads" / "1788300001-left"
         d.mkdir(parents=True)
         (d / "changelog.md").write_text("- left behind\n", encoding="utf-8")
         r = run("--check", root=tmp_path)
         assert r.returncode == 1, r.stdout
         out = " ".join(r.stdout.split())
         assert "changelog fragments that never reached a file under changelog/:" in out
-        assert "seal/specs/1788300001-left/changelog.md" in out, out
+        assert "seal/threads/1788300001-left/changelog.md" in out, out
 
     def test_a_block_one_release_file_leaves_open_hides_nothing_in_another(
         self, tmp_path
@@ -572,8 +572,8 @@ class Test_main:
         quoting(tree, shape)
         r = run("--check", root=tree)
         assert r.returncode == 1, r.stdout
-        assert "seal/specs/1788229400-later/changelog.md" in r.stdout, r.stdout
-        assert "seal/specs/1700000000-earlier/changelog.md" not in r.stdout, r.stdout
+        assert "seal/threads/1788229400-later/changelog.md" in r.stdout, r.stdout
+        assert "seal/threads/1700000000-earlier/changelog.md" not in r.stdout, r.stdout
 
     def test_a_quoted_marker_is_not_counted(self, tree):
         """#584, S6's count. `--check`'s success line counted every
@@ -604,9 +604,9 @@ class Test_main:
         assert snapshot(tree) == before, "the refused gather wrote to a file"
         assert "## 0.2.0" not in r.stdout, "the refused gather printed a section"
         out = " ".join(r.stdout.split())
-        assert f"seal/specs/{HEADED}/changelog.md:3: ## A heading of its own" in out, (
-            out
-        )
+        assert (
+            f"seal/threads/{HEADED}/changelog.md:3: ## A heading of its own" in out
+        ), out
         assert "Demote each to `###` or lower" in out, out
         assert "a pull request into the release branch, then gather again" in out, out
 
@@ -628,16 +628,16 @@ class Test_main:
         headed(tree, "- **an entry.**\n\n  ```\n## inside a fence\n  ```\n")
         r = run("--version", "0.2.0", "--date", "2026-09-15", root=tree)
         assert r.returncode == 1, r.stdout
-        assert f"seal/specs/{HEADED}/changelog.md:4: ## inside a fence" in r.stdout
+        assert f"seal/threads/{HEADED}/changelog.md:4: ## inside a fence" in r.stdout
 
     def test_a_gathered_fragment_is_not_refused_again(self, tree):
         """Only what this run would gather is read. A fragment already in the
         file cannot be un-shipped by refusing the release."""
         gather(tree)
-        (tree / "seal" / "specs" / "1788229400-later" / "changelog.md").write_text(
+        (tree / "seal" / "threads" / "1788229400-later" / "changelog.md").write_text(
             "- **the later one.**\n\n## edited after it shipped\n", encoding="utf-8"
         )
-        d = tree / "seal" / "specs" / "1788300001-next"
+        d = tree / "seal" / "threads" / "1788300001-next"
         d.mkdir(parents=True)
         (d / "changelog.md").write_text("- **the next one.**\n", encoding="utf-8")
         r = run("--version", "0.3.0", "--date", "2026-09-16", root=tree)
@@ -662,9 +662,9 @@ class Test_main:
         assert snapshot(tree) == before, "the refused gather wrote to a file"
         assert "## 0.2.0" not in r.stdout, "the refused gather printed a section"
         out = " ".join(r.stdout.split())
-        assert f"seal/specs/{HEADED}/changelog.md" in out, out
+        assert f"seal/threads/{HEADED}/changelog.md" in out, out
         assert "never close" in out and "Nothing was written" in out, out
-        assert "seal/specs/1788229400-later/changelog.md" not in out, out
+        assert "seal/threads/1788229400-later/changelog.md" not in out, out
 
     def test_a_fragment_that_closes_what_it_opens_is_gathered(self, tree):
         """The other half, so the refusal cannot pass by refusing everything: a

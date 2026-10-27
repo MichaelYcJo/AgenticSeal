@@ -7,7 +7,7 @@ description: |
   another) as its group's latest decision, checked against the code, decide
   every open row of their records, then remove their directories.
   Use when: preparing a release and the work items have accumulated; a
-  session asks what `seal/specs/` is still holding, or runs `settle`.
+  session asks what `seal/threads/` is still holding, or runs `settle`.
   NOT for: gathering changelog fragments, which release preparation
   already does; anything in a work item that has not shipped.
 ---
@@ -163,7 +163,7 @@ nothing:
 - **Every open `## Not verified` row** of every released record, each with
   the backticked paths it names and whether each is in the working tree.
 - **What `--apply` removes**, the citations into it from outside
-  `seal/specs/`, and the checks under `tests/` that read `seal/specs`.
+  `seal/threads/`, and the checks under `tests/` that read `seal/threads`.
 
 Nothing is refused or held in the dry run: a stale `from`, a section that
 does not parse, an unordered pair and an open row are all shown.
@@ -243,7 +243,7 @@ arguments or the tree are unusable. Its last line counts each.
 `templates/config.md` *Reference specs* says, is read where the work touches
 what it describes and cited in the `spec.md` whose rule changes it informed.
 `settle` never writes there, and neither does the settling session:
-`--apply` removes only under `seal/specs/`.
+`--apply` removes only under `seal/threads/`.
 
 ## In local mode
 
@@ -254,10 +254,10 @@ branch its `routing.md` names has merged, its merge commit reachable from
 at a ref cannot say that it shipped. What reaches the ref is its pull
 request's merge commit, whatever the merge method was.
 
-- **Where it reads.** Every `seal/specs/<id>/` path is read and removed
+- **Where it reads.** Every `seal/threads/<id>/` path is read and removed
   under `$(git rev-parse --git-common-dir)`, so a work item's directory is
-  `<git-common-dir>/seal/specs/<id>/`, and it is printed as
-  `seal/specs/<id>/`. The policy root, the tracked files the citations are
+  `<git-common-dir>/seal/threads/<id>/`, and it is printed as
+  `seal/threads/<id>/`. The policy root, the tracked files the citations are
   read from, and `tests/` are read from the repository's top.
 - **What released means.** `settle` reads the `Branch` row of each work
   item's `routing.md` and asks
@@ -314,12 +314,12 @@ run lists it as stating no rule, and its open rows with every other record's.
 ## Answer every check that reads the corpus
 
 **A settle is not finished until every check in your repository that carries
-a population floor over `seal/specs/` has been answered.** A floor is an
-assertion like `len(records) > 200` over a walk of `seal/specs/`, and a
+a population floor over `seal/threads/` has been answered.** A floor is an
+assertion like `len(records) > 200` over a walk of `seal/threads/`, and a
 settle shrinks the corpus by design (`docs/one-root-by-lifetime.md` *The
 dependency rule*), and a list of readers written in any document is not the
 whole list.
-The dry run lists every `tests/` file that reads `seal/specs`, and every path
+The dry run lists every `tests/` file that reads `seal/threads`, and every path
 outside it that cites into what `--apply` removes. Each check gets one answer,
 written down:
 
@@ -342,7 +342,7 @@ The plugin sets no ceiling; a repository states its own.
 
 ## A settle is not a work item
 
-**A settle opens no directory under `seal/specs/`**: no `routing.md`, no
+**A settle opens no directory under `seal/threads/`**: no `routing.md`, no
 frame, no round records, and the routing question is not asked for it. It
 edits under `seal no-work-item`, run on the branch the settle is made on.
 Where the root is shared, its commits carry

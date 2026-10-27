@@ -52,7 +52,7 @@ import routing
 import worktree_consent
 
 TOOL = "AskUserQuestion"
-QUESTIONS = "questions.md"
+QUESTIONS = optin.QUESTIONS
 
 
 def shown(path, top):
@@ -69,7 +69,7 @@ def reason(top, item):
         f"`{shown(item, top)}` answers `{routing.AUTOMATION}` with "
         f"`{routing.AUTOMATION_YES}`, so this run does not stop to ask. Build "
         "on the default the question states, write that default as a row of "
-        f"`{QUESTIONS}` in the same directory, and name it in the pull request "
+        f"`{QUESTIONS}` in the same thread, and name it in the pull request "
         "body, where the owner can overturn it. A question that states no "
         "default, such as another gate's choice, is not yours to answer: take "
         "none of its ways on and hand that stop back at the end of the run. "

@@ -508,7 +508,7 @@ def test_the_location_buckets_are_the_repositorys_own_definition_of_a_record():
     # reworded row naming the same set stays green — and a bare `` `seal/` ``
     # is no longer the assertion, because the sentence that names the three
     # contains that substring and held the old check up on its own.
-    for path in ("`seal/specs/`",):
+    for path in ("`seal/threads/`",):
         assert path in source, (
             f"the `Location` row no longer names {path} as a record path, so "
             "a finding about the run's own paperwork lands in the code bucket"
@@ -520,8 +520,8 @@ def test_the_location_buckets_are_the_repositorys_own_definition_of_a_record():
         "paperwork bucket"
     )
     share_source = labelled("Records' share")[1]
-    assert "seal/specs" not in share_source, (
-        "the share row counts `seal/specs/**` alone, so a branch that wrote "
+    assert "seal/threads" not in share_source, (
+        "the share row counts `seal/threads/**` alone, so a branch that wrote "
         "ledger rows reads as having written less paperwork than it did"
     )
 

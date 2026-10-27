@@ -50,9 +50,9 @@ document: the settling session has written them by then, and `fold-check`'s
 lines over the policy root are printed after the removals.
 
 **In local mode the work items are read and removed under the git
-directory.** Every `seal/specs/<id>/` path is read under the directory that
+directory.** Every `seal/threads/<id>/` path is read under the directory that
 holds the resolved root, the repository's top where the root is shared and
-the common git directory in local mode, and is printed as `seal/specs/<id>/`.
+the common git directory in local mode, and is printed as `seal/threads/<id>/`.
 The policy root, the tracked files the citations are read from, and `tests/`
 are read from the repository's top in both. The dry run's first line names a
 local root, each released local work item is listed with its pull request's
@@ -101,7 +101,9 @@ PURPOSES = {
     FOLD_CHECK: "it is what reads the index and the one read after an apply",
 }
 
-SPECS = "seal/specs"
+SPECS = "seal/threads"
+# A thread's design, relative to its directory: `hooks/optin.py#DESIGN`.
+DESIGN = "frame/design.md"
 TESTS = "tests/"
 
 # The command asked in local mode, once per branch, and how long it may take.
@@ -149,7 +151,7 @@ def load(path, name):
 
 
 def work_items(records):
-    """Every work item id with a directory under `seal/specs/` in RECORDS,
+    """Every work item id with a directory under `seal/threads/` in RECORDS,
     the directory holding the `seal/` root, in id order."""
     top = under(records, SPECS)
     if not os.path.isdir(top):
@@ -315,7 +317,7 @@ def released_local(root, records, ref, ids):
 
 def has_spec(records, work_item_id):
     """Whether the work item's directory holds a `spec.md` on disk."""
-    return os.path.isfile(under(records, f"{SPECS}/{work_item_id}/spec.md"))
+    return os.path.isfile(under(records, f"{SPECS}/{work_item_id}/{DESIGN}"))
 
 
 def read_text(root, rel):
@@ -335,7 +337,7 @@ SETTLED = (
 )
 # A checkout carries no local root, so the fresh checkout goes unsaid there.
 SETTLED_LOCAL = (
-    "settle: {home} is the seal/ root, in local mode, and its specs/ holds no "
+    "settle: {home} is the seal/ root, in local mode, and its threads/ holds no "
     "work item — nothing to show and nothing to remove. A complete settle "
     "ends here.\n"
 )
@@ -392,7 +394,7 @@ REMOVES_HEADING_LOCAL = (
     "`seal export` takes a copy for\nwhoever wants one:"
 )
 READERS_HEADING = (
-    "checks that read `seal/specs` — each owes an answer "
+    "checks that read `seal/threads` — each owes an answer "
     "(`skills/settle/SKILL.md`\n*Answer every check that reads the corpus*) "
     "before the directories go:"
 )
@@ -508,7 +510,7 @@ def timeline(root, ref, ids, reader, records, merged=None):
         if not has_spec(records, work_item_id):
             spec_less.append(work_item_id)
             continue
-        rel = f"{SPECS}/{work_item_id}/spec.md"
+        rel = f"{SPECS}/{work_item_id}/{DESIGN}"
         if merged is None:
             text = reader.show(root, ref, rel) or ""
         else:
@@ -563,7 +565,7 @@ def place_line(p, span, why):
 def op_line(work_item_id, op, found):
     """One operation of a group: its kind, its spec's coordinate and what the
     working tree holds of its texts."""
-    where = f"{SPECS}/{work_item_id}/spec.md:{op.line}"
+    where = f"{SPECS}/{work_item_id}/{DESIGN}:{op.line}"
     said = (
         ", ".join(f"{f} {'found' if ok else 'not found'}" for f, ok in found)
         or "the whole section"
@@ -577,7 +579,7 @@ def op_line(work_item_id, op, found):
 def records_of(root, home):
     """`(local, records)` for the repository at ROOT whose resolved `seal/`
     root is HOME: whether it is in local mode, and the directory every
-    `seal/specs/<id>/` path is read and removed under. That is ROOT where the
+    `seal/threads/<id>/` path is read and removed under. That is ROOT where the
     root is shared, and the common git directory that holds it in local mode;
     every other read stays on ROOT."""
     local = os.path.realpath(home) != os.path.realpath(under(root, "seal"))
@@ -631,11 +633,11 @@ def survey(root, ref, home=None):
     return found
 
 
-# A path into a work item directory, however it is spelled before `specs/`.
+# A path into a work item directory, however it is spelled before `threads/`.
 # The name may be cut short with an ellipsis, which is how this repository's
 # prose abbreviates a long id; a marker and a bare id carry no `/` after the
 # name, so neither is read as a citation.
-CITATION_RE = re.compile(r"specs/(\d{6,}[^\s/`'\"()\[\]|<>*]*)/")
+CITATION_RE = re.compile(r"threads/(\d{6,}[^\s/`'\"()\[\]|<>*]*)/")
 ELLIPSES = ("…", "...")
 
 
@@ -650,7 +652,7 @@ def names(name, work_item_id):
 
 def tracked_text(root):
     """`(repo-relative path, text)` for every tracked text file outside
-    `seal/specs/`. A file holding a NUL byte is binary and skipped."""
+    `seal/threads/`. A file holding a NUL byte is binary and skipped."""
     r = subprocess.run(["git", "-C", root, "ls-files", "-z"], capture_output=True)
     if r.returncode != 0:
         return
@@ -668,11 +670,11 @@ def tracked_text(root):
 
 
 def citations(root, work_item_ids):
-    """`({id: ["path:line", ...]}, [tests/ files naming seal/specs])`.
+    """`({id: ["path:line", ...]}, [tests/ files naming seal/threads])`.
 
-    A path outside `seal/specs/` that cites into a directory `--apply` removes
+    A path outside `seal/threads/` that cites into a directory `--apply` removes
     stops resolving when it goes, and every `tests/` file that reads
-    `seal/specs` is a check the skill says has to be answered first. One scan
+    `seal/threads` is a check the skill says has to be answered first. One scan
     of the tracked tree answers both."""
     cited = {i: [] for i in work_item_ids}
     readers = []
@@ -681,7 +683,7 @@ def citations(root, work_item_ids):
     for rel, text in tracked_text(root):
         if rel.startswith(TESTS) and SPECS in text:
             readers.append(rel)
-        if "specs/" not in text:
+        if "threads/" not in text:
             continue
         for number, line in enumerate(text.split("\n"), start=1):
             for m in CITATION_RE.finditer(line):
@@ -741,7 +743,7 @@ def report(found, ref, out):
     if t["whole"]:
         write(f"\n{WHOLE_HEADING}\n")
         for work_item_id, line, why in t["whole"]:
-            where = f"{SPECS}/{work_item_id}/spec.md" + (f":{line}" if line else "")
+            where = f"{SPECS}/{work_item_id}/{DESIGN}" + (f":{line}" if line else "")
             write(f"    {work_item_id}  {where}  {why}\n")
     if t["nothing"]:
         write(f"\n{NOTHING_HEADING.format(nothing=found['nothing'])}\n")
@@ -916,7 +918,7 @@ def main(argv=None):
         )
         return 2
     local, records = records_of(root, home)
-    # A settled root is not an unusable one (#517): an empty `seal/specs/`, or
+    # A settled root is not an unusable one (#517): an empty `seal/threads/`, or
     # none in a fresh checkout of that commit, is where a complete settle ends.
     if not work_items(records):
         if local:

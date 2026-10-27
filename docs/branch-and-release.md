@@ -212,7 +212,7 @@ squash merge, like any other work.
   rather than by anybody's hand; the paragraphs below say how, and what a
   feature pull request writes so it has something to read.
 - Feature pull requests write their entry to
-  `seal/specs/<work-item-id>/changelog.md` and leave `CHANGELOG.md`,
+  `seal/threads/<work-item-id>/changelog.md` and leave `CHANGELOG.md`,
   `changelog/` and `plugin.json` alone. The hygiene workflow asks for the bump
   only when the base is `main`, which is what makes that enforceable.
 

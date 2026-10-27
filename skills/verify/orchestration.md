@@ -425,7 +425,7 @@ gathers up.
 | Wall clock, routing commit to last record, build and chain apart | `git log` of the branch |
 | Commits, by kind | `git log --format=%s` |
 | Findings by severity | the records' verdict tables |
-| Findings by `Location`: record, code or tests, and docs | the records' `Location` column. A record is anything under `seal/specs/`, the work item's own documents, because a finding in one is about the run's own paperwork rather than about the tool. That path, not the whole of `seal/`: the root also holds `config.md`, `follow-up.md` and `README.md`, which are the repository's own and belong under `docs` |
+| Findings by `Location`: record, code or tests, and docs | the records' `Location` column. A record is anything under `seal/threads/`, the work item's own documents, because a finding in one is about the run's own paperwork rather than about the tool. That path, not the whole of `seal/`: the root also holds `config.md`, `follow-up.md` and `README.md`, which are the repository's own and belong under `docs` |
 | Records' share of the diff | `git diff --numstat` against the base, the record paths above counted apart |
 | Model turns, output tokens, cache write and cache read | `session_cost.py`'s token line over the run's main transcript |
 | Segments: count, minutes and tokens per kind | the agent completion notices, or the subagent transcripts |

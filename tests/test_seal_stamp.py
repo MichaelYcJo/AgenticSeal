@@ -33,7 +33,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 GUARANTEE_TEMPLATE = ROOT / "templates" / "sdd-guarantee.md"
 ITEM_NAME = "1799000000-an-item"
 ITEM_ID = "1799000000"
-GUARANTEE = f"seal/specs/{ITEM_NAME}/guarantee.md"
+GUARANTEE = f"seal/threads/{ITEM_NAME}/guarantee.md"
 SIGNED = ("-c", "user.name=e", "-c", "user.email=e@example.com")
 
 stamp = load_module(ROOT / TARGET, "seal_stamp_under_test")
@@ -318,7 +318,7 @@ def values(**changed):
         "from": "origin/base",
         "branch": "feat/x",
         "pr": "#12",
-        "item": f"/x/seal/specs/{ITEM_NAME}",
+        "item": f"/x/seal/threads/{ITEM_NAME}",
         "session": "s-1",
         "rows": SMALL_ROWS,
     }
@@ -636,7 +636,7 @@ class Test_wrapped:
 class Test_item_value:
     def test_accepts_the_digits_before_the_first_dash(self, tmp_path):
         assert stamp.item_value(str(tmp_path / "1790815615-the-seal")) == "1790815615"
-        assert stamp.item_value("seal/specs/1-a-b/") == "1"
+        assert stamp.item_value("seal/threads/1-a-b/") == "1"
 
     def test_refuses_to_cut_a_name_with_no_dash(self):
         assert stamp.item_value("plain") == "plain"
@@ -972,11 +972,11 @@ class Test_session_key:
 class Test_values_dir:
     def test_accepts_the_sessions_directory_under_the_common_dir(self):
         assert stamp.values_dir("/c", "s-1") == os.path.join(
-            "/c", "specseal-stamp", "s-1"
+            "/c", "agentic-stamp", "s-1"
         )
 
     def test_refuses_a_session_that_would_leave_the_values_dir(self):
-        values_dir = os.path.join("/c", "specseal-stamp")
+        values_dir = os.path.join("/c", "agentic-stamp")
         assert stamp.values_dir("/c", "../x") == os.path.join(values_dir, "x")
         assert stamp.values_dir("/c", None) == os.path.join(values_dir, "none")
 
@@ -998,7 +998,7 @@ class Test_drawn_path:
 class Test_write_values:
     def test_accepts_the_values_under_a_name_that_sorts_oldest_first(self, tmp_path):
         path = stamp.write_values(str(tmp_path), "s-1", values(), now=7, key="9-abc")
-        assert path == str(tmp_path / "specseal-stamp" / "s-1" / "7-9-abc.json")
+        assert path == str(tmp_path / "agentic-stamp" / "s-1" / "7-9-abc.json")
         assert json.loads(pathlib.Path(path).read_text(encoding="utf-8")) == json.loads(
             json.dumps(values())
         )
@@ -1006,7 +1006,7 @@ class Test_write_values:
 
     def test_refuses_a_name_without_the_tree_where_no_key_is_given(self, tmp_path):
         path = stamp.write_values(str(tmp_path), "../../x", values(tree="a/b"), now=3)
-        assert path == str(tmp_path / "specseal-stamp" / "x" / "3-b.json")
+        assert path == str(tmp_path / "agentic-stamp" / "x" / "3-b.json")
         later = os.path.basename(stamp.write_values(str(tmp_path), "x", {}))
         moment, _, tail = later.partition("-")
         assert tail == "tree.json" and int(moment) > 10**18, later
@@ -1128,7 +1128,7 @@ class Test_already_queued:
         assert not stamp.already_queued(str(tmp_path), "7")
         stamp.write_values(str(tmp_path), "s-1", {}, now=1, key="8-abc")
         stamp.write_values(str(tmp_path), "s-1", {"tree": "7"}, now=2)
-        write(tmp_path / "specseal-stamp", "a-file", "")
+        write(tmp_path / "agentic-stamp", "a-file", "")
         assert not stamp.already_queued(str(tmp_path), "7")
 
 
@@ -1164,7 +1164,7 @@ class Test_guarantee_rows:
 class Test_record_refusal:
     def test_accepts_an_empty_file_named_by_the_id_and_the_target(self, tmp_path):
         stamp.record_refusal(str(tmp_path), "1799", "deadbee")
-        recorded = tmp_path / "specseal-stamp-refused" / "1799-deadbee"
+        recorded = tmp_path / "agentic-stamp-refused" / "1799-deadbee"
         assert recorded.read_text(encoding="utf-8") == ""
 
     def test_refuses_to_raise_where_the_record_cannot_be_written(self, tmp_path):
@@ -1222,12 +1222,12 @@ def routing_text(branch="feat/x"):
 def closing_records(item, target, base):
     """Two round records, a file in `rounds/` that is not one, `broad-gate.md`
     naming TARGET, and `guarantee.md` reading `sealed` over it."""
-    write(item, "rounds/round-1.md", "x\n")
-    write(item, "rounds/round-2.md", "x\n")
-    write(item, "rounds/notes.md", "x\n")
+    write(item, "trail/rounds/round-1.md", "x\n")
+    write(item, "trail/rounds/round-2.md", "x\n")
+    write(item, "trail/rounds/notes.md", "x\n")
     write(
         item,
-        "broad-gate.md",
+        "trail/gate.md",
         f"| Field | Value |\n|---|---|\n| Broad gate | {target} against {base} |\n",
     )
     write(item, "guarantee.md", guarantee_text(target, base))
@@ -1251,7 +1251,7 @@ def _shared(tmp_path_factory):
         git_out(d, "rev-parse", "--short", "HEAD"),
         git_out(d, "rev-parse", "--short", "main"),
     )
-    closing_records(d / "seal" / "specs" / ITEM_NAME, target, base)
+    closing_records(d / "seal" / "threads" / ITEM_NAME, target, base)
     commit(d, "the closing records")
     return d, target, base
 
@@ -1283,7 +1283,7 @@ def amended(item, text):
 def queued(common):
     """Every values file under COMMON, drawn or not."""
     found = []
-    for directory, _dirs, names in os.walk(pathlib.Path(common) / "specseal-stamp"):
+    for directory, _dirs, names in os.walk(pathlib.Path(common) / "agentic-stamp"):
         found += [os.path.join(directory, n) for n in names if n.endswith(".json")]
     return sorted(found)
 
@@ -1350,7 +1350,7 @@ def _local(tmp_path_factory):
     git(d, "switch", "-qc", "feat/x")
     write(d, "work.txt", "the work\n")
     target, base = commit(d, "the work")[:7], git_out(d, "rev-parse", "--short", "main")
-    item = mark_root(d / ".git" / "seal") / "specs" / ITEM_NAME
+    item = mark_root(d / ".git" / "seal") / "threads" / ITEM_NAME
     closing_records(item, target, base)
     write(item, "routing.md", routing_text())
     return d, target, base
@@ -1365,7 +1365,7 @@ def local(tmp_path, _local):
 
 
 def item_dir(item):
-    return pathlib.Path(item.common) / "seal" / "specs" / ITEM_NAME
+    return pathlib.Path(item.common) / "seal" / "threads" / ITEM_NAME
 
 
 def queue_local(item, session="s-1", name="guarantee.md"):
@@ -1382,7 +1382,7 @@ def uncommitted(item):
     records left on disk, the work item's `routing.md` naming `feat/x` beside
     them: the moment the sealer's `Write` lands, before anything commits it."""
     git(item.repo, "reset", "-q", "HEAD~1")
-    write(item.repo, f"seal/specs/{ITEM_NAME}/routing.md", routing_text())
+    write(item.repo, f"seal/threads/{ITEM_NAME}/routing.md", routing_text())
     return item
 
 
@@ -1448,7 +1448,7 @@ class Test_queue_for_written_guarantee:
         """`seal/` under a worktree is the root only while the repository
         runs the workflow; the throwaway marker takes it back."""
         uncommitted(shared)
-        write(shared.common, "specseal-scratch", "")
+        write(shared.common, "agentic-scratch", "")
         assert queue_written(shared) == [] and queued(shared.common) == []
 
     @pytest.mark.rule("stamp-drawn-once")
@@ -1456,7 +1456,7 @@ class Test_queue_for_written_guarantee:
         """#1027 S13: a `sealed` HEAD's history carries was stamped where it
         was made, so a write of the guarantee over it queues nothing, even in
         a clone holding no values file."""
-        write(shared.repo, f"seal/specs/{ITEM_NAME}/routing.md", routing_text())
+        write(shared.repo, f"seal/threads/{ITEM_NAME}/routing.md", routing_text())
         assert queue_written(shared) == [] and queued(shared.common) == []
 
     @pytest.mark.rule("refused-sealed-leaves-a-record")
@@ -1475,7 +1475,7 @@ class Test_queue_for_written_guarantee:
             f"{off}, which feat/x does not hold; a new audit at the head of "
             "feat/x draws it"
         ]
-        refused = pathlib.Path(shared.common) / "specseal-stamp-refused"
+        refused = pathlib.Path(shared.common) / "agentic-stamp-refused"
         assert os.listdir(refused) == [f"{ITEM_ID}-{off}"]
         assert queued(shared.common) == []
         commit(shared.repo, "the stale row")
@@ -1538,8 +1538,8 @@ class Test_queue_for_written_guarantee:
             "guarantee.md",
             guarantee_text(local.target, local.base, earlier=earlier),
         )
-        shutil.rmtree(item_dir(local) / "rounds")
-        (item_dir(local) / "broad-gate.md").write_bytes(b"\xff\xfe")
+        shutil.rmtree(item_dir(local) / "trail" / "rounds")
+        (item_dir(local) / "trail" / "gate.md").write_bytes(b"\xff\xfe")
         assert queue_local(local)
         (written,) = queued(local.common)
         rows = stamp.read_values(written)["rows"]
@@ -1620,7 +1620,7 @@ class Test_queue_for_written_guarantee:
         named = given(local)
         said = queue_local(local)
         assert queued(local.common) == []
-        refused = pathlib.Path(local.common) / "specseal-stamp-refused"
+        refused = pathlib.Path(local.common) / "agentic-stamp-refused"
         if named:
             assert said == [
                 f"specseal: no stamp was queued for {ITEM_ID}: its guarantee.md "
@@ -1679,7 +1679,7 @@ class Test_queue_for_written_guarantee:
         """1792363231 S5, the writer's half: a `guarantee.md` under the common
         dir of a repository that also has `<repo>/seal/` is under no root in
         force; the same text in another file of a local work item, or a work
-        item's copy outside `seal/specs/`, is no guarantee."""
+        item's copy outside `seal/threads/`, is no guarantee."""
         notes = item_dir(local) / "notes.md"
         notes.write_text(
             (item_dir(local) / "guarantee.md").read_text(encoding="utf-8"),

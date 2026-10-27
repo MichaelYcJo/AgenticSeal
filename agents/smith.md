@@ -15,8 +15,8 @@ skills:
 ## Job
 
 You build one phase of one work item, or run one fix pass. Your writes are the
-code and tests of the phase, `seal/specs/<work-item-id>/phases/phase-N.md`,
-`plan.md`'s Status cell for the phase, `overview.md` and `changelog.md` where
+code and tests of the phase, `seal/threads/<work-item-id>/trail/phases/phase-N.md`,
+`frame/plan.md`'s Status cell for the phase, `gaps.md` and `changelog.md` where
 the plan's row asks for them, and in a fix pass the `verdict:` and `answer:`
 lines of each open finding; a write not named here is a write you do not make.
 

@@ -14,7 +14,7 @@ long each file lives.** "Owns" means the plugin creates, moves and removes it
 and its checkers define the formats, the way `.github/` is GitHub's. Three
 lifetimes, each with one home: a session's state sits beside the root under
 the common git directory and is never committed; a work item's directory,
-`seal/specs/<id>/`, lives until the settle writes its spec's sections and
+`seal/threads/<id>/`, lives until the settle writes its spec's sections and
 removes it;
 everything else under `seal/`, with `docs/` and `CHANGELOG.md`, is
 permanent. The layout, file by file, is `skills/implement/SKILL.md`
@@ -28,7 +28,7 @@ check: tests/test_no_document_names_the_old_roots.py tests/test_optin.py
 
 ## The dependency rule
 
-**Anything that must outlive a release may not read `seal/specs/<id>/` after
+**Anything that must outlive a release may not read `seal/threads/<id>/` after
 the merge.** `settle` removes the directory, so every permanent purpose
 treats it as already gone. A round record's `target:` line is read only while
 its pull request is open. A comment naming a work item, above a released
@@ -38,7 +38,7 @@ local mode no history holds the folder, so the pointer names a work item
 that has left. Every check in a repository
 that reads the corpus owes an answer when a settle removes part of it
 (`skills/settle/SKILL.md` *Answer every check that reads the corpus*). A new
-reader of `seal/specs/<id>/` after the merge is a finding for the review
+reader of `seal/threads/<id>/` after the merge is a finding for the review
 that meets it.
 
 **Behind it is a wider rule: nothing may need to be found and updated when
@@ -68,7 +68,7 @@ A collaborator who never installed the plugin runs nothing in either mode,
 because the hooks are the plugin's. The fail direction is that no folder at
 either place means not opted in, and a hook that cannot tell does nothing.
 A throwaway repository turns the gates off with an empty file,
-`.git/specseal-scratch`, under the common git directory, which no commit can
+`.git/agentic-scratch`, under the common git directory, which no commit can
 carry to another clone.
 check: tests/test_optin.py
 

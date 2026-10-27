@@ -173,7 +173,7 @@ class Test_already_asked:
             encoding="utf-8",
             errors="replace",
         ).stdout.strip()
-        assert os.path.isfile(os.path.join(gd, "specseal-review-choice", "s1"))
+        assert os.path.isfile(os.path.join(gd, "agentic-review-choice", "s1"))
         # The isolation runs the other way too: the worktree's marker did not
         # spend the main tree's question, so the same session is still asked
         # there. That is what "once per session per working tree" means, and

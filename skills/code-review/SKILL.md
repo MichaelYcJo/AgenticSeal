@@ -20,7 +20,7 @@ round 1.
 ## Two stages, in order
 
 1. **Spec compliance**: the code against the written spec, the `docs/`
-   policies first and then the work item's SDD set under `seal/specs/`. Look
+   policies first and then the work item's SDD set under `seal/threads/`. Look
    for behaviour that is missing and for behaviour nobody asked for. Read the
    code, not the implementer's report of it.
 2. **Quality**, only after stage 1: correctness, error handling, security,
@@ -104,7 +104,7 @@ check: tests/test_review_axes.py tests/test_the_rules_have_one_owner.py
 
 ## The record
 
-A round writes `seal/specs/<work-item-id>/rounds/round-N.md` from
+A round writes `seal/threads/<work-item-id>/trail/rounds/round-N.md` from
 `templates/sdd-round.md`. Every labelled line and heading follows its row of
 the grammar table in `docs/the-review-record.md` *The round record*, which
 the check reads; that section is the grammar's one statement. The prose follows

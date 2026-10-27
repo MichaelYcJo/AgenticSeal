@@ -89,7 +89,7 @@ class Test_notify:
         absolute one, which also ends in it (#1017, round 3's n1)."""
         opt_in(repo)
         declare(repo, implementation="smith")
-        where = os.path.join("seal", "specs", ITEM, "routing.md")
+        where = os.path.join("seal", "threads", ITEM, "routing.md")
         said = notice.notify(str(repo), "s-notify")
         assert said.startswith(f"[specseal] {where} answers "), said
 
@@ -224,7 +224,7 @@ class Test_main:
         opt_in(repo)
         declare(repo, implementation="smith")
         out = run_dispatch("post-bash", bash(repo))
-        assert os.path.join("seal", "specs", ITEM, "routing.md") in out, out
+        assert os.path.join("seal", "threads", ITEM, "routing.md") in out, out
 
     def test_the_notice_is_said_once_per_repository_per_session(self, repo):
         """S8. The grain is stated because `once` has meant four things here."""
@@ -248,7 +248,7 @@ class Test_main:
         declare_smith(repo, home)
         out = run_hook("implementer-notice.py", bash(repo))
         assert "answers `Implementation` with `smith`" in out, out
-        assert os.path.join(".git", "seal", "specs", ITEM, "routing.md") in out, out
+        assert os.path.join(".git", "seal", "threads", ITEM, "routing.md") in out, out
 
 
 test_census = census_case(TARGET)

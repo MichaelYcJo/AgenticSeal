@@ -114,7 +114,7 @@ check: none reader: review
 
 **`pact-check`, run at the pact's repository, reads every signer the pact
 lists and says which way each mismatch points.** It finds each checkout
-through `~/.claude/specseal/pact-paths.md` or the one sibling directory with
+through `~/.claude/agentic/pact-paths.md` or the one sibling directory with
 that origin, guessing nothing; refuses a signer whose config does not
 name the pact; and grades every anchor naming the pact. `SUPERSEDED` means
 HEAD's own history gave the clause that hash, so the signer was built

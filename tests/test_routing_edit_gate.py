@@ -80,7 +80,7 @@ def branch_of(repo):
 # The declaration path the refusal names, spelled the platform's way, as
 # `hooks/implementer-notice.py` spells the same file
 # (`tests/test_implementer_notice.py`).
-HINT = os.path.join("seal", "specs", "<work-item-id>", "routing.md")
+HINT = os.path.join("seal", "threads", "<work-item-id>", "routing.md")
 
 
 # The two texts a person reads (contract rule 14), pinned whole.
@@ -187,10 +187,12 @@ class Test_main:
 
         monkeypatch.setattr(gate, "os", types.SimpleNamespace(path=ntpath, sep="\\"))
         monkeypatch.setattr(gate.optin, "home_at", lambda top: r"C:\r\seal")
-        assert gate.declaration_hint(r"C:\r") == r"seal\specs\<work-item-id>\routing.md"
+        assert (
+            gate.declaration_hint(r"C:\r") == r"seal\threads\<work-item-id>\routing.md"
+        )
         assert (
             gate.declaration_hint(r"D:\w")
-            == r"C:\r\seal\specs\<work-item-id>\routing.md"
+            == r"C:\r\seal\threads\<work-item-id>\routing.md"
         )
         said = gate.reason(r"C:\r\src\new.py", r"C:\r", "feat", False)
         assert "`src\\new.py` is in `C:\\r`" in said, said
@@ -305,12 +307,12 @@ class Test_main:
         shared root and under the local one, while a file outside the root
         is refused in both modes."""
         opt_in(repo)
-        record = repo / "seal" / "specs" / "1700000000-x" / "routing.md"
+        record = repo / "seal" / "threads" / "1700000000-x" / "routing.md"
         assert decision_of(run(record, tool="Write")) == "silent"
         assert decision_of(run(repo / "f.txt")) == "deny"
         shutil.rmtree(repo / "seal")
         home = local_home(repo)
-        record = home / "specs" / "1700000000-x" / "routing.md"
+        record = home / "threads" / "1700000000-x" / "routing.md"
         assert decision_of(run(record, tool="Write", cwd=repo)) == "silent"
         assert decision_of(run(repo / "f.txt")) == "deny"
 
@@ -351,7 +353,7 @@ class Test_main:
         branch, so it lets no edit through."""
         opt_in(repo)
         where = git(repo, "rev-parse", "--absolute-git-dir")
-        records = os.path.join(where, "specseal-no-work-item")
+        records = os.path.join(where, "agentic-no-work-item")
         os.makedirs(records)
         with open(os.path.join(records, SESSION), "w", encoding="utf-8"):
             pass

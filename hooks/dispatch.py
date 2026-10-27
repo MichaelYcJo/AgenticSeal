@@ -46,7 +46,7 @@ HOOKS = os.path.dirname(os.path.abspath(__file__))
 # waits as `<gate>.pending` until the `stop` group says it, and then stays as
 # `<gate>.reported`, which is what keeps it from being written or said again
 # in that session.
-FAILURES_DIR = "specseal-gate-failure"
+FAILURES_DIR = "agentic-gate-failure"
 PENDING = ".pending"
 REPORTED = ".reported"
 # The longest first line of an exception's message a record keeps, in UTF-16

@@ -26,7 +26,8 @@ class Test_touches_code:
         assert gate.touches_code(paths) is True
 
     @pytest.mark.parametrize(
-        "paths", [[], ["docs/a.md"], ["seal/specs/x/round-1.md", "docs/b.md"]]
+        "paths",
+        [[], ["docs/a.md"], ["seal/threads/x/trail/rounds/round-1.md", "docs/b.md"]],
     )
     def test_refuses_a_change_confined_to_docs_and_seal_as_code(self, paths):
         assert gate.touches_code(paths) is False

@@ -10,7 +10,7 @@ The conflict itself is cheap and arrives at the worst possible moment: after
 the broad gate has run and before the pull request opens, where nothing may be
 edited. Resolving it costs a second run of the whole broad gate.
 
-So a change writes `seal/specs/<work-item-id>/changelog.md` and leaves the
+So a change writes `seal/threads/<work-item-id>/changelog.md` and leaves the
 released notes alone. Two branches cannot collide, because no two work items
 share an id. This script is the other half — release preparation runs it, and
 it concatenates the fragments into `## X.Y.Z — <date>`.
@@ -144,7 +144,7 @@ def marker(work_item_id):
 
 
 def fragments(root):
-    """[(work item id, body)] for every `seal/specs/*/changelog.md`, in id order.
+    """[(work item id, body)] for every `seal/threads/*/changelog.md`, in id order.
 
     The id is unix seconds, so sorting by it is chronological and stable — the
     same input always produces the same section, which is what makes a re-run
@@ -152,7 +152,7 @@ def fragments(root):
     gathered as a blank entry.
     """
     out = []
-    for path in glob.glob(os.path.join(root, "seal", "specs", "*", "changelog.md")):
+    for path in glob.glob(os.path.join(root, "seal", "threads", "*", "changelog.md")):
         work_item_id = os.path.basename(os.path.dirname(path))
         with open(path, encoding="utf-8") as f:
             body = f.read().strip()
@@ -234,7 +234,7 @@ def section_lines(root, work_item_id):
     version. The numbers are the file's own, read again rather than taken
     from `fragments`, whose body is stripped and so counts from the first
     line with text on it."""
-    path = os.path.join(root, "seal", "specs", work_item_id, "changelog.md")
+    path = os.path.join(root, "seal", "threads", work_item_id, "changelog.md")
     with open(path, encoding="utf-8") as f:
         lines = reader.gfm_lines(f.read())
     return [
@@ -390,7 +390,7 @@ def main(argv=None):
         if missing:
             print(f"changelog fragments that never reached a file under {RELEASES}/:")
             for work_item_id, _ in missing:
-                print(f"  seal/specs/{work_item_id}/changelog.md")
+                print(f"  seal/threads/{work_item_id}/changelog.md")
             print(
                 "\nRelease preparation gathers them:\n"
                 "  python3 .github/scripts/gather_changelog.py --version X.Y.Z"
@@ -406,7 +406,7 @@ def main(argv=None):
         # survives the directory, so they are what a folded corpus is judged by.
         if not frags and not marked:
             print(
-                "nothing to check: no changelog fragment under seal/specs/ "
+                "nothing to check: no changelog fragment under seal/threads/ "
                 f"and no <!-- specs/<work-item-id> --> marker in any "
                 f"{RELEASES}/<X.Y.Z>.md, so this examined nothing and "
                 "`all gathered` would be a report about an empty set.\n"
@@ -448,7 +448,7 @@ def main(argv=None):
             "note alike, so every entry after it would ship under no version:"
         )
         for work_item_id, n, line in headed:
-            print(f"  seal/specs/{work_item_id}/changelog.md:{n}: {line}")
+            print(f"  seal/threads/{work_item_id}/changelog.md:{n}: {line}")
         print(
             "\nDemote each to `###` or lower in a pull request into the release "
             "branch, then gather again. Nothing was written."
@@ -464,7 +464,7 @@ def main(argv=None):
             "read as not gathered and --check would ask for a second gather:"
         )
         for work_item_id in unclosed:
-            print(f"  seal/specs/{work_item_id}/changelog.md")
+            print(f"  seal/threads/{work_item_id}/changelog.md")
         print(
             "\nClose it in the fragment in a pull request into the release "
             "branch, then gather again. Nothing was written."
@@ -512,7 +512,7 @@ def main(argv=None):
         + (" (appended into the existing section)" if found else "")
     )
     for work_item_id, _ in missing:
-        print(f"  seal/specs/{work_item_id}/changelog.md")
+        print(f"  seal/threads/{work_item_id}/changelog.md")
     if new_index != index:
         print(f"{INDEX} now heads its index with {heading}")
     return 0

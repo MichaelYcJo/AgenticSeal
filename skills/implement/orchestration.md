@@ -279,7 +279,7 @@ repository proves nothing.
 
 The orchestrator writes `seal/parity.md` from `templates/parity.md` with
 those values, and records the machine-local checkout path in
-`~/.claude/specseal/parity-paths.md`, keyed by the origin remote URL. The path
+`~/.claude/agentic/parity-paths.md`, keyed by the origin remote URL. The path
 never goes in the committed file.
 
 ## Orchestrator: how the work is routed
@@ -459,7 +459,7 @@ report it rather than write one: a declaration written from a guess is a
 recorded answer nobody gave.
 
 **The orchestrator writes the answer down before the first edit**, in
-`seal/specs/<work-item-id>/routing.md`, from `templates/sdd-routing.md`, and
+`seal/threads/<work-item-id>/routing.md`, from `templates/sdd-routing.md`, and
 commits it, because the check happens at the pull request and CI sees only
 what is in the tree. Below the SDD ladder this may be the only file a work
 item gets.
@@ -547,7 +547,7 @@ remove, arriving once per checkout.
 
 **Only a gated repository gets a declaration.** A gated repository is one
 with a `seal/` root at either place (contract rule 11). Write
-`seal/specs/<work-item-id>/routing.md` into each one before that
+`seal/threads/<work-item-id>/routing.md` into each one before that
 repository's first edit, each naming that repository's own branch, each in a
 command of its own, and commit each with that repository's absolute path
 written out after `git -C` (contract rule 16). A repository with no root is not

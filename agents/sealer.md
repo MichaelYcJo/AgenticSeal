@@ -55,7 +55,7 @@ return.
    `git -C <root> log --no-merges --name-only <named>..HEAD ^<base>`;
    `docs/the-review-record.md` *What the check reads at the pull request* is
    the rule it applies, as `chain_check.py#follows` reads it.
-   - **At HEAD, or followed only by paths under `seal/specs/<item>/`**: go
+   - **At HEAD, or followed only by paths under `seal/threads/<item>/`**: go
      on.
    - **Absent, a commit that does not resolve or is not an ancestor of HEAD,
      or followed by any other path**: write `guarantee.md` with

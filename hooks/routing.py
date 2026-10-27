@@ -6,7 +6,7 @@ the absence of a review mark, and a mark only exists after a review passes.
 Every commit of every round was stopped on its way to the reviewer the answer
 had already named.
 
-A declaration lives at `seal/specs/<work-item-id>/routing.md` and is committed.
+A declaration lives at `seal/threads/<work-item-id>/routing.md` and is committed.
 Committed is the load-bearing part: the check moves to the pull request, and CI
 sees only what is in the tree; nothing under the git directory travels there.
 
@@ -370,7 +370,7 @@ def declarations(root):
 
     `root` is the repository root; the work items are under whichever `seal/`
     `optin.home_at` finds for it, and a repository with none has no
-    declarations — the same silence as a `seal/specs/` that is not there.
+    declarations — the same silence as a `seal/threads/` that is not there.
     """
     home = optin.home_at(root)
     if not home:
@@ -435,7 +435,7 @@ def declared(cwd, root):
 # ran on, and `hooks/routing-edit-gate.py` lets the session's edits through on
 # a branch a line names and on no other. The rule is
 # `docs/the-routing-check.md` *The edit check*.
-NO_WORK_ITEM = "specseal-no-work-item"
+NO_WORK_ITEM = "agentic-no-work-item"
 # A record older than this is pruned when one is written, as a lease is.
 NO_WORK_ITEM_AGE = 86400
 
@@ -449,7 +449,7 @@ def session_name(session):
 
 
 def no_work_item_path(common, session):
-    """`<common>/specseal-no-work-item/<session>`, or "" where either is
+    """`<common>/agentic-no-work-item/<session>`, or "" where either is
     missing."""
     name = session_name(session)
     if not common or not name:
@@ -511,7 +511,7 @@ def item_dir(root, branch):
     """The work-item directory the declaration for `branch` lives in, or "".
 
     This is what makes a review round writable before a pull request exists.
-    The round records live one level down, in `rounds/`, so whatever resolves
+    The round records live two levels down, in `trail/rounds/`, so whatever resolves
     the declaration resolves them too, and the branch is the only key
     available at the moment a round closes.
 
@@ -526,8 +526,8 @@ def item_dir(root, branch):
 
 ROUND_RE = re.compile(r"round-(\d+)\.md")
 
-# The subdirectory the records live in, under the work item.
-ROUNDS_DIR = "rounds"
+# The subdirectory the records live in, under the work item, `/`-joined.
+ROUNDS_DIR = optin.ROUNDS
 
 
 def round_number(name):
@@ -573,11 +573,11 @@ def _ordered(where):
 
 
 def rounds(item):
-    """Every round record in a work item's `rounds/`, lowest round first.
+    """Every round record in a work item's `trail/rounds/`, lowest round first.
 
     Numerically, not by name, for the reason `round_number` gives.
 
-    `rounds/` rather than the work-item directory itself, because `round-N`
+    `trail/rounds/` rather than the work-item directory itself, because `round-N`
     is the one member of the SDD set that is plural and unbounded: six
     records beside six other files was the worst case here, and the structure
     should say which member grows.

@@ -31,7 +31,7 @@ check: tests/test_routing_edit_gate.py
 
 #### The declaration, and where the check went
 
-**The routing check reads `seal/specs/<work-item-id>/routing.md` before it
+**The routing check reads `seal/threads/<work-item-id>/routing.md` before it
 reads anything else.** Where a declaration names the branch, an edit goes
 ahead for either answer, because the routing question was answered before
 the first edit.

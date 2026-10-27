@@ -95,7 +95,7 @@ def test_the_resolution_order_ends_with_the_caller_asking():
     assert heading in text, "`legacy-parity` lost its migration-config section"
     body = " ".join(text.split(heading, 1)[1].split("\n## ", 1)[0].split())
     for clause in (
-        "it lives in `~/.claude/specseal/parity-paths.md`",
+        "it lives in `~/.claude/agentic/parity-paths.md`",
         "the caller asks the user and records the answer",
         "a reader that cannot ask returns `original not found` with what it tried",
         "A comparison against a guessed original proves nothing.",
@@ -111,7 +111,7 @@ def test_the_preset_block_carries_the_routing_decision():
     that replaced the per-command waiver (#1027)."""
     preset = read("templates", "claude-md-block.md")
     assert "Routing, decided at the start" in preset
-    assert "seal/specs/<work-item-id>/routing.md" in preset
+    assert "seal/threads/<work-item-id>/routing.md" in preset
     assert "`seal no-work-item`" in preset
     assert "`SpecSeal-Routing: no work item`" in preset
     assert "[no-review]" not in preset and "[no-parity]" not in preset
@@ -209,7 +209,7 @@ def test_implement_and_the_preset_block_do_not_drift():
     ):
         assert only in implement, f"the skill lost `{only}`"
     for both in (
-        "seal/specs/<work-item-id>/routing.md",
+        "seal/threads/<work-item-id>/routing.md",
         # The write is its own command. Both documents mandate it and the
         # commit gate's first prompt now names it as a way out, so all three
         # drift together or not at all -- and this is the one the gate cannot

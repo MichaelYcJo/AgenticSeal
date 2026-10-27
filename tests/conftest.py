@@ -796,7 +796,7 @@ def declare_routing(
         encoding="utf-8",
         errors="replace",
     ).stdout.strip()
-    d = mark_root(home if home else repo / "seal") / "specs" / item
+    d = mark_root(home if home else repo / "seal") / "threads" / item
     d.mkdir(parents=True, exist_ok=True)
     (d / "routing.md").write_text(
         f"# {item} -- routing\n\n"
@@ -810,13 +810,13 @@ def declare_routing(
 
 
 def rounds_dir(item):
-    """`<item>/rounds/`, created. Where the round records live.
+    """`<item>/trail/rounds/`, created. Where the round records live.
 
-    A helper rather than `item / "rounds"` at each call site: the tests that
-    write a record are the ones that would keep the old flat path alive, and
-    one spelling is what makes moving it again a single edit.
+    A helper rather than `item / "trail" / "rounds"` at each call site: the
+    tests that write a record are the ones that would keep an old path alive,
+    and one spelling is what makes moving it again a single edit.
     """
-    d = item / "rounds"
+    d = item / "trail" / "rounds"
     d.mkdir(parents=True, exist_ok=True)
     return d
 
@@ -1056,7 +1056,7 @@ def git_repo(where):
 
 
 def lease_dir(repo):
-    d = os.path.join(str(repo), ".git", "specseal-leases")
+    d = os.path.join(str(repo), ".git", "agentic-leases")
     os.makedirs(d, exist_ok=True)
     return d
 
@@ -1399,7 +1399,7 @@ SIGNER_URL = "https://example.com/org/orders-web"
 MOBILE_URL = "https://example.com/org/orders-mobile"
 LOCATOR = '"## Order response shape / ### Fields"'
 PACT = "seal/pact.md"
-SPEC = "seal/specs/1790000000-x/spec.md"
+SPEC = "seal/threads/1790000000-x/frame/design.md"
 V1, V2, V3 = "id, total", "id, total, currency", "id, total, currency, tax"
 # The pact a signer's `Pact` row names in the reader's cases, and what
 # `hooks/config.py#pact_declaration` answers for it.
@@ -1499,7 +1499,7 @@ class World:
     def map(self, *rows):
         write(
             self.home,
-            ".claude/specseal/pact-paths.md",
+            ".claude/agentic/pact-paths.md",
             "| Remote | Path |\n|---|---|\n"
             + "".join(f"| {r} | {p} |\n" for r, p in rows),
         )
@@ -1595,7 +1595,7 @@ def common_dir(repo):
 
 
 def consent_dir(repo):
-    return common_dir(repo) / "specseal-worktree-consent"
+    return common_dir(repo) / "agentic-worktree-consent"
 
 
 def grant(repo, session="me"):
@@ -1815,9 +1815,9 @@ def routing_record(branch="feat/x"):
 
 
 def queued_values(repo):
-    """Every values file under REPO's `.git/specseal-stamp`, drawn or not."""
+    """Every values file under REPO's `.git/agentic-stamp`, drawn or not."""
     found = []
-    for directory, _dirs, names in os.walk(repo / ".git" / "specseal-stamp"):
+    for directory, _dirs, names in os.walk(repo / ".git" / "agentic-stamp"):
         found += [os.path.join(directory, n) for n in names if n.endswith(".json")]
     return sorted(found)
 
@@ -1835,7 +1835,7 @@ def legacy(repo):
 
 
 def scratch(repo):
-    (repo / ".git" / "specseal-scratch").write_text("", encoding="utf-8")
+    (repo / ".git" / "agentic-scratch").write_text("", encoding="utf-8")
 
 
 # --- the implementer family's declaration and calls -----------------------------
@@ -1857,7 +1857,7 @@ def run_dispatch(group, payload, hooks=HOOKS):
 
 def declare(repo, implementation="smith", item=ITEM, planning=None):
     """A declaration for this repo's branch; a `None` answer omits its row."""
-    d = mark_root(repo / "seal") / "specs" / item
+    d = mark_root(repo / "seal") / "threads" / item
     d.mkdir(parents=True, exist_ok=True)
     third = f"| Implementation | {implementation} |\n" if implementation else ""
     fourth = f"| Planning | {planning} |\n" if planning else ""
@@ -1876,7 +1876,7 @@ def declare(repo, implementation="smith", item=ITEM, planning=None):
 
 def declare_smith(repo, home, item=ITEM):
     """A declaration under `home` whose third axis says `smith`."""
-    d = mark_root(home) / "specs" / item
+    d = mark_root(home) / "threads" / item
     d.mkdir(parents=True, exist_ok=True)
     (d / "routing.md").write_text(
         f"# {item} -- routing\n\n"
@@ -2018,15 +2018,19 @@ def tree(tmp_path):
     (repo / "docs" / "one-root.md").write_text("# a policy\n\nA rule.\n", "utf-8")
     mark_root(repo / "seal")
     for name in ("1700000001-alpha", "1700000002-beta", "1700000003-gamma"):
-        item = repo / "seal" / "specs" / name
-        item.mkdir(parents=True)
-        (item / "spec.md").write_text(f"# {name}\n\nWhat it decided.\n", "utf-8")
+        item = repo / "seal" / "threads" / name
+        (item / "frame").mkdir(parents=True)
+        (item / "frame" / "design.md").write_text(
+            f"# {name}\n\nWhat it decided.\n", "utf-8"
+        )
     git(repo, "init", "-q")
     git(repo, "config", "user.email", "x@example.com")
     git(repo, "config", "user.name", "x")
     git(repo, "add", "-A")
     git(repo, "commit", "-qm", "released")
-    later = repo / "seal" / "specs" / "1700000004-delta"
-    later.mkdir()
-    (later / "spec.md").write_text("# delta\n\nIn flight.\n", encoding="utf-8")
+    later = repo / "seal" / "threads" / "1700000004-delta"
+    (later / "frame").mkdir(parents=True)
+    (later / "frame" / "design.md").write_text(
+        "# delta\n\nIn flight.\n", encoding="utf-8"
+    )
     return repo

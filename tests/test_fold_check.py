@@ -349,12 +349,12 @@ class Test_main:
         Both of the states `home_at` answers "" for are pinned whole (contract rule 14)."""
         root = config_root(tmp_path, [("Document token ceiling", "10")])
         git_init(root)
-        (tmp_path / ".git" / "specseal-scratch").write_text("", encoding="utf-8")
+        (tmp_path / ".git" / "agentic-scratch").write_text("", encoding="utf-8")
         code, out, err = command("--root", root)
         assert code == 0, (out, err)
         assert out == (
             f"fold-check: `Document token ceiling` is not declared in {root}, which "
-            "has opted out — `specseal-scratch` is under its git directory, so its "
+            "has opted out — `agentic-scratch` is under its git directory, so its "
             "seal/config.md is not read, and there is no docs/README.md, so nothing "
             "was checked\n"
         ), out

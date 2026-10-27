@@ -11,7 +11,7 @@ way, and no config key (`docs/one-root-by-lifetime.md`, "The opt-in signal
 is the root itself"). A `seal/` without the marker is a directory the project
 keeps for itself, as a package named `seal` does, and declares nothing.
 
-`<git-common-dir>/specseal-scratch` takes that declaration back. A repository
+`<git-common-dir>/agentic-scratch` takes that declaration back. A repository
 that exists for thirty seconds — a fixture built by hand to reproduce a gate
 decision, which is what developing these gates consists of — carries the same
 `seal/` as a repository under review, and the gates cannot tell them apart:
@@ -38,7 +38,24 @@ HOME = "seal"
 # because a path in a diff or a tree listing is only ever the shared root;
 # every hook that opens a file joins this under `home()` instead, so #80
 # changes where the folder is created and nothing that reads it.
-WORK_ITEMS = "specs"
+WORK_ITEMS = "threads"
+# Where each record sits in a thread, `/`-joined and relative to the thread's
+# directory: `frame/` holds the design before the build, `trail/` what passed
+# between the parties, and the four files at the top speak for the whole
+# thread (`docs/the-record-layout.md`). Every reader of a thread's file joins
+# one of these under the thread, and the migration moves a 0.22.x work item's
+# files to them.
+FRAME = "frame"
+TRAIL = "trail"
+DESIGN = f"{FRAME}/design.md"
+PLAN = f"{FRAME}/plan.md"
+QUESTIONS = f"{FRAME}/questions.md"
+PHASES = f"{TRAIL}/phases"
+ROUNDS = f"{TRAIL}/rounds"
+GATE = f"{TRAIL}/gate.md"
+GAPS = "gaps.md"
+GUARANTEE = "guarantee.md"
+CHANGELOG = "changelog.md"
 # The migration config, directly under the root: `parity_config` below opens
 # it, and `chain_check.py` reads it at HEAD under the shared root (#988).
 PARITY_CONFIG = "parity.md"
@@ -46,7 +63,7 @@ PARITY_CONFIG = "parity.md"
 # signal, read the way the root is read. It is not an entry inside an existing
 # file because every gate would then parse one to answer what is a directory
 # test. A directory of this name is not the opt-out — see `home_at()` below.
-SCRATCH = "specseal-scratch"
+SCRATCH = "agentic-scratch"
 # The first line of `templates/seal-README.md`, which first setup and the
 # migration write into every root: a `seal/` is the plugin's root only where
 # its `README.md` opens with this line. `tests/test_optin.py` pins the

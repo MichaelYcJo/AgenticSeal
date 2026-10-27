@@ -73,8 +73,8 @@ laid out by **lifetime**, not by who wrote it:
 | Root | Lifetime | Test | Authority |
 |---|---|---|---|
 | `docs/` | Permanent, cumulative | Must still be true in 6 months | **Norms, ratified by humans.** Read when the repository has them; the documentation convention is the project's. The policy root (`docs/` unless `seal/config.md`'s `Policy root` names another) is the baseline, and a pull request does not edit it. A spec states its changes in `## Rule changes`, the settle after the release writes each section as the latest decision the released specs state, checked against the code (`skills/settle/SKILL.md`), and the policy in force is the baseline plus the latest decision the unsettled specs' rule changes state at each section, in merge order |
-| `seal/specs/<work-item-id>/` | One work item | Its role ends when this work ships (SDD, overview, round records) | The contract this work executes against. A human approves `plan.md`, which is why this is a repository document and not tool state |
-| `seal/`, everything above `specs/` | Permanent | Everything this plugin maintains | Written and read by machines: the repository's config, the migration config, the follow-up list |
+| `seal/threads/<work-item-id>/` | One work item | Its role ends when this work ships (the frame, the trail, the closing memo) | The contract this work executes against. A human approves `frame/plan.md`, which is why this is a repository document and not tool state |
+| `seal/`, everything above `threads/` | Permanent | Everything this plugin maintains | Written and read by machines: the repository's config, the migration config, the follow-up list |
 
 A `specs/` the project kept before the plugin is neither root: it is a
 **reference root**, as `templates/config.md` *Reference specs* says — history
@@ -96,7 +96,7 @@ other machines. The second is local mode: under the common git directory, so
 every linked worktree of the clone shares it, and never a commit candidate.
 A repository with both is shared, and nothing else — no config key — is
 read. What sits directly under it is permanent; what sits under
-`seal/specs/` lives as long as its work item:
+`seal/threads/` lives as long as its work item:
 
 ```
 seal/
@@ -104,15 +104,18 @@ seal/
 ├── parity.md         migration config, only when declared
 ├── pact.md           the pact, only in the repository that holds one
 ├── follow-up.md      schedulable items in a repository with no tracker
-└── specs/<work-item-id>/
+└── threads/<work-item-id>/
     ├── routing.md    the routing answer, written by the session before the
     │                 first edit; a framer reads it and never writes it
-    ├── spec.md · plan.md · questions.md · overview.md
-    ├── rounds/
-    │   └── round-N.md    one review round — closed at merge, removed with
-    │                     its work item at the settle after its release
-    ├── broad-gate.md     the one broad run, written by `broad-gate --record`
-    └── guarantee.md      the sealer's verdict, from `templates/sdd-guarantee.md`
+    ├── frame/        design.md, plan.md, questions.md: the design before the build
+    ├── trail/
+    │   ├── phases/phase-N.md   one build phase's record
+    │   ├── rounds/round-N.md   one review round — closed at merge, removed
+    │   │                       with its work item at the settle after its release
+    │   └── gate.md             the one broad run, written by `broad-gate --record`
+    ├── changelog.md  this work item's entry in the next release's notes
+    ├── gaps.md       the closing memo
+    └── guarantee.md  the sealer's verdict, from `templates/sdd-guarantee.md`
 ```
 
 The review round records live beside the work item they are about, with the
@@ -136,7 +139,7 @@ keep.
 
 ### 1. Read the spec before the code
 
-Judgment precedence: **policy (`docs/`) > SDD (`seal/specs/`) > the ticket >
+Judgment precedence: **policy (`docs/`) > SDD (`seal/threads/`) > the ticket >
 existing code** — and, where the repository declares a migration config, the
 original sits between the ticket and the existing code, because policy being
 silent is what makes the original decide (see `legacy-parity`).
@@ -331,19 +334,19 @@ divergence row, and it does not travel back to the framer. **The framer
 opens rows and does not own their answers**: the `Status` column is written
 by whoever answered, as `answered <date> by <who>`, never by whoever asked.
 
-A work item's directory is `seal/specs/<unix-epoch-seconds>-<slug>/` (e.g.
-`seal/specs/1784780439-center-list-sort/`), bootstrapped from `templates/`. The
+A work item's directory is `seal/threads/<unix-epoch-seconds>-<slug>/` (e.g.
+`seal/threads/1784780439-center-list-sort/`), bootstrapped from `templates/`. The
 timestamp prefix keeps directories in creation order and collision-free
 without a registry — take it from `date +%s` when creating the directory.
 
 | File | Starts from | Written by | Holds | When |
 |---|---|---|---|---|
 | `routing.md` | `templates/sdd-routing.md` | the session that spawns the work, from the batch it asked — never a subagent, which has no way to put the question to anybody | the routing answer | before the first edit, and so before a framer is spawned |
-| `spec.md` | `templates/sdd-spec.md` | the framer | WHAT — scope, mandatory user scenarios & acceptance, grounding clauses, the rule changes the settle writes into the policy root (`## Rule changes`), and the framer's mark at its foot, with a `Reframed … after round <N>.` line under it for each time the review chain sent the work item back (`docs/the-review-record.md` *The run* owns that rule) | before implementing |
-| `plan.md` | `templates/sdd-plan.md` | the framer | HOW — phases as vertical slices, alternatives with failure scenarios; this is the Design Gate's artifact, and its `Approved <date> by <who>` line is the record that the gate happened | before implementing (gated work) |
-| `questions.md` | `templates/sdd-questions.md` | the framer opens the rows; each row's `Who can answer` cell names who closes it | decisions only a human can make — extracted so nothing ships on a silent assumption | one batch before the first edit, then as they arise |
-| `overview.md` | `templates/sdd-overview.md` | the builder | the closing memo — one line of purpose, then what the diff cannot show (below) | opened at the first divergence, unverified item, or fed-back clause; closed when implementation ends |
-| `phases/phase-N.md` | `templates/sdd-phase.md` | the builder | what this phase was asked and what building it found — never what the work removes, which the frame's `## Removes` names once, and never the commit or the one-line delivery description `plan.md`'s Status/Delivers cells already own | written when the phase closes |
+| `frame/design.md` | `templates/sdd-design.md` | the framer | WHAT — scope, mandatory user scenarios & acceptance, grounding clauses, the rule changes the settle writes into the policy root (`## Rule changes`), and the framer's mark at its foot, with a `Reframed … after round <N>.` line under it for each time the review chain sent the work item back (`docs/the-review-record.md` *The run* owns that rule) | before implementing |
+| `frame/plan.md` | `templates/sdd-plan.md` | the framer | HOW — phases as vertical slices, alternatives with failure scenarios; this is the Design Gate's artifact, and its `Approved <date> by <who>` line is the record that the gate happened | before implementing (gated work) |
+| `frame/questions.md` | `templates/sdd-questions.md` | the framer opens the rows; each row's `Who can answer` cell names who closes it | decisions only a human can make — extracted so nothing ships on a silent assumption | one batch before the first edit, then as they arise |
+| `gaps.md` | `templates/sdd-gaps.md` | the builder | the closing memo — one line of purpose, then what the diff cannot show (below) | opened at the first divergence, unverified item, or fed-back clause; closed when implementation ends |
+| `trail/phases/phase-N.md` | `templates/sdd-phase.md` | the builder | what this phase was asked and what building it found — never what the work removes, which the frame's `## Removes` names once, and never the commit or the one-line delivery description `plan.md`'s Status/Delivers cells already own | written when the phase closes |
 
 The `Starts from` column is not decoration. A template that no shipped
 document names is a template a session cannot find: it reads *bootstrapped
@@ -402,7 +405,7 @@ and the moment, so the three stay one convention.
 
 ### 4. The closing memo — only what the diff cannot show
 
-`seal/specs/<work-item>/overview.md` is not a summary of the work. `git diff --stat`
+`seal/threads/<work-item>/gaps.md` is not a summary of the work. `git diff --stat`
 already holds the file list and the diff holds the detail; re-deriving them at
 the end costs a re-read of your own change and lands further from the truth
 than the command would.
@@ -465,7 +468,7 @@ and findings from execution are labeled separately.
 
 ### 5. Incorporate review — read the round records first
 
-A session fixing review feedback starts at `seal/specs/<work-item-id>/rounds/`,
+A session fixing review feedback starts at `seal/threads/<work-item-id>/trail/rounds/`,
 **not** at the inline comments: the warden writes `round-N.md`, and the next
 review round reads it (`docs/the-review-record.md` *The round record*).
 

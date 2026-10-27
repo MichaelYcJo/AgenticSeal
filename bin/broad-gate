@@ -7,6 +7,6 @@
 # Resolves the script relative to this file, not the caller's cwd, so it works
 # from any directory. Arguments pass straight through:
 #   broad-gate --base origin/main                broad-gate --base origin/main --shape
-#   broad-gate --base origin/main --record seal/specs/<work-item-id>
+#   broad-gate --base origin/main --record seal/threads/<work-item-id>
 here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 exec python3 "$here/../hooks/launch.py" "$here/../skills/verify/scripts/broad_gate.py" "$@"

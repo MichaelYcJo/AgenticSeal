@@ -14,7 +14,7 @@
 만들고 옮기고 지우며, 그 형식을 플러그인의 검사기가 정한다는 뜻입니다.
 `.github/` 가 GitHub 의 것인 것과 같습니다. 수명은 셋이고 각각 집이 하나입니다.
 세션의 상태는 루트 옆, 공통 git 디렉터리 아래에 있고 커밋되지 않습니다. 작업
-항목의 디렉터리 `seal/specs/<id>/` 는 settle 이 그 spec 의 절을 쓰고
+항목의 디렉터리 `seal/threads/<id>/` 는 settle 이 그 spec 의 절을 쓰고
 디렉터리를 지울 때까지 삽니다. 그 밖의 `seal/` 아래 파일은 `docs/`, `CHANGELOG.md` 와 함께
 영구적입니다. 파일 하나하나의 배치는 `skills/implement/SKILL.md` *Document
 layout — two roots, three lifetimes* 와 `docs/the-record-layout.md` 에
@@ -28,7 +28,7 @@ check: tests/test_no_document_names_the_old_roots.py tests/test_optin.py
 
 ## 종속 규칙
 
-**릴리스보다 오래 살아야 하는 것은 병합 뒤에 `seal/specs/<id>/` 를 읽어서는
+**릴리스보다 오래 살아야 하는 것은 병합 뒤에 `seal/threads/<id>/` 를 읽어서는
 안 됩니다.** `settle` 이 이 디렉터리를 지우므로, 영구적인 용도에서는 이미
 없는 것으로 취급합니다. 라운드 기록의 `target:` 줄은 그 PR 이 열려 있는
 동안만 읽힙니다. 릴리스된 changelog 항목 위에서 작업 항목의 이름을 적은
@@ -36,7 +36,7 @@ check: tests/test_no_document_names_the_old_roots.py tests/test_optin.py
 이력에서 찾을 수 있습니다. local 모드에서는 그 폴더를 담은 이력이 없으므로,
 그 주석은 이미 떠난 작업 항목의 이름만 가리킵니다. 저장소에서 이 묶음을 읽는 검사는 모두, settle 이 그 일부를 지울 때
 답을 내야 합니다(`skills/settle/SKILL.md` *Answer every check that reads the
-corpus*). 병합 뒤에 `seal/specs/<id>/` 를 새로 읽는 코드는 그것을 만난 리뷰가
+corpus*). 병합 뒤에 `seal/threads/<id>/` 를 새로 읽는 코드는 그것을 만난 리뷰가
 지적할 일입니다.
 
 **그 뒤에 있는 더 넓은 규칙은, 무엇이 움직일 때 다른 것을 찾아서 고쳐야 하는
@@ -65,7 +65,7 @@ corpus*). 병합 뒤에 `seal/specs/<id>/` 를 새로 읽는 코드는 그것을
 훅이 플러그인의 것이기 때문입니다. 실패 방향은, 두 자리 어디에도 폴더가
 없으면 옵트인하지 않은 것이고, 판단하지 못하는 훅은 아무것도 하지 않는
 것입니다. 버릴 저장소는 공통 git 디렉터리 아래의 빈 파일
-`.git/specseal-scratch` 하나로 게이트를 끕니다. 어떤 커밋도 이 파일을 다른
+`.git/agentic-scratch` 하나로 게이트를 끕니다. 어떤 커밋도 이 파일을 다른
 클론으로 옮기지 못합니다.
 check: tests/test_optin.py
 

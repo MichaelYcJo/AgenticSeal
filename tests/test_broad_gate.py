@@ -46,10 +46,10 @@ TARGET = "skills/verify/scripts/broad_gate.py"
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 CHAIN = ROOT / "skills" / "code-review" / "scripts" / "chain_check.py"
 READER = ROOT / "skills" / "verify" / "scripts" / "unverified_check.py"
-ITEM = "seal/specs/1799000001-a-gated-work-item"
+ITEM = "seal/threads/1799000001-a-gated-work-item"
 # The record's path as the gate prints it: `os.path.relpath`, so with the
 # platform's separator.
-RECORD_REL = os.path.join(ITEM, "broad-gate.md").replace("/", os.sep)
+RECORD_REL = os.path.join(ITEM, "trail", "gate.md").replace("/", os.sep)
 ROW = "Broad gate"
 
 gate = load_module(ROOT / TARGET, "broad_gate_under_test")
@@ -1951,8 +1951,8 @@ def a_round(*verdicts):
 class Test_round_records:
     def test_accepts_the_records_lowest_round_first(self, tmp_path):
         for n in (10, 2, 1):
-            write(tmp_path, f"rounds/round-{n}.md", "x")
-        write(tmp_path, "rounds/round-2-report.md", "x")
+            write(tmp_path, f"trail/rounds/round-{n}.md", "x")
+        write(tmp_path, "trail/rounds/round-2-report.md", "x")
         names = [os.path.basename(p) for p in gate.round_records(str(tmp_path))]
         assert names == ["round-1.md", "round-2.md", "round-10.md"]
 
@@ -1980,7 +1980,7 @@ class Test_write_gate_file:
         gate.write_gate_file(str(tmp_path), "aaa1111", "base1")
         path = gate.write_gate_file(str(tmp_path), "bbb2222", "base1")
         text = pathlib.Path(path).read_text(encoding="utf-8")
-        assert os.path.basename(path) == "broad-gate.md"
+        assert path == os.path.join(str(tmp_path), "trail", "gate.md")
         assert (
             "| Broad gate | bbb2222 against base1; earlier run: aaa1111 against base1 |"
         ) in text
@@ -1988,7 +1988,8 @@ class Test_write_gate_file:
     def test_refuses_a_file_that_cannot_be_written_or_read(self, tmp_path):
         with pytest.raises(gate.Refused, match="could not be written"):
             gate.write_gate_file(str(tmp_path / "no-such-item"), "aaa1111", "base1")
-        (tmp_path / "broad-gate.md").write_bytes(b"\xff\xfe")
+        (tmp_path / "trail").mkdir()
+        (tmp_path / "trail" / "gate.md").write_bytes(b"\xff\xfe")
         with pytest.raises(gate.Refused, match="could not be read"):
             gate.write_gate_file(str(tmp_path), "aaa1111", "base1")
 
@@ -2008,13 +2009,15 @@ class Test_rounds_rows:
         refuses adds nothing beneath `rounds`, and the records it reads add
         every home they name."""
         item = tmp_path / "1799000002-x"
-        write(item, "rounds/round-1.md", a_round("deferred #7", "fixed abc1234"))
-        write(item, "rounds/round-2.md", a_round("deferred #8"))
-        write(item, "rounds/round-3.md", a_round("deferred #9", "deferred"))
-        write(item, "rounds/round-4.md", a_round("**deferred** #9"))
-        write(item, "rounds/round-5.md", OLD_RECORD)
+        write(item, "trail/rounds/round-1.md", a_round("deferred #7", "fixed abc1234"))
+        write(item, "trail/rounds/round-2.md", a_round("deferred #8"))
+        write(item, "trail/rounds/round-3.md", a_round("deferred #9", "deferred"))
+        write(item, "trail/rounds/round-4.md", a_round("**deferred** #9"))
+        write(item, "trail/rounds/round-5.md", OLD_RECORD)
         write(
-            item, "rounds/round-6.md", a_round("deferred #9").replace("verdict:", "V:")
+            item,
+            "trail/rounds/round-6.md",
+            a_round("deferred #9").replace("verdict:", "V:"),
         )
         rows = gate.rounds_rows(str(item))
         assert rows == [("rounds", "6"), ("", "2 deferred → #7, #8")], rows
@@ -2022,7 +2025,7 @@ class Test_rounds_rows:
     def test_refuses_a_deferral_row_where_nothing_was_deferred(self, tmp_path):
         item = tmp_path / "1799000003-y"
         assert gate.rounds_rows(str(item)) == [("rounds", "0")]
-        write(item, "rounds/round-1.md", a_round("fixed abc1234"))
+        write(item, "trail/rounds/round-1.md", a_round("fixed abc1234"))
         assert gate.rounds_rows(str(item)) == [("rounds", "1")]
 
 
@@ -2361,8 +2364,8 @@ class Test_gate:
         chain_kept = (keep / "chain.txt").read_text(encoding="utf-8")
         assert f"--baseline {base} --root" in chain_kept.splitlines()[0]
         # The gate draws nothing and queues no stamp (#975).
-        assert not (repo / ".git" / "specseal-stamp").exists()
-        cell = (repo / ITEM / "broad-gate.md").read_text(encoding="utf-8")
+        assert not (repo / ".git" / "agentic-stamp").exists()
+        cell = (repo / ITEM / "trail" / "gate.md").read_text(encoding="utf-8")
         assert f"| {ROW} | {tree} against {base} |" in cell
         assert f"broad-gate: `{ROW}` says: {SUITE_ROW}" in out.stderr
 
@@ -2381,7 +2384,7 @@ class Test_gate:
         out = capsys.readouterr().out
         assert "  tests/test_two.py  new\n" in out
         assert "1 failed, 1 passed" in out
-        assert not (repo / ITEM / "broad-gate.md").exists()
+        assert not (repo / ITEM / "trail" / "gate.md").exists()
 
     def test_accepts_a_preflight_that_runs_no_row_and_writes_nothing(
         self, repo, tmp_path, capsys

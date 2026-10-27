@@ -11,7 +11,7 @@
 # it, or runs `seal pr-checks remove` and then `seal pr-checks install`.
 #
 # Why it refuses in local mode: the checks read committed files
-# (`chain_check.py` lists `seal/specs/` with `git ls-tree HEAD`), and local
+# (`chain_check.py` lists `seal/threads/` with `git ls-tree HEAD`), and local
 # mode keeps the root under the git directory, where nothing is ever committed.
 # `seal mode` moves the root and leaves this file alone, so a copy can stay
 # after a switch to local. There every step examines nothing and passes: no

@@ -593,7 +593,7 @@ def test_no_loaded_file_names_a_version_at_or_above_the_running_one():
     Three exemptions, each argued where it is declared rather than here:
 
     - `RECORDS_OF_A_MOMENT` — files whose whole job is to name a moment.
-      `seal/specs/`, `CHANGELOG.md` and `changelog/` are outside the scanned
+      `seal/threads/`, `CHANGELOG.md` and `changelog/` are outside the scanned
       set entirely. `docs/experiments/` holds dated measurements whose
       numbers are the reading.
     - `ILLUSTRATIVE_VERSION` — the value the repository already tells authors
@@ -1094,7 +1094,7 @@ def test_no_section_accumulates_entries_in_the_shared_file():
     This case used to check that it sat ABOVE every dated section, after a
     rebase conflict resolved the wrong way sank it below one. That ordering
     stopped being the problem when the section stopped existing: entries
-    accumulate as `seal/specs/<work-item-id>/changelog.md` fragments now, and
+    accumulate as `seal/threads/<work-item-id>/changelog.md` fragments now, and
     the
     release gathers them into a dated section at the top. A heading by that
     name means somebody went back to the shared file, which is issue #46.
@@ -1108,7 +1108,7 @@ def test_no_section_accumulates_entries_in_the_shared_file():
     found = [h for h in headings if h.lower().startswith("unreleased")]
     assert not found, (
         f"CHANGELOG.md carries {found} again. An entry goes in "
-        "seal/specs/<work-item-id>/changelog.md; `gather_changelog.py --version "
+        "seal/threads/<work-item-id>/changelog.md; `gather_changelog.py --version "
         "X.Y.Z` is what writes a section here"
     )
 
@@ -1217,7 +1217,7 @@ def test_the_release_target_is_asked_before_the_work_starts():
         )
         # Round 1, 🔴 7. This used to require the literal `## Unreleased`, and
         # that is a heading THIS repository no longer has: entries accumulate
-        # as `seal/specs/<work-item-id>/changelog.md` fragments. A `smith`
+        # as `seal/threads/<work-item-id>/changelog.md` fragments. A `smith`
         # reading
         # its own contract therefore either created the heading — reddening
         # `test_no_section_accumulates_entries_in_the_shared_file` — or
@@ -1270,7 +1270,9 @@ def test_no_korean_pr_body_claims_a_close_that_did_not_happen():
     named #54, the issue this work item leaves open on purpose."""
     import glob
 
-    for path in sorted(glob.glob(os.path.join(ROOT, "seal", "specs", "*", "pr.ko.md"))):
+    for path in sorted(
+        glob.glob(os.path.join(ROOT, "seal", "threads", "*", "pr.ko.md"))
+    ):
         text = open(path, encoding="utf-8").read()
         for line in text.splitlines():
             if "닫습니다" in line and "#" in line and "닫히지" not in line:
@@ -1473,12 +1475,12 @@ def test_this_repository_has_one_root_laid_out_by_lifetime():
         f"the ledger is back at {', '.join(leftovers)}. It left the tree in "
         "#944 and nothing reads it; a rule names the test that holds it instead"
     )
-    # `seal/specs/` is absent after a complete fold, because git keeps no
+    # `seal/threads/` is absent after a complete fold, because git keeps no
     # empty directory, and that is the laid-out state. `assert items` stood here — some work item carries a routing.md
     # — and it was a floor of one (#517); what it was about holds at any
-    # size and is stronger: every entry under `seal/specs/` is a work item,
+    # size and is stronger: every entry under `seal/threads/` is a work item,
     # whole, which starts with the declaration written before its first edit.
-    specs = os.path.join(seal, "specs")
+    specs = os.path.join(seal, "threads")
     if os.path.isdir(specs):
         loose = [
             n
@@ -1486,7 +1488,7 @@ def test_this_repository_has_one_root_laid_out_by_lifetime():
             if not os.path.isfile(os.path.join(specs, n, "routing.md"))
         ]
         assert not loose, (
-            f"seal/specs/ holds something that is not a work item: {loose}"
+            f"seal/threads/ holds something that is not a work item: {loose}"
         )
     for old in (".specseal", "specs"):
         assert not os.path.exists(os.path.join(ROOT, old)), (

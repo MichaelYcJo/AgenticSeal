@@ -14,8 +14,8 @@ is found, the copy is the defect.
 
 | Kind | Home | Size target | Index |
 |---|---|---|---|
-| The changelog | `seal/specs/<work-item-id>/changelog.md` while a work item is open; `changelog/<X.Y.Z>.md`, the release's own file, once its release gathers it | each release file is under target, and is the unit | the file name, by version, and `CHANGELOG.md`, which heads each release newest first with a link to its file |
-| A work item's files | `seal/specs/<work-item-id>/` | each file under target | the table under *seal/specs/<work-item-id>/* below |
+| The changelog | `seal/threads/<work-item-id>/changelog.md` while a work item is open; `changelog/<X.Y.Z>.md`, the release's own file, once its release gathers it | each release file is under target, and is the unit | the file name, by version, and `CHANGELOG.md`, which heads each release newest first with a link to its file |
+| A work item's files | `seal/threads/<work-item-id>/` | each file under target | the table under *seal/specs/<work-item-id>/* below |
 | The repository's rules | `CLAUDE.md` for the rules a session must hold, `CONTRIBUTING.md` for a contributor's procedure, and the `docs/` document each one links to | each file under target | this document, and `docs/README.md` |
 | The configuration | `seal/config.md`, one row per item; `templates/config.md` documents every row | under target | the `Item` column |
 | The follow-up list | `seal/follow-up.md`, one row per item that waits on a named party | under target | its rows, each naming who answers it |
@@ -33,7 +33,7 @@ check: tests/test_fold_check.py
 
 A file every branch appends to costs a conflict at the worst moment — after
 the broad gate has run, which forces it to run again. So a change writes its
-changelog entry into a file of its own, `seal/specs/<work-item-id>/changelog.md`,
+changelog entry into a file of its own, `seal/threads/<work-item-id>/changelog.md`,
 never under a heading of `CHANGELOG.md`. No two work items share an id, so no
 two branches share a file. A changelog fragment has no line starting `## `,
 because that line ends the released section, and the gather refuses a
@@ -109,7 +109,7 @@ each group's history and removes the directories; it writes no policy
 document.
 check: tests/test_rule_changes.py tests/test_settle.py
 
-**A settle is not a work item.** It opens no directory under `seal/specs/`.
+**A settle is not a work item.** It opens no directory under `seal/threads/`.
 Its session records `seal no-work-item` on the settle's branch, its commits
 carry the trailer `SpecSeal-Routing: no work item` where the root is shared,
 and what it wrote is reviewed at its pull request. What it leaves already has a home, the pull request and
@@ -119,7 +119,7 @@ end; `skills/settle/SKILL.md` *A settle is not a work item* is the procedure.
 check: tests/test_settle_reads_before_it_removes.py
 
 **A population floor over the records is replaced, never lowered.** A check
-asserting that a sweep of `seal/specs/` read *enough* — `len(records) > 200` —
+asserting that a sweep of `seal/threads/` read *enough* — `len(records) > 200` —
 is answering *did the walk read anything* with a literal that stops being true
 the moment the corpus shrinks, and a fold shrinks it by design. The repair
 compares the walk against an independent listing of the same tree —
@@ -188,7 +188,7 @@ fourth answer, and it is argued against these three.
 **A `seal/` root with no work item under it is the state a complete fold ends
 in, and it reads as settled, never as unusable.** Git keeps no empty
 directory, so the state is two: the tree that ran `settle --apply` holds an
-empty `seal/specs/`, and a fresh checkout of that commit holds none. Read as
+empty `seal/threads/`, and a fresh checkout of that commit holds none. Read as
 unusable, `settle` would exit 2 on its own finished work, and `unverified-check
 --baseline` would read the root's own `specs` path as a typo when a person
 runs it after the fold, and refuse a finished settle. Only that one path is

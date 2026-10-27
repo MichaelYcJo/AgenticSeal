@@ -978,7 +978,7 @@ def test_the_smith_says_whether_the_frame_holds_before_building_to_it():
 
 def test_spec_directories_carry_the_timestamp_prefix():
     # implement/SKILL.md: "A work item's directory is
-    # seal/specs/<unix-epoch-seconds>-<slug>/ ... keeps directories in
+    # seal/threads/<unix-epoch-seconds>-<slug>/ ... keeps directories in
     # creation order and collision-free without a registry". Two were written
     # without
     # it and nothing noticed — the drift this plugin exists to catch, in its
@@ -986,7 +986,7 @@ def test_spec_directories_carry_the_timestamp_prefix():
     # commit that introduced each, so a plain listing now reads in order.
     import re
 
-    specs = os.path.join(ROOT, "seal", "specs")
+    specs = os.path.join(ROOT, "seal", "threads")
     # Absent after a complete fold (#517); an absent directory holds no
     # offender, and the rule is the same at any size.
     offenders = [
@@ -1011,10 +1011,10 @@ def test_every_spec_directory_that_reached_the_ladder_has_an_overview():
     directory was for.
 
     The exemption is narrow on purpose: the moment a directory holds a
-    `spec.md` or a `plan.md`, someone decided the work was worth describing,
+    `frame/design.md` or a `frame/plan.md`, someone decided the work was worth describing,
     and the memo is the other half of that.
     """
-    specs = os.path.join(ROOT, "seal", "specs")
+    specs = os.path.join(ROOT, "seal", "threads")
     missing = []
     # Absent after a complete fold (#517), which is no directory missing a memo.
     for n in sorted(os.listdir(specs) if os.path.isdir(specs) else []):
@@ -1022,9 +1022,10 @@ def test_every_spec_directory_that_reached_the_ladder_has_an_overview():
         if not os.path.isdir(d):
             continue
         on_the_ladder = any(
-            os.path.isfile(os.path.join(d, f)) for f in ("spec.md", "plan.md")
+            os.path.isfile(os.path.join(d, "frame", f))
+            for f in ("design.md", "plan.md")
         )
-        if on_the_ladder and not os.path.isfile(os.path.join(d, "overview.md")):
+        if on_the_ladder and not os.path.isfile(os.path.join(d, "gaps.md")):
             missing.append(n)
     assert not missing, f"work items with no closing overview: {missing}"
 

@@ -336,7 +336,7 @@ class Test_consent:
     def test_refuses_a_directory_at_the_record_path(self, monkeypatch, capsys, repo):
         """The record is a FILE, and its existence is the fact. A directory of that
         name is not one — the same distinction `optin.py` draws for
-        `specseal-scratch`, where a directory of the marker's name silenced every
+        `agentic-scratch`, where a directory of the marker's name silenced every
         gate in the tree."""
         (consent_dir(repo) / "me").mkdir(parents=True)
         assert not wc.granted(str(repo), "me")

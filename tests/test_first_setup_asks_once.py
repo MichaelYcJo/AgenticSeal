@@ -724,7 +724,7 @@ def test_the_design_record_states_the_setup_rules_where_they_rule(
     shape, the workflow it installs and the migration hook's stamp sit with
     first setup, in both editions."""
     text = read(*parts)
-    assert "specseal-scratch" in section(text, opt_in, 2), "/".join(parts)
+    assert "agentic-scratch" in section(text, opt_in, 2), "/".join(parts)
     body = " ".join(section(text, setup, 2).split())
     for needle in ("templates/hygiene.yml", COMMON_DIR, "AskUserQuestion", stamp):
         assert needle in body, f"{'/'.join(parts)}: {setup} does not name {needle}"
@@ -776,7 +776,7 @@ def test_the_preset_sends_a_fresh_repository_to_the_bootstrap():
     notices the condition applies — so the condition leads the rule rather
     than trailing it."""
     rule = routing_rule()
-    lead = rule[: rule.index("write `seal/specs/")]
+    lead = rule[: rule.index("write `seal/threads/")]
     assert "Bootstrap" in lead, (
         "the routing rule instructs the write before it names the bootstrap, "
         "which is the order that made #151 happen"
@@ -796,7 +796,7 @@ def test_the_preset_writes_no_declaration_under_no_work_item():
     session in a rooted repository that reads only the block neither writes
     a declaration nobody gave nor asks a question it has no text for."""
     rule = routing_rule()
-    lead = rule[: rule.index("write `seal/specs/")]
+    lead = rule[: rule.index("write `seal/threads/")]
     assert "Except under `no work item`" in lead, (
         "the routing rule writes routing.md under every answer, `no work item` included"
     )

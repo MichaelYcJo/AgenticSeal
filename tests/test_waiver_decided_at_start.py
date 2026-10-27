@@ -7,7 +7,7 @@ its part, which no single diff shows.
 
 The rule: how a work item is routed has **three axes**, all asked in the same
 batch before the first edit, and the answer goes into
-`seal/specs/<work-item-id>/routing.md` rather than being re-derived at every
+`seal/threads/<work-item-id>/routing.md` rather than being re-derived at every
 commit.
 
 `Implementation` is the third and it is read on looser terms — optional, and
@@ -813,9 +813,9 @@ def test_the_framer_leaves_a_mark_in_the_tree():
     a line nobody was told to fill in.
     """
     line = "Framed <date> by <who>, before the build."
-    template = read("templates", "sdd-spec.md")
+    template = read("templates", "sdd-design.md")
     assert line in template, (
-        "`templates/sdd-spec.md` ships no mark, so every spec copied from it "
+        "`templates/sdd-design.md` ships no mark, so every spec copied from it "
         "is a frame with no evidence it was framed"
     )
     assert template.rstrip().endswith(line), (
@@ -891,7 +891,7 @@ def test_no_committed_declaration_still_carries_a_template_placeholder():
     import glob
 
     for path in sorted(
-        glob.glob(os.path.join(ROOT, "seal", "specs", "*", "routing.md"))
+        glob.glob(os.path.join(ROOT, "seal", "threads", "*", "routing.md"))
     ):
         with open(path, encoding="utf-8") as f:
             for line in f:
@@ -921,7 +921,7 @@ def test_the_skill_states_all_four_combinations():
 
 def test_the_skill_names_where_the_answer_is_written():
     skill = flat(read(*ORCH))
-    assert "seal/specs/<work-item-id>/routing.md" in skill
+    assert "seal/threads/<work-item-id>/routing.md" in skill
     assert "templates/sdd-routing.md" in skill
     assert "Committed" in skill or "committed" in skill
 
@@ -1012,7 +1012,7 @@ def test_the_preset_block_carries_it_too():
     for parts in (("templates", "claude-md-block.md"),):
         text = flat(read(*parts))
         where = "/".join(parts)
-        assert "seal/specs/<work-item-id>/routing.md" in text, where
+        assert "seal/threads/<work-item-id>/routing.md" in text, where
         for answer in ("automation", "per axis", "no work item"):
             assert f"`{answer}`" in text, f"{where} lost the answer `{answer}`"
         assert SHAPE in text, (

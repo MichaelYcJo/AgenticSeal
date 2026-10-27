@@ -9,7 +9,7 @@ per work item from the sealer's `guarantee.md` reading `sealed`, and never
 from the broad gate's run, which draws nothing. In either mode
 `hooks/sealer-stamp-queue.py` writes the stamp's rows at the `Write` or
 `Edit` of the guarantee (`seal_stamp.queue_for_written_guarantee`) to a
-values file under `<git-common-dir>/specseal-stamp/<session>/`, keyed by the
+values file under `<git-common-dir>/agentic-stamp/<session>/`, keyed by the
 payload's `session_id`, which a subagent's write carries as the main
 session's.
 

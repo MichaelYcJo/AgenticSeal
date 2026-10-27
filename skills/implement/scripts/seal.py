@@ -175,7 +175,7 @@ MANIFEST = "manifest.json"
 # Machine-local state, beside the root with everything else that must never
 # leave this clone. Inside the root it would ride into the next zip and, in
 # shared mode, into a commit.
-STATE = "specseal-last-export.json"
+STATE = "agentic-last-export.json"
 
 UNSAFE_IN_A_NAME = re.compile(r"[^A-Za-z0-9._-]")
 DRIVE = re.compile(r"^[A-Za-z]:")
@@ -389,7 +389,7 @@ def digest(entries):
 def work_item_of(rel):
     """The work item a root-relative path belongs to, or "".
 
-    A work item writes in one place, its directory under `specs/`.
+    A work item writes in one place, its directory under `threads/`.
     """
     parts = rel.split("/")
     if len(parts) >= 3 and parts[0] == optin.WORK_ITEMS:
@@ -816,7 +816,7 @@ def linked_path(into, archive):
     member's name and writes a link entry as an ordinary file, so those are
     not what a member can escape through. A path in the DESTINATION that is a
     symbolic link is: `extractall` follows it, and so does the plain `open()`
-    this module writes with. `seal/specs` pointed elsewhere puts every work
+    this module writes with. `seal/threads` pointed elsewhere puts every work
     item there.
 
     The leaf counts, not only the directories above it. A link named

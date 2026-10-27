@@ -58,7 +58,7 @@ SUFFIXES = (".md", ".yml", ".sh")
 # checked to still occur somewhere, so a reason cannot outlive its line.
 KEEP = {
     "<!-- specs/<work-item-id> -->": "the marker text in the changelog and the ledger is unchanged (Q2)",
-    "`.specseal/scratch`": "the predecessor of `.git/specseal-scratch`, named as past",
+    "`.specseal/scratch`": "the predecessor of `.git/agentic-scratch`, named as past",
     "└── specs/<work-item-id>/": "the tree under `seal/` in the README, relative to it",
     "└── specs/<작업항목-id>/": "the same tree in the Korean README",
     "(`.specseal/`, `specs/<id>/`)": "the READMEs naming the 0.3.x layout the by-hand move leaves",
@@ -190,7 +190,7 @@ def test_the_check_can_fail(line):
         "rows go in `seal/ledger/<work-item-id>.md`",
         "the gate reads `seal/specs/<work-item-id>/routing.md`",
         "one `###` section marked with `<!-- specs/<work-item-id> -->`",
-        "the file `.git/specseal-scratch`",
+        "the file `.git/agentic-scratch`",
     ],
 )
 def test_the_new_root_and_the_kept_forms_pass(line):

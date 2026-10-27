@@ -49,8 +49,8 @@ import subprocess
 # declared agent for that axis was used, and the agent's name is only how a
 # spawn happens to spell it. The file names are frozen -- an existing mark
 # under somebody's git dir is found by this string and by nothing else.
-IMPLEMENTATION_MARK = "specseal-implementer"
-PLANNING_MARK = "specseal-planner"
+IMPLEMENTATION_MARK = "agentic-implementer"
+PLANNING_MARK = "agentic-planner"
 
 # Which spawn writes which mark. The one place the two are paired, so a reader
 # asking "does this spawn leave a trace" has one table to open.

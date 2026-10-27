@@ -2,7 +2,7 @@
 
 This directory exists for AI sessions to hand work to each other. It is one
 root laid out by lifetime: the rows that outlive a work item at the top, and
-each work item whole under `seal/specs/<work-item-id>/`, where it stays until
+each work item whole under `seal/threads/<work-item-id>/`, where it stays until
 its release is settled. The settle writes into `docs/` each section the
 released specs' `## Rule changes` name, as their latest decision, and
 `settle --apply` removes each released directory whole whose record holds no
@@ -49,7 +49,7 @@ back and never overwrites a file, so a name already here keeps its bytes and
 the incoming copy lands beside it as `<name>.incoming<ext>`. What sits
 *beside* this root under the git directory is what must not travel: the
 smith mark, the worktree choices, any lease, and
-the last export's manifest at `specseal-last-export.json`. The export walks
+the last export's manifest at `agentic-last-export.json`. The export walks
 this directory and nothing else, which is why the root has to be its own.
 
 **The first line of this file is the marker.** `hooks/optin.py#MARKER` holds
@@ -59,7 +59,7 @@ itself, as a package named `seal` has one. First setup that meets such a
 directory writes nothing into it and keeps the root under the git directory.
 Leave the line as it is.
 
-**The throwaway opt-out is the file `.git/specseal-scratch`, and it cannot be
+**The throwaway opt-out is the file `.git/agentic-scratch`, and it cannot be
 committed.** Where it exists, every gate reads the repository as one that
 never opted in and says nothing. It is for a repository built to be thrown
 away, such as a fixture made by hand to reproduce a gate decision. It lives

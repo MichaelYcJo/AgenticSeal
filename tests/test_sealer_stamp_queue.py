@@ -40,7 +40,7 @@ stamp = gate.load_stamp()
 @pytest.fixture(scope="module")
 def _local_template(tmp_path_factory):
     """A repository in local mode on `feat/x`, built once: no `seal/` in its
-    tree, and under `.git/seal/specs/<item>/` the work item's `routing.md`
+    tree, and under `.git/seal/threads/<item>/` the work item's `routing.md`
     naming the branch, two round records, `broad-gate.md` and a
     `guarantee.md` reading `sealed` over the branch's commit."""
     repo = tmp_path_factory.mktemp("queue-world") / "repo"
@@ -53,12 +53,14 @@ def _local_template(tmp_path_factory):
     commit_everything_as_e(repo, "the work")
     target = git_out(repo, "rev-parse", "--short", "HEAD")
     base = git_out(repo, "rev-parse", "--short", "main")
-    item = mark_root(repo / ".git" / "seal") / "specs" / STAMP_ITEM
-    (item / "rounds").mkdir(parents=True)
+    item = mark_root(repo / ".git" / "seal") / "threads" / STAMP_ITEM
+    (item / "trail" / "rounds").mkdir(parents=True)
     for n in (1, 2):
-        (item / "rounds" / f"round-{n}.md").write_text("x\n", encoding="utf-8")
+        (item / "trail" / "rounds" / f"round-{n}.md").write_text(
+            "x\n", encoding="utf-8"
+        )
     (item / "routing.md").write_text(routing_record(), encoding="utf-8")
-    (item / "broad-gate.md").write_text(
+    (item / "trail" / "gate.md").write_text(
         f"| Field | Value |\n|---|---|\n| Broad gate | {target} against {base} |\n",
         encoding="utf-8",
     )
@@ -73,7 +75,7 @@ def local(tmp_path, _local_template):
     """This case's copy: (repo, the guarantee's path)."""
     repo = tmp_path / "repo"
     shutil.copytree(_local_template, repo)
-    return repo, repo / ".git" / "seal" / "specs" / STAMP_ITEM / "guarantee.md"
+    return repo, repo / ".git" / "seal" / "threads" / STAMP_ITEM / "guarantee.md"
 
 
 def payload(path, cwd, tool="Write", session="s-1", **extra):
@@ -115,9 +117,9 @@ class Test_shaped:
     @pytest.mark.parametrize(
         "path",
         [
-            "/x/repo/.git/seal/specs/1799000000-an-item/guarantee.md",
-            "/x/repo/seal/specs/a/guarantee.md",
-            "/x/repo/.git/seal/specs/a/../b/guarantee.md",
+            "/x/repo/.git/seal/threads/1799000000-an-item/guarantee.md",
+            "/x/repo/seal/threads/a/guarantee.md",
+            "/x/repo/.git/seal/threads/a/../b/guarantee.md",
         ],
     )
     def test_accepts_a_work_items_guarantee(self, path):
@@ -126,16 +128,16 @@ class Test_shaped:
     def test_accepts_a_windows_path_with_its_separators(self, monkeypatch):
         monkeypatch.setattr(gate.os, "sep", "\\")
         monkeypatch.setattr(gate.os.path, "normpath", lambda p: p)
-        assert gate.shaped(r"C:\x\repo\.git\seal\specs\a\guarantee.md")
+        assert gate.shaped(r"C:\x\repo\.git\seal\threads\a\guarantee.md")
 
     @pytest.mark.parametrize(
         "path",
         [
-            "/x/repo/.git/seal/specs/a/notes.md",
+            "/x/repo/.git/seal/threads/a/notes.md",
             "/x/repo/docs/guarantee.md",
-            "/x/repo/seal/specs/a/b/guarantee.md",
-            "/x/repo/seal/specs/guarantee.md",
-            "/x/repo/seal/specs/a/guarantee.md.bak",
+            "/x/repo/seal/threads/a/b/guarantee.md",
+            "/x/repo/seal/threads/guarantee.md",
+            "/x/repo/seal/threads/a/guarantee.md.bak",
         ],
     )
     def test_refuses_any_other_file(self, path):
@@ -174,7 +176,7 @@ class Test_main:
         elsewhere.mkdir()
         out = edited(payload(path, elsewhere, tool=tool))
         (written,) = queued_values(repo)
-        assert os.path.dirname(written) == str(repo / ".git" / "specseal-stamp" / "s-1")
+        assert os.path.dirname(written) == str(repo / ".git" / "agentic-stamp" / "s-1")
         assert json.loads(out) == {"systemMessage": queued_line(written)}
 
     @pytest.mark.rule("stamp-drawn-once")
@@ -186,7 +188,7 @@ class Test_main:
         sealer = {"agent_id": "a-1", "agent_type": "specseal:sealer"}
         assert json.loads(edited(payload(path, repo, **sealer)))
         (written,) = queued_values(repo)
-        assert os.path.dirname(written) == str(repo / ".git" / "specseal-stamp" / "s-1")
+        assert os.path.dirname(written) == str(repo / ".git" / "agentic-stamp" / "s-1")
 
     @pytest.mark.rule("stamp-drawn-once")
     def test_accepts_a_shared_mode_sealed_guarantee_at_its_write(
@@ -196,12 +198,12 @@ class Test_main:
         is queued at the write, as a local root's is, for the payload's
         session and under the clone's common dir."""
         repo, path = local
-        shared = mark_root(repo / "seal") / "specs" / STAMP_ITEM
+        shared = mark_root(repo / "seal") / "threads" / STAMP_ITEM
         shutil.copytree(path.parent, shared)
         shutil.rmtree(path.parent)
         out = edited(payload(shared / "guarantee.md", tmp_path))
         (written,) = queued_values(repo)
-        assert os.path.dirname(written) == str(repo / ".git" / "specseal-stamp" / "s-1")
+        assert os.path.dirname(written) == str(repo / ".git" / "agentic-stamp" / "s-1")
         assert json.loads(out) == {"systemMessage": queued_line(written)}
 
     @pytest.mark.rule("stamp-drawn-once")

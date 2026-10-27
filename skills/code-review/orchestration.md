@@ -314,7 +314,7 @@ broad run is recorded nowhere CI looks. On a red run relay the `BROAD GATE
 FAILED` lines. Wherever a line you read names `seal-stamp --from`, quote
 it as it stands: that command is the person's to type, and never yours. The
 edit hook's line never reaches you. Where no stamp appeared, name the file
-under `<git-common-dir>/specseal-stamp/<session>/` whose name holds the work
+under `<git-common-dir>/agentic-stamp/<session>/` whose name holds the work
 item's id, and leave `seal-stamp --from <that file>` to the person. The line
 names the command because the hook draws nothing and says nothing where it
 cannot: a `python3` that cannot load `seal_stamp.py`, a working directory

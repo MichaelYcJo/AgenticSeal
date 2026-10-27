@@ -67,7 +67,7 @@ that the next phase needs, beside the plan whose Status cell carries the
 commit. *What this phase was asked* is the scope the spawn gave, which a
 later reader cannot otherwise tell from a scope the phase invented. What a
 work item removes is named once, in the frame's `## Removes`
-(`templates/sdd-spec.md`), which the review reads against the diff, and a
+(`templates/sdd-design.md`), which the review reads against the diff, and a
 removal the frame did not name is a divergence in `overview.md`.
 check: tests/test_a_phase_hands_the_next_one_a_record.py
 

@@ -162,7 +162,7 @@ def test_the_skill_says_a_settle_is_not_a_work_item_and_owes_no_range_row():
         "the skill still hands a settle a range row"
     )
     assert "## A settle is not a work item" in skill()
-    assert "A settle opens no directory under `seal/specs/`" in text
+    assert "A settle opens no directory under `seal/threads/`" in text
     assert "`seal no-work-item`" in text, "the skill does not say how a settle edits"
     assert "`SpecSeal-Routing: no work item`" in text, (
         "the skill does not say how a settle commits"
@@ -298,7 +298,7 @@ def test_the_module_and_the_skill_both_say_how_local_mode_settles():
     section = flat(skill().split("\n## In local mode\n")[1].split("\n## ")[0])
     for said in (
         "under the common git directory",
-        "so a work item's directory is `<git-common-dir>/seal/specs/<id>/`",
+        "so a work item's directory is `<git-common-dir>/seal/threads/<id>/`",
         "the pull request from the branch its `routing.md` names has merged",
         "reachable from `--released-at`",
         "`gh pr list --head <branch> --state merged --json number,mergeCommit`",
