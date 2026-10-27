@@ -60,6 +60,52 @@ class _args:
         self.body_file = body_file
 
 
+class Test_prose_only:
+    def test_accepts_a_fenced_block_blanked_with_its_newlines_kept(self):
+        """The fence's lines stay lines. Each one blanked to spaces is a blank
+        line, which ends the segment above the fence; the fence blanked to one
+        run of spaces with no newline would join its first line to its last."""
+        body = "Closes #11\n```\nCloses #22\n```\nend"
+        assert check.prose_only(body) == (
+            "Closes #11\n" + " " * 3 + "\n" + " " * 10 + "\n" + " " * 3 + "\nend"
+        )
+
+    def test_refuses_the_text_of_a_code_span_at_its_own_length(self):
+        """Every masked character becomes one space, so an offset into the
+        masked text is an offset into the body as written."""
+        span = "`Closes #11`"
+        assert check.prose_only(f"see {span} here") == f"see {' ' * len(span)} here"
+
+
+class Test_segments:
+    def test_accepts_an_ordered_list_item_as_a_segment_of_its_own(self):
+        """`1)` opens a block, so the line it starts is cut from the claim above
+        it. `1.` would be cut by its full stop anyway; `1)` is cut by the block
+        rule alone."""
+        text = "Closes #11\n1) #22 is next"
+        cut = len("Closes #11\n")
+        assert check.segments(text) == [(0, cut), (cut, len(text))]
+
+    def test_refuses_a_run_of_whitespace_as_a_segment(self):
+        """The blank line between two sentences is a cut and never a segment of
+        its own."""
+        text = "Closes #11.\n\n#22 is next."
+        first, second = len("Closes #11."), len("Closes #11.\n")
+        assert check.segments(text) == [(0, first), (second, len(text))]
+
+
+class Test_claimed_spans:
+    def test_accepts_the_digits_of_a_claim_as_its_span(self):
+        """The span is the digits, not the keyword: a claim whose keyword ends
+        one segment and whose number opens the next is the next segment's."""
+        text = "See it. Closes #11"
+        start = text.index("11")
+        assert check.claimed_spans(text) == [("11", start, start + 2)]
+
+    def test_refuses_a_number_no_keyword_claims(self):
+        assert check.claimed_spans("Part of #11, see #22") == []
+
+
 class Test_read:
     def test_refuses_the_sentence_that_lost_an_issue_with_a_warning(self):
         """PR #162's shape, with neutral numbers. One claim, one loss, one line
@@ -209,13 +255,27 @@ class Test_read:
         assert mentioned == ["11"]
         assert warnings == []
 
-    def test_an_anchor_is_not_an_issue_number(self):
-        """`#L45` and `#heading` need a digit immediately after the hash."""
-        assert read("Closes #11, see file.py#L45 and the #overview section") == (
-            ["11"],
-            [],
-            [],
-        )
+    @pytest.mark.parametrize(
+        "body",
+        [
+            "Closes #11, see file.py#L45 and the #overview section",
+            "Closes #11 and #22abc",
+        ],
+        ids=["an-anchor", "glued-to-letters"],
+    )
+    def test_an_anchor_is_not_an_issue_number(self, body):
+        """`#L45` and `#heading` need a digit immediately after the hash, and
+        `#22abc` is no number either: its digits end at no word boundary, so it
+        is neither mentioned nor warned about."""
+        assert read(body) == (["11"], [], [])
+
+    def test_accepts_a_number_written_twice_once_in_its_list(self):
+        """The lists are deduplicated in the order the body writes them: a
+        number claimed twice is one claim, and one named twice is one
+        mention."""
+        claimed, mentioned, _ = read("Closes #11. Fixes #11. See #22, and #22 again.")
+        assert claimed == ["11"]
+        assert mentioned == ["22"]
 
 
 class Test_report:
@@ -242,6 +302,16 @@ class Test_report:
         lines = []
         check.report(*read("Closes #11"), out=lines.append)
         assert lines[-1] == "no sentence claims one number and names another beside it"
+
+
+class Test__short:
+    def test_accepts_a_sentence_at_the_limit_whole(self):
+        sentence = "x" * 160
+        assert check._short(sentence) == sentence
+
+    def test_refuses_a_sentence_past_the_limit_at_its_length(self):
+        """Cut to the limit with the ellipsis as its last character."""
+        assert check._short("x" * 161) == "x" * 159 + "…"
 
 
 class Test_main:
