@@ -1146,6 +1146,15 @@ class Test_main:
             run_dispatch("pre-nothing", payload("git commit -m x", repo)).strip() == ""
         )
 
+    def test_refuses_an_unknown_group_where_a_known_groups_gates_would_deny(self, repo):
+        """In an opted-in repository the `pre-bash` gates deny this commit,
+        so a dispatcher that ran a known group's gates for a group it does
+        not know would deny it too. It says nothing."""
+        (repo / "seal").mkdir()
+        body = payload("git commit -m x", repo)
+        assert decision_of(run_dispatch("pre-bash", body)) == "deny"
+        assert run_dispatch("pre-nothing", body).strip() == ""
+
     def test_accepts_the_stop_group_and_names_its_event(self, monkeypatch, capsys):
         """`main` names the event on its decision path, and named every group
         that is not `pre-` as `PostToolUse`. The `stop` group answers `Stop`, so
