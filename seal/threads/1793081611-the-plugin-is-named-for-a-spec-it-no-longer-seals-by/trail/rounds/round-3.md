@@ -11,7 +11,7 @@ This round reads the fix diff `83efd0fc..e9c0533b` (four commits) and the three 
 severity: should
 location: `hooks/root-migrate.py:26`, `hooks/root-migrate.py:42-47`, `tests/test_root_migrate.py:619-641`
 evidence: executed `grep -n -i "detach\|symbolic-ref\|MERGE_HEAD\|rebase\|cherry" tests/test_root_migrate.py`, `grep -n "def test_" tests/test_root_migrate.py`
-verdict: open
+verdict: fixed f8732393
 regression: round-2#1
 
 The unit is the module docstring of `hooks/root-migrate.py`, its boundary *on any branch*, which cc9b77e5 changed. `frame/design.md:188-190` keeps the move's boundaries and the docstring opens their list with "Boundaries, each pinned in `tests/test_root_migrate.py`" at `:26`; the fix wrote the second limit under that heading without a case; the defect comes from stating the limit where every other entry has a case and this one does not.
@@ -63,7 +63,7 @@ answer: fixed in f8732393 by the heading, the finding's second way: the heading 
 severity: should
 location: `docs/one-root-by-lifetime.ko.md:104-109`
 evidence: read `docs/one-root-by-lifetime.ko.md:104-109`, `docs/one-root-by-lifetime.ko.md:52-70`, `docs/one-root-by-lifetime.md:109-115`
-verdict: open
+verdict: fixed f8732393
 regression: round-2#2
 
 The unit is `docs/one-root-by-lifetime.ko.md` *처음 설정에서 무엇을 묻는가*, the paragraph b11b2d80 rewrote. `frame/design.md:15` makes the root the signal only with its marker, and the Korean edition names that marker 표식 at `:55-61`; the fix copied round 2's proposed Korean text word for word, and that text writes "marked" as 표시가 붙으며; the defect comes from round 2's own proposal, which took the edition's word for a mark under `.git/` (`:68`, 표시 파일) for the README's marker.
