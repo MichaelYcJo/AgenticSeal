@@ -11,7 +11,7 @@ This is the first round, so no coordinate or fact was carried from an earlier re
 severity: must
 location: `hooks/root-migrate.py:31-35`, `hooks/root-migrate.py:544-545`, `hooks/root-migrate.py:603-607`, `tests/test_root_migrate.py:667-678`
 evidence: executed `bin/test <scratch>/probe/test_tmp_round1_probe.py -s -q -p no:xdist`
-verdict: open
+verdict: fixed 9ce5c698
 
 Every work item of this plugin lives on its own branch, so a repository upgraded mid-work holds 0.22.x work items on branches other than the one its first session starts on. The move stamps the repository once (`hooks/root-migrate.py:603-607`), and every later session start returns at `attempted(root)` before it lists anything. So those branches never move.
 
@@ -52,7 +52,7 @@ answer: Taken as proposed in 9ce5c698. `attempted`, `stamp`, `MARKER` and `has_r
 severity: must
 location: `hooks/root-migrate.py:452-497`, `hooks/root-migrate.py:546`, `hooks/root-migrate.py:616`, `tests/test_stub_remove.py:187`, `seal/threads/1793081611-the-plugin-is-named-for-a-spec-it-no-longer-seals-by/gaps.md:16`, `seal/threads/1793081611-the-plugin-is-named-for-a-spec-it-no-longer-seals-by/changelog.md:11`
 evidence: executed `bin/test <scratch>/probe/test_tmp_round1_probe.py -s -q -p no:xdist`
-verdict: open
+verdict: fixed 9ce5c698
 
 In shared mode one person commits the move and everyone else pulls it. The state files are not in the tree. They are per clone (`.git/specseal-*`) and per machine (`~/.claude/specseal/`). `rename_state` runs only inside a move that has units (`hooks/root-migrate.py:546`, `:616`), so a clone that pulls an already moved tree never renames its own state.
 
@@ -86,7 +86,7 @@ answer: Taken as proposed in 9ce5c698. `main` calls `rename_state(root)` once, r
 severity: must
 location: `skills/implement/orchestration.md:116-127`, `docs/one-root-by-lifetime.md:65-68`, `skills/config/SKILL.md:26-28`, `hooks/root-migrate.py:72-75`
 evidence: read `skills/implement/orchestration.md:116-127`, `templates/claude-md-block.md:16`, `hooks/root-migrate.py:248-253`, `docs/one-root-by-lifetime.md:65-68`
-verdict: open
+verdict: fixed c8032863
 
 Two readers decide whether a `seal/` is the plugin's, and they disagree. `hooks/root-migrate.py#ours` (`:248-253`) accepts the marker or one of the two headings an earlier release wrote (`OLD_HEADINGS`, `:72-75`). The bootstrap (`skills/implement/orchestration.md:116-127`) and the policy (`docs/one-root-by-lifetime.md:65-68`) say that any `<repo>/seal/` whose README does not open with the marker is the project's own: write nothing into it and put the root under the git directory. `templates/claude-md-block.md:16` sends a session to that bootstrap whenever no marked root stands.
 
@@ -116,7 +116,7 @@ answer: Fixed in c8032863 and 612a4779, in prose and in code. `skills/implement/
 severity: must
 location: `README.md:311-330`, `seal/threads/1793081611-the-plugin-is-named-for-a-spec-it-no-longer-seals-by/changelog.md:6`, `hooks/root-migrate.py:531-535`
 evidence: executed `git show v0.22.4:skills/code-review/scripts/chain_check.py`, `git show v0.22.4:hooks/optin.py`
-verdict: open
+verdict: fixed c8032863
 
 A repository that ran `seal pr-checks install` before the rename holds `.github/workflows/hygiene.yml`, which clones the plugin at the release it was pinned to (`templates/hygiene.yml:55`, `--branch v<version>`) and runs that release's `chain_check.py`. At `v0.22.4` that reader takes declarations from `seal/specs/` (`hooks/optin.py:41`, `WORK_ITEMS = "specs"`) and the trailer key `SpecSeal-Routing` (`chain_check.py:2054`). After the move commits `seal/threads/`, it finds no declaration for the branch and prints "examined nothing", and `return 1 if problems and strict else 0` at `:2234` passes. New commits carry `Seal-Routing:`, which it does not read, so no trailer problem arises either. The pull-request check goes off without a word.
 
@@ -152,7 +152,7 @@ answer: Fixed in c8032863. README.md and README.ko.md *Coming from `specseal@spe
 severity: should
 location: `hooks/routing.py:72-74`, `hooks/routing.py:251`, `hooks/implementer-notice.py:56-61`, `seal/threads/1793081611-the-plugin-is-named-for-a-spec-it-no-longer-seals-by/gaps.md:20`
 evidence: read `hooks/routing.py:72-74`, `hooks/routing.py:251-270`, `hooks/implementer-notice.py:56-61`
-verdict: open
+verdict: fixed e59460a3
 
 `gaps.md:20` says a declaration that still answers `smith` reads as unanswered, and that this is fine because "the row was always optional and decides nothing (`hooks/routing.py#parse`)". The row decides one thing. `hooks/implementer-notice.py:56-61` prints its line only where `implementation` equals `routing.BY_CRAFTER`, and `parse` turns `smith` into None (`hooks/routing.py:270`). The move copies each `routing.md` byte for byte, so every 0.22.x work item in flight that was routed to `smith` loses the notice at its next commit. `frame/design.md` *Scope* says "No gate, check or agent's job changes". The trailer got a reading of its old spelling for one minor release for the same kind of reason. This answer is a value a committed file carries, and it has none.
 
@@ -174,7 +174,7 @@ answer: Taken as proposed in e59460a3. `hooks/routing.py#OLD_BY_CRAFTER` is `smi
 severity: should
 location: `skills/settle/scripts/rule_changes.py:270-296`, `seal/threads/1793081611-the-plugin-is-named-for-a-spec-it-no-longer-seals-by/gaps.md:40`
 evidence: read `skills/settle/scripts/rule_changes.py:270-296`
-verdict: open
+verdict: fixed f324a654
 
 `order` takes each thread's place from the first commit that adds `seal/threads/<id>/frame/design.md`, with `--no-renames --diff-filter=A` (`:277-281`). The move adds that file for every 0.22.x thread in one commit, so every moved thread gets the same commit. Their order is then the path order of that commit's listing, which is the order of their ids, not the order their pull requests merged. The settle writes each section as its group's latest decision in this order. In a user's repository where two released but unsettled work items changed one section and merged out of id order, it writes the older decision as the latest.
 
@@ -222,7 +222,7 @@ answer: Taken as proposed in f324a654. `rule_changes.py#EARLIER` is `("seal/spec
 severity: should
 location: `seal/follow-up.md:43`, `seal/follow-up.md:47`, `skills/writing-style/SKILL.md:285`, `skills/verify/scripts/unverified_check.py:7`, `hooks/cmdline_base.py:12`, `.github/workflows/test.yml:85`, `.github/workflows/test.yml:91`, `.github/workflows/test.yml:137`, `tests/block_shapes.py:1`, `tests/config_shapes.py:1`, `tests/test_a_section_marked_for_one_role_reaches_only_that_role.py:33`, `tests/test_chain_hooks_hardening.py:445`, `tests/test_chain_hooks_hardening.py:540`, `tests/test_chain_hooks_hardening.py:634`, `tests/test_chain_hooks_hardening.py:771`, `tests/test_every_reader_ends_a_line_where_gfm_does.py:14`, `tests/test_first_setup_asks_once.py:4`, `tests/test_mode_gate.py:7`, `tests/test_no_passage_is_pasted_into_a_second_file.py:36`, `tests/test_routing.py:73`, `tests/test_the_hook_surface_git_offers.py:7`, `tests/test_the_hooks_hide_what_a_renderer_hides.py:3`, `tests/test_the_installer_writes_the_block_from_its_template.py:12`, `tests/test_the_rules_claude_md_names_have_one_home.py:26`, `tests/censuses.py`
 evidence: executed `git log --all --oneline -1 -- seal/specs/1791270165-the-windows-test-leg-is-measured-and-cut/phases/phase-3.md`, `git log --all --oneline -1 -- seal/threads/1791270165-the-windows-test-leg-is-measured-and-cut/trail/phases/phase-3.md`, `git grep -nE 'seal/threads/1[0-9]{9}-' -- ':!seal/threads' ':!changelog' ':!CHANGELOG.md' ':!evals'`
-verdict: open
+verdict: fixed b92f7305
 
 A path like `seal/specs/1791270165-the-windows-test-leg-is-measured-and-cut/phases/phase-3.md` is a coordinate into git history. The work item was settled and its directory removed, so a reader opens the record with `git log -- <path>` and then `git show`. The sweep rewrote these coordinates to the thread layout. The old path answers `5f11923f`, and the new path answers nothing in any commit. The grep above lists the class: outside `evals/` and the fixtures (`1790000000`, `1790000012`, `1788000000`, `17999…`, `17000…`), the listed lines cite released work items at paths that never existed. Two are text a person acts on now. `seal/follow-up.md:43` tells the owner that "the measurement and the draft are in" a round record, and `:47` points at a `frame/questions.md`. `skills/writing-style/SKILL.md:285` is text every agent reads. `frame/design.md` *Scope* lists the readers of a live work item path and is silent on a citation of a removed one. `tests/censuses.py#old_names` refuses `seal/specs/` everywhere outside its exemptions, which is what pushed the rewrite.
 
