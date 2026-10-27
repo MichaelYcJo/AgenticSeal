@@ -62,8 +62,10 @@ make.
    rounds argued through is not argued again in your `plan.md`. The process
    archive of the highest version, `seal/process/<X.Y.Z>.md`, once, where
    the `seal/` root holds one: what that release changed in the way of
-   working, and why. The ticket and its comments, and `seal/parity.md` where
-   it is declared, which puts the original between the ticket and the code.
+   working, and why, one row per change in the shape of
+   `templates/process.md`. The ticket and its comments, and `seal/parity.md`
+   where it is declared, which puts the original between the ticket and the
+   code.
    A reference root
    (`templates/config.md` *Reference specs*) is read where the work touches
    what it describes, and cited in `spec.md` by path.
