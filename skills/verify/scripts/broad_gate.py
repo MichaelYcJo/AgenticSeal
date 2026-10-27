@@ -157,8 +157,9 @@ ROUND_RE = re.compile(r"^round-(\d+)\.md$")
 # The run's one record, in the work item's directory, and what separates its
 # newest run from the ones behind it. `chain_check.py` reads both by the same
 # spelling, and a case holds the two equal.
-# `hooks/optin.py#GATE` and `#ROUNDS`, as disk paths under the thread.
-GATE_FILE = os.path.join("trail", "gate.md")
+# `hooks/optin.py#GATE` and `#ROUNDS`, under the thread. `GATE_FILE` takes the
+# check's `/` on every platform, which `os.path.join` accepts as a disk path.
+GATE_FILE = "trail/gate.md"
 ROUNDS_DIR = os.path.join("trail", "rounds")
 EARLIER_RUN = "; earlier run: "
 GATE_ROW = re.compile(r"^\|\s*" + ROW + r"\s*\|(.*)\|\s*$")
