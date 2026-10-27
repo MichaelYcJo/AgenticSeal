@@ -18,7 +18,7 @@ rows of `## Not judged`.
 severity: must
 location: `templates/process.md`, `agents/framer.md:62-65`, `tests/test_the_pull_request_language_is_the_repositorys.py:818-877`
 evidence: executed `gh run view 40428052644 --log-failed`, `bin/test tests/test_the_pull_request_language_is_the_repositorys.py -q -k test_every_template_is_named_by_a_document_that_ships`
-verdict: open
+verdict: fixed 2e6c40ed
 
 The `tests` run 40428052644 at `25afe39a` failed on ubuntu, on macOS group 3
 and on Windows group 4. Each leg failed one case and passed the rest:
@@ -60,7 +60,7 @@ answer: In 2e6c40ed, the framer's archive sentence in `agents/framer.md` step 4 
 severity: should
 location: `tests/test_the_rules_have_one_owner.py:174-204`, `.test_durations:5471`
 evidence: executed `python3 test_tmp_durations.py`, `git grep -n test_a_draft_is_tolerated`
-verdict: open
+verdict: fixed c72c49ae
 
 Phase 2 replaced the line `def test_a_draft_is_tolerated_and_still_owes_the_record():`
 with `FIX_PASS` and the new case
@@ -98,7 +98,7 @@ answer: In c72c49ae, the `def test_a_draft_is_tolerated_and_still_owes_the_recor
 severity: should
 location: `docs/the-record-layout.md:186-191`, `seal/specs/1793057292-agent-lifetime-and-process-archive/spec.md:182-279`
 evidence: executed `git grep -n -i unverified -- docs`, `git grep -n "turning every" -- seal/specs docs skills`
-verdict: open
+verdict: fixed d62c6a6e
 
 *The fold, and what tells it from a deletion* says that, read as unusable,
 "`unverified-check --baseline` would read the root's own `specs` path as a
@@ -140,7 +140,7 @@ answer: In d62c6a6e, the orchestrator added the `change` item for `docs/the-reco
 severity: should
 location: `README.ko.md:251`
 evidence: executed `git diff --stat fa7d1374...25afe39a`, `grep -n "session-cost --segments" README.ko.md`
-verdict: open
+verdict: fixed 5273fe44
 
 Phase 1 rewrote the `session-cost --segments` row of `README.md` in 765ba3ac,
 because it listed a row's numbers without the largest context, and it cited
@@ -161,7 +161,7 @@ answer: In 5273fe44, `README.ko.md`'s `session-cost --segments` row ends its lis
 severity: should
 location: `skills/implement/orchestration.md:50-54`, `tests/test_the_rules_have_one_owner.py:366-369`, `seal/specs/1793057292-agent-lifetime-and-process-archive/spec.md:69-72`
 evidence: read `skills/implement/orchestration.md:50-54`, `seal/specs/1793057292-agent-lifetime-and-process-archive/phases/phase-2.md:71-76`, `seal/specs/1793057292-agent-lifetime-and-process-archive/overview.md:30`
-verdict: open
+verdict: fixed 098d2b45
 
 The rule says the home is "a rule in the work item that rewrites the file
 the recurring act is read from" and that the orchestrator records it "in a
@@ -202,7 +202,7 @@ answer: In 098d2b45, the prevention-home rule in `skills/implement/orchestration
 severity: should
 location: `skills/implement/orchestration.md:36-39`, `skills/implement/orchestration.md:44-48`
 evidence: read `skills/implement/orchestration.md:33-48`, `skills/implement/orchestration.md:58-74`
-verdict: open
+verdict: fixed 5be7d538
 
 The folding rule says "`plan.md` carries one line of its own below its
 approval line naming the comments to fold". It names no writer, only the
@@ -256,7 +256,7 @@ answer: In 5be7d538, both rules take the round's text. The orchestrator keeps th
 severity: should
 location: `seal/specs/1793057292-agent-lifetime-and-process-archive/overview.md:16`
 evidence: read `seal/specs/1793057292-agent-lifetime-and-process-archive/overview.md:16`, `seal/specs/1793057292-agent-lifetime-and-process-archive/spec.md:29-37`
-verdict: open
+verdict: fixed 822d3776
 
 The row says *Scope* item 2 reads "is below 461,000 tokens", and its grounds
 quote *Scope* item 2 as saying "Phase 1 measures it again". At `25afe39a`,
