@@ -27,6 +27,7 @@ constants.
 
 import json
 import os
+import sys
 
 import pytest
 from conftest import census_case
@@ -876,6 +877,37 @@ class Test_main:
         assert "rolled" in out
 
 
+FAILING_CALL = "import sys; print('partial'); sys.stderr.write('broke'); sys.exit(3)"
+
+
+class Test_run:
+    def test_accepts_a_calls_output(self):
+        """The real call, through this interpreter, which every CI leg has;
+        every other case replaces `run`."""
+        m = _roller()
+        assert m.run(sys.executable, "-c", "print('out')") == "out\n"
+
+    def test_refuses_a_failed_call_by_exiting_with_its_stderr(self):
+        """A failed call in the one-open path stops the release, and the exit
+        says which call failed and what it wrote."""
+        m = _roller()
+        with pytest.raises(SystemExit) as stopped:
+            m.run(sys.executable, "-c", FAILING_CALL)
+        assert "failed: broke" in str(stopped.value.code)
+
+
+class Test_try_run:
+    def test_accepts_a_calls_output(self):
+        m = _roller()
+        assert m.try_run(sys.executable, "-c", "print('out')") == "out\n"
+
+    def test_refuses_a_failed_calls_output_as_none(self):
+        """`None`, never what the failed call printed before it failed: the
+        callers read `None` as no answer, and the partial output as one."""
+        m = _roller()
+        assert m.try_run(sys.executable, "-c", FAILING_CALL) is None
+
+
 class Test_rolled_from:
     def test_accepts_only_the_title_the_roll_itself_writes(self):
         """`rolled_from` answers `None` for anything that is not a title this
@@ -961,6 +993,12 @@ class Test_rolled_from:
             f"and the log that replaces it carries a title the roll can read "
             f"back: {creates}"
         )
+
+    def test_refuses_a_title_carrying_the_whole_prefix_after_other_text(self):
+        """The prefix is read from the start of the title. A title that holds
+        all of it after other words is not one the roll wrote."""
+        m = _roller()
+        assert m.rolled_from("docs: " + m.log_title("0.8.2")) is None
 
 
 class Test_find_baseline_issue:

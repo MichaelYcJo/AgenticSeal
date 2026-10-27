@@ -390,6 +390,60 @@ def merge(repo, branch, into="main"):
     return git(repo, "rev-parse", "HEAD").strip()
 
 
+class Test_tracked_text:
+    def test_accepts_each_tracked_text_file_and_no_untracked_one(self, repo):
+        """The citations are read from what git tracks, so a file nobody
+        committed is no reader and cites nothing."""
+        (repo / "notes.txt").write_text("untracked\n", encoding="utf-8")
+        tracked = ("docs/a.md", "seal/README.md")
+        assert dict(settle.tracked_text(str(repo))) == {
+            rel: (repo / rel).read_bytes().decode("utf-8") for rel in tracked
+        }
+
+    def test_refuses_a_file_under_the_work_items_and_a_binary_file(self, repo):
+        """Guards s4 of #1017: a work item's own files are what `--apply`
+        removes, so none of them is read as a path citing into it, and a file
+        holding a NUL byte is binary and skipped."""
+        item(repo, "1700000001-alpha", "- nothing\n  why: a reason.")
+        (repo / "b.bin").write_bytes(b"a\0b")
+        commit(repo, "a work item and a binary file")
+        assert [rel for rel, _ in settle.tracked_text(str(repo))] == [
+            "docs/a.md",
+            "seal/README.md",
+        ]
+
+
+class Test_citations:
+    def test_accepts_a_line_citing_a_work_item_twice_as_one_citation(self, repo):
+        """A `tests/` file that reads `seal/specs` is a reader, and its line
+        citing a work item twice is one citation."""
+        (repo / "tests").mkdir()
+        (repo / "tests" / "test_reads.py").write_text(
+            'SPECS = "seal/specs"\n'
+            'A = "seal/specs/1700000001-alpha/spec.md seal/specs/1700000001-alpha/plan.md"\n',
+            encoding="utf-8",
+        )
+        commit(repo, "a reader")
+        assert settle.citations(str(repo), ["1700000001-alpha"]) == (
+            {"1700000001-alpha": ["tests/test_reads.py:2"]},
+            ["tests/test_reads.py"],
+        )
+
+    def test_refuses_a_tests_file_naming_specs_alone_as_a_reader(self, repo):
+        """Guards s5 of #1017: a `tests/` file naming a team's own `specs`
+        reads nothing `--apply` removes, so it owes no answer before the
+        directories go."""
+        (repo / "tests").mkdir()
+        (repo / "tests" / "test_team.py").write_text(
+            'TEAM = "specs"\n', encoding="utf-8"
+        )
+        commit(repo, "a team's reader")
+        assert settle.citations(str(repo), ["1700000001-alpha"]) == (
+            {"1700000001-alpha": []},
+            [],
+        )
+
+
 class Test_report:
     def test_accepts_a_spec_with_no_rule_changes_and_lists_it_to_read_whole(self, tree):
         """S4's dry run half: a spec with no section joins no group, so the

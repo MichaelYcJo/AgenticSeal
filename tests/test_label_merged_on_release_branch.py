@@ -149,6 +149,59 @@ class Test_version_of:
         assert signal().version_of(branch) is None
 
 
+class PagedTracker(Tracker):
+    """`gh label list` as gh answers it: at most `--limit` names, and 30
+    where the call names no limit (`gh label list --help`)."""
+
+    def run(self, *args):
+        if args[:3] != ("gh", "label", "list"):
+            return super().run(*args)
+        self.calls.append(args)
+        limit = int(args[args.index("--limit") + 1]) if "--limit" in args else 30
+        return json.dumps([{"name": name} for name in sorted(self.labels)[:limit]])
+
+
+class Test_existing_labels:
+    def test_accepts_every_label_of_a_tracker_past_thirty(self, monkeypatch):
+        """A tracker grows a `merged:` label per release and keeps every one,
+        so gh's default page of 30 is soon a part of the list. A label read
+        absent past it is created again, and the create is refused."""
+        m = signal()
+        names = {f"merged: 0.{n}.0" for n in range(40)}
+        monkeypatch.setattr(m.closer, "run", PagedTracker(labels=names).run)
+        assert m.existing_labels(REPO) == names
+
+    def test_refuses_a_label_the_tracker_does_not_have(self, monkeypatch):
+        """Absent is what makes `main` create it before the first add."""
+        m = signal()
+        monkeypatch.setattr(m.closer, "run", PagedTracker(labels={"release"}).run)
+        assert LABEL not in m.existing_labels(REPO)
+
+
+class Test_create_label:
+    def test_accepts_the_label_in_the_green_a_hand_made_one_carries(self, monkeypatch):
+        """The first `merged:` label was created by hand in `0E8A16`, so one
+        this writes and one written before it look the same on the tracker."""
+        m = signal()
+        tracker = Tracker()
+        monkeypatch.setattr(m.closer, "run", tracker.run)
+        m.create_label(REPO, VERSION)
+        (created,) = tracker.calls
+        assert created[created.index("--color") + 1] == "0E8A16", created
+
+    def test_refuses_to_send_a_name_or_description_of_another_version(
+        self, monkeypatch
+    ):
+        m = signal()
+        tracker = Tracker()
+        monkeypatch.setattr(m.closer, "run", tracker.run)
+        m.create_label(REPO, "2.0.0")
+        (created,) = tracker.calls
+        assert created[3] == "merged: 2.0.0", created
+        description = created[created.index("--description") + 1]
+        assert "release/v2.0.0" in description, description
+
+
 class Test_main:
     def test_refuses_a_non_release_branch_and_writes_nothing(self, monkeypatch):
         """The skip is at entry: no range read, no API call, no write."""

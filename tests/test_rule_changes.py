@@ -364,6 +364,20 @@ class Test_parse:
         assert "`- nothing` is the section's one item" in parsed.errors[0][1]
         assert parsed.nothing is None and parsed.ops == []
 
+    def test_refuses_a_second_section_at_its_heading(self):
+        """Guards r4 of #1017: a spec holds one `## Rule changes`, so a second
+        is refused at its heading rather than left unread behind the first,
+        whose no-change block would otherwise pass for the spec's answer."""
+        text = (
+            "# x\n\n## Rule changes\n\n- nothing\n  why: a reason.\n\n"
+            "## Rule changes\n\n- remove\n  file: docs/a.md\n  section: S\n"
+        )
+        lines = text.split("\n")
+        second = lines.index("## Rule changes", lines.index("## Rule changes") + 1)
+        assert parse(text) == rules.Parsed(
+            [], None, [(second + 1, "a second `## Rule changes`")]
+        )
+
 
 class Test_section_lines:
     @pytest.mark.parametrize(

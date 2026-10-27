@@ -147,10 +147,6 @@ def attempt(*args):
     return out.returncode == 0, out.stderr.strip()
 
 
-def gh_json(path):
-    return json.loads(run("gh", "api", path))
-
-
 def _issue_api(repo, number):
     """(state_json, exists). A 404 here is input, not a failure.
 

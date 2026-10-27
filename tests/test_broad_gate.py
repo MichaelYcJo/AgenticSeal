@@ -739,6 +739,13 @@ class Test_refused_broad_row:
         assert gate.refused_broad_row(home_with(tmp_path, ANOTHER_TABLE)) is None
         assert gate.refused_broad_row(str(tmp_path / "nothing")) is None
 
+    def test_refuses_a_row_the_walk_read_above_the_line_it_refused(self, tmp_path):
+        """A row the walk read is `broad_command`'s to answer, an empty value
+        included. A line the walker refused below it does not make that row
+        one the walk never reached."""
+        home = home_with(tmp_path, config_of("") + "| Odd | a | b |\n")
+        assert gate.refused_broad_row(home) is None
+
 
 class Test_stopping_line:
     def test_accepts_the_line_the_walkers_sentence_quotes(self):
@@ -811,6 +818,14 @@ class Test_missing_row:
         said = gate.missing_row(home_with(tmp_path, "```\n" + config_of("x")))
         assert "A fenced code block above it is never closed" in said
         assert "Move the row" not in said
+
+    def test_refuses_to_blame_a_fence_left_open_below_the_fenced_row(self, tmp_path):
+        """The fence that swallows a row is one opened above it. A fence opened
+        further down and never closed leaves the row in a block that closes,
+        and moving the row is still the act."""
+        said = gate.missing_row(home_with(tmp_path, FENCED + "\n```\nopen\n"))
+        assert "Move the row into the `| Item | Value |` table" in said
+        assert "never closed" not in said
 
     def test_refuses_to_call_a_commented_row_absent(self, tmp_path):
         said = gate.missing_row(home_with(tmp_path, COMMENTED))
@@ -1377,6 +1392,14 @@ class Test_command_names_backslashed:
         assert self.turned("xcopy/e a") == "xcopy/e a"
         assert self.turned("echo a^&bin/test", "bin") == "echo a^&bin/test"
         assert self.turned("echo >out bin/test", "bin") == "echo >out bin/test"
+
+    def test_refuses_to_turn_a_redirections_target_at_the_start_of_a_command(self):
+        """A `<` or `>` ends command position until the next separator, so the
+        target written after one is a file, even where it starts in a
+        directory, and so is the word after it."""
+        assert self.turned(">tests/out.txt bin/test", "tests", "bin") == (
+            ">tests/out.txt bin/test"
+        )
 
     @pytest.mark.parametrize(
         "row, asked",
@@ -2247,6 +2270,19 @@ class Test_compare_at_base:
             str(repo), "base", SUITE_ROW, ["tests/test_two.py"], str(tmp_path)
         )
         assert words == {"tests/test_two.py": gate.ON_BASE}
+
+    def test_refuses_new_for_a_file_a_red_base_never_collected(self, repo, tmp_path):
+        """The base's run exited non-zero and never collected the file, so it
+        may have stopped before reaching it, and the word carries the exit."""
+        git(repo, "switch", "-q", "base")
+        write(repo, "tests/test_red.py", FAILING_TEST)
+        commit(repo, "a failure only the base has")
+        git(repo, "switch", "-q", "feature")
+        failing_on_feature(repo)
+        words = gate.compare_at_base(
+            str(repo), "base", SUITE_ROW, ["tests/test_two.py"], str(tmp_path)
+        )
+        assert words == {"tests/test_two.py": gate.NOT_REACHED.format(code=1)}
 
     def test_refuses_to_compare_at_a_base_that_cannot_be_checked_out(
         self, repo, tmp_path

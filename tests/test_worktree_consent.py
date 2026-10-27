@@ -27,6 +27,8 @@ import pytest
 from conftest import (
     BASE_TREE_CHAINS,
     PLACEMENT_CHAINS,
+    ROUTING_OPTIONS,
+    ROUTING_QUESTION,
     _a_dirty_w_under_a_clean_session,
     ask_entries,
     census_case,
@@ -632,6 +634,28 @@ class Test_automation_answered:
         assert wc.automation_answered(str(repo), PRESSED)
 
 
+def preset_result(**fields):
+    """A structured result pressing the preset on the routing question, which
+    carries FIELDS beside its text and its options."""
+    asked = {
+        "question": ROUTING_QUESTION,
+        "options": [{"label": o, "description": "d"} for o in ROUTING_OPTIONS],
+        **fields,
+    }
+    return {"questions": [asked], "answers": {ROUTING_QUESTION: ROUTING_OPTIONS[0]}}
+
+
+class Test__routing_preset:
+    def test_accepts_the_preset_pressed_on_a_single_select_question(self):
+        assert wc._routing_preset(preset_result(multiSelect=False))
+
+    def test_refuses_a_question_whose_multi_select_is_absent(self):
+        """The routing question is single-select, and `multiSelect` must say
+        so: an absent field is a shape nobody measured, so it is not read as
+        single-select."""
+        assert not wc._routing_preset(preset_result())
+
+
 class Test_segment_cwd:
     def test_accepts_the_C_target_of_the_segment_that_was_judged(self, repo):
         """`main()` asks `segment_cwd` for the `-C` target of the very segment
@@ -728,6 +752,12 @@ class Test_creation_directory:
             chain + "git worktree add ../wt f", str(session)
         )
         assert os.path.normpath(acted) == str(session), (name, acted)
+
+    def test_refuses_a_creation_written_in_a_comment(self, repo):
+        """A comment is not executed, so a `git worktree add` behind a `#`
+        created nothing and is filed nowhere."""
+        command = "echo hi #; git worktree add ../wt f"
+        assert wc.creation_directory(command, str(repo)) == ""
 
 
 class Test_module:

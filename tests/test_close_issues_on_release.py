@@ -53,9 +53,10 @@ import importlib.util
 import json
 import os
 import re
+import sys
 
 import pytest
-from conftest import census_case, read
+from conftest import census_case, commit_everything, git_out, git_repo, read
 
 TARGET = ".github/scripts/close_issues_on_release.py"
 
@@ -452,6 +453,161 @@ class Test_keywords_in:
         assert m.keywords_in(body) == claimed
 
 
+class Test_run:
+    def test_accepts_a_call_that_succeeds_and_answers_what_it_printed(self):
+        """The real call, through this interpreter, which every CI leg has.
+        Every case of `Test_main` replaces `run`."""
+        mod = closer_module()
+        assert mod.run(sys.executable, "-c", "print('the labels')") == "the labels\n"
+
+    def test_refuses_a_failed_call_by_exiting_and_naming_what_it_wrote(self):
+        """A read the rest of the run depends on stops the run when it fails,
+        and the exit carries the call's own error."""
+        mod = closer_module()
+        failing = "import sys; sys.stderr.write('HTTP 502'); sys.exit(3)"
+        with pytest.raises(SystemExit) as stopped:
+            mod.run(sys.executable, "-c", failing)
+        assert "HTTP 502" in str(stopped.value.code)
+
+
+def _gh_answers(monkeypatch, mod, returncode, stdout="", stderr=""):
+    """`gh api` replaced by one answer, so `_issue_api` itself is what runs."""
+
+    class Result:
+        pass
+
+    result = Result()
+    result.returncode, result.stdout, result.stderr = returncode, stdout, stderr
+    monkeypatch.setattr(mod.subprocess, "run", lambda *a, **k: result)
+
+
+class Test__issue_api:
+    def test_accepts_a_404_as_an_issue_that_does_not_exist(self, monkeypatch):
+        """A number that names nothing is input, from a `(#N)` typed in a
+        subject or a typo in a body, and a release does not stop on it."""
+        mod = closer_module()
+        _gh_answers(monkeypatch, mod, 1, stderr="gh: Not Found (HTTP 404)")
+        assert mod._issue_api(REPO, 9999) == (None, False)
+
+    def test_refuses_any_other_failure_by_exiting(self, monkeypatch):
+        mod = closer_module()
+        _gh_answers(monkeypatch, mod, 1, stderr=REST_REFUSAL)
+        with pytest.raises(SystemExit) as stopped:
+            mod._issue_api(REPO, 7)
+        assert REST_REFUSAL in str(stopped.value.code)
+
+
+class Test_issue_state:
+    def test_accepts_a_closed_issue_as_closed(self, monkeypatch):
+        """`main` leaves a closed issue alone only because this says closed."""
+        mod = closer_module()
+        monkeypatch.setattr(mod, "_issue_api", lambda r, n: ({"state": "closed"}, True))
+        assert mod.issue_state(REPO, 7) == "closed"
+
+    def test_refuses_an_issue_that_does_not_exist_as_no_state(self, monkeypatch):
+        mod = closer_module()
+        monkeypatch.setattr(mod, "_issue_api", lambda r, n: (None, False))
+        assert mod.issue_state(REPO, 9999) is None
+
+
+class Test_comments_on:
+    def test_accepts_the_count_the_read_gave(self, monkeypatch):
+        mod = closer_module()
+        monkeypatch.setattr(mod, "_issue_api", lambda r, n: ({"comments": 2}, True))
+        assert mod.comments_on(REPO, 7) == 2
+
+    def test_refuses_a_read_that_gave_no_count_as_none(self, monkeypatch):
+        """None, never 0: `close_issue` posts the comment where the count is
+        unknown, and a 0 would read as a count it can compare."""
+        mod = closer_module()
+        monkeypatch.setattr(mod, "_issue_api", lambda r, n: ({"state": "open"}, True))
+        assert mod.comments_on(REPO, 7) is None
+
+
+def _refused_first_route(monkeypatch, counts):
+    """The closer with `gh issue close` refused and the REST route taken,
+    and `comments_on` answering COUNTS in turn; the closer and its calls."""
+    mod = closer_module()
+    calls = []
+    reads = iter(counts)
+
+    def attempt(*args):
+        calls.append(args)
+        if args[:3] == ("gh", "issue", "close"):
+            return False, GRAPHQL_REFUSAL
+        return True, ""
+
+    monkeypatch.setattr(mod, "attempt", attempt)
+    monkeypatch.setattr(mod, "comments_on", lambda repo, number: next(reads))
+    return mod, calls
+
+
+class Test_close_issue:
+    def test_accepts_a_count_grown_by_one_as_the_comment_already_posted(
+        self, monkeypatch
+    ):
+        mod, calls = _refused_first_route(monkeypatch, [0, 1])
+        assert mod.close_issue(REPO, 7, "Closed by #100") == []
+        assert not [a for a in calls if a[2].endswith("/comments")], calls
+
+    def test_refuses_a_count_it_could_not_read_as_zero_and_posts_the_comment(
+        self, monkeypatch
+    ):
+        """Unread before the first route and one after it says nothing about
+        whether that route's comment landed, so the comment is posted."""
+        mod, calls = _refused_first_route(monkeypatch, [None, 1])
+        assert mod.close_issue(REPO, 7, "Closed by #100") == []
+        posted = [a for a in calls if a[2] == f"repos/{REPO}/issues/7/comments"]
+        assert posted, f"the closing comment was not posted: {calls}"
+
+
+class Test_pull_request_body:
+    def test_accepts_a_pull_request_with_no_body_as_an_empty_one(self, monkeypatch):
+        mod = closer_module()
+        answer = ({"pull_request": {}, "body": None}, True)
+        monkeypatch.setattr(mod, "_issue_api", lambda r, n: answer)
+        assert mod.pull_request_body(REPO, 100) == ""
+
+    def test_refuses_an_issues_body_as_a_pull_requests(self, monkeypatch):
+        """`/issues/N` answers for an issue too, and only a pull request
+        carries `pull_request`. An issue's own `Closes #7` is no claim."""
+        mod = closer_module()
+        answer = ({"body": "Closes #7"}, True)
+        monkeypatch.setattr(mod, "_issue_api", lambda r, n: answer)
+        assert mod.pull_request_body(REPO, 61) is None
+
+
+def _three_commits(tmp_path, monkeypatch):
+    """A scratch repository of three commits, the working directory moved
+    into it; their SHAs, oldest first."""
+    repo = git_repo(tmp_path / "repo")
+    shas = [git_out(repo, "rev-parse", "HEAD")]
+    for number in (2, 3):
+        (repo / f"{number}.txt").write_text(f"{number}\n", encoding="utf-8")
+        shas.append(commit_everything(repo, f"feat: commit {number} (#{number})"))
+    monkeypatch.chdir(repo)
+    return shas
+
+
+class Test_arrived:
+    def test_accepts_every_subject_in_the_range(self, tmp_path, monkeypatch):
+        """Real git in a scratch repository. A release push carries several
+        pull requests, and reading the tip alone drops all but one."""
+        mod = closer_module()
+        base, _, tip = _three_commits(tmp_path, monkeypatch)
+        assert mod.arrived(base, tip) == ["feat: commit 3 (#3)", "feat: commit 2 (#2)"]
+
+    def test_refuses_an_all_zero_before_as_a_range_and_reads_the_tip(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """A branch's first push names no commit before it, and a range from
+        the zero SHA is no range git can read."""
+        mod = closer_module()
+        _, _, tip = _three_commits(tmp_path, monkeypatch)
+        assert mod.arrived("0" * 40, tip) == ["feat: commit 3 (#3)"]
+        assert "reading only the tip" in capsys.readouterr().out
+
+
 class Test_main:
     def test_a_spent_label_comes_off_the_issue_the_release_closed(self, monkeypatch):
         """A11. The loop already knows exactly which issues shipped, which is the
@@ -805,6 +961,33 @@ class Test_main:
             "DRY_RUN wrote. It exists because this script was run by hand for its "
             "output during development and closed a real issue"
         )
+
+    def test_refuses_a_subject_number_naming_an_issue_and_closes_what_the_pull_request_claims(
+        self, monkeypatch, capsys
+    ):
+        """`fix: … (#61)` names an issue a person typed, and the real
+        `pull_request_body` says it is no pull request. The run steps over it
+        and still closes what #100 claimed."""
+        tracker = Tracker(issues={61: [], 88: []}, pulls={100: "Closes #88"})
+        mod = wire_closer(
+            monkeypatch, tracker, ["fix: a thing (#61)", "feat: b (#100)"]
+        )
+        mod.main()
+        assert tracker.states == {61: "open", 88: "closed"}, tracker.states
+        assert "#61 is not a pull request" in capsys.readouterr().out
+
+    def test_accepts_the_first_pull_request_to_claim_an_issue_as_its_closer(
+        self, monkeypatch
+    ):
+        """Two pull requests in one push claim #7. The closing comment names
+        the one `arrived` lists first, and one close is made."""
+        tracker = Tracker(issues={7: []}, pulls={100: "Closes #7", 101: "Closes #7"})
+        mod = wire_closer(monkeypatch, tracker, ["feat: a (#100)", "feat: b (#101)"])
+        mod.main()
+        closes = [a for a in tracker.calls if a[:3] == ("gh", "issue", "close")]
+        assert len(closes) == 1, tracker.calls
+        comment = closes[0][closes[0].index("--comment") + 1]
+        assert "Closed by #100" in comment, comment
 
 
 class Test_module:

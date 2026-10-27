@@ -32,6 +32,32 @@ def labels_module():
     return load("tracker_labels", "tracker_labels.py")
 
 
+class Test_create:
+    def test_accepts_the_declared_label_in_its_declared_colour(self, monkeypatch):
+        """The colour is the declaration's, which says why it is
+        `chain: capped`'s, so two labels of one shape read as one shape."""
+        mod = labels_module()
+        tracker = Tracker()
+        monkeypatch.setattr(mod.closer, "run", tracker.run)
+        (label,) = mod.declared()
+        mod.create(REPO, label)
+        (created,) = tracker.calls
+        assert created[created.index("--color") + 1] == label["color"], created
+
+    def test_refuses_to_send_any_name_sentence_or_colour_but_the_labels_own(
+        self, monkeypatch
+    ):
+        mod = labels_module()
+        tracker = Tracker()
+        monkeypatch.setattr(mod.closer, "run", tracker.run)
+        other = {"name": "chain: capped", "description": "a cap", "color": "abcdef"}
+        mod.create(REPO, other)
+        (created,) = tracker.calls
+        assert created[3] == "chain: capped", created
+        assert created[created.index("--description") + 1] == "a cap", created
+        assert created[created.index("--color") + 1] == "abcdef", created
+
+
 class Test_main:
     def test_accepts_a_missing_label_and_creates_it_with_the_documents_sentence(
         self, monkeypatch, capsys
@@ -92,6 +118,19 @@ class Test_main:
         out = capsys.readouterr().out
         assert LABEL in out and "is missing" in out
         assert "--apply" in out, "the report does not name the arm that fixes it"
+
+    def test_refuses_to_write_under_a_dry_run_of_apply(self, monkeypatch, capsys):
+        """`DRY_RUN=1` makes `--apply` say what it would create and write
+        nothing, so the arm that acts can be read before it acts."""
+        mod = labels_module()
+        tracker = Tracker(labels=set())
+        monkeypatch.setattr(mod.closer, "run", tracker.run)
+        monkeypatch.setenv("REPO", REPO)
+        monkeypatch.setenv("DRY_RUN", "1")
+
+        assert mod.main(["--apply"]) == 0
+        assert tracker.writes() == [], "a dry run created a label"
+        assert f"{LABEL!r} is missing" in capsys.readouterr().out
 
 
 class Test_module:

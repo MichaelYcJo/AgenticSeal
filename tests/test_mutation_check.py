@@ -443,6 +443,22 @@ class Test_main:
         assert len(seen(log)) == 4, "the baseline or a mutant did not run once"
         assert target.read_text(encoding="utf-8") == ORIGINAL
 
+    @pytest.mark.parametrize(
+        "pairs", [[PAIRS[0]], [PAIRS[0], PAIRS[2]]], ids=["one-pair", "a-batch"]
+    )
+    def test_accepts_a_bound_of_zero_as_no_bound(self, tmp_path, capsys, pairs):
+        """`--timeout 0` removes the bound, as its help says, for one pair and
+        for a batch. Read as zero seconds, it would end every run before the
+        cases could answer."""
+        target, log, command = world(tmp_path)
+        argv = [str(target), *replaces(pairs), "--tests", shlex.join(command)]
+        code = mc.main([*argv, "--cwd", str(tmp_path), "--timeout", "0"])
+        out = capsys.readouterr().out
+        assert code == 0, out
+        assert "timed out" not in out, out
+        assert len(seen(log)) == len(pairs) + 1, out
+        assert target.read_text(encoding="utf-8") == ORIGINAL
+
     def test_refuses_a_pair_that_cannot_land_and_runs_nothing(self, tmp_path, capsys):
         pairs = [PAIRS[0], ("D = 1", "D = 2")]
         code, out, log, target = main_of(tmp_path, capsys, pairs)
