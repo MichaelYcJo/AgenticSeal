@@ -1,6 +1,6 @@
-"""The sixteen config shapes `seal/threads/1791852616-the-config-table-has-its-
-own-grammar-beside-the-gfm-walker/frame/design.md` *Data & interfaces* measured, as
-texts (#871).
+"""The sixteen config shapes
+`0ed5dd3b:seal/specs/1791852616-the-config-table-has-its-own-grammar-beside-the-gfm-walker/spec.md`
+*Data & interfaces* measured, as texts (#871).
 
 Data and nothing else. Each shape is the document one row of that table is
 about, keyed by the row's number, and each is a place where the config

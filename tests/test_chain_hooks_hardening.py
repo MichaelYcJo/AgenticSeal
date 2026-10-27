@@ -442,8 +442,8 @@ def test_auto_firing_skills_declare_when_not_to_fire():
 # reads them in. AT MODULE LEVEL so a case can assert what they do: the
 # pattern IS the behaviour this repair changes, and a pattern nothing opens is
 # the shape this whole release keeps finding
-# (`seal/threads/1789455558-…/gaps.md` — pin the thing the production path
-# calls, never a copy beside it).
+# (`aa687d35:seal/specs/1789455558-the-record-chain-disagrees-with-itself-in-five-places/overview.md`
+# — pin the thing the production path calls, never a copy beside it).
 #
 # Matched at a WORD BOUNDARY, and the first draft of this guard was not. A
 # bare `"ask" in window` fires on `task`, so the probe that was supposed to
@@ -537,7 +537,8 @@ def batch_instructions(body):
 
     That is this work item's own subject one layer down, and the fifth
     instance of the class in this release: the cases pinned the pieces and the
-    production path was a copy of them. `seal/threads/1789455558-…/gaps.md`
+    production path was a copy of them.
+    `aa687d35:seal/specs/1789455558-the-record-chain-disagrees-with-itself-in-five-places/overview.md`
     states the rule — pin the function the production path calls, never the
     helper beside it.
     """
@@ -631,8 +632,8 @@ def test_the_asking_stems_are_anchored_at_both_ends():
     # *for a question nobody is asking*, which is false of these three.
     #
     # Widening the stem set is refused with grounds in
-    # `seal/threads/1789540097-…/frame/design.md` *Out*, so this is residue and not a
-    # defect. It is residue, not correctness.
+    # `aa687d35:seal/specs/1789540097-three-checks-that-do-not-see-what-they-are-named-for/spec.md`
+    # *Out*, so this is residue and not a defect. It is residue, not correctness.
     for word in ("asker", "answerer", "questioner"):
         assert not ASKING.search(word), (
             f"{word} is an agent noun the back anchor stops. If this line is "
@@ -768,7 +769,8 @@ def test_the_questions_are_collected_before_the_work_not_during_it():
     #     a new occurrence would fire. Bounding it at a heading is a change
     #     with its own failure direction — an instruction whose sentence
     #     straddles a heading would pass — and it is ruled out with grounds in
-    #     `seal/threads/1789540097-…/frame/design.md` *Out*.
+    #     `aa687d35:seal/specs/1789540097-three-checks-that-do-not-see-what-they-are-named-for/spec.md`
+    #     *Out*.
     #   · It reads `*` and not `_`. See `EMPHASIS` above for why.
     #   · It refuses by the WORDS in the window, so a definition that names a
     #     person answering for some other reason within 140 characters of a

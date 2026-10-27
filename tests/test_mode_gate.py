@@ -4,7 +4,7 @@ Issue #151: a session created `seal/` and started working, and nothing asked
 about shared or local mode. The gate asks on the session's first command in
 a repository whose root records no `Mode`, once as a deny and once as an
 ask, and then says nothing. The scenario ids are
-`seal/threads/1788817289-local-mode-from-first-setup-to-the-gate/frame/design.md`'s.
+`aa687d35:seal/specs/1788817289-local-mode-from-first-setup-to-the-gate/spec.md`'s.
 The cases come from `tests/test_the_mode_question_is_asked_once.py` (#942's
 phase 6).
 """

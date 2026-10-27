@@ -851,6 +851,25 @@ class Test_old_names:
             for number, (_, spelling) in enumerate(OLD_SPELLINGS, 2)
         ], found
 
+    def test_accepts_an_old_path_only_where_a_commit_holds_it(self, tmp_path):
+        """A released work item's record is a coordinate into git history,
+        which the move does not rewrite: `<commit>:<path>` is the one form
+        that passes, because `git show` opens it as written. The same path
+        with no commit, or after one that is not hex, is refused."""
+        old = "seal/" + "specs/1790000000-a-released-item"
+        phase, design = "pha" + "ses/phase-3.md", "sp" + "ec.md"
+        text = (
+            f"measured in `5f11923f:{old}/{phase}` and in\n"
+            f"`67694cba:{old}/{design}` *Scope*, the work item `0ed5dd3b:{old}/`\n"
+            f"`{old}/{phase}`\n"
+            f"`HEAD:{old}/{design}`\n"
+        )
+        root = plant(tmp_path, "docs/x.md", text)
+        assert [p.split(": ")[0] for p in censuses.old_names("docs/x.md", root)] == [
+            "docs/x.md:3",
+            "docs/x.md:4",
+        ]
+
     def test_refuses_an_old_name_beside_a_kept_spelling(self, tmp_path):
         text = f"`{OLD}-Routing:` is what the {OLD} trailer was\n"
         root = plant(tmp_path, "docs/x.md", text)

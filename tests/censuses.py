@@ -1055,6 +1055,16 @@ KEPT_OLD_NAMES = (
     f"{_OLD.upper()}_LINT",
     f"{_OLD.upper()}_LANG",
 )
+# A released work item's record cited at the commit that holds it, as
+# `<commit>:<path>`, the form `git show` opens as written: the settle removed
+# the directory, the session-start move does not rewrite history, so the old
+# path is the only one any commit holds. Taken out of a line before OLD_NAME
+# reads it, whole, so the record names inside the path pass with it.
+HISTORY_PATH = re.compile(
+    r"(?<![\w/:])[0-9a-f]{7,40}:"
+    + "seal/"
+    + r"specs/[0-9]{10}-[a-z0-9-]+(?:/[\w.-]+)*/?"
+)
 # The records of a moment, which keep the names they were written under. A
 # released changelog entry and the archive of a release's way of working
 # keep the name the release shipped under (#1051). A thread is read against
@@ -1096,8 +1106,9 @@ def old_names(rel, root=None):
     the brand, the old prefix and identifiers, the old agents, the old
     record layout, the old commands and the tagline. A spelling kept on
     purpose is in KEPT_OLD_NAMES, a record or a file of KEPT_FILES is passed over
-    whole, and any other line that keeps an old name carries its exemption.
-    A file that is not UTF-8 text is not read."""
+    whole, a released work item's record passes only cited at a commit
+    (HISTORY_PATH), and any other line that keeps an old name carries its
+    exemption. A file that is not UTF-8 text is not read."""
     if rel.startswith(OLD_NAME_RECORDS + KEPT_FILES) or RECORDED_CASE.match(rel):
         return []
     text = _text(rel, root)
@@ -1107,6 +1118,7 @@ def old_names(rel, root=None):
     for number, line in enumerate(text.split("\n"), 1):
         for kept in KEPT_OLD_NAMES:
             line = line.replace(kept, "")
+        line = HISTORY_PATH.sub("", line)
         found = OLD_NAME.search(line)
         if found:
             flagged[number] = (

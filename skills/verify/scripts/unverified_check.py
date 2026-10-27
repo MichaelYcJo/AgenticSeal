@@ -4,7 +4,8 @@ on a record that cannot be read.
 
 `verify` condition 4 lets a claim go out unproven as long as the row names who
 answers it. Nothing ever read those rows again. The measured failure: a row in
-`seal/threads/1787495842-verify-the-unverified/gaps.md` said nobody had seen the
+the closing memo of work item 1787495842 (verify-the-unverified), a record
+older than this repository's first commit, said nobody had seen the
 gates render in an interactive TUI and named the user as the answerer. Months
 later the user hit exactly that, from the other side, and asked why every gate
 renders as yes/no. The record was accurate and no procedure ever closed it.

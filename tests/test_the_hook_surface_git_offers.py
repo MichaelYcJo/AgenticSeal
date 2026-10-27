@@ -4,7 +4,7 @@
 record out of a reader of the command's text and into git's hooks. Whether
 that works depends on facts the manual does not state, and phase 1 of the
 work item measured them on git 2.34.1, 2.39.5, 2.43.0 and 2.50.1
-(`seal/threads/1790815613-a-gate-decides-at-the-moment-of-the-action-not-from-the-text/trail/phases/phase-1.md`).
+(`c7f4ed67:seal/specs/1790815613-a-gate-decides-at-the-moment-of-the-action-not-from-the-text/phases/phase-1.md`).
 This file pins those facts against whatever git runs the suite, so a git
 release that changes one of them turns a case red instead of silently
 changing what the design rests on.

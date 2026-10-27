@@ -11,8 +11,9 @@ character turned into a line break.
 One splitter, `hooks/blocks.py#gfm_lines`, which `unverified_check.py` hands
 its callers, is what
 every such reader now reads, and two readers of one text split it alike. The
-scenarios are `seal/threads/1790655302-every-reader-ends-a-line-where-gfm-does/
-frame/design.md`'s at `67694cba`, numbered as it numbers them, and each was seen red at `2e392d46`
+scenarios are
+`67694cba:seal/specs/1790655302-every-reader-ends-a-line-where-gfm-does/spec.md`'s,
+numbered as it numbers them, and each was seen red at `2e392d46`
 before it was committed.
 
 Every one of the eight is built from its code point, never typed: an escape

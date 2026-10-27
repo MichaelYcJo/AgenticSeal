@@ -282,7 +282,7 @@ crafter, proofer, sealer 처럼 이름으로 적는다. 두 당사자가 함께 
 사례는 셋이다.
 
 - "So is" 로 시작한 문장이 바로 앞이 아닌 다른 절에 붙어 읽혔다(#953 의 sealer).
-- "The one writer that does is `settle`" 이 `docs/` 를 누가 쓰는지 정하는 규칙으로 읽혔다(`seal/threads/1792449518-settle-squashes-specs-into-docs-in-place/frame/design.md`).
+- "The one writer that does is `settle`" 이 `docs/` 를 누가 쓰는지 정하는 규칙으로 읽혔다(`0ed5dd3b:seal/specs/1792449518-settle-squashes-specs-into-docs-in-place/spec.md`).
 - orchestrator 와 구현자가 함께 읽는 파일에서 "the session" 이 둘 중 누구인지 정해지지 않았다.
 
 check: none reader: the proofer at review

@@ -280,8 +280,10 @@ files at their old names in the earlier layout, which
 at the session start of each branch whose tree still holds them, as staged
 `git mv` in shared mode and as renames under the git directory in local mode
 (*The fold, and what tells it from a deletion* above, and
-`docs/release-checklist.md` *2b*). What a document still cites of it
-resolves at the tag of the release that shipped it.
+`docs/release-checklist.md` *2b*). A document that still cites a record of
+it writes the path a commit holds, as `<commit>:<path>`, which `git show`
+opens as written; in this repository `tests/censuses.py#HISTORY_PATH` is
+the one form `old_names` passes.
 check: tests/test_settle.py
 
 **A record a template starts carries no HTML comment.** Its template holds
