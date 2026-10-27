@@ -62,7 +62,11 @@ the first line of `templates/seal-README.md`, written at first setup and by
 the migration of a repository installed before the plugin was renamed
 AgenticSeal. The hooks look at the
 two places in that order; whichever exists with the marker says both "on"
-and which mode. A `seal/` without the marker is a project's own directory,
+and which mode. A `seal/` whose README opens with a heading an earlier
+release wrote (`hooks/optin.py#EARLIER_HEADINGS`) is that release's root,
+which the session-start migration rewrites to the marker; until it does,
+it reads as not opted in, and first setup creates no second root beside
+it. A `seal/` whose README opens with neither is a project's own directory,
 as a package named `seal` has one, and reads as not opted in; first setup
 that meets one writes nothing into it and keeps the root under the git
 directory. Nothing else is read, and there is no config

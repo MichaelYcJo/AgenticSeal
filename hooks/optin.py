@@ -69,6 +69,16 @@ SCRATCH = "agentic-scratch"
 # its `README.md` opens with this line. `tests/test_optin.py` pins the
 # template's first line to this value.
 MARKER = "# What AgenticSeal maintains in seal/"
+# The first line `templates/seal-README.md` opened with in the releases before
+# the rename. A `seal/` whose README opens with one is an earlier release's
+# root, waiting for the move `hooks/root-migrate.py` makes at session start:
+# not opted in until then, and not a project's own directory either, so no
+# reader puts a second root beside it (`earlier`). It leaves with the
+# migration, once no repository is left to move.
+EARLIER_HEADINGS = (
+    "# What this plugin maintains in seal/",
+    "# seal/ — what this plugin maintains",
+)
 README = "README.md"
 
 
@@ -211,6 +221,21 @@ def marked(path):
     except OSError:
         return False
     return first.rstrip("\r\n") == MARKER
+
+
+def earlier(path):
+    """True where `<path>/README.md` opens with one of `EARLIER_HEADINGS`,
+    read as `marked` reads the marker: the first line with its end stripped,
+    and an empty path or a README that cannot be opened is no root."""
+    if not path:
+        return False
+    longest = max(len(h) for h in EARLIER_HEADINGS)
+    try:
+        with open(os.path.join(path, README), encoding="utf-8", errors="replace") as f:
+            first = f.readline(longest + 2)
+    except OSError:
+        return False
+    return first.rstrip("\r\n") in EARLIER_HEADINGS
 
 
 def home_at(root, common=None):

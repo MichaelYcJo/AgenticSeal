@@ -507,7 +507,7 @@ def manifest_of(repo, mode, files):
     manifest = {
         "format": FORMAT,
         "mode": mode,
-        "exported_at": datetime.datetime.now(datetime.UTC).strftime(
+        "exported_at": datetime.datetime.now(datetime.timezone.utc).strftime(
             "%Y-%m-%dT%H:%M:%SZ"
         ),
         "items": work_item_digests(files),
@@ -636,7 +636,7 @@ def export(args, cwd):
         return 1
 
     files, links = root_files(home)
-    when = datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d")
+    when = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
     stem = zip_stem(repo, when)
 
     if args.output:
@@ -745,6 +745,19 @@ def inside(repo, path):
         return False
 
 
+def earlier_root():
+    """The line every subcommand says where `<repo>/seal/` is an earlier
+    release's root (`optin.earlier`), waiting for the session-start move: it
+    is neither opted in nor a project's own, so nothing is written beside it
+    and first setup is not what it needs."""
+    return (
+        f"{optin.HOME}/ is this plugin's root from a release before the rename, "
+        "waiting for the move a session start makes. Commit the work in "
+        "progress under it and start a new session, and the move runs. "
+        "Nothing was written."
+    )
+
+
 def no_root(repo, shared, local):
     if not repo:
         print("not inside a git repository — seal works on a clone")
@@ -758,6 +771,9 @@ def no_root(repo, shared, local):
             "reads it as one that never opted in. Remove the marker to work "
             "with its records."
         )
+        return 1
+    if optin.earlier(shared):
+        print(earlier_root())
         return 1
     # Not "nothing to carry": `seal mode` reaches this too, and it carries
     # nothing anywhere. What all three subcommands share is that the root is
@@ -1059,6 +1075,11 @@ def import_(args, cwd):
     repo, home, shared, local, _ = resolve(cwd)
     if not repo:
         print("not inside a git repository — seal works on a clone")
+        return 1
+    if not home and optin.earlier(shared):
+        # With no root in force the import would make one under the git
+        # directory, a second root beside the one the move is about to mark.
+        print(earlier_root())
         return 1
 
     path = os.path.abspath(args.zip)
@@ -1987,6 +2008,8 @@ def install_workflow(repo):
     name.
     """
     shared, _local = optin.home_paths(repo)
+    if optin.earlier(shared):
+        return "no-root", earlier_root()
     if not shared or not optin.marked(shared):
         return "no-root", (
             f"{WORKFLOW} was NOT written: {optin.HOME}/ is not in this tree, "

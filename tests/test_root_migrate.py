@@ -657,6 +657,34 @@ class Test_main:
         found = [p for p, _ in routing.declarations(str(layout))]
         assert found == [str(layout / "seal" / "threads" / ITEM / "routing.md")]
 
+    def test_accepts_the_move_naming_the_workflow_an_earlier_release_wrote(
+        self, hook, layout
+    ):
+        """A tree whose `.github/workflows/hygiene.yml` clones the plugin at
+        its name before the rename runs a release that reads work items
+        under `seal/specs/`, so after the move it examines nothing and
+        passes; the line that says what moved names the command that
+        rewrites it. A workflow at the new name adds nothing to the line."""
+        workflow = ".github/workflows/hygiene.yml"
+        clone = "git clone --branch v0.22.4 https://github.com/MichaelYcJo/{}.git\n"
+        write(layout, workflow, clone.format("SpecSeal"))
+        commit(layout, "the workflow a release before the rename wrote")
+        said = message(start(hook, layout))
+        assert said == (
+            "agentic:moved seal/specs/ into seal/ — review the diff and commit, "
+            "and run `seal pr-checks install` with it: the workflow at "
+            f"{workflow} clones a release before the rename, which reads work "
+            "items under seal/specs/, so after this move it examines nothing "
+            "and passes every pull request"
+        ), said
+        git(layout, "reset", "-q", "--hard")
+        write(layout, workflow, clone.format("AgenticSeal"))
+        commit(layout, "the workflow at the new name")
+        said = message(start(hook, layout))
+        assert (
+            said == "agentic:moved seal/specs/ into seal/ — review the diff and commit"
+        )
+
     def test_refuses_a_linked_specs_and_moves_nothing(self, hook, fresh, tmp_path):
         """`seal/specs/` as a symbolic link is one blob to git: the README
         would open with the marker over work items that never moved, so the

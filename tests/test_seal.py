@@ -70,6 +70,7 @@ from conftest import (
 TARGET = "skills/implement/scripts/seal.py"
 
 SEAL = load_module(os.path.join(ROOT, *TARGET.split("/")), "seal_under_test")
+OPTIN = load_hook_module("optin.py", "optin_for_seal_cases")
 
 ITEM = "1788000000-a-work-item"
 SSH = "git@example.com:org/thing.git"
@@ -1306,6 +1307,22 @@ class Test_destination_root:
 
 
 class Test_import_:
+    def test_refuses_beside_a_root_an_earlier_release_wrote(
+        self, take, exported, capsys
+    ):
+        """A `<repo>/seal/` whose README opens with a heading an earlier
+        release wrote is that release's root, waiting for the session-start
+        move, as `hooks/root-migrate.py#ours` reads it: `seal import` puts no
+        second root under the git directory, and neither `seal mode` nor
+        `seal pr-checks install` sends the person to first setup."""
+        plain = take("plain")
+        write(plain, "seal/README.md", f"{OPTIN.EARLIER_HEADINGS[0]}\n\nold\n")
+        line = SEAL.earlier_root() + "\n"
+        assert said(capsys, plain, "import", str(exported)) == (1, line)
+        assert not os.path.exists(roots(plain)[1]), "a second root was made"
+        assert said(capsys, plain, "mode") == (1, line)
+        assert said(capsys, plain, "pr-checks", "install") == (1, line)
+
     def test_accepts_missing_records_as_added_and_asks_nothing(
         self, take, exported, capsys
     ):

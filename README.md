@@ -329,6 +329,15 @@ command of the old install runs the old names, so it cannot carry you
 across. These three lines are read from the Claude Code reference and have
 not been run on a machine that holds the old install.
 
+In a repository where `seal pr-checks install` wrote
+`.github/workflows/hygiene.yml` before the rename, run `seal pr-checks
+install` again once the session start has moved the records, and commit the
+rewritten workflow together with the move. The old workflow clones the
+release it was pinned to, which looks for work items where that release
+kept them and for the old trailer, so after the move it finds no declaration and
+passes every pull request without examining any. The session start's line
+says so where it finds that workflow.
+
 ### Updating
 
 ```

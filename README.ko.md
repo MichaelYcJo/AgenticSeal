@@ -321,6 +321,14 @@ remove*). 그다음 `bash install.sh` 를 다시 돌리거나 `/agentic:preset-s
 Claude Code 레퍼런스에서 읽은 것이고, 옛 설치본이 있는 기기에서 돌려 본 적은
 없습니다.
 
+이름을 바꾸기 전에 `seal pr-checks install` 이 `.github/workflows/hygiene.yml`
+을 써 둔 저장소라면, 세션 시작이 기록을 옮긴 뒤 `seal pr-checks install` 을
+다시 돌리고, 다시 쓰인 workflow 를 그 이동과 함께 커밋합니다. 옛 workflow 는
+고정된 릴리스를 clone 하는데, 그 릴리스는 작업 항목을 자기가 두던 자리에서,
+trailer 는 옛 이름으로 찾습니다. 그래서 이동 뒤에는 선언을 찾지 못하고, 아무것도
+검사하지 않은 채 모든 pull request 를 통과시킵니다. 세션 시작은 그 workflow 를
+찾으면 한 줄로 이 일을 알려 줍니다.
+
 ### 업데이트
 
 ```

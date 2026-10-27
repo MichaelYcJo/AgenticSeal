@@ -4,7 +4,7 @@ wherever the checked-out tree still holds it.
 
 `moves` lists the units, each a `(kind, src, dst)` of repository-relative
 paths: a root an earlier release wrote, its README opening with a heading in
-`OLD_HEADINGS`, has `seal/README.md` rewritten from the template so it opens
+`optin.EARLIER_HEADINGS`, has `seal/README.md` rewritten from the template so it opens
 with `optin.MARKER`, and each 0.22.x work item under `seal/specs/<id>/` moves
 into `seal/threads/<id>/`, each name at its thread path (`THREAD_PATHS`). In
 local mode `local_moves` lists the same units under the git directory, and
@@ -47,9 +47,10 @@ Boundaries, each pinned in `tests/test_root_migrate.py`:
 
 # RIDER: this file is a reader of a layout an earlier release wrote, and of
 # nothing the current layout holds. It can be deleted once no repository is
-# left to migrate, and nothing else has to change when it goes;
-# `hooks/dispatch.py`'s session-start group is the one place that names it.
+# left to migrate; `hooks/dispatch.py`'s session-start group is the one place
+# that names it, and `optin.EARLIER_HEADINGS` with its readers goes with it.
 
+import importlib.util
 import json
 import os
 import posixpath
@@ -71,17 +72,15 @@ STATE_DIR = os.path.join(os.path.expanduser("~"), ".claude", "agentic")
 # the new directory holds one, the old one is dropped rather than kept.
 CACHE = "version-check"
 TEMPLATE = os.path.join(HOOKS, "..", "templates", "seal-README.md")
+# The `seal` command, whose `workflow_at` is the one reader that tells this
+# plugin's pull-request workflow from anybody else's.
+SEAL = os.path.join(HOOKS, "..", "skills", "implement", "scripts", "seal.py")
 
 NEW = optin.HOME
-# Where a work item stood through 0.22.x, under the root, and the root's
-# README's first line in the releases that wrote one. A `seal/` whose README
-# opens with neither these nor `optin.MARKER` is a project's own and is never
-# read here.
+# Where a work item stood through 0.22.x, under the root. A `seal/` whose
+# README opens with neither `optin.MARKER` nor one of
+# `optin.EARLIER_HEADINGS` is a project's own and is never read here.
 EARLIER_ITEMS = f"{NEW}/specs"
-OLD_HEADINGS = (
-    "# What this plugin maintains in seal/",
-    "# seal/ — what this plugin maintains",
-)
 README = f"{NEW}/{optin.README}"
 # Where each name at the top of a 0.22.x work item stands in its thread; a
 # name not listed (`routing.md`, `changelog.md`, `guarantee.md`, a `pr.*.md`)
@@ -241,7 +240,7 @@ def ours(base):
     opens with the marker, or with the heading an earlier release wrote."""
     if os.path.islink(under(base, NEW)):
         return False
-    return heading(base) in (optin.MARKER, *OLD_HEADINGS)
+    return heading(base) in (optin.MARKER, *optin.EARLIER_HEADINGS)
 
 
 def units_from(base, listing):
@@ -519,6 +518,23 @@ def origins(units):
     )
 
 
+def stale_workflow(root):
+    """The path of the tree's pull-request workflow where a release before
+    the rename wrote it, or "": `seal.py#workflow_at` reads it as this
+    plugin's and its clone line names the repository's old name, so it runs
+    a release that reads work items under `seal/specs/` and the old trailer,
+    and after the move it examines nothing and passes. A `seal` command that
+    will not load says "", and the line goes out without the tail."""
+    try:
+        spec = importlib.util.spec_from_file_location("agentic_seal_for_move", SEAL)
+        seal = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(seal)
+        kind, text = seal.workflow_at(root)
+    except (Exception, SystemExit):
+        return ""
+    return seal.WORKFLOW if kind == "plugin" and seal.PLUGIN_CLONE not in text else ""
+
+
 def moved_line(units, tail):
     """The one line a finished move says, ending with TAIL."""
     if not origins(units):
@@ -601,7 +617,16 @@ def main():
             f"{error.path}: {error.error}. {tail}"
         )
         return
-    say(moved_line(units, "— review the diff and commit"))
+    tail = "— review the diff and commit"
+    workflow = stale_workflow(root)
+    if workflow:
+        tail += (
+            ", and run `seal pr-checks install` with it: the workflow at "
+            f"{workflow} clones a release before the rename, which reads work "
+            f"items under {EARLIER_ITEMS}/, so after this move it examines "
+            "nothing and passes every pull request"
+        )
+    say(moved_line(units, tail))
 
 
 if __name__ == "__main__":

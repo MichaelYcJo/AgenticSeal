@@ -114,8 +114,21 @@ with the question below. A top-level `specs/` is the project's own, a team's
 specifications or another tool's records, whatever its entries are named, and
 stays where it is: the plugin writes only to its own root.
 
-**A `<repo>/seal/` whose `README.md` does not open with the marker is the
-project's own.** The marker is the first line of `templates/seal-README.md`,
+**A `<repo>/seal/` whose `README.md` opens with a heading an earlier release
+of the plugin wrote is that release's root, waiting for its move.** The
+headings are `hooks/optin.py#EARLIER_HEADINGS`. The session-start move
+rewrites the README to the marker and moves the work items into
+`seal/threads/`; where it was refused, its one line said why, which is work
+in progress under the old layout or a directory of work items that is a
+symbolic link. The orchestrator
+creates no root beside it, under the git directory or anywhere, and asks
+nothing. It tells the person in one line, *"`<repo>/seal/` is this plugin's
+root from a release before the rename: commit the work in progress under it
+and start a new session, and the move runs"*, and stops. The `seal`
+subcommands read it the same way and write nothing beside it.
+
+**A `<repo>/seal/` whose `README.md` opens with neither the marker nor one of
+those headings is the project's own.** The marker is the first line of `templates/seal-README.md`,
 and a package or a tool can keep a directory named `seal` for itself. The
 orchestrator writes nothing into it and offers neither shared option, because
 `<repo>/seal/` is the shared root's one place. The root goes under the git

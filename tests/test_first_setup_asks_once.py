@@ -365,7 +365,10 @@ def test_the_0_3_x_layout_is_sent_to_the_by_hand_path_and_the_bootstrap_goes_on(
     assert boot.index(OLD_LAYOUT) < boot.index(RECORDS_ONLY)
 
 
-OWN_SEAL = "**A `<repo>/seal/` whose `README.md` does not open with the marker"
+OWN_SEAL = "**A `<repo>/seal/` whose `README.md` opens with neither the marker"
+# The paragraph before it: a root an earlier release wrote waits for its move,
+# and the orchestrator creates nothing beside it.
+EARLIER_SEAL = "**A `<repo>/seal/` whose `README.md` opens with a heading an earlier"
 
 
 def test_a_projects_own_seal_gets_nothing_and_the_root_goes_under_the_git_dir():
@@ -379,6 +382,10 @@ def test_a_projects_own_seal_gets_nothing_and_the_root_goes_under_the_git_dir():
     assert f"`{COMMON_DIR}`" in own, own
     assert "local mode" in own, own
     assert boot.index(OWN_SEAL) < boot.index(RECORDS_ONLY)
+    earlier = paragraph(boot, EARLIER_SEAL)
+    assert "`hooks/optin.py#EARLIER_HEADINGS`" in earlier, earlier
+    assert "creates no root beside it" in earlier, earlier
+    assert boot.index(EARLIER_SEAL) < boot.index(OWN_SEAL)
 
 
 # --- Q1: the sentence a session reads, once in each place -----------------
