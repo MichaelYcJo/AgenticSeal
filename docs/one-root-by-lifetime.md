@@ -107,11 +107,12 @@ asked again; the mode is read from where the folder is. A repository still on
 the 0.3.x layout is told, not asked, that it moves by hand with the commands
 README.md *Coming up from 0.3.x* gives (`skills/implement/orchestration.md`,
 its bootstrap). A repository installed before the plugin was renamed
-AgenticSeal has its work items moved into the thread layout once, by the
-session-start hook. Once a root exists at either place and nothing of the
-earlier layout is left, that hook stamps the repository as moved, so a
-local-mode repository that later checks out an old branch is not moved into
-the tree it chose to keep clean.
+AgenticSeal has its work items moved into the thread layout by the
+session-start hook, on each branch whose tree still holds them. No stamp
+stands between a branch and its move. So in a repository that left shared
+mode for local mode, a branch cut before the switch has its own `seal/`
+moved and marked in the tree, and the hooks read that root first
+(`hooks/root-migrate.py`, its boundaries).
 check: tests/test_first_setup_asks_once.py
 
 ### Shared or local

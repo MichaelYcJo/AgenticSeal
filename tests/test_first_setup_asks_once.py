@@ -709,32 +709,32 @@ def test_the_record_no_longer_says_the_checks_would_refuse(parts, wrong):
 
 
 @pytest.mark.parametrize(
-    "parts, opt_in, setup, stamp",
+    "parts, opt_in, setup, move",
     [
         (
             ("docs", "one-root-by-lifetime.md"),
             "## The opt-in signal is the root itself",
             "## What first setup asks",
-            "that hook stamps the repository as moved",
+            "on each branch whose tree still holds them",
         ),
         (
             ("docs", "one-root-by-lifetime.ko.md"),
             "## 옵트인 신호는 루트 자체다",
             "## 처음 설정에서 무엇을 묻는가",
-            "그 훅은 저장소에 옮겼다는 표시를 남기므로",
+            "앞선 배치가 남아 있는 브랜치마다",
         ),
     ],
 )
 def test_the_design_record_states_the_setup_rules_where_they_rule(
-    parts, opt_in, setup, stamp
+    parts, opt_in, setup, move
 ):
     """The opt-out sits with the opt-in it takes back, and the question's
-    shape, the workflow it installs and the migration hook's stamp sit with
+    shape, the workflow it installs and the migration hook's move sit with
     first setup, in both editions."""
     text = read(*parts)
     assert "agentic-scratch" in section(text, opt_in, 2), "/".join(parts)
     body = " ".join(section(text, setup, 2).split())
-    for needle in ("templates/hygiene.yml", COMMON_DIR, "AskUserQuestion", stamp):
+    for needle in ("templates/hygiene.yml", COMMON_DIR, "AskUserQuestion", move):
         assert needle in body, f"{'/'.join(parts)}: {setup} does not name {needle}"
 
 

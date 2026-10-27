@@ -101,11 +101,12 @@ check: tests/test_optin.py
 묻지 않습니다. 모드는 폴더가 있는 자리로 읽습니다. 0.3.x 배치에 머물러 있는
 저장소에는 묻지 않고, README.md *Coming up from 0.3.x* 의 명령으로 직접
 옮긴다고 알리기만 합니다(`skills/implement/orchestration.md` 의 부트스트랩).
-플러그인 이름이 AgenticSeal 로 바뀌기 전에 설치한 저장소는 세션 시작 훅이
-작업 항목을 스레드 배치로 한 번 옮깁니다. 어느 자리에든 루트가 있고 앞선
-배치가 하나도 남지 않으면 그 훅은 저장소에 옮겼다는 표시를 남기므로, 나중에 옛 브랜치를
-체크아웃한 local 모드 저장소가 깨끗하게 두기로 한 트리 안으로 옮겨지지
-않습니다.
+플러그인 이름이 AgenticSeal 로 바뀌기 전에 설치한 저장소는 트리에 앞선
+배치가 남아 있는 브랜치마다 세션 시작 훅이 작업 항목을 스레드 배치로
+옮깁니다. 브랜치와 그 이동 사이를 막는 표시는 없습니다. 그래서 shared
+모드에서 local 모드로 옮긴 저장소에서는 전환 전에 만든 브랜치의 `seal/` 이
+트리 안에서 옮겨지고 표시가 붙으며, 훅은 그 루트를 먼저 읽습니다
+(`hooks/root-migrate.py` 의 경계).
 check: tests/test_first_setup_asks_once.py
 
 ### shared 인가 local 인가
