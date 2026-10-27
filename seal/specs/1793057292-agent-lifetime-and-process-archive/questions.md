@@ -25,10 +25,11 @@ reviewer can overturn it by opening the same place.
 4. **A4 Round-record inheritance needs nothing here.** #923 took out the
    round reports and the inherited-coordinates section (`spec.md`
    *Grounding*, the #923 row).
-5. **A5 The archive has no size check.** The ticket names a row of a
-   release report #923 builds, and an earlier comment names
-   `seal/budgets.md`. Neither exists, nor ever did (`executed`). `plan.md`
-   row P-C.
+5. **A5 The archive's size is a row of the release report, and no check.**
+   The ticket names a row of the release report #923 builds, which is
+   `.github/scripts/release_report.py`; its document glob takes
+   `seal/process/*.md`. An earlier comment names `seal/budgets.md`, which
+   was never committed (`executed`). `plan.md` row P-C.
 6. **A6 Every framer reads the latest archive file, once.** No fact in the
    tree tells a framer it is the first of a release. `plan.md` rows F-A and
    F-B.

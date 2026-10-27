@@ -118,11 +118,14 @@
 - Archive files for 0.22.0 to 0.22.3: not written (`questions.md` Q1).
 - The first archive file: written at the preparation of the release that
   ships this item, by whoever prepares it, not by this work item.
-- A size check on the archive: none. Neither home the ticket names exists:
-  no `seal/budgets.md` has ever been committed (`executed`, `git log --
-  seal/budgets.md` prints nothing), and no release report was built
-  (`executed`, `git grep -i "release report"` outside `seal/specs` prints
-  nothing). The template's one row per change is what bounds the file.
+- A size check on the archive: none. Its size is a row of the release
+  report #923 built (`.github/scripts/release_report.py`, the
+  `release-report` job of `.github/workflows/test.yml`): the report's
+  document glob reaches `seal/process/*.md`, so each archive file's bytes
+  are printed beside the other documents', at the last release tag and now.
+  The report fails nothing. No `seal/budgets.md` has ever been committed
+  (`executed`). The frame first missed the report because its name is
+  hyphenated (the sealer's withhold, 085530de).
 - Every policy document: changed only through `## Rule changes`, never by a
   commit of this branch.
 
