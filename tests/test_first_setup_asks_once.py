@@ -785,6 +785,9 @@ def test_the_preset_sends_a_fresh_repository_to_the_bootstrap():
     # carries, which no longer holds it.
     assert "skills/implement/orchestration.md" in lead
     assert "neither" in lead, "the rule does not say WHICH repositories it means"
+    # A project's own `seal/` is no root, so a repository holding only that
+    # one is sent to the bootstrap too.
+    assert "its `README.md` opening with the marker" in lead, lead
 
 
 def test_the_preset_writes_no_declaration_under_no_work_item():
