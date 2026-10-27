@@ -4,7 +4,7 @@
 
 Data and nothing else. Each shape is the document one row of that table is
 about, keyed by the row's number, and each is a place where the config
-table's own grammar and `hooks/config.py#gfm_table` answered differently
+table's own grammar and `hooks/lib/config.py#gfm_table` answered differently
 before #871 moved the table onto the walker. The texts that hold an HTML
 comment opener build it by concatenation, so that no line of this file
 begins with one.

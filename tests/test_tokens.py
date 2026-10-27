@@ -1,4 +1,4 @@
-"""`hooks/tokens.py`, the one reader of a consent token, one class per function.
+"""`hooks/lib/tokens.py`, the one reader of a consent token, one class per function.
 
 The bare-word case came from `tests/test_the_old_spellings_reach_the_hook.py`
 (#942's phase 6), with `TOKEN_CASES`, which that file's three-reads case still
@@ -12,18 +12,19 @@ waiver inside a here-document body is data, and neither read honours a token
 the base read did not (#773).
 """
 
+import os
 import shlex
 import sys
 
 import pytest
 from conftest import HOOKS, census_case, load_hook_module, q
 
-TARGET = "hooks/tokens.py"
+TARGET = "hooks/lib/tokens.py"
 
 # `tokens` imports `hooksession` by its plain name, as the hooks do.
-sys.path.insert(0, HOOKS)
-tokens = load_hook_module("tokens.py", "tokens_under_test")
-cmdline = load_hook_module("cmdline.py", "cmdline_for_the_base_reads")
+sys.path.insert(0, os.path.join(HOOKS, "lib"))
+tokens = load_hook_module("lib/tokens.py", "tokens_under_test")
+cmdline = load_hook_module("lib/cmdline.py", "cmdline_for_the_base_reads")
 
 TOKEN_CASES = (
     [
@@ -96,7 +97,7 @@ TOKEN_CASES = (
 # --- #773: a waiver inside a here-document body is data -----------------------
 #
 # Work item `1791119070-a-waiver-inside-a-here-document-body-is-data`,
-# scenario S6. The consent read, `hooks/tokens.py#given`, reads the command
+# scenario S6. The consent read, `hooks/lib/tokens.py#given`, reads the command
 # without its here-document bodies, and only where the base read also found
 # the token. Each command is built from named parts -- the opener, the body,
 # the suffix -- and is never run.

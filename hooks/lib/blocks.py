@@ -2,8 +2,8 @@
 fenced code block or an HTML comment block, and where can this module not say?
 
 Two readers decide from a markdown file what a person declared:
-`hooks/config.py` (the `| Item | Value |` table, on every Bash call through
-`mode-gate` and `seal gate`) and `hooks/routing.py` (the routing
+`hooks/lib/config.py` (the `| Item | Value |` table, on every Bash call through
+`mode-gate` and `seal gate`) and `hooks/lib/routing.py` (the routing
 declaration, on every commit and at the pull request). A row quoted in a
 fenced example, or parked in an HTML comment, is not a row anybody gave, and
 each reader used to decide that by a rule of its own or by none (#667, #658).
@@ -88,7 +88,7 @@ import re
 # more tildes, then the info string. Four or more spaces is an indented code
 # block instead and never a fence, and reading one as a delimiter inverts the
 # fence state for the rest of the file (#491). This is the pattern
-# `hooks/config.py#FENCE` held until #667 moved it here; that name re-exports
+# `hooks/lib/config.py#FENCE` held until #667 moved it here; that name re-exports
 # this one.
 FENCE = re.compile(r"^ {0,3}(?P<run>`{3,}|~{3,})(?P<info>.*)$")
 
@@ -156,9 +156,9 @@ def fence_only(lines):
     None) -- the fence rule alone, a block that never closes running to the
     end of the file.
 
-    This is not the walk. It is the reading `hooks/config.py` gave every line
+    This is not the walk. It is the reading `hooks/lib/config.py` gave every line
     before #667, and it stays because that reader's base reading is what an
-    uncertain line gets: `hooks/config.py#fence_map`'s docstring says why a
+    uncertain line gets: `hooks/lib/config.py#fence_map`'s docstring says why a
     config line below a fence nobody closed stays hidden.
     """
     hidden, opener, opened_at = set(), None, None

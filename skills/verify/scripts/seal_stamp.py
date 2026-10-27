@@ -73,7 +73,7 @@ so a values file no hook drew can still be drawn by hand.
 
 Exit codes: 0 printed · 2 refused — a values file that is unreadable or
 drawn already; nothing was written on 2. An interpreter below the floor never
-reaches this file through `seal stamp`: `hooks/launch.py` refuses `seal`
+reaches this file through `seal stamp`: `hooks/lib/launch.py` refuses `seal`
 with 2 first.
 """
 
@@ -1393,7 +1393,7 @@ if __name__ == "__main__":
     # cp949 console asked afterwards would be handed the blocks it cannot draw.
     _letters = pick_shape(sys.stdout)
     # A console that cannot encode what this prints kills it with stdout
-    # empty. `hooks/console.py` owns the reasoning and the three decisions
+    # empty. `hooks/lib/console.py` owns the reasoning and the three decisions
     # behind these lines.
     for _name, _errors in (
         ("stdin", "replace"),

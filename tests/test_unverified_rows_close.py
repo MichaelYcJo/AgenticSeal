@@ -4,7 +4,7 @@
 into `tests/test_unverified_check.py`, one class per function. Two kinds of
 case stay here, byte for byte. The cases whose assertion reads a shipped
 document's prose wait for #923. `test_the_fence_walks_agree_shape_by_shape`
-holds `hooks/blocks.py` and `hooks/config.py#fence_map` to this module's
+holds `hooks/lib/blocks.py` and `hooks/lib/config.py#fence_map` to this module's
 fence walk, a check across files, which stays where it is. The case that read
 `skills/code-review/scripts/chain_check.py` and
 `skills/settle/scripts/settle.py` for a call of this module's `settled` judged
@@ -292,19 +292,20 @@ FENCE_SHAPES = [
 
 @pytest.mark.parametrize("lines", FENCE_SHAPES, ids=range(len(FENCE_SHAPES)))
 def test_the_fence_walks_agree_shape_by_shape(lines):
-    """The delimiter rule is written once, in `hooks/blocks.py`, and three
+    """The delimiter rule is written once, in `hooks/lib/blocks.py`, and three
     walks still apply it, each with its own state: `uc.fence_spans`,
-    `blocks.fence_only`, and the walk behind `hooks/config.py#fence_map`.
+    `blocks.fence_only`, and the walk behind `hooks/lib/config.py#fence_map`.
     They agree on which lines are fenced and on where a block that never
     closes opened."""
     from conftest import load_hook_module
 
     spec = importlib.util.spec_from_file_location(
-        "agentic_config_for_fence_walks", os.path.join(ROOT, "hooks", "config.py")
+        "agentic_config_for_fence_walks",
+        os.path.join(ROOT, "hooks", "lib", "config.py"),
     )
     config = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(config)
-    blocks = load_hook_module("blocks.py", "agentic_blocks_for_fence_walks")
+    blocks = load_hook_module("lib/blocks.py", "agentic_blocks_for_fence_walks")
     fenced = set()
     for first, last in uc.fence_spans(lines):
         fenced.update(range(first, len(lines) if last is None else last + 1))

@@ -1,4 +1,4 @@
-"""`hooks/optin.py`: one opt-in signal, read one way, `seal/` at the first of
+"""`hooks/lib/optin.py`: one opt-in signal, read one way, `seal/` at the first of
 two places.
 
 `<repo>/seal/` is what shared mode commits; `<git-common-dir>/seal/` is where
@@ -38,12 +38,12 @@ from conftest import (
     scratch,
 )
 
-TARGET = "hooks/optin.py"
+TARGET = "hooks/lib/optin.py"
 
 
 @pytest.fixture
 def optin():
-    return load_hook_module("optin.py", "agentic_optin")
+    return load_hook_module("lib/optin.py", "agentic_optin")
 
 
 class Test_repo_root:

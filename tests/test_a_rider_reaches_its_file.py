@@ -117,9 +117,9 @@ def test_the_riders_exist_where_the_rows_said_they_would():
     silence it recorded is said now (#28, work item 1790635415), and a rider
     kept after its fix is the cost this file names."""
     for rel in (
-        "hooks/optin.py",
+        "hooks/lib/optin.py",
         "hooks/review-skill-gate.py",
-        "hooks/cmdline.py",
+        "hooks/lib/cmdline.py",
         "hooks/worktree-guard.py",
     ):
         assert "# RIDER:" in read(os.path.join(ROOT, rel)), rel

@@ -5,7 +5,7 @@ takes no keyword arguments`, after it had parsed its arguments and read the
 report, so the failure read as a bug in the report and named neither the
 version needed nor the flag. macOS still ships 3.9 as `/usr/bin/python3`.
 
-`hooks/launch.py` holds the floor once. Every `bin/` wrapper but `bin/test`,
+`hooks/lib/launch.py` holds the floor once. Every `bin/` wrapper but `bin/test`,
 and its `.cmd` twin, runs its script through it, and below the floor it
 answers with one sentence and exit 2 before the script is read. These cases
 pin that sentence, the moment it arrives, that the launched script cannot
@@ -30,11 +30,11 @@ import sys
 from censuses import matches, ruff_targets
 from conftest import census_case, decline_if_shrunken, git_listing, on_disk, read
 
-TARGET = "hooks/launch.py"
+TARGET = "hooks/lib/launch.py"
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 BIN = os.path.join(ROOT, "bin")
-LAUNCH = os.path.join(ROOT, "hooks", "launch.py")
+LAUNCH = os.path.join(ROOT, "hooks", "lib", "launch.py")
 RUNNER = os.path.join(ROOT, ".github", "scripts", "run_tests.py")
 RUFF = os.path.join(ROOT, "ruff.toml")
 
@@ -65,7 +65,7 @@ def launcher(tmp_path, floor):
     """A copy of the launcher holding `floor`, under `tmp_path/hooks`."""
     text, count = FLOOR_LINE.subn(f"FLOOR = {tuple(floor)!r}", read(LAUNCH))
     assert count == 1, (
-        f"hooks/launch.py spells its floor {count} times as `FLOOR = (x, y)`, "
+        f"hooks/lib/launch.py spells its floor {count} times as `FLOOR = (x, y)`, "
         "so this case would be moving no floor or the wrong one"
     )
     copy = tmp_path / "hooks" / "launch.py"
@@ -157,16 +157,16 @@ class Test_module:
         assert not stowaways, f"the refusal carries {stowaways}"
 
     def test_the_floor_has_one_source(self):
-        """`hooks/launch.py` is the one file that spells the floor, the runner
+        """`hooks/lib/launch.py` is the one file that spells the floor, the runner
         builds its virtualenv against the launcher's number, and `ruff.toml`,
         which cannot import, lints at that number."""
         floor = tuple(load(LAUNCH, "agentic_launch_floor").FLOOR)
-        assert floor_carriers() == {"hooks/launch.py": floor}, floor_carriers()
+        assert floor_carriers() == {"hooks/lib/launch.py": floor}, floor_carriers()
         assert tuple(load(RUNNER, "agentic_runner_floor").FLOOR) == floor
         m = re.search(r'target-version = "py(\d)(\d+)"', read(RUFF))
         assert m, "ruff.toml lost its target-version"
         assert (int(m.group(1)), int(m.group(2))) == floor, (
-            f"hooks/launch.py holds {floor} and ruff.toml lints at "
+            f"hooks/lib/launch.py holds {floor} and ruff.toml lints at "
             f"{m.group(1)}.{m.group(2)}"
         )
 
@@ -184,9 +184,9 @@ class Test_module:
                 first, defined = RUNS_ITS_RUNNER_DIRECTLY[entry], True
             elif entry.endswith(".cmd"):
                 first = '"%launch%"'
-                defined = 'set "launch=%here%..\\hooks\\launch.py"' in text
+                defined = 'set "launch=%here%..\\hooks\\lib\\launch.py"' in text
             else:
-                first, defined = '"$here/../hooks/launch.py"', True
+                first, defined = '"$here/../hooks/lib/launch.py"', True
             found = launches(text)
             bypass = [line for line, arg in found if arg != first]
             if not found or bypass or not defined:
@@ -212,7 +212,7 @@ class Test_module:
         assert loaded_by("hooks/c.py", loads, tracked) == tracked - {"hooks/c.py"}
         unfloored, missing = before_any_floor()
         targets = ruff_targets(RUFF)
-        assert {"hooks/dispatch.py", "hooks/launch.py"} <= unfloored, unfloored
+        assert {"hooks/dispatch.py", "hooks/lib/launch.py"} <= unfloored, unfloored
         unlinted = sorted(
             r for r in unfloored if not any(matches(p, r) for p in targets)
         )
@@ -224,6 +224,18 @@ class Test_module:
         if stale:
             decline_if_shrunken(missing, "the liveness half of per-file-target-version")
         assert not stale, f"ruff.toml lints {stale} as if a floor-less run reached them"
+
+    def test_a_hook_reaches_the_modules_under_lib(self):
+        """#1060. A gate at the top of `hooks/` puts `hooks/lib/` on its
+        `sys.path` and imports a module there by its bare name, so `loaded_by`
+        follows that import into `hooks/lib/`. A walk that looked only beside
+        the gate and in `hooks/` would find none of them, and the set above
+        would shrink to the gates without failing."""
+        tracked = {"hooks/g.py", "hooks/lib/a.py", "hooks/lib/b.py"}
+        assert loaded_by("hooks/g.py", "import a\nfrom b import c\n", tracked) == {
+            "hooks/lib/a.py",
+            "hooks/lib/b.py",
+        }
 
 
 # --- one number --------------------------------------------------------------
@@ -279,7 +291,7 @@ def launches(text):
 
 
 # The one pair that hands its interpreter the runner itself, and what it hands
-# it: `hooks/launch.py`'s docstring says why `bin/test` is not launched.
+# it: `hooks/lib/launch.py`'s docstring says why `bin/test` is not launched.
 RUNS_ITS_RUNNER_DIRECTLY = {"test": '"$script"', "test.cmd": '"%script%"'}
 
 
@@ -311,8 +323,9 @@ def handed_first(text):
 
 def loaded_by(rel, text, tracked):
     """The tracked `.py` files the module at `rel` loads in its own process:
-    one it imports that sits beside it or in `hooks/`, where a hook's
-    `sys.path[0]` is; a bare `<name>.py` beside it; and the path an
+    one it imports that sits beside it, in `hooks/`, where a hook's
+    `sys.path[0]` is, or in `hooks/lib/`, which each gate inserts before it;
+    a bare `<name>.py` beside it; and the path an
     `os.path.join` spells whose last string part ends in `.py`, `..` left
     out. A module that does not parse here loads nothing."""
     here = posixpath.dirname(rel)
@@ -327,7 +340,11 @@ def loaded_by(rel, text, tracked):
             names = [alias.name.split(".")[0] for alias in node.names]
         elif isinstance(node, ast.ImportFrom) and not node.level and node.module:
             names = [node.module.split(".")[0]]
-        found |= {posixpath.join(d, f"{n}.py") for n in names for d in (here, "hooks")}
+        found |= {
+            posixpath.join(d, f"{n}.py")
+            for n in names
+            for d in (here, "hooks", "hooks/lib")
+        }
         if isinstance(node, ast.Constant) and isinstance(node.value, str):
             if BARE_SCRIPT.fullmatch(node.value):
                 found.add(posixpath.join(here, node.value))

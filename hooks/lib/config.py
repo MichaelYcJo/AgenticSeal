@@ -1,6 +1,6 @@
 """Shared reader: what does this repository say about itself?
 
-`config.md` sits in the root `hooks/optin.py` resolves, in the same shape as
+`config.md` sits in the root `hooks/lib/optin.py` resolves, in the same shape as
 `parity.md` -- a markdown table of `| Item | Value |`. Every row in it is
 optional and every absent row has a default, which is what every repository
 got before that row existed.
@@ -43,9 +43,9 @@ import os
 import re
 import sys
 
-# `hooks/blocks.py` is a sibling, found by this file's own directory, so the
+# `hooks/lib/blocks.py` is a sibling, found by this file's own directory, so the
 # callers that load this module by path -- `broad_gate.py#load`, `seal.py` --
-# find it too. `hooks/routing.py` reaches `optin.py` the same way.
+# find it too. `hooks/lib/routing.py` reaches `optin.py` the same way.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 try:
     import blocks
@@ -114,7 +114,7 @@ CONFIG_SEPARATOR = re.compile(r"^\|[\s:|-]+\|$")
 # format. A rule that knew three backticks only would read the inner fence as
 # the outer one's close and leave the live table inside a fence.
 #
-# The pattern lives in `hooks/blocks.py` since #667, which the routing reader
+# The pattern lives in `hooks/lib/blocks.py` since #667, which the routing reader
 # reads as well; this name is that one.
 FENCE = blocks.FENCE
 
@@ -165,7 +165,7 @@ def fence_map(lines, text=None):
     `config_table`'s refusals are facts about the table for the same caller.
 
     **The lines it hides are `hidden_lines`' below**, which reads the file
-    through `hooks/blocks.py`'s walk (#667): a closed fence, and now a
+    through `hooks/lib/blocks.py`'s walk (#667): a closed fence, and now a
     line-start HTML comment block that closes, hide their lines, and a line
     the walk cannot be sure of keeps the reading this function gave it before
     -- the fence rule alone. The name stays because every caller spells it,
@@ -200,7 +200,7 @@ def hidden_lines(lines, text=None):
     of lines nobody split from a file.
 
     **Two readings, and every line takes one of them** (#667, #658). Where
-    `hooks/blocks.py#walk` is sure, the line is hidden exactly where a
+    `hooks/lib/blocks.py#walk` is sure, the line is hidden exactly where a
     CommonMark renderer hides it: inside a fenced block or a line-start HTML
     comment block that closes. Where the walk is not sure -- a construct
     inside a list item, another kind of HTML block, the lines after inline
@@ -603,7 +603,7 @@ REFERENCE_ROW = "Reference specs"
 NO_REFERENCE = "none"
 # The directory name the default reads as a reference root at any depth.
 REFERENCE_NAME = "specs"
-# The plugin's own root in the tree, `hooks/optin.py#HOME`. Spelled here so
+# The plugin's own root in the tree, `hooks/lib/optin.py#HOME`. Spelled here so
 # this reader needs no second sibling, and held equal to that one by
 # `tests/test_config.py`.
 HOME = "seal"

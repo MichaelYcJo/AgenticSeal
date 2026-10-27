@@ -9,8 +9,8 @@ edited, absorbed or deleted.
 
 `seal/config.md`'s `Reference specs` row names the reference roots, and with
 no row every directory named `specs` outside the plugin's root is one. The row
-has one reader, `hooks/config.py#reference_roots`, and one predicate,
-`hooks/config.py#under_reference_root`; every check that would read a
+has one reader, `hooks/lib/config.py#reference_roots`, and one predicate,
+`hooks/lib/config.py#under_reference_root`; every check that would read a
 reference root as a record asks that predicate instead of spelling its own
 test. The resolver's cases (C1) are in `tests/test_config.py`, since #942's
 phase 6; the checks' cases sit beside each check's own (D1, D2, D3), and
@@ -38,7 +38,7 @@ SEAL = load_module(
 # keeps it off a team's `specs/`, and a command nobody classified turns this
 # red. A check that walks no `specs/` says so; one pinned to the root names
 # the constant it rests on, which its module's file holds under `seal/`:
-# `settle.py#SPECS` in `tests/test_settle.py` and `hooks/routing.py#WORK_ITEMS`
+# `settle.py#SPECS` in `tests/test_settle.py` and `hooks/lib/routing.py#WORK_ITEMS`
 # in `tests/test_routing.py`, each a case of one module, which #942's round 9
 # fix pass moved there from this file. The checks that walk work items are
 # held off a team's `specs/` in their modules' files:
@@ -47,7 +47,7 @@ SEAL = load_module(
 # of the removed work item's id, and `tests/test_chain_check.py`'s
 # `Test_changed_routing`, which takes a declaration only under `seal/threads/`.
 
-PREDICATE = "asks hooks/config.py#under_reference_root"
+PREDICATE = "asks hooks/lib/config.py#under_reference_root"
 PINNED = "reads the plugin's root by a constant under seal/"
 NO_WALK = "walks no specs/ directory"
 NOT_A_CHECK = "is not a check of the tree"

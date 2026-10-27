@@ -43,8 +43,8 @@ jobs:
         with:
           fetch-depth: 0 # the chain check diffs against the base branch
 
-      # The checks ship with the plugin and load `hooks/routing.py` and
-      # `hooks/optin.py` from beside themselves, so the plugin is cloned whole
+      # The checks ship with the plugin and load `hooks/lib/routing.py` and
+      # `hooks/lib/optin.py` from beside themselves, so the plugin is cloned whole
       # rather than copied file by file, and outside the tree, so it is never
       # a commit candidate here either. `actions/checkout` refuses a path
       # outside the workspace, which is why this is a clone and not a step of

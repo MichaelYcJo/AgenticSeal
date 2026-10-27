@@ -27,7 +27,7 @@ proves nothing (*Broad gate* below).
 
 **A row written twice has no value, and a file that will not read is
 refused rather than read as absent.** One reader answers every row of this
-file, `hooks/config.py`. A row written more than once in the table is
+file, `hooks/lib/config.py`. A row written more than once in the table is
 neither its first nor its last: it is refused in the sentence
 "`<item>` appears N times — one value". A file that is there and cannot be
 read as UTF-8 text (a directory of that name, or bytes another encoding
@@ -379,8 +379,8 @@ root out: `seal unverified` prunes it from a directory walk while still
 reading a file named to it explicitly. A prefix naming the plugin's own root
 or anything under it is dropped, because the root's records are read whatever
 this row says; `seal settle --apply` removes only under `seal/threads/`. One reader
-answers the row, `hooks/config.py#reference_roots`, and one predicate the
-path question, `hooks/config.py#under_reference_root`.
+answers the row, `hooks/lib/config.py#reference_roots`, and one predicate the
+path question, `hooks/lib/config.py#under_reference_root`.
 
 **What it asks of the party that frames or builds a change.** That party
 reads a reference root when the change touches what it describes, and cites
@@ -411,7 +411,7 @@ so two pacts whose URLs end in the same segment are refused as ambiguous.
 At this repository's pull request `chain-check` prints the sentence and its
 exit status does not move: a signer's CI prints and does not verify.
 `seal pact`, run at the pact's repository, reads the same row through the
-same reader, `hooks/config.py#pact_declaration`, and exits 2 on it. A `Pact`
+same reader, `hooks/lib/config.py#pact_declaration`, and exits 2 on it. A `Pact`
 row the table does not hold is no row: `seal pact` then reads the signer as
 naming no pact and exits 2 on a relationship recorded on one side only.
 

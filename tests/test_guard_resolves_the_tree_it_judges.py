@@ -139,7 +139,7 @@ def test_the_guard_policy_and_readmes_say_a_body_token_is_not_read():
         "**A token counts only where it is typed outside every here-document "
         "body, and a command that does not split carries none from where its "
         "split fails.** The token is read from the command, and only the "
-        "command: `hooks/tokens.py#given` takes it only where the command as "
+        "command: `hooks/lib/tokens.py#given` takes it only where the command as "
         "written and the command with its here-document bodies taken out"
     ) in _policy_text()
     assert "**Where the token is read from.**" not in _policy_text()

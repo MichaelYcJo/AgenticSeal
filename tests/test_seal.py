@@ -70,7 +70,7 @@ from conftest import (
 TARGET = "skills/implement/scripts/seal.py"
 
 SEAL = load_module(os.path.join(ROOT, *TARGET.split("/")), "seal_under_test")
-OPTIN = load_hook_module("optin.py", "optin_for_seal_cases")
+OPTIN = load_hook_module("lib/optin.py", "optin_for_seal_cases")
 
 ITEM = "1788000000-a-work-item"
 SSH = "git@example.com:org/thing.git"
@@ -412,9 +412,9 @@ class Test_module:
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         # By where the code was COMPILED, not by object identity: this test loads
-        # `hooks/config.py` under a name of its own, so the two module objects
+        # `hooks/lib/config.py` under a name of its own, so the two module objects
         # differ while the implementation behind them must not.
-        owner = os.path.join("hooks", "config.py")
+        owner = os.path.join("hooks", "lib", "config.py")
         for name in ("declared", "config_rows", "config_path"):
             where = getattr(module, name).__code__.co_filename
             assert where.endswith(owner), f"seal.{name} is compiled from {where}"
@@ -460,7 +460,7 @@ class Test_refuse_without_hooks:
                 "it is what finds the repository's seal/ root",
                 None,
             ),
-            # Round 1's yellow 1 of #610: `hooks/config.py` reads `config.md`
+            # Round 1's yellow 1 of #610: `hooks/lib/config.py` reads `config.md`
             # and never writes it, so a purpose saying it writes is #590's
             # wrong-purpose defect again.
             (
@@ -468,7 +468,7 @@ class Test_refuse_without_hooks:
                 "it is what reads the root's config.md",
                 "reads and writes",
             ),
-            # #667: `hooks/config.py` imports `hooks/blocks.py`, so a `hooks/`
+            # #667: `hooks/lib/config.py` imports `hooks/lib/blocks.py`, so a `hooks/`
             # without it fails that import.
             (
                 ["mode", "--check"],

@@ -72,7 +72,7 @@ nothing new.
 
 A third is `cmarkgfm`, pinned in `CMARKGFM` (#647): GitHub's own renderer,
 which `tests/gfm_table_oracle.py` reads to hold the table walker in
-`hooks/config.py` to what GitHub renders. Test-only, on the parser's terms.
+`hooks/lib/config.py` to what GitHub renders. Test-only, on the parser's terms.
 """
 
 import importlib.util
@@ -82,14 +82,19 @@ import subprocess
 import sys
 from pathlib import Path
 
-# The supported floor, read from `hooks/launch.py`, its one source. The
+# The supported floor, read from `hooks/lib/launch.py`, its one source. The
 # virtualenv is built and adopted against it. `bin/test` runs this file on
 # whatever `python3` it finds, not through the launcher, whose docstring says
-# why. Loaded by path, because `hooks/` is not on this file's `sys.path`.
+# why. Loaded by path, because `hooks/lib/` is not on this file's `sys.path`.
 _LAUNCH = importlib.util.spec_from_file_location(
     "agentic_launch_for_run_tests",
     os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "..", "..", "hooks", "launch.py"
+        os.path.dirname(os.path.abspath(__file__)),
+        "..",
+        "..",
+        "hooks",
+        "lib",
+        "launch.py",
     ),
 )
 _launch = importlib.util.module_from_spec(_LAUNCH)
@@ -119,7 +124,7 @@ PILLOW_VERSION = "12.3.0"
 PILLOW = f"pillow=={PILLOW_VERSION}"
 
 # GitHub's own renderer, cmark-gfm, through its `cmarkgfm` binding: the oracle
-# `hooks/config.py#gfm_table` is held to (`tests/gfm_table_oracle.py`, #647).
+# `hooks/lib/config.py#gfm_table` is held to (`tests/gfm_table_oracle.py`, #647).
 # Pinned for the parser's reason -- a renderer that moved under the suite would
 # move every verdict of the walker's property case with it -- and test-only on
 # the same terms: nothing under `hooks/` or `skills/` imports it. The version

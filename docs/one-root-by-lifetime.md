@@ -63,7 +63,7 @@ the migration of a repository installed before the plugin was renamed
 AgenticSeal. The hooks look at the
 two places in that order; whichever exists with the marker says both "on"
 and which mode. A `seal/` whose README opens with a heading an earlier
-release wrote (`hooks/optin.py#EARLIER_HEADINGS`) is that release's root,
+release wrote (`hooks/lib/optin.py#EARLIER_HEADINGS`) is that release's root,
 which the session-start migration rewrites to the marker; until it does,
 it reads as not opted in, and first setup creates no second root beside
 it. A `seal/` whose README opens with neither is a project's own directory,
@@ -134,7 +134,7 @@ it is.
 **`seal/config.md`'s `Mode` row is not the opt-in, and the difference is what
 reads it.** The row says where the root *should* be; the folder's location
 says where it *is*, and no hook, gate or check resolves the root through the
-row: `hooks/optin.py#home_at` is the only reader of the question. A gate that
+row: `hooks/lib/optin.py#home_at` is the only reader of the question. A gate that
 trusted a hand-editable row would look in a place with no folder, and that
 module fails toward *not opted in* rather than toward a guess. What the row
 buys is a repository that can say which mode it wants before the folder is

@@ -656,7 +656,7 @@ class Test_main:
         assert f"seal/threads/{ITEM}/frame/design.md" in listed
         assert not any(p.startswith("seal/specs/") for p in listed), listed
         assert unstaged(layout) == ""
-        routing = load_hook_module("routing.py", "routing_after_the_move")
+        routing = load_hook_module("lib/routing.py", "routing_after_the_move")
         found = [p for p, _ in routing.declarations(str(layout))]
         assert found == [str(layout / "seal" / "threads" / ITEM / "routing.md")]
 
@@ -882,7 +882,7 @@ class Test_rename_state:
         assert start(hook, fresh) == ""
         assert (fresh / ".git" / "agentic-scratch").is_file()
         assert not (fresh / ".git" / "specseal-scratch").exists()
-        optin = load_hook_module("optin.py", "optin_after_the_state_rename")
+        optin = load_hook_module("lib/optin.py", "optin_after_the_state_rename")
         assert optin.home_at(str(fresh)) == "", "the scratch opt-out was lost"
         assert (new_home / "pact-paths.md").read_text(encoding="utf-8") == (
             "| a | b |\n"

@@ -1,26 +1,27 @@
-"""`hooks/cmdline.py`, the wider reading of a command's text, one class per
+"""`hooks/lib/cmdline.py`, the wider reading of a command's text, one class per
 function the cases call by name.
 
 Every case reads a command with no git and no shell, through the reader
 itself. Its readers are the worktree guard's wider reading
 (`hooks/worktree-guard.py`, `wide`), `hooks/implementer-notice.py` and
-`hooks/tokens.py#without_bodies`. The commit gate's text reading, which this
+`hooks/lib/tokens.py#without_bodies`. The commit gate's text reading, which this
 module was written for, went with #1027's phase 5, and the cases that read a
 command through it, or through the directory walk only it reached, went with
 it.
 """
 
+import os
 import sys
 
 import pytest
 from conftest import HOOKS, census_case, load_hook_module, sh
 
-TARGET = "hooks/cmdline.py"
+TARGET = "hooks/lib/cmdline.py"
 
-sys.path.insert(0, HOOKS)
+sys.path.insert(0, os.path.join(HOOKS, "lib"))
 import cmdline  # noqa: E402  -- the plain name the hooks import
 
-reader = load_hook_module("cmdline.py", "cmdline_cd")
+reader = load_hook_module("lib/cmdline.py", "cmdline_cd")
 
 
 def joined(command):

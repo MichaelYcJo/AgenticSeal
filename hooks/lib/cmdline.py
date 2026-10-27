@@ -4,10 +4,10 @@
 Three readers ask questions of the string the harness hands a hook.
 `hooks/worktree-guard.py`'s wider reading asks for the strings a shell is
 handed and the git a redirection or a runner hides; `hooks/implementer-notice.py`
-asks whether a command commits; `hooks/tokens.py#without_bodies` asks where a
+asks whether a command commits; `hooks/lib/tokens.py#without_bodies` asks where a
 here-document body is. None of them owns the answer, so it lives here.
 
-`hooks/optin.py` states the rule this module follows: "the answer moved once
+`hooks/lib/optin.py` states the rule this module follows: "the answer moved once
 already, and four divergent copies is how half of them keep the old answer."
 Copying was not what went wrong here — two gates once imported each other
 instead, and that is worse. One loaded the other for `parse_git` and

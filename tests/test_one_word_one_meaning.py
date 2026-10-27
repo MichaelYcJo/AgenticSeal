@@ -760,21 +760,21 @@ PACT_LINES = (("README.md",), ("README.ko.md",), ("skills", "config", "SKILL.md"
 # The sentences a person is printed: every string constant of `seal pact`.
 PACT_PRINTED = (
     (("skills", "verify", "scripts", "pact_check.py"), None),
-    # The refusals both commands print are written in `hooks/config.py`
+    # The refusals both commands print are written in `hooks/lib/config.py`
     # (round 2 of #647, white 15).
-    (("hooks", "config.py"), "pact_declaration"),
-    (("hooks", "config.py"), "remote_entries"),
-    (("hooks", "config.py"), "pact_signers"),
-    (("hooks", "config.py"), "_stops_at"),
+    (("hooks", "lib", "config.py"), "pact_declaration"),
+    (("hooks", "lib", "config.py"), "remote_entries"),
+    (("hooks", "lib", "config.py"), "pact_signers"),
+    (("hooks", "lib", "config.py"), "_stops_at"),
     # The walker every pact table is read through, and the words the
     # `Signer` table's refusals are put in (#647).
-    (("hooks", "config.py"), "gfm_table"),
-    (("hooks", "config.py"), "_signer"),
+    (("hooks", "lib", "config.py"), "gfm_table"),
+    (("hooks", "lib", "config.py"), "_signer"),
     # The sentence both commands print where a file is headed the old way
     # (#822); one of `PACT_RENAMED_SPANS` below.
-    (("hooks", "config.py"), "renamed_header"),
+    (("hooks", "lib", "config.py"), "renamed_header"),
     # The refusal of a file holding both headers (round 1 of #822, yellow 1).
-    (("hooks", "config.py"), "read_table"),
+    (("hooks", "lib", "config.py"), "read_table"),
 )
 # The thread's working words, and the noun the owner withheld from the
 # repository holding the pact: each would give one thing a second name.
@@ -846,11 +846,11 @@ PACT_RENAMED = re.compile(r"signator(?:y|ies)", re.IGNORECASE)
 # The two places that DISCUSS the old word rather than use it, each named by
 # the span it removes, on the `SEAL_EXCLUDED` precedent: the policy's
 # statement about the old header, from its opening to the end of that
-# statement, and the one unit of `hooks/config.py` that writes the old tuple
+# statement, and the one unit of `hooks/lib/config.py` that writes the old tuple
 # and the rename sentence (a `PACT_PRINTED` member, read alone).
 PACT_RENAMED_SPANS = {
     "docs/the-pact.md": "**A pact headed with the word 0.18.x used still reads",
-    "hooks/config.py renamed_header": None,
+    "hooks/lib/config.py renamed_header": None,
 }
 
 
@@ -933,7 +933,7 @@ def test_no_pact_text_names_a_signer_the_way_0_18_did():
 # - records, which keep the word they were written with: the released
 #   changelogs and the work items' directories;
 # - the compatibility cases, which spell the old header because a case taking
-#   it from `hooks/config.py#renamed_header` would pass with that constant
+#   it from `hooks/lib/config.py#renamed_header` would pass with that constant
 #   changed while every 0.18.x pact stopped reading; and this module, whose
 #   pattern and comments name the word in order to refuse it;
 # - the two spans `PACT_RENAMED_SPANS` names.
@@ -974,7 +974,12 @@ def test_no_live_text_says_the_word_0_19_0_renamed():
         check=True,
     )
     tracked = [p for p in done.stdout.decode("utf-8").split("\0") if p]
-    for rel in (*RENAMED_COMPAT, SWEEP_MODULE, "docs/the-pact.md", "hooks/config.py"):
+    for rel in (
+        *RENAMED_COMPAT,
+        SWEEP_MODULE,
+        "docs/the-pact.md",
+        "hooks/lib/config.py",
+    ):
         assert rel in tracked, f"{rel} is excepted below and no longer tracked"
     for prefix in RENAMED_RECORDS:
         if prefix == SETTLED_RECORDS:
@@ -996,7 +1001,7 @@ def test_no_live_text_says_the_word_0_19_0_renamed():
             text = handle.read()
         if rel == "docs/the-pact.md":
             text = without_the_policy_span(rel, text)
-        elif rel == "hooks/config.py":
+        elif rel == "hooks/lib/config.py":
             unit = next(
                 node
                 for node in ast.walk(ast.parse(text))

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-# RIDER: this module is `hooks/cmdline.py` as it stood at `86256492`, copied
-# byte for byte below this comment, and it exists for one reason: the worktree
-# guard and the consent writer read a command line exactly as the release base
+# RIDER: this module is `86256492:hooks/cmdline.py`, the reader as it stood at
+# that commit, copied byte for byte below this comment, and it exists for one
+# reason: the worktree guard and the consent writer read a command line
+# exactly as the release base
 # read it (#689). Every attempt to order `cmdline.py`'s wider reading for those
 # two readers met another command, and so did reading a base thread that
 # shared #674's recognition (round 1 of 1790745049, red 1), so they read this

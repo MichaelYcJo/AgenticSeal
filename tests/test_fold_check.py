@@ -251,7 +251,7 @@ class Test_main:
     @pytest.mark.parametrize("row", ["Document token ceiling"])
     def test_a_row_written_twice_is_refused_and_nothing_is_checked(self, tmp_path, row):
         """S1 of #867, `seal fold`'s half. A row written twice has no value, by
-        `hooks/config.py#value_of`'s rule: the run exits 2 naming the row and the
+        `hooks/lib/config.py#value_of`'s rule: the run exits 2 naming the row and the
         count, and nothing is checked."""
         root = config_root(tmp_path, [(row, "10"), (row, "20")])
         code, out, err = command("--root", root)
@@ -403,7 +403,7 @@ class Test_module:
         """#590. A copy of this script taken without its siblings exits 2, with
         a sentence naming the missing path and what it is for: 2 means the
         input or the tree was unusable and nothing was read, and a sibling that
-        is not beside the command is that kind. It loads `hooks/optin.py`
+        is not beside the command is that kind. It loads `hooks/lib/optin.py`
         before it reads the root, so `--root` reaches the loader, and the
         sentence is not the fold markers' purpose."""
         script = TARGET
@@ -435,7 +435,7 @@ class Test_module:
 
     def test_fold_check_keeps_no_copy_of_its_own(self):
         """The copy `fold_check.py` held while the reader was being rewritten on
-        another branch is gone: a line ends where `hooks/blocks.py#gfm_lines`
+        another branch is gone: a line ends where `hooks/lib/blocks.py#gfm_lines`
         ends it (#664)."""
         assert not hasattr(fold_check, "gfm_lines")
         assert not hasattr(fold_check, "GFM_LINE_RE")

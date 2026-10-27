@@ -1,4 +1,4 @@
-"""`hooks/implementer.py`: the mark a declared agent's spawn leaves in the
+"""`hooks/lib/implementer.py`: the mark a declared agent's spawn leaves in the
 repository's git dir, and the reading of it after a commit.
 
 The module fails toward "no mark": a git dir that cannot be resolved or a
@@ -14,9 +14,9 @@ import subprocess
 
 from conftest import census_case, git_dir, load_hook_module
 
-TARGET = "hooks/implementer.py"
+TARGET = "hooks/lib/implementer.py"
 
-implementer = load_hook_module("implementer.py", "implementer_for_its_own_file")
+implementer = load_hook_module("lib/implementer.py", "implementer_for_its_own_file")
 
 
 class Test_git_dir:

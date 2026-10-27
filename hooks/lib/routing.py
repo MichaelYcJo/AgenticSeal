@@ -43,7 +43,7 @@ import optin
 try:
     import blocks
 except ImportError as missing:
-    # `hooks/config.py` raises the same sentence for the same reason: this is
+    # `hooks/lib/config.py` raises the same sentence for the same reason: this is
     # a module gates and scripts import, and a script that loads it by path
     # (`chain_check.py`) catches the error or names the file first.
     raise ImportError(
@@ -140,7 +140,7 @@ def shown(lines, text=None):
     TEXT is the file LINES were split from, and `table_rows` passes it: the
     walk reads it where GFM breaks a line, so a `<!--` after a U+2028 or a
     form feed, which `str.splitlines` breaks at, hides nothing a renderer
-    shows (#667 round 1, 🟡 1; `hooks/config.py#hidden_lines` says more).
+    shows (#667 round 1, 🟡 1; `hooks/lib/config.py#hidden_lines` says more).
     """
     walked = blocks.walk(lines) if text is None else blocks.walk_text(text)
     hidden = walked.hidden()
@@ -168,7 +168,7 @@ def table_rows(text):
     below the table answered for it, and so did an answer somebody parked in
     an HTML comment; since #867 a label shown twice has no value at all.
     `shown` below is what this walks, and it hides exactly the lines
-    `hooks/blocks.py` is sure a renderer hides: inside a fenced
+    `hooks/lib/blocks.py` is sure a renderer hides: inside a fenced
     block or a comment block that begins its line, where either closes.
     Every other line is read as it always was, so a fence or a `<!--` nobody
     closed hides nothing, and a declaration that read before still reads.
@@ -237,7 +237,7 @@ def parse(text):
     above the table is not a block at all, so that declaration still reads.
 
     **A label written twice has no value** (#867), the rule
-    `hooks/config.py#value_of` gives every `seal/config.md` row. This used to
+    `hooks/lib/config.py#value_of` gives every `seal/config.md` row. This used to
     keep the LAST row of a label, so a second `Review` row below the first
     answered for it, and nothing said there were two. Now a strict label
     doubled -- `Review`, `Destination`, `Branch` -- makes the file no

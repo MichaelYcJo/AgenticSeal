@@ -1,4 +1,4 @@
-"""`hooks/gate.py`, whether a change reaches outside the document roots, one
+"""`hooks/lib/gate.py`, whether a change reaches outside the document roots, one
 class per function.
 
 `chain_check.py#originals_of` asks it of the paths a pull request changes;
@@ -9,9 +9,9 @@ its cases over a pull request are `tests/test_chain_check.py`'s
 import pytest
 from conftest import census_case, load_hook_module
 
-TARGET = "hooks/gate.py"
+TARGET = "hooks/lib/gate.py"
 
-gate = load_hook_module("gate.py", "gate_under_test")
+gate = load_hook_module("lib/gate.py", "gate_under_test")
 
 
 class Test_touches_code:

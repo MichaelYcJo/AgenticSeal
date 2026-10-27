@@ -155,12 +155,12 @@ check: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py tests
   where a declaring reader keeps an older reading that took it.**
   `unverified_check.py#live_lines` parks a line inside any fence or comment,
   closed or not, and a line its two span readings disagree about.
-  `hooks/config.py#hidden_lines`, which reads `seal/config.md`, keeps,
+  `hooks/lib/config.py#hidden_lines`, which reads `seal/config.md`, keeps,
   wherever its walk is unsure, the fence-only reading it gave before the walk:
   a row below a fence nobody closed declares nothing, and a row below a
   comment opener nobody closed still declares unless a fence that closes
   holds it, because that reading never hid one, and the walk may miss no row
-  the older reading saw. `hooks/routing.py#shown`,
+  the older reading saw. `hooks/lib/routing.py#shown`,
   which reads a `routing.md` and is not one of the four, keeps the reading
   it gave before the walk the same way, and that reading hid nothing: a row
   below a fence or a comment opener nobody closed still declares there,
@@ -297,7 +297,7 @@ check: tests/test_a_record_carries_no_comment.py
 **A record holds a fence only around a finding's paste-ready fix, and a
 labelled line a check reads stands outside every fence, at the start of its
 line.** The readers keep one fence state, by the fence rule of
-`hooks/blocks.py`, because a fix to a record's own grammar can hold a line
+`hooks/lib/blocks.py`, because a fix to a record's own grammar can hold a line
 shaped like a label, and that line belongs to the fix.
 check: tests/test_chain_check.py
 
@@ -310,11 +310,11 @@ release came from. The refusal stands where the reader reads:
 `unverified_check.py` in a `gaps.md`, and `rule_changes.py` in a
 `frame/design.md`'s `## Rule changes`. A base revision that holds such a line is not compared,
 because nobody can edit a commit that already happened. A `routing.md` is
-the exception: its reader, `hooks/routing.py`, runs in the edit check
+the exception: its reader, `hooks/lib/routing.py`, runs in the edit check
 (`docs/the-routing-check.md` *The edit check*) before every edit in an
 opted-in repository, where a refusal would stop the edits of a work item
 framed before its template lost its comments, so that reader keeps the
-comment walk of `hooks/blocks.py`.
+comment walk of `hooks/lib/blocks.py`.
 check: record-comment-line-refused
 
 ## The root records

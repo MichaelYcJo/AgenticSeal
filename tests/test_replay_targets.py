@@ -211,9 +211,13 @@ class Test_module:
 
         git("init", "-q")
         # The check's files as `replay_targets.py` copies them for a commit, the
-        # grammar document apart because the commit below holds an older one.
-        for rel in (r for r in rt.CHECK_FILES if not r.startswith("docs/")):
-            with open(os.path.join(ROOT, rel), encoding="utf-8") as f:
+        # grammar document apart because the commit below holds an older one,
+        # and each at the one path this tree holds it at.
+        for rel in rt.CHECK_FILES:
+            path = os.path.join(ROOT, *rel.split("/"))
+            if rel.startswith("docs/") or not os.path.isfile(path):
+                continue
+            with open(path, encoding="utf-8") as f:
                 put(rel, f.read())
         with open(
             os.path.join(ROOT, "docs", "the-review-record.md"), encoding="utf-8"
@@ -407,6 +411,51 @@ class Test_module:
             ("1791-a", 1): "text of v1.0.0:seal/specs/1791-a/rounds/round-1.md"
         }
         assert shown == ["v1.0.0:seal/specs/1791-a/rounds/round-1.md"]
+
+    @pytest.mark.parametrize(
+        "blocks",
+        [
+            # exempt from vacated_paths: the path a commit before #1060 holds it at
+            "hooks/blocks.py",
+            "hooks/lib/blocks.py",
+        ],
+        ids=["before", "lib"],
+    )
+    def test_a_commit_has_its_hook_module_copied_where_it_holds_it(
+        self, tmp_path, monkeypatch, blocks
+    ):
+        """#1060 moved the hook module `blocks.py` into `hooks/lib/`. A commit's
+        check loads the module from where that commit holds it, so the copy
+        `checks_at` makes takes it from either path and puts it at the same
+        path. A copy that read only the old path would give a commit after the
+        move no module, and its check would fail to load its reader."""
+        rt = load_script("replay_targets")
+        repo = tmp_path / "repo"
+        held = tmp_path / "held"
+        who = ["-c", "user.name=x", "-c", "user.email=x@example.com"]
+
+        def git(*args):
+            return subprocess.run(
+                ["git", "-C", str(repo), *who, *args],
+                check=True,
+                capture_output=True,
+                encoding="utf-8",
+            ).stdout.strip()
+
+        for rel in (rt.CHECK_FILES[0], blocks):
+            path = repo / rel
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(f"# {rel}\n", encoding="utf-8")
+        git("init", "-q")
+        git("add", "-A")
+        git("commit", "-qm", "a commit holding the hook module")
+        monkeypatch.setattr(rt, "ROOT", str(repo))
+        monkeypatch.setattr(rt.tempfile, "mkdtemp", lambda prefix: str(held))
+        check = type("Check", (), {"READER": "", "load": lambda *_a: None})
+        monkeypatch.setattr(rt, "load_check", lambda _path, _name: check)
+        rt.checks_at(git("rev-parse", "HEAD"))
+        copied = held.joinpath(*blocks.split("/"))
+        assert copied.read_text(encoding="utf-8") == f"# {blocks}\n"
 
     @pytest.mark.parametrize(
         ("script", "name", "items"),

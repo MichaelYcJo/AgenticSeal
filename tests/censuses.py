@@ -644,7 +644,7 @@ def opens_with_to_utf8(guard):
 
 def entry_point(rel, root=None):
     """Every hook entry point opens its `__main__` block with
-    `console.to_utf8()`, which `hooks/console.py` says each one carries
+    `console.to_utf8()`, which `hooks/lib/console.py` says each one carries
     rather than relying on `dispatch.py` having made the call. The census
     reads the order: the call after `main()` is refused as its absence is.
     Whether the call works is `tests/test_console.py`'s and, for the
@@ -671,7 +671,7 @@ def entry_point(rel, root=None):
 def splitlines(rel, root=None):
     """No shipped reader splits a document's lines with `.splitlines(`,
     which also ends a line at the eight separators GFM does not. A reader
-    of markdown or record text reads `hooks/blocks.py#gfm_lines`, and a call
+    of markdown or record text reads `hooks/lib/blocks.py#gfm_lines`, and a call
     over any other text, git's output or a tool's, carries its exemption
     above the line that names `splitlines`."""
     text = _python(rel, root, SHIPPED)
@@ -687,7 +687,7 @@ def splitlines(rel, root=None):
     flagged = {
         line: (
             "`.splitlines(` ends a line where GFM does not; a reader of "
-            "markdown or record text reads `hooks/blocks.py#gfm_lines`, and a "
+            "markdown or record text reads `hooks/lib/blocks.py#gfm_lines`, and a "
             "call over any other text puts "
             "`# exempt from splitlines: <what it splits>` on its own line above it"
         )
@@ -1085,7 +1085,7 @@ OLD_NAME_RECORDS = (
 RECORDED_CASE = re.compile(r"^evals/behaviour/[^/]+/(?:replay|seeded)-")
 # The migration and its cases spell the 0.22.x layout and the state names a
 # session start moves from, which is the one place those names are read.
-# `hooks/cmdline_base.py` is, below its rider, `86256492`'s `hooks/cmdline.py`
+# `hooks/lib/cmdline_base.py` is, below its rider, `86256492:hooks/cmdline.py`
 # byte for byte, which `tests/test_the_frozen_reading_never_grows.py` holds,
 # so no line of it can change or carry an exemption. The replay and seeded
 # cases' generators read round records at the 0.22.x layout every committed
@@ -1095,7 +1095,7 @@ KEPT_FILES = (
     "hooks/root-migrate.py",
     "tests/test_root_migrate.py",
     "tests/test_the_root_migrates_itself.py",
-    "hooks/cmdline_base.py",
+    "hooks/lib/cmdline_base.py",
     "tests/test_replay_targets.py",
     "tests/test_seed_defects.py",
 )
@@ -1154,6 +1154,10 @@ VACATING = (
 # written; the old path is the one that commit holds. Taken out of a line
 # before the census reads it.
 COMMIT_PATH = re.compile(r"(?<![\w/:])[0-9a-f]{7,40}:[\w./-]+")
+# The files passed over whole. `hooks/lib/cmdline_base.py`'s docstring below
+# its rider is `86256492`'s and names that commit's paths, and no line of it
+# can change or carry an exemption, for the reason `KEPT_FILES` gives.
+VACATED_KEPT_FILES = ("hooks/lib/cmdline_base.py",)
 
 
 def vacated(root=None):
@@ -1178,10 +1182,12 @@ def vacated_paths(rel, root=None):
     for `templates/` and `tests/`. A spelling counts as a word, at the start
     of a path or after a shell variable such as `$CLAUDE_PLUGIN_ROOT/`, and
     not inside a longer path. The records and the recorded cases `old_names`
-    passes are passed over whole, a path cited at a commit passes, and any
-    other line that keeps an old path carries its exemption. A file that is
-    not UTF-8 text is not read."""
-    if rel.startswith(OLD_NAME_RECORDS) or RECORDED_CASE.match(rel):
+    passes and the files of `VACATED_KEPT_FILES` are passed over whole, a
+    path cited at a commit passes, and any other line that keeps an old path
+    carries its exemption. A file that is not UTF-8 text is not read."""
+    if rel.startswith(OLD_NAME_RECORDS + VACATED_KEPT_FILES) or RECORDED_CASE.match(
+        rel
+    ):
         return []
     moved = vacated(root)
     if not moved:

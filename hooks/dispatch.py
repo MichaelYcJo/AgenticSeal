@@ -263,7 +263,7 @@ def merge(outputs, event_name):
 
 # --- a gate that failed is said (#28) ----------------------------------------
 #
-# Nothing below imports a module under `hooks/` except `optin.py`, and that
+# Nothing below imports a module under `hooks/lib/` except `optin.py`, and that
 # one inside a guard: a report must not depend on the module whose failure it
 # reports, and a broken `console.py` or `optin.py` is exactly the failure
 # that silences the most gates at once.
@@ -299,7 +299,7 @@ def toplevel(cwd):
 def common_dir(top):
     """The git common dir of the repository at `top`, or "". A `.git`
     directory IS it, with no process started; a `.git` file (a linked
-    worktree) is asked of git, the way `hooks/optin.py#git_common_dir` asks."""
+    worktree) is asked of git, the way `hooks/lib/optin.py#git_common_dir` asks."""
     if not top:
         return ""
     dotgit = os.path.join(top, ".git")
@@ -326,7 +326,8 @@ def opted_in(top, common):
     the one state that must not also silence the report of it."""
     try:
         spec = importlib.util.spec_from_file_location(
-            "agentic_optin_for_the_failure_report", os.path.join(HOOKS, "optin.py")
+            "agentic_optin_for_the_failure_report",
+            os.path.join(HOOKS, "lib", "optin.py"),
         )
         optin = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(optin)
@@ -642,7 +643,7 @@ if __name__ == "__main__":
     # `hasattr` guard covers a stream that is None, which is what a hook
     # invoked with a closed stdin would hand us.
     #
-    # The names are held rather than the streams, because `hooks/console.py`
+    # The names are held rather than the streams, because `hooks/lib/console.py`
     # -- the module this loop duplicates -- says a stream can be ABSENT and
     # reaches for it with `getattr(sys, name, None)`. Building the tuple from
     # `sys.stdin` directly raises `AttributeError` in that state, at module

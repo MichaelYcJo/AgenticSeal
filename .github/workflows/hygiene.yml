@@ -208,7 +208,7 @@ jobs:
       # `seal/config.md`'s `Mode` row says which of the two places the root
       # should live at; the folder's location says where it is. Nothing at
       # runtime reads the row — every gate resolves the root through
-      # `hooks/optin.py#home_at` — so the row is the one thing here that can
+      # `hooks/lib/optin.py#home_at` — so the row is the one thing here that can
       # quietly stop being true, and this is what stops it.
       #
       # It fails only for a disagreement, which is always the author's and

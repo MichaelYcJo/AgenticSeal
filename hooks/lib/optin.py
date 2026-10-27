@@ -35,7 +35,7 @@ import subprocess
 
 HOME = "seal"
 # The sub-directory of the root that holds the work items. Readers that
-# classify repository-relative paths — `hooks/gate.py#DOC_ROOTS`, the CI
+# classify repository-relative paths — `hooks/lib/gate.py#DOC_ROOTS`, the CI
 # scripts' globs, `chain_check.py`'s prefix — spell `seal/` as a string,
 # because a path in a diff or a tree listing is only ever the shared root;
 # every hook that opens a file joins this under `home()` instead, so #80

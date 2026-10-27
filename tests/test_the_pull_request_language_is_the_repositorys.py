@@ -338,11 +338,11 @@ def test_a_korean_row_is_what_flips_the_refused_mirror_name(tmp_path):
 #
 # This file used to carry its own copy of the loop — a `HEADER`, a `ROW`, a
 # `SEPARATOR` and an `items()` that arrived at both stop rules over two
-# review rounds. The copy agreed with `hooks/config.py#config_rows` for as
+# review rounds. The copy agreed with `hooks/lib/config.py#config_rows` for as
 # long as neither moved, and #415 is the branch that moved one: the production
 # reader learned markdown's `\|` escape, and a second reader that had not
 # would answer a different question about the same file. That is exactly what
-# `hooks/config.py`'s own docstring says the module exists to prevent.
+# `hooks/lib/config.py`'s own docstring says the module exists to prevent.
 #
 # So the loop is gone and `items` is the one reader, reached by the name this
 # file already spelled. Its two stop rules and the rounds behind them are now
@@ -350,11 +350,11 @@ def test_a_korean_row_is_what_flips_the_refused_mirror_name(tmp_path):
 # deferral standing since work item
 # `1788817289-local-mode-from-first-setup-to-the-gate`.
 
-CONFIG_READER = ("hooks", "config.py")
+CONFIG_READER = ("hooks", "lib", "config.py")
 
 
 def _config_reader():
-    """`hooks/config.py`, loaded by path — the one reader of this table."""
+    """`hooks/lib/config.py`, loaded by path — the one reader of this table."""
     import importlib.util
 
     path = os.path.join(ROOT, *CONFIG_READER)
@@ -448,7 +448,7 @@ def configured_language(root=None):
     can read must not stop a commit.
 
     The ROOT is resolved first and the config read from that one, the way
-    `hooks/optin.py#home_at` resolves it: whichever of the two directories
+    `hooks/lib/optin.py#home_at` resolves it: whichever of the two directories
     exists is the answer, and an unreadable file inside it is one of the
     four ways rather than a reason to look in the other place.
     """
@@ -569,7 +569,7 @@ def test_the_reader_finds_a_config_under_the_git_directory(repo):
 def test_the_tree_root_still_wins_over_the_git_directory(repo):
     """The order, not just the fallback. Whichever directory exists first is
     the root, so a repository holding both is answered by the committed one
-    — `hooks/optin.py#home_at` resolves it that way and a reader that
+    — `hooks/lib/optin.py#home_at` resolves it that way and a reader that
     disagreed would send a session to the wrong file."""
     local = local_home(repo)
     (local / "config.md").write_text(
@@ -633,7 +633,7 @@ def test_a_mirror_named_for_a_country_is_caught():
 def test_the_documents_name_every_shape_the_walker_refuses_and_its_edit():
     """S8 of #871, in `test_the_skill_names_every_way_of_not_naming_one`'s
     pattern. `templates/setup/config.md`, `skills/config/SKILL.md` and
-    `hooks/config.py#config_rows`' docstring each name the shapes the walker
+    `hooks/lib/config.py#config_rows`' docstring each name the shapes the walker
     refuses with the one edit for each, and none of them still says the
     reader stops at a line and reads on, or that a row below a bad line is
     invisible. Seen red against the stop rule's documents: none named the
@@ -704,7 +704,7 @@ def test_the_template_is_one_item_value_table_whose_first_row_is_the_language():
 
 def test_this_file_loads_the_one_reader_and_not_a_copy_of_it():
     """A8 of #415. The copy of the loop that used to live here agreed with
-    `hooks/config.py#config_rows` right up until one of them moved.
+    `hooks/lib/config.py#config_rows` right up until one of them moved.
 
     Asserted by where the code was COMPILED, the way
     `tests/test_seal.py#Test_module::test_the_command_and_the_gate_read_one_parser`
@@ -714,7 +714,7 @@ def test_this_file_loads_the_one_reader_and_not_a_copy_of_it():
     see a copy return — a reimplementation loaded under the same name passes
     it.
     """
-    owner = os.path.join("hooks", "config.py")
+    owner = os.path.join("hooks", "lib", "config.py")
     where = items.__code__.co_filename
     assert where.endswith(owner), f"`items` is compiled from {where}"
     # And it is the escape-aware reader, not something that merely lives at

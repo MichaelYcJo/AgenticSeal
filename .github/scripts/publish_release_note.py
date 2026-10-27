@@ -95,7 +95,7 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-sys.path.insert(0, os.path.join(HERE, "..", "..", "hooks"))
+sys.path.insert(0, os.path.join(HERE, "..", "..", "hooks", "lib"))
 import console  # noqa: E402
 from close_issues_on_release import keywords_in  # noqa: E402
 

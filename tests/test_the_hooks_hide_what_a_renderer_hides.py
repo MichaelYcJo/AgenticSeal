@@ -360,7 +360,7 @@ COMMENT_SHAPES = [
 BREAK_SAMPLE = [BREAKS[name] for name in ("LS", "PS", "NEL", "FF", "FS")]
 
 # Lines the generated documents are drawn from. Each is here because it is a
-# delimiter, a container, or a context `hooks/blocks.py` calls uncertain, and
+# delimiter, a container, or a context `hooks/lib/blocks.py` calls uncertain, and
 # a context the walk is ever made exact for has to be in this list first: the
 # property is only as good as what the corpus can hold.
 ALPHABET = [
@@ -554,9 +554,12 @@ CORPUS = (
 
 
 def load_hook(filename):
+    """The module FILENAME under `hooks/lib/`."""
     from conftest import load_hook_module
 
-    return load_hook_module(filename, "agentic_" + filename[:-3] + "_for_the_oracle")
+    return load_hook_module(
+        "lib/" + filename, "agentic_" + filename[:-3] + "_for_the_oracle"
+    )
 
 
 blocks = load_hook("blocks.py")
@@ -585,7 +588,7 @@ def disagreements(doc):
 
 
 def test_where_the_walk_claims_to_be_exact_it_is():
-    """Half 2, S2. On every line `hooks/blocks.py` does not call uncertain,
+    """Half 2, S2. On every line `hooks/lib/blocks.py` does not call uncertain,
     over the shapes, the old cases and the generated corpus, the walk hides
     a line exactly where the oracle hides it. Without this half a reader that
     did nothing would pass half 1."""
@@ -633,7 +636,7 @@ uc = shared_rule()
 
 
 def config_base(lines):
-    """What `hooks/config.py` hid at `release/v0.16.0`: every line inside a
+    """What `hooks/lib/config.py` hid at `release/v0.16.0`: every line inside a
     fenced block by the shared delimiter rule, a block nobody closed running
     to the end. `tests/test_unverified_rows_close.py#test_the_fence_rule_
     agrees_with_the_config_reader` held that reader to exactly this."""
@@ -657,7 +660,7 @@ config = load_hook("config.py")
 
 
 def test_the_config_reader_never_leaves_both_readings():
-    """Half 1, S4. On every line of every document, `hooks/config.py` hides
+    """Half 1, S4. On every line of every document, `hooks/lib/config.py` hides
     the line where its base reading hid it or where a renderer hides it, and
     nowhere else: a line it newly hides was never a live row, and a line it
     newly shows was never fenced or commented out."""
@@ -679,7 +682,7 @@ routing = load_hook("routing.py")
 
 
 def test_the_routing_reader_never_leaves_both_readings():
-    """Half 1, S9. `hooks/routing.py#table_rows` read every line at
+    """Half 1, S9. `hooks/lib/routing.py#table_rows` read every line at
     `release/v0.16.0`, so its base hides nothing, and every line it skips now
     has to be one a renderer hides: a row it stops reading was never a live
     answer."""

@@ -24,7 +24,7 @@
 #   SIM102 (collapsible if)       a gate's outer condition asks whether it
 #       applies and the inner asks whether it fires. One boolean loses that.
 
-target-version = "py312"  # the floor hooks/launch.py holds
+target-version = "py312"  # the floor hooks/lib/launch.py holds
 line-length = 88
 
 # Snippets in skills and docs are illustrations, sometimes deliberately
@@ -41,7 +41,7 @@ extend-exclude = ["*.md"]
 # holds every file of it to this table, and refuses in each the syntax and the
 # two constructs above that this version lacks; nothing runs it at 3.9.
 [per-file-target-version]
-"hooks/*.py" = "py39"  # its `*` crosses a `/`, so hooks/git/ too
+"hooks/*.py" = "py39"  # its `*` crosses a `/`, so hooks/lib/ too
 ".github/scripts/run_tests.py" = "py39"
 "skills/verify/scripts/seal_stamp.py" = "py39"
 "skills/code-review/scripts/chain_check.py" = "py39"

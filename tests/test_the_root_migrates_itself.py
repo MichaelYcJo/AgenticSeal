@@ -23,16 +23,19 @@ from test_root_migrate import (  # noqa: F401  -- the fixtures the cases take
 
 def test_no_hook_names_the_0_3_x_roots():
     """No code of the plugin opens `.specseal/` or a top-level `specs/`, so
-    no file in `hooks/` names the first or keeps a constant for the second,
-    and the migration hook still carries the rider saying it can go once no
-    repository is left to migrate."""
+    no file under `hooks/`, its modules in `hooks/lib/` among them, names the
+    first or keeps a constant for the second, and the migration hook still
+    carries the rider saying it can go once no repository is left to
+    migrate."""
     src = open(os.path.join(ROOT, "hooks", "root-migrate.py"), encoding="utf-8").read()
     assert "# RIDER:" in src
-    for name in sorted(os.listdir(os.path.join(ROOT, "hooks"))):
-        if name.endswith(".py"):
-            text = open(os.path.join(ROOT, "hooks", name), encoding="utf-8").read()
-            assert ".specseal" not in text, f"{name} names the 0.3.x root"
-            assert "OLD_ITEMS" not in text, f"{name} keeps the 0.3.x specs/"
+    for here in (("hooks",), ("hooks", "lib")):
+        for name in sorted(os.listdir(os.path.join(ROOT, *here))):
+            if name.endswith(".py"):
+                path = os.path.join(ROOT, *here, name)
+                text = open(path, encoding="utf-8").read()
+                assert ".specseal" not in text, f"{name} names the 0.3.x root"
+                assert "OLD_ITEMS" not in text, f"{name} keeps the 0.3.x specs/"
 
 
 HEADINGS = {

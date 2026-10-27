@@ -48,6 +48,7 @@ import subprocess
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 import console
 import optin
 import routing
@@ -202,7 +203,7 @@ def declaration_hint(top):
     """The declaration path a refusal tells a session to write, relative to
     `top` and spelled the way the platform spells it, as
     `hooks/implementer-notice.py` spells the same file: the root arrives
-    `normpath`ed (`hooks/optin.py`), so `os.path.join` keeps one dialect.
+    `normpath`ed (`hooks/lib/optin.py`), so `os.path.join` keeps one dialect.
 
     Under the root this repository resolves to: in local mode that root is
     under the git directory. A linked worktree on another Windows drive has no
@@ -292,7 +293,7 @@ def main():
 
 if __name__ == "__main__":
     # A console that cannot encode what this prints kills it with stdout
-    # empty, which is how a hook says "nothing to see here". `hooks/console.py`
+    # empty, which is how a hook says "nothing to see here". `hooks/lib/console.py`
     # owns the reasoning and the three decisions behind these lines.
     console.to_utf8()
     main()

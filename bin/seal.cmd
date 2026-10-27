@@ -6,7 +6,7 @@ setlocal
 set "here=%~dp0"
 set "script=%here%..\skills\implement\scripts\seal.py"
 
-set "launch=%here%..\hooks\launch.py"
+set "launch=%here%..\hooks\lib\launch.py"
 
 where /q py
 if errorlevel 1 goto usepython

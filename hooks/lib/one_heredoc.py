@@ -4,10 +4,10 @@ taken out (#739, #763).
 The commit gate's text reading read every heredoc body as shell and asked
 whether it committed, because a body a shell runs is a command; since #1027
 the reader of this file is the worktree guard's token reader,
-`hooks/tokens.py`. A body that is only the text of a
+`hooks/lib/tokens.py`. A body that is only the text of a
 file, or a Python program read from stdin, is not, and reading it as shell
 stopped whole Bash calls for a body that only MENTIONED a commit. #760 tried
-to tell the two apart through `hooks/cmdline.py`'s body boundaries, and four
+to tell the two apart through `hooks/lib/cmdline.py`'s body boundaries, and four
 review passes each found a place where that splitter and the shell disagree
 about where a body starts or ends. Every one was a silent commit.
 

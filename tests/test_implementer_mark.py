@@ -6,7 +6,7 @@ can declare an agent and then do the work itself. The mark is what spawning
 the agent leaves, so the notice can tell. Missing, the notice fires for work
 that was done correctly. The mark decides nothing, and a broken mark gate must
 leave the worktree guard's verdict alone, which is the objection #26 raised
-against putting a second gate in `pre-agent`. What `hooks/implementer.py`
+against putting a second gate in `pre-agent`. What `hooks/lib/implementer.py`
 writes and reads is asked through this hook. The cases come from
 `tests/test_the_implementer_is_recorded.py` (#942's phase 6).
 """
@@ -30,7 +30,7 @@ from conftest import (
 
 TARGET = "hooks/implementer-mark.py"
 
-implementer = load_hook_module("implementer.py", "agentic_implementer")
+implementer = load_hook_module("lib/implementer.py", "agentic_implementer")
 
 
 def mark_path(repo, mark):

@@ -56,7 +56,7 @@ def _reader():
     return module
 
 
-# The fence delimiter rule, `hooks/blocks.py#fence_opener` and
+# The fence delimiter rule, `hooks/lib/blocks.py#fence_opener` and
 # `#fence_closes` (#584) — the pair `payload_meter.py#heading_starts` asks.
 RULE = _reader()
 
@@ -74,7 +74,7 @@ def headings(text):
 
     A fence is tracked because a skill quotes headings as examples, and an
     example is not a section. The fence is the shared rule,
-    `hooks/blocks.py#fence_opener` and `#fence_closes` (#584), the same
+    `hooks/lib/blocks.py#fence_opener` and `#fence_closes` (#584), the same
     rule `payload_meter.py#heading_starts` applies: at most three spaces of
     indentation, no backtick in a backtick opener's info string, and a close
     only on a run of the same character at least as long with nothing after
@@ -86,7 +86,7 @@ def headings(text):
     `tests/test_every_orchestrator_act_names_its_delivery.py` reads it for
     the row set of the orchestrator's own table (#330). Two parsers of one
     marker is how half of them come to keep the old answer, which is
-    `hooks/routing.py`'s own reason for being a module.
+    `hooks/lib/routing.py`'s own reason for being a module.
     """
     found, fence = [], None
     for line in text.splitlines():

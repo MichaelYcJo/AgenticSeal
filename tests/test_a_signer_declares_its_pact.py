@@ -8,7 +8,7 @@ own `seal/config.md`:
 
     | Pact | git@example.com:org/orders-api.git |
 
-The row has one reader, `hooks/config.py#pact_declaration`, which both
+The row has one reader, `hooks/lib/config.py#pact_declaration`, which both
 `chain_check.py` (prints) and `pact_check.py` (refuses) ask. That reader's
 cases (S1-S3 of the work item's `frame/design.md`) and the `Signer` table's are in
 `tests/test_config.py` since #942's phase 6, and `seal.py`'s re-export of
@@ -23,7 +23,7 @@ from conftest import ORDERS, URL, flat, load_hook_module
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
-config = load_hook_module("config.py", "config_for_the_pact")
+config = load_hook_module("lib/config.py", "config_for_the_pact")
 
 
 def _broad_gate_block():

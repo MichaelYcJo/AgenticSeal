@@ -2456,8 +2456,8 @@ class Test_main:
 class Test_module:
     def test_the_fence_rule_and_the_line_split_are_the_hooks(self):
         """S12 of #1005: the fence delimiter rule and the line split are
-        written once, in `hooks/blocks.py`, and this module asks that copy."""
-        blocks = os.path.join(ROOT, "hooks", "blocks.py")
+        written once, in `hooks/lib/blocks.py`, and this module asks that copy."""
+        blocks = os.path.join(ROOT, "hooks", "lib", "blocks.py")
         for name in ("fence_opener", "fence_closes", "gfm_lines"):
             code = getattr(UC, name).__code__
             assert os.path.samefile(code.co_filename, blocks), (name, code.co_filename)

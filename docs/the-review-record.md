@@ -615,7 +615,7 @@ answered, it is refused like any other question. Any routing answer
 from this clone in the session spends the exemption, including one
 given for another work item, so a session that has already answered
 for another branch cannot put question 1 again; that is outside the
-one-issue flow. The declaration is read through `hooks/routing.py` for the
+one-issue flow. The declaration is read through `hooks/lib/routing.py` for the
 branch checked out where the session sits, and every way of not
 reading it is the attended answer. The file is written by the model,
 which is why the worktree guard never reads it as consent. It is read

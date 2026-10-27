@@ -67,7 +67,7 @@ of its `seal/config.md`, and one reader answers that row for every
 caller.** `Pact` is the origin remote URL of the pact's repository, several
 separated by `;`, compared normalised; its last path segment is the name an
 anchor carries, so two pacts ending in one segment are refused.
-`hooks/config.py#pact_declaration` refuses what will not parse in a sentence
+`hooks/lib/config.py#pact_declaration` refuses what will not parse in a sentence
 and stops nothing, so every reader of the row reads the same row. A `Pact`
 row written twice has no value at all: its first row is not the answer. A
 `Pact` row the config table does not hold is no row, so `seal pact` reads

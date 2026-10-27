@@ -69,7 +69,7 @@ A pact under local mode has no history, so every mismatch there reads
 A pact whose table is headed with the word 0.18.x used is read exactly as
 one headed `Signer`, and one line before
 that file's other lines names the file, both headers and the release that
-renamed them (`hooks/config.py#renamed_header`). The line is in no exit
+renamed them (`hooks/lib/config.py#renamed_header`). The line is in no exit
 class: the exit is what it would be under the new header (#822).
 """
 
@@ -82,7 +82,7 @@ import subprocess
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-HOOKS = os.path.join(HERE, "..", "..", "..", "hooks")
+HOOKS = os.path.join(HERE, "..", "..", "..", "hooks", "lib")
 CHECKER = os.path.join(HERE, "coordinates.py")
 PACT_FILE = "pact.md"
 CONFIG_FILE = "config.md"

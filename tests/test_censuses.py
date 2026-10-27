@@ -600,7 +600,7 @@ class Test_splitlines:
                 "        .splitlines()\n    )\n",
                 "skills/new.py:4: splitlines: `.splitlines(` ends a line where GFM "
                 "does not; a reader of markdown or record text reads "
-                "`hooks/blocks.py#gfm_lines`, and a call over any other text puts "
+                "`hooks/lib/blocks.py#gfm_lines`, and a call over any other text puts "
                 "`# exempt from splitlines: <what it splits>` on its own line "
                 "above it",
             ),

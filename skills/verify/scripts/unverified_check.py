@@ -73,15 +73,15 @@ import re
 import subprocess
 import sys
 
-# `hooks/` beside this script, from which the fence rule, the line split, the
-# `Reference specs` row's reader and the root's resolver are loaded by path
-# (#688, #1005).
+# `hooks/lib/` beside this script, from which the fence rule, the line split,
+# the `Reference specs` row's reader and the root's resolver are loaded by
+# path (#688, #1005).
 HERE = os.path.dirname(os.path.abspath(__file__))
-HOOKS = os.path.join(HERE, "..", "..", "..", "hooks")
+HOOKS = os.path.join(HERE, "..", "..", "..", "hooks", "lib")
 
 
 def _load_blocks():
-    """`hooks/blocks.py`, the one place the fence delimiter rule and the GFM
+    """`hooks/lib/blocks.py`, the one place the fence delimiter rule and the GFM
     line split are written. A hook imports nothing from `skills/`, so this
     module asks the hook's copy rather than the other way round."""
     spec = importlib.util.spec_from_file_location(
@@ -100,8 +100,8 @@ _BLOCKS = _load_blocks()
 # `_paragraph_ends_at`; so do `coordinates.py#quoted_lines`,
 # `gather_changelog.py` through `live_lines`, `payload_meter.py#heading_starts`
 # and `tests/test_a_section_marked_for_one_role_reaches_only_that_role.py`;
-# and `hooks/blocks.py#walk` adds a line-start HTML comment block to it for
-# `hooks/config.py` and `hooks/routing.py`, apart from `live_lines` on
+# and `hooks/lib/blocks.py#walk` adds a line-start HTML comment block to it for
+# `hooks/lib/config.py` and `hooks/lib/routing.py`, apart from `live_lines` on
 # purpose, since a hook row is safe at its old reading where the walk is
 # unsure. Readers that keep a rule of their own, each on purpose: the pull request
 # body readers through `close_issues_on_release.py#FENCE`, which open a fence
@@ -127,7 +127,7 @@ GFM_LINE_RE = _BLOCKS.GFM_LINE_RE
 gfm_lines = _BLOCKS.gfm_lines
 
 # A thread's closing memo, at the thread's top, and the directory under a
-# `seal/` root that holds the threads: `hooks/optin.py#GAPS` and
+# `seal/` root that holds the threads: `hooks/lib/optin.py#GAPS` and
 # `#WORK_ITEMS`, which a case holds these two to.
 OVERVIEW = "gaps.md"
 ITEMS = "threads"
@@ -954,8 +954,8 @@ def overviews(paths):
 
 
 def config_at(top):
-    """`(hooks/config.py, the seal/ root)` for the repository at `top`, the
-    root as `hooks/optin.py#home_at` resolves it."""
+    """`(hooks/lib/config.py, the seal/ root)` for the repository at `top`, the
+    root as `hooks/lib/optin.py#home_at` resolves it."""
     modules = []
     for name in ("config", "optin"):
         path = os.path.join(HOOKS, f"{name}.py")
@@ -970,9 +970,9 @@ def config_at(top):
 
 
 def references_at(top):
-    """`(hooks/config.py, roots)` for the repository at `top` — the module
+    """`(hooks/lib/config.py, roots)` for the repository at `top` — the module
     holding `under_reference_root` and what the row names under the root
-    `hooks/optin.py#home_at` resolves — or None for a copy of this script
+    `hooks/lib/optin.py#home_at` resolves — or None for a copy of this script
     with no `hooks/` beside it.
 
     None prunes nothing, which reads more and never less: a copy taken alone
@@ -987,7 +987,7 @@ def references_at(top):
 
 
 def policy_root(top):
-    """The policy root of the repository at `top`, `hooks/config.py#policy_root`'s
+    """The policy root of the repository at `top`, `hooks/lib/config.py#policy_root`'s
     answer for its `seal/` root."""
     config, home = config_at(top)
     return config.policy_root(home)
@@ -1740,7 +1740,7 @@ def main(argv=None):
 
 if __name__ == "__main__":
     # A console that cannot encode what this prints kills it with stdout
-    # empty, which is how a hook says "nothing to see here". `hooks/console.py`
+    # empty, which is how a hook says "nothing to see here". `hooks/lib/console.py`
     # owns the reasoning and the three decisions behind these lines.
     for _name, _errors in (
         ("stdin", "replace"),

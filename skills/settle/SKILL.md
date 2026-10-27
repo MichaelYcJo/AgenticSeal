@@ -266,7 +266,7 @@ request's merge commit, whatever the merge method was.
   item's `routing.md` and asks
   `gh pr list --head <branch> --state merged --json number,mergeCommit`
   from the repository's top, once per branch. A work item is unreleased,
-  and untouched, in three states: no `routing.md` that `hooks/routing.py`
+  and untouched, in three states: no `routing.md` that `hooks/lib/routing.py`
   reads as a declaration naming a branch, no merged pull request from that
   branch, or no listed merge commit reachable from `--released-at`, a pull
   request listed with no merge commit among them. Shared mode never asks

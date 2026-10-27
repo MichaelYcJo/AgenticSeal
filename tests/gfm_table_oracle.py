@@ -1,6 +1,6 @@
 """Which tables cmark-gfm renders out of a markdown document, and their cells.
 
-This is the oracle `hooks/config.py#gfm_table` is held to (#647, steps C and
+This is the oracle `hooks/lib/config.py#gfm_table` is held to (#647, steps C and
 D). It answers one question -- what does GitHub's own renderer put in each
 table -- and nothing else. Which table a reader wants, and what it refuses,
 is the reader's grammar and is not asked here.

@@ -524,16 +524,21 @@ def _no_session_in_the_environment(monkeypatch):
 
 
 def load_hook_module(filename, name):
-    spec = importlib.util.spec_from_file_location(name, os.path.join(HOOKS, filename))
+    """The file at FILENAME under `hooks/`, a gate by its name and a module
+    as `lib/<name>`, run as a module named NAME. FILENAME is split on `/`, so
+    the path is joined from single segments on every platform."""
+    spec = importlib.util.spec_from_file_location(
+        name, os.path.join(HOOKS, *filename.split("/"))
+    )
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
 
 
-# `hooks/optin.py#MARKER`: a `seal/` is the plugin's root only where its
+# `hooks/lib/optin.py#MARKER`: a `seal/` is the plugin's root only where its
 # `README.md` opens with this line, so every helper below that builds a root
 # writes it.
-ROOT_MARKER = load_hook_module("optin.py", "agentic_optin_for_fixtures").MARKER
+ROOT_MARKER = load_hook_module("lib/optin.py", "agentic_optin_for_fixtures").MARKER
 
 
 def mark_root(home):
@@ -551,7 +556,7 @@ def mark_root(home):
 def run_hook(filename, payload, env=None):
     """Feed a hook the stdin JSON the harness would send; return its stdout."""
     r = subprocess.run(
-        [sys.executable, os.path.join(HOOKS, filename)],
+        [sys.executable, os.path.join(HOOKS, *filename.split("/"))],
         input=json.dumps(payload),
         capture_output=True,
         encoding="utf-8",
@@ -655,7 +660,7 @@ def ps_names_the_parent_or_skip(limit):
     """Skip unless `ps -o ppid=,comm= -p <pid>` names this process's parent.
 
     That call is how the hooks walk up to the `claude` process: the commit
-    gate's lease route and old spelling (`hooks/hooksession.py`) and the
+    gate's lease route and old spelling (`hooks/lib/hooksession.py`) and the
     worktree guard's count of other sessions. Git for Windows' `ps` takes no
     `-o`, so on a `windows-latest` runner every one of them finds nothing,
     and a case resting on the walk has no behaviour to pin there. LIMIT names
@@ -1098,7 +1103,7 @@ TABLE = "# Repository config\n\n| Item | Value |\n|---|---|\n{rows}"
 
 @pytest.fixture
 def config():
-    return load_hook_module("config.py", "agentic_config_for_tests")
+    return load_hook_module("lib/config.py", "agentic_config_for_tests")
 
 
 # The config texts the reader's cases in `tests/test_config.py` and the
@@ -1404,7 +1409,7 @@ PACT = "seal/pact.md"
 SPEC = "seal/threads/1790000000-x/frame/design.md"
 V1, V2, V3 = "id, total", "id, total, currency", "id, total, currency, tax"
 # The pact a signer's `Pact` row names in the reader's cases, and what
-# `hooks/config.py#pact_declaration` answers for it.
+# `hooks/lib/config.py#pact_declaration` answers for it.
 URL = PACT_URL
 ORDERS = [(URL, "example.com/org/orders-api", "orders-api")]
 
@@ -1741,9 +1746,9 @@ def dirty_deny(lang, lead):
 
 
 # #689: the chains where the order of the walk's two threads decided the
-# tree. The guard and the consent writer read through `hooks/cmdline_base.py`,
-# `86256492`'s reader frozen, so each judges the tree `86256492` judged, which
-# is the dirty `w` bash runs the command in. `{missing}` is never created and
+# tree. The guard and the consent writer read through
+# `hooks/lib/cmdline_base.py`, `86256492`'s reader frozen, so each judges the
+# tree `86256492` judged, which is the dirty `w` bash runs the command in. `{missing}` is never created and
 # `{other}` is a clean repository of its own.
 BASE_TREE_CHAINS = {
     # Round 3 of #689's report: past `STATE_CAP` the walk collapses, and the

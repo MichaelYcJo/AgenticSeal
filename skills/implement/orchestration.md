@@ -116,7 +116,7 @@ stays where it is: the plugin writes only to its own root.
 
 **A `<repo>/seal/` whose `README.md` opens with a heading an earlier release
 of the plugin wrote is that release's root, waiting for its move.** The
-headings are `hooks/optin.py#EARLIER_HEADINGS`. The session-start move
+headings are `hooks/lib/optin.py#EARLIER_HEADINGS`. The session-start move
 rewrites the README to the marker and moves the work items into
 `seal/threads/`; where it was refused, its one line said why, which is work
 in progress under the old layout or a directory of work items that is a
@@ -392,7 +392,7 @@ rows; what differs is how many clicks it took and which row says so.
 | Row | Answers |
 |---|---|
 | Automation | `yes` or `no`, OPTIONAL; absent reads as never asked |
-| Implementation | `crafter` or `the session`, OPTIONAL; absent reads as unanswered. The answer a declaration written before the plugin was renamed AgenticSeal carries for `crafter` (`hooks/routing.py#OLD_BY_CRAFTER`) reads as `crafter` for the minor release of the rename, and the next minor release removes that reading |
+| Implementation | `crafter` or `the session`, OPTIONAL; absent reads as unanswered. The answer a declaration written before the plugin was renamed AgenticSeal carries for `crafter` (`hooks/lib/routing.py#OLD_BY_CRAFTER`) reads as `crafter` for the minor release of the rename, and the next minor release removes that reading |
 | Review | `through the review chain` or `straight to the PR` |
 | Destination | `open the pull request` or `stop before the pull request` |
 | Answer pressed | `automation` or `per axis`, OPTIONAL; absent reads as unanswered |
@@ -489,7 +489,7 @@ edits on that branch through. A session that moves to another branch runs it
 there again.
 
 **The orchestrator writes the file with the `Write` tool, then commits it.**
-The declaration is read from the working tree (`hooks/routing.py`'s
+The declaration is read from the working tree (`hooks/lib/routing.py`'s
 `declarations()` opens the path rather than asking git), so the edits after
 the write go through before the commit lands. The commit goes as every
 commit does: each work item's `routing.md` in a command of its own, the
@@ -657,7 +657,7 @@ one.
 | Orchestrator: how the work is routed | `skills/implement/orchestration.md` | check: `hooks/routing-edit-gate.py` | The first `Write`, `Edit` or `NotebookEdit` is refused until a declaration naming the branch stands under the `seal/` root or the session ran `seal no-work-item` on that branch, and `templates/setup/claude-md-block.md` carries the question's shape into every session on the machine. What neither reaches is the shape of the asking: a declaration built from four separate questions parses exactly like one built from the asking this section mandates |
 | Question 1 | `skills/implement/orchestration.md` | part of its parent's act | The three options of the first `AskUserQuestion` call its parent detracers, put alone. It names no act of its own |
 | Question 2 | `skills/implement/orchestration.md` | part of its parent's act | The four boxes of the second call, put only after a `per axis` answer, and the ceiling on how many there may be. It names no act of its own |
-| What the answer writes | `skills/implement/orchestration.md` | check: `skills/code-review/scripts/chain_check.py` | It refuses a `Review` or `Destination` value outside the vocabulary at the pull request, and `hooks/routing.py` parses the same rows at every edit. The three optional rows are read by nothing that refuses: `hooks/implementer-notice.py` says one line after a commit where a declared agent left no mark, and blocks nothing |
+| What the answer writes | `skills/implement/orchestration.md` | check: `skills/code-review/scripts/chain_check.py` | It refuses a `Review` or `Destination` value outside the vocabulary at the pull request, and `hooks/lib/routing.py` parses the same rows at every edit. The three optional rows are read by nothing that refuses: `hooks/implementer-notice.py` says one line after a commit where a declared agent left no mark, and blocks nothing |
 | A work item that commits in more than one repository | `skills/implement/orchestration.md` | check: `hooks/routing-edit-gate.py` | In each opted-in repository the first edit is refused until a declaration naming that repository's branch stands there, so a repository the step skipped is noticed at its first edit. What it does not reach: an id minted twice is legitimate in a signer's own work item and nothing tells the two apart, and a missing `Pact` row is noticed only when somebody runs `seal pact` at the pact's repository, which refuses a relationship recorded on one side |
 | Orchestrator: which of these acts runs itself | `skills/implement/orchestration.md` | check: `tests/test_every_orchestrator_act_names_its_delivery.py` | The test reads this table against the headings of both files, in both directions. What it reads is the marker rather than the meaning, so a heading with no prefix puts its act in neither the table nor the test |
 | Orchestrator: a phase is a fresh crafter, and a fix pass resumes the implementer | `skills/code-review/orchestration.md` | still a sentence | A phase built by a resumed crafter and one built by a fresh crafter leave identical trees, and so do a resumed fix pass and a fresh one, so nothing at the pull request can tell them apart, and the choice of session is in no file. `seal cost --segments` prints the context the threshold is read against and gates nothing, so the reading can go untaken while the spawn succeeds |

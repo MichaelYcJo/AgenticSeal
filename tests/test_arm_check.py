@@ -128,9 +128,9 @@ def on_this_python(name, version=None):
 
 
 def run_tests_floor():
-    """`FLOOR` from `hooks/launch.py`, the one place the supported floor is
-    held, and the number `.github/scripts/run_tests.py` builds against."""
-    path = os.path.join(ROOT, "hooks", "launch.py")
+    """`FLOOR` from `hooks/lib/launch.py`, the one place the supported floor
+    is held, and the number `.github/scripts/run_tests.py` builds against."""
+    path = os.path.join(ROOT, "hooks", "lib", "launch.py")
     spec = importlib.util.spec_from_file_location("agentic_floor_of_arm_check", path)
     loaded = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(loaded)

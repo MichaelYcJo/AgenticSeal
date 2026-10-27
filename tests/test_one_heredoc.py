@@ -1,4 +1,4 @@
-"""The one heredoc shape `hooks/one_heredoc.py` admits, slot by slot, a string
+"""The one heredoc shape `hooks/lib/one_heredoc.py` admits, slot by slot, a string
 that fails each of its clauses A-E, and every admitted string cut where a real
 shell cuts it (#739, #763).
 
@@ -53,11 +53,11 @@ import subprocess
 import pytest
 from conftest import census_case, load_hook_module, shell_probe
 
-TARGET = "hooks/one_heredoc.py"
+TARGET = "hooks/lib/one_heredoc.py"
 
-reader = load_hook_module("one_heredoc.py", "one_heredoc_exactly")
+reader = load_hook_module("lib/one_heredoc.py", "one_heredoc_exactly")
 
-HOOK = os.path.join(os.path.dirname(__file__), "..", "hooks", "one_heredoc.py")
+HOOK = os.path.join(os.path.dirname(__file__), "..", "hooks", "lib", "one_heredoc.py")
 
 # A body the shell reading would find a commit in, on a line of its own.
 BODY = "say `git commit` later\ngit commit -m x"

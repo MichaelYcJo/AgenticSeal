@@ -1,4 +1,4 @@
-"""`hooks/routing.py`: the routing answer is recorded, so the gate stops
+"""`hooks/lib/routing.py`: the routing answer is recorded, so the gate stops
 re-deriving it.
 
 A declaration at `seal/threads/<work-item-id>/routing.md` is what the commit gate
@@ -8,7 +8,7 @@ declaration stands. What the commit gate does with an answer is its own file's.
 The cases come from `tests/test_routing_is_recorded.py` and
 `tests/test_console_is_not_utf8.py` (#942's phase 6). Two cases of
 `Test_module` came in #942's round 9 fix pass, each a case of this module
-alone: the copy without `hooks/blocks.py`, from
+alone: the copy without `hooks/lib/blocks.py`, from
 `tests/test_a_script_copied_alone_exits_2.py`, and `WORK_ITEMS` held under
 `seal/`, from `tests/test_a_reference_root_is_read_and_never_taken.py`.
 """
@@ -29,9 +29,9 @@ from conftest import (
     with_row,
 )
 
-TARGET = "hooks/routing.py"
+TARGET = "hooks/lib/routing.py"
 
-routing = load_hook_module("routing.py", "agentic_routing")
+routing = load_hook_module("lib/routing.py", "agentic_routing")
 
 CHAIN = "through the review chain"
 DIRECT = "straight to the PR"
@@ -74,7 +74,7 @@ def with_planning(answer):
 # `0ed5dd3b:seal/specs/1790645290-the-hooks-and-the-rider-check-read-fences-and-comments-by-one-rule/spec.md`
 # *The shapes*, the texts
 # `tests/block_shapes.py`'s. "red at base" means the case fails with
-# `hooks/routing.py` from `3911a8cf`; "pins" means it passes there too.
+# `3911a8cf:hooks/routing.py`; "pins" means it passes there too.
 
 
 def declared(name):
@@ -156,7 +156,7 @@ class Test_parse:
             assert parsed["pressed"] == answer, answer
 
     def test_accepts_a_declaration_below_a_comment_opener_nobody_closed(self):
-        """#872 round 3, finding 10. `hooks/routing.py#shown` keeps the reading
+        """#872 round 3, finding 10. `hooks/lib/routing.py#shown` keeps the reading
         it gave before #667 wherever its walk is unsure, and that reading hid
         nothing, so a table below a line-start comment opener nobody closed
         still declares, although a renderer hides it. R3 holds the fence half;
@@ -236,7 +236,7 @@ class Test_parse:
         """S5 of #867 at the parser. `parse` kept the LAST row of a label, so a
         second `Review` row below the first answered for it and nothing said
         there were two. A label written twice has no value, the rule
-        `hooks/config.py#value_of` gives a config row; for a strict label that
+        `hooks/lib/config.py#value_of` gives a config row; for a strict label that
         makes the file no declaration. Seen red against the last-wins parser:
         each shape parsed, `feature/x` and the chain answering."""
         answers = {
@@ -572,7 +572,7 @@ class Test_module:
         assert rows.get(routing.REVIEW) in routing.REVIEW_ANSWERS, rows
 
     def test_a_declaration_that_cannot_be_decoded_is_not_an_answer(self, tmp_path):
-        """`hooks/routing.py` caught `OSError` only, and `UnicodeDecodeError` is a
+        """`hooks/lib/routing.py` caught `OSError` only, and `UnicodeDecodeError` is a
         `ValueError`. An undecodable `routing.md` raised out of `declarations()`,
         through the commit gate, into `dispatch.py`'s `except Exception: return ""`
         — no output, which is an allow.
@@ -581,7 +581,7 @@ class Test_module:
         goes back to asking. Not silence: silence would make a corrupt file into a
         standing waiver.
         """
-        sys.path.insert(0, os.path.join(ROOT, "hooks"))
+        sys.path.insert(0, os.path.join(ROOT, "hooks", "lib"))
         import routing
 
         repo = opted_in_repo(tmp_path / "declared" / "repo")
@@ -615,19 +615,19 @@ class Test_module:
         assert found[0][1]["review"] == CHAIN
 
     def test_a_hook_reader_copied_without_the_walk_names_it(self, tmp_path):
-        """#667. This module imports `hooks/blocks.py`, the walk the hook-path
-        readers share, after `hooks/optin.py`, so the copy takes `optin.py`
+        """#667. This module imports `hooks/lib/blocks.py`, the walk the
+        hook-path readers share, after `hooks/lib/optin.py`, so the copy takes `optin.py`
         with it. It is a module, not a script: gates and scripts import it, a
         gate that raises is skipped and said at the end of the turn
         (`hooks/dispatch.py`, #28), and a script catches the error or names the
         file first. So a copy without the walk raises one `ImportError` whose
         sentence names the path and what the file is for.
-        `tests/test_config.py` holds `hooks/config.py` to the same."""
+        `tests/test_config.py` holds `hooks/lib/config.py` to the same."""
         name, siblings = TARGET.rsplit("/", 1)[1], ["optin.py"]
         alone = tmp_path / "hooks"
         alone.mkdir()
         for file in (name, *siblings):
-            with open(os.path.join(ROOT, "hooks", file), encoding="utf-8") as f:
+            with open(os.path.join(ROOT, "hooks", "lib", file), encoding="utf-8") as f:
                 (alone / file).write_text(f.read(), encoding="utf-8")
         done = subprocess.run(
             [

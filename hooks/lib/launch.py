@@ -4,7 +4,7 @@
 Every `bin/` wrapper but `bin/test`, and its `.cmd` twin, runs its script
 through this file:
 
-    python3 hooks/launch.py <script> [arguments...]
+    python3 hooks/lib/launch.py <script> [arguments...]
 
 The one such wrapper is `bin/seal`, and each tool `seal` runs as a
 subcommand is handed to the interpreter this file already held to the floor
@@ -31,7 +31,7 @@ keyword-only, and no import above the check that a new release added: a
 launcher that cannot parse is the traceback it exists to replace.
 
 It sits in `hooks/` because each wrapper it serves reaches it relative to
-itself, as `$here/../hooks/launch.py`, and `hooks/` already ships the modules the
+itself, as `$here/../hooks/lib/launch.py`, and `hooks/` already ships the modules the
 scripts share. `hooks/hooks.json` does not run through it: a gate that fails
 is skipped and said, and the call goes ahead
 (`docs/the-session-hooks.md` *Registration*), where exit 2 from a hook

@@ -4,7 +4,7 @@ The person who pressed `automation` was told nothing stops to ask, and in
 0.22.3 four framer questions reached them anyway, with the prose rule loaded
 (#1002). The gate reads the declaration of the branch resolved as the edit
 gate resolves it (the branch checked out, else the branch a paused rebase
-names), through `routing.worktree_branch` in `hooks/routing.py`, and refuses
+names), through `routing.worktree_branch` in `hooks/lib/routing.py`, and refuses
 `AskUserQuestion` there, except for the routing
 question put alone, which a resumed run has to put again, until the session
 has answered it.
@@ -40,8 +40,8 @@ GATE = "question-gate.py"
 ITEM = "1787708604-a-work-item"
 SESSION = "s1"
 
-routing = load_hook_module("routing.py", "routing_for_question_gate")
-optin = load("hooks/optin.py", "agentic_optin_failopen")
+routing = load_hook_module("lib/routing.py", "routing_for_question_gate")
+optin = load("hooks/lib/optin.py", "agentic_optin_failopen")
 
 FRAMER_QUESTION = {
     "question": "Which default should the hook print?",
@@ -442,8 +442,8 @@ def test_the_prose_points_to_the_gate_and_no_longer_says_nothing_holds_it():
             ("skills", "implement", "orchestration.md"),
             "in the same call as whatever else the resume has to ask",
         ),
-        (("hooks", "routing.py"), "Nothing gates on it and nothing can"),
-        (("hooks", "routing.py"), "nothing CAN decide one on"),
+        (("hooks", "lib", "routing.py"), "Nothing gates on it and nothing can"),
+        (("hooks", "lib", "routing.py"), "nothing CAN decide one on"),
         (("templates", "records", "sdd-routing.md"), "can hold a run to it"),
     ):
         assert sentence not in flat(*parts), (parts, sentence)

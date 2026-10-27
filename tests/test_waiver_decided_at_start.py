@@ -197,7 +197,7 @@ def test_the_optional_row_ships_the_criterion_that_decides_it():
         "draws collapses back into `crafter` or nothing"
     )
     # Round 1, finding 8. The criterion named three destinations for a row
-    # that accepts two values -- `hooks/routing.py`'s IMPLEMENTATION_ANSWERS
+    # that accepts two values -- `hooks/lib/routing.py`'s IMPLEMENTATION_ANSWERS
     # is `crafter` and `the session` -- and never said what to TYPE. A session
     # whose work is finding-out had two readings and the wrong one is
     # permitted by the same comment: line 27 says to delete the row rather
@@ -237,7 +237,7 @@ def test_the_template_PARSES_into_the_three_answers_it_ships():
     else would ever report it."""
     import sys
 
-    sys.path.insert(0, os.path.join(ROOT, "hooks"))
+    sys.path.insert(0, os.path.join(ROOT, "hooks", "lib"))
     import routing
 
     template = read("templates", "records", "sdd-routing.md")
@@ -283,7 +283,7 @@ def test_the_template_PARSES_into_the_three_answers_it_ships():
 def test_the_template_PARSES_into_the_FOURTH_axis_it_ships():
     """The fourth axis's vocabulary is read out of the template, never retyped.
 
-    `hooks/routing.py`'s `parse()` docstring promises that
+    `hooks/lib/routing.py`'s `parse()` docstring promises that
     `templates/records/sdd-routing.md` is the only spelling a session should copy and
     that a test parses the file so the two cannot drift. This is that test for
     the `Planning` row: every constant the parser accepts is substituted into
@@ -297,7 +297,7 @@ def test_the_template_PARSES_into_the_FOURTH_axis_it_ships():
     """
     import sys
 
-    sys.path.insert(0, os.path.join(ROOT, "hooks"))
+    sys.path.insert(0, os.path.join(ROOT, "hooks", "lib"))
     import routing
 
     template = read("templates", "records", "sdd-routing.md")
@@ -374,7 +374,7 @@ def test_the_template_PARSES_into_the_TWO_NEWEST_rows_it_ships():
     """
     import sys
 
-    sys.path.insert(0, os.path.join(ROOT, "hooks"))
+    sys.path.insert(0, os.path.join(ROOT, "hooks", "lib"))
     import routing
 
     template = read("templates", "records", "sdd-routing.md")
@@ -1033,7 +1033,7 @@ def test_the_orchestration_offers_the_vocabulary_the_parser_accepts():
     where the orchestrator reads the words; the template ships two of them
     answered and the rest as placeholders."""
     orch = read(*ORCH)
-    routing = read("hooks", "routing.py")
+    routing = read("hooks", "lib", "routing.py")
     for answer in AXES:
         assert f"`{answer}`" in orch, f"the orchestration lost `{answer}`"
         assert f'"{answer}"' in routing, f"the parser does not accept `{answer}`"

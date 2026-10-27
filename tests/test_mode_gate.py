@@ -177,20 +177,20 @@ class Test_main:
 
     def test_accepts_a_repository_with_no_root(self, repo):
         """S9. A globally installed plugin must not nag a repository that never
-        opted in — the rule `hooks/optin.py` exists to hold."""
+        opted in — the rule `hooks/lib/optin.py` exists to hold."""
         assert decision_of(run_hook(GATE, payload("git commit -m x", repo))) == "silent"
 
     @pytest.mark.parametrize("shape", ["directory", "undecodable", "unreadable"])
     def test_accepts_a_config_nobody_can_open_as_silence_not_a_deny(self, repo, shape):
-        """`hooks/optin.py`'s rule, which this module's docstring adopts: a
+        """`hooks/lib/optin.py`'s rule, which this module's docstring adopts: a
         repository this cannot read is one it says nothing about.
 
-        `hooks/config.py#declared_mode` used to fold *will not open* into
+        `hooks/lib/config.py#declared_mode` used to fold *will not open* into
         *declared nothing*; for a gate the two are different states, and treating
         them alike denied a repository whose answer might already be there. Since
         #867 the reader answers `refused` for it, and the gate reads that alone.
 
-        Reachable, not exotic: `hooks/optin.py#repo_root` already records a
+        Reachable, not exotic: `hooks/lib/optin.py#repo_root` already records a
         repository under a path a cp949 console cannot decode, and a row
         hand-edited in a non-UTF-8 locale puts those bytes here. The escape would
         have been `seal mode`, writing a row into the file nothing can parse.

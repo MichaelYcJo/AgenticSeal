@@ -836,7 +836,7 @@ WIDER_ONLY = {
 
 
 def _redirections():
-    """Every redirection `hooks/cmdline.py`'s `_REDIRECTION` names, as (operator,
+    """Every redirection `hooks/lib/cmdline.py`'s `_REDIRECTION` names, as (operator,
     target) pairs, each operator once bare and, where it is not `&`-led, with
     a number and with bash 4.1's `{fd}` in front. Derived from the pattern, so
     an operator the reader learns is a new case the day it is added.
@@ -939,11 +939,11 @@ PLACED_SWITCHES = {
 
 # #780: a consent token inside a here-document body is not read. `has_token`
 # reads a token only where the command as written AND the command with its
-# here-document bodies taken out carry it, the rule `hooks/tokens.py#given`
+# here-document bodies taken out carry it, the rule `hooks/lib/tokens.py#given`
 # has kept for the commit gate since #773. Each body below is one a consent
-# read must not take a token from: the one shape `hooks/one_heredoc.py`
+# read must not take a token from: the one shape `hooks/lib/one_heredoc.py`
 # matches byte for byte, and a body behind an unquoted delimiter, which
-# `hooks/cmdline.py` finds.
+# `hooks/lib/cmdline.py` finds.
 BODY_TOKENS = {
     "[shared-tree-ok] in the one shape's body": (
         "python3 - <<'EOF'\n# [shared-tree-ok]\nEOF\ngit switch feature/x",
@@ -1003,9 +1003,9 @@ def _a_guard_whose_wider_reader_exits_at_load(monkeypatch, tmp_path):
     it, so `tokens.without_bodies` fails on its own import."""
     hooks = tmp_path / "hooks"
     shutil.copytree(os.path.join(os.path.dirname(__file__), "..", "hooks"), hooks)
-    (hooks / "cmdline.py").write_text("raise SystemExit(3)\n", encoding="utf-8")
+    (hooks / "lib" / "cmdline.py").write_text("raise SystemExit(3)\n", encoding="utf-8")
     monkeypatch.delitem(sys.modules, "cmdline", raising=False)
-    monkeypatch.syspath_prepend(str(hooks))
+    monkeypatch.syspath_prepend(str(hooks / "lib"))
     spec = importlib.util.spec_from_file_location(
         "wg_exiting_reader_780", hooks / "worktree-guard.py"
     )
@@ -1167,7 +1167,7 @@ class Test_module:
     def test_a_wider_reader_that_exits_at_load_leaves_the_guard_reading(
         self, monkeypatch, tmp_path
     ):
-        """Round 1 of 1790993140, white 5. A `hooks/cmdline.py` whose body raises
+        """Round 1 of 1790993140, white 5. A `hooks/lib/cmdline.py` whose body raises
         `SystemExit` is a failure `hooks/dispatch.py` catches beside `Exception`,
         and the guard's import catches it too, so the guard still loads and keeps
         its own rows. Seen red with `except Exception:` alone.
@@ -1179,9 +1179,11 @@ class Test_module:
         verdicts). It asserted candidate C's empty answer."""
         hooks = tmp_path / "hooks"
         shutil.copytree(os.path.join(os.path.dirname(__file__), "..", "hooks"), hooks)
-        (hooks / "cmdline.py").write_text("raise SystemExit(3)\n", encoding="utf-8")
+        (hooks / "lib" / "cmdline.py").write_text(
+            "raise SystemExit(3)\n", encoding="utf-8"
+        )
         monkeypatch.delitem(sys.modules, "cmdline", raising=False)
-        monkeypatch.syspath_prepend(str(hooks))
+        monkeypatch.syspath_prepend(str(hooks / "lib"))
         spec = importlib.util.spec_from_file_location(
             "wg_exiting_reader", hooks / "worktree-guard.py"
         )
@@ -1321,8 +1323,8 @@ class Test_has_token:
     def test_a_broken_wider_reader_reads_no_body_token_and_keeps_a_typed_one(
         self, monkeypatch, tmp_path, break_it
     ):
-        """`frame/design.md` A8. Where `hooks/cmdline.py` does not load, or where
-        `hooks/tokens.py#without_bodies` raises, the bodies are found by the
+        """`frame/design.md` A8. Where `hooks/lib/cmdline.py` does not load, or where
+        `hooks/lib/tokens.py#without_bodies` raises, the bodies are found by the
         frozen reader `_judgment_text` uses. A body token is still not read and a
         typed one still is (`plan.md` G and H). The body half is red at
         `a3aa139a`."""
@@ -1359,7 +1361,7 @@ class Test_has_token:
 class Test_walk_command:
     def test_accepts_a_cd_as_moving_the_segment_after_it(self):
         walked = wg.walk_command("cd sub && git switch x", "/base")
-        # Built as `hooks/cmdline_base.py#apply_chdir` builds it, joined and
+        # Built as `hooks/lib/cmdline_base.py#apply_chdir` builds it, joined and
         # then normalised, which on Windows turns the leading `/` into `\`.
         landed = os.path.normpath(os.path.join("/base", "sub"))
         assert walked[1] == (["git", "switch", "x"], (landed,))
@@ -1394,7 +1396,7 @@ class Test_walk_command:
         """S13. Issue #68's rounds twice fixed one gate and left the other, so the
         guard is asserted rather than assumed. It reads the walk through
         `walk_command` in `hooks/worktree-guard.py`, and since #689 that walk is
-        `hooks/cmdline_base.py`'s, `86256492`'s reader frozen, where the commit
+        `hooks/lib/cmdline_base.py`'s, `86256492`'s reader frozen, where the commit
         gate takes `cmdline.walk_directories`; an `eval` is refused by both.
 
         `wg.cmdline` rather than a reader loaded here: the guard reaches its
@@ -2295,7 +2297,7 @@ class Test_repo_paths:
         """A shape check, and labelled as one: no unresponsive mount was mounted.
 
         `repo_paths` shells out to git once per candidate directory, and the
-        reader can hand it several. The same species of call in `hooks/optin.py`
+        reader can hand it several. The same species of call in `hooks/lib/optin.py`
         carries `timeout=5` for a reason recorded there. A hook that never returns
         is a hook that never decides.
         """
@@ -4768,7 +4770,7 @@ class Test_main:
     ):
         """Round 2 of 1790660768 made the guard judge the tree a `cd` behind a
         redirection reaches, and #689 took that back: the guard and the consent
-        writer read through `hooks/cmdline_base.py`, which is `86256492`'s reader,
+        writer read through `hooks/lib/cmdline_base.py`, which is `86256492`'s reader,
         and that reader does not land these `cd`s. So the guard judges the clean
         session tree and is silent, and the consent writer files the creation
         under the session's clone, while bash runs both in the dirty `w`. That is

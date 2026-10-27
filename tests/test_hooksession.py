@@ -1,4 +1,4 @@
-"""`hooks/hooksession.py`: which process is the session's `claude`.
+"""`hooks/lib/hooksession.py`: which process is the session's `claude`.
 
 The lease writer and the worktree guard's count both ask this module which
 pid is the session's. The cases come from `tests/test_lease_liveness.py` by
@@ -11,11 +11,11 @@ import sys
 import pytest
 from conftest import census_case, stub_process_tree
 
-TARGET = "hooks/hooksession.py"
+TARGET = "hooks/lib/hooksession.py"
 
 # The cases import the module by name, as the hooks that use it do.
 sys.path.insert(
-    0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "hooks")
+    0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "hooks", "lib")
 )
 
 
@@ -25,7 +25,7 @@ class Test_claude_pid:
         /bin/zsh, with claude two levels up. Recording getppid() would name a
         process that dies constantly, and every dead shell would retire a live
         session's lease. The lease writer's own walk (`owner_pid`) left with #868;
-        it asks `hooks/hooksession.py#claude_pid`."""
+        it asks `hooks/lib/hooksession.py#claude_pid`."""
         import hooksession
 
         stub_process_tree(monkeypatch, 100, {100: (50, "/bin/zsh"), 50: (1, "claude")})

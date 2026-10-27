@@ -132,7 +132,7 @@ the line in every one of them; where one is ACTIVE, it describes the ACTIVE
 trees alone. A reason that describes one tree calls it "this tree", whichever
 tree it is: with the session's own tree clean and `W` dirty,
 `git -C W checkout x` asks about "this tree" and means `W`. A git the wider
-reading of `hooks/cmdline.py` (*Which tree*) reads as a segment of its own
+reading of `hooks/lib/cmdline.py` (*Which tree*) reads as a segment of its own
 (behind a redirection or a zsh precommand word) is judged in the tree its own
 `-C` names, and so is a git
 an `&` cut apart (`2>&1 git -C W switch x`), from the directory its first part
@@ -429,11 +429,11 @@ drop to per-segment scanning. Unquoted prose still passes:
 **A token counts only where it is typed outside every here-document body,
 and a command that does not split carries none from where its split
 fails.** The token is read from the command, and only the command:
-`hooks/tokens.py#given` takes it only where the command as written and the
+`hooks/lib/tokens.py#given` takes it only where the command as written and the
 command with its here-document bodies taken out
-(`hooks/tokens.py#without_bodies`) both carry it, a body a shell runs
+(`hooks/lib/tokens.py#without_bodies`) both carry it, a body a shell runs
 included. It keeps comments, because a token may be written in one. Where
-`hooks/cmdline.py` cannot load, the frozen reader finds the bodies. A token
+`hooks/lib/cmdline.py` cannot load, the frozen reader finds the bodies. A token
 inside a quote that never closes, or after an apostrophe in a comment
 (`# don't [worktree-ok]`), is read as nothing. The Agent or Task path has no
 command line and reads no token.
@@ -534,10 +534,10 @@ and where every `cd` lands. **Nothing is read past the base's words**: a
 segment's shape (*A*) is its subcommand and, for `checkout`, `worktree` and
 `stash`, the one word that decides it, and no name is looked up in any tree.
 The guard and the consent writer read the command through
-`hooks/cmdline_base.py`, a byte-for-byte copy of an earlier
-`hooks/cmdline.py` that `tests/test_the_frozen_reading_never_grows.py` pins,
+`hooks/lib/cmdline_base.py`, a byte-for-byte copy of
+`86256492:hooks/cmdline.py` that `tests/test_the_frozen_reading_never_grows.py` pins,
 and neither chooses a segment, a slot or a directory through
-`hooks/cmdline.py`. The guard asks that module only what the frozen reading
+`hooks/lib/cmdline.py`. The guard asks that module only what the frozen reading
 does not read as git (a shell's string, an `eval`'s argument, a substitution
 body, a git behind a redirection or a zsh precommand word, a group an `&` cut
 apart), and each answer is an unrecognised shape. Where only that module
@@ -552,7 +552,7 @@ first was a segment or a directory bash never ran the switch in. The frozen
 reading makes the guard's answer the base's by construction, at a stated cost
 (*Known limits*): a `cd` with a redirection among its words does not move the
 tree judged, and a git behind a redirection or a zsh precommand word is no git
-to the frozen reading. Where `hooks/cmdline.py` fails to load, or a reader in
+to the frozen reading. Where `hooks/lib/cmdline.py` fails to load, or a reader in
 it raises, the bare word `git` in a string, a body, a hidden position, a
 command that would not split or either side of an `&` the splitter cut is the
 finding, so a broken reader costs a stop where the tree matters and never a
@@ -650,7 +650,7 @@ check: tests/test_the_hook_surface_git_offers.py tests/test_the_frozen_reading_n
   not read, so `sh -c 'git -C W switch x'` with `W` dirty and the session's
   tree clean says nothing. Only a git the wider reading reads as a segment of
   its own has its `-C` composed.
-- Where `hooks/cmdline.py` did not load, or the reader that glues an `&` cut
+- Where `hooks/lib/cmdline.py` did not load, or the reader that glues an `&` cut
   back raises, a git the cut split is judged in the tree the part before the
   cut names: `git -C W worktree 2>&1 add …` in `W`, and `2>&1 git -C W switch
   x`, whose `-C` comes after the cut, in the tree it was typed from.

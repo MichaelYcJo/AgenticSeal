@@ -10,7 +10,7 @@ not hold, and a signer beside it, which names the pact in its
 `seal/config.md`. `HOME` is the world's own directory, so the machine-local
 map is whatever a case writes there. Each copy is the reset. The world is
 `tests/conftest.py`'s, because the seven cases phase 5 left here for
-`hooks/config.py`, which run `check` over a pact or a signer config the
+`hooks/lib/config.py`, which run `check` over a pact or a signer config the
 table walker refuses, are in `tests/test_config.py` since #942's phase 6.
 """
 
@@ -721,7 +721,7 @@ class Test_check:
     @pytest.mark.parametrize("shape", ["directory", "undecodable"])
     def test_refuses_a_signer_config_that_will_not_read(self, world, shape):
         """Both unreadable shapes reach it as `UNREADABLE` at exit 2 through
-        `hooks/config.py#config_text`, named relative to the signer's
+        `hooks/lib/config.py#config_text`, named relative to the signer's
         checkout and in POSIX form."""
         cfg = world.web / "seal" / "config.md"
         text = cfg.read_bytes()

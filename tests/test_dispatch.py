@@ -92,12 +92,12 @@ def decision(kind, reason):
 
 
 def hooks_copy(tmp_path, files):
-    """A copy of `hooks/` with each `files` entry written over the file of
-    that name; a value of None removes it."""
+    """A copy of `hooks/` with each `files` entry written over the file at
+    that path under it, a module as `lib/<name>`; a value of None removes it."""
     hooks = tmp_path / "hooks"
     shutil.copytree(HOOKS, hooks, ignore=shutil.ignore_patterns("__pycache__"))
     for name, body in files.items():
-        path = hooks / name
+        path = hooks.joinpath(*name.split("/"))
         if body is None:
             path.unlink()
         else:
@@ -523,7 +523,7 @@ class Test_opted_in:
         the broken module: "cannot tell" writes the record. `sealer-stamp.py`
         fails in the `stop` group itself and is said in the same invocation."""
         opted_in(repo)
-        hooks = hooks_copy(tmp_path, {"optin.py": BROKEN})
+        hooks = hooks_copy(tmp_path, {"lib/optin.py": BROKEN})
         dispatch(hooks, "pre-bash", bash(repo, "s-x"))
         # One file time for all of them, as a coarse file system gives: the order
         # said is `pre-bash`'s own order, which is not name order here.
@@ -698,7 +698,9 @@ class Test_describe:
         so that module is broken beside `cmdline.py`, which
         `implementer-notice.py` loads."""
         opted_in(repo)
-        hooks = hooks_copy(tmp_path, {"cmdline.py": BROKEN, "cmdline_base.py": BROKEN})
+        hooks = hooks_copy(
+            tmp_path, {"lib/cmdline.py": BROKEN, "lib/cmdline_base.py": BROKEN}
+        )
         dispatch(hooks, "pre-bash", bash(repo, "s-x"))
         dispatch(
             hooks,
@@ -819,10 +821,13 @@ class Test_draw:
     @pytest.mark.parametrize(
         "broken, named",
         [
-            ({"cmdline.py": BROKEN}, ["implementer-notice.py"]),
-            ({"cmdline_base.py": BROKEN}, ["worktree-guard.py", "worktree_consent.py"]),
+            ({"lib/cmdline.py": BROKEN}, ["implementer-notice.py"]),
             (
-                {"cmdline.py": BROKEN, "cmdline_base.py": BROKEN},
+                {"lib/cmdline_base.py": BROKEN},
+                ["worktree-guard.py", "worktree_consent.py"],
+            ),
+            (
+                {"lib/cmdline.py": BROKEN, "lib/cmdline_base.py": BROKEN},
                 ["worktree-guard.py", "implementer-notice.py", "worktree_consent.py"],
             ),
         ],
@@ -1237,7 +1242,7 @@ class Test_module:
         asked. A failure recorded from the worktree is said from the checkout."""
         d = load_hook_module("dispatch.py", "dispatch_for_the_twin")
         sealer = load_hook_module("sealer-stamp.py", "sealer_stamp_for_the_twin")
-        optin = load_hook_module("optin.py", "optin_for_the_twin")
+        optin = load_hook_module("lib/optin.py", "optin_for_the_twin")
         tree = tmp_path / "tree"
         git(repo, "worktree", "add", "-q", str(tree), "feature/x")
         (repo / "docs" / "deep").mkdir(parents=True)
@@ -1264,6 +1269,34 @@ class Test_module:
         dispatch(hooks, "pre-bash", bash(tree, "s-x"))
         assert records(repo, "s-x") == ["mode-gate.py.pending"]
         assert said(stop(hooks, repo, "s-x"))[0] == LABEL_ONE
+
+    def test_every_gate_loads_from_its_own_file_in_a_fresh_interpreter(self):
+        """#1060. Each gate reaches `hooks/lib/` through its own `sys.path`
+        insert. Under `dispatch.py` a gate whose insert is missing still loads
+        when an earlier gate in the same process inserted `lib`, and
+        `run_gate` skips one that fails to load, so a missed insert reads as
+        silence. Each gate is loaded here alone, by `-I`, which puts no
+        script directory, no working directory and no `PYTHONPATH` on
+        `sys.path`."""
+        d = dispatch_module()
+        load = (
+            "import importlib.util, sys\n"
+            "spec = importlib.util.spec_from_file_location('gate', sys.argv[1])\n"
+            "spec.loader.exec_module(importlib.util.module_from_spec(spec))\n"
+        )
+        failed = {}
+        for gate in sorted({g for gates in d.GROUPS.values() for g in gates}):
+            done = subprocess.run(
+                [sys.executable, "-I", "-c", load, os.path.join(HOOKS, gate)],
+                stdin=subprocess.DEVNULL,
+                capture_output=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=60,
+            )
+            if done.returncode != 0:
+                failed[gate] = done.stderr.strip().rsplit("\n", 1)[-1]
+        assert not failed, failed
 
 
 test_census = census_case(TARGET)

@@ -2,7 +2,7 @@
 
 The cases of `skills/implement/scripts/seal.py` are in `tests/test_seal.py`,
 and the three of `normalise_remote`, which `seal.py` re-exports from
-`hooks/config.py`, are in `tests/test_config.py`. The two README cases left
+`hooks/lib/config.py`, are in `tests/test_config.py`. The two README cases left
 here read prose, and they are #923's.
 """
 

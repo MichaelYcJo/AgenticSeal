@@ -1,4 +1,4 @@
-"""`hooks/blocks.py`, one class per function its cases reach.
+"""`hooks/lib/blocks.py`, one class per function its cases reach.
 
 The walk's own answers came from `tests/test_the_hooks_hide_what_a_renderer_hides.py`
 and the splitter's from `tests/test_every_reader_ends_a_line_where_gfm_does.py`
@@ -6,7 +6,7 @@ and the splitter's from `tests/test_every_reader_ends_a_line_where_gfm_does.py`
 and every copy of the splitter to this one, because a check that judges
 markdown against an oracle, or files against each other, stays where it is.
 `tests/test_unverified_rows_close.py` keeps the case that holds this module's
-fence walks to `unverified_check.py`'s and `hooks/config.py`'s, for the same
+fence walks to `unverified_check.py`'s and `hooks/lib/config.py`'s, for the same
 reason.
 """
 
@@ -14,9 +14,9 @@ import pytest
 from block_shapes import BREAKS, CLOSE, INLINE_KINDS, OPEN
 from conftest import SPLITLINES_ONLY, census_case, load_hook_module, texts
 
-TARGET = "hooks/blocks.py"
+TARGET = "hooks/lib/blocks.py"
 
-blocks = load_hook_module("blocks.py", "agentic_blocks_under_test")
+blocks = load_hook_module("lib/blocks.py", "agentic_blocks_under_test")
 # The name the splitter's cases read it by, where they read it through
 # `unverified_check.py`, which hands this module's `gfm_lines` to its callers.
 reader = blocks

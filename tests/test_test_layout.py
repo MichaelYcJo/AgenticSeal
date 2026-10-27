@@ -83,7 +83,7 @@ class Test_file_name_for:
         assert name == "test_worktree_guard.py"
 
     def test_accepts_the_parent_before_a_shared_stem(self):
-        shipped = ["hooks/config.py", "hooks/git/config.py"]
+        shipped = ["hooks/lib/config.py", "hooks/git/config.py"]
         assert layout.file_name_for("hooks/git/config.py", shipped) == (
             "test_git_config.py"
         )

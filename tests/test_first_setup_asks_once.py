@@ -4,7 +4,7 @@ or a person reads says the same thing about where the root lives.
 The work item is
 `aa687d35:seal/specs/1788354065-the-tree-that-must-stay-clean-has-no-way-to-opt-in/`;
 the clauses named per case are its spec's. The hooks resolve
-the root in code (`hooks/optin.py#home_at`) and are pinned by
+the root in code (`hooks/lib/optin.py#home_at`) and are pinned by
 `tests/test_optin.py`, `tests/test_commit_review_gate.py` and
 `tests/test_implementer_notice.py`. What is pinned HERE
 is the text: the one question the `implement`
@@ -28,7 +28,7 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 COMMON_DIR = "$(git rev-parse --git-common-dir)/seal/"
 # The sentence a session reads (Q1 of the work item's `questions.md`): the
-# same rule `hooks/optin.py` states, moved to where a session looks.
+# same rule `hooks/lib/optin.py` states, moved to where a session looks.
 SESSION_RULE = "`$(git rev-parse --git-common-dir)/seal/` otherwise"
 
 
@@ -383,7 +383,7 @@ def test_a_projects_own_seal_gets_nothing_and_the_root_goes_under_the_git_dir():
     assert "local mode" in own, own
     assert boot.index(OWN_SEAL) < boot.index(RECORDS_ONLY)
     earlier = paragraph(boot, EARLIER_SEAL)
-    assert "`hooks/optin.py#EARLIER_HEADINGS`" in earlier, earlier
+    assert "`hooks/lib/optin.py#EARLIER_HEADINGS`" in earlier, earlier
     assert "creates no root beside it" in earlier, earlier
     assert boot.index(EARLIER_SEAL) < boot.index(OWN_SEAL)
 
@@ -666,7 +666,7 @@ def test_the_seal_readme_says_its_first_line_is_the_marker():
     is gone."""
     text = read("templates", "setup", "seal-README.md")
     said = paragraph(text, MARKER_SAID)
-    assert "`hooks/optin.py#MARKER`" in said, said
+    assert "`hooks/lib/optin.py#MARKER`" in said, said
     assert "never opted in" in said, said
     assert "writes nothing into it" in said, said
     assert "`.specseal/`" not in text

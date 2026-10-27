@@ -1,6 +1,6 @@
 """One table walker, held to cmark-gfm over an enumerated corpus (#647).
 
-`hooks/config.py#gfm_table` reads two tables out of markdown: the pact's
+`hooks/lib/config.py#gfm_table` reads two tables out of markdown: the pact's
 `| Signer |` and `seal/config.md`'s `| Item | Value |`. This module holds it
 to GitHub's renderer, `cmarkgfm`, through
 `tests/gfm_table_oracle.py`, and the property is S1 of the work item's
@@ -28,7 +28,7 @@ What the enumeration leaves out, and why:
     the walker returns a cell's source and the renderer its text, so the two
     differ by design. The rows here are plain, and a cell's content is the
     reader's to judge, not the walk's;
-  - a line ending other than LF: `hooks/blocks.py#gfm_lines` is where a
+  - a line ending other than LF: `hooks/lib/blocks.py#gfm_lines` is where a
     line ends, `tests/test_blocks.py` holds it, and
     `tests/test_every_reader_ends_a_line_where_gfm_does.py` holds its copies
     to it.
@@ -48,12 +48,12 @@ import pytest
 from conftest import imported_roots, load_hook_module
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-config = load_hook_module("config.py", "config_for_the_table_walker")
+config = load_hook_module("lib/config.py", "config_for_the_table_walker")
 
 HEADERS = {
     "signer": ("Signer",),
     # `seal/config.md`'s table, read by this walker since #871 through
-    # `hooks/config.py#config_table`, which hands it this tuple and nothing
+    # `hooks/lib/config.py#config_table`, which hands it this tuple and nothing
     # else (`test_the_config_pass_is_the_config_readers_header`).
     "config": ("Item", "Value"),
 }
@@ -560,7 +560,7 @@ def test_the_corpus_is_counted():
 
 def test_the_config_pass_is_the_config_readers_header():
     """The config pass is the config table's only where the header it walks
-    is the one `hooks/config.py#config_table` hands the walker (#871): a
+    is the one `hooks/lib/config.py#config_table` hands the walker (#871): a
     pass over a header no reader uses would hold nothing. Seen red before
     `CONFIG_TABLE` existed, as an `AttributeError`."""
     assert HEADERS["config"] == config.CONFIG_TABLE

@@ -36,7 +36,7 @@ check: tests/test_dispatch.py tests/test_a_gate_that_fails_says_so.py
 declaration names that agent, with no mark standing, gets one line saying
 so.** The two axes of the routing declaration that name an agent,
 `Planning` and `Implementation`, each answer an agent's name or
-`the session`. Two hooks share one address module, `hooks/implementer.py`,
+`the session`. Two hooks share one address module, `hooks/lib/implementer.py`,
 for both axes.
 
 | Hook | Fires | Does |

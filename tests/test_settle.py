@@ -332,10 +332,10 @@ def gh(tmp_path, monkeypatch):
 
 
 # Why a local work item that names no branch is unreleased, as a person reads
-# it: a file `hooks/routing.py#parse` does not read names none, whatever rows
+# it: a file `hooks/lib/routing.py#parse` does not read names none, whatever rows
 # it holds.
 NO_BRANCH = (
-    "no `routing.md` that `hooks/routing.py` reads as a declaration names a "
+    "no `routing.md` that `hooks/lib/routing.py` reads as a declaration names a "
     "branch, so `gh` was not asked"
 )
 
@@ -1223,7 +1223,7 @@ class Test_main:
         self, local, gh, capfd
     ):
         """A `routing.md` with a `Branch` row whose `Review` answer is outside
-        the vocabulary is no declaration to `hooks/routing.py#parse`, so the
+        the vocabulary is no declaration to `hooks/lib/routing.py#parse`, so the
         item is unreleased and `gh` is not asked. The reason says the file is
         not read as a declaration, since a person who opens it finds the
         `Branch` row there (round 1 finding 3)."""
@@ -1303,7 +1303,7 @@ class Test_main:
         )
 
     def test_a_directory_of_the_markers_name_is_not_an_opt_out(self, tmp_path):
-        """Round 3, finding 1. `hooks/optin.py#home_at` reads the scratch marker
+        """Round 3, finding 1. `hooks/lib/optin.py#home_at` reads the scratch marker
         with `os.path.isfile` and says why: `os.path.exists` also accepted a
         DIRECTORY of that name, and one created once turned every gate off in
         every clone. The refusal here asked `exists`, so a repository holding a
@@ -1323,7 +1323,7 @@ class Test_main:
         assert "has no seal/threads/ at either place" in r.stderr, r.stderr
         assert "has opted out" not in r.stderr, (
             "a directory of the marker's name is read as the opt-out, which is the "
-            "reading `hooks/optin.py` rejected by name"
+            "reading `hooks/lib/optin.py` rejected by name"
         )
 
     def test_the_refusal_path_asks_for_the_common_directory_once(
@@ -1332,7 +1332,7 @@ class Test_main:
         """Round 3, finding 5. `home_at(root)` resolves the common git directory
         for itself, and the opt-out arm then resolved it a second time, although
         `home_at(root, common)` exists for a caller that needs the value too and
-        `hooks/optin.py` documents the parameter with the measurement that created
+        `hooks/lib/optin.py` documents the parameter with the measurement that created
         it. Counted through the module `settle.load` hands `main`, and counted as
         calls rather than processes: on a main worktree the resolver's fast path
         costs no process, so a process count would have said nothing."""
@@ -1612,7 +1612,7 @@ class Test_module:
         """#590. A copy of this script taken without its siblings exits 2, with
         a sentence naming the missing path and what it is for: 2 means the
         input or the tree was unusable and nothing was read, and a sibling that
-        is not beside the command is that kind. It loads `hooks/optin.py`
+        is not beside the command is that kind. It loads `hooks/lib/optin.py`
         before it reads the root, so `--root` reaches the loader. The loader
         used to give every file the fold record's purpose, which is false of
         `optin.py`, so that phrase must not appear."""
@@ -1647,7 +1647,7 @@ class Test_module:
         """#688's D3: the constant this command's walk of work items rests on,
         held under `seal/`. Widening it to a top-level `specs/` turns this red,
         which is the probe that work item's plan names for `SPECS`.
-        `tests/test_routing.py` holds `hooks/routing.py#WORK_ITEMS` to the
+        `tests/test_routing.py` holds `hooks/lib/routing.py#WORK_ITEMS` to the
         same, and `tests/test_a_reference_root_is_read_and_never_taken.py`
         classifies every shipped command by what keeps it off a reference
         root."""

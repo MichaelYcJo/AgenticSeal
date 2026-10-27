@@ -668,9 +668,9 @@ class Test_grammar:
         (tree / "skills" / "verify" / "scripts" / "unverified_check.py").write_text(
             READER.read_text(encoding="utf-8"), encoding="utf-8"
         )
-        (tree / "hooks").mkdir()
-        (tree / "hooks" / "blocks.py").write_text(
-            (ROOT / "hooks" / "blocks.py").read_text(encoding="utf-8"),
+        (tree / "hooks" / "lib").mkdir(parents=True)
+        (tree / "hooks" / "lib" / "blocks.py").write_text(
+            (ROOT / "hooks" / "lib" / "blocks.py").read_text(encoding="utf-8"),
             encoding="utf-8",
         )
         (tree / "docs").mkdir()
@@ -1657,7 +1657,7 @@ FRAMED = {"planning": "framer", "review": "through the review chain"}
 
 class Test_frame:
     def routing(self):
-        return load(ROOT / "hooks" / "routing.py", "routing_for_chain_tests")
+        return load(ROOT / "hooks" / "lib" / "routing.py", "routing_for_chain_tests")
 
     def test_accepts_a_framed_item_with_a_reframe_by_the_framer(self, branch):
         root, _code = branch
@@ -2096,7 +2096,7 @@ class Test_originals_of:
     def test_accepts_a_change_confined_to_the_document_roots(self, branch):
         """S7 and S11: a change confined to `docs/` and `seal/` owes no line,
         one path outside them owes it, and paths git could not list owe it
-        too, as `hooks/gate.py#touches_code` reads them."""
+        too, as `hooks/lib/gate.py#touches_code` reads them."""
         root, _code = branch
         migrating(root, (None, None))
         inside = ["docs/a.md", f"{ITEM}/trail/rounds/round-1.md"]
@@ -2235,7 +2235,7 @@ class Test_original_of:
 
 class Test_parity_readers:
     def test_accepts_a_process_that_loaded_only_the_check(self):
-        """`parity_readers` loads `hooks/config.py` before `hooks/gate.py`,
+        """`parity_readers` loads `hooks/lib/config.py` before `hooks/lib/gate.py`,
         whose `import optin` needs `hooks/` on `sys.path`, so a fresh
         interpreter that loaded the check alone still loads both."""
         code = (
@@ -2256,10 +2256,10 @@ class Test_parity_readers:
         assert done.stdout.strip() == "True Baseline commit", done.stdout
 
     def test_refuses_to_hide_a_reader_that_will_not_load(self, monkeypatch, tmp_path):
-        """A `hooks/gate.py` that raises at import is raised to the caller,
+        """A `hooks/lib/gate.py` that raises at import is raised to the caller,
         which `originals_of` turns into exit 2; nothing hands back a reader
         that did not load."""
-        shutil.copy(ROOT / "hooks" / "config.py", tmp_path / "config.py")
+        shutil.copy(ROOT / "hooks" / "lib" / "config.py", tmp_path / "config.py")
         (tmp_path / "gate.py").write_text("raise ImportError('planted')\n", "utf-8")
         monkeypatch.setattr(chain, "HOOKS", str(tmp_path))
         with pytest.raises(ImportError, match="planted"):
@@ -3610,7 +3610,7 @@ class Test_module:
         a sentence naming the missing path and what it is for: 2 means the
         input or the tree was unusable and nothing was read, and a sibling that
         is not beside the command is that kind. It loads the shared reader at
-        import and `hooks/routing.py` after argument parsing, so it is given
+        import and `hooks/lib/routing.py` after argument parsing, so it is given
         its one required flag. It quotes the `OSError`, whose path Windows
         repr-escapes, which `names_path` reads."""
         script = TARGET

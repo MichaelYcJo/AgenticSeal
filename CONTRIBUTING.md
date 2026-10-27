@@ -85,7 +85,7 @@ in `PILLOW` beside it, and one renderer, `cmarkgfm`, pinned in `CMARKGFM`.
 The parser is the CommonMark oracle the hook readers are checked against.
 Pillow draws the release seal the tag push attaches to the GitHub Release,
 and the suite's pixel cases read what it draws. The renderer is
-GitHub's own, cmark-gfm, and the table walker in `hooks/config.py` is checked
+GitHub's own, cmark-gfm, and the table walker in `hooks/lib/config.py` is checked
 against what it renders. The parser and the renderer are test-only and Pillow
 is test-and-release-only: the gates themselves are stdlib-only Python and
 import nothing the suite installs. `bin/test` acquires all four once: it
@@ -112,7 +112,7 @@ agent. A cheap runner
 does not widen that rule. What it makes cheap is `bin/test tests/<file> -q`,
 and that is the form a segment types.
 
-**Python 3.12 is the supported floor**, held as `FLOOR` in `hooks/launch.py`
+**Python 3.12 is the supported floor**, held as `FLOOR` in `hooks/lib/launch.py`
 so this sentence and the code state one number. `bin/seal` runs its script
 through that launcher, which refuses an older interpreter with one sentence
 before the script is read, and hands each subcommand's script to the

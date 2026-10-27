@@ -56,9 +56,9 @@ def without_bodies(command):
     """`command` with its here-document bodies taken out and its comments kept:
     the text a consent read reads beside the command as written (#773).
 
-    The bodies are found by two readers. Where `hooks/one_heredoc.py`
+    The bodies are found by two readers. Where `hooks/lib/one_heredoc.py`
     matches the one shape byte for byte, its reduced text, which holds no
-    `<<`; everywhere else `hooks/cmdline.py#drop_heredoc_bodies`, which
+    `<<`; everywhere else `hooks/lib/cmdline.py#drop_heredoc_bodies`, which
     copies a comment through and opens no body inside one. No reader here
     decides where a body is.
 
@@ -101,7 +101,7 @@ def given(command, fallback=None):
     AND in `without_bodies`, so a token in a body counts nowhere (#773).
 
     FALLBACK is the body reader to use where `without_bodies` raises,
-    `hooks/cmdline.py` failing to load among the causes. The worktree guard
+    `hooks/lib/cmdline.py` failing to load among the causes. The worktree guard
     hands the frozen reader's `drop_heredoc_bodies`, so a broken wider reader
     still finds the bodies and the single-stream creation deny keeps its way
     past (released row T1 of 0.18.3). It is an argument rather than an import

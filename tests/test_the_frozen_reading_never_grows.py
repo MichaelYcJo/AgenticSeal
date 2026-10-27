@@ -3,7 +3,7 @@ S10 and S11 under the owner's answer of 2026-10-01).
 
 No git refuses a branch switch before its tree has moved (phase 1's M1, on
 2.34.1, 2.39.5, 2.43.0 and 2.50.1), so the owner kept the worktree guard's
-switch arm on `hooks/cmdline_base.py` -- `86256492`'s reader -- on every git,
+switch arm on `hooks/lib/cmdline_base.py` -- `86256492`'s reader -- on every git,
 permanently. What keeps that from becoming milestone 49 again is that the file
 cannot gain a rule: its bytes below the rider are `86256492:hooks/cmdline.py`,
 and a change has to delete a case here first.
@@ -22,8 +22,10 @@ import pytest
 from conftest import load_hook_module
 
 ROOT = Path(__file__).resolve().parent.parent
-FROZEN = ROOT / "hooks" / "cmdline_base.py"
-BASE = "86256492"
+FROZEN = ROOT / "hooks" / "lib" / "cmdline_base.py"
+# The reader the bytes below the rider are, at the commit and path it stood at.
+PINNED = "86256492:hooks/cmdline.py"
+BASE = PINNED.split(":", 1)[0]
 START = b'"""Reading a shell command line'
 
 # sha256 of `86256492:hooks/cmdline.py` from its docstring on -- the file less
@@ -40,12 +42,12 @@ def below_the_rider(data):
 def test_the_bytes_below_the_rider_are_86256492s():
     mine = below_the_rider(FROZEN.read_bytes())
     assert hashlib.sha256(mine).hexdigest() == SHA256, (
-        "hooks/cmdline_base.py changed below its rider. It is pinned to "
-        f"{BASE}:hooks/cmdline.py: a rule added to the frozen reading is the "
+        "hooks/lib/cmdline_base.py changed below its rider. It is pinned to "
+        f"{PINNED}: a rule added to the frozen reading is the "
         "stopped class (#692), and this case has to go before it can"
     )
     shown = subprocess.run(
-        ["git", "-C", str(ROOT), "show", f"{BASE}:hooks/cmdline.py"],
+        ["git", "-C", str(ROOT), "show", PINNED],
         capture_output=True,
         timeout=60,
     )

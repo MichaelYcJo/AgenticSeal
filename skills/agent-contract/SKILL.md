@@ -140,7 +140,7 @@ check: tests/test_a_moved_rule_leaves_its_definition.py
 
 Every `seal/…` path here and in the skills means `<repo>/seal/` where that
 directory exists and its `README.md` opens with the marker
-`hooks/optin.py#MARKER` holds, and
+`hooks/lib/optin.py#MARKER` holds, and
 `$(git rev-parse --git-common-dir)/seal/` otherwise —
 local mode, where the root sits under the common git directory and nothing
 under it is committed. A repository with both is shared, and no config key

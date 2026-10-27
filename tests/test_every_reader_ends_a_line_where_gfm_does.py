@@ -8,7 +8,7 @@ a heading that stands mid-line read as a line of its own, a line number one
 off the one `grep -n` prints, and, where the reader wrote the text back, the
 character turned into a line break.
 
-One splitter, `hooks/blocks.py#gfm_lines`, which `unverified_check.py` hands
+One splitter, `hooks/lib/blocks.py#gfm_lines`, which `unverified_check.py` hands
 its callers, is what
 every such reader now reads, and two readers of one text split it alike. The
 scenarios are
@@ -61,7 +61,7 @@ reader = _load("agentic_reader_for_gfm_lines", READER)
 
 
 def test_every_copy_of_the_splitter_is_the_readers():
-    """S17. The reader's split is `hooks/blocks.py`'s, which it imports since
+    """S17. The reader's split is `hooks/lib/blocks.py`'s, which it imports since
     #1005; `arm_check._lines` splits Python source where `ast` does, ends
     kept, and the coordinate kernel asks the reader itself. All are one rule,
     held equal here."""

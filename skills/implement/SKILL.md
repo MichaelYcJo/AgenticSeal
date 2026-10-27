@@ -86,7 +86,7 @@ three. (Labeling policies "for humans" would push sessions away from reading
 them, and policy outranks everything else when a repository has it.)
 
 `seal/` lives at one of two places, and its presence at either, with a
-`README.md` that opens with the marker `hooks/optin.py#MARKER` holds, is what
+`README.md` that opens with the marker `hooks/lib/optin.py#MARKER` holds, is what
 tells the gates this repository runs the workflow. **Every `seal/…` path in
 this plugin's skills and agents means `<repo>/seal/` where that directory
 exists with the marker, and

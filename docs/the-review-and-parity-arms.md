@@ -118,7 +118,7 @@ original was consulted.
 
 **A diff git could not take is not a change confined to the document roots.**
 Where the pull request's diff cannot be listed, the check ends with exit 2
-before any record is judged, and `hooks/gate.py#touches_code` answers True
+before any record is judged, and `hooks/lib/gate.py#touches_code` answers True
 for a list it was not given.
 check: tests/test_gate.py tests/test_chain_check.py
 

@@ -179,7 +179,7 @@ class Test_main:
         """Under Windows' path rules the refusal names the declaration and
         the edited file in Windows' spelling, one dialect with the root it
         prints, as `hooks/implementer-notice.py` names the same file
-        (`hooks/optin.py` says why), and an absolute root on another drive
+        (`hooks/lib/optin.py` says why), and an absolute root on another drive
         whole. CI run 40209166795 failed two cases here that had pinned `/`;
         round 2 of #1027, finding 3, put the expectation on the tree's rule."""
         import ntpath
