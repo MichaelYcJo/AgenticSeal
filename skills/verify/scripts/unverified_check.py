@@ -1348,10 +1348,9 @@ def settled_root(path):
     That is the state a complete settle reaches (#517, `spec.md` G7), and it
     is two states: the tree that ran `settle --apply` holds an empty
     `seal/specs/`, and a fresh checkout of the commit holds none, because git
-    keeps no empty directory. Every pull request after the settle hands this
-    tool `--baseline origin/<base> seal/specs/`, the shipped
-    `templates/hygiene.yml` included, and reading that as a typo turned every
-    one of them red. Only this one path is settled: any other path that is
+    keeps no empty directory. A person who runs `unverified-check --baseline
+    origin/<base> seal/specs/` after the settle hands this tool that path, and
+    reading it as a typo would refuse a finished settle. Only this one path is settled: any other path that is
     missing is still refused, which is what keeps `specs/ spces/` from
     passing in silence.
     """
@@ -1446,8 +1445,8 @@ def annotate(kind, path, line, message):
         # An annotation is matched against the diff by path, and GitHub spells
         # those the way git does. Every caller passes `display_path` output,
         # which is `os.sep`-spelled on purpose -- right for a line a person
-        # reads, wrong for this. Unreachable while `hygiene.yml` pins
-        # `ubuntu-latest`; live the moment these tools run on the Windows leg.
+        # reads, wrong for this. Live wherever this tool runs on a Windows
+        # runner.
         where = f" file={git_path(path)},line={line}" if path else ""
         return f"::{kind}{where}::{message}"
     return f"{path}:{line}  {message}" if path else message
@@ -1489,7 +1488,7 @@ def main(argv=None):
         print(f"unverified-check: no such path: {missing[0]}", file=sys.stderr)
         return 2
     # With a baseline, a path that is gone may be the thing being asked about:
-    # the workflow runs `--baseline origin/<base> specs/`, and a change that
+    # a person runs `--baseline origin/<base> seal/specs/`, and a change that
     # deletes specs/ used to be told it had mistyped an argument. A path that
     # held nothing at the base either is still a typo, and saying so is what
     # keeps `specs/ spces/` from passing in silence. That check needs the

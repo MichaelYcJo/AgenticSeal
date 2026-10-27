@@ -57,8 +57,8 @@ This repository runs a spec-driven workflow on itself: work items under
 contribution is asked for none of it.** The version and changelog steps
 belong to a release and exit early on any base but `main`. The others run on
 every pull request, and they pass for a different reason: they ask nothing
-of a branch that declared nothing. Those are the review-chain check, the
-unverified-record tally and the issue-claim report. The suite reads one fact
+of a branch that declared nothing. Those are the review-chain check and the
+issue-claim report. The suite reads one fact
 about the rule files: a `check:` target the change renamed or removed fails
 it, naming the file, the line and the heading, and `bin/rules --check`
 gives the same answer before the push. Each row below gives its own reason,
@@ -69,7 +69,7 @@ and a maintainer adding a CI step reads the row rather than this sentence.
 | a `routing.md`, `spec.md` or `plan.md` under `seal/specs/` | Nothing in CI reads them. They route a maintainer's own session |
 | a review round record | *a declared review chain has the round record it claimed* passes with a notice when no declaration names the branch |
 | a `changelog.md` fragment | *every changelog fragment reached the released file* exits 0 unless the base is `main` |
-| an `overview.md`, or a row inside one | *the unverified record is readable* counts the rows already in the tree, so adding none passes |
+| an `overview.md`, or a row inside one | No CI step reads it. It is a maintainer's closing memo for their own work item |
 | a new version in `.claude-plugin/plugin.json` | *a change to what ships must move the version* exits 0 unless the base is `main` |
 | an issue number in the description | the issue-claim step reports what it finds and never fails; an empty description is a description |
 
@@ -210,12 +210,12 @@ as *unknown*, not as ready, and passes every other call to the `gh` behind
 it. A case that means a draft or a ready pull request says so with
 `gh_answers`.
 
-Three steps of the hygiene workflow ship to user repositories as well, as
-`templates/hygiene.yml`: the unverified-rows tally, the chain check and the
-mode check, run from a clone of this repository at the release the user
-installed. `seal pr-checks install` writes it, at first setup or later, so a
-change to any of them here reaches a user at their next install, and the
-template has to keep telling the same story as the workflow. Every step
+Two steps of the hygiene workflow ship to user repositories as well, as
+`templates/hygiene.yml`: the chain check and the mode check, run from a
+clone of this repository at the release the user installed. `seal pr-checks
+install` writes it, at first setup or later, so a change to either of them
+here reaches a user at their next install, and the template has to keep
+telling the same story as the workflow. Every step
 passes a pull request that declares nothing, and
 `tests/e2e/teammate/test_teammate_flow.py` runs each one to hold that.
 

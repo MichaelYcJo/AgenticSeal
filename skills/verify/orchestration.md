@@ -45,8 +45,8 @@ Moving it ahead of the rounds means paying it twice.
 **Which base, and it is the one the merge is judged by.** The gate resolves
 `--base` once, before anything runs, to the ref CI will read: the base's
 upstream where the checkout declares one, else `origin/<base>`, else the ref
-as given. Every check it runs takes that one commit: the two baselines, the
-scratch worktree the base comparison checks out, and `broad-gate.md`. A plain
+as given. Every check it runs takes that one commit: the chain check's
+baseline, the scratch worktree the base comparison checks out, and `broad-gate.md`. A plain
 branch name is a LOCAL ref and a runner has no local branches, so a checkout
 one commit behind its remote would pass green where CI refuses the same
 commit. Where resolving moves the answer the gate prints one line naming both
