@@ -59,7 +59,7 @@ taken over the steps CI runs for the base, and the line says how many it left
 out. Which steps those are is declared beside the partition and held against
 the workflow's guards from both sides, never read off the workflow at run
 time.
-check: tests/test_the_gate_names_every_step_ci_runs.py
+check: tests/test_the_gate_names_every_step_ci_runs.py tests/test_broad_gate.py
 
 **The gate and CI ask about the same range, and the base is resolved once.**
 A local branch name and the remote-tracking ref CI reads are two different
@@ -79,7 +79,7 @@ to save. The refusal names the form, quotes the value, and shows the row
 rewritten: exit 2, nothing run, the shape an absent row already takes. The
 criterion for choosing a value has one owner, the template that documents the
 row, and it is three rules rather than an example.
-check: tests/test_the_seal_is_taken_once_by_the_sealer.py
+check: tests/test_broad_gate.py
 
 **A fenced example in a config file is not a config row.** The one walk of
 the `| Item | Value |` table reads the file through one fence rule, and the
@@ -87,7 +87,7 @@ writer overwrites the line that walk names. A reader and a writer that
 disagree about which line is the row leave a file two rows deep that no
 command can bring into agreement, so a repair landing in the reader alone is
 half a repair.
-check: tests/test_the_seal_is_taken_once_by_the_sealer.py
+check: tests/test_config.py tests/test_seal.py tests/test_broad_gate.py
 
 **The gate that measures a tree is the copy that tree ships, and its report
 says which copy measured it.** A gate found on PATH is the installed plugin's,
@@ -107,7 +107,7 @@ copy ran with no invoked copy named to compare against (invoked directly, or
 redirected by an installed copy that names none), and the pull request asks
 the same scripts again. The row prints nowhere else, because over a tree
 whose gate the branch did not change it says nothing a reader acts on.
-check: tests/test_the_seal_is_taken_once_by_the_sealer.py
+check: tests/test_broad_gate.py
 
 ## What the runner owes the person who typed it
 
@@ -116,7 +116,7 @@ second time.** A documented incantation that resolves and installs its
 environment on every call is not a missing command, it is an expensive one.
 The environment is built once and reused; the first call pays for it and
 every call after it pays for interpreter startup and nothing else.
-check: tests/test_the_suite_has_a_command_that_is_cheap_twice.py
+check: tests/test_the_suite_has_a_command_that_is_cheap_twice.py tests/test_run_tests.py
 
 **Every failure the runner has is a sentence, never a traceback.** The
 awkward one is the environment it cannot write: the refusal that was supposed
@@ -125,7 +125,7 @@ tells the reader about the directory rather than about the thing they typed.
 A read-only environment directory is the operator's; the runner says what it
 could not do, names the path and what it means for `git status`, and carries
 on.
-check: tests/test_the_suite_has_a_command_that_is_cheap_twice.py
+check: tests/test_the_suite_has_a_command_that_is_cheap_twice.py tests/test_run_tests.py
 
 **The runner runs the suite in parallel by default, in every environment it
 builds or adopts, and the caller's own choice wins.** A runner that withheld
@@ -140,7 +140,7 @@ suite is correct without it: an install that fails is one sentence naming the
 remedy, then a serial run with pytest's exit code. `-n auto` is withheld
 where the caller already decided: any spelling of `-n` or `--numprocesses`,
 `-p no:xdist`, or `--pdb`.
-check: tests/test_the_suite_has_a_command_that_is_cheap_twice.py
+check: tests/test_run_tests.py
 
 ## A check that cannot fail is not a check
 
