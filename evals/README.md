@@ -76,9 +76,9 @@ the rows the old reader matched and not the record, and no reader can read
 it again. Its committed record stays as it was judged, and `check` and
 `model`, which read a record and no side, still read it.
 
-**A warden comparison compares two sides taken from the same point.** The
+**A proofer comparison compares two sides taken from the same point.** The
 squash commit that lands #986 on `release/v0.22.3` is that point for the
-warden's suite: from it, both sides run the seeded cases built at round 1's
+proofer's suite, which stood at `evals/behaviour/warden/` until the rename: from it, both sides run the seeded cases built at round 1's
 target and both keep `report_text`. No side taken before it compares with
 one taken after it, and `compare` refuses such a pair twice over, since the
 suite trees differ and the earlier side keeps no text.
@@ -96,8 +96,8 @@ case:
 
 | Generator | Cases |
 |---|---|
-| `scripts/replay_targets.py` | `warden/replay-*`: a round record's target, each finding the next round confirmed fixed a `truth-` grader |
-| `scripts/seed_defects.py` | `warden/seeded-*`: a shipped work item's round 1 target, against round 1's base, with one mutation in a unit the build added, amended into the target with the target's own committer and date, and neither a copy of the unmutated target commit nor a remote left in the clone; the mutated line is a `truth-` grader, and so is each finding round 1 fixed that round 2 confirmed |
+| `scripts/replay_targets.py` | `proofer/replay-*`: a round record's target, each finding the next round confirmed fixed a `truth-` grader |
+| `scripts/seed_defects.py` | `proofer/seeded-*`: a shipped work item's round 1 target, against round 1's base, with one mutation in a unit the build added, amended into the target with the target's own committer and date, and neither a copy of the unmutated target commit nor a remote left in the clone; the mutated line is a `truth-` grader, and so is each finding round 1 fixed that round 2 confirmed |
 | `scripts/rule_cases.py` | `<agent>/rule-*`: a fixture repository the agent works in, graded on what it produced |
 
 All three also read `scripts/recurred_truths.json`. A real defect a case
@@ -111,9 +111,9 @@ no two truths of one case may accept the same `location:` line. An entry
 the case cannot take stops the generator with exit 1.
 
 ```bash
-python3 evals/scripts/noninferiority.py run --agent warden --rev <merge base> \
-  --out seal/specs/<id>/evals/baseline-warden.json
-python3 evals/scripts/noninferiority.py compare --agent warden --phase N \
-  --old seal/specs/<id>/evals/baseline-warden.json --new <new side>.json \
-  --out seal/specs/<id>/evals/warden-phase-N.md
+python3 evals/scripts/noninferiority.py run --agent proofer --rev <merge base> \
+  --out seal/threads/<id>/evals/baseline-proofer.json
+python3 evals/scripts/noninferiority.py compare --agent proofer --phase N \
+  --old seal/threads/<id>/evals/baseline-proofer.json --new <new side>.json \
+  --out seal/threads/<id>/evals/proofer-phase-N.md
 ```
