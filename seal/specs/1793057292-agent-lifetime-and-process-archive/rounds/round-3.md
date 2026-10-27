@@ -28,7 +28,7 @@ other verdict below was re-derived at `17b287af`.
 severity: should
 location: `seal/specs/1793057292-agent-lifetime-and-process-archive/overview.md:25`, `seal/specs/1793057292-agent-lifetime-and-process-archive/phases/phase-5.md:93-94`
 evidence: executed `git log --format='%h %s' --name-only 08469dff..17b287af`
-verdict: open
+verdict: fixed 31e0d5b1
 
 The sealer withheld in part because `overview.md` said "the commit after
 it" where two commits followed `08469dff` (`guarantee.md` *What must
@@ -64,14 +64,14 @@ and names the `236a596d` broad run with the three record commits after it
 and before this phase. Two open
 ```
 
-answer:
+answer: In 31e0d5b1, row 1 of `overview.md` *Not verified* and the sentence at `phases/phase-5.md:93-95` carry the round's text: the `236a596d` broad run is followed by the three record commits `8eca5d5d`, `085530de` and `f8408d5e` before phase 5. The same commit rewrites row 3, the row for `1718924d`. Its open half is the full suite and the lint and format check, for the orchestrator at the next broad run. Its Linux and Windows half is answered by `tests` run 40434089606 at `17b287af`: `gh run view` printed `success` for ubuntu, the three macOS groups, the four Windows groups, lint, both `arm-check-grammar` legs and `durations`, with `release-report` skipped. `git grep "head before phase"` now finds only this round's own text. `guarantee.md:8` still says one commit follows `236a596d`. That was true at the sealer's audit, and the file is the sealer's to rewrite. The record modules over the two files exit 0.
 
 ### 2. The workflow's comment sends the release table's reader to *2. Gather, bump*, and the checklist tells the reader to read the table in *5. The release pull request*
 
 severity: should
 location: `.github/workflows/test.yml:242-247`
 evidence: executed `awk '/^## 2\. Gather, bump/,/^## 3\./' docs/release-checklist.md | grep -n -i -e table -e report`, `git merge-base --is-ancestor 6046f0622 5bab081e`
-verdict: open
+verdict: fixed 6efbbaa8
 
 The comment on the `release-report` job says whoever prepares the release
 reads the table "(`docs/release-checklist.md` *2. Gather, bump*)". Section
@@ -98,7 +98,7 @@ tests .github` finds only the comment.
   # `.github/scripts/release_report.py` is
 ```
 
-answer:
+answer: In 6efbbaa8, the comment at `.github/workflows/test.yml:246` cites `docs/release-checklist.md` *5. The release pull request*, the section whose *Read the release table before the merge* paragraph tells the reader to read the table. The class is a section citation under `.github/`. The other four, at `gather_changelog.py:18` and `:173`, `plugin_directory_check.py:9` and `publish_release_note.py:113`, each name a heading that exists and holds what the citation says. The other two citations of *2. Gather, bump*, at `CONTRIBUTING.md:383` and `docs/the-record-layout.md:42`, cite the gather command, which section 2 holds. No cheap check can be pointed at this. `dangling_implement_citations` in `tests/test_the_set_a_work_item_always_has.py` refuses only a cited heading the file lacks, and *2. Gather, bump* is a heading the checklist has, so a version widened to the checklist would have passed the old comment. The defect is a section that exists and holds another instruction, and no check reads that. The eight modules that read `.github/workflows/test.yml` exit 0.
 
 ## Confirmations
 
