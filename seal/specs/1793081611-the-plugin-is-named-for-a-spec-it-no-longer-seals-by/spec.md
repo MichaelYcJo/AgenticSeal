@@ -35,16 +35,24 @@ release's purpose: names and places only, behaviour unchanged.
 | The command line | one command per tool under `bin/` | `seal <subcommand>`, one subcommand per tool, in `skills/implement/scripts/seal.py` |
 | A work item's directory | `seal/specs/<id>/` | `seal/threads/<id>/` |
 | The frame | `spec.md`, `plan.md`, `questions.md` | `frame/design.md`, `frame/plan.md`, `frame/questions.md` |
-| What the agents exchange | `phases/`, `rounds/` | `work/phases/`, `work/rounds/` |
-| What is stamped at the end | `broad-gate.md`, `guarantee.md` | `verdict/gate.md`, `verdict/guarantee.md` |
-| The top of a thread | `routing.md`, `overview.md`, `changelog.md` | unchanged |
-| The agents | framer, smith, warden, sealer, scribe | framer, coder, inspector, sealer, tracer |
+| What the parties hand each other | `phases/`, `rounds/`, `broad-gate.md` | `trail/phases/`, `trail/rounds/`, `trail/gate.md` |
+| The sealer's conclusion | `guarantee.md` | `guarantee.md`, at the top of the thread |
+| The closing memo | `overview.md` | `gaps.md`, at the top of the thread |
+| What else stays at the top of a thread | `routing.md`, `changelog.md` | unchanged |
+| The agents | framer, smith, warden, sealer, scribe | framer, crafter, proofer, sealer, tracer |
 | The commit trailer | `SpecSeal-Routing:` | `Seal-Routing:` |
 | The tagline | "Specs, sealed" | gone; one sentence describes the plugin |
 | The opt-in | a `seal/` directory exists | a `seal/` directory exists and its `README.md` opens with the marker |
 | A top-level `specs/` or `.specseal/` | read once by `hooks/root-migrate.py` and moved | read by nothing |
 
-The names a person does not read but a file holds, which the mapping does
+A thread holds two folders and four files at its top, and a record is
+placed by what it is, never by which agent wrote it: `frame/` is the design
+before the build, `trail/` is what passed between the parties, and
+`routing.md`, `changelog.md`, `guarantee.md` and `gaps.md` speak for the
+whole thread. The owner chose `trail` over `work`, `gaps` over `overview`,
+and crafter and proofer over coder and inspector on 2026-10-27, and #1051's
+body under *The mapping* states each name's origin; this frame names only
+the chosen spellings. The names a person does not read but a file holds, which the mapping does
 not list, follow the plugin's `name`: the state files under the git common
 directory (`specseal-scratch`, `specseal-no-work-item`, `specseal-leases`,
 `specseal-planner`, `specseal-implementer`, `specseal-implementer-notice`,
@@ -84,10 +92,10 @@ holds 12 files naming SpecSeal and 9 naming smith, warden or scribe
 *Document layout* says a pull request does not edit the policy root, and the
 reason is that a rule's decision is made at the settle, from the released
 specs. A spelling carries no decision: a sentence naming `smith` says the
-same thing of `coder`. So the build rewrites every old name and path in
+same thing of `crafter`. So the build rewrites every old name and path in
 `docs/` where it stands, in the same commit as the code that reads the new
 one, and *Rule changes* below states each rule whose content changes, with
-`from` quoting the text as read on 2026-10-27. The inspector reads a `docs/`
+`from` quoting the text as read on 2026-10-27. The proofer reads a `docs/`
 edit against this paragraph, not as a divergence.
 
 **What keeps the old name, and why.** The released changelog
@@ -101,7 +109,7 @@ KEEP). The recorded eval scaffolds (`evals/behaviour/*/*/scaffold.sh`) keep
 their clone line: each is generated, never edited by hand (`evals/README.md`),
 records a run at a SHA, and the old URL redirects. The eval directories and
 prompts rename with the agents (`evals/behaviour/warden/` becomes
-`evals/behaviour/inspector/`), because `noninferiority.py --agent` is typed
+`evals/behaviour/proofer/`), because `noninferiority.py --agent` is typed
 by a person. Three readers keep reading an old spelling for one minor
 release, each labelled at its constant and exempted from the census with a
 reason: `chain_check.py` accepts `SpecSeal-Routing:` beside `Seal-Routing:`
@@ -132,11 +140,11 @@ and is not living text.
 
 | Scenario | Given / When / Then | Verifiable how |
 |---|---|---|
-| The plugin installs under its new id | Given the tree at the release tag, when a user runs the three lines above, then `claude plugin list` shows `agentic@agenticseal`, and every agent and skill answers to `agentic:` | `claude plugin validate .` exits 0 (a measurement the coder runs); the install on a machine is a person's, Q4 of `questions.md` |
+| The plugin installs under its new id | Given the tree at the release tag, when a user runs the three lines above, then `claude plugin list` shows `agentic@agenticseal`, and every agent and skill answers to `agentic:` | `claude plugin validate .` exits 0 (a measurement the crafter runs); the install on a machine is a person's, Q4 of `questions.md` |
 | A user installed as `specseal@specseal` reaches the new id | Given a machine with `specseal@specseal`, when the user runs the three lines and `bash install.sh`, then the old plugin and marketplace are gone and the CLAUDE.md block carries `agentic:` and the new markers | `tests/test_first_setup_asks_once.py`: `install.sh` over a CLAUDE.md holding the old block leaves one block, under the new markers; the live install is Q4 |
 | The tagline is gone | When `git grep -F "Specs, sealed"` runs over the tree, then it matches nothing, and README.md, `plugin.json` `description` and both `description` fields of `marketplace.json` hold the one sentence | a case reads the three files and the grep |
-| One spelling is left | When the census runs over every tracked file, then no living file names `specseal`, `SpecSeal`, `smith`, `warden`, `scribe`, `seal/specs/`, `SpecSeal-Routing`, `broad-gate.md`, a bare `phases/` or `rounds/`, or `agent-specseal`, outside `changelog/`, `CHANGELOG.md`, the recorded scaffolds, and a line exempted with a reason | `tests/censuses.py#old_names`, run by `tests/test_censuses.py` over every tracked file; the case is seen red against the tree before the sweep |
-| An installed repository migrates at its first session | Given a repository holding `seal/specs/<id>/` with `rounds/`, `phases/`, `broad-gate.md` and `guarantee.md` and a `seal/README.md` without the marker, when a session starts, then `seal/threads/<id>/frame/`, `work/`, `verdict/` hold the files as staged `git mv`, `README.md` opens with the marker, one line says what moved, and the gates decide as they did | `tests/test_root_migrate.py`: a fixture at the 0.22.x layout in shared mode and in local mode, migrated end to end; the gates' decisions pinned by their own modules |
+| One spelling is left | When the census runs over every tracked file, then no living file names `specseal`, `SpecSeal`, `smith`, `warden`, `scribe`, `seal/specs/`, `SpecSeal-Routing`, `broad-gate.md`, `overview.md`, a bare `phases/` or `rounds/`, or `agent-specseal`, outside `changelog/`, `CHANGELOG.md`, the recorded scaffolds, and a line exempted with a reason | `tests/censuses.py#old_names`, run by `tests/test_censuses.py` over every tracked file; the case is seen red against the tree before the sweep |
+| An installed repository migrates at its first session | Given a repository holding `seal/specs/<id>/` with `rounds/`, `phases/`, `broad-gate.md` and `guarantee.md` and a `seal/README.md` without the marker, when a session starts, then `seal/threads/<id>/frame/` and `trail/` hold the files as staged `git mv`, with `guarantee.md` and `gaps.md` at the thread's top, `README.md` opens with the marker, one line says what moved, and the gates decide as they did | `tests/test_root_migrate.py`: a fixture at the 0.22.x layout in shared mode and in local mode, migrated end to end; the gates' decisions pinned by their own modules |
 | A `seal/` without the marker is not a root | Given a repository whose `seal/README.md` lacks the marker or is absent, when any gate runs, then `optin.home_at` answers "" and the gate says nothing | `tests/test_optin.py` |
 | First setup meets a foreign `seal/` | Given a repository with a `seal/` of its own and no marker, when first setup runs, then nothing is written into it and the orchestrator is told local mode keeps the root under the git directory | `tests/test_first_setup_asks_once.py` reads the bootstrap's sentence |
 | No code reads a top-level `specs/` | Given a repository holding another tool's `specs/<unix-seconds>-<slug>/` with a tracked `routing.md`, when a session runs, then nothing moves and nothing is printed | `tests/test_root_migrate.py`; `git grep` for `OLD_ITEMS` and `.specseal` in `hooks/` matches only the README section's quotation |
@@ -151,21 +159,23 @@ at line 41) becomes `"threads"`, and `hooks/routing.py#WORK_ITEMS`
 (`"seal/specs"`, line 121) follows it; `tests/test_routing.py:645` pins the
 new value. The readers that join a file name under the work item change
 with the layout: `chain_check.py` (the depth at line 1624 counts
-`<WORK_ITEMS>/<id>/frame/design.md`; the rounds, `verdict/gate.md` and
-`verdict/guarantee.md`), `unverified_check.py` (`overview.md`, unchanged
-path), `settle.py` and `rule_changes.py` (`frame/design.md`),
-`broad_gate.py --record` (`verdict/gate.md`), `hooks/sealer-stamp-queue.py`
-and `seal_stamp.py` (`verdict/guarantee.md`), `hooks/routing.py#rounds`
-(`work/rounds/`), `gather_changelog.py` (`changelog.md`, unchanged path),
+`<WORK_ITEMS>/<id>/frame/design.md`; the rounds under `trail/rounds/`,
+`trail/gate.md`, and `guarantee.md` at the top), `unverified_check.py`
+(`gaps.md`, which was `overview.md`), `settle.py` and `rule_changes.py`
+(`frame/design.md`), `broad_gate.py --record` (`trail/gate.md`),
+`hooks/sealer-stamp-queue.py` and `seal_stamp.py` (`guarantee.md`,
+unchanged path), `hooks/routing.py#rounds` (`trail/rounds/`),
+`gather_changelog.py` (`changelog.md`, unchanged path),
 `seal.py#work_item_of` (line 389), `hooks/mode-gate.py`,
 `hooks/cmdline_base.py`, `.github/workflows/hygiene.yml` and `test.yml`
 globs, `.github/PULL_REQUEST_TEMPLATE.md`, and the 28 files
 `git grep -l seal/specs -- hooks skills .github templates` lists (executed
 2026-10-27). The templates rename with the files: `templates/sdd-spec.md`
-becomes `templates/sdd-design.md`; `sdd-plan.md`, `sdd-questions.md`,
-`sdd-phase.md`, `sdd-round.md`, `sdd-guarantee.md`, `sdd-routing.md`,
-`sdd-overview.md` keep their names, because a template is named for the
-file it starts and those file names do not change.
+becomes `templates/sdd-design.md` and `templates/sdd-overview.md` becomes
+`templates/sdd-gaps.md`; `sdd-plan.md`, `sdd-questions.md`, `sdd-phase.md`,
+`sdd-round.md`, `sdd-guarantee.md` and `sdd-routing.md` keep their names,
+because a template is named for the file it starts and those file names do
+not change.
 
 **The marker.** `hooks/optin.py` gains `MARKER`, the first line of
 `templates/seal-README.md`, which is the heading
@@ -181,9 +191,12 @@ uncommitted work, only what git tracks, once per repository, a stopped move
 resumes, silent when there is nothing to do, a symbolic link refused). Its
 units become: each `seal/specs/<id>/` to `seal/threads/<id>/`, with
 `spec.md` to `frame/design.md`, `plan.md` and `questions.md` into `frame/`,
-`phases/` and `rounds/` into `work/`, `broad-gate.md` to `verdict/gate.md`,
-`guarantee.md` into `verdict/`, and `routing.md`, `overview.md`,
-`changelog.md` and any `pr.*.md` left at the top; `seal/README.md`
+`phases/` and `rounds/` into `trail/`, `broad-gate.md` to `trail/gate.md`,
+`overview.md` to `gaps.md`, and `routing.md`, `changelog.md`,
+`guarantee.md` and any `pr.*.md` left at the top; the units list through
+`entries`, the symbolic-link refusal points at `seal/specs/`, and the
+rewrite of `seal/README.md` to the marker is a unit of this move, as phase
+1's record states; `seal/README.md`
 rewritten from the template so it opens with the marker; the same under the
 git common directory in local mode, where the moves are renames and not
 `git mv`; and each state file beside the root renamed from `specseal-` to
@@ -221,11 +234,11 @@ one.
 `repository` at the new slug. `.claude-plugin/marketplace.json`: `name`
 `agenticseal`, both `description` fields the one sentence, the plugin entry
 `agentic`, `renames` `{"specseal": "agentic"}`. `agents/smith.md`,
-`agents/warden.md`, `agents/scribe.md` move by `git mv` to `coder.md`,
-`inspector.md`, `tracer.md`, with `name:` changed; `hooks/implementer.py#AGENT_MARKS`
-(line 57) and `mark_for` (line 122) spell `coder` and the `agentic:`
+`agents/warden.md`, `agents/scribe.md` move by `git mv` to `crafter.md`,
+`proofer.md`, `tracer.md`, with `name:` changed; `hooks/implementer.py#AGENT_MARKS`
+(line 57) and `mark_for` (line 122) spell `crafter` and the `agentic:`
 prefix; `hooks/review-skill-gate.py#OURS` (line 42) spells
-`agentic:code-review` and the reason names `@agent-agentic:inspector`;
+`agentic:code-review` and the reason names `@agent-agentic:proofer`;
 `seal.py#PLUGIN_CLONE` (line 1381) and `templates/hygiene.yml` lines 54 and
 55 take the new slug, and `workflow_at` (line 1841) recognises a workflow
 carrying either clone line as this plugin's so that `seal pr-checks install`
@@ -263,7 +276,7 @@ ends in a seal bound to a commit.* README.ko.md states it in Korean.
   file: docs/one-root-by-lifetime.md
   section: Naming
   from: | SpecSeal | seals a spec to the code that implements it | | `seal/` | the root, visible beside `docs/`, because the work items in flight are what people read while a pull request is open | | `seal/specs/<id>/` | a work item's directory, named for the primary artifact it holds |
-  to: | AgenticSeal | a workflow of agents that frames, builds, inspects and seals a change without asking anyone, and ends in a seal bound to a commit | | `seal/` | the root, visible beside `docs/`, because the work items in flight are what people read while a pull request is open | | `seal/threads/<id>/` | a work item's directory: one thread of work, with its frame, its work and its verdict each in a directory named for what it holds | | framer, coder, inspector, sealer, tracer | the agents, each named for what it does: the framer frames the work, the coder builds it, the inspector inspects it, the sealer seals it, and the tracer traces what an original codebase does |
+  to: | AgenticSeal | a workflow of agents that frames, builds, inspects and seals a change without asking anyone, and ends in a seal bound to a commit | | `seal/` | the root, visible beside `docs/`, because the work items in flight are what people read while a pull request is open | | `seal/threads/<id>/` | a work item's directory: one thread, one issue, one branch, one pull request, with `frame/` for the design before the build, `trail/` for what passed between the parties, and `routing.md`, `changelog.md`, `guarantee.md` and `gaps.md` at its top, each record placed by what it is and never by which agent wrote it | | framer, crafter, proofer, sealer, tracer | the agents, each named for its part of one order: the framer designs the work, the crafter builds it, the proofer finds its defects, the sealer gives the final guarantee and seals it, and the tracer, outside that order, traces what an original codebase does |
 - change
   file: docs/one-root-by-lifetime.md
   section: Naming
@@ -278,12 +291,12 @@ ends in a seal bound to a commit.* README.ko.md states it in Korean.
   file: docs/the-record-layout.md
   section: seal/specs/<work-item-id>/
   from: | `spec.md` | what is built, its scenarios, and the decisions with their grounds | | `plan.md` | in which phases it is built, how each is shown, and the approval line | | `questions.md` | which decisions only a person could make, and how each was answered | | `overview.md` | what the diff cannot show: purpose, divergences, what was not verified | | `phases/phase-N.md` | what one build phase was asked, found and removed | | `rounds/round-N.md` | what one review round read, found and closed | | `changelog.md` | this work item's entry in the next release's notes | | `broad-gate.md` | the orchestrator's one broad run, on either routing answer | | `guarantee.md` | whether the sealer sealed the work, against the issue and the tree |
-  to: | `frame/design.md` | what is built, its scenarios, and the decisions with their grounds | | `frame/plan.md` | in which phases it is built, how each is shown, and the approval line | | `frame/questions.md` | which decisions only a person could make, and how each was answered | | `overview.md` | what the diff cannot show: purpose, divergences, what was not verified | | `work/phases/phase-N.md` | what one build phase was asked, found and removed | | `work/rounds/round-N.md` | what one review round read, found and closed | | `changelog.md` | this work item's entry in the next release's notes | | `verdict/gate.md` | the orchestrator's one broad run, on either routing answer | | `verdict/guarantee.md` | whether the sealer sealed the work, against the issue and the tree |
+  to: | `frame/design.md` | what is built, its scenarios, and the decisions with their grounds | | `frame/plan.md` | in which phases it is built, how each is shown, and the approval line | | `frame/questions.md` | which decisions only a person could make, and how each was answered | | `gaps.md` | where the build departed from the frame, what was not verified and who answers it, and what was not done | | `trail/phases/phase-N.md` | what one build phase was asked, found and removed | | `trail/rounds/round-N.md` | what one review round read, found and closed | | `changelog.md` | this work item's entry in the next release's notes | | `trail/gate.md` | the orchestrator's one broad run, on either routing answer | | `guarantee.md` | whether the sealer sealed the work, against the issue and the tree |
 - change
   file: docs/the-record-layout.md
   section: seal/specs/<work-item-id>/
   from: **The files keep these paths until the settle after their release, and leave together.** `routing.md`, the SDD set (`spec.md`, `plan.md`, `questions.md`, `overview.md`, `changelog.md`) and the process record (`rounds/`, `phases/`, `broad-gate.md`, `guarantee.md`, and a `pr.*.md` where one was written) go with the directory, whole, when the settle removes it
-  to: **The files keep these paths until the settle after their release, and leave together.** `routing.md`, the frame (`frame/design.md`, `frame/plan.md`, `frame/questions.md`), `overview.md`, `changelog.md`, the work (`work/rounds/`, `work/phases/`) and the verdict (`verdict/gate.md`, `verdict/guarantee.md`, and a `pr.*.md` where one was written) go with the directory, whole, when the settle removes it. A repository installed before 0.23.0 holds the files under `seal/specs/<id>/` at their old names, and `hooks/root-migrate.py` moves them into this layout once, at the first session start, as staged `git mv` in shared mode and as renames under the git directory in local mode
+  to: **The files keep these paths until the settle after their release, and leave together.** `routing.md`, the frame (`frame/design.md`, `frame/plan.md`, `frame/questions.md`), the trail (`trail/rounds/`, `trail/phases/`, `trail/gate.md`) and the files at the thread's top (`gaps.md`, `changelog.md`, `guarantee.md`, and a `pr.*.md` where one was written) go with the directory, whole, when the settle removes it. A repository installed before 0.23.0 holds the files under `seal/specs/<id>/` at their old names, and `hooks/root-migrate.py` moves them into this layout once, at the first session start, as staged `git mv` in shared mode and as renames under the git directory in local mode
 - change
   file: docs/the-routing-check.md
   section: At the pull request
@@ -313,17 +326,17 @@ ends in a seal bound to a commit.* README.ko.md states it in Korean.
   file: docs/the-session-hooks.md
   section: The implementer mark and notice
   from: **A `framer` or `smith` spawn leaves a mark, and a commit on a branch whose declaration names that agent, with no mark standing, gets one line saying so.**
-  to: **A `framer` or `coder` spawn leaves a mark, and a commit on a branch whose declaration names that agent, with no mark standing, gets one line saying so.**
+  to: **A `framer` or `crafter` spawn leaves a mark, and a commit on a branch whose declaration names that agent, with no mark standing, gets one line saying so.**
 - change
   file: docs/the-session-hooks.md
   section: The implementer mark and notice
   from: | `implementer-mark` (`pre-agent`) | an Agent or Task spawn whose `subagent_type` is `framer` or `smith` | writes the name of the branch checked out, else of the branch a paused rebase names, to `<git-dir>/specseal-planner` or `<git-dir>/specseal-implementer`, and prints nothing |
-  to: | `implementer-mark` (`pre-agent`) | an Agent or Task spawn whose `subagent_type` is `framer` or `coder` | writes the name of the branch checked out, else of the branch a paused rebase names, to `<git-dir>/agentic-planner` or `<git-dir>/agentic-implementer`, and prints nothing |
+  to: | `implementer-mark` (`pre-agent`) | an Agent or Task spawn whose `subagent_type` is `framer` or `crafter` | writes the name of the branch checked out, else of the branch a paused rebase names, to `<git-dir>/agentic-planner` or `<git-dir>/agentic-implementer`, and prints nothing |
 - change
   file: docs/the-agent-set.md
   section: What each party writes, and when
   from: **A review round is one file the warden writes, the fix pass writes two lines of each finding it answers, the orchestrator's broad run writes `broad-gate.md`, and the sealer's verdict is `guarantee.md`.**
-  to: **A review round is one file the inspector writes, the fix pass writes two lines of each finding it answers, the orchestrator's broad run writes `verdict/gate.md`, and the sealer's verdict is `verdict/guarantee.md`.**
+  to: **A review round is one file the proofer writes, the fix pass writes two lines of each finding it answers, the orchestrator's broad run writes `trail/gate.md`, and the sealer's verdict is `guarantee.md` at the thread's top.**
 - change
   file: docs/the-agent-set.md
   section: What each party writes, and when
@@ -332,7 +345,7 @@ ends in a seal bound to a commit.* README.ko.md states it in Korean.
 - add
   file: docs/the-agent-set.md
   section: One contract every agent receives, and one definition each
-  to: **The agents are the framer, the coder, the inspector, the sealer and the tracer, and each name says what the agent does.** The framer frames the work, the coder builds it, the inspector inspects it, the sealer seals it, and the tracer traces what an original codebase does. An agent's name is its definition's file name under `agents/` and the word every spawn, mark and record uses for it, so a rename is a `git mv` of the definition and of every text that names it, in one release. check: tests/censuses.py
+  to: **The agents are the framer, the crafter, the proofer, the sealer and the tracer, and each name says its part of one order.** The framer designs the work, the crafter builds it, the proofer finds its defects, the sealer gives the final guarantee and seals it, and the tracer, outside that order, traces what an original codebase does for a migration. The crafter is named for the Software Craftsmanship movement, and the proofer for the proof impression a seal maker strikes to find a defect before the seal is used. An agent's name is its definition's file name under `agents/` and the word every spawn, mark and record uses for it, so a rename is a `git mv` of the definition and of every text that names it, in one release. check: tests/censuses.py
 
 ## Removes
 
@@ -346,9 +359,9 @@ ends in a seal bound to a commit.* README.ko.md states it in Korean.
 | The paragraph beginning "Nothing writes `.specseal/` or a top-level `specs/` any more" | `templates/seal-README.md`, `seal/README.md` | A paragraph saying the first line is the marker and what a `seal/` without it is |
 | The paragraphs describing the automatic move at session start | `README.md` *Coming up from 0.3.x*, `README.ko.md` the same section | The section keeps the by-hand commands and says they are the only path |
 | The bootstrap's sentence telling the session to wait for the 0.3.x move | `skills/implement/orchestration.md` *Orchestrator: Bootstrap*, the paragraph beginning "First, look for the 0.3.x layout" | The bootstrap names README.md *Coming up from 0.3.x* as the by-hand path and continues |
-| `agents/smith.md`, `agents/warden.md`, `agents/scribe.md` | `agents/` | `agents/coder.md`, `agents/inspector.md`, `agents/tracer.md`, by `git mv` |
-| `templates/sdd-spec.md` | `templates/` | `templates/sdd-design.md`, by `git mv` |
-| `evals/behaviour/warden/`, `evals/behaviour/smith/` | `evals/behaviour/` | `evals/behaviour/inspector/`, `evals/behaviour/coder/`, by `git mv`; the recorded `scaffold.sh` files keep their bytes |
+| `agents/smith.md`, `agents/warden.md`, `agents/scribe.md` | `agents/` | `agents/crafter.md`, `agents/proofer.md`, `agents/tracer.md`, by `git mv` |
+| `templates/sdd-spec.md`, `templates/sdd-overview.md` | `templates/` | `templates/sdd-design.md`, `templates/sdd-gaps.md`, by `git mv` |
+| `evals/behaviour/warden/`, `evals/behaviour/smith/` | `evals/behaviour/` | `evals/behaviour/proofer/`, `evals/behaviour/crafter/`, by `git mv`; the recorded `scaffold.sh` files keep their bytes |
 | The KEEP entries whose lines leave with the moved arm | `tests/test_no_document_names_the_old_roots.py#KEEP`: the bootstrap's entry and the seal README's entry | Each KEEP entry must still occur somewhere, so an entry whose line leaves goes with it |
 | The assertion `routing.WORK_ITEMS == "seal/specs"` | `tests/test_routing.py:645` | The same case pins `"seal/threads"` |
 | `/specseal:update`'s repair lines naming `specseal@specseal` and `marketplaces/specseal` | `skills/update/SKILL.md` lines 23, 24, 45, 60 | The same lines under the new names |
