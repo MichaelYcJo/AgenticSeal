@@ -1378,7 +1378,13 @@ CONFIG_PATHSPEC = f"{optin.HOME}/{CONFIG}"
 # else's with our name, and `seal pr-checks` neither overwrites nor removes
 # it. `tests/test_seal.py::Test_module` asserts the template still contains
 # this, so the marker cannot drift away from what it identifies.
-PLUGIN_CLONE = "https://github.com/MichaelYcJo/SpecSeal.git"
+PLUGIN_CLONE = "https://github.com/MichaelYcJo/AgenticSeal.git"
+# The clone line every workflow a release before the rename wrote carries:
+# the repository under its name before #1051. For the minor release of the
+# rename a file carrying it is this plugin's too, and `seal pr-checks
+# install` writes the template over it at the new name; the next minor
+# release removes this reading.
+OLD_PLUGIN_CLONE = "https://github.com/MichaelYcJo/SpecSeal.git"
 # The release a workflow's clone line pins, which `seal pr-checks` reports.
 PIN = re.compile(r"--branch\s+(\S+)")
 
@@ -1838,11 +1844,17 @@ def plugin_workflow():
     return text.replace(PLACEHOLDER, "v" + version)
 
 
+def carries_clone(text):
+    """True where TEXT carries this plugin's clone line, at the repository's
+    name or at the name it had before the rename."""
+    return PLUGIN_CLONE in text or OLD_PLUGIN_CLONE in text
+
+
 def workflow_at(repo):
     """What stands at WORKFLOW in `repo`: (kind, text or reason).
 
-    `plugin`, a regular file that reads and carries PLUGIN_CLONE, with its
-    text; `absent`, with ""; or, with the clause that says why the file is
+    `plugin`, a regular file that reads and carries PLUGIN_CLONE or
+    OLD_PLUGIN_CLONE, with its text; `absent`, with ""; or, with the clause that says why the file is
     not this plugin's, `link`, `unreadable` or `other`. The one reader the
     three forms of `seal pr-checks` share, so the report, the install and the
     removal tell this plugin's file from somebody else's by one rule.
@@ -1857,7 +1869,7 @@ def workflow_at(repo):
             text = handle.read()
     except (OSError, ValueError) as exc:
         return "unreadable", f"could not be read ({exc})"
-    if PLUGIN_CLONE not in text:
+    if not carries_clone(text):
         return "other", "does not carry this plugin's clone line"
     return "plugin", text
 
@@ -1903,9 +1915,11 @@ def install_workflow(repo):
     Refused where `<repo>/seal/` is not the root, a directory whose README
     opens with the marker, because the checks read committed records and only
     a root in the tree is committed; a `seal/` the project keeps for itself
-    holds none of them. Never overwrites: this plugin's own file already
-    there is reported with the release it pins, and anybody else's is left
-    alone.
+    holds none of them. Never overwrites, but for one file: this plugin's own
+    file already there is reported with the release it pins, and anybody
+    else's is left alone. The one is this plugin's file cloning the
+    repository's name before the rename, which is written over at the new
+    name.
     """
     shared, _local = optin.home_paths(repo)
     if not shared or not optin.marked(shared):
@@ -1915,13 +1929,14 @@ def install_workflow(repo):
             f"tree has. `seal mode {SHARED}` puts it in the tree."
         )
     kind, found = workflow_at(repo)
-    if kind == "plugin":
+    old_slug = kind == "plugin" and PLUGIN_CLONE not in found
+    if kind == "plugin" and not old_slug:
         return "installed", (
             f"{WORKFLOW} is already this plugin's, pinned to "
             f"{pinned(found) or 'no release its clone line names'}, so nothing "
             "was written"
         )
-    if kind != "absent":
+    if kind != "absent" and not old_slug:
         return "kept", (
             f"{WORKFLOW} is there and {found}: it is not "
             "this plugin's file, so nothing was written. Move it aside and run "
@@ -1984,6 +1999,12 @@ def install_workflow(repo):
             f"`.github/` is the usual cause. Run `git add -f :/{WORKFLOW}` "
             "yourself, or take the rule out."
         )
+    if old_slug:
+        return "written", (
+            f"rewrote {WORKFLOW}, which cloned the plugin from the repository's "
+            f"name before the rename, at the new name (pinned to v{version}) "
+            "and staged it"
+        )
     return "written", f"wrote {WORKFLOW} (pinned to v{version}) and staged it"
 
 
@@ -2022,7 +2043,7 @@ def remove_workflow(repo):
                 "it was left alone. Look at it with `git status` and take it "
                 "out yourself."
             )
-        if PLUGIN_CLONE not in staged:
+        if not carries_clone(staged):
             return "kept", (
                 f"there is no {WORKFLOW} in the working tree, and the index "
                 "holds a copy that does not carry this plugin's clone line, "

@@ -1,6 +1,6 @@
 # SpecSeal
 
-[![tests](https://github.com/MichaelYcJo/SpecSeal/actions/workflows/test.yml/badge.svg)](https://github.com/MichaelYcJo/SpecSeal/actions/workflows/test.yml)
+[![tests](https://github.com/MichaelYcJo/AgenticSeal/actions/workflows/test.yml/badge.svg)](https://github.com/MichaelYcJo/AgenticSeal/actions/workflows/test.yml)
 
 [English](./README.md) · **한국어**
 
@@ -42,7 +42,7 @@ Claude Code **플러그인**으로 배포됩니다. 인계 규약과 `rules --ch
 | **sealer** (서브에이전트, Opus) | `agent-contract` | 마지막에 독립적으로 보증하는 쪽이다. 회차가 끝나고 PR 본문과 changelog 가 쓰이고 오케스트레이터가 광역 관문을 한 번 돌린 뒤(`broad-gate` 가 `broad-gate.md` 를 쓴다), 그 기록을 읽는다. 광역 검사는 직접 돌리지 않는다. 구현자가 실행했다고 적은 주장 가운데 일부를 다시 돌려 보고, 스펙·구현·마지막 리뷰·changelog·PR 본문을 이슈와 실제 트리에 견주어 읽는다. 판정은 작업 항목의 `guarantee.md` 에 남는다. `sealed`, 트리와 어긋난 곳을 짚은 `withheld`, 또는 소유자에게 넘기는 질문을 단 `undecided` 셋 중 하나다. 설계나 코드 품질을 다시 판정하지는 않는다 |
 | 스킬 | — | 스물두 개이고 세 묶음이다. 에이전트가 첫 도구 호출 전부터 따르는 한 개는 왼쪽 열에 있다. 열다섯 개는 작업이 그것을 요구할 때 세션이 알아서 로드하고, 에이전트는 그중 자기 단계가 가리키는 것을 그 단계에서 연다 — `audit`, `build-fix`, `checkpoint`, `code-review`, `commit-pr-convention`, `confidence-check`, `debug`, `feature-planner`, `gap-analysis`, `implement`, `learn`, `legacy-parity`, `settle`, `verify`, `writing-style`. 나머지 여섯은 사용자가 이름을 불러야 움직이며 아래 치트시트에 있다 |
 | 훅 | — | 게이트 그 자체. 플러그인이 자동으로 등록하므로 설정을 따로 만질 필요가 없다 |
-| CLAUDE.md 블록 | — | 늘 로드되는 12줄 — 절 제목 넷(`Tooling`·`Safety`·`Session cost`·`Git`)에 규칙 여덟이다. 툴링 하나, 안전 셋, 세션 비용 하나, git 셋. 응답 언어 규칙은 없다. 그것은 사용자 몫이다. 정본은 `templates/claude-md-block.md` 하나이고, `install.sh` 와 `/specseal:update` 가 이것을 `CLAUDE.md` 에 써 넣는다. 사본을 따로 두는 파일은 없다 |
+| CLAUDE.md 블록 | — | 늘 로드되는 12줄 — 절 제목 넷(`Tooling`·`Safety`·`Session cost`·`Git`)에 규칙 여덟이다. 툴링 하나, 안전 셋, 세션 비용 하나, git 셋. 응답 언어 규칙은 없다. 그것은 사용자 몫이다. 정본은 `templates/claude-md-block.md` 하나이고, `install.sh` 와 `/agentic:update` 가 이것을 `CLAUDE.md` 에 써 넣는다. 사본을 따로 두는 파일은 없다 |
 
 ## 체인
 
@@ -98,7 +98,7 @@ warden 은 그 기록을 다시 돌리는 대신 감사합니다. 명령이 실�
 작업 항목에 남은 라운드 기록입니다. 유일한 통로는 warden 을 띄우는 프롬프트라서,
 거기에 구현 근거가 실려 있으면 warden 은 그것을 증거가 아니라 작성자의 주장으로
 다루고 제쳐 두었다는 사실을 보고에 적습니다. 통로 자체를 없애려면 새 세션을 열어
-거기서 `@agent-specseal:warden` 을 부르면 됩니다. 회차 이력은 파일이라 어느
+거기서 `@agent-agentic:proofer` 을 부르면 됩니다. 회차 이력은 파일이라 어느
 쪽이든 그대로 이어집니다.
 
 ## 저장소에 남는 기억
@@ -161,16 +161,16 @@ PR 검사가 그중 무엇을 읽는지, 세션이 에이전트에게 일을 어
 
 | 게이트 | 언제 | 무엇을 | 어디서 |
 |---|---|---|---|
-| routing-edit-gate | `Write`·`Edit`·`NotebookEdit` 호출 직전 | 파일이 있는 곳에 체크아웃된 브랜치를 가리키는 `routing.md` 가 없고 세션이 그 브랜치에서 `seal no-work-item` 을 돌리지 않았으면 그 파일의 편집을 거부한다. 판정하는 레포와 브랜치는 셸이 있는 곳이 아니라 편집하는 파일의 것이다. `seal/` 루트 아래 파일, git 이 무시하는 파일, opt-in 한 어느 레포에도 속하지 않는 파일은 판정하지 않으므로 선언은 언제나 먼저 쓸 수 있다. 거부는 모델에게 가고, 쓸 선언과 `seal no-work-item` 을 알려 준다. 라우팅 질문에서 `automation` 을 눌렀다면 사람에게 물을 질문은 알려 주지 않는다. 이 플러그인은 git 안에서 아무것도 돌리지 않으므로, 사람이 터미널에서 한 커밋은 이 플러그인의 코드를 하나도 돌리지 않는다. pull request 에서는 `chain-check` 가, `SpecSeal-Routing` 트레일러가 어느 선언도 가리키지 않는 작업 항목을 적은 커밋을 실패로 처리한다 | 루트에 `seal/` 이 있는 레포, 또는 local 모드로 공통 git 디렉터리 아래에 있는 레포. 그 밖에서는 아무것도 하지 않는다 |
+| routing-edit-gate | `Write`·`Edit`·`NotebookEdit` 호출 직전 | 파일이 있는 곳에 체크아웃된 브랜치를 가리키는 `routing.md` 가 없고 세션이 그 브랜치에서 `seal no-work-item` 을 돌리지 않았으면 그 파일의 편집을 거부한다. 판정하는 레포와 브랜치는 셸이 있는 곳이 아니라 편집하는 파일의 것이다. `seal/` 루트 아래 파일, git 이 무시하는 파일, opt-in 한 어느 레포에도 속하지 않는 파일은 판정하지 않으므로 선언은 언제나 먼저 쓸 수 있다. 거부는 모델에게 가고, 쓸 선언과 `seal no-work-item` 을 알려 준다. 라우팅 질문에서 `automation` 을 눌렀다면 사람에게 물을 질문은 알려 주지 않는다. 이 플러그인은 git 안에서 아무것도 돌리지 않으므로, 사람이 터미널에서 한 커밋은 이 플러그인의 코드를 하나도 돌리지 않는다. pull request 에서는 `chain-check` 가, `Seal-Routing` 트레일러가 어느 선언도 가리키지 않는 작업 항목을 적은 커밋을 실패로 처리한다 | 루트에 `seal/` 이 있는 레포, 또는 local 모드로 공통 git 디렉터리 아래에 있는 레포. 그 밖에서는 아무것도 하지 않는다 |
 | stub-remove | 세션 시작 | 예전 릴리스가 클론의 공용 `hooks/` 디렉터리에 써 둔 `pre-commit`·`reference-transaction`·`post-commit` 스텁을 지운다. 둘째 줄이 표시 `# specseal-git-hook` 인 파일만 지우고, 다른 쪽이 쓴 훅은 바이트 하나 바꾸지 않는다. 지운 것은 한 번 알리고, 지울 것이 없으면 아무 말도 하지 않는다 | 모든 git 레포 |
-| implementer-mark | `subagent_type` 이 `framer` 나 `smith`(`specseal:smith`, 또는 프로젝트 로컬의 `smith`)인 Agent·Task 호출 직전 | 체크아웃된 브랜치 이름을 `.git/agentic-planner` 나 `.git/agentic-implementer` 에, 축마다 파일 하나씩 적는다. 아무것도 출력하지 않으므로 막지도 묻지도 못한다. 아래 알림이 읽는 흔적일 뿐이다. 그룹이 판정하기 전에 쓰므로, 워크트리 가드가 그 호출을 멈춰도 흔적은 남는다 | 루트에 `seal/` 이 있는 레포, 또는 local 모드로 공통 git 디렉터리 아래에 있는 레포. 그 밖에서는 침묵하고 아무것도 쓰지 않는다 |
+| implementer-mark | `subagent_type` 이 `framer` 나 `crafter`(`agentic:crafter`, 또는 프로젝트 로컬의 `crafter`)인 Agent·Task 호출 직전 | 체크아웃된 브랜치 이름을 `.git/agentic-planner` 나 `.git/agentic-implementer` 에, 축마다 파일 하나씩 적는다. 아무것도 출력하지 않으므로 막지도 묻지도 못한다. 아래 알림이 읽는 흔적일 뿐이다. 그룹이 판정하기 전에 쓰므로, 워크트리 가드가 그 호출을 멈춰도 흔적은 남는다 | 루트에 `seal/` 이 있는 레포, 또는 local 모드로 공통 git 디렉터리 아래에 있는 레포. 그 밖에서는 침묵하고 아무것도 쓰지 않는다 |
 | implementer-notice | 실제로 `git commit` 을 실행한 명령 직후 | 이 브랜치의 `routing.md` 가 `Planning` 에 `framer` 를, 또는 `Implementation` 에 `crafter` 를 적었는데 그 축의 흔적이 이 브랜치에 없으면, 그 파일을 적은 한 줄을 출력한다 — **두 축이어도 한 줄**이지 축마다 한 줄이 아니다. 흔적이 있는 축, 행이 없거나 읽을 수 없는 축, `the session` 으로 답한 축에는 아무 말도 하지 않는다. **세션·레포당 한 번**이고 막지 않는다 — 선언해 놓고 아무도 띄우지 않은 에이전트는 세션이 자기 답을 잊은 것이고, 그 값은 알림 한 줄이다 | 같은 옵트인 |
-| review-skill-gate | 모델이 `code-review` 라는 이름의 스킬을 열기 직전 | 고르지 않고 사용자에게 고르게 한다. 그 이름은 Claude Code 내장이지 이 플러그인 것이 아니다. 내장은 diff 에서 버그와 중복을 훑고, `specseal:code-review` 는 스펙 준수를 먼저 본 뒤 이전 회차 판정을 이어받는다. **세션·작업트리당 한 번**만 물으므로, 내장을 골라 다시 부르면 그대로 통과한다. 사용자가 직접 부른 스킬은 여기를 거치지 않는다 | 루트에 `seal/` 이 있는 레포, 또는 local 모드로 공통 git 디렉터리 아래에 있는 레포. 그 밖에서는 아무것도 하지 않는다 |
+| review-skill-gate | 모델이 `code-review` 라는 이름의 스킬을 열기 직전 | 고르지 않고 사용자에게 고르게 한다. 그 이름은 Claude Code 내장이지 이 플러그인 것이 아니다. 내장은 diff 에서 버그와 중복을 훑고, `agentic:code-review` 는 스펙 준수를 먼저 본 뒤 이전 회차 판정을 이어받는다. **세션·작업트리당 한 번**만 물으므로, 내장을 골라 다시 부르면 그대로 통과한다. 사용자가 직접 부른 스킬은 여기를 거치지 않는다 | 루트에 `seal/` 이 있는 레포, 또는 local 모드로 공통 git 디렉터리 아래에 있는 레포. 그 밖에서는 아무것도 하지 않는다 |
 | question-gate | `AskUserQuestion` 호출 직전 | 브랜치의 `routing.md` 가 `Automation` 에 `yes` 로 답했으면 질문을 호출마다 모델에게 거절한다. 그래서 `automation` 으로 보낸 실행은 사용자에게 묻느라 멈추지 않는다. 모델은 질문이 내건 기본값으로 진행하고, 그 값을 작업 항목의 `questions.md` 에 행으로 적고, PR 본문에 밝혀 사용자가 뒤집을 수 있게 한다. 라우팅 질문만 단독으로 물으면 그 세션이 아직 답하지 않은 동안에는 통과하므로, 재개한 실행이 그 질문을 한 번 다시 물을 수 있다. 다른 게이트가 모델에게 물으라고 한 질문에는 기본값이 없으므로, 모델은 그 선택지 중 어느 것도 고르지 않고 그 멈춤을 실행 끝에 넘긴다. 다른 브랜치를 체크아웃한 곳에 앉은 세션과 평문으로 물은 질문은 막지 않는다 | 루트에 `seal/` 이 있는 레포, 또는 local 모드로 공통 git 디렉터리 아래에 있는 레포. 그 밖에서는, 그리고 선언이 `yes` 로 답하지 않은 브랜치에서는 아무것도 하지 않는다 |
 | worktree-guard | `git checkout`·`switch`·`worktree add` 와 `isolation: "worktree"` 로 부른 Agent 직전 | 한 규칙의 두 방향이다. 다른 세션이 이 트리에서 작업 중이면 전환을 막고, 반대로 혼자 작업 중이면 Bash 의 `git worktree add` 를 막는다. 멈춘 세션뿐이거나 판정 자체가 불가능한 환경에서는 Bash 생성에 갈 수 있는 두 길을 선택지로 띄운다 — 이 트리에서 전환하거나, worktree 로 분리하거나. **세션·레포·방향당 한 번**만 이렇게 묻고 그 다음부터는 일반 확인창이며, 고른 답은 `[worktree-ok]` 와 `[shared-tree-ok]` 가 재시도 때 그대로 실어 나른다. `isolation: "worktree"` 로 부른 Agent 는 세션을 세지 않는다. 이 agent 는 이 세션과 나란히 도는 동시 작업이므로 확인창을 한 번 띄운다. 한 세션에서 생성이 한 번 실행된 뒤에는 다시 묻지 않고, 라우팅 질문에서 `automation` 을 눌렀다면 그 답을 받은 클론에서는 처음부터 묻지 않는다. 그 답을 눌렀다면 멈춘 세션뿐이거나 판정이 불가능한 트리의 전환도 선택지로 묻지 않는다. 모델의 전환을 매번 거부하고, 그 답을 받은 클론이거나 이 세션이 이미 worktree 를 만든 클론이면 worktree 로 분리하는 길을 알려 준다. 다른 클론에서 멈춘 세션뿐이거나 판정이 불가능한 트리에 worktree 를 만들려 할 때도 모델에게 매번 거부하며, 갈 길은 알려 주지 않는다. 두 방향을 따로 세므로 한 세션이 이 질문을 두 번 만나는 것은 정상이다. 사유에는 상대 세션의 호스트 앱, 신호별 경과 시간, 마지막 메시지가 함께 나온다 | 모든 git 레포 |
 | session-lease | 저장소를 건드리는 도구 호출(Bash·파일 편집) 직후 | `.git/agentic-leases/<세션id>` 에 시각·호스트·세션 pid 를 적는다. 프로세스 이름이 `claude` 가 아닌 세션은 가드가 놓치는데, lease 는 어느 세션이 여기서 일하는지 그냥 밝혀 준다. 세션이 끝나도 파일은 지워지지 않으므로 주인을 함께 적는다. 끝난 세션의 lease 는 세지 않고 버리며, 주인을 확인할 수 없는 lease 는 차단이 아니라 질문이 된다 | 모든 git 레포 |
 | mode-gate | Bash 호출 직전이므로, 사실상 그 세션의 첫 명령 | 아무도 모드를 고르지 않은 루트를 짚어 준다. `seal/` 은 있는데 `seal/config.md` 에 `Mode` 행이 없으면, 이 저장소의 리뷰 기록이 저장소를 따라다니는지 이 기계에만 남는지를 아무것도 기록하지 않은 상태다. 사람이 골라서 그렇게 된 루트와, 세션이 라우팅 규칙을 따르다 생긴 루트가 바이트 단위로 같아진다. 처음 한 번은 막고 갈 수 있는 세 길을 선택지로 띄운다 — `seal mode` 는 폴더가 이미 있는 자리를 그대로 적어 두고 아무것도 옮기지 않으며, `seal mode shared` · `seal mode local` 은 폴더를 옮긴다. 그 다음부터는 일반 확인창이고, 승인하면 아무것도 기록하지 않은 채 진행된다. **세션·레포당 한 번**이며, 행이 한 번 써지면 그 뒤로는 아무 말도 하지 않는다. 판정 대상은 **세션이 앉아 있는** 레포이지 `-C` 가 가리키는 곳이 아니다. 변경에 대한 판정이 아니라 작업 공간에 대한 사실이기 때문이다 | 루트에 `seal/` 이 있는 레포, 또는 local 모드로 공통 git 디렉터리 아래에 있는 레포. 그 밖에서는, 그리고 행이 써진 뒤에는 아무것도 하지 않는다. 면제 토큰은 없다 — 갈 길이 명령 하나다 |
-| version-check | 세션 시작 시 | 이 저장소에 최신 릴리스 태그를 물어보고, 실행 중인 플러그인이 뒤처져 있으면 `/specseal:update` 를 알린다. 하루 한 번 물어보고, 조회가 실패하면 20분쯤 뒤에 다시 시도한다. 설치는 하지 않는다. 릴리스가 있다고 알리는 것과 남의 기계에 설치하는 것은 다른 일이다 | 루트에 `seal/` 이 있는 레포, 또는 local 모드로 공통 git 디렉터리 아래에 있는 레포. 그 밖에서는 아무것도 하지 않는다 |
+| version-check | 세션 시작 시 | 이 저장소에 최신 릴리스 태그를 물어보고, 실행 중인 플러그인이 뒤처져 있으면 `/agentic:update` 를 알린다. 하루 한 번 물어보고, 조회가 실패하면 20분쯤 뒤에 다시 시도한다. 설치는 하지 않는다. 릴리스가 있다고 알리는 것과 남의 기계에 설치하는 것은 다른 일이다 | 루트에 `seal/` 이 있는 레포, 또는 local 모드로 공통 git 디렉터리 아래에 있는 레포. 그 밖에서는 아무것도 하지 않는다 |
 | sealer-stamp | 메인 세션의 턴이 끝날 때 (`Stop`) | 작업 항목의 `guarantee.md` 가 `sealed` 로 쓰일 때 남는 봉인 도장을 — 작업 항목마다 한 번, 이 세션 앞으로 `<git-common-dir>/agentic-stamp/<session>/` 에 쌓인 것을 — 턴의 글이 다 나온 뒤에 한 번 그리고, 그 파일의 이름을 `.drawn.json` 으로 바꾼다. 서브에이전트가 끝날 때, 다른 세션의 파일, 3.12 보다 낮은 `python3` 에서는 그리지 않는다. 손으로 그리려면 `seal-stamp --from <file>` 이다 | 루트에 `seal/` 이 있는 레포, 또는 local 모드로 공통 git 디렉터리 아래에 있는 레포. 그 밖에서는 아무것도 하지 않는다 |
 | sealer-stamp-queue | 작업 항목의 `guarantee.md` 를 Write·Edit 한 직후 | 어느 모드에서든, 그 쓰기로 `guarantee.md` 가 `sealed` 로 읽히고 그 판정이 `routing.md` 가 적은 브랜치 위의 커밋을 가리킬 때, 메인 세션의 `Stop` 이 그릴 도장을 작업 항목마다 한 번 쌓아 두고, 쌓은 파일과 `seal-stamp --from` 을 적은 한 줄을 출력한다. 그 브랜치에 그 커밋이 없으면 아무것도 쌓지 않고, 거절을 기록하고, 그렇다고 한 줄로 말한다. 다른 편집은 경로만 보고 넘기며, 그때는 아무것도 불러오지 않고 `git` 도 돌리지 않는다 | 루트에 `seal/` 이 있는 레포, 또는 local 모드로 공통 git 디렉터리 아래에 있는 레포. 그 밖에서는 아무것도 하지 않는다 |
 | lint-python | `.py` 파일을 Write·Edit·NotebookEdit 한 직후 | 그 파일에 `ruff check --fix` 를 돌린 뒤 `ruff format` 을 돌린다. 자동수정이 포함되므로 레이아웃만이 아니라 코드가 바뀐다 (uv → uvx → 전역 순으로 찾고, 없으면 건너뛴다). `SPECSEAL_LINT=off` 로 끌 수 있다 | **ruff 를 설정한 프로젝트** — `ruff.toml`, `.ruff.toml`, 또는 `pyproject.toml` 의 `[tool.ruff]`. 레포 루트까지 거슬러 찾는다. 그 밖에서는 아무것도 하지 않는다 |
@@ -181,7 +181,7 @@ PR 검사가 그중 무엇을 읽는지, 세션이 에이전트에게 일을 어
 자체는 PR 에서 검사합니다. CI 가 diff 에서 같은 파일을 읽고, 리뷰 체인으로
 간다고 적힌 것에 대해서는 커밋된 라운드 기록을 요구합니다. 그 기록에 답하지
 않은 지적이 하나라도 남아 있으면 막습니다. 어느 쪽도 선언하지 않은 PR 은
-커밋의 `SpecSeal-Routing` 트레일러로만 판정하고
+커밋의 `Seal-Routing` 트레일러로만 판정하고
 ([docs/the-routing-check.md](./docs/the-routing-check.md)), 그 밖에는 아무것도
 검사하지 않았다는 알림을 남깁니다.
 
@@ -236,7 +236,7 @@ version-check 는 `~/.claude/agentic/` 아래에 시각 파일을 씁니다.
 답하면 다시 묻지 않습니다. 맞다고 답하면 원본 후보를 찾아 제시하고(옆에 체크아웃된
 레포, `git remote -v` 의 upstream, 경로 구조가 겹치는 레포), 확인해 준 쪽의 HEAD 를
 읽어 기준 커밋으로 적은 뒤 파일을 만듭니다. 나중에 결정하는 경우에는
-`/specseal:parity-setup` 을 실행하면 됩니다.
+`/agentic:parity-setup` 을 실행하면 됩니다.
 
 체크아웃 경로는 커밋되는 파일에 들어가지 않고 `~/.claude/agentic/parity-paths.md` 에
 origin remote 를 키로 저장됩니다. 다른 기계에서는 틀린 값이기 때문입니다.
@@ -258,18 +258,18 @@ origin remote 를 키로 저장됩니다. 다른 기계에서는 틀린 값이�
 | `rules <doc> [--root <dir>]` · `rules --check [--root <dir>]` | `rules <doc>` 는 문서의 제목마다 그 아래 `check:` 줄이 가리키는 테스트를 찍고, 테스트마다 docstring 의 첫 문장을 함께 보여 줍니다. 대상을 찾지 못하면 그 이유를 찍습니다. 규칙의 글은 그 docstring 한 곳에만 있으므로, 문서와 테스트를 나란히 읽을 때 이 명령을 씁니다. 무엇을 찾든 0 으로 끝납니다. `rules --check` 는 모든 규칙 파일의 check 줄을 전부 읽고, 문법을 벗어난 줄이나 사라진 대상이 하나라도 있으면 파일·줄·제목을 찍고 1 로 끝납니다. 테스트 하나가 저장소 전체에 대해 이 명령을 돌립니다. 대상은 명령을 친 저장소에서 찾고, 어느 쪽도 아무것도 쓰지 않습니다 |
 | `pact-check [ROOT]` | pact(여러 저장소가 함께 지키는 계약의 원본, `seal/pact.md`)를 가진 저장소에서 돌립니다. pact 가 적어 둔 signer(그 계약에 서명한 저장소)마다 `~/.claude/agentic/pact-paths.md` 나 옆 디렉터리에서 체크아웃을 찾고, 그 저장소의 `Pact` 행이 이 pact 를 가리키는지 확인한 뒤, 거기 적힌 pact 앵커를 하나씩 판정합니다. `SUPERSEDED` 는 signer 가 예전 조항을 보고 만들어졌다는 뜻이고, `NOT TAKEN` 은 pact 가 아직 받아들이지 않은 변경이 어느 브랜치에 있는지 알려 줍니다. `UNMATCHED` 와 `BROKEN` 은 양쪽을 읽거나 좌표를 다시 잡으라는 뜻입니다. 로컬에서만 돕니다. signer 의 CI 는 저장소 하나만 읽을 수 있으므로 관계를 찍기만 하고 아무것도 검증하지 않습니다 |
 | `payload-meter [--calibrate <메인 트랜스크립트>] [--baseline <run.json>]` | 에이전트마다 시작 페이로드가 무엇으로 이루어졌는지를 보여 줍니다 — 정의 파일, `skills:` 목록이 주입하는 스킬 파일 전부, `CLAUDE.md` 두 파일을 바이트·문자·토큰으로 셉니다. 토큰 수치에는 근거가 붙습니다. 트랜스크립트의 스폰에서 읽은 값은 `measured`, 에이전트별 비율로 추정한 값은 `estimated` 입니다. `--baseline` 을 주면 이전 `--json` 실행과의 차이를 찍어 주므로, 줄인 페이로드가 실제로 줄었는지는 이것으로 봅니다 |
-| `/specseal:preset-setup` | CLAUDE.md 블록을 승인받아 뜻 단위로 병합한다 |
-| `/specseal:parity-setup` | 이 레포가 다른 코드베이스를 옮겨 온 것임을 선언한다. 원본을 찾아 기준 커밋을 기록한다 |
-| `/specseal:security-audit` · `/specseal:testing` | 모델이 훑는 점검 목록 — OWASP 형태의 보안 점검과 테스트 전략 점검 |
-| `/specseal:config` | 이 저장소가 자기에 대해 정한 것을 보여 주고 바꾼다. 글을 쓰는 언어 두 행과 기록이 사는 자리. 바꾸는 것은 그 행을 가진 명령에 넘기고, 뒤에서 직접 고치지 않는다 |
-| `/specseal:update` | 최신 릴리스를 받고 무엇이 들어 있는지 본다. 갱신 명령 두 줄을 순서대로 돌린 뒤, 쓰던 버전과 새 버전 사이의 변경 항목을 알려 준다. 적용하는 방법 두 가지와, 각각 어디까지 측정된 것인지도 함께 알려 준다 |
+| `/agentic:preset-setup` | CLAUDE.md 블록을 승인받아 뜻 단위로 병합한다 |
+| `/agentic:parity-setup` | 이 레포가 다른 코드베이스를 옮겨 온 것임을 선언한다. 원본을 찾아 기준 커밋을 기록한다 |
+| `/agentic:security-audit` · `/agentic:testing` | 모델이 훑는 점검 목록 — OWASP 형태의 보안 점검과 테스트 전략 점검 |
+| `/agentic:config` | 이 저장소가 자기에 대해 정한 것을 보여 주고 바꾼다. 글을 쓰는 언어 두 행과 기록이 사는 자리. 바꾸는 것은 그 행을 가진 명령에 넘기고, 뒤에서 직접 고치지 않는다 |
+| `/agentic:update` | 최신 릴리스를 받고 무엇이 들어 있는지 본다. 갱신 명령 두 줄을 순서대로 돌린 뒤, 쓰던 버전과 새 버전 사이의 변경 항목을 알려 준다. 적용하는 방법 두 가지와, 각각 어디까지 측정된 것인지도 함께 알려 준다 |
 | `bash install.sh [--project]` / `bash uninstall.sh` | CLAUDE.md 마커 블록을 넣거나 뺀다 |
 
 **명령에 섞는 스위치:**
 
 | 스위치 | 효과 |
 |---|---|
-| `seal no-work-item` | 돌린 곳에 체크아웃된 브랜치에서 이 세션이 하는 변경은 어느 작업 항목에도 속하지 않는다고 기록한다. 그 뒤로 편집 훅은 그 브랜치에서 하는 이 세션의 편집만 통과시키고, 다른 브랜치로 옮기면 거기서 다시 돌려야 한다. HEAD 가 detached 이면 아무것도 기록하지 않는다. 루트가 shared 이면 그 아래에서 하는 커밋마다 트레일러 `SpecSeal-Routing: no work item` 으로 끝나고, pull request 검사가 그 커밋들을 출력한다(`skills/commit-pr-convention/SKILL.md`) |
+| `seal no-work-item` | 돌린 곳에 체크아웃된 브랜치에서 이 세션이 하는 변경은 어느 작업 항목에도 속하지 않는다고 기록한다. 그 뒤로 편집 훅은 그 브랜치에서 하는 이 세션의 편집만 통과시키고, 다른 브랜치로 옮기면 거기서 다시 돌려야 한다. HEAD 가 detached 이면 아무것도 기록하지 않는다. 루트가 shared 이면 그 아래에서 하는 커밋마다 트레일러 `Seal-Routing: no work item` 으로 끝나고, pull request 검사가 그 커밋들을 출력한다(`skills/commit-pr-convention/SKILL.md`) |
 | worktree 명령의 `[worktree-ok]` | 혼자 작업할 때 worktree 생성을 막던 것을 확인창으로 완화한다. 명령의 낱말로 있을 때만 세므로 따옴표 안의 문장에 적힌 것은 세지 않고, here-document 본문에 적힌 것도 세지 않는다. `isolation: "worktree"` 로 부르는 Agent 는 명령줄이 없어 토큰을 받지 않고, 대신 바로 확인창을 띄운다 |
 | 전환 명령의 `[shared-tree-ok]` | 공용 트리에서 전환하기로 이미 골랐다는 표시다. 가드가 판정하지 못하는 자리(멈춘 세션뿐, 환경 조회 불가)에서 전환이 그대로 통과한다. 명령의 낱말로 있을 때만 세고, here-document 본문에 적힌 것은 세지 않는다. 다른 세션이 작업 중일 때와 트리가 더러울 때는 무시된다 |
 | `WORKTREE_GUARD_IDLE_MIN=n` | 세션을 멈춘 것으로 볼 기준 시간, 분 단위 (기본 5) |
@@ -290,8 +290,8 @@ Windows 는 공식 설치본이 `python3` 이라는 이름을 만들지 않으�
 ```bash
 # 1. 플러그인 (에이전트 + 스킬 + 게이트)
 claude
-> /plugin marketplace add MichaelYcJo/SpecSeal
-> /plugin install specseal@specseal
+> /plugin marketplace add MichaelYcJo/AgenticSeal
+> /plugin install agentic@agenticseal
 
 # 2. CLAUDE.md 블록 — 범위는 하나만 선택
 bash install.sh            # 대화형: 전역(~/.claude) 또는 프로젝트(./)
@@ -301,7 +301,7 @@ bash install.sh --project  # 비대화형 프로젝트 범위
 ### 업데이트
 
 ```
-/specseal:update
+/agentic:update
 ```
 
 아래 두 명령을 순서대로 돌린 뒤, 쓰던 버전과 새 버전 사이의 변경 항목을 알려
@@ -320,8 +320,8 @@ bash install.sh --project  # 비대화형 프로젝트 범위
 직접 하려면 이렇습니다.
 
 ```bash
-claude plugin marketplace update specseal
-claude plugin update specseal@specseal   # 그다음 적용 — 위 문단 참고
+claude plugin marketplace update agenticseal
+claude plugin update agentic@agenticseal   # 그다음 적용 — 위 문단 참고
 ```
 
 두 줄을 이 순서로 실행합니다. 첫 줄이 마켓플레이스 클론을 갱신하고, 둘째 줄이
@@ -334,7 +334,7 @@ claude plugin update specseal@specseal   # 그다음 적용 — 위 문단 참�
 실행해도 결과가 같고, 다시 실행하면 블록만 갱신됩니다.
 사용자가 직접 쓴 내용은 고치지 않으며, 겹치는 부분이 있으면 경고만 남긴 채
 그대로 둡니다. 중복까지 정리하려면 Claude Code 안에서
-`/specseal:preset-setup` 을 실행하세요. 무엇을 지우든 diff 를 보여 주고
+`/agentic:preset-setup` 을 실행하세요. 무엇을 지우든 diff 를 보여 주고
 승인을 받습니다.
 
 ### 0.3.x 에서 올라오는 경우
@@ -367,7 +367,7 @@ rmdir .specseal specs                        # git mv 는 빈 디렉터리를 �
 
 그다음 `git diff --cached` 를 보고 커밋합니다. 이 커밋은 어느 작업 항목에도
 속하지 않으므로, shared 모드에서 세션이 커밋할 때는 트레일러
-`SpecSeal-Routing: no work item` 으로 끝냅니다.
+`Seal-Routing: no work item` 으로 끝냅니다.
 
 ## 처음 실행
 
@@ -391,14 +391,14 @@ ruff 를 설정한다는 것이 그 프로젝트가 ruff 를 원한다는 뜻이
 에이전트는 이름을 불러야 움직입니다.
 
 ```
-> @agent-specseal:smith <티켓> 구현해줘
+> @agent-agentic:crafter <티켓> 구현해줘
 ```
 
 `@agent-` 를 치면 이름을 채워 주는 목록이 뜹니다. 문장으로 풀어 써도 똑같이
 동작하므로 이쪽이 편하면 그대로 쓰면 됩니다.
 
 ```
-> specseal:smith 에이전트로 <티켓> 구현해줘
+> agentic:crafter 에이전트로 <티켓> 구현해줘
 ```
 
 smith 는 스펙 체인을 읽고 구현한 뒤 검증까지 마치고, 리뷰는 warden 에게

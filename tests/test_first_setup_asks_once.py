@@ -266,7 +266,7 @@ def test_the_decline_is_offered_and_says_what_it_costs():
     assert "after the review rounds have settled" in decline, (
         "the decline does not say WHEN the refusal arrives, which is the cost"
     )
-    assert "/specseal:config" in decline, "the decline names no way back to the row"
+    assert "/agentic:config" in decline, "the decline names no way back to the row"
 
 
 def test_the_criterion_is_named_by_pointer_and_not_restated():
@@ -291,7 +291,7 @@ def test_the_criterion_is_named_by_pointer_and_not_restated():
 
 def test_the_row_is_written_after_seal_mode_and_carries_its_section():
     """`seal mode` writes a config file holding only `Mode`, so the row lands
-    afterwards — and it lands the way `/specseal:config` step 3 lands one, the
+    afterwards — and it lands the way `/agentic:config` step 3 lands one, the
     row AND its section, because the documentation beside it is the half a
     person reads. No new writer: `skills/config/SKILL.md` *What this does not
     do* refuses a generic setter for a file people edit by hand."""
@@ -440,7 +440,7 @@ def test_the_template_runs_the_two_shipped_checks_from_the_plugin_at_its_tag():
     # so the template fetches no pull-request heads (#923).
     assert "refs/pull/" not in t
     assert "v<version>" in t, "the plugin is not pinned to its tag"
-    assert "MichaelYcJo/SpecSeal" in t
+    assert "MichaelYcJo/AgenticSeal" in t
     assert "RUNNER_TEMP" in t or "runner.temp" in t, "the plugin lands in the tree"
 
 
@@ -734,8 +734,8 @@ def test_the_design_record_states_the_setup_rules_where_they_rule(
 #
 # The bootstrap above is where the mode question lives, and the cases in this
 # file all reach it by reading the skill. That is not how a session gets
-# there. `install.sh` copies the block between `<!-- specseal:start -->` and
-# `<!-- specseal:end -->` — `templates/claude-md-block.md`, the block's one
+# there. `install.sh` copies the block between `<!-- agentic:start -->` and
+# `<!-- agentic:end -->` — `templates/claude-md-block.md`, the block's one
 # source — into `~/.claude/CLAUDE.md`, so the block loads in EVERY project on
 # the machine —
 # including one that has never seen SpecSeal —
@@ -748,7 +748,7 @@ def test_the_design_record_states_the_setup_rules_where_they_rule(
 # it was edited, and each failed; the output is in the body of the commit that
 # added them.
 
-START, END = "<!-- specseal:start -->", "<!-- specseal:end -->"
+START, END = "<!-- agentic:start -->", "<!-- agentic:end -->"
 
 
 def preset():

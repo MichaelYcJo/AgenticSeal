@@ -38,15 +38,15 @@ the first edit.
 
 | The declaration says | At an edit | At the pull request |
 |---|---|---|
-| through the review chain | allowed | a committed `rounds/round-N.md` with no finding left `open`, the last record's `target:` commit at HEAD or followed only by the work item's own records, and the broad run's `broad-gate.md` and the sealer's `guarantee.md` beside it |
-| straight to the PR | allowed | `broad-gate.md` beside the work item's records, naming the one broad run the orchestrator took at a SHA the tree can see, and the sealer's `guarantee.md` reading `sealed` at HEAD. A draft pull request prints instead of failing, and the declaration is printed either way |
-| nothing readable, or no file | refused, unless the session recorded, on that branch, that its change belongs to no work item | each commit's `SpecSeal-Routing` trailer is judged as `docs/the-routing-check.md` *At the pull request* states; nothing else is checked, and a notice says so |
+| through the review chain | allowed | a committed `trail/rounds/round-N.md` with no finding left `open`, the last record's `target:` commit at HEAD or followed only by the work item's own records, and the broad run's `trail/gate.md` and the sealer's `guarantee.md` beside it |
+| straight to the PR | allowed | `trail/gate.md` beside the work item's records, naming the one broad run the orchestrator took at a SHA the tree can see, and the sealer's `guarantee.md` reading `sealed` at HEAD. A draft pull request prints instead of failing, and the declaration is printed either way |
+| nothing readable, or no file | refused, unless the session recorded, on that branch, that its change belongs to no work item | each commit's `Seal-Routing` trailer is judged as `docs/the-routing-check.md` *At the pull request* states; nothing else is checked, and a notice says so |
 
 What the check reads of each round record under the first answer is
 `docs/the-review-record.md` *What the check reads at the pull request*.
 check: routing-read-first
 
-**`straight to the PR` owes the broad run's `broad-gate.md` and the sealer's
+**`straight to the PR` owes the broad run's `trail/gate.md` and the sealer's
 `guarantee.md` and turns off the reviewer alone, and `Review` has two
 answers, not three.** Two answers, and not three: a review's record is worth
 something only because somebody other than the author wrote it, and the
@@ -111,7 +111,7 @@ original was consulted.
 |---|---|
 | through the review chain | each round record's `original:` line |
 | straight to the PR | one `original:` line in the sealer's `guarantee.md` |
-| none | nowhere, and no comparison is checked: each commit's `SpecSeal-Routing` trailer is judged as `docs/the-routing-check.md` *At the pull request* states, and a commit reading `no work item` is printed, visible in history |
+| none | nowhere, and no comparison is checked: each commit's `Seal-Routing` trailer is judged as `docs/the-routing-check.md` *At the pull request* states, and a commit reading `no work item` is printed, visible in history |
 | any, for a change confined to `docs/`, `seal/` | nothing is owed: nothing there can be compared against an original |
 
 "The change" is every path the pull request changes against its base.
@@ -129,8 +129,8 @@ exists to keep honest.
 
 **The parity arm is checked at the pull request, in the record the table
 above names for each answer, because a comparison exists only after the
-change it compares.** In a review chain the warden compares the change with
-the original after the smith has committed it, so a check at the commit
+change it compares.** In a review chain the proofer compares the change with
+the original after the crafter has committed it, so a check at the commit
 would meet each build commit before any comparison of it exists. What the
 check reads is `docs/the-review-record.md` *What the check reads at the pull
 request*.

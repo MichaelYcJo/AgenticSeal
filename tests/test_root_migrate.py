@@ -498,7 +498,7 @@ class Test_main:
         the notice asks for, `--follow` reaches the file's old name."""
         hook = moving
         out = message(start(hook, proj))
-        assert out == f"specseal: {MOVED_ALL} — review the diff and commit", out
+        assert out == f"agentic:{MOVED_ALL} — review the diff and commit", out
         for rel in (
             "seal/README.md",
             "seal/map.md",
@@ -582,7 +582,7 @@ class Test_main:
             monkeypatch.setattr(hook, "git", failing(hook.git, LS_FILES))
         out = message(start(hook, proj))
         assert out == (
-            "specseal: the old layout under .specseal/ and specs/ holds "
+            "agentic:the old layout under .specseal/ and specs/ holds "
             "uncommitted changes — not touching work in progress. Commit, then "
             "the next session start moves it into seal/."
         ), out
@@ -605,7 +605,7 @@ class Test_main:
         monkeypatch.setattr(hook, "git_mv", flaky)
         out = message(start(hook, proj))
         assert out == (
-            "specseal: moved 2 of 5 into seal/ and stopped at .specseal/map: disk "
+            "agentic:moved 2 of 5 into seal/ and stopped at .specseal/map: disk "
             "full. The next session start continues."
         ), out
         assert not stamped(hook, proj)
@@ -710,7 +710,7 @@ class Test_main:
         repository is stamped, one line says what moved, and the routing
         reader finds the declaration at its new place."""
         said = message(start(hook, layout))
-        assert said.startswith("specseal: moved seal/specs/ into seal/"), said
+        assert said.startswith("agentic:moved seal/specs/ into seal/"), said
         assert said.endswith("review the diff and commit"), said
         assert thread_files(layout) == moved_to_threads()
         assert not (layout / "seal" / "specs").exists()
@@ -850,7 +850,7 @@ class Test_migrate_local:
         common = fresh / ".git"
         lay_out(common)
         said = message(start(hook, fresh))
-        assert said.startswith("specseal: moved seal/specs/ into seal/"), said
+        assert said.startswith("agentic:moved seal/specs/ into seal/"), said
         assert thread_files(common) == moved_to_threads()
         assert not (common / "seal" / "specs").exists()
         assert first_line(common / "seal" / "README.md") == ROOT_MARKER

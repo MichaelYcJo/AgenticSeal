@@ -22,7 +22,10 @@ permanent. The layout, file by file, is `skills/implement/SKILL.md`
 
 **The plugin writes only to its own root.** A `specs/` directory anywhere
 else is the project's own, read as history and never taken
-(`templates/config.md` *Reference specs*). Where the root is, as a path a
+(`templates/config.md` *Reference specs*), and no code of the plugin opens a
+top-level `specs/` or `.specseal/`: the 0.3.x layout moves by hand, with the
+commands README.md *Coming up from 0.3.x* gives, and that section says it is
+the only path. Where the root is, as a path a
 session can type, is stated once, in contract rule 11.
 check: tests/test_no_document_names_the_old_roots.py tests/test_optin.py
 
@@ -52,10 +55,17 @@ record.
 
 ## The opt-in signal is the root itself
 
-**A repository is opted in when `seal/` exists at its mode's location**:
-`<repo>/seal/` in shared mode, `$(git rev-parse --git-common-dir)/seal/` in
-local mode. The hooks look at the two places in that order; whichever exists
-says both "on" and which mode. Nothing else is read, and there is no config
+**A repository is opted in when `seal/` exists at its mode's location and
+its `README.md` opens with the plugin's marker**: `<repo>/seal/` in shared
+mode, `$(git rev-parse --git-common-dir)/seal/` in local mode. The marker is
+the first line of `templates/seal-README.md`, written at first setup and by
+the migration of a repository installed before the plugin was renamed
+AgenticSeal. The hooks look at the
+two places in that order; whichever exists with the marker says both "on"
+and which mode. A `seal/` without the marker is a project's own directory,
+as a package named `seal` has one, and reads as not opted in; first setup
+that meets one writes nothing into it and keeps the root under the git
+directory. Nothing else is read, and there is no config
 key: a git config key, a marker under `.git/` or a fetched ref would say
 twice what the folder already says.
 
@@ -171,18 +181,22 @@ check: tests/test_first_setup_asks_once.py tests/test_optin.py tests/test_seal.p
 
 ## Naming
 
-**The product is SpecSeal, and bare `seal` is the vocabulary inside it**: the
-root `seal/`, the `seal export` / `seal import` commands, "the seal" for the
-record.
+**The product is AgenticSeal, and bare `seal` names the result inside it**:
+the root `seal/`, the `seal` command line, the sealer, "the seal" for the
+record. The plugin's `name` and the prefix of every agent and skill is
+`agentic`; the marketplace is `agenticseal`; the commit trailer is
+`Seal-Routing:`. Every identifier is lowercase with no separator, and
+`AgenticSeal` is written only where a person reads the brand.
 
 | Name | Its one sentence |
 |---|---|
-| SpecSeal | seals a spec to the code that implements it |
+| AgenticSeal | a workflow of agents that frames, builds, inspects and seals a change without asking anyone, and ends in a seal bound to a commit |
 | `seal/` | the root, visible beside `docs/`, because the work items in flight are what people read while a pull request is open |
-| `seal/specs/<id>/` | a work item's directory, named for the primary artifact it holds |
+| `seal/threads/<id>/` | a work item's directory: one thread, one issue, one branch, one pull request, with `frame/` for the design before the build, `trail/` for what passed between the parties, and `routing.md`, `changelog.md`, `guarantee.md` and `gaps.md` at its top, each record placed by what it is and never by which agent wrote it |
+| framer, crafter, proofer, sealer, tracer | the agents, each named for its part of one order, which `docs/the-agent-set.md` *One contract every agent receives, and one definition each* states |
 
-A directory says what is in it to whoever opens it first, so no directory is
-named for a metaphor; smith and warden stay agent personas. Every shipped
+A directory and an agent say what each is to whoever meets it first, so
+neither is named for a metaphor. Every shipped
 artifact is written in English, because the plugin is for others and every
 token is paid for. The language a repository's own records and pull requests
 are written in is that repository's answer, below.

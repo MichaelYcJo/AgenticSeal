@@ -250,7 +250,7 @@ class Test_main:
         monkeypatch.setattr(mod, "fetch", lambda url: outcome)
         assert mod.main(["--root", ROOT]) == 0
         out = capsys.readouterr().out
-        assert "specseal" in out, "the run does not say which plugin it asked about"
+        assert "agentic" in out, "the run does not say which plugin it asked about"
         assert out.count("official") and out.count("community"), (
             "a marketplace file is missing from the report"
         )
@@ -394,10 +394,10 @@ class Test_module:
         installed under it. A rename then shows up as *not an entry* rather than
         as a check grading a name nobody uses."""
         mod = checker()
-        assert mod.plugin_name(ROOT) == "specseal"
+        assert mod.plugin_name(ROOT) == "agentic"
         source = open(SCRIPT, encoding="utf-8").read()
         body = source.split('"""', 2)[2]
-        assert '"specseal"' not in body and "'specseal'" not in body, (
+        assert '"agentic"' not in body and "'agentic'" not in body, (
             "the plugin's name is written into the script as a literal"
         )
 

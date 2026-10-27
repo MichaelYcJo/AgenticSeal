@@ -16,7 +16,7 @@ orchestrator takes once, and a prohibition with no holder is one every reader
 reasons past.
 
 The run judges nothing. `broad-gate` runs the repository's broad command,
-reports what the commands said, and writes the work item's `broad-gate.md`;
+reports what the commands said, and writes the work item's `trail/gate.md`;
 the sealer's own verdict, which follows the run, is a separate file
 (`docs/the-review-record.md` *The guarantee*). A run that judges is a run
 whose verdict nobody can separate from its measurement.

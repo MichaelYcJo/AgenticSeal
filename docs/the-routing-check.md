@@ -22,7 +22,9 @@ check: tests/test_routing_edit_gate.py tests/test_stub_remove.py
 **A session takes out, at its start, the git hook stubs an earlier release
 of this plugin wrote into its clone.** A stub is a file in the common git
 directory's `hooks/` whose second line starts with the marker
-`# specseal-git-hook`, and a hook file without it is never touched. Each
+`# specseal-git-hook`, the text every stub an earlier release wrote
+carries, and a hook file without it is never touched. The marker keeps the
+old name because the files it names were written under it. Each
 stub ran the plugin copy whose absolute path it names, so after an upgrade
 it goes on judging commits with the old copy for as long as that copy stays
 on disk. A clone no session of this release starts in keeps its stubs, and
@@ -56,7 +58,7 @@ check: tests/test_routing_edit_gate.py
 
 **A change that belongs to no work item is recorded per session and per
 branch by `seal no-work-item`, and the record lets that session edit on that
-branch only.** It is `<git-common-dir>/specseal-no-work-item/<session-id>`,
+branch only.** It is `<git-common-dir>/agentic-no-work-item/<session-id>`,
 one line per branch, the session read from `CLAUDE_CODE_SESSION_ID` and the
 branch from the worktree it ran in: the branch checked out there, or the
 branch a paused rebase there names. A run on a second branch adds a line.
@@ -94,8 +96,11 @@ check: none reader: the orchestrator on the first live run after a change here
 ## At the pull request
 
 **A session's commit in a repository whose root is shared ends with one
-trailer, `SpecSeal-Routing:`, naming its work item or reading
-`no work item`; at a local root a commit carries none.** It tells a
+trailer, `Seal-Routing:`, naming its work item or reading
+`no work item`; at a local root a commit carries none.** A commit made
+before the plugin was renamed AgenticSeal carries `SpecSeal-Routing:`, which
+`chain-check` reads as the same trailer for the minor release of the rename;
+the next minor release removes that reading. It tells a
 session's commit from a person's: the harness's co-author trailer is
 carried by any Claude Code session, a teammate's who does not use this
 plugin included, and a person's own commit carries neither. At a local root
@@ -105,7 +110,7 @@ belongs to a team that does not run this plugin.
 check: skills/commit-pr-convention/SKILL.md
 
 **At a shared root, `chain-check` fails a ready pull request where one of
-its own commits, committed by its author, carries a `SpecSeal-Routing`
+its own commits, committed by its author, carries a `Seal-Routing`
 trailer naming a work item that no declaration it judges names, and prints
 each commit whose trailer reads `no work item`.** A commit with no such
 trailer is not judged, so a teammate's never is, and neither is a

@@ -343,7 +343,7 @@ def test_the_reviewer_has_a_field_for_the_question_the_default_produces():
 
 def test_the_broad_gate_state_survives_a_handoff():
     """A session joining at round 3 cannot see which commands were run."""
-    assert "`broad-gate.md`" in read("docs", "the-review-record.md"), (
+    assert "`trail/gate.md`" in read("docs", "the-review-record.md"), (
         "the record lost the file that tells the next session whether the one "
         "broad run already happened"
     )
@@ -355,8 +355,8 @@ def test_the_preset_block_states_the_rule_the_loaded_files_assume():
     An agent file needs the agent spawned and a skill needs the skill invoked.
     A session working this repo directly does neither, so the preset block --
     always in front of it -- is the only copy it will ever read."""
-    preset = read("templates", "claude-md-block.md").split("<!-- specseal:end -->")[0]
-    assert "<!-- specseal:start -->" in preset, "the preset markers moved"
+    preset = read("templates", "claude-md-block.md").split("<!-- agentic:end -->")[0]
+    assert "<!-- agentic:start -->" in preset, "the preset markers moved"
     assert "Verification Scope" in preset, (
         "the always-loaded block lost the rule that bounds a broad run"
     )

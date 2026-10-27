@@ -60,8 +60,8 @@ class Test_main:
         opt_in(repo)
         out, _ = drive(hook, repo)
         msg = json.loads(out)["systemMessage"]
-        assert msg.index("marketplace update specseal") < msg.index(
-            "update specseal@specseal"
+        assert msg.index("marketplace update agenticseal") < msg.index(
+            "update agentic@agenticseal"
         )
         assert "restart" in msg.lower()
 
@@ -115,11 +115,11 @@ class Test_main:
         msg = json.loads(out)["systemMessage"]
 
         assert msg == (
-            "SpecSeal 0.8.0 is out; this session is running 0.7.1.\n"
-            "Run /specseal:update — it takes the release and tells you what is in "
+            "AgenticSeal 0.8.0 is out; this session is running 0.7.1.\n"
+            "Run /agentic:update — it takes the release and tells you what is in "
             "it, which the version number does not.\n"
-            "By hand: `claude plugin marketplace update specseal` then "
-            "`claude plugin update specseal@specseal`, in that order. The second "
+            "By hand: `claude plugin marketplace update agenticseal` then "
+            "`claude plugin update agentic@agenticseal`, in that order. The second "
             "alone reports 'already at the latest version' against stale local "
             "data.\nThen load it. /reload-plugins costs no session, and what was "
             "measured is a re-read of preloaded skill bodies out of the copy you "

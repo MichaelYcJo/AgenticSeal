@@ -185,7 +185,7 @@ class Test_main:
         `agent_id` beside the main session's `session_id`; queueing is not
         drawing, and the file is queued for the main session."""
         repo, path = local
-        sealer = {"agent_id": "a-1", "agent_type": "specseal:sealer"}
+        sealer = {"agent_id": "a-1", "agent_type": "agentic:sealer"}
         assert json.loads(edited(payload(path, repo, **sealer)))
         (written,) = queued_values(repo)
         assert os.path.dirname(written) == str(repo / ".git" / "agentic-stamp" / "s-1")

@@ -35,7 +35,7 @@ only a person can answer stays a question. Do not edit it.
 Review beyond the changed files: new code that calls into untouched files
 puts their conditions and boundaries into effect for the first time, so
 follow every call the change introduces.
-check: evals/behaviour/warden/rule-warden-one-finding/
+check: evals/behaviour/proofer/rule-warden-one-finding/
 
 ## Comparison axes
 
@@ -137,7 +137,7 @@ is absent; field names, headings and vocabulary words stay English
   block under it. A mark quoted from the code under review is written as its
   code point (`U+1F7E1`) or in words, never as the character.
 
-check: tests/test_chain_check.py tests/test_the_record_is_written_in_words.py evals/behaviour/warden/rule-warden-one-finding/
+check: tests/test_chain_check.py tests/test_the_record_is_written_in_words.py evals/behaviour/proofer/rule-warden-one-finding/
 
 **Paste-ready means the snippet cannot mislead on its own.** Mark a name the
 tree does not have at the line that uses it:

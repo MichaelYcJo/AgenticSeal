@@ -531,8 +531,8 @@ def origins(units):
 def moved_line(units, tail):
     """The one line a finished move says, ending with TAIL."""
     if not origins(units):
-        return f"specseal: wrote the marker into {README} {tail}"
-    return f"specseal: moved {listed(origins(units))} into {NEW}/ {tail}"
+        return f"agentic:wrote the marker into {README} {tail}"
+    return f"agentic:moved {listed(origins(units))} into {NEW}/ {tail}"
 
 
 def migrate_local(root, common):
@@ -547,7 +547,7 @@ def migrate_local(root, common):
     done, error = run_moves(common, units, local=True)
     if error is not None:
         say(
-            f"specseal: moved {done} of {len(units)} into {NEW}/ under the git "
+            f"agentic:moved {done} of {len(units)} into {NEW}/ under the git "
             f"directory and stopped at {error.path}: {error.error}. The next "
             "session start continues."
         )
@@ -578,7 +578,7 @@ def main():
         # files behind the link would never move. Refused before anything
         # else, every session start, until the link is gone.
         say(
-            f"specseal: {EARLIER_ITEMS}/ is a symbolic link, which git tracks as the "
+            f"agentic:{EARLIER_ITEMS}/ is a symbolic link, which git tracks as the "
             "link and not as its files — not moving it. Replace the link with "
             "the directory it points at, commit, and the next session start "
             f"moves it into {NEW}/{optin.WORK_ITEMS}/."
@@ -607,7 +607,7 @@ def main():
         return  # once per repository; the silent gates are the backstop (Q8)
     if dirty(root, units):
         say(
-            f"specseal: the old layout under {listed(origins(units) or [NEW])} holds "
+            f"agentic:the old layout under {listed(origins(units) or [NEW])} holds "
             "uncommitted changes — not touching work in progress. Commit, then "
             f"the next session start moves it into {NEW}/."
         )
@@ -622,7 +622,7 @@ def main():
             else "Settle that by hand, then the next session start continues."
         )
         say(
-            f"specseal: moved {done} of {len(units)} into {NEW}/ and stopped at "
+            f"agentic:moved {done} of {len(units)} into {NEW}/ and stopped at "
             f"{error.path}: {error.error}. {tail}"
         )
         return

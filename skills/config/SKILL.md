@@ -4,7 +4,7 @@ description: Show what this repository decided for itself and change any of it, 
 disable-model-invocation: true
 ---
 
-# /specseal:config, what this repository decided and how to decide otherwise
+# /agentic:config, what this repository decided and how to decide otherwise
 
 `seal/config.md` holds what a repository says about itself. Every row has a
 default, and an absent row is not an error. A person runs this command to see

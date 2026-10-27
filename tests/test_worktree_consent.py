@@ -136,7 +136,7 @@ def with_the_boxes(entries):
 
     That is the shape every session asked before #911, and the one a
     machine whose installed block predates it still asks until
-    `/specseal:update` reaches it."""
+    `/agentic:update` reaches it."""
     use, result = (json.loads(json.dumps(e)) for e in entries)
     boxes = {
         "question": BOXES_QUESTION,

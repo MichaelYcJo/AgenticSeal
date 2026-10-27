@@ -346,7 +346,7 @@ The plugin sets no ceiling; a repository states its own.
 frame, no round records, and the routing question is not asked for it. It
 edits under `seal no-work-item`, run on the branch the settle is made on.
 Where the root is shared, its commits carry
-`SpecSeal-Routing: no work item` as their trailer
+`Seal-Routing: no work item` as their trailer
 (`skills/commit-pr-convention/SKILL.md`). What it wrote is reviewed at
 its pull request. It keeps no log: what
 changed is the diff. Where the root is shared the removed specs are in git

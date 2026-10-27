@@ -64,6 +64,8 @@ KEEP = {
     "(`.specseal/`, `specs/<id>/`)": "the READMEs naming the 0.3.x layout the by-hand move leaves",
     "git mv .specseal/": "the by-hand move in the READMEs' coming-up section",
     "git mv specs/<id>": "the by-hand move's last step, one work item at a time",
+    "`specs/` or `.specseal/`": "the policy naming the 0.3.x roots no code opens",
+    "`specs/` 나 `.specseal/`": "the same policy in the Korean edition",
 }
 
 

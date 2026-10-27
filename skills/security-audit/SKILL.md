@@ -4,7 +4,7 @@ description: Walk a web-service security checklist (OWASP Top 10, auth, data exp
 disable-model-invocation: true
 ---
 
-# /specseal:security-audit, a checklist walked the same way every time
+# /agentic:security-audit, a checklist walked the same way every time
 
 A scan finds what it was built to look for. The value of a written checklist
 is the opposite property: it covers the same ground on a bad day as on a good

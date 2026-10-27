@@ -270,9 +270,7 @@ def test_a_paste_into_the_block_template_is_named():
     texts = tree()
     paste = a_sentence_of(texts["CONTRIBUTING.md"])
     rel = "templates/claude-md-block.md"
-    planted = texts[rel].replace(
-        "specseal:start -->", "specseal:start -->\n" + paste, 1
-    )
+    planted = texts[rel].replace("agentic:start -->", "agentic:start -->\n" + paste, 1)
     assert planted != texts[rel]
     texts[rel] = planted
     assert [f for f in over_baseline(texts, BASELINE) if rel in f]

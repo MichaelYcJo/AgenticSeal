@@ -288,7 +288,7 @@ is refused only for breaking one of them:
 **Nothing is stripped.** A value quietly repaired here would leave the file
 still wrong and teach the next person that the way they wrote it was right,
 so the refusal names the form, quotes the row as written, and shows it as
-meant. Rewriting it is the person's act, and `/specseal:config` is the door
+meant. Rewriting it is the person's act, and `/agentic:config` is the door
 to the row.
 
 **A table inside a code fence is an example of this format and never a
@@ -308,7 +308,7 @@ it, the live table included, reads as undeclared: `broad-gate` exits 2 with
 a message and the mode question comes back. That is loud rather than quiet,
 which is the trade this rule is written for.
 
-What it prevents is quiet. The block `/specseal:config` copies out of this
+What it prevents is quiet. The block `/agentic:config` copies out of this
 file carries the fenced example row above; pasted above the live table, or
 above a table with no parseable row yet, the example would otherwise be the
 table every gate reads, a broad run over a plausible command nobody chose.

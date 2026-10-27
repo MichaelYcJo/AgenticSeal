@@ -69,7 +69,7 @@ def test_s4_the_configs_this_plugin_writes_or_copies_are_silent():
 
 
 def test_the_template_and_the_config_skill_carry_the_pact_row_alone():
-    """`templates/config.md` documents the `Pact` row and `/specseal:config`
+    """`templates/config.md` documents the `Pact` row and `/agentic:config`
     shows it; neither carries a `Pact notify` row, and the template says
     once what one left in a config does."""
     template = flat("templates", "config.md")

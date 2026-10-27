@@ -2,7 +2,7 @@
 
 ## Reporting
 
-Use **[private vulnerability reporting](https://github.com/MichaelYcJo/SpecSeal/security/advisories/new)**.
+Use **[private vulnerability reporting](https://github.com/MichaelYcJo/AgenticSeal/security/advisories/new)**.
 It is enabled on this repository, so a report reaches the maintainer without
 being visible to anyone else, and the fix and the disclosure can be prepared
 in the same place. Please do not open a public issue for a suspected

@@ -137,7 +137,7 @@ at the merge. That is why one row answers for all four surfaces rather than
 one row each.
 
 **A session's commit in a repository whose root is shared (`<repo>/seal/`)
-ends with one `SpecSeal-Routing:` trailer, naming its work item or reading
+ends with one `Seal-Routing:` trailer, naming its work item or reading
 `no work item`.** In local mode a commit carries none. The work item is its
 directory's name under `seal/threads/`, the one the branch's `routing.md` sits
 in; `no work item` is the value where the session ran `seal no-work-item` on
@@ -147,7 +147,7 @@ other trailer, so git's trailer parser reads it:
 ```
 feat: the edit check refuses an undeclared branch
 
-SpecSeal-Routing: 1792935671-the-routing-check-moves-to-the-sessions-tools
+Seal-Routing: 1792935671-the-routing-check-moves-to-the-sessions-tools
 Co-Authored-By: <the harness's co-author line>
 ```
 

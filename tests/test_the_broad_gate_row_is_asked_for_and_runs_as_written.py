@@ -156,7 +156,7 @@ def test_the_template_says_a_refused_value_is_refused_and_not_repaired():
     body = flat(section(read(*TEMPLATE), REFUSED_AND_ALLOWED, 3))
     assert "Nothing is stripped" in body
     assert "quietly repaired" in body
-    assert "/specseal:config" in body, (
+    assert "/agentic:config" in body, (
         "the section does not say where a person rewrites the row"
     )
 
@@ -540,7 +540,7 @@ def test_the_absent_row_refusal_says_whose_the_row_is_and_where_it_is_answered()
     the row in anyway."""
     said = missing_row_text()
     assert "a row is a thing a person wrote" in said
-    assert "/specseal:config" in said
+    assert "/agentic:config" in said
     assert (
         "`templates/config.md` *The criterion for choosing a value* is what "
         "they choose against"
@@ -579,7 +579,7 @@ def test_the_review_orchestrator_stops_the_run_rather_than_filling_the_row_in():
     orchestrator = flat(read(*REVIEW_ORCH))
     assert "A refusal about the `Broad gate` row goes to a person" in orchestrator
     assert "open no pull request until they have" in orchestrator
-    assert "/specseal:config" in orchestrator
+    assert "/agentic:config" in orchestrator
     # #401 is the measured instance; since #940 the file gives its reason in
     # the present tense rather than the issue number.
     assert (

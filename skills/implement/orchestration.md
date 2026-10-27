@@ -204,7 +204,7 @@ mode"*. The one call of step 1 then carries the `Broad gate` question alone.
    **Offer a decline, and say what it costs.** *Not yet* is a real answer:
    one written to get past a question is worse than none. The cost is one
    sentence: the first `broad-gate` run refuses with nothing run, and that
-   refusal lands after the review rounds have settled. `/specseal:config`
+   refusal lands after the review rounds have settled. `/agentic:config`
    fills the row in at any point before then.
 
    **Then record the answer: run `seal mode`, with no argument.** It writes
@@ -221,7 +221,7 @@ mode"*. The one call of step 1 then carries the `Broad gate` question alone.
 
    **Then the `Broad gate` row, where a command was chosen.** `seal mode` has
    just written a config file carrying `Mode` and nothing else, so the
-   orchestrator adds the row the way `/specseal:config` step 3 adds one: the
+   orchestrator adds the row the way `/agentic:config` step 3 adds one: the
    row **and the prose under `## Broad gate` down to but not including
    `### What is refused, and what stays allowed`**, taken from
    `$CLAUDE_PLUGIN_ROOT/templates/config.md`. The two lists and the criterion
@@ -251,7 +251,7 @@ mode"*. The one call of step 1 then carries the `Broad gate` question alone.
    - **No**: the orchestrator continues and never raises it again. Bootstrap
      does not re-run, so the question does not either.
 
-Nothing else is asked. **`/specseal:config` is how any of it is changed
+Nothing else is asked. **`/agentic:config` is how any of it is changed
 later**: it shows every row with its value and routes a change to whatever
 owns that row. The orchestrator says so once, here, because a person who
 answers a question in a batch has no reason to expect a way back to it.
@@ -311,7 +311,7 @@ A single-select question, put alone:
 |---|---|---|
 | 1 | **automation** | Every party runs: the framer frames it, `smith` builds it, `warden` reviews it, the orchestrator takes the broad run, the sealer audits it, and the pull request opens. **This is the last question: nothing stops to ask again.** |
 | 2 | **per axis** | The four boxes below are the answer. |
-| 3 | **no work item** | No work item is opened: no frame, no review, no seal, no `routing.md`, and this session writes the change itself. The session runs `seal no-work-item` before its first edit; where the root is shared, every commit ends with the trailer `SpecSeal-Routing: no work item`, and the pull request's check only lists those commits. |
+| 3 | **no work item** | No work item is opened: no frame, no review, no seal, no `routing.md`, and this session writes the change itself. The session runs `seal no-work-item` before its first edit; where the root is shared, every commit ends with the trailer `Seal-Routing: no work item`, and the pull request's check only lists those commits. |
 
 **A label names what it turns off, not where it ends.** A label that names a
 destination is read as what runs: `straight to the PR` was read as *call no

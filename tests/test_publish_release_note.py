@@ -414,7 +414,7 @@ class Test_main:
         assert fold.endswith(link), fold[-200:]
         assert "the release before it" not in body, "an older release reached the note"
         assert body.index(mod.UPDATE_HEADING) < body.index("<details>")
-        assert "/specseal:update" in body
+        assert "/agentic:update" in body
 
     def test_a_release_with_no_outside_contribution_thanks_nobody(
         self, monkeypatch, tmp_path

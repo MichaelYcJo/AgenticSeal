@@ -989,7 +989,7 @@ def missing_row(home):
             "`seal mode`'s writer. The row is not absent: it is written where "
             f"nothing reads it, and there is no command to run.\n{where}\n"
             "`templates/config.md` *What is refused, and what stays allowed* "
-            "is where the rule says so, and `/specseal:config` is the door to "
+            "is where the rule says so, and `/agentic:config` is the door to "
             "the file. Nothing ran."
         )
     _at, commented = commented_row_at(home)
@@ -1011,7 +1011,7 @@ def missing_row(home):
             "If it is the command to run, take the row out of the "
             "comment and into the `| Item | Value |` table.\n"
             "`templates/config.md` *What is refused, and what stays allowed* "
-            "is where the rule says so, and `/specseal:config` is the door to "
+            "is where the rule says so, and `/agentic:config` is the door to "
             "the file. Nothing ran."
         )
     return (
@@ -1021,7 +1021,7 @@ def missing_row(home):
         "person wrote, and what the broad run covers is exactly that "
         "(`skills/verify/SKILL.md` *The Seal Test*): a session that picks a "
         "command here checks its own choice.\n"
-        "Take it to whoever owns the repository. `/specseal:config` is where "
+        "Take it to whoever owns the repository. `/agentic:config` is where "
         f"they answer it — it shows every row and adds this one with its "
         "section — and `templates/config.md` *The criterion for choosing "
         "a value* is what they choose against. Nothing ran."
@@ -1084,7 +1084,7 @@ def walker_refusal(home, mine):
     return (
         f"broad-gate: {os.path.join(home, CONFIG)} {said}.\n{where}{escape}\n"
         "`templates/config.md` *What is refused, and what stays allowed* is "
-        "where the rule says so, and `/specseal:config` is the door to the "
+        "where the rule says so, and `/agentic:config` is the door to the "
         "file. Nothing ran."
     )
 
@@ -1182,7 +1182,7 @@ def not_as_written(home, command):
         "write, and a value quietly fixed here would leave the file still "
         "wrong. `templates/config.md` *Broad gate* lists what is refused "
         "and what stays allowed, with the reason for each, and "
-        "`/specseal:config` is the door to the row."
+        "`/agentic:config` is the door to the row."
     )
 
 

@@ -136,7 +136,7 @@ jobs:
       # allowed because the check moved here rather than disappearing.
       #
       # A pull request that declared NOTHING fails only where one of its own
-      # commits carries a `SpecSeal-Routing` trailer naming a work item. A
+      # commits carries a `Seal-Routing` trailer naming a work item. A
       # commit with no such trailer, a teammate's among them, is not judged,
       # because a build that goes red for what nobody claimed teaches people
       # to claim nothing. On a pull request that is not a draft it fails for

@@ -15,7 +15,7 @@ is found, the copy is the defect.
 | Kind | Home | Size target | Index |
 |---|---|---|---|
 | The changelog | `seal/threads/<work-item-id>/changelog.md` while a work item is open; `changelog/<X.Y.Z>.md`, the release's own file, once its release gathers it | each release file is under target, and is the unit | the file name, by version, and `CHANGELOG.md`, which heads each release newest first with a link to its file |
-| A work item's files | `seal/threads/<work-item-id>/` | each file under target | the table under *seal/specs/<work-item-id>/* below |
+| A work item's files | `seal/threads/<work-item-id>/` | each file under target | the table under *seal/threads/<work-item-id>/* below |
 | The repository's rules | `CLAUDE.md` for the rules a session must hold, `CONTRIBUTING.md` for a contributor's procedure, and the `docs/` document each one links to | each file under target | this document, and `docs/README.md` |
 | The configuration | `seal/config.md`, one row per item; `templates/config.md` documents every row | under target | the `Item` column |
 | The follow-up list | `seal/follow-up.md`, one row per item that waits on a named party | under target | its rows, each naming who answers it |
@@ -52,11 +52,11 @@ check: tests/test_the_changelog_is_gathered_at_release.py tests/test_gather_chan
 work item's `changelog.md` in the same range.** The build's last phase writes
 the fragment and the release gathers it verbatim, so a later commit that
 changes behaviour can leave it describing something that no longer ships. The
-rule binds whoever writes the commit: the smith's fix pass, a fix written after
+rule binds whoever writes the commit: the crafter's fix pass, a fix written after
 the last round, and an integration commit after a sibling's squash, which the
 orchestrator writes. A commit that changes nothing a release note states owes
 the fragment nothing.
-check: none reader: the next round's warden and the sealer
+check: none reader: the next round's proofer and the sealer
 
 ## The fold, and what tells it from a deletion
 
@@ -70,8 +70,8 @@ another work item's directory, so the whole removal is the fact the readers
 read. What the settle wrote into `docs/` is not read here: the settling
 session writes each section in its own words, a reader could only guess at
 that from words, and the settle's pull request states each decision for the
-owner to review. A pull request that removes part of a directory, an
-`overview.md` from a directory that stays, or a row from a table is still a
+owner to review. A pull request that removes part of a directory, a
+`gaps.md` from a directory that stays, or a row from a table is still a
 deletion. One predicate, `unverified_check.py#settled`, answers
 `unverified-check --baseline` and `chain-check`. A pull request outside a
 settle that removes a whole work item directory reads as a settle too; its
@@ -91,7 +91,7 @@ tracker. Each is closed in the record, `closed` with what closed it, and
 `settle --apply` removes a directory only once its record holds no open row
 in the working tree. The settle's pull request body carries every closure,
 an issue carries every re-homed row, and git keeps the record. A released
-work item that wrote no `spec.md` states no rule and goes the same way.
+work item that wrote no `frame/design.md` states no rule and goes the same way.
 check: tests/test_settle.py
 
 **The settle writes each section as the latest decision among the released
@@ -111,7 +111,7 @@ check: tests/test_rule_changes.py tests/test_settle.py
 
 **A settle is not a work item.** It opens no directory under `seal/threads/`.
 Its session records `seal no-work-item` on the settle's branch, its commits
-carry the trailer `SpecSeal-Routing: no work item` where the root is shared,
+carry the trailer `Seal-Routing: no work item` where the root is shared,
 and what it wrote is reviewed at its pull request. What it leaves already has a home, the pull request and
 git history, so it keeps no log of its own. Were it a work item, each settle
 would leave a directory for the next one to remove, and settling would never
@@ -190,7 +190,7 @@ in, and it reads as settled, never as unusable.** Git keeps no empty
 directory, so the state is two: the tree that ran `settle --apply` holds an
 empty `seal/threads/`, and a fresh checkout of that commit holds none. Read as
 unusable, `settle` would exit 2 on its own finished work, and `unverified-check
---baseline` would read the root's own `specs` path as a typo when a person
+--baseline` would read the root's own `threads` path as a typo when a person
 runs it after the fold, and refuse a finished settle. Only that one path is
 settled; any other missing path is still refused, which keeps a misspelt
 path from passing in silence.
@@ -220,13 +220,13 @@ against nothing is not a comparison.
 check: one-merge-base
 
 **A pull request that declares nothing owes the unverified check nothing.**
-Handed a `seal/` root's own `specs` path, `unverified-check` exits 0 and
+Handed a `seal/` root's own `threads` path, `unverified-check` exits 0 and
 names the state in two more cases beside the settled root: where no `seal/`
-directory is in the tree, and where `specs/` holds work items none of which
-carries an `overview.md`. There is no row to read, and none could have left.
+directory is in the tree, and where `threads/` holds work items none of which
+carries a `gaps.md`. There is no row to read, and none could have left.
 Where the root is not in the tree it compares nothing against the base
 either, so the pull request that moves a root to local mode is not read as
-deleting its records. Every other path holding no `overview.md` is still
+deleting its records. Every other path holding no `gaps.md` is still
 exit 2, which keeps a misspelt path from passing in silence.
 check: nothing-declared-nothing-owed
 
@@ -246,9 +246,9 @@ common directory otherwise.
 | `seal/config.md` | what this repository says about itself, one row per item |
 | `seal/follow-up.md` | which items wait on a named party, and who |
 | `seal/process/<X.Y.Z>.md` | what one release changed in the way of working, and why |
-| `seal/specs/<work-item-id>/` | one work item's records, the table below |
+| `seal/threads/<work-item-id>/` | one work item's records, the table below |
 
-## seal/specs/<work-item-id>/
+## seal/threads/<work-item-id>/
 
 One work item's records, from its first commit to the `settle` fold that
 retires the directory. Which file each agent writes is
@@ -258,22 +258,28 @@ file answers.
 | File | The question it answers |
 |---|---|
 | `routing.md` | who frames, builds and reviews this work, and where it ends — answered before the first edit |
-| `spec.md` | what is built, its scenarios, and the decisions with their grounds |
-| `plan.md` | in which phases it is built, how each is shown, and the approval line |
-| `questions.md` | which decisions only a person could make, and how each was answered |
-| `overview.md` | what the diff cannot show: purpose, divergences, what was not verified |
-| `phases/phase-N.md` | what one build phase was asked, found and removed |
-| `rounds/round-N.md` | what one review round read, found and closed |
+| `frame/design.md` | what is built, its scenarios, and the decisions with their grounds |
+| `frame/plan.md` | in which phases it is built, how each is shown, and the approval line |
+| `frame/questions.md` | which decisions only a person could make, and how each was answered |
+| `gaps.md` | where the build departed from the frame, what was not verified and who answers it, and what was not done |
+| `trail/phases/phase-N.md` | what one build phase was asked, found and removed |
+| `trail/rounds/round-N.md` | what one review round read, found and closed |
 | `changelog.md` | this work item's entry in the next release's notes |
-| `broad-gate.md` | the orchestrator's one broad run, on either routing answer |
+| `trail/gate.md` | the orchestrator's one broad run, on either routing answer |
 | `guarantee.md` | whether the sealer sealed the work, against the issue and the tree |
 
 **The files keep these paths until the settle after their release, and
-leave together.** `routing.md`, the SDD set (`spec.md`, `plan.md`,
-`questions.md`, `overview.md`, `changelog.md`) and the process record
-(`rounds/`, `phases/`, `broad-gate.md`, `guarantee.md`, and a `pr.*.md`
-where one was written) go with the directory, whole, when the settle
-removes it (*The fold, and what tells it from a deletion* above, and
+leave together.** `routing.md`, the frame (`frame/design.md`,
+`frame/plan.md`, `frame/questions.md`), the trail (`trail/rounds/`,
+`trail/phases/`, `trail/gate.md`) and the files at the thread's top
+(`gaps.md`, `changelog.md`, `guarantee.md`, and a `pr.*.md` where one was
+written) go with the directory, whole, when the settle removes it. A
+repository installed before the plugin was renamed AgenticSeal holds the
+files under `seal/specs/<id>/`
+at their old names, and `hooks/root-migrate.py` moves them into this layout
+once, at the first session start, as staged `git mv` in shared mode and as
+renames under the git directory in local mode
+(*The fold, and what tells it from a deletion* above, and
 `docs/release-checklist.md` *2b*). What a document still cites of it
 resolves at the tag of the release that shipped it.
 check: tests/test_settle.py
@@ -298,9 +304,9 @@ refuses at its line a line outside every fence that begins with `<!--`.** A
 record carries no comment, so a comment state in its reader models nothing
 the record holds, and that state is where three reader defects of one
 release came from. The refusal stands where the reader reads:
-`chain_check.py` in a round record, a `guarantee.md` and a `broad-gate.md`,
-`unverified_check.py` in an `overview.md`, and `rule_changes.py` in a spec's
-`## Rule changes`. A base revision that holds such a line is not compared,
+`chain_check.py` in a round record, a `guarantee.md` and a `trail/gate.md`,
+`unverified_check.py` in a `gaps.md`, and `rule_changes.py` in a
+`frame/design.md`'s `## Rule changes`. A base revision that holds such a line is not compared,
 because nobody can edit a commit that already happened. A `routing.md` is
 the exception: its reader, `hooks/routing.py`, runs in the edit check
 (`docs/the-routing-check.md` *The edit check*) before every edit in an

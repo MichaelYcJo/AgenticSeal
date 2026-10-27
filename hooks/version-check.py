@@ -9,7 +9,7 @@ remembering; it does not install anything.
 
 Installing is deliberately out of scope: telling someone a release exists and
 installing software on their machine are different acts, and only the first is
-a notice's job. `/specseal:update` is where the second one lives, because a
+a notice's job. `/agentic:update` is where the second one lives, because a
 user asked for it there.
 
 (The old note here said a self-updating session would run two versions at
@@ -148,11 +148,11 @@ def latest(repo):
 def notice(have, want):
     h, w = ".".join(map(str, have)), ".".join(map(str, want))
     return (
-        f"SpecSeal {w} is out; this session is running {h}.\n"
-        "Run /specseal:update — it takes the release and tells you what is in "
+        f"AgenticSeal {w} is out; this session is running {h}.\n"
+        "Run /agentic:update — it takes the release and tells you what is in "
         "it, which the version number does not.\n"
-        "By hand: `claude plugin marketplace update specseal` then "
-        "`claude plugin update specseal@specseal`, in that order. The second "
+        "By hand: `claude plugin marketplace update agenticseal` then "
+        "`claude plugin update agentic@agenticseal`, in that order. The second "
         "alone reports 'already at the latest version' against stale local "
         "data.\nThen load it. /reload-plugins costs no session, and what was "
         "measured is a re-read of preloaded skill bodies out of the copy you "

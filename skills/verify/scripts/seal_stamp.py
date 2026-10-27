@@ -952,7 +952,7 @@ CHAIN_CHECK = os.path.join(
 # this clone, a plugin older than the hook (`docs/the-review-record.md`
 # *The stamp*).
 QUEUED = (
-    "specseal: the stamp for {id} is drawn at the end of this turn from "
+    "agentic: the stamp for {id} is drawn at the end of this turn from "
     "{path}; where none appears, `seal-stamp --from {command}` draws it"
 )
 # The line the write-time writer returns where its `guarantee.md` names a
@@ -961,7 +961,7 @@ QUEUED = (
 # seen; in shared mode the pull request's check refuses it as stale too. It
 # names no command: nothing was queued to draw.
 NOT_ON_BRANCH = (
-    "specseal: no stamp was queued for {id}: its guarantee.md names "
+    "agentic: no stamp was queued for {id}: its guarantee.md names "
     "{target}, which {branch} does not hold; a new audit at the head of "
     "{branch} draws it"
 )

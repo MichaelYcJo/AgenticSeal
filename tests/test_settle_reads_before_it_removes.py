@@ -31,7 +31,7 @@ def test_the_documents_say_a_spec_less_directory_is_retired_by_the_rule():
     assert "it is retired by that rule, with no marker" not in policy
     assert "A released work item leaves at the settle whatever it wrote" in policy
     assert "decides every open row of its record before it goes" in policy
-    assert "`spec.md` states no rule and goes the same way" in policy
+    assert "`frame/design.md` states no rule and goes the same way" in policy
     text = flat(skill())
     assert "A released work item with no `spec.md` states no rule" in text
     assert "it leaves like any other" in text
@@ -164,7 +164,7 @@ def test_the_skill_says_a_settle_is_not_a_work_item_and_owes_no_range_row():
     assert "## A settle is not a work item" in skill()
     assert "A settle opens no directory under `seal/threads/`" in text
     assert "`seal no-work-item`" in text, "the skill does not say how a settle edits"
-    assert "`SpecSeal-Routing: no work item`" in text, (
+    assert "`Seal-Routing: no work item`" in text, (
         "the skill does not say how a settle commits"
     )
     assert "[no-review]" not in text, "the skill still names the retired waiver"

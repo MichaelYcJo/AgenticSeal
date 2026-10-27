@@ -815,9 +815,9 @@ class Test_measure:
         assert "skills/alpha/SKILL.md" in paths and "skills/beta/SKILL.md" in paths
 
     def test_the_baseline_agent_may_be_named_with_its_namespace(self, meter, tmp_path):
-        """Round 1, finding 4. The refusal listed `specseal:scribe` among the
+        """Round 1, finding 4. The refusal listed `agentic:tracer` among the
         agents the transcript spawned and refused `--baseline-agent
-        specseal:scribe` in the same breath, because `seen` is keyed by the
+        agentic:tracer` in the same breath, because `seen` is keyed by the
         short name and the argument was compared raw."""
         root, home = a_tree(tmp_path)
         transcript = a_transcript(

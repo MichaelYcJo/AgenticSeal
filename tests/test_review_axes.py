@@ -113,7 +113,7 @@ def test_the_preset_block_carries_the_routing_decision():
     assert "Routing, decided at the start" in preset
     assert "seal/threads/<work-item-id>/routing.md" in preset
     assert "`seal no-work-item`" in preset
-    assert "`SpecSeal-Routing: no work item`" in preset
+    assert "`Seal-Routing: no work item`" in preset
     assert "[no-review]" not in preset and "[no-parity]" not in preset
 
 

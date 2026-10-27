@@ -312,7 +312,7 @@ class Test_main:
     @pytest.mark.parametrize(
         "payload",
         [
-            {"agent_id": "a-1", "agent_type": "specseal:sealer"},
+            {"agent_id": "a-1", "agent_type": "agentic:sealer"},
             {"hook_event_name": "SubagentStop", "agent_id": "a-1"},
             {"hook_event_name": "SubagentStop"},
             {"session_id": "s-x"},

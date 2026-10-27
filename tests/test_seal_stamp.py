@@ -1471,7 +1471,7 @@ class Test_queue_for_written_guarantee:
         off = off_branch_commit(shared.repo)
         write(shared.repo, GUARANTEE, guarantee_text(off, shared.base))
         assert queue_written(shared) == [
-            f"specseal: no stamp was queued for {ITEM_ID}: its guarantee.md names "
+            f"agentic: no stamp was queued for {ITEM_ID}: its guarantee.md names "
             f"{off}, which feat/x does not hold; a new audit at the head of "
             "feat/x draws it"
         ]
@@ -1623,7 +1623,7 @@ class Test_queue_for_written_guarantee:
         refused = pathlib.Path(local.common) / "agentic-stamp-refused"
         if named:
             assert said == [
-                f"specseal: no stamp was queued for {ITEM_ID}: its guarantee.md "
+                f"agentic: no stamp was queued for {ITEM_ID}: its guarantee.md "
                 f"names {named}, which feat/x does not hold; a new audit at the "
                 "head of feat/x draws it"
             ]

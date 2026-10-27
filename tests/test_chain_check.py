@@ -2943,16 +2943,16 @@ class Test_routing_trailers:
     def test_refuses_a_commit_naming_a_work_item_no_declaration_names(
         self, undeclared, tmp_path, monkeypatch, capsys
     ):
-        """S10: a commit whose `SpecSeal-Routing` trailer names a work item no
+        """S10: a commit whose `Seal-Routing` trailer names a work item no
         declaration names fails a ready pull request, naming the commit and
         the item; one reading `no work item` is printed as a notice; one with
         no such trailer is not named. A draft prints the same lines and
         passes."""
         root = undeclared
         write(root, "a.txt", "a\n")
-        named = commit_saying(root, "feat: a", f"SpecSeal-Routing: {ROUTED}")
+        named = commit_saying(root, "feat: a", f"Seal-Routing: {ROUTED}")
         write(root, "b.txt", "b\n")
-        none = commit_saying(root, "chore: b", "SpecSeal-Routing: no work item")
+        none = commit_saying(root, "chore: b", "Seal-Routing: no work item")
         write(root, "c.txt", "c\n")
         bare = commit_saying(root, "chore: c")
         code, out = check(root, capsys)
@@ -2962,12 +2962,12 @@ class Test_routing_trailers:
         assert chain.NO_WORK_ITEM_TRAILER.format(sha=none[:8]) in lines
         assert bare[:8] not in out, out
         assert chain.UNDECLARED_TRAILER.format(sha="x", item="y") == (
-            "commit x carries `SpecSeal-Routing: y`, and no routing declaration "
+            "commit x carries `Seal-Routing: y`, and no routing declaration "
             "this pull request judges names that work item: commit its "
             "`routing.md`, naming this branch, or correct the trailer"
         )
         assert chain.NO_WORK_ITEM_TRAILER.format(sha="x") == (
-            "commit x carries `SpecSeal-Routing: no work item`: its session "
+            "commit x carries `Seal-Routing: no work item`: its session "
             "recorded that the change belongs to no work item, and nothing "
             "here checks it further"
         )
@@ -2976,15 +2976,34 @@ class Test_routing_trailers:
         assert code == 0, out
         assert chain.UNDECLARED_TRAILER.format(sha=named[:8], item=ROUTED) in out
 
+    def test_reads_the_trailer_a_commit_before_0_23_0_carries(self, undeclared, capsys):
+        """#1051: a commit made before the rename carries `SpecSeal-Routing:`,
+        and through 0.23.x it is read as the same trailer: a work item no
+        declaration names fails a ready pull request, and `no work item` is a
+        notice, under either key."""
+        root = undeclared
+        write(root, "a.txt", "a\n")
+        named = commit_saying(root, "feat: a", f"SpecSeal-Routing: {ROUTED}")
+        write(root, "b.txt", "b\n")
+        none = commit_saying(root, "chore: b", "SpecSeal-Routing: no work item")
+        write(root, "c.txt", "c\n")
+        new = commit_saying(root, "chore: c", "Seal-Routing: no work item")
+        code, out = check(root, capsys)
+        assert code == 1, out
+        lines = out.splitlines()
+        assert chain.UNDECLARED_TRAILER.format(sha=named[:8], item=ROUTED) in lines
+        assert chain.NO_WORK_ITEM_TRAILER.format(sha=none[:8]) in lines
+        assert chain.NO_WORK_ITEM_TRAILER.format(sha=new[:8]) in lines
+
     def test_accepts_a_commit_naming_the_work_item_its_declaration_names(
         self, branch, ready, capsys
     ):
         root, _code = branch
-        commit_saying(root, "chore: e", "SpecSeal-Routing: 1791999999-a-work-item")
+        commit_saying(root, "chore: e", "Seal-Routing: 1791999999-a-work-item")
         seal(root)
         code, out = check(root, capsys)
         assert code == 0, out
-        assert "SpecSeal-Routing" not in out, out
+        assert "Seal-Routing" not in out, out
 
     def test_a_teammates_commit_is_never_judged(self, undeclared, capsys):
         """S11: the harness's co-author trailer, which any Claude Code
@@ -2998,7 +3017,7 @@ class Test_routing_trailers:
         )
         code, out = check(root, capsys)
         assert code == 0, out
-        assert "SpecSeal-Routing" not in out, out
+        assert "Seal-Routing" not in out, out
 
     def test_a_merge_and_a_squash_github_committed_are_not_its_own(
         self, undeclared, capsys
@@ -3019,12 +3038,12 @@ class Test_routing_trailers:
             "-m",
             "merge side",
             "-m",
-            f"SpecSeal-Routing: {ROUTED}",
+            f"Seal-Routing: {ROUTED}",
             "side",
         )
         write(root, "q.txt", "q\n")
         commit_saying(
-            root, "feat: elsewhere (#7)", f"SpecSeal-Routing: {ROUTED}", env=GITHUB
+            root, "feat: elsewhere (#7)", f"Seal-Routing: {ROUTED}", env=GITHUB
         )
         code, out = check(root, capsys)
         assert code == 0, out
@@ -3043,12 +3062,12 @@ class Test_routing_trailers:
             )
         )
         write(root, "a.txt", "a\n")
-        named = commit_saying(root, "feat: a", f"SpecSeal-Routing: {ROUTED}")
+        named = commit_saying(root, "feat: a", f"Seal-Routing: {ROUTED}")
         code, out = check(root, capsys)
         assert code == 0, out
         assert chain.LOCAL_TRAILER.format(sha=named[:8], item=ROUTED) in out, out
         assert chain.LOCAL_TRAILER.format(sha="x", item="y") == (
-            "commit x carries `SpecSeal-Routing: y` in a repository whose root "
+            "commit x carries `Seal-Routing: y` in a repository whose root "
             "is local, where no routing declaration is committed for it to "
             "name: printed, not judged"
         )
@@ -3063,7 +3082,7 @@ class Test_routing_trailers:
         root = undeclared
         git(root, "switch", "-q", "-c", "session", "main")
         write(root, "s.txt", "s\n")
-        picked = commit_saying(root, "feat: s", f"SpecSeal-Routing: {ROUTED}")
+        picked = commit_saying(root, "feat: s", f"Seal-Routing: {ROUTED}")
         git(root, "switch", "-q", "feature/t")
         subprocess.run(
             ["git", "-C", str(root), "cherry-pick", "-x", picked],

@@ -112,7 +112,7 @@ its grounds and lists the defaults it took, and the owner reviews it.
 `skills/settle/SKILL.md` is the procedure. **A settle is not a work item**:
 it opens no directory under `seal/threads/`, its session runs
 `seal no-work-item` on the settle's branch before the first edit, and each
-of its commits carries the trailer `SpecSeal-Routing: no work item`, as
+of its commits carries the trailer `Seal-Routing: no work item`, as
 step 4 shows. It owes an answer for every check in this repository carrying
 a population floor over `seal/threads/`.
 
@@ -152,10 +152,10 @@ check: tests/test_a_shrunken_corpus_declines_to_judge.py tests/test_conftest.py
 The commit belongs to no work item: it is the routing question's
 `no work item` answer (`skills/implement/orchestration.md` *Question 1*), and
 that answer's recorded form is `seal no-work-item`, run in step 1 before the
-first edit, and the trailer `SpecSeal-Routing: no work item` on each commit:
+first edit, and the trailer `Seal-Routing: no work item` on each commit:
 
 ```bash
-git commit -m "chore: release X.Y.Z — <what the fragments say>" -m "SpecSeal-Routing: no work item"
+git commit -m "chore: release X.Y.Z — <what the fragments say>" -m "Seal-Routing: no work item"
 git push -u origin chore/the-fragments-become-X.Y.Z
 gh pr create --base release/vX.Y.Z --head chore/the-fragments-become-X.Y.Z \
   --title "chore: release X.Y.Z — <the same line>" --body-file <file>

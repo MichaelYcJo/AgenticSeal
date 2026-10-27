@@ -2,7 +2,7 @@
 """PreToolUse gate: two skills answer to "review", so let the user pick.
 
 Claude Code ships a skill named `code-review`, and this plugin ships
-`specseal:code-review`. Their descriptions overlap on "review a PR or diff",
+`agentic:code-review`. Their descriptions overlap on "review a PR or diff",
 so a request that meant one can land on the other. The wrong direction is not
 symmetric: the built-in runs a bug-and-cleanup sweep, and the user learns it
 was the wrong review only after paying for a whole one.

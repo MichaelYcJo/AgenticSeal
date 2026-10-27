@@ -4,7 +4,7 @@ description: Declare that this repo ports behavior from another codebase. Finds 
 disable-model-invocation: true
 ---
 
-# /specseal:parity-setup, turn on parity mode
+# /agentic:parity-setup, turn on parity mode
 
 The user runs this command, and the session running it writes
 `seal/parity.md`, whose presence is the declaration that this repository ports

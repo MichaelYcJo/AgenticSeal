@@ -533,7 +533,7 @@ def test_the_cap_counts_from_the_last_design_change():
     run = the_run()
     for said in (
         "counted from the last design change",
-        "a reframe, or a new phase the owner approved in `plan.md`",
+        "a reframe, or a new phase the owner approved in `frame/plan.md`",
         "starts the count again",
         "followed by one verifying round, whatever the count",
         "is not an extension",

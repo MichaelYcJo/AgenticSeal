@@ -9,7 +9,8 @@ pull request's squash was judged at that pull request and is named, not
 judged (`carried_by`). The arms are eight:
 
   trailer       on every pull request, a declaration or none: each
-                `SpecSeal-Routing` trailer of the pull request's own commits
+                `Seal-Routing` trailer of the pull request's own commits,
+                or `SpecSeal-Routing` on one made before the rename,
                 names a work item a judged declaration names, or reads
                 `no work item`, which is printed (`routing_trailers`); a
                 commit with no such trailer is not judged
@@ -2057,7 +2058,11 @@ ROOT_LEFT_SAYS = (
 
 # The trailer a session's commit ends with (`docs/the-routing-check.md` *At
 # the pull request*), and its one value that names no work item.
-TRAILER = "SpecSeal-Routing"
+TRAILER = "Seal-Routing"
+# The key a commit made before the rename to AgenticSeal carries, read as the
+# same trailer for the minor release of the rename because a commit cannot be
+# migrated; the next minor release removes it.
+OLD_TRAILER = "SpecSeal-Routing"
 NO_WORK_ITEM = "no work item"
 UNDECLARED_TRAILER = (
     f"commit {{sha}} carries `{TRAILER}: {{item}}`, and no routing declaration "
@@ -2077,11 +2082,12 @@ NO_WORK_ITEM_TRAILER = (
 
 
 def routing_trailers(root, base):
-    """`[(commit, value)]` for each `SpecSeal-Routing` trailer of this pull
-    request's own commits, oldest first, or None where git cannot list them.
+    """`[(commit, value)]` for each `Seal-Routing` or `SpecSeal-Routing`
+    trailer of this pull request's own commits, oldest first, or None where
+    git cannot list them.
 
     The commits are `base..HEAD` with merges left out, read by git's own
-    trailer parser so the key matches as git matches it. A commit someone
+    trailer parser so the key matches as git matches it, under either key. A commit someone
     other than its author committed is not judged: a person's cherry-pick or
     rebase of a session's commit, and GitHub's squash or rebase-merge, carry
     a trailer their committer did not write, and a session's own commit is
@@ -2094,7 +2100,8 @@ def routing_trailers(root, base):
         "--no-merges",
         "--reverse",
         "-z",
-        f"--format=%H%x1f%ae%x1f%ce%x1f%(trailers:key={TRAILER},valueonly,separator=%x1e)",
+        "--format=%H%x1f%ae%x1f%ce%x1f%(trailers:"
+        f"key={TRAILER},key={OLD_TRAILER},valueonly,separator=%x1e)",
         f"{base}..HEAD",
     )
     if out is None:

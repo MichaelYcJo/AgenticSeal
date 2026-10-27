@@ -274,7 +274,7 @@ def test_every_shipped_skill_is_named_in_both_readmes():
 
     Round 1 found the first version of this useless in both directions. It
     searched the WHOLE file for a BARE name, so `audit` was satisfied by
-    `/specseal:security-audit` in the cheat sheet and `verify` by two
+    `/agentic:security-audit` in the cheat sheet and `verify` by two
     sentences of prose -- removing either from both editions' lists stayed
     green. The name is looked for in backticks, and in the row that lists
     the group, which is the only place its absence means anything."""
@@ -308,7 +308,7 @@ def test_every_shipped_skill_is_named_in_both_readmes():
             if user_invoked:
                 # A skill nobody can trigger is reachable only as a typed
                 # command, so that is the form that has to be shown.
-                assert f"/specseal:{name}" in text, (
+                assert f"/agentic:{name}" in text, (
                     f"{edition} never shows `{name}` in the form a person types"
                 )
                 continue

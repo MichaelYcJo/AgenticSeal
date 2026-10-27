@@ -22,6 +22,18 @@ later, hold only while the number still means what it meant; how a retired
 rule keeps its number is the contract's own preamble.
 check: tests/test_every_agent_reads_the_contract.py
 
+**The agents are the framer, the crafter, the proofer, the sealer and the
+tracer, and each name says its part of one order.** The framer designs the
+work, the crafter builds it, the proofer finds its defects, the sealer gives
+the final guarantee and seals it, and the tracer, outside that order, traces
+what an original codebase does for a migration. The crafter is named for the
+Software Craftsmanship movement, and the proofer for the proof impression a
+seal maker strikes to find a defect before the seal is used. An agent's name
+is its definition's file name under `agents/` and the word every spawn, mark
+and record uses for it, so a rename is a `git mv` of the definition and of
+every text that names it, in one release.
+check: tests/censuses.py
+
 **The party that draws a contract is not the party that executes it.** A
 specification written by whoever then builds against it stops being a
 contract and becomes an account of what got built, which leaves the review's
@@ -41,21 +53,22 @@ check: tests/test_chain_check.py
 
 ## What each party writes, and when
 
-**A review round is one file the warden writes, the fix pass writes two lines
+**A review round is one file the proofer writes, the fix pass writes two lines
 of each finding it answers, the orchestrator's broad run writes
-`broad-gate.md`, and the sealer's verdict is `guarantee.md`.**
+`trail/gate.md`, and the sealer's verdict is `guarantee.md` at the thread's
+top.**
 `docs/the-review-record.md` holds what each of those files carries.
 check: tests/test_chain_check.py
 
-No case runs the scribe. That a spawn opens `legacy-parity` first, returns
+No case runs the tracer. That a spawn opens `legacy-parity` first, returns
 facts and no verdict, and returns `original not found` where the original
-does not resolve is read from `agents/scribe.md`, not observed.
+does not resolve is read from `agents/tracer.md`, not observed.
 
 **The last party audits the others, and is independent of them.** The
 sealer's reference is the issue body and the tree, so a pull request body, a
 phase record or a review verdict that says what the tree does not is caught
 by a party that wrote none of them. It re-judges neither the frame nor the
-code's quality, which stay the framer's and the warden's, and it runs on
+code's quality, which stay the framer's and the proofer's, and it runs on
 Opus, the level of the agents it audits. `docs/the-review-record.md` *The
 guarantee* holds the rule.
 check: tests/test_the_sealer_guarantees.py
@@ -68,7 +81,7 @@ commit. *What this phase was asked* is the scope the spawn gave, which a
 later reader cannot otherwise tell from a scope the phase invented. What a
 work item removes is named once, in the frame's `## Removes`
 (`templates/sdd-design.md`), which the review reads against the diff, and a
-removal the frame did not name is a divergence in `overview.md`.
+removal the frame did not name is a divergence in `gaps.md`.
 check: tests/test_a_phase_hands_the_next_one_a_record.py
 
 **A document that describes a transition is deleted when the transition is
@@ -83,7 +96,7 @@ check: none reader: review
 **What an agent leaves in the scratchpad is named for the work item it
 serves, so two agents alive at once cannot pick the same name.** Every agent
 of one session shares one scratchpad, and a name any parallel agent would
-also pick is a file somebody else can overwrite. So the warden's clone is
+also pick is a file somebody else can overwrite. So the proofer's clone is
 `<scratchpad>/<work-item-id>/round-<n>/clone` with every probe of the round
 beside it, and the orchestrator's broad-gate log carries the work item id.
 The name lives in the definitions, where a rule arrives by mechanism, and one
