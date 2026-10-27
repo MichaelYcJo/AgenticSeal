@@ -20,6 +20,8 @@ from conftest import (
     census_case,
     declare,
     declare_smith,
+    git_dir,
+    load_hook_module,
     opt_in,
     run_dispatch,
     run_hook,
@@ -35,8 +37,76 @@ BOTH = "`Planning` with `framer` and `Implementation` with `smith`"
 # how S14 tells one line naming two axes from two lines naming one each.
 ONCE = "Nothing was blocked, and this is said once per session."
 
+notice = load_hook_module("implementer-notice.py", "implementer_notice_for_units")
+
+
+class Test_line:
+    def test_accepts_one_axis_and_says_its_agent_was_not_spawned(self):
+        """The singular line, pinned whole: it is what nearly every notice
+        says, and the module keeps it byte for byte (contract rule 14)."""
+        assert notice.line("w.md", [("Implementation", "smith")]) == (
+            "[specseal] w.md answers `Implementation` with `smith`, and no smith "
+            "was spawned on this branch. Either spawn it for the rest of the "
+            "work, or change the row to `the session` so the declaration says "
+            "what actually happened. Nothing was blocked, and this is said once "
+            "per session."
+        )
+
+    def test_refuses_the_one_axis_wording_for_two_axes(self):
+        said = notice.line(
+            "w.md", [("Planning", "framer"), ("Implementation", "smith")]
+        )
+        assert "neither was spawned on this branch" in said, said
+        assert "no smith" not in said and "no framer" not in said, said
+
+
+class Test_commits:
+    def test_accepts_a_git_commit(self):
+        assert notice.commits("git commit -m x") is True
+
+    def test_refuses_a_commit_that_is_only_a_heredoc_body(self):
+        """The body is data the command feeds `cat`, so nothing committed."""
+        assert notice.commits("cat <<'EOF'\ngit commit -m x\nEOF") is False
+
+
+class Test_already_told:
+    def test_accepts_a_session_once_and_records_it(self, repo):
+        assert notice.already_told(str(repo), "s-once") is False
+        assert notice.already_told(str(repo), "s-once") is True
+
+    def test_refuses_a_missing_or_dot_session_id_and_records_nothing(self, repo):
+        """A missing or dot id names no file of its own, so it reads as told
+        and nothing is made under the git dir (#1017, the body's
+        `already_told` row)."""
+        for session in (None, "."):
+            assert notice.already_told(str(repo), session) is True, session
+            assert not os.path.exists(os.path.join(git_dir(repo), notice.NOTICE_DIR))
+
+
+class Test_notify:
+    def test_accepts_a_declared_smith_and_names_the_file_from_the_root(self, repo):
+        """The path a person opens is the one under the repository, not the
+        absolute one, which also ends in it (#1017, round 3's n1)."""
+        opt_in(repo)
+        declare(repo, implementation="smith")
+        where = os.path.join("seal", "specs", ITEM, "routing.md")
+        said = notice.notify(str(repo), "s-notify")
+        assert said.startswith(f"[specseal] {where} answers "), said
+
+    def test_refuses_a_branch_no_declaration_names(self, repo):
+        opt_in(repo)
+        assert notice.notify(str(repo), "s-notify") == ""
+
 
 class Test_main:
+    def test_refuses_a_tool_other_than_bash_whose_input_commits(self, repo):
+        """Only a Bash call runs a command. Another tool carrying a commit in
+        its input committed nothing (#1017, the body's `main` row)."""
+        opt_in(repo)
+        declare(repo, implementation="smith")
+        out = run_hook("implementer-notice.py", {**bash(repo), "tool_name": "Write"})
+        assert NOTICE not in out, out
+
     def test_accepts_a_declared_smith_with_no_mark_and_notices_it(self, repo):
         """S6. Emitted from `post-bash`, whose output is read — a PreToolUse
         gate that allows produces no output at all."""
