@@ -38,11 +38,11 @@ The plugin is renamed to AgenticSeal, a `seal/` is its root only with the marker
 
 | Item | Who must answer |
 |---|---|
-| the full suite, the repository-wide lint and the typecheck over this branch | the orchestrator, through the tree's `bin/seal gate` after the review rounds settle |
-| that `seal.py#hand_over` on Windows runs the script as a child and returns its exit code; the cases here ran on macOS, where the POSIX branch replaced the process | the orchestrator, reading the Windows shards of `.github/workflows/test.yml` on the pull request, whose cases run `bin/seal.cmd <subcommand>` |
-| that the three lines README.md prints carry a user from `specseal@specseal` to `agentic@agenticseal` | the owner, on a machine installed at 0.22.4 after the release (`questions.md` Q4) |
-| what a side reads in the replay and seeded eval cases run on this release: each case rebuilds a 0.22.x tree, which this release's session start migrates, and `evals/scripts/replay_targets.py` and `seed_defects.py` read round records only at the 0.22.x layout | the session that next generates or runs a replay or seeded case |
-| whether `SPECSEAL_LINT` and `SPECSEAL_LANG` take new names with a grace reading | the owner; a rename changes behaviour for whoever set the old name, which this release excludes |
+| closed the full suite, the repository-wide lint and the typecheck over this branch | answered: `trail/gate.md`'s broad run passed at 46650c5b, with ruff clean and 6,763 passed, and the sealer sealed at a14011ce |
+| closed that `seal.py#hand_over` on Windows runs the script as a child and returns its exit code; the cases here ran on macOS, where the POSIX branch replaced the process | answered: the four windows-latest shards of run 40501484402 passed at 71c717bf, and pull request #1092's CI passed them again at 1b07e652 |
+| closed that the three lines README.md prints carry a user from `specseal@specseal` to `agentic@agenticseal` | answered: the owner ran the three commands on 2026-10-28 on a machine installed at 0.22.4, and `claude plugin list` then showed `agentic@agenticseal` at 0.23.0 |
+| closed what a side reads in the replay and seeded eval cases run on this release: each case rebuilds a 0.22.x tree, which this release's session start migrates, and `evals/scripts/replay_targets.py` and `seed_defects.py` read round records only at the 0.22.x layout | re-homed to #1097 |
+| closed whether `SPECSEAL_LINT` and `SPECSEAL_LANG` take new names with a grace reading | re-homed to #1096 |
 
 ## Not done
 
