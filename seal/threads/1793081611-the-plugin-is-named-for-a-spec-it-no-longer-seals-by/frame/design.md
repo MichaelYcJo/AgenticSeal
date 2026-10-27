@@ -89,7 +89,7 @@ by the old name after the catalog changes.
 **The policy root is rewritten in place for names and paths.** `docs/`
 holds 12 files naming SpecSeal and 9 naming smith, warden or scribe
 (`git grep`, executed 2026-10-27 at `bac5dcdd`). `skills/implement/SKILL.md`
-*Document layout* says a pull request does not edit the policy root, and the
+*Document layout — two roots, three lifetimes* says a pull request does not edit the policy root, and the
 reason is that a rule's decision is made at the settle, from the released
 specs. A spelling carries no decision: a sentence naming `smith` says the
 same thing of `crafter`. So the build rewrites every old name and path in

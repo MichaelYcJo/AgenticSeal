@@ -62,7 +62,7 @@ read the scratch opt-out, as before.
 19's class was enumerated with `git grep` on *presence*, *exists* and *at
 either place*. These were corrected: README.md and README.ko.md *Where the
 records live* and *First run*, both copies of the seal README,
-`skills/implement/SKILL.md` *Document layout*, the bootstrap in three places,
+`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*, the bootstrap in three places,
 contract rule 11, `skills/commit-pr-convention/SKILL.md`,
 `skills/config/SKILL.md`, and the routing rule in
 `templates/claude-md-block.md`, which a session follows before the
