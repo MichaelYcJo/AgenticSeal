@@ -58,7 +58,7 @@ NAME = "examplekit"
 
 def checker():
     spec = importlib.util.spec_from_file_location(
-        "specseal_plugin_directory_check_for_tests", SCRIPT
+        "agentic_plugin_directory_check_for_tests", SCRIPT
     )
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -250,7 +250,7 @@ class Test_main:
         monkeypatch.setattr(mod, "fetch", lambda url: outcome)
         assert mod.main(["--root", ROOT]) == 0
         out = capsys.readouterr().out
-        assert "specseal" in out, "the run does not say which plugin it asked about"
+        assert "agentic" in out, "the run does not say which plugin it asked about"
         assert out.count("official") and out.count("community"), (
             "a marketplace file is missing from the report"
         )
@@ -277,7 +277,7 @@ class Test_main:
         each answers for. Whatever the files hold, nothing printed says the plugin
         is or is not listed, and nothing sends the reader to submit or resubmit —
         on the portal nothing is resubmitted, and a Console listing takes no new
-        version (`spec.md` *Vocabulary*, three facts from the docs)."""
+        version (`frame/design.md` *Vocabulary*, three facts from the docs)."""
         mod = checker()
         assert not hasattr(mod, "PORTAL"), (
             "the short link that answers 302 to a documentation page is still a "
@@ -310,7 +310,7 @@ class Test_main:
         )
 
     def test_refuses_a_malformed_argument_as_the_only_non_zero_exit(self):
-        """Stated in `spec.md` A7 as the one exception, and it is argparse's."""
+        """Stated in `frame/design.md` A7 as the one exception, and it is argparse's."""
         mod = checker()
         with pytest.raises(SystemExit) as raised:
             mod.main(["--no-such-flag"])
@@ -394,16 +394,16 @@ class Test_module:
         installed under it. A rename then shows up as *not an entry* rather than
         as a check grading a name nobody uses."""
         mod = checker()
-        assert mod.plugin_name(ROOT) == "specseal"
+        assert mod.plugin_name(ROOT) == "agentic"
         source = open(SCRIPT, encoding="utf-8").read()
         body = source.split('"""', 2)[2]
-        assert '"specseal"' not in body and "'specseal'" not in body, (
+        assert '"agentic"' not in body and "'agentic'" not in body, (
             "the plugin's name is written into the script as a literal"
         )
 
     def test_it_reads_the_path_the_marketplace_files_actually_have(self):
         """Measured 2026-09-22: the root `marketplace.json` that #417 and
-        `spec.md` both name is 404 in both repositories, and the file is under
+        `frame/design.md` both name is 404 in both repositories, and the file is under
         `.claude-plugin/`. A reader at the ticket's path reports *could not be
         read* forever, which is A7 working and A6 answering nothing."""
         mod = checker()

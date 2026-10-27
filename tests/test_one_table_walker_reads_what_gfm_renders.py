@@ -4,7 +4,7 @@
 `| Signer |` and `seal/config.md`'s `| Item | Value |`. This module holds it
 to GitHub's renderer, `cmarkgfm`, through
 `tests/gfm_table_oracle.py`, and the property is S1 of the work item's
-`spec.md`: **on every shape, the walker's cells equal cmark-gfm's, or the walker
+`frame/design.md`: **on every shape, the walker's cells equal cmark-gfm's, or the walker
 refuses.** No shape yields cells cmark-gfm does not render.
 
 **The corpus is enumerated by construction, not from examples.** Round 3 of

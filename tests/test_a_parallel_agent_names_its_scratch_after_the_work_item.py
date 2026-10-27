@@ -2,13 +2,13 @@
 
 Issue #544. Every agent of one session shares one scratchpad, and four work
 items ran their review chains in parallel from one session in the 0.15.0 run.
-`agents/warden.md` named the clone's shape (`git clone --no-local` at the
+`agents/proofer.md` named the clone's shape (`git clone --no-local` at the
 target SHA) and no directory; `agents/sealer.md` named no capture file;
 `skills/verify/SKILL.md`'s capture example redirected to `/tmp/run.txt`,
 which every session on the machine shares. Measured three times in that run:
 two wardens cloned to the same `r2clone`, a third's clone had its HEAD moved
 by a foreign checkout for fifty-five seconds, and two sealers wrote
-`broad-gate.out` over each other.
+one gate output file over each other.
 
 The class (contract rule 12) is *an instruction that names a scratch
 location with a name any parallel agent would also pick*, and the repair is
@@ -32,7 +32,7 @@ from conftest import read
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
-WARDEN = os.path.join(ROOT, "agents", "warden.md")
+PROOFER = os.path.join(ROOT, "agents", "proofer.md")
 SEALER = os.path.join(ROOT, "agents", "sealer.md")
 REVIEW_ORCH = os.path.join(ROOT, "skills", "code-review", "orchestration.md")
 VERIFY = os.path.join(ROOT, "skills", "verify", "SKILL.md")
@@ -58,9 +58,9 @@ def test_the_wardens_clone_is_named_for_the_work_item_and_the_round():
     probe, capture or fixture the round makes outside the clone sits beside
     it, which is also what makes *every one of them is gone* (contract rule 7) answerable
     by the agent that made them."""
-    where = section(WARDEN, "Rules")
+    where = section(PROOFER, "Rules")
     assert CLONE in where, (
-        "`agents/warden.md` *Rules* does not name the clone directory "
+        "`agents/proofer.md` *Rules* does not name the clone directory "
         f"as `{CLONE}`, so two parallel wardens can clone to one name"
     )
     assert ROUND_HOME in where, (
@@ -76,7 +76,7 @@ def test_the_wardens_clone_is_named_for_the_work_item_and_the_round():
 def test_the_gates_capture_file_carries_the_work_item_id():
     """A13, moved by #969 with the run. Where the orchestrator redirects the
     gate's output to a file to read, the file is named for the work item; and
-    the gate's own `outputs kept under broad-gate-<random>/` line is quoted,
+    the gate's own `outputs kept under seal-gate-<random>/` line is quoted,
     so a capture that was overwritten can still be told apart — which is how
     the 0.15.0 runs were not misread. Two work items run in parallel by one
     session would otherwise write one log over each other. The sealer keeps
@@ -84,7 +84,7 @@ def test_the_gates_capture_file_carries_the_work_item_id():
     command = section(
         REVIEW_ORCH, "Orchestrator: the pull request opens once the sealer seals"
     )
-    assert "<scratchpad>/<work-item-id>/broad-gate.log" in command, (
+    assert "<scratchpad>/<work-item-id>/gate.log" in command, (
         "the orchestration names no capture file carrying the work item id, "
         "so two work items' runs write one file over each other"
     )

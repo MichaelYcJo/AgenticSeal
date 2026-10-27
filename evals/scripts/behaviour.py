@@ -61,15 +61,15 @@ def report_regex(kind, name, path, pattern, body, flags="m", **extra):
 
 
 def reach(agent):
-    """The grader that the session spawned `specseal:<agent>` through the
+    """The grader that the session spawned `agentic:<agent>` through the
     `Agent` tool, the way production does."""
     return grader(
         "reach",
         agent,
-        f"The session spawned specseal:{agent} through the Agent tool.",
+        f"The session spawned agentic:{agent} through the Agent tool.",
         type="tool_used",
         tool="Agent",
-        input_match=f'"subagent_type"\\s*:\\s*"specseal:{agent}"',
+        input_match=f'"subagent_type"\\s*:\\s*"agentic:{agent}"',
     )
 
 
@@ -89,7 +89,7 @@ EMOJI_RANGES = (
 
 
 def report_shape(agent, report):
-    """The reach grader and the three shape graders of a warden round
+    """The reach grader and the three shape graders of a proofer round
     record at REPORT: it exists, it carries a finding in the record's shape,
     and it is written in words."""
     return [

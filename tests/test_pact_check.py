@@ -49,7 +49,7 @@ from conftest import git_out as git
 TARGET = "skills/verify/scripts/pact_check.py"
 
 SCRIPT = os.path.join(ROOT, TARGET)
-WRAPPER = os.path.join(ROOT, "bin", "pact-check")
+WRAPPER = os.path.join(ROOT, "bin", "seal")
 
 # The module and its evidence reader, loaded once in `tests/conftest.py`, so
 # the world's `check` runs and this file patches one module. The world, its
@@ -59,11 +59,11 @@ pc, checker = pact_check_modules()
 config = pc.load(os.path.join(pc.HOOKS, "config.py"), "config_for_pact_tests")
 
 SIGNER = (SIGNER_URL, config.normalise_remote(SIGNER_URL), "orders-web")
-SPEC_Y = "seal/specs/1790000001-y/spec.md"
+SPEC_Y = "seal/threads/1790000001-y/frame/design.md"
 
 
 def posix(path):
-    """A path as `pact-check` prints one outside HOME: every separator `/`."""
+    """A path as `seal pact` prints one outside HOME: every separator `/`."""
     return str(path).replace(os.sep, "/")
 
 
@@ -143,17 +143,17 @@ class Test_module:
             patched.setattr(os.path, "join", ntpath.join)
             windows = load_module(SCRIPT, "pact_check_with_windows_joins")
         _, why = windows.checkout(config, SIGNER, str(tmp_path / "nowhere"), {})
-        assert "~/.claude/specseal/pact-paths.md" in why, why
+        assert "~/.claude/agentic/pact-paths.md" in why, why
         assert "\\" not in why, why
 
     def test_the_wrapper_runs_the_script_from_any_directory(self, world):
         """The command run as a person types it, from a directory that is
         not the pact's repository."""
         if os.name == "nt":
-            pytest.skip("the POSIX wrapper; bin/pact-check.cmd is its Windows twin")
+            pytest.skip("the POSIX wrapper; bin/seal.cmd is its Windows twin")
         world.cite(clause(V2))
         done = subprocess.run(
-            ["sh", WRAPPER, str(world.api)],
+            ["sh", WRAPPER, "pact", str(world.api)],
             cwd=str(world.tmp),
             capture_output=True,
             encoding="utf-8",
@@ -175,10 +175,10 @@ class Test_shown:
                 "seal/config.md",
             ),
             (
-                r"C:\Users\x\.claude\specseal\pact-paths.md",
+                r"C:\Users\x\.claude\agentic\pact-paths.md",
                 None,
                 r"C:\Users\x",
-                "~/.claude/specseal/pact-paths.md",
+                "~/.claude/agentic/pact-paths.md",
             ),
             ("C:/Users/x/work/a\\b.md", r"C:\Users\x\work", None, "a/b.md"),
         ],
@@ -225,7 +225,7 @@ class Test_load:
             pc.load(str(tmp_path / "gone.py"), "gone")
         assert stopped.value.code == 2
         err = capsys.readouterr().err
-        assert "pact-check: cannot read " in err and "Nothing was read." in err, err
+        assert "seal pact: cannot read " in err and "Nothing was read." in err, err
 
 
 class Test_near_miss:
@@ -295,7 +295,7 @@ class Test_path_map:
     def test_refuses_to_read_a_row_past_the_tables_end(self, world):
         write(
             world.home,
-            ".claude/specseal/pact-paths.md",
+            ".claude/agentic/pact-paths.md",
             "| Remote | Path |\n|---|---|\n| https://example.com/org/a | /x/a |\n"
             "\nprose\n\n| https://example.com/org/b | /x/b |\n",
         )
@@ -305,7 +305,7 @@ class Test_path_map:
     @pytest.mark.parametrize("shape", ["directory", "dangling link"])
     def test_refuses_a_map_that_is_there_and_will_not_read(self, world, shape):
         """Read as empty, every signer it names would be reported missing."""
-        where = world.home / ".claude" / "specseal" / "pact-paths.md"
+        where = world.home / ".claude" / "agentic" / "pact-paths.md"
         where.parent.mkdir(parents=True)
         if shape == "directory":
             where.mkdir()
@@ -314,7 +314,7 @@ class Test_path_map:
         found, refusal = pc.path_map(config, str(world.home))
         assert found == {}
         assert refusal == (
-            "~/.claude/specseal/pact-paths.md is there and could not be read"
+            "~/.claude/agentic/pact-paths.md is there and could not be read"
         )
 
 
@@ -355,21 +355,25 @@ class Test_checkout:
         assert why == (
             "no checkout of it was found on this machine: add "
             f"`| {PACT_URL} | <the path of its checkout> |` to "
-            "~/.claude/specseal/pact-paths.md"
+            "~/.claude/agentic/pact-paths.md"
         )
 
 
 class Test_anchor_files:
     def test_accepts_every_work_item_s_spec_in_order(self, tmp_path):
-        for rel in ("specs/2-b/spec.md", "specs/1-a/spec.md"):
+        for rel in ("threads/2-b/frame/design.md", "threads/1-a/frame/design.md"):
             write(tmp_path, rel, "x\n")
         assert pc.anchor_files(str(tmp_path)) == [
-            os.path.join(str(tmp_path), "specs", "1-a", "spec.md"),
-            os.path.join(str(tmp_path), "specs", "2-b", "spec.md"),
+            os.path.join(str(tmp_path), "threads", "1-a", "frame", "design.md"),
+            os.path.join(str(tmp_path), "threads", "2-b", "frame", "design.md"),
         ]
 
     def test_refuses_a_work_item_s_other_records_and_a_spec_below_one(self, tmp_path):
-        for rel in ("specs/1-a/plan.md", "specs/1-a/phases/spec.md", "spec.md"):
+        for rel in (
+            "threads/1-a/frame/plan.md",
+            "threads/1-a/trail/phases/design.md",
+            "threads/1-a/design.md",
+        ):
             write(tmp_path, rel, "x\n")
         assert pc.anchor_files(str(tmp_path)) == []
 
@@ -536,7 +540,7 @@ class Test_check:
             f"READ {SIGNER_URL} {posix(world.web)} — 2 pact anchors naming `orders-api`"
         ) in out, out
         assert out.endswith(
-            "pact-check: the pact `orders-api` — 1 of 1 signer read · 2 ok · 0 "
+            "seal pact: the pact `orders-api` — 1 of 1 signer read · 2 ok · 0 "
             "superseded · 0 not taken · 0 unmatched · 0 broken"
         ), out
         assert "heads its table" not in out and "does not parse" not in out, out
@@ -569,6 +573,9 @@ class Test_check:
         local = os.path.join(str(world.api), common, "seal")
         os.makedirs(local)
         os.replace(str(world.api / PACT), os.path.join(local, "pact.md"))
+        os.replace(
+            str(world.api / "seal" / "README.md"), os.path.join(local, "README.md")
+        )
         os.rmdir(str(world.api / "seal"))
         anchor = world.cite(clause(V1))
         code, out = world.run()
@@ -588,7 +595,7 @@ class Test_check:
         assert (
             f"NOT FOUND {SIGNER_URL} — no checkout of it was found on this "
             f"machine: add `| {SIGNER_URL} | <the path of its checkout> |` to "
-            "~/.claude/specseal/pact-paths.md"
+            "~/.claude/agentic/pact-paths.md"
         ) in out, out
         world.map(("git@example.com:org/orders-web.git", moved))
         world.web = moved
@@ -603,7 +610,7 @@ class Test_check:
         code, out = world.run()
         assert code == 1, out
         assert f"NOT FOUND {MOBILE_URL} — " in out, out
-        assert "pact-check: the pact `orders-api` — 1 of 2 signers read · " in out, out
+        assert "seal pact: the pact `orders-api` — 1 of 2 signers read · " in out, out
 
     @pytest.mark.parametrize(
         "header", ["Signer", "Signatory"], ids=["Signer", "old_header"]
@@ -739,12 +746,12 @@ class Test_check:
         assert out == "UNREADABLE seal/pact.md — the pact could not be read", out
 
     def test_refuses_a_map_that_will_not_read(self, world):
-        (world.home / ".claude" / "specseal" / "pact-paths.md").mkdir(parents=True)
+        (world.home / ".claude" / "agentic" / "pact-paths.md").mkdir(parents=True)
         world.cite(clause(V2))
         code, out = world.run()
         assert code == 2, out
         assert (
-            "REFUSED ~/.claude/specseal/pact-paths.md — ~/.claude/specseal/"
+            "REFUSED ~/.claude/agentic/pact-paths.md — ~/.claude/agentic/"
             "pact-paths.md is there and could not be read"
         ) in out, out
 
@@ -772,7 +779,7 @@ class Test_renamed:
         commit(world.api, "the pact as 0.18.0 began it")
         code, out = world.run()
         rename = (
-            "pact-check: seal/pact.md heads its table `| Signatory |`, the word "
+            "seal pact: seal/pact.md heads its table `| Signatory |`, the word "
             "before 0.19.0 — `| Signer |` is the header now; rename it when the "
             "file is next edited"
         )

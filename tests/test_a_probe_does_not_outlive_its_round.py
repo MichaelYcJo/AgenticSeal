@@ -40,13 +40,13 @@ def test_the_probe_rules_ask_for_a_timeout_somebody_chose():
     )
 
 
-def test_smith_commits_before_it_mutates():
-    smith = read("agents", "smith.md")
-    assert "Commit before you mutate" in smith, (
+def test_crafter_commits_before_it_mutates():
+    crafter = read("agents", "crafter.md")
+    assert "Commit before you mutate" in crafter, (
         "the mutation-loop rule is gone; a loop reverting with "
         "`git checkout --` restores HEAD and takes uncommitted fixes with it"
     )
-    assert "restore from `mutation-check`'s copy" in smith, (
+    assert "restore from `seal mutate`'s copy" in crafter, (
         "the rule kept the commit half and lost the restore half, and the "
         "restore half is the one that deleted a round's work"
     )

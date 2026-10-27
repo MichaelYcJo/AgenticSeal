@@ -68,7 +68,7 @@ def flat(*parts):
 
 def test_the_start_is_the_moment_before_the_first_edit():
     """Not the start of a round, and not the start of a session. A round does
-    not restart it and a resumed session does not restart it. The smith's
+    not restart it and a resumed session does not restart it. The crafter's
     copy left with its design-gate narration (#967): it is spawned after
     that moment and names no start of its own."""
     for parts in (
@@ -135,10 +135,10 @@ def test_the_bound_is_on_the_review_run_and_never_on_the_cycle():
     )
 
 
-def test_the_smith_calls_the_whole_thing_a_review_run():
-    smith = flat("agents", "smith.md")
-    assert "bounded as `docs/the-review-record.md` *The run* states" in smith
-    assert "the cycle is bounded" not in smith
+def test_the_crafter_calls_the_whole_thing_a_review_run():
+    crafter = flat("agents", "crafter.md")
+    assert "bounded as `docs/the-review-record.md` *The run* states" in crafter
+    assert "the cycle is bounded" not in crafter
 
 
 # --- "needs no marker at all" — the one the change resolves -----------------
@@ -164,10 +164,10 @@ def test_the_row_that_could_not_be_true_is_corrected_not_reworded():
 
 # --- "the seal" — an instance names whose; the concept stays bare -----------
 
-# The word reached three referents at once. `agents/warden.md` opened *You
-# keep the seal* about `<git-dir>/specseal-reviewed`, `agents/sealer.md`
+# The word reached three referents at once. `agents/proofer.md` opened *You
+# keep the seal* about the review mark under the git dir, `agents/sealer.md`
 # opens *You take the seal* about the broad gate's stamp, and `README.md`
-# said *the warden's audit of the seal* about a third thing again — two of
+# said *the proofer's audit of the seal* about a third thing again — two of
 # them in files a reader opens together.
 #
 # The rule that resolves it is that a reference to an instance names whose.
@@ -182,8 +182,8 @@ SEAL_RULE = (
 # it was written is not brought to a new wording, so `seal/` is not here.
 SEAL_SWEPT = (
     ("agents", "sealer.md"),
-    ("agents", "warden.md"),
-    ("agents", "smith.md"),
+    ("agents", "proofer.md"),
+    ("agents", "crafter.md"),
     # The fifth definition (#84). It instructs somebody, which is the whole
     # membership test for this list, and it lands in a release that puts a
     # new agent name beside four others, two of which own a seal of their
@@ -223,8 +223,7 @@ SEAL_SWEPT = (
     # stamp it is, so they are swept too.
     ("hooks", "sealer-stamp.py"),
     ("hooks", "dispatch.py"),
-    ("bin", "seal-stamp"),
-    ("bin", "broad-gate"),
+    ("bin", "seal"),
     ("docs", "the-broad-gate.md"),
     # The page that keeps the emblems the stamp has carried. Nothing read it
     # when #975 moved the stamp, so it still called each emblem the broad
@@ -264,7 +263,7 @@ SEAL_BARE = "the seal"
 # instance with nobody's name on it.
 SEAL_BARE_IS_THE_CONCEPT = (
     " Test",  # the Seal Test
-    " is a different mark and a different agent's",  # the warden's link
+    " is a different mark and a different agent's",  # the proofer's link
 )
 
 
@@ -283,12 +282,12 @@ def test_the_owner_states_that_one_seal_is_final():
 
 
 def test_the_two_definitions_name_what_they_actually_keep():
-    """`agents/warden.md` once called `<git-dir>/specseal-reviewed`, the mark
-    that a review happened, the seal. #1027 removed the mark with the commit
-    gate that read it; the warden names neither, and claims no seal."""
-    warden = flat("agents", "warden.md")
-    assert "specseal-reviewed" not in warden
-    assert "You keep the seal:" not in warden, (
+    """`agents/proofer.md` once called the review mark under the git dir, the
+    mark that a review happened, the seal. #1027 removed the mark with the commit
+    gate that read it; the proofer names neither, and claims no seal."""
+    proofer = flat("agents", "proofer.md")
+    assert "-reviewed" not in proofer
+    assert "You keep the seal:" not in proofer, (
         "the opening claims a word the sealer's definition claims two files "
         "over, and a reader opens them together"
     )
@@ -297,14 +296,14 @@ def test_the_two_definitions_name_what_they_actually_keep():
     assert "You take the seal." not in sealer
 
 
-def test_the_readme_says_what_the_warden_audits():
+def test_the_readme_says_what_the_proofer_audits():
     """The shape to look for: a sentence naming one party and leaving the
-    audited thing anonymous. It was the smith's proof block, three bullets
-    from one describing the `Broad gate` cell; since #967 the smith carries
-    no seal, and what the warden audits is the labels on its hand-back."""
+    audited thing anonymous. It was the crafter's proof block, three bullets
+    from one describing the `Broad gate` cell; since #967 the crafter carries
+    no seal, and what the proofer audits is the labels on its hand-back."""
     readme = flat("README.md")
-    assert "the warden's audit of the smith's labels" in readme
-    assert "the warden's audit of the seal," not in readme
+    assert "the proofer's audit of the crafter's labels" in readme
+    assert "the proofer's audit of the seal," not in readme
 
 
 def test_no_instructing_document_leaves_an_instance_anonymous():
@@ -364,8 +363,6 @@ def test_no_instructing_document_leaves_an_instance_anonymous():
 # run). The gate's own files are held to never saying it.
 GATE_SWEPT = (
     ("skills", "verify", "scripts", "broad_gate.py"),
-    ("bin", "broad-gate"),
-    ("bin", "broad-gate.cmd"),
     ("docs", "the-broad-gate.md"),
 )
 
@@ -409,8 +406,8 @@ def test_the_gate_never_says_sealed():
 
 
 # Every `seal` word the gate's files may carry is part of a name: a path under
-# the `seal/` root, a script or a command (`seal-stamp`, `seal_stamp`,
-# `seal mode`, `seal.py`, `seal-mark.txt`), the sealer, the chain arm's
+# the `seal/` root, a script or a command (`seal stamp`, `seal_stamp`,
+# `seal mode`, `seal gate`, `seal.py`, `seal-mark.txt`), the sealer, the chain arm's
 # `--sealing` flag and `chain_check.SEALING`, the verdict word in backticks,
 # the Seal Test, a work item the sealer sealed, and an HTML comment. `questions.md` Q6 (a) keeps the code names and the concept
 # name. A name goes on past its `-`, `_` or `.`, so a `seal.` that closes a
@@ -422,8 +419,9 @@ GATE_SEAL_NAMES = re.compile(
     r"|\bseal/\S*"
     r'|"seal"'
     r"|\bseal[-_.]\w[\w.-]*"
-    r"|\bseal mode\b"
+    r"|\bseal (?:mode|gate|stamp)\b"
     r"|\bsealer\w*"
+    # exempt from old_names: a spelling kept on purpose names the old brand, not the gate's seal
     r"|specseal\w*"
     r"|--sealing\b|(?-i:\b\w*SEALING\w*\b)"
     r"|(?-i:`sealed`)"
@@ -455,7 +453,7 @@ def test_the_gate_sweep_reads_a_seal_that_ends_a_sentence():
     closes a sentence is the word, and the sweep refuses it."""
     for line in ('"the broad run is no seal."', "# a run is not a seal."):
         assert GATE_SEAL_WORD.search(GATE_SEAL_NAMES.sub("", line)), line
-    for line in ("`seal-stamp --from`", "seal_stamp.py", "seal-mark.txt"):
+    for line in ("`seal stamp --from`", "seal_stamp.py", "seal-mark.txt"):
         assert not GATE_SEAL_WORD.search(GATE_SEAL_NAMES.sub("", line)), line
 
 
@@ -509,11 +507,11 @@ def test_the_stamp_sweep_reads_the_gates_run_and_the_passive():
         "the broad gate's run's stamp",
         "a stamp drawn by the broad gate",
         "the stamp is drawn from the broad gate's run",
-        "a stamp drawn from the broad-gate run",
+        "a stamp drawn from the broad gate run",
         "The broad gate draws a stamp",
         "the broad gate's stamp",
         "the broad gate draws its stamp",
-        "the broad-gate stamps the tree",
+        "the broad gate stamps the tree",
     )
     for sentence in given_to_the_gate:
         assert STAMP_GIVEN_TO_THE_GATE.search(sentence), sentence
@@ -759,7 +757,7 @@ PACT_SECTIONS = (
 # Files where only the lines naming a pact are the pact's text: the cheat
 # sheets' row and the config skill's rows and bullet.
 PACT_LINES = (("README.md",), ("README.ko.md",), ("skills", "config", "SKILL.md"))
-# The sentences a person is printed: every string constant of `pact-check`.
+# The sentences a person is printed: every string constant of `seal pact`.
 PACT_PRINTED = (
     (("skills", "verify", "scripts", "pact_check.py"), None),
     # The refusals both commands print are written in `hooks/config.py`
@@ -940,10 +938,10 @@ def test_no_pact_text_names_a_signer_the_way_0_18_did():
 #   pattern and comments name the word in order to refuse it;
 # - the two spans `PACT_RENAMED_SPANS` names.
 #
-# `seal/specs/` is the work item root, and a settle removes every released
+# `seal/threads/` is the work item root, and a settle removes every released
 # directory under it (`skills/settle/SKILL.md`), so it may hold no tracked
 # file; only the other record prefixes are asserted to hold one.
-SETTLED_RECORDS = "seal/specs/"
+SETTLED_RECORDS = "seal/threads/"
 RENAMED_RECORDS = (
     "changelog/",
     SETTLED_RECORDS,

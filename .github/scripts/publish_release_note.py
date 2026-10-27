@@ -489,7 +489,7 @@ def release_body(section, pulls, owner, repo, tag):
         UPDATE_HEADING,
         "",
         "```",
-        "/specseal:update",
+        "/agentic:update",
         "```",
         "",
         "Then start a new session: the one you are in keeps the version it "

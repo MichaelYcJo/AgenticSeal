@@ -31,14 +31,15 @@ def test_the_documents_say_a_spec_less_directory_is_retired_by_the_rule():
     assert "it is retired by that rule, with no marker" not in policy
     assert "A released work item leaves at the settle whatever it wrote" in policy
     assert "decides every open row of its record before it goes" in policy
-    assert "`spec.md` states no rule and goes the same way" in policy
+    assert "`frame/design.md` states no rule and goes the same way" in policy
     text = flat(skill())
-    assert "A released work item with no `spec.md` states no rule" in text
+    assert "A released work item with no `frame/design.md` states no rule" in text
     assert "it leaves like any other" in text
     for edition in ("README.md", "README.ko.md"):
-        assert "`spec.md`" in document(edition).split("`settle [--apply]`")[1][:900], (
-            f"{edition}'s cheat-sheet row does not name the rule arm"
-        )
+        assert (
+            "`frame/design.md`"
+            in document(edition).split("`seal settle [--apply]`")[1][:900]
+        ), f"{edition}'s cheat-sheet row does not name the rule arm"
 
 
 SKILL = os.path.join(ROOT, "skills", "settle", "SKILL.md")
@@ -104,7 +105,7 @@ def test_the_skill_states_the_settling_sessions_procedure():
     text = flat(skill())
     procedure = text.split("## The settling session's procedure")[1].split("## ")[0]
     steps = [
-        "Run `settle`, the dry run",
+        "Run `seal settle`, the dry run",
         "Write the section as the latest decision states it",
         "Where the code has moved past that decision, write what the code does",
         "is superseded: it is settled with its group and not applied",
@@ -119,7 +120,7 @@ def test_the_skill_states_the_settling_sessions_procedure():
         "The step is done when every `check:` target passes",
         "finds a module only by how it spells a path",
         "step 8 runs every one",
-        "Run `settle --apply`.",
+        "Run `seal settle --apply`.",
         "Run the repository's `Broad gate` row.",
         "It is the one run that reads every check",
         "change that pin or copy, and name each in the pull request body",
@@ -151,7 +152,7 @@ def test_the_skill_says_a_from_locates_and_is_no_precondition():
     assert "applies nothing" not in section, "the grammar still says what a replay did"
     apply = text.split("## What `--apply` does")[1].split("## ")[0]
     assert "It writes no policy document." in apply
-    assert "whether or not it wrote a `spec.md`" in apply
+    assert "whether or not it wrote a `frame/design.md`" in apply
 
 
 def test_the_skill_says_a_settle_is_not_a_work_item_and_owes_no_range_row():
@@ -162,9 +163,9 @@ def test_the_skill_says_a_settle_is_not_a_work_item_and_owes_no_range_row():
         "the skill still hands a settle a range row"
     )
     assert "## A settle is not a work item" in skill()
-    assert "A settle opens no directory under `seal/specs/`" in text
+    assert "A settle opens no directory under `seal/threads/`" in text
     assert "`seal no-work-item`" in text, "the skill does not say how a settle edits"
-    assert "`SpecSeal-Routing: no work item`" in text, (
+    assert "`Seal-Routing: no work item`" in text, (
         "the skill does not say how a settle commits"
     )
     assert "[no-review]" not in text, "the skill still names the retired waiver"
@@ -203,8 +204,9 @@ def test_the_seal_readme_says_the_step_exists(parts):
     assert "A settle is not a work item and opens no directory here." in text, (
         f"{'/'.join(parts)} does not say a settle opens no work item (#517)"
     )
-    assert "whose record holds no open row, whether or not it wrote a `spec.md`" in (
-        text
+    assert (
+        "whose record holds no open row, whether or not it wrote a `frame/design.md`"
+        in (text)
     )
     assert "retire-process" not in text and "folds it" not in text
 
@@ -267,12 +269,12 @@ def test_both_cheat_sheets_carry_the_command(edition):
     writes no document, and it links the procedure's section rather than
     restating it (round 1 of #1033, finding 2)."""
     text = document(edition)
-    assert "`settle [--apply]`" in text, (
+    assert "`seal settle [--apply]`" in text, (
         f"{edition}'s cheat sheet has no row for the command"
     )
     # The raw file is read, so the row is the row.
     with open(os.path.join(ROOT, edition), encoding="utf-8") as f:
-        row = f.read().split("`settle [--apply]`")[1].split("\n")[0]
+        row = f.read().split("`seal settle [--apply]`")[1].split("\n")[0]
     assert "`## Rule changes`" in row, row
     assert "`skills/settle/SKILL.md` *The settling session's procedure*" in row, row
     assert "retire" not in row, row
@@ -298,11 +300,11 @@ def test_the_module_and_the_skill_both_say_how_local_mode_settles():
     section = flat(skill().split("\n## In local mode\n")[1].split("\n## ")[0])
     for said in (
         "under the common git directory",
-        "so a work item's directory is `<git-common-dir>/seal/specs/<id>/`",
+        "so a work item's directory is `<git-common-dir>/seal/threads/<id>/`",
         "the pull request from the branch its `routing.md` names has merged",
         "reachable from `--released-at`",
         "`gh pr list --head <branch> --state merged --json number,mergeCommit`",
-        "Each `spec.md` is read from its directory",
+        "Each `frame/design.md` is read from its directory",
         "their merge commits' place in `git rev-list --topo-order --reverse`",
         "with its pull request's number and its merge commit",
         "which of the three states holds",

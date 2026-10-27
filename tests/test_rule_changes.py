@@ -23,7 +23,7 @@ TARGET = "skills/settle/scripts/rule_changes.py"
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 rules = load_module(
     os.path.join(ROOT, "skills", "settle", "scripts", "rule_changes.py"),
-    "specseal_rule_changes",
+    "agentic_rule_changes",
 )
 
 

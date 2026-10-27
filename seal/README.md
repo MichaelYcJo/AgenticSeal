@@ -1,20 +1,21 @@
-# What this plugin maintains in seal/
+# What AgenticSeal maintains in seal/
 
 This directory exists for AI sessions to hand work to each other. It is one
 root laid out by lifetime: the rows that outlive a work item at the top, and
-each work item whole under `seal/specs/<work-item-id>/`, where it stays until
+each work item whole under `seal/threads/<work-item-id>/`, where it stays until
 its release is settled. The settle writes into `docs/` each section the
 released specs' `## Rule changes` name, as their latest decision, and
-`settle --apply` removes each released directory whole whose record holds no
-open row, whether or not it wrote a `spec.md`. A settle is not a work item and
+`seal settle --apply` removes each released directory whole whose record holds no
+open row, whether or not it wrote a `frame/design.md`. A settle is not a work item and
 opens no directory here.
 `skills/settle/SKILL.md` is the procedure and `skills/settle/scripts/settle.py`
 the command behind it. A work item's directory is safe to delete wholesale
 **once its open rows have been moved out**, which *Export rules* below says
 where to read: nothing that must survive is allowed to live only there.
 
-It lives at one of two places, and its presence at either is what opts the
-repository into the workflow. There is no config key. **Shared mode** keeps
+It lives at one of two places, and its presence at either, with this file's
+first line as it stands, is what opts the repository into the workflow.
+There is no config key. **Shared mode** keeps
 it at `<repo>/seal/` and commits it (gitignored files don't follow worktrees
 or other machines), so every clone reads it and CI can check pull requests
 against it. **Local mode** keeps the
@@ -47,19 +48,21 @@ themselves. `seal export` zips this root alone; `seal import` merges a zip
 back and never overwrites a file, so a name already here keeps its bytes and
 the incoming copy lands beside it as `<name>.incoming<ext>`. What sits
 *beside* this root under the git directory is what must not travel: the
-smith mark, the worktree choices, any lease, and
-the last export's manifest at `specseal-last-export.json`. The export walks
+crafter mark, the worktree choices, any lease, and
+the last export's manifest at `agentic-last-export.json`. The export walks
 this directory and nothing else, which is why the root has to be its own.
 
-Nothing writes `.specseal/` or a top-level `specs/` any more. A
-repository still holding the plugin's own 0.3.x work items there (a
-`specs/` entry named `<unix-seconds>-<slug>` carrying `routing.md` or
-`rounds/` as git tracks them) is moved into
-`<repo>/seal/` once, at session start, by the plugin. Anything else under a
-top-level `specs/` is the project's own, read as history and left where it
-is.
+**The first line of this file is the marker.** `hooks/optin.py#MARKER` holds
+the same line, and every gate reads a `seal/` whose `README.md` does not open
+with it as a repository that never opted in: a directory the project keeps for
+itself, as a package named `seal` has one. First setup that meets such a
+directory writes nothing into it and keeps the root under the git directory.
+The exception is a `README.md` opening with a heading an earlier release of
+the plugin wrote (`hooks/optin.py#EARLIER_HEADINGS`): that is the earlier
+release's root, and the session-start move writes this file over it.
+Leave the line as it is.
 
-**The throwaway opt-out is the file `.git/specseal-scratch`, and it cannot be
+**The throwaway opt-out is the file `.git/agentic-scratch`, and it cannot be
 committed.** Where it exists, every gate reads the repository as one that
 never opted in and says nothing. It is for a repository built to be thrown
 away, such as a fixture made by hand to reproduce a gate decision. It lives
@@ -86,14 +89,14 @@ seal/
 ├── parity.md            migration config, only where one is declared
 ├── pact.md              the pact, only in the repository that holds one
 ├── follow-up.md         schedulable items in a repository with no tracker
-└── specs/<work-item-id>/  one work item, whole
+└── threads/<work-item-id>/  one work item, whole
     ├── routing.md         which way it was routed, written before the first edit
-    ├── spec.md, plan.md, questions.md, overview.md, changelog.md
-    ├── phases/
-    │   └── phase-N.md     what one build phase was asked and found
-    ├── rounds/
-    │   └── round-N.md     target SHA, verdicts, paste-ready fixes, executed probes
-    ├── broad-gate.md      the one broad run, at a SHA, against the base
+    ├── frame/design.md, frame/plan.md, frame/questions.md
+    ├── trail/phases/phase-N.md   what one build phase was asked and found
+    ├── trail/rounds/round-N.md   target SHA, verdicts, paste-ready fixes, executed probes
+    ├── trail/gate.md      the one broad run, at a SHA, against the base
+    ├── changelog.md       this work item's entry in the next release's notes
+    ├── gaps.md            the closing memo: what the diff cannot show
     └── guarantee.md       the sealer's verdict on the work, at a SHA
 ```
 

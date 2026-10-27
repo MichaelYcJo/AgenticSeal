@@ -12,11 +12,11 @@ description: |
 
 # The Seal Test
 
-This file is the smith's and the sealer's: the smith opens it before it hands
+This file is the crafter's and the sealer's: the crafter opens it before it hands
 work back, and the sealer opens it for the conditions, the labels and the
 verdicts it audits against. The orchestrator reads it too. The orchestrator's
 own two acts, the broad gate and the measurement of each segment, are
-`skills/verify/orchestration.md`, which the smith and the sealer do not open.
+`skills/verify/orchestration.md`, which the crafter and the sealer do not open.
 Each instruction below binds the party making a claim, whichever of the three
 it is.
 
@@ -63,15 +63,15 @@ found", which is a different sentence from "not there". Never promote one to
 a document: a policy or a rule built on a search nobody could repeat is the
 same defect as a `read` reported as passing, with a longer fuse.
 
-#### `arm-check` asks condition 2 of a whole module, one arm at a time
+#### `seal arms` asks condition 2 of a whole module, one arm at a time
 
 Condition 2 is asked of the case at hand. **A module has arms nobody
 ever asked it of**, and a count of them taken by hand is wrong as soon as the
 module changes.
 
 ```
-arm-check hooks/routing-edit-gate.py
-arm-check hooks/routing-edit-gate.py --tests "bin/test tests/test_routing_edit_gate.py -q"
+seal arms hooks/routing-edit-gate.py
+seal arms hooks/routing-edit-gate.py --tests "bin/test tests/test_routing_edit_gate.py -q"
 ```
 
 With no `--tests` it lists the arms and mutates nothing. With `--tests` it
@@ -141,15 +141,15 @@ belongs in the report and is not work anybody owes. And a measured run is
 **report-only, exit 0 either way**: whether an unwatched arm should fail a
 run is an open decision, not an omission.
 
-#### `mutation-check` asks condition 2 of one unit, one break at a time
+#### `seal mutate` asks condition 2 of one unit, one break at a time
 
-`arm-check` breaks a module's arms under two fixed operators. The unit an
+`seal arms` breaks a module's arms under two fixed operators. The unit an
 implementer has just added is usually something else: a constant, a flipped
 comparison, a sentence a case pins. The break is whatever makes that unit
 wrong, so the loop is one command per break:
 
 ```
-mutation-check <file> --replace "<old>" "<new>" --tests "bin/test tests/<module>.py -q -k <cases> -p no:xdist"
+seal mutate <file> --replace "<old>" "<new>" --tests "bin/test tests/<module>.py -q -k <cases> -p no:xdist"
 ```
 
 `<old>` is literal text and must occur exactly once in the file, or nothing
@@ -162,7 +162,7 @@ removes that file's cached bytecode
 for every interpreter tag, runs `--tests` with `PYTHONDONTWRITEBYTECODE=1`,
 puts the file back from the bytes it read first and compares their sha256,
 and removes the bytecode again. Nothing is read from git. The script is
-`skills/verify/scripts/mutation_check.py`, and it uses `arm-check`'s own two
+`skills/verify/scripts/mutation_check.py`, and it uses `seal arms`'s own two
 functions for the bytecode and the restore.
 
 The first line printed is the verdict, then the command's own output:
@@ -176,7 +176,7 @@ The first line printed is the verdict, then the command's own output:
   before the run), and
   `interrupted`.
 
-So `mutation-check … && mutation-check …` stops at the first unit nothing
+So `seal mutate … && seal mutate …` stops at the first unit nothing
 watches, or at the first run that could not say.
 
 **Several mutants of one file go in one call.** Give `--replace OLD NEW` once
@@ -210,7 +210,7 @@ break was.
 300 seconds by default for each of the two runs, and `0` removes it. On
 POSIX the command runs in a session of its own and a timed-out run's whole
 process group is killed, so a wrapper's pytest does not outlive the verdict.
-That is the hole `arm-check`'s bound still has. The group of a run
+That is the hole `seal arms`'s bound still has. The group of a run
 that exited is ended too, and the wait is on the process rather than on its
 output, so a child the cases leave behind neither outlives the verdict nor
 holds it back. A process that put itself in yet another session is outside
@@ -222,7 +222,7 @@ anything it started was not.
 
 `-p no:xdist` belongs on a handful of cases: starting the workers takes
 longer than the cases do. For a module's arms rather than one unit,
-`arm-check` above is the command.
+`seal arms` above is the command.
 
 ### 3. Bound to the tree
 
@@ -254,7 +254,7 @@ Reporting a `read` as passing is the lie this whole skill exists to prevent.
 
 **The hand-back's labels carry the claims, and the one seal over the whole
 project is the sealer's `guarantee.md`.** An agent hands its claims back under
-condition 4's three labels, and a warden's report says what its review looked
+condition 4's three labels, and a proofer's report says what its review looked
 at; neither is a seal and neither ends in a block.
 
 Two properties tell the sealer's seal apart from every other account of a
@@ -276,10 +276,10 @@ run.
   nothing. So seeing the drawing means the last seal was earned.
 
 **A bare "the seal" is ambiguous the moment more than one exists, so every
-reference to an INSTANCE names whose**: the sealer's seal, the warden's
+reference to an INSTANCE names whose**: the sealer's seal, the proofer's
 round record. The concept and its formats stay bare: the Seal Test, a
-counterfeit seal, SpecSeal itself. The shape to watch for is a sentence that
-names one party and leaves the seal anonymous: *the warden's audit of the
+counterfeit seal, AgenticSeal itself. The shape to watch for is a sentence that
+names one party and leaves the seal anonymous: *the proofer's audit of the
 seal* names an auditor and not what is audited.
 
 ## Scope: cheap and often, broad and once
@@ -347,8 +347,8 @@ on the committer's machine alone.
 Resolve the answerer before writing the row:
 
 ```
-deferral-check .              # is the test suite answered here?
-deferral-check . --kind all   # tests, lint, typecheck
+seal deferrals .              # is the test suite answered here?
+seal deferrals . --kind all   # tests, lint, typecheck
 ```
 
 It separates four outcomes that a reader otherwise collapses into one:
@@ -370,8 +370,8 @@ not permission to keep the row.
 An answerer that exists still answers nothing if nobody returns to the row.
 
 ```
-unverified-check .                                   # what is still open, and where
-unverified-check --baseline origin/main seal/specs/  # and nothing was deleted from it
+seal unverified .                                   # what is still open, and where
+seal unverified --baseline origin/main seal/threads/  # and nothing was deleted from it
 ```
 
 It never fails for an open item: punishing an honest row is how sessions learn
@@ -417,13 +417,13 @@ The file is under the scratchpad and carries the work item id, never a name
 every session on the machine would also pick: agents of one session share
 one scratchpad, so a generic name is overwritten by a sibling work item's run.
 
-`session-cost` reads a finished transcript and reports the split: command
+`seal cost` reads a finished transcript and reports the split: command
 time, model time between calls, the repeats, and how many tools went out per
 turn. None of it is visible from inside the session:
 
 ```
-session-cost --latest          # newest transcript for this repo
-session-cost <transcript.jsonl>
+seal cost --latest          # newest transcript for this repo
+seal cost <transcript.jsonl>
 ```
 
 ## Counterfeits (stop on sight)

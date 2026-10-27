@@ -159,7 +159,7 @@ class Test_truth_pattern:
 
     def test_refuses_a_coordinate_the_check_refuses(self, monkeypatch):
         """`chain_check.py` refuses a `path#unit` coordinate, so a truth that
-        matched one would pass a warden for a record the pull request then
+        matched one would pass a proofer for a record the pull request then
         fails. A Python truth reads its unit's lines within ±15 and never the
         unit's name after a `#`, and a truth with no lines reads the bare path
         or `path:<line>`, never `path#<anything>`."""

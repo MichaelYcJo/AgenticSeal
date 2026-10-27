@@ -9,7 +9,7 @@ per work item from the sealer's `guarantee.md` reading `sealed`, and never
 from the broad gate's run, which draws nothing. In either mode
 `hooks/sealer-stamp-queue.py` writes the stamp's rows at the `Write` or
 `Edit` of the guarantee (`seal_stamp.queue_for_written_guarantee`) to a
-values file under `<git-common-dir>/specseal-stamp/<session>/`, keyed by the
+values file under `<git-common-dir>/agentic-stamp/<session>/`, keyed by the
 payload's `session_id`, which a subagent's write carries as the main
 session's.
 
@@ -54,7 +54,7 @@ that is not JSON, a repository that is not opted in, a file that is not a
 stamp's values. That includes a `python3` that cannot load `seal_stamp.py` —
 a hook runs under whatever `python3` the harness finds, and no launcher
 stands in front of it — where this draws nothing and the edit gate's
-message, which names the file and `seal-stamp --from`, is what remains. The same line
+message, which names the file and `seal stamp --from`, is what remains. The same line
 is what remains where the main session's working directory is outside the
 clone the stamp was queued in, and where its plugin predates this hook; `docs/the-review-record.md` *The
 stamp* states these and the places no file is written at all.
@@ -98,7 +98,7 @@ def load_stamp():
     import raises."""
     try:
         spec = importlib.util.spec_from_file_location(
-            "specseal_seal_stamp_for_the_stop_hook", STAMP
+            "agentic_seal_stamp_for_the_stop_hook", STAMP
         )
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
@@ -131,7 +131,7 @@ def drawings(stamp, directory):
     one message carries are claimed (`seal_stamp.admitted`, the owner's rule
     of 2026-10-02): the rest stay pending under their own names, and the
     next `Stop` draws them whole. A session that ends first leaves them for
-    `seal-stamp --from`."""
+    `seal stamp --from`."""
     ready = []
     for path in stamp.pending(directory):
         try:

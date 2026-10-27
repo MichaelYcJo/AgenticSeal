@@ -110,7 +110,7 @@ class Clone:
         return self.git("rev-parse", "--verify", "--quiet", branch).stdout.strip()
 
     def record(self):
-        return self.top / ".git" / "specseal-worktree-consent" / SESSION
+        return self.top / ".git" / "agentic-worktree-consent" / SESSION
 
     def press(self):
         write_transcript(

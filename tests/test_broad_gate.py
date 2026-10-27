@@ -34,6 +34,7 @@ from conftest import (
     git,
     git_out,
     load_module,
+    mark_root,
     read,
     symlink_or_skip,
     write,
@@ -45,10 +46,10 @@ TARGET = "skills/verify/scripts/broad_gate.py"
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 CHAIN = ROOT / "skills" / "code-review" / "scripts" / "chain_check.py"
 READER = ROOT / "skills" / "verify" / "scripts" / "unverified_check.py"
-ITEM = "seal/specs/1799000001-a-gated-work-item"
+ITEM = "seal/threads/1799000001-a-gated-work-item"
 # The record's path as the gate prints it: `os.path.relpath`, so with the
 # platform's separator.
-RECORD_REL = os.path.join(ITEM, "broad-gate.md").replace("/", os.sep)
+RECORD_REL = os.path.join(ITEM, "trail", "gate.md").replace("/", os.sep)
 ROW = "Broad gate"
 
 gate = load_module(ROOT / TARGET, "broad_gate_under_test")
@@ -61,7 +62,7 @@ HYGIENE = str(ROOT / ".github" / "workflows" / "hygiene.yml")
 
 def gate_module():
     """A fresh load of the gate, for the cases that load their own."""
-    return load_module(GATE, "specseal_broad_gate_for_cmd")
+    return load_module(GATE, "agentic_broad_gate_for_cmd")
 
 
 PASSING_TEST = "def test_one():\n    assert True\n"
@@ -85,9 +86,9 @@ def config_of(row=SUITE_ROW, before="", after=""):
 
 
 def home_with(tmp_path, text):
-    """A `seal/` directory holding TEXT as its `config.md`; its path."""
+    """A `seal/` root holding TEXT as its `config.md`; its path."""
     write(tmp_path, "seal/config.md", text)
-    return str(tmp_path / "seal")
+    return str(mark_root(tmp_path / "seal"))
 
 
 def a_record(**fields):
@@ -573,7 +574,7 @@ class Test_moved_line:
         )
         line = gate.moved_line(root, base)
         assert line == (
-            f"broad-gate: --base solo is {base.given_commit} in this checkout; CI "
+            f"seal gate: --base solo is {base.given_commit} in this checkout; CI "
             f"reads origin/solo, which is {base.commit} — origin/solo is 1 ahead "
             "and 0 behind solo. Every check below was asked about origin/solo."
         )
@@ -591,7 +592,7 @@ class Test_moved_line:
         root, _first, _second = refs
         base = gate.Base("gone", None, "origin/gone", short(root, "origin/gone"))
         assert gate.moved_line(root, base).startswith(
-            "broad-gate: --base gone names no commit in this checkout; CI reads"
+            "seal gate: --base gone names no commit in this checkout; CI reads"
         )
 
     def test_accepts_a_spelling_no_runner_could_hold_without_naming_one(self, refs):
@@ -669,20 +670,26 @@ class Test_resolve_base:
 
 class Test_seal_home:
     def test_accepts_the_shared_root_and_then_the_local_one(self, tmp_path):
-        (tmp_path / "shared" / "seal").mkdir(parents=True)
+        mark_root(tmp_path / "shared" / "seal")
         assert gate.seal_home(str(tmp_path / "shared")) == str(
             tmp_path / "shared" / "seal"
         )
         local = tmp_path / "local"
         local.mkdir()
         git(local, "init", "-q")
-        (local / ".git" / "seal").mkdir()
+        (local / "seal").mkdir()
+        mark_root(local / ".git" / "seal")
         assert gate.seal_home(str(local)) == os.path.normpath(
             str(local / ".git" / "seal")
         )
 
     def test_refuses_a_repository_with_neither(self, tmp_path):
+        """No `seal/` at all, and a `seal/` the project keeps for itself,
+        whose README does not open with the marker, are no root to read a
+        command from."""
         git(tmp_path, "init", "-q")
+        assert gate.seal_home(str(tmp_path)) is None
+        write(tmp_path, "seal/config.md", config_of("bin/test -q"))
         assert gate.seal_home(str(tmp_path)) is None
 
 
@@ -702,9 +709,9 @@ class Test_broad_command:
             gate.broad_command(home)
 
     def test_refuses_a_file_that_will_not_read(self, tmp_path):
-        (tmp_path / "seal").mkdir()
+        mark_root(tmp_path / "seal")
         (tmp_path / "seal" / "config.md").write_bytes(b"| Item | Value |\n\xff\xfe\n")
-        with pytest.raises(gate.Refused, match=r"^broad-gate: .*Nothing ran$"):
+        with pytest.raises(gate.Refused, match=r"^seal gate: .*Nothing ran$"):
             gate.broad_command(str(tmp_path / "seal"))
 
 
@@ -976,7 +983,7 @@ class Test_run:
         )
         kept = pathlib.Path(check.path).read_text(encoding="utf-8").splitlines()
         assert kept[:2] == ["$ bin/echo hi", "cmd.exe was handed: bin\\echo hi"]
-        assert "broad-gate: suite — cmd.exe reads a `/`" in capsys.readouterr().err
+        assert "seal gate: suite — cmd.exe reads a `/`" in capsys.readouterr().err
 
     def test_a_rewritten_row_is_kept_and_said_beside_the_row_as_written(
         self, tree, tmp_path, monkeypatch, capsys
@@ -1005,7 +1012,7 @@ class Test_run:
             "exit 0",
         ], kept
         assert capsys.readouterr().err == (
-            "broad-gate: suite — cmd.exe reads a `/` in a command name as the start "
+            "seal gate: suite — cmd.exe reads a `/` in a command name as the start "
             "of a switch, so a command name that starts in a directory has its `/` "
             f"handed to it as `\\`: {HANDED}\n"
         )
@@ -1316,16 +1323,16 @@ class Test_handed_to_shell:
         never exists, so without the expansion that row stopped running. `$HOME`
         means nothing to `cmd.exe` and is not expanded."""
         gate = gate_module()
-        monkeypatch.setenv("SPECSEAL_PROBE_TREE", tree)
-        monkeypatch.delenv("SPECSEAL_PROBE_NOWHERE", raising=False)
+        monkeypatch.setenv("AGENTIC_PROBE_TREE", tree)
+        monkeypatch.delenv("AGENTIC_PROBE_NOWHERE", raising=False)
         monkeypatch.delenv("CD", raising=False)
         monkeypatch.delenv("__CD__", raising=False)
         # A `$HOME` that names the tree, so only the expansion's rule can leave
         # it as written.
         monkeypatch.setenv("HOME", tree)
         for row, expected in (
-            ("%SPECSEAL_PROBE_TREE%/bin/test -q", r"%SPECSEAL_PROBE_TREE%\bin\test -q"),
-            ("%SPECSEAL_PROBE_NOWHERE%/bin/x", "%SPECSEAL_PROBE_NOWHERE%/bin/x"),
+            ("%AGENTIC_PROBE_TREE%/bin/test -q", r"%AGENTIC_PROBE_TREE%\bin\test -q"),
+            ("%AGENTIC_PROBE_NOWHERE%/bin/x", "%AGENTIC_PROBE_NOWHERE%/bin/x"),
             ("xcopy/e/i a b", "xcopy/e/i a b"),
             # `CD` is computed by cmd.exe where the environment defines none, and
             # the case deletes it above (round 2, 🟡 1).
@@ -1335,7 +1342,7 @@ class Test_handed_to_shell:
             # A substring is not modelled, as `templates/config.md` says (#616):
             # the name it starts is handed as written, although the variable it
             # cuts from names the tree.
-            ("%SPECSEAL_PROBE_TREE:~0,500%/bin/test -q",) * 2,
+            ("%AGENTIC_PROBE_TREE:~0,500%/bin/test -q",) * 2,
             ("$HOME/x", "$HOME/x"),
         ):
             got = gate.handed_to_shell(row, windows=True, comspec=CMD, root=tree)
@@ -1824,7 +1831,7 @@ class Test_coverage_line:
             "the mode the row declares is the mode the folder is in",
         )
         assert gate.coverage_line(text, "main") == (
-            "broad-gate: this run answers every one of the 1 `release` steps "
+            "seal gate: this run answers every one of the 1 `release` steps "
             f"{gate.WORKFLOW} runs for this base."
         )
 
@@ -1944,8 +1951,8 @@ def a_round(*verdicts):
 class Test_round_records:
     def test_accepts_the_records_lowest_round_first(self, tmp_path):
         for n in (10, 2, 1):
-            write(tmp_path, f"rounds/round-{n}.md", "x")
-        write(tmp_path, "rounds/round-2-report.md", "x")
+            write(tmp_path, f"trail/rounds/round-{n}.md", "x")
+        write(tmp_path, "trail/rounds/round-2-report.md", "x")
         names = [os.path.basename(p) for p in gate.round_records(str(tmp_path))]
         assert names == ["round-1.md", "round-2.md", "round-10.md"]
 
@@ -1973,7 +1980,7 @@ class Test_write_gate_file:
         gate.write_gate_file(str(tmp_path), "aaa1111", "base1")
         path = gate.write_gate_file(str(tmp_path), "bbb2222", "base1")
         text = pathlib.Path(path).read_text(encoding="utf-8")
-        assert os.path.basename(path) == "broad-gate.md"
+        assert path == os.path.join(str(tmp_path), "trail", "gate.md")
         assert (
             "| Broad gate | bbb2222 against base1; earlier run: aaa1111 against base1 |"
         ) in text
@@ -1981,7 +1988,8 @@ class Test_write_gate_file:
     def test_refuses_a_file_that_cannot_be_written_or_read(self, tmp_path):
         with pytest.raises(gate.Refused, match="could not be written"):
             gate.write_gate_file(str(tmp_path / "no-such-item"), "aaa1111", "base1")
-        (tmp_path / "broad-gate.md").write_bytes(b"\xff\xfe")
+        (tmp_path / "trail").mkdir()
+        (tmp_path / "trail" / "gate.md").write_bytes(b"\xff\xfe")
         with pytest.raises(gate.Refused, match="could not be read"):
             gate.write_gate_file(str(tmp_path), "aaa1111", "base1")
 
@@ -2001,13 +2009,15 @@ class Test_rounds_rows:
         refuses adds nothing beneath `rounds`, and the records it reads add
         every home they name."""
         item = tmp_path / "1799000002-x"
-        write(item, "rounds/round-1.md", a_round("deferred #7", "fixed abc1234"))
-        write(item, "rounds/round-2.md", a_round("deferred #8"))
-        write(item, "rounds/round-3.md", a_round("deferred #9", "deferred"))
-        write(item, "rounds/round-4.md", a_round("**deferred** #9"))
-        write(item, "rounds/round-5.md", OLD_RECORD)
+        write(item, "trail/rounds/round-1.md", a_round("deferred #7", "fixed abc1234"))
+        write(item, "trail/rounds/round-2.md", a_round("deferred #8"))
+        write(item, "trail/rounds/round-3.md", a_round("deferred #9", "deferred"))
+        write(item, "trail/rounds/round-4.md", a_round("**deferred** #9"))
+        write(item, "trail/rounds/round-5.md", OLD_RECORD)
         write(
-            item, "rounds/round-6.md", a_round("deferred #9").replace("verdict:", "V:")
+            item,
+            "trail/rounds/round-6.md",
+            a_round("deferred #9").replace("verdict:", "V:"),
         )
         rows = gate.rounds_rows(str(item))
         assert rows == [("rounds", "6"), ("", "2 deferred → #7, #8")], rows
@@ -2015,7 +2025,7 @@ class Test_rounds_rows:
     def test_refuses_a_deferral_row_where_nothing_was_deferred(self, tmp_path):
         item = tmp_path / "1799000003-y"
         assert gate.rounds_rows(str(item)) == [("rounds", "0")]
-        write(item, "rounds/round-1.md", a_round("fixed abc1234"))
+        write(item, "trail/rounds/round-1.md", a_round("fixed abc1234"))
         assert gate.rounds_rows(str(item)) == [("rounds", "1")]
 
 
@@ -2089,7 +2099,7 @@ NO_RECORD_HERE = (
     "no pytest the row ran here left a record of the gate's recorder (the row "
     "started no pytest, because a part before its runner failed or it has none; "
     "none it started loaded the recorder; or the one that did could not write "
-    "its record and warned 'specseal_pytest_record: no record written' in "
+    "its record and warned 'agentic_pytest_record: no record written' in "
     "suite.txt), so this exit code is not a count of failing tests"
 )
 
@@ -2206,7 +2216,8 @@ def _repo_template(tmp_path_factory):
     git(d, "init", "-q", "-b", "base")
     write(d, "tests/test_one.py", PASSING_TEST)
     write(d, "seal/config.md", config_of())
-    write(d, f"{ITEM}/overview.md", OVERVIEW)
+    mark_root(d / "seal")
+    write(d, f"{ITEM}/gaps.md", OVERVIEW)
     commit(d, "base")
     git(d, "switch", "-qc", "feature")
     write(d, "README.md", "# a fixture\n")
@@ -2353,10 +2364,10 @@ class Test_gate:
         chain_kept = (keep / "chain.txt").read_text(encoding="utf-8")
         assert f"--baseline {base} --root" in chain_kept.splitlines()[0]
         # The gate draws nothing and queues no stamp (#975).
-        assert not (repo / ".git" / "specseal-stamp").exists()
-        cell = (repo / ITEM / "broad-gate.md").read_text(encoding="utf-8")
+        assert not (repo / ".git" / "agentic-stamp").exists()
+        cell = (repo / ITEM / "trail" / "gate.md").read_text(encoding="utf-8")
         assert f"| {ROW} | {tree} against {base} |" in cell
-        assert f"broad-gate: `{ROW}` says: {SUITE_ROW}" in out.stderr
+        assert f"seal gate: `{ROW}` says: {SUITE_ROW}" in out.stderr
 
     def test_accepts_a_failure_the_base_shares_as_failing_on_base_too(
         self, repo, tmp_path, capsys
@@ -2373,7 +2384,7 @@ class Test_gate:
         out = capsys.readouterr().out
         assert "  tests/test_two.py  new\n" in out
         assert "1 failed, 1 passed" in out
-        assert not (repo / ITEM / "broad-gate.md").exists()
+        assert not (repo / ITEM / "trail" / "gate.md").exists()
 
     def test_accepts_a_preflight_that_runs_no_row_and_writes_nothing(
         self, repo, tmp_path, capsys
@@ -2419,7 +2430,14 @@ class Test_gate:
         with pytest.raises(gate.Refused, match="is not in a git repository"):
             gate.gate(namespace(tmp_path, tmp_path / "out"))
         git(tmp_path, "init", "-q")
-        with pytest.raises(gate.Refused, match="has no seal/ at either place"):
+        said = (
+            r"has no seal/ root at either place a root lives \(`<repo>/seal/`, "
+            r"`<git-common-dir>/seal/`, its README.md opening with the marker\)"
+        )
+        with pytest.raises(gate.Refused, match=said):
+            gate.gate(namespace(tmp_path, tmp_path / "out"))
+        write(tmp_path, "seal/config.md", config_of("bin/test -q"))
+        with pytest.raises(gate.Refused, match=said):
             gate.gate(namespace(tmp_path, tmp_path / "out"))
 
 
@@ -2441,7 +2459,8 @@ def sealable_repo(tmp_path):
     git(repo, "init", "-q", "-b", "base")
     write(repo, "src/service.py", "def handler(x):\n    return x + 1\n")
     write(repo, "seal/config.md", CONFIG)
-    write(repo, f"{ITEM}/overview.md", OVERVIEW)
+    mark_root(repo / "seal")
+    write(repo, f"{ITEM}/gaps.md", OVERVIEW)
     commit(repo, "base")
     git(repo, "switch", "-qc", "feature")
     write(repo, "src/service.py", "def handler(x):\n    return x + 2\n")
@@ -2552,7 +2571,7 @@ class Test_main:
         )
         assert out.returncode == 3
         assert "STUB GATE RAN" in out.stdout and "'--x'" in out.stdout
-        assert f"broad-gate: {repo} ships its own gate; running" in out.stderr
+        assert f"seal gate: {repo} ships its own gate; running" in out.stderr
 
     def test_refuses_to_leave_the_invoked_path_for_a_check_to_read(
         self, tmp_path, monkeypatch, capsys
@@ -2562,7 +2581,7 @@ class Test_main:
         assert gate.main(["--base", "base", "--root", str(tmp_path)]) == 2
         assert gate.INVOKED_AS_VAR not in os.environ
         err = capsys.readouterr().err
-        assert f"broad-gate: gate {os.path.realpath(ROOT / TARGET)} (plugin " in err
+        assert f"seal gate: gate {os.path.realpath(ROOT / TARGET)} (plugin " in err
 
     def test_refuses_a_copy_whose_sibling_will_not_load(self, tmp_path):
         scripts = tmp_path / "plugin" / "skills" / "verify" / "scripts"
@@ -2600,11 +2619,17 @@ class Test_main:
         assert "ships its own gate" not in captured.err
 
     def test_accepts_the_command_a_person_types(self):
-        wrapper = ROOT / "bin" / "broad-gate"
+        wrapper = ROOT / "bin" / "seal"
         command = (
-            [os.environ.get("COMSPEC", "cmd.exe"), "/c", f"{wrapper}.cmd", "--help"]
+            [
+                os.environ.get("COMSPEC", "cmd.exe"),
+                "/c",
+                f"{wrapper}.cmd",
+                "gate",
+                "--help",
+            ]
             if os.name == "nt"
-            else [str(wrapper), "--help"]
+            else [str(wrapper), "gate", "--help"]
         )
         out = subprocess.run(
             command,
@@ -2614,7 +2639,7 @@ class Test_main:
             timeout=120,
         )
         assert out.returncode == 0, out.stderr
-        assert out.stdout.startswith("usage: broad-gate")
+        assert out.stdout.startswith("usage: seal gate")
 
     def test_the_fixture_branch_passes(self, tmp_path):
         """The other cases' starting point: every arm passes on the fixture, so a
@@ -2681,7 +2706,7 @@ class Test_main:
         # left the panel for the stderr line beside the names, asserted below.
         # #832's S5a: the value leads with a dim `·`, which `--shape` writes `.`.
         assert re.search(r"^CI also [·.] 1 more steps$", rendered[0]), rendered[0]
-        width = load_module(STAMP, "specseal_seal_stamp").PANEL_VALUE_WIDTH
+        width = load_module(STAMP, "agentic_seal_stamp").PANEL_VALUE_WIDTH
         value = next(
             v for _, v in [r for r in panel_rows(repo) if r] if "more steps" in v
         )

@@ -48,7 +48,7 @@ def test_the_release_tail_says_the_seal_is_a_second_act_that_never_fails_it():
     the module that pins the fallback. It no longer says the seal is drawn
     from the broad gate's letter; seen red by the old sentence put back.
     How the seal is drawn is #1009 S1 and S2's, and the bullet's sentence
-    on it is `spec.md`'s `## Rule changes` item of work item 1792624592."""
+    on it is `frame/design.md`'s `## Rule changes` item of work item 1792624592."""
     text = flat("docs", "branch-and-release.md")
     bullet = text.split("**The release note publishes itself.**", 1)[1].split(
         "- **", 1

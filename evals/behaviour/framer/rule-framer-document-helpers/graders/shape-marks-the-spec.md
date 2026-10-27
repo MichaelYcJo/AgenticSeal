@@ -1,7 +1,7 @@
 ---
 type: 'regex'
-target: {source: 'file', path: 'seal/specs/1790000024-document-helpers/spec.md'}
+target: {source: 'file', path: 'seal/threads/1790000024-document-helpers/frame/design.md'}
 pattern: '^Framed \d{4}-\d{2}-\d{2} by framer'
 flags: 'm'
 ---
-The framer's mark is at the foot of `spec.md`.
+The framer's mark is at the foot of `frame/design.md`.

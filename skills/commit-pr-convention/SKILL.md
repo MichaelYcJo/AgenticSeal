@@ -15,7 +15,7 @@ description: |
 # commit-pr-convention, the format of commits, pull requests and branches
 
 This skill is read by whoever writes a commit, a pull request or a branch
-name: the smith, and the orchestrator, which also writes the code where
+name: the crafter, and the orchestrator, which also writes the code where
 `routing.md` answers `Implementation` with `the session`. Below, that party
 is **the writer**.
 
@@ -47,8 +47,9 @@ becomes the history the next one is compared against.
 ## The language is the repository's, and it says so in a file
 
 **The writer reads `config.md` in the root before writing any of the five
-things below.** The root is `<repo>/seal/` where that directory exists and
-`$(git rev-parse --git-common-dir)/seal/` otherwise, which is where local
+things below.** The root is `<repo>/seal/` where that directory exists with
+the marker (contract rule 11) and `$(git rev-parse --git-common-dir)/seal/`
+otherwise, which is where local
 mode keeps it; resolve it that way rather than spelling the first place and
 stopping.
 
@@ -63,8 +64,8 @@ body** (all four, because a squash makes them one text) and the **review
 report posted as a pull-request comment**, which is prose for whoever opens
 that pull request.
 
-**It does not govern the work-item records.** `spec.md`, `plan.md`,
-`overview.md`, `questions.md`, `changelog.md` and `rounds/round-N.md`'s cells
+**It does not govern the work-item records.** `frame/design.md`, `frame/plan.md`,
+`gaps.md`, `frame/questions.md`, `changelog.md` and `trail/rounds/round-N.md`'s cells
 follow a second row, `Record language`, read by the
 `implement` and `code-review` skills. The two are independent: setting one
 does not carry the other.
@@ -136,9 +137,9 @@ at the merge. That is why one row answers for all four surfaces rather than
 one row each.
 
 **A session's commit in a repository whose root is shared (`<repo>/seal/`)
-ends with one `SpecSeal-Routing:` trailer, naming its work item or reading
+ends with one `Seal-Routing:` trailer, naming its work item or reading
 `no work item`.** In local mode a commit carries none. The work item is its
-directory's name under `seal/specs/`, the one the branch's `routing.md` sits
+directory's name under `seal/threads/`, the one the branch's `routing.md` sits
 in; `no work item` is the value where the session ran `seal no-work-item` on
 the branch. The trailer stands in the message's last paragraph, beside any
 other trailer, so git's trailer parser reads it:
@@ -146,7 +147,7 @@ other trailer, so git's trailer parser reads it:
 ```
 feat: the edit check refuses an undeclared branch
 
-SpecSeal-Routing: 1792935671-the-routing-check-moves-to-the-sessions-tools
+Seal-Routing: 1792935671-the-routing-check-moves-to-the-sessions-tools
 Co-Authored-By: <the harness's co-author line>
 ```
 

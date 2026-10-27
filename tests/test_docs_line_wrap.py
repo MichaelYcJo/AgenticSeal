@@ -20,8 +20,8 @@ stale silently, and two of the four once listed here had (#422 reported one):
 
     skills/writing-style/SKILL.md  209
 
-`agents/smith.md` and `skills/implement/SKILL.md` were on this list until
-#967 wrote them anew, wrapped, and they joined `COVERED`; `agents/scribe.md`
+`agents/crafter.md` and `skills/implement/SKILL.md` were on this list until
+#967 wrote them anew, wrapped, and they joined `COVERED`; `agents/tracer.md`
 was until #970 did the same.
 
 `skills/commit-pr-convention/SKILL.md` is covered: it was written wrapped, so
@@ -45,7 +45,7 @@ LIMIT = 88
 
 def _rules():
     path = os.path.join(ROOT, ".github", "scripts", "rules.py")
-    spec = importlib.util.spec_from_file_location("specseal_rules_wrap", path)
+    spec = importlib.util.spec_from_file_location("agentic_rules_wrap", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -53,18 +53,18 @@ def _rules():
 
 # The check lines are asked of their reader rather than spelled a second time
 # here: a skip wider than the reader leaves unwrapped lines nobody checks.
-# `rules --check` reads every such line a rule file shows (#957).
+# `seal rules --check` reads every such line a rule file shows (#957).
 rules = _rules()
 
 
 def is_rule_file(relative):
-    """Whether `rules --check` reads RELATIVE's check lines."""
+    """Whether `seal rules --check` reads RELATIVE's check lines."""
     return any(fnmatch.fnmatch(relative, p) for p in rules.RULE_FILES)
 
 
 def _fence_reader():
     path = os.path.join(ROOT, "skills", "verify", "scripts", "unverified_check.py")
-    spec = importlib.util.spec_from_file_location("specseal_fence_rule_wrap", path)
+    spec = importlib.util.spec_from_file_location("agentic_fence_rule_wrap", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -114,7 +114,7 @@ COVERED = [
     # Wrapped from its first line, so it goes in at birth rather than waiting
     # for the sweep that would otherwise be needed to bring it under.
     "SECURITY.md",
-    "agents/warden.md",
+    "agents/proofer.md",
     # Wrapped from its first line, so it goes in at birth rather than waiting
     # for the sweep that would otherwise be needed to bring it under. It was
     # the first `agents/*.md` file to arrive that way; `framer.md` below is
@@ -124,11 +124,11 @@ COVERED = [
     # written wrapped has no sweep to owe, so it goes in at birth.
     "agents/framer.md",
     # Written anew and wrapped in #967.
-    "agents/smith.md",
+    "agents/crafter.md",
     "skills/implement/SKILL.md",
     "skills/code-review/SKILL.md",
     # Written anew and wrapped in #970.
-    "agents/scribe.md",
+    "agents/tracer.md",
     "skills/legacy-parity/SKILL.md",
     # The orchestrator's half of the same file (#265). It arrives
     # already wrapped, because it was wrapped as part of the file it
@@ -291,7 +291,7 @@ WIDE_TARGET = (
     "tests/test_a_document_has_room_for_the_next_fold.py "
     "tests/test_the_rules_command_reads_each_rule_off_its_test.py"
 )
-WIDE_READER = "none reader: " + "the warden at review " * 4
+WIDE_READER = "none reader: " + "the proofer at review " * 4
 
 
 def test_a_check_line_in_a_rule_file_is_skipped_wherever_it_stands():
@@ -299,7 +299,7 @@ def test_a_check_line_in_a_rule_file_is_skipped_wherever_it_stands():
     (#957), with targets or with a reader.
 
     An agent definition closes each rule with one such line, and
-    `rules --check` reads every one in a rule file, so a wrapped line is a
+    `seal rules --check` reads every one in a rule file, so a wrapped line is a
     broken target. The skip is that reader's: `rules.py#check_lines` read by
     `rules.py#parse`, in a file `RULE_FILES` names. Outside a rule file the
     line is still held, which the case below keeps."""
@@ -311,13 +311,13 @@ def test_a_check_line_in_a_rule_file_is_skipped_wherever_it_stands():
     assert 4 not in numbers and 7 not in numbers, numbers
     assert 3 in numbers and 6 in numbers, numbers
     assert 4 in [n for n, _ in prose_lines(text)]
-    assert is_rule_file("agents/warden.md")
+    assert is_rule_file("agents/proofer.md")
     assert is_rule_file("skills/code-review/SKILL.md")
     assert not is_rule_file("README.md")
 
 
 def test_a_line_the_reader_refuses_is_still_prose():
-    """S8. The skip is no wider than the reader: a spelling `rules --check`
+    """S8. The skip is no wider than the reader: a spelling `seal rules --check`
     refuses stays under the limit in a rule file."""
     for label in ("Enforced by:", "Check:", "check: none"):
         text = f"# D\n\n{label} {WIDE_TARGET}\n"

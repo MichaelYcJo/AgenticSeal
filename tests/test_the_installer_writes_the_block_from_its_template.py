@@ -1,13 +1,16 @@
 """`install.sh` writes the CLAUDE.md block from its one source, and nothing else carries it.
 
-The block between `<!-- specseal:start -->` and `<!-- specseal:end -->` lives
+The block between `<!-- agentic:start -->` and `<!-- agentic:end -->` lives
 in `templates/claude-md-block.md`, markers included. `install.sh` cuts it out
 with `awk` and writes it into a `CLAUDE.md`; `uninstall.sh` takes it out;
-`/specseal:update` step 4 diffs it against the installed copy, and
-`/specseal:preset-setup` merges it. This repository's own `CLAUDE.md` carries
+`/agentic:update` step 4 diffs it against the installed copy, and
+`/agentic:preset-setup` merges it. A block a release before 0.23.0 wrote sits
+between `<!-- specseal:start -->` and `<!-- specseal:end -->`, and both
+scripts read it as the block through 0.23.x. This repository's own `CLAUDE.md` carries
 no copy: a session here loads the installed block from `~/.claude/CLAUDE.md`,
 so a copy in the tree was read twice and was the one a consuming repository
-never sees (`seal/specs/1792540458-on-demand-files-state-the-current-rule/plan.md`
+never sees
+(`0ed5dd3b:seal/specs/1792540458-on-demand-files-state-the-current-rule/plan.md`
 A2).
 
 The cases that ran an installer are kept from the module that held the copy
@@ -24,7 +27,9 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 TEMPLATE = os.path.join(ROOT, "templates", "claude-md-block.md")
 INSTALL = os.path.join(ROOT, "install.sh")
 UNINSTALL = os.path.join(ROOT, "uninstall.sh")
-START, END = "<!-- specseal:start -->", "<!-- specseal:end -->"
+START, END = "<!-- agentic:start -->", "<!-- agentic:end -->"
+# The markers every release before 0.23.0 wrote into a user's CLAUDE.md.
+OLD_START, OLD_END = "<!-- specseal:start -->", "<!-- specseal:end -->"
 
 
 def block_of(text):
@@ -128,6 +133,38 @@ def test_install_sh_replaces_an_older_block_from_the_template(tmp_path):
     assert after.startswith("# mine, above\n") and after.endswith("# mine, below\n")
 
 
+def test_install_sh_replaces_the_block_under_the_old_markers_once(tmp_path):
+    """#1051: a CLAUDE.md a release before 0.23.0 wrote holds the block
+    between the old markers. The installer puts the template's block in its
+    place, under the new markers, so one block stands and the user's text on
+    either side stays; a second run changes nothing."""
+    target = tmp_path / "CLAUDE.md"
+    old = read(TEMPLATE).replace(START, OLD_START).replace(END, OLD_END)
+    target.write_text("# mine, above\n\n" + old + "\n# mine, below\n", encoding="utf-8")
+    out = bash(INSTALL, target)
+    assert out.returncode == 0, out.stdout + out.stderr
+    after = target.read_text(encoding="utf-8")
+    assert OLD_START not in after and OLD_END not in after, after
+    assert after.count(START) == 1 and after.count(END) == 1, after
+    assert block_of(after) == read(TEMPLATE)
+    assert after.startswith("# mine, above\n") and after.endswith("# mine, below\n")
+    again = bash(INSTALL, target)
+    assert again.returncode == 0, again.stdout + again.stderr
+    assert target.read_text(encoding="utf-8") == after
+
+
+def test_uninstall_sh_removes_the_block_under_the_old_markers(tmp_path):
+    """#1051: the uninstaller is the installer's inverse through 0.23.x, so
+    the block the old markers hold goes and the user's own lines stay."""
+    target = tmp_path / "CLAUDE.md"
+    old = read(TEMPLATE).replace(START, OLD_START).replace(END, OLD_END)
+    target.write_text("# mine, above\n\n" + old, encoding="utf-8")
+    out = bash(UNINSTALL, target)
+    assert out.returncode == 0, out.stdout + out.stderr
+    after = target.read_text(encoding="utf-8")
+    assert after.strip() == "# mine, above", after
+
+
 def test_uninstall_sh_removes_the_block_and_nothing_else(tmp_path):
     """S3: `uninstall.sh` is the installer's inverse, so the block it wrote
     goes and the user's own lines stay."""
@@ -153,7 +190,7 @@ def test_the_runtime_readers_name_the_template_path():
         )
         for gone in (
             "plugin's CLAUDE.md",
-            "marketplaces/specseal/CLAUDE.md",
+            "marketplaces/agenticseal/CLAUDE.md",
             "generated copy",
         ):
             assert gone not in text, f"{name} still names `{gone}`"

@@ -100,7 +100,7 @@ GUARDS_ITS_OWN_LIST = {}
 # 3. Its list is only ever OPENED behind a scope that catches the error. The
 #    reader checks that the named scope still carries the handler. This is not
 #    an endorsement: that silence dropped a document from the corpus and
-#    produced a false report at its own round 5, and `spec.md` *Out, and why*
+#    produced a false report at its own round 5, and `frame/design.md` *Out, and why*
 #    leaves repairing it to a different work item.
 OPENED_ONLY_BEHIND = {
     "tests/test_the_pull_request_language_is_the_repositorys.py#shipped_templates": "unreachable_templates",
@@ -128,7 +128,7 @@ OPENS_NOTHING = {
 #    itself.
 LISTS_A_FIXTURE = {
     "tests/test_optin.py#test_the_local_root_is_never_a_commit_candidate_and_needs_no_gitignore": 1,
-    "tests/test_the_root_migrates_itself.py#test_the_readmes_by_hand_sequence_yields_the_hooks_tracked_set": 1,
+    "tests/test_the_root_migrates_itself.py#test_the_readmes_by_hand_sequence_yields_the_layout_the_plugin_reads": 1,
     # The hook's cases read what is unstaged and tracked in the copy of the
     # old layout the case took, to assert what the move staged.
     "tests/test_root_migrate.py#unstaged": 1,
@@ -235,7 +235,7 @@ def vanished_scopes(found, missing):
     of question. A scope the reader FOUND that no table accounts for, and a
     scope whose call count moved, are both evidence about a module that is on
     disk: they need no whole corpus and they judge what remains, which is what
-    `spec.md` *Is a skip a weakening* asks of a positive sweep. Only the
+    `frame/design.md` *Is a skip a weakening* asks of a positive sweep. Only the
     scopes that VANISHED are the half a skipped module can explain.
 
     The first shape of this helper declined in front of all three, and round 2
@@ -494,7 +494,7 @@ def test_an_unguarded_scope_is_named_although_a_module_is_mid_edit():
     Measured against the shape this replaces: with the decline in front of
     all three halves, a planted unguarded scope went unnamed on a tree with
     one test module deleted from disk, and the case exited 0 — a gate going
-    quiet on the seventh helper it exists to catch. `spec.md` *Is a skip a
+    quiet on the seventh helper it exists to catch. `frame/design.md` *Is a skip a
     weakening* is the rule this module was breaking on itself: the positive
     sweeps do not skip themselves.
     """

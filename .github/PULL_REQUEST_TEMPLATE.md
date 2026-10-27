@@ -12,7 +12,7 @@ Already opened against `main`? The Edit button beside the title changes the
 base without closing anything.
 
 The rest is in CONTRIBUTING.md, "Opening a pull request", including what a
-contribution is NOT asked for: no work item under seal/specs/, no review
+contribution is NOT asked for: no work item under seal/threads/, no review
 round record, no changelog fragment, and no version bump. -->
 
 ## What changes

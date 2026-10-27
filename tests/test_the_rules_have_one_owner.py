@@ -23,7 +23,7 @@ RECORD = ("docs", "the-review-record.md")
 SKILL = ("skills", "code-review", "SKILL.md")
 # The orchestrator's half of the review skill (#265).
 ORCH = ("skills", "code-review", "orchestration.md")
-WARDEN = ("agents", "warden.md")
+PROOFER = ("agents", "proofer.md")
 IMPLEMENT = ("skills", "implement", "SKILL.md")
 # The orchestrator's half of the implement skill (#292). The order a ticket
 # runs in landed here in #351.
@@ -102,9 +102,9 @@ RULES = {
     "14 a finding is filed where somebody will act": (
         RECORD,
         "A leftover finding takes the first rung that fits.",
-        # The smith's copy of the ladder left with #967. Filing is the
+        # The crafter's copy of the ladder left with #967. Filing is the
         # orchestrator's act (the ladder's own `check:` line says so), and a
-        # smith hands a leftover back with its answerer (its step 10).
+        # crafter hands a leftover back with its answerer (its step 10).
         {
             TRACKER: "`docs/the-review-record.md` *The run* owns where a filed "
             "finding goes",
@@ -126,20 +126,20 @@ RULES = {
         "A regression is routed by comparing the fix with the frame.",
         {FRAMER: RUN_OWNS_THE_RULE, IMPLEMENT: RUN_OWNS_THE_RULE},
     ),
-    # #945, S5: one smith resumed across phases read 941,799 tokens in one
+    # #945, S5: one crafter resumed across phases read 941,799 tokens in one
     # turn, so a phase is a fresh spawn and a fix pass resumes only below
-    # the largest context a fresh smith reached in the 0.22.0 run.
-    "17 each phase is a fresh smith": (
+    # the largest context a fresh crafter reached in the 0.22.0 run.
+    "17 each phase is a fresh crafter": (
         ORCH,
-        "Each phase of a work item is built by a fresh `smith` spawn, and the "
-        "orchestrator never resumes a smith across a phase boundary.",
+        "Each phase of a work item is built by a fresh `crafter` spawn, and the "
+        "orchestrator never resumes a crafter across a phase boundary.",
         {},
     ),
     "18 a fix pass resumes the implementer only below the threshold": (
         ORCH,
         "A fix pass resumes the implementer only while the implementer's "
         "largest per-turn context is below 806,241 tokens, and is a fresh "
-        "`smith` spawn otherwise.",
+        "`crafter` spawn otherwise.",
         {},
     ),
 }
@@ -166,24 +166,22 @@ def test_every_link_names_the_owner(rule):
         )
 
 
-FIX_PASS = (
-    "## Orchestrator: a phase is a fresh smith, and a fix pass resumes the implementer"
-)
+FIX_PASS = "## Orchestrator: a phase is a fresh crafter, and a fix pass resumes the implementer"
 
 
 def test_the_fix_pass_reads_the_implementers_context_before_it_resumes():
     """S5 of #945. Rules 17 and 18 pin the two bold sentences; this pins
-    what lets an orchestrator act on them: what a fresh smith is handed, the
+    what lets an orchestrator act on them: what a fresh crafter is handed, the
     command that reads the implementer's context, where the threshold came
     from, and the old rule gone."""
     text = flat(*ORCH)
     section = text[text.index(FIX_PASS) : text.index("## Orchestrator: the run ends")]
     for said in (
         "the phase records the earlier phases wrote",
-        "`session-cost --segments <the implementer's agent-*.jsonl>`",
+        "`seal cost --segments <the implementer's agent-*.jsonl>`",
         "the largest value of its `context` column",
         "hands it the round record and the phase records",
-        "the largest context a fresh, never-resumed smith reached in the 0.22.0 run",
+        "the largest context a fresh, never-resumed crafter reached in the 0.22.0 run",
     ):
         assert said in section, f"the fix-pass section no longer says {said!r}"
     assert "Orchestrator: a fix pass resumes the implementer" not in text
@@ -284,12 +282,12 @@ def test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge()
 
 
 # Where step 2 of the order inside a ticket opens.
-STEP_2 = "2. The framer writes `spec.md`, `plan.md` and `questions.md`."
+STEP_2 = "2. The framer writes `frame/design.md`, `plan.md` and `questions.md`."
 
 
 def test_the_order_opens_the_pull_request_after_the_sealer():
     """`skills/implement/orchestration.md` *Orchestrator: the order inside a
-    ticket* is what a session reads to know what comes after the smith. #943
+    ticket* is what a session reads to know what comes after the crafter. #943
     moved the pull request from between the build and the rounds to after
     the sealer, so no step of the order opens, keeps or readies a draft."""
     text = flat(*ORCH_IMPL)
@@ -299,8 +297,8 @@ def test_the_order_opens_the_pull_request_after_the_sealer():
     # reads the run's record, so the run comes before the spawn. Since #940
     # the step says it in words rather than arrows.
     assert (
-        "spawns the smith (*The plan is approved at the spawn* below). The "
-        "warden's rounds follow, then `broad-gate --preflight` and `broad-gate "
+        "spawns the crafter (*The plan is approved at the spawn* below). The "
+        "proofer's rounds follow, then `seal gate --preflight` and `seal gate "
         "--record`, both run by the orchestrator, then the sealer, and then the "
         "pull request opens (" in step
     ), step
@@ -334,13 +332,13 @@ def the_order():
 
 
 def test_a_decision_after_the_frame_is_folded_into_it():
-    """S9 of #945. A smith reads the frame and not the issue's comments, so
+    """S9 of #945. A crafter reads the frame and not the issue's comments, so
     a decision made after the frame is committed is folded into it before
-    the next smith spawns, and before framing into the issue body."""
+    the next crafter spawns, and before framing into the issue body."""
     order = the_order()
     for said in (
         "A decision made after the frame is committed is folded, in place, into "
-        "`spec.md` or `plan.md` before the next smith spawns.",
+        "`frame/design.md` or `plan.md` before the next crafter spawns.",
         "naming the comments to fold",
         "the orchestrator keeps one line of its own in `plan.md`",
         "below the title where it does not",
@@ -355,7 +353,7 @@ def test_a_handoff_file_is_written_only_to_move_the_work():
     order = the_order()
     for said in (
         "Where a work item stands is read from `plan.md`'s Status column, "
-        "`overview.md` and the phase records.",
+        "`gaps.md` and the phase records.",
         "a `handoff.md` in the work item's directory only to move the work to "
         "another session or another machine",
         "The orchestrator that hands the work over writes",
@@ -383,13 +381,13 @@ def test_a_regression_is_a_defect_a_fix_passs_own_commit_made():
     a `regression:` line names a defect a fix pass's own commit introduced,
     and a defect in a unit a build phase made, which the framer designed and
     the owner approved, is an ordinary finding of new work, so its round
-    gets its fix pass. The document states it, and the warden, who writes
+    gets its fix pass. The document states it, and the proofer, who writes
     the line, says the same."""
     run = flat(*RECORD)
     run = run[run.index("## The run") : run.index("## The handoff")]
     assert "A regression is a defect a fix pass's own commit introduced." in run
     assert "is an ordinary finding of new work" in run
-    for carrier in (RECORD, WARDEN):
+    for carrier in (RECORD, PROOFER):
         text = flat(*carrier)
         assert "a fix pass's own commits added or changed" in text, (
             f"{'/'.join(carrier)} does not say a `regression:` line is for a "
@@ -443,7 +441,7 @@ def test_a_close_that_does_not_hold_reopens_it():
         and "framer" not in s
         for s in reopened
     ), reopened
-    for carrier in (RECORD, WARDEN, SKILL, ORCH):
+    for carrier in (RECORD, PROOFER, SKILL, ORCH):
         both = [
             s
             for s in sentences(flat(*carrier))
@@ -487,7 +485,7 @@ def test_a_regression_is_routed_by_comparing_the_fix_with_the_frame():
     regression on the same unit after a fix-pass route."""
     run = the_run()
     assert "**A regression is routed by comparing the fix with the frame.**" in run
-    for carrier in (RECORD, WARDEN, ORCH):
+    for carrier in (RECORD, PROOFER, ORCH):
         assert any(
             all(part in s for part in COMPARISON) for s in sentences(flat(*carrier))
         ), f"{'/'.join(carrier)} does not name the comparison in one sentence"
@@ -505,7 +503,7 @@ def test_a_regression_is_routed_by_comparing_the_fix_with_the_frame():
     assert "### A regression is routed by comparing the fix with the frame" in flat(
         *ORCH
     )
-    for carrier in (RECORD, ROUND_TEMPLATE, ORCH, WARDEN, FRAMER):
+    for carrier in (RECORD, ROUND_TEMPLATE, ORCH, PROOFER, FRAMER):
         text = flat(*carrier)
         for gone in (
             "A round carrying a `regression:` line gets no fix pass",
@@ -533,7 +531,7 @@ def test_the_cap_counts_from_the_last_design_change():
     run = the_run()
     for said in (
         "counted from the last design change",
-        "a reframe, or a new phase the owner approved in `plan.md`",
+        "a reframe, or a new phase the owner approved in `frame/plan.md`",
         "starts the count again",
         "followed by one verifying round, whatever the count",
         "is not an extension",

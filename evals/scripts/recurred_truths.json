@@ -144,7 +144,7 @@
     ]
   },
   {
-    "case": "rule-warden-one-finding",
+    "case": "rule-proofer-one-finding",
     "grader": "truth-shout-twice-uncovered",
     "finding": "No case covers shout_twice, so plan.md's phase 1 check passes over the defect it names S2 for.",
     "locations": [

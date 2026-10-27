@@ -29,7 +29,7 @@
 here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 script="$here/../.github/scripts/run_tests.py"
 if [ ! -f "$script" ]; then
-    printf '%s\n' "bin/test runs SpecSeal's own test suite, and this copy of bin/ has no runner beside it. Run it from a clone of the SpecSeal repository." >&2
+    printf '%s\n' "bin/test runs AgenticSeal's own test suite, and this copy of bin/ has no runner beside it. Run it from a clone of the AgenticSeal repository." >&2
     exit 2
 fi
 # Not through hooks/launch.py, alone of bin/: its docstring says why.

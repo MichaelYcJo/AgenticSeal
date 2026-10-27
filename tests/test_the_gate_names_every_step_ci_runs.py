@@ -19,7 +19,7 @@ it named both directions, which the two rows below hold:
   A2   a partition entry naming a step the workflow no longer has fails here,
        so the list cannot rot into naming steps nobody runs
 
-`spec.md` *User scenarios & acceptance* numbers the rows A1 to A7 and each
+`frame/design.md` *User scenarios & acceptance* numbers the rows A1 to A7 and each
 case below names the one it holds.
 
 **The step names are read out of `hygiene.yml` itself.** `plan.md` retypes
@@ -51,7 +51,7 @@ HYGIENE = os.path.join(ROOT, ".github", "workflows", "hygiene.yml")
 
 
 def gate_module():
-    return load_module(GATE, "specseal_broad_gate_for_partition_tests")
+    return load_module(GATE, "agentic_broad_gate_for_partition_tests")
 
 
 gate = gate_module()
@@ -123,7 +123,7 @@ def test_the_skill_counts_the_steps_with_a_local_answer_and_no_arm():
     ) as f:
         skill = " ".join(f.read().split())
     said = (
-        f"{NUMBER_WORDS[scripts + inline].capitalize()} steps of SpecSeal's own "
+        f"{NUMBER_WORDS[scripts + inline].capitalize()} steps of AgenticSeal's own "
         f"`release` job have a local answer and no arm: {NUMBER_WORDS[scripts]} "
         f"{'runs' if scripts == 1 else 'run'} a script under `.github/scripts/`, "
         f"which no plugin ships, and {NUMBER_WORDS[inline]} is shell written "
@@ -137,7 +137,7 @@ def test_a_step_a_row_excludes_is_still_pointed_at_its_reason():
     `test_a_step_no_row_classifies_is_not_said_to_carry_a_reason`, and what
     keeps that case from being answered by deleting the pointer. A step the
     partition DOES exclude carries a written reason, and naming where it is
-    written is the whole of `spec.md` *Scope* 5."""
+    written is the whole of `frame/design.md` *Scope* 5."""
     said = gate.coverage_line(read(HYGIENE), "base")
     assert "no arm mirrors it in `broad_gate.py#PARTITION`" in said, said
     assert "both READMEs move together" in said.split("no arm mirrors it in", 1)[1]
@@ -267,7 +267,7 @@ def test_a_feature_seal_counts_the_steps_ci_runs_for_it():
     assert real_panel_workflow_row("release/x") == "· 2 more steps"
     said = gate.coverage_line(read(HYGIENE), "release/x")
     assert said.startswith(
-        f"broad-gate: {gate.WORKFLOW}'s `release` job runs 4 steps for this base "
+        f"seal gate: {gate.WORKFLOW}'s `release` job runs 4 steps for this base "
         "and this run answers 2. 3 more run only on a pull request into `main`, "
         "so this count leaves them out."
     ), said
@@ -285,7 +285,7 @@ def test_a_release_seal_counts_every_step_ci_runs_for_it():
         assert real_panel_workflow_row(given) == "· 5 more steps", given
         said = gate.coverage_line(read(HYGIENE), given)
         assert said.startswith(
-            f"broad-gate: {gate.WORKFLOW}'s `release` job runs 7 steps for this "
+            f"seal gate: {gate.WORKFLOW}'s `release` job runs 7 steps for this "
             "base and this run answers 2."
         ), said
         assert "leaves" not in said.split("Not answered", 1)[0], said

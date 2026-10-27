@@ -1,6 +1,6 @@
 """Every agent definition has one shape and preloads the contract alone.
 
-`spec.md` *The shape of a definition* of #957: frontmatter whose `skills:`
+`frame/design.md` *The shape of a definition* of #957: frontmatter whose `skills:`
 list is `agent-contract` and nothing else, one opening sentence naming the
 contract, identical in every definition, then `## Job`, `## Order of work`,
 `## Never` and `## Rules`, in that order. Every other skill is opened at the
@@ -124,7 +124,7 @@ def test_every_file_a_step_names_exists(path):
     names is a file or directory in the tree (S2).
 
     A step opens a skill by its path, so a renamed skill leaves an
-    instruction an agent meets as *file not found* mid-run; `rules --check`
+    instruction an agent meets as *file not found* mid-run; `seal rules --check`
     reads only `check:` targets, and no other case reads the paths a
     step names."""
     assert missing_paths(read(path)) == [], name(path)

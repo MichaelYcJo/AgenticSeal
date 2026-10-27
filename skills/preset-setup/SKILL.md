@@ -1,10 +1,10 @@
 ---
 name: preset-setup
-description: Merge the specseal CLAUDE.md block into the user's CLAUDE.md with semantic dedup. Propose, get approval, then apply.
+description: Merge the AgenticSeal CLAUDE.md block into the user's CLAUDE.md with semantic dedup. Propose, get approval, then apply.
 disable-model-invocation: true
 ---
 
-# /specseal:preset-setup, a reviewed CLAUDE.md merge
+# /agentic:preset-setup, a reviewed CLAUDE.md merge
 
 The user runs this command, and the session running it merges the preset's
 CLAUDE.md block into the user's global `~/.claude/CLAUDE.md`, or into the
@@ -25,7 +25,7 @@ through the user first.
    anything. Where the target does not exist, write the preset block and stop.
 
 2. **Read both.** The preset block is the content between
-   `<!-- specseal:start -->` and `<!-- specseal:end -->` in this plugin's
+   `<!-- agentic:start -->` and `<!-- agentic:end -->` in this plugin's
    `templates/claude-md-block.md` (`$CLAUDE_PLUGIN_ROOT/templates/claude-md-block.md`),
    the block's one source. Read the user's file in full.
 
@@ -52,4 +52,7 @@ through the user first.
   untouched original both survive.
 - Where the user's file already has a preset marker block from an older
   version, its contents are preset-owned: replace it without asking, and diff
-  only the user-owned remainder.
+  only the user-owned remainder. A block between `<!-- specseal:start -->`
+  and `<!-- specseal:end -->` is such a block (`skills/update/SKILL.md`
+  step 4 names those markers), and the block under the new markers takes its
+  place.

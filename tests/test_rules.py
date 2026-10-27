@@ -1,11 +1,11 @@
 """`.github/scripts/rules.py`, one class per function.
 
-`rules <doc>` prints each section with what its tests say they guard, and
-`rules --check` fails where a check line is refused. A rule's text lives
+`seal rules <doc>` prints each section with what its tests say they guard, and
+`seal rules --check` fails where a check line is refused. A rule's text lives
 once, as the first sentence of the docstring of the test that holds it, and
 a rule file lists its tests by `check:` line, in the grammar
-`skills/settle/SKILL.md` *A rule has one shape* states. `rules <doc>` never
-fails for what it finds; `rules --check` reads every rule file and is exit 1
+`skills/settle/SKILL.md` *A rule has one shape* states. `seal rules <doc>` never
+fails for what it finds; `seal rules --check` reads every rule file and is exit 1
 where a line is out of grammar or a target is gone, and one case here runs
 it over the tree, so the suite is where the fact is read.
 
@@ -33,7 +33,7 @@ SCRIPT = os.path.join(ROOT, ".github", "scripts", "rules.py")
 
 
 def _load():
-    spec = importlib.util.spec_from_file_location("specseal_rules", SCRIPT)
+    spec = importlib.util.spec_from_file_location("agentic_rules", SCRIPT)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -121,7 +121,7 @@ def doc(*paragraphs):
 
 
 def checked(tmp_path, files, capsys):
-    """`(exit, stdout)` of `rules --check` over a tree holding the test module
+    """`(exit, stdout)` of `seal rules --check` over a tree holding the test module
     and `files`, each `{path: text}`."""
     for rel, text in {HELD: TESTS, **files}.items():
         path = tmp_path / rel
@@ -208,7 +208,7 @@ class Test_main:
     def test_with_no_root_the_targets_resolve_where_the_command_runs(
         self, tmp_path, capsys, monkeypatch, where
     ):
-        """`rules <doc>` with no `--root` resolves in the repository it is typed
+        """`seal rules <doc>` with no `--root` resolves in the repository it is typed
         in, from its top or a subdirectory, not in the tree the script ships in."""
         root = tree(tmp_path, "## A\n\n**Held.** Why.\ncheck: held-rule\n")
         doc = "docs/a.md"
@@ -225,7 +225,7 @@ class Test_main:
         )
 
     def test_a_refused_line_is_printed_with_why(self, tmp_path, capsys):
-        """`rules <doc>` prints a line out of grammar under its section with the
+        """`seal rules <doc>` prints a line out of grammar under its section with the
         reason `--check` refuses it, and still exits 0."""
         root = tree(tmp_path, "## One\n\nEnforced by: tests/test_x.py\n")
         code, out, _ = run(root, capsys)
@@ -264,16 +264,16 @@ class Test_main:
         `check: none reader: <who>` names no target and prints its reader."""
         root = tree(
             tmp_path,
-            "## One\n\ncheck: evals/behaviour/warden/a/\n\n"
-            "## Two\n\ncheck: none reader: the warden at review\n",
+            "## One\n\ncheck: evals/behaviour/proofer/a/\n\n"
+            "## Two\n\ncheck: none reader: the proofer at review\n",
         )
-        case = root / "evals" / "behaviour" / "warden" / "a"
+        case = root / "evals" / "behaviour" / "proofer" / "a"
         case.mkdir(parents=True)
         (case / "case.yaml").write_text("name: a\n", "utf-8")
         code, out, _ = run(root, capsys)
         assert code == 0
-        assert "    evals/behaviour/warden/a/: an eval case\n" in out, out
-        assert "    no target, read by the warden at review\n" in out, out
+        assert "    evals/behaviour/proofer/a/: an eval case\n" in out, out
+        assert "    no target, read by the proofer at review\n" in out, out
 
     def test_a_fenced_or_commented_line_is_an_example_and_writes_nothing(
         self, tmp_path, capsys
@@ -307,22 +307,22 @@ class Test_main:
         code = rules.main([str(tmp_path / "missing.md"), "--root", str(tmp_path)])
         captured = capsys.readouterr()
         assert code == 2
-        assert "rules: cannot read" in captured.err
+        assert "seal rules: cannot read" in captured.err
         assert captured.out == ""
 
     @pytest.mark.parametrize(
         "line, said",
         [
-            (f"check: {HELD}", "rules: all 1 check lines in 1 rule files hold."),
+            (f"check: {HELD}", "seal rules: all 1 check lines in 1 rule files hold."),
             (
                 f"check: {HELD} held-rule",
-                "rules: all 1 check lines in 1 rule files hold.",
+                "seal rules: all 1 check lines in 1 rule files hold.",
             ),
             (
-                "check: none reader: the warden at review",
-                "rules: all 1 check lines in 1 rule files hold.",
+                "check: none reader: the proofer at review",
+                "seal rules: all 1 check lines in 1 rule files hold.",
             ),
-            (f"  check: {HELD}", "rules: all 1 check lines in 1 rule files hold."),
+            (f"  check: {HELD}", "seal rules: all 1 check lines in 1 rule files hold."),
         ],
         ids=["a file", "S2 two targets", "S4 no target", "indented under a list item"],
     )
@@ -357,11 +357,11 @@ class Test_main:
                 f"a line naming no target names its reader: {EXPECTED}",
             ),
             (
-                "check: none reader the warden",
+                "check: none reader the proofer",
                 f"a line naming no target names its reader: {EXPECTED}",
             ),
             (
-                "check: none reader:  the warden",
+                "check: none reader:  the proofer",
                 f"a line naming no target names its reader: {EXPECTED}",
             ),
             (f"check: {HELD}  held-rule", "targets are separated by one space"),
@@ -397,8 +397,8 @@ class Test_main:
         not resolve."""
         code, out = checked(tmp_path, {"docs/a.md": doc(rule(line))}, capsys)
         assert code == 1, out
-        assert f"rules: docs/a.md:6: The heading: {why}\n" in out, out
-        assert "rules: 1 refused in 1 check lines of 1 rule files." in out, out
+        assert f"seal rules: docs/a.md:6: The heading: {why}\n" in out, out
+        assert "seal rules: 1 refused in 1 check lines of 1 rule files." in out, out
 
     @pytest.mark.parametrize(
         "markup",
@@ -421,12 +421,12 @@ class Test_main:
         code, out = checked(tmp_path, {"docs/a.md": doc(rule(line))}, capsys)
         assert code == 1, out
         refusals = [
-            row for row in out.splitlines() if row.startswith("rules: docs/a.md:")
+            row for row in out.splitlines() if row.startswith("seal rules: docs/a.md:")
         ]
         assert len(refusals) == 1, out
-        assert refusals[0].startswith("rules: docs/a.md:6: "), out
+        assert refusals[0].startswith("seal rules: docs/a.md:6: "), out
         assert refusals[0].endswith(f"`{line}` is no check line: {EXPECTED}"), out
-        assert "rules: 1 refused in 1 check lines of 1 rule files." in out, out
+        assert "seal rules: 1 refused in 1 check lines of 1 rule files." in out, out
 
     @pytest.mark.parametrize(
         "target, why",
@@ -469,17 +469,17 @@ class Test_main:
         """Every check line a renderer shows is read, inside a rule paragraph or
         not, in an agent definition as in a document."""
         text = doc("A sentence that states no rule.\ncheck: tests/test_gone_a.py\n")
-        code, out = checked(tmp_path, {"agents/warden.md": text}, capsys)
+        code, out = checked(tmp_path, {"agents/proofer.md": text}, capsys)
         assert code == 1, out
         assert (
-            "rules: agents/warden.md:6: The heading: tests/test_gone_a.py does not exist"
+            "seal rules: agents/proofer.md:6: The heading: tests/test_gone_a.py does not exist"
             in out
         ), out
 
     @pytest.mark.parametrize(
         "files, verdict, said",
         [
-            ({"case.yaml": "name: a\n"}, 0, "rules: all 1 check lines"),
+            ({"case.yaml": "name: a\n"}, 0, "seal rules: all 1 check lines"),
             ({"prompt.md": "Review.\n"}, 1, "holds no case.yaml"),
         ],
         ids=["with its case.yaml", "without"],
@@ -490,7 +490,7 @@ class Test_main:
         """An agent's rule can be held by an eval case alone, so
         `evals/behaviour/<agent>/<case>/` is a target, resolving where the
         directory holds `case.yaml`."""
-        case = "evals/behaviour/warden/a-case/"
+        case = "evals/behaviour/proofer/a-case/"
         written = {"docs/a.md": doc(rule(f"check: {case}"))}
         written.update({case + name: text for name, text in files.items()})
         code, out = checked(tmp_path, written, capsys)
@@ -501,8 +501,8 @@ class Test_main:
         """The directory is `<agent>/<case>/`, so an agent's directory alone names
         no case and does not resolve."""
         written = {
-            "docs/a.md": doc(rule("check: evals/behaviour/warden/")),
-            "evals/behaviour/warden/case.yaml": "name: a\n",
+            "docs/a.md": doc(rule("check: evals/behaviour/proofer/")),
+            "evals/behaviour/proofer/case.yaml": "name: a\n",
         }
         code, out = checked(tmp_path, written, capsys)
         assert code == 1, out
@@ -518,10 +518,10 @@ class Test_main:
         assert rules.main(["--root", str(root)]) == 2
         captured = capsys.readouterr()
         assert captured.out == "", captured.out
-        assert "rules: name a document, or --check, and not both." in captured.err
+        assert "seal rules: name a document, or --check, and not both." in captured.err
 
     def test_every_check_line_in_the_tree_holds(self, tmp_path, capsys):
-        """The fact read on every pull request: `rules --check` over this tree is
+        """The fact read on every pull request: `seal rules --check` over this tree is
         exit 0. On a scratch copy of what the check reads (the rule files, the
         files their targets name and the tests carrying their markers) one target
         renamed is exit 1 naming its line, and so is the old label planted in a
@@ -567,11 +567,14 @@ class Test_main:
         assert rules.main(["--check", "--root", str(tmp_path)]) == 1
         out = capsys.readouterr().out
         assert re.search(
-            rf"^rules: {re.escape(renamed)}:\d+: .*-renamed-away", out, re.M
+            rf"^seal rules: {re.escape(renamed)}:\d+: .*-renamed-away", out, re.M
         )
         for rel in named.values():
-            assert re.search(rf"^rules: {re.escape(rel)}:\d+: ", out, re.M), (rel, out)
-        assert f"rules: {len(named)} refused in " in out, out
+            assert re.search(rf"^seal rules: {re.escape(rel)}:\d+: ", out, re.M), (
+                rel,
+                out,
+            )
+        assert f"seal rules: {len(named)} refused in " in out, out
 
 
 class Test_module:

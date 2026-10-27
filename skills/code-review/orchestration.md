@@ -1,44 +1,44 @@
 # code-review, the orchestrator's half
 
-This file is the orchestrator's: the session that spawns the warden and the
-smith for each round, verifies what they report and opens the pull request.
+This file is the orchestrator's: the session that spawns the proofer and the
+crafter for each round, verifies what they report and opens the pull request.
 It holds the procedure for **running** a review run: spawning each phase's
-smith, obtaining a fix pass, ending the run, opening the pull request, and
-verifying the warden's report.
+crafter, obtaining a fix pass, ending the run, opening the pull request, and
+verifying the proofer's report.
 
 `skills/code-review/SKILL.md` is the other half and holds the review itself:
 the two stages, the comparison axes, the probe rules, the cross-session
-records and the findings format. The orchestrator reads both. The warden
+records and the findings format. The orchestrator reads both. The proofer
 preloads that one and never opens this one.
 
 Every `##` heading here opens with `Orchestrator:`, and
 `skills/implement/orchestration.md` *Orchestrator: which of these acts runs
 itself* lists each act with what notices when it is skipped.
 
-## Orchestrator: a phase is a fresh smith, and a fix pass resumes the implementer
+## Orchestrator: a phase is a fresh crafter, and a fix pass resumes the implementer
 
-**Each phase of a work item is built by a fresh `smith` spawn, and the
-orchestrator never resumes a smith across a phase boundary.** The
-orchestrator hands the fresh smith the phase records the earlier phases
-wrote, `phases/phase-N.md`, and a brief in the shape of
+**Each phase of a work item is built by a fresh `crafter` spawn, and the
+orchestrator never resumes a crafter across a phase boundary.** The
+orchestrator hands the fresh crafter the phase records the earlier phases
+wrote, `trail/phases/phase-N.md`, and a brief in the shape of
 `docs/the-review-record.md` *The handoff*: coordinates rather than prose,
 each fact labelled. A phase record is written to carry what one phase found
-to the next, and a resumed smith pays its whole earlier context again on
+to the next, and a resumed crafter pays its whole earlier context again on
 every turn to hold what the record already holds.
 
 **A fix pass resumes the implementer only while the implementer's largest
-per-turn context is below 806,241 tokens, and is a fresh `smith` spawn
-otherwise.** The implementer is the smith that wrote the last commit the
+per-turn context is below 806,241 tokens, and is a fresh `crafter` spawn
+otherwise.** The implementer is the crafter that wrote the last commit the
 round reviewed. Before the fix pass, the orchestrator runs
-`session-cost --segments <the implementer's agent-*.jsonl>` on the
+`seal cost --segments <the implementer's agent-*.jsonl>` on the
 implementer's own transcript, the file the harness's task output named, and
 reads the largest value of its `context` column. Below the threshold, the
 orchestrator resumes the implementer, whose context already holds the files
 it wrote, the tests it ran and the grounds it recorded. At the threshold or
-above it, the orchestrator spawns a fresh smith and hands it the round record
+above it, the orchestrator spawns a fresh crafter and hands it the round record
 and the phase records. The threshold is the largest context a fresh,
-never-resumed smith reached in the 0.22.0 run, read with
-`session-cost --segments` over that run's transcripts (#945), so a resumed
+never-resumed crafter reached in the 0.22.0 run, read with
+`seal cost --segments` over that run's transcripts (#945), so a resumed
 implementer past it holds more context than any fresh build of that run
 needed. The column reads the largest turn, so a compaction that shrank the
 implementer's context does not lower the reading: the orchestrator then
@@ -51,16 +51,16 @@ the same records. An orchestrator in a new session holds no `automation`
 press until it puts question 1 through `AskUserQuestion` again, so it does
 that before the spawn (`skills/implement/orchestration.md` *Question 1*).
 
-**The smith's fix pass changes two lines per open finding of
-`rounds/round-N.md`, its verdict and its answer, and nothing else but a
+**The crafter's fix pass changes two lines per open finding of
+`trail/rounds/round-N.md`, its verdict and its answer, and nothing else but a
 coordinate it appends to `location:` where its fix went elsewhere**
 (`docs/the-review-record.md` *The round record*); it writes no
-`phases/phase-N.md` and no `plan.md` row.
+`trail/phases/phase-N.md` and no `plan.md` row.
 
-**Two commits after the build are yours, not the smith's**: a fix written after
+**Two commits after the build are yours, not the crafter's**: a fix written after
 the last round, and the commit that integrates a sibling's squash. Each one that
 changes what the work item ships brings the work item's `changelog.md` along, the
-way the smith's fix pass does.
+way the crafter's fix pass does.
 `docs/the-record-layout.md` *A commit after the build brings its changelog
 fragment along* owns that rule.
 
@@ -68,7 +68,7 @@ fragment along* owns that rule.
 coordinate a finding named, and the fact the finding was about is usually
 stated in more than one place, so the other statements survive and arrive as
 a later round; that is contract rule 12. For each rule its range reworded or
-removed, the smith finds every other place stating it, by its words and by
+removed, the crafter finds every other place stating it, by its words and by
 the `check:` target that holds it, and corrects each or names it in the
 hand-back with why it stands. The round that follows reads that list against
 the diff.
@@ -114,10 +114,10 @@ change, extends one round at a time while the findings shrink, and at the
 cap every open finding takes the filing ladder.** `docs/the-review-record.md`
 *The run* states the cap, where its count starts again, the verifying round
 a regression's fix pass is owed whatever the count, the extension line the
-spawn prompt gives the warden, and the ladder.
+spawn prompt gives the proofer, and the ladder.
 
 The condition is not *this round found nothing*, which would be unbounded. A
-verifying round that raises a `should` finding the smith closes `rejected`,
+verifying round that raises a `should` finding the crafter closes `rejected`,
 with its grounds, has opened nothing needing a fix, and it does not consume
 the cap. Its record is still not the last one: the check refuses a `fixed` or
 `rejected` finding in the last record, so one more verifying round reads that
@@ -144,8 +144,8 @@ the round on that sentence (`docs/the-review-record.md` *The run*):
 
 | The sentence says | The route |
 |---|---|
-| the fix built the phase's `plan.md` row and `spec.md` as written, and the defect stands anyway | no fix pass; the work item goes back to its framer, by the steps below |
-| the fix did something the frame does not say, or the defect is in how it was written, a review record's paste-ready fix applied as given among them | an ordinary fix pass, with the smith told what the frame says |
+| the fix built the phase's `plan.md` row and `frame/design.md` as written, and the defect stands anyway | no fix pass; the work item goes back to its framer, by the steps below |
+| the fix did something the frame does not say, or the defect is in how it was written, a review record's paste-ready fix applied as given among them | an ordinary fix pass, with the crafter told what the frame says |
 | the unit already had a regression routed to a fix pass in this run | the framer, by the steps below, whatever the sentence says |
 
 The framer's route:
@@ -153,8 +153,8 @@ The framer's route:
 | Step | What |
 |---|---|
 | The record | every open finding closes `deferred the frame` |
-| The framer | spawned again with the run's round records as its input; they are in the tree, so the prompt names them and carries nothing else. It rewrites `plan.md` (new phase rows; a closed phase keeps its commit) and `spec.md` where the scope moves, and adds `Reframed <date> by <who>, after round <N>.` under the `Framed` line. Where `routing.md` answers `Automation` with `yes`, the spawn asks nobody |
-| The redesign | you approve it when you spawn `smith` for it, with a second `Approved` line in `plan.md` on a line of its own, in the shape `skills/implement/orchestration.md` *The plan is approved at the spawn* states; it is then built and reviewed, and its first finding round starts the cap's count again |
+| The framer | spawned again with the run's round records as its input; they are in the tree, so the prompt names them and carries nothing else. It rewrites `plan.md` (new phase rows; a closed phase keeps its commit) and `frame/design.md` where the scope moves, and adds `Reframed <date> by <who>, after round <N>.` under the `Framed` line. Where `routing.md` answers `Automation` with `yes`, the spawn asks nobody |
+| The redesign | you approve it when you spawn `crafter` for it, with a second `Approved` line in `plan.md` on a line of its own, in the shape `skills/implement/orchestration.md` *The plan is approved at the spawn* states; it is then built and reviewed, and its first finding round starts the cap's count again |
 
 ## Orchestrator: the pull request opens once the sealer seals
 
@@ -183,7 +183,7 @@ conflict in a file outside the work item's records, the orchestrator spawns
 a verifying round on that resolution, because the chain check lists the
 branch's commits with `--no-merges` and reads no merge commit
 (`skills/code-review/scripts/chain_check.py#follows`). The merge moves HEAD
-past `broad-gate.md` and `guarantee.md`, so after the merge, and after that
+past `trail/gate.md` and `guarantee.md`, so after the merge, and after that
 verifying round's record is committed where one is owed, the orchestrator
 runs the broad gate again, commits its record and spawns the sealer again.
 
@@ -211,24 +211,24 @@ the file again and given to the open pull request with
 `ready_for_review` event re-runs it when the draft is marked ready, so the
 record is still owed then. Nothing that can reach `main` is exempt.
 
-**`broad-gate.md` and `guarantee.md` are read at the pull request**, so three
+**`trail/gate.md` and `guarantee.md` are read at the pull request**, so three
 more steps come before it opens: the preflight, the broad run, and then the
 sealer's spawn. You take them once you have written the pull request body to
 a file, the work item's `changelog.md` states what the work item ships, and
 every row `skills/implement/SKILL.md` *6. Drain the rows before the broad
 run, and keep the records* names has reached its destination.
-The party that builds the work item writes that fragment: the smith, or you
+The party that builds the work item writes that fragment: the crafter, or you
 where `routing.md` answers `Implementation` with `the session`
 (`docs/the-record-layout.md` *A change writes fragments, never a shared
 file*). The preflight and the broad run are yours, and no agent takes either.
-**Run `broad-gate --preflight --base <base>`; on its exit 0, with nothing else
-running, run `broad-gate --base <base> --record <item>`**, which takes the
+**Run `seal gate --preflight --base <base>`; on its exit 0, with nothing else
+running, run `seal gate --base <base> --record <item>`**, which takes the
 one broad pass now that the rounds have settled and, on a green run, writes
-`broad-gate.md`. `skills/verify/orchestration.md` *The broad gate* says what
+`trail/gate.md`. `skills/verify/orchestration.md` *The broad gate* says what
 the run covers and what each word beside a failing file means. Send its
-output to `<scratchpad>/<work-item-id>/broad-gate.log`, making the directory
+output to `<scratchpad>/<work-item-id>/gate.log`, making the directory
 first, and read the whole log and the exit code
-directly. **On exit 0 commit `broad-gate.md`, then spawn `sealer` with the
+directly. **On exit 0 commit `trail/gate.md`, then spawn `sealer` with the
 base and the work item's directory**, the issue and the file holding the pull
 request body. The
 sealer reads that record, audits the work against the issue and the tree,
@@ -248,7 +248,7 @@ to a person, as *A refusal about the `Broad gate` row* below says.
 tell.** The gate resolves the base to the ref CI reads: the base's upstream
 where the checkout declares one, else `origin/<base>`. Quote, as printed,
 where resolving the base moved it, where the run handed itself to the tree's
-copy of the gate, and its `outputs kept under broad-gate-<random>/` line;
+copy of the gate, and its `outputs kept under seal-gate-<random>/` line;
 each is a fact a reader learns from nowhere else.
 
 **Commit `guarantee.md`; a verdict other than `sealed` opens no pull
@@ -304,18 +304,18 @@ at that write. It is not in the sealer's report and does not reach you.
 So put the result text first in that turn:
 what was sealed, the lines worth quoting, and what happens next. Then end
 the turn, and the drawing lands last with nothing after it. Draw none
-yourself, neither with `seal-stamp` nor by relaying a log: a relayed log
+yourself, neither with `seal stamp` nor by relaying a log: a relayed log
 shows the person the stamp twice, the copy without its colour and cut. The
 `BROAD GATE PASSED` line names the branch and the tree the run measured and
 the ref and the commit it was compared against, the panel's rows follow it
-as text, and the report's last line says `broad-gate.md` is written and not
+as text, and the report's last line says `trail/gate.md` is written and not
 committed: CI reads HEAD, so commit it before you push, or the one
 broad run is recorded nowhere CI looks. On a red run relay the `BROAD GATE
-FAILED` lines. Wherever a line you read names `seal-stamp --from`, quote
+FAILED` lines. Wherever a line you read names `seal stamp --from`, quote
 it as it stands: that command is the person's to type, and never yours. The
 edit hook's line never reaches you. Where no stamp appeared, name the file
-under `<git-common-dir>/specseal-stamp/<session>/` whose name holds the work
-item's id, and leave `seal-stamp --from <that file>` to the person. The line
+under `<git-common-dir>/agentic-stamp/<session>/` whose name holds the work
+item's id, and leave `seal stamp --from <that file>` to the person. The line
 names the command because the hook draws nothing and says nothing where it
 cannot: a `python3` that cannot load `seal_stamp.py`, a working directory
 outside the clone, or a plugin older than the hook. Where no edit hook saw
@@ -329,7 +329,7 @@ its row is one the gate would not run as the command it reads as. Neither is
 yours to settle, and no agent's: the row is the one value in this flow only
 a person may write, because there is no default and the broad run covers
 exactly what a person wrote. Put the gate's own sentence in front of
-whoever owns the repository, name `/specseal:config` as where they answer it, and
+whoever owns the repository, name `/agentic:config` as where they answer it, and
 open no pull request until they have. A row filled in to get past the
 refusal makes the broad run cover a command the person never saw.
 
@@ -342,7 +342,7 @@ its coordinates rather than the summary.
 
 ## Orchestrator: verify before posting
 
-Never post the warden's output as it stands. Check, by opening the
+Never post the proofer's output as it stands. Check, by opening the
 coordinates yourself:
 
 1. The coordinates behind every highest-severity finding, because those are

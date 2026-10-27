@@ -2,18 +2,18 @@
 """Generate the fixture cases: a fixture repository per case, graded on
 outcome only.
 
-Each case is a small stdlib Python project opted into SpecSeal (`seal/`
-with a routing declaration), built by its scaffold, and a session that
+Each case is a small stdlib Python project opted into AgenticSeal (`seal/`
+with its marker and a routing declaration), built by its scaffold, and a session that
 spawns one agent through the `Agent` tool the way production does. The
 graders read files and tool calls, never a judge, and each one asks
 whether the work came out in the shape the next reader needs, never
 whether a sentence of today's definition was followed:
 
-  warden   one review of a diff with one defect against its spec: the
+  proofer  one review of a diff with one defect against its spec: the
            defect found, the round record in the template's shape, and
            any truth `recurred_truths.json` adds for the case
            (`replay_targets.py#truths_with`)
-  smith    four one-phase builds: the unit and its case, the phase record,
+  crafter  four one-phase builds: the unit and its case, the phase record,
            a commit, no probe left behind
   framer   four issues to frame: the three documents with the mark and a
            Phases table carrying `Verified by`, nothing written outside
@@ -38,18 +38,22 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(
+    0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "hooks")
+)
 import behaviour
+import optin
 import replay_targets as rt
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
 OUT = os.path.join(ROOT, "evals", "behaviour")
 MODELS = {
-    "warden": "claude-opus-5-5",
-    "smith": "claude-opus-5-5",
+    "proofer": "claude-opus-5-5",
+    "crafter": "claude-opus-5-5",
     "framer": "claude-fable-5-1",
     "sealer": "claude-sonnet-5-5",
 }
-TIMEOUT = {"warden": 1800, "smith": 1200, "framer": 1200, "sealer": 1800}
+TIMEOUT = {"proofer": 1800, "crafter": 1200, "framer": 1200, "sealer": 1800}
 HERE = (
     "The repository is the current working directory, the one "
     "`git rev-parse --show-toplevel` names where you start; run every command there."
@@ -117,7 +121,7 @@ def one_phase_plan(name, delivers):
     """An approved one-phase `plan.md` for NAME that delivers DELIVERS."""
     return f"""# Implementation Plan: {name}
 
-Approved 2026-10-14 by the repository owner, when `smith` was spawned.
+Approved 2026-10-14 by the repository owner, when `crafter` was spawned.
 
 ## Phases
 
@@ -145,7 +149,7 @@ def routing(branch, planning, implementation):
 
 def write(path, text):
     """A scaffold line that writes TEXT to PATH, its directory made first."""
-    delimiter = "SPECSEAL_EOF"
+    delimiter = "AGENTIC_EOF"
     if delimiter in text:
         raise ValueError(f"{path}: the text holds the heredoc delimiter")
     return f"mkdir -p \"$(dirname '{path}')\"\ncat > '{path}' <<'{delimiter}'\n{text.rstrip()}\n{delimiter}"
@@ -162,8 +166,10 @@ def base_project(item, branch, planning, implementation):
         ),
         "README.md": "# textutil\n\nSmall text helpers.\n",
         "CONTRIBUTING.md": CONTRIBUTING,
+        # The marker is what makes `seal/` the plugin's root to every gate.
+        "seal/README.md": optin.MARKER + "\n",
         "seal/config.md": CONFIG,
-        f"seal/specs/{item}/routing.md": routing(branch, planning, implementation),
+        f"seal/threads/{item}/routing.md": routing(branch, planning, implementation),
     }
     lines = ["git init -q -b main ."]
     lines += [write(p, t) for p, t in files.items()]
@@ -177,7 +183,7 @@ def base_project(item, branch, planning, implementation):
 
 def orchestrate(agent, spawn, then):
     """The case prompt: the session spawns AGENT once with SPAWN, then THEN."""
-    return f"""You are the orchestrator of this repository. Spawn exactly one `specseal:{agent}` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Do none of its work yourself. {then}
+    return f"""You are the orchestrator of this repository. Spawn exactly one `agentic:{agent}` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Do none of its work yourself. {then}
 
 BEGIN PROMPT
 
@@ -213,15 +219,15 @@ def writes_only(name, allowed, body):
     ]
 
 
-# --- warden --------------------------------------------------------------------
+# --- proofer -------------------------------------------------------------------
 
-WARDEN_ITEM = "1790000001-shout-ends-with-one-exclamation-mark"
-WARDEN_CASE = "rule-warden-one-finding"
+PROOFER_ITEM = "1790000001-shout-ends-with-one-exclamation-mark"
+PROOFER_CASE = "rule-proofer-one-finding"
 
 
-def warden_case():
+def proofer_case():
     """One review of a diff that drops the spec's exclamation mark."""
-    item, branch = WARDEN_ITEM, "feat/shout-exclaims"
+    item, branch = PROOFER_ITEM, "feat/shout-exclaims"
     spec = """# Feature Specification: shout ends with one exclamation mark
 
 ## Scope
@@ -236,11 +242,11 @@ def warden_case():
 | S1 | `shout("hi")` | `"HI!"` |
 | S2 | `shout_twice("hi")` | `"HI! HI!"` |
 """
-    lines = base_project(item, branch, "framer", "smith")
+    lines = base_project(item, branch, "framer", "crafter")
     lines += [
-        write(f"seal/specs/{item}/spec.md", spec + MARK),
+        write(f"seal/threads/{item}/frame/design.md", spec + MARK),
         write(
-            f"seal/specs/{item}/plan.md",
+            f"seal/threads/{item}/frame/plan.md",
             one_phase_plan("shout_twice", "`shout_twice(text)` in `src/textutil.py`"),
         ),
         "git add -A",
@@ -254,7 +260,7 @@ def warden_case():
         "git add -A",
         "git -c user.name=eval -c user.email=eval@example.com commit -q -m 'feat: shout_twice'",
     ]
-    report = f"seal/specs/{item}/rounds/round-1.md"
+    report = f"seal/threads/{item}/trail/rounds/round-1.md"
     spawn = (
         f"Review round 1 of work item `{item}`. The clone is the current directory, on branch "
         f"`{branch}` at HEAD; the base is `main`. Write the report to `{report}` and return its "
@@ -265,14 +271,14 @@ def warden_case():
         r"^location: .*src\/textutil\.py:(?:[4-9]|1[0-9])(?!\d)",
         "`shout_twice` joins the two shouts with no space, against S2.",
     )
-    graders = behaviour.report_shape("warden", report)
+    graders = behaviour.report_shape("proofer", report)
     # A fixture has no commit, and an entry's location never needs one.
-    for name, pattern, body in rt.truths_with(WARDEN_CASE, [shout], None):
+    for name, pattern, body in rt.truths_with(PROOFER_CASE, [shout], None):
         graders.append(behaviour.report_regex("truth", name, report, pattern, body))
-    return WARDEN_CASE, {
-        "agent": "warden",
+    return PROOFER_CASE, {
+        "agent": "proofer",
         "prompt": orchestrate(
-            "warden",
+            "proofer",
             spawn,
             f"When it returns, run `cat {report}` once and reply with the report's path.",
         ),
@@ -281,9 +287,9 @@ def warden_case():
     }
 
 
-# --- smith ---------------------------------------------------------------------
+# --- crafter -------------------------------------------------------------------
 
-SMITH_BUILDS = (
+CRAFTER_BUILDS = (
     (
         "slugify",
         "slugify(text)",
@@ -311,7 +317,7 @@ SMITH_BUILDS = (
 )
 
 
-def smith_case(index, slug, signature, rule, example):
+def crafter_case(index, slug, signature, rule, example):
     """One one-phase build against an approved plan."""
     item = f"179000001{index}-{slug}"
     branch = f"feat/{slug}"
@@ -329,10 +335,10 @@ def smith_case(index, slug, signature, rule, example):
 | S1 | {example} | a case in `tests/test_textutil.py` |
 """
     plan = one_phase_plan(name, f"`{signature}` in `src/textutil.py` and its case")
-    lines = base_project(item, branch, "framer", "smith")
+    lines = base_project(item, branch, "framer", "crafter")
     lines += [
-        write(f"seal/specs/{item}/spec.md", spec + MARK),
-        write(f"seal/specs/{item}/plan.md", plan),
+        write(f"seal/threads/{item}/frame/design.md", spec + MARK),
+        write(f"seal/threads/{item}/frame/plan.md", plan),
         "git add -A",
         f"git -c user.name=eval -c user.email=eval@example.com commit -q -m 'frame: {name}'",
     ]
@@ -342,7 +348,7 @@ def smith_case(index, slug, signature, rule, example):
         f"with the report your definition asks for. {HERE}"
     )
     graders = [
-        behaviour.reach("smith"),
+        behaviour.reach("crafter"),
         shape_regex(
             "built",
             {"source": "file", "path": "src/textutil.py"},
@@ -360,9 +366,9 @@ def smith_case(index, slug, signature, rule, example):
         behaviour.grader(
             "shape",
             "phase-record",
-            "The phase closes with its `phases/phase-1.md`, which the next phase reads.",
+            "The phase closes with its `trail/phases/phase-1.md`, which the next phase reads.",
             type="file_exists",
-            path=f"seal/specs/{item}/phases/phase-1.md",
+            path=f"seal/threads/{item}/trail/phases/phase-1.md",
         ),
         shape_tool(
             "committed",
@@ -378,10 +384,10 @@ def smith_case(index, slug, signature, rule, example):
             match="not_contains",
         ),
     ]
-    return f"rule-smith-{slug}", {
-        "agent": "smith",
+    return f"rule-crafter-{slug}", {
+        "agent": "crafter",
         "prompt": orchestrate(
-            "smith", spawn, "When it returns, reply with the word DONE."
+            "crafter", spawn, "When it returns, reply with the word DONE."
         ),
         "scaffold": "\n".join(lines),
         "graders": graders,
@@ -414,8 +420,8 @@ def framer_case(index, slug, issue):
     """One issue to frame as a work item whose routing is written."""
     item = f"179000002{index}-{slug}"
     branch = f"feat/{slug}"
-    lines = base_project(item, branch, "framer", "smith")
-    folder = f"seal/specs/{item}"
+    lines = base_project(item, branch, "framer", "crafter")
+    folder = f"seal/threads/{item}"
     spawn = (
         f"Frame issue #{100 + index} as work item `{item}`, on branch `{branch}` in this clone; "
         f"its `routing.md` is written. {HERE} The issue reads: {issue}"
@@ -426,22 +432,26 @@ def framer_case(index, slug, issue):
             behaviour.grader(
                 "shape",
                 f"writes-{name}",
-                f"The frame writes `{name}.md`.",
+                f"The frame writes `frame/{document}`.",
                 type="file_exists",
-                path=f"{folder}/{name}.md",
+                path=f"{folder}/frame/{document}",
             )
-            for name in ("spec", "plan", "questions")
+            for name, document in (
+                ("spec", "design.md"),
+                ("plan", "plan.md"),
+                ("questions", "questions.md"),
+            )
         ),
         shape_regex(
             "marks-the-spec",
-            {"source": "file", "path": f"{folder}/spec.md"},
+            {"source": "file", "path": f"{folder}/frame/design.md"},
             r"^Framed \d{4}-\d{2}-\d{2} by framer",
-            "The framer's mark is at the foot of `spec.md`.",
+            "The framer's mark is at the foot of `frame/design.md`.",
             flags="m",
         ),
         shape_regex(
             "phases-carry-verified-by",
-            {"source": "file", "path": f"{folder}/plan.md"},
+            {"source": "file", "path": f"{folder}/frame/plan.md"},
             r"^\| Phase \| Delivers \| Verified by \| Status \|",
             "Each phase names what verifies it.",
             flags="m",
@@ -550,7 +560,7 @@ mark. `{test}` pins it, and was seen red against the old code first.
 {extra}
 Closes #101.
 """
-# The record `broad-gate --record` writes, in `broad_gate.write_gate_file`'s
+# The record `seal gate --record` writes, in `broad_gate.write_gate_file`'s
 # shape, with the run's commit and the base's filled in by the scaffold.
 GATE_RECORD = """# {item} — broad gate
 
@@ -589,9 +599,9 @@ SEALER_RUNS = (
 SEALER_TRUTH = {
     True: "The verdict names the party and the claim the tree contradicts.",
     False: "The verdict says no broad run is on record at HEAD: "
-    "`broad-gate.md` is absent, so nothing broad ran.",
+    "`trail/gate.md` is absent, so nothing broad ran.",
     "stale": "The verdict says no broad run is on record at HEAD: a code "
-    "commit follows the run `broad-gate.md` names.",
+    "commit follows the run `trail/gate.md` names.",
 }
 BY = "git -c user.name=eval -c user.email=eval@example.com commit -q -m"
 
@@ -605,7 +615,7 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
     and one makes the case pass against the old code too.
 
     Where GATE holds, the orchestrator's broad run is on record the way the
-    flow leaves it: `broad-gate.md` names the commit the records were written
+    flow leaves it: `trail/gate.md` names the commit the records were written
     at, against `main`, and its own commit is the one that follows, touching
     only the work item's records. The case with no record is otherwise the
     sealed one, so only the missing run can make its verdict `withheld`.
@@ -613,9 +623,9 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
     so only the record's staleness can make its verdict `withheld`."""
     item = f"1790000030-guarantee-{slug}"
     branch = f"feat/guarantee-{slug}"
-    folder = f"seal/specs/{item}"
-    evidence = ".git/specseal-eval"
-    lines = base_project(item, branch, "framer", "smith")
+    folder = f"seal/threads/{item}"
+    evidence = ".git/agentic-eval"
+    lines = base_project(item, branch, "framer", "crafter")
     test = TEST_TEXTUTIL.replace(
         "from textutil import", "from src.textutil import"
     ).replace(
@@ -624,9 +634,9 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
         f"    def {EMPTY_TEST}(self):\n" + EMPTY_CASE[true_case],
     )
     lines += [
-        write(f"{folder}/spec.md", SEALER_SPEC + MARK),
+        write(f"{folder}/frame/design.md", SEALER_SPEC + MARK),
         write(
-            f"{folder}/plan.md",
+            f"{folder}/frame/plan.md",
             one_phase_plan("shout keeps empty text empty", '`shout("")` and its case'),
         ),
         "git add -A",
@@ -637,14 +647,14 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
         f"{BY} 'fix: shout keeps empty text empty'",
         "build=$(git rev-parse HEAD)",
         write(
-            f"{folder}/phases/phase-1.md",
+            f"{folder}/trail/phases/phase-1.md",
             SEALER_PHASE.format(item=item, test=EMPTY_TEST),
         ),
-        write(f"{folder}/rounds/round-1.md", SEALER_ROUND.format(item=item)),
+        write(f"{folder}/trail/rounds/round-1.md", SEALER_ROUND.format(item=item)),
         write(f"{folder}/changelog.md", SEALER_CHANGELOG),
-        write(f"{folder}/overview.md", OVERVIEW.format(item=item)),
+        write(f"{folder}/gaps.md", OVERVIEW.format(item=item)),
     ]
-    for rel in ("phases/phase-1.md", "rounds/round-1.md"):
+    for rel in ("trail/phases/phase-1.md", "trail/rounds/round-1.md"):
         path = f"{folder}/{rel}"
         lines.append(
             f"sed \"s/BUILD_SHA/$build/\" '{path}' > record.tmp && mv record.tmp '{path}'"
@@ -654,7 +664,7 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
         f"{BY} 'docs: the phase record, round 1 and the changelog'",
     ]
     if gate:
-        record = f"{folder}/broad-gate.md"
+        record = f"{folder}/trail/gate.md"
         lines += [
             "run=$(git rev-parse HEAD)",
             write(record, GATE_RECORD.format(item=item)),
@@ -700,11 +710,11 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
             max=0,
         ),
         shape_tool(
-            "runs-no-broad-gate",
+            "runs-no-broad-run",
             "Bash",
             "The sealer runs no broad gate: the run is the orchestrator's, "
-            "before the spawn, and `broad-gate.md` is its record.",
-            input_match=r"broad-gate\s+--base",
+            "before the spawn, and `trail/gate.md` is its record.",
+            input_match=r"seal\s+gate\s+--base",
             max=0,
         ),
         *writes_only(
@@ -736,8 +746,8 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
 
 def cases():
     """`[(directory name, case)]` for every fixture case."""
-    out = [warden_case()]
-    out += [smith_case(i, *build) for i, build in enumerate(SMITH_BUILDS, 1)]
+    out = [proofer_case()]
+    out += [crafter_case(i, *build) for i, build in enumerate(CRAFTER_BUILDS, 1)]
     out += [framer_case(i, *issue) for i, issue in enumerate(FRAMER_ISSUES, 1)]
     out += [sealer_case(*run) for run in SEALER_RUNS]
     return out

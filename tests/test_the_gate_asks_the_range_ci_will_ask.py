@@ -29,7 +29,7 @@ HYGIENE = os.path.join(ROOT, ".github", "workflows", "hygiene.yml")
 
 
 def gate_module():
-    return load_module(GATE, "specseal_broad_gate_for_range_tests")
+    return load_module(GATE, "agentic_broad_gate_for_range_tests")
 
 
 # --- the two readers, held against each other --------------------------------
@@ -255,10 +255,10 @@ def test_the_documents_name_the_panel_row_the_gate_actually_prints():
 # hypothetical: `.github/workflows/hygiene.yml` already spells a base that
 # way, and `plan.md` *Technical context* counts that line among the four
 # base-taking steps. So the pin covered three of the four the plan enumerates
-# while `phases/phase-4.md` and the changelog claimed all of them.
+# while `trail/phases/phase-4.md` and the changelog claimed all of them.
 WORKFLOW_SHAPES = [
     (
-        '            --baseline "origin/${{ github.base_ref }}" seal/specs/',
+        '            --baseline "origin/${{ github.base_ref }}" seal/threads/',
         "origin/${{ github.base_ref }}",
     ),
     (

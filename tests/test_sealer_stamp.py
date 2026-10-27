@@ -19,7 +19,7 @@ import subprocess
 import sys
 
 import pytest
-from conftest import ROOT, census_case, git, load_hook_module
+from conftest import ROOT, census_case, git, load_hook_module, mark_root
 
 TARGET = "hooks/sealer-stamp.py"
 
@@ -85,7 +85,7 @@ def values(rows=ROWS, **changed):
         "from": "origin/base",
         "branch": "feat/x",
         "pr": "#12",
-        "item": "/x/seal/specs/1799000000-an-item",
+        "item": "/x/seal/threads/1799000000-an-item",
         "session": "s-1",
         "rows": rows,
     }
@@ -100,7 +100,7 @@ def full_values(tree="aaa1111a"):
         rows=FULL_ROWS,
         tree=tree,
         base="bbb2222b",
-        item=f"/x/seal/specs/1799000000-{name}",
+        item=f"/x/seal/threads/1799000000-{name}",
         branch=f"feat/12-{name}",
         **{"from": "origin/release/v1.2.3"},
     )
@@ -117,7 +117,7 @@ def _opted_in_template(tmp_path_factory):
     repo = tmp_path_factory.mktemp("stamp-world") / "repo"
     repo.mkdir()
     git(repo, "init", "-q", "-b", "main")
-    (repo / "seal").mkdir()
+    mark_root(repo / "seal")
     (repo / "seal" / "config.md").write_text("# config\n", encoding="utf-8")
     git(repo, "add", "-A")
     git(
@@ -196,7 +196,7 @@ class Test_load_stamp:
 
 class Test_drawings:
     def test_accepts_the_oldest_file_first_and_claims_what_it_draws(self, repo):
-        second = pending_for(repo, now=2, item="/x/seal/specs/1799000001-another")
+        second = pending_for(repo, now=2, item="/x/seal/threads/1799000001-another")
         first = pending_for(repo, now=1)
         directory = os.path.dirname(first)
         drawn = []
@@ -306,13 +306,13 @@ class Test_main:
         assert message(stop(repo / "docs" / "deep")).startswith(LABEL)
         tree = tmp_path / "tree"
         git(repo, "worktree", "add", "-q", str(tree))
-        pending_for(repo, item="/x/seal/specs/1799000001-another")
+        pending_for(repo, item="/x/seal/threads/1799000001-another")
         assert message(stop(tree)).split("\n", 1)[0].endswith("1799000001-another")
 
     @pytest.mark.parametrize(
         "payload",
         [
-            {"agent_id": "a-1", "agent_type": "specseal:sealer"},
+            {"agent_id": "a-1", "agent_type": "agentic:sealer"},
             {"hook_event_name": "SubagentStop", "agent_id": "a-1"},
             {"hook_event_name": "SubagentStop"},
             {"session_id": "s-x"},
@@ -370,7 +370,7 @@ class Test_main:
         self, repo, stop, monkeypatch
     ):
         """A `python3` that cannot load `seal_stamp.py` draws nothing, and the
-        file stays for `seal-stamp --from`."""
+        file stays for `seal stamp --from`."""
         path = pending_for(repo)
         monkeypatch.setattr(hook, "load_stamp", lambda: None)
         assert stop(repo) == ""

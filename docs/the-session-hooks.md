@@ -20,7 +20,7 @@ session's turn, and the call it failed on still goes ahead.** A failure is
 an exception while loading the gate's file, a `SystemExit` included, or an
 `Exception` from its `main()`; a `SystemExit` from `main()` is a gate
 finishing. The dispatcher writes a record under
-`<git-common-dir>/specseal-gate-failure/`, keyed by session and gate, in an
+`<git-common-dir>/agentic-gate-failure/`, keyed by session and gate, in an
 opted-in repository and wherever `optin.py` is itself the broken module.
 The `stop` group says each pending record once as a `systemMessage`, before
 the sealer's stamp where there is one, and the report carries no decision.
@@ -32,7 +32,7 @@ check: tests/test_dispatch.py tests/test_a_gate_that_fails_says_so.py
 
 ## The implementer mark and notice
 
-**A `framer` or `smith` spawn leaves a mark, and a commit on a branch whose
+**A `framer` or `crafter` spawn leaves a mark, and a commit on a branch whose
 declaration names that agent, with no mark standing, gets one line saying
 so.** The two axes of the routing declaration that name an agent,
 `Planning` and `Implementation`, each answer an agent's name or
@@ -41,11 +41,11 @@ for both axes.
 
 | Hook | Fires | Does |
 |---|---|---|
-| `implementer-mark` (`pre-agent`) | an Agent or Task spawn whose `subagent_type` is `framer` or `smith` | writes the name of the branch checked out, else of the branch a paused rebase names, to `<git-dir>/specseal-planner` or `<git-dir>/specseal-implementer`, and prints nothing |
+| `implementer-mark` (`pre-agent`) | an Agent or Task spawn whose `subagent_type` is `framer` or `crafter` | writes the name of the branch checked out, else of the branch a paused rebase names, to `<git-dir>/agentic-planner` or `<git-dir>/agentic-implementer`, and prints nothing |
 | `implementer-notice` (`post-bash`) | a command that invokes `git commit` | where the branch's declaration names an agent on an axis and no mark of that axis stands for the branch, prints one line naming the file, one line for both axes where both are unfulfilled, once per session per repository; silent for an axis whose mark stands, whose row is absent or outside its vocabulary, or which answers `the session` |
 
 Neither hook can deny or ask. A mark is keyed on the branch, because a work
-item commits many times, and on the axis, because `smith` is spawned on
+item commits many times, and on the axis, because `crafter` is spawned on
 nearly every work item. It lives in the git directory, so nothing at the
 pull request reads either axis. Everything fails toward no mark, which is
 toward the reminder.

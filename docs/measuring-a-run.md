@@ -96,7 +96,7 @@ are told apart**, so neither reads as the other's silence.
 check: tests/test_a_segment_feeds_the_flow_log.py
 
 **Posting a reading is one command, and a command does not make anybody run
-it.** `session-cost --segments <transcript> --post --says <path|->` posts to
+it.** `seal cost --segments <transcript> --post --says <path|->` posts to
 the one open log its label resolves to. It refuses without `--says`, because
 the numbers are the script's and what they say is the session's judgment, and
 a command that wrote that sentence itself would be posting one nobody wrote.

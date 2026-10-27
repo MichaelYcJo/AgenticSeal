@@ -114,13 +114,13 @@ jobs:
         shell: bash
         env:
           PYTHONPATH: ${{ github.workspace }}/skills/verify/scripts/pytest_record
-          PYTEST_ADDOPTS: -p specseal_pytest_record
-          SPECSEAL_RECORD_DIR: ${{ runner.temp }}/records
-          SPECSEAL_RECORD_KEY: seal-${{ github.run_id }}
+          PYTEST_ADDOPTS: -p agentic_pytest_record
+          AGENTIC_RECORD_DIR: ${{ runner.temp }}/records
+          AGENTIC_RECORD_KEY: seal-${{ github.run_id }}
         run: |
           git config --global user.email ci@ci
           git config --global user.name ci
-          mkdir -p "$SPECSEAL_RECORD_DIR"
+          mkdir -p "$AGENTIC_RECORD_DIR"
           pytest tests/ -q -n auto
       - name: draw the seal and put it in the note
         continue-on-error: true

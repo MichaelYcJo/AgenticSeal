@@ -52,7 +52,7 @@ _reader = None
 def reader():
     global _reader
     if _reader is None:
-        spec = importlib.util.spec_from_file_location("specseal_rules_reader", READER)
+        spec = importlib.util.spec_from_file_location("agentic_rules_reader", READER)
         _reader = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(_reader)
     return _reader
@@ -263,17 +263,28 @@ def overlapping(read):
     return same
 
 
-def order(root, ref, ids, specs="seal/specs"):
+# A thread's design, relative to its directory: `hooks/optin.py#DESIGN`.
+DESIGN = "frame/design.md"
+# Where a thread's design stood before the session-start move brought it into
+# `seal/threads/`, as (directory, name): read from history only, so a moved
+# thread is placed where its design was first added and not at the move's one
+# commit, which adds every moved design at once.
+# exempt from old_names: the 0.22.x path of a design, read from history
+EARLIER = ("seal/specs", "spec.md")
+
+
+def order(root, ref, ids, specs="seal/threads"):
     """`[(id, commit)]` for IDS in merge order: the first commit reachable from
-    REF that adds the id's `spec.md`, in `git log --topo-order --reverse`
-    order, a moved directory counting as added where it lands. An id no such
-    commit adds comes last, with commit None."""
+    REF that adds the id's `frame/design.md`, or its design at the earlier path
+    (`EARLIER`), in `git log --topo-order --reverse` order, a directory moved
+    under a new id counting as added where it lands. An id no such commit adds
+    comes last, with commit None."""
     r = subprocess.run(
         [
             "git", "-C", root, "log", "--full-history", "--topo-order",
             "--reverse", "--no-renames", "--diff-filter=A", "--name-only",
             "--format=%x00%H",
-            ref, "--", specs,
+            ref, "--", specs, EARLIER[0],
         ],
         capture_output=True,
         encoding="utf-8",
@@ -285,9 +296,10 @@ def order(root, ref, ids, specs="seal/specs"):
         if line.startswith("\0"):
             commit = line[1:]
             continue
-        parts = line[len(specs) + 1 :].split("/")
-        if line.startswith(specs + "/") and len(parts) == 2 and parts[1] == "spec.md":
-            first.setdefault(parts[0], commit)
+        for base, name in ((specs, DESIGN), EARLIER):
+            parts = line[len(base) + 1 :].split("/", 1)
+            if line.startswith(base + "/") and len(parts) == 2 and parts[1] == name:
+                first.setdefault(parts[0], commit)
     known = [i for i in first if i in ids]
     return [(i, first[i]) for i in known] + [(i, None) for i in ids if i not in first]
 

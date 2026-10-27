@@ -1,8 +1,9 @@
 """First setup asks once — shared or local — and every document that a session
 or a person reads says the same thing about where the root lives.
 
-The work item is `seal/specs/1788354065-the-tree-that-must-stay-clean-has-no-
-way-to-opt-in/`; the clauses named per case are its spec's. The hooks resolve
+The work item is
+`aa687d35:seal/specs/1788354065-the-tree-that-must-stay-clean-has-no-way-to-opt-in/`;
+the clauses named per case are its spec's. The hooks resolve
 the root in code (`hooks/optin.py#home_at`) and are pinned by
 `tests/test_optin.py`, `tests/test_commit_review_gate.py` and
 `tests/test_implementer_notice.py`. What is pinned HERE
@@ -53,7 +54,7 @@ def flat(text):
 
 SKILL = ("skills", "implement", "SKILL.md")
 # The bootstrap is the orchestrator's half since #292: it asks a person, which
-# a smith spawn may not, so it lives in the file no `skills:` list injects.
+# a crafter spawn may not, so it lives in the file no `skills:` list injects.
 ORCH = ("skills", "implement", "orchestration.md")
 
 
@@ -129,7 +130,7 @@ def test_the_parity_question_follows_the_mode_question():
 # and that the seal covers exactly that. Nothing ever asked for it: grepped
 # before this work, the bootstrap carried two `Ask, once` steps and neither
 # was this one, and no command in `bin/` or `seal.py` wrote the row. So the
-# question reached a person only as `broad-gate`'s refusal -- after the review
+# question reached a person only as `seal gate`'s refusal -- after the review
 # rounds had settled, which is the last moment available and the one where
 # whoever is there has every reason to answer it themselves. That is what
 # happened, and it is what #401 reported.
@@ -266,7 +267,7 @@ def test_the_decline_is_offered_and_says_what_it_costs():
     assert "after the review rounds have settled" in decline, (
         "the decline does not say WHEN the refusal arrives, which is the cost"
     )
-    assert "/specseal:config" in decline, "the decline names no way back to the row"
+    assert "/agentic:config" in decline, "the decline names no way back to the row"
 
 
 def test_the_criterion_is_named_by_pointer_and_not_restated():
@@ -291,7 +292,7 @@ def test_the_criterion_is_named_by_pointer_and_not_restated():
 
 def test_the_row_is_written_after_seal_mode_and_carries_its_section():
     """`seal mode` writes a config file holding only `Mode`, so the row lands
-    afterwards — and it lands the way `/specseal:config` step 3 lands one, the
+    afterwards — and it lands the way `/agentic:config` step 3 lands one, the
     row AND its section, because the documentation beside it is the half a
     person reads. No new writer: `skills/config/SKILL.md` *What this does not
     do* refuses a generic setter for a file people edit by hand."""
@@ -347,33 +348,44 @@ def test_the_sentence_that_said_nowhere_else_is_gone():
     assert "`<repo>/seal/` and nowhere else" not in flat(both_halves())
 
 
-def test_an_unmoved_old_layout_is_not_asked_but_told():
-    """Q7: a repository that committed the 0.3.x directories chose shared
-    already; the session-start hook moves it, and the skill says so instead
-    of offering local mode beside a layout the hook will move into the tree."""
+OLD_LAYOUT = "A repository still on the 0.3.x layout"
+
+
+def test_the_0_3_x_layout_is_sent_to_the_by_hand_path_and_the_bootstrap_goes_on():
+    """No code of the plugin opens the 0.3.x layout, so nothing moves it at
+    a session start: the bootstrap names README.md's by-hand section in one
+    line and continues to the question, and a top-level `specs/` stays the
+    project's own."""
     boot = bootstrap()
-    assert "0.3.x layout" in boot
-    assert boot.index("0.3.x layout") < boot.index(RECORDS_ONLY)
-    assert "moves it" in boot
+    told = paragraph(boot, OLD_LAYOUT)
+    assert "README.md *Coming up from 0.3.x*" in told, told
+    assert "continues" in told, told
+    assert "top-level `specs/` is the project's own" in told, told
+    assert "the plugin moves it" not in flat(boot), "the bootstrap promises a move"
+    assert boot.index(OLD_LAYOUT) < boot.index(RECORDS_ONLY)
 
 
-BARE_SPECS = "**A `specs/` without a marked entry is not the 0.3.x layout.**"
+OWN_SEAL = "**A `<repo>/seal/` whose `README.md` opens with neither the marker"
+# The paragraph before it: a root an earlier release wrote waits for its move,
+# and the orchestrator creates nothing beside it.
+EARLIER_SEAL = "**A `<repo>/seal/` whose `README.md` opens with a heading an earlier"
 
 
-def test_a_bare_specs_is_asked_and_only_the_plugins_marks_are_told():
-    """#688 A1 and A2. A top-level `specs/` used to be the 0.3.x layout by
-    its name, so a project that kept its own specifications there was told
-    it had chosen shared and never asked. The told path needs the plugin's
-    marks now, named in the paragraph that decides it, and a `specs/`
-    without them goes on to the question before the mode's options."""
+def test_a_projects_own_seal_gets_nothing_and_the_root_goes_under_the_git_dir():
+    """First setup meeting a `seal/` the project keeps for itself writes
+    nothing into it, and the orchestrator is told the root goes under the
+    git directory in local mode, before the mode's options are offered."""
     boot = bootstrap()
-    told = paragraph(boot, "First, look for the 0.3.x layout.")
-    assert "`routing.md`" in told and "`rounds/`" in told, told
-    assert "a top-level `specs/` is" not in told, "the name alone still decides"
-    bare = paragraph(boot, BARE_SPECS)
-    assert "go on to the question" in bare, bare
-    assert "leave the directory where it is" in bare, bare
-    assert boot.index(told[:40]) < boot.index(BARE_SPECS) < boot.index(RECORDS_ONLY)
+    own = paragraph(boot, OWN_SEAL)
+    assert "`templates/seal-README.md`" in own, own
+    assert "writes nothing into it" in own, own
+    assert f"`{COMMON_DIR}`" in own, own
+    assert "local mode" in own, own
+    assert boot.index(OWN_SEAL) < boot.index(RECORDS_ONLY)
+    earlier = paragraph(boot, EARLIER_SEAL)
+    assert "`hooks/optin.py#EARLIER_HEADINGS`" in earlier, earlier
+    assert "creates no root beside it" in earlier, earlier
+    assert boot.index(EARLIER_SEAL) < boot.index(OWN_SEAL)
 
 
 # --- Q1: the sentence a session reads, once in each place -----------------
@@ -396,7 +408,7 @@ def test_the_session_rule_appears_once(parts):
     assert "means `<repo>/seal/` where" in text, "/".join(parts)
 
 
-@pytest.mark.parametrize("agent", ["warden.md", "smith.md"])
+@pytest.mark.parametrize("agent", ["proofer.md", "crafter.md"])
 def test_no_definition_carries_its_own_copy_of_the_root_rule(agent):
     """The move has to be a move. A definition that keeps the sentence beside
     the contract's is the duplication contract rule 11 was written to end, and it is
@@ -436,7 +448,7 @@ def test_the_template_runs_the_two_shipped_checks_from_the_plugin_at_its_tag():
     # so the template fetches no pull-request heads (#923).
     assert "refs/pull/" not in t
     assert "v<version>" in t, "the plugin is not pinned to its tag"
-    assert "MichaelYcJo/SpecSeal" in t
+    assert "MichaelYcJo/AgenticSeal" in t
     assert "RUNNER_TEMP" in t or "runner.temp" in t, "the plugin lands in the tree"
 
 
@@ -603,7 +615,9 @@ def test_the_switch_block_lands_the_root_at_the_tree_root_from_a_subdirectory(
     assert (repo / "seal" / "ledger" / "f.md").is_file(), porcelain(repo)
     assert not (sub / "seal").exists(), "the root landed under the subdirectory"
     assert not home.exists(), "the local root was copied, not moved"
-    assert porcelain(repo) == ["A  seal/ledger/f.md"], porcelain(repo)
+    assert porcelain(repo) == ["A  seal/README.md", "A  seal/ledger/f.md"], porcelain(
+        repo
+    )
 
     r = subprocess.run(["bash", "-c", to_local], cwd=str(sub), capture_output=True)
     assert r.returncode == 0, r.stderr
@@ -643,6 +657,21 @@ def test_the_seal_readme_is_the_template_verbatim():
     assert read("seal", "README.md") == read("templates", "seal-README.md")
 
 
+MARKER_SAID = "**The first line of this file is the marker.**"
+
+
+def test_the_seal_readme_says_its_first_line_is_the_marker():
+    """The root's own README tells a person not to edit the line the gates
+    read, and what a `seal/` without it is; the 0.3.x paragraph it replaced
+    is gone."""
+    text = read("templates", "seal-README.md")
+    said = paragraph(text, MARKER_SAID)
+    assert "`hooks/optin.py#MARKER`" in said, said
+    assert "never opted in" in said, said
+    assert "writes nothing into it" in said, said
+    assert "`.specseal/`" not in text
+
+
 def test_the_seal_readme_points_at_the_drain_and_restates_none_of_it():
     """Round 2 of #940, finding 2. Who moves a work item's open rows, when
     and where each goes is `skills/implement/SKILL.md` section 6's alone; a
@@ -680,32 +709,32 @@ def test_the_record_no_longer_says_the_checks_would_refuse(parts, wrong):
 
 
 @pytest.mark.parametrize(
-    "parts, opt_in, setup, stamp",
+    "parts, opt_in, setup, move",
     [
         (
             ("docs", "one-root-by-lifetime.md"),
             "## The opt-in signal is the root itself",
             "## What first setup asks",
-            "that hook stamps the repository as moved",
+            "on each branch whose tree still holds them",
         ),
         (
             ("docs", "one-root-by-lifetime.ko.md"),
             "## 옵트인 신호는 루트 자체다",
             "## 처음 설정에서 무엇을 묻는가",
-            "그 훅은 저장소에 옮겼다는 표시를 남기므로",
+            "앞선 배치가 남아 있는 브랜치마다",
         ),
     ],
 )
 def test_the_design_record_states_the_setup_rules_where_they_rule(
-    parts, opt_in, setup, stamp
+    parts, opt_in, setup, move
 ):
     """The opt-out sits with the opt-in it takes back, and the question's
-    shape, the workflow it installs and the migration hook's stamp sit with
+    shape, the workflow it installs and the migration hook's move sit with
     first setup, in both editions."""
     text = read(*parts)
-    assert "specseal-scratch" in section(text, opt_in, 2), "/".join(parts)
+    assert "agentic-scratch" in section(text, opt_in, 2), "/".join(parts)
     body = " ".join(section(text, setup, 2).split())
-    for needle in ("templates/hygiene.yml", COMMON_DIR, "AskUserQuestion", stamp):
+    for needle in ("templates/hygiene.yml", COMMON_DIR, "AskUserQuestion", move):
         assert needle in body, f"{'/'.join(parts)}: {setup} does not name {needle}"
 
 
@@ -713,12 +742,12 @@ def test_the_design_record_states_the_setup_rules_where_they_rule(
 #
 # The bootstrap above is where the mode question lives, and the cases in this
 # file all reach it by reading the skill. That is not how a session gets
-# there. `install.sh` copies the block between `<!-- specseal:start -->` and
-# `<!-- specseal:end -->` — `templates/claude-md-block.md`, the block's one
+# there. `install.sh` copies the block between `<!-- agentic:start -->` and
+# `<!-- agentic:end -->` — `templates/claude-md-block.md`, the block's one
 # source — into `~/.claude/CLAUDE.md`, so the block loads in EVERY project on
 # the machine —
-# including one that has never seen SpecSeal —
-# and it tells a session to write `seal/specs/<id>/routing.md` before the
+# including one that has never seen AgenticSeal —
+# and it tells a session to write `seal/threads/<id>/routing.md` before the
 # first edit. That write creates `seal/`. Creating `seal/` opts the repository
 # in. Every case above passed while that route existed, because none of them
 # read the preset block.
@@ -727,7 +756,7 @@ def test_the_design_record_states_the_setup_rules_where_they_rule(
 # it was edited, and each failed; the output is in the body of the commit that
 # added them.
 
-START, END = "<!-- specseal:start -->", "<!-- specseal:end -->"
+START, END = "<!-- agentic:start -->", "<!-- agentic:end -->"
 
 
 def preset():
@@ -755,7 +784,7 @@ def test_the_preset_sends_a_fresh_repository_to_the_bootstrap():
     notices the condition applies — so the condition leads the rule rather
     than trailing it."""
     rule = routing_rule()
-    lead = rule[: rule.index("write `seal/specs/")]
+    lead = rule[: rule.index("write `seal/threads/")]
     assert "Bootstrap" in lead, (
         "the routing rule instructs the write before it names the bootstrap, "
         "which is the order that made #151 happen"
@@ -764,6 +793,9 @@ def test_the_preset_sends_a_fresh_repository_to_the_bootstrap():
     # carries, which no longer holds it.
     assert "skills/implement/orchestration.md" in lead
     assert "neither" in lead, "the rule does not say WHICH repositories it means"
+    # A project's own `seal/` is no root, so a repository holding only that
+    # one is sent to the bootstrap too.
+    assert "its `README.md` opening with the marker" in lead, lead
 
 
 def test_the_preset_writes_no_declaration_under_no_work_item():
@@ -772,7 +804,7 @@ def test_the_preset_writes_no_declaration_under_no_work_item():
     session in a rooted repository that reads only the block neither writes
     a declaration nobody gave nor asks a question it has no text for."""
     rule = routing_rule()
-    lead = rule[: rule.index("write `seal/specs/")]
+    lead = rule[: rule.index("write `seal/threads/")]
     assert "Except under `no work item`" in lead, (
         "the routing rule writes routing.md under every answer, `no work item` included"
     )

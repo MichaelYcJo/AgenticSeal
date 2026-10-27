@@ -21,7 +21,7 @@ session in that repository is denied and the second is asked, until
 `seal mode` writes the row. Two prompts per session per repository, then
 nothing once the row exists.
 
-**An absent `Broad gate` is a refusal, not a prompt:** `broad-gate` names the
+**An absent `Broad gate` is a refusal, not a prompt:** `seal gate` names the
 row and exits 2 with nothing run, because a run over a command nobody chose
 proves nothing (*Broad gate* below).
 
@@ -32,8 +32,8 @@ neither its first nor its last: it is refused in the sentence
 "`<item>` appears N times — one value". A file that is there and cannot be
 read as UTF-8 text (a directory of that name, or bytes another encoding
 wrote) is refused naming its path; a file that is absent still declares
-nothing. A command a person runs (`fold-check`, `broad-gate`, `seal mode`,
-`pact-check`) prints the refusal and exits 2 with nothing judged, as it does
+nothing. A command a person runs (`seal fold`, `seal gate`, `seal mode`,
+`seal pact`) prints the refusal and exits 2 with nothing judged, as it does
 for a value it cannot parse. A hook says nothing: the mode gate is silent
 rather than asking. Whoever writes the file repairs it by deleting the extra
 row, or by writing the file as UTF-8.
@@ -85,9 +85,10 @@ value is a language's English name, such as `English`, `Korean` or
 ## Record language
 
 The language the **prose** in the work-item records is written in:
-`spec.md`, `plan.md`, `overview.md`, `questions.md`, `changelog.md`, and in
-`rounds/round-N.md` each finding's heading, account and `answer:`, the prose
-after each `confirms:` line, and the cells of its tables.
+`frame/design.md`, `frame/plan.md`, `gaps.md`, `frame/questions.md`,
+`changelog.md`, and in `trail/rounds/round-N.md` each finding's heading,
+account and `answer:`, the prose after each `confirms:` line, and the cells of
+its tables.
 
 **Independent of the row above.** Setting one does not carry the other, for
 the reason stated at the top of this file: an absent row's default is what
@@ -102,7 +103,7 @@ people rather than about the file, which is why it is a row and not a rule.
 
 **The review splits across the two rows on purpose.** The report posted to a
 pull request is prose for whoever opens it, and follows the row above.
-`rounds/round-N.md` is half structure (`chain_check.py` reads its headings,
+`trail/rounds/round-N.md` is half structure (`chain_check.py` reads its headings,
 its labelled lines and the four verdict values literally), and its prose
 follows this one.
 
@@ -124,10 +125,10 @@ every repository, whatever either row says:
   headings, which the parties and the eval graders read; a
   `guarantee.md`'s `Target SHA`, and its `Verdict:` line with the words
   `sealed`, `withheld`, `undecided`, `reason:` and `question:`; a
-  `broad-gate.md`'s `Broad gate`; an
-  `overview.md`'s `## Not verified` heading with its `Item` and
+  `trail/gate.md`'s `Broad gate`; a
+  `gaps.md`'s `## Not verified` heading with its `Item` and
   `Who must answer` columns, or its no-change block `- nothing` with
-  `why:`; a `spec.md`'s `## Removes` heading; its
+  `why:`; a `frame/design.md`'s `## Removes` heading; its
   `## Rule changes` heading, the items `add`, `change`, `remove` and
   `nothing`, and the fields `file:`, `section:`, `from:`, `to:` and `why:`.
   A translated field name is not a translation, it is a broken gate.
@@ -199,10 +200,10 @@ from the moment it lands.
 
 The repository's own broad command (the full suite, the repository-wide
 lint, the typecheck) as **one shell command line**, run from the repository
-root by `broad-gate` once the review rounds settle. The plugin's own checks
+root by `seal gate` once the review rounds settle. The plugin's own checks
 follow it and are not part of the row; the module docstring of
 `skills/verify/scripts/broad_gate.py` lists them, in the order they run.
-`broad-gate --preflight` runs those checks alone, reading the row and not
+`seal gate --preflight` runs those checks alone, reading the row and not
 running it, and writes nothing; the orchestrator runs it before the sealer is
 spawned.
 
@@ -210,7 +211,7 @@ spawned.
 | Broad gate | uvx ruff check . && uvx ruff format --check . && bin/test -q |
 ```
 
-**An absent row is a refusal, not a default.** `broad-gate` names this row
+**An absent row is a refusal, not a default.** `seal gate` names this row
 and exits 2 with nothing run. It is a refusal rather than a prompt because
 the orchestrator runs the command unattended, with nothing else running, and
 asks nobody anything: a refusal that names whose the row is and where it is
@@ -271,7 +272,7 @@ that check's kept output carries it under the row as written.
 ### What is refused, and what stays allowed
 
 **A value that would not run as the command it reads as is refused, not
-repaired.** `broad-gate` looks at the row before it hands it to a shell,
+repaired.** `seal gate` looks at the row before it hands it to a shell,
 and three forms come back exit 2 with nothing run, the same shape an
 absent row gets. The criterion is one sentence with two halves, and a form
 is refused only for breaking one of them:
@@ -288,7 +289,7 @@ is refused only for breaking one of them:
 **Nothing is stripped.** A value quietly repaired here would leave the file
 still wrong and teach the next person that the way they wrote it was right,
 so the refusal names the form, quotes the row as written, and shows it as
-meant. Rewriting it is the person's act, and `/specseal:config` is the door
+meant. Rewriting it is the person's act, and `/agentic:config` is the door
 to the row.
 
 **A table inside a code fence is an example of this format and never a
@@ -304,15 +305,15 @@ A fence opens at a line indented at most three spaces whose first run is three
 or more backticks or three or more tildes, and closes at the next line of at
 least as many of the same character with nothing after it but spaces. **A
 fence that is never closed runs to the end of the file**, so everything under
-it, the live table included, reads as undeclared: `broad-gate` exits 2 with
+it, the live table included, reads as undeclared: `seal gate` exits 2 with
 a message and the mode question comes back. That is loud rather than quiet,
 which is the trade this rule is written for.
 
-What it prevents is quiet. The block `/specseal:config` copies out of this
+What it prevents is quiet. The block `/agentic:config` copies out of this
 file carries the fenced example row above; pasted above the live table, or
 above a table with no parseable row yet, the example would otherwise be the
 table every gate reads, a broad run over a plausible command nobody chose.
-**`broad-gate` says so by name**: where
+**`seal gate` says so by name**: where
 this gate's row exists only inside a fence, the refusal quotes that line and
 says where it has to move to, rather than reporting the row absent.
 
@@ -340,7 +341,7 @@ rather than paid for by a refusal:
 |---|---|
 | `$(…)` **inside** a longer line | nothing. `pytest -n $(nproc)` still runs as the command it reads as |
 | `;`, `\|\|`, quotes, redirection, variables, globs | the row answers with whatever the composition the repository wrote answers with. That is the repository's own claim about itself, which is what this row already is |
-| a pipe, **written `\|`** | the same, and one thing more. A piped row exits with the pipe's LAST status, so `bin/test -q \| tee out.txt` is green whenever `tee` is: the repository's own claim about itself. **This file is markdown and a cell of it ends at a bare pipe**, so `\|` is how the value carries one, the way every other cell of this table already writes it. The reader reduces exactly those two characters to a plain pipe before any shell sees it, so a value holding Windows path separators is untouched. **A BARE pipe is refused**: GitHub shows that row cut off at the pipe, so the command it shows is not the one written, and `broad-gate` quotes the line, says to write it `\|`, and runs nothing. The walker reads no row below a line it refuses, so a `Mode` row written under it is that refusal rather than an absent row: `seal mode` writes nothing and names the line, and the mode gate says nothing. Written LAST in its table the line has nothing under it, and `broad-gate`'s refusal says the rows below it go unread only where a row is written below it |
+| a pipe, **written `\|`** | the same, and one thing more. A piped row exits with the pipe's LAST status, so `bin/test -q \| tee out.txt` is green whenever `tee` is: the repository's own claim about itself. **This file is markdown and a cell of it ends at a bare pipe**, so `\|` is how the value carries one, the way every other cell of this table already writes it. The reader reduces exactly those two characters to a plain pipe before any shell sees it, so a value holding Windows path separators is untouched. **A BARE pipe is refused**: GitHub shows that row cut off at the pipe, so the command it shows is not the one written, and `seal gate` quotes the line, says to write it `\|`, and runs nothing. The walker reads no row below a line it refuses, so a `Mode` row written under it is that refusal rather than an absent row: `seal mode` writes nothing and names the line, and the mode gate says nothing. Written LAST in its table the line has nothing under it, and `seal gate`'s refusal says the rows below it go unread only where a row is written below it |
 | an `&` anywhere but at the end | the command before it is backgrounded and its status discarded, exactly as a `;` discards one. Unlike a `;`, it may still be running when the gate reports, writing into the tree the report is about. That is `/bin/sh`; `cmd.exe` sequences the two commands instead, so nothing is left running and the status read is the second command's. Telling an operator `&` from a `2>&1` or a quoted `&` needs the shell parser this list exists to avoid, so it stays the row author's own composition. The **trailing** form is refused, because nothing composes after it and the whole line goes to the background |
 
 ### The criterion for choosing a value
@@ -352,7 +353,7 @@ mentions the row links here.
 |---|---|---|
 | 1 | A check that is red repository-wide for reasons unrelated to any branch does not belong in the row | It would block every future work item for something none of them caused, and a gate that always fails is read as noise and then ignored |
 | 2 | A command that **fixes** the tree (`--fix`, `--write`, a formatter in write mode) is not a gate command | A gate asks what is wrong. One that changes the answer while reading it can only come back green, which is the counterfeit `skills/verify/SKILL.md` names |
-| 3 | Every pytest the row runs keeps the environment the gate hands it | On a failing test the gate compares each failing file with the base from a record, never from what pytest printed. It runs the row with a pytest recorder of its own loaded: the recorder's directory first on `PYTHONPATH`, `-p specseal_pytest_record` appended to `PYTEST_ADDOPTS`, and a key made fresh for the run. The first pytest session in each process that finds the key takes it out of that process's environment and writes down every test it ran with its outcome, and every file it could not collect, each by the path pytest collected it from, under `records/` in the kept output. A pytest a test starts, and an xdist worker, inherit no key and write nothing, so nothing a test prints or runs changes a word. The failing files are the ones that record holds failing, listed from the repository root with `/`. **Then the row runs once more, unchanged, at the base** (nothing appended, no part cut, every part run as written) in a scratch worktree the gate removes afterwards, kept as `suite-at-base.txt`, and each file reads one row of a table: where no pytest at the base left a record (the row ended before it started one, none loaded the recorder, or the one that did could not write its record and warned in `suite-at-base.txt`), `new?`; where the base's record holds a failing test or a failed collection of the file, `failing on base too`; where it holds the file and nothing of it failed, `new`; where it does not hold the file and the row exited 0, `new`, because the row ran to its end and never collected the file; and where it does not hold the file and the row exited otherwise, `new?` naming the exit, because the run may have ended before reaching it; so a file the branch added reads `new?` wherever the base's row already fails. Either `new` reads `new?` naming the count instead where a session of the base that ended non-zero left any test or collection out of every list, because one of them may be the file's failure: a test whose xdist worker died in its setup, before any report of it reached the controller, is one. A session that exited 0 failed nothing, so what it left out cannot be. One over-strictness is named rather than closed: a red session whose left-out reports all passed, such as a passing item a conftest parents to the session, still turns `new` into `new?`. Either `new` reads `new?` naming the count, too, where a session of the base stopped part-way, so the file's tests there may not have finished: it wrote no `end` line to its record, because its process died, as plain pytest does on a test that calls `os._exit` or segfaults, or its recorder stopped writing, a disk that filled among the causes; or its `end` line says pytest stopped it (an interrupt, `pytest.exit()` whatever code it chose, `-x` or `--maxfail`, a plugin's stop) or shows an exit other than 0, 1 and 5. Where a red session also left reports out, that count is the one named. Where no pytest the row ran at `HEAD` left a record, for any of those causes, the files come from its `FAILED` lines, each file reads `new?` with the reason, and the base is not run; where one runner loaded it and another did not, the other's failures stay in `suite.txt` and out of the list. **The cost is one more run of the whole row, and only when the suite fails**, whatever the number of failing files. Every part of the row runs in it as written, so a part after the runner that the branch's own run never reached, because `&&` stopped at its failing suite, runs at the base wherever the base's suite passes, its writes inside the scratch worktree removed with it and its writes outside it kept. So the runner may come first or last, and the order is the repository's trade: either way the row runs once, whole, at the base. **A row earns the measured word** by letting every pytest it runs load the recorder: it adds to the `PYTHONPATH` and `PYTEST_ADDOPTS` the gate hands it rather than replacing them, and runs pytest in that environment rather than in one it builds. A runner started by `tox`, `nox`, `env -i`, a container or a wrapper that rebuilds the environment without either variable writes no record, and so does a row that sets `PYTEST_ADDOPTS` to a value of its own; its files read `new?`. A row that keeps `PYTEST_ADDOPTS` and loses `PYTHONPATH` fares worse (one that replaces `PYTHONPATH`, an interpreter run with `-I` or `-E`, a wrapper that passes `PYTEST_ADDOPTS` or `PYTEST_*` on and not `PYTHONPATH`): pytest cannot import the module the `-p` names and exits 1 before any test runs, so the row fails at the gate. The person writing the row puts the row's directory in front of the variable instead (`PYTHONPATH=src:$PYTHONPATH` under `/bin/sh`), and passes `PYTHONPATH` on wherever `PYTEST_ADDOPTS` goes. The record names each file by the path pytest itself holds for the test or the collector, read in the process that holds it (an xdist worker too) and carried on the report, never by a name pytest made from that path, so a file outside the rootdir, a `--pyargs` module wherever Python imports it from and a collector a conftest builds are each named by their own path. It leaves three kinds of report out of every list, counts them on the record's `end` line, and the gate says how many under the failing files: a test with no file of its own, which a conftest or a plugin parents to the session or to a directory; a failed collection of the whole session, which is where pytest 7 lays a conftest's import error anywhere below the root; and a report that reached the recorder without its path, one a plugin built or rebuilt itself, unless the same xdist worker's last report was of the same test and not its teardown, as a test whose worker crashed in its body has; a report's node id alone never places it, because two tests can share one. The gate also says there how many sessions at `HEAD` stopped part-way, because the test such a session stopped in may be in no list. The path travels as a report attribute of the recorder's own, so a plugin that writes reports whole, pytest-reportlog's `--report-log` among them, writes it into the row's own log while the gate measures the row. One limit is named rather than closed: a test written to append to the record file the recorder is writing, or to write a record of its own with the gate's key, can put a line into a keyed record |
+| 3 | Every pytest the row runs keeps the environment the gate hands it | On a failing test the gate compares each failing file with the base from a record, never from what pytest printed. It runs the row with a pytest recorder of its own loaded: the recorder's directory first on `PYTHONPATH`, `-p agentic_pytest_record` appended to `PYTEST_ADDOPTS`, and a key made fresh for the run. The first pytest session in each process that finds the key takes it out of that process's environment and writes down every test it ran with its outcome, and every file it could not collect, each by the path pytest collected it from, under `records/` in the kept output. A pytest a test starts, and an xdist worker, inherit no key and write nothing, so nothing a test prints or runs changes a word. The failing files are the ones that record holds failing, listed from the repository root with `/`. **Then the row runs once more, unchanged, at the base** (nothing appended, no part cut, every part run as written) in a scratch worktree the gate removes afterwards, kept as `suite-at-base.txt`, and each file reads one row of a table: where no pytest at the base left a record (the row ended before it started one, none loaded the recorder, or the one that did could not write its record and warned in `suite-at-base.txt`), `new?`; where the base's record holds a failing test or a failed collection of the file, `failing on base too`; where it holds the file and nothing of it failed, `new`; where it does not hold the file and the row exited 0, `new`, because the row ran to its end and never collected the file; and where it does not hold the file and the row exited otherwise, `new?` naming the exit, because the run may have ended before reaching it; so a file the branch added reads `new?` wherever the base's row already fails. Either `new` reads `new?` naming the count instead where a session of the base that ended non-zero left any test or collection out of every list, because one of them may be the file's failure: a test whose xdist worker died in its setup, before any report of it reached the controller, is one. A session that exited 0 failed nothing, so what it left out cannot be. One over-strictness is named rather than closed: a red session whose left-out reports all passed, such as a passing item a conftest parents to the session, still turns `new` into `new?`. Either `new` reads `new?` naming the count, too, where a session of the base stopped part-way, so the file's tests there may not have finished: it wrote no `end` line to its record, because its process died, as plain pytest does on a test that calls `os._exit` or segfaults, or its recorder stopped writing, a disk that filled among the causes; or its `end` line says pytest stopped it (an interrupt, `pytest.exit()` whatever code it chose, `-x` or `--maxfail`, a plugin's stop) or shows an exit other than 0, 1 and 5. Where a red session also left reports out, that count is the one named. Where no pytest the row ran at `HEAD` left a record, for any of those causes, the files come from its `FAILED` lines, each file reads `new?` with the reason, and the base is not run; where one runner loaded it and another did not, the other's failures stay in `suite.txt` and out of the list. **The cost is one more run of the whole row, and only when the suite fails**, whatever the number of failing files. Every part of the row runs in it as written, so a part after the runner that the branch's own run never reached, because `&&` stopped at its failing suite, runs at the base wherever the base's suite passes, its writes inside the scratch worktree removed with it and its writes outside it kept. So the runner may come first or last, and the order is the repository's trade: either way the row runs once, whole, at the base. **A row earns the measured word** by letting every pytest it runs load the recorder: it adds to the `PYTHONPATH` and `PYTEST_ADDOPTS` the gate hands it rather than replacing them, and runs pytest in that environment rather than in one it builds. A runner started by `tox`, `nox`, `env -i`, a container or a wrapper that rebuilds the environment without either variable writes no record, and so does a row that sets `PYTEST_ADDOPTS` to a value of its own; its files read `new?`. A row that keeps `PYTEST_ADDOPTS` and loses `PYTHONPATH` fares worse (one that replaces `PYTHONPATH`, an interpreter run with `-I` or `-E`, a wrapper that passes `PYTEST_ADDOPTS` or `PYTEST_*` on and not `PYTHONPATH`): pytest cannot import the module the `-p` names and exits 1 before any test runs, so the row fails at the gate. The person writing the row puts the row's directory in front of the variable instead (`PYTHONPATH=src:$PYTHONPATH` under `/bin/sh`), and passes `PYTHONPATH` on wherever `PYTEST_ADDOPTS` goes. The record names each file by the path pytest itself holds for the test or the collector, read in the process that holds it (an xdist worker too) and carried on the report, never by a name pytest made from that path, so a file outside the rootdir, a `--pyargs` module wherever Python imports it from and a collector a conftest builds are each named by their own path. It leaves three kinds of report out of every list, counts them on the record's `end` line, and the gate says how many under the failing files: a test with no file of its own, which a conftest or a plugin parents to the session or to a directory; a failed collection of the whole session, which is where pytest 7 lays a conftest's import error anywhere below the root; and a report that reached the recorder without its path, one a plugin built or rebuilt itself, unless the same xdist worker's last report was of the same test and not its teardown, as a test whose worker crashed in its body has; a report's node id alone never places it, because two tests can share one. The gate also says there how many sessions at `HEAD` stopped part-way, because the test such a session stopped in may be in no list. The path travels as a report attribute of the recorder's own, so a plugin that writes reports whole, pytest-reportlog's `--report-log` among them, writes it into the row's own log while the gate measures the row. One limit is named rather than closed: a test written to append to the record file the recorder is writing, or to write a record of its own with the gate's key, can put a line into a keyed record |
 
 ## Reference specs
 
@@ -374,16 +375,16 @@ reference root.
 | no `seal/` root at either place | no reference root: the repository has not opted in, and the one layout the plugin read without a root is 0.3.x, whose top-level `specs/` was its own |
 
 **What it governs.** The checks that would read a record leave a reference
-root out: `unverified-check` prunes it from a directory walk while still
+root out: `seal unverified` prunes it from a directory walk while still
 reading a file named to it explicitly. A prefix naming the plugin's own root
 or anything under it is dropped, because the root's records are read whatever
-this row says; `settle --apply` removes only under `seal/specs/`. One reader
+this row says; `seal settle --apply` removes only under `seal/threads/`. One reader
 answers the row, `hooks/config.py#reference_roots`, and one predicate the
 path question, `hooks/config.py#under_reference_root`.
 
 **What it asks of the party that frames or builds a change.** That party
 reads a reference root when the change touches what it describes, and cites
-what it read, in `spec.md` or in the statement `settle` folds into `docs/`,
+what it read, in `frame/design.md` or in the statement `settle` folds into `docs/`,
 so the next reader can open the same file.
 
 ## Pact
@@ -409,20 +410,20 @@ so two pacts whose URLs end in the same segment are refused as ambiguous.
 **A row that will not parse is refused in a sentence**, never read as absent.
 At this repository's pull request `chain-check` prints the sentence and its
 exit status does not move: a signer's CI prints and does not verify.
-`pact-check`, run at the pact's repository, reads the same row through the
+`seal pact`, run at the pact's repository, reads the same row through the
 same reader, `hooks/config.py#pact_declaration`, and exits 2 on it. A `Pact`
-row the table does not hold is no row: `pact-check` then reads the signer as
+row the table does not hold is no row: `seal pact` then reads the signer as
 naming no pact and exits 2 on a relationship recorded on one side only.
 
 **A `Pact notify` row is read by nobody.** No command refuses it, prints it
 or names it, like any item no reader asks for, and whoever next edits the
 file deletes it. No reader names it, because naming it would keep a reader
-for a row that changes nothing, and a refusal would stop `pact-check` at the
+for a row that changes nothing, and a refusal would stop `seal pact` at the
 pact's repository over it.
 
 ## The fold's values
 
-Two rows, read by `fold-check` and `settle` (`skills/settle/SKILL.md`). The
+Two rows, read by `seal fold` and `settle` (`skills/settle/SKILL.md`). The
 plugin sets no value; these rows are where a repository states its own.
 
 ```markdown
@@ -445,7 +446,7 @@ trimmed*.
 refusing.** A `Policy root` value that is empty, absolute or climbs out with
 `..` reads as `docs`. The cost is stated rather than hidden: a row deleted
 while tidying this file turns its check off, and the only trace is the one
-line `fold-check` prints about it.
+line `seal fold` prints about it.
 
 **A value that will not parse is refused.** A ceiling that is not a positive
 whole number exits 2 naming the row, and nothing is checked. The `--ceiling`

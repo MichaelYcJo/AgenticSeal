@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# specseal installer — CLAUDE.md marker-block merge only.
+# AgenticSeal installer — CLAUDE.md marker-block merge only.
 #
 # Skills / agents / hooks / commands are distributed as a Claude Code plugin
 # (see README: /plugin install). The one thing a plugin cannot carry is a
 # CLAUDE.md block, so this script manages exactly that:
 #
 #   1. Back up the existing ~/.claude/CLAUDE.md to CLAUDE.md.bak
-#   2. Insert or update the <!-- specseal:start/end --> block
+#   2. Insert or update the <!-- agentic:start/end --> block
 #   3. NEVER touch content outside the markers — if something outside looks
 #      like it overlaps with the block, print a warning and leave it alone.
-#      (Semantic dedup is /specseal:preset-setup's job, with your approval, not ours.)
+#      (Semantic dedup is /agentic:preset-setup's job, with your approval, not ours.)
 #
 # Usage: bash install.sh                      → global (~/.claude/CLAUDE.md)
 #        bash install.sh --project            → this project (./CLAUDE.md, committed with the repo)
@@ -42,15 +42,20 @@ else
 fi
 # The block's one source. No other file in the repository carries a copy.
 SOURCE="$REPO_DIR/templates/claude-md-block.md"
-START='<!-- specseal:start -->'
-END='<!-- specseal:end -->'
+START='<!-- agentic:start -->'
+END='<!-- agentic:end -->'
+# The markers every release before the rename to AgenticSeal wrote. A
+# CLAUDE.md holding a block between them gets the block above in its place,
+# once; the minor release after the rename removes this.
+OLD_START='<!-- specseal:start -->'
+OLD_END='<!-- specseal:end -->'
 
 GREEN='\033[0;32m'; YELLOW='\033[1;33m'; RED='\033[0;31m'; NC='\033[0m'
 info()  { echo -e "${GREEN}[info]${NC} $1"; }
 warn()  { echo -e "${YELLOW}[warn]${NC} $1"; }
 error() { echo -e "${RED}[error]${NC} $1"; exit 1; }
 
-[ -f "$SOURCE" ] || error "Run this script from the specseal directory (templates/claude-md-block.md not found)."
+[ -f "$SOURCE" ] || error "Run this script from the AgenticSeal directory (templates/claude-md-block.md not found)."
 grep -qF "$START" "$SOURCE" || error "templates/claude-md-block.md has no preset markers."
 
 # Extract the managed block (markers included) from the repo file.
@@ -69,17 +74,30 @@ else
     cp "$TARGET" "$TARGET.bak"
     info "Backed up existing file to $TARGET.bak"
 
+    # The markers the target's block stands between: this release's, else the
+    # ones a release before the rename wrote, else none.
+    FOUND_START=""; FOUND_END=""
     if grep -qF "$START" "$TARGET"; then
+        FOUND_START="$START"; FOUND_END="$END"
+    elif grep -qF "$OLD_START" "$TARGET"; then
+        FOUND_START="$OLD_START"; FOUND_END="$OLD_END"
+    fi
+
+    if [ -n "$FOUND_START" ]; then
         # A start marker without its end marker means the block is damaged;
         # the update below would silently drop everything after START.
-        grep -qF "$END" "$TARGET" || error \
+        grep -qF "$FOUND_END" "$TARGET" || error \
             "Found the start marker but no end marker in $TARGET — refusing to edit. Repair the block (or delete it) and rerun."
         # Replace everything between the markers (inclusive) with the new block.
         # BSD awk rejects multi-line -v strings, so assemble in three parts.
-        awk -v s="$START" 'index($0, s) { exit } { print }' "$TARGET.bak" > "$TARGET"
+        awk -v s="$FOUND_START" 'index($0, s) { exit } { print }' "$TARGET.bak" > "$TARGET"
         printf '%s\n' "$BLOCK" >> "$TARGET"
-        awk -v e="$END" 'after { print } index($0, e) { after = 1 }' "$TARGET.bak" >> "$TARGET"
-        info "Updated the preset block in $TARGET"
+        awk -v e="$FOUND_END" 'after { print } index($0, e) { after = 1 }' "$TARGET.bak" >> "$TARGET"
+        if [ "$FOUND_START" = "$OLD_START" ]; then
+            info "Replaced the block a release before the rename to AgenticSeal wrote with the preset block in $TARGET"
+        else
+            info "Updated the preset block in $TARGET"
+        fi
     else
         { cat "$TARGET.bak"; echo ""; printf '%s\n' "$BLOCK"; } > "$TARGET"
         info "Appended the preset block to $TARGET"
@@ -100,8 +118,8 @@ fi
 
 echo ""
 info "CLAUDE.md done. Remaining components install as a plugin:"
-echo "       claude → /plugin marketplace add MichaelYcJo/SpecSeal"
-echo "                /plugin install specseal@specseal"
+echo "       claude → /plugin marketplace add MichaelYcJo/AgenticSeal"
+echo "                /plugin install agentic@agenticseal"
 echo ""
 info "For a reviewed, deduplicated merge instead of this mechanical one:"
-echo "       restore $TARGET.bak, then run /specseal:preset-setup inside Claude Code."
+echo "       restore $TARGET.bak, then run /agentic:preset-setup inside Claude Code."

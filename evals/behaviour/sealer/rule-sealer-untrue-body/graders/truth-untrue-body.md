@@ -1,6 +1,6 @@
 ---
 type: 'regex'
-target: {source: 'file', path: 'seal/specs/1790000030-guarantee-untrue-body/guarantee.md'}
+target: {source: 'file', path: 'seal/threads/1790000030-guarantee-untrue-body/guarantee.md'}
 pattern: '^Verdict:.*(?:pull request body|PR body|README)'
 flags: 'mi'
 ---

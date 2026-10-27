@@ -2,7 +2,7 @@
 next phase only if the orchestrator retyped it into the next spawn prompt.
 
 Issue #107 is the worked failure: phase 4 of an earlier work item moved a
-rule out of `agents/smith.md` into an interim home, and phase 5 removed that
+rule out of `agents/crafter.md` into an interim home, and phase 5 removed that
 interim home before the rule had actually reached anywhere else — the rule
 left the repository with nothing recording that it had gone missing. #121
 is the broader version: a phase's discoveries have no durable home at all,
@@ -19,7 +19,7 @@ per-segment record the review chain already has in `templates/sdd-round.md`
                      whose section a reader does not find ships a record
                      that is missing it the moment someone copies the file
   no removal table    what a work item takes out of the tree is named once,
-                     in `spec.md`'s `## Removes`, which the review reads
+                     in `frame/design.md`'s `## Removes`, which the review reads
                      (#835); a per-phase table was a second record of the
                      same fact that nothing read
   the measured story  `skills/implement/SKILL.md`, which the record's writer
@@ -42,24 +42,24 @@ from conftest import read
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 PHASE_TEMPLATE = os.path.join(ROOT, "templates", "sdd-phase.md")
-SMITH_AGENT = os.path.join(ROOT, "agents", "smith.md")
+CRAFTER_AGENT = os.path.join(ROOT, "agents", "crafter.md")
 IMPLEMENT_SKILL = os.path.join(ROOT, "skills", "implement", "SKILL.md")
 
 SECTIONS = (
     "## What this phase was asked",
     "## What this phase found",
 )
-SPEC_TEMPLATE = os.path.join(ROOT, "templates", "sdd-spec.md")
+SPEC_TEMPLATE = os.path.join(ROOT, "templates", "sdd-design.md")
 FRAMER_AGENT = os.path.join(ROOT, "agents", "framer.md")
 REMOVES_RULE = os.path.join(ROOT, "docs", "the-reader-registry.md")
 
 
 def reader_module():
     """`unverified_check.py`, whose `readable` is the same reader
-    `chain_check.py` loads for `rounds/round-N.md`. A second implementation
+    `chain_check.py` loads for `trail/rounds/round-N.md`. A second implementation
     here would be free to drift from what actually reads these records."""
     spec = importlib.util.spec_from_file_location(
-        "specseal_phase_reader_for_tests",
+        "agentic_phase_reader_for_tests",
         os.path.join(ROOT, "skills", "verify", "scripts", "unverified_check.py"),
     )
     module = importlib.util.module_from_spec(spec)
@@ -162,7 +162,7 @@ def test_a_phase_record_carries_no_removal_table():
         skill
     ), "the skill's phase row does not say where a removal is recorded"
     rule = " ".join(read(REMOVES_RULE).split())
-    assert "frame did not name is a divergence, and it goes to `overview.md`" in rule
+    assert "frame did not name is a divergence, and it goes to `gaps.md`" in rule
 
 
 def test_the_spec_template_carries_the_removes_section_above_the_mark():
@@ -231,24 +231,24 @@ def test_each_record_section_states_the_failure_it_prevents():
     )
 
 
-# --- phase 2: smith is told to write the record, and where ------------------
+# --- phase 2: crafter is told to write the record, and where ------------------
 #
-# `agents/smith.md` is read by every spawn, so the instruction to write
-# `phases/phase-N.md` at each phase's close belongs there, and the skill's
+# `agents/crafter.md` is read by every spawn, so the instruction to write
+# `trail/phases/phase-N.md` at each phase's close belongs there, and the skill's
 # file-set table names the path and the template beside it.
 
 
-def test_smith_is_told_to_write_the_phase_record():
-    smith = read(SMITH_AGENT)
-    assert "phases/phase-N.md" in smith, (
-        "agents/smith.md does not name `phases/phase-N.md` — a spawned "
-        "smith has no instruction pointing it at the file to write"
+def test_crafter_is_told_to_write_the_phase_record():
+    crafter = read(CRAFTER_AGENT)
+    assert "trail/phases/phase-N.md" in crafter, (
+        "agents/crafter.md does not name `trail/phases/phase-N.md` — a spawned "
+        "crafter has no instruction pointing it at the file to write"
     )
-    assert "templates/sdd-phase.md" in smith, (
-        "agents/smith.md does not name the template a phase record starts from"
+    assert "templates/sdd-phase.md" in crafter, (
+        "agents/crafter.md does not name the template a phase record starts from"
     )
-    assert "Each phase closes with its record" in smith, (
-        "agents/smith.md does not say WHEN to write the record — a "
+    assert "Each phase closes with its record" in crafter, (
+        "agents/crafter.md does not say WHEN to write the record — a "
         "session that finds the file but not the timing writes it late or "
         "never"
     )
@@ -259,12 +259,12 @@ def test_smith_is_told_to_write_the_phase_record():
 
 def test_skill_file_set_table_carries_the_phase_row():
     skill = read(IMPLEMENT_SKILL)
-    assert "phases/phase-N.md" in skill, (
-        "skills/implement/SKILL.md's SDD file-set table has no `phases/phase-N.md` row"
+    assert "trail/phases/phase-N.md" in skill, (
+        "skills/implement/SKILL.md's SDD file-set table has no `trail/phases/phase-N.md` row"
     )
     assert "templates/sdd-phase.md" in skill, (
         "skills/implement/SKILL.md does not name the template the "
-        "`phases/phase-N.md` row starts from"
+        "`trail/phases/phase-N.md` row starts from"
     )
 
 
@@ -276,11 +276,11 @@ def test_skill_says_what_is_copied_into_what_this_phase_was_asked():
     assert "boilerplate" in skill, (
         "skills/implement/SKILL.md does not say that the copied content "
         "excludes the boilerplate the contract, the skill, and "
-        "agents/smith.md already carry — without that line, a session "
+        "agents/crafter.md already carry — without that line, a session "
         "copies the whole spawn prompt in, including what every phase "
         "already gets told"
     )
-    assert "agents/smith.md" in skill
+    assert "agents/crafter.md" in skill
 
 
 # --- phase 2: carrier consistency ---------------------------------------------
@@ -291,7 +291,7 @@ def test_skill_says_what_is_copied_into_what_this_phase_was_asked():
 # write `round-N.md` for the sibling record.
 
 PROSE_CARRIERS = (
-    ("agents", "smith.md"),
+    ("agents", "crafter.md"),
     ("skills", "implement", "SKILL.md"),
 )
 
@@ -299,4 +299,4 @@ PROSE_CARRIERS = (
 @pytest.mark.parametrize("parts", PROSE_CARRIERS)
 def test_the_phase_record_path_is_spelled_the_same_in_every_prose_carrier(parts):
     text = read(os.path.join(ROOT, *parts))
-    assert "phases/phase-N.md" in text, "/".join(parts)
+    assert "trail/phases/phase-N.md" in text, "/".join(parts)

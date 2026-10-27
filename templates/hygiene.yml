@@ -1,17 +1,18 @@
-# Pull-request checks for the SpecSeal workflow, run against what the pull
+# Pull-request checks for the AgenticSeal workflow, run against what the pull
 # request committed: the review chain's round record, and the `Mode` row of
 # `seal/config.md`.
 #
 # Setup: `seal pr-checks install` writes this file to
 # .github/workflows/hygiene.yml, at first setup under the answer "shared,
 # with pull-request checks" or at any time later, and only when nothing is
-# there yet; an existing file is never overwritten. It pins `v<version>`
+# there yet; an existing file is never overwritten, but for this plugin's own
+# file cloning the repository's name before the rename. It pins `v<version>`
 # below to the plugin version installed at that moment, so the checks come
 # from the release that wrote the file. The line moves when a person edits
 # it, or runs `seal pr-checks remove` and then `seal pr-checks install`.
 #
 # Why it refuses in local mode: the checks read committed files
-# (`chain_check.py` lists `seal/specs/` with `git ls-tree HEAD`), and local
+# (`chain_check.py` lists `seal/threads/` with `git ls-tree HEAD`), and local
 # mode keeps the root under the git directory, where nothing is ever committed.
 # `seal mode` moves the root and leaves this file alone, so a copy can stay
 # after a switch to local. There every step examines nothing and passes: no
@@ -30,7 +31,7 @@ on:
     # and without them a pull request opened as a draft keeps the green it
     # earned on the draft's terms: pressing Ready for review makes no commit,
     # so nothing re-runs. `chain_check.py` reads the draft state, and fails
-    # an open finding, a record behind HEAD, or a missing `broad-gate.md` or
+    # an open finding, a record behind HEAD, or a missing `trail/gate.md` or
     # `guarantee.md` only once the draft is over.
     types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
 
@@ -52,19 +53,19 @@ jobs:
         shell: bash
         run: |
           git clone --quiet --depth 1 --branch v<version> \
-            https://github.com/MichaelYcJo/SpecSeal.git "$RUNNER_TEMP/specseal"
+            https://github.com/MichaelYcJo/AgenticSeal.git "$RUNNER_TEMP/agentic"
 
       # A work item routed "through the review chain" has to carry the round
       # record it claimed. A pull request that declared nothing fails only
-      # where one of its own commits carries a `SpecSeal-Routing` trailer
+      # where one of its own commits carries a `Seal-Routing` trailer
       # naming a work item; a commit with no such trailer, a teammate's
       # among them, is not judged. On a pull request that is not a draft it
       # fails for what the author can fix: a trailer naming a work item no
       # judged declaration names, a declaration that says "through the review
       # chain" with no committed round record, a declaration that cannot be
-      # read, a work item `spec.md` whose `## Rule changes` does not parse,
-      # where the work item is judged or the pull request's own commits add
-      # or change that `spec.md`, a round record of a work item reviewed
+      # read, a work item `frame/design.md` whose `## Rule changes` does not
+      # parse, where the work item is judged or the pull request's own commits
+      # add or change that `frame/design.md`, a round record of a work item reviewed
       # through the review chain, or the `guarantee.md` of one routed
       # straight to the pull request, with no `original:` line naming
       # `seal/parity.md`'s `Baseline commit`, where that config is declared
@@ -72,14 +73,14 @@ jobs:
       # finding still
       # `open` or one the check cannot read,
       # a last record behind HEAD or with a finding no round after it read,
-      # no `broad-gate.md` at HEAD, or no `guarantee.md` reading `sealed` at
+      # no `trail/gate.md` at HEAD, or no `guarantee.md` reading `sealed` at
       # HEAD. A round's `target:` commit is read only as HEAD or an ancestor
       # of it, so the check needs no ref the checkout does not already
       # carry.
       - name: a declared review chain has the round record it claimed
         shell: bash
         run: |
-          python3 "$RUNNER_TEMP/specseal/skills/code-review/scripts/chain_check.py" \
+          python3 "$RUNNER_TEMP/agentic/skills/code-review/scripts/chain_check.py" \
             --baseline "origin/${{ github.base_ref }}"
 
       # `seal/config.md`'s `Mode` row is what this repository says its mode
@@ -91,5 +92,5 @@ jobs:
       - name: the mode the row declares is the mode the folder is in
         shell: bash
         run: |
-          python3 "$RUNNER_TEMP/specseal/skills/implement/scripts/seal.py" \
+          python3 "$RUNNER_TEMP/agentic/skills/implement/scripts/seal.py" \
             mode --check

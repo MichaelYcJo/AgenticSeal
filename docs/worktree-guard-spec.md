@@ -246,7 +246,7 @@ raises is skipped. The record is read first, because it is one `stat`, and
 the transcript only while there is no record.
 
 **The record** is an empty file at
-`<git-common-dir>/specseal-worktree-consent/<session-id>`, whose existence is
+`<git-common-dir>/agentic-worktree-consent/<session-id>`, whose existence is
 the whole fact.
 
 - **A directory of its own.** The choice marker is written before the answer
@@ -383,7 +383,7 @@ the switch ladder's two choice rows keep their deny and still question a
 creation on the same line.
 
 **Once per session per direction**, not per site. The marker is
-`<git-dir>/specseal-worktree-choice/{create,switch}/<session-id>`, with the
+`<git-dir>/agentic-worktree-choice/{create,switch}/<session-id>`, with the
 session id reduced to its basename, because it names a file. One budget for
 the whole guard let a creation question spend the answer a later switch
 needed; within a direction the sites are mutually exclusive on tree state, so
@@ -468,7 +468,7 @@ Liveness is inferred below, and inference has a ceiling: a session hosted
 outside a terminal, or working on this tree from another directory, leaves no
 process, tty or per-project transcript trace here. So every tool call that
 touches a repository also declares: the `session-lease` hook stamps
-`<git-dir>/specseal-leases/<session-id>` for the repository touched (a file
+`<git-dir>/agentic-leases/<session-id>` for the repository touched (a file
 edit leases the edited file's repository, a Bash call its `cwd`'s). A lease
 fresher than the idle threshold is an active work stream. Leases older than a
 day are pruned, and a failure is silent: a lease is a safety net, never a

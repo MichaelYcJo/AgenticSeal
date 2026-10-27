@@ -1,7 +1,7 @@
 # The plugin's own Python, held to the tool it runs on other people's.
 #
 # lint-python only acts where a project has configured ruff, and until this
-# file existed SpecSeal was not such a project: the hook that reformats your
+# file existed AgenticSeal was not such a project: the hook that reformats your
 # code on save was silent on the code that implements it.
 #
 # The selection is what a gate needs and no more. Rules whose "violation" is
@@ -47,6 +47,7 @@ extend-exclude = ["*.md"]
 "skills/code-review/scripts/chain_check.py" = "py39"
 "skills/verify/scripts/unverified_check.py" = "py39"
 "skills/settle/scripts/rule_changes.py" = "py39"
+"skills/implement/scripts/seal.py" = "py39"
 
 [lint]
 select = ["E4", "E402", "E7", "E9", "F", "I", "B", "SIM", "UP", "RUF"]

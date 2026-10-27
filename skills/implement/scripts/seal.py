@@ -45,8 +45,14 @@ One more subcommand records a fact about the session rather than the root:
                               out here belongs to no work item, so the edit
                               check lets its edits on that branch through
 
+Every other command of the plugin is a subcommand of this one, and `TOOLS`
+says which script each runs. `seal gate --base <base> --record <item>` hands
+`--base <base> --record <item>` to `broad_gate.py` untouched, `--help` among
+any arguments, so each script keeps its own parser and its own help, and a
+subcommand is a dispatch and not a copy (#1051).
+
 **The root is its own directory, and that is what makes the export safe.**
-Beside it under the git directory sit the smith mark, the worktree choices,
+Beside it under the git directory sit the crafter mark, the worktree choices,
 the review and parity marks, the throwaway opt-out, any lease file and this
 command's own state. None of that belongs to another machine, and none of it
 is in the zip — not because a list is maintained here, but because the export
@@ -77,8 +83,8 @@ depend on the standard library's sanitiser staying what it is today.
 **Import never overwrites and never asks.** A path that is not there is
 added. A path that is there with the same bytes is left alone. A path that is
 there with different bytes gets the incoming copy beside it as
-`<name>.incoming<ext>` — `specs/<id>/spec.incoming.md` beside
-`specs/<id>/spec.md` — and the collision is reported. A copy is not a sync: which
+`<name>.incoming<ext>` — `threads/<id>/frame/design.incoming.md` beside
+`threads/<id>/frame/design.md` — and the collision is reported. A copy is not a sync: which
 of the two files is right is a judgement the person makes by reading them,
 and there is no answer this command could give that would not sometimes throw
 work away.
@@ -113,6 +119,65 @@ import zipfile
 HOOKS = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "hooks"
 )
+PLUGIN = os.path.normpath(os.path.join(HOOKS, ".."))
+
+# The plugin's commands that are not about the root, one subcommand each: the
+# name a person types, the script it runs (from the plugin's root), and the
+# line `seal --help` prints for it.
+TOOLS = {
+    "gate": (
+        "skills/verify/scripts/broad_gate.py",
+        "the one broad run, taken once after the review rounds settle",
+    ),
+    "settle": (
+        "skills/settle/scripts/settle.py",
+        "show the released specs by section, and remove what a settle leaves",
+    ),
+    "cost": (
+        "skills/verify/scripts/session_cost.py",
+        "where a session's minutes went, read from its transcript",
+    ),
+    "mutate": (
+        "skills/verify/scripts/mutation_check.py",
+        "break one unit, run its cases, and say whether one went red",
+    ),
+    "unverified": (
+        "skills/verify/scripts/unverified_check.py",
+        "read what the work items recorded as not verified",
+    ),
+    "arms": (
+        "skills/verify/scripts/arm_check.py",
+        "list a module's arms, and report the ones no case kills",
+    ),
+    "deferrals": (
+        "skills/verify/scripts/deferral_check.py",
+        "resolve the answerer named in an `unverified` row",
+    ),
+    "fold": (
+        "skills/settle/scripts/fold_check.py",
+        "hold the policy root's documents to one read and one index",
+    ),
+    "pact": (
+        "skills/verify/scripts/pact_check.py",
+        "whether every signer still agrees with the pact",
+    ),
+    "payload": (
+        "skills/verify/scripts/payload_meter.py",
+        "what each agent's startup payload is made of, and its cost in tokens",
+    ),
+    "stamp": (
+        "skills/verify/scripts/seal_stamp.py",
+        "draw the sealer's stamp",
+    ),
+    "layout": (
+        "skills/verify/scripts/test_layout.py",
+        "whether each test file stands where the test layout puts it",
+    ),
+    "rules": (
+        ".github/scripts/rules.py",
+        "a document's sections with what their tests guard, or every check line read",
+    ),
+}
 
 # What each module this command imports from `hooks/` is for, in the sentence
 # printed when it is missing. They are checked before the `import` lines,
@@ -175,7 +240,7 @@ MANIFEST = "manifest.json"
 # Machine-local state, beside the root with everything else that must never
 # leave this clone. Inside the root it would ride into the next zip and, in
 # shared mode, into a commit.
-STATE = "specseal-last-export.json"
+STATE = "agentic-last-export.json"
 
 UNSAFE_IN_A_NAME = re.compile(r"[^A-Za-z0-9._-]")
 DRIVE = re.compile(r"^[A-Za-z]:")
@@ -389,7 +454,7 @@ def digest(entries):
 def work_item_of(rel):
     """The work item a root-relative path belongs to, or "".
 
-    A work item writes in one place, its directory under `specs/`.
+    A work item writes in one place, its directory under `threads/`.
     """
     parts = rel.split("/")
     if len(parts) >= 3 and parts[0] == optin.WORK_ITEMS:
@@ -442,7 +507,7 @@ def manifest_of(repo, mode, files):
     manifest = {
         "format": FORMAT,
         "mode": mode,
-        "exported_at": datetime.datetime.now(datetime.UTC).strftime(
+        "exported_at": datetime.datetime.now(datetime.timezone.utc).strftime(
             "%Y-%m-%dT%H:%M:%SZ"
         ),
         "items": work_item_digests(files),
@@ -571,7 +636,7 @@ def export(args, cwd):
         return 1
 
     files, links = root_files(home)
-    when = datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d")
+    when = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
     stem = zip_stem(repo, when)
 
     if args.output:
@@ -650,7 +715,7 @@ def plural(count, noun):
     export` — so it stays that, and at N=1 it reads `1 work items`. Reading
     the quoted line as a template with a grammar rule attached is a change to
     an acceptance criterion, which is not this command's to make; the work
-    item's `overview.md` records it where the owner can overturn it.
+    item's `gaps.md` records it where the owner can overturn it.
     """
     return f"{count} {noun}" if count == 1 else f"{count} {noun}s"
 
@@ -680,6 +745,19 @@ def inside(repo, path):
         return False
 
 
+def earlier_root():
+    """The line every subcommand says where `<repo>/seal/` is an earlier
+    release's root (`optin.earlier`), waiting for the session-start move: it
+    is neither opted in nor a project's own, so nothing is written beside it
+    and first setup is not what it needs."""
+    return (
+        f"{optin.HOME}/ is this plugin's root from a release before the rename, "
+        "waiting for the move a session start makes. Commit the work in "
+        "progress under it and start a new session, and the move runs. "
+        "Nothing was written."
+    )
+
+
 def no_root(repo, shared, local):
     if not repo:
         print("not inside a git repository — seal works on a clone")
@@ -693,6 +771,9 @@ def no_root(repo, shared, local):
             "reads it as one that never opted in. Remove the marker to work "
             "with its records."
         )
+        return 1
+    if optin.earlier(shared):
+        print(earlier_root())
         return 1
     # Not "nothing to carry": `seal mode` reaches this too, and it carries
     # nothing anywhere. What all three subcommands share is that the root is
@@ -816,11 +897,11 @@ def linked_path(into, archive):
     member's name and writes a link entry as an ordinary file, so those are
     not what a member can escape through. A path in the DESTINATION that is a
     symbolic link is: `extractall` follows it, and so does the plain `open()`
-    this module writes with. `seal/specs` pointed elsewhere puts every work
+    this module writes with. `seal/threads` pointed elsewhere puts every work
     item there.
 
     The leaf counts, not only the directories above it. A link named
-    `specs/w1/spec.md` whose target does not exist reads as absent to
+    `threads/w1/frame/design.md` whose target does not exist reads as absent to
     `os.path.exists`, so `place` calls the member ADDED and `open(target,
     "wb")` follows the link and writes outside the root — measured
     2026-09-03, exit 0 with no warning. A link whose target does exist is
@@ -968,7 +1049,7 @@ def destination_root(repo, home, shared, local, into):
     roots is a clone whose owner has not said which is the real one, and a
     copy landing in one of them is not the moment to decide it.
     """
-    if os.path.isdir(shared) and local and os.path.isdir(local):
+    if optin.marked(shared) and local and optin.marked(local):
         return "", (
             "both roots exist, and the gates read the first of them:\n"
             f"  {shared}   (shared mode — read first)\n"
@@ -994,6 +1075,11 @@ def import_(args, cwd):
     repo, home, shared, local, _ = resolve(cwd)
     if not repo:
         print("not inside a git repository — seal works on a clone")
+        return 1
+    if not home and optin.earlier(shared):
+        # With no root in force the import would make one under the git
+        # directory, a second root beside the one the move is about to mark.
+        print(earlier_root())
         return 1
 
     path = os.path.abspath(args.zip)
@@ -1378,7 +1464,13 @@ CONFIG_PATHSPEC = f"{optin.HOME}/{CONFIG}"
 # else's with our name, and `seal pr-checks` neither overwrites nor removes
 # it. `tests/test_seal.py::Test_module` asserts the template still contains
 # this, so the marker cannot drift away from what it identifies.
-PLUGIN_CLONE = "https://github.com/MichaelYcJo/SpecSeal.git"
+PLUGIN_CLONE = "https://github.com/MichaelYcJo/AgenticSeal.git"
+# The clone line every workflow a release before the rename wrote carries:
+# the repository under its name before #1051. For the minor release of the
+# rename a file carrying it is this plugin's too, and `seal pr-checks
+# install` writes the template over it at the new name; the next minor
+# release removes this reading.
+OLD_PLUGIN_CLONE = "https://github.com/MichaelYcJo/SpecSeal.git"
 # The release a workflow's clone line pins, which `seal pr-checks` reports.
 PIN = re.compile(r"--branch\s+(\S+)")
 
@@ -1634,7 +1726,7 @@ def porcelain(repo, *paths):
     **Both paths this command stages, not just the root.** The switch stages
     a removal or an addition of the workflow file too, and a guard watching
     only the root would leave that path's uncommitted work to be taken by
-    `git rm`. Enumerating the class is the point; `spec.md` *What the switch
+    `git rm`. Enumerating the class is the point; `frame/design.md` *What the switch
     touches* lists all five.
 
     An unanswerable question reads as dirty, the direction
@@ -1838,11 +1930,17 @@ def plugin_workflow():
     return text.replace(PLACEHOLDER, "v" + version)
 
 
+def carries_clone(text):
+    """True where TEXT carries this plugin's clone line, at the repository's
+    name or at the name it had before the rename."""
+    return PLUGIN_CLONE in text or OLD_PLUGIN_CLONE in text
+
+
 def workflow_at(repo):
     """What stands at WORKFLOW in `repo`: (kind, text or reason).
 
-    `plugin`, a regular file that reads and carries PLUGIN_CLONE, with its
-    text; `absent`, with ""; or, with the clause that says why the file is
+    `plugin`, a regular file that reads and carries PLUGIN_CLONE or
+    OLD_PLUGIN_CLONE, with its text; `absent`, with ""; or, with the clause that says why the file is
     not this plugin's, `link`, `unreadable` or `other`. The one reader the
     three forms of `seal pr-checks` share, so the report, the install and the
     removal tell this plugin's file from somebody else's by one rule.
@@ -1857,7 +1955,7 @@ def workflow_at(repo):
             text = handle.read()
     except (OSError, ValueError) as exc:
         return "unreadable", f"could not be read ({exc})"
-    if PLUGIN_CLONE not in text:
+    if not carries_clone(text):
         return "other", "does not carry this plugin's clone line"
     return "plugin", text
 
@@ -1900,26 +1998,33 @@ def left_workflow_line(text):
 def install_workflow(repo):
     """Write the pull-request checks; (what happened, the line to print).
 
-    Refused where `<repo>/seal/` is not a directory, because the checks read
-    committed records and only a root in the tree is committed. Never
-    overwrites: this plugin's own file already there is reported with the
-    release it pins, and anybody else's is left alone.
+    Refused where `<repo>/seal/` is not the root, a directory whose README
+    opens with the marker, because the checks read committed records and only
+    a root in the tree is committed; a `seal/` the project keeps for itself
+    holds none of them. Never overwrites, but for one file: this plugin's own
+    file already there is reported with the release it pins, and anybody
+    else's is left alone. The one is this plugin's file cloning the
+    repository's name before the rename, which is written over at the new
+    name.
     """
     shared, _local = optin.home_paths(repo)
-    if not shared or not os.path.isdir(shared):
+    if optin.earlier(shared):
+        return "no-root", earlier_root()
+    if not shared or not optin.marked(shared):
         return "no-root", (
             f"{WORKFLOW} was NOT written: {optin.HOME}/ is not in this tree, "
             "and the checks read committed records, which only a root in the "
             f"tree has. `seal mode {SHARED}` puts it in the tree."
         )
     kind, found = workflow_at(repo)
-    if kind == "plugin":
+    old_slug = kind == "plugin" and PLUGIN_CLONE not in found
+    if kind == "plugin" and not old_slug:
         return "installed", (
             f"{WORKFLOW} is already this plugin's, pinned to "
             f"{pinned(found) or 'no release its clone line names'}, so nothing "
             "was written"
         )
-    if kind != "absent":
+    if kind != "absent" and not old_slug:
         return "kept", (
             f"{WORKFLOW} is there and {found}: it is not "
             "this plugin's file, so nothing was written. Move it aside and run "
@@ -1982,6 +2087,12 @@ def install_workflow(repo):
             f"`.github/` is the usual cause. Run `git add -f :/{WORKFLOW}` "
             "yourself, or take the rule out."
         )
+    if old_slug:
+        return "written", (
+            f"rewrote {WORKFLOW}, which cloned the plugin from the repository's "
+            f"name before the rename, at the new name (pinned to v{version}) "
+            "and staged it"
+        )
     return "written", f"wrote {WORKFLOW} (pinned to v{version}) and staged it"
 
 
@@ -2020,7 +2131,7 @@ def remove_workflow(repo):
                 "it was left alone. Look at it with `git status` and take it "
                 "out yourself."
             )
-        if PLUGIN_CLONE not in staged:
+        if not carries_clone(staged):
             return "kept", (
                 f"there is no {WORKFLOW} in the working tree, and the index "
                 "holds a copy that does not carry this plugin's clone line, "
@@ -2299,7 +2410,7 @@ def gitlinks_under_root(repo):
     relative gitdir. Measured 2026-09-03: the switch exited 0 and `git
     status` in the moved root died with `fatal: not a git repository`.
 
-    A sixth member of the class `spec.md`'s *What the switch touches* table
+    A sixth member of the class `frame/design.md`'s *What the switch touches* table
     enumerates — the table that says it is enumerated rather than fixed where
     a finding points, and then listed five.
     """
@@ -2328,13 +2439,13 @@ def gitlinks_under_root(repo):
 def refusals(repo, home, shared, local, wanted):
     """Every reason not to switch, gathered before anything is written.
 
-    The list is the class in `spec.md` *What the switch touches*, walked in
+    The list is the class in `frame/design.md` *What the switch touches*, walked in
     order, rather than the guards a reader thinks of first. The switch
     stages nothing outside the root, so nothing outside it is guarded.
     """
     if not local:
         return ["the common git directory could not be resolved"]
-    if os.path.isdir(shared) and os.path.isdir(local):
+    if optin.marked(shared) and optin.marked(local):
         return [both_roots(shared, local)]
 
     source = shared if wanted == LOCAL else local
@@ -2410,7 +2521,7 @@ def switch(args, repo, home, shared, local, current, wanted):
     """Move the root, write the row, and stage the index; `.github/` is left
     alone, and the pull-request checks are `seal pr-checks`'s.
 
-    In the order of `spec.md` *Order, and what a stopped run leaves*: the
+    In the order of `frame/design.md` *Order, and what a stopped run leaves*: the
     rename first, because it is the step that can fail for reasons outside
     this command and until it succeeds nothing has happened. Every step after
     it is idempotent, so `seal mode <the same mode>` finishes a stopped run —
@@ -2697,17 +2808,51 @@ def no_work_item(args, cwd):
     return 0
 
 
+# --- the tools --------------------------------------------------------------
+
+
+def tool_command(name, argv):
+    """The command line that runs the script `TOOLS` names for `name` with
+    `argv`: this interpreter, which `hooks/launch.py` held to the floor before
+    this file was read, the script's path under the plugin, and the arguments
+    as they were typed."""
+    script = os.path.join(PLUGIN, *TOOLS[name][0].split("/"))
+    return [sys.executable, script, *argv]
+
+
+def hand_over(command):
+    """Run `command` in place of this one and answer its exit code.
+
+    On POSIX the process is replaced, as the `exec` of a `bin/` wrapper
+    replaced it, so the script's signals and exit code are the command's.
+    Windows has no replacement that keeps the exit code, so the script runs
+    as a child and its code is returned, as a `.cmd` wrapper returned it."""
+    if os.name == "nt":
+        return subprocess.call(command)
+    sys.stdout.flush()
+    sys.stderr.flush()
+    os.execv(command[0], command)
+
+
 # --- entry point ------------------------------------------------------------
 
 
 def main(argv=None, cwd=None):
     cwd = cwd or os.getcwd()
+    argv = sys.argv[1:] if argv is None else list(argv)
+    # A tool's arguments are its script's to read, `--help` among them, so
+    # they are handed on before the parser below sees any of them.
+    if argv and argv[0] in TOOLS:
+        return hand_over(tool_command(argv[0], argv[1:]))
     parser = argparse.ArgumentParser(
         prog="seal",
-        description="where this repository's seal/ root lives, and how a copy "
-        "of it travels between clones",
+        description="the plugin's commands: where this repository's seal/ "
+        "root lives, how a copy of it travels between clones, and one "
+        "subcommand for each tool",
     )
     sub = parser.add_subparsers(dest="command", required=True)
+    for name, (_, said) in TOOLS.items():
+        sub.add_parser(name, help=said, add_help=False)
 
     ex = sub.add_parser("export", help="write the root to a zip")
     ex.add_argument("--output", help="the zip's path, or a directory to put it in")

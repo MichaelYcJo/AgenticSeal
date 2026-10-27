@@ -49,7 +49,7 @@ def signal():
     and a test that stubbed them out could not see one arrive.
     """
     spec = importlib.util.spec_from_file_location(
-        "specseal_label_merged_for_tests", SCRIPT
+        "agentic_label_merged_for_tests", SCRIPT
     )
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)

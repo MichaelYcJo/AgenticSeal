@@ -18,12 +18,12 @@ written AFTER the answer rather than before the question, which is the one
 thing a command text cannot forge.
 
 The record is an empty file at
-`<git-common-dir>/specseal-worktree-consent/<session-id>`. Its existence is the
-whole fact, the way `specseal-worktree-choice/`'s markers and `optin.py`'s
-`specseal-scratch` are. Three things about it were decisions rather than
+`<git-common-dir>/agentic-worktree-consent/<session-id>`. Its existence is the
+whole fact, the way `agentic-worktree-choice/`'s markers and `optin.py`'s
+`agentic-scratch` are. Three things about it were decisions rather than
 defaults:
 
-  A THIRD directory, not a value in `specseal-worktree-choice/create/`. That
+  A THIRD directory, not a value in `agentic-worktree-choice/create/`. That
   marker is written by PreToolUse BEFORE the answer and means "the question was
   put", so sharing one file would let the guard read its own question back as
   consent -- the `has_token` failure one directory over. The two also fail in
@@ -96,7 +96,7 @@ import console
 import optin
 
 # One empty file per session per clone. Its existence is the fact.
-CONSENT_DIR = "specseal-worktree-consent"
+CONSENT_DIR = "agentic-worktree-consent"
 
 # Where the harness writes session transcripts. One constant, so a test points
 # it at a temporary directory and no case can read a real transcript on the
@@ -527,8 +527,8 @@ def place(tokens, wheres, cwd: str):
     exit and it said nothing at all. This writer took the first entry that
     was not unresolved instead, which is the directory a `||` skips in `eval x
     ; cd A || git worktree add …`, and a directory that holds nothing in `cd
-    <missing> ; git worktree add …`, where it filed no record at all (`spec.md`
-    In 1 of work item 1791384157).
+    <missing> ; git worktree add …`, where it filed no record at all
+    (`frame/design.md` In 1 of work item 1791384157).
 
     The commit gate's text reading stopped on a target like this until #1027
     removed it, and the guard falls back instead. The two protected different

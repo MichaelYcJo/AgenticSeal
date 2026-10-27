@@ -1,7 +1,7 @@
 """The hook readers hide what a CommonMark renderer hides, and nothing else (#667).
 
-`seal/specs/1790645290-the-hooks-and-the-rider-check-read-fences-and-comments-
-by-one-rule/spec.md` *The acceptance property* is what this module holds.
+`0ed5dd3b:seal/specs/1790645290-the-hooks-and-the-rider-check-read-fences-and-comments-by-one-rule/spec.md`
+*The acceptance property* is what this module holds.
 For every line L of a document, with `base(L)` a reader's reading at
 `release/v0.16.0` and `renderer(L)` the oracle's:
 
@@ -55,7 +55,7 @@ def test_the_oracle_gives_the_frames_renderer_column(name):
     """S1, and the frame's Q2. The *Renderer* column was derived by reading
     CommonMark section 4.5, section 4.6 and section 6.6 and was not executed; the parser gives it
     on every shape. Where the two disagreed, the oracle would win and the
-    divergence would be recorded in `overview.md`."""
+    divergence would be recorded in `gaps.md`."""
     assert oracle.hidden_lines(SHAPES[name]) == RENDERER[name]
 
 
@@ -556,7 +556,7 @@ CORPUS = (
 def load_hook(filename):
     from conftest import load_hook_module
 
-    return load_hook_module(filename, "specseal_" + filename[:-3] + "_for_the_oracle")
+    return load_hook_module(filename, "agentic_" + filename[:-3] + "_for_the_oracle")
 
 
 blocks = load_hook("blocks.py")
@@ -623,7 +623,7 @@ def shared_rule():
     path = os.path.join(
         HERE, "..", "skills", "verify", "scripts", "unverified_check.py"
     )
-    spec = importlib.util.spec_from_file_location("specseal_uc_for_the_oracle", path)
+    spec = importlib.util.spec_from_file_location("agentic_uc_for_the_oracle", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module

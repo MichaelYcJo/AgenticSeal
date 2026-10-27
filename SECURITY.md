@@ -2,7 +2,7 @@
 
 ## Reporting
 
-Use **[private vulnerability reporting](https://github.com/MichaelYcJo/SpecSeal/security/advisories/new)**.
+Use **[private vulnerability reporting](https://github.com/MichaelYcJo/AgenticSeal/security/advisories/new)**.
 It is enabled on this repository, so a report reaches the maintainer without
 being visible to anyone else, and the fix and the disclosure can be prepared
 in the same place. Please do not open a public issue for a suspected
@@ -14,11 +14,11 @@ credit line in the advisory unless you ask for none.
 
 ## What this project is, and where its risk actually sits
 
-SpecSeal is a Claude Code plugin. What ships is Python that runs in two places
+AgenticSeal is a Claude Code plugin. What ships is Python that runs in two places
 a reader should keep separate:
 
 - **`skills/*/scripts/`** — the checkers, run from CI and from a terminal
-  (`fold-check`, `unverified-check`, `pact-check` and the rest), which read a
+  (`seal fold`, `seal unverified`, `seal pact` and the rest), which read a
   repository's records and the files those records name.
 - **`hooks/`** — gates the harness invokes around commits, branch switches and
   session start. Some of them run without anybody asking, which is the whole

@@ -1,13 +1,17 @@
 """`hooks/root-migrate.py`, one class per function.
 
-Rebuilt by #942's phase 5. The hook moves `.specseal/` and `specs/<id>/`
-into `seal/` at session start, once per repository, and every one of its
-units asks git, so the cases run git. Two repositories are built once for
-the module and copied for each case: the old layout, committed (a map and a
-map directory under `.specseal/` beside its README and follow-up list, one
-work item and one foreign directory under `specs/`), and a fresh repository
-holding one commit. Each copy is the reset. The marker the hook stamps is
-under each case's own directory.
+Rebuilt by #942's phase 5. The hook moves what `moves` lists at session
+start, on whichever branch is checked out, and every step asks git, so the
+cases run git.
+`moves` lists nothing in this tree, and the 0.3.x layout is not read at all:
+a case of `Test_main` pins that. The move itself takes
+any paths, so the cases that pin its boundaries hand it `UNITS`, through the
+`moving` fixture where they run `main`. Two repositories are built once for
+the module and copied for each case: a tree holding the 0.3.x layout,
+committed (a map and a map directory under `.specseal/` beside its README and
+follow-up list, one work item and one foreign directory under `specs/`), and
+a fresh repository holding one commit. Each copy is the reset. The state
+directories the hook renames are under each case's own directory.
 """
 
 import io
@@ -20,10 +24,12 @@ import sys
 import pytest
 from conftest import (
     ROOT,
+    ROOT_MARKER,
     census_case,
     commit_everything_as_e,
     git,
     load_hook_module,
+    mark_root,
     staged,
     symlink_or_skip,
     write,
@@ -43,14 +49,18 @@ FOLLOW_UP = "# Follow-up\n\nnothing scheduled\n"
 OLD_README = "# .specseal/ — the old text, describing a layout that is gone\n"
 ITEM = "1788000000-a-work-item"
 TEAM = "1788000001-team-thing"
-ONE_MARK = "1788000002-one-mark"
-# 0.3.x's ledger, which moves as any other entry of the old root does.
+# 0.3.x's ledger, a file and a directory beside it in the fixture's tree.
 MAP = "# map\n\n| Clause | Coordinate |\n|---|---|\n| A | a row |\n"
-MOVED_ALL = "moved .specseal/ and 1 work item into seal/"
-LEFT_UNMARKED = (
-    f"left specs/{TEAM} where it is (no routing.md or rounds/ that git tracks — "
-    "not a SpecSeal work item)"
-)
+# What the cases of the move's boundaries hand it over `proj`'s tree: the
+# README first, then the rest of `.specseal/`, then the work item.
+UNITS = [
+    ("readme", ".specseal/README.md", "seal/README.md"),
+    ("other", ".specseal/follow-up.md", "seal/follow-up.md"),
+    ("other", ".specseal/map", "seal/map"),
+    ("other", ".specseal/map.md", "seal/map.md"),
+    ("other", f"specs/{ITEM}", f"seal/specs/{ITEM}"),
+]
+MOVED_ALL = "moved .specseal/ and specs/ into seal/"
 
 MIGRATE = load_hook_module("root-migrate.py", "root_migrate_under_test")
 
@@ -123,10 +133,23 @@ def fresh(_templates, tmp_path):
 
 @pytest.fixture
 def hook(tmp_path, monkeypatch):
-    """The hook, its marker under the case's own directory."""
+    """The hook with both state directories under the case's own directory,
+    so no case renames the machine's own `~/.claude/` state."""
+    monkeypatch.setattr(MIGRATE, "OLD_STATE_DIR", str(tmp_path / "old-state"))
     monkeypatch.setattr(MIGRATE, "STATE_DIR", str(tmp_path / "state"))
-    monkeypatch.setattr(MIGRATE, "MARKER", str(tmp_path / "state" / "root-migrated"))
     return MIGRATE
+
+
+@pytest.fixture
+def moving(hook, monkeypatch):
+    """The hook with `moves` listing `UNITS` less what has already moved,
+    which is how a list read off the tree resumes a stopped run."""
+
+    def still_to_move(root):
+        return [u for u in UNITS if os.path.lexists(hook.under(root, u[1]))]
+
+    monkeypatch.setattr(hook, "moves", still_to_move)
+    return hook
 
 
 def start(hook, repo, payload=None):
@@ -147,35 +170,6 @@ def start(hook, repo, payload=None):
 
 def message(out):
     return json.loads(out)["systemMessage"] if out.strip() else ""
-
-
-def stamped(hook, repo):
-    try:
-        with open(hook.MARKER, encoding="utf-8") as f:
-            # exempt from splitlines: a marker file of root paths
-            return str(repo) in f.read().splitlines()
-    except OSError:
-        return False
-
-
-def plant_team_directory(repo):
-    """A team's own specification under a name `date +%s` could have made:
-    the shape `ITEM_RE` accepts, and none of the plugin's marks."""
-    write(repo, f"specs/{TEAM}/spec.md", "# the team's own specification\n")
-    write(repo, f"specs/{TEAM}/plan.md", "# the team's own plan\n")
-    commit(repo, "a team directory shaped like a work item")
-
-
-def move_the_home_by_hand(repo):
-    (repo / "seal").mkdir()
-    for src, dst in (
-        (".specseal/map.md", "seal/map.md"),
-        (".specseal/map", "seal/map"),
-        (".specseal/README.md", "seal/README.md"),
-        (".specseal/follow-up.md", "seal/follow-up.md"),
-    ):
-        git(repo, "mv", src, dst)
-    commit(repo, "the home moved, the item not yet")
 
 
 def failing(real, word, how="raise"):
@@ -201,51 +195,29 @@ class Test_MoveError:
         assert not MIGRATE.MoveError("a", "b", resumable=False).resumable
 
 
-class Test_attempted:
-    def test_accepts_a_root_the_marker_lists(self, hook, tmp_path):
-        write(tmp_path, "state/root-migrated", "/x/one\n/x/two\n")
-        assert hook.attempted("/x/two")
+class Test_sources:
+    def test_accepts_each_directory_a_unit_comes_from_once_sorted(self):
+        assert MIGRATE.sources(UNITS) == [".specseal", "specs"]
 
-    def test_refuses_a_root_only_a_longer_one_begins_with_and_no_marker(
-        self, hook, tmp_path
-    ):
-        assert not hook.attempted("/x/one")
-        write(tmp_path, "state/root-migrated", "/x/one-more\n")
-        assert not hook.attempted("/x/one")
-
-
-class Test_stamp:
-    def test_accepts_a_root_appended_beside_the_ones_stamped_before(
-        self, hook, tmp_path
-    ):
-        hook.stamp("/x/one")
-        hook.stamp("/x/two")
-        assert (tmp_path / "state" / "root-migrated").read_text(
-            encoding="utf-8"
-        ) == "/x/one\n/x/two\n"
-
-    def test_refuses_to_raise_where_the_state_directory_cannot_be_made(
-        self, hook, tmp_path
-    ):
-        write(tmp_path, "state", "a file where the directory goes\n")
-        hook.stamp("/x/three")
-        assert not hook.attempted("/x/three")
+    def test_refuses_a_directory_no_unit_comes_from(self):
+        assert MIGRATE.sources(UNITS[:4]) == [".specseal"]
+        assert MIGRATE.sources([]) == []
 
 
 class Test_dirty:
     def test_accepts_a_committed_tree_and_a_stopped_runs_staged_renames(
         self, hook, proj
     ):
-        assert not hook.dirty(str(proj))
+        assert not hook.dirty(str(proj), UNITS)
         (proj / "seal").mkdir()
         git(proj, "mv", ".specseal/map.md", "seal/map.md")
         git(proj, "rm", "-q", ".specseal/follow-up.md")
-        assert not hook.dirty(str(proj))
+        assert not hook.dirty(str(proj), UNITS)
 
     @pytest.mark.parametrize(
         "shape", ["a worktree edit", "a staged edit", "an untracked file"]
     )
-    def test_refuses_work_in_progress_under_the_old_roots(self, hook, proj, shape):
+    def test_refuses_work_in_progress_under_a_units_directory(self, hook, proj, shape):
         if shape == "an untracked file":
             write(proj, f"specs/{ITEM}/overview.md", "# not yet added\n")
         else:
@@ -253,14 +225,14 @@ class Test_dirty:
             ledger.write_text(MAP + "| E | half a row |\n", encoding="utf-8")
             if shape == "a staged edit":
                 git(proj, "add", "-A")
-        assert hook.dirty(str(proj))
+        assert hook.dirty(str(proj), UNITS)
 
     @pytest.mark.parametrize(
         "word, how", [(LS_FILES, "raise"), ("status", "raise"), ("status", "exit")]
     )
     def test_refuses_a_git_that_cannot_answer(self, hook, proj, monkeypatch, word, how):
         monkeypatch.setattr(hook, "git", failing(hook.git, word, how))
-        assert hook.dirty(str(proj))
+        assert hook.dirty(str(proj), UNITS)
 
 
 class Test_tracked_names:
@@ -294,87 +266,6 @@ class Test_entries:
         git(proj, "rm", "-rq", ".specseal")
         write(proj, ".specseal/.DS_Store", "\0")
         assert hook.entries(str(proj), ".specseal") == []
-
-
-class Test_marked:
-    def test_accepts_an_id_shaped_directory_with_either_mark_on_disk(self, hook, proj):
-        assert hook.marked(str(proj), ITEM)
-        write(proj, f"specs/{ONE_MARK}/rounds/round-1.md", ROUND)
-        assert hook.marked(str(proj), ONE_MARK)
-
-    def test_refuses_a_mark_under_another_name_and_an_id_without_one(self, hook, proj):
-        write(proj, "specs/handbook/routing.md", "# how requests are routed\n")
-        assert not hook.marked(str(proj), "handbook")
-        plant_team_directory(proj)
-        assert not hook.marked(str(proj), TEAM)
-
-
-class Test_tracked_marks:
-    def test_accepts_an_id_carrying_either_mark_git_tracks(self, hook, proj):
-        write(proj, f"specs/{ONE_MARK}/rounds/round-1.md", ROUND)
-        commit(proj, "a work item with rounds alone")
-        assert hook.tracked_marks(str(proj)) == {ITEM, ONE_MARK}
-
-    @pytest.mark.parametrize(
-        "rel",
-        [
-            f"specs/{TEAM}/docs/routing.md",
-            "specs/handbook/routing.md",
-            f"specs/{TEAM}/rounds",
-        ],
-        ids=[
-            "routing.md one level down",
-            "a name without the shape",
-            "a file named rounds",
-        ],
-    )
-    def test_refuses_a_file_that_is_no_mark(self, hook, proj, rel):
-        write(proj, rel, "# a team's file\n")
-        commit(proj, "a team's file")
-        assert hook.tracked_marks(str(proj)) == {ITEM}
-
-    def test_refuses_to_answer_over_a_corrupt_index(self, hook, proj):
-        (proj / ".git" / "index").write_bytes(b"DIRC garbage")
-        assert hook.tracked_marks(str(proj)) is None
-
-
-class Test_unmarked:
-    def test_accepts_an_id_shaped_directory_git_tracks_no_mark_of(self, hook, proj):
-        plant_team_directory(proj)
-        assert hook.unmarked(str(proj), TEAM, {ITEM})
-
-    def test_refuses_a_name_without_the_shape_a_marked_one_and_a_file(self, hook, proj):
-        write(proj, "specs/1788000001-a-file.md", "x\n")
-        for name in ("notes", ITEM, "1788000001-a-file.md"):
-            assert not hook.unmarked(str(proj), name, {ITEM}), name
-
-
-class Test_old_items:
-    def test_accepts_the_marked_items_and_everything_else_on_disk(self, hook, proj):
-        write(proj, "specs/untracked/x.md", "x\n")
-        assert hook.old_items(str(proj)) == ([ITEM], ["notes", "untracked"])
-
-    def test_refuses_to_lose_the_items_where_git_cannot_list_the_marks(
-        self, hook, proj, monkeypatch
-    ):
-        """The marks are read from the disk then, so the run still has units
-        and `dirty()` refuses it."""
-        monkeypatch.setattr(hook, "git", failing(hook.git, LS_FILES))
-        assert hook.old_items(str(proj)) == ([ITEM], ["notes"])
-
-
-class Test_moves:
-    def test_accepts_the_readme_first_then_the_home_then_the_items(self, hook, proj):
-        assert hook.moves(str(proj)) == [
-            ("readme", ".specseal/README.md", "seal/README.md"),
-            ("other", ".specseal/follow-up.md", "seal/follow-up.md"),
-            ("other", ".specseal/map", "seal/map"),
-            ("other", ".specseal/map.md", "seal/map.md"),
-            ("item", f"specs/{ITEM}", f"seal/specs/{ITEM}"),
-        ]
-
-    def test_refuses_a_unit_where_nothing_old_is_tracked(self, hook, fresh):
-        assert hook.moves(str(fresh)) == []
 
 
 class Test_git_mv:
@@ -425,9 +316,9 @@ class Test_move:
         assert not (proj / "specs" / ITEM / "rounds").exists(), "an emptied one stayed"
         assert not (proj / "specs" / ITEM).exists(), "the item's directory stayed"
 
-    def test_refuses_a_file_already_at_its_destination_and_moves_the_marks_last(
-        self, hook, proj
-    ):
+    def test_refuses_a_file_already_at_its_destination(self, hook, proj):
+        """The file already there is named and the walk stops at it: the
+        files git lists before it have moved, and it stays at its source."""
         write(proj, "seal/map.md", "# the newer map\n")
         with pytest.raises(hook.MoveError, match=r"seal/map\.md already exists"):
             hook.move(str(proj), ".specseal/map.md", "seal/map.md")
@@ -436,8 +327,8 @@ class Test_move:
         commit(proj, "both spec.md")
         with pytest.raises(hook.MoveError, match="already exists"):
             hook.move(str(proj), f"specs/{ITEM}", f"seal/specs/{ITEM}")
-        assert (proj / "specs" / ITEM / "routing.md").is_file()
-        assert (proj / "specs" / ITEM / "rounds" / "round-1.md").is_file()
+        assert (proj / "specs" / ITEM / "spec.md").is_file()
+        assert (proj / "seal" / "specs" / ITEM / "routing.md").is_file()
 
     def test_refuses_to_remove_a_directory_an_ignored_file_holds_under_any_rmdir(
         self, hook, proj, monkeypatch
@@ -490,8 +381,8 @@ class Test_rewrite_readme:
 class Test_run_moves:
     def test_accepts_every_unit_and_takes_away_the_emptied_roots(self, hook, proj):
         git(proj, "rm", "-rq", "specs/notes")
-        commit(proj, "only SpecSeal's work items under specs/")
-        assert hook.run_moves(str(proj), hook.moves(str(proj))) == (5, None)
+        commit(proj, "only the work item under specs/")
+        assert hook.run_moves(str(proj), UNITS) == (5, None)
         assert not (proj / ".specseal").exists() and not (proj / "specs").exists()
 
     def test_refuses_to_go_past_a_unit_that_stopped_and_counts_what_moved(
@@ -506,7 +397,7 @@ class Test_run_moves:
             real(root, src, dst)
 
         monkeypatch.setattr(hook, "git_mv", flaky)
-        done, error = hook.run_moves(str(proj), hook.moves(str(proj)))
+        done, error = hook.run_moves(str(proj), UNITS)
         assert (done, error.error) == (2, "disk full")
 
     def test_refuses_to_remove_a_linked_specs_under_windows_rmdir(
@@ -515,7 +406,8 @@ class Test_run_moves:
         """PR #700's `windows-latest` leg: Windows' `RemoveDirectoryW`
         removes a directory link itself, whatever is behind it. Contract
         rule 13: the POSIX guarantee is removed here, by giving `rmdir`
-        Windows' semantics for a link."""
+        Windows' semantics for a link. A team's linked `specs/` beside a run
+        whose units come from `.specseal/` alone stays a link."""
         real = os.rmdir
 
         def windows_rmdir(path, *args, **kwargs):
@@ -529,38 +421,26 @@ class Test_run_moves:
         symlink_or_skip("team", proj / "specs")
         commit(proj, "the team's specs/ is a link")
         monkeypatch.setattr(hook.os, "rmdir", windows_rmdir)
-        hook.run_moves(str(proj), hook.moves(str(proj)))
+        assert hook.run_moves(str(proj), UNITS[:4]) == (4, None)
         assert os.path.islink(proj / "specs"), "the cleanup removed the team's link"
 
 
-class Test_has_root:
-    def test_accepts_a_root_in_the_tree_or_under_the_git_directory(
-        self, hook, fresh, tmp_path
-    ):
-        (fresh / "seal").mkdir()
-        assert hook.has_root(str(fresh))
-        (fresh / "seal").rmdir()
-        (fresh / ".git" / "seal").mkdir()
-        assert hook.has_root(str(fresh))
-        linked = tmp_path / "linked"
-        git(fresh, "worktree", "add", "-q", str(linked), "-b", "feature/x")
-        assert hook.has_root(str(linked))
+class Test_listed:
+    def test_accepts_one_directory_or_two_joined(self):
+        assert MIGRATE.listed(["specs"]) == "specs/"
+        assert MIGRATE.listed([".specseal", "specs"]) == ".specseal/ and specs/"
 
-    def test_refuses_a_file_named_seal_under_the_git_directory(self, hook, fresh):
-        assert not hook.has_root(str(fresh))
-        (fresh / ".git" / "seal").write_text("", encoding="utf-8")
-        assert not hook.has_root(str(fresh))
+    def test_refuses_to_name_anything_for_no_directory(self):
+        assert MIGRATE.listed([]) == ""
 
 
 class Test_main:
-    def test_accepts_the_first_start_as_the_move_said_in_one_line(self, hook, proj):
+    def test_accepts_the_first_start_as_the_move_said_in_one_line(self, moving, proj):
         """S5: every move staged, nothing left unstaged, and after the commit
         the notice asks for, `--follow` reaches the file's old name."""
+        hook = moving
         out = message(start(hook, proj))
-        assert out == (
-            f"specseal: {MOVED_ALL} (left specs/notes where it is (not tracked as "
-            "a SpecSeal work item)) — review the diff and commit"
-        ), out
+        assert out == f"agentic:{MOVED_ALL} — review the diff and commit", out
         for rel in (
             "seal/README.md",
             "seal/map.md",
@@ -573,7 +453,6 @@ class Test_main:
         assert (proj / "specs" / "notes" / "todo.md").is_file()
         assert not (proj / ".specseal").exists(), "the old root was left behind"
         assert (proj / "seal" / "map.md").read_text(encoding="utf-8") == MAP
-        assert stamped(hook, proj)
         assert unstaged(proj) == ""
         assert (
             f"R100\tspecs/{ITEM}/rounds/round-1.md\tseal/specs/{ITEM}/rounds/round-1.md"
@@ -591,18 +470,12 @@ class Test_main:
         assert "the old layout, committed" in log, log
         assert start(hook, proj) == "", "the second session start spoke"
 
-    def test_accepts_the_old_layout_that_does_not_opt_in(self, hook, proj):
-        """The old layout is exactly what does not opt in any more, so a hook
-        gated on `optin.opted_in` would never meet what it moves."""
-        assert not hook.optin.opted_in(str(proj)), "the fixture already opted in"
-        assert "moved" in message(start(hook, proj))
-        assert hook.optin.opted_in(str(proj)), "the move did not produce the opt-in"
-
     def test_accepts_a_move_by_hand_that_stopped_halfway_and_a_fragment_there(
-        self, hook, proj
+        self, moving, proj
     ):
         """S7: what remains moves, a directory already at its destination is
-        merged file by file, and the marker is stamped only then."""
+        merged file by file."""
+        hook = moving
         (proj / "seal").mkdir()
         git(proj, "mv", ".specseal/map.md", "seal/map.md")
         write(proj, "seal/map/another.md", "# another fragment\n")
@@ -614,110 +487,30 @@ class Test_main:
             "moved INTO the destination"
         )
         assert not (proj / ".specseal").exists()
-        assert stamped(hook, proj)
 
-    def test_accepts_an_ignored_file_under_the_old_root_left_where_it_is(
-        self, hook, proj
+    def test_accepts_an_ignored_file_under_a_source_left_where_it_is(
+        self, moving, proj
     ):
-        """Round 1's red 1: the units are what git tracks, so an ignored file
+        """Round 1's red 1: what moves is what git tracks, so an ignored file
         is left, and `.specseal/` may stay holding nothing else."""
+        hook = moving
         write(proj, ".gitignore", ".DS_Store\n")
         commit(proj, "ignore the finder's file")
         write(proj, ".specseal/.DS_Store", "\0")
         assert MOVED_ALL in message(start(hook, proj))
-        assert stamped(hook, proj)
         assert tracked(proj, ".specseal", f"specs/{ITEM}") == ""
         assert os.listdir(proj / ".specseal") == [".DS_Store"]
         assert start(hook, proj) == "", "nothing tracked is left, so nothing to say"
-
-    def test_accepts_only_work_items_under_specs_and_names_the_rest(self, hook, proj):
-        """An item-shaped file, a mark under a name without the shape, and an
-        id-shaped directory carrying no mark git tracks all stay, each named
-        with its reason, and nothing is staged for them."""
-        write(proj, "specs/1788000001-a-file.md", "# a file with an item's name\n")
-        write(proj, "specs/handbook/routing.md", "# how requests are routed here\n")
-        plant_team_directory(proj)
-        write(proj, ".gitignore", "rounds/\n")
-        write(proj, f"specs/{TEAM}/docs/routing.md", "# how our requests route\n")
-        commit(proj, "a team's files")
-        write(proj, f"specs/{TEAM}/rounds/scratch.md", "# local only\n")
-        os.makedirs(proj / "specs" / TEAM / "rounds" / "empty")
-        out = message(start(hook, proj))
-        assert MOVED_ALL in out, out
-        assert (
-            "left specs/1788000001-a-file.md, specs/handbook, specs/notes where it "
-            "is (not tracked as a SpecSeal work item); " + LEFT_UNMARKED
-        ) in out, out
-        assert (proj / "specs" / "handbook" / "routing.md").is_file()
-        assert TEAM not in staged(proj)
-        assert stamped(hook, proj)
-
-    @pytest.mark.parametrize(
-        "mark, text", [("routing.md", ROUTING), ("rounds/round-1.md", ROUND)]
-    )
-    def test_accepts_either_mark_alone_and_resumes_its_item_once_settled(
-        self, hook, proj, mark, text
-    ):
-        """B3 and round 2 of #688: either mark is the proof on its own, and
-        each moves last, so a stop at a taken `spec.md` strands nothing. The
-        first start empties `phases/` and stops; the start that finishes the
-        item removes it and the item's directory (#1016)."""
-        write(proj, f"specs/{ONE_MARK}/{mark}", text)
-        write(proj, f"specs/{ONE_MARK}/phases/phase-1.md", "# phase 1\n")
-        write(proj, f"specs/{ONE_MARK}/spec.md", "# the old spec\n")
-        write(proj, f"seal/specs/{ONE_MARK}/spec.md", "# the newer spec\n")
-        commit(proj, "an item with one mark, its spec.md taken")
-        out = message(start(hook, proj))
-        assert f"stopped at specs/{ONE_MARK}/spec.md" in out, out
-        git(proj, "rm", "-q", f"specs/{ONE_MARK}/spec.md")
-        out = message(start(hook, proj))
-        assert "moved 1 work item into seal/" in out, out
-        assert (proj / "seal" / "specs" / ONE_MARK / mark).is_file()
-        assert (proj / "seal" / "specs" / ONE_MARK / "spec.md").is_file()
-        assert (proj / "seal" / "specs" / ONE_MARK / "phases" / "phase-1.md").is_file()
-        assert tracked(proj, f"specs/{ONE_MARK}") == ""
-        assert not (proj / "specs" / ONE_MARK).exists(), "the item's directory stayed"
-        assert f"specs/{ONE_MARK}" not in out, out
-
-    def test_accepts_two_items_named_in_the_plural(self, hook, proj):
-        write(proj, f"specs/{ONE_MARK}/routing.md", ROUTING)
-        commit(proj, "a second work item")
-        assert "moved .specseal/ and 2 work items into seal/" in message(
-            start(hook, proj)
-        )
-
-    def test_accepts_a_linked_specs_holding_no_marked_directory(self, hook, proj):
-        """A linked `specs/` whose entries carry no mark holds no work items,
-        so the rest moves and the link is named as left."""
-        git(proj, "rm", "-rq", "specs")
-        write(proj, f"team/{TEAM}/spec.md", "# the team's own specification\n")
-        write(proj, "team/handbook/routing.md", "# how requests are routed\n")
-        symlink_or_skip("team", proj / "specs")
-        commit(proj, "the team's specs/ is a link")
-        out = message(start(hook, proj))
-        assert "symbolic link" not in out, out
-        assert "moved .specseal/ into seal/" in out, out
-        assert LEFT_UNMARKED in out, out
-        assert os.path.islink(proj / "specs")
-
-    def test_accepts_a_local_root_beside_an_old_layout_as_moved_into_the_tree(
-        self, hook, proj
-    ):
-        """A repository on the old layout committed `.specseal/`, so it is
-        shared by definition, whatever sits under `.git/`."""
-        (proj / ".git" / "seal").mkdir()
-        assert MOVED_ALL in message(start(hook, proj))
-        assert (proj / "seal" / "map.md").is_file()
-        assert stamped(hook, proj)
 
     @pytest.mark.parametrize(
         "shape", ["a worktree edit", "an untracked file", "ls-files raises"]
     )
     def test_refuses_to_move_over_work_in_progress(
-        self, hook, proj, monkeypatch, shape
+        self, moving, proj, monkeypatch, shape
     ):
-        """S6: the refusal says why, stamps nothing and touches nothing, and
-        the next clean start moves."""
+        """S6: the refusal says why and touches nothing, and the next clean
+        start moves."""
+        hook = moving
         if shape == "a worktree edit":
             (proj / ".specseal" / "map.md").write_text(
                 MAP + "| E |\n", encoding="utf-8"
@@ -728,37 +521,17 @@ class Test_main:
             monkeypatch.setattr(hook, "git", failing(hook.git, LS_FILES))
         out = message(start(hook, proj))
         assert out == (
-            "specseal: .specseal/ and specs/ are the old layout, but they carry "
+            "agentic:the old layout under .specseal/ and specs/ holds "
             "uncommitted changes — not touching work in progress. Commit, then "
-            "the next session start moves them into seal/."
+            "the next session start moves it into seal/."
         ), out
         assert (proj / ".specseal" / "map.md").is_file()
         assert not (proj / "seal").exists()
-        assert not stamped(hook, proj)
 
-    @pytest.mark.parametrize("how", ["corrupt index", "ls-files raises"])
-    def test_refuses_to_stamp_where_git_cannot_list_the_marks(
-        self, hook, proj, monkeypatch, how
+    def test_refuses_to_finish_a_stopped_move_and_the_next_start_continues(
+        self, moving, proj, monkeypatch
     ):
-        """Round 2 of #688: with `.specseal/` moved, the items are the only
-        units, and an empty answer would read as nothing old left."""
-        move_the_home_by_hand(proj)
-        index = proj / ".git" / "index"
-        good, real = index.read_bytes(), hook.git
-        if how == "corrupt index":
-            index.write_bytes(b"DIRC garbage")
-        else:
-            monkeypatch.setattr(hook, "git", failing(real, LS_FILES))
-        assert "uncommitted changes" in message(start(hook, proj))
-        assert not stamped(hook, proj)
-        index.write_bytes(good)
-        monkeypatch.setattr(hook, "git", real)
-        assert "moved 1 work item into seal/" in message(start(hook, proj))
-        assert stamped(hook, proj)
-
-    def test_refuses_to_stamp_a_stopped_move_and_the_next_start_continues(
-        self, hook, proj, monkeypatch
-    ):
+        hook = moving
         real, calls = hook.git_mv, []
 
         def flaky(root, src, dst):
@@ -770,16 +543,16 @@ class Test_main:
         monkeypatch.setattr(hook, "git_mv", flaky)
         out = message(start(hook, proj))
         assert out == (
-            "specseal: moved 2 of 5 into seal/ and stopped at .specseal/map: disk "
+            "agentic:moved 2 of 5 into seal/ and stopped at .specseal/map: disk "
             "full. The next session start continues."
         ), out
-        assert not stamped(hook, proj)
         monkeypatch.setattr(hook, "git_mv", real)
         assert MOVED_ALL in message(start(hook, proj))
-        assert stamped(hook, proj)
+        assert not (proj / ".specseal").exists()
 
     @pytest.mark.parametrize("shape", ["a file named seal", "a file at seal/map.md"])
-    def test_refuses_a_stop_a_person_has_to_settle(self, hook, proj, shape):
+    def test_refuses_a_stop_a_person_has_to_settle(self, moving, proj, shape):
+        hook = moving
         if shape == "a file named seal":
             write(proj, "seal", "not a directory\n")
             said = "stopped at .specseal/README.md: cannot create seal/: "
@@ -796,50 +569,23 @@ class Test_main:
             "Settle that by hand, then the next session start continues."
         )
         assert (proj / ".specseal" / "map.md").is_file()
-        assert not stamped(hook, proj)
 
-    def test_refuses_a_repository_declaring_itself_throwaway(self, hook, proj):
-        write(proj, ".specseal/scratch", "")
-        commit(proj, "throwaway")
-        assert message(start(hook, proj)) == (
-            "specseal: .specseal/scratch says this repository is throwaway — not "
-            "migrating it. Delete the file if it is not."
-        )
-        assert not (proj / "seal").exists()
-        assert not stamped(hook, proj)
-
-    @pytest.mark.parametrize("which", [".specseal", "specs"])
-    def test_refuses_a_linked_old_root_every_start(self, hook, proj, which):
-        """Git tracks a link as one blob, so the files behind it list no
-        units: a half-move reported as success. Refused every start, nothing
-        moved and nothing stamped."""
-        git(proj, "mv", which, "vault")
-        symlink_or_skip("vault", proj / which)
-        commit(proj, "an old root is a link")
-        said = (
-            ".specseal/ is a symbolic link, which"
-            if which == ".specseal"
-            else "specs/ is a symbolic link holding work items, which"
-        )
-        for _ in range(2):
-            out = message(start(hook, proj))
-            assert f"specseal: {said} git tracks as the" in out, out
-            assert out.endswith(
-                'Move by hand (README, "Coming up from 0.3.x") and remove the link.'
-            ), out
-            assert not (proj / "seal").exists()
-            assert not stamped(hook, proj)
-
-    def test_refuses_to_speak_where_nothing_is_old_or_the_marker_answered(
-        self, hook, proj, fresh
-    ):
-        """Silent with nothing old and no root, and silent where the marker
-        already carries the root (Q8 (a)): the gates are the backstop."""
+    def test_refuses_to_speak_where_nothing_is_old(self, moving, fresh):
+        """Silent with nothing old and no root, and nothing written."""
+        hook = moving
         assert start(hook, fresh) == ""
-        assert not stamped(hook, fresh)
-        hook.stamp(str(proj))
+        assert git(fresh, "status", "--porcelain").stdout == ""
+        assert not os.path.exists(hook.STATE_DIR)
+
+    def test_refuses_to_read_another_tools_specs_or_the_0_3_x_root(self, hook, proj):
+        """A repository holding another tool's `specs/<unix-seconds>-<slug>/`
+        with a tracked `routing.md`, and a `.specseal/` beside it, hears
+        nothing at session start, and nothing in it moves or is staged."""
+        before = tracked(proj)
         assert start(hook, proj) == ""
-        assert (proj / ".specseal").is_dir()
+        assert tracked(proj) == before
+        assert git(proj, "status", "--porcelain").stdout == ""
+        assert not (proj / "seal").exists()
 
     @pytest.mark.parametrize(
         "payload",
@@ -849,41 +595,341 @@ class Test_main:
     def test_refuses_a_payload_that_names_no_directory(self, hook, payload):
         assert start(hook, None, payload) == ""
 
-    def test_accepts_a_moved_repository_as_stamped_so_an_old_branch_stays(
-        self, hook, proj
+    def test_accepts_a_branch_cut_before_the_move_moved_at_its_own_start(
+        self, hook, layout
     ):
-        """A branch cut before the move still carries the old layout, and
-        checking it out later stages nothing."""
-        start(hook, proj)
-        commit_staged(proj)
-        git(proj, "switch", "-qc", "old", "HEAD~1")
-        assert (proj / ".specseal").is_dir()
-        assert start(hook, proj) == ""
-        assert (proj / ".specseal").is_dir()
+        """A branch cut before the move, checked out after the move was
+        committed on `main`, still holds its own work item under
+        `seal/specs/`, and its own session start moves it: no stamp stands
+        between a branch and its move."""
+        other = "1788000002-another-item"
+        git(layout, "switch", "-qc", "feat/b")
+        write(layout, f"seal/specs/{other}/routing.md", ROUTING)
+        commit(layout, "a second work item on its own branch")
+        git(layout, "switch", "-q", "main")
+        start(hook, layout)
+        commit_staged(layout)
+        git(layout, "switch", "-q", "feat/b")
+        said = message(start(hook, layout))
+        assert said.startswith("agentic:moved seal/specs/ into seal/"), said
+        assert (layout / "seal" / "threads" / other / "routing.md").is_file()
+        assert not (layout / "seal" / "specs").exists()
+        assert first_line(layout / "seal" / "README.md") == ROOT_MARKER
 
-    def test_accepts_a_local_root_as_stamped_and_leaves_an_old_branch_alone(
-        self, hook, fresh, tmp_path
+    def test_accepts_a_branch_cut_before_a_switch_to_local_mode_moved_in_its_tree(
+        self, hook, layout, tmp_path
     ):
-        """S9 of #80: with only `.git/seal/` the hook says nothing and stamps,
-        and a branch still carrying the old layout checked out later is not
-        moved INTO the tree the person chose to keep clean. A linked worktree
-        reads the main tree's root and is stamped under its own path."""
-        git(fresh, "checkout", "-q", "-b", "old-layout")
-        write(fresh, ".specseal/README.md", OLD_README)
-        write(fresh, f"specs/{ITEM}/routing.md", ROUTING)
-        commit(fresh, "the 0.3.x layout")
-        git(fresh, "checkout", "-q", "main")
-        (fresh / ".git" / "seal").mkdir()
-        assert start(hook, fresh) == ""
-        assert stamped(hook, fresh)
-        git(fresh, "checkout", "-q", "old-layout")
-        assert start(hook, fresh) == ""
-        assert not (fresh / "seal").exists(), "the old layout was moved into the tree"
-        assert git(fresh, "status", "--porcelain").stdout == ""
+        """The limit `hooks/root-migrate.py`'s docstring states: a repository
+        that left shared mode for local mode still carries its 0.22.x `seal/`
+        on a branch cut before the switch, and that branch's session start
+        moves it in the tree and marks it, so the hooks read it before the
+        local root. The local-mode branch, and a linked worktree of it, hear
+        nothing."""
+        git(layout, "switch", "-qc", "old-shared")
+        git(layout, "switch", "-q", "main")
+        git(layout, "rm", "-rq", "seal")
+        commit(layout, "left shared mode")
+        mark_root(layout / ".git" / "seal")
+        assert start(hook, layout) == ""
         linked = tmp_path / "linked"
-        git(fresh, "worktree", "add", "-q", str(linked), "-b", "feature/x", "main")
+        git(layout, "worktree", "add", "-q", str(linked), "-b", "feature/x", "main")
         assert start(hook, linked) == ""
-        assert stamped(hook, linked)
+        git(layout, "switch", "-q", "old-shared")
+        said = message(start(hook, layout))
+        assert said.startswith("agentic:moved seal/specs/ into seal/"), said
+        assert first_line(layout / "seal" / "README.md") == ROOT_MARKER
+
+    def test_accepts_a_0_22_x_repository_moved_end_to_end_in_shared_mode(
+        self, hook, layout
+    ):
+        """Every file of the work item stands at its thread path as a staged
+        rename, `seal/specs/` is gone, the README opens with the marker, one
+        line says what moved, and the routing reader finds the declaration at
+        its new place."""
+        said = message(start(hook, layout))
+        assert said.startswith("agentic:moved seal/specs/ into seal/"), said
+        assert said.endswith("review the diff and commit"), said
+        assert thread_files(layout) == moved_to_threads()
+        assert not (layout / "seal" / "specs").exists()
+        assert first_line(layout / "seal" / "README.md") == ROOT_MARKER
+        listed = tracked(layout, "seal").split()
+        assert f"seal/threads/{ITEM}/frame/design.md" in listed
+        assert not any(p.startswith("seal/specs/") for p in listed), listed
+        assert unstaged(layout) == ""
+        routing = load_hook_module("routing.py", "routing_after_the_move")
+        found = [p for p, _ in routing.declarations(str(layout))]
+        assert found == [str(layout / "seal" / "threads" / ITEM / "routing.md")]
+
+    def test_accepts_the_move_naming_the_workflow_an_earlier_release_wrote(
+        self, hook, layout
+    ):
+        """A tree whose `.github/workflows/hygiene.yml` clones the plugin at
+        its name before the rename runs a release that reads work items
+        under `seal/specs/`, so after the move it examines nothing and
+        passes; the line that says what moved names the command that
+        rewrites it. A workflow at the new name adds nothing to the line."""
+        workflow = ".github/workflows/hygiene.yml"
+        clone = "git clone --branch v0.22.4 https://github.com/MichaelYcJo/{}.git\n"
+        write(layout, workflow, clone.format("SpecSeal"))
+        commit(layout, "the workflow a release before the rename wrote")
+        said = message(start(hook, layout))
+        assert said == (
+            "agentic:moved seal/specs/ into seal/ — review the diff and commit, "
+            "and run `seal pr-checks install` with it: the workflow at "
+            f"{workflow} clones a release before the rename, which reads work "
+            "items under seal/specs/, so after this move it examines nothing "
+            "and passes every pull request"
+        ), said
+        git(layout, "reset", "-q", "--hard")
+        write(layout, workflow, clone.format("AgenticSeal"))
+        commit(layout, "the workflow at the new name")
+        said = message(start(hook, layout))
+        assert (
+            said == "agentic:moved seal/specs/ into seal/ — review the diff and commit"
+        )
+
+    def test_refuses_a_linked_specs_and_moves_nothing(self, hook, fresh, tmp_path):
+        """`seal/specs/` as a symbolic link is one blob to git: the README
+        would open with the marker over work items that never moved, so the
+        move is refused, every session start, until it goes."""
+        write(fresh, "seal/README.md", OLD_HEADING)
+        outside = tmp_path / "elsewhere"
+        write(outside, f"{ITEM}/routing.md", ROUTING)
+        symlink_or_skip(str(outside), str(fresh / "seal" / "specs"))
+        commit(fresh, "a linked specs/")
+        said = message(start(hook, fresh))
+        assert "seal/specs/ is a symbolic link" in said, said
+        assert first_line(fresh / "seal" / "README.md") == OLD_HEADING.split("\n")[0]
+
+
+# --- the 0.22.x layout, moved into threads -----------------------------------
+
+# The heading `templates/seal-README.md` opened with through 0.22.x, which is
+# what tells an earlier release's root from a project's own `seal/`.
+OLD_HEADING = "# What this plugin maintains in seal/\n\nthe 0.22.x text\n"
+# A 0.22.x work item's files, and where each one stands in its thread.
+LAYOUT = {
+    "routing.md": "routing.md",
+    "spec.md": "frame/design.md",
+    "plan.md": "frame/plan.md",
+    "questions.md": "frame/questions.md",
+    "overview.md": "gaps.md",
+    "broad-gate.md": "trail/gate.md",
+    "guarantee.md": "guarantee.md",
+    "changelog.md": "changelog.md",
+    "pr.ko.md": "pr.ko.md",
+    "rounds/round-1.md": "trail/rounds/round-1.md",
+    "phases/phase-1.md": "trail/phases/phase-1.md",
+}
+
+
+def lay_out(base, readme=OLD_HEADING):
+    """The 0.22.x layout under BASE/seal/: the README an earlier release
+    wrote, a config row, and one work item holding every file `LAYOUT` maps."""
+    write(base, "seal/README.md", readme)
+    write(base, "seal/config.md", "| Item | Value |\n|---|---|\n")
+    for old in LAYOUT:
+        write(base, f"seal/specs/{ITEM}/{old}", f"# {old}\n")
+    write(
+        base,
+        f"seal/specs/{ITEM}/routing.md",
+        "| Axis | Answer |\n|---|---|\n| Review | through the review chain |\n"
+        "| Destination | open the pull request |\n| Branch | feat/x |\n",
+    )
+
+
+def thread_files(base):
+    """Every file under BASE/seal/threads/, `/`-joined and relative to it."""
+    top = os.path.join(str(base), "seal", "threads")
+    return sorted(
+        os.path.relpath(os.path.join(here, n), top).replace(os.sep, "/")
+        for here, _, names in os.walk(top)
+        for n in names
+    )
+
+
+def moved_to_threads():
+    return sorted(f"{ITEM}/{new}" for new in LAYOUT.values())
+
+
+def first_line(path):
+    with open(path, encoding="utf-8") as f:
+        return f.readline().rstrip("\n")
+
+
+@pytest.fixture
+def layout(fresh):
+    """`fresh` with the 0.22.x layout committed in shared mode."""
+    lay_out(fresh)
+    commit(fresh, "the 0.22.x layout")
+    return fresh
+
+
+class Test_moves:
+    def test_accepts_the_readme_then_each_file_of_a_work_item_into_its_thread(
+        self, hook, layout
+    ):
+        units = hook.moves(str(layout))
+        assert units[0] == ("readme", "seal/README.md", "seal/README.md")
+        assert sorted((src, dst) for _, src, dst in units[1:]) == sorted(
+            (f"seal/specs/{ITEM}/{old.split('/')[0]}", f"seal/threads/{ITEM}/{new}")
+            for old, new in {
+                **{k: v for k, v in LAYOUT.items() if "/" not in k},
+                "rounds": "trail/rounds",
+                "phases": "trail/phases",
+            }.items()
+        )
+
+    @pytest.mark.parametrize(
+        "readme", ["# seal, the project's own package\n", None], ids=["foreign", "none"]
+    )
+    def test_refuses_a_seal_whose_readme_no_release_of_the_plugin_wrote(
+        self, hook, fresh, readme
+    ):
+        """A project's own `seal/`, with a README of its own or none, lists
+        nothing, whatever it holds under `specs/`."""
+        lay_out(fresh)
+        if readme is None:
+            os.remove(fresh / "seal" / "README.md")
+        else:
+            write(fresh, "seal/README.md", readme)
+        commit(fresh, "a seal/ of the project's own")
+        assert hook.moves(str(fresh)) == []
+
+    def test_accepts_a_marked_root_with_no_readme_unit(self, hook, layout):
+        """A root already opening with the marker, as a stopped move leaves
+        it, lists the work items and no README rewrite."""
+        write(layout, "seal/README.md", f"{ROOT_MARKER}\n")
+        commit(layout, "the marker, by hand")
+        kinds = {kind for kind, _, _ in hook.moves(str(layout))}
+        assert kinds == {"other"}
+
+
+class Test_migrate_local:
+    def test_accepts_a_0_22_x_local_root_moved_end_to_end_by_rename(self, hook, fresh):
+        """In local mode the root is under the git directory: the same units
+        move as plain renames, nothing is staged, and the README there opens
+        with the marker."""
+        common = fresh / ".git"
+        lay_out(common)
+        said = message(start(hook, fresh))
+        assert said.startswith("agentic:moved seal/specs/ into seal/"), said
+        assert thread_files(common) == moved_to_threads()
+        assert not (common / "seal" / "specs").exists()
+        assert first_line(common / "seal" / "README.md") == ROOT_MARKER
+        assert git(fresh, "status", "--porcelain").stdout == ""
+
+    def test_refuses_a_local_seal_whose_readme_no_release_wrote(self, hook, fresh):
+        """A `seal/` under the git directory with a README of its own is no
+        root this plugin wrote: nothing there moves and nothing is said."""
+        common = fresh / ".git"
+        lay_out(common, readme="# a directory of the person's own\n")
+        assert start(hook, fresh) == ""
+        assert (common / "seal" / "specs" / ITEM / "spec.md").is_file()
+        assert not (common / "seal" / "threads").exists()
+
+
+class Test_rename_state:
+    def test_accepts_the_old_home_state_merged_into_a_new_one_that_stands(
+        self, hook, layout, tmp_path, monkeypatch
+    ):
+        """A `~/.claude/agentic/` that already stands, as a session start of
+        the new release writes one before this hook runs, still receives each
+        file of `~/.claude/specseal/` it does not hold; a file it holds keeps
+        its own text, and the old one stays where it was, except the
+        version cache, which the new directory's own copy replaces."""
+        old_home = tmp_path / "home" / "specseal"
+        new_home = tmp_path / "home" / "agentic"
+        write(old_home, "pact-paths.md", "| a | b |\n")
+        write(old_home, "parity-paths.md", "| old | row |\n")
+        write(old_home, "version-check", "old\n")
+        write(new_home, "parity-paths.md", "| new | row |\n")
+        write(new_home, "version-check", "new\n")
+        monkeypatch.setattr(hook, "OLD_STATE_DIR", str(old_home))
+        monkeypatch.setattr(hook, "STATE_DIR", str(new_home))
+        start(hook, layout)
+        assert (new_home / "pact-paths.md").read_text(encoding="utf-8") == (
+            "| a | b |\n"
+        )
+        assert (new_home / "parity-paths.md").read_text(encoding="utf-8") == (
+            "| new | row |\n"
+        )
+        assert (old_home / "parity-paths.md").read_text(encoding="utf-8") == (
+            "| old | row |\n"
+        )
+        assert (new_home / "version-check").read_text(encoding="utf-8") == "new\n"
+        assert sorted(os.listdir(old_home)) == ["parity-paths.md"]
+
+    def test_accepts_a_clone_whose_tree_another_person_moved(
+        self, hook, fresh, tmp_path, monkeypatch
+    ):
+        """A clone that pulls a tree already moved has nothing to move and
+        still holds its own state: its session start renames the state file
+        under the git directory, so the scratch opt-out keeps the gates off,
+        and merges `~/.claude/specseal/` into `~/.claude/agentic/`. A second
+        start changes nothing."""
+        write(fresh, "seal/README.md", f"{ROOT_MARKER}\n")
+        write(fresh, f"seal/threads/{ITEM}/routing.md", ROUTING)
+        commit(fresh, "the tree another person moved")
+        old_home = tmp_path / "home" / "specseal"
+        new_home = tmp_path / "home" / "agentic"
+        write(old_home, "pact-paths.md", "| a | b |\n")
+        write(old_home, "version-check", "old\n")
+        write(new_home, "version-check", "new\n")
+        monkeypatch.setattr(hook, "OLD_STATE_DIR", str(old_home))
+        monkeypatch.setattr(hook, "STATE_DIR", str(new_home))
+        write(fresh / ".git", "specseal-scratch", "")
+        assert start(hook, fresh) == ""
+        assert (fresh / ".git" / "agentic-scratch").is_file()
+        assert not (fresh / ".git" / "specseal-scratch").exists()
+        optin = load_hook_module("optin.py", "optin_after_the_state_rename")
+        assert optin.home_at(str(fresh)) == "", "the scratch opt-out was lost"
+        assert (new_home / "pact-paths.md").read_text(encoding="utf-8") == (
+            "| a | b |\n"
+        )
+        assert (new_home / "version-check").read_text(encoding="utf-8") == "new\n"
+        assert not old_home.exists()
+        before = sorted(os.listdir(fresh / ".git")), sorted(os.listdir(new_home))
+        assert start(hook, fresh) == ""
+        assert (sorted(os.listdir(fresh / ".git")), sorted(os.listdir(new_home))) == (
+            before
+        )
+
+    def test_refuses_to_make_a_state_file_where_no_old_one_stands(self, hook, fresh):
+        """Nothing old, nothing new: the rename invents no file, and leaves
+        a new-named file alone."""
+        write(fresh / ".git", "agentic-scratch", "")
+        before = sorted(os.listdir(fresh / ".git"))
+        hook.rename_state(str(fresh))
+        assert sorted(os.listdir(fresh / ".git")) == before
+        assert not os.path.exists(hook.STATE_DIR)
+
+    def test_accepts_each_old_state_file_renamed_where_no_new_one_stands(
+        self, hook, layout, tmp_path, monkeypatch
+    ):
+        """With the move, a state file an earlier release wrote beside the
+        root, and the directory under `~/.claude/`, take the plugin's new
+        name; one whose new name is already taken is left as it is."""
+        fresh = layout
+        old_home = tmp_path / "home" / "specseal"
+        new_home = tmp_path / "home" / "agentic"
+        write(old_home, "pact-paths.md", "| a | b |\n")
+        monkeypatch.setattr(hook, "OLD_STATE_DIR", str(old_home))
+        monkeypatch.setattr(hook, "STATE_DIR", str(new_home))
+        git_dir = fresh / ".git"
+        write(git_dir, "specseal-scratch", "")
+        write(git_dir, "specseal-leases/s1", "x\n")
+        write(git_dir, "specseal-stamp/a", "old\n")
+        write(git_dir, "agentic-stamp/a", "new\n")
+        start(hook, fresh)
+        assert (git_dir / "agentic-scratch").is_file()
+        assert not (git_dir / "specseal-scratch").exists()
+        assert (git_dir / "agentic-leases" / "s1").is_file()
+        old_stamp = git_dir / "specseal-stamp" / "a"
+        assert old_stamp.read_text(encoding="utf-8") == "old\n"
+        assert (git_dir / "agentic-stamp" / "a").read_text(encoding="utf-8") == "new\n"
+        assert (new_home / "pact-paths.md").is_file()
+        assert not old_home.exists()
 
 
 test_census = census_case(TARGET)

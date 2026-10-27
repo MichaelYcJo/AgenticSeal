@@ -4,13 +4,13 @@ description: Declare that this repo ports behavior from another codebase. Finds 
 disable-model-invocation: true
 ---
 
-# /specseal:parity-setup, turn on parity mode
+# /agentic:parity-setup, turn on parity mode
 
 The user runs this command, and the session running it writes
 `seal/parity.md`, whose presence is the declaration that this repository ports
 behavior from another codebase. That turns on the three-way judgment between
 policy, the original and the new code, with the original preserved where the
-policy is silent, and lets the `scribe` agent fetch what the original does.
+policy is silent, and lets the `tracer` agent fetch what the original does.
 
 The `implement` skill's bootstrap asks this question once, when it first sets
 a repository up. This command is for when the answer was no at the time, when
@@ -47,13 +47,13 @@ the layout predates the question, or when the original repository changes.
 6. **Write two files.**
    - `seal/parity.md` from `templates/parity.md`, committed. Coordinate-trust
      exceptions start empty.
-   - `~/.claude/specseal/parity-paths.md`: the machine-local checkout path,
+   - `~/.claude/agentic/parity-paths.md`: the machine-local checkout path,
      keyed by this repository's origin remote URL so worktrees and second
      checkouts resolve to one entry. **This never goes in the committed
      file**: it is wrong for every other machine.
 
 7. **Show the result and say what changes now.** Name the `legacy-parity`
-   skill, the `scribe` agent, and that divergence from the original now needs
+   skill, the `tracer` agent, and that divergence from the original now needs
    grounds rather than preference. Say the consequence the user meets first,
    too: from this file onward, a ready pull request that changes anything
    outside the document roots fails its check until the comparison with the

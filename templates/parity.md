@@ -2,12 +2,12 @@
 
 This file's presence is the declaration: **this repository ports behaviour
 from another codebase.** It turns on the three-way judgment of policy,
-original and new, and lets the scribe fetch what the original actually does.
+original and new, and lets the tracer fetch what the original actually does.
 Deleting it makes the project greenfield again.
 
 Machine-local checkout paths never belong here: they differ per machine and
 would be wrong for everyone else. They live in
-`~/.claude/specseal/parity-paths.md`, keyed by this repo's origin remote URL.
+`~/.claude/agentic/parity-paths.md`, keyed by this repo's origin remote URL.
 
 | Field | Value |
 |---|---|

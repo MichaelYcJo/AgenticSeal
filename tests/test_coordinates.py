@@ -29,7 +29,7 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 KERNEL = os.path.join(ROOT, "skills", "verify", "scripts", "coordinates.py")
 
 
-ec = load_module(KERNEL, "specseal_kernel_for_its_cases")
+ec = load_module(KERNEL, "agentic_kernel_for_its_cases")
 
 
 def places(path, locator, text):

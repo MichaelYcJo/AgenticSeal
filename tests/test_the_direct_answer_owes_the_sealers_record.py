@@ -1,4 +1,4 @@
-"""`straight to the PR` owes the broad run's `broad-gate.md`, and every document
+"""`straight to the PR` owes the broad run's `trail/gate.md`, and every document
 that describes the answer says so (#241).
 
 `chain_check.py#broad_gate` requires that file at a ready pull request: the
@@ -27,7 +27,7 @@ from conftest import REVIEW_CHAIN_DOCS, flat, review_chain_text
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
-STANDS = "the broad run's `broad-gate.md`"
+STANDS = "the broad run's `trail/gate.md`"
 
 # (the sentence that is gone, or None where the file never carried one; the
 # sentence that stands). The standing phrase is one no other sentence of the
@@ -37,7 +37,7 @@ STANDS = "the broad run's `broad-gate.md`"
 DIRECT_REQUIRES = {
     ("docs", "the-review-and-parity-arms.md"): (
         "nothing required; the declaration is printed",
-        STANDS,
+        "the broad run's `trail/gate.md`",
     ),
     ("skills", "implement", "orchestration.md"): (
         "| nothing required |",
@@ -105,7 +105,7 @@ def test_the_specification_says_why_two_answers_and_not_three():
 def test_the_release_checklist_names_the_waiver_as_the_no_work_item_answer():
     """Item 9: the release-preparation commit declares its class — the
     routing question's `no work item` answer, whose recorded form is
-    `seal no-work-item` and the `SpecSeal-Routing: no work item` trailer on
+    `seal no-work-item` and the `Seal-Routing: no work item` trailer on
     each commit — rather than stepping around a gate."""
     text = flat("docs", "release-checklist.md")
     assert "`no work item` answer" in text, (

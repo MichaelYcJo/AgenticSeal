@@ -1312,7 +1312,7 @@ class Test_has_token:
 
     @pytest.mark.parametrize("name", sorted(TYPED_BESIDE_A_BODY))
     def test_a_typed_token_beside_a_body_is_still_read(self, name):
-        """`spec.md` A7. Every documented form still carries consent when a
+        """`frame/design.md` A7. Every documented form still carries consent when a
         here-document stands in the same command."""
         command, token = TYPED_BESIDE_A_BODY[name]
         assert wg.has_token(command, token), name
@@ -1321,7 +1321,7 @@ class Test_has_token:
     def test_a_broken_wider_reader_reads_no_body_token_and_keeps_a_typed_one(
         self, monkeypatch, tmp_path, break_it
     ):
-        """`spec.md` A8. Where `hooks/cmdline.py` does not load, or where
+        """`frame/design.md` A8. Where `hooks/cmdline.py` does not load, or where
         `hooks/tokens.py#without_bodies` raises, the bodies are found by the
         frozen reader `_judgment_text` uses. A body token is still not read and a
         typed one still is (`plan.md` G and H). The body half is red at
@@ -1341,10 +1341,10 @@ class Test_has_token:
     def test_the_token_read_never_reads_more_than_the_base(
         self, monkeypatch, token, break_it
     ):
-        """`spec.md` A9. Over every command of A6-A8, the two the splitter cannot
+        """`frame/design.md` A9. Over every command of A6-A8, the two the splitter cannot
         finish until the body goes, and the existing token cases, `has_token` is
         True only where `a3aa139a`'s was, with the wider body reader working
-        and raising. It holds by the AND in `spec.md` *Scope* In 5; red with the
+        and raising. It holds by the AND in `frame/design.md` *Scope* In 5; red with the
         read over the body-free text alone (`plan.md` F)."""
         if break_it:
             monkeypatch.setattr(wg.tokens, "without_bodies", _raises)
@@ -1470,7 +1470,7 @@ class Test_lease_owner_alive:
         and blind means `reliable` is False, which means every branch switch
         reaches the cannot-tell arm.
         """
-        guard = load("hooks/worktree-guard.py", "specseal_guard_failopen")
+        guard = load("hooks/worktree-guard.py", "agentic_guard_failopen")
         if not hasattr(guard, "lease_owner_alive"):
             pytest.skip("the probe moved; this case names it by function")
 
@@ -4154,7 +4154,7 @@ class Test_main:
         split as it does in the session's own clone, and says the record
         consents rather than the press, which consents only in the clone it was
         given in (round 2). Both languages. Seen red with the record's branch
-        taken out of the clone test through `mutation-check` (round 1), and
+        taken out of the clone test through `seal mutate` (round 1), and
         against the round-1 text, which credited the press (round 2)."""
         other = tmp_path / "other-repo"
         shutil.copytree(repo, other)
@@ -4222,7 +4222,7 @@ class Test_main:
         """S5. This session's record in the other clone is consent there, read at
         row 0 before any row below it, so the creation is allowed with the
         record's text and the deny is never reached. Green at `321e9de1`, which is
-        the point; seen red through `mutation-check` with row 0's read taken
+        the point; seen red through `seal mutate` with row 0's read taken
         out."""
         write_transcript(projects, "me", ask_entries(repo))
         grant(other)
@@ -4238,7 +4238,7 @@ class Test_main:
         """S6. `[worktree-ok]` is read at row 2, above both choice rows, and its
         row is an `ask` under the press as attended. The deny names no token, so
         a model that appends one read it elsewhere, and the command line records
-        that it did. Green at `321e9de1`; seen red through `mutation-check` with
+        that it did. Green at `321e9de1`; seen red through `seal mutate` with
         row 2 taken out."""
         write_transcript(projects, "me", ask_entries(repo))
         tagged = creation(other, "  # [worktree-ok]")
@@ -4254,7 +4254,7 @@ class Test_main:
         the rows read the press against the root the shell stands in. A press
         given only in a third clone leaves the attended first attempt, and a
         press given in the creation's own clone is consent there at row 0. Green
-        at `321e9de1` for both halves; seen red through `mutation-check` with the
+        at `321e9de1` for both halves; seen red through `seal mutate` with the
         rows reading a press that is not there."""
         third = tmp_path / "third-repo"
         shutil.copytree(repo, third)
@@ -4299,7 +4299,7 @@ class Test_main:
         """Attended, rows 3 and 4 open with the origin and its quote note, as at
         the base: only the press drops the note (round 2, note 5). No transcript
         is planted, so nothing is pressed; each language is its own session, so
-        each meets its first attempt. Seen red through `mutation-check` with the
+        each meets its first attempt. Seen red through `seal mutate` with the
         attended arm of both rows' `lead` dropped."""
         command = creation(other, "  # don't")
         for lang, module in (("en", wg), ("ko", wko)):
@@ -4439,7 +4439,7 @@ class Test_main:
     def test_a_cd_moves_the_tree_even_when_the_session_sits_in_a_repository(
         self, monkeypatch, capsys, repo, tmp_path
     ):
-        """S10 in the shape `spec.md` states it: "the session sits in `A`".
+        """S10 in the shape `frame/design.md` states it: "the session sits in `A`".
 
         The case above seats the session in a directory that is no repository, so
         the pre-fix failure there is `top is None` — the guard finding nothing at
@@ -5004,7 +5004,7 @@ class Test_main:
     ):
         """`questions.md` D10 of 1790993140 read consent first for these, as for
         every creation, and #734 found it read against the wrong clone. Since
-        #826 the stop reads no consent record (`spec.md` In 3 of 1791270162): a
+        #826 the stop reads no consent record (`frame/design.md` In 3 of 1791270162): a
         creation having run says nothing about whether this one is plain, and
         the plain retry meets *B. Worktree creation*, which reads its own clone's consent."""
         session, _other = _a_dirty_w_under_a_clean_session(repo, tmp_path)
@@ -5125,7 +5125,7 @@ class Test_main:
     def test_a_message_search_over_a_dirty_tree_is_asked(
         self, monkeypatch, capsys, repo, tmp_path
     ):
-        """`spec.md` A3 of 1791163981, #790's own shape through `main()`: `git
+        """`frame/design.md` A3 of 1791163981, #790's own shape through `main()`: `git
         checkout ':/<message>'` detaches at the newest commit whose message
         matches, so it moves a dirty tree. Red at `a3aa139a`, where it was
         silent. Since #826 nothing is looked up: a `checkout` with no `-- <path>`
@@ -5146,7 +5146,7 @@ class Test_main:
     def test_a_token_only_a_body_carries_is_not_read(
         self, monkeypatch, capsys, repo, name
     ):
-        """`spec.md` A6. A `[shared-tree-ok]` only a body carries leaves the
+        """`frame/design.md` A6. A `[shared-tree-ok]` only a body carries leaves the
         cannot-tell row's choice in place, and a `[worktree-ok]` only a body
         carries leaves the single-stream creation denied. Red at `a3aa139a`, where
         the first was silent and the second asked."""
@@ -5410,7 +5410,7 @@ class Test_shape_of:
 
 # --- left where they stand, for #923: they read this module's own text --------
 
-# Phase 1 of work item 1791270162, its `phases/phase-1.md`, measurement M1: every git
+# Phase 1 of work item 1791270162, its `trail/phases/phase-1.md`, measurement M1: every git
 # subcommand the frozen reading yields over the recorded runs, as pairs
 # holding it in cut 1 / cut 2. Phase 3 re-read cut 1 on the same definition
 # and found the same table.
@@ -5470,7 +5470,7 @@ RECORDED = {
     "symbolic-ref": (1, 1),
     "shortlog": (1, 1),
 }
-# What the frame judges does not leave the branch (`spec.md` In 5), and the
+# What the frame judges does not leave the branch (`frame/design.md` In 5), and the
 # words that are a shape of their own rather than a list entry.
 MOVERS = {"switch", "checkout", "worktree", "update-ref", "symbolic-ref", "bisect"}
 
@@ -5497,7 +5497,7 @@ def test_the_list_carries_its_counts_and_nothing_unmeasured():
 
 
 def test_the_readings_are_gone():
-    """S11 of work item 1791270162. None of the symbols `spec.md` In 4
+    """S11 of work item 1791270162. None of the symbols `frame/design.md` In 4
     removes is defined, and the switch arm runs no `rev-parse`: nothing
     looks a name up. Red at `9c03ae85`, where every one was still defined."""
     import inspect

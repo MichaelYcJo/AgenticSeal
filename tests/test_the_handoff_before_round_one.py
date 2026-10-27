@@ -51,7 +51,7 @@ def test_the_implementer_documents_point_at_the_section():
     """A protocol section nobody is routed to is the same defect one layer
     up: the answer exists and the party needing it does not know it is
     there — which is how session_cost.py went unused for a day."""
-    for parts in (("skills", "implement", "SKILL.md"), ("agents", "smith.md")):
+    for parts in (("skills", "implement", "SKILL.md"), ("agents", "crafter.md")):
         text = flat(*parts)
         assert "`docs/the-review-record.md`" in text and "handoff" in text, "/".join(
             parts
@@ -59,8 +59,8 @@ def test_the_implementer_documents_point_at_the_section():
 
     # Phase 4 of #107 re-pointed the second half. The rule that a fact with
     # no coordinate and no label is an assertion nobody has opened is
-    # contract rule 5, which every agent receives at startup -- the smith
-    # was one of two definitions stating it and the scribe stated it nowhere.
+    # contract rule 5, which every agent receives at startup -- the crafter
+    # was one of two definitions stating it and the tracer stated it nowhere.
     # What stays in the definitions is the ROUTE: the section a prompt's
     # facts arrive under, which is what this case is about.
     assert "assertion nobody has opened" in flat(
@@ -84,8 +84,8 @@ def test_the_protocol_no_longer_states_the_rules_it_points_at():
         ("never `cmd | tail; echo $?`", "contract rule 1"),
         ("enumerate the class, do not fix the coordinate", "contract rule 12"),
         ("Do not push, do not open a pull request", "contract rule 6"),
-        ("make a `uv` venv", "`agents/warden.md`"),
-        ("Mutation-test every unit added", "`agents/smith.md`"),
+        ("make a `uv` venv", "`agents/proofer.md`"),
+        ("Mutation-test every unit added", "`agents/crafter.md`"),
     ):
         assert phrase not in protocol, (
             f"the protocol states {whose} again: {phrase!r}. This document is "
@@ -94,8 +94,8 @@ def test_the_protocol_no_longer_states_the_rules_it_points_at():
         )
 
 
-def test_the_smiths_definition_mandates_mutating_every_unit_it_added():
-    """The rule the case above says is `agents/smith.md`'s is actually there.
+def test_the_crafters_definition_mandates_mutating_every_unit_it_added():
+    """The rule the case above says is `agents/crafter.md`'s is actually there.
 
     Measured 2026-09-03 at `dcdf4e4`, phase 6 of #107: it was not. Phase 4
     never moved *mutation-test every unit added, one at a time, before
@@ -118,7 +118,7 @@ def test_the_smiths_definition_mandates_mutating_every_unit_it_added():
     that kept only the act would read as contract rule 15 restated, which
     `test_a_moved_rule_leaves_its_definition.py` would then be right to
     refuse."""
-    smith = flat("agents", "smith.md")
+    crafter = flat("agents", "crafter.md")
     # The whole clause, not its words one by one. Asserting `one at a time`
     # alone passed under the mutation that removed the cadence, because the
     # design gate two hundred lines up says asking questions `one at a time`
@@ -127,11 +127,11 @@ def test_the_smiths_definition_mandates_mutating_every_unit_it_added():
     # Since #967 the act is the rule's lead and the moment is its step in
     # `## Order of work`: after the commit, before the narrow checks and the
     # hand-back.
-    assert "Commit, then run `mutation-check` over each unit you added." in smith
-    assert "Mutation-test every unit you added, one command each." in smith, (
-        "`agents/smith.md` does not mandate mutating what it added, on that "
-        "cadence, at that moment. `spec.md` of work item 1788433011 puts the "
-        "rule in the smith's own layer -- *only the agent that adds units "
+    assert "Commit, then run `seal mutate` over each unit you added." in crafter
+    assert "Mutation-test every unit you added, one command each." in crafter, (
+        "`agents/crafter.md` does not mandate mutating what it added, on that "
+        "cadence, at that moment. `frame/design.md` of work item 1788433011 puts the "
+        "rule in the crafter's own layer -- *only the agent that adds units "
         "can* -- and the protocol that used to carry it is a pointer now, so "
         "a definition without it leaves the rule stated nowhere at all. "
         "Units broken together cannot say which case caught which, and a "
@@ -139,7 +139,7 @@ def test_the_smiths_definition_mandates_mutating_every_unit_it_added():
         "trust, which is why the cadence and the timing are in the assertion "
         "rather than beside it"
     )
-    assert "watch one go red" in smith, (
+    assert "watch one go red" in crafter, (
         "the rule stopped asking for the observation that makes it a "
         "measurement. Breaking a unit and running the suite is not a "
         "mutation test until a case is seen to fail for it"
@@ -168,8 +168,8 @@ def test_the_protocol_names_the_progress_channel_and_the_stall_signal():
 # --- the batching expectation in the contracts ------------------------------
 
 
-def test_the_smiths_contract_does_not_demand_what_a_serial_loop_cannot_give():
-    """The batching rule lands on the smith with the caveat that keeps it
+def test_the_crafters_contract_does_not_demand_what_a_serial_loop_cannot_give():
+    """The batching rule lands on the crafter with the caveat that keeps it
     honest: an edit-test loop is serial, and a rule that ignores that is a
     demand the work cannot meet. The caveat is contract rule 10's; the bar it
     points at has one home, `docs/the-review-record.md` *The per-segment
@@ -209,7 +209,7 @@ def test_the_framers_definition_carries_its_opening():
     took under it sat at the floor and the rewording forbids nothing."""
     text = read("agents", "framer.md")
     whole = " ".join(text.split())
-    assert "skeleton `spec.md` inside your first few calls" in whole, (
+    assert "skeleton `frame/design.md` inside your first few calls" in whole, (
         "the early write went or lost its moment, and a skeleton written at "
         "the end is what a watchdog loss leaves no trace of"
     )
@@ -440,7 +440,7 @@ def test_the_scripts_bars_are_the_protocols():
     on tools per turn, and the script's entry for it is the exemption."""
     script = read("skills", "verify", "scripts", "session_cost.py")
     protocol = read(*PROTOCOL)
-    for kind, segment in (("warden", "reviewing"), ("framer", "framing")):
+    for kind, segment in (("proofer", "reviewing"), ("framer", "framing")):
         constant = re.search(rf'"{kind}": \("{segment}", ([\d.]+)\)', script)
         assert constant, f"`SEGMENT_BARS` lost its {kind} entry or its shape"
         row = re.search(
@@ -464,8 +464,8 @@ def test_the_scripts_bars_are_the_protocols():
         f"`SEGMENT_BARS` grades {graded} and the protocol's table states {rows} "
         "-- add, move or remove both or neither"
     )
-    assert '"smith": ("implementing", None)' in script, (
-        "`SEGMENT_BARS` grades a smith row, and the protocol's implementing row "
+    assert '"crafter": ("implementing", None)' in script, (
+        "`SEGMENT_BARS` grades a crafter row, and the protocol's implementing row "
         "says tools per turn never judges one"
     )
     assert re.search(r"^\| implementing \|.*never tools per turn", protocol, re.M)

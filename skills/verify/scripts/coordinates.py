@@ -53,7 +53,7 @@ def shared_reader():
     shared reader is broken has every other gate broken too, and a fallback
     would hide that here alone.
     """
-    spec = importlib.util.spec_from_file_location("specseal_unverified_reader", READER)
+    spec = importlib.util.spec_from_file_location("agentic_unverified_reader", READER)
     reader = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(reader)
     return reader
