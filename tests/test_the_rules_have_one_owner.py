@@ -367,9 +367,10 @@ def test_a_recurring_problem_gets_a_prevention_home():
     order = the_order()
     for said in (
         "A problem that recurs within a run gets a prevention home at once.",
-        "a mechanism that stops it, or a rule in the work item that rewrites the "
-        "file the recurring act is read from",
-        "in a comment on that work item's issue",
+        "a mechanism that stops it, or a rule written into the file the "
+        "recurring act is read from",
+        "The work item in progress builds that home.",
+        "records the home in a comment on the issue of the work item in progress",
     ):
         assert said in order, f"the order no longer says {said!r}"
 

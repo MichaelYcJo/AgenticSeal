@@ -49,9 +49,11 @@ work over has read it.
 
 **A problem that recurs within a run gets a prevention home at once.** When
 the same problem appears a second time in one run, the orchestrator gives it
-a home before the next spawn: a mechanism that stops it, or a rule in the
-work item that rewrites the file the recurring act is read from. The
-orchestrator records that home in a comment on that work item's issue.
+a home before the next spawn: a mechanism that stops it, or a rule written
+into the file the recurring act is read from. The work item in progress
+builds that home. The orchestrator folds it into that work item's frame, as
+any decision after the frame is folded, and records the home in a comment on
+the issue of the work item in progress.
 
 ### The plan is approved at the spawn
 
