@@ -939,9 +939,14 @@ def test_no_pact_text_names_a_signer_the_way_0_18_did():
 #   changed while every 0.18.x pact stopped reading; and this module, whose
 #   pattern and comments name the word in order to refuse it;
 # - the two spans `PACT_RENAMED_SPANS` names.
+#
+# `seal/specs/` is the work item root, and a settle removes every released
+# directory under it (`skills/settle/SKILL.md`), so it may hold no tracked
+# file; only the other record prefixes are asserted to hold one.
+SETTLED_RECORDS = "seal/specs/"
 RENAMED_RECORDS = (
     "changelog/",
-    "seal/specs/",
+    SETTLED_RECORDS,
 )
 RENAMED_COMPAT = (
     "tests/conftest.py",
@@ -962,8 +967,9 @@ def test_no_live_text_says_the_word_0_19_0_renamed():
     """No tracked file outside the records says the old word, the two spans
     that keep a 0.18.x header reading taken out first; the compatibility
     cases may say it only as the capitalised header cell. Each exception is
-    asserted to exist, the record prefixes included, so one that moves is
-    named rather than left exempting nothing."""
+    asserted to exist, the record prefixes included but the work item root a
+    settle empties, so one that moves is named rather than left exempting
+    nothing."""
     done = subprocess.run(
         ["git", "-C", ROOT, "ls-files", "-z"],
         capture_output=True,
@@ -973,6 +979,8 @@ def test_no_live_text_says_the_word_0_19_0_renamed():
     for rel in (*RENAMED_COMPAT, SWEEP_MODULE, "docs/the-pact.md", "hooks/config.py"):
         assert rel in tracked, f"{rel} is excepted below and no longer tracked"
     for prefix in RENAMED_RECORDS:
+        if prefix == SETTLED_RECORDS:
+            continue
         assert any(p.startswith(prefix) for p in tracked), (
             f"{prefix} is excepted below and holds no tracked file"
         )
