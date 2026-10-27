@@ -37,7 +37,7 @@ rows of `## Not judged`.
 severity: should
 location: `tests/test_label_merged_on_release_branch.py:390-396`, `seal/specs/1793057294-close-the-mutation-gaps-the-old-tests-had/phases/phase-7.md:92`, `seal/specs/1793057294-close-the-mutation-gaps-the-old-tests-had/phases/phase-7.md:152-158`, `seal/specs/1793057294-close-the-mutation-gaps-the-old-tests-had/overview.md:28`, `seal/specs/1793057294-close-the-mutation-gaps-the-old-tests-had/overview.md:57-85`, `seal/specs/1793057294-close-the-mutation-gaps-the-old-tests-had/changelog.md:3`
 evidence: executed `git grep -n LABEL_DESCRIPTION_LIMIT`, `python3 test_tmp_round1_mutants.py`
-verdict: open
+verdict: fixed 561151b0
 
 Phase 7 claimed that "m6 pins a number, because the number is the decision",
 and in the same paragraph that the constant "is read by no function of its
@@ -90,14 +90,14 @@ The paragraph at `phases/phase-7.md:152-158`, the module row at `:32`, the
 outcome sentence at `:25-27`, the phase 7 row and the total row of
 `overview.md`, and the counts in `changelog.md` change with it.
 
-answer:
+answer: the finding holds: `git grep -n LABEL_DESCRIPTION_LIMIT` finds no shipped reader, only the definition, the comment in `tracker_labels.py` and the two description cases. 561151b0 removes the case `Test_module::test_refuses_a_cap_past_the_hundred_characters_github_takes` from `tests/test_label_merged_on_release_branch.py`, so its removed `def test_` line is this round's decision and no case the base held. The constant stays, since #1056 lists it for removal. `phases/phase-7.md` records m6 as equivalent, in its row, the module row, the outcome sentence and the paragraph that claimed the number was the decision. `overview.md` gains m6 under *Names no input reaches*, and its phase 7 row, total row and the kill counts beside them read 14 and 1 for phase 7. `changelog.md` reads 122 and 15 at this commit, and 121 and 16 after finding 2. executed: `bin/mutation-check .github/scripts/label_merged_on_release_branch.py --replace 'LABEL_DESCRIPTION_LIMIT = 100' 'LABEL_DESCRIPTION_LIMIT = 1000'` over `tests/test_label_merged_on_release_branch.py tests/test_tracker_labels.py` prints SURVIVED and exits 1 with the tree clean afterwards; `bin/test tests/test_label_merged_on_release_branch.py -q -p no:xdist` 27 passed, exit 0
 
 ### 2. k3's case fakes `worktree_consent`'s own `record`, which is no platform guarantee, so the row is equivalent and the case pins an internal call
 
 severity: should
 location: `tests/test_worktree_consent.py:271-284`, `seal/specs/1793057294-close-the-mutation-gaps-the-old-tests-had/phases/phase-3.md:118`, `seal/specs/1793057294-close-the-mutation-gaps-the-old-tests-had/phases/phase-3.md:173-178`, `seal/specs/1793057294-close-the-mutation-gaps-the-old-tests-had/overview.md:52`
 evidence: read `hooks/worktree_consent.py:118-138`, `hooks/worktree_consent.py:426-441`, `hooks/worktree_consent.py:591-624`, `tests/test_worktree_consent.py:271-284`
-verdict: open
+verdict: fixed c088d7ec
 
 Phase 3 claimed that "k3 rests on a guarantee the module gives itself, and
 its case removes it (contract rule 13)" (`phases/phase-3.md:173-178`).
@@ -153,14 +153,14 @@ killed and 4 equivalent.
 +  (`phases/phase-3.md`).
 ```
 
-answer:
+answer: the finding holds: read at the head, `main` without its test reaches only `record(top, "")`, `consent_path` answers "" for the empty id and `record` returns False without writing, and the calls between write nothing. c088d7ec removes the case `Test_main::test_refuses_a_payload_with_no_session_id_where_any_session_is_recorded` and the `import io` only it used from `tests/test_worktree_consent.py`, so its removed `def test_` line is this round's decision and no case the base held. A PostToolUse hook of the session removed the unused `import io` after the case's deletion, before any edit of mine reached it, and the commit holds both removals. `phases/phase-3.md` records k3 as equivalent in its row, the module row, the outcome sentence and its paragraph, and drops the k3 sentence from the paragraph on platform fakes. `overview.md` gains k3 under *Names no input reaches*, its phase 3 row reads 14 killed and 4 equivalent, the totals read 121 killed and 16 equivalent, and the contract rule 13 row counts 7 rows and quotes the rule with "platform". `changelog.md` reads 121 and 16; it is not on `location:`, and the commit also touches paths that are. The class was enumerated: `git diff 5daa931f...HEAD -- tests` holds seven other new cases citing contract rule 13, the seven the row now counts, and each fakes git, the operating system's refusal of a non-directory or the `stamp` module `drawings` takes as a parameter, none a function of the module under test. executed: `bin/mutation-check hooks/worktree_consent.py` with the table's k3 pair over `tests/test_worktree_consent.py` prints SURVIVED and exits 1 with the tree clean afterwards; `bin/test tests/test_worktree_consent.py -q -p no:xdist` 54 passed, exit 0
 
 ### 3. The records count 184 new cases where the work item added 171, and phase 2 counts four guarantee rows where it names three
 
 severity: should
 location: `seal/specs/1793057294-close-the-mutation-gaps-the-old-tests-had/overview.md:93`, `seal/specs/1793057294-close-the-mutation-gaps-the-old-tests-had/phases/phase-7.md:195-197`, `seal/specs/1793057294-close-the-mutation-gaps-the-old-tests-had/phases/phase-2.md:198-202`
 evidence: executed `git diff 5daa931f...dfd10e1a -- tests | grep -c '^+.*def test_'`, `git diff fa7d1374 5daa931f -- tests | grep -c '^+.*def test_'`, `git diff 134d7203 dfd10e1a -- tests | grep -c '^+.*def test_'`
-verdict: open
+verdict: fixed c19f0588
 
 `overview.md` *Not verified* row 3 and `phases/phase-7.md:195-197` say "the
 work item adds 184 lines holding `def test_` since 134d7203". The sealer
@@ -188,7 +188,7 @@ phase record's sentence is the wrong one.
 `hooks/review-skill-gate.py#git` on a non-zero exit, ...
 ```
 
-answer:
+answer: the finding holds, with the count at the head two lower than the paste. Measured again: `git diff 5daa931f...cfdf2e7b -- tests` adds 171 `def test_` lines and `git diff 134d7203 cfdf2e7b` 184, and at c19f0588 the same ranges read 169 and 182, because findings 1 and 2 removed two cases. So c19f0588 states each count where it was measured. `phases/phase-7.md` states 171 at cfdf2e7b, the 184 with the 13 of the merge 95fa9fb7, and the 169 at the head. `overview.md` *Not verified* row 3 states 169 over `git diff 5daa931f...HEAD -- tests`, the build's 171 less the two cases this round removed, and the 182 of `git diff 134d7203 HEAD`. `phases/phase-2.md` reads "Three rows" and "Two are git's" and calls s4 the third, and the note on `overview.md`'s contract rule 13 row that phase 2 counted four and named three leaves with it. `git diff 5daa931f...c19f0588 -- tests` removes no `def test_` line, and `git diff 1bea9d50 c19f0588 -- tests` removes the two named in findings 1 and 2. executed: the four `git diff ... -- tests | grep -c` counts above; `bin/test tests -q -p no:xdist -k 'test_the_durations_file_prices_the_suite or test_the_durations_file_parses_and_names_cases'` 2 passed, exit 0; `grep -c` of the two removed case names in `.test_durations` prints 0
 
 ## Confirmations
 
