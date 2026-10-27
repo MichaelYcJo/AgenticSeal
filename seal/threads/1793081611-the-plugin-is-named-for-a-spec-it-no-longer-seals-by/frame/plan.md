@@ -71,11 +71,12 @@ repository runs `skills/code-review/scripts/chain_check.py` from the tree
 new reader.
 
 **The failure scenario of the chosen approach.** In six months a reader
-meets three spellings kept on purpose (the old trailer key, the stub
-marker, the old CLAUDE.md block markers) and cannot tell them from a miss,
-unless each is labelled at its constant with the release that removes it.
-The census carries that label as the exemption's reason, and 0.24.0's
-frame removes the trailer reading. The other risk is a path reader the
+meets four spellings kept on purpose (the old trailer key, the old
+`Implementation` answer, the stub marker, the old CLAUDE.md block markers)
+and cannot tell them from a miss, unless each is labelled at its constant
+with the release that removes it. The census carries that label as the
+exemption's reason, and 0.24.0's frame removes the trailer reading and the
+reading of the old `Implementation` answer. The other risk is a path reader the
 sweep did not find: `seal/specs` spelt through a variable or a glob the
 grep does not match. The end-to-end migration case and this repository's
 own run on the new layout are what catch that, because every reader runs
@@ -132,7 +133,10 @@ The owner decided this on 2026-10-27. It binds every crafter, proofer and sealer
   slug is rewritten by `seal pr-checks install`.
 - **The commit trailer changes.** A commit made before the rename keeps
   `SpecSeal-Routing:`; `chain-check` reads both through 0.23.x, and 0.24.0
-  removes the old key. The CLAUDE.md block says `Seal-Routing:`.
+  removes the old key. The CLAUDE.md block says `Seal-Routing:`. A
+  `routing.md` written before the rename that answers `Implementation` with
+  `smith` reads as `crafter` through 0.23.x (`hooks/routing.py#OLD_BY_CRAFTER`),
+  and 0.24.0 removes that reading with the old key.
 - **This run's own gates are the installed 0.22.4 plugin's.** From phase
   2's commit the installed edit gate finds no `seal/specs/<id>/routing.md`
   for this branch and refuses edits. The orchestrator runs

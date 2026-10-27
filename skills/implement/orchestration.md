@@ -378,7 +378,7 @@ rows; what differs is how many clicks it took and which row says so.
 | Row | Answers |
 |---|---|
 | Automation | `yes` or `no`, OPTIONAL; absent reads as never asked |
-| Implementation | `crafter` or `the session`, OPTIONAL; absent reads as unanswered |
+| Implementation | `crafter` or `the session`, OPTIONAL; absent reads as unanswered. The answer a declaration written before the plugin was renamed AgenticSeal carries for `crafter` (`hooks/routing.py#OLD_BY_CRAFTER`) reads as `crafter` for the minor release of the rename, and the next minor release removes that reading |
 | Review | `through the review chain` or `straight to the PR` |
 | Destination | `open the pull request` or `stop before the pull request` |
 | Answer pressed | `automation` or `per axis`, OPTIONAL; absent reads as unanswered |

@@ -124,6 +124,16 @@ class Test_parse:
             )
             assert routing.parse(text)["implementation"] == answer, answer
 
+    def test_accepts_the_answer_written_before_the_rename_as_the_crafter(self):
+        """A declaration written before the plugin was renamed AgenticSeal
+        names the implementer by its old name, and the move copies it byte
+        for byte, so it reads as `crafter` until the next minor release."""
+        text = two_axis_text().replace(
+            "| Branch |",
+            f"| Implementation | {routing.OLD_BY_CRAFTER} |\n| Branch |",
+        )
+        assert routing.parse(text)["implementation"] == routing.BY_CRAFTER
+
     def test_accepts_the_fourth_axis_where_it_is_there(self):
         """The vocabulary is `framer` and `the session`, and the second is the same
         string the third axis uses -- one vocabulary, not two spellings of one."""
