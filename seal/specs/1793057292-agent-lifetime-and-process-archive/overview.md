@@ -22,10 +22,10 @@ release can record how the way of working changed in `seal/process/`.
 
 | Item | Who must answer |
 |---|---|
-| The full suite, the repository-wide lint and format check, and the typecheck at the branch head | the orchestrator, by `broad-gate --base <base> --record` before the sealer is spawned |
-| The cases on Linux and Windows: every case of this work item ran on macOS only, and the removed step ran on `ubuntu-latest` | the orchestrator, from the `tests` workflow's legs on the branch or the pull request |
-| The framer's line in `agents/framer.md` step 4: S14 names no case, and no case pins the line | the warden, at round 1 |
-| The sentence that the orchestrator deletes the `plan.md` line naming the comments to fold, in the commit that folds them: no case pins it | the warden, at round 1 |
+| closed the full suite, the repository-wide lint and format check, and the typecheck at the branch head | `broad-gate.md` records the run at `236a596d` against `5bab081e`; its printed report read BROAD GATE PASSED, ruff check and format clean, the suite 6,561 passed and 14 skipped, chain-check exit 0. The repository has no typecheck to run (#951 adds one) |
+| closed the cases on Linux and Windows: every case of this work item ran on macOS only, and the removed step ran on `ubuntu-latest` | the branch's `tests` workflow run 40430474904 at `08469dff` passed every leg, the four Windows groups included; the commit after it adds only round 2's record |
+| closed the framer's line in `agents/framer.md` step 4: S14 names no case, and no case pins the line | the warden read it at round 1, whose finding 1 made it name `templates/process.md` (2e6c40ed), and round 2 confirmed it and opened nothing |
+| closed the sentence that the orchestrator deletes the `plan.md` line naming the comments to fold, in the commit that folds them: no case pins it | the warden read it at round 1, whose finding 6 named the orchestrator as its writer (5be7d538), and round 2 confirmed it and opened nothing |
 
 ## Not done
 
@@ -73,9 +73,9 @@ pinned to the release that wrote it.
   tree.
 - **Prompt budget**: zero. The change removes a CI step and a gate arm, and
   it asks nobody anything.
-- **Platforms**: the cases ran on macOS only. The removed step ran on
-  `ubuntu-latest`. Nothing here was run on Linux or Windows; CI on the pull
-  request answers both.
+- **Platforms**: the branch's `tests` workflow run 40430474904 at `08469dff`
+  passed every leg on Linux, macOS and Windows. The removed step ran on
+  `ubuntu-latest`.
 - **What it removes**: the CI step in both workflows, the broad-gate arm with
   its constants (`UNVERIFIED`, `UNVERIFIED_NAME`, `SPECS`) and its
   `PARTITION` row, and the release-day ordering duty the step put on
