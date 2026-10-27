@@ -18,7 +18,7 @@ asked. It should also not miss a commit behind an `env` spelling that one of
 
 | Item | Who must answer |
 |---|---|
-| GNU's half of the env grammar runs as modelled. The model was written from `src/env.c` at `f799b2f48a61` and gnulib's getopt rules, and never run against a GNU `env`, because none is installed here and no CI leg runs one | the reviewer, on a machine with GNU coreutils 9.12 or later, if a GNU run is wanted; the planted cases test the reader and run no `env` |
+| closed GNU's half of the env grammar runs as modelled. The model was written from `src/env.c` at `f799b2f48a61` and gnulib's getopt rules, and never run against a GNU `env`, because none is installed here and no CI leg runs one | moved 2026-10-27 to MichaelYcJo/SpecSeal#1069, a measurement nobody has taken: only one shape has met GNU `env`, in review round 1 of work item 1793057294 |
 | closed The 358 generated guard shapes holding `&>>` or `{fd}`, which `/bin/bash` 3.2.57 cannot run (they need bash 4.0 and 4.1). Read as bash 4.1 or later reads them, the 24 the build adds over `2b1dcb1f` are creations | its subject left the tree: 3d78c220 (#850) took out the guard's reading of a hidden creation, which is an unrecognised shape since |
 
 ## Not done

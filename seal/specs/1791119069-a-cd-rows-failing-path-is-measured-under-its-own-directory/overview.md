@@ -22,7 +22,7 @@ base, because the gate looked for it under the repository root. Now every
 | Item | Who must answer |
 |---|---|
 | closed The full suite, lint and typecheck after the rounds | #787, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
-| This repository's own lint-first row (`bin/test -q` under `-n auto`) through a real failing broad gate with a branch-new module | the sealer, at its run — only if its run fails a test |
+| closed This repository's own lint-first row (`bin/test -q` under `-n auto`) through a real failing broad gate with a branch-new module | moved 2026-10-27 to MichaelYcJo/SpecSeal#1085, a measurement nobody has taken: no record holds a real failing run of this row with a branch-new module |
 | closed The cases on Windows (`cmd.exe`) and Linux; the `cd sub <file>` prefix behaves differently per shell, and the kept-file assertions assume it settles nothing | #787's `ubuntu-latest` and `windows-latest` legs ran the suite green |
 
 ## Not done

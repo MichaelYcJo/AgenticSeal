@@ -25,7 +25,7 @@ show that reads `new?`.
 |---|---|
 | closed The full suite, lint and typecheck after the rounds | #814, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
 | closed Linux (`/bin/sh` as dash) and Windows (`cmd.exe`): `PYTEST_ADDOPTS` reaching a runner inside `sh -c`, the inserted quoted file, the rest of a row after a `cmd.exe` cut, and pytest's trailer and listing lines | #814's `ubuntu-latest` and `windows-latest` legs ran the suite green |
-| pytest older than 8.1 through the gate end to end (the frame measured the pass's output on 7.4.4, 8.0.0 and 8.1.1; the unit table holds 8.0's tree) | the repository owner, if such a row is met |
+| closed pytest older than 8.1 through the gate end to end (the frame measured the pass's output on 7.4.4, 8.0.0 and 8.1.1; the unit table holds 8.0's tree) | moved 2026-10-27 to MichaelYcJo/SpecSeal#1070, a measurement nobody has taken: no record holds a gate run under pytest below 8.1 |
 
 ## Not done
 

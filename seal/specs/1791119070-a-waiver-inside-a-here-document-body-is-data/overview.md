@@ -23,8 +23,8 @@ only refuse a waiver the base honoured, never grant a new one.
 
 | Item | Who must answer |
 |---|---|
-| A body token carried end to end through `hooks/answer-write.py` and `hooks/answers.py` to a real git hook. Executed only at `tokens.given`; `tests/test_the_commit_gate_decides_at_the_commit.py` passed whole but has no body case | the review chain (`warden`) |
-| `spec.md` case 5, text the splitter takes for a body and the shell does not: no case pins the stop it now gets | the review chain (`warden`) |
+| closed A body token carried end to end through `hooks/answer-write.py` and `hooks/answers.py` to a real git hook. Executed only at `tokens.given`; `tests/test_the_commit_gate_decides_at_the_commit.py` passed whole but has no body case | moot: `hooks/answer-write.py`, `hooks/answers.py`, the git hooks and `tests/test_the_commit_gate_decides_at_the_commit.py` left the tree at 61a8455a (#1027) |
+| closed `spec.md` case 5, text the splitter takes for a body and the shell does not: no case pins the stop it now gets | moot: the stop was the commit gate's, and `hooks/commit-review-gate.py` left the tree at 61a8455a (#1027); `hooks/one_heredoc.py` now serves only the worktree guard's token reader |
 
 ## Not done
 

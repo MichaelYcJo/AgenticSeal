@@ -26,7 +26,7 @@ and no other command reads any differently.
 | closed Q3 for bash 5.x: whether bash 5 cuts every admitted string where the reader does, directly and through `eval` | #997's `ubuntu-latest` leg ran `tests/test_one_heredoc_shape_agrees_with_the_shell.py` green |
 | closed Q4: whether the moved row reaches the shape on the Windows leg, where `shlex.quote` gives a single-quoted path with backslashes | #997's `windows-latest` leg ran `tests/test_no_shape_the_base_stops_reads_silent.py` green |
 | closed The agreement test on the Windows leg, where `bash` is Git Bash or is skipped by `shell_probe` | #997's `windows-latest` leg ran it green |
-| How many commands of I10's generated corpus (11,393) and recorded sessions are the one shape | the repository owner, if the count is wanted: it takes `1790660768`'s generator re-run, and the I10 correction is labelled read until then |
+| closed How many commands of I10's generated corpus (11,393) and recorded sessions are the one shape | moot: the generator was a probe deleted after its one run (`1790660768`'s `spec.md` S7, read at 4d5a6917^), and the commit gate's text reading the count served left the tree with `hooks/commit-review-gate.py` at 61a8455a (#1027) |
 | closed The full suite, repository-wide lint and typecheck | #769, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
 
 ## Not done

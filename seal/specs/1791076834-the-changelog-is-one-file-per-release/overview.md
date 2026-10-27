@@ -26,7 +26,7 @@ and every reader and writer of the sections moved with them (#728, F2).
 | Item | Who must answer |
 |---|---|
 | closed The full suite, lint and typecheck on the final tree | #770, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
-| The update into 0.18.1 by 0.18.0's update skill: step 2b reads the index's first heading (S12, held by S2 and S3 in the tree) and step 3 meets the index (D7) | the first `/specseal:update` into 0.18.1, by whoever runs it |
+| closed The update into 0.18.1 by 0.18.0's update skill: step 2b reads the index's first heading (S12, held by S2 and S3 in the tree) and step 3 meets the index (D7) | moot: the update it names runs 0.18.0's skill into 0.18.1, and the marketplace now installs 0.22.x. The tree's `skills/update/SKILL.md` is a later rewrite, last changed at 5aed51cb (default taken by the 0.22.4 settle) |
 | closed Why `evidence-check --strict .` reads 10 drifted rows at `origin/release/v0.18.1` itself (`templates/config.md`, `VERSIONS_OF_ANOTHER_PRODUCT`, `fake_venv`), which this branch inherits by its merge and did not cause | 5b1f6fae removed `evidence-check` and the ledger rows it read |
 | closed The real gather and note on this repository: `gather_changelog.py --version 0.18.1` writing `changelog/0.18.1.md` and the index line at release preparation, and `publish-release.yml` publishing from that file at the tag | `changelog/0.18.1.md` and its index line are in the tree, and `publish-release.yml` at the `v0.18.1` tag published the release from that file with `seal.png` attached (`gh release view v0.18.1`) |
 

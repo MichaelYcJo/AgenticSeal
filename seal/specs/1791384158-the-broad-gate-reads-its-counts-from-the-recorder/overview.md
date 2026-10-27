@@ -37,10 +37,10 @@ as merged. The ledger rows citing §6 — K14 and the re-reads of S9, P1c and W4
 
 | Item | Who must answer |
 |---|---|
-| Q-M2 over the whole suite: `suite_counts(record)` against pytest's printed line for this repository's full run | the sealer's broad gate, once, after the rounds: its panel's `suite` row against the line in `suite.txt` |
+| closed Q-M2 over the whole suite: `suite_counts(record)` against pytest's printed line for this repository's full run | answered by the `seal` job of publish-release run 40070760336 at the v0.22.3 tag: pytest printed `7732 passed, 17 skipped` over the full suite, and the panel's `suite` row read from the record printed `7732 passed, 17 skipped` (read from the run's log) |
 | closed The full suite, the repository-wide lint and the typecheck | #880, merged with lint and the suite green on the ubuntu, macOS and Windows legs; the repository configures no typecheck |
 | closed The one window of Scope 5: in this repository, a values file the tree's gate writes before the owner updates the plugin is refused by the installed 0.20.0 hook and left pending; drawn after the update, or at once with `seal-stamp --from` | closed by round 1's fix, 6ea5686e: the gate writes `"scale": 0.9` through 0.21's cycle, and the installed 0.20.0 `seal_stamp.py --from` drew a values file written that way, exit 0, executed 2026-10-08 |
-| The `seal` job's suite step with the recorder loaded, on a real tag: the directory made, the key handed on, `SUITE_RECORDS` and `SUITE_KEY` read | the next release's `seal` job, read by the owner in its log |
+| closed The `seal` job's suite step with the recorder loaded, on a real tag: the directory made, the key handed on, `SUITE_RECORDS` and `SUITE_KEY` read | answered by publish-release run 40070760336 at the v0.22.3 tag: its draw step ran with `SUITE_RECORDS` set to `/home/runner/work/_temp/records` and `SUITE_KEY` to `seal-40070760336`, and printed `suite 7732 passed, 17 skipped` (read from the run's log) |
 | closed The gate's new end-to-end cases (S7, S8, S14) on Linux and Windows | #997's `ubuntu-latest` and `windows-latest` legs ran the suite green |
 
 ## Not done

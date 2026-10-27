@@ -26,7 +26,7 @@ A file read or written in the locale's encoding breaks only on the Windows leg, 
 |---|---|
 | closed The full suite over this branch | #757, merged with lint and the suite green on the ubuntu, macOS and Windows legs |
 | closed The fixes on a real cp1252 interpreter | #757's `windows-latest` leg ran the suite green |
-| `hooks/git/post-commit.py` writes its notice to stdout, which keeps `strict` errors under `PYTHONIOENCODING=ascii`, so before this work a non-ASCII notice there should have raised rather than degraded. Read, not executed: the call now reconfigures stdout first, and no case builds the notice's triggering state under an ASCII console | warden, round 1 |
+| closed `hooks/git/post-commit.py` writes its notice to stdout, which keeps `strict` errors under `PYTHONIOENCODING=ascii`, so before this work a non-ASCII notice there should have raised rather than degraded. Read, not executed: the call now reconfigures stdout first, and no case builds the notice's triggering state under an ASCII console | moot: `hooks/git/post-commit.py` left the tree at 61a8455a (#1027) |
 
 ## Not done
 
