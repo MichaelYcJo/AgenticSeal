@@ -158,7 +158,8 @@ ROUND_RE = re.compile(r"^round-(\d+)\.md$")
 # newest run from the ones behind it. `chain_check.py` reads both by the same
 # spelling, and a case holds the two equal.
 # `hooks/optin.py#GATE` and `#ROUNDS`, under the thread. `GATE_FILE` takes the
-# check's `/` on every platform, which `os.path.join` accepts as a disk path.
+# check's `/` on every platform, and `write_gate_file` splits it on `/` so the
+# disk path it returns takes the platform's separator throughout.
 GATE_FILE = "trail/gate.md"
 ROUNDS_DIR = os.path.join("trail", "rounds")
 EARLIER_RUN = "; earlier run: "
@@ -2472,7 +2473,7 @@ def kept_runs(held, value):
 def write_gate_file(item, tree, base):
     """Write `<item>/trail/gate.md` with `<tree> against <base>` as its newest
     run, and return its path. Raises `Refused` where it cannot be written."""
-    path = os.path.join(item, GATE_FILE)
+    path = os.path.join(item, *GATE_FILE.split("/"))
     held = ""
     try:
         with open(path, encoding="utf-8") as handle:
