@@ -1130,6 +1130,88 @@ def old_names(rel, root=None):
     return _held("old_names", rel, text, flagged)
 
 
+# --- vacated_paths (#1060) ------------------------------------------------------
+#
+# #1060 moves files one directory down: a module of `hooks/` into
+# `hooks/lib/`, a template into `templates/records/` or `templates/setup/`, a
+# test file into an area of `tests/`. The path the file stood at one level up
+# is then a path no file holds, and a living line that spells it sends its
+# reader to nothing. The census derives those spellings from the files that
+# stand in each subdirectory on disk, so it keeps no list of old paths and
+# refuses nothing until a file has moved.
+
+# Each subdirectory a move fills, with the directory one level up whose
+# spelling it vacates. `tests/e2e/` is not an area: its files never stood at
+# the top of `tests/`.
+TEST_AREAS = ("hooks", "skills", "github", "evals", "behaviour", "text")
+VACATING = (
+    ("hooks/lib/", "hooks/"),
+    ("templates/records/", "templates/"),
+    ("templates/setup/", "templates/"),
+    *((f"tests/{area}/", "tests/") for area in TEST_AREAS),
+)
+# A path cited at a commit, `<commit>:<path>`, the form `git show` opens as
+# written; the old path is the one that commit holds. Taken out of a line
+# before the census reads it.
+COMMIT_PATH = re.compile(r"(?<![\w/:])[0-9a-f]{7,40}:[\w./-]+")
+# The files that keep a vacated spelling whole, each for the reason above it.
+VACATED_KEPT_FILES = ()
+
+
+def vacated(root=None):
+    """`{old path: new path}` for every file standing directly in a
+    subdirectory `VACATING` names whose path one level up no file holds."""
+    found = {}
+    for sub, up in VACATING:
+        directory = os.path.join(_root(root), *sub.split("/"))
+        if not os.path.isdir(directory):
+            continue
+        for name in sorted(os.listdir(directory)):
+            if not os.path.isfile(os.path.join(directory, name)):
+                continue
+            if not os.path.exists(os.path.join(_root(root), *up.split("/"), name)):
+                found.setdefault(up + name, sub + name)
+    return found
+
+
+def vacated_paths(rel, root=None):
+    """No living file spells a path a move one directory down vacated:
+    `hooks/<name>` once the file stands at `hooks/lib/<name>`, and the same
+    for `templates/` and `tests/`. A spelling counts as a word, at the start
+    of a path or after a shell variable such as `$CLAUDE_PLUGIN_ROOT/`, and
+    not inside a longer path. The records and the recorded cases `old_names`
+    passes are passed over whole, as are VACATED_KEPT_FILES, a path cited
+    at a commit passes, and any other line that keeps an old path carries
+    its exemption. A file that is not UTF-8 text is not read."""
+    if rel.startswith(OLD_NAME_RECORDS + VACATED_KEPT_FILES) or RECORDED_CASE.match(
+        rel
+    ):
+        return []
+    moved = vacated(root)
+    if not moved:
+        return []
+    text = _text(rel, root)
+    if text is None:
+        return []
+    spelling = re.compile(
+        r"(?<![\w./}$-])(?:\$\{?\w+\}?/)?("
+        + "|".join(re.escape(old) for old in sorted(moved, key=len, reverse=True))
+        + r")(?![\w/-]|\.\w)"
+    )
+    flagged = {}
+    for number, line in enumerate(text.split("\n"), 1):
+        found = spelling.search(COMMIT_PATH.sub("", line))
+        if found:
+            old = found.group(1)
+            flagged[number] = (
+                f"`{old}` is a path no file holds since the file moved to "
+                f"`{moved[old]}`; write the path the file stands at, or put "
+                "`# exempt from vacated_paths: <why>` on its own line above a "
+                "line that keeps it on purpose"
+            )
+    return _held("vacated_paths", rel, text, flagged)
+
+
 CENSUSES = (
     encoding,
     entry_point,
@@ -1140,6 +1222,7 @@ CENSUSES = (
     section_sign,
     real_identifiers,
     old_names,
+    vacated_paths,
 )
 
 

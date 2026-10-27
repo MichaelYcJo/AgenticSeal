@@ -878,6 +878,88 @@ class Test_old_names:
         ]
 
 
+VACATED_MESSAGE = (
+    "{rel}:{number}: vacated_paths: `{old}` is a path no file holds since the "
+    "file moved to `{new}`; write the path the file stands at, or put "
+    "`# exempt from vacated_paths: <why>` on its own line above a line that "
+    "keeps it on purpose"
+)
+
+
+def plant_moved(root):
+    """One file moved into each kind of subdirectory the census reads, and
+    `hooks/kept.py`, which stands in `hooks/lib/` and at the top too."""
+    for rel in (
+        "hooks/lib/moved.py",
+        "hooks/lib/kept.py",
+        "hooks/kept.py",
+        "templates/records/sdd-x.md",
+        "templates/setup/y.md",
+        "tests/skills/test_moved.py",
+        "tests/e2e/test_deep.py",
+    ):
+        plant(root, rel, "x\n")
+    return str(root)
+
+
+class Test_vacated_paths:
+    def test_accepts_a_tree_where_nothing_moved(self, tmp_path):
+        root = plant(tmp_path, "docs/x.md", "`hooks/moved.py`, `templates/y.md`\n")
+        assert censuses.vacated_paths("docs/x.md", root) == []
+
+    def test_refuses_the_spelling_one_level_up_of_each_moved_file(self, tmp_path):
+        text = (
+            "clean\n"
+            "`hooks/moved.py` loads it\n"
+            "read `$CLAUDE_PLUGIN_ROOT/templates/sdd-x.md`\n"
+            "copied from ${PLUGIN}/templates/y.md.\n"
+            "`tests/test_moved.py::test_case`\n"
+            "`HEAD:hooks/moved.py`\n"
+        )
+        plant_moved(tmp_path)
+        root = plant(tmp_path, "docs/x.md", text)
+        assert censuses.vacated_paths("docs/x.md", root) == [
+            VACATED_MESSAGE.format(rel="docs/x.md", number=number, old=old, new=new)
+            for number, old, new in (
+                (2, "hooks/moved.py", "hooks/lib/moved.py"),
+                (3, "templates/sdd-x.md", "templates/records/sdd-x.md"),
+                (4, "templates/y.md", "templates/setup/y.md"),
+                (5, "tests/test_moved.py", "tests/skills/test_moved.py"),
+                (6, "hooks/moved.py", "hooks/lib/moved.py"),
+            )
+        ]
+
+    def test_accepts_the_new_path_a_longer_path_a_file_still_there_and_a_commit(
+        self, tmp_path
+    ):
+        text = (
+            "`hooks/lib/moved.py`, `templates/records/sdd-x.md`\n"
+            "`other/hooks/moved.py`, `myhooks/moved.py`, `hooks/moved.pyc`\n"
+            "`hooks/kept.py` and `tests/test_deep.py`, which `tests/e2e/` holds\n"
+            "measured in `5f11923f:hooks/moved.py`\n"
+            "# exempt from vacated_paths: the layout a release before the move had\n"
+            "`templates/y.md`\n"
+        )
+        plant_moved(tmp_path)
+        root = plant(tmp_path, "docs/x.md", text)
+        assert censuses.vacated_paths("docs/x.md", root) == []
+
+    def test_accepts_the_records_and_a_recorded_case(self, tmp_path):
+        root = plant_moved(tmp_path)
+        records = (
+            "changelog/0.1.0.md",
+            "CHANGELOG.md",
+            "seal/process/0.1.0.md",
+            "seal/threads/1-x/frame/design.md",
+            "evals/behaviour/proofer/replay-1-r1/prompt.md",
+            ".test_durations",
+        )
+        for rel in records:
+            plant(tmp_path, rel, "`hooks/moved.py`\n")
+        for rel in records:
+            assert censuses.vacated_paths(rel, root) == [], rel
+
+
 class Test_module:
     def test_every_file_no_module_file_declares_meets_every_census(self):
         """The censuses over every tracked file whose module file does not run
