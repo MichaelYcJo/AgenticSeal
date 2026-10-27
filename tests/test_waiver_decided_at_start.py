@@ -945,13 +945,13 @@ def test_the_skill_refuses_a_standing_waiver_and_says_why_this_is_not_one():
     )
     spec = flat(read("docs", "the-review-and-parity-arms.md"))
     assert "no standing waiver" in spec
-    assert "per command" in spec
+    assert "stands for no other session" in spec
 
 
 def test_the_gate_has_no_path_from_an_unreadable_declaration_to_silence():
     spec = flat(read("docs", "the-review-and-parity-arms.md"))
     assert "resolves to *no declaration*" in spec
-    assert "therefore to **asking**" in spec, (
+    assert "therefore to **refusing the edit**" in spec, (
         "a fail-open here is a gate that a corrupt file switches off"
     )
 

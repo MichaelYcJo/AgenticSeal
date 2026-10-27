@@ -136,11 +136,13 @@ def test_the_guard_policy_and_readmes_say_a_body_token_is_not_read():
     rows of both READMEs say a token inside a here-document body is not
     read. Red against `a3aa139a`'s texts."""
     assert (
-        "**Where the token is read from.** The command, and only the command. "
-        "Not from a here-document body: a token counts only where "
-        "the command as written and the command with its here-document bodies "
-        "taken out both carry it"
+        "**A token counts only where it is typed outside every here-document "
+        "body, and a command that does not split carries none from where its "
+        "split fails.** The token is read from the command, and only the "
+        "command: `hooks/tokens.py#given` takes it only where the command as "
+        "written and the command with its here-document bodies taken out"
     ) in _policy_text()
+    assert "**Where the token is read from.**" not in _policy_text()
     root = os.path.join(os.path.dirname(__file__), "..")
     with open(os.path.join(root, "README.md"), encoding="utf-8") as f:
         readme = f.read()

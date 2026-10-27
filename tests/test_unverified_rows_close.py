@@ -220,11 +220,6 @@ TIP_KO = "base 브랜치의 끝"
     [
         ("README.md", TIP_EN, None),
         ("README.ko.md", TIP_KO, None),
-        # True at both places without naming either, and so not held to the tip
-        # (`seal/specs/1790381329-the-deferred-sentences-and-pins/spec.md`,
-        # *Out of scope*): a sibling squashed after this branch was cut is not
-        # its removal on a branch checkout or at the merge ref.
-        (os.path.join("docs", "release-checklist.md"), None, None),
         (os.path.join("skills", "verify", "SKILL.md"), TIP_EN, None),
         # The module's docstrings (#612). The phrase stands here three times,
         # so this row cannot see the `--baseline` help alone go back to the

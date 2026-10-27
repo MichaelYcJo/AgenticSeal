@@ -372,10 +372,8 @@ def has_token(command: str, token: str) -> bool:
 
     A substring test cannot tell a waiver from a sentence about one. Measured:
     `git switch x && echo 'we documented [shared-tree-ok] today'` carried the
-    token as prose and turned the guard off outright. The commit gate learned
-    this about `[no-review]`, and it costs more here — that marker skips one
-    check the user is being asked about anyway, while `[shared-tree-ok]`
-    silences the guard.
+    token as prose and turned the guard off outright, because
+    `[shared-tree-ok]` silences the guard.
 
     The splitter keeps a quoted string whole, so that sentence arrives as
     ONE token and no bare-word comparison matches it. Unquoted prose is a

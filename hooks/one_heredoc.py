@@ -11,8 +11,8 @@ to tell the two apart through `hooks/cmdline.py`'s body boundaries, and four
 review passes each found a place where that splitter and the shell disagree
 about where a body starts or ends. Every one was a silent commit.
 
-So this reader trusts nothing it did not write. It admits ONE shape, given in
-`docs/commit-review-gate-spec.md` and as clauses A-F below, and everything
+So this reader trusts nothing it did not write. It admits ONE shape, given as
+clauses A-F below, and everything
 else is `None`: the gate then reads the command exactly as it did before.
 There is no shell lexer here, no quote tracking and no import from the
 splitter. What it does is a regular grammar over the command's first line, a

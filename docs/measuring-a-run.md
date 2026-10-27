@@ -37,6 +37,16 @@ report whose shape changes between runs cannot be compared with the run
 before it, which is the only thing a cost number is for.
 check: tests/test_session_cost.py tests/test_a_segment_feeds_the_flow_log.py
 
+**A segment's reading carries the largest context any one of its turns
+read.** A turn's context is the input side of its one model call: the
+tokens sent fresh, the tokens written to the cache and the tokens read
+from it, each message counted once. A resumed agent pays its whole
+earlier context again on every turn, so its largest turn is the number
+that tells a resume worth taking from one that is not, and the
+orchestrator reads it before it resumes an implementer for a fix pass.
+It is measured, and it gates nothing.
+check: tests/test_session_cost.py
+
 ## What a measurement must survive, and what it must not invent
 
 **A degenerate reading is reported, never divided by.** A paired call whose
@@ -51,7 +61,7 @@ membership decided by running the code rather than by a list of names, and
 each one is discharged, by a guard or by an operand that cannot be a derived
 number. A list of names goes stale the moment somebody adds a site; an
 enumeration from the source cannot.
-check: tests/test_a_derived_number_reaching_an_int_carries_a_guard.py
+check: tests/test_session_cost.py
 
 **A reading that was published is still wrong after it is published.**
 Correcting a meter does not correct the readings it produced, and re-deriving
@@ -97,7 +107,7 @@ named and posts nothing; exactly one open log takes the comment. **It never
 opens a log**, because opening one is not a session's act: two sessions
 finishing segments at once would both read zero and both create one. What
 the command cannot do is make a session remember to run it.
-check: tests/test_session_cost_post.py
+check: tests/test_session_cost.py
 
 **A network write only a person's typing starts is not a hook, and the list of
 hook network touches does not reach it.** `CONTRIBUTING.md` counts the
@@ -111,4 +121,4 @@ prompts, so the posted body names the transcript by its file name and never
 by its path. The repository owner owns that list and can overturn this. No
 case reads that `--post` fires on no hook; one that read `hooks/hooks.json`
 for a command reaching it would.
-check: tests/test_session_cost_post.py
+check: tests/test_session_cost.py

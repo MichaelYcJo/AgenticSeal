@@ -495,13 +495,9 @@ What the four combinations do:
 recorded where the answer puts it**: in each round record under `through
 the review chain`, and in the sealer's `guarantee.md` under `straight to the
 PR`. A change confined to `docs/` and `seal/` owes none
-(`skills/legacy-parity/SKILL.md` *Recording the comparison*). Two shapes
-leave code nobody compared with nothing that reads it. In local mode the
-root sits under the common git directory and nothing under it is committed,
-so no pull-request check reads a round record or a guarantee. And a
-repository whose `.github/workflows/hygiene.yml` pins a plugin release older
-than this rule runs a `chain-check` that reads no `original:` line, until a
-person moves the pin's `v<version>` to the installed release.
+(`skills/legacy-parity/SKILL.md` *Recording the comparison*). The shapes
+that leave code nobody compared, with nothing that reads it, are listed in
+`docs/the-review-and-parity-arms.md` *Parity arm*.
 
 The declaration is what the edit check reads, for **either** review answer,
 so a declared work item edits whichever reviewer it named, and CI reads the

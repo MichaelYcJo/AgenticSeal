@@ -14,7 +14,8 @@ long each file lives.** "Owns" means the plugin creates, moves and removes it
 and its checkers define the formats, the way `.github/` is GitHub's. Three
 lifetimes, each with one home: a session's state sits beside the root under
 the common git directory and is never committed; a work item's directory,
-`seal/specs/<id>/`, lives until `settle` applies its spec and removes it;
+`seal/specs/<id>/`, lives until the settle writes its spec's sections and
+removes it;
 everything else under `seal/`, with `docs/` and `CHANGELOG.md`, is
 permanent. The layout, file by file, is `skills/implement/SKILL.md`
 *Document layout — two roots, three lifetimes* and `docs/the-record-layout.md`.
@@ -22,9 +23,8 @@ permanent. The layout, file by file, is `skills/implement/SKILL.md`
 **The plugin writes only to its own root.** A `specs/` directory anywhere
 else is the project's own, read as history and never taken
 (`templates/config.md` *Reference specs*). Where the root is, as a path a
-session can type, is stated once, in the agent contract's section on the
-`seal/` root.
-check: tests/test_no_document_names_the_old_roots.py tests/test_optin_home.py
+session can type, is stated once, in contract rule 11.
+check: tests/test_no_document_names_the_old_roots.py tests/test_optin.py
 
 ## The dependency rule
 
@@ -32,8 +32,10 @@ check: tests/test_no_document_names_the_old_roots.py tests/test_optin_home.py
 the merge.** `settle` removes the directory, so every permanent purpose
 treats it as already gone. A round record's `target:` line is read only while
 its pull request is open. A comment naming a work item, above a released
-changelog entry, is a pointer rather than a read, and it still resolves
-through git history once the folder is gone. Every check in a repository
+changelog entry, is a pointer rather than a read, and where the root is
+shared it still resolves through git history once the folder is gone; in
+local mode no history holds the folder, so the pointer names a work item
+that has left. Every check in a repository
 that reads the corpus owes an answer when a settle removes part of it
 (`skills/settle/SKILL.md` *Answer every check that reads the corpus*). A new
 reader of `seal/specs/<id>/` after the merge is a finding for the review
@@ -42,7 +44,7 @@ that meets it.
 **Behind it is a wider rule: nothing may need to be found and updated when
 something else moves.** A record citing `path:line` breaks it: a line moves
 for edits unrelated to the claim, so the citation has to be re-anchored, and
-a squash orphans it. `settle` rewrites `docs/` and removes directories at
+a squash orphans it. A settle rewrites `docs/` and removes directories at
 every release it is called for, so anything coupled to a path or a position
 inside a work item breaks the same way. The coupling left is a round
 record's `target:` line, read while its pull request is open and gone with the
@@ -68,18 +70,20 @@ either place means not opted in, and a hook that cannot tell does nothing.
 A throwaway repository turns the gates off with an empty file,
 `.git/specseal-scratch`, under the common git directory, which no commit can
 carry to another clone.
-check: tests/test_optin_home.py
+check: tests/test_optin.py
 
 ## What first setup asks
 
 **The one moment this project allows a question about the root is first
-setup, and it asks one.** One `AskUserQuestion` with two options, shared
-first as the default, each saying what it does:
+setup, and it asks one.** One `AskUserQuestion` with three options, in this
+order, the first the default, each saying what it does:
 
-- **shared** creates `<repo>/seal/`, which the routing commit carries, and
-  installs `.github/workflows/hygiene.yml` from `templates/hygiene.yml` where
-  that path is absent: a clone of the plugin at the release installed at
-  setup, and the two pull-request checks.
+- **shared, records only** creates `<repo>/seal/`, which the routing commit
+  carries, and writes nothing under `.github/`.
+- **shared, with pull-request checks** does the same, then runs
+  `seal pr-checks install`, which writes `.github/workflows/hygiene.yml`
+  from `templates/hygiene.yml` where that path is absent: a clone of the
+  plugin at the release installed at setup, and the pull-request checks.
 - **local** creates `$(git rev-parse --git-common-dir)/seal/`, touches nothing
   in the tree, and installs nothing, because the checks read committed files
   and local mode commits none.
@@ -95,8 +99,8 @@ check: tests/test_first_setup_asks_once.py
 
 ### Shared or local
 
-**The question is not "commit the folder or not" but "do CI and collaborators
-see this workflow".** Which answer fits is mostly decided by whose repository
+**The question is not "commit the folder or not" but "do collaborators and
+every other clone see the records".** Which answer fits is mostly decided by whose repository
 it is.
 
 | | Local mode | Shared mode |
@@ -106,8 +110,8 @@ it is.
 | Committed | never; nothing to gitignore either | yes |
 | Linked worktrees and parallel sessions | read each other's records, because the git dir is common to every worktree of the clone | read each other's records, because the files are committed |
 | Other machines and a re-clone | start empty; `seal export` / `seal import` carry a copy by hand | have everything |
-| CI (the chain checks) | cannot run; the hygiene workflow is not installed | runs |
-| Switching later | `seal mode shared` moves `.git/seal/` to `<repo>/seal/`, stages it, and installs the workflow; you commit | `seal mode local` moves `<repo>/seal/` back, stages the removal, and takes the workflow out; you commit |
+| CI (the pull-request checks) | cannot run; `seal pr-checks install` refuses here | runs where first setup's answer or `seal pr-checks install` put the workflow in the tree |
+| Switching later | `seal mode shared` moves `.git/seal/` to `<repo>/seal/` and stages it; you commit | `seal mode local` moves `<repo>/seal/` back and stages the removal; you commit |
 
 **`seal/config.md`'s `Mode` row is not the opt-in, and the difference is what
 reads it.** The row says where the root *should* be; the folder's location
@@ -119,10 +123,22 @@ buys is a repository that can say which mode it wants before the folder is
 moved, and a check that names a disagreement left standing. An absent row is
 filled in from where the folder is, the only value that cannot be wrong.
 
-A hygiene workflow left behind in local mode is red forever:
-`unverified_check.py` runs second and exits 2 for a path that is nowhere,
-and with no `continue-on-error` the job stops, so `chain_check.py` never runs.
-Had it run, it would have exited 0 having examined nothing.
+**Where the records live and whether CI checks pull requests are two
+answers, and the workflow file is the record of the second.** `seal mode`
+moves the root and writes the `Mode` row, and leaves `.github/` alone.
+`seal pr-checks install` writes `.github/workflows/hygiene.yml` from
+`templates/hygiene.yml` where that path is absent, pinned to the installed
+release, and stages it. It refuses where `<repo>/seal/` is not a directory,
+because the checks read committed records. `seal pr-checks remove` takes out
+a workflow this plugin wrote and leaves any other file alone. No config row
+says whether the checks are installed: the file says it, and a second record
+would be a second answer. A workflow left behind in local mode and pinned to
+a release that has the no-root state passes having examined nothing:
+`chain_check.py`, the one record check it runs, finds no root in the tree,
+so nothing is declared, and exits 0. One pinned to an older release fails every pull request there until
+its `--branch` line moves or `seal pr-checks remove` takes it out, and
+`seal mode local` names the pin when it leaves such a file.
+check: tests/test_seal.py
 
 **Local mode lives under the git directory, not in a gitignored folder.** A
 linked worktree checks out committed files only, so an ignored
@@ -132,7 +148,7 @@ is shared by every worktree of that clone, never a commit candidate, and
 needs no `.gitignore` line. Local mode has no per-branch isolation of
 uncommitted state; the per-work-item layout keeps parallel items apart. It
 never leaves that clone on that machine: a new machine or a re-clone starts
-with no work-item records, and CI's chain checks cannot run. That is the
+with no work-item records, and CI's pull-request checks cannot run. That is the
 whole trade-off.
 
 **Local records can be carried to another clone by hand, and a copy is not a
@@ -151,7 +167,7 @@ repository's history; coming back removes them from the tree and not from the
 history. That is the one direction local mode exists to prevent, so
 `seal mode shared` says so before it acts and stages rather than commits,
 which leaves the point of no return with the person.
-check: tests/test_first_setup_asks_once.py tests/test_optin_home.py tests/test_the_records_can_be_carried_out_and_in.py
+check: tests/test_first_setup_asks_once.py tests/test_optin.py tests/test_seal.py
 
 ## Naming
 
@@ -194,7 +210,7 @@ plugin's.** A skill that requires English of everyone is a decision made in a
 file nobody who disagrees with it can edit, so the language lives in a config
 row, and the mirror file a translated pull-request body goes in is named for
 the language it holds rather than for one language.
-check: tests/test_the_pull_request_language_is_the_repositorys.py
+check: tests/test_the_pull_request_language_is_the_repositorys.py tests/test_config.py
 
 **Two rows, because one cannot express the middle answer.** The combinations
 people actually want are three: everything English; the commits and pull
@@ -220,7 +236,7 @@ silently took every row below it out of the config. The reader and the writer
 share the constant that describes a row, because their disagreement about
 which line is a given row is what turns one edit into a duplicate row in a
 person's file.
-check: tests/test_the_mode_question_is_asked_once.py
+check: tests/test_config.py tests/test_seal.py
 
 **A git call that fails is not a git call that answered "nothing".** Empty
 output because a thing is absent and empty output because the question could
@@ -228,4 +244,4 @@ not be asked are different facts, and a caller that cannot tell them apart
 reports the absence as settled: no remote, no other worktree, no tracked
 file. Every call site whose caller needs the distinction returns it, and the
 refusal says which call failed rather than reporting a confident nothing.
-check: tests/test_the_records_can_be_carried_out_and_in.py tests/test_the_mode_is_a_row_and_a_command.py
+check: tests/test_seal.py

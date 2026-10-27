@@ -16,10 +16,10 @@ test the shared file applies to itself: what is true of every agent is
 shared, what is one agent's own is in that agent's definition, and an agent
 whose definition is silent about an act does not take it.
 
-**The contract's section numbers are stable.** A prompt saying *section 3 is
-narrowed this round*, and a round record compared with another months later,
-hold only while the number still means what it meant; how a retired rule
-keeps its number is the contract's own preamble.
+**The contract's rule numbers are stable.** A prompt saying *contract rule 3
+is narrowed this round*, and a round record compared with another months
+later, hold only while the number still means what it meant; how a retired
+rule keeps its number is the contract's own preamble.
 check: tests/test_every_agent_reads_the_contract.py
 
 **The party that draws a contract is not the party that executes it.** A
@@ -104,7 +104,7 @@ and as a total, in bytes, characters and tokens, split at headings.
 orchestrator's procedure preloaded into every implementer spawn is procedure
 for asking a person a question, delivered to a party that cannot ask anybody
 anything, and paid once per spawn.
-check: tests/test_the_payload_meter_says_what_it_measured.py
+check: tests/test_payload_meter.py tests/test_a_section_marked_for_one_role_reaches_only_that_role.py
 
 **The orchestrator's acts are counted, each against what delivers it.** An
 agent's rules arrive by mechanism, while the orchestrator has no spawn for a

@@ -24,7 +24,15 @@ def test_the_slice_document_resolves_every_target():
         text = handle.read()
     out = rules.render(ROOT, text)
     assert out.count("  check, line ") >= 7, out
-    assert "does not resolve" not in out and "refused" not in out, out
+    # The render's own two line shapes are read, not the bare words, since a
+    # marker name or a docstring the render prints may say "refused", as the
+    # marker `record-comment-line-refused` does.
+    failed = [
+        line
+        for line in out.splitlines()
+        if line.startswith("    refused: ") or ": does not resolve: " in line
+    ]
+    assert not failed, out
 
 
 def test_the_rule_marker_is_registered(pytestconfig):
