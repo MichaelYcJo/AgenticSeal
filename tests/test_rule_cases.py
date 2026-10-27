@@ -54,7 +54,7 @@ def rule_truths(tmp_path, monkeypatch, *entries):
     monkeypatch.setattr(rc.rt, "TRUTHS", recurred_file(tmp_path, *entries))
     out = tmp_path / "out"
     assert rc.main(["--out", str(out)]) == 0
-    graders = out / "warden" / RULE / "graders"
+    graders = out / "proofer" / RULE / "graders"
     return {p.name: p.read_text(encoding="utf-8") for p in graders.glob("truth-*.md")}
 
 

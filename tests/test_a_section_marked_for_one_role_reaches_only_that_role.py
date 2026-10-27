@@ -6,7 +6,7 @@ prefix, and #265 moved them out to `orchestration.md` — a file no `skills:`
 list names, so no spawn pays for it. `implement` had the same kind of
 section under no marker at all, and every `smith` spawn read the bootstrap
 question, the parity setup and the routing tables: procedure for an act
-`agents/smith.md` forbids the agent (asking a person, writing `routing.md`).
+`agents/crafter.md` forbids the agent (asking a person, writing `routing.md`).
 
 The marker is the convention; this module is what makes it a rule. It
 derives the agents from the `agents/*.md` glob and each definition's own

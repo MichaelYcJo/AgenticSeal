@@ -118,7 +118,7 @@ def test_the_skill_asks_the_whole_question_in_the_first_batch():
     stale `three axes` copies were green under the old presence-only
     assertion, because the string it required was the stale copy itself: the
     orchestrator's own summary line, `skills/implement/SKILL.md`'s pointer
-    sentence and `agents/smith.md`'s phase 2. A count asserted by presence
+    sentence and `agents/crafter.md`'s phase 2. A count asserted by presence
     passes on the copy that should have moved.
     """
     skill = flat(read(*ORCH))
@@ -152,19 +152,19 @@ def test_every_document_shows_the_third_axis_ROW_not_only_the_count():
         f"the axes table has {len(rows)} `Implementation` rows; the count "
         "beside it promises exactly one"
     )
-    assert "`smith` or `the session`" in rows[0], (
+    assert "`crafter` or `the session`" in rows[0], (
         "the row lost the vocabulary, so a session reads a third axis with no answers"
     )
-    # `agents/smith.md` used to state the same axis in prose, because it used
+    # `agents/crafter.md` used to state the same axis in prose, because it used
     # to ask the question. It does not any more — the act is the SESSION's
     # that spawns the work, because no agent this plugin spawns has
     # `AskUserQuestion` (#419, round 1) — and the vocabulary travels with the
     # act. Asserting the answers here again would put the moved rule back in
     # the definition it left, which is what
     # `tests/test_a_moved_rule_leaves_its_definition.py` exists to refuse.
-    smith = flat(read("agents", "smith.md"))
+    smith = flat(read("agents", "crafter.md"))
     assert "implementation (smith · the session" not in smith, (
-        "the routing vocabulary is back in `agents/smith.md`, whose phase 2 "
+        "the routing vocabulary is back in `agents/crafter.md`, whose phase 2 "
         "no longer asks the question it belongs to"
     )
 
@@ -261,7 +261,7 @@ def test_the_template_PARSES_into_the_three_answers_it_ships():
     # placeholder is for. An empty cell reads as "nothing to fill in"; `TBD`
     # reads as an answer somebody will get to. Only the shipped text says
     # what the two choices are.
-    assert "| Implementation | <smith, or: the session> |" in template, (
+    assert "| Implementation | <crafter, or: the session> |" in template, (
         "the placeholder TEXT is the half a person reads, and a blank cell "
         "or `TBD` parses identically while reading as answered"
     )
@@ -481,7 +481,7 @@ def test_the_boxes_are_in_the_stated_order():
         "not first. The order is the specification: a party box read first "
         "makes the run's own property look like a fifth party"
     )
-    for i, party in enumerate(("smith", "warden", "pull request"), start=1):
+    for i, party in enumerate(("crafter", "proofer", "pull request"), start=1):
         assert party in boxes[i], (
             f"box {i + 1} is `{boxes[i]}`; the three party boxes follow the "
             "run's property in the order they run"
@@ -505,8 +505,8 @@ def test_every_box_states_what_UNCHECKED_means():
     unchecked = {r[1]: r[3] for r in rows}
     wanted = {
         "run end to end": "may be asked",
-        "smith": "this session writes the code",
-        "warden": "nothing reviews",
+        "crafter": "this session writes the code",
+        "proofer": "nothing reviews",
         "pull request": "stop before",
     }
     for box, phrase in wanted.items():
@@ -985,14 +985,14 @@ def test_the_smith_carries_its_own_half_and_not_the_questions():
     for anything it could not close. Since #967 the first half is the first
     line of its `## Never`.
     """
-    smith = flat(read("agents", "smith.md"))
+    smith = flat(read("agents", "crafter.md"))
     assert "Ask a person anything, or write `routing.md`" in smith
     assert "answerer" in smith, (
         "a deferral with nobody named is how a follow-up becomes nobody's"
     )
     for count in STALE:
         assert count not in smith, (
-            f"`{count}` is back in `agents/smith.md`, which is the routing "
+            f"`{count}` is back in `agents/crafter.md`, which is the routing "
             "question in the definition of the party that does not ask it"
         )
 

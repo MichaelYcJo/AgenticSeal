@@ -418,7 +418,7 @@ def test_the_unmeasured_word_says_so_and_every_reader_is_told_it():
     readers = {
         # #969: the orchestrator meets the gate's words now, not the sealer.
         ("skills", "code-review", "orchestration.md"): "`new?`",
-        ("agents", "smith.md"): "`new?` means nothing at the base measured that file",
+        ("agents", "crafter.md"): "`new?` means nothing at the base measured that file",
         ("skills", "verify", "orchestration.md"): "**New?**",
         ("README.md",): "new? → not measured at the base",
         ("README.ko.md",): "new? → base 에서 재지 못했다",
@@ -767,7 +767,7 @@ def test_what_a_line_names_a_file_by_is_told_where_each_reader_meets_it():
 # Part 3 — the owner, and the fourth definition
 # =============================================================================
 
-# `agents/smith.md` and `agents/warden.md` each carried the rule with no owner
+# `agents/crafter.md` and `agents/proofer.md` each carried the rule with no owner
 # in it: *the full suite is the orchestrator's*. #30 named the sealer in both.
 # Both were written anew since (#957, #967) and name no runner: the run's
 # owner moves from the sealer to the orchestrator in #969, and contract rule 2 is
@@ -777,12 +777,12 @@ def test_what_a_line_names_a_file_by_is_told_where_each_reader_meets_it():
 # `evidence: executed` line.
 SEALER = os.path.join(ROOT, "agents", "sealer.md")
 PROBE = {
-    "smith.md": (
+    "crafter.md": (
         "Asking whether the suite catches something is a coverage probe, a "
         "different act: run it over the module that should catch it and "
         "report it as a probe."
     ),
-    "warden.md": (
+    "proofer.md": (
         "A claim of absence, such as nothing in the suite catching this, is a "
         "probe: run it over the module that should catch it, report it as a "
         "probe, never as a seal, and name it on the finding's `evidence: "
@@ -844,7 +844,7 @@ def test_the_warden_says_what_comes_due():
     """The warden's report is what ends the rounds, so it is the one segment
     positioned to say the gate is next. Saying so without naming what is
     spawned leaves the orchestrator to remember the sealer exists."""
-    warden = agent("warden.md")
+    warden = agent("proofer.md")
     assert (
         "what comes due is the orchestrator's broad run, and the sealer's "
         "spawn after it"
@@ -874,7 +874,7 @@ def test_the_smith_names_no_runner_of_the_broad_gate():
     This replaced a case that asserted *Then the sealer takes the broad gate
     once*. #969 moves the run to the orchestrator in a worktree beside this
     one, so either owner written here is false in one of the two trees."""
-    smith = agent("smith.md")
+    smith = agent("crafter.md")
     start = smith.index("**The broad gate is not yours, and its label is.**")
     rule = smith[start : smith.index(" check: ", start)]
     assert "You do not run the full suite, the lint or the typecheck" in rule, (
@@ -886,7 +886,7 @@ def test_the_smith_names_no_runner_of_the_broad_gate():
     named = [party for party in RUNNERS if re.search(rf"\b{party}", rule, re.I)]
     assert not named, f"the smith's gate rule names {named}: {rule}"
     handed = HANDS_THE_RUN.findall(smith)
-    assert not handed, f"`agents/smith.md` hands the broad gate to somebody: {handed}"
+    assert not handed, f"`agents/crafter.md` hands the broad gate to somebody: {handed}"
 
 
 # --- S7 the fourth definition ------------------------------------------------

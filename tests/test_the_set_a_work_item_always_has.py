@@ -85,7 +85,7 @@ def test_the_top_rung_names_behaviour_rather_than_a_count():
     assert "observable behaviour" in skill, "implement/SKILL.md lost the condition"
     for text, who in (
         (skill, "implement/SKILL.md"),
-        (read("agents", "smith.md"), "agents/smith.md"),
+        (read("agents", "crafter.md"), "agents/crafter.md"),
     ):
         assert "| 6+ files" not in text, f"{who} still has the count as a rung"
 
@@ -103,7 +103,7 @@ def test_the_top_rung_names_behaviour_rather_than_a_count():
     # later reader takes for an oversight.
     for parts in (
         ("skills", "implement", "SKILL.md"),
-        ("agents", "smith.md"),
+        ("agents", "crafter.md"),
         ("templates", "sdd-gaps.md"),
         ("templates", "sdd-plan.md"),
     ):
@@ -210,7 +210,7 @@ def test_the_skill_lists_the_second_rung_work_and_what_lifts_it():
     """The examples are where the rung drifted, not the condition.
 
     Round 1 found two documents split: the skill named four kinds of
-    second-rung work and `agents/smith.md` named three, so a change touching
+    second-rung work and `agents/crafter.md` named three, so a change touching
     only tests was decidable by one and not the other. Since #967 the smith
     opens the skill and keeps no copy, so the list has one home, held here.
 

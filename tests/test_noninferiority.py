@@ -42,7 +42,7 @@ SUITE = {"rev": "1" * 40, "tree": "2" * 40}
 TRUTH = r"^location: .*(?:src\/a\.py:(?:10|11|12)(?!\d))"
 WIDE = r"^location: .*(?:src\/a\.py:(?:10|11|12|40)(?!\d))"
 REPORT = "seal/specs/i/rounds/round-1.md"
-CASE = "evals/behaviour/warden/c1"
+CASE = "evals/behaviour/proofer/c1"
 # Run 0's truth is its second finding's `location:` line, which a regex
 # finds only where the grader's `m` flag reaches it.
 ROWS = (
@@ -136,7 +136,7 @@ def side(graders, **over):
         "false": 2,
         "runs": {},
         "cut": False,
-        "preload": {"agents/warden.md": "a" * 64},
+        "preload": {"agents/proofer.md": "a" * 64},
         "id": "2026-10-14T00:00:00Z 000000000000",
         "suite": SUITE,
         "spend": 10.0,
@@ -157,7 +157,7 @@ def written(old_graders=GRADED, new_graders=GRADED, **new):
     call and smaller unless NEW says otherwise."""
     new.setdefault("bytes", 50000)
     new.setdefault("tokens", 900000)
-    return NI.render("warden", 3, side(old_graders), side(new_graders, **new))
+    return NI.render("proofer", 3, side(old_graders), side(new_graders, **new))
 
 
 def printed(findings, before="", after=""):
@@ -237,7 +237,7 @@ def eval_side(tmp_path, name, rev, tree, text=""):
         "arms": {"with": [run]},
     }
     meta = {
-        "agent": "warden",
+        "agent": "proofer",
         "preload": {},
         "cut_short": False,
         "suite_rev": rev,
@@ -303,7 +303,9 @@ def use(name, ident):
 
 def plugin_tree(root, skills="  - code-review\n"):
     """A plugin tree at ROOT with one agent preloading SKILLS."""
-    write(root, "agents/warden.md", f"---\nname: warden\nskills:\n{skills}---\n\n# w\n")
+    write(
+        root, "agents/proofer.md", f"---\nname: proofer\nskills:\n{skills}---\n\n# w\n"
+    )
     write(root, "skills/code-review/SKILL.md", "# code-review\n")
     return root
 
@@ -341,7 +343,7 @@ def run_one_side(tmp_path, monkeypatch, events, error=None):
 
     monkeypatch.setattr(NI, "call_eval", paid_eval)
     out = tmp_path / "side.json"
-    argv = ["run", "--agent", "warden", "--tree", str(plugin), "--out", str(out)]
+    argv = ["run", "--agent", "proofer", "--tree", str(plugin), "--out", str(out)]
     assert NI.main(argv) == 0
     return json.loads(out.read_text(encoding="utf-8")), plugin, kept
 
@@ -382,7 +384,7 @@ def _suites(tmp_path_factory):
     write(d, f"{CASE}/case.yaml", "name: c1, asked otherwise\n")
     commits["prompt"] = commit("prompt")
     git(d, "reset", "-q", "--hard", commits["wide"])
-    write(d, "evals/behaviour/warden/c2/case.yaml", "name: c2\n")
+    write(d, "evals/behaviour/proofer/c2/case.yaml", "name: c2\n")
     commits["more"] = commit("more")
     git(d, "reset", "-q", "--hard", commits["wide"])
     kind = BEHAVIOUR.grader("truth", "1", "A defect.", type="file_exists", path="r.md")
@@ -462,11 +464,11 @@ def graded_side(tmp_path, rev, rows, found, spoil=None):
             "overallPassRate": rate,
         },
         "specseal": {
-            "agent": "warden",
+            "agent": "proofer",
             "preload": {},
             "cut_short": False,
             "suite_rev": rev,
-            "suite_tree": NI.suite_tree(rev, "warden"),
+            "suite_tree": NI.suite_tree(rev, "proofer"),
         },
     }
     if spoil:
@@ -517,7 +519,7 @@ def no_agent(result):
 
 def with_c2(result):
     case = json.loads(json.dumps(result["cases"][0]))
-    case.update(name="warden c2", dir="evals/behaviour/warden/c2")
+    case.update(name="warden c2", dir="evals/behaviour/proofer/c2")
     result["cases"].append(case)
 
 
@@ -552,12 +554,12 @@ class Test_preload_files:
     @pytest.mark.parametrize(
         "skills, want",
         [
-            ("  - code-review\n", ["agents/warden.md", "skills/code-review/SKILL.md"]),
+            ("  - code-review\n", ["agents/proofer.md", "skills/code-review/SKILL.md"]),
             (
                 "  - a\n  - b\n",
-                ["agents/warden.md", "skills/a/SKILL.md", "skills/b/SKILL.md"],
+                ["agents/proofer.md", "skills/a/SKILL.md", "skills/b/SKILL.md"],
             ),
-            ("", ["agents/warden.md"]),
+            ("", ["agents/proofer.md"]),
         ],
         ids=["one skill", "two skills", "none"],
     )
@@ -565,40 +567,40 @@ class Test_preload_files:
         self, tmp_path, skills, want
     ):
         plugin_tree(tmp_path, skills)
-        assert NI.preload_files(str(tmp_path), "warden") == want
+        assert NI.preload_files(str(tmp_path), "proofer") == want
 
     def test_refuses_a_definition_with_no_frontmatter(self, tmp_path):
-        write(tmp_path, "agents/warden.md", "# warden\n")
-        with pytest.raises(SystemExit, match=r"agents/warden\.md has no frontmatter"):
-            NI.preload_files(str(tmp_path), "warden")
+        write(tmp_path, "agents/proofer.md", "# warden\n")
+        with pytest.raises(SystemExit, match=r"agents/proofer\.md has no frontmatter"):
+            NI.preload_files(str(tmp_path), "proofer")
 
 
 class Test_preload_hashes:
     def test_accepts_each_file_as_its_sha256(self, tmp_path):
         plugin_tree(tmp_path)
-        assert NI.preload_hashes(str(tmp_path), "warden") == {
+        assert NI.preload_hashes(str(tmp_path), "proofer") == {
             rel: hashlib.sha256((tmp_path / rel).read_bytes()).hexdigest()
-            for rel in ("agents/warden.md", "skills/code-review/SKILL.md")
+            for rel in ("agents/proofer.md", "skills/code-review/SKILL.md")
         }
 
     def test_refuses_a_skill_that_is_not_there(self, tmp_path):
         plugin_tree(tmp_path, "  - absent\n")
         with pytest.raises(FileNotFoundError):
-            NI.preload_hashes(str(tmp_path), "warden")
+            NI.preload_hashes(str(tmp_path), "proofer")
 
 
 class Test_preload_bytes:
     def test_accepts_every_file_summed(self, tmp_path):
         plugin_tree(tmp_path)
-        assert NI.preload_bytes(str(tmp_path), "warden") == sum(
+        assert NI.preload_bytes(str(tmp_path), "proofer") == sum(
             os.path.getsize(tmp_path / rel)
-            for rel in ("agents/warden.md", "skills/code-review/SKILL.md")
+            for rel in ("agents/proofer.md", "skills/code-review/SKILL.md")
         )
 
     def test_refuses_a_skill_that_is_not_there(self, tmp_path):
         plugin_tree(tmp_path, "  - gone\n")
         with pytest.raises(OSError):
-            NI.preload_bytes(str(tmp_path), "warden")
+            NI.preload_bytes(str(tmp_path), "proofer")
 
 
 class Test_git_bytes:
@@ -618,7 +620,7 @@ class Test_extract:
         self, suites, tmp_path
     ):
         NI.extract(
-            suites["more"], ["evals/behaviour/warden/c2"], str(tmp_path / "some")
+            suites["more"], ["evals/behaviour/proofer/c2"], str(tmp_path / "some")
         )
         assert [p.name for p in (tmp_path / "some").rglob("*") if p.is_file()] == [
             "case.yaml"
@@ -1090,13 +1092,13 @@ class Test_save_side:
         trace = trace_at(kept / "out" / "trace.jsonl", [RESULT])
         raw, data = raw_with(tmp_path, [trace])
         saved = tmp_path / "side.raw"
-        NI.save_side(raw, str(saved), {"agent": "warden"})
+        NI.save_side(raw, str(saved), {"agent": "proofer"})
         assert json.loads((saved / "raw.json").read_text(encoding="utf-8")) == data
         assert (saved / "traces" / "000.jsonl").read_text(encoding="utf-8") == (
             json.dumps(RESULT) + "\n"
         )
         meta = json.loads((saved / "meta.json").read_text(encoding="utf-8"))
-        assert meta == {"agent": "warden", "traces": {"0|with|0": "traces/000.jsonl"}}
+        assert meta == {"agent": "proofer", "traces": {"0|with|0": "traces/000.jsonl"}}
         assert not kept.exists()
 
     def test_refuses_to_map_a_missing_trace_or_remove_one_the_eval_did_not_keep(
@@ -1105,7 +1107,7 @@ class Test_save_side:
         elsewhere = trace_at(tmp_path / "project" / "out" / "trace.jsonl", [RESULT])
         raw, _data = raw_with(tmp_path, [str(tmp_path / "gone.jsonl"), elsewhere])
         saved = tmp_path / "side.raw"
-        NI.save_side(raw, str(saved), {"agent": "warden"})
+        NI.save_side(raw, str(saved), {"agent": "proofer"})
         meta = json.loads((saved / "meta.json").read_text(encoding="utf-8"))
         assert meta["traces"] == {"0|with|1": "traces/001.jsonl"}
         assert os.path.isfile(elsewhere)
@@ -1129,8 +1131,8 @@ def saved_side(tmp_path, runs, rev="abc", partial=False):
     }
     write(saved, "raw.json", json.dumps(raw))
     meta = {
-        "agent": "warden",
-        "preload": {"agents/warden.md": "a" * 64},
+        "agent": "proofer",
+        "preload": {"agents/proofer.md": "a" * 64},
         "preload_bytes": 10,
         "rev": rev,
         "suite_rev": "s",
@@ -1157,8 +1159,8 @@ class Test_annotate:
             "tool_calls": 2,
         }
         assert result["specseal"] == {
-            "agent": "warden",
-            "preload": {"agents/warden.md": "a" * 64},
+            "agent": "proofer",
+            "preload": {"agents/proofer.md": "a" * 64},
             "preload_bytes": 10,
             "cut_short": False,
             "rev": "abc",
@@ -1243,9 +1245,9 @@ class Test_run_side:
         )
         run = data["cases"][0]["arms"]["with"][0]["specseal"]
         assert run["cost"]["total_cost_usd"] == 2.5
-        assert data["specseal"]["preload"] == NI.preload_hashes(str(plugin), "warden")
+        assert data["specseal"]["preload"] == NI.preload_hashes(str(plugin), "proofer")
         assert data["specseal"]["preload_bytes"] == NI.preload_bytes(
-            str(plugin), "warden"
+            str(plugin), "proofer"
         )
         assert data["specseal"]["rev"] == "tree"
         assert (
@@ -1295,7 +1297,7 @@ class Test_run_side:
         with pytest.raises(SystemExit, match="run needs --agent, or --from-raw"):
             NI.main(["run", "--tree", str(plugin), "--out", str(out)])
         monkeypatch.setattr(NI, "call_eval", lambda command, env: None)
-        argv = ["run", "--agent", "warden", "--tree", str(plugin), "--out", str(out)]
+        argv = ["run", "--agent", "proofer", "--tree", str(plugin), "--out", str(out)]
         with pytest.raises(SystemExit, match="claude plugin eval wrote no JSON"):
             NI.main(argv)
         assert not out.exists() and not (tmp_path / "side.raw").exists()
@@ -1408,14 +1410,14 @@ class Test_suite_tree:
     def test_accepts_the_tree_of_the_agents_cases(self, suites, _suites):
         d, _commits = _suites
         want = git(
-            d, "rev-parse", f"{suites['own']}:evals/behaviour/warden"
+            d, "rev-parse", f"{suites['own']}:evals/behaviour/proofer"
         ).stdout.strip()
-        assert NI.suite_tree(suites["own"], "warden") == want
-        assert NI.suite_tree(suites["prompt"], "warden") != want
+        assert NI.suite_tree(suites["own"], "proofer") == want
+        assert NI.suite_tree(suites["prompt"], "proofer") != want
 
     def test_refuses_an_agent_with_no_suite_there(self, suites):
         with pytest.raises(SystemExit, match=r"^git rev-parse"):
-            NI.suite_tree(suites["own"], "smith")
+            NI.suite_tree(suites["own"], "crafter")
 
 
 class Test_suite_name:
@@ -1696,7 +1698,7 @@ class Test_render:
         text = written(spend=10.123456, seconds=512.34)
         back, stated, preload = NI.parse_record(text)
         assert stated == "pass" and NI.verdict(back)[0] == "pass"
-        assert preload == {"agents/warden.md": "a" * 64}
+        assert preload == {"agents/proofer.md": "a" * 64}
         assert {k: back[k] for k in NI.COST_FIELDS} == {
             "old_spend": 10.0,
             "new_spend": 10.1235,
@@ -1709,7 +1711,7 @@ class Test_render:
             "old_bytes": 100000,
             "new_bytes": 50000,
         }
-        assert text.startswith("# warden — phase 3 non-inferiority\n")
+        assert text.startswith("# proofer — phase 3 non-inferiority\n")
         assert text.endswith("\nVerdict: pass\n\n- every pass rule holds\n")
 
     def test_refuses_a_failing_side_with_its_reasons_and_a_cut_one_as_no_result(self):
@@ -1906,7 +1908,7 @@ class Test_cheaper_model:
 
 
 class Test_compare:
-    ARGV = ("compare", "--agent", "warden", "--phase", "3")
+    ARGV = ("compare", "--agent", "proofer", "--phase", "3")
 
     def test_accepts_one_suite_at_two_commits_and_writes_the_record(
         self, tmp_path, capsys
@@ -1929,7 +1931,7 @@ class Test_compare:
         head = NI.git_bytes("rev-parse", "HEAD").decode("utf-8").strip()
         commit_only = eval_side(tmp_path, "commit-only", head, None)
         by_tree = eval_side(
-            tmp_path, "by-tree", "e" * 40, NI.suite_tree("HEAD", "warden")
+            tmp_path, "by-tree", "e" * 40, NI.suite_tree("HEAD", "proofer")
         )
         other = eval_side(tmp_path, "other", "c" * 40, "d" * 40)
         out = ["--out", str(tmp_path / "r.md")]
@@ -2088,13 +2090,13 @@ class Test_grader_from:
 class Test_suite_files:
     def test_accepts_every_file_of_every_case_by_its_blob(self, suites, _suites):
         d, _commits = _suites
-        got = NI.suite_files(suites["more"], "warden")
-        assert sorted(got) == [CASE, "evals/behaviour/warden/c2"]
+        got = NI.suite_files(suites["more"], "proofer")
+        assert sorted(got) == [CASE, "evals/behaviour/proofer/c2"]
         blob = git(d, "rev-parse", f"{suites['more']}:{CASE}/case.yaml").stdout.strip()
         assert got[CASE][f"{CASE}/case.yaml"] == blob
 
     def test_refuses_an_agent_with_no_suite_as_no_case(self, suites):
-        assert NI.suite_files(suites["own"], "smith") == {}
+        assert NI.suite_files(suites["own"], "crafter") == {}
 
 
 class Test_is_truth_file:
@@ -2110,12 +2112,12 @@ class Test_is_truth_file:
 
 class Test_truths_at:
     def test_accepts_each_cases_truth_graders(self, suites):
-        got = NI.truths_at(suites["own"], NI.suite_files(suites["own"], "warden"))
+        got = NI.truths_at(suites["own"], NI.suite_files(suites["own"], "proofer"))
         assert [g["config"]["pattern"] for g in got[CASE]] == [TRUTH]
 
     def test_refuses_a_case_with_no_truth_as_none(self, suites):
-        got = NI.truths_at(suites["more"], NI.suite_files(suites["more"], "warden"))
-        assert got["evals/behaviour/warden/c2"] == []
+        got = NI.truths_at(suites["more"], NI.suite_files(suites["more"], "proofer"))
+        assert got["evals/behaviour/proofer/c2"] == []
 
 
 class Test_grade:
@@ -2249,7 +2251,7 @@ class Test_unreproduced:
             graded_side(tmp_path, suites["own"], ROWS, [True, False]), encoding="utf-8"
         ) as f:
             result = json.load(f)
-        files = NI.suite_files(suites["own"], "warden")
+        files = NI.suite_files(suites["own"], "proofer")
         again = NI.regraded(result, NI.truths_at(suites["own"], files), whole=True)
         assert NI.unreproduced(result, again) == []
 
@@ -2258,7 +2260,7 @@ class Test_unreproduced:
             graded_side(tmp_path, suites["own"], ROWS, [True, True]), encoding="utf-8"
         ) as f:
             result = json.load(f)
-        files = NI.suite_files(suites["own"], "warden")
+        files = NI.suite_files(suites["own"], "proofer")
         again = NI.regraded(result, NI.truths_at(suites["own"], files), whole=True)
         assert NI.unreproduced(result, again)[0] == (
             "warden c1, run 1: it recorded {'truth-1': True} and its report text gives "
@@ -2298,7 +2300,7 @@ class Test_regrade:
             suites["wide"],
             suites["own"],
         )
-        assert meta["suite_tree"] == NI.suite_tree(suites["wide"], "warden")
+        assert meta["suite_tree"] == NI.suite_tree(suites["wide"], "proofer")
         again = tmp_path / "again.json"
         assert regraded_to(str(out), suites["wide"], again) == 0
         assert (
@@ -2353,7 +2355,7 @@ class Test_regrade:
             ("own", "more", [True, False], with_c2, "warden c2: the suite it ran"),
             ("more", "wide", [True, False], with_c2, "warden c2: the suite at"),
             ("own", "prompt", [True, False], None, "warden c1: the suite at"),
-            ("own", "more", [True, False], None, "warden/c2: the suite at"),
+            ("own", "more", [True, False], None, "proofer/c2: the suite at"),
             ("own", "kind", [True, False], None, "warden c1: truth-1 is not"),
             ("own", "flag", [True, False], None, "warden c1: truth-1 carries"),
             ("own", "plain", [True, False], None, "c1/graders/truth-1.md has no"),
@@ -2398,12 +2400,12 @@ class Test_main:
     @pytest.mark.parametrize(
         "argv, called",
         [
-            (["run", "--agent", "warden", "--rev", "HEAD", "--out", "o"], "run"),
+            (["run", "--agent", "proofer", "--rev", "HEAD", "--out", "o"], "run"),
             (
                 [
                     "compare",
                     "--agent",
-                    "smith",
+                    "crafter",
                     "--phase",
                     "1",
                     "--old",
@@ -2440,7 +2442,7 @@ class Test_main:
         "argv",
         [
             [],
-            ["run", "--agent", "warden", "--out", "o"],
+            ["run", "--agent", "proofer", "--out", "o"],
             ["run", "--rev", "HEAD", "--tree", "t", "--out", "o"],
             [
                 "compare",

@@ -340,10 +340,10 @@ class Test_parse:
         assert parsed["implementation"] is None
 
         text = two_axis_text().replace(
-            "| Branch |", "| Implementation | smith |\n| Branch |"
+            "| Branch |", "| Implementation | crafter |\n| Branch |"
         )
         parsed = routing.parse(text)
-        assert parsed["implementation"] == routing.BY_SMITH
+        assert parsed["implementation"] == routing.BY_CRAFTER
         assert parsed["planning"] is None
 
     def test_refuses_any_optional_row_answering_for_another(self, repo):
@@ -355,7 +355,7 @@ class Test_parse:
         """
         keys = {
             routing.PLANNING: ("planning", routing.BY_FRAMER),
-            routing.IMPLEMENTATION: ("implementation", routing.BY_SMITH),
+            routing.IMPLEMENTATION: ("implementation", routing.BY_CRAFTER),
             routing.AUTOMATION: ("automation", routing.AUTOMATION_YES),
             routing.ANSWER_PRESSED: ("pressed", routing.PRESSED_AUTOMATION),
         }

@@ -23,8 +23,8 @@ from conftest import read
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 SKILL = "skills/writing-style/SKILL.md"
 
-# The two sections an agent opens alone, spelled as `agents/warden.md` and
-# `agents/smith.md` name them.
+# The two sections an agent opens alone, spelled as `agents/proofer.md` and
+# `agents/crafter.md` name them.
 LANGUAGE_SECTIONS = ("## 문장 규칙", "## English prose rules")
 
 # What each section's first paragraph names: the two language-agnostic
@@ -106,9 +106,9 @@ def test_each_language_section_of_writing_style_opens_alone():
             )
 
     named = named_by_agents()
-    assert set(LANGUAGE_SECTIONS) <= named.get("agents/warden.md", set()), (
-        "agents/warden.md's record step no longer names both language sections "
-        f"by heading; it names {sorted(named.get('agents/warden.md', set()))}"
+    assert set(LANGUAGE_SECTIONS) <= named.get("agents/proofer.md", set()), (
+        "agents/proofer.md's record step no longer names both language sections "
+        f"by heading; it names {sorted(named.get('agents/proofer.md', set()))}"
     )
     dangling = [
         f"{rel}: {span}"

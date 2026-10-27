@@ -503,10 +503,10 @@ def orchestrator(tmp_path):
     lines = []
     lines += call("a", 0, 10, "git status --short")
     lines += call("b", 15, 18, "cat seal/specs/x/plan.md")
-    lines += spawn("A", 25, 625, "specseal:smith", "Build phase 1")
+    lines += spawn("A", 25, 625, "agentic:crafter", "Build phase 1")
     lines += call("c", 640, 643, "git log --oneline -5")
     lines += call("d", 650, 651, "cat seal/specs/x/spec.md")
-    lines += spawn("B", 660, 1860, "specseal:warden", "Review round 1")
+    lines += spawn("B", 660, 1860, "agentic:proofer", "Review round 1")
     lines += call("e", 1870, 1880, "./bin/test tests/test_x.py -q")
     path = tmp_path / "orchestrator.jsonl"
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -591,9 +591,9 @@ def run_with_segments(tmp_path):
     segment's own file can."""
     main = []
     main += call("a", 0, 10, "git status --short")
-    main += spawn("A", 25, 625, "specseal:smith", "Build phase 1")
+    main += spawn("A", 25, 625, "agentic:crafter", "Build phase 1")
     main += call("b", 640, 643, "git log --oneline -5")
-    main += spawn("B", 660, 1860, "specseal:warden", "Review round 1")
+    main += spawn("B", 660, 1860, "agentic:proofer", "Review round 1")
     return write_run(
         tmp_path,
         main,
@@ -725,7 +725,7 @@ def resumed_segment(tmp_path):
     does before this phase — one row covers the idle gap and reports a span
     over two hours for an agent that worked for 37 seconds."""
     main = call("a", 0, 10, "git status --short") + spawn(
-        "A", 25, 625, "specseal:smith", "Build phase 1"
+        "A", 25, 625, "agentic:crafter", "Build phase 1"
     )
     return write_run(
         tmp_path,
@@ -761,7 +761,7 @@ def segment_that_spawned(tmp_path):
     only spawn the parent made, so no stamp can claim it. The mode prints
     both, because the two counts disagreeing is itself a reading."""
     main = call("a", 0, 10, "git status --short") + spawn(
-        "A", 25, 625, "specseal:smith", "Build phase 1"
+        "A", 25, 625, "agentic:crafter", "Build phase 1"
     )
     return write_run(
         tmp_path,
@@ -2860,8 +2860,8 @@ class Test_main:
         cycles = [row for row in spawns["rows"] if row["kind"] == "cycle"]
         assert [row["cycle"] for row in cycles] == [1, 2], cycles
         assert [row["subagent_type"] for row in cycles] == [
-            "specseal:smith",
-            "specseal:warden",
+            "agentic:crafter",
+            "agentic:proofer",
         ], cycles
         assert [row["description"] for row in cycles] == [
             "Build phase 1",
@@ -2900,7 +2900,7 @@ class Test_main:
         """A run whose first act is a spawn has an empty head, and that is a
         reading rather than a gap. Dropping the row would make the rows stop
         partitioning the run, which is the property above."""
-        lines = spawn("A", 0, 60, "specseal:smith") + call("a", 70, 75, "git status")
+        lines = spawn("A", 0, 60, "agentic:crafter") + call("a", 70, 75, "git status")
         path = tmp_path / "no-head.jsonl"
         path.write_text("\n".join(lines) + "\n", encoding="utf-8")
         rows = spawns_of(path)["rows"]
@@ -2923,8 +2923,8 @@ class Test_main:
         Both calls sit in cycle 1, which is where the orchestrator actually made
         them, and cycle 2's window holds nothing at all."""
         lines = [
-            batch_spawn("A", 0, "specseal:warden"),
-            batch_spawn("B", 10, "specseal:scribe"),
+            batch_spawn("A", 0, "agentic:proofer"),
+            batch_spawn("B", 10, "agentic:tracer"),
             result(300, "B"),
             result(900, "A"),
         ]
@@ -2933,8 +2933,8 @@ class Test_main:
         rows = spawns_of(path)["rows"]
         cycles = [row for row in rows if row["kind"] == "cycle"]
         assert [row["subagent_type"] for row in cycles] == [
-            "specseal:scribe",
-            "specseal:warden",
+            "agentic:tracer",
+            "agentic:proofer",
         ], cycles
         assert cycles[0]["numbers"]["calls"] == 2, cycles[0]
         assert cycles[1]["numbers"] is None, cycles[1]
@@ -3026,12 +3026,12 @@ class Test_main:
                     "type": "tool_use",
                     "id": "A",
                     "name": "Agent",
-                    "input": {"subagent_type": "specseal:smith", "prompt": "x"},
+                    "input": {"subagent_type": "agentic:crafter", "prompt": "x"},
                 },
             ),
             result(50, "A"),
         ]
-        lines += spawn("B", 200, 300, "specseal:warden")
+        lines += spawn("B", 200, 300, "agentic:proofer")
         path = tmp_path / "backwards.jsonl"
         path.write_text("\n".join(lines) + "\n", encoding="utf-8")
         data = json.loads(run(["--json", str(path)]).stdout)
@@ -3068,7 +3068,7 @@ class Test_main:
                 },
             }
         )
-        lines = [bad, *spawn("A", 10, 70, "specseal:smith"), *call("a", 80, 85, "ls")]
+        lines = [bad, *spawn("A", 10, 70, "agentic:crafter"), *call("a", 80, 85, "ls")]
         path = tmp_path / "odd-turn.jsonl"
         path.write_text("\n".join(lines) + "\n", encoding="utf-8")
         proc = run(["--json", str(path)])
@@ -3097,7 +3097,7 @@ class Test_main:
                         "id": "A",
                         "name": "Agent",
                         "input": {
-                            "subagent_type": "specseal:warden",
+                            "subagent_type": "agentic:proofer",
                             "prompt": "run pytest, then review round 1 | file | verdict | 1",
                         },
                     }
@@ -3112,7 +3112,7 @@ class Test_main:
                         "id": "B",
                         "name": "Agent",
                         "input": {
-                            "subagent_type": "specseal:warden",
+                            "subagent_type": "agentic:proofer",
                             "prompt": "run pytest, then review round 1 | file | verdict | 2",
                         },
                     }
@@ -3206,8 +3206,8 @@ class Test_main:
         word for it."""
         out = run(["--spawns", str(orchestrator)]).stdout
         assert "2 spawns found" in out, out
-        assert "cycle 1  specseal:smith" in out, out
-        assert "cycle 2  specseal:warden" in out, out
+        assert "cycle 1  agentic:crafter" in out, out
+        assert "cycle 2  agentic:proofer" in out, out
         assert re.search(r"^  head\s", out, re.M), out
         assert re.search(r"^  tail\s", out, re.M), out
         assert "7 calls over the rows above, of 7 calls in the transcript" in out, out
@@ -3232,7 +3232,7 @@ class Test_main:
         shape one column over. Both arms, because a line that always prints is
         furniture: absent where a spawn's own interval really does cover its run,
         present where none of them can."""
-        quick = spawn("A", 0, 3, "specseal:smith") + call("a", 20, 25, "git status")
+        quick = spawn("A", 0, 3, "agentic:crafter") + call("a", 20, 25, "git status")
         path = tmp_path / "quick.jsonl"
         path.write_text("\n".join(quick) + "\n", encoding="utf-8")
         out = run(["--spawns", str(path)]).stdout
@@ -3261,7 +3261,7 @@ class Test_main:
         goes red. 57.0 s is the band's floor — `57 / 60` sits just under 0.95 in
         binary, so the column prints `0.9m` there and `1.0m` a millisecond
         above."""
-        over = spawn("A", 0, 59.6, "specseal:smith") + call("a", 80, 85, "git status")
+        over = spawn("A", 0, 59.6, "agentic:crafter") + call("a", 80, 85, "git status")
         path = tmp_path / "over.jsonl"
         path.write_text("\n".join(over) + "\n", encoding="utf-8")
         out = run(["--spawns", str(path)]).stdout
@@ -3274,7 +3274,7 @@ class Test_main:
         ]
         assert 59.6 in delegated, delegated
 
-        floor = spawn("A", 0, 57.0, "specseal:smith") + call("a", 80, 85, "git status")
+        floor = spawn("A", 0, 57.0, "agentic:crafter") + call("a", 80, 85, "git status")
         path = tmp_path / "floor.jsonl"
         path.write_text("\n".join(floor) + "\n", encoding="utf-8")
         out = run(["--spawns", str(path)]).stdout
@@ -3291,7 +3291,7 @@ class Test_main:
         stayed under fifteen minutes; this is the case that would have caught
         that, and it is the number a reader of the band table needs."""
         lines = call("z", 0, 1, "git status --short")
-        lines += spawn("A", 5, 7, "specseal:smith")
+        lines += spawn("A", 5, 7, "agentic:crafter")
         # 300s of silence: the agent running, well under the 900s ceiling.
         lines += call("b", 307, 310, "git log --oneline -5")
         lines += call("c", 315, 317, "cat seal/specs/x/spec.md")
@@ -3333,7 +3333,7 @@ class Test_main:
         A background `Bash` command is the ordinary way to reach it, which is
         what this transcript is."""
         lines = call("bg", 0, 1000, "npm run dev")
-        lines += spawn("A", 5, 7, "specseal:smith")
+        lines += spawn("A", 5, 7, "agentic:crafter")
         lines += call("b", 10, 12, "git status --short")
         lines += call("c", 990, 995, "git log --oneline -5")
         path = tmp_path / "outlives.jsonl"
@@ -3440,7 +3440,7 @@ class Test_main:
         — the two figures stop the line ASSERTING a magnitude of zero, and they
         do not recover one."""
         lines = call("bg", 0, 8, "npm run dev")
-        lines += spawn("A", 5, 9, "specseal:smith")
+        lines += spawn("A", 5, 9, "agentic:crafter")
         lines += call("b", 6, 9, "pytest -q")
         lines += call("c", 9, 10, "git status --short")
         path = tmp_path / "head-cut.jsonl"
@@ -3467,7 +3467,7 @@ class Test_main:
         Head 0-8s, spawn 5-7s, call 10-12s: run span 12s against row spans of 8s,
         2s and 2s. The figure is 0.0m and it is a real reading."""
         lines = call("bg", 0, 8, "npm run dev")
-        lines += spawn("A", 5, 7, "specseal:smith")
+        lines += spawn("A", 5, 7, "agentic:crafter")
         lines += call("c", 10, 12, "git status --short")
         path = tmp_path / "exact-cover.jsonl"
         path.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -3493,8 +3493,8 @@ class Test_main:
         assert (segments["unnamed"], segments["unclaimed"]) == (0, 0), segments
         assert segments["tolerance_s"] == 1.0, segments
         assert [row["agent"] for row in segments["rows"]] == [
-            "specseal:smith",
-            "specseal:warden",
+            "agentic:crafter",
+            "agentic:proofer",
         ], segments["rows"]
         assert all(row["named"] for row in segments["rows"]), segments["rows"]
         # Read from each segment's own file: the smith's holds two calls over
@@ -3525,7 +3525,7 @@ class Test_main:
 
         def built(opening, name):
             main = call("a", 0, 10, "git status --short") + spawn(
-                "A", 25, 625, "specseal:smith", "Build phase 1"
+                "A", 25, 625, "agentic:crafter", "Build phase 1"
             )
             root = tmp_path / name
             root.mkdir()
@@ -3533,7 +3533,7 @@ class Test_main:
 
         on_time = segments_of(built(625, "on-time"))
         assert on_time["unnamed"] == 0, on_time
-        assert on_time["rows"][0]["agent"] == "specseal:smith", on_time["rows"]
+        assert on_time["rows"][0]["agent"] == "agentic:crafter", on_time["rows"]
 
         late = segments_of(built(628, "late"))
         assert late["unnamed"] == 1, late
@@ -3550,7 +3550,7 @@ class Test_main:
         many there were — a smaller answer rather than none, which is the
         direction `tool_name` and `count` already take."""
         main = call("a", 0, 10, "git status --short") + spawn(
-            "A", 25, 625, "specseal:smith", "Build phase 1"
+            "A", 25, 625, "agentic:crafter", "Build phase 1"
         )
         path = write_run(
             tmp_path,
@@ -3565,7 +3565,7 @@ class Test_main:
         assert segments["unnamed"] == 1, segments
         named = [row for row in segments["rows"] if row["named"]]
         anonymous = [row for row in segments["rows"] if not row["named"]]
-        assert [row["agent"] for row in named] == ["specseal:smith"], named
+        assert [row["agent"] for row in named] == ["agentic:crafter"], named
         assert len(anonymous) == 1, anonymous
         # Dropped rather than counted, the row would be invisible AND its numbers
         # would be missing from every reading of the run.
@@ -3576,7 +3576,7 @@ class Test_main:
         them. Without the claim, both rows carry the same agent's name and a
         reader adding the column counts one segment twice."""
         main = call("a", 0, 10, "git status --short") + spawn(
-            "A", 25, 625, "specseal:smith", "Build phase 1"
+            "A", 25, 625, "agentic:crafter", "Build phase 1"
         )
         path = write_run(
             tmp_path,
@@ -3622,8 +3622,8 @@ class Test_main:
         — there the same two agents read as 600s and 1200s of `delegated`, which
         is the interval until the spawn was ACCEPTED."""
         out = segment_report(run_with_segments)
-        assert "specseal:smith" in out, out
-        assert "specseal:warden" in out, out
+        assert "agentic:crafter" in out, out
+        assert "agentic:proofer" in out, out
         for header in ("span", "calls", "t/turn", "gap", "tokens"):
             assert header in out, (header, out)
         # 16s and 1s, printed by `minutes` at one decimal, and each segment's own
@@ -3631,10 +3631,10 @@ class Test_main:
         # for the warden. A column pinned only at zero is a column that could be
         # printing anything.
         assert re.search(
-            r"^  specseal:smith\s+0\.3m\s+2\s+[\d.]+\s+\d+s\s+1,000\s+300$", out, re.M
+            r"^  agentic:crafter\s+0\.3m\s+2\s+[\d.]+\s+\d+s\s+1,000\s+300$", out, re.M
         ), out
         assert re.search(
-            r"^  specseal:warden\s+0\.0m\s+1\s+[\d.]+\s+\d+s\s+40\s+40$", out, re.M
+            r"^  agentic:proofer\s+0\.0m\s+1\s+[\d.]+\s+\d+s\s+40\s+40$", out, re.M
         ), out
 
     def test_the_segment_report_names_the_tolerance_it_joined_within(
@@ -3664,7 +3664,7 @@ class Test_main:
         """A name it cannot print is a name that was never there — and a path is
         what the reader can actually open. The count says how many there were."""
         main = call("a", 0, 10, "git status --short") + spawn(
-            "A", 25, 625, "specseal:smith", "Build phase 1"
+            "A", 25, 625, "agentic:crafter", "Build phase 1"
         )
         path = write_run(
             tmp_path,
@@ -3771,14 +3771,14 @@ class Test_main:
         """S4. The ratio, the kind's bar and the protocol's name for the kind, on
         one line a reader can post. The prefixed name and the bare one are one
         kind, so a framer spawned as `framer` is graded the way
-        `specseal:framer` would be."""
+        `agentic:framer` would be."""
         out = segment_report(
             graded_run(
-                tmp_path, [("specseal:warden", UNDER_WARDEN), ("framer", SINGLES)]
+                tmp_path, [("agentic:proofer", UNDER_WARDEN), ("framer", SINGLES)]
             )
         )
         assert grade_lines(out) == [
-            "specseal:warden 1.07 tools per turn against the reviewing bar of 1.8",
+            "agentic:proofer 1.07 tools per turn against the reviewing bar of 1.8",
             "framer 1.00 tools per turn against the framing bar of 1.4",
         ], out
         flat_out = " ".join(out.split())
@@ -3788,9 +3788,9 @@ class Test_main:
     def test_a_framer_row_under_its_bar_is_named(self, tmp_path):
         """S5. 4 calls over 3 turns is 1.33, under the framing bar of 1.4 and
         over the plain reading's 1.2 -- so this row is one only the grade names."""
-        out = segment_report(graded_run(tmp_path, [("specseal:framer", [2, 1, 1])]))
+        out = segment_report(graded_run(tmp_path, [("agentic:framer", [2, 1, 1])]))
         assert grade_lines(out) == [
-            "specseal:framer 1.33 tools per turn against the framing bar of 1.4"
+            "agentic:framer 1.33 tools per turn against the framing bar of 1.4"
         ], out
 
     def test_a_smith_row_is_never_graded_and_the_page_says_why(self, tmp_path):
@@ -3805,19 +3805,19 @@ class Test_main:
             graded_run(
                 tmp_path,
                 [
-                    ("specseal:smith", SINGLES),
-                    ("smith", SINGLES),
-                    ("specseal:warden", UNDER_WARDEN),
+                    ("agentic:crafter", SINGLES),
+                    ("crafter", SINGLES),
+                    ("agentic:proofer", UNDER_WARDEN),
                 ],
             )
         )
         lines = grade_lines(out)
-        assert not any("smith" in line for line in lines), lines
+        assert not any("crafter" in line for line in lines), lines
         assert len(lines) == 1, lines
         flat_out = " ".join(out.split())
         assert "1 graded, 2 exempt, 0 ungraded" in flat_out, flat_out
         assert (
-            "A smith row is exempt: an edit-test loop is serial, and the protocol "
+            "A crafter row is exempt: an edit-test loop is serial, and the protocol "
             "judges it on `repeats = 0` rather than on this ratio." in flat_out
         ), flat_out
 
@@ -3829,8 +3829,8 @@ class Test_main:
             graded_run(
                 tmp_path,
                 [
-                    ("specseal:warden", [2, 2, 2, 2, 1]),
-                    ("specseal:framer", [2, 1, 2, 1, 1]),
+                    ("agentic:proofer", [2, 2, 2, 2, 1]),
+                    ("agentic:framer", [2, 1, 2, 1, 1]),
                 ],
             )
         )
@@ -3848,13 +3848,13 @@ class Test_main:
             graded_run(
                 tmp_path,
                 [
-                    ("specseal:warden", [2] * 35 + [1] * 9),
-                    ("specseal:framer", [2] * 19 + [1] * 29),
+                    ("agentic:proofer", [2] * 35 + [1] * 9),
+                    ("agentic:framer", [2] * 19 + [1] * 29),
                 ],
             )
         )
-        assert re.search(r"specseal:warden\s+\S+\s+79\s+1\.80\s", out), out
-        assert re.search(r"specseal:framer\s+\S+\s+67\s+1\.40\s", out), out
+        assert re.search(r"agentic:proofer\s+\S+\s+79\s+1\.80\s", out), out
+        assert re.search(r"agentic:framer\s+\S+\s+67\s+1\.40\s", out), out
         assert grade_lines(out) == [], out
         assert "every graded row meets its kind's bar" in " ".join(out.split()), out
 
@@ -3864,22 +3864,22 @@ class Test_main:
         the ungraded count holds both -- the counted silence rather than the
         silent one."""
         path = graded_run(
-            tmp_path, [("specseal:scribe", SINGLES), ("specseal:warden", UNDER_WARDEN)]
+            tmp_path, [("agentic:tracer", SINGLES), ("agentic:proofer", UNDER_WARDEN)]
         )
         deep = tmp_path / "main" / "subagents" / "inner" / "agent-deep.jsonl"
         deep.parent.mkdir(parents=True)
         deep.write_text("\n".join(batched(5000, SINGLES, "d")) + "\n", encoding="utf-8")
         out = segment_report(path)
         assert grade_lines(out) == [
-            "specseal:warden 1.07 tools per turn against the reviewing bar of 1.8"
+            "agentic:proofer 1.07 tools per turn against the reviewing bar of 1.8"
         ], out
         flat_out = " ".join(out.split())
         assert "1 graded, 0 exempt, 2 ungraded" in flat_out, flat_out
         assert "a kind not listed, a row no spawn named" in flat_out, flat_out
         rows = segments_of(path)["rows"]
         assert [(row["kind"], row["bar"]) for row in rows] == [
-            ("scribe", None),
-            ("warden", 1.8),
+            ("tracer", None),
+            ("proofer", 1.8),
             ("", None),
         ], rows
 
@@ -3888,7 +3888,7 @@ class Test_main:
         called nothing has a kind and a bar and no ratio, so there is nothing to
         hold against the bar; it is counted as ungraded, never as meeting it."""
         main = call("a", 0, 10, "git status --short") + spawn(
-            "W", 25, 625, "specseal:warden", "Review round 1"
+            "W", 25, 625, "agentic:proofer", "Review round 1"
         )
         path = write_run(
             tmp_path, main, {"agent-w.jsonl": [spend(625, output=5, message_id="t")]}
@@ -3906,7 +3906,7 @@ class Test_main:
             "ungraded, and so is a graded kind's segment that made no call." in flat_out
         ), flat_out
         assert [(r["kind"], r["bar"]) for r in segments_of(path)["rows"]] == [
-            ("warden", 1.8)
+            ("proofer", 1.8)
         ]
 
     def test_an_own_files_rows_are_ungraded(self, resumed_segment):
@@ -3931,7 +3931,7 @@ class Test_main:
             flat_out
         )
         assert (
-            "A warden's verifying round is exempt by the protocol, and this page "
+            "A proofer's verifying round is exempt by the protocol, and this page "
             "cannot tell one from a finding round, so a reader applies that "
             "exemption by hand." in flat_out
         ), flat_out
@@ -3952,7 +3952,7 @@ class Test_main:
         """S10. The grade is the segments page's alone. The plain reading of the
         same run keeps its own advisory and gains nothing, and `--spawns` gains
         nothing."""
-        path = graded_run(tmp_path, [("specseal:warden", UNDER_WARDEN)])
+        path = graded_run(tmp_path, [("agentic:proofer", UNDER_WARDEN)])
         for args in ([str(path)], ["--spawns", str(path)]):
             out = run(args).stdout
             assert "against each kind's bar" not in out, (args, out)
@@ -3965,15 +3965,15 @@ class Test_main:
         path = graded_run(
             tmp_path,
             [
-                ("specseal:smith", SINGLES),
-                ("warden", UNDER_WARDEN),
-                ("specseal:framer", [2, 2]),
+                ("agentic:crafter", SINGLES),
+                ("proofer", UNDER_WARDEN),
+                ("agentic:framer", [2, 2]),
             ],
         )
         rows = segments_of(path)["rows"]
         assert [(row["kind"], row["bar"]) for row in rows] == [
-            ("smith", None),
-            ("warden", 1.8),
+            ("crafter", None),
+            ("proofer", 1.8),
             ("framer", 1.4),
         ], rows
         for row in rows:
@@ -4023,7 +4023,7 @@ class Test_main:
         and every slice carries it, rather than the second slice reading as a
         segment nobody spawned."""
         rows = segments_of(resumed_segment)["rows"]
-        assert [row["agent"] for row in rows] == ["specseal:smith"] * 2, rows
+        assert [row["agent"] for row in rows] == ["agentic:crafter"] * 2, rows
         assert all(row["named"] for row in rows), rows
         assert segments_of(resumed_segment)["unnamed"] == 0, rows
 
@@ -4037,7 +4037,7 @@ class Test_main:
         Red before the fix: `unnamed` reads 2 for one unnamable file, and the
         reconciliation below prints a disagreement that is not there."""
         main = call("a", 0, 10, "git status --short") + spawn(
-            "A", 25, 625, "specseal:smith", "Build phase 1"
+            "A", 25, 625, "agentic:crafter", "Build phase 1"
         )
         path = write_run(
             tmp_path,
@@ -4085,7 +4085,7 @@ class Test_main:
         says what that does to the span — rather than a span quietly covering a
         wait nobody can see in the columns."""
         main = call("a", 0, 10, "git status --short") + spawn(
-            "A", 25, 625, "specseal:smith", "Build phase 1"
+            "A", 25, 625, "agentic:crafter", "Build phase 1"
         )
         path = write_run(
             tmp_path,
@@ -4129,7 +4129,7 @@ class Test_main:
 
         Red before the fix: three rows, the middle one `no paired call`."""
         main = call("a", 0, 10, "git status --short") + spawn(
-            "A", 25, 625, "specseal:smith", "Build phase 1"
+            "A", 25, 625, "agentic:crafter", "Build phase 1"
         )
         path = write_run(
             tmp_path,
@@ -4151,7 +4151,7 @@ class Test_main:
         assert rows[1]["tokens"] is None, rows[1]
         out = segment_report(path)
         assert "no paired call" not in out, out
-        assert "specseal:smith  2/2" in out, out
+        assert "agentic:crafter  2/2" in out, out
 
     def test_a_file_whose_first_window_is_empty_still_carries_its_tokens(
         self, tmp_path
@@ -4166,7 +4166,7 @@ class Test_main:
         that mutation: no slice carries the figure at all and the file's tokens
         vanish from the table."""
         main = call("a", 0, 10, "git status --short") + spawn(
-            "A", 25, 625, "specseal:smith", "Build phase 1"
+            "A", 25, 625, "agentic:crafter", "Build phase 1"
         )
         path = write_run(
             tmp_path,
@@ -4198,7 +4198,7 @@ class Test_main:
         Red before the fix for a different number: the file prints two rows, one
         per window, where it owes exactly one."""
         main = call("a", 0, 10, "git status --short") + spawn(
-            "A", 25, 625, "specseal:smith", "Build phase 1"
+            "A", 25, 625, "agentic:crafter", "Build phase 1"
         )
         path = write_run(
             tmp_path,
@@ -4224,8 +4224,8 @@ class Test_main:
         """Two rows carrying one agent's name is unreadable without it — a reader
         cannot tell a resumed segment from two agents of the same kind."""
         out = segment_report(resumed_segment)
-        assert "specseal:smith  1/2" in out, out
-        assert "specseal:smith  2/2" in out, out
+        assert "agentic:crafter  1/2" in out, out
+        assert "agentic:crafter  2/2" in out, out
         assert "coordinator" in out, out
 
     def test_the_two_count_sentences_agree_with_their_own_number(
@@ -4247,8 +4247,8 @@ class Test_main:
         # plural subject.
         main = (
             call("a", 0, 10, "git status --short")
-            + spawn("A", 25, 625, "specseal:smith", "Build phase 1")
-            + spawn("B", 700, 1200, "specseal:warden", "Review round 1")
+            + spawn("A", 25, 625, "agentic:crafter", "Build phase 1")
+            + spawn("B", 700, 1200, "agentic:proofer", "Review round 1")
         )
         both = write_run(
             tmp_path,
@@ -4275,8 +4275,8 @@ class Test_main:
         read the same way."""
         main = (
             call("a", 0, 10, "git status --short")
-            + spawn("A", 25, 625, "specseal:smith", "Build phase 1")
-            + spawn("B", 700, 1200, "specseal:warden", "Review round 1")
+            + spawn("A", 25, 625, "agentic:crafter", "Build phase 1")
+            + spawn("B", 700, 1200, "agentic:proofer", "Review round 1")
         )
         path = write_run(
             tmp_path,
@@ -4295,7 +4295,7 @@ class Test_main:
         attributed to the stretch it happened in."""
         rows = segments_of(segment_that_spawned)["rows"]
         by_name = {row["agent"] or row["transcript"]: row for row in rows}
-        assert by_name["specseal:smith"]["spawns"] == 1, rows
+        assert by_name["agentic:crafter"]["spawns"] == 1, rows
         nested = [row for row in rows if not row["named"]]
         assert len(nested) == 1 and nested[0]["spawns"] == 0, rows
 
@@ -4308,7 +4308,7 @@ class Test_main:
         permits, because a transcript never leaves the machine that produced it."""
         out = " ".join(segment_report(segment_that_spawned).split())
         assert "Contract rule 6" in out, out
-        assert "specseal:smith" in out, out
+        assert "agentic:crafter" in out, out
         assert "1 `Agent` call" in out, out
         assert "spawn no agent" in out, out
 
@@ -4365,7 +4365,7 @@ class Test_main:
         tolerance. The mode has no way to tell which, so it says the two
         disagree instead of picking one."""
         main = call("a", 0, 10, "git status --short") + spawn(
-            "A", 25, 625, "specseal:smith", "Build phase 1"
+            "A", 25, 625, "agentic:crafter", "Build phase 1"
         )
         path = write_run(
             tmp_path,
@@ -4401,7 +4401,7 @@ class Test_main:
         with nothing on the page saying so, which is the failure every other
         count in this mode prints to avoid."""
         main = call("a", 0, 10, "git status --short") + spawn(
-            "A", 25, 625, "specseal:smith", "Build phase 1"
+            "A", 25, 625, "agentic:crafter", "Build phase 1"
         )
         stampless = json.dumps(
             {"message": {"role": "user", "content": [{"type": "text", "text": "."}]}}
@@ -4429,10 +4429,10 @@ class Test_main:
         kept every case green, because the breach fixture was never resumed.
 
         A resumed agent that spawns in its second stretch must be named as that
-        stretch — `specseal:smith  2/2` — or the line points at work the agent
+        stretch — `agentic:crafter  2/2` — or the line points at work the agent
         was doing an hour earlier."""
         main = call("a", 0, 10, "git status --short") + spawn(
-            "A", 25, 625, "specseal:smith", "Build phase 1"
+            "A", 25, 625, "agentic:crafter", "Build phase 1"
         )
         path = write_run(
             tmp_path,
@@ -4449,7 +4449,7 @@ class Test_main:
         rows = segments_of(path)["rows"]
         assert [row["spawns"] for row in rows] == [0, 1], rows
         out = " ".join(segment_report(path).split())
-        assert "specseal:smith 2/2 made 1 `Agent` call" in out, out
+        assert "agentic:crafter 2/2 made 1 `Agent` call" in out, out
 
     def test_an_agents_own_resumed_transcript_is_one_row_per_slice(
         self, resumed_segment
@@ -4645,12 +4645,12 @@ class Test_main:
         main = [
             *call("a", 0, 10, "git status --short"),
             coordinator_message(15),
-            *spawn("A", 25, 625, "specseal:smith", "Build phase 1"),
+            *spawn("A", 25, 625, "agentic:crafter", "Build phase 1"),
         ]
         path = write_run(tmp_path, main, {"agent-smith.jsonl": worked(625, "s1")})
         segments = segments_of(path)
         assert "own_file" not in segments, segments
-        assert [row["agent"] for row in segments["rows"]] == ["specseal:smith"], (
+        assert [row["agent"] for row in segments["rows"]] == ["agentic:crafter"], (
             segments
         )
         assert "an agent's own transcript" not in segment_report(path)
@@ -4828,8 +4828,8 @@ class Test_main:
         assert proc.returncode == 0, proc.stderr
         rows = json.loads(proc.stdout)["segments"]["rows"]
         assert [row["agent"] for row in rows] == [
-            "specseal:smith",
-            "specseal:warden",
+            "agentic:crafter",
+            "agentic:proofer",
         ], rows
 
 
@@ -6155,7 +6155,7 @@ class Test_largest_context:
         path = write_run(
             tmp_path,
             call("a", 0, 10, "git status --short")
-            + spawn("A", 25, 625, "specseal:smith", "Build phase 1"),
+            + spawn("A", 25, 625, "agentic:crafter", "Build phase 1"),
             {
                 "agent-smith.jsonl": [
                     *context_turn(625, "s1", cache_read_input_tokens=900),

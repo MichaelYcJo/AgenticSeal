@@ -1,6 +1,6 @@
 """The committed warden cases of the behaviour suite: no location one of a
 case's truths accepts is accepted by another, so one finding is never
-counted as two. The case reads the cases under `evals/behaviour/warden/`.
+counted as two. The case reads the cases under `evals/behaviour/proofer/`.
 
 #942's phase 6 placed the generators' cases in their files:
 `evals/scripts/replay_targets.py`'s in `tests/test_replay_targets.py`,
@@ -28,7 +28,7 @@ def test_no_two_truths_of_a_warden_case_accept_one_location():
     committed warden case accepts is accepted by no other truth of that
     case, so one finding is never counted as two. Every line each
     generated alternative lists is tried against every other truth."""
-    root = os.path.join(ROOT, "evals", "behaviour", "warden")
+    root = os.path.join(ROOT, "evals", "behaviour", "proofer")
     shared = []
     for case in sorted(os.listdir(root)):
         graders = os.path.join(root, case, "graders")

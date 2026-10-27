@@ -60,7 +60,7 @@ cat > 'seal/specs/1790000024-document-helpers/routing.md' <<'SPECSEAL_EOF'
 | Review | through the review chain |
 | Destination | stop before the pull request |
 | Planning | framer |
-| Implementation | smith |
+| Implementation | crafter |
 | Automation | yes |
 | Answer pressed | automation |
 | Branch | feat/document-helpers |

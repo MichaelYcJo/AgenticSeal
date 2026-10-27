@@ -9,11 +9,11 @@ graders read files and tool calls, never a judge, and each one asks
 whether the work came out in the shape the next reader needs, never
 whether a sentence of today's definition was followed:
 
-  warden   one review of a diff with one defect against its spec: the
+  proofer  one review of a diff with one defect against its spec: the
            defect found, the round record in the template's shape, and
            any truth `recurred_truths.json` adds for the case
            (`replay_targets.py#truths_with`)
-  smith    four one-phase builds: the unit and its case, the phase record,
+  crafter  four one-phase builds: the unit and its case, the phase record,
            a commit, no probe left behind
   framer   four issues to frame: the three documents with the mark and a
            Phases table carrying `Verified by`, nothing written outside
@@ -44,12 +44,12 @@ import replay_targets as rt
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
 OUT = os.path.join(ROOT, "evals", "behaviour")
 MODELS = {
-    "warden": "claude-opus-5-5",
-    "smith": "claude-opus-5-5",
+    "proofer": "claude-opus-5-5",
+    "crafter": "claude-opus-5-5",
     "framer": "claude-fable-5-1",
     "sealer": "claude-sonnet-5-5",
 }
-TIMEOUT = {"warden": 1800, "smith": 1200, "framer": 1200, "sealer": 1800}
+TIMEOUT = {"proofer": 1800, "crafter": 1200, "framer": 1200, "sealer": 1800}
 HERE = (
     "The repository is the current working directory, the one "
     "`git rev-parse --show-toplevel` names where you start; run every command there."
@@ -177,7 +177,7 @@ def base_project(item, branch, planning, implementation):
 
 def orchestrate(agent, spawn, then):
     """The case prompt: the session spawns AGENT once with SPAWN, then THEN."""
-    return f"""You are the orchestrator of this repository. Spawn exactly one `specseal:{agent}` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Do none of its work yourself. {then}
+    return f"""You are the orchestrator of this repository. Spawn exactly one `agentic:{agent}` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Do none of its work yourself. {then}
 
 BEGIN PROMPT
 
@@ -236,7 +236,7 @@ def warden_case():
 | S1 | `shout("hi")` | `"HI!"` |
 | S2 | `shout_twice("hi")` | `"HI! HI!"` |
 """
-    lines = base_project(item, branch, "framer", "smith")
+    lines = base_project(item, branch, "framer", "crafter")
     lines += [
         write(f"seal/specs/{item}/spec.md", spec + MARK),
         write(
@@ -265,14 +265,14 @@ def warden_case():
         r"^location: .*src\/textutil\.py:(?:[4-9]|1[0-9])(?!\d)",
         "`shout_twice` joins the two shouts with no space, against S2.",
     )
-    graders = behaviour.report_shape("warden", report)
+    graders = behaviour.report_shape("proofer", report)
     # A fixture has no commit, and an entry's location never needs one.
     for name, pattern, body in rt.truths_with(WARDEN_CASE, [shout], None):
         graders.append(behaviour.report_regex("truth", name, report, pattern, body))
     return WARDEN_CASE, {
-        "agent": "warden",
+        "agent": "proofer",
         "prompt": orchestrate(
-            "warden",
+            "proofer",
             spawn,
             f"When it returns, run `cat {report}` once and reply with the report's path.",
         ),
@@ -329,7 +329,7 @@ def smith_case(index, slug, signature, rule, example):
 | S1 | {example} | a case in `tests/test_textutil.py` |
 """
     plan = one_phase_plan(name, f"`{signature}` in `src/textutil.py` and its case")
-    lines = base_project(item, branch, "framer", "smith")
+    lines = base_project(item, branch, "framer", "crafter")
     lines += [
         write(f"seal/specs/{item}/spec.md", spec + MARK),
         write(f"seal/specs/{item}/plan.md", plan),
@@ -342,7 +342,7 @@ def smith_case(index, slug, signature, rule, example):
         f"with the report your definition asks for. {HERE}"
     )
     graders = [
-        behaviour.reach("smith"),
+        behaviour.reach("crafter"),
         shape_regex(
             "built",
             {"source": "file", "path": "src/textutil.py"},
@@ -379,9 +379,9 @@ def smith_case(index, slug, signature, rule, example):
         ),
     ]
     return f"rule-smith-{slug}", {
-        "agent": "smith",
+        "agent": "crafter",
         "prompt": orchestrate(
-            "smith", spawn, "When it returns, reply with the word DONE."
+            "crafter", spawn, "When it returns, reply with the word DONE."
         ),
         "scaffold": "\n".join(lines),
         "graders": graders,
@@ -414,7 +414,7 @@ def framer_case(index, slug, issue):
     """One issue to frame as a work item whose routing is written."""
     item = f"179000002{index}-{slug}"
     branch = f"feat/{slug}"
-    lines = base_project(item, branch, "framer", "smith")
+    lines = base_project(item, branch, "framer", "crafter")
     folder = f"seal/specs/{item}"
     spawn = (
         f"Frame issue #{100 + index} as work item `{item}`, on branch `{branch}` in this clone; "
@@ -615,7 +615,7 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
     branch = f"feat/guarantee-{slug}"
     folder = f"seal/specs/{item}"
     evidence = ".git/specseal-eval"
-    lines = base_project(item, branch, "framer", "smith")
+    lines = base_project(item, branch, "framer", "crafter")
     test = TEST_TEXTUTIL.replace(
         "from textutil import", "from src.textutil import"
     ).replace(

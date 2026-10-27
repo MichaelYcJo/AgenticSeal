@@ -1855,7 +1855,7 @@ def run_dispatch(group, payload, hooks=HOOKS):
     return r.stdout
 
 
-def declare(repo, implementation="smith", item=ITEM, planning=None):
+def declare(repo, implementation="crafter", item=ITEM, planning=None):
     """A declaration for this repo's branch; a `None` answer omits its row."""
     d = mark_root(repo / "seal") / "threads" / item
     d.mkdir(parents=True, exist_ok=True)
@@ -1874,8 +1874,8 @@ def declare(repo, implementation="smith", item=ITEM, planning=None):
     return d
 
 
-def declare_smith(repo, home, item=ITEM):
-    """A declaration under `home` whose third axis says `smith`."""
+def declare_crafter(repo, home, item=ITEM):
+    """A declaration under `home` whose third axis says `crafter`."""
     d = mark_root(home) / "threads" / item
     d.mkdir(parents=True, exist_ok=True)
     (d / "routing.md").write_text(
@@ -1883,14 +1883,14 @@ def declare_smith(repo, home, item=ITEM):
         "| Axis | Answer |\n|---|---|\n"
         "| Review | through the review chain |\n"
         "| Destination | open the pull request |\n"
-        "| Implementation | smith |\n"
+        "| Implementation | crafter |\n"
         f"| Branch | {branch_of(repo)} |\n",
         encoding="utf-8",
     )
     return d
 
 
-def spawn(repo, agent="specseal:smith", session="s1", **extra):
+def spawn(repo, agent="agentic:crafter", session="s1", **extra):
     return {
         "tool_name": "Agent",
         "session_id": session,

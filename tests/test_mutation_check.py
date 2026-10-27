@@ -813,7 +813,7 @@ class Test_main:
         self, tmp_path, capsys, cases
     ):
         """Not from `HEAD`: `git checkout -- <file>` takes every uncommitted fix in
-        the file with it, which is the round's work `agents/smith.md`'s
+        the file with it, which is the round's work `agents/crafter.md`'s
         Boundaries says was wiped once. The cases here rewrite the file, or remove
         it, so the restore has something to undo besides the mutation."""
         target = tmp_path / "target.py"

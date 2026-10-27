@@ -735,7 +735,7 @@ def test_the_illustrative_version_is_allowed_in_any_loaded_file():
     assert (
         timers_in("docs/issues-and-milestones.md", text, RUNNING_IN_THE_FIXTURES) == []
     )
-    assert timers_in("agents/warden.md", text, RUNNING_IN_THE_FIXTURES) == []
+    assert timers_in("agents/proofer.md", text, RUNNING_IN_THE_FIXTURES) == []
 
 
 def test_a_record_of_a_moment_keeps_every_version_it_names():
@@ -1190,10 +1190,10 @@ def test_the_release_target_is_asked_before_the_work_starts():
     # The branch question is part of the routing section, which is the
     # orchestrator's half of `implement` since #292; the yes/no tell it
     # answers to stays in the implementer's half. The skill is read as both.
-    # `agents/smith.md` carried the same paragraph until #967: the smith opens
+    # `agents/crafter.md` carried the same paragraph until #967: the smith opens
     # no pull request and asks nothing, so the question is not its own, and
     # what stays for it is the absence below.
-    assert "## Unreleased" not in " ".join(read_text("agents", "smith.md").split()), (
+    assert "## Unreleased" not in " ".join(read_text("agents", "crafter.md").split()), (
         "smith.md prescribes a changelog heading again"
     )
     for parts, text in (

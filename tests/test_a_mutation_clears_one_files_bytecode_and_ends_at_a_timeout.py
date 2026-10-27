@@ -1,6 +1,6 @@
 """`mutation-check`: what the smith's definition and the verify skill say of it.
 
-#641, with #129 as its twin. `agents/smith.md` told the implementer to "clear
+#641, with #129 as its twin. `agents/crafter.md` told the implementer to "clear
 `tests/__pycache__` between mutations", which aims at the wrong cache. It
 clears the importers, whose bytecode is valid and unchanged, and it misses
 the one cache that can be stale -- the one beside the MUTATED file, wherever
@@ -59,12 +59,12 @@ def test_the_smiths_definition_names_the_command_and_no_directory_to_clear():
     asserted here too, because the rewording happens around them and that
     case is the one that would notice their loss -- this one says the loss
     did not come from this edit."""
-    smith = flat("agents", "smith.md")
+    smith = flat("agents", "crafter.md")
     # Any runner: the definition ships to repositories with no `bin/test`,
     # and `tests/test_the_suite_has_a_command_that_is_cheap_twice.py` holds it
     # to naming none.
     assert re.search(r"mutation-check \S+ --replace .+? --tests \"", smith), (
-        "`agents/smith.md` does not show the mutation loop as one command, "
+        "`agents/crafter.md` does not show the mutation loop as one command, "
         "with its replacement and the cases it runs"
     )
     assert "-p no:xdist" in smith, (
@@ -72,14 +72,14 @@ def test_the_smiths_definition_names_the_command_and_no_directory_to_clear():
         "measurement put there for a handful of cases"
     )
     assert "tests/__pycache__" not in smith, (
-        "`agents/smith.md` still names a directory to clear between mutations"
+        "`agents/crafter.md` still names a directory to clear between mutations"
     )
     assert "Mutation-test every unit you added, one command each." in smith
     assert "watch one go red" in smith
 
 
 def test_the_boundaries_bullet_says_the_command_holds_the_copy():
-    smith = flat("agents", "smith.md")
+    smith = flat("agents", "crafter.md")
     rule = smith[smith.index("**Commit before you mutate") :]
     rule = rule[: rule.index(" check: ")]
     assert "`mutation-check` holds the bytes it read" in rule, rule
@@ -125,5 +125,5 @@ def test_the_default_bound_is_the_one_both_documents_state(tmp_path, monkeypatch
     assert mc.main([str(target), "--replace", "1", "2", "--tests", "x"]) == 0
     assert seen["timeout"] == mc.DEFAULT_TIMEOUT == 300.0
     bound = f"{mc.DEFAULT_TIMEOUT:g}"
-    assert f"bounded at {bound} s unless `--timeout`" in flat("agents", "smith.md")
+    assert f"bounded at {bound} s unless `--timeout`" in flat("agents", "crafter.md")
     assert f"{bound} seconds by default" in flat("skills", "verify", "SKILL.md")

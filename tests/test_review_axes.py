@@ -125,12 +125,12 @@ def test_a_later_round_inherits_no_verdict_anywhere():
     a verdict is on its re-derived side."""
     skill = " ".join(read("skills", "code-review", "SKILL.md").split())
     record = " ".join(read("docs", "the-review-record.md").split())
-    warden = " ".join(read("agents", "warden.md").split())
+    warden = " ".join(read("agents", "proofer.md").split())
     for stale in ("inherit judged axes", "without re-walking"):
         for where, text in (
             ("SKILL.md", skill),
             ("the-review-record.md", record),
-            ("warden.md", warden),
+            ("proofer.md", warden),
         ):
             assert stale not in text, (
                 f"verdict inheritance came back as `{stale}` in {where}"

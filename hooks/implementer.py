@@ -36,9 +36,9 @@ no mark* means a dead gate produces a line somebody reads.
 
 Branch-scoped, because the declaration is. A mark names the branch it was
 written on, and a mark for another branch does not answer for this one --
-otherwise one `smith` spawned once in a repository would silence the notice for
+otherwise one `crafter` spawned once in a repository would silence the notice for
 every work item after it, forever. **Axis-scoped for the same reason**, one
-level over: the two marks share a directory, so a `smith` spawned on this
+level over: the two marks share a directory, so a `crafter` spawned on this
 branch must not answer for a `framer` that never was.
 """
 
@@ -54,7 +54,7 @@ PLANNING_MARK = "agentic-planner"
 
 # Which spawn writes which mark. The one place the two are paired, so a reader
 # asking "does this spawn leave a trace" has one table to open.
-AGENT_MARKS = (("framer", PLANNING_MARK), ("smith", IMPLEMENTATION_MARK))
+AGENT_MARKS = (("framer", PLANNING_MARK), ("crafter", IMPLEMENTATION_MARK))
 
 
 def git_dir(cwd):
@@ -105,7 +105,7 @@ def stands(cwd, branch, mark):
     """True when `mark` stands for `branch`.
 
     Two coordinates, for one reason each. The branch, because a declaration is
-    per branch. The axis, because the two marks share a directory and `smith`
+    per branch. The axis, because the two marks share a directory and `crafter`
     is spawned on nearly every work item -- one mark answering for both is a
     silence in exactly the state the notice exists to report.
     """
@@ -122,9 +122,9 @@ def stands(cwd, branch, mark):
 def mark_for(subagent_type):
     """The mark a spawn of this agent writes, or "" when it writes none.
 
-    The harness spells a plugin's agent `specseal:smith` and a project-local
-    one `smith`, so the qualifier is dropped before comparing. Nothing looser:
-    a substring test would read `smith-helper` -- or a prompt mentioning smith
+    The harness spells a plugin's agent `agentic:crafter` and a project-local
+    one `crafter`, so the qualifier is dropped before comparing. Nothing looser:
+    a substring test would read `crafter-helper` -- or a prompt mentioning crafter
     -- as the agent itself, and a mark written for the wrong spawn is exactly
     the false silence the module docstring refuses.
 

@@ -2,7 +2,7 @@
 """PreToolUse side effect: record that a declared agent was actually spawned.
 
 The routing declaration says who draws the frame and who implements the work —
-the `framer` and `smith` subagents, or the session itself — and until this gate
+the `framer` and `crafter` subagents, or the session itself — and until this gate
 existed those answers were written down and never looked at again. This is the
 half that makes them checkable: when a spawn names either agent, that axis's
 mark goes into the repository's git dir, and `implementer-notice.py` reads both
@@ -22,8 +22,8 @@ unattended, buys less than it costs.
 **Written before the group decides.** The gates in a group do not see each
 other's output, so when `worktree-guard.py` stops the same spawn the mark is
 already there. That is the cheaper mistake: a session that answers the guard by
-retrying without `isolation` spawns smith and writes the mark again, and one
-that answers by not spawning smith at all is missed once per session. The
+retrying without `isolation` spawns crafter and writes the mark again, and one
+that answers by not spawning crafter at all is missed once per session. The
 other direction — a mark written only on allow — would need the dispatcher to
 know one gate's semantics.
 

@@ -371,7 +371,7 @@ a person saw the plan.
 
 **What goes into `phases/phase-N.md`'s `## What this phase was asked`
 section is the phase-specific content of the spawn or task that started
-it** — never the boilerplate the contract, this skill, and `agents/smith.md`
+it** — never the boilerplate the contract, this skill, and `agents/crafter.md`
 already carry, which every phase gets told by definition and none of them
 need repeated in their own record. Copy it in when the phase closes: what
 the spawn prompt or task description said this phase, specifically, had to

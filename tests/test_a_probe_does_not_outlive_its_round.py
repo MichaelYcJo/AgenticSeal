@@ -41,7 +41,7 @@ def test_the_probe_rules_ask_for_a_timeout_somebody_chose():
 
 
 def test_smith_commits_before_it_mutates():
-    smith = read("agents", "smith.md")
+    smith = read("agents", "crafter.md")
     assert "Commit before you mutate" in smith, (
         "the mutation-loop rule is gone; a loop reverting with "
         "`git checkout --` restores HEAD and takes uncommitted fixes with it"

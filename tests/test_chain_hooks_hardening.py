@@ -455,7 +455,7 @@ def test_auto_firing_skills_declare_when_not_to_fire():
 # back open, so a stem matched inside a longer word and the same defect stood
 # one layer down again. Measured: contract rule 10's own wording — *open
 # every coordinate a task names in one batch* — refused at exit 1 with
-# `persona` one clause away, which `agents/smith.md` already writes. Both ends
+# `persona` one clause away, which `agents/crafter.md` already writes. Both ends
 # are anchored now, and the back anchor is what splits the stems into two
 # groups.
 #
@@ -506,7 +506,7 @@ BATCH_PHRASE = re.compile(r"\b(?:in|into|as) (?:one|a single|a) batch\b", re.IGN
 # All three markdown markers, which is what the normaliser of this same name
 # in `skills/code-review/scripts/chain_check.py` already settled on. Round 1's 🟡 2: `*` alone left out the
 # marker these files use MOST — code spans outnumber asterisks in four of the
-# five definitions, `agents/warden.md` 250 to 159 and `agents/smith.md` 202 to
+# five definitions, `agents/proofer.md` 250 to 159 and `agents/crafter.md` 202 to
 # 142 — so `` in `one batch` `` reached no window at all.
 #
 # The build kept `_` out on the grounds that stripping it mangles the window a
@@ -602,7 +602,7 @@ def test_the_asking_stems_are_anchored_at_both_ends():
 
     The front anchor alone let a stem match inside a longer word, and the two
     words it reached are both ordinary in a definition: `persona`, which
-    `agents/smith.md` writes, and `users`. Anchoring the back is not free —
+    `agents/crafter.md` writes, and `users`. Anchoring the back is not free —
     `\\bquestion\\b` would stop matching `questions` — so the stems are split,
     and this case is what says which group each is in.
 
@@ -708,7 +708,7 @@ def test_the_questions_are_collected_before_the_work_not_during_it():
     # The batch belongs to the SESSION that spawns the work, and that is a
     # property of the harness rather than a preference: no agent this plugin
     # spawns has `AskUserQuestion`, measured from two of them independently
-    # (#419, round 1). It was pinned in `agents/smith.md` while the design
+    # (#419, round 1). It was pinned in `agents/crafter.md` while the design
     # gate lived there, then briefly in `agents/framer.md` — and a definition
     # that carries the words of an act its agent has no tool for is an
     # instruction nothing can carry out. So the presence is asserted where the
@@ -763,7 +763,7 @@ def test_the_questions_are_collected_before_the_work_not_during_it():
     #
     #   · It CROSSES HEADINGS. 140 characters over the flattened file is a
     #     span with no structural boundary in it, and #422 measured 42 % of
-    #     `agents/framer.md` and 60 % of `agents/smith.md` as positions where
+    #     `agents/framer.md` and 60 % of `agents/crafter.md` as positions where
     #     a new occurrence would fire. Bounding it at a heading is a change
     #     with its own failure direction — an instruction whose sentence
     #     straddles a heading would pass — and it is ruled out with grounds in
@@ -823,7 +823,7 @@ def test_the_questions_are_collected_before_the_work_not_during_it():
     # The file's OWN size, not a floor. A floor pins that the read was not
     # tiny, which is a different claim: #426 measured `f.read(2000)` green
     # while every one of the five definitions was truncated, because the
-    # smallest -- `agents/scribe.md`, 3764 bytes -- is far above the floor.
+    # smallest -- `agents/tracer.md`, 3764 bytes -- is far above the floor.
     # A number below every real file's size is silent for every truncation
     # above it, and no bigger number closes that: it moves the silent range.
     # So the comparison has no number in it to be wrong. Byte length on both
@@ -846,7 +846,7 @@ def test_the_cycle_is_bounded_and_ends_at_a_pull_request():
         record = " ".join(f.read().split())
     assert "three finding rounds by default" in record, "the review loop lost its bound"
     assert "follow-up.md" in record, "no home recorded for what is left"
-    with open(os.path.join(ROOT, "agents", "smith.md"), encoding="utf-8") as f:
+    with open(os.path.join(ROOT, "agents", "crafter.md"), encoding="utf-8") as f:
         smith = f.read()
     assert "The chain ends at a pull request, never a merge." in smith
 
@@ -877,7 +877,7 @@ def definitions_naming(skill):
 
 def test_each_utility_skill_is_callable_from_exactly_one_definition():
     """S4 of #84. `confidence-check` and `feature-planner` were named in
-    `agents/smith.md`'s design gate; 0.11.0 moves the judgment they serve to
+    `agents/crafter.md`'s design gate; 0.11.0 moves the judgment they serve to
     `agents/framer.md`, and a skill named in two definitions is two agents
     each believing the call is theirs.
 
@@ -944,11 +944,13 @@ def test_the_smith_says_whether_the_frame_holds_before_building_to_it():
     one moment of human contact belongs to the session that spawns the work,
     before the framer is spawned at all."""
     smith = " ".join(
-        open(os.path.join(ROOT, "agents", "smith.md"), encoding="utf-8").read().split()
+        open(os.path.join(ROOT, "agents", "crafter.md"), encoding="utf-8")
+        .read()
+        .split()
     )
     holds = "Say whether the frame holds before you build to it"
     assert holds in smith, (
-        "`agents/smith.md` no longer tells the builder to judge the frame "
+        "`agents/crafter.md` no longer tells the builder to judge the frame "
         "before building to it. It happened twice unprompted and was recorded "
         "nowhere, which is exactly what a written instruction is for"
     )

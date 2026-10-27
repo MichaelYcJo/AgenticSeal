@@ -2,7 +2,7 @@
 next phase only if the orchestrator retyped it into the next spawn prompt.
 
 Issue #107 is the worked failure: phase 4 of an earlier work item moved a
-rule out of `agents/smith.md` into an interim home, and phase 5 removed that
+rule out of `agents/crafter.md` into an interim home, and phase 5 removed that
 interim home before the rule had actually reached anywhere else — the rule
 left the repository with nothing recording that it had gone missing. #121
 is the broader version: a phase's discoveries have no durable home at all,
@@ -42,7 +42,7 @@ from conftest import read
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 PHASE_TEMPLATE = os.path.join(ROOT, "templates", "sdd-phase.md")
-SMITH_AGENT = os.path.join(ROOT, "agents", "smith.md")
+SMITH_AGENT = os.path.join(ROOT, "agents", "crafter.md")
 IMPLEMENT_SKILL = os.path.join(ROOT, "skills", "implement", "SKILL.md")
 
 SECTIONS = (
@@ -233,7 +233,7 @@ def test_each_record_section_states_the_failure_it_prevents():
 
 # --- phase 2: smith is told to write the record, and where ------------------
 #
-# `agents/smith.md` is read by every spawn, so the instruction to write
+# `agents/crafter.md` is read by every spawn, so the instruction to write
 # `phases/phase-N.md` at each phase's close belongs there, and the skill's
 # file-set table names the path and the template beside it.
 
@@ -241,14 +241,14 @@ def test_each_record_section_states_the_failure_it_prevents():
 def test_smith_is_told_to_write_the_phase_record():
     smith = read(SMITH_AGENT)
     assert "phases/phase-N.md" in smith, (
-        "agents/smith.md does not name `phases/phase-N.md` — a spawned "
+        "agents/crafter.md does not name `phases/phase-N.md` — a spawned "
         "smith has no instruction pointing it at the file to write"
     )
     assert "templates/sdd-phase.md" in smith, (
-        "agents/smith.md does not name the template a phase record starts from"
+        "agents/crafter.md does not name the template a phase record starts from"
     )
     assert "Each phase closes with its record" in smith, (
-        "agents/smith.md does not say WHEN to write the record — a "
+        "agents/crafter.md does not say WHEN to write the record — a "
         "session that finds the file but not the timing writes it late or "
         "never"
     )
@@ -276,11 +276,11 @@ def test_skill_says_what_is_copied_into_what_this_phase_was_asked():
     assert "boilerplate" in skill, (
         "skills/implement/SKILL.md does not say that the copied content "
         "excludes the boilerplate the contract, the skill, and "
-        "agents/smith.md already carry — without that line, a session "
+        "agents/crafter.md already carry — without that line, a session "
         "copies the whole spawn prompt in, including what every phase "
         "already gets told"
     )
-    assert "agents/smith.md" in skill
+    assert "agents/crafter.md" in skill
 
 
 # --- phase 2: carrier consistency ---------------------------------------------
@@ -291,7 +291,7 @@ def test_skill_says_what_is_copied_into_what_this_phase_was_asked():
 # write `round-N.md` for the sibling record.
 
 PROSE_CARRIERS = (
-    ("agents", "smith.md"),
+    ("agents", "crafter.md"),
     ("skills", "implement", "SKILL.md"),
 )
 

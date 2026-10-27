@@ -1,14 +1,17 @@
 {
-  "name": "specseal",
+  "name": "agenticseal",
   "description": "SpecSeal \u2014 specs, sealed: implement/review agent chain, rules that name the tests holding them, hook-enforced gates.",
   "owner": {
     "name": "MichaelYcJo"
   },
   "plugins": [
     {
-      "name": "specseal",
+      "name": "agentic",
       "source": "./",
       "description": "Specs, sealed \u2014 agent chain with hook enforcement, rules that name the tests holding them, review handoff protocol."
     }
-  ]
+  ],
+  "renames": {
+    "specseal": "agentic"
+  }
 }

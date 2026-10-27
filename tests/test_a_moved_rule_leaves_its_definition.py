@@ -6,7 +6,7 @@ application. Phases 3 and 4 did the moving. Nothing checked that it was a
 move.
 
 Measured 2026-09-03 by the orchestrator, at `e51fd0b`: contract rule 9's body was pasted
-back into `agents/warden.md` under a new heading, and `test_broad_gate_rule`,
+back into `agents/proofer.md` under a new heading, and `test_broad_gate_rule`,
 `test_edits_go_through_the_edit_tool`, `test_every_agent_reads_the_contract`
 and `test_the_agent_contract_holds_the_universal_rules` were all green -- 81
 passed, exit 0. Every assertion in the two modules phases 1 and 2 wrote is a
@@ -42,7 +42,7 @@ counterfeit `CONTRIBUTING.md` refuses.
 
 `WINDOW` comes from the tree rather than from taste. Measured across all
 three definitions after phase 4, the longest run any KEPT application shares
-with any section is 10 words (`agents/smith.md`'s `a bare word is a pathspec
+with any section is 10 words (`agents/crafter.md`'s `a bare word is a pathspec
 and git rejects it`, which contract rule 8 and the design gate's waiver
 paragraph both spelled because both were about the same git fact; the
 warden's 9-word echo of contract rule 6 was the next). Both left with their
@@ -248,7 +248,7 @@ def test_pasting_a_section_body_back_into_a_definition_is_caught(path, number):
 # --- a rule that moved to ANOTHER DEFINITION does not stay behind either ----
 
 # The same property one axis over. Above, a rule moved into the contract; here,
-# three acts moved out of `agents/smith.md` and into `agents/framer.md` and
+# three acts moved out of `agents/crafter.md` and into `agents/framer.md` and
 # `skills/implement/orchestration.md` (#419). Three documents said the acts
 # were not the smith's while `smith.md` claimed all three in twenty lines, and
 # nothing could see the disagreement — which is the same invisible-in-a-diff
@@ -257,7 +257,7 @@ def test_pasting_a_section_body_back_into_a_definition_is_caught(path, number):
 # Named by CONTENT, never by the line range the frame measured them at. The
 # waiver example sits inside that range and is one of the kept applications
 # this module's docstring names, so a removal keyed on lines takes it too.
-SMITH = os.path.join(ROOT, "agents", "smith.md")
+SMITH = os.path.join(ROOT, "agents", "crafter.md")
 
 MOVED_OUT_OF_SMITH = {
     "the design gate": (
@@ -298,7 +298,7 @@ def test_the_smith_claims_no_act_another_definition_owns():
     for act, phrases in MOVED_OUT_OF_SMITH.items():
         for phrase in phrases:
             assert flat(phrase) not in smith, (
-                f"`agents/smith.md` carries {act} again: {phrase!r}. Three "
+                f"`agents/crafter.md` carries {act} again: {phrase!r}. Three "
                 "other documents own it, and a definition that keeps the "
                 "words of an act it does not perform is an instruction to "
                 "perform it"
@@ -357,7 +357,7 @@ def test_a_citation_is_not_a_copy():
     lose is the half that is actually theirs. So the kept applications are
     named here and asserted clean."""
     kept = {
-        ("agents", "warden.md"): (
+        ("agents", "proofer.md"): (
             "so it goes through the `Edit` or `Write` tool (rule 9)",
             "whether that label is honest",
             "a row of `## Not judged`",
@@ -365,7 +365,7 @@ def test_a_citation_is_not_a_copy():
         # The smith's waiver example, its RIDER and its pointer at rule 8 left
         # with its rewrite (#967), and the one waiver sentence left with
         # #1027, which removed what it waived.
-        ("agents", "smith.md"): ("hand-back",),
+        ("agents", "crafter.md"): ("hand-back",),
     }
     for parts, phrases in kept.items():
         definition = read(os.path.join(ROOT, *parts))
@@ -383,11 +383,11 @@ def test_a_citation_is_not_a_copy():
 
 # --- the warden's own rules from the 0.22.0 run (#957) -----------------------
 
-WARDEN = os.path.join(ROOT, "agents", "warden.md")
+WARDEN = os.path.join(ROOT, "agents", "proofer.md")
 
 
 def warden_rule(lead):
-    """The `## Rules` paragraph of `agents/warden.md` that opens with **LEAD**,
+    """The `## Rules` paragraph of `agents/proofer.md` that opens with **LEAD**,
     flattened, or "" where none does."""
     text = read(WARDEN)
     rules = text[text.index("\n## Rules\n") :]
@@ -418,7 +418,7 @@ def test_the_warden_checks_its_record_in_the_branch_worktree():
     with no `--root` passes or refuses on files that do not hold the record.
     Every eval case runs in one tree, so none can see it; this case reads the
     command."""
-    with open(os.path.join(ROOT, "agents", "warden.md"), encoding="utf-8") as f:
+    with open(os.path.join(ROOT, "agents", "proofer.md"), encoding="utf-8") as f:
         text = " ".join(f.read().split())
     assert (
         "chain_check.py --baseline <base> --root <the branch worktree> --worktree"
@@ -442,7 +442,7 @@ def test_the_warden_reads_each_new_test_against_its_group():
 
 
 def smith_rule(lead):
-    """The `## Rules` paragraph of `agents/smith.md` that opens with **LEAD**,
+    """The `## Rules` paragraph of `agents/crafter.md` that opens with **LEAD**,
     as written, or "" where none does."""
     text = read(SMITH)
     rules = text[text.index("\n## Rules\n") :]
@@ -481,7 +481,7 @@ def test_the_smiths_four_rules_stand_with_their_enforcers():
     that left the repository while the suite passed."""
     for lead, clauses in SMITHS_FOUR_RULES.items():
         paragraph = smith_rule(lead)
-        assert paragraph, f"`agents/smith.md` lost the rule {lead!r}"
+        assert paragraph, f"`agents/crafter.md` lost the rule {lead!r}"
         assert re.search(r"^check: \S", paragraph, re.M), (
             f"{lead!r} has no `check:` line, so nothing names what holds it"
         )
@@ -502,7 +502,7 @@ def test_the_smiths_fix_pass_writes_two_lines_and_sweeps_what_its_range_reworded
     paragraph = flat(
         smith_rule("A fix pass writes two lines of each finding and no phase record.")
     )
-    assert paragraph, "`agents/smith.md` lost its fix-pass rule"
+    assert paragraph, "`agents/crafter.md` lost its fix-pass rule"
     for clause in (
         "`fixed <commit>`, `rejected` or `deferred <home>`",
         "`deferred <where it was repaired>`",
@@ -532,7 +532,7 @@ def test_the_smiths_hand_back_carries_what_it_may_not_record_and_ends_in_no_bloc
 
 # --- the scribe's own rules from its rewrite (#970) --------------------------
 
-SCRIBE = os.path.join(ROOT, "agents", "scribe.md")
+SCRIBE = os.path.join(ROOT, "agents", "tracer.md")
 
 # The three rules S3 and S4 of #970 name, each by its lead and the clause that
 # makes it the rule rather than its title. The scribe's other two rules have
@@ -558,13 +558,13 @@ def test_the_scribes_rules_stand_with_their_enforcers():
     with every grader green. The last is S4: the skill's resolution order
     ends with the caller asking the user, and a subagent has nobody to ask."""
     text = read(SCRIBE)
-    assert "\n## Rules\n" in text, "`agents/scribe.md` has no `## Rules` section"
+    assert "\n## Rules\n" in text, "`agents/tracer.md` has no `## Rules` section"
     rules = text[text.index("\n## Rules\n") :]
     for lead, clauses in SCRIBES_RULES.items():
         paragraph = next(
             (p for p in rules.split("\n\n") if p.startswith(f"**{lead}**")), ""
         )
-        assert paragraph, f"`agents/scribe.md` lost the rule {lead!r}"
+        assert paragraph, f"`agents/tracer.md` lost the rule {lead!r}"
         assert re.search(r"^check: \S", paragraph, re.M), (
             f"{lead!r} has no `check:` line, so nothing names what holds it"
         )

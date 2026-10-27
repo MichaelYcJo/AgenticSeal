@@ -39,7 +39,7 @@
 
 ## 방법
 
-에이전트가 이미 preload 하는 스킬을 하나 고릅니다. `agents/smith.md` 의
+에이전트가 이미 preload 하는 스킬을 하나 고릅니다. `agents/crafter.md` 의
 `skills:` 에 있는 `writing-style` 입니다. 그 frontmatter 에
 `user-invocable: false` 를 더하고 본문에 센티널 한 줄을 넣습니다. 모든
 도구를 금지하고 질문 하나만 던지는 프롬프트로 `specseal:smith` 를

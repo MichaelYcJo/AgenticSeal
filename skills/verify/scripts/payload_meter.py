@@ -430,7 +430,7 @@ def first_prefix(path, helpers):
 
 
 def short_name(subagent_type):
-    """`specseal:smith` → `smith`; `general-purpose` stays as it is."""
+    """`agentic:crafter` → `crafter`; `general-purpose` stays as it is."""
     return subagent_type.rsplit(":", 1)[-1]
 
 

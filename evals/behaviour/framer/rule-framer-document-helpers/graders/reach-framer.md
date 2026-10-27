@@ -1,6 +1,6 @@
 ---
 type: 'tool_used'
 tool: 'Agent'
-input_match: '"subagent_type"\s*:\s*"specseal:framer"'
+input_match: '"subagent_type"\s*:\s*"agentic:framer"'
 ---
-The session spawned specseal:framer through the Agent tool.
+The session spawned agentic:framer through the Agent tool.

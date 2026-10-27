@@ -37,7 +37,7 @@ CARRIERS = (
         ("That is what keeps it bounded: it is the cheapest round of the run",),
     ),
     (
-        ("agents", "warden.md"),
+        ("agents", "proofer.md"),
         "The reason is the round's job, not its price",
         (
             "That surface is the whole reason the round is affordable",
@@ -48,7 +48,7 @@ CARRIERS = (
     # round on price too (round 1's 🟡 2). Its gone half is the wording at
     # `5a66666d`, which is also the wording at `1fa25931`.
     (
-        ("agents", "warden.md"),
+        ("agents", "proofer.md"),
         "instead of answering the finding that came back",
         (
             "turns every returned finding into the price of a first round",

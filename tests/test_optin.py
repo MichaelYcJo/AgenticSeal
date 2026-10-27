@@ -26,7 +26,7 @@ from conftest import (
     bash,
     census_case,
     decision_of,
-    declare_smith,
+    declare_crafter,
     git_repo,
     home,
     legacy,
@@ -692,7 +692,7 @@ class Test_module:
             "cwd": str(repo),
         }
         assert decision_of(run_hook("routing-edit-gate.py", edit)) == "silent"
-        declare_smith(repo, home)
+        declare_crafter(repo, home)
 
         assert (
             decision_of(

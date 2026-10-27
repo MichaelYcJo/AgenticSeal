@@ -29,6 +29,6 @@ def test_the_skill_applies_the_able_to_fail_condition_to_the_search():
 
 def test_the_scribe_does_not_file_an_unrepeatable_absence_as_a_fact():
     """The agent that produces these is where the rule has to hold."""
-    scribe = read("agents", "scribe.md")
+    scribe = read("agents", "tracer.md")
     assert "An absence carries its search" in scribe
     assert "not under facts" in scribe

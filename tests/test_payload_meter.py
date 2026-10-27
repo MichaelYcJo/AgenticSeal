@@ -555,7 +555,7 @@ class Test_measure:
     def test_a_user_level_skill_shadows_the_trees_and_the_ratio_says_so(
         self, meter, tmp_path
     ):
-        """Measured on the machine that wrote this: `agents/smith.md` lists
+        """Measured on the machine that wrote this: `agents/crafter.md` lists
         `writing-style`, the harness resolved the bare name to
         `~/.claude/skills/writing-style/SKILL.md` (25,834 B) rather than the
         plugin's (19,762 B), and adding the difference is what brought the
@@ -853,7 +853,7 @@ class Test_measure:
 class Test_sections_of:
     def test_refuses_a_heading_inside_a_fence_as_a_section(self, meter, tmp_path):
         """Round 1, finding 2. A skill quotes headings as examples inside a
-        fence, and `--sections` listed four of `agents/warden.md`'s fenced
+        fence, and `--sections` listed four of `agents/proofer.md`'s fenced
         template headings as sections with real byte counts — a number that
         sends #120 to cut an example. The check one file over already reads a
         fence as a quotation; the meter reads it the same way, and the pieces

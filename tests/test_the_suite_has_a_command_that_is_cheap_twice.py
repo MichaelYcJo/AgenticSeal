@@ -3,7 +3,7 @@
 Issue #156. The cases here read the `bin/` wrappers, the workflows,
 `CONTRIBUTING.md` *Running the checks*, the handoff protocol and the agent
 definitions that send a reader to the runner, and wait for #923;
-`agents/smith.md` and `agents/warden.md` name this file on their `check:`
+`agents/crafter.md` and `agents/proofer.md` name this file on their `check:`
 lines.
 
 #942's phase 6 placed the cases of `.github/scripts/run_tests.py`'s
@@ -215,7 +215,7 @@ def test_the_section_names_the_parser_and_where_it_is_pinned():
 # A command nobody is pointed at costs what the old one cost. Three documents
 # carry the pointing, and each is a sentence somebody reads and acts on:
 # `CONTRIBUTING.md` for a person in a clone, the handoff protocol for the
-# orchestrator writing a spawn prompt, and `agents/smith.md` for the segment
+# orchestrator writing a spawn prompt, and `agents/crafter.md` for the segment
 # that was not told.
 def flat(*parts):
     """The file as one line, so a pinned phrase survives re-wrapping."""
@@ -353,9 +353,9 @@ def test_the_protocol_hands_over_the_narrow_form():
 
 def test_smith_finds_the_runner_before_inventing_a_command():
     """The prompt is what went missing, so the fix cannot live in the prompt.
-    `agents/smith.md` reaches every segment at startup with nobody typing
+    `agents/crafter.md` reaches every segment at startup with nobody typing
     anything."""
-    smith = flat("agents", "smith.md")
+    smith = flat("agents", "crafter.md")
     assert "Find the runner, and type the narrow form." in smith, (
         "a segment whose prompt omits the runner has nothing telling it one "
         "exists, which is what the repeats measured"
@@ -371,12 +371,12 @@ def test_smith_finds_the_runner_before_inventing_a_command():
 
 def test_warden_finds_the_runner_before_building_its_own():
     """The class is every segment that runs a test, and the fix reached one of
-    them. `agents/warden.md` told a reviewer to build a `uv` venv in its clone
+    them. `agents/proofer.md` told a reviewer to build a `uv` venv in its clone
     and named no runner, so a review round paid for an environment the
     repository already had built -- the same cost, on the segment that runs
     more cases than the smith does. Both definitions ship to user
     repositories, so neither may name a command that exists only here."""
-    warden = flat("agents", "warden.md")
+    warden = flat("agents", "proofer.md")
     assert "Find the runner before you build your own" in warden, (
         "the reviewing segment is still told to assemble its own environment "
         "with nothing telling it a shipped runner may exist"
@@ -394,7 +394,7 @@ def test_warden_finds_the_runner_before_building_its_own():
     )
 
 
-@pytest.mark.parametrize("definition", ["smith.md", "warden.md"])
+@pytest.mark.parametrize("definition", ["crafter.md", "proofer.md"])
 def test_no_agent_definition_names_this_repositorys_own_command(definition):
     """`agents/` is copied into every install, so a definition naming
     `bin/test` sends a user's segment after a file their repository does not

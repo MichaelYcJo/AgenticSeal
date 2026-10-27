@@ -2,7 +2,7 @@
 
 Issue #544. Every agent of one session shares one scratchpad, and four work
 items ran their review chains in parallel from one session in the 0.15.0 run.
-`agents/warden.md` named the clone's shape (`git clone --no-local` at the
+`agents/proofer.md` named the clone's shape (`git clone --no-local` at the
 target SHA) and no directory; `agents/sealer.md` named no capture file;
 `skills/verify/SKILL.md`'s capture example redirected to `/tmp/run.txt`,
 which every session on the machine shares. Measured three times in that run:
@@ -32,7 +32,7 @@ from conftest import read
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
-WARDEN = os.path.join(ROOT, "agents", "warden.md")
+WARDEN = os.path.join(ROOT, "agents", "proofer.md")
 SEALER = os.path.join(ROOT, "agents", "sealer.md")
 REVIEW_ORCH = os.path.join(ROOT, "skills", "code-review", "orchestration.md")
 VERIFY = os.path.join(ROOT, "skills", "verify", "SKILL.md")
@@ -60,7 +60,7 @@ def test_the_wardens_clone_is_named_for_the_work_item_and_the_round():
     by the agent that made them."""
     where = section(WARDEN, "Rules")
     assert CLONE in where, (
-        "`agents/warden.md` *Rules* does not name the clone directory "
+        "`agents/proofer.md` *Rules* does not name the clone directory "
         f"as `{CLONE}`, so two parallel wardens can clone to one name"
     )
     assert ROUND_HOME in where, (

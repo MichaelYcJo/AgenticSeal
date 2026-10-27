@@ -95,7 +95,7 @@ RULES = {
 # for the identifiers rule until this work pointed them at the home.
 LINKED = {
     # The cadence row left `CLAUDE.md` with #940: its home is opened at the
-    # build (`agents/smith.md` step 1), so `CLAUDE.md` no longer carries it.
+    # build (`agents/crafter.md` step 1), so `CLAUDE.md` no longer carries it.
     "CLAUDE.md": ("merge", "identifiers", "batch"),
     ".github/scripts/plugin_directory_check.py": ("identifiers",),
     "tests/test_plugin_directory_check.py": ("identifiers",),
@@ -105,7 +105,7 @@ LINKED = {
     # grep's `real identifier` did not match (round 1). Round 1's fix pass
     # re-enumerated every `CLAUDE.md` mention against all four rules' words,
     # hyphenated, spaced or quoted, and found no other.
-    "agents/warden.md": ("identifiers",),
+    "agents/proofer.md": ("identifiers",),
 }
 
 # Every file in the class. A home is a carrier of the other rules, so a rule's
@@ -121,7 +121,7 @@ CARRIERS = (
     "tests/test_plugin_directory_check.py",
     "tests/test_conftest.py",
     "tests/test_the_gate_asks_the_range_ci_will_ask.py",
-    "agents/warden.md",
+    "agents/proofer.md",
 )
 
 

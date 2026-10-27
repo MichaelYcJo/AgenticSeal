@@ -35,7 +35,7 @@ Usage:
                                            a round with none was left out
   replay_targets.py --count 4 [--out DIR]  write the COUNT smallest targets,
                                            one per work item, under DIR
-                                           (evals/behaviour/warden/)
+                                           (evals/behaviour/proofer/)
   replay_targets.py --case NAME [--out DIR]
                                            write the named case alone
                                            (`replay-<id>-rN`), from any
@@ -62,7 +62,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import behaviour
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
-OUT = os.path.join(ROOT, "evals", "behaviour", "warden")
+OUT = os.path.join(ROOT, "evals", "behaviour", "proofer")
 CHECK = os.path.join(ROOT, "skills", "code-review", "scripts", "chain_check.py")
 SHA = re.compile(r"[0-9a-f]{7,40}")
 RECORD = re.compile(r"seal/specs/(?P<item>[^/]+)/rounds/round-(?P<n>\d+)\.md")
@@ -705,7 +705,7 @@ def prompt(t):
     base = f"`{t['base_ref']}` at `{t['base']}`" if t["base_ref"] else f"`{t['base']}`"
     asked = " ".join(t["asked"].split())
     asked = f" {asked}" if asked else ""
-    return f"""You are the review orchestrator of this repository. Spawn exactly one `specseal:warden` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Review, edit and commit nothing yourself. When it returns, run `cat {report}` once and reply with the report's path.
+    return f"""You are the review orchestrator of this repository. Spawn exactly one `agentic:proofer` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Review, edit and commit nothing yourself. When it returns, run `cat {report}` once and reply with the report's path.
 
 BEGIN PROMPT
 
@@ -741,7 +741,7 @@ def graders(t):
         )
         for truth in t["truths"]
     ]
-    out = behaviour.report_shape("warden", report)
+    out = behaviour.report_shape("proofer", report)
     for name, pattern, body in truths_with(case_name(t), own, t["target"]):
         out.append(behaviour.report_regex("truth", name, report, pattern, body))
     return out
@@ -791,8 +791,8 @@ def main(argv=None):
         name = case_name(t)
         behaviour.write_case(
             os.path.join(a.out, name),
-            name=f"warden {name}",
-            tags=["behaviour", "warden", "replay"],
+            name=f"proofer {name}",
+            tags=["behaviour", "proofer", "replay"],
             prompt=prompt(t),
             scaffold=scaffold(t, url),
             graders=graders(t),

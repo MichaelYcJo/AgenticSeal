@@ -150,7 +150,7 @@ def reachable(text, script):
     # ordinary compound in prose too. Measured 2026-09-14 over all 43 shipped
     # documents -- six commands appear as bare words in documents that name
     # no script at all, `broad-gate` in nine of them, including
-    # `agents/warden.md:247` (*carry the broad-gate state into your report*).
+    # `agents/proofer.md:247` (*carry the broad-gate state into your report*).
     # No case is wrong today, because those documents name no script; the day
     # one of them does, this reader calls it covered on the strength of that
     # prose. Both obvious alternatives were measured and both are worse: a
@@ -411,7 +411,7 @@ def test_a_test_file_named_for_a_script_does_not_name_it():
     """A `check:` line names test files, and rule 1 names each module's file
     for its module, so `tests/test_round_record.py` holds the script's
     filename without mentioning the script. Read as a mention, it asked
-    `agents/warden.md` for locators of two scripts it never names."""
+    `agents/proofer.md` for locators of two scripts it never names."""
     script = "skills/x/scripts/round_record.py"
     assert not names("check: tests/test_round_record.py", script)
     assert names("`round_record.py` writes the record.", script)

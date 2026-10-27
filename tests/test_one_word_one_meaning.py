@@ -136,7 +136,7 @@ def test_the_bound_is_on_the_review_run_and_never_on_the_cycle():
 
 
 def test_the_smith_calls_the_whole_thing_a_review_run():
-    smith = flat("agents", "smith.md")
+    smith = flat("agents", "crafter.md")
     assert "bounded as `docs/the-review-record.md` *The run* states" in smith
     assert "the cycle is bounded" not in smith
 
@@ -164,7 +164,7 @@ def test_the_row_that_could_not_be_true_is_corrected_not_reworded():
 
 # --- "the seal" — an instance names whose; the concept stays bare -----------
 
-# The word reached three referents at once. `agents/warden.md` opened *You
+# The word reached three referents at once. `agents/proofer.md` opened *You
 # keep the seal* about `<git-dir>/specseal-reviewed`, `agents/sealer.md`
 # opens *You take the seal* about the broad gate's stamp, and `README.md`
 # said *the warden's audit of the seal* about a third thing again — two of
@@ -182,8 +182,8 @@ SEAL_RULE = (
 # it was written is not brought to a new wording, so `seal/` is not here.
 SEAL_SWEPT = (
     ("agents", "sealer.md"),
-    ("agents", "warden.md"),
-    ("agents", "smith.md"),
+    ("agents", "proofer.md"),
+    ("agents", "crafter.md"),
     # The fifth definition (#84). It instructs somebody, which is the whole
     # membership test for this list, and it lands in a release that puts a
     # new agent name beside four others, two of which own a seal of their
@@ -283,10 +283,10 @@ def test_the_owner_states_that_one_seal_is_final():
 
 
 def test_the_two_definitions_name_what_they_actually_keep():
-    """`agents/warden.md` once called `<git-dir>/specseal-reviewed`, the mark
+    """`agents/proofer.md` once called `<git-dir>/specseal-reviewed`, the mark
     that a review happened, the seal. #1027 removed the mark with the commit
     gate that read it; the warden names neither, and claims no seal."""
-    warden = flat("agents", "warden.md")
+    warden = flat("agents", "proofer.md")
     assert "specseal-reviewed" not in warden
     assert "You keep the seal:" not in warden, (
         "the opening claims a word the sealer's definition claims two files "

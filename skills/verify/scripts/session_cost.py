@@ -2425,8 +2425,8 @@ def report_spawns(spawns, path, total_calls, run_span=0.0):
 LABEL_WIDTH = 30
 
 # #640. Each segment kind's bar on tools per turn, keyed by the basename of
-# the spawn's `subagent_type` after its last `:`, so `specseal:warden` and
-# `warden` are one kind. The values are `docs/the-review-record.md`
+# the spawn's `subagent_type` after its last `:`, so `agentic:proofer` and
+# `proofer` are one kind. The values are `docs/the-review-record.md`
 # *The per-segment bars*: the protocol's name for the kind,
 # and its bar, or None where the protocol exempts the kind from this ratio.
 #
@@ -2436,12 +2436,12 @@ LABEL_WIDTH = 30
 # turns red when one moves alone.
 #
 # A kind missing from the table has no bar and is UNGRADED, which is not the
-# same as exempt: `sealer` and `scribe` have no measured band, and a number
+# same as exempt: `sealer` and `tracer` have no measured band, and a number
 # nobody produced is not one to grade them against. The page counts them.
 SEGMENT_BARS = {
-    "warden": ("reviewing", 1.8),
+    "proofer": ("reviewing", 1.8),
     "framer": ("framing", 1.4),
-    "smith": ("implementing", None),
+    "crafter": ("implementing", None),
 }
 
 
@@ -2629,7 +2629,7 @@ def report_grades(rows):
     )
     print(
         f"\n  {len(graded)} graded, {len(exempt)} exempt, {ungraded} ungraded.\n"
-        f"  The bars are {known}. A smith row is\n  exempt: an edit-test loop is "
+        f"  The bars are {known}. A crafter row is\n  exempt: an edit-test loop is "
         "serial, and the protocol judges it on `repeats = 0`\n  rather than on "
         "this ratio. A row with no bar — a kind not listed, a row no spawn\n  "
         "named — is ungraded, and so is a graded kind's segment that made no "
@@ -2638,7 +2638,7 @@ def report_grades(rows):
     print(
         "\n  The bar is a lens for rounds of ordinary size and never a refusal "
         "threshold, so\n  this page refuses nothing and exits 0. A small round "
-        "has few independent batches\n  to rise on. A warden's verifying round "
+        "has few independent batches\n  to rise on. A proofer's verifying round "
         "is exempt by the protocol, and this page\n  cannot tell one from a "
         "finding round, so a reader applies that exemption by hand."
     )

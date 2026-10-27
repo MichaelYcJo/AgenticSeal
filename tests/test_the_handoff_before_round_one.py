@@ -51,7 +51,7 @@ def test_the_implementer_documents_point_at_the_section():
     """A protocol section nobody is routed to is the same defect one layer
     up: the answer exists and the party needing it does not know it is
     there — which is how session_cost.py went unused for a day."""
-    for parts in (("skills", "implement", "SKILL.md"), ("agents", "smith.md")):
+    for parts in (("skills", "implement", "SKILL.md"), ("agents", "crafter.md")):
         text = flat(*parts)
         assert "`docs/the-review-record.md`" in text and "handoff" in text, "/".join(
             parts
@@ -84,8 +84,8 @@ def test_the_protocol_no_longer_states_the_rules_it_points_at():
         ("never `cmd | tail; echo $?`", "contract rule 1"),
         ("enumerate the class, do not fix the coordinate", "contract rule 12"),
         ("Do not push, do not open a pull request", "contract rule 6"),
-        ("make a `uv` venv", "`agents/warden.md`"),
-        ("Mutation-test every unit added", "`agents/smith.md`"),
+        ("make a `uv` venv", "`agents/proofer.md`"),
+        ("Mutation-test every unit added", "`agents/crafter.md`"),
     ):
         assert phrase not in protocol, (
             f"the protocol states {whose} again: {phrase!r}. This document is "
@@ -95,7 +95,7 @@ def test_the_protocol_no_longer_states_the_rules_it_points_at():
 
 
 def test_the_smiths_definition_mandates_mutating_every_unit_it_added():
-    """The rule the case above says is `agents/smith.md`'s is actually there.
+    """The rule the case above says is `agents/crafter.md`'s is actually there.
 
     Measured 2026-09-03 at `dcdf4e4`, phase 6 of #107: it was not. Phase 4
     never moved *mutation-test every unit added, one at a time, before
@@ -118,7 +118,7 @@ def test_the_smiths_definition_mandates_mutating_every_unit_it_added():
     that kept only the act would read as contract rule 15 restated, which
     `test_a_moved_rule_leaves_its_definition.py` would then be right to
     refuse."""
-    smith = flat("agents", "smith.md")
+    smith = flat("agents", "crafter.md")
     # The whole clause, not its words one by one. Asserting `one at a time`
     # alone passed under the mutation that removed the cadence, because the
     # design gate two hundred lines up says asking questions `one at a time`
@@ -129,7 +129,7 @@ def test_the_smiths_definition_mandates_mutating_every_unit_it_added():
     # hand-back.
     assert "Commit, then run `mutation-check` over each unit you added." in smith
     assert "Mutation-test every unit you added, one command each." in smith, (
-        "`agents/smith.md` does not mandate mutating what it added, on that "
+        "`agents/crafter.md` does not mandate mutating what it added, on that "
         "cadence, at that moment. `spec.md` of work item 1788433011 puts the "
         "rule in the smith's own layer -- *only the agent that adds units "
         "can* -- and the protocol that used to carry it is a pointer now, so "
@@ -440,7 +440,7 @@ def test_the_scripts_bars_are_the_protocols():
     on tools per turn, and the script's entry for it is the exemption."""
     script = read("skills", "verify", "scripts", "session_cost.py")
     protocol = read(*PROTOCOL)
-    for kind, segment in (("warden", "reviewing"), ("framer", "framing")):
+    for kind, segment in (("proofer", "reviewing"), ("framer", "framing")):
         constant = re.search(rf'"{kind}": \("{segment}", ([\d.]+)\)', script)
         assert constant, f"`SEGMENT_BARS` lost its {kind} entry or its shape"
         row = re.search(
@@ -464,8 +464,8 @@ def test_the_scripts_bars_are_the_protocols():
         f"`SEGMENT_BARS` grades {graded} and the protocol's table states {rows} "
         "-- add, move or remove both or neither"
     )
-    assert '"smith": ("implementing", None)' in script, (
-        "`SEGMENT_BARS` grades a smith row, and the protocol's implementing row "
+    assert '"crafter": ("implementing", None)' in script, (
+        "`SEGMENT_BARS` grades a crafter row, and the protocol's implementing row "
         "says tools per turn never judges one"
     )
     assert re.search(r"^\| implementing \|.*never tools per turn", protocol, re.M)

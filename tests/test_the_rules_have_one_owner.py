@@ -23,7 +23,7 @@ RECORD = ("docs", "the-review-record.md")
 SKILL = ("skills", "code-review", "SKILL.md")
 # The orchestrator's half of the review skill (#265).
 ORCH = ("skills", "code-review", "orchestration.md")
-WARDEN = ("agents", "warden.md")
+WARDEN = ("agents", "proofer.md")
 IMPLEMENT = ("skills", "implement", "SKILL.md")
 # The orchestrator's half of the implement skill (#292). The order a ticket
 # runs in landed here in #351.

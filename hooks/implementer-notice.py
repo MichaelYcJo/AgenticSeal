@@ -57,7 +57,7 @@ AXES = (
     (
         "implementation",
         routing.IMPLEMENTATION,
-        routing.BY_SMITH,
+        routing.BY_CRAFTER,
         implementer.IMPLEMENTATION_MARK,
     ),
 )
@@ -67,7 +67,7 @@ def unfulfilled(cwd, branch, declared):
     """The axes this declaration named an agent for and no mark answers.
 
     Both coordinates are asked of `stands` — the branch and the axis — because
-    `smith` is spawned on nearly every work item, so a reader that took one
+    `crafter` is spawned on nearly every work item, so a reader that took one
     mark for both axes would go quiet in exactly the state this notice exists
     to report.
     """
@@ -93,7 +93,7 @@ def line(where, missing):
         gone = "neither was spawned on this branch"
         spawn, row = "spawn them", "the rows"
     return (
-        f"[specseal] {where} answers {named}, and {gone}. Either {spawn} for "
+        f"[agentic] {where} answers {named}, and {gone}. Either {spawn} for "
         f"the rest of the work, or change {row} to `the session` so the "
         f"declaration says what actually happened. Nothing was blocked, and "
         f"this is said once per session."

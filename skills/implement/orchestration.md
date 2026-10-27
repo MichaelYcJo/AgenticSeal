@@ -11,7 +11,7 @@ the first edit.
 document layout, the spec-first procedure, the test-first cadence, the SDD
 file set, the closing memo and the review incorporation. The orchestrator
 reads both. The smith opens that one at its first step and never this one,
-because asking a person and writing `routing.md` are acts `agents/smith.md`
+because asking a person and writing `routing.md` are acts `agents/crafter.md`
 leaves to the orchestrator. Every `seal/…` path here means `<repo>/seal/`
 where that directory exists with the marker, and
 `$(git rev-parse --git-common-dir)/seal/` otherwise (contract rule 11).
@@ -354,8 +354,8 @@ generates these carries the order.
 | Order | Box | Checked | Not checked |
 |---|---|---|---|
 | 1 | **run end to end without stopping to ask** | the run goes from here to its destination with nobody at the keyboard; `Automation` = `yes` | **this run may stop to ask**: somebody may be asked at minute thirty; `Automation` = `no` |
-| 2 | **implement with `smith`** | spawn the subagent; `Implementation` = `smith` | **this session writes the code**; `Implementation` = `the session` |
-| 3 | **review with `warden`** | the review rounds run; `Review` = `through the review chain` | **nothing reviews this code before the pull request**; `Review` = `straight to the PR` |
+| 2 | **implement with `crafter`** | spawn the subagent; `Implementation` = `crafter` | **this session writes the code**; `Implementation` = `the session` |
+| 3 | **review with `proofer`** | the review rounds run; `Review` = `through the review chain` | **nothing reviews this code before the pull request**; `Review` = `straight to the PR` |
 | 4 | **open the pull request** | push it and open one; `Destination` = `open the pull request` | **the branch is handed back, committed and unpushed**; `Destination` = `stop before the pull request` |
 
 **What is checked is the answer, and each box is a row of the declaration**,
@@ -378,7 +378,7 @@ rows; what differs is how many clicks it took and which row says so.
 | Row | Answers |
 |---|---|
 | Automation | `yes` or `no`, OPTIONAL; absent reads as never asked |
-| Implementation | `smith` or `the session`, OPTIONAL; absent reads as unanswered |
+| Implementation | `crafter` or `the session`, OPTIONAL; absent reads as unanswered |
 | Review | `through the review chain` or `straight to the PR` |
 | Destination | `open the pull request` or `stop before the pull request` |
 | Answer pressed | `automation` or `per axis`, OPTIONAL; absent reads as unanswered |

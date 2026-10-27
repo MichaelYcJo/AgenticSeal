@@ -20,8 +20,8 @@ stale silently, and two of the four once listed here had (#422 reported one):
 
     skills/writing-style/SKILL.md  209
 
-`agents/smith.md` and `skills/implement/SKILL.md` were on this list until
-#967 wrote them anew, wrapped, and they joined `COVERED`; `agents/scribe.md`
+`agents/crafter.md` and `skills/implement/SKILL.md` were on this list until
+#967 wrote them anew, wrapped, and they joined `COVERED`; `agents/tracer.md`
 was until #970 did the same.
 
 `skills/commit-pr-convention/SKILL.md` is covered: it was written wrapped, so
@@ -114,7 +114,7 @@ COVERED = [
     # Wrapped from its first line, so it goes in at birth rather than waiting
     # for the sweep that would otherwise be needed to bring it under.
     "SECURITY.md",
-    "agents/warden.md",
+    "agents/proofer.md",
     # Wrapped from its first line, so it goes in at birth rather than waiting
     # for the sweep that would otherwise be needed to bring it under. It was
     # the first `agents/*.md` file to arrive that way; `framer.md` below is
@@ -124,11 +124,11 @@ COVERED = [
     # written wrapped has no sweep to owe, so it goes in at birth.
     "agents/framer.md",
     # Written anew and wrapped in #967.
-    "agents/smith.md",
+    "agents/crafter.md",
     "skills/implement/SKILL.md",
     "skills/code-review/SKILL.md",
     # Written anew and wrapped in #970.
-    "agents/scribe.md",
+    "agents/tracer.md",
     "skills/legacy-parity/SKILL.md",
     # The orchestrator's half of the same file (#265). It arrives
     # already wrapped, because it was wrapped as part of the file it
@@ -311,7 +311,7 @@ def test_a_check_line_in_a_rule_file_is_skipped_wherever_it_stands():
     assert 4 not in numbers and 7 not in numbers, numbers
     assert 3 in numbers and 6 in numbers, numbers
     assert 4 in [n for n, _ in prose_lines(text)]
-    assert is_rule_file("agents/warden.md")
+    assert is_rule_file("agents/proofer.md")
     assert is_rule_file("skills/code-review/SKILL.md")
     assert not is_rule_file("README.md")
 

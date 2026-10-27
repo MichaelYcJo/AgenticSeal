@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Run mutations of one file, each alone, and say whether a case noticed it.
 
-#641, with #129. `agents/smith.md` asks the implementer to break every unit it
+#641, with #129. `agents/crafter.md` asks the implementer to break every unit it
 added, one at a time, and watch a case go red. Typed by hand that is three
 acts per mutation -- an edit, a run, an edit back -- and every one of them
 has gone wrong in this repository's history:
@@ -100,7 +100,7 @@ shipped script that reaches another file does it this way.
 
 **What it does not protect.** The original is held in this process's memory
 for the length of one run and nowhere else, so a `SIGKILL` delivered between
-the write and the restore leaves the mutation on disk. `agents/smith.md`'s
+the write and the restore leaves the mutation on disk. `agents/crafter.md`'s
 *commit before you mutate* is what bounds that loss; a copy on disk is #312.
 
 Nothing is read from or written to git.

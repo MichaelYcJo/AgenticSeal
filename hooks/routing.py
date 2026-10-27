@@ -69,9 +69,9 @@ OPEN_PR = "open the pull request"
 STOP_BEFORE_PR = "stop before the pull request"
 DESTINATION_ANSWERS = (OPEN_PR, STOP_BEFORE_PR)
 
-BY_SMITH = "smith"
+BY_CRAFTER = "crafter"
 BY_SESSION = "the session"
-IMPLEMENTATION_ANSWERS = (BY_SMITH, BY_SESSION)
+IMPLEMENTATION_ANSWERS = (BY_CRAFTER, BY_SESSION)
 
 # The fourth axis. `BY_SESSION` is reused rather than aliased under a second
 # name: one string, one vocabulary, and a second spelling of it is the shape
@@ -213,7 +213,7 @@ def parse(text):
 
     The two optional rows are read independently of each other. One answered
     and one absent is a common state -- a session that framed the work itself
-    and spawned `smith` to build it -- so neither may stand in for the other.
+    and spawned `crafter` to build it -- so neither may stand in for the other.
 
     `Automation` and `Answer pressed` are the fifth and sixth rows and they are
     read on the same looser terms, for the same reason one step further along:

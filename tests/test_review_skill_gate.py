@@ -65,7 +65,7 @@ class Test_main:
             "permissionDecisionReason"
         ]
         assert "AskUserQuestion" in reason
-        assert "/specseal:code-review" in reason
+        assert "/agentic:code-review" in reason
         assert "/code-review" in reason
 
     def test_refuses_without_a_session_id_by_asking_instead_of_denying(self, repo):
@@ -84,12 +84,12 @@ class Test_main:
 
     def test_accepts_our_own_skill(self, repo):
         opt_in(repo)
-        assert decision_of(run("specseal:code-review", repo)) == "silent"
+        assert decision_of(run("agentic:code-review", repo)) == "silent"
 
     @pytest.mark.parametrize(
         "names",
         [
-            ("debug", "specseal:implement", "code-reviewer", "review"),
+            ("debug", "agentic:implement", "code-reviewer", "review"),
             ("acme:code-review", "code-review-strict", "my-code-review"),
         ],
         ids=["unrelated", "merely-contains-it"],

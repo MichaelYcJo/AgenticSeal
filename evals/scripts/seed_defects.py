@@ -34,7 +34,7 @@ Usage:
   seed_defects.py --list                 every shipped commit and the
                                          mutation it would carry
   seed_defects.py --count 4 [--out DIR]  write the COUNT smallest under DIR
-                                         (evals/behaviour/warden/)
+                                         (evals/behaviour/proofer/)
   seed_defects.py --case NAME [--out DIR]
                                          write the named case alone
                                          (`seeded-<commit[:8]>`), from any
@@ -322,7 +322,7 @@ def prompt(t):
     """The case prompt: the orchestrator's one spawn of a fresh round 1, at
     HEAD against round 1's base."""
     report = f"seal/specs/{t['item']}/rounds/round-1.md"
-    return f"""You are the review orchestrator of this repository. Spawn exactly one `specseal:warden` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Review, edit and commit nothing yourself. When it returns, run `cat {report}` once and reply with the report's path.
+    return f"""You are the review orchestrator of this repository. Spawn exactly one `agentic:proofer` agent through the Agent tool. Its prompt is the whole paragraph between the `BEGIN PROMPT` and `END PROMPT` lines, copied verbatim with nothing dropped. Review, edit and commit nothing yourself. When it returns, run `cat {report}` once and reply with the report's path.
 
 BEGIN PROMPT
 
@@ -355,7 +355,7 @@ def graders(t):
         )
         for truth in t["truths"]
     ]
-    out = behaviour.report_shape("warden", report)
+    out = behaviour.report_shape("proofer", report)
     for name, pattern, body in rt.truths_with(
         case_name(t), [seeded, *found], t["target"]
     ):
@@ -397,8 +397,8 @@ def main(argv=None):
     for t in chosen:
         behaviour.write_case(
             os.path.join(a.out, case_name(t)),
-            name=f"warden {case_name(t)}",
-            tags=["behaviour", "warden", "seeded"],
+            name=f"proofer {case_name(t)}",
+            tags=["behaviour", "proofer", "seeded"],
             prompt=prompt(t),
             scaffold=scaffold(t, url),
             graders=graders(t),

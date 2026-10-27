@@ -3633,7 +3633,7 @@ class Test_module:
 
 
 def test_the_warden_and_the_review_skill_name_every_line_a_finding_needs():
-    """S8 (#985): `agents/warden.md` step 7 and `skills/code-review/SKILL.md`
+    """S8 (#985): `agents/proofer.md` step 7 and `skills/code-review/SKILL.md`
     *The record* each list the lines a finding carries, and each names
     every row the table places in a finding as `one`, read from the table."""
     needed = [
@@ -3642,7 +3642,7 @@ def test_the_warden_and_the_review_skill_name_every_line_a_finding_needs():
         if row.where == chain.IN_FINDING and row.many == chain.ONE
     ]
     assert "evidence:" in needed, needed
-    warden = " ".join((ROOT / "agents" / "warden.md").read_text("utf-8").split())
+    warden = " ".join((ROOT / "agents" / "proofer.md").read_text("utf-8").split())
     step = warden.split("7. Write the record", 1)[1].split("## Never", 1)[0]
     skill = " ".join(
         (ROOT / "skills" / "code-review" / "SKILL.md").read_text("utf-8").split()

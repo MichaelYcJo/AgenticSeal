@@ -88,8 +88,8 @@ def test_every_shipped_command_is_classified():
 POINTER = "`templates/config.md` *Reference specs*"
 READERS = {
     "agents/framer.md": ("cite", "spec.md"),
-    "agents/smith.md": ("cite", "spec.md"),
-    "agents/warden.md": ("stage 1", "spec.md"),
+    "agents/crafter.md": ("cite", "spec.md"),
+    "agents/proofer.md": ("stage 1", "spec.md"),
     "skills/settle/SKILL.md": ("cite", "spec.md"),
     "skills/implement/SKILL.md": ("cite", "spec.md"),
 }
@@ -108,7 +108,7 @@ def paragraph_naming(text, phrase):
 # of the paragraph that points at the row (#967).
 NEVER_LINE = {
     "agents/framer.md": "- Write in a reference root, or move, edit or copy a file out of one.",
-    "agents/smith.md": "- Write in a reference root, or move, edit or copy a file out of one.",
+    "agents/crafter.md": "- Write in a reference root, or move, edit or copy a file out of one.",
 }
 
 

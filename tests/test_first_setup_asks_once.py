@@ -400,7 +400,7 @@ def test_the_session_rule_appears_once(parts):
     assert "means `<repo>/seal/` where" in text, "/".join(parts)
 
 
-@pytest.mark.parametrize("agent", ["warden.md", "smith.md"])
+@pytest.mark.parametrize("agent", ["proofer.md", "crafter.md"])
 def test_no_definition_carries_its_own_copy_of_the_root_rule(agent):
     """The move has to be a move. A definition that keeps the sentence beside
     the contract's is the duplication contract rule 11 was written to end, and it is

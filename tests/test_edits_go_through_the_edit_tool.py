@@ -6,8 +6,8 @@ code. A change that ships only as instructions has to be held by something,
 or the next sweep through these files removes it and nothing notices.
 
 The rule is contract rule 9, which every agent receives at startup, and each
-definition keeps only its own application: for `agents/warden.md` that a
-probe script and a scratch fixture are edits too, for `agents/smith.md` the
+definition keeps only its own application: for `agents/proofer.md` that a
+probe script and a scratch fixture are edits too, for `agents/crafter.md` the
 forms a shell edit takes. So the cases assert one carrier, the contract: a
 case asserting the same sentence in two files is the duplication the
 contract was written to end, and `tests/test_a_moved_rule_leaves_its_definition.py`
@@ -28,7 +28,7 @@ from conftest import flat
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 CONTRACT = ("skills", "agent-contract", "SKILL.md")
-SMITH = ("agents", "smith.md")
+SMITH = ("agents", "crafter.md")
 CARRIERS = (CONTRACT,)
 
 
@@ -82,7 +82,7 @@ def test_no_carrier_claims_a_fact_about_the_reader_repository():
     none of its hooks. `This repository's are` is a claim about the READER's
     repository, and it is false there.
     """
-    for parts in (*CARRIERS, SMITH, ("agents", "warden.md")):
+    for parts in (*CARRIERS, SMITH, ("agents", "proofer.md")):
         text = flat(*parts)
         who = "/".join(parts)
         for loose in (
@@ -96,7 +96,7 @@ def test_no_carrier_claims_a_fact_about_the_reader_repository():
 
 
 def test_the_reviewer_keeps_the_half_that_makes_the_rule_its_own():
-    """What stayed in `agents/warden.md` when contract rule 9 took the rest.
+    """What stayed in `agents/proofer.md` when contract rule 9 took the rest.
 
     A reviewer edits less than an implementer and would read a rule about
     edits as somebody else's. Its paragraph is the one that names what its
@@ -104,7 +104,7 @@ def test_the_reviewer_keeps_the_half_that_makes_the_rule_its_own():
     whether a finding reproduces -- and without it contract rule 9 arrives
     at an agent that does not think it is addressed.
     """
-    warden = flat("agents", "warden.md")
+    warden = flat("agents", "proofer.md")
     assert "rule 9" in warden, "the reviewer can no longer reach the rule"
     assert "scratch fixture" in warden, (
         "the reviewer stopped being told which of its own acts are edits"
@@ -112,7 +112,7 @@ def test_the_reviewer_keeps_the_half_that_makes_the_rule_its_own():
 
 
 def test_the_implementer_keeps_the_half_that_makes_the_rule_its_own():
-    """What stayed in `agents/smith.md` when contract rule 9 took the rest.
+    """What stayed in `agents/crafter.md` when contract rule 9 took the rest.
 
     The reviewer's half answers *are my acts edits at all*. The smith never
     had that doubt -- it is the agent that edits -- so its half is the act

@@ -137,7 +137,7 @@ def test_the_smith_puts_both_answers_in_the_hand_back():
     refusal nobody is told about is the same 28 minutes with a footnote. The
     disclosure half is asserted here because the smith is where it is
     disclosed."""
-    smith = flat("agents", "smith.md")
+    smith = flat("agents", "crafter.md")
     assert "rule 2" in smith and "rule 3" in smith, (
         "the implementer can no longer reach the rules its hand-back answers"
     )
@@ -246,7 +246,7 @@ def test_no_definition_assigns_the_broad_gate_and_the_orchestrator_runs_it_befor
 
 
 def test_no_definition_promises_the_suite_once_the_rounds_settle():
-    """Round 1, finding 2 of #120. `agents/warden.md` read *rule 2 keeps the
+    """Round 1, finding 2 of #120. `agents/proofer.md` read *rule 2 keeps the
     suite out of your hands UNTIL the rounds settle*, which says it becomes the
     warden's afterwards.
 
@@ -255,7 +255,7 @@ def test_no_definition_promises_the_suite_once_the_rounds_settle():
     reader can act on: this file assigns none of the three, and since #969 no
     definition does, because the orchestrator runs the gate. The hazard is
     live rather than theoretical --
-    `agents/warden.md`'s own bullet on the broad-gate state puts a reviewer in
+    `agents/proofer.md`'s own bullet on the broad-gate state puts a reviewer in
     exactly the moment the sentence appears to release.
 
     Asserted over the whole glob, not over the one file the finding named,
@@ -287,7 +287,7 @@ def test_the_warden_audits_the_scope_of_a_seal():
     reviewer does INSTEAD, and that half is an application of the rule rather
     than the rule -- a seal is audited by the second person looking, and the
     warden is the only agent that is one."""
-    warden = " ".join(read("agents", "warden.md").split())
+    warden = " ".join(read("agents", "proofer.md").split())
     assert "whether that label is honest" in warden, (
         "the reviewer stopped being told to audit the label, so the only "
         "thing left is the prohibition and the seal goes unchecked"
@@ -329,8 +329,8 @@ def test_the_reviewer_has_a_field_for_the_question_the_default_produces():
     Its handover is a report, not a conversation -- unlike the smith's, which
     returns through the chain -- so an unanswered axis would otherwise be
     sealed over by the orchestrator that reads the report. That is why this
-    half stayed in `agents/warden.md` when the rule above it left."""
-    warden = " ".join(read("agents", "warden.md").split())
+    half stayed in `agents/proofer.md` when the rule above it left."""
+    warden = " ".join(read("agents", "proofer.md").split())
     assert "goes in as a row of `## Not judged` with the caller" in warden, (
         "the reviewer asks a question with no field to ask it in, and a seal "
         "gets taken over an axis nobody decided"

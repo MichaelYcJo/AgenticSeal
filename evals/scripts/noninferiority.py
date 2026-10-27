@@ -86,7 +86,7 @@ import replay_targets as rt
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
 SUITE = "evals/behaviour"
-AGENTS = ("warden", "smith", "framer", "sealer", "scribe")
+AGENTS = ("proofer", "crafter", "framer", "sealer", "tracer")
 CLT_GIT = "/Library/Developer/CommandLineTools/usr/bin/git"
 # The end of a round record's path: `round-N.md`, or `<...>-report.md` on a
 # run taken before 0.22.0. A side keeps the record a session printed from

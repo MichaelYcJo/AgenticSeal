@@ -190,7 +190,7 @@ def test_the_ladder_does_not_still_say_at_the_end():
     assert (
         "opened at the first divergence, unverified item, or fed-back clause" in skill
     )
-    assert "`overview.md` at the end" not in collapsed("agents", "smith.md")
+    assert "`overview.md` at the end" not in collapsed("agents", "crafter.md")
 
 
 def test_the_skill_states_the_closing_convention():

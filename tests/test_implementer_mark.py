@@ -1,4 +1,4 @@
-"""`hooks/implementer-mark.py`: spawning `smith` or `framer` leaves that axis's
+"""`hooks/implementer-mark.py`: spawning `crafter` or `framer` leaves that axis's
 mark in the repository's git dir.
 
 The routing declaration answers `Implementation` and `Planning`, and a session
@@ -40,7 +40,7 @@ def mark_path(repo, mark):
 
 
 class Test_main:
-    def test_accepts_a_smith_spawn_and_leaves_a_mark(self, repo):
+    def test_accepts_a_crafter_spawn_and_leaves_a_mark(self, repo):
         """S1, through the group the harness actually runs, not the gate alone."""
         opt_in(repo)
         assert not os.path.exists(mark_path(repo, implementer.IMPLEMENTATION_MARK))
@@ -52,7 +52,7 @@ class Test_main:
             str(repo), branch_of(repo), implementer.IMPLEMENTATION_MARK
         )
 
-    def test_accepts_a_smith_spawn_on_a_branch_with_no_commit_yet(self, tmp_path):
+    def test_accepts_a_crafter_spawn_on_a_branch_with_no_commit_yet(self, tmp_path):
         """A new repository's `main` has no commit, and the mark stands for
         `main`, the branch the edit gate and the declaration resolve there
         (round 5 of #1027, finding 1)."""
@@ -68,18 +68,17 @@ class Test_main:
         group, same silence, a different file under the git dir."""
         opt_in(repo)
         assert (
-            run_dispatch("pre-agent", spawn(repo, agent="specseal:framer")).strip()
-            == ""
+            run_dispatch("pre-agent", spawn(repo, agent="agentic:framer")).strip() == ""
         )
         assert os.path.isfile(mark_path(repo, implementer.PLANNING_MARK))
         assert implementer.stands(str(repo), branch_of(repo), implementer.PLANNING_MARK)
 
     def test_accepts_the_project_local_spelling_of_the_agent(self, repo):
-        """S3. The harness spells a plugin's agent `specseal:smith` and a
-        project-local one `smith`. Reading only the first would leave the notice
+        """S3. The harness spells a plugin's agent `agentic:crafter` and a
+        project-local one `crafter`. Reading only the first would leave the notice
         firing forever in a repository that defines its own."""
         opt_in(repo)
-        run_dispatch("pre-agent", spawn(repo, agent="smith"))
+        run_dispatch("pre-agent", spawn(repo, agent="crafter"))
         assert os.path.isfile(mark_path(repo, implementer.IMPLEMENTATION_MARK))
         run_dispatch("pre-agent", spawn(repo, agent="framer"))
         assert os.path.isfile(mark_path(repo, implementer.PLANNING_MARK))
@@ -88,9 +87,9 @@ class Test_main:
         """S13's other half, and the shape `stands`'s branch scoping already has.
 
         Two axes share one directory, so the axis is part of the address exactly as
-        the branch is. A `smith` spawned on this branch answering for a `framer`
+        the branch is. A `crafter` spawned on this branch answering for a `framer`
         that never ran is the false silence the module refuses — and it is the
-        likelier direction, because `smith` is spawned on nearly every work item.
+        likelier direction, because `crafter` is spawned on nearly every work item.
         """
         opt_in(repo)
         run_dispatch("pre-agent", spawn(repo))
@@ -100,24 +99,24 @@ class Test_main:
         assert not os.path.exists(mark_path(repo, implementer.PLANNING_MARK))
 
     def test_refuses_any_other_agent(self, repo):
-        """S2. `smith-helper` and `framer-helper` are in the list because a
+        """S2. `crafter-helper` and `framer-helper` are in the list because a
         substring test would read either as the agent itself."""
         opt_in(repo)
         for agent in (
-            "specseal:warden",
-            "specseal:scribe",
-            "specseal:sealer",
+            "agentic:proofer",
+            "agentic:tracer",
+            "agentic:sealer",
             "general-purpose",
-            "smith-helper",
+            "crafter-helper",
             "framer-helper",
         ):
             run_dispatch("pre-agent", spawn(repo, agent=agent))
             for mark in (implementer.IMPLEMENTATION_MARK, implementer.PLANNING_MARK):
                 assert not os.path.exists(mark_path(repo, mark)), f"{agent} -> {mark}"
 
-    def test_refuses_a_tool_other_than_agent_or_task_naming_smith(self, repo):
+    def test_refuses_a_tool_other_than_agent_or_task_naming_crafter(self, repo):
         """Only a spawn leaves the mark. A call of another tool whose input
-        happens to name `smith` spawned nothing, so the notice must still be
+        happens to name `crafter` spawned nothing, so the notice must still be
         free to fire (#1017, the body's `main` row on another tool)."""
         opt_in(repo)
         run_dispatch("pre-agent", {**spawn(repo), "tool_name": "Bash"})
@@ -126,17 +125,17 @@ class Test_main:
     def test_refuses_a_repository_that_never_opted_in(self, repo):
         """S4. A globally installed plugin must not write into repositories that
         never asked for the workflow."""
-        for agent in ("specseal:smith", "specseal:framer"):
+        for agent in ("agentic:crafter", "agentic:framer"):
             run_dispatch("pre-agent", spawn(repo, agent=agent))
         for mark in (implementer.IMPLEMENTATION_MARK, implementer.PLANNING_MARK):
             assert not os.path.exists(mark_path(repo, mark)), mark
 
     def test_refuses_to_answer_for_another_branch(self, repo):
-        """S5. One `smith` spawned once would otherwise silence the notice for
+        """S5. One `crafter` spawned once would otherwise silence the notice for
         every work item in that repository, forever."""
         opt_in(repo)
         run_dispatch("pre-agent", spawn(repo))
-        run_dispatch("pre-agent", spawn(repo, agent="specseal:framer"))
+        run_dispatch("pre-agent", spawn(repo, agent="agentic:framer"))
         for mark in (implementer.IMPLEMENTATION_MARK, implementer.PLANNING_MARK):
             assert implementer.stands(str(repo), branch_of(repo), mark), mark
             assert not implementer.stands(str(repo), "feature/somewhere-else", mark), (

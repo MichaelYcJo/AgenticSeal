@@ -55,7 +55,7 @@ import console
 import optin
 
 BUILTIN = "code-review"
-OURS = "specseal:code-review"
+OURS = "agentic:code-review"
 MARKER_DIR = "agentic-review-choice"
 
 REASON = f"""\
@@ -66,11 +66,11 @@ Ask with the AskUserQuestion tool, offering exactly these two options:
 
   1. "Built-in review" — /{BUILTIN}: bugs, duplication, and cleanup
      across the diff.
-  2. "SpecSeal review" — /{OURS}: spec compliance first, then
+  2. "AgenticSeal review" — /{OURS}: spec compliance first, then
      quality, inheriting the verdicts of earlier review rounds.
 
 Then run the one they pick; retrying the built-in will go through. \
-The user may also prefer `@agent-specseal:warden`, which runs the SpecSeal \
+The user may also prefer `@agent-agentic:proofer`, which runs the AgenticSeal \
 review as a subagent."""
 
 
