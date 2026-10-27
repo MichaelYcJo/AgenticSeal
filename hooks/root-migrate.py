@@ -451,8 +451,9 @@ def run_moves(root, units, local=False):
 
 def rename_state(root):
     """Each state file an earlier release wrote beside the root, under the
-    git directory and the common one, and `~/.claude/specseal/`, renamed to
-    the plugin's name where the new name is not taken. Silent, and a rename
+    git directory and the common one, and each entry of
+    `~/.claude/specseal/`, renamed to the plugin's name where the new name
+    is not taken. Silent, and a rename
     that fails leaves the old file where it was."""
     places = set()
     common = optin.git_common_dir(root)
@@ -469,13 +470,31 @@ def rename_state(root):
         for p in sorted(places)
         for n in STATE_NAMES
     ]
-    pairs.append((OLD_STATE_DIR, STATE_DIR))
+    # `~/.claude/agentic/` may already stand: a session start of this release
+    # writes `version-check` there before any move, and so does the suite's
+    # run of the session-start group under the machine's own `HOME`. So the
+    # old directory is merged, entry by entry, rather than renamed whole.
+    pairs.extend(
+        (os.path.join(OLD_STATE_DIR, n), os.path.join(STATE_DIR, n))
+        for n in on_disk(OLD_STATE_DIR, ".")
+    )
+    if os.path.isdir(OLD_STATE_DIR):
+        try:
+            os.makedirs(STATE_DIR, exist_ok=True)
+        except OSError:
+            pass
     for old, new in pairs:
         if os.path.lexists(old) and not os.path.lexists(new):
             try:
                 os.rename(old, new)
             except OSError:
                 pass
+    # Gone once every entry moved; an entry the new directory already held
+    # keeps the old directory, and that file, where they were.
+    try:
+        os.rmdir(OLD_STATE_DIR)
+    except OSError:
+        pass
 
 
 def has_root(root):

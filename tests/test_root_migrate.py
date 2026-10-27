@@ -868,6 +868,29 @@ class Test_migrate_local:
 
 
 class Test_rename_state:
+    def test_accepts_the_old_home_state_merged_into_a_new_one_that_stands(
+        self, hook, layout, tmp_path, monkeypatch
+    ):
+        """A `~/.claude/agentic/` that already stands, as a session start of
+        the new release writes one before any move, still receives each file
+        of `~/.claude/specseal/` it does not hold; a file it holds keeps its
+        own text, and the old one stays where it was."""
+        old_home = tmp_path / "home" / "specseal"
+        new_home = tmp_path / "home" / "agentic"
+        write(old_home, "pact-paths.md", "| a | b |\n")
+        write(old_home, "version-check", "old\n")
+        write(new_home, "version-check", "new\n")
+        monkeypatch.setattr(hook, "OLD_STATE_DIR", str(old_home))
+        monkeypatch.setattr(hook, "STATE_DIR", str(new_home))
+        monkeypatch.setattr(hook, "MARKER", str(new_home / "threads-migrated"))
+        start(hook, layout)
+        assert (new_home / "pact-paths.md").read_text(encoding="utf-8") == (
+            "| a | b |\n"
+        )
+        assert (new_home / "version-check").read_text(encoding="utf-8") == "new\n"
+        assert (old_home / "version-check").read_text(encoding="utf-8") == "old\n"
+        assert not (old_home / "pact-paths.md").exists()
+
     def test_refuses_to_make_a_state_file_where_no_old_one_stands(self, hook, fresh):
         """Nothing old, nothing new: the rename invents no file, and leaves
         a new-named file alone."""
