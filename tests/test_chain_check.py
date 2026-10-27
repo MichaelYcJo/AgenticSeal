@@ -31,6 +31,7 @@ from conftest import (
     census_case,
     chain_check_run,
     commit_everything_as_e,
+    mark_root,
     names_path,
     parity_file,
     write,
@@ -2756,7 +2757,7 @@ def common_dir(where):
 
 def local_item(repo, item=ITEM_ID, branch="feature"):
     """A work item under the LOCAL root, with a declaration naming `branch`."""
-    d = os.path.join(common_dir(repo), "seal", "specs", item)
+    d = os.path.join(mark_root(os.path.join(common_dir(repo), "seal")), "specs", item)
     os.makedirs(os.path.join(d, "rounds"), exist_ok=True)
     with open(os.path.join(d, "routing.md"), "w", encoding="utf-8") as f:
         f.write(
@@ -3030,7 +3031,9 @@ class Test_routing_trailers:
         committed, so a trailer naming a work item could match none. A ready
         pull request prints it and passes."""
         root = undeclared
-        os.makedirs(os.path.join(root, ".git", "seal", "specs", ROUTED))
+        os.makedirs(
+            os.path.join(mark_root(os.path.join(root, ".git", "seal")), "specs", ROUTED)
+        )
         write(root, "a.txt", "a\n")
         named = commit_saying(root, "feat: a", f"SpecSeal-Routing: {ROUTED}")
         code, out = check(root, capsys)

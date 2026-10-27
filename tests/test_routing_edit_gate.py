@@ -11,6 +11,7 @@ outside every opted-in repository are not judged.
 
 import json
 import os
+import shutil
 import subprocess
 import sys
 
@@ -24,6 +25,7 @@ from conftest import (
     load_hook_module,
     load_module,
     local_home,
+    mark_root,
     reason_of,
     run_hook,
     write_transcript,
@@ -67,7 +69,7 @@ def run(path, **kwargs):
 
 
 def opt_in(repo):
-    (repo / "seal").mkdir(exist_ok=True)
+    mark_root(repo / "seal")
     return repo
 
 
@@ -306,7 +308,7 @@ class Test_main:
         record = repo / "seal" / "specs" / "1700000000-x" / "routing.md"
         assert decision_of(run(record, tool="Write")) == "silent"
         assert decision_of(run(repo / "f.txt")) == "deny"
-        (repo / "seal").rmdir()
+        shutil.rmtree(repo / "seal")
         home = local_home(repo)
         record = home / "specs" / "1700000000-x" / "routing.md"
         assert decision_of(run(record, tool="Write", cwd=repo)) == "silent"

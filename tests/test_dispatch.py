@@ -35,6 +35,7 @@ from conftest import (
     declare_routing,
     git,
     load_hook_module,
+    mark_root,
 )
 
 TARGET = "hooks/dispatch.py"
@@ -183,7 +184,7 @@ def records(repo, session):
 
 
 def opted_in(repo):
-    (repo / "seal").mkdir()
+    mark_root(repo / "seal")
     return repo
 
 
@@ -357,7 +358,7 @@ class Test_run_gate:
         monkeypatch.setattr(
             d, "GROUPS", {"g": ("nonexistent-gate.py", "routing-edit-gate.py")}
         )
-        (repo / "seal").mkdir()
+        mark_root(repo / "seal")
         out = io.StringIO()
         argv, stdin = sys.argv, sys.stdin
         try:
@@ -1079,7 +1080,7 @@ class Test_report:
 
 class Test_main:
     def test_accepts_a_group_and_reaches_the_gate_inside_it(self, repo):
-        (repo / "seal").mkdir()
+        mark_root(repo / "seal")
         assert (
             decision_of(run_dispatch("pre-bash", payload("git commit -m x", repo)))
             == "deny"
@@ -1090,7 +1091,7 @@ class Test_main:
         # and an unrecorded one is something it HAS to say. Without the row this
         # case would still pass on the day it was written and would be asserting
         # that a gate stays quiet about a state it was added to name.
-        (repo / "seal").mkdir()
+        mark_root(repo / "seal")
         (repo / "seal" / "config.md").write_text(
             "# Repository config\n\n| Item | Value |\n|---|---|\n| Mode | shared |\n",
             encoding="utf-8",
@@ -1100,7 +1101,7 @@ class Test_main:
     def test_accepts_post_bash_and_writes_the_lease(self, repo):
         """The review reminder this group carried left with its hook (#923); the
         session lease is what the group still writes."""
-        (repo / "seal").mkdir()
+        mark_root(repo / "seal")
         declare_routing(repo)
         run_dispatch("post-bash", payload("gh pr comment 42 --body hi", repo))
         gd = subprocess.run(
@@ -1150,7 +1151,7 @@ class Test_main:
         """In an opted-in repository the `pre-bash` gates deny this commit,
         so a dispatcher that ran a known group's gates for a group it does
         not know would deny it too. It says nothing."""
-        (repo / "seal").mkdir()
+        mark_root(repo / "seal")
         body = payload("git commit -m x", repo)
         assert decision_of(run_dispatch("pre-bash", body)) == "deny"
         assert run_dispatch("pre-nothing", body).strip() == ""
@@ -1258,7 +1259,7 @@ class Test_module:
 
         # Local mode, so the worktree's branch, which has no `seal/`, is opted
         # in from both trees.
-        (repo / ".git" / "seal").mkdir()
+        mark_root(repo / ".git" / "seal")
         hooks = hooks_copy(tmp_path, {"mode-gate.py": BROKEN})
         dispatch(hooks, "pre-bash", bash(tree, "s-x"))
         assert records(repo, "s-x") == ["mode-gate.py.pending"]

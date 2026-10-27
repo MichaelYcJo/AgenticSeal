@@ -21,6 +21,7 @@ from conftest import (
     git_dir,
     load_hook_module,
     local_home,
+    mark_root,
     opt_in_shared,
     payload,
     reason_of,
@@ -366,7 +367,7 @@ class Test_marker_dir:
             check=True,
             capture_output=True,
         )
-        (side / "seal").mkdir()
+        mark_root(side / "seal")
         assert decision_of(run_hook(GATE, payload("ls", repo))) == "deny"
         assert decision_of(run_hook(GATE, payload("ls", side))) == "deny"
 

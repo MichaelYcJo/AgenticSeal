@@ -569,6 +569,9 @@ class Test_check:
         local = os.path.join(str(world.api), common, "seal")
         os.makedirs(local)
         os.replace(str(world.api / PACT), os.path.join(local, "pact.md"))
+        os.replace(
+            str(world.api / "seal" / "README.md"), os.path.join(local, "README.md")
+        )
         os.rmdir(str(world.api / "seal"))
         anchor = world.cite(clause(V1))
         code, out = world.run()

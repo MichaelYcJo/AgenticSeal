@@ -28,7 +28,7 @@ import sys
 import types
 
 import pytest
-from conftest import census_case
+from conftest import census_case, mark_root
 from conftest import load_module as load
 
 TARGET = ".github/scripts/release_seal.py"
@@ -164,7 +164,7 @@ def tree(tmp_path, branch="feat/12-an-item", verdicts=()):
     """A repository root holding one work item that declares `branch`, with
     one round record per entry of `verdicts`, each a list of `verdict:`
     values, one finding each."""
-    item = tmp_path / "seal" / "specs" / "1700000000-an-item"
+    item = mark_root(tmp_path / "seal") / "specs" / "1700000000-an-item"
     (item / "rounds").mkdir(parents=True)
     (item / "routing.md").write_text(ROUTING.format(branch=branch), encoding="utf-8")
     for n, values in enumerate(verdicts, 1):

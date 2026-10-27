@@ -968,7 +968,7 @@ def destination_root(repo, home, shared, local, into):
     roots is a clone whose owner has not said which is the real one, and a
     copy landing in one of them is not the moment to decide it.
     """
-    if os.path.isdir(shared) and local and os.path.isdir(local):
+    if optin.marked(shared) and local and optin.marked(local):
         return "", (
             "both roots exist, and the gates read the first of them:\n"
             f"  {shared}   (shared mode — read first)\n"
@@ -1900,13 +1900,15 @@ def left_workflow_line(text):
 def install_workflow(repo):
     """Write the pull-request checks; (what happened, the line to print).
 
-    Refused where `<repo>/seal/` is not a directory, because the checks read
-    committed records and only a root in the tree is committed. Never
-    overwrites: this plugin's own file already there is reported with the
-    release it pins, and anybody else's is left alone.
+    Refused where `<repo>/seal/` is not the root, a directory whose README
+    opens with the marker, because the checks read committed records and only
+    a root in the tree is committed; a `seal/` the project keeps for itself
+    holds none of them. Never overwrites: this plugin's own file already
+    there is reported with the release it pins, and anybody else's is left
+    alone.
     """
     shared, _local = optin.home_paths(repo)
-    if not shared or not os.path.isdir(shared):
+    if not shared or not optin.marked(shared):
         return "no-root", (
             f"{WORKFLOW} was NOT written: {optin.HOME}/ is not in this tree, "
             "and the checks read committed records, which only a root in the "
@@ -2334,7 +2336,7 @@ def refusals(repo, home, shared, local, wanted):
     """
     if not local:
         return ["the common git directory could not be resolved"]
-    if os.path.isdir(shared) and os.path.isdir(local):
+    if optin.marked(shared) and optin.marked(local):
         return [both_roots(shared, local)]
 
     source = shared if wanted == LOCAL else local

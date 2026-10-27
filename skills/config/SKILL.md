@@ -14,16 +14,18 @@ is how a person answers them again later.
 
 ## Where the file is
 
-`<repo>/seal/config.md` where that directory exists, and
+`<repo>/seal/config.md` where that directory exists with the marker
+(contract rule 11), and
 `$(git rev-parse --git-common-dir)/seal/config.md` otherwise: local mode,
 where the root sits under the common git directory. Resolve it that way rather
 than spelling the first place and stopping.
 
 **No root at either place** means this repository has not been set up. Say so,
 name the `implement` skill's bootstrap as what does it, and stop. Do not
-create the file: its presence at one of those two places is what opts a
-repository in, and creating it here would opt somebody in from a command they
-ran to look.
+create the file: the root at one of those two places, with the README first
+setup copies from `templates/seal-README.md`, is what opts a repository in, so
+a root is the bootstrap's to create, and a `seal/` made here without that
+README would read as the project's own directory.
 
 ## Procedure
 

@@ -47,8 +47,9 @@ becomes the history the next one is compared against.
 ## The language is the repository's, and it says so in a file
 
 **The writer reads `config.md` in the root before writing any of the five
-things below.** The root is `<repo>/seal/` where that directory exists and
-`$(git rev-parse --git-common-dir)/seal/` otherwise, which is where local
+things below.** The root is `<repo>/seal/` where that directory exists with
+the marker (contract rule 11) and `$(git rev-parse --git-common-dir)/seal/`
+otherwise, which is where local
 mode keeps it; resolve it that way rather than spelling the first place and
 stopping.
 

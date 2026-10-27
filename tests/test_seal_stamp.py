@@ -24,7 +24,7 @@ import subprocess
 import sys
 
 import pytest
-from conftest import census_case, git, git_out, load_module, write
+from conftest import census_case, git, git_out, load_module, mark_root, write
 from conftest import commit_everything_as_e as commit
 
 TARGET = "skills/verify/scripts/seal_stamp.py"
@@ -1242,6 +1242,7 @@ def _shared(tmp_path_factory):
     d.mkdir()
     git(d, "init", "-q", "-b", "main")
     write(d, "seal/config.md", "# config\n")
+    mark_root(d / "seal")
     commit(d, "x")
     git(d, "switch", "-qc", "feat/x")
     write(d, "work.txt", "the work\n")
@@ -1349,7 +1350,7 @@ def _local(tmp_path_factory):
     git(d, "switch", "-qc", "feat/x")
     write(d, "work.txt", "the work\n")
     target, base = commit(d, "the work")[:7], git_out(d, "rev-parse", "--short", "main")
-    item = d / ".git" / "seal" / "specs" / ITEM_NAME
+    item = mark_root(d / ".git" / "seal") / "specs" / ITEM_NAME
     closing_records(item, target, base)
     write(item, "routing.md", routing_text())
     return d, target, base
@@ -1689,7 +1690,7 @@ class Test_queue_for_written_guarantee:
         shutil.copytree(item_dir(local), elsewhere)
         guarantee = str(elsewhere / "guarantee.md")
         assert stamp.queue_for_written_guarantee(guarantee, "s-1") == []
-        (local.repo / "seal").mkdir()
+        mark_root(local.repo / "seal")
         assert queue_local(local) == []
         assert queued(local.common) == []
 

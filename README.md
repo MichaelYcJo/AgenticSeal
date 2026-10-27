@@ -111,7 +111,7 @@ Cross-session memory lives in the repo, not the session:
 
 | Root | Lifetime | Holds |
 |---|---|---|
-| `seal/` | permanent | everything this plugin maintains — the follow-up list, the repository's own config (the two language rows and the mode live there), the migration config — and, beneath it, the work items. Its existence is also what opts the repository in, for the hooks that read it — the routing edit gate, the question gate, the mode gate, the review-skill gate, the two implementer hooks, the two stamp hooks and the version check. worktree-guard, session-lease and stub-remove act in every git repo regardless, and lint-python follows ruff (see Where below) |
+| `seal/` | permanent | everything this plugin maintains — the follow-up list, the repository's own config (the two language rows and the mode live there), the migration config — and, beneath it, the work items. Its existence, with its `README.md` opening with the marker line `templates/seal-README.md` starts with, is also what opts the repository in, for the hooks that read it — the routing edit gate, the question gate, the mode gate, the review-skill gate, the two implementer hooks, the two stamp hooks and the version check. worktree-guard, session-lease and stub-remove act in every git repo regardless, and lint-python follows ruff (see Where below) |
 | `seal/specs/<id>/` | one work item | SDD set: spec, plan, questions, and a closing memo holding only what the diff cannot show. A human approves `plan.md`, which is why this is a repository document and not tool state |
 | `docs/` | permanent | whatever policy documents the repository already keeps; the documentation convention is the project's. A work item states its rule changes in its spec instead of editing them, and the settle after the release writes each section as the latest decision those changes state (`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*) |
 
@@ -347,31 +347,23 @@ approval diff.
 ### Coming up from 0.3.x
 
 0.3.x kept the plugin's files in two directories (`.specseal/`, `specs/<id>/`);
-this release keeps them in one, `seal/`, and that folder's presence is now what
-opts a repository in. The old pair opts nothing in any more, so until it is
-moved every gate is silent there.
+every release since keeps them in one, `seal/`. The old pair opts nothing in,
+so every gate is silent in a repository that still holds it. No code of the
+plugin opens either directory, so you move them by hand with the commands
+below, and this is the only path.
 
-The move happens once, at the first session start after updating. The hook
-renames every file with a staged `git mv` (history follows), prints one line
-saying what moved, and stops there: you review `git diff --cached` and
-commit. That commit belongs to no work item, so a session making it in
-shared mode ends it with the trailer `SpecSeal-Routing: no work item`.
-
-Only the plugin's own work items move out of `specs/`: a directory named
+Move only the plugin's own work items out of `specs/`: a directory named
 `<unix-seconds>-<slug>` where git tracks a `routing.md`, or a file under
 `rounds/`, directly under it. Every 0.3.x work item carried `routing.md`.
-Anything else under `specs/` is the project's own, whatever its name — a
-team's specifications are read and never taken — so it stays where it is,
-and the line names it as left. A
-repository holding nothing of the plugin's old layout — neither its old root
-nor such an entry — hears nothing at all.
+Anything else under `specs/` is the project's own, whatever its name, and
+stays where it is.
 
-A tree with uncommitted changes under the old pair is refused with a line
-saying to commit first, and the next clean session start moves it. A
-repository carrying the throwaway marker `.specseal/scratch` is left alone;
-its successor is the file `.git/specseal-scratch`, which cannot be committed.
-
-To move by hand instead — in CI, or without waiting for a session:
+The README the second command moves is then overwritten from
+`templates/seal-README.md`, because that file's first line is the marker every
+gate reads before it treats `seal/` as the plugin's root. Where
+`.specseal/scratch` marked the repository as throwaway, delete it instead of
+moving it: its successor is the file `.git/specseal-scratch`, which cannot be
+committed.
 
 ```bash
 mkdir -p seal/specs
@@ -381,13 +373,18 @@ git mv specs/<id> seal/specs/<id>            # each work item
 rmdir .specseal specs                        # git mv leaves them empty on disk; one holding something else stays
 ```
 
+Then review `git diff --cached` and commit. That commit belongs to no work
+item, so a session making it in shared mode ends it with the trailer
+`SpecSeal-Routing: no work item`.
+
 ## First run
 
 Nine of the thirteen gates wake only under a condition: the routing edit
 gate, the question gate, the mode gate, the two implementer hooks, the
 review-skill gate, the two stamp hooks and the version check act in a
-repo that has a `seal/` directory at its root or under its git directory, and
-stay silent everywhere else. You never create it by hand — your session builds
+repo that has a `seal/` directory at its root or under its git directory,
+whose `README.md` opens with the plugin's marker line, and stay silent
+everywhere else. You never create it by hand — your session builds
 it the first time it works in a repo, after asking one question (*Shared or
 local*, below), and it is the only directory this plugin adds to your tree —
 plus, where you choose the pull-request checks, one workflow file under

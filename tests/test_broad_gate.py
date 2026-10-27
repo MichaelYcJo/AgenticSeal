@@ -34,6 +34,7 @@ from conftest import (
     git,
     git_out,
     load_module,
+    mark_root,
     read,
     symlink_or_skip,
     write,
@@ -85,9 +86,9 @@ def config_of(row=SUITE_ROW, before="", after=""):
 
 
 def home_with(tmp_path, text):
-    """A `seal/` directory holding TEXT as its `config.md`; its path."""
+    """A `seal/` root holding TEXT as its `config.md`; its path."""
     write(tmp_path, "seal/config.md", text)
-    return str(tmp_path / "seal")
+    return str(mark_root(tmp_path / "seal"))
 
 
 def a_record(**fields):
@@ -669,20 +670,26 @@ class Test_resolve_base:
 
 class Test_seal_home:
     def test_accepts_the_shared_root_and_then_the_local_one(self, tmp_path):
-        (tmp_path / "shared" / "seal").mkdir(parents=True)
+        mark_root(tmp_path / "shared" / "seal")
         assert gate.seal_home(str(tmp_path / "shared")) == str(
             tmp_path / "shared" / "seal"
         )
         local = tmp_path / "local"
         local.mkdir()
         git(local, "init", "-q")
-        (local / ".git" / "seal").mkdir()
+        (local / "seal").mkdir()
+        mark_root(local / ".git" / "seal")
         assert gate.seal_home(str(local)) == os.path.normpath(
             str(local / ".git" / "seal")
         )
 
     def test_refuses_a_repository_with_neither(self, tmp_path):
+        """No `seal/` at all, and a `seal/` the project keeps for itself,
+        whose README does not open with the marker, are no root to read a
+        command from."""
         git(tmp_path, "init", "-q")
+        assert gate.seal_home(str(tmp_path)) is None
+        write(tmp_path, "seal/config.md", config_of("bin/test -q"))
         assert gate.seal_home(str(tmp_path)) is None
 
 
@@ -702,7 +709,7 @@ class Test_broad_command:
             gate.broad_command(home)
 
     def test_refuses_a_file_that_will_not_read(self, tmp_path):
-        (tmp_path / "seal").mkdir()
+        mark_root(tmp_path / "seal")
         (tmp_path / "seal" / "config.md").write_bytes(b"| Item | Value |\n\xff\xfe\n")
         with pytest.raises(gate.Refused, match=r"^broad-gate: .*Nothing ran$"):
             gate.broad_command(str(tmp_path / "seal"))
@@ -2206,6 +2213,7 @@ def _repo_template(tmp_path_factory):
     git(d, "init", "-q", "-b", "base")
     write(d, "tests/test_one.py", PASSING_TEST)
     write(d, "seal/config.md", config_of())
+    mark_root(d / "seal")
     write(d, f"{ITEM}/overview.md", OVERVIEW)
     commit(d, "base")
     git(d, "switch", "-qc", "feature")
@@ -2419,7 +2427,14 @@ class Test_gate:
         with pytest.raises(gate.Refused, match="is not in a git repository"):
             gate.gate(namespace(tmp_path, tmp_path / "out"))
         git(tmp_path, "init", "-q")
-        with pytest.raises(gate.Refused, match="has no seal/ at either place"):
+        said = (
+            r"has no seal/ root at either place a root lives \(`<repo>/seal/`, "
+            r"`<git-common-dir>/seal/`, its README.md opening with the marker\)"
+        )
+        with pytest.raises(gate.Refused, match=said):
+            gate.gate(namespace(tmp_path, tmp_path / "out"))
+        write(tmp_path, "seal/config.md", config_of("bin/test -q"))
+        with pytest.raises(gate.Refused, match=said):
             gate.gate(namespace(tmp_path, tmp_path / "out"))
 
 
@@ -2441,6 +2456,7 @@ def sealable_repo(tmp_path):
     git(repo, "init", "-q", "-b", "base")
     write(repo, "src/service.py", "def handler(x):\n    return x + 1\n")
     write(repo, "seal/config.md", CONFIG)
+    mark_root(repo / "seal")
     write(repo, f"{ITEM}/overview.md", OVERVIEW)
     commit(repo, "base")
     git(repo, "switch", "-qc", "feature")

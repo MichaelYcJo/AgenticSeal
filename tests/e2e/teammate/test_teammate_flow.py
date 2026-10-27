@@ -26,6 +26,7 @@ from conftest import (
     census_case,
     commit_everything_as_e,
     git,
+    mark_root,
     symlink_or_skip,
     workflow_steps,
     write,
@@ -155,6 +156,8 @@ def base_repository(tmp_path, files, checks=False):
     write(d, "README.md", "# a project\n")
     for rel, text in files.items():
         write(d, rel, text)
+    if (d / "seal").is_dir():
+        mark_root(d / "seal")
     if checks:
         seal(d, "pr-checks", "install")
     commit_everything_as_e(d, "the base")

@@ -35,6 +35,7 @@ from conftest import (
     git,
     git_out,
     load_module,
+    mark_root,
     symlink_or_skip,
     write,
 )
@@ -127,12 +128,14 @@ def replace_in(path, old, new):
 
 def _committed(base, files):
     """A repository at BASE/repo holding FILES, `{rel: text}`, in one
-    commit."""
+    commit; a `seal/` among them is made a root."""
     d = base / "repo"
     d.mkdir()
     git(d, "init", "-q", "-b", "main")
     for rel, text in files.items():
         write(d, rel, text)
+    if (d / "seal").is_dir():
+        mark_root(d / "seal")
     commit_everything_as_e(d, "the base")
     return d
 

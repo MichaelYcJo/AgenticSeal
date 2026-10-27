@@ -19,7 +19,7 @@ import subprocess
 import sys
 
 import pytest
-from conftest import ROOT, census_case, git, load_hook_module
+from conftest import ROOT, census_case, git, load_hook_module, mark_root
 
 TARGET = "hooks/sealer-stamp.py"
 
@@ -117,7 +117,7 @@ def _opted_in_template(tmp_path_factory):
     repo = tmp_path_factory.mktemp("stamp-world") / "repo"
     repo.mkdir()
     git(repo, "init", "-q", "-b", "main")
-    (repo / "seal").mkdir()
+    mark_root(repo / "seal")
     (repo / "seal" / "config.md").write_text("# config\n", encoding="utf-8")
     git(repo, "add", "-A")
     git(

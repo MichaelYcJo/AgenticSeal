@@ -139,7 +139,9 @@ check: tests/test_a_moved_rule_leaves_its_definition.py
 ## 11 Where the `seal/` root is, and the language its records are written in
 
 Every `seal/…` path here and in the skills means `<repo>/seal/` where that
-directory exists, and `$(git rev-parse --git-common-dir)/seal/` otherwise —
+directory exists and its `README.md` opens with the marker
+`hooks/optin.py#MARKER` holds, and
+`$(git rev-parse --git-common-dir)/seal/` otherwise —
 local mode, where the root sits under the common git directory and nothing
 under it is committed. A repository with both is shared, and no config key
 decides it. The prose in the records follows `Record language` in

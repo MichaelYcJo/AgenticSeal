@@ -530,6 +530,24 @@ def load_hook_module(filename, name):
     return mod
 
 
+# `hooks/optin.py#MARKER`: a `seal/` is the plugin's root only where its
+# `README.md` opens with this line, so every helper below that builds a root
+# writes it.
+ROOT_MARKER = load_hook_module("optin.py", "specseal_optin_for_fixtures").MARKER
+
+
+def mark_root(home):
+    """HOME made a directory whose `README.md` opens with the marker, the way
+    first setup leaves a root, and returned. A README already there is left
+    as it is."""
+    home = pathlib.Path(home)
+    home.mkdir(parents=True, exist_ok=True)
+    readme = home / "README.md"
+    if not readme.exists():
+        readme.write_text(ROOT_MARKER + "\n", encoding="utf-8")
+    return home
+
+
 def run_hook(filename, payload, env=None):
     """Feed a hook the stdin JSON the harness would send; return its stdout."""
     r = subprocess.run(
@@ -748,8 +766,7 @@ def local_home(repo):
         errors="replace",
     ).stdout.strip()
     home = pathlib.Path(os.path.normpath(os.path.join(str(repo), common))) / "seal"
-    home.mkdir(parents=True, exist_ok=True)
-    return home
+    return mark_root(home)
 
 
 @pytest.fixture
@@ -779,7 +796,7 @@ def declare_routing(
         encoding="utf-8",
         errors="replace",
     ).stdout.strip()
-    d = (pathlib.Path(home) if home else repo / "seal") / "specs" / item
+    d = mark_root(home if home else repo / "seal") / "specs" / item
     d.mkdir(parents=True, exist_ok=True)
     (d / "routing.md").write_text(
         f"# {item} -- routing\n\n"
@@ -1159,8 +1176,7 @@ def shape_text(name):
 
 
 def opt_in_shared(repo):
-    (repo / "seal").mkdir(exist_ok=True)
-    return repo / "seal"
+    return mark_root(repo / "seal")
 
 
 def write_config(home, text):
@@ -1253,7 +1269,7 @@ def write(root, rel, text):
 
 def opt_in(repo):
     """REPO opted in to the workflow, in shared mode."""
-    (repo / "seal").mkdir(exist_ok=True)
+    mark_root(repo / "seal")
 
 
 def staged_repo(path, declared=False, review="straight to the PR"):
@@ -1271,7 +1287,7 @@ def staged_repo(path, declared=False, review="straight to the PR"):
     run("-c", "user.email=e@example.com", "-c", "user.name=e", "commit", "-qm", "b")
     (path / "f").write_text("2\n", encoding="utf-8")
     run("add", "f")
-    (path / "seal").mkdir()
+    mark_root(path / "seal")
     if declared:
         declare_routing(path, review=review)
     return path
@@ -1440,6 +1456,7 @@ def _template(tmp_path_factory):
     api = base / "work" / "orders-api"
     init(api, PACT_URL)
     write(api, PACT, pact(V1))
+    mark_root(api / "seal")
     commit(api, "pact v1")
     write(api, PACT, pact(V2))
     commit(api, "pact v2")
@@ -1450,6 +1467,7 @@ def _template(tmp_path_factory):
     web = base / "work" / "orders-web"
     init(web, SIGNER_URL)
     write(web, "seal/config.md", signer_config(("Pact", PACT_URL)))
+    mark_root(web / "seal")
     commit(web, "signer")
     return base
 
@@ -1808,7 +1826,7 @@ def queued_values(repo):
 
 
 def home(repo):
-    (repo / "seal").mkdir(exist_ok=True)
+    mark_root(repo / "seal")
 
 
 def legacy(repo):
@@ -1839,7 +1857,7 @@ def run_dispatch(group, payload, hooks=HOOKS):
 
 def declare(repo, implementation="smith", item=ITEM, planning=None):
     """A declaration for this repo's branch; a `None` answer omits its row."""
-    d = repo / "seal" / "specs" / item
+    d = mark_root(repo / "seal") / "specs" / item
     d.mkdir(parents=True, exist_ok=True)
     third = f"| Implementation | {implementation} |\n" if implementation else ""
     fourth = f"| Planning | {planning} |\n" if planning else ""
@@ -1858,7 +1876,7 @@ def declare(repo, implementation="smith", item=ITEM, planning=None):
 
 def declare_smith(repo, home, item=ITEM):
     """A declaration under `home` whose third axis says `smith`."""
-    d = home / "specs" / item
+    d = mark_root(home) / "specs" / item
     d.mkdir(parents=True, exist_ok=True)
     (d / "routing.md").write_text(
         f"# {item} -- routing\n\n"
@@ -1931,7 +1949,7 @@ def _console_repo_template():
 def opted_in_repo(where):
     """A repository the commit gate fires in, at a path holding non-ASCII."""
     shutil.copytree(_console_repo_template(), where)
-    (where / "seal").mkdir(exist_ok=True)
+    mark_root(where / "seal")
     return where
 
 
@@ -1998,8 +2016,7 @@ def tree(tmp_path):
     repo = tmp_path / "repo"
     (repo / "docs").mkdir(parents=True)
     (repo / "docs" / "one-root.md").write_text("# a policy\n\nA rule.\n", "utf-8")
-    (repo / "seal").mkdir()
-    (repo / "seal" / "README.md").write_text("# seal\n", encoding="utf-8")
+    mark_root(repo / "seal")
     for name in ("1700000001-alpha", "1700000002-beta", "1700000003-gamma"):
         item = repo / "seal" / "specs" / name
         item.mkdir(parents=True)

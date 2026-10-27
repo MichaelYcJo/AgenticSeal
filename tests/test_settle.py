@@ -31,7 +31,16 @@ import subprocess
 import sys
 
 import pytest
-from conftest import DOC, census_case, line_of, load_module, names_path, op, spec
+from conftest import (
+    DOC,
+    census_case,
+    line_of,
+    load_module,
+    mark_root,
+    names_path,
+    op,
+    spec,
+)
 from conftest import flattened as flat
 
 TARGET = "skills/settle/scripts/settle.py"
@@ -71,8 +80,7 @@ def repo(tmp_path):
     repo = tmp_path / "repo"
     (repo / "docs").mkdir(parents=True)
     (repo / "docs" / "a.md").write_text(DOC, encoding="utf-8")
-    (repo / "seal").mkdir()
-    (repo / "seal" / "README.md").write_text("# seal\n", encoding="utf-8")
+    mark_root(repo / "seal")
     git(repo, "init", "-q", "-b", "main")
     git(repo, "config", "user.email", "x@example.com")
     git(repo, "config", "user.name", "x")
@@ -225,8 +233,7 @@ def settled_repo(tmp_path, keep_empty_dir):
     repo = tmp_path / "repo"
     (repo / "docs").mkdir(parents=True)
     (repo / "docs" / "one-root.md").write_text("# a policy\n", encoding="utf-8")
-    (repo / "seal").mkdir()
-    (repo / "seal" / "README.md").write_text("# seal\n", encoding="utf-8")
+    mark_root(repo / "seal")
     git(repo, "init", "-q")
     git(repo, "config", "user.email", "x@example.com")
     git(repo, "config", "user.name", "x")
@@ -353,7 +360,7 @@ def local(tmp_path):
     git(repo, "config", "user.email", "x@example.com")
     git(repo, "config", "user.name", "x")
     commit(repo, "base")
-    (repo / ".git" / "seal" / "specs").mkdir(parents=True)
+    (mark_root(repo / ".git" / "seal") / "specs").mkdir()
     return repo
 
 
@@ -1353,7 +1360,7 @@ class Test_main:
         for a different failure and could not fire in the case it described:
         local mode returns before `survey` is ever called."""
         repo = tmp_path / "repo"
-        (repo / "seal" / "specs" / "1700000001-alpha").mkdir(parents=True)
+        (mark_root(repo / "seal") / "specs" / "1700000001-alpha").mkdir(parents=True)
         (repo / "seal" / "specs" / "1700000001-alpha" / "spec.md").write_text(
             "# a\n", encoding="utf-8"
         )

@@ -347,33 +347,37 @@ def test_the_sentence_that_said_nowhere_else_is_gone():
     assert "`<repo>/seal/` and nowhere else" not in flat(both_halves())
 
 
-def test_an_unmoved_old_layout_is_not_asked_but_told():
-    """Q7: a repository that committed the 0.3.x directories chose shared
-    already; the session-start hook moves it, and the skill says so instead
-    of offering local mode beside a layout the hook will move into the tree."""
+OLD_LAYOUT = "A repository still on the 0.3.x layout"
+
+
+def test_the_0_3_x_layout_is_sent_to_the_by_hand_path_and_the_bootstrap_goes_on():
+    """No code of the plugin opens the 0.3.x layout, so nothing moves it at
+    a session start: the bootstrap names README.md's by-hand section in one
+    line and continues to the question, and a top-level `specs/` stays the
+    project's own."""
     boot = bootstrap()
-    assert "0.3.x layout" in boot
-    assert boot.index("0.3.x layout") < boot.index(RECORDS_ONLY)
-    assert "moves it" in boot
+    told = paragraph(boot, OLD_LAYOUT)
+    assert "README.md *Coming up from 0.3.x*" in told, told
+    assert "continues" in told, told
+    assert "top-level `specs/` is the project's own" in told, told
+    assert "the plugin moves it" not in flat(boot), "the bootstrap promises a move"
+    assert boot.index(OLD_LAYOUT) < boot.index(RECORDS_ONLY)
 
 
-BARE_SPECS = "**A `specs/` without a marked entry is not the 0.3.x layout.**"
+OWN_SEAL = "**A `<repo>/seal/` whose `README.md` does not open with the marker"
 
 
-def test_a_bare_specs_is_asked_and_only_the_plugins_marks_are_told():
-    """#688 A1 and A2. A top-level `specs/` used to be the 0.3.x layout by
-    its name, so a project that kept its own specifications there was told
-    it had chosen shared and never asked. The told path needs the plugin's
-    marks now, named in the paragraph that decides it, and a `specs/`
-    without them goes on to the question before the mode's options."""
+def test_a_projects_own_seal_gets_nothing_and_the_root_goes_under_the_git_dir():
+    """First setup meeting a `seal/` the project keeps for itself writes
+    nothing into it, and the orchestrator is told the root goes under the
+    git directory in local mode, before the mode's options are offered."""
     boot = bootstrap()
-    told = paragraph(boot, "First, look for the 0.3.x layout.")
-    assert "`routing.md`" in told and "`rounds/`" in told, told
-    assert "a top-level `specs/` is" not in told, "the name alone still decides"
-    bare = paragraph(boot, BARE_SPECS)
-    assert "go on to the question" in bare, bare
-    assert "leave the directory where it is" in bare, bare
-    assert boot.index(told[:40]) < boot.index(BARE_SPECS) < boot.index(RECORDS_ONLY)
+    own = paragraph(boot, OWN_SEAL)
+    assert "`templates/seal-README.md`" in own, own
+    assert "writes nothing into it" in own, own
+    assert f"`{COMMON_DIR}`" in own, own
+    assert "local mode" in own, own
+    assert boot.index(OWN_SEAL) < boot.index(RECORDS_ONLY)
 
 
 # --- Q1: the sentence a session reads, once in each place -----------------
@@ -603,7 +607,9 @@ def test_the_switch_block_lands_the_root_at_the_tree_root_from_a_subdirectory(
     assert (repo / "seal" / "ledger" / "f.md").is_file(), porcelain(repo)
     assert not (sub / "seal").exists(), "the root landed under the subdirectory"
     assert not home.exists(), "the local root was copied, not moved"
-    assert porcelain(repo) == ["A  seal/ledger/f.md"], porcelain(repo)
+    assert porcelain(repo) == ["A  seal/README.md", "A  seal/ledger/f.md"], porcelain(
+        repo
+    )
 
     r = subprocess.run(["bash", "-c", to_local], cwd=str(sub), capture_output=True)
     assert r.returncode == 0, r.stderr
@@ -641,6 +647,21 @@ def test_the_seal_readme_names_both_places(parts):
 
 def test_the_seal_readme_is_the_template_verbatim():
     assert read("seal", "README.md") == read("templates", "seal-README.md")
+
+
+MARKER_SAID = "**The first line of this file is the marker.**"
+
+
+def test_the_seal_readme_says_its_first_line_is_the_marker():
+    """The root's own README tells a person not to edit the line the gates
+    read, and what a `seal/` without it is; the 0.3.x paragraph it replaced
+    is gone."""
+    text = read("templates", "seal-README.md")
+    said = paragraph(text, MARKER_SAID)
+    assert "`hooks/optin.py#MARKER`" in said, said
+    assert "never opted in" in said, said
+    assert "writes nothing into it" in said, said
+    assert "`.specseal/`" not in text
 
 
 def test_the_seal_readme_points_at_the_drain_and_restates_none_of_it():

@@ -13,8 +13,8 @@ file set, the closing memo and the review incorporation. The orchestrator
 reads both. The smith opens that one at its first step and never this one,
 because asking a person and writing `routing.md` are acts `agents/smith.md`
 leaves to the orchestrator. Every `seal/…` path here means `<repo>/seal/`
-where that directory exists, and `$(git rev-parse --git-common-dir)/seal/`
-otherwise (contract rule 11).
+where that directory exists with the marker, and
+`$(git rev-parse --git-common-dir)/seal/` otherwise (contract rule 11).
 
 ## Orchestrator: the order inside a ticket
 
@@ -89,15 +89,17 @@ When a root or file this skill needs does not exist, the orchestrator creates
 it from `templates/` in this plugin and continues. In particular:
 
 - `seal/README.md`, which says what the root holds and names the section of
-  `skills/implement/SKILL.md` that states the export rules.
+  `skills/implement/SKILL.md` that states the export rules. Its first line
+  is the marker the gates read, so the file is copied from
+  `templates/seal-README.md` as it stands.
 - **Not** policy documents. A repository that has none has none; judge from
   the SDD set and the code. Creating `docs/policies/<domain>/` imposes one
   project's documentation habit, and one field's vocabulary, on every
   repository this plugin touches.
 
-**When `seal/` exists at neither place, the orchestrator asks once, in the
-one call step 1 states, before creating anything, then does two more things
-before continuing.**
+**When no `seal/` whose `README.md` opens with the marker exists at either
+place, the orchestrator asks once, in the one call step 1 states, before
+creating anything, then does two more things before continuing.**
 Creating the root is what opts the repository in: from the next command on,
 every gate here is awake. Where the root lands, committed with the repository
 or under the git directory on this machine only, is the person's decision and
@@ -105,25 +107,22 @@ not the orchestrator's. Nobody reads a README to discover a question they did
 not know to ask, so this is the only place the mode and the migration
 question are asked at all.
 
-First, look for the 0.3.x layout. A repository still holding
-`.specseal/`, or a top-level `specs/` with an entry named
-`<unix-seconds>-<slug>` that carries one of the plugin's two marks directly
-under it as git tracks it (`routing.md`, or a file under `rounds/`), is on
-the 0.3.x layout and committed the plugin's files, so it chose shared
-already. The orchestrator does not ask. It says *"this repository is on the
-0.3.x layout; start a new session and the plugin moves it into
-`<repo>/seal/`, or follow the README's by-hand sequence, and `seal mode
-local` moves it out of the tree afterwards if that is what you wanted"*, and
-stops the bootstrap there. The session-start hook moves it, and the root it
-creates is the one this section would have asked about. Naming the command is
-what keeps *not asked* from meaning *not offered*.
+A repository still on the 0.3.x layout is moved by hand, with the commands
+README.md *Coming up from 0.3.x* gives, because no code of the plugin opens
+that layout. The orchestrator names that section in one line and continues
+with the question below. A top-level `specs/` is the project's own, a team's
+specifications or another tool's records, whatever its entries are named, and
+stays where it is: the plugin writes only to its own root.
 
-**A `specs/` without a marked entry is not the 0.3.x layout.** It is the
-project's own, a team's specifications, which a `spec.md`, a `plan.md` or an
-`overview.md` does not make the plugin's. So go on to the question below as
-for any repository with no root, and leave the directory where it is. The
-session-start hook moves nothing out of it either: the plugin writes only to
-its own root.
+**A `<repo>/seal/` whose `README.md` does not open with the marker is the
+project's own.** The marker is the first line of `templates/seal-README.md`,
+and a package or a tool can keep a directory named `seal` for itself. The
+orchestrator writes nothing into it and offers neither shared option, because
+`<repo>/seal/` is the shared root's one place. The root goes under the git
+directory, at `$(git rev-parse --git-common-dir)/seal/`, as the local option
+below creates it, and the orchestrator says so in one line: *"`<repo>/seal/` is this
+project's own, so the plugin keeps its root under the git directory, in local
+mode"*. The one call of step 1 then carries the `Broad gate` question alone.
 
 1. The orchestrator asks once, with one `AskUserQuestion` carrying **two
    questions**: the mode, and the `Broad gate` row. The mode's three options
@@ -240,7 +239,8 @@ its own root.
    opposite: its absence makes a root somebody chose and a root nobody chose
    the same bytes.
 2. The orchestrator says in three lines what it created, that its presence
-   at that place is the opt-in, and what each part of the root is for. The
+   at that place with the marker as its README's first line is the opt-in,
+   and what each part of the root is for. The
    layout is invisible otherwise: it appears in a diff the user did not
    request, or, in local mode, in no diff at all.
 3. The orchestrator asks once:
@@ -256,9 +256,9 @@ later**: it shows every row with its value and routes a change to whatever
 owns that row. The orchestrator says so once, here, because a person who
 answers a question in a batch has no reason to expect a way back to it.
 
-Ask only here. A repository that has `seal/` at either place,
-`<repo>/seal/` or `$(git rev-parse --git-common-dir)/seal/`, has been through
-this: the mode is read from where the folder is, and asking again is the
+Ask only here. A repository that has a `seal/` carrying the marker at either
+place, `<repo>/seal/` or `$(git rev-parse --git-common-dir)/seal/`, has been
+through this: the mode is read from where the folder is, and asking again is the
 nagging this plugin exists to avoid.
 
 ## Orchestrator: Parity setup

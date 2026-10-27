@@ -26,6 +26,7 @@ from conftest import (
     git_out,
     guarantee_record,
     load_hook_module,
+    mark_root,
     queued_values,
     routing_record,
 )
@@ -52,7 +53,7 @@ def _local_template(tmp_path_factory):
     commit_everything_as_e(repo, "the work")
     target = git_out(repo, "rev-parse", "--short", "HEAD")
     base = git_out(repo, "rev-parse", "--short", "main")
-    item = repo / ".git" / "seal" / "specs" / STAMP_ITEM
+    item = mark_root(repo / ".git" / "seal") / "specs" / STAMP_ITEM
     (item / "rounds").mkdir(parents=True)
     for n in (1, 2):
         (item / "rounds" / f"round-{n}.md").write_text("x\n", encoding="utf-8")
@@ -195,7 +196,7 @@ class Test_main:
         is queued at the write, as a local root's is, for the payload's
         session and under the clone's common dir."""
         repo, path = local
-        shared = repo / "seal" / "specs" / STAMP_ITEM
+        shared = mark_root(repo / "seal") / "specs" / STAMP_ITEM
         shutil.copytree(path.parent, shared)
         shutil.rmtree(path.parent)
         out = edited(payload(shared / "guarantee.md", tmp_path))

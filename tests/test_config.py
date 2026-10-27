@@ -56,6 +56,7 @@ from conftest import (
     load_hook_module,
     load_module,
     local_home,
+    mark_root,
     names_path,
     old_header,
     opt_in_shared,
@@ -379,7 +380,7 @@ class Test_reference_roots:
         optin = load_hook_module("optin.py", "optin_for_reference_roots")
         common = optin.git_common_dir(str(repo))
         home = os.path.join(common, "seal")
-        os.makedirs(home)
+        mark_root(home)
         assert optin.home_at(str(repo), common) == home, "the fixture is not local mode"
         assert config.reference_roots(home) is None
         assert config.under_reference_root("specs/x/spec.md", None)

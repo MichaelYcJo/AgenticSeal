@@ -124,15 +124,3 @@ def test_each_reader_says_when_it_reads_a_reference_root_and_where_it_cites_it()
             assert NEVER_LINE[rel] in never, (rel, never)
         else:
             assert re.search(r"\bnever writ", said), (rel, said)
-
-
-def test_the_seal_readme_says_nothing_writes_the_old_names():
-    """The sentence used to say nothing READS a top-level `specs/`, which a
-    reference root now contradicts; what is true of it is that nothing
-    writes there, and what moves is the plugin's own marked work items."""
-    for rel in ("templates/seal-README.md", "seal/README.md"):
-        text = open(os.path.join(ROOT, rel), encoding="utf-8").read()
-        flat = " ".join(text.split())
-        assert "Nothing writes `.specseal/` or a top-level `specs/`" in flat, rel
-        assert "Nothing reads `.specseal/`" not in flat, rel
-        assert "`routing.md` or `rounds/`" in flat, rel

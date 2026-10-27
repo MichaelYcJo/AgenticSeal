@@ -47,6 +47,7 @@ from conftest import (
     FENCED_REFUSAL,
     PIPED_TABLE,
     ROOT,
+    ROOT_MARKER,
     UNDER_THE_COMMENT,
     census_case,
     commit_everything_as_e,
@@ -57,6 +58,7 @@ from conftest import (
     load_hook_module,
     load_module,
     local_home,
+    mark_root,
     names_path,
     shape_text,
     staged,
@@ -74,6 +76,7 @@ SSH = "git@example.com:org/thing.git"
 HTTPS = "https://example.com/org/thing"
 ELSEWHERE = "git@example.com:org/somewhere-else.git"
 RECORDS = {
+    "README.md": ROOT_MARKER + "\n",
     "follow-up.md": "# follow-up\n",
     f"specs/{ITEM}/plan.md": "# rows\n",
     f"specs/{ITEM}/routing.md": "# routing\n",
@@ -129,7 +132,8 @@ def clone_at(d, remote=None):
 
 
 def holding(home, records=RECORDS):
-    """HOME with each of RECORDS written under it."""
+    """HOME, a root, with each of RECORDS written under it."""
+    mark_root(home)
     for rel, text in records.items():
         write(home, rel, text)
     return home
@@ -825,7 +829,7 @@ class Test_export:
         assert status(repo) == [], "the export dirtied the working tree"
         assert out.startswith("wrote "), out
         assert (
-            f"{os.path.basename(written)}\n  4 files from .git/seal, 1 work item\n"
+            f"{os.path.basename(written)}\n  5 files from .git/seal, 1 work item\n"
         ) in out
         assert out.endswith(f"  seal import {os.path.basename(written)}\n"), out
         assert "was left out" not in out
@@ -1249,8 +1253,18 @@ class Test_place:
 class Test_destination_root:
     def dirs(self, tmp_path, *names):
         for name in names:
-            (tmp_path / name).mkdir()
+            mark_root(tmp_path / name)
         return str(tmp_path / "shared"), str(tmp_path / "local")
+
+    def test_accepts_a_projects_own_seal_beside_the_local_root_as_one_root(
+        self, tmp_path
+    ):
+        """A `<repo>/seal/` whose README does not open with the marker is the
+        project's own, so beside a local root it is no second root, and the
+        copy lands in the local one."""
+        shared, local = self.dirs(tmp_path, "local")
+        write(tmp_path, "shared/README.md", "# seal\n\nThis package's notes.\n")
+        assert SEAL.destination_root("", local, shared, local, None) == (local, "")
 
     @pytest.mark.parametrize(
         "home, into, want",
@@ -1295,9 +1309,10 @@ class Test_import_:
         code, out = said(capsys, other, "import", str(exported))
         assert code == 0, out
         assert listed(roots(other)[1]) == sorted(RECORDS)
+        # The README every root opens with is the one record already there.
         assert out.startswith(
             "imported into .git/seal\n  4 files added\n"
-            "  0 files already here, byte for byte\n"
+            "  1 file already here, byte for byte\n"
             "  0 files landed beside an existing one\n"
         ), out
         assert "another repository" not in out, "two spellings of one remote differ"
@@ -1308,7 +1323,7 @@ class Test_import_:
         assert said(capsys, other, "import", str(exported))[0] == 0
         code, out = said(capsys, other, "import", str(exported))
         assert code == 0, out
-        assert "  4 files already here, byte for byte\n" in out
+        assert "  5 files already here, byte for byte\n" in out
         assert listed(roots(other)[1]) == sorted(RECORDS)
 
     def test_accepts_a_taken_name_by_landing_beside_it(self, take, exported, capsys):
@@ -1345,7 +1360,7 @@ class Test_import_:
     ):
         other = take("other")
         shared, local = roots(other)
-        os.rmdir(local)
+        shutil.rmtree(local)
         code, out = said(capsys, other, "import", str(exported), *into)
         assert code == 0, out
         assert listed(shared if where == "shared" else local) == sorted(RECORDS)
@@ -1381,7 +1396,7 @@ class Test_import_:
         )
         code, out = said(capsys, other, "import", str(foreign), "--allow-other-repo")
         assert code == 0, out
-        assert listed(roots(other)[1]) == ["follow-up.md"]
+        assert listed(roots(other)[1]) == ["README.md", "follow-up.md"]
         unanswered(monkeypatch, CONFIG_GET_REMOTE, TIMED_OUT)
         code, out = said(
             capsys, other, "import", str(exported), "--allow-unreadable-remote"
@@ -1691,7 +1706,7 @@ class Test_import_:
     @pytest.mark.parametrize("into", [["--into", "local"], ["--into", "shared"], []])
     def test_refuses_two_roots_whatever_into_says(self, take, exported, capsys, into):
         other = take("other")
-        (other / "seal").mkdir()
+        mark_root(other / "seal")
         before = snapshot(other)
         code, out = said(capsys, other, "import", str(exported), *into)
         assert code == 1, out
@@ -2543,6 +2558,7 @@ class Test_install_workflow:
         "shape, kind",
         [
             ("no shared root", "no-root"),
+            ("a project's own seal", "no-root"),
             ("a file there", "kept"),
             ("no version", "no-version"),
             ("no template", "unreadable"),
@@ -2553,14 +2569,17 @@ class Test_install_workflow:
     def test_refuses_to_overwrite_or_to_write_what_it_cannot_pin_or_stage(
         self, take, tmp_path, monkeypatch, shape, kind
     ):
-        repo = take("local" if shape == "no shared root" else "shared")
+        no_root = ("no shared root", "a project's own seal")
+        repo = take("local" if shape in no_root else "shared")
         path = os.path.join(str(repo), WORKFLOW_PATH)
         if shape == "a file there":
             workflow_in(repo, "name: someone else's\n", commit=False)
         elif shape == "an ignored directory":
             write(repo, ".gitignore", ".github/\n")
             commit_everything_as_e(repo, "ignore the workflow's directory")
-        elif shape != "no shared root":
+        elif shape == "a project's own seal":
+            write(repo, "seal/README.md", "# seal\n\nThis package's notes.\n")
+        elif shape not in no_root:
             version, template = '{"version": "1.2.3"}', "--branch v<version>\n"
             if shape == "no version":
                 version = None
@@ -2582,7 +2601,7 @@ class Test_install_workflow:
         else:
             assert not os.path.lexists(path)
             assert "was NOT written" in line
-        if shape == "no shared root":
+        if shape in no_root:
             assert (
                 "the checks read committed records" in line
                 and "`seal mode shared` puts it in the tree" in line
@@ -2935,7 +2954,7 @@ class Test_refusals:
         repo = take("under" if shape == "a submodule under the root" else "shared")
         shared, local = roots(repo)
         if shape == "both roots":
-            os.mkdir(local)
+            mark_root(local)
         elif shape == "two rows":
             config_at(repo, TWO_MODE_ROWS)
         elif shape == "a git that cannot answer":
@@ -2972,6 +2991,16 @@ class Test_refusals:
             f"{local} is a symbolic link, not the root itself. Moving it would "
             "move the link and leave the records where they are."
         ]
+
+    def test_refuses_a_projects_own_seal_as_a_destination_not_as_two_roots(self, take):
+        """A `<repo>/seal/` whose README does not open with the marker is no
+        second root, so switching to shared is refused for the directory in
+        the way, which nothing here overwrites."""
+        repo = take("local")
+        write(repo, "seal/README.md", "# seal\n\nThis package's notes.\n")
+        found = refusals_of(repo, "shared")
+        assert any("already exists, and nothing here overwrites" in f for f in found)
+        assert not any("both roots exist" in f for f in found), found
 
 
 class Test_switch:

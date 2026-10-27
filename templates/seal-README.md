@@ -1,4 +1,4 @@
-# What this plugin maintains in seal/
+# What AgenticSeal maintains in seal/
 
 This directory exists for AI sessions to hand work to each other. It is one
 root laid out by lifetime: the rows that outlive a work item at the top, and
@@ -13,8 +13,9 @@ the command behind it. A work item's directory is safe to delete wholesale
 **once its open rows have been moved out**, which *Export rules* below says
 where to read: nothing that must survive is allowed to live only there.
 
-It lives at one of two places, and its presence at either is what opts the
-repository into the workflow. There is no config key. **Shared mode** keeps
+It lives at one of two places, and its presence at either, with this file's
+first line as it stands, is what opts the repository into the workflow.
+There is no config key. **Shared mode** keeps
 it at `<repo>/seal/` and commits it (gitignored files don't follow worktrees
 or other machines), so every clone reads it and CI can check pull requests
 against it. **Local mode** keeps the
@@ -51,13 +52,12 @@ smith mark, the worktree choices, any lease, and
 the last export's manifest at `specseal-last-export.json`. The export walks
 this directory and nothing else, which is why the root has to be its own.
 
-Nothing writes `.specseal/` or a top-level `specs/` any more. A
-repository still holding the plugin's own 0.3.x work items there (a
-`specs/` entry named `<unix-seconds>-<slug>` carrying `routing.md` or
-`rounds/` as git tracks them) is moved into
-`<repo>/seal/` once, at session start, by the plugin. Anything else under a
-top-level `specs/` is the project's own, read as history and left where it
-is.
+**The first line of this file is the marker.** `hooks/optin.py#MARKER` holds
+the same line, and every gate reads a `seal/` whose `README.md` does not open
+with it as a repository that never opted in: a directory the project keeps for
+itself, as a package named `seal` has one. First setup that meets such a
+directory writes nothing into it and keeps the root under the git directory.
+Leave the line as it is.
 
 **The throwaway opt-out is the file `.git/specseal-scratch`, and it cannot be
 committed.** Where it exists, every gate reads the repository as one that

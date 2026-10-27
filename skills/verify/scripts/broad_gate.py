@@ -149,8 +149,8 @@ CHAIN = os.path.join(PLUGIN, "skills", "code-review", "scripts", "chain_check.py
 # because the arm runs the check as a process; a case holds the two equal.
 CHAIN_SEALING = "--sealing"
 CONFIG_READER = os.path.join(PLUGIN, "hooks", "config.py")
+OPTIN = os.path.join(PLUGIN, "hooks", "optin.py")
 
-SEAL_DIR = "seal"
 CONFIG = "config.md"
 ROW = "Broad gate"
 ROUND_RE = re.compile(r"^round-(\d+)\.md$")
@@ -625,17 +625,17 @@ def resolve_base(root, given):
 
 
 def seal_home(root):
-    """`<root>/seal/` where it exists, else `<git-common-dir>/seal/`, else
-    None — the two places every `seal/…` path in this plugin resolves to
-    (contract rule 11), read in that order."""
-    shared = os.path.join(root, SEAL_DIR)
-    if os.path.isdir(shared):
-        return shared
-    common = git(root, "rev-parse", "--git-common-dir")
-    if common and common.strip():
-        local = os.path.join(root, common.strip(), SEAL_DIR)
-        if os.path.isdir(local):
-            return os.path.normpath(local)
+    """`<root>/seal/` where it is the root, else `<git-common-dir>/seal/`,
+    else None — the two places every `seal/…` path in this plugin resolves
+    to (contract rule 11), read in that order. Each is the root only where
+    `hooks/optin.py#marked` finds the marker, so a `seal/` the project keeps
+    for itself is never read for a command. The places and the marker are
+    `optin`'s; the scratch opt-out is not read here, because a throwaway
+    repository still runs its broad command when somebody asks for it."""
+    optin = load(OPTIN, "specseal_optin_for_broad_gate")
+    for found in optin.home_paths(root):
+        if found and os.path.isdir(found) and optin.marked(found):
+            return found
     return None
 
 
@@ -2885,10 +2885,10 @@ def gate(args, ascii_marks=False):
     home = seal_home(root)
     if home is None:
         raise Refused(
-            f"broad-gate: {root} has no seal/ at either place a root lives "
-            "(`<repo>/seal/`, `<git-common-dir>/seal/`) — this repository is "
-            "not opted in, and there is no config to read a command from. "
-            "Nothing ran"
+            f"broad-gate: {root} has no seal/ root at either place a root lives "
+            "(`<repo>/seal/`, `<git-common-dir>/seal/`, its README.md opening "
+            "with the marker) — this repository is not opted in, and there is "
+            "no config to read a command from. Nothing ran"
         )
     command = broad_command(home)
     if command is None:

@@ -33,6 +33,7 @@ from conftest import (
     linked_worktree,
     load_hook_module,
     local_home,
+    mark_root,
     run_hook,
     scratch,
 )
@@ -63,7 +64,7 @@ class Test_repo_root:
         substitution in this work item.
         """
         repo = git_repo(tmp_path / KOREAN / "repo")
-        (repo / "seal").mkdir()
+        mark_root(repo / "seal")
         got = optin.repo_root(str(repo))
         assert got, "the root came back empty for a repository that is right there"
         assert os.path.isdir(got), (
@@ -257,6 +258,86 @@ class Test_home_paths:
         assert optin.home_paths("") == ("", "")
 
 
+def readme_at(root, data):
+    """`<root>/README.md` holding DATA, text or bytes, ROOT made where it is
+    missing."""
+    root.mkdir(parents=True, exist_ok=True)
+    raw = data if isinstance(data, bytes) else data.encode("utf-8")
+    (root / "README.md").write_bytes(raw)
+
+
+class Test_marked:
+    @pytest.mark.parametrize(
+        "tail",
+        [b"\n\nWhat it holds.\n", b"\r\n\r\nWhat it holds.\r\n", b"", b"\n\xff\xfe\n"],
+        ids=["lf", "crlf", "no line end", "a stray byte below"],
+    )
+    def test_accepts_a_readme_whose_first_line_is_the_marker(
+        self, optin, tmp_path, tail
+    ):
+        """The marker is the first line with its line end stripped, so either
+        line end and a file of that one line all carry it, and a byte below
+        the line that does not decode does not take it away."""
+        readme_at(tmp_path / "seal", optin.MARKER.encode("utf-8") + tail)
+        assert optin.marked(str(tmp_path / "seal"))
+
+    @pytest.mark.parametrize(
+        "text",
+        [
+            "# seal\n\nThis package's own notes.\n",
+            "\n{marker}\n",
+            "{marker} of a fork\n",
+            "",
+        ],
+        ids=["another heading", "the marker on line two", "a longer line", "empty"],
+    )
+    def test_refuses_a_readme_whose_first_line_is_another(self, optin, tmp_path, text):
+        """A `seal/` a project or a package keeps for itself is not the
+        plugin's root, whatever it holds below its first line."""
+        readme_at(tmp_path / "seal", text.format(marker=optin.MARKER))
+        assert not optin.marked(str(tmp_path / "seal"))
+
+    @pytest.mark.parametrize("shape", ["no README.md", "a directory", "not UTF-8"])
+    def test_refuses_a_readme_there_is_no_first_line_to_read_in(
+        self, optin, tmp_path, shape
+    ):
+        """No file, a directory of that name, and a first line that does not
+        decode are no marker, and nothing raises: the module fails toward
+        "not opted in"."""
+        (tmp_path / "seal").mkdir()
+        if shape == "a directory":
+            (tmp_path / "seal" / "README.md").mkdir()
+        elif shape == "not UTF-8":
+            (tmp_path / "seal" / "README.md").write_bytes(b"\xff\xfe# What\n")
+        assert not optin.marked(str(tmp_path / "seal"))
+
+    def test_refuses_an_empty_path_wherever_the_process_stands(
+        self, optin, tmp_path, monkeypatch
+    ):
+        """ "" is the answer `home_paths` gives for no root, and it names no
+        README, even in a directory whose own README opens with the marker."""
+        readme_at(tmp_path, optin.MARKER + "\n")
+        monkeypatch.chdir(tmp_path)
+        assert not optin.marked("")
+
+
+class Test_home_at:
+    def test_refuses_a_shared_root_without_the_marker(self, optin, repo):
+        """`<repo>/seal/` holding a README of the project's own is not the
+        root, and with no other place holding one the repository is out."""
+        readme_at(repo / "seal", "# seal\n\nThis package's own notes.\n")
+        assert optin.home_at(str(repo)) == ""
+        assert not optin.opted_in(str(repo))
+
+    def test_accepts_the_local_root_beside_a_projects_own_seal(self, optin, repo):
+        """A project's own `<repo>/seal/` is passed over, and the local root
+        under the common git directory is the answer: the place first setup
+        keeps the root in such a repository."""
+        readme_at(repo / "seal", "# seal\n")
+        readme_at(repo / ".git" / "seal", optin.MARKER + "\n")
+        assert optin.home_at(str(repo)) == os.path.join(str(repo), ".git", "seal")
+
+
 class Test_home:
     def test_accepts_the_shared_root_where_both_exist(self, optin, repo):
         home(repo)
@@ -270,7 +351,7 @@ class Test_home:
         the worktree's own tree is the repository here."""
         local_home(repo)
         other = linked_worktree(repo, tmp_path)
-        (other / "seal").mkdir()
+        mark_root(other / "seal")
         assert os.path.samefile(optin.home(str(other)), other / "seal")
 
     def test_refuses_a_file_named_seal_under_the_git_directory(self, optin, repo):
@@ -312,13 +393,17 @@ class Test_opted_in:
         assert os.path.samefile(optin.home(str(other)), home)
         assert os.path.samefile(home, repo / ".git" / "seal")
 
-    def test_accepts_the_answer_it_always_gave_without_the_marker(self, optin, repo):
-        """The marker is the whole difference, so removing the condition turns
-        the scratch case red and nothing else moves."""
+    def test_accepts_the_answer_it_always_gave_without_the_scratch_file(
+        self, optin, repo
+    ):
+        """The scratch file is the whole difference, so removing the condition
+        turns the scratch case red and nothing else moves."""
         home(repo)
         assert optin.opted_in(str(repo))
 
-    def test_accepts_a_directory_of_the_markers_name_as_no_marker(self, optin, repo):
+    def test_accepts_a_directory_of_the_scratch_files_name_as_no_opt_out(
+        self, optin, repo
+    ):
         """The signal is an empty FILE, and `os.path.exists` did not say so.
 
         A directory created where the marker used to live turned every gate off
@@ -415,7 +500,7 @@ class Test_opted_in:
             check=True,
             capture_output=True,
         )
-        (other / "seal").mkdir()
+        mark_root(other / "seal")
         assert not optin.opted_in(str(other))
 
 
@@ -474,6 +559,14 @@ class Test_parity_config:
 
 
 class Test_module:
+    def test_the_template_opens_with_the_marker(self, optin):
+        """The template is what first setup and the migration write into a
+        root, so its first line and the constant are one value, pinned here."""
+        with open(
+            os.path.join(ROOT, "templates", "seal-README.md"), encoding="utf-8"
+        ) as f:
+            assert f.readline().rstrip("\r\n") == optin.MARKER
+
     def test_the_move_notice_is_gone(self, optin):
         """Deleted, not muted. A notice with nobody left to warn is a branch that
         runs in no repository and still has to be kept true."""

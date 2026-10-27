@@ -25,7 +25,7 @@ import subprocess
 import sys
 
 import pytest
-from conftest import census_case, load_module, names_path
+from conftest import census_case, load_module, mark_root, names_path
 
 TARGET = "skills/settle/scripts/fold_check.py"
 
@@ -67,7 +67,7 @@ def config_root(tmp_path, rows, policy="docs"):
     table header, with one short document under the policy root."""
     (tmp_path / policy).mkdir()
     (tmp_path / policy / "a.md").write_text("# A\n", encoding="utf-8")
-    (tmp_path / "seal").mkdir()
+    mark_root(tmp_path / "seal")
     table = "".join(f"| {item} | {value} |\n" for item, value in rows)
     (tmp_path / "seal" / "config.md").write_text(
         f"# Repository config\n\n| Item | Value |\n|---|---|\n{table}",
