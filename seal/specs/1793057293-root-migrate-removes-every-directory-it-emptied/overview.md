@@ -15,6 +15,7 @@ it.
 | Divergence | Spec says / code did | Chosen | Grounds |
 |---|---|---|---|
 | What the limit sentence in `move`'s docstring names | *In* item 4: "a directory link or a Windows junction placed under `src` by hand is not something git checks out, and the walk is not guarded against one" / the docstring names only "a Windows junction placed under `src` by hand, which git does not track", which "is walked into, and the empty directories behind it are removed too" | the code | Git tracks a symbolic link, so "git checks out neither" is false for one, and a tracked link is moved by `git mv` with the other files before the walk. An untracked directory link is not entered: `os.walk`'s bottom-up branch says "exclude symlinks to directories if followlinks is False". Its parent's fresh listing names it, so the parent stays. A junction is not a symbolic link to `DirEntry.is_symlink()`, so the walk enters it, which is the limit `plan.md` *Technical context* describes (`phases/phase-2.md`) |
+| Whether S3 stands as a case of its own | `spec.md` S3: "a new case in `Test_run_moves`, seen red against the current walk" / round 1's fix pass deleted `Test_run_moves::test_accepts_an_item_merged_into_one_that_exists_and_takes_away_specs` | the code | S3's two assertions are each held by another case. S1, `Test_move::test_accepts_a_directory_whole_or_file_by_file_into_one_that_exists`, asserts that the merged item's directory is gone. `Test_run_moves::test_accepts_every_unit_and_takes_away_the_emptied_roots` asserts that `run_moves` removes an emptied `specs/`, and that removal is one `os.rmdir` that does not depend on how the item left. Round 1 ran five mutants with S3 left out: the walk's removal, the test that keeps `src`, the `specs/` cleanup, the walk's direction and the fresh listing. All five went red, so no defect was found that only S3 catches (`rounds/round-1.md` finding 1) |
 
 ## Not verified
 
@@ -37,7 +38,7 @@ the hook returns before any walk once its marker is stamped (`spec.md`
 *Out*).
 
 The price of S4 in `.test_durations`. The new case stays unpriced until the
-next refresh from a `tests` run's artifact, as phase 1's S3 does.
+next refresh from a `tests` run's artifact.
 
 ## Fed back into the spec
 

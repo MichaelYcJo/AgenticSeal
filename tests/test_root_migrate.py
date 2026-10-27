@@ -494,19 +494,6 @@ class Test_run_moves:
         assert hook.run_moves(str(proj), hook.moves(str(proj))) == (5, None)
         assert not (proj / ".specseal").exists() and not (proj / "specs").exists()
 
-    def test_accepts_an_item_merged_into_one_that_exists_and_takes_away_specs(
-        self, hook, proj
-    ):
-        """#1018: the item is merged file by file, its directory goes with
-        the files, and `specs/` is then empty and goes too."""
-        git(proj, "rm", "-rq", "specs/notes")
-        commit(proj, "only SpecSeal's work items under specs/")
-        write(proj, f"seal/specs/{ITEM}/spec.md", "# already here\n")
-        assert hook.run_moves(str(proj), hook.moves(str(proj))) == (5, None)
-        assert (proj / "seal" / "specs" / ITEM / "rounds" / "round-1.md").is_file()
-        assert not (proj / "specs" / ITEM).exists(), "the item's directory stayed"
-        assert not (proj / "specs").exists(), "specs/ stayed"
-
     def test_refuses_to_go_past_a_unit_that_stopped_and_counts_what_moved(
         self, hook, proj, monkeypatch
     ):
