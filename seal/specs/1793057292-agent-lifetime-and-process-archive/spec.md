@@ -258,6 +258,26 @@
   section: seal/specs/<work-item-id>/
   from: `broad-gate.md`, `guarantee.md`, and a `handoff.md` or `pr.*.md` where one was written)
   to: `broad-gate.md`, `guarantee.md`, and a `pr.*.md` where one was written)
+- change
+  file: docs/one-root-by-lifetime.md
+  section: Shared or local
+  from: A hygiene workflow left behind in local mode is red forever:
+    `unverified_check.py` runs second and exits 2 for a path that is nowhere,
+    and with no `continue-on-error` the job stops, so `chain_check.py` never runs.
+    Had it run, it would have exited 0 having examined nothing.
+  to: A hygiene workflow left behind in local mode passes having examined
+    nothing: `chain_check.py`, the one record check it runs, finds no root
+    in the tree and exits 0.
+- change
+  file: docs/one-root-by-lifetime.ko.md
+  section: shared 인가 local 인가
+  from: local 모드에 남은 hygiene 워크플로는 영원히 빨간불입니다.
+    `unverified_check.py` 가 두 번째로 돌면서 어디에도 없는 경로에 대해 2 로
+    끝나고, `continue-on-error` 가 없으니 잡이 멈춰 `chain_check.py` 는 돌지
+    않습니다. 돌았다면 아무것도 안 본 채 0 으로 끝났을 것입니다.
+  to: local 모드에 남은 hygiene 워크플로는 아무것도 보지 않은 채 통과합니다.
+    그 워크플로가 돌리는 기록 검사는 `chain_check.py` 하나뿐이고, 트리에서
+    루트를 찾지 못해 0 으로 끝납니다.
 
 ## Removes
 
