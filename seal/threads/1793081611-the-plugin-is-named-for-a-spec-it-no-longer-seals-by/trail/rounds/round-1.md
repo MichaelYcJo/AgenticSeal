@@ -45,7 +45,7 @@ The stamp guarded the 0.3.x move, which created `seal/` in the tree, and local m
 # committed, moves at its own session start.
 ```
 
-answer:
+answer: Taken as proposed in 9ce5c698. `attempted`, `stamp`, `MARKER` and `has_root` are gone, with `Test_attempted`, `Test_stamp`, `Test_has_root` and every `stamped` assertion. `main` lists what the checked-out tree holds at every session start and refuses only over uncommitted work or a linked `seal/specs/`. The docstring's "once per repository" boundary now reads "on any branch", with one limit sentence: a repository that left shared mode for local mode, on a branch cut before that switch, has that branch's `seal/` moved and marked beside the local root, which is how the hooks read it before the rename. `tests/test_root_migrate.py:667-678` is now `Test_main::test_accepts_a_branch_cut_before_the_move_moved_at_its_own_start`: `main` holds one work item, `feat/b` adds a second, the move is committed on `main`, and the start on `feat/b` moves `feat/b`'s item. Seen red at 52656000 with the stamp in place: the start on `feat/b` printed "". `frame/plan.md`'s rejected-alternative premise at line 93, `docs/the-record-layout.md`, the `to:` of its row in `frame/design.md` *Rule changes* and the changelog fragment say "at the session start of each branch whose tree still holds them" in place of "once, at the first session start". `gaps.md` records the stamp's removal as a departure from `frame/design.md` *The migration* and *Removes*. `test_accepts_a_local_root_as_stamped_and_leaves_an_old_branch_alone` became `test_refuses_to_write_the_tree_beside_a_local_root`, run through the real `moves`, because with no stamp the `moving` fixture's 0.3.x units would model a move the real hook never lists.
 
 ### 2. A clone whose tree another person moved keeps `.git/specseal-scratch` and `~/.claude/specseal/`, and the opt-out stops working
 
@@ -79,7 +79,7 @@ What was claimed: `changelog.md:11` says "The migration renames each one it meet
 # Precondition: os.rename within ~/.claude/, one filesystem, as today.
 ```
 
-answer:
+answer: Taken as proposed in 9ce5c698. `main` calls `rename_state(root)` once, right after the root is resolved and before the symbolic-link check, and the two calls inside the moves are gone. A session started outside a repository (`root` of "") merges only `~/.claude/specseal/`. The merge still moves an entry only where its new name is free. `version-check` (`CACHE`) is the one exception: where `~/.claude/agentic/` holds its own, the old copy is removed, so the old directory can go once every other entry has moved. `tests/test_stub_remove.py#test_the_dispatcher_carries_the_message` runs the real session-start group with `HOME` and `USERPROFILE` under the case's own directory. The new case is `Test_rename_state::test_accepts_a_clone_whose_tree_another_person_moved`: a marked root with `seal/threads/` committed, `.git/specseal-scratch`, and an old home holding `pact-paths.md` and `version-check`. One start renames the scratch file, `optin.home_at` answers "", `pact-paths.md` moves, and the old home is gone. A second start changes nothing. Seen red at 52656000: `.git/agentic-scratch` was absent. `test_accepts_the_old_home_state_merged_into_a_new_one_that_stands` now pins an entry both directories hold (`parity-paths.md`, kept in both) apart from the cache (old copy removed). `gaps.md`'s row on the state rename and the changelog fragment's state-file bullet are corrected in place.
 
 ### 3. The bootstrap reads a root an earlier release wrote as the project's own, and puts a second root under the git directory
 
@@ -109,7 +109,7 @@ skills/config/SKILL.md:28, then read "whose `README.md` opens with neither the
 marker nor one of those headings". -->
 ```
 
-answer:
+answer: Fixed in c8032863 and 612a4779, in prose and in code. `skills/implement/orchestration.md` opens the Bootstrap's foreign-root text with the proposed paragraph: the orchestrator creates no root, says the one line, and stops. The next paragraph reads "opens with neither the marker nor one of those headings". `docs/one-root-by-lifetime.md` and its Korean edition say the same in *The opt-in signal is the root itself*. `skills/config/SKILL.md` links that section and sends nobody to the bootstrap; a pasted sentence there failed `tests/test_no_passage_is_pasted_into_a_second_file.py`, so the skill links instead. `templates/seal-README.md`, `seal/README.md` and `hooks/optin.py`'s docstring name the exception too. One code path besides the migration made the bootstrap's choice. With no root in force, `seal.py#destination_root` sends `seal import` to `.git/seal/`, which makes the second root. `seal mode` and `seal pr-checks install` sent the person to first setup. So the headings moved from `hooks/root-migrate.py#OLD_HEADINGS` to `hooks/optin.py#EARLIER_HEADINGS`. `optin.earlier` reads them the way `marked` reads the marker, and `ours` reads the same tuple. `import_`, `no_root` and `install_workflow` print `seal.py#earlier_root` and write nothing. The proposed paragraph names `hooks/optin.py#EARLIER_HEADINGS` in place of `hooks/root-migrate.py#OLD_HEADINGS` for that reason. The new case is `tests/test_seal.py::Test_import_::test_refuses_beside_a_root_an_earlier_release_wrote`, seen red before the wiring: `seal import` exited 0 and wrote `.git/seal/`. `tests/test_first_setup_asks_once.py::test_a_projects_own_seal_gets_nothing_and_the_root_goes_under_the_git_dir` now also pins the new paragraph and its place before the project's-own one. Added paths: `hooks/optin.py`, `skills/implement/scripts/seal.py`.
 
 ### 4. A hygiene workflow pinned before the rename passes every pull request after the move, having examined nothing, and no upgrade text says so
 
@@ -145,7 +145,7 @@ having examined nothing.
 # pinned to an earlier release examines nothing after this move".
 ```
 
-answer:
+answer: Fixed in c8032863. README.md and README.ko.md *Coming from `specseal@specseal`* end with the re-pin step: run `seal pr-checks install` once the session start has moved the records, and commit the rewritten workflow with the move. The prose avoids the old directory's path, which `old_names` refuses outside an exemption a Markdown paragraph cannot carry. The changelog fragment carries the Compatibility bullet. The session-start line names the step too, without guessing. `hooks/root-migrate.py#stale_workflow` loads `seal.py` for its one reader, `workflow_at`. Where that reads `.github/workflows/hygiene.yml` as this plugin's and the clone line is not `PLUGIN_CLONE`, the file was written before the rename. A completed shared move then ends its line with ", and run `seal pr-checks install` with it: the workflow at .github/workflows/hygiene.yml clones a release before the rename, which reads work items under seal/specs/, so after this move it examines nothing and passes every pull request". A `seal.py` that will not load leaves the line as it was. The new case is `Test_main::test_accepts_the_move_naming_the_workflow_an_earlier_release_wrote`. It pins the full line for the old clone line, and the plain line for the new one. Seen red before `stale_workflow` existed: the line ended at "review the diff and commit". Because a hook now loads `seal.py`, `tests/test_launch.py` required `ruff.toml` to lint it at py39, and the `floor_syntax` census then refused its two `datetime.UTC`, which now read `datetime.timezone.utc`. Added paths: `ruff.toml`, `skills/implement/scripts/seal.py`, `README.ko.md`.
 
 ### 5. A work item in flight whose `routing.md` answers `smith` loses the implementer notice after the move
 
@@ -167,7 +167,7 @@ OLD_BY_CRAFTER = "smith"
         implementation = BY_CRAFTER
 ```
 
-answer:
+answer: Taken as proposed in e59460a3. `hooks/routing.py#OLD_BY_CRAFTER` is `smith`, with its `old_names` exemption, and `parse` reads it as `BY_CRAFTER`. Its comment says the next minor release removes the reading, as it removes `chain_check.py#OLD_TRAILER`. `skills/implement/orchestration.md` *What the answer writes* states the reading at the `Implementation` row, naming the constant so the Markdown needs no exemption. The changelog fragment's trailer bullet and `frame/plan.md` *Operational impact* and its failure scenario say 0.24.0 removes the reading with the old key. `gaps.md` row 20 is corrected in place: the row decides whether the implementer notice speaks. The new case is `tests/test_routing.py::Test_parse::test_accepts_the_answer_written_before_the_rename_as_the_crafter`. It was seen red with the constant in place and `parse` unchanged: `assert None == 'crafter'`.
 
 ### 6. The settle orders every moved thread by the move's one commit instead of by its own merge
 
@@ -215,7 +215,7 @@ def order(root, ref, ids, specs="seal/threads"):
     return [(i, first[i]) for i in known] + [(i, None) for i in ids if i not in first]
 ```
 
-answer:
+answer: Taken as proposed in f324a654. `rule_changes.py#EARLIER` is `("seal/specs", "spec.md")`, with its `old_names` exemption. `order` passes both paths to one `git log` and takes each id's first add at either one. A moved thread is placed where its `spec.md` was first added, and a directory moved under a new id still counts where it lands (`test_a_spec_moved_into_place_is_ordered_by_the_commit_that_moved_it` holds). `skills/settle/SKILL.md` *Each group* states the earlier path, and the changelog fragment says moved threads keep their merge order. The new case is `tests/test_settle.py::Test_module::test_merge_order_of_a_moved_thread_is_its_first_add_before_the_move`: `b` is framed under `seal/specs/` before `a`, and both are moved in one commit. It was seen red with `EARLIER` in place and `order` unchanged: `['1700000001-a', '1700000002-b']`. The *Not verified* row of `gaps.md` is removed, since the order no longer depends on a session reading it by hand.
 
 ### 7. Citations of released work items were rewritten to thread paths that no commit has ever held
 
@@ -239,7 +239,7 @@ A path like `seal/specs/1791270165-the-windows-test-leg-is-measured-and-cut/phas
    bare `seal/specs/` refused.
 ```
 
-answer:
+answer: Fixed in b92f7305, in another form than the record proposes. Each citation is `<commit>:seal/specs/<id>/<name>`, the form `git show` opens as written, as `hooks/cmdline_base.py` already cites `86256492:hooks/cmdline.py`. The record's form passes a `seal/specs/<id>/` path whose id has no directory under `seal/threads/`. That reads the tree and still leaves the reader to find the commit. The census `tests/censuses.py#HISTORY_PATH` passes the commit-tied form whole, the record names inside it included, and refuses the bare path. `docs/the-record-layout.md` states the form in place of "resolves at the tag of the release that shipped it". Each commit is the last one holding the path, except where a citation already named a commit: `5f11923f^`, written `62161701`, and `67694cba` are kept. All 22 paths were confirmed by `git cat-file -e`. A truncated id such as `1789455558-…` is written whole, and a path that wrapped across two lines is kept on one. Work item `1787495842-verify-the-unverified` is held by no commit of this repository: the citation was already there in `716d8548 Initial commit`. `skills/verify/scripts/unverified_check.py` names it by id and slug, as a record older than this repository's first commit. `hooks/cmdline_base.py:12` sits above the frozen bytes `tests/test_the_frozen_reading_never_grows.py` holds, and that module passes. The new case is `tests/test_censuses.py::Test_old_names::test_accepts_an_old_path_only_where_a_commit_holds_it`: two lines in the form pass, and a bare path and `HEAD:` are refused. It was seen red before `HISTORY_PATH` existed: lines 1 to 4 were all refused. Its literals were then split, as `"pha" + "ses/..."`, so the case file passes its own census, and that version was run green only. `gaps.md` records the departure.
 
 ## Confirmations
 
