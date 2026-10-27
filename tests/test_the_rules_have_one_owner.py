@@ -188,6 +188,9 @@ def test_the_fix_pass_reads_the_implementers_context_before_it_resumes():
         assert said in section, f"the fix-pass section no longer says {said!r}"
     assert "Orchestrator: a fix pass resumes the implementer" not in text
     assert "never spawn a fresh one while that session still exists" not in text
+
+
+def test_a_draft_is_tolerated_and_still_owes_the_record():
     """#943 stopped telling an orchestrator to open a draft, and did not
     refuse a repository whose people still open one.
 
