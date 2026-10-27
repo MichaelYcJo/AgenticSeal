@@ -34,18 +34,19 @@ otherwise (contract rule 11).
 `spec.md` or `plan.md` before the next smith spawns.** The orchestrator
 rewrites the sentence of the frame the decision changes, where it stands,
 because a smith reads the frame and not the issue's comments. Until the
-decision is folded, `plan.md` carries one line of its own below its approval
-line naming the comments to fold, and the orchestrator deletes that line in
-the commit that folds them. Before the frame is committed, the orchestrator
+decision is folded, the orchestrator keeps one line of its own in `plan.md`
+naming the comments to fold, below the approval line where the plan carries
+one and below the title where it does not, and deletes that line in the
+commit that folds them. Before the frame is committed, the orchestrator
 folds the decision into the issue body instead
 (`docs/issues-and-milestones.md` *An issue is its body and its comments
 together*).
 
 **Where a work item stands is read from `plan.md`'s Status column,
-`overview.md` and the phase records.** The orchestrator writes a
-`handoff.md` in the work item's directory only to move the work to another
-session or another machine, and deletes it once the session that takes the
-work over has read it.
+`overview.md` and the phase records.** The orchestrator that hands the work
+over writes a `handoff.md` in the work item's directory only to move the
+work to another session or another machine. The orchestrator that takes the
+work over deletes it once it has read it.
 
 **A problem that recurs within a run gets a prevention home at once.** When
 the same problem appears a second time in one run, the orchestrator gives it

@@ -342,6 +342,8 @@ def test_a_decision_after_the_frame_is_folded_into_it():
         "A decision made after the frame is committed is folded, in place, into "
         "`spec.md` or `plan.md` before the next smith spawns.",
         "naming the comments to fold",
+        "the orchestrator keeps one line of its own in `plan.md`",
+        "below the title where it does not",
         "folds the decision into the issue body",
     ):
         assert said in order, f"the order no longer says {said!r}"
@@ -356,7 +358,8 @@ def test_a_handoff_file_is_written_only_to_move_the_work():
         "`overview.md` and the phase records.",
         "a `handoff.md` in the work item's directory only to move the work to "
         "another session or another machine",
-        "deletes it once",
+        "The orchestrator that hands the work over writes",
+        "The orchestrator that takes the work over deletes it once",
     ):
         assert said in order, f"the order no longer says {said!r}"
 
