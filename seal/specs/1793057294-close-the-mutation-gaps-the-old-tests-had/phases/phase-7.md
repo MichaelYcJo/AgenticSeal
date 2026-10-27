@@ -196,8 +196,12 @@ fragment are shaped on its `overview.md` and `changelog.md` (`executed`,
 `git ls-tree` at 5daa931f).
 
 **Q5 is the orchestrator's.** This phase adds 24 cases, none of them priced
-in `.test_durations`. The work item adds 184 lines holding `def test_` since
-134d7203 and removes none (`executed`, `git diff 134d7203 HEAD -- tests`).
+in `.test_durations`. At cfdf2e7b the work item's own changes add 171 lines
+holding `def test_` and remove none (`executed`,
+`git diff 5daa931f...cfdf2e7b -- tests`). `git diff 134d7203 cfdf2e7b`
+counts 184, because it also holds the 13 the merge of `release/v0.22.4` at
+95fa9fb7 brought. Review round 1 later removed m6's case and k3's, so 169
+stand at the head (`overview.md` *Not verified*).
 
 **Run for the phase** (`executed`, at cfdf2e7b):
 `bin/test tests/test_close_issues_on_release.py tests/test_label_merged_on_release_branch.py tests/test_tracker_labels.py -q`

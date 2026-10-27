@@ -195,11 +195,11 @@ already cover is not added. With the config, the missing-runner case reaches
 its branch and the mutant still survives, which is how the row was read as
 equivalent.
 
-**Four rows rest on a guarantee their caller gives, and their cases remove it
-(contract rule 13).** Three are git's: `hooks/implementer.py#git_dir` and
+**Three rows rest on a guarantee their caller gives, and their cases remove it
+(contract rule 13).** Two are git's: `hooks/implementer.py#git_dir` and
 `hooks/review-skill-gate.py#git` on a non-zero exit, where the real git
 prints nothing on stdout, so each case fakes a failed git that printed a
-path, as phase 1 did. The fourth is s4 of `hooks/sealer-stamp.py`. Every file
+path, as phase 1 did. The third is s4 of `hooks/sealer-stamp.py`. Every file
 the shipped `seal_stamp.read_values` accepts also draws, because its rows are
 `None` or pairs of strings, and `stamp` draws any such row. So with the
 shipped module the draw before the claim cannot fail, and s4 is equivalent.
