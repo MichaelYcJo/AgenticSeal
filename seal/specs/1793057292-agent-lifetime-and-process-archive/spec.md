@@ -277,6 +277,14 @@
   to: local 모드에 남은 hygiene 워크플로는 아무것도 보지 않은 채 통과합니다.
     그 워크플로가 돌리는 기록 검사는 `chain_check.py` 하나뿐이고, 트리에서
     루트를 찾지 못해 0 으로 끝납니다.
+- change
+  file: docs/the-record-layout.md
+  section: The fold, and what tells it from a deletion
+  from: would read the root's own `specs` path as a typo, turning every
+    pull request after a complete fold red, the shipped `templates/hygiene.yml`
+    included.
+  to: would read the root's own `specs` path as a typo when a person runs it
+    after the fold, and refuse a finished settle.
 
 ## Removes
 
