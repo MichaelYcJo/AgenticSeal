@@ -57,6 +57,9 @@ the same line, and every gate reads a `seal/` whose `README.md` does not open
 with it as a repository that never opted in: a directory the project keeps for
 itself, as a package named `seal` has one. First setup that meets such a
 directory writes nothing into it and keeps the root under the git directory.
+The exception is a `README.md` opening with a heading an earlier release of
+the plugin wrote (`hooks/optin.py#EARLIER_HEADINGS`): that is the earlier
+release's root, and the session-start move writes this file over it.
 Leave the line as it is.
 
 **The throwaway opt-out is the file `.git/agentic-scratch`, and it cannot be

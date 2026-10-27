@@ -9,7 +9,9 @@ opening with `MARKER`: `<repo>/seal/`, which shared mode commits, then
 `<git-common-dir>/seal/`, where local mode keeps it (#80). One root, read one
 way, and no config key (`docs/one-root-by-lifetime.md`, "The opt-in signal
 is the root itself"). A `seal/` without the marker is a directory the project
-keeps for itself, as a package named `seal` does, and declares nothing.
+keeps for itself, as a package named `seal` does, and declares nothing,
+except one whose README opens with one of `EARLIER_HEADINGS`: an earlier
+release's root, waiting for its move, which declares nothing either.
 
 `<git-common-dir>/agentic-scratch` takes that declaration back. A repository
 that exists for thirty seconds — a fixture built by hand to reproduce a gate
