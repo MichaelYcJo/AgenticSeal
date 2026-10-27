@@ -58,18 +58,21 @@
      as the section's repair path already says.
    - `skills/implement/orchestration.md` *Orchestrator: the order inside a
      ticket*: a decision made after the frame is committed is folded, in
-     place, into `spec.md` or `plan.md` before the next smith spawns. Until
-     it is folded, `plan.md` carries one line naming the comments to fold.
-     Before framing, the decision is folded into the issue body
-     (`## Rule changes`, the `docs/issues-and-milestones.md` item).
+     place, into `spec.md` or `plan.md` before the next smith spawns, by the
+     orchestrator. Until it is folded, the orchestrator keeps one line in
+     `plan.md` naming the comments to fold, below the approval line or, where
+     the plan has none yet, below the title. Before framing, the decision is
+     folded into the issue body (`## Rule changes`, the
+     `docs/issues-and-milestones.md` item).
    - Same section: where a work item stands is `plan.md`'s Status column,
-     `overview.md` and the phase records. A `handoff.md` is written only to
-     move the work to another session or machine, and deleted once the move
-     is done.
+     `overview.md` and the phase records. The orchestrator that hands the
+     work over writes a `handoff.md` only to move the work to another session
+     or machine, and the orchestrator that takes it over deletes it once read.
    - Same section: when a problem recurs within a run, the orchestrator gives
-     it a prevention home at once, as a mechanism or as a rule in the work
-     item that rewrites the file the act is read from, and records that on
-     that work item's issue.
+     it a prevention home at once, before the next spawn, as a mechanism or as
+     a rule in the file the act is read from. The work item in progress
+     builds that home, and the orchestrator records it on that work item's
+     issue (round 1 findings 5 and 6).
 5. **The audit of the re-checks this ticket owns.** Each verdict's grounds
    are in `plan.md` *Alternatives considered*.
    - **The orchestrator's re-run of each hand-back is deleted.** Its one

@@ -26,7 +26,6 @@ release can record how the way of working changed in `seal/process/`.
 | The cases on Linux and Windows: every case of this work item ran on macOS only, and the removed step ran on `ubuntu-latest` | the orchestrator, from the `tests` workflow's legs on the branch or the pull request |
 | The framer's line in `agents/framer.md` step 4: S14 names no case, and no case pins the line | the warden, at round 1 |
 | The sentence that the orchestrator deletes the `plan.md` line naming the comments to fold, in the commit that folds them: no case pins it | the warden, at round 1 |
-| Which work item the prevention-home rule's "a rule in the work item that rewrites the file the act is read from" and "that work item's issue" name: the one in progress, or whichever work item rewrites that file. `skills/implement/orchestration.md` copies *Scope* item 4's words, which carry both readings | the orchestrator, who folds the answer into the frame |
 
 ## Not done
 
