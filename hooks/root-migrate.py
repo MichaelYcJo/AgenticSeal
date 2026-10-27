@@ -39,7 +39,12 @@ Boundaries, each pinned in `tests/test_root_migrate.py`:
     limit, not guarded: in a repository that left shared mode for local mode,
     a branch cut before that switch has its own `seal/` moved and marked
     beside the local root, and the hooks read it first, as they read it
-    before the rename
+    before the rename. A second limit, not guarded: nothing reads where HEAD
+    points, so a session start on a detached HEAD (a tag, an old commit, a
+    bisect step, a rebase stopped on a conflict) or during a merge,
+    cherry-pick or revert stages the move there as well, and the commit that
+    operation makes carries it. A session in this plugin's flow starts on its
+    work item's own branch, so the flow does not produce that shape
   - **a stopped move resumes** — a step that fails stops the run and prints
     what moved and what did not; the next session start moves what remains
   - **silent when there is nothing to do**
