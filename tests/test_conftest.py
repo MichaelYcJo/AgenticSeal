@@ -28,6 +28,7 @@ each refusing case red by breaking the condition it pins.
 import json
 import ntpath
 import os
+import pathlib
 import shutil
 import subprocess
 import sys
@@ -231,8 +232,141 @@ class Test_decline_if_shrunken:
 
     def test_refuses_to_decline_when_nothing_is_missing(self):
         """The guard must not turn a check off on a whole tree, which is the one
-        way this repair could report less than the crash it replaces."""
-        assert decline_if_shrunken([], "x") is None
+        way this repair could report less than the crash it replaces. A skip
+        raised here would end this case as skipped, which a run reads as no
+        failure, so the case catches the skip and fails on it."""
+        try:
+            declined = decline_if_shrunken([], "x")
+        except pytest.skip.Exception as skipped:
+            pytest.fail(f"declined a tree with nothing missing: {skipped}")
+        assert declined is None
+
+
+class Test_read:
+    def test_accepts_an_absolute_path_where_it_stands(self, tmp_path):
+        path = tmp_path / "a.md"
+        path.write_text("absolute\n", encoding="utf-8")
+        assert conftest.read(str(path)) == "absolute\n"
+
+    def test_refuses_the_working_directorys_file_for_the_roots(
+        self, tmp_path, monkeypatch
+    ):
+        """Run from a directory that is not the repository root, as a case
+        driven by bare `pytest` from elsewhere is: a relative path is still the
+        root's file, never the one of that name beside the working directory."""
+        (tmp_path / "CLAUDE.md").write_text("a decoy\n", encoding="utf-8")
+        monkeypatch.chdir(tmp_path)
+        with open(os.path.join(ROOT, "CLAUDE.md"), encoding="utf-8") as handle:
+            assert conftest.read("CLAUDE.md") == handle.read()
+
+
+class Test_repo_relative:
+    def test_accepts_a_file_at_the_root_as_its_name(self):
+        assert conftest.repo_relative(os.path.join(ROOT, "CLAUDE.md")) == "CLAUDE.md"
+
+    def test_refuses_to_drop_the_directories_of_a_nested_path(self):
+        nested = os.path.join(ROOT, "tests", "conftest.py")
+        assert conftest.repo_relative(nested) == "tests/conftest.py"
+
+
+class Test_git:
+    def test_accepts_a_failing_call_with_checking_off_as_its_process(self, tmp_path):
+        """A repository with no commit has no HEAD to verify."""
+        conftest.git(tmp_path, "init", "-q")
+        done = conftest.git(tmp_path, "rev-parse", "--verify", "HEAD", check=False)
+        assert done.returncode != 0
+
+    def test_refuses_a_failing_call_by_default(self, tmp_path):
+        conftest.git(tmp_path, "init", "-q")
+        with pytest.raises(subprocess.CalledProcessError):
+            conftest.git(tmp_path, "rev-parse", "--verify", "HEAD")
+
+
+IDENTITY_VARIABLES = (
+    "GIT_AUTHOR_NAME",
+    "GIT_AUTHOR_EMAIL",
+    "GIT_COMMITTER_NAME",
+    "GIT_COMMITTER_EMAIL",
+)
+
+
+class Test_commit_everything_as_e:
+    def test_accepts_a_commit_by_e_in_a_repository_of_another_identity(
+        self, tmp_path, monkeypatch
+    ):
+        """The repository's own identity is `t`, and an identity in the
+        environment would win over both, so the case removes it."""
+        for name in IDENTITY_VARIABLES:
+            monkeypatch.delenv(name, raising=False)
+        repo = conftest.git_repo(tmp_path / "r")
+        (repo / "g.txt").write_text("two\n", encoding="utf-8")
+        head = conftest.commit_everything_as_e(repo, "two")
+        assert conftest.git_out(repo, "log", "-1", "--format=%an <%ae>", head) == (
+            "e <e@example.com>"
+        )
+
+    def test_refuses_a_tree_with_nothing_to_commit(self, tmp_path):
+        repo = conftest.git_repo(tmp_path / "r")
+        with pytest.raises(subprocess.CalledProcessError):
+            conftest.commit_everything_as_e(repo, "nothing")
+
+
+class Test_imported_roots:
+    def test_accepts_the_top_level_name_of_each_import(self, tmp_path):
+        path = tmp_path / "m.py"
+        path.write_text(
+            "import os.path\nimport a.b as c\nfrom json import dumps\n",
+            encoding="utf-8",
+        )
+        assert conftest.imported_roots(path) == {"os", "a", "json"}
+
+    def test_refuses_a_relative_import_as_a_name(self, tmp_path):
+        """Each relative import is `.`, the one root that names no module."""
+        path = tmp_path / "m.py"
+        path.write_text("from . import x\nfrom .y import z\n", encoding="utf-8")
+        assert conftest.imported_roots(path) == {"."}
+
+
+class Test_q:
+    def test_accepts_a_path_object_as_its_plain_text(self):
+        """A path is read as its text first: `shlex.quote` takes no path."""
+        assert conftest.q(pathlib.PurePosixPath("dir/plain")) == "dir/plain"
+
+    def test_refuses_a_space_unquoted(self):
+        assert conftest.q("a b") == "'a b'"
+
+
+class _Guard:
+    """A stand-in for a loaded worktree guard: `main` prints OUT, then exits
+    as the hook does. `sessions_in_tree` and `load_input` are what
+    `guard_decision` replaces."""
+
+    def __init__(self, out=""):
+        self.out = out
+        self.sessions_in_tree = self.load_input = None
+
+    def main(self):
+        if self.out:
+            print(self.out)
+        sys.exit(0)
+
+
+class Test_guard_decision:
+    def test_accepts_the_guards_decision_and_reason(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        decided = {"permissionDecision": "ask", "permissionDecisionReason": "why"}
+        guard = _Guard(json.dumps({"hookSpecificOutput": decided}))
+        found = conftest.guard_decision(guard, monkeypatch, capsys, tmp_path, "ls")
+        assert found == ("ask", "why")
+
+    def test_refuses_a_guard_that_prints_nothing_as_anything_but_silent(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """A guard that says nothing allows the command, and the cases tell
+        that apart from a decision by the word `silent`."""
+        found = conftest.guard_decision(_Guard(), monkeypatch, capsys, tmp_path, "ls")
+        assert found == ("silent", "")
 
 
 class Test_module:
