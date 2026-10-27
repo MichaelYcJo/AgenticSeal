@@ -371,9 +371,7 @@ def test_the_preset_block_states_the_rule_the_loaded_files_assume():
 # --- 1790815611: the record arms run before the sealer is spawned (#638) -------
 
 PREFLIGHT = "broad-gate --preflight"
-SPAWN_SECTION = (
-    "Orchestrator: the pull request opens once the sealer seals, and a phase is re-run"
-)
+SPAWN_SECTION = "Orchestrator: the pull request opens once the sealer seals"
 
 
 def section(text, heading):

@@ -446,11 +446,13 @@ An unmarked row counts open, so the silent direction is "still open", except
 for an open item whose own text begins with the word `closed`, which reads as
 closed and which only a reader catches: word such an item to open with
 another word. A bare `closed` with nothing after it is refused the same way a
-ticked checkbox is. Deleting the row — or the whole file — fails the next pull
-request (`unverified-check --baseline origin/<base>`), which is what keeps "I
-verified it" and "I tidied it away" from being the same edit.
+ticked checkbox is. No check at the pull request refuses a deleted row, or a
+deleted file: the warden reads the overview's diff, where a row that left
+without the word `closed` shows, and `unverified-check --baseline
+origin/<base>`, run by a person, names each one. That reading is what keeps
+"I verified it" and "I tidied it away" from being the same edit.
 
-What that check reads is the **number** of rows, not their text. So the second
+What the command reads is the **number** of rows, not their text. So the second
 cell saying what closed the item is a convention it cannot enforce: swapping
 one row for another keeps the count and passes. Leaving the original answerer
 in place beside the word is how a closing goes out unproven, and only a
@@ -495,8 +497,8 @@ party `routing.md`'s `Implementation` row names: the orchestrator opens the
 pull request, and every commit after the broad run, a `seal/follow-up.md` row
 among them, leaves `broad-gate.md` stale for the sealer
 (`skills/code-review/orchestration.md` *Orchestrator: the pull request opens
-once the sealer seals, and a phase is re-run*). A row is out when it stands
-at its destination below:
+once the sealer seals*). A row is out when it stands at its destination
+below:
 
 | Remaining item | Destination |
 |---|---|

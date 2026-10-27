@@ -3631,10 +3631,10 @@ class Test_main:
         # for the warden. A column pinned only at zero is a column that could be
         # printing anything.
         assert re.search(
-            r"^  specseal:smith\s+0\.3m\s+2\s+[\d.]+\s+\d+s\s+1,000$", out, re.M
+            r"^  specseal:smith\s+0\.3m\s+2\s+[\d.]+\s+\d+s\s+1,000\s+300$", out, re.M
         ), out
         assert re.search(
-            r"^  specseal:warden\s+0\.0m\s+1\s+[\d.]+\s+\d+s\s+40$", out, re.M
+            r"^  specseal:warden\s+0\.0m\s+1\s+[\d.]+\s+\d+s\s+40\s+40$", out, re.M
         ), out
 
     def test_the_segment_report_names_the_tolerance_it_joined_within(
@@ -6057,6 +6057,135 @@ class Test_family:
         module = load_script()
         for command in ("cd /x", "echo hi", "W=1", "true", "cd /x && pwd"):
             assert module.family(command) == "other", command
+
+
+# --- #945: the largest context any one turn read ----------------------------
+#
+# A resumed agent pays its whole earlier context again on every turn, so its
+# largest turn is what tells a resume worth taking from one that is not. The
+# column reads every assistant message once, with all three input fields,
+# beside `load`'s `turns` rather than through it.
+
+
+def context_turn(second, uid, message_id=None, **usage):
+    """One call-carrying assistant row with its `usage` written field by
+    field, and the call's result a second later.
+
+    The fields are passed under the harness's own names, so a case can set
+    exactly the one a reader might leave out."""
+    return [
+        at(stamp_at(second), [use(uid, "pytest -q")], message_id or f"c-{uid}", usage),
+        plain_result(second + 1, uid),
+    ]
+
+
+class Test_largest_context:
+    def test_accepts_a_segments_largest_turn_as_a_json_key_and_a_column(
+        self, run_with_segments
+    ):
+        """S1. The smith's file holds turns of 0 and 300 (a cache write), the
+        warden's one of 40 (a cache read). Each row carries its largest under
+        one key, and the page names the column and says what it reads."""
+        rows = segments_of(run_with_segments)["rows"]
+        assert [row["largest_context"] for row in rows] == [300, 40], rows
+        out = segment_report(run_with_segments)
+        assert re.search(r"^  agent\s.*\stokens\s+context$", out, re.M), out
+        flat = " ".join(out.split())
+        assert (
+            "context the largest input any one turn read: the tokens sent fresh, "
+            "written to the cache and read from it" in flat
+        ), flat
+
+    def test_accepts_a_message_split_over_rows_once(self, tmp_path):
+        """S2. A harness writes one message as one row per content block and
+        repeats the usage on each, so a message counts once by its key: 1,150
+        for the split message, not twice that."""
+        usage = {
+            "input_tokens": 100,
+            "cache_creation_input_tokens": 50,
+            "cache_read_input_tokens": 1000,
+        }
+        lines = [
+            at(stamp_at(0), [use("a", "pytest -q")], "split", usage),
+            at(stamp_at(0), [use("b", "git status")], "split", usage),
+            plain_result(1, "a"),
+            plain_result(1, "b"),
+            *context_turn(5, "c", cache_read_input_tokens=900),
+        ]
+        path = tmp_path / "t.jsonl"
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        assert load_script().largest_context(str(path)) == [1150]
+
+    def test_accepts_every_input_field_of_a_turn(self, tmp_path):
+        """S2. A turn's context is the tokens sent fresh, written to the cache
+        and read from it. `load`'s `turns` leave the cache write out, which is
+        why the column does not read them: 327 here, never 307."""
+        lines = context_turn(
+            0,
+            "a",
+            input_tokens=7,
+            cache_creation_input_tokens=20,
+            cache_read_input_tokens=300,
+        )
+        path = tmp_path / "t.jsonl"
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        assert load_script().largest_context(str(path)) == [327]
+
+    def test_accepts_a_turn_that_called_no_tool(self, tmp_path):
+        """S2. A message that answers in text and calls nothing is still one
+        model call that read its whole context, so it counts where `load`'s
+        `turns` would drop it."""
+        lines = [
+            *context_turn(0, "a", cache_read_input_tokens=500),
+            at(
+                stamp_at(5),
+                [{"type": "text", "text": "."}],
+                "said",
+                {"cache_read_input_tokens": 800},
+            ),
+        ]
+        path = tmp_path / "t.jsonl"
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        assert load_script().largest_context(str(path)) == [800]
+
+    def test_accepts_each_slice_of_a_resumed_file_as_its_own(self, tmp_path):
+        """S3. A resumed file's slices each print the largest turn inside
+        them, walked from the run or given as the agent's own file: 900 and
+        400, never the file's 900 on both."""
+        path = write_run(
+            tmp_path,
+            call("a", 0, 10, "git status --short")
+            + spawn("A", 25, 625, "specseal:smith", "Build phase 1"),
+            {
+                "agent-smith.jsonl": [
+                    *context_turn(625, "s1", cache_read_input_tokens=900),
+                    *context_turn(640, "s2", cache_read_input_tokens=100),
+                    coordinator_message(9000),
+                    *context_turn(9010, "s3", cache_read_input_tokens=400),
+                ]
+            },
+        )
+        walked = [row["largest_context"] for row in segments_of(path)["rows"]]
+        own = [row["largest_context"] for row in segments_of(own_file(path))["rows"]]
+        assert walked == own == [900, 400], (walked, own)
+
+    def test_refuses_a_zero_for_a_slice_that_holds_no_assistant_message(self, tmp_path):
+        """S3. A slice whose call was written with no `usage` block has no
+        turn to read, so it carries None and prints a dash: a zero would read
+        as a turn that sent nothing."""
+        path = tmp_path / "agent-smith.jsonl"
+        lines = [
+            *context_turn(625, "s1", cache_read_input_tokens=900),
+            coordinator_message(9000),
+            at(stamp_at(9010), [use("s2", "pytest -q")], "bare"),
+            plain_result(9011, "s2"),
+        ]
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        rows = segments_of(path)["rows"]
+        assert [row["largest_context"] for row in rows] == [900, None], rows
+        out = segment_report(path)
+        assert re.search(r"^  agent-smith\.jsonl  1/2\s.*\s900$", out, re.M), out
+        assert re.search(r"^  agent-smith\.jsonl  2/2\s.*\s—\s+—$", out, re.M), out
 
 
 class Test_module:

@@ -140,7 +140,7 @@ WORKFLOW = (
     "name: hygiene\non: pull_request\njobs:\n"
     "  lint:\n    steps:\n      - name: not a release step\n"
     "  release:\n    steps:\n"
-    "      - name: the unverified record is readable, and rows leave it closed\n"
+    "      - name: a declared review chain has the round record it claimed\n"
     "      - name: 'a change to what ships must move the version'\n"
     "      - name: both READMEs move together\n"
     "      - name: a step nobody classified\n"
@@ -1687,7 +1687,7 @@ class Test_unquote:
 class Test_job_steps:
     def test_accepts_the_named_steps_of_one_job(self):
         assert gate.job_steps(WORKFLOW, "release") == [
-            "the unverified record is readable, and rows leave it closed",
+            "a declared review chain has the round record it claimed",
             "a change to what ships must move the version",
             "both READMEs move together",
             "a step nobody classified",
@@ -1808,7 +1808,7 @@ class Test_unanswered:
         ]
 
     def test_refuses_a_mirrored_step(self):
-        assert gate.mirrored()[gate.job_steps(WORKFLOW, "release")[0]] == "unverified"
+        assert gate.mirrored()[gate.job_steps(WORKFLOW, "release")[0]] == "chain"
         assert gate.job_steps(WORKFLOW, "release")[0] not in gate.unanswered(
             WORKFLOW, "release/v1"
         )
@@ -2179,8 +2179,8 @@ class Test_failed_form:
         ]
 
     def test_refuses_to_set_a_long_name_a_column_out(self):
-        form = gate.failed_form("c", "a", [("unverified", ["u"]), ("suite", [])])
-        assert form[2:] == ["  unverified u", "  suite      (no output)"]
+        form = gate.failed_form("c", "a", [("longer-arm", ["u"]), ("suite", [])])
+        assert form[2:] == ["  longer-arm u", "  suite      (no output)"]
 
 
 class Test_report_lines:
@@ -2345,12 +2345,13 @@ class Test_gate:
         ]
         assert "suite   ✓ 1 passed" in lines
         assert lines[-1] == gate.CELL_UNCOMMITTED.format(path=RECORD_REL)
-        for name in ("suite", "unverified", "chain", "mode"):
+        for name in ("suite", "chain", "mode"):
             assert (keep / f"{name}.txt").is_file(), name
+        # The unverified record's arm left with #945, and no run asks it.
+        assert not (keep / "unverified.txt").exists()
+        assert "unverified" not in out.stdout
         chain_kept = (keep / "chain.txt").read_text(encoding="utf-8")
         assert f"--baseline {base} --root" in chain_kept.splitlines()[0]
-        unverified_kept = (keep / "unverified.txt").read_text(encoding="utf-8")
-        assert f"--baseline {base} " in unverified_kept.splitlines()[0]
         # The gate draws nothing and queues no stamp (#975).
         assert not (repo / ".git" / "specseal-stamp").exists()
         cell = (repo / ITEM / "broad-gate.md").read_text(encoding="utf-8")

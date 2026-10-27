@@ -31,9 +31,9 @@ has to guess, and one who reaches for the record does not.
 `skills/verify/SKILL.md` are the whole of the run.** No agent runs it:
 `broad-gate --base <base> --record <item>` is the command the orchestrator
 types, with nothing else running, and `skills/code-review/orchestration.md`
-*Orchestrator: the pull request opens once the sealer seals, and a phase is
-re-run* owns when, before the sealer is spawned. The run judges no failure
-and fixes none; the sealer reads its record, and what it guarantees after it
+*Orchestrator: the pull request opens once the sealer seals* owns when,
+before the sealer is spawned. The run judges no failure and fixes none; the
+sealer reads its record, and what it guarantees after it
 is `docs/the-review-record.md` *The guarantee*. `broad-gate --preflight`,
 which the orchestrator runs before the broad run, is not this run: it runs
 the gate's record arms, runs no suite, and writes nothing.
@@ -45,8 +45,8 @@ Moving it ahead of the rounds means paying it twice.
 **Which base, and it is the one the merge is judged by.** The gate resolves
 `--base` once, before anything runs, to the ref CI will read: the base's
 upstream where the checkout declares one, else `origin/<base>`, else the ref
-as given. Every check it runs takes that one commit: the two baselines, the
-scratch worktree the base comparison checks out, and `broad-gate.md`. A plain
+as given. Every check it runs takes that one commit: the chain check's
+baseline, the scratch worktree the base comparison checks out, and `broad-gate.md`. A plain
 branch name is a LOCAL ref and a runner has no local branches, so a checkout
 one commit behind its remote would pass green where CI refuses the same
 commit. Where resolving moves the answer the gate prints one line naming both
@@ -235,8 +235,9 @@ segment that just finished, not as a follow-up someone might do later:
    walks every segment beside it (a subagent's transcript lives under
    `~/.claude/projects/<project-dir>/<session-id>/subagents/agent-*.jsonl`),
    joins each to the spawn whose result it opened at, and prints one row per
-   segment: the agent, its own span, calls, tools per turn, mean gap and
-   tokens, and, under the table, which rows sit under their kind's bar.
+   segment: the agent, its own span, calls, tools per turn, mean gap,
+   tokens and the largest context any one turn read, and, under the table,
+   which rows sit under their kind's bar.
 
    **A segment's own span is the number no other mode has.** A cycle row's
    `delegated` is the spawn call's own interval, and where a harness writes
