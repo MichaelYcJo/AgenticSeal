@@ -1,7 +1,7 @@
 {
   "name": "specseal",
   "displayName": "SpecSeal",
-  "version": "0.22.3",
+  "version": "0.22.4",
   "description": "SpecSeal — specs, sealed: an implement/review agent chain with hook enforcement, rules that name the tests holding them, and a tool-agnostic review handoff protocol.",
   "author": {
     "name": "MichaelYcJo"
