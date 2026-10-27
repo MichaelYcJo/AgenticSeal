@@ -56,10 +56,11 @@ edited at its first line reads as a project's own and is not moved.
 session-start group with the machine's own `HOME`, so a rename at every
 session start would have moved the installed plugin's `~/.claude/specseal/`
 during this run. `rename_state` runs inside a move that has units. The same
-runs already write the once-per-repository stamp into the real state
-directory, now `~/.claude/agentic/`, and a directory that exists there
-before a real migration keeps `~/.claude/specseal/` from being renamed on a
-developer's machine. That is a leftover for `seal/follow-up.md`.
+runs write `version-check` and the stamp into the real `~/.claude/agentic/`,
+and so does a session start of this release before any move. Renamed
+whole, `~/.claude/specseal/` was then never moved on such a machine, so the
+fix pass merges it entry by entry into the directory that stands
+(`gaps.md` holds why).
 
 **Where the readers stopped matching once the names moved.** `settle`'s
 citation pattern read `specs/<id>/` and now reads `threads/<id>/`; a
@@ -85,10 +86,15 @@ then moves them on; `tests/test_the_root_migrates_itself.py` refuses a
 sentence in that section naming a session start, so the section does not
 say so.
 
-**A module that fails at the base too.** Three cases of
-`tests/test_a_shrunken_corpus_declines_to_judge.py` fail at `2b0c162f` as
-they do here, over `tests/test_the_root_migrates_itself.py`, which this
-phase did not change.
+**Three cases phase 1 turned red.** Three cases of
+`tests/test_a_shrunken_corpus_declines_to_judge.py` failed here, and this
+record first called them failing at the base, from a run at `2b0c162f`,
+which is this branch's own phase 1 commit and not the base. At main they
+pass. Phase 1 renamed
+`tests/test_the_root_migrates_itself.py`'s by-hand case to
+`test_the_readmes_by_hand_sequence_yields_the_layout_the_plugin_reads` and
+left its old name in that module's `LISTS_A_FIXTURE` table; the fix pass
+moves the entry to the new name.
 
 **This work item is read at its new place.** After the move, the tree's
 `chain_check.py --baseline main` reads the declaration at
