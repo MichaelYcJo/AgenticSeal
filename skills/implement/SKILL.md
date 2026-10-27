@@ -495,8 +495,8 @@ party `routing.md`'s `Implementation` row names: the orchestrator opens the
 pull request, and every commit after the broad run, a `seal/follow-up.md` row
 among them, leaves `broad-gate.md` stale for the sealer
 (`skills/code-review/orchestration.md` *Orchestrator: the pull request opens
-once the sealer seals, and a phase is re-run*). A row is out when it stands
-at its destination below:
+once the sealer seals*). A row is out when it stands at its destination
+below:
 
 | Remaining item | Destination |
 |---|---|

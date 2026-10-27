@@ -31,9 +31,9 @@ has to guess, and one who reaches for the record does not.
 `skills/verify/SKILL.md` are the whole of the run.** No agent runs it:
 `broad-gate --base <base> --record <item>` is the command the orchestrator
 types, with nothing else running, and `skills/code-review/orchestration.md`
-*Orchestrator: the pull request opens once the sealer seals, and a phase is
-re-run* owns when, before the sealer is spawned. The run judges no failure
-and fixes none; the sealer reads its record, and what it guarantees after it
+*Orchestrator: the pull request opens once the sealer seals* owns when,
+before the sealer is spawned. The run judges no failure and fixes none; the
+sealer reads its record, and what it guarantees after it
 is `docs/the-review-record.md` *The guarantee*. `broad-gate --preflight`,
 which the orchestrator runs before the broad run, is not this run: it runs
 the gate's record arms, runs no suite, and writes nothing.

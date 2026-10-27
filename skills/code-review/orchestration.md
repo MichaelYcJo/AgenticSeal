@@ -2,8 +2,9 @@
 
 This file is the orchestrator's: the session that spawns the warden and the
 smith for each round, verifies what they report and opens the pull request.
-It holds the procedure for **running** a review run: obtaining a fix pass,
-ending the run, opening the pull request, and verifying the warden's report.
+It holds the procedure for **running** a review run: spawning each phase's
+smith, obtaining a fix pass, ending the run, opening the pull request, and
+verifying the warden's report.
 
 `skills/code-review/SKILL.md` is the other half and holds the review itself:
 the two stages, the comparison axes, the probe rules, the cross-session
@@ -14,18 +15,39 @@ Every `##` heading here opens with `Orchestrator:`, and
 `skills/implement/orchestration.md` *Orchestrator: which of these acts runs
 itself* lists each act with what notices when it is skipped.
 
-## Orchestrator: a fix pass resumes the implementer
+## Orchestrator: a phase is a fresh smith, and a fix pass resumes the implementer
 
-**You obtain the fix pass for a round's findings by resuming the session that
-built the branch, and never spawn a fresh one while that session still
-exists.** The resumed session's context already holds what the fixes need:
-the files it wrote, the tests it ran, the grounds it recorded. A fresh spawn
-holds none of it and re-establishes all of it before the first fix lands.
+**Each phase of a work item is built by a fresh `smith` spawn, and the
+orchestrator never resumes a smith across a phase boundary.** The
+orchestrator hands the fresh smith the phase records the earlier phases
+wrote, `phases/phase-N.md`, and a brief in the shape of
+`docs/the-review-record.md` *The handoff*: coordinates rather than prose,
+each fact labelled. A phase record is written to carry what one phase found
+to the next, and a resumed smith pays its whole earlier context again on
+every turn to hold what the record already holds.
 
-When the implementing session no longer exists, on a new day or another
-machine, the fresh spawn is the only option left, and you hand it the handoff
-(`docs/the-review-record.md` *The handoff*): coordinates rather than prose,
-each fact labelled. An orchestrator in a new session holds no `automation`
+**A fix pass resumes the implementer only while the implementer's largest
+per-turn context is below 806,241 tokens, and is a fresh `smith` spawn
+otherwise.** The implementer is the smith that wrote the last commit the
+round reviewed. Before the fix pass, the orchestrator runs
+`session-cost --segments <the implementer's agent-*.jsonl>` on the
+implementer's own transcript, the file the harness's task output named, and
+reads the largest value of its `context` column. Below the threshold, the
+orchestrator resumes the implementer, whose context already holds the files
+it wrote, the tests it ran and the grounds it recorded. At the threshold or
+above it, the orchestrator spawns a fresh smith and hands it the round record
+and the phase records. The threshold is the largest context a fresh,
+never-resumed smith reached in the 0.22.0 run, read with
+`session-cost --segments` over that run's transcripts (#945), so a resumed
+implementer past it holds more context than any fresh build of that run
+needed. The column reads the largest turn, so a compaction that shrank the
+implementer's context does not lower the reading: the orchestrator then
+spawns fresh where a resume was possible, which costs calls and never a
+wrong tree.
+
+A fix pass also takes a fresh spawn where the implementer's session no
+longer exists, on a new day or another machine, and the orchestrator hands it
+the same records. An orchestrator in a new session holds no `automation`
 press until it puts question 1 through `AskUserQuestion` again, so it does
 that before the spawn (`skills/implement/orchestration.md` *Question 1*).
 
@@ -134,7 +156,7 @@ The framer's route:
 | The framer | spawned again with the run's round records as its input; they are in the tree, so the prompt names them and carries nothing else. It rewrites `plan.md` (new phase rows; a closed phase keeps its commit) and `spec.md` where the scope moves, and adds `Reframed <date> by <who>, after round <N>.` under the `Framed` line. Where `routing.md` answers `Automation` with `yes`, the spawn asks nobody |
 | The redesign | you approve it when you spawn `smith` for it, with a second `Approved` line in `plan.md` on a line of its own, in the shape `skills/implement/orchestration.md` *The plan is approved at the spawn* states; it is then built and reviewed, and its first finding round starts the cap's count again |
 
-## Orchestrator: the pull request opens once the sealer seals, and a phase is re-run
+## Orchestrator: the pull request opens once the sealer seals
 
 **The pull request opens ready, once the sealer has sealed, and CI runs
 then.** Where `Destination` reads `open the pull request`, push the branch as
@@ -144,6 +166,26 @@ pushed, and the branch is handed back committed and unpushed. Once
 `guarantee.md` reading `sealed` is committed, open the pull request with the
 body the sealer read, `gh pr create --body-file <that file>`. CI runs then,
 and again on every push to it.
+
+**After the pull request opens, and after each push to it, the orchestrator
+reads `gh pr view <N> --json mergeable` before it waits on CI.**
+`CONFLICTING` means GitHub made no merge ref for the pull request and runs no
+`pull_request` CI on it, and nothing else says so. `UNKNOWN` means GitHub
+has not computed the answer yet, and the orchestrator reads it again.
+`MERGEABLE` is the answer under which the orchestrator waits on CI.
+
+**A conflict with the base is integrated by merging the base into the
+branch, never by a rebase.** A rebase orphans the commits every round record
+names on its `target:` line (`docs/release-checklist.md` *0. Before
+starting*). The orchestrator merges once, after the branch whose changes
+conflict with this one has landed on the base. Where the merge resolved a
+conflict in a file outside the work item's records, the orchestrator spawns
+a verifying round on that resolution, because the chain check lists the
+branch's commits with `--no-merges` and reads no merge commit
+(`skills/code-review/scripts/chain_check.py#follows`). The merge moves HEAD
+past `broad-gate.md` and `guarantee.md`, so after the merge, and after that
+verifying round's record is committed where one is owed, the orchestrator
+runs the broad gate again, commits its record and spawns the sealer again.
 
 **Where the work's risk is platform-specific, run the other platforms before
 the broad run.** Line endings, the shell and the Python version are such
@@ -297,16 +339,6 @@ it read, and a round run from a summary either re-reads what the summary
 dropped or trusts it. The record carries the target, the verdicts and the
 probes as the reviewer wrote them, so the fresh session opens the record and
 its coordinates rather than the summary.
-
-**A hand-back's verification claim is a claim.** Before spawning the next
-phase, run the closed phase's suite and the lint of its changed files yourself
-and read the output: a phase that reports green has reported, and a next phase
-built on that report is built on prose. *Orchestrator: verify before posting*
-below says the same of the warden's report. The broad gate still runs once,
-after the rounds settle (contract rule 2); this is the narrow run at each phase
-boundary, and it is yours rather than the smith's. A phase boundary is never
-that moment: the gate comes due when the last round record has no finding
-open, which is a record no phase writes.
 
 ## Orchestrator: verify before posting
 

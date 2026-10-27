@@ -33,8 +33,8 @@ ready.** Every push to an open pull request runs the suite on Linux, macOS and
 Windows, and a branch with no pull request runs nothing. So the branch is
 pushed as often as the contributor likes, and the pull request opens once
 nothing is left to push. `skills/code-review/orchestration.md` *Orchestrator:
-the pull request opens once the sealer seals, and a phase is re-run* owns the
-order a maintainer's run follows.
+the pull request opens once the sealer seals* owns the order a maintainer's
+run follows.
 
 ### What a contribution is asked for
 

@@ -241,17 +241,21 @@ def test_implement_and_the_preset_block_do_not_drift():
 
 
 def test_the_fix_pass_resumes_the_implementer():
-    """A fix pass as a fresh spawn re-establishes what the implementing
-    session already holds. The measurements behind the rule (#33, #29, the
-    #57 chain) are history since #940, and the file states the rule and its
-    reason in the present tense: the resumed session holds what the fixes
-    need, and a fresh spawn holds none of it."""
+    """A fix pass resumes the implementer only below the context threshold
+    (#945). `tests/test_the_rules_have_one_owner.py` pins the rule and the
+    command that reads the context; this pins the reason a resume is worth
+    taking below it, the fresh spawn where the implementer's session is gone,
+    and the limit a compaction leaves."""
     skill = " ".join(read("skills", "code-review", "orchestration.md").split())
-    assert "resuming the session that built the branch" in skill, (
-        "the orchestrator sections lost the sentence saying how the fixing "
-        "session is obtained"
-    )
-    assert "A fresh spawn holds none of it" in skill, "the reason went"
-    assert "the fresh spawn is the only option left" in skill, (
-        "the fallback for a session that no longer exists went"
-    )
+    assert (
+        "whose context already holds the files it wrote, the tests it ran and "
+        "the grounds it recorded" in skill
+    ), "the reason a resume is worth taking below the threshold went"
+    assert (
+        "A fix pass also takes a fresh spawn where the implementer's session no "
+        "longer exists" in skill
+    ), "the fallback for a session that no longer exists went"
+    assert (
+        "a compaction that shrank the implementer's context does not lower the "
+        "reading" in skill
+    ), "the limit a compaction leaves on the reading went"
