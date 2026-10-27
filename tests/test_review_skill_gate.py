@@ -6,14 +6,18 @@ where they expected a spec-compliance review — and only finds out after the
 review has already run. The gate turns that into one prompt beforehand.
 """
 
+import io
 import json
 import os
 import subprocess
+import sys
 
 import pytest
-from conftest import census_case, decision_of, opt_in, run_hook
+from conftest import census_case, decision_of, load_hook_module, opt_in, run_hook
 
 TARGET = "hooks/review-skill-gate.py"
+
+gate = load_hook_module("review-skill-gate.py", "review_skill_gate_for_units")
 
 
 def payload(skill, repo, **extra):
@@ -29,6 +33,23 @@ def payload(skill, repo, **extra):
 
 def run(skill, repo, **extra):
     return run_hook("review-skill-gate.py", payload(skill, repo, **extra))
+
+
+class Test_git:
+    def test_accepts_a_command_and_answers_its_output(self, repo):
+        assert gate.git(["rev-parse", "--git-dir"], str(repo)) == ".git"
+
+    def test_refuses_a_failed_git_whatever_it_printed(self, repo, monkeypatch):
+        """A git that exits non-zero answers nothing, even where it wrote a
+        path, so no marker goes under a directory a failed call named (#1017,
+        the body's `git` row). The real git prints nothing on a failure, so
+        the failure is faked to remove that guarantee (contract rule 13)."""
+
+        def failed(cmd, **kwargs):
+            return subprocess.CompletedProcess(cmd, 128, stdout="/x/.git\n", stderr="")
+
+        monkeypatch.setattr(gate.subprocess, "run", failed)
+        assert gate.git(["rev-parse", "--git-dir"], str(repo)) == ""
 
 
 class Test_main:
@@ -86,6 +107,16 @@ class Test_main:
             decision_of(run_hook("review-skill-gate.py", {"tool_name": "Skill"}))
             == "silent"
         )
+
+    @pytest.mark.parametrize("text", ["[]", '"code-review"', "3"])
+    def test_accepts_a_payload_that_is_no_object_silently(
+        self, text, monkeypatch, capsys
+    ):
+        """JSON that is not an object has no `.get`, and the gate says
+        nothing rather than raising (#1017, the body's payload row)."""
+        monkeypatch.setattr(sys, "stdin", io.StringIO(text))
+        gate.main()
+        assert capsys.readouterr().out == ""
 
     def test_accepts_a_missing_cwd_silently(self, repo):
         assert (
