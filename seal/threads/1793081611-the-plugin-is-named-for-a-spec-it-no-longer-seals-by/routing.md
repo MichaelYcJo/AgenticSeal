@@ -5,7 +5,7 @@
 | Review | through the review chain |
 | Destination | open the pull request |
 | Planning | framer |
-| Implementation | smith |
+| Implementation | crafter |
 | Automation | yes |
 | Answer pressed | automation |
 | Branch | chore/1051-the-plugin-is-named-for-a-spec-it-no-longer-seals-by |
