@@ -62,6 +62,18 @@ removed." is rewritten in place. It now says that every directory under
 `src` last, whichever run emptied it. It says that a directory an ignored
 file holds stays, with every directory above it. The junction limit follows.
 
+**A second limit sentence, from round 1's Not judged row** (`read`). The
+round's row is a directory another process holds open on Windows, where
+`os.rmdir` raises. Its probe simulated that on macOS: the directory and every
+one above it stayed, and nothing raised. The owner's standing direction is
+that an edge the one-issue flow cannot produce gets a limit sentence and no
+guard. So round 1's fix pass added one beside the junction's: where the
+removal of a directory fails, that directory and every one above it stay,
+and nothing is removed by mistake. The "is removed" sentence now names that
+exception with "unless its removal fails". The changelog fragment's
+`Limits` line carries the same sentence. Nothing ran it on Windows
+(`unverified`).
+
 **S4, as built**, is
 `Test_move::test_refuses_to_remove_a_directory_an_ignored_file_holds_under_any_rmdir`.
 It commits a `.gitignore` naming `.DS_Store`, writes

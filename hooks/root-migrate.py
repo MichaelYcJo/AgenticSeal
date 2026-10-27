@@ -358,10 +358,13 @@ def move(root, src, dst):
     to settle (a merge of a branch bootstrapped on the new layout leaves
     exactly that), and is named rather than tried. Then every directory under
     `src` that holds nothing when the walk reaches it is removed, the deepest
-    first and `src` last, whichever run emptied it; one an ignored file holds
-    stays, with every directory above it. A limit, not guarded: a Windows
-    junction placed under `src` by hand, which git does not track, is walked
-    into, and the empty directories behind it are removed too.
+    first and `src` last, whichever run emptied it, unless its removal fails;
+    one an ignored file holds stays, with every directory above it. Two
+    limits, not guarded. A Windows junction placed under `src` by hand, which
+    git does not track, is walked into, and the empty directories behind it
+    are removed too. Where the removal of a directory fails, as on Windows
+    when another process holds it open, that directory and every one above it
+    stay, and nothing is removed by mistake.
     """
     if not os.path.isdir(under(root, src)):
         if os.path.exists(under(root, dst)):
