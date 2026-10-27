@@ -5,8 +5,7 @@ documents, the READMEs, the checklist and the cheat sheets, which wait for
 #942's phase 6 placed the cases that run the command or call
 `skills/settle/scripts/settle.py`'s functions in `tests/test_settle.py`, and
 the `tree` fixture in `tests/conftest.py`. `docs/the-record-layout.md` names
-this file on the `check:` lines whose rules the skill cases here hold, and on
-others until the settle that applies the work item's rule changes. Since
+this file on the `check:` lines whose rules the skill cases here hold. Since
 #1033 the skill states the settling session's procedure, and the cases that
 read it are its S11.
 """
@@ -22,17 +21,17 @@ SCRIPT = os.path.join(ROOT, "skills", "settle", "scripts", "settle.py")
 
 def test_the_documents_say_a_spec_less_directory_is_retired_by_the_rule():
     """Contract rule 14's half of D3. The policy said such an item *is kept by name*; that
-    is overturned, and the one condition the frame added is stated where the
-    owner can overturn it. Since #1033 the skill says such an item leaves like
-    any other; the policy's sentences change at the settle that applies that
-    work item's rule changes."""
-    policy = document("docs", "the-record-layout.md")
+    is overturned. Since #1033 the skill and the policy say such an item
+    leaves like any other, once the settling session has closed every open
+    row of its record."""
+    policy = " ".join(document("docs", "the-record-layout.md").split())
     assert "and it is kept by name" not in policy, (
         "the policy still keeps a spec-less directory by name"
     )
-    assert "it is retired by that rule, with no marker" in policy
-    assert "nothing in the record may still be open" in policy
-    assert "a judgment the repository owner may overturn" in policy
+    assert "it is retired by that rule, with no marker" not in policy
+    assert "A released work item leaves at the settle whatever it wrote" in policy
+    assert "decides every open row of its record before it goes" in policy
+    assert "`spec.md` states no rule and goes the same way" in policy
     text = flat(skill())
     assert "A released work item with no `spec.md` states no rule" in text
     assert "it leaves like any other" in text

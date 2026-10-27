@@ -2,9 +2,9 @@
 cheat sheets and the settle skill, which wait for #923.
 
 #942's phase 6 placed the cases that run `fold-check` or call
-`skills/settle/scripts/fold_check.py` in `tests/test_fold_check.py`.
-`docs/the-record-layout.md` names this file on its `check:` line until the
-settle that applies the work item's rule changes.
+`skills/settle/scripts/fold_check.py` in `tests/test_fold_check.py`, which
+`docs/the-record-layout.md` *The size a reader takes whole* names on its
+`check:` line.
 """
 
 import os

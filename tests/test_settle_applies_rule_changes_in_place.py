@@ -3,9 +3,7 @@ skill's example of `## Rule changes`, which waits for #923.
 
 #942's phase 6 placed the reader's and the replay's cases in
 `tests/test_rule_changes.py`, and the cases that run `settle` over a git
-history in `tests/test_settle.py`. `docs/the-record-layout.md` and
-`docs/the-review-record.md` name this file on their `check:` lines until the
-settle that applies the work item's rule changes.
+history in `tests/test_settle.py`. No `check:` line names this file.
 """
 
 import os

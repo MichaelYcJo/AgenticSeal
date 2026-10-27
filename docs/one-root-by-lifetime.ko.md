@@ -14,8 +14,8 @@
 만들고 옮기고 지우며, 그 형식을 플러그인의 검사기가 정한다는 뜻입니다.
 `.github/` 가 GitHub 의 것인 것과 같습니다. 수명은 셋이고 각각 집이 하나입니다.
 세션의 상태는 루트 옆, 공통 git 디렉터리 아래에 있고 커밋되지 않습니다. 작업
-항목의 디렉터리 `seal/specs/<id>/` 는 `settle` 이 그 spec 을 적용하고 지울
-때까지 삽니다. 그 밖의 `seal/` 아래 파일은 `docs/`, `CHANGELOG.md` 와 함께
+항목의 디렉터리 `seal/specs/<id>/` 는 settle 이 그 spec 의 절을 쓰고
+디렉터리를 지울 때까지 삽니다. 그 밖의 `seal/` 아래 파일은 `docs/`, `CHANGELOG.md` 와 함께
 영구적입니다. 파일 하나하나의 배치는 `skills/implement/SKILL.md` *Document
 layout — two roots, three lifetimes* 와 `docs/the-record-layout.md` 에
 있습니다.
@@ -23,8 +23,8 @@ layout — two roots, three lifetimes* 와 `docs/the-record-layout.md` 에
 **플러그인은 자기 루트에만 씁니다.** 그 밖의 자리에 있는 `specs/` 디렉터리는
 프로젝트 자신의 것이고, 이력으로 읽을 뿐 가져가지 않습니다
 (`templates/config.md` *Reference specs*). 세션이 칠 수 있는 경로로 루트가
-어디 있는지는 에이전트 계약의 `seal/` 루트 절 한 곳에 적혀 있습니다.
-check: tests/test_no_document_names_the_old_roots.py tests/test_optin_home.py
+어디 있는지는 contract rule 11 한 곳에 적혀 있습니다.
+check: tests/test_no_document_names_the_old_roots.py tests/test_optin.py
 
 ## 종속 규칙
 
@@ -32,8 +32,9 @@ check: tests/test_no_document_names_the_old_roots.py tests/test_optin_home.py
 안 됩니다.** `settle` 이 이 디렉터리를 지우므로, 영구적인 용도에서는 이미
 없는 것으로 취급합니다. 라운드 기록의 `target:` 줄은 그 PR 이 열려 있는
 동안만 읽힙니다. 릴리스된 changelog 항목 위에서 작업 항목의 이름을 적은
-주석은 읽기가 아니라 가리키기이고, 폴더가 없어져도 git 이력에서 찾을 수
-있습니다. 저장소에서 이 묶음을 읽는 검사는 모두, settle 이 그 일부를 지울 때
+주석은 읽기가 아니라 가리키기입니다. 루트가 shared 이면 폴더가 없어져도 git
+이력에서 찾을 수 있습니다. local 모드에서는 그 폴더를 담은 이력이 없으므로,
+그 주석은 이미 떠난 작업 항목의 이름만 가리킵니다. 저장소에서 이 묶음을 읽는 검사는 모두, settle 이 그 일부를 지울 때
 답을 내야 합니다(`skills/settle/SKILL.md` *Answer every check that reads the
 corpus*). 병합 뒤에 `seal/specs/<id>/` 를 새로 읽는 코드는 그것을 만난 리뷰가
 지적할 일입니다.
@@ -41,7 +42,7 @@ corpus*). 병합 뒤에 `seal/specs/<id>/` 를 새로 읽는 코드는 그것을
 **그 뒤에 있는 더 넓은 규칙은, 무엇이 움직일 때 다른 것을 찾아서 고쳐야 하는
 관계를 만들지 않는다는 것입니다.** `path:line` 을 가리키는 기록이 이것을
 어깁니다. 줄 번호는 그 주장과 무관한 편집에도 움직여서 인용을 다시 잡아야
-하고, squash 가 그 인용을 고아로 만듭니다. `settle` 은 불릴 때마다 `docs/` 를
+하고, squash 가 그 인용을 고아로 만듭니다. settle 은 불릴 때마다 `docs/` 를
 다시 쓰고 디렉터리를 지우므로, 작업 항목 안의 경로나 위치에 묶인 것은
 무엇이든 같은 식으로 깨집니다. 남은 묶임은 라운드 기록의 `target:` 줄 하나이고,
 그 PR 이 열려 있는 동안 읽히고 기록과 함께 사라집니다.
@@ -66,17 +67,20 @@ corpus*). 병합 뒤에 `seal/specs/<id>/` 를 새로 읽는 코드는 그것을
 것입니다. 버릴 저장소는 공통 git 디렉터리 아래의 빈 파일
 `.git/specseal-scratch` 하나로 게이트를 끕니다. 어떤 커밋도 이 파일을 다른
 클론으로 옮기지 못합니다.
-check: tests/test_optin_home.py
+check: tests/test_optin.py
 
 ## 처음 설정에서 무엇을 묻는가
 
 **루트에 대해 질문이 허용되는 때는 처음 설정 한 번뿐이고, 묻는 것도 하나입니다.**
-`AskUserQuestion` 한 번에 선택지 둘이고, shared 를 기본값으로 먼저 두며, 각
-선택지가 무엇을 하는지 말합니다.
+`AskUserQuestion` 한 번에 선택지 셋을 이 순서로 두고, 첫째를 기본값으로
+하며, 각 선택지가 무엇을 하는지 말합니다.
 
-- **shared** 는 `<repo>/seal/` 을 만들고, 라우팅 커밋이 그것을 싣습니다.
+- **shared, records only** 는 `<repo>/seal/` 을 만들고, 라우팅 커밋이
+  그것을 싣습니다. `.github/` 아래에는 아무것도 쓰지 않습니다.
+- **shared, with pull-request checks** 는 같은 일을 한 뒤
+  `seal pr-checks install` 을 실행합니다. 이 명령은
   `.github/workflows/hygiene.yml` 이 없으면 `templates/hygiene.yml` 에서
-  설치합니다. 설정할 때 깔린 릴리스의 플러그인 클론과, PR 검사 둘입니다.
+  씁니다. 설정할 때 깔린 릴리스의 플러그인 클론과 PR 검사입니다.
 - **local** 은 `$(git rev-parse --git-common-dir)/seal/` 을 만들고, 트리에는
   아무것도 건드리지 않으며, 아무것도 설치하지 않습니다. 검사는 커밋된 파일을
   읽는데 local 모드는 아무것도 커밋하지 않기 때문입니다.
@@ -92,7 +96,7 @@ check: tests/test_first_setup_asks_once.py
 
 ### shared 인가 local 인가
 
-**질문은 "폴더를 커밋하느냐 마느냐" 가 아니라 "CI 와 협업자가 이 워크플로를
+**질문은 "폴더를 커밋하느냐 마느냐" 가 아니라 "협업자와 다른 클론이 이 기록을
 보느냐" 입니다.** 어느 답이 맞는지는 대체로 누구의 저장소인가로 정해집니다.
 
 | | local 모드 | shared 모드 |
@@ -102,8 +106,8 @@ check: tests/test_first_setup_asks_once.py
 | 커밋 | 하지 않는다. gitignore 할 것도 없다 | 한다 |
 | 연결된 워크트리와 병렬 세션 | 서로의 기록을 읽는다. git 디렉터리가 클론의 모든 워크트리에 공통이기 때문이다 | 서로의 기록을 읽는다. 파일이 커밋되기 때문이다 |
 | 다른 기기와 다시 클론한 경우 | 빈 상태로 시작한다. `seal export` / `seal import` 로 사본을 손으로 옮긴다 | 모두 가지고 있다 |
-| CI (체인 검사) | 돌 수 없다. hygiene 워크플로가 설치되지 않는다 | 돈다 |
-| 나중에 바꾸기 | `seal mode shared` 가 `.git/seal/` 을 `<repo>/seal/` 로 옮기고 스테이지하고 워크플로를 설치한다. 커밋은 사람이 한다 | `seal mode local` 이 `<repo>/seal/` 을 되돌리고 삭제를 스테이지하고 워크플로를 뺀다. 커밋은 사람이 한다 |
+| CI (PR 검사) | 돌 수 없다. `seal pr-checks install` 이 여기서는 거절한다 | 처음 설정의 답이나 `seal pr-checks install` 이 워크플로를 트리에 넣은 곳에서 돈다 |
+| 나중에 바꾸기 | `seal mode shared` 가 `.git/seal/` 을 `<repo>/seal/` 로 옮기고 스테이지한다. 커밋은 사람이 한다 | `seal mode local` 이 `<repo>/seal/` 을 되돌리고 삭제를 스테이지한다. 커밋은 사람이 한다 |
 
 **`seal/config.md` 의 `Mode` 행은 옵트인이 아니고, 차이는 무엇이 그것을
 읽느냐에 있습니다.** 그 행은 루트가 *있어야 할* 자리를 말하고, 폴더의 자리는
@@ -115,10 +119,22 @@ check: tests/test_first_setup_asks_once.py
 불일치를 검사가 이름 붙여 준다는 것입니다. 행이 없으면 폴더가 있는 자리로
 채웁니다. 틀릴 수 없는 값은 그것 하나뿐입니다.
 
-local 모드에 남은 hygiene 워크플로는 영원히 빨간불입니다.
-`unverified_check.py` 가 두 번째로 돌면서 어디에도 없는 경로에 대해 2 로
-끝나고, `continue-on-error` 가 없으니 잡이 멈춰 `chain_check.py` 는 돌지
-않습니다. 돌았다면 아무것도 안 본 채 0 으로 끝났을 것입니다.
+**기록이 어디 사는가와 CI 가 PR 을 검사하는가는 두 개의 답이고, 둘째의
+기록은 워크플로 파일 자체입니다.** `seal mode` 는 루트를 옮기고 `Mode`
+행을 쓰며, `.github/` 에는 손대지 않습니다. `seal pr-checks install` 은
+`.github/workflows/hygiene.yml` 이 없으면 `templates/hygiene.yml` 에서
+설치된 릴리스로 고정해 쓰고 스테이지합니다. `<repo>/seal/` 이 디렉터리가
+아니면 거절합니다. 검사는 커밋된 기록을 읽기 때문입니다.
+`seal pr-checks remove` 는 이 플러그인이 쓴 워크플로를 빼고, 다른 파일은
+그대로 둡니다. 검사가 설치되었는지를 말하는 설정 행은 없습니다. 파일이
+그것을 말하고, 두 번째 기록은 두 번째 답이 되기 때문입니다. 루트가 없는
+상태를 아는 릴리스로 고정된 워크플로는 local 모드에 남아도 아무것도 보지
+않은 채 통과합니다. 그 워크플로가 돌리는 기록 검사는 `chain_check.py`
+하나뿐이고, 트리에서 루트를 찾지 못하니 선언된 것이 없어 0 으로 끝납니다.
+그보다 오래된 릴리스로 고정된 워크플로는 `--branch` 줄을 옮기거나
+`seal pr-checks remove` 로 빼기 전까지 그곳의 모든 PR 을 실패시키고,
+`seal mode local` 은 그런 파일을 남길 때 고정된 릴리스를 알려 줍니다.
+check: tests/test_seal.py
 
 **local 모드는 gitignore 한 폴더가 아니라 git 디렉터리 아래에 삽니다.** 연결된
 워크트리는 커밋된 파일만 체크아웃하므로, 무시된 `<repo>/seal/` 은 모든
@@ -127,7 +143,7 @@ local 모드에 남은 hygiene 워크플로는 영원히 빨간불입니다.
 되지 않으며, `.gitignore` 줄도 필요 없습니다. local 모드에는 커밋하지 않은
 상태를 브랜치마다 나누는 장치가 없고, 병렬 항목은 작업 항목별 배치가
 갈라 놓습니다. 그 클론, 그 기기를 떠나지도 않습니다. 새 기기나 다시 클론한
-저장소는 작업 항목 기록 없이 시작하고, CI 의 체인 검사는 돌 수 없습니다.
+저장소는 작업 항목 기록 없이 시작하고, CI 의 PR 검사는 돌 수 없습니다.
 맞바꾸는 것은 그것이 전부입니다.
 
 **local 기록은 손으로 다른 클론에 옮길 수 있고, 사본은 동기화가 아닙니다.**
@@ -146,7 +162,7 @@ local 모드에 남은 hygiene 워크플로는 영원히 빨간불입니다.
 방향이 바로 되돌릴 수 없는 그 방향이므로, `seal mode shared` 는 실행하기 전에
 그렇게 말하고, 커밋하지 않고 스테이지만 해서 돌아올 수 없는 지점을 사람에게
 남깁니다.
-check: tests/test_first_setup_asks_once.py tests/test_optin_home.py tests/test_the_records_can_be_carried_out_and_in.py
+check: tests/test_first_setup_asks_once.py tests/test_optin.py tests/test_seal.py
 
 ## 이름
 
@@ -186,7 +202,7 @@ check: tests/test_the_settings_have_a_front_door.py
 파일 안에서 내려진 결정입니다. 그래서 언어는 설정 행에 두고, 번역한 PR 본문을
 담는 거울 파일은 언어 하나의 이름이 아니라 그 파일이 담은 언어의 이름을
 붙입니다.
-check: tests/test_the_pull_request_language_is_the_repositorys.py
+check: tests/test_the_pull_request_language_is_the_repositorys.py tests/test_config.py
 
 **행이 둘인 것은, 하나로는 가운데 답을 말할 수 없기 때문입니다.** 사람들이
 실제로 원하는 조합은 셋입니다. 모두 영어, 커밋과 PR 은 팀의 언어로 하고 문서는
@@ -209,7 +225,7 @@ check: tests/test_the_pull_request_language_is_the_repositorys.py
 빼 버렸습니다. 읽는 쪽과 쓰는 쪽은 행을 설명하는 상수를 함께 씁니다. 어느 줄이
 그 행인지를 두고 둘이 엇갈리면 편집 한 번이 사람의 파일에 중복 행을 만들기
 때문입니다.
-check: tests/test_the_mode_question_is_asked_once.py
+check: tests/test_config.py tests/test_seal.py
 
 **실패한 git 호출은 "없다" 고 답한 git 호출이 아닙니다.** 무엇이 없어서 출력이
 비는 것과, 물을 수 없어서 출력이 비는 것은 다른 사실입니다. 둘을 구별하지
@@ -217,4 +233,4 @@ check: tests/test_the_mode_question_is_asked_once.py
 없다, 추적되는 파일이 없다는 식입니다. 호출자가 그 구별을 필요로 하는 호출
 자리는 모두 그것을 돌려주고, 거부는 확신에 찬 "없음" 이 아니라 어느 호출이
 실패했는지를 말합니다.
-check: tests/test_the_records_can_be_carried_out_and_in.py tests/test_the_mode_is_a_row_and_a_command.py
+check: tests/test_seal.py
