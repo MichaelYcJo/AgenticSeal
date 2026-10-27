@@ -238,6 +238,31 @@ class Test_drawings:
         assert hook.drawings(stamp, directory) == [(LABEL, ROWS)]
         assert stamp.pending(directory) == [bad_path]
 
+    def test_refuses_to_claim_a_file_that_reads_and_labels_but_does_not_draw(
+        self, repo
+    ):
+        """Every file the shipped `seal_stamp` reads also draws, so the draw
+        before the claim is faked to fail for one file's rows, to remove that
+        guarantee (contract rule 13; #1017, round 3's s4). The file is the
+        older one, so a message carrying one seal would carry it. It is left
+        pending, and the good one after it is drawn."""
+        undrawable = [("tree", "does not draw")]
+
+        class Undrawable:
+            def __getattr__(self, name):
+                return getattr(stamp, name)
+
+            def stamp(self, rows, shape=False, disc=True):
+                if list(rows) == undrawable:
+                    raise ValueError("these rows do not draw")
+                return stamp.stamp(rows, shape=shape, disc=disc)
+
+        bad = pending_for(repo, now=1, rows=undrawable)
+        good = pending_for(repo, now=2)
+        directory = os.path.dirname(good)
+        assert hook.drawings(Undrawable(), directory) == [(LABEL, ROWS)]
+        assert stamp.pending(directory) == [bad]
+
     def test_refuses_to_claim_what_one_message_does_not_carry(self, repo):
         """The owner's rule of 2026-10-02: a pair that does not fit one message
         with its discs draws the oldest, and the next stays pending."""
@@ -310,6 +335,17 @@ class Test_main:
         payload = dict(payload)
         session = payload.pop("session_id", "s-1")
         assert stop(repo, session=session, **payload) == ""
+        assert stamp.pending(os.path.dirname(path)) == [path]
+
+    def test_refuses_a_stop_with_no_session_where_a_file_waits_for_none(
+        self, repo, stop
+    ):
+        """A values file written with no session waits in the `none`
+        directory, which is also where a `Stop` with no session id would look.
+        Such a `Stop` belongs to no session, so it draws nothing and the file
+        stays (#1017, round 3's s8)."""
+        path = pending_for(repo, session=None)
+        assert stop(repo, session=None) == ""
         assert stamp.pending(os.path.dirname(path)) == [path]
 
     def test_refuses_a_repository_that_never_opted_in(self, repo, stop):
