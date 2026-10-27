@@ -82,9 +82,7 @@ def test_the_gates_capture_file_carries_the_work_item_id():
     session would otherwise write one log over each other. The sealer keeps
     its own scratch: the clone a `seen red` is re-run in."""
     command = section(
-        REVIEW_ORCH,
-        "Orchestrator: the pull request opens once the sealer seals, and a "
-        "phase is re-run",
+        REVIEW_ORCH, "Orchestrator: the pull request opens once the sealer seals"
     )
     assert "<scratchpad>/<work-item-id>/broad-gate.log" in command, (
         "the orchestration names no capture file carrying the work item id, "

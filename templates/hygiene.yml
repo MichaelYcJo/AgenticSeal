@@ -1,6 +1,6 @@
 # Pull-request checks for the SpecSeal workflow, run against what the pull
-# request committed: the review chain's round record, and the closing memo's
-# rows of what nobody verified.
+# request committed: the review chain's round record, and the `Mode` row of
+# `seal/config.md`.
 #
 # Setup: `seal pr-checks install` writes this file to
 # .github/workflows/hygiene.yml, at first setup under the answer "shared,
@@ -11,9 +11,8 @@
 # it, or runs `seal pr-checks remove` and then `seal pr-checks install`.
 #
 # Why it refuses in local mode: the checks read committed files
-# (`chain_check.py` lists `seal/specs/` with `git ls-tree HEAD`, and
-# `unverified_check.py` diffs against `--baseline <ref>`), and local mode
-# keeps the root under the git directory, where nothing is ever committed.
+# (`chain_check.py` lists `seal/specs/` with `git ls-tree HEAD`), and local
+# mode keeps the root under the git directory, where nothing is ever committed.
 # `seal mode` moves the root and leaves this file alone, so a copy can stay
 # after a switch to local. There every step examines nothing and passes: no
 # `seal/` is in the tree, so nothing is declared, and a pull request that
@@ -41,7 +40,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # both checks diff against the base branch
+          fetch-depth: 0 # the chain check diffs against the base branch
 
       # The checks ship with the plugin and load `hooks/routing.py` and
       # `hooks/optin.py` from beside themselves, so the plugin is cloned whole
@@ -54,25 +53,6 @@ jobs:
         run: |
           git clone --quiet --depth 1 --branch v<version> \
             https://github.com/MichaelYcJo/SpecSeal.git "$RUNNER_TEMP/specseal"
-
-      # An `unverified` row records a claim nobody proved and names who can
-      # answer it. The tally is printed on every pull request and never fails
-      # for an open row; it fails for a section that cannot be read, a table
-      # with fewer rows than at the base revision read below, a file
-      # that was there and is gone, and a base ref that either does not
-      # resolve or shares no history with HEAD.
-      #
-      # The ref goes in and `git merge-base <ref> HEAD` is what gets read,
-      # because `github.base_ref` names a branch that moves. In this job that
-      # is the base's tip, since a pull request is checked out as its head
-      # already merged into the base; on a branch checkout it is the fork
-      # point. Either way, work that lands on the base after the branch was
-      # cut is not the branch's removal.
-      - name: the unverified record is readable, and rows leave it closed
-        shell: bash
-        run: |
-          python3 "$RUNNER_TEMP/specseal/skills/verify/scripts/unverified_check.py" \
-            --baseline "origin/${{ github.base_ref }}" seal/specs/
 
       # A work item routed "through the review chain" has to carry the round
       # record it claimed. A pull request that declared nothing fails only

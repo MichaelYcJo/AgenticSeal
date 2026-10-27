@@ -427,10 +427,11 @@ def template():
 
 def test_the_template_runs_the_two_shipped_checks_from_the_plugin_at_its_tag():
     t = template()
-    assert "skills/verify/scripts/unverified_check.py" in t
     assert "skills/code-review/scripts/chain_check.py" in t
-    assert t.count("--baseline") >= 2
-    assert "seal/specs/" in t
+    assert "skills/implement/scripts/seal.py" in t
+    # The unverified record's step left with #945: no step runs its reader.
+    assert "unverified_check.py" not in t
+    assert "--baseline" in t
     # The check reads a round record's `target:` line as an ancestor of HEAD only,
     # so the template fetches no pull-request heads (#923).
     assert "refs/pull/" not in t

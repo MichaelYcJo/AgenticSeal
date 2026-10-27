@@ -148,6 +148,15 @@ FIELDS = (
     ("cache_read", "cache_read_input_tokens"),
 )
 
+# The `usage` keys one model call's input is spread over: the tokens sent
+# fresh, the tokens written to the cache and the tokens read from it.
+# `largest_context` sums them per message.
+CONTEXT_FIELDS = (
+    "input_tokens",
+    "cache_creation_input_tokens",
+    "cache_read_input_tokens",
+)
+
 
 def parse_time(value):
     """None for a stamp that will not parse — one odd row must not end the
@@ -1657,6 +1666,11 @@ def segment_slices(transcript, labels):
     What that gives up is a per-slice token column, stated here rather than
     left to be found.
 
+    **The largest context is the slice's own, unlike the tokens.** It is one
+    turn's figure and a turn has one stamp, so each turn falls in exactly one
+    slice and nothing is counted in two; `largest_context` reads it per
+    window, and a resumed agent's later slices are where it grows.
+
     **A cut is a marker and not a stretch of work, so a window with no call
     in it is not a row.** The coordinator can send one message and then
     another before the agent acts; the empty window between them would print
@@ -1678,6 +1692,7 @@ def segment_slices(transcript, labels):
                 "spawns": sum(1 for c in calls if c["tool"] in DELEGATING),
                 "numbers": analyse(calls, turns),
                 "tokens": token_totals([transcript]),
+                "largest_context": largest_context(transcript)[0],
             }
         ]
     call_windows = in_windows(cuts, calls, lambda c: c["start"])
@@ -1702,6 +1717,7 @@ def segment_slices(transcript, labels):
     # The `or [0]` is the file that paired no call at all. It still owes its
     # row, for the reason `measure_segments`' docstring gives.
     kept = [i for i in range(len(cuts) + 1) if call_windows[i]] or [0]
+    contexts = largest_context(transcript, cuts)
     rows = []
     for position, index in enumerate(kept):
         window = call_windows[index]
@@ -1722,6 +1738,7 @@ def segment_slices(transcript, labels):
                 # The first KEPT slice, not window 0, which may have been
                 # dropped as empty. The figure is the file's and rides one row.
                 "tokens": token_totals([transcript]) if position == 0 else None,
+                "largest_context": contexts[index],
             }
         )
     return rows
@@ -1964,6 +1981,70 @@ def token_totals(paths):
                 totals[field] += row_totals[field]
         totals["transcripts"] += 1
     return totals
+
+
+def largest_context(path, cuts=()):
+    """The largest context any one turn of this transcript read, per window.
+
+    One value for each of the `len(cuts) + 1` windows `in_windows` makes of
+    `cuts`, so `segment_slices` reads a slice's value at the slice's window.
+    A turn here is one assistant message, keyed by `message_key` the way
+    `load` keys its turns, and read whether or not it carries a tool call: a
+    message that answers in text is still one model call over the whole
+    context. A message is a row whose `message` carries a `usage` block, the
+    test `token_totals` uses for the same word.
+
+    **A turn's context is its input side, all of it**: `CONTEXT_FIELDS`, each
+    at the largest value its message's rows reached. `load`'s `turns` carry
+    two of the three, for messages that call a tool only, and `token_thirds`
+    reads them for the run's `context` line; that line keeps its meaning
+    because this reads beside `turns` rather than through them.
+
+    A window with no message in it answers None, never 0: a zero would read
+    as a turn that sent nothing where there is no turn. Where there are cuts,
+    a message whose stamp will not parse has no window to fall in and is
+    dropped, the direction `segment_slices` takes for a turn. A file that
+    cannot be opened answers None for every window."""
+    opened, peaks = {}, {}
+    try:
+        with open(path, encoding="utf-8", errors="replace") as handle:
+            for number, line in enumerate(handle):
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    row = json.loads(line)
+                except ValueError:
+                    continue
+                if not isinstance(row, dict):
+                    continue
+                message = row.get("message")
+                if not isinstance(message, dict):
+                    continue
+                usage = message.get("usage")
+                if not isinstance(usage, dict):
+                    continue
+                key = message_key(message, row, number)
+                if opened.get(key) is None:
+                    opened[key] = parse_time(row.get("timestamp"))
+                # The largest value each field reached, as `token_totals`
+                # keeps it: a split message repeats its input fields on every
+                # row, so a sum over rows would count one turn twice.
+                peaks[key] = {
+                    field: max(
+                        peaks.get(key, {}).get(field, 0), count(usage.get(field))
+                    )
+                    for field in CONTEXT_FIELDS
+                }
+    except OSError:
+        return [None] * (len(cuts) + 1)
+    turns = [(opened[key], sum(fields.values())) for key, fields in peaks.items()]
+    windows = (
+        in_windows(cuts, [t for t in turns if t[0] is not None], lambda t: t[0])
+        if cuts
+        else [turns]
+    )
+    return [max((size for _, size in window), default=None) for window in windows]
 
 
 def minutes(seconds):
@@ -2642,7 +2723,9 @@ def report_segments(segments, path):
         "number in no column of any\n              `--spawns` row, because "
         "that mode's `delegated` is the interval\n              until the spawn "
         "was ACCEPTED\n  tokens      output + cache write + cache read, over "
-        "this segment's own file"
+        "this segment's own file\n  context     the largest input any one turn "
+        "read: the tokens sent fresh,\n              written to the cache and "
+        "read from it"
     )
     if segments["unnamed"]:
         print(
@@ -2686,7 +2769,8 @@ def report_segments(segments, path):
             "plus a wait, never as work."
         )
     print(
-        f"\n  {'agent':<{LABEL_WIDTH}}{'span':>8}{'calls':>7}{'t/turn':>8}{'gap':>7}{'tokens':>14}"
+        f"\n  {'agent':<{LABEL_WIDTH}}{'span':>8}{'calls':>7}{'t/turn':>8}{'gap':>7}"
+        f"{'tokens':>14}{'context':>12}"
     )
     for row in rows:
         numbers, tokens = row["numbers"], row["tokens"]
@@ -2698,13 +2782,18 @@ def report_segments(segments, path):
             if tokens
             else "—"
         )
+        # A dash for a slice that holds no assistant message, for the same
+        # reason: there is no turn, and a zero would read as one that sent
+        # nothing.
+        largest = row["largest_context"]
+        read = f"{largest:,}" if largest is not None else "—"
         if not numbers:
             # A real reading, not a gap in the table: a segment that read and
             # thought and called nothing has no span and still spent what the
             # run paid for. `report_tokens` was split out for the same shape.
             print(
                 f"  {segment_label(row):<{LABEL_WIDTH}}"
-                f"{'no paired call':>30}{spent:>14}"
+                f"{'no paired call':>30}{spent:>14}{read:>12}"
             )
             continue
         print(
@@ -2714,6 +2803,7 @@ def report_segments(segments, path):
             f"{numbers['tools_per_turn']:>8.2f}"
             f"{numbers['gap_mean_s']:>6.0f}s"
             f"{spent:>14}"
+            f"{read:>12}"
         )
     report_grades(rows)
     report_breaches(segments)

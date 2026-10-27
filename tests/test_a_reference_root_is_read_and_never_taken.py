@@ -49,7 +49,7 @@ SHIPPED = {
     "unverified-check": (PREDICATE, "the walk and the base, by one rule"),
     "settle": (PINNED, "settle.py#SPECS; its citation scan reads as a citer"),
     "pact-check": (PINNED, "pact_check.py#anchor_files, under each signer's root"),
-    "broad-gate": (NO_WALK, "hands seal/specs/ to the checks above"),
+    "broad-gate": (NO_WALK, "runs the row, chain_check.py and seal.py mode"),
     "fold-check": (NO_WALK, "reads the top level of docs/ and seal/config.md"),
     "rules": (NO_WALK, "reads the one document it is named and its targets"),
     "arm-check": (NO_WALK, "reads the Python files it is named"),
