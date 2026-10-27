@@ -53,7 +53,7 @@ The framer's line can name the template without becoming a second line:
    code.
 ```
 
-answer:
+answer: In 2e6c40ed, the framer's archive sentence in `agents/framer.md` step 4 names `templates/process.md` as the shape of each row, in the round's text. `test_every_template_is_named_by_a_document_that_ships` failed at d62c6a6e (exit 1) and passes after the commit. Its module and the nine other modules that read `agents/framer.md` exit 0.
 
 ### 2. The draft-tolerance case lost its `def` line, so its body runs inside the new fix-pass case and `.test_durations` still prices it
 
@@ -91,7 +91,7 @@ def test_a_draft_is_tolerated_and_still_owes_the_record():
 The rest of the old case stays as it stands below that line, so its
 `.test_durations` entry prices a case that exists again.
 
-answer:
+answer: In c72c49ae, the `def test_a_draft_is_tolerated_and_still_owes_the_record():` line stands again above its docstring, so the fix-pass case holds only its own assertions. Before the commit, `-k test_a_draft_is_tolerated` selected no case (exit 5). After it, the case is collected under its own name and passes. `mutation-check` over `skills/code-review/orchestration.md`, replacing "still opens a draft is not refused" with "still opens a draft is refused", turned it red under its own name. `.test_durations:5471` now prices a case that exists, and the file is unchanged.
 
 ### 3. `docs/the-record-layout.md` still says the shipped workflow runs `unverified-check`, and no rule change covers it
 
@@ -133,7 +133,7 @@ The `check: an-empty-root-is-settled` line under the paragraph stays: its
 cases in `tests/test_unverified_check.py` and `tests/test_settle.py` test
 the predicate, not the workflow.
 
-answer:
+answer: In d62c6a6e, the orchestrator added the `change` item for `docs/the-record-layout.md` *The fold, and what tells it from a deletion* to `spec.md` `## Rule changes`, at `spec.md:280`. Its `to` says a person runs `unverified-check --baseline` after the fold, and the command refuses a finished settle. `settle.py --released-at HEAD` (exit 0) lists it as operation 10 of that section's group, `from found, to not found`. This pass made no commit for the finding.
 
 ### 4. `README.ko.md` still lists a segment row's columns without the new context column
 
@@ -154,7 +154,7 @@ warns and does not fail, so CI will not catch this.
 | `session-cost --segments <트랜스크립트>` | 그 실행이 스폰한 에이전트마다 한 행씩, 각자의 트랜스크립트에서 읽어 찍습니다 — 걸린 시간, 호출 수, 한 턴에 나간 도구 수, 평균 대기, 토큰, 그리고 가장 큰 턴 하나가 읽은 컨텍스트. 이 "걸린 시간"은 ...(the rest of the cell unchanged)
 ```
 
-answer:
+answer: In 5273fe44, `README.ko.md`'s `session-cost --segments` row ends its list with "토큰, 그리고 가장 큰 턴 하나가 읽은 컨텍스트", as `README.md`'s row does, and the rest of the cell is unchanged. The branch changes no other line of `README.md`, so no other row is left unmirrored. The 24 modules that name `README.ko` exit 0.
 
 ### 5. The prevention-home rule's "the work item" names two different work items, so the orchestrator cannot tell which one builds the home or whose issue records it
 
@@ -195,7 +195,7 @@ The pins at `tests/test_the_rules_have_one_owner.py:366-369` follow the new
 words. *Scope* item 4's last bullet in `spec.md` is the frame's sentence,
 and the orchestrator folds the answer there.
 
-answer:
+answer: In 098d2b45, the prevention-home rule in `skills/implement/orchestration.md` takes the round's text: the work item in progress builds the home, and its issue records it. The pins in `test_a_recurring_problem_gets_a_prevention_home` follow the new words, and the changed pin failed against the old text before the rule was rewritten (exit 1). The changelog fragment's item says the same in the same commit. *Scope* item 4 of `spec.md` and `overview.md` *Not verified* row 4 still carry the two readings, and they are the orchestrator's fold.
 
 ### 6. Two of the order's new rules leave out who acts: who writes the line naming the comments to fold, and which of two orchestrators deletes `handoff.md`
 
@@ -249,7 +249,7 @@ unchanged ("naming the comments to fold", "a `handoff.md` in the work item's
 directory only to move the work to another session or another machine",
 "deletes it once").
 
-answer:
+answer: In 5be7d538, both rules take the round's text. The orchestrator keeps the fold line in `plan.md`, below the approval line where the plan carries one and below the title where it does not. The orchestrator that hands the work over writes `handoff.md`, and the orchestrator that takes it over deletes it. The two cases gained pins for the named actors ("the orchestrator keeps one line of its own in `plan.md`", "below the title where it does not", "The orchestrator that hands the work over writes", "The orchestrator that takes the work over deletes it once"), and both cases failed against the old text first (exit 1). The changelog fragment's two items say the same in the same commit.
 
 ### 7. `overview.md` reports a divergence on the threshold that 25afe39a removed, and quotes a spec sentence that is gone
 
@@ -267,7 +267,7 @@ factual sentences, so the false row would reach the pull request.
 
 Delete the row at `overview.md:16`. The table keeps its other four rows.
 
-answer:
+answer: In 822d3776, the threshold row leaves `overview.md` *Where spec and implementation diverged*, and the table keeps its other four rows. `unverified-check` over the work item and the modules that read `overview.md` records exit 0.
 
 ## Confirmations
 
