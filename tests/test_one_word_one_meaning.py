@@ -119,12 +119,10 @@ def test_the_worktree_spec_is_still_the_model():
 # --- "asks" — the model is instructed, the user gets buttons ----------------
 
 
-def test_the_two_prompts_are_named_by_who_they_address():
-    spec = flat("docs", "commit-review-gate-spec.md")
-    assert "instructs the model to put the choice up" in spec
-    assert "putting two buttons to the user" in spec
-    assert "A `deny` addresses the **model**" in spec
-    assert "An `ask` addresses the **user**" in spec
+def test_the_refusal_is_named_by_who_it_addresses():
+    spec = flat("docs", "the-routing-check.md")
+    assert "A refusal is a deny addressed to the model" in spec
+    assert "tells the model to put the routing question to the person" in spec
 
 
 # --- "the cycle" — the mark's unit, never the whole run ---------------------
@@ -201,8 +199,8 @@ SEAL_SWEPT = (
     # The review run's documents. `docs/the-review-record.md` replaced the
     # three that carried the record in 0.22.0 (#923).
     ("docs", "the-review-record.md"),
-    ("docs", "commit-review-gate-spec.md"),
-    ("docs", "the-commit-gate-inside-git.md"),
+    ("docs", "the-session-hooks.md"),
+    ("docs", "the-routing-check.md"),
     ("docs", "the-review-and-parity-arms.md"),
     ("CONTRIBUTING.md",),
     ("README.md",),

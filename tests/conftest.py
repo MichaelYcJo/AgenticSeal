@@ -22,16 +22,16 @@ import tempfile
 
 import pytest
 
-# The review run's documents: the record and the run, the hooks, what git
-# decides, and what each arm wants. A case that reads one of them for what is
+# The review run's documents: the record and the run, the hooks, the routing
+# check, and what each arm wants. A case that reads one of them for what is
 # THERE reads the one that holds the section; a case asserting what is NOT
 # there reads all four through `review_chain_text`, because a sentence
 # forbidden in one that returns in a sibling is the same sentence back, and
 # an absence that holds in one part of the text proves nothing about the rest.
 REVIEW_CHAIN_DOCS = (
     ("docs", "the-review-record.md"),
-    ("docs", "commit-review-gate-spec.md"),
-    ("docs", "the-commit-gate-inside-git.md"),
+    ("docs", "the-session-hooks.md"),
+    ("docs", "the-routing-check.md"),
     ("docs", "the-review-and-parity-arms.md"),
 )
 

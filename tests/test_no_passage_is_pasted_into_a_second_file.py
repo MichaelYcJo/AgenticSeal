@@ -217,7 +217,6 @@ BASELINE = {
     ("README.md", "skills/implement/orchestration.md"): 1,
     ("README.md", "skills/parity-setup/SKILL.md"): 1,
     ("agents/smith.md", "skills/implement/SKILL.md"): 3,
-    ("docs/commit-review-gate-spec.md", "skills/agent-contract/SKILL.md"): 4,
     ("docs/one-root-by-lifetime.md", "skills/implement/SKILL.md"): 4,
     ("docs/the-agent-set.md", "docs/the-broad-gate.md"): 4,
     ("docs/the-agent-set.md", "skills/implement/SKILL.md"): 20,

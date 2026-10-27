@@ -158,38 +158,22 @@ def _folded(name):
         return " ".join(f.read().split())
 
 
-def test_the_policy_says_one_reader_reads_a_token_and_a_failed_diff_asks():
-    """Contract rule 14, for S7, S8 and S10 of work item 1791384157
-    (#868): the consent-read paragraph of `docs/commit-review-gate-spec.md`
-    says a command that does not split carries no token from where its split
-    fails, `docs/the-commit-gate-inside-git.md` names the one reader, and
+def test_the_policy_says_a_failed_diff_asks():
+    """Contract rule 14, for S10 of work item 1791384157 (#868):
     *Parity arm* says a diff git could not take is asked about. Red against
     `5623d728`'s texts."""
-    for name, sentence in (
-        (
-            "commit-review-gate-spec.md",
-            "A command that does not split carries no token from where its split fails",
-        ),
-        (
-            "the-commit-gate-inside-git.md",
-            "through `hooks/tokens.py#given`, the one reader of a consent token",
-        ),
-        (
-            "the-review-and-parity-arms.md",
-            "A diff git could not take is not a change confined to the document roots",
-        ),
-    ):
-        assert sentence in _folded(name), (name, sentence)
+    sentence = (
+        "A diff git could not take is not a change confined to the document roots"
+    )
+    assert sentence in _folded("the-review-and-parity-arms.md"), sentence
 
 
 def test_the_review_arms_missing_path_line_is_written_where_it_is_met():
-    """The prose half of the review arm's missing path line, whose code half
-    left with the commit gate's text reading (#1027).
-
-    A reader who finds `touches_code` beside the review arm can take its
-    absence for an oversight, as #518 did. The review arm's decision table and
-    the wake/quiet table are where that reader looks, so each says the arm
-    reads no paths, and the table says why beside the parity arm's row."""
+    """A reader who finds `touches_code` beside the review arm can take its
+    absence for an oversight, as #518 did. *Review arm* says a change confined
+    to `docs/` meets the routing check as any other change does, and that a
+    lighter tier is declared before the first edit, never inferred from
+    paths."""
 
     def flat(*parts):
         with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
@@ -198,22 +182,12 @@ def test_the_review_arms_missing_path_line_is_written_where_it_is_met():
     spec = flat("docs", "the-review-and-parity-arms.md")
     review_arm = spec.split("### Review arm", 1)[1].split("####", 1)[0]
     assert (
-        "| the change confined to `docs/`, `seal/` | no different from any "
-        "other change — this arm reads no paths." in review_arm
-    ), "the review arm's table lost its row for a docs-only change"
-    assert "**Why this arm has no document-root line.**" in review_arm, (
-        "the row points at a paragraph that is not there"
-    )
+        "A change confined to `docs/` meets it as any other change does" in review_arm
+    ), "the review arm lost its sentence for a docs-only change"
     assert "it is never inferred from the paths it touches" in review_arm, (
         "the paragraph lost the rule it exists for: the lighter tier is a "
         "declaration made before the first edit, not a path line"
     )
-    assert (
-        "| a `routing.md` declaration names this branch, for either answer | "
-        "silent" in review_arm
-    ), "the review arm's table lost the declaration, one of its three quieters"
-    # The wake/quiet table of `skills/implement/orchestration.md` left with
-    # #1027's phase 7, with the commit gate whose arms it described.
 
 
 def test_user_invoked_skills_do_not_carry_trigger_scaffolding():
