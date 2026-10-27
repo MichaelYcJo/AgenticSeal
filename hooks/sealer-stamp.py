@@ -6,16 +6,12 @@ call's stdout is a pipe into a tool result that reaches the person folded
 behind `ctrl+o`, so a stamp drawn there was never seen. The stamp means every
 party verified the work item, the sealer last, so since #975 it is drawn once
 per work item from the sealer's `guarantee.md` reading `sealed`, and never
-from the broad gate's run, which draws nothing. In shared mode git's
-`post-commit` runs after the commit that carries that file, in the worktree
-it landed in, and `seal_stamp.queue_for_guarantee` writes the stamp's rows to
-a values file under `<git-common-dir>/specseal-stamp/<session>/`, keyed by
-`CLAUDE_CODE_SESSION_ID`, which every Bash call of a session and of its
-subagents carries as the MAIN session's id and git hands its hooks. In local
-mode no commit carries the root, so `hooks/sealer-stamp-queue.py` writes the
-same file at the `Write` or `Edit` of the guarantee
-(`seal_stamp.queue_for_local_guarantee`), keyed by the payload's
-`session_id`, which a subagent's write carries as the main session's.
+from the broad gate's run, which draws nothing. In either mode
+`hooks/sealer-stamp-queue.py` writes the stamp's rows at the `Write` or
+`Edit` of the guarantee (`seal_stamp.queue_for_written_guarantee`) to a
+values file under `<git-common-dir>/specseal-stamp/<session>/`, keyed by the
+payload's `session_id`, which a subagent's write carries as the main
+session's.
 
 This hook draws each undrawn file of its own session once, as a JSON
 `systemMessage` from `Stop`. That surface was measured on the owner's screen
@@ -30,7 +26,7 @@ end and draws nothing: a subagent's end must not take the session's stamp.
 So does any event that is not `Stop`.
 
 **Which repository.** The payload's `cwd`, which is the main checkout while
-the commit landed in a linked worktree of the same clone; the git COMMON dir is
+the guarantee was written in a linked worktree of the same clone; the git COMMON dir is
 the one place both resolve alike. It is found by walking up from `cwd` to the
 `.git` entry, and where that entry is a directory the common dir IS it, with
 no process started. The hook fires at the end of every turn, so a session
@@ -57,9 +53,8 @@ drawing rather than repeating one.
 that is not JSON, a repository that is not opted in, a file that is not a
 stamp's values. That includes a `python3` that cannot load `seal_stamp.py` —
 a hook runs under whatever `python3` the harness finds, and no launcher
-stands in front of it — where this draws nothing and the line `post-commit`
-printed into the commit's output, or in local mode the edit gate's message,
-which names the file and `seal-stamp --from`, is what remains. The same line
+stands in front of it — where this draws nothing and the edit gate's
+message, which names the file and `seal-stamp --from`, is what remains. The same line
 is what remains where the main session's working directory is outside the
 clone the stamp was queued in, and where its plugin predates this hook; `docs/the-review-record.md` *The
 stamp* states these and the places no file is written at all.

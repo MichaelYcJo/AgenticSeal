@@ -58,9 +58,9 @@ tree the command came from, because a local root is one folder every worktree
 of the clone shares -- `marker_dir` below owns that, and asking twice about
 one folder is what it was measured doing.
 
-**No waiver token.** The two arms of the commit gate each carry one because
-each is about whether a CHANGE was checked, and a change can honestly be
-exempt. This is about setup, the way on takes one command, and a token would
+**No waiver token.** The commit gate's two arms each carried one until
+#1027, because each was about whether a CHANGE was checked, and a change can
+honestly be exempt. This is about setup, the way on takes one command, and a token would
 build exactly the standing exemption `docs/the-review-and-parity-arms.md`
 refuses. `ask` is the escape hatch, and it is one an unattended run can take.
 
@@ -78,9 +78,9 @@ import config as repo_config
 import console
 import optin
 
-# One marker file per session per repository, and NOT the commit gate's
-# directory. Sharing it would make answering one question silence the other,
-# and the two are different questions that can arrive in the same session.
+# One marker file per session per repository, in a directory no other gate
+# writes. Sharing one would make answering one question silence another, and
+# different questions can arrive in the same session.
 CHOICE_DIR = "specseal-mode-choice"
 # The session's SECOND and last prompt: the approvable retry the deny tells
 # the model to make. Its own directory, because the deny and the ask are two
@@ -94,8 +94,8 @@ def already_asked(git_dir, session, choice_dir=CHOICE_DIR):
     Records it when it was not. A marker that cannot be written counts as
     already asked: one missed question beats a deny the session cannot get
     past, and in a run with nobody at the keyboard that deny is an outage
-    rather than a cost. The same rule as `hooks/commit-review-gate.py`, and
-    not the same marker.
+    rather than a cost. The same rule the worktree guard keeps, and not the
+    same marker.
 
     `git_dir` is absolute, which `git_dir_of` guarantees by resolving git's
     answer against the root. The sibling this was copied from takes a `cwd`
@@ -239,14 +239,17 @@ def question_reason(root, home):
         "is the answer whenever the current layout is the intended one, and "
         "it is the cheapest of the three.\n"
         '    2. "Shared" — run `seal mode shared`. The root moves into the '
-        "tree at <repo>/seal/, the move is staged, and the pull-request "
-        "checks are installed. Choose it when the records should travel with "
-        "the repository.\n"
+        "tree at <repo>/seal/ and the move is staged. Nothing is installed "
+        "under .github/: `seal pr-checks install` adds the pull-request "
+        "checks afterwards, if they are wanted. Choose it when the records "
+        "should travel with the repository.\n"
         '    3. "Local" — run `seal mode local`. The root moves under the '
-        "common git directory, the workflow file is removed, and nothing "
-        "about this repository is committed. Choose it when the records "
-        "should not leave this machine — CI cannot run the checks in this "
-        "mode.\n\n"
+        "common git directory, and nothing about this repository is "
+        "committed. A workflow file already in the tree stays. Pinned to "
+        "this release, its checks examine nothing in this mode; pinned to an "
+        "older one, they fail every pull request until its `--branch` line "
+        "moves or `seal pr-checks remove` takes it out. Choose it when the records "
+        "should not leave this machine.\n\n"
         "Then run what they picked. Re-issuing the command instead reaches "
         "the ordinary approval prompt, where approving proceeds and records "
         "nothing."

@@ -873,6 +873,37 @@ class Test_config_rows:
         assert value is None and "each on a line of its own" in (said or ""), said
 
 
+class Test_config_text:
+    def test_accepts_the_file_as_utf8_text(self, config, tmp_path):
+        text = "| Item | Value |\n|---|---|\n| Mode | shared |\n"
+        write_config(tmp_path, text)
+        assert config.config_text(str(tmp_path)) == (text, None)
+
+    def test_refuses_an_empty_home_whatever_the_working_directory_holds(
+        self, config, monkeypatch, tmp_path
+    ):
+        """An empty home is no root, so no file is read, not even the
+        `config.md` the working directory holds."""
+        write_config(tmp_path, "| Item | Value |\n|---|---|\n| Mode | shared |\n")
+        monkeypatch.chdir(tmp_path)
+        assert config.config_text("") == (None, None)
+
+
+class Test_unreadable_config:
+    def test_accepts_a_decode_error_in_its_own_words(self, config):
+        exc = UnicodeDecodeError("utf-8", b"\xff", 0, 1, "invalid start byte")
+        said = config.unreadable_config(os.path.join("seal", "config.md"), exc)
+        assert f"({exc})" in said, said
+
+    def test_refuses_the_error_numbers_wording_and_names_the_reason_alone(self, config):
+        """An `OSError` is named by its reason, `Permission denied`, and not by
+        the `[Errno 13] …: path` its own text wraps the reason in."""
+        path = os.path.join("seal", "config.md")
+        said = config.unreadable_config(path, OSError(13, "Permission denied", path))
+        assert "(Permission denied)" in said, said
+        assert "Errno" not in said, said
+
+
 class Test_config_value:
     def test_accepts_one_row_as_its_value_and_no_row_as_none(self, config):
         """The two answers beside the refusal, so a reader of `config_value` can
@@ -1247,6 +1278,20 @@ class Test_fence_map:
         lines = [*SHAPES["C2"], "", "~~~", "| Broad gate | bin/test -q |"]
         assert config.fence_map(lines)[1] == lines.index("~~~")
         assert config.config_rows("\n".join(lines)) == [("Mode", "shared")]
+
+
+class Test_hidden_lines:
+    def test_accepts_a_fence_that_closes_as_hidden_and_names_no_opener(self, config):
+        assert config.hidden_lines(["```", "| Mode | x |", "```", "after"]) == (
+            {0: "fence", 1: "fence", 2: "fence"},
+            None,
+        )
+
+    def test_refuses_to_name_a_later_fence_left_open_before_the_first(self, config):
+        """Two fences that never close: the first is the one that hides the
+        lines under it, so it is the one named."""
+        lines = ["```", "a", "~~~", "b"]
+        assert config.hidden_lines(lines)[1] == 0
 
 
 class Test_unfenced:
@@ -1842,6 +1887,39 @@ class Test_gfm_table:
                     indent,
                     refusals,
                 )
+
+
+class Test_baseline_commit:
+    def test_accepts_the_first_code_span_where_the_value_holds_two(self, config):
+        row = "| Baseline commit | `0123456`, not `89abcde` |"
+        text = f"| Field | Value |\n|---|---|\n{row}\n"
+        assert config.baseline_commit(text) == ("0123456", None)
+
+    def test_refuses_a_table_the_walk_stops_and_names_why_its_row_went_unread(
+        self, config
+    ):
+        """The row is missing because the walk stopped above it, and the why
+        says so beside the missing row: the walk's refusal is the only place
+        the person learns which line to fix."""
+        text = (
+            "| Field | Value |\n|---|---|\n| Original | x |\n"
+            "text\n| Baseline commit | `0123456` |\n"
+        )
+        _rows, refusals = config.gfm_table(text, config.PARITY_TABLE)
+        sha, said = config.baseline_commit(text)
+        assert sha is None and refusals, refusals
+        assert "no `Baseline commit` row" in said, said
+        assert all(r in said for r in refusals), said
+
+
+class Test_renamed_header:
+    def test_accepts_a_header_holding_signer_and_renames_that_cell_alone(self, config):
+        old, said = config.renamed_header(("Signer", "Note"))
+        assert old == ("Signatory", "Note")
+        assert "`| Signatory | Note |`" in said, said
+
+    def test_refuses_a_header_that_holds_no_signer(self, config):
+        assert config.renamed_header(config.PARITY_TABLE) == (None, None)
 
 
 class Test_module:

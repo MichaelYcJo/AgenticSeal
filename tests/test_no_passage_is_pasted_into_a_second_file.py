@@ -34,7 +34,7 @@ thing, which no constant can hold: at any similarity that catches a
 paraphrase it also matches a heading against the sentence that links it.
 The paraphrase half was measured once, by hand, and its result is recorded in
 `seal/specs/1791076836-every-rule-claude-md-restates-has-one-home/spec.md`
-*The method and its result* rather than checked.
+*The method and its result* at `67694cba` rather than checked.
 
 **Why a ratchet.** The tree already holds copies, measured into `BASELINE`
 below, and moving them is #755's work, cluster by cluster. So the check fails
@@ -217,9 +217,7 @@ BASELINE = {
     ("README.md", "skills/implement/orchestration.md"): 1,
     ("README.md", "skills/parity-setup/SKILL.md"): 1,
     ("agents/smith.md", "skills/implement/SKILL.md"): 3,
-    ("docs/commit-review-gate-spec.md", "skills/agent-contract/SKILL.md"): 4,
     ("docs/one-root-by-lifetime.md", "skills/implement/SKILL.md"): 4,
-    ("docs/the-agent-set.md", "docs/the-broad-gate.md"): 4,
     ("docs/the-agent-set.md", "skills/implement/SKILL.md"): 20,
     ("skills/agent-contract/SKILL.md", "skills/implement/SKILL.md"): 1,
 }

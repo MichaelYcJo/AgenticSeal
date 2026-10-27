@@ -16,7 +16,7 @@ import re
 import subprocess
 
 import pytest
-from conftest import census_case
+from conftest import census_case, commit_everything_as_e, git_out, write
 from test_replay_targets import LABELLED_ROUND_1, LABELLED_ROUND_2, ROOT, load_script
 from test_rule_cases import entry, recurred_file, truth_regex
 
@@ -129,6 +129,73 @@ def two_near_fixes(target):
     )
 
 
+def based_repo(tmp_path, monkeypatch):
+    """A repository holding one base commit, with `rt` reading it: `(the
+    repository, the base commit)`."""
+    rt = load_script("seed_defects").rt
+    repo = tmp_path / "based"
+    repo.mkdir()
+    git_out(repo, "init", "-q")
+    write(repo, "b.py", "x = 1\n")
+    base = commit_everything_as_e(repo, "base")
+    monkeypatch.setattr(rt, "ROOT", str(repo))
+    return repo, base
+
+
+class Test_seed:
+    def test_accepts_the_first_operator_in_order_on_a_line_two_could_take(
+        self, tmp_path, monkeypatch
+    ):
+        """Guards the operator order: on an added line two operators land on
+        once, the seed is the first of `OPERATORS`, with the whole line before
+        and after and the unit it stands in."""
+        sd = load_script("seed_defects")
+        repo, base = based_repo(tmp_path, monkeypatch)
+        write(repo, "a.py", "def f(a, b):\n    return a and b == 1\n")
+        target = commit_everything_as_e(repo, "target")
+        assert sd.seed(base, target) == (
+            "a.py",
+            2,
+            "    return a and b == 1",
+            "    return a and b != 1",
+            ["f"],
+        )
+
+    @pytest.mark.parametrize(
+        ("source", "line", "unit"),
+        [
+            ("X = 1 == 1\n\n\ndef f(a):\n    return a != 2\n", 5, ["f"]),
+            ('def f(a):\n    s = "a == b"\n    return a != 2\n', 3, ["f"]),
+            (
+                "def f(a):\n    return a == 1\n\n\ndef g(a):\n    return a == 1\n"
+                "\n\ndef h(a):\n    return a != 2\n",
+                10,
+                ["h"],
+            ),
+        ],
+        ids=["outside-any-unit", "inside-a-string", "whose-text-occurs-twice"],
+    )
+    def test_refuses_a_line_no_seed_may_take(
+        self, tmp_path, monkeypatch, source, line, unit
+    ):
+        """Guards sd9, sd6 and sd8 of #1017: an added line outside every
+        `def` and `class`, an operator inside a string, and a line whose text
+        the file holds twice take no seed, so a mutation always lands on one
+        code token a unit owns. Each source puts that line first, and the seed
+        goes to the line after it."""
+        sd = load_script("seed_defects")
+        repo, base = based_repo(tmp_path, monkeypatch)
+        write(repo, "a.py", source)
+        target = commit_everything_as_e(repo, "target")
+        assert sd.seed(base, target) == (
+            "a.py",
+            line,
+            "    return a != 2",
+            "    return a == 2",
+            unit,
+        )
+
+
 class Test_target_of:
     def test_accepts_a_shipped_commit_and_builds_its_case_on_round_1s_target(
         self, tmp_path, monkeypatch
@@ -217,6 +284,31 @@ class Test_target_of:
         t, why = sd.target_of(commits["squash"])
         assert t is None
         assert why == "two of round 1's truths accept `location: `a.py:1``", why
+
+    @pytest.mark.parametrize(
+        ("rel", "text", "why"),
+        [
+            ("b.py", "x = 2\n", "adds 0 work items' routing.md"),
+            (
+                "seal/specs/1790000002-an-unreviewed-item/routing.md",
+                "| Axis | Answer |\n|---|---|\n| Branch | feat/2-an-unreviewed-item |\n",
+                "holds no round 1 record",
+            ),
+        ],
+        ids=["adds-no-work-item", "holds-no-round-1-record"],
+    )
+    def test_refuses_a_squashed_pull_request_with_no_round_1_to_seed(
+        self, tmp_path, monkeypatch, rel, text, why
+    ):
+        """Guards sd2 and sd3 of #1017: a squashed pull request that adds no
+        work item's `routing.md`, such as a dependency bump, and a work item
+        shipped with no review round have no round 1 tree to seed. Each is
+        left out saying which, and neither is read as a work item."""
+        sd = load_script("seed_defects")
+        repo, _base = based_repo(tmp_path, monkeypatch)
+        write(repo, rel, text)
+        shipped = commit_everything_as_e(repo, "feat: a shipped change (#2)")
+        assert sd.target_of(shipped) == (None, why)
 
 
 class Test_module:

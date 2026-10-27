@@ -57,11 +57,16 @@ make.
    item belongs inside your scope where this work is its prerequisite. The
    earlier work items under `seal/specs/`, their round records included
    where they still stand: a work item's round records leave with its
-   directory at the settle that applies its spec, and are read at its
+   directory at the settle after its release, and are read at its
    release tag after that (`git show v<X.Y.Z>:<path>`). A decision those
-   rounds argued through is not argued again in your `plan.md`. The ticket
-   and its comments, and `seal/parity.md` where it is declared, which puts the
-   original between the ticket and the code. A reference root
+   rounds argued through is not argued again in your `plan.md`. The process
+   archive of the highest version, `seal/process/<X.Y.Z>.md`, once, where
+   the `seal/` root holds one: what that release changed in the way of
+   working, and why, one row per change in the shape of
+   `templates/process.md`. The ticket and its comments, and `seal/parity.md`
+   where it is declared, which puts the original between the ticket and the
+   code.
+   A reference root
    (`templates/config.md` *Reference specs*) is read where the work touches
    what it describes, and cited in `spec.md` by path.
 5. Judge: answer everything the tree can answer. Where readiness is what is

@@ -22,16 +22,16 @@ import tempfile
 
 import pytest
 
-# The review run's documents: the record and the run, the hooks, what git
-# decides, and what each arm wants. A case that reads one of them for what is
+# The review run's documents: the record and the run, the hooks, the routing
+# check, and what each arm wants. A case that reads one of them for what is
 # THERE reads the one that holds the section; a case asserting what is NOT
 # there reads all four through `review_chain_text`, because a sentence
 # forbidden in one that returns in a sibling is the same sentence back, and
 # an absence that holds in one part of the text proves nothing about the rest.
 REVIEW_CHAIN_DOCS = (
     ("docs", "the-review-record.md"),
-    ("docs", "commit-review-gate-spec.md"),
-    ("docs", "the-commit-gate-inside-git.md"),
+    ("docs", "the-session-hooks.md"),
+    ("docs", "the-routing-check.md"),
     ("docs", "the-review-and-parity-arms.md"),
 )
 
@@ -521,32 +521,6 @@ SESSION_VARIABLES = (
 def _no_session_in_the_environment(monkeypatch):
     for name in SESSION_VARIABLES:
         monkeypatch.delenv(name, raising=False)
-
-
-# `hooks/hook-install.py` runs first in `pre-bash` and in `session-start`, so
-# every case that drives either group would grow git hooks in its fixture
-# repository and print the installer's line beside the gate it is about. The
-# installer's own cases, and the real-git cases of the hooks it writes, unset
-# this themselves (`git_hooks_installed` below).
-@pytest.fixture(autouse=True)
-def _no_hooks_installed_unless_asked(monkeypatch):
-    monkeypatch.setenv("SPECSEAL_HOOK_INSTALL", "off")
-
-
-# `hooks/answers.py` keeps the tokens a command carried under the person's
-# home. Every case keeps them under its own temporary directory instead, so no
-# case writes into the home of whoever runs the suite.
-@pytest.fixture(autouse=True)
-def _answers_kept_in_the_case(monkeypatch, tmp_path_factory):
-    monkeypatch.setenv(
-        "SPECSEAL_ANSWERS", str(tmp_path_factory.mktemp("specseal-answers"))
-    )
-
-
-@pytest.fixture
-def git_hooks_installed(monkeypatch):
-    """Lets `hooks/hook-install.py` write, for a case that is about it."""
-    monkeypatch.delenv("SPECSEAL_HOOK_INSTALL", raising=False)
 
 
 def load_hook_module(filename, name):
@@ -1070,22 +1044,6 @@ def lease_dir(repo):
     return d
 
 
-# Two Bash calls for the answer store's cases: one carrying a waiver, one not.
-A = ": '[no-review]'; bin/test && git commit -m a"
-B = "git commit -m b"
-
-
-def shell(command):
-    """The argv the Bash tool's shell carries for COMMAND, as `ps -ww -o
-    args=` printed it on macOS in this harness: the command inside `eval
-    '…'`, each `'` written `'"'"'`, and a newline as `\\012`."""
-    quoted = command.replace("'", "'\"'\"'").replace("\n", "\\012")
-    return (
-        "/bin/zsh -c source /Users/x/.claude/shell-snapshots/snapshot-zsh-1.sh "
-        f"2>/dev/null || true && eval '{quoted}' < /dev/null && pwd -P >| /tmp/c"
-    )
-
-
 def stub_process_tree(monkeypatch, start, tree):
     """`ps -o ppid=,comm= -p <pid>` against a fixture tree of {pid: (ppid, comm)},
     the walk starting at START as this process's parent.
@@ -1298,39 +1256,11 @@ def opt_in(repo):
     (repo / "seal").mkdir(exist_ok=True)
 
 
-def parity_repo(repo):
-    """Declare the migration config — which now opts into the review arm too.
-
-    It used to be possible to declare parity alone, through the pre-0.10
-    `docs/parity.md`. That address is gone, and the current one lives INSIDE
-    `seal/`, so writing it creates the directory whose existence is the
-    review opt-in. The two arms are still evaluated independently — own
-    marker, own waiver token, own silence rules — but they can no longer be
-    declared independently, and `docs/commit-review-gate-spec.md` says so.
-
-    These cases are about the parity arm on its own, so they carry
-    `[no-review]` to silence the other one. That is the per-command waiver
-    doing exactly its job.
-    """
-    (repo / "seal").mkdir(exist_ok=True)
-    (repo / "seal" / "parity.md").write_text(
-        "| Original repo | org/legacy |\n", encoding="utf-8"
-    )
-
-
-def parity_only(command):
-    """`command` with the review arm waived, so the parity arm answers alone."""
-    return f"{command} [no-review]"
-
-
 def staged_repo(path, declared=False, review="straight to the PR"):
     """An opted-in repository with one commit and a staged change.
 
-    `declared` writes a routing declaration answering `review`. Its default
-    is `straight to the PR`, because the cases that add a migration config
-    judge the parity arm as the one `[no-review]` does not answer, and a
-    declaration answering `through the review chain` quiets that arm at the
-    commit (#988)."""
+    `declared` writes a routing declaration answering `review`, `straight to
+    the PR` unless told otherwise."""
     path.mkdir(parents=True)
     run = lambda *a: subprocess.run(
         ["git", "-C", str(path), *a], check=True, capture_output=True
@@ -1345,27 +1275,6 @@ def staged_repo(path, declared=False, review="straight to the PR"):
     if declared:
         declare_routing(path, review=review)
     return path
-
-
-def a_git_whose_diff_fails(tmp_path):
-    """A directory holding a `git` that exits 128 for any `diff` and runs the
-    real git otherwise (`questions.md` W1 of work item 1791384157: the shim,
-    because it names the failure on every git version)."""
-    import stat
-
-    real = shutil.which("git")
-    assert real, "no git on PATH"
-    shim = tmp_path / "shim"
-    shim.mkdir()
-    script = shim / "git"
-    script.write_text(
-        "#!/bin/sh\n"
-        'for a in "$@"; do [ "$a" = diff ] && exit 128; done\n'
-        f'exec "{real}" "$@"\n',
-        encoding="utf-8",
-    )
-    script.chmod(script.stat().st_mode | stat.S_IXUSR)
-    return f"{shim}{os.pathsep}{os.environ.get('PATH', '')}"
 
 
 def dirty(repo):
@@ -1427,18 +1336,6 @@ def payload(cmd, repo, session="s1"):
 def reason_of(out):
     """The reason a hook's decision gives."""
     return json.loads(out)["hookSpecificOutput"]["permissionDecisionReason"]
-
-
-def run_gate(command, cwd, session=None):
-    """The commit gate's output for COMMAND typed in CWD."""
-    gate_payload = {
-        "tool_name": "Bash",
-        "tool_input": {"command": command},
-        "cwd": str(cwd),
-    }
-    if session:
-        gate_payload["session_id"] = session
-    return run_hook("commit-review-gate.py", gate_payload)
 
 
 def config_table(*rows):
@@ -1600,12 +1497,6 @@ def chain_check_run(chain, root, capsys, *extra):
     code and what it printed."""
     code = chain.main(["--baseline", "main", "--root", str(root), *extra])
     return code, capsys.readouterr().out
-
-
-def commit_found(gate, command, cwd):
-    """The first commit GATE, a loaded commit gate, finds in COMMAND typed in
-    CWD."""
-    return gate.commit_invocations(command, str(cwd))[0]
 
 
 def guard_decision(wg, monkeypatch, capsys, repo, command, sessions=([], [], True)):
@@ -1879,7 +1770,7 @@ def _a_dirty_w_under_a_clean_session(repo, tmp_path):
 
 # --- a work item's closing records, as the stamp's queue gates read them -------
 #
-# `tests/test_commitgate.py` and `tests/test_sealer_stamp_queue.py` write them.
+# `tests/test_sealer_stamp_queue.py` writes them.
 
 STAMP_ITEM = "1799000000-an-item"
 

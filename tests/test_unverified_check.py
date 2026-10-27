@@ -12,9 +12,9 @@ work items and a tracked overview under `build/`, a clone whose second
 overview is a tracked link to the first, a clone whose base
 revisions are written the way the corpus was before it was normalised, a
 clone with a moved base branch beside its work branch, a clone of work items
-a settle can remove, a clone whose spec was dropped on the far side of a
-merge, a clone with a `seal/` root beside a team's own `specs/`, and a
-`seal/` root with no `specs/`. A case that writes into a world takes a copy,
+a settle can remove, a clone with a `seal/` root beside a team's own `specs/`, a
+`seal/` root with no `specs/`, and a `seal/` root whose one work item holds
+no overview. A case that writes into a world takes a copy,
 and the copy is the reset. No world holds a file a case runs, so the copies
 are plain copies.
 """
@@ -274,24 +274,6 @@ def settle(tmp_path_factory):
     return d
 
 
-@pytest.fixture(scope="module")
-def merged(tmp_path_factory):
-    """A spec added and dropped on `release`, which reached `main` through a
-    merge commit whose result matches the parent that never held it."""
-    d = _committed(tmp_path_factory.mktemp("merged"), {"README.md": "r\n"})
-    git(d, "switch", "-qc", "release")
-    write(d, "seal/specs/1780000009-x/routing.md", "# x routing\n")
-    write(d, "seal/specs/1780000009-x/spec.md", "# a spec\n\nA rule.\n")
-    commit_everything_as_e(d, "a work item with a spec")
-    git(d, "rm", "-q", "seal/specs/1780000009-x/spec.md")
-    commit_everything_as_e(d, "the spec, dropped")
-    git(d, "switch", "-q", "main")
-    write(d, "other.md", "o\n")
-    commit_everything_as_e(d, "main moves")
-    git(d, "merge", "-q", "--no-ff", "-m", "release into main", "release")
-    return d
-
-
 TEAM = "specs/1788000001-team-thing"
 OURS = "seal/specs/1790000000-ours"
 MALFORMED = "## Not verified\n\nnot a table, and not a none line either\n"
@@ -315,6 +297,19 @@ def joined(tmp_path_factory):
 def sealed(tmp_path_factory):
     """A `seal/` root with no `specs/`, the tree a complete settle leaves."""
     return _committed(tmp_path_factory.mktemp("sealed"), {"seal/ledger.md": "# l\n"})
+
+
+@pytest.fixture(scope="module")
+def unwritten(tmp_path_factory):
+    """A `seal/` root whose one work item has a routing and a spec and never
+    opened a closing memo."""
+    return _committed(
+        tmp_path_factory.mktemp("unwritten"),
+        {
+            f"seal/specs/{WORK}/routing.md": f"# {WORK} routing\n",
+            f"seal/specs/{WORK}/spec.md": "# a spec\n",
+        },
+    )
 
 
 def run(argv):
@@ -398,85 +393,6 @@ class Test_visible:
         assert UC.visible(" a  b ") == "a  b"
 
 
-class Test_comment_scan:
-    def test_accepts_each_line_with_the_state_it_began_in(self):
-        lines = [
-            "prose <!-- open",
-            "still inside",
-            "closed --> and prose again",
-            "<!-- specs/x-1 -->",
-        ]
-        assert list(UC.comment_scan(lines)) == [
-            (True, "prose "),
-            (False, ""),
-            (False, " and prose again"),
-            (True, ""),
-        ]
-
-    @pytest.mark.parametrize(
-        "lines, kept",
-        [
-            # Round 1 of #1000, finding 2: a table cell quoting the opener in
-            # a code span, as two merged guarantees do.
-            (["| `<!-- specs/` | y |", "Verdict: sealed"], None),
-            # A double-backtick span holding a single backtick and the opener.
-            (["a ``x `<!--` y`` b", "after"], None),
-            # A run with no partner on its line is literal, so the opener
-            # after it opens a comment.
-            (["a ` b <!-- c", "hidden", "--> d"], ["a ` b ", "", " d"]),
-            (["`a` <!-- c --> e", "x"], ["`a`  e", "x"]),
-            # Inside a comment backticks are ordinary characters.
-            (["<!-- `x --> y`", "z"], [" y`", "z"]),
-        ],
-        ids=[
-            "a cell",
-            "a doubled span",
-            "an unpartnered run",
-            "a span, then a comment",
-            "backticks in a comment",
-        ],
-    )
-    def test_refuses_an_opener_a_code_span_quotes(self, lines, kept):
-        """CommonMark 6.1 gives a code span opened first precedence over an
-        HTML comment inside it."""
-        scanned = [text for _began, text in UC.comment_scan(lines)]
-        assert scanned == (lines if kept is None else kept)
-
-    @pytest.mark.parametrize(
-        "tail", ["", "<!--"], ids=["no opener", "an opener at the end"]
-    )
-    def test_the_comment_scan_is_not_quadratic_in_backtick_runs(self, tail):
-        """Round 2 of #1000, finding 1: 800000 characters of closed code
-        spans, with no opener or with one at the end, and a line of backtick
-        runs each without a partner of its own length, are each read inside
-        the bound. The linear scan takes under 0.2 s on the first; the scan
-        that sliced the line again per span took 54 s at 800000. The bound
-        sits an order of magnitude from each, so a loaded runner does not
-        fail it."""
-        for line in (
-            "`a` " * 200000 + tail,
-            "".join("`" * k + "x" for k in range(1, 400)) + tail,
-        ):
-            start = time.monotonic()
-            UC.strip_comments([line, "-->"])
-            assert time.monotonic() - start < 5.0, len(line)
-
-
-class Test_strip_comments:
-    def test_accepts_comment_text_blanked_with_the_lines_kept(self):
-        """A record started from a template before #1005 keeps the comment
-        that explained a section beside it; #1012 retires the state."""
-        lines = ["a <!-- b", "c", "d --> e"]
-        assert UC.strip_comments(lines) == ["a ", "", " e"]
-
-    def test_refuses_a_walk_of_its_own(self, monkeypatch):
-        """A second copy of the walk inside `strip_comments` would answer as
-        the real one does, so the scanner is replaced and the reader has to
-        answer from the stub."""
-        monkeypatch.setattr(UC, "comment_scan", lambda lines: iter([(False, "S")]))
-        assert UC.strip_comments(["a <!-- b"]) == ["S"]
-
-
 class Test_fence_spans:
     def test_accepts_each_closed_block_with_its_delimiters(self):
         lines = ["a", "```", "x", "```", "~~~", "y", "~~~"]
@@ -508,6 +424,21 @@ class Test_blank_fences:
         assert UC.blank_fences(["a", "```", "x", "b"]) == ["a", "", "", ""]
 
 
+class Test_comment_lines:
+    def test_accepts_each_line_that_begins_with_the_opener(self):
+        """*Scope* item 3 of #1012: a record carries no HTML comment, so a
+        line whose text, leading whitespace removed, begins with `<!--` is
+        found at its own index, for the reader of the record to refuse."""
+        lines = UC.readable("# r\n\n<!-- a note -->\n  <!-- indented\nprose\n")
+        assert UC.comment_lines(lines) == [2, 3]
+
+    def test_refuses_an_opener_later_in_a_line_or_inside_a_fence(self):
+        """A `<!--` after the start of a line is text, in a code span or not,
+        and one inside a fence is part of a quotation `readable` blanks."""
+        text = "a `<!--` b\nprose <!-- open\n```\n<!-- quoted\n```\n"
+        assert UC.comment_lines(UC.readable(text)) == []
+
+
 class Test_liveness:
     SPAN = ("a span opens `here", "<!-- specs/s-6 -->", "and closes` there")
 
@@ -534,6 +465,18 @@ class Test_liveness:
 
     def test_refuses_lines_a_span_reaching_across_them_parks(self):
         assert UC.liveness(self.SPAN, spans_cross_lines=True) == [True, False, False]
+
+    def test_reads_an_opener_as_text_where_the_caller_keeps_no_comment_state(self):
+        """#1012: `rule_changes.py#parse` reads a record with `comments=False`,
+        so an opener opens nothing and a fence after it is a fence."""
+        lines = ["<!-- open", "```", "-->", "```", "after"]
+        assert UC.liveness(lines, spans_cross_lines=False, comments=False) == [
+            True,
+            True,
+            False,
+            False,
+            True,
+        ]
 
 
 # The heading rule held to `tests/commonmark_oracle.py`, which reads
@@ -832,6 +775,16 @@ class Test_live_lines:
         assert answer[0] is True
         assert answer[1] is not opens
 
+    def test_reads_an_opener_as_text_where_the_caller_keeps_no_comment_state(self):
+        """#1012: both readings take the keyword, so a heading after an
+        opener nobody closed begins live for `rule_changes.py#parse`."""
+        lines = ["prose <!-- open", "## Rule changes"]
+        assert [live for _, live in UC.live_lines(lines, comments=False)] == [
+            True,
+            True,
+        ]
+        assert [live for _, live in UC.live_lines(lines)] == [True, False]
+
     def test_the_scan_decides_a_fence_before_a_comment_or_a_span(self):
         """A fence opener owns its whole line, so a comment opener on it is
         fenced content and opens nothing."""
@@ -859,9 +812,11 @@ class Test_live_lines:
 
 
 class Test_readable:
-    def test_accepts_the_lines_with_comments_and_fences_blanked(self):
+    def test_accepts_the_lines_with_fences_blanked_and_a_comment_as_text(self):
+        """#1012: a record carries no comment, so `readable` keeps none of
+        the comment state and a comment comes back as the text it is."""
         text = "a\n<!-- b -->\n```\n| x | y |\n```\n| c | d |\n"
-        assert UC.readable(text) == ["a", "", "", "", "", "| c | d |"]
+        assert UC.readable(text) == ["a", "<!-- b -->", "", "", "", "| c | d |"]
 
     def test_refuses_an_indented_delimiter_as_a_fence(self):
         """Four spaces before a run of backticks is never a delimiter
@@ -891,13 +846,6 @@ class Test_readable:
         openers = {first for first, _ in UC.fence_spans(lines)}
         parked = {n for n, (_, live) in enumerate(UC.live_lines(lines)) if not live}
         assert parked == fenced - openers, parked
-
-    def test_readable_would_erase_every_fold_record(self):
-        """Why the pair `check_text` uses is the wrong reader for a marker:
-        it blanks the marker, which `live_lines` reads live."""
-        marker = ["<!-- specs/1780000000-work -->", "A standing statement."]
-        assert UC.readable("\n".join(marker))[0] == ""
-        assert next(iter(UC.live_lines(marker)))[1] is True
 
 
 class Test_headings:
@@ -1330,13 +1278,6 @@ class Test_check_text:
                 + "\n~~~markdown\n| Item | Who must answer |\n~~~\n\n| a third item | someone |\n",
                 3,
             ),
-            # A guidance comment an overview started before #1005 keeps;
-            # #1012 retires the state.
-            (
-                "## Not verified\n\n<!-- guidance:\n| closed <item> | <what closed it> |\n-->\n\n"
-                + CANONICAL.split("\n", 2)[2],
-                2,
-            ),
             # Round 1 of #1000: a row quoting the opener in a code span hides
             # no row below it.
             (
@@ -1346,13 +1287,22 @@ class Test_check_text:
                 ),
                 2,
             ),
+            # #1012: a bare opener later in a line is text, so it hides no row
+            # below it either.
+            (
+                CANONICAL.replace(
+                    "| how the gate renders in a TUI |",
+                    "| whether a bare <!-- in a cell hides rows |",
+                ),
+                2,
+            ),
         ],
         ids=[
             "the table",
             "a fenced example",
             "a tilde fence",
-            "a guidance comment",
             "an opener in a span",
+            "a bare opener mid-line",
         ],
     )
     def test_accepts_the_rows_of_the_one_section(self, section, count):
@@ -1411,6 +1361,25 @@ class Test_check_text:
     )
     def test_refuses_no_section_two_sections_and_an_empty_one(self, text, error):
         assert UC.check_text(text)[2] == [error]
+
+    @pytest.mark.rule("record-comment-line-refused")
+    def test_refuses_a_comment_line_at_its_line(self):
+        """S6 of #1012: the guidance comment an overview started before #1005
+        carries is refused at its first line, before any row is counted,
+        where the reader that kept a comment state read past it. The words
+        are pinned here, once, because they are all a consuming repository
+        is told to do (contract rule 14); every other case compares against
+        the constant, which pins that each reader says the one message."""
+        text = memo(
+            "## Not verified\n\n<!-- guidance:\n| closed <item> | <what closed it> |"
+            "\n-->\n\n" + CANONICAL.split("\n", 2)[2] + "<!-- a second -->\n"
+        )
+        line = text.splitlines().index("<!-- guidance:") + 1
+        said = (
+            "the line begins with `<!--`, and a record carries no HTML comment: "
+            "the check reads one as text, so delete the comment"
+        )
+        assert UC.check_text(text) == ([], [], [(line, said)])
 
 
 # --- the walk and the paths it compares ---------------------------------------
@@ -1712,20 +1681,10 @@ class Test_show:
 
 class Test_rule_changes:
     def test_accepts_the_one_reader_of_a_specs_rule_changes(self):
-        rules = UC.rule_changes()
-        assert callable(rules.parse) and callable(rules.replay)
+        assert callable(UC.rule_changes().parse)
 
     def test_refuses_to_load_it_twice(self):
         assert UC.rule_changes() is UC.rule_changes()
-
-
-class Test_policy_documents:
-    def test_accepts_each_file_under_the_policy_root(self, settle):
-        assert UC.policy_documents(str(settle), "HEAD", "docs") == {"docs/a.md": DOC}
-        assert UC.policy_documents(str(settle), None, "docs") == {"docs/a.md": DOC}
-
-    def test_refuses_a_policy_root_that_is_not_there(self, settle):
-        assert UC.policy_documents(str(settle), "HEAD", "rules") == {}
 
 
 class Test_open_record_rows:
@@ -1751,50 +1710,32 @@ class Test_open_record_rows:
         )
 
 
-class Test_wrote_a_spec:
-    @pytest.mark.parametrize("directory", [DROPPED, SETTLE_A])
-    def test_accepts_a_spec_written_once_and_one_still_there(self, settle, directory):
-        """Round 1's finding 3: a spec an earlier commit deleted was still
-        written, so its directory is no spec-less work item."""
-        assert UC.wrote_a_spec(str(settle), "HEAD", f"specs/{directory}") is True
-
-    def test_accepts_a_spec_dropped_on_the_far_side_of_a_merge(self, merged):
-        """Round 2's finding 6: at the merge the path matches the parent that
-        never held it, so `git log` without `--full-history` follows that
-        parent alone."""
-        assert UC.wrote_a_spec(str(merged), "HEAD", "seal/specs/1780000009-x") is True
-        assert not UC.settled(str(merged), "HEAD", ["seal/specs/1780000009-x"])
-
-    def test_accepts_a_history_git_cannot_read_as_a_spec_written(self, tmp_path):
-        """*Never wrote one* is the answer that removes the directory."""
-        assert UC.wrote_a_spec(str(tmp_path), None, "seal/specs/1780000009-x") is True
-
-    def test_refuses_a_directory_that_never_wrote_one(self, settle):
-        assert UC.wrote_a_spec(str(settle), None, f"specs/{CLOSED_ITEM}") is False
-
-
 class Test_settled:
-    def test_accepts_a_spec_less_item_and_one_whose_spec_states_no_rule(self, settle):
-        dirs = [f"specs/{CLOSED_ITEM}", f"specs/{SETTLE_C}"]
-        assert UC.settled(str(settle), "HEAD", dirs) == set(dirs)
-
-    def test_accepts_an_item_whose_rule_the_policy_root_holds_here(
-        self, settle, tmp_path
-    ):
-        d = copy_of(settle, tmp_path)
-        write(d, "docs/a.md", DOC + "\nA new rule.\n")
-        assert UC.settled(str(d), "HEAD", [f"specs/{SETTLE_A}"]) == {
-            f"specs/{SETTLE_A}"
-        }
-
-    def test_refuses_an_open_row_a_dropped_spec_a_rule_not_held_and_an_unread_one(
-        self, settle
-    ):
+    def test_accepts_every_directory_that_stood_at_the_ref(self, settle):
+        """S6 at the predicate (#1033): a directory that stood at the ref is
+        settled whatever its record and its spec say: an open row, a spec an
+        earlier commit dropped, a rule `docs/` does not hold, a section that
+        does not parse, a spec with no section, and no spec at all."""
         dirs = [
             f"specs/{n}"
-            for n in (OPEN_ITEM, DROPPED, SETTLE_A, SETTLE_BAD, "1780000099-none")
+            for n in (
+                OPEN_ITEM,
+                DROPPED,
+                SETTLE_A,
+                SETTLE_BAD,
+                SETTLE_C,
+                CLOSED_ITEM,
+            )
         ]
-        assert UC.settled(str(settle), "HEAD", dirs) == set()
+        assert UC.settled(str(settle), "HEAD", dirs) == set(dirs)
+
+    @pytest.mark.parametrize(
+        "ref, name",
+        [("HEAD", "1780000099-none"), ("nosuch", OPEN_ITEM)],
+        ids=["a directory the ref never held", "a ref that does not resolve"],
+    )
+    def test_refuses_a_directory_the_ref_does_not_hold(self, settle, ref, name):
+        assert UC.settled(str(settle), ref, [f"specs/{name}"]) == set()
 
 
 class Test_settled_root:
@@ -1815,6 +1756,47 @@ class Test_settled_root:
             (tmp_path / "other").mkdir()
         path = tmp_path / ("other" if state == "another parent" else "seal") / "specs"
         assert UC.settled_root(str(path)) is False
+
+
+class Test_absent_root:
+    def test_accepts_the_specs_path_of_a_top_level_holding_no_root(self, tmp_path):
+        git(tmp_path, "init", "-q")
+        assert UC.absent_root(str(tmp_path / "seal" / "specs")) is True
+
+    @pytest.mark.parametrize(
+        "state",
+        ["a root", "a subdirectory", "no repository", "another parent", "a typo"],
+    )
+    def test_refuses_a_root_a_subdirectory_no_repository_and_another_name(
+        self, sealed, tmp_path, state
+    ):
+        """Absence is read only at a working tree's top level and under the
+        one spelling: anything else is a mistyped path, as it always was."""
+        if state == "a typo":
+            git(tmp_path, "init", "-q")
+        path = {
+            "a root": sealed / "seal" / "specs",
+            "a subdirectory": sealed / "seal" / "seal" / "specs",
+            "no repository": tmp_path / "seal" / "specs",
+            "another parent": sealed / "other" / "specs",
+            "a typo": tmp_path / "seal" / "spces",
+        }[state]
+        assert UC.absent_root(str(path)) is False
+
+
+class Test_unwritten_root:
+    def test_accepts_a_roots_specs_holding_work_items_and_no_overview(self, unwritten):
+        assert UC.unwritten_root(str(unwritten / "seal" / "specs")) is True
+
+    @pytest.mark.parametrize("state", ["an overview", "no work item", "another parent"])
+    def test_refuses_an_overview_no_work_item_and_another_parent(self, tmp_path, state):
+        (tmp_path / "seal" / "specs").mkdir(parents=True)
+        path = tmp_path / ("other" if state == "another parent" else "seal") / "specs"
+        if state == "another parent":
+            write(tmp_path, f"other/specs/{WORK}/spec.md", "# a spec\n")
+        if state == "an overview":
+            memo_at(tmp_path / "seal", CANONICAL)
+        assert UC.unwritten_root(str(path)) is False
 
 
 class Test_under_root:
@@ -1923,13 +1905,21 @@ class Test_main:
 
     def test_accepts_the_baseline_help_naming_both_places(self, capsys):
         """#612: the `--baseline` help is a rendered line (contract rule
-        14), and it names the fork point and the base's tip."""
+        14), and it names the fork point and the base's tip. Since #1033 it
+        and the module's docstring say what reads as a settle, and nothing
+        about the records or `docs/`."""
         with pytest.raises(SystemExit):
             UC.main(["--help"])
         rendered = " ".join(capsys.readouterr().out.split())
         assert (
             "the fork point on a branch checkout and the base's tip in CI" in rendered
         )
+        said = "stood at the merge base and is gone whole, which reads as a settle"
+        assert said in rendered, rendered
+        assert "holding every rule change" not in rendered, rendered
+        doc = " ".join(UC.__doc__.split())
+        assert "unless its whole directory stood at the base and is gone" in doc
+        assert "unless a settle removed its directory whole" not in doc
 
     # `--baseline`: a row and a record leave by being closed.
 
@@ -1961,24 +1951,39 @@ class Test_main:
         assert "2 rows at HEAD, 1 here" in out
         assert "Re-add the row, its Item cell opening with the word `closed`" in out
 
+    @pytest.mark.rule("record-comment-line-refused")
+    def test_accepts_a_base_holding_a_comment_line_as_not_compared(
+        self, plain, tmp_path, capsys
+    ):
+        """S6 of #1012: a base overview holding a line that begins `<!--` is
+        named as not compared, never counted as zero rows, and the exit code
+        is the working tree's, because nobody can edit a commit that already
+        happened. A row deleted in the stripping commit goes uncompared once."""
+        d = copy_of(plain, tmp_path)
+        path = d / "specs" / WORK / "overview.md"
+        replace_in(path, "## Not verified\n", "## Not verified\n\n<!-- guidance -->\n")
+        commit_everything_as_e(d, "an overview from an old template")
+        replace_in(path, "\n<!-- guidance -->\n", "")
+        drop_line(path, WINDOWS)
+        assert run([str(d), "--baseline", "HEAD"]) == 0
+        out = capsys.readouterr().out
+        named = out.split("not compared against HEAD:")[1]
+        assert WORK in named and UC.COMMENT_LINE in named, out
+
     @pytest.mark.parametrize(
-        "change, argv, gone",
-        [
-            ("delete one and rename the other", ["."], 2),
-            ("delete both", ["."], 2),
-            ("delete specs", ["specs"], 2),
-            ("delete the item", [f"specs/{WORK}/overview.md"], 1),
-        ],
-        ids=["a file and a rename", "every overview", "the scan path", "two levels"],
+        "change, gone, settled",
+        [("delete one and rename the other", 1, 1), ("delete both", 2, 0)],
+        ids=["a file and a rename", "every overview"],
     )
     def test_refuses_a_record_that_left_whole(
-        self, plain, tmp_path, capsys, change, argv, gone
+        self, plain, tmp_path, capsys, change, gone, settled
     ):
-        """Deleting the file was cheaper and quieter than deleting a row, and
-        a rename reads the same way, said out loud. A scan that finds nothing
-        because every overview left reports the deletion rather than an
-        empty scan, and a scan path deleted wholesale is compared rather than
-        called a bad argument, two levels gone too."""
+        """Deleting the file was cheaper and quieter than deleting a row, said
+        out loud. A scan that finds nothing because every overview left
+        reports the deletion rather than an empty scan. Since #1033 a
+        directory gone whole reads as a settle, so a renamed one is named
+        settled at its old path; its rows are listed where it went and are
+        counted against nothing at the old one."""
         d = copy_of(plain, tmp_path)
         item = d / "specs" / WORK
         if change == "delete one and rename the other":
@@ -1987,13 +1992,34 @@ class Test_main:
         if change == "delete both":
             os.remove(item / "overview.md")
             os.remove(d / "specs" / OTHER / "overview.md")
-        if change == "delete specs":
-            shutil.rmtree(d / "specs")
-        if change == "delete the item":
-            shutil.rmtree(item)
+        assert run([str(d), "--baseline", "HEAD"]) == 1
+        out = capsys.readouterr().out
+        assert out.count("present at HEAD and not here") == gone, out
+        assert out.count("settled: the directory stood at HEAD") == settled, out
+
+    @pytest.mark.parametrize(
+        "change, argv",
+        [
+            ("delete specs", ["specs"]),
+            ("delete the item", [f"specs/{WORK}/overview.md"]),
+        ],
+        ids=["the scan path", "two levels"],
+    )
+    def test_accepts_a_scan_path_gone_whole_as_a_settle(
+        self, plain, tmp_path, capsys, change, argv
+    ):
+        """A scan path deleted wholesale is compared rather than called a bad
+        argument, two levels gone too. Each directory under it stood at the
+        base and is gone whole, which reads as a settle since #1033: the
+        limit that work item states for a whole removal outside a settle,
+        whose diff shows it to its review."""
+        d = copy_of(plain, tmp_path)
+        shutil.rmtree(d / "specs" if change == "delete specs" else d / "specs" / WORK)
         paths = [os.path.join(str(d), *a.split("/")) for a in argv]
-        assert run([*paths, "--baseline", "HEAD"]) == 1
-        assert capsys.readouterr().out.count("present at HEAD and not here") == gone
+        assert run([*paths, "--baseline", "HEAD"]) == 0
+        out = capsys.readouterr().out
+        assert "present at HEAD and not here" not in out, out
+        assert "settled: the directory stood at HEAD" in out, out
 
     def test_refuses_an_unreadable_section_without_reporting_a_deletion(
         self, plain, tmp_path, capsys
@@ -2225,57 +2251,65 @@ class Test_main:
     def test_a_settled_work_item_is_not_read_as_this_branchs_deletion(
         self, settle, tmp_path, capsys
     ):
-        """A released directory removed whole, with nothing open, whose rule
-        changes `docs/` holds, that states none, or that never wrote a spec,
-        is a settle and not this branch's deletion (S9 and S11 of the settle
-        work, A6 of #517). It is named rather than passed over in silence, in
-        the line a person reads in the hygiene workflow's output."""
+        """S6 of #1033: a directory that stood at the merge base and is gone
+        whole is a settle and not this branch's deletion, whatever its record
+        held there and whatever `docs/` holds of its spec: an open row, a rule
+        `docs/` does not hold, a spec an earlier commit dropped, a section
+        that does not parse, a spec with no section, and no spec. It is named
+        rather than passed over in silence, in the line a person reads in the
+        hygiene workflow's output."""
         d = copy_of(settle, tmp_path)
-        removed = [SETTLE_A, SETTLE_C, CLOSED_ITEM]
+        removed = [OPEN_ITEM, SETTLE_A, DROPPED, SETTLE_BAD, SETTLE_C, CLOSED_ITEM]
         for name in removed:
             shutil.rmtree(d / "specs" / name)
-        write(d, "docs/a.md", DOC + "\nA new rule.\n")
         assert run([str(d), "--baseline", "HEAD"]) == 0
         out = capsys.readouterr().out
         assert "present at HEAD and not here" not in out, out
         named = out.split("not deleted from the record:")[1]
-        assert "3 settled" in out and all(n in named for n in removed), out
+        assert "6 settled" in out and all(n in named for n in removed), out
         assert (
-            "settled: at HEAD nothing in its record was open, and `docs/` holds "
-            "every rule change its spec states"
+            "settled: the directory stood at HEAD and is gone whole, which "
+            "reads as a settle"
         ) in " ".join(out.split())
         # A path whose every overview a settle removed reads no overview and
         # is still no empty scan.
         assert run([str(d / "specs" / SETTLE_C), "--baseline", "HEAD"]) == 0
 
     @pytest.mark.rule("a-settle-is-no-deletion")
-    def test_a_removal_whose_rule_docs_does_not_hold_still_fails(
+    def test_a_squash_that_closes_and_removes_a_directory_is_a_settle(
         self, settle, tmp_path, capsys
     ):
-        """S10: two directories leave together, and `docs/` holds one of
-        their rules."""
+        """S7 of #1033, the release pull request: the base holds the
+        directory with its rows open, and one squash commit on the head
+        removed it whole. Asked at that base, the directory is settled."""
         d = copy_of(settle, tmp_path)
-        shutil.rmtree(d / "specs" / SETTLE_A)
-        shutil.rmtree(d / "specs" / SETTLE_B)
-        write(d, "docs/a.md", DOC + "\nA new rule.\n")
-        assert run([str(d), "--baseline", "HEAD"]) == 1
-        deleted = capsys.readouterr().out.split("rows left the record")[1]
-        assert SETTLE_B in deleted and SETTLE_A not in deleted
+        git(d, "branch", "release-base")
+        git(d, "rm", "-rq", f"specs/{OPEN_ITEM}")
+        commit_everything_as_e(d, "the settle, squashed")
+        assert run([str(d), "--baseline", "release-base"]) == 0
+        out = " ".join(capsys.readouterr().out.split())
+        assert "1 settled" in out and OPEN_ITEM in out, out
+        assert "and not here" not in out, out
 
     def test_refuses_a_removal_no_settle_explains(self, settle, tmp_path, capsys):
-        """An open row at the base, a spec an earlier merge deleted, and a
-        memo deleted from a directory that stays are deletions whatever the
-        predicate would say, and each is named."""
+        """S8: a memo deleted from a directory that stays is a deletion
+        whatever the predicate would say, open rows or closed, and each is
+        named. Since #1033 a directory removed whole is a settle, so an open
+        row and a dropped spec no longer make one a deletion, and the message
+        names the one shape left: the directory still stands. A renamed
+        directory is gone whole from its old path, so the message says nothing
+        of a rename."""
         d = copy_of(settle, tmp_path)
-        shutil.rmtree(d / "specs" / OPEN_ITEM)
-        shutil.rmtree(d / "specs" / DROPPED)
+        os.remove(d / "specs" / OPEN_ITEM / "overview.md")
         os.remove(d / "specs" / CLOSED_ITEM / "overview.md")
         assert run([str(d), "--baseline", "HEAD"]) == 1
         out = capsys.readouterr().out
         lines = [ln for ln in out.split("\n") if "present at HEAD and not here" in ln]
-        for name in (OPEN_ITEM, DROPPED, CLOSED_ITEM):
+        for name in (OPEN_ITEM, CLOSED_ITEM):
             assert sum(name in ln for ln in lines) == 1, (name, out)
-        assert "settled" not in out, out
+        for ln in lines:
+            assert "its directory still stands, so this is no settle" in ln, out
+        assert "settled" not in out and "renamed" not in out, out
 
     def test_refuses_to_decide_a_removal_without_the_one_predicate(
         self, settle, tmp_path, monkeypatch
@@ -2288,7 +2322,7 @@ class Test_main:
         monkeypatch.setattr(
             UC,
             "settled",
-            lambda root, ref, dirs, here=None: asked.extend(dirs) or set(),
+            lambda root, ref, dirs: asked.extend(dirs) or set(),
         )
         assert run([str(d), "--baseline", "HEAD"]) == 1
         assert asked == [f"specs/{CLOSED_ITEM}"], asked
@@ -2317,6 +2351,70 @@ class Test_main:
     @pytest.mark.parametrize("baseline", [True, False], ids=["baseline", "plain"])
     def test_refuses_any_other_missing_path_as_a_typo(self, sealed, capsys, baseline):
         argv = [str(sealed / "seal" / "spces")] + (
+            ["--baseline", "HEAD"] if baseline else []
+        )
+        assert run(argv) == 2
+        assert "no such path" in capsys.readouterr().err
+
+    # A pull request that declares nothing owes nothing (#952).
+
+    @pytest.mark.rule("nothing-declared-nothing-owed")
+    @pytest.mark.parametrize("baseline", [True, False], ids=["baseline", "plain"])
+    def test_accepts_no_root_in_the_tree_and_compares_nothing_against_the_base(
+        self, joined, tmp_path, capsys, baseline
+    ):
+        """S6: the pull request that moves a root to local mode with the
+        workflow kept takes every overview out of the tree. With no root
+        there nothing is declared, so the base is not read and the move is
+        not this branch's deletion."""
+        d = copy_of(joined, tmp_path)
+        shutil.rmtree(d / "seal")
+        argv = [str(d / "seal" / "specs")] + (
+            ["--baseline", "HEAD"] if baseline else []
+        )
+        assert run(argv) == 0
+        out = capsys.readouterr()
+        said = " ".join((out.out + out.err).split())
+        assert "has no `seal/` root in this tree" in said, said
+        assert "present at HEAD" not in said and "open: 0" not in said, said
+
+    @pytest.mark.rule("nothing-declared-nothing-owed")
+    @pytest.mark.parametrize("baseline", [True, False], ids=["baseline", "plain"])
+    def test_accepts_work_items_none_of_which_opened_a_closing_memo(
+        self, unwritten, capsys, baseline
+    ):
+        """S6: every work item that never opened an `overview.md` holds no
+        row to read, and that was exit 2, `nothing was checked`."""
+        argv = [str(unwritten / "seal" / "specs")] + (
+            ["--baseline", "HEAD"] if baseline else []
+        )
+        assert run(argv) == 0
+        out = capsys.readouterr()
+        said = " ".join((out.out + out.err).split())
+        assert "none of them carries an `overview.md`" in said, said
+        assert "open: 0" not in said, said
+
+    @pytest.mark.rule("nothing-declared-nothing-owed")
+    def test_refuses_a_memo_deleted_from_a_work_item_that_stays(
+        self, joined, tmp_path, capsys
+    ):
+        """The second state holds only where the base comparison found
+        nothing deleted: a root whose last overview left is still a
+        deletion."""
+        d = copy_of(joined, tmp_path)
+        os.remove(d / OURS / "overview.md")
+        write(d, f"{OURS}/spec.md", "# a spec\n")
+        assert run([str(d / "seal" / "specs"), "--baseline", "HEAD"]) == 1
+        assert "present at HEAD and not here" in capsys.readouterr().out
+
+    @pytest.mark.rule("nothing-declared-nothing-owed")
+    @pytest.mark.parametrize("baseline", [True, False], ids=["baseline", "plain"])
+    def test_refuses_a_missing_root_below_the_top_level_as_a_typo(
+        self, sealed, capsys, baseline
+    ):
+        """Absence is read at the working tree's top level only, so a
+        `seal/specs` typed from the wrong directory still names nothing."""
+        argv = [str(sealed / "seal" / "seal" / "specs")] + (
             ["--baseline", "HEAD"] if baseline else []
         )
         assert run(argv) == 2

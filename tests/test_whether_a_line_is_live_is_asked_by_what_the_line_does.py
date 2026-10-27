@@ -188,7 +188,7 @@ TABLE = {
         unverified_readable,
         COUNTS,
         "`unverified_check.py#readable`",
-        (N, N, N, N, R, R, N, N, N, N),
+        (N, N, R, R, R, R, R, N, N, N),
     ),
 }
 
@@ -204,9 +204,6 @@ BY_BIAS = {
     # the row's own line, the walk is sure of it, and the docstring states
     # the answer -- a line is hidden only "inside a fenced block or a
     # line-start HTML comment block that closes" (round 1's note 4).
-    # "no comment text": `comment_scan` stays inside a comment to the end of
-    # the file, as `blank_fences` does for a fence it says so of.
-    ("unverified_check.py#readable", "a comment nobody closed"),
 }
 
 CELLS = [

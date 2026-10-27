@@ -89,11 +89,11 @@ comment on the old log, the new log's body, and the job's output. The release
 ships anyway: the count is read off the list call the roll already makes, so a
 release is never held for bookkeeping about a release, and a count the
 listing could not answer rolls the log and says the count was unreadable.
-`skills/verify/SKILL.md` finds the log to post a segment's measurement to by
-that key. Reading `--label flow-measurement --state all` finds the rolling
-logs and misses `#51`; reading `--label measurement` finds everything and
-answers no lookup.
-check: tests/test_a_release_rolls_the_flow_measurement_issue.py
+`skills/verify/orchestration.md` finds the log to post a segment's
+measurement to by that key. Reading `--label flow-measurement --state all`
+finds the rolling logs and misses `#51`; reading `--label measurement` finds
+everything and answers no lookup.
+check: tests/test_roll_flow_measurement_issue.py
 
 **A rolling log is titled after the version it rolled from**, in the form
 `chore: flow measurement — after 1.2.3`. That log opened at the 1.2.3
@@ -246,7 +246,7 @@ Three things about it are worth knowing before anyone tidies it.
   missing label only **reports**, because a release must not be held for a
   failure of the signal rather than of its contents.
 
-check: tests/test_a_merged_ticket_says_so_on_the_tracker.py
+check: tests/test_label_merged_on_release_branch.py
 
 ## A keyword claims the one number after it
 
@@ -268,7 +268,7 @@ does, is not an instance of it.
 The prose around those spans keeps its keywords out for the same reason. A
 past-tense narrative keyword is still a keyword, so a sentence that used one
 with a second number beside it would earn the warning like any body.
-check: tests/test_a_body_naming_two_issues_claims_one.py
+check: tests/test_a_body_naming_two_issues_claims_one.py tests/test_issue_claims_check.py
 
 **A keyword inside a fence or a code span claims nothing, whatever the fence
 or the span is made of.** A fence opens with backticks or tildes at any
@@ -283,31 +283,29 @@ whether GitHub reads a keyword inside one is unmeasured.
 `.github/scripts/issue_claims_check.py` imports the closer's two patterns
 rather than spelling its own, so the check and the closer read one body the
 same way.
-check: tests/test_release_hygiene.py
+check: tests/test_close_issues_on_release.py
 
 ## An issue is its body and its comments together
 
-Corrections, measurements and improvements land as comments, and the question
-a reader is answering, *what does this ticket now ask for*, is answered by
-reading all of them and then judging.
+Corrections, measurements and improvements land as comments, and the body is
+what answers *what does this ticket now ask for*.
 
-What the body owes in return is that nobody has to **reconcile** it. A body
-that contradicts a comment leaves the reader to work out which is current.
-Two ways to pay it, and which one fits depends on whether the original text is
-worth keeping:
+**A decision is folded into the body in place, and the comment that
+carried it records why.** A body that contradicts a comment leaves the
+reader to work out which is current, and a block of updates written
+above the old text leaves two versions to choose between. GitHub keeps
+the body's edit history, so rewriting it loses nothing. Once an item is
+framed, its frame is what the builder reads, and a later decision is
+folded into the frame instead (`skills/implement/orchestration.md`
+*Orchestrator: the order inside a ticket*).
+check: none reader: the framer at every frame
 
-- **Consolidate the body**, once the design is settled. The comments stay and
-  are still part of the issue; what goes away is the need to cross-check four
-  places to learn what the ticket asks for.
-- **Leave the body and open it with `> **Update <date>.**`**, naming what has
-  moved since it was written: the original design is preserved and the block
-  says which things below it have changed.
-
-The exception is an issue that is a **log rather than a ticket**: `#51`
-and the rolling `flow-measurement` log. There the body IS the current state
-and is maintained: a better baseline replaces the table, an observation that
-gets an answer is rewritten where it stands, and the comments are the evidence
-a change was made on rather than the answer. `#51`'s own body says so at the
+An issue that is a **log rather than a ticket**, `#51` and the rolling
+`flow-measurement` log, keeps its body the same way with different
+comments: the body is the current state of a measurement, a better baseline
+replaces the table, an observation that gets an answer is rewritten where
+it stands, and the comments are the readings a change was made on rather
+than decisions. `#51`'s own body says so at the
 top, because the distinction is not guessable from the outside.
 
 ## An issue is titled like a commit

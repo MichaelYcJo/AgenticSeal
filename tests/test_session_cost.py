@@ -3631,10 +3631,10 @@ class Test_main:
         # for the warden. A column pinned only at zero is a column that could be
         # printing anything.
         assert re.search(
-            r"^  specseal:smith\s+0\.3m\s+2\s+[\d.]+\s+\d+s\s+1,000$", out, re.M
+            r"^  specseal:smith\s+0\.3m\s+2\s+[\d.]+\s+\d+s\s+1,000\s+300$", out, re.M
         ), out
         assert re.search(
-            r"^  specseal:warden\s+0\.0m\s+1\s+[\d.]+\s+\d+s\s+40$", out, re.M
+            r"^  specseal:warden\s+0\.0m\s+1\s+[\d.]+\s+\d+s\s+40\s+40$", out, re.M
         ), out
 
     def test_the_segment_report_names_the_tolerance_it_joined_within(
@@ -4820,6 +4820,18 @@ class Test_main:
         assert exit_info.value.code == 2
         assert "separately" in capsys.readouterr().err
 
+    def test_refuses_the_printed_segment_report_under_json(self, run_with_segments):
+        """`--json` is read by a program, and `--segments` beside it asks for the
+        rows inside that reading. The printed page there is text the program
+        cannot parse."""
+        proc = run(["--segments", "--json", str(run_with_segments)])
+        assert proc.returncode == 0, proc.stderr
+        rows = json.loads(proc.stdout)["segments"]["rows"]
+        assert [row["agent"] for row in rows] == [
+            "specseal:smith",
+            "specseal:warden",
+        ], rows
+
 
 class Test_emit:
     """The `--post` cases run through `main`, where `emit` decides between
@@ -5091,6 +5103,35 @@ class Test_emit:
         assert module.main() == 0
         assert "command" in capsys.readouterr().out
 
+    def test_refuses_to_post_the_absolute_spelling_of_a_path_given_relative(
+        self, monkeypatch, tmp_path
+    ):
+        """A path given relative has an absolute spelling too, and a line
+        printing that spelling carries every directory above the file. `emit`
+        replaces both spellings of the one path, the longer first."""
+        module = _cost()
+        monkeypatch.chdir(tmp_path)
+        given = os.path.join("runs", "t.jsonl")
+        says = tmp_path / "says.md"
+        says.write_text("a reading\n", encoding="utf-8")
+        posted = {}
+
+        def post(body, said, label):
+            posted["body"] = body
+            return 0
+
+        monkeypatch.setattr(module, "post", post)
+        args = module.argparse.Namespace(
+            post=True, says=str(says), label=module.ROLLING_LABEL
+        )
+
+        def render():
+            print(f"# {os.path.abspath(given)}")
+
+        assert module.emit(args, render, given) == 0
+        assert os.getcwd() not in posted["body"], posted
+        assert "t.jsonl" in posted["body"], posted
+
 
 class Test_post:
     # --- A6: a repository that never made the log is the expected case ------------
@@ -5271,6 +5312,232 @@ class Test_post:
             seen = _gh(monkeypatch, module, listing=listing)
             module.post("r", "s", "flow-measurement")
             assert _opened(seen) == [], listing
+
+
+class Test_newest:
+    @staticmethod
+    def project_of(module, directory):
+        """Where `~/.claude/projects` keeps DIRECTORY's transcripts, by the slug
+        rule `newest` states: every character that is not a letter, a digit or
+        a hyphen of the absolute path becomes a hyphen."""
+        slug = re.sub(r"[^A-Za-z0-9-]", "-", os.path.abspath(directory))
+        return os.path.join(module.PROJECTS, slug)
+
+    def test_accepts_the_latest_transcript_under_a_directorys_project(
+        self, monkeypatch, tmp_path
+    ):
+        """`--latest` reads the transcript written last under the directory's
+        project, a segment's nested one included. The projects root is moved
+        under the case, so no home directory is read."""
+        module = load_script()
+        monkeypatch.setattr(module, "PROJECTS", str(tmp_path / "projects"))
+        work = tmp_path / "work"
+        work.mkdir()
+        project = self.project_of(module, work)
+        older = os.path.join(project, "a.jsonl")
+        newer = os.path.join(project, "a", "subagents", "agent-b.jsonl")
+        for offset, path in enumerate((older, newer)):
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, "w", encoding="utf-8") as handle:
+                handle.write("{}\n")
+            os.utime(path, (1_000_000 + offset, 1_000_000 + offset))
+        assert module.newest(str(work)) == newer
+
+    def test_refuses_a_directory_with_no_project_or_no_transcript(
+        self, monkeypatch, tmp_path
+    ):
+        module = load_script()
+        monkeypatch.setattr(module, "PROJECTS", str(tmp_path / "projects"))
+        work = tmp_path / "work"
+        work.mkdir()
+        assert module.newest(str(work)) is None
+        os.makedirs(self.project_of(module, work))
+        assert module.newest(str(work)) is None
+
+
+class Test_report_segments:
+    def test_accepts_a_run_whose_segments_are_all_named_with_no_word_on_the_unnamed(
+        self, run_with_segments
+    ):
+        out = " ".join(segment_report(run_with_segments).split())
+        assert "0 segments named by nobody" in out, out
+        assert "A segment named by nobody carries" not in out, out
+
+    def test_refuses_to_print_an_unnamed_segment_without_saying_why_it_has_no_name(
+        self, segment_that_spawned
+    ):
+        """A row labelled by its path and not by an agent reads as a defect of
+        the page unless the page says the two ways a segment goes unnamed."""
+        out = " ".join(segment_report(segment_that_spawned).split())
+        assert "1 segment named by nobody" in out, out
+        assert (
+            "A segment named by nobody carries its transcript's path instead" in out
+        ), out
+
+
+class Test_report_breaches:
+    def test_accepts_a_run_with_no_spawn_and_no_unnamed_segment_as_nothing_to_say(
+        self, capsys
+    ):
+        load_script().report_breaches({"rows": [{"spawns": 0}], "unnamed": 0})
+        assert capsys.readouterr().out == ""
+
+    def test_refuses_to_stay_silent_where_a_segment_is_unnamed_and_nothing_spawned(
+        self, capsys
+    ):
+        """One spawn arrives twice, so a transcript the parent could not name
+        in a run where no segment made an `Agent` call is two counts that
+        disagree, and the page says so."""
+        load_script().report_breaches({"rows": [{"spawns": 0}], "unnamed": 1})
+        out = " ".join(capsys.readouterr().out.split())
+        assert (
+            "0 `Agent` calls inside a segment, against 1 segment the parent could "
+            "not name, and the two do not agree." in out
+        ), out
+
+
+class Test_report:
+    @staticmethod
+    def two_turns_of_two(tmp_path, second_check):
+        """The plain reading of two turns that each send two calls, a ratio of
+        2.00, with `pytest -q` first and SECOND_CHECK in the second turn."""
+        lines = [
+            message(
+                0,
+                [use("a", "pytest -q"), use("b", "git status --short")],
+                message_id="m1",
+            ),
+            plain_result(10, "a"),
+            plain_result(10, "b"),
+            message(
+                15,
+                [use("c", second_check), use("d", "git log --oneline -5")],
+                message_id="m2",
+            ),
+            plain_result(20, "c"),
+            plain_result(20, "d"),
+        ]
+        path = tmp_path / "t.jsonl"
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        proc = run([str(path)])
+        assert proc.returncode == 0, proc.stderr
+        return proc.stdout
+
+    def test_accepts_a_batched_run_with_no_repeat_as_nothing_obvious(self, tmp_path):
+        out = self.two_turns_of_two(tmp_path, "ruff check .")
+        assert "nothing obvious" in out, out
+        assert "repeats" not in out, out
+
+    def test_refuses_nothing_obvious_beside_a_repeat(self, tmp_path):
+        """The ratio clears the batching advisory, and a check re-run for a
+        result already in hand is still time that could go elsewhere, so the
+        page names it and does not also say nothing is obvious."""
+        out = self.two_turns_of_two(tmp_path, "pytest -q")
+        assert "repeats" in out, out
+        assert "nothing obvious" not in out, out
+
+
+class Test_resume_cuts:
+    def test_accepts_the_coordinators_message_as_a_cut(self, tmp_path):
+        module = load_script()
+        path = tmp_path / "agent.jsonl"
+        path.write_text(coordinator_message(9000) + "\n", encoding="utf-8")
+        assert module.resume_cuts(str(path)) == [module.parse_time(stamp_at(9000))]
+
+    def test_refuses_the_coordinators_words_on_a_row_the_harness_did_not_mark(
+        self, tmp_path
+    ):
+        """The harness marks the row it writes with `isMeta`. The same words on
+        an unmarked user row are somebody quoting the sentence, and cutting
+        there would split one stretch of work in two."""
+        row = json.loads(coordinator_message(9000))
+        del row["isMeta"]
+        path = tmp_path / "agent.jsonl"
+        path.write_text(json.dumps(row) + "\n", encoding="utf-8")
+        assert load_script().resume_cuts(str(path)) == []
+
+
+class Test_subagent_transcripts:
+    def test_accepts_every_transcript_under_subagents_nested_ones_included(
+        self, tmp_path
+    ):
+        path = write_run(tmp_path, ["{}"], {"agent-a.jsonl": ["{}"]})
+        nested = tmp_path / "main" / "subagents" / "deeper" / "agent-b.jsonl"
+        nested.parent.mkdir()
+        nested.write_text("{}\n", encoding="utf-8")
+        assert load_script().subagent_transcripts(str(path)) == sorted(
+            [str(tmp_path / "main" / "subagents" / "agent-a.jsonl"), str(nested)]
+        )
+
+    def test_refuses_a_transcript_beside_subagents_rather_than_in_it(self, tmp_path):
+        path = write_run(tmp_path, ["{}"], {"agent-a.jsonl": ["{}"]})
+        (tmp_path / "main" / "stray.jsonl").write_text("{}\n", encoding="utf-8")
+        assert load_script().subagent_transcripts(str(path)) == [
+            str(tmp_path / "main" / "subagents" / "agent-a.jsonl")
+        ]
+
+
+class Test_token_thirds:
+    def test_accepts_three_inputs_as_one_mean_each(self):
+        turns = [("t1", 10), ("t2", 20), ("t3", 30)]
+        assert load_script().token_thirds(turns) == [10, 20, 30]
+
+    def test_refuses_two_inputs_as_too_few_for_thirds(self):
+        assert load_script().token_thirds([("t1", 10), ("t2", 20)]) == []
+
+
+class Test_analyse:
+    def test_accepts_a_model_gap_under_fifteen_minutes(self, tmp_path):
+        lines = call("a", 0, 10, "git status --short")
+        lines += call("b", 909, 910, "git log --oneline -5")
+        assert batch_data(tmp_path, lines)["model_s"] == 899
+
+    def test_refuses_a_model_gap_of_fifteen_minutes_or_more(self, tmp_path):
+        """A gap that long is a wait, not the model thinking: `resume_cuts`
+        and `report_segments` both rest on the walk dropping it."""
+        lines = call("a", 0, 10, "git status --short")
+        lines += call("b", 910, 911, "git log --oneline -5")
+        assert batch_data(tmp_path, lines)["model_s"] == 0
+
+    def test_refuses_an_unnamed_command_run_twice_as_a_repeat(self, tmp_path):
+        """The repeats figures keep the families whose second run produces a
+        result already in hand. A command no family names may change the world
+        each time it runs."""
+        lines = call("a", 0, 10, "terraform apply")
+        lines += call("b", 15, 25, "terraform apply")
+        data = batch_data(tmp_path, lines)
+        assert data["by_family"]["other"]["calls"] == 2, data["by_family"]
+        assert (data["repeat_exact_s"], data["repeat_same_work_s"]) == (0, 0)
+
+
+class Test_load:
+    def test_accepts_a_stamped_call_as_one_call_and_one_turn(self, tmp_path):
+        path = tmp_path / "t.jsonl"
+        path.write_text("\n".join(call("a", 0, 10, "pytest -q")) + "\n", "utf-8")
+        calls, turns = load_script().load(str(path))
+        assert [c["command"] for c in calls] == ["pytest -q"]
+        assert len(turns) == 1
+
+    def test_refuses_a_row_with_no_timestamp_as_a_turn(self, tmp_path):
+        row = json.loads(turn(0, use("a", "pytest -q")))
+        del row["timestamp"]
+        path = tmp_path / "t.jsonl"
+        lines = [json.dumps(row), *call("b", 20, 30, "git status --short")]
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        calls, turns = load_script().load(str(path))
+        assert [c["command"] for c in calls] == ["git status --short"]
+        assert len(turns) == 1, turns
+
+
+class Test_count:
+    def test_accepts_a_finite_number_as_itself(self):
+        module = load_script()
+        assert [module.count(value) for value in (0, 12, 2.5)] == [0, 12, 2.5]
+
+    def test_refuses_a_non_finite_float_as_zero(self):
+        module = load_script()
+        for value in (math.nan, math.inf, -math.inf):
+            assert module.count(value) == 0, value
 
 
 class Test_family:
@@ -5790,6 +6057,135 @@ class Test_family:
         module = load_script()
         for command in ("cd /x", "echo hi", "W=1", "true", "cd /x && pwd"):
             assert module.family(command) == "other", command
+
+
+# --- #945: the largest context any one turn read ----------------------------
+#
+# A resumed agent pays its whole earlier context again on every turn, so its
+# largest turn is what tells a resume worth taking from one that is not. The
+# column reads every assistant message once, with all three input fields,
+# beside `load`'s `turns` rather than through it.
+
+
+def context_turn(second, uid, message_id=None, **usage):
+    """One call-carrying assistant row with its `usage` written field by
+    field, and the call's result a second later.
+
+    The fields are passed under the harness's own names, so a case can set
+    exactly the one a reader might leave out."""
+    return [
+        at(stamp_at(second), [use(uid, "pytest -q")], message_id or f"c-{uid}", usage),
+        plain_result(second + 1, uid),
+    ]
+
+
+class Test_largest_context:
+    def test_accepts_a_segments_largest_turn_as_a_json_key_and_a_column(
+        self, run_with_segments
+    ):
+        """S1. The smith's file holds turns of 0 and 300 (a cache write), the
+        warden's one of 40 (a cache read). Each row carries its largest under
+        one key, and the page names the column and says what it reads."""
+        rows = segments_of(run_with_segments)["rows"]
+        assert [row["largest_context"] for row in rows] == [300, 40], rows
+        out = segment_report(run_with_segments)
+        assert re.search(r"^  agent\s.*\stokens\s+context$", out, re.M), out
+        flat = " ".join(out.split())
+        assert (
+            "context the largest input any one turn read: the tokens sent fresh, "
+            "written to the cache and read from it" in flat
+        ), flat
+
+    def test_accepts_a_message_split_over_rows_once(self, tmp_path):
+        """S2. A harness writes one message as one row per content block and
+        repeats the usage on each, so a message counts once by its key: 1,150
+        for the split message, not twice that."""
+        usage = {
+            "input_tokens": 100,
+            "cache_creation_input_tokens": 50,
+            "cache_read_input_tokens": 1000,
+        }
+        lines = [
+            at(stamp_at(0), [use("a", "pytest -q")], "split", usage),
+            at(stamp_at(0), [use("b", "git status")], "split", usage),
+            plain_result(1, "a"),
+            plain_result(1, "b"),
+            *context_turn(5, "c", cache_read_input_tokens=900),
+        ]
+        path = tmp_path / "t.jsonl"
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        assert load_script().largest_context(str(path)) == [1150]
+
+    def test_accepts_every_input_field_of_a_turn(self, tmp_path):
+        """S2. A turn's context is the tokens sent fresh, written to the cache
+        and read from it. `load`'s `turns` leave the cache write out, which is
+        why the column does not read them: 327 here, never 307."""
+        lines = context_turn(
+            0,
+            "a",
+            input_tokens=7,
+            cache_creation_input_tokens=20,
+            cache_read_input_tokens=300,
+        )
+        path = tmp_path / "t.jsonl"
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        assert load_script().largest_context(str(path)) == [327]
+
+    def test_accepts_a_turn_that_called_no_tool(self, tmp_path):
+        """S2. A message that answers in text and calls nothing is still one
+        model call that read its whole context, so it counts where `load`'s
+        `turns` would drop it."""
+        lines = [
+            *context_turn(0, "a", cache_read_input_tokens=500),
+            at(
+                stamp_at(5),
+                [{"type": "text", "text": "."}],
+                "said",
+                {"cache_read_input_tokens": 800},
+            ),
+        ]
+        path = tmp_path / "t.jsonl"
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        assert load_script().largest_context(str(path)) == [800]
+
+    def test_accepts_each_slice_of_a_resumed_file_as_its_own(self, tmp_path):
+        """S3. A resumed file's slices each print the largest turn inside
+        them, walked from the run or given as the agent's own file: 900 and
+        400, never the file's 900 on both."""
+        path = write_run(
+            tmp_path,
+            call("a", 0, 10, "git status --short")
+            + spawn("A", 25, 625, "specseal:smith", "Build phase 1"),
+            {
+                "agent-smith.jsonl": [
+                    *context_turn(625, "s1", cache_read_input_tokens=900),
+                    *context_turn(640, "s2", cache_read_input_tokens=100),
+                    coordinator_message(9000),
+                    *context_turn(9010, "s3", cache_read_input_tokens=400),
+                ]
+            },
+        )
+        walked = [row["largest_context"] for row in segments_of(path)["rows"]]
+        own = [row["largest_context"] for row in segments_of(own_file(path))["rows"]]
+        assert walked == own == [900, 400], (walked, own)
+
+    def test_refuses_a_zero_for_a_slice_that_holds_no_assistant_message(self, tmp_path):
+        """S3. A slice whose call was written with no `usage` block has no
+        turn to read, so it carries None and prints a dash: a zero would read
+        as a turn that sent nothing."""
+        path = tmp_path / "agent-smith.jsonl"
+        lines = [
+            *context_turn(625, "s1", cache_read_input_tokens=900),
+            coordinator_message(9000),
+            at(stamp_at(9010), [use("s2", "pytest -q")], "bare"),
+            plain_result(9011, "s2"),
+        ]
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        rows = segments_of(path)["rows"]
+        assert [row["largest_context"] for row in rows] == [900, None], rows
+        out = segment_report(path)
+        assert re.search(r"^  agent-smith\.jsonl  1/2\s.*\s900$", out, re.M), out
+        assert re.search(r"^  agent-smith\.jsonl  2/2\s.*\s—\s+—$", out, re.M), out
 
 
 class Test_module:

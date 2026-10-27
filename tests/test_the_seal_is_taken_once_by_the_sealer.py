@@ -193,11 +193,6 @@ def test_the_documents_say_where_the_panel_now_carries_each_name():
     assert (
         "or where the tree's copy ran with no invoked copy named to compare against"
     ) in broad
-    item = "1790815615-the-seal-names-what-it-sealed-and-counts-only-the-steps-that-run"
-    changelog = " ".join(
-        read_document(os.path.join("seal", "specs", item, "changelog.md")).split()
-    )
-    assert "or where nothing told it which copy was invoked" in changelog
     source = read_document(os.path.join("skills", "verify", "scripts", "broad_gate.py"))
     above = source.split("GATE_REL = ", 1)[0][-1500:].splitlines()
     comment = " ".join(" ".join(line.lstrip("# ") for line in above).split())
@@ -682,7 +677,7 @@ def test_what_a_line_names_a_file_by_is_told_where_each_reader_meets_it():
     """S28 (#825's reframe after round 3, contract rule 14). A line's path is
     the node's own, carried on the report, and never a name made from a
     node id and a rootdir. The comparison's docstring, the recorder's own
-    and the changelog fragment each say so by their deciding sentence, and
+    and the released changelog entry each say so by their deciding sentence, and
     each sentence of the refusal the reframe retired is asserted gone."""
     gate = gate_module()
     docstring = " ".join(gate.compare_at_base.__doc__.split())
@@ -719,10 +714,16 @@ def test_what_a_line_names_a_file_by_is_told_where_each_reader_meets_it():
         "it looks no module up and imports nothing but pytest",
     ):
         assert sentence in recorder, f"the recorder does not carry: {sentence}"
-    item = "1791270161-the-broad-gate-reads-a-record-its-pytest-plugin-wrote"
-    changelog = " ".join(
-        read_document(os.path.join("seal", "specs", item, "changelog.md")).split()
+    # The work item's fragment is read where the release gathered it: in
+    # `changelog/0.20.0.md`, from its `specs/<id>` comment up to the next
+    # fragment's comment.
+    marker = "<!-- specs/1791270161-the-broad-gate-reads-a-record-its-pytest-plugin-wrote -->"
+    released = read_document(os.path.join("changelog", "0.20.0.md"))
+    assert released.count(marker) == 1, (
+        f"changelog/0.20.0.md does not hold {marker} once"
     )
+    span = released.split(marker)[1].split("<!-- specs/")[0]
+    changelog = " ".join(span.split())
     for sentence in (
         "**Each failing file is named by the path pytest holds for it.**",
         "counted on the record's `end` line, and the gate says how many under "

@@ -72,7 +72,7 @@ laid out by **lifetime**, not by who wrote it:
 
 | Root | Lifetime | Test | Authority |
 |---|---|---|---|
-| `docs/` | Permanent, cumulative | Must still be true in 6 months | **Norms, ratified by humans.** Read when the repository has them; the documentation convention is the project's. The policy root (`docs/` unless `seal/config.md`'s `Policy root` names another) is the baseline, and a pull request does not edit it. A spec states its changes in `## Rule changes`, `settle --apply` applies them after the release (`skills/settle/SKILL.md`), and the policy in force is the baseline plus the rule changes of every unsettled spec, in merge order |
+| `docs/` | Permanent, cumulative | Must still be true in 6 months | **Norms, ratified by humans.** Read when the repository has them; the documentation convention is the project's. The policy root (`docs/` unless `seal/config.md`'s `Policy root` names another) is the baseline, and a pull request does not edit it. A spec states its changes in `## Rule changes`, the settle after the release writes each section as the latest decision the released specs state, checked against the code (`skills/settle/SKILL.md`), and the policy in force is the baseline plus the latest decision the unsettled specs' rule changes state at each section, in merge order |
 | `seal/specs/<work-item-id>/` | One work item | Its role ends when this work ships (SDD, overview, round records) | The contract this work executes against. A human approves `plan.md`, which is why this is a repository document and not tool state |
 | `seal/`, everything above `specs/` | Permanent | Everything this plugin maintains | Written and read by machines: the repository's config, the migration config, the follow-up list |
 
@@ -103,12 +103,12 @@ seal/
 ├── pact.md           the pact, only in the repository that holds one
 ├── follow-up.md      schedulable items in a repository with no tracker
 └── specs/<work-item-id>/
-    ├── routing.md    the routing answer, written before the first edit —
-    │                 the framer's where one runs, the session's where none does
+    ├── routing.md    the routing answer, written by the session before the
+    │                 first edit; a framer reads it and never writes it
     ├── spec.md · plan.md · questions.md · overview.md
     ├── rounds/
     │   └── round-N.md    one review round — closed at merge, removed with
-    │                     its spec at the settle that applies it
+    │                     its work item at the settle after its release
     ├── broad-gate.md     the one broad run, written by `broad-gate --record`
     └── guarantee.md      the sealer's verdict, from `templates/sdd-guarantee.md`
 ```
@@ -193,25 +193,15 @@ that leads nowhere — the session that answers it is holding finished work with
 no destination, which is a gate wearing the shape of a question. A yes/no is
 the tell. Ask which of two named paths instead, and say what each one does.
 
-**A waiver is one command's, and it is the implementer's.** `[no-review]`
-still works and is unchanged: it waives **one command**, where a
-`routing.md` declaration routes **a work item** — the file the session
-that spawned you wrote before the first edit
-(`skills/implement/orchestration.md`), which keeps the review arm of the
-commit gate silent for every commit of a declared branch, for either review
-answer. Coupling them would ask for the same answer twice and stop a
-session for not repeating itself. Where no declaration is in force — no
-file, a branch it does not name, or a file that will not parse — the gate
-stops the commit, as it always did. Where this plugin's git hooks run,
-git refuses it and prints the ways on into the command's output; in a
-clone whose hooks slot is somebody else's, the PreToolUse reading asks.
-For a change that belongs to no work item at all, the token is still the
-way past, and it goes in FRONT of the command, quotes included:
-`: '[no-review]'; git commit …` (and `[no-parity]` too where a migration
-config is declared). After `git commit` a bare word is a pathspec and git
-rejects the whole command. `git -c specseal.waive=review commit …` is the
-same waiver in git's own spelling, and it is the one the refusal names
-first.
+**The first edit waits for the routing answer, and a gate holds that.**
+`hooks/routing-edit-gate.py` refuses a `Write`, `Edit` or `NotebookEdit` of
+a file in an opted-in repository while no `routing.md` names the branch
+checked out where the file is and the session has not run
+`seal no-work-item` on that branch. A file under the `seal/` root or one git
+ignores is not judged, so the declaration can always be written first.
+`seal no-work-item` records, for this session on the branch checked out
+where it runs, that its change belongs to no work item; on a detached HEAD
+it records nothing.
 
 **Once the batch is answered, the session runs to the pull request.** What
 surfaces after it is written down rather than raised: a decision only a person
@@ -245,22 +235,14 @@ run rather than a reading somebody did. A judgment settled by opening code
 and leaving no case behind gets redone by every session that follows — the
 single largest avoidable cost in multi-session work.
 
-**Commit at the smallest step that stands on its own.** What an intermediate
-commit costs is a property of the repository rather than a fact about
-committing, and two things can drive that cost to nothing:
-
-- feature branches **squash** into their base, so every commit the branch
-  wrote stops existing at the merge and none is left for anyone to read;
-- a `routing.md` declaration is in force, which silences the review arm of the
-  commit gate for either answer (`skills/implement/orchestration.md`).
-
-Read both off the repository before leaning on them. One that merges without
-squashing keeps every commit in its history, and one with no declaration meets
-the review question at each commit. **Where a migration config is declared,
-the parity arm has quiet terms of its own**, and only one of the two review
-answers is among them. The wake/quiet table in
-`skills/implement/orchestration.md` says what wakes and quiets each arm, and
-it is the only place that says it.
+**Commit at the smallest step that stands on its own.** No gate stops a
+commit: the routing is checked at the edit tools and at the pull request
+(`docs/the-routing-check.md`). What an intermediate commit costs is a
+property of the repository rather than a fact about committing: where
+feature branches **squash** into their base, every commit the branch wrote
+stops existing at the merge and none is left for anyone to read. Read that
+off the repository before leaning on it; one that merges without squashing
+keeps every commit in its history.
 
 What committing *buys* is a separate matter, and that one holds everywhere. A
 review round records the commit it read, so work still sitting in the working
@@ -355,7 +337,7 @@ without a registry — take it from `date +%s` when creating the directory.
 | File | Starts from | Written by | Holds | When |
 |---|---|---|---|---|
 | `routing.md` | `templates/sdd-routing.md` | the session that spawns the work, from the batch it asked — never a subagent, which has no way to put the question to anybody | the routing answer | before the first edit, and so before a framer is spawned |
-| `spec.md` | `templates/sdd-spec.md` | the framer | WHAT — scope, mandatory user scenarios & acceptance, grounding clauses, the rule changes `settle` applies to the policy root (`## Rule changes`), and the framer's mark at its foot, with a `Reframed … after round <N>.` line under it for each time the review chain sent the work item back (`docs/the-review-record.md` *The run* owns that rule) | before implementing |
+| `spec.md` | `templates/sdd-spec.md` | the framer | WHAT — scope, mandatory user scenarios & acceptance, grounding clauses, the rule changes the settle writes into the policy root (`## Rule changes`), and the framer's mark at its foot, with a `Reframed … after round <N>.` line under it for each time the review chain sent the work item back (`docs/the-review-record.md` *The run* owns that rule) | before implementing |
 | `plan.md` | `templates/sdd-plan.md` | the framer | HOW — phases as vertical slices, alternatives with failure scenarios; this is the Design Gate's artifact, and its `Approved <date> by <who>` line is the record that the gate happened | before implementing (gated work) |
 | `questions.md` | `templates/sdd-questions.md` | the framer opens the rows; each row's `Who can answer` cell names who closes it | decisions only a human can make — extracted so nothing ships on a silent assumption | one batch before the first edit, then as they arise |
 | `overview.md` | `templates/sdd-overview.md` | the builder | the closing memo — one line of purpose, then what the diff cannot show (below) | opened at the first divergence, unverified item, or fed-back clause; closed when implementation ends |
@@ -464,11 +446,13 @@ An unmarked row counts open, so the silent direction is "still open", except
 for an open item whose own text begins with the word `closed`, which reads as
 closed and which only a reader catches: word such an item to open with
 another word. A bare `closed` with nothing after it is refused the same way a
-ticked checkbox is. Deleting the row — or the whole file — fails the next pull
-request (`unverified-check --baseline origin/<base>`), which is what keeps "I
-verified it" and "I tidied it away" from being the same edit.
+ticked checkbox is. No check at the pull request refuses a deleted row, or a
+deleted file: the warden reads the overview's diff, where a row that left
+without the word `closed` shows, and `unverified-check --baseline
+origin/<base>`, run by a person, names each one. That reading is what keeps
+"I verified it" and "I tidied it away" from being the same edit.
 
-What that check reads is the **number** of rows, not their text. So the second
+What the command reads is the **number** of rows, not their text. So the second
 cell saying what closed the item is a convention it cannot enforce: swapping
 one row for another keeps the count and passes. Leaving the original answerer
 in place beside the word is how a closing goes out unproven, and only a
@@ -513,8 +497,8 @@ party `routing.md`'s `Implementation` row names: the orchestrator opens the
 pull request, and every commit after the broad run, a `seal/follow-up.md` row
 among them, leaves `broad-gate.md` stale for the sealer
 (`skills/code-review/orchestration.md` *Orchestrator: the pull request opens
-once the sealer seals, and a phase is re-run*). A row is out when it stands
-at its destination below:
+once the sealer seals*). A row is out when it stands at its destination
+below:
 
 | Remaining item | Destination |
 |---|---|
@@ -523,5 +507,5 @@ at its destination below:
 | Needs a decision | An `add` in `spec.md`'s `## Rule changes` to the policy document's open-questions section |
 
 Each finding that moves out reads `deferred <home>` in its round record. The
-records themselves stay through the merge, and leave with their spec at the
-settle that applies it.
+records themselves stay through the merge, and leave with their work item's
+directory at the settle after its release.

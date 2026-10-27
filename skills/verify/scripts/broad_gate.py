@@ -26,12 +26,11 @@ What it does, in order, from the repository root:
      reads as — the whole command wrapped in backticks or in `$(…)`, or
      ending in a single `&`. No refusal names a command to write: the row is
      a person's, and the message says where they answer it
-  2. `unverified-check --baseline <base> seal/specs/`
-  3. `chain_check.py --baseline <base> --sealing`   judged by the pull
+  2. `chain_check.py --baseline <base> --sealing`   judged by the pull
      request's state as the check reads it, with `broad-gate.md`, which this
      run is about to write, and `guarantee.md`, which the sealer writes after
      it, printed rather than judged
-  4. `seal.py mode --check`            the `Mode` row and the folder agree
+  3. `seal.py mode --check`            the `Mode` row and the folder agree
 
 **Which arms exist is declared rather than remembered** (#468). `PARTITION`
 below holds every step of `.github/workflows/hygiene.yml`'s `release` job
@@ -94,14 +93,14 @@ file already records at the same commit against the same base replaced
 rather than repeated (`kept_runs`). It is the run's one record;
 `chain_check.py` reads it at the pull request.
 
-**`--preflight` runs arms 2 to 4 alone, and writes nothing** (#638). It is the
+**`--preflight` runs arms 2 and 3 alone, and writes nothing** (#638). It is the
 orchestrator's step before it spawns the sealer: the same base resolved the
 same way, every refusal of the row applied, and then every arm above except
 the row, in the same order, with the same arguments, each output kept the
-same way. The row is read and never run, so a refusal on a record arm — an
-unverified row deleted, a chain refusal — arrives in seconds rather
-than after a whole suite. It writes no file, adds no worktree, prints no
-coverage line, and prints no line beginning `BROAD GATE`: its stdout opens
+same way. The row is read and never run, so a refusal on a record arm — a
+chain refusal, a mode the row and the folder disagree on — arrives in
+seconds rather than after a whole suite. It writes no file, adds no
+worktree, prints no coverage line, and prints no line beginning `BROAD GATE`: its stdout opens
 `PREFLIGHT PASSED` or `PREFLIGHT FAILED`, the failing arms under the second
 in the failure form's own words.
 `--record` beside it is refused, because a preflight writes nothing. It is
@@ -144,7 +143,6 @@ import tempfile
 HERE = os.path.dirname(os.path.abspath(__file__))
 PLUGIN = os.path.normpath(os.path.join(HERE, "..", "..", ".."))
 STAMP = os.path.join(HERE, "seal_stamp.py")
-UNVERIFIED = os.path.join(HERE, "unverified_check.py")
 SEAL_SCRIPT = os.path.join(PLUGIN, "skills", "implement", "scripts", "seal.py")
 CHAIN = os.path.join(PLUGIN, "skills", "code-review", "scripts", "chain_check.py")
 # `chain_check.SEALING`, the flag the chain arm passes (#866). Spelled here
@@ -155,7 +153,6 @@ CONFIG_READER = os.path.join(PLUGIN, "hooks", "config.py")
 SEAL_DIR = "seal"
 CONFIG = "config.md"
 ROW = "Broad gate"
-SPECS = "specs"
 ROUND_RE = re.compile(r"^round-(\d+)\.md$")
 # The run's one record, in the work item's directory, and what separates its
 # newest run from the ones behind it. `chain_check.py` reads both by the same
@@ -172,12 +169,7 @@ GATE_ROW = re.compile(r"^\|\s*" + ROW + r"\s*\|(.*)\|\s*$")
 # three releases and every document that said `five` had to be found again
 # when the sixth landed — `PARTITION` below is where the list is declared, and
 # a case holds it against the workflow rather than against a number typed here.
-SUITE, UNVERIFIED_NAME, CHAIN_NAME, MODE_NAME = (
-    "suite",
-    "unverified",
-    "chain",
-    "mode",
-)
+SUITE, CHAIN_NAME, MODE_NAME = ("suite", "chain", "mode")
 
 # How many lines of a failing check's output the report quotes before naming
 # the file that holds the rest.
@@ -2227,11 +2219,6 @@ PARTITION = (
         "own checks belong in the `Broad gate` row of `seal/config.md`",
     ),
     (
-        "the unverified record is readable, and rows leave it closed",
-        UNVERIFIED_NAME,
-        None,
-    ),
-    (
         "a declared review chain has the round record it claimed",
         CHAIN_NAME,
         None,
@@ -2829,9 +2816,9 @@ def failed_form(tree, base, failures, branch=None, ref=None):
     has always got."""
     names = stamp_module().sealed_names(tree, base, branch, ref)
     out = [GATE_FAILED.format(names=names), ""]
-    # The widest name present, not a literal 8: `unverified` is ten
-    # characters, so a fixed pad sets that one check's first line a column
-    # out from every other check's.
+    # The widest name present, not a literal 8, so a name longer than the
+    # pad does not set that one check's first line a column out from every
+    # other check's.
     pad = max([len(name) for name, _ in failures] + [8])
     for name, lines in failures:
         lines = list(lines) or ["(no output)"]
@@ -2949,7 +2936,6 @@ def gate(args, ascii_marks=False):
     keep = args.keep_output or tempfile.mkdtemp(prefix="broad-gate-")
     os.makedirs(keep, exist_ok=True)
     py = sys.executable
-    specs = os.path.join(home, SPECS)
     checks = {}
     # The first of `verify`'s four conditions is to name the command before
     # running it, and the row is the only part of this run the gate did not
@@ -2990,12 +2976,6 @@ def gate(args, ascii_marks=False):
             SUITE, command, root, keep, shell=True, env=recording_env(keep, head_key)
         )
         head = read_record(records_dir(keep), head_key, root)
-    checks[UNVERIFIED_NAME] = run(
-        UNVERIFIED_NAME,
-        [py, UNVERIFIED, "--baseline", base.commit, specs],
-        root,
-        keep,
-    )
     # `--sealing` (#866): this run writes `broad-gate.md` after it passes, so
     # the check prints that one arm and does not fail on it. The pull request's state
     # is the check's to read -- the payload, else `gh` -- and nothing is
@@ -3060,7 +3040,7 @@ def gate(args, ascii_marks=False):
     # and — the file being in the working tree while CI reads HEAD (#666) —
     # the line saying so, only where git still sees it uncommitted. Nothing
     # is drawn and no values file is written: the stamp is the sealer's,
-    # queued at the commit of a `guarantee.md` reading `sealed`.
+    # queued at the write of a `guarantee.md` reading `sealed`.
     names = stamp_module().sealed_names(tree, base.commit, branch, base.ref)
     lines = [GATE_PASSED.format(names=names)]
     lines += report_lines(rows, ascii_marks=args.shape or ascii_marks)

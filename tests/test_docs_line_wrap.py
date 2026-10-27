@@ -174,14 +174,9 @@ COVERED = [
     "docs/the-broad-gate.md",
     "docs/measuring-a-run.md",
     "docs/the-agent-set.md",
-    # Cut by #526 out of a document that never joined this list. It fit at
-    # birth once two moved lines were re-wrapped with no word changed, so it
-    # went in with no sweep to owe.
-    "docs/commit-review-gate-spec.md",
-    # The two documents #727 cut out of the one above. Their moved lines were
-    # held to the limit where they stood, and their preambles were written
-    # wrapped, so both go in at birth.
-    "docs/the-commit-gate-inside-git.md",
+    # The routing check's documents, each written wrapped and in at birth.
+    "docs/the-session-hooks.md",
+    "docs/the-routing-check.md",
     "docs/the-review-and-parity-arms.md",
     # The pact's policy (#647), written wrapped and in at birth.
     "docs/the-pact.md",

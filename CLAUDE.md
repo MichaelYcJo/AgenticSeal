@@ -14,15 +14,20 @@ is asked once, together, before the first edit, and nothing comes back mid-run.
 ## The rule a mechanism is kept against
 
 **A mechanism stays only while its history shows what it caught against what
-it costs**; existing is no reason to keep it. A rule's proof is the test or
-behaviour eval its `check:` line names. A fact has one source, and every
-other place links to it. A check gates only a fact it reads; a noisy reading,
-or one guessed from words, is a report. Nothing is kept beside the tree to
-stay in step with it, such as a stored count or coordinate. Do not avoid the
-change a problem calls for: before a fix adapts to an existing structure, ask
-whether the structure should change, and when fixes chase one mechanism's
-edge cases, ask what it decides; what exists is a reference, not a
-constraint. A thing is re-checked only when the diff or CI shows it
+it costs**; existing is no reason to keep it. A gate that stops a session,
+the routing check among them, guards the work a work item owns. A change
+that would be routed `no work item`, such as a formatter run, a dependency
+bump or an identifier renamed across files by `sed`, is outside that work, so
+where only such a change passes through a gap in that kind of gate, the gap
+is not a weakness to close. A rule's proof
+is the test or behaviour eval its `check:` line names. A fact has one source,
+and every other place links to it. A check gates only a fact it reads; a
+noisy reading, or one guessed from words, is a report. Nothing is kept beside
+the tree to stay in step with it, such as a stored count or coordinate. Do
+not avoid the change a problem calls for: before a fix adapts to an existing
+structure, ask whether the structure should change, and when fixes chase one
+mechanism's edge cases, ask what it decides; what exists is a reference, not
+a constraint. A thing is re-checked only when the diff or CI shows it
 changed. A change rewrites the text it amends in place, and in the same
 commit removes what stood on the old fact: a check, an exception, a comment,
 a copy. History goes to git, the changelog and the work record.

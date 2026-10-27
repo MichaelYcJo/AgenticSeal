@@ -21,6 +21,7 @@ from conftest import (
     census_case,
     fired,
     git_dir,
+    git_out,
     load_hook_module,
     opt_in,
     run_dispatch,
@@ -50,6 +51,17 @@ class Test_main:
         assert implementer.stands(
             str(repo), branch_of(repo), implementer.IMPLEMENTATION_MARK
         )
+
+    def test_accepts_a_smith_spawn_on_a_branch_with_no_commit_yet(self, tmp_path):
+        """A new repository's `main` has no commit, and the mark stands for
+        `main`, the branch the edit gate and the declaration resolve there
+        (round 5 of #1027, finding 1)."""
+        fresh = tmp_path / "fresh"
+        fresh.mkdir()
+        assert git_out(fresh, "init", "-q", "-b", "main") == ""
+        opt_in(fresh)
+        run_dispatch("pre-agent", spawn(fresh))
+        assert implementer.stands(str(fresh), "main", implementer.IMPLEMENTATION_MARK)
 
     def test_accepts_a_framer_spawn_and_leaves_the_planning_mark(self, repo):
         """S13. The second axis arrives on the first's mechanism: same gate, same
@@ -102,6 +114,14 @@ class Test_main:
             run_dispatch("pre-agent", spawn(repo, agent=agent))
             for mark in (implementer.IMPLEMENTATION_MARK, implementer.PLANNING_MARK):
                 assert not os.path.exists(mark_path(repo, mark)), f"{agent} -> {mark}"
+
+    def test_refuses_a_tool_other_than_agent_or_task_naming_smith(self, repo):
+        """Only a spawn leaves the mark. A call of another tool whose input
+        happens to name `smith` spawned nothing, so the notice must still be
+        free to fire (#1017, the body's `main` row on another tool)."""
+        opt_in(repo)
+        run_dispatch("pre-agent", {**spawn(repo), "tool_name": "Bash"})
+        assert not os.path.exists(mark_path(repo, implementer.IMPLEMENTATION_MARK))
 
     def test_refuses_a_repository_that_never_opted_in(self, repo):
         """S4. A globally installed plugin must not write into repositories that

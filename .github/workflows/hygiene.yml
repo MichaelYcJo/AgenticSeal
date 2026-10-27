@@ -129,47 +129,19 @@ jobs:
           fi
           python3 .github/scripts/gather_changelog.py --check
 
-      # An `unverified` row records a claim nobody proved and names who can
-      # answer it. Nothing ever read those rows again — one of them said the
-      # gates had never been seen rendering in a TUI, and months later the
-      # user hit exactly that.
-      #
-      # So the tally is printed on every PR. It never fails for an open item —
-      # a red build for an honest row teaches sessions to write none, which
-      # voids the condition. It fails only for what the author can always fix:
-      # a section that cannot be read, a table with fewer rows than at the
-      # base revision read below, a file that was there and is gone, and a
-      # base ref that either does not resolve or shares no history with HEAD
-      # (exit 2, because nothing was compared).
-      #
-      # The ref goes in and `git merge-base <ref> HEAD` is what gets read. In
-      # this job that is the base's tip: the checkout above has no `ref:`, so a
-      # pull request is checked out as its head already merged into the base.
-      # On a branch checkout -- a local run, the broad gate's -- the same
-      # command answers the fork point. Either way a work item that landed on
-      # the base after this branch was cut is not this branch's removal: here
-      # HEAD holds it too, and there the fork point never had it.
-      # `github.base_ref` names a branch that MOVES, and on a release branch it
-      # moves by one squash per work item: the moment one item landed, every
-      # sibling branch cut before it read the squashed item's `overview.md` as
-      # rows that left the record. Three of 0.9.2's four branches paid a merge,
-      # a re-run broad gate and a re-pushed pull request for that (#272).
-      - name: the unverified record is readable, and rows leave it closed
-        shell: bash
-        run: |
-          python3 skills/verify/scripts/unverified_check.py \
-            --baseline "origin/${{ github.base_ref }}" seal/specs/
-
       # The review chain used to be enforced only at the commit, where the
       # gate could not tell "routed to the chain, not reviewed yet" from
       # "nobody decided anything" — so it asked at every commit of every
       # round. Recording the answer lets it stay quiet, and that is only
       # allowed because the check moved here rather than disappearing.
       #
-      # It never fails for a pull request that declared NOTHING, for the same
-      # reasoning the step above gives for an honest open row: a build that
-      # goes red for one teaches people to write none. On a pull request that
-      # is not a draft it fails for what the author can fix: a declaration
+      # A pull request that declared NOTHING fails only where one of its own
+      # commits carries a `SpecSeal-Routing` trailer naming a work item. A
+      # commit with no such trailer, a teammate's among them, is not judged,
+      # because a build that goes red for what nobody claimed teaches people
+      # to claim nothing. On a pull request that is not a draft it fails for
+      # what the author can fix: a trailer naming a work item no judged
+      # declaration names, a declaration
       # that says "through the review chain" with no committed round record, a
       # declaration that cannot be read, a work item `spec.md` whose
       # `## Rule changes` does not parse, where the work item is judged or

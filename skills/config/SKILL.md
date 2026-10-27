@@ -40,7 +40,7 @@ present hides exactly those.
 | `Mode` | *the folder decides* | which of the two places the root should live at |
 | `Broad gate` | *none: `broad-gate` refuses without it* | the one shell command line `broad-gate` runs once the review rounds settle: the full suite, the repository-wide lint, the typecheck |
 | `Document token ceiling` | *not declared: no length is checked* | the estimated tokens past which `fold-check` reports a top-level policy document as one to split |
-| `Policy root` | `docs` | the directory of the ratified policy documents, which `settle --apply` writes |
+| `Policy root` | `docs` | the directory of the ratified policy documents, which the settle writes |
 | `Reference specs` | *every directory named `specs` outside the root* | the directories this repository kept its own specifications in, which the plugin reads as history and never takes |
 | `Pact` | *none: no pact is held elsewhere* | the origin remote URL of the repository holding a pact this repository signs, several separated by `;` |
 
@@ -56,7 +56,9 @@ what the repository *wants*; the folder's location is what it *has*, and the
 two are separate on purpose. Run `seal mode` and report what it says: the
 folder, the row, and whether they agree. Do not read the row directly for
 this one: `seal mode` is what the pull-request checks run, and a second
-reader is a second answer.
+reader is a second answer. Then run `seal pr-checks` and report its line:
+whether `.github/workflows/hygiene.yml` is this plugin's, and the release it
+pins. No row records that; the file is the record.
 
 **3. Take a change, and route it.**
 
@@ -140,21 +142,22 @@ reader is a second answer.
   means. A `Pact` row is read strictly by `pact-check` at the pact's
   repository, so a value it will not parse is named there.
 - **The mode row moves files.** Run `seal mode local` or `seal mode shared`.
-  It moves the root, stages the change, carries
-  `.github/workflows/hygiene.yml` in or out, and writes the row, so the file
-  and the folder agree afterwards. Do not do any of that by hand.
+  It moves the root, stages the change and writes the row, so the file and
+  the folder agree afterwards, and it leaves `.github/` alone. Do not do any
+  of that by hand. A person who wants the pull-request checks added or taken
+  out is sent to `seal pr-checks install` or `seal pr-checks remove`.
 
 **4. Say what happened beyond the row.** A language row changes a row. The
-mode row moves a directory, stages a commit and installs or removes a
-workflow file, and the person needs to see that list rather than *done*.
+mode row moves a directory and stages a commit, and the line the switch
+prints about the pull-request checks says what it left under `.github/`.
+The person needs to see that list rather than *done*.
 
 ## Before switching to shared, say what cannot be undone
 
 Going to shared puts the records in the tree. **The commit is the point of no
 return, not the move**: afterwards they are in the history, and taking them
 out of the tree later does not take them out of it. Until that commit,
-`git reset -- :/seal :/.github/workflows/hygiene.yml` and then
-`seal mode local` walk the whole thing back.
+`git reset -- :/seal` and then `seal mode local` walk the whole thing back.
 
 Say it before running the command, not after. Local mode exists for the
 repository whose tree must not carry this plugin's files, and shared is the

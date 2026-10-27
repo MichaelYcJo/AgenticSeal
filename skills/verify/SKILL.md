@@ -70,8 +70,8 @@ ever asked it of**, and a count of them taken by hand is wrong as soon as the
 module changes.
 
 ```
-arm-check hooks/commit-review-gate.py
-arm-check hooks/commit-review-gate.py --tests "bin/test tests/test_commit_review_gate.py -q"
+arm-check hooks/routing-edit-gate.py
+arm-check hooks/routing-edit-gate.py --tests "bin/test tests/test_routing_edit_gate.py -q"
 ```
 
 With no `--tests` it lists the arms and mutates nothing. With `--tests` it
@@ -268,16 +268,16 @@ run.
 - **Form.** The sealer's seal is the only mark drawn, and only over a verdict
   that earned it: the stamp is drawn from the sealer's `guarantee.md` reading
   `sealed`, once per work item, at the end of the turn in which that file is
-  committed, or in local mode written. git's `post-commit` writes the values
-  it is drawn from, or in local mode the edit hook does at the file's write,
-  and the `Stop` hook draws them in the orchestrator's session
+  written. The edit hook writes the values it is drawn from at the file's
+  write, under either root, and the `Stop` hook draws them in the
+  orchestrator's session
   (`docs/the-review-record.md` *The stamp*). The broad gate draws nothing:
   its line reads `BROAD GATE PASSED` or `BROAD GATE FAILED` and judges
   nothing. So seeing the drawing means the last seal was earned.
 
 **A bare "the seal" is ambiguous the moment more than one exists, so every
 reference to an INSTANCE names whose**: the sealer's seal, the warden's
-review mark. The concept and its formats stay bare: the Seal Test, a
+round record. The concept and its formats stay bare: the Seal Test, a
 counterfeit seal, SpecSeal itself. The shape to watch for is a sentence that
 names one party and leaves the seal anonymous: *the warden's audit of the
 seal* names an auditor and not what is audited.

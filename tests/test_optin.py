@@ -94,6 +94,39 @@ class Test_repo_root:
         assert optin.opted_in(str(ROOT)) is False
         assert optin.parity_config(str(ROOT)) == ""
 
+    def test_accepts_gits_answer_in_this_platforms_spelling(
+        self, tmp_path, monkeypatch, optin
+    ):
+        """The root comes back as this platform spells a path, whatever
+        spelling git answered with. The real git answers with forward slashes
+        on every platform, which `normpath` changes only on Windows, so the
+        answer is faked with a segment `normpath` folds everywhere (#1017, the
+        body's `normpath` row)."""
+        answer = "/x/y/../z"
+
+        def answering(cmd, **kwargs):
+            return subprocess.CompletedProcess(cmd, 0, stdout=answer + "\n", stderr="")
+
+        monkeypatch.setattr(optin.subprocess, "run", answering)
+        assert optin.repo_root(str(tmp_path)) == os.path.normpath(answer)
+
+    def test_refuses_a_path_that_is_no_directory_whatever_git_answers(
+        self, tmp_path, monkeypatch, optin
+    ):
+        """A file contains no repository. The real git refuses `-C` on a
+        file too, so git is faked to answer for any path, which removes that
+        guarantee (contract rule 13; #1017, the body's directory-test row)."""
+        afile = tmp_path / "f.txt"
+        afile.write_text("x\n", encoding="utf-8")
+
+        def answering(cmd, **kwargs):
+            return subprocess.CompletedProcess(
+                cmd, 0, stdout=str(tmp_path) + "\n", stderr=""
+            )
+
+        monkeypatch.setattr(optin.subprocess, "run", answering)
+        assert optin.repo_root(str(afile)) == ""
+
 
 class Test_git_common_dir:
     def test_accepts_a_main_worktree_without_asking_git(self, optin, repo, monkeypatch):
@@ -208,6 +241,17 @@ class Test_home_paths:
             )
         finally:
             optin.subprocess.run = saved
+
+    def test_accepts_a_passed_common_directory_in_this_platforms_spelling(
+        self, optin, tmp_path
+    ):
+        """The local place is spelled as this platform spells a path, however
+        the common directory arrived (#1017, the body's local-normalisation
+        row)."""
+        common = str(tmp_path) + "/x/../.git"
+        assert optin.home_paths(str(tmp_path), common)[1] == os.path.join(
+            str(tmp_path), ".git", "seal"
+        )
 
     def test_refuses_an_empty_root(self, optin):
         assert optin.home_paths("") == ("", "")
@@ -414,6 +458,20 @@ class Test_parity_config:
         )
         assert optin.parity_config(str(repo)) == ""
 
+    def test_refuses_a_repository_with_no_root_whatever_the_cwd_holds(
+        self, optin, repo, tmp_path, monkeypatch
+    ):
+        """No root, no migration config, even where this process sits beside a
+        `parity.md`: the config is read under the root and nowhere else
+        (#1017, the body's `parity_config` row)."""
+        here = tmp_path / "here"
+        here.mkdir()
+        (here / "parity.md").write_text(
+            "| Original repo | org/legacy |\n", encoding="utf-8"
+        )
+        monkeypatch.chdir(here)
+        assert optin.parity_config(str(repo)) == ""
+
 
 class Test_module:
     def test_the_move_notice_is_gone(self, optin):
@@ -531,9 +589,16 @@ class Test_module:
     ):
         repo, home = local
         (repo / ".git" / "specseal-scratch").write_text("", encoding="utf-8")
+        # Before any declaration, where the edit gate would otherwise refuse.
+        edit = {
+            "tool_name": "Edit",
+            "session_id": "s1",
+            "tool_input": {"file_path": str(repo / "a.py")},
+            "cwd": str(repo),
+        }
+        assert decision_of(run_hook("routing-edit-gate.py", edit)) == "silent"
         declare_smith(repo, home)
 
-        assert decision_of(run_hook("commit-review-gate.py", bash(repo))) == "silent"
         assert (
             decision_of(
                 run_hook(

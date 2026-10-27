@@ -110,6 +110,32 @@ class Test_uses_ruff:
         assert _ran(monkeypatch, tmp_path, f) == []
 
 
+def _runner_where(monkeypatch, found, probe_exit):
+    """`resolve_runner`'s answer where `found` names the commands on PATH and
+    `uv run ruff --version` exits `probe_exit`; nothing is looked up or run."""
+    monkeypatch.setattr(
+        lp.shutil, "which", lambda name: f"/x/bin/{name}" if name in found else None
+    )
+    monkeypatch.setattr(
+        lp.subprocess,
+        "run",
+        lambda cmd, **k: subprocess.CompletedProcess(cmd, probe_exit),
+    )
+    return lp.resolve_runner()
+
+
+class Test_resolve_runner:
+    def test_accepts_uv_where_the_projects_environment_runs_ruff(self, monkeypatch):
+        """The project's own ruff comes first (#1017, the body's
+        `resolve_runner` row)."""
+        runner = _runner_where(monkeypatch, {"uv", "uvx", "ruff"}, 0)
+        assert runner == ["uv", "run", "ruff"]
+
+    def test_refuses_uv_where_its_environment_has_no_ruff(self, monkeypatch):
+        runner = _runner_where(monkeypatch, {"uv", "uvx", "ruff"}, 1)
+        assert runner == ["uvx", "ruff"]
+
+
 class Test_main:
     def test_accepts_a_python_file_and_runs_check_fix_then_format(
         self, monkeypatch, tmp_path
@@ -130,6 +156,9 @@ class Test_main:
     def test_refuses_a_non_python_file_before_it_looks_for_a_runner(
         self, monkeypatch, tmp_path
     ):
+        """In a project that configures ruff, so the suffix test is what stops
+        it (#1017: with no config, `uses_ruff` returned first)."""
+        (tmp_path / "ruff.toml").write_text("line-length = 88\n", encoding="utf-8")
         called = []
         monkeypatch.setattr(
             lp, "resolve_runner", lambda: called.append("resolved") or ["ruff"]
@@ -141,6 +170,7 @@ class Test_main:
         assert called == [], "a non-.py path must not even look for a runner"
 
     def test_refuses_quietly_where_no_runner_is_found(self, monkeypatch, tmp_path):
+        (tmp_path / "ruff.toml").write_text("line-length = 88\n", encoding="utf-8")
         f = tmp_path / "m.py"
         f.write_text("x = 1\n", encoding="utf-8")
         monkeypatch.setattr(lp, "resolve_runner", lambda: None)
@@ -155,6 +185,7 @@ class Test_main:
     def test_refuses_to_let_a_failing_formatter_block_the_edit(
         self, monkeypatch, tmp_path
     ):
+        (tmp_path / "ruff.toml").write_text("line-length = 88\n", encoding="utf-8")
         f = tmp_path / "m.py"
         f.write_text("x = 1\n", encoding="utf-8")
         monkeypatch.setattr(lp, "resolve_runner", lambda: ["ruff"])

@@ -57,6 +57,36 @@ class Test_main:
         assert "committed" in said
         assert str(repo / "seal") in said
 
+    def test_refuses_with_a_first_paragraph_that_names_the_root(self, repo):
+        """The question says where the root it asks about is before any option
+        does: the first option repeats the path, and a reader who stops at
+        the first paragraph still has it (#1017, the body's question-text
+        row)."""
+        opt_in_shared(repo)
+        said = reason_of(run_hook(GATE, payload("ls", repo)))
+        assert str(repo / "seal") in said.split("\n\n")[0]
+
+    def test_refuses_with_options_that_leave_the_checks_to_their_own_command(
+        self, repo
+    ):
+        """S7 of #952: moving the root installs and removes nothing under
+        `.github/`, so neither option promises the workflow."""
+        opt_in_shared(repo)
+        said = " ".join(reason_of(run_hook(GATE, payload("ls", repo))).split())
+        shared = said.split('2. "Shared"')[1].split('3. "Local"')[0]
+        local = said.split('3. "Local"')[1]
+        assert "Nothing is installed under .github/" in shared, shared
+        assert "`seal pr-checks install`" in shared, shared
+        assert "A workflow file already in the tree stays" in local, local
+        # Round 1 of #952, finding 2: the gate fires for a root with no
+        # `Mode` row, an old bootstrap, so its workflow is likely an old pin.
+        assert (
+            "Pinned to this release, its checks examine nothing in this mode; "
+            "pinned to an older one, they fail every pull request until its "
+            "`--branch` line moves or `seal pr-checks remove` takes it out."
+        ) in local, local
+        assert "checks are installed" not in shared and "removed" not in local
+
     def test_refuses_on_the_first_command_not_at_the_commit(self, repo):
         """The budget decided this, not the act #151 names. Scoping the gate to a
         commit puts the question beside the review arm's, at minute thirty, on a
@@ -251,6 +281,35 @@ class Test_already_asked:
         opt_in_shared(repo)
         run_hook(GATE, payload("git commit -m x", repo, session="../../escaped"))
         assert not (repo / "escaped").exists()
+
+    @pytest.mark.parametrize("session", [".", ".."])
+    def test_refuses_a_dot_session_id_as_asked_and_records_nothing(self, repo, session):
+        """A dot names no file, so it counts as asked and nothing is made for
+        it, not even the marker directory (#1017, the body's `.` and `..`
+        row)."""
+        gate = load_hook_module(GATE, "specseal_mode_gate_dots")
+        before = sorted(os.listdir(git_dir(repo)))
+        assert gate.already_asked(git_dir(repo), session) is True
+        assert sorted(os.listdir(git_dir(repo))) == before
+
+
+class Test_git_dir_of:
+    def test_accepts_a_repository_and_answers_its_git_dir(self, repo):
+        gate = load_hook_module(GATE, "specseal_mode_gate_git_dir")
+        assert gate.git_dir_of(str(repo)) == os.path.normpath(git_dir(repo))
+
+    def test_refuses_a_failed_git_whatever_it_printed(self, repo, monkeypatch):
+        """A git that exits non-zero answers nothing, even where it wrote a
+        path. The real git prints nothing on a failure, so the failure is
+        faked to remove that guarantee (contract rule 13; #1017, the body's
+        `git_dir_of` row)."""
+        gate = load_hook_module(GATE, "specseal_mode_gate_failed_git")
+
+        def failed(cmd, **kwargs):
+            return subprocess.CompletedProcess(cmd, 128, stdout=".git\n", stderr="")
+
+        monkeypatch.setattr(gate.subprocess, "run", failed)
+        assert gate.git_dir_of(str(repo)) == ""
 
 
 class Test_marker_dir:

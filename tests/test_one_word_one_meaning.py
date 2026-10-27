@@ -82,7 +82,7 @@ def test_the_start_is_the_moment_before_the_first_edit():
 
 
 GRAINS = {
-    "commit-review-gate": "once per session per repo",
+    "mode-gate": "once per session per repo",
     "review-skill-gate": "once per session per working tree",
     "worktree-guard": "once per session per repository per direction",
 }
@@ -109,14 +109,6 @@ def test_the_korean_readme_states_the_same_grains():
         assert grain in ko, grain
 
 
-def test_the_per_command_marker_says_per_command_in_both_readmes():
-    """`[no-review]` waives ONE command. Spelled `once`, it read as once per
-    session, which is a waiver nobody built."""
-    assert "for **that one command**" in read("README.md")
-    assert "**그 명령 하나만**" in read("README.ko.md")
-    assert "skips the review gate once" not in read("README.md")
-
-
 def test_the_worktree_spec_is_still_the_model():
     """It already stated its grain correctly, and the others were brought to
     it rather than the other way round."""
@@ -127,12 +119,10 @@ def test_the_worktree_spec_is_still_the_model():
 # --- "asks" — the model is instructed, the user gets buttons ----------------
 
 
-def test_the_two_prompts_are_named_by_who_they_address():
-    spec = flat("docs", "commit-review-gate-spec.md")
-    assert "instructs the model to put the choice up" in spec
-    assert "putting two buttons to the user" in spec
-    assert "A `deny` addresses the **model**" in spec
-    assert "An `ask` addresses the **user**" in spec
+def test_the_refusal_is_named_by_who_it_addresses():
+    spec = flat("docs", "the-routing-check.md")
+    assert "A refusal is a deny addressed to the model" in spec
+    assert "tells the model to put the routing question to the person" in spec
 
 
 # --- "the cycle" — the mark's unit, never the whole run ---------------------
@@ -209,8 +199,8 @@ SEAL_SWEPT = (
     # The review run's documents. `docs/the-review-record.md` replaced the
     # three that carried the record in 0.22.0 (#923).
     ("docs", "the-review-record.md"),
-    ("docs", "commit-review-gate-spec.md"),
-    ("docs", "the-commit-gate-inside-git.md"),
+    ("docs", "the-session-hooks.md"),
+    ("docs", "the-routing-check.md"),
     ("docs", "the-review-and-parity-arms.md"),
     ("CONTRIBUTING.md",),
     ("README.md",),
@@ -233,7 +223,6 @@ SEAL_SWEPT = (
     # stamp it is, so they are swept too.
     ("hooks", "sealer-stamp.py"),
     ("hooks", "dispatch.py"),
-    ("hooks", "commitgate.py"),
     ("bin", "seal-stamp"),
     ("bin", "broad-gate"),
     ("docs", "the-broad-gate.md"),
@@ -294,12 +283,11 @@ def test_the_owner_states_that_one_seal_is_final():
 
 
 def test_the_two_definitions_name_what_they_actually_keep():
-    """`agents/warden.md` called `<git-dir>/specseal-reviewed`, the mark that
-    a review happened, the seal. The warden names that file as the
-    reviewer's own mark, which it never writes, and claims no seal."""
+    """`agents/warden.md` once called `<git-dir>/specseal-reviewed`, the mark
+    that a review happened, the seal. #1027 removed the mark with the commit
+    gate that read it; the warden names neither, and claims no seal."""
     warden = flat("agents", "warden.md")
-    assert "Write `<git-dir>/specseal-reviewed`" in warden
-    assert "the reviewer never writes its own mark" in warden
+    assert "specseal-reviewed" not in warden
     assert "You keep the seal:" not in warden, (
         "the opening claims a word the sealer's definition claims two files "
         "over, and a reader opens them together"
@@ -660,7 +648,8 @@ def test_folding_the_seam_cannot_hide_an_instance_it_would_have_found():
     closed set and not a short list of examples — and because the closure
     rests on the member lists, it stops holding the moment a `.py` member
     joins a sweep. So the members are pinned below too. #975 added the third
-    sweep, `GATE_PHRASES` over `GATE_SWEPT`, and three hooks to `SEAL_SWEPT`.
+    sweep, `GATE_PHRASES` over `GATE_SWEPT`, and three hooks to `SEAL_SWEPT`;
+    #1027 took one of them, `hooks/commitgate.py`, out with the file.
 
     WHAT THIS CASE STILL CANNOT SEE: whether a phrase was added to a sweep
     without going through the constants. See `SEAL_BARE`'s comment for why
@@ -685,7 +674,6 @@ def test_folding_the_seam_cannot_hide_an_instance_it_would_have_found():
         "tests/test_session_cost.py",
         "hooks/sealer-stamp.py",
         "hooks/dispatch.py",
-        "hooks/commitgate.py",
     }, (
         "the set of members `flat` folds has moved, so the closure this case "
         "rests on has to be re-taken: every phrase the sweep over "
@@ -951,9 +939,14 @@ def test_no_pact_text_names_a_signer_the_way_0_18_did():
 #   changed while every 0.18.x pact stopped reading; and this module, whose
 #   pattern and comments name the word in order to refuse it;
 # - the two spans `PACT_RENAMED_SPANS` names.
+#
+# `seal/specs/` is the work item root, and a settle removes every released
+# directory under it (`skills/settle/SKILL.md`), so it may hold no tracked
+# file; only the other record prefixes are asserted to hold one.
+SETTLED_RECORDS = "seal/specs/"
 RENAMED_RECORDS = (
     "changelog/",
-    "seal/specs/",
+    SETTLED_RECORDS,
 )
 RENAMED_COMPAT = (
     "tests/conftest.py",
@@ -974,8 +967,9 @@ def test_no_live_text_says_the_word_0_19_0_renamed():
     """No tracked file outside the records says the old word, the two spans
     that keep a 0.18.x header reading taken out first; the compatibility
     cases may say it only as the capitalised header cell. Each exception is
-    asserted to exist, the record prefixes included, so one that moves is
-    named rather than left exempting nothing."""
+    asserted to exist, the record prefixes included but the work item root a
+    settle empties, so one that moves is named rather than left exempting
+    nothing."""
     done = subprocess.run(
         ["git", "-C", ROOT, "ls-files", "-z"],
         capture_output=True,
@@ -985,6 +979,8 @@ def test_no_live_text_says_the_word_0_19_0_renamed():
     for rel in (*RENAMED_COMPAT, SWEEP_MODULE, "docs/the-pact.md", "hooks/config.py"):
         assert rel in tracked, f"{rel} is excepted below and no longer tracked"
     for prefix in RENAMED_RECORDS:
+        if prefix == SETTLED_RECORDS:
+            continue
         assert any(p.startswith(prefix) for p in tracked), (
             f"{prefix} is excepted below and holds no tracked file"
         )

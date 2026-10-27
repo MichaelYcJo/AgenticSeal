@@ -1,55 +1,35 @@
-"""`hooks/gate.py`, the commit gate's one judgment, one class per function.
+"""`hooks/gate.py`, whether a change reaches outside the document roots, one
+class per function.
 
-The arms and the refusals run through the hooks that render them: as git runs
-them in the commit flow, `tests/e2e/commit/test_commit_flow.py`, and in the
-process in `tests/test_commit_review_gate.py` and `tests/test_commitgate.py`.
-The one case here came from `tests/test_chain_hooks_hardening.py` (#942's phase
-6): the backstop's path reader hands `touches_code` None where `git diff` fails,
-and None reads as code, in the `repo` fixture with a `git` that refuses `diff`.
+`chain_check.py#originals_of` asks it of the paths a pull request changes;
+its cases over a pull request are `tests/test_chain_check.py`'s
+`Test_originals_of`. The commit gate's arms that lived here went with #1027.
 """
 
-import os
-import sys
-
 import pytest
-from conftest import a_git_whose_diff_fails, census_case, git, stage
+from conftest import census_case, load_hook_module
 
 TARGET = "hooks/gate.py"
 
+gate = load_hook_module("gate.py", "gate_under_test")
 
-class Test_module:
-    def test_the_backstop_hands_the_parity_arm_none_where_git_could_not_list(
-        self, repo, tmp_path, monkeypatch
-    ):
-        """S10 of work item 1791384157 (#868), the backstop's path reader:
-        `reference-transaction` lists what a commit past `--no-verify` carries
-        with `git diff` over its base, and a failure there is None, which
-        `gate.touches_code` answers True. A break reading the failure as an empty
-        list survived every case until this one."""
-        if os.name == "nt":
-            pytest.skip("the shim is a POSIX shell script")
-        sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "hooks"))
-        import commitgate
-        import gate
 
-        head = git(repo, "rev-parse", "HEAD").stdout.strip()
-        stage(repo, "service.py")
-        git(
-            repo,
-            "-c",
-            "user.email=e@example.com",
-            "-c",
-            "user.name=e",
-            "commit",
-            "-qm",
-            "c",
-        )
-        new = git(repo, "rev-parse", "HEAD").stdout.strip()
-        assert commitgate._paths_between(str(repo), head, new)() == ["service.py"]
-        monkeypatch.setenv("PATH", a_git_whose_diff_fails(tmp_path))
-        listed = commitgate._paths_between(str(repo), head, new)()
-        assert listed is None, listed
-        assert gate.touches_code(listed)
+class Test_touches_code:
+    @pytest.mark.parametrize(
+        "paths",
+        [None, ["src/a.py"], ["docs/a.md", "f.txt"], ["documentation/a.md"]],
+        ids=["git could not list", "code", "one path outside", "a near-miss root"],
+    )
+    def test_accepts_a_path_outside_the_document_roots_or_no_list_as_code(self, paths):
+        """A change git could not list is not one confined to the roots
+        (#868), and a root is matched with its slash."""
+        assert gate.touches_code(paths) is True
+
+    @pytest.mark.parametrize(
+        "paths", [[], ["docs/a.md"], ["seal/specs/x/round-1.md", "docs/b.md"]]
+    )
+    def test_refuses_a_change_confined_to_docs_and_seal_as_code(self, paths):
+        assert gate.touches_code(paths) is False
 
 
 test_census = census_case(TARGET)

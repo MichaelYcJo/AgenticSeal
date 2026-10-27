@@ -348,24 +348,14 @@ def before_any_floor(root=ROOT):
     any floor is checked, and the tracked paths the working tree deleted.
 
     It starts from what is handed an interpreter with nothing in front of it:
-    each script `hooks/hooks.json` names, each git hook a stub runs
-    (`hooks/githooks.py#entry_point`), and the file each `bin/` wrapper hands
-    its interpreter first. Then it follows `loaded_by` until nothing new is
-    found. It errs over, since a string can name a file nothing loads, and
-    under, for a module reached by a path built any other way."""
+    each script `hooks/hooks.json` names and the file each `bin/` wrapper
+    hands its interpreter first. Then it follows `loaded_by` until nothing
+    new is found. It errs over, since a string can name a file nothing loads,
+    and under, for a module reached by a path built any other way. No git
+    hook of this plugin runs a script since #1027."""
     listed, missing = on_disk(root, git_listing(root, "ls-files", "*.py"))
     tracked = set(listed)
     start = set(PLUGIN_SCRIPT.findall(read(os.path.join(root, "hooks", "hooks.json"))))
-    hooks = os.path.join(root, "hooks")
-    sys.path.insert(0, hooks)  # its sibling imports, as a hook's process has them
-    try:
-        githooks = load(os.path.join(hooks, "githooks.py"), "specseal_githooks")
-    finally:
-        sys.path.remove(hooks)
-    start |= {
-        os.path.relpath(githooks.entry_point(hook, root), root).replace(os.sep, "/")
-        for hook in githooks.HOOKS
-    }
     for entry in sorted(os.listdir(os.path.join(root, "bin"))):
         start |= handed_first(read(os.path.join(root, "bin", entry)))
     seen, todo = set(), sorted(start & tracked)

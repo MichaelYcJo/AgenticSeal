@@ -57,7 +57,7 @@ one text for every form, never a sentence here.
 **The failure direction.** A verdict moves from `ask` to `deny` in one state
 and nowhere else, and the reader that decides it is the stop's. A wrong deny
 costs the model a turn.
-check: tests/test_the_guard_asks_once_per_session.py tests/test_worktree_guard.py
+check: tests/test_worktree_consent.py tests/test_worktree_guard.py
 
 A command that also creates a worktree is judged by this table whichever of
 the two is written first, with the creation judged inside it (*Creation
@@ -131,9 +131,10 @@ reason names each tree that matters and why, because approving the `ask` runs
 the line in every one of them; where one is ACTIVE, it describes the ACTIVE
 trees alone. A reason that describes one tree calls it "this tree", whichever
 tree it is: with the session's own tree clean and `W` dirty,
-`git -C W checkout x` asks about "this tree" and means `W`. A git the commit
-gate's wider reading reads as a segment of its own (behind a redirection or a
-zsh precommand word) is judged in the tree its own `-C` names, and so is a git
+`git -C W checkout x` asks about "this tree" and means `W`. A git the wider
+reading of `hooks/cmdline.py` (*Which tree*) reads as a segment of its own
+(behind a redirection or a zsh precommand word) is judged in the tree its own
+`-C` names, and so is a git
 an `&` cut apart (`2>&1 git -C W switch x`), from the directory its first part
 runs in. A body and a command that would not split belong to no one segment
 and are judged in the session's own tree.
@@ -143,7 +144,7 @@ where the tree matters, and allows one thing more: a creation only a hidden
 spelling holds, in a clean tree nobody else is in, where nothing the Premise
 protects is at stake. Under the press the stops ask no person anything;
 without it each is one `ask`.
-check: tests/test_worktree_guard.py tests/test_the_guard_asks_once_per_session.py tests/test_guard_resolves_the_tree_it_judges.py
+check: tests/test_worktree_guard.py tests/test_worktree_consent.py
 
 ### B. Worktree creation
 
@@ -223,7 +224,7 @@ satisfy by writing a file is `[worktree-ok]`'s standing under another name.
    and `true`, an absent field or a value that is not a bool is refused.
 3. **The routing question**: one single-select question whose options'
    leading phrases are exactly `automation`, `per axis` and `no work item`
-   (`skills/implement/orchestration.md` *Question 1 — single-select*),
+   (`skills/implement/orchestration.md` *Question 1*),
    answered with the option labelled `automation`. A `multiSelect` question is
    skipped, so the boxes neither give nor take back the press. The answer must
    equal one of the option labels verbatim; a typed `Other` answer is the
@@ -289,8 +290,9 @@ matters, under consent too, and in a clean tree nobody else is in it says
 nothing. What the class costs is the allow on `/usr/bin/git worktree add …`:
 a wrong silence leaves the call to the user's own settings, and a wrong allow
 signs for a binary nobody identified.
-`test_the_command_word_class_is_what_the_allow_covers` pins members of each
-group, and is where a new spelling is checked.
+`Test_only_creates_a_worktree` in `tests/test_worktree_guard.py` pins
+members of each group in the rows of its two cases, and is where a new
+spelling is checked.
 
 **So the creation is judged between the ladder's two halves**, whichever of
 the switch and the creation is written first, because the consent writer
@@ -316,11 +318,14 @@ repository.
 
 **The property.** For a session with no consent, whatever the writer would
 record for, the guard has either denied it or put the creation question in
-the text of its `ask`. `test_the_guard_is_never_silent_where_the_writer_records`
-walks every shape it lists in four tree states, from two shell directories,
-three attempts each, and
-`test_a_dirty_tree_does_not_decide_whether_the_creation_is_questioned` holds
-the fifth. With consent, silence for a compound is the designed answer.
+the text of its `ask`.
+`Test_main::test_refuses_to_be_silent_where_the_writer_records` in
+`tests/test_worktree_guard.py` walks every shape `CREATIONS` lists in four
+session states, from two shell directories, three attempts in the two
+states whose budget the attempts spend, and
+`Test_main::test_refuses_a_line_weaker_than_its_switch_or_its_creation`
+holds the fifth state, the dirty tree. With consent, silence for a compound
+is the designed answer.
 
 **The Agent or Task path is silent rather than an allow**, because the call
 is a creation plus an agent with a prompt, and the record answers the first
@@ -340,24 +345,24 @@ allow five times. With consent, a creation written as one segment of a
 compound, or carrying an expansion, a redirection, a wrapper or a
 path-qualified command word, gets no allow; the guard is silent, and what each
 costs is whatever the user's own settings ask.
-check: tests/test_the_guard_asks_once_per_session.py tests/test_guard_resolves_the_tree_it_judges.py
+check: tests/test_worktree_consent.py tests/test_worktree_guard.py
 
 ### Decided before git runs
 
-**A worktree creation is decided before git runs, in every clone, one
-carrying this plugin's git hooks included.** A hook after git made a creation
+**A worktree creation is decided before git runs, in every clone.** A hook
+after git made a creation
 can only take it back, and a take-back cannot undo all of it: `git worktree
 add -B <existing>` resets that branch before any hook runs, `--no-checkout`
 and `--orphan` run no `post-checkout`, and a `--lock`ed tree survives one
 `git worktree remove --force`. So the rows of *B* decide before the command
 runs, through the frozen reading *Which tree* describes, and this plugin
 installs no `post-checkout`.
-check: tests/test_a_creation_is_judged_before_git_runs.py tests/test_the_hook_surface_git_offers.py
+check: tests/e2e/creation/test_creation_flow.py tests/test_the_hook_surface_git_offers.py
 
 **A creation the guard lets through is recorded from the command that ran.**
 The `PostToolUse` writer files the record in every clone, and `[worktree-ok]`
 is read from the command by the guard itself, never carried to a git hook.
-check: tests/test_a_creation_is_judged_before_git_runs.py
+check: tests/e2e/creation/test_creation_flow.py
 
 ## Choice sites
 
@@ -413,7 +418,7 @@ fires. No marker is written, because none was asked, so a later `per axis` in
 the same clone meets the attended first attempt. `[shared-tree-ok]` still
 turns the switch rows silent and `[worktree-ok]` still reaches its `ask`
 above the creation rows. Without the press all four rows are as above.
-check: tests/test_a_creation_in_another_clone_asks_nobody.py tests/test_worktree_guard.py tests/test_the_idle_session_rows_ask_nobody.py
+check: tests/test_worktree_guard.py
 
 **Retry tokens, one per direction**, matched as bare words of the command,
 never as substrings, so a quoted sentence about a token answers nothing. The
@@ -421,12 +426,18 @@ whole command is tokenized first, and only when that fails does the check
 drop to per-segment scanning. Unquoted prose still passes:
 `git switch x && echo the [shared-tree-ok] token is documented` goes silent.
 
-**Where the token is read from.** The command, and only the command. Not
-from a here-document body: a token counts only where the command as written
-and the command with its here-document bodies taken out both carry it, the
-rule the commit gate's waiver read keeps (`hooks/tokens.py#without_bodies`).
-Where `hooks/cmdline.py` cannot load, the frozen reader finds the bodies. The
-Agent or Task path has no command line and reads no token.
+**A token counts only where it is typed outside every here-document body,
+and a command that does not split carries none from where its split
+fails.** The token is read from the command, and only the command:
+`hooks/tokens.py#given` takes it only where the command as written and the
+command with its here-document bodies taken out
+(`hooks/tokens.py#without_bodies`) both carry it, a body a shell runs
+included. It keeps comments, because a token may be written in one. Where
+`hooks/cmdline.py` cannot load, the frozen reader finds the bodies. A token
+inside a quote that never closes, or after an apostrophe in a comment
+(`# don't [worktree-ok]`), is read as nothing. The Agent or Task path has no
+command line and reads no token.
+check: executed-text-is-read
 
 | Token | Answer it carries | Effect |
 |---|---|---|
@@ -444,8 +455,8 @@ direction's token**: the switch options name `git worktree add … #
 before the token, so a token from this session never crosses the deny that
 protects a tree this session does not own; the dirty-tree row asks something
 else and is outside it too. The token records an answer in the command and
-nothing verifies who wrote it, the standing `[worktree-ok]` and `[no-review]`
-have: an audit trail, not an authorization.
+nothing verifies who wrote it, the standing `[worktree-ok]` has: an audit
+trail, not an authorization.
 
 Never guarded: file restores (`checkout -- <path>`, `restore`), every worktree
 subcommand but `add`, and sessions living in linked worktrees, which are
@@ -475,7 +486,7 @@ blocker.
 
 Five minutes is safe only because of the second and third signals: keyboard
 input alone cannot tell a forgotten tab from an autonomous turn.
-check: tests/test_worktree_guard_signals.py
+check: tests/test_worktree_guard.py
 
 ### Passive-event filtering
 
@@ -533,8 +544,8 @@ apart), and each answer is an unrecognised shape. Where only that module
 reads a git, the `-C` it reads is composed onto the directory the frozen walk
 placed the segment in.
 
-The guard takes one answer where the commit gate takes all of them: the first
-switch, the first creation, and the first directory in each that names a
+The guard takes one answer where a reader of every target would take all of
+them: the first switch, the first creation, and the first directory in each that names a
 tree. A wider reading finds more segments and more directories, and which came
 first would then decide the tree; every order tried met a command where the
 first was a segment or a directory bash never ran the switch in. The frozen
@@ -547,7 +558,7 @@ command that would not split or either side of an `&` the splitter cut is the
 finding, so a broken reader costs a stop where the tree matters and never a
 silence. Such a cut is judged in the tree the part before it names, and a
 `-C` written after the cut is not read.
-check: tests/test_worktree_guard.py tests/test_guard_resolves_the_tree_it_judges.py
+check: tests/test_worktree_guard.py tests/test_worktree_consent.py
 
 The advice follows the same tree. A command a reason tells the person to run
 (the worktree steer, a choice's option, the switch steer, the tracked-changes
@@ -560,17 +571,26 @@ cannot be computed (a variable, a glob, a subshell, `cd -` with nothing behind
 it), and one that reads cleanly and holds no repository, since
 `cd /no/such/dir ; git switch x` switches in the session's own tree. A
 `git -C` naming no repository stays silent, because git refuses that command
-itself. The commit gate stops on a target like this instead: a commit nobody
-judged is a commit nobody reviewed, while a guard that goes silent leaves a
-shared tree unguarded, and *Unknowns resolve conservatively* weighs a wrong
-deny at one prompt.
+itself.
+
+**No git hook can judge a branch switch or a worktree creation before it
+happens, so the guard's switch and creation arms read the command, and
+that reading does not converge.** No git refuses a branch switch before its
+tree has moved: on 2.34 to 2.43 a switch reaches `reference-transaction`
+with no line at all, and on 2.50.1 the line arrives after the tree and index
+already hold the new branch. A branch-naming rebase reaches
+`reference-transaction` the same way. A worktree creation can be judged
+only after git made it, in `post-checkout`, and only taken back there,
+which *Decided before git runs* shows cannot undo all of it. This plugin
+writes nothing into a clone's git hooks in any case
+(`docs/the-routing-check.md`).
+check: tests/test_the_hook_surface_git_offers.py tests/test_the_frozen_reading_never_grows.py
 
 ## Known limits
 
-- **Neither a switch nor a creation is judged by git.** No git refuses a
-  switch before its tree has moved, and a hook after a creation cannot undo
-  all of it, so *A* and *B* read the command's text on every git, through the
-  frozen reading.
+- **Neither a switch nor a creation is judged by git**, for the reasons
+  *Which tree* gives, so *A* and *B* read the command's text on every git,
+  through the frozen reading.
 - A word the shell builds before git runs — a brace expansion, a
   substitution that spells `git`, a here-string or heredoc handed to a shell,
   a git spelled past the splitter (`g""it` in a line it cannot close) — is not
@@ -579,9 +599,10 @@ deny at one prompt.
   every tree, though bash makes the first three switch HEAD and the fourth add
   a worktree. A reader imitating bash's expansion was built and taken out,
   because each review found a spelling it missed.
-  `test_a_shell_built_word_is_the_named_limit` and the braced half of
-  `test_no_listed_form_moves_head_under_git` in `tests/test_worktree_guard.py`
-  pin the limit.
+  The braced rows of
+  `Test_main::test_accepts_data_no_shell_runs_as_no_command` and the braced
+  half of `Test_shape_of::test_accepts_no_listed_form_that_moves_head_under_git`
+  in `tests/test_worktree_guard.py` pin the limit.
 - A switch into the worktree the same command creates is judged against the
   session's own tree, because `../x` does not exist yet when the guard runs:
   `git worktree add ../x -b x && cd ../x && git switch y` meets that tree's
@@ -599,8 +620,8 @@ deny at one prompt.
   git inside an `if` body after `cd w` (`cd w && if …; then 2>&1 git switch x;
   fi`) is judged in the session's own tree. `git -C <dir> switch …`, or a
   plain `cd <dir>` of its own, is the spelling the guard reads.
-  `test_a_switch_tree_the_guard_cannot_place_is_judged_as_its_own` in
-  `tests/test_guard_resolves_the_tree_it_judges.py` pins it.
+  `Test_main::test_a_switch_tree_the_guard_cannot_place_is_judged_as_its_own`
+  in `tests/test_worktree_guard.py` pins it.
 - `LEAVES_THE_TREE` holds the subcommands this repository's recorded runs
   hold, each with its count, and nothing guessed. A git subcommand this
   repository never ran (`git submodule update`, `git notes`) is unrecognised
@@ -608,8 +629,9 @@ deny at one prompt.
   matters until a release adds its row; under the press the model cannot
   rewrite it, because it is its own plain spelling. The stop's reason names
   the list. One form of each row is run against git, and a listed form that
-  moves HEAD fails `test_no_listed_form_moves_head_under_git`; a form no case
-  runs is still a reading.
+  moves HEAD fails
+  `Test_shape_of::test_accepts_no_listed_form_that_moves_head_under_git`; a
+  form no case runs is still a reading.
 - A creation only a hidden spelling holds (`git 2>&1 worktree add …`, `git
   worktree 2>/dev/null add …`) is an unrecognised shape, so in a clean tree
   nobody else is in it says nothing and *B* never reads it. The consent writer
@@ -647,9 +669,11 @@ deny at one prompt.
   every tree: a `deny` to the model under the press, an `ask` otherwise.
   Under the press every switch without `[shared-tree-ok]` is row 2's deny, and
   every Bash creation in a clone the press was not given in and this session
-  holds no record in is *B*'s detection-unusable deny. Windows-only cases in
-  `tests/test_the_idle_session_rows_ask_nobody.py` and
-  `tests/test_a_creation_in_another_clone_asks_nobody.py` measure the two.
+  holds no record in is *B*'s detection-unusable deny. Two Windows-only cases
+  of `Test_main` in `tests/test_worktree_guard.py`,
+  `test_on_windows_a_switch_under_the_press_is_row_twos_deny` and
+  `test_on_windows_a_creation_in_another_clone_is_row_fours_deny`, measure
+  the two.
 - The `automation` press is this session's, on this machine. It is read from
   this session's own main transcript, which the harness writes where the
   session runs, and a subagent reaches it through its parent's id. A run

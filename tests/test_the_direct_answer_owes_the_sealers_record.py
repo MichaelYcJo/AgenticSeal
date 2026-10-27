@@ -17,9 +17,7 @@ sentence that STANDS is what makes the sentence that is GONE evidence. Where
 a file never carried the false sentence — it named the two answers and what
 neither owes — only the standing half is pinned.
 
-The commit gate's option is pinned through the rendered prompt in
-`tests/test_commit_review_gate.py`, because its text is a Python literal
-split across lines, which a whole-file substring cannot read.
+The commit gate's option and its test left with the gate (#1027).
 """
 
 import os
@@ -44,13 +42,6 @@ DIRECT_REQUIRES = {
     ("skills", "implement", "orchestration.md"): (
         "| nothing required |",
         STANDS,
-    ),
-    # The corrected docstring's own words, because that file also carries a
-    # case whose docstring names the sealer's record — a pin on the bare
-    # phrase would be satisfied by the case and not by the correction.
-    ("tests", "test_commit_review_gate.py"): (
-        "requires nothing of it at the pull request",
-        "requires " + STANDS + " of it and no reviewer's record",
     ),
 }
 
@@ -113,8 +104,9 @@ def test_the_specification_says_why_two_answers_and_not_three():
 
 def test_the_release_checklist_names_the_waiver_as_the_no_work_item_answer():
     """Item 9: the release-preparation commit declares its class — the
-    routing question's `no work item` answer, whose recorded form is the
-    token in front of each commit — rather than stepping around a gate."""
+    routing question's `no work item` answer, whose recorded form is
+    `seal no-work-item` and the `SpecSeal-Routing: no work item` trailer on
+    each commit — rather than stepping around a gate."""
     text = flat("docs", "release-checklist.md")
     assert "`no work item` answer" in text, (
         "`docs/release-checklist.md` *4. Commit, push, open the first pull "

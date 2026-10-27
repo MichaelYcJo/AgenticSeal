@@ -530,10 +530,10 @@ def place(tokens, wheres, cwd: str):
     <missing> ; git worktree add …`, where it filed no record at all (`spec.md`
     In 1 of work item 1791384157).
 
-    The commit gate STOPS on a target like this (`names_a_directory` in
-    `hooks/commit-review-gate.py`) and the guard falls back instead. The two
-    protect different things: a commit nobody judged is a commit nobody
-    reviewed, while a guard that goes silent leaves a shared tree unguarded,
+    The commit gate's text reading stopped on a target like this until #1027
+    removed it, and the guard falls back instead. The two protected different
+    things: a commit nobody judged is a commit nobody reviewed, while a guard
+    that goes silent leaves a shared tree unguarded,
     and `docs/worktree-guard-spec.md` *Unknowns resolve conservatively* puts the
     cost of a wrong deny at one prompt against a wrong allow breaking another
     session's tree.

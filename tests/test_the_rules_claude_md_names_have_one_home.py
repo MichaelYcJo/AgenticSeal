@@ -24,7 +24,8 @@ pinned here so no carrier restates it.
 A needle is a sentence only the home writes and the link row does not need.
 No carrier may contain one, the home aside. The carriers are the files
 `seal/specs/1791076836-every-rule-claude-md-restates-has-one-home/spec.md`
-names in its Scope 1-4 and D1, and the release checklist its O3 names.
+at `67694cba` names in its Scope 1-4 and D1, and the release checklist its O3
+names.
 
 What this does not hold: the act sentence in a `CLAUDE.md` row is the rule in
 other words, and a later change to the rule's values (a seventh merge

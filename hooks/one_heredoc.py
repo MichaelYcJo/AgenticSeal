@@ -1,16 +1,18 @@
 """One heredoc shape, matched byte for byte, and the command with its body
 taken out (#739, #763).
 
-The commit gate reads every heredoc body as shell and asks whether it commits,
-because a body a shell runs is a command. A body that is only the text of a
+The commit gate's text reading read every heredoc body as shell and asked
+whether it committed, because a body a shell runs is a command; since #1027
+the reader of this file is the worktree guard's token reader,
+`hooks/tokens.py`. A body that is only the text of a
 file, or a Python program read from stdin, is not, and reading it as shell
 stopped whole Bash calls for a body that only MENTIONED a commit. #760 tried
 to tell the two apart through `hooks/cmdline.py`'s body boundaries, and four
 review passes each found a place where that splitter and the shell disagree
 about where a body starts or ends. Every one was a silent commit.
 
-So this reader trusts nothing it did not write. It admits ONE shape, given in
-`docs/commit-review-gate-spec.md` and as clauses A-F below, and everything
+So this reader trusts nothing it did not write. It admits ONE shape, given as
+clauses A-F below, and everything
 else is `None`: the gate then reads the command exactly as it did before.
 There is no shell lexer here, no quote tracking and no import from the
 splitter. What it does is a regular grammar over the command's first line, a

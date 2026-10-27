@@ -13,15 +13,56 @@ of its own, and its case is `tests/test_dispatch.py`'s. The case comes from
 `tests/test_console_is_not_utf8.py` (#942's phase 6).
 """
 
+import io
 import json
 import os
 import subprocess
 import sys
 
 import pytest
-from conftest import HOSTILE, KOREAN, ROOT, census_case, decision_of
+from conftest import (
+    HOSTILE,
+    KOREAN,
+    ROOT,
+    census_case,
+    decision_of,
+    load_hook_module,
+)
 
 TARGET = "hooks/console.py"
+
+
+def cp949_stream():
+    """A text stream a Korean Windows console would hand the process."""
+    return io.TextIOWrapper(io.BytesIO(), encoding="cp949", errors="strict")
+
+
+class Test_to_utf8:
+    def test_accepts_each_of_the_three_streams_and_makes_it_utf8(self, monkeypatch):
+        """The streams are stand-ins, so the verdict is the same whatever
+        console the case runs under."""
+        console = load_hook_module("console.py", "console_for_to_utf8")
+        streams = {name: cp949_stream() for name in ("stdin", "stdout", "stderr")}
+        for name, stream in streams.items():
+            monkeypatch.setattr(sys, name, stream)
+        console.to_utf8()
+        said = {name: (s.encoding, s.errors) for name, s in streams.items()}
+        assert said == {
+            "stdin": ("utf-8", "replace"),
+            "stdout": ("utf-8", "replace"),
+            "stderr": ("utf-8", "backslashreplace"),
+        }
+
+    def test_refuses_to_raise_on_a_stream_that_is_absent_or_cannot_reconfigure(
+        self, monkeypatch
+    ):
+        console = load_hook_module("console.py", "console_for_absent_streams")
+        stderr = cp949_stream()
+        monkeypatch.setattr(sys, "stdin", None)
+        monkeypatch.setattr(sys, "stdout", io.StringIO())
+        monkeypatch.setattr(sys, "stderr", stderr)
+        console.to_utf8()
+        assert (stderr.encoding, stderr.errors) == ("utf-8", "backslashreplace")
 
 
 class Test_module:
@@ -34,16 +75,17 @@ class Test_module:
         documented way in -- `hooks/console.py` says each gate is runnable on its
         own -- and nothing measured that: neutering `to_utf8` to a bare `return`
         left the suite at its own baseline, so all seven could be deleted and the
-        tree stays green.
+        tree stays green. The gate run is the routing check at the edit tools,
+        whose refusal names the repository's path, which holds `KOREAN`.
         """
         r = subprocess.run(
-            [sys.executable, os.path.join(ROOT, "hooks", "commit-review-gate.py")],
+            [sys.executable, os.path.join(ROOT, "hooks", "routing-edit-gate.py")],
             input=json.dumps(
                 {
-                    "tool_name": "Bash",
+                    "tool_name": "Write",
                     "session_id": f"solo-{encoding}",
                     "cwd": str(korean_repo),
-                    "tool_input": {"command": f"git commit -m {KOREAN}"},
+                    "tool_input": {"file_path": str(korean_repo / f"{KOREAN}.txt")},
                 },
                 ensure_ascii=False,
             ).encode("utf-8"),

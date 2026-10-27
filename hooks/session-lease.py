@@ -25,10 +25,9 @@ the immediate parent is the shell that spawned the hook (`/bin/zsh`), which
 dies constantly. Treating that as the owner would retire live leases. It is
 `hooks/hooksession.py#claude_pid`'s answer: `CLAUDE_PID` where the harness
 exports it beside this session's own `CLAUDE_CODE_SESSION_ID`, else the
-nearest ancestor whose name is `claude`. That is the
-reader the commit gate's lease route asks for the same pid, so the lease
-this records is the lease it finds (#868); this file used to walk on its
-own, matching any name that held `claude`. When no `claude` process is found
+nearest ancestor whose name is `claude`, by the `is_claude` test the
+worktree guard's count of sessions shares (#868); this file used to walk on
+its own, matching any name that held `claude`. When no `claude` process is found
 the record omits `pid` entirely, and the guard reads that as unattributable —
 a question for the user rather than either assumption.
 """

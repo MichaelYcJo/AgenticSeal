@@ -52,6 +52,7 @@ def test_the_config_template_ships_the_row_with_no_value():
 )
 def test_both_hygiene_workflows_run_the_check(parts):
     """The check has to reach a pull request in this repository AND in every
-    repository shared mode sets up, or it names a disagreement nowhere."""
+    repository `seal pr-checks install` sets up, or it names a disagreement
+    nowhere."""
     text = read(*parts)
     assert "mode --check" in text, "/".join(parts)

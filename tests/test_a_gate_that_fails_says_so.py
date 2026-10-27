@@ -2,7 +2,7 @@
 
 Work item 1790635415. The cases of `hooks/dispatch.py`'s failure report moved
 to `tests/test_dispatch.py` (#942's phase 6). What stays is the case that
-reads the policy, which `docs/commit-review-gate-spec.md` *Registration* names
+reads the policy, which `docs/the-session-hooks.md` *Registration* names
 on its `check:` line.
 """
 
@@ -15,11 +15,9 @@ HOOKS = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "hooks"))
 
 
 def test_the_registration_section_says_a_failure_is_said_and_names_its_case():
-    """S14. The ratified rule in `docs/commit-review-gate-spec.md`
-    *Registration* was that a raising gate is skipped. It now also says the
-    skip is said, and its `check:` line names the module above that pins the
-    words a person reads."""
-    path = os.path.join(os.path.dirname(HOOKS), "docs", "commit-review-gate-spec.md")
+    """S14. `docs/the-session-hooks.md` *Registration* says a raising gate is
+    skipped and the skip is said, and its `check:` line names this module."""
+    path = os.path.join(os.path.dirname(HOOKS), "docs", "the-session-hooks.md")
     with open(path, encoding="utf-8") as handle:
         text = handle.read()
     start = text.index("## Registration\n")

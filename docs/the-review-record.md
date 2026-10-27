@@ -166,8 +166,8 @@ check: tests/test_chain_check.py
 **Every round file stays, so a finding can be followed from the round that
 found it to the commit that closed it.** The next round's warden reads the
 earlier records directly; nothing summarises them. They leave with their
-spec, at the settle that applies it.
-check: tests/test_settle_applies_rule_changes_in_place.py
+work item's directory, which the settle after its release removes.
+check: tests/test_settle.py
 
 **`target:` names a commit, not a content anchor, because a round records a
 moment.** The record's one `target:` line names the reviewed commit, with
@@ -178,8 +178,12 @@ check: tests/test_chain_check.py
 
 ## What the check reads at the pull request
 
-**`chain_check.py` reads the declaration, the frame, the records, the broad
-gate's file and the sealer's guarantee, and nothing else of a round record.** It judges the
+**`chain_check.py` reads the declaration, the frame, the `## Rule changes`
+section of each `spec.md` it parses, the records, the broad gate's
+file, the sealer's guarantee, the `SpecSeal-Routing` trailers of the pull
+request's own commits and, where `seal/parity.md` is declared, the
+migration config's `Baseline commit`, and nothing else of a round
+record.** It judges the
 `routing.md` naming the pull request's branch and every one its own commits
 add or change. A ready pull request fails on any refusal, each named
 `path:line  why`; a draft, or a run that observed no pull request, prints the
@@ -207,10 +211,11 @@ does not descend from, or one that changed no located path; for a reference
 naming no earlier record, or a finding that record does not hold, and any
 reference in round 1; and for a `fixed` or `rejected` finding the next
 record names on no `confirms:`, `reopens:` or `regression:` line. A labelled
-line inside a fence or a comment is not a line, so a finding whose only
-verdict stands in its fix block has none, and a fence or a comment that
-never closes, which would hide every finding after it, is refused at the
-line that opened it. Each refusal names the record, the line and the
+line inside a fence is not a line, so a finding whose only verdict stands
+in its fix block has none, and a fence that never closes, which would hide
+every finding after it, is refused at the line that opened it. A line
+outside every fence that begins with `<!--` is refused at its line, because
+the check reads a comment as text. Each refusal names the record, the line and the
 finding's heading. No emoji is read, and neither severity nor answer
 decides anything. It errs two ways where the
 shape holds and the fact does not: a `fixed` commit that touches a named
@@ -259,10 +264,81 @@ check: old-table-shape-refused
 
 **The check reads the diff as declarations, not as file identity.** It diffs
 without rename detection, so a deleted declaration beside a similar added one
-is two declarations and the deletion is judged. A declaration moved with its
+is two declarations and the deletion is judged, except where the tree the
+check reads has no top-level `seal` entry. A deletion whose work item's
+directory stood at the merge base and is gone whole reads as a settle and
+is accepted (`docs/the-record-layout.md` *The fold, and what tells it from a
+deletion*). A declaration moved with its
 bytes unchanged is neither judged nor missed, because the pull request that
 only moved it did not make it.
 check: tests/test_chain_check.py
+
+**The check parses the `## Rule changes` section of the `spec.md` of
+every work item whose `routing.md` it judges, and of every work item
+`spec.md` the pull request's own commits add or change, with
+`skills/settle/scripts/rule_changes.py`, the one reader of that
+section, and a section the reader refuses is a refusal at the line the
+reader names, carrying the reader's reason.** `settle` groups the
+released specs by the sections their rule changes name, and a spec
+whose section does not parse joins no group, so a section first read
+there is a rule change the settle can place only by reading the whole
+spec, with no pull request left to fix it in. A
+declared work item can edit another work item's section without
+touching that work item's `routing.md`, which is why the diff is read
+as well as the declarations. A pull request that declares nothing
+reads no `spec.md`. A `spec.md` a squash of another pull request
+carried, and one the pull request only moved, are read at the pull
+request that made them. A `spec.md` with no `## Rule changes` section
+is left alone here, and the settle reads such a spec whole. The refusal
+reads a fact from the file and puts no question to a person.
+check: rule-changes-read-at-the-pull-request
+
+**Where `seal/parity.md` is declared and the change reaches outside
+`docs/` and `seal/`, every round record of a work item declaring
+`through the review chain` carries one `original:` line naming the
+migration config's baseline.** The check reads `seal/parity.md` at HEAD
+and the paths the pull request changes against its base, through the
+parity arm's own rule for a change confined to the document roots. A
+diff it cannot read ends the check with exit 2 before any record is
+judged. A ready pull request fails while a round record holds no
+`original:` line, or holds one whose commit and the
+`Baseline commit` row's SHA are not one a prefix of the other, and a
+migration config whose `Baseline commit` holds no SHA fails it too. Each
+refusal names the record, or the config, and both commits where two are
+compared. The warden writes the line in the round where it compared that
+round's target with the original through `legacy-parity`. A round that
+could not resolve the original writes no line and raises an `unread`
+finding, so the refusal stands until a round compares. What the check
+cannot read is whether the comparison was a good one, which is the
+warden's.
+check: parity-at-the-pull-request
+
+**Where `seal/parity.md` is declared and the change reaches outside
+`docs/` and `seal/`, the `guarantee.md` of a work item declaring
+`straight to the PR` carries one `original:` line naming the migration
+config's baseline.** The sealer writes it after comparing the audited
+commit with the original through `legacy-parity`, and the check reads it by
+the rule a round record's line is read by: a ready pull request fails while
+the guarantee holds no such line, or one whose commit and the
+`Baseline commit` row's SHA are not one a prefix of the other. What the
+check cannot read is whether the comparison was a good one, which is the
+sealer's.
+check: parity-in-the-guarantee
+
+**On every pull request, the check reads the `SpecSeal-Routing` trailer of
+each of its own commits, as `docs/the-routing-check.md` *At the pull
+request* states.**
+check: routing-trailer-at-the-pull-request
+
+**Where the tree the check reads has no top-level `seal` entry, the
+check reads nothing as declared.** The tree is HEAD, and the working
+tree under `--worktree`. The pull request that moves a root to local
+mode deletes every `routing.md` with the root, and a deleted declaration
+is otherwise judged. With no `seal` entry there is nothing to declare,
+so the check judges the trailers as for any pull request that declares
+nothing. Where git cannot say whether HEAD has the entry, the
+declarations stay judged.
+check: nothing-declared-nothing-owed
 
 ## The guarantee
 
@@ -283,11 +359,17 @@ check: tests/test_the_sealer_guarantees.py
 
 **Its verdict is `guarantee.md`, from `templates/sdd-guarantee.md`**: the
 commit and base, the broad gate's result, the claims re-run, the parties
-compared, and one `Verdict:` line — `sealed`, `withheld — <reason>`, or
-`undecided — <question>`. An undecided question is the owner's: the
+compared, and one `Verdict:` line, `sealed`,
+`withheld reason: <the claim, its party, its coordinate>` or
+`undecided question: <the question, for the owner>`, written exactly so
+and with no emphasis. Any other spelling of the line is refused at it.
+The `Target SHA` row holds `<sha> against <base>`, each one word, then
+nothing or one `; earlier run: <sha> <word>` entry per earlier run, with
+`against <base>` after its SHA where it names one and its verdict's
+word alone; any other text on the row is refused at it. An undecided question is the owner's: the
 answer goes on a line under the verdict, and the sealer runs again at the
 new HEAD.
-check: tests/test_the_sealer_guarantees.py
+check: tests/test_the_sealer_guarantees.py tests/test_chain_check.py
 
 **A ready pull request passes only where `guarantee.md` names HEAD and reads
 `sealed`.** Only the closing records, `broad-gate.md` and `guarantee.md`,
@@ -307,30 +389,26 @@ check: none reader: a reader of the guarantee's own tables
 ## The stamp
 
 **The stamp is drawn once per work item, from the sealer's `sealed`, at the
-end of the turn in which `guarantee.md` came to read it: at its commit in
-shared mode, and at its write in local mode.** The stamp means every party
+end of the turn in which `guarantee.md` came to read it, at its write, in
+either mode.** The stamp means every party
 verified the work item, the sealer last, and the work is done, so it is
 drawn from that verdict and never from the broad gate's run, which comes
 before the sealer has read anything and draws nothing
-(`docs/the-broad-gate.md` *One act, one owner*). In shared mode git's
-`post-commit` runs after the commit, in the worktree it landed in. Where the
-commit carries a work item's `guarantee.md` whose one `Verdict:` reads
-`sealed`, it writes the stamp's values under
-`<git-common-dir>/specseal-stamp/<session>/` and prints one line naming the
-file and `seal-stamp --from <path>`. In local mode the `seal/` root sits under
-the git common dir and no commit carries `guarantee.md`. So a `post-edit`
-gate, `hooks/sealer-stamp-queue.py`, runs after each `Write` or `Edit` of
-`<git-common-dir>/seal/specs/<id>/guarantee.md`. It writes the same values for the
-payload's session, which a subagent's write carries as the main session's,
-and says the same line as its message. A `Stop` hook draws each undrawn file
+(`docs/the-broad-gate.md` *One act, one owner*). A `post-edit` gate,
+`hooks/sealer-stamp-queue.py`, runs after each `Write` or `Edit` of a
+`seal/specs/<id>/guarantee.md` under either root. Where its one `Verdict:`
+reads `sealed`, it writes the stamp's values under
+`<git-common-dir>/specseal-stamp/<session>/` for the payload's session,
+which a subagent's write carries as the main session's, and says one line
+naming the file and `seal-stamp --from <path>` as its message. A `Stop` hook draws each undrawn file
 of its own session once, after that turn's text, and a subagent's end draws
 nothing. `withheld` and `undecided` queue nothing. Once per work item is held
 by what the clone and the tree carry, with no count beside them: a values
 file already named for the work item, pending or drawn, under any session's
-directory is not written twice, whatever commit it named; a commit whose
-audited commit is not in its own history, a squash or a cherry-pick of the
-guarantee elsewhere, queues nothing; and a guarantee that read `sealed` at an
-earlier commit of that history, or whose `Target SHA` row's `; earlier run:`
+directory is not written twice, whatever commit it named; a `sealed` whose
+audited commit is not an ancestor of the branch the work item's `routing.md`
+names queues nothing; and in shared mode a guarantee that read `sealed` at
+an earlier commit of HEAD's history, or whose `Target SHA` row's `; earlier run:`
 chain reads `sealed`, counts as stamped then, which holds across clones; the
 earlier-run chain alone skips a `sealed` this clone recorded refusing (the
 next rule). It does
@@ -341,7 +419,7 @@ over its own parent, or a second seal on a copy of the branch that had not
 fetched the first. A `sealed` that drew in another clone, brought onto a
 copy of its declared branch that does not hold its audited commit, by hand
 or by `checkout`, `cherry-pick -n` or `merge --squash`, is refused at its
-commit and recorded, and the new audit the refusal asks for draws again
+write and recorded, and the new audit the refusal asks for draws again
 there; it joins that class. The
 clone that drew the stamp keeps its values file, so an amend there draws
 nothing. That is a stated limit, since across clones the history is the only
@@ -352,8 +430,8 @@ or drawn, is a complete record of its stamp in that clone. There once is
 held by that, by the `Target SHA` row's earlier-run chain, and by the audited
 commit being an ancestor of the branch the work item's `routing.md` names in
 its `Branch` row, a branch the clone must still hold. That last keeps a
-`sealed` written long ago quiet, since `settle` retires no local-mode work
-item; one whose branch still stands draws late, once, at its first edit. The
+`sealed` written long ago quiet, since a local-mode work item stays under
+the root until the settle after its release removes it; one whose branch still stands draws late, once, at its first edit. The
 stamp carries what the records say: the audited commit and its branch, the
 base, the work item, the newest broad run and the count of round records.
 check: stamp-drawn-once
@@ -365,18 +443,18 @@ work item's one stamp.** The new audit keeps the refused verdict on its
 `Target SHA` row as `; earlier run: <sha> sealed`, and without a record the
 chain would count that entry as the stamp. The record is an empty file,
 `<git-common-dir>/specseal-stamp-refused/<id>-<target>`, beside the values
-directory and never listed with it. Two writers leave it, each for a row
-that stands in its own clone and nowhere else. In shared mode the commit gate
-writes it when it refuses the commit of that row
-(`docs/the-commit-gate-inside-git.md`), so the row never became history. In
-local mode the local writer writes it where the `Branch` row's branch stands,
-and says one line naming the commit and the branch, since no pull request's
-check reads a local guarantee. A recorded target matches a SHA when one is a
+directory and never listed with it. One writer leaves it, for a row that
+stands in its own clone and nowhere else: `hooks/sealer-stamp-queue.py`, in
+either mode, where the `Branch` row's branch stands and does not hold the
+audited commit. It says one line naming the commit and the branch. In
+shared mode the pull request's check refuses the same row as stale; in
+local mode no check reads it. A recorded target matches a SHA when one is a
 prefix of the other and both are at least seven characters long; any other
 spelling finds no record, and the verdict counts as stamped. `sealed_before`
-asks no record: a `sealed` in the history drew where it was made, or was
-committed where no gate judged it, and either way it counts. `post-commit`
-writes none. So a `sealed` that drew, went stale under a rebase and was
+skips a `sealed` this clone recorded refusing, as the earlier-run chain
+does, because no gate stops a refused row from becoming history before the
+pull request's check refuses it; any other `sealed` in the history drew
+where it was made, and counts. So a `sealed` that drew, went stale under a rebase and was
 refused when its row was edited still holds the work item's stamp, and its
 repair draws nothing.
 check: refused-sealed-leaves-a-record
@@ -401,7 +479,7 @@ only one drawn as the text block with no disc. A stamp can
 come out without its disc or a turn later, and a session that ends first
 leaves it for `seal-stamp --from`. `seal-stamp` is not budgeted, because it
 is no hook's message.
-check: tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py
+check: tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py tests/test_sealer_stamp.py
 
 **What the person's screen shows is not checked, and neither is the order of
 the text above it.** The cases prove that the hook emits the right bytes for
@@ -412,27 +490,18 @@ the turn the stamp closed, are read by the person and by nobody else. So is
 how the stamp reads on a light background as well as a dark one. Nothing
 outside the disc is painted, so its text is in the terminal's own colours and
 theme — dim labels, a green `✓`, the title in the stamp's red — and the owner
-reads the first real stamp on each background. In local mode the line
-reaches the person as the edit hook's message, and nobody has watched that
-message on a screen yet.
+reads the first real stamp on each background. The line reaches the person
+as the edit hook's message, and nobody has watched that message on a screen
+yet.
 **Nor is the hook's silence where it cannot draw.** No stamp is queued, and
-nothing is said, where git's hooks slot is somebody else's (`core.hooksPath`,
-or a hook file the plugin did not write), since none of its stubs runs there;
-for a person's own commit with no Claude session behind it, which has no turn
-to draw at; for a local-mode `guarantee.md` that arrived by a shell write or
-`seal import` rather than by `Write` or `Edit`, which no edit hook sees; or
-for a local-mode verdict whose work item names no branch, or a branch the
-clone no longer holds. A `sealed` over a commit the branch does not hold
-still counts as the work item's stamp, so its repair draws none, where it
-was committed past the commit gate: under `--no-verify`, in a foreign hooks
-slot, under a plugin older than the gate, as a person's own commit, or in a
-clone no session has reached (`docs/the-commit-gate-inside-git.md`); or
-where an amend folded the guarantee into the very commit it audited, which
-`pre-commit` sees as that commit's child and cannot tell from a plain one.
-The pull request's check still refuses that landed row as stale. Likewise
-a commit that concludes a conflicted merge bringing in a side's `sealed` is
-refused; `docs/the-commit-gate-inside-git.md` gives its way on and why this
-plugin's flow never meets it. The gate judges a commit's newest verdict
+nothing is said, for a `guarantee.md` that arrived by a shell write, a
+commit fetched from elsewhere or `seal import` rather than by `Write` or
+`Edit`, which no edit hook sees; or for a verdict whose work item names no
+branch, or a branch the clone no longer holds. A `sealed` over a commit the
+branch does not hold still counts as the work item's stamp, so its repair
+draws none, where no edit hook saw it written: by a shell, by a person, or
+under a plugin older than the hook. The pull request's check still refuses
+that landed row as stale. The hook judges a write's newest verdict
 alone, never the `; earlier run:` chain, so a `sealed` that drew and whose
 audited commit a later rebase, amend or cherry-pick moved out of the history
 counts as stamped, which it is. In
@@ -440,18 +509,17 @@ local mode the record is the clone's own: a values directory emptied by hand,
 or a guarantee brought by `seal import` from a clone that drew and re-sealed
 here, draws again. A wrong row that names, by coincidence, the very commit a
 copy of the item on another branch was sealed and drawn over draws a second
-time once the gate refuses and records it, a class this rule accepts as a
+time once the hook refuses and records it, a class this rule accepts as a
 second run of the item. So does a `sealed` that drew in another clone and
 was brought onto a copy of its declared branch that does not hold its
-audited commit, whatever brought it: the gate refuses and records it, and the
+audited commit, whatever brought it: the hook refuses and records it, and the
 new audit it asks for draws again. No guard can tell that copy from a stale
 row the same clone wrote after a push and a rebase. The
 hook draws nothing and says nothing where the main session's `python3`
 cannot load `seal_stamp.py`, since no launcher stands in front of a hook;
 where that session's working directory is outside the clone the stamp was
 queued in; or where its plugin predates the hook. Where a file was written,
-the line `post-commit` printed, or in local mode the edit hook's message,
-names `seal-stamp --from <path>`, and a stamp that did not appear is drawn by
+the edit hook's message names `seal-stamp --from <path>`, and a stamp that did not appear is drawn by
 hand from it, once. Where none was, the pull request's check is what says the
 work item was sealed.
 No case, hook or workflow can observe a screen.
@@ -532,6 +600,34 @@ third rung, not the default:
 
 check: none reader: the sealer at every deferred verdict
 
+**On a branch whose `routing.md` reads `Automation` `yes`, the
+question tool is refused on every call.** The person who answered the
+routing question was promised that nothing stops to ask, and a
+question put at minute thirty waits for somebody who is not there.
+The session builds on the default the question states, records that
+default in the work item's `questions.md` as one row, and names it in
+the pull request body, where the owner can overturn it. The routing
+question put alone, single-select and with its text, goes through
+while this session's transcript can be read and holds no answer to
+it from this clone, because a run resumed in a new session has to
+put question 1 again for the gates that read the press; once it is
+answered, it is refused like any other question. Any routing answer
+from this clone in the session spends the exemption, including one
+given for another work item, so a session that has already answered
+for another branch cannot put question 1 again; that is outside the
+one-issue flow. The declaration is read through `hooks/routing.py` for the
+branch checked out where the session sits, and every way of not
+reading it is the attended answer. The file is written by the model,
+which is why the worktree guard never reads it as consent. It is read
+here only to refuse, so a row the model forged binds only the model,
+and a row edited to `no` is in the diff the review reads. A session
+sitting in a checkout whose branch is not the declared one is not
+held, and neither is a question asked as plain text. A gate whose own
+reason says to ask with the question tool meets this refusal too, and
+its question states no default: the session takes none of the ways on
+that question offers, and hands the stop back at the end of the run.
+check: tests/test_question_gate.py
+
 ## The handoff
 
 **The orchestrator hands an agent coordinates, never prose.** A fact carries
@@ -571,6 +667,6 @@ reviewer's transcript from an edit-test loop.
 
 The bars judge a segment against its kind; the run-level table judges a run
 against the last run measured. The table asks what the whole run cost, and
-its rows are `skills/verify/SKILL.md` *Measure the segment, and feed the flow
-log*'s; it is not a destination of its own.
+its rows are `skills/verify/orchestration.md` *Measure the segment, and
+feed the flow log*'s; it is not a destination of its own.
 check: tests/test_the_handoff_before_round_one.py

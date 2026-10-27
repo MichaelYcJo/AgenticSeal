@@ -30,6 +30,7 @@ from conftest import (
     LS,
     census_case,
     chain_check_run,
+    commit_everything_as_e,
     names_path,
     parity_file,
     write,
@@ -1323,29 +1324,56 @@ class Test_record_findings:
         found, errors = chain.record_findings(reader, quoted, "r.md")
         assert errors == [] and [f.number for f in found] == [1, 2], errors
 
+    def test_accepts_a_bare_opener_later_in_a_line_as_text(self):
+        """S4 of #1012: a `<!--` nothing closes, after the start of an
+        `answer:` line, is text, so every finding after it is read. The
+        reader that kept a comment state refused it as a comment that never
+        closes."""
+        text = record(
+            "abc1234",
+            [
+                finding(1, "rejected").replace(
+                    "answer: \n", "answer: a bare <!-- opens nothing\n"
+                ),
+                finding(2, "open"),
+            ],
+        )
+        found, errors = chain.record_findings(reader, text, "r.md")
+        assert errors == [] and [f.number for f in found] == [1, 2], errors
+
     @pytest.mark.rule("round-record-read-by-label")
-    def test_refuses_a_fence_or_comment_that_never_closes_at_its_opener(self):
-        """A fence or a comment that never closes hides every line after it,
-        so the record is refused at the opener's line, and what the reader
-        could still see is read as well."""
-        hidden = finding(2, "open")
-        for opener, why in (("~~~python\n", "fence"), ("<!-- a note\n", "comment")):
-            text = record(
-                "abc1234",
-                [
-                    finding(1, "rejected").replace("answer: \n", "answer: \n" + opener),
-                    hidden,
-                ],
-            )
-            found, errors = chain.record_findings(reader, text, "r.md")
-            lines = text.splitlines()
-            second = lines.index("### 2. the parser drops a row")
-            line = 1 + max(
-                i for i, ln in enumerate(lines[:second]) if ln == opener.rstrip("\n")
-            )
-            assert [(rel, n) for rel, n, _why in errors] == [("r.md", line)], errors
-            assert why in errors[0][2] and "never closes" in errors[0][2]
-            assert [f.heading for f in found] == ["### 1. the parser drops a row"]
+    def test_refuses_a_fence_that_never_closes_at_its_opener(self):
+        """A fence that never closes hides every line after it, so the record
+        is refused at the opener's line, and what the reader could still see
+        is read as well."""
+        opener = "~~~python"
+        text = record(
+            "abc1234",
+            [
+                finding(1, "rejected").replace("answer: \n", f"answer: \n{opener}\n"),
+                finding(2, "open"),
+            ],
+        )
+        found, errors = chain.record_findings(reader, text, "r.md")
+        line = text.splitlines().index(opener) + 1
+        assert [(rel, n) for rel, n, _why in errors] == [("r.md", line)], errors
+        assert "fence" in errors[0][2] and "never closes" in errors[0][2]
+        assert [f.heading for f in found] == ["### 1. the parser drops a row"]
+
+    @pytest.mark.rule("record-comment-line-refused")
+    def test_refuses_a_comment_line_at_its_line(self):
+        """S3 of #1012: a record line that begins with `<!--` is refused at
+        that line, and every finding is still read, since the check reads the
+        comment as text. The reader that kept a comment state read past it."""
+        note = "<!-- a note -->"
+        text = record(
+            "abc1234",
+            [finding(1, "rejected"), f"{note}\n\n" + finding(2, "open")],
+        )
+        found, errors = chain.record_findings(reader, text, "r.md")
+        line = text.splitlines().index(note) + 1
+        assert errors == [("r.md", line, reader.COMMENT_LINE)], errors
+        assert [f.number for f in found] == [1, 2]
 
 
 class Test_confirmations:
@@ -1653,7 +1681,10 @@ class Test_frame:
 RULES = reader.rule_changes()
 # The refusal's text before the parser's reason, pinned here so an edit to
 # `chain.RULE_CHANGES_SAYS` meets a case.
-SAYS = "`## Rule changes` does not parse, and `settle` applies nothing from this spec: "
+SAYS = (
+    "`## Rule changes` does not parse, so `settle` cannot group this spec by the "
+    "sections it names and the settle has to read it whole: "
+)
 CONTINUED = "- nothing\n  why: a reason\n  that continues two spaces in\n"
 PROSE = "- add\n  file: docs/policy.md\n  to: A rule.\n\nA paragraph under the item.\n"
 NOTHING = "- nothing\n  why: a reason\n"
@@ -2082,6 +2113,79 @@ class Test_originals_of:
         assert code == 2, err
         assert "the parity readers would not load (a planted failure)" in err
 
+    @pytest.mark.rule("parity-in-the-guarantee")
+    def test_refuses_a_direct_guarantee_with_no_original_line_and_accepts_one(
+        self, item, capsys
+    ):
+        """S12: under `straight to the PR` no round records a comparison, so
+        in a migration repository the sealer's `guarantee.md` carries the
+        `original:` line, and a ready pull request changing code fails
+        without it, names a guarantee naming another commit, and passes with
+        the baseline. `--sealing` reads the missing line as a notice, as it
+        reads every other guarantee check."""
+        root, _audited = item
+        rel = f"{ITEM}/guarantee.md"
+        direct_migrating(root, None)
+        code, out = check(root, capsys)
+        assert code == 1, out
+        says = chain.NO_GUARANTEE_ORIGINAL.format(config=PARITY, sha=BASELINE)
+        for words in (
+            f"no `original:` line: `{PARITY}` declares a migration, this work "
+            "item answers `straight to the PR`",
+            f"the sealer's guarantee carries `original: {BASELINE}`",
+            "once it compared the audited commit with the original through "
+            "`legacy-parity`",
+        ):
+            assert words in says, says
+        assert f"{rel}:0  {says}" in out.splitlines(), out
+        code, out = check(root, capsys, "--sealing")
+        assert code == 0, out
+        direct_migrating(root, "fedcba9876543210")
+        code, out = check(root, capsys)
+        assert code == 1, out
+        assert chain.OTHER_ORIGINAL.format(said="fedcba9876543210", sha=BASELINE) in (
+            out
+        )
+        direct_migrating(root, BASELINE[:10])
+        code, out = check(root, capsys)
+        assert code == 0, out
+
+    @pytest.mark.rule("parity-in-the-guarantee")
+    def test_a_missing_guarantee_is_named_once(self, item, capsys):
+        """A guarantee git does not carry is the guarantee arm's refusal, and
+        no second one asks it for an `original:` line."""
+        root, _audited = item
+        direct_migrating(root, None)
+        git(root, "rm", "-q", f"{ITEM}/guarantee.md")
+        commit(root, "no guarantee")
+        code, out = check(root, capsys)
+        assert code == 1, out
+        assert "git carries no guarantee file" in out, out
+        assert "no `original:` line" not in out, out
+
+    @pytest.mark.rule("parity-in-the-guarantee")
+    def test_a_direct_guarantee_owes_nothing_for_the_document_roots_alone(
+        self, item, capsys
+    ):
+        """S12: a change confined to `docs/` and `seal/` has no original to
+        compare with, and a repository declaring no migration owes nothing."""
+        root, _audited = item
+        assert check(root, capsys)[0] == 0
+        git(root, "switch", "-q", "main")
+        write(root, PARITY, parity_file(BASELINE))
+        commit(root, f"{PARITY} on the base")
+        git(root, "switch", "-q", "-c", "feature/docs")
+        write(
+            root,
+            f"{ITEM}/routing.md",
+            SEALED_ROUTING.replace("feature/g", "feature/docs"),
+        )
+        write(root, "docs/a.md", "# a policy\n")
+        commit(root, "a documentation pass")
+        reseal(root, None)
+        code, out = check(root, capsys)
+        assert code == 0, out
+
 
 class Test_original_of:
     def test_accepts_a_line_naming_the_baseline_by_a_prefix(self):
@@ -2216,6 +2320,36 @@ def item(tmp_path, monkeypatch):
     return d, audited
 
 
+def reseal(root, original):
+    """The closing records naming HEAD, committed; the guarantee carries
+    `original: ORIGINAL` under its table where ORIGINAL is given."""
+    head = git(root, "rev-parse", "HEAD")
+    write(
+        root,
+        f"{ITEM}/broad-gate.md",
+        f"| Field | Value |\n|---|---|\n| Broad gate | {head} against main |\n",
+    )
+    text = guarantee(head, "sealed")
+    if original is not None:
+        text = text.replace(
+            "\n## Claims re-run", f"\noriginal: {original}\n\n## Claims re-run"
+        )
+    write(root, f"{ITEM}/guarantee.md", text)
+    commit(root, "the closing records, again")
+
+
+def direct_migrating(root, original):
+    """`main` declares a migration whose baseline is `BASELINE`, merged once
+    into the `item` fixture's `feature/g`; then `reseal`."""
+    if not (root / PARITY).exists():
+        git(root, "switch", "-q", "main")
+        write(root, PARITY, parity_file(BASELINE))
+        commit(root, f"{PARITY} on the base")
+        git(root, "switch", "-q", "feature/g")
+        git(root, "merge", "-q", "--no-edit", "main")
+    reseal(root, original)
+
+
 class Test_verdicts_of:
     def test_accepts_each_verdict_in_its_shape(self):
         """S5 of #1000: the line is `Verdict: sealed`, `Verdict: withheld
@@ -2232,10 +2366,9 @@ class Test_verdicts_of:
         assert chain.verdict_word("Verdict: sealed, but the README is stale") is None
         assert chain.verdict_word("Verdict: withheld") is None
 
-    def test_refuses_a_verdict_in_a_comment_and_reads_two_lines_as_two(self):
+    def test_refuses_to_read_two_verdict_lines_as_one(self):
         text = guarantee("abc1234", "sealed").replace(
-            "Verdict: sealed",
-            "<!-- Verdict: sealed -->\nVerdict: sealed\n**Verdict:** with",
+            "Verdict: sealed", "Verdict: sealed\n**Verdict:** with"
         )
         found = chain.verdicts_of(reader, text)
         assert [v for _n, v in found] == ["Verdict: sealed", "**Verdict:** with"]
@@ -2408,11 +2541,11 @@ class Test_guarantee:
             (rel, 0, "0 `Verdict:` lines; the guarantee carries one")
         ]
         hidden = guarantee(head, "sealed").replace(
-            "## The parties", "<!-- a note\n\n## The parties"
+            "## The parties", "~~~\n\n## The parties"
         )
         write(root, rel, hidden)
-        commit(root, "a comment nobody closed")
-        opener = hidden.splitlines().index("<!-- a note") + 1
+        commit(root, "a fence nobody closed")
+        opener = hidden.splitlines().index("~~~") + 1
         problems = chain.guarantee(reader, str(root), ITEM, "main")
         assert [(p, n) for p, n, _why in problems] == [(rel, opener), (rel, 0)]
         assert "never closes" in problems[0][2], problems
@@ -2436,6 +2569,23 @@ class Test_guarantee:
         write(root, rel, text)
         commit(root, "a claim quoting the opener")
         assert chain.guarantee(reader, str(root), ITEM, "main") == []
+
+    @pytest.mark.rule("record-comment-line-refused")
+    def test_refuses_a_comment_line_at_its_line(self, item):
+        """S5 of #1012: a verdict quoted in a comment above the verdict line
+        is refused at its line, and the line below it is still the one
+        verdict. The reader that kept a comment state passed it."""
+        root, sha = item
+        rel = f"{ITEM}/guarantee.md"
+        text = guarantee(sha, "sealed").replace(
+            "Verdict: sealed", "<!-- Verdict: sealed -->\nVerdict: sealed"
+        )
+        write(root, rel, text)
+        commit(root, "a verdict in a comment")
+        line = text.splitlines().index("<!-- Verdict: sealed -->") + 1
+        assert chain.guarantee(reader, str(root), ITEM, "main") == [
+            (rel, line, reader.COMMENT_LINE)
+        ]
 
     @pytest.mark.rule("ready-needs-sealed")
     @pytest.mark.parametrize("line", NEAR_MISSES)
@@ -2535,6 +2685,44 @@ class Test_guarantee:
             assert "still stands" not in line, line
 
 
+class Test_broad_gate:
+    def test_accepts_a_run_at_head(self, item):
+        root, _sha = item
+        assert chain.broad_gate(reader, str(root), ITEM, "main") == []
+
+    @pytest.mark.rule("record-comment-line-refused")
+    def test_refuses_a_comment_line_at_its_line(self, item):
+        """S5 of #1012: a `broad-gate.md` line that begins with `<!--` is
+        refused at its line, beside what the run's row says."""
+        root, sha = item
+        rel = f"{ITEM}/broad-gate.md"
+        write(
+            root,
+            rel,
+            "<!-- the gate's guidance -->\n\n"
+            f"| Field | Value |\n|---|---|\n| Broad gate | {sha} against main |\n",
+        )
+        commit(root, "a comment in the gate record")
+        assert chain.broad_gate(reader, str(root), ITEM, "main") == [
+            (rel, 1, reader.COMMENT_LINE)
+        ]
+
+
+class Test_comment_lines:
+    def test_accepts_a_record_whose_lines_open_no_comment(self):
+        """An opener quoted in a code span, later in a line or inside a fence
+        begins no line (*Scope* item 3 of #1012)."""
+        text = "a `<!--` b\nprose <!-- open\n```\n<!-- quoted\n```\n"
+        assert chain.comment_lines(reader, text, "r.md") == []
+
+    def test_refuses_each_comment_line_at_its_line(self):
+        text = "# r\n\n<!-- one -->\nprose\n   <!-- two\n"
+        assert chain.comment_lines(reader, text, "r.md") == [
+            ("r.md", 3, reader.COMMENT_LINE),
+            ("r.md", 5, reader.COMMENT_LINE),
+        ]
+
+
 # --- the declaration for this branch, in local mode (#225) --------------------------
 
 CHECK = str(CHAIN)
@@ -2607,6 +2795,10 @@ def run_check(repo, *extra):
 
 
 ADD_THE_FILE = "Add seal/specs/<work-item>/routing.md to declare"
+# A shared-mode declaration naming the `repo` fixture's branch.
+DECLARES_FEATURE = ROUTING.format(
+    review="through the review chain", planning="the session"
+).replace("feature/x", "feature")
 
 
 class Test_declared_for_this_branch:
@@ -2650,6 +2842,236 @@ class Test_declared_for_this_branch:
         assert code == 0, out
         assert ADD_THE_FILE in out, out
         assert "local mode" not in out, out
+
+    @pytest.mark.parametrize(
+        "decoy",
+        [
+            "specs/1799000002-a-team-item/routing.md",
+            "seal/specs/1799000001-an-item/notes.md",
+        ],
+        ids=["a-routing-md-outside-the-work-items", "another-file-of-a-work-item"],
+    )
+    def test_accepts_the_one_routing_md_under_the_work_items_beside_a_decoy(
+        self, repo, decoy, monkeypatch
+    ):
+        """Guards c3 and c4 of #1017: only a `routing.md` under `seal/specs/`
+        is a declaration. A team's own `specs/` holding one, or a work item's
+        other file holding a declaration's text, leaves the branch one
+        declaration, which is taken."""
+        declared = "seal/specs/1799000001-an-item/routing.md"
+        write(repo, declared, DECLARES_FEATURE)
+        write(repo, decoy, DECLARES_FEATURE)
+        commit_everything_as_e(repo, "a declaration and a decoy")
+        monkeypatch.delenv("GITHUB_HEAD_REF", raising=False)
+        assert chain.declared_for_this_branch(str(repo), routing_module) == (
+            [declared],
+            "",
+        )
+
+    def test_refuses_two_committed_declarations_naming_the_branch(
+        self, repo, monkeypatch
+    ):
+        """Guards g17 of #1017: two committed declarations naming one branch
+        are not one answer, so neither is taken."""
+        for n in (1, 2):
+            write(
+                repo, f"seal/specs/179900000{n}-item-{n}/routing.md", DECLARES_FEATURE
+            )
+        commit_everything_as_e(repo, "two declarations")
+        monkeypatch.delenv("GITHUB_HEAD_REF", raising=False)
+        own, why = chain.declared_for_this_branch(str(repo), routing_module)
+        assert own == [], own
+        assert why.startswith("2 committed declarations name `feature`"), why
+
+    def test_refuses_a_detached_head_with_no_head_ref_as_no_branch(
+        self, repo, monkeypatch
+    ):
+        """Guards g18 of #1017: a detached HEAD with no `GITHUB_HEAD_REF`
+        names no branch, so no declaration is matched, even at a commit that
+        declares the branch it left, and the why says the branch could not be
+        read rather than that nothing declared it."""
+        write(repo, "seal/specs/1799000001-an-item/routing.md", DECLARES_FEATURE)
+        commit_everything_as_e(repo, "a declaration")
+        git(repo, "switch", "-q", "--detach")
+        monkeypatch.delenv("GITHUB_HEAD_REF", raising=False)
+        own, why = chain.declared_for_this_branch(str(repo), routing_module)
+        assert own == [], own
+        assert why.startswith("the branch could not be read"), why
+
+
+# --- the routing trailer at the pull request -------------------------------------------
+
+ROUTED = "1792000000-a-routed-item"
+
+
+def commit_saying(d, *paragraphs, env=None):
+    """Every change in D committed with PARAGRAPHS as its message, an empty
+    commit where nothing changed; the new HEAD."""
+    git(d, "add", "-A")
+    message = [a for p in paragraphs for a in ("-m", p)]
+    subprocess.run(
+        ["git", "-C", str(d), "commit", "-q", "--allow-empty", *message],
+        check=True,
+        capture_output=True,
+        env={**os.environ, **(env or {})},
+    )
+    return git(d, "rev-parse", "HEAD")
+
+
+@pytest.fixture
+def undeclared(tmp_path, monkeypatch):
+    """`feature/t`, which no declaration names, judged as a ready pull
+    request: `main` holds one file."""
+    d = tmp_path / "t"
+    init(d)
+    write(d, "f.txt", "one\n")
+    commit(d, "base")
+    git(d, "switch", "-q", "-c", "feature/t")
+    event(tmp_path, monkeypatch, False)
+    return d
+
+
+@pytest.mark.rule("routing-trailer-at-the-pull-request")
+class Test_routing_trailers:
+    def test_refuses_a_commit_naming_a_work_item_no_declaration_names(
+        self, undeclared, tmp_path, monkeypatch, capsys
+    ):
+        """S10: a commit whose `SpecSeal-Routing` trailer names a work item no
+        declaration names fails a ready pull request, naming the commit and
+        the item; one reading `no work item` is printed as a notice; one with
+        no such trailer is not named. A draft prints the same lines and
+        passes."""
+        root = undeclared
+        write(root, "a.txt", "a\n")
+        named = commit_saying(root, "feat: a", f"SpecSeal-Routing: {ROUTED}")
+        write(root, "b.txt", "b\n")
+        none = commit_saying(root, "chore: b", "SpecSeal-Routing: no work item")
+        write(root, "c.txt", "c\n")
+        bare = commit_saying(root, "chore: c")
+        code, out = check(root, capsys)
+        assert code == 1, out
+        lines = out.splitlines()
+        assert chain.UNDECLARED_TRAILER.format(sha=named[:8], item=ROUTED) in lines
+        assert chain.NO_WORK_ITEM_TRAILER.format(sha=none[:8]) in lines
+        assert bare[:8] not in out, out
+        assert chain.UNDECLARED_TRAILER.format(sha="x", item="y") == (
+            "commit x carries `SpecSeal-Routing: y`, and no routing declaration "
+            "this pull request judges names that work item: commit its "
+            "`routing.md`, naming this branch, or correct the trailer"
+        )
+        assert chain.NO_WORK_ITEM_TRAILER.format(sha="x") == (
+            "commit x carries `SpecSeal-Routing: no work item`: its session "
+            "recorded that the change belongs to no work item, and nothing "
+            "here checks it further"
+        )
+        event(tmp_path, monkeypatch, True)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert chain.UNDECLARED_TRAILER.format(sha=named[:8], item=ROUTED) in out
+
+    def test_accepts_a_commit_naming_the_work_item_its_declaration_names(
+        self, branch, ready, capsys
+    ):
+        root, _code = branch
+        commit_saying(root, "chore: e", "SpecSeal-Routing: 1791999999-a-work-item")
+        seal(root)
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert "SpecSeal-Routing" not in out, out
+
+    def test_a_teammates_commit_is_never_judged(self, undeclared, capsys):
+        """S11: the harness's co-author trailer, which any Claude Code
+        session carries, is not the session's routing trailer."""
+        root = undeclared
+        write(root, "a.txt", "a\n")
+        commit_saying(
+            root,
+            "feat: a teammate's change",
+            "Co-Authored-By: Claude <noreply@example.com>",
+        )
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert "SpecSeal-Routing" not in out, out
+
+    def test_a_merge_and_a_squash_github_committed_are_not_its_own(
+        self, undeclared, capsys
+    ):
+        """A merge's message is not a commit of the pull request, and a squash
+        GitHub committed was judged at the pull request it closed: its
+        committer is not its author, one case of the rule below."""
+        root = undeclared
+        git(root, "switch", "-q", "-c", "side", "main")
+        write(root, "s.txt", "s\n")
+        commit(root, "side")
+        git(root, "switch", "-q", "feature/t")
+        git(
+            root,
+            "merge",
+            "-q",
+            "--no-ff",
+            "-m",
+            "merge side",
+            "-m",
+            f"SpecSeal-Routing: {ROUTED}",
+            "side",
+        )
+        write(root, "q.txt", "q\n")
+        commit_saying(
+            root, "feat: elsewhere (#7)", f"SpecSeal-Routing: {ROUTED}", env=GITHUB
+        )
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert ROUTED not in out, out
+
+    def test_a_work_item_trailer_at_a_local_root_is_printed_not_refused(
+        self, undeclared, capsys
+    ):
+        """Round 1 of #1027, finding 1: in local mode no declaration is ever
+        committed, so a trailer naming a work item could match none. A ready
+        pull request prints it and passes."""
+        root = undeclared
+        os.makedirs(os.path.join(root, ".git", "seal", "specs", ROUTED))
+        write(root, "a.txt", "a\n")
+        named = commit_saying(root, "feat: a", f"SpecSeal-Routing: {ROUTED}")
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert chain.LOCAL_TRAILER.format(sha=named[:8], item=ROUTED) in out, out
+        assert chain.LOCAL_TRAILER.format(sha="x", item="y") == (
+            "commit x carries `SpecSeal-Routing: y` in a repository whose root "
+            "is local, where no routing declaration is committed for it to "
+            "name: printed, not judged"
+        )
+        assert "commit its `routing.md`" not in out, out
+
+    def test_a_commit_its_author_did_not_commit_is_not_judged(self, undeclared, capsys):
+        """Round 1 of #1027, finding 2: a person's `cherry-pick -x` of a
+        session's commit is the person's commit, carrying a trailer the
+        person did not write. Its committer is not its author, which is how
+        git records every commit somebody else carried, GitHub's squash
+        among them; a session's own commit is committed by its author."""
+        root = undeclared
+        git(root, "switch", "-q", "-c", "session", "main")
+        write(root, "s.txt", "s\n")
+        picked = commit_saying(root, "feat: s", f"SpecSeal-Routing: {ROUTED}")
+        git(root, "switch", "-q", "feature/t")
+        subprocess.run(
+            ["git", "-C", str(root), "cherry-pick", "-x", picked],
+            check=True,
+            capture_output=True,
+            env={**os.environ, "GIT_COMMITTER_EMAIL": "person@example.com"},
+        )
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert ROUTED not in out, out
+
+    def test_refuses_to_run_where_the_commits_cannot_be_read(
+        self, undeclared, capsys, monkeypatch
+    ):
+        monkeypatch.setattr(chain, "routing_trailers", lambda root, base: None)
+        code = chain.main(["--baseline", "main", "--root", str(undeclared)])
+        err = capsys.readouterr().err
+        assert code == 2, err
+        assert "cannot read the commits after main" in err, err
 
 
 # --- main: the arms over a pull request ----------------------------------------------
@@ -2970,10 +3392,10 @@ class Test_main:
 OLD_ITEM = "seal/specs/1788000000-an-earlier-item"
 
 
-def remove_an_earlier_item(root, applied, whole=True):
+def remove_an_earlier_item(root, applied, whole=True, open_row=False):
     """Declare an earlier work item on `main`, bring it into the branch, and
     remove its directory there, or only its declaration, with or without its
-    rule change applied."""
+    rule change applied, and with or without an open row in its record."""
     git(root, "switch", "-q", "main")
     # Close enough to the branch's own declaration for git's rename detection
     # to pair the two, which `changed` reads without.
@@ -2987,6 +3409,13 @@ def remove_an_earlier_item(root, applied, whole=True):
         f"{OLD_ITEM}/spec.md",
         "# a spec\n\n## Rule changes\n\n- add\n  file: docs/policy.md\n  to: A rule.\n",
     )
+    if open_row:
+        write(
+            root,
+            f"{OLD_ITEM}/overview.md",
+            "# x\n\n## Not verified\n\n| Item | Who must answer |\n|---|---|\n"
+            "| a claim nobody ran | the repository owner |\n",
+        )
     commit(root, "an earlier item, declared")
     git(root, "switch", "-q", "feature/x")
     git(root, "merge", "-q", "--no-edit", "main")
@@ -2998,44 +3427,124 @@ def remove_an_earlier_item(root, applied, whole=True):
 
 @pytest.mark.rule("a-declaration-removed")
 class Test_retired:
-    def test_accepts_a_declaration_a_settle_removed(self, branch, draft, capsys):
-        """A `routing.md` that `settle --apply` removed is a deletion in the
-        diff, and `docs/` holding its rule change is what tells it from one."""
+    @pytest.mark.parametrize(
+        "applied, open_row",
+        [(False, True), (True, False)],
+        ids=["an-open-row-and-no-rule-in-docs", "a-closed-record-and-its-rule-in-docs"],
+    )
+    def test_accepts_a_declaration_a_settle_removed(
+        self, branch, draft, capsys, applied, open_row
+    ):
+        """S6 of #1033: a `routing.md` whose whole directory stood at the
+        merge base and is gone is a settle, whatever its record held there and
+        whatever `docs/` holds of its spec. The notice says what was read."""
         root, _code = branch
-        remove_an_earlier_item(root, applied=True)
+        remove_an_earlier_item(root, applied=applied, open_row=open_row)
         _code, out = check(root, capsys)
-        assert "retired: a settle" in out and "1788000000-an-earlier-item" in out
+        assert f"{OLD_ITEM}/routing.md:0  {chain.SETTLE_SAYS}" in out, out
+        # Contract rule 14: the words a person reads, not only the constant.
+        assert (
+            "retired: a settle — the work item's directory stood at the merge "
+            "base and is gone whole"
+        ) in out, out
         assert "does not carry this file at HEAD" not in out
 
-    @pytest.mark.parametrize(
-        "applied, whole, uncommitted",
-        [(False, True, False), (True, False, False), (False, True, True)],
-        ids=["nothing-absorbs-it", "the-directory-stays", "only-the-working-tree"],
-    )
-    def test_refuses_a_declaration_deleted_with_nothing_absorbing_it(
-        self, branch, draft, capsys, applied, whole, uncommitted
+    def test_refuses_a_declaration_deleted_beside_a_directory_that_stays(
+        self, branch, draft, capsys
     ):
-        """A deletion with nothing absorbing it, a `routing.md` deleted beside
-        a `spec.md` that stays, and a rule change only the working tree holds,
-        which CI's read of HEAD does not see."""
+        """S8: a `routing.md` deleted beside a `spec.md` that stays is a
+        deletion: a settle takes the whole directory."""
         root, _code = branch
-        remove_an_earlier_item(root, applied=applied, whole=whole)
-        if uncommitted:
-            write(root, "docs/policy.md", "A rule.\n")
+        remove_an_earlier_item(root, applied=True, whole=False)
         _code, out = check(root, capsys)
         assert "does not carry this file at HEAD" in out
         assert "retired:" not in out
 
+    @pytest.mark.rule("nothing-declared-nothing-owed")
+    def test_accepts_every_declaration_leaving_with_the_root(
+        self, branch, ready, capsys, monkeypatch
+    ):
+        """Round 1 of #952, finding 1: the pull request that takes `seal/`
+        out of the tree deletes every declaration with it, and with no
+        `seal` at HEAD nothing is declared. Where git cannot say whether HEAD
+        has it, the declarations stay judged, and since #1033 each one whose
+        directory stood at the merge base and is gone whole reads as a
+        settle."""
+        root, _code = branch
+        remove_an_earlier_item(root, applied=False)
+        git(root, "rm", "-rq", "seal")
+        commit(root, "the root leaves the tree")
+        code, out = check(root, capsys)
+        assert code == 0, out
+        assert (
+            "the tree the check reads has no top-level `seal` entry, so nothing "
+            "is declared: the routing declarations this pull request deletes "
+            "left the tree with the root, and the review-chain check judged the "
+            "commit trailers and nothing else"
+        ) in out
+        assert "does not carry this file at HEAD" not in out
+        real = chain.git
+        unanswered = ("ls-tree", "HEAD", "--", "seal")
+        monkeypatch.setattr(
+            chain, "git", lambda r, *a: None if a == unanswered else real(r, *a)
+        )
+        code, out = check(root, capsys)
+        assert "so nothing is declared" not in out, out
+        assert f"{OLD_ITEM}/routing.md:0  {chain.SETTLE_SAYS}" in out, out
+
+    @pytest.mark.rule("nothing-declared-nothing-owed")
+    def test_accepts_under_worktree_a_root_the_working_tree_no_longer_has(
+        self, branch, ready, capsys, tmp_path
+    ):
+        """Round 3 of #952, finding 2: a switch to local mode, run and not
+        committed, leaves no `seal` in the working tree, so under `--worktree`
+        nothing is declared, as CI reads the same change once it is committed."""
+        root, _code = branch
+        remove_an_earlier_item(root, applied=False)
+        shutil.move(str(root / "seal"), str(tmp_path / "moved-seal"))
+        git(root, "add", "-A", "seal")
+        code, out = check(root, capsys, "--worktree")
+        assert code == 0, out
+        assert "so nothing is declared" in out
+        assert "does not carry this file at HEAD" not in out
+
+    def test_judges_a_root_the_working_tree_has_under_worktree(
+        self, branch, ready, capsys
+    ):
+        """Round 2 of #952, finding 2: under `--worktree` the tree the check
+        reads is the working tree, so a root it holds and HEAD does not is a
+        root, and the declaration naming the branch in it is judged."""
+        root, _code = branch
+        git(root, "rm", "-rq", "--cached", "seal")
+        git(root, "commit", "-qm", "the root leaves HEAD and stays on disk")
+        code, out = check(root, capsys, "--worktree")
+        assert "so nothing is declared" not in out, out
+        assert code == 1 and f"{ITEM}/guarantee.md:0  the guarantee is behind" in out
+
+    def test_judges_the_declarations_where_the_working_tree_has_seal_as_a_file(
+        self, branch, ready, capsys
+    ):
+        """Round 2 of #952, finding 3: a `seal` that is not a directory is
+        still an entry, so under `--worktree` the declarations it replaced
+        stay judged."""
+        root, _code = branch
+        shutil.rmtree(root / "seal")
+        write(root, "seal", "not a root\n")
+        code, out = check(root, capsys, "--worktree")
+        assert "so nothing is declared" not in out, out
+        assert code == 0 and f"{MERGED_ITEM}/routing.md:0  retired: a settle" in out
+
 
 class Test_module:
     def test_every_reader_of_a_retirement_calls_the_one_predicate(self):
-        """Three parties ask whether a removed directory was settled, and a
-        predicate spelled in each would take the next condition in one and not
-        the others. The behaviour is pinned per reader in its own module; this
-        pins that this one reaches the answer by calling `settled` on the
-        module that owns it, so a reader that re-derives the rule inline goes
-        red here even while it agrees today. `tests/test_settle.py` holds
-        `settle.py` to the same."""
+        """Two parties ask whether a removed directory was settled,
+        `unverified-check --baseline` and this one, and a predicate spelled in
+        each would take the next condition in one and not the other. The
+        behaviour is pinned per reader in its own module; this pins that this
+        one reaches the answer by calling `settled` on the module that owns
+        it, so a reader that re-derives the rule inline goes red here even
+        while it agrees today. `settle` asks no predicate since #1033: it
+        reads the open rows of the working tree."""
         import ast
 
         script = TARGET.split("/")

@@ -5,105 +5,36 @@ documents, the READMEs, the checklist and the cheat sheets, which wait for
 #942's phase 6 placed the cases that run the command or call
 `skills/settle/scripts/settle.py`'s functions in `tests/test_settle.py`, and
 the `tree` fixture in `tests/conftest.py`. `docs/the-record-layout.md` names
-this file on the `check:` lines whose rules the skill cases here hold, and on
-others until the settle that applies the work item's rule changes.
+this file on the `check:` lines whose rules the skill cases here hold. Since
+#1033 the skill states the settling session's procedure, and the cases that
+read it are its S11.
 """
 
-import importlib.util
 import os
 
 import pytest
 from conftest import flattened as flat
-from test_settle import OVERVIEW_OPEN, moment, run
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SCRIPT = os.path.join(ROOT, "skills", "settle", "scripts", "settle.py")
 
 
-def load():
-    spec = importlib.util.spec_from_file_location("settle", SCRIPT)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-settle = load()
-
-
-def test_a_closed_row_is_told_to_merge_before_its_directory_goes(tree):
-    """Round 1's finding 2. The CI readers ask the rule of the merge base, so
-    a row closed and its directory retired in one pull request is refused
-    there after `settle` said the removal was fine. The report, the
-    skill and the policy all say the closure merges first."""
-    moment(tree, overview=OVERVIEW_OPEN)
-    _, text = run(tree)
-    assert "in a pull request merged before the one that retires the directory" in (
-        flat(text)
-    ), text
-    assert "merge first" in flat(skill()), (
-        "the skill lets a settle close a row and retire its directory in one "
-        "pull request, which the CI readers refuse at the merge base"
-    )
-    assert "in a pull request merged before the one that retires" in document(
-        "docs", "the-record-layout.md"
-    )
-
-
-def test_the_documents_say_the_closure_has_to_reach_the_base():
-    """S11, contract rule 14's half of #602: the skill, the policy, both cheat-sheet rows,
-    the kept heading and the module docstring say the rule is asked at the
-    merge base of `--released-at` and `HEAD`, and what a person does about a
-    directory kept there."""
-    text = flat(skill())
-    assert "*kept until the closure reaches <base>*" in text, text
-    # #611: `base_heading` prints `RULE_MOVED_HEADING` instead once
-    # `--released-at` has moved past the fork, and the skill named only the
-    # first of the two wordings.
-    assert "*kept: the closure has not reached <base>*" in text, text
-    assert "Merged first means merged to the branch the release merges to" in text
-    assert "the merge base of `--released-at` and `HEAD`" in text
-    policy = flat(document("docs", "the-record-layout.md"))
-    assert "`settle` asks it at the merge base of `--released-at` and `HEAD`" in policy
-    # Round 1, 🟡 1: that merge base is CI's only until the base moves.
-    assert "until the base moves past the fork" in policy, policy
-    # Round 2, ⬜ 5: `document` flattens, so a split on a newline took the rest
-    # of the file as the row. The raw file is read, so the row is the row.
-    for edition, phrase in (
-        ("README.md", "until `--released-at` moves on past that commit"),
-        ("README.ko.md", "앞으로 나아가기 전까지는"),
-    ):
-        with open(os.path.join(ROOT, edition), encoding="utf-8") as f:
-            row = f.read().split("`settle [--apply]`")[1].split("\n")[0]
-        assert "`--released-at`" in row and "`HEAD`" in row, (
-            f"{edition}'s cheat-sheet row does not say the base is asked"
-        )
-        # Round 2, 🟡 1: CI's revision is the fork only until the base moves.
-        assert phrase in row, row
-        assert "because that is where CI asks" not in row, row
-        assert "CI 가 그 지점에서 확인하기 때문입니다" not in row, row
-    assert "which is the base's tip" in text, text
-    assert "merging it into this branch and running `settle`" in text, text
-    assert "to the branch the release merges to" in flat(settle.RULE_KEPT_HEADING)
-    with open(SCRIPT, encoding="utf-8") as f:
-        head = flat(f.read().split('"""')[1])
-    assert "sharing no commit with `HEAD`" in head, "exit 2's seventh state is missing"
-    assert "closure has not reached the merge base" in head, "exit 1's cause is missing"
-
-
 def test_the_documents_say_a_spec_less_directory_is_retired_by_the_rule():
     """Contract rule 14's half of D3. The policy said such an item *is kept by name*; that
-    is overturned, and the one condition the frame added is stated where the
-    owner can overturn it."""
-    policy = document("docs", "the-record-layout.md")
+    is overturned. Since #1033 the skill and the policy say such an item
+    leaves like any other, once the settling session has closed every open
+    row of its record."""
+    policy = " ".join(document("docs", "the-record-layout.md").split())
     assert "and it is kept by name" not in policy, (
         "the policy still keeps a spec-less directory by name"
     )
-    assert "it is retired by that rule, with no marker" in policy
-    assert "nothing in the record may still be open" in policy
-    assert "a judgment the repository owner may overturn" in policy
+    assert "it is retired by that rule, with no marker" not in policy
+    assert "A released work item leaves at the settle whatever it wrote" in policy
+    assert "decides every open row of its record before it goes" in policy
+    assert "`spec.md` states no rule and goes the same way" in policy
     text = flat(skill())
     assert "A released work item with no `spec.md` states no rule" in text
-    assert "*retired by the rule*" in text and "*kept by the rule*" in text
+    assert "it leaves like any other" in text
     for edition in ("README.md", "README.ko.md"):
         assert "`spec.md`" in document(edition).split("`settle [--apply]`")[1][:900], (
             f"{edition}'s cheat-sheet row does not name the rule arm"
@@ -139,13 +70,88 @@ def test_the_skill_names_the_floors_a_fold_has_to_answer():
         assert answer in text, f"the skill does not offer `{answer}`"
 
 
-def test_the_skill_says_the_spec_judges_and_the_command_applies():
-    """#953: the judgment is made when the spec is written and reviewed, so a
-    session running `settle` writes no policy prose."""
+def test_the_skill_says_the_session_writes_the_latest_decision_and_asks_nobody():
+    """S11, #1033: the specs are a timeline, the code says what holds now,
+    and the settling session writes each section; the script neither writes
+    `docs/` nor judges, and nobody is asked. The sentence that made the
+    command the applier is gone."""
     text = flat(skill())
-    assert "moves and does not verify" in text, text[:200]
-    assert "The spec decides; the command applies." in text
-    assert "you judge and write" not in text
+    assert (
+        "The specs say what was decided and in what order, the code says what "
+        "holds now, and the settling session writes each section as the latest "
+        "decision the code bears out. The script reads and removes; it neither "
+        "writes `docs/` nor judges."
+    ) in text
+    assert "It asks nobody at any step" in text
+    assert "The spec decides; the command applies." not in text
+    assert "moves and does not verify" not in text
+    assert "It does not verify." not in text
+
+
+def test_the_skill_states_the_settling_sessions_procedure():
+    """S11 and S13, #1033's *In* item 3, in order: the dry run, each group
+    written as its latest decision with the code winning, the superseded
+    operations settled unapplied, the specs read whole, every row decided and
+    closed, the defaults written down, each rule's `check:` targets,
+    `--apply`, the broad gate, and the pull request body. Round 1 of #1033,
+    finding 5: a row that fits two kinds has one reading. Round 3 of #1033,
+    finding 1: step 6 holds no searched set of test modules, since no search
+    of the tests' text lists every check that reads what the session wrote,
+    and step 8's broad gate is the one run that reads every check, run again
+    after a fix. Round 4 of #1033, finding 1: each clause of steps 6 and 8
+    that S13 names is pinned, step 6's fix and second dry run and step 8's
+    failure path among them."""
+    text = flat(skill())
+    procedure = text.split("## The settling session's procedure")[1].split("## ")[0]
+    steps = [
+        "Run `settle`, the dry run",
+        "Write the section as the latest decision states it",
+        "Where the code has moved past that decision, write what the code does",
+        "is superseded: it is settled with its group and not applied",
+        "Read each spec listed to read whole",
+        "close it in its record with `closed` and what closed it",
+        "A row that fits more than one kind takes the first that fits, in the "
+        "table's order",
+        "take a default and write it down",
+        "Run each rule's `check:` targets over what you wrote",
+        "and change what a failure shows still standing on the old fact",
+        "Then run the dry run again",
+        "The step is done when every `check:` target passes",
+        "finds a module only by how it spells a path",
+        "step 8 runs every one",
+        "Run `settle --apply`.",
+        "Run the repository's `Broad gate` row.",
+        "It is the one run that reads every check",
+        "change that pin or copy, and name each in the pull request body",
+        "answer it as *Answer every check that reads the corpus* says",
+        "then run the row again",
+        "The step is done when the row passes with no edit after it",
+        "Open the pull request.",
+    ]
+    at = [procedure.find(step) for step in steps]
+    assert -1 not in at, [s for s, n in zip(steps, at, strict=True) if n < 0]
+    assert at == sorted(at), "the procedure's steps are out of order"
+    assert "git grep" not in procedure, "step 6 still searches the tests' text"
+    for kind in ("moot", "answered", "a measurement nobody has taken"):
+        assert f"| {kind} |" in procedure, kind
+    # questions.md Q1's default: one issue per distinct measurement.
+    assert "one issue per distinct measurement (`gh issue create`)" in procedure
+    assert "`seal/follow-up.md` row" in procedure
+
+
+def test_the_skill_says_a_from_locates_and_is_no_precondition():
+    """S11, #1033's *In* item 6: the grammar is unchanged, and `from` is the
+    text as the framer read it, which locates the change and is not a
+    precondition; `--apply` writes no policy document."""
+    text = flat(skill())
+    raw = skill().split("\n## Rule changes\n")[1].split("\n## A rule has one shape")
+    section = flat(raw[0])
+    assert "**`from` is the text as the spec's framer read it.**" in section
+    assert "it is not a precondition" in section
+    assert "applies nothing" not in section, "the grammar still says what a replay did"
+    apply = text.split("## What `--apply` does")[1].split("## ")[0]
+    assert "It writes no policy document." in apply
+    assert "whether or not it wrote a `spec.md`" in apply
 
 
 def test_the_skill_says_a_settle_is_not_a_work_item_and_owes_no_range_row():
@@ -157,24 +163,19 @@ def test_the_skill_says_a_settle_is_not_a_work_item_and_owes_no_range_row():
     )
     assert "## A settle is not a work item" in skill()
     assert "A settle opens no directory under `seal/specs/`" in text
-    assert "`: '[no-review]';`" in text, "the skill does not say how a settle commits"
+    assert "`seal no-work-item`" in text, "the skill does not say how a settle edits"
+    assert "`SpecSeal-Routing: no work item`" in text, (
+        "the skill does not say how a settle commits"
+    )
+    assert "[no-review]" not in text, "the skill still names the retired waiver"
     assert "reviewed at its pull request" in text
     assert "keeps no log" in text
-
-
-def test_the_skill_says_the_directory_goes_with_the_rule_it_applied():
-    text = flat(skill())
-    assert "A directory goes only with the rule changes it applied" in text
-
-
-def test_the_skill_states_how_the_changes_land():
-    """#953: in place, in merge order, the later spec winning, and no
-    marker."""
-    text = flat(skill())
-    assert "in merge order" in text
-    assert "the later spec wins" in text
-    assert "No marker is written" in text
-    assert "<!-- specs/" not in text
+    # Round 1 finding 4 of #955: no commit holds a local work item, so git
+    # history keeps the removed specs only where the root is shared.
+    assert (
+        "Where the root is shared the removed specs are in git history; in "
+        "local mode no commit holds them"
+    ) in text, text
 
 
 def test_the_skill_says_it_fails_no_build():
@@ -202,19 +203,25 @@ def test_the_seal_readme_says_the_step_exists(parts):
     assert "A settle is not a work item and opens no directory here." in text, (
         f"{'/'.join(parts)} does not say a settle opens no work item (#517)"
     )
-    assert "wrote no `spec.md` and holds nothing open" in text
+    assert "whose record holds no open row, whether or not it wrote a `spec.md`" in (
+        text
+    )
     assert "retire-process" not in text and "folds it" not in text
 
 
 def test_the_implement_skill_states_the_model():
     """S15. The policy root is the baseline a pull request does not edit, and
-    the policy in force is it plus every unsettled spec's rule changes in
-    merge order. The sentence it replaced made `settle` the one writer of a
-    policy document a session wrote by hand."""
+    the policy in force is it plus the latest decision each unsettled spec
+    states at each section (#1033). The sentence it replaced made `settle`
+    the one writer of a policy document a session wrote by hand."""
     text = document("skills", "implement", "SKILL.md")
     assert "one writer that does is `settle`" not in text
     assert "is the baseline, and a pull request does not edit it" in text
-    assert "plus the rule changes of every unsettled spec, in merge order" in text
+    assert (
+        "the latest decision the unsettled specs' rule changes state at each "
+        "section, in merge order"
+    ) in text
+    assert "plus the rule changes of every unsettled spec, in merge order" not in text
 
 
 @pytest.mark.parametrize(
@@ -255,7 +262,10 @@ def test_both_cheat_sheets_carry_the_command(edition):
     """The count and the name are derived by
     `tests/test_chain_hooks_hardening.py`; what nothing derives is the row a
     reader actually types from. `CONTRIBUTING.md` requires the two editions to
-    move together and the hygiene workflow only warns about it."""
+    move together and the hygiene workflow only warns about it. Since #1033
+    the row says the settling session writes each section and `--apply`
+    writes no document, and it links the procedure's section rather than
+    restating it (round 1 of #1033, finding 2)."""
     text = document(edition)
     assert "`settle [--apply]`" in text, (
         f"{edition}'s cheat sheet has no row for the command"
@@ -264,21 +274,53 @@ def test_both_cheat_sheets_carry_the_command(edition):
     with open(os.path.join(ROOT, edition), encoding="utf-8") as f:
         row = f.read().split("`settle [--apply]`")[1].split("\n")[0]
     assert "`## Rule changes`" in row, row
+    assert "`skills/settle/SKILL.md` *The settling session's procedure*" in row, row
     assert "retire" not in row, row
+    assert "`HEAD`" not in row, "the row still says the base is asked"
 
 
-def test_the_module_and_the_skill_both_say_local_mode_is_refused():
-    """Round 2, finding 3 — contract rule 14's other half. The exit-code list named three
-    causes of exit 2 and there were four, and the one document a session reads
-    before it folds said nothing about the refusal at all. A person whose root
-    sits under the git directory meets a stop no document predicted."""
+def test_the_module_and_the_skill_both_say_how_local_mode_settles():
+    """S10 of #955, contract rule 14. Since #955 `settle` reads a local root,
+    so neither text says it refuses one. The skill states where the work
+    items are read and removed, what released means there and how the order
+    is read, what the dry run adds and what `--apply` removes, and the three
+    limits; the docstring's exit-code list names a `gh` that cannot be asked
+    and no longer a root in local mode. Round 2's finding 3 of #458 holds
+    still: every cause of exit 2 is in the list."""
     with open(SCRIPT, encoding="utf-8") as f:
-        head = f.read().split('"""')[1]
-    assert "Exit codes" in head, "the docstring no longer documents exit codes"
-    assert "local mode" in head, "exit 2 covers a local-mode root and the list does not"
-    assert "opted out" in head, "exit 2 covers the opt-out and the list does not"
-    text = flat(skill())
-    assert "refuses to run in local mode" in text, (
-        "the skill never tells a session that this command stops in local mode"
-    )
-    assert "seal mode shared" in text, "the skill does not give the way out"
+        head = flat(f.read().split('"""')[1])
+    exits = head.split("Exit codes")[1]
+    assert "a root in local mode" not in exits, exits
+    assert "a `gh` that is not on PATH or whose query fails" in exits, exits
+    assert "opted out" in exits, "exit 2 covers the opt-out and the list does not"
+    assert "Local mode is refused" not in head, head
+    assert "refuses to run in local mode" not in flat(skill())
+    section = flat(skill().split("\n## In local mode\n")[1].split("\n## ")[0])
+    for said in (
+        "under the common git directory",
+        "so a work item's directory is `<git-common-dir>/seal/specs/<id>/`",
+        "the pull request from the branch its `routing.md` names has merged",
+        "reachable from `--released-at`",
+        "`gh pr list --head <branch> --state merged --json number,mergeCommit`",
+        "Each `spec.md` is read from its directory",
+        "their merge commits' place in `git rev-list --topo-order --reverse`",
+        "with its pull request's number and its merge commit",
+        "which of the three states holds",
+        "no `routing.md` that `hooks/routing.py` reads as a declaration naming "
+        "a branch",
+        "a pull request listed with no merge commit among them",
+        "`seal export` takes a copy for whoever wants one",
+        "removes each released local directory whose record holds no open row",
+        "Shared mode never asks `gh`",
+        "reached `--released-at` without a pull request reads as unreleased, "
+        "and its directory is removed by hand",
+        "A repository on a host `gh` cannot ask cannot settle in local mode",
+        "reads that later work item as released",
+        "So does a merged pull request from a fork whose branch has the same "
+        "name, since `gh pr list --head` matches a branch's name and not its "
+        "owner",
+        "it does not rule out the second, because the flow does not name a "
+        "fork's branches",
+    ):
+        assert said in section, said
+    assert "never produces this" not in section, section

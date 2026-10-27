@@ -6,15 +6,26 @@ Run by CI on every pull request (`.github/workflows/hygiene.yml`). It judges
 the `seal/specs/<id>/routing.md` naming the pull request's branch and every
 one its own commits add or change. One that reached the branch inside another
 pull request's squash was judged at that pull request and is named, not
-judged (`carried_by`). The arms are seven:
+judged (`carried_by`). The arms are eight:
 
+  trailer       on every pull request, a declaration or none: each
+                `SpecSeal-Routing` trailer of the pull request's own commits
+                names a work item a judged declaration names, or reads
+                `no work item`, which is printed (`routing_trailers`); a
+                commit with no such trailer is not judged
   declaration   the file parses as a routing declaration; one the pull
-                request removed is accepted where the work item was retired
+                request removed is accepted where its work item's directory
+                stood at the merge base and is gone whole, which reads as a
+                settle (`retired`), and none is judged where the tree the
+                check reads has no
+                top-level `seal` entry, which the pull request moving the
+                root to local mode leaves; that tree is HEAD, and the working
+                tree under `--worktree`
   frame         `Planning | framer`: `spec.md` and `plan.md` are committed,
                 `spec.md` ends with the framer's mark, and every `Reframed`
                 line under it names the framer
   rule changes  the `## Rule changes` section parses with
-                `rule_changes.parse`, the one reader `settle` applies, in
+                `rule_changes.parse`, the one reader `settle` groups by, in
                 the `spec.md` of each judged work item under either
                 `Planning` answer, and, on a pull request that declares at
                 least one work item, in every work item `spec.md` its own
@@ -30,12 +41,14 @@ judged (`carried_by`). The arms are seven:
                 `regression:` lines, and none stands in the last record; the
                 last record's `target:` commit is HEAD, or every commit after
                 it touches only the work item's own directory
-  original      `Review | through the review chain`, where git carries
-                `seal/parity.md` at HEAD and the pull request changes a path
-                outside the document roots `hooks/gate.py#touches_code`
-                reads: the config's `Baseline commit` row names a SHA
-                (`hooks/config.py#baseline_commit`), and every round record
-                carries one `original:` line naming it (`originals_of`)
+  original      where git carries `seal/parity.md` at HEAD and the pull
+                request changes a path outside the document roots
+                `hooks/gate.py#touches_code` reads: the config's `Baseline
+                commit` row names a SHA (`hooks/config.py#baseline_commit`),
+                and one `original:` line naming it stands in every round
+                record under `Review | through the review chain`, and in
+                `guarantee.md` under `Review | straight to the PR`
+                (`originals_of`)
   broad gate    `broad-gate.md`'s newest run is HEAD, or every commit after it
                 touches only the work item's own directory
   guarantee     `guarantee.md` names HEAD, or every commit after it touches
@@ -52,7 +65,7 @@ Usage:
 `--worktree` reads the records from the working tree instead of HEAD, for a
 check before the commit; CI never passes it. `--sealing` is the broad gate's
 own run, before it writes `broad-gate.md` and the sealer `guarantee.md`: those
-two arms print and do not fail.
+two arms, and the guarantee's `original:` line, print and do not fail.
 
 Exit: 0 nothing to refuse · 1 a refusal, each named `path:line  why` (a
 GitHub annotation in CI) · 2 the check could not run, a grammar table it
@@ -976,8 +989,8 @@ def confirmations_span(reader, lines):
 def findings(reader, lines, rel):
     """`([Finding], errors)` for a record's findings.
 
-    `lines` are `reader.readable`'s, so a labelled line inside a fence or a
-    comment is no line. The one `## Findings` section is split at its `### `
+    `lines` are `reader.readable`'s, so a labelled line inside a fence is no
+    line. The one `## Findings` section is split at its `### `
     headings, and each finding is read by `finding_of` against the rows the
     table places in a finding. Before any of it, a line anywhere in the
     record that means a label or an old spelling and is not spelt as the
@@ -1144,40 +1157,37 @@ def finding_of(lines, first, stop, heading, rel):
 
 
 def unclosed(reader, text, rel):
-    """[(rel, line, why)] for a `<!--` comment or a fence in `text` that
-    never closes, at the line that opened it.
+    """[(rel, line, why)] for a fence in `text` that never closes, at the
+    line that opened it.
 
-    `reader.readable` blanks such a region to the end of the file, so every
+    `reader.readable` blanks such a fence to the end of the file, so every
     `### ` heading and `verdict:` line after it would vanish and the record
-    would read as having nothing open. The walk is `readable`'s own, in its
-    order: comments on the raw lines, then fences on what the comments left."""
-    raw = reader.gfm_lines(text or "")
-    # `comment_scan` says which state each line began in; a blank line after
-    # the last says whether the file ended inside a comment, and the last line
-    # that began outside one and ended inside is where it opened.
-    began = [outside for outside, _kept in reader.comment_scan([*raw, ""])]
-    errors = []
-    if not began[-1]:
-        opened = max(i for i in range(len(raw)) if began[i] and not began[i + 1])
-        errors.append(
-            (
-                rel,
-                opened + 1,
-                "a `<!--` comment opened here never closes, so every line after "
-                "it is hidden from the check",
-            )
+    would read as having nothing open. The walk is `readable`'s own,
+    `fence_spans` on the raw lines; a comment is text to it (#1012), and a
+    line that begins one is `comment_lines`' to refuse."""
+    return [
+        (
+            rel,
+            first + 1,
+            "a fence opened here never closes, so every line after it is "
+            "hidden from the check",
         )
-    for first, last in reader.fence_spans(reader.strip_comments(raw)):
-        if last is None:
-            errors.append(
-                (
-                    rel,
-                    first + 1,
-                    "a fence opened here never closes, so every line after it is "
-                    "hidden from the check",
-                )
-            )
-    return errors
+        for first, last in reader.fence_spans(reader.gfm_lines(text or ""))
+        if last is None
+    ]
+
+
+def comment_lines(reader, text, rel):
+    """[(rel, line, why)] for each line of `text` outside every fence that
+    begins with `<!--`, at its line, with the shared reader's one message
+    (`unverified_check.py#comment_lines`, #1012).
+
+    A record carries no HTML comment, and the check keeps no comment state,
+    so it reads a comment as text; a line that begins one is refused rather
+    than read as part of the record. The read of a round record, a
+    `guarantee.md` and a `broad-gate.md` each ask this."""
+    lines = reader.readable(text or "")
+    return [(rel, n + 1, reader.COMMENT_LINE) for n in reader.comment_lines(lines)]
 
 
 def counted(rel, key, said, scope, first=-1, heading=None):
@@ -1235,9 +1245,10 @@ def record_lines(reader, lines, rel, key):
 
 def read_whole(reader, text, rel):
     """`(lines, findings, errors, outside)` for one record, read once:
-    `readable`'s lines, `findings` over them with `unclosed`'s refusals
-    first and `record_lines`' after, and `{key: match or None}` for every
-    row the table places outside every finding."""
+    `readable`'s lines, `findings` over them with `comment_lines`' and
+    `unclosed`'s refusals first and `record_lines`' after, and
+    `{key: match or None}` for every row the table places outside every
+    finding."""
     lines = reader.readable(text or "")
     found, errors = findings(reader, lines, rel)
     outside, said = {}, []
@@ -1245,15 +1256,17 @@ def read_whole(reader, text, rel):
         if row.where == OUTSIDE_FINDINGS:
             outside[key], refused = record_lines(reader, lines, rel, key)
             said += refused
-    return lines, found, unclosed(reader, text, rel) + errors + said, outside
+    first = comment_lines(reader, text, rel) + unclosed(reader, text, rel)
+    return lines, found, first + errors + said, outside
 
 
 def record_findings(reader, text, rel):
-    """`findings` over a record's text, with `unclosed`'s refusals first and
-    `record_lines`' after, for every row the table places outside every
-    finding: the one reader the arm, the panel and the release seal read a
-    record through, so a region that hides findings, or a record naming no
-    commit it reviewed, fails closed for each of them."""
+    """`findings` over a record's text, with `comment_lines`' and
+    `unclosed`'s refusals first and `record_lines`' after, for every row the
+    table places outside every finding: the one reader the arm, the panel
+    and the release seal read a record through, so a comment line, a fence
+    that hides findings, or a record naming no commit it reviewed, fails
+    closed for each of them."""
     _lines, found, errors, _outside = read_whole(reader, text, rel)
     return found, errors
 
@@ -1564,15 +1577,15 @@ def frame(reader, routing, root, item, declared):
 
 SPEC_FILE = "spec.md"
 RULE_CHANGES_SAYS = (
-    "`## Rule changes` does not parse, and `settle` applies nothing from this "
-    "spec: {reason}"
+    "`## Rule changes` does not parse, so `settle` cannot group this spec by the "
+    "sections it names and the settle has to read it whole: {reason}"
 )
 
 
 def rule_changes_read(reader, root, item):
     """[(path, line, problem)] for the work item's `spec.md` whose
     `## Rule changes` section `rule_changes.parse`, the one reader `settle`
-    applies, refuses; [] where git carries no spec. The reader is reached
+    groups by, refuses; [] where git carries no spec. The reader is reached
     through `unverified_check.py#rule_changes`, which raises where it will
     not load."""
     rel = f"{item}/{SPEC_FILE}"
@@ -1708,9 +1721,9 @@ def records(reader, routing, root, item, rel, base):
     return problems
 
 
-# The parity arm at the pull request (#988). A routing declaration answering
-# the review chain quiets the commit gate's parity arm, and each round record
-# then carries the comparison on its `original:` line, which these read.
+# The parity arm at the pull request (#988). Under a routing declaration
+# answering the review chain, each round record carries the comparison on its
+# `original:` line, which these read.
 NO_ORIGINAL = (
     f"no `{ORIGINAL_ROW}` line: `{{config}}` declares a migration and this "
     "pull request changes a path outside the document roots, so each round "
@@ -1731,21 +1744,32 @@ NO_BASELINE = (
 
 
 def parity_readers():
-    """`(config, gate)`: `hooks/config.py` and `hooks/gate.py`, loaded by path
-    in that order, because `config.py` puts `hooks/` on `sys.path` and
-    `gate.py`'s own `import optin` needs it there, in a process that loaded
-    no routing reader first. Raises what `load` raises."""
+    """`(config, gate)`: `hooks/config.py` and `hooks/gate.py`, loaded by path.
+    `gate.py` imports nothing since #1027, so the order no longer matters.
+    Raises what `load` raises."""
     config = load(os.path.join(HOOKS, "config.py"), "specseal_config_for_parity")
     gate = load(os.path.join(HOOKS, "gate.py"), "specseal_gate_for_parity")
     return config, gate
 
 
-def original_of(reader, text, rel, sha, config):
-    """[(rel, line, problem)] for one round record's `original:` line, held
+NO_GUARANTEE_ORIGINAL = (
+    f"no `{ORIGINAL_ROW}` line: `{{config}}` declares a migration, this work "
+    "item answers `straight to the PR`, and this pull request changes a path "
+    "outside the document roots, so no round record compares it and the "
+    f"sealer's guarantee carries `{ORIGINAL_ROW} {{sha}}`, the migration "
+    "config's baseline, written once it compared the audited commit with the "
+    "original through `legacy-parity`"
+)
+
+
+def original_of(reader, text, rel, sha, config, missing=NO_ORIGINAL):
+    """[(rel, line, problem)] for one record's `original:` line, held
     against SHA, the `Baseline commit` of the migration config at CONFIG:
-    a record with no such line, and one naming a commit that is not a prefix
-    of SHA and of which SHA is not a prefix. A line the grammar table
-    refuses, standing in a finding, a second one, or one spelt otherwise, is
+    a record with no such line, said as MISSING, and one naming a commit
+    that is not a prefix of SHA and of which SHA is not a prefix. The record
+    is a round record, or the guarantee of a work item declaring `straight
+    to the PR`, read by the same rule. A line the grammar table refuses,
+    standing in a finding, a second one, or one spelt otherwise, is
     `read_whole`'s refusal at that line, and none is added here."""
     lines, _found, _errors, outside = read_whole(reader, text, rel)
     at = [
@@ -1754,7 +1778,7 @@ def original_of(reader, text, rel, sha, config):
         if ORIGINAL_ROW in (label_of(line), misspelt(line))
     ]
     if not at:
-        return [(rel, 0, NO_ORIGINAL.format(config=config, sha=sha))]
+        return [(rel, 0, missing.format(config=config, sha=sha))]
     found = outside[ORIGINAL_ROW]
     if found is None:
         return []
@@ -1764,16 +1788,19 @@ def original_of(reader, text, rel, sha, config):
     return [(rel, at[0] + 1, OTHER_ORIGINAL.format(said=said, sha=sha))]
 
 
-def originals_of(reader, routing, root, paths, items):
+def originals_of(reader, routing, root, paths, items, direct=()):
     """[(path, line, problem)] for the round records of ITEMS, each declared
-    through the review chain, where git carries the migration config at HEAD
-    and PATHS, this pull request's, reach outside the document roots;
+    through the review chain, and the `guarantee.md` of DIRECT, each
+    declared `straight to the PR`, where git carries the migration config at
+    HEAD and PATHS, this pull request's, reach outside the document roots;
     `hooks/gate.py#touches_code` decides that, and paths git could not list
-    reach outside them. A config whose `Baseline commit` names no SHA is one
-    refusal naming it. None where `hooks/` would not load, said on stderr."""
+    reach outside them. A guarantee git does not carry is `guarantee`'s
+    refusal, and none is added here. A config whose `Baseline commit` names
+    no SHA is one refusal naming it. None where `hooks/` would not load,
+    said on stderr."""
     config = f"{routing.optin.HOME}/{routing.optin.PARITY_CONFIG}"
     text = read_record(root, config)
-    if text is None or not items:
+    if text is None or not (items or direct):
         return []
     try:
         reads, gate = parity_readers()
@@ -1791,12 +1818,20 @@ def originals_of(reader, routing, root, paths, items):
     for item in items:
         for rel in round_records(routing, root, item):
             found.extend(original_of(reader, read_record(root, rel), rel, sha, config))
+    for item in direct:
+        rel = f"{item}/{GUARANTEE_FILE}"
+        said = read_record(root, rel)
+        if said is not None:
+            found.extend(
+                original_of(reader, said, rel, sha, config, NO_GUARANTEE_ORIGINAL)
+            )
     return found
 
 
 def broad_gate(reader, root, item, base):
     """[(path, line, problem)] for the work item's `broad-gate.md`: absent,
-    unreadable, or naming a run behind HEAD."""
+    a line that begins with `<!--` (`comment_lines`), unreadable, or naming
+    a run behind HEAD."""
     rel = f"{item}/{BROAD_GATE_FILE}"
     text = read_record(root, rel)
     if text is None:
@@ -1809,18 +1844,19 @@ def broad_gate(reader, root, item, base):
                 "the sealer, and the run writes it on a green run",
             )
         ]
+    problems = comment_lines(reader, text, rel)
     sha = newest_run(reader, text)
     if sha is None:
-        return [(rel, 0, f"no SHA in its `{BROAD_GATE}` row")]
+        return [*problems, (rel, 0, f"no SHA in its `{BROAD_GATE}` row")]
     behind = follows(root, sha, base, item)
     if behind is None:
-        return []
-    return [(rel, 0, follows_reason(behind, "the newest broad-gate run"))]
+        return problems
+    return [*problems, (rel, 0, follows_reason(behind, "the newest broad-gate run"))]
 
 
 def verdicts_of(reader, text):
-    """[(line number, line)] for every line outside comments and fences that
-    means the verdict (`MEANT_VERDICT`), whatever its spelling, trailing
+    """[(line number, line)] for every line outside fences that means the
+    verdict (`MEANT_VERDICT`), whatever its spelling, trailing
     whitespace removed. An indent is markup, a code block at four spaces, so
     an indented line is handed back with its indent and no shape reads it
     whole."""
@@ -1860,10 +1896,10 @@ def target_row(reader, text):
 def guarantee(reader, root, item, base):
     """[(path, line, problem)] for the work item's `guarantee.md`: absent, no
     commit, a commit with anything but the closing records after it, an
-    earlier run that is not `EARLIER_ENTRY` whole, a comment or fence that
-    never closes (`unclosed`), a word of
-    `RETIRED_VERDICTS` on its `Verdict:` line, a verdict line in none of the
-    three shapes, or one that does not read `sealed`."""
+    earlier run that is not `EARLIER_ENTRY` whole, a line that begins with
+    `<!--` (`comment_lines`), a fence that never closes (`unclosed`), a word
+    of `RETIRED_VERDICTS` on its `Verdict:` line, a verdict line in none of
+    the three shapes, or one that does not read `sealed`."""
     rel = f"{item}/{GUARANTEE_FILE}"
     text = read_record(root, rel)
     if text is None:
@@ -1902,7 +1938,9 @@ def guarantee(reader, root, item, base):
                     f"{TARGET_WRITTEN}, and nothing else",
                 )
             )
-    # A region nobody closed hides the verdict line; name where it opened.
+    # A comment line is text to the check, and a fence nobody closed hides
+    # the verdict line; name each at its line.
+    problems.extend(comment_lines(reader, text, rel))
     problems.extend(unclosed(reader, text, rel))
     verdicts = verdicts_of(reader, text)
     if len(verdicts) != 1:
@@ -1998,18 +2036,104 @@ def declared_for_this_branch(root, routing):
 
 
 SETTLE_SAYS = (
-    "retired: a settle — nothing open at the merge base, and the policy root "
-    "holds every rule change its spec states"
+    "retired: a settle — the work item's directory stood at the merge base "
+    "and is gone whole"
+)
+
+# The pull request that moves the root to local mode deletes every
+# declaration with the root (#952).
+ROOT_LEFT_SAYS = (
+    "the tree the check reads has no top-level `{home}` entry, so nothing is "
+    "declared: the routing declarations this pull request deletes left the "
+    "tree with the root, and the review-chain check judged the commit "
+    "trailers and nothing else"
+)
+
+# The trailer a session's commit ends with (`docs/the-routing-check.md` *At
+# the pull request*), and its one value that names no work item.
+TRAILER = "SpecSeal-Routing"
+NO_WORK_ITEM = "no work item"
+UNDECLARED_TRAILER = (
+    f"commit {{sha}} carries `{TRAILER}: {{item}}`, and no routing declaration "
+    "this pull request judges names that work item: commit its `routing.md`, "
+    "naming this branch, or correct the trailer"
+)
+LOCAL_TRAILER = (
+    f"commit {{sha}} carries `{TRAILER}: {{item}}` in a repository whose root "
+    "is local, where no routing declaration is committed for it to name: "
+    "printed, not judged"
+)
+NO_WORK_ITEM_TRAILER = (
+    f"commit {{sha}} carries `{TRAILER}: {NO_WORK_ITEM}`: its session recorded "
+    "that the change belongs to no work item, and nothing here checks it "
+    "further"
 )
 
 
+def routing_trailers(root, base):
+    """`[(commit, value)]` for each `SpecSeal-Routing` trailer of this pull
+    request's own commits, oldest first, or None where git cannot list them.
+
+    The commits are `base..HEAD` with merges left out, read by git's own
+    trailer parser so the key matches as git matches it. A commit someone
+    other than its author committed is not judged: a person's cherry-pick or
+    rebase of a session's commit, and GitHub's squash or rebase-merge, carry
+    a trailer their committer did not write, and a session's own commit is
+    committed by its author (round 1 of #1027, finding 2). The two emails are
+    compared as git records them, case-folded, so a session whose committer
+    email differs from its author email is not judged either."""
+    out = git(
+        root,
+        "log",
+        "--no-merges",
+        "--reverse",
+        "-z",
+        f"--format=%H%x1f%ae%x1f%ce%x1f%(trailers:key={TRAILER},valueonly,separator=%x1e)",
+        f"{base}..HEAD",
+    )
+    if out is None:
+        return None
+    found = []
+    for entry in out.split("\0"):
+        parts = entry.strip("\n").split("\x1f")
+        if len(parts) != 4:
+            continue
+        sha, author, committer, values = parts
+        if author.strip().lower() != committer.strip().lower():
+            continue
+        for value in values.split("\x1e"):
+            if value.strip():
+                found.append((sha.strip(), value.strip()))
+    return found
+
+
+def trailer_findings(trailers, judged, local=False):
+    """`(problems, notices)` for TRAILERS, each `(commit, value)`: a value
+    naming a work item that is not among JUDGED, the ids of the declarations
+    this pull request judges, is a problem; `no work item` is a notice. Where
+    LOCAL, the root is under the common git directory and no declaration is
+    ever committed, so a work item's value is a notice too (round 1 of #1027,
+    finding 1)."""
+    problems, notices = [], []
+    for sha, value in trailers:
+        if value == NO_WORK_ITEM:
+            notices.append(("", 0, NO_WORK_ITEM_TRAILER.format(sha=sha[:8])))
+        elif local:
+            notices.append(("", 0, LOCAL_TRAILER.format(sha=sha[:8], item=value)))
+        elif value not in judged:
+            problems.append(("", 0, UNDECLARED_TRAILER.format(sha=sha[:8], item=value)))
+    return problems, notices
+
+
 def retired(reader, root, fork, records):
-    """The work item directories of the removed declarations a settle
-    removed whole, asked of the one predicate, `unverified_check.py#settled`,
-    at the merge base. RECORDS maps each declaration to its text at HEAD."""
+    """The work item directories of the removed declarations that read as a
+    settle: each stood at the merge base and is gone whole, asked of the one
+    predicate, `unverified_check.py#settled`. RECORDS maps each declaration
+    to its text at HEAD; a directory the disk still holds is a deletion of
+    part of it, and never reaches the predicate."""
     gone = [os.path.dirname(rel) for rel, text in records.items() if text is None]
     gone = [d for d in gone if not os.path.isdir(os.path.join(root, d))]
-    return reader.settled(root, fork, gone, None if WORKTREE else "HEAD")
+    return reader.settled(root, fork, gone)
 
 
 def main(argv=None):
@@ -2061,6 +2185,20 @@ def main(argv=None):
         else:
             declarations.add(rel)
     declarations = sorted(declarations)
+    # Where the tree the check reads has no top-level `seal` entry, nothing is
+    # declared: the pull request moving the root to local mode leaves it so.
+    # That tree is HEAD, and the working tree under `--worktree`, where
+    # `read_record` and `changed` read the declarations from. An entry is
+    # anything at that name, a file or a link as much as a directory, so a
+    # `seal` that is not a directory keeps the declarations judged. Where git
+    # cannot answer, `git()` is None and the declarations stay judged.
+    home = routing.optin.HOME
+    if WORKTREE:
+        gone = not os.path.lexists(os.path.join(root, home))
+    else:
+        gone = git(root, "ls-tree", "HEAD", "--", home) == ""
+    if declarations and gone:
+        declarations, why = [], ROOT_LEFT_SAYS.format(home=home)
 
     state, where = pull_request_state(root)
     unseen = state == "unknown" and not event_payload_present()
@@ -2075,9 +2213,25 @@ def main(argv=None):
         print("chain-check: reading the working tree (--worktree); CI reads HEAD")
     for rel, line, message in carried:
         print(reader.annotate("notice", rel, line, message))
+    trailers = routing_trailers(root, args.baseline)
+    if trailers is None:
+        print(
+            f"chain-check: cannot read the commits after {args.baseline}",
+            file=sys.stderr,
+        )
+        return 2
+    judged_ids = {os.path.basename(os.path.dirname(rel)) for rel in declarations}
+    problems, notices = trailer_findings(
+        trailers, judged_ids, local=bool(local_root(root, routing))
+    )
+    kind = "error" if strict else "notice"
     if not declarations:
         print(reader.annotate("notice", "", 0, why))
-        return 0
+        for rel, line, message in notices:
+            print(reader.annotate("notice", rel, line, message))
+        for rel, line, message in problems:
+            print(reader.annotate(kind, rel, line, message))
+        return 1 if problems and strict else 0
 
     fork = reader.merge_base(root, args.baseline)
     # A declared work item's commit can write another work item's section
@@ -2088,7 +2242,7 @@ def main(argv=None):
         for item in edited_work_items(root, args.baseline, paths, moved, routing)
         if item not in judged
     ]
-    problems, notices, chained = [], [], []
+    chained, direct = [], []
     texts = {rel: read_record(root, rel) for rel in declarations}
     by_settle = retired(reader, root, fork, texts)
     for rel in declarations:
@@ -2128,6 +2282,8 @@ def main(argv=None):
         if declared["review"] == routing.CHAIN:
             problems.extend(records(reader, routing, root, item, rel, args.baseline))
             chained.append(item)
+        else:
+            direct.append(item)
         gate = broad_gate(reader, root, item, args.baseline)
         gate += guarantee(reader, root, item, args.baseline)
         if args.sealing:
@@ -2138,14 +2294,19 @@ def main(argv=None):
     if found is None:
         return 2
     problems.extend(found)
-    found = originals_of(reader, routing, root, paths, chained)
+    found = originals_of(reader, routing, root, paths, chained, direct)
     if found is None:
         return 2
-    problems.extend(found)
+    for rel, line, message in found:
+        # The guarantee's line is the sealer's to write, so `--sealing` reads
+        # it as it reads every other guarantee check.
+        if args.sealing and rel.endswith(f"/{GUARANTEE_FILE}"):
+            notices.append((rel, line, f"{SEALING_SAYS}: {message}"))
+        else:
+            problems.append((rel, line, message))
 
     for rel, line, message in notices:
         print(reader.annotate("notice", rel, line, message))
-    kind = "error" if strict else "notice"
     for rel, line, message in problems:
         print(reader.annotate(kind, rel, line, message))
     return 1 if problems and strict else 0

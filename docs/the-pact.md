@@ -15,7 +15,7 @@ the file, and where more than one pact can be meant, a text says which by
 naming where it is held. `pact-check` is the command that reads every signer
 from there. The three names are the owner's, and a case holds other words for
 them out of the shipped text.
-check: tests/test_one_word_one_meaning.py tests/test_a_signer_declares_its_pact.py
+check: tests/test_one_word_one_meaning.py tests/test_config.py
 
 **A pact headed with the word 0.18.x used still reads, and `pact-check`
 names the rename on it in no exit class.** Through 0.18.x a signer was
@@ -28,7 +28,7 @@ naming the file, both headers and the release that renamed them before that
 file's other lines, and its exit is what the new header gives. No command
 rewrites a pact: the line says to rename the header when the file is next
 edited, and every text this plugin ships says `signer`.
-check: tests/test_pact_check.py tests/test_a_signer_declares_its_pact.py tests/test_one_word_one_meaning.py
+check: tests/test_pact_check.py tests/test_config.py tests/test_one_word_one_meaning.py
 
 ## When there is a pact at all
 
@@ -72,7 +72,7 @@ and stops nothing, so every reader of the row reads the same row. A `Pact`
 row written twice has no value at all: its first row is not the answer. A
 `Pact` row the config table does not hold is no row, so `pact-check` reads
 that signer as naming no pact, a relationship recorded on one side only.
-check: tests/test_a_signer_declares_its_pact.py tests/test_pact_check.py
+check: tests/test_a_signer_declares_its_pact.py tests/test_pact_check.py tests/test_config.py
 
 ## The pact anchor
 
@@ -82,7 +82,7 @@ a `###` narrows inside one. The hash is the content hash
 `coordinates.py#content_hash` gives the clause's region, the value a
 local coordinate to that heading carries. A signer writes the anchor in a
 spec's Grounding, recording what the work was built against.
-check: tests/test_pact_check.py tests/test_a_unit_is_bounded_where_a_parser_decides.py
+check: tests/test_pact_check.py tests/test_coordinates.py
 
 **A token begins a pact anchor where `pact:<name>` is followed at once by
 `/` or `#`, or by the rest of an anchor with its `/` missing, and
@@ -123,7 +123,7 @@ it, so the pact has not taken the signer's recorded change; `UNMATCHED`
 means no commit did; `BROKEN` means the heading path names no single clause.
 Git decides the direction and never decides `OK`. Exit 1 is a mismatch or a
 checkout not found, and exit 2 is unusable input.
-check: tests/test_pact_check.py
+check: tests/test_pact_check.py tests/test_config.py
 
 ## What this does not see
 

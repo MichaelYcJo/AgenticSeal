@@ -135,6 +135,26 @@ so the two cannot be in different languages without one of them being wrong
 at the merge. That is why one row answers for all four surfaces rather than
 one row each.
 
+**A session's commit in a repository whose root is shared (`<repo>/seal/`)
+ends with one `SpecSeal-Routing:` trailer, naming its work item or reading
+`no work item`.** In local mode a commit carries none. The work item is its
+directory's name under `seal/specs/`, the one the branch's `routing.md` sits
+in; `no work item` is the value where the session ran `seal no-work-item` on
+the branch. The trailer stands in the message's last paragraph, beside any
+other trailer, so git's trailer parser reads it:
+
+```
+feat: the edit check refuses an undeclared branch
+
+SpecSeal-Routing: 1792935671-the-routing-check-moves-to-the-sessions-tools
+Co-Authored-By: <the harness's co-author line>
+```
+
+The value is a field, not prose, so it stays as spelt in every language.
+Why a session's commit carries it, why a local-mode commit does not, and
+what `chain-check` does with it are `docs/the-routing-check.md` *At the pull
+request*.
+
 ## Pull request titles
 
 **The same prefix vocabulary as the commits, and the same language.**

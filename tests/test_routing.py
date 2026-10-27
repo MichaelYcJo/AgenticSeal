@@ -21,6 +21,7 @@ import pytest
 from conftest import (
     ROOT,
     census_case,
+    git_repo,
     load_hook_module,
     names_path,
     opted_in_repo,
@@ -84,6 +85,23 @@ def declared(name):
 
 
 BREAK_NAMES = ["LS", "PS", "NEL", "FF", "VT", "FS", "GS", "RS"]
+
+
+class Test_table_rows:
+    def test_accepts_a_two_cell_row_as_its_label_and_value(self):
+        assert routing.table_rows("| Review | through the review chain |\n") == [
+            ("Review", "through the review chain")
+        ]
+
+    @pytest.mark.parametrize(
+        "line",
+        ["Review | through the review chain", "| Review |"],
+        ids=["no-leading-pipe", "one-cell"],
+    )
+    def test_refuses_a_line_that_is_no_two_cell_row(self, line):
+        """Prose that holds a pipe is no row, and a row with one cell has no
+        value to read (#1017, the body's two `table_rows` rows)."""
+        assert routing.table_rows(line + "\n") == []
 
 
 class Test_parse:
@@ -474,6 +492,58 @@ class Test_parse:
         path.write_text(two_axis_text(), encoding="utf-8")
         omitted = _absent_optional_rows_read_as_nothing([str(path)])
         assert all(omitted.values()), omitted
+
+
+class Test_declarations:
+    def test_accepts_a_declaration_under_the_repositorys_root(self, tmp_path):
+        repo = opted_in_repo(tmp_path / "declared" / "repo")
+        item = repo / "seal" / "specs" / "1780000000-work"
+        item.mkdir(parents=True)
+        (item / "routing.md").write_text(two_axis_text(), encoding="utf-8")
+        found = routing.declarations(str(repo))
+        assert [p for p, _ in found] == [str(item / "routing.md")]
+
+    def test_refuses_a_repository_with_no_root_whatever_the_cwd_holds(
+        self, tmp_path, monkeypatch
+    ):
+        """No root, no declarations, even where this process sits beside a
+        `specs/` holding one: the work items are read under the root and
+        nowhere else (#1017, the body's `declarations` row)."""
+        repo = git_repo(tmp_path / "plain")
+        here = tmp_path / "here"
+        item = here / "specs" / "1780000000-work"
+        item.mkdir(parents=True)
+        (item / "routing.md").write_text(two_axis_text(), encoding="utf-8")
+        monkeypatch.chdir(here)
+        assert routing.declarations(str(repo)) == []
+
+
+class Test_record_no_work_item:
+    def test_accepts_a_branch_into_the_empty_record_an_earlier_build_left(
+        self, tmp_path
+    ):
+        """The record the build at `126ee7b5` wrote is an empty file. It names
+        no branch, so it lets nothing through, and a run on a branch adds
+        that branch as its first line."""
+        common = str(tmp_path)
+        path = os.path.join(common, routing.NO_WORK_ITEM, "s1")
+        os.makedirs(os.path.dirname(path))
+        with open(path, "w", encoding="utf-8"):
+            pass
+        assert routing.no_work_item(common, "s1", "main") is False
+        assert routing.record_no_work_item(common, "s1", "main") == path
+        with open(path, encoding="utf-8", newline="") as f:
+            assert f.read() == "main\n"
+        assert routing.no_work_item(common, "s1", "main") is True
+
+    def test_refuses_no_branch_and_writes_nothing(self, tmp_path):
+        """A detached HEAD outside a paused rebase names no branch, and no
+        branch is never recorded, so the record's directory is not even
+        made. `tests/test_seal.py` *Test_no_work_item* holds what a run with
+        a branch writes."""
+        assert routing.record_no_work_item(str(tmp_path), "s1", "") == ""
+        assert not os.path.exists(tmp_path / routing.NO_WORK_ITEM)
+        assert routing.no_work_item(str(tmp_path), "s1", "") is False
 
 
 class Test_module:

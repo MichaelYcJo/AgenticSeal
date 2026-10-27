@@ -415,15 +415,15 @@ class Test_move:
     ):
         hook.move(str(proj), ".specseal/map", "seal/map")
         assert (proj / "seal" / "map" / f"{ITEM}.md").is_file()
+        write(proj, f"specs/{ITEM}/phases/deep/p.md", "# two directories down\n")
+        commit(proj, "a file two directories down the item")
         write(proj, f"seal/specs/{ITEM}/spec.md", "# already here\n")
         hook.move(str(proj), f"specs/{ITEM}", f"seal/specs/{ITEM}")
-        assert (proj / "seal" / "specs" / ITEM / "rounds" / "round-1.md").is_file()
+        for rel in ("rounds/round-1.md", "phases/deep/p.md", "routing.md"):
+            assert (proj / "seal" / "specs" / ITEM / rel).is_file(), rel
         assert not (proj / "seal" / "specs" / ITEM / ITEM).exists()
-        # The walk removes each emptied directory below the item; the item's
-        # own directory, listed before its `rounds/` went, stays on disk
-        # empty, and git sees nothing there.
         assert not (proj / "specs" / ITEM / "rounds").exists(), "an emptied one stayed"
-        assert list((proj / "specs" / ITEM).iterdir()) == []
+        assert not (proj / "specs" / ITEM).exists(), "the item's directory stayed"
 
     def test_refuses_a_file_already_at_its_destination_and_moves_the_marks_last(
         self, hook, proj
@@ -438,6 +438,32 @@ class Test_move:
             hook.move(str(proj), f"specs/{ITEM}", f"seal/specs/{ITEM}")
         assert (proj / "specs" / ITEM / "routing.md").is_file()
         assert (proj / "specs" / ITEM / "rounds" / "round-1.md").is_file()
+
+    def test_refuses_to_remove_a_directory_an_ignored_file_holds_under_any_rmdir(
+        self, hook, proj, monkeypatch
+    ):
+        """An ignored file keeps its directory, and the item's above it, on
+        disk. Contract rule 13: `rmdir` is given a semantics that removes a
+        directory whatever it holds, so the case pins `move`'s own reading of
+        emptiness and not the platform's refusal."""
+        real = os.rmdir
+
+        def rmdir_whatever_it_holds(path, *args, **kwargs):
+            for here, dirs, files in os.walk(path, topdown=False):
+                for name in files:
+                    os.unlink(os.path.join(here, name))
+                for name in dirs:
+                    real(os.path.join(here, name))
+            real(path, *args, **kwargs)
+
+        write(proj, ".gitignore", ".DS_Store\n")
+        commit(proj, "ignore the finder's file")
+        write(proj, f"specs/{ITEM}/rounds/.DS_Store", "\0")
+        write(proj, f"seal/specs/{ITEM}/spec.md", "# already here\n")
+        monkeypatch.setattr(hook.os, "rmdir", rmdir_whatever_it_holds)
+        hook.move(str(proj), f"specs/{ITEM}", f"seal/specs/{ITEM}")
+        assert (proj / "seal" / "specs" / ITEM / "rounds" / "round-1.md").is_file()
+        assert (proj / "specs" / ITEM / "rounds" / ".DS_Store").is_file()
 
 
 class Test_rewrite_readme:
@@ -633,8 +659,11 @@ class Test_main:
         self, hook, proj, mark, text
     ):
         """B3 and round 2 of #688: either mark is the proof on its own, and
-        each moves last, so a stop at a taken `spec.md` strands nothing."""
+        each moves last, so a stop at a taken `spec.md` strands nothing. The
+        first start empties `phases/` and stops; the start that finishes the
+        item removes it and the item's directory (#1016)."""
         write(proj, f"specs/{ONE_MARK}/{mark}", text)
+        write(proj, f"specs/{ONE_MARK}/phases/phase-1.md", "# phase 1\n")
         write(proj, f"specs/{ONE_MARK}/spec.md", "# the old spec\n")
         write(proj, f"seal/specs/{ONE_MARK}/spec.md", "# the newer spec\n")
         commit(proj, "an item with one mark, its spec.md taken")
@@ -645,8 +674,10 @@ class Test_main:
         assert "moved 1 work item into seal/" in out, out
         assert (proj / "seal" / "specs" / ONE_MARK / mark).is_file()
         assert (proj / "seal" / "specs" / ONE_MARK / "spec.md").is_file()
+        assert (proj / "seal" / "specs" / ONE_MARK / "phases" / "phase-1.md").is_file()
         assert tracked(proj, f"specs/{ONE_MARK}") == ""
-        assert not (proj / "specs" / ONE_MARK / "rounds").exists()
+        assert not (proj / "specs" / ONE_MARK).exists(), "the item's directory stayed"
+        assert f"specs/{ONE_MARK}" not in out, out
 
     def test_accepts_two_items_named_in_the_plural(self, hook, proj):
         write(proj, f"specs/{ONE_MARK}/routing.md", ROUTING)

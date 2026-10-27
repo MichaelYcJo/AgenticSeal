@@ -109,12 +109,7 @@ OPENED_ONLY_BEHIND = {
 
 # 4. Immune by construction: the name comes from git and so does the content,
 #    so there is no tree state in which one exists without the other.
-CONTENT_FROM_GIT = {
-    "tests/test_commit_review_gate.py#released_hooks": (
-        "reads the last release's hooks out of a tag, file by file, through "
-        "git — the working tree is never consulted"
-    ),
-}
+CONTENT_FROM_GIT = {}
 
 # 5. It opens nothing it listed.
 OPENS_NOTHING = {
@@ -133,7 +128,6 @@ OPENS_NOTHING = {
 #    itself.
 LISTS_A_FIXTURE = {
     "tests/test_optin.py#test_the_local_root_is_never_a_commit_candidate_and_needs_no_gitignore": 1,
-    "tests/test_commit_review_gate.py#test_an_uncommitted_declaration_silences_the_commit_that_adds_it": 1,
     "tests/test_the_root_migrates_itself.py#test_the_readmes_by_hand_sequence_yields_the_hooks_tracked_set": 1,
     # The hook's cases read what is unstaged and tracked in the copy of the
     # old layout the case took, to assert what the move staged.
@@ -143,14 +137,15 @@ LISTS_A_FIXTURE = {
     # `tests/test_root_migrate.py`, and `seal mode`'s switch and the
     # workflow it stages in `tests/test_seal.py`.
     "tests/conftest.py#staged": 1,
-    # The paths the commit gate's guarantee arm is handed, staged in the
-    # case's own copy of the commit gate's world.
-    "tests/test_commitgate.py#paths_of": 1,
+    # #952's round 6 case writes stages 1 to 3 of one path into the index of
+    # the repository it took, and counts that path's unmerged entries before
+    # and after `seal pr-checks remove`, once each; it opens no listed path.
+    "tests/test_seal.py#test_refuses_an_index_entry_it_cannot_read_deleted_by_hand": 2,
 }
 
-# One call per scope everywhere today. Spelled as a map rather than as "one
-# each" so a SECOND call inside a classified scope goes red — the call-site
-# unit, which is the decision copied from the model.
+# Spelled as a map of call counts rather than as "one each" so a further call
+# inside a classified scope goes red — the call-site unit, which is the
+# decision copied from the model.
 PATH_LIST_CALLS = {
     **APPLIES_THE_SHARED_GUARD,
     **dict.fromkeys(GUARDS_ITS_OWN_LIST, 1),

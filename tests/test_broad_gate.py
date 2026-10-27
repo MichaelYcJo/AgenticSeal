@@ -140,7 +140,7 @@ WORKFLOW = (
     "name: hygiene\non: pull_request\njobs:\n"
     "  lint:\n    steps:\n      - name: not a release step\n"
     "  release:\n    steps:\n"
-    "      - name: the unverified record is readable, and rows leave it closed\n"
+    "      - name: a declared review chain has the round record it claimed\n"
     "      - name: 'a change to what ships must move the version'\n"
     "      - name: both READMEs move together\n"
     "      - name: a step nobody classified\n"
@@ -739,6 +739,13 @@ class Test_refused_broad_row:
         assert gate.refused_broad_row(home_with(tmp_path, ANOTHER_TABLE)) is None
         assert gate.refused_broad_row(str(tmp_path / "nothing")) is None
 
+    def test_refuses_a_row_the_walk_read_above_the_line_it_refused(self, tmp_path):
+        """A row the walk read is `broad_command`'s to answer, an empty value
+        included. A line the walker refused below it does not make that row
+        one the walk never reached."""
+        home = home_with(tmp_path, config_of("") + "| Odd | a | b |\n")
+        assert gate.refused_broad_row(home) is None
+
 
 class Test_stopping_line:
     def test_accepts_the_line_the_walkers_sentence_quotes(self):
@@ -811,6 +818,14 @@ class Test_missing_row:
         said = gate.missing_row(home_with(tmp_path, "```\n" + config_of("x")))
         assert "A fenced code block above it is never closed" in said
         assert "Move the row" not in said
+
+    def test_refuses_to_blame_a_fence_left_open_below_the_fenced_row(self, tmp_path):
+        """The fence that swallows a row is one opened above it. A fence opened
+        further down and never closed leaves the row in a block that closes,
+        and moving the row is still the act."""
+        said = gate.missing_row(home_with(tmp_path, FENCED + "\n```\nopen\n"))
+        assert "Move the row into the `| Item | Value |` table" in said
+        assert "never closed" not in said
 
     def test_refuses_to_call_a_commented_row_absent(self, tmp_path):
         said = gate.missing_row(home_with(tmp_path, COMMENTED))
@@ -1378,6 +1393,14 @@ class Test_command_names_backslashed:
         assert self.turned("echo a^&bin/test", "bin") == "echo a^&bin/test"
         assert self.turned("echo >out bin/test", "bin") == "echo >out bin/test"
 
+    def test_refuses_to_turn_a_redirections_target_at_the_start_of_a_command(self):
+        """A `<` or `>` ends command position until the next separator, so the
+        target written after one is a file, even where it starts in a
+        directory, and so is the word after it."""
+        assert self.turned(">tests/out.txt bin/test", "tests", "bin") == (
+            ">tests/out.txt bin/test"
+        )
+
     @pytest.mark.parametrize(
         "row, asked",
         [
@@ -1664,7 +1687,7 @@ class Test_unquote:
 class Test_job_steps:
     def test_accepts_the_named_steps_of_one_job(self):
         assert gate.job_steps(WORKFLOW, "release") == [
-            "the unverified record is readable, and rows leave it closed",
+            "a declared review chain has the round record it claimed",
             "a change to what ships must move the version",
             "both READMEs move together",
             "a step nobody classified",
@@ -1785,7 +1808,7 @@ class Test_unanswered:
         ]
 
     def test_refuses_a_mirrored_step(self):
-        assert gate.mirrored()[gate.job_steps(WORKFLOW, "release")[0]] == "unverified"
+        assert gate.mirrored()[gate.job_steps(WORKFLOW, "release")[0]] == "chain"
         assert gate.job_steps(WORKFLOW, "release")[0] not in gate.unanswered(
             WORKFLOW, "release/v1"
         )
@@ -2156,8 +2179,8 @@ class Test_failed_form:
         ]
 
     def test_refuses_to_set_a_long_name_a_column_out(self):
-        form = gate.failed_form("c", "a", [("unverified", ["u"]), ("suite", [])])
-        assert form[2:] == ["  unverified u", "  suite      (no output)"]
+        form = gate.failed_form("c", "a", [("longer-arm", ["u"]), ("suite", [])])
+        assert form[2:] == ["  longer-arm u", "  suite      (no output)"]
 
 
 class Test_report_lines:
@@ -2248,6 +2271,19 @@ class Test_compare_at_base:
         )
         assert words == {"tests/test_two.py": gate.ON_BASE}
 
+    def test_refuses_new_for_a_file_a_red_base_never_collected(self, repo, tmp_path):
+        """The base's run exited non-zero and never collected the file, so it
+        may have stopped before reaching it, and the word carries the exit."""
+        git(repo, "switch", "-q", "base")
+        write(repo, "tests/test_red.py", FAILING_TEST)
+        commit(repo, "a failure only the base has")
+        git(repo, "switch", "-q", "feature")
+        failing_on_feature(repo)
+        words = gate.compare_at_base(
+            str(repo), "base", SUITE_ROW, ["tests/test_two.py"], str(tmp_path)
+        )
+        assert words == {"tests/test_two.py": gate.NOT_REACHED.format(code=1)}
+
     def test_refuses_to_compare_at_a_base_that_cannot_be_checked_out(
         self, repo, tmp_path
     ):
@@ -2309,12 +2345,13 @@ class Test_gate:
         ]
         assert "suite   ✓ 1 passed" in lines
         assert lines[-1] == gate.CELL_UNCOMMITTED.format(path=RECORD_REL)
-        for name in ("suite", "unverified", "chain", "mode"):
+        for name in ("suite", "chain", "mode"):
             assert (keep / f"{name}.txt").is_file(), name
+        # The unverified record's arm left with #945, and no run asks it.
+        assert not (keep / "unverified.txt").exists()
+        assert "unverified" not in out.stdout
         chain_kept = (keep / "chain.txt").read_text(encoding="utf-8")
         assert f"--baseline {base} --root" in chain_kept.splitlines()[0]
-        unverified_kept = (keep / "unverified.txt").read_text(encoding="utf-8")
-        assert f"--baseline {base} " in unverified_kept.splitlines()[0]
         # The gate draws nothing and queues no stamp (#975).
         assert not (repo / ".git" / "specseal-stamp").exists()
         cell = (repo / ITEM / "broad-gate.md").read_text(encoding="utf-8")

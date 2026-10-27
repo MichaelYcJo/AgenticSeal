@@ -43,7 +43,7 @@ ONE_SEAL_IS_FINAL = (
 )
 AFTER_THE_SEAL = (
     "`skills/code-review/orchestration.md` *Orchestrator: the pull request "
-    "opens once the sealer seals, and a phase is re-run* owns"
+    "opens once the sealer seals* owns"
 )
 CONTRIBUTING = ("CONTRIBUTING.md",)
 CRITERION_OWNER = (
@@ -79,11 +79,6 @@ RULES = {
         ORCH,
         "A session that has compacted hands the next round to a fresh one, and "
         "the round record is the handoff.",
-        {},
-    ),
-    "9 a hand-back's verification claim is a claim": (
-        ORCH,
-        "A hand-back's verification claim is a claim.",
         {},
     ),
     # Since #967 an agent's hand-back carries its claims under the three
@@ -131,6 +126,22 @@ RULES = {
         "A regression is routed by comparing the fix with the frame.",
         {FRAMER: RUN_OWNS_THE_RULE, IMPLEMENT: RUN_OWNS_THE_RULE},
     ),
+    # #945, S5: one smith resumed across phases read 941,799 tokens in one
+    # turn, so a phase is a fresh spawn and a fix pass resumes only below
+    # the largest context a fresh smith reached in the 0.22.0 run.
+    "17 each phase is a fresh smith": (
+        ORCH,
+        "Each phase of a work item is built by a fresh `smith` spawn, and the "
+        "orchestrator never resumes a smith across a phase boundary.",
+        {},
+    ),
+    "18 a fix pass resumes the implementer only below the threshold": (
+        ORCH,
+        "A fix pass resumes the implementer only while the implementer's "
+        "largest per-turn context is below 806,241 tokens, and is a fresh "
+        "`smith` spawn otherwise.",
+        {},
+    ),
 }
 
 
@@ -153,6 +164,30 @@ def test_every_link_names_the_owner(rule):
             f"{'/'.join(owner)} as its owner, which is a second statement of "
             "the rule rather than a link to the one that owns it"
         )
+
+
+FIX_PASS = (
+    "## Orchestrator: a phase is a fresh smith, and a fix pass resumes the implementer"
+)
+
+
+def test_the_fix_pass_reads_the_implementers_context_before_it_resumes():
+    """S5 of #945. Rules 17 and 18 pin the two bold sentences; this pins
+    what lets an orchestrator act on them: what a fresh smith is handed, the
+    command that reads the implementer's context, where the threshold came
+    from, and the old rule gone."""
+    text = flat(*ORCH)
+    section = text[text.index(FIX_PASS) : text.index("## Orchestrator: the run ends")]
+    for said in (
+        "the phase records the earlier phases wrote",
+        "`session-cost --segments <the implementer's agent-*.jsonl>`",
+        "the largest value of its `context` column",
+        "hands it the round record and the phase records",
+        "the largest context a fresh, never-resumed smith reached in the 0.22.0 run",
+    ):
+        assert said in section, f"the fix-pass section no longer says {said!r}"
+    assert "Orchestrator: a fix pass resumes the implementer" not in text
+    assert "never spawn a fresh one while that session still exists" not in text
 
 
 def test_a_draft_is_tolerated_and_still_owes_the_record():
@@ -222,6 +257,32 @@ def test_the_owner_states_the_dispatch_step_and_the_limit():
     ) in text
 
 
+def test_the_orchestrator_reads_mergeable_and_integrates_a_conflict_by_a_merge():
+    """S7 of #945. A pull request GitHub cannot merge gets no merge ref and
+    no `pull_request` CI, and nothing else says so, so the owner section
+    reads `mergeable` before it waits on CI. A conflict is integrated by a
+    merge, never a rebase, and the chain check reads no merge commit, so a
+    resolution outside the records gets a verifying round."""
+    text = flat(*ORCH)
+    section = text[
+        text.index("## Orchestrator: the pull request opens once the sealer seals") : (
+            text.index("## Orchestrator: verify before posting")
+        )
+    ]
+    for said in (
+        "reads `gh pr view <N> --json mergeable` before it waits on CI",
+        "`CONFLICTING` means GitHub made no merge ref for the pull request and "
+        "runs no `pull_request` CI on it, and nothing else says so",
+        "`UNKNOWN` means GitHub has not computed the answer yet",
+        "A conflict with the base is integrated by merging the base into the "
+        "branch, never by a rebase.",
+        "after the branch whose changes conflict with this one has landed",
+        "the orchestrator spawns a verifying round on that resolution",
+        "`--no-merges`",
+    ):
+        assert said in section, f"the owner section no longer says {said!r}"
+
+
 # Where step 2 of the order inside a ticket opens.
 STEP_2 = "2. The framer writes `spec.md`, `plan.md` and `questions.md`."
 
@@ -259,6 +320,62 @@ def test_the_order_no_longer_defers_the_framer_to_a_ticket():
             f"step 2 still carries `{gone}`. The framer ships, so the interval "
             "that clause covered is over and the escape reads as the rule"
         )
+
+
+def the_order():
+    """`skills/implement/orchestration.md` *Orchestrator: the order inside a
+    ticket*, flattened, up to the subsection under it."""
+    text = flat(*ORCH_IMPL)
+    return text[
+        text.index("## Orchestrator: the order inside a ticket") : text.index(
+            "### The plan is approved at the spawn"
+        )
+    ]
+
+
+def test_a_decision_after_the_frame_is_folded_into_it():
+    """S9 of #945. A smith reads the frame and not the issue's comments, so
+    a decision made after the frame is committed is folded into it before
+    the next smith spawns, and before framing into the issue body."""
+    order = the_order()
+    for said in (
+        "A decision made after the frame is committed is folded, in place, into "
+        "`spec.md` or `plan.md` before the next smith spawns.",
+        "naming the comments to fold",
+        "the orchestrator keeps one line of its own in `plan.md`",
+        "below the title where it does not",
+        "folds the decision into the issue body",
+    ):
+        assert said in order, f"the order no longer says {said!r}"
+
+
+def test_a_handoff_file_is_written_only_to_move_the_work():
+    """S9 of #945. Where a work item stands is in the records it already
+    has, so a `handoff.md` lives only as long as a move between sessions."""
+    order = the_order()
+    for said in (
+        "Where a work item stands is read from `plan.md`'s Status column, "
+        "`overview.md` and the phase records.",
+        "a `handoff.md` in the work item's directory only to move the work to "
+        "another session or another machine",
+        "The orchestrator that hands the work over writes",
+        "The orchestrator that takes the work over deletes it once",
+    ):
+        assert said in order, f"the order no longer says {said!r}"
+
+
+def test_a_recurring_problem_gets_a_prevention_home():
+    """S9 of #945. A problem met twice in one run gets the place that
+    prevents it before the next spawn, and the issue records where."""
+    order = the_order()
+    for said in (
+        "A problem that recurs within a run gets a prevention home at once.",
+        "a mechanism that stops it, or a rule written into the file the "
+        "recurring act is read from",
+        "The work item in progress builds that home.",
+        "records the home in a comment on the issue of the work item in progress",
+    ):
+        assert said in order, f"the order no longer says {said!r}"
 
 
 def test_a_regression_is_a_defect_a_fix_passs_own_commit_made():

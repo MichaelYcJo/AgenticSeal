@@ -51,7 +51,8 @@ PINS = {
     # to the letter while leaving a git worktree behind. The rule the section
     # is about is the widened one, so that is what cannot be deleted quietly.
     7: "A probe leaves nothing behind, whatever kind of thing it made",
-    8: "no Bash command line carries the commit, so no gate reads one",
+    # #1027 retired rule 8 to the one line the numbering rule keeps.
+    8: "Retired by #1027, which removed every gate that read a commit",
     9: "An edit must be able to fail",
     10: "Open every file a coordinate names in one call",
     11: "English when the row is absent",

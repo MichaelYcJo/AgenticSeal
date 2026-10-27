@@ -89,6 +89,53 @@ def rows_of(out):
     return rows
 
 
+class _Kernel:
+    """A stand-in for `payload_meter.py`: one agent, `warden`, whose
+    composition is ROWS, or raises ERROR where one is given."""
+
+    def __init__(self, rows=(), error=None):
+        self.rows, self.error = list(rows), error
+
+    def agents_in(self, root):
+        return {"warden": "definition"}
+
+    def composition(self, root, plugin, agent, definition, verbose):
+        if self.error:
+            raise self.error
+        return self.rows
+
+
+class Test_preloads:
+    def test_accepts_each_agents_own_share_summed(self, tmp_path):
+        rows = [
+            {"bytes": 10, "share": "agent"},
+            {"bytes": 5, "share": "skill"},
+            {"bytes": 3, "share": "agent"},
+        ]
+        assert report.preloads(str(tmp_path), _Kernel(rows)) == {"warden": 13}
+
+    def test_refuses_a_definition_it_cannot_read_as_unreadable(self, tmp_path):
+        """An `OSError` reading an agent becomes the exit-2 sentence `main`
+        prints, never a traceback."""
+        kernel = _Kernel(error=PermissionError(13, "denied", "agents/warden.md"))
+        with pytest.raises(report.Unreadable, match="an agent definition under"):
+            report.preloads(str(tmp_path), kernel)
+
+
+class Test_durations:
+    def test_accepts_case_ids_to_whole_and_fractional_seconds(self, tmp_path):
+        assert report.durations(priced(tmp_path / "t", {"t::a": 1, "t::b": 2.5})) == {
+            "t::a": 1,
+            "t::b": 2.5,
+        }
+
+    def test_refuses_a_file_of_booleans_as_seconds(self, tmp_path):
+        """`true` passes an `isinstance(v, int)` test and is no number of
+        seconds, so a file of them is no reading."""
+        with pytest.raises(report.Unreadable, match="no object of case ids"):
+            report.durations(priced(tmp_path / "t", {"t::a": True}))
+
+
 class Test_module_rows:
     def test_accepts_two_trees_as_one_row_per_file_slowest_now_first(self, tmp_path):
         rows = report.module_rows(
@@ -105,6 +152,22 @@ class Test_module_rows:
             report.module_rows(
                 priced(tmp_path / "at", ["x"]), priced(tmp_path / "now", NOW)
             )
+
+
+class Test_leg_minutes:
+    def test_accepts_a_leg_without_its_job_that_has_no_start_time(self, tmp_path):
+        started = job("pytest (ubuntu-latest, 3.12, 1)", 9)
+        unstarted = job("pytest (ubuntu-latest, 3.12, 2)", 20)
+        del unstarted["started_at"]
+        jobs = jobs_file(tmp_path / "jobs.jsonl", [started, unstarted])
+        assert report.leg_minutes(jobs) == {"ubuntu": 9.0}
+
+    def test_refuses_a_job_whose_name_only_begins_as_a_pytest_job(self, tmp_path):
+        """The whole name is the pytest job's shape or the job is not one."""
+        jobs = jobs_file(
+            tmp_path / "jobs.jsonl", [job("pytest (ubuntu-latest, 3.12) report", 9)]
+        )
+        assert report.leg_minutes(jobs) == {}
 
 
 class Test_main:
@@ -181,6 +244,24 @@ class Test_main:
         assert rows["`docs/new.md` (bytes)"] == ("—", "4", "new"), rows
         assert rows["`CLAUDE.md` (bytes)"] == ("4", "4", "+0 (+0.0%)"), rows
         assert "`CONTRIBUTING.md` (bytes)" in rows, rows
+
+    def test_accepts_each_process_archive_file_as_a_document_row(
+        self, tmp_path, capsys
+    ):
+        """#945: each `seal/process/<X.Y.Z>.md` is a document row beside
+        `docs/*.md`, so the archive's size is read at each release; the rest
+        of the `seal/` root is no document and has no row."""
+        at = tree(tmp_path / "at", "", {"t::a": 1.0}, {})
+        now = tree(tmp_path / "now", "", {"t::a": 1.0}, {})
+        for rel in ("seal/process/0.23.0.md", "seal/README.md", "seal/specs/1-x/a.md"):
+            path = tmp_path / "now" / rel
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("# 0.23.0\n", "utf-8", newline="\n")
+        assert report.main(["--against", "v1", "--at", at, "--root", now]) == 0
+        rows = rows_of(capsys.readouterr().out)
+        seal = [what for what in rows if what.startswith("`seal/")]
+        assert seal == ["`seal/process/0.23.0.md` (bytes)"], rows
+        assert rows["`seal/process/0.23.0.md` (bytes)"] == ("—", "9", "new"), rows
 
     @pytest.mark.parametrize(
         "lines",

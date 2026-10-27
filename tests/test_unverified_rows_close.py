@@ -202,6 +202,11 @@ def test_the_skill_states_the_closing_convention():
     skill = collapsed("skills", "implement", "SKILL.md")
     assert "closed by marking it, never by deleting it" in skill
     assert "unverified-check --baseline" in skill
+    # #945 took the step out of CI: a deleted row is the warden's to read in
+    # the overview's diff, and no check at the pull request refuses it.
+    assert "No check at the pull request refuses a deleted row" in skill
+    assert "the warden reads the overview's diff" in skill
+    assert "fails the next pull request" not in skill
 
 
 # The phrase each language's files use for the base's tip, where CI's
@@ -215,14 +220,7 @@ TIP_KO = "base 브랜치의 끝"
     [
         ("README.md", TIP_EN, None),
         ("README.ko.md", TIP_KO, None),
-        # True at both places without naming either, and so not held to the tip
-        # (`seal/specs/1790381329-the-deferred-sentences-and-pins/spec.md`,
-        # *Out of scope*): a sibling squashed after this branch was cut is not
-        # its removal on a branch checkout or at the merge ref.
-        (os.path.join("docs", "release-checklist.md"), None, None),
         (os.path.join("skills", "verify", "SKILL.md"), TIP_EN, None),
-        (os.path.join(".github", "workflows", "hygiene.yml"), TIP_EN, None),
-        (os.path.join("templates", "hygiene.yml"), TIP_EN, None),
         # The module's docstrings (#612). The phrase stands here three times,
         # so this row cannot see the `--baseline` help alone go back to the
         # fork point; `tests/test_unverified_check.py::Test_main::

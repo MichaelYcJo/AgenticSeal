@@ -2,8 +2,10 @@
 
 The person who pressed `automation` was told nothing stops to ask, and in
 0.22.3 four framer questions reached them anyway, with the prose rule loaded
-(#1002). The gate reads the checked-out branch's declaration through
-`hooks/routing.py` and refuses `AskUserQuestion` there, except for the routing
+(#1002). The gate reads the declaration of the branch resolved as the edit
+gate resolves it (the branch checked out, else the branch a paused rebase
+names), through `routing.worktree_branch` in `hooks/routing.py`, and refuses
+`AskUserQuestion` there, except for the routing
 question put alone, which a resumed run has to put again, until the session
 has answered it.
 """
@@ -206,6 +208,24 @@ class Test_main:
         shutil.copytree(item, repo / "seal" / "specs" / ITEM)
         assert decision_of(run(wt)) == "deny"
         assert decision_of(run(repo)) == "silent"
+
+    def test_refuses_on_a_branch_with_no_commit_yet(self, tmp_path):
+        """A new repository's `main` has no commit, and its declaration names
+        `main` with `Automation` `yes`: the branch resolves as the edit gate
+        resolves it, so the question is refused (round 5 of #1027,
+        finding 1)."""
+        fresh = tmp_path / "fresh"
+        git(tmp_path, "init", "-q", "-b", "main", str(fresh))
+        item = declare(fresh)
+        path = item / routing.FILENAME
+        text = path.read_text(encoding="utf-8")
+        # `declare_routing` reads the branch with `rev-parse --abbrev-ref`,
+        # which prints `HEAD` before the first commit.
+        assert "| Branch | HEAD |" in text, text
+        path.write_text(
+            text.replace("| Branch | HEAD |", "| Branch | main |"), encoding="utf-8"
+        )
+        assert decision_of(run(fresh)) == "deny"
 
     def test_refuses_under_a_root_in_the_common_git_directory(self, repo):
         declare(repo, home=local_home(repo))

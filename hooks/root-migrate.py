@@ -356,8 +356,15 @@ def move(root, src, dst):
     is moved file by file, because `git mv dir existing-dir` would put it
     INSIDE the destination. A file already at its destination is the person's
     to settle (a merge of a branch bootstrapped on the new layout leaves
-    exactly that), and is named rather than tried. The empty directories left
-    behind are removed.
+    exactly that), and is named rather than tried. Then every directory under
+    `src` that holds nothing when the walk reaches it is removed, the deepest
+    first and `src` last, whichever run emptied it, unless its removal fails;
+    one an ignored file holds stays, with every directory above it. Two
+    limits, not guarded. A Windows junction placed under `src` by hand, which
+    git does not track, is walked into, and the empty directories behind it
+    are removed too. Where the removal of a directory fails, as on Windows
+    when another process holds it open, that directory and every one above it
+    stay, and nothing is removed by mistake.
     """
     if not os.path.isdir(under(root, src)):
         if os.path.exists(under(root, dst)):
@@ -386,12 +393,16 @@ def move(root, src, dst):
         if os.path.exists(under(root, target)):
             raise taken(rel, target)
         git_mv(root, rel, target)
-    for here, dirs, files in os.walk(under(root, src), topdown=False):
-        if not dirs and not files:
-            try:
+    # Each directory is listed again when the walk reaches it. The lists
+    # `os.walk` yields were read before the subdirectories below were
+    # removed, so they still name them, and a directory that had held one
+    # stayed on disk empty (#1016, #1018).
+    for here, _, _ in os.walk(under(root, src), topdown=False):
+        try:
+            if not os.listdir(here):
                 os.rmdir(here)
-            except OSError:
-                pass
+        except OSError:
+            pass
 
 
 def rewrite_readme(root, dst):

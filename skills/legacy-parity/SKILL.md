@@ -99,35 +99,21 @@ check: tests/test_the_record_is_written_in_words.py tests/test_review_axes.py
 
 ## Recording the comparison
 
-The mark is written by the party that compared and whose definition names the
-write: the warden in a review round, and the orchestrator where it compared
-with no review round. The scribe and the smith write none. It is written only
-once coordinates were opened, behavior read and verdicts given, so the commit
-gate can recognize the cycle:
+The comparison is recorded in the tree, by the party that compared, once
+coordinates were opened, behavior read and verdicts given; the scribe and
+the smith record none. Where the pull request changes a path outside `docs/`
+and `seal/`, the record is an `original:` line naming the migration config's
+`Baseline commit`, and where it lands follows the routing answer:
 
-```bash
-git rev-parse HEAD > "$(git rev-parse --git-dir)/specseal-parity"
-```
+| The declaration says | Who writes the `original:` line, and where |
+|---|---|
+| through the review chain | the warden, in each round record |
+| straight to the PR | the sealer, once, in `guarantee.md` |
 
-The mark stays under the git directory, where CI never reads it. So in a
-review round whose pull request changes a path outside `docs/` and `seal/`,
-the warden also writes the round record's `original:` line, naming the
-migration config's `Baseline commit`; that line is the comparison's record
-the pull-request check reads (`docs/the-review-record.md` *The round
-record*). A round that could not resolve the original writes no line and
-raises an `unread` finding.
-
-A commit closes the cycle, and the next change to code starts an uncompared
-one. On a branch whose routing declaration answers `through the review
-chain`, the commit gate does not ask, because each round record's
-`original:` line carries the comparison to the pull request; the shapes in
-which no pull-request check reads that line, local mode among them, are
-stated under the wake/quiet table in `skills/implement/orchestration.md`. On
-a branch no declaration names, or one whose declaration answers `straight
-to the PR`, committing code with no such record makes the gate ask:
-approving is the
-waiver, and `[no-parity]` skips it visibly, typed in front of the command with
-its quotes, `: '[no-parity]'; git commit …`, because after `git commit` a bare
-word is a pathspec. A mark for work nobody compared turns *nobody checked*
-into *someone checked and it was fine*.
+The pull-request check reads that line (`docs/the-review-record.md` *The
+round record*). A warden that could not resolve the original writes no line
+and raises an `unread` finding, and a sealer that could not compare writes a
+`withheld` verdict naming it (`agents/sealer.md`). A line for work nobody
+compared turns
+*nobody checked* into *someone checked and it was fine*.
 check: tests/test_review_axes.py

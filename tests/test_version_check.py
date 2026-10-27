@@ -168,6 +168,38 @@ class Test_main:
         assert run_hook("version-check.py", {"cwd": str(tmp_path)}) == ""
 
 
+def plugin_json(directory, version="0.9.0"):
+    """A `.claude-plugin/plugin.json` under DIRECTORY naming VERSION."""
+    meta = directory / ".claude-plugin"
+    meta.mkdir(parents=True)
+    (meta / "plugin.json").write_text(
+        json.dumps({"version": version, "repository": "https://example.com/x/y"}),
+        encoding="utf-8",
+    )
+
+
+class Test_running:
+    def test_accepts_the_loaded_plugins_version_and_repository(
+        self, hook, tmp_path, monkeypatch
+    ):
+        plugin_json(tmp_path / "plugin")
+        monkeypatch.setenv("CLAUDE_PLUGIN_ROOT", str(tmp_path / "plugin"))
+        assert hook.running() == ((0, 9, 0), "https://example.com/x/y")
+
+    def test_refuses_no_plugin_root_whatever_the_cwd_holds(
+        self, hook, tmp_path, monkeypatch
+    ):
+        """No root names no plugin, so the answer is nothing, and a
+        `plugin.json` under the working directory is not read as the loaded
+        one (#1017, the body's `running` row)."""
+        plugin_json(tmp_path)
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setenv("CLAUDE_PLUGIN_ROOT", "")
+        assert hook.running() == (None, None)
+        monkeypatch.delenv("CLAUDE_PLUGIN_ROOT")
+        assert hook.running() == (None, None)
+
+
 class Test_due:
     def test_accepts_a_check_a_day_later(self, hook, repo):
         opt_in(repo)

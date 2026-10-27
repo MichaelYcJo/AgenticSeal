@@ -19,7 +19,7 @@ none. So the axis is an ARGUMENT here, never a second file: two constants, and
 one reader that walks them.
 
 **What a mark is worth, stated plainly.** Every mark this plugin writes can be
-written by hand, `specseal-reviewed` included. These catch a session that
+written by hand. These catch a session that
 declared an agent and then did that agent's work itself, which is a session
 forgetting its own answer, not an adversary defeating a check. Nothing blocks
 on them and CI never sees them -- a git dir does not travel.
