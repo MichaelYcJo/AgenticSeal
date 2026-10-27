@@ -11,7 +11,7 @@ This round reads the fix diff `52656000..c1e26886` (eight commits) and the round
 severity: should
 location: `hooks/root-migrate.py:563-606`, `hooks/root-migrate.py:34-41`, `tests/test_root_migrate.py:598-617`
 evidence: executed `bin/test <scratch>/round-2/test_tmp_round2_probe.py -s -q -p no:xdist`
-verdict: open
+verdict: fixed cc9b77e5
 regression: round-1#1
 
 The unit is `hooks/root-migrate.py#main`, which 9ce5c698 changed. `frame/design.md` *The migration* keeps the boundary "once per repository" and `frame/plan.md` phase 2 delivers "the new stamp"; the fix removed the stamp so that every session start moves what the checked-out tree holds; the defect comes from the stamp having also kept the move off every checkout that is not a branch someone is working forward.
@@ -71,7 +71,7 @@ answer: The fix is a limit sentence, not the guard this record proposes. `hooks/
 severity: should
 location: `docs/one-root-by-lifetime.md:109-114`, `docs/one-root-by-lifetime.ko.md:104-108`, `tests/test_first_setup_asks_once.py:711-738`
 evidence: executed `bin/test <scratch>/round-2/test_tmp_round2_probe.py -s -q -p no:xdist`, `git grep -n -i "stamps the repository" -- docs tests`
-verdict: open
+verdict: fixed b11b2d80
 reopens: round-1#1
 
 The close of round 1 finding 1 holds in the code. `Test_main::test_accepts_a_branch_cut_before_the_move_moved_at_its_own_start` passed in this round's run, and `attempted`, `stamp`, `MARKER` and `has_root` are gone. It does not hold in the policy. 9ce5c698 rewrote `docs/the-record-layout.md`, the changelog fragment and the frame's premise, and left `docs/one-root-by-lifetime.md` *What first setup asks* as it was: "has its work items moved into the thread layout once, by the session-start hook. Once a root exists at either place and nothing of the earlier layout is left, that hook stamps the repository as moved, so a local-mode repository that later checks out an old branch is not moved into the tree it chose to keep clean." The Korean edition says the same at lines 104-108. `tests/test_first_setup_asks_once.py:711-738` requires both editions to hold "that hook stamps the repository as moved" and its Korean twin, so the case pins the old fact.
@@ -130,7 +130,7 @@ answer: Both editions of *What first setup asks* are rewritten in place to this 
 severity: should
 location: `tests/test_root_migrate.py:619-637`
 evidence: executed `bin/test <scratch>/round-2/test_tmp_round2_probe.py -s -q -p no:xdist`
-verdict: open
+verdict: fixed bd326e20
 regression: round-1#1
 
 The unit is `tests/test_root_migrate.py#Test_main::test_refuses_to_write_the_tree_beside_a_local_root`, which 9ce5c698 renamed and rewrote from `test_accepts_a_local_root_as_stamped_and_leaves_an_old_branch_alone`. `frame/plan.md` phase 2 names "a 0.22.x fixture migrated end to end, shared and local" and `frame/design.md` *The migration* keeps the once-per-repository boundary; the fix kept the case's old promise in its name while removing the stamp that made the promise true; the defect comes from renaming the case for what it used to guard rather than for what it now reads.
