@@ -84,7 +84,7 @@ Claude Code puts the cached plugin's `bin/` on PATH. The installed edit gate rea
 `seal/threads/<id>/routing.md`, which this work does not move, so it keeps
 reading this work item's declaration. The installed `seal layout` does not
 know the area rule, so a crafter runs the tree's command by path,
-`/Users/michael/Documents/GitHub/SpecSeal/bin/seal layout --check`, and
+`bin/seal layout --check` from the repository's top, and
 the same for `seal rules --check`.
 
 **The failure scenario of the chosen approach.** In six months a
