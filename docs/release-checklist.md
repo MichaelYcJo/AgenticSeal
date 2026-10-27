@@ -14,12 +14,9 @@ running.
       and its pull request's CI was green **at the commit that merged**. A
       merge pressed while a later push was still on its way takes the earlier
       commit; the corrections then need a pull request of their own.
-- [ ] **Squash the work items back to back.** `unverified_check` resolves its
-      baseline to `git merge-base <the base ref> HEAD`, so a work item
-      squashed into the release branch after a sibling forked is not that
-      sibling's removal. Merge the release branch into a work item's branch
-      only when the branch needs something the release branch holds; the
-      squash discards the merge commit either way.
+- [ ] Merge the release branch into a work item's branch only when the
+      branch needs something the release branch holds; the squash discards
+      the merge commit either way.
       **Never rebase a work item's branch, for any reason.** Every round
       record names its branch's commits on its `target:` line, and a rebase
       orphans them.
@@ -41,6 +38,7 @@ running.
 git fetch origin
 git switch -c chore/the-fragments-become-X.Y.Z origin/release/vX.Y.Z
 git status -sb          # the branch you asked for, tracking the release
+seal no-work-item       # this branch's changes belong to no work item
 ```
 
 The `release/*` ruleset takes no direct push, so the preparation commit needs
@@ -66,7 +64,7 @@ The gather writes a new file, the release's own `changelog/X.Y.Z.md`, and
 heads the index `CHANGELOG.md` with its line. It is staged before step 3 runs
 anything, because the suite lists files with `git ls-files`, which reads the
 index: an untracked release file is a tree the listing does not describe.
-check: tests/test_the_changelog_is_gathered_at_release.py
+check: tests/test_the_changelog_is_gathered_at_release.py tests/test_gather_changelog.py
 
 **A second gather for the same version appends into its section.** A fragment
 landing after this step, while the release pull request is red, is the
@@ -74,6 +72,18 @@ ordinary shape. Run the same command again: the new entries join the
 existing section, the section keeps the first gather's date, and
 `tests/test_release_hygiene.py` refuses a file that heads a version twice.
 check: second-gather-appends tests/test_release_hygiene.py
+
+**The preparation commit writes the process archive,
+`seal/process/X.Y.Z.md`, from `templates/process.md`.** The archive records
+what this release changed in the way of working and why, one row per change.
+`CLAUDE.md`, `agents/*.md` and `skills/*/orchestration.md` are the way of
+working, and `git log vA.B.C..HEAD` over those paths, with the milestone's
+issue comments, gives the rows. Each row is a date, the change, one line of
+why, and a link to the issue comment or commit it came from, and nothing
+else. It is written once, here, because one file that every branch edits is
+the conflict the changelog fragments ended. A release that changed none of
+those files writes no archive file.
+check: none reader: the framer of the next release
 
 ## 2b. Settle what earlier releases left behind
 
@@ -87,18 +97,21 @@ settle --apply
 fold-check
 ```
 
-The first prints the rule changes the released specs state, in merge order,
-what it refuses and what the second would remove. The second applies them to
-`docs/` in place and removes each applied spec's directory whole, and each
-released directory with no `spec.md` and nothing open. A refused spec
-applies nothing and waits for a later settle. `fold-check` then reads the
-documents the second wrote, and names each one past its ceiling as one to
-split (`skills/settle/SKILL.md` *A document past its ceiling is split, never
-trimmed*).
+The first prints each group of released specs whose rule changes name one
+section, in merge order, and every open row of every released record.
+Between the first and the second, the session running the settle writes each
+section as its group's latest decision, checked against the code, and closes
+each open row with what closed it, asking nobody (`skills/settle/SKILL.md` is
+the procedure). The second removes every released work item directory whose
+record holds no open row, and names any it keeps. `fold-check` then reads
+the documents the settle wrote, and names each one past its ceiling as one
+to split (`skills/settle/SKILL.md` *A document past its ceiling is split,
+never trimmed*). The settle's pull request body states each decision with
+its grounds and lists the defaults it took, and the owner reviews it.
 
 `skills/settle/SKILL.md` is the procedure. **A settle is not a work item**:
-it opens no directory under `seal/specs/`, and its commit carries
-`: '[no-review]';` in front of the command. It owes an answer for every
+it opens no directory under `seal/specs/`, and its commit carries the
+trailer `SpecSeal-Routing: no work item`. It owes an answer for every
 check in this repository carrying a population floor over `seal/specs/`.
 
 ## 3. Verify before committing
@@ -120,7 +133,6 @@ reads, under `docs/`, `skills/`, `templates/`, `tests/` or a shipped `.py`.
 python3 .github/scripts/gather_changelog.py --check
 uvx ruff check . && uvx ruff format --check .
 bin/test -q
-python3 skills/verify/scripts/unverified_check.py --baseline origin/main seal/specs/
 python3 skills/code-review/scripts/chain_check.py --baseline origin/main
 ```
 
@@ -131,17 +143,17 @@ What each one has caught, so a failure is recognised rather than debugged:
 | the full suite | a gathered entry prescribed a `git mv` whose destination nothing creates |
 | `test_no_loaded_file_names_a_version_at_or_above_the_running_one` | living prose that named the release by number, or a version ahead of it. A record of a moment is listed in the test; anything else is reworded to name the change, or to the illustrative version the test's own message points at. A version this repository has *tagged* is history and may be named: the shipped set is read from the root's `v*` tags, never from this file, because this commit writes the heading and the bump together |
 
-check: tests/test_a_shrunken_corpus_declines_to_judge.py
+check: tests/test_a_shrunken_corpus_declines_to_judge.py tests/test_conftest.py
 
 ## 4. Commit, push, open the first pull request
 
 The commit belongs to no work item: it is the routing question's
 `no work item` answer (`skills/implement/orchestration.md` *Question 1*), and
-that answer's recorded form is the waiver in front of each command, in
-quotes:
+that answer's recorded form is `seal no-work-item`, run in step 1 before the
+first edit, and the trailer `SpecSeal-Routing: no work item` on each commit:
 
 ```bash
-: '[no-review]'; git commit -m "chore: release X.Y.Z — <what the fragments say>"
+git commit -m "chore: release X.Y.Z — <what the fragments say>" -m "SpecSeal-Routing: no work item"
 git push -u origin chore/the-fragments-become-X.Y.Z
 gh pr create --base release/vX.Y.Z --head chore/the-fragments-become-X.Y.Z \
   --title "chore: release X.Y.Z — <the same line>" --body-file <file>
@@ -172,10 +184,20 @@ squash discards them.
 **Read the release table before the merge.** The pull request's `tests` run
 carries it in the `release-report` job's summary, under *Against vA.B.C*:
 each agent's preload bytes, the suite's seconds, each leg's minutes and each
-document's bytes, beside the same reading at the last release tag. It fails
+document's bytes, beside the same reading at the last release tag, and under
+it each test file's priced cases and seconds at the tag and now. It fails
 nothing. A preload or a document that grew is a question the pull request's
 body answers, or an issue it opens. A leg's minutes compare one run with one
 run and swing on the same code, so they are read and never acted on alone.
+
+**Each release clears what grew.** The test file rows are a report and never
+a ceiling: a heavily exercised module needs the cases it needs. The owner
+reads the rows whose seconds or cases grew most since the tag and sweeps each
+such module with one `bin/mutation-check` call carrying a mutant per class,
+for cases that kill nothing another case does not. The sweep's cuts land in
+a work item of the next release with one line per cut case, the shape
+`CONTRIBUTING.md` *The test layout* gives.
+check: none reader: the owner at release preparation
 
 ### What a release pull request is held to
 
@@ -239,13 +261,13 @@ python3 .github/scripts/plugin_directory_check.py   # what the marketplace files
       `gh release edit` repairs. After the note, the same workflow's `seal`
       job attaches `seal.png` and puts it where the glance table stood.
       Where the note still shows the table, the `seal` job's log says why on
-      a `::warning::` line: the suite at the tag did not pass, `rsvg-convert`
-      was not installed or could not draw the SVG, a `gh` call failed, or
+      a `::warning::` line: the suite at the tag did not pass, the seal could
+      not be drawn or written, a `gh` call failed, or
       the glance table was not in the note as generated: edited before the
       job reached it, published without one, or the pull requests moved
       between the two lists. That job never fails the release.
-      To draw one by hand, from a checkout at the tag on a machine with
-      `rsvg-convert`, run the suite with the broad gate's recorder loaded
+      To draw one by hand, from a checkout at the tag, with a `python3` that
+      imports Pillow, run the suite with the broad gate's recorder loaded
       (`PYTHONPATH="$PWD/skills/verify/scripts/pytest_record"`,
       `PYTEST_ADDOPTS='-p specseal_pytest_record'`, and
       `SPECSEAL_RECORD_DIR` and `SPECSEAL_RECORD_KEY` naming a directory

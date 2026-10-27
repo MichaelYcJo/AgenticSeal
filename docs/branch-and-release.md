@@ -60,9 +60,9 @@ maintainer's last act, fires the note, because a note has to name a tag.
   folded. A pull request title is therefore a line of the release note: write
   it as one. **Then the release's seal is attached.** A second job in the same
   workflow runs only when this run created the release. It runs the suite at
-  the tag, draws the owner's seal from `.github/scripts/release-seal.svg` with
-  `rsvg-convert`, which the job installs, attaches it as `seal.png`, and
-  replaces the glance table with the image at its display width and one line
+  the tag, draws the seal with Pillow from the terminal stamp's own cells and
+  colours (`skills/verify/scripts/seal_stamp.py`), one cell to one square
+  block of pixels, attaches it as `seal.png`, and replaces the glance table with the image at its display width and one line
   of the table's counts. That edit is the only change it makes to a note, and
   only to one whose glance table is still exactly as it was generated. Any
   failure is a `::warning::` in the job log and leaves the note as it was
@@ -91,7 +91,7 @@ maintainer's last act, fires the note, because a note has to name a tag.
 `docs/release-checklist.md` *6. After the merge* carries a box for each of the
 first two. The first confirms the workflow fired and is not where the note
 gets written; the second is where the command is run.
-check: tests/test_a_release_publishes_its_note.py tests/test_the_release_tail_does_not_end_at_the_tag.py tests/test_the_release_seal_is_drawn.py
+check: tests/test_a_release_publishes_its_note.py tests/test_publish_release_note.py tests/test_the_release_tail_does_not_end_at_the_tag.py tests/test_the_release_seal_is_drawn.py tests/test_release_seal.py
 
 Which workflows GitHub starts on which event, and which run a newer push
 cancels, is GitHub's behaviour. No case here can start a run, so
@@ -196,9 +196,10 @@ squash merge, like any other work.
   of it, so the commits a round reviewed are read while the pull request that
   carries them is open, and no step fetches a ref the checkout lacks. The
   checks ship to user repositories as `templates/hygiene.yml`, run from a
-  clone of this repository at the release installed when the `implement`
-  skill wrote the file at a shared-mode first setup; local mode installs
-  none, because the checks read committed files and local mode commits none.
+  clone of this repository at the release installed when
+  `seal pr-checks install` wrote the file, at first setup or later; it
+  refuses in local mode, because the checks read committed files and local
+  mode commits none.
 
   Keeping the branch is still worth something: it leaves the rounds and the
   verdict readable on a branch nobody merged, which is the only place the
@@ -312,7 +313,7 @@ exits non-zero only at the end, naming each issue both routes refused with
 both errors. A partial close is repaired by re-running the script with the
 run's `BEFORE`, `AFTER` and `REPO`: it skips what is already closed and
 reaches the rest.
-check: tests/test_the_closer_carries_on_past_a_refusal.py
+check: tests/test_close_issues_on_release.py
 
 ```
 Closes #88
