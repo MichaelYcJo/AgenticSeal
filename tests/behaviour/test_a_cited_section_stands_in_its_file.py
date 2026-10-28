@@ -231,6 +231,7 @@ A paragraph whose second line
 whose paragraph ended.** Text.
 
 ```text
+
 **Fenced lead.** An example.
 
 ## Fenced heading
