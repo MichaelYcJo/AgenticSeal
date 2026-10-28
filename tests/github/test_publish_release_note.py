@@ -777,6 +777,16 @@ class Test_module:
         assert mod.previous_tag("v0.1.0") is None
         assert mod.commit_range(None, "v0.1.0") == "v0.1.0"
 
+    def test_the_process_table_takes_its_shape_from_the_template(self):
+        """#1117. The heading, the header row and the delimiter row `section`
+        writes are `templates/records/process.md`'s, the section's one
+        source."""
+        with open(
+            os.path.join(ROOT, "templates", "records", "process.md"), encoding="utf-8"
+        ) as handle:
+            template = handle.read().split("\n")
+        assert publisher().process_shape() == (template[0], template[2], template[3])
+
     def test_a_fragment_the_settle_removed_reaches_a_note_tagged_on_a_merge(
         self, tmp_path, monkeypatch
     ):
@@ -805,6 +815,50 @@ class Test_module:
         monkeypatch.setattr(mod, "ROOT", str(repo))
         revisions = mod.commit_range(mod.previous_tag(TAG), TAG)
         assert mod.fragments(revisions) == [("1700000001-first", "- first entry")]
+
+
+class Test_section:
+    def test_accepts_process_rows_into_one_table_above_the_fragments(self):
+        """S9 of #1117. A work item that changed the way of working ends its
+        fragment with a `### Process changes` table. The note carries one
+        such table above the fragments, holding every fragment's rows in id
+        order, and each fragment follows without its section, so a row is
+        shown once. A fragment that is the section alone keeps its marker
+        line with nothing under it. Seen red against `section` at
+        `4134055a`, which folded each table into its fragment."""
+        header = "| Date | Change | Why | Source |\n|---|---|---|---|\n"
+        first = (
+            "- **A change.** What it does.\n\n### Process changes\n\n"
+            + header
+            + "| 2026-10-01 | one | why one | https://example.com/1 |\n"
+            + "| 2026-10-02 | two | why two | https://example.com/2 |"
+        )
+        third = (
+            "### Process changes\n\n"
+            + header
+            + "| 2026-10-03 | three | why three | https://example.com/3 |"
+        )
+        entries = [("1-first", first), ("2-second", "- b"), ("3-third", third)]
+        assert publisher().section(entries) == (
+            "### Process changes\n\n"
+            + header
+            + "| 2026-10-01 | one | why one | https://example.com/1 |\n"
+            + "| 2026-10-02 | two | why two | https://example.com/2 |\n"
+            + "| 2026-10-03 | three | why three | https://example.com/3 |\n\n"
+            + "<!-- specs/1-first -->\n- **A change.** What it does.\n\n"
+            + "<!-- specs/2-second -->\n- b\n\n"
+            + "<!-- specs/3-third -->"
+        )
+
+    def test_refuses_a_table_where_no_fragment_carries_a_row(self):
+        """S10 of #1117. With no process row in any fragment, the output is
+        what `section` returned before #1117: each marker line and its body,
+        and no `### Process changes` heading."""
+        entries = [("1-first", "- a\n\n### Removed\n\n- gone"), ("2-second", "- b")]
+        assert publisher().section(entries) == (
+            "<!-- specs/1-first -->\n- a\n\n### Removed\n\n- gone\n\n"
+            "<!-- specs/2-second -->\n- b"
+        )
 
 
 test_census = census_case(TARGET)

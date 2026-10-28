@@ -785,7 +785,6 @@ class Test_old_names:
         old = "\n".join(line for line, _ in OLD_SPELLINGS) + "\n"
         plant(tmp_path, "docs/living.md", living)
         for rel in (
-            "seal/process/0.1.0.md",
             "seal/threads/1-x/frame/design.md",
             "evals/behaviour/proofer/replay-1-r1/prompt.md",
             "evals/behaviour/proofer/seeded-1/prompt.md",
@@ -803,7 +802,6 @@ class Test_old_names:
         )
         for rel in (
             "docs/living.md",
-            "seal/process/0.1.0.md",
             "seal/threads/1-x/frame/design.md",
             "evals/behaviour/proofer/replay-1-r1/prompt.md",
             "evals/behaviour/proofer/seeded-1/prompt.md",
@@ -923,7 +921,6 @@ class Test_vacated_paths:
     def test_accepts_the_records_and_a_recorded_case(self, tmp_path):
         root = plant_moved(tmp_path)
         records = (
-            "seal/process/0.1.0.md",
             "seal/threads/1-x/frame/design.md",
             "evals/behaviour/proofer/replay-1-r1/prompt.md",
             ".test_durations",

@@ -109,13 +109,18 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(HERE, "..", "..", "hooks", "lib"))
+sys.path.insert(0, os.path.join(HERE, "..", "..", "skills", "verify", "scripts"))
 import console  # noqa: E402
 from blocks import gfm_lines  # noqa: E402
 from close_issues_on_release import keywords_in  # noqa: E402
+from unverified_check import heading_level  # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 # A work item's changelog fragment, its id captured.
 FRAGMENT_RE = re.compile(r"^seal/threads/([^/]+)/changelog\.md$")
+# The shape of a fragment's process section, which the note lifts into one
+# table (`section`).
+PROCESS_TEMPLATE = os.path.join(ROOT, "templates", "records", "process.md")
 # The milestone a release's theme is read from, by its title.
 MILESTONE_TITLE = "release: {version}"
 PURPOSE_LABEL = "Purpose:"
@@ -237,10 +242,58 @@ def fragments(revisions):
     return out
 
 
+def process_shape():
+    """`(heading, header row, delimiter row)` of a fragment's process
+    section, read from `templates/records/process.md`, the section's one
+    source: its first line, and its first two table rows."""
+    with open(PROCESS_TEMPLATE, encoding="utf-8") as handle:
+        lines = gfm_lines(handle.read())
+    rows = [line for line in lines if line.startswith("|")]
+    return lines[0], rows[0], rows[1]
+
+
+def split_process(body, heading):
+    """`(body without its process section, the section's rows)`.
+
+    The section is the line `heading` and every line after it up to the next
+    heading (`unverified_check.py#heading_level`) or the body's end. Its rows
+    are its table lines after the header and delimiter rows.
+    """
+    kept, table, inside = [], [], False
+    for line in gfm_lines(body):
+        if line.strip() == heading:
+            inside = True
+        elif inside and heading_level(line) is not None:
+            inside = False
+            kept.append(line)
+        elif inside:
+            if line.startswith("|"):
+                table.append(line)
+        else:
+            kept.append(line)
+    return "\n".join(kept).strip(), table[2:]
+
+
 def section(entries):
     """The fragments as the note carries them: each work item's marker line,
-    its body, and a blank line before the next."""
-    return "\n\n".join(f"<!-- specs/{item} -->\n{body}" for item, body in entries)
+    its body, and a blank line before the next.
+
+    Every row of every fragment's process section is lifted into one
+    `### Process changes` table above them, in id order and each fragment's
+    own row order, and each fragment follows without its section, so a row
+    is shown once (#1117). With no row anywhere the fragments are all there
+    is.
+    """
+    heading, header, delimiter = process_shape()
+    rows, parts = [], []
+    for item, body in entries:
+        rest, found = split_process(body, heading)
+        rows += found
+        parts.append(f"<!-- specs/{item} -->" + (f"\n{rest}" if rest else ""))
+    fragments = "\n\n".join(parts)
+    if not rows:
+        return fragments
+    return "\n".join([heading, "", header, delimiter, *rows, "", fragments])
 
 
 def milestone_description(repo, version):
