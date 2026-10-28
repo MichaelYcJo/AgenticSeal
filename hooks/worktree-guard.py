@@ -69,7 +69,11 @@ B) Worktree creation, whichever path it takes:
     guard, and declining it withdraws the token, which is the other way on.
     Still true, and still not consent for the NEXT creation: the token is
     written before the question and the record after the answer
-  - otherwise (single work stream)                  -> deny, steer to `git switch`
+  - otherwise (single work stream)                  -> deny, steer to `git switch`.
+    Attended, the reason asks for the user's confirmation and names
+    `[worktree-ok]` as the way past. Under the press this row is reached only
+    where the CHOICE rows are, and there it names no token and asks for no
+    confirmation: the press sentences stand in their place (#920)
 
   The rows after the consent row are the Bash path's. The Agent/Task path
   counts no sessions: the agent runs beside this session, so the call is
@@ -101,7 +105,9 @@ names no question tool and no token, and no marker is written, because no
 question was put (#896). In the clone the press was given in, the creation
 direction's two sites never run under the press: consent is read first. In
 another clone, where this session has created no worktree, they deny on
-every attempt in the same register, naming no way on (#903).
+every attempt in the same register, naming no way on (#903). The creation's
+single-stream row is reached there too, and keeps its deny and its steer to
+`git switch`; its reason names no token and ends in the same register (#920).
 
 Creation consent is a SECOND session-scoped record and deliberately not part
 of that budget: `<git-common-dir>/agentic-worktree-consent/<session-id>`,
@@ -1379,19 +1385,34 @@ def git_at(top: str, cwd: str) -> str:
     return f"git -C {shlex.quote(top)}"
 
 
-def steer_to_switch(git: str = "git") -> str:
+def switch_lines(git: str = "git") -> str:
+    """The three `git switch` command lines, without the sentence after them.
+
+    Their own function because the single-stream creation row under the
+    press prints them and ends with the press sentences instead of the one
+    `steer_to_switch` adds, which asks for a confirmation (#920)."""
     return tr(
         f"  {git} fetch origin\n"
         f"  {git} switch -c <branch> origin/main   # new branch\n"
-        f"  {git} switch <branch>                  # existing branch\n\n"
-        "If this genuinely is concurrent work needing separation, state why and get the "
-        "user's confirmation first (if the user already asked for a worktree, retry with "
-        "[worktree-ok] in the command).",
+        f"  {git} switch <branch>                  # existing branch",
         f"  {git} fetch origin\n"
         f"  {git} switch -c <branch> origin/main   # 새 브랜치\n"
-        f"  {git} switch <branch>                  # 기존 브랜치\n\n"
-        "정말 동시 작업이라 분리가 필요하면 그 이유를 밝히고 사용자 확인을 먼저 받으세요 "
-        "(사용자가 이미 워크트리를 지시했다면 명령에 [worktree-ok] 를 붙여 다시 시도).",
+        f"  {git} switch <branch>                  # 기존 브랜치",
+    )
+
+
+def steer_to_switch(git: str = "git") -> str:
+    return (
+        switch_lines(git)
+        + "\n\n"
+        + tr(
+            "If this genuinely is concurrent work needing separation, state why and "
+            "get the user's confirmation first (if the user already asked for a "
+            "worktree, retry with [worktree-ok] in the command).",
+            "정말 동시 작업이라 분리가 필요하면 그 이유를 밝히고 사용자 확인을 먼저 "
+            "받으세요 (사용자가 이미 워크트리를 지시했다면 명령에 [worktree-ok] 를 "
+            "붙여 다시 시도).",
+        )
     )
 
 
@@ -1828,11 +1849,11 @@ def guard_worktree_creation(
     # where one of the two rows fires: `cwd` is where the shell stands, which
     # `judge_creation` hands here on purpose.
     #
-    # Under the press the two rows open with PLAIN_ORIGIN, the origin without
-    # `judge_creation`'s quote note: that note tells the model to re-issue
-    # with `[worktree-ok]`, which reaches row 2's `ask`, a person's prompt
-    # (round 1 of work item 1791852612, yellow 1). Attended, the origin is
-    # the one every row reads.
+    # Under the press the two rows, and row 5 below them, open with
+    # PLAIN_ORIGIN, the origin without `judge_creation`'s quote note: that note
+    # tells the model to re-issue with `[worktree-ok]`, which reaches row 2's
+    # `ask`, a person's prompt (round 1 of work item 1791852612, yellow 1;
+    # #920 for row 5). Attended, the origin is the one every row reads.
     elsewhere = (
         press_sentence()
         + tr(
@@ -1923,12 +1944,21 @@ def guard_worktree_creation(
             unattended=elsewhere,
         )
 
-    # A Bash command can carry `[worktree-ok]` and come back through the block
-    # above, so this deny has a documented way past it.
+    # 5) Single stream: deny, and steer to `git switch`.
+    #
+    # Attended, a Bash command can carry `[worktree-ok]` and come back through
+    # the block above, so this deny has a documented way past it, and its
+    # reason names it. Under the press this row is reached only where rows 3
+    # and 4 are, in another clone where this session has created no worktree,
+    # and that way past ends at row 2's `ask`, a person's prompt. So there it
+    # opens with PLAIN_ORIGIN, keeps the switch lines, and ends with the press
+    # sentences in place of the confirmation `steer_to_switch` asks for
+    # (#920). The press is read here, after rows 1 to 4, as they read it.
+    pressed = automation_pressed(repo_paths(cwd)[0], session_id, transcript_path)
     respond(
         "deny",
         (
-            f"{origin}\n"
+            f"{plain_origin if pressed else origin}\n"
             + tr(
                 "No other session is working in this tree (= single-stream). Rule: for "
                 "single-stream work, don't create a worktree — just switch branches in the "
@@ -1939,7 +1969,11 @@ def guard_worktree_creation(
                 "— 에디터 한 창에서 다 보여 코드 파악이 빠르고, 쓰다 만 worktree 폴더가 "
                 "쌓이지 않습니다.\n\n",
             )
-            + steer_to_switch(git)
+            + (
+                switch_lines(git) + "\n\n" + press_sentence() + reissue_sentence()
+                if pressed
+                else steer_to_switch(git)
+            )
         ),
     )
 
@@ -2011,8 +2045,8 @@ def judge_creation(
         "`git worktree add` 로 worktree를 만들려 합니다.",
     )
     # The note below is the single-stream deny's way past, which is
-    # `[worktree-ok]`. Under the press rows 3 and 4 name no token (#903), so
-    # they open with the origin as it stands here.
+    # `[worktree-ok]`. Under the press rows 3, 4 and 5 name no token (#903,
+    # #920), so they open with the origin as it stands here.
     plain_origin = origin
     if not user_ok and not parses_cleanly(command):
         origin += tr(
