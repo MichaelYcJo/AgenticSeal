@@ -70,7 +70,7 @@ cat > 'seal/threads/1790000012-count-words/routing.md' <<'AGENTIC_EOF'
 | Branch | feat/count-words |
 AGENTIC_EOF
 git add -A
-git -c user.name=eval -c user.email=eval@example.com commit -q -m 'base: textutil'
+git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'base: textutil'
 git checkout -q -b feat/count-words
 mkdir -p "$(dirname 'seal/threads/1790000012-count-words/frame/design.md')"
 cat > 'seal/threads/1790000012-count-words/frame/design.md' <<'AGENTIC_EOF'
@@ -101,4 +101,4 @@ Approved 2026-10-14 by the repository owner, when `crafter` was spawned.
 | 1 | `count_words(text)` in `src/textutil.py` and its case | `python3 -m unittest tests.test_textutil -q` | |
 AGENTIC_EOF
 git add -A
-git -c user.name=eval -c user.email=eval@example.com commit -q -m 'frame: count_words'
+git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'frame: count_words'

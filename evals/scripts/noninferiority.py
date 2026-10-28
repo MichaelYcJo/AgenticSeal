@@ -608,7 +608,7 @@ def run_side(a):
         return write_side(a.from_raw, a.out)
     if not a.agent:
         raise SystemExit("run needs --agent, or --from-raw")
-    work = tempfile.mkdtemp(prefix="agentic-eval-")
+    work = tempfile.mkdtemp(prefix="agentic-")
     try:
         tree = os.path.join(work, "tree")
         if a.rev:

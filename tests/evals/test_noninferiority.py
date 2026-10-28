@@ -25,10 +25,12 @@ import re
 import stat
 import subprocess
 import sys
+import tempfile
 import types
 
 import pytest
 from conftest import ROOT, census_case, git, load_module, write
+from test_no_case_tells_the_agent_it_is_evaluated import REFUSED
 
 TARGET = "evals/scripts/noninferiority.py"
 
@@ -1301,6 +1303,26 @@ class Test_run_side:
         with pytest.raises(SystemExit, match="claude plugin eval wrote no JSON"):
             NI.main(argv)
         assert not out.exists() and not (tmp_path / "side.raw").exists()
+
+    def test_refuses_a_temporary_directory_whose_name_tells_the_agent_it_is_evaluated(
+        self, tmp_path, monkeypatch
+    ):
+        """Guards #1042 S6: the tree the eval loads is the base directory of
+        every skill the agent reads, so no component of its path below the
+        system temporary directory holds a word
+        `tests/text/test_no_case_tells_the_agent_it_is_evaluated.py` refuses."""
+        plugin = plugin_tree(tmp_path / "plugin")
+        loaded = []
+        monkeypatch.setattr(
+            NI, "call_eval", lambda command, env: loaded.append(command[3])
+        )
+        argv = ["run", "--agent", "proofer", "--tree", str(plugin)]
+        with pytest.raises(SystemExit, match="claude plugin eval wrote no JSON"):
+            NI.main([*argv, "--out", str(tmp_path / "side.json")])
+        below = os.path.relpath(loaded[0], tempfile.gettempdir())
+        assert not below.startswith(os.pardir), below
+        named = [part for part in below.split(os.sep) if REFUSED.search(part)]
+        assert named == [], below
 
 
 class Test_kind:
