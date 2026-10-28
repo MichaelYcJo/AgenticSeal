@@ -76,6 +76,10 @@ TARGET = "hooks/worktree-guard.py"
 
 wg = load_hook_module("worktree-guard.py", "wg_under_test")
 
+# The variable Claude Code hands a hook for the plugin option
+# `worktree_guard_language`, which `.claude-plugin/plugin.json` declares.
+OPTION = "CLAUDE_PLUGIN_OPTION_WORKTREE_GUARD_LANGUAGE"
+
 ACTIVE = [(111, "/tree", 1.0, 0.5, "VS Code")]
 IDLE = [(222, "/tree", 400.0, 90.0, "Terminal")]
 SINGLE = ([], [], True)
@@ -366,8 +370,8 @@ def agent_decide(monkeypatch, capsys, repo, tool_input, sessions=([], [], True))
 
 @pytest.fixture
 def wko(monkeypatch):
-    """The guard loaded with Korean text."""
-    monkeypatch.setenv("SPECSEAL_LANG", "ko")
+    """The guard loaded with Korean text, chosen through the plugin option."""
+    monkeypatch.setenv(OPTION, "ko")
     return load_hook_module("worktree-guard.py", "wg_896_ko")
 
 
@@ -1144,6 +1148,26 @@ class Test_module:
         assert wg._lang() == "en"
         monkeypatch.setenv("WORKTREE_GUARD_IDLE_MIN", "7")
         assert wg._idle_min() == 7
+
+    @pytest.mark.parametrize("unset", ["absent", "empty"])
+    def test_accepts_the_option_first_and_the_old_variable_where_it_is_empty(
+        self, monkeypatch, unset
+    ):
+        """#1096 S2 and S3. The plugin option decides over SPECSEAL_LANG and
+        the locale. Where the option is absent, or exported empty, SPECSEAL_LANG
+        decides, which the guard reads through 0.24.x."""
+        monkeypatch.setenv("LANG", "en_US.UTF-8")
+        monkeypatch.setenv(OPTION, "ko")
+        monkeypatch.setenv("SPECSEAL_LANG", "en")
+        assert wg._lang() == "ko"
+        monkeypatch.setenv(OPTION, "en")
+        monkeypatch.setenv("SPECSEAL_LANG", "ko")
+        assert wg._lang() == "en"
+        if unset == "absent":
+            monkeypatch.delenv(OPTION)
+        else:
+            monkeypatch.setenv(OPTION, "")
+        assert wg._lang() == "ko"
 
     @pytest.mark.parametrize("value", ["0", "-3", "five"])
     def test_refuses_an_idle_window_that_is_not_a_positive_number(

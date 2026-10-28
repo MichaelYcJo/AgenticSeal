@@ -177,7 +177,7 @@ PR 검사가 그중 무엇을 읽는지, 세션이 에이전트에게 일을 어
 | version-check | 세션 시작 시 | 이 저장소에 최신 릴리스 태그를 물어보고, 실행 중인 플러그인이 뒤처져 있으면 `/agentic:update` 를 알린다. 하루 한 번 물어보고, 조회가 실패하면 20분쯤 뒤에 다시 시도한다. 설치는 하지 않는다. 릴리스가 있다고 알리는 것과 남의 기계에 설치하는 것은 다른 일이다 | 루트에 `seal/` 이 있는 레포, 또는 local 모드로 공통 git 디렉터리 아래에 있는 레포. 그 밖에서는 아무것도 하지 않는다 |
 | sealer-stamp | 메인 세션의 턴이 끝날 때 (`Stop`) | 작업 항목의 `guarantee.md` 가 `sealed` 로 쓰일 때 남는 봉인 도장을 — 작업 항목마다 한 번, 이 세션 앞으로 `<git-common-dir>/agentic-stamp/<session>/` 에 쌓인 것을 — 턴의 글이 다 나온 뒤에 한 번 그리고, 그 파일의 이름을 `.drawn.json` 으로 바꾼다. 서브에이전트가 끝날 때, 다른 세션의 파일, 3.12 보다 낮은 `python3` 에서는 그리지 않는다. 손으로 그리려면 `seal stamp --from <file>` 이다 | 루트에 `seal/` 이 있는 레포, 또는 local 모드로 공통 git 디렉터리 아래에 있는 레포. 그 밖에서는 아무것도 하지 않는다 |
 | sealer-stamp-queue | 작업 항목의 `guarantee.md` 를 Write·Edit 한 직후 | 어느 모드에서든, 그 쓰기로 `guarantee.md` 가 `sealed` 로 읽히고 그 판정이 `routing.md` 가 적은 브랜치 위의 커밋을 가리킬 때, 메인 세션의 `Stop` 이 그릴 도장을 작업 항목마다 한 번 쌓아 두고, 쌓은 파일과 `seal stamp --from` 을 적은 한 줄을 출력한다. 그 브랜치에 그 커밋이 없으면 아무것도 쌓지 않고, 거절을 기록하고, 그렇다고 한 줄로 말한다. 다른 편집은 경로만 보고 넘기며, 그때는 아무것도 불러오지 않고 `git` 도 돌리지 않는다 | 루트에 `seal/` 이 있는 레포, 또는 local 모드로 공통 git 디렉터리 아래에 있는 레포. 그 밖에서는 아무것도 하지 않는다 |
-| lint-python | `.py` 파일을 Write·Edit·NotebookEdit 한 직후 | 그 파일에 `ruff check --fix` 를 돌린 뒤 `ruff format` 을 돌린다. 자동수정이 포함되므로 레이아웃만이 아니라 코드가 바뀐다 (uv → uvx → 전역 순으로 찾고, 없으면 건너뛴다). `SPECSEAL_LINT=off` 로 끌 수 있다 | **ruff 를 설정한 프로젝트** — `ruff.toml`, `.ruff.toml`, 또는 `pyproject.toml` 의 `[tool.ruff]`. 레포 루트까지 거슬러 찾는다. 그 밖에서는 아무것도 하지 않는다 |
+| lint-python | `.py` 파일을 Write·Edit·NotebookEdit 한 직후 | 그 파일에 `ruff check --fix` 를 돌린 뒤 `ruff format` 을 돌린다. 자동수정이 포함되므로 레이아웃만이 아니라 코드가 바뀐다 (uv → uvx → 전역 순으로 찾고, 없으면 건너뛴다) | **ruff 를 설정한 프로젝트** — `ruff.toml`, `.ruff.toml`, 또는 `pyproject.toml` 의 `[tool.ruff]`. 레포 루트까지 거슬러 찾는다. 그 밖에서는 아무것도 하지 않는다 |
 
 작업 항목은 첫 수정 전에 `seal/threads/<id>/routing.md` 를 씁니다 — 어느 길로
 갈지, PR 을 열지. 라우팅 편집 게이트는 선언이 가리키지 않는 브랜치의 편집을
@@ -277,8 +277,7 @@ origin remote 를 키로 저장됩니다. 다른 기계에서는 틀린 값이�
 | worktree 명령의 `[worktree-ok]` | 혼자 작업할 때 worktree 생성을 막던 것을 확인창으로 완화한다. 명령의 낱말로 있을 때만 세므로 따옴표 안의 문장에 적힌 것은 세지 않고, here-document 본문에 적힌 것도 세지 않는다. `isolation: "worktree"` 로 부르는 Agent 는 명령줄이 없어 토큰을 받지 않고, 대신 바로 확인창을 띄운다 |
 | 전환 명령의 `[shared-tree-ok]` | 공용 트리에서 전환하기로 이미 골랐다는 표시다. 가드가 판정하지 못하는 자리(멈춘 세션뿐, 환경 조회 불가)에서 전환이 그대로 통과한다. 명령의 낱말로 있을 때만 세고, here-document 본문에 적힌 것은 세지 않는다. 다른 세션이 작업 중일 때와 트리가 더러울 때는 무시된다 |
 | `WORKTREE_GUARD_IDLE_MIN=n` | 세션을 멈춘 것으로 볼 기준 시간, 분 단위 (기본 5) |
-| `SPECSEAL_LINT=off` | ruff 를 설정한 곳에서도 파이썬 자동 포맷 훅을 끈다 |
-| `SPECSEAL_LANG=ko\|en` | worktree-guard 문구의 언어 (나머지 게이트는 영어만 나옵니다). 기본은 시스템 로케일을 따릅니다 |
+| `/config` 에서 한 번 정하는 플러그인 옵션 `worktree_guard_language`, `ko` 또는 `en` | worktree-guard 문구의 언어 (나머지 게이트는 영어만 나옵니다). 비워 두면 환경변수 `SPECSEAL_LANG=ko\|en` 을 따르고, 다음 마이너 릴리스부터는 이 변수를 읽지 않습니다. 둘 다 없으면 시스템 로케일을 따릅니다 |
 
 ## 설치
 

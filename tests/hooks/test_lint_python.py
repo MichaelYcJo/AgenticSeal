@@ -42,7 +42,7 @@ def _py_in(tmp_path, *, config=None, name="m.py"):
     return f
 
 
-def _ran(monkeypatch, tmp_path, path, env=None):
+def _ran(monkeypatch, tmp_path, path):
     calls = []
     monkeypatch.setattr(lp, "resolve_runner", lambda: ["ruff"])
     monkeypatch.setattr(
@@ -51,8 +51,6 @@ def _ran(monkeypatch, tmp_path, path, env=None):
         lambda *a, **k: calls.append(a[0]) or subprocess.CompletedProcess(a, 0),
     )
     monkeypatch.setattr(lp.sys, "argv", ["lint-python.py", str(path)])
-    for k, v in (env or {}).items():
-        monkeypatch.setenv(k, v)
     lp.main()
     return calls
 
@@ -199,12 +197,6 @@ class Test_main:
         for payload in ("not json at all", "{}", json.dumps({"tool_input": {}})):
             r = run_hook_stdin(payload, tmp_path)
             assert r.returncode == 0, (payload, r.stderr)
-
-    def test_refuses_where_the_off_switch_is_set_even_with_ruff_configured(
-        self, monkeypatch, tmp_path
-    ):
-        f = _py_in(tmp_path, config={"ruff.toml": "line-length = 88\n"})
-        assert _ran(monkeypatch, tmp_path, f, env={"SPECSEAL_LINT": "off"}) == []
 
 
 test_census = census_case(TARGET)
