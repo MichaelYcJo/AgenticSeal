@@ -162,6 +162,35 @@ def test_the_marketplace_describes_the_plugin_in_the_manifests_words():
     assert entries[0].get("description") == source, "marketplace.json, plugin entry"
 
 
+def test_every_option_the_manifest_declares_is_one_a_hook_reads():
+    """#1096 S5. `.claude-plugin/plugin.json` declares the option
+    `worktree_guard_language` with `type`, `title` and `description` and no
+    other field: a `default` would leave `SPECSEAL_LANG` and the locale unread
+    for every person, and `options` stops Claude Code before v2.1.271 from
+    loading the plugin. Claude Code hands each option to a hook as
+    `CLAUDE_PLUGIN_OPTION_` and the key uppercased, so every option the
+    manifest declares is read by that name in a script under `hooks/`, and no
+    script there reads one it does not declare. If the guard leaves, this
+    case is red until its option leaves with it."""
+    with open(
+        os.path.join(ROOT, ".claude-plugin", "plugin.json"), encoding="utf-8"
+    ) as f:
+        declared = json.load(f).get("userConfig", {})
+    option = declared.get("worktree_guard_language", {})
+    assert sorted(option) == ["description", "title", "type"], option
+    assert option["type"] == "string", option
+    read = {}
+    for directory, _dirs, names in os.walk(os.path.join(ROOT, "hooks")):
+        for name in sorted(names):
+            if not name.endswith(".py"):
+                continue
+            path = os.path.join(directory, name)
+            with open(path, encoding="utf-8") as f:
+                for key in re.findall(r"CLAUDE_PLUGIN_OPTION_([A-Z0-9_]+)", f.read()):
+                    read.setdefault(key, []).append(os.path.relpath(path, ROOT))
+    assert set(read) == {key.upper() for key in declared}, (read, sorted(declared))
+
+
 def test_bin_wrapper_resolves_the_checker_from_any_cwd():
     # bin/ lands on the Bash tool's PATH while the plugin is enabled, so the
     # wrapper must resolve the script relative to itself, never the caller's

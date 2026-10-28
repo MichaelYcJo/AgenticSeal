@@ -348,9 +348,12 @@ HOOKS = os.path.join(os.path.dirname(__file__), "..", "hooks")
 
 # Default-locale determinism: the suite owns its locale. A plain setdefault
 # is not enough — the author's machine exports SPECSEAL_LANG=ko session-wide
-# (measured), which would flip every default-language assertion. Tests that
-# need Korean monkeypatch the env and fresh-load the module.
+# (measured), which would flip every default-language assertion. The plugin
+# option `worktree_guard_language` is read before it, so a value the shell
+# running the suite carries for the option is removed. Tests that need Korean
+# monkeypatch the env and fresh-load the module.
 os.environ["SPECSEAL_LANG"] = "en"
+os.environ.pop("CLAUDE_PLUGIN_OPTION_WORKTREE_GUARD_LANGUAGE", None)
 
 # One run of this suite calls `git init` 403 times, and each call copies the
 # default template into the new repository: 18 files where 2 are enough, 14 of

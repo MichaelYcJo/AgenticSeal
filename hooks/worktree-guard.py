@@ -239,8 +239,17 @@ IDLE_MIN = _idle_min()
 
 
 def _lang():
-    """SPECSEAL_LANG wins; otherwise the system locale; default English."""
-    v = os.environ.get("SPECSEAL_LANG", "")
+    """The plugin option `worktree_guard_language` wins, then SPECSEAL_LANG,
+    then the system locale; default English. An empty value counts as unset,
+    so an option nobody set reads the same whether Claude Code exports it
+    empty or not at all."""
+    # Claude Code hands each option `.claude-plugin/plugin.json` declares to a
+    # hook as CLAUDE_PLUGIN_OPTION_ and the key uppercased.
+    v = os.environ.get("CLAUDE_PLUGIN_OPTION_WORKTREE_GUARD_LANGUAGE", "")
+    # The variable the option replaced, read where the option is empty so that
+    # whoever set it keeps their language through 0.24.x; the next minor
+    # release removes this read.
+    v = v or os.environ.get("SPECSEAL_LANG", "")
     if v:
         return "ko" if v.lower().startswith("ko") else "en"
     sys_locale = os.environ.get("LC_ALL") or os.environ.get("LANG") or ""

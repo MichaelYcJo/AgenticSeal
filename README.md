@@ -284,7 +284,7 @@ wrong for every other machine.
 | `[worktree-ok]` in a worktree command | softens the single-stream worktree deny to ask. Read as a bare word, so it does not count inside a quoted message, and not inside a here-document body either. An Agent call with `isolation: "worktree"` has no command line and takes no token — it asks outright instead |
 | `[shared-tree-ok]` in a switch command | you already chose the shared tree — the switch goes through where the guard could not tell (idle sessions, unreadable environment). Read as a bare word, and not inside a here-document body. Ignored while another session is active, and while the tree is dirty |
 | `WORKTREE_GUARD_IDLE_MIN=n` | idle threshold in minutes (default 5) |
-| `SPECSEAL_LANG=ko\|en` | worktree-guard's prompts (the other gates are English-only); default follows the system locale |
+| the plugin option `worktree_guard_language`, `ko` or `en`, set once in `/config` | the language of worktree-guard's prompts (the other gates are English-only). Left empty, the variable `SPECSEAL_LANG=ko\|en` decides, until the next minor release stops reading it; with neither, the system locale decides |
 
 ## Install
 

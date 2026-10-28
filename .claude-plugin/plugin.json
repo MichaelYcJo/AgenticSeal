@@ -17,5 +17,12 @@
     "hooks",
     "legacy-migration",
     "verification"
-  ]
+  ],
+  "userConfig": {
+    "worktree_guard_language": {
+      "type": "string",
+      "title": "Worktree guard language",
+      "description": "The language of the worktree guard's prompts: ko or en. Left empty, the system locale decides. The other gates speak English."
+    }
+  }
 }

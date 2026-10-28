@@ -277,7 +277,7 @@ origin remote 를 키로 저장됩니다. 다른 기계에서는 틀린 값이�
 | worktree 명령의 `[worktree-ok]` | 혼자 작업할 때 worktree 생성을 막던 것을 확인창으로 완화한다. 명령의 낱말로 있을 때만 세므로 따옴표 안의 문장에 적힌 것은 세지 않고, here-document 본문에 적힌 것도 세지 않는다. `isolation: "worktree"` 로 부르는 Agent 는 명령줄이 없어 토큰을 받지 않고, 대신 바로 확인창을 띄운다 |
 | 전환 명령의 `[shared-tree-ok]` | 공용 트리에서 전환하기로 이미 골랐다는 표시다. 가드가 판정하지 못하는 자리(멈춘 세션뿐, 환경 조회 불가)에서 전환이 그대로 통과한다. 명령의 낱말로 있을 때만 세고, here-document 본문에 적힌 것은 세지 않는다. 다른 세션이 작업 중일 때와 트리가 더러울 때는 무시된다 |
 | `WORKTREE_GUARD_IDLE_MIN=n` | 세션을 멈춘 것으로 볼 기준 시간, 분 단위 (기본 5) |
-| `SPECSEAL_LANG=ko\|en` | worktree-guard 문구의 언어 (나머지 게이트는 영어만 나옵니다). 기본은 시스템 로케일을 따릅니다 |
+| `/config` 에서 한 번 정하는 플러그인 옵션 `worktree_guard_language`, `ko` 또는 `en` | worktree-guard 문구의 언어 (나머지 게이트는 영어만 나옵니다). 비워 두면 환경변수 `SPECSEAL_LANG=ko\|en` 을 따르고, 다음 마이너 릴리스부터는 이 변수를 읽지 않습니다. 둘 다 없으면 시스템 로케일을 따릅니다 |
 
 ## 설치
 
