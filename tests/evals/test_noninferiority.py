@@ -1591,6 +1591,15 @@ class Test_verdict:
         given, _ = VERDICTS[name]
         assert NI.verdict(given) == ("pass", [])
 
+    def test_passes_a_figure_exactly_at_a_margin_whose_float_falls_short(
+        self, monkeypatch
+    ):
+        """1 + 0.13 comes out just below 1.13 in binary floating point, so a
+        baseline of 100 tokens times it falls under 113; the 1e-9 in rule 5's
+        bar is what passes a side exactly at that margin."""
+        monkeypatch.setattr(NI, "TOKEN_MARGIN", 0.13)
+        assert NI.verdict(numbers(old_tokens=100, new_tokens=113)) == ("pass", [])
+
     @pytest.mark.parametrize("name", FAILING)
     def test_refuses_a_side_a_rule_fails_or_numbers_that_give_no_result(self, name):
         given, expected = VERDICTS[name]
