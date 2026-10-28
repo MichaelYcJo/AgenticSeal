@@ -110,6 +110,14 @@ def label_name(version):
 # under it by a case, so an over-long one is refused by the suite before a
 # merge rather than by the tracker after one. Raising it does not make a longer
 # description fit; it moves the refusal back to the tracker.
+#
+# No function here reads it. The cases that read it are in
+# `tests/github/test_label_merged_on_release_branch.py` and
+# `tests/github/test_tracker_labels.py`. It stays in this script rather than
+# in a test because the cap binds the description this script writes: a
+# person editing `label_description` meets it here, where a test would show
+# it only after the edit fails. `tracker_labels.py`'s note on its own
+# descriptions points here for the same reason.
 LABEL_DESCRIPTION_LIMIT = 100
 
 

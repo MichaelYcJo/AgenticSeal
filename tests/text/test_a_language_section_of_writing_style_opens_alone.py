@@ -44,7 +44,8 @@ WRITING_RULE_CHECKS = (
     "check: tests/github/test_rules.py"
     " tests/skills/test_rule_changes.py"
     " tests/test_censuses.py"
-    " tests/text/test_the_agent_contract_holds_the_universal_rules.py",
+    " tests/text/test_the_agent_contract_holds_the_universal_rules.py"
+    " tests/behaviour/test_a_cited_section_stands_in_its_file.py",
     "check: tests/behaviour/test_one_word_one_meaning.py",
     "check: none reader: the proofer at review",
 )

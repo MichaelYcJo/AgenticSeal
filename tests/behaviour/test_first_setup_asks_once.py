@@ -523,7 +523,10 @@ def test_the_readme_gives_both_moves_under_first_run(readme):
     assert "seal pr-checks install" in body and "seal pr-checks remove" in body, (
         "the checks are their own command, and the section does not name it"
     )
-    assert "`git reset -- :/seal`" in body and "reset -- :/seal :/" not in body
+    # #1055 S6: the way back before the commit to shared has one home, the
+    # skill section, which the README links to and does not restate.
+    assert "git reset -- :/seal" not in body, readme
+    assert SHARED_WAY_BACK in flat(body), readme
     for sentence in LEFT_BEHIND[readme]:
         assert sentence in flat(body), sentence
     assert "seal export" in body and "seal import" in body, (
@@ -535,6 +538,26 @@ def test_the_readme_gives_both_moves_under_first_run(readme):
 
 COMMON = "$(git rev-parse --git-common-dir)/seal"
 TOP = "$(git rev-parse --show-toplevel)/seal"
+
+# The one home of the way back before the commit to shared (#1055 S6), and
+# the citation of it each README carries.
+SHARED_HEADING = "Before switching to shared, say what cannot be undone"
+SHARED_WAY_BACK = f"`skills/config/SKILL.md` *{SHARED_HEADING}*"
+
+
+def test_the_way_back_before_the_commit_to_shared_is_told_in_its_home():
+    """#1055 S6. The skill section is where the way back is said before the
+    act, so it holds the command and both reasons the READMEs used to give,
+    and it cites the policy for the rule rather than restating it."""
+    skill = read("skills", "config", "SKILL.md")
+    body = flat(section(skill, "## " + SHARED_HEADING, 2))
+    for said in (
+        "`git reset -- :/seal` and then `seal mode local` walk the whole thing back",
+        "refuses a switch over a staged change",
+        "a bare `git reset` unstages the whole index",
+        "`docs/one-root-by-lifetime.md` *Shared or local*",
+    ):
+        assert said in body, said
 
 
 def switch_block(readme):
@@ -627,12 +650,29 @@ def test_the_switch_block_lands_the_root_at_the_tree_root_from_a_subdirectory(
 
 @pytest.mark.parametrize("readme", sorted(READMES))
 def test_the_gates_table_says_the_root_may_sit_under_the_git_dir(readme):
-    rows = [
-        line
-        for line in read(readme).splitlines()
-        if line.startswith("| ") and "`seal/`" in line.rsplit("|", 2)[-2]
-    ]
+    # The gate table's rows alone: since #1055 the `seal/` row of the records
+    # table names `seal/` in its last cell too, and that cell is no Where.
+    lines = read(readme).splitlines()
+    start = next(
+        i for i, ln in enumerate(lines) if ln.startswith(("| Gate |", "| 게이트 |"))
+    )
+    table = []
+    for line in lines[start + 2 :]:
+        if not line.startswith("|"):
+            break
+        table.append(line)
+    rows = [line for line in table if "`seal/`" in line.rsplit("|", 2)[-2]]
     assert rows, f"{readme}: no gate row's Where cell names `seal/`"
+    # #1055 round 1, finding 1: *First run* and the records table's `seal/`
+    # row select the opt-in hooks by `seal/` in this column, so a Where cell
+    # that points at another row ("same opt-in") drops its hook from that
+    # pointer. Each cell names its condition itself, and implementer-notice,
+    # which returns before anything where `optin.opted_in` is false
+    # (`hooks/implementer-notice.py#notify`), is among the `seal/` rows.
+    for row in table:
+        where = row.rsplit("|", 2)[-2].strip()
+        assert not where.startswith(("same ", "같은 ")), f"{readme}: {row[:40]}…"
+    assert any(row.startswith("| implementer-notice |") for row in rows), readme
     for row in rows:
         where = row.rsplit("|", 2)[-2]
         assert "local" in where, f"{readme}: {row[:40]}… still says the root only"

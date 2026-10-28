@@ -88,6 +88,19 @@ suite trees differ and the earlier side keeps no text.
 grader is the work in the shape its next reader needs, and a `reach-` grader
 is the session spawning the agent. No judge scores anything.
 
+**No case tells the agent under test that the run is a measurement.** The
+agent reads a case's `prompt.md` and works in the repository its
+`scaffold.sh` builds, so neither file holds a word that names the run, its
+graders or its cases as such. Two kinds of text are exempt: a record shape
+this plugin's templates write, and a value a replay or seeded generator
+copies from this repository into its case.
+`tests/text/test_no_case_tells_the_agent_it_is_evaluated.py` holds the
+words and the exemptions, and names each hit by its file, line and word.
+The path of the tree `noninferiority.py run` loads is the base directory of
+every skill the agent reads, so no component of it below the system
+temporary directory holds one of those words either;
+`tests/evals/test_noninferiority.py` *Test_run_side* refuses one that does.
+
 The cases are generated, never edited by hand. `replay_targets.py` and
 `seed_defects.py` take `--list` for what they can write, `--count N` for the
 N smallest and `--case NAME` for one committed case again, read at every

@@ -26,8 +26,8 @@ With no key or no directory no session records and nothing is written.
 What it writes. One JSON Lines file, `<dir>/<key>-<pid>.jsonl`, UTF-8, one
 object per line with a `kind`:
 
-  session   key, pid, rootdir, invocation_dir (absolute), pytest's version
-  test      nodeid, when, outcome, wasxfail where set, path (absolute), and
+  session   key, pid, rootdir, pytest's version
+  test      nodeid, when, outcome, path (absolute), and
             category: the word pytest's own summary counts the report under
   collect   a failed or a skipped collection: nodeid, outcome "failed" or
             "skipped", path (absolute)
@@ -148,13 +148,6 @@ def _rootdir(config):
     if rootpath is None:
         rootpath = config.rootdir
     return str(rootpath)
-
-
-def _invocation_dir(config):
-    params = getattr(config, "invocation_params", None)
-    if params is None:
-        return os.getcwd()
-    return str(params.dir)
 
 
 def _node_path(node):
@@ -291,7 +284,6 @@ class Recorder:
                 "key": self.key,
                 "pid": os.getpid(),
                 "rootdir": self.rootdir,
-                "invocation_dir": _invocation_dir(self.config),
                 "pytest": getattr(pytest, "__version__", ""),
             }
         )
@@ -300,17 +292,16 @@ class Recorder:
         path = self.path_of(report, "test")
         if path is None:
             return
-        line = {
-            "kind": "test",
-            "nodeid": report.nodeid,
-            "when": report.when,
-            "outcome": report.outcome,
-            "path": path,
-        }
-        if hasattr(report, "wasxfail"):
-            line["wasxfail"] = str(report.wasxfail)
-        line["category"] = self.category_of(report)
-        self.write(line)
+        self.write(
+            {
+                "kind": "test",
+                "nodeid": report.nodeid,
+                "when": report.when,
+                "outcome": report.outcome,
+                "path": path,
+                "category": self.category_of(report),
+            }
+        )
 
     def category_of(self, report):
         """The word pytest's summary line counts `report` under: the first

@@ -65,6 +65,44 @@ def test_the_fallback_runs_the_same_script_with_the_same_arguments():
         assert first.split('"')[1:] == second.split('"')[1:], cmd
 
 
+# The header row each edition's gate table opens with.
+GATE_TABLE = {"README.md": "| Gate |", "README.ko.md": "| 게이트 |"}
+
+
+def gate_table_names(edition):
+    """The first cell of each body row of EDITION's gate table: the rows
+    after the header and its separator, up to the first line that is not a
+    table row."""
+    with open(os.path.join(ROOT, edition), encoding="utf-8") as f:
+        lines = f.read().splitlines()
+    start = next(i for i, ln in enumerate(lines) if ln.startswith(GATE_TABLE[edition]))
+    names = []
+    for line in lines[start + 2 :]:
+        if not line.startswith("|"):
+            break
+        names.append(line.split("|")[1].strip())
+    return names
+
+
+def test_the_gate_table_has_one_row_for_each_script_groups_registers():
+    """#1055 S1. `hooks/dispatch.py#GROUPS` is the one list of the hooks the
+    plugin registers, and the gate table is what a person reads to learn what
+    runs on their machine. Each script `GROUPS` names has exactly one row in
+    each edition, its first cell the file name without `.py`, and no row
+    names anything else. Seen red at `5287dd42`, whose tables lacked
+    `worktree_consent` and `root-migrate`."""
+    from conftest import load_module
+
+    dispatch = load_module(
+        os.path.join(ROOT, "hooks", "dispatch.py"), "agentic_dispatch_for_the_table"
+    )
+    registered = sorted(
+        {g[: -len(".py")] for gates in dispatch.GROUPS.values() for g in gates}
+    )
+    for edition in GATE_TABLE:
+        assert sorted(gate_table_names(edition)) == registered, edition
+
+
 def test_plugin_version_is_in_changelog():
     # The changelog starts at the first public release, so commits before it
     # legitimately have no file — the claim under test is "if a changelog
@@ -101,6 +139,27 @@ def test_the_plugin_icon_is_a_png_the_directory_accepts():
     height = int.from_bytes(head[20:24], "big")
     assert width == height and 512 <= width <= 2048, (width, height)
     assert os.path.getsize(path) < 2_000_000, os.path.getsize(path)
+
+
+def test_the_marketplace_describes_the_plugin_in_the_manifests_words():
+    """#1055 S13. `.claude-plugin/plugin.json`'s `description` is the one
+    source of the sentence that describes the plugin. JSON cannot link, so
+    `.claude-plugin/marketplace.json` carries it twice, at its top level and
+    in its plugin entry, and each copy must equal the source."""
+    with open(
+        os.path.join(ROOT, ".claude-plugin", "plugin.json"), encoding="utf-8"
+    ) as f:
+        manifest = json.load(f)
+    with open(
+        os.path.join(ROOT, ".claude-plugin", "marketplace.json"), encoding="utf-8"
+    ) as f:
+        marketplace = json.load(f)
+    source = manifest["description"]
+    assert source, "plugin.json has no description"
+    assert marketplace.get("description") == source, "marketplace.json, top level"
+    entries = [p for p in marketplace["plugins"] if p.get("name") == manifest["name"]]
+    assert len(entries) == 1, entries
+    assert entries[0].get("description") == source, "marketplace.json, plugin entry"
 
 
 def test_bin_wrapper_resolves_the_checker_from_any_cwd():
@@ -234,64 +293,135 @@ def test_user_invoked_skills_do_not_carry_trigger_scaffolding():
     )
 
 
-NUMBER_WORDS = {
-    20: ("Twenty", "스무"),
-    21: ("Twenty-one", "스물한"),
-    14: ("Fourteen", "열네"),
-    22: ("Twenty-two", "스물두"),
-    23: ("Twenty-three", "스물세"),
-    24: ("Twenty-four", "스물네"),
-}
-
-# Where each edition states the count. Scoping to the row is not tidiness:
-# `README.ko.md` says `스무 번` about something else entirely, and a
-# whole-file search reads that as a stale skill count.
+# The row each edition lists the skills in. Scoping to the row is not
+# tidiness: the membership cases below read the names where their absence
+# means something.
 SKILL_ROW = {"README.md": "| Skills |", "README.ko.md": "| 스킬 |"}
 
+# Where each edition's skills row lists the skills a session loads on its
+# own: the sentence of the row that holds this phrase.
+ON_DEMAND = {"README.md": "a session loads on its own", "README.ko.md": "알아서 로드"}
 
-def test_both_readmes_count_the_skills_that_are_actually_there():
-    """The count is prose in two languages, and shipping a skill is a diff
-    that never opens either file.
+# A count spelled in either language: a numeral, an English number word, or
+# a Korean native numeral before the counter `개`. These are words of the two
+# languages, not a count of anything in the tree.
+COUNT_WORD = re.compile(
+    r"\d|\b(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve"
+    r"|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty)\b"
+    r"|(?:한|두|세|네|다섯|여섯|일곱|여덟|아홉|열|스무|스물)\S*\s?개",
+    re.IGNORECASE,
+)
 
-    Deriving it is the point. `CONTRIBUTING.md` requires the two editions to
-    move together, so a check that read only the English one would license
-    exactly half the drift.
-    """
+
+def skill_groups():
+    """The shipped skills' names split three ways from frontmatter: those an
+    agent preloads, those a person has to type, and the rest, which a
+    session loads on its own."""
     import glob
 
-    shipped = len(glob.glob(os.path.join(ROOT, "skills", "*", "SKILL.md")))
-    assert shipped in NUMBER_WORDS, (
-        f"{shipped} skills ship and no spelling is recorded for that number "
-        "-- add it to NUMBER_WORDS rather than loosening the check"
+    paths = glob.glob(os.path.join(ROOT, "skills", "*", "SKILL.md"))
+    preloaded = {
+        name
+        for path in glob.glob(os.path.join(ROOT, "agents", "*.md"))
+        for name in re.findall(
+            r"^  - (\S+)", open(path, encoding="utf-8").read().split("\n---\n")[0], re.M
+        )
+    }
+    user_invoked = {
+        os.path.basename(os.path.dirname(p))
+        for p in paths
+        if "disable-model-invocation: true"
+        in open(p, encoding="utf-8").read().split("\n---\n", 1)[0]
+    }
+    on_demand = {os.path.basename(os.path.dirname(p)) for p in paths}
+    on_demand -= preloaded | user_invoked
+    return preloaded, user_invoked, on_demand
+
+
+def skill_row(edition):
+    with open(os.path.join(ROOT, edition), encoding="utf-8") as f:
+        rows = [ln for ln in f if ln.startswith(SKILL_ROW[edition])]
+    assert len(rows) == 1, (
+        f"{edition} has {len(rows)} rows starting `{SKILL_ROW[edition]}`; "
+        "the check reads exactly one"
     )
-    english, korean = NUMBER_WORDS[shipped]
+    return rows[0]
 
-    def says(text, word):
-        # A bare `in` reads `Twenty` out of `Twenty-one`, which makes the
-        # stale half fire on a correct document and the present half pass on
-        # a wrong one. Both directions need the boundary.
-        return re.search(re.escape(word) + r"(?![-\w])", text) is not None
 
-    for edition, word in (("README.md", english), ("README.ko.md", korean)):
+def test_the_skills_row_lists_the_on_demand_skills_without_a_count():
+    """#1055 S5. The row counted the skills and each of its three groups in
+    two languages, and shipping a skill is a diff that never opens either
+    file, so the counts went stale and a table of number words in this
+    module had to grow at every release. The row now lists names and no
+    count. Its on-demand sentence names exactly the skills no agent
+    preloads and nobody has to type, derived from the skills' and the
+    agents' frontmatter, so a name in the wrong sentence is red as well as a
+    missing one."""
+    _, _, on_demand = skill_groups()
+    for edition, phrase in ON_DEMAND.items():
+        row = skill_row(edition)
+        sentences = [s for s in row.split(". ") if phrase in s]
+        assert len(sentences) == 1, (edition, phrase, sentences)
+        named = set(re.findall(r"`([^`]+)`", sentences[0]))
+        assert named == on_demand, (edition, sorted(named ^ on_demand))
+        count = COUNT_WORD.search(row)
+        assert count is None, (edition, count and count.group(0))
+
+
+def test_the_always_on_block_is_described_without_counts():
+    """#1055 S3. The heading and the CLAUDE.md block row counted the block's
+    lines, headings and rules, a copy of `templates/setup/claude-md-block.md`
+    that went stale at its next edit. The row names that file as the block's
+    one source, and the counts it held are pinned absent."""
+    from conftest import flat
+
+    for edition, row_head, gone in (
+        (
+            "README.md",
+            "| CLAUDE.md block |",
+            ("context is 12 lines", "12 always-on lines", "eight rules"),
+        ),
+        ("README.ko.md", "| CLAUDE.md 블록 |", ("12줄", "규칙 여덟")),
+    ):
+        text = flat(edition)
+        for phrase in gone:
+            assert phrase not in text, (edition, phrase)
         with open(os.path.join(ROOT, edition), encoding="utf-8") as f:
-            rows = [ln for ln in f if ln.startswith(SKILL_ROW[edition])]
-        assert len(rows) == 1, (
-            f"{edition} has {len(rows)} rows starting `{SKILL_ROW[edition]}`; "
-            "the check reads exactly one"
-        )
-        row = rows[0]
-        assert says(row, word), (
-            f"{edition}'s skills row does not say `{word}`, and {shipped} "
-            f"skills ship: {row.strip()[:120]}"
-        )
-        for other, (wrong_en, wrong_ko) in NUMBER_WORDS.items():
-            if other == shipped:
-                continue
-            stale = wrong_en if edition == "README.md" else wrong_ko
-            assert not says(row, stale), (
-                f"{edition}'s skills row still says `{stale}` while "
-                f"{shipped} skills ship"
-            )
+            rows = [ln for ln in f if ln.startswith(row_head)]
+        assert len(rows) == 1, (edition, row_head)
+        assert "`templates/setup/claude-md-block.md`" in rows[0], edition
+
+
+def test_the_hooks_that_reach_the_network_are_named_without_a_count():
+    """#1055 S4. Both READMEs and `CONTRIBUTING.md` said how many hooks reach
+    the network, and the guide's rule for a new one counted on from there.
+    The READMEs' privacy paragraph names `lint-python` and `version-check`,
+    the guide says every such hook is named there, and none of the three
+    counts them."""
+    from conftest import flat
+
+    for path, said, gone in (
+        (
+            "README.md",
+            "lint-python and version-check reach the network.",
+            ("Two hooks reach the network", "Both stay silent"),
+        ),
+        (
+            "README.ko.md",
+            "네트워크를 타는 훅은 lint-python 과 version-check 입니다.",
+            ("네트워크를 타는 훅은 둘", "둘 다 네트워크가"),
+        ),
+        (
+            "CONTRIBUTING.md",
+            "Every hook that reaches the network is named in the README's privacy "
+            "section",
+            ("Two hooks reach the network", "A third needs", "the second carries"),
+        ),
+    ):
+        text = flat(path)
+        assert said in text, (path, said)
+        for phrase in gone:
+            assert phrase not in text, (path, phrase)
 
 
 def test_every_shipped_skill_is_named_in_both_readmes():
@@ -342,83 +472,6 @@ def test_every_shipped_skill_is_named_in_both_readmes():
                 f"{edition}'s skills row does not list `{name}`, which no "
                 "agent preloads and nobody can type"
             )
-
-
-def test_the_readme_group_counts_are_derived_too():
-    """14 = 1 + 9 + 4, and all four numbers were prose.
-
-    Round 1: the total was pinned and the split was not, so a skill could
-    move between groups, or the middle count could go stale against its own
-    list, with nothing red. Each group has a machine-readable definition --
-    preloaded by an agent, typed by a person, neither -- so each is spelled
-    from that rather than from the sentence beside it."""
-    import glob
-
-    paths = glob.glob(os.path.join(ROOT, "skills", "*", "SKILL.md"))
-    preloaded = {
-        name
-        for path in glob.glob(os.path.join(ROOT, "agents", "*.md"))
-        for name in re.findall(
-            r"^  - (\S+)", open(path, encoding="utf-8").read().split("\n---\n")[0], re.M
-        )
-    }
-    user_invoked = {
-        os.path.basename(os.path.dirname(p))
-        for p in paths
-        if "disable-model-invocation: true"
-        in open(p, encoding="utf-8").read().split("\n---\n", 1)[0]
-    }
-    on_demand = {os.path.basename(os.path.dirname(p)) for p in paths}
-    on_demand -= preloaded | user_invoked
-
-    # Round 2: the counts were derived correctly and then looked for
-    # ANYWHERE in the one row that holds all three, so swapping the three
-    # words between the groups stayed green -- `four more a session loads`
-    # above a list of eleven. The word is anchored to its own group's
-    # sentence, which also settles `열` being a prefix of `열한`.
-    groups = {
-        "preloaded": (len(preloaded), ("The %s the agents follow", "따르는 %s 개는")),
-        "on demand": (len(on_demand), ("%s more a session loads", "%s 개는 작업이")),
-        "user invoked": (
-            len(user_invoked),
-            ("%s you invoke by name", "나머지 %s 개는"),
-        ),
-    }
-    spellings = {
-        1: ("one", "한"),
-        2: ("two", "두"),
-        3: ("three", "세"),
-        4: ("Four", "네"),
-        5: ("five", "다섯"),
-        6: ("Six", "여섯"),
-        7: ("Seven", "일곱"),
-        9: ("Nine", "아홉"),
-        10: ("Ten", "열"),
-        11: ("Eleven", "열한"),
-        12: ("Twelve", "열두"),
-        13: ("Thirteen", "열세"),
-        14: ("Fourteen", "열네"),
-        15: ("Fifteen", "열다섯"),
-    }
-    for group, (count, phrases) in groups.items():
-        assert count in spellings, (
-            f"the `{group}` group holds {count} skills and no spelling is "
-            "recorded -- add it rather than loosening the check"
-        )
-        english, korean = spellings[count]
-        for edition, word, phrase in (
-            ("README.md", english, phrases[0]),
-            ("README.ko.md", korean, phrases[1]),
-        ):
-            with open(os.path.join(ROOT, edition), encoding="utf-8") as f:
-                rows = [ln for ln in f if ln.startswith(SKILL_ROW[edition])]
-            assert phrase % word in rows[0], (
-                f"{edition}'s skills row does not say `{phrase % word}`, and "
-                f"the `{group}` group holds {count}"
-            )
-    assert sum(c for c, _ in groups.values()) == len(paths), (
-        "the three groups do not partition the shipped skills"
-    )
 
 
 def test_the_writing_style_handoff_names_a_skill_that_ships():
