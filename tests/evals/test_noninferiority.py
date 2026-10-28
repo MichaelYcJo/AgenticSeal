@@ -1534,20 +1534,28 @@ VERDICTS = {
         numbers(new_bytes=100000),
         "fail",
     ),
-    "rule 5: tokens per tool call 1.05 times the baseline's": (
+    "rule 5: the total and tokens per tool call both within the margin": (
         numbers(new_tokens=1050000),
-        "fail",
+        "pass",
     ),
     "rule 5: tokens per tool call falling while the total rises": (
         numbers(new_tokens=1200000, new_calls=150),
         "pass",
     ),
-    "rule 5: tokens per tool call rising while the total falls": (
+    "rule 5: fewer calls and a smaller total, though each call read more": (
         numbers(new_tokens=900000, new_calls=80),
-        "fail",
+        "pass",
     ),
     "rule 5: tokens per tool call equal to the baseline's": (
         numbers(new_tokens=1200000, new_calls=120),
+        "pass",
+    ),
+    "rule 5: both figures exactly at the margin": (
+        numbers(new_tokens=round(1000000 * (1 + NI.TOKEN_MARGIN))),
+        "pass",
+    ),
+    "rule 5: both figures past the margin": (
+        numbers(new_tokens=round(1000000 * (1 + NI.TOKEN_MARGIN)) + 1000),
         "fail",
     ),
     "spend and seconds up are written and not judged": (
@@ -1629,15 +1637,17 @@ class Test_verdict:
                 graders={("c1", "truth-1"): ("truth", 2, 2, 0, 2)},
                 new_false=5,
                 new_bytes=100000,
-                new_tokens=1000000,
+                new_tokens=1100000,
             )
         )
         assert reasons == [
             "recall fell from 4 to 2 finds: c1/truth-1",
             "false-finding rate rose from 0.100 to 0.250",
             "the new preload is 100000 bytes, not below the baseline's 100000 (rule 4)",
-            "the new side read 10000.0 tokens across every model per tool call "
-            "(1000000 over 100), not below the baseline's 10000.0 (1000000 over 100) (rule 5)",
+            "the new side read 1100000 tokens across every model over 100 tool "
+            "calls, 11000.0 a call, against the baseline's 1000000 over 100, "
+            "10000.0 a call: the total and the figure per call both rose by more "
+            "than 7% (rule 5)",
         ]
 
 
@@ -1845,7 +1855,10 @@ class Test_check_record:
 
     def test_refuses_an_edited_cell_the_verdict_does_not_follow(self):
         text = written()
-        hungrier = text.replace("| New tool calls | 100 |", "| New tool calls | 90 |")
+        hungrier = text.replace(
+            "| New tokens read, every model | 900000 |",
+            "| New tokens read, every model | 1100000 |",
+        )
         assert hungrier != text
         problems = NI.check_record(hungrier)
         assert any("says `pass` and its numbers give `fail`" in p for p in problems)
