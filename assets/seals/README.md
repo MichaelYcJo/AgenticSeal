@@ -168,10 +168,11 @@ with a sentence naming the line and the column.
   a vector seal with the detail an image can carry, for a release note,
   the README or the plugin icon. Each has a `.png` preview beside it. The
   owl's vector carries more than its sprite: ringed eyes, the wing lines
-  and the chevrons on its breast. The bee's vector follows its sprite.
+  and the chevrons on its breast. The bee's vector is a faceted bee inside
+  a hexagonal wax cell, the honeycomb its sprite has no room for.
 
 ![The owl as a vector seal: a raised owl with ringed eyes, wing lines and chevrons on its breast, pressed into a red disc](candidates/owl-web.png)
-![The bee as a vector seal: the sprite's bee drawn as shapes, pale wings and lit stripes on a dark body, on a red disc](candidates/bee-web.png)
+![The bee as a vector seal: a faceted bee with banded body and kite-shaped wings inside a raised hexagonal wax cell, on a red disc](candidates/bee-web.png)
 
 ### The light-red section sign at 14 cells — `section-14-light-red`
 
