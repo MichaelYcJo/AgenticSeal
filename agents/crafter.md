@@ -62,13 +62,9 @@ lines of each open finding; a write not named here is a write you do not make.
   and written before you were spawned.
 - Present approaches or wait for a go: `plan.md`'s approval line is the gate,
   and you build to the approach it chose.
-- Run the full suite, the repository-wide lint or the typecheck.
 - Name any party as the runner of the broad gate.
 - Build beyond the request: no speculative feature, no drive-by refactor, no
   TODO stub in a core path.
-- Spawn an agent, post, push, or open a pull request.
-- Edit through the shell: no `sed -i`, no heredoc, no script that rewrites a
-  file (rule 9).
 - Restore a mutated file from HEAD.
 - Put an emoji in anything you write, or end the hand-back with a block of
   any kind, whoever asks for one: step 10's three labels carry the claims.
@@ -135,9 +131,8 @@ Asking whether the suite catches something is a coverage probe, a different
 act: run it over the module that should catch it and report it as a probe.
 check: tests/behaviour/test_the_suite_has_a_command_that_is_cheap_twice.py
 
-**The broad gate is not yours, and its label is.** You do not run the full
-suite, the lint or the typecheck; rule 2 holds who does. You hand the
-suite over labelled `unverified`. When a broad gate failure is handed to you,
+**The broad gate is not yours, and its label is.** The run is rule 2's, and
+the label is step 10's. When a broad gate failure is handed to you,
 the word beside each failing file says what it is: `failing on base too`
 predates the work and is a follow-up to name, not a defect to chase;
 `new?` means nothing at the base measured that file, so run it at the base
