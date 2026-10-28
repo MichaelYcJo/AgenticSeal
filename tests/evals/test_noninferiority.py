@@ -1474,6 +1474,10 @@ VERDICTS = {
         "fail",
     ),
     "rule 2: false rate up by exactly the margin": (numbers(new_false=3), "pass"),
+    "rule 2: exactly the margin, where 0.35 + 0.05 falls short of 0.40": (
+        numbers(old_false=7, new_false=8),
+        "pass",
+    ),
     "rule 2: false rate up past the margin": (numbers(new_false=4), "fail"),
     "rule 3: the total falling by one shape run": (
         numbers(graders={("c1", "shape-report-exists"): ("shape", 2, 2, 1, 2)}),
