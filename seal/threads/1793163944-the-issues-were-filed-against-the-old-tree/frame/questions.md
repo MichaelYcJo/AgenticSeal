@@ -16,9 +16,9 @@
 - **The three new issues go into `release: 0.24.0`.** Its purpose is "review
   the renamed tree and lighten what it carries, first the checks", and each of
   F1, F2 and F3 is a leftover of the rename or a check that reads text.
-- **Only #1040's title changes.** It names three agents that no longer exist,
-  which the next framer reads first; every other title still names what its
-  issue is about.
+- **A title changes where it names a path, an agent, a command or a figure
+  the fold corrected.** The next framer reads the title first. Nine titles
+  change: #1040's in phase 2 and eight more after review round 1.
 - **#1046's Parity setup section may become a pointer instead of moving.** The
   fold states the duplication with its evidence; #1046's framer chooses.
 - **#1096 stays in 0.24.0.** The owner decided it on 2026-10-28 with #1049

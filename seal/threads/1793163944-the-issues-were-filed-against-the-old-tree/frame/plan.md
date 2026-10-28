@@ -6,7 +6,7 @@ Approved 2026-10-28 by the orchestrator under the owner's automation answer, whe
 
 The crafter applies `frame/design.md` on GitHub, in `MichaelYcJo/AgenticSeal`.
 It files three issues, folds 22 issue bodies to the tree at `0b75346f`,
-retitles #1040, leaves #920 in `release: 0.24.0`, comments on #1044,
+retitles #1040 (and, after review round 1, eight more), leaves #920 in `release: 0.24.0`, comments on #1044,
 and rewrites the descriptions of milestones 65 (`release: 0.24.0`) and 67
 (`release: 0.24.1`). No file of the tree changes outside this work item's
 directory. The owner pressed automation (`routing.md`), which authorizes these
@@ -98,7 +98,7 @@ orchestrator's (contract rule 2).
 ## Operational impact
 
 None in the tree. On GitHub: three new issues in `release: 0.24.0`, 22 bodies
-and one title edited, one comment, and two milestone descriptions rewritten.
+and nine titles edited, one comment, and two milestone descriptions rewritten.
 Because `release_completeness_check.py` fails a release pull request while its
 milestone holds an open issue the release does not carry, F1, F2 and F3 are
 work 0.24.0 owes before it ships; F1 is closed by its own no-work-item pull

@@ -191,7 +191,8 @@ take the three cases.
 sealer, framer and scribe definitions". A title that names three agents that
 no longer exist is the first line a framer reads, so it becomes "the crafter,
 proofer, sealer, framer and tracer definitions" with the rest of the title
-unchanged. This is the one title this work changes.
+unchanged. Eight other titles take the folded form for the same reason
+(review round 1, finding 2).
 - Rule 2's six sentences now stand at `agents/crafter.md:65` and `:138-140`,
   `agents/proofer.md:61` and `:138-139`, `agents/sealer.md:109-110` and
   `:124-126` (read). In the proofer's, "by `broad-gate`, after the rounds
@@ -662,8 +663,8 @@ number its issue was filed under.
 ## Data & interfaces
 
 The objects this work edits are on GitHub, in `MichaelYcJo/AgenticSeal`:
-issue bodies through `gh issue edit <N> --body-file <file>`, one title through
-`gh issue edit 1040 --title`, comments through
+issue bodies through `gh issue edit <N> --body-file <file>`, nine titles
+through `gh issue edit <N> --title`, comments through
 `gh issue comment`, new issues through
 `gh issue create --milestone "release: 0.24.0"`, and the two descriptions
 through `gh api -X PATCH repos/MichaelYcJo/AgenticSeal/milestones/65 -F description=@<file>`
