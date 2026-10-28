@@ -263,7 +263,7 @@ def overlapping(read):
     return same
 
 
-# A thread's design, relative to its directory: `hooks/optin.py#DESIGN`.
+# A thread's design, relative to its directory: `hooks/lib/optin.py#DESIGN`.
 DESIGN = "frame/design.md"
 # Where a thread's design stood before the session-start move brought it into
 # `seal/threads/`, as (directory, name): read from history only, so a moved

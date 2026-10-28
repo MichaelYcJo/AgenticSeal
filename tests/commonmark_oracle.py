@@ -7,7 +7,7 @@ each reader's own grammar and is not asked here.
 
 **It shares nothing with what it checks.** It imports markdown-it-py and the
 standard library, and nothing from `hooks/`, `skills/` or `.github/scripts/`;
-`tests/test_the_hooks_hide_what_a_renderer_hides.py` reads this file's own
+`tests/behaviour/test_the_hooks_hide_what_a_renderer_hides.py` reads this file's own
 imports to hold that. The work item before this one built its oracle out of
 the readers' shared functions, and round 3 of it found the gap that
 arrangement cannot see: "The oracle cannot catch this, because it is built

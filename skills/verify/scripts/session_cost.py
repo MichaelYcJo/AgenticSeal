@@ -60,7 +60,7 @@ orchestrator's own minutes; `--segments` opens the OTHER transcripts, one row
 per agent this run spawned, and given a resumed agent's own transcript it
 reads that one file, one row per stretch of work (#637) — each row one
 agent's own stretch either way. `skills/verify/orchestration.md` *Measure the
-segment* owns that distinction and `tests/test_one_word_one_meaning.py` holds it.
+segment* owns that distinction and `tests/behaviour/test_one_word_one_meaning.py` holds it.
 """
 
 import argparse
@@ -1404,7 +1404,7 @@ def token_thirds(turns):
     Every site in this module that converts a number to an `int` carries a
     guard: a finiteness test on the same operand in the enclosing
     conditional, or a `try` catching both `OverflowError` and `ValueError`.
-    The class is not a list anybody maintains — `tests/test_session_cost.py`
+    The class is not a list anybody maintains — `tests/skills/test_session_cost.py`
     enumerates the sites from this file's own syntax tree and decides
     membership by invoking Python's integer-conversion protocol on an
     operand, so a conversion written under any name at all is a member. Add
@@ -2432,7 +2432,7 @@ LABEL_WIDTH = 30
 #
 # Constants rather than read from the protocol at run time, because this
 # script runs from the installed plugin in repositories that have no such
-# document. `tests/test_the_handoff_before_round_one.py` reads both files and
+# document. `tests/text/test_the_handoff_before_round_one.py` reads both files and
 # turns red when one moves alone.
 #
 # A kind missing from the table has no bar and is UNGRADED, which is not the
@@ -2839,7 +2839,7 @@ def report_segments(segments, path):
     # 0.9.4 line above.
     #
     # It names the issue and not the release, because a loaded file may not
-    # name a version that has not shipped (`tests/test_release_hygiene.py`,
+    # name a version that has not shipped (`tests/behaviour/test_release_hygiene.py`,
     # the timer check), and this line is written before the release that
     # carries it. The changelog is where #377 is mapped to its version: the
     # work item's fragment is gathered into that release's own file under
@@ -3319,7 +3319,7 @@ def main():
 
 if __name__ == "__main__":
     # A console that cannot encode what this prints kills it with stdout
-    # empty, which is how a hook says "nothing to see here". `hooks/console.py`
+    # empty, which is how a hook says "nothing to see here". `hooks/lib/console.py`
     # owns the reasoning and the three decisions behind these lines.
     for _name, _errors in (
         ("stdin", "replace"),

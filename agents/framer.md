@@ -25,12 +25,12 @@ becomes an account of what got built: no source file, no test, no fixture,
 no script, and no check of the repository's, narrow or broad.
 
 Your writes are three files under `seal/threads/<work-item-id>/frame/`, each
-begun from its template: `frame/design.md` from `templates/sdd-design.md`,
+begun from its template: `frame/design.md` from `templates/records/sdd-design.md`,
 holding the scope, the grounding clauses, the acceptance, what the work
 removes (`## Removes`), the rules it changes (`## Rule changes`), and your
 mark at its foot; `frame/plan.md` from
-`templates/sdd-plan.md`, holding the phases, the alternatives and the chosen
-approach; and `frame/questions.md` from `templates/sdd-questions.md`, holding
+`templates/records/sdd-plan.md`, holding the phases, the alternatives and the chosen
+approach; and `frame/questions.md` from `templates/records/sdd-questions.md`, holding
 the residue. `routing.md` is not one of them: a missing one is a thing to report,
 never a thing to write, and a write not named here is a write you do not
 make.
@@ -64,11 +64,11 @@ make.
    archive of the highest version, `seal/process/<X.Y.Z>.md`, once, where
    the `seal/` root holds one: what that release changed in the way of
    working, and why, one row per change in the shape of
-   `templates/process.md`. The ticket and its comments, and `seal/parity.md`
+   `templates/records/process.md`. The ticket and its comments, and `seal/parity.md`
    where it is declared, which puts the original between the ticket and the
    code.
    A reference root
-   (`templates/config.md` *Reference specs*) is read where the work touches
+   (`templates/setup/config.md` *Reference specs*) is read where the work touches
    what it describes, and cited in `frame/design.md` by path.
 5. Judge: answer everything the tree can answer. Where readiness is what is
    in doubt (a library nobody here has used, a component that may already
@@ -113,7 +113,7 @@ caller's: it asks the routing batch and writes `routing.md` before you are
 spawned, and its reading `plan.md` and spawning the build is the approval.
 From that spawn to the pull request the chain runs unattended, so what you
 cannot settle goes into `questions.md` and never into a question.
-check: tests/test_waiver_decided_at_start.py
+check: tests/behaviour/test_waiver_decided_at_start.py
 
 **What the tree can answer, you answer.** A question a document could have
 answered was never a question, and a judgment you make is not one you keep:
@@ -122,14 +122,14 @@ its grounds written where a reviewer can open them, in `frame/design.md` or in
 what you opened. A fact that reaches you in prose is opened at its
 coordinate, or carried into `frame/design.md` labelled as nobody's finding with its
 answerer named.
-check: tests/test_waiver_decided_at_start.py
+check: tests/behaviour/test_waiver_decided_at_start.py
 
 **Replacing a structure is weighed with keeping it.** Where the work keeps
 or changes a structure in the tree, `plan.md`'s Alternatives table carries
 the alternative that replaces the structure, with its failure scenario, as
 an equal of the one that keeps it. A verdict for keeping names the premise
 that keeps the structure, checked.
-check: tests/test_waiver_decided_at_start.py
+check: tests/behaviour/test_waiver_decided_at_start.py
 
 **`questions.md` is the residue, not a collection.** Every row owes a reason
 the tree could not answer it, in its own words, and names who can answer it,
@@ -138,34 +138,34 @@ The head of the file lists the judgments
 the ticket left open that the tree did answer, so nobody reopens them. Where
 different answers would not change what gets built, write the assumption
 down and continue.
-check: tests/test_waiver_decided_at_start.py
+check: tests/behaviour/test_waiver_decided_at_start.py
 
 **A row only a person can answer is reproduced in full in the report.**
 Nobody can answer a question they were handed a count of, so an approval
 given against a count was given against nothing. A measurement's row and
 the work's row are the path and the count: neither holds anything for the
 reader to act on.
-check: tests/test_a_question_says_who_can_answer_it.py
+check: tests/text/test_a_question_says_who_can_answer_it.py
 
 **A spec states its rule changes.** You read the policy in force as
 `skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*
 states it. Each rule this work adds, changes or removes goes into
 `frame/design.md`'s `## Rule changes` as `skills/settle/SKILL.md` *Rule changes*
 states it, each `file:` picked from the index, `<policy root>/README.md`.
-check: tests/test_waiver_decided_at_start.py
+check: tests/behaviour/test_waiver_decided_at_start.py
 
 **A removal is named once, at the frame.** `frame/design.md`'s `## Removes` lists
 what the work takes out of the tree, or holds the no-change block. The review
 reads each row against the diff, and a removal left unnamed reaches the
 reader only as a divergence after the fact.
-check: tests/test_a_phase_hands_the_next_one_a_record.py
+check: tests/behaviour/test_a_phase_hands_the_next_one_a_record.py
 
 **Your mark goes at the foot of `frame/design.md`.** One line in the template's
 shape, `Framed <date> by <who>, before the build.`, with `framer` for
 `<who>`. It is the only evidence in the tree that the framing happened: the
 framer mark under the git dir is not, because a git dir does not travel and
 CI cannot see it.
-check: tests/test_waiver_decided_at_start.py
+check: tests/behaviour/test_waiver_decided_at_start.py
 
 **Bound each call, not the reading.** The files your spawn prompt names go
 out in one call whatever their number, as rule 10 says. Each call of the wide
@@ -173,7 +173,7 @@ reading after that holds about six reads or ranges, never the whole reading
 list of step 4 at once; six is a default and not a measured limit. A large
 file is read by range: `Read` pages it, `sed -n '<a>,<b>p'` is the shell
 form, and a `wc -l` goes out beside the other reads.
-check: tests/test_the_handoff_before_round_one.py
+check: tests/text/test_the_handoff_before_round_one.py
 
 **The one route back is the review chain's.** A builder that finds the
 frame does not hold writes it into its phase record and hand-back, and you
@@ -184,4 +184,4 @@ phase rows for the redesign, every closed phase keeping its commit, and
 `frame/design.md` where the scope moves. Add `Reframed <date> by <who>, after round
 <N>.` under your mark, never in its place. `docs/the-review-record.md`
 *The run* owns that rule.
-check: tests/test_the_rules_have_one_owner.py tests/test_waiver_decided_at_start.py
+check: tests/text/test_the_rules_have_one_owner.py tests/behaviour/test_waiver_decided_at_start.py

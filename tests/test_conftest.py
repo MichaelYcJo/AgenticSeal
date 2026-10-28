@@ -12,11 +12,11 @@ The workflow readers, `code_line`, `workflow_steps`, `workflow_step` and
 takes `gh`'s login away at import is read from a child process and asked of
 `gh` itself. Those cases came from two files of their own in #942's phase 7.
 The cases of `on_disk`, `shrunken_corpus`, `decline_if_shrunken` and
-`build_tracked_tree` came from `tests/test_a_shrunken_corpus_declines_to_judge.py`
+`build_tracked_tree` came from `tests/behaviour/test_a_shrunken_corpus_declines_to_judge.py`
 in #942's round 3 fix pass, and that file keeps its sweep across files.
 `names_path`'s Windows case came from `tests/test_a_script_copied_alone_exits_2.py`
 and `posix_id`'s from
-`tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py` in #942's
+`tests/behaviour/test_the_windows_leg_runs_in_shards_that_make_the_whole.py` in #942's
 round 9 fix pass, each a case of one helper of this module.
 
 Seen red before they were committed (contract rule 15): the three accepting
@@ -25,6 +25,7 @@ had neither `SLOW_CASE_S` nor a summary hook, and `seal mutate` turned
 each refusing case red by breaking the condition it pins.
 """
 
+import ast
 import json
 import ntpath
 import os
@@ -38,6 +39,7 @@ import censuses
 import conftest
 import pytest
 from conftest import (
+    ROOT,
     build_tracked_tree,
     code_line,
     decline_if_shrunken,
@@ -52,9 +54,8 @@ from conftest import (
 
 TARGET = "tests/conftest.py"
 
-ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-HERE = os.path.dirname(os.path.abspath(__file__))
-CONFTEST = os.path.join(HERE, "conftest.py")
+TESTS = os.path.join(ROOT, "tests")
+CONFTEST = os.path.join(TESTS, "conftest.py")
 TOKENS = ("GH_TOKEN", "GITHUB_TOKEN", "GH_ENTERPRISE_TOKEN", "GITHUB_ENTERPRISE_TOKEN")
 
 # Pinned verbatim: the conftest's placeholder, which is not a credential.
@@ -269,6 +270,55 @@ class Test_repo_relative:
         assert conftest.repo_relative(nested) == "tests/conftest.py"
 
 
+def python_files(top):
+    """The path of every Python file under TOP, `__pycache__` left out, in
+    walk order."""
+    found = []
+    for directory, subdirectories, names in os.walk(top):
+        subdirectories[:] = sorted(d for d in subdirectories if d != "__pycache__")
+        found += [
+            os.path.join(directory, n) for n in sorted(names) if n.endswith(".py")
+        ]
+    return found
+
+
+def own_path_directories(path):
+    """The line numbers at which the Python file at PATH takes a directory
+    from its own `__file__`: the name inside a `dirname` call, or under a
+    `.parent` or `.parents` of a path built from it. A `__file__` inside a
+    string, such as a fixture's source, is no name in this file, and a loaded
+    module's `module.__file__` is an attribute, so neither is read."""
+    with open(path, encoding="utf-8") as handle:
+        tree = ast.parse(handle.read(), path)
+    lines = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call):
+            func = node.func
+            climbs = getattr(func, "attr", getattr(func, "id", None)) == "dirname"
+        else:
+            climbs = isinstance(node, ast.Attribute) and node.attr in (
+                "parent",
+                "parents",
+            )
+        if climbs:
+            lines |= {
+                n.lineno
+                for n in ast.walk(node)
+                if isinstance(n, ast.Name) and n.id == "__file__"
+            }
+    return sorted(lines)
+
+
+def shared_names(top):
+    """`{name: [paths]}` for each file name two Python files under TOP hold,
+    each path relative to TOP and written with `/`."""
+    held = {}
+    for path in python_files(top):
+        rel = posix_id(os.path.relpath(path, top))
+        held.setdefault(os.path.basename(path), []).append(rel)
+    return {name: paths for name, paths in held.items() if len(paths) > 1}
+
+
 class Test_git:
     def test_accepts_a_failing_call_with_checking_off_as_its_process(self, tmp_path):
         """A repository with no commit has no HEAD to verify."""
@@ -474,7 +524,7 @@ class Test_module:
             errors="replace",
             timeout=60,
             env=env,
-            cwd=HERE,
+            cwd=TESTS,
         )
         assert r.returncode == 0, r.stderr
         seen = json.loads(r.stdout.strip().splitlines()[-1])
@@ -532,6 +582,38 @@ class Test_module:
         assert posix_id(ntpath.join("agents", "framer.md"), "\\") == "agents/framer.md"
         assert posix_id("agents/framer.md") == "agents/framer.md"
         assert posix_id(None) is None
+
+    def test_no_test_file_derives_the_root_from_its_own_path(self):
+        """`ROOT` is the one source of the repository root (#1060). A test
+        file that climbed from its own `__file__` was right only at the depth
+        it stood at: moving the test files one directory down meant one edit
+        in each, and a file left at the old depth made a glob under the root
+        empty, so a case looping over it passed over nothing. A test file
+        imports `ROOT` from `tests/conftest.py`, and `CONTRIBUTING.md` *The
+        test layout* says so."""
+        found = [
+            f"{conftest.repo_relative(path)}:{line}"
+            for path in python_files(TESTS)
+            if os.path.basename(path).startswith("test_")
+            for line in own_path_directories(path)
+        ]
+        assert found == [], (
+            "a test file takes the repository root from `tests/conftest.py#ROOT`, "
+            f"not from its own `__file__`: {found}"
+        )
+
+    def test_no_two_python_files_under_tests_share_a_name(self):
+        """The module puts every directory under `tests/` that holds a test
+        file on `sys.path`, and pytest's `prepend` mode imports each test
+        file by its bare name (#1060). Two files of one name then import as
+        one module: pytest fails the collection of the second test file, and
+        a helper of one name shadows the other wherever the path finds it
+        first. Files that are not Python are not imported and are not read."""
+        found = shared_names(TESTS)
+        assert found == {}, (
+            "each Python file under `tests/` keeps a name no other one holds, "
+            f"wherever it stands: {found}"
+        )
 
 
 class Test_step_running:

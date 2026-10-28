@@ -40,9 +40,9 @@ works outside the context entirely (hooks).
 | **proofer** (subagent) | `agent-contract` | Reviews spec compliance first, then quality. It opens `code-review` at its first step and `writing-style` before it writes its round record. The orchestrator verifies the record before acting on it, and the pull request's check reads it — the reviewer never verifies its own report |
 | **tracer** (subagent) | `agent-contract` | Records what the original code does as `path#anchor` coordinates and returns facts, not verdicts. It opens `legacy-parity` at its first step. Appears only in repos that declare `seal/parity.md` |
 | **sealer** (subagent, Opus) | `agent-contract` | The final, independent guarantor. After the rounds settle, the pull request body and changelog are written, and the orchestrator has run the one broad gate (`seal gate`, which writes `trail/gate.md`), it reads that record and runs nothing broad itself, re-runs a sample of the implementer's claims, and reads the design, the build, the last review, the changelog and the pull request body against the issue and the tree. Its verdict is the work item's `guarantee.md`: `sealed`, `withheld` naming what the tree contradicts, or `undecided` with a question for the owner. It does not re-judge the design or the code's quality |
-| Skills | — | Twenty-two, in three groups. The one the agents follow from their first tool call is in the column to the left. Fifteen more a session loads on its own when the work calls for them, and an agent opens at the step that names one — `audit`, `build-fix`, `checkpoint`, `code-review`, `commit-pr-convention`, `confidence-check`, `debug`, `feature-planner`, `gap-analysis`, `implement`, `learn`, `legacy-parity`, `settle`, `verify`, `writing-style`. Six you invoke by name; they are in the cheat sheet below |
+| Skills | — | Fourteen, in three groups. The one the agents follow from their first tool call is in the column to the left. Nine more a session loads on its own when the work calls for them, and an agent opens at the step that names one — `code-review`, `commit-pr-convention`, `confidence-check`, `feature-planner`, `implement`, `legacy-parity`, `settle`, `verify`, `writing-style`. Four you invoke by name; they are in the cheat sheet below |
 | Hooks | — | The gates themselves — auto-registered by the plugin, no settings wiring |
-| CLAUDE.md block | — | 12 always-on lines — four section headings (`Tooling`, `Safety`, `Session cost`, `Git`) over eight rules: one on tooling, three on safety, one on session cost, three on git. No response-language rule — that stays yours. Its one source is `templates/claude-md-block.md`, which `install.sh` and `/agentic:update` write into a `CLAUDE.md`; no other file carries a copy |
+| CLAUDE.md block | — | 12 always-on lines — four section headings (`Tooling`, `Safety`, `Session cost`, `Git`) over eight rules: one on tooling, three on safety, one on session cost, three on git. No response-language rule — that stays yours. Its one source is `templates/setup/claude-md-block.md`, which `install.sh` and `/agentic:update` write into a `CLAUDE.md`; no other file carries a copy |
 
 ## The chain
 
@@ -111,7 +111,7 @@ Cross-session memory lives in the repo, not the session:
 
 | Root | Lifetime | Holds |
 |---|---|---|
-| `seal/` | permanent | everything this plugin maintains — the follow-up list, the repository's own config (the two language rows and the mode live there), the migration config — and, beneath it, the work items. Its existence, with its `README.md` opening with the marker line `templates/seal-README.md` starts with, is also what opts the repository in, for the hooks that read it — the routing edit gate, the question gate, the mode gate, the review-skill gate, the two implementer hooks, the two stamp hooks and the version check. worktree-guard, session-lease and stub-remove act in every git repo regardless, and lint-python follows ruff (see Where below) |
+| `seal/` | permanent | everything this plugin maintains — the follow-up list, the repository's own config (the two language rows and the mode live there), the migration config — and, beneath it, the work items. Its existence, with its `README.md` opening with the marker line `templates/setup/seal-README.md` starts with, is also what opts the repository in, for the hooks that read it — the routing edit gate, the question gate, the mode gate, the review-skill gate, the two implementer hooks, the two stamp hooks and the version check. worktree-guard, session-lease and stub-remove act in every git repo regardless, and lint-python follows ruff (see Where below) |
 | `seal/threads/<id>/` | one work item | `frame/` (design, plan, questions), `trail/` (phases, review rounds, the broad run), and at its top `routing.md`, `changelog.md`, `guarantee.md` and `gaps.md`, the closing memo holding only what the diff cannot show. A human approves `frame/plan.md`, which is why this is a repository document and not tool state |
 | `docs/` | permanent | whatever policy documents the repository already keeps; the documentation convention is the project's. A work item states its rule changes in its spec instead of editing them, and the settle after the release writes each section as the latest decision those changes state (`skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*) |
 
@@ -264,13 +264,12 @@ wrong for every other machine.
 | `seal cost --latest` | where a session's minutes went — command time, model time between calls, checks re-run for a result already produced, and how many tools went out per turn — numbers nothing inside a session can measure |
 | `seal cost --segments <transcript>` | one row per agent the run spawned, read from that agent's own transcript: its span, calls, tools per turn, mean gap, tokens, and the context its largest turn read. That span is in no other column — where a harness writes a spawn's result on acceptance, the `--spawns` table reads seconds for an agent that ran twenty minutes. A resumed agent is one row per stretch of work, so no span covers the wait between two of them — whether the command is given the run's transcript or that agent's own — and a segment that spawned an agent of its own prints a line saying so. Under the table it names each row whose tools per turn sit under its kind's bar — a proofer's or a framer's; a crafter's edit-test loop is exempt — and counts the rows it could not grade |
 | `seal settle [--apply]` | the dry run: the `## Rule changes` the released specs state, grouped by the section each names and in merge order, with whether each `from` and `to` is in that section now; the specs to read whole; every open row of every released record; and what `--apply` removes. It refuses nothing. The session running the settle then writes the sections and decides the open rows, asking nobody (`skills/settle/SKILL.md` *The settling session's procedure*). `--apply` writes no document: it removes each released directory whose record holds no open row, with a `frame/design.md` or without, and names any it keeps |
-| `seal fold [--ceiling <n>]` | checks the top level of the policy root for one read and the index, as `skills/settle/scripts/fold_check.py` and its rows in `templates/config.md` *The fold's values* state them. The flag replaces its row for one run |
+| `seal fold [--ceiling <n>]` | checks the top level of the policy root for one read and the index, as `skills/settle/scripts/fold_check.py` and its rows in `templates/setup/config.md` *The fold's values* state them. The flag replaces its row for one run |
 | `seal rules <doc> [--root <dir>]` · `seal rules --check [--root <dir>]` | `seal rules <doc>` prints each heading of a document and, under it, the targets of its `check:` lines, each with the first sentence of its test's docstring, or why the target does not resolve. A rule's text lives once, in that docstring, so this is how a document and its tests read side by side, and it exits 0 whatever it finds. `seal rules --check` reads every check line in every rule file and exits 1 naming each one out of grammar or naming a target that is gone, by file, line and heading; one case of the suite runs it over the tree. The targets resolve in the repository the command is typed in, and neither form writes anything |
 | `seal pact [ROOT]` | run at the repository holding a pact (`seal/pact.md`), the one copy of a contract several repositories keep together: reads every signer the pact lists, found through `~/.claude/agentic/pact-paths.md` or a sibling checkout, checks that each names the pact in its `Pact` row, and grades every pact anchor it cites. `SUPERSEDED` says the signer was built against an older clause, `NOT TAKEN` names the branch holding a change the pact has not taken, `UNMATCHED` and `BROKEN` say read both sides or re-coordinate. Local only: a signer's CI can read one repository, so it prints the relationship and verifies nothing |
 | `seal payload [--calibrate <main transcript>] [--baseline <run.json>]` | what each agent's startup payload is made of — its definition, every skill its `skills:` list injects, and the two `CLAUDE.md` files — in bytes, chars and tokens, with a basis on every token figure: `measured` where it came from a transcript's spawns, `estimated` from a per-agent ratio otherwise. `--baseline` prints the delta against an earlier `--json` run, which is how a trimmed payload is shown to have shrunk |
 | `/agentic:preset-setup` | approval-gated semantic merge of the CLAUDE.md block |
 | `/agentic:parity-setup` | declare that this repo ports from another codebase — finds the original, records the baseline |
-| `/agentic:security-audit` · `/agentic:testing` | prompt checklists the model walks — an OWASP-shaped security pass and a test-strategy pass |
 | `/agentic:config` | show what this repository decided for itself — the two languages it writes in and where its records live — and change any of it. Routes a change to whatever owns that row rather than editing behind it |
 | `/agentic:update` | take the newest release and see what is in it — runs both update commands in the right order, then names the changelog entries between your version and the new one. It also names both ways to load it and how far each one was actually measured |
 | `bash install.sh [--project]` / `bash uninstall.sh` | add / remove the CLAUDE.md marker block |
@@ -370,7 +369,7 @@ version in `plugin.json`, not to commits — a change that ships without a
 version bump reaches nobody.
 
 `install.sh` backs up to `CLAUDE.md.bak`, merges only its marker block — read
-from `templates/claude-md-block.md`, the block's one source — (idempotent —
+from `templates/setup/claude-md-block.md`, the block's one source — (idempotent —
 rerun to update), and never edits your own content: overlaps are warned
 about, not resolved. For a reviewed, deduplicating merge run
 `/agentic:preset-setup` inside Claude Code instead — every deletion goes through an
@@ -391,7 +390,7 @@ Anything else under `specs/` is the project's own, whatever its name, and
 stays where it is.
 
 The README the second command moves is then overwritten from
-`templates/seal-README.md`, because that file's first line is the marker every
+`templates/setup/seal-README.md`, because that file's first line is the marker every
 gate reads before it treats `seal/` as the plugin's root. Where
 `.specseal/scratch` marked the repository as throwaway, delete it instead of
 moving it: its successor is the file `.git/agentic-scratch`, which cannot be
@@ -400,7 +399,7 @@ committed.
 ```bash
 # exempt from old_names: the 0.22.x layout, which the plugin then moves into seal/threads/
 mkdir -p seal/specs
-git mv .specseal/README.md seal/README.md    # then overwrite it from templates/seal-README.md
+git mv .specseal/README.md seal/README.md    # then overwrite it from templates/setup/seal-README.md
 git mv .specseal/* seal/                     # follow-up.md, parity.md and anything else in there
 # exempt from old_names: the 0.22.x layout, which the plugin then moves into seal/threads/
 git mv specs/<id> seal/specs/<id>            # each work item
@@ -463,7 +462,7 @@ key, and a repository with `seal/` at either place is not asked.
 | | Shared, records only (the default) | Shared, with pull-request checks | Local |
 |---|---|---|---|
 | Where `seal/` lives | `<repo>/seal/`, committed | `<repo>/seal/`, committed | `$(git rev-parse --git-common-dir)/seal/` — under the common git dir, which is `.git/` in a main tree |
-| What setup installs | nothing under `.github/` | the pull-request checks, `.github/workflows/hygiene.yml` written from the plugin's `templates/hygiene.yml` only if no file is there | nothing; the tree is untouched |
+| What setup installs | nothing under `.github/` | the pull-request checks, `.github/workflows/hygiene.yml` written from the plugin's `templates/setup/hygiene.yml` only if no file is there | nothing; the tree is untouched |
 | Fits | your own repository, or one where a committed `seal/` bothers nobody | a repository where every pull request should be checked against the records | a repository whose tree must not carry this plugin's files: a company repository, a contribution to someone else's project |
 | Gives up | CI's checks, until you add them later | nothing | CI — the checks read committed files — and every other machine or re-clone, which starts empty |
 

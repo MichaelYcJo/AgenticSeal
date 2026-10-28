@@ -43,7 +43,7 @@ here is a write you do not make.
    the section for the record's language: `## English prose rules`, or
    `## 문장 규칙` where `Record language` in the `seal/` root's `config.md`
    is Korean.
-7. Write the record from `templates/sdd-round.md`, each labelled line as the
+7. Write the record from `templates/records/sdd-round.md`, each labelled line as the
    grammar table in `docs/the-review-record.md` *The round record* gives it
    and every finding holding its `severity:`, `location:`, `evidence:`,
    `verdict: open` and `answer:` lines, and return its path. Before handing
@@ -73,7 +73,7 @@ here is a write you do not make.
 `seal/threads/<work-item-id>/trail/rounds/round-<n>.md` in the worktree of the branch
 under review, at the path your prompt names, and never the main checkout.
 Nothing else of the round goes there.
-check: evals/behaviour/proofer/rule-proofer-one-finding/ tests/test_a_moved_rule_leaves_its_definition.py
+check: evals/behaviour/proofer/rule-proofer-one-finding/ tests/text/test_a_moved_rule_leaves_its_definition.py
 
 **The clone is named for the work item and the round.** Where your prompt
 names none, clone into `<scratchpad>/<work-item-id>/round-<n>/clone`, and
@@ -81,18 +81,18 @@ everything a probe makes outside the clone sits under
 `<scratchpad>/<work-item-id>/round-<n>/`: agents of one session share one
 scratchpad, so a name a parallel proofer would also pick is one two of them
 hold. If cloning fails, say so and do not work in place.
-check: tests/test_a_parallel_agent_names_its_scratch_after_the_work_item.py
+check: tests/text/test_a_parallel_agent_names_its_scratch_after_the_work_item.py
 
 **The implementer's account is a claim.** Read all of it and check each
 claim against the code, and say in the record what was claimed and what you
 found: *claimed X; `a.py:41` does Y*. Behaviour called deliberate is grounds
 only where a policy document, the SDD set or a test a rule names says so;
 found in the account alone, it is a question, never a pass. A `frame/design.md`
-citing a reference root (`templates/config.md` *Reference specs*) cites a
+citing a reference root (`templates/setup/config.md` *Reference specs*) cites a
 coordinate: open it in stage 1 where the work touches what it describes. The
 plugin never writes there, so a diff that edits, moves or copies a file out
 of one is a finding.
-check: tests/test_a_reference_root_is_read_and_never_taken.py tests/test_settle.py tests/test_root_migrate.py
+check: tests/behaviour/test_a_reference_root_is_read_and_never_taken.py tests/skills/test_settle.py tests/hooks/test_root_migrate.py
 
 **Earlier rounds carry coordinates, never verdicts.** Open what an earlier
 round names instead of searching again, and say in the record which facts
@@ -107,7 +107,7 @@ stands deferred: say where, and do not write it up again.
 
 A carried fact is re-derived when its check fails, or where `seal/parity.md`
 lists its path under coordinate-trust exceptions.
-check: tests/test_review_axes.py
+check: tests/text/test_review_axes.py
 
 **A verifying round answers the closed findings.** Its target is the diff of
 the last fixes, `<sha>, fixes <a>..<b>`. Each finding the round before
@@ -126,14 +126,14 @@ price: widened, it re-reviews what earlier rounds reviewed instead of
 answering the finding that came back. What you open outside it anyway you
 report like anything else, and a round told the run is capped still reports
 what it finds at the severity it finds it.
-check: tests/test_the_rules_have_one_owner.py tests/test_the_verifying_round_is_bounded_not_cheapest.py
+check: tests/text/test_the_rules_have_one_owner.py tests/text/test_the_verifying_round_is_bounded_not_cheapest.py
 
 **Each new test is read against its group.** A test the diff adds is read
 against the tests of the function it covers, and against any pair a
 duplicate check in the repository names; a test that covers nothing its
 group does not already cover is a `should` finding. Where the test files
 declare `TARGET`, the pairs are the ones `seal layout --pairs` prints.
-check: tests/test_a_moved_rule_leaves_its_definition.py
+check: tests/text/test_a_moved_rule_leaves_its_definition.py
 
 **The broad gate is not yours, and its label is.** The full suite, the lint
 and the typecheck run once, by `seal gate`, after the rounds settle, and
@@ -144,7 +144,7 @@ declined, and the instruction goes in as a row of `## Not judged` with the
 caller named as its answerer, since your hand-back is a report rather than a
 conversation. When your round leaves nothing open, say so: what comes due is
 the orchestrator's broad run, and the sealer's spawn after it.
-check: tests/test_broad_gate_rule.py tests/test_the_seal_is_taken_once_by_the_sealer.py
+check: tests/text/test_broad_gate_rule.py tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py
 
 **Runs are narrow, through the repository's runner.** Find the runner before
 you build your own: a wrapper in `bin/`, or whatever the contribution guide
@@ -155,11 +155,11 @@ is not installed for the system interpreter. A claim of absence, such
 as nothing in the suite catching this, is a probe: run it over the module that
 should catch it, report it as a probe, never as a seal, and name it on the
 finding's `evidence: executed` line.
-check: tests/test_the_suite_has_a_command_that_is_cheap_twice.py tests/test_the_seal_is_taken_once_by_the_sealer.py
+check: tests/behaviour/test_the_suite_has_a_command_that_is_cheap_twice.py tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py
 
 **A probe leaves nothing, and its files are edits.** A probe follows the
 probe rules of `skills/code-review/SKILL.md` and rule 7: it runs in the
 clone, and everything it made is gone before you hand back. A probe script,
 a scratch fixture or a file patched to see whether a finding reproduces is
 an edit, so it goes through the `Edit` or `Write` tool (rule 9).
-check: tests/test_a_probe_that_commits_says_so.py tests/test_edits_go_through_the_edit_tool.py
+check: tests/behaviour/test_a_probe_that_commits_says_so.py tests/text/test_edits_go_through_the_edit_tool.py

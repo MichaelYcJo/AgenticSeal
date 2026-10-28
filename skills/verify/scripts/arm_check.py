@@ -28,7 +28,7 @@ constructor is either an arm shape or a named non-arm with grounds — and a
 node type in neither raises `UnknownNodeType`.
 
 Totality is checked against `ast` itself rather than against this docstring:
-`tests/test_arm_check.py` enumerates every constructor from the `ast` module's
+`tests/skills/test_arm_check.py` enumerates every constructor from the `ast` module's
 own class tree and asserts this file covers all of them, and names nothing
 else. That tree is the running interpreter's, and the tables serve every
 Python from the floor up, so `ONLY_ON_SOME_PYTHONS` records the classified
@@ -295,7 +295,7 @@ CLASSIFIED = frozenset(ARM_SHAPES) | NOT_ARM_NAMES
 #: `(first Python that has it, first Python that no longer does)`, a `None`
 #: leaving that end open. A name absent from this table is one every Python
 #: from the floor up has. Held for the case that checks it, as `CLASSIFIED`
-#: is: on each Python, `tests/test_arm_check.py` requires `ast` to have
+#: is: on each Python, `tests/skills/test_arm_check.py` requires `ast` to have
 #: exactly the classified names this table places there, and a bound CI does
 #: not run that module at is refused. So a Python that adds or removes a node
 #: type is caught by the first run on it, and the repair is a row here.
@@ -455,7 +455,7 @@ def _node_arms(node: ast.AST, scope: str, source: str) -> list[Arm]:
         # version nor the flag. The minor version is the whole fact and the
         # patch carries nothing, since no 3.9.x has the keyword -- written
         # without one on purpose, because a three-part number in a loaded file
-        # is a timer `tests/test_release_hygiene.py` refuses, and it caught
+        # is a timer `tests/behaviour/test_release_hygiene.py` refuses, and it caught
         # this comment's first draft. `withouts` is built from `members` by
         # `_group_of`, one entry per member, so the lengths agree by
         # construction rather than by hope.
@@ -1198,7 +1198,7 @@ def main(argv=None):
         "--tests",
         help=(
             "the command that decides whether an arm is watched, e.g. "
-            '--tests "bin/test tests/test_chain_check.py -q". It runs once '
+            '--tests "bin/test tests/skills/test_chain_check.py -q". It runs once '
             "against the module as it is first and has to pass there, or the "
             "run is refused with exit 2 and nothing is mutated. Omitted, the "
             "arms are listed and nothing is mutated."
@@ -1295,7 +1295,7 @@ if __name__ == "__main__":
     # A console that cannot encode what this prints -- the report's own
     # dashes, or the U+FFFD `_text` leaves where a suite printed a byte that
     # is not UTF-8 -- ended a refusal in a traceback at exit 1, after its
-    # verdict line (round 1, 🟡 2). `hooks/console.py` owns the reasoning
+    # verdict line (round 1, 🟡 2). `hooks/lib/console.py` owns the reasoning
     # behind these lines; this script reads no stdin.
     for _name, _errors in (("stdout", "replace"), ("stderr", "backslashreplace")):
         _stream = getattr(sys, _name, None)

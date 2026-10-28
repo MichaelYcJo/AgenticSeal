@@ -95,7 +95,7 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-sys.path.insert(0, os.path.join(HERE, "..", "..", "hooks"))
+sys.path.insert(0, os.path.join(HERE, "..", "..", "hooks", "lib"))
 import console  # noqa: E402
 from close_issues_on_release import keywords_in  # noqa: E402
 
@@ -133,7 +133,7 @@ def title_line_re(version):
 
 # The heading `gather_changelog.py#section` writes, with its date left open.
 # The two are held against each other by
-# `tests/test_publish_release_note.py#Test_module::test_the_reader_reads_what_the_gatherer_writes`
+# `tests/github/test_publish_release_note.py#Test_module::test_the_reader_reads_what_the_gatherer_writes`
 # rather than by this comment: that script has no section READER to import --
 # it writes sections and finds the first `## ` line to insert above -- so what
 # is owed is a case proving this pattern reads that writer's output, not a

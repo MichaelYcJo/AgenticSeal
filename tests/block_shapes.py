@@ -5,7 +5,7 @@
 Data and nothing else. Each shape is the document one row of that table is
 about, and `RENDERER` is the frame's *Renderer* column turned into the lines
 a CommonMark renderer hides, derived by reading the specification when the
-frame was drawn. `tests/test_the_hooks_hide_what_a_renderer_hides.py` holds
+frame was drawn. `tests/behaviour/test_the_hooks_hide_what_a_renderer_hides.py` holds
 the oracle to that column (the frame's Q2) and then holds every reader to the
 oracle over these shapes and a generated corpus.
 

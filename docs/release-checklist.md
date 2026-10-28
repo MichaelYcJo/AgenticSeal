@@ -5,7 +5,7 @@ day. That document says why each step exists; this one says what to type and
 what to look at before the next step.
 
 `X.Y.Z` is the release. Nothing below names a real version, because
-`tests/test_release_hygiene.py` refuses a loaded document that names the one
+`tests/behaviour/test_release_hygiene.py` refuses a loaded document that names the one
 running.
 
 ## 0. Before starting
@@ -64,17 +64,17 @@ The gather writes a new file, the release's own `changelog/X.Y.Z.md`, and
 heads the index `CHANGELOG.md` with its line. It is staged before step 3 runs
 anything, because the suite lists files with `git ls-files`, which reads the
 index: an untracked release file is a tree the listing does not describe.
-check: tests/test_the_changelog_is_gathered_at_release.py tests/test_gather_changelog.py
+check: tests/text/test_the_changelog_is_gathered_at_release.py tests/github/test_gather_changelog.py
 
 **A second gather for the same version appends into its section.** A fragment
 landing after this step, while the release pull request is red, is the
 ordinary shape. Run the same command again: the new entries join the
 existing section, the section keeps the first gather's date, and
-`tests/test_release_hygiene.py` refuses a file that heads a version twice.
-check: second-gather-appends tests/test_release_hygiene.py
+`tests/behaviour/test_release_hygiene.py` refuses a file that heads a version twice.
+check: second-gather-appends tests/behaviour/test_release_hygiene.py
 
 **The preparation commit writes the process archive,
-`seal/process/X.Y.Z.md`, from `templates/process.md`.** The archive records
+`seal/process/X.Y.Z.md`, from `templates/records/process.md`.** The archive records
 what this release changed in the way of working and why, one row per change.
 `CLAUDE.md`, `agents/*.md` and `skills/*/orchestration.md` are the way of
 working, and `git log vA.B.C..HEAD` over those paths, with the milestone's
@@ -145,7 +145,7 @@ What each one has caught, so a failure is recognised rather than debugged:
 | the full suite | a gathered entry prescribed a `git mv` whose destination nothing creates |
 | `test_no_loaded_file_names_a_version_at_or_above_the_running_one` | living prose that named the release by number, or a version ahead of it. A record of a moment is listed in the test; anything else is reworded to name the change, or to the illustrative version the test's own message points at. A version this repository has *tagged* is history and may be named: the shipped set is read from the root's `v*` tags, never from this file, because this commit writes the heading and the bump together |
 
-check: tests/test_a_shrunken_corpus_declines_to_judge.py tests/test_conftest.py
+check: tests/behaviour/test_a_shrunken_corpus_declines_to_judge.py tests/test_conftest.py
 
 ## 4. Commit, push, open the first pull request
 
@@ -213,7 +213,7 @@ shipped, and a tag is what says so. Three exemptions, each argued where the
 rule is: the illustrative version this repository already writes, records of
 a moment under `docs/experiments/`, and a version belonging to another
 product.
-check: tests/test_release_hygiene.py
+check: tests/behaviour/test_release_hygiene.py
 
 **A contributor whose base is wrong is told the base is wrong.** The
 procedure a contributor needs is the first thing in the contributing guide,
@@ -222,7 +222,7 @@ what they are not asked to do. A pull request template carries the
 base-branch fact itself rather than only a link, because its whole advantage
 is that it reaches somebody who opened no document, and the refusal message
 of the check that fires on a wrong base says which fact is wrong.
-check: tests/test_the_release_check_watches_what_ships.py tests/test_the_contributor_has_a_procedure.py
+check: tests/behaviour/test_the_release_check_watches_what_ships.py tests/behaviour/test_the_contributor_has_a_procedure.py
 
 ## 6. After the merge
 
@@ -348,4 +348,4 @@ leave.
       branch deleted or left, either is fine.
 - [ ] The next release branch is cut from `main`, not from this one.
 
-check: tests/test_version_check.py
+check: tests/hooks/test_version_check.py

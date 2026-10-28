@@ -17,7 +17,7 @@ framework and lefthook live, and a line or an entry in their committed
 configuration reaches every teammate. A check at git's level reaches people
 who do not use this plugin, with an experience they did not ask for (the
 owner, 2026-10-25).
-check: tests/test_routing_edit_gate.py tests/test_stub_remove.py
+check: tests/hooks/test_routing_edit_gate.py tests/hooks/test_stub_remove.py
 
 **A session takes out, at its start, the git hook stubs an earlier release
 of this plugin wrote into its clone.** A stub is a file in the common git
@@ -29,7 +29,7 @@ stub ran the plugin copy whose absolute path it names, so after an upgrade
 it goes on judging commits with the old copy for as long as that copy stays
 on disk. A clone no session of this release starts in keeps its stubs, and
 a person removes them by deleting the files that carry the marker.
-check: tests/test_stub_remove.py
+check: tests/hooks/test_stub_remove.py
 
 ## The edit check
 
@@ -47,14 +47,14 @@ commits made there reach a pull request only through a branch, which this
 gate and the trailer arm judge. The tool input is a path, so no command is
 read. Every way the declaration cannot be read is no declaration, as
 `docs/the-review-and-parity-arms.md` states.
-check: tests/test_routing_edit_gate.py
+check: tests/hooks/test_routing_edit_gate.py
 
 **Three kinds of file are not judged: one under the repository's `seal/`
 root, one git ignores, and one outside every opted-in repository.** The
 root holds the routing record and the records that follow it, so writing
 the declaration is never refused for the want of one. An ignored file never
 lands in a commit. Anything else belongs to nothing this plugin governs.
-check: tests/test_routing_edit_gate.py
+check: tests/hooks/test_routing_edit_gate.py
 
 **A change that belongs to no work item is recorded per session and per
 branch by `seal no-work-item`, and the record lets that session edit on that
@@ -70,7 +70,7 @@ on a new branch meets the refusal there. Nothing verifies who ran it: the
 record is an audit trail, in the transcript and, at a shared root, in each
 commit's trailer at the pull request, not an authorization. A record that
 cannot be read is no record.
-check: tests/test_routing_edit_gate.py tests/test_seal.py
+check: tests/hooks/test_routing_edit_gate.py tests/skills/test_seal.py
 
 **A refusal is a deny addressed to the model, with the same text every
 time.** It names the declaration to write, at the path `routing.md` takes
@@ -82,7 +82,7 @@ routing question, read through `hooks/worktree_consent.py#automation_answered`,
 it names no question tool; otherwise it tells the model to put the routing
 question to the person with `AskUserQuestion`. Re-issuing the edit
 unchanged meets the same refusal.
-check: tests/test_routing_edit_gate.py
+check: tests/hooks/test_routing_edit_gate.py
 
 **The check reaches a subagent's edits as it reaches the main session's,
 and an edit made through the shell reaches neither.** A subagent's tool

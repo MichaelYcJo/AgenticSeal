@@ -73,15 +73,15 @@ import re
 import subprocess
 import sys
 
-# `hooks/` beside this script, from which the fence rule, the line split, the
-# `Reference specs` row's reader and the root's resolver are loaded by path
-# (#688, #1005).
+# `hooks/lib/` beside this script, from which the fence rule, the line split,
+# the `Reference specs` row's reader and the root's resolver are loaded by
+# path (#688, #1005).
 HERE = os.path.dirname(os.path.abspath(__file__))
-HOOKS = os.path.join(HERE, "..", "..", "..", "hooks")
+HOOKS = os.path.join(HERE, "..", "..", "..", "hooks", "lib")
 
 
 def _load_blocks():
-    """`hooks/blocks.py`, the one place the fence delimiter rule and the GFM
+    """`hooks/lib/blocks.py`, the one place the fence delimiter rule and the GFM
     line split are written. A hook imports nothing from `skills/`, so this
     module asks the hook's copy rather than the other way round."""
     spec = importlib.util.spec_from_file_location(
@@ -99,20 +99,20 @@ _BLOCKS = _load_blocks()
 # `blank_fences` and `closed_fence_lines`, and `liveness` and
 # `_paragraph_ends_at`; so do `coordinates.py#quoted_lines`,
 # `gather_changelog.py` through `live_lines`, `payload_meter.py#heading_starts`
-# and `tests/test_a_section_marked_for_one_role_reaches_only_that_role.py`;
-# and `hooks/blocks.py#walk` adds a line-start HTML comment block to it for
-# `hooks/config.py` and `hooks/routing.py`, apart from `live_lines` on
+# and `tests/behaviour/test_a_section_marked_for_one_role_reaches_only_that_role.py`;
+# and `hooks/lib/blocks.py#walk` adds a line-start HTML comment block to it for
+# `hooks/lib/config.py` and `hooks/lib/routing.py`, apart from `live_lines` on
 # purpose, since a hook row is safe at its old reading where the walk is
 # unsure. Readers that keep a rule of their own, each on purpose: the pull request
 # body readers through `close_issues_on_release.py#FENCE`, which open a fence
 # at any indentation as GitHub does, so a fence under a list item masks a
 # closing keyword (`docs/issues-and-milestones.md` *A keyword inside a fence
-# or a code span claims nothing*); `tests/test_docs_line_wrap.py#fenced_numbers`,
+# or a code span claims nothing*); `tests/behaviour/test_docs_line_wrap.py#fenced_numbers`,
 # which strips a line's indentation first; `gather_changelog.py#insert` and
 # `#section_lines` and `publish_release_note.py#section_body`, which end a
 # released section at the next `## ` line on purpose (#586);
-# `tests/test_release_hygiene.py#overwide_rows`, which keeps no fence state;
-# and the oracle walk in `tests/test_unverified_check.py`. A new reader
+# `tests/behaviour/test_release_hygiene.py#overwide_rows`, which keeps no fence state;
+# and the oracle walk in `tests/skills/test_unverified_check.py`. A new reader
 # that decides by line whether it stands inside a fence belongs in one of
 # these two lists.
 fence_opener = _BLOCKS.fence_opener
@@ -127,7 +127,7 @@ GFM_LINE_RE = _BLOCKS.GFM_LINE_RE
 gfm_lines = _BLOCKS.gfm_lines
 
 # A thread's closing memo, at the thread's top, and the directory under a
-# `seal/` root that holds the threads: `hooks/optin.py#GAPS` and
+# `seal/` root that holds the threads: `hooks/lib/optin.py#GAPS` and
 # `#WORK_ITEMS`, which a case holds these two to.
 OVERVIEW = "gaps.md"
 ITEMS = "threads"
@@ -422,10 +422,10 @@ def heading_level(line):
     quoted in a closed fence is never asked. Setext headings are not read:
     every one markdown-it finds in this repository is a front-matter line
     under its `---` closer, which GitHub renders as a table.
-    `tests/test_unverified_check.py`'s `Test_heading_level` holds this to
+    `tests/skills/test_unverified_check.py`'s `Test_heading_level` holds this to
     markdown-it's ATX headings, through `tests/commonmark_oracle.py`, over
     the frame's shapes and a generated corpus;
-    `tests/test_one_heading_rule_holds_to_commonmark.py` holds every tracked
+    `tests/behaviour/test_one_heading_rule_holds_to_commonmark.py` holds every tracked
     `.md` file to them, and says so the day a setext heading appears in a
     body.
 
@@ -484,7 +484,7 @@ def _paragraph_ends_at(line):
     # which are paragraph text — and on the issue references this repository
     # writes constantly, 944 lines of them (round 6, finding 4). Four spaces
     # is paragraph text too, a lazy continuation line, and the oracle
-    # `tests/test_unverified_check.py#block_ends_at` has bounded it all
+    # `tests/skills/test_unverified_check.py#block_ends_at` has bounded it all
     # along (#491's round-7 comment).
     if heading_level(line) is not None:
         return True
@@ -954,8 +954,8 @@ def overviews(paths):
 
 
 def config_at(top):
-    """`(hooks/config.py, the seal/ root)` for the repository at `top`, the
-    root as `hooks/optin.py#home_at` resolves it."""
+    """`(hooks/lib/config.py, the seal/ root)` for the repository at `top`, the
+    root as `hooks/lib/optin.py#home_at` resolves it."""
     modules = []
     for name in ("config", "optin"):
         path = os.path.join(HOOKS, f"{name}.py")
@@ -970,9 +970,9 @@ def config_at(top):
 
 
 def references_at(top):
-    """`(hooks/config.py, roots)` for the repository at `top` — the module
+    """`(hooks/lib/config.py, roots)` for the repository at `top` — the module
     holding `under_reference_root` and what the row names under the root
-    `hooks/optin.py#home_at` resolves — or None for a copy of this script
+    `hooks/lib/optin.py#home_at` resolves — or None for a copy of this script
     with no `hooks/` beside it.
 
     None prunes nothing, which reads more and never less: a copy taken alone
@@ -987,7 +987,7 @@ def references_at(top):
 
 
 def policy_root(top):
-    """The policy root of the repository at `top`, `hooks/config.py#policy_root`'s
+    """The policy root of the repository at `top`, `hooks/lib/config.py#policy_root`'s
     answer for its `seal/` root."""
     config, home = config_at(top)
     return config.policy_root(home)
@@ -1740,7 +1740,7 @@ def main(argv=None):
 
 if __name__ == "__main__":
     # A console that cannot encode what this prints kills it with stdout
-    # empty, which is how a hook says "nothing to see here". `hooks/console.py`
+    # empty, which is how a hook says "nothing to see here". `hooks/lib/console.py`
     # owns the reasoning and the three decisions behind these lines.
     for _name, _errors in (
         ("stdin", "replace"),

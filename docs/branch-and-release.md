@@ -30,12 +30,12 @@ git describe --tags   # must name the release, not "<tag>-N-g<sha>"
 ```
 
 **A release pull request that changes what the plugin ships moves the
-version.** `tests/test_chain_hooks_hardening.py` binds the changelog to
+version.** `tests/behaviour/test_chain_hooks_hardening.py` binds the changelog to
 whatever `plugin.json` says, and the `hygiene` workflow fails a release pull
 request, one whose base is `main`, that changes `skills/`, `agents/`,
 `hooks/`, `templates/`, `bin/` or `.claude-plugin/` without moving the
 version. The tag is still the maintainer's to push; nothing in CI can do it.
-check: tests/test_the_release_check_watches_what_ships.py .github/workflows/hygiene.yml
+check: tests/behaviour/test_the_release_check_watches_what_ships.py .github/workflows/hygiene.yml
 
 **Every act the release performs once it reaches `main` belongs to a machine or
 to a command that answers it, and none of them waits on somebody remembering.**
@@ -91,7 +91,7 @@ maintainer's last act, fires the note, because a note has to name a tag.
 `docs/release-checklist.md` *6. After the merge* carries a box for each of the
 first two. The first confirms the workflow fired and is not where the note
 gets written; the second is where the command is run.
-check: tests/test_a_release_publishes_its_note.py tests/test_publish_release_note.py tests/test_the_release_tail_does_not_end_at_the_tag.py tests/test_the_release_seal_is_drawn.py tests/test_release_seal.py
+check: tests/behaviour/test_a_release_publishes_its_note.py tests/github/test_publish_release_note.py tests/text/test_the_release_tail_does_not_end_at_the_tag.py tests/behaviour/test_the_release_seal_is_drawn.py tests/github/test_release_seal.py
 
 Which workflows GitHub starts on which event, and which run a newer push
 cancels, is GitHub's behaviour. No case here can start a run, so
@@ -143,7 +143,7 @@ resolving.
 **The `target:` line in every `round-N.md` names a commit.** After a squash it
 resolves for nobody, which is why the check reads it only while the branch
 that holds the commit is open (`docs/the-review-record.md` *The round record*).
-check: tests/test_a_rider_reaches_its_file.py
+check: tests/text/test_a_rider_reaches_its_file.py
 
 **A third reader of those commits is outside this repository.** A marketplace
 file lists an external plugin by pinning a commit of its source repository,
@@ -195,7 +195,7 @@ squash merge, like any other work.
   `chain_check.py` reads a round's `target:` commit only as HEAD or an ancestor
   of it, so the commits a round reviewed are read while the pull request that
   carries them is open, and no step fetches a ref the checkout lacks. The
-  checks ship to user repositories as `templates/hygiene.yml`, run from a
+  checks ship to user repositories as `templates/setup/hygiene.yml`, run from a
   clone of this repository at the release installed when
   `seal pr-checks install` wrote the file, at first setup or later; it
   refuses in local mode, because the checks read committed files and local
@@ -313,7 +313,7 @@ exits non-zero only at the end, naming each issue both routes refused with
 both errors. A partial close is repaired by re-running the script with the
 run's `BEFORE`, `AFTER` and `REPO`: it skips what is already closed and
 reaches the rest.
-check: tests/test_close_issues_on_release.py
+check: tests/github/test_close_issues_on_release.py
 
 ```
 Closes #88

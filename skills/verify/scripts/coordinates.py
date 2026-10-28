@@ -27,7 +27,7 @@ HASH_LEN = 8
 # A clause of a pact held in another repository, cited from a signer
 # (#647, `docs/the-pact.md`): `pact:<name>/"<heading path>"@<hash>`. The name
 # is the last path segment of the pact's repository's normalised origin URL
-# (`hooks/config.py#pact_name`), the locator is this module's quoted heading
+# (`hooks/lib/config.py#pact_name`), the locator is this module's quoted heading
 # path with its `\|` and `\"` escapes, and the hash is `content_hash` of the
 # clause's region in `seal/pact.md`. `pact_check.py` grades these.
 PACT_NAME = r"[A-Za-z0-9_.-]+"

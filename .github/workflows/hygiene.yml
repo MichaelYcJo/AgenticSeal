@@ -81,7 +81,7 @@ jobs:
           # What the plugin loader reads or puts in front of a user: `bin/` is
           # on the Bash tool's PATH while the plugin is enabled, so a wrapper
           # fix ships like a skill does. It was missing here and nothing said
-          # so; `tests/test_the_release_check_watches_what_ships.py` now
+          # so; `tests/behaviour/test_the_release_check_watches_what_ships.py` now
           # classifies every top-level entry against this list (#10).
           ships=$(echo "$changed" | grep -E '^(skills|agents|hooks|templates|bin|\.claude-plugin)/' || true)
           if [ -z "$ships" ]; then
@@ -102,7 +102,7 @@ jobs:
             # #443 is why. The first pull request this step ever refused was a
             # first-time contributor's, and the message named `plugin.json` —
             # the one file a contribution must not touch. Pinned in
-            # `tests/test_the_release_check_watches_what_ships.py`.
+            # `tests/behaviour/test_the_release_check_watches_what_ships.py`.
             echo "::error::this PR changes what ships and leaves plugin.json at $old. If this is the release pull request, move the version — an update keyed to it reaches nobody. If this is a contribution, the base branch is the cause and not the version: a pull request into main is a release here, and contributions go to the open release/vX.Y.Z branch instead. Change the base rather than plugin.json — see CONTRIBUTING.md, 'Opening a pull request'."
             exit 1
           fi
@@ -208,7 +208,7 @@ jobs:
       # `seal/config.md`'s `Mode` row says which of the two places the root
       # should live at; the folder's location says where it is. Nothing at
       # runtime reads the row — every gate resolves the root through
-      # `hooks/optin.py#home_at` — so the row is the one thing here that can
+      # `hooks/lib/optin.py#home_at` — so the row is the one thing here that can
       # quietly stop being true, and this is what stops it.
       #
       # It fails only for a disagreement, which is always the author's and

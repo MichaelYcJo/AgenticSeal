@@ -23,7 +23,7 @@ already tracks, and `git diff --cached` shows the whole of it with the old
 text safe in history. The notice ends "review the diff and commit" because
 the write is the beginning of a review.
 
-Boundaries, each pinned in `tests/test_root_migrate.py` except the second
+Boundaries, each pinned in `tests/hooks/test_root_migrate.py` except the second
 limit under **on any branch**, which is stated and not pinned:
 
   - **never over uncommitted work** — anything `git status --porcelain`
@@ -63,7 +63,7 @@ import posixpath
 import subprocess
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 import console
 import optin
 
@@ -77,7 +77,7 @@ STATE_DIR = os.path.join(os.path.expanduser("~"), ".claude", "agentic")
 # start of this release writes into `STATE_DIR` before this hook runs: where
 # the new directory holds one, the old one is dropped rather than kept.
 CACHE = "version-check"
-TEMPLATE = os.path.join(HOOKS, "..", "templates", "seal-README.md")
+TEMPLATE = os.path.join(HOOKS, "..", "templates", "setup", "seal-README.md")
 # The `seal` command, whose `workflow_at` is the one reader that tells this
 # plugin's pull-request workflow from anybody else's.
 SEAL = os.path.join(HOOKS, "..", "skills", "implement", "scripts", "seal.py")

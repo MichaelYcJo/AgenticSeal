@@ -243,7 +243,7 @@ It exits 0 when it kept nothing, 1 when it kept a directory, and 2 when the
 arguments or the tree are unusable. Its last line counts each.
 
 **A reference root is history, never input.** A project's own `specs/`, as
-`templates/config.md` *Reference specs* says, is read where the work touches
+`templates/setup/config.md` *Reference specs* says, is read where the work touches
 what it describes and cited in the `frame/design.md` whose rule changes it informed.
 `seal settle` never writes there, and neither does the settling session:
 `--apply` removes only under `seal/threads/`.
@@ -266,7 +266,7 @@ request's merge commit, whatever the merge method was.
   item's `routing.md` and asks
   `gh pr list --head <branch> --state merged --json number,mergeCommit`
   from the repository's top, once per branch. A work item is unreleased,
-  and untouched, in three states: no `routing.md` that `hooks/routing.py`
+  and untouched, in three states: no `routing.md` that `hooks/lib/routing.py`
   reads as a declaration naming a branch, no merged pull request from that
   branch, or no listed merge commit reachable from `--released-at`, a pull
   request listed with no merge commit among them. Shared mode never asks

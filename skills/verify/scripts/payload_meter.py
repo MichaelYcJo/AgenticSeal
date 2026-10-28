@@ -47,7 +47,7 @@ the calibration refuses, or no `agents/*.md` under the root · 2 nothing ran:
 beside this script, `--sections` was given and `unverified_check.py`, the
 fence rule it splits by, is not beside it, or the arguments were unusable
 (argparse's usage error). An interpreter below the floor never reaches this
-file through `seal payload`: `hooks/launch.py` refuses `seal` with 2 first.
+file through `seal payload`: `hooks/lib/launch.py` refuses `seal` with 2 first.
 
 Two things the ratio has to know about the machine it was measured on. A
 skill name resolves to `~/.claude/skills/<name>/SKILL.md` when the user has
@@ -220,11 +220,11 @@ def read(path):
 def heading_starts(text):
     """Offsets of every `##` / `###` heading outside a code fence. A skill
     quotes headings as examples, and an example is not a section — the rule
-    `tests/test_a_section_marked_for_one_role_reaches_only_that_role.py`
+    `tests/behaviour/test_a_section_marked_for_one_role_reaches_only_that_role.py`
     applies before it reads a marker, applied here before a byte count is
     put beside a heading somebody may trim.
 
-    The fence is the shared rule, `hooks/blocks.py#fence_opener` and
+    The fence is the shared rule, `hooks/lib/blocks.py#fence_opener` and
     `#fence_closes` (#584): at most three spaces of indentation, a backtick
     opener's info string holds no backtick, and a fence closes only on a run
     of its own character at least as long with nothing after it — which

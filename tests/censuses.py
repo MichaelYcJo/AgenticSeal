@@ -644,11 +644,11 @@ def opens_with_to_utf8(guard):
 
 def entry_point(rel, root=None):
     """Every hook entry point opens its `__main__` block with
-    `console.to_utf8()`, which `hooks/console.py` says each one carries
+    `console.to_utf8()`, which `hooks/lib/console.py` says each one carries
     rather than relying on `dispatch.py` having made the call. The census
     reads the order: the call after `main()` is refused as its absence is.
-    Whether the call works is `tests/test_console.py`'s and, for the
-    dispatcher's own loop, `tests/test_dispatch.py`'s."""
+    Whether the call works is `tests/hooks/test_console.py`'s and, for the
+    dispatcher's own loop, `tests/hooks/test_dispatch.py`'s."""
     text = _python(rel, root, ("hooks/",))
     if text is None:
         return []
@@ -671,7 +671,7 @@ def entry_point(rel, root=None):
 def splitlines(rel, root=None):
     """No shipped reader splits a document's lines with `.splitlines(`,
     which also ends a line at the eight separators GFM does not. A reader
-    of markdown or record text reads `hooks/blocks.py#gfm_lines`, and a call
+    of markdown or record text reads `hooks/lib/blocks.py#gfm_lines`, and a call
     over any other text, git's output or a tool's, carries its exemption
     above the line that names `splitlines`."""
     text = _python(rel, root, SHIPPED)
@@ -687,7 +687,7 @@ def splitlines(rel, root=None):
     flagged = {
         line: (
             "`.splitlines(` ends a line where GFM does not; a reader of "
-            "markdown or record text reads `hooks/blocks.py#gfm_lines`, and a "
+            "markdown or record text reads `hooks/lib/blocks.py#gfm_lines`, and a "
             "call over any other text puts "
             "`# exempt from splitlines: <what it splits>` on its own line above it"
         )
@@ -780,7 +780,7 @@ def heading_rule(rel, root=None):
 # `python3` starts it, 3.9 on a stock macOS. `ruff.toml` lints that set at
 # the version its `per-file-target-version` names, so B905 and UP017 do not
 # ask it for `zip`'s `strict=` or `datetime.UTC`.
-# `tests/test_launch.py` derives the set
+# `tests/hooks/test_launch.py` derives the set
 # and holds the table to it; this census holds each file the table names to
 # its version.
 
@@ -1085,19 +1085,19 @@ OLD_NAME_RECORDS = (
 RECORDED_CASE = re.compile(r"^evals/behaviour/[^/]+/(?:replay|seeded)-")
 # The migration and its cases spell the 0.22.x layout and the state names a
 # session start moves from, which is the one place those names are read.
-# `hooks/cmdline_base.py` is, below its rider, `86256492`'s `hooks/cmdline.py`
-# byte for byte, which `tests/test_the_frozen_reading_never_grows.py` holds,
+# `hooks/lib/cmdline_base.py` is, below its rider, `86256492:hooks/cmdline.py`
+# byte for byte, which `tests/behaviour/test_the_frozen_reading_never_grows.py` holds,
 # so no line of it can change or carry an exemption. The replay and seeded
 # cases' generators read round records at the 0.22.x layout every committed
 # case was cut from, each such line exempted at the generator, and their
 # cases build those records.
 KEPT_FILES = (
     "hooks/root-migrate.py",
-    "tests/test_root_migrate.py",
-    "tests/test_the_root_migrates_itself.py",
-    "hooks/cmdline_base.py",
-    "tests/test_replay_targets.py",
-    "tests/test_seed_defects.py",
+    "tests/hooks/test_root_migrate.py",
+    "tests/behaviour/test_the_root_migrates_itself.py",
+    "hooks/lib/cmdline_base.py",
+    "tests/evals/test_replay_targets.py",
+    "tests/evals/test_seed_defects.py",
 )
 
 
@@ -1130,6 +1130,90 @@ def old_names(rel, root=None):
     return _held("old_names", rel, text, flagged)
 
 
+# --- vacated_paths (#1060) ------------------------------------------------------
+#
+# #1060 moves files one directory down: a module of `hooks/` into
+# `hooks/lib/`, a template into `templates/records/` or `templates/setup/`, a
+# test file into an area of `tests/`. The path the file stood at one level up
+# is then a path no file holds, and a living line that spells it sends its
+# reader to nothing. The census derives those spellings from the files that
+# stand in each subdirectory on disk, so it keeps no list of old paths and
+# refuses nothing until a file has moved.
+
+# Each subdirectory a move fills, with the directory one level up whose
+# spelling it vacates. `tests/e2e/` is not an area: its files never stood at
+# the top of `tests/`.
+TEST_AREAS = ("hooks", "skills", "github", "evals", "behaviour", "text")
+VACATING = (
+    ("hooks/lib/", "hooks/"),
+    ("templates/records/", "templates/"),
+    ("templates/setup/", "templates/"),
+    *((f"tests/{area}/", "tests/") for area in TEST_AREAS),
+)
+# A path cited at a commit, `<commit>:<path>`, the form `git show` opens as
+# written; the old path is the one that commit holds. Taken out of a line
+# before the census reads it.
+COMMIT_PATH = re.compile(r"(?<![\w/:])[0-9a-f]{7,40}:[\w./-]+")
+# The files passed over whole. `hooks/lib/cmdline_base.py`'s docstring below
+# its rider is `86256492`'s and names that commit's paths, and no line of it
+# can change or carry an exemption, for the reason `KEPT_FILES` gives.
+VACATED_KEPT_FILES = ("hooks/lib/cmdline_base.py",)
+
+
+def vacated(root=None):
+    """`{old path: new path}` for every file standing directly in a
+    subdirectory `VACATING` names whose path one level up no file holds."""
+    found = {}
+    for sub, up in VACATING:
+        directory = os.path.join(_root(root), *sub.split("/"))
+        if not os.path.isdir(directory):
+            continue
+        for name in sorted(os.listdir(directory)):
+            if not os.path.isfile(os.path.join(directory, name)):
+                continue
+            if not os.path.exists(os.path.join(_root(root), *up.split("/"), name)):
+                found.setdefault(up + name, sub + name)
+    return found
+
+
+def vacated_paths(rel, root=None):
+    """No living file spells a path a move one directory down vacated:
+    `hooks/<name>` once the file stands at `hooks/lib/<name>`, and the same
+    for `templates/` and `tests/`. A spelling counts as a word, at the start
+    of a path or after a shell variable such as `$CLAUDE_PLUGIN_ROOT/`, and
+    not inside a longer path. The records and the recorded cases `old_names`
+    passes and the files of `VACATED_KEPT_FILES` are passed over whole, a
+    path cited at a commit passes, and any other line that keeps an old path
+    carries its exemption. A file that is not UTF-8 text is not read."""
+    if rel.startswith(OLD_NAME_RECORDS + VACATED_KEPT_FILES) or RECORDED_CASE.match(
+        rel
+    ):
+        return []
+    moved = vacated(root)
+    if not moved:
+        return []
+    text = _text(rel, root)
+    if text is None:
+        return []
+    spelling = re.compile(
+        r"(?<![\w./}$-])(?:\$\{?\w+\}?/)?("
+        + "|".join(re.escape(old) for old in sorted(moved, key=len, reverse=True))
+        + r")(?![\w/-]|\.\w)"
+    )
+    flagged = {}
+    for number, line in enumerate(text.split("\n"), 1):
+        found = spelling.search(COMMIT_PATH.sub("", line))
+        if found:
+            old = found.group(1)
+            flagged[number] = (
+                f"`{old}` is a path no file holds since the file moved to "
+                f"`{moved[old]}`; write the path the file stands at, or put "
+                "`# exempt from vacated_paths: <why>` on its own line above a "
+                "line that keeps it on purpose"
+            )
+    return _held("vacated_paths", rel, text, flagged)
+
+
 CENSUSES = (
     encoding,
     entry_point,
@@ -1140,6 +1224,7 @@ CENSUSES = (
     section_sign,
     real_identifiers,
     old_names,
+    vacated_paths,
 )
 
 

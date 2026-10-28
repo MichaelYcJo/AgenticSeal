@@ -91,7 +91,7 @@ it from `templates/` in this plugin and continues. In particular:
 - `seal/README.md`, which says what the root holds and names the section of
   `skills/implement/SKILL.md` that states the export rules. Its first line
   is the marker the gates read, so the file is copied from
-  `templates/seal-README.md` as it stands.
+  `templates/setup/seal-README.md` as it stands.
 - **Not** policy documents. A repository that has none has none; judge from
   the SDD set and the code. Creating `docs/policies/<domain>/` imposes one
   project's documentation habit, and one field's vocabulary, on every
@@ -116,7 +116,7 @@ stays where it is: the plugin writes only to its own root.
 
 **A `<repo>/seal/` whose `README.md` opens with a heading an earlier release
 of the plugin wrote is that release's root, waiting for its move.** The
-headings are `hooks/optin.py#EARLIER_HEADINGS`. The session-start move
+headings are `hooks/lib/optin.py#EARLIER_HEADINGS`. The session-start move
 rewrites the README to the marker and moves the work items into
 `seal/threads/`; where it was refused, its one line said why, which is work
 in progress under the old layout or a directory of work items that is a
@@ -129,7 +129,7 @@ subcommands read it the same way and write nothing beside it.
 
 **A `<repo>/seal/` whose `README.md` opens with neither the marker nor one of
 those headings is the project's own.** The marker is the first line of
-`templates/seal-README.md`, and a package or a tool can keep a directory
+`templates/setup/seal-README.md`, and a package or a tool can keep a directory
 named `seal` for itself. The
 orchestrator writes nothing into it and offers neither shared option, because
 `<repo>/seal/` is the shared root's one place. The root goes under the git
@@ -149,7 +149,7 @@ mode"*. The one call of step 1 then carries the `Broad gate` question alone.
    - **shared, with pull-request checks** does the same, and then the
      orchestrator installs the checks with `seal pr-checks install`, run
      after `seal mode` below. That command writes
-     `.github/workflows/hygiene.yml` from `templates/hygiene.yml` only when
+     `.github/workflows/hygiene.yml` from `templates/setup/hygiene.yml` only when
      that path is absent, pinned to the release of the installed plugin, and
      stages it, so the routing commit carries it too. An existing file is
      never overwritten, and the orchestrator relays the line the command
@@ -178,7 +178,7 @@ mode"*. The one call of step 1 then carries the `Broad gate` question alone.
 
    **The second question is the `Broad gate` row, and it is a proposal
    rather than a blank.** That row is the one value in this flow only a
-   person can write (`templates/config.md` *Broad gate* says why it has no
+   person can write (`templates/setup/config.md` *Broad gate* says why it has no
    default). Unasked, it reaches the person as the gate's refusal after the
    review rounds have settled. A repository being opted in may not yet know
    its broad command, so **what the machine can derive is offered, the
@@ -195,10 +195,10 @@ mode"*. The one call of step 1 then carries the `Broad gate` question alone.
    | a `Makefile` | a `test`, `check` or `lint` target |
 
    Offer each candidate as **one shell command line** composed the way
-   `templates/config.md` *The criterion for choosing a value* says to compose
+   `templates/setup/config.md` *The criterion for choosing a value* says to compose
    one, and name the file it came from: a candidate whose source is named is
    one the person can correct. Where nothing is findable, say so rather than
-   inventing one: a guessed row is what `templates/config.md` *Broad gate*
+   inventing one: a guessed row is what `templates/setup/config.md` *Broad gate*
    argues against by name.
 
    **A candidate carrying a `|` is written with the pipe escaped, `\|`**, and
@@ -208,10 +208,10 @@ mode"*. The one call of step 1 then carries the `Broad gate` question alone.
    sees it. Say why, because a bare one is refused: GitHub shows the row cut
    off at the pipe, the gate quotes that line back with the edit instead of
    reporting the row as absent, and every row written below it goes unread
-   with it. `templates/config.md` *What is refused, and what stays allowed*
+   with it. `templates/setup/config.md` *What is refused, and what stays allowed*
    carries the rule.
 
-   **Name the criterion; do not restate it.** `templates/config.md`
+   **Name the criterion; do not restate it.** `templates/setup/config.md`
    *The criterion for choosing a value* owns the criterion, three rules with
    the reason for each, and the person answering reads it there.
 
@@ -238,7 +238,7 @@ mode"*. The one call of step 1 then carries the `Broad gate` question alone.
    orchestrator adds the row the way `/agentic:config` step 3 adds one: the
    row **and the prose under `## Broad gate` down to but not including
    `### What is refused, and what stays allowed`**, taken from
-   `$CLAUDE_PLUGIN_ROOT/templates/config.md`. The two lists and the criterion
+   `$CLAUDE_PLUGIN_ROOT/templates/setup/config.md`. The two lists and the criterion
    are pointed at rather than copied down, because a frozen copy in
    somebody's `seal/config.md` says something false at the plugin's next
    release. No command does this and none is being added:
@@ -291,7 +291,7 @@ repository proves nothing.
    `none`; never a proposed one.
 4. **Coordinate-trust exceptions**: empty. Rows arrive from real work.
 
-The orchestrator writes `seal/parity.md` from `templates/parity.md` with
+The orchestrator writes `seal/parity.md` from `templates/setup/parity.md` with
 those values, and records the machine-local checkout path in
 `~/.claude/agentic/parity-paths.md`, keyed by the origin remote URL. The path
 never goes in the committed file.
@@ -392,14 +392,14 @@ rows; what differs is how many clicks it took and which row says so.
 | Row | Answers |
 |---|---|
 | Automation | `yes` or `no`, OPTIONAL; absent reads as never asked |
-| Implementation | `crafter` or `the session`, OPTIONAL; absent reads as unanswered. The answer a declaration written before the plugin was renamed AgenticSeal carries for `crafter` (`hooks/routing.py#OLD_BY_CRAFTER`) reads as `crafter` for the minor release of the rename, and the next minor release removes that reading |
+| Implementation | `crafter` or `the session`, OPTIONAL; absent reads as unanswered. The answer a declaration written before the plugin was renamed AgenticSeal carries for `crafter` (`hooks/lib/routing.py#OLD_BY_CRAFTER`) reads as `crafter` for the minor release of the rename, and the next minor release removes that reading |
 | Review | `through the review chain` or `straight to the PR` |
 | Destination | `open the pull request` or `stop before the pull request` |
 | Answer pressed | `automation` or `per axis`, OPTIONAL; absent reads as unanswered |
 | Branch | the branch the work item is built on; two declarations naming one branch read as none |
 
 **Each answer is written without backticks**, since a backticked value reads
-as unanswered. `templates/sdd-routing.md` ships `Review` and `Destination`
+as unanswered. `templates/records/sdd-routing.md` ships `Review` and `Destination`
 answered and the optional rows as placeholders: a wrong answer in the first
 two is caught at the next commit, because the gate stops recognising the
 file, and a wrong answer in the others is contradicted by nothing, so a file
@@ -473,7 +473,7 @@ report it rather than write one: a declaration written from a guess is a
 recorded answer nobody gave.
 
 **The orchestrator writes the answer down before the first edit**, in
-`seal/threads/<work-item-id>/routing.md`, from `templates/sdd-routing.md`, and
+`seal/threads/<work-item-id>/routing.md`, from `templates/records/sdd-routing.md`, and
 commits it, because the check happens at the pull request and CI sees only
 what is in the tree. Below the SDD ladder this may be the only file a work
 item gets.
@@ -489,7 +489,7 @@ edits on that branch through. A session that moves to another branch runs it
 there again.
 
 **The orchestrator writes the file with the `Write` tool, then commits it.**
-The declaration is read from the working tree (`hooks/routing.py`'s
+The declaration is read from the working tree (`hooks/lib/routing.py`'s
 `declarations()` opens the path rather than asking git), so the edits after
 the write go through before the commit lands. The commit goes as every
 commit does: each work item's `routing.md` in a command of its own, the
@@ -586,11 +586,11 @@ repositories share contract. A sentence is contract when another
 repository's code would be wrong if it changed. Where both hold:
 
 - the one copy of the contract is `seal/pact.md` in one of the repositories,
-  begun from `templates/pact.md` and written by the build there, framed by
+  begun from `templates/setup/pact.md` and written by the build there, framed by
   that repository's own spec. That repository is the pact's repository;
 - every other repository of the work item is a signer, and the orchestrator
   writes one row into its `seal/config.md` where it is absent: `Pact`, the
-  origin remote URL of the pact's repository. `templates/config.md` *Pact*
+  origin remote URL of the pact's repository. `templates/setup/config.md` *Pact*
   documents it. The pact's repository needs no row, because it is identified
   by holding `seal/pact.md`;
 - each signer cites the clauses it was built against as pact anchors, in its
@@ -605,7 +605,7 @@ declarations and nothing else: no pact, and no `Pact` row.
 Every act addressed to the orchestrator sits under a heading carrying the
 `Orchestrator:` prefix, in this file or in
 `skills/code-review/orchestration.md`, and this is the list of them.
-`tests/test_every_orchestrator_act_names_its_delivery.py` holds it against
+`tests/behaviour/test_every_orchestrator_act_names_its_delivery.py` holds it against
 both files from both sides: an act with no row fails, and a row naming an act
 no file carries fails.
 
@@ -632,7 +632,7 @@ its subject from this table.
 **What this does not catch**: an act written for the orchestrator under a
 heading carrying no marker has no row and nothing notices. The check reads
 the marker, not the meaning, which is the limit
-`tests/test_a_section_marked_for_one_role_reaches_only_that_role.py` states
+`tests/behaviour/test_a_section_marked_for_one_role_reaches_only_that_role.py` states
 for itself. The two read the headings through one parser, so they cannot
 come to different answers about what a heading is.
 
@@ -652,14 +652,14 @@ one.
 |---|---|---|---|
 | Orchestrator: the order inside a ticket | `skills/implement/orchestration.md` | still a sentence | Nothing reads the order. Each step it sequences has a row of its own, and what the sequence itself asserts, which party runs when, is in no file a check opens. A run that opened the pull request after the rounds leaves the same tree as one that opened it before them. Nothing reads the three rules under the steps either: a decision left in an issue comment, a `handoff.md` kept after its move and a recurring problem given no home leave a tree no check refuses |
 | The plan is approved at the spawn | `skills/implement/orchestration.md` | part of its parent's act | The approval line of the step where its parent's order spawns the crafter, and the rules the spawn prompt is written to. It names no act of its own |
-| Orchestrator: Bootstrap | `skills/implement/orchestration.md` | check: `hooks/mode-gate.py` | A root with no `Mode` row in `config.md` is exactly nobody was asked, and this gate stops the next command until `seal mode` writes it. It reaches the mode question alone. Nothing reads the `Broad gate` proposal, so a repository that was never offered candidates meets `seal gate`'s own refusal after the rounds have settled. The workflow file is written by `seal pr-checks install`, whose substitution of the version `tests/test_seal.py` holds, and nothing checks that the orchestrator ran it under the second answer |
+| Orchestrator: Bootstrap | `skills/implement/orchestration.md` | check: `hooks/mode-gate.py` | A root with no `Mode` row in `config.md` is exactly nobody was asked, and this gate stops the next command until `seal mode` writes it. It reaches the mode question alone. Nothing reads the `Broad gate` proposal, so a repository that was never offered candidates meets `seal gate`'s own refusal after the rounds have settled. The workflow file is written by `seal pr-checks install`, whose substitution of the version `tests/skills/test_seal.py` holds, and nothing checks that the orchestrator ran it under the second answer |
 | Orchestrator: Parity setup | `skills/implement/orchestration.md` | still a sentence | The four fields are derived by hand and nothing reads the result. The pull request's parity arm wakes on `seal/parity.md` existing, so a setup that never happened is silence rather than a refusal, and a guessed original produces a file that parses |
-| Orchestrator: how the work is routed | `skills/implement/orchestration.md` | check: `hooks/routing-edit-gate.py` | The first `Write`, `Edit` or `NotebookEdit` is refused until a declaration naming the branch stands under the `seal/` root or the session ran `seal no-work-item` on that branch, and `templates/claude-md-block.md` carries the question's shape into every session on the machine. What neither reaches is the shape of the asking: a declaration built from four separate questions parses exactly like one built from the asking this section mandates |
+| Orchestrator: how the work is routed | `skills/implement/orchestration.md` | check: `hooks/routing-edit-gate.py` | The first `Write`, `Edit` or `NotebookEdit` is refused until a declaration naming the branch stands under the `seal/` root or the session ran `seal no-work-item` on that branch, and `templates/setup/claude-md-block.md` carries the question's shape into every session on the machine. What neither reaches is the shape of the asking: a declaration built from four separate questions parses exactly like one built from the asking this section mandates |
 | Question 1 | `skills/implement/orchestration.md` | part of its parent's act | The three options of the first `AskUserQuestion` call its parent detracers, put alone. It names no act of its own |
 | Question 2 | `skills/implement/orchestration.md` | part of its parent's act | The four boxes of the second call, put only after a `per axis` answer, and the ceiling on how many there may be. It names no act of its own |
-| What the answer writes | `skills/implement/orchestration.md` | check: `skills/code-review/scripts/chain_check.py` | It refuses a `Review` or `Destination` value outside the vocabulary at the pull request, and `hooks/routing.py` parses the same rows at every edit. The three optional rows are read by nothing that refuses: `hooks/implementer-notice.py` says one line after a commit where a declared agent left no mark, and blocks nothing |
+| What the answer writes | `skills/implement/orchestration.md` | check: `skills/code-review/scripts/chain_check.py` | It refuses a `Review` or `Destination` value outside the vocabulary at the pull request, and `hooks/lib/routing.py` parses the same rows at every edit. The three optional rows are read by nothing that refuses: `hooks/implementer-notice.py` says one line after a commit where a declared agent left no mark, and blocks nothing |
 | A work item that commits in more than one repository | `skills/implement/orchestration.md` | check: `hooks/routing-edit-gate.py` | In each opted-in repository the first edit is refused until a declaration naming that repository's branch stands there, so a repository the step skipped is noticed at its first edit. What it does not reach: an id minted twice is legitimate in a signer's own work item and nothing tells the two apart, and a missing `Pact` row is noticed only when somebody runs `seal pact` at the pact's repository, which refuses a relationship recorded on one side |
-| Orchestrator: which of these acts runs itself | `skills/implement/orchestration.md` | check: `tests/test_every_orchestrator_act_names_its_delivery.py` | The test reads this table against the headings of both files, in both directions. What it reads is the marker rather than the meaning, so a heading with no prefix puts its act in neither the table nor the test |
+| Orchestrator: which of these acts runs itself | `skills/implement/orchestration.md` | check: `tests/behaviour/test_every_orchestrator_act_names_its_delivery.py` | The test reads this table against the headings of both files, in both directions. What it reads is the marker rather than the meaning, so a heading with no prefix puts its act in neither the table nor the test |
 | Orchestrator: a phase is a fresh crafter, and a fix pass resumes the implementer | `skills/code-review/orchestration.md` | still a sentence | A phase built by a resumed crafter and one built by a fresh crafter leave identical trees, and so do a resumed fix pass and a fresh one, so nothing at the pull request can tell them apart, and the choice of session is in no file. `seal cost --segments` prints the context the threshold is read against and gates nothing, so the reading can go untaken while the spawn succeeds |
 | Orchestrator: the run ends with a verifying round | `skills/code-review/orchestration.md` | check: `skills/code-review/scripts/chain_check.py` | It fails a ready pull request when a commit touching a file outside the work item's records follows the commit on the last record's `target:` line, or a finding of that record reads `fixed <commit>` or `rejected`, which is the run whose own last fixes nobody opened; on a draft it prints and names the verifying round. What it cannot read is the cap: the extension lines are the proofer's, and the sealer reads the count |
 | A regression is routed by comparing the fix with the frame | `skills/code-review/orchestration.md` | still a sentence | The proofer's `regression:` line routes nothing mechanical, and neither does the sentence of its grounds the route reads: `skills/code-review/scripts/chain_check.py` reads the line only as a reference to an earlier finding, and the `Reframed` line only for its author against the declaration, and the sealer reads the records |

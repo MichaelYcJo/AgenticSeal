@@ -17,4 +17,4 @@
 #   seal gate --base origin/main --record seal/threads/<work-item-id>
 #   seal fold --ceiling 1000      seal rules --check
 here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-exec python3 "$here/../hooks/launch.py" "$here/../skills/implement/scripts/seal.py" "$@"
+exec python3 "$here/../hooks/lib/launch.py" "$here/../skills/implement/scripts/seal.py" "$@"

@@ -96,17 +96,17 @@ only the remainder.
 always-loaded file keeps stating the old one.
 
 ```bash
-diff <(sed -n '/agentic:start/,/agentic:end/p' ~/.claude/plugins/marketplaces/agenticseal/templates/claude-md-block.md) \
+diff <(sed -n '/agentic:start/,/agentic:end/p' ~/.claude/plugins/marketplaces/agenticseal/templates/setup/claude-md-block.md) \
      <(sed -n '/agentic:start/,/agentic:end/p' ~/.claude/CLAUDE.md)
 ```
 
-`templates/claude-md-block.md` is the block's one source, and no other file
+`templates/setup/claude-md-block.md` is the block's one source, and no other file
 carries a copy. A session in a clone of the plugin's own repository reads the
 installed block too, which is the last release's, not the clone's:
 `bash install.sh "$HOME/.claude/CLAUDE.md"`, run from that clone, writes the
 clone's block there. `--project`, or option 2 at the script's prompt, writes
 a copy into the clone's own `CLAUDE.md`, which
-`tests/test_the_installer_writes_the_block_from_its_template.py` refuses.
+`tests/behaviour/test_the_installer_writes_the_block_from_its_template.py` refuses.
 
 Compare the scope that holds the block: `./CLAUDE.md` instead where the
 project owns it.

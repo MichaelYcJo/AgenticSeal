@@ -76,7 +76,7 @@ return.
    fragment and the pull request body tell one story. Where two disagree,
    name the one the issue body and the tree contradict. Where those cannot
    decide it, the verdict is `undecided`, with the question for the owner.
-5. **Write `guarantee.md`** from `templates/sdd-guarantee.md`, every row of
+5. **Write `guarantee.md`** from `templates/records/sdd-guarantee.md`, every row of
    its two tables filled, and one verdict line, exactly one of
    `Verdict: sealed`, `Verdict: withheld reason: <reason>` or
    `Verdict: undecided question: <question>`, at the start of its line
@@ -113,7 +113,7 @@ return.
 **The broad gate is not yours; its record is what you read.** By rule 2
 the orchestrator runs it, and step 1 says what a missing or stale record
 earns.
-check: tests/test_broad_gate_rule.py tests/test_the_sealer_guarantees.py evals/behaviour/sealer/rule-sealer-no-gate/ evals/behaviour/sealer/rule-sealer-stale-gate/
+check: tests/text/test_broad_gate_rule.py tests/behaviour/test_the_sealer_guarantees.py evals/behaviour/sealer/rule-sealer-no-gate/ evals/behaviour/sealer/rule-sealer-stale-gate/
 
 **A verdict names what it rests on.** `withheld` names the claim, the party
 that made it and the coordinate where the tree contradicts it, so the
@@ -131,7 +131,7 @@ claim's row names the command you re-ran, and a `seen red` is shown failing
 where it says it failed. Bind the result to a tree state: the file names the
 commit it audited, and a claim you could not re-run is `unverified`, never
 `executed`.
-check: tests/test_the_seal_is_taken_once_by_the_sealer.py
+check: tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py
 
 **`sealed` is earned by the audit, not by the absence of a finding.** It is
 written only after `trail/gate.md` was read at HEAD, the sample was re-run
@@ -148,4 +148,4 @@ and keeps the earlier verdict on the `Target SHA` row as
 `; earlier run: <sha> <word>`, its verdict's word alone. The row holds
 `<sha> against <base>`, each one word, then those entries, and nothing
 else; any other text is refused at the row.
-check: tests/test_the_sealer_guarantees.py tests/test_chain_check.py
+check: tests/behaviour/test_the_sealer_guarantees.py tests/skills/test_chain_check.py

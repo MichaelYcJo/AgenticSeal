@@ -28,7 +28,7 @@ A failure in a git directory the dispatcher cannot write to is not said. No
 case sees how the harness renders the report beside the stamp, on any
 platform, and two hook processes racing for one record are forced in
 process, never run.
-check: tests/test_dispatch.py tests/test_a_gate_that_fails_says_so.py
+check: tests/hooks/test_dispatch.py tests/text/test_a_gate_that_fails_says_so.py
 
 ## The implementer mark and notice
 
@@ -36,7 +36,7 @@ check: tests/test_dispatch.py tests/test_a_gate_that_fails_says_so.py
 declaration names that agent, with no mark standing, gets one line saying
 so.** The two axes of the routing declaration that name an agent,
 `Planning` and `Implementation`, each answer an agent's name or
-`the session`. Two hooks share one address module, `hooks/implementer.py`,
+`the session`. Two hooks share one address module, `hooks/lib/implementer.py`,
 for both axes.
 
 | Hook | Fires | Does |
@@ -49,4 +49,4 @@ item commits many times, and on the axis, because `crafter` is spawned on
 nearly every work item. It lives in the git directory, so nothing at the
 pull request reads either axis. Everything fails toward no mark, which is
 toward the reminder.
-check: tests/test_implementer_mark.py tests/test_implementer_notice.py
+check: tests/hooks/test_implementer_mark.py tests/hooks/test_implementer_notice.py

@@ -11,10 +11,10 @@ and the way back is a documented sequence rather than a setting.
 **Nothing observed it.** #151, reported from a repository's first work item
 under AgenticSeal: the session created `seal/` and started working, and no
 question was asked. Three files each said something correct and the three
-together left no route to the question -- `hooks/optin.py` says the root's
+together left no route to the question -- `hooks/lib/optin.py` says the root's
 existence IS the declaration, `skills/implement/orchestration.md`
 *Orchestrator: Bootstrap* says the mode question is asked there and nowhere else, and the preset block
-(`templates/claude-md-block.md`, which `install.sh` copies into
+(`templates/setup/claude-md-block.md`, which `install.sh` copies into
 `~/.claude/CLAUDE.md`, so it loads in every project on the machine) tells a
 session to write
 `seal/threads/<id>/routing.md` before the first edit. That write creates the
@@ -64,7 +64,7 @@ honestly be exempt. This is about setup, the way on takes one command, and a tok
 build exactly the standing exemption `docs/the-review-and-parity-arms.md`
 refuses. `ask` is the escape hatch, and it is one an unattended run can take.
 
-Everything here fails toward silence, the way `hooks/optin.py` does: a
+Everything here fails toward silence, the way `hooks/lib/optin.py` does: a
 repository this cannot read is one it says nothing about.
 """
 
@@ -73,7 +73,7 @@ import os
 import subprocess
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 import config as repo_config
 import console
 import optin
@@ -141,14 +141,14 @@ def undeclared(root, common=None):
 
     `refused` -- a file that is there and will not read, or a `Mode` row
     written twice -- goes the other way: it is silence, not a question.
-    `hooks/config.py#declared_mode` tells it apart from `none` (#867), so
+    `hooks/lib/config.py#declared_mode` tells it apart from `none` (#867), so
     this gate no longer opens the file a second time to find out. A file
     that exists and cannot be opened -- a directory of that name, a
     permission this process does not have, bytes this locale cannot decode
     -- is not a repository that failed to answer. It is one whose answer
     could not be read, and this module's docstring says what to do then: say
-    nothing, the way `hooks/optin.py` does. Not exotic, and it compounds:
-    `hooks/optin.py#repo_root` already records a repository under a path a
+    nothing, the way `hooks/lib/optin.py` does. Not exotic, and it compounds:
+    `hooks/lib/optin.py#repo_root` already records a repository under a path a
     cp949 console cannot decode, and a `Record language` row hand-edited in a
     non-UTF-8 locale puts those bytes in the file. A row written twice is the
     same state one step on: there is an answer and nobody can say which, and
@@ -332,7 +332,7 @@ def main():
 
 if __name__ == "__main__":
     # A console that cannot encode what this prints kills it with stdout
-    # empty, which is how a hook says "nothing to see here". `hooks/console.py`
+    # empty, which is how a hook says "nothing to see here". `hooks/lib/console.py`
     # owns the reasoning and the three decisions behind this line.
     console.to_utf8()
     main()

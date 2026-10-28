@@ -273,7 +273,7 @@ def main(argv=None):
 
 if __name__ == "__main__":
     # A console that cannot encode what this prints kills it with stdout
-    # empty, which is how a hook says "nothing to see here". `hooks/console.py`
+    # empty, which is how a hook says "nothing to see here". `hooks/lib/console.py`
     # owns the reasoning and the three decisions behind these lines.
     for _name, _errors in (
         ("stdin", "replace"),

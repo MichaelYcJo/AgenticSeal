@@ -296,7 +296,8 @@ def readers():
     chain = module(
         "agentic_chain_check", "skills", "code-review", "scripts", "chain_check.py"
     )
-    return module("agentic_routing", "hooks", "routing.py"), chain, chain.SHARED_READER
+    routing = module("agentic_routing", "hooks", "lib", "routing.py")
+    return routing, chain, chain.SHARED_READER
 
 
 def labels_of(pull):
@@ -312,8 +313,8 @@ def chain_counts(root, pulls):
 
     `capped` counts the pull requests labelled `CAPPED_LABEL`. A pull request
     is a work item where exactly one `routing.md` under `root` names its head
-    branch (`hooks/routing.py#item_dir`), and its rounds are
-    `hooks/routing.py#rounds`. `deferred` is the number of distinct issues
+    branch (`hooks/lib/routing.py#item_dir`), and its rounds are
+    `hooks/lib/routing.py#rounds`. `deferred` is the number of distinct issues
     that are the home of a finding whose `verdict:` line reads
     `deferred <home>`, read with `chain_check.record_findings` and `#issue_of`
     (#866): a home names an issue only where it is exactly `#N`, so a file,
