@@ -182,7 +182,8 @@ Out of scope, each with why:
   `sealed_glance`, `GLANCE_HEADING`, `merged_pulls` and the counting
   helpers) keep their names and shapes.
 - **Exit codes.** 0 published, already published, or a dry run. 1 the tag
-  is not `vX.Y.Z`, or its range added no fragment.
+  is not `vX.Y.Z`, or its range added no fragment the previous tag does not
+  already hold.
 
 `skills/update/SKILL.md` step 2b reads
 `<installPath>/.claude-plugin/plugin.json` through `python3`'s `json`
@@ -211,8 +212,9 @@ module, as step 2b already reads `installed_plugins.json`. Step 3 reads
     tag added and that tag does not already hold, each read at the newest
     commit of that range that holds it,
     so a work item a settle removed before the tag still has its entry. It
-    goes red on a tag whose range added no fragment, which is the release
-    shipping unexplained. The note opens with the release's theme, the
+    goes red on a tag whose range added no fragment the previous tag does
+    not already hold, which is the release shipping unexplained. The note
+    opens with the release's theme, the
     first sentence of its milestone's description with a leading
     `Purpose:` left out; a milestone that cannot be read leaves the note
     without one and never fails the job. A summary read from the pull
@@ -246,8 +248,9 @@ module, as step 2b already reads `installed_plugins.json`. Step 3 reads
     built from them at the tag.** Which file a change writes, and why, is
     `docs/the-record-layout.md` *A change writes fragments, never a shared
     file*. No branch gathers them. `.github/scripts/publish_release_note.py`
-    reads the fragments the release's commits added from the history at
-    the tag, and writes each under an HTML comment naming its work item,
+    reads, from the history at the tag, the fragments the release's commits
+    added and the previous version tag does not already hold, and writes
+    each under an HTML comment naming its work item,
     invisible to a reader and the only link from a released entry back to
     the work that produced it. `DRY_RUN=1` prints the note and writes
     nothing.
@@ -426,14 +429,15 @@ module, as step 2b already reads `installed_plugins.json`. Step 3 reads
   from: which publishes it from the release's file step 2 already gathered,
     with the title
   to: which builds it from the changelog fragments the release's commits
-    added, with the title
+    added and the previous version tag does not already hold, with the title
 - change
   file: docs/release-checklist.md
   section: 6. After the merge
   from: The job fails for a tag whose release file, `changelog/X.Y.Z.md`,
     is not there or carries no section for it, which is step 2 not having
     happened; for
-  to: The job fails for a tag whose range added no changelog fragment; for
+  to: The job fails for a tag whose range added no changelog fragment the
+    previous version tag does not already hold; for
 - change
   file: docs/release-checklist.md
   section: 6. After the merge
@@ -484,7 +488,7 @@ module, as step 2b already reads `installed_plugins.json`. Step 3 reads
 | Removes | Coordinate | Where it lands, or why it can go |
 |---|---|---|
 | The gather script, whole | `.github/scripts/gather_changelog.py` | Nothing writes a release file. The note is built at the tag by `publish_release_note.py`'s fragment reader, and the marker it wrote moves into the note |
-| The hygiene step "every changelog fragment reached the released file" and its comment | `.github/workflows/hygiene.yml:110-130` | No gathered file exists for a fragment to reach. Every fragment the release's commits added is in the note by construction. The Alternatives table weighs a replacement step |
+| The hygiene step "every changelog fragment reached the released file" and its comment | `.github/workflows/hygiene.yml:110-130` | No gathered file exists for a fragment to reach. Every fragment the release's commits added and the previous tag does not already hold is in the note by construction. The Alternatives table weighs a replacement step |
 | The step's row in the gate's partition, and the step's name among the steps that run only on a pull request into `main` | `skills/verify/scripts/broad_gate.py:2219-2224`, `:2254-2262` | The step is gone, and the comment's count of such steps drops with it |
 | The release-file reader: `RELEASES`, `release_file`, `section_heading_re`, `section_body`, the gather advice in `main`, the link line in `release_body`, and the docstring's account of the gathered file | `.github/scripts/publish_release_note.py:16-26`, `:46-55`, `:84-86`, `:103-104`, `:134-142`, `:158-176`, `:505`, `:541-556` | The range, fragment, theme and section functions of *Data & interfaces* |
 | The header comment's sentence naming `changelog/X.Y.Z.md` | `.github/workflows/publish-release.yml:15-18` | The note is built from the fragments, as the script's docstring says |

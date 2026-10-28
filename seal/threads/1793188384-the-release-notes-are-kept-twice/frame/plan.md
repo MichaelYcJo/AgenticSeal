@@ -7,7 +7,8 @@ Approved 2026-10-28 by the orchestrator under the owner's automation answer, whe
 The release notes are written once, in each work item's `changelog.md`, and
 published once, as the GitHub Release at the tag. The work removes the copy
 in between. `.github/scripts/publish_release_note.py` reads the fragments
-the release's commits added from the history at the tag, and opens the note
+the release's commits added and the previous version tag does not already
+hold, from the history at the tag, and opens the note
 with the release's theme from its milestone. The gather script, its hygiene
 step, `changelog/` and `CHANGELOG.md` go, after the 26 published notes that
 lack their file's text are republished with it. The `update` skill confirms
