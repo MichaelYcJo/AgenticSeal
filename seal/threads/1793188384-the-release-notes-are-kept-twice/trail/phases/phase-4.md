@@ -18,8 +18,9 @@ changelog span, the census entries and fixtures, `RENAMED_RECORDS`,
 carrying the sentence `frame/questions.md` Q1's default (a) asks for: an
 update from 0.23.1 or earlier reports a mismatch once at step 2b, the update
 has landed, and the installed copy's `.claude-plugin/plugin.json` names the
-version. S12's grep runs at the close, its hits recorded here. Phase 5, the
-republish of the 26 notes, is the orchestrator's and is not built here.
+version. S12's grep runs at the close, its hits recorded here. Phase 5 is
+not built here. The owner's answer to `frame/questions.md` Q2 (2026-10-28)
+since made it a phase in which no published note is republished.
 
 ## What this phase found
 
@@ -37,21 +38,22 @@ notes:
 | `tests/github/test_publish_release_note.py:246`, `:258`, `:302` | A1 and S1: assertions, and S1's docstring, that the note names no `changelog/` path |
 
 Under `seal/`, `seal/follow-up.md` names `changelog/0.12.2.md` read at
-`v0.23.1` as the folded text of the v0.12.2 release note, which is where the
-frame moved its coordinate.
+`v0.23.1` as the released copy, which is where the frame moved its
+coordinate. Phase 5 dropped this phase's wording of it as the folded text of
+the v0.12.2 release note, because that note is not republished.
 
 **The frame does not hold on where a released file is read (executed).**
 `frame/design.md` *Scope* items 5 and 8, S11 and `frame/plan.md`'s phase 5
 row read each file "at its own tag", `git show vX.Y.Z:changelog/X.Y.Z.md`.
 `git cat-file -e` over the 58 version tags finds a tag's own file at 14
 tags, `v0.18.1` to `v0.23.1`, and at none of the 44 before them: #770 split
-`CHANGELOG.md` into the per-release files on 2026-10-04. All 26 versions the
-republish covers are among the 44. `v0.23.1` holds all 58 files, identical
-to `49ca77ee`'s (`git diff --quiet v0.23.1 49ca77ee -- changelog/
-CHANGELOG.md` exit 0). `449e5864` makes this work item's `changelog.md` and
-the two `seal/follow-up.md` rows name `v0.23.1`, and phase 5 and S11 read
-each file there. The frame is left as it stands; `gaps.md` holds the
-divergence.
+`CHANGELOG.md` into the per-release files on 2026-10-04. All 26 versions
+whose note lacks its file's text are among the 44. `v0.23.1` holds all 58
+files, identical to `49ca77ee`'s (`git diff --quiet v0.23.1 49ca77ee --
+changelog/ CHANGELOG.md` exit 0). `449e5864` makes this work item's
+`changelog.md` and the two `seal/follow-up.md` rows name `v0.23.1`, and S11
+reads each file there. The orchestrator folded this into the frame;
+`gaps.md` holds the divergence.
 
 **How the changed pins were seen red (executed).** After the build commit,
 `seal mutate` put `session_cost.py`'s old words back ("which its file under
@@ -80,11 +82,11 @@ accumulates on a release branch*, the section `## Rule changes` rewrites.
 Until the settle that section still describes the gather, which is how the
 policy root reads between a merge and its settle.
 
-**The two `seal/follow-up.md` rows keep their question and answerer.** Each
-names the v0.12.2 GitHub Release as the released copy and `changelog/0.12.2.md`
-at `v0.23.1` as its folded text. Each says a published note is never rebuilt,
-where it said the gather decides by marker. The `CONTRIBUTING.md` rule each
-cited is now in the past tense, because that rule is gone.
+**The two `seal/follow-up.md` rows keep their question and answerer.** As
+phase 5 left them, each names `changelog/0.12.2.md` at `v0.23.1` as the
+released copy. Each says no commit after `v0.23.1` holds the file, where it
+said the gather decides by marker. The `CONTRIBUTING.md` rule each cited is
+now in the past tense, because that rule is gone.
 
 **The run over every module naming a changed path (executed).** 75 modules,
 `bin/test -q`: 2913 passed, 10 skipped, exit 0. `bin/seal layout --check`
