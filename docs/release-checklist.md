@@ -268,8 +268,8 @@ python3 .github/scripts/plugin_directory_check.py   # what the marketplace files
       the glance table was not in the note as generated: edited before the
       job reached it, published without one, or the pull requests moved
       between the two lists. That job never fails the release.
-      To draw one by hand, from a checkout at the tag, with a `python3` that
-      imports Pillow, run the suite with the broad gate's recorder loaded
+      To draw one by hand, from a checkout at the tag, run the suite with
+      the broad gate's recorder loaded
       (`PYTHONPATH="$PWD/skills/verify/scripts/pytest_record"`,
       `PYTEST_ADDOPTS='-p agentic_pytest_record'`, and
       `AGENTIC_RECORD_DIR` and `AGENTIC_RECORD_KEY` naming a directory

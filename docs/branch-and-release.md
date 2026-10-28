@@ -60,10 +60,12 @@ maintainer's last act, fires the note, because a note has to name a tag.
   folded. A pull request title is therefore a line of the release note: write
   it as one. **Then the release's seal is attached.** A second job in the same
   workflow runs only when this run created the release. It runs the suite at
-  the tag, draws the seal with Pillow from the terminal stamp's own cells and
-  colours (`skills/verify/scripts/seal_stamp.py`), one cell to one square
-  block of pixels, attaches it as `seal.png`, and replaces the glance table with the image at its display width and one line
-  of the table's counts. That edit is the only change it makes to a note, and
+  the tag, attaches the page form of the stamp's mark, the PNG that
+  `.claude-plugin/plugin.json` names as its `icon`, as `seal.png`, and
+  replaces the glance table with the image at its display width and one
+  line of the table's counts. The PNG is drawn from `assets/seals/owl.svg`
+  by the command `assets/seals/README.md` gives, and the job installs no
+  imaging library to attach it. That edit is the only change it makes to a note, and
   only to one whose glance table is still exactly as it was generated. Any
   failure is a `::warning::` in the job log and leaves the note as it was
   published, so the seal can never turn the release red. How a browser shows
