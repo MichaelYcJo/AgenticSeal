@@ -663,6 +663,16 @@ def test_the_gates_table_says_the_root_may_sit_under_the_git_dir(readme):
         table.append(line)
     rows = [line for line in table if "`seal/`" in line.rsplit("|", 2)[-2]]
     assert rows, f"{readme}: no gate row's Where cell names `seal/`"
+    # #1055 round 1, finding 1: *First run* and the records table's `seal/`
+    # row select the opt-in hooks by `seal/` in this column, so a Where cell
+    # that points at another row ("same opt-in") drops its hook from that
+    # pointer. Each cell names its condition itself, and implementer-notice,
+    # which returns before anything where `optin.opted_in` is false
+    # (`hooks/implementer-notice.py#notify`), is among the `seal/` rows.
+    for row in table:
+        where = row.rsplit("|", 2)[-2].strip()
+        assert not where.startswith(("same ", "같은 ")), f"{readme}: {row[:40]}…"
+    assert any(row.startswith("| implementer-notice |") for row in rows), readme
     for row in rows:
         where = row.rsplit("|", 2)[-2]
         assert "local" in where, f"{readme}: {row[:40]}… still says the root only"
