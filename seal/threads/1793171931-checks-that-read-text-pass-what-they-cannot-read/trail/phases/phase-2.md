@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Phase | 2 |
-| Commit | the commit that adds this file; `frame/plan.md`'s Status cell for phase 2 names it |
+| Commit | 393df2cd |
 
 ## What this phase was asked
 
