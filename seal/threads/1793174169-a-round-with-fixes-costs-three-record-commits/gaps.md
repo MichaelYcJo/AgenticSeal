@@ -19,7 +19,6 @@ In #955 and #1016 the orchestrator rewrote every `verdict:` line in a commit of 
 | The full suite, the repository-wide lint and the typecheck at this work item's last commit | the orchestrator, through `seal gate` (contract rule 2) |
 | S5: the `add` item in `frame/design.md` `## Rule changes` parses whole through `skills/settle/scripts/rule_changes.py` | the round's proofer, through its `chain_check.py` run over the branch |
 | S6: the changelog fragment names the cause as `frame/design.md` *Scope* item 5 states it | the round's proofer and the sealer, by reading |
-| The sentence added to the `Grounds` cell of row *Orchestrator: a phase is a fresh crafter, and a fix pass resumes the implementer* in `skills/implement/orchestration.md`: `tests/behaviour/test_every_orchestrator_act_names_its_delivery.py` requires the cell and reads none of its words, so no case holds the sentence | the round's proofer, by reading |
 
 ## Not done
 

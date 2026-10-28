@@ -399,6 +399,25 @@ def test_the_order_no_longer_defers_the_framer_to_a_ticket():
         )
 
 
+def test_the_acts_table_says_no_commit_holds_who_wrote_the_two_lines():
+    """#1041, the owner's answer of 2026-10-28: the fix pass commits neither
+    line, so the row's `Grounds` cell cannot send a reader to the history
+    for who wrote them."""
+    text = flat(*ORCH_IMPL)
+    start = text.index(
+        "| Orchestrator: a phase is a fresh crafter, and a fix pass resumes the implementer |"
+    )
+    row = text[
+        start : text.index(
+            "| Orchestrator: the run ends with a verifying round |", start
+        )
+    ]
+    assert "is in no commit, because the fix pass commits neither line" in row
+    assert (
+        "whether that commit changed them are in the round record's history" not in row
+    )
+
+
 def the_order():
     """`skills/implement/orchestration.md` *Orchestrator: the order inside a
     ticket*, flattened, up to the subsection under it."""
