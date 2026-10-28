@@ -52,7 +52,7 @@ def _load_runner():
 rt = _load_runner()
 
 
-def fake_venv(root, xdist=True, markdown_it=True, pillow=True, cmarkgfm=True):
+def fake_venv(root, xdist=True, markdown_it=True, cmarkgfm=True):
     """A directory that looks to `has_pytest` like a built environment, and
     to `has_xdist` like one that carries pytest-xdist (#337) -- the `xdist`
     package directory under site-packages, at the path each platform uses.
@@ -60,8 +60,7 @@ def fake_venv(root, xdist=True, markdown_it=True, pillow=True, cmarkgfm=True):
     and repairs. `markdown_it` is the same for the pinned parser (#667):
     its versioned `.dist-info` directory, or `markdown_it=False` for a
     `.venv` built before it, or a version string for one holding another
-    version. `pillow` is the same again for the pinned Pillow (#718), and
-    `cmarkgfm` for the pinned renderer (#647)."""
+    version. `cmarkgfm` is the same again for the pinned renderer (#647)."""
     venv = root / ".venv"
     python = rt.venv_python(venv)
     python.parent.mkdir(parents=True)
@@ -80,9 +79,6 @@ def fake_venv(root, xdist=True, markdown_it=True, pillow=True, cmarkgfm=True):
     if markdown_it:
         version = rt.MARKDOWN_IT_VERSION if markdown_it is True else markdown_it
         (site / f"markdown_it_py-{version}.dist-info").mkdir()
-    if pillow:
-        version = rt.PILLOW_VERSION if pillow is True else pillow
-        (site / f"pillow-{version}.dist-info").mkdir()
     if cmarkgfm:
         version = rt.CMARKGFM_VERSION if cmarkgfm is True else cmarkgfm
         (site / f"cmarkgfm-{version}.dist-info").mkdir()
@@ -444,12 +440,8 @@ class Test_build:
             f"the pinned parser: {install}"
         )
         assert f"markdown-it-py=={rt.MARKDOWN_IT_VERSION}" == rt.MARKDOWN_IT
-        # #718: the release seal's renderer, pinned the same way.
-        assert rt.PILLOW in install, (
-            f"the {'uv' if uv else 'pip'} strategy builds an environment without "
-            f"the pinned Pillow: {install}"
-        )
-        assert f"pillow=={rt.PILLOW_VERSION}" == rt.PILLOW
+        # #857: Pillow left with its last reader, so no build installs it.
+        assert not any(word.lower().startswith("pillow") for word in install), install
         # #647: the table walker's renderer, pinned the same way.
         assert rt.CMARKGFM in install, (
             f"the {'uv' if uv else 'pip'} strategy builds an environment without "
@@ -726,69 +718,6 @@ class Test_main:
         assert "runs every other case and exits non-zero" in err, err
         assert "stops at collection and runs no case" in err, err
         assert "a sentence of their own" not in err, err
-        assert "run bin/test again" in err, err
-        assert "Traceback" not in err, err
-        assert len(calls) == 2 and calls[1][2] == "pytest", calls
-        assert calls[1][-2:] == ["-n", "auto"], calls[1]
-
-    @pytest.mark.parametrize("held", [False, "11.0.0"], ids=["none", "another version"])
-    @pytest.mark.parametrize("uv", ["/usr/bin/uv", None])
-    def test_an_adopted_environment_is_given_the_pinned_pillow_once(
-        self, tmp_path, monkeypatch, uv, held
-    ):
-        """#718, S16. A `.venv` built before Pillow joined `PACKAGES` is adopted
-        and topped up in one step, `add_markdown_it`'s shape, then the suite runs
-        under `-n auto`. Seen red against the runner with no `add_pillow`."""
-        (tmp_path / "tests").mkdir()
-        venv = fake_venv(tmp_path, pillow=held)
-        recorder = Recorder()
-        monkeypatch.setattr(rt, "repo_root", lambda: tmp_path)
-        monkeypatch.setattr(rt.shutil, "which", lambda _: uv)
-        monkeypatch.setattr(rt.subprocess, "run", recorder)
-        assert rt.main([]) == 0
-        assert len(recorder.calls) == 2, recorder.calls
-        install, run = recorder.calls
-        python = str(rt.venv_python(venv))
-        if uv:
-            assert install == [uv, "pip", "install", "--python", python, rt.PILLOW]
-        else:
-            assert install == [python, "-m", "pip", "install", "--quiet", rt.PILLOW]
-        assert run[:3] == [python, "-m", "pytest"]
-        assert run[-2:] == ["-n", "auto"], run
-
-    def test_a_failed_pillow_install_is_a_sentence_and_pytest_is_still_called(
-        self, tmp_path, monkeypatch, capsys
-    ):
-        """#718, S16. The top-up exits non-zero: one sentence names the pinned
-        package, says what its absence costs -- the release seal's pixel cases
-        fail, and nothing else does, because Pillow is imported inside those
-        cases rather than at module level -- and names the remedy. pytest is
-        still called, in parallel, and the exit code is pytest's."""
-        (tmp_path / "tests").mkdir()
-        fake_venv(tmp_path, pillow=False)
-        calls = []
-
-        def run(command, **kwargs):
-            calls.append(list(command))
-            return subprocess.CompletedProcess(
-                command, 1 if "install" in command else 0
-            )
-
-        monkeypatch.setattr(rt, "repo_root", lambda: tmp_path)
-        monkeypatch.setattr(rt.shutil, "which", lambda _: "/usr/bin/uv")
-        monkeypatch.setattr(rt.subprocess, "run", run)
-        assert rt.main([]) == 0
-        err = capsys.readouterr().err
-        assert rt.PILLOW in err, err
-        # #1009 S9: Pillow draws the release seal and the seal's pixel cases
-        # read what it draws, so the line announcing the top-up says both, and
-        # the line after the failed install names those cases as the ones that
-        # fail. Seen red against #832's sentences.
-        assert "Pillow draws the release seal" in err, err
-        assert "the release seal's pixel cases read what it draws" in err, err
-        assert "Only the release seal's pixel cases import it" in err, err
-        assert "so those cases fail with a ModuleNotFoundError" in err, err
-        assert "every other case runs" in err, err
         assert "run bin/test again" in err, err
         assert "Traceback" not in err, err
         assert len(calls) == 2 and calls[1][2] == "pytest", calls

@@ -10,16 +10,16 @@ then what the records at the guarantee's commit say: the audited commit and
 its branch, the base, the work item, the newest broad run and the round
 count (`guarantee_rows` owns the list). The disc is COMPUTED — `hypot`
 for its edge, its rim and its groove — and only the disc's mark is
-authored: a 28 x 28 chart in `seal-mark.txt` beside this file, read as data
-(`read_chart`). Four hand-typed discs came before #30's and every one was
+authored: a 16 x 16 sprite in `seal-mark.txt` beside this file, read as data
+(`read_sprite`). Four hand-typed discs came before #30's and every one was
 lopsided; a circle that is calculated cannot be off centre. #832's owner
 settled the frame on 2026-10-07 — 28 cells across and 14 lines, a wax edge,
 a rim lit from the upper left in three steps and a groove lit the other way,
-every cell exactly one of nine colours — and left the disc's mark a
-placeholder S until #857 chooses one: changing it is changing that file
-alone. The same day the owner retired the parchment sheet #717 wrote the
-text on, so nothing outside the disc is painted and the stamp reads in the
-terminal's own theme.
+every cell exactly one of nine colours. The same day the owner retired the
+parchment sheet #717 wrote the text on, so nothing outside the disc is
+painted and the stamp reads in the terminal's own theme. On 2026-10-28 the
+owner chose the owl as the disc's mark (#857), drawn one cell at a time in
+the nine colours: changing it is changing that file alone.
 
 Two forms, one drawing (`compose`). The block form is half-block characters,
 the disc in truecolour and the text in the terminal's own colours and
@@ -27,7 +27,8 @@ styles, and it writes a code only where the colour or the style changes:
 one SGR per change and no reset inside a line (a code per cell was 282 KB
 for one seal). The letter twin is the same footprint as letters — `KEY`
 for the disc, `m` its wax edge, `M n N` its rim lit, mid and dark, `.` its
-field, `X Y x` the disc's mark's face, highlight and inner shadow and `y`
+field, and the owl by its colours' letters, `x` its outline, `n` its body,
+`X` its breast, `Y` its eyes, `M` its beak and feet, `.` its pupils and `y`
 its drop shadow; the text as itself, with the owner's `·`, `✓`, `─` and
 `→` written `.`, `+`, `-` and `>` — for a console that cannot render
 half-blocks, and for `seal stamp` on a pipe. The twin is chosen when
@@ -64,10 +65,9 @@ The gate imports `sealed_names`, `ref_is_commit`, `is_utf8(stream)`,
 `text_lines`, `TWIN_ASCII` and the panel's text rules; the edit gate imports
 `queue_for_written_guarantee`; the hook imports `pending`, `read_values`,
 `claim` and `stamp`.
-`.github/scripts/release_seal.py`, which the tag push runs, reads `build`
-and draws a release's seal as a PNG from its cells, one cell to one square
-block of pixels (#1009). That script is the repository's own and the plugin
-ships nothing that runs it. The command
+`.github/scripts/release_seal.py` attaches a release's seal from the page
+form of the mark, the PNG `.claude-plugin/plugin.json` names as its `icon`
+(#857), and reads nothing of this file. The command
 exists so a person can see the drawing without a guarantee committed, and
 so a values file no hook drew can still be drawn by hand.
 
@@ -95,12 +95,12 @@ import time
 # 1791270164), named as the owner's `seal28.py` names them: `WAX_EDGE`; the
 # rim, lit from the upper left in three steps, `RIM_LIT`, `RIM_MID` and
 # `RIM_DARK`, whose lit and dark the groove inside it takes the other way
-# round; `FIELD`; and the disc's mark in the red lily's three tones — `FACE`,
-# `LIGHT` where the cell up-left of the disc's mark is the field, `INNER`
-# where the cell down-right is — with `DROP`, the shadow the disc's mark
-# casts on the field down-right of it. No mid tones and no blend: every
-# cell of the disc is exactly one of these nine (`build`), and with
-# `TITLE_RED` they are the only colours the stamp sets.
+# round; `FIELD`; the red lily's three tones, `FACE`, `LIGHT` and `INNER`;
+# and `DROP`, the shadow the disc's mark casts on the field down-right of
+# it. The owl's sprite is drawn in these colours by letter
+# (`SPRITE_COLOURS`). No mid tones and no blend: every cell of the disc is
+# exactly one of these nine (`build`), and with `TITLE_RED` they are the
+# only colours the stamp sets.
 WAX_EDGE = (150, 24, 28)
 RIM_LIT = (208, 68, 64)
 RIM_MID = (160, 30, 34)
@@ -119,8 +119,9 @@ TITLE_RED = (196, 40, 44)
 
 # The letter for each disc colour in the twin (#832): capitals lit and lower
 # case shadow — `m` the wax edge and `.` the field, as #30 had them; `M n N`
-# the rim lit, mid and dark; `X` the disc's mark's face, and `Y` and `y` its
+# the rim lit, mid and dark; `X` the lily's face, and `Y` and `y` its
 # highlight and its drop shadow, as #717 had them; `x` its inner shadow. The
+# owl is drawn in the same colours, so it reads in the same letters. The
 # framer chose them (`frame/design.md` *Data & interfaces*): the twin is for a
 # console that cannot draw half-blocks, and no decision of the owner's names
 # its letters. Every disc cell is exactly one of these colours, so a cell's
@@ -141,7 +142,7 @@ KEY = {
 # There is no scale (#853). #30 measured a band of them, 0.75 to 1.0, on the
 # lily's chart, #400 chose 0.90 and #717 drew the letter at it; since #832's
 # disc of 2026-10-07 the disc is `DISC_CELLS` across whatever a scale said,
-# because the disc's mark is a chart and a chart has one size. The band, its
+# because the disc's mark is drawn for that grid and has one size. The band, its
 # refusals, `--scale` on both commands and the values file's `scale` field
 # were a dial that turned nothing, and they went together.
 
@@ -185,9 +186,9 @@ MESSAGE_BUDGET = MESSAGE_LIMIT - MESSAGE_RESERVE
 
 # The disc's numbers (#832), in cells of the terminal's grid, where a cell is
 # one column by one half-row and so square. The owner's frame of 2026-10-07:
-# the disc is 28 cells across and so `DISC_LINES` lines tall, because the
-# disc's mark is a chart drawn for that grid and a chart has one size. Measured inward from the radius, a cell more than `EDGE_INSET` inside
-# it is on the disc; one no more than `WAX_INSET` inside it is the wax edge,
+# the disc is 28 cells across and so `DISC_LINES` lines tall, and the disc's
+# mark is drawn for that grid. Measured inward from the radius, a cell more
+# than `EDGE_INSET` inside it is on the disc; one no more than `WAX_INSET` inside it is the wax edge,
 # no more than `RIM_INSET` the rim, no more than `GROOVE_INSET` the groove,
 # and the rest the field. `LIT_AT` is where the rim turns from mid to lit on
 # one side and to dark on the other.
@@ -199,57 +200,87 @@ RIM_INSET = 3.2
 GROOVE_INSET = 4.2
 LIT_AT = 0.35
 
-# The disc's mark (#832): one chart in a file beside this one, `DISC_CELLS`
-# lines of `DISC_CELLS` characters over `.M`, `M` a cell of the disc's mark.
-# It is the owner's placeholder S, Georgia Bold fitted to the grid, until
-# #857 chooses the stamp's mark for good — and changing the disc's mark is
-# replacing that file and nothing else, which is why it is data read here
-# rather than a tuple typed into this module. A candidate in
-# `assets/seals/candidates/` that is a 28-cell chart is the same `.M` text.
-CHART_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "seal-mark.txt")
-CHART_MALFORMED = (
-    "seal stamp: the disc's mark chart {path} is not {n} lines of {n} "
-    "characters over `.M` with every `M` inside the disc's field ({fault}). "
-    "Nothing was drawn."
+# The disc's mark (#857): one sprite in a file beside this one,
+# `SPRITE_CELLS` lines of `SPRITE_CELLS` characters, each a letter of
+# `SPRITE_COLOURS` drawn in its colour or `.` the field, standing
+# `SPRITE_OFFSET` cells in from the disc's left and top edges so it is
+# centred. It is the owl the owner chose on 2026-10-28, drawn one cell at a
+# time for this grid, and changing the disc's mark is replacing that file and
+# nothing else, which is why it is data read here rather than a tuple typed
+# into this module.
+SPRITE_CELLS = 16
+SPRITE_OFFSET = (DISC_CELLS - SPRITE_CELLS) // 2
+# Each letter's colour, every one of them among the nine, so the letter twin
+# needs no letter of its own. The pupil is the field's colour, so no eye is
+# near black. The sprite carries its own light and dark: `build` shades no
+# cell by its neighbours, because shading breaks a small mark (#857).
+SPRITE_COLOURS = {
+    "K": INNER,  # the outline
+    "P": FIELD,  # a pupil
+    "R": RIM_MID,  # the body
+    "L": FACE,  # the breast
+    "W": LIGHT,  # an eye or a wing
+    "Y": RIM_LIT,  # a beak, a foot or a stripe
+}
+SPRITE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "seal-mark.txt")
+SPRITE_MALFORMED = (
+    "seal stamp: the disc's mark sprite {path} is not {n} lines of {n} "
+    "characters over `{letters}` with every drawn cell and its shadow inside "
+    "the disc's field ({fault}). Nothing was drawn."
 )
 
 
-def read_chart(path):
-    """The chart at `path` as a tuple of its lines, or `ValueError` with
-    `CHART_MALFORMED` naming the path and the first fault: a count of lines
-    that is not `DISC_CELLS`, a line of another length, a character outside
-    `.M`, or an `M` outside the field — more than `GROOVE_INSET` short of
-    the radius, where `build` would draw the rim over it and the disc's mark
-    would lose a cell nobody sees go. `utf-8-sig` reads a chart an editor
-    saved with a byte-order mark as the same chart, rather than refusing its
-    first line as one character too long."""
+def read_sprite(path):
+    """The sprite at `path` as a tuple of its lines, or `ValueError` with
+    `SPRITE_MALFORMED` naming the path and the first fault: a count of lines
+    that is not `SPRITE_CELLS`, a line of another length, a character
+    outside `.` and the letters of `SPRITE_COLOURS`, or, with the sprite at
+    `SPRITE_OFFSET`, a drawn cell or the undrawn cell down-right of it that
+    takes its shadow more than `GROOVE_INSET` short of the radius, where
+    `build` would draw the rim over it and the disc's mark would lose a cell
+    nobody sees go. The shape is read over every line before the field is.
+    `utf-8-sig` reads a sprite an editor saved with a byte-order mark as the
+    same sprite, rather than refusing its first line as one character too
+    long."""
     with open(path, encoding="utf-8-sig") as handle:
-        # exempt from splitlines: the disc's mark chart, a grid of two characters
+        # exempt from splitlines: the disc's mark sprite, a grid of letters
         lines = handle.read().splitlines()
-    n = DISC_CELLS
-    c, field = (n - 1) / 2, n / 2 - GROOVE_INSET
+    n, at, letters = SPRITE_CELLS, SPRITE_OFFSET, "." + "".join(SPRITE_COLOURS)
+    c, field = (DISC_CELLS - 1) / 2, DISC_CELLS / 2 - GROOVE_INSET
+
+    def drawn(x, y):
+        return 0 <= x < n and 0 <= y < n and lines[y][x] != "."
+
+    def outside(x, y):
+        return math.hypot(x + at - c, y + at - c) > field
+
     fault = None if len(lines) == n else f"{len(lines)} lines"
     for y, line in enumerate(lines):
+        stray = sorted(set(line) - set(letters))
         if fault:
             break
-        stray = sorted(set(line) - set(".M"))
-        outside = [
-            x
-            for x, char in enumerate(line)
-            if char == "M" and math.hypot(x - c, y - c) > field
-        ]
         if len(line) != n:
             fault = f"line {y + 1} is {len(line)} characters"
         elif stray:
             fault = f"line {y + 1} carries {stray[0]!r}"
-        elif outside:
-            fault = f"line {y + 1} marks column {outside[0] + 1}, outside the field"
+    cells = [(x, y) for y in range(n) for x in range(n)] if not fault else []
+    for x, y in cells:
+        if not drawn(x, y):
+            continue
+        if outside(x, y):
+            fault = f"line {y + 1} draws column {x + 1}, outside the field"
+        elif not drawn(x + 1, y + 1) and outside(x + 1, y + 1):
+            fault = f"line {y + 1} column {x + 1} casts its shadow outside the field"
+        if fault:
+            break
     if fault:
-        raise ValueError(CHART_MALFORMED.format(path=path, n=n, fault=fault))
+        raise ValueError(
+            SPRITE_MALFORMED.format(path=path, n=n, letters=letters, fault=fault)
+        )
     return tuple(lines)
 
 
-CHART = read_chart(CHART_PATH)
+SPRITE = read_sprite(SPRITE_PATH)
 
 
 def build():
@@ -264,17 +295,22 @@ def build():
     over `LIT_AT`, `RIM_MID` between, `lit` being -1 at the upper left and
     +1 at the lower right; the groove past `r - GROOVE_INSET`, lit the
     other way — `RIM_DARK` where `lit` is under 0, else `RIM_LIT`; then the
-    field. In the field a cell under an `M` of `CHART` is `LIGHT` where the
-    cell up-left is not under one, else `INNER` where the cell down-right is
-    not, else `FACE`; a cell not under one whose up-left is, is `DROP`; the
-    rest are `FIELD`. Every cell is exactly one of the nine colours (#832,
-    the owner's frame of 2026-10-07). `lit` is read only past the groove's
-    inner edge, where `d` is never 0, so it needs no guard."""
-    n = DISC_CELLS
+    field. In the field, with `SPRITE` standing `SPRITE_OFFSET` cells in
+    from the left and top, a cell under a letter is that letter's colour in
+    `SPRITE_COLOURS`; a cell under `.`, or past the sprite's edge, whose
+    up-left neighbour is under a letter is `DROP`, a pupil counting as a
+    letter; the rest are `FIELD` (#857). Every cell is exactly one of the
+    nine colours (#832, the owner's frame of 2026-10-07). `lit` is read only
+    past the groove's inner edge, where `d` is never 0, so it needs no
+    guard."""
+    n, at = DISC_CELLS, SPRITE_OFFSET
     c, r = (n - 1) / 2, n / 2
 
-    def on(x, y):
-        return 0 <= x < n and 0 <= y < n and CHART[y][x] == "M"
+    def letter(x, y):
+        sx, sy = x - at, y - at
+        if 0 <= sx < SPRITE_CELLS and 0 <= sy < SPRITE_CELLS:
+            return SPRITE[sy][sx]
+        return "."
 
     def px(x, y):
         if not (0 <= x < n and 0 <= y < n):
@@ -292,11 +328,9 @@ def build():
             if lit < -LIT_AT:
                 return RIM_LIT
             return RIM_DARK if lit > LIT_AT else RIM_MID
-        if on(x, y):
-            if not on(x - 1, y - 1):
-                return LIGHT
-            return INNER if not on(x + 1, y + 1) else FACE
-        return DROP if on(x - 1, y - 1) else FIELD
+        if letter(x, y) != ".":
+            return SPRITE_COLOURS[letter(x, y)]
+        return DROP if letter(x - 1, y - 1) != "." else FIELD
 
     return n, n, px
 

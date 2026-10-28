@@ -200,7 +200,7 @@ TEMPFILES = {
 # (`tokenize`); or a class whose `.open` reads bytes, called on the class or
 # built in the receiver (`zipfile.ZipFile(z).open(name)`). The modules are
 # every standard-library module with a module-level `open` that no other
-# table holds, with PIL's `Image` beside them (#762). Each module that
+# table holds (#762). Each module that
 # imports on macOS was found by importing it on 3.12 to 3.14. Each one that
 # does not was read in its documentation instead: `dbm.gnu`, `nt` and
 # `ossaudiodev` carry an `open`, and `nis`, `spwd`, `msilib`, `msvcrt`,
@@ -227,7 +227,6 @@ NOT_A_FILE_OPENER = {
     "nt",
     # 3.12 on Linux and FreeBSD, removed in 3.13: an audio device.
     "ossaudiodev",
-    "PIL.Image",
 }
 # Classes whose methods, called on the class, take the path first, so the
 # encoding's position moves one to the right: `Path.read_text(p, "utf-8")`.

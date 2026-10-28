@@ -15,9 +15,10 @@ from conftest import load_module as load
 
 
 def test_the_publishing_workflow_installs_the_pins_the_runner_holds():
-    """S16 (#718). The `seal` job's install line carries the parser and
-    Pillow exactly as `run_tests.py` pins them, so the suite at the tag and
-    the drawing run on the versions every other run of the suite uses."""
+    """S16 (#718). The `seal` job's install line carries the parser exactly
+    as `run_tests.py` pins it, so the suite at the tag runs on the version
+    every other run of the suite uses. Since #857 the seal is a copy of a
+    committed PNG, so the line installs no Pillow."""
     runner = load(
         os.path.join(ROOT, ".github", "scripts", "run_tests.py"), "rt_for_seal"
     )
@@ -31,7 +32,8 @@ def test_the_publishing_workflow_installs_the_pins_the_runner_holds():
             if "run: pip install" in line
         ]
     assert len(installs) == 1, installs
-    assert runner.MARKDOWN_IT in installs[0] and runner.PILLOW in installs[0], installs
+    assert runner.MARKDOWN_IT in installs[0], installs
+    assert not any(word.lower().startswith("pillow") for word in installs[0]), installs
     # #647: the suite at the tag collects the table walker's case, which
     # imports the pinned renderer.
     assert runner.CMARKGFM in installs[0], installs

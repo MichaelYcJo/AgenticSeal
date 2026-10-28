@@ -12,7 +12,6 @@ one local-mode repository built the same way.
 
 import ast
 import collections
-import hashlib
 import io
 import json
 import math
@@ -73,6 +72,17 @@ LETTERS = {
     INNER: "x",
     DROP: "y",
 }
+# The owl's letters and the colour each is drawn in (#857, the owner's
+# candidate of 2026-10-28), written out so no case reads them from the module
+# it checks.
+OWL_LETTERS = {
+    "K": INNER,
+    "P": FIELD,
+    "R": RIM_MID,
+    "L": FACE,
+    "W": LIGHT,
+    "Y": RIM_LIT,
+}
 
 # A panel in the gate's shape, with the result rows a real run carries.
 ROWS = [
@@ -111,11 +121,17 @@ TALL_ROWS = [
 ]
 
 # The rows the owner's chosen reference was drawn over (`frames.py`'s `ROWS`
-# behind the title row), and the reference itself, chosen on 2026-10-07:
-# design 3 of `frames.py` (`frame/design.md` decision 6 and S3 of work item
-# 1791270164), transcribed from its SGR stream by a script that read no line of
-# `seal_stamp.py`. The twin's lines, and the disc's twenty-eight half-rows,
-# each half its colour's letter and a space off the disc.
+# behind the title row), and the reference itself. Its frame, the cells past
+# 9.8 from the centre, is design 3 of `frames.py`, chosen on 2026-10-07
+# (`frame/design.md` decision 6 and S3 of work item 1791270164). Its field is
+# the owl the owner chose on 2026-10-28 (#857), the candidate
+# `assets/seals/candidates/owl-28-pixel.ans` at c8bb9693. Both were
+# transcribed from their SGR streams by a script that read no line of
+# `seal_stamp.py`. The candidate paints the owl's shadow (78, 8, 12), which is
+# none of the stamp's reds, so its shadow is read as `DROP`; its own frame
+# differs from the settled one in the outer half-rows and is not read. The
+# twin's lines, and the disc's twenty-eight half-rows, each half its colour's
+# letter and a space off the disc.
 REFERENCE_ROWS = [
     ("SEALED", ""),
     ("tree", "aaa1111a"),
@@ -134,15 +150,15 @@ REFERENCE_TWIN = (
     "        mmmmmmmmmmmm           SEALED ------------------------------",
     "     mmmMMMMMMMMMMMMmmm",
     "   mmMMMMNNN....NNNnnnnmm      tree    aaa1111a",
-    "  mmMMNN............NMnnmm             feat/12-the-branch-names-the-work-item",
-    " mMMMN....YYxyyyXXYy..MnnNm    base    bbb2222b  origin/release/v1.2.3",
-    "mmMMN....YXXy.....xy...MNNmm   item    #12 . 1799000000",
-    "mMMN.....YXXXXYY...y....MNNm   gate    tree 1.2.3",
-    "mMMN.......xxXXXXXX.....MNNm",
-    "mMMNN....Y.....yXXXxy..MMNNm   suite   + 6621 passed . 11 skipped",
-    " mMMN....YX......Yxxy..MNNm    ledger  + 3451 ok . 0 drifted . 0 broken",
-    "  mnnNN..YyxxYYYYxyy.MMNNm     chain   + exit 0",
-    "   mnnnMM..........MMNNNm      flow    . 4 of 9 not answered",
+    "  mmMMNNx..........xNMnnmm             feat/12-the-branch-names-the-work-item",
+    " mMMMN..xnx......xnxy.MnnNm    base    bbb2222b  origin/release/v1.2.3",
+    "mmMMN..xnnnnnnnnnnnnx..MNNmm   item    #12 . 1799000000",
+    "mMMN...xnY..YnnY..Ynxy..MNNm   gate    tree 1.2.3",
+    "mMMN...xnYYYYMMYYYYnxy..MNNm",
+    "mMMNN..xnnXXXXXXXXnnxy.MMNNm   suite   + 6621 passed . 11 skipped",
+    " mMMN..xnXXXXXXXXXXnxy.MNNm    ledger  + 3451 ok . 0 drifted . 0 broken",
+    "  mnnNN..xxMxxxxMxxyyMMNNm     chain   + exit 0",
+    "   mnnnMM..y.y..y.yMMNNNm      flow    . 4 of 9 not answered",
     "     mmnnNNMMMMMMNNNNmm        rounds  2",
     "        mmmNNNNNNmmm",
 )
@@ -153,23 +169,23 @@ REFERENCE_DISC = (
     "     mmMMMMNNNNNNMMnnmm     ",
     "    mMMMMNNN....NNNnnnnm    ",
     "   mMMMNN..........NNnnnm   ",
-    "  mmMMNN............NMnnmm  ",
-    "  mMMNN....YYYYYY.Y..MMnnm  ",
-    " mMMMN....YYxyyyXXYy..MnnNm ",
-    " mMMN....YYxyy...Xxy...MNNm ",
-    " mMMN....YXXy.....xy...MNNm ",
-    "mMMNN....YXXX.....Yy...MMNNm",
-    "mMMN.....YXXXXYY...y....MNNm",
-    "mMMN......XXXXXXXY......MNNm",
-    "mMMN.......xxXXXXXX.....MNNm",
-    "mMMN........yyxXXXXx....MNNm",
-    "mMMNN....Y.....yXXXxy..MMNNm",
-    " mMMN....Yy......XXxy..MNNm ",
-    " mMMN....YX......Yxxy..MNNm ",
-    " mMnnN...YXX....YYxyy.MNNNm ",
-    "  mnnNN..YyxxYYYYxyy.MMNNm  ",
-    "  mmnnMM..y.yyyyyyy.MMNNmm  ",
-    "   mnnnMM..........MMNNNm   ",
+    "  mmMMNNx..........xNMnnmm  ",
+    "  mMMNN.xx........xxyMMnnm  ",
+    " mMMMN..xnx......xnxy.MnnNm ",
+    " mMMN...xnnxxxxxxnnxy..MNNm ",
+    " mMMN..xnnnnnnnnnnnnx..MNNm ",
+    "mMMNN..xnYYYYnnYYYYnxy.MMNNm",
+    "mMMN...xnY..YnnY..Ynxy..MNNm",
+    "mMMN...xnY..YnnY..Ynxy..MNNm",
+    "mMMN...xnYYYYMMYYYYnxy..MNNm",
+    "mMMN...xnnnnnMMnnnnnxy..MNNm",
+    "mMMNN..xnnXXXXXXXXnnxy.MMNNm",
+    " mMMN..xnXnXXnXXnXXnxy.MNNm ",
+    " mMMN..xnXXXXXXXXXXnxy.MNNm ",
+    " mMnnN..xnXXnXXnXXnxyyMNNNm ",
+    "  mnnNN..xxMxxxxMxxyyMMNNm  ",
+    "  mmnnMM..MyMyyMyMyyMMNNmm  ",
+    "   mnnnMM..y.y..y.yMMNNNm   ",
     "    mnnnnMMM....MMMNNNNm    ",
     "     mmnnNNMMMMMMNNNNmm     ",
     "      mmNNNNNNNNNNNNmm      ",
@@ -177,45 +193,22 @@ REFERENCE_DISC = (
     "           mmmmmm           ",
 )
 
-# `SAMPLE_ROWS` as it stood at 5623d728, and SHA-256's first sixteen digits of
-# what that commit's module drew over it at its default scale, 0.90: the block
-# form, the twin, the text block with no disc, and `fitted` over two blocks at
-# the default budget, at room for both, and at 50 (#853).
-SAMPLE_AT_5623D728 = [
-    ("SEALED", ""),
-    ("tree", "c46fd2d"),
-    ("", "feat/12-a-branch"),
-    ("base", "1e2bed9  origin/release/next"),
-    ("item", "#34 · 1799000000"),
-    ("gate", "tree 1.2.3"),
-    None,
-    ("suite", "✓ 768 passed · 1 skipped"),
-    ("ledger", "✓ 187 ok · 0 drifted · 0 broken"),
-    ("chain", "✓ exit 0"),
-    ("CI also", "· 4 more steps"),
-    ("rounds", "3 · capped"),
-    ("", "2 deferred → #56"),
-]
-DRAWN_AT_5623D728 = {
-    "block": "4413e52ec47d938e",
-    "letters": "6273c12623355d89",
-    "no-disc": "15eb7013e91ac03c",
-    "fitted-default": "fc1c76e9e55a1444",
-    "fitted-two": "e0dcadd4a5a511c8",
-    "fitted-alone-no-disc": "76f216e7da17dfb8",
-}
 
-
-def owners_disc(chart, x, y):
+def owners_disc(sprite, x, y):
     """The colour of the disc's cell `(x, y)` by the owner's rule
-    (`seal28.py#seal`), rebuilt from the chart alone: off the disc past 13.8
-    cells from the centre (13.5, 13.5), the wax edge past 12.8, the rim past
-    10.8 lit, mid or dark by `lit`, the groove past 9.8 the other way, then
-    the mark's highlight, inner shadow or face, its drop shadow, or the
-    field. `lit` is -1 at the upper left and +1 at the lower right."""
+    (`seal28.py#seal` for the frame, #857 for the mark), rebuilt from the
+    sprite alone: off the disc past 13.8 cells from the centre (13.5, 13.5),
+    the wax edge past 12.8, the rim past 10.8 lit, mid or dark by `lit`, the
+    groove past 9.8 the other way, then the field. The sprite's sixteen
+    lines stand six cells in from the disc's left and top edges; a field
+    cell under one of its letters is that letter's colour in `OWL_LETTERS`,
+    one whose up-left neighbour is under a letter is the drop shadow, and
+    the rest are the field. `lit` is -1 at the upper left and +1 at the
+    lower right."""
 
-    def on(cx, cy):
-        return 0 <= cx < 28 and 0 <= cy < 28 and chart[cy][cx] == "M"
+    def letter(cx, cy):
+        sx, sy = cx - 6, cy - 6
+        return sprite[sy][sx] if 0 <= sx < 16 and 0 <= sy < 16 else "."
 
     dx, dy = x - 13.5, y - 13.5
     d = math.hypot(dx, dy)
@@ -228,11 +221,9 @@ def owners_disc(chart, x, y):
         return RIM_LIT if lit < -0.35 else RIM_DARK if lit > 0.35 else RIM_MID
     if d > 9.8:
         return RIM_DARK if lit < 0 else RIM_LIT
-    if on(x, y):
-        if not on(x - 1, y - 1):
-            return LIGHT
-        return INNER if not on(x + 1, y + 1) else FACE
-    return DROP if on(x - 1, y - 1) else FIELD
+    if letter(x, y) != ".":
+        return OWL_LETTERS[letter(x, y)]
+    return DROP if letter(x - 1, y - 1) != "." else FIELD
 
 
 def owners_cell(top, bottom):
@@ -347,8 +338,9 @@ class Raising(Stream):
 
 class Test_module:
     def test_imports_nothing_outside_the_standard_library(self):
-        """The disc and its chart are stdlib-only (#832 S1): the gate, the
-        hook and the command load this file where Pillow is absent."""
+        """The disc and its sprite are stdlib-only (#832 S1): the gate, the
+        hook and the command load this file where nothing beyond the standard
+        library is installed."""
         tree = ast.parse((ROOT / TARGET).read_text(encoding="utf-8"))
         names = {
             alias.name.split(".")[0]
@@ -418,62 +410,80 @@ class Test_module:
 # --- the disc ---------------------------------------------------------------------
 
 
-class Test_read_chart:
-    def test_accepts_the_shipped_chart_and_a_copy_saved_with_a_byte_order_mark(
+class Test_read_sprite:
+    def test_accepts_the_shipped_sprite_and_a_copy_saved_with_a_byte_order_mark(
         self, tmp_path
     ):
+        """#857 S3: the owl's sixteen lines of sixteen, centred on the disc."""
         path = ROOT / "skills" / "verify" / "scripts" / "seal-mark.txt"
-        lines = tuple(path.read_text(encoding="utf-8").split("\n")[:28])
-        assert stamp.CHART == lines == stamp.read_chart(str(path))
-        assert os.path.samefile(stamp.CHART_PATH, path)
+        lines = tuple(path.read_text(encoding="utf-8").split("\n")[:16])
+        assert stamp.SPRITE == lines == stamp.read_sprite(str(path))
+        assert os.path.samefile(stamp.SPRITE_PATH, path)
+        assert (stamp.SPRITE_CELLS, stamp.SPRITE_OFFSET) == (16, 6)
+        assert set("".join(lines)) == {".", *OWL_LETTERS}
         marked = tmp_path / "bom.txt"
         marked.write_text("\n".join(lines) + "\n", encoding="utf-8-sig")
-        assert stamp.read_chart(str(marked)) == lines
+        assert stamp.read_sprite(str(marked)) == lines
 
     @pytest.mark.parametrize(
         ("change", "fault"),
         [
-            (lambda lines: lines[:27], "27 lines"),
-            (lambda lines: [lines[0] + ".", *lines[1:]], "line 1 is 29 characters"),
-            (lambda lines: [lines[0][:-1] + "x", *lines[1:]], "line 1 carries 'x'"),
+            (lambda lines: lines[:15], "15 lines"),
+            (lambda lines: [lines[0] + ".", *lines[1:]], "line 1 is 17 characters"),
+            (lambda lines: [lines[0][:-1] + "M", *lines[1:]], "line 1 carries 'M'"),
+            (
+                lambda lines: ["K" + lines[0][1:], *lines[1:]],
+                "line 1 draws column 1, outside the field",
+            ),
             (
                 lambda lines: [
-                    *lines[:13],
-                    lines[13][:1] + "M" + lines[13][2:],
-                    *lines[14:],
+                    *lines[:14],
+                    lines[14][:14] + "K" + lines[14][15:],
+                    *lines[15:],
                 ],
-                "line 14 marks column 2, outside the field",
+                "line 15 column 15 casts its shadow outside the field",
             ),
         ],
-        ids=["short", "wide", "stray", "on-the-rim"],
+        ids=["short", "wide", "stray", "on-the-rim", "its-shadow-on-the-rim"],
     )
-    def test_refuses_a_chart_of_another_shape_naming_the_fault(
+    def test_refuses_a_sprite_of_another_shape_naming_the_fault(
         self, tmp_path, change, fault
     ):
+        """#857 S3: the first fault, where a drawn cell inside the field whose
+        shadow would fall on the groove is refused as one on the rim is."""
         broken = tmp_path / "broken.txt"
-        broken.write_text("\n".join(change(list(stamp.CHART))) + "\n", encoding="utf-8")
+        broken.write_text(
+            "\n".join(change(list(stamp.SPRITE))) + "\n", encoding="utf-8"
+        )
         with pytest.raises(ValueError) as refused:
-            stamp.read_chart(str(broken))
+            stamp.read_sprite(str(broken))
         assert str(refused.value) == (
-            f"seal stamp: the disc's mark chart {broken} is not 28 lines of 28 "
-            f"characters over `.M` with every `M` inside the disc's field ({fault}). "
-            "Nothing was drawn."
+            f"seal stamp: the disc's mark sprite {broken} is not 16 lines of 16 "
+            "characters over `.KPRLWY` with every drawn cell and its shadow "
+            f"inside the disc's field ({fault}). Nothing was drawn."
         )
 
 
 class Test_build:
     def test_accepts_every_cell_by_the_owners_rule_in_the_frames_counts(self):
-        """#832 S2: 28 x 28 cells, each one of nine colours or nothing, in the
-        frame's counts no chart moves, and each the owner's rule's colour."""
+        """#832 S2 and #857 S1: 28 x 28 cells, each one of nine colours or
+        nothing; past 9.8 cells from the centre, the frame in its counts,
+        which no mark moves; and each cell the owner's rule's colour."""
         w, h, px = stamp.build()
         assert (w, h) == (28, 28)
         cells = [px(x, y) for y in range(h) for x in range(w)]
-        frame = [cells.count(c) for c in (None, WAX_EDGE, RIM_LIT, RIM_MID, RIM_DARK)]
-        assert frame == [176, 84, 98, 30, 96], frame
+        ring = [
+            px(x, y)
+            for y in range(h)
+            for x in range(w)
+            if math.hypot(x - 13.5, y - 13.5) > 9.8
+        ]
+        frame = [ring.count(c) for c in (None, WAX_EDGE, RIM_LIT, RIM_MID, RIM_DARK)]
+        assert frame == [176, 84, 98, 30, 96] and sum(frame) == len(ring), frame
         assert set(cells) == {None, *NINE}
         for y in range(h):
             for x in range(w):
-                assert px(x, y) == owners_disc(stamp.CHART, x, y), (x, y)
+                assert px(x, y) == owners_disc(stamp.SPRITE, x, y), (x, y)
 
     def test_refuses_a_colour_off_the_grid(self):
         _w, _h, px = stamp.build()
@@ -495,7 +505,9 @@ class Test_disc_cells:
     def test_accepts_row_y_on_top_and_the_next_below(self):
         _w, _h, px = stamp.build()
         assert stamp.disc_cells(px, 28, 0) == [
-            owners_cell(owners_disc(stamp.CHART, x, 0), owners_disc(stamp.CHART, x, 1))
+            owners_cell(
+                owners_disc(stamp.SPRITE, x, 0), owners_disc(stamp.SPRITE, x, 1)
+            )
             for x in range(28)
         ]
 
@@ -713,8 +725,8 @@ class Test_compose:
             want = (
                 [
                     owners_cell(
-                        owners_disc(stamp.CHART, x, 2 * k),
-                        owners_disc(stamp.CHART, x, 2 * k + 1),
+                        owners_disc(stamp.SPRITE, x, 2 * k),
+                        owners_disc(stamp.SPRITE, x, 2 * k + 1),
                     )
                     for x in range(28)
                 ]
@@ -728,10 +740,11 @@ class Test_compose:
         assert letter.width == max(len(line) for line in letter.cells)
 
     def test_accepts_the_owners_reference_cell_for_cell(self):
-        """#832 S1 to S4 against the picture the owner chose: 14 lines, the
-        disc at column 0 and half-row 0, each half-cell the reference's
-        colour, the twin its letters line for line, and the block form's text
-        the twin's with the owner's characters in place."""
+        """#832 S1 to S4 and #857 S2 against the pictures the owner chose: 14
+        lines, the disc at column 0 and half-row 0, each half-cell the
+        reference's colour, the owl's included, the twin its letters line for
+        line, and the block form's text the twin's with the owner's
+        characters in place."""
         letter = stamp.compose(REFERENCE_ROWS)
         assert (letter.height, letter.width, letter.disc) == (14, 77, (0, 0, 28, 28))
         assert stamp.stamp(REFERENCE_ROWS, shape=True) == list(REFERENCE_TWIN)
@@ -764,33 +777,18 @@ class Test_compose:
 
 
 class Test_stamp:
-    def test_accepts_the_drawing_byte_for_byte_as_it_was_before_the_scale_left(self):
-        """S13 (#853): taking the scale away moved no byte of either form,
-        of the text block with no disc, or of `fitted`'s two rungs."""
-
-        def h(text):
-            return hashlib.sha256(text.encode("utf-8")).hexdigest()[:16]
-
-        rows = SAMPLE_AT_5623D728
-        size = len("\n".join(["first", *stamp.stamp(rows)]).encode("utf-16-le")) // 2
-        blocks = [("first", rows), ("second", rows)]
-        assert {
-            "block": h("\n".join(stamp.stamp(rows))),
-            "letters": h("\n".join(stamp.stamp(rows, shape=True))),
-            "no-disc": h("\n".join(stamp.stamp(rows, disc=False))),
-            "fitted-default": h(stamp.fitted(blocks)),
-            "fitted-two": h(stamp.fitted(blocks, budget=2 * size + 10)),
-            "fitted-alone-no-disc": h(stamp.fitted(blocks, budget=50)),
-        } == DRAWN_AT_5623D728
-        # #30 found a code per cell 282 KB for one seal; a real run's block
-        # with its label stays under 5,500 UTF-16 units, the owner's
-        # reference being 5,119 for rows of the same length.
+    def test_accepts_the_widest_reference_panel_with_its_label_in_one_message(self):
+        """#857 S5: #30 found a code per cell 282 KB for one seal; the owl's
+        block over the widest reference panel, with its label, is 5,959
+        UTF-16 units, measured 2026-10-28 where the placeholder S's was
+        5,258, and it fits the hook's budget."""
         name = "the-branch-names-the-work-item-it-carries"
         label = (
             f"SEALED feat/12-{name} @ aaa1111a against origin/release/v1.2.3 @ "
             f"bbb2222b · #12 · 1799000000-{name}"
         )
-        assert len(drawn(label, REFERENCE_ROWS).encode("utf-16-le")) // 2 < 5500
+        size = len(drawn(label, REFERENCE_ROWS).encode("utf-16-le")) // 2
+        assert size <= stamp.MESSAGE_BUDGET, size
 
     def test_accepts_a_value_as_wide_as_the_panel_at_eighty_columns(self):
         """A value of exactly `PANEL_VALUE_WIDTH` under a seven-column label,
@@ -808,8 +806,9 @@ class Test_stamp:
     @pytest.mark.parametrize("disc", [True, False], ids=["with-its-disc", "no-disc"])
     def test_refuses_a_twin_of_another_size_or_with_a_code_or_a_half_block(self, disc):
         """S5: the twin is the block form's footprint, row for row, in ASCII."""
-        blocks = stamp.stamp(SAMPLE_AT_5623D728, disc=disc)
-        letters = stamp.stamp(SAMPLE_AT_5623D728, shape=True, disc=disc)
+        rows = [*REFERENCE_ROWS, ("", "2 deferred → #56")]
+        blocks = stamp.stamp(rows, disc=disc)
+        letters = stamp.stamp(rows, shape=True, disc=disc)
         assert [len(SGR.sub("", b)) for b in blocks] == [len(t) for t in letters]
         assert all(line.isascii() for line in letters), letters
         assert "2 deferred > #56" in "\n".join(letters)

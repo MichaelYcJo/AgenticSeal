@@ -389,7 +389,6 @@ NAMED = {
     "tarfile.open is binary": "import tarfile\ntarfile.open(p)",
     "TarFile.open is binary": "import tarfile\ntarfile.TarFile.open(p)",
     "ZipFile(...).open is binary": "import zipfile\nzipfile.ZipFile(z).open(n)",
-    "PIL Image.open is binary": "from PIL import Image\nImage.open(p)",
     "shelve.open is not a text file": "import shelve\nshelve.open(p)",
     "dbm.open is not a text file": "import dbm\ndbm.open(p)",
     "wave.open is binary": "import wave\nwave.open(p)",

@@ -158,18 +158,10 @@ VERSIONS_OF_ANOTHER_PRODUCT = {
         "install the parser the oracle is held to, and a case holds them to "
         "the runner's constant; no release of AgenticSeal makes the number wrong"
     ),
-    ("CONTRIBUTING.md", "12.3.0"): (
-        "Pillow's, the imaging library the release seal is drawn and read "
-        "with, pinned in `.github/scripts/run_tests.py#PILLOW` (#718, #1009). "
-        "The class is the row above's: the fallback commands carry the pin so "
-        "they install the version the suite's pixel cases are held to, and a case holds "
-        "them to the runner's constant; no release of AgenticSeal makes the "
-        "number wrong"
-    ),
     ("CONTRIBUTING.md", "2025.10.22"): (
         "cmarkgfm's, GitHub's renderer the table walker's oracle reads, "
         "pinned in `.github/scripts/run_tests.py#CMARKGFM` (#647). The class "
-        "is the two rows above: the fallback commands carry the pin so they "
+        "is the row above's: the fallback commands carry the pin so they "
         "install the renderer the walker's property case is held to, and a "
         "case holds them to the runner's constant; the package numbers its "
         "releases by date, and no release of AgenticSeal makes the number wrong"

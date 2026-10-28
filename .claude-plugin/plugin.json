@@ -9,6 +9,7 @@
   "homepage": "https://github.com/MichaelYcJo/AgenticSeal",
   "repository": "https://github.com/MichaelYcJo/AgenticSeal",
   "license": "MIT",
+  "icon": "./.claude-plugin/icon.png",
   "keywords": [
     "spec-driven-development",
     "code-review",

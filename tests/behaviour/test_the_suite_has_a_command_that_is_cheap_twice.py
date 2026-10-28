@@ -160,13 +160,10 @@ def test_ci_installs_the_parser_the_runner_pins():
         for words in installs
         for word in words
     ), installs
-    # #718: Pillow joins the same line, so the pixel pin runs on all three
-    # operating systems, at the version the runner pins.
-    assert any(rt.PILLOW in words for words in installs), installs
+    # #857: Pillow left the line with its last reader, and no version of it
+    # is installed.
     assert not any(
-        word.lower().startswith("pillow") and word != rt.PILLOW
-        for words in installs
-        for word in words
+        word.lower().startswith("pillow") for words in installs for word in words
     ), installs
     # #647: cmarkgfm joins the same line, at the version the runner pins.
     assert any(rt.CMARKGFM in words for words in installs), installs
@@ -197,18 +194,13 @@ def test_the_section_names_the_parser_and_where_it_is_pinned():
     assert "`markdown-it-py`" in section and "MARKDOWN_IT" in section, section
     assert f"uvx --with pytest --with {rt.MARKDOWN_IT} " in section, section
     assert f"pip install pytest {rt.MARKDOWN_IT} " in section, section
-    # #718: Pillow is named beside the parser, with the constant that pins it,
-    # and the fallbacks carry its pin too.
-    assert "Pillow" in section and "`PILLOW`" in section, section
+    # #857: Pillow left with its last reader, so the section names it nowhere.
+    assert "pillow" not in section.lower(), section
     # #647: the renderer is named with its constant, and the fallbacks carry
-    # its pin after Pillow's.
+    # its pin after the parser's.
     assert "`cmarkgfm`" in section and "`CMARKGFM`" in section, section
-    assert (
-        f"--with {rt.MARKDOWN_IT} --with {rt.PILLOW} --with {rt.CMARKGFM} " in section
-    ), section
-    assert (
-        f"pip install pytest {rt.MARKDOWN_IT} {rt.PILLOW} {rt.CMARKGFM} " in section
-    ), section
+    assert f"--with {rt.MARKDOWN_IT} --with {rt.CMARKGFM} " in section, section
+    assert f"pip install pytest {rt.MARKDOWN_IT} {rt.CMARKGFM} " in section, section
 
 
 # A command nobody is pointed at costs what the old one cost. Three documents
