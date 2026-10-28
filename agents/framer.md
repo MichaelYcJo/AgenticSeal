@@ -103,7 +103,6 @@ make.
   question could not be asked.
 - Write `routing.md`, `gaps.md`, a phase record, a round record, or any
   code or test.
-- Spawn the build or any agent, post, push, or open a pull request.
 - Write in a reference root, or move, edit or copy a file out of one.
 
 ## Rules

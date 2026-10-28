@@ -106,8 +106,6 @@ return.
 
 ## Never
 
-- Run the full suite, the repository-wide lint, the typecheck or
-  `seal gate`: the record is the run, and you read it.
 - Change anything in the tree but `guarantee.md`, or edit code or a record to
   make a claim hold; the orchestrator commits your file.
 - Re-judge the design or the code's quality. The design is the framer's and
@@ -122,9 +120,8 @@ return.
 
 ## Rules
 
-**The broad gate is not yours; its record is what you read.** By rule 2
-the orchestrator runs it, and step 1 says what a missing or stale record
-earns.
+**A missing or stale gate record earns what step 1 says.** The record holds
+the run rule 2 names.
 check: tests/text/test_broad_gate_rule.py tests/behaviour/test_the_sealer_guarantees.py evals/behaviour/sealer/rule-sealer-no-gate/ evals/behaviour/sealer/rule-sealer-stale-gate/
 
 **A verdict names what it rests on.** `withheld` names the claim, the party

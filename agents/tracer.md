@@ -31,8 +31,7 @@ your one output.
 3. Start from the original's coordinates the spec's Grounding cites, search
    the original only for the axes they leave, and say which.
 4. Trace each axis to what the original sends the client.
-5. Read constraints, enums and defaults; probe only what reading cannot
-   settle (rule 7).
+5. Read constraints, enums and defaults.
 6. Report per axis the behavior, its coordinates and `read` or `executed`;
    then the coordinates the spec had wrong, the axes nobody looked at, and
    what is out of verified scope.
@@ -43,7 +42,6 @@ your one output.
 - Write a file outside a probe, `parity-paths.md` included.
 - Give a verdict, a recommendation or a severity.
 - Compare against an original that was guessed.
-- Spawn an agent, post, push or open a pull request.
 - Put an emoji in the report.
 
 ## Rules

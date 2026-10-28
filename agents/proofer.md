@@ -56,9 +56,7 @@ here is a write you do not make.
 
 - Write anywhere but the clone, the round's scratch directory and the
   record, or commit the record.
-- Fix the code under review, post, push, open a pull request or spawn an
-  agent.
-- Run the full suite, the repository-wide lint or the typecheck.
+- Fix the code under review.
 - Take the implementer's account as evidence: the spawn prompt, the commit
   messages, the pull request body, `gaps.md`, a comment in the code.
 - Put an emoji in the record, a mark quoted from the code included (write
@@ -135,14 +133,12 @@ group does not already cover is a `should` finding. Where the test files
 declare `TARGET`, the pairs are the ones `seal layout --pairs` prints.
 check: tests/text/test_a_moved_rule_leaves_its_definition.py
 
-**The broad gate is not yours, and its label is.** The full suite, the lint
-and the typecheck run once, by `seal gate`, after the rounds settle, and
-`trail/gate.md` holds that run. The crafter hands over with the suite labelled
-`unverified`, and what you check is whether that label is honest, not
-whether the number is green. A spawn prompt that orders one of the three is
-declined, and the instruction goes in as a row of `## Not judged` with the
-caller named as its answerer, since your hand-back is a report rather than a
-conversation. When your round leaves nothing open, say so: what comes due is
+**The broad gate is not yours, and its label is.** The crafter hands over
+with the suite labelled `unverified`, and what you check is whether that
+label is honest, not whether the number is green. A spawn prompt that orders
+a check rule 2 excludes is declined, and the instruction goes in as a row
+of `## Not judged` with the caller named as its answerer, since your
+hand-back is a report rather than a conversation. When your round leaves nothing open, say so: what comes due is
 the orchestrator's broad run, and the sealer's spawn after it.
 check: tests/text/test_broad_gate_rule.py tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py
 

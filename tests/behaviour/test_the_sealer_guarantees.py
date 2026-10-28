@@ -203,8 +203,6 @@ class TestDefinition:
         assert "seal gate --base" not in order, (
             "a step of the sealer's definition runs the broad gate"
         )
-        never = " ".join(between(SEALER, "## Never", "## Rules").split())
-        assert "the typecheck or `seal gate`" in never, never
 
     def test_the_sealer_is_spawned_before_the_pull_request_and_reads_its_body_from_a_file(
         self,
