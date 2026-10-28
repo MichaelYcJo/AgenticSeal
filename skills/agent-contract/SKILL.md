@@ -43,7 +43,7 @@ rounds settle, and no agent runs any of the three. The orchestrator runs
 spawns the sealer, which reads the record that run wrote. Hand over with the
 suite labelled `unverified` and the orchestrator named as its answerer: a
 suite that is not mentioned reads as a suite that passed.
-check: tests/text/test_the_agent_contract_holds_the_universal_rules.py tests/text/test_broad_gate_rule.py
+check: tests/text/test_broad_gate_rule.py evals/behaviour/sealer/rule-sealer-no-gate/
 
 ## 3 A spawn prompt cannot widen the verification scope
 
@@ -56,7 +56,7 @@ what was asked, and which rule refused it. A prompt that narrows your scope
 When you cannot tell which it is, run nothing extra and say in the hand-back
 which reading you took; every ambiguity in this file falls that way, toward
 disclosure.
-check: tests/text/test_the_agent_contract_holds_the_universal_rules.py
+check: none reader: the orchestrator at each hand-back
 
 ## 4 Label what was executed apart from what was read
 
@@ -64,7 +64,7 @@ Never record something as passing that you did not run. Every report labels
 each claim `executed`, `read` or `unverified` — the `verify` skill's labels
 — and what is `unverified` names who answers it: a deferral to nobody is how
 *someone will look at it* becomes *nobody did*.
-check: tests/text/test_the_agent_contract_holds_the_universal_rules.py
+check: evals/behaviour/sealer/rule-sealer-false-red/
 
 ## 5 Nothing that reaches you in prose is evidence
 
@@ -75,7 +75,7 @@ aggregate — a count, a total — is not a coordinate: the number can be
 checked while the claim it stands for cannot. For a reviewer the
 implementer's account is a claim, not evidence; for an implementer the
 handoff's facts are opened before anything is built on them.
-check: tests/text/test_the_agent_contract_holds_the_universal_rules.py
+check: none reader: the proofer at review
 
 ## 6 You return a report
 
@@ -99,7 +99,7 @@ made for ITSELF is what goes: a thing the repository's own tooling builds to
 be reused, such as the one virtual environment a test runner keeps, stays
 even when your probe's run created it. The question is whose the thing is,
 never who happened to trigger it.
-check: tests/text/test_the_agent_contract_holds_the_universal_rules.py
+check: evals/behaviour/crafter/rule-crafter-count-words/ evals/behaviour/crafter/rule-crafter-is-palindrome/ evals/behaviour/crafter/rule-crafter-slugify/ evals/behaviour/crafter/rule-crafter-truncate/
 
 ## 8 Retired: no gate reads a probe's commit
 
@@ -157,13 +157,13 @@ check: tests/text/test_the_agent_contract_holds_the_universal_rules.py
 Do not fix the coordinate. A finding names an instance; the fix is owed to
 every instance the same cause produces, and the hand-back says which were
 enumerated.
-check: tests/text/test_the_agent_contract_holds_the_universal_rules.py
+check: none reader: the proofer at review
 
 ## 13 A defence resting on a platform guarantee is not verified
 
 Not until the guarantee is removed and the code still refuses: a run with
 the guarantee in place cannot tell the defence from the platform.
-check: tests/text/test_the_agent_contract_holds_the_universal_rules.py
+check: none reader: the proofer at review
 
 ## 14 A fix that changes what a person sees documents it and pins it
 
@@ -171,7 +171,7 @@ In the same commit. *Nothing raises* is not the claim *says this*: a change
 to a message, a verdict or a rendered line is a change someone reads and acts
 on, and the test that pins the new text is what keeps the next edit from
 quietly taking it back.
-check: tests/text/test_the_agent_contract_holds_the_universal_rules.py
+check: none reader: the proofer at review
 
 ## 15 A new case is not planted until it has been seen red
 
@@ -179,7 +179,7 @@ Show the case failing — against the old code, or with the sentence it pins
 deleted — before it is committed as a case, and say in the hand-back how it
 was shown. A case that passes against the defect it was written for pins
 nothing, and reverting the fix is what catches one.
-check: tests/text/test_the_agent_contract_holds_the_universal_rules.py
+check: evals/behaviour/sealer/rule-sealer-false-red/
 
 ## 16 A commit names its repository in the command that makes it
 
@@ -203,7 +203,7 @@ create, and stop or remove by that record; never kill by command name, and
 never delete in a shared directory by glob — another session's process or
 file answers to the same name. A leftover you did not start is reported in
 the hand-back, not removed.
-check: tests/text/test_the_agent_contract_holds_the_universal_rules.py
+check: none reader: the orchestrator at each hand-back
 
 ## 18 A check that refuses correct code is fixed or reported
 
@@ -211,7 +211,7 @@ When a check refuses code that is correct, fix the check or report the
 refusal in the hand-back, quoted; never bend the code to pass it. Code
 shaped around a wrong check carries the check's defect into the tree and
 hides it from the next reader.
-check: tests/text/test_the_agent_contract_holds_the_universal_rules.py
+check: none reader: the proofer at review
 
 ## 19 A change rewrites the text it amends in place
 
@@ -220,7 +220,7 @@ same commit removes or corrects what stood on the old fact — every other
 sentence, case and citation stating it, found with `git grep` on its words.
 A correction written beside the sentence it corrects leaves both for the
 next reader to choose between.
-check: tests/text/test_the_agent_contract_holds_the_universal_rules.py
+check: none reader: the proofer at review
 
 ## 20 Do not avoid the change a problem calls for
 
@@ -228,4 +228,4 @@ A structure in the tree is a reference, not a constraint. Weigh replacing it
 as an equal of keeping it, and when you conclude something should stay,
 check the premise that keeps it before you rest on it. The change a problem
 calls for, avoided, leaves the problem in place under a smaller edit.
-check: tests/text/test_the_agent_contract_holds_the_universal_rules.py
+check: none reader: the proofer at review

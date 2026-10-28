@@ -103,9 +103,11 @@ def test_the_crafters_definition_mandates_mutating_every_unit_it_added():
     That is the general lesson, and it is why this case sits here rather
     than in a module of its own: an absence check with no presence check
     beside it cannot tell a rule that MOVED from a rule that was DELETED.
-    The other four rows of that table point at contract sections, which
-    `test_the_agent_contract_holds_the_universal_rules.py` pins from the
-    other side; this row pointed at a definition and nothing pinned it.
+    Three of the other four rows point at contract rule 1, contract rule 12
+    and contract rule 6. A contract rule that goes whole leaves a gap in the
+    numbering `test_the_agent_contract_holds_the_universal_rules.py` reads,
+    and that module pins rule 1's two command forms as well; this row
+    pointed at a definition and nothing pinned it.
 
     Contract rule 15 is the neighbour, not this rule. It asks that a case be
     seen red on the day it is planted; this asks that every unit the branch
