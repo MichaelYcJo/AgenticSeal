@@ -14,23 +14,36 @@ read the fixtures' own citations.
 """
 
 import collections
+import glob
 import os
 import pathlib
 import re
 import subprocess
+import warnings
 
 import pytest
 from censuses import RECORDS
-from conftest import ROOT, build_tracked_tree, load_module, on_disk
+from conftest import (
+    ROOT,
+    TABLE,
+    build_tracked_tree,
+    load_hook_module,
+    load_module,
+    on_disk,
+    op,
+    spec,
+)
 
 rules = load_module(
     os.path.join(ROOT, "skills", "settle", "scripts", "rule_changes.py"),
     "agentic_rule_changes_for_citations",
 )
+config = load_hook_module("lib/config.py", "agentic_config_for_citations")
 
-# `read` is how many citations of a repository file were read, and
-# `dangling` is `[(citing file, line, cited file, *cited text*)]`.
-Found = collections.namedtuple("Found", "read dangling")
+# `read` is how many citations of a repository file were read, `dangling` is
+# `[(citing file, line, cited file, *cited text*)]`, and `excused` is the
+# same with the work item directory whose pending rule change corrects it.
+Found = collections.namedtuple("Found", "read dangling excused")
 
 
 # A citation by path: the backticked path alone, then an optional
@@ -124,6 +137,45 @@ def resolves(said, targets):
     )
 
 
+def corrections(root):
+    """`[(rule_changes.Op, work item directory)]` for every item of a pending
+    `## Rule changes`: each `frame/design.md` under `<root>/seal/threads/`,
+    read through `rule_changes.parse` against the policy root
+    `hooks/lib/config.py#policy_root` names. A section `parse` refuses
+    gives no item."""
+    home = os.path.join(root, "seal")
+    policy = config.policy_root(home)
+    found = []
+    for path in sorted(
+        glob.glob(os.path.join(home, "threads", "*", "frame", "design.md"))
+    ):
+        item = f"seal/threads/{pathlib.Path(path).parents[1].name}/"
+        found += [(o, item) for o in rules.parse(text_of(path) or "", policy).ops or []]
+    return found
+
+
+def excuser(rel, line, said, text, pending):
+    """The work item directory of the PENDING item that corrects the citation
+    of *SAID* at LINE of REL, whose text is TEXT, or None. An item whose
+    `from` holds the citation and whose `to` does not corrects it, and so
+    does a `remove` with no `from` whose section holds the line. `parse`
+    reads an item's `file` only as a top-level file of the policy root."""
+    cited = f"*{said}*"
+    for o, item in pending:
+        if o.file != rel:
+            continue
+        if o.old is not None:
+            if cited in " ".join(o.old.split()) and cited not in " ".join(
+                (o.new or "").split()
+            ):
+                return item
+        elif o.kind == "remove":
+            span, _ = rules.section_lines(text, o.section)
+            if span and span[0] <= line <= span[1]:
+                return item
+    return None
+
+
 def citations(root):
     """Every citation of another file's section in the tracked text files
     under ROOT outside the records, as a `Found`. A citation whose path's
@@ -139,7 +191,8 @@ def citations(root):
     present, _missing = on_disk(
         root, [rel for rel in tracked if not rel.startswith(RECORDS)]
     )
-    held, read, dangling = {}, 0, []
+    pending = corrections(root)
+    held, read, dangling, excused = {}, 0, [], []
     for rel in present:
         text = text_of(os.path.join(root, rel))
         for line, target, said in cited_in(rel, text or "", skills):
@@ -149,9 +202,34 @@ def citations(root):
             if target not in held:
                 where = os.path.join(root, *target.split("/"))
                 held[target] = sections(text_of(where) if target in tracked else None)
-            if not resolves(said, held[target]):
+            if resolves(said, held[target]):
+                continue
+            item = excuser(rel, line, said, text, pending)
+            if item:
+                excused.append((rel, line, target, f"*{said}*", item))
+            else:
                 dangling.append((rel, line, target, f"*{said}*"))
-    return Found(read, dangling)
+    return Found(read, dangling, excused)
+
+
+def assert_resolved(root):
+    """Warn once for each excused citation under ROOT, fail on any dangling
+    one, and return the `Found`."""
+    found = citations(root)
+    for rel, line, target, cited, item in found.excused:
+        warnings.warn(
+            f"{rel}:{line} cites `{target}` {cited}, which a pending rule "
+            f"change in {item} corrects; it stands until the settle writes "
+            "that correction",
+            stacklevel=2,
+        )
+    assert not found.dangling, "a citation names a section its file lacks:\n" + (
+        "\n".join(
+            f"{rel}:{line} cites `{target}` {cited}"
+            for rel, line, target, cited in found.dangling
+        )
+    )
+    return found
 
 
 # --- the tree ---------------------------------------------------------------
@@ -159,17 +237,11 @@ def citations(root):
 
 def test_every_cited_section_stands_in_its_file():
     """S1: every citation in this repository names a heading or a bold rule
-    lead its file has. The floor keeps a reader that stops matching from
-    passing on nothing read."""
-    found = citations(ROOT)
+    lead its file has, or one a pending rule change corrects (S9). The floor
+    keeps a reader that stops matching from passing on nothing read."""
+    found = assert_resolved(ROOT)
     assert found.read >= 100, (
         f"only {found.read} citations recognised, so a pass means nothing"
-    )
-    assert not found.dangling, "a citation names a section its file lacks:\n" + (
-        "\n".join(
-            f"{rel}:{line} cites `{target}` {cited}"
-            for rel, line, target, cited in found.dangling
-        )
     )
 
 
@@ -190,7 +262,7 @@ def test_a_renamed_heading_leaves_its_citation_dangling(tmp_path):
             "manual/b.md": "# B\n\n## Old name\n\nText.\n",
         },
     )
-    assert citations(root) == Found(1, [])
+    assert citations(root) == Found(1, [], [])
     pathlib.Path(root, "manual", "b.md").write_text(
         "# B\n\n## New name\n\nText.\n", encoding="utf-8"
     )
@@ -371,6 +443,7 @@ def test_a_path_outside_the_repository_is_not_read_and_a_missing_file_is(
             ("a.md", 9, "manual/none.md", "*Anything*"),
             ("a.md", 11, "manual/loose.md", "*Here*"),
         ],
+        [],
     )
 
 
@@ -387,4 +460,120 @@ def test_a_record_is_not_read(tmp_path, record):
             "manual/b.md": "## Here\n",
         },
     )
-    assert citations(root) == Found(1, [])
+    assert citations(root) == Found(1, [], [])
+
+
+# --- a pending correction in the policy root (S9) ----------------------------
+
+# A file of the policy root whose citation at line 9 names a section
+# `manual/b.md` no longer has.
+POLICY_CITING = (
+    "# A\n\n## Intro\n\nText.\n\n## Old section\n\nSee `manual/b.md` *Old name*.\n"
+)
+OLD = "See `manual/b.md` *Old name*."
+# The same sentence with the cited text wrapped onto a continuation line of
+# the item's field.
+WRAPPED = "See `manual/b.md` *Old\n    name*."
+NEW = "See `manual/b.md` *New name*."
+
+
+def pending(tmp_path, changes, citing="docs/a.md", policy=None):
+    """A repository whose CITING file holds `POLICY_CITING` and whose one
+    work item's `## Rule changes` holds CHANGES, or that has no such
+    section where CHANGES is None; `seal/config.md` names POLICY as the
+    policy root where it is given."""
+    design = spec(changes) if changes is not None else "# a work item\n"
+    files = {
+        citing: POLICY_CITING,
+        "manual/b.md": "## New name\n",
+        "seal/threads/1-x/frame/design.md": design,
+    }
+    if policy:
+        files["seal/config.md"] = TABLE.format(rows=f"| Policy root | {policy} |\n")
+    return repo(tmp_path, files)
+
+
+EXCUSING = {
+    "a change whose from holds it": (
+        "docs/a.md",
+        op("change", "Old section", OLD, NEW),
+        None,
+    ),
+    "a change whose from wraps it": (
+        "docs/a.md",
+        op("change", "Old section", WRAPPED, NEW),
+        None,
+    ),
+    "a removal of its section": ("docs/a.md", op("remove", "Old section"), None),
+    "a policy root the config names": (
+        "policy/a.md",
+        op("change", "Old section", OLD, NEW, file="policy/a.md"),
+        "policy",
+    ),
+}
+
+
+@pytest.mark.parametrize(
+    ("citing", "changes", "policy"), EXCUSING.values(), ids=EXCUSING
+)
+def test_a_pending_correction_excuses_a_policy_citation_and_warns(
+    tmp_path, citing, changes, policy
+):
+    """S9: a citation in a file of the policy root that a pending rule
+    change corrects passes until the settle, and is reported once."""
+    root = pending(tmp_path, changes, citing, policy)
+    with pytest.warns(UserWarning) as caught:
+        found = assert_resolved(root)
+    assert found.excused == [
+        (citing, 9, "manual/b.md", "*Old name*", "seal/threads/1-x/")
+    ]
+    assert [str(w.message) for w in caught] == [
+        f"{citing}:9 cites `manual/b.md` *Old name*, which a pending rule change "
+        "in seal/threads/1-x/ corrects; it stands until the settle writes that "
+        "correction"
+    ]
+
+
+REFUSING = {
+    "no section": ("docs/a.md", None),
+    "no item": ("docs/a.md", "- nothing\n  why: no rule changes"),
+    "an item naming another file": (
+        "docs/a.md",
+        op("change", "Old section", OLD, NEW, file="docs/other.md"),
+    ),
+    "a change whose from lacks it": (
+        "docs/a.md",
+        op("change", "Intro", "Text.", "Other text."),
+    ),
+    "a to that keeps the citation": (
+        "docs/a.md",
+        op("change", "Old section", OLD, WRAPPED + " Still."),
+    ),
+    "a removal of another section": ("docs/a.md", op("remove", "Intro")),
+    "a removal of a section the file lacks": (
+        "docs/a.md",
+        op("remove", "No such section"),
+    ),
+    "an addition to its section": (
+        "docs/a.md",
+        op("add", "Old section", new="A sentence added."),
+    ),
+    "a section parse refuses": ("docs/a.md", op("change", "Old section", OLD)),
+    "a file outside the policy root": (
+        "manual/a.md",
+        op("change", "Old section", OLD, NEW, file="manual/a.md"),
+    ),
+}
+
+
+@pytest.mark.parametrize(("citing", "changes"), REFUSING.values(), ids=REFUSING)
+def test_a_citation_no_pending_correction_excuses_fails(tmp_path, citing, changes):
+    """S9: without an item that corrects that file's citation, or with a
+    section `rule_changes.parse` refuses, the citation fails and nothing
+    is reported as excused."""
+    root = pending(tmp_path, changes, citing)
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        with pytest.raises(AssertionError, match=r"cites `manual/b\.md` \*Old name\*"):
+            assert_resolved(root)
+    assert caught == []
