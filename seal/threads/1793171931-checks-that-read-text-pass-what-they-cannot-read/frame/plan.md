@@ -114,7 +114,7 @@ can re-run it, and each phase record names any reader it added or moved out.
 | 2 | Family B, R16 to R24: rows in `trail/phases/phase-2.md`, with "base version; #913" on R16, R17 and R24 | As phase 1 | 393df2cd |
 | 3 | Family C, R25 to R31: rows in `trail/phases/phase-3.md` | As phase 1 | 234962eb |
 | 4 | Family D, R32 to R43: rows in `trail/phases/phase-4.md`, the citation count and classification at `c825fd2c` (R34), the precision of #956's reader shape (R35), R36 under `questions.md` Q2, and the R37 measurement of `questions.md` Q4 | As phase 1, and S5: the R34 probe reports `.github/scripts/gather_changelog.py:43-44` before any classification | 06bada02 |
-| 5 | The joined table and its closing paragraph in `trail/phases/phase-5.md`; each fix filed into `release: 0.24.1` with its number written into the table, or `#1038`; the comment posted on #956 | S6, for each filed issue; S7, `diff` of the fetched comment against the record, exit 0; S8, read; S10, read; S9, `git diff --name-only c825fd2c..HEAD -- . ':!seal/threads/1793171931-checks-that-read-text-pass-what-they-cannot-read'` printing nothing | |
+| 5 | The joined table and its closing paragraph in `trail/phases/phase-5.md`; each fix filed into `release: 0.24.1` with its number written into the table, or `#1038`; the comment posted on #956 | S6, for each filed issue; S7, `diff` of the fetched comment against the record, exit 0; S8, read; S10, read; S9, `git diff --name-only c825fd2c..HEAD -- . ':!seal/threads/1793171931-checks-that-read-text-pass-what-they-cannot-read'` printing nothing | 1891adff |
 
 Phases 1 to 4 share no reader and may be built in any order; phase 5
 follows all four. Each phase writes `trail/phases/phase-N.md` from
