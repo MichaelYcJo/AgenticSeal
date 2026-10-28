@@ -11,7 +11,7 @@ where they change a sentence this work changes again.
 
 | Policy clause | What it fixes for this work |
 |---|---|
-| `CLAUDE.md` *The goal a design is chosen against*: "Verification through an automated workflow is this project's first goal." Issue #1117's body: "asks the owner for nothing per release and nothing once" | No ruleset change, no secret and no command the owner runs. The owner's one act at a release is the merge of the release pull request with *Create a merge commit*. Where a step the issue does not name still asks the owner for something, it is `frame/questions.md` Q2 rather than a silent change |
+| `CLAUDE.md` *The goal a design is chosen against*: "Verification through an automated workflow is this project's first goal." Issue #1117's body: "asks the owner for nothing per release and nothing once" | No ruleset change, no secret and no command the owner runs. The owner's one required act at a release is the merge of the release pull request with *Create a merge commit*. Where a step the issue does not name still asks the owner for something, it is `frame/questions.md` Q2 rather than a silent change |
 | `CLAUDE.md` *The rule a mechanism is kept against*: "A fact has one source, and every other place links to it." | The version has one source, `.claude-plugin/plugin.json`, which moves once, at the release's first pull request. A process row is written once, in its work item's `changelog.md`, and the release note renders it. `seal/process/` stops being a second home and goes |
 | `CLAUDE.md` *The rule a mechanism is kept against*: "A change rewrites the text it amends in place, and in the same commit removes what stood on the old fact: a check, an exception, a comment, a copy." | Every case, docstring, comment, census entry and agent or skill sentence outside the policy root that states the preparation pull request, the hand-pushed tag as the release's last act, or the process archive is rewritten or removed in the phase that changes what it states (`## Removes`) |
 | `skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*: the policy root "is the baseline, and a pull request does not edit it" | `docs/release-checklist.md`, `docs/branch-and-release.md`, `docs/issues-and-milestones.md`, `docs/the-record-layout.md` and `docs/the-broad-gate.md` change through `## Rule changes` only. Cases that read those documents keep reading the baseline until the settle, so none of them is edited for a sentence this work removes |
@@ -37,7 +37,8 @@ In scope:
    with the routing question.** (`:526-533`), says today that a pull request
    into the release branch leaves the version alone; it is rewritten to say
    that where the repository names the version at the release branch's cut,
-   as this repository does, the first pull request into the branch moves it.
+   as a branch named `release/vX.Y.Z` does, the first pull request into the
+   branch moves it.
    The hygiene step *a change to what ships must move the version* is kept
    unchanged: on the release pull request it fails a release whose first pull
    request did not move the version.
@@ -134,7 +135,8 @@ How the release carrying this work is cut, 0.24.0:
    claims an issue the branch does not carry, and goes green on the push
    that merges the last one.
 4. The owner merges the release pull request with *Create a merge commit*.
-   That is his one act at the release.
+   That is his one required act at the release; the reads and boxes the
+   checklist still gives him are `frame/questions.md` Q2's, and fail nothing.
 5. The push to `main` runs `publish-release.yml` from the merged tree, which
    is the new one: it creates `v0.24.0` on the merge commit, publishes the
    note and draws the seal. `close-issues-on-release.yml` closes the issues

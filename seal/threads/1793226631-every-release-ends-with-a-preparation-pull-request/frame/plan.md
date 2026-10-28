@@ -10,7 +10,8 @@ version moves in the release's first pull request, a work item that changes
 the way of working writes its own process row in its fragment, and the merge
 to `main` creates the `vX.Y.Z` tag and publishes the note in one workflow
 run. What is left at the end of a release is the release pull request, which
-the orchestrator opens, and the owner's merge of it. 0.24.0 is the first
+the orchestrator opens, and the owner's merge of it, his one required act.
+0.24.0 is the first
 release cut this way: this work item's pull request moves its version.
 
 ## Technical context
