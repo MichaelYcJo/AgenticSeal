@@ -1151,7 +1151,7 @@
     "tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py::test_the_crafter_names_no_runner_of_the_broad_gate": 0.002001500000062606,
     "tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py::test_the_definition_separates_a_coverage_probe_from_a_seal[crafter.md]": 0.0009708999999702428,
     "tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py::test_the_definition_separates_a_coverage_probe_from_a_seal[proofer.md]": 0.0009757000000263361,
-    "tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py::test_the_docstrings_detracer_the_letter_and_the_rows_it_carries": 0.005867699999953402,
+    "tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py::test_the_docstrings_describe_the_letter_and_the_rows_it_carries": 0.005867699999953402,
     "tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py::test_the_documents_name_the_ci_also_row": 0.002217099999995753,
     "tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py::test_the_documents_name_the_line_that_says_to_commit_the_cell": 0.0011339000000134547,
     "tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py::test_the_documents_say_where_the_panel_now_carries_each_name": 0.0022973000000092725,
