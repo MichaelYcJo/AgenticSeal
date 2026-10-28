@@ -415,15 +415,16 @@ for _name in GH_CREDENTIALS:
 os.environ["GH_TOKEN"] = NOT_A_GH_TOKEN
 os.environ["GH_ENTERPRISE_TOKEN"] = NOT_A_GH_TOKEN
 
-# The suite runs with no workflow variable, under every event (#1058). A
-# `pull_request` run sets `GITHUB_HEAD_REF`, `GITHUB_EVENT_PATH` and the rest
-# for every step, and a `workflow_dispatch` run, a local run and the broad
-# gate do not. Three cases that judged the checked-out branch passed on all
-# three and failed on pull request #1057's run (`gh run view 40446828473
-# --log-failed`), because the script they drove reads `GITHUB_HEAD_REF`
-# first. So every name that starts with `GITHUB_` is removed here, at import,
-# for the reason the block above is: every entry point, every fixture of every
-# scope and every child that inherits `os.environ` sees the same environment.
+# The suite runs with no workflow variable, under every event (#1058). Every
+# workflow run sets `GITHUB_ACTIONS`, `GITHUB_EVENT_PATH` and the rest, and
+# only a `pull_request` run sets `GITHUB_HEAD_REF`; a local run and the broad
+# gate set none. Three cases that judged the checked-out branch passed on a
+# local run, the broad gate and a `workflow_dispatch` run, and failed on pull
+# request #1057's run (`gh run view 40446828473 --log-failed`), because the
+# script they drove reads `GITHUB_HEAD_REF` first. So every name that starts
+# with `GITHUB_` is removed here, at import, for the reason the block above
+# is: every entry point, every fixture of every scope and every child that
+# inherits `os.environ` sees the same environment.
 # The names are read from the environment itself, so a variable a script
 # starts reading later is covered without an edit here. A case that needs one
 # sets it with `monkeypatch.setenv`. The limit: code that runs in this process

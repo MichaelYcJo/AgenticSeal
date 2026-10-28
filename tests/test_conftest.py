@@ -559,8 +559,8 @@ class Test_module:
     def test_the_conftest_takes_every_github_variable_away(self):
         """S1 of #1058. With the variables a `pull_request` run sets in its
         environment, the conftest's import leaves no name that starts with
-        `GITHUB_`, so a case and every child it starts see the environment of
-        a run with no pull request, under every event. A case that needs one
+        `GITHUB_`, so a case and every child it starts see no workflow
+        variable, under every event. A case that needs one
         of these variables sets it with `monkeypatch.setenv`. The `gh` login
         is taken away as before. Seen red against `tests/conftest.py` at
         `977b6613`, which left all six names in place."""
