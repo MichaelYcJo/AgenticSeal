@@ -166,8 +166,8 @@ the crafter act on, and the assertions that read it.
 - add
   file: docs/the-review-record.md
   section: The round record
-  to: **A finding's `verdict:` and `answer:` lines are one party's, written in one commit.**
-    A finding a fix pass answers is the fix pass's alone, and it commits both lines after any fix commit it made, since a `fixed` verdict names a commit that already exists. The orchestrator writes neither line of such a finding, and a close it doubts goes into the verifying round's spawn prompt, since that round weighs every close. A finding closed without a fix pass, such as `deferred the frame` on the framer's route or a `deferred <home>` the orchestrator files at the cap, takes both lines from the orchestrator. A second party's commit adds a record commit to the round and nothing a reader uses.
+  to: **A finding's `verdict:` and `answer:` lines are one party's, and one commit carries every finding that party closes in the pass.**
+    A finding a fix pass answers is the fix pass's alone, and it commits the two lines of every finding it answered in one commit for the whole pass, after its last fix commit and its corrections, since a `fixed` verdict names a commit that already exists. The orchestrator writes neither line of such a finding, and a close it doubts goes into the verifying round's spawn prompt, since that round weighs every close. A finding closed without a fix pass, such as `deferred the frame` on the framer's route or a `deferred <home>` the orchestrator files at the cap, takes both lines from the orchestrator. A second party's commit adds a record commit to the round and nothing a reader uses.
     check: tests/text/test_the_rules_have_one_owner.py tests/text/test_a_moved_rule_leaves_its_definition.py
 
 ## Removes
