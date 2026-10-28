@@ -12,7 +12,7 @@ re-derived every fact it states.
 severity: should
 location: `seal/threads/1793140810-each-directory-holds-everything-in-one-level/changelog.md:6`, `seal/threads/1793140810-each-directory-holds-everything-in-one-level/frame/plan.md:176-177`, `templates/setup/claude-md-block.md:16`
 evidence: executed `git cat-file -e HEAD:templates/sdd-routing.md`, `git cat-file -e HEAD:templates/claude-md-block.md`, `git cat-file -e origin/release/v0.23.1:templates/claude-md-block.md`, `grep -c templates/sdd-routing.md <installed 0.23.0 copy>/templates/claude-md-block.md`, `bash -c "diff <(sed -n '/agentic:start/,/agentic:end/p' <HEAD archive>/templates/claude-md-block.md) <(sed -n '/agentic:start/,/agentic:end/p' <installed 0.23.0 copy>/templates/claude-md-block.md)"`
-verdict: open
+verdict: fixed 2e2cea9b
 
 The preset block is the part of `CLAUDE.md` every session on the machine
 loads. A session on a machine updated to 0.23.1 is told to write
@@ -74,7 +74,7 @@ The fix precondition: `install.sh` takes its source from beside itself
 (`install.sh:44`), so it writes the marketplace clone's block, which is the
 release just installed. The fix touches no OS boundary in the plugin.
 
-answer:
+answer: fixed in 2e2cea9b with the finding's two texts: the changelog entry after the one on two sentences in an installed repository, and the plan's sentence rewritten in place. The orchestrator made this fix, as a prose fix too small for a crafter spawn.
 
 ## Confirmations
 
