@@ -770,10 +770,11 @@ class Test_check:
             ),
             (
                 anchor_table((PACT_URL, CLAUSE_PATH, "1a2b3c4d"))
-                + "***\n| a | b |\n|---|---|\n",
+                + "\n| a | b |\n|---|---|\n| c | d |\n\n"
+                + f"| {PACT_URL} | {CLAUSE_PATH} | 00000000 |\n",
                 "the frame has a `Pact | Clause | Hash` table that ends above "
-                "`| a | b |`, a row the walk never reaches — it and every row "
-                "below it would go unread",
+                f"`| {PACT_URL} | {CLAUSE_PATH} | 00000000 |`, a row the walk "
+                "never reaches — it and every row below it would go unread",
             ),
         ],
         ids=[
@@ -782,33 +783,43 @@ class Test_check:
             "a row the walk stops at",
             "a row under a delimiter of another width",
             "a row whose delimiter a comment parts from it",
-            "a row with no blank line above it",
+            "a row below another table",
         ],
     )
     def test_refuses_an_anchor_row_nobody_reads(self, world, text, said):
         """A row the walk does not reach would read as a signer citing
         nothing, so the frame is refused at exit 2. A second anchor table is
-        named as one wherever it stands, and a line under the table that
-        opens no table of its own is a row nobody reads. A table of its own
-        has a delimiter row of its width directly under it and a blank line
-        above it, the rule `gfm_table` holds the first table's header to."""
+        named as one wherever it stands. A line under the table that opens no
+        table of its own, a header with a delimiter row of its width directly
+        under it, is a row nobody reads, and so is a row below such a table
+        and above the next heading (round 2 of #913, finding 2)."""
         write(world.web, SPEC, text)
         code, out = world.run()
         assert code == 2, out
         assert f"REFUSED {SIGNER_URL} {SPEC} — {said}" in out, out
 
-    def test_accepts_an_anchor_table_above_another_table_in_its_section(self, world):
-        """Round 1 of #913, finding 1: under `## Grounding` the anchor table
-        stands above the policy table `templates/records/sdd-design.md`
-        writes, and GitHub renders two tables. The anchor row is graded and
-        nothing is refused. Seen red at `29e1b040`, which refused the policy
-        table's header as a row the walk never reaches, at exit 2."""
+    @pytest.mark.parametrize(
+        "between",
+        ["\n", "\nThe clauses:\n", "***\n"],
+        ids=["a blank line", "a sentence", "a thematic break"],
+    )
+    def test_accepts_an_anchor_table_above_another_table_in_its_section(
+        self, world, between
+    ):
+        """Round 1 of #913, finding 1, and round 2's: under `## Grounding`
+        the anchor table stands above the policy table
+        `templates/records/sdd-design.md` writes, and GitHub renders two
+        tables whatever stands between them. The anchor row is graded and
+        nothing is refused. The blank-line shape was seen red at `29e1b040`;
+        the sentence and the thematic break were seen red at `49bb6ba5`,
+        which asked for a blank line above the other table's header."""
         write(
             world.web,
             SPEC,
             "# Feature\n\n## Grounding\n\n"
             + anchor_table((PACT_URL, CLAUSE_PATH, clause(V2)))
-            + "\n| Policy clause | What it fixes for this work |\n|---|---|\n"
+            + between
+            + "| Policy clause | What it fixes for this work |\n|---|---|\n"
             + "| a | b |\n\n## Scope\n\nx\n",
         )
         code, out = world.run()

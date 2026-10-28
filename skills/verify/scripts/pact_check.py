@@ -32,7 +32,9 @@ remote URL, and, in a row naming this pact, a `Clause` cell that opens with
 no heading or a `Hash` cell that is not eight lowercase hex digits. Refused
 at the frame: every refusal of the walk, and a second anchor table. Another
 table below the anchor table, such as a section's policy table, ends it
-and is no refusal (`gfm_table`'s BESIDE). Every
+and is no refusal, whatever stands above its header; the walk steps over
+it and still refuses a row written after it, before the next heading
+(`gfm_table`'s BESIDE). Every
 `pact:` token outside a closed fence is refused at its line, with the row
 to write in its place: it is the inline anchor this command read through
 0.23.x.

@@ -1049,13 +1049,19 @@ def gfm_line_starts(text):
     ]
 
 
-def opens_table(lines, index, line, under):
-    """True where LINE, at INDEX of LINES, is the header of a table GFM
-    renders apart from any table above it: written `| … |` with a blank line
-    above it, and UNDER, `[(index, line)]` for the next shown line or `[]`,
-    a delimiter row of the header's width directly below it."""
+def opens_table(index, line, under):
+    """True where LINE, at INDEX, is the header of a table of its own:
+    written `| … |`, with UNDER, `[(index, line)]` for the next shown line or
+    `[]`, a delimiter row of the header's width directly below it.
+
+    What stands above it is not asked. The caller does not read that table,
+    so taking one GFM would not render costs it nothing, and a second header
+    of the caller's own table is named by the caller's header scan
+    (`pact_check.py#first_table`) wherever it stands. Asking for a blank
+    line refused a table GitHub renders under a sentence or a thematic break
+    (round 2 of #913, finding 1)."""
     cells = table_cells(line)
-    if cells is None or index == 0 or lines[index - 1].strip() or not under:
+    if cells is None or not under:
         return False
     below, row = under[0]
     return (
@@ -1092,7 +1098,9 @@ def gfm_table(text, header, beside=False):
                    ends the table there; a line written `| … |` after it and
                    before the next heading is a row nobody reads, and is
                    refused, except where BESIDE is true and that line opens
-                   a table of its own (`opens_table`): the walk stops there.
+                   a table of its own (`opens_table`): the walk steps over
+                   that table, its delimiter row and every line under it up
+                   to its end, and goes on refusing a `| … |` line after it.
                    A caller whose file holds one table, `seal/config.md` or
                    the machine-local pact map, leaves BESIDE false; the
                    anchor table's reader sets it, because a frame's section
@@ -1187,6 +1195,8 @@ def gfm_table(text, header, beside=False):
         ]
     rows, stray, ended, previous = [], None, False, delimiter[0]
     body = shown[at + 2 :]
+    # BESIDE: the index of the last line read as part of a table of its own.
+    other = None
     for k, (index, line) in enumerate(body):
         if not ended and (index != previous + 1 or table_end(line)):
             ended = True
@@ -1197,11 +1207,18 @@ def gfm_table(text, header, beside=False):
                 and blocks.columns(line) < 4
             ):
                 break
+            if other is not None and index == other + 1 and not table_end(line):
+                # The other table's delimiter row, or a line GFM reads as
+                # one of its rows.
+                other = index
+                continue
+            other = None
             if line.lstrip().startswith("|"):
-                if beside and opens_table(lines, index, line, body[k + 1 : k + 2]):
+                if beside and opens_table(index, line, body[k + 1 : k + 2]):
                     # A table of its own, which GFM renders apart from this
-                    # one: this table ended above it, and no row is lost.
-                    break
+                    # one: the walk steps over it and goes on to the heading.
+                    other = index
+                    continue
                 stray = (
                     f"has a `{name}` table that ends above `{line.strip()}`, "
                     "a row the walk never reaches — it and every row below it "
