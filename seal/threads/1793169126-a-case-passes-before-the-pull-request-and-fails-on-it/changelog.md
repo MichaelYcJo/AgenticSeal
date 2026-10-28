@@ -1,0 +1,7 @@
+### Fixed
+
+- **A case could pass on every run before a pull request and fail on the pull request's own run (#1058).** A `pull_request` run of `tests` sets `GITHUB_HEAD_REF`, `GITHUB_EVENT_PATH` and other workflow variables, and a local run, the broad gate and a `workflow_dispatch` run do not. Three cases of `tests/skills/test_chain_check.py` passed on all three and failed on pull request #1057's run, after the branch was sealed, because the script they drove reads `GITHUB_HEAD_REF` first. `tests/conftest.py` now removes every variable whose name starts with `GITHUB_` when it is imported, so every case, every fixture and every child process sees the same environment under every event. A case that needs one of these variables sets it with `monkeypatch.setenv`. Every line in the tests that cleared one of these variables by hand, where its case had not set it, is removed. `CONTRIBUTING.md` says so beside the suite's `gh` logout.
+
+### Changed
+
+- **The orchestrator's step that reads CI before the pull request names the run it reads (#1058).** In `skills/code-review/orchestration.md`, the step for platform-specific work says the run is a `workflow_dispatch` run of `tests`, that its cases see what a `pull_request` run's cases see because the conftest removes every `GITHUB_` variable, and that it cannot have a pull request's merge commit or the `hygiene` workflow, which starts only on a `pull_request` event. The pull request still opens after the sealer.
