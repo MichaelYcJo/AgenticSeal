@@ -254,7 +254,7 @@ def fence_spans(lines):
 
     **An unclosed block is reported, not decided.** `blank_fences` blanks it
     to the end, because a gate reading a record treats it as quoted. A reader of a
-    line that HOLDS something — a changelog marker, an open row — reads it,
+    line that HOLDS something — an open row — reads it,
     because only a block that closes is certainly a quotation
     (`docs/the-record-layout.md`'s *Whether a line is live is asked by what
     the line does*).

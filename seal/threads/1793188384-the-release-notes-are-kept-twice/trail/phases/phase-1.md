@@ -20,10 +20,16 @@ and S1 to S6 are added, each seen red against the script at `8a1173c8`.
 
 ## What this phase found
 
-**The frame holds for this phase (read).** Every coordinate *Removes* gives
+**The frame's coordinates held, and its measurement did not cover the
+reader built (read; round 1 executed).** Every coordinate *Removes* gives
 for `publish_release_note.py` and `test_publish_release_note.py` stood where
 the frame says at `49ca77ee`, and `release_seal.py` imports none of the
-removed names.
+removed names. This phase did not re-run the frame's 0.19.0 to 0.23.1
+comparison against the reader it built. Round 1 did, and found the
+per-path `git log` missed a fragment a settle removed on the release branch
+when the tag is the merge into `main` (0.22.4, finding 1). The fix pass's
+commit `d60ca012` adds `--full-history` and skips a fragment the range's
+lower tag already holds.
 
 **How S1 to S6 were seen red (executed).** The new module ran against the
 script unchanged from `8a1173c8` (`git diff --quiet 8a1173c8 --` on the
@@ -38,7 +44,9 @@ detection on, skipped the tree check, kept empty fragments, joined entries
 with one newline, matched any milestone, kept an empty description, read a
 failed list as empty, kept the `Purpose:` label, stopped the sentence at any
 `.`, read past the first line, kept the whitespace, kept the first letter's
-case, dropped the theme line and published an empty range.
+case, dropped the theme line and published an empty range. That shows the
+cases test what they cover. It does not show the reader safe on a shape no
+case built: S1's history is linear and its tag is the settle commit.
 
 **`release_body` changed its signature.** It is `release_body(theme,
 rendered, pulls, owner)`. `repo` and `tag` fed only the link line, which is

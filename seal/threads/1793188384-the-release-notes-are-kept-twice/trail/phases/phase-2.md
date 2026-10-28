@@ -30,7 +30,12 @@ failed read that stops, and the repository no longer read from `origin`.
 **The two commands the skill now carries ran on this machine (executed,
 2026-10-28).** Step 2b's two lines printed the installed copy's
 `installPath` and `0.23.1`. Step 3's `curl` exited 0, and the list it
-returned held 58 releases, newest `v0.23.1`, each with a `body`. The `sed`
+returned held 58 releases, newest `v0.23.1`, each with a `body`. That showed
+the read works, not that it is cheap: as built, the step printed the whole
+list into the session, 881,917 bytes (round 1, finding 2). The fix pass's
+commit `9251500c` downloads it to a file and prints only the span; for
+0.22.4 to 0.23.1 that printed `v0.23.0` and `v0.23.1`, 16,760 bytes, with
+`curl` and the filter each exiting 0 (executed). The `sed`
 that turns the `origin` URL into `<owner>/<repo>` was also run on an
 `ssh`-form URL, `git@github.com:x/y.git`, and gave `x/y`.
 
