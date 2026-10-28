@@ -1,7 +1,7 @@
 """`hooks/sealer-stamp-queue.py`, one class per function.
 
 Written anew from the code by #942's phase 6; the old cases of
-`tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py` were read for
+`tests/behaviour/test_the_stamp_reaches_the_person_it_is_drawn_for.py` were read for
 their inputs. `main` runs in the process. One repository in local mode is
 built for the module, its root under the git common dir with a work item
 whose `guarantee.md` reads `sealed` over the branch's commit, and each case

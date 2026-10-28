@@ -10,7 +10,7 @@ The cases come from `tests/test_routing_is_recorded.py` and
 `Test_module` came in #942's round 9 fix pass, each a case of this module
 alone: the copy without `hooks/lib/blocks.py`, from
 `tests/test_a_script_copied_alone_exits_2.py`, and `WORK_ITEMS` held under
-`seal/`, from `tests/test_a_reference_root_is_read_and_never_taken.py`.
+`seal/`, from `tests/behaviour/test_a_reference_root_is_read_and_never_taken.py`.
 """
 
 import os
@@ -650,7 +650,7 @@ class Test_module:
         held under `seal/`. Widening it to a top-level `specs/` turns this red,
         which is the probe that work item's plan names for `WORK_ITEMS`.
         `tests/skills/test_settle.py` holds `settle.py#SPECS` to the same, and
-        `tests/test_a_reference_root_is_read_and_never_taken.py` classifies
+        `tests/behaviour/test_a_reference_root_is_read_and_never_taken.py` classifies
         every shipped command by what keeps it off a reference root."""
         assert routing.WORK_ITEMS == "seal/threads"
 

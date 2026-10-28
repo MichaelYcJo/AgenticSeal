@@ -12,10 +12,10 @@ Since #728 a release is a file of its own, `changelog/X.Y.Z.md`, and
 here are laid out that way, and the script runs as a process over them.
 
 #942's phase 6 placed these cases from
-`tests/test_the_changelog_is_gathered_at_release.py`, which keeps the cases
+`tests/text/test_the_changelog_is_gathered_at_release.py`, which keeps the cases
 that read the workflow, the documents and this repository's own records. Its
 round 9 fix pass placed the six cases that hand the gatherer a U+2028 or a
-form feed mid-line, from `tests/test_every_reader_ends_a_line_where_gfm_does.py`,
+form feed mid-line, from `tests/behaviour/test_every_reader_ends_a_line_where_gfm_does.py`,
 each a case of this module alone: the dry run's in `Test_main`, and the
 `insert`, `leaves_open`, `section_lines` and `live_markers` ones in
 `Test_module`, since none of those functions has a class here, and a class

@@ -13,10 +13,10 @@ command run without its siblings, and the line splitter this module no
 longer keeps.
 
 #942's phase 6 placed these cases from
-`tests/test_a_document_has_room_for_the_next_fold.py`, which keeps the two
+`tests/text/test_a_document_has_room_for_the_next_fold.py`, which keeps the two
 cases that read the cheat sheets and the settle skill. Its round 9 fix pass
 placed the copy's case from `tests/test_a_script_copied_alone_exits_2.py`
-and the splitter's from `tests/test_every_reader_ends_a_line_where_gfm_does.py`,
+and the splitter's from `tests/behaviour/test_every_reader_ends_a_line_where_gfm_does.py`,
 each a case of this module alone.
 """
 

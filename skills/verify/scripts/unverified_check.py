@@ -99,7 +99,7 @@ _BLOCKS = _load_blocks()
 # `blank_fences` and `closed_fence_lines`, and `liveness` and
 # `_paragraph_ends_at`; so do `coordinates.py#quoted_lines`,
 # `gather_changelog.py` through `live_lines`, `payload_meter.py#heading_starts`
-# and `tests/test_a_section_marked_for_one_role_reaches_only_that_role.py`;
+# and `tests/behaviour/test_a_section_marked_for_one_role_reaches_only_that_role.py`;
 # and `hooks/lib/blocks.py#walk` adds a line-start HTML comment block to it for
 # `hooks/lib/config.py` and `hooks/lib/routing.py`, apart from `live_lines` on
 # purpose, since a hook row is safe at its old reading where the walk is
@@ -107,11 +107,11 @@ _BLOCKS = _load_blocks()
 # body readers through `close_issues_on_release.py#FENCE`, which open a fence
 # at any indentation as GitHub does, so a fence under a list item masks a
 # closing keyword (`docs/issues-and-milestones.md` *A keyword inside a fence
-# or a code span claims nothing*); `tests/test_docs_line_wrap.py#fenced_numbers`,
+# or a code span claims nothing*); `tests/behaviour/test_docs_line_wrap.py#fenced_numbers`,
 # which strips a line's indentation first; `gather_changelog.py#insert` and
 # `#section_lines` and `publish_release_note.py#section_body`, which end a
 # released section at the next `## ` line on purpose (#586);
-# `tests/test_release_hygiene.py#overwide_rows`, which keeps no fence state;
+# `tests/behaviour/test_release_hygiene.py#overwide_rows`, which keeps no fence state;
 # and the oracle walk in `tests/skills/test_unverified_check.py`. A new reader
 # that decides by line whether it stands inside a fence belongs in one of
 # these two lists.
@@ -425,7 +425,7 @@ def heading_level(line):
     `tests/skills/test_unverified_check.py`'s `Test_heading_level` holds this to
     markdown-it's ATX headings, through `tests/commonmark_oracle.py`, over
     the frame's shapes and a generated corpus;
-    `tests/test_one_heading_rule_holds_to_commonmark.py` holds every tracked
+    `tests/behaviour/test_one_heading_rule_holds_to_commonmark.py` holds every tracked
     `.md` file to them, and says so the day a setext heading appears in a
     body.
 

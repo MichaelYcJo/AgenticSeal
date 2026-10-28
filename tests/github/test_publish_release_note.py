@@ -32,7 +32,7 @@ against the script with the one behaviour it pins removed, in phase 1 of
 work item `1790076050-the-release-tail-is-three-acts-no-document-names`.
 
 #942's phase 6 placed these cases from
-`tests/test_a_release_publishes_its_note.py`, which keeps the cases that
+`tests/behaviour/test_a_release_publishes_its_note.py`, which keeps the cases that
 read the workflow and the release checklist.
 """
 
@@ -48,7 +48,7 @@ SCRIPTS = os.path.join(ROOT, ".github", "scripts")
 SCRIPT = os.path.join(SCRIPTS, "publish_release_note.py")
 GATHERER = os.path.join(SCRIPTS, "gather_changelog.py")
 
-# `tests/test_release_hygiene.py` refuses a loaded document naming the running
+# `tests/behaviour/test_release_hygiene.py` refuses a loaded document naming the running
 # version or anything above it. These are illustrative, which is the form that
 # document's own message points at.
 VERSION = "1.2.3"

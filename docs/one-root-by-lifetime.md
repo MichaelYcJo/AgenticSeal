@@ -27,7 +27,7 @@ top-level `specs/` or `.specseal/`: the 0.3.x layout moves by hand, with the
 commands README.md *Coming up from 0.3.x* gives, and that section says it is
 the only path. Where the root is, as a path a
 session can type, is stated once, in contract rule 11.
-check: tests/test_no_document_names_the_old_roots.py tests/hooks/test_optin.py
+check: tests/behaviour/test_no_document_names_the_old_roots.py tests/hooks/test_optin.py
 
 ## The dependency rule
 
@@ -113,7 +113,7 @@ stands between a branch and its move. So in a repository that left shared
 mode for local mode, a branch cut before the switch has its own `seal/`
 moved and marked in the tree, and the hooks read that root first
 (`hooks/root-migrate.py`, its boundaries).
-check: tests/test_first_setup_asks_once.py
+check: tests/behaviour/test_first_setup_asks_once.py
 
 ### Shared or local
 
@@ -185,7 +185,7 @@ repository's history; coming back removes them from the tree and not from the
 history. That is the one direction local mode exists to prevent, so
 `seal mode shared` says so before it acts and stages rather than commits,
 which leaves the point of no return with the person.
-check: tests/test_first_setup_asks_once.py tests/hooks/test_optin.py tests/skills/test_seal.py
+check: tests/behaviour/test_first_setup_asks_once.py tests/hooks/test_optin.py tests/skills/test_seal.py
 
 ## Naming
 
@@ -225,14 +225,14 @@ with a side effect routes to the script that performs it, and a row that is
 only a row is written directly. Logic inside a skill cannot be
 mutation-tested the way a script can, and that is what decides where the line
 runs.
-check: tests/test_the_settings_have_a_front_door.py
+check: tests/text/test_the_settings_have_a_front_door.py
 
 **What language this plugin writes in is the repository's answer, not the
 plugin's.** A skill that requires English of everyone is a decision made in a
 file nobody who disagrees with it can edit, so the language lives in a config
 row, and the mirror file a translated pull-request body goes in is named for
 the language it holds rather than for one language.
-check: tests/test_the_pull_request_language_is_the_repositorys.py tests/hooks/test_config.py
+check: tests/behaviour/test_the_pull_request_language_is_the_repositorys.py tests/hooks/test_config.py
 
 **Two rows, because one cannot express the middle answer.** The combinations
 people actually want are three: everything English; the commits and pull
@@ -249,7 +249,7 @@ whoever comes back to the decision six months later.
 Whatever either row says, **the names a checker matches stay English**: the
 field names, the verdict words, the markers, and all code. A translated field
 name is not a translation; it is a checker that stops reading.
-check: tests/test_the_pull_request_language_is_the_repositorys.py
+check: tests/behaviour/test_the_pull_request_language_is_the_repositorys.py
 
 **A cell may carry an escaped pipe, and one line that will not parse is named
 rather than treated as the end of the table.** A value like a shell command

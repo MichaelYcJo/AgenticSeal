@@ -11,8 +11,8 @@ source. The writer files a creation under the clone the guard judged, through
 the guard's own placement. The guard's reading of both is
 `tests/hooks/test_worktree_guard.py`'s.
 
-The cases come from `tests/test_the_guard_asks_once_per_session.py`,
-`tests/test_guard_resolves_the_tree_it_judges.py`,
+The cases come from `tests/behaviour/test_the_guard_asks_once_per_session.py`,
+`tests/text/test_guard_resolves_the_tree_it_judges.py`,
 `tests/test_an_automation_run_meets_no_commit_prompt.py` (#942's phase 6) and
 `tests/hooks/test_question_gate.py`, whose case of the press reader takes that file's
 `payload`, `write_the_transcript` and `SESSION` (#942's phase 7).

@@ -28,7 +28,7 @@ A failure in a git directory the dispatcher cannot write to is not said. No
 case sees how the harness renders the report beside the stamp, on any
 platform, and two hook processes racing for one record are forced in
 process, never run.
-check: tests/hooks/test_dispatch.py tests/test_a_gate_that_fails_says_so.py
+check: tests/hooks/test_dispatch.py tests/text/test_a_gate_that_fails_says_so.py
 
 ## The implementer mark and notice
 

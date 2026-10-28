@@ -35,7 +35,7 @@ transcript given **and** every subagent transcript beneath it, so the total
 is the run's rather than the parent's. One table, one shape, for every run: a
 report whose shape changes between runs cannot be compared with the run
 before it, which is the only thing a cost number is for.
-check: tests/skills/test_session_cost.py tests/test_a_segment_feeds_the_flow_log.py
+check: tests/skills/test_session_cost.py tests/text/test_a_segment_feeds_the_flow_log.py
 
 **A segment's reading carries the largest context any one of its turns
 read.** A turn's context is the input side of its one model call: the
@@ -93,7 +93,7 @@ findings that outlive a version. A repository declares its durable one with a
 second label, since the instruction ships to repositories that have no such
 issue at all, and **a repository that never measured and one that stopped
 are told apart**, so neither reads as the other's silence.
-check: tests/test_a_segment_feeds_the_flow_log.py
+check: tests/text/test_a_segment_feeds_the_flow_log.py
 
 **Posting a reading is one command, and a command does not make anybody run
 it.** `seal cost --segments <transcript> --post --says <path|->` posts to

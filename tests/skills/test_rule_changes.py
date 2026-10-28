@@ -9,7 +9,7 @@ the cases that read them run `settle` over a repository and are in
 `tests/skills/test_settle.py`.
 
 #942's phase 6 placed these cases from
-`tests/test_settle_applies_rule_changes_in_place.py`, which keeps the case
+`tests/behaviour/test_settle_applies_rule_changes_in_place.py`, which keeps the case
 that reads the skill's example.
 """
 

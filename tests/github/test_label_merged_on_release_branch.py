@@ -16,9 +16,9 @@ than only the interesting ones: a case that asserts a label was added cannot
 see a second, redundant add beside it.
 
 #942's phase 6 placed these cases from
-`tests/test_a_merged_ticket_says_so_on_the_tracker.py`, which keeps the cases
+`tests/text/test_a_merged_ticket_says_so_on_the_tracker.py`, which keeps the cases
 that read the workflow, and the reader case from
-`tests/test_a_declared_label_reaches_the_tracker.py`.
+`tests/behaviour/test_a_declared_label_reaches_the_tracker.py`.
 """
 
 import importlib.util

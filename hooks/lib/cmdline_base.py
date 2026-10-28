@@ -17,8 +17,8 @@
 # it, so the guard's switch and creation arms and the consent writer read the
 # command through this copy on every git, permanently.
 # The bytes below this comment are pinned to `86256492:hooks/cmdline.py`
-# (`tests/test_the_frozen_reading_never_grows.py`, S11), so a rule added here
-# has to delete that case first. The docstring and comments below are
+# (`tests/behaviour/test_the_frozen_reading_never_grows.py`, S11), so a rule
+# added here has to delete that case first. The docstring and comments below are
 # 86256492's and describe that commit: where they say "both gates" or name a
 # reader, read them as of that commit.
 """Reading a shell command line: where one invocation ends, and what git it is.

@@ -32,11 +32,10 @@ import os
 
 import censuses
 import pytest
-from conftest import census_case, git_listing, on_disk
+from conftest import ROOT, census_case, git_listing, on_disk
 
 TARGET = "tests/censuses.py"
 
-ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 _LAYOUT = importlib.util.spec_from_file_location(
     "agentic_layout_for_censuses",
     os.path.join(ROOT, "skills", "verify", "scripts", "test_layout.py"),

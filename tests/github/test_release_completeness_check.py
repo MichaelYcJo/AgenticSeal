@@ -14,7 +14,7 @@ needs the fake tracker is the wiring above it, `Test_main`'s: which command
 each set is read with, and the range D is read over.
 
 #942's phase 6 placed these cases from
-`tests/test_a_release_cannot_ship_an_untrue_milestone.py`, which keeps the
+`tests/text/test_a_release_cannot_ship_an_untrue_milestone.py`, which keeps the
 cases that read the hygiene workflow's step and the two docstrings that
 draw the input boundary.
 """

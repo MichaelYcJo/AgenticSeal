@@ -208,7 +208,7 @@ def pythons_ci_runs_this_module_at(text):
     """Every `(major, minor)` a job in `text` pins while it runs pytest over
     this module, read through `conftest.code_lines` so a commented-out leg
     or step counts for nothing. The jobs are split by
-    `tests/test_ci_gives_the_checks_what_they_need.py#jobs`, the suite's one
+    `tests/text/test_ci_gives_the_checks_what_they_need.py#jobs`, the suite's one
     reader of a workflow's `jobs:` block."""
     found = set()
     for block in jobs("\n".join(code_lines(text))).values():

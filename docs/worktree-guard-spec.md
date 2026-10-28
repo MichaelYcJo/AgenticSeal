@@ -357,7 +357,7 @@ and `--orphan` run no `post-checkout`, and a `--lock`ed tree survives one
 `git worktree remove --force`. So the rows of *B* decide before the command
 runs, through the frozen reading *Which tree* describes, and this plugin
 installs no `post-checkout`.
-check: tests/e2e/creation/test_creation_flow.py tests/test_the_hook_surface_git_offers.py
+check: tests/e2e/creation/test_creation_flow.py tests/behaviour/test_the_hook_surface_git_offers.py
 
 **A creation the guard lets through is recorded from the command that ran.**
 The `PostToolUse` writer files the record in every clone, and `[worktree-ok]`
@@ -535,7 +535,7 @@ segment's shape (*A*) is its subcommand and, for `checkout`, `worktree` and
 `stash`, the one word that decides it, and no name is looked up in any tree.
 The guard and the consent writer read the command through
 `hooks/lib/cmdline_base.py`, a byte-for-byte copy of
-`86256492:hooks/cmdline.py` that `tests/test_the_frozen_reading_never_grows.py` pins,
+`86256492:hooks/cmdline.py` that `tests/behaviour/test_the_frozen_reading_never_grows.py` pins,
 and neither chooses a segment, a slot or a directory through
 `hooks/lib/cmdline.py`. The guard asks that module only what the frozen reading
 does not read as git (a shell's string, an `eval`'s argument, a substitution
@@ -584,7 +584,7 @@ only after git made it, in `post-checkout`, and only taken back there,
 which *Decided before git runs* shows cannot undo all of it. This plugin
 writes nothing into a clone's git hooks in any case
 (`docs/the-routing-check.md`).
-check: tests/test_the_hook_surface_git_offers.py tests/test_the_frozen_reading_never_grows.py
+check: tests/behaviour/test_the_hook_surface_git_offers.py tests/behaviour/test_the_frozen_reading_never_grows.py
 
 ## Known limits
 

@@ -134,7 +134,7 @@ def shown(lines, text=None):
     The walk's hidden lines are left out, and only those: where it is not
     sure, this reader's own reading from before #667 stands, and that
     reading hid nothing. So on every line the answer is either the old one
-    or a renderer's, which `tests/test_the_hooks_hide_what_a_renderer_hides.py`
+    or a renderer's, which `tests/behaviour/test_the_hooks_hide_what_a_renderer_hides.py`
     holds over a generated corpus.
 
     TEXT is the file LINES were split from, and `table_rows` passes it: the

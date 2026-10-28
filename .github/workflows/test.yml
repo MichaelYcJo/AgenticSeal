@@ -110,10 +110,10 @@ jobs:
     timeout-minutes: ${{ matrix.timeout }}
     steps:
       # Not shallow. A case resolves a commit this repository's own records
-      # name -- `tests/test_the_frozen_reading_never_grows.py` shows
+      # name -- `tests/behaviour/test_the_frozen_reading_never_grows.py` shows
       # `86256492:hooks/cmdline.py` -- and at depth 1 the commit is missing
       # rather than wrong, so the case skips where it should have answered.
-      # `tests/test_ci_gives_the_checks_what_they_need.py` holds every job
+      # `tests/text/test_ci_gives_the_checks_what_they_need.py` holds every job
       # that runs pytest to the whole history.
       - uses: actions/checkout@v4
         with:

@@ -213,7 +213,7 @@ def build_tracked_tree(d, files, deleted=()):
     `docs/release-checklist.md`, and the state `on_disk` below is about.
 
     A real `git init` rather than a directory of files, for the reason
-    `tests/test_the_pull_request_language_is_the_repositorys.py#test_the_templates_check_reads_prose_only_and_descends`
+    `tests/behaviour/test_the_pull_request_language_is_the_repositorys.py#test_the_templates_check_reads_prose_only_and_descends`
     already records: a fixture git never sees would report nothing and the
     case would pass having exercised nothing. `GIT_TEMPLATE_DIR` is emptied
     above, so the `git init` costs almost nothing.
@@ -248,7 +248,7 @@ def git_listing(root, *args, check=False):
     rather than `cwd=`, so the path the command acts on is written out.
 
     **The listing WORDS stay at the call site on purpose.**
-    `tests/test_a_shrunken_corpus_declines_to_judge.py` finds a scope that
+    `tests/behaviour/test_a_shrunken_corpus_declines_to_judge.py` finds a scope that
     derives a path list by the string constants the call itself names, so
     moving `ls-files` in here would take every one of those scopes out of the
     class it enumerates — the check going quiet on the very refactor that was
@@ -951,7 +951,7 @@ def texts():
 
 # --- the durations file prices the suite (#874) -------------------------------
 #
-# `tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py#
+# `tests/behaviour/test_the_windows_leg_runs_in_shards_that_make_the_whole.py#
 # test_the_durations_file_prices_the_suite` compares the suite's collection
 # with `.test_durations`, and on a shard the items a case can see are only the
 # shard's own: `pytest-split` replaces the list with the group.

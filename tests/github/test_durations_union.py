@@ -12,7 +12,7 @@ exit 2 and writes nothing. The cases drive it over fixture parts.
   S3   the summary names each part's seconds, the spread and the live sum
 
 #942's phase 6 placed these cases from
-`tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py`, which
+`tests/behaviour/test_the_windows_leg_runs_in_shards_that_make_the_whole.py`, which
 keeps the cases that read the workflow, the durations file and the
 documents.
 """

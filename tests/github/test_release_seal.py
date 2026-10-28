@@ -17,7 +17,7 @@ cases load `seal_stamp.py` by path under a name of their own, so a draw
 that kept a copy of the chart or the colours cannot agree with itself.
 
 #942's phase 6 placed these cases from
-`tests/test_the_release_seal_is_drawn.py`, which keeps the cases that read
+`tests/behaviour/test_the_release_seal_is_drawn.py`, which keeps the cases that read
 the publishing workflow and the documents.
 """
 
@@ -37,7 +37,7 @@ SCRIPT = os.path.join(ROOT, ".github", "scripts", "release_seal.py")
 STAMP_SCRIPT = os.path.join(ROOT, "skills", "verify", "scripts", "seal_stamp.py")
 
 # A release's rows in the shape `release_rows` returns. The version is the
-# illustrative one `tests/test_release_hygiene.py` exempts; the rest are
+# illustrative one `tests/behaviour/test_release_hygiene.py` exempts; the rest are
 # neutral numbers in the widths a real release has.
 ROWS = [
     ("SEALED", "v1.2.3"),

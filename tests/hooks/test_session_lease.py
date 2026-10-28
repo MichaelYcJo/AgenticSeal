@@ -4,7 +4,7 @@ The lease file is stamped on every tool call and read by the worktree guard
 and the commit gate's lease route; it is never removed at session end, which
 is why it records who owns it. The cases come from
 `tests/test_lease_liveness.py`, `tests/test_chain_hooks.py` and
-`tests/test_chain_hooks_hardening.py` (#942's phase 6). What a reader makes of
+`tests/behaviour/test_chain_hooks_hardening.py` (#942's phase 6). What a reader makes of
 a lease is the worktree guard's, and stays with its cases.
 """
 

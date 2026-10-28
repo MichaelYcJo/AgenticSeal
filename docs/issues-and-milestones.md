@@ -55,7 +55,7 @@ rolled from* gives below.
 performance log whose body is the current state, and the open
 `flow-measurement` issue is this version's rolling log. Neither has a done
 condition, so neither closes, so the milestone does not either.
-check: tests/test_a_release_is_sized_by_a_criterion.py
+check: tests/behaviour/test_a_release_is_sized_by_a_criterion.py
 
 ## A label answers *what it is about*, and survives the move
 
@@ -176,7 +176,7 @@ the answer durable without making it a gate anybody has to satisfy.
 **What it does not decide is which release the ticket lands in.** The criterion
 answers *now or not now*; ordinary scheduling answers the rest, and a ticket
 without the label can still be the next thing somebody picks up.
-check: tests/test_a_release_rolls_the_flow_measurement_issue.py
+check: tests/behaviour/test_a_release_rolls_the_flow_measurement_issue.py
 
 ## Closing one of these by hand breaks the next release
 
@@ -268,7 +268,7 @@ does, is not an instance of it.
 The prose around those spans keeps its keywords out for the same reason. A
 past-tense narrative keyword is still a keyword, so a sentence that used one
 with a second number beside it would earn the warning like any body.
-check: tests/test_a_body_naming_two_issues_claims_one.py tests/github/test_issue_claims_check.py
+check: tests/behaviour/test_a_body_naming_two_issues_claims_one.py tests/github/test_issue_claims_check.py
 
 **A keyword inside a fence or a code span claims nothing, whatever the fence
 or the span is made of.** A fence opens with backticks or tildes at any

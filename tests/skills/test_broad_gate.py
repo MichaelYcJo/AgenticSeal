@@ -1709,7 +1709,7 @@ class Test_job_steps:
         """A1's reader. In file order, this job only, and an unnamed step — the
         checkout every job opens with — is not one. Nor is a step that exists
         only in a comment, the same reading
-        `tests/test_ci_gives_the_checks_what_they_need.py#strip_comments` takes
+        `tests/text/test_ci_gives_the_checks_what_they_need.py#strip_comments` takes
         of the same file, for the same reason."""
         assert gate.job_steps(WORKFLOW_WITH_TWO_JOBS, "release") == [
             "the first step",
@@ -1866,7 +1866,7 @@ class Test_coverage_line:
 
     def test_the_two_clauses_render_together_and_hold_the_right_names(self):
         """Round 2's coverage note. The case above and
-        `tests/test_the_gate_names_every_step_ci_runs.py`'s
+        `tests/behaviour/test_the_gate_names_every_step_ci_runs.py`'s
         `test_a_step_a_row_excludes_is_still_pointed_at_its_reason` each
         exercise one clause — `UNCLASSIFIED_WORKFLOW` leaves `excluded` empty
         and this repository's own workflow leaves `unknown` empty — so the

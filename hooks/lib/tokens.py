@@ -106,7 +106,7 @@ def given(command, fallback=None):
     still finds the bodies and the single-stream creation deny keeps its way
     past (released row T1 of 0.18.3). It is an argument rather than an import
     because the frozen reader is the guard's and the consent writer's alone
-    (`tests/test_the_frozen_reading_never_grows.py`). Without one the error
+    (`tests/behaviour/test_the_frozen_reading_never_grows.py`). Without one the error
     propagates: a gate that raises is reported by `hooks/dispatch.py`."""
     try:
         bodiless = without_bodies(command)

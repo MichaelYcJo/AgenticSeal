@@ -10,7 +10,7 @@ where a line is out of grammar or a target is gone, and one case here runs
 it over the tree, so the suite is where the fact is read.
 
 #942's phase 6 placed these cases from
-`tests/test_the_rules_command_reads_each_rule_off_its_test.py`, which keeps
+`tests/behaviour/test_the_rules_command_reads_each_rule_off_its_test.py`, which keeps
 the cases that read the record layout document, the marker's registration
 and the settle skill.
 """

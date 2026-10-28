@@ -1,11 +1,11 @@
 """`hooks/lib/blocks.py`, one class per function its cases reach.
 
-The walk's own answers came from `tests/test_the_hooks_hide_what_a_renderer_hides.py`
-and the splitter's from `tests/test_every_reader_ends_a_line_where_gfm_does.py`
+The walk's own answers came from `tests/behaviour/test_the_hooks_hide_what_a_renderer_hides.py`
+and the splitter's from `tests/behaviour/test_every_reader_ends_a_line_where_gfm_does.py`
 (#942's phase 6). Those files keep what holds the walk to a CommonMark oracle
 and every copy of the splitter to this one, because a check that judges
 markdown against an oracle, or files against each other, stays where it is.
-`tests/test_unverified_rows_close.py` keeps the case that holds this module's
+`tests/behaviour/test_unverified_rows_close.py` keeps the case that holds this module's
 fence walks to `unverified_check.py`'s and `hooks/lib/config.py`'s, for the same
 reason.
 """

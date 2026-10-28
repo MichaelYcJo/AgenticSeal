@@ -65,7 +65,7 @@ name this change's own axes before starting: money and rounding, time zones,
 resource lifetime, migration ordering, pagination while writes land, whatever
 the diff touches. Walk them like the rest. An axis you could not judge is a
 row of `## Not judged`, never a silent pass.
-check: tests/test_review_axes.py
+check: tests/text/test_review_axes.py
 
 ## Probes and regression tests
 
@@ -84,7 +84,7 @@ A fixture chain is `&&`, never `|`: a pipe feeds one command's output to the
 next instead of ordering them, and the chain can sit waiting on stdin with
 nothing arriving. Give any call that could run long a timeout you chose
 rather than one you assumed.
-check: tests/test_a_probe_that_commits_says_so.py tests/test_a_probe_does_not_outlive_its_round.py
+check: tests/behaviour/test_a_probe_that_commits_says_so.py tests/text/test_a_probe_does_not_outlive_its_round.py
 
 ## Earlier rounds
 
@@ -100,7 +100,7 @@ introduced the defect. Where you weigh an earlier finding, re-run its
 `evidence: executed` line rather than re-deriving the claim; a probe it names
 is written again from its `## Probes` row. A record written before the
 `evidence:` row lacks the line, and that is no finding.
-check: tests/test_review_axes.py tests/test_the_rules_have_one_owner.py
+check: tests/text/test_review_axes.py tests/text/test_the_rules_have_one_owner.py
 
 ## The record
 
@@ -137,7 +137,7 @@ is absent; field names, headings and vocabulary words stay English
   block under it. A mark quoted from the code under review is written as its
   code point (`U+1F7E1`) or in words, never as the character.
 
-check: tests/skills/test_chain_check.py tests/test_the_record_is_written_in_words.py evals/behaviour/proofer/rule-proofer-one-finding/
+check: tests/skills/test_chain_check.py tests/text/test_the_record_is_written_in_words.py evals/behaviour/proofer/rule-proofer-one-finding/
 
 **Paste-ready means the snippet cannot mislead on its own.** Mark a name the
 tree does not have at the line that uses it:

@@ -455,7 +455,7 @@ def _node_arms(node: ast.AST, scope: str, source: str) -> list[Arm]:
         # version nor the flag. The minor version is the whole fact and the
         # patch carries nothing, since no 3.9.x has the keyword -- written
         # without one on purpose, because a three-part number in a loaded file
-        # is a timer `tests/test_release_hygiene.py` refuses, and it caught
+        # is a timer `tests/behaviour/test_release_hygiene.py` refuses, and it caught
         # this comment's first draft. `withouts` is built from `members` by
         # `_group_of`, one entry per member, so the lengths agree by
         # construction rather than by hope.

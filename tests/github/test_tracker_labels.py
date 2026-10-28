@@ -18,7 +18,7 @@ it records every call as an argument tuple, in order, so a case can assert
 about a write that did NOT happen.
 
 #942's phase 6 placed these cases from
-`tests/test_a_declared_label_reaches_the_tracker.py`, which keeps the cases
+`tests/behaviour/test_a_declared_label_reaches_the_tracker.py`, which keeps the cases
 that read the workflow and `docs/issues-and-milestones.md`.
 """
 

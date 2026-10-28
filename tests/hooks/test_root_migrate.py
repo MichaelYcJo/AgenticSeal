@@ -38,7 +38,7 @@ from conftest import (
 TARGET = "hooks/root-migrate.py"
 
 # The subcommand a case makes fail, named once: a call spelling it would
-# read as a path listing to `tests/test_a_shrunken_corpus_declines_to_judge.py`.
+# read as a path listing to `tests/behaviour/test_a_shrunken_corpus_declines_to_judge.py`.
 LS_FILES = "ls-files"
 
 ROUND = (

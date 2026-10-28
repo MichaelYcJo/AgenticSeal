@@ -7,7 +7,7 @@ generated truth is read back through `noninferiority.py#grader_from`, the
 one reader of a grader file.
 
 #942's phase 6 placed these cases from
-`tests/test_a_rewritten_definition_proved_non_inferior.py`, which keeps
+`tests/behaviour/test_a_rewritten_definition_proved_non_inferior.py`, which keeps
 the case that reads the committed proofer cases.
 """
 

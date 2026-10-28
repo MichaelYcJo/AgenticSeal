@@ -8,10 +8,10 @@ round records and the closing records, judged as a ready or a draft pull
 request through the event payload GitHub writes. Each copy is the reset.
 `Test_module` holds the case that reads this module's source for a call of
 `unverified_check.py#settled` and no second definition of it, which #942
-moved from `tests/test_unverified_rows_close.py`; the copy run without its
+moved from `tests/behaviour/test_unverified_rows_close.py`; the copy run without its
 siblings, from `tests/test_a_script_copied_alone_exits_2.py`; and the
 framer's mark after a U+2028, `frame_foot`'s one case, from
-`tests/test_every_reader_ends_a_line_where_gfm_does.py`. The last two came in
+`tests/behaviour/test_every_reader_ends_a_line_where_gfm_does.py`. The last two came in
 its round 9 fix pass, each a case of this module alone.
 """
 

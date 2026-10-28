@@ -605,7 +605,7 @@ declarations and nothing else: no pact, and no `Pact` row.
 Every act addressed to the orchestrator sits under a heading carrying the
 `Orchestrator:` prefix, in this file or in
 `skills/code-review/orchestration.md`, and this is the list of them.
-`tests/test_every_orchestrator_act_names_its_delivery.py` holds it against
+`tests/behaviour/test_every_orchestrator_act_names_its_delivery.py` holds it against
 both files from both sides: an act with no row fails, and a row naming an act
 no file carries fails.
 
@@ -632,7 +632,7 @@ its subject from this table.
 **What this does not catch**: an act written for the orchestrator under a
 heading carrying no marker has no row and nothing notices. The check reads
 the marker, not the meaning, which is the limit
-`tests/test_a_section_marked_for_one_role_reaches_only_that_role.py` states
+`tests/behaviour/test_a_section_marked_for_one_role_reaches_only_that_role.py` states
 for itself. The two read the headings through one parser, so they cannot
 come to different answers about what a heading is.
 
@@ -659,7 +659,7 @@ one.
 | Question 2 | `skills/implement/orchestration.md` | part of its parent's act | The four boxes of the second call, put only after a `per axis` answer, and the ceiling on how many there may be. It names no act of its own |
 | What the answer writes | `skills/implement/orchestration.md` | check: `skills/code-review/scripts/chain_check.py` | It refuses a `Review` or `Destination` value outside the vocabulary at the pull request, and `hooks/lib/routing.py` parses the same rows at every edit. The three optional rows are read by nothing that refuses: `hooks/implementer-notice.py` says one line after a commit where a declared agent left no mark, and blocks nothing |
 | A work item that commits in more than one repository | `skills/implement/orchestration.md` | check: `hooks/routing-edit-gate.py` | In each opted-in repository the first edit is refused until a declaration naming that repository's branch stands there, so a repository the step skipped is noticed at its first edit. What it does not reach: an id minted twice is legitimate in a signer's own work item and nothing tells the two apart, and a missing `Pact` row is noticed only when somebody runs `seal pact` at the pact's repository, which refuses a relationship recorded on one side |
-| Orchestrator: which of these acts runs itself | `skills/implement/orchestration.md` | check: `tests/test_every_orchestrator_act_names_its_delivery.py` | The test reads this table against the headings of both files, in both directions. What it reads is the marker rather than the meaning, so a heading with no prefix puts its act in neither the table nor the test |
+| Orchestrator: which of these acts runs itself | `skills/implement/orchestration.md` | check: `tests/behaviour/test_every_orchestrator_act_names_its_delivery.py` | The test reads this table against the headings of both files, in both directions. What it reads is the marker rather than the meaning, so a heading with no prefix puts its act in neither the table nor the test |
 | Orchestrator: a phase is a fresh crafter, and a fix pass resumes the implementer | `skills/code-review/orchestration.md` | still a sentence | A phase built by a resumed crafter and one built by a fresh crafter leave identical trees, and so do a resumed fix pass and a fresh one, so nothing at the pull request can tell them apart, and the choice of session is in no file. `seal cost --segments` prints the context the threshold is read against and gates nothing, so the reading can go untaken while the spawn succeeds |
 | Orchestrator: the run ends with a verifying round | `skills/code-review/orchestration.md` | check: `skills/code-review/scripts/chain_check.py` | It fails a ready pull request when a commit touching a file outside the work item's records follows the commit on the last record's `target:` line, or a finding of that record reads `fixed <commit>` or `rejected`, which is the run whose own last fixes nobody opened; on a draft it prints and names the verifying round. What it cannot read is the cap: the extension lines are the proofer's, and the sealer reads the count |
 | A regression is routed by comparing the fix with the frame | `skills/code-review/orchestration.md` | still a sentence | The proofer's `regression:` line routes nothing mechanical, and neither does the sentence of its grounds the route reads: `skills/code-review/scripts/chain_check.py` reads the line only as a reference to an earlier finding, and the `Reframed` line only for its author against the declaration, and the sealer reads the records |

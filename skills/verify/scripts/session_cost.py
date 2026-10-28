@@ -60,7 +60,7 @@ orchestrator's own minutes; `--segments` opens the OTHER transcripts, one row
 per agent this run spawned, and given a resumed agent's own transcript it
 reads that one file, one row per stretch of work (#637) — each row one
 agent's own stretch either way. `skills/verify/orchestration.md` *Measure the
-segment* owns that distinction and `tests/test_one_word_one_meaning.py` holds it.
+segment* owns that distinction and `tests/behaviour/test_one_word_one_meaning.py` holds it.
 """
 
 import argparse
@@ -2432,7 +2432,7 @@ LABEL_WIDTH = 30
 #
 # Constants rather than read from the protocol at run time, because this
 # script runs from the installed plugin in repositories that have no such
-# document. `tests/test_the_handoff_before_round_one.py` reads both files and
+# document. `tests/text/test_the_handoff_before_round_one.py` reads both files and
 # turns red when one moves alone.
 #
 # A kind missing from the table has no bar and is UNGRADED, which is not the
@@ -2839,7 +2839,7 @@ def report_segments(segments, path):
     # 0.9.4 line above.
     #
     # It names the issue and not the release, because a loaded file may not
-    # name a version that has not shipped (`tests/test_release_hygiene.py`,
+    # name a version that has not shipped (`tests/behaviour/test_release_hygiene.py`,
     # the timer check), and this line is written before the release that
     # carries it. The changelog is where #377 is mapped to its version: the
     # work item's fragment is gathered into that release's own file under

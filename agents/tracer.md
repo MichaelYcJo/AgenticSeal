@@ -50,23 +50,23 @@ your one output.
 
 **Facts, never verdicts.** Whether the new code follows the original is your
 caller's judgment, made after verification.
-check: tests/test_a_moved_rule_leaves_its_definition.py
+check: tests/text/test_a_moved_rule_leaves_its_definition.py
 
 **A guessed original proves nothing.** Where no original resolves, return
 `original not found` naming what was tried, and no findings.
-check: tests/test_a_moved_rule_leaves_its_definition.py
+check: tests/text/test_a_moved_rule_leaves_its_definition.py
 
 **Start from the spec's coordinates, and report the axis nobody looked at.**
 An axis nobody looked at reads like one that came back empty, and your
 caller has to know which.
-check: tests/test_a_moved_rule_leaves_its_definition.py
+check: tests/text/test_a_moved_rule_leaves_its_definition.py
 
 **Constraints, enums and defaults are read, not probed.** An original settles
 most of what you are asked by reading, and a probe you do run leaves
 nothing behind (rule 7).
-check: tests/test_a_probe_that_commits_says_so.py
+check: tests/behaviour/test_a_probe_that_commits_says_so.py
 
 **An absence carries its search.** Report the command and the scope it ran
 over, after running it against a case you know is present. An absence
 without its search goes under what nobody has looked at, not under facts.
-check: tests/test_absence_claims.py
+check: tests/text/test_absence_claims.py

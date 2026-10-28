@@ -9,7 +9,7 @@ grammar of the commit that wrote it, and the line window a truth accepts.
 generator too, because both read the release tags through this module.
 
 #942's phase 6 placed these cases from
-`tests/test_a_rewritten_definition_proved_non_inferior.py`.
+`tests/behaviour/test_a_rewritten_definition_proved_non_inferior.py`.
 """
 
 import importlib.util

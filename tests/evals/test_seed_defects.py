@@ -8,7 +8,7 @@ code token. `test_the_replay_and_seeded_generators_read_the_entries_too`
 holds the replay generator too, because both read the recurred entries.
 
 #942's phase 6 placed these cases from
-`tests/test_a_rewritten_definition_proved_non_inferior.py`.
+`tests/behaviour/test_a_rewritten_definition_proved_non_inferior.py`.
 """
 
 import os

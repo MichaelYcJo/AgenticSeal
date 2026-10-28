@@ -3716,7 +3716,7 @@ class Test_main:
         names the family rows alone and where their release is written down.
 
         The issue and not the version, because the line is written before the
-        release that carries it, and `tests/test_release_hygiene.py` refuses a
+        release that carries it, and `tests/behaviour/test_release_hygiene.py` refuses a
         loaded file naming a version that has not shipped."""
         out = " ".join(segment_report(run_with_segments).split())
         assert (

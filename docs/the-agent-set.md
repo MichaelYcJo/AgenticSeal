@@ -20,7 +20,7 @@ whose definition is silent about an act does not take it.
 is narrowed this round*, and a round record compared with another months
 later, hold only while the number still means what it meant; how a retired
 rule keeps its number is the contract's own preamble.
-check: tests/test_every_agent_reads_the_contract.py
+check: tests/text/test_every_agent_reads_the_contract.py
 
 **The agents are the framer, the crafter, the proofer, the sealer and the
 tracer, and each name says its part of one order.** The framer designs the
@@ -71,7 +71,7 @@ by a party that wrote none of them. It re-judges neither the frame nor the
 code's quality, which stay the framer's and the proofer's, and it runs on
 Opus, the level of the agents it audits. `docs/the-review-record.md` *The
 guarantee* holds the rule.
-check: tests/test_the_sealer_guarantees.py
+check: tests/behaviour/test_the_sealer_guarantees.py
 
 **A build phase leaves a record, the way a review round does.** What a phase
 discovers reaches the next phase only if somebody retypes it into the next
@@ -82,7 +82,7 @@ later reader cannot otherwise tell from a scope the phase invented. What a
 work item removes is named once, in the frame's `## Removes`
 (`templates/records/sdd-design.md`), which the review reads against the diff, and a
 removal the frame did not name is a divergence in `gaps.md`.
-check: tests/test_a_phase_hands_the_next_one_a_record.py
+check: tests/behaviour/test_a_phase_hands_the_next_one_a_record.py
 
 **A document that describes a transition is deleted when the transition is
 over, and its standing rules move first.** A file whose last instruction is
@@ -102,7 +102,7 @@ beside it, and the orchestrator's `seal gate` log carries the work item id.
 The name lives in the definitions, where a rule arrives by mechanism, and one
 directory per work item and round is what lets the agent that made a leaving
 say every one of them is gone.
-check: tests/test_a_parallel_agent_names_its_scratch_after_the_work_item.py
+check: tests/text/test_a_parallel_agent_names_its_scratch_after_the_work_item.py
 
 ## What a spawn costs
 
@@ -117,7 +117,7 @@ and as a total, in bytes, characters and tokens, split at headings.
 orchestrator's procedure preloaded into every implementer spawn is procedure
 for asking a person a question, delivered to a party that cannot ask anybody
 anything, and paid once per spawn.
-check: tests/skills/test_payload_meter.py tests/test_a_section_marked_for_one_role_reaches_only_that_role.py
+check: tests/skills/test_payload_meter.py tests/behaviour/test_a_section_marked_for_one_role_reaches_only_that_role.py
 
 **The orchestrator's acts are counted, each against what delivers it.** An
 agent's rules arrive by mechanism, while the orchestrator has no spawn for a
@@ -129,4 +129,4 @@ delivery: a command, a check, part of its parent's act, or a sentence with
 its grounds. A test holds the table against both files from both sides. It
 reads the marker and not the meaning, so an act written outside a marked
 section is counted by nobody.
-check: tests/test_every_orchestrator_act_names_its_delivery.py
+check: tests/behaviour/test_every_orchestrator_act_names_its_delivery.py

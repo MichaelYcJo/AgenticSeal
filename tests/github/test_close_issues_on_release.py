@@ -42,9 +42,9 @@ refused close; phase 1's record of work item
 quotes both outputs.
 
 #942's phase 6 placed these cases from
-`tests/test_a_declared_label_reaches_the_tracker.py`,
+`tests/behaviour/test_a_declared_label_reaches_the_tracker.py`,
 `tests/test_the_closer_carries_on_past_a_refusal.py` and
-`tests/test_release_hygiene.py`, which keep the cases that read the
+`tests/behaviour/test_release_hygiene.py`, which keep the cases that read the
 workflow, the documents and the records.
 """
 

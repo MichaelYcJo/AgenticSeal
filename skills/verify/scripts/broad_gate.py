@@ -410,7 +410,7 @@ def redirect_line(root, shipped):
 # soon as the local ref falls behind — #423, where the gate passed a branch
 # green and CI refused the same commit.
 #
-# `tests/test_the_gate_asks_the_range_ci_will_ask.py` holds this spelling
+# `tests/behaviour/test_the_gate_asks_the_range_ci_will_ask.py` holds this spelling
 # against the workflow's, so the two readers cannot drift apart again in
 # silence.
 REMOTE_BASE = "refs/remotes/origin/{ref}"
@@ -593,7 +593,7 @@ def resolve_base(root, given):
          so that repository's `Broad gate` cell, its `BROAD GATE FAILED` line and the
          baselines the child checks quote back all name a hash where they
          named a branch. One assertion in
-         `tests/test_the_seal_is_taken_once_by_the_sealer.py` moved for it,
+         `tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py` moved for it,
          and this paragraph said *nothing about that run changes* until round
          1 measured it (finding 3).
 
@@ -2088,7 +2088,7 @@ def compare_at_base(root, base, command, files, keep):
 # So the list is declared here rather than remembered. **Every step of that
 # job is mirrored by a named arm or excluded with a reason a person wrote**,
 # there is no third state, and
-# `tests/test_the_gate_names_every_step_ci_runs.py` holds the partition
+# `tests/behaviour/test_the_gate_names_every_step_ci_runs.py` holds the partition
 # against the workflow from both sides: a step added to the workflow and left
 # unclassified goes red there, and so does a row naming a step that was
 # renamed away.
@@ -2133,7 +2133,7 @@ def job_steps(text, job):
     **No YAML parser.** This script runs with no third-party dependency, and
     CI installs a test runner and nothing else. A step name is a `- name:`
     line, read as text, the way
-    `tests/test_ci_gives_the_checks_what_they_need.py#jobs` already reads the
+    `tests/text/test_ci_gives_the_checks_what_they_need.py#jobs` already reads the
     same file. A step that exists only in a comment is not a step, and that
     falls out of both patterns rather than out of a line dropping comments:
     each requires the first non-blank character to be the list's dash or the
@@ -2147,7 +2147,7 @@ def job_steps(text, job):
     line in `hygiene.yml` carries one — and it fails LOUDLY if one ever does,
     because A1 goes red with the comment visible in the name it could not
     classify. `strip_comments` in
-    `tests/test_ci_gives_the_checks_what_they_need.py`, the reader this one
+    `tests/text/test_ci_gives_the_checks_what_they_need.py`, the reader this one
     follows, has the same gap, so it is a class rather than something this
     reader opened (round 1, recorded as a correction rather than fixed).
 
@@ -2259,7 +2259,7 @@ MAIN = "main"
 # mirrored, so no arm changes; what changes is the denominator of the
 # `workflow` count and the names beside it.
 #
-# Held against the workflow by `tests/test_the_gate_names_every_step_ci_runs.py`
+# Held against the workflow by `tests/behaviour/test_the_gate_names_every_step_ci_runs.py`
 # from both sides: a `!= "main"` guard added to a fourth step, or dropped
 # from one of these, fails the suite. No step skips a pull request into
 # `main`, so every mirrored arm runs at every base.

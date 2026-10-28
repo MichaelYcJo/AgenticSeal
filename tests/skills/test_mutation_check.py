@@ -6,7 +6,7 @@ it was, restored after each. Every batch case runs a stand-in for the cases, a
 script under the case's own directory that logs what it saw of the target.
 
 Phase 6 placed here the single-pair cases of
-`tests/test_a_mutation_clears_one_files_bytecode_and_ends_at_a_timeout.py`,
+`tests/behaviour/test_a_mutation_clears_one_files_bytecode_and_ends_at_a_timeout.py`,
 #641's and #577's: one mutation of one unit, with the loop's housekeeping
 derived from the file it mutated. The command derives the cache from the
 file, for every interpreter tag; runs the cases with

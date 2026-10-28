@@ -2,16 +2,16 @@
 tables, one class per function its cases reach.
 
 #942's phase 6 placed here the reference-root reader's cases from
-`tests/test_a_reference_root_is_read_and_never_taken.py`, the policy root's
-from `tests/test_a_document_has_room_for_the_next_fold.py`, the remote
-normaliser's from `tests/test_the_records_can_be_carried_out_and_in.py`, the
+`tests/behaviour/test_a_reference_root_is_read_and_never_taken.py`, the policy root's
+from `tests/text/test_a_document_has_room_for_the_next_fold.py`, the remote
+normaliser's from `tests/text/test_the_records_can_be_carried_out_and_in.py`, the
 `Baseline commit` reader's from `tests/skills/test_chain_check.py`, the row reader's
-from `tests/test_the_pull_request_language_is_the_repositorys.py` and three
+from `tests/behaviour/test_the_pull_request_language_is_the_repositorys.py` and three
 of the table walker's from
-`tests/test_one_table_walker_reads_what_gfm_renders.py`, which keeps the
+`tests/behaviour/test_one_table_walker_reads_what_gfm_renders.py`, which keeps the
 walker held to cmark-gfm, the reader's cases of
 `tests/test_the_mode_question_is_asked_once.py`, whose writer's cases are in
-`tests/skills/test_seal.py`, the pact readers' of `tests/test_a_signer_declares_its_pact.py`, and the
+`tests/skills/test_seal.py`, the pact readers' of `tests/behaviour/test_a_signer_declares_its_pact.py`, and the
 seven cases `tests/skills/test_pact_check.py` left for this module, which run
 `seal pact` over the pact's world in `tests/conftest.py`. Each case keeps
 its body, except two that read the pact's text as `PACT_TEXT`, because
@@ -90,7 +90,7 @@ COMMENTED_OLD_TABLE = shape_text("C6")
 QUOTED_DELIMITERS = shape_text("C1")
 LIVE = [("Mode", "shared"), ("Broad gate", "bin/test -q")]
 
-# The pact readers' texts, from `tests/test_a_signer_declares_its_pact.py`.
+# The pact readers' texts, from `tests/behaviour/test_a_signer_declares_its_pact.py`.
 # The pact's text is `PACT_TEXT` here: `PACT` is the pact's path, which the
 # cases that run `seal pact` over the world write to.
 CONFIG_TOP = "# config\n\n| Item | Value |\n|---|---|\n| Mode | shared |\n"
@@ -137,7 +137,7 @@ BOTH = (
 # read as GFM reads it, or refused; none drops a signer while the table reads
 # as complete. These cases pin the SENTENCES the pact prints; that the walk
 # reads what GFM renders is held by
-# `tests/test_one_table_walker_reads_what_gfm_renders.py`, over a corpus
+# `tests/behaviour/test_one_table_walker_reads_what_gfm_renders.py`, over a corpus
 # enumerated from the block kinds and judged by cmark-gfm itself.
 WEB = "https://example.com/org/orders-web"
 MOBILE = "https://example.com/org/orders-mobile"
@@ -1123,7 +1123,7 @@ class Test_declared_mode:
 
         Uncovered because it arrived uncovered. The parser moved here from
         `seal.py`, and the suite that looks like its home,
-        `tests/test_the_pull_request_language_is_the_repositorys.py`, carries a
+        `tests/behaviour/test_the_pull_request_language_is_the_repositorys.py`, carries a
         second copy of the loop rather than calling this one."""
         home = opt_in_shared(repo)
         write_config(

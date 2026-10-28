@@ -18,13 +18,13 @@ of its light files: the lease and transcript readers' cases of
 `tests/test_worktree_guard_signals.py`, the press rows of
 `tests/test_the_idle_session_rows_ask_nobody.py` and
 `tests/test_a_creation_in_another_clone_asks_nobody.py`, the tree each
-command is judged in from `tests/test_guard_resolves_the_tree_it_judges.py`,
+command is judged in from `tests/text/test_guard_resolves_the_tree_it_judges.py`,
 the process probe of `tests/test_gates_do_not_fail_open.py`, and the guard's
 half of the reader's S13 from `tests/test_what_the_reader_understands.py`.
 Each runs on the `repo` fixture or a directory of its own, as it did there.
 
 The round 9 fix pass placed in `Test_last_user_snippet` the record holding a
-raw U+2028, from `tests/test_every_reader_ends_a_line_where_gfm_does.py`, a
+raw U+2028, from `tests/behaviour/test_every_reader_ends_a_line_where_gfm_does.py`, a
 case of this module alone. That file's case for `last_active_event_epoch`
 is merged into `Test_last_active_event_epoch`'s accepting case, which hands
 the reader the same raw separator inside the newest active event.

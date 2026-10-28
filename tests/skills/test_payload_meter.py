@@ -22,7 +22,7 @@ number with no basis, fails here.
 placed in `Test_module` the two rows that run a copy of this script without
 its siblings, from `tests/test_a_script_copied_alone_exits_2.py`, and the
 heading after a U+2028, from
-`tests/test_every_reader_ends_a_line_where_gfm_does.py`, each a case of this
+`tests/behaviour/test_every_reader_ends_a_line_where_gfm_does.py`, each a case of this
 module alone.
 """
 

@@ -220,7 +220,7 @@ def read(path):
 def heading_starts(text):
     """Offsets of every `##` / `###` heading outside a code fence. A skill
     quotes headings as examples, and an example is not a section — the rule
-    `tests/test_a_section_marked_for_one_role_reaches_only_that_role.py`
+    `tests/behaviour/test_a_section_marked_for_one_role_reaches_only_that_role.py`
     applies before it reads a marker, applied here before a byte count is
     put beside a heading somebody may trim.
 

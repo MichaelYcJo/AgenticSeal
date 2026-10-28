@@ -1,7 +1,7 @@
 """`skills/implement/scripts/seal.py`, one class per function.
 
-Rebuilt by #942's phase 5 from `tests/test_the_records_can_be_carried_out_and_in.py`
-and `tests/test_the_mode_is_a_row_and_a_command.py`. `seal` carries a clone's
+Rebuilt by #942's phase 5 from `tests/text/test_the_records_can_be_carried_out_and_in.py`
+and `tests/text/test_the_mode_is_a_row_and_a_command.py`. `seal` carries a clone's
 `seal/` root to another clone (`export`, `import`), moves it between the
 two places it can live (`mode`), and writes or removes the pull-request
 checks (`pr-checks`).
@@ -21,7 +21,7 @@ case runs, so a copy is a plain copy.
 `tests/test_the_mode_question_is_asked_once.py`, which hold `write_row` and
 `with_row` to the reader they share a table with, and the two cases of
 `seal.py`'s re-exports of that reader, from that file and from
-`tests/test_a_signer_declares_its_pact.py`. Each loads the module under a
+`tests/behaviour/test_a_signer_declares_its_pact.py`. Each loads the module under a
 name of its own, as its old file did. Its round 9 fix pass placed in
 `Test_refuse_without_hooks` the three rows that run a copy of this script
 without `hooks/`, from `tests/test_a_script_copied_alone_exits_2.py`, a case
@@ -112,7 +112,7 @@ UNCLOSED_FENCE = "# Repository config\n\n```\nnotes\n"
 CONFIG_GET_REMOTE = ["config", "--get", "remote.origin.url"]
 REV_PARSE_HEAD = ["rev-parse", "HEAD"]
 # The subcommand a case makes fail, named once: a call spelling it would
-# read as a path listing to `tests/test_a_shrunken_corpus_declines_to_judge.py`.
+# read as a path listing to `tests/behaviour/test_a_shrunken_corpus_declines_to_judge.py`.
 LS_FILES = "ls-files"
 TIMED_OUT = subprocess.TimeoutExpired(["git"], 15)
 SHA = "0123456789abcdef" + "0" * 24

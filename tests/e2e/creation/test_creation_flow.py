@@ -27,6 +27,7 @@ from pathlib import Path
 
 import pytest
 from conftest import (
+    ROOT,
     ask_entries,
     census_case,
     ps_names_the_parent_or_skip,
@@ -44,7 +45,7 @@ GUARD_COUNT_NEEDS_PS = (
     "the guard's count of other sessions is unusable"
 )
 
-HOOKS = Path(__file__).resolve().parents[3] / "hooks"
+HOOKS = Path(ROOT) / "hooks"
 BASH = shutil.which("bash")
 pytestmark = [pytest.mark.skipif(BASH is None, reason="no bash to run commands in")]
 SESSION = "s-create"

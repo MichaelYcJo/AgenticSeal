@@ -1,7 +1,7 @@
 """`evals/scripts/noninferiority.py`, one class per function.
 
 Rebuilt by #942's phase 5 from the `noninferiority.py` half of
-`tests/test_a_rewritten_definition_proved_non_inferior.py`. The script runs
+`tests/behaviour/test_a_rewritten_definition_proved_non_inferior.py`. The script runs
 one side of the behaviour suite, judges a new side against a baseline by
 five pass rules, and reads a side again under another suite's truths.
 

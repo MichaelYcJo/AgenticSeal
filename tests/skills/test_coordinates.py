@@ -13,7 +13,7 @@ file is bounded where a real parser decides its extent, and named by content
                   edit reaches the next caller
 
 #942's phase 6 placed these cases from
-`tests/test_a_unit_is_bounded_where_a_parser_decides.py`, which keeps the
+`tests/behaviour/test_a_unit_is_bounded_where_a_parser_decides.py`, which keeps the
 case that reads this repository's workflow.
 """
 

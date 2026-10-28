@@ -20,7 +20,7 @@ it is always due and every case reaches the roll it is about. That is
 deliberate rather than left over -- it is also the migration path.
 
 #942's phase 6 placed these cases from
-`tests/test_a_release_rolls_the_flow_measurement_issue.py`, which keeps the
+`tests/behaviour/test_a_release_rolls_the_flow_measurement_issue.py`, which keeps the
 cases that read `docs/issues-and-milestones.md` against the script's
 constants.
 """
@@ -1065,7 +1065,7 @@ class Test_module:
 
     def test_read_version_reads_plugin_json(self, tmp_path):
         """`read_version` is a filesystem read, not a `gh`/`git` call -- covered
-        directly rather than mocked, the same way `tests/test_release_hygiene.py`'s
+        directly rather than mocked, the same way `tests/behaviour/test_release_hygiene.py`'s
         own `version()` helper reads `plugin.json` straight."""
         m = _roller()
         plugin_dir = tmp_path / ".claude-plugin"

@@ -1,7 +1,7 @@
 """`hooks/sealer-stamp.py`, one class per function.
 
 Written anew from the code by #942's phase 6; the old cases of
-`tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py` were read for
+`tests/behaviour/test_the_stamp_reaches_the_person_it_is_drawn_for.py` were read for
 their inputs. `main` runs in the process: the payload is handed to it on
 stdin and the message read from stdout. One opted-in repository is built for
 the module, and each case takes a copy, so the values files a case writes

@@ -1086,7 +1086,7 @@ RECORDED_CASE = re.compile(r"^evals/behaviour/[^/]+/(?:replay|seeded)-")
 # The migration and its cases spell the 0.22.x layout and the state names a
 # session start moves from, which is the one place those names are read.
 # `hooks/lib/cmdline_base.py` is, below its rider, `86256492:hooks/cmdline.py`
-# byte for byte, which `tests/test_the_frozen_reading_never_grows.py` holds,
+# byte for byte, which `tests/behaviour/test_the_frozen_reading_never_grows.py` holds,
 # so no line of it can change or carry an exemption. The replay and seeded
 # cases' generators read round records at the 0.22.x layout every committed
 # case was cut from, each such line exempted at the generator, and their
@@ -1094,7 +1094,7 @@ RECORDED_CASE = re.compile(r"^evals/behaviour/[^/]+/(?:replay|seeded)-")
 KEPT_FILES = (
     "hooks/root-migrate.py",
     "tests/hooks/test_root_migrate.py",
-    "tests/test_the_root_migrates_itself.py",
+    "tests/behaviour/test_the_root_migrates_itself.py",
     "hooks/lib/cmdline_base.py",
     "tests/evals/test_replay_targets.py",
     "tests/evals/test_seed_defects.py",

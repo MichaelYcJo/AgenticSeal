@@ -16,11 +16,11 @@ over the repositories this file builds, the copy run without its siblings,
 and `SPECS` held under `seal/`.
 
 #942's phase 6 placed these cases from
-`tests/test_settle_reads_before_it_removes.py` and
-`tests/test_settle_applies_rule_changes_in_place.py`, which keep the cases
+`tests/text/test_settle_reads_before_it_removes.py` and
+`tests/behaviour/test_settle_applies_rule_changes_in_place.py`, which keep the cases
 that read the skill, the documents, the READMEs, the checklist and the cheat
 sheets. The copy's case came from `tests/test_a_script_copied_alone_exits_2.py`
-and the `SPECS` case from `tests/test_a_reference_root_is_read_and_never_taken.py`
+and the `SPECS` case from `tests/behaviour/test_a_reference_root_is_read_and_never_taken.py`
 in #942's round 9 fix pass, each a case of this module alone.
 """
 
@@ -1499,8 +1499,9 @@ class Test_module:
         assert "close with `closed` and what closed it" in flat(settle.ROWS_HEADING)
 
     def test_the_command_is_reachable_by_the_name_a_document_gives_it(self):
-        """A6. The pair rule is `tests/test_a_document_that_names_a_script_says_
-        how_to_reach_it.py`'s; this is the instance, asked here so a missing twin
+        """A6. The pair rule is
+        `tests/behaviour/test_a_document_that_names_a_script_says_how_to_reach_it.py`'s;
+        this is the instance, asked here so a missing twin
         names this work item rather than a parametrisation. Since #1051 the
         name is `seal settle`, run here the way a person types it."""
         wrapper = os.path.join(ROOT, "bin", "seal")
@@ -1648,7 +1649,7 @@ class Test_module:
         held under `seal/`. Widening it to a top-level `specs/` turns this red,
         which is the probe that work item's plan names for `SPECS`.
         `tests/hooks/test_routing.py` holds `hooks/lib/routing.py#WORK_ITEMS` to the
-        same, and `tests/test_a_reference_root_is_read_and_never_taken.py`
+        same, and `tests/behaviour/test_a_reference_root_is_read_and_never_taken.py`
         classifies every shipped command by what keeps it off a reference
         root."""
         assert settle.SPECS == "seal/threads"

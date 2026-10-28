@@ -11,9 +11,9 @@ every pending record once, at the end of the main session's turn, as a
 Most cases drive `dispatch.py` from a COPY of `hooks/` as a subprocess, which
 is what production spawns. A broken gate is one whose file is replaced by
 `def broken(:\\n`. The live `hooks/` is never touched. The cases come from
-`tests/hooks/test_dispatch.py`, `tests/test_a_gate_that_fails_says_so.py`,
+`tests/hooks/test_dispatch.py`, `tests/text/test_a_gate_that_fails_says_so.py`,
 `tests/test_console_is_not_utf8.py` (#942's phase 6) and
-`tests/test_the_root_migrates_itself.py`, whose case of the session-start
+`tests/behaviour/test_the_root_migrates_itself.py`, whose case of the session-start
 group's order is in `Test_module` (#942's phase 7).
 """
 

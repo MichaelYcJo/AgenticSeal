@@ -2,7 +2,7 @@
 
 Every case lives under `behaviour/<agent>/` and is run one agent at a time by
 `scripts/noninferiority.py`. `claude plugin eval` reads a case at any depth
-under `evals/`, so `tests/test_evals_layout.py` holds every case here to the
+under `evals/`, so `tests/behaviour/test_evals_layout.py` holds every case here to the
 schema the runner reads: `max_turns`, `timeout_seconds`, `model` and
 `allowed_tools` under `execution:`, where a top-level copy is dropped, and
 `context.scaffold_script` the name of a file beside `case.yaml`, where an

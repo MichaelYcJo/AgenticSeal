@@ -19,7 +19,7 @@ The sentences are pinned because a person reads them and acts on them, which
 is the only reason they exist.
 
 #942's phase 6 placed these cases from
-`tests/test_the_suite_has_a_command_that_is_cheap_twice.py`, which keeps the
+`tests/behaviour/test_the_suite_has_a_command_that_is_cheap_twice.py`, which keeps the
 cases that read the `bin/` wrappers, the workflows and the documents.
 """
 

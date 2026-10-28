@@ -209,8 +209,9 @@ def hidden_lines(lines, text=None):
     inside it, everything below a construct that never closes -- the
     line keeps this reader's reading from before #667, the fence rule alone,
     `blocks.fence_only`. So on every line the answer is either the old one or
-    the renderer's, and never a third; `tests/test_the_hooks_hide_what_a_
-    renderer_hides.py` holds that over a generated corpus.
+    the renderer's, and never a third;
+    `tests/behaviour/test_the_hooks_hide_what_a_renderer_hides.py` holds that
+    over a generated corpus.
 
     What it means in a file:
 
@@ -915,7 +916,7 @@ def declared_pacts(home):
 # exit 0.
 #
 # **It reads what cmark-gfm renders, or refuses.** It is held to the renderer
-# by `tests/test_one_table_walker_reads_what_gfm_renders.py`, a property case
+# by `tests/behaviour/test_one_table_walker_reads_what_gfm_renders.py`, a property case
 # over a corpus enumerated from the CommonMark and GFM block kinds: on every
 # shape the walker's cells equal cmark-gfm's, or the walker refuses. So every
 # arm below is one of two kinds. An END is a line the renderer was measured to
@@ -1407,7 +1408,7 @@ def baseline_commit(text):
 # name, and the pact's one-column table carried it into a file nobody
 # regenerates. It still reads (`read_table`), and both commands print the
 # sentence below where they read one. This unit is the one place the old word is written, which is
-# what lets `tests/test_one_word_one_meaning.py` refuse it everywhere else and
+# what lets `tests/behaviour/test_one_word_one_meaning.py` refuse it everywhere else and
 # exclude this unit by name (`docs/the-pact.md` *The words*).
 RENAMED_IN = "0.19.0"
 

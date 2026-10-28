@@ -7,7 +7,7 @@ is the reader's grammar and is not asked here.
 
 **It shares nothing with what it checks.** It imports `cmarkgfm` and the
 standard library, and nothing from `hooks/`, `skills/` or `.github/scripts/`;
-`tests/test_one_table_walker_reads_what_gfm_renders.py` reads this file's own
+`tests/behaviour/test_one_table_walker_reads_what_gfm_renders.py` reads this file's own
 imports to hold that, the arrangement `tests/commonmark_oracle.py` keeps
 (#667). A table rule written by somebody else is the whole point: round 3 of
 #735 found the walk's silent drop by comparing it with cmark-gfm, and the walk

@@ -27,7 +27,7 @@ layout — two roots, three lifetimes* 와 `docs/the-record-layout.md` 에
 from 0.3.x* 가 주는 명령으로 손으로 옮기고, 그 절은 그것이 유일한 길이라고
 말합니다. 세션이 칠 수 있는 경로로 루트가
 어디 있는지는 contract rule 11 한 곳에 적혀 있습니다.
-check: tests/test_no_document_names_the_old_roots.py tests/hooks/test_optin.py
+check: tests/behaviour/test_no_document_names_the_old_roots.py tests/hooks/test_optin.py
 
 ## 종속 규칙
 
@@ -107,7 +107,7 @@ check: tests/hooks/test_optin.py
 모드에서 local 모드로 옮긴 저장소에서는 전환 전에 만든 브랜치의 `seal/` 이
 트리 안에서 옮겨지고 표식이 붙으며, 훅은 그 루트를 먼저 읽습니다
 (`hooks/root-migrate.py` 의 경계).
-check: tests/test_first_setup_asks_once.py
+check: tests/behaviour/test_first_setup_asks_once.py
 
 ### shared 인가 local 인가
 
@@ -177,7 +177,7 @@ check: tests/skills/test_seal.py
 방향이 바로 되돌릴 수 없는 그 방향이므로, `seal mode shared` 는 실행하기 전에
 그렇게 말하고, 커밋하지 않고 스테이지만 해서 돌아올 수 없는 지점을 사람에게
 남깁니다.
-check: tests/test_first_setup_asks_once.py tests/hooks/test_optin.py tests/skills/test_seal.py
+check: tests/behaviour/test_first_setup_asks_once.py tests/hooks/test_optin.py tests/skills/test_seal.py
 
 ## 이름
 
@@ -214,14 +214,14 @@ check: tests/test_first_setup_asks_once.py tests/hooks/test_optin.py tests/skill
 로직을 갖지 않습니다. 부작용이 있는 행은 그 일을 하는 스크립트로 보내고, 행일
 뿐인 행은 바로 씁니다. 스킬 안의 로직은 스크립트처럼 뮤테이션 테스트를 할 수
 없고, 경계를 어디에 긋는지는 그것이 정합니다.
-check: tests/test_the_settings_have_a_front_door.py
+check: tests/text/test_the_settings_have_a_front_door.py
 
 **이 플러그인이 어느 언어로 쓰는지는 플러그인이 아니라 저장소가 답할 일입니다.**
 모두에게 영어를 요구하는 스킬은, 그 결정에 동의하지 않는 사람이 고칠 수 없는
 파일 안에서 내려진 결정입니다. 그래서 언어는 설정 행에 두고, 번역한 PR 본문을
 담는 거울 파일은 언어 하나의 이름이 아니라 그 파일이 담은 언어의 이름을
 붙입니다.
-check: tests/test_the_pull_request_language_is_the_repositorys.py tests/hooks/test_config.py
+check: tests/behaviour/test_the_pull_request_language_is_the_repositorys.py tests/hooks/test_config.py
 
 **행이 둘인 것은, 하나로는 가운데 답을 말할 수 없기 때문입니다.** 사람들이
 실제로 원하는 조합은 셋입니다. 모두 영어, 커밋과 PR 은 팀의 언어로 하고 문서는
@@ -236,7 +236,7 @@ check: tests/test_the_pull_request_language_is_the_repositorys.py tests/hooks/te
 어느 행이 무엇을 말하든 **검사기가 맞춰 보는 이름은 영어로 남습니다.** 필드
 이름, 판정어, 표시, 그리고 모든 코드입니다. 번역한 필드 이름은 번역이 아니라
 읽기를 멈추는 검사기입니다.
-check: tests/test_the_pull_request_language_is_the_repositorys.py
+check: tests/behaviour/test_the_pull_request_language_is_the_repositorys.py
 
 **셀에는 이스케이프한 파이프가 들어갈 수 있고, 해석되지 않는 줄 하나는 표의
 끝으로 취급하지 않고 이름을 붙여 알립니다.** 파이프가 들어간 셸 명령 같은 값은

@@ -44,7 +44,7 @@ and `docs/release-checklist.md` *2. Gather, bump* holds it. The fragments are
 concatenated into the release's own file, `changelog/X.Y.Z.md`, and the
 release's heading goes into the index, `CHANGELOG.md`. A fragment lives from
 the work item's first entry to the release that ships it.
-check: tests/test_the_changelog_is_gathered_at_release.py tests/github/test_gather_changelog.py
+check: tests/text/test_the_changelog_is_gathered_at_release.py tests/github/test_gather_changelog.py
 
 ## A commit after the build brings its changelog fragment along
 
@@ -116,7 +116,7 @@ and what it wrote is reviewed at its pull request. What it leaves already has a 
 git history, so it keeps no log of its own. Were it a work item, each settle
 would leave a directory for the next one to remove, and settling would never
 end; `skills/settle/SKILL.md` *A settle is not a work item* is the procedure.
-check: tests/test_settle_reads_before_it_removes.py
+check: tests/text/test_settle_reads_before_it_removes.py
 
 **A population floor over the records is replaced, never lowered.** A check
 asserting that a sweep of `seal/threads/` read *enough* — `len(records) > 200` —
@@ -128,19 +128,19 @@ longer exercises moves to a record built in `tmp_path`. A repair is green
 before the fold and after it; one green only once the directories are gone is
 a lowering. `skills/settle/SKILL.md` *Answer every check that reads the
 corpus* gives the three answers.
-check: tests/test_settle_reads_before_it_removes.py
+check: tests/text/test_settle_reads_before_it_removes.py
 
 **A document with a `.ko.md` edition changes with it, heading for heading.**
 The two editions are prose in two languages, so the check compares what is
 language-neutral: the sequence of heading levels. Whether a Korean paragraph
 says what its English one says is review's to read. `CONTRIBUTING.md` *House
 rules* owns the rule.
-check: tests/test_both_editions_carry_the_same_folds.py
+check: tests/behaviour/test_both_editions_carry_the_same_folds.py
 
 **Whether a line is live is asked by what the line does, and the four
 readers that ask it give three answers.** These are all four readers, grouped
 by the kind of line they read, with the cost each answer is chosen against.
-check: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py tests/hooks/test_routing.py
+check: tests/behaviour/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py tests/hooks/test_routing.py
 
 - **A line that HOLDS something — a claim or an anchor — is read on
   doubt.** The coordinate kernel's `quoted_lines`, which its `unquoted` and
@@ -149,7 +149,7 @@ check: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py tests
   read. What this protects is that a claim never leaves a record in silence.
   The wrong answer is loud instead: `BROKEN`, a refused name or exit 2, and a
   person answers it with an edit or a marker.
-  check: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py
+  check: tests/behaviour/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py
 - **A line that EXCUSES or DECLARES something — a changelog marker, a
   `seal/config.md` row, a `routing.md` row — is not taken on doubt, except
   where a declaring reader keeps an older reading that took it.**
@@ -169,7 +169,7 @@ check: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py tests
   what this protects is that nothing is excused or declared by a line
   nobody wrote live. The wrong answer is a statement left unbound, a hook
   that says nothing, or a gate that asks.
-  check: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py
+  check: tests/behaviour/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py
 - **A line a record's rows are COUNTED on is blanked the same way on both
   sides of a comparison.** `unverified_check.py#readable` blanks fenced lines
   with the indices intact, and a fence nobody closed to the end of the file.
@@ -178,7 +178,7 @@ check: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py tests
   tree and the base revision count the same
   table, and the readers that judge a record refuse a hidden table as absent
   rather than read it as empty.
-  check: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py
+  check: tests/behaviour/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py
 
 No one rule serves all three kinds. The holding bias would let a changelog
 marker quoted in an example stand for an entry nobody gathered, and the excusing bias
@@ -292,7 +292,7 @@ grammar asks for and the foot line, and nothing else. The guidance for
 writing the record is in the skill or agent definition its writer reads,
 stated there once. A comment copied into every record is a second copy of
 that guidance, and every reader of the record has to model it.
-check: tests/test_a_record_carries_no_comment.py
+check: tests/text/test_a_record_carries_no_comment.py
 
 **A record holds a fence only around a finding's paste-ready fix, and a
 labelled line a check reads stands outside every fence, at the start of its
@@ -333,7 +333,7 @@ index keeps the same line above the link to the file, because the update
 skill an installed copy already carries checks that an update landed by the
 first `## ` line of `CHANGELOG.md`. The GitHub Release reads the release's
 own file.
-check: tests/test_the_changelog_is_gathered_at_release.py tests/github/test_gather_changelog.py
+check: tests/text/test_the_changelog_is_gathered_at_release.py tests/github/test_gather_changelog.py
 
 **A `CLAUDE.md` row that points at a home carries three things: the home's
 path and section, the moment a session needs the rule, and the act in one
@@ -342,4 +342,4 @@ table, reasoning or history. Only the home's sentences are pinned, so a stale
 value in a row is a reviewer's finding. No two rule documents may share more
 15-word runs than their pair was measured at, which does not see a rule
 restated in fresh words.
-check: tests/test_the_rules_claude_md_names_have_one_home.py tests/test_no_passage_is_pasted_into_a_second_file.py
+check: tests/text/test_the_rules_claude_md_names_have_one_home.py tests/text/test_no_passage_is_pasted_into_a_second_file.py

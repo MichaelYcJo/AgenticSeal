@@ -1,6 +1,6 @@
 """`skills/verify/scripts/unverified_check.py`, one class per function.
 
-Rebuilt by #942's phase 5 from `tests/test_unverified_rows_close.py`. The
+Rebuilt by #942's phase 5 from `tests/behaviour/test_unverified_rows_close.py`. The
 script reads every `## Not verified` section, reports what is still open,
 fails on a section it cannot read, and under `--baseline` fails on a row or
 a record that left since the merge base, unless a settle removed it.

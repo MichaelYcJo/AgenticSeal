@@ -15,11 +15,11 @@ written for. The real #162 body is not a fixture: it carries a session URL
 on a domain outside this repository's fixture allowlist.
 
 #942's phase 6 placed these cases from
-`tests/test_a_body_naming_two_issues_claims_one.py`, which keeps the cases
+`tests/behaviour/test_a_body_naming_two_issues_claims_one.py`, which keeps the cases
 that read the issues document, the hygiene workflow and its template. Its
 round 9 fix pass placed in `Test_module` the body cut after a U+2028,
 `segments`' one case, from
-`tests/test_every_reader_ends_a_line_where_gfm_does.py`, a case of this module
+`tests/behaviour/test_every_reader_ends_a_line_where_gfm_does.py`, a case of this module
 alone.
 """
 

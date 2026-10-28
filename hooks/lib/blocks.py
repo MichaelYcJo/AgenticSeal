@@ -71,7 +71,7 @@ it cannot be exact there:
 U+2028, NEL, a form feed and five more characters; `walk_text` walks the
 file's own lines and answers for each reader line by the line it starts in.
 
-`tests/test_the_hooks_hide_what_a_renderer_hides.py` holds this to a
+`tests/behaviour/test_the_hooks_hide_what_a_renderer_hides.py` holds this to a
 CommonMark parser that shares nothing with it: on every line the walk does
 not call uncertain, over the frame's shapes and a seeded generated corpus,
 the walk and the parser agree. A context is taken off the list above only

@@ -1,0 +1,1016 @@
+"""Six words read more than one way across these documents.
+
+Each was found at a coordinate where the reader cannot tell which meaning is
+intended, and a rewrite that leaves the ambiguity is not a fix. So each word
+gets ONE meaning and every coordinate is brought to it — a case per word,
+asserting the pinned phrasing AND the absence of the loose one.
+
+The absence half is what makes these cases worth having. A document can gain
+the corrected sentence and keep the old one two paragraphs down, which is how
+two answers ship at once.
+
+`skills/code-review/SKILL.md` holds the second half of "the start" and of
+"the cycle". It belongs to another branch and is deferred rather than
+half-edited; the rows naming it are in this work item's overview.
+"""
+
+import ast
+import os
+import re
+import subprocess
+
+from conftest import ROOT, on_disk, read, review_chain_text
+
+# Python joins adjacent string literals at parse time and a flattened read of
+# the source does not, so a phrase split across two of them reads
+# `... the " "seal ...` here and the sweeps below go straight past it. That is
+# the shape the output assertion at
+# `tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py` used to catch, and the
+# reason deleting it was NOT coverage-neutral: round 1 of
+# `1789455558-the-record-chain-disagrees-with-itself-in-five-places` kept the
+# pinned spelling, added a second anonymous instance across two literals, and
+# both modules stayed green with an anonymous seal in the refusal a person
+# reads.
+#
+# Folding the seam here keeps ONE implementation of the rule reading two kinds
+# of input, which is what that work item's alternatives table rejected a second
+# check in favour of. **The error direction is safe for the phrases these
+# sweeps look for, and that is narrower than "can only create a hit"** (round
+# 2's ⬜ 2): the prefix class sits BETWEEN the two quotes, so a literal whose
+# whole content is one or two of those letters is DELETED rather than joined --
+# `seal_stamp.py` loses its `GOLD` key `"R"`, `test_session_cost.py` loses
+# `call("b", ...)`, and `open(p, "rb")` becomes `open(p, )`. A deletion can
+# only ever join its neighbours, so it cuts a phrase in half only where the
+# phrase itself contains a foldable seam -- and none of the phrases these
+# sweeps look for does. An apostrophe inside one is not a seam: the pattern
+# needs the SAME quote twice with nothing but whitespace and prefix letters
+# between, which is why `orchestrator's segments` is safe. That is what
+# `test_folding_the_seam_cannot_hide_an_instance_it_would_have_found` asserts
+# over the whole phrase set rather than over examples.
+#
+# Two shapes the fold does NOT reach, for the same reason it is cheap: a seam
+# between literals of DIFFERENT quote characters, which `\1` refuses, and a
+# seam where both literals carry the space, which Python itself joins to a
+# double space. Applied to `.py` members only, because a markdown file has no
+# literals to join and a fold there would cut through quoted shell commands.
+LITERAL_SEAM = re.compile(r"([\"'])\s*(?:[fFrRbBuU]{0,2})\1")
+
+
+def flat(*parts):
+    text = " ".join(read(*parts).split())
+    return LITERAL_SEAM.sub("", text) if parts[-1].endswith(".py") else text
+
+
+# --- "the start" — the moment before the first edit of a work item ----------
+
+
+def test_the_start_is_the_moment_before_the_first_edit():
+    """Not the start of a round, and not the start of a session. A round does
+    not restart it and a resumed session does not restart it. The crafter's
+    copy left with its design-gate narration (#967): it is spawned after
+    that moment and names no start of its own."""
+    for parts in (
+        ("skills", "implement", "SKILL.md"),
+        ("CLAUDE.md",),
+    ):
+        assert "before the first edit" in flat(*parts), "/".join(parts)
+
+
+# --- "once" — every one of them states its grain ----------------------------
+
+
+GRAINS = {
+    "mode-gate": "once per session per repo",
+    "review-skill-gate": "once per session per working tree",
+    "worktree-guard": "once per session per repository per direction",
+}
+
+
+def test_every_once_in_the_readme_states_its_grain():
+    """Four different grains were all spelled `once`. One session legitimately
+    meets the worktree question twice, and the README read as a bug report."""
+    en = flat("README.md")
+    for grain in GRAINS.values():
+        assert grain.lower() in en.lower(), grain
+    assert "Fires once per session," not in en, (
+        "a bare `once per session` cannot say which of four grains it means"
+    )
+
+
+def test_the_korean_readme_states_the_same_grains():
+    ko = flat("README.ko.md")
+    for grain in (
+        "세션·레포당 한 번",
+        "세션·작업트리당 한 번",
+        "세션·레포·방향당 한 번",
+    ):
+        assert grain in ko, grain
+
+
+def test_the_worktree_spec_is_still_the_model():
+    """It already stated its grain correctly, and the others were brought to
+    it rather than the other way round."""
+    spec = flat("docs", "worktree-guard-spec.md").lower()
+    assert "once per session per direction" in spec
+
+
+# --- "asks" — the model is instructed, the user gets buttons ----------------
+
+
+def test_the_refusal_is_named_by_who_it_addresses():
+    spec = flat("docs", "the-routing-check.md")
+    assert "A refusal is a deny addressed to the model" in spec
+    assert "tells the model to put the routing question to the person" in spec
+
+
+# --- "the cycle" — the mark's unit, never the whole run ---------------------
+
+
+def test_the_bound_is_on_the_review_run_and_never_on_the_cycle():
+    assert "## The cycle has a bound" not in review_chain_text(ROOT), (
+        "the bound is on the review run; stated on the cycle it reads as a "
+        "bound on commits"
+    )
+
+
+def test_the_crafter_calls_the_whole_thing_a_review_run():
+    crafter = flat("agents", "crafter.md")
+    assert "bounded as `docs/the-review-record.md` *The run* states" in crafter
+    assert "the cycle is bounded" not in crafter
+
+
+# --- "needs no marker at all" — the one the change resolves -----------------
+
+
+def test_the_row_that_could_not_be_true_is_corrected_not_reworded():
+    """It was true only after the first review mark landed, and false for
+    every commit before it — the defect in #52 stated as a sentence.
+
+    The narrated correction beside the routing section left with #940:
+    history goes to git and the changelog, and the section states the rule
+    that holds, that the declaration quiets the review arm for either
+    answer. What stays pinned is that the old row is in neither file."""
+    skill = read("skills", "implement", "SKILL.md")
+    orchestration = read("skills", "implement", "orchestration.md")
+    for text in (skill, orchestration):
+        assert "| Through the review chain | it needs no marker at all" not in text
+    assert "for **either** review answer" in orchestration, (
+        "the routing section stopped saying the declaration quiets the review "
+        "arm whichever reviewer it names"
+    )
+
+
+# --- "the seal" — an instance names whose; the concept stays bare -----------
+
+# The word reached three referents at once. `agents/proofer.md` opened *You
+# keep the seal* about the review mark under the git dir, `agents/sealer.md`
+# opens *You take the seal* about the broad gate's stamp, and `README.md`
+# said *the proofer's audit of the seal* about a third thing again — two of
+# them in files a reader opens together.
+#
+# The rule that resolves it is that a reference to an instance names whose.
+# Since #967 the third referent is gone: an agent's hand-back carries its
+# claims under the three labels, and the one seal is the sealer's.
+SEAL_OWNER = ("skills", "verify", "SKILL.md")
+SEAL_RULE = (
+    "## The hand-back's labels carry the claims, and the one seal is the sealer's"
+)
+
+# Files that instruct somebody, swept below. A record of what was true when
+# it was written is not brought to a new wording, so `seal/` is not here.
+SEAL_SWEPT = (
+    ("agents", "sealer.md"),
+    ("agents", "proofer.md"),
+    ("agents", "crafter.md"),
+    # The fifth definition (#84). It instructs somebody, which is the whole
+    # membership test for this list, and it lands in a release that puts a
+    # new agent name beside four others, two of which own a seal of their
+    # own. A definition joining the tree with no entry here is round 1's
+    # 🟡 10 again: the list closed where somebody had already looked.
+    ("agents", "framer.md"),
+    ("skills", "verify", "SKILL.md"),
+    ("skills", "verify", "orchestration.md"),
+    ("skills", "code-review", "orchestration.md"),
+    ("skills", "code-review", "SKILL.md"),
+    ("skills", "implement", "SKILL.md"),
+    ("templates", "setup", "config.md"),
+    # The review run's documents. `docs/the-review-record.md` replaced the
+    # three that carried the record in 0.22.0 (#923).
+    ("docs", "the-review-record.md"),
+    ("docs", "the-session-hooks.md"),
+    ("docs", "the-routing-check.md"),
+    ("docs", "the-review-and-parity-arms.md"),
+    ("CONTRIBUTING.md",),
+    ("README.md",),
+    # Added by round 1's 🟡 10, which found a FOURTH referent here — the
+    # evidence ledger called `the seal itself`. The list was closed where
+    # somebody had looked, which is the same shape as that round's 🟡 7 and
+    # 🟡 8. The three below are what a sweep of the shipped tree turned up
+    # once the list stopped being the boundary of the search.
+    ("docs", "one-root-by-lifetime.md"),
+    ("skills", "verify", "scripts", "seal_stamp.py"),
+    # The message a session reads when the `Broad gate` row is absent says
+    # what the sealer's seal covers, and said it ownerless until #402's
+    # round 1 — in the one script under `skills/verify/scripts/` the list
+    # still omitted, beside the two it had already been extended to reach.
+    # Third time the list was closed where somebody had looked, which is why
+    # the file goes in rather than the sentence alone being repaired.
+    ("skills", "verify", "scripts", "broad_gate.py"),
+    # #975 moved the stamp from the broad gate's run to the sealer's verdict.
+    # The files that draw it, queue it and run the gate it left say whose
+    # stamp it is, so they are swept too.
+    ("hooks", "sealer-stamp.py"),
+    ("hooks", "dispatch.py"),
+    ("bin", "seal"),
+    ("docs", "the-broad-gate.md"),
+    # The page that keeps the emblems the stamp has carried. Nothing read it
+    # when #975 moved the stamp, so it still called each emblem the broad
+    # gate's and cited the section #975 removed, and the sealer's guarantee
+    # at f2f7b6d5 read `withheld` on it.
+    ("assets", "seals", "README.md"),
+)
+
+# The two places that DISCUSS the word rather than use it: the rule's own
+# section quotes the loose shape in order to forbid it, and the naming table
+# quotes `"the seal"` as the product's vocabulary. Both are excluded by the
+# sweep below, and each exclusion names the span it removes rather than the
+# file, so a bare instance elsewhere in either file is still caught.
+SEAL_EXCLUDED = (
+    (SEAL_OWNER, SEAL_RULE),
+    (("docs", "one-root-by-lifetime.md"), "## Naming"),
+)
+
+# The phrase the sweep below searches for, written once and read twice —
+# here by the sweep and by
+# `test_folding_the_seam_cannot_hide_an_instance_it_would_have_found`, which
+# has to hold the property for every phrase either sweep looks for (#418).
+#
+# THE RISK THIS CARRIES, since a constant is the thing that makes it possible
+# (`questions.md` Q3): a later session that adds a phrase to a sweep by
+# writing the literal into the case body instead of here leaves the seam case
+# covering a set that is no longer the sweep's — this work item's own failure,
+# one level up. What stands against it is the folded-member assertion in that
+# case, which goes red whenever the set of members the fold reaches moves; a
+# check that read the case bodies to find out what they search for would be
+# the derivation #418 refuses in its own *Not this*, so the risk is written
+# down rather than mechanised.
+SEAL_BARE = "the seal"
+
+# What may follow a bare `the seal`: the concept, its formats, and the one
+# sentence that names the referent in the same clause. Everything else is an
+# instance with nobody's name on it.
+SEAL_BARE_IS_THE_CONCEPT = (
+    " Test",  # the Seal Test
+    " is a different mark and a different agent's",  # the proofer's link
+)
+
+
+def test_the_owner_states_that_one_seal_is_final():
+    """The rule the three referents were missing. It is stated once, by the
+    file that holds the Seal Test, and the sealer's definition links to it
+    rather than restating it — `tests/text/test_the_rules_have_one_owner.py` is
+    what holds that pairing."""
+    owner = flat(*SEAL_OWNER)
+    assert (
+        "The hand-back's labels carry the claims, and the one seal over the "
+        "whole project is the sealer's `guarantee.md`."
+    ) in owner
+    assert "every reference to an INSTANCE names whose" in owner
+    assert "The concept and its formats stay bare" in owner
+
+
+def test_the_two_definitions_name_what_they_actually_keep():
+    """`agents/proofer.md` once called the review mark under the git dir, the
+    mark that a review happened, the seal. #1027 removed the mark with the commit
+    gate that read it; the proofer names neither, and claims no seal."""
+    proofer = flat("agents", "proofer.md")
+    assert "-reviewed" not in proofer
+    assert "You keep the seal:" not in proofer, (
+        "the opening claims a word the sealer's definition claims two files "
+        "over, and a reader opens them together"
+    )
+    sealer = flat("agents", "sealer.md")
+    assert "You take the last seal" in sealer
+    assert "You take the seal." not in sealer
+
+
+def test_the_readme_says_what_the_proofer_audits():
+    """The shape to look for: a sentence naming one party and leaving the
+    audited thing anonymous. It was the crafter's proof block, three bullets
+    from one describing the `Broad gate` cell; since #967 the crafter carries
+    no seal, and what the proofer audits is the labels on its hand-back."""
+    readme = flat("README.md")
+    assert "the proofer's audit of the crafter's labels" in readme
+    assert "the proofer's audit of the seal," not in readme
+
+
+def test_no_instructing_document_leaves_an_instance_anonymous():
+    """The absence half, swept rather than listed.
+
+    A document can gain the corrected sentence and keep the old one two
+    paragraphs down, and a rule about a word that appears this often cannot
+    be held by naming the coordinates a reader happened to find. So every
+    bare `the seal` in a file that instructs somebody has to be the concept
+    or one of its formats; anything else names an instance and has to say
+    whose.
+
+    The owner's own rule section is excluded, and that exclusion is the
+    reason this sweep is possible at all: that section quotes the loose
+    shape in order to forbid it, which is the one place the bare phrase is
+    doing its job."""
+    for parts in SEAL_SWEPT:
+        # Flattened, so a suffix that happens to straddle a line wrap is
+        # still read as the phrase it is.
+        text = flat(*parts)
+        for excluded, span in SEAL_EXCLUDED:
+            if parts != excluded:
+                continue
+            head, _, rest = text.partition(span)
+            # `partition(" ## ")[2]` is "" when the named section is the LAST
+            # `##` in its file, which silently drops everything from that
+            # heading to the end of the file out of the sweep. Asserted
+            # rather than relied on, so the day a span moves to the end of a
+            # file the case says so instead of going quietly green.
+            _before, marker, after = rest.partition(" ## ")
+            assert marker, (
+                f"{'/'.join(parts)}: the excluded span `{span}` is the last "
+                "`##` in the file, so this exclusion now removes everything "
+                "after it from the sweep"
+            )
+            text = head + marker + after
+        lowered = text.lower()
+        start = 0
+        while (hit := lowered.find(SEAL_BARE, start)) != -1:
+            start = hit + 1
+            after = text[hit + len(SEAL_BARE) :]
+            if after[:1].isalpha():  # the sealer, the sealed tree
+                continue
+            assert after.startswith(SEAL_BARE_IS_THE_CONCEPT), (
+                f"{'/'.join(parts)} says `the seal` and leaves the instance "
+                f"anonymous: ...{' '.join(text[hit - 60 : hit + 60].split())}..."
+            )
+
+
+# --- "sealed" — the sealer's verdict, never the broad gate's line ----------
+
+# #975, the owner's rule of 2026-10-18: the word `sealed` is the sealer's
+# verdict in `guarantee.md` and nothing else's. The broad gate runs before the
+# sealer is spawned and judges nothing, so its pass line reads `BROAD GATE
+# PASSED` and its failure line `BROAD GATE FAILED`, and a reader who met
+# `SEALED` on a green suite took the suite for the sealer's verdict (#967's
+# run). The gate's own files are held to never saying it.
+GATE_SWEPT = (
+    ("skills", "verify", "scripts", "broad_gate.py"),
+    ("docs", "the-broad-gate.md"),
+)
+
+# The token, and every phrase the gate's files used for a run that passed.
+# Case-sensitive for the token, which is what a reader sees as the verdict;
+# the phrases are matched in any case.
+GATE_TOKEN = re.compile(r"\bSEALED\b")
+GATE_PHRASES = (
+    "not sealed",
+    "a sealed run",
+    "the sealed run",
+    "a recorded seal",
+    "seals nothing",
+    "nothing is sealed",
+    "is sealed",
+    "was sealed",
+    # The coverage line on stderr said what `this seal answers` of CI's
+    # steps; it says `this run` since #975.
+    "this seal",
+)
+
+
+def test_the_gate_never_says_sealed():
+    """#975 S1. Neither the token nor a phrase that calls a passing run
+    sealed is left in the gate's files, so no line the gate prints and no
+    sentence describing it gives the sealer's word to a test run."""
+    for parts in GATE_SWEPT:
+        text = flat(*parts)
+        found = GATE_TOKEN.search(text)
+        assert found is None, (
+            f"{'/'.join(parts)} says `SEALED`: "
+            f"...{text[max(found.start() - 60, 0) : found.end() + 60]}..."
+        )
+        lowered = text.lower()
+        for phrase in GATE_PHRASES:
+            at = lowered.find(phrase)
+            assert at == -1, (
+                f"{'/'.join(parts)} says `{phrase}`: "
+                f"...{text[max(at - 60, 0) : at + 60]}..."
+            )
+
+
+# Every `seal` word the gate's files may carry is part of a name: a path under
+# the `seal/` root, a script or a command (`seal stamp`, `seal_stamp`,
+# `seal mode`, `seal gate`, `seal.py`, `seal-mark.txt`), the sealer, the chain arm's
+# `--sealing` flag and `chain_check.SEALING`, the verdict word in backticks,
+# the Seal Test, a work item the sealer sealed, and an HTML comment. `questions.md` Q6 (a) keeps the code names and the concept
+# name. A name goes on past its `-`, `_` or `.`, so a `seal.` that closes a
+# sentence is the word and stays refused. `sealed_names` and `CHAIN_SEALING` need no entry: `_` is a word
+# character, so the word below never starts or ends inside them.
+# Anything else calls the gate's own run a seal (#975, `questions.md` Q4).
+GATE_SEAL_NAMES = re.compile(
+    r"<!--[^>]*-->"
+    r"|\bseal/\S*"
+    r'|"seal"'
+    r"|\bseal[-_.]\w[\w.-]*"
+    r"|\bseal (?:mode|gate|stamp)\b"
+    r"|\bsealer\w*"
+    # exempt from old_names: a spelling kept on purpose names the old brand, not the gate's seal
+    r"|specseal\w*"
+    r"|--sealing\b|(?-i:\b\w*SEALING\w*\b)"
+    r"|(?-i:`sealed`)"
+    r"|\bSeal Test\b"
+    r"|\bsealed work item\b",
+    re.I,
+)
+GATE_SEAL_WORD = re.compile(r"\bseal(?:s|ed|ing)?\b", re.I)
+
+
+def test_the_gate_calls_its_run_no_seal_by_construction():
+    """#975 Q4 (a). `GATE_PHRASES` lists the spellings somebody thought of,
+    and "no command to seal over" was not one of them. This reads every line
+    of the gate's files with its names taken out and refuses any `seal` word
+    left, so the next spelling is caught without being listed. The verdict
+    word in backticks is taken out lower-case only, so `` `SEALED` `` is
+    still refused here as well as by the token case above. Red at 56172bbe
+    on 18 lines of `broad_gate.py`."""
+    found = []
+    for parts in GATE_SWEPT:
+        for n, line in enumerate(read(*parts).splitlines(), 1):
+            if GATE_SEAL_WORD.search(GATE_SEAL_NAMES.sub("", line)):
+                found.append(f"{'/'.join(parts)}:{n}: {line.strip()}")
+    assert not found, "\n".join(found)
+
+
+def test_the_gate_sweep_reads_a_seal_that_ends_a_sentence():
+    """#975 round 2. A name joins `seal` to more of the name; `seal.` that
+    closes a sentence is the word, and the sweep refuses it."""
+    for line in ('"the broad run is no seal."', "# a run is not a seal."):
+        assert GATE_SEAL_WORD.search(GATE_SEAL_NAMES.sub("", line)), line
+    for line in ("`seal stamp --from`", "seal_stamp.py", "seal-mark.txt"):
+        assert not GATE_SEAL_WORD.search(GATE_SEAL_NAMES.sub("", line)), line
+
+
+# --- "the stamp" — the sealer's, never the broad gate's --------------------
+
+# #975: the stamp is drawn once per work item from the sealer's `sealed`
+# (`docs/the-review-record.md` *The stamp*), and `docs/the-broad-gate.md`
+# *Where the stamp is drawn* is gone. Read by construction rather than by a
+# list of sentences: the gate, possessive or not, with at most three words
+# before `stamp`, each of which may carry an apostrophe (`gate's stamp`,
+# `gate draws a stamp`, `gate's run draws the stamp`, `gate's run's stamp`,
+# `gate stamps`); the passive `stamp drawn by` or `from the gate`; and the
+# removed section's name. `The broad gate draws nothing` stays allowed, which
+# is what `skills/verify/SKILL.md` and `seal_stamp.py` say since #975. `The
+# gate draws no stamp` would be refused, and no swept file says it.
+STAMP_GIVEN_TO_THE_GATE = re.compile(
+    r"\bgate(?:'s)?(?:\s+[\w']+){0,3}\s+stamps?\b"
+    r"|\bstamps?\s+(?:is\s+|was\s+)?drawn\s+(?:by|from)\s+"
+    r"the\s+(?:broad[\s-])?gate"
+    r"|Where the stamp is drawn",
+    re.I,
+)
+
+
+def test_no_instructing_document_gives_the_stamp_to_the_broad_gate():
+    """#975 item 4, and the sealer's `withheld` at f2f7b6d5. Every file
+    `SEAL_SWEPT` reads says the stamp is the sealer's: none calls it the broad
+    gate's, says the gate draws one, or cites the section #975 removed. Red on
+    `assets/seals/README.md` as f2f7b6d5 carries it, at its heading and its
+    first paragraph."""
+    found = []
+    for parts in SEAL_SWEPT:
+        text = flat(*parts)
+        for hit in STAMP_GIVEN_TO_THE_GATE.finditer(text):
+            found.append(
+                f"{'/'.join(parts)}: ...{text[max(hit.start() - 60, 0) : hit.end() + 60]}..."
+            )
+    assert not found, "\n".join(found)
+
+
+def test_the_stamp_sweep_reads_the_gates_run_and_the_passive():
+    """#975 round 9, finding 1. The first pattern allowed two words between
+    `gate` and `stamp`, so the phrase #975's documents use for the old drawer,
+    `the broad gate's run`, went past it, and so did the passive order. Red
+    with the two-word window: the first six sentences below pass it.
+    `the stamp the broad gate draws` still passes the wider pattern, and no
+    swept file says it."""
+    given_to_the_gate = (
+        "the broad gate's run draws the stamp",
+        "the broad gate's run drew the stamp",
+        "the broad gate's run's stamp",
+        "a stamp drawn by the broad gate",
+        "the stamp is drawn from the broad gate's run",
+        "a stamp drawn from the broad gate run",
+        "The broad gate draws a stamp",
+        "the broad gate's stamp",
+        "the broad gate draws its stamp",
+        "the broad gate stamps the tree",
+    )
+    for sentence in given_to_the_gate:
+        assert STAMP_GIVEN_TO_THE_GATE.search(sentence), sentence
+    true_sentences = (
+        "The broad gate draws nothing",
+        "the broad gate's run drew it when the run passed",
+        "The stamp is the sealer's.",
+    )
+    for sentence in true_sentences:
+        assert not STAMP_GIVEN_TO_THE_GATE.search(sentence), sentence
+
+
+# --- "segment" — one agent's stretch of a chain, never a spawn cycle -------
+
+# The seventh word, and the one this repository's own measurement vocabulary
+# rests on: the per-segment bars in `docs/the-review-record.md`,
+# `skills/verify/orchestration.md` *Measure the segment*, and the flow log all read
+# `segment` as one agent's own stretch of a chain.
+#
+# Naming a report mode `--segments` beside `--spawns` is what put a second
+# job within reach of it (#350). The two answer different questions:
+# `--spawns` slices the orchestrator's OWN transcript into bands over its own
+# minutes, and `--segments` opens the OTHER transcripts, one row per agent
+# the run spawned. Three shipped files said *an orchestrator's segments are
+# spawn cycles*, which under the new flag reads as the first mode printing
+# what the second one prints.
+#
+# The word was load-bearing before this work started, which is why the mode's
+# name is paid for here rather than assumed.
+SEGMENT_OWNER = ("skills", "verify", "orchestration.md")
+
+# The files that carried the loose sentence, all three of them shipped and
+# all three read together by anyone working on the meter. Records are not
+# brought to a new wording — `seal/` and the changelog hold what was true
+# when they were written — which is the same boundary the seal sweep draws.
+SEGMENT_SWEPT = (
+    ("skills", "verify", "SKILL.md"),
+    ("skills", "verify", "orchestration.md"),
+    ("skills", "verify", "scripts", "session_cost.py"),
+    ("tests", "skills", "test_session_cost.py"),
+)
+
+# The two spellings the sweep below searches for, each with what it gets
+# wrong, written once and read twice — here and by the seam case, on the same
+# terms as `SEAL_BARE` above and carrying the same risk (`questions.md` Q3).
+SEGMENT_LOOSE = {
+    "segments are spawn cycles": (
+        "equates a spawn cycle with a segment, which is what `--segments` "
+        "beside `--spawns` makes unreadable"
+    ),
+    "orchestrator's segments": (
+        "gives the orchestrator several segments. It has one — its own "
+        "transcript — and spawn cycles inside it"
+    ),
+}
+
+
+def test_the_owner_states_what_a_segment_is_and_what_it_is_not():
+    """Stated once, by the section whose own name is the word, and the other
+    two files are brought to it rather than each carrying a copy."""
+    owner = flat(*SEGMENT_OWNER)
+    assert (
+        "A segment is one agent's own stretch of a chain, and a spawn cycle "
+        "is not one." in owner
+    )
+    assert "never segments in their own right" in owner, (
+        "the rule says what a segment IS and leaves the cycle's status to be "
+        "inferred, which is the half that was being read wrong"
+    )
+
+
+def test_no_shipped_document_calls_a_spawn_cycle_a_segment():
+    """The absence half, which is what makes these cases worth having.
+
+    A document can gain the corrected sentence and keep the old one two
+    paragraphs down. Both spellings are swept: the possessive that made the
+    cycles the orchestrator's segments, and the bare equation."""
+    for parts in SEGMENT_SWEPT:
+        text = flat(*parts)
+        for loose, why in SEGMENT_LOOSE.items():
+            assert loose not in text, f"{'/'.join(parts)} {why}"
+
+
+# --- the sweep reads across a string-literal seam (round 1's 🟡 2) -----------
+
+
+def test_the_sweep_reads_across_a_string_literal_seam():
+    """The shape the deleted output pin caught and the file sweep did not.
+
+    `round_record.py` built every refusal out of wrapped literals and where
+    the wrap fell was decided by line length, so an anonymous instance
+    straddling a seam is an ordinary edit rather than an exotic one. Round 1
+    measured it: the pinned spelling kept, a second anonymous instance added
+    across two literals, 86 passed in both modules, and the refusal a person
+    reads carried a bare `the seal`.
+
+    Red before the seam fold: the flattened source reads `... the " "seal ...`
+    and the sweep's `in` test returns False.
+    """
+    seamed = ' "Spawn the verifying round first, so the " "seal covers it; " '
+    assert "the seal" in LITERAL_SEAM.sub("", " ".join(seamed.split())).lower()
+
+
+def test_folding_the_seam_cannot_hide_an_instance_it_would_have_found():
+    """The error direction, asserted over the whole phrase set rather than
+    over examples (round 2's ⬜ 2).
+
+    The fold does not only join — the prefix class sits between the quotes, so
+    a literal whose whole content is one or two of those letters is DELETED.
+    `open(p, "rb")` becomes `open(p, )`. That is still safe for these sweeps,
+    but for a narrower reason than *it can only create a hit*: a deletion
+    joins its neighbours, so it can cut a phrase in half only where the phrase
+    itself contains a foldable seam. **No phrase these sweeps look for does**,
+    and that is the property asserted here — it holds for a set that grows,
+    where three examples hold only for themselves.
+
+    An apostrophe inside a phrase is not a seam: the pattern needs the SAME
+    quote twice with nothing but whitespace and prefix letters between, which
+    is why `orchestrator's segments` is safe and is in the set below.
+
+    #418: three of the set's four sources used to be hand-copied literals, so
+    a phrase joining either sweep was checked by nothing — measured, with a
+    third foldable spelling added to the segment sweep and the case still
+    green. The set is now every phrase either sweep searches for, read from
+    the constants the sweeps themselves read.
+
+    WHY THE PHRASES BELOW ARE THE WHOLE OF WHAT IS AT RISK, which is a fact
+    about the MEMBER lists rather than about the phrases: `flat` folds the
+    seam for `.py` members only, and the `.py` members of the three sweeps
+    are pinned below. Every other phrase these sweeps look for is searched in
+    a markdown member, where the fold never runs at all. That makes this a
+    closed set and not a short list of examples — and because the closure
+    rests on the member lists, it stops holding the moment a `.py` member
+    joins a sweep. So the members are pinned below too. #975 added the third
+    sweep, `GATE_PHRASES` over `GATE_SWEPT`, and three hooks to `SEAL_SWEPT`;
+    #1027 took one of them, `hooks/commitgate.py`, out with the file.
+
+    WHAT THIS CASE STILL CANNOT SEE: whether a phrase was added to a sweep
+    without going through the constants. See `SEAL_BARE`'s comment for why
+    that is written down rather than checked.
+    """
+    # MEMBERSHIP, not order. The closure is about WHICH members the fold
+    # reaches, and two entries of `SEAL_SWEPT` swapped in place change none of
+    # it — under a tuple comparison that reorder went red (measured by round 1)
+    # with a message saying the set had moved when it had not. Phase 1 refused
+    # exactly this brittleness for the `&` row, and the same argument reaches
+    # here: a case that reddens for a reason unrelated to its subject teaches a
+    # reader to stop believing it.
+    folded = {
+        "/".join(parts)
+        for parts in (*SEAL_SWEPT, *SEGMENT_SWEPT, *GATE_SWEPT)
+        if parts[-1].endswith(".py")
+    }
+    assert folded == {
+        "skills/verify/scripts/seal_stamp.py",
+        "skills/verify/scripts/broad_gate.py",
+        "skills/verify/scripts/session_cost.py",
+        "tests/skills/test_session_cost.py",
+        "hooks/sealer-stamp.py",
+        "hooks/dispatch.py",
+    }, (
+        "the set of members `flat` folds has moved, so the closure this case "
+        "rests on has to be re-taken: every phrase the sweep over "
+        f"{sorted(folded)} looks for belongs in the set below, and the "
+        "docstring's count has to be brought to the new list"
+    )
+    swept = (
+        SEAL_BARE,
+        *SEAL_BARE_IS_THE_CONCEPT,
+        *SEGMENT_LOOSE,
+        *GATE_PHRASES,
+        # The stamp sweep's pattern carries two apostrophes and no other
+        # quote, with more than blanks and a string prefix between them, so
+        # no seam the fold could delete lies inside what it reads.
+        STAMP_GIVEN_TO_THE_GATE.pattern,
+    )
+    for phrase in swept:
+        assert LITERAL_SEAM.search(phrase) is None, (
+            f"the fold can land inside {phrase!r}, so a deletion could cut "
+            "this phrase in half and the sweep would go past an instance"
+        )
+    # The deletion itself, so the docstring's first claim is not taken on
+    # trust: this is what `open(p, "rb")` does under the fold.
+    assert LITERAL_SEAM.sub("", 'open(p, "rb")') == "open(p, )"
+    # And the join, which is the case the fold exists for.
+    assert "the seal" in LITERAL_SEAM.sub("", '"the " "seal is taken once"')
+
+
+def test_flat_is_what_folds_the_seam_and_it_folds_python_only():
+    """The two cases above call `LITERAL_SEAM.sub` and neither calls `flat`,
+    so nothing in this module held the repair round 1's 🟡 2 asked for.
+    Round 2 measured it: with `flat` back to `" ".join(read(*parts).split())`
+    all seventeen cases here stay green and 🟡 2 is open again with the suite
+    saying nothing — which is #406's hole with a different lid on it, and the
+    third time on this branch that a repair for *a check that cannot fail*
+    was itself held by nothing.
+
+    Red with the fold removed: the first assertion fails, because the source
+    reads `... cannot see. The " "sealer's mark ...`.
+    Red with the `.py` guard dropped: the third fails, because `README.md` is
+    a swept file carrying a shell command whose two quoted arguments are not
+    a seam and would be cut together.
+    """
+    joined = "never read it, and there is no command to run"
+    assert joined in flat("skills", "verify", "scripts", "broad_gate.py"), (
+        "`flat` no longer reads across a string-literal seam, so the sweep "
+        "below is blind to an instance split over two literals again"
+    )
+    # The fixture, asserted: this pins that the seam is really there, so the
+    # case cannot go on passing against a source somebody has rewrapped.
+    assert joined not in " ".join(
+        read("skills", "verify", "scripts", "broad_gate.py").split()
+    ), "the seam this pins has been rewrapped; point it at another one"
+    assert '--git-common-dir)/seal" "$(git' in flat("README.md"), (
+        "`flat` folded a markdown file, which has no literals to join — the "
+        "cut lands inside a shell command a reader copies"
+    )
+
+
+# --- "pact" and "signer" — the owner's two words (#647, #822) ---------------
+#
+# Named by the owner on 2026-10-03: the PACT is the one copy of what several
+# repositories keep together, every repository of such a work item is a
+# SIGNER, the one holding the pact included, and that one has no noun of its
+# own -- it is "the pact's repository". The thread that designed it used three
+# working words for the same things, and none of them ships. The second word
+# was renamed on 2026-10-06 (#822), and the word it replaced ships nowhere but
+# in the two spans `PACT_RENAMED_SPANS` names.
+
+PACT_SWEPT = (
+    ("templates", "setup", "pact.md"),
+    ("docs", "the-pact.md"),
+)
+# The two sections that carry the words inside larger documents, read alone.
+PACT_SECTIONS = (
+    (
+        ("skills", "implement", "orchestration.md"),
+        "### A work item that commits in more than one repository",
+    ),
+    # Round 1's white 11: the words ship here too.
+    (("templates", "setup", "config.md"), "## Pact"),
+)
+# Files where only the lines naming a pact are the pact's text: the cheat
+# sheets' row and the config skill's rows and bullet.
+PACT_LINES = (("README.md",), ("README.ko.md",), ("skills", "config", "SKILL.md"))
+# The sentences a person is printed: every string constant of `seal pact`.
+PACT_PRINTED = (
+    (("skills", "verify", "scripts", "pact_check.py"), None),
+    # The refusals both commands print are written in `hooks/lib/config.py`
+    # (round 2 of #647, white 15).
+    (("hooks", "lib", "config.py"), "pact_declaration"),
+    (("hooks", "lib", "config.py"), "remote_entries"),
+    (("hooks", "lib", "config.py"), "pact_signers"),
+    (("hooks", "lib", "config.py"), "_stops_at"),
+    # The walker every pact table is read through, and the words the
+    # `Signer` table's refusals are put in (#647).
+    (("hooks", "lib", "config.py"), "gfm_table"),
+    (("hooks", "lib", "config.py"), "_signer"),
+    # The sentence both commands print where a file is headed the old way
+    # (#822); one of `PACT_RENAMED_SPANS` below.
+    (("hooks", "lib", "config.py"), "renamed_header"),
+    # The refusal of a file holding both headers (round 1 of #822, yellow 1).
+    (("hooks", "lib", "config.py"), "read_table"),
+)
+# The thread's working words, and the noun the owner withheld from the
+# repository holding the pact: each would give one thing a second name.
+PACT_LOOSE = re.compile(
+    r"\b(?:home|member|keeper)s?\b|\bpact repo(?:sitory|sitories|s)?\b",
+    re.IGNORECASE,
+)
+
+
+def pact_texts():
+    out = [("/".join(parts), flat(*parts)) for parts in PACT_SWEPT]
+    for parts, heading in PACT_SECTIONS:
+        text = flat(*parts)
+        start = text.index(heading)
+        level = heading.split()[0]
+        end = text.find(f" {level} ", start + len(heading))
+        nested = text.find(" ## ", start + len(heading))
+        stops = [i for i in (end, nested) if i != -1]
+        out.append(
+            (f"{'/'.join(parts)} {heading}", text[start : min(stops or [len(text)])])
+        )
+    for parts in PACT_LINES:
+        lines = [ln for ln in read(*parts).splitlines() if "pact" in ln.lower()]
+        assert lines, "/".join(parts)
+        out.append(("/".join(parts), " ".join(" ".join(lines).split())))
+    for parts, unit in PACT_PRINTED:
+        tree = ast.parse(read(*parts))
+        if unit is not None:
+            tree = next(
+                node
+                for node in ast.walk(tree)
+                if getattr(node, "name", None) == unit
+                or any(
+                    getattr(t, "id", None) == unit for t in getattr(node, "targets", [])
+                )
+            )
+        strings = [
+            node.value
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Constant) and isinstance(node.value, str)
+        ]
+        assert strings, (parts, unit)
+        out.append((f"{'/'.join(parts)} {unit or ''}", " ".join(strings)))
+    return out
+
+
+def test_the_pacts_words_keep_one_meaning():
+    """The policy states both definitions, and no text carrying the words
+    names either thing a second way."""
+    policy = flat("docs", "the-pact.md")
+    assert (
+        "**The pact is the one copy of what two or more repositories keep "
+        "together, and every repository of such a work item is a signer, "
+        "the one holding the pact included.**"
+    ) in policy
+    assert "it is the pact's repository" in policy
+    for where, text in pact_texts():
+        loose = PACT_LOOSE.findall(text)
+        assert not loose, f"{where} names the pact's things a second way: {loose}"
+
+
+# The word #822 renamed. It is a second name for a signer only where it is
+# used as one, so it is held apart from `PACT_LOOSE`: the two spans below say
+# it in order to keep a 0.18.x header reading, and excluding them from
+# `PACT_LOOSE` as well would leave the working words unswept there.
+# No leading `\b`: an identifier such as `pact_signatories` holds the word
+# after an underscore, which is a word character.
+PACT_RENAMED = re.compile(r"signator(?:y|ies)", re.IGNORECASE)
+# The two places that DISCUSS the old word rather than use it, each named by
+# the span it removes, on the `SEAL_EXCLUDED` precedent: the policy's
+# statement about the old header, from its opening to the end of that
+# statement, and the one unit of `hooks/lib/config.py` that writes the old tuple
+# and the rename sentence (a `PACT_PRINTED` member, read alone).
+PACT_RENAMED_SPANS = {
+    "docs/the-pact.md": "**A pact headed with the word 0.18.x used still reads",
+    "hooks/lib/config.py renamed_header": None,
+}
+
+
+def without_the_policy_span(where, text):
+    """TEXT, as written, flattened with the policy's statement about the old
+    header taken out: from its opening to the end of its paragraph, a
+    heading at the start of a line, or an HTML comment, whichever comes
+    first. The statement is one paragraph, so the exemption ends where the
+    statement does, whatever follows it -- a setext heading's own text and an
+    underline of one character included (round 1 of #822, white 2; round 2,
+    white 6; round 3, white 13; #830). GFM ends that paragraph at every block
+    that may begin directly under its last line, so each of them ends the
+    span: a list item, a block quote, a fence, an HTML block, a footnote
+    definition, a thematic break, a setext underline, and a table, whose
+    header line GFM takes out of the paragraph, so the cut goes before the
+    line over a delimiter row (#831). An ordered list interrupts a paragraph
+    only when it starts at 1, and cmark reads a start number of at most nine
+    digits, so `1.`, `01.` and `000000001)` end the span while `02.` and a
+    ten-digit `0000000001.` stay in the paragraph (round 2 of #831). A lazy
+    continuation line stays inside, and so does a pipe line over a `---` with
+    no pipe in it, which GFM makes part of the statement's setext heading. The
+    delimiter's cell count is not matched against the header's, so the end
+    errs toward sweeping more. The cut is made before flattening, which is
+    what would erase the blank line."""
+    span = PACT_RENAMED_SPANS["docs/the-pact.md"]
+    head, marker, rest = text.partition(span)
+    assert marker, f"{where}: the excluded span `{span}` is gone"
+    end = re.search(
+        r"\n[ \t]*\n"  # a blank line
+        r"|\n {0,3}(?:#{1,6}[ \t\n]"  # an ATX heading
+        r"|(?:[-*+]|0{0,8}1[.)])[ \t]"  # a list item that can interrupt a paragraph
+        r"|>|`{3}|~{3}|<"  # a block quote, a fence, an HTML block
+        r"|\[\^[^\]\n]+\]:"  # a footnote definition
+        r"|(?:[-*_][ \t]*){3,}\n|=+[ \t]*\n|-+[ \t]*\n)"  # a break or an underline
+        r"|\n(?=[^\n]*\n {0,3}(?=[^\n]*\|)[|:\- \t]*-[|:\- \t]*\n)"  # a table's header
+        r"|<" + "!--",
+        rest,
+    )
+    assert end, (
+        f"{where}: the excluded span is the last statement in the file, "
+        "so this exclusion now removes everything after it"
+    )
+    return " ".join((head + " " + rest[end.start() :]).split())
+
+
+def test_no_pact_text_names_a_signer_the_way_0_18_did():
+    """The absence half of #822's rename, swept over every text
+    `pact_texts()` reads, with the two spans that say the old word to keep it
+    reading taken out first. A test file named with it is refused too: the
+    four that were are renamed, and a fifth would be live text again."""
+    seen = set()
+    for where, text in pact_texts():
+        if where in PACT_RENAMED_SPANS:
+            seen.add(where)
+            if PACT_RENAMED_SPANS[where] is None:
+                continue
+            text = without_the_policy_span(where, read("docs", "the-pact.md"))
+        said = PACT_RENAMED.findall(text)
+        assert not said, (
+            f"{where} names a signer the way 0.18.x did: {said} — the word is "
+            "`signer` since 0.19.0 (#822)"
+        )
+    assert seen == set(PACT_RENAMED_SPANS), (
+        "an excluded span is no longer swept at all, so excluding it says "
+        f"nothing: {sorted(set(PACT_RENAMED_SPANS) - seen)}"
+    )
+    named = [
+        name
+        for _directory, _subdirectories, names in os.walk(os.path.join(ROOT, "tests"))
+        for name in names
+        if PACT_RENAMED.search(name)
+    ]
+    assert not named, f"a test file is named with the word 0.19.0 renamed: {named}"
+
+
+# S11 of #822, held rather than measured once (round 1 of #822, white 3). The
+# case above reads the texts that carry the pact's words; this one reads every
+# tracked file, so a file the rename touched outside that set cannot take the
+# word back. What it leaves alone, and why:
+#
+# - records, which keep the word they were written with: the released
+#   changelogs and the work items' directories;
+# - the compatibility cases, which spell the old header because a case taking
+#   it from `hooks/lib/config.py#renamed_header` would pass with that constant
+#   changed while every 0.18.x pact stopped reading; and this module, whose
+#   pattern and comments name the word in order to refuse it;
+# - the two spans `PACT_RENAMED_SPANS` names.
+#
+# `seal/threads/` is the work item root, and a settle removes every released
+# directory under it (`skills/settle/SKILL.md`), so it may hold no tracked
+# file; only the other record prefixes are asserted to hold one.
+SETTLED_RECORDS = "seal/threads/"
+RENAMED_RECORDS = (
+    "changelog/",
+    SETTLED_RECORDS,
+)
+RENAMED_COMPAT = (
+    "tests/conftest.py",
+    "tests/hooks/test_config.py",
+    "tests/behaviour/test_one_table_walker_reads_what_gfm_renders.py",
+    "tests/skills/test_pact_check.py",
+)
+# The compatibility cases need the old word only as the header cell, which is
+# capitalised and singular; their prose is still swept for every other
+# spelling, upper case included (round 2 of #822, white 7; round 3, white 12;
+# #830). The sweep's own module stays exempt whole: its pattern, a retired
+# identifier and a work item's id name the word.
+PACT_HEADER_WORD = re.compile(r"(?!Signatory\b)(?i:signator(?:y|ies))")
+SWEEP_MODULE = "tests/behaviour/test_one_word_one_meaning.py"
+
+
+def test_no_live_text_says_the_word_0_19_0_renamed():
+    """No tracked file outside the records says the old word, the two spans
+    that keep a 0.18.x header reading taken out first; the compatibility
+    cases may say it only as the capitalised header cell. Each exception is
+    asserted to exist, the record prefixes included but the work item root a
+    settle empties, so one that moves is named rather than left exempting
+    nothing."""
+    done = subprocess.run(
+        ["git", "-C", ROOT, "ls-files", "-z"],
+        capture_output=True,
+        check=True,
+    )
+    tracked = [p for p in done.stdout.decode("utf-8").split("\0") if p]
+    for rel in (
+        *RENAMED_COMPAT,
+        SWEEP_MODULE,
+        "docs/the-pact.md",
+        "hooks/lib/config.py",
+    ):
+        assert rel in tracked, f"{rel} is excepted below and no longer tracked"
+    for prefix in RENAMED_RECORDS:
+        if prefix == SETTLED_RECORDS:
+            continue
+        assert any(p.startswith(prefix) for p in tracked), (
+            f"{prefix} is excepted below and holds no tracked file"
+        )
+    # A tracked file the working tree deleted says nothing; `on_disk` keeps
+    # the walk from ending at it (#432).
+    present, _deleted = on_disk(ROOT, tracked)
+    said = []
+    for rel in present:
+        if rel.startswith(RENAMED_RECORDS) or rel == SWEEP_MODULE:
+            continue
+        path = os.path.join(ROOT, rel)
+        if not os.path.isfile(path):
+            continue
+        with open(path, encoding="utf-8", errors="replace") as handle:
+            text = handle.read()
+        if rel == "docs/the-pact.md":
+            text = without_the_policy_span(rel, text)
+        elif rel == "hooks/lib/config.py":
+            unit = next(
+                node
+                for node in ast.walk(ast.parse(text))
+                if getattr(node, "name", None) == "renamed_header"
+            )
+            lines = text.splitlines()
+            text = "\n".join(lines[: unit.lineno - 1] + lines[unit.end_lineno :])
+        pattern = PACT_HEADER_WORD if rel in RENAMED_COMPAT else PACT_RENAMED
+        said.extend(f"{rel}: {m.group(0)}" for m in pattern.finditer(text))
+    assert not said, (
+        "the word 0.19.0 renamed is live text again — it is `signer` since "
+        f"0.19.0 (#822): {said}"
+    )

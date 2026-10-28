@@ -12,4 +12,4 @@ the coordinate it stood at, and where it lands or why it can go. A work item
 removing nothing writes the no-change block of `skills/settle/SKILL.md`
 *Rule changes* in place of the table. A removal a phase makes that the
 frame did not name is a divergence, and it goes to `gaps.md`.
-check: tests/test_a_phase_hands_the_next_one_a_record.py
+check: tests/behaviour/test_a_phase_hands_the_next_one_a_record.py

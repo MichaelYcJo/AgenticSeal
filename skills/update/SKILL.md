@@ -106,7 +106,7 @@ installed block too, which is the last release's, not the clone's:
 `bash install.sh "$HOME/.claude/CLAUDE.md"`, run from that clone, writes the
 clone's block there. `--project`, or option 2 at the script's prompt, writes
 a copy into the clone's own `CLAUDE.md`, which
-`tests/test_the_installer_writes_the_block_from_its_template.py` refuses.
+`tests/behaviour/test_the_installer_writes_the_block_from_its_template.py` refuses.
 
 Compare the scope that holds the block: `./CLAUDE.md` instead where the
 project owns it.

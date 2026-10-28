@@ -258,6 +258,20 @@ a case first reads its class and the pairs `bin/seal layout --pairs` names
 in it.
 check: tests/skills/test_test_layout.py tests/test_censuses.py
 
+**A test file takes the repository root from `tests/conftest.py`.** A test
+file imports `ROOT` from `tests/conftest.py` and joins every other path under
+it. It does not take a directory from its own `__file__`, because that
+directory is right only at the depth the file stands at. No two Python files
+under `tests/` share a file name: `tests/conftest.py` puts every directory
+under `tests/` that holds a test file on `sys.path`, so two files of one name
+import as one module.
+check: tests/test_conftest.py
+
+**A test file that declares no `TARGET` stands by what its cases run.** It
+stands in `tests/behaviour/` where its cases load or run shipped code, and
+in `tests/text/` where they only read text.
+check: none reader: the proofer at review
+
 **A module's old cases get one verdict each when the module is rebuilt.**
 The contributor rebuilding a module reads its functions first and lists the
 classes its file must have. Then each old case that exercises the module is
@@ -416,7 +430,7 @@ a question is not its difficulty, it is when it arrives.
 - **Both READMEs move together, and so does every document with a `.ko.md`
   edition.** They need not be literal translations, but they must tell the
   same story about what exists. Under `docs/` the outline is checked:
-  `tests/test_both_editions_carry_the_same_folds.py` reads every top-level
+  `tests/behaviour/test_both_editions_carry_the_same_folds.py` reads every top-level
   `docs/X.ko.md` beside a `docs/X.md` and requires the same sequence of
   heading levels.
 - **Hooks stay local and quiet.** No writing outside the repo being worked
