@@ -75,12 +75,14 @@ PULL_REQUEST_RUN = {
 # every token and a config directory of its own, and report what is left.
 PROBE = f"""
 import json, os, runpy
+given = sorted(n for n in os.environ if n.startswith("GITHUB_"))
 runpy.run_path({CONFTEST!r})
 home = os.environ.get("GH_CONFIG_DIR")
 print(json.dumps({{
     "tokens": {{n: os.environ[n] for n in {TOKENS!r} if n in os.environ}},
     "home": home,
     "empty": bool(home) and os.path.isdir(home) and not os.listdir(home),
+    "given": given,
     "github": sorted(n for n in os.environ if n.startswith("GITHUB_")),
 }}))
 """
@@ -563,6 +565,7 @@ class Test_module:
         is taken away as before. Seen red against `tests/conftest.py` at
         `977b6613`, which left all six names in place."""
         seen = run_probe({**os.environ, **PULL_REQUEST_RUN})
+        assert seen["given"] == sorted(PULL_REQUEST_RUN), seen["given"]
         assert seen["github"] == [], f"left by the conftest: {seen['github']}"
         assert seen["tokens"] == {
             "GH_TOKEN": NOT_A_GH_TOKEN,
