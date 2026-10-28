@@ -9,7 +9,7 @@ target: 86c9496b against c825fd2c
 severity: should
 location: `tests/text/test_no_case_tells_the_agent_it_is_evaluated.py:110-118`, `tests/text/test_no_case_tells_the_agent_it_is_evaluated.py:132-135`, `tests/text/test_no_case_tells_the_agent_it_is_evaluated.py:195`, `seal/threads/1793171929-the-suite-tells-the-agent-it-is-evaluated/gaps.md:27`
 evidence: executed `python -c "T.hits('<scratch>/drift')"`
-verdict: open
+verdict: fixed efa93f62
 
 Why it matters. The case exempts a value that a replay or seeded generator
 copies from this repository's history. It finds those values by rendering
@@ -83,7 +83,7 @@ def copied_spans(text, generator, file_name):
 The fix pass also rewrites the `gaps.md:27` clause to the new behaviour,
 and the `hits` docstring to name the stale-case hit.
 
-answer:
+answer: The finding holds. `copied_spans` now returns `None` where no text its generator writes matches the file. `hits` then reports the file at line 0 with `STALE`, "not its generator's text: write the case again with `--case NAME`". That report comes before the file's words, which are still all scanned. The `hits` docstring names it (`efa93f62`). The S5 case's third reading now expects `(0, STALE)` before `(1, "judged")` and `(5, "judge")`. Against the old `hits` it went red, exit 1 (executed). After the fix, `bin/test tests/text/test_no_case_tells_the_agent_it_is_evaluated.py tests/evals/test_rule_cases.py -q` exited 0 with 16 passed (executed). `seal mutate` turned both new units red: dropping the `STALE` hit, and returning `[]` in place of `None` (executed). `gaps.md:27` now states the rule as it stands (`bc5388dc`). `git grep` found one other statement of the old rule, `trail/phases/phase-1.md:40`. It records what phase 1 built at `5ac41e48`, and a fix pass writes no phase record, so it stands.
 
 ## Confirmations
 
