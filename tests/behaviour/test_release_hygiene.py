@@ -1052,20 +1052,28 @@ def test_update_reads_the_installed_copy_before_it_summarises():
     the more convincing the wrong answer.
 
     So a step between installing and summarising reads the INSTALLED copy:
-    `installed_plugins.json` names the one `installPath`, and its
-    `CHANGELOG.md`'s first heading has to be the version the installer just
-    reported. A mismatch stops the procedure before the summary and prints
-    the repair, with the two cautions the ticket measured: `.in_use/` holds a
-    live session's PID files, and the one `installPath` is the directory
-    that must not be deleted."""
+    `installed_plugins.json` names the one `installPath`, and the `version`
+    of its `.claude-plugin/plugin.json` has to be the version the installer
+    just reported. A mismatch stops the procedure before the summary and
+    prints the repair, with the two cautions the ticket measured: `.in_use/`
+    holds a live session's PID files, and the one `installPath` is the
+    directory that must not be deleted.
+
+    S7 of #1053: the step read `CHANGELOG.md`'s first heading until the
+    gathered files were removed, and it names that file no more."""
     update = read_text("skills", "update", "SKILL.md")
     assert "**2b." in update, "no step reads the installed copy between 2 and 3"
     step = update[update.index("**2b.") : update.index("**3.")]
     flat = " ".join(step.split())
+    assert "CHANGELOG.md" not in flat, "step 2b reads a file the install has no more"
     for needed, why in (
         ("installed_plugins.json", "the file that names the installed copy"),
         ("installPath", "the field that names it"),
-        ("CHANGELOG.md", "the file whose top heading says which version landed"),
+        (
+            "/.claude-plugin/plugin.json'",
+            "the file whose `version` says which version landed, read in the copy",
+        ),
+        ("['version']", "the field read from it"),
         ("mismatch", "the word that makes the outcome a stop rather than a note"),
         (".in_use", "the directory the caution is about"),
         # The word, not the path: `.in_use` is also in the repair's `mkdir`,
@@ -1076,6 +1084,32 @@ def test_update_reads_the_installed_copy_before_it_summarises():
     ):
         assert needed in flat, f"step 2b does not carry {needed!r}: {why}"
     assert "/Users/" not in flat, "a user path in a shipped skill"
+
+
+def test_update_shows_what_changed_from_the_github_releases():
+    """S8 of #1053. The notes are published once, as the GitHub Release at
+    each tag, and no copy is kept in the tree. So step 3 reads the releases
+    from the public API with no token, `gh` included, because `gh` needs a
+    login; it takes the repository from the marketplace clone's `origin`,
+    reads every release after the old version up to the new one oldest
+    first, and where the read fails it says so, names the releases page and
+    goes on, because the update has already landed."""
+    update = read_text("skills", "update", "SKILL.md")
+    step = update[update.index("**3.") : update.index("**4.")]
+    flat = " ".join(step.split())
+    for needed, why in (
+        ("https://api.github.com/repos/", "the public API the releases are read from"),
+        ("/releases", "the releases endpoint and page"),
+        ("remote get-url origin", "where the repository is taken from"),
+        ("marketplaces/agenticseal", "the clone whose origin it is"),
+        ("no token", "that the read carries no credentials"),
+        ("oldest first", "the order the releases are read in"),
+        ("releases page", "what a failed read names"),
+        ("go on to step 4", "that a failed read does not stop the procedure"),
+    ):
+        assert needed in flat, f"step 3 does not carry {needed!r}: {why}"
+    for refused in ("changelog/", "CHANGELOG.md", "Authorization", "gh "):
+        assert refused not in flat, f"step 3 carries {refused!r}"
 
 
 def test_no_section_accumulates_entries_in_the_shared_file():
