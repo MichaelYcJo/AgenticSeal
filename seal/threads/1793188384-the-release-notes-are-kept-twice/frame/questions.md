@@ -12,8 +12,9 @@ Alternatives table.
   included, whose fragments the settle removed before its tag.
 - **What #728 and #557 protected.** #728 made one file per release so a
   reader of one release reads one file; the GitHub Release page is one
-  release, and the files stay readable at their own tags (read: #728's
-  body). #557 fixed `survivor_check.py`'s reading of `CHANGELOG.md`; that
+  release, and the files stay readable at `v0.23.1`, the last tag that
+  holds them all (read: #728's body; executed: `git cat-file -e` finds a
+  tag's own file only from `v0.18.1`). #557 fixed `survivor_check.py`'s reading of `CHANGELOG.md`; that
   script is no longer in the tree (executed: `git grep -l survivor_check`
   finds it only in two released files under `changelog/`). Neither is
   needed after the removal.

@@ -97,7 +97,7 @@ In scope:
    the two `seal/follow-up.md` rows that name `changelog/0.12.2.md`. Those
    two rows keep their question and their answerer, and their coordinate
    becomes the v0.12.2 GitHub Release, whose folded text after the
-   republish is `changelog/0.12.2.md` at `v0.12.2`.
+   republish is `changelog/0.12.2.md` at `v0.23.1`.
 
 Out of scope, each with why:
 
@@ -461,6 +461,17 @@ module, as step 2b already reads `installed_plugins.json`. Step 3 reads
     left
   to: the close date against the publication dates of the GitHub Releases
     is what is left
+- change
+  file: docs/the-record-layout.md
+  section: A change writes fragments, never a shared file
+  from: never under a heading of `CHANGELOG.md`.
+  to: never under a heading of a file every branch shares.
+- change
+  file: docs/release-checklist.md
+  section: 3. Verify before committing
+  from: never from this file, because this commit writes the heading and
+    the bump together
+  to: never from a file this commit writes
 
 ## Removes
 
