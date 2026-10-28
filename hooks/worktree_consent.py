@@ -600,8 +600,6 @@ def main():
         return
 
     session = data.get("session_id", "")
-    if not session:
-        return
     tool = data.get("tool_name", "")
     tool_input = data.get("tool_input") or {}
     cwd = data.get("cwd") or ""

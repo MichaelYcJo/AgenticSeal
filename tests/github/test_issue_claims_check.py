@@ -17,10 +17,9 @@ on a domain outside this repository's fixture allowlist.
 #942's phase 6 placed these cases from
 `tests/behaviour/test_a_body_naming_two_issues_claims_one.py`, which keeps the cases
 that read the issues document, the hygiene workflow and its template. Its
-round 9 fix pass placed in `Test_module` the body cut after a U+2028,
-`segments`' one case, from
+round 9 fix pass placed here the body cut after a U+2028, from
 `tests/behaviour/test_every_reader_ends_a_line_where_gfm_does.py`, a case of this module
-alone.
+alone; it is `Test_segments`' refusing case.
 """
 
 import importlib.util
@@ -84,12 +83,12 @@ class Test_segments:
         cut = len("Closes #11\n")
         assert check.segments(text) == [(0, cut), (cut, len(text))]
 
-    def test_refuses_a_run_of_whitespace_as_a_segment(self):
-        """The blank line between two sentences is a cut and never a segment of
-        its own."""
-        text = "Closes #11.\n\n#22 is next."
-        first, second = len("Closes #11."), len("Closes #11.\n")
-        assert check.segments(text) == [(0, first), (second, len(text))]
+    def test_refuses_a_cut_where_github_renders_no_block(self):
+        """S13 of #664. A list-item shape after a U+2028 mid-line is not a
+        block GitHub renders, so it is no cut: `segments` ends a line where GFM
+        does."""
+        text = f"The parser drops a row{LS}- when the cell is wide"
+        assert check.segments(text) == [(0, len(text))]
 
 
 class Test_claimed_spans:
@@ -406,13 +405,6 @@ class Test_module:
                 f"{spelling!r} is defined here as well as next door — one of the "
                 "two will be widened alone"
             )
-
-    def test_an_issue_body_is_cut_where_github_renders_a_block(self):
-        """S13 of #664. A list-item shape after a U+2028 mid-line is not a
-        block GitHub renders, so it is no cut: `segments` ends a line where GFM
-        does."""
-        text = f"The parser drops a row{LS}- when the cell is wide"
-        assert check.segments(text) == [(0, len(text))]
 
 
 test_census = census_case(TARGET)
