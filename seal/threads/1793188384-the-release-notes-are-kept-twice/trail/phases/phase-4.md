@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Phase | 4 |
-| Commit | 268480ac |
+| Commit | 449e5864 |
 
 ## What this phase was asked
 
@@ -23,7 +23,8 @@ republish of the 26 notes, is the orchestrator's and is not built here.
 
 ## What this phase found
 
-**S12's grep (executed at `268480ac`).** `git grep -n -E
+**S12's grep (executed at `268480ac`, and at `449e5864` with the same
+hits).** `git grep -n -E
 'changelog/|CHANGELOG\.md'` outside `docs/`, `seal/` and the two emptied
 test files finds eight lines. None sends a reader to those paths for the
 notes:
@@ -36,8 +37,21 @@ notes:
 | `tests/github/test_publish_release_note.py:246`, `:258`, `:302` | A1 and S1: assertions, and S1's docstring, that the note names no `changelog/` path |
 
 Under `seal/`, `seal/follow-up.md` names `changelog/0.12.2.md` read at
-`v0.12.2` as the folded text of the v0.12.2 release note, which is where the
+`v0.23.1` as the folded text of the v0.12.2 release note, which is where the
 frame moved its coordinate.
+
+**The frame does not hold on where a released file is read (executed).**
+`frame/design.md` *Scope* items 5 and 8, S11 and `frame/plan.md`'s phase 5
+row read each file "at its own tag", `git show vX.Y.Z:changelog/X.Y.Z.md`.
+`git cat-file -e` over the 58 version tags finds a tag's own file at 14
+tags, `v0.18.1` to `v0.23.1`, and at none of the 44 before them: #770 split
+`CHANGELOG.md` into the per-release files on 2026-10-04. All 26 versions the
+republish covers are among the 44. `v0.23.1` holds all 58 files, identical
+to `49ca77ee`'s (`git diff --quiet v0.23.1 49ca77ee -- changelog/
+CHANGELOG.md` exit 0). `449e5864` makes this work item's `changelog.md` and
+the two `seal/follow-up.md` rows name `v0.23.1`, and phase 5 and S11 read
+each file there. The frame is left as it stands; `gaps.md` holds the
+divergence.
 
 **How the changed pins were seen red (executed).** After the build commit,
 `seal mutate` put `session_cost.py`'s old words back ("which its file under
