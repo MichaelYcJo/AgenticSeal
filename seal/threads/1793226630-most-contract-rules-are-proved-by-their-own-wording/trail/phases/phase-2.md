@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Phase | 2 |
-| Commit | the commit that adds this record; the next records commit writes its hash here and in `plan.md` |
+| Commit | d2edf674 |
 
 ## What this phase was asked
 
