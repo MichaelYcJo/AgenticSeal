@@ -55,6 +55,10 @@ COPIED = {
 # and the remote's URL.
 READ = {"target": r"[0-9a-f]+", "n": r"\d+", "line": r"\d+", "url": r"\S+"}
 SLOT = re.compile(r"(QQ[a-z_]+QQ)")
+# The hit a replay or seeded case file takes, at line 0, where its generator
+# no longer writes it. A word reported below it may be a copied value, so
+# the case is written again before anything is reworded.
+STALE = "not its generator's text: write the case again with `--case NAME`"
 
 
 def token(name):
@@ -109,19 +113,22 @@ def pattern_of(text):
 
 def copied_spans(text, generator, file_name):
     """The spans of TEXT that hold a value GENERATOR copied, where TEXT holds
-    one of the texts it writes as FILE_NAME; none where it holds none."""
+    one of the texts it writes as FILE_NAME; None where it holds none."""
     for shape in rendered(generator, file_name):
         pattern, names = pattern_of(shape.strip())
         m = pattern.search(text)
         if m:
             return [m.span(i) for i, name in enumerate(names, 1) if name in COPIED]
-    return []
+    return None
 
 
 def hits(suite, by_prefix=None):
     """`[(path relative to SUITE, line, word)]` for every refused word in a
     case file under SUITE, outside the exemptions. BY_PREFIX maps a case
-    name's prefix to the generator that copies values into it."""
+    name's prefix to the generator that copies values into it.
+
+    A replay or seeded case file its generator no longer writes takes the
+    hit `STALE` at line 0, ahead of its words, and keeps no exemption."""
     by_prefix = generators() if by_prefix is None else by_prefix
     found = []
     for path in case_files(suite):
@@ -131,7 +138,11 @@ def hits(suite, by_prefix=None):
         masked = list(text)
         for prefix, generator in by_prefix.items():
             if case.startswith(prefix):
-                for start, end in copied_spans(text, generator, os.path.basename(path)):
+                spans = copied_spans(text, generator, os.path.basename(path))
+                if spans is None:
+                    found.append((os.path.relpath(path, suite), 0, STALE))
+                    spans = []
+                for start, end in spans:
                     masked[start:end] = " " * (end - start)
         lines = text.split("\n")
         for n, line in enumerate("".join(masked).split("\n"), 1):
@@ -168,7 +179,8 @@ def test_a_word_in_the_generators_text_is_refused_and_one_it_copied_is_not(
     generator copies passes, and the same prompt written by a scratch copy of
     the generator whose own text holds `judged` is refused at that line
     alone. Read against the real generator, whose text that prompt is not,
-    the prompt keeps no exemption, so both words are refused."""
+    the prompt is reported as no longer its generator's text first, and it
+    keeps no exemption, so both words are refused below that report."""
     real = generators()["replay-"]
     source_path = os.path.join(SCRIPTS, "replay_targets.py")
     with open(source_path, encoding="utf-8") as f:
@@ -192,7 +204,12 @@ def test_a_word_in_the_generators_text_is_refused_and_one_it_copied_is_not(
     for name, writer, reader, want in (
         ("copied", real, real, []),
         ("planted", planted, planted, [(1, "judged")]),
-        ("not-the-generators-text", planted, real, [(1, "judged"), (5, "judge")]),
+        (
+            "not-the-generators-text",
+            planted,
+            real,
+            [(0, STALE), (1, "judged"), (5, "judge")],
+        ),
     ):
         suite = tmp_path / name
         case = suite / "proofer" / "replay-1-r2"
