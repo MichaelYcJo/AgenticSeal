@@ -14,8 +14,9 @@ name: publish the release note
 # So the tag push publishes it. That is the release's last manual act and the
 # one `docs/branch-and-release.md` keeps a person's — nothing in CI pushes a
 # tag, and nothing here creates one either. The note is built from the
-# changelog fragments the release's commits added, read from the history at
-# the tag (`.github/scripts/publish_release_note.py`'s docstring says how).
+# changelog fragments the release's commits added and the previous version
+# tag does not already hold, read from the history at the tag
+# (`.github/scripts/publish_release_note.py`'s docstring says how).
 #
 # Then the seal (#718). A second job, `seal`, runs only when `publish` created
 # the release in this run (`created` is its output; a re-pushed tag or a full

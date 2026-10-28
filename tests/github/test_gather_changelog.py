@@ -2,8 +2,8 @@
 
 Work item 1793188384-the-release-notes-are-kept-twice (#1053) removed the
 gather script, `changelog/` and `CHANGELOG.md`: the release note is built at
-the tag from the fragments the release's commits added
-(`tests/github/test_publish_release_note.py`). Every case here ran the
+the tag from the fragments the release's commits added and the previous tag
+does not already hold (`tests/github/test_publish_release_note.py`). Every case here ran the
 script, so none is left to run.
 
 `docs/the-record-layout.md` and `docs/release-checklist.md` still name this

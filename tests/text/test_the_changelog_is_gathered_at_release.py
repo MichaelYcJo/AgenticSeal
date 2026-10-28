@@ -3,7 +3,8 @@
 Work item 1793188384-the-release-notes-are-kept-twice (#1053) removed
 `.github/scripts/gather_changelog.py`, `changelog/` and `CHANGELOG.md`: the
 release note is built at the tag from the fragments the release's commits
-added (`tests/github/test_publish_release_note.py`). The cases here read the
+added and the previous tag does not already hold
+(`tests/github/test_publish_release_note.py`). The cases here read the
 hygiene step that ran the gather's check, the documents that sent a change to
 its gathered file, and this repository's gathered files, and every one of
 them is gone.

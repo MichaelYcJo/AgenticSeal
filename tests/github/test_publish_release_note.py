@@ -4,10 +4,12 @@
 Publishing a GitHub Release was a habit and nothing else, and three
 consecutive releases skipped it. The repair is a workflow the tag push fires:
 
-  A1  the changelog fragments the release's commits added become the release
-      note at that tag, each under its work item's marker
+  A1  the changelog fragments the release's commits added, less those the
+      previous tag holds, become the release note at that tag, each under its
+      work item's marker
   A2  a release already at the tag is left exactly as it is, exit 0
-  A3  a tag whose range added no fragment goes RED, naming the range's tags
+  A3  a tag whose range added no fragment the previous tag does not hold goes
+      RED, naming the range's tags
   A4  the title is read from the `release: X.Y.Z symptoms: <symptoms>` line,
       and where no such line is readable it is the tag name and the log says
       which was used, what it expected and what it found
@@ -383,7 +385,8 @@ class Test_main:
     ):
         """A3, and S5 of #1053. This is the release shipping unexplained, and the
         body is the whole of what the job publishes — so it is the one direction
-        that fails. The message names both tags of the range it read."""
+        that fails. The message names both tags of the range it read, and says
+        a fragment the previous tag holds is not counted (round 2 of #1053)."""
         mod, tracker = wire(monkeypatch, tmp_path, entries=[], message=title_line())
         assert mod.main() == 1
         assert tracker.creates() == [], "it published a release with no notes"
@@ -393,6 +396,7 @@ class Test_main:
             "not say what to fix"
         )
         assert "changelog.md" in out, "the message does not name what it looked for"
+        assert f"that {PREVIOUS} does not already hold" in out, out
 
     def test_a_tag_that_is_not_a_version_goes_red(self, monkeypatch, tmp_path, capsys):
         """A3's neighbour. `v*` matches `vnext` too, and a tag this cannot name a

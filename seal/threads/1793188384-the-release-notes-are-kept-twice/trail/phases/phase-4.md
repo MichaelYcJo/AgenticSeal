@@ -82,7 +82,7 @@ policy root reads between a merge and its settle.
 
 **The two `seal/follow-up.md` rows keep their question and answerer.** Each
 names the v0.12.2 GitHub Release as the released copy and `changelog/0.12.2.md`
-at `v0.12.2` as its folded text. Each says a published note is never rebuilt,
+at `v0.23.1` as its folded text. Each says a published note is never rebuilt,
 where it said the gather decides by marker. The `CONTRIBUTING.md` rule each
 cited is now in the past tense, because that rule is gone.
 

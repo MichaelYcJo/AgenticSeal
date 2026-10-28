@@ -17,8 +17,9 @@ So this reads the tag instead of asking anybody to remember. It runs when a
 history at the tag** (#1053). A change writes its note once, in
 `seal/threads/<work-item-id>/changelog.md`, and no copy of the notes is kept
 in the tree. The fragments are the ones the commits after the previous
-`vX.Y.Z` tag added, each read at the newest commit of that range whose tree
-holds it, so a work item a settle removed before the tag still has its entry.
+`vX.Y.Z` tag added and that tag does not already hold, each read at the
+newest commit of that range whose tree holds it, so a work item a settle
+removed before the tag still has its entry.
 Each goes under an HTML comment naming its work item, the one link from a
 released entry back to the work that produced it.
 
@@ -92,7 +93,8 @@ Environment: `TAG` (`github.ref_name`), `REPO`, `GH_TOKEN`, and
 `GITHUB_OUTPUT` where the workflow runner sets it.
 
 Exit codes: 0 published, or already published, or a dry run -- 1 the tag is
-not `vX.Y.Z`, or its range added no fragment.
+not `vX.Y.Z`, or its range added no fragment the previous tag does not
+already hold.
 """
 
 import html
@@ -657,10 +659,11 @@ def main(argv=None):
     entries = fragments(commit_range(previous, tag))
     if not entries:
         span = f"after {previous} up to {tag}" if previous else f"up to {tag}"
+        held = f" that {previous} does not already hold" if previous else ""
         print(
-            f"{tag} was pushed and no commit {span} added a changelog fragment, "
-            "seal/threads/<work-item-id>/changelog.md, so this release would be "
-            "published with no notes at all."
+            f"{tag} was pushed and no commit {span} added a changelog fragment"
+            f"{held}, seal/threads/<work-item-id>/changelog.md, so this release "
+            "would be published with no notes at all."
         )
         return 1
 
