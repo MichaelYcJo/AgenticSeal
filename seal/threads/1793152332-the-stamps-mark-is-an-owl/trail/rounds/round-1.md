@@ -9,7 +9,7 @@ target: 10a8444a against origin/release/v0.23.1
 severity: should
 location: `tests/behaviour/test_the_release_seal_is_drawn.py:36`, `tests/github/test_run_tests.py:444`
 evidence: read `tests/behaviour/test_the_release_seal_is_drawn.py:25-36`, `tests/github/test_run_tests.py:429-444`, `tests/behaviour/test_the_suite_has_a_command_that_is_cheap_twice.py:163-167`, `tests/behaviour/test_the_suite_has_a_command_that_is_cheap_twice.py:197-198`
-verdict: open
+verdict: fixed 3155da43
 
 `gaps.md` row 4 claims that each of the four rewritten cases asserts that no
 word of its line starts with `pillow`, so that a pin put back is refused.
@@ -36,7 +36,7 @@ assert not any(word.lower().startswith("pillow") for word in installs[0]), insta
 assert not any(word.lower().startswith("pillow") for word in install), install
 ```
 
-answer:
+answer: fixed in 3155da43: both assertions read `word.lower().startswith("pillow")`, as the finding gives it. The orchestrator made this fix, a two-line change too small for a crafter spawn.
 
 ## Confirmations
 
