@@ -24,6 +24,8 @@
 | What the root case reads | `frame/plan.md` row 4: no file under `tests/` but `conftest.py` computes the root from `__file__` | the case reads `test_*.py` files only; `tests/censuses.py` keeps its own root | `evals/scripts/noninferiority.py` loads `censuses.py` by path without pytest |
 | What the name case reads | `frame/plan.md` row 4: no two test files share a name | the case reads `.py` files under `tests/` | only Python files are imported by name, and a `.DS_Store` may stand in several directories |
 | Where the two cases stand | `frame/plan.md` row 4 names `tests/test_conftest.py` | both stand in `Test_module` | the tree's `seal layout --check` refuses a class that names no top-level definition of `tests/conftest.py` |
+| Two cases that named a removed skill | `frame/design.md` *Removes* names the eight skills and their README rows, and *Scope* says the only mentions are the READMEs and the skills' own `NOT for` clauses | `test_migrated_commands_stay_user_invoked` checks `preset-setup` alone, and `test_installer_prints_commands_a_user_can_actually_type` reads `preset-setup` and `parity-setup` | each case named `security-audit` and `testing` as shipped commands, and the first asserted their `SKILL.md` exists |
+| The changelog fragment's template | the spawn prompt for phase 5 names `templates/records/sdd-changelog.md` | the fragment takes the shape of the 0.23.0 fragment at `ab14194b:seal/threads/1793081611-the-plugin-is-named-for-a-spec-it-no-longer-seals-by/changelog.md` | no such template exists in the tree |
 
 ## Not verified
 
