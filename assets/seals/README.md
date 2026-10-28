@@ -150,10 +150,11 @@ with a sentence naming the line and the column.
   at a time, rather than reduced from a larger drawing. Each is a 16 × 16
   sprite at the centre of the 28-cell disc, and every colour is one of the
   stamp's own reds, so the emblem reads as pressed into the same wax.
-- **The sprite's letters:** `K` the outline and `P` a pupil, both `INNER`;
-  `R` the body, `RIM_MID`; `L` the breast, `FACE`; `W` an eye or a wing,
-  `LIGHT`; `Y` a beak, a foot or a stripe, `RIM_LIT`; `.` the field. A
-  field cell whose upper-left neighbour is drawn takes the drop shadow.
+- **The sprite's letters:** `K` the outline, `INNER`; `P` a pupil,
+  `FIELD`, so no eye is near black; `R` the body, `RIM_MID`; `L` the
+  breast, `FACE`; `W` an eye or a wing, `LIGHT`; `Y` a beak, a foot or a
+  stripe, `RIM_LIT`; `.` the field. A field cell whose upper-left
+  neighbour is drawn takes the drop shadow.
 - **Why both:** the owner chose the stamp's reds over a colour sprite and
   over a one-colour relief, and has not chosen between the motifs. The owl
   stands for the guarantee, as on an Athenian coin. The bee stands for
