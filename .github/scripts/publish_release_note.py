@@ -185,7 +185,8 @@ def commit_range(previous, tag):
 
 def fragments(revisions):
     """`[(work item id, body)]` for every changelog fragment a commit in
-    `revisions` added, sorted by id, an empty body skipped.
+    `revisions` added, in id order, an empty body skipped. The paths are
+    sorted, and each holds its id, so the paths' order is the ids'.
 
     Each is read at the newest commit of the range whose tree holds it, so a
     fragment a settle removed before the tag is read as it stood last.
@@ -212,7 +213,7 @@ def fragments(revisions):
                 if body:
                     out.append((found.group(1), body))
                 break
-    return sorted(out)
+    return out
 
 
 def section(entries):

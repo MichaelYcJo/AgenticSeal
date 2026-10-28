@@ -252,7 +252,9 @@ class Test_main:
         """S1 of #1053. Two fragments added after `v1.2.2`, one of them edited
         and then removed by a settle before `v1.2.3`, both reach the note in id
         order, the removed one as it stood last. The fragment added before
-        `v1.2.2` stays out though a commit in the range edited it, and no
+        `v1.2.2` stays out though a commit in the range edited it, a fragment
+        the settle's commit added beside a removed one of the same text is not
+        read as its rename, an empty fragment gives no entry, and no
         `changelog/` path is named. Driven through a real `git` history."""
         repo = git_repo(tmp_path / "repo")
         thread = "seal/threads/{}/changelog.md"
@@ -268,6 +270,10 @@ class Test_main:
         commit_everything(repo, "a fix brings its fragment along")
         git_out(repo, "rm", "-q", "-r", "seal/threads/1700000001-first")
         git_out(repo, "rm", "-q", "-r", "seal/threads/1700000000-older")
+        # Added in the settle's own commit with the removed fragment's text,
+        # so only `--no-renames` keeps it from reading as a rename.
+        write(repo, thread.format("1700000003-third"), "- first entry, revised\n")
+        write(repo, thread.format("1700000004-empty"), "\n  \n")
         commit_everything(repo, "the settle")
         git_out(repo, "tag", TAG)
 
@@ -286,8 +292,12 @@ class Test_main:
         out = capsys.readouterr().out
         first = "<!-- specs/1700000001-first -->\n- first entry, revised"
         second = "<!-- specs/1700000002-second -->\n- second entry"
-        assert first in out and second in out, out
-        assert out.index(first) < out.index(second), "the fragments are not in id order"
+        third = "<!-- specs/1700000003-third -->\n- first entry, revised"
+        assert first in out and second in out and third in out, out
+        assert out.index(first) < out.index(second) < out.index(third), (
+            "the fragments are not in id order"
+        )
+        assert "1700000004-empty" not in out, "an empty fragment became an entry"
         assert "older entry" not in out, "a fragment of the release before reached it"
         assert "changelog/" not in out, out
 
