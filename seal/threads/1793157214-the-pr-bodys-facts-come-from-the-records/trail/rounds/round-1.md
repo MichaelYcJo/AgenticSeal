@@ -97,7 +97,7 @@ temporary directory and, inside the session's directory name, the owner's
 home path written with dashes. `CONTRIBUTING.md` *House rules* keeps real
 machine paths out of tracked files, because removing one means rewriting
 history. The `real_identifiers` census (`tests/censuses.py:923`) matches
-only `/Users/<name>/`, so it does not catch this dashed form. A withheld
+only a slash-separated home path under `/Users`, so it does not catch this dashed form. A withheld
 `guarantee.md` is committed and can be pushed while the work item is being
 built. A work item path given as an absolute path in the worktree prints in
 the same way for a record's refusal.
