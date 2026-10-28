@@ -128,14 +128,17 @@ every repository, whatever either row says:
   `trail/gate.md`'s `Broad gate`; a
   `gaps.md`'s `## Not verified` heading with its `Item` and
   `Who must answer` columns, or its no-change block `- nothing` with
-  `why:`; a `frame/design.md`'s `## Removes` heading; its
+  `why:`, and its `## Not done` heading; a `frame/plan.md`'s `## Phases`
+  heading, which `seal pr-body` copies a section under, as it does those
+  two of `gaps.md`; a `frame/design.md`'s `## Removes` heading; its
   `## Rule changes` heading, the items `add`, `change`, `remove` and
   `nothing`, and the fields `file:`, `section:`, `from:`, `to:` and `why:`.
   A translated field name is not a translation, it is a broken gate.
 - **The markers and anchors.** `<!-- specs/<work-item-id> -->`, a release
   section's `## X.Y.Z — <date>`, the word `closed` that opens a closed
-  `## Not verified` row, and a pact
-  anchor's `pact:<name>/"<heading path>"@<hash>`.
+  `## Not verified` row, the line `## Not from the records` that ends the
+  part of a pull request body `seal pr-body` copies from the records, and
+  a pact anchor's `pact:<name>/"<heading path>"@<hash>`.
 - **Code.** Identifiers, comments, docstrings, file names, and test function
   names.
 - **The item column of this table**, which is a key rather than prose: the

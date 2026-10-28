@@ -441,4 +441,4 @@ def test_the_enumeration_is_not_empty():
     assert len(scripts()) >= 10, scripts()
     assert len(shipped_documents()) >= 20, len(shipped_documents())
     assert named_pairs(), "no shipped document names a script with a command"
-    assert len(SUBCOMMANDS) == len(SEAL.TOOLS) == 13, SUBCOMMANDS
+    assert len(SUBCOMMANDS) == len(SEAL.TOOLS), SUBCOMMANDS

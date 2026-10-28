@@ -177,6 +177,10 @@ TOOLS = {
         ".github/scripts/rules.py",
         "a document's sections with what their tests guard, or every check line read",
     ),
+    "pr-body": (
+        "skills/code-review/scripts/pr_body.py",
+        "copy a work item's records into a pull request body, or check the copy",
+    ),
 }
 
 # What each module this command imports from `hooks/lib/` is for, in the sentence
