@@ -30,7 +30,7 @@ def section(text, path):
 
 
 class Test_heading_path:
-    def test_a_markdown_heading_owns_its_section(self):
+    def test_accepts_a_deeper_heading_as_part_of_its_section(self):
         """Down to the next heading at its level OR ABOVE: a DEEPER one is part
         of the section, not the end of it."""
         text = (
@@ -53,7 +53,7 @@ class Test_heading_path:
         assert len(section(text, "### Same")) == 2
         assert section(text, "## B / ### Same") == [(9, 11)]
 
-    def test_only_a_real_heading_opens_a_section(self):
+    def test_refuses_an_indented_heading_as_the_start_of_a_section(self):
         """An INDENTED `## B` normalises to the same text as the heading but is
         not one."""
         text = "## A\n\n    ## B\n\n## B\n\nreal\n"
