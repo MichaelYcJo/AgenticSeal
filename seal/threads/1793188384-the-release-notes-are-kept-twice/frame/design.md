@@ -98,9 +98,11 @@ In scope:
    `:532-537`, `:579-585` and `.github/scripts/issue_claims_check.py:93`,
    the header comment of `.github/workflows/publish-release.yml:13-18`, and
    the two `seal/follow-up.md` rows that name `changelog/0.12.2.md`. Those
-   two rows keep their question and their answerer, and their coordinate
-   becomes `changelog/0.12.2.md` at `v0.23.1`, since the v0.12.2 GitHub
-   Release is not republished (*Scope* item 5).
+   two rows go. Each asked whether a correction is carried into a released
+   copy of 0.12.2. The v0.12.2 GitHub Release holds neither sentence and is
+   not republished (*Scope* item 5). The only copy holding them is
+   `changelog/0.12.2.md` in the tree of `v0.23.1`, which no commit changes.
+   The owner's answer to `frame/questions.md` Q2 is the answer to both.
 
 Out of scope, each with why:
 
@@ -128,8 +130,8 @@ Out of scope, each with why:
   (`frame/questions.md` Q4).
 - **`.test_durations`.** It is the cache the test runner rewrites
   (`tests/censuses.py:1053`); the build does not edit it by hand.
-- **Correcting the 0.12.2 sentences the two follow-up rows describe.** The
-  rows stay the owner's question; this work only moves their coordinate.
+- **Correcting the 0.12.2 sentences the two follow-up rows described.** No
+  released copy can take the correction (*Scope* item 8), and the rows go.
 
 ## User scenarios & acceptance *(mandatory)*
 
@@ -519,7 +521,7 @@ module, as step 2b already reads `installed_plugins.json`. Step 3 reads
 | "how the changelog fragments are gathered" | `CONTRIBUTING.md` *Cutting a release*, `:462` | "how the release note is built from the changelog fragments" |
 | "because the release gathers that fragment as it stands" | `skills/implement/SKILL.md:492` | "because the release note is built from that fragment as it stands at the tag" |
 | "NOT for: gathering changelog fragments, which release preparation already does" | `skills/settle/SKILL.md:11` | "NOT for: the release notes, which the tag's workflow builds from the fragments" |
-| The coordinate `changelog/0.12.2.md` and the sentence on how `gather_changelog.py#ungathered` decides | `seal/follow-up.md:47`, `:49` | The v0.12.2 GitHub Release. The rows' questions and answerer stay |
+| The coordinate `changelog/0.12.2.md` and the sentence on how `gather_changelog.py#ungathered` decides | `seal/follow-up.md:47`, `:49` | Nothing: both rows go, since no released copy of 0.12.2 can take the correction (*Scope* item 8) |
 | The policy root's sentences on the gather and the gathered files | `docs/` | `## Rule changes` above, written at the settle, never by this pull request |
 
 ## Open questions
