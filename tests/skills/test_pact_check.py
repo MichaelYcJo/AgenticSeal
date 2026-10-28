@@ -539,6 +539,8 @@ class Test_check:
             + anchor_table((PACT_URL, "no heading", "x"))
             + 'pact:orders-api/"## A"@1a2b3c4d\n```\n',
         )
+        # A frame that cites no pact holds no anchor table, and says nothing.
+        write(world.web, "seal/threads/1790000002-z/frame/design.md", "# Z\n\nx\n")
         code, out = world.run()
         assert code == 0, out
         assert (
