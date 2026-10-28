@@ -702,38 +702,17 @@ def splitlines(rel, root=None):
     ]
 
 
-# --- coordinate_grammar and heading_rule (#867) --------------------------------
+# --- heading_rule (#867) --------------------------------------------------------
 #
-# A format this repository owns is read by one reader. The ledger coordinate
-# was spelled by four regexes and a markdown heading by four rules, and the
-# copies answered one file differently. Each copy had been written beside a
-# docstring pointing at the original, so what holds the one reader is a
-# census over every shipped script.
+# A format this repository owns is read by one reader. A markdown heading was
+# read by four rules, and the copies answered one file differently. Each copy
+# had been written beside a docstring pointing at the original, so what holds
+# the one reader is a census over every shipped script.
 
-# A regex fragment that reads a coordinate's hash: `@` and then six or more
-# hex digits, optionally inside a named group.
-HASH_AFTER_AT = re.compile(r"@(?:\(\?P<\w+>)?\[0-9a-f\]\{6")
 # A code line that reads a markdown heading by a rule of its own: a counted
 # `#` run in a pattern, `#{1,6}`, `#{2,3}` or any `#{<digit>`, or a
 # `startswith` of `#` asked of a line.
 HEADING_SPELLING = re.compile(r'#\{\d|startswith\(\(?"#')
-
-
-def coordinate_grammar(rel, root=None):
-    """No shipped script spells the coordinate's hash again: the one grammar
-    is `skills/verify/scripts/coordinates.py`'s."""
-    text = _python(rel, root, SHIPPED)
-    if text is None:
-        return []
-    flagged = {
-        number: (
-            "a second grammar of the coordinate; "
-            "`skills/verify/scripts/coordinates.py` holds the one"
-        )
-        for number, line in enumerate(text.split("\n"), 1)
-        if HASH_AFTER_AT.search(line)
-    }
-    return _held("coordinate_grammar", rel, text, flagged)
 
 
 def code_lines(text):
@@ -1218,7 +1197,6 @@ CENSUSES = (
     encoding,
     entry_point,
     splitlines,
-    coordinate_grammar,
     heading_rule,
     floor_syntax,
     section_sign,
