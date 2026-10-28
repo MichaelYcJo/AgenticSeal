@@ -771,5 +771,34 @@ class Test_module:
         assert mod.previous_tag("v0.1.0") is None
         assert mod.commit_range(None, "v0.1.0") == "v0.1.0"
 
+    def test_a_fragment_the_settle_removed_reaches_a_note_tagged_on_a_merge(
+        self, tmp_path, monkeypatch
+    ):
+        """The release's shape: the tag is the `--no-ff` merge of the release
+        branch into `main`, whose first parent never held the fragment, and the
+        settle removed it on the release branch (0.22.4). A fragment of the
+        release before, restored by a commit in the range, is not read again
+        (0.15.3). Round 1 of #1053, finding 1."""
+        repo = git_repo(tmp_path / "repo")
+        thread = "seal/threads/{}/changelog.md"
+        write(repo, thread.format("1700000000-older"), "- older entry\n")
+        commit_everything(repo, "the release before")
+        git_out(repo, "tag", PREVIOUS)
+        git_out(repo, "switch", "-q", "-c", "release")
+        write(repo, thread.format("1700000001-first"), "- first entry\n")
+        commit_everything(repo, "the work item")
+        git_out(repo, "rm", "-q", "-r", "seal/threads/1700000001-first")
+        git_out(repo, "rm", "-q", "-r", "seal/threads/1700000000-older")
+        commit_everything(repo, "the settle")
+        write(repo, thread.format("1700000000-older"), "- older entry\n")
+        commit_everything(repo, "a directory restored")
+        git_out(repo, "switch", "-q", "-")
+        git_out(repo, "merge", "-q", "--no-ff", "-m", "the release", "release")
+        git_out(repo, "tag", TAG)
+        mod = publisher()
+        monkeypatch.setattr(mod, "ROOT", str(repo))
+        revisions = mod.commit_range(mod.previous_tag(TAG), TAG)
+        assert mod.fragments(revisions) == [("1700000001-first", "- first entry")]
+
 
 test_census = census_case(TARGET)

@@ -191,7 +191,12 @@ def fragments(revisions):
     Each is read at the newest commit of the range whose tree holds it, so a
     fragment a settle removed before the tag is read as it stood last.
     `--no-renames` keeps a fragment from reading as a rename of an older one
-    the settle deleted in the same range.
+    the settle deleted in the same range. The per-path log walks every
+    parent, `--full-history`, because the tag is a merge into `main` whose
+    first parent never held a fragment the settle removed on the release
+    branch (0.22.4). A fragment the range's lower tag already holds was
+    released there and is skipped, though a commit in the range restored its
+    directory (0.15.3).
     """
     added = git(
         "log",
@@ -202,12 +207,24 @@ def fragments(revisions):
         revisions,
     )
     out = []
+    # The range's lower end, where there is one: a fragment that tag already
+    # holds was released there, and a commit that restores its directory
+    # adds nothing new (0.15.3).
+    previous = revisions.split("..")[0] if ".." in revisions else None
     # exempt from splitlines: git output
     for path in sorted(set(added.splitlines())):
         found = FRAGMENT_RE.match(path)
         if not found:
             continue
-        for commit in git("log", "--format=%H", revisions, "--", path).split():
+        if previous and git("ls-tree", "--name-only", previous, "--", path).strip():
+            continue
+        # `--full-history`: the tag is a merge into `main`, whose first parent
+        # never held the path. Where a settle removed the fragment on the
+        # release branch, the default simplification follows that first
+        # parent alone and finds no commit (0.22.4).
+        for commit in git(
+            "log", "--full-history", "--format=%H", revisions, "--", path
+        ).split():
             if git("ls-tree", "--name-only", commit, "--", path).strip():
                 body = git("show", f"{commit}:{path}").strip()
                 if body:
