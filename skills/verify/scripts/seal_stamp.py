@@ -205,7 +205,7 @@ LIT_AT = 0.35
 # #857 chooses the stamp's mark for good — and changing the disc's mark is
 # replacing that file and nothing else, which is why it is data read here
 # rather than a tuple typed into this module. A candidate in
-# `assets/seals/candidates/` is the same `.M` text.
+# `assets/seals/candidates/` that is a 28-cell chart is the same `.M` text.
 CHART_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "seal-mark.txt")
 CHART_MALFORMED = (
     "seal stamp: the disc's mark chart {path} is not {n} lines of {n} "
