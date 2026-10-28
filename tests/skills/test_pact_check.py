@@ -522,9 +522,9 @@ class Test_check:
         """S6, S7 and S9's passes: two frames cite the current hash, one
         naming the pact by another spelling of its URL. A row naming another
         pact is passed over whatever its other cells hold, and neither a
-        table nor a `pact:` token inside a closed fence, nor `compact:`, is
-        read: exit 0, and the `READ` and summary lines name the pact by its
-        URL (contract rule 14)."""
+        table nor a `pact:` token inside a closed fence, nor `compact:`, nor
+        `pact:` before a space, is read: exit 0, and the `READ` and summary
+        lines name the pact by its URL (contract rule 14)."""
         world.cite(clause(V2))
         write(
             world.web,
@@ -535,7 +535,7 @@ class Test_check:
                 ("git@example.com:org/billing.git", CLAUSE_PATH, "deadbeef"),
                 ("https://example.com/org/orders-api-legacy", "no heading", "x"),
             )
-            + "\nThe compact:x note.\n\n```\n"
+            + "\nThe compact:x note. Read the pact: it is short.\n\n```\n"
             + anchor_table((PACT_URL, "no heading", "x"))
             + 'pact:orders-api/"## A"@1a2b3c4d\n```\n',
         )
