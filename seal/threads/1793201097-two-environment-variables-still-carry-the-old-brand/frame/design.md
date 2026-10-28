@@ -77,7 +77,7 @@ it into `.claude-plugin/plugin.json`:
   "worktree_guard_language": {
     "type": "string",
     "title": "Worktree guard language",
-    "description": "The language of the worktree guard's prompts: ko or en. Left empty, the system locale decides. The other gates speak English."
+    "description": "The language of the worktree guard's prompts: ko or en. Left empty, the variable SPECSEAL_LANG decides through 0.24.x, then the system locale. The other gates speak English."
   }
 }
 ```
