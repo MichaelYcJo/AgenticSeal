@@ -70,9 +70,12 @@ In scope:
    0.9.3, 0.9.4, 0.9.5, 0.10.0, 0.11.0, 0.11.1, 0.11.2, 0.11.3, 0.11.5,
    0.12.0, 0.12.2, 0.12.3 and 0.13.0. Each is republished by appending the
    file's text, folded under the same summary, below the note as it stands
-   (`frame/questions.md` Q2). The files stay readable at their own tags
-   after the removal, `git show vX.Y.Z:changelog/X.Y.Z.md`, so the republish
-   does not have to happen before the removal commit.
+   (`frame/questions.md` Q2). The files stay readable at `v0.23.1` after
+   the removal, `git show v0.23.1:changelog/X.Y.Z.md`, so the republish
+   does not have to happen before the removal commit. A version's own tag
+   is no source: #770 split the per-release files out of `CHANGELOG.md`, so
+   the 44 tags before `v0.18.1`, the 26 above among them, hold no file of
+   their own, and `v0.23.1` holds all 58.
 6. **The `update` skill reads what it needs elsewhere.** Step 2b confirms
    the update landed by the `version` of the installed copy's
    `.claude-plugin/plugin.json`. Step 3 shows what changed from the GitHub
@@ -139,7 +142,7 @@ Out of scope, each with why:
 | S8 the update shows the GitHub Releases | Step 3 reads the releases from `api.github.com` with no token, takes the repository from the marketplace clone's `origin`, reads every release after the old version up to the new one oldest first, says so and names the releases page when the read fails, and names no `changelog/` path | a new case beside S7's, seen red against the skill at `8a1173c8` |
 | S9 the gather is gone from CI and the gate | `.github/workflows/hygiene.yml` has no step running `gather_changelog.py`, and `skills/verify/scripts/broad_gate.py`'s step partition matches the workflow's steps | `tests/behaviour/test_the_gate_names_every_step_ci_runs.py` green after the step and its row go together |
 | S10 every check line still resolves | The `check:` lines in `docs/` that name the two emptied test files and the marker `second-gather-appends` resolve, because the files stay with no case and a caseless class carries the marker | `bin/seal rules --check` exits 0, and `tests/github/test_rules.py` runs green |
-| S11 every released version keeps its notes | After the republish, the comparison in *Scope* item 5, run over the 58 versions with each file read at its own tag, reports every note holding its file | the comparison, run by the orchestrator after phase 5 and recorded in that phase's record |
+| S11 every released version keeps its notes | After the republish, the comparison in *Scope* item 5, run over the 58 versions with each file read at `v0.23.1`, reports every note holding its file | the comparison, run by the orchestrator after phase 5 and recorded in that phase's record |
 | S12 no living text names the gathered files as where the notes are | `git grep -n -E 'changelog/\|CHANGELOG\.md'` outside `docs/`, `seal/` and the two emptied test files finds no line that sends a reader to those paths for the notes | the grep, run by the crafter at phase 4's close, its hits read by the proofer at review. No case holds it, because `docs/` names both paths until the settle |
 
 ## Data & interfaces
@@ -468,7 +471,7 @@ module, as step 2b already reads `installed_plugins.json`. Step 3 reads
 | The step's row in the gate's partition, and the step's name among the steps that run only on a pull request into `main` | `skills/verify/scripts/broad_gate.py:2219-2224`, `:2254-2262` | The step is gone, and the comment's count of such steps drops with it |
 | The release-file reader: `RELEASES`, `release_file`, `section_heading_re`, `section_body`, the gather advice in `main`, the link line in `release_body`, and the docstring's account of the gathered file | `.github/scripts/publish_release_note.py:16-26`, `:46-55`, `:84-86`, `:103-104`, `:134-142`, `:158-176`, `:505`, `:541-556` | The range, fragment, theme and section functions of *Data & interfaces* |
 | The header comment's sentence naming `changelog/X.Y.Z.md` | `.github/workflows/publish-release.yml:15-18` | The note is built from the fragments, as the script's docstring says |
-| `changelog/`, 58 files, and `CHANGELOG.md` | the repository root | The GitHub Release at each tag, after phase 5's republish of the 26 that lack their file's text. Each file stays readable at its own tag |
+| `changelog/`, 58 files, and `CHANGELOG.md` | the repository root | The GitHub Release at each tag, after phase 5's republish of the 26 that lack their file's text. Each file stays readable at `v0.23.1` |
 | `gathered_entry` | `tests/conftest.py:311-345` | Its only callers are in `tests/text/test_the_changelog_is_gathered_at_release.py`, whose cases go |
 | Every case and helper of `tests/github/test_gather_changelog.py`, the `second-gather-appends` case included | the whole module | The script is gone. The module keeps a docstring saying it holds no case until the settle applies this work item's rule changes, and one caseless class carrying `@pytest.mark.rule("second-gather-appends")`, so the `check:` lines in `docs/` resolve until then. The settle's pull request deletes the module |
 | Every case of `tests/text/test_the_changelog_is_gathered_at_release.py` | the whole module | The same: a docstring and no case until the settle, which deletes it |
