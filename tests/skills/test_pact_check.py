@@ -755,20 +755,37 @@ class Test_check:
                 "`| a | b |`, a row the walk never reaches — it and every row "
                 "below it would go unread",
             ),
+            (
+                anchor_table((PACT_URL, CLAUSE_PATH, "1a2b3c4d"))
+                + "\n| a | b |\n<!-- a note -->\n|---|---|\n",
+                "the frame has a `Pact | Clause | Hash` table that ends above "
+                "`| a | b |`, a row the walk never reaches — it and every row "
+                "below it would go unread",
+            ),
+            (
+                anchor_table((PACT_URL, CLAUSE_PATH, "1a2b3c4d"))
+                + "***\n| a | b |\n|---|---|\n",
+                "the frame has a `Pact | Clause | Hash` table that ends above "
+                "`| a | b |`, a row the walk never reaches — it and every row "
+                "below it would go unread",
+            ),
         ],
         ids=[
             "a second table",
             "a second table under a blank line",
             "a row the walk stops at",
             "a row under a delimiter of another width",
+            "a row whose delimiter a comment parts from it",
+            "a row with no blank line above it",
         ],
     )
     def test_refuses_an_anchor_row_nobody_reads(self, world, text, said):
         """A row the walk does not reach would read as a signer citing
         nothing, so the frame is refused at exit 2. A second anchor table is
         named as one wherever it stands, and a line under the table that
-        opens no table of its own, here a delimiter row of another width, is
-        a row nobody reads."""
+        opens no table of its own is a row nobody reads. A table of its own
+        has a delimiter row of its width directly under it and a blank line
+        above it, the rule `gfm_table` holds the first table's header to."""
         write(world.web, SPEC, text)
         code, out = world.run()
         assert code == 2, out
