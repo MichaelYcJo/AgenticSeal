@@ -9,7 +9,7 @@ target: 8311f660, fixes 77f9d619..8311f660
 severity: should
 location: `skills/code-review/orchestration.md:58-60`, `skills/code-review/orchestration.md:73-80`, `seal/threads/1793174169-a-round-with-fixes-costs-three-record-commits/frame/design.md:170-171`, `tests/text/test_the_rules_have_one_owner.py:192-193`
 evidence: read `skills/code-review/orchestration.md:54-80`, `agents/crafter.md:148-158`, `seal/threads/1793174169-a-round-with-fixes-costs-three-record-commits/frame/design.md:26-36`, `seal/threads/1793174169-a-round-with-fixes-costs-three-record-commits/frame/design.md:170-171`, `seal/threads/1793174169-a-round-with-fixes-costs-three-record-commits/changelog.md:3`
-verdict: open
+verdict: fixed ea5f22e6
 reopens: round-1#1
 
 Why the close does not hold. Round 1's finding named two gaps. The first
@@ -90,14 +90,14 @@ So does the tree with the proposed `to:` text appended to
 crafter's to write (`agents/crafter.md:17-21`), so the orchestrator
 decides who edits `frame/design.md`.
 
-answer:
+answer: The finding holds. `skills/code-review/orchestration.md` put the commit sentence before the paragraph on what the fixes left standing, so the answer commit read as coming before the sweep's corrections. That order came from round 1's paste-ready block, which `b413456f` applied as given. `ea5f22e6` takes this record's two blocks. The fix-pass paragraph loses its commit sentence. The paragraph on what the fixes left standing now ends "Last, the fix pass commits the two lines of every finding it answered in one commit for the whole pass, after its fix commits and those corrections, because a `fixed` verdict names a commit that already exists." The pin in `tests/text/test_the_rules_have_one_owner.py` follows the moved words. It exited 1 against the text at `8311f660` before the text changed, and exited 0 after. The changelog fragment now says the orchestrator's file states the commit at the end of that paragraph, so the answer commit follows the corrections there too. The policy half of this finding is the `to:` text in `frame/design.md`, which the orchestrator rewrote at `4fa7a630`; the crafter does not write the frame. The `git grep` sweep for "after its last fix commit", "after any fix commit" and "in one commit for the whole pass" finds no other statement of the timing without the corrections: `frame/design.md:30-32` and `:55`, and `frame/plan.md:73`, all name the corrections.
 
 ### 2. The rule-change text still shares a 15-word run with the orchestrator's file, so settling it word for word fails the paste check
 
 severity: should
 location: `seal/threads/1793174169-a-round-with-fixes-costs-three-record-commits/frame/design.md:171`, `skills/code-review/orchestration.md:60-61`
 evidence: executed `.venv/bin/python -c longest_run(to text, orchestration.md) at 87e89f17 b413456f 3630fbbd 8311f660`, `.venv/bin/python -c over_baseline(tree with the to text appended to docs/the-review-record.md)`
-verdict: open
+verdict: fixed ea5f22e6
 
 Why it matters. Commit `8311f660` says it reworded the `to:` body "so it
 shares no 15-word run with the new `skills/code-review/orchestration.md`
@@ -139,7 +139,7 @@ removes it from the other side. Either edit alone is enough. Where finding
 ... and commits them together, once, since the `fixed` verdict must name a commit that exists before it. The orchestrator writes neither line of such a finding, ...
 ```
 
-answer:
+answer: The finding holds, and the run is gone from both sides. The orchestrator rewrote the `to:` text at `4fa7a630`. In `ea5f22e6` the orchestrator's file no longer puts "a `fixed` verdict names a commit that already exists." in front of "The orchestrator writes neither line", because the commit sentence moved to the end of the next paragraph but one. Measured at `ea5f22e6` with `.venv/bin/python`, using the paste check's own `longest_run` between `rule_changes.parse(text, 'docs').ops[0].new` and `skills/code-review/orchestration.md`: 0. That function reports only runs of `WINDOW` (15) words or more, so 0 means no shared run of 15. The same function gives 0 between that text and `agents/crafter.md`, and 0 between the two agent-facing files. `parse` returned one `add` and no errors. `over_baseline` on the tree read in memory, with that `to:` text appended to `docs/the-review-record.md`, returned no refusal (all executed). `tests/text/test_no_passage_is_pasted_into_a_second_file.py` exited 0 at the edited tree, with 8 passed.
 
 ## Confirmations
 
