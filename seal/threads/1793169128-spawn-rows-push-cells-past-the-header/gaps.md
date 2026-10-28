@@ -2,10 +2,11 @@
 
 ## Why this work exists
 
-`seal cost --spawns` printed a spawn row whose agent name was longer than the
-label column with every cell shifted to the right of its header, so a reader
-took one column's number for the next; the label is now cut to the column,
-and each cell stays under its header whatever the name.
+`seal cost --spawns` printed a spawn row whose label, `cycle N  ` and the
+agent name together, was longer than the label column, and every cell of
+that row sat to the right of its header, so a reader took one column's
+number for the next. The label is now cut to the column, and each cell
+stays under its header whatever the name.
 
 ## Where spec and implementation diverged
 
