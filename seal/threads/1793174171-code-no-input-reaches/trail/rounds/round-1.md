@@ -11,7 +11,7 @@ No earlier round exists, so this round carried no coordinate and re-established 
 severity: should
 location: `skills/code-review/scripts/chain_check.py:883-893`, `skills/code-review/scripts/chain_check.py:908-918`
 evidence: executed `bin/seal mutate skills/code-review/scripts/chain_check.py --replace $'    found = as_row(VERDICT_ROW, value)\n    if not found:\n        return None\n' $'    found = as_row(VERDICT_ROW, value)\n' --replace $'    if not as_row(LOCATION_ROW, value):\n        return None\n' '' --tests "bin/test -p no:xdist -q tests/skills/test_chain_check.py tests/github/test_release_seal.py -k 'not test_refuses_every_other_value and not test_refuses_no_home_and_another_verdict and not test_refuses_everything_else'"`, `git grep -n -e "f\.verdict" -e "f\.paths" -- skills .github hooks`
-verdict: open
+verdict: fixed c8b5f382
 
 Why it matters: contract rule 12 makes k12's removal owed to every unit the same cause produces. The cause is a second whole-row check inside a reader whose one caller, `finding_of`, already matched the line whole. The crafter's hand-back and `gaps.md` *Not done* name `reference_of` as the one other member of the class. Two more exist, and nothing in the records names them.
 
@@ -63,7 +63,7 @@ def location_of(value):
     return [item.strip("`").split(":")[0] for item in value.split(", ")]
 ```
 
-answer:
+answer: The finding holds. I opened `finding_of` at `chain_check.py:1120-1125` and the six readers of `f.verdict` and `f.paths` it names, and none of them handles a None. c8b5f382 takes the record's first path. Each docstring drops "which the arm refuses by name" and says why the branch stays, as the round drafted: no record reaches the None, and the direct-call cases pin the row's grammar there. No branch is removed. `gaps.md` *Not done* now names `verdict_of` and `location_of` beside `reference_of`, with the owner's question of whether those cases should call `as_row` instead. A `git grep` for "refuses by name", "refused by name" and "None, which" across the tree found nothing else making the same claim. `docs/the-review-record.md:256` and `tests/skills/test_chain_check.py:3292` describe a record with no `## Findings`, which `finding_spans` does refuse. `hooks/lib/config.py:855` describes a None that `skills/verify/scripts/pact_check.py:628` handles. `hooks/lib/config.py:951` and `skills/settle/scripts/rule_changes.py:373` claim no refusal. After the fix, the 25 modules that name or import `chain_check` passed with 2059 passed and 9 skipped, exit 0. `ruff check` and `ruff format --check` on the file both exited 0.
 
 ## Confirmations
 
