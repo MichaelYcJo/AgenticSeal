@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Phase | 5, the fix pass of review round 1 |
-| Commit | the commit that adds this record, named in `trail/rounds/round-1.md`'s two `verdict:` lines |
+| Commit | 81b9a229 |
 
 ## What this phase was asked
 

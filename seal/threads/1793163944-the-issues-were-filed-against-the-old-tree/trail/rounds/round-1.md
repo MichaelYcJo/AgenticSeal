@@ -18,9 +18,9 @@ opened at `origin/release/v0.24.0` (`c9b366f1`), which differs from
 ### 1. The owner's order decisions on #1109 and #1111 reached the frame and milestone 65's description, but not the two issues' bodies
 
 severity: should
-location: `seal/threads/1793163944-the-issues-were-filed-against-the-old-tree/frame/design.md:505-508`, `seal/threads/1793163944-the-issues-were-filed-against-the-old-tree/frame/design.md:569-570`, `seal/threads/1793163944-the-issues-were-filed-against-the-old-tree/trail/phases/phase-1.md`
+location: `seal/threads/1793163944-the-issues-were-filed-against-the-old-tree/frame/design.md:505-508`, `seal/threads/1793163944-the-issues-were-filed-against-the-old-tree/frame/design.md:569-570`, `seal/threads/1793163944-the-issues-were-filed-against-the-old-tree/trail/phases/phase-1.md`, `seal/threads/1793163944-the-issues-were-filed-against-the-old-tree/trail/phases/phase-5.md`
 evidence: executed `gh issue view 1109 --repo MichaelYcJo/AgenticSeal --json title,body,milestone`, `gh issue view 1111 --repo MichaelYcJo/AgenticSeal --json title,body,milestone`, `gh issue view 1110 --repo MichaelYcJo/AgenticSeal --json body`, `gh pr view 1112 --repo MichaelYcJo/AgenticSeal --json title,state,body,baseRefName,files`, `gh api repos/MichaelYcJo/AgenticSeal/milestones/65 --jq .description`
-verdict: open
+verdict: fixed 81b9a229
 
 Phase 1 filed #1109 and #1111 before the owner changed their order on
 2026-10-28. The orchestrator folded both changes into `frame/design.md` at
@@ -86,14 +86,14 @@ frame/design.md:569-570, replacing "#956 asks which way a reader fails on input 
 F3 runs after #956, whose audit settles which way each reader fails on input it cannot read, and F3 decides each pin against that (owner, 2026-10-28).
 ```
 
-answer:
+answer: The finding holds. #1109's third *Done when* bullet asked for a frame that a no-work-item change does not have, and #1111's body named #1040 as its only predecessor. The record's paste-ready text was applied as written, through `gh issue edit <N> --body-file`, each exit 0 and each body read back equal to the file sent (executed). #1109's bullet now sends the census question to #1110's frame. #1110 gains that question under *What this work decides*. #1111's second bullet drops its order clause, and a new `## Order` section names #956 and #1040 with the owner's ground. The edits are on GitHub, so commit `81b9a229` changes none of the frame lines this finding names: the orchestrator folded those at `bb9130fc`. It adds `trail/phases/phase-5.md`, which records the three edits with their `updatedAt` before and after, and that path is appended to `location:`.
 
 ### 2. The frame keeps every title but #1040's on a premise that does not hold, and eight titles still state an old name or a figure the fold corrected
 
 severity: should
-location: `seal/threads/1793163944-the-issues-were-filed-against-the-old-tree/frame/design.md:47-50`, `seal/threads/1793163944-the-issues-were-filed-against-the-old-tree/trail/phases/phase-2.md:132-137`, `seal/threads/1793163944-the-issues-were-filed-against-the-old-tree/trail/phases/phase-3.md:103-105`
+location: `seal/threads/1793163944-the-issues-were-filed-against-the-old-tree/frame/design.md:47-50`, `seal/threads/1793163944-the-issues-were-filed-against-the-old-tree/trail/phases/phase-2.md:132-137`, `seal/threads/1793163944-the-issues-were-filed-against-the-old-tree/trail/phases/phase-3.md:103-105`, `seal/threads/1793163944-the-issues-were-filed-against-the-old-tree/trail/phases/phase-5.md`
 evidence: executed `gh issue view <N> --repo MichaelYcJo/AgenticSeal --json title`, `git cat-file -e 0b75346f:tests/test_the_hook_surface_git_offers.py`, `git cat-file -e origin/release/v0.24.0:tests/test_the_hook_surface_git_offers.py`
-verdict: open
+verdict: fixed 81b9a229
 
 `frame/design.md:47-50` puts titles out of scope because "the read found no
 title naming a file that no longer exists in a way the body cannot correct",
@@ -148,7 +148,7 @@ titles instead, the clause "the read found no title naming a file that no
 longer exists" is replaced by the reason they stay, so that the frame does
 not rest on a false premise.
 
-answer:
+answer: The finding holds. The frame's premise was false, and my phase 2 and 3 hand-backs missed #1042 and #1049. The owner has not answered whether titles change, so this pass builds on the review's default, and the orchestrator reports it. The eight `gh issue edit <N> --title` commands ran as the record writes them, each exit 0, and each title read back with `gh issue view <N> --json title` equals the record's text (executed). Commit `81b9a229` adds `trail/phases/phase-5.md`, which lists each old and new title, and that path is appended to `location:`. The frame clause at `:47-50` was folded by the orchestrator at `bb9130fc`. `trail/phases/phase-2.md` and `phase-3.md` keep their "titles left as the frame scopes them" paragraphs, because those paragraphs are the record of what each phase did; phase 5 records the change.
 
 ## Confirmations
 
