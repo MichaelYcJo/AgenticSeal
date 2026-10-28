@@ -1154,12 +1154,14 @@ def import_(args, cwd):
         # does leave `testzip` is an encrypted member (`RuntimeError`) and a
         # compression method this build has no decompressor for
         # (`NotImplementedError`), both measured 2026-09-03 as tracebacks.
+        # `NotImplementedError` is a subclass of `RuntimeError`, so the one
+        # name catches both.
         #
         # It reads every member, which the two bounds above are what make
         # affordable.
         try:
             corrupt = archive.testzip()
-        except (zipfile.BadZipFile, RuntimeError, NotImplementedError) as bad:
+        except (zipfile.BadZipFile, RuntimeError) as bad:
             corrupt = str(bad)
         if corrupt:
             print(f"{path} holds a member this command cannot read: {corrupt}")
