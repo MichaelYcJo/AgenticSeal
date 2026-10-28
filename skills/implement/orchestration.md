@@ -595,9 +595,10 @@ repository's code would be wrong if it changed. Where both hold:
   origin remote URL of the pact's repository. `templates/setup/config.md` *Pact*
   documents it. The pact's repository needs no row, because it is identified
   by holding `seal/pact.md`;
-- each signer cites the clauses it was built against as pact anchors, in its
-  spec's Grounding, and `seal pact`, run at the pact's repository, reads
-  every signer and says where they disagree.
+- each signer cites the clauses it was built against as pact anchors, one
+  row each of a `| Pact | Clause | Hash |` table in its `frame/design.md`,
+  the `Pact` cell holding the pact's origin URL; `seal pact`, run at the
+  pact's repository, reads every signer and says where they disagree.
 
 Where only the first condition holds, the repositories get their
 declarations and nothing else: no pact, and no `Pact` row.

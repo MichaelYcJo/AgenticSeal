@@ -1,8 +1,8 @@
 """`skills/verify/scripts/pact_check.py`, one class per function.
 
-Rebuilt by #942's phase 5. The printed paths, the near-miss rule, the
-anchor grammar, a clause's hash and an anchor's grade run in the process on
-text, a grade against a stand-in history. The checkout search, the history
+Rebuilt by #942's phase 5. The printed paths, a clause's hash and an
+anchor's grade run in the process on text, a grade against a stand-in
+history. The checkout search, the history
 and `check` read a world built once for the module and copied for each case
 that writes into it: the pact's repository, whose `seal/pact.md` carries one
 clause committed as v1 and then v2 on `main` and v3 on a side branch HEAD does
@@ -21,7 +21,8 @@ import subprocess
 
 import pytest
 from conftest import (
-    LOCATOR,
+    ANCHOR_LINE,
+    CLAUSE_PATH,
     MOBILE_URL,
     PACT,
     PACT_URL,
@@ -31,9 +32,9 @@ from conftest import (
     V1,
     V2,
     V3,
+    anchor_table,
     census_case,
     clause,
-    grounding_row,
     init,
     load_module,
     old_header,
@@ -58,12 +59,35 @@ WRAPPER = os.path.join(ROOT, "bin", "seal")
 pc, checker = pact_check_modules()
 config = pc.load(os.path.join(pc.HOOKS, "config.py"), "config_for_pact_tests")
 
-SIGNER = (SIGNER_URL, config.normalise_remote(SIGNER_URL), "orders-web")
+SIGNER = (SIGNER_URL, config.normalise_remote(SIGNER_URL))
 SPEC_Y = "seal/threads/1790000001-y/frame/design.md"
 # The machine-local map's header and delimiter row, as `seal pact`'s remedy
 # line teaches a person to begin it.
 MAP_TOP = "| Remote | Path |\n|---|---|\n"
 MAP_REFUSED = "REFUSED ~/.claude/agentic/pact-paths.md — the map "
+# The sentences `seal pact` refuses an anchor row and an inline anchor in,
+# pinned whole (contract rule 14).
+NOT_ONE_URL = (
+    "the `Pact` cell is not one remote URL: it holds a space, a backtick or no "
+    "host and path — write the origin URL of the pact's repository, bare, as "
+    "the signer's `Pact` row writes it"
+)
+NO_HEADING = (
+    "the `Clause` cell opens with no heading — write the clause's heading "
+    "path, bare, such as `## Clause / ### Narrower`"
+)
+NOT_A_HASH = (
+    "the `Hash` cell is not eight lowercase hex digits — write `00000000` "
+    "until the first report names the real one"
+)
+INLINE = (
+    "a `pact:` token is the inline pact anchor `seal pact` read through "
+    "0.23.x, and nothing reads it now — write it as a row of a "
+    "`| Pact | Clause | Hash |` table, `| <the origin URL of the pact's "
+    "repository> | ## Clause / ### Narrower | <hash> |`; or, where the text "
+    "shows the retired shape rather than citing a clause, put it in a fenced "
+    "code block, which nothing reads"
+)
 
 
 def posix(path):
@@ -72,72 +96,6 @@ def posix(path):
 
 
 class Test_module:
-    @pytest.mark.parametrize(
-        "anchor",
-        [
-            'pact:orders-api#"## Order response shape / ### Fields"@1a2b3c4d',
-            "pact:orders-api/## Order response shape@1a2b3c4d",
-            'pact:orders-api/"## Order response shape / ### Fields"',
-            f"pact:orders-api{LOCATOR}@1a2b3c4d",
-            f"pact:orders-api:{LOCATOR}@1a2b3c4d",
-            f"pact:orders-api {LOCATOR}@1a2b3c4d",
-            "pact:orders-api@1a2b3c4d",
-            f"pact:orders-api.{LOCATOR}@1a2b3c4d",
-            f"pact:orders-api-{LOCATOR}@1a2b3c4d",
-            f"pact:orders-api_{LOCATOR}@1a2b3c4d",
-            f"pact:orders-api./{LOCATOR}@1a2b3c4d",
-            f"pact:orders-api-/{LOCATOR}@1a2b3c4d",
-            f"pact:orders-api_/{LOCATOR}@1a2b3c4d",
-            "pact:orders-api.@1a2b3c4d",
-            "The clauses sit under pact:orders-api/ in that repository.",
-        ],
-        ids=[
-            "hash for slash",
-            "no quotes",
-            "no hash",
-            "no slash",
-            "a colon for the slash",
-            "a space for the slash",
-            "no heading path",
-            "a dot for the slash",
-            "a hyphen for the slash",
-            "an underscore for the slash",
-            "a dot before the slash",
-            "a hyphen before the slash",
-            "an underscore before the slash",
-            "a dot, no heading path",
-            "half typed in prose",
-        ],
-    )
-    def test_accepts_each_attempt_at_an_anchor_as_beginning_one(self, anchor):
-        """The grammar's one rule: each of these begins an anchor naming the
-        pact, or the pact and one mark, and does not complete one, so
-        `check` refuses it."""
-        assert not checker.PACT_ANCHOR_RE.search(anchor) or not any(
-            m.group("name") == "orders-api"
-            for m in checker.PACT_ANCHOR_RE.finditer(anchor)
-        )
-        begun = [m.group("name") for m in pc.PACT_MENTION_RE.finditer(anchor)]
-        assert any(n == "orders-api" or pc.near_miss(n, "orders-api") for n in begun)
-
-    @pytest.mark.parametrize(
-        "body",
-        [
-            "This work item signs pact:orders-api, the order contract.",
-            "This work item signs `pact:orders-api`.",
-            'Cite each clause as `pact:orders-api/"<heading path>"@<hash>`.',
-            "See pact:orders-api.",
-        ],
-        ids=[
-            "prose",
-            "code span",
-            "the form with its placeholders",
-            "a sentence's end",
-        ],
-    )
-    def test_refuses_to_read_prose_naming_the_pact_as_an_attempt(self, body):
-        assert not pc.PACT_MENTION_RE.search(body)
-
     def test_accepts_the_map_named_in_posix_form_under_windows_joins(
         self, monkeypatch, tmp_path
     ):
@@ -222,7 +180,7 @@ class Test_shown:
 
 class Test_load:
     def test_accepts_a_sibling_module_by_its_path(self):
-        assert hasattr(pc.load(pc.CHECKER, "evidence_loaded_again"), "PACT_ANCHOR_RE")
+        assert hasattr(pc.load(pc.CHECKER, "evidence_loaded_again"), "content_hash")
 
     def test_refuses_a_module_that_is_not_there_with_a_sentence(self, tmp_path, capsys):
         with pytest.raises(SystemExit) as stopped:
@@ -230,18 +188,6 @@ class Test_load:
         assert stopped.value.code == 2
         err = capsys.readouterr().err
         assert "seal pact: cannot read " in err and "Nothing was read." in err, err
-
-
-class Test_near_miss:
-    @pytest.mark.parametrize("said", ["orders-api.", "orders-api-", "ORDERS-API_"])
-    def test_accepts_the_name_and_one_mark_the_name_class_holds(self, said):
-        assert pc.near_miss(said, "orders-api")
-
-    @pytest.mark.parametrize(
-        "said", ["orders-api", "orders-api.-", "orders-apix", "orders-ap."]
-    )
-    def test_refuses_the_name_itself_two_marks_or_another_character(self, said):
-        assert not pc.near_miss(said, "orders-api")
 
 
 class Test_git:
@@ -400,7 +346,7 @@ class Test_checkout:
         assert "nothing here guesses which" in why, why
 
     def test_refuses_the_pact_s_own_repository_and_a_signer_nowhere(self, world):
-        own = (PACT_URL, config.normalise_remote(PACT_URL), "orders-api")
+        own = (PACT_URL, config.normalise_remote(PACT_URL))
         path, why = pc.checkout(config, own, str(world.api), {})
         assert path is None
         assert why == (
@@ -483,33 +429,33 @@ class Test_clause_hash:
         """#867: a heading quoted inside a closed fence is no second clause,
         and the hash is over the clause's lines as written."""
         text = "# Pact\n\n## A\n\nterms\n\n```markdown\n## A\n```\n\n## B\n\nmore\n"
-        digest, why = pc.clause_hash(checker, text, '"## A"')
+        digest, why = pc.clause_hash(checker, text, "## A")
         assert why is None, why
         assert digest == checker.content_hash(checker.gfm_lines(text)[2:10])
 
     @pytest.mark.parametrize(
-        "text, locator, why",
+        "text, clause_path, why",
         [
             (
                 pact(V2),
-                '"Order response shape"',
+                "Order response shape",
                 "names no heading path, and a pact clause is addressed by one",
             ),
             (
                 pact(V2),
-                '"## Order response shape / ### Gone"',
+                "## Order response shape / ### Gone",
                 "resolves to no clause in the pact",
             ),
             (
                 pact(V2) + "\n## Order response shape\n\n### Fields\n\nagain\n",
-                LOCATOR,
+                CLAUSE_PATH,
                 "resolves to 2 clauses in the pact",
             ),
         ],
         ids=["no heading", "no clause", "two clauses"],
     )
-    def test_refuses_a_locator_naming_no_one_clause(self, text, locator, why):
-        assert pc.clause_hash(checker, text, locator) == (None, why)
+    def test_refuses_a_clause_path_naming_no_one_clause(self, text, clause_path, why):
+        assert pc.clause_hash(checker, text, clause_path) == (None, why)
 
 
 class _History:
@@ -538,18 +484,18 @@ A, B, C = "a" * 40, "b" * 40, "c" * 40
 class Test_grade:
     def test_accepts_the_current_hash_and_names_where_an_older_one_came_from(self):
         history = _History(head=[(A, None), (B, pact(V1))], other=[(C, pact(V3))])
-        assert pc.grade(checker, pact(V2), history, LOCATOR, clause(V2)) == (
+        assert pc.grade(checker, pact(V2), history, CLAUSE_PATH, clause(V2)) == (
             pc.OK,
             "",
         )
-        status, detail = pc.grade(checker, pact(V2), history, LOCATOR, clause(V1))
+        status, detail = pc.grade(checker, pact(V2), history, CLAUSE_PATH, clause(V1))
         assert status == pc.SUPERSEDED
         assert detail == (
             "the signer was built against a superseded clause, the one at "
             f"bbbbbbbb; it reads @{clause(V2)} now. Re-read it in the signer and "
             "re-anchor"
         )
-        status, detail = pc.grade(checker, pact(V2), history, LOCATOR, clause(V3))
+        status, detail = pc.grade(checker, pact(V2), history, CLAUSE_PATH, clause(V3))
         assert status == pc.NOT_TAKEN
         assert detail.startswith(
             "the pact has not taken the signer's recorded change: this hash is "
@@ -558,11 +504,11 @@ class Test_grade:
 
     def test_refuses_a_hash_no_version_gave_and_a_path_naming_no_clause(self):
         history = _History(head=[(B, pact(V1))], other=[(C, pact(V3))])
-        status, detail = pc.grade(checker, pact(V2), history, LOCATOR, "deadbeef")
+        status, detail = pc.grade(checker, pact(V2), history, CLAUSE_PATH, "deadbeef")
         assert status == pc.UNMATCHED
         assert detail.endswith("Read both sides"), detail
         status, detail = pc.grade(
-            checker, pact(V2), history, '"## Order response shape / ### Gone"', "x"
+            checker, pact(V2), history, "## Order response shape / ### Gone", "x"
         )
         assert (status, detail) == (
             pc.BROKEN,
@@ -573,51 +519,62 @@ class Test_grade:
 
 class Test_check:
     def test_accepts_a_signer_citing_the_current_clause(self, world):
-        """S12: two specs cite the current hash, one of them in the pact's
-        name as another case spells it, and an anchor of another pact and one
-        shown in a fence are not read: exit 0 and the summary line."""
+        """S6, S7 and S9's passes: two frames cite the current hash, one
+        naming the pact by another spelling of its URL. A row naming another
+        pact is passed over whatever its other cells hold, and neither a
+        table nor a `pact:` token inside a closed fence, nor `compact:`, is
+        read: exit 0, and the `READ` and summary lines name the pact by its
+        URL (contract rule 14)."""
         world.cite(clause(V2))
         write(
             world.web,
             SPEC_Y,
-            grounding_row(f"pact:ORDERS-API/{LOCATOR}@{clause(V2)}")
-            + grounding_row(f"pact:billing/{LOCATOR}@deadbeef")
-            + grounding_row(f"pact:orders-api-legacy-/{LOCATOR}@deadbeef")
-            + f"```\npact:orders-api/{LOCATOR}@deadbeef\n```\n",
+            "## Grounding\n\n"
+            + anchor_table(
+                ("https://example.com/org/Orders-API/", CLAUSE_PATH, clause(V2)),
+                ("git@example.com:org/billing.git", CLAUSE_PATH, "deadbeef"),
+                ("https://example.com/org/orders-api-legacy", "no heading", "x"),
+            )
+            + "\nThe compact:x note.\n\n```\n"
+            + anchor_table((PACT_URL, "no heading", "x"))
+            + 'pact:orders-api/"## A"@1a2b3c4d\n```\n',
         )
         code, out = world.run()
         assert code == 0, out
         assert (
-            f"READ {SIGNER_URL} {posix(world.web)} — 2 pact anchors naming `orders-api`"
+            f"READ {SIGNER_URL} {posix(world.web)} — 2 pact anchors naming this pact"
         ) in out, out
         assert out.endswith(
-            "seal pact: the pact `orders-api` — 1 of 1 signer read · 2 ok · 0 "
+            f"seal pact: the pact at {PACT_URL} — 1 of 1 signer read · 2 ok · 0 "
             "superseded · 0 not taken · 0 unmatched · 0 broken"
         ), out
-        assert "heads its table" not in out and "does not parse" not in out, out
+        assert "heads its table" not in out and "REFUSED" not in out, out
 
     @pytest.mark.parametrize(
-        "fields, locator, code, line",
+        "fields, clause_path, code, line",
         [
-            (V1, LOCATOR, 1, "SUPERSEDED {s} {spec}:1 {a} — the signer was built"),
-            (V3, LOCATOR, 1, "NOT TAKEN {s} {spec}:1 {a} — the pact has not taken"),
-            (None, LOCATOR, 1, "UNMATCHED {s} {spec}:1 {a} — no commit in this"),
+            (V1, CLAUSE_PATH, 1, "SUPERSEDED {s} {spec}:{n} `{c}` — the signer was"),
+            (V3, CLAUSE_PATH, 1, "NOT TAKEN {s} {spec}:{n} `{c}` — the pact has not"),
+            (None, CLAUSE_PATH, 1, "UNMATCHED {s} {spec}:{n} `{c}` — no commit in"),
             (
                 V2,
-                '"## Order response shape / ### Gone"',
+                "## Order response shape / ### Gone",
                 2,
-                "BROKEN {s} {spec}:1 {a} — the heading path resolves to no clause",
+                "BROKEN {s} {spec}:{n} `{c}` — the heading path resolves to no clause",
             ),
         ],
         ids=["superseded", "not taken", "unmatched", "broken"],
     )
     def test_refuses_each_anchor_that_does_not_read_ok(
-        self, world, fields, locator, code, line
+        self, world, fields, clause_path, code, line
     ):
-        anchor = world.cite(clause(fields) if fields else "deadbeef", locator)
+        """S6: each line that is not `OK` names the frame, the row's line and
+        the clause path."""
+        world.cite(clause(fields) if fields else "deadbeef", clause_path)
         got, out = world.run()
         assert got == code, out
-        assert line.format(s=SIGNER_URL, spec=SPEC, a=anchor) in out, out
+        said = line.format(s=SIGNER_URL, spec=SPEC, n=ANCHOR_LINE, c=clause_path)
+        assert said in out, out
 
     def test_refuses_a_mismatch_under_local_mode_as_unmatched_and_says_why(self, world):
         common = git(world.api, "rev-parse", "--git-common-dir")
@@ -628,10 +585,12 @@ class Test_check:
             str(world.api / "seal" / "README.md"), os.path.join(local, "README.md")
         )
         os.rmdir(str(world.api / "seal"))
-        anchor = world.cite(clause(V1))
+        world.cite(clause(V1))
         code, out = world.run()
         assert code == 1, out
-        assert f"UNMATCHED {SIGNER_URL} {SPEC}:1 {anchor}" in out, out
+        assert f"UNMATCHED {SIGNER_URL} {SPEC}:{ANCHOR_LINE} `{CLAUSE_PATH}`" in out, (
+            out
+        )
         assert out.endswith(
             "The pact sits under the git directory (local mode), so it has no "
             "history and every mismatch reads unmatched"
@@ -661,7 +620,7 @@ class Test_check:
         code, out = world.run()
         assert code == 1, out
         assert f"NOT FOUND {MOBILE_URL} — " in out, out
-        assert "seal pact: the pact `orders-api` — 1 of 2 signers read · " in out, out
+        assert f"seal pact: the pact at {PACT_URL} — 1 of 2 signers read · " in out, out
 
     @pytest.mark.parametrize(
         "header", ["Signer", "Signatory"], ids=["Signer", "old_header"]
@@ -717,57 +676,78 @@ class Test_check:
         ) in out, out
 
     @pytest.mark.parametrize(
-        "anchor",
+        "row, said",
         [
-            'pact:orders-api#"## Order response shape / ### Fields"@1a2b3c4d',
-            "pact:orders-api/## Order response shape@1a2b3c4d",
-            'pact:orders-api/"## Order response shape / ### Fields"',
-            f"pact:orders-api {LOCATOR}@1a2b3c4d",
-            "pact:orders-api@1a2b3c4d",
-            f"pact:orders-api.{LOCATOR}@1a2b3c4d",
-            f"pact:orders-api-/{LOCATOR}@1a2b3c4d",
-            "pact:orders-api.@1a2b3c4d",
+            ((f"{PACT_URL} x", CLAUSE_PATH, "1a2b3c4d"), NOT_ONE_URL),
+            ((f"`{PACT_URL}`", CLAUSE_PATH, "1a2b3c4d"), NOT_ONE_URL),
+            (("orders-api", CLAUSE_PATH, "1a2b3c4d"), NOT_ONE_URL),
+            ((PACT_URL, "Order response shape", "1a2b3c4d"), NO_HEADING),
+            ((PACT_URL, f"`{CLAUSE_PATH}`", "1a2b3c4d"), NO_HEADING),
+            ((PACT_URL, CLAUSE_PATH, "1A2B3C4D"), NOT_A_HASH),
+            ((PACT_URL, CLAUSE_PATH, "1a2b3c"), NOT_A_HASH),
         ],
         ids=[
-            "hash for slash",
-            "no quotes",
-            "no hash",
-            "a space for the slash",
-            "no heading path",
-            "a dot for the slash",
-            "a hyphen before the slash",
-            "a dot, no heading path",
+            "a space in the Pact cell",
+            "a backtick in the Pact cell",
+            "no host and path",
+            "a clause path with no heading",
+            "a clause path in backticks",
+            "an uppercase hash",
+            "a short hash",
         ],
     )
-    def test_refuses_an_anchor_that_does_not_parse(self, world, anchor):
-        """A mistyped citation is read by nobody else: not the signer's own
-        check, not chain-check. Here it is named, with both remedies, and
-        exit 2."""
-        write(world.web, SPEC, grounding_row(anchor))
+    def test_refuses_a_row_it_cannot_grade_at_its_line(self, world, row, said):
+        """S8: each shape is refused at the row's line, at exit 2. Seen red
+        against `977b6613`, which read no anchor table and exited 0."""
+        write(world.web, SPEC, anchor_table(row))
         code, out = world.run()
         assert code == 2, out
-        assert f"REFUSED {SIGNER_URL} {SPEC}:1 — `" in out, out
-        assert (
-            'does not parse as `pact:orders-api/"<heading path>"@<hash>`, so '
-            "nothing grades it. Quote the heading path and give it a hash, "
-            "`@00000000` until the first report names the real one; or, where it "
-            "shows the shape rather than citing a clause, put it in a fenced code "
-            "block, which nothing reads"
-        ) in out, out
+        assert f"REFUSED {SIGNER_URL} {SPEC}:{ANCHOR_LINE} — {said}" in out, out
 
-    def test_accepts_the_pact_s_name_inside_a_graded_anchor_s_heading(self, world):
-        """The anchor around it is graded, and the spelling inside it is not
-        a second citation."""
-        write(
-            world.web,
-            SPEC,
-            grounding_row(
-                'pact:orders-api/"## On pact:orders-api/old shapes"@deadbeef'
-            ),
-        )
+    @pytest.mark.parametrize(
+        "text, line",
+        [
+            ('| `pact:orders-api/"## A"@1a2b3c4d` | the field list |\n', 1),
+            ('# Grounding\n\nBuilt against pact:orders-api/"## A"@1a2b3c4d.\n', 3),
+        ],
+        ids=["in a table cell", "in prose"],
+    )
+    def test_refuses_the_inline_anchor_naming_the_row_to_write(self, world, text, line):
+        """S9 and `questions.md` Q1's default: the inline anchor is refused
+        at its line, at exit 2, and the line names the row to write. Seen
+        red against `977b6613`, which graded the token."""
+        write(world.web, SPEC, text)
         code, out = world.run()
-        assert code == 2 and "BROKEN " in out, out
-        assert "does not parse" not in out, out
+        assert code == 2, out
+        assert f"REFUSED {SIGNER_URL} {SPEC}:{line} — {INLINE}" in out, out
+
+    @pytest.mark.parametrize(
+        "text, said",
+        [
+            (
+                anchor_table((PACT_URL, CLAUSE_PATH, "1a2b3c4d"))
+                + "\n## More\n\n"
+                + anchor_table((PACT_URL, CLAUSE_PATH, "1a2b3c4d")),
+                "the frame holds a second `| Pact | Clause | Hash |` header at "
+                "line 7, and the walk reads the first table only — move its rows "
+                "into the first table and delete the second header",
+            ),
+            (
+                anchor_table((PACT_URL, CLAUSE_PATH, "1a2b3c4d")) + "| x | y |\n",
+                "the frame has a `Pact | Clause | Hash` table that stops at "
+                "`| x | y |`, which is not a 3-cell row written `| … | … | … |` — "
+                "every row below it would go unread",
+            ),
+        ],
+        ids=["a second table", "a row the walk stops at"],
+    )
+    def test_refuses_an_anchor_row_nobody_reads(self, world, text, said):
+        """A row the walk does not reach would read as a signer citing
+        nothing, so the frame is refused at exit 2, as the map is."""
+        write(world.web, SPEC, text)
+        code, out = world.run()
+        assert code == 2, out
+        assert f"REFUSED {SIGNER_URL} {SPEC} — {said}" in out, out
 
     @pytest.mark.parametrize("shape", ["directory", "undecodable"])
     def test_refuses_a_signer_config_that_will_not_read(self, world, shape):
@@ -879,7 +859,11 @@ class Test_check:
         assert code == 2 and "holds no seal/pact.md, so there is no pact" in out, out
         git(world.api, "remote", "remove", "origin")
         code, out = world.run()
-        assert code == 2 and "has no origin remote" in out, out
+        assert code == 2, out
+        assert out.endswith(
+            "has no origin remote, so no pact anchor can be matched to the pact "
+            "— set `origin` and run it again"
+        ), out
 
 
 class Test_renamed:

@@ -3,9 +3,8 @@
 it holds.
 
 The coordinate kernel: it resolves a `path#unit` coordinate. No command runs
-it: the readers that name a place in a file by its content load this module
-by path and call it. They are `pact_check.py` and `chain_check.py`, which
-read pact anchors.
+it: the reader that names a place in a file by its content loads this module
+by path and calls it. That is `pact_check.py`, which grades pact anchors.
 
 A place is named by content, never by position. The locator is a **symbol
 name** where the language offers one, `.py` read with the stdlib `ast`, and
@@ -24,19 +23,6 @@ import re
 import sys
 
 HASH_LEN = 8
-# A clause of a pact held in another repository, cited from a signer
-# (#647, `docs/the-pact.md`): `pact:<name>/"<heading path>"@<hash>`. The name
-# is the last path segment of the pact's repository's normalised origin URL
-# (`hooks/lib/config.py#pact_name`), the locator is this module's quoted heading
-# path with its `\|` and `\"` escapes, and the hash is `content_hash` of the
-# clause's region in `seal/pact.md`. `pact_check.py` grades these.
-PACT_NAME = r"[A-Za-z0-9_.-]+"
-PACT_ANCHOR_RE = re.compile(
-    r"(?<![A-Za-z0-9_.@/-])pact:(?P<name>" + PACT_NAME + r")/"
-    r"(?P<locator>\"(?:[^\"\n]|\\\")+\")"
-    # exempt from coordinate_grammar: the grammar itself
-    r"@(?P<hash>[0-9a-f]{6,12})"
-)
 
 # The fence, heading and line rules are the shared reader's,
 # `unverified_check.py` beside this file, which every reader of markdown and

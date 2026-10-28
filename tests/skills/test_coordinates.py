@@ -374,10 +374,5 @@ class Test_module:
         assert ec.text_regions(lines, "## A", True) == [(1, 5)]
         assert ec.text_regions(lines, "## A2", True, shown) == [(5, 7)]
 
-    def test_a_word_ending_in_pact_is_not_a_pact_anchor(self):
-        """`compact:` is a word, and the look-behind keeps it one."""
-        assert ec.PACT_ANCHOR_RE.search('compact:x/"## A"@1a2b3c4d') is None
-        assert ec.PACT_ANCHOR_RE.search('pact:x/"## A"@1a2b3c4d') is not None
-
 
 test_census = census_case(TARGET)

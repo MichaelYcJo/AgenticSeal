@@ -4,21 +4,36 @@
 Issue #647. A work item that commits in more than one repository, where those
 repositories keep a contract together, keeps the one copy of that contract in
 `seal/pact.md` in one of them -- the pact's repository -- and every repository
-of the work item is a signer (`docs/the-pact.md`). A signer cites the
-clauses it was built against as pact anchors,
+of the work item is a signer (`docs/the-pact.md`). A signer cites each
+clause it was built against as a pact anchor, one row of the anchor table
+in a work item's `frame/design.md`:
 
-  pact:<name>/"<heading path>"@<hash>
+  | Pact | Clause | Hash |
+  |---|---|---|
+  | <origin URL of the pact's repository> | ## Clause / ### Narrower | <hash> |
 
-in its specs' Grounding. This command reads every signer from the pact's
-repository and grades each of those anchors against the clause as the pact
-holds it now.
+This command reads every signer from the pact's repository and grades each
+row naming this pact against the clause as the pact holds it now.
 
   seal pact             in the pact's repository
   seal pact ROOT        the pact's repository at ROOT
 
 **Local only.** No CI runs it: a signer's pull request can read one
-repository, and this needs all of them (#647's decision 2). What a signer's
-CI does instead is print the relationship, `chain_check.py#pact_notices`.
+repository, and this needs all of them (#647's decision 2). A signer's CI
+reads nothing of the pact.
+
+## What each frame is read for
+
+The anchor table is read by `hooks/lib/config.py#gfm_table`, and the cells
+are written bare. A row is graded where its `Pact` cell, compared
+normalised, is the origin URL of this repository; a row naming another pact
+is passed over. Refused at the row's line: a `Pact` cell that is not one
+remote URL, and, in a row naming this pact, a `Clause` cell that opens with
+no heading or a `Hash` cell that is not eight lowercase hex digits. Refused
+at the frame: every refusal of the walk, and a second anchor table. Every
+`pact:` token outside a closed fence is refused at its line, with the row
+to write in its place: it is the inline anchor this command read through
+0.23.x.
 
 ## Where the signers are
 
@@ -65,7 +80,8 @@ A pact under local mode has no history, so every mismatch there reads
   1  a `SUPERSEDED`, `NOT TAKEN` or `UNMATCHED` anchor, or a signer not
      found on this machine
   2  unusable input: no pact here, a pact or file that cannot be read, a
-     line of the machine-local map it does not read, a `BROKEN` anchor, an anchor naming this pact that does not parse, a
+     line of the machine-local map it does not read, a `BROKEN` anchor,
+     an anchor row it cannot grade or does not read, a `pact:` token, a
      `Pact` row that will not parse, a relationship
      recorded on one side only, or a pact's repository with no origin
      remote
@@ -151,7 +167,6 @@ def shown(path, repo=None, home_dir=None, flavour=os.path):
 
 # The machine-local map's header, as the cells `gfm_table` matches a header by.
 MAP_TABLE = ("Remote", "Path")
-MAP_NAMED = f"`| {' | '.join(MAP_TABLE)} |`"
 
 OK, SUPERSEDED, NOT_TAKEN, UNMATCHED, BROKEN = (
     "OK",
@@ -166,35 +181,34 @@ NOT_FOUND, ONE_SIDED, REFUSED, UNREADABLE = (
     "REFUSED",
     "UNREADABLE",
 )
-# A token that begins a pact anchor and does not complete one, so a mistyped
-# citation -- `#` for `/`, no quotes, no hash -- is named rather than passed
-# over. It is otherwise read by nobody: not here, not by the signer's own
-# check, which passes pact anchors over by design, and not by chain-check
-# (round 1 of #647, yellow 4).
-#
-# **The grammar, in one rule** (round 2, yellow 13; round 3 of #735, yellow
-# 19), stated for a reader in `docs/the-pact.md` *The pact anchor*: a token
-# begins an anchor where `pact:<name>` is followed at once by `/` or `#`, or
-# where the rest of an anchor follows with its `/` missing -- a quoted heading
-# path closed by `@`, or `@` and a hash, at once or after one mark or one
-# space. A `.`, `-` or `_` the name class takes in as that mark is read by
-# `near_miss`, here and before a `/`. It is refused where it does not go on
-# to parse. Anything else naming
-# the pact is a mention and is left alone: `pact:<name>` followed by
-# punctuation, a space or the end of a code span, so the `.` ending a sentence
-# leaves a mention. The one form that begins an anchor and is not an attempt
-# is the one this plugin prints to show the shape, its locator opening with a
-# placeholder, `/"<heading path>"`.
-# Straight or curly quotes, spelled by code point so no line of this file holds
-# a character a reader takes for another.
-OPEN_QUOTE = "[\"'" + chr(0x201C) + chr(0x2018) + "]"
-CLOSE_QUOTE = "[\"'" + chr(0x201D) + chr(0x2019) + "]"
-PACT_MENTION_RE = re.compile(
-    r"(?<![A-Za-z0-9_.@/-])pact:(?P<name>[A-Za-z0-9_.-]+)"
-    r"(?:(?=[/#])(?!/\"<)"
-    r"|(?=[^\s`|/#]?[ \t]?" + OPEN_QUOTE + r"[^\n]*?" + CLOSE_QUOTE + r"@)"
-    r"|(?=[^\s`|/#]?@[0-9A-Fa-f]))"
-    r"[^\s`|]*"
+# The anchor table's header, as the cells `gfm_table` matches a header by.
+ANCHOR_TABLE = ("Pact", "Clause", "Hash")
+# The inline anchor read through 0.23.x, refused wherever it stands outside
+# a closed fence: `pact:` with no letter, digit, `_`, `.`, `@`, `/` or `-`
+# before it, so `compact:` is no token, and a character that is not a space
+# after it. One pattern, and it names no typo.
+INLINE_TOKEN = re.compile(r"(?<![A-Za-z0-9_.@/-])pact:(?=\S)")
+# The sentences a row or a token is refused in, each reading after its line.
+NOT_ONE_URL = (
+    "the `Pact` cell is not one remote URL: it holds a space, a backtick or no "
+    "host and path — write the origin URL of the pact's repository, bare, as "
+    "the signer's `Pact` row writes it"
+)
+NO_HEADING = (
+    "the `Clause` cell opens with no heading — write the clause's heading "
+    "path, bare, such as `## Clause / ### Narrower`"
+)
+NOT_A_HASH = (
+    "the `Hash` cell is not eight lowercase hex digits — write `00000000` "
+    "until the first report names the real one"
+)
+INLINE = (
+    "a `pact:` token is the inline pact anchor `seal pact` read through "
+    "0.23.x, and nothing reads it now — write it as a row of a "
+    "`| Pact | Clause | Hash |` table, `| <the origin URL of the pact's "
+    "repository> | ## Clause / ### Narrower | <hash> |`; or, where the text "
+    "shows the retired shape rather than citing a clause, put it in a fenced "
+    "code block, which nothing reads"
 )
 # Which exit each finding is.
 EXIT_ONE = frozenset({SUPERSEDED, NOT_TAKEN, UNMATCHED, NOT_FOUND})
@@ -215,16 +229,6 @@ def load(path, name):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
-
-
-def near_miss(said, name):
-    """True where SAID is NAME and one more mark the name class holds -- a
-    `.`, `-` or `_` -- standing where an anchor's `/` went missing or just
-    before it, as in `pact:orders-api."## A"@1a2b3c4d`: the name pattern
-    takes the mark in, so without this the token names another pact and
-    nobody reads it (round 1 of PR #749, yellow 4)."""
-    said = said.lower()
-    return len(said) == len(name) + 1 and said.startswith(name) and said[-1] in "._-"
 
 
 def git(root, *args):
@@ -256,6 +260,32 @@ def origin(root):
     return (git(root, "remote", "get-url", "origin") or "").strip()
 
 
+def first_table(config, text, header):
+    """(rows, refusals) for the first table of TEXT headed HEADER, read by
+    `hooks/lib/config.py#gfm_table`: its rows and its refusals, and, where
+    the walk refused nothing, one refusal per further HEADER outside a
+    fence, at its line, because the walk reads the first table only. A
+    refusal of the walk already says every row below it goes unread, a
+    second header among them."""
+    rows, walked = config.gfm_table(text, header)
+    if walked:
+        return rows, list(walked)
+    # exempt from splitlines: lines the GFM walk numbers
+    lines = text.splitlines()
+    headers = [
+        index + 1
+        for index, line in config.unfenced(lines, text)
+        if config.table_cells(line) == header
+    ]
+    named = f"`| {' | '.join(header)} |`"
+    return rows, [
+        f"holds a second {named} header at line {at}, and the walk reads the "
+        "first table only — move its rows into the first table and delete the "
+        "second header"
+        for at in headers[1:]
+    ]
+
+
 def path_map(config, home_dir):
     """({normalised remote: path}, refusals) from the machine-local map
     under HOME_DIR, each refusal a sentence that reads after the words `the
@@ -275,8 +305,7 @@ def path_map(config, home_dir):
     text = read(where)
     if text is None:
         return {}, ["is there and could not be read"]
-    rows, walked = config.gfm_table(text, MAP_TABLE)
-    refusals = list(walked)
+    rows, refusals = first_table(config, text, MAP_TABLE)
     places = {}
     for line, cells in rows:
         remote, path = cells
@@ -298,29 +327,13 @@ def path_map(config, home_dir):
             f"repository, `{remote}`, so "
             f"{'neither' if len(held) == 2 else 'none of them'} is read — keep one"
         )
-    if not walked:
-        # A refusal of the walk already says every row below it goes unread,
-        # a second header among them.
-        # exempt from splitlines: lines the GFM walk numbers
-        lines = text.splitlines()
-        headers = [
-            index + 1
-            for index, line in config.unfenced(lines, text)
-            if config.table_cells(line) == MAP_TABLE
-        ]
-        refusals.extend(
-            f"holds a second {MAP_NAMED} header at line {at}, and the walk reads "
-            "the first table only — move its rows into the first table and "
-            "delete the second header"
-            for at in headers[1:]
-        )
     return found, refusals
 
 
 def checkout(config, signer, root, mapped, home_dir=None):
     """(path, None) for the signer's checkout, or (None, why not), every
     path in the reason as `shown` prints it."""
-    written, normalised, _name = signer
+    written, normalised = signer
     if normalised in mapped:
         path = mapped[normalised]
         if not os.path.isdir(path):
@@ -429,12 +442,30 @@ class History:
         return refs[0] if refs else sha[:8]
 
 
-def clause_hash(checker, text, locator):
-    """(hash, None) for the clause LOCATOR names in a pact's TEXT, or
-    (None, why it names none)."""
-    body = checker.unescape(locator[1:-1])
-    parts = [p for p in body.split(checker.HEADING_SEP) if p.strip()]
+def heading_parts(checker, clause):
+    """The headings of CLAUSE, a heading path as an anchor row's `Clause`
+    cell holds it, or None where it opens with no heading."""
+    parts = [p for p in clause.split(checker.HEADING_SEP) if p.strip()]
     if not parts or checker.heading_level(parts[0].strip()) is None:
+        return None
+    return parts
+
+
+def one_remote(config, cell):
+    """CELL normalised, where an anchor row's `Pact` cell is one remote URL
+    written bare; None where it holds a backtick, a space or no host and
+    path, and so names no pact anybody can tell."""
+    if "`" in cell:
+        return None
+    parsed, _refusals = config.remote_entries([cell], "")
+    return parsed[0][1] if parsed else None
+
+
+def clause_hash(checker, text, clause):
+    """(hash, None) for the clause the heading path CLAUSE names in a
+    pact's TEXT, or (None, why it names none)."""
+    parts = heading_parts(checker, clause)
+    if parts is None:
         return None, "names no heading path, and a pact clause is addressed by one"
     lines = checker.gfm_lines(text)
     # The clause's region as the checker reads a document's (#867): headings
@@ -450,9 +481,10 @@ def clause_hash(checker, text, locator):
     return checker.content_hash(lines[start - 1 : end]), None
 
 
-def grade(checker, pact_text, history, locator, want):
-    """(status, what to do) for one anchor."""
-    current, why = clause_hash(checker, pact_text, locator)
+def grade(checker, pact_text, history, clause, want):
+    """(status, what to do) for one anchor: the clause path CLAUSE and the
+    hash WANT the signer recorded."""
+    current, why = clause_hash(checker, pact_text, clause)
     if current is None:
         return BROKEN, (
             f"the heading path {why}: the clause was renamed or removed. "
@@ -462,7 +494,7 @@ def grade(checker, pact_text, history, locator, want):
         return OK, ""
     for sha in history.head():
         text = history.text(sha)
-        if text is not None and clause_hash(checker, text, locator)[0] == want:
+        if text is not None and clause_hash(checker, text, clause)[0] == want:
             return SUPERSEDED, (
                 f"the signer was built against a superseded clause, the one "
                 f"at {sha[:8]}; it reads @{current} now. Re-read it in the "
@@ -470,7 +502,7 @@ def grade(checker, pact_text, history, locator, want):
             )
     for sha in history.other():
         text = history.text(sha)
-        if text is not None and clause_hash(checker, text, locator)[0] == want:
+        if text is not None and clause_hash(checker, text, clause)[0] == want:
             return NOT_TAKEN, (
                 f"the pact has not taken the signer's recorded change: this "
                 f"hash is the clause on {history.ref_holding(sha)} (at "
@@ -518,18 +550,21 @@ def check(root, out=sys.stdout, home_dir=None):
         )
         return 2
     mine = origin(repo)
-    name = config.pact_name(mine)
-    if not name:
+    if not mine:
         say(
             f"seal pact: {shown(repo, home_dir=home_dir)} has no origin remote, "
-            "so the name every pact "
-            "anchor carries cannot be derived — set `origin` and run it again"
+            "so no pact anchor can be matched to the pact — set `origin` and "
+            "run it again"
         )
         return 2
+    ours = config.normalise_remote(mine)
     shared = optin.home_paths(repo)[0]
     local = os.path.realpath(home) != os.path.realpath(shared)
     rel = os.path.relpath(pact_path, repo).replace(os.sep, "/")
     history = History(repo, rel)
+    # A `Hash` cell is the clause's content hash, as long as the checker
+    # writes one.
+    hash_shape = re.compile(f"[0-9a-f]{{{checker.HASH_LEN}}}")
 
     findings = []
 
@@ -556,7 +591,7 @@ def check(root, out=sys.stdout, home_dir=None):
     read_count = 0
     for signer in signers:
         written = signer[0]
-        if signer[1] == config.normalise_remote(mine):
+        if signer[1] == ours:
             # The owner's definition makes the pact's repository a signer
             # too, so listing it is a plausible slip; the sibling search
             # skips this repository and would call it not found here (round
@@ -596,7 +631,7 @@ def check(root, out=sys.stdout, home_dir=None):
         pacts, row_refusals = declared
         for refusal in row_refusals:
             found(REFUSED, written, f"seal/{CONFIG_FILE}", refusal)
-        if not any(n == config.normalise_remote(mine) for _w, n, _ in pacts):
+        if not any(n == ours for _w, n in pacts):
             found(
                 ONE_SIDED,
                 written,
@@ -615,54 +650,42 @@ def check(root, out=sys.stdout, home_dir=None):
             if body is None:
                 found(UNREADABLE, written, where, "could not be read")
                 continue
-            view = checker.unquoted(body)
-            for match in checker.PACT_ANCHOR_RE.finditer(view):
-                if match.group("name").lower() != name:
+            rows, table_refusals = first_table(config, body, ANCHOR_TABLE)
+            if table_refusals and table_refusals[0].startswith("holds no "):
+                # A frame that cites no pact holds no anchor table.
+                table_refusals = []
+            for refusal in table_refusals:
+                found(REFUSED, written, where, f"the frame {refusal}")
+            for line, (pact_cell, clause, want) in rows:
+                at = f"{where}:{line}"
+                named = one_remote(config, pact_cell)
+                if named is None:
+                    found(REFUSED, written, at, NOT_ONE_URL)
+                    continue
+                if named != ours:
+                    continue
+                if heading_parts(checker, clause) is None:
+                    found(REFUSED, written, at, NO_HEADING)
+                    continue
+                if not hash_shape.fullmatch(want):
+                    found(REFUSED, written, at, NOT_A_HASH)
                     continue
                 anchors += 1
-                status, detail = grade(
-                    checker,
-                    pact_text,
-                    history,
-                    match.group("locator"),
-                    match.group("hash"),
-                )
+                status, detail = grade(checker, pact_text, history, clause, want)
                 counts[status] += 1
                 if status != OK:
-                    line = view.count("\n", 0, match.start()) + 1
-                    found(status, written, f"{where}:{line} {match.group(0)}", detail)
-            # A whole anchor naming this pact plus one mark is an attempt at
-            # this pact, not a span to step past (round 1 of PR #749,
-            # yellow 4).
-            graded = [
-                m.span()
-                for m in checker.PACT_ANCHOR_RE.finditer(view)
-                if not near_miss(m.group("name"), name)
-            ]
-            for near in PACT_MENTION_RE.finditer(view):
-                inside = any(s <= near.start() < e for s, e in graded)
-                said = near.group("name")
-                if not (said.lower() == name or near_miss(said, name)) or inside:
-                    continue
-                line = view.count("\n", 0, near.start()) + 1
-                found(
-                    REFUSED,
-                    written,
-                    f"{where}:{line}",
-                    f"`{near.group(0)}` does not parse as "
-                    f'`pact:{name}/"<heading path>"@<hash>`, so nothing grades '
-                    "it. Quote the heading path and give it a hash, `@00000000` "
-                    "until the first report names the real one; or, where it "
-                    "shows the shape rather than citing a clause, put it in a "
-                    "fenced code block, which nothing reads",
-                )
+                    found(status, written, f"{at} `{clause}`", detail)
+            view = checker.unquoted(body)
+            for token in INLINE_TOKEN.finditer(view):
+                line = view.count("\n", 0, token.start()) + 1
+                found(REFUSED, written, f"{where}:{line}", INLINE)
         say(
             f"READ {written} {shown(path, home_dir=home_dir)} — {anchors} pact "
-            f"anchor{'' if anchors == 1 else 's'} naming `{name}`"
+            f"anchor{'' if anchors == 1 else 's'} naming this pact"
         )
 
     summary = (
-        f"seal pact: the pact `{name}` — {read_count} of {len(signers)} "
+        f"seal pact: the pact at {mine} — {read_count} of {len(signers)} "
         f"signer{'' if len(signers) == 1 else 's'} read · "
         + " · ".join(f"{counts[s]} {s.lower()}" for s in counts)
     )

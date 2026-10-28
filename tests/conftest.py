@@ -1420,14 +1420,16 @@ def pact_check_modules():
 PACT_URL = "git@example.com:org/orders-api.git"
 SIGNER_URL = "https://example.com/org/orders-web"
 MOBILE_URL = "https://example.com/org/orders-mobile"
-LOCATOR = '"## Order response shape / ### Fields"'
+CLAUSE_PATH = "## Order response shape / ### Fields"
 PACT = "seal/pact.md"
 SPEC = "seal/threads/1790000000-x/frame/design.md"
 V1, V2, V3 = "id, total", "id, total, currency", "id, total, currency, tax"
 # The pact a signer's `Pact` row names in the reader's cases, and what
 # `hooks/lib/config.py#pact_declaration` answers for it.
 URL = PACT_URL
-ORDERS = [(URL, "example.com/org/orders-api", "orders-api")]
+ORDERS = [(URL, "example.com/org/orders-api")]
+# The line of a frame `World.cite` writes its one anchor row on.
+ANCHOR_LINE = 3
 
 
 def pact(fields, signers=(SIGNER_URL,)):
@@ -1445,7 +1447,7 @@ def old_header(text):
 
 def clause(fields):
     pc, checker = pact_check_modules()
-    digest, why = pc.clause_hash(checker, pact(fields), LOCATOR)
+    digest, why = pc.clause_hash(checker, pact(fields), CLAUSE_PATH)
     assert why is None
     return digest
 
@@ -1456,8 +1458,13 @@ def signer_config(*rows):
     )
 
 
-def grounding_row(anchor):
-    return f"| `{anchor}` | the field list, built against it |\n"
+def anchor_table(*rows):
+    """A signer frame's anchor table, one `| Pact | Clause | Hash |` row per
+    ROW, each a tuple of the three cells as written."""
+    return "| Pact | Clause | Hash |\n|---|---|---|\n" + "".join(
+        f"| {pact_cell} | {clause_cell} | {hash_cell} |\n"
+        for pact_cell, clause_cell, hash_cell in rows
+    )
 
 
 def init(d, url):
@@ -1506,10 +1513,10 @@ class World:
         self.api = base / "work" / "orders-api"
         self.web = base / "work" / "orders-web"
 
-    def cite(self, digest, locator=LOCATOR, where=SPEC):
-        anchor = f"pact:orders-api/{locator}@{digest}"
-        write(self.web, where, grounding_row(anchor))
-        return anchor
+    def cite(self, digest, clause_path=CLAUSE_PATH, where=SPEC):
+        """Write the signer's frame at WHERE holding one anchor row, naming
+        the pact by its URL, on line `ANCHOR_LINE`."""
+        write(self.web, where, anchor_table((PACT_URL, clause_path, digest)))
 
     def run(self, root=None):
         """(exit, the printed lines run together) for `check` at ROOT, the
