@@ -67,5 +67,8 @@ the frame's `## Rule changes` item is the settle's.
   `test_chain_hooks_hardening.py` (28) and
   `test_the_stamp_reaches_the_person_it_is_drawn_for.py` (8).
   `tests/behaviour/test_a_cited_section_stands_in_its_file.py` does not
-  exist in this tree. `uvx ruff check` and `uvx ruff format --check` passed
+  exist in this tree. `tests/test_censuses.py` was not among the 36: the
+  grep listed `tests/censuses.py`, which is its helper and not a module,
+  and the census module was missed. Phase 2 ran it, and it failed on the
+  `root-migrate` row this phase wrote (`trail/phases/phase-2.md`). `uvx ruff check` and `uvx ruff format --check` passed
   over the three changed test files (exit 0, executed).
