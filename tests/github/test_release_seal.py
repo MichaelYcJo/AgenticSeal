@@ -206,7 +206,6 @@ def pull(number, branch, title, body="", *labels, login=OWNER):
 
 
 PULLS = [
-    pull(9, "chore/the-fragments", "chore: release 1.2.3 — the gathering"),
     pull(10, "feat/12-an-item", "feat: a thing", "Closes #12", "chain: capped"),
     pull(11, "fix/13-another", "fix: another thing", "Closes #13", login="someone"),
 ]

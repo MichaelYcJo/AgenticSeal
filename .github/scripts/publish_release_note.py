@@ -427,9 +427,6 @@ TYPES = (
 )
 OTHER = "📦 Other"
 TITLE_RE = re.compile(r"^(?P<type>[a-z]+)(?:\([^)]*\))?!?:\s*(?P<text>.+)$", re.I)
-# The preparation pull request -- `chore: release X.Y.Z -- ...` -- moves the
-# version and changes nothing a user reads, so it is not one of the changes.
-PREPARATION_RE = re.compile(r"^chore:\s*release\s+\d+\.\d+\.\d+\b", re.I)
 # A title that ends in the issue it closes, `... (#572)`, would read
 # `(#572) (#574)`; the closing list carries the issue instead.
 TRAILING_REF_RE = re.compile(r"\s*\(#\d+\)\s*$")
@@ -498,12 +495,8 @@ def outside(pull, owner):
 
 
 def changes(pulls):
-    """The release's own pull requests, oldest first, less the preparation."""
-    return [
-        p
-        for p in sorted(pulls or (), key=lambda p: p["number"])
-        if not PREPARATION_RE.match(p.get("title", "").strip())
-    ]
+    """The release's own pull requests, oldest first."""
+    return sorted(pulls or (), key=lambda p: p["number"])
 
 
 def kind_and_text(title):

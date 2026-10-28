@@ -198,7 +198,6 @@ def pull(number, login, title="docs: a sentence", body="", is_bot=False):
 OWNER = REPO.split("/")[0]
 
 RELEASE = [
-    pull(9, OWNER, f"chore: release {VERSION} — the gathering", "Closes #1"),
     pull(10, OWNER, "fix: the owner's own change", "Closes #100 and fixes #101"),
     pull(11, "someone", "docs: explain a thing", "Closes #102"),
     pull(12, "dependabot[bot]", "chore: bump", is_bot=True),
@@ -474,10 +473,10 @@ class Test_main:
         assert found in out, out
 
     def test_every_change_is_one_line_under_its_type(self, monkeypatch, tmp_path):
-        """A5. The list is a partition of the release: every pull request but the
-        preparation lands under exactly one heading, an unknown or missing type
-        under Other, and each line names the issues its body closes -- read the
-        way the closer reads them, so a quoted keyword closes nothing."""
+        """A5. The list is a partition of the release: every pull request lands
+        under exactly one heading, an unknown or missing type under Other, and
+        each line names the issues its body closes -- read the way the closer
+        reads them, so a quoted keyword closes nothing."""
         _, body = published(monkeypatch, tmp_path, RELEASE)
         assert lines_under(body, "### \U0001f41b Fixes") == [
             "- The owner's own change (#10) · closes #100, #101",
@@ -494,7 +493,6 @@ class Test_main:
             "- Bump again (#13)",
         ]
         assert lines_under(body, "### \U0001f4e6 Other") == ["- An untyped title (#16)"]
-        assert "#9)" not in body, "the preparation pull request is listed as a change"
         assert "#999" not in body, "a keyword inside a code span was read as a claim"
         assert (
             body.index("### ✨ Features")
@@ -556,7 +554,6 @@ class Test_main:
         [
             pytest.param(None, id="the list could not be read"),
             pytest.param([], id="no pull request"),
-            pytest.param([RELEASE[0]], id="only the preparation"),
         ],
     )
     def test_with_nothing_to_summarise_the_note_is_the_theme_and_the_fragments(

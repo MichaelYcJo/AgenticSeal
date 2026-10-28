@@ -99,13 +99,14 @@ def test_the_specification_says_why_two_answers_and_not_three():
 
 
 def test_the_release_checklist_names_the_waiver_as_the_no_work_item_answer():
-    """Item 9: the release-preparation commit declares its class — the
-    routing question's `no work item` answer, whose recorded form is
-    `seal no-work-item` and the `Seal-Routing: no work item` trailer on
-    each commit — rather than stepping around a gate."""
+    """Item 9: a release's commit that belongs to no work item, a settle's
+    among them, declares its class — the routing question's `no work item`
+    answer, whose recorded form is `seal no-work-item` and the
+    `Seal-Routing: no work item` trailer on each commit — rather than
+    stepping around a gate. The checklist is read whole, because #1117's
+    rule changes move the sentence from step 4 to step 2b at the settle."""
     text = flat("docs", "release-checklist.md")
     assert "`no work item` answer" in text, (
-        "`docs/release-checklist.md` *4. Commit, push, open the first pull "
-        "request* does not name the waiver as the routing question's `no work "
-        "item` answer"
+        "`docs/release-checklist.md` does not name the waiver as the routing "
+        "question's `no work item` answer"
     )

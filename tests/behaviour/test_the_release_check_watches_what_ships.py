@@ -299,6 +299,19 @@ def test_the_base_guard_is_a_closed_if_with_the_early_exit_inside_it():
     )
 
 
+def test_the_skip_line_says_where_the_version_is_checked():
+    """#1117. A pull request into the release branch is skipped, and the line
+    it prints says the version is checked when the branch merges to `main`.
+    It said the version moves then, and the version now moves in the
+    release's first pull request. Seen red against that line."""
+    skip = [line for line in release_step().splitlines() if "not a release PR" in line]
+    assert len(skip) == 1, release_step()
+    assert "the version is checked when the release branch merges to main" in skip[0], (
+        skip[0]
+    )
+    assert "moves" not in skip[0], skip[0]
+
+
 def test_the_refusal_still_fails_the_run():
     """The message is the only thing that moved. A refusal that stopped
     exiting 1 would ship an unversioned release in silence."""

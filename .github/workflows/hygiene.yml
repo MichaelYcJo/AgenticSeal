@@ -70,11 +70,12 @@ jobs:
       - name: a change to what ships must move the version
         shell: bash
         run: |
-          # Work accumulates on a release branch; the version moves once,
-          # when that branch merges to `main`. Asking every feature PR to bump
-          # it is what made one commit one release.
+          # Work accumulates on a release branch; the version moves once, in
+          # the release's first pull request into that branch, and reaches
+          # `main` when the branch merges. Asking every feature PR to bump it
+          # is what made one commit one release.
           if [ "${{ github.base_ref }}" != "main" ]; then
-            echo "base is ${{ github.base_ref }}, not a release PR — the version moves when next merges to main"; exit 0
+            echo "base is ${{ github.base_ref }}, not a release PR — the version is checked when the release branch merges to main"; exit 0
           fi
           base="origin/${{ github.base_ref }}"
           changed=$(git diff --name-only "$base"...HEAD)
