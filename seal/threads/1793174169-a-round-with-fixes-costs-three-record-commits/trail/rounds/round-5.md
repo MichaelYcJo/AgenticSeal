@@ -101,7 +101,7 @@ answer:
 severity: should
 location: `seal/threads/1793174169-a-round-with-fixes-costs-three-record-commits/frame/design.md:251`, `seal/threads/1793174169-a-round-with-fixes-costs-three-record-commits/frame/plan.md:87-91`
 evidence: read `seal/threads/1793174169-a-round-with-fixes-costs-three-record-commits/frame/design.md:251`, `seal/threads/1793174169-a-round-with-fixes-costs-three-record-commits/frame/plan.md:87-91`, `skills/code-review/orchestration.md:78-84`
-verdict: open
+verdict: fixed e8bb7028
 
 The `## Rule changes` item that the settle writes into
 `docs/the-review-record.md` *The round record* ends: "A second hand on
@@ -154,7 +154,7 @@ After the edit, S7 has to be measured again: the `to:` text must share no
 `agents/crafter.md`. The sentence above was written apart from both, and
 this round has not measured it.
 
-answer:
+answer: The orchestrator applied both blocks above to the frame as given at `e8bb7028`, since the frame is not the crafter's to write, and then measured S7 with `longest_run` on the parsed `to:` text: 0 against `skills/code-review/orchestration.md`, `agents/crafter.md`, `docs/the-review-record.md` and `skills/implement/orchestration.md` (executed); no fix pass ran for this finding, so the orchestrator writes both its lines.
 
 ## Confirmations
 
