@@ -14,7 +14,7 @@ round 1's coordinates for the preset block (`templates/setup/claude-md-block.md:
 severity: should
 location: `seal/threads/1793140810-each-directory-holds-everything-in-one-level/changelog.md:7`
 evidence: executed `env HOME=<scratch home> bash -c 'cd "$HOME/.claude/plugins/marketplaces/agenticseal" && bash install.sh "$HOME/.claude/CLAUDE.md"'`, `env HOME=<scratch home> bash -c 'cd <scratch project> && bash ~/.claude/plugins/marketplaces/agenticseal/install.sh --project'`, `env HOME=<scratch home> bash -c 'cd /tmp && bash ~/.claude/plugins/marketplaces/agenticseal/install.sh "$HOME/.claude/CLAUDE.md"'`
-verdict: open
+verdict: fixed a17e7921
 regression: round-1#1
 
 The unit is the changelog entry `2e2cea9b` added at `changelog.md:7`.
@@ -69,7 +69,7 @@ its block from beside itself, so it is reached by its full path and the
 shell's directory chooses only the `--project` target. The `~` stands
 unquoted so the shell expands it.
 
-answer:
+answer: fixed in a17e7921 with one command per scope, as the finding gives them. The orchestrator made this fix, as a prose fix too small for a crafter spawn.
 
 ## Confirmations
 
