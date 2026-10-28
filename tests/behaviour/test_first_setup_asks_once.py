@@ -627,11 +627,18 @@ def test_the_switch_block_lands_the_root_at_the_tree_root_from_a_subdirectory(
 
 @pytest.mark.parametrize("readme", sorted(READMES))
 def test_the_gates_table_says_the_root_may_sit_under_the_git_dir(readme):
-    rows = [
-        line
-        for line in read(readme).splitlines()
-        if line.startswith("| ") and "`seal/`" in line.rsplit("|", 2)[-2]
-    ]
+    # The gate table's rows alone: since #1055 the `seal/` row of the records
+    # table names `seal/` in its last cell too, and that cell is no Where.
+    lines = read(readme).splitlines()
+    start = next(
+        i for i, ln in enumerate(lines) if ln.startswith(("| Gate |", "| 게이트 |"))
+    )
+    table = []
+    for line in lines[start + 2 :]:
+        if not line.startswith("|"):
+            break
+        table.append(line)
+    rows = [line for line in table if "`seal/`" in line.rsplit("|", 2)[-2]]
     assert rows, f"{readme}: no gate row's Where cell names `seal/`"
     for row in rows:
         where = row.rsplit("|", 2)[-2]

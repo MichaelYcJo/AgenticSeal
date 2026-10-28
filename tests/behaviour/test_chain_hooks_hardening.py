@@ -65,6 +65,44 @@ def test_the_fallback_runs_the_same_script_with_the_same_arguments():
         assert first.split('"')[1:] == second.split('"')[1:], cmd
 
 
+# The header row each edition's gate table opens with.
+GATE_TABLE = {"README.md": "| Gate |", "README.ko.md": "| 게이트 |"}
+
+
+def gate_table_names(edition):
+    """The first cell of each body row of EDITION's gate table: the rows
+    after the header and its separator, up to the first line that is not a
+    table row."""
+    with open(os.path.join(ROOT, edition), encoding="utf-8") as f:
+        lines = f.read().splitlines()
+    start = next(i for i, ln in enumerate(lines) if ln.startswith(GATE_TABLE[edition]))
+    names = []
+    for line in lines[start + 2 :]:
+        if not line.startswith("|"):
+            break
+        names.append(line.split("|")[1].strip())
+    return names
+
+
+def test_the_gate_table_has_one_row_for_each_script_groups_registers():
+    """#1055 S1. `hooks/dispatch.py#GROUPS` is the one list of the hooks the
+    plugin registers, and the gate table is what a person reads to learn what
+    runs on their machine. Each script `GROUPS` names has exactly one row in
+    each edition, its first cell the file name without `.py`, and no row
+    names anything else. Seen red at `5287dd42`, whose tables lacked
+    `worktree_consent` and `root-migrate`."""
+    from conftest import load_module
+
+    dispatch = load_module(
+        os.path.join(ROOT, "hooks", "dispatch.py"), "agentic_dispatch_for_the_table"
+    )
+    registered = sorted(
+        {g[: -len(".py")] for gates in dispatch.GROUPS.values() for g in gates}
+    )
+    for edition in GATE_TABLE:
+        assert sorted(gate_table_names(edition)) == registered, edition
+
+
 def test_plugin_version_is_in_changelog():
     # The changelog starts at the first public release, so commits before it
     # legitimately have no file — the claim under test is "if a changelog
