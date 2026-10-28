@@ -9,7 +9,7 @@ target: 400863f9, fixes 5b19ca0e..400863f9
 severity: must
 location: `seal/threads/1793226630-most-contract-rules-are-proved-by-their-own-wording/frame/plan.md:88-90`, `seal/threads/1793226630-most-contract-rules-are-proved-by-their-own-wording/frame/questions.md:43-46`, `seal/threads/1793226630-most-contract-rules-are-proved-by-their-own-wording/trail/phases/phase-2.md:30-71`
 evidence: executed `gh issue view 1111 --comments`, `gh issue view 1111 --json body`, `sed -n 32,70p seal/threads/1793226630-most-contract-rules-are-proved-by-their-own-wording/trail/phases/phase-2.md`
-verdict: open
+verdict: deferred #1111
 
 The caller asked this round to weigh whether the comment of 2026-10-28 on
 #1111 states only what `trail/phases/phase-2.md` and the frame state. It
@@ -86,14 +86,14 @@ Each module's number, from the work item's `trail/phases/phase-2.md`:
 | Total | 255 |
 ```
 
-answer:
+answer: The orchestrator edited its comment on #1111 (`issuecomment-6483485058`) to carry the block above, all 39 rows and the total, and reworded the 182 sentence to say that 174 of those lines are in the 39 modules and 8 in the contract module; reading the comment back finds 39 module rows (executed). The repair is on the tracker, so this closes `deferred #1111`, and the orchestrator writes both its lines.
 
 ### 2. Round 2's answer to finding 3 says the grep finds the ten `check:` lines "in 5 files", and the same grep finds them in 4
 
 severity: should
 location: `seal/threads/1793226630-most-contract-rules-are-proved-by-their-own-wording/trail/rounds/round-2.md:128`
 evidence: executed `git grep -l -E '^\s*check:.*evals/' -- ':!seal/'`, `git grep -l -E '^\s*check:.*evals/' 0f77a2d0 -- ':!seal/'`, `git grep -l -E 'check:.*evals/behaviour' -- ':!seal/'`, `git blame -L 128,128 --porcelain seal/threads/1793226630-most-contract-rules-are-proved-by-their-own-wording/trail/rounds/round-2.md`
-verdict: open
+verdict: fixed 7cb74da2
 regression: round-2#3
 
 The unit is finding 3's `answer:` line at `round-2.md:128`, which `0f77a2d0`
@@ -136,7 +136,7 @@ Commit that edit. The finding then closes `fixed <that commit>`, the
 correction to a record that `docs/the-review-record.md:140-141` gives that
 close.
 
-answer:
+answer: The orchestrator corrected `round-2.md:128` in place at `7cb74da2`, "in 5 files" to "in 4 files", and left the sentence after it as written; `git grep -l -E '^\s*check:.*evals/' -- ':!seal/'` lists 4 files at that commit (executed). No fix pass ran for this finding, so the orchestrator writes both its lines.
 
 ## Confirmations
 
