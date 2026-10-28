@@ -212,7 +212,8 @@ def test_moving_a_sentence_to_another_section_is_caught():
 
 def test_a_rule_that_loses_or_doubles_its_check_line_is_named():
     """The check-line case can fail at every rule, both ways: a rule whose
-    line goes, and a rule that carries a second one."""
+    line goes, and a rule that carries a second one. A sentence that names
+    `check: ` inside a line is prose, not a second line."""
     text = read()
     for number, (_, start, end) in spans(text).items():
         body = text[start:end]
@@ -223,6 +224,12 @@ def test_a_rule_that_loses_or_doubles_its_check_line_is_named():
             assert rules_without_one_check_line(
                 text[:start] + mutated + text[end:]
             ) == [number], number
+        prose = (
+            body[: line.start()]
+            + "Name it on a `check: x` line.\n"
+            + body[line.start() :]
+        )
+        assert rules_without_one_check_line(text[:start] + prose + text[end:]) == []
 
 
 # --- citations (#957) --------------------------------------------------------
