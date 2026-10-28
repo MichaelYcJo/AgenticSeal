@@ -124,10 +124,6 @@ Out of scope, each with why:
   gather paragraphs under it go through `## Rule changes`, and the heading
   is left, because #1117 removes the step whole and both rule changes reach
   the same settle.
-- **`skills/implement/orchestration.md:530` and `:578`.** Each states the
-  gather ("the accumulated entries are gathered and dated", "the marker the
-  changelog gather writes"), and the file belongs to #1041's work item
-  (`frame/questions.md` Q4).
 - **`.test_durations`.** It is the cache the test runner rewrites
   (`tests/censuses.py:1053`); the build does not edit it by hand.
 - **Correcting the 0.12.2 sentences the two follow-up rows described.** No

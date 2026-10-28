@@ -23,13 +23,11 @@ A change's release note was kept three times, in its fragment, in the gathered `
 | Item | Who must answer |
 |---|---|
 | Whether the tag's job can list the milestones under `contents: write` alone (`frame/questions.md` Q3, default (a)) | the orchestrator, reading the log of the tag run of the release carrying this work |
-| The full suite, the repository-wide lint and the typecheck over this branch | the orchestrator, at the broad gate |
+| closed The full suite, the repository-wide lint and the typecheck over this branch | executed by the orchestrator's broad gate at `782f24a3` against `faf093f1`, passed (`trail/gate.md`) |
 | closed S11: every released version keeps its notes, in its GitHub Release or in `changelog/X.Y.Z.md` at `v0.23.1` | executed in phase 5, 2026-10-28: `git cat-file -e v0.23.1:changelog/X.Y.Z.md` exits 0 for all 58 versions, each recorded in `trail/phases/phase-5.md` |
 | Step 3 of the `update` skill run by a session updating across a real release | the first person to update to the release carrying this work |
 
 ## Not done
-
-`skills/implement/orchestration.md:530` and `:578` still state the gather, and so do `:538` and `:541` ("one fragment per work item that a release gathers", "running the gather"). The file is #1041's work item's, and `frame/questions.md` Q4's default (a) leaves it alone; the orchestrator names the sentences in the pull request body.
 
 `tests/behaviour/test_first_setup_asks_once.py` still passes `fold_ledger` to `test_the_rows_that_read_this_repository_do_not_travel`. That script left the tree in #950, so the parameter reads nothing, the same way `gather_changelog` would have. It is #950's leftover, not this work's.
 
