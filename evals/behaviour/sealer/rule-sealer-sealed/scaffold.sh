@@ -70,7 +70,7 @@ cat > 'seal/threads/1790000030-guarantee-sealed/routing.md' <<'AGENTIC_EOF'
 | Branch | feat/guarantee-sealed |
 AGENTIC_EOF
 git add -A
-git -c user.name=eval -c user.email=eval@example.com commit -q -m 'base: textutil'
+git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'base: textutil'
 git checkout -q -b feat/guarantee-sealed
 mkdir -p "$(dirname 'seal/threads/1790000030-guarantee-sealed/frame/design.md')"
 cat > 'seal/threads/1790000030-guarantee-sealed/frame/design.md' <<'AGENTIC_EOF'
@@ -106,7 +106,7 @@ Approved 2026-10-14 by the repository owner, when `crafter` was spawned.
 | 1 | `shout("")` and its case | `python3 -m unittest tests.test_textutil -q` | |
 AGENTIC_EOF
 git add -A
-git -c user.name=eval -c user.email=eval@example.com commit -q -m 'frame: shout keeps empty text empty'
+git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'frame: shout keeps empty text empty'
 mkdir -p "$(dirname 'src/textutil.py')"
 cat > 'src/textutil.py' <<'AGENTIC_EOF'
 def shout(text):
@@ -135,7 +135,7 @@ if __name__ == "__main__":
     unittest.main()
 AGENTIC_EOF
 git add -A
-git -c user.name=eval -c user.email=eval@example.com commit -q -m 'fix: shout keeps empty text empty'
+git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'fix: shout keeps empty text empty'
 build=$(git rev-parse HEAD)
 mkdir -p "$(dirname 'seal/threads/1790000030-guarantee-sealed/trail/phases/phase-1.md')"
 cat > 'seal/threads/1790000030-guarantee-sealed/trail/phases/phase-1.md' <<'AGENTIC_EOF'
@@ -214,7 +214,7 @@ AGENTIC_EOF
 sed "s/b0b0b0b/$build/" 'seal/threads/1790000030-guarantee-sealed/trail/phases/phase-1.md' > record.tmp && mv record.tmp 'seal/threads/1790000030-guarantee-sealed/trail/phases/phase-1.md'
 sed "s/b0b0b0b/$build/" 'seal/threads/1790000030-guarantee-sealed/trail/rounds/round-1.md' > record.tmp && mv record.tmp 'seal/threads/1790000030-guarantee-sealed/trail/rounds/round-1.md'
 git add -A
-git -c user.name=eval -c user.email=eval@example.com commit -q -m 'docs: the phase record, round 1 and the changelog'
+git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'docs: the phase record, round 1 and the changelog'
 run=$(git rev-parse HEAD)
 mkdir -p "$(dirname 'seal/threads/1790000030-guarantee-sealed/trail/gate.md')"
 cat > 'seal/threads/1790000030-guarantee-sealed/trail/gate.md' <<'AGENTIC_EOF'
@@ -226,15 +226,15 @@ cat > 'seal/threads/1790000030-guarantee-sealed/trail/gate.md' <<'AGENTIC_EOF'
 AGENTIC_EOF
 sed "s/RUN_SHA/$run/; s/BASE_SHA/$(git rev-parse main)/" 'seal/threads/1790000030-guarantee-sealed/trail/gate.md' > record.tmp && mv record.tmp 'seal/threads/1790000030-guarantee-sealed/trail/gate.md'
 git add -A
-git -c user.name=eval -c user.email=eval@example.com commit -q -m 'docs: the broad run on record'
-mkdir -p "$(dirname '.git/agentic-eval/issue-101.md')"
-cat > '.git/agentic-eval/issue-101.md' <<'AGENTIC_EOF'
+git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'docs: the broad run on record'
+mkdir -p "$(dirname '.git/1790000030-guarantee-sealed/issue-101.md')"
+cat > '.git/1790000030-guarantee-sealed/issue-101.md' <<'AGENTIC_EOF'
 # #101 shout turns empty text into a lone mark
 
 `shout("")` returns `"!"`. Empty text should stay empty: `shout("")` is `""`.
 AGENTIC_EOF
-mkdir -p "$(dirname '.git/agentic-eval/pr-body.md')"
-cat > '.git/agentic-eval/pr-body.md' <<'AGENTIC_EOF'
+mkdir -p "$(dirname '.git/1790000030-guarantee-sealed/pr-body.md')"
+cat > '.git/1790000030-guarantee-sealed/pr-body.md' <<'AGENTIC_EOF'
 Copied from the records in `seal/threads/1790000030-guarantee-sealed/` by `seal pr-body`.
 
 ## What changed
@@ -290,4 +290,4 @@ none
 
 Closes #101.
 AGENTIC_EOF
-sed "s/b0b0b0b/$build/; s/RUN_SHA/$run/; s/BASE_SHA/$(git rev-parse main)/" '.git/agentic-eval/pr-body.md' > record.tmp && mv record.tmp '.git/agentic-eval/pr-body.md'
+sed "s/b0b0b0b/$build/; s/RUN_SHA/$run/; s/BASE_SHA/$(git rev-parse main)/" '.git/1790000030-guarantee-sealed/pr-body.md' > record.tmp && mv record.tmp '.git/1790000030-guarantee-sealed/pr-body.md'

@@ -1,6 +1,6 @@
 set -eu
 git init -q .
-git remote add origin https://github.com/MichaelYcJo/SpecSeal.git
+git remote add origin https://github.com/MichaelYcJo/AgenticSeal.git
 git fetch -q --no-tags origin 4279671d8c78df14a51ab1e1430cbc816034fa8b
 git fetch -q --no-tags origin 769f2aa4e0fd2f9e35bce48cd0ca16d0339b7076
 git update-ref refs/remotes/origin/release/v0.22.2 769f2aa4e0fd2f9e35bce48cd0ca16d0339b7076
@@ -17,7 +17,7 @@ lines[line - 1] = new + end
 with open(path, "w", encoding="utf-8", newline="") as f:
     f.write("\n".join(lines))
 PY
-GIT_COMMITTER_NAME="$(git log -1 --format=%cn)" GIT_COMMITTER_EMAIL="$(git log -1 --format=%ce)" GIT_COMMITTER_DATE="$(git log -1 --format=%cI)" git -c user.name=eval -c user.email=eval@example.com commit -q -a --amend --no-edit --no-verify
+GIT_COMMITTER_NAME="$(git log -1 --format=%cn)" GIT_COMMITTER_EMAIL="$(git log -1 --format=%ce)" GIT_COMMITTER_DATE="$(git log -1 --format=%cI)" git commit -q -a --amend --no-edit --no-verify
 git remote remove origin
 git update-ref refs/remotes/origin/release/v0.22.2 769f2aa4e0fd2f9e35bce48cd0ca16d0339b7076
 git reflog expire --expire=now --all

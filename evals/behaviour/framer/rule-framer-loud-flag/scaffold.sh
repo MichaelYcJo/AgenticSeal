@@ -70,5 +70,5 @@ cat > 'seal/threads/1790000021-loud-flag/routing.md' <<'AGENTIC_EOF'
 | Branch | feat/loud-flag |
 AGENTIC_EOF
 git add -A
-git -c user.name=eval -c user.email=eval@example.com commit -q -m 'base: textutil'
+git -c user.name=textutil -c user.email=textutil@example.com commit -q -m 'base: textutil'
 git checkout -q -b feat/loud-flag

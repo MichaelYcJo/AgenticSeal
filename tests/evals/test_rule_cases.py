@@ -209,10 +209,11 @@ class Test_main:
         assert sealer
         for name, case in sealer:
             files = scaffold_files(case["scaffold"])
-            body = files[".git/agentic-eval/pr-body.md"]
             folder = next(p for p in files if p.startswith("seal/threads/"))
             folder = "/".join(folder.split("/")[:3])
-            item = tmp_path / name / folder.split("/")[-1]
+            work_item = folder.split("/")[-1]
+            body = files[rc.EVIDENCE.format(item=work_item) + "/pr-body.md"]
+            item = tmp_path / name / work_item
             for path, text in files.items():
                 if path.startswith(folder + "/"):
                     record = item / path[len(folder) + 1 :]
