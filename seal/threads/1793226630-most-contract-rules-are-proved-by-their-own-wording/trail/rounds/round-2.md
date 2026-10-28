@@ -125,7 +125,7 @@ with:
 `git grep` finds 10 `check:` lines in the tree that name an eval case.
 ```
 
-answer: The finding holds. The right number is 10: `git grep -n -E '^\s*check:.*evals/' -- ':!seal/'` finds 10 lines in 5 files, the ten that round 1's answer listed (executed). Round 1's record stays as written, so the correction is this answer line, which the orchestrator commits with this record. No living record of mine states the count: `grep` for "11 `check`" over `trail/phases/`, `gaps.md` and `changelog.md` exits 1 (executed). Phase 2's "eleven" counts lead literals, not `check:` lines.
+answer: The finding holds. The right number is 10: `git grep -n -E '^\s*check:.*evals/' -- ':!seal/'` finds 10 lines in 4 files, the ten that round 1's answer listed (executed). Round 1's record stays as written, so the correction is this answer line, which the orchestrator commits with this record. No living record of mine states the count: `grep` for "11 `check`" over `trail/phases/`, `gaps.md` and `changelog.md` exits 1 (executed). Phase 2's "eleven" counts lead literals, not `check:` lines.
 
 ## Confirmations
 
