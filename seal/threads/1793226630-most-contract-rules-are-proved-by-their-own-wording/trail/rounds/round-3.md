@@ -9,7 +9,7 @@ target: 0f77a2d0, fixes 6d003f3d..0f77a2d0
 severity: should
 location: `seal/threads/1793226630-most-contract-rules-are-proved-by-their-own-wording/trail/rounds/round-1.md:104`, `seal/threads/1793226630-most-contract-rules-are-proved-by-their-own-wording/trail/rounds/round-2.md:97`
 evidence: executed `git grep -n -o 'finds 11 .check:. lines' -- seal/threads/1793226630-most-contract-rules-are-proved-by-their-own-wording`, `git grep -n -E '^\s*check:.*evals/' -- ':!seal/'`, `git diff --name-only 6d003f3d HEAD -- seal/threads/1793226630-most-contract-rules-are-proved-by-their-own-wording/trail/rounds/round-1.md`, `git grep -n -i -E "fix-pass-two-lines|correction to a record|earlier record.{0,40}(edit|change|rewrit)|record stays|deferred <where" -- docs skills agents templates`
-verdict: open
+verdict: fixed 126cdfa7
 reopens: round-2#3
 
 The close does not hold, for two reasons.
@@ -68,7 +68,7 @@ Commit that edit. This finding then closes `fixed <that commit>`. Leave
 `round-2.md:97` as round 2's fix pass wrote it. This finding's reopen of
 round-2#3 and its close are the trail from that verdict to the repair.
 
-answer:
+answer: The orchestrator corrected `round-1.md:104` in place at `126cdfa7`, "finds 11" to "finds 10", and left `round-2.md:97` as written; `git grep -n -E '^\s*check:.*evals/' -- ':!seal/'` prints 10 lines at that commit (executed). No fix pass ran for this finding, so the orchestrator writes both its lines.
 
 ## Confirmations
 
