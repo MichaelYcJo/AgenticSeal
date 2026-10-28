@@ -9,7 +9,7 @@ target: bb0d2489, fixes 34f0d679..bb0d2489
 severity: should
 location: `seal/threads/1793226631-every-release-ends-with-a-preparation-pull-request/frame/design.md:14`, `seal/threads/1793226631-every-release-ends-with-a-preparation-pull-request/frame/design.md:136-137`, `seal/threads/1793226631-every-release-ends-with-a-preparation-pull-request/frame/plan.md:11-14`
 evidence: executed `git grep -n -i -E "one (required )?act|only act|single act|owner's (one|only)|no act of"`, `git grep -n -i -E "owner('s)? (merge|act)|his (one|only)|what is left at the end" -- seal/threads/1793226631-every-release-ends-with-a-preparation-pull-request`
-verdict: open
+verdict: fixed 9dc8df11
 
 Round 1's finding 2 named the rule change for checklist step 5. The fix,
 `78512510`, rewrote that rule change to say "the owner's one required act at
@@ -58,14 +58,14 @@ the orchestrator opens, and the owner's merge of it, his one required act.
 moves its version.
 ```
 
-answer:
+answer: The orchestrator applied the three blocks above as given at `9dc8df11`, since the frame is not the crafter's to write; `git grep -n -E "one act"` over the work item outside `trail/` then finds no line. No fix pass ran for this finding, so the orchestrator writes both its lines.
 
 ### 2. The 0.24.0 changelog fragment still reports the skill's sentence with the aside "as this one does", which `13b9d759` removed from the skill
 
 severity: should
 location: `seal/threads/1793226631-every-release-ends-with-a-preparation-pull-request/changelog.md:4`, `seal/threads/1793226631-every-release-ends-with-a-preparation-pull-request/frame/design.md:35-40`
 evidence: read `seal/threads/1793226631-every-release-ends-with-a-preparation-pull-request/changelog.md:4`, `skills/implement/orchestration.md:526-540`, `seal/threads/1793226631-every-release-ends-with-a-preparation-pull-request/frame/design.md:35-40`
-verdict: open
+verdict: fixed 9dc8df11
 
 The fix for round 1's finding 1 rewrote the skill to read "as a branch named
 `release/vX.Y.Z` does" (`skills/implement/orchestration.md:530`). Two other
@@ -104,7 +104,7 @@ a branch named `release/vX.Y.Z` does, the first pull request into the branch
 moves it.
 ```
 
-answer:
+answer: The orchestrator applied both blocks at `9dc8df11`, the fragment's sentence and *Scope* item 1; `git grep -n -E "as this (one|repository) does"` over the work item outside `trail/` then finds no line. No fix pass ran for this finding, so the orchestrator writes both its lines.
 
 ## Confirmations
 
