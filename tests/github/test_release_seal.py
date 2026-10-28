@@ -5,16 +5,12 @@ publishes the note; a second job then runs the suite at the tag, draws one
 seal for the release, attaches it, and puts it where the note's glance table
 stood. Any failure leaves the note as it was.
 
-Since #1009 (work item 1792624592) the seal is the terminal stamp's disc:
-`release_seal.py#draw` paints each cell of `seal_stamp.py#build` as one
-square block of pixels in that cell's colour. The pixel cases import Pillow,
-which `bin/test` installs, inside the case. Every other case runs a
-stand-in for `draw`, or the real `draw` with Pillow blocked or stood in for,
-and imports nothing beyond the standard library.
-
-**The cells here are not read through the code under test.** The pixel
-cases load `seal_stamp.py` by path under a name of their own, so a draw
-that kept a copy of the chart or the colours cannot agree with itself.
+Since #857 (work item 1793152332) the seal is the page form of the stamp's
+mark: `release_seal.py#draw` copies the PNG `.claude-plugin/plugin.json`
+names as its `icon`. The draw's cases build that manifest and a PNG in a
+fixture tree with the standard library, so no case here imports an imaging
+library. The publishing cases run a stand-in for `draw`, and the draw's
+refusals run the real one.
 
 #942's phase 6 placed these cases from
 `tests/behaviour/test_the_release_seal_is_drawn.py`, which keeps the cases that read
@@ -23,9 +19,9 @@ the publishing workflow and the documents.
 
 import json
 import os
+import struct
 import subprocess
-import sys
-import types
+import zlib
 
 import pytest
 from conftest import ROOT, census_case, mark_root
@@ -56,37 +52,44 @@ def seal():
     return load(SCRIPT, "agentic_release_seal_for_tests")
 
 
-def stamp(name):
-    """`seal_stamp.py` loaded by path under `name`, apart from the module
-    `release_seal.py` loads, so its cells are not read through the code
-    under test."""
-    return load(STAMP_SCRIPT, name)
+def png_bytes(width, height):
+    """A valid RGBA PNG of `width` by `height` transparent pixels, built with
+    the standard library: the signature, then `IHDR`, `IDAT` and `IEND`."""
+
+    def chunk(kind, body):
+        crc = zlib.crc32(kind + body)
+        return struct.pack(">I", len(body)) + kind + body + struct.pack(">I", crc)
+
+    header = struct.pack(">IIBBBBB", width, height, 8, 6, 0, 0, 0)
+    rows = b"".join(b"\x00" + b"\x00" * 4 * width for _ in range(height))
+    return (
+        b"\x89PNG\r\n\x1a\n"
+        + chunk(b"IHDR", header)
+        + chunk(b"IDAT", zlib.compress(rows))
+        + chunk(b"IEND", b"")
+    )
 
 
-def blocks(png, px, w, cell):
-    """The cells whose block of `cell` by `cell` pixels in the PNG at `png`
-    is not every pixel `px(x, y)` with alpha 255, or alpha 0 where
-    `px(x, y)` is None, as `(x, y, two of the block's pixels)`. An empty
-    list is a PNG that is exactly the cells."""
-    from PIL import Image
+# Where the fixture manifest puts the page image: not the tree's own
+# `./.claude-plugin/icon.png`, so a draw that reads a fixed path instead of
+# the manifest's `icon` copies nothing.
+FIXTURE_ICON = "./art/mark.png"
 
-    pixels = Image.open(png).load()
-    wrong = []
-    for y in range(w):
-        for x in range(w):
-            colour = px(x, y)
-            block = {
-                pixels[u, v]
-                for u in range(x * cell, (x + 1) * cell)
-                for v in range(y * cell, (y + 1) * cell)
-            }
-            if colour is None:
-                held = all(pixel[3] == 0 for pixel in block)
-            else:
-                held = block == {(*colour, 255)}
-            if not held:
-                wrong.append((x, y, sorted(block)[:2]))
-    return wrong
+
+def page_image(root, icon=FIXTURE_ICON, data=None):
+    """Under the directory `root`, a `.claude-plugin/plugin.json` naming
+    `icon` as its `icon`, and `data` written at that path where `data` is
+    given. The manifest spells the path with `/`, so it is split before it
+    is joined."""
+    meta = root / ".claude-plugin"
+    meta.mkdir(exist_ok=True)
+    (meta / "plugin.json").write_text(
+        json.dumps({"name": "x", "icon": icon}), encoding="utf-8"
+    )
+    if data is not None:
+        target = root.joinpath(*icon.split("/"))
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(data)
 
 
 SUITE_KEY = "seal-1234567890"
@@ -244,27 +247,10 @@ DRAWN_WIDTH = 123
 
 def drawn(png):
     """`draw` as the publishing cases meet it: it writes a PNG's eight-byte
-    signature at `png` and answers `DRAWN_WIDTH`, with no Pillow."""
+    signature at `png` and answers `DRAWN_WIDTH`."""
     with open(png, "wb") as handle:
         handle.write(b"\x89PNG\r\n\x1a\n")
     return DRAWN_WIDTH
-
-
-def pillow_that_cannot_save():
-    """A stand-in for the `PIL` package whose image takes every block and
-    whose save raises what a full disk raises, so the case reaches the save
-    with no Pillow installed."""
-
-    class Image:
-        def paste(self, colour, box):
-            pass
-
-        def save(self, path, kind):
-            raise OSError(28, "No space left on device")
-
-    pil = types.ModuleType("PIL")
-    pil.Image = types.SimpleNamespace(new=lambda mode, size, colour: Image())
-    return pil
 
 
 def wired(
@@ -308,12 +294,18 @@ REASONS = {
     "a session of the suite stopped part-way": "sessions stopped part-way",
     "the suite counts a failure": "did not pass: 1 failed and 0 errors",
     "the suite counts an error": "did not pass: 0 failed and 1 errors",
-    "Pillow is not installed": "Pillow is not installed or will not import",
-    "the stamp's module will not load": (
-        "the stamp's module skills/verify/scripts/seal_stamp.py would not load "
-        "(ImportError: no stamp)"
+    "the manifest cannot be read": (
+        "the plugin's manifest .claude-plugin/plugin.json cannot be read"
     ),
-    "the PNG cannot be saved": "could not be written",
+    "the manifest names no icon": (
+        "the plugin's manifest .claude-plugin/plugin.json names no icon"
+    ),
+    "the icon is not there": f"the icon {FIXTURE_ICON} the manifest names cannot be read",
+    "the icon is not a PNG": (
+        f"the icon {FIXTURE_ICON} is not a PNG: it does not open with the PNG "
+        "signature and an IHDR chunk"
+    ),
+    "the PNG cannot be written": "the seal could not be written at",
     "gh pr list fails": "gh pr list could not list",
     "gh release view fails": "gh release view failed",
     "gh release upload fails": "gh release upload failed",
@@ -325,9 +317,11 @@ REASONS = {
 # The failures `draw` raises itself, which the case meets with the real
 # `draw` rather than its stand-in.
 REASONS_OF_THE_DRAW = (
-    "Pillow is not installed",
-    "the stamp's module will not load",
-    "the PNG cannot be saved",
+    "the manifest cannot be read",
+    "the manifest names no icon",
+    "the icon is not there",
+    "the icon is not a PNG",
+    "the PNG cannot be written",
 )
 
 
@@ -671,9 +665,11 @@ class Test_main:
             "a session of the suite stopped part-way",
             "the suite counts a failure",
             "the suite counts an error",
-            "Pillow is not installed",
-            "the stamp's module will not load",
-            "the PNG cannot be saved",
+            "the manifest cannot be read",
+            "the manifest names no icon",
+            "the icon is not there",
+            "the icon is not a PNG",
+            "the PNG cannot be written",
             "gh pr list fails",
             "gh release view fails",
             "gh release upload fails",
@@ -691,9 +687,12 @@ class Test_main:
         with the same reason, and calls no `gh release edit` -- except where the
         edit is the call that failed. Nothing is uploaded either, except where
         the upload or the edit is the call that failed. Seen red by removing the
-        guard each pins. The three draw cases (#1009 S4 and S5) run the real
-        `draw` with no Pillow behind it: blocked, or a stand-in whose save
-        fails; seen red by `draw` letting each error through unnamed."""
+        guard each pins. The five draw cases (#857 S8) run the real `draw`
+        over a fixture tree whose manifest cannot be read, names no `icon`,
+        names a file that is not there or one that is not a PNG, or whose
+        copy has no directory to land in. The first four were seen red
+        against the draw that painted the stamp's cells, which read no
+        manifest; the fifth is that draw's own refusal, kept."""
         env, fails, body, pulls = {}, (), None, PULLS
         stand_in = case not in REASONS_OF_THE_DRAW
         if case == "the suite step failed":
@@ -740,16 +739,24 @@ class Test_main:
             stand_in=stand_in,
             **env,
         )
-        if case == "Pillow is not installed":
-            monkeypatch.setitem(sys.modules, "PIL", None)
-        elif case == "the stamp's module will not load":
-
-            def broken():
-                raise ImportError("no stamp")
-
-            monkeypatch.setattr(mod, "stamp", broken)
-        elif case == "the PNG cannot be saved":
-            monkeypatch.setitem(sys.modules, "PIL", pillow_that_cannot_save())
+        if case == "the manifest cannot be read":
+            page_image(tmp_path)
+            (tmp_path / ".claude-plugin" / "plugin.json").write_text(
+                "{cut off", encoding="utf-8"
+            )
+        elif case == "the manifest names no icon":
+            page_image(tmp_path)
+            (tmp_path / ".claude-plugin" / "plugin.json").write_text(
+                json.dumps({"name": "x"}), encoding="utf-8"
+            )
+        elif case == "the icon is not there":
+            page_image(tmp_path)
+        elif case == "the icon is not a PNG":
+            page_image(tmp_path, data=b"<svg/>")
+        elif case == "the PNG cannot be written":
+            page_image(tmp_path, data=png_bytes(10, 10))
+            nowhere = str(tmp_path / "no-such-directory")
+            monkeypatch.setattr(mod.tempfile, "mkdtemp", lambda **_: nowhere)
         elif case == "a module will not load":
 
             def publisher():
@@ -822,85 +829,34 @@ class Test_main:
         assert "::warning::" not in out, out
 
 
-class Test_module:
-    def test_the_png_is_the_stamps_cells_one_square_block_each(self, tmp_path):
-        """#1009 S1. `draw` writes an RGBA PNG `w * CELL_PX` pixels square,
-        where `w` is the width `seal_stamp.py#build` gives, and every pixel of
-        the block for cell `(x, y)` is `px(x, y)` with alpha 255, or alpha 0
-        where `px(x, y)` is None. It answers the note's width, the side divided
-        by `DENSITY`. The cells are read from `seal_stamp.py` loaded here by
-        path, apart from the module `release_seal.py` loaded. Seen red with one
-        cell's colour changed in the draw."""
-        from PIL import Image
-
-        mod = seal()
-        w, h, px = stamp("seal_stamp_for_the_release_png").build()
-        out = tmp_path / "seal.png"
-        width = mod.draw(str(out))
-        image = Image.open(out)
-        side = w * mod.CELL_PX
-        assert (mod.CELL_PX, mod.DENSITY) == (12, 2)
-        assert w == h and image.mode == "RGBA" and image.size == (side, side)
-        assert width == side // mod.DENSITY, (width, side)
-        assert blocks(out, px, w, mod.CELL_PX) == []
-
-    def test_the_png_follows_whatever_chart_the_stamp_module_has(
+class Test_draw:
+    def test_copies_the_png_the_manifest_names_and_answers_its_width_over_density(
         self, monkeypatch, tmp_path
     ):
-        """#1009 S2. With the `CHART` of the stamp module `release_seal.py`
-        loaded replaced by a chart this case builds, 28 lines of 28 with one
-        `M` inside the field, and its `LIGHT` replaced by a colour no cell of the
-        tree's stamp has, the PNG's cells are that module's `build`, and the PNG
-        differs from the one drawn with the tree's chart. So the disc's mark and
-        its colours are read from the stamp module, and #857's choice reaches the
-        release image with nothing else changed. Pillow is imported first, as in
-        S1, so where it is absent this case fails with a `ModuleNotFoundError`,
-        as `bin/test` says. Seen red against a draw that loads a copy of the
-        stamp module of its own, and against one that maps a cell's colour to a
-        colour of its own."""
-        from PIL import Image
-
+        """#857 S7. Over a fixture tree whose `.claude-plugin/plugin.json`
+        names `FIXTURE_ICON`, `draw` writes that PNG at the path it is
+        handed, byte for byte, and answers the width in its `IHDR` chunk
+        divided by `DENSITY`. Over the tree itself it copies
+        `.claude-plugin/icon.png` and answers 256, the note's width for
+        the 512-pixel icon (`questions.md` Q2). Seen red against the draw
+        that painted the stamp's cells."""
         mod = seal()
-        before = tmp_path / "tree.png"
-        mod.draw(str(before))
-        n = 28
-        chart = tuple(
-            "." * 14 + "M" + "." * 13 if y == 14 else "." * n for y in range(n)
-        )
-        # The mark's lit cell, (14, 14) in this chart, in a colour the tree has not.
-        lit = (1, 2, 3)
-        expected = stamp("seal_stamp_for_the_built_chart")
-        for loaded in (expected, mod.stamp()):
-            monkeypatch.setattr(loaded, "CHART", chart)
-            monkeypatch.setattr(loaded, "LIGHT", lit)
-        w, _, px = expected.build()
-        assert px(14, 14) == lit
-        after = tmp_path / "built.png"
-        mod.draw(str(after))
-        assert blocks(after, px, w, mod.CELL_PX) == []
-        assert Image.open(before).tobytes() != Image.open(after).tobytes()
+        data = png_bytes(10, 6)
+        page_image(tmp_path, data=data)
+        out = tmp_path / "out" / "seal.png"
+        out.parent.mkdir()
+        monkeypatch.setattr(mod, "ROOT", str(tmp_path))
+        assert mod.DENSITY == 2
+        assert mod.draw(str(out)) == 5
+        assert out.read_bytes() == data
+        monkeypatch.setattr(mod, "ROOT", ROOT)
+        own = tmp_path / "out" / "own.png"
+        assert mod.draw(str(own)) == 256
+        with open(os.path.join(ROOT, ".claude-plugin", "icon.png"), "rb") as handle:
+            assert own.read_bytes() == handle.read()
 
-    def test_the_release_script_loads_with_pillow_blocked(self):
-        """#1009 S6. With `PIL` blocked, `release_seal.py` loads: Pillow is
-        imported inside `draw` and nowhere else, so every publishing case runs
-        with a stand-in for `draw` where Pillow is absent. Seen red with
-        `import PIL` at the module's top."""
-        script = (
-            "import sys, importlib.util\n"
-            "sys.modules['PIL'] = None\n"
-            f"spec = importlib.util.spec_from_file_location('s', {SCRIPT!r})\n"
-            "mod = importlib.util.module_from_spec(spec)\n"
-            "spec.loader.exec_module(mod)\n"
-            "assert callable(mod.draw)\n"
-        )
-        r = subprocess.run(
-            [sys.executable, "-c", script],
-            capture_output=True,
-            encoding="utf-8",
-            timeout=120,
-        )
-        assert r.returncode == 0, r.stderr
 
+class Test_module:
     def test_the_alt_text_is_one_sentence_carrying_every_value(self):
         """S11. One sentence in the shape of 0.17.0's hand-written alt text,
         carrying every value of the rows, with no `]` and no line break, so the

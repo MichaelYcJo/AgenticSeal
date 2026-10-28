@@ -80,6 +80,29 @@ def test_plugin_version_is_in_changelog():
         assert version in f.read(), f"CHANGELOG missing {version}"
 
 
+def test_the_plugin_icon_is_a_png_the_directory_accepts():
+    """#857 S9. `.claude-plugin/plugin.json` names
+    `./.claude-plugin/icon.png` as its `icon`, and that file is what
+    `claude plugin validate` accepts for the directory: a PNG, square, 512
+    to 2048 pixels on a side and under 2,000,000 bytes. The header is read
+    with the standard library: the eight-byte signature, then the `IHDR`
+    chunk's width and height. Seen red before the icon was drawn."""
+    with open(
+        os.path.join(ROOT, ".claude-plugin", "plugin.json"), encoding="utf-8"
+    ) as f:
+        icon = json.load(f).get("icon")
+    assert icon == "./.claude-plugin/icon.png", icon
+    # The manifest spells the path with `/`, so it is split before it is joined.
+    path = os.path.join(ROOT, *icon.split("/"))
+    with open(path, "rb") as f:
+        head = f.read(24)
+    assert head[:8] == b"\x89PNG\r\n\x1a\n" and head[12:16] == b"IHDR", head
+    width = int.from_bytes(head[16:20], "big")
+    height = int.from_bytes(head[20:24], "big")
+    assert width == height and 512 <= width <= 2048, (width, height)
+    assert os.path.getsize(path) < 2_000_000, os.path.getsize(path)
+
+
 def test_bin_wrapper_resolves_the_checker_from_any_cwd():
     # bin/ lands on the Bash tool's PATH while the plugin is enabled, so the
     # wrapper must resolve the script relative to itself, never the caller's

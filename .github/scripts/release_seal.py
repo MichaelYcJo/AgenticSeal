@@ -1,21 +1,18 @@
 #!/usr/bin/env python3
 """Draw the release's seal as a PNG, attach it, and put it in the note (#718).
 
-**The seal is the terminal stamp's disc** (#1009). `draw` reads the cells
-and colours `skills/verify/scripts/seal_stamp.py#build` gives, the one
-drawing of the disc and its mark, and paints each cell as one opaque square
-block of `CELL_PX` by `CELL_PX` PNG pixels in exactly that cell's colour,
-transparent where `build` gives no colour. The comment above
-`seal_stamp.py#DISC_CELLS` says why a cell is square. The note shows the PNG
-at its side divided by `DENSITY`, so a high-density screen draws it sharp.
-A change to the disc's mark changes the terminal stamp and the release
-image together.
+**The seal is the page form of the stamp's mark** (#857). The mark has two
+forms: a sprite the terminal stamp draws
+(`skills/verify/scripts/seal_stamp.py`), and a vector drawn once to the PNG
+that `.claude-plugin/plugin.json` names as its `icon`. `draw` copies that PNG
+byte for byte to the release asset and answers its width divided by
+`DENSITY`, the width the note shows it at, so a high-density screen draws it
+sharp. Nothing here reads the terminal stamp, so a change to the sprite
+leaves the release image as it is, and a new page image is a new icon.
 
-**Pillow is a release dependency, never a plugin one.** `draw` imports it in
-its own body and nowhere else, so this file loads without it, and the `seal`
-job installs it at the version `.github/scripts/run_tests.py#PILLOW` pins
-(`.github/workflows/publish-release.yml`). Nothing under `hooks/` or
-`skills/` imports this file, and the gates stay stdlib-only
+**Standard library only.** This file imports no package beyond Python's
+own, so attaching the seal needs no imaging library. Nothing under `hooks/`
+or `skills/` imports this file, and the gates stay stdlib-only
 (`CONTRIBUTING.md`, *Running the checks*).
 
 **The rows are a fixed set, read from what the tag carries.** The suite's
@@ -41,9 +38,8 @@ leaves an attached image the note does not show, which the warning names.
 `DRY_RUN=1` draws the PNG at `SEAL_PNG` (by default `seal.png` in a
 temporary directory), prints the rows and the note it would write, and
 uploads and edits nothing, so the seal of a release whose job did not run can
-be drawn by hand from a checkout at the tag, with a `python3` that imports
-Pillow, attached with `gh release upload` and shown with
-`gh release edit --notes-file`.
+be drawn by hand from a checkout at the tag, attached with
+`gh release upload` and shown with `gh release edit --notes-file`.
 
 Environment: `TAG`, `REPO`, `GH_TOKEN`, `SUITE_RECORDS` (the directory the
 recorder wrote in) and `SUITE_KEY` (the key the run at the tag was handed),
@@ -63,7 +59,8 @@ import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 # Where this file's own repository is, which the modules below are loaded
-# from; and the tree whose round records the chain rows read. They are the
+# from; and the tree the seal reads its data from: the round records the
+# chain rows count and the manifest that names the page image. They are the
 # same checkout at the tag, and two names so a case can point the second at
 # a fixture without moving the first.
 CODE = os.path.abspath(os.path.join(HERE, "..", ".."))
@@ -95,26 +92,9 @@ def publisher():
     )
 
 
-def stamp():
-    """`skills/verify/scripts/seal_stamp.py`, whose `build` gives the disc's
-    cells and their colours, which `draw` paints."""
-    return module(
-        "agentic_seal_stamp_for_release_seal",
-        "skills",
-        "verify",
-        "scripts",
-        "seal_stamp.py",
-    )
-
-
-# The side of one cell's block in PNG pixels, where a cell is one grid point
-# of `seal_stamp.py#build`; and how many PNG pixels the note shows per CSS
-# pixel. The PNG is the stamp's width in cells times `CELL_PX` square, and
-# the note's `<img>` carries that side divided by `DENSITY`, so a screen at
-# twice the density draws it from pixels it has rather than by stretching
-# them. `CELL_PX` is even, so a screen at density 1 halves every block to
-# whole pixels.
-CELL_PX = 12
+# How many PNG pixels the note shows per CSS pixel. The note's `<img>`
+# carries the PNG's width divided by `DENSITY`, so a screen at twice the
+# density draws it from pixels it has rather than by stretching them.
 DENSITY = 2
 
 
@@ -427,47 +407,61 @@ def tagged(tag):
     return out.stdout.strip()
 
 
-def draw(png):
-    """Paint the stamp's disc at `png` and answer the note's width for it in
-    CSS pixels, or raise `Refused` saying why: the stamp's module will not
-    load, Pillow will not import, or the PNG cannot be written. The suite
-    runs before the draw, in the `seal` job and on the hand-drawn route,
-    and its pixel cases and stamp cases need both of the first two. So
-    where either is missing the suite fails first, and `seal_release`
-    refuses on the suite before it calls this. The first two refusals are
-    reached only where the draw runs under a Python the suite did not.
+# The eight bytes every PNG opens with. The chunk after them is `IHDR`, whose
+# first four bytes of data are the image's width, big-endian (the PNG
+# specification, *File structure*). So a PNG's first 24 bytes are the
+# signature, the chunk's length and type, the width and the height.
+PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 
-    Each cell `(x, y)` of `build` becomes the block of `CELL_PX` by
-    `CELL_PX` pixels at `(x * CELL_PX, y * CELL_PX)`, in the cell's colour
-    with alpha 255, and stays transparent where the cell has no colour: no
-    blending, no resampling and no colour of this file's own."""
+
+def draw(png):
+    """Copy the page image to `png` and answer the note's width for it in
+    CSS pixels, or raise `Refused` saying why.
+
+    The page image is the file `.claude-plugin/plugin.json` under `ROOT`
+    names as its `icon`, a path from the plugin's root spelt with `/`. It is
+    copied byte for byte, and the answer is the width in its `IHDR` chunk
+    divided by `DENSITY`. The refusals: the manifest cannot be read, it
+    names no `icon`, the file it names cannot be read, the file does not
+    open with the PNG signature and an `IHDR` chunk, or the copy cannot be
+    written."""
+    manifest = os.path.join(ROOT, ".claude-plugin", "plugin.json")
     try:
-        cells = stamp()
-    except Exception as problem:
+        with open(manifest, encoding="utf-8") as handle:
+            fields = json.load(handle)
+    except (OSError, ValueError) as problem:
         raise Refused(
-            "the stamp's module skills/verify/scripts/seal_stamp.py would not "
-            f"load ({type(problem).__name__}: {problem})"
+            f"the plugin's manifest .claude-plugin/plugin.json cannot be read ({problem})"
         ) from problem
-    try:
-        from PIL import Image
-    except ImportError as problem:
+    icon = fields.get("icon") if isinstance(fields, dict) else None
+    if not isinstance(icon, str) or not icon:
         raise Refused(
-            f"Pillow is not installed or will not import ({problem}); the seal "
-            "cannot be drawn"
-        ) from problem
-    w, h, px = cells.build()
-    image = Image.new("RGBA", (w * CELL_PX, h * CELL_PX), (0, 0, 0, 0))
-    for y in range(h):
-        for x in range(w):
-            colour = px(x, y)
-            if colour is not None:
-                left, top = x * CELL_PX, y * CELL_PX
-                image.paste((*colour, 255), (left, top, left + CELL_PX, top + CELL_PX))
+            "the plugin's manifest .claude-plugin/plugin.json names no icon, "
+            "the page image the seal is"
+        )
+    # The manifest spells the path with `/`, so it is split before it is
+    # joined, and its `.` segments are dropped.
+    source = os.path.join(
+        ROOT, *(part for part in icon.split("/") if part not in ("", "."))
+    )
     try:
-        image.save(png, "PNG")
+        with open(source, "rb") as handle:
+            data = handle.read()
+    except OSError as problem:
+        raise Refused(
+            f"the icon {icon} the manifest names cannot be read ({problem})"
+        ) from problem
+    if data[:8] != PNG_SIGNATURE or data[12:16] != b"IHDR" or len(data) < 24:
+        raise Refused(
+            f"the icon {icon} is not a PNG: it does not open with the PNG "
+            "signature and an IHDR chunk"
+        )
+    try:
+        with open(png, "wb") as handle:
+            handle.write(data)
     except OSError as problem:
         raise Refused(f"the seal could not be written at {png}: {problem}") from problem
-    return w * CELL_PX // DENSITY
+    return int.from_bytes(data[16:20], "big") // DENSITY
 
 
 def seal_release(tag, repo, dry):
@@ -500,7 +494,7 @@ def seal_release(tag, repo, dry):
     path = os.environ.get("SEAL_PNG") if dry else ""
     path = path or os.path.join(tempfile.mkdtemp(prefix="release-seal-"), ASSET)
     width = draw(path)
-    print(f"drew {path} from the stamp's cells with Pillow")
+    print(f"copied the icon the plugin's manifest names to {path}")
     try:
         body = json.loads(gh("release", "view", tag, "--repo", repo, "--json", "body"))[
             "body"

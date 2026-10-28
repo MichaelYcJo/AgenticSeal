@@ -64,10 +64,9 @@ The gate imports `sealed_names`, `ref_is_commit`, `is_utf8(stream)`,
 `text_lines`, `TWIN_ASCII` and the panel's text rules; the edit gate imports
 `queue_for_written_guarantee`; the hook imports `pending`, `read_values`,
 `claim` and `stamp`.
-`.github/scripts/release_seal.py`, which the tag push runs, reads `build`
-and draws a release's seal as a PNG from its cells, one cell to one square
-block of pixels (#1009). That script is the repository's own and the plugin
-ships nothing that runs it. The command
+`.github/scripts/release_seal.py` attaches a release's seal from the page
+form of the mark, the PNG `.claude-plugin/plugin.json` names as its `icon`
+(#857), and reads nothing of this file. The command
 exists so a person can see the drawing without a guarantee committed, and
 so a values file no hook drew can still be drawn by hand.
 
