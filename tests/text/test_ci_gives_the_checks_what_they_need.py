@@ -114,9 +114,10 @@ def steps(text):
 
     A step opens at a line `      - name: ` and runs to the next line that
     opens one or that is indented less than its keys. Its `run:` lines are
-    the one-line value, or the lines of its `run: |` block, each stripped.
-    The comment lines are the ones directly above its opening line, each
-    with its `#` off."""
+    the lines of its `run: |` block, each stripped. Both files write every
+    shared step that way, and a step written another way reads as running
+    nothing. The comment lines are the ones directly above its opening line,
+    each with its `#` off."""
     lines = text.splitlines()
     out = {}
     for i, line in enumerate(lines):
@@ -136,12 +137,7 @@ def steps(text):
                 continue
             if follow.strip() and not follow.startswith(" " * 8):
                 break
-            value = re.match(r"^        run:\s*(.*?)\s*$", follow)
-            if value and value.group(1) == "|":
-                block = True
-            elif value:
-                run = [value.group(1)]
-                break
+            block = follow.rstrip() == "        run: |"
         out[_unquote(m.group(1))] = (run, above)
     return out
 
