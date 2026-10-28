@@ -1,6 +1,6 @@
 # Implementation Plan: 1793169127-pact-check-reads-the-retired-grammar
 
-Approved <date> by <who>, when `crafter` was spawned.
+Approved 2026-10-28 by the orchestrator under the owner's automation answer, when `crafter` was spawned for phases 1 to 3.
 
 ## Summary
 
