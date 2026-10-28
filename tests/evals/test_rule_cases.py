@@ -12,18 +12,57 @@ the case that reads the committed proofer cases.
 """
 
 import json
+import os
 import re
 
 import pytest
-from conftest import census_case
+from conftest import ROOT, census_case, load_module
 from test_replay_targets import load_script
 
 TARGET = "evals/scripts/rule_cases.py"
 
 ni = load_script("noninferiority")
+PR = load_module(
+    os.path.join(ROOT, "skills", "code-review", "scripts", "pr_body.py"),
+    "pr_body_for_rule_cases",
+)
 
 RULE = "rule-proofer-one-finding"
 SHOUT_BODY = "`shout_twice` joins the two shouts with no space, against S2.\n"
+
+# The two ways a sealer case's scaffold leaves a file: a heredoc writes it,
+# and a `sed` fills a placeholder of a file already written.
+WRITTEN = re.compile(
+    r"^cat > '([^']+)' <<'AGENTIC_EOF'\n(.*?)\nAGENTIC_EOF$", re.M | re.S
+)
+FILLED = re.compile(
+    r"^sed \"([^\"]+)\" '([^']+)' > record\.tmp && mv record\.tmp '\2'$", re.M
+)
+SUBSTITUTION = re.compile(r"s/([^/;]+)/([^/;]+)/")
+# What the scaffold's shell values hold at a run, stood in for by commits no
+# run makes.
+SHELL = {"$build": "1" * 40, "$run": "2" * 40, "$(git rev-parse main)": "3" * 40}
+UNTRUE = "`README.md` now documents `shout`"
+
+
+def scaffold_files(scaffold):
+    """`{path: text}` as SCAFFOLD leaves the files it writes: each heredoc
+    written and each `sed` applied, in the order the script runs them, a
+    `sed` filling the first match on each line as `s///` does."""
+    files = {}
+    steps = sorted(
+        [*WRITTEN.finditer(scaffold), *FILLED.finditer(scaffold)],
+        key=lambda step: step.start(),
+    )
+    for step in steps:
+        if step.re is WRITTEN:
+            files[step[1]] = step[2] + "\n"
+            continue
+        lines = files[step[2]].splitlines(keepends=True)
+        for old, new in SUBSTITUTION.findall(step[1]):
+            lines = [line.replace(old, SHELL[new], 1) for line in lines]
+        files[step[2]] = "".join(lines)
+    return files
 
 
 def recurred_file(tmp_path, *entries):
@@ -156,6 +195,38 @@ class Test_main:
             assert found.search(f"location: `{line}`"), line
         for line in ("src/x.py:7", "src/x.py:13", "src/y.py:17", "src/y.py:25"):
             assert not found.search(f"location: `{line}`"), line
+
+    def test_a_sealer_case_body_is_its_records_then_its_own_part(
+        self, tmp_path, capsys
+    ):
+        """Guards #1044 S14: each sealer case's pull request body, its
+        placeholders filled as its scaffold fills its records, is what
+        `seal pr-body --check` accepts over the records that scaffold writes;
+        the part under `HEADING` ends with `Closes #101.` and holds the README
+        sentence the tree lacks in the untrue-body case alone."""
+        rc = load_script("rule_cases")
+        sealer = [(n, c) for n, c in rc.cases() if c["agent"] == "sealer"]
+        assert sealer
+        for name, case in sealer:
+            files = scaffold_files(case["scaffold"])
+            body = files[".git/agentic-eval/pr-body.md"]
+            folder = next(p for p in files if p.startswith("seal/threads/"))
+            folder = "/".join(folder.split("/")[:3])
+            item = tmp_path / name / folder.split("/")[-1]
+            for path, text in files.items():
+                if path.startswith(folder + "/"):
+                    record = item / path[len(folder) + 1 :]
+                    record.parent.mkdir(parents=True, exist_ok=True)
+                    record.write_text(text, encoding="utf-8")
+            path = tmp_path / name / "pr-body.md"
+            path.write_text(body, encoding="utf-8")
+            assert PR.main([str(item), "--body", str(path), "--check"]) == 0, (
+                name,
+                capsys.readouterr().out,
+            )
+            own = PR.split(body)[1]
+            assert own.rstrip().endswith("Closes #101."), (name, own)
+            assert (UNTRUE in own) == name.endswith("untrue-body"), (name, own)
 
 
 test_census = census_case(TARGET)

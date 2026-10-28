@@ -144,7 +144,7 @@ cat > 'seal/threads/1790000030-guarantee-untrue-body/trail/phases/phase-1.md' <<
 | Field | Value |
 |---|---|
 | Phase | 1 |
-| Commit | BUILD_SHA |
+| Commit | b0b0b0b |
 
 ## What this phase was asked
 
@@ -161,7 +161,7 @@ mkdir -p "$(dirname 'seal/threads/1790000030-guarantee-untrue-body/trail/rounds/
 cat > 'seal/threads/1790000030-guarantee-untrue-body/trail/rounds/round-1.md' <<'AGENTIC_EOF'
 # 1790000030-guarantee-untrue-body — review round 1
 
-target: BUILD_SHA against main
+target: b0b0b0b against main
 
 ## Findings
 
@@ -211,8 +211,8 @@ none
 
 none
 AGENTIC_EOF
-sed "s/BUILD_SHA/$build/" 'seal/threads/1790000030-guarantee-untrue-body/trail/phases/phase-1.md' > record.tmp && mv record.tmp 'seal/threads/1790000030-guarantee-untrue-body/trail/phases/phase-1.md'
-sed "s/BUILD_SHA/$build/" 'seal/threads/1790000030-guarantee-untrue-body/trail/rounds/round-1.md' > record.tmp && mv record.tmp 'seal/threads/1790000030-guarantee-untrue-body/trail/rounds/round-1.md'
+sed "s/b0b0b0b/$build/" 'seal/threads/1790000030-guarantee-untrue-body/trail/phases/phase-1.md' > record.tmp && mv record.tmp 'seal/threads/1790000030-guarantee-untrue-body/trail/phases/phase-1.md'
+sed "s/b0b0b0b/$build/" 'seal/threads/1790000030-guarantee-untrue-body/trail/rounds/round-1.md' > record.tmp && mv record.tmp 'seal/threads/1790000030-guarantee-untrue-body/trail/rounds/round-1.md'
 git add -A
 git -c user.name=eval -c user.email=eval@example.com commit -q -m 'docs: the phase record, round 1 and the changelog'
 run=$(git rev-parse HEAD)
@@ -235,12 +235,61 @@ cat > '.git/agentic-eval/issue-101.md' <<'AGENTIC_EOF'
 AGENTIC_EOF
 mkdir -p "$(dirname '.git/agentic-eval/pr-body.md')"
 cat > '.git/agentic-eval/pr-body.md' <<'AGENTIC_EOF'
-## What changes
+Copied from the records in `seal/threads/1790000030-guarantee-untrue-body/` by `seal pr-body`.
 
-`shout("")` now returns `""` instead of `"!"`; every other text keeps its
-mark. `test_shout_keeps_empty_text_empty` pins it, and was seen red against the old code first.
+## What changed
+
+From `changelog.md`.
+
+- `shout` keeps empty text empty instead of returning a lone `!` (#101).
+
+## How it was built
+
+From `frame/plan.md`, its *Phases* section.
+
+| Phase | Delivers | Verified by | Status |
+|---|---|---|---|
+| 1 | `shout("")` and its case | `python3 -m unittest tests.test_textutil -q` | |
+
+The phase records:
+
+- `trail/phases/phase-1.md`
+
+## Review rounds
+
+### `trail/rounds/round-1.md`
+
+target: b0b0b0b against main
+
+## Broad gate
+
+From `trail/gate.md`.
+
+| Field | Value |
+|---|---|
+| Broad gate | RUN_SHA against BASE_SHA |
+
+## Not verified
+
+From `gaps.md`.
+
+- nothing
+  why: every claim in this work item was run
+
+## Not done
+
+From `gaps.md`.
+
+none
+
+## Questions
+
+`frame/questions.md` is not in this work item.
+
+## Not from the records
 
 `README.md` now documents `shout` and its empty-text rule.
 
 Closes #101.
 AGENTIC_EOF
+sed "s/b0b0b0b/$build/; s/RUN_SHA/$run/; s/BASE_SHA/$(git rev-parse main)/" '.git/agentic-eval/pr-body.md' > record.tmp && mv record.tmp '.git/agentic-eval/pr-body.md'
