@@ -617,6 +617,77 @@ def creation_unattended(lang, row):
     )
 
 
+def single_stream_deny(lang, git, pressed, quoted=False):
+    """Row 5's whole deny for a creation in another clone, whose commands
+    GIT names: the origin, with the quote note only attended and QUOTED, the
+    single-stream situation, the three switch lines, and then either the
+    press and re-issue sentences under the press or, attended, the sentence
+    asking for the user's confirmation and naming `[worktree-ok]` (#920)."""
+    en = lang == "en"
+    origin = (
+        "Attempting to create a worktree with `git worktree add`."
+        if en
+        else "`git worktree add` 로 worktree를 만들려 합니다."
+    )
+    if quoted and not pressed:
+        origin += (
+            " No [worktree-ok] was read, and this command has an unbalanced quote "
+            "-- an apostrophe in a comment is enough. Everything after the quote "
+            "opens is unread, so a token written there is invisible to a "
+            "bare-word match. If you already appended one, close or drop the "
+            "quote and re-issue."
+            if en
+            else " [worktree-ok] 를 읽어내지 못했습니다. 이 명령에는 닫히지 않은 "
+            "따옴표가 있습니다(주석의 아포스트로피 하나면 충분합니다). 따옴표가 "
+            "열린 뒤로는 읽지 못하므로, 그 뒤에 적은 토큰은 낱말로 잡히지 "
+            "않습니다. 이미 붙이셨다면 따옴표를 닫거나 지우고 다시 실행하세요."
+        )
+    situation = (
+        "No other session is working in this tree (= single-stream). Rule: for "
+        "single-stream work, don't create a worktree — just switch branches in "
+        "the shared tree. Everything stays visible in one editor window, and "
+        "half-used worktree folders don't pile up."
+        if en
+        else "이 트리에서 동시에 작업 중인 다른 세션이 없습니다(= 단건 작업). 룰: "
+        "단건이면 worktree를 만들지 말고 공유 트리에서 브랜치만 갈아끼웁니다 — "
+        "에디터 한 창에서 다 보여 코드 파악이 빠르고, 쓰다 만 worktree 폴더가 "
+        "쌓이지 않습니다."
+    )
+    new, existing = (
+        ("new branch", "existing branch") if en else ("새 브랜치", "기존 브랜치")
+    )
+    lines = (
+        f"  {git} fetch origin\n"
+        f"  {git} switch -c <branch> origin/main   # {new}\n"
+        f"  {git} switch <branch>                  # {existing}"
+    )
+    if pressed:
+        ending = (
+            "This session's person pressed `automation` on the routing question, "
+            "so this guard puts no question to them, and none is to be put to "
+            "them in its place.\n"
+            "\n"
+            "Re-issuing this command unchanged meets this same refusal."
+            if en
+            else "이 세션의 사용자가 라우팅 질문에서 `automation` 을 눌렀습니다. "
+            "그래서 이 guard 는 사용자에게 아무것도 묻지 않으며, 다른 방법으로 "
+            "대신 물어서도 안 됩니다.\n"
+            "\n"
+            "이 명령을 그대로 다시 실행하면 같은 거부를 받습니다."
+        )
+    else:
+        ending = (
+            "If this genuinely is concurrent work needing separation, state why "
+            "and get the user's confirmation first (if the user already asked for "
+            "a worktree, retry with [worktree-ok] in the command)."
+            if en
+            else "정말 동시 작업이라 분리가 필요하면 그 이유를 밝히고 사용자 확인을 "
+            "먼저 받으세요 (사용자가 이미 워크트리를 지시했다면 명령에 "
+            "[worktree-ok] 를 붙여 다시 시도)."
+        )
+    return f"{origin}\n{situation}\n\n{lines}\n\n{ending}"
+
+
 @pytest.fixture
 def other(repo, tmp_path):
     """A second clone of the same history, beside `repo`, and its root."""
@@ -4279,8 +4350,8 @@ class Test_main:
     ):
         """S1 for a command the lexer gives up on (round 1, yellow 1). The
         origin's quote note exists for the single-stream deny's way past,
-        `[worktree-ok]`; under the press rows 3 and 4 name no token, so the deny
-        is S1's, word for word, on every attempt. Seen red at `9e7514f3`: the
+        `[worktree-ok]`; under the press rows 3, 4 and 5 name no token (#903,
+        #920), so the deny is S1's, word for word, on every attempt. Seen red at `9e7514f3`: the
         first line named `[worktree-ok]` and invited a re-issue, and the retry
         with the token reached row 2's `ask`."""
         write_transcript(projects, "me", ask_entries(repo))
@@ -4331,11 +4402,12 @@ class Test_main:
         self, monkeypatch, capsys, projects, repo, other
     ):
         """S10. Row 0 reads the transcript once for the creation's clone, and the
-        rows read it once more for the session's own root, only where row 3 or
-        row 4 fires: once for a creation in the press's own clone, twice in the
-        other clone's idle state, once in its clean single-stream state, and
-        twice in its idle state attended, because whether the press is there is
-        what that read finds out. Seen red at `321e9de1`: 1, 1, 1, 1."""
+        rows read it once more for the session's own root, only where row 3,
+        row 4 or row 5 fires: once for a creation in the press's own clone, and
+        twice in the other clone's idle state, in its clean single-stream state
+        and in its idle state attended, because whether the press is there is
+        what that read finds out. Seen red at `321e9de1`: 1, 1, 1, 1; and at
+        `977b6613`, before row 5 read the press (#920): 1, 2, 1, 2."""
         real = wg.worktree_consent.automation_answered
         reads = []
 
@@ -4356,7 +4428,7 @@ class Test_main:
             reads.clear()
             judge(wg, monkeypatch, capsys, repo, command, sessions)
             counts.append(len(reads))
-        assert counts == [1, 2, 1, 2], counts
+        assert counts == [1, 2, 2, 2], counts
 
     @pytest.mark.skipif(
         sys.platform != "win32",
@@ -4374,6 +4446,54 @@ class Test_main:
         unusable: the attended deny."""
         got = windows_creation(monkeypatch, capsys, projects, repo, other)
         assert got == ("deny", creation_unattended("en", "unusable")), got
+
+    # --- the creation ladder's single-stream row in another clone (#920) ---
+    #
+    # Row 5 is reached under the press only where rows 3 and 4 are: in a clone
+    # the press was not given in and this session holds no record in. Its deny
+    # keeps its steer to `git switch` and names no `[worktree-ok]` there.
+
+    @pytest.mark.parametrize("tail", ["", "  # don't"], ids=["parsed", "unbalanced"])
+    def test_under_the_press_the_single_stream_row_names_no_token(
+        self, monkeypatch, capsys, projects, repo, other, wko, tail
+    ):
+        """S1 and S2 of work item 1793169129. Three attempts, one deny text each
+        time, in both languages, with and without an unbalanced quote: the
+        origin without its quote note, the situation, the switch lines, then
+        the press and re-issue sentences, and neither a choice marker nor a
+        consent record left behind. Seen red at `977b6613`, both commands: the
+        reason ended with the sentence asking for the user's confirmation and
+        naming `[worktree-ok]`, and the unbalanced command's first line named it
+        too."""
+        write_transcript(projects, "me", ask_entries(repo))
+        git = f"git -C {shlex.quote(other)}"
+        for lang, module in (("en", wg), ("ko", wko)):
+            want = single_stream_deny(lang, git, pressed=True)
+            for attempt in range(3):
+                got = judge(
+                    module, monkeypatch, capsys, repo, creation(other, tail), SINGLE
+                )
+                assert got == ("deny", want), (lang, attempt, got)
+                assert_names_nobody(got[1])
+            assert no_create_marker(module, other), lang
+        assert no_record(repo, other)
+
+    def test_attended_the_single_stream_row_reads_as_at_the_base(
+        self, monkeypatch, capsys, projects, repo, other, wko
+    ):
+        """S3 of work item 1793169129. With nothing pressed, row 5 in another
+        clone is the base's text in both languages: the quote note on the
+        unbalanced command only, and the ending that asks for the user's
+        confirmation and names `[worktree-ok]`. Green at `977b6613` by design;
+        seen red through `seal mutate` with row 5's press read forced on."""
+        git = f"git -C {shlex.quote(other)}"
+        for lang, module in (("en", wg), ("ko", wko)):
+            for tail, quoted in (("", False), ("  # don't", True)):
+                got = judge(
+                    module, monkeypatch, capsys, repo, creation(other, tail), SINGLE
+                )
+                want = single_stream_deny(lang, git, pressed=False, quoted=quoted)
+                assert got == ("deny", want), (lang, tail, got)
 
     # --- the tree each command is judged in ---
     #
