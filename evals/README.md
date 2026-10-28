@@ -96,6 +96,10 @@ this plugin's templates write, and a value a replay or seeded generator
 copies from this repository into its case.
 `tests/text/test_no_case_tells_the_agent_it_is_evaluated.py` holds the
 words and the exemptions, and names each hit by its file, line and word.
+The path of the tree `noninferiority.py run` loads is the base directory of
+every skill the agent reads, so no component of it below the system
+temporary directory holds one of those words either;
+`tests/evals/test_noninferiority.py` *Test_run_side* refuses one that does.
 
 The cases are generated, never edited by hand. `replay_targets.py` and
 `seed_defects.py` take `--list` for what they can write, `--count N` for the
