@@ -24,7 +24,7 @@ judged below as finding 1, under contract rule 12.
 severity: should
 location: `tests/evals/test_noninferiority.py:1476-1477`, `evals/scripts/noninferiority.py:851`
 evidence: executed `bin/seal mutate evals/scripts/noninferiority.py --replace "    if new_rate > old_rate + FALSE_MARGIN + 1e-9:" "    if new_rate > old_rate + FALSE_MARGIN:" --replace "SCORE_ERROR = 1e-9" "SCORE_ERROR = 0" --replace "bar = 1 + TOKEN_MARGIN + 1e-9" "bar = 1 + TOKEN_MARGIN" --tests "bin/test tests/evals/test_noninferiority.py -q -p no:xdist" --timeout 600`, `bin/seal mutate evals/scripts/noninferiority.py --replace "    if new_rate > old_rate + FALSE_MARGIN + 1e-9:" "    if new_rate > old_rate + FALSE_MARGIN:" --tests "bin/test tests/evals/test_tmp_rule2_epsilon.py -q -p no:xdist" --timeout 300`, `python3 -c "print(0.1 + 0.05, 3/20, 0.35 + 0.05, 8/20, 100 * (1 + 0.13))"`
-verdict: open
+verdict: fixed 217209f3
 
 Rule 2 passes a false-finding rate that rose by exactly `FALSE_MARGIN`. The
 `1e-9` in its comparison (`evals/scripts/noninferiority.py:851`) is what
@@ -79,7 +79,7 @@ Add this entry to `VERDICTS`, between the two rule 2 entries at
     "rule 2: false rate up past the margin": (numbers(new_false=4), "fail"),
 ```
 
-answer:
+answer: The finding holds. `217209f3` adds the round's entry, unchanged, to `VERDICTS` between the two rule 2 entries (`tests/evals/test_noninferiority.py:1477-1480`). It passed against the tree as `Test_verdict::test_accepts_a_new_side_no_worse_than_the_baseline[rule 2: exactly the margin, where 0.35 + 0.05 falls short of 0.40]` (executed, `bin/test tests/evals/test_noninferiority.py -q -p no:xdist -k 0.35 -rA`, exit 0, 1 passed). It went red with the term deleted before it was committed (executed, `bin/seal mutate evals/scripts/noninferiority.py --replace "    if new_rate > old_rate + FALSE_MARGIN + 1e-9:" "    if new_rate > old_rate + FALSE_MARGIN:" --tests "bin/test tests/evals/test_noninferiority.py -q -p no:xdist -k 0.35"`, verdict red with `'fail' != 'pass'`, exit 0); the mutated file had no uncommitted change. No sentence in this work item's phase records, `gaps.md` or `changelog.md` states that rule 2's edge was pinned, so none needed a correction (executed, `git grep`). The code is unchanged, so `changelog.md` is unchanged.
 
 ## Confirmations
 
