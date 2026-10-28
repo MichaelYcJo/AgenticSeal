@@ -164,10 +164,11 @@ def test_no_case_file_holds_a_refused_word():
 def test_a_word_in_the_generators_text_is_refused_and_one_it_copied_is_not(
     tmp_path,
 ):
-    """Guards S5: a replay prompt holding `judged` in the paragraph its
+    """Guards S5: a replay prompt holding `judge` in the paragraph its
     generator copies passes, and the same prompt written by a scratch copy of
     the generator whose own text holds `judged` is refused at that line
-    alone."""
+    alone. Read against the real generator, whose text that prompt is not,
+    the prompt keeps no exemption, so both words are refused."""
     real = generators()["replay-"]
     source_path = os.path.join(SCRIPTS, "replay_targets.py")
     with open(source_path, encoding="utf-8") as f:
@@ -188,15 +189,14 @@ def test_a_word_in_the_generators_text_is_refused_and_one_it_copied_is_not(
         "base_ref": None,
         "asked": "It was asked to judge the fix range.",
     }
-    for name, generator, want in (
-        ("copied", real, []),
-        ("planted", planted, [(1, "judged")]),
+    for name, writer, reader, want in (
+        ("copied", real, real, []),
+        ("planted", planted, planted, [(1, "judged")]),
+        ("not-the-generators-text", planted, real, [(1, "judged"), (5, "judge")]),
     ):
         suite = tmp_path / name
         case = suite / "proofer" / "replay-1-r2"
         case.mkdir(parents=True)
-        (case / "prompt.md").write_text(
-            generator.prompt(target) + "\n", encoding="utf-8"
-        )
-        found = hits(str(suite), {"replay-": generator})
+        (case / "prompt.md").write_text(writer.prompt(target) + "\n", encoding="utf-8")
+        found = hits(str(suite), {"replay-": reader})
         assert [(n, word) for _p, n, word in found] == want, (name, found)
