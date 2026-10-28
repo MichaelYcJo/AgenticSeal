@@ -9,7 +9,7 @@ target: 38aea7be, fixes 921bfce7..38aea7be
 severity: should
 location: `seal/threads/1793174169-a-round-with-fixes-costs-three-record-commits/frame/design.md:26-39`, `skills/code-review/orchestration.md:78-80`
 evidence: read `seal/threads/1793174169-a-round-with-fixes-costs-three-record-commits/frame/design.md:26-39`, `skills/code-review/orchestration.md:54-80`
-verdict: open
+verdict: fixed 26a25b1a
 regression: round-2#1
 
 The unit is the commit sentence that `ea5f22e6` moved to
@@ -53,7 +53,7 @@ sentences after its list as they stand:
      names.
 ```
 
-answer:
+answer: The orchestrator applied the block above to `frame/design.md` *Scope* item 1 as given at `26a25b1a`, since the frame is not the crafter's to write; no fix pass ran, so the orchestrator writes both lines of this finding, as the rule this work item adds says.
 
 ## Confirmations
 
