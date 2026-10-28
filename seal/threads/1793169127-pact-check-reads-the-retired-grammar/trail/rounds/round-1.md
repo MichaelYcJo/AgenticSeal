@@ -9,7 +9,7 @@ target: 29e1b040 against 977b6613
 severity: must
 location: `skills/verify/scripts/pact_check.py:263-286`, `skills/verify/scripts/pact_check.py:653-658`, `hooks/lib/config.py:1166-1184`
 evidence: executed `bin/test tests/skills/test_tmp_round1_probe.py -q -s -p no:xdist`
-verdict: open
+verdict: fixed aaaeb8eb
 
 Why it matters. `design.md` *Data & interfaces* puts the anchor table in a
 signer's `frame/design.md` under `## Grounding`. In
@@ -99,14 +99,14 @@ def first_table(config, text, header, beside=False):
             rows, table_refusals = first_table(config, body, ANCHOR_TABLE, beside=True)
 ```
 
-answer:
+answer: The finding holds; it was seen at its coordinate. `aaaeb8eb` adds `beside` to `hooks/lib/config.py#gfm_table`, as proposed. `first_table` passes it on, and only the anchor reader sets it, so the map and `seal/config.md` keep their rule. The fix adds one condition to the proposal, in `config.py#opens_table`: the line opens a table of its own only where its delimiter row has the header's width and a blank line stands above the header. That is where GFM renders a table, and it is the rule `gfm_table` holds a first table's header to. The cases are in *Test_check*. `test_accepts_an_anchor_table_above_another_table_in_its_section` is the probe's shape. The id `a second table under a blank line` holds the second shape: `first_table`'s header scan now names the second table. Both were red at HEAD `8729d434`, run as `-k "anchor_row_nobody or above_another_table"`: 2 failed, exit 1. The first was refused as the probe found, the second by the stray-row sentence. After the fix the same run was 5 passed, exit 0. `seal mutate` over the new arm gave 5 mutants and 2 survived: the delimiter-directly-below test and the blank-line-above test. `c597ee93` adds a refusal case for each, and both mutants were then red. `4f590439` rewrites `gaps.md` *Fed back into the spec* and the changelog fragment to the narrowed rule. `pact_check.py`'s module docstring changed in `aaaeb8eb`. `trail/phases/phase-2.md` stands: it records what that phase found, and a fix pass writes no phase record.
 
 ### 2. A `SUPERSEDED` or `UNMATCHED` line prints the new hash as `@<hash>`, which the `Hash` cell refuses
 
 severity: should
 location: `skills/verify/scripts/pact_check.py:497-516`, `tests/skills/test_pact_check.py:495`
 evidence: read `skills/verify/scripts/pact_check.py:497-516`, `skills/verify/scripts/pact_check.py:670-672`, `tests/skills/test_pact_check.py:495`, `templates/setup/pact.md:27-30`
-verdict: open
+verdict: fixed a3dc0ee7
 
 Why it matters. `templates/setup/pact.md:27-30` tells a signer to start a
 row with `00000000` and correct it from the first report. The report it
@@ -138,14 +138,14 @@ the test changes with the code.
             f"bbbbbbbb; its hash is {clause(V2)} now. Re-read it in the signer and "
 ```
 
-answer:
+answer: The finding holds. `a3dc0ee7` changes both sentences to the wording proposed. *Test_grade* pins the `SUPERSEDED` detail with the new words. It now pins the `UNMATCHED` detail whole too, where before only its ending was pinned (contract rule 14). Both cases were red against the old wording, run as `-k Test_grade`: 2 failed, exit 1. After the change: 85 passed, exit 0. The class was enumerated with `git grep -n -E 'reads @|@\{current|@\{clause|@<hash>|@0000'` outside `seal/` and the changelogs. Its one hit on the pact is `docs/the-pact.md:79`, the inline shape. That sentence's `from:` and `to:` already stand in `design.md` *Rule changes*, and `docs/` is the settle's.
 
 ### 3. Four of the five new map cases in *Test_check* repeat *Test_path_map*'s and cover nothing more
 
 severity: should
 location: `tests/skills/test_pact_check.py:814-852`
 evidence: read `tests/skills/test_pact_check.py:245-300`, `tests/skills/test_pact_check.py:781-852`, `skills/verify/scripts/pact_check.py:586-588`
-verdict: open
+verdict: fixed a3dc0ee7
 
 Why it matters. *Test_path_map*'s
 `test_refuses_each_line_it_does_not_read_and_reads_the_rest` (`:245-300`)
@@ -182,7 +182,7 @@ the group rule decides.
 Or move that one shape into *Test_path_map*'s parametrize and delete the
 *Test_check* case.
 
-answer:
+answer: The finding holds; the group rule decides it. The four ids it names are removed, and `a second header the walk names` stays, as proposed. The case's docstring now says the other shapes are *Test_path_map*'s. The removal landed in `a3dc0ee7` together with finding 2's change, because both edit `tests/skills/test_pact_check.py` and that file was committed whole. *Test_path_map* still runs every removed shape. `tests/skills/test_pact_check.py` passed after the removal: 85 passed, exit 0.
 
 ## Confirmations
 
