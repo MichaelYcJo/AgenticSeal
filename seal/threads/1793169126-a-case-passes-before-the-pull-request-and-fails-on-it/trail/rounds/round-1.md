@@ -11,7 +11,7 @@ This is the first round, so no earlier round's coordinates were carried; every f
 severity: should
 location: `tests/conftest.py:418-424`, `seal/threads/1793169126-a-case-passes-before-the-pull-request-and-fails-on-it/changelog.md:3`
 evidence: read `tests/conftest.py:418-424`, `seal/threads/1793169126-a-case-passes-before-the-pull-request-and-fails-on-it/changelog.md:3`, `skills/code-review/scripts/chain_check.py:771-787`
-verdict: open
+verdict: fixed d28b2375
 
 The new comment above the sweep says: "A `pull_request` run sets `GITHUB_HEAD_REF`, `GITHUB_EVENT_PATH` and the rest for every step, and a `workflow_dispatch` run, a local run and the broad gate do not." The changelog fragment says the same: "A `pull_request` run of `tests` sets `GITHUB_HEAD_REF`, `GITHUB_EVENT_PATH` and other workflow variables, and a local run, the broad gate and a `workflow_dispatch` run do not."
 
@@ -38,7 +38,7 @@ The changelog's first two sentences, as they would read:
 - **A case could pass on every run before a pull request and fail on the pull request's own run (#1058).** Only a `pull_request` run of `tests` sets `GITHUB_HEAD_REF`. A `workflow_dispatch` run sets `GITHUB_EVENT_PATH`, `GITHUB_ACTIONS` and the other workflow variables, and a local run and the broad gate set none of them.
 ```
 
-answer:
+answer: The finding holds: every workflow run sets `GITHUB_ACTIONS`, `GITHUB_EVENT_PATH`, `GITHUB_EVENT_NAME` and `GITHUB_REF`, and only a pull request event sets `GITHUB_HEAD_REF` and `GITHUB_BASE_REF`. `d28b2375` puts the record's text into the conftest comment (`tests/conftest.py:418-427`) and into the changelog fragment's first two sentences; the sweep's code is unchanged. The same commit also corrects one more instance of the fact, which `location:` does not list: the new case's docstring at `tests/test_conftest.py:560-563` said a case sees "the environment of a run with no pull request", and a dispatch run has no pull request and sets workflow variables, so it now says a case sees no workflow variable. `git grep` over `CONTRIBUTING.md`, `skills/code-review/orchestration.md`, `gaps.md`, the changelog's second entry and the phase records finds no other sentence stating it: `CONTRIBUTING.md:205-208` and `orchestration.md:195-197` state what a case sees after the sweep, `gaps.md`'s purpose line says only that `GITHUB_HEAD_REF` is pull-request-only, and the phase records state what their phases did. Executed: `uvx ruff check` and `uvx ruff format --check` on `tests/conftest.py` and `tests/test_conftest.py` exit 0, and `bin/test tests/test_conftest.py -q` exits 0 (54 passed).
 
 ## Confirmations
 
