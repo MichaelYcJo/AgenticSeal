@@ -131,17 +131,31 @@ def test_a_deleted_half_of_a_named_pair_declines_and_nothing_else_does(tmp_path)
             "README.ko.md": "# A\n",
             "docs/experiments/README.md": "# B\n",
             "docs/experiments/README.ko.md": "# B\n",
+            # A deleted file with no edition is no half of a pair.
+            "docs/alone.md": "# C\n",
         },
-        deleted=("README.md",),
+        deleted=("README.md", "docs/alone.md"),
     )
     names, missing = pairs(root)
     assert names == ["docs/experiments/README"], names
     assert missing == ["README.md"], missing
     with pytest.raises(pytest.skip.Exception):
         unread(names, missing)
-    assert unread(names, []) == ["README"]
+
+    def reported(names, missing):
+        # A decline raised here would skip this case and pass it, so it
+        # fails instead: each call below must report, not decline.
+        try:
+            return unread(names, missing)
+        except pytest.skip.Exception as declined:
+            pytest.fail(f"declined where it must report: {declined}")
+
+    assert reported(names, []) == ["README"]
     # A neighbour mid-edit is no reason to decline: every named pair was read.
-    assert unread(list(ALIVE), ["docs/other.ko.md"]) == []
+    assert reported(list(ALIVE), ["docs/other.ko.md"]) == []
+    # One named pair lost to the working tree does not excuse the other,
+    # which is simply not there: that one is reported, and nothing declines.
+    assert reported([], ["README.md"]) == ["docs/experiments/README"]
 
 
 def test_the_contribution_guide_owns_the_rule_and_names_this_check():
