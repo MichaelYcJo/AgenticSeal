@@ -9,7 +9,7 @@ target: 208f7076, fixes 32fe2e88..208f7076
 severity: should
 location: `seal/threads/1793226630-most-contract-rules-are-proved-by-their-own-wording/frame/plan.md:72`, `seal/threads/1793226630-most-contract-rules-are-proved-by-their-own-wording/frame/plan.md:74`
 evidence: executed `git grep -n -E "rules? (2, )?4|4 and 15|4, 7|5, 12|3, 5|rules 2, 5|sealer cases" -- seal/threads/1793226630-most-contract-rules-are-proved-by-their-own-wording`, `grep -n '^check:' skills/agent-contract/SKILL.md`
-verdict: open
+verdict: fixed 5a77bc37
 
 The fold at `208f7076` rewrote the frame lines that the fix pass listed:
 the rule rows of `frame/design.md`, judgments 4 and 5 of
@@ -41,14 +41,14 @@ Replace the two rows with:
 | E. Name `none reader:` on every rule that loses its pin, evals included | It throws away the readers the tree already has: the sealer cases read rules 2 and 5, and the crafter cases read rule 7 | Rejected |
 ```
 
-answer:
+answer: The frame is the orchestrator's, and its fold at `5a77bc37` rewrote rows C and E. I read both at HEAD: `frame/plan.md:72` now lists rules 3, 12, 13, 14, 17, 18, 19 and 20 as judgments and gives rules 4 and 15 their own sentence, and `:74` says the sealer cases read rules 2 and 5. Both match `skills/agent-contract/SKILL.md:46`, `:67`, `:78` and `:182`. This pass made no commit for this finding.
 
 ### 2. The phase 2 bullet and the `gaps.md` row on the 182 say that `frame/design.md` calls 182 a bound, but the fold removed that sentence
 
 severity: should
 location: `seal/threads/1793226630-most-contract-rules-are-proved-by-their-own-wording/trail/phases/phase-2.md:146-147`, `seal/threads/1793226630-most-contract-rules-are-proved-by-their-own-wording/gaps.md:16`
 evidence: executed `git grep -n "182" -- seal/threads/1793226630-most-contract-rules-are-proved-by-their-own-wording`, `git show d0b5cf4f:seal/threads/1793226630-most-contract-rules-are-proved-by-their-own-wording/frame/design.md | grep -n "182"`, `git diff --stat d0b5cf4f f9c33d98 -- seal/threads/1793226630-most-contract-rules-are-proved-by-their-own-wording/frame/`
-verdict: open
+verdict: fixed ec52e4f4
 regression: round-1#3
 
 The unit is the bullet *The issue's 182 does not bound the count* at
@@ -87,14 +87,14 @@ In `gaps.md`, the row's *Spec says / code did* cell becomes:
 `frame/design.md` at `d0b5cf4f`: "The issue's rough figure of 182 for `tests/text` bounds the count from above." The method counts 255, and `208f7076` wrote the count's reading of 182 into the frame
 ```
 
-answer:
+answer: The finding holds. `208f7076` replaced the sentence that both records quoted (read, `git diff d0b5cf4f HEAD -- frame/design.md`). `ec52e4f4` applies the round's text: the bullet in `phase-2.md` and the *Spec says / code did* cell in `gaps.md` now quote `frame/design.md` at `d0b5cf4f`, the frame both phases counted against. The same diff shows the fold left *Data & interfaces*' list of excluded kinds unchanged, so the command-spelling row of `gaps.md` still reads true at HEAD. Sweep: I ran `grep` for `182`, `bound`, `false-red`, `rule 4`, `rule 15` and `11` over `trail/phases/`, `gaps.md` and `changelog.md` (executed). No other sentence there states the old bound, the old count or the old readers.
 
 ### 3. Round 1's answer to finding 2 says `git grep` finds 11 `check:` lines that name an eval case, but it lists ten and the tree holds ten
 
 severity: should
 location: `seal/threads/1793226630-most-contract-rules-are-proved-by-their-own-wording/trail/rounds/round-1.md:104`
 evidence: executed `git grep -n -E 'check:.*evals/behaviour' 16e0d911 -- ':!seal/'`, `git grep -n -E '^\s*check:.*evals/' -- ':!seal/'`
-verdict: open
+verdict: deferred trail/rounds/round-2.md
 regression: round-1#2
 
 The unit is finding 2's `answer:` line at `round-1.md:104`, which
@@ -125,7 +125,7 @@ with:
 `git grep` finds 10 `check:` lines in the tree that name an eval case.
 ```
 
-answer:
+answer: The finding holds. The right number is 10: `git grep -n -E '^\s*check:.*evals/' -- ':!seal/'` finds 10 lines in 5 files, the ten that round 1's answer listed (executed). Round 1's record stays as written, so the correction is this answer line, which the orchestrator commits with this record. No living record of mine states the count: `grep` for "11 `check`" over `trail/phases/`, `gaps.md` and `changelog.md` exits 1 (executed). Phase 2's "eleven" counts lead literals, not `check:` lines.
 
 ## Confirmations
 
