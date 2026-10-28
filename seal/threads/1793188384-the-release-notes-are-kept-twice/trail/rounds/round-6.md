@@ -31,7 +31,7 @@ release API shows the restore's stamps and no appended block in any of the
 severity: should
 location: `seal/threads/1793188384-the-release-notes-are-kept-twice/frame/plan.md:74`
 evidence: executed `git grep -n -E "v0\.12\.2|0\.12\.2|follow-up" -- seal/threads/1793188384-the-release-notes-are-kept-twice/frame seal/threads/1793188384-the-release-notes-are-kept-twice/gaps.md seal/threads/1793188384-the-release-notes-are-kept-twice/changelog.md`, `sed -n 74p seal/threads/1793188384-the-release-notes-are-kept-twice/frame/plan.md`, `git log -L74,74:seal/threads/1793188384-the-release-notes-are-kept-twice/frame/plan.md`
-verdict: open
+verdict: fixed 96610a28
 reopens: round-5#4
 
 Round 5's finding 4 asked that the two `seal/follow-up.md` rows go, and
@@ -64,7 +64,7 @@ orchestrator writes it.
 | 5 | No note is republished (`frame/questions.md` Q2, the owner's answer of 2026-10-28). Every record of this work item that says a republish happens, or that S11 waits on one, is rewritten to the decision. The phase pointed the two `seal/follow-up.md` rows that name `changelog/0.12.2.md` at that file at `v0.23.1`; round 5's fix pass removed both rows, as *Scope* item 8 now says | <the Verification cell unchanged> | 58f3a6a7 |
 ```
 
-answer:
+answer: The orchestrator applied the block above to the phase 5 row's second cell as given at `96610a28`, leaving its Verification and Status cells, since the frame is not the crafter's to write; a `grep -n -i -E "follow-up|0\.12\.2"` over the three frame files then finds no other sentence saying the rows stay or point anywhere (the phase 4 row names them among the readers that phase re-pointed, which it did). No fix pass ran for this finding, so the orchestrator writes both its lines.
 
 ## Confirmations
 
