@@ -441,7 +441,7 @@ class Test_build:
         )
         assert f"markdown-it-py=={rt.MARKDOWN_IT_VERSION}" == rt.MARKDOWN_IT
         # #857: Pillow left with its last reader, so no build installs it.
-        assert not any(word.startswith("pillow") for word in install), install
+        assert not any(word.lower().startswith("pillow") for word in install), install
         # #647: the table walker's renderer, pinned the same way.
         assert rt.CMARKGFM in install, (
             f"the {'uv' if uv else 'pip'} strategy builds an environment without "

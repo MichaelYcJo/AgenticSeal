@@ -33,7 +33,7 @@ def test_the_publishing_workflow_installs_the_pins_the_runner_holds():
         ]
     assert len(installs) == 1, installs
     assert runner.MARKDOWN_IT in installs[0], installs
-    assert not any(word.startswith("pillow") for word in installs[0]), installs
+    assert not any(word.lower().startswith("pillow") for word in installs[0]), installs
     # #647: the suite at the tag collects the table walker's case, which
     # imports the pinned renderer.
     assert runner.CMARKGFM in installs[0], installs
