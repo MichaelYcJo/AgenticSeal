@@ -9,7 +9,7 @@ target: 77ece6ba, fixes 19d28cee..77ece6ba
 severity: should
 location: `seal/threads/1793174169-a-round-with-fixes-costs-three-record-commits/changelog.md:3`, `seal/threads/1793174169-a-round-with-fixes-costs-three-record-commits/frame/design.md:164-179`
 evidence: executed `git log --format='%h %s' -- seal/threads/1793174169-a-round-with-fixes-costs-three-record-commits/trail/rounds/round-5.md`, `git show --stat 30e31aac`, `git show --stat 77ece6ba`, `git log --format='%h %s' -- seal/threads/1793174169-a-round-with-fixes-costs-three-record-commits/trail/rounds/round-2.md`
-verdict: open
+verdict: fixed ef34bd42
 
 The changelog's first bullet ends: "A round with fixes then costs two record
 commits beside the fix commits: the round record's commit and the
@@ -77,7 +77,7 @@ After the edit, the paste check has to read the changelog again: the new
 sentence was written apart from `docs/the-review-record.md` and the two
 edited files, and this round has not measured it.
 
-answer:
+answer: The finding holds: `git log` over `round-5.md` shows three commits, `19d28cee`, `30e31aac` and `77ece6ba`, and the last two each touch `round-5.md` alone (executed). `ef34bd42` rewrites the last sentence of the changelog's first bullet to the changelog block above, as given. The frame's block was applied by the orchestrator at `80325423`, since the frame is not the crafter's to write. `tests/text/test_no_passage_is_pasted_into_a_second_file.py` exits 0, but it leaves out everything under `seal/`, so it does not read the changelog. The new sentences were measured with that module's `longest_run` instead: 0 against `docs/the-review-record.md`, `frame/design.md`, `skills/code-review/orchestration.md`, `agents/crafter.md`, `skills/implement/orchestration.md` and `gaps.md` (executed). A `git grep` sweep for "record commits", "round with fixes", "answer commit", "per round" and "count at two" over `agents/`, `skills/`, `docs/`, `templates/`, `tests/` and this work item's records found no other sentence that promises two record commits for every round with fixes. `frame/plan.md:9`, `frame/design.md:173` and `tests/text/test_the_rules_have_one_owner.py:142` describe runs that already happened. `frame/plan.md:114`, row C's verdict, says F "keeps the count at two", which reads as a comparison with row C; it is the frame's, so it was left for the orchestrator.
 
 ## Confirmations
 
