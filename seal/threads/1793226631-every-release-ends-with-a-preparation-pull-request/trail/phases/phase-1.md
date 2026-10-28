@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Phase | 1 |
-| Commit | 9a5d05c1 |
+| Commit | 538e9b13 |
 
 ## What this phase was asked
 
@@ -71,6 +71,15 @@ at a time. Each mutant turned at least one case red. Two first survived:
 `9a5d05c1`. One unit still has no case: `console.to_utf8()`. No census reads
 `.github/scripts/`, and the `seal/follow-up.md` row on `console.to_utf8()`
 already names that gap and its answerer.
+
+**`seal layout --check` read the new module only once its script was
+tracked.** Before the first commit it refused the file for a TARGET git did
+not track, and that was read as the only refusal. After the commit it
+refused every class of `tests/github/test_tag_release.py` for lacking a
+`test_accepts_` or a `test_refuses_` case. `538e9b13` renames the cases and
+adds the accepting half to `Test_version_at` and `Test_create`, and
+`seal layout --check` then exited 0 (executed). The phase closes at that
+commit, not at `9a5d05c1`.
 
 **Two sentences in the publishing files changed beyond `## Removes`.**
 `publish_release_note.py`'s *Environment* line said `TAG` came from
