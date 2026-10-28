@@ -50,9 +50,9 @@ Found = collections.namedtuple("Found", "read dangling excused")
 # possessive, then the italic text. A `<commit>:<path>` matches, and its
 # first segment, which holds the colon, is no tracked top-level entry.
 PATH_CITED = re.compile(r"`([^`\s]+\.md)`(?:'s)?\s+\*([^*]+)\*")
-# A citation by a skill's name, read only where `skills/<name>/SKILL.md` is
-# tracked: the name in backticks, or the name and the word `skill's`.
-NAME_CITED = re.compile(r"`([a-z0-9][a-z0-9-]*)`(?: skill's)?\s+\*([^*]+)\*")
+# A citation by a skill's name: the name in backticks, or the name and the
+# word `skill's`. The second group holds the word where it stands.
+NAME_CITED = re.compile(r"`([a-z0-9][a-z0-9-]*)`( skill's)?\s+\*([^*]+)\*")
 SKILL_FILE = re.compile(r"skills/([^/]+)/SKILL\.md")
 # Outside a `.md` file, a `#` comment marker at the start of a line, so a
 # citation wrapped across comment lines reads as one.
@@ -91,9 +91,12 @@ def cited_in(rel, text, skills):
     flow = flowing(rel, text)
     found = [(m.start(), m.group(1), m.group(2)) for m in PATH_CITED.finditer(flow)]
     found += [
-        (m.start(), f"skills/{m.group(1)}/SKILL.md", m.group(2))
+        (m.start(), f"skills/{m.group(1)}/SKILL.md", m.group(3))
         for m in NAME_CITED.finditer(flow)
-        if m.group(1) in skills
+        # The bare name is read only where the skill is tracked, since any
+        # backticked word can stand before italics; the word `skill's`
+        # names a skill, so a removed one leaves its citation dangling.
+        if m.group(1) in skills or m.group(2)
     ]
     return sorted(
         (flow.count("\n", 0, at) + 1, target, " ".join(said.split()))
@@ -345,31 +348,38 @@ def test_a_bold_rule_lead_resolves_outside_a_fence_and_case_for_case(tmp_path):
     ]
 
 
+# The skill names go in through `format`, so the `skill's` lines of this
+# module's own text name no skill and the case that reads the tree skips
+# them.
 SPELLINGS = """`manual/b.md`'s *Gone one*
 
-`drafting` *Gone two*
+`{d}` *Gone two*
 
-the `drafting` skill's *Gone three*
+the `{d}` skill's *Gone three*
 
-`manual/b.md`'s *Here*, `drafting` *Here*, the `drafting` skill's *Here*.
+`manual/b.md`'s *Here*, `{d}` *Here*, the `{d}` skill's *Here*.
 
 A wrapped `manual/b.md` *Gone
 four* here.
 
-`unlisted` *Gone five*
+`{u}` *Gone five*
 
 `manual/b.md` *Fixed in
 #120 here*
 
 `manual/b.md` *Says "yes"
 "no" twice*
-"""
+
+the `{u}` skill's *Gone six*
+""".format(d="drafting", u="unlisted")
 
 
 def test_each_spelling_of_a_citation_is_read(tmp_path):
     """S5: the possessive, a skill's name and the skill's possessive are
-    read, a name only where `skills/<name>/SKILL.md` is tracked, and a
-    citation wrapped across a line is named at the line it starts on. A
+    read. A bare name is read only where `skills/<name>/SKILL.md` is
+    tracked; the word `skill's` names a skill, so that spelling of a skill
+    nobody tracks is dangling. A citation wrapped across a line is named at
+    the line it starts on. A
     markdown file is read as written: a line opening with `#` keeps it, and
     a quote ending one line meets the next line's quote."""
     root = repo(
@@ -383,12 +393,13 @@ def test_each_spelling_of_a_citation_is_read(tmp_path):
         },
     )
     found = citations(root)
-    assert found.read == 9
+    assert found.read == 10
     assert found.dangling == [
         ("a.md", 1, "manual/b.md", "*Gone one*"),
         ("a.md", 3, "skills/drafting/SKILL.md", "*Gone two*"),
         ("a.md", 5, "skills/drafting/SKILL.md", "*Gone three*"),
         ("a.md", 9, "manual/b.md", "*Gone four*"),
+        ("a.md", 20, "skills/unlisted/SKILL.md", "*Gone six*"),
     ]
 
 
