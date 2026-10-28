@@ -617,27 +617,6 @@ class Test_splitlines:
         assert censuses.splitlines("skills/new.py", root) == [line]
 
 
-class Test_coordinate_grammar:
-    def test_accepts_another_pattern_and_a_file_outside_the_shipped_directories(
-        self, tmp_path
-    ):
-        plant(tmp_path, "tests/x.py", 'R = r"@[0-9a-f]{6,40}"\n')
-        root = plant(tmp_path, "hooks/x.py", 'R = r"@(?P<name>[a-z]+)"\n')
-        assert censuses.coordinate_grammar("tests/x.py", root) == []
-        assert censuses.coordinate_grammar("hooks/x.py", root) == []
-
-    def test_refuses_a_second_grammar_of_the_hash(self, tmp_path):
-        root = plant(
-            tmp_path,
-            ".github/scripts/x.py",
-            'R = (\n    r"@(?P<hash>[0-9a-f]{6,12})"\n)\n',
-        )
-        assert censuses.coordinate_grammar(".github/scripts/x.py", root) == [
-            ".github/scripts/x.py:2: coordinate_grammar: a second grammar of the "
-            "coordinate; `skills/verify/scripts/coordinates.py` holds the one"
-        ]
-
-
 class Test_heading_rule:
     def test_accepts_the_spelling_in_a_docstring_and_a_whole_line_comment(
         self, tmp_path

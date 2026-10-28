@@ -758,7 +758,7 @@ PACT_LINES = (("README.md",), ("README.ko.md",), ("skills", "config", "SKILL.md"
 # The sentences a person is printed: every string constant of `seal pact`.
 PACT_PRINTED = (
     (("skills", "verify", "scripts", "pact_check.py"), None),
-    # The refusals both commands print are written in `hooks/lib/config.py`
+    # The refusals `seal pact` prints are written in `hooks/lib/config.py`
     # (round 2 of #647, white 15).
     (("hooks", "lib", "config.py"), "pact_declaration"),
     (("hooks", "lib", "config.py"), "remote_entries"),
@@ -768,7 +768,7 @@ PACT_PRINTED = (
     # `Signer` table's refusals are put in (#647).
     (("hooks", "lib", "config.py"), "gfm_table"),
     (("hooks", "lib", "config.py"), "_signer"),
-    # The sentence both commands print where a file is headed the old way
+    # The sentence `seal pact` prints where a file is headed the old way
     # (#822); one of `PACT_RENAMED_SPANS` below.
     (("hooks", "lib", "config.py"), "renamed_header"),
     # The refusal of a file holding both headers (round 1 of #822, yellow 1).

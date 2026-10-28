@@ -92,14 +92,8 @@ CONFIG_TABLE = ("Item", "Value")
 # closing pipe returns the same value byte for byte. Found by round 1 of
 # #415.
 #
-# `TABLE_ROW` and `CELL_PIPE` below are built on it, and so is
-# `skills/verify/scripts/pact_check.py#path_map`, which reads the
-# machine-local `| Remote | Path |` map with it and `CONFIG_SEPARATOR`.
+# `TABLE_ROW`, `CELL_PIPE` and `FIRST_CELL` below are built on it.
 CELL = r"(?:[^|\\]|\\.)"
-# A separator line, for one reader alone: `pact_check.py#path_map`, whose
-# machine-local map is not `seal/config.md` and is not read by the walker.
-# Nothing here reads it.
-CONFIG_SEPARATOR = re.compile(r"^\|[\s:|-]+\|$")
 
 # A fenced code block's delimiter line, as CommonMark spells one: up to three
 # spaces of indentation, then a run of three or more backticks or three or
@@ -714,19 +708,13 @@ def policy_root(home):
 # the repository that holds it, and the pact's repository needs no row: it is
 # identified by holding `seal/pact.md` (`docs/the-pact.md`).
 #
-# Two readers ask this row and they ask THIS reader:
-# `skills/code-review/scripts/chain_check.py`, which prints the relationship
-# at a signer's pull request and refuses nothing, and
-# `skills/verify/scripts/pact_check.py`, which reads every signer
-# from the pact's repository and refuses what will not parse. One reader, so
-# the print and the refusal are about the same row.
+# One command asks this row, through THIS reader:
+# `skills/verify/scripts/pact_check.py`, run as `seal pact`, which reads
+# every signer from the pact's repository and refuses what will not parse. A
+# signer's CI reads nothing of the pact (`docs/the-pact.md`).
 
 PACT_ROW = "Pact"
 PACT_SEPARATOR = ";"
-# A pact's name in an anchor, `pact:<name>/"<heading path>"@<hash>`: the last
-# path segment of the pact's repository's normalised origin URL. The class is
-# `skills/verify/scripts/coordinates.py#PACT_NAME`'s, which reads the anchor.
-PACT_NAME_RE = re.compile(r"[A-Za-z0-9_.-]+")
 
 
 def normalise_remote(url):
@@ -779,27 +767,15 @@ def normalise_remote(url):
     return text.lower()
 
 
-def pact_name(remote):
-    """The name a pact anchor gives the pact held at REMOTE: the last path
-    segment of its normalised URL, or "" where it has no path."""
-    normalised = normalise_remote(remote)
-    if "/" not in normalised:
-        return ""
-    return normalised.rsplit("/", 1)[1]
-
-
-def remote_entries(entries, empty, named):
+def remote_entries(entries, empty):
     """(parsed, refusals) for ENTRIES, each a remote URL as somebody wrote
-    it: `parsed` as `(as written, normalised, name)` in order, and one
-    sentence per entry refused, EMPTY being the sentence for an empty one.
-
-    NAMED is true where the name is what an anchor will carry -- the
-    `Pact` row's entries -- so a name outside `PACT_NAME_RE`, and two entries
-    sharing a name, are refused as well. A pact's `Signer` table lists
-    repositories nobody cites by name, and two of them may end in one
-    segment. Two entries naming one repository are refused either way.
+    it: `parsed` as `(as written, normalised)` in order, and one sentence
+    per entry refused, EMPTY being the sentence for an empty one. An entry
+    holding a space, one that reduces to no host and path, and two entries
+    naming one repository are refused. Two entries that end in one segment
+    are two repositories: a pact anchor names a pact by its URL.
     """
-    parsed, refusals, seen, names = [], [], {}, {}
+    parsed, refusals, seen = [], [], {}
     for entry in entries:
         written = entry.strip()
         if not written:
@@ -809,8 +785,7 @@ def remote_entries(entries, empty, named):
             refusals.append(f"`{written}` holds a space — one remote URL per entry")
             continue
         normalised = normalise_remote(written)
-        name = pact_name(written)
-        if not name:
+        if "/" not in normalised:
             refusals.append(
                 f"`{written}` is not a remote URL — it reduces to no host and "
                 "path, so no repository can be found by it"
@@ -819,35 +794,21 @@ def remote_entries(entries, empty, named):
         if normalised in seen:
             refusals.append(f"`{written}` and `{seen[normalised]}` are one repository")
             continue
-        if named and not PACT_NAME_RE.fullmatch(name):
-            refusals.append(
-                f"`{written}` ends in `{name}`, which a pact anchor cannot "
-                "name — the name takes letters, digits, `_`, `.` and `-`"
-            )
-            continue
-        if named and name in names:
-            refusals.append(
-                f"`{written}` and `{names[name]}` both end in `{name}`, so an "
-                f"anchor `pact:{name}/…` cannot say which pact it cites"
-            )
-            continue
-        seen[normalised] = names[name] = written
-        parsed.append((written, normalised, name))
+        seen[normalised] = written
+        parsed.append((written, normalised))
     return parsed, refusals
 
 
 def pact_declaration(text):
     """(pacts, refusals) for the `Pact` row of a config.md's TEXT.
 
-      pacts     [(as written, normalised, name)] for every entry of the
-                `Pact` row that parsed, in the order the row lists them;
-                [] where no row names a pact
+      pacts     [(as written, normalised)] for every entry of the `Pact`
+                row that parsed, in the order the row lists them; [] where
+                no row names a pact
       refusals  one sentence per thing that would not parse, naming it
 
-    **It refuses in sentences and stops nothing.** The two callers differ on
-    exactly that, and the difference is #647's decision 2: a signer's CI
-    prints a refusal as a notice and its exit status does not move, while
-    `seal pact`, run at the pact's repository, exits 2 on one.
+    **It refuses in sentences and stops nothing.** Its caller, `seal pact`,
+    run at the pact's repository, exits 2 on a refusal.
 
     No row, an empty value, and a file with no table are one state, *no pact
     is held elsewhere* — the direction everything in this module fails in. A
@@ -862,7 +823,7 @@ def pact_declaration(text):
     **A table the walker refuses is refused here too** (#871). Its
     sentences are appended after every other refusal: a `Pact` row below
     the line it stopped at is one the walk never read. `seal pact` exits 2
-    on it and a signer's CI prints it, the split #647 decided.
+    on it.
     """
     rows, walk_refusals = config_table(text)
     # A row written twice has no value, by `value_of`'s rule and in its
@@ -877,7 +838,6 @@ def pact_declaration(text):
         value.split(PACT_SEPARATOR),
         f"`{PACT_ROW} | {value}` holds an empty entry — one remote URL between "
         f"each `{PACT_SEPARATOR}`",
-        named=True,
     )
     return pacts, refused + walk_refusals
 
@@ -1089,7 +1049,30 @@ def gfm_line_starts(text):
     ]
 
 
-def gfm_table(text, header):
+def opens_table(index, line, under):
+    """True where LINE, at INDEX, is the header of a table of its own:
+    written `| … |`, with UNDER, `[(index, line)]` for the next shown line or
+    `[]`, a delimiter row of the header's width directly below it.
+
+    What stands above it is not asked. The caller does not read that table,
+    so taking one GFM would not render costs it nothing, and a second header
+    of the caller's own table is named by the caller's header scan
+    (`pact_check.py#first_table`) wherever it stands. Asking for a blank
+    line refused a table GitHub renders under a sentence or a thematic break
+    (round 2 of #913, finding 1)."""
+    cells = table_cells(line)
+    if cells is None or not under:
+        return False
+    below, row = under[0]
+    return (
+        below == index + 1
+        and "|" in row
+        and DELIMITER_ROW.match(row) is not None
+        and row.strip().strip("|").count("|") + 1 == len(cells)
+    )
+
+
+def gfm_table(text, header, beside=False):
     """(rows, refusals) for the first GFM table in TEXT whose header row's
     cells are HEADER, a tuple of names.
 
@@ -1114,7 +1097,14 @@ def gfm_table(text, header):
                    a list item, an HTML block, or a line four columns in. GFM
                    ends the table there; a line written `| … |` after it and
                    before the next heading is a row nobody reads, and is
-                   refused
+                   refused, except where BESIDE is true and that line opens
+                   a table of its own (`opens_table`): the walk steps over
+                   that table, its delimiter row and every line under it up
+                   to its end, and goes on refusing a `| … |` line after it.
+                   A caller whose file holds one table, `seal/config.md` or
+                   the machine-local pact map, leaves BESIDE false; the
+                   anchor table's reader sets it, because a frame's section
+                   holds other tables
       a row        written `| … |` with the header's width
       anything     refused, saying what it is: a delimiter row out of place,
         else       a row of another width or without its outer pipes, or a
@@ -1138,8 +1128,8 @@ def gfm_table(text, header):
     is block state none of those three carries; round 2's generator found
     none over 600,000 documents.
 
-    Each refusal reads after a noun naming the file, as both callers of
-    `pact_signers` print it after "the pact ".
+    Each refusal reads after a noun naming the file, as `seal pact` prints
+    `pact_signers`' after "the pact ".
     """
     name = " | ".join(header)
     width = len(header)
@@ -1204,7 +1194,10 @@ def gfm_table(text, header):
             "its own"
         ]
     rows, stray, ended, previous = [], None, False, delimiter[0]
-    for index, line in shown[at + 2 :]:
+    body = shown[at + 2 :]
+    # BESIDE: the index of the last line read as part of a table of its own.
+    other = None
+    for k, (index, line) in enumerate(body):
         if not ended and (index != previous + 1 or table_end(line)):
             ended = True
         if ended:
@@ -1214,7 +1207,17 @@ def gfm_table(text, header):
                 and blocks.columns(line) < 4
             ):
                 break
+            if other is not None and index == other + 1 and not table_end(line):
+                # The other table's delimiter row, or a line GFM reads as
+                # one of its rows.
+                other = index
+                continue
             if line.lstrip().startswith("|"):
+                if beside and opens_table(index, line, body[k + 1 : k + 2]):
+                    # A table of its own, which GFM renders apart from this
+                    # one: the walk steps over it and goes on to the heading.
+                    other = index
+                    continue
                 stray = (
                     f"has a `{name}` table that ends above `{line.strip()}`, "
                     "a row the walk never reaches — it and every row below it "
@@ -1342,10 +1345,10 @@ def pact_signers(text):
     if header is None:
         return [], [refusals[0] + ", so it names no signer"], None
     values = [cells[0] for _line, cells in rows]
-    # Both callers print each refusal after "the pact ", so an entry's own
+    # `seal pact` prints each refusal after "the pact ", so an entry's own
     # sentence gets a lead-in that reads after those words (round 2 of #647,
     # white 14); `remote_entries` keeps the sentences the `Pact` row prints.
-    signers, entry_refusals = remote_entries(values, "an empty row", named=False)
+    signers, entry_refusals = remote_entries(values, "an empty row")
     word = header[0]
     out = [f"has a `{word}` entry that will not read: {r}" for r in entry_refusals]
     out.extend(_signer(refusal) for refusal in refusals)
@@ -1406,8 +1409,8 @@ def baseline_commit(text):
 #
 # Until 0.19.0 every repository of a work item that keeps a pact had another
 # name, and the pact's one-column table carried it into a file nobody
-# regenerates. It still reads (`read_table`), and both commands print the
-# sentence below where they read one. This unit is the one place the old word is written, which is
+# regenerates. It still reads (`read_table`), and `seal pact` prints the
+# sentence below where it reads one. This unit is the one place the old word is written, which is
 # what lets `tests/behaviour/test_one_word_one_meaning.py` refuse it everywhere else and
 # exclude this unit by name (`docs/the-pact.md` *The words*).
 RENAMED_IN = "0.19.0"

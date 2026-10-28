@@ -140,6 +140,7 @@ BOTH = (
 # `tests/behaviour/test_one_table_walker_reads_what_gfm_renders.py`, over a corpus
 # enumerated from the block kinds and judged by cmark-gfm itself.
 WEB = "https://example.com/org/orders-web"
+WEB_NORMALISED = "example.com/org/orders-web"
 MOBILE = "https://example.com/org/orders-mobile"
 HEAD = f"# Pact\n\n| Signer |\n|---|\n| {WEB} |\n"
 CLAUSE = "\n## Order response shape\n\nx\n"
@@ -1325,17 +1326,13 @@ class Test_unfenced:
 
 class Test_pact_declaration:
     def test_accepts_one_pact_normalised(self):
-        """S1. One URL: the URL normalised, and its name."""
+        """S1. One URL: the URL as written, and normalised."""
         pacts, refusals = config.pact_declaration(
             table(("Mode", "shared"), ("Pact", "git@example.com:org/Orders-API.git"))
         )
         assert refusals == []
         assert pacts == [
-            (
-                "git@example.com:org/Orders-API.git",
-                "example.com/org/orders-api",
-                "orders-api",
-            )
+            ("git@example.com:org/Orders-API.git", "example.com/org/orders-api")
         ]
 
     def test_two_pacts_come_back_in_order(self):
@@ -1350,7 +1347,23 @@ class Test_pact_declaration:
             )
         )
         assert refusals == []
-        assert [name for _, _, name in pacts] == ["orders-api", "billing"]
+        assert [n for _, n in pacts] == [
+            "example.com/org/orders-api",
+            "example.com/org/billing",
+        ]
+
+    def test_accepts_two_pacts_whose_urls_end_in_one_segment(self):
+        """S10 of #913: an anchor names the pact by its URL, so two pacts
+        ending in one segment are two pacts and nothing is refused. Seen red
+        against `977b6613`, which refused them as ambiguous to a name."""
+        value = "git@example.com:org/api.git;https://example.com/other/api"
+        assert config.pact_declaration(table(("Pact", value))) == (
+            [
+                ("git@example.com:org/api.git", "example.com/org/api"),
+                ("https://example.com/other/api", "example.com/other/api"),
+            ],
+            [],
+        )
 
     def test_no_row_and_an_empty_row_hold_no_pact(self):
         """Absent means no pact is held elsewhere, and so do an empty value and
@@ -1386,8 +1399,6 @@ class Test_pact_declaration:
             "orders-api": "is not a remote URL",
             "git@example.com:org/a.git;;git@example.com:org/b.git": "holds an empty entry",
             "git@example.com:org/a.git git@example.com:org/b.git": "holds a space",
-            "https://example.com/org/a+b": "which a pact anchor cannot name",
-            "git@example.com:org/api.git;https://example.com/other/api": "both end in `api`",
             "git@example.com:org/api.git;https://example.com/org/api": "are one repository",
         }
         for value, said in cases.items():
@@ -1455,7 +1466,7 @@ class Test_declared_pacts:
         (home / "config.md").rmdir()
         (home / "config.md").write_text(table(("Pact", URL)), encoding="utf-8")
         pacts, refusals = config.declared_pacts(str(home))
-        assert [n for _, _, n in pacts] == ["orders-api"] and refusals == []
+        assert pacts == ORDERS and refusals == []
 
     def test_refuses_a_signer_config_the_walker_refuses_with_exit_2(self, world):
         """S4 of #871: a bare-piped line in a signer's table is refused in the
@@ -1501,7 +1512,7 @@ class Test_pact_signers:
         signer by name; a table in a comment block is not the table."""
         signers, refusals, header = config.pact_signers(PACT_TEXT)
         assert refusals == [] and header == ("Signer",)
-        assert [n for _, n, _ in signers] == [
+        assert [n for _, n in signers] == [
             "example.com/org/orders-web",
             "example.com/other/orders-web",
         ]
@@ -1579,7 +1590,7 @@ class Test_pact_signers:
             f"# Pact\n\n{old}\n" + signer.split("\n\n", 1)[1],
         ):
             signers, refusals, header = config.pact_signers(text)
-            assert [s[2] for s in signers] == ["orders-web"], (text, signers)
+            assert [s[1] for s in signers] == [WEB_NORMALISED], (text, signers)
             assert refusals == [BOTH] and header == ("Signer",), (text, refusals)
         _, refusals, header = config.pact_signers(signer + "\n" + old)
         assert header == ("Signer",)
@@ -1613,7 +1624,7 @@ class Test_pact_signers:
             # The line is quoted as it is written, its indent aside, so a person
             # searching the file for it finds it (#831).
             signers, refusals, _ = config.pact_signers(signer + under)
-            assert [s[2] for s in signers] == ["orders-web"], signers
+            assert [s[1] for s in signers] == [WEB_NORMALISED], signers
             assert sum("Signatory" in r for r in refusals) == 1, refusals
             quoted = under.split("\n", 1)[0].strip()
             assert glued.replace("`| Signatory |`", f"`{quoted}`") in refusals, refusals
@@ -1623,7 +1634,10 @@ class Test_pact_signers:
         signers, refusals, _ = config.pact_signers(
             signer + "| Signatory |\n| https://example.com/org/billing |\n"
         )
-        assert [s[2] for s in signers] == ["orders-web", "billing"], signers
+        assert [s[1] for s in signers] == [
+            WEB_NORMALISED,
+            "example.com/org/billing",
+        ], signers
         assert refusals == [glued], refusals
         # A glued old header above a second old table after a blank line: the
         # walk's stray-row refusal names the second, and the glued line is not
@@ -1632,7 +1646,7 @@ class Test_pact_signers:
             signer
             + "| Signatory |\n\n| Signatory |\n|---|\n| https://example.com/org/billing |\n"
         )
-        assert [s[2] for s in signers] == ["orders-web"], signers
+        assert [s[1] for s in signers] == [WEB_NORMALISED], signers
         assert refusals == [
             "has a `Signer` table that ends above `| Signatory |`, a row the walk "
             "never reaches — it and every signer below it would go unread"
@@ -1667,7 +1681,7 @@ class Test_pact_signers:
             + "\n\n## A\n\nx\n"
         )
         signers, refusals, _ = config.pact_signers(text)
-        assert [s[2] for s in signers] == ["orders-web"]
+        assert [s[1] for s in signers] == [WEB_NORMALISED]
         assert refusals == [
             f"has a `Signer` table that stops at `{row}`, which is not a one-cell "
             "row written `| … |` — every signer below it would go unread"
@@ -1707,7 +1721,7 @@ class Test_pact_signers:
         ids=["empty", "a space", "not a url", "one repository"],
     )
     def test_every_entry_refusal_reads_after_the_pact(self, row, sentence):
-        """Both callers print a table refusal after "the pact "; each sentence
+        """`seal pact` prints a table refusal after "the pact "; each sentence
         an entry can raise is pinned whole (round 2 of #647, white 14)."""
         text = HEAD + row + "\n" + CLAUSE
         _, refusals, _ = config.pact_signers(text)
