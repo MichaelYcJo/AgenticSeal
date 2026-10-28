@@ -7,10 +7,10 @@ target: bcc09e2f against 5287dd42
 ### 1. The pointer that replaced the opt-in list leaves out implementer-notice
 
 severity: should
-location: `README.md:176`, `README.ko.md:170`, `README.md:114`, `README.md:419-423`, `README.ko.md:110`, `README.ko.md:411-415`
+location: `README.md:176`, `README.ko.md:170`, `README.md:114`, `README.md:419-423`, `README.ko.md:110`, `README.ko.md:411-415`, `tests/behaviour/test_first_setup_asks_once.py`
 evidence: read `README.md:114`, `README.md:175-176`, `README.md:419-423`, `README.ko.md:110`, `README.ko.md:169-170`, `README.ko.md:411-415`, `hooks/implementer-notice.py:147`
-verdict: open
-answer:
+verdict: fixed 21369c34
+answer: The finding holds: `hooks/implementer-notice.py#notify` returns "" where `optin.opted_in(cwd)` is false, and the cell pointed at the row above. Both cells now carry the replacement text above, word for word, and the pointer sentences in *First run* and the `seal/` row are unchanged. `test_the_gates_table_says_the_root_may_sit_under_the_git_dir` in `tests/behaviour/test_first_setup_asks_once.py`, a path this finding's location did not list, now reads the notice's row among the `seal/` rows. It also refuses any Where cell that opens with "same " or "같은 ", the class a pointer by `seal/` drops. Run before the README fix, it failed for both editions with exit 1. After the fix the module passed, 51 cases, exit 0. `seal mutate` putting "같은 옵트인" back in Korean, and "the opt-in above" in English, went red with exit 0 each. No other Where cell in either table pointed at another row (read).
 
 `frame/design.md` S2 replaces the list of opt-in hooks with a pointer to the
 gate table. The `seal/` row now says the opt-in is read "for each hook whose
@@ -51,8 +51,8 @@ In `README.ko.md:170`, replace the last cell `같은 옵트인` with:
 severity: should
 location: `README.ko.md:168`
 evidence: read `README.ko.md:168`, `README.md:174`, `hooks/root-migrate.py:153-191`, `hooks/root-migrate.py:569-615`
-verdict: open
-answer:
+verdict: fixed 21369c34
+answer: The finding holds: `hooks/root-migrate.py#dirty` reads `sources(units)`, the directories the units come from. The Korean row now carries the replacement text above, word for word, as two sentences. `git grep` on "옮길 곳 아래" finds no other copy. No case pins the sentence's meaning. A `seal mutate` putting "옮길 곳 아래에" back survived the three modules that read the gate table (exit 1, `SURVIVED`). `frame/design.md` *Out of scope* keeps drift between the two editions' sentences a reader's to catch, since a reading guessed from words is a report and not a gate.
 
 The crafter left the Does cells of the two new rows, and the Korean sentences
 it rewrote, for this round to read (`gaps.md` *Not verified*). The English
