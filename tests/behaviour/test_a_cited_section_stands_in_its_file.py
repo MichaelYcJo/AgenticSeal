@@ -33,9 +33,10 @@ rules = load_module(
 Found = collections.namedtuple("Found", "read dangling")
 
 
-# A citation by path: the backticked path alone, so a `<commit>:<path>` is
-# never read, then an optional possessive, then the italic text.
-PATH_CITED = re.compile(r"`([^`\s:]+\.md)`(?:'s)?\s+\*([^*]+)\*")
+# A citation by path: the backticked path alone, then an optional
+# possessive, then the italic text. A `<commit>:<path>` matches, and its
+# first segment, which holds the colon, is no tracked top-level entry.
+PATH_CITED = re.compile(r"`([^`\s]+\.md)`(?:'s)?\s+\*([^*]+)\*")
 # A citation by a skill's name, read only where `skills/<name>/SKILL.md` is
 # tracked: the name in backticks, or the name and the word `skill's`.
 NAME_CITED = re.compile(r"`([a-z0-9][a-z0-9-]*)`(?: skill's)?\s+\*([^*]+)\*")
@@ -90,26 +91,20 @@ def cited_in(rel, text, skills):
 
 def sections(text):
     """The texts a citation of the file holding TEXT can name: each live
-    heading, and each live bold lead opening a paragraph or a list item,
-    whitespace collapsed."""
+    heading, and each live bold lead opening a paragraph or a list item, the
+    lead's whitespace collapsed."""
     if text is None:
         return []
     r = rules.reader()
     lines = r.gfm_lines(text)
-    found = [" ".join(t.split()) for _, _, t in rules.headings(lines)]
+    found = [t for _, _, t in rules.headings(lines)]
     live = [flag for _, flag in r.live_lines(lines)]
     for n, line in enumerate(lines):
         body = line.lstrip()
         marker = LIST_MARK.match(body)
         if marker:
             body = body[marker.end() :]
-        opens = (
-            marker
-            or n == 0
-            or not lines[n - 1].strip()
-            or not live[n - 1]
-            or r.heading_level(lines[n - 1])
-        )
+        opens = marker or n == 0 or not lines[n - 1].strip()
         if not (live[n] and opens and body.startswith("**")):
             continue
         rest, after = body[2:], n + 1
@@ -218,11 +213,22 @@ def test_a_heading_resolves_a_citation_of_its_opening_words(tmp_path):
     assert [c for *_, c in found.dangling] == ["*2*", "*2b. Settl*"]
 
 
-LEADS = """# B
+LEADS = """**First line lead.** It opens the file.
+
+# B
 
 **Commit before you mutate, and restore.** The rest of the rule.
 
+A paragraph whose second line
+**Mid paragraph.** is no lead.
+
 - **Clean up only what you started.** The item.
+- **A lead that wraps
+  across two lines.** The item.
+
+**An unclosed lead
+
+whose paragraph ended.** Text.
 
 ```text
 **Fenced lead.** An example.
@@ -234,11 +240,17 @@ LEADS = """# B
 
 def test_a_bold_rule_lead_resolves_outside_a_fence_and_case_for_case(tmp_path):
     """S4: a paragraph or list item opening with a bold lead is a section a
-    citation can name, in its own case, and not inside a fenced block."""
+    citation can name, in its own case, and not inside a fenced block. A
+    bold run in a paragraph's later line, or one its paragraph never closes,
+    is no lead."""
     cited = [
+        "*First line lead*",
         "*Commit before you mutate*",
         "*commit before you mutate*",
+        "*Mid paragraph*",
         "*Clean up only what you started*",
+        "*A lead that wraps across two lines*",
+        "*An unclosed lead*",
         "*Fenced lead*",
         "*Fenced heading*",
     ]
@@ -250,9 +262,11 @@ def test_a_bold_rule_lead_resolves_outside_a_fence_and_case_for_case(tmp_path):
         },
     )
     found = citations(root)
-    assert found.read == 5
+    assert found.read == 9
     assert [c for *_, c in found.dangling] == [
         "*commit before you mutate*",
+        "*Mid paragraph*",
+        "*An unclosed lead*",
         "*Fenced lead*",
         "*Fenced heading*",
     ]
@@ -266,27 +280,37 @@ the `drafting` skill's *Gone three*
 
 `manual/b.md`'s *Here*, `drafting` *Here*, the `drafting` skill's *Here*.
 
-A wrapped `manual/b.md`
-*Gone four* here.
+A wrapped `manual/b.md` *Gone
+four* here.
 
 `unlisted` *Gone five*
+
+`manual/b.md` *Fixed in
+#120 here*
+
+`manual/b.md` *Says "yes"
+"no" twice*
 """
 
 
 def test_each_spelling_of_a_citation_is_read(tmp_path):
     """S5: the possessive, a skill's name and the skill's possessive are
     read, a name only where `skills/<name>/SKILL.md` is tracked, and a
-    citation wrapped across a line is named at the line it starts on."""
+    citation wrapped across a line is named at the line it starts on. A
+    markdown file is read as written: a line opening with `#` keeps it, and
+    a quote ending one line meets the next line's quote."""
     root = repo(
         tmp_path,
         {
             "a.md": SPELLINGS,
-            "manual/b.md": "## Here\n",
+            "manual/b.md": (
+                '## Here\n\n## Fixed in #120 here\n\n## Says "yes" "no" twice\n'
+            ),
             "skills/drafting/SKILL.md": "## Here\n",
         },
     )
     found = citations(root)
-    assert found.read == 7
+    assert found.read == 9
     assert found.dangling == [
         ("a.md", 1, "manual/b.md", "*Gone one*"),
         ("a.md", 3, "skills/drafting/SKILL.md", "*Gone two*"),
@@ -327,6 +351,8 @@ ELSEWHERE = """`frame/design.md` *Scope*
 `f6ae6db6:manual/b.md` *Gone*
 
 `manual/none.md` *Anything*
+
+`manual/loose.md` *Here*
 """
 
 
@@ -335,9 +361,16 @@ def test_a_path_outside_the_repository_is_not_read_and_a_missing_file_is(
 ):
     """S7: a path whose first segment no tracked entry has, and a
     `<commit>:<path>`, are not read; a path under a tracked entry that names
-    no tracked file is dangling."""
+    no tracked file is dangling, though the file stands on disk untracked."""
     root = repo(tmp_path, {"a.md": ELSEWHERE, "manual/b.md": "## Here\n"})
-    assert citations(root) == Found(1, [("a.md", 9, "manual/none.md", "*Anything*")])
+    pathlib.Path(root, "manual", "loose.md").write_text("## Here\n", encoding="utf-8")
+    assert citations(root) == Found(
+        2,
+        [
+            ("a.md", 9, "manual/none.md", "*Anything*"),
+            ("a.md", 11, "manual/loose.md", "*Here*"),
+        ],
+    )
 
 
 @pytest.mark.parametrize("record", RECORDS)
