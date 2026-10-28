@@ -235,8 +235,9 @@ class Test_main:
     def test_accepts_the_releases_fragments_as_the_release_note(
         self, monkeypatch, tmp_path, capsys
     ):
-        """A1. The body is the fragments the release's commits added, each under
-        the marker naming its work item, and it links to no file in the tree."""
+        """A1. The body is the fragments the release's commits added, less those
+        the previous tag holds, each under the marker naming its work item, and
+        it links to no file in the tree."""
         mod, tracker = wire(monkeypatch, tmp_path, message=title_line())
         assert mod.main() == 0
         created = tracker.creates()

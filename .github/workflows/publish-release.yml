@@ -55,9 +55,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           # The whole history and every tag: the note reads the fragments the
-          # commits after the previous version tag added, and the title from
-          # the tagged commit's message, so `git log -1 <tag>` resolves the
-          # tag itself rather than whatever the runner happened to check out.
+          # commits after the previous version tag added and that tag does not
+          # already hold, and the title from the tagged commit's message, so
+          # `git log -1 <tag>` resolves the tag itself rather than whatever the
+          # runner happened to check out.
           fetch-depth: 0
 
       - name: publish the GitHub Release for this tag

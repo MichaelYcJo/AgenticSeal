@@ -61,9 +61,10 @@ Either way the job log says which branch it took. A wrong title or a missing
 theme is visible on the releases page and fixable in one edit; a failed job
 at the tag is a release that stops after `main` has already moved.
 
-**It does fail for a range that added no fragment**, which is the opposite
-direction on purpose. That is the release shipping unexplained, and the
-fragments are the whole of what this publishes.
+**It does fail for a range that added no fragment the previous tag does not
+already hold**, which is the opposite direction on purpose. That is the
+release shipping unexplained, and the fragments are the whole of what this
+publishes.
 
 **Outside contributors are thanked by handle.** An outside contribution
 carries no work item and so no changelog fragment, so a release that carried
