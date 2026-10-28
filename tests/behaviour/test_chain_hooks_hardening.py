@@ -107,13 +107,12 @@ def test_bin_wrapper_resolves_the_checker_from_any_cwd():
 
 
 def test_migrated_commands_stay_user_invoked():
-    # These three shipped as commands/ (user-invoked). Moving them to skills/
-    # must not silently turn them into auto-triggering skills.
-    for name in ("preset-setup", "security-audit", "testing"):
-        p = os.path.join(ROOT, "skills", name, "SKILL.md")
-        assert os.path.isfile(p), f"{name} not migrated"
-        head = open(p, encoding="utf-8").read().split("\n---\n", 1)[0]
-        assert "disable-model-invocation: true" in head, name
+    # preset-setup shipped as a command under commands/ (user-invoked). Moving
+    # it to skills/ must not silently turn it into an auto-triggering skill.
+    p = os.path.join(ROOT, "skills", "preset-setup", "SKILL.md")
+    assert os.path.isfile(p), "preset-setup not migrated"
+    head = open(p, encoding="utf-8").read().split("\n---\n", 1)[0]
+    assert "disable-model-invocation: true" in head, "preset-setup"
     assert not os.path.isdir(os.path.join(ROOT, "commands")), (
         "commands/ should be gone — skills/ is the documented layout"
     )
@@ -215,6 +214,7 @@ def test_user_invoked_skills_do_not_carry_trigger_scaffolding():
 NUMBER_WORDS = {
     20: ("Twenty", "스무"),
     21: ("Twenty-one", "스물한"),
+    14: ("Fourteen", "열네"),
     22: ("Twenty-two", "스물두"),
     23: ("Twenty-three", "스물세"),
     24: ("Twenty-four", "스물네"),
@@ -275,8 +275,8 @@ def test_every_shipped_skill_is_named_in_both_readmes():
     """A count that matches while a name is missing is the quieter half.
 
     Round 1 found the first version of this useless in both directions. It
-    searched the WHOLE file for a BARE name, so `audit` was satisfied by
-    `/agentic:security-audit` in the cheat sheet and `verify` by two
+    searched the WHOLE file for a BARE name, so a name was satisfied by a
+    longer command in the cheat sheet that contains it, and `verify` by two
     sentences of prose -- removing either from both editions' lists stayed
     green. The name is looked for in backticks, and in the row that lists
     the group, which is the only place its absence means anything."""
@@ -322,7 +322,7 @@ def test_every_shipped_skill_is_named_in_both_readmes():
 
 
 def test_the_readme_group_counts_are_derived_too():
-    """22 = 1 + 15 + 6, and all four numbers were prose.
+    """14 = 1 + 9 + 4, and all four numbers were prose.
 
     Round 1: the total was pinned and the split was not, so a skill could
     move between groups, or the middle count could go stale against its own
@@ -356,16 +356,20 @@ def test_the_readme_group_counts_are_derived_too():
     groups = {
         "preloaded": (len(preloaded), ("The %s the agents follow", "따르는 %s 개는")),
         "on demand": (len(on_demand), ("%s more a session loads", "%s 개는 작업이")),
-        "user invoked": (len(user_invoked), ("%s you invoke by name", "나머지 %s은")),
+        "user invoked": (
+            len(user_invoked),
+            ("%s you invoke by name", "나머지 %s 개는"),
+        ),
     }
     spellings = {
         1: ("one", "한"),
         2: ("two", "두"),
         3: ("three", "세"),
-        4: ("four", "네"),
+        4: ("Four", "네"),
         5: ("five", "다섯"),
         6: ("Six", "여섯"),
         7: ("Seven", "일곱"),
+        9: ("Nine", "아홉"),
         10: ("Ten", "열"),
         11: ("Eleven", "열한"),
         12: ("Twelve", "열두"),
@@ -1050,6 +1054,6 @@ def test_installer_prints_commands_a_user_can_actually_type():
     bare = [
         m
         for m in re.findall(r"(?<!:)/([a-z][a-z-]+)\b", text)
-        if m in {"preset-setup", "security-audit", "testing", "parity-setup"}
+        if m in {"preset-setup", "parity-setup"}
     ]
     assert not bare, f"un-namespaced plugin commands in install.sh: {bare}"
