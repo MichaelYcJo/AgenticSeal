@@ -15,7 +15,7 @@ seam this work leaves it is stated under *Scope*.
 | `CLAUDE.md` *The rule a mechanism is kept against*: "A change rewrites the text it amends in place, and in the same commit removes what stood on the old fact: a check, an exception, a comment, a copy." | Every case, comment, census entry and sentence outside the policy root that names `changelog/`, `CHANGELOG.md` or the gather is removed or re-pointed in the phase that removes what it names (`## Removes`). |
 | `skills/implement/SKILL.md` *Document layout — two roots, three lifetimes*: the policy root "is the baseline, and a pull request does not edit it" | `docs/the-record-layout.md`, `docs/branch-and-release.md`, `docs/release-checklist.md`, `docs/one-root-by-lifetime.md`, its `.ko.md` edition and `docs/issues-and-milestones.md` change through `## Rule changes` only. `CLAUDE.md`, `CONTRIBUTING.md` and the skills are outside the policy root, and the build edits them in place. |
 | `tests/test_the_retired_rules_await_their_settle.py` at `de11df75^`, module docstring (read): a test file a `check:` line names is kept with no case until the settle that applies the rule change, and a retired marker is carried by a caseless class | `docs/release-checklist.md:67`, `:74`, and `docs/the-record-layout.md:47`, `:336` name `tests/text/test_the_changelog_is_gathered_at_release.py`, `tests/github/test_gather_changelog.py` and the marker `second-gather-appends` on their `check:` lines. `seal rules --check` refuses a target that does not resolve (`.github/scripts/rules.py#unresolved`). So the two files stay with no case, and the marker stays on a caseless class, until the settle; the settle's pull request deletes them. |
-| `docs/branch-and-release.md` *Cutting a release*: the tag's job "never republishes a release that exists" | The workflow keeps that rule. The one-time republish of the 26 notes that lack their file's text is an act outside the workflow, done once by the orchestrator, and it appends to each note, never replacing what a person may have written there. |
+| `docs/branch-and-release.md` *Cutting a release*: the tag's job "never republishes a release that exists" | The workflow keeps that rule, and this work republishes no note: the 26 notes that lack their file's text are left as they are (*Scope* item 5). |
 | `docs/release-checklist.md` *6. After the merge*: "A missing title line is not one of them: it falls back to the tag name." | The theme line is read the way the title is: a milestone that cannot be read, or carries no description, leaves the note without a theme line and the job log says which. It never fails the job. |
 | `docs/issues-and-milestones.md` *A milestone answers when, and takes three shapes*: "A scheduled release milestone's description states the release's purpose" | The theme line's source is the milestone `release: X.Y.Z`'s description. Most descriptions since 0.15.0 open with `Purpose:` (read: the milestone list, 2026-10-28), and some earlier ones carry none. |
 | `docs/the-record-layout.md` *The fold, and what tells it from a deletion*: "A line that EXCUSES or DECLARES something — a changelog marker, ..." | The changelog marker is read through `live_lines` only by `gather_changelog.py#live_markers`. With the gather gone the example names a reader that no longer exists, so `## Rule changes` replaces it. |
@@ -62,19 +62,20 @@ In scope:
 4. **The gather goes.** `.github/scripts/gather_changelog.py`, the hygiene
    step that runs its `--check`, and the step's row in
    `skills/verify/scripts/broad_gate.py` go.
-5. **`changelog/` and `CHANGELOG.md` go**, after every released version's
-   GitHub Release is checked to hold its file's text. Executed on
+5. **`changelog/` and `CHANGELOG.md` go**, and the 26 published notes that
+   lack their file's text are left as they are. Executed on
    2026-10-28 for all 58 versions (58 files, 58 tags, 58 releases): 32
    notes hold their file, and 26 do not. The criterion: each paragraph of
    the file below its heading line, whitespace collapsed, is a substring of
    the note with whitespace collapsed. The 26 are 0.2.0, 0.3.0, 0.4.0,
    0.5.0, 0.6.0, 0.7.0, 0.8.0, 0.8.1, 0.8.2, 0.8.3, 0.9.0, 0.9.1, 0.9.2,
    0.9.3, 0.9.4, 0.9.5, 0.10.0, 0.11.0, 0.11.1, 0.11.2, 0.11.3, 0.11.5,
-   0.12.0, 0.12.2, 0.12.3 and 0.13.0. Each is republished by appending the
-   file's text, folded under the same summary, below the note as it stands
-   (`frame/questions.md` Q2). The files stay readable at `v0.23.1` after
-   the removal, `git show v0.23.1:changelog/X.Y.Z.md`, so the republish
-   does not have to happen before the removal commit. A version's own tag
+   0.12.0, 0.12.2, 0.12.3 and 0.13.0. The owner decided on 2026-10-28 not
+   to republish them (`frame/questions.md` Q2): every file stays readable at
+   `v0.23.1` after the removal, `git show v0.23.1:changelog/X.Y.Z.md`, the
+   26 are releases from before 0.14.0 that no reader traces, and editing 26
+   published releases, each backed up first, buys no reader anything. The
+   issue's "republished from the file" is not built. A version's own tag
    is no source: #770 split the per-release files out of `CHANGELOG.md`, so
    the 44 tags before `v0.18.1`, the 26 above among them, hold no file of
    their own, and `v0.23.1` holds all 58.
@@ -98,8 +99,8 @@ In scope:
    the header comment of `.github/workflows/publish-release.yml:13-18`, and
    the two `seal/follow-up.md` rows that name `changelog/0.12.2.md`. Those
    two rows keep their question and their answerer, and their coordinate
-   becomes the v0.12.2 GitHub Release, whose folded text after the
-   republish is `changelog/0.12.2.md` at `v0.23.1`.
+   becomes `changelog/0.12.2.md` at `v0.23.1`, since the v0.12.2 GitHub
+   Release is not republished (*Scope* item 5).
 
 Out of scope, each with why:
 
@@ -144,7 +145,7 @@ Out of scope, each with why:
 | S8 the update shows the GitHub Releases | Step 3 reads the releases from `api.github.com` with no token, takes the repository from the marketplace clone's `origin`, reads every release after the old version up to the new one oldest first, says so and names the releases page when the read fails, and names no `changelog/` path | a new case beside S7's, seen red against the skill at `8a1173c8` |
 | S9 the gather is gone from CI and the gate | `.github/workflows/hygiene.yml` has no step running `gather_changelog.py`, and `skills/verify/scripts/broad_gate.py`'s step partition matches the workflow's steps | `tests/behaviour/test_the_gate_names_every_step_ci_runs.py` green after the step and its row go together |
 | S10 every check line still resolves | The `check:` lines in `docs/` that name the two emptied test files and the marker `second-gather-appends` resolve, because the files stay with no case and a caseless class carries the marker | `bin/seal rules --check` exits 0, and `tests/github/test_rules.py` runs green |
-| S11 every released version keeps its notes | After the republish, the comparison in *Scope* item 5, run over the 58 versions with each file read at `v0.23.1`, reports every note holding its file | the comparison, run by the orchestrator after phase 5 and recorded in that phase's record |
+| S11 every released version keeps its notes | Each of the 58 versions has its text in one of two places: its GitHub Release, for the 32 *Scope* item 5 measured, or `changelog/X.Y.Z.md` at `v0.23.1`, for the other 26; `git cat-file -e v0.23.1:changelog/X.Y.Z.md` exits 0 for all 58 | `git cat-file -e` over the 58, run in phase 5 and recorded in its record |
 | S12 no living text names the gathered files as where the notes are | `git grep -n -E 'changelog/\|CHANGELOG\.md'` outside `docs/`, `seal/` and the two emptied test files finds no line that sends a reader to those paths for the notes | the grep, run by the crafter at phase 4's close, its hits read by the proofer at review. No case holds it, because `docs/` names both paths until the settle |
 
 ## Data & interfaces
@@ -492,7 +493,7 @@ module, as step 2b already reads `installed_plugins.json`. Step 3 reads
 | The step's row in the gate's partition, and the step's name among the steps that run only on a pull request into `main` | `skills/verify/scripts/broad_gate.py:2219-2224`, `:2254-2262` | The step is gone, and the comment's count of such steps drops with it |
 | The release-file reader: `RELEASES`, `release_file`, `section_heading_re`, `section_body`, the gather advice in `main`, the link line in `release_body`, and the docstring's account of the gathered file | `.github/scripts/publish_release_note.py:16-26`, `:46-55`, `:84-86`, `:103-104`, `:134-142`, `:158-176`, `:505`, `:541-556` | The range, fragment, theme and section functions of *Data & interfaces* |
 | The header comment's sentence naming `changelog/X.Y.Z.md` | `.github/workflows/publish-release.yml:15-18` | The note is built from the fragments, as the script's docstring says |
-| `changelog/`, 58 files, and `CHANGELOG.md` | the repository root | The GitHub Release at each tag, after phase 5's republish of the 26 that lack their file's text. Each file stays readable at `v0.23.1` |
+| `changelog/`, 58 files, and `CHANGELOG.md` | the repository root | The GitHub Release at each tag for the 32 that hold their file's text, and `changelog/X.Y.Z.md` at `v0.23.1` for all 58 |
 | `gathered_entry` | `tests/conftest.py:311-345` | Its only callers are in `tests/text/test_the_changelog_is_gathered_at_release.py`, whose cases go |
 | Every case and helper of `tests/github/test_gather_changelog.py`, the `second-gather-appends` case included | the whole module | The script is gone. The module keeps a docstring saying it holds no case until the settle applies this work item's rule changes, and one caseless class carrying `@pytest.mark.rule("second-gather-appends")`, so the `check:` lines in `docs/` resolve until then. The settle's pull request deletes the module |
 | Every case of `tests/text/test_the_changelog_is_gathered_at_release.py` | the whole module | The same: a docstring and no case until the settle, which deletes it |

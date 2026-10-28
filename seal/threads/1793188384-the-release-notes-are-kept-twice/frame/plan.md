@@ -10,8 +10,9 @@ in between. `.github/scripts/publish_release_note.py` reads the fragments
 the release's commits added and the previous version tag does not already
 hold, from the history at the tag, and opens the note
 with the release's theme from its milestone. The gather script, its hygiene
-step, `changelog/` and `CHANGELOG.md` go, after the 26 published notes that
-lack their file's text are republished with it. The `update` skill confirms
+step, `changelog/` and `CHANGELOG.md` go; the 26 published notes that lack
+their file's text stay as they are, and every file stays readable at
+`v0.23.1`. The `update` skill confirms
 a version from `plugin.json` and shows the GitHub Releases. The policy
 root's sentences change through `frame/design.md`'s `## Rule changes`, and
 the two test files its `check:` lines name stay with no case until the
@@ -70,7 +71,7 @@ settle.
 | 2 | The `update` skill. Step 2b reads the installed `plugin.json`'s `version`, and step 3 reads the GitHub Releases from the public API with no token, as `frame/design.md` *Scope* item 6 says | S7 and S8, each seen red against the skill at `8a1173c8`. `tests/behaviour/test_release_hygiene.py` runs green | 5b2ab235 |
 | 3 | The gather goes. `.github/scripts/gather_changelog.py`, its hygiene step, the step's rows in `broad_gate.py`, `tests/conftest.py#gathered_entry`, and the gather's mentions in the comments and docstrings `## Removes` lists. `tests/github/test_gather_changelog.py` and `tests/text/test_the_changelog_is_gathered_at_release.py` keep a docstring and no case, the first with one caseless class carrying `second-gather-appends` | S9 and S10. `bin/seal rules --check` exits 0. `tests/behaviour/test_the_gate_names_every_step_ci_runs.py`, `tests/github/test_rules.py`, `tests/behaviour/test_first_setup_asks_once.py`, `tests/skills/test_unverified_check.py` and `tests/github/test_issue_claims_check.py` run green | 4e3f255b |
 | 4 | The files go. `changelog/` and `CHANGELOG.md` are removed, with every reader `## Removes` lists outside `docs/`: the release hygiene cases, the chain-hooks case, the sealer case's changelog span, the census entries and fixtures, `RENAMED_RECORDS`, `STAYS_HOME`, the `session_cost.py` message and its pin, `skills/verify/orchestration.md`, `CLAUDE.md`, `CONTRIBUTING.md`, `skills/implement/SKILL.md`, `skills/settle/SKILL.md` and the two `seal/follow-up.md` rows. This work item's `changelog.md` is written, carrying the sentence `frame/questions.md` Q1's default asks for | S12's grep, its hits recorded in the phase record. `tests/behaviour/test_release_hygiene.py`, `tests/behaviour/test_chain_hooks_hardening.py`, `tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py`, `tests/test_censuses.py`, `tests/behaviour/test_one_word_one_meaning.py`, `tests/behaviour/test_the_release_check_watches_what_ships.py`, `tests/skills/test_session_cost.py` and `tests/text/test_no_passage_is_pasted_into_a_second_file.py` run green | 449e5864 |
-| 5 | The 26 notes republished. The orchestrator does this, not `crafter`, because contract rule 6 withholds a post from every agent. For each version *Scope* item 5 lists, it appends the file's text read at `v0.23.1`, folded under `📋 Full changelog — what each change does and why`, below the note as it stands, with `gh release edit v<version> --notes-file`. It then re-runs the comparison over all 58 versions | S11: the comparison reports every note holding its file, recorded in this phase's record with the date it ran | |
+| 5 | No note is republished (`frame/questions.md` Q2, the owner's answer of 2026-10-28). The two `seal/follow-up.md` rows that name `changelog/0.12.2.md` point at that file at `v0.23.1`, as *Scope* item 8 now says, and every record of this work item that says a republish happens, or that S11 waits on one, is rewritten to the decision | S11: `git cat-file -e v0.23.1:changelog/X.Y.Z.md` over the 58 versions, each exit code recorded in this phase's record; a `git grep` for "republish" over this work item's records and `seal/follow-up.md`, each hit recorded with whether it states the decision | |
 
 ## Operational impact
 
@@ -82,10 +83,9 @@ settle.
   next update runs the new skill. Under Q1's default, this work item's
   `changelog.md` says so, in the release note the user is pointed at. Q1
   holds the alternative.
-- **The republish writes 26 published notes once.** Each write appends
-  and replaces nothing, so a note a person edited by hand keeps every word.
-  The largest file is 34,778 bytes (executed, `wc -c changelog/*.md`),
-  well under GitHub's limit for a release body.
+- **No published note changes.** The 26 notes that lack their file's text
+  keep it at `v0.23.1` only, so a reader of one of those releases who
+  wants the full text reads the tag, not the release page.
 - **The theme read is first exercised at the release carrying this work.**
   The case holds the code, and whether `contents: write` alone lets the
   job list the milestones is read in that tag run's log (Q3).
