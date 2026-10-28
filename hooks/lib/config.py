@@ -1212,7 +1212,6 @@ def gfm_table(text, header, beside=False):
                 # one of its rows.
                 other = index
                 continue
-            other = None
             if line.lstrip().startswith("|"):
                 if beside and opens_table(index, line, body[k + 1 : k + 2]):
                     # A table of its own, which GFM renders apart from this

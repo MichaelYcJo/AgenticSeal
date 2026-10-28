@@ -776,6 +776,14 @@ class Test_check:
                 f"`| {PACT_URL} | {CLAUSE_PATH} | 00000000 |`, a row the walk "
                 "never reaches — it and every row below it would go unread",
             ),
+            (
+                anchor_table((PACT_URL, CLAUSE_PATH, "1a2b3c4d"))
+                + "\n| a | b |\n|---|---|\n| c | d |\n<!-- a note -->\n"
+                + f"| {PACT_URL} | {CLAUSE_PATH} | 00000000 |\n",
+                "the frame has a `Pact | Clause | Hash` table that ends above "
+                f"`| {PACT_URL} | {CLAUSE_PATH} | 00000000 |`, a row the walk "
+                "never reaches — it and every row below it would go unread",
+            ),
         ],
         ids=[
             "a second table",
@@ -784,6 +792,7 @@ class Test_check:
             "a row under a delimiter of another width",
             "a row whose delimiter a comment parts from it",
             "a row below another table",
+            "a row a comment parts from another table",
         ],
     )
     def test_refuses_an_anchor_row_nobody_reads(self, world, text, said):
