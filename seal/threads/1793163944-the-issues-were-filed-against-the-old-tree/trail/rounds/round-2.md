@@ -20,7 +20,7 @@ here.
 severity: should
 location: `seal/threads/1793163944-the-issues-were-filed-against-the-old-tree/trail/rounds/round-1.md:23`, `seal/threads/1793163944-the-issues-were-filed-against-the-old-tree/trail/rounds/round-1.md:96`, `seal/threads/1793163944-the-issues-were-filed-against-the-old-tree/trail/phases/phase-5.md`
 evidence: read `agents/crafter.md:153-162`, `docs/the-review-record.md:135-143`, `seal/threads/1793163944-the-issues-were-filed-against-the-old-tree/frame/plan.md:88-92`, `seal/threads/1793163944-the-issues-were-filed-against-the-old-tree/trail/rounds/round-1.md:89`, `seal/threads/1793163944-the-issues-were-filed-against-the-old-tree/trail/rounds/round-1.md:151`
-verdict: open
+verdict: fixed a28fbc24
 regression: round-1#1
 
 The unit is `trail/phases/phase-5.md`, which the fix pass's commit
@@ -71,7 +71,7 @@ a phase record and the owner wants GitHub acts recorded in the tree. Then
 `agents/crafter.md:153` stands against the record, and the answer names who
 decided that.
 
-answer:
+answer: The finding holds, and the other reading was weighed and not taken. The orchestrator's round 1 spawn prompt asked for `trail/phases/phase-5.md`, but its round 2 message withdraws that request, and nobody asked for GitHub acts to be recorded in the tree. So `agents/crafter.md:153` and `docs/the-review-record.md` *The round record* decide it. Commit `a28fbc24` applies the fix line as written. Both verdicts in `trail/rounds/round-1.md` now read `fixed bb9130fc`, the orchestrator's commit that changed `frame/design.md` on each finding's `location:`. Each `answer:` drops the sentence naming `81b9a229` and `phase-5.md`. Each answer says that `bb9130fc` corrected the frame lines and that the GitHub edits made no commit. Each answer now carries what `phase-5.md` held: finding 1's three body edits with their exit codes and `updatedAt` before and after, and finding 2's eight titles, old and new, with their exit codes. The appended `phase-5.md` coordinate is gone from both `location:` lines, and `git rm` removed the file. A `git grep` of the work item directory for `phase-5` and `81b9a229` now finds them only in this round record, which describes the range it reviewed. `frame/questions.md` Q2's Status cell, added in `81b9a229`, stands.
 
 ## Confirmations
 
