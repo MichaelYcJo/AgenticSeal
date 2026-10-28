@@ -205,15 +205,18 @@ class Test_main:
         [
             pytest.param(ZEROS, "names no earlier commit", id="all zeros"),
             pytest.param(ELSEWHERE, f"does not hold {ELSEWHERE}", id="not held"),
+            pytest.param(None, "names no version", id="no version before"),
         ],
     )
     def test_without_an_earlier_commit_nothing_is_tagged(
         self, monkeypatch, tmp_path, capsys, before, said
     ):
-        """S6, read from the checkout: a `before` of all zeros, or one the
-        checkout does not hold, creates nothing, passes on no tag, and the
-        log says which."""
+        """S6, read from the checkout: a `before` of all zeros, one the
+        checkout does not hold, or one whose `plugin.json` names no version
+        creates nothing, passes on no tag, and the log says which."""
         repo, _, after = released(tmp_path)
+        if before is None:
+            before = git_out(repo, "rev-list", "--max-parents=0", "HEAD")
         log = fake_gh(monkeypatch, tmp_path / "bin")
         output = tmp_path / "github_output"
         mod = wire(monkeypatch, repo, before, after, output)
@@ -300,6 +303,26 @@ class Test_create:
         monkeypatch.setattr(mod.shutil, "which", lambda name: None)
         assert mod.create(REPO, TAG, after) == "gh is not on PATH"
         assert local_tag(repo) == ""
+
+    def test_a_tag_the_checkout_refuses_is_named(self, monkeypatch, tmp_path):
+        """GitHub took the tag and the checkout did not: the note step would
+        not find it, so the step names the local refusal rather than passing
+        the tag on as made."""
+        repo, _, after = released(tmp_path)
+        fake_gh(monkeypatch, tmp_path / "bin")
+        mod = tagger()
+        monkeypatch.setattr(mod, "ROOT", str(repo))
+        real = mod.git
+
+        def refusing(*args):
+            if args[0] == "tag":
+                return real("tag", "--no-such-option")
+            return real(*args)
+
+        monkeypatch.setattr(mod, "git", refusing)
+        assert mod.create(REPO, TAG, after).startswith(
+            "git tag failed in the checkout: "
+        )
 
 
 test_census = census_case(TARGET)
