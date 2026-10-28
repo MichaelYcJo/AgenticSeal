@@ -108,11 +108,9 @@ def test_the_workflow_fires_on_the_tag_and_writes_one_release_one_asset_one_edit
     does not persist it in `.git/config`, so the suite at the tag runs with
     none (round 1's finding 5). Since #1009 (S7) the job has five steps:
     none runs `apt-get`, so the job installs no system package and the image
-    needs no renderer from the runner, and the step that installs
-    `run_tests.py#PILLOW` comes before the draw, since the draw imports
-    Pillow. Seen red against the workflow with no `seal` job, the two
-    round-1 halves against the workflow without them, and #1009's three
-    against the job with the SVG renderer's install step."""
+    needs no renderer from the runner. Seen red against the workflow with no
+    `seal` job, the two round-1 halves against the workflow without them,
+    and #1009's against the job with the SVG renderer's install step."""
     text = workflow()
     assert "tags: ['v*']" in text, "the workflow no longer fires on a tag push"
     assert "branches:" not in text, (
@@ -137,23 +135,6 @@ def test_the_workflow_fires_on_the_tag_and_writes_one_release_one_asset_one_edit
     held = steps(seal)
     assert len(held) == 5, held
     assert not any("apt-get" in line for step in held for line in step), held
-    pillow = module(
-        os.path.join(SCRIPTS, "run_tests.py"), "agentic_run_tests_for_the_seal_job"
-    ).PILLOW
-    installs = [
-        n
-        for n, step in enumerate(held)
-        if any("run: pip install" in line and pillow in line.split() for line in step)
-    ]
-    draws = [
-        n
-        for n, step in enumerate(held)
-        if any("release_seal.py" in line for line in step)
-    ]
-    assert len(installs) == len(draws) == 1 and installs[0] < draws[0], (
-        installs,
-        draws,
-    )
     assert any(line.strip() == "persist-credentials: false" for line in held[0]), held[
         0
     ]

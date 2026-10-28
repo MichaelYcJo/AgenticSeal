@@ -339,7 +339,8 @@ class Raising(Stream):
 class Test_module:
     def test_imports_nothing_outside_the_standard_library(self):
         """The disc and its sprite are stdlib-only (#832 S1): the gate, the
-        hook and the command load this file where Pillow is absent."""
+        hook and the command load this file where nothing beyond the standard
+        library is installed."""
         tree = ast.parse((ROOT / TARGET).read_text(encoding="utf-8"))
         names = {
             alias.name.split(".")[0]
