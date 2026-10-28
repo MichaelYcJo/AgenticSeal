@@ -141,6 +141,27 @@ def test_the_plugin_icon_is_a_png_the_directory_accepts():
     assert os.path.getsize(path) < 2_000_000, os.path.getsize(path)
 
 
+def test_the_marketplace_describes_the_plugin_in_the_manifests_words():
+    """#1055 S13. `.claude-plugin/plugin.json`'s `description` is the one
+    source of the sentence that describes the plugin. JSON cannot link, so
+    `.claude-plugin/marketplace.json` carries it twice, at its top level and
+    in its plugin entry, and each copy must equal the source."""
+    with open(
+        os.path.join(ROOT, ".claude-plugin", "plugin.json"), encoding="utf-8"
+    ) as f:
+        manifest = json.load(f)
+    with open(
+        os.path.join(ROOT, ".claude-plugin", "marketplace.json"), encoding="utf-8"
+    ) as f:
+        marketplace = json.load(f)
+    source = manifest["description"]
+    assert source, "plugin.json has no description"
+    assert marketplace.get("description") == source, "marketplace.json, top level"
+    entries = [p for p in marketplace["plugins"] if p.get("name") == manifest["name"]]
+    assert len(entries) == 1, entries
+    assert entries[0].get("description") == source, "marketplace.json, plugin entry"
+
+
 def test_bin_wrapper_resolves_the_checker_from_any_cwd():
     # bin/ lands on the Bash tool's PATH while the plugin is enabled, so the
     # wrapper must resolve the script relative to itself, never the caller's

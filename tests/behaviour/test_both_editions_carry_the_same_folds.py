@@ -17,9 +17,8 @@ import importlib.util
 import os
 import re
 
-from conftest import ROOT
+from conftest import ROOT, git_listing
 
-DOCS = os.path.join(ROOT, "docs")
 READER = os.path.join(ROOT, "skills", "verify", "scripts", "unverified_check.py")
 
 HEADING = re.compile(r"^ {0,3}(#{1,6})(?:[ \t]|$)")
@@ -58,17 +57,25 @@ def disagreements(name, english, korean):
 
 
 def pairs():
-    """Every top-level `docs/X.ko.md` beside a `docs/X.md`, as names."""
+    """Every tracked `X.ko.md` beside an `X.md`, wherever it stands, as
+    repository-relative names without the extension. The listing is git's,
+    so an untracked file is no pair."""
+    listed = git_listing(ROOT, "ls-files", "--", "*.ko.md")
     return [
         name[: -len(".ko.md")]
-        for name in sorted(os.listdir(DOCS))
+        for name in sorted(listed)
         if name.endswith(".ko.md")
-        and os.path.isfile(os.path.join(DOCS, name[: -len(".ko.md")] + ".md"))
+        and os.path.isfile(under_root(name[: -len(".ko.md")] + ".md"))
     ]
 
 
+def under_root(name):
+    """The path of NAME, a repository-relative name written with `/`."""
+    return os.path.join(ROOT, *name.split("/"))
+
+
 def read(name):
-    with open(os.path.join(DOCS, name), encoding="utf-8") as f:
+    with open(under_root(name), encoding="utf-8") as f:
         return f.read()
 
 
@@ -76,7 +83,10 @@ def test_every_paired_document_carries_the_same_headings():
     """A1, A2. The walk reads at least one pair, so a broken listing cannot
     pass on an empty walk."""
     names = pairs()
-    assert names, "no docs/X.ko.md beside a docs/X.md was read"
+    assert names, "no X.ko.md beside an X.md was read"
+    # #1055 S11: the pairs outside top-level `docs/` are read too.
+    for name in ("README", "docs/experiments/README"):
+        assert name in names, f"{name}.ko.md beside {name}.md was not read"
     found = []
     for name in names:
         found += disagreements(name, read(name + ".md"), read(name + ".ko.md"))
@@ -93,6 +103,10 @@ def test_the_contribution_guide_owns_the_rule_and_names_this_check():
     )
     assert "tests/behaviour/test_both_editions_carry_the_same_folds.py" in guide, (
         "CONTRIBUTING.md's pairing rule does not name the check that reads it"
+    )
+    # #1055 S12: the check reads every pair, not top-level `docs/` alone.
+    assert "every top-level" not in " ".join(guide.split()), (
+        "CONTRIBUTING.md still says the check reads top-level `docs/` alone"
     )
 
 
