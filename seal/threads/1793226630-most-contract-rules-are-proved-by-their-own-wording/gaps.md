@@ -13,7 +13,7 @@ rule's `check:` line names what reads the rule.
 | Divergence | Spec says / code did | Chosen | Grounds |
 |---|---|---|---|
 | A command spelling in the count | `frame/design.md` *Data & interfaces* lists the literals the count leaves out, and a command spelling is not among them. Phase 2 left out 24 command literals as a kind of their own | the build | `frame/questions.md` judgment 2: "A command spelling an agent copies into a shell is a fact a reader needs fixed." Counted as prose, the total would be 279, and `trail/phases/phase-2.md` says so |
-| The bound on the count | `frame/design.md`: "The issue's rough figure of 182 for `tests/text` bounds the count from above." The method counts 255 | the count | The method as written. The issue's own grep counts only an assert that opens with a literal of 25 or more characters: 182 at `0b75346f`, 168 over the 39 modules at `ee746f3b`. The method counts shorter literals too, so 182 is no bound on it |
+| The bound on the count | `frame/design.md` at `d0b5cf4f`: "The issue's rough figure of 182 for `tests/text` bounds the count from above." The method counts 255, and `208f7076` wrote the count's reading of 182 into the frame | the count | The method as written. The issue's own grep counts only an assert that opens with a literal of 25 or more characters: 182 at `0b75346f`, 168 over the 39 modules at `ee746f3b`. The method counts shorter literals too, so 182 is no bound on it |
 
 ## Not verified
 

@@ -143,8 +143,9 @@ two literals is written twice.
   Two of them appear in another module, one as a pin and one in a comment.
   No other module uses any of the eleven to find a paragraph, so they are
   counted.
-- **The issue's 182 does not bound the count.** `frame/design.md` says the
-  issue's rough figure of 182 bounds the count from above. The issue
+- **The issue's 182 does not bound the count.** `frame/design.md` at
+  `d0b5cf4f`, the frame this phase counted against, said the issue's rough
+  figure of 182 bounds the count from above. The issue
   states its command: `grep -h -E 'assert \(?\s*"[^"]{25,}"\s*\)?\s+in\b'
   -r tests/text | wc -l` at `0b75346f`. Run per file there, it gives 182,
   and over the 39 modules at `ee746f3b` it gives 168. It counts one line
