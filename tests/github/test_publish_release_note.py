@@ -850,6 +850,17 @@ class Test_section:
             + "<!-- specs/3-third -->"
         )
 
+    def test_refuses_to_take_a_line_past_the_next_heading(self):
+        """The process section ends at the next heading, so a table under a
+        later heading stays in its fragment and none of its rows is lifted."""
+        header = "| Date | Change | Why | Source |\n|---|---|---|---|\n"
+        later = "### Removed\n\n| What | Where |\n|---|---|\n| a file | `x.md` |"
+        body = f"### Process changes\n\n{header}| d | c | w | s |\n\n{later}"
+        assert publisher().section([("1-first", body)]) == (
+            f"### Process changes\n\n{header}| d | c | w | s |\n\n"
+            f"<!-- specs/1-first -->\n{later}"
+        )
+
     def test_refuses_a_table_where_no_fragment_carries_a_row(self):
         """S10 of #1117. With no process row in any fragment, the output is
         what `section` returned before #1117: each marker line and its body,
