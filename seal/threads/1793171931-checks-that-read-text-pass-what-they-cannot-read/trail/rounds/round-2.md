@@ -19,7 +19,7 @@ the commit round 1 and the fix pass read.
 severity: should
 location: `seal/threads/1793171931-checks-that-read-text-pass-what-they-cannot-read/trail/phases/phase-1.md:34`, `seal/threads/1793171931-checks-that-read-text-pass-what-they-cannot-read/trail/phases/phase-5.md:36`, `seal/threads/1793171931-checks-that-read-text-pass-what-they-cannot-read/trail/phases/phase-5.md:93`
 evidence: read `seal/threads/1793171931-checks-that-read-text-pass-what-they-cannot-read/frame/design.md:276-282`, `skills/code-review/scripts/chain_check.py:2084-2140`, `docs/the-routing-check.md:112-117`, `seal/threads/1793171931-checks-that-read-text-pass-what-they-cannot-read/trail/phases/phase-5.md:93`
-verdict: open
+verdict: fixed bedaa645
 regression: round-1#2
 
 The unit is R8's `Fix` cell, which `dd787d28` changed from `none` to
@@ -76,7 +76,7 @@ keeps `#1038` with that reason in place of the rule-change one.
 | R8 | `chain_check.py#routing_trailers`, `#trailer_findings` | `Seal-Routing` trailers of the pull request's commits | `mixed`: a value in another case is refused; a key git does not read is no trailer, and the commit is not judged | `yes`: a session's commit at a shared root carries the trailer (`skills/commit-pr-convention/SKILL.md:142`), so a misspelt key arises in the flow, and its undeclared work item is not judged | `SealRouting:` naming an undeclared work item: not read, not reported; `No work item` and `no work item.` refused | #1121 |
 ```
 
-answer:
+answer: The finding holds. The cited line is about a commit with no trailer; refusing a near-miss key judges no such commit and changes `chain_check.py#routing_trailers` and `#trailer_findings` and their tests alone, so no shared reader or new gate is needed. R8's `Fix` reads `#1121` in `phase-5.md:36` (`0.24.1 chain_check.py` in `phase-1.md:34`), #1121's row in the issues table names R8, the `#1038` sentence names R10, R37 and R40 alone, and *R8 and R23 after review round 1* says why, in `bedaa645`. R8 was added to #1121 by `gh issue comment 1121 --body-file <file>` (exit 0, issuecomment-6464431981) with its probe and a *Done when* line refusing a near-miss key at the pull request. The comment on #956 was patched with `gh api -X PATCH repos/MichaelYcJo/AgenticSeal/issues/comments/6464014816 -F body=@<file>` (exit 0, updated 2026-10-28T08:36:37Z, 15,378 bytes), and `cmp` of the stored body against `phase-5.md`'s comment section exited 0.
 
 ## Confirmations
 
