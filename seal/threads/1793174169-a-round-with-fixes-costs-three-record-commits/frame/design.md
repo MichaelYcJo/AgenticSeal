@@ -27,8 +27,9 @@ cites at `:153-156` stands at `:148-157` now (executed,
    answers.** `skills/code-review/orchestration.md` *Orchestrator: a phase
    is a fresh crafter, and a fix pass resumes the implementer*, the
    paragraph at `:54-58`, is rewritten in place. It states three things:
-   - the crafter's fix pass commits each finding's `verdict:` and `answer:`
-     together, in one commit after any fix commit it made;
+   - the crafter's fix pass commits the `verdict:` and `answer:` lines of
+     every finding it answered in one commit for the whole pass, after its
+     last fix commit and its corrections;
    - the orchestrator writes neither line of such a finding, and its
      fix-pass prompt leaves both lines to the crafter;
    - a close the orchestrator doubts goes into the verifying round's spawn
@@ -49,10 +50,10 @@ cites at `:153-156` stands at `:148-157` now (executed,
    `docs/the-review-record.md` *The run* already gives the ladder its home.
 3. **The crafter commits a finding's two lines together.**
    `agents/crafter.md` *Rules*, *A fix pass writes two lines of each
-   finding and no phase record.* (`:148-157`), gains one sentence: commit
-   both lines of each finding together, in one commit after your fix
-   commits. The sentence goes in the place the paragraph names the two
-   lines. The *Job* sentence at `:17-21` already names both lines as the
+   finding and no phase record.* (`:148-157`), gains one sentence at its
+   end, after the sweep: commit the two lines of every finding you
+   answered in one commit for the whole pass, after your last fix commit
+   and its corrections. The *Job* sentence at `:17-21` already names both lines as the
    crafter's, and it stays.
 4. **The cause of the split in #955 and #1016 is named, from the session
    that ran them.** The transcript is on disk. In the user's Claude Code
@@ -149,7 +150,7 @@ the tree intends, plus the fix. They are not the defect.
 |---|---|---|
 | S1. The orchestrator writes neither line of a finding a fix pass answers | Given `skills/code-review/orchestration.md` at the phase's commit, when its fix-pass section is read, then it says the orchestrator writes neither line of such a finding, that its fix-pass prompt leaves both lines to the crafter, and that a doubted close goes into the verifying round's prompt | A new entry in `tests/text/test_the_rules_have_one_owner.py#RULES` with `ORCH` as the owner and the new bold sentence as the rule, read by `test_the_owner_states_the_rule`. A clause for the verifying round's prompt goes in `test_the_fix_pass_reads_the_implementers_context_before_it_resumes`'s tuple, or in a case beside it in the same module. Each is seen red against `5287dd42` before the text lands (contract rule 15), and the phase record says how |
 | S2. A finding the orchestrator closes takes both lines from it | Given the framer's-route table at the phase's commit, when row *The record* is read, then it names the `answer:` line and one commit of the orchestrator's beside `deferred the frame` | The same module, a clause read from the section *A regression is routed by comparing the fix with the frame*, seen red against `5287dd42` |
-| S3. The crafter commits both lines together | Given `agents/crafter.md` at the phase's commit, when the fix-pass rule is read, then it says to commit both lines of each finding together, in one commit after the fix commits | A clause added to the tuple in `tests/text/test_a_moved_rule_leaves_its_definition.py#test_the_crafters_fix_pass_writes_two_lines_and_sweeps_what_its_range_reworded`, seen red against `5287dd42` |
+| S3. The crafter commits both lines together | Given `agents/crafter.md` at the phase's commit, when the fix-pass rule is read, then it says to commit the two lines of every finding answered in one commit for the whole pass, after the last fix commit and its corrections | A clause added to the tuple in `tests/text/test_a_moved_rule_leaves_its_definition.py#test_the_crafters_fix_pass_writes_two_lines_and_sweeps_what_its_range_reworded`, seen red against `5287dd42` |
 | S4. The new text is no copy, and it wraps | Given the edited files, when the paste check and the wrap check read them, then no 15-word run is shared with `docs/the-review-record.md` or another file, and every line keeps the file's wrap | `bin/test` over `tests/text/test_no_passage_is_pasted_into_a_second_file.py`, `tests/behaviour/test_docs_line_wrap.py` and `tests/behaviour/test_every_orchestrator_act_names_its_delivery.py`, one module at a time, green |
 | S5. The rule change parses | Given this `frame/design.md`, when the one reader of `## Rule changes` reads it, then the `add` item is read whole and nothing is refused | `skills/settle/scripts/rule_changes.py`, which `chain_check.py` asks at the pull request for this work item (`docs/the-review-record.md` *What the check reads at the pull request*). The round's proofer runs `chain_check.py` over the branch |
 | S6. The cause is named | Given the changelog fragment, when it is read against `## Scope` item 4, then it names the orchestrator's fix-pass spawn prompts in #955 and #1016 as the cause, by session id and line | Read by the round and the sealer against the transcript lines in `## Scope` item 4, and against `git show 2b68252c` and `git show 137d0a9c` |
@@ -167,7 +168,7 @@ the crafter act on, and the assertions that read it.
   file: docs/the-review-record.md
   section: The round record
   to: **A finding's `verdict:` and `answer:` lines are one party's, and one commit carries every finding that party closes in the pass.**
-    A finding a fix pass answers is the fix pass's alone, and it commits the two lines of every finding it answered in one commit for the whole pass, after its last fix commit and its corrections, since a `fixed` verdict names a commit that already exists. The orchestrator writes neither line of such a finding, and a close it doubts goes into the verifying round's spawn prompt, since that round weighs every close. A finding closed without a fix pass, such as `deferred the frame` on the framer's route or a `deferred <home>` the orchestrator files at the cap, takes both lines from the orchestrator. A second party's commit adds a record commit to the round and nothing a reader uses.
+    A finding a fix pass answers is the fix pass's alone. After its last fix commit and the corrections its sweep made, the pass writes the lines of all the findings it closed and commits them together, once, since a `fixed` verdict names a commit that already exists. The orchestrator writes neither line of such a finding, and a close it doubts goes into the verifying round's spawn prompt, since that round weighs every close. A finding closed without a fix pass, such as `deferred the frame` on the framer's route or a `deferred <home>` the orchestrator files at the cap, takes both lines from the orchestrator. A second party's commit adds a record commit to the round and nothing a reader uses.
     check: tests/text/test_the_rules_have_one_owner.py tests/text/test_a_moved_rule_leaves_its_definition.py
 
 ## Removes
