@@ -2,7 +2,8 @@
 
 #386: the release note publishes itself, or the job goes red saying why.
 Publishing a GitHub Release was a habit and nothing else, and three
-consecutive releases skipped it. The repair is a workflow the tag push fires:
+consecutive releases skipped it. The repair is a workflow the push to `main`
+that ships a release fires, and a tag pushed by hand (#1117):
 
   A1  the changelog fragments the release's commits added, less those the
       previous tag holds, become the release note at that tag, each under its

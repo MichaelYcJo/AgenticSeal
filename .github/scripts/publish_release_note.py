@@ -9,9 +9,10 @@ gets done every time, because `hooks/version-check.py` reads it and an
 untagged release is one no installed session is ever told about. The note had
 no reader in the tree at all, so nothing noticed its absence.
 
-So this reads the tag instead of asking anybody to remember. It runs when a
-`v*` tag is pushed, which is the release's last manual act and the moment
-`docs/branch-and-release.md` says stays a person's.
+So this reads the tag instead of asking anybody to remember. It runs in the
+publish workflow after `tag_release.py`, which on the push to `main` that
+ships a release creates the release's `vX.Y.Z` tag and passes it on, and on
+a `v*` tag pushed by hand passes that tag on (#1117).
 
 **The body is built from the release's changelog fragments, read from the
 history at the tag** (#1053). A change writes its note once, in
@@ -90,8 +91,8 @@ heading and the seal finds the block by the function that wrote it.
 side effects gets run for its output sooner or later, and the first person to
 do it is whoever wrote it.
 
-Environment: `TAG` (`github.ref_name`), `REPO`, `GH_TOKEN`, and
-`GITHUB_OUTPUT` where the workflow runner sets it.
+Environment: `TAG` (the tag `tag_release.py` passed on), `REPO`,
+`GH_TOKEN`, and `GITHUB_OUTPUT` where the workflow runner sets it.
 
 Exit codes: 0 published, or already published, or a dry run -- 1 the tag is
 not `vX.Y.Z`, or its range added no fragment the previous tag does not

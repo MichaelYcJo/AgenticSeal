@@ -1,22 +1,26 @@
 name: publish the release note
 
-# `docs/release-checklist.md` walked from the preparation branch to the tag and
-# stopped. Publishing a GitHub Release was in no document and in no workflow,
-# and three consecutive releases shipped without one (#386) — the run that
-# measured it was the one that would have made it four.
+# Publishing a GitHub Release was in no document and in no workflow, and three
+# consecutive releases shipped without one (#386) — the run that measured it
+# was the one that would have made it four.
 #
-# The step beside it gets done every time, because something reads the tag:
+# The tag gets done every time, because something reads it:
 # `hooks/version-check.py` asks `git ls-remote --tags`, and an untagged release
 # is one no installed session is ever told about. The note had no reader in the
 # tree at all, so nothing noticed its absence and the only cost was borne by a
 # person opening the releases page.
 #
-# So the tag push publishes it. That is the release's last manual act and the
-# one `docs/branch-and-release.md` keeps a person's — nothing in CI pushes a
-# tag, and nothing here creates one either. The note is built from the
-# changelog fragments the release's commits added and the previous version
-# tag does not already hold, read from the history at the tag
-# (`.github/scripts/publish_release_note.py`'s docstring says how).
+# So the release's merge into `main` tags it and publishes it, in one run
+# (#1117). A tag this workflow creates with its own token starts no workflow
+# of its own, so the tag, the note and the seal cannot be three runs. The
+# first step, `.github/scripts/tag_release.py`, creates the `vX.Y.Z` tag on
+# the pushed commit where the push moved `plugin.json`'s version, and passes
+# it on; every other push to `main` passes on no tag, and nothing after it
+# runs. A tag pushed by hand fires the workflow too and is passed on as it
+# is. The note is built from the changelog fragments the release's commits
+# added and the previous version tag does not already hold, read from the
+# history at the tag (`.github/scripts/publish_release_note.py`'s docstring
+# says how).
 #
 # Then the seal (#718). A second job, `seal`, runs only when `publish` created
 # the release in this run (`created` is its output; a re-pushed tag or a full
@@ -34,12 +38,13 @@ name: publish the release note
 
 on:
   push:
+    branches: [main]
     tags: ['v*']
 
 # The first write of this scope in the repository, and the minimum
-# `gh release create` needs. The workflow writes three things under it: one
-# release (`publish`), one asset on that release and one edit of its note
-# (`seal`). `gh pr list` reads the pull requests' labels and head branches
+# `gh release create` and a tag created through the API need. The workflow
+# writes four things under it: one tag and one release (`publish`), one asset
+# on that release and one edit of its note (`seal`). `gh pr list` reads the pull requests' labels and head branches
 # under the same block, which is a read.
 permissions:
   contents: write
@@ -48,24 +53,40 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     # Whether this run created the release, which is the only release the
-    # `seal` job may edit (`publish_release_note.py#write_output`).
+    # `seal` job may edit (`publish_release_note.py#write_output`), and the
+    # tag it was published for: the ref's name is `main` on the push to
+    # `main`, so the tag is read from the tag step alone.
     outputs:
       created: ${{ steps.note.outputs.created }}
+      tag: ${{ steps.tag.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
         with:
-          # The whole history and every tag: the note reads the fragments the
-          # commits after the previous version tag added and that tag does not
-          # already hold, and the title from the tagged commit's message, so
-          # `git log -1 <tag>` resolves the tag itself rather than whatever the
-          # runner happened to check out.
+          # The whole history and every tag: the tag step reads `plugin.json`
+          # at the push's earlier commit and the tags that already exist, the
+          # note reads the fragments the commits after the previous version
+          # tag added and that tag does not already hold, and the title from
+          # the tagged commit's message, so `git log -1 <tag>` resolves the
+          # tag itself rather than whatever the runner happened to check out.
           fetch-depth: 0
+
+      - name: tag the release where this push moved the version
+        id: tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REF: ${{ github.ref }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+          REPO: ${{ github.repository }}
+        shell: bash
+        run: python3 .github/scripts/tag_release.py
 
       - name: publish the GitHub Release for this tag
         id: note
+        if: steps.tag.outputs.tag != ''
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ steps.tag.outputs.tag }}
           REPO: ${{ github.repository }}
         shell: bash
         run: python3 .github/scripts/publish_release_note.py
@@ -87,6 +108,8 @@ jobs:
         continue-on-error: true
         with:
           fetch-depth: 0
+          # The tag `publish` published for, which the suite runs at.
+          ref: ${{ needs.publish.outputs.tag }}
           # Nothing in this job pushes: the draw reaches GitHub through `gh`
           # and `GH_TOKEN`. So the token is not left in `.git/config`, where
           # every process of the suite at the tag could read it.
@@ -126,7 +149,7 @@ jobs:
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ needs.publish.outputs.tag }}
           REPO: ${{ github.repository }}
           SUITE_RECORDS: ${{ runner.temp }}/records
           SUITE_KEY: seal-${{ github.run_id }}
