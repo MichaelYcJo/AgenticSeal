@@ -162,8 +162,16 @@ with a sentence naming the line and the column.
   is pressed in. #857 holds the choice.
 - **What it would take:** neither is a `.M` chart, so `read_chart` refuses
   both. A sprite with its own colours becomes the mark only when
-  `seal_stamp.py#build` draws one, which #857 owns. The web draws the same
-  design as an SVG, kept with #857 until the motif is chosen.
+  `seal_stamp.py#build` draws one, which #857 owns.
+- **What a page shows:** each motif is a set. The terminal draws the
+  sprite, made for its grid; a page draws `owl-web.svg` or `bee-web.svg`,
+  a vector seal with the detail an image can carry, for a release note,
+  the README or the plugin icon. Each has a `.png` preview beside it. The
+  owl's vector carries more than its sprite: ringed eyes, the wing lines
+  and the chevrons on its breast. The bee's vector follows its sprite.
+
+![The owl as a vector seal: a raised owl with ringed eyes, wing lines and chevrons on its breast, pressed into a red disc](candidates/owl-web.png)
+![The bee as a vector seal: the sprite's bee drawn as shapes, pale wings and lit stripes on a dark body, on a red disc](candidates/bee-web.png)
 
 ### The light-red section sign at 14 cells — `section-14-light-red`
 

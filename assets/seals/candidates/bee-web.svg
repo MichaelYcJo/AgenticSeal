@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200">
+<defs><linearGradient id="rim" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d04440"/><stop offset="0.5" stop-color="#a01e22"/><stop offset="1" stop-color="#600a0e"/></linearGradient><linearGradient id="groove" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#600a0e"/><stop offset="1" stop-color="#d04440"/></linearGradient><filter id="drop" x="-10%" y="-10%" width="130%" height="130%"><feDropShadow dx="10" dy="12" stdDeviation="6" flood-color="#54080c" flood-opacity="1"/></filter></defs>
+<circle cx="600.0" cy="600.0" r="596" fill="#96181c"/>
+<circle cx="600.0" cy="600.0" r="570" fill="url(#rim)"/>
+<circle cx="600.0" cy="600.0" r="486" fill="url(#groove)"/>
+<circle cx="600.0" cy="600.0" r="462" fill="#701014"/>
+<g filter="url(#drop)">
+<ellipse cx="468.6" cy="520.5" rx="103.7" ry="63.6" fill="#de564e" stroke="#5a080c" stroke-width="15.2"/>
+<ellipse cx="731.4" cy="520.5" rx="103.7" ry="63.6" fill="#de564e" stroke="#5a080c" stroke-width="15.2"/>
+<polyline points="572.3,389.1 530.9,320.0" fill="none" stroke="#5a080c" stroke-width="18.0" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="627.7,389.1 669.1,320.0" fill="none" stroke="#5a080c" stroke-width="18.0" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="600.0" cy="423.7" rx="62.2" ry="55.3" fill="#5a080c"/>
+<ellipse cx="600.0" cy="513.6" rx="83.0" ry="69.1" fill="#5a080c"/>
+<ellipse cx="600.0" cy="686.4" rx="114.1" ry="159.0" fill="#5a080c"/>
+<rect x="503.2" y="596.5" width="193.6" height="41.5" rx="13.8" fill="#d04440"/>
+<rect x="496.3" y="665.7" width="207.4" height="41.5" rx="13.8" fill="#d04440"/>
+<rect x="518.4" y="734.8" width="163.2" height="41.5" rx="13.8" fill="#d04440"/>
+<polygon points="572.3,835.1 627.7,835.1 600.0,880.0" fill="#5a080c"/>
+</g>
+</svg>
