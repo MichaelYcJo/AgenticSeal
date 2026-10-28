@@ -6,9 +6,8 @@ code. A change that ships only as instructions has to be held by something,
 or the next sweep through these files removes it and nothing notices.
 
 The rule is contract rule 9, which every agent receives at startup, and each
-definition keeps only its own application: for `agents/proofer.md` that a
-probe script and a scratch fixture are edits too, for `agents/crafter.md` the
-forms a shell edit takes. So the cases assert one carrier, the contract: a
+definition keeps only its own application: for `agents/proofer.md`, that a
+probe script and a scratch fixture are edits too. So the cases assert one carrier, the contract: a
 case asserting the same sentence in two files is the duplication the
 contract was written to end, and `tests/text/test_a_moved_rule_leaves_its_definition.py`
 is what refuses it.
@@ -105,19 +104,4 @@ def test_the_reviewer_keeps_the_half_that_makes_the_rule_its_own():
     assert "rule 9" in proofer, "the reviewer can no longer reach the rule"
     assert "scratch fixture" in proofer, (
         "the reviewer stopped being told which of its own acts are edits"
-    )
-
-
-def test_the_implementer_keeps_the_half_that_makes_the_rule_its_own():
-    """What stayed in `agents/crafter.md` when contract rule 9 took the rest.
-
-    The reviewer's half answers *are my acts edits at all*. The crafter never
-    had that doubt -- it is the agent that edits -- so its half is the act
-    itself, named in its `## Never` with the forms a shell edit takes.
-    """
-    crafter = flat(*CRAFTER)
-    assert "rule 9" in crafter, "the implementer can no longer reach the rule"
-    assert "Edit through the shell: no `sed -i`, no heredoc" in crafter, (
-        "the crafter stopped being told which of its acts rule 9 rules out, and it "
-        "is the agent that edits most"
     )

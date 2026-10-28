@@ -871,8 +871,10 @@ HANDS_THE_RUN = re.compile(
 
 
 def test_the_crafter_names_no_runner_of_the_broad_gate():
-    """T4 of #967 (S5): the crafter says it does not run the broad gate and
-    names nobody who does; contract rule 2 holds who does.
+    """T4 of #967 (S5): the crafter's broad gate paragraph names nobody who
+    runs the broad gate. It cites contract rule 2, which holds who does, and
+    keeps what is the crafter's own: what `failing on base too` and `new?`
+    mean beside a broad gate failure handed to it.
 
     This replaced a case that asserted *Then the sealer takes the broad gate
     once*. #969 moves the run to the orchestrator in a worktree beside this
@@ -880,12 +882,11 @@ def test_the_crafter_names_no_runner_of_the_broad_gate():
     crafter = agent("crafter.md")
     start = crafter.index("**The broad gate is not yours, and its label is.**")
     rule = crafter[start : crafter.index(" check: ", start)]
-    assert "You do not run the full suite, the lint or the typecheck" in rule, (
-        "the crafter's gate rule stopped saying the run is not the crafter's"
+    assert "`failing on base too`" in rule and "`new?`" in rule, (
+        "the crafter's gate rule stopped saying what the word beside a "
+        "failing file means, which is the half that is the crafter's own"
     )
-    assert "rule 2 holds who does" in rule, (
-        "the rule stopped pointing at where the runner is named"
-    )
+    assert "rule 2" in rule, "the rule stopped pointing at where the runner is named"
     named = [party for party in RUNNERS if re.search(rf"\b{party}", rule, re.I)]
     assert not named, f"the crafter's gate rule names {named}: {rule}"
     handed = HANDS_THE_RUN.findall(crafter)
@@ -1004,7 +1005,7 @@ def test_the_window_the_sealer_shipped_under_is_closed():
         "the sealer's assignment of the run is back beside a rule 2 that gives "
         "the run to no agent"
     )
-    assert "the orchestrator runs it" in text, (
+    assert "is the orchestrator's run's" in text, (
         "the definition says the run is not the sealer's without saying whose "
         "it is, which is #30's opening: an act nobody holds"
     )
