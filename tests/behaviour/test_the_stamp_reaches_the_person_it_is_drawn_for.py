@@ -356,56 +356,54 @@ def test_the_policy_states_the_refusal_record_and_names_its_cases():
 def test_both_readmes_list_the_stamp_hook():
     """Round 1's yellow 4. The hook inventory a user reads to learn what runs
     on their machine did not list the `Stop` hook, in either edition: the gate
-    table, the opt-in list, the count of gates that wake on a condition, and
-    the side effects. The editions move together, so both are read.
+    table and the side effects. The editions move together, so both are read.
 
-    1792363231 S7: the gate that queues a local-mode stamp at the write has its own
-    row, and the count and the opt-in list that row made false say twelve
-    gates and two stamp hooks. Its round 1's finding 3: the side effects
-    gained the refusal record's directory, and the count before them went
-    stale, so the sentence carries no count."""
-    for edition, count, opt_in, effects, clause in (
+    1792363231's round 1 finding 3: the side effects gained the refusal
+    record's directory, and the count before them went stale, so the sentence
+    carries no count. #1055 S2: the count of gates that wake on a condition
+    and the lists of opt-in hooks beside it went stale at every new row, so
+    *First run* and the `seal/` row point at the gate table's Where column
+    and carry neither. `test_chain_hooks_hardening.py` derives the table's
+    rows from `GROUPS`."""
+    for edition, effects, clause, gone in (
         (
             "README.md",
-            "Nine of the thirteen gates",
-            # The opt-in list's own words: the count sentence names the stamp
-            # hooks too, so the bare name would pass with the list unchanged.
-            "the two implementer hooks, the two stamp hooks and the version check.",
             "These side effects are worth stating outright",
             # The clause's own words (round 2's white 2): the gate-table row
             # carries `agentic-stamp/` too, so the bare directory passed
             # with the side effect deleted.
             "`<git-common-dir>/agentic-stamp/`, which the stamp hook renames "
             "once drawn and nothing prunes",
+            (
+                "Nine of the thirteen gates",
+                "of the thirteen",
+                "the two implementer hooks, the two stamp hooks",
+                "The other four carry their own conditions",
+                "stub-remove act in every git repo",
+                "Four side effects",
+            ),
         ),
         (
             "README.ko.md",
-            "게이트 열셋 중 아홉",
-            "구현자 훅 둘, 도장 훅 둘, 버전 확인이다.",
             "다음 부수 효과는 밝혀 둡니다",
             "도장 훅은 그린 뒤 그 파일의 이름을 바꿀 뿐 지우지 않습니다",
+            (
+                "게이트 열셋 중 아홉",
+                "구현자 훅 둘, 도장 훅 둘",
+                "나머지 넷은 각자의 조건이 있습니다",
+                "stub-remove 는 git 레포면 어디서든",
+                "stub-remove 는 모든 git 레포에서",
+                "네 가지 부수 효과",
+            ),
         ),
     ):
         text = flat(edition)
         for gate in ("sealer-stamp", "sealer-stamp-queue"):
             table = [ln for ln in text.split("| ") if ln.startswith(f"{gate} ")]
             assert table, f"{edition}'s gate table has no `{gate}` row"
-        assert count in text, (edition, count)
-        assert opt_in in text, (edition, opt_in)
         assert effects in text and clause in text, (edition, effects, clause)
-        for gone in (
-            "Seven of the ten",
-            "게이트 열 중 일곱",
-            "Eight of the eleven",
-            # The routing edit gate replaced the commit gate (#1027) and
-            # stub-remove joined the table, so the count went to thirteen.
-            "Nine of the twelve",
-            "게이트 열둘 중 아홉",
-            "Four side effects",
-            "네 가지 부수 효과",
-        ):
-            assert gone not in text, (edition, gone)
-        assert "게이트 열하나 중 여덟" not in text, edition
+        for phrase in gone:
+            assert phrase not in text, (edition, phrase)
     # #975 S11: both editions say where the stamp's values are written, and
     # neither says the broad gate leaves them. #1027 S13: at the write of a
     # sealed guarantee under either root; and the refusal record's directory

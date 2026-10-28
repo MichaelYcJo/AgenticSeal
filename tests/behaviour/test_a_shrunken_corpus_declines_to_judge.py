@@ -89,6 +89,10 @@ APPLIES_THE_SHARED_GUARD = {
     # #1043's reader of every citation of another file's section. It judges
     # what it finds, so it skips the missing half.
     "tests/behaviour/test_a_cited_section_stands_in_its_file.py#citations": 1,
+    # #1055's outline sweep over every tracked edition pair. It returns the
+    # missing half, and its caller asserts two pairs alive, so it hands that
+    # half to `decline_if_shrunken` before judging.
+    "tests/behaviour/test_both_editions_carry_the_same_folds.py#pairs": 1,
 }
 
 # 2. It guards its own list by another predicate, which predates this work.
