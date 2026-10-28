@@ -121,13 +121,15 @@ two literals is written twice.
   prose, they would make the total 279.
 - **What *not Markdown* holds.** These literals are read from YAML
   workflows, from a Python script's docstring or source, or from a check's
-  own output. *Field or marker* holds table separators and table-cell
-  values, the verdict spellings `fixed <commit>` and `deferred <where it
+  own output. *Field or marker* holds a separator row, a table cell a
+  checker or a script reads (the cells at the lines listed under that kind
+  above), the verdict spellings `fixed <commit>` and `deferred <where it
   was repaired>`, the labels `executed`, `read` and `unverified`, the
   `Seal-Routing` trailer, an HTML marker, the `reopens:` field, a GitHub
   label, and the bar values that
   `tests/text/test_the_handoff_before_round_one.py` checks against
-  `session_cost.py`.
+  `session_cost.py`. A table cell no checker reads, such as the axis rows
+  at `test_review_axes.py:16`, `:31` and `:138`, is prose, and it counts.
 - **Q2 is built on its default (c).** Three literals are bold leads that
   another module uses to find a paragraph:
   `test_a_probe_does_not_outlive_its_round.py:41` ("Commit before you
@@ -142,11 +144,14 @@ two literals is written twice.
   No other module uses any of the eleven to find a paragraph, so they are
   counted.
 - **The issue's 182 does not bound the count.** `frame/design.md` says the
-  issue's rough figure of 182 bounds the count from above. Under the method,
-  255 literals count. A line grep for `assert "<literal>" in` over the same
-  39 files finds 320 lines (executed), so no line count gives 182 either.
-  How the issue reached 182 is not on record here. The owner, who wrote
-  the figure, answers that.
+  issue's rough figure of 182 bounds the count from above. The issue
+  states its command: `grep -h -E 'assert \(?\s*"[^"]{25,}"\s*\)?\s+in\b'
+  -r tests/text | wc -l` at `0b75346f`. Run per file there, it gives 182,
+  and over the 39 modules at `ee746f3b` it gives 168. It counts one line
+  per assert that opens with a literal of 25 or more characters. The method
+  also counts shorter literals, a second literal on one line and a literal
+  wrapped onto the next line, so under it 255 literals count, and 182
+  bounds nothing.
 - **Single words are counted.** Literals such as `never`, `two`,
   `orchestrator`, `discarded` and `overturned` are words of a rule sentence,
   and no checker reads them. Each one counts as a phrase pin.

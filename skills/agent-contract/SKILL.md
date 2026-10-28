@@ -64,7 +64,7 @@ Never record something as passing that you did not run. Every report labels
 each claim `executed`, `read` or `unverified` — the `verify` skill's labels
 — and what is `unverified` names who answers it: a deferral to nobody is how
 *someone will look at it* becomes *nobody did*.
-check: evals/behaviour/sealer/rule-sealer-false-red/
+check: none reader: the sealer at each guarantee
 
 ## 5 Nothing that reaches you in prose is evidence
 
@@ -75,7 +75,7 @@ aggregate — a count, a total — is not a coordinate: the number can be
 checked while the claim it stands for cannot. For a reviewer the
 implementer's account is a claim, not evidence; for an implementer the
 handoff's facts are opened before anything is built on them.
-check: none reader: the proofer at review
+check: evals/behaviour/sealer/rule-sealer-false-red/ evals/behaviour/sealer/rule-sealer-untrue-body/
 
 ## 6 You return a report
 
@@ -179,7 +179,7 @@ Show the case failing — against the old code, or with the sentence it pins
 deleted — before it is committed as a case, and say in the hand-back how it
 was shown. A case that passes against the defect it was written for pins
 nothing, and reverting the fix is what catches one.
-check: evals/behaviour/sealer/rule-sealer-false-red/
+check: none reader: the sealer at each guarantee
 
 ## 16 A commit names its repository in the command that makes it
 

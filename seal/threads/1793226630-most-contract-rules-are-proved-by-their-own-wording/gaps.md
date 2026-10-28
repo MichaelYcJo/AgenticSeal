@@ -13,15 +13,14 @@ rule's `check:` line names what reads the rule.
 | Divergence | Spec says / code did | Chosen | Grounds |
 |---|---|---|---|
 | A command spelling in the count | `frame/design.md` *Data & interfaces* lists the literals the count leaves out, and a command spelling is not among them. Phase 2 left out 24 command literals as a kind of their own | the build | `frame/questions.md` judgment 2: "A command spelling an agent copies into a shell is a fact a reader needs fixed." Counted as prose, the total would be 279, and `trail/phases/phase-2.md` says so |
-| The bound on the count | `frame/design.md`: "The issue's rough figure of 182 for `tests/text` bounds the count from above." The method counts 255 | the count | The method as written. A line grep for `assert "<literal>" in` over the same files finds 320 lines, so 182 is not a bound under either reading |
+| The bound on the count | `frame/design.md`: "The issue's rough figure of 182 for `tests/text` bounds the count from above." The method counts 255 | the count | The method as written. The issue's own grep counts only an assert that opens with a literal of 25 or more characters: 182 at `0b75346f`, 168 over the 39 modules at `ee746f3b`. The method counts shorter literals too, so 182 is no bound on it |
 
 ## Not verified
 
 | Item | Who must answer |
 |---|---|
 | The full suite, the repository-wide `ruff check` and `ruff format --check`, and the typecheck on this branch, including `test_the_durations_file_prices_the_suite` against six unpriced case ids and the removed ones | the orchestrator, through `seal gate` |
-| How the issue reached its rough figure of 182 | the owner, who wrote it on #1111 |
-| Whether the four crafter eval cases and the two sealer eval cases that rules 2, 4, 7 and 15 now name pass on a run | the orchestrator, at the next preload rewrite that runs the behaviour evals |
+| Whether the four crafter eval cases and the three sealer eval cases that rules 2, 5 and 7 now name pass on a run | the orchestrator, at the next preload rewrite that runs the behaviour evals |
 
 ## Not done
 
