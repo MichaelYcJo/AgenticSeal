@@ -167,8 +167,8 @@ the crafter act on, and the assertions that read it.
 - add
   file: docs/the-review-record.md
   section: The round record
-  to: **A finding's `verdict:` and `answer:` lines are one party's, and one commit carries every finding that party closes in the pass.**
-    A finding a fix pass answers is the fix pass's alone. After its last fix commit and the corrections its sweep made, the pass writes the lines of all the findings it closed and commits them together, once, since a `fixed` verdict names a commit that already exists. The orchestrator writes neither line of such a finding, and a close it doubts goes into the verifying round's spawn prompt, since that round weighs every close. A finding closed without a fix pass, such as `deferred the frame` on the framer's route or a `deferred <home>` the orchestrator files at the cap, takes both lines from the orchestrator. A second party's commit adds a record commit to the round and nothing a reader uses.
+  to: **A finding's `verdict:` and `answer:` lines are one party's, and each time that party closes findings, one commit carries the lines of all of them.**
+    A finding a fix pass answers is the fix pass's alone. After its last fix commit and the corrections its sweep made, the pass writes the lines of all the findings it closed and commits them together, once, since the `fixed` verdict must name a commit that exists before it. The orchestrator writes neither line of such a finding, and a close it doubts goes into the verifying round's spawn prompt, since that round weighs every close. A finding closed without a fix pass, such as `deferred the frame` on the framer's route or a `deferred <home>` the orchestrator files at the cap, takes both lines from the orchestrator, which commits the lines of every finding it closes at that step in one commit. A second party's commit adds a record commit to the round and nothing a reader uses.
     check: tests/text/test_the_rules_have_one_owner.py tests/text/test_a_moved_rule_leaves_its_definition.py
 
 ## Removes
