@@ -28,8 +28,8 @@ and the comment on #956 is that text copied. While the work item lives, the
 record is the reviewed text and the comment its copy (S7). After the settle
 removes this directory, the comment is the one copy left standing.
 
-**What the crafter reads.** The worktree at
-`/Users/michael/Documents/GitHub/SpecSeal-worktrees/chore/956-checks-that-read-text-pass-what-they-cannot-read`
+**What the crafter reads.** This work item's worktree, on branch
+`chore/956-checks-that-read-text-pass-what-they-cannot-read`,
 is `c825fd2c` plus this work item's records, so a file read there is the
 base version. R16, R17 and R24 read files #913 changes on its own branch;
 their rows say "base version; #913". No phase reads another branch's
