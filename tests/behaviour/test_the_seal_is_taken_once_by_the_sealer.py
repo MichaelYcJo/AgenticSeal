@@ -189,7 +189,7 @@ def test_the_documents_say_where_the_panel_now_carries_each_name():
     assert "names the ref on the row under the commit" not in verify
     # Round 1's 🟡 4 and ⬜ 5: the third arm, which fires on every seal an
     # installed copy older than #666 redirects, because it hands over no
-    # invoked path to compare against. The sealer detracers no panel row
+    # invoked path to compare against. The sealer describes no panel row
     # since it became the guarantor (#923), so the documents that do are read.
     assert (
         "or where the tree's copy ran with no invoked copy named to compare against"
@@ -200,9 +200,9 @@ def test_the_documents_say_where_the_panel_now_carries_each_name():
     assert "or where no invoked copy was handed over to compare" in comment
 
 
-def test_the_docstrings_detracer_the_letter_and_the_rows_it_carries():
+def test_the_docstrings_describe_the_letter_and_the_rows_it_carries():
     """#717, S7 for the code's own prose (contract rule 14). The stamp
-    module's docstring detracers the letter and the twin's characters rather
+    module's docstring describes the letter and the twin's characters rather
     than a rope and golds; the gate's module docstring and `panel`'s row
     diagram list the rows the panel carries now; the comment above
     `SAMPLE_ROWS` says which rows left. #832, the owner's frame and layout

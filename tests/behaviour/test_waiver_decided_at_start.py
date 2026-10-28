@@ -693,7 +693,7 @@ def test_the_framers_acts_are_gather_judge_plan():
     """S11. Judging was in none of the four acts, and both framers spawned in
     the release that found this judged anyway, because the spawn prompt asked.
 
-    A definition that detracers collecting and not deciding rewards a framer
+    A definition that describes collecting and not deciding rewards a framer
     for stopping people. The act is named, and the grounds requirement rides
     with it — a judgment whose grounds nobody can open is not reviewable.
     """
