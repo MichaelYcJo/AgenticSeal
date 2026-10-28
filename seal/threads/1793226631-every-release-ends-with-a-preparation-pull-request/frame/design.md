@@ -264,14 +264,20 @@ line, the header row, the delimiter row and one placeholder row.
   from: Its hygiene checks fail until step 4 is squashed in, by design. Then
     they go green without a push.
   to: **The orchestrator opens the release pull request, and the owner's one
-    act at a release is its merge.** The version moved in the release's
-    first pull request, so no pull request comes between the last work item
-    and this one. The orchestrator opens it with the first work item pull
-    request into `release/vX.Y.Z` that finds none open, and leaves it open.
-    Its milestone check fails while the milestone claims an issue the branch
-    does not carry, by design, and goes green on the push that merges the
-    last one.
+    required act at a release is its merge.** The reads below and the boxes
+    of step 6 are reports that fail nothing. The version moved in the
+    release's first pull request, so no pull request comes between the last
+    work item and this one. The orchestrator opens it with the first work
+    item pull request into `release/vX.Y.Z` that finds none open, and leaves
+    it open. Its milestone check fails while the milestone claims an issue
+    the branch does not carry, by design, and goes green on the push that
+    merges the last one.
     check: tests/github/test_release_completeness_check.py
+- change
+  file: docs/release-checklist.md
+  section: 5. The release pull request
+  from: check: none reader: the owner at release preparation
+  to: check: none reader: the owner before the release pull request's merge
 - change
   file: docs/release-checklist.md
   section: What a release pull request is held to
