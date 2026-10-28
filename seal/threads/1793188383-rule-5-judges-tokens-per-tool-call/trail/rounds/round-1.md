@@ -13,9 +13,9 @@ the branch at that commit. The base runs used the same clone at `8a1173c8`.
 ### 1. Rule 5's `1e-9` term has no case: deleting it leaves every case green
 
 severity: should
-location: `tests/evals/test_noninferiority.py:1588`, `evals/scripts/noninferiority.py:898`
+location: `tests/evals/test_noninferiority.py:1588`, `evals/scripts/noninferiority.py:898`, `seal/threads/1793188383-rule-5-judges-tokens-per-tool-call/trail/phases/phase-1.md:109-134`
 evidence: executed `bin/seal mutate evals/scripts/noninferiority.py --replace "bar = 1 + TOKEN_MARGIN + 1e-9" "bar = 1 + TOKEN_MARGIN" --replace "    if new_t > old_t * bar and new_t * old_c > old_t * new_c * bar:" "    if False:" --tests "bin/test tests/evals/test_noninferiority.py -q -p no:xdist -k 'Test_verdict or Test_check_record'" --timeout 600`, `bin/seal mutate evals/scripts/noninferiority.py --replace "    if new_t > old_t * bar and new_t * old_c > old_t * new_c * bar:" "    if False:" --replace "bar = 1 + TOKEN_MARGIN + 1e-9" "bar = 1 + TOKEN_MARGIN" --tests "bin/test tests/evals/test_noninferiority.py -q -p no:xdist -k 'exactly and margin'"`, `bin/seal mutate evals/scripts/noninferiority.py --replace "bar = 1 + TOKEN_MARGIN + 1e-9" "bar = 1 + TOKEN_MARGIN" --tests "bin/test tests/evals/test_tmp_rule5_epsilon_case.py -q -p no:xdist"`
-verdict: open
+verdict: fixed a0fc6988
 
 The phase 1 record claims that every unit added has a case behind it. Its
 mutant table turns `+ 1e-9` into `- 1e-9` and shows S5 go red. That mutant
@@ -57,7 +57,7 @@ see it green.
         assert NI.verdict(numbers(old_tokens=100, new_tokens=113)) == ("pass", [])
 ```
 
-answer:
+answer: The finding holds. `a0fc6988` adds the round's case, unchanged, to `Test_verdict` as `test_passes_a_figure_exactly_at_a_margin_whose_float_falls_short` (`tests/evals/test_noninferiority.py:1594-1601`). It passed against the tree (executed, `bin/test tests/evals/test_noninferiority.py -q -p no:xdist -k test_passes_a_figure_exactly_at_a_margin_whose_float_falls_short`, exit 0). It went red with the term deleted before it was committed (executed, `bin/seal mutate evals/scripts/noninferiority.py --replace "bar = 1 + TOKEN_MARGIN + 1e-9" "bar = 1 + TOKEN_MARGIN" --tests "<the same command>"`, verdict red, exit 0); the mutated file had no uncommitted change. The fix also went to a path `location:` did not name, which is appended: `aa768a6b` rewrites phase 1's claim that each unit added has a case behind it, so that it names the `1e-9` as the unit that had none and the case that now pins it. The code is unchanged, so `changelog.md` is unchanged.
 
 ## Confirmations
 
