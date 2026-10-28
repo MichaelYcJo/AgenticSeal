@@ -7,8 +7,10 @@ judge a switch or a creation before it happens, so the worktree guard reads
 the command. *Decided before git runs* says a hook can only take a creation
 back after git made it, and a take-back cannot undo all of it, so the guard
 decides a creation before git runs. The manual does not state these facts.
-Phase 1 of #692 measured them on git 2.34.1, 2.39.5, 2.43.0 and 2.50.1
+Phase 1 of #692 measured the switch and a creation's take-back on git
+2.34.1, 2.39.5, 2.43.0 and 2.50.1
 (`c7f4ed67:seal/specs/1790815613-a-gate-decides-at-the-moment-of-the-action-not-from-the-text/phases/phase-1.md`).
+What a take-back cannot undo was found in round 1 of #692, on 2.50.1 only.
 This file pins them against whatever git runs the suite, so a git release
 that changes one of them turns a case red instead of silently changing what
 the two rules rest on.
@@ -23,14 +25,17 @@ branch-naming rebase reach the hook the same way. If a future git refuses a
 switch before the tree moves, a case goes red, and the guard's reading of
 the command can be weighed against a hook again.
 
-The four creation cases pin *Decided before git runs*:
+The four creation cases pin *Decided before git runs*, and with it the
+creation half of *Which tree*:
 `test_a_refused_creation_leaves_no_worktree_and_keeps_its_branch`,
 `test_post_checkout_tells_a_creation_from_a_switch_and_runs_in_the_tree`,
 `test_post_checkout_can_take_back_a_fresh_worktree` and
 `test_what_a_take_back_cannot_undo`. A creation reaches a hook only once git
 has made it. `post-checkout` can take it back, but a branch that `-b` made
 stays, `-B` has already reset an existing branch, and `--no-checkout` runs
-no `post-checkout` at all.
+no `post-checkout` at all. The first two cases are the creation facts
+*Which tree* rests on, so a change that retires *Decided before git runs*
+keeps them.
 
 Every repository here sets `core.hooksPath` to its own absolute hooks
 directory, so a person's global hooks never run in these cases.
@@ -170,8 +175,10 @@ def test_no_git_refuses_a_switch_before_the_tree_moves(tmp_path, words, ref):
     assert (d / "marker.txt").read_text(encoding="utf-8") == "other\n", (
         f"git {verb} left the tree on `main` after reference-transaction "
         "refused it: this git refuses a switch before the tree moves, which "
-        "phase 1 of #692 found no git doing. The design's switch arm may now "
-        f"be buildable as framed.\nhook log:\n{text}"
+        "phase 1 of #692 found no git doing. The guard's reading of the "
+        "command can be weighed against a hook again "
+        "(docs/worktree-guard-spec.md *Which tree*).\n"
+        f"hook log:\n{text}"
     )
     if head_lines:
         # 2.50.1: the HEAD symref line arrives, after the tree moved.
