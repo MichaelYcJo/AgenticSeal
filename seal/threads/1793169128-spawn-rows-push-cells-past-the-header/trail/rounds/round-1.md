@@ -9,7 +9,7 @@ target: dbf9f2ef against 977b6613
 severity: should
 location: `seal/threads/1793169128-spawn-rows-push-cells-past-the-header/changelog.md:3`, `seal/threads/1793169128-spawn-rows-push-cells-past-the-header/gaps.md:5-8`
 evidence: read `seal/threads/1793169128-spawn-rows-push-cells-past-the-header/changelog.md:3`, `seal/threads/1793169128-spawn-rows-push-cells-past-the-header/gaps.md:5-8`, `skills/verify/scripts/session_cost.py:2244-2246`, `tests/skills/test_session_cost.py:3297-3298`
-verdict: open
+verdict: fixed 2752c754
 
 The changelog fragment says: "Before, a `subagent_type` longer than the
 column pushed every cell of its row to the right". The opening paragraph of
@@ -48,7 +48,7 @@ number for the next. The label is now cut to the column, and each cell
 stays under its header whatever the name.
 ```
 
-answer:
+answer: The finding holds: `vercel:performance-optimizer` is 28 characters, under the 30-character column, and it overflowed at the base because `cycle 1  ` takes 9 of the 30. Both paste-ready texts are applied as written, in `changelog.md:3` and `gaps.md:5-9`. A `git grep` of the branch for the threshold found no other place that puts it on the name alone. `frame/design.md:4` says "longer than the column allows", which this round judged correct, and the file is the framer's. `frame/plan.md:70` states the 21-character basename threshold. `skills/verify/scripts/session_cost.py:2240` and `tests/skills/test_session_cost.py:3286` state it of the label. `trail/phases/phase-1.md` states no threshold.
 
 ## Confirmations
 
