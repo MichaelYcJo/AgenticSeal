@@ -153,9 +153,10 @@ Where your fix changed none of the paths `location:` lists, append the one
 it did change after `, ` and name it in `answer:`. Once the fixes are
 committed, find every other place stating each rule your range reworded or
 removed, by `git grep` and its `check:` target, and correct each or say in
-the hand-back why it stands (rule 12). Then commit the `verdict:` and
-`answer:` lines of every finding you answered in one commit for the whole
-pass, after your last fix commit and its corrections.
+the hand-back why it stands (rule 12). Last, after your last fix commit and
+its corrections, write the `verdict:` and `answer:` lines of every finding
+you answered, and do not commit them: the orchestrator commits the round
+record as you left it.
 check: tests/text/test_a_moved_rule_leaves_its_definition.py
 
 **The chain ends at a pull request, never a merge.** Verification and review

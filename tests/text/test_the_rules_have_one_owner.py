@@ -146,6 +146,16 @@ RULES = {
         "answers, and its fix-pass prompt leaves both lines to the crafter.",
         {},
     ),
+    # #1041, the owner's answer of 2026-10-28: issue #1041 *Done when*
+    # bullet 1 gives the commit of the fix pass's two lines to the
+    # orchestrator, which makes it before the verifying round reads them.
+    "20 the orchestrator commits the round record the fix pass left": (
+        ORCH,
+        "On the hand-back the orchestrator commits the round record as the fix "
+        "pass left it, in one commit for the whole pass, before it spawns the "
+        "verifying round, and changes none of its lines.",
+        {},
+    ),
 }
 
 
@@ -186,15 +196,22 @@ def test_the_fix_pass_reads_the_implementers_context_before_it_resumes():
         "the largest value of its `context` column",
         "hands it the round record and the phase records",
         "the largest context a fresh, never-resumed crafter reached in the 0.22.0 run",
-        # #1041, S1: both lines of every finding in one commit for the pass,
-        # after the sweep's corrections, and a doubt goes to the next round
-        # rather than into a rewrite of the line.
-        "commits the two lines of every finding it answered in one commit for "
-        "the whole pass, after its fix commits and those corrections",
+        # #1041, S1: the fix pass writes both lines last, after the sweep's
+        # corrections, and commits neither, since the orchestrator commits
+        # them (rule 20); a doubt goes to the next round rather than into a
+        # rewrite of the line.
+        "Last, the fix pass writes the `verdict:` and `answer:` lines of every "
+        "finding it answered, after its fix commits and those corrections",
+        "and leaves the round record uncommitted",
+        "That commit holds `trail/rounds/round-N.md` alone.",
         "A close the orchestrator doubts goes into the verifying round's spawn prompt",
         "the orchestrator does not rewrite the line",
     ):
         assert said in section, f"the fix-pass section no longer says {said!r}"
+    assert "the fix pass commits the two lines" not in section, (
+        "the fix-pass section still has the fix pass commit its own two lines, "
+        "which the owner gave to the orchestrator on 2026-10-28"
+    )
     assert "Orchestrator: a fix pass resumes the implementer" not in text
     assert "never spawn a fresh one while that session still exists" not in text
 

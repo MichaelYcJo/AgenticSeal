@@ -75,9 +75,13 @@ a later round; that is contract rule 12. For each rule its range reworded or
 removed, the crafter finds every other place stating it, by its words and by
 the `check:` target that holds it, and corrects each or names it in the
 hand-back with why it stands. The round that follows reads that list against
-the diff. Last, the fix pass commits the two lines of every finding it
-answered in one commit for the whole pass, after its fix commits and those
-corrections, because a `fixed` verdict names a commit that already exists.
+the diff. Last, the fix pass writes the `verdict:` and `answer:` lines of
+every finding it answered, after its fix commits and those corrections,
+because a `fixed` verdict names a commit that already exists, and leaves the
+round record uncommitted. **On the hand-back the orchestrator commits the
+round record as the fix pass left it, in one commit for the whole pass, before
+it spawns the verifying round, and changes none of its lines.** That commit
+holds `trail/rounds/round-N.md` alone.
 
 **You type only the half of a spawn prompt that changes between rounds.**
 `skills/agent-contract/SKILL.md` reaches every agent you spawn at startup,
