@@ -27,10 +27,18 @@ nothing
 
 ## Fed back into the spec
 
-- Inferred during implementation: `seal pact` refuses at exit 2 every
-  refusal the table walk returns for a signer frame's anchor table, except
-  that the frame holds none, printed after `the frame`. A row the walk does
-  not reach would read as a signer citing nothing. `design.md` S8 names
-  three row shapes and `plan.md` a second table; neither names the walk's
-  own refusals. `docs/the-pact.md` *The pact anchor*'s `to:` text in
-  `## Rule changes` does not say it either, so the settle may add it.
+- Inferred during implementation, and narrowed by round 1's finding 1:
+  `seal pact` refuses at exit 2 every refusal the table walk returns for a
+  signer frame's anchor table, except that the frame holds none, printed
+  after `the frame`. A row the walk does not reach would read as a signer
+  citing nothing. Another table below the anchor table is no such row: a
+  line after the table's end that opens a table of its own, a header with
+  a blank line above it and a delimiter row of its width directly under
+  it, ends the walk with no refusal (`hooks/lib/config.py#gfm_table`'s
+  `beside`, set by the anchor reader alone). A frame's section holds other
+  tables, such as the policy table `templates/records/sdd-design.md`
+  writes under `## Grounding`. A second anchor table is still refused,
+  wherever it stands. `design.md` S8 names three row shapes and `plan.md`
+  a second table; neither names the walk's own refusals.
+  `docs/the-pact.md` *The pact anchor*'s `to:` text in `## Rule changes`
+  does not say it either, so the settle may add it.
