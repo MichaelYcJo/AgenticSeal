@@ -110,7 +110,7 @@ can re-run it, and each phase record names any reader it added or moved out.
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | Family A, R1 to R15, and any pair for R43 met there: one table row per reader in `trail/phases/phase-1.md`, each with its probe | Each row's probe command, exit code and output in the record, labelled executed (S2, S3, S4); `git status --porcelain` lists no probe (S9) | |
+| 1 | Family A, R1 to R15, and any pair for R43 met there: one table row per reader in `trail/phases/phase-1.md`, each with its probe | Each row's probe command, exit code and output in the record, labelled executed (S2, S3, S4); `git status --porcelain` lists no probe (S9) | a41783fd |
 | 2 | Family B, R16 to R24: rows in `trail/phases/phase-2.md`, with "base version; #913" on R16, R17 and R24 | As phase 1 | |
 | 3 | Family C, R25 to R31: rows in `trail/phases/phase-3.md` | As phase 1 | |
 | 4 | Family D, R32 to R43: rows in `trail/phases/phase-4.md`, the citation count and classification at `c825fd2c` (R34), the precision of #956's reader shape (R35), R36 under `questions.md` Q2, and the R37 measurement of `questions.md` Q4 | As phase 1, and S5: the R34 probe reports `.github/scripts/gather_changelog.py:43-44` before any classification | |
