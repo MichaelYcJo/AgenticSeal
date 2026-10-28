@@ -156,11 +156,13 @@ Out of scope, each with why:
 - **The fragments.** One function returns `[(work item id, body)]`: every
   path `seal/threads/<id>/changelog.md` that
   `git log --no-renames --diff-filter=A --name-only --format=` over the
-  range lists, each read at the newest commit of
-  `git log --format=%H <range> -- <path>` whose tree holds the path, the
-  body stripped, an empty body skipped, sorted by id. `--no-renames` keeps a
-  fragment from reading as a rename of an older one the settle deleted in
-  the same range.
+  range lists and the range's lower tag does not already hold, each read
+  at the newest commit of
+  `git log --full-history --format=%H <range> -- <path>` whose tree holds
+  the path, the body stripped, an empty body skipped, sorted by id.
+  `--no-renames` keeps a fragment from reading as a rename of an older one
+  the settle deleted in the same range. `--full-history` walks the release
+  branch behind a merge-commit tag, whose first parent never held the path.
 - **The theme.** One function reads the milestones through
   `gh api --paginate repos/<REPO>/milestones?state=all` and returns the
   description of the one titled `release: <version>`, or why there is none.
