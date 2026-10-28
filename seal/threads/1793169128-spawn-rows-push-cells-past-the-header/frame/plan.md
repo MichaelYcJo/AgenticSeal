@@ -82,8 +82,9 @@ agent each row was, and only for names that long.
 
 None for a deployer: no migration, no environment variable, no dependency,
 and no flag or JSON key changes. The `seal cost --spawns` page changes for a
-label longer than 30 characters, which is now cut. Every line under *what
-each cycle spawned* moves its description one column to the right. A script
+label longer than 30 characters, which is now cut. A line under *what each
+cycle spawned* moves its description one column to the right where its label
+fit the column, and to that same column where its label was longer. A script
 that parses that page by column would see the second change. None in this
 repository does: `git grep -c 'what each cycle spawned' -- tests` finds no
 match and exits 1 (executed).
