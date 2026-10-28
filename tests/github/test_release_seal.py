@@ -830,7 +830,7 @@ class Test_main:
 
 
 class Test_draw:
-    def test_copies_the_png_the_manifest_names_and_answers_its_width_over_density(
+    def test_accepts_the_png_the_manifest_names_copied_with_its_width_over_density(
         self, monkeypatch, tmp_path
     ):
         """#857 S7. Over a fixture tree whose `.claude-plugin/plugin.json`
@@ -854,6 +854,21 @@ class Test_draw:
         assert mod.draw(str(own)) == 256
         with open(os.path.join(ROOT, ".claude-plugin", "icon.png"), "rb") as handle:
             assert own.read_bytes() == handle.read()
+
+    def test_refuses_an_icon_that_is_not_a_png_and_writes_nothing(
+        self, monkeypatch, tmp_path
+    ):
+        """`draw` raises `Refused` naming the icon where the file the manifest
+        names does not open with the PNG signature, and leaves no file at the
+        path it was handed. `Test_main` holds the same refusal as the job's
+        `::warning::` line; this holds it at `draw` itself."""
+        mod = seal()
+        page_image(tmp_path, data=b"GIF89a" + bytes(30))
+        out = tmp_path / "seal.png"
+        monkeypatch.setattr(mod, "ROOT", str(tmp_path))
+        with pytest.raises(mod.Refused, match="is not a PNG"):
+            mod.draw(str(out))
+        assert not out.exists()
 
 
 class Test_module:
