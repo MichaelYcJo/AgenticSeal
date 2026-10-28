@@ -9,7 +9,7 @@ target: 5b7ab394 against c825fd2c
 severity: must
 location: `tests/text/test_a_language_section_of_writing_style_opens_alone.py:43-50`, `skills/writing-style/SKILL.md:268`
 evidence: executed `bin/test tests/text/test_a_language_section_of_writing_style_opens_alone.py -q`
-verdict: open
+verdict: fixed 5a590a2c
 
 The broad gate runs this module, so the branch cannot pass `seal gate` as it
 stands. Phase 2 appended `tests/behaviour/test_a_cited_section_stands_in_its_file.py`
@@ -39,14 +39,14 @@ WRITING_RULE_CHECKS = (
 )
 ```
 
-answer:
+answer: Held. Run alone at fa687320, the module failed with exit 1, the same failure. `WRITING_RULE_CHECKS[0]` now ends with the new module, and the module passes. Every module `git grep -l` names for the changed paths under `tests/` was run together: 1843 passed, 1 skipped, exit 0.
 
 ### 2. A citation in the `skill's` spelling is not read when the named skill is gone, though a path citation of a gone file is refused
 
 severity: should
 location: `tests/behaviour/test_a_cited_section_stands_in_its_file.py:55`, `tests/behaviour/test_a_cited_section_stands_in_its_file.py:93-97`, `tests/behaviour/test_a_cited_section_stands_in_its_file.py:348-392`
 evidence: read `tests/behaviour/test_a_cited_section_stands_in_its_file.py:55`, `tests/behaviour/test_a_cited_section_stands_in_its_file.py:93-97`, `tests/behaviour/test_a_cited_section_stands_in_its_file.py:199-204`
-verdict: open
+verdict: fixed 5a590a2c
 
 On this input the reader fails open where it could refuse. `cited_in`
 keeps a name citation only where `skills/<name>/SKILL.md` is tracked
@@ -90,7 +90,7 @@ In S5's fixture, append a blank line and then the line
 `("a.md", 20, "skills/unlisted/SKILL.md", "*Gone six*")` as the last
 expected dangling entry. The bare `` `unlisted` *Gone five* `` stays unread.
 
-answer:
+answer: Held, and fixed as written, with one change. With S5's new line and expectations in place before the reader change, S5 failed, exit 1 (`assert 9 == 10`). After the change the module passed, 27 passed with the pin module, exit 0. The change: S1 reads this module's own text. Once a `skill's` citation of an untracked skill is read, the fixture lines for `drafting` and `unlisted` in that spelling would be read as citations of real `skills/` paths, and S1 would fail on them. So `SPELLINGS` builds those names through `format`, and a `{d}` in backticks names no skill. `gaps.md` gains the divergence row against the frame's grammar table.
 
 ## Confirmations
 
