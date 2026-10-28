@@ -8,6 +8,7 @@ Seven facts stood in more than one file and two of them had already drifted, so 
 
 | Divergence | Spec says / code did | Chosen | Grounds |
 |---|---|---|---|
+| A reader outside the frame's list | `frame/design.md` names the stamp module as the one re-pointed reader of the gate prose. `test_first_setup_asks_once.py#test_the_gates_table_says_the_root_may_sit_under_the_git_dir` read every row whose last cell names `` `seal/` `` as a gate row, and the rewritten `seal/` row of the records table made it red | the case reads the gate table's rows alone | Contract rule 18: "When a check refuses code that is correct, fix the check or report the refusal" |
 
 ## Not verified
 
