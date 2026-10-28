@@ -85,7 +85,10 @@ import re
 import sys
 
 sys.path.insert(
-    0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "hooks")
+    0,
+    os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "..", "..", "hooks", "lib"
+    ),
 )
 import console
 
@@ -289,14 +292,14 @@ def insert(changelog_text, block, version):
 
     A released section reads as newer than everything under it, so a new one
     landing anywhere but the top inverts the order the file is read in — which
-    `tests/test_release_hygiene.py` has caught once already, from a rebase
+    `tests/behaviour/test_release_hygiene.py` has caught once already, from a rebase
     resolved the wrong way.
 
     Where the file already heads `version`, `block`'s heading is dropped and
     its entries go at the end of that section, before the next `## `, in the
     order the fragments came: the section is one release however many gathers
     wrote it, and `publish_release_note.py#section_body` reads one section.
-    `tests/test_release_hygiene.py` refuses a file that heads a version twice,
+    `tests/behaviour/test_release_hygiene.py` refuses a file that heads a version twice,
     so this arm is the one a red release pull request has to take.
     """
     lines = reader.gfm_lines(changelog_text)

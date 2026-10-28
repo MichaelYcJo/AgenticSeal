@@ -22,6 +22,22 @@ import tempfile
 
 import pytest
 
+# pytest's default `prepend` import mode puts a test file's own directory on
+# `sys.path` as it imports that file. A test file that imports a helper from
+# a test file in another directory under `tests/` would then find it only
+# where pytest happened to import that directory first, and never in a run
+# that names the importing file alone. So each directory under `tests/` that
+# holds a test file goes on the path here, before pytest imports a test file.
+_TESTS = os.path.dirname(os.path.abspath(__file__))
+for _directory, _subdirectories, _names in os.walk(_TESTS):
+    _subdirectories[:] = sorted(d for d in _subdirectories if d != "__pycache__")
+    if (
+        _directory != _TESTS
+        and _directory not in sys.path
+        and any(n.startswith("test_") and n.endswith(".py") for n in _names)
+    ):
+        sys.path.append(_directory)
+
 # The review run's documents: the record and the run, the hooks, the routing
 # check, and what each arm wants. A case that reads one of them for what is
 # THERE reads the one that holds the section; a case asserting what is NOT
@@ -197,7 +213,7 @@ def build_tracked_tree(d, files, deleted=()):
     `docs/release-checklist.md`, and the state `on_disk` below is about.
 
     A real `git init` rather than a directory of files, for the reason
-    `tests/test_the_pull_request_language_is_the_repositorys.py#test_the_templates_check_reads_prose_only_and_descends`
+    `tests/behaviour/test_the_pull_request_language_is_the_repositorys.py#test_the_templates_check_reads_prose_only_and_descends`
     already records: a fixture git never sees would report nothing and the
     case would pass having exercised nothing. `GIT_TEMPLATE_DIR` is emptied
     above, so the `git init` costs almost nothing.
@@ -232,7 +248,7 @@ def git_listing(root, *args, check=False):
     rather than `cwd=`, so the path the command acts on is written out.
 
     **The listing WORDS stay at the call site on purpose.**
-    `tests/test_a_shrunken_corpus_declines_to_judge.py` finds a scope that
+    `tests/behaviour/test_a_shrunken_corpus_declines_to_judge.py` finds a scope that
     derives a path list by the string constants the call itself names, so
     moving `ls-files` in here would take every one of those scopes out of the
     class it enumerates — the check going quiet on the very refactor that was
@@ -524,16 +540,21 @@ def _no_session_in_the_environment(monkeypatch):
 
 
 def load_hook_module(filename, name):
-    spec = importlib.util.spec_from_file_location(name, os.path.join(HOOKS, filename))
+    """The file at FILENAME under `hooks/`, a gate by its name and a module
+    as `lib/<name>`, run as a module named NAME. FILENAME is split on `/`, so
+    the path is joined from single segments on every platform."""
+    spec = importlib.util.spec_from_file_location(
+        name, os.path.join(HOOKS, *filename.split("/"))
+    )
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
 
 
-# `hooks/optin.py#MARKER`: a `seal/` is the plugin's root only where its
+# `hooks/lib/optin.py#MARKER`: a `seal/` is the plugin's root only where its
 # `README.md` opens with this line, so every helper below that builds a root
 # writes it.
-ROOT_MARKER = load_hook_module("optin.py", "agentic_optin_for_fixtures").MARKER
+ROOT_MARKER = load_hook_module("lib/optin.py", "agentic_optin_for_fixtures").MARKER
 
 
 def mark_root(home):
@@ -551,7 +572,7 @@ def mark_root(home):
 def run_hook(filename, payload, env=None):
     """Feed a hook the stdin JSON the harness would send; return its stdout."""
     r = subprocess.run(
-        [sys.executable, os.path.join(HOOKS, filename)],
+        [sys.executable, os.path.join(HOOKS, *filename.split("/"))],
         input=json.dumps(payload),
         capture_output=True,
         encoding="utf-8",
@@ -655,7 +676,7 @@ def ps_names_the_parent_or_skip(limit):
     """Skip unless `ps -o ppid=,comm= -p <pid>` names this process's parent.
 
     That call is how the hooks walk up to the `claude` process: the commit
-    gate's lease route and old spelling (`hooks/hooksession.py`) and the
+    gate's lease route and old spelling (`hooks/lib/hooksession.py`) and the
     worktree guard's count of other sessions. Git for Windows' `ps` takes no
     `-o`, so on a `windows-latest` runner every one of them finds nothing,
     and a case resting on the walk has no behaviour to pin there. LIMIT names
@@ -728,7 +749,7 @@ def posix_row_shell_or_skip():
 
     A case that only reads a REFUSAL needs none of this. `not_as_written` is
     a string test that reaches no shell, and the refusal is right on both
-    platforms — `templates/config.md` names what each shell does with the
+    platforms — `templates/setup/config.md` names what each shell does with the
     forms it lists.
     """
     try:
@@ -930,7 +951,7 @@ def texts():
 
 # --- the durations file prices the suite (#874) -------------------------------
 #
-# `tests/test_the_windows_leg_runs_in_shards_that_make_the_whole.py#
+# `tests/behaviour/test_the_windows_leg_runs_in_shards_that_make_the_whole.py#
 # test_the_durations_file_prices_the_suite` compares the suite's collection
 # with `.test_durations`, and on a shard the items a case can see are only the
 # shard's own: `pytest-split` replaces the list with the group.
@@ -1098,11 +1119,11 @@ TABLE = "# Repository config\n\n| Item | Value |\n|---|---|\n{rows}"
 
 @pytest.fixture
 def config():
-    return load_hook_module("config.py", "agentic_config_for_tests")
+    return load_hook_module("lib/config.py", "agentic_config_for_tests")
 
 
-# The config texts the reader's cases in `tests/test_config.py` and the
-# writer's in `tests/test_seal.py` both read. A row
+# The config texts the reader's cases in `tests/hooks/test_config.py` and the
+# writer's in `tests/skills/test_seal.py` both read. A row
 # that parses comes first in the piped table, because the walker stops at the
 # first line it refuses (#415, #871).
 PIPED_TABLE = (
@@ -1120,7 +1141,7 @@ PIPED_TABLE = (
 # fence IS closed turns it red.
 FENCED_ABOVE = (
     "# Repository config\n\n"
-    "An example of the format, copied out of `templates/config.md`:\n\n"
+    "An example of the format, copied out of `templates/setup/config.md`:\n\n"
     "```markdown\n"
     "| Item | Value |\n"
     "|---|---|\n"
@@ -1366,17 +1387,19 @@ BASELINE = "0123456789abcdef0123456789abcdef01234567"
 
 
 def parity_file(sha):
-    """`templates/parity.md` with its `Baseline commit` placeholder replaced
-    by SHA, or left standing where SHA is None."""
-    text = pathlib.Path(ROOT, "templates", "parity.md").read_text(encoding="utf-8")
+    """`templates/setup/parity.md` with its `Baseline commit` placeholder
+    replaced by SHA, or left standing where SHA is None."""
+    text = pathlib.Path(ROOT, "templates", "setup", "parity.md").read_text(
+        encoding="utf-8"
+    )
     assert text.count("`<SHA>`") == 1
     return text if sha is None else text.replace("`<SHA>`", f"`{sha}`")
 
 
 # --- the pact's world ---------------------------------------------------------
 #
-# `skills/verify/scripts/pact_check.py`'s cases in `tests/test_pact_check.py`
-# and the cases of `tests/test_config.py` that run it over a table the walker
+# `skills/verify/scripts/pact_check.py`'s cases in `tests/skills/test_pact_check.py`
+# and the cases of `tests/hooks/test_config.py` that run it over a table the walker
 # refuses share one world: the pact's repository, whose `seal/pact.md` carries
 # one clause committed as v1 and then v2 on `main` and v3 on a side branch HEAD
 # does not hold, and a signer beside it, which names the pact in its
@@ -1402,7 +1425,7 @@ PACT = "seal/pact.md"
 SPEC = "seal/threads/1790000000-x/frame/design.md"
 V1, V2, V3 = "id, total", "id, total, currency", "id, total, currency, tax"
 # The pact a signer's `Pact` row names in the reader's cases, and what
-# `hooks/config.py#pact_declaration` answers for it.
+# `hooks/lib/config.py#pact_declaration` answers for it.
 URL = PACT_URL
 ORDERS = [(URL, "example.com/org/orders-api", "orders-api")]
 
@@ -1443,7 +1466,7 @@ def init(d, url):
     git_out(d, "remote", "add", "origin", url)
 
 
-# The name `_template` commits by, as `tests/test_pact_check.py` imports it.
+# The name `_template` commits by, as `tests/skills/test_pact_check.py` imports it.
 commit = commit_everything_as_e
 
 
@@ -1677,7 +1700,7 @@ def write_transcript(root, session, entries, slug="-Users-x-repo"):
 
 # The texts other test files compare the guard's deny with, for the
 # tracked-changes row under the press (#894, work item 1791779434); the guard's
-# own cases are `tests/test_worktree_guard.py`'s.
+# own cases are `tests/hooks/test_worktree_guard.py`'s.
 TOKEN = {
     "en": "[shared-tree-ok] carries the user's answer to switch in this shared tree",
     "ko": "[shared-tree-ok] 가 공용 트리에서 전환한다는 사용자의 답을 담고 있어",
@@ -1739,9 +1762,9 @@ def dirty_deny(lang, lead):
 
 
 # #689: the chains where the order of the walk's two threads decided the
-# tree. The guard and the consent writer read through `hooks/cmdline_base.py`,
-# `86256492`'s reader frozen, so each judges the tree `86256492` judged, which
-# is the dirty `w` bash runs the command in. `{missing}` is never created and
+# tree. The guard and the consent writer read through
+# `hooks/lib/cmdline_base.py`, `86256492`'s reader frozen, so each judges the
+# tree `86256492` judged, which is the dirty `w` bash runs the command in. `{missing}` is never created and
 # `{other}` is a clean repository of its own.
 BASE_TREE_CHAINS = {
     # Round 3 of #689's report: past `STATE_CAP` the walk collapses, and the
@@ -1788,13 +1811,13 @@ def _a_dirty_w_under_a_clean_session(repo, tmp_path):
 
 # --- a work item's closing records, as the stamp's queue gates read them -------
 #
-# `tests/test_sealer_stamp_queue.py` writes them.
+# `tests/hooks/test_sealer_stamp_queue.py` writes them.
 
 STAMP_ITEM = "1799000000-an-item"
 
 
 def guarantee_record(target, base, verdict, earlier=""):
-    """A `guarantee.md` in `templates/sdd-guarantee.md`'s shape: its `Target
+    """A `guarantee.md` in `templates/records/sdd-guarantee.md`'s shape: its `Target
     SHA` row, with EARLIER after it, and one `Verdict:` line."""
     return (
         "# an item — guarantee\n\n| Field | Value |\n|---|---|\n"
@@ -1804,7 +1827,7 @@ def guarantee_record(target, base, verdict, earlier=""):
 
 
 def routing_record(branch="feat/x"):
-    """A `routing.md` in `templates/sdd-routing.md`'s shape, naming BRANCH in
+    """A `routing.md` in `templates/records/sdd-routing.md`'s shape, naming BRANCH in
     its `Branch` row, or with no `Branch` row where BRANCH is None."""
     rows = (
         "| Axis | Answer |\n|---|---|\n"
@@ -1959,7 +1982,7 @@ def korean_repo(tmp_path):
 
 
 # A spec's `## Rule changes` and the history `settle` reads, shared by
-# `tests/test_rule_changes.py`, `tests/test_settle.py` and the cases the two
+# `tests/skills/test_rule_changes.py`, `tests/skills/test_settle.py` and the cases the two
 # old settle files keep.
 
 

@@ -44,8 +44,8 @@ judged (`carried_by`). The arms are eight:
                 it touches only the work item's own directory
   original      where git carries `seal/parity.md` at HEAD and the pull
                 request changes a path outside the document roots
-                `hooks/gate.py#touches_code` reads: the config's `Baseline
-                commit` row names a SHA (`hooks/config.py#baseline_commit`),
+                `hooks/lib/gate.py#touches_code` reads: the config's `Baseline
+                commit` row names a SHA (`hooks/lib/config.py#baseline_commit`),
                 and one `original:` line naming it stands in every round
                 record under `Review | through the review chain`, and in
                 `guarantee.md` under `Review | straight to the PR`
@@ -98,12 +98,12 @@ if __name__ == "__main__":
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")
-HOOKS = os.path.join(HERE, "..", "..", "..", "hooks")
+HOOKS = os.path.join(HERE, "..", "..", "..", "hooks", "lib")
 ROUTING = os.path.join(HOOKS, "routing.py")
 
 TARGET = "Target SHA"
 BROAD_GATE = "Broad gate"
-# A thread's files, relative to its directory: `hooks/optin.py`'s `GATE`,
+# A thread's files, relative to its directory: `hooks/lib/optin.py`'s `GATE`,
 # `GUARANTEE`, `DESIGN` and `PLAN`, spelt here because this module loads
 # `routing` only inside the functions that are handed it.
 BROAD_GATE_FILE = "trail/gate.md"
@@ -1751,7 +1751,7 @@ NO_BASELINE = (
 
 
 def parity_readers():
-    """`(config, gate)`: `hooks/config.py` and `hooks/gate.py`, loaded by path.
+    """`(config, gate)`: `hooks/lib/config.py` and `hooks/lib/gate.py`, loaded by path.
     `gate.py` imports nothing since #1027, so the order no longer matters.
     Raises what `load` raises."""
     config = load(os.path.join(HOOKS, "config.py"), "agentic_config_for_parity")
@@ -1800,7 +1800,7 @@ def originals_of(reader, routing, root, paths, items, direct=()):
     through the review chain, and the `guarantee.md` of DIRECT, each
     declared `straight to the PR`, where git carries the migration config at
     HEAD and PATHS, this pull request's, reach outside the document roots;
-    `hooks/gate.py#touches_code` decides that, and paths git could not list
+    `hooks/lib/gate.py#touches_code` decides that, and paths git could not list
     reach outside them. A guarantee git does not carry is `guarantee`'s
     refusal, and none is added here. A config whose `Baseline commit` names
     no SHA is one refusal naming it. None where `hooks/` would not load,
@@ -1915,7 +1915,7 @@ def guarantee(reader, root, item, base):
                 rel,
                 0,
                 "git carries no guarantee file: the sealer writes it from "
-                "`templates/sdd-guarantee.md` after the orchestrator's broad run",
+                "`templates/records/sdd-guarantee.md` after the orchestrator's broad run",
             )
         ]
     problems = []

@@ -157,12 +157,13 @@ import sys
 import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-# Reading a command line is neither gate's property; `hooks/cmdline.py` owns
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
+# Reading a command line is neither gate's property; `hooks/lib/cmdline.py` owns
 # it. A plain filename means `sys.modules` deduplicates the import, which is
 # what the two gates loading each other by path could not do — see that
 # module's docstring for the 496 executions per hook event it cost.
 #
-# This guard reads through `hooks/cmdline_base.py`, the reader frozen at
+# This guard reads through `hooks/lib/cmdline_base.py`, the reader frozen at
 # `86256492`, and never chooses a segment or a tree through `cmdline.py` (#689;
 # the one question about kinds it asks that module is below, and `has_token`
 # has it take heredoc bodies out, #780): the splitter, `parse_git`,
@@ -176,7 +177,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import cmdline_base as cmdline
 import console
 
-# The wider reader, `hooks/cmdline.py`, under a name of its own so the binding
+# The wider reader, `hooks/lib/cmdline.py`, under a name of its own so the binding
 # above keeps meaning the frozen one. Since #826 it reads what the frozen reading
 # does not: the string a shell is handed, an `eval`'s argument, a substitution
 # body, and a git behind a redirection or a zsh precommand word (`shape_of`,
@@ -185,7 +186,7 @@ import console
 # directory the frozen walk placed that segment in (`_finding_tree`). A
 # string handed to a shell is not read for one. The import is guarded because
 # this guard's own rows do not need it:
-# a broken `hooks/cmdline.py` must not take the ACTIVE deny down with it, so
+# a broken `hooks/lib/cmdline.py` must not take the ACTIVE deny down with it, so
 # where it fails to load the bare word `git` in such a place is the finding
 # (`_BARE_GIT`) -- a broken reader costs a stop where the tree matters, never
 # a silence -- and `implementer-notice.py`'s own failure still names the
@@ -299,8 +300,8 @@ def walk_command(command: str, cwd: str, windows=None):
     possible places) and can hold one the reader could not compute. The caller
     decides what to do with that; see `main`.
 
-    The walk is `hooks/cmdline_base.py`'s, the reader frozen at `86256492`,
-    and never the wider one, `hooks/cmdline.py` (#689). `main` judges the first
+    The walk is `hooks/lib/cmdline_base.py`'s, the reader frozen at `86256492`,
+    and never the wider one, `hooks/lib/cmdline.py` (#689). `main` judges the first
     switch and the first creation, each in the first directory of its
     segment, so both which segments are git and the order of their
     directories pick the tree, and every way of ordering the wider reading
@@ -332,7 +333,7 @@ def split_command(command: str, windows=None):
     it answers "could this be classified" and NOT "was a retry token
     readable" -- `parses_cleanly` below answers that one, from the original.
 
-    The splitter is `hooks/cmdline.py`, owned by neither gate. This guard
+    The splitter is `hooks/lib/cmdline.py`, owned by neither gate. This guard
     learned the answer the expensive way twice: a regex that cut on `;` and
     `|` inside quotes as well turned `echo "step 1; git switch feature/x"`
     into a branch switch and denied an ordinary commit, and the same cut hid a
@@ -403,15 +404,15 @@ def has_token(command: str, token: str) -> bool:
     written in one passed a switch nobody answered, and a `[worktree-ok]`
     there lowered the single-stream deny to an ask.
 
-    Every one of those rules is `hooks/tokens.py#given`'s, the one reader of
+    Every one of those rules is `hooks/lib/tokens.py#given`'s, the one reader of
     a consent token (#868): this guard and the old spelling handed to the git
-    hooks split a command one way. Where `hooks/cmdline.py`
+    hooks split a command one way. Where `hooks/lib/cmdline.py`
     cannot load, or the body read raises for any other reason, the frozen
     reader's `drop_heredoc_bodies` finds the bodies instead, handed to
     `given` as its fallback: falling back to the command as written would
     bring #780 back whenever that module is broken, and reading no token at
     all would leave the single-stream creation deny with no way past (`plan.md`
-    G and H of work item 1791163981). Where `hooks/tokens.py` itself did not
+    G and H of work item 1791163981). Where `hooks/lib/tokens.py` itself did not
     load, no token is read, and the cost is the prompt the token would have
     spared.
     """
@@ -514,7 +515,7 @@ def only_creates_a_worktree(command: str, cwd: str, windows=None) -> bool:
          That is the trade this whole docstring already makes for `$` and
          `>`: a wrong silence leaves the call to the user's settings, a wrong
          allow signs for an arbitrary binary.
-         `tests/test_worktree_guard.py::Test_only_creates_a_worktree` pins
+         `tests/hooks/test_worktree_guard.py::Test_only_creates_a_worktree` pins
          members of each verdict group.
       2. no `ELSEWHERE` character in any token, which is the expansion and
          redirection family the first test does not reach.
@@ -1341,7 +1342,7 @@ def repo_paths(cwd: str):
             capture_output=True,
             encoding="utf-8",
             errors="replace",
-            # The same bound `hooks/optin.py` puts on the same species of
+            # The same bound `hooks/lib/optin.py` puts on the same species of
             # call. This one runs once per candidate directory and the reader
             # can hand it several, so an unresponsive path is a hook that
             # never decides — and a hook that never decides is a command that
@@ -2069,12 +2070,12 @@ def judge_creation(
 # HEAD's branch where it was. The count beside each is the distinct (command,
 # directory) pairs holding it in cut 1 / cut 2 of phase 1 of work item
 # 1791270162 (its `trail/phases/phase-1.md`, measurement M1: Bash tool uses before
-# 2026-10-03T11:06:22+09:00 / to 2026-10-06), the way `hooks/tokens.py`'s
+# 2026-10-03T11:06:22+09:00 / to 2026-10-06), the way `hooks/lib/tokens.py`'s
 # `PLAIN_GIT` carries its counts. A subcommand the corpus never recorded is
 # not here, on the owner's answer P1 (a): the list grows by a measured row,
 # never by a reading. Which ones leave the branch was read off what each
 # does (`frame/design.md` In 5), and one form of each row is run against git by
-# `tests/test_worktree_guard.py`'s
+# `tests/hooks/test_worktree_guard.py`'s
 # `test_accepts_no_listed_form_that_moves_head_under_git`; the case it was
 # rebuilt from found `rebase`'s branch-naming form in round 1 of work item
 # 1791270162.
@@ -2143,7 +2144,7 @@ LEAVES_THE_TREE = frozenset(
 # The bare word `git` in text the frozen reading does not read as a git
 # segment: a string handed to a shell, a substitution body, a command it
 # could not tokenize. `/usr/bin/git` and `$(git` hold it, `gitlab`, `.git/`
-# and `git-lfs` do not. This is also the whole test where `hooks/cmdline.py`
+# and `git-lfs` do not. This is also the whole test where `hooks/lib/cmdline.py`
 # fails to load, so a broken reader costs a stop and never a silence.
 _BARE_GIT = re.compile(r"(?<![\w.\-])git(?![\w.\-/])")
 
@@ -2196,7 +2197,7 @@ def _spoken(tokens) -> str:
     )
 
 
-# The redirection operators `hooks/cmdline.py`'s `_REDIRECTION` names, from
+# The redirection operators `hooks/lib/cmdline.py`'s `_REDIRECTION` names, from
 # their first `<` or `>` on (`&>` and `&>>` lose the `&` that `_plain_words`
 # reads as a head). A word ending in one of these takes the next word as its
 # target; any other text after the first `<` or `>` is a target glued on.
@@ -2347,7 +2348,7 @@ def _git_finding(tokens, parsed):
 def _eval_text(tokens) -> str:
     """The text `eval` would run, or "" where TOKENS is no `eval`.
 
-    `hooks/cmdline.py#command_strings` returns no string for `eval "git
+    `hooks/lib/cmdline.py#command_strings` returns no string for `eval "git
     switch x"` (W3 of work item 1791270162), so the word is found by
     `command_word`, past a redirection on the second reading, and past
     `builtin`."""
@@ -2438,7 +2439,7 @@ def _merged_findings(items):
     add ../wt b` is `git worktree` to the frozen reading and a creation to
     bash. `git status &>/dev/null` is listed either way.
 
-    Where `hooks/cmdline.py` did not load, or a reader in it raises, the cut
+    Where `hooks/lib/cmdline.py` did not load, or a reader in it raises, the cut
     is the finding (`_cut_unread`)."""
     if wide is None:
         return _cut_unread(items)
@@ -2825,7 +2826,7 @@ def stop_unrecognised(findings, trees, pressed, before_ask=None, switch_on_line=
     BEFORE_ASK runs on the `ask` path only, for the reason `choose` gives
     its own: the deny stops the whole line, while approving an ask runs every
     segment of it, so a creation on the same line is judged first
-    (`tests/test_worktree_guard.py`'s
+    (`tests/hooks/test_worktree_guard.py`'s
     `test_refuses_to_be_silent_where_the_writer_records`). A
     `git switch` on the line (SWITCH_ON_LINE) makes the stop a `deny` for
     the same reason: approving would run the switch past the rows of *A. Branch switch*, in a
@@ -3617,7 +3618,7 @@ def main():
 
 if __name__ == "__main__":
     # A console that cannot encode what this prints kills it with stdout
-    # empty, which is how a hook says "nothing to see here". `hooks/console.py`
+    # empty, which is how a hook says "nothing to see here". `hooks/lib/console.py`
     # owns the reasoning and the three decisions behind these lines.
     console.to_utf8()
     main()

@@ -24,6 +24,9 @@ current directory, is in.
   is the module's file name without `.py` and with each hyphen written as
   an underscore, and takes its parent directory's name before it where
   another tracked module outside `tests/` has the same stem
+  a file for a `.py` TARGET that does not stand in `tests/<area>/`, where
+  the area is TARGET's first directory with a leading dot dropped; a TARGET
+  under `tests/`, or with no directory, keeps its file at `tests/`
   a class `Test_<name>` naming no top-level definition of TARGET
   a class lacking a `test_accepts_` case or a `test_refuses_` case
   a file that declares TARGET and does not assign
@@ -87,7 +90,7 @@ file that keeps cases for a later group. It prints a line opening with
            through the names it reads in turn. A name that
            `from <module> import` brings, or that `<module>.<name>` reads
            after `import <module>`, where the module is any module
-           directly under `tests/`, a test file among them, is read where
+           under `tests/`, a test file among them, is read where
            that module defines it, in the same tree, so a helper moved
            unchanged into `tests/conftest.py` or into another test file
            passes. Both readings hold for an import made anywhere inside a
@@ -219,6 +222,18 @@ def file_name_for(target, shipped):
         if parent:
             stem = f"{parent}_{stem}"
     return f"test_{stem}.py"
+
+
+def _area(target):
+    """The directory, ending in `/`, that the test file for TARGET stands
+    in: `tests/<area>/`, the area TARGET's first directory with a leading
+    dot dropped, or `tests/` for a TARGET under `tests/` or with no
+    directory."""
+    first, _, rest = target.partition("/")
+    first = first.lstrip(".")
+    if not rest or first + "/" == TESTS:
+        return TESTS
+    return f"{TESTS}{first}/"
 
 
 def definitions(source):
@@ -373,6 +388,11 @@ def check(tests, tracked, read, every=False, peers=None):
             if posixpath.basename(rel) != expected:
                 refused.append(
                     f"refused: {rel}: the file for {target} is named {expected}"
+                )
+            area = _area(target)
+            if posixpath.dirname(rel) + "/" != area:
+                refused.append(
+                    f"refused: {rel}: the file for {target} stands in {area}"
                 )
             try:
                 defs = definitions(read(target) or "")
@@ -714,8 +734,8 @@ def _form(statement, name):
 
 class _Names:
     """One tree's side of the name condition. TREES is `{label: tree}` for
-    the old or new files under their paths and for every module directly
-    under `tests/`, test files among them, under its import name, which
+    the old or new files under their paths and for every module under
+    `tests/`, test files among them, under its import name, which
     MODULES lists."""
 
     def __init__(self, trees, modules):
@@ -802,7 +822,7 @@ class _Names:
         """What NODE, standing in the file or module LABEL and in CLS where it
         is a method, reads, as `(label, class or None, key, name)`: a name
         looked up in LABEL; `self.<name>` looked up in CLS; `<module>.<name>`,
-        where `import <module>` binds a module directly under `tests/`,
+        where `import <module>` binds a module under `tests/`,
         looked up in that module; and what an import inside NODE binds from
         such a module and NODE reads (`reads`), looked up in that module."""
         names, attributes, own, local = self.reads(node)
@@ -832,7 +852,7 @@ class _Names:
         counts once; an item whose name nothing binds records no form. A
         definition's own reads join TODO, so a name reached through a helper
         is compared itself, and a name imported by `from <module> import`
-        from a module directly under `tests/`, at the top of a file or inside
+        from a module under `tests/`, at the top of a file or inside
         a definition (`items`), is read where that module defines it."""
         found, seen = {}, set()
         while todo:
@@ -895,7 +915,7 @@ def moved(old, new, old_modules=None, new_modules=None):
 
     OLD is `{path: source}` of the old files at the base, NEW `{path:
     source}` of the new files in the working tree, and the two module maps
-    are `{import name: source}` of the modules directly under `tests/` in
+    are `{import name: source}` of the modules under `tests/` in
     each tree, test files and `conftest` among them where they are
     present. An old case holds where a case of the new files has its form
     (`_moved_form`), each new case standing for one old case, where the two
@@ -1030,18 +1050,19 @@ def _git(root, *args):
 
 
 def _test_modules(paths, read):
-    """`{import name: source}` for each of PATHS, `tests/<entry>` for each
-    entry directly under `tests/`, that is a module, a test file among them,
-    its source as READ gives it. pytest imports a test file directly under
-    `tests/` under its file name, so `from test_x import` in another file
-    reads that file's definition."""
+    """`{import name: source}` for each of PATHS, each a file at any depth
+    under `tests/`, that is a module, a test file among them, its source as
+    READ gives it. pytest imports a test file anywhere under `tests/` under
+    its file name, so `from test_x import` in another file reads that
+    file's definition; of two modules with one file name, the one nearer
+    `tests/` is read."""
     found = {}
-    for path in sorted(paths):
+    for path in sorted(paths, key=lambda p: (p.count("/"), p)):
         name = posixpath.basename(path)
         if name.endswith(".py"):
             source = read(path)
             if source is not None:
-                found[name[: -len(".py")]] = source
+                found.setdefault(name[: -len(".py")], source)
     return found
 
 
@@ -1073,14 +1094,16 @@ def _moved_main(root, base, olds, news):
         shown = _git(root, "show", f"{sha}:{path}")
         return shown.stdout if shown.returncode == 0 else None
 
-    listed = _git(root, "ls-tree", "--name-only", sha, TESTS).stdout.split("\n")
-    here = os.path.join(root, TESTS)
-    present = os.listdir(here) if os.path.isdir(here) else []
+    listed = _git(root, "ls-tree", "-r", "--name-only", sha, TESTS).stdout.split("\n")
+    present = []
+    for directory, subdirectories, names in os.walk(os.path.join(root, TESTS[:-1])):
+        subdirectories[:] = sorted(d for d in subdirectories if d != "__pycache__")
+        present += [rel(os.path.join(directory, name)) for name in names]
     lines = moved(
         old,
         new,
         _test_modules(listed, shown_at_base),
-        _test_modules([TESTS + name for name in present], lambda p: _read(root, p)),
+        _test_modules(present, lambda p: _read(root, p)),
     )
     python = _interpreter(root)
     holder = tempfile.mkdtemp(prefix="seal-layout-moved-")

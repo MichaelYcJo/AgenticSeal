@@ -8,7 +8,7 @@
 # from any directory in the repository or a worktree of it, and pytest runs
 # from the repository root. Arguments pass straight through:
 #   bin/test                                bin/test -q
-#   bin/test tests/test_session_cost.py -q  bin/test -k anchor
+#   bin/test tests/skills/test_session_cost.py -q  bin/test -k anchor
 #
 # Typed as `bin/test`, never as a bare `test`: `test` is a shell builtin, so
 # PATH never gets a say. That is the right outcome -- this one is for a clone
@@ -32,5 +32,5 @@ if [ ! -f "$script" ]; then
     printf '%s\n' "bin/test runs AgenticSeal's own test suite, and this copy of bin/ has no runner beside it. Run it from a clone of the AgenticSeal repository." >&2
     exit 2
 fi
-# Not through hooks/launch.py, alone of bin/: its docstring says why.
+# Not through hooks/lib/launch.py, alone of bin/: its docstring says why.
 exec python3 "$script" "$@"

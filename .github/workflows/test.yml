@@ -38,7 +38,7 @@ jobs:
       matrix:
         # The whole suite, at the stated floor on every platform. A newer
         # Python is not run here: `arms-grammar` below runs
-        # `tests/test_arm_check.py`, whose node-type tables are known to
+        # `tests/skills/test_arm_check.py`, whose node-type tables are known to
         # depend on the interpreter, at the versions it names. Whether any
         # other module's result depends on the interpreter has not been
         # measured.
@@ -110,10 +110,10 @@ jobs:
     timeout-minutes: ${{ matrix.timeout }}
     steps:
       # Not shallow. A case resolves a commit this repository's own records
-      # name -- `tests/test_the_frozen_reading_never_grows.py` shows
+      # name -- `tests/behaviour/test_the_frozen_reading_never_grows.py` shows
       # `86256492:hooks/cmdline.py` -- and at depth 1 the commit is missing
       # rather than wrong, so the case skips where it should have answered.
-      # `tests/test_ci_gives_the_checks_what_they_need.py` holds every job
+      # `tests/text/test_ci_gives_the_checks_what_they_need.py` holds every job
       # that runs pytest to the whole history.
       - uses: actions/checkout@v4
         with:
@@ -141,15 +141,12 @@ jobs:
       # markdown-it-py is the parser the suite's CommonMark oracle reads
       # (#667), pinned: `.github/scripts/run_tests.py#MARKDOWN_IT` is the one
       # place the version is chosen, and a case holds this line to it.
-      # Pillow draws the release seal and its pixel cases read it (#1009),
-      # pinned in `run_tests.py#PILLOW` and held to this line the same way, so
-      # the pin runs on all three operating systems.
       # cmarkgfm is GitHub's renderer, which the table walker's oracle reads
       # (#647), pinned in `run_tests.py#CMARKGFM` and held to this line too.
       # pytest-split divides the Windows and macOS legs into their shards
       # (#841, #864), pinned in `run_tests.py#PYTEST_SPLIT` and held to this
       # line the same way.
-      - run: pip install pytest pytest-xdist markdown-it-py==4.2.0 pillow==12.3.0 cmarkgfm==2025.10.22 pytest-split==0.11.0
+      - run: pip install pytest pytest-xdist markdown-it-py==4.2.0 cmarkgfm==2025.10.22 pytest-split==0.11.0
       - run: |
           git config --global user.email ci@ci
           git config --global user.name ci
@@ -235,7 +232,7 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - run: pip install pytest
-      - run: pytest tests/test_arm_check.py -q
+      - run: pytest tests/skills/test_arm_check.py -q
 
   # On a pull request into `main`, the release table: each agent's preload
   # bytes, the suite's seconds, each leg's minutes and each document's bytes

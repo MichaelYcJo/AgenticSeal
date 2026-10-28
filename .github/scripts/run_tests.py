@@ -63,16 +63,9 @@ oracle reads, so the hook readers are checked against a parser that shares
 nothing with them. It is test-only: nothing under `hooks/` or `skills/`
 imports it.
 
-A second is Pillow, pinned in `PILLOW` (#718). `.github/scripts/release_seal.py`
-draws the release's seal with it from the terminal stamp's cells when the
-tag push runs it (#1009), and the suite's pixel cases read the PNG it draws.
-It is test-and-release-only, on the same terms:
-nothing under `hooks/` or `skills/` imports it, and a plugin user installs
-nothing new.
-
-A third is `cmarkgfm`, pinned in `CMARKGFM` (#647): GitHub's own renderer,
+A second is `cmarkgfm`, pinned in `CMARKGFM` (#647): GitHub's own renderer,
 which `tests/gfm_table_oracle.py` reads to hold the table walker in
-`hooks/config.py` to what GitHub renders. Test-only, on the parser's terms.
+`hooks/lib/config.py` to what GitHub renders. Test-only, on the parser's terms.
 """
 
 import importlib.util
@@ -82,14 +75,19 @@ import subprocess
 import sys
 from pathlib import Path
 
-# The supported floor, read from `hooks/launch.py`, its one source. The
+# The supported floor, read from `hooks/lib/launch.py`, its one source. The
 # virtualenv is built and adopted against it. `bin/test` runs this file on
 # whatever `python3` it finds, not through the launcher, whose docstring says
-# why. Loaded by path, because `hooks/` is not on this file's `sys.path`.
+# why. Loaded by path, because `hooks/lib/` is not on this file's `sys.path`.
 _LAUNCH = importlib.util.spec_from_file_location(
     "agentic_launch_for_run_tests",
     os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "..", "..", "hooks", "launch.py"
+        os.path.dirname(os.path.abspath(__file__)),
+        "..",
+        "..",
+        "hooks",
+        "lib",
+        "launch.py",
     ),
 )
 _launch = importlib.util.module_from_spec(_LAUNCH)
@@ -107,19 +105,8 @@ FLOOR_TEXT = ".".join(str(part) for part in FLOOR)
 MARKDOWN_IT_VERSION = "4.2.0"
 MARKDOWN_IT = f"markdown-it-py=={MARKDOWN_IT_VERSION}"
 
-# The imaging library the release seal is drawn with (#718, #1009), and
-# which the suite's pixel cases read it with. Pinned for the parser's
-# reason: the pixel cases compare what one version draws and decodes.
-# Test-and-release-only: the gates stay stdlib-only, and the `seal` job
-# installs it to run the suite at the tag and to draw the seal.
-# `.github/workflows/test.yml`,
-# `.github/workflows/publish-release.yml` and `CONTRIBUTING.md`'s fallback
-# carry the same string, and a case holds each to this one.
-PILLOW_VERSION = "12.3.0"
-PILLOW = f"pillow=={PILLOW_VERSION}"
-
 # GitHub's own renderer, cmark-gfm, through its `cmarkgfm` binding: the oracle
-# `hooks/config.py#gfm_table` is held to (`tests/gfm_table_oracle.py`, #647).
+# `hooks/lib/config.py#gfm_table` is held to (`tests/gfm_table_oracle.py`, #647).
 # Pinned for the parser's reason -- a renderer that moved under the suite would
 # move every verdict of the walker's property case with it -- and test-only on
 # the same terms: nothing under `hooks/` or `skills/` imports it. The version
@@ -143,9 +130,9 @@ PYTEST_SPLIT = f"pytest-split=={PYTEST_SPLIT_VERSION}"
 
 # What a built environment holds. `pytest-xdist` is here because the suite
 # runs `-n auto` by default (#337): a build without it is the build whose
-# first call refused the flag. The parser is here for the oracle above,
-# Pillow for the seal's pixel cases, and cmark-gfm for the table walker's.
-PACKAGES = ("pytest", "pytest-xdist", MARKDOWN_IT, PILLOW, CMARKGFM)
+# first call refused the flag. The parser is here for the oracle above, and
+# cmark-gfm for the table walker's.
+PACKAGES = ("pytest", "pytest-xdist", MARKDOWN_IT, CMARKGFM)
 
 
 def repo_root():
@@ -293,51 +280,6 @@ def add_markdown_it(venv):
             "or no pytest-xdist -- stops at collection and runs no case. "
             "Remove that directory and run bin/test again to build it afresh "
             "with the parser in it."
-        )
-    return None
-
-
-def has_pillow(venv):
-    """True when `venv` holds the pinned Pillow: its own versioned
-    `.dist-info` directory under site-packages, for `has_markdown_it`'s
-    reason -- the pin is the point -- and filesystem only, for `has_xdist`'s.
-    Pillow's wheels name it `pillow-<version>.dist-info`, lower case."""
-    name = f"pillow-{PILLOW_VERSION}.dist-info"
-    return any((site / name).is_dir() for site in site_packages(venv))
-
-
-def add_pillow(venv):
-    """Install the pinned Pillow into `venv` where it is missing. Returns a
-    sentence, or None when the environment has it.
-
-    `add_markdown_it`'s shape: an adopted `.venv` built before #718 has no
-    Pillow, and it is repaired rather than refused. What a failed install
-    costs is narrower than the parser's: the seal's pixel cases import
-    Pillow inside each case rather than at module level, so those cases fail
-    with a `ModuleNotFoundError` and every other case runs, in parallel and
-    serially alike.
-    """
-    if has_pillow(venv):
-        return None
-    uv = shutil.which("uv")
-    if uv:
-        step = [uv, "pip", "install", "--python", str(venv_python(venv)), PILLOW]
-    else:
-        step = [str(venv_python(venv)), "-m", "pip", "install", "--quiet", PILLOW]
-    print(
-        f"bin/test: adding {PILLOW} to {venv}. Pillow draws the release seal, "
-        "and the release seal's pixel cases read what it draws. This run pays "
-        "for it; every run after it finds it there.",
-        file=sys.stderr,
-    )
-    if subprocess.run(step).returncode != 0:
-        return (
-            f"bin/test: could not install {PILLOW} into {venv} (the command "
-            "above exited non-zero). Only the release seal's pixel cases "
-            "import it, so those cases fail with a ModuleNotFoundError and "
-            "every other case runs. Remove that "
-            "directory and run bin/test again to build it afresh with Pillow "
-            "in it."
         )
     return None
 
@@ -647,11 +589,6 @@ def main(argv=None):
     parser_problem = add_markdown_it(root / ".venv")
     if parser_problem:
         print(parser_problem, file=sys.stderr)
-    # The seal's renderer (#718). Its failure is a sentence too, and it costs
-    # the one case that imports it; it decides nothing about `-n auto`.
-    pillow_problem = add_pillow(root / ".venv")
-    if pillow_problem:
-        print(pillow_problem, file=sys.stderr)
     # The table walker's renderer (#647). The parser's terms: a sentence, and
     # pytest is still called; it decides nothing about `-n auto`.
     renderer_problem = add_cmarkgfm(root / ".venv")

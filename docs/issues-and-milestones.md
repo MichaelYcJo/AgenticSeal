@@ -55,7 +55,7 @@ rolled from* gives below.
 performance log whose body is the current state, and the open
 `flow-measurement` issue is this version's rolling log. Neither has a done
 condition, so neither closes, so the milestone does not either.
-check: tests/test_a_release_is_sized_by_a_criterion.py
+check: tests/behaviour/test_a_release_is_sized_by_a_criterion.py
 
 ## A label answers *what it is about*, and survives the move
 
@@ -93,7 +93,7 @@ listing could not answer rolls the log and says the count was unreadable.
 measurement to by that key. Reading `--label flow-measurement --state all`
 finds the rolling logs and misses `#51`; reading `--label measurement` finds
 everything and answers no lookup.
-check: tests/test_roll_flow_measurement_issue.py
+check: tests/github/test_roll_flow_measurement_issue.py
 
 **A rolling log is titled after the version it rolled from**, in the form
 `chore: flow measurement — after 1.2.3`. That log opened at the 1.2.3
@@ -176,7 +176,7 @@ the answer durable without making it a gate anybody has to satisfy.
 **What it does not decide is which release the ticket lands in.** The criterion
 answers *now or not now*; ordinary scheduling answers the rest, and a ticket
 without the label can still be the next thing somebody picks up.
-check: tests/test_a_release_rolls_the_flow_measurement_issue.py
+check: tests/behaviour/test_a_release_rolls_the_flow_measurement_issue.py
 
 ## Closing one of these by hand breaks the next release
 
@@ -246,7 +246,7 @@ Three things about it are worth knowing before anyone tidies it.
   missing label only **reports**, because a release must not be held for a
   failure of the signal rather than of its contents.
 
-check: tests/test_label_merged_on_release_branch.py
+check: tests/github/test_label_merged_on_release_branch.py
 
 ## A keyword claims the one number after it
 
@@ -268,7 +268,7 @@ does, is not an instance of it.
 The prose around those spans keeps its keywords out for the same reason. A
 past-tense narrative keyword is still a keyword, so a sentence that used one
 with a second number beside it would earn the warning like any body.
-check: tests/test_a_body_naming_two_issues_claims_one.py tests/test_issue_claims_check.py
+check: tests/behaviour/test_a_body_naming_two_issues_claims_one.py tests/github/test_issue_claims_check.py
 
 **A keyword inside a fence or a code span claims nothing, whatever the fence
 or the span is made of.** A fence opens with backticks or tildes at any
@@ -283,7 +283,7 @@ whether GitHub reads a keyword inside one is unmeasured.
 `.github/scripts/issue_claims_check.py` imports the closer's two patterns
 rather than spelling its own, so the check and the closer read one body the
 same way.
-check: tests/test_close_issues_on_release.py
+check: tests/github/test_close_issues_on_release.py
 
 ## An issue is its body and its comments together
 

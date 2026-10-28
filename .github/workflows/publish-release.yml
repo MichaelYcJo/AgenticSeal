@@ -21,8 +21,9 @@ name: publish the release note
 # the release in this run (`created` is its output; a re-pushed tag or a full
 # re-run finds a release already there and writes `false`, and a re-run of
 # `seal` alone keeps `true` and meets the glance-table guard instead). It
-# runs the suite at the tag, draws the seal with Pillow from the terminal
-# stamp's own cells (#1009), attaches it as `seal.png`, and replaces the
+# runs the suite at the tag, attaches the page form of the stamp's mark, the
+# PNG `.claude-plugin/plugin.json` names as its `icon` (#857), as
+# `seal.png`, and replaces the
 # note's glance table with the image and one line of the table's counts
 # (`.github/scripts/release_seal.py`). Every step of it is
 # `continue-on-error`, and every failure the script meets is a log line and a
@@ -92,15 +93,12 @@ jobs:
         continue-on-error: true
         with:
           python-version: '3.12'
-      # The suite's packages and Pillow, at the versions
+      # The suite's packages, at the versions
       # `.github/scripts/run_tests.py` pins; a case holds this line to them.
       # cmarkgfm is among them since #647: the table walker's case imports it.
-      # Pillow also draws the seal (#1009). The suite's pixel cases import
-      # it too, so where this step fails the suite at the tag fails, and the
-      # draw's `::warning::` names the suite's outcome rather than Pillow.
-      - name: install the suite's packages and Pillow
+      - name: install the suite's packages
         continue-on-error: true
-        run: pip install pytest pytest-xdist markdown-it-py==4.2.0 pillow==12.3.0 cmarkgfm==2025.10.22
+        run: pip install pytest pytest-xdist markdown-it-py==4.2.0 cmarkgfm==2025.10.22
       # `test.yml`'s ubuntu leg, with the broad gate's recorder loaded as the
       # gate loads it (`broad_gate.recording_env`): its directory on
       # `PYTHONPATH`, `-p` in `PYTEST_ADDOPTS`, the directory it writes in and

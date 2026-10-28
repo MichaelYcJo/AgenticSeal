@@ -57,7 +57,7 @@ back to the decision six months later.
 
 **What stays English whatever it says**, because these are read literally
 rather than by a person: every field name, section heading and vocabulary
-word the checkers match, listed in `templates/config.md` under *What no row
+word the checkers match, listed in `templates/setup/config.md` under *What no row
 governs* — that list is derived from the checkers' own constants, so it
 cannot drift from them; `<!-- specs/<work-item-id> -->` and the other
 markers; a `drained` line and the `closed` that opens a closed row; and all
@@ -77,7 +77,7 @@ laid out by **lifetime**, not by who wrote it:
 | `seal/`, everything above `threads/` | Permanent | Everything this plugin maintains | Written and read by machines: the repository's config, the migration config, the follow-up list |
 
 A `specs/` the project kept before the plugin is neither root: it is a
-**reference root**, as `templates/config.md` *Reference specs* says — history
+**reference root**, as `templates/setup/config.md` *Reference specs* says — history
 read where the work touches what it describes, cited in `frame/design.md` where it was
 read, and never written by anything this skill produces.
 
@@ -86,7 +86,7 @@ three. (Labeling policies "for humans" would push sessions away from reading
 them, and policy outranks everything else when a repository has it.)
 
 `seal/` lives at one of two places, and its presence at either, with a
-`README.md` that opens with the marker `hooks/optin.py#MARKER` holds, is what
+`README.md` that opens with the marker `hooks/lib/optin.py#MARKER` holds, is what
 tells the gates this repository runs the workflow. **Every `seal/…` path in
 this plugin's skills and agents means `<repo>/seal/` where that directory
 exists with the marker, and
@@ -114,7 +114,7 @@ seal/
     ├── trail/gate.md             the one broad run, written by `seal gate --record`
     ├── changelog.md  this work item's entry in the next release's notes
     ├── gaps.md       the closing memo
-    └── guarantee.md  the sealer's verdict, from `templates/sdd-guarantee.md`
+    └── guarantee.md  the sealer's verdict, from `templates/records/sdd-guarantee.md`
 ```
 
 The review round records live beside the work item they are about, with the
@@ -340,12 +340,12 @@ without a registry — take it from `date +%s` when creating the directory.
 
 | File | Starts from | Written by | Holds | When |
 |---|---|---|---|---|
-| `routing.md` | `templates/sdd-routing.md` | the session that spawns the work, from the batch it asked — never a subagent, which has no way to put the question to anybody | the routing answer | before the first edit, and so before a framer is spawned |
-| `frame/design.md` | `templates/sdd-design.md` | the framer | WHAT — scope, mandatory user scenarios & acceptance, grounding clauses, the rule changes the settle writes into the policy root (`## Rule changes`), and the framer's mark at its foot, with a `Reframed … after round <N>.` line under it for each time the review chain sent the work item back (`docs/the-review-record.md` *The run* owns that rule) | before implementing |
-| `frame/plan.md` | `templates/sdd-plan.md` | the framer | HOW — phases as vertical slices, alternatives with failure scenarios; this is the Design Gate's artifact, and its `Approved <date> by <who>` line is the record that the gate happened | before implementing (gated work) |
-| `frame/questions.md` | `templates/sdd-questions.md` | the framer opens the rows; each row's `Who can answer` cell names who closes it | decisions only a human can make — extracted so nothing ships on a silent assumption | one batch before the first edit, then as they arise |
-| `gaps.md` | `templates/sdd-gaps.md` | the builder | the closing memo — one line of purpose, then what the diff cannot show (below) | opened at the first divergence, unverified item, or fed-back clause; closed when implementation ends |
-| `trail/phases/phase-N.md` | `templates/sdd-phase.md` | the builder | what this phase was asked and what building it found — never what the work removes, which the frame's `## Removes` names once, and never the commit or the one-line delivery description `plan.md`'s Status/Delivers cells already own | written when the phase closes |
+| `routing.md` | `templates/records/sdd-routing.md` | the session that spawns the work, from the batch it asked — never a subagent, which has no way to put the question to anybody | the routing answer | before the first edit, and so before a framer is spawned |
+| `frame/design.md` | `templates/records/sdd-design.md` | the framer | WHAT — scope, mandatory user scenarios & acceptance, grounding clauses, the rule changes the settle writes into the policy root (`## Rule changes`), and the framer's mark at its foot, with a `Reframed … after round <N>.` line under it for each time the review chain sent the work item back (`docs/the-review-record.md` *The run* owns that rule) | before implementing |
+| `frame/plan.md` | `templates/records/sdd-plan.md` | the framer | HOW — phases as vertical slices, alternatives with failure scenarios; this is the Design Gate's artifact, and its `Approved <date> by <who>` line is the record that the gate happened | before implementing (gated work) |
+| `frame/questions.md` | `templates/records/sdd-questions.md` | the framer opens the rows; each row's `Who can answer` cell names who closes it | decisions only a human can make — extracted so nothing ships on a silent assumption | one batch before the first edit, then as they arise |
+| `gaps.md` | `templates/records/sdd-gaps.md` | the builder | the closing memo — one line of purpose, then what the diff cannot show (below) | opened at the first divergence, unverified item, or fed-back clause; closed when implementation ends |
+| `trail/phases/phase-N.md` | `templates/records/sdd-phase.md` | the builder | what this phase was asked and what building it found — never what the work removes, which the frame's `## Removes` names once, and never the commit or the one-line delivery description `plan.md`'s Status/Delivers cells already own | written when the phase closes |
 
 The `Starts from` column is not decoration. A template that no shipped
 document names is a template a session cannot find: it reads *bootstrapped

@@ -48,6 +48,7 @@ import subprocess
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 import console
 import optin
 import routing
@@ -77,7 +78,7 @@ PRESS = (
 )
 PRESSED = PRESS + (
     "  1. Where this edit belongs to the work item the run was routed for, "
-    "write its declaration at `{hint}` from `templates/sdd-routing.md`, naming "
+    "write its declaration at `{hint}` from `templates/records/sdd-routing.md`, naming "
     "`{branch}`, and edit again.\n"
     "  2. Where it belongs to no work item, run `seal no-work-item` once on "
     "`{branch}`, and edit again."
@@ -85,7 +86,7 @@ PRESSED = PRESS + (
 PRESSED_DETACHED = PRESS + (
     "  1. Where this edit belongs to the work item the run was routed for, "
     "check out its branch in `{top}`, write its declaration at `{hint}` from "
-    "`templates/sdd-routing.md`, naming that branch, and edit again.\n"
+    "`templates/records/sdd-routing.md`, naming that branch, and edit again.\n"
     "  2. Where it belongs to no work item, check out a branch in `{top}`, "
     "run `seal no-work-item` once on it, and edit again; on a detached HEAD it "
     "records nothing."
@@ -96,13 +97,13 @@ ASK = (
     "*Orchestrator: how the work is routed* states. "
 )
 ATTENDED = ASK + (
-    "Then write the declaration at `{hint}` from `templates/sdd-routing.md`, "
+    "Then write the declaration at `{hint}` from `templates/records/sdd-routing.md`, "
     "naming `{branch}`, or, where they answer `no work item`, run "
     "`seal no-work-item` once on `{branch}`. Then edit again."
 )
 ATTENDED_DETACHED = ASK + (
     "Then check out a branch in `{top}`, and write its declaration at `{hint}` "
-    "from `templates/sdd-routing.md`, naming that branch, or, where they "
+    "from `templates/records/sdd-routing.md`, naming that branch, or, where they "
     "answer `no work item`, run `seal no-work-item` once on it, because on a "
     "detached HEAD it records nothing. Then edit again."
 )
@@ -202,7 +203,7 @@ def declaration_hint(top):
     """The declaration path a refusal tells a session to write, relative to
     `top` and spelled the way the platform spells it, as
     `hooks/implementer-notice.py` spells the same file: the root arrives
-    `normpath`ed (`hooks/optin.py`), so `os.path.join` keeps one dialect.
+    `normpath`ed (`hooks/lib/optin.py`), so `os.path.join` keeps one dialect.
 
     Under the root this repository resolves to: in local mode that root is
     under the git directory. A linked worktree on another Windows drive has no
@@ -292,7 +293,7 @@ def main():
 
 if __name__ == "__main__":
     # A console that cannot encode what this prints kills it with stdout
-    # empty, which is how a hook says "nothing to see here". `hooks/console.py`
+    # empty, which is how a hook says "nothing to see here". `hooks/lib/console.py`
     # owns the reasoning and the three decisions behind these lines.
     console.to_utf8()
     main()

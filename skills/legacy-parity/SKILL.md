@@ -27,7 +27,7 @@ check: none reader: the parity review
 ## The migration config
 
 A migrating repository commits `seal/parity.md`, written from
-`templates/parity.md`, which holds its fields. A machine-local checkout path
+`templates/setup/parity.md`, which holds its fields. A machine-local checkout path
 never goes in it: it lives in `~/.claude/agentic/parity-paths.md`, keyed by
 the origin remote URL, so worktrees and second checkouts resolve to one entry.
 
@@ -36,7 +36,7 @@ the current repository, then a check by `git remote -v` against the declared
 original. Where none resolves, the caller asks the user and records the
 answer, and a reader that cannot ask returns `original not found` with what it
 tried. A comparison against a guessed original proves nothing.
-check: tests/test_review_axes.py
+check: tests/text/test_review_axes.py
 
 ## Three-way judgment
 
@@ -95,7 +95,7 @@ equivalent  a different implementation, the same observable behavior
 unread      the original or the policy was not found: never a pass
 ```
 
-check: tests/test_the_record_is_written_in_words.py tests/test_review_axes.py
+check: tests/text/test_the_record_is_written_in_words.py tests/text/test_review_axes.py
 
 ## Recording the comparison
 
@@ -116,4 +116,4 @@ and raises an `unread` finding, and a sealer that could not compare writes a
 `withheld` verdict naming it (`agents/sealer.md`). A line for work nobody
 compared turns
 *nobody checked* into *someone checked and it was fine*.
-check: tests/test_review_axes.py
+check: tests/text/test_review_axes.py

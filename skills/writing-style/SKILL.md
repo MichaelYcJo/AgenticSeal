@@ -244,7 +244,7 @@ seal* 은 감사하는 쪽만 밝히고 감사받는 것은 밝히지 않는다.
 
 **이 문장은 보장이 아니다.** 규칙을 적어 두고 다시 깨진 사례가 일곱 건이며,
 고치는 것은 검사다. AgenticSeal 자신의 저장소에서는 `seal` 한 낱말만 검사가
-걸려 있고(`tests/test_one_word_one_meaning.py`), 남은 낱말을 훑어 찾는 일은
+걸려 있고(`tests/behaviour/test_one_word_one_meaning.py`), 남은 낱말을 훑어 찾는 일은
 #331 이다.
 
 ### 에이전트와 검사가 읽는 글은 한 가지로만 읽히게 쓴다
@@ -265,14 +265,14 @@ seal* 은 감사하는 쪽만 밝히고 감사받는 것은 밝히지 않는다.
 줄에서 거절되어야 한다. 조금 틀린 철자를 말없이 지나치는 검사는 그 줄을 읽지
 않은 것과 같다. 사례는 `plan.md` 의 승인 줄이다. 그 줄 뒤에 문장 하나를
 덧붙이자, 그 줄을 읽던 검사는 승인이 없다고 읽었다.
-check: tests/test_rules.py tests/test_rule_changes.py tests/test_censuses.py tests/test_the_agent_contract_holds_the_universal_rules.py
+check: tests/github/test_rules.py tests/skills/test_rule_changes.py tests/test_censuses.py tests/text/test_the_agent_contract_holds_the_universal_rules.py
 
 **저장소가 정의한 용어는 정의한 뜻으로만 쓰고, 같은 것을 다른 말로 바꿔 부르지
 않는다.** 한 대상을 두 낱말로 부르면 읽는 쪽은 둘을 다른 것으로 읽는다. 한
 낱말에 두 뜻을 실으면 어느 뜻인지 문장 밖에서 골라야 한다. 여럿이 가질 수 있는
 것은 위의 *여럿이 가질 수 있는 것은 누구 것인지 밝힌다* 를 따르고, 사례도 그
 절의 `seal` 이다.
-check: tests/test_one_word_one_meaning.py
+check: tests/behaviour/test_one_word_one_meaning.py
 
 **무엇을 하라는 문장은 누가, 언제, 어느 파일에서 하고 무엇이 되면 끝인지를
 밝히고, 그중 하나가 빠질 만큼 줄이지 않는다.** 하는 쪽은 orchestrator, framer,

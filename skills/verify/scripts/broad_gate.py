@@ -2,7 +2,7 @@
 """seal gate — the one broad run, taken once after the rounds settle.
 
 Issue #30. The CLAUDE.md block's **Verification Scope** rule
-(`templates/claude-md-block.md`) says the full suite, the
+(`templates/setup/claude-md-block.md`) says the full suite, the
 repository-wide lint and the typecheck run once, after the review rounds
 settle, and for three releases nobody was assigned that run: contract rule 2
 forbade it to the crafter and the proofer, and the orchestrator that took it by
@@ -136,8 +136,8 @@ import tempfile
 # --- where the pieces are ------------------------------------------------
 #
 # Resolved relative to this file, never to the caller's cwd, so the command
-# works from the plugin cache and from a clone alike. `hooks/config.py` is
-# loaded by path the way `chain_check.py` loads `hooks/routing.py`: it is the
+# works from the plugin cache and from a clone alike. `hooks/lib/config.py` is
+# loaded by path the way `chain_check.py` loads `hooks/lib/routing.py`: it is the
 # one reader of `seal/config.md`'s table, and a second reader that parsed the
 # table differently would answer a different question about the same file.
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -148,8 +148,8 @@ CHAIN = os.path.join(PLUGIN, "skills", "code-review", "scripts", "chain_check.py
 # `chain_check.SEALING`, the flag the chain arm passes (#866). Spelled here
 # because the arm runs the check as a process; a case holds the two equal.
 CHAIN_SEALING = "--sealing"
-CONFIG_READER = os.path.join(PLUGIN, "hooks", "config.py")
-OPTIN = os.path.join(PLUGIN, "hooks", "optin.py")
+CONFIG_READER = os.path.join(PLUGIN, "hooks", "lib", "config.py")
+OPTIN = os.path.join(PLUGIN, "hooks", "lib", "optin.py")
 
 CONFIG = "config.md"
 ROW = "Broad gate"
@@ -157,7 +157,7 @@ ROUND_RE = re.compile(r"^round-(\d+)\.md$")
 # The run's one record, in the work item's directory, and what separates its
 # newest run from the ones behind it. `chain_check.py` reads both by the same
 # spelling, and a case holds the two equal.
-# `hooks/optin.py#GATE` and `#ROUNDS`, under the thread. `GATE_FILE` takes the
+# `hooks/lib/optin.py#GATE` and `#ROUNDS`, under the thread. `GATE_FILE` takes the
 # check's `/` on every platform, and `write_gate_file` splits it on `/` so the
 # disk path it returns takes the platform's separator throughout.
 GATE_FILE = "trail/gate.md"
@@ -202,7 +202,7 @@ class Refused(Exception):
 def load(path, name):
     """Import a sibling script by path, or raise `Refused`: where the file is
     not there, and where executing it raises (#869) — `seal_stamp.py` reads
-    its disc's mark chart at import and raises `CHART_MALFORMED`'s sentence
+    its disc's mark sprite at import and raises `SPRITE_MALFORMED`'s sentence
     for one that is not in shape, which then ends the gate at exit 2 with
     that sentence and nothing run, rather than in a traceback. The
     exception's own sentence is what the person reads; one with none is
@@ -410,7 +410,7 @@ def redirect_line(root, shipped):
 # soon as the local ref falls behind — #423, where the gate passed a branch
 # green and CI refused the same commit.
 #
-# `tests/test_the_gate_asks_the_range_ci_will_ask.py` holds this spelling
+# `tests/behaviour/test_the_gate_asks_the_range_ci_will_ask.py` holds this spelling
 # against the workflow's, so the two readers cannot drift apart again in
 # silence.
 REMOTE_BASE = "refs/remotes/origin/{ref}"
@@ -593,7 +593,7 @@ def resolve_base(root, given):
          so that repository's `Broad gate` cell, its `BROAD GATE FAILED` line and the
          baselines the child checks quote back all name a hash where they
          named a branch. One assertion in
-         `tests/test_the_seal_is_taken_once_by_the_sealer.py` moved for it,
+         `tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py` moved for it,
          and this paragraph said *nothing about that run changes* until round
          1 measured it (finding 3).
 
@@ -632,7 +632,7 @@ def seal_home(root):
     """`<root>/seal/` where it is the root, else `<git-common-dir>/seal/`,
     else None — the two places every `seal/…` path in this plugin resolves
     to (contract rule 11), read in that order. Each is the root only where
-    `hooks/optin.py#marked` finds the marker, so a `seal/` the project keeps
+    `hooks/lib/optin.py#marked` finds the marker, so a `seal/` the project keeps
     for itself is never read for a command. The places and the marker are
     `optin`'s; the scratch opt-out is not read here, because a throwaway
     repository still runs its broad command when somebody asks for it."""
@@ -645,7 +645,7 @@ def seal_home(root):
 
 def config_text(home):
     """The root's `config.md` as text, or None where there is none or it
-    will not read: the text half of `hooks/config.py#config_text`, the one
+    will not read: the text half of `hooks/lib/config.py#config_text`, the one
     place the file is opened (#867). Every caller of this one runs after
     `broad_command`, which has already refused a file that will not read,
     so None here is a file that is not there."""
@@ -731,7 +731,7 @@ def refused_broad_row(home):
 
 # The line a walker sentence stopped at, between the backticks the walker
 # quotes it in, and the clause it ends on where rows are written below.
-# The sentences are `hooks/config.py#gfm_table`'s own, and this reads them
+# The sentences are `hooks/lib/config.py#gfm_table`'s own, and this reads them
 # rather than walking the table a second time (#871).
 STOPPED_AT = re.compile(
     r"(?:stops at|ends above|continues with) `(?P<line>.*)`, (?:which is not|"
@@ -828,7 +828,7 @@ def commented_row_at(home):
 def hidden_row_at(home, kind):
     """(index, line) for the first line naming this gate's row that the one
     reader hides as KIND, or (None, None). The kind is the reader's answer,
-    `hooks/config.py#hidden_lines`, never a walk of this file's own."""
+    `hooks/lib/config.py#hidden_lines`, never a walk of this file's own."""
     config = load(CONFIG_READER, "agentic_config_for_broad_gate")
     text = config_text(home)
     if text is None:
@@ -851,7 +851,7 @@ def fenced_row(home):
     indentation — or None.
 
     **The one question about a fenced line anybody asks, and this gate is the
-    only one that may ask it.** `hooks/config.py#unfenced` makes a fenced line
+    only one that may ask it.** `hooks/lib/config.py#unfenced` makes a fenced line
     invisible to the one walk of that table, which is what stops an example
     from being the command this gate runs (#429). It also makes a
     `Broad gate` line written only inside a fence look exactly like no row at
@@ -860,17 +860,17 @@ def fenced_row(home):
     about, arriving one shape over. So the line is found again here, on the
     refusal path alone.
 
-    Asked by THIS command and by nothing else. `hooks/config.py` and
+    Asked by THIS command and by nothing else. `hooks/lib/config.py` and
     `hooks/mode-gate.py` say nothing about a fence: a `PreToolUse` hook that
     prints is noise on every Bash call, where this command speaks once and
     only when it refuses.
 
     It reads the fence rule from the one reader and asks it which lines it
-    hid inside a fence — `hooks/config.py#hidden_lines`, which also hides a
+    hid inside a fence — `hooks/lib/config.py#hidden_lines`, which also hides a
     line in an HTML comment and says which it was (#667) — rather than
     walking the file by a rule of its own. A second fence rule written here
     would answer a different question about the same file, which is the split
-    `hooks/config.py` exists to prevent.
+    `hooks/lib/config.py` exists to prevent.
 
     **The line alone**, which is what a message quotes. `fenced_row_at` above
     is the same answer with the index beside it, for the one caller that has
@@ -945,7 +945,7 @@ def missing_row(home):
 
     **The second cause is a row written where no walk of that table reads
     it.** A `| Broad gate |` line inside a code fence is an example of the
-    format rather than this repository's own answer, and `hooks/config.py#
+    format rather than this repository's own answer, and `hooks/lib/config.py#
     unfenced` is what stops every walk from reading one (#429). That leaves
     the line looking exactly like no row at all, so the absent-row refusal
     below would send a person to write a row they can already see — the
@@ -990,7 +990,7 @@ def missing_row(home):
             "— not this gate's reader, not the mode gate's, and not "
             "`seal mode`'s writer. The row is not absent: it is written where "
             f"nothing reads it, and there is no command to run.\n{where}\n"
-            "`templates/config.md` *What is refused, and what stays allowed* "
+            "`templates/setup/config.md` *What is refused, and what stays allowed* "
             "is where the rule says so, and `/agentic:config` is the door to "
             "the file. Nothing ran."
         )
@@ -1012,7 +1012,7 @@ def missing_row(home):
             "commented out, and there is no command to run.\n"
             "If it is the command to run, take the row out of the "
             "comment and into the `| Item | Value |` table.\n"
-            "`templates/config.md` *What is refused, and what stays allowed* "
+            "`templates/setup/config.md` *What is refused, and what stays allowed* "
             "is where the rule says so, and `/agentic:config` is the door to "
             "the file. Nothing ran."
         )
@@ -1025,7 +1025,7 @@ def missing_row(home):
         "command here checks its own choice.\n"
         "Take it to whoever owns the repository. `/agentic:config` is where "
         f"they answer it — it shows every row and adds this one with its "
-        "section — and `templates/config.md` *The criterion for choosing "
+        "section — and `templates/setup/config.md` *The criterion for choosing "
         "a value* is what they choose against. Nothing ran."
     )
 
@@ -1085,7 +1085,7 @@ def walker_refusal(home, mine):
         )
     return (
         f"seal gate: {os.path.join(home, CONFIG)} {said}.\n{where}{escape}\n"
-        "`templates/config.md` *What is refused, and what stays allowed* is "
+        "`templates/setup/config.md` *What is refused, and what stays allowed* is "
         "where the rule says so, and `/agentic:config` is the door to the "
         "file. Nothing ran."
     )
@@ -1126,7 +1126,7 @@ def not_as_written(home, command):
 
     **The criterion has two halves: the value must run as the command it
     reads as, and the exit code the gate reads must be that command's.**
-    `templates/config.md` *Broad gate* owns it, owns the list of refused
+    `templates/setup/config.md` *Broad gate* owns it, owns the list of refused
     forms and owns the list of what stays allowed, each with its reason.
     This function is the half that acts; a form belongs here only by failing
     one of those halves there.
@@ -1182,7 +1182,7 @@ def not_as_written(home, command):
         f"    as meant:   | {ROW} | {rewritten} |\n"
         "Nothing ran, and nothing was repaired: the row is a person's to "
         "write, and a value quietly fixed here would leave the file still "
-        "wrong. `templates/config.md` *Broad gate* lists what is refused "
+        "wrong. `templates/setup/config.md` *Broad gate* lists what is refused "
         "and what stays allowed, with the reason for each, and "
         "`/agentic:config` is the door to the row."
     )
@@ -1468,7 +1468,7 @@ def command_names_backslashed(command, is_directory):
     a name, which only matters for a `/` written straight after one; and
     the `&` of `2>&1` is read as a separator, which makes the handle digit
     after it a "name" with no `/` in it. The `2>&1` row of
-    `tests/test_broad_gate.py`'s `Test_handed_to_shell` holds that last one
+    `tests/skills/test_broad_gate.py`'s `Test_handed_to_shell` holds that last one
     to what it hands over.
 
     **Not rewritten, and named rather than claimed:** a path after `call`,
@@ -1477,7 +1477,7 @@ def command_names_backslashed(command, is_directory):
     existed; and a command name after a redirection at the start of a
     command (`>out bin/test`), where this scan stops treating the rest as
     command position. None is worse than the row handed as written, and
-    `templates/config.md` *Broad gate* states the rule and these examples.
+    `templates/setup/config.md` *Broad gate* states the rule and these examples.
 
     **Judged where the row starts, and bounded there, named rather than
     claimed:** a directory an earlier command in the same row makes, or
@@ -1487,7 +1487,7 @@ def command_names_backslashed(command, is_directory):
     program the row calls with a glued switch (an `xcopy/` directory)
     makes `xcopy/e` read as a path; `cmd.exe` itself is ambiguous in that
     tree, and a blank before the switch (`xcopy /e`) is never rewritten.
-    `templates/config.md` *Broad gate* states both.
+    `templates/setup/config.md` *Broad gate* states both.
     """
     out = []
     at_command = True  # the next word read is a command name
@@ -1611,7 +1611,7 @@ def recording_env(keep, key):
     process that finds the key claims it and takes it out of that process's
     environment, so a pytest it starts in turn — one a test spawns, an xdist
     worker — records nothing. A row that replaces either variable rather than
-    adding to it takes the recorder away from its runs; `templates/config.md`
+    adding to it takes the recorder away from its runs; `templates/setup/config.md`
     rule 3 says what that costs."""
     env = dict(os.environ)
     directory = records_dir(keep)
@@ -2043,7 +2043,7 @@ def compare_at_base(root, base, command, files, keep):
     by the path pytest holds for the test or the collector, carried on the
     report from the process that held it, and never by a name pytest made
     from that path, so no rootdir and no argument enters it (#825's reframe
-    after round 3). What `templates/config.md` rule 3 names as left open is
+    after round 3). What `templates/setup/config.md` rule 3 names as left open is
     a test written against this gate's key or its file.
 
     The `run` call stays in this function's own body, one call for the one
@@ -2088,7 +2088,7 @@ def compare_at_base(root, base, command, files, keep):
 # So the list is declared here rather than remembered. **Every step of that
 # job is mirrored by a named arm or excluded with a reason a person wrote**,
 # there is no third state, and
-# `tests/test_the_gate_names_every_step_ci_runs.py` holds the partition
+# `tests/behaviour/test_the_gate_names_every_step_ci_runs.py` holds the partition
 # against the workflow from both sides: a step added to the workflow and left
 # unclassified goes red there, and so does a row naming a step that was
 # renamed away.
@@ -2133,7 +2133,7 @@ def job_steps(text, job):
     **No YAML parser.** This script runs with no third-party dependency, and
     CI installs a test runner and nothing else. A step name is a `- name:`
     line, read as text, the way
-    `tests/test_ci_gives_the_checks_what_they_need.py#jobs` already reads the
+    `tests/text/test_ci_gives_the_checks_what_they_need.py#jobs` already reads the
     same file. A step that exists only in a comment is not a step, and that
     falls out of both patterns rather than out of a line dropping comments:
     each requires the first non-blank character to be the list's dash or the
@@ -2147,7 +2147,7 @@ def job_steps(text, job):
     line in `hygiene.yml` carries one — and it fails LOUDLY if one ever does,
     because A1 goes red with the comment visible in the name it could not
     classify. `strip_comments` in
-    `tests/test_ci_gives_the_checks_what_they_need.py`, the reader this one
+    `tests/text/test_ci_gives_the_checks_what_they_need.py`, the reader this one
     follows, has the same gap, so it is a class rather than something this
     reader opened (round 1, recorded as a correction rather than fixed).
 
@@ -2259,7 +2259,7 @@ MAIN = "main"
 # mirrored, so no arm changes; what changes is the denominator of the
 # `workflow` count and the names beside it.
 #
-# Held against the workflow by `tests/test_the_gate_names_every_step_ci_runs.py`
+# Held against the workflow by `tests/behaviour/test_the_gate_names_every_step_ci_runs.py`
 # from both sides: a `!= "main"` guard added to a fourth step, or dropped
 # from one of these, fails the suite. No step skips a pull request into
 # `main`, so every mirrored arm runs at every base.
@@ -2628,7 +2628,7 @@ def panel(
     repository's row came back with — continued under `suite` until #717
     took it off. NOT `("lint", "clean")` either: the row is
     one shell command line and nothing in it says which part is a linter
-    (`templates/config.md` *Broad gate*), so `clean` over a row with no
+    (`templates/setup/config.md` *Broad gate*), so `clean` over a row with no
     linter in it is the gate's report asserting a check that never ran."""
     stamp = stamp_module()
     fit = stamp.fit

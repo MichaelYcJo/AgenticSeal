@@ -15,7 +15,7 @@ the file, and where more than one pact can be meant, a text says which by
 naming where it is held. `seal pact` is the command that reads every signer
 from there. The three names are the owner's, and a case holds other words for
 them out of the shipped text.
-check: tests/test_one_word_one_meaning.py tests/test_config.py
+check: tests/behaviour/test_one_word_one_meaning.py tests/hooks/test_config.py
 
 **A pact headed with the word 0.18.x used still reads, and `seal pact`
 names the rename on it in no exit class.** Through 0.18.x a signer was
@@ -28,7 +28,7 @@ naming the file, both headers and the release that renamed them before that
 file's other lines, and its exit is what the new header gives. No command
 rewrites a pact: the line says to rename the header when the file is next
 edited, and every text this plugin ships says `signer`.
-check: tests/test_pact_check.py tests/test_config.py tests/test_one_word_one_meaning.py
+check: tests/skills/test_pact_check.py tests/hooks/test_config.py tests/behaviour/test_one_word_one_meaning.py
 
 ## When there is a pact at all
 
@@ -40,9 +40,9 @@ go in `seal/pact.md`. A work item that only commits in several repositories
 gets a routing declaration in each and nothing else. A sentence only one
 repository's code depends on stays in that repository's own documents,
 because a pact that collects those sends every signer to re-read changes
-that were never theirs. `templates/pact.md` states the rule where the file is
+that were never theirs. `templates/setup/pact.md` states the rule where the file is
 begun.
-check: tests/test_a_signer_declares_its_pact.py
+check: tests/behaviour/test_a_signer_declares_its_pact.py
 
 ## One routing answer, one id, every gated repository
 
@@ -58,7 +58,7 @@ share carries one id: an id minted twice cannot be told from a signer's own
 work item that cites the pact without changing it.
 `skills/implement/orchestration.md` *A work item that commits in more than
 one repository* is the procedure.
-check: tests/test_a_signer_declares_its_pact.py tests/test_every_orchestrator_act_names_its_delivery.py
+check: tests/behaviour/test_a_signer_declares_its_pact.py tests/behaviour/test_every_orchestrator_act_names_its_delivery.py
 
 ## How a signer names the pact
 
@@ -67,12 +67,12 @@ of its `seal/config.md`, and one reader answers that row for every
 caller.** `Pact` is the origin remote URL of the pact's repository, several
 separated by `;`, compared normalised; its last path segment is the name an
 anchor carries, so two pacts ending in one segment are refused.
-`hooks/config.py#pact_declaration` refuses what will not parse in a sentence
+`hooks/lib/config.py#pact_declaration` refuses what will not parse in a sentence
 and stops nothing, so every reader of the row reads the same row. A `Pact`
 row written twice has no value at all: its first row is not the answer. A
 `Pact` row the config table does not hold is no row, so `seal pact` reads
 that signer as naming no pact, a relationship recorded on one side only.
-check: tests/test_a_signer_declares_its_pact.py tests/test_pact_check.py tests/test_config.py
+check: tests/behaviour/test_a_signer_declares_its_pact.py tests/skills/test_pact_check.py tests/hooks/test_config.py
 
 ## The pact anchor
 
@@ -82,7 +82,7 @@ a `###` narrows inside one. The hash is the content hash
 `coordinates.py#content_hash` gives the clause's region, the value a
 local coordinate to that heading carries. A signer writes the anchor in a
 spec's Grounding, recording what the work was built against.
-check: tests/test_pact_check.py tests/test_coordinates.py
+check: tests/skills/test_pact_check.py tests/skills/test_coordinates.py
 
 **A token begins a pact anchor where `pact:<name>` is followed at once by
 `/` or `#`, or by the rest of an anchor with its `/` missing, and
@@ -99,7 +99,7 @@ So `pact:<name>/` written in prose is refused, and the refusal names both
 ways out: quote the heading path and give it a hash, or, where the text shows
 the shape rather than citing a clause, put it in a fenced code block, which
 nothing reads.
-check: tests/test_pact_check.py
+check: tests/skills/test_pact_check.py
 
 ## A signer's CI reads nothing of the pact
 
@@ -123,7 +123,7 @@ it, so the pact has not taken the signer's recorded change; `UNMATCHED`
 means no commit did; `BROKEN` means the heading path names no single clause.
 Git decides the direction and never decides `OK`. Exit 1 is a mismatch or a
 checkout not found, and exit 2 is unusable input.
-check: tests/test_pact_check.py tests/test_config.py
+check: tests/skills/test_pact_check.py tests/hooks/test_config.py
 
 ## What this does not see
 
@@ -138,4 +138,4 @@ heading is its address, so rewording the prose is a change every citing
 signer re-reads, and renaming the heading is one each of them has to
 re-coordinate. And `seal pact` runs where a person runs it: nothing on a
 pull request reconciles anything.
-check: tests/test_pact_check.py
+check: tests/skills/test_pact_check.py

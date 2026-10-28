@@ -9,7 +9,7 @@ mark goes into the repository's git dir, and `implementer-notice.py` reads both
 after a commit.
 
 **One gate for both axes**, because the two differ by which constant gets
-written. `hooks/implementer.py#mark_for` is where a spawn is matched to a mark,
+written. `hooks/lib/implementer.py#mark_for` is where a spawn is matched to a mark,
 so this file never names an agent at all.
 
 **Decides nothing.** It prints no decision, and prints nothing at all, so it
@@ -31,14 +31,14 @@ Active only in repositories with `seal/` at the root, for the same reason
 every gate here is: a globally installed plugin must not write files into
 repositories that never asked for the workflow.
 
-`hooks/implementer.py` owns the address and the failure direction.
+`hooks/lib/implementer.py` owns the address and the failure direction.
 """
 
 import json
 import os
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
 import console
 import implementer
 import optin
@@ -72,6 +72,6 @@ def main():
 if __name__ == "__main__":
     # Prints nothing, so the streams matter only for the payload it reads —
     # and a payload it cannot decode is a mark never written, which is a
-    # notice that fires. `hooks/console.py` owns the reasoning.
+    # notice that fires. `hooks/lib/console.py` owns the reasoning.
     console.to_utf8()
     main()

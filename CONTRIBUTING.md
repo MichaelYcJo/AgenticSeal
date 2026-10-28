@@ -80,28 +80,27 @@ in CI stands in for them.
 ## Running the checks
 
 The suite needs `pytest`, one parser, `markdown-it-py`, pinned to one
-version in `MARKDOWN_IT` in `.github/scripts/run_tests.py`, Pillow, pinned
-in `PILLOW` beside it, and one renderer, `cmarkgfm`, pinned in `CMARKGFM`.
+version in `MARKDOWN_IT` in `.github/scripts/run_tests.py`, and one
+renderer, `cmarkgfm`, pinned in `CMARKGFM` beside it.
 The parser is the CommonMark oracle the hook readers are checked against.
-Pillow draws the release seal the tag push attaches to the GitHub Release,
-and the suite's pixel cases read what it draws. The renderer is
-GitHub's own, cmark-gfm, and the table walker in `hooks/config.py` is checked
-against what it renders. The parser and the renderer are test-only and Pillow
-is test-and-release-only: the gates themselves are stdlib-only Python and
-import nothing the suite installs. `bin/test` acquires all four once: it
+The renderer is
+GitHub's own, cmark-gfm, and the table walker in `hooks/lib/config.py` is checked
+against what it renders. The parser and the renderer are test-only: the gates
+themselves are stdlib-only Python and
+import nothing the suite installs. `bin/test` acquires all three once: it
 builds a virtualenv at `.venv` on the first call and reuses it afterwards, so
 only the first call pays for an environment. It works from any directory in
 the repository or a worktree of it, and it prints the interpreter it used.
 
 ```bash
-bin/test tests/test_session_cost.py -q   # one module: the form to type
+bin/test tests/skills/test_session_cost.py -q   # one module: the form to type
 bin/test                                 # everything, in parallel: the orchestrator's broad run
 uvx ruff check . && uvx ruff format .    # the linter and formatter CI holds the tree to
 ```
 
 Both forms run under `-n auto` unless the command line passes its own `-n`,
 `-p no:xdist` or `--pdb`, and the runner installs `pytest-xdist` into a
-`.venv` that lacks it, and the pinned `markdown-it-py`, Pillow and `cmarkgfm`
+`.venv` that lacks it, and the pinned `markdown-it-py` and `cmarkgfm`
 into one that lacks that version. What the whole run costs is a figure with a
 date and a machine, recorded in the work item that measured it, not here.
 
@@ -112,7 +111,7 @@ agent. A cheap runner
 does not widen that rule. What it makes cheap is `bin/test tests/<file> -q`,
 and that is the form a segment types.
 
-**Python 3.12 is the supported floor**, held as `FLOOR` in `hooks/launch.py`
+**Python 3.12 is the supported floor**, held as `FLOOR` in `hooks/lib/launch.py`
 so this sentence and the code state one number. `bin/seal` runs its script
 through that launcher, which refuses an older interpreter with one sentence
 before the script is read, and hands each subcommand's script to the
@@ -124,7 +123,7 @@ interpreter it says which to install. What runs before any floor is checked
 (a hook, a git hook, the launcher, `bin/test`'s runner, and every module one
 of them loads in its own process) runs on whatever `python3` starts it.
 `ruff.toml` lints that code at the version its `per-file-target-version`
-names, and `tests/test_launch.py` derives the set, holds every file of it to
+names, and `tests/hooks/test_launch.py` derives the set, holds every file of it to
 that table, and refuses in it the syntax `ast` rejects at that version and the
 two constructs ruff pushes toward above it, `zip(..., strict=)` and
 `datetime.UTC`. Nothing runs that code at that version, so a standard-library
@@ -138,15 +137,15 @@ nothing here holds the floor for it: macOS ships 3.9 under that name, and a
 version manager points it wherever it was last told.
 
 ```bash
-uvx --with pytest --with markdown-it-py==4.2.0 --with pillow==12.3.0 --with cmarkgfm==2025.10.22 python3 -m pytest tests/ -q
-# or: pip install pytest markdown-it-py==4.2.0 pillow==12.3.0 cmarkgfm==2025.10.22 && python3 -m pytest tests/
+uvx --with pytest --with markdown-it-py==4.2.0 --with cmarkgfm==2025.10.22 python3 -m pytest tests/ -q
+# or: pip install pytest markdown-it-py==4.2.0 cmarkgfm==2025.10.22 && python3 -m pytest tests/
 ```
 
 CI runs these jobs: lint (`ruff check` and `ruff format --check`); the suite
 on ubuntu, macOS and Windows at the floor stated above, macOS and Windows in
 shards that `pytest-split` divides from the one committed `.test_durations`,
 and ubuntu as one job; `durations`, which unions what the Windows shards
-measured; `tests/test_arm_check.py` at 3.13 and 3.14, because `seal arms`'s
+measured; `tests/skills/test_arm_check.py` at 3.13 and 3.14, because `seal arms`'s
 node-type tables are only as true as the interpreter that reads them;
 `release-report`, which on a pull request into `main` only prints the release
 table against the last release tag and fails nothing; and the hygiene
@@ -212,7 +211,7 @@ it. A case that means a draft or a ready pull request says so with
 `gh_answers`.
 
 Two steps of the hygiene workflow ship to user repositories as well, as
-`templates/hygiene.yml`: the chain check and the mode check, run from a
+`templates/setup/hygiene.yml`: the chain check and the mode check, run from a
 clone of this repository at the release the user installed. `seal pr-checks
 install` writes it, at first setup or later, so a change to either of them
 here reaches a user at their next install, and the template has to keep
@@ -228,7 +227,11 @@ that run and the pull request.
 ## The test layout
 
 **Each shipped module has one test file, and the file names its module
-once.** The file is `tests/test_<stem>.py`. The stem is the module's file
+once.** The file is `tests/<area>/test_<stem>.py`. The area is the first
+directory of the module's path with a leading dot dropped, so the file for
+`hooks/lib/optin.py` is `tests/hooks/test_optin.py` and the file for a
+script under `.github/` stands in `tests/github/`; a module under `tests/`
+keeps its file at `tests/`. The stem is the module's file
 name without `.py`, with each hyphen written as an underscore, and where two
 shipped modules share a stem, the parent directory's name goes before it.
 The first assignment after the file's imports is
@@ -252,7 +255,21 @@ census reads it and refuses it once it excuses nothing.
 this, and lists the files that do not declare one yet. A contributor writing
 a case first reads its class and the pairs `bin/seal layout --pairs` names
 in it.
-check: tests/test_test_layout.py tests/test_censuses.py
+check: tests/skills/test_test_layout.py tests/test_censuses.py
+
+**A test file takes the repository root from `tests/conftest.py`.** A test
+file imports `ROOT` from `tests/conftest.py` and joins every other path under
+it. It does not take a directory from its own `__file__`, because that
+directory is right only at the depth the file stands at. No two Python files
+under `tests/` share a file name: `tests/conftest.py` puts every directory
+under `tests/` that holds a test file on `sys.path`, so two files of one name
+import as one module.
+check: tests/test_conftest.py
+
+**A test file that declares no `TARGET` stands by what its cases run.** It
+stands in `tests/behaviour/` where its cases load or run shipped code, and
+in `tests/text/` where they only read text.
+check: none reader: the proofer at review
 
 **A module's old cases get one verdict each when the module is rebuilt.**
 The contributor rebuilding a module reads its functions first and lists the
@@ -412,7 +429,7 @@ a question is not its difficulty, it is when it arrives.
 - **Both READMEs move together, and so does every document with a `.ko.md`
   edition.** They need not be literal translations, but they must tell the
   same story about what exists. Under `docs/` the outline is checked:
-  `tests/test_both_editions_carry_the_same_folds.py` reads every top-level
+  `tests/behaviour/test_both_editions_carry_the_same_folds.py` reads every top-level
   `docs/X.ko.md` beside a `docs/X.md` and requires the same sequence of
   heading levels.
 - **Hooks stay local and quiet.** No writing outside the repo being worked

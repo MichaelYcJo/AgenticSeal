@@ -22,12 +22,12 @@ layout — two roots, three lifetimes* 와 `docs/the-record-layout.md` 에
 
 **플러그인은 자기 루트에만 씁니다.** 그 밖의 자리에 있는 `specs/` 디렉터리는
 프로젝트 자신의 것이고, 이력으로 읽을 뿐 가져가지 않습니다
-(`templates/config.md` *Reference specs*). 플러그인의 어떤 코드도 최상위
+(`templates/setup/config.md` *Reference specs*). 플러그인의 어떤 코드도 최상위
 `specs/` 나 `.specseal/` 을 열지 않습니다. 0.3.x 배치는 README.md *Coming up
 from 0.3.x* 가 주는 명령으로 손으로 옮기고, 그 절은 그것이 유일한 길이라고
 말합니다. 세션이 칠 수 있는 경로로 루트가
 어디 있는지는 contract rule 11 한 곳에 적혀 있습니다.
-check: tests/test_no_document_names_the_old_roots.py tests/test_optin.py
+check: tests/behaviour/test_no_document_names_the_old_roots.py tests/hooks/test_optin.py
 
 ## 종속 규칙
 
@@ -55,10 +55,10 @@ corpus*). 병합 뒤에 `seal/threads/<id>/` 를 새로 읽는 코드는 그것�
 **저장소가 옵트인한 것은 그 모드의 자리에 `seal/` 이 있고 그 `README.md` 가
 플러그인의 표식으로 시작할 때입니다.** shared 모드면 `<repo>/seal/`, local
 모드면 `$(git rev-parse --git-common-dir)/seal/` 입니다. 표식은
-`templates/seal-README.md` 의 첫 줄이고, 처음 설정과, 플러그인 이름이 AgenticSeal 로
+`templates/setup/seal-README.md` 의 첫 줄이고, 처음 설정과, 플러그인 이름이 AgenticSeal 로
 바뀌기 전에 설치된 저장소의 이전이 이것을 씁니다. 훅은 두 자리를 그 순서로 보고, 표식과 함께
 있는 쪽이 "켜졌다" 와 "어느 모드인가" 를 함께 말해 줍니다. README 가 이전
-릴리스가 쓴 제목(`hooks/optin.py#EARLIER_HEADINGS`)으로 시작하는 `seal/` 은
+릴리스가 쓴 제목(`hooks/lib/optin.py#EARLIER_HEADINGS`)으로 시작하는 `seal/` 은
 그 릴리스의 루트이고, 세션 시작의 이전이 표식으로 다시 씁니다. 그 전까지는
 옵트인하지 않은 것으로 읽고, 처음 설정은 그 옆에 두 번째 루트를 만들지
 않습니다. README 가 그 어느 쪽으로도 시작하지 않는
@@ -79,7 +79,7 @@ corpus*). 병합 뒤에 `seal/threads/<id>/` 를 새로 읽는 코드는 그것�
 것입니다. 버릴 저장소는 공통 git 디렉터리 아래의 빈 파일
 `.git/agentic-scratch` 하나로 게이트를 끕니다. 어떤 커밋도 이 파일을 다른
 클론으로 옮기지 못합니다.
-check: tests/test_optin.py
+check: tests/hooks/test_optin.py
 
 ## 처음 설정에서 무엇을 묻는가
 
@@ -91,7 +91,7 @@ check: tests/test_optin.py
   그것을 싣습니다. `.github/` 아래에는 아무것도 쓰지 않습니다.
 - **shared, with pull-request checks** 는 같은 일을 한 뒤
   `seal pr-checks install` 을 실행합니다. 이 명령은
-  `.github/workflows/hygiene.yml` 이 없으면 `templates/hygiene.yml` 에서
+  `.github/workflows/hygiene.yml` 이 없으면 `templates/setup/hygiene.yml` 에서
   씁니다. 설정할 때 깔린 릴리스의 플러그인 클론과 PR 검사입니다.
 - **local** 은 `$(git rev-parse --git-common-dir)/seal/` 을 만들고, 트리에는
   아무것도 건드리지 않으며, 아무것도 설치하지 않습니다. 검사는 커밋된 파일을
@@ -107,7 +107,7 @@ check: tests/test_optin.py
 모드에서 local 모드로 옮긴 저장소에서는 전환 전에 만든 브랜치의 `seal/` 이
 트리 안에서 옮겨지고 표식이 붙으며, 훅은 그 루트를 먼저 읽습니다
 (`hooks/root-migrate.py` 의 경계).
-check: tests/test_first_setup_asks_once.py
+check: tests/behaviour/test_first_setup_asks_once.py
 
 ### shared 인가 local 인가
 
@@ -127,7 +127,7 @@ check: tests/test_first_setup_asks_once.py
 **`seal/config.md` 의 `Mode` 행은 옵트인이 아니고, 차이는 무엇이 그것을
 읽느냐에 있습니다.** 그 행은 루트가 *있어야 할* 자리를 말하고, 폴더의 자리는
 루트가 *있는* 자리를 말합니다. 어떤 훅, 게이트, 검사도 그 행으로 루트를 찾지
-않습니다. 이 질문을 읽는 것은 `hooks/optin.py#home_at` 하나뿐입니다. 손으로
+않습니다. 이 질문을 읽는 것은 `hooks/lib/optin.py#home_at` 하나뿐입니다. 손으로
 고칠 수 있는 행을 믿는 게이트는 폴더가 없는 자리를 찾아가게 되고, 그 모듈은
 짐작하는 쪽이 아니라 *옵트인하지 않음* 쪽으로 실패합니다. 그 행이 주는 것은,
 폴더를 옮기기 전에 저장소가 원하는 모드를 말할 수 있다는 것과, 남아 있는
@@ -137,7 +137,7 @@ check: tests/test_first_setup_asks_once.py
 **기록이 어디 사는가와 CI 가 PR 을 검사하는가는 두 개의 답이고, 둘째의
 기록은 워크플로 파일 자체입니다.** `seal mode` 는 루트를 옮기고 `Mode`
 행을 쓰며, `.github/` 에는 손대지 않습니다. `seal pr-checks install` 은
-`.github/workflows/hygiene.yml` 이 없으면 `templates/hygiene.yml` 에서
+`.github/workflows/hygiene.yml` 이 없으면 `templates/setup/hygiene.yml` 에서
 설치된 릴리스로 고정해 쓰고 스테이지합니다. `<repo>/seal/` 이 디렉터리가
 아니면 거절합니다. 검사는 커밋된 기록을 읽기 때문입니다.
 `seal pr-checks remove` 는 이 플러그인이 쓴 워크플로를 빼고, 다른 파일은
@@ -149,7 +149,7 @@ check: tests/test_first_setup_asks_once.py
 그보다 오래된 릴리스로 고정된 워크플로는 `--branch` 줄을 옮기거나
 `seal pr-checks remove` 로 빼기 전까지 그곳의 모든 PR 을 실패시키고,
 `seal mode local` 은 그런 파일을 남길 때 고정된 릴리스를 알려 줍니다.
-check: tests/test_seal.py
+check: tests/skills/test_seal.py
 
 **local 모드는 gitignore 한 폴더가 아니라 git 디렉터리 아래에 삽니다.** 연결된
 워크트리는 커밋된 파일만 체크아웃하므로, 무시된 `<repo>/seal/` 은 모든
@@ -177,7 +177,7 @@ check: tests/test_seal.py
 방향이 바로 되돌릴 수 없는 그 방향이므로, `seal mode shared` 는 실행하기 전에
 그렇게 말하고, 커밋하지 않고 스테이지만 해서 돌아올 수 없는 지점을 사람에게
 남깁니다.
-check: tests/test_first_setup_asks_once.py tests/test_optin.py tests/test_seal.py
+check: tests/behaviour/test_first_setup_asks_once.py tests/hooks/test_optin.py tests/skills/test_seal.py
 
 ## 이름
 
@@ -204,7 +204,7 @@ check: tests/test_first_setup_asks_once.py tests/test_optin.py tests/test_seal.p
 
 `seal/config.md` 는 저장소가 자기에 대해 적는 유일한 파일입니다. 항목마다 한
 행이고, 검사기가 읽으며, 손으로 고칠 수 있습니다. 있는 행은
-`templates/config.md` 에 적혀 있고, 행이 없을 때의 기본값도 코드를 읽는
+`templates/setup/config.md` 에 적혀 있고, 행이 없을 때의 기본값도 코드를 읽는
 사람에게 맡기지 않고 거기에 적혀 있습니다.
 
 **아무도 찾을 수 없는 설정은 아무도 가진 적 없는 설정입니다.** 모든 행은 파일
@@ -214,14 +214,14 @@ check: tests/test_first_setup_asks_once.py tests/test_optin.py tests/test_seal.p
 로직을 갖지 않습니다. 부작용이 있는 행은 그 일을 하는 스크립트로 보내고, 행일
 뿐인 행은 바로 씁니다. 스킬 안의 로직은 스크립트처럼 뮤테이션 테스트를 할 수
 없고, 경계를 어디에 긋는지는 그것이 정합니다.
-check: tests/test_the_settings_have_a_front_door.py
+check: tests/text/test_the_settings_have_a_front_door.py
 
 **이 플러그인이 어느 언어로 쓰는지는 플러그인이 아니라 저장소가 답할 일입니다.**
 모두에게 영어를 요구하는 스킬은, 그 결정에 동의하지 않는 사람이 고칠 수 없는
 파일 안에서 내려진 결정입니다. 그래서 언어는 설정 행에 두고, 번역한 PR 본문을
 담는 거울 파일은 언어 하나의 이름이 아니라 그 파일이 담은 언어의 이름을
 붙입니다.
-check: tests/test_the_pull_request_language_is_the_repositorys.py tests/test_config.py
+check: tests/behaviour/test_the_pull_request_language_is_the_repositorys.py tests/hooks/test_config.py
 
 **행이 둘인 것은, 하나로는 가운데 답을 말할 수 없기 때문입니다.** 사람들이
 실제로 원하는 조합은 셋입니다. 모두 영어, 커밋과 PR 은 팀의 언어로 하고 문서는
@@ -236,7 +236,7 @@ check: tests/test_the_pull_request_language_is_the_repositorys.py tests/test_con
 어느 행이 무엇을 말하든 **검사기가 맞춰 보는 이름은 영어로 남습니다.** 필드
 이름, 판정어, 표시, 그리고 모든 코드입니다. 번역한 필드 이름은 번역이 아니라
 읽기를 멈추는 검사기입니다.
-check: tests/test_the_pull_request_language_is_the_repositorys.py
+check: tests/behaviour/test_the_pull_request_language_is_the_repositorys.py
 
 **셀에는 이스케이프한 파이프가 들어갈 수 있고, 해석되지 않는 줄 하나는 표의
 끝으로 취급하지 않고 이름을 붙여 알립니다.** 파이프가 들어간 셸 명령 같은 값은
@@ -244,7 +244,7 @@ check: tests/test_the_pull_request_language_is_the_repositorys.py
 빼 버렸습니다. 읽는 쪽과 쓰는 쪽은 행을 설명하는 상수를 함께 씁니다. 어느 줄이
 그 행인지를 두고 둘이 엇갈리면 편집 한 번이 사람의 파일에 중복 행을 만들기
 때문입니다.
-check: tests/test_config.py tests/test_seal.py
+check: tests/hooks/test_config.py tests/skills/test_seal.py
 
 **실패한 git 호출은 "없다" 고 답한 git 호출이 아닙니다.** 무엇이 없어서 출력이
 비는 것과, 물을 수 없어서 출력이 비는 것은 다른 사실입니다. 둘을 구별하지
@@ -252,4 +252,4 @@ check: tests/test_config.py tests/test_seal.py
 없다, 추적되는 파일이 없다는 식입니다. 호출자가 그 구별을 필요로 하는 호출
 자리는 모두 그것을 돌려주고, 거부는 확신에 찬 "없음" 이 아니라 어느 호출이
 실패했는지를 말합니다.
-check: tests/test_seal.py
+check: tests/skills/test_seal.py

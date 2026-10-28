@@ -185,7 +185,8 @@ branch's commits with `--no-merges` and reads no merge commit
 (`skills/code-review/scripts/chain_check.py#follows`). The merge moves HEAD
 past `trail/gate.md` and `guarantee.md`, so after the merge, and after that
 verifying round's record is committed where one is owed, the orchestrator
-runs the broad gate again, commits its record and spawns the sealer again.
+runs the broad gate again, commits its record, runs `seal pr-body` on the
+body file again and spawns the sealer again.
 
 **Where the work's risk is platform-specific, run the other platforms before
 the broad run.** Line endings, the shell and the Python version are such
@@ -201,8 +202,9 @@ expected to be platform-specific, is found when the pull request opens,
 after the sealer.** Its fix is a commit outside the work item's records, so
 it takes the repair path below: a verifying round on its diff, the broad run
 again, and the sealer again. Nothing else is built for it. The pull request
-stays open through that repair, and a body the repair changes is written to
-the file again and given to the open pull request with
+stays open through that repair. Once the repair's broad run is committed,
+the orchestrator runs `seal pr-body` on the body file again and gives the
+file to the open pull request with
 `gh api -X PATCH repos/<owner>/<repo>/pulls/<N> -F body=@<file>`
 (`docs/release-checklist.md` names why not `gh pr edit`).
 
@@ -211,12 +213,12 @@ the file again and given to the open pull request with
 `ready_for_review` event re-runs it when the draft is marked ready, so the
 record is still owed then. Nothing that can reach `main` is exempt.
 
-**`trail/gate.md` and `guarantee.md` are read at the pull request**, so three
-more steps come before it opens: the preflight, the broad run, and then the
-sealer's spawn. You take them once you have written the pull request body to
-a file, the work item's `changelog.md` states what the work item ships, and
-every row `skills/implement/SKILL.md` *6. Drain the rows before the broad
-run, and keep the records* names has reached its destination.
+**`trail/gate.md` and `guarantee.md` are read at the pull request**, so four
+more steps come before it opens: the preflight, the broad run, the pull
+request body, and then the sealer's spawn. You take them once the work
+item's `changelog.md` states what the work item ships and every row
+`skills/implement/SKILL.md` *6. Drain the rows before the broad run, and
+keep the records* names has reached its destination.
 The party that builds the work item writes that fragment: the crafter, or you
 where `routing.md` answers `Implementation` with `the session`
 (`docs/the-record-layout.md` *A change writes fragments, never a shared
@@ -228,20 +230,42 @@ one broad pass now that the rounds have settled and, on a green run, writes
 the run covers and what each word beside a failing file means. Send its
 output to `<scratchpad>/<work-item-id>/gate.log`, making the directory
 first, and read the whole log and the exit code
-directly. **On exit 0 commit `trail/gate.md`, then spawn `sealer` with the
-base and the work item's directory**, the issue and the file holding the pull
-request body. The
+directly. **On exit 0 commit `trail/gate.md`, then write the pull request
+body, then spawn `sealer` with the base and the work item's directory**, the
+issue and the file holding the pull request body. The
 sealer reads that record, audits the work against the issue and the tree,
 and writes `guarantee.md` (`docs/the-review-record.md` *The guarantee*); it
 runs nothing broad, and a missing or stale record comes back
 `Verdict: withheld reason: no broad run at HEAD`.
 
-**On exit 1 spawn nothing.** The word beside each failing file says whether
-it predates the work: `new` is this work's to repair, `failing on base too`
+**You write the pull request body after `trail/gate.md` is committed,
+because the body's first part copies that record.** Run
+`seal pr-body <item> --body <scratchpad>/<work-item-id>/pr-body.md`, where
+`<item>` is the work item's directory. It writes the part of that file above
+the line `skills/code-review/scripts/pr_body.py#HEADING` holds, copied from
+the work item's records, and keeps byte for byte whatever stands under that
+line. On exit 1 its `refused:` lines name a record's file and line: repair
+that record, commit it, and run the command again. Then write your own part
+under that line, to the end of the file: what no record holds, such as the
+motivation, a note to reviewers, the `Closes` or `Part of` line, the broad
+run's printed figures, a CI run taken after the rounds, the chain section's
+comparison table, and the attribution line. Your part restates no record:
+where it needs a record's fact, it names the record's path. Edit nothing
+above the line; the sealer's `seal pr-body --check` withholds on a part
+above it that is not the records' text at HEAD. **Run the command again
+before every later spawn of the sealer and before every `gh api -X PATCH`
+of the body**, so the first part copies the records as the repair left
+them; your part stays as you wrote it.
+`skills/commit-pr-convention/SKILL.md` *Pull request bodies* says which
+language each part is in.
+
+**On the broad run's exit 1 spawn nothing.** The word beside each failing
+file says whether it predates the work: `new` is this work's to repair,
+`failing on base too`
 is a follow-up to name, and `new?` carries the reason nothing at the base
 measured it, so run that file at the base before treating it as either.
 Review a repair where it touched a file outside the work item's records, and
-run the gate again. On exit 2 nothing ran; a refusal about the row goes
+run the gate again. On the broad run's exit 2 nothing ran; a refusal about the row goes
 to a person, as *A refusal about the `Broad gate` row* below says.
 
 **Pass the base as a plain branch name, and quote the lines only the gate can
@@ -254,12 +278,15 @@ each is a fact a reader learns from nowhere else.
 **Commit `guarantee.md`; a verdict other than `sealed` opens no pull
 request.** `withheld` names the claim and the coordinate. Where the repair
 touches only the work item's own records (a phase record, the changelog
-fragment) or the pull request body, make it, commit, and spawn the sealer
-again at the new HEAD, giving a repaired body to a pull request already open
-as the stated limit above says: the record commits after the run leave it standing.
+fragment) or your part of the pull request body, make it, commit what it
+changed in the records, run `seal pr-body` on the body file again, and spawn
+the sealer again at the new HEAD, giving a repaired body to a pull request
+already open as the stated limit above says: the record commits after the
+run leave it standing.
 Where it touches any other file it is a fix nobody reviewed: commit it, spawn
 a verifying round on its diff, and once that round's record is committed run
-the broad gate again, commit its record, and spawn the sealer. Your broad run
+the broad gate again, commit its record, run `seal pr-body` on the body file
+again, and spawn the sealer. Your broad run
 asks the records arm first, and that arm refuses a commit outside the work
 item after the last round's `target:` commit, so a run taken straight after
 the fix returns the same refusal. `undecided` is a question for the owner,

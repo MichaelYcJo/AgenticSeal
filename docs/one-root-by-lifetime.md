@@ -22,12 +22,12 @@ permanent. The layout, file by file, is `skills/implement/SKILL.md`
 
 **The plugin writes only to its own root.** A `specs/` directory anywhere
 else is the project's own, read as history and never taken
-(`templates/config.md` *Reference specs*), and no code of the plugin opens a
+(`templates/setup/config.md` *Reference specs*), and no code of the plugin opens a
 top-level `specs/` or `.specseal/`: the 0.3.x layout moves by hand, with the
 commands README.md *Coming up from 0.3.x* gives, and that section says it is
 the only path. Where the root is, as a path a
 session can type, is stated once, in contract rule 11.
-check: tests/test_no_document_names_the_old_roots.py tests/test_optin.py
+check: tests/behaviour/test_no_document_names_the_old_roots.py tests/hooks/test_optin.py
 
 ## The dependency rule
 
@@ -58,12 +58,12 @@ record.
 **A repository is opted in when `seal/` exists at its mode's location and
 its `README.md` opens with the plugin's marker**: `<repo>/seal/` in shared
 mode, `$(git rev-parse --git-common-dir)/seal/` in local mode. The marker is
-the first line of `templates/seal-README.md`, written at first setup and by
+the first line of `templates/setup/seal-README.md`, written at first setup and by
 the migration of a repository installed before the plugin was renamed
 AgenticSeal. The hooks look at the
 two places in that order; whichever exists with the marker says both "on"
 and which mode. A `seal/` whose README opens with a heading an earlier
-release wrote (`hooks/optin.py#EARLIER_HEADINGS`) is that release's root,
+release wrote (`hooks/lib/optin.py#EARLIER_HEADINGS`) is that release's root,
 which the session-start migration rewrites to the marker; until it does,
 it reads as not opted in, and first setup creates no second root beside
 it. A `seal/` whose README opens with neither is a project's own directory,
@@ -84,7 +84,7 @@ either place means not opted in, and a hook that cannot tell does nothing.
 A throwaway repository turns the gates off with an empty file,
 `.git/agentic-scratch`, under the common git directory, which no commit can
 carry to another clone.
-check: tests/test_optin.py
+check: tests/hooks/test_optin.py
 
 ## What first setup asks
 
@@ -96,7 +96,7 @@ order, the first the default, each saying what it does:
   carries, and writes nothing under `.github/`.
 - **shared, with pull-request checks** does the same, then runs
   `seal pr-checks install`, which writes `.github/workflows/hygiene.yml`
-  from `templates/hygiene.yml` where that path is absent: a clone of the
+  from `templates/setup/hygiene.yml` where that path is absent: a clone of the
   plugin at the release installed at setup, and the pull-request checks.
 - **local** creates `$(git rev-parse --git-common-dir)/seal/`, touches nothing
   in the tree, and installs nothing, because the checks read committed files
@@ -113,7 +113,7 @@ stands between a branch and its move. So in a repository that left shared
 mode for local mode, a branch cut before the switch has its own `seal/`
 moved and marked in the tree, and the hooks read that root first
 (`hooks/root-migrate.py`, its boundaries).
-check: tests/test_first_setup_asks_once.py
+check: tests/behaviour/test_first_setup_asks_once.py
 
 ### Shared or local
 
@@ -134,7 +134,7 @@ it is.
 **`seal/config.md`'s `Mode` row is not the opt-in, and the difference is what
 reads it.** The row says where the root *should* be; the folder's location
 says where it *is*, and no hook, gate or check resolves the root through the
-row: `hooks/optin.py#home_at` is the only reader of the question. A gate that
+row: `hooks/lib/optin.py#home_at` is the only reader of the question. A gate that
 trusted a hand-editable row would look in a place with no folder, and that
 module fails toward *not opted in* rather than toward a guess. What the row
 buys is a repository that can say which mode it wants before the folder is
@@ -145,7 +145,7 @@ filled in from where the folder is, the only value that cannot be wrong.
 answers, and the workflow file is the record of the second.** `seal mode`
 moves the root and writes the `Mode` row, and leaves `.github/` alone.
 `seal pr-checks install` writes `.github/workflows/hygiene.yml` from
-`templates/hygiene.yml` where that path is absent, pinned to the installed
+`templates/setup/hygiene.yml` where that path is absent, pinned to the installed
 release, and stages it. It refuses where `<repo>/seal/` is not a directory,
 because the checks read committed records. `seal pr-checks remove` takes out
 a workflow this plugin wrote and leaves any other file alone. No config row
@@ -156,7 +156,7 @@ a release that has the no-root state passes having examined nothing:
 so nothing is declared, and exits 0. One pinned to an older release fails every pull request there until
 its `--branch` line moves or `seal pr-checks remove` takes it out, and
 `seal mode local` names the pin when it leaves such a file.
-check: tests/test_seal.py
+check: tests/skills/test_seal.py
 
 **Local mode lives under the git directory, not in a gitignored folder.** A
 linked worktree checks out committed files only, so an ignored
@@ -185,7 +185,7 @@ repository's history; coming back removes them from the tree and not from the
 history. That is the one direction local mode exists to prevent, so
 `seal mode shared` says so before it acts and stages rather than commits,
 which leaves the point of no return with the person.
-check: tests/test_first_setup_asks_once.py tests/test_optin.py tests/test_seal.py
+check: tests/behaviour/test_first_setup_asks_once.py tests/hooks/test_optin.py tests/skills/test_seal.py
 
 ## Naming
 
@@ -213,7 +213,7 @@ are written in is that repository's answer, below.
 
 `seal/config.md` is the one file a repository writes about itself, one row
 per item, read by the checkers and editable by hand. The rows that exist are
-documented in `templates/config.md`, and an absent row has a default that is
+documented in `templates/setup/config.md`, and an absent row has a default that is
 stated there rather than left to whoever reads the code.
 
 **A setting nobody can find is a setting nobody has.** Every row is reachable
@@ -225,14 +225,14 @@ with a side effect routes to the script that performs it, and a row that is
 only a row is written directly. Logic inside a skill cannot be
 mutation-tested the way a script can, and that is what decides where the line
 runs.
-check: tests/test_the_settings_have_a_front_door.py
+check: tests/text/test_the_settings_have_a_front_door.py
 
 **What language this plugin writes in is the repository's answer, not the
 plugin's.** A skill that requires English of everyone is a decision made in a
 file nobody who disagrees with it can edit, so the language lives in a config
 row, and the mirror file a translated pull-request body goes in is named for
 the language it holds rather than for one language.
-check: tests/test_the_pull_request_language_is_the_repositorys.py tests/test_config.py
+check: tests/behaviour/test_the_pull_request_language_is_the_repositorys.py tests/hooks/test_config.py
 
 **Two rows, because one cannot express the middle answer.** The combinations
 people actually want are three: everything English; the commits and pull
@@ -249,7 +249,7 @@ whoever comes back to the decision six months later.
 Whatever either row says, **the names a checker matches stay English**: the
 field names, the verdict words, the markers, and all code. A translated field
 name is not a translation; it is a checker that stops reading.
-check: tests/test_the_pull_request_language_is_the_repositorys.py
+check: tests/behaviour/test_the_pull_request_language_is_the_repositorys.py
 
 **A cell may carry an escaped pipe, and one line that will not parse is named
 rather than treated as the end of the table.** A value like a shell command
@@ -258,7 +258,7 @@ silently took every row below it out of the config. The reader and the writer
 share the constant that describes a row, because their disagreement about
 which line is a given row is what turns one edit into a duplicate row in a
 person's file.
-check: tests/test_config.py tests/test_seal.py
+check: tests/hooks/test_config.py tests/skills/test_seal.py
 
 **A git call that fails is not a git call that answered "nothing".** Empty
 output because a thing is absent and empty output because the question could
@@ -266,4 +266,4 @@ not be asked are different facts, and a caller that cannot tell them apart
 reports the absence as settled: no remote, no other worktree, no tracked
 file. Every call site whose caller needs the distinction returns it, and the
 refusal says which call failed rather than reporting a confident nothing.
-check: tests/test_seal.py
+check: tests/skills/test_seal.py

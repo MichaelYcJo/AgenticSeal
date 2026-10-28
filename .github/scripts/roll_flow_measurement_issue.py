@@ -120,7 +120,7 @@ way down still exits loudly into the recovery message below.
 belong here rather than in the skill.** `skills/verify/orchestration.md` ships to
 repositories that have neither, so it names `flow-measurement` and
 `flow-baseline` and stops there. `.github/` stays home
-(`tests/test_the_release_check_watches_what_ships.py`), which is what lets
+(`tests/behaviour/test_the_release_check_watches_what_ships.py`), which is what lets
 this file name `measurement` and `log: measurement`.
 
 **The close and the open are not one transaction.** `main` closes the old

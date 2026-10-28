@@ -80,13 +80,13 @@ import json
 import os
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-# Reading a command line is no gate's property; `hooks/cmdline.py` owns it, and
-# `hooks/optin.py` owns resolving a repository's git directories. Plain
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib"))
+# Reading a command line is no gate's property; `hooks/lib/cmdline.py` owns it, and
+# `hooks/lib/optin.py` owns resolving a repository's git directories. Plain
 # filenames mean `sys.modules` deduplicates both when `dispatch.py` runs
 # several gates in one process.
 #
-# The reader is `hooks/cmdline_base.py`, frozen at `86256492`, the one the
+# The reader is `hooks/lib/cmdline_base.py`, frozen at `86256492`, the one the
 # worktree guard reads through (#689), so the clone a creation is filed under
 # is the one the guard judged and the one the release base filed. The commit
 # gate imports this module for `automation_answered` alone, which reads no
@@ -511,7 +511,7 @@ def place(tokens, wheres, cwd: str):
     clone a creation is filed under is the clone the guard judged it in.
     WHERES is the frozen walk's directories for the segment, and the first is
     where bash runs it: the walk lists the failure branch of a `||` first and
-    the skipped live shells after it (`hooks/cmdline_base.py`).
+    the skipped live shells after it (`hooks/lib/cmdline_base.py`).
 
     Two destinations fall back to the session's own directory, which is the
     guard's answer from before it could read a `cd` at all:
@@ -576,7 +576,7 @@ def creation_directory(command: str, cwd: str) -> str:
     started. Getting that wrong lands the record in the wrong clone, so the
     next creation asks -- one prompt, on the side a guard should fail.
 
-    Every reading here is `hooks/cmdline_base.py`'s, the reader frozen at
+    Every reading here is `hooks/lib/cmdline_base.py`'s, the reader frozen at
     `86256492` that the guard reads through, so the creation found and the
     clone filed are the ones the guard judged (#689, #868).
     """
@@ -626,7 +626,7 @@ def main():
 
 if __name__ == "__main__":
     # A console that cannot encode what this prints kills it with stdout
-    # empty, which is how a hook says "nothing to see here". `hooks/console.py`
+    # empty, which is how a hook says "nothing to see here". `hooks/lib/console.py`
     # owns the reasoning and the three decisions behind these lines.
     console.to_utf8()
     main()

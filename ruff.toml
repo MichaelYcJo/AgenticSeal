@@ -24,7 +24,7 @@
 #   SIM102 (collapsible if)       a gate's outer condition asks whether it
 #       applies and the inner asks whether it fires. One boolean loses that.
 
-target-version = "py312"  # the floor hooks/launch.py holds
+target-version = "py312"  # the floor hooks/lib/launch.py holds
 line-length = 88
 
 # Snippets in skills and docs are illustrations, sometimes deliberately
@@ -37,11 +37,11 @@ extend-exclude = ["*.md"]
 # runs on whatever `python3` starts it, and macOS ships 3.9 under that name.
 # Linted at 3.9, B905 does not ask its `zip` for `strict=` (3.10) and UP017
 # does not spell `timezone.utc` as `datetime.UTC` (3.11).
-# tests/test_launch.py derives that set,
+# tests/hooks/test_launch.py derives that set,
 # holds every file of it to this table, and refuses in each the syntax and the
 # two constructs above that this version lacks; nothing runs it at 3.9.
 [per-file-target-version]
-"hooks/*.py" = "py39"  # its `*` crosses a `/`, so hooks/git/ too
+"hooks/*.py" = "py39"  # its `*` crosses a `/`, so hooks/lib/ too
 ".github/scripts/run_tests.py" = "py39"
 "skills/verify/scripts/seal_stamp.py" = "py39"
 "skills/code-review/scripts/chain_check.py" = "py39"

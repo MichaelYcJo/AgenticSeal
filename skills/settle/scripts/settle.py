@@ -57,13 +57,13 @@ The policy root, the tracked files the citations are read from, and `tests/`
 are read from the repository's top in both. The dry run's first line names a
 local root, each released local work item is listed with its pull request's
 number and its merge commit, and each unreleased one with why: no
-`routing.md` that `hooks/routing.py` reads as a declaration naming a branch,
+`routing.md` that `hooks/lib/routing.py` reads as a declaration naming a branch,
 no merged pull request from its branch, or no listed merge commit
 `--released-at` reaches, a pull request listed with none among them. What `--apply` removes there no commit holds, and
 the dry run names `seal export` for a copy. A `gh` that cannot be asked
 refuses the run, since every local work item would then read as unreleased.
 A repository that opted out with the scratch marker, an empty FILE read the
-way `hooks/optin.py#home_at` reads it, is refused.
+way `hooks/lib/optin.py#home_at` reads it, is refused.
 
 Exit codes: 0 the report was produced, `--apply` kept nothing, or the root
 holds no work item, which is the state a complete settle reaches; 1 `--apply`
@@ -72,7 +72,7 @@ arguments or the tree were unusable: a `--released-at` ref that does not
 resolve, a root at neither place, a repository that opted out, in local mode
 a `gh` that is not on PATH or whose query fails, and a sibling script that is
 not beside it. An interpreter below
-the floor never reaches this file through `seal settle`: `hooks/launch.py`
+the floor never reaches this file through `seal settle`: `hooks/lib/launch.py`
 refuses `seal` with 2 first.
 """
 
@@ -87,8 +87,8 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 READER = os.path.join(HERE, "..", "..", "verify", "scripts", "unverified_check.py")
-OPTIN = os.path.join(HERE, "..", "..", "..", "hooks", "optin.py")
-ROUTING = os.path.join(HERE, "..", "..", "..", "hooks", "routing.py")
+OPTIN = os.path.join(HERE, "..", "..", "..", "hooks", "lib", "optin.py")
+ROUTING = os.path.join(HERE, "..", "..", "..", "hooks", "lib", "routing.py")
 RULES = os.path.join(HERE, "rule_changes.py")
 FOLD_CHECK = os.path.join(HERE, "fold_check.py")
 
@@ -102,7 +102,7 @@ PURPOSES = {
 }
 
 SPECS = "seal/threads"
-# A thread's design, relative to its directory: `hooks/optin.py#DESIGN`.
+# A thread's design, relative to its directory: `hooks/lib/optin.py#DESIGN`.
 DESIGN = "frame/design.md"
 TESTS = "tests/"
 
@@ -249,12 +249,12 @@ def merged_pull_requests(root, branch):
     return out
 
 
-# Why a local work item is unreleased, each pinned by `tests/test_settle.py`.
-# A `routing.md` that `hooks/routing.py#parse` does not read, such as one whose
+# Why a local work item is unreleased, each pinned by `tests/skills/test_settle.py`.
+# A `routing.md` that `hooks/lib/routing.py#parse` does not read, such as one whose
 # `Review` answer is outside the vocabulary, names no branch whatever rows it
 # holds, so the reason names the reader rather than the row.
 NO_BRANCH = (
-    "no `routing.md` that `hooks/routing.py` reads as a declaration names a "
+    "no `routing.md` that `hooks/lib/routing.py` reads as a declaration names a "
     "branch, so `gh` was not asked"
 )
 NO_PULL_REQUEST = "no pull request from `{branch}` has merged"
@@ -266,7 +266,7 @@ NOT_REACHED = (
 
 def declared_branch(records, work_item_id, routing):
     """The `Branch` row of the work item's `routing.md`, read by
-    `hooks/routing.py#parse`, or None where there is no file, no row, or a
+    `hooks/lib/routing.py#parse`, or None where there is no file, no row, or a
     file `parse` does not read as a declaration."""
     path = under(records, f"{SPECS}/{work_item_id}/{routing.FILENAME}")
     try:
@@ -350,7 +350,7 @@ UNASKED = (
     "on a host `gh` cannot ask cannot settle in local mode.\n"
 )
 
-# The dry run's local lines, each pinned by `tests/test_settle.py`.
+# The dry run's local lines, each pinned by `tests/skills/test_settle.py`.
 LOCAL_LINE = "local mode: the seal/ root is {home}, under the git directory\n"
 MERGED_HEADING = (
     "released in local mode, each with the pull request that merged it and "
@@ -358,7 +358,7 @@ MERGED_HEADING = (
 )
 UNMERGED_HEADING = "unreleased in local mode and untouched, each with why:"
 
-# The dry run's headings, each pinned by `tests/test_settle.py`.
+# The dry run's headings, each pinned by `tests/skills/test_settle.py`.
 GROUPS_HEADING = (
     "groups: the released specs whose rule changes name one section, in merge "
     "order.\nThe settling session writes each section as its group's latest "
@@ -889,7 +889,7 @@ def main(argv=None):
     args = ap.parse_args(argv)
 
     root = os.path.abspath(args.root or os.getcwd())
-    # The root is resolved through the one resolver, `hooks/optin.py#home_at`,
+    # The root is resolved through the one resolver, `hooks/lib/optin.py#home_at`,
     # handed the common git directory this also needs for the opt-out sentence.
     optin = load(OPTIN, "agentic_optin")
     # The repository's top, as `fold_check.py` resolves it: the policy root,
@@ -947,7 +947,7 @@ def main(argv=None):
 
 if __name__ == "__main__":
     # A console that cannot encode what this prints kills it with stdout
-    # empty, which is how a hook says "nothing to see here". `hooks/console.py`
+    # empty, which is how a hook says "nothing to see here". `hooks/lib/console.py`
     # owns the reasoning and the three decisions behind these lines.
     for _name, _errors in (
         ("stdin", "replace"),

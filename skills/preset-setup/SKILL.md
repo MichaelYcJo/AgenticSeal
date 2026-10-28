@@ -26,7 +26,7 @@ through the user first.
 
 2. **Read both.** The preset block is the content between
    `<!-- agentic:start -->` and `<!-- agentic:end -->` in this plugin's
-   `templates/claude-md-block.md` (`$CLAUDE_PLUGIN_ROOT/templates/claude-md-block.md`),
+   `templates/setup/claude-md-block.md` (`$CLAUDE_PLUGIN_ROOT/templates/setup/claude-md-block.md`),
    the block's one source. Read the user's file in full.
 
 3. **Classify each overlap** between the user's existing content (outside any

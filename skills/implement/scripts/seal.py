@@ -99,7 +99,7 @@ is Q1 in the work item's `questions.md`, with the owner named; it is written
 here as well because this docstring is where the next reader meets the count.
 
 Exit codes: 0 done · 1 nothing was written, and the message says why · 2 a
-file this command loads from `hooks/` is not there, so nothing was read, or
+file this command loads from `hooks/lib/` is not there, so nothing was read, or
 the arguments were unusable (argparse's usage error, and any two of a mode,
 `--check` and `--apply` given together). Every refusal here names the file,
 the path, or the flag that gets past it.
@@ -117,9 +117,9 @@ import sys
 import zipfile
 
 HOOKS = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "hooks"
+    os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "hooks", "lib"
 )
-PLUGIN = os.path.normpath(os.path.join(HOOKS, ".."))
+PLUGIN = os.path.normpath(os.path.join(HOOKS, "..", ".."))
 
 # The plugin's commands that are not about the root, one subcommand each: the
 # name a person types, the script it runs (from the plugin's root), and the
@@ -177,9 +177,13 @@ TOOLS = {
         ".github/scripts/rules.py",
         "a document's sections with what their tests guard, or every check line read",
     ),
+    "pr-body": (
+        "skills/code-review/scripts/pr_body.py",
+        "copy a work item's records into a pull request body, or check the copy",
+    ),
 }
 
-# What each module this command imports from `hooks/` is for, in the sentence
+# What each module this command imports from `hooks/lib/` is for, in the sentence
 # printed when it is missing. They are checked before the `import` lines,
 # because a plain `import` of an absent module dies with a
 # `ModuleNotFoundError` traceback at exit 1 (#610) -- and a search for
@@ -188,7 +192,7 @@ HOOK_PURPOSES = {
     "config.py": "it is what reads the root's config.md, whose Mode row this "
     "command keeps",
     "optin.py": "it is what finds the repository's seal/ root",
-    # `config.py` imports it, so a `hooks/` without it fails that import.
+    # `config.py` imports it, so a `hooks/lib/` without it fails that import.
     "blocks.py": "it is the walk config.py reads config.md through, which "
     "tells a live row from one quoted in a fence or parked in a comment",
     "routing.py": "it is what writes the record `seal no-work-item` leaves, "
@@ -262,7 +266,7 @@ ARCHIVE_LIMIT = 512 * 1024 * 1024
 MEMBER_COUNT_LIMIT = 20_000
 
 
-# --- git, asked the way `hooks/optin.py` asks it ----------------------------
+# --- git, asked the way `hooks/lib/optin.py` asks it ----------------------------
 
 
 def git_asked(root, *args, answered=(0,)):
@@ -361,7 +365,7 @@ def head_sha(root):
     return git_asked(root, "rev-parse", "HEAD")
 
 
-# Moved to `hooks/config.py` (#647), where the `Pact` reader needs it and
+# Moved to `hooks/lib/config.py` (#647), where the `Pact` reader needs it and
 # cannot import this file; the alias keeps one normaliser under the name every
 # caller here already spells, as the config aliases below do.
 normalise_remote = repo_config.normalise_remote
@@ -394,7 +398,7 @@ def root_files(home):
     always produces the same zip and the same digest.
 
     **This is the only walk.** The zip's members and the digests the manifest
-    records come from this one list. `tests/test_seal.py::Test_export`
+    records come from this one list. `tests/skills/test_seal.py::Test_export`
     asserts the zip's namelist equal to `MEMBERS`, the manifest and then the
     sorted paths this walk gives for the case's root, and
     `Test_root_files` holds the walk's order. Two enumerations would
@@ -1426,7 +1430,7 @@ def write_members(archive, into):
 # (#952).
 #
 # **Nothing at runtime reads the row.** Every hook resolves the root through
-# `hooks/optin.py#home_at`, which reads `<repo>/seal/` then
+# `hooks/lib/optin.py#home_at`, which reads `<repo>/seal/` then
 # `<git-common-dir>/seal/`, and that stays the only signal. The row says what
 # the repository WANTS; the folder's location says what it HAS. A gate that
 # trusted the row would go looking in a place with no folder, and everything
@@ -1434,7 +1438,7 @@ def write_members(archive, into):
 # guess (`docs/one-root-by-lifetime.md`, "The opt-in signal is the root
 # itself").
 
-# The config table is READ in `hooks/config.py` and WRITTEN here. The reader
+# The config table is READ in `hooks/lib/config.py` and WRITTEN here. The reader
 # moved because a `PreToolUse` gate needs the `Mode` row and must not import
 # this file to get it (#151), and these aliases are what keeps the move from
 # becoming a second parser: one implementation, reached by the name each
@@ -1452,7 +1456,7 @@ MODES = repo_config.MODES
 # filesystem. The two dialects live as separate strings rather than one
 # string used for both, because a literal separator inside an
 # `os.path.join` argument produces `C:/proj\.github/workflows` — a path in
-# two dialects that equals nothing any caller built (`hooks/optin.py`
+# two dialects that equals nothing any caller built (`hooks/lib/optin.py`
 # carries the same reasoning about `repo_root`).
 WORKFLOW = ".github/workflows/hygiene.yml"
 # The row this command writes itself, spelled as git spells a pathspec —
@@ -1462,7 +1466,7 @@ CONFIG_PATHSPEC = f"{optin.HOME}/{CONFIG}"
 # The line CI's own workflow uses to clone this plugin. A file at WORKFLOW
 # carrying it is one this plugin wrote; a file that does not is somebody
 # else's with our name, and `seal pr-checks` neither overwrites nor removes
-# it. `tests/test_seal.py::Test_module` asserts the template still contains
+# it. `tests/skills/test_seal.py::Test_module` asserts the template still contains
 # this, so the marker cannot drift away from what it identifies.
 PLUGIN_CLONE = "https://github.com/MichaelYcJo/AgenticSeal.git"
 # The clone line every workflow a release before the rename wrote carries:
@@ -1474,7 +1478,7 @@ OLD_PLUGIN_CLONE = "https://github.com/MichaelYcJo/SpecSeal.git"
 # The release a workflow's clone line pins, which `seal pr-checks` reports.
 PIN = re.compile(r"--branch\s+(\S+)")
 
-# The version placeholder in `templates/hygiene.yml`. A workflow written with
+# The version placeholder in `templates/setup/hygiene.yml`. A workflow written with
 # it still in place fails CI's `git clone --branch` on the first pull
 # request, so a version that cannot be read writes no file at all.
 PLACEHOLDER = "v<version>"
@@ -1496,8 +1500,8 @@ fence_map = repo_config.fence_map
 NEW_CONFIG = """# Repository config
 
 <!-- What this repository says about itself, one row per item. This file was
-created by `seal mode`; `templates/config.md` in the plugin documents every
-row and what an absent one means. -->
+created by `seal mode`; `templates/setup/config.md` in the plugin documents
+every row and what an absent one means. -->
 
 | Item | Value |
 |---|---|
@@ -1545,7 +1549,7 @@ def doubled_modes(lines):
     the path.
 
     **Every `Mode` row the walk read, not the first** (#867). A row written
-    twice has no value (`hooks/config.py#config_value`), so the writer has no
+    twice has no value (`hooks/lib/config.py#config_value`), so the writer has no
     row to overwrite, and this sentence names each line from the walk's own
     line numbers (#871)."""
     rows, _refusals = config_table("".join(lines))
@@ -1919,7 +1923,7 @@ def plugin_workflow():
     version = plugin_version()
     if not version:
         return ""
-    source = os.path.join(PLUGIN_ROOT, "templates", "hygiene.yml")
+    source = os.path.join(PLUGIN_ROOT, "templates", "setup", "hygiene.yml")
     try:
         with open(source, encoding="utf-8") as handle:
             text = handle.read()
@@ -2037,10 +2041,10 @@ def install_workflow(repo):
             f"{WORKFLOW} was NOT written: the plugin's version could not be "
             f"read from {os.path.join(PLUGIN_ROOT, '.claude-plugin', 'plugin.json')}, "
             f"and a workflow still carrying `{PLACEHOLDER}` fails CI's clone "
-            "on the first pull request. Copy templates/hygiene.yml in by hand "
-            "and replace that placeholder with the release you run."
+            "on the first pull request. Copy templates/setup/hygiene.yml in by "
+            "hand and replace that placeholder with the release you run."
         )
-    source = os.path.join(PLUGIN_ROOT, "templates", "hygiene.yml")
+    source = os.path.join(PLUGIN_ROOT, "templates", "setup", "hygiene.yml")
     try:
         with open(source, encoding="utf-8") as handle:
             text = handle.read()
@@ -2063,7 +2067,7 @@ def install_workflow(repo):
     except (OSError, ValueError) as exc:
         return "failed", (
             f"{WORKFLOW} was NOT written: {exc}. Copy "
-            "templates/hygiene.yml in by hand, or run this command again."
+            "templates/setup/hygiene.yml in by hand, or run this command again."
         )
     # The return code here for the reason the root's `git add` in `switch`
     # reads it: `git()` answers "" for a failure, and an ignore rule matching
@@ -2309,7 +2313,7 @@ def mode_refusal(home):
     row written twice the writer's, which names each line (#867), and for a
     table the walker refused the walker's, after the path (#871) -- the
     three things `with_row` would refuse, so a switch is refused before
-    anything moves. Read through `hooks/config.py#config_text`, the one
+    anything moves. Read through `hooks/lib/config.py#config_text`, the one
     place the file is opened to tell absent from unreadable."""
     text, refused = repo_config.config_text(home)
     if refused:
@@ -2813,7 +2817,7 @@ def no_work_item(args, cwd):
 
 def tool_command(name, argv):
     """The command line that runs the script `TOOLS` names for `name` with
-    `argv`: this interpreter, which `hooks/launch.py` held to the floor before
+    `argv`: this interpreter, which `hooks/lib/launch.py` held to the floor before
     this file was read, the script's path under the plugin, and the arguments
     as they were typed."""
     script = os.path.join(PLUGIN, *TOOLS[name][0].split("/"))
@@ -2960,7 +2964,7 @@ def main(argv=None, cwd=None):
 
 if __name__ == "__main__":
     # A console that cannot encode what this prints kills it with stdout
-    # empty, which is how a hook says "nothing to see here". `hooks/console.py`
+    # empty, which is how a hook says "nothing to see here". `hooks/lib/console.py`
     # owns the reasoning and the three decisions behind these lines.
     for _name, _errors in (
         ("stdin", "replace"),
