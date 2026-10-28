@@ -44,13 +44,16 @@ are read by one reader. `compare` writes the record the five pass rules of
    every run, where the baseline passed it at least once, fails the side by
    name; and one the baseline lacks passes every new run;
 4. the preload is fewer bytes than the baseline's;
-5. the tokens read across every model, the spawned agent's included, per
-   tool call are fewer than the baseline's. The rewrite controls the context
-   each call carries, and how many calls an agent makes is its behaviour,
-   which rules 1 to 3 judge (`noninferiority.py#tool_calls`).
+5. either the tokens read across every model, the spawned agent's
+   included, or those tokens per tool call are within `TOKEN_MARGIN` of the
+   baseline's; a side fails only where both rose by more. The rewrite
+   controls the context each call carries, and how many calls an agent
+   makes is its behaviour, which rules 1 to 3 judge: fewer calls raise the
+   figure per call and more calls raise the total, so the count moves the
+   verdict in neither direction (`noninferiority.py#tool_calls`).
 
-Total tokens, tokens per true find, spend and wall seconds are written in
-the record and judge nothing. A side cut short, a case the baseline ran and
+Tokens per true find, spend and wall seconds are written in the record and
+judge nothing. A side cut short, a case the baseline ran and
 the new side did not, whatever its graders, a case run a different number
 of times, a run whose `modelUsage` is missing or short of a count, or
 one whose trace cannot be read or holds no tool call is no result, never a
