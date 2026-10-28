@@ -1027,11 +1027,12 @@ KEPT_OLD_NAMES = (
     f'"{_OLD}": "agentic"',
     # The 0.3.x directory that README.md *Coming up from 0.3.x* moves by hand.
     f".{_OLD}",
-    # The two variables a person sets in their own environment, which no
-    # migration reaches: a new name would turn the format hook back on, or
-    # the guard's prompts back to the locale, for whoever set the old one,
-    # and this release changes no behaviour.
-    f"{_OLD.upper()}_LINT",
+    # The variable a person sets in their own environment for the language of
+    # the worktree guard's prompts, which no migration reaches.
+    # `hooks/worktree-guard.py#_lang` reads it as a fallback through 0.24.x,
+    # where the plugin option `worktree_guard_language` is empty, so whoever
+    # set it keeps their language until they set the option; the next minor
+    # release removes that read and this entry.
     f"{_OLD.upper()}_LANG",
 )
 # A released work item's record cited at the commit that holds it, as
