@@ -507,8 +507,18 @@ def test_the_crafters_fix_pass_writes_two_lines_and_sweeps_what_its_range_reword
         "`deferred <where it was repaired>`",
         "append the one it did change after `, `",
         "find every other place stating each rule your range reworded or removed",
+        # #1041, S3: the owner's answer of 2026-10-28 gives the commit of the
+        # two lines to the orchestrator, so the crafter writes them last and
+        # leaves them uncommitted.
+        "Last, after your last fix commit and its corrections, write the "
+        "`verdict:` and `answer:` lines of every finding you answered, and do "
+        "not commit them: the orchestrator commits the round record as you "
+        "left it.",
     ):
         assert clause in paragraph, f"the fix-pass rule lost {clause!r}"
+    assert "Then commit the `verdict:` and `answer:` lines" not in paragraph, (
+        "the fix-pass rule still has the crafter commit its own two lines"
+    )
 
 
 def test_the_crafters_hand_back_carries_what_it_may_not_record_and_ends_in_no_block():

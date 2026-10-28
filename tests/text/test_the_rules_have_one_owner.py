@@ -137,6 +137,25 @@ RULES = {
         "`crafter` spawn otherwise.",
         {},
     ),
+    # #1041: in #955 and #1016 the orchestrator's fix-pass prompts left every
+    # `verdict:` line to the orchestrator, which rewrote them in a commit of
+    # its own, so a round with fixes cost three record commits.
+    "19 the orchestrator writes neither line of a finding a fix pass answers": (
+        ORCH,
+        "The orchestrator writes neither line of a finding the fix pass "
+        "answers, and its fix-pass prompt leaves both lines to the crafter.",
+        {},
+    ),
+    # #1041, the owner's answer of 2026-10-28: issue #1041 *Done when*
+    # bullet 1 gives the commit of the fix pass's two lines to the
+    # orchestrator, which makes it before the verifying round reads them.
+    "20 the orchestrator commits the round record the fix pass left": (
+        ORCH,
+        "On the hand-back the orchestrator commits the round record as the fix "
+        "pass left it, in one commit for the whole pass, before it spawns the "
+        "verifying round, and changes none of its lines.",
+        {},
+    ),
 }
 
 
@@ -177,10 +196,46 @@ def test_the_fix_pass_reads_the_implementers_context_before_it_resumes():
         "the largest value of its `context` column",
         "hands it the round record and the phase records",
         "the largest context a fresh, never-resumed crafter reached in the 0.22.0 run",
+        # #1041, S1: the fix pass writes both lines last, after the sweep's
+        # corrections, and commits neither, since the orchestrator commits
+        # them (rule 20); a doubt goes to the next round rather than into a
+        # rewrite of the line.
+        "Last, the fix pass writes the `verdict:` and `answer:` lines of every "
+        "finding it answered, after its fix commits and those corrections",
+        "and leaves the round record uncommitted",
+        "That commit holds `trail/rounds/round-N.md` alone.",
+        "A close the orchestrator doubts goes into the verifying round's spawn prompt",
+        "the orchestrator does not rewrite the line",
     ):
         assert said in section, f"the fix-pass section no longer says {said!r}"
+    assert "the fix pass commits the two lines" not in section, (
+        "the fix-pass section still has the fix pass commit its own two lines, "
+        "which the owner gave to the orchestrator on 2026-10-28"
+    )
     assert "Orchestrator: a fix pass resumes the implementer" not in text
     assert "never spawn a fresh one while that session still exists" not in text
+
+
+REGRESSION = "### A regression is routed by comparing the fix with the frame"
+
+
+def test_the_framers_route_closes_each_finding_with_both_lines_in_one_commit():
+    """S2 of #1041. On the framer's route no fix pass runs, so the
+    orchestrator closes every open finding itself; row *The record* names the
+    `answer:` line beside `deferred the frame`, and one commit for both."""
+    text = flat(*ORCH)
+    section = text[
+        text.index(REGRESSION) : text.index("## Orchestrator: the pull request opens")
+    ]
+    row = section[section.index("| The record |") : section.index("| The framer |")]
+    for said in (
+        "every open finding closes `deferred the frame`",
+        "its `answer:` line names the regression that sent the work item back",
+        "you write both lines of every open finding in one commit",
+    ):
+        assert said in row, (
+            f"row *The record* of the framer's route no longer says {said!r}"
+        )
 
 
 def test_a_draft_is_tolerated_and_still_owes_the_record():
@@ -342,6 +397,25 @@ def test_the_order_no_longer_defers_the_framer_to_a_ticket():
             f"step 2 still carries `{gone}`. The framer ships, so the interval "
             "that clause covered is over and the escape reads as the rule"
         )
+
+
+def test_the_acts_table_says_no_commit_holds_who_wrote_the_two_lines():
+    """#1041, the owner's answer of 2026-10-28: the fix pass commits neither
+    line, so the row's `Grounds` cell cannot send a reader to the history
+    for who wrote them."""
+    text = flat(*ORCH_IMPL)
+    start = text.index(
+        "| Orchestrator: a phase is a fresh crafter, and a fix pass resumes the implementer |"
+    )
+    row = text[
+        start : text.index(
+            "| Orchestrator: the run ends with a verifying round |", start
+        )
+    ]
+    assert "is in no commit, because the fix pass commits neither line" in row
+    assert (
+        "whether that commit changed them are in the round record's history" not in row
+    )
 
 
 def the_order():

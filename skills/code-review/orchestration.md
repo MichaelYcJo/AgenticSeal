@@ -55,7 +55,11 @@ that before the spawn (`skills/implement/orchestration.md` *Question 1*).
 `trail/rounds/round-N.md`, its verdict and its answer, and nothing else but a
 coordinate it appends to `location:` where its fix went elsewhere**
 (`docs/the-review-record.md` *The round record*); it writes no
-`trail/phases/phase-N.md` and no `plan.md` row.
+`trail/phases/phase-N.md` and no `plan.md` row. **The orchestrator writes
+neither line of a finding the fix pass answers, and its fix-pass prompt leaves
+both lines to the crafter.** A close the orchestrator doubts goes into the
+verifying round's spawn prompt, since that round weighs every close, and the
+orchestrator does not rewrite the line.
 
 **Two commits after the build are yours, not the crafter's**: a fix written after
 the last round, and the commit that integrates a sibling's squash. Each one that
@@ -71,7 +75,13 @@ a later round; that is contract rule 12. For each rule its range reworded or
 removed, the crafter finds every other place stating it, by its words and by
 the `check:` target that holds it, and corrects each or names it in the
 hand-back with why it stands. The round that follows reads that list against
-the diff.
+the diff. Last, the fix pass writes the `verdict:` and `answer:` lines of
+every finding it answered, after its fix commits and those corrections,
+because a `fixed` verdict names a commit that already exists, and leaves the
+round record uncommitted. **On the hand-back the orchestrator commits the
+round record as the fix pass left it, in one commit for the whole pass, before
+it spawns the verifying round, and changes none of its lines.** That commit
+holds `trail/rounds/round-N.md` alone.
 
 **You type only the half of a spawn prompt that changes between rounds.**
 `skills/agent-contract/SKILL.md` reaches every agent you spawn at startup,
@@ -152,7 +162,7 @@ The framer's route:
 
 | Step | What |
 |---|---|
-| The record | every open finding closes `deferred the frame` |
+| The record | every open finding closes `deferred the frame`, and its `answer:` line names the regression that sent the work item back; you write both lines of every open finding in one commit |
 | The framer | spawned again with the run's round records as its input; they are in the tree, so the prompt names them and carries nothing else. It rewrites `plan.md` (new phase rows; a closed phase keeps its commit) and `frame/design.md` where the scope moves, and adds `Reframed <date> by <who>, after round <N>.` under the `Framed` line. Where `routing.md` answers `Automation` with `yes`, the spawn asks nobody |
 | The redesign | you approve it when you spawn `crafter` for it, with a second `Approved` line in `plan.md` on a line of its own, in the shape `skills/implement/orchestration.md` *The plan is approved at the spawn* states; it is then built and reviewed, and its first finding round starts the cap's count again |
 
