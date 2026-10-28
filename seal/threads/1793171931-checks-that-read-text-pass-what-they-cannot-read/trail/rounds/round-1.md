@@ -14,7 +14,7 @@ and comment 6464014816 on #956.
 severity: should
 location: `seal/threads/1793171931-checks-that-read-text-pass-what-they-cannot-read/trail/phases/phase-5.md:52`, `seal/threads/1793171931-checks-that-read-text-pass-what-they-cannot-read/trail/phases/phase-5.md:93-95`, `seal/threads/1793171931-checks-that-read-text-pass-what-they-cannot-read/gaps.md:15`
 evidence: executed `PROBE_PART=2 python3 -I <scratch>/test_tmp_round1.py <clone> <scratch>/probe3 5287dd42`, `git show 5287dd42:skills/verify/scripts/pact_check.py`
-verdict: open
+verdict: fixed dd787d28
 
 R24 is one of the 16 `yes` rows. Its probe at `c825fd2c` found two
 spellings of an anchor, `PACT:` and `pact: ` with a space, that `seal pact`
@@ -57,14 +57,14 @@ made*) so that S7 holds again. The cell, with the issue number
 | R24 | `skills/verify/scripts/pact_check.py#check` with `coordinates.py#resolve_unit` (base versions; #913) | pact anchors in a signer's designs | `mixed`: an emphasised or code-span anchor is graded, a curly-quoted one refused; `PACT:` and `pact: ` with a space, neither | `yes`: a stale anchor written `PACT:` is never graded | eight anchors at one clause: the two near misses absent from the report | #<the number gh issue create prints>: at `5287dd42`, after #913, `INLINE_TOKEN` refuses `pact:` and reads neither `PACT:` nor `pact: ` |
 ```
 
-answer:
+answer: The finding holds: I read `INLINE_TOKEN` as refusing the inline anchor and did not test its near misses. A probe at `5287dd42` (executed, one run, recorded in `phase-5.md` *R24 at the release base*) gave `pact:abc` refused and `PACT:abc`, `pact: abc` and `Pact:abc` not read, and found the anchor table passing over a near-miss header (lower case, `Hashes`, `**Pact**`) and a near-miss remote (`pakt`) unread too. R24 is filed as #1132 into `release: 0.24.1` (`gh issue create`, exit 0, milestone read back). Its *Done when* covers the inline near misses, refused or stated as a limit, and the table reader's near misses. The row's `Fix` cell, the section (renamed *R24 at the release base*) and `gaps.md:15` are corrected in `dd787d28`. The comment was patched with `gh api -X PATCH repos/MichaelYcJo/AgenticSeal/issues/comments/6464014816 -F body=@<file>` (exit 0, updated 2026-10-28T08:28:17Z, 15,462 bytes), and `cmp` of the stored body against `phase-5.md`'s comment section exited 0.
 
 ### 2. R8's and R23's `limit` cells give a ground the design's definition of `limit` does not accept
 
 severity: should
 location: `seal/threads/1793171931-checks-that-read-text-pass-what-they-cannot-read/trail/phases/phase-1.md:34`, `seal/threads/1793171931-checks-that-read-text-pass-what-they-cannot-read/trail/phases/phase-2.md:34`, `seal/threads/1793171931-checks-that-read-text-pass-what-they-cannot-read/trail/phases/phase-5.md:36`, `seal/threads/1793171931-checks-that-read-text-pass-what-they-cannot-read/trail/phases/phase-5.md:51`, `seal/threads/1793171931-checks-that-read-text-pass-what-they-cannot-read/trail/phases/phase-5.md:73`
 evidence: read `seal/threads/1793171931-checks-that-read-text-pass-what-they-cannot-read/frame/design.md:272-274`, `seal/threads/1793171931-checks-that-read-text-pass-what-they-cannot-read/trail/phases/phase-1.md:34`, `seal/threads/1793171931-checks-that-read-text-pass-what-they-cannot-read/trail/phases/phase-2.md:34`, `docs/the-routing-check.md:113-117`, `skills/implement/orchestration.md:330`, `docs/worktree-guard-spec.md:589-603`
-verdict: open
+verdict: fixed dd787d28
 
 `frame/design.md` *The let-through words* (`:272-274`) defines `limit` as
 "the shape cannot arise in the one-issue automation flow, and the cell says
@@ -101,7 +101,7 @@ again.
 `limit`: a `Seal-Routing` trailer is written only under `no work item` (`skills/implement/orchestration.md:330`), which the one-issue automation flow never answers, so a misspelt one cannot arise there; `docs/the-routing-check.md:115-117` states the cost
 ```
 
-answer:
+answer: The finding holds for both cells: a document stating a limit does not show that the shape cannot arise. R23 now reads `yes` in `phase-2.md` and `phase-5.md`. On the orchestrator's instruction, which reads a `yes` row's `Fix` as a filed issue, it is filed as #1133 against `hooks/worktree-guard.py` into `release: 0.24.1` (`gh issue create`, exit 0, milestone read back) rather than kept as `none`. R8 does not take the replacement text, because its premise does not hold. `skills/implement/orchestration.md:330` is the `no work item` answer, but `skills/commit-pr-convention/SKILL.md:142` and `docs/the-routing-check.md:98-100` have every session's commit at a shared root end with a `Seal-Routing:` trailer naming its work item. So the one-issue flow writes trailers, and a misspelt key can arise there. R8 therefore reads `yes` too, with `Fix` #1038, since `docs/the-routing-check.md:115-117` chooses to judge no commit without the trailer and judging one is a rule change. The closing paragraph reads 18 `yes`, 7 `limit` and 17 `no`, with R8 and R23 in the list, in `dd787d28`. The comment was patched as finding 1's answer says (`gh api -X PATCH ... -F body=@<file>`, exit 0), and `cmp` against `phase-5.md`'s comment section exited 0.
 
 ## Confirmations
 
