@@ -164,7 +164,10 @@ number below without a commit beside it is at `aa8b54cb`.
 **What a round with fixes costs after this work.** It costs the round
 record's commit, the fix commit or commits, and one answer commit, the
 orchestrator's, holding both lines of every finding the pass answered. That
-is two record commits, the number the tree describes. The answer commit
+is two record commits, the number the tree describes. A finding the
+orchestrator closes itself in a round that also has a fix pass adds one
+more, since its lines are closed at another step: round 5 of this work item
+closed its finding 2 at `30e31aac`. The answer commit
 cannot fold into a fix commit, by the premise in `## Grounding` row 4, and
 it cannot wait for the next round's record commit, by row 5. This release's
 work items already ran with two record commits per round. Six answer
