@@ -60,11 +60,13 @@ make.
    where they still stand: a work item's round records leave with its
    directory at the settle after its release, and are read at its
    release tag after that (`git show v<X.Y.Z>:<path>`). A decision those
-   rounds argued through is not argued again in your `plan.md`. The process
-   archive of the highest version, `seal/process/<X.Y.Z>.md`, once, where
-   the `seal/` root holds one: what that release changed in the way of
-   working, and why, one row per change in the shape of
-   `templates/records/process.md`. The ticket and its comments, and `seal/parity.md`
+   rounds argued through is not argued again in your `plan.md`. The
+   `### Process changes` table, once, of the latest GitHub Release
+   (`gh release view --json body --jq .body`) where the repository
+   publishes one, and the same heading in the changelog fragments under
+   `seal/threads/`: what the way of working became, and why, one row per
+   change in the shape of `templates/records/process.md`. The ticket and its
+   comments, and `seal/parity.md`
    where it is declared, which puts the original between the ticket and the
    code.
    A reference root

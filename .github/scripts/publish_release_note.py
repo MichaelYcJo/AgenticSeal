@@ -9,9 +9,10 @@ gets done every time, because `hooks/version-check.py` reads it and an
 untagged release is one no installed session is ever told about. The note had
 no reader in the tree at all, so nothing noticed its absence.
 
-So this reads the tag instead of asking anybody to remember. It runs when a
-`v*` tag is pushed, which is the release's last manual act and the moment
-`docs/branch-and-release.md` says stays a person's.
+So this reads the tag instead of asking anybody to remember. It runs in the
+publish workflow after `tag_release.py`, which on the push to `main` that
+ships a release creates the release's `vX.Y.Z` tag and passes it on, and on
+a `v*` tag pushed by hand passes that tag on (#1117).
 
 **The body is built from the release's changelog fragments, read from the
 history at the tag** (#1053). A change writes its note once, in
@@ -90,8 +91,8 @@ heading and the seal finds the block by the function that wrote it.
 side effects gets run for its output sooner or later, and the first person to
 do it is whoever wrote it.
 
-Environment: `TAG` (`github.ref_name`), `REPO`, `GH_TOKEN`, and
-`GITHUB_OUTPUT` where the workflow runner sets it.
+Environment: `TAG` (the tag `tag_release.py` passed on), `REPO`,
+`GH_TOKEN`, and `GITHUB_OUTPUT` where the workflow runner sets it.
 
 Exit codes: 0 published, or already published, or a dry run -- 1 the tag is
 not `vX.Y.Z`, or its range added no fragment the previous tag does not
@@ -108,13 +109,18 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(HERE, "..", "..", "hooks", "lib"))
+sys.path.insert(0, os.path.join(HERE, "..", "..", "skills", "verify", "scripts"))
 import console  # noqa: E402
 from blocks import gfm_lines  # noqa: E402
 from close_issues_on_release import keywords_in  # noqa: E402
+from unverified_check import heading_level  # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 # A work item's changelog fragment, its id captured.
 FRAGMENT_RE = re.compile(r"^seal/threads/([^/]+)/changelog\.md$")
+# The shape of a fragment's process section, which the note lifts into one
+# table (`section`).
+PROCESS_TEMPLATE = os.path.join(ROOT, "templates", "records", "process.md")
 # The milestone a release's theme is read from, by its title.
 MILESTONE_TITLE = "release: {version}"
 PURPOSE_LABEL = "Purpose:"
@@ -236,10 +242,58 @@ def fragments(revisions):
     return out
 
 
+def process_shape():
+    """`(heading, header row, delimiter row)` of a fragment's process
+    section, read from `templates/records/process.md`, the section's one
+    source: its first line, and its first two table rows."""
+    with open(PROCESS_TEMPLATE, encoding="utf-8") as handle:
+        lines = gfm_lines(handle.read())
+    rows = [line for line in lines if line.startswith("|")]
+    return lines[0], rows[0], rows[1]
+
+
+def split_process(body, heading):
+    """`(body without its process section, the section's rows)`.
+
+    The section is the line `heading` and every line after it up to the next
+    heading (`unverified_check.py#heading_level`) or the body's end. Its rows
+    are its table lines after the header and delimiter rows.
+    """
+    kept, table, inside = [], [], False
+    for line in gfm_lines(body):
+        if line.strip() == heading:
+            inside = True
+        elif inside and heading_level(line) is not None:
+            inside = False
+            kept.append(line)
+        elif inside:
+            if line.startswith("|"):
+                table.append(line)
+        else:
+            kept.append(line)
+    return "\n".join(kept).strip(), table[2:]
+
+
 def section(entries):
     """The fragments as the note carries them: each work item's marker line,
-    its body, and a blank line before the next."""
-    return "\n\n".join(f"<!-- specs/{item} -->\n{body}" for item, body in entries)
+    its body, and a blank line before the next.
+
+    Every row of every fragment's process section is lifted into one
+    `### Process changes` table above them, in id order and each fragment's
+    own row order, and each fragment follows without its section, so a row
+    is shown once (#1117). With no row anywhere the fragments are all there
+    is.
+    """
+    heading, header, delimiter = process_shape()
+    rows, parts = [], []
+    for item, body in entries:
+        rest, found = split_process(body, heading)
+        rows += found
+        parts.append(f"<!-- specs/{item} -->" + (f"\n{rest}" if rest else ""))
+    fragments = "\n\n".join(parts)
+    if not rows:
+        return fragments
+    return "\n".join([heading, "", header, delimiter, *rows, "", fragments])
 
 
 def milestone_description(repo, version):
@@ -373,9 +427,6 @@ TYPES = (
 )
 OTHER = "📦 Other"
 TITLE_RE = re.compile(r"^(?P<type>[a-z]+)(?:\([^)]*\))?!?:\s*(?P<text>.+)$", re.I)
-# The preparation pull request -- `chore: release X.Y.Z -- ...` -- moves the
-# version and changes nothing a user reads, so it is not one of the changes.
-PREPARATION_RE = re.compile(r"^chore:\s*release\s+\d+\.\d+\.\d+\b", re.I)
 # A title that ends in the issue it closes, `... (#572)`, would read
 # `(#572) (#574)`; the closing list carries the issue instead.
 TRAILING_REF_RE = re.compile(r"\s*\(#\d+\)\s*$")
@@ -444,12 +495,8 @@ def outside(pull, owner):
 
 
 def changes(pulls):
-    """The release's own pull requests, oldest first, less the preparation."""
-    return [
-        p
-        for p in sorted(pulls or (), key=lambda p: p["number"])
-        if not PREPARATION_RE.match(p.get("title", "").strip())
-    ]
+    """The release's own pull requests, oldest first."""
+    return sorted(pulls or (), key=lambda p: p["number"])
 
 
 def kind_and_text(title):

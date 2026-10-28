@@ -1,7 +1,8 @@
 """`.github/scripts/release_seal.py`, one class per function.
 
-The release seal is drawn and attached at publish time (#718). The tag push
-publishes the note; a second job then runs the suite at the tag, draws one
+The release seal is drawn and attached at publish time (#718). The push to
+`main` that ships a release, or a tag pushed by hand, tags it and publishes
+the note (#1117); a second job then runs the suite at the tag, draws one
 seal for the release, attaches it, and puts it where the note's glance table
 stood. Any failure leaves the note as it was.
 
@@ -205,7 +206,6 @@ def pull(number, branch, title, body="", *labels, login=OWNER):
 
 
 PULLS = [
-    pull(9, "chore/the-fragments", "chore: release 1.2.3 — the gathering"),
     pull(10, "feat/12-an-item", "feat: a thing", "Closes #12", "chain: capped"),
     pull(11, "fix/13-another", "fix: another thing", "Closes #13", login="someone"),
 ]

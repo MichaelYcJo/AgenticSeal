@@ -2,7 +2,8 @@
 
 #386: the release note publishes itself, or the job goes red saying why.
 Publishing a GitHub Release was a habit and nothing else, and three
-consecutive releases skipped it. The repair is a workflow the tag push fires:
+consecutive releases skipped it. The repair is a workflow the push to `main`
+that ships a release fires, and a tag pushed by hand (#1117):
 
   A1  the changelog fragments the release's commits added, less those the
       previous tag holds, become the release note at that tag, each under its
@@ -197,7 +198,6 @@ def pull(number, login, title="docs: a sentence", body="", is_bot=False):
 OWNER = REPO.split("/")[0]
 
 RELEASE = [
-    pull(9, OWNER, f"chore: release {VERSION} — the gathering", "Closes #1"),
     pull(10, OWNER, "fix: the owner's own change", "Closes #100 and fixes #101"),
     pull(11, "someone", "docs: explain a thing", "Closes #102"),
     pull(12, "dependabot[bot]", "chore: bump", is_bot=True),
@@ -473,10 +473,10 @@ class Test_main:
         assert found in out, out
 
     def test_every_change_is_one_line_under_its_type(self, monkeypatch, tmp_path):
-        """A5. The list is a partition of the release: every pull request but the
-        preparation lands under exactly one heading, an unknown or missing type
-        under Other, and each line names the issues its body closes -- read the
-        way the closer reads them, so a quoted keyword closes nothing."""
+        """A5. The list is a partition of the release: every pull request lands
+        under exactly one heading, an unknown or missing type under Other, and
+        each line names the issues its body closes -- read the way the closer
+        reads them, so a quoted keyword closes nothing."""
         _, body = published(monkeypatch, tmp_path, RELEASE)
         assert lines_under(body, "### \U0001f41b Fixes") == [
             "- The owner's own change (#10) · closes #100, #101",
@@ -493,7 +493,6 @@ class Test_main:
             "- Bump again (#13)",
         ]
         assert lines_under(body, "### \U0001f4e6 Other") == ["- An untyped title (#16)"]
-        assert "#9)" not in body, "the preparation pull request is listed as a change"
         assert "#999" not in body, "a keyword inside a code span was read as a claim"
         assert (
             body.index("### ✨ Features")
@@ -555,7 +554,6 @@ class Test_main:
         [
             pytest.param(None, id="the list could not be read"),
             pytest.param([], id="no pull request"),
-            pytest.param([RELEASE[0]], id="only the preparation"),
         ],
     )
     def test_with_nothing_to_summarise_the_note_is_the_theme_and_the_fragments(
@@ -776,6 +774,16 @@ class Test_module:
         assert mod.previous_tag("v0.1.0") is None
         assert mod.commit_range(None, "v0.1.0") == "v0.1.0"
 
+    def test_the_process_table_takes_its_shape_from_the_template(self):
+        """#1117. The heading, the header row and the delimiter row `section`
+        writes are `templates/records/process.md`'s, the section's one
+        source."""
+        with open(
+            os.path.join(ROOT, "templates", "records", "process.md"), encoding="utf-8"
+        ) as handle:
+            template = handle.read().split("\n")
+        assert publisher().process_shape() == (template[0], template[2], template[3])
+
     def test_a_fragment_the_settle_removed_reaches_a_note_tagged_on_a_merge(
         self, tmp_path, monkeypatch
     ):
@@ -804,6 +812,61 @@ class Test_module:
         monkeypatch.setattr(mod, "ROOT", str(repo))
         revisions = mod.commit_range(mod.previous_tag(TAG), TAG)
         assert mod.fragments(revisions) == [("1700000001-first", "- first entry")]
+
+
+class Test_section:
+    def test_accepts_process_rows_into_one_table_above_the_fragments(self):
+        """S9 of #1117. A work item that changed the way of working ends its
+        fragment with a `### Process changes` table. The note carries one
+        such table above the fragments, holding every fragment's rows in id
+        order, and each fragment follows without its section, so a row is
+        shown once. A fragment that is the section alone keeps its marker
+        line with nothing under it. Seen red against `section` at
+        `4134055a`, which folded each table into its fragment."""
+        header = "| Date | Change | Why | Source |\n|---|---|---|---|\n"
+        first = (
+            "- **A change.** What it does.\n\n### Process changes\n\n"
+            + header
+            + "| 2026-10-01 | one | why one | https://example.com/1 |\n"
+            + "| 2026-10-02 | two | why two | https://example.com/2 |"
+        )
+        third = (
+            "### Process changes\n\n"
+            + header
+            + "| 2026-10-03 | three | why three | https://example.com/3 |"
+        )
+        entries = [("1-first", first), ("2-second", "- b"), ("3-third", third)]
+        assert publisher().section(entries) == (
+            "### Process changes\n\n"
+            + header
+            + "| 2026-10-01 | one | why one | https://example.com/1 |\n"
+            + "| 2026-10-02 | two | why two | https://example.com/2 |\n"
+            + "| 2026-10-03 | three | why three | https://example.com/3 |\n\n"
+            + "<!-- specs/1-first -->\n- **A change.** What it does.\n\n"
+            + "<!-- specs/2-second -->\n- b\n\n"
+            + "<!-- specs/3-third -->"
+        )
+
+    def test_refuses_to_take_a_line_past_the_next_heading(self):
+        """The process section ends at the next heading, so a table under a
+        later heading stays in its fragment and none of its rows is lifted."""
+        header = "| Date | Change | Why | Source |\n|---|---|---|---|\n"
+        later = "### Removed\n\n| What | Where |\n|---|---|\n| a file | `x.md` |"
+        body = f"### Process changes\n\n{header}| d | c | w | s |\n\n{later}"
+        assert publisher().section([("1-first", body)]) == (
+            f"### Process changes\n\n{header}| d | c | w | s |\n\n"
+            f"<!-- specs/1-first -->\n{later}"
+        )
+
+    def test_refuses_a_table_where_no_fragment_carries_a_row(self):
+        """S10 of #1117. With no process row in any fragment, the output is
+        what `section` returned before #1117: each marker line and its body,
+        and no `### Process changes` heading."""
+        entries = [("1-first", "- a\n\n### Removed\n\n- gone"), ("2-second", "- b")]
+        assert publisher().section(entries) == (
+            "<!-- specs/1-first -->\n- a\n\n### Removed\n\n- gone\n\n"
+            "<!-- specs/2-second -->\n- b"
+        )
 
 
 test_census = census_case(TARGET)

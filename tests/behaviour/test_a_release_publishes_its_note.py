@@ -1,7 +1,7 @@
 """#386: the release note publishes itself, or the job goes red saying why.
 
-The cases here read the workflow the tag push fires and the release
-checklist's title command, and wait for #923. `docs/branch-and-release.md`
+The cases here read the workflow the push to `main` and a tag pushed by
+hand fire, and the release checklist's title command, and wait for #923. `docs/branch-and-release.md`
 names this file on its `check:` line.
 
 #942's phase 6 placed the cases of `.github/scripts/publish_release_note.py`'s
@@ -95,14 +95,18 @@ def steps(lines):
 
 
 def test_the_workflow_fires_on_the_tag_and_writes_one_release_one_asset_one_edit():
-    """S5 (#718). The trigger is the whole design decision: hanging this from
-    the push to `main` would put it before the tag exists. Under
-    `contents: write` it writes three things now -- one release (`publish`),
-    one asset on it and one edit of its note (`seal`) -- and still declares no
-    other scope. `publish` has no `needs` and says whether it created the
-    release; `seal` needs it, runs only on `created == 'true'`, and every one
-    of its steps is `continue-on-error`, so nothing the seal meets can turn
-    the workflow red. A hung suite ends at the step's `timeout-minutes`, and
+    """S5 (#718), and S8 of #1117. The workflow fires on the push to `main`
+    and on a `v*` tag pushed by hand. `publish` runs the tag step first,
+    which creates the tag where the push moved the version and passes it on;
+    the note step runs only on a tag passed on and reads `TAG` from it, since
+    `github.ref_name` is `main` on the push to `main`. Under
+    `contents: write` it writes four things now -- one tag and one release
+    (`publish`), one asset on it and one edit of its note (`seal`) -- and
+    still declares no other scope. `publish` has no `needs` and says which
+    tag it published for and whether it created the release; `seal` needs
+    it, runs only on `created == 'true'`, checks out that tag and reads `TAG`
+    from it, and every one of its steps is `continue-on-error`, so nothing
+    the seal meets can turn the workflow red. A hung suite ends at the step's `timeout-minutes`, and
     the job's own timeout sits under a job-level `continue-on-error` (round
     1's finding 4). The token is on the drawing step alone, and the checkout
     does not persist it in `.git/config`, so the suite at the tag runs with
@@ -110,12 +114,14 @@ def test_the_workflow_fires_on_the_tag_and_writes_one_release_one_asset_one_edit
     none runs `apt-get`, so the job installs no system package and the image
     needs no renderer from the runner. Seen red against the workflow with no
     `seal` job, the two round-1 halves against the workflow without them,
-    and #1009's against the job with the SVG renderer's install step."""
+    #1009's against the job with the SVG renderer's install step, and
+    #1117's against the workflow at `4134055a`, which fired on the tag
+    alone."""
     text = workflow()
-    assert "tags: ['v*']" in text, "the workflow no longer fires on a tag push"
-    assert "branches:" not in text, (
-        "this fires on a branch push as well; at the push to `main` the tag "
-        "does not exist yet and the job would have to create it"
+    assert "    branches: [main]" in text, "the workflow does not fire on `main`"
+    assert "    tags: ['v*']" in text, "a tag pushed by hand no longer publishes"
+    assert "github.ref_name" not in text, (
+        "a step reads the ref's name, which is `main` on the push to `main`"
     )
     assert "contents: write" in text
     for scope in ("issues:", "pull-requests:", "packages:"):
@@ -125,10 +131,22 @@ def test_the_workflow_fires_on_the_tag_and_writes_one_release_one_asset_one_edit
     publish = job(text, "publish")
     assert not any(line.strip().startswith("needs:") for line in publish), publish
     assert "      created: ${{ steps.note.outputs.created }}" in publish, publish
-    assert any("publish_release_note.py" in line for line in publish)
+    assert "      tag: ${{ steps.tag.outputs.tag }}" in publish, publish
+    made = steps(publish)
+    tagging = [i for i, step in enumerate(made) if "        id: tag" in step]
+    noting = [i for i, step in enumerate(made) if "        id: note" in step]
+    assert len(tagging) == 1 and len(noting) == 1, made
+    assert tagging[0] < noting[0], "the note step runs before the tag exists"
+    assert any("tag_release.py" in line for line in made[tagging[0]])
+    note = made[noting[0]]
+    assert any("publish_release_note.py" in line for line in note), note
+    assert "        if: steps.tag.outputs.tag != ''" in note, note
+    assert "          TAG: ${{ steps.tag.outputs.tag }}" in note, note
     seal = job(text, "seal")
     assert "    needs: publish" in seal, seal
     assert "    if: needs.publish.outputs.created == 'true'" in seal, seal
+    assert "          ref: ${{ needs.publish.outputs.tag }}" in seal, seal
+    assert "          TAG: ${{ needs.publish.outputs.tag }}" in seal, seal
     assert (
         "    timeout-minutes: 60" in seal and "    continue-on-error: true" in seal
     ), seal

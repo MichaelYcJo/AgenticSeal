@@ -173,7 +173,7 @@ does not parse, an unordered pair and an open row are all shown.
 
 ## The settling session's procedure
 
-1. Run `seal settle`, the dry run, on the preparation branch.
+1. Run `seal settle`, the dry run, on the settle's branch.
 2. For each group, read every operation in merge order, the section as it
    stands, and the code the rule names, its `check:` targets first. Write
    the section as the latest decision states it, in your own words. Where
