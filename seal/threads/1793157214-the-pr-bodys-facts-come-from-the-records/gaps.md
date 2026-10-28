@@ -13,6 +13,8 @@ Four of the five withheld sealer runs of this release, and 23 of 27 in 0.22.x, w
 | What a line equal to `HEADING` refuses | `frame/design.md` S6: a record holding a line equal to `HEADING` is refused | a copied line equal to it is refused, at the record's line; a line in a part that is not copied is not | only a copied line would split the body in the wrong place |
 | Which round file names are read | `frame/design.md`: a positive integer | `hooks/lib/routing.py#round_number`, the chain check's one ordering rule, which accepts `round-0.md` | one ordering rule for round records |
 | A missing body under `--check` | `frame/design.md`: exit 2 for an unusable argument | exit 1 | the check's answer is that the body does not match |
+| Where the sealer's check stands | `frame/plan.md` row 2: a `seal pr-body --check` step in `agents/sealer.md` | the check is the first act of step 2, and no step is renumbered | `docs/the-review-record.md` cites the sealer's steps 3 and 4 and `templates/records/sdd-guarantee.md` its step 5 by number |
+| Two readers outside row 2 | `frame/plan.md` row 2 lists the readers it rewrites | `skills/implement/orchestration.md` *Orchestrator: the order inside a ticket* step 2 names `seal pr-body` between the broad run and the sealer, and `templates/records/sdd-guarantee.md`'s parties placeholder names the orchestrator's part of the body | each stated the order or the parties this work changes |
 
 ## Not verified
 
