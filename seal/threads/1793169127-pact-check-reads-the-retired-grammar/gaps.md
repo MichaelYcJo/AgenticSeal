@@ -12,6 +12,7 @@ refused.
 | Divergence | Spec says / code did | Chosen | Grounds |
 |---|---|---|---|
 | A second map header the walk already refuses | `design.md` *Scope* item 1: "a second `\| Remote \| Path \|` header in the file, named at its line". The code names it in its own sentence only where the walk refused nothing; where the walk refused, its stray-row sentence names that line | The code | The walk's sentence already says "it and every row below it would go unread", so a second sentence would print one fault twice. `hooks/lib/config.py#read_table` takes the same course for the old pact header: it is "not added where the walk's stray-row refusal already names the old header" |
+| When `coordinates.py#unescape` goes | `plan.md` phase 2: "`PACT_ANCHOR_RE`, `PACT_NAME`, `unescape`, … go". The code removes `unescape` in phase 3 | Phase 3 | After phase 2 its one caller was `resolve_unit`, which phase 3 removes; removing it in phase 2 would have meant editing a unit the next phase deletes. The end state is the frame's |
 
 ## Not verified
 
@@ -25,4 +26,10 @@ nothing
 
 ## Fed back into the spec
 
-none
+- Inferred during implementation: `seal pact` refuses at exit 2 every
+  refusal the table walk returns for a signer frame's anchor table, except
+  that the frame holds none, printed after `the frame`. A row the walk does
+  not reach would read as a signer citing nothing. `design.md` S8 names
+  three row shapes and `plan.md` a second table; neither names the walk's
+  own refusals. `docs/the-pact.md` *The pact anchor*'s `to:` text in
+  `## Rule changes` does not say it either, so the settle may add it.
