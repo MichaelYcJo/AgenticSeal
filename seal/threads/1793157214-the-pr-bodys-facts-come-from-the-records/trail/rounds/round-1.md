@@ -9,7 +9,7 @@ target: 061d4e12 against release/v0.23.1
 severity: should
 location: `skills/code-review/scripts/pr_body.py:388-412`, `tests/skills/test_pr_body.py:327`
 evidence: executed `bin/seal pr-body <scratch>/h732/seal/specs/1791270162-the-worktree-guard-allows-a-listed-shape-and-asks-the-rest --body <scratch>/h732-body.md`, `python3 -I -c (close_issues_on_release.keywords_in over the part of <scratch>/h732-body.md above the heading)`
-verdict: open
+verdict: fixed 619ac510
 
 The generated part is the text of the records. That text now reaches the
 body, and two readers act on a closing keyword anywhere in the body:
@@ -70,14 +70,14 @@ The refusing case belongs in the parametrize of
 changelog line reading `This closes #7.` is refused at `changelog.md:1`. The
 same line with `#7` in a code span, or inside a fence, is accepted.
 
-answer:
+answer: fixed in 619ac510. `_composed` refuses a copied line where `close_issues_on_release.py#keywords_in` reads a closing keyword, at the record's line, beside the refusal of a copied line equal to `HEADING`. The module is loaded beside `chain_check.py`, and no second pattern was written. The line is read through the record's `readable` lines, so a fenced line and a code span claim nothing. The refusal names the issue, says that the `Closes` line is the orchestrator's alone and stands under `## Not from the records`, and says to put the number in a code span in the record. The new row of `Test_compose::test_refuses_a_record_it_cannot_copy_faithfully` holds a bare claim, a claim in a code span and a claim in a fence, and expects one cause, at `changelog.md:3`. It was seen red against the generator at 143fc233, which raised nothing. Run again over the changelog archived from 3d78c220, `--check` exits 1 at that changelog's line 42. The work item's `changelog.md` and a divergence row of `gaps.md` carry the change.
 
 ### 2. The sealer's withheld reason copies an absolute path into a committed `guarantee.md`
 
 severity: should
 location: `agents/sealer.md:66-71`, `skills/code-review/scripts/pr_body.py:487-489`, `tests/skills/test_pr_body.py:413`
 evidence: executed `bin/seal pr-body <scratch>/owl/seal/threads/1793152332-the-stamps-mark-is-an-owl --body <scratch>/owl-tampered.md --check`
-verdict: open
+verdict: fixed 619ac510
 
 Step 2 of `agents/sealer.md` says that on any exit but 0 the sealer writes a
 withheld verdict whose reason is `<the first line the command printed>`. The
@@ -124,14 +124,14 @@ the strings they are given. `tests/skills/test_pr_body.py:413` pins
 `refused: {body}:7: ` with the absolute temporary path and moves to
 `refused: pr-body.md:7: `.
 
-answer:
+answer: fixed in 619ac510. `_place` names the body file by its name and a record by its path under the `seal/` root, as proposed, so the line the sealer copies into `guarantee.md` holds no machine path, and `agents/sealer.md` stays as it was. The pin at `tests/skills/test_pr_body.py:424` now reads `refused: pr-body.md:7: `. The new case `Test_main::test_refuses_naming_no_machine_path` hands the command absolute paths and expects `refused: seal/threads/<name>/trail/rounds/round-1.md:12: ` with no temporary path in the output. Both were seen red against the generator at 143fc233, which printed the absolute temporary path. Exit 2's line still prints `<item>` as it was given, or a module's installed path; the normal flow gives neither, and the module docstring states it as a limit. The work item's `changelog.md` says what the reason line now names.
 
 ### 3. The prose rule for the body's table says the phase records are already copied, and only their paths are
 
 severity: should
 location: `skills/writing-style/outside-the-review.md:63`
 evidence: read `skills/writing-style/outside-the-review.md:63`, `skills/code-review/scripts/pr_body.py:276-292`, `skills/code-review/scripts/pr_body.py:295-333`
-verdict: open
+verdict: fixed 619ac510
 
 The sentence the orchestrator reads before it writes its part of the body
 says that the phase records, the round records, `trail/gate.md` and
@@ -155,7 +155,7 @@ correctly ("the paths of the phase records"). The skill should agree with it.
 리뷰 체인을 거친 본문에서는 기록에 없는 검증만 이 표에 적는다. 앞부분에는 `frame/plan.md` 의 `## Phases` 표와 phase 기록의 경로, 회차 기록마다 `target:` 줄과 지적의 `severity:`·`verdict:`·`answer:` 줄, `trail/gate.md`, `gaps.md` 의 `## Not verified` 가 옮겨져 있다. phase 기록의 본문은 옮겨지지 않으므로, 그 기록의 사실이 필요하면 다시 쓰지 않고 그 경로를 적는다. 표에 남는 것은 광역 실행이 출력한 숫자, 회차가 끝난 뒤에 돌린 CI 결과처럼 어느 기록에도 없는 것이다.
 ```
 
-answer:
+answer: fixed in 619ac510. The sentence now says that the first part holds the plan's `## Phases` section and the phase records' paths, each round record's `target:` line, each finding's heading with its `severity:` line, `verdict:` line and `answer:` paragraph, the gate's table and `gaps.md`'s `## Not verified` section. It also says that a phase record's text is not copied, so a fact from one is named by its path. This is the proofer's text reworked rather than pasted: the middle dots it used as separators became words, the finding headings and the gate's table are named, and the sentence on the phase records follows `skills/code-review/orchestration.md`, where the orchestrator names a record's path rather than restating it.
 
 ## Confirmations
 
