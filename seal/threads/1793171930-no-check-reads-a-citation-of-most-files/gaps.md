@@ -19,6 +19,7 @@ A heading renamed in any file but `skills/implement/SKILL.md` left its citations
 |---|---|
 | The full suite, the repository-wide lint and the typecheck | the orchestrator, at `seal gate` |
 | Whether S1 still meets only what the frame measured once #1053's and #1040's branches land in `release/v0.24.0` (`frame/questions.md` Q2) | the orchestrator, at the rebase |
+| Whether S9's warning stands in the full output `seal gate` keeps under `--keep-output`; `bin/test -q` printed it (phase 2 record), and `trail/gate.md` holds no test output at all | the orchestrator, at `seal gate` |
 
 ## Not done
 
