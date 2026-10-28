@@ -228,6 +228,17 @@ module's number and, beside it, the number of asserts it left out by kind.
 The issue's rough figure of 182 for `tests/text` bounds the count from
 above, and the method sizes it.
 
+**The one policy line this work changes.** The rule above the `check:`
+line in `docs/the-broad-gate.md` *One act, one owner, and the owner is the
+orchestrator* is "A suite that is not mentioned reads as a suite that
+passed" (`docs/the-broad-gate.md:39-42`, read). The contract module reads
+none of it at base or after this work. `PINS` row 2 is "no agent runs any
+of the three", and the module has no other assertion on the label (read).
+`tests/text/test_broad_gate_rule.py:142-149` asserts that
+`agents/crafter.md` hands the suite over labelled `unverified` with the
+orchestrator named as its answerer (read), so it is the reader the line
+names in its place, through the item below.
+
 ## Rule changes
 
 - change
@@ -235,15 +246,6 @@ above, and the method sizes it.
   section: One act, one owner, and the owner is the orchestrator
   from: check: tests/text/test_the_agent_contract_holds_the_universal_rules.py tests/text/test_every_agent_reads_the_contract.py
   to: check: tests/text/test_broad_gate_rule.py tests/text/test_every_agent_reads_the_contract.py
-
-The rule above the line is "A suite that is not mentioned reads as a suite
-that passed" (`docs/the-broad-gate.md:39-42`, read). The contract module
-reads none of it at base or after this work. `PINS` row 2 is "no agent runs
-any of the three", and the module has no other assertion on the label
-(read). `tests/text/test_broad_gate_rule.py:142-149` asserts that
-`agents/crafter.md` hands the suite over labelled `unverified` with the
-orchestrator named as its answerer (read), so it is the reader the line
-names in its place.
 
 ## Removes
 
