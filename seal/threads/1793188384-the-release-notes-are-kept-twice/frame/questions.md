@@ -6,7 +6,8 @@ Alternatives table.
 
 - **Where the release's work items are found at the tag, once the settle has
   removed their directories** (the issue's last check before building). From
-  the history: every fragment a commit after the previous version tag added,
+  the history: every fragment a commit after the previous version tag added
+  and that tag does not already hold,
   each read at the newest commit of the range that holds it. Executed for
   0.19.0 to 0.23.1, it gives each released file's markers exactly, 0.22.4
   included, whose fragments the settle removed before its tag.

@@ -29,7 +29,9 @@ In scope:
    `changelog/X.Y.Z.md`. For a tag `vX.Y.Z` it takes the previous version
    tag, the highest `vA.B.C` tag merged into the tagged commit's first
    parent, and reads every `seal/threads/<work-item-id>/changelog.md` that a
-   commit in that range added. Each fragment's text is the blob at the newest
+   commit in that range added and the previous tag does not already hold: a
+   fragment that tag holds was released there, though a commit in the range
+   restored its directory (0.15.3). Each fragment's text is the blob at the newest
    commit of the range whose tree holds the path, so a fragment a settle
    removed before the tag is still read. This answers the issue's question
    of where the work items are found once the settle has removed their
@@ -206,7 +208,8 @@ module, as step 2b already reads `installed_plugins.json`. Step 3 reads
     with a summary read from the pull requests merged into
     `release/vX.Y.Z`:
   to: The fragments are the ones the commits after the previous `vX.Y.Z`
-    tag added, each read at the newest commit of that range that holds it,
+    tag added and that tag does not already hold, each read at the newest
+    commit of that range that holds it,
     so a work item a settle removed before the tag still has its entry. It
     goes red on a tag whose range added no fragment, which is the release
     shipping unexplained. The note opens with the release's theme, the
@@ -311,7 +314,8 @@ module, as step 2b already reads `installed_plugins.json`. Step 3 reads
   to: **The release note is built from the fragments at the tag, and no
     copy of the notes is kept in the tree.** On the `vX.Y.Z` tag push,
     `.github/scripts/publish_release_note.py` reads every fragment the
-    commits after the previous `vX.Y.Z` tag added, from the history, so a
+    commits after the previous `vX.Y.Z` tag added and that tag does not
+    already hold, from the history, so a
     fragment a settle removed before the tag is still read. The GitHub
     Release at the tag is the release's notes. A copy in the tree is the
     one nobody works from, and so the one that drifts from its fragment. A
