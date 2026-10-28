@@ -37,10 +37,9 @@ notes:
 | `tests/behaviour/test_the_seal_is_taken_once_by_the_sealer.py:685` | the docstring saying #1053 removed `changelog/` and the entry is the v0.20.0 release note's |
 | `tests/github/test_publish_release_note.py:246`, `:258`, `:302` | A1 and S1: assertions, and S1's docstring, that the note names no `changelog/` path |
 
-Under `seal/`, `seal/follow-up.md` names `changelog/0.12.2.md` read at
-`v0.23.1` as the released copy, which is where the frame moved its
-coordinate. Phase 5 dropped this phase's wording of it as the folded text of
-the v0.12.2 release note, because that note is not republished.
+Under `seal/`, the two `seal/follow-up.md` rows this phase re-pointed at
+`changelog/0.12.2.md` were removed in round 5's fix pass (`gaps.md`): no
+released copy of 0.12.2 can take their correction.
 
 **The frame does not hold on where a released file is read (executed).**
 `frame/design.md` *Scope* items 5 and 8, S11 and `frame/plan.md`'s phase 5
@@ -52,7 +51,7 @@ whose note lacks its file's text are among the 44. `v0.23.1` holds all 58
 files, identical to `49ca77ee`'s (`git diff --quiet v0.23.1 49ca77ee --
 changelog/ CHANGELOG.md` exit 0). `449e5864` makes this work item's
 `changelog.md` and the two `seal/follow-up.md` rows name `v0.23.1`, and S11
-reads each file there. The orchestrator folded this into the frame;
+reads each file there. Round 5's fix pass later removed the two rows. The orchestrator folded this into the frame;
 `gaps.md` holds the divergence.
 
 **How the changed pins were seen red (executed).** After the build commit,
@@ -82,11 +81,11 @@ accumulates on a release branch*, the section `## Rule changes` rewrites.
 Until the settle that section still describes the gather, which is how the
 policy root reads between a merge and its settle.
 
-**The two `seal/follow-up.md` rows keep their question and answerer.** As
-phase 5 left them, each names `changelog/0.12.2.md` at `v0.23.1` as the
-released copy. Each says no commit after `v0.23.1` holds the file, where it
-said the gather decides by marker. The `CONTRIBUTING.md` rule each cited is
-now in the past tense, because that rule is gone.
+**The two `seal/follow-up.md` rows on `changelog/0.12.2.md` are gone.**
+This phase re-pointed them and kept their question. Phase 5 found the
+v0.12.2 release note holds neither sentence. Round 5's fix pass removed
+both rows, because Q2's answer is the only answer their question has
+(`gaps.md`).
 
 **The run over every module naming a changed path (executed).** 75 modules,
 `bin/test -q`: 2913 passed, 10 skipped, exit 0. `bin/seal layout --check`
