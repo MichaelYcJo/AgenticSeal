@@ -1,6 +1,6 @@
 # Implementation Plan: 1793169129-the-creation-row-still-says-retry-with-worktree-ok
 
-Approved <date> by <who>, when `crafter` was spawned.
+Approved 2026-10-28 by the orchestrator under the owner's automation answer, when `crafter` was spawned.
 
 ## Summary
 
