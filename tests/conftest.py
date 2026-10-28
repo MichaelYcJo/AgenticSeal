@@ -415,6 +415,24 @@ for _name in GH_CREDENTIALS:
 os.environ["GH_TOKEN"] = NOT_A_GH_TOKEN
 os.environ["GH_ENTERPRISE_TOKEN"] = NOT_A_GH_TOKEN
 
+# The suite runs with no workflow variable, under every event (#1058). Every
+# workflow run sets `GITHUB_ACTIONS`, `GITHUB_EVENT_PATH` and the rest, and
+# only a `pull_request` run sets `GITHUB_HEAD_REF`; a local run and the broad
+# gate set none. Three cases that judged the checked-out branch passed on a
+# local run, the broad gate and a `workflow_dispatch` run, and failed on pull
+# request #1057's run (`gh run view 40446828473 --log-failed`), because the
+# script they drove reads `GITHUB_HEAD_REF` first. So every name that starts
+# with `GITHUB_` is removed here, at import, for the reason the block above
+# is: every entry point, every fixture of every scope and every child that
+# inherits `os.environ` sees the same environment.
+# The names are read from the environment itself, so a variable a script
+# starts reading later is covered without an edit here. A case that needs one
+# sets it with `monkeypatch.setenv`. The limit: code that runs in this process
+# and needs the runner's real value, such as a pytest hook writing the step
+# summary, has to read it before this file is imported.
+for _name in [n for n in os.environ if n.startswith("GITHUB_")]:
+    del os.environ[_name]
+
 # `chain_check.py` asks `gh pr view --json isDraft` where no event payload
 # exists (#866), and every run of it the generator and the broad gate make in
 # this suite is such a run. A stub named `gh`, first on PATH from import,

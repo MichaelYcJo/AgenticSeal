@@ -1818,7 +1818,6 @@ class Test_annotate:
 
     @pytest.mark.parametrize("in_ci, line", [(True, "::notice::m"), (False, "m")])
     def test_refuses_to_name_a_path_it_was_not_given(self, monkeypatch, in_ci, line):
-        monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
         if in_ci:
             monkeypatch.setenv("GITHUB_ACTIONS", "true")
         assert UC.annotate("notice", None, 1, "m") == line
@@ -2042,7 +2041,6 @@ class Test_main:
         `ls-tree`'s path; they agreed only at the repository root. Run in
         both output shapes, because pinning one is what let this pass
         everywhere except CI."""
-        monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
         if in_ci:
             monkeypatch.setenv("GITHUB_ACTIONS", "true")
         d = copy_of(plain, tmp_path)

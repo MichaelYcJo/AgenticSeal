@@ -2222,14 +2222,28 @@ def report(data):
         print("  nothing obvious — the command time is the command's own cost")
 
 
+# The label column of the spawn table and of the per-segment table, named once
+# because `cycle_label` and `segment_label` cut to it and `report_spawns` and
+# `report_segments` pad to it. Two literals that have to agree is a column
+# that goes ragged the day one of them moves.
+LABEL_WIDTH = 30
+
+
 def cycle_label(row):
     """A slice's name in the printed table.
 
     A cycle with no `subagent_type` still gets a name. The label is how a
     reader tells one row from the next, so `cycle 3  ?` is worth more than a
-    row that reads as a blank."""
+    row that reads as a blank.
+
+    **The label is cut from the right to the column it is padded to** (#712).
+    An uncut label longer than the column pushed every cell of its row to the
+    right of its header, so a reader took one column's number for the next
+    one's. The cut carries no mark, the way `segment_label` cuts a named
+    agent, and `--json` keeps `subagent_type` whole."""
     if row["kind"] == "cycle":
-        return f"cycle {row['cycle']}  {row['subagent_type'] or '?'}"
+        label = f"cycle {row['cycle']}  {row['subagent_type'] or '?'}"
+        return label[:LABEL_WIDTH]
     return row["kind"]
 
 
@@ -2315,7 +2329,7 @@ def report_spawns(spawns, path, total_calls, run_span=0.0):
         )
     print(
         "\n  "
-        f"{'row':<30}{'span':>8}{'command':>9}{'model':>8}"
+        f"{'row':<{LABEL_WIDTH}}{'span':>8}{'command':>9}{'model':>8}"
         f"{'delegated':>11}{'calls':>7}{'t/turn':>8}{'gap':>7}"
     )
     counted = 0
@@ -2325,12 +2339,12 @@ def report_spawns(spawns, path, total_calls, run_span=0.0):
             # A real reading, not a gap in the table: an empty head means the
             # run's first act was a spawn. The row stays so the rows go on
             # partitioning the run.
-            print(f"  {cycle_label(row):<30}     no call in this window")
+            print(f"  {cycle_label(row):<{LABEL_WIDTH}}     no call in this window")
             continue
         counted += numbers["calls"]
         delegated = numbers["delegated_s"]
         print(
-            f"  {cycle_label(row):<30}"
+            f"  {cycle_label(row):<{LABEL_WIDTH}}"
             f"{minutes(numbers['span_s']):>8}"
             f"{minutes(numbers['command_s']):>9}"
             f"{minutes(numbers['model_s']):>8}"
@@ -2416,13 +2430,10 @@ def report_spawns(spawns, path, total_calls, run_span=0.0):
     if described:
         print("\nwhat each cycle spawned")
         for row in described:
-            print(f"  {cycle_label(row):<30}{row['description'][:70]}")
+            # A label cut to the full column has no space after it, and the
+            # description is not right-aligned to bring one of its own.
+            print(f"  {cycle_label(row):<{LABEL_WIDTH}} {row['description'][:70]}")
 
-
-# The label column of the per-segment table, named once because
-# `segment_label` cuts to it and `report_segments` pads to it. Two literals
-# that have to agree is a column that goes ragged the day one of them moves.
-LABEL_WIDTH = 30
 
 # #640. Each segment kind's bar on tools per turn, keyed by the basename of
 # the spawn's `subagent_type` after its last `:`, so `agentic:proofer` and

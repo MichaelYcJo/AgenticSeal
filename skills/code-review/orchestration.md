@@ -192,7 +192,11 @@ body file again and spawns the sealer again.
 the broad run.** Line endings, the shell and the Python version are such
 risks. Push the branch once the build's last phase closes and run
 `gh workflow run tests --ref <branch>`, then read that run's result before
-you take the broad run. A leg that fails there is a defect like any a round
+you take the broad run. That run is a `workflow_dispatch` run of `tests`.
+Its cases see what a `pull_request` run's cases see, because
+`tests/conftest.py` removes every `GITHUB_` variable at import. It cannot
+have a pull request's merge commit, or the `hygiene` workflow, which starts
+only on a `pull_request` event. A leg that fails there is a defect like any a round
 finds, and it is repaired before the rounds settle. Under `stop before the
 pull request` push nothing: name the platform risk in the hand-back, for
 whoever opens the pull request.
