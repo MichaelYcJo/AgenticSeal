@@ -86,9 +86,10 @@ phase 1's build to this decision.
 - **Failure scenario of the chosen approach.** Three ways it goes wrong.
   First, the rule stays a sentence, and nothing refuses a split. Six months
   on, an orchestrator writes a fix-pass prompt from memory and moves the
-  verdicts to itself again. Each round then costs one more record commit
-  until a proofer reads the fix range's commits or the owner reads the
-  history. No wrong verdict reaches a merge, because the verdict is still
+  verdicts to itself again. Where it writes them before its one commit, the
+  history shows the commit the rule asks for and nothing shows the split;
+  only a transcript does. Where it commits them apart, each round costs one
+  more record commit, which the fix range's commits show. No wrong verdict reaches a merge, because the verdict is still
   checked against its commit and weighed by the next round. Second, a
   crafter follows *Order of work* step 6, "Commit", out of habit and
   commits the lines itself. The orchestrator then finds nothing to commit,

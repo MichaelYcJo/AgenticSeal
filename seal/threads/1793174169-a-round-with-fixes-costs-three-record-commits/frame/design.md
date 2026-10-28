@@ -76,10 +76,12 @@ number below without a commit beside it is at `aa8b54cb`.
    sentence.** `skills/implement/orchestration.md`, row *Orchestrator: a
    phase is a fresh crafter, and a fix pass resumes the implementer*
    (`:666`), keeps one sentence in its `Grounds` cell on the two lines. The
-   sentence names what nothing reads: who wrote a finding's two lines, who
-   committed them, and whether that commit changed them are in the round
-   record's history, no check reads it, and a refusal at the pull request
-   could be cured only by rewriting the branch's history.
+   sentence names what nothing reads: whether the orchestrator's commit
+   carried a finding's two lines is in the round record's history and no
+   check reads it, and a refusal at the pull request could be cured only by
+   rewriting the branch's history; who wrote the lines, and whether that
+   commit changed what the fix pass left, is in no commit, because the fix
+   pass commits neither line.
 5. **The cause of the split in #955 and #1016 is named, from the session
    that ran them.** The transcript is on disk. In the user's Claude Code
    project directory for this repository, session
@@ -248,7 +250,7 @@ assertions that read it.
   file: docs/the-review-record.md
   section: The round record
   to: **Each finding's `verdict:` and `answer:` lines have one writer, and the lines closed at one step reach the branch in a single commit.**
-    A finding a fix pass answers is the pass's to write: it writes both lines last, after its fix commits and the corrections its sweep made, because a `fixed` verdict names a commit that is already there, and it commits neither. The orchestrator takes the round record from the hand-back as it stands and commits it, once for the whole pass, before it spawns the verifying round, which can read only what a commit holds. It edits no line in that commit, and a close it doubts goes into that round's spawn prompt. A finding closed with no fix pass, such as `deferred the frame` on the framer's route or a `deferred <home>` the orchestrator files at the cap, has the orchestrator as its writer, and the orchestrator writes and commits the lines of every finding it closes at that step together. A second hand on either line costs the round a record commit and gives a reader nothing.
+    A finding a fix pass answers is the pass's to write: it writes both lines last, after its fix commits and the corrections its sweep made, because a `fixed` verdict names a commit that is already there, and it commits neither. The orchestrator takes the round record from the hand-back as it stands and commits it, once for the whole pass, before it spawns the verifying round, which can read only what a commit holds. It edits no line in that commit, and a close it doubts goes into that round's spawn prompt. A finding closed with no fix pass, such as `deferred the frame` on the framer's route or a `deferred <home>` the orchestrator files at the cap, has the orchestrator as its writer, and the orchestrator writes and commits the lines of every finding it closes at that step together. A second hand on either line gives a reader nothing: made before the orchestrator's commit it leaves no trace in the history, and made after it the round pays one more record commit.
     check: tests/text/test_the_rules_have_one_owner.py tests/text/test_a_moved_rule_leaves_its_definition.py
 
 ## Removes
