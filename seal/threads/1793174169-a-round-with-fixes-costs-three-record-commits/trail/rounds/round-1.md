@@ -9,7 +9,7 @@ target: 87e89f17 against 5287dd42
 severity: should
 location: `agents/crafter.md:151-152`, `skills/code-review/orchestration.md:58-60`, `skills/code-review/orchestration.md:161`, `seal/threads/1793174169-a-round-with-fixes-costs-three-record-commits/frame/design.md:169-170`, `tests/text/test_a_moved_rule_leaves_its_definition.py:510-512`, `tests/text/test_the_rules_have_one_owner.py:191-194`, `tests/text/test_the_rules_have_one_owner.py:214-216`
 evidence: read `agents/crafter.md:148-158`, `skills/code-review/orchestration.md:54-80`, `skills/code-review/orchestration.md:161`, `seal/threads/1793174169-a-round-with-fixes-costs-three-record-commits/frame/design.md:101-114`, `seal/threads/1793174169-a-round-with-fixes-costs-three-record-commits/changelog.md:3`
-verdict: open
+verdict: fixed b413456f
 
 Why it matters. The work item exists to cut a round with fixes to two
 record commits: the round record's commit and one answer commit.
@@ -86,7 +86,7 @@ one commit carries every finding that party closes in the pass." The frame
 is not on the crafter's list of writes (`agents/crafter.md:17-21`), so the
 orchestrator decides who edits it.
 
-answer:
+answer: The finding holds: "each finding ... in one commit" distributes over the findings, and the sentence stood before the sweep. `b413456f` takes the record's words. In `agents/crafter.md` the commit sentence moves to the end of the fix-pass rule, after the sweep's corrections. `skills/code-review/orchestration.md:58-60` and row *The record* now say one commit for every finding. The pins in `tests/text/test_a_moved_rule_leaves_its_definition.py` and `tests/text/test_the_rules_have_one_owner.py` take the new words, and each exited 1 against the text at `87e89f17` before the text changed. The changelog fragment's first two items now state one commit for the pass. The `git grep` sweep finds the old reading only in this work item's frame: `frame/design.md:31`, `:53` and `:152` and `frame/plan.md:73`. They stand because the frame is not the crafter's to write, and the orchestrator decides who edits them. One more thing for the settle: the new orchestrator sentence shares a 21-word run with the frame's `to:` text ("commits the two lines of every finding it answered in one commit for the whole pass, after its last fix commit"). That frame text sits under `seal/`, which the paste check skips. If the settle writes the text verbatim into `docs/the-review-record.md`, `tests/text/test_no_passage_is_pasted_into_a_second_file.py` reads that pair at its 15-word window.
 
 ## Confirmations
 
