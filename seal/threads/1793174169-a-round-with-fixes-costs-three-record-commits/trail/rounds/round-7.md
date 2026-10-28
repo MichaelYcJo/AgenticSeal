@@ -9,7 +9,7 @@ target: 3434a855, fixes a01d3037..3434a855
 severity: should
 location: `seal/threads/1793174169-a-round-with-fixes-costs-three-record-commits/frame/plan.md:114`
 evidence: read `seal/threads/1793174169-a-round-with-fixes-costs-three-record-commits/frame/plan.md:114`, `seal/threads/1793174169-a-round-with-fixes-costs-three-record-commits/frame/design.md:164-170`, `seal/threads/1793174169-a-round-with-fixes-costs-three-record-commits/changelog.md:3`
-verdict: open
+verdict: fixed 5d1e4181
 
 Round 6's finding 1 was the count of two record commits stated for every
 round with fixes, which round 5 broke. The fix qualified that count in the
@@ -58,7 +58,7 @@ The frame is the orchestrator's to write. The edit changes no rule and no
 test reads the cell. `tests/text/test_no_passage_is_pasted_into_a_second_file.py`
 leaves out `seal/`, so it does not read this edit.
 
-answer:
+answer: The orchestrator applied the block above to row C's verdict cell as given at `5d1e4181`, removing the clause "and keeps the count at two", since the frame is not the crafter's to write; no fix pass ran for this finding, so the orchestrator writes both its lines.
 
 ## Confirmations
 
