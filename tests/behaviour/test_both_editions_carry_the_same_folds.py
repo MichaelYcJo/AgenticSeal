@@ -17,7 +17,7 @@ import importlib.util
 import os
 import re
 
-from conftest import ROOT, git_listing
+from conftest import ROOT, decline_if_shrunken, git_listing, on_disk
 
 READER = os.path.join(ROOT, "skills", "verify", "scripts", "unverified_check.py")
 
@@ -57,16 +57,20 @@ def disagreements(name, english, korean):
 
 
 def pairs():
-    """Every tracked `X.ko.md` beside an `X.md`, wherever it stands, as
-    repository-relative names without the extension. The listing is git's,
-    so an untracked file is no pair."""
+    """`(names, missing)`: every tracked `X.ko.md` on disk beside an `X.md`,
+    wherever it stands, as repository-relative names without the extension,
+    and the tracked editions the working tree has deleted. The listing is
+    git's, so an untracked file is no pair, and `on_disk` keeps a deleted
+    edition from ending the walk at its `open` (#432)."""
     listed = git_listing(ROOT, "ls-files", "--", "*.ko.md")
-    return [
+    present, missing = on_disk(ROOT, listed)
+    names = [
         name[: -len(".ko.md")]
-        for name in sorted(listed)
+        for name in sorted(present)
         if name.endswith(".ko.md")
         and os.path.isfile(under_root(name[: -len(".ko.md")] + ".md"))
     ]
+    return names, missing
 
 
 def under_root(name):
@@ -82,7 +86,11 @@ def read(name):
 def test_every_paired_document_carries_the_same_headings():
     """A1, A2. The walk reads at least one pair, so a broken listing cannot
     pass on an empty walk."""
-    names = pairs()
+    names, missing = pairs()
+    # The two names below are asserted alive, and to that assertion a deleted
+    # edition and a listing that lost it are the same evidence, so a tree
+    # missing a tracked edition is declined rather than judged.
+    decline_if_shrunken(missing, "the edition pairs")
     assert names, "no X.ko.md beside an X.md was read"
     # #1055 S11: the pairs outside top-level `docs/` are read too.
     for name in ("README", "docs/experiments/README"):
