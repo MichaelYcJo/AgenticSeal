@@ -9,7 +9,7 @@ target: 958f2f3e against origin/release/v0.24.0
 severity: should
 location: `.claude-plugin/plugin.json:25`, `tests/behaviour/test_chain_hooks_hardening.py:180`
 evidence: read `.claude-plugin/plugin.json:25`, `hooks/worktree-guard.py:249-252`
-verdict: open
+verdict: fixed 3bee2ec4
 
 The plugin manifest reference that `frame/design.md` *Grounding* cites
 (`code.claude.com/docs/en/plugins-reference`, *User configuration*, read this
@@ -48,14 +48,14 @@ interfaces*, so the fix pass records it as a divergence in `gaps.md`.
     assert "SPECSEAL_LANG" in option["description"], option
 ```
 
-answer:
+answer: The finding holds. The description now reads "Left empty, the variable SPECSEAL_LANG decides through 0.24.x, then the system locale.", keeping the frame's other two sentences, and S5 asserts that the description names `SPECSEAL_LANG`, with a comment saying the next minor release removes the assertion with the read. The assertion was seen red first, against the old description (executed, exit 1, `assert 'SPECSEAL_LANG' in "... Left empty, the system locale decides. ..."`). A `seal mutate` mutant that puts the frame's sentence back is red (executed). `gaps.md` records the departure from `frame/design.md` *Data and interfaces* as a divergence. The sweep for other sentences that say what an empty option does without the fallback found none in the living tree: both README rows, the `_lang` docstring and comments, the census comment and the changelog fragment each name `SPECSEAL_LANG` first (executed, `git grep -n -i` for "left empty", "is empty" and "비워"). `trail/phases/phase-2.md` *The manifest's description is the frame's text, kept as given* is left as written. It records the decision phase 2 made, and a fix pass writes no phase record. The frame's own sentence at `frame/design.md:80` is not this pass's to edit. The fragment needs no change, because it does not quote the description.
 
 ### 2. The S5 case can never pass once the guard and its option both leave, though its docstring says it turns green then
 
 severity: should
 location: `tests/behaviour/test_chain_hooks_hardening.py:173-181`
 evidence: read `tests/behaviour/test_chain_hooks_hardening.py:173-191`
-verdict: open
+verdict: fixed 3bee2ec4
 
 The docstring ends *If the guard leaves, this case is red until its option
 leaves with it.* `frame/plan.md` *Technical context*, second failure scenario,
@@ -84,7 +84,7 @@ removed `title` still reach the shape assertions.
         assert option["type"] == "string", option
 ```
 
-answer:
+answer: The finding holds. S5 now checks the option's fields, and the description assertion of finding 1, only where `userConfig` declares `worktree_guard_language`. The docstring says so, and its last sentence is now true. I removed both the declaration and the guard's read in a `git archive` extract. At `99c1649a` the case failed there on `assert [] == ['description', 'title', 'type']`, exit 1. At `3bee2ec4` it passed, exit 0 (both executed, each extract removed after its run). With the read in place, every mutant `trail/phases/phase-2.md` lists stays red at `3bee2ec4` (executed, `seal mutate`): `userConfig` misspelt, the key misspelt, `type` set to `boolean`, a `default` added, `title` removed, plus two new mutants, the description clause reverted and the whole `userConfig` block removed. That is 7 mutants, 7 red, 0 SURVIVED. The option's variable misspelt in `hooks/worktree-guard.py` is also red. `gaps.md` records the conditional check as a divergence from `frame/design.md` S5.
 
 ## Confirmations
 
