@@ -55,13 +55,13 @@ that before the spawn (`skills/implement/orchestration.md` *Question 1*).
 `trail/rounds/round-N.md`, its verdict and its answer, and nothing else but a
 coordinate it appends to `location:` where its fix went elsewhere**
 (`docs/the-review-record.md` *The round record*); it writes no
-`trail/phases/phase-N.md` and no `plan.md` row. It commits both lines of each
-finding together, in one commit after any fix commit it made, because a
-`fixed` verdict names a commit that already exists. **The orchestrator writes
-neither line of a finding the fix pass answers, and its fix-pass prompt leaves
-both lines to the crafter.** A close the orchestrator doubts goes into the
-verifying round's spawn prompt, since that round weighs every close, and the
-orchestrator does not rewrite the line.
+`trail/phases/phase-N.md` and no `plan.md` row. It commits the two lines of
+every finding it answered in one commit for the whole pass, after its last
+fix commit, because a `fixed` verdict names a commit that already exists.
+**The orchestrator writes neither line of a finding the fix pass answers, and
+its fix-pass prompt leaves both lines to the crafter.** A close the
+orchestrator doubts goes into the verifying round's spawn prompt, since that
+round weighs every close, and the orchestrator does not rewrite the line.
 
 **Two commits after the build are yours, not the crafter's**: a fix written after
 the last round, and the commit that integrates a sibling's squash. Each one that
@@ -158,7 +158,7 @@ The framer's route:
 
 | Step | What |
 |---|---|
-| The record | every open finding closes `deferred the frame`, and its `answer:` line names the regression that sent the work item back; you write both lines of each finding in one commit |
+| The record | every open finding closes `deferred the frame`, and its `answer:` line names the regression that sent the work item back; you write both lines of every open finding in one commit |
 | The framer | spawned again with the run's round records as its input; they are in the tree, so the prompt names them and carries nothing else. It rewrites `plan.md` (new phase rows; a closed phase keeps its commit) and `frame/design.md` where the scope moves, and adds `Reframed <date> by <who>, after round <N>.` under the `Framed` line. Where `routing.md` answers `Automation` with `yes`, the spawn asks nobody |
 | The redesign | you approve it when you spawn `crafter` for it, with a second `Approved` line in `plan.md` on a line of its own, in the shape `skills/implement/orchestration.md` *The plan is approved at the spawn* states; it is then built and reviewed, and its first finding round starts the cap's count again |
 

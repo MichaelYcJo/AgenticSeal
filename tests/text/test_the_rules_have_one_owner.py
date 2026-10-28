@@ -186,10 +186,11 @@ def test_the_fix_pass_reads_the_implementers_context_before_it_resumes():
         "the largest value of its `context` column",
         "hands it the round record and the phase records",
         "the largest context a fresh, never-resumed crafter reached in the 0.22.0 run",
-        # #1041, S1: both lines in one commit, and a doubt goes to the next
-        # round rather than into a rewrite of the line.
-        "commits both lines of each finding together, in one commit after any "
-        "fix commit it made",
+        # #1041, S1: both lines of every finding in one commit for the pass,
+        # and a doubt goes to the next round rather than into a rewrite of
+        # the line.
+        "commits the two lines of every finding it answered in one commit for "
+        "the whole pass, after its last fix commit",
         "A close the orchestrator doubts goes into the verifying round's spawn prompt",
         "the orchestrator does not rewrite the line",
     ):
@@ -213,7 +214,7 @@ def test_the_framers_route_closes_each_finding_with_both_lines_in_one_commit():
     for said in (
         "every open finding closes `deferred the frame`",
         "its `answer:` line names the regression that sent the work item back",
-        "you write both lines of each finding in one commit",
+        "you write both lines of every open finding in one commit",
     ):
         assert said in row, (
             f"row *The record* of the framer's route no longer says {said!r}"

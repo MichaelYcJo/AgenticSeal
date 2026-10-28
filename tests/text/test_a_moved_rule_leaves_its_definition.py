@@ -507,9 +507,11 @@ def test_the_crafters_fix_pass_writes_two_lines_and_sweeps_what_its_range_reword
         "`deferred <where it was repaired>`",
         "append the one it did change after `, `",
         "find every other place stating each rule your range reworded or removed",
-        # #1041, S3: a split of the two lines cost a round a third record commit.
-        "Commit both lines of each finding together, in one commit after your "
-        "fix commits.",
+        # #1041, S3: a split of the two lines cost a round a third record
+        # commit, and one commit per finding would cost it more.
+        "Then commit the `verdict:` and `answer:` lines of every finding you "
+        "answered in one commit for the whole pass, after your last fix commit "
+        "and its corrections.",
     ):
         assert clause in paragraph, f"the fix-pass rule lost {clause!r}"
 
