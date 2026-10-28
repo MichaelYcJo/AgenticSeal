@@ -107,7 +107,6 @@ class Test_main:
             capture_output=True,
             encoding="utf-8",
             errors="replace",
-            env={k: v for k, v in os.environ.items() if k != "GITHUB_STEP_SUMMARY"},
             timeout=60,
         )
         assert run.returncode == 0, run.stderr

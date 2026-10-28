@@ -245,8 +245,6 @@ def event(tmp_path, monkeypatch, draft):
     path = tmp_path / "event.json"
     path.write_text(json.dumps({"pull_request": {"draft": draft}}), encoding="utf-8")
     monkeypatch.setenv("GITHUB_EVENT_PATH", str(path))
-    monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
-    monkeypatch.delenv("GITHUB_HEAD_REF", raising=False)
     return path
 
 
@@ -2323,10 +2321,6 @@ def item(tmp_path, monkeypatch):
     event = tmp_path / "event.json"
     event.write_text(json.dumps({"pull_request": {"draft": False}}), encoding="utf-8")
     monkeypatch.setenv("GITHUB_EVENT_PATH", str(event))
-    monkeypatch.delenv("GITHUB_HEAD_REF", raising=False)
-    # Under Actions the check prints `::error` annotations; these cases read
-    # the plain line it prints everywhere else.
-    monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
     return d, audited
 
 
@@ -2780,9 +2774,6 @@ def local_item(repo, item=ITEM_ID, branch="feature"):
 
 
 def run_check(repo, *extra):
-    env = dict(os.environ)
-    env.pop("GITHUB_EVENT_PATH", None)
-    env.pop("GITHUB_HEAD_REF", None)
     r = subprocess.run(
         [
             sys.executable,
@@ -2799,7 +2790,6 @@ def run_check(repo, *extra):
         errors="replace",
         timeout=120,
         cwd=str(repo),
-        env=env,
     )
     return r.returncode, r.stdout + r.stderr
 
@@ -2862,7 +2852,7 @@ class Test_declared_for_this_branch:
         ids=["a-routing-md-outside-the-work-items", "another-file-of-a-work-item"],
     )
     def test_accepts_the_one_routing_md_under_the_work_items_beside_a_decoy(
-        self, repo, decoy, monkeypatch
+        self, repo, decoy
     ):
         """Guards c3 and c4 of #1017: only a `routing.md` under `seal/threads/`
         is a declaration. A team's own `specs/` holding one, or a work item's
@@ -2872,15 +2862,12 @@ class Test_declared_for_this_branch:
         write(repo, declared, DECLARES_FEATURE)
         write(repo, decoy, DECLARES_FEATURE)
         commit_everything_as_e(repo, "a declaration and a decoy")
-        monkeypatch.delenv("GITHUB_HEAD_REF", raising=False)
         assert chain.declared_for_this_branch(str(repo), routing_module) == (
             [declared],
             "",
         )
 
-    def test_refuses_two_committed_declarations_naming_the_branch(
-        self, repo, monkeypatch
-    ):
+    def test_refuses_two_committed_declarations_naming_the_branch(self, repo):
         """Guards g17 of #1017: two committed declarations naming one branch
         are not one answer, so neither is taken."""
         for n in (1, 2):
@@ -2888,14 +2875,11 @@ class Test_declared_for_this_branch:
                 repo, f"seal/threads/179900000{n}-item-{n}/routing.md", DECLARES_FEATURE
             )
         commit_everything_as_e(repo, "two declarations")
-        monkeypatch.delenv("GITHUB_HEAD_REF", raising=False)
         own, why = chain.declared_for_this_branch(str(repo), routing_module)
         assert own == [], own
         assert why.startswith("2 committed declarations name `feature`"), why
 
-    def test_refuses_a_detached_head_with_no_head_ref_as_no_branch(
-        self, repo, monkeypatch
-    ):
+    def test_refuses_a_detached_head_with_no_head_ref_as_no_branch(self, repo):
         """Guards g18 of #1017: a detached HEAD with no `GITHUB_HEAD_REF`
         names no branch, so no declaration is matched, even at a commit that
         declares the branch it left, and the why says the branch could not be
@@ -2903,7 +2887,6 @@ class Test_declared_for_this_branch:
         write(repo, "seal/threads/1799000001-an-item/routing.md", DECLARES_FEATURE)
         commit_everything_as_e(repo, "a declaration")
         git(repo, "switch", "-q", "--detach")
-        monkeypatch.delenv("GITHUB_HEAD_REF", raising=False)
         own, why = chain.declared_for_this_branch(str(repo), routing_module)
         assert own == [], own
         assert why.startswith("the branch could not be read"), why

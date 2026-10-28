@@ -143,9 +143,6 @@ def wire(
     monkeypatch.setenv("TAG", env.pop("TAG", TAG))
     monkeypatch.setenv("REPO", REPO)
     monkeypatch.delenv("DRY_RUN", raising=False)
-    # A run on CI has its own step's output file here; a case that wants one
-    # names its own (S4 of work item 1790993139).
-    monkeypatch.delenv("GITHUB_OUTPUT", raising=False)
     for key, value in env.items():
         monkeypatch.setenv(key, value)
     return mod, tracker

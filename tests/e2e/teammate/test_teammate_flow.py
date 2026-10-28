@@ -123,13 +123,9 @@ def run_blocks(text):
 
 
 def without_this_run(environ):
-    """ENVIRON less the git, GitHub and runner variables of the run this
-    suite is in."""
-    return {
-        k: v
-        for k, v in environ.items()
-        if not k.startswith(("GIT_", "GITHUB_", "RUNNER_"))
-    }
+    """ENVIRON less the git and runner variables of the run this suite is
+    in."""
+    return {k: v for k, v in environ.items() if not k.startswith(("GIT_", "RUNNER_"))}
 
 
 def seal(repo, *argv):

@@ -202,13 +202,15 @@ directory, removes `GITHUB_TOKEN` and `GITHUB_ENTERPRISE_TOKEN`, and sets
 without a token variable, `gh` reads the login it keeps in the OS keyring. A
 case that falls through its stubs onto a live `gh` then fails where it runs,
 instead of passing on a machine that happens to be logged in and failing
-only on CI after the branch was sealed. A case that needs `gh` stubs it. One
-question is stubbed for every case: `chain_check.py` asks
-`gh pr view --json isDraft` where no event payload exists, so the conftest
-puts a `gh` first on PATH that finds no pull request, which the check reads
-as *unknown*, not as ready, and passes every other call to the `gh` behind
-it. A case that means a draft or a ready pull request says so with
-`gh_answers`.
+only on CI after the branch was sealed. A case that needs `gh` stubs it. The
+conftest also removes every variable whose name starts with `GITHUB_`, so a
+case sees under a pull request's CI run what it sees everywhere else, and a
+case that needs one sets it with `monkeypatch.setenv`. One question is
+stubbed for every case: `chain_check.py` asks `gh pr view --json isDraft`
+where no event payload exists, so the conftest puts a `gh` first on PATH
+that finds no pull request, which the check reads as *unknown*, not as
+ready, and passes every other call to the `gh` behind it. A case that means
+a draft or a ready pull request says so with `gh_answers`.
 
 Two steps of the hygiene workflow ship to user repositories as well, as
 `templates/setup/hygiene.yml`: the chain check and the mode check, run from a

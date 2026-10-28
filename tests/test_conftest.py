@@ -61,6 +61,16 @@ TOKENS = ("GH_TOKEN", "GITHUB_TOKEN", "GH_ENTERPRISE_TOKEN", "GITHUB_ENTERPRISE_
 # Pinned verbatim: the conftest's placeholder, which is not a credential.
 NOT_A_GH_TOKEN = "agentic-suite-runs-with-gh-logged-out"
 
+# The variables a `pull_request` run of `tests` sets for every step (#1058).
+PULL_REQUEST_RUN = {
+    "GITHUB_HEAD_REF": "feature/x",
+    "GITHUB_BASE_REF": "main",
+    "GITHUB_EVENT_NAME": "pull_request",
+    "GITHUB_EVENT_PATH": "event.json",
+    "GITHUB_ACTIONS": "true",
+    "GITHUB_REF": "refs/pull/1/merge",
+}
+
 # Run the conftest's import-time code in a child whose environment carries
 # every token and a config directory of its own, and report what is left.
 PROBE = f"""
@@ -71,8 +81,25 @@ print(json.dumps({{
     "tokens": {{n: os.environ[n] for n in {TOKENS!r} if n in os.environ}},
     "home": home,
     "empty": bool(home) and os.path.isdir(home) and not os.listdir(home),
+    "github": sorted(n for n in os.environ if n.startswith("GITHUB_")),
 }}))
 """
+
+
+def run_probe(env):
+    """What `PROBE` reports, run in a child whose environment is ENV."""
+    r = subprocess.run(
+        [sys.executable, "-c", PROBE],
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=60,
+        env=env,
+        cwd=TESTS,
+    )
+    assert r.returncode == 0, r.stderr
+    return json.loads(r.stdout.strip().splitlines()[-1])
+
 
 # The workflow readers' fixture (#482, #462): a comment naming the script
 # above an unrelated step, the real step below it, a step with no name, a
@@ -517,17 +544,7 @@ class Test_module:
         (held / "hosts.yml").write_text("example.com:\n    oauth_token: x\n", "utf-8")
         env = {**os.environ, "GH_CONFIG_DIR": str(held)}
         env.update({name: "x" for name in TOKENS})
-        r = subprocess.run(
-            [sys.executable, "-c", PROBE],
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=60,
-            env=env,
-            cwd=TESTS,
-        )
-        assert r.returncode == 0, r.stderr
-        seen = json.loads(r.stdout.strip().splitlines()[-1])
+        seen = run_probe(env)
         assert seen["tokens"] == {
             "GH_TOKEN": NOT_A_GH_TOKEN,
             "GH_ENTERPRISE_TOKEN": NOT_A_GH_TOKEN,
@@ -536,6 +553,21 @@ class Test_module:
         assert seen["empty"], f"GH_CONFIG_DIR is not an empty directory: {seen['home']}"
         # The directory is the run's own, and it goes when the run does.
         assert not os.path.exists(seen["home"]), f"left behind: {seen['home']}"
+
+    def test_the_conftest_takes_every_github_variable_away(self):
+        """S1 of #1058. With the variables a `pull_request` run sets in its
+        environment, the conftest's import leaves no name that starts with
+        `GITHUB_`, so a case and every child it starts see the environment of
+        a run with no pull request, under every event. A case that needs one
+        of these variables sets it with `monkeypatch.setenv`. The `gh` login
+        is taken away as before. Seen red against `tests/conftest.py` at
+        `977b6613`, which left all six names in place."""
+        seen = run_probe({**os.environ, **PULL_REQUEST_RUN})
+        assert seen["github"] == [], f"left by the conftest: {seen['github']}"
+        assert seen["tokens"] == {
+            "GH_TOKEN": NOT_A_GH_TOKEN,
+            "GH_ENTERPRISE_TOKEN": NOT_A_GH_TOKEN,
+        }, f"the suite's token variables: {sorted(seen['tokens'])}"
 
     def test_the_token_gh_would_send_is_not_a_login(self):
         """A6, behavioural. `gh auth token` takes the same path as every API
