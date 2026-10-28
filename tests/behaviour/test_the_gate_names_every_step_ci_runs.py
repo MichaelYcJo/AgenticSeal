@@ -113,20 +113,36 @@ NUMBER_WORDS = ("no", "one", "two", "three", "four", "five", "six", "seven")
 def test_the_skill_counts_the_steps_with_a_local_answer_and_no_arm():
     """The shipped verify skill's orchestrator half counts the `release` steps
     that have a local answer and no arm — the ones that run this repository's
-    own script, and the one written inline — and the count is `PARTITION`'s,
-    so a step added to either kind moves the sentence or fails here."""
+    own script, and the ones written inline — and the count is `PARTITION`'s,
+    so a step added to either kind moves the sentence or fails here. A kind
+    with no step is left out of the sentence: since #1053 removed the gather's
+    step, no step runs a script under `.github/scripts/`."""
     scripts = sum(".github/scripts/" in reason for _, reason in reasons())
     inline = sum("inline" in reason for _, reason in reasons())
     with open(
         os.path.join(ROOT, "skills", "verify", "orchestration.md"), encoding="utf-8"
     ) as f:
         skill = " ".join(f.read().split())
+    total = scripts + inline
+    kinds = (
+        (
+            scripts,
+            "runs a script under `.github/scripts/`, which no plugin ships",
+            "run a script under `.github/scripts/`, which no plugin ships",
+        ),
+        (
+            inline,
+            "is shell written inline in the workflow",
+            "are shell written inline in the workflow",
+        ),
+    )
+    clauses = [
+        f"{NUMBER_WORDS[n]} {one if n == 1 else many}" for n, one, many in kinds if n
+    ]
     said = (
-        f"{NUMBER_WORDS[scripts + inline].capitalize()} steps of AgenticSeal's own "
-        f"`release` job have a local answer and no arm: {NUMBER_WORDS[scripts]} "
-        f"{'runs' if scripts == 1 else 'run'} a script under `.github/scripts/`, "
-        f"which no plugin ships, and {NUMBER_WORDS[inline]} is shell written "
-        "inline in the workflow"
+        f"{NUMBER_WORDS[total].capitalize()} {'step' if total == 1 else 'steps'} "
+        f"of AgenticSeal's own `release` job {'has' if total == 1 else 'have'} a "
+        "local answer and no arm: " + ", and ".join(clauses)
     )
     assert said in skill, said
 
@@ -219,8 +235,9 @@ def test_the_steps_left_out_off_main_are_the_steps_guarded_off_main():
     """A13. `ONLY_AT_MAIN` is exactly the set of `release` steps whose guard
     ends them on any base but `main`, from both sides — and the comparison is
     shown able to fail on a copy of the workflow with one guard turned
-    around, so a guard added to a fourth step, or dropped from one of the
-    three, fails here."""
+    around, so a guard added to a third step, or dropped from one of the
+    two, fails here. The gather's step was the third until #1053 removed
+    it."""
     text = read(HYGIENE)
     guarded = steps_guarded_off_main(text)
     assert guarded, "no step is guarded off main, so the reader found nothing"
@@ -228,7 +245,7 @@ def test_the_steps_left_out_off_main_are_the_steps_guarded_off_main():
         f"the workflow guards these steps off `main`: {sorted(guarded)}, and "
         f"`ONLY_AT_MAIN` holds {sorted(gate.ONLY_AT_MAIN)}"
     )
-    assert len(gate.ONLY_AT_MAIN) == len(set(gate.ONLY_AT_MAIN)) == 3
+    assert len(gate.ONLY_AT_MAIN) == len(set(gate.ONLY_AT_MAIN)) == 2
     flipped = text.replace('" != "main" ]', '" = "main" ]', 1)
     assert flipped != text and steps_guarded_off_main(flipped) != set(
         gate.ONLY_AT_MAIN
@@ -252,12 +269,13 @@ def real_panel_workflow_row(given):
 
 def test_a_feature_seal_counts_the_steps_ci_runs_for_it():
     """A11 over this repository's own workflow. Against a base that is not
-    `main` CI runs 4 of the 7 steps and the gate mirrors 2, so the panel
+    `main` CI runs 4 of the 6 steps and the gate mirrors 2, so the panel
     reads `CI also · 2 more steps`; the line names the two unanswered steps
-    CI runs and none of the three only-at-`main` ones, and says three were
-    left out and why. Pinned verbatim (contract rule 14). The ninth step,
-    the CLAUDE.md copy held to its template, left with the copy (#940), and
-    the unverified record's step and its arm left together (#945)."""
+    CI runs and none of the two only-at-`main` ones, and says two were left
+    out and why. Pinned verbatim (contract rule 14). The ninth step, the
+    CLAUDE.md copy held to its template, left with the copy (#940), the
+    unverified record's step and its arm left together (#945), and the
+    gather's step left with the gather (#1053)."""
     assert gate.steps_for(read(HYGIENE), "release/x") == [
         step
         for step in gate.job_steps(read(HYGIENE), gate.RELEASE_JOB)
@@ -267,7 +285,7 @@ def test_a_feature_seal_counts_the_steps_ci_runs_for_it():
     said = gate.coverage_line(read(HYGIENE), "release/x")
     assert said.startswith(
         f"seal gate: {gate.WORKFLOW}'s `release` job runs 4 steps for this base "
-        "and this run answers 2. 3 more run only on a pull request into `main`, "
+        "and this run answers 2. 2 more run only on a pull request into `main`, "
         "so this count leaves them out."
     ), said
     for step in FEATURE_UNANSWERED:
@@ -277,14 +295,14 @@ def test_a_feature_seal_counts_the_steps_ci_runs_for_it():
 
 
 def test_a_release_seal_counts_every_step_ci_runs_for_it():
-    """A12. Against `main` CI runs every one of the 7 steps and the gate
-    mirrors 2, so the panel reads `CI also · 5 more steps` and the line
+    """A12. Against `main` CI runs every one of the 6 steps and the gate
+    mirrors 2, so the panel reads `CI also · 4 more steps` and the line
     leaves no step out."""
     for given in ("main", "origin/main"):
-        assert real_panel_workflow_row(given) == "· 5 more steps", given
+        assert real_panel_workflow_row(given) == "· 4 more steps", given
         said = gate.coverage_line(read(HYGIENE), given)
         assert said.startswith(
-            f"seal gate: {gate.WORKFLOW}'s `release` job runs 7 steps for this "
+            f"seal gate: {gate.WORKFLOW}'s `release` job runs 6 steps for this "
             "base and this run answers 2."
         ), said
         assert "leaves" not in said.split("Not answered", 1)[0], said

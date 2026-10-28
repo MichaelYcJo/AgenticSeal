@@ -489,7 +489,8 @@ names; where the fix went somewhere else, the pass appends that coordinate
 to the line and says so in `answer:`. The build's phases keep theirs.
 
 A fix that changes what the work item ships brings the work item's
-`changelog.md` along, because the release gathers that fragment as it stands;
+`changelog.md` along, because the release note is built from that fragment as
+it stands at the tag;
 `docs/the-record-layout.md` *A commit after the build brings its changelog
 fragment along* owns that rule.
 

@@ -98,7 +98,7 @@ _BLOCKS = _load_blocks()
 # The readers of this module ask them, `fence_spans` and through it
 # `blank_fences` and `closed_fence_lines`, and `liveness` and
 # `_paragraph_ends_at`; so do `coordinates.py#quoted_lines`,
-# `gather_changelog.py` through `live_lines`, `payload_meter.py#heading_starts`
+# `payload_meter.py#heading_starts`
 # and `tests/behaviour/test_a_section_marked_for_one_role_reaches_only_that_role.py`;
 # and `hooks/lib/blocks.py#walk` adds a line-start HTML comment block to it for
 # `hooks/lib/config.py` and `hooks/lib/routing.py`, apart from `live_lines` on
@@ -108,9 +108,7 @@ _BLOCKS = _load_blocks()
 # at any indentation as GitHub does, so a fence under a list item masks a
 # closing keyword (`docs/issues-and-milestones.md` *A keyword inside a fence
 # or a code span claims nothing*); `tests/behaviour/test_docs_line_wrap.py#fenced_numbers`,
-# which strips a line's indentation first; `gather_changelog.py#insert` and
-# `#section_lines` and `publish_release_note.py#section_body`, which end a
-# released section at the next `## ` line on purpose (#586);
+# which strips a line's indentation first;
 # `tests/behaviour/test_release_hygiene.py#overwide_rows`, which keeps no fence state;
 # and the oracle walk in `tests/skills/test_unverified_check.py`. A new reader
 # that decides by line whether it stands inside a fence belongs in one of
@@ -256,7 +254,7 @@ def fence_spans(lines):
 
     **An unclosed block is reported, not decided.** `blank_fences` blanks it
     to the end, because a gate reading a record treats it as quoted. A reader of a
-    line that HOLDS something — a changelog marker, an open row — reads it,
+    line that HOLDS something — an open row — reads it,
     because only a block that closes is certainly a quotation
     (`docs/the-record-layout.md`'s *Whether a line is live is asked by what
     the line does*).
@@ -532,8 +530,7 @@ def live_lines(lines, comments=True):
     A line that excuses or declares something is not taken on doubt, the
     second of the three answers `docs/the-record-layout.md` *The fold, and
     what tells it from a deletion* gives: what this parks, `rule_changes.py`
-    reads as no heading, and the changelog gather passes as a line holding no
-    marker.
+    reads as no heading.
 
     **The one rule for whether a line is live, and every reader of a marker
     or a policy heading asks it here.** A line
@@ -577,10 +574,9 @@ def live_lines(lines, comments=True):
     delimiter is a delimiter. A fence is decided before the rest of its line,
     then whichever of a comment opener and a backtick run comes first wins.
     Reference definitions, link destinations, raw HTML blocks and entity
-    references are not modelled and none can hold a changelog marker on a
-    line of its own. Markdown's indented code block is the one deliberate
-    omission with a shape that could, and the gather's marker pattern is
-    line-anchored, so a marker indented four spaces is not read as one.
+    references are not modelled and none can hold a declaring line, such as
+    a `seal/config.md` row, on a line of its own. Markdown's indented code
+    block is the one deliberate omission with a shape that could.
 
     **What this may not touch.** `blank_fences` and `readable` keep no
     comment state, because a record carries no comment, and they serve the

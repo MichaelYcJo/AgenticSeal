@@ -56,8 +56,6 @@ STAYS_HOME = {
     ".github",
     ".gitattributes",
     ".gitignore",
-    "CHANGELOG.md",
-    "changelog",  # each release's notes, one file each (#728)
     "CLAUDE.md",
     "CONTRIBUTING.md",
     "LICENSE",

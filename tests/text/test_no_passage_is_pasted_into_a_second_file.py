@@ -12,7 +12,7 @@ its home had not.
 **What is read.** Every tracked `*.md` under `docs/`, `skills/`, `agents/` and
 `templates/`, with `CLAUDE.md`, `CONTRIBUTING.md` and `README.md`. Left out:
 every `*.ko.md`, because a Korean edition is a sanctioned mirror in other
-words; everything under `seal/`, which is records; and `CHANGELOG.md`.
+words; and everything under `seal/`, which is records.
 
 **How a file is normalised.** Each file is read whole: `CLAUDE.md` carries
 no copy of `templates/setup/claude-md-block.md` since #940, so no region is

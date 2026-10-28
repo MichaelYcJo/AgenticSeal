@@ -3757,8 +3757,8 @@ class Test_main:
             "Family rows, in the run's own reading and in `--spawns`, are comparable "
             "only with readings taken on a release that carries #377" in out
         ), out
-        # #728: the release's own file, not the index, lists the issue.
-        assert "#377, which its file under `changelog/` names" in out, out
+        # #1053: the release note lists the issue; no file in the tree does.
+        assert "#377, which its release note names" in out, out
         assert (
             "on a line of its own or after a heredoc was charged to `other`, and so "
             "was a test run after a heredoc. The repeats lines filter by family and "

@@ -450,9 +450,7 @@ def test_the_template_runs_the_two_shipped_checks_from_the_plugin_at_its_tag():
     assert "RUNNER_TEMP" in t or "runner.temp" in t, "the plugin lands in the tree"
 
 
-@pytest.mark.parametrize(
-    "stays_home", ["plugin.json", "gather_changelog", "fold_ledger", "README.ko.md"]
-)
+@pytest.mark.parametrize("stays_home", ["plugin.json", "fold_ledger", "README.ko.md"])
 def test_the_rows_that_read_this_repository_do_not_travel(stays_home):
     assert stays_home not in template()
 

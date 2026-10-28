@@ -847,7 +847,7 @@ def floor_syntax(rel, root=None):
 SIGN = "\N{SECTION SIGN}"
 # The records of a moment keep what they said when they were written, and
 # `evals/behaviour/`'s cases are generated from records.
-RECORDS = ("seal/threads/", "changelog/", "CHANGELOG.md", "evals/behaviour/")
+RECORDS = ("seal/threads/", "evals/behaviour/")
 
 
 def section_sign(rel, root=None):
@@ -1044,16 +1044,14 @@ HISTORY_PATH = re.compile(
     + "seal/"
     + r"specs/[0-9]{10}-[a-z0-9-]+(?:/[\w.-]+)*/?"
 )
-# The records of a moment, which keep the names they were written under. A
-# released changelog entry and the archive of a release's way of working
-# keep the name the release shipped under (#1051). A thread is read against
-# the commits it names until the settle after its release removes it, and
-# the thread that renames a name quotes the name it renames. The truths
-# measured on recorded eval runs name the trees those runs read.
-# `.test_durations` is the cache the test runner rewrites.
+# The records of a moment, which keep the names they were written under. The
+# archive of a release's way of working keeps the name the release shipped
+# under (#1051). A thread is read against the commits it names until the
+# settle after its release removes it, and the thread that renames a name
+# quotes the name it renames. The truths measured on recorded eval runs name
+# the trees those runs read. `.test_durations` is the cache the test runner
+# rewrites.
 OLD_NAME_RECORDS = (
-    "changelog/",
-    "CHANGELOG.md",
     "seal/process/",
     "seal/threads/",
     "evals/scripts/recurred_truths.json",

@@ -679,9 +679,11 @@ def test_the_measurement_its_cost_and_its_limits_are_told_where_the_row_is_writt
 def test_what_a_line_names_a_file_by_is_told_where_each_reader_meets_it():
     """S28 (#825's reframe after round 3, contract rule 14). A line's path is
     the node's own, carried on the report, and never a name made from a
-    node id and a rootdir. The comparison's docstring, the recorder's own
-    and the released changelog entry each say so by their deciding sentence, and
-    each sentence of the refusal the reframe retired is asserted gone."""
+    node id and a rootdir. The comparison's docstring and the recorder's own
+    each say so by their deciding sentence, and each sentence of the refusal
+    the reframe retired is asserted gone. The released changelog entry is
+    read no more: #1053 removed `changelog/`, and the entry is the v0.20.0
+    release note's."""
     gate = gate_module()
     docstring = " ".join(gate.compare_at_base.__doc__.split())
     assert (
@@ -717,35 +719,6 @@ def test_what_a_line_names_a_file_by_is_told_where_each_reader_meets_it():
         "it looks no module up and imports nothing but pytest",
     ):
         assert sentence in recorder, f"the recorder does not carry: {sentence}"
-    # The work item's fragment is read where the release gathered it: in
-    # `changelog/0.20.0.md`, from its `specs/<id>` comment up to the next
-    # fragment's comment.
-    marker = "<!-- specs/1791270161-the-broad-gate-reads-a-record-its-pytest-plugin-wrote -->"
-    released = read_document(os.path.join("changelog", "0.20.0.md"))
-    assert released.count(marker) == 1, (
-        f"changelog/0.20.0.md does not hold {marker} once"
-    )
-    span = released.split(marker)[1].split("<!-- specs/")[0]
-    changelog = " ".join(span.split())
-    for sentence in (
-        "**Each failing file is named by the path pytest holds for it.**",
-        "counted on the record's `end` line, and the gate says how many under "
-        "the failing files.",
-        "names every cause the gate cannot tell apart: the row started no "
-        "pytest, none it started loaded the recorder, or the one that did could "
-        "not write its record.",
-        "whose xdist worker crashed in its body keeps the path its `setup` report "
-        "carried from that same worker, so its failure counts; a crash is never "
-        "placed by a node id two tests can share.",
-        "`new?` naming a count, too, where the file would read `new` but a "
-        "session of the base that ended non-zero left tests or collections out "
-        "of every list",
-        "A red session whose left-out reports all passed still gives `new?`: a "
-        "known over-strictness.",
-        "a row that writes `--report-log` finds it in that log while the gate "
-        "measures it.",
-    ):
-        assert sentence in changelog, f"the changelog does not carry: {sentence}"
     for gone, text in (
         ("so it writes no record at all", docstring),
         ("the recorder's refusals close it", docstring),
@@ -753,15 +726,8 @@ def test_what_a_line_names_a_file_by_is_told_where_each_reader_meets_it():
         ("therefore writes no record at all", recorder),
         ("an_argument_lies_outside_the_rootdir", recorder),
         ("find_spec", recorder),
-        ("A pytest that names a file outside its rootdir writes no record", changelog),
-        ("Such a row's files are not measured", changelog),
-        ("where no pytest at the base loaded the recorder", changelog),
-        ("Where no pytest of the row loaded the recorder at all", changelog),
-        ("names both causes", changelog),
-        # #825 round 5: the lookup by node id, and every session's count.
+        # #825 round 5: the lookup by node id.
         ("an earlier report of the same node in the session carried", recorder),
-        ("keeps the path its earlier reports carried", changelog),
-        ("base's record left tests or collections out of every list", changelog),
     ):
         assert gone not in text, f"still carried: {gone}"
 

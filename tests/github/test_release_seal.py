@@ -237,7 +237,7 @@ class GitHub:
 def note(pulls=PULLS):
     """The note `publish_release_note.release_body` publishes for `pulls`."""
     publisher = load(PUBLISHER, "publish_release_note_for_the_seal")
-    return publisher.release_body(SECTION, pulls, OWNER, REPO, TAG)
+    return publisher.release_body("", SECTION, pulls, OWNER)
 
 
 # The width the stand-in for `draw` answers. The real draw never answers

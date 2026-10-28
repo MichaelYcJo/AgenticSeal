@@ -37,19 +37,20 @@ path is keyed by the version string, and extraction is skipped when a
 directory by that name already exists. So on a machine that had one from an
 earlier numbering, the installer reports success, writes the right commit
 SHA beside it, and the copy that loads is whatever was already there. The
-summary in step 3 cannot see that, because it reads the marketplace clone,
-which is correct; it is the installed copy that is stale. Read the one path
-the installer records and compare:
+summary in step 3 cannot see that, because it reads the published release
+notes, which are correct; it is the installed copy that is stale. Read the
+one path the installer records, then the `version` of the
+`.claude-plugin/plugin.json` in it, and compare:
 
 ```bash
 p=$(python3 -c "import json,os;d=json.load(open(os.path.expanduser('~/.claude/plugins/installed_plugins.json'),encoding='utf-8'));print(d['plugins']['agentic@agenticseal'][0]['installPath'])")
-grep -m1 '^## ' "$p/CHANGELOG.md"        # must name the version step 2 reported
+python3 -c "import json,sys;print(json.load(open(sys.argv[1]+'/.claude-plugin/plugin.json',encoding='utf-8'))['version'])" "$p"   # must be the version step 2 reported
 ```
 
 | Result | What happens |
 |---|---|
-| the heading names the version the installer reported | go on to step 3 |
-| a mismatch | **stop before step 3.** The update did not land. Say so, name both versions (the one the installer reported and the one the installed `CHANGELOG.md` heads), and print the repair below for the user to type. Give no summary: a summary of what the user should be getting is exactly what makes this failure invisible |
+| the `version` is the one the installer reported | go on to step 3 |
+| a mismatch | **stop before step 3.** The update did not land. Say so, name both versions (the one the installer reported and the one the installed `plugin.json` names), and print the repair below for the user to type. Give no summary: a summary of what the user should be getting is exactly what makes this failure invisible |
 
 The repair replaces the stale directory from the marketplace clone, and it is
 the user's to type rather than this procedure's to run, because it deletes a
@@ -68,13 +69,47 @@ another name for that reason. And `installed_plugins.json` names exactly one
 `installPath`: deleting that directory breaks the install, while any other
 version directory is free to remove.
 
-**3. Name what changed.** Each release's notes are a file of their own in the
-refreshed marketplace clone, `~/.claude/plugins/marketplaces/agenticseal/changelog/<X.Y.Z>.md`,
-and `CHANGELOG.md` beside them is only the index: one heading per release,
-newest first, each with a link to its file. Read the file of every release
-after the old version up to the new one, oldest first, and summarize every
-entry in them. Lead each with what it changes for the user, not with the
-release number.
+**3. Name what changed.** Each release's notes are its GitHub Release, the
+note published at its `vX.Y.Z` tag. Read them from GitHub's public API, with
+no token: `gh` is not used, because it needs a login. The repository is the
+one the refreshed marketplace clone was cloned from, its `origin`. The list
+holds every release's whole note, close to a megabyte, so it goes to a file
+and only the span is printed. Set `old` to the version step 1 recorded and
+`new` to the one step 2 reported, then run:
+
+```bash
+repo=$(git -C ~/.claude/plugins/marketplaces/agenticseal remote get-url origin | sed -E 's#^.*github\.com[:/]##; s#\.git$##')
+f=$(mktemp)
+curl -fsS "https://api.github.com/repos/$repo/releases?per_page=100" -o "$f"; echo "curl exit $?"
+python3 -c '
+import json, sys
+
+def key(name):
+    try:
+        return tuple(int(n) for n in name.lstrip("v").split("."))
+    except ValueError:
+        return None
+
+old, new = key(sys.argv[2]), key(sys.argv[3])
+with open(sys.argv[1], encoding="utf-8") as handle:
+    releases = json.load(handle)
+for release in reversed(releases):
+    at = key(release["tag_name"])
+    if at and old < at <= new:
+        print("## " + release["tag_name"])
+        print(release["body"])
+' "$f" "$old" "$new"
+rm -f "$f"
+```
+
+It prints the `body` of every release after the old version up to the new
+one, oldest first, each under its tag. Summarize every entry in them. Lead
+each with what it changes for the user, not with the release number.
+
+Where `curl` exits non-zero, or the list holds no release in that span, say
+that what changed could not be read, name the releases page,
+`https://github.com/<repo>/releases` with `<repo>` as read above, and go on
+to step 4. The update has already landed, so nothing here stops it.
 
 Two kinds get a line of their own, because a user who skips them is
 surprised later:

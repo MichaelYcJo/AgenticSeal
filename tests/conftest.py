@@ -308,42 +308,6 @@ def decline_if_shrunken(missing, what):
         pytest.skip(shrunken_corpus(missing, what))
 
 
-def gathered_entry(root, work_item_id):
-    """The text a release file under `changelog/` carries for a work item
-    whose fragment was gathered, or None when no marker for it is there.
-
-    A changelog fragment moves once, the way a ledger fragment does:
-    `gather_changelog.py` writes `<!-- specs/<id> -->` above the fragment's
-    body in the release's own file, `changelog/X.Y.Z.md` since #728, and
-    `seal settle --apply` later removes the directory the fragment lived in. So a
-    case pinning what a fragment says reads the fragment while it exists and
-    this block after. The block runs from the marker to the next marker line
-    or heading, which is where the gatherer puts the next entry.
-    """
-    start = f"<!-- specs/{work_item_id} -->"
-    directory = os.path.join(root, "changelog")
-    names = sorted(os.listdir(directory)) if os.path.isdir(directory) else []
-    for name in names:
-        if not re.fullmatch(r"\d+\.\d+\.\d+\.md", name):
-            continue
-        with open(os.path.join(directory, name), encoding="utf-8") as handle:
-            lines = handle.read().splitlines()
-        if start in lines:
-            break
-    else:
-        return None
-    body = []
-    for line in lines[lines.index(start) + 1 :]:
-        # A heading is `#` to `######` and then a space: a body line opening
-        # with an issue number such as `#120` is the entry's own text.
-        if re.match(r"#{1,6}(?:\s|$)", line) or (
-            line.startswith("<!-- specs/") and line.endswith("-->")
-        ):
-            break
-        body.append(line)
-    return "\n".join(body)
-
-
 HOOKS = os.path.join(os.path.dirname(__file__), "..", "hooks")
 
 # Default-locale determinism: the suite owns its locale. A plain setdefault
