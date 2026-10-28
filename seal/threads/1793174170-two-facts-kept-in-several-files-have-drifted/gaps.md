@@ -17,8 +17,8 @@ Seven facts stood in more than one file and two of them had already drifted, so 
 | Item | Who must answer |
 |---|---|
 | The full suite, the repository-wide lint and the typecheck at this work item's last commit | the orchestrator, through `seal gate` (contract rule 2) |
-| The Fires, Does and Where cells of the `worktree_consent` and `root-migrate` rows. S1's case reads a row's name only, and the cells were written from the two hooks' docstrings and `main` | the proofer, by reading the rows against `hooks/worktree_consent.py` and `hooks/root-migrate.py` |
-| That each Korean sentence this work rewrote says what its English one says. No case compares sentences across the two languages | the proofer, by reading both editions |
+| closed The Fires, Does and Where cells of the `worktree_consent` and `root-migrate` rows. S1's case reads a row's name only, and the cells were written from the two hooks' docstrings and `main` | review round 1 read all four cells of both editions against the hooks: every cell held but the Korean root-migrate Does cell, which its finding 2 corrected at `21369c34` (`trail/rounds/round-1.md`) |
+| closed That each Korean sentence this work rewrote says what its English one says. No case compares sentences across the two languages | review round 1 read both editions: every rewritten Korean sentence said what its English one says but the root-migrate row, which its finding 2 corrected at `21369c34` (`trail/rounds/round-1.md`) |
 
 ## Not done
 
