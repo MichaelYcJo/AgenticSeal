@@ -1,6 +1,6 @@
 # Implementation Plan: 1793171574-agent-definitions-restate-the-contract
 
-Approved <date> by <who>, when `crafter` was spawned.
+Approved 2026-10-28 by the orchestrator under the owner's automation answer, when `crafter` was spawned.
 
 ## Summary
 
