@@ -1,6 +1,6 @@
 # Implementation Plan: 1793169128-spawn-rows-push-cells-past-the-header
 
-Approved <date> by <who>, when `crafter` was spawned.
+Approved 2026-10-28 by the orchestrator under the owner's automation answer, when `crafter` was spawned.
 
 ## Summary
 
