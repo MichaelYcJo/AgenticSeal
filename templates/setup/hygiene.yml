@@ -35,6 +35,18 @@ on:
     # `guarantee.md` only once the draft is over.
     types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
 
+# A newer run cancels this workflow's run still in progress for the same pull
+# request, so a push does not leave the last commit's run to finish.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+# Stated rather than inherited from an account default nobody here reads.
+# Every step checks out, clones a public repository or reads files; none
+# writes and none calls `gh`.
+permissions:
+  contents: read
+
 jobs:
   hygiene:
     runs-on: ubuntu-latest
@@ -56,27 +68,10 @@ jobs:
             https://github.com/MichaelYcJo/AgenticSeal.git "$RUNNER_TEMP/agentic"
 
       # A work item routed "through the review chain" has to carry the round
-      # record it claimed. A pull request that declared nothing fails only
-      # where one of its own commits carries a `Seal-Routing` trailer
-      # naming a work item; a commit with no such trailer, a teammate's
-      # among them, is not judged. On a pull request that is not a draft it
-      # fails for what the author can fix: a trailer naming a work item no
-      # judged declaration names, a declaration that says "through the review
-      # chain" with no committed round record, a declaration that cannot be
-      # read, a work item `frame/design.md` whose `## Rule changes` does not
-      # parse, where the work item is judged or the pull request's own commits
-      # add or change that `frame/design.md`, a round record of a work item reviewed
-      # through the review chain, or the `guarantee.md` of one routed
-      # straight to the pull request, with no `original:` line naming
-      # `seal/parity.md`'s `Baseline commit`, where that config is declared
-      # and the pull request changes a path outside `docs/` and `seal/`, a
-      # finding still
-      # `open` or one the check cannot read,
-      # a last record behind HEAD or with a finding no round after it read,
-      # no `trail/gate.md` at HEAD, or no `guarantee.md` reading `sealed` at
-      # HEAD. A round's `target:` commit is read only as HEAD or an ancestor
-      # of it, so the check needs no ref the checkout does not already
-      # carry.
+      # record it claimed, and a commit with no `Seal-Routing` trailer, a
+      # teammate's among them, is not judged. What the check refuses, and
+      # when, is the plugin's
+      # `docs/the-review-record.md` *What the check reads at the pull request*.
       - name: a declared review chain has the round record it claimed
         shell: bash
         run: |
