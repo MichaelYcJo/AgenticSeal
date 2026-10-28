@@ -345,10 +345,11 @@ check: nothing-declared-nothing-owed
 **The sealer is the final, independent guarantor: it verifies, independently
 of the crafter and the proofer, that the work before it holds.** Its
 reference is the issue body and the tree, never an agent's word or the
-orchestrator's summary. It runs after the pull request body and the
-changelog fragment are written and the orchestrator's broad run has written
-`trail/gate.md`, on both routing answers; it reads that record and runs
-nothing broad, and its order of work is `agents/sealer.md`'s.
+orchestrator's summary. It runs after the changelog fragment is written, the
+orchestrator's broad run has written `trail/gate.md`, and the pull request
+body is written from the records, on both routing answers; it reads that
+record and runs nothing broad, and its order of work is
+`agents/sealer.md`'s.
 
 **It checks a claim against the fact, and the parties against each other.**
 The acts are `agents/sealer.md` step 3's and step 4's, and this section
@@ -356,6 +357,17 @@ names none of them, so the list has one home. Each act is one row of
 `## Claims re-run` or `## The parties` in `guarantee.md`. It does not
 re-judge the design or the code's quality.
 check: tests/behaviour/test_the_sealer_guarantees.py
+
+**The pull request body's facts are the records' own text, and the sealer
+reads only the part the orchestrator writes.** `seal pr-body` writes the
+part of the body above the heading that
+`skills/code-review/scripts/pr_body.py#HEADING` holds, copied from the work
+item's records, and the orchestrator writes under that heading only what no
+record holds. The sealer runs `seal pr-body --check` on the body file before
+it compares the parties, and withholds where the part above the heading is
+not what the records give. That part then gives it nothing to compare: the
+records it copies are what the sealer audits.
+check: tests/skills/test_pr_body.py tests/behaviour/test_the_sealer_guarantees.py
 
 **Its verdict is `guarantee.md`, from `templates/records/sdd-guarantee.md`**: the
 commit and base, the broad gate's result, the claims re-run, the parties

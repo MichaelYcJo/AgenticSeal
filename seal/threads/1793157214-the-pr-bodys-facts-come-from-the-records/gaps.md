@@ -23,9 +23,9 @@ Four of the five withheld sealer runs of this release, and 23 of 27 in 0.22.x, w
 
 | Item | Who must answer |
 |---|---|
-| the full suite, the repository-wide lint and the typecheck over this branch | the orchestrator, through the tree's `bin/seal gate` after the review rounds settle |
-| that `seal pr-body` behaves the same on Windows | the Windows shards of the `tests` workflow on this branch |
-| that the five paid sealer evals grade as before, now that the sealer runs `seal pr-body --check` first | the owner, at the next paid run (`frame/questions.md` Q4) |
+| closed the full suite, the repository-wide lint and the typecheck over this branch | the broad gate's run at `a85bbc9d` (`trail/gate.md`), and #1103 merged with lint and the suite green on the ubuntu, macOS and Windows legs |
+| closed that `seal pr-body` behaves the same on Windows | #1103's four `windows-latest` shards ran the suite green |
+| closed that the five paid sealer evals grade as before, now that the sealer runs `seal pr-body --check` first | re-homed to #1107 |
 
 ## Not done
 

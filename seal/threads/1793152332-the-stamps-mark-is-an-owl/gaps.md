@@ -20,7 +20,7 @@ The stamp carried a placeholder S that no longer stood for the name; the owl the
 
 | Item | Who must answer |
 |---|---|
-| the full suite, the repository-wide lint and the typecheck over this branch | the orchestrator, through the tree's `bin/seal gate` after the review rounds settle |
+| closed the full suite, the repository-wide lint and the typecheck over this branch | the broad gate's run at `081f9086` (`trail/gate.md`), and #1101 merged with lint and the suite green on the ubuntu, macOS and Windows legs |
 
 ## Not done
 
