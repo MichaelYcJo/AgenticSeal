@@ -1,12 +1,12 @@
 """What `hooks/root-migrate.py`'s own file does not hold.
 
-#942's phase 5 rebuilt the hook's cases into `tests/test_root_migrate.py`.
+#942's phase 5 rebuilt the hook's cases into `tests/hooks/test_root_migrate.py`.
 These stay: the README's by-hand sequence read out of the document and run
 over the 0.3.x fixture, the coming-up section read for the one path it
 gives, and the source of `hooks/` read for the 0.3.x names and the hook's
 rider, all for #923, which takes the cases that read prose. The case of the
 session-start group's order is `hooks/dispatch.py`'s, and it is in
-`tests/test_dispatch.py`.
+`tests/hooks/test_dispatch.py`.
 """
 
 import os

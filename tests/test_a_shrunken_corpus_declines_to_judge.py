@@ -72,10 +72,10 @@ APPLIES_THE_SHARED_GUARD = {
     "tests/test_no_document_names_the_old_roots.py#tracked": 1,
     "tests/test_release_hygiene.py#tracked": 1,
     "tests/test_a_release_is_sized_by_a_criterion.py#tracked": 1,
-    "tests/test_launch.py#floor_carriers": 1,
+    "tests/hooks/test_launch.py#floor_carriers": 1,
     # #929's census of what runs before any floor: it returns the missing
     # half, and its liveness half hands that to `decline_if_shrunken`.
-    "tests/test_launch.py#before_any_floor": 1,
+    "tests/hooks/test_launch.py#before_any_floor": 1,
     "tests/test_one_word_one_meaning.py#test_no_live_text_says_the_word_0_19_0_renamed": 1,
     # The reader itself. It lists the modules it is about to parse, and a
     # module listed and not on disk would end the enumeration at it --
@@ -127,20 +127,20 @@ OPENS_NOTHING = {
 #    the case put there. A guard would be asserting the fixture against
 #    itself.
 LISTS_A_FIXTURE = {
-    "tests/test_optin.py#test_the_local_root_is_never_a_commit_candidate_and_needs_no_gitignore": 1,
+    "tests/hooks/test_optin.py#test_the_local_root_is_never_a_commit_candidate_and_needs_no_gitignore": 1,
     "tests/test_the_root_migrates_itself.py#test_the_readmes_by_hand_sequence_yields_the_layout_the_plugin_reads": 1,
     # The hook's cases read what is unstaged and tracked in the copy of the
     # old layout the case took, to assert what the move staged.
-    "tests/test_root_migrate.py#unstaged": 1,
-    "tests/test_root_migrate.py#tracked": 1,
+    "tests/hooks/test_root_migrate.py#unstaged": 1,
+    "tests/hooks/test_root_migrate.py#tracked": 1,
     # What a case staged in its own copy of a world: the hook's move in
-    # `tests/test_root_migrate.py`, and `seal mode`'s switch and the
-    # workflow it stages in `tests/test_seal.py`.
+    # `tests/hooks/test_root_migrate.py`, and `seal mode`'s switch and the
+    # workflow it stages in `tests/skills/test_seal.py`.
     "tests/conftest.py#staged": 1,
     # #952's round 6 case writes stages 1 to 3 of one path into the index of
     # the repository it took, and counts that path's unmerged entries before
     # and after `seal pr-checks remove`, once each; it opens no listed path.
-    "tests/test_seal.py#test_refuses_an_index_entry_it_cannot_read_deleted_by_hand": 2,
+    "tests/skills/test_seal.py#test_refuses_an_index_entry_it_cannot_read_deleted_by_hand": 2,
 }
 
 # Spelled as a map of call counts rather than as "one each" so a further call

@@ -1,7 +1,7 @@
 """What is left of `unverified_check.py`'s old file.
 
 #942's phase 5 rebuilt `skills/verify/scripts/unverified_check.py`'s cases
-into `tests/test_unverified_check.py`, one class per function. Two kinds of
+into `tests/skills/test_unverified_check.py`, one class per function. Two kinds of
 case stay here, byte for byte. The cases whose assertion reads a shipped
 document's prose wait for #923. `test_the_fence_walks_agree_shape_by_shape`
 holds `hooks/lib/blocks.py` and `hooks/lib/config.py#fence_map` to this module's
@@ -9,7 +9,7 @@ fence walk, a check across files, which stays where it is. The case that read
 `skills/code-review/scripts/chain_check.py` and
 `skills/settle/scripts/settle.py` for a call of this module's `settled` judged
 one file per row, so each row is now a case of its module's file,
-`tests/test_chain_check.py` and `tests/test_settle.py`.
+`tests/skills/test_chain_check.py` and `tests/skills/test_settle.py`.
 """
 
 import importlib.util
@@ -223,7 +223,7 @@ TIP_KO = "base 브랜치의 끝"
         (os.path.join("skills", "verify", "SKILL.md"), TIP_EN, None),
         # The module's docstrings (#612). The phrase stands here three times,
         # so this row cannot see the `--baseline` help alone go back to the
-        # fork point; `tests/test_unverified_check.py::Test_main::
+        # fork point; `tests/skills/test_unverified_check.py::Test_main::
         # test_accepts_the_baseline_help_naming_both_places` renders it.
         (
             os.path.join("skills", "verify", "scripts", "unverified_check.py"),

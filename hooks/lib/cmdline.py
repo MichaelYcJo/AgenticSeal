@@ -268,7 +268,7 @@ def _closes(command, i):
     open to the end of the input, hide every heredoc opener after it, and
     read a heredoc BODY as commands -- the fail-OPEN direction, and the
     opposite of what the count was added for.
-    `tests/test_cmdline.py` pins `echo ${x <<EOF`, which
+    `tests/hooks/test_cmdline.py` pins `echo ${x <<EOF`, which
     is exactly that shape.
 
     So an expansion counts only if the shell would accept it. Quotes are

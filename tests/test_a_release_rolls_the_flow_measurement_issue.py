@@ -4,7 +4,7 @@ convention (#155), read against the script's constants; these cases wait for
 
 #942's phase 6 placed the cases of
 `.github/scripts/roll_flow_measurement_issue.py`'s functions in
-`tests/test_roll_flow_measurement_issue.py`, and this file loads the script
+`tests/github/test_roll_flow_measurement_issue.py`, and this file loads the script
 through that file's `_roller`. `docs/issues-and-milestones.md` names this
 file on its `check:` lines.
 

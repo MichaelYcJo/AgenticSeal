@@ -67,7 +67,7 @@ NAME_CAP = 40
 # `(gate, phase, exception)` where phase is "load" or "run". Kept beside the
 # return value rather than inside it: `run_gate` returns a gate's stdout, and
 # a case replaces it with a function returning one
-# (`tests/test_dispatch.py#Test_main.test_accepts_the_stop_group_and_names_its_event`).
+# (`tests/hooks/test_dispatch.py#Test_main.test_accepts_the_stop_group_and_names_its_event`).
 # One invocation is one process, so the list starts empty for each.
 FAILED = []
 
@@ -151,8 +151,8 @@ def run_gate(filename, payload):
         # if the gate had printed nothing. What changed with #28 is that the
         # failure no longer reads like an allow to NOBODY: `main()` writes it
         # down and the `stop` group says it once per session. The isolation
-        # property `tests/test_dispatch.py` and
-        # `tests/test_implementer_mark.py` assert is unchanged, and
+        # property `tests/hooks/test_dispatch.py` and
+        # `tests/hooks/test_implementer_mark.py` assert is unchanged, and
         # both cases pass unedited.
         return ""
     finally:
@@ -283,7 +283,7 @@ def toplevel(cwd):
     The twin of `hooks/sealer-stamp.py#toplevel`, and duplicated rather than
     imported: that module imports `console` and `optin` at load, so reaching
     it would make the report depend on the modules whose failure it reports.
-    `tests/test_dispatch.py` holds the two to one answer."""
+    `tests/hooks/test_dispatch.py` holds the two to one answer."""
     if not cwd:
         return ""
     here = os.path.abspath(cwd)

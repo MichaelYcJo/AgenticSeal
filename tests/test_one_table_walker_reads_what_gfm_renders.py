@@ -29,13 +29,13 @@ What the enumeration leaves out, and why:
     differ by design. The rows here are plain, and a cell's content is the
     reader's to judge, not the walk's;
   - a line ending other than LF: `hooks/lib/blocks.py#gfm_lines` is where a
-    line ends, `tests/test_blocks.py` holds it, and
+    line ends, `tests/hooks/test_blocks.py` holds it, and
     `tests/test_every_reader_ends_a_line_where_gfm_does.py` holds its copies
     to it.
 
 The walker's cases that ask no oracle, a hidden line above the header and
 the two pieces after a break GFM does not honour, are in
-`tests/test_config.py` since #942's phase 6, and the refusal of a line shown
+`tests/hooks/test_config.py` since #942's phase 6, and the refusal of a line shown
 directly above the header since its round 9 fix pass; that case reads this
 file's corpus, `HEADERS`, `KINDS`, `INDENTS` and `document`, from here.
 """

@@ -9,10 +9,10 @@ workflow and the document, and wait for #923.
        (#515)
 
 #942's phase 6 placed the cases of the scripts' functions in their files:
-`.github/scripts/tracker_labels.py`'s in `tests/test_tracker_labels.py`,
-`close_issues_on_release.py`'s in `tests/test_close_issues_on_release.py`,
+`.github/scripts/tracker_labels.py`'s in `tests/github/test_tracker_labels.py`,
+`close_issues_on_release.py`'s in `tests/github/test_close_issues_on_release.py`,
 and the label reader's case in
-`tests/test_label_merged_on_release_branch.py`.
+`tests/github/test_label_merged_on_release_branch.py`.
 
 **Shown red before it was committed (contract rule 15).** A12 was run
 against the document with the one sentence it pins removed, in phase 4 of

@@ -27,12 +27,12 @@ them for a human reader and says in the same breath that its copy will rot; a
 case driven by a list in a document is a case that grades the document. No
 YAML parser either — `broad_gate.py` runs with no third-party dependency, so
 the reader is text, and it is driven over shapes this repository's workflow
-does not happen to have, in `tests/test_broad_gate.py`'s `Test_job_steps`.
+does not happen to have, in `tests/skills/test_broad_gate.py`'s `Test_job_steps`.
 A reader nothing drives is a reader nobody can tell is partial (#424's
 finding 4).
 
 #942 moved the cases of `broad_gate.py` that read no file of this
-repository into `tests/test_broad_gate.py`: the reader's, the partition's
+repository into `tests/skills/test_broad_gate.py`: the reader's, the partition's
 shape and arms, the reasons' wording, the command run over a fixture
 repository, `coverage_line`'s and `base_is_main`'s. The cases here read
 `hygiene.yml`, `skills/verify/orchestration.md` or `docs/the-broad-gate.md`,
@@ -133,7 +133,7 @@ def test_the_skill_counts_the_steps_with_a_local_answer_and_no_arm():
 
 
 def test_a_step_a_row_excludes_is_still_pointed_at_its_reason():
-    """The other half of `tests/test_broad_gate.py`'s
+    """The other half of `tests/skills/test_broad_gate.py`'s
     `test_a_step_no_row_classifies_is_not_said_to_carry_a_reason`, and what
     keeps that case from being answered by deleting the pointer. A step the
     partition DOES exclude carries a written reason, and naming where it is

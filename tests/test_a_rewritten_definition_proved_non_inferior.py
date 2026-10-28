@@ -3,10 +3,10 @@ case's truths accepts is accepted by another, so one finding is never
 counted as two. The case reads the cases under `evals/behaviour/proofer/`.
 
 #942's phase 6 placed the generators' cases in their files:
-`evals/scripts/replay_targets.py`'s in `tests/test_replay_targets.py`,
-`rule_cases.py`'s in `tests/test_rule_cases.py` and `seed_defects.py`'s in
-`tests/test_seed_defects.py`. `evals/scripts/noninferiority.py`'s are in
-`tests/test_noninferiority.py`.
+`evals/scripts/replay_targets.py`'s in `tests/evals/test_replay_targets.py`,
+`rule_cases.py`'s in `tests/evals/test_rule_cases.py` and `seed_defects.py`'s in
+`tests/evals/test_seed_defects.py`. `evals/scripts/noninferiority.py`'s are in
+`tests/evals/test_noninferiority.py`.
 """
 
 import os

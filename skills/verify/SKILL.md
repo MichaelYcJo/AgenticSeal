@@ -71,7 +71,7 @@ module changes.
 
 ```
 seal arms hooks/routing-edit-gate.py
-seal arms hooks/routing-edit-gate.py --tests "bin/test tests/test_routing_edit_gate.py -q"
+seal arms hooks/routing-edit-gate.py --tests "bin/test tests/hooks/test_routing_edit_gate.py -q"
 ```
 
 With no `--tests` it lists the arms and mutates nothing. With `--tests` it

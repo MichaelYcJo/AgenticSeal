@@ -38,7 +38,7 @@ jobs:
       matrix:
         # The whole suite, at the stated floor on every platform. A newer
         # Python is not run here: `arms-grammar` below runs
-        # `tests/test_arm_check.py`, whose node-type tables are known to
+        # `tests/skills/test_arm_check.py`, whose node-type tables are known to
         # depend on the interpreter, at the versions it names. Whether any
         # other module's result depends on the interpreter has not been
         # measured.
@@ -235,7 +235,7 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - run: pip install pytest
-      - run: pytest tests/test_arm_check.py -q
+      - run: pytest tests/skills/test_arm_check.py -q
 
   # On a pull request into `main`, the release table: each agent's preload
   # bytes, the suite's seconds, each leg's minutes and each document's bytes

@@ -27,7 +27,7 @@ layout — two roots, three lifetimes* 와 `docs/the-record-layout.md` 에
 from 0.3.x* 가 주는 명령으로 손으로 옮기고, 그 절은 그것이 유일한 길이라고
 말합니다. 세션이 칠 수 있는 경로로 루트가
 어디 있는지는 contract rule 11 한 곳에 적혀 있습니다.
-check: tests/test_no_document_names_the_old_roots.py tests/test_optin.py
+check: tests/test_no_document_names_the_old_roots.py tests/hooks/test_optin.py
 
 ## 종속 규칙
 
@@ -79,7 +79,7 @@ corpus*). 병합 뒤에 `seal/threads/<id>/` 를 새로 읽는 코드는 그것�
 것입니다. 버릴 저장소는 공통 git 디렉터리 아래의 빈 파일
 `.git/agentic-scratch` 하나로 게이트를 끕니다. 어떤 커밋도 이 파일을 다른
 클론으로 옮기지 못합니다.
-check: tests/test_optin.py
+check: tests/hooks/test_optin.py
 
 ## 처음 설정에서 무엇을 묻는가
 
@@ -149,7 +149,7 @@ check: tests/test_first_setup_asks_once.py
 그보다 오래된 릴리스로 고정된 워크플로는 `--branch` 줄을 옮기거나
 `seal pr-checks remove` 로 빼기 전까지 그곳의 모든 PR 을 실패시키고,
 `seal mode local` 은 그런 파일을 남길 때 고정된 릴리스를 알려 줍니다.
-check: tests/test_seal.py
+check: tests/skills/test_seal.py
 
 **local 모드는 gitignore 한 폴더가 아니라 git 디렉터리 아래에 삽니다.** 연결된
 워크트리는 커밋된 파일만 체크아웃하므로, 무시된 `<repo>/seal/` 은 모든
@@ -177,7 +177,7 @@ check: tests/test_seal.py
 방향이 바로 되돌릴 수 없는 그 방향이므로, `seal mode shared` 는 실행하기 전에
 그렇게 말하고, 커밋하지 않고 스테이지만 해서 돌아올 수 없는 지점을 사람에게
 남깁니다.
-check: tests/test_first_setup_asks_once.py tests/test_optin.py tests/test_seal.py
+check: tests/test_first_setup_asks_once.py tests/hooks/test_optin.py tests/skills/test_seal.py
 
 ## 이름
 
@@ -221,7 +221,7 @@ check: tests/test_the_settings_have_a_front_door.py
 파일 안에서 내려진 결정입니다. 그래서 언어는 설정 행에 두고, 번역한 PR 본문을
 담는 거울 파일은 언어 하나의 이름이 아니라 그 파일이 담은 언어의 이름을
 붙입니다.
-check: tests/test_the_pull_request_language_is_the_repositorys.py tests/test_config.py
+check: tests/test_the_pull_request_language_is_the_repositorys.py tests/hooks/test_config.py
 
 **행이 둘인 것은, 하나로는 가운데 답을 말할 수 없기 때문입니다.** 사람들이
 실제로 원하는 조합은 셋입니다. 모두 영어, 커밋과 PR 은 팀의 언어로 하고 문서는
@@ -244,7 +244,7 @@ check: tests/test_the_pull_request_language_is_the_repositorys.py
 빼 버렸습니다. 읽는 쪽과 쓰는 쪽은 행을 설명하는 상수를 함께 씁니다. 어느 줄이
 그 행인지를 두고 둘이 엇갈리면 편집 한 번이 사람의 파일에 중복 행을 만들기
 때문입니다.
-check: tests/test_config.py tests/test_seal.py
+check: tests/hooks/test_config.py tests/skills/test_seal.py
 
 **실패한 git 호출은 "없다" 고 답한 git 호출이 아닙니다.** 무엇이 없어서 출력이
 비는 것과, 물을 수 없어서 출력이 비는 것은 다른 사실입니다. 둘을 구별하지
@@ -252,4 +252,4 @@ check: tests/test_config.py tests/test_seal.py
 없다, 추적되는 파일이 없다는 식입니다. 호출자가 그 구별을 필요로 하는 호출
 자리는 모두 그것을 돌려주고, 거부는 확신에 찬 "없음" 이 아니라 어느 호출이
 실패했는지를 말합니다.
-check: tests/test_seal.py
+check: tests/skills/test_seal.py

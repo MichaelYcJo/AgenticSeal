@@ -49,7 +49,7 @@ because they are about work nobody has started.
 an agent this plugin spawns, so a framer meeting a missing routing
 declaration reports it rather than writing one, and the question is put by
 the session that spawns the work, before the first edit.
-check: tests/test_chain_check.py
+check: tests/skills/test_chain_check.py
 
 ## What each party writes, and when
 
@@ -58,7 +58,7 @@ of each finding it answers, the orchestrator's broad run writes
 `trail/gate.md`, and the sealer's verdict is `guarantee.md` at the thread's
 top.**
 `docs/the-review-record.md` holds what each of those files carries.
-check: tests/test_chain_check.py
+check: tests/skills/test_chain_check.py
 
 No case runs the tracer. That a spawn opens `legacy-parity` first, returns
 facts and no verdict, and returns `original not found` where the original
@@ -117,7 +117,7 @@ and as a total, in bytes, characters and tokens, split at headings.
 orchestrator's procedure preloaded into every implementer spawn is procedure
 for asking a person a question, delivered to a party that cannot ask anybody
 anything, and paid once per spawn.
-check: tests/test_payload_meter.py tests/test_a_section_marked_for_one_role_reaches_only_that_role.py
+check: tests/skills/test_payload_meter.py tests/test_a_section_marked_for_one_role_reaches_only_that_role.py
 
 **The orchestrator's acts are counted, each against what delivers it.** An
 agent's rules arrive by mechanism, while the orchestrator has no spawn for a

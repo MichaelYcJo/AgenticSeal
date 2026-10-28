@@ -8,7 +8,7 @@
 # from any directory in the repository or a worktree of it, and pytest runs
 # from the repository root. Arguments pass straight through:
 #   bin/test                                bin/test -q
-#   bin/test tests/test_session_cost.py -q  bin/test -k anchor
+#   bin/test tests/skills/test_session_cost.py -q  bin/test -k anchor
 #
 # Typed as `bin/test`, never as a bare `test`: `test` is a shell builtin, so
 # PATH never gets a say. That is the right outcome -- this one is for a clone

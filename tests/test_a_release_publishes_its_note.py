@@ -5,7 +5,7 @@ checklist's title command, and wait for #923. `docs/branch-and-release.md`
 names this file on its `check:` line.
 
 #942's phase 6 placed the cases of `.github/scripts/publish_release_note.py`'s
-functions in `tests/test_publish_release_note.py`, and this file loads the
+functions in `tests/github/test_publish_release_note.py`, and this file loads the
 script through that file's `module`.
 """
 

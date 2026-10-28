@@ -68,7 +68,7 @@ PARITY_CONFIG = "parity.md"
 SCRATCH = "agentic-scratch"
 # The first line of `templates/setup/seal-README.md`, which first setup and the
 # migration write into every root: a `seal/` is the plugin's root only where
-# its `README.md` opens with this line. `tests/test_optin.py` pins the
+# its `README.md` opens with this line. `tests/hooks/test_optin.py` pins the
 # template's first line to this value.
 MARKER = "# What AgenticSeal maintains in seal/"
 # The first line `templates/setup/seal-README.md` opened with in the releases before

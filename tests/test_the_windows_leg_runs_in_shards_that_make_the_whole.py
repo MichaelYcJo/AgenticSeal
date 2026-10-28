@@ -27,7 +27,7 @@ as the shard's part, and the `durations` job unions the four parts through
 `.github/scripts/durations_union.py` into the `test-durations` artifact. A
 part nobody uploads, or one that is the committed file, makes a union that is
 not the suite, so the cases below hold the entries, the line, the step and
-the job to that shape, and `tests/test_durations_union.py` drives the script
+the job to that shape, and `tests/github/test_durations_union.py` drives the script
 over fixture parts.
 
 The durations file is read too. A file missing from the tree only unbalances

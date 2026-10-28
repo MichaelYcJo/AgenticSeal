@@ -37,7 +37,7 @@ extend-exclude = ["*.md"]
 # runs on whatever `python3` starts it, and macOS ships 3.9 under that name.
 # Linted at 3.9, B905 does not ask its `zip` for `strict=` (3.10) and UP017
 # does not spell `timezone.utc` as `datetime.UTC` (3.11).
-# tests/test_launch.py derives that set,
+# tests/hooks/test_launch.py derives that set,
 # holds every file of it to this table, and refuses in each the syntax and the
 # two constructs above that this version lacks; nothing runs it at 3.9.
 [per-file-target-version]

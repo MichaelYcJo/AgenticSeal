@@ -3,7 +3,7 @@
 wait for #923.
 
 #942's phase 6 placed the cases of `.github/scripts/issue_claims_check.py`'s
-functions in `tests/test_issue_claims_check.py`. The document's case reads it
+functions in `tests/github/test_issue_claims_check.py`. The document's case reads it
 through that file's `read`. `docs/issues-and-milestones.md` names this file
 on a `check:` line beside the new one.
 """

@@ -1,6 +1,6 @@
 """Hardening cases: prose-mention false positives, cycle edges, lease isolation.
 
-The backstop's path reader's case is in `tests/test_gate.py`. The commit
+The backstop's path reader's case is in `tests/hooks/test_gate.py`. The commit
 gate's text reading and its cases left with #1027's phase 5, and the commit
 gate inside git, its parity arm with it, left with phase 6.
 """

@@ -3,7 +3,7 @@ record layout document, the `rule` marker's registration and the settle
 skill, which wait for #923.
 
 #942's phase 6 placed the cases of `.github/scripts/rules.py`'s functions in
-`tests/test_rules.py`, and this file reads the command through that file's
+`tests/github/test_rules.py`, and this file reads the command through that file's
 `rules`.
 """
 

@@ -64,7 +64,7 @@ The gather writes a new file, the release's own `changelog/X.Y.Z.md`, and
 heads the index `CHANGELOG.md` with its line. It is staged before step 3 runs
 anything, because the suite lists files with `git ls-files`, which reads the
 index: an untracked release file is a tree the listing does not describe.
-check: tests/test_the_changelog_is_gathered_at_release.py tests/test_gather_changelog.py
+check: tests/test_the_changelog_is_gathered_at_release.py tests/github/test_gather_changelog.py
 
 **A second gather for the same version appends into its section.** A fragment
 landing after this step, while the release pull request is red, is the
@@ -348,4 +348,4 @@ leave.
       branch deleted or left, either is fine.
 - [ ] The next release branch is cut from `main`, not from this one.
 
-check: tests/test_version_check.py
+check: tests/hooks/test_version_check.py

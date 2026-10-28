@@ -27,7 +27,7 @@ top-level `specs/` or `.specseal/`: the 0.3.x layout moves by hand, with the
 commands README.md *Coming up from 0.3.x* gives, and that section says it is
 the only path. Where the root is, as a path a
 session can type, is stated once, in contract rule 11.
-check: tests/test_no_document_names_the_old_roots.py tests/test_optin.py
+check: tests/test_no_document_names_the_old_roots.py tests/hooks/test_optin.py
 
 ## The dependency rule
 
@@ -84,7 +84,7 @@ either place means not opted in, and a hook that cannot tell does nothing.
 A throwaway repository turns the gates off with an empty file,
 `.git/agentic-scratch`, under the common git directory, which no commit can
 carry to another clone.
-check: tests/test_optin.py
+check: tests/hooks/test_optin.py
 
 ## What first setup asks
 
@@ -156,7 +156,7 @@ a release that has the no-root state passes having examined nothing:
 so nothing is declared, and exits 0. One pinned to an older release fails every pull request there until
 its `--branch` line moves or `seal pr-checks remove` takes it out, and
 `seal mode local` names the pin when it leaves such a file.
-check: tests/test_seal.py
+check: tests/skills/test_seal.py
 
 **Local mode lives under the git directory, not in a gitignored folder.** A
 linked worktree checks out committed files only, so an ignored
@@ -185,7 +185,7 @@ repository's history; coming back removes them from the tree and not from the
 history. That is the one direction local mode exists to prevent, so
 `seal mode shared` says so before it acts and stages rather than commits,
 which leaves the point of no return with the person.
-check: tests/test_first_setup_asks_once.py tests/test_optin.py tests/test_seal.py
+check: tests/test_first_setup_asks_once.py tests/hooks/test_optin.py tests/skills/test_seal.py
 
 ## Naming
 
@@ -232,7 +232,7 @@ plugin's.** A skill that requires English of everyone is a decision made in a
 file nobody who disagrees with it can edit, so the language lives in a config
 row, and the mirror file a translated pull-request body goes in is named for
 the language it holds rather than for one language.
-check: tests/test_the_pull_request_language_is_the_repositorys.py tests/test_config.py
+check: tests/test_the_pull_request_language_is_the_repositorys.py tests/hooks/test_config.py
 
 **Two rows, because one cannot express the middle answer.** The combinations
 people actually want are three: everything English; the commits and pull
@@ -258,7 +258,7 @@ silently took every row below it out of the config. The reader and the writer
 share the constant that describes a row, because their disagreement about
 which line is a given row is what turns one edit into a duplicate row in a
 person's file.
-check: tests/test_config.py tests/test_seal.py
+check: tests/hooks/test_config.py tests/skills/test_seal.py
 
 **A git call that fails is not a git call that answered "nothing".** Empty
 output because a thing is absent and empty output because the question could
@@ -266,4 +266,4 @@ not be asked are different facts, and a caller that cannot tell them apart
 reports the absence as settled: no remote, no other worktree, no tracked
 file. Every call site whose caller needs the distinction returns it, and the
 refusal says which call failed rather than reporting a confident nothing.
-check: tests/test_seal.py
+check: tests/skills/test_seal.py

@@ -249,7 +249,7 @@ def merged_pull_requests(root, branch):
     return out
 
 
-# Why a local work item is unreleased, each pinned by `tests/test_settle.py`.
+# Why a local work item is unreleased, each pinned by `tests/skills/test_settle.py`.
 # A `routing.md` that `hooks/lib/routing.py#parse` does not read, such as one whose
 # `Review` answer is outside the vocabulary, names no branch whatever rows it
 # holds, so the reason names the reader rather than the row.
@@ -350,7 +350,7 @@ UNASKED = (
     "on a host `gh` cannot ask cannot settle in local mode.\n"
 )
 
-# The dry run's local lines, each pinned by `tests/test_settle.py`.
+# The dry run's local lines, each pinned by `tests/skills/test_settle.py`.
 LOCAL_LINE = "local mode: the seal/ root is {home}, under the git directory\n"
 MERGED_HEADING = (
     "released in local mode, each with the pull request that merged it and "
@@ -358,7 +358,7 @@ MERGED_HEADING = (
 )
 UNMERGED_HEADING = "unreleased in local mode and untouched, each with why:"
 
-# The dry run's headings, each pinned by `tests/test_settle.py`.
+# The dry run's headings, each pinned by `tests/skills/test_settle.py`.
 GROUPS_HEADING = (
     "groups: the released specs whose rule changes name one section, in merge "
     "order.\nThe settling session writes each section as its group's latest "

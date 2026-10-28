@@ -1100,7 +1100,7 @@ def test_no_section_accumulates_entries_in_the_shared_file():
     name means somebody went back to the shared file, which is issue #46.
 
     The order still matters and is still checked — by
-    `tests/test_gather_changelog.py`, against the gather script that
+    `tests/github/test_gather_changelog.py`, against the gather script that
     produces it, which is the only thing that writes a section now.
     """
     with open(os.path.join(ROOT, "CHANGELOG.md"), encoding="utf-8") as f:

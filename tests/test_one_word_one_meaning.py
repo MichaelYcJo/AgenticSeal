@@ -551,7 +551,7 @@ SEGMENT_SWEPT = (
     ("skills", "verify", "SKILL.md"),
     ("skills", "verify", "orchestration.md"),
     ("skills", "verify", "scripts", "session_cost.py"),
-    ("tests", "test_session_cost.py"),
+    ("tests", "skills", "test_session_cost.py"),
 )
 
 # The two spellings the sweep below searches for, each with what it gets
@@ -669,7 +669,7 @@ def test_folding_the_seam_cannot_hide_an_instance_it_would_have_found():
         "skills/verify/scripts/seal_stamp.py",
         "skills/verify/scripts/broad_gate.py",
         "skills/verify/scripts/session_cost.py",
-        "tests/test_session_cost.py",
+        "tests/skills/test_session_cost.py",
         "hooks/sealer-stamp.py",
         "hooks/dispatch.py",
     }, (
@@ -919,7 +919,8 @@ def test_no_pact_text_names_a_signer_the_way_0_18_did():
     )
     named = [
         name
-        for name in os.listdir(os.path.join(ROOT, "tests"))
+        for _directory, _subdirectories, names in os.walk(os.path.join(ROOT, "tests"))
+        for name in names
         if PACT_RENAMED.search(name)
     ]
     assert not named, f"a test file is named with the word 0.19.0 renamed: {named}"
@@ -948,9 +949,9 @@ RENAMED_RECORDS = (
 )
 RENAMED_COMPAT = (
     "tests/conftest.py",
-    "tests/test_config.py",
+    "tests/hooks/test_config.py",
     "tests/test_one_table_walker_reads_what_gfm_renders.py",
-    "tests/test_pact_check.py",
+    "tests/skills/test_pact_check.py",
 )
 # The compatibility cases need the old word only as the header cell, which is
 # capitalised and singular; their prose is still swept for every other

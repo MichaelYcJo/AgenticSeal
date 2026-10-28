@@ -11,7 +11,7 @@ markdown-it and nothing of this repository's: on every line a renderer shows,
 `heading_level` answers what the parser's top-level ATX headings answer. Three
 corpora, as `frame/design.md` S10 names them: the frame's shapes, a seeded generated
 corpus, and every tracked `.md` file. #942 moved the first two, which read no
-file of this repository, into `tests/test_unverified_check.py`'s
+file of this repository, into `tests/skills/test_unverified_check.py`'s
 `Test_heading_level`, with the comparison they share; the tracked files'
 corpus stays here and imports it.
 

@@ -42,8 +42,8 @@ HEADING_SPAN = re.compile(r"`(## [^`]+)`")
 # under `## 구성 규칙`, and the `check:` line each of the three ends with.
 WRITING_RULES = "### 에이전트와 검사가 읽는 글은 한 가지로만 읽히게 쓴다"
 WRITING_RULE_CHECKS = (
-    "check: tests/test_rules.py"
-    " tests/test_rule_changes.py"
+    "check: tests/github/test_rules.py"
+    " tests/skills/test_rule_changes.py"
     " tests/test_censuses.py"
     " tests/test_the_agent_contract_holds_the_universal_rules.py",
     "check: tests/test_one_word_one_meaning.py",

@@ -112,7 +112,7 @@ _BLOCKS = _load_blocks()
 # `#section_lines` and `publish_release_note.py#section_body`, which end a
 # released section at the next `## ` line on purpose (#586);
 # `tests/test_release_hygiene.py#overwide_rows`, which keeps no fence state;
-# and the oracle walk in `tests/test_unverified_check.py`. A new reader
+# and the oracle walk in `tests/skills/test_unverified_check.py`. A new reader
 # that decides by line whether it stands inside a fence belongs in one of
 # these two lists.
 fence_opener = _BLOCKS.fence_opener
@@ -422,7 +422,7 @@ def heading_level(line):
     quoted in a closed fence is never asked. Setext headings are not read:
     every one markdown-it finds in this repository is a front-matter line
     under its `---` closer, which GitHub renders as a table.
-    `tests/test_unverified_check.py`'s `Test_heading_level` holds this to
+    `tests/skills/test_unverified_check.py`'s `Test_heading_level` holds this to
     markdown-it's ATX headings, through `tests/commonmark_oracle.py`, over
     the frame's shapes and a generated corpus;
     `tests/test_one_heading_rule_holds_to_commonmark.py` holds every tracked
@@ -484,7 +484,7 @@ def _paragraph_ends_at(line):
     # which are paragraph text — and on the issue references this repository
     # writes constantly, 944 lines of them (round 6, finding 4). Four spaces
     # is paragraph text too, a lazy continuation line, and the oracle
-    # `tests/test_unverified_check.py#block_ends_at` has bounded it all
+    # `tests/skills/test_unverified_check.py#block_ends_at` has bounded it all
     # along (#491's round-7 comment).
     if heading_level(line) is not None:
         return True

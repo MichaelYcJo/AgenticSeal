@@ -1,8 +1,8 @@
 """The seal is taken once, by the sealer, and what the documents say of it.
 
 Issue #30. The stamp's own cases, `skills/verify/scripts/seal_stamp.py` one
-class per function, are `tests/test_seal_stamp.py`, and the gate's,
-`skills/verify/scripts/broad_gate.py`, are `tests/test_broad_gate.py`, since
+class per function, are `tests/skills/test_seal_stamp.py`, and the gate's,
+`skills/verify/scripts/broad_gate.py`, are `tests/skills/test_broad_gate.py`, since
 #942.
 
 Part 2 holds the cases about the gate command that read a document's prose,

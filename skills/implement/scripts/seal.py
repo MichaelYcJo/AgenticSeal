@@ -394,7 +394,7 @@ def root_files(home):
     always produces the same zip and the same digest.
 
     **This is the only walk.** The zip's members and the digests the manifest
-    records come from this one list. `tests/test_seal.py::Test_export`
+    records come from this one list. `tests/skills/test_seal.py::Test_export`
     asserts the zip's namelist equal to `MEMBERS`, the manifest and then the
     sorted paths this walk gives for the case's root, and
     `Test_root_files` holds the walk's order. Two enumerations would
@@ -1462,7 +1462,7 @@ CONFIG_PATHSPEC = f"{optin.HOME}/{CONFIG}"
 # The line CI's own workflow uses to clone this plugin. A file at WORKFLOW
 # carrying it is one this plugin wrote; a file that does not is somebody
 # else's with our name, and `seal pr-checks` neither overwrites nor removes
-# it. `tests/test_seal.py::Test_module` asserts the template still contains
+# it. `tests/skills/test_seal.py::Test_module` asserts the template still contains
 # this, so the marker cannot drift away from what it identifies.
 PLUGIN_CLONE = "https://github.com/MichaelYcJo/AgenticSeal.git"
 # The clone line every workflow a release before the rename wrote carries:

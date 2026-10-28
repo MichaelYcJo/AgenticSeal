@@ -18,7 +18,7 @@ opening stamp against a spawn's result stamp is a **join**, and a join is
 asserted rather than assumed: a match within a tolerance is a claim about
 which transcript belongs to which spawn, and an unasserted one silently
 attributes one agent's cost to another.
-check: tests/test_session_cost.py
+check: tests/skills/test_session_cost.py
 
 **An orchestrator measured by its whole session is measured by its
 children.** A session that spawns agents contains their durations, so the
@@ -28,14 +28,14 @@ carrying the same numbers a spawned row carries, so an orchestrator row can
 sit beside them, and **the delegated interval is excluded from the
 orchestrator's model time and reported as its own number**, because time
 spent waiting for another agent is not time spent thinking.
-check: tests/test_session_cost.py
+check: tests/skills/test_session_cost.py
 
 **A run's report is one comparison table.** Tokens are summed over the
 transcript given **and** every subagent transcript beneath it, so the total
 is the run's rather than the parent's. One table, one shape, for every run: a
 report whose shape changes between runs cannot be compared with the run
 before it, which is the only thing a cost number is for.
-check: tests/test_session_cost.py tests/test_a_segment_feeds_the_flow_log.py
+check: tests/skills/test_session_cost.py tests/test_a_segment_feeds_the_flow_log.py
 
 **A segment's reading carries the largest context any one of its turns
 read.** A turn's context is the input side of its one model call: the
@@ -45,7 +45,7 @@ earlier context again on every turn, so its largest turn is the number
 that tells a resume worth taking from one that is not, and the
 orchestrator reads it before it resumes an implementer for a fix pass.
 It is measured, and it gates nothing.
-check: tests/test_session_cost.py
+check: tests/skills/test_session_cost.py
 
 ## What a measurement must survive, and what it must not invent
 
@@ -53,7 +53,7 @@ check: tests/test_session_cost.py
 request and result share a timestamp has a span of zero, and a transcript can
 mix a zone-aware stamp with a naive one. The meter owes a report that
 survives both, and it must not invent a percentage for a span of zero.
-check: tests/test_session_cost.py
+check: tests/skills/test_session_cost.py
 
 **Two in-range values can make one that is not.** Every site converting a
 number for display is enumerated from the module's own source, with
@@ -61,7 +61,7 @@ membership decided by running the code rather than by a list of names, and
 each one is discharged, by a guard or by an operand that cannot be a derived
 number. A list of names goes stale the moment somebody adds a site; an
 enumeration from the source cannot.
-check: tests/test_session_cost.py
+check: tests/skills/test_session_cost.py
 
 **A reading that was published is still wrong after it is published.**
 Correcting a meter does not correct the readings it produced, and re-deriving
@@ -75,7 +75,7 @@ outlive its own row's cut and end before any spawn's result, and a refusal
 naming the result as the cause would point at a call the transcript does not
 contain. A refusal that prints two sums rather than their difference leaves
 the reader able to see which of the two is wrong.
-check: tests/test_session_cost.py
+check: tests/skills/test_session_cost.py
 
 ## Where a reading goes
 
@@ -107,7 +107,7 @@ named and posts nothing; exactly one open log takes the comment. **It never
 opens a log**, because opening one is not a session's act: two sessions
 finishing segments at once would both read zero and both create one. What
 the command cannot do is make a session remember to run it.
-check: tests/test_session_cost.py
+check: tests/skills/test_session_cost.py
 
 **A network write only a person's typing starts is not a hook, and the list of
 hook network touches does not reach it.** `CONTRIBUTING.md` counts the
@@ -121,4 +121,4 @@ prompts, so the posted body names the transcript by its file name and never
 by its path. The repository owner owns that list and can overturn this. No
 case reads that `--post` fires on no hook; one that read `hooks/hooks.json`
 for a command reaching it would.
-check: tests/test_session_cost.py
+check: tests/skills/test_session_cost.py

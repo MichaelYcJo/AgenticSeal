@@ -1404,7 +1404,7 @@ def token_thirds(turns):
     Every site in this module that converts a number to an `int` carries a
     guard: a finiteness test on the same operand in the enclosing
     conditional, or a `try` catching both `OverflowError` and `ValueError`.
-    The class is not a list anybody maintains — `tests/test_session_cost.py`
+    The class is not a list anybody maintains — `tests/skills/test_session_cost.py`
     enumerates the sites from this file's own syntax tree and decides
     membership by invoking Python's integer-conversion protocol on an
     operand, so a conversion written under any name at all is a member. Add

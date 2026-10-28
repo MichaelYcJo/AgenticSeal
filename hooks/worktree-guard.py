@@ -515,7 +515,7 @@ def only_creates_a_worktree(command: str, cwd: str, windows=None) -> bool:
          That is the trade this whole docstring already makes for `$` and
          `>`: a wrong silence leaves the call to the user's settings, a wrong
          allow signs for an arbitrary binary.
-         `tests/test_worktree_guard.py::Test_only_creates_a_worktree` pins
+         `tests/hooks/test_worktree_guard.py::Test_only_creates_a_worktree` pins
          members of each verdict group.
       2. no `ELSEWHERE` character in any token, which is the expansion and
          redirection family the first test does not reach.
@@ -2075,7 +2075,7 @@ def judge_creation(
 # not here, on the owner's answer P1 (a): the list grows by a measured row,
 # never by a reading. Which ones leave the branch was read off what each
 # does (`frame/design.md` In 5), and one form of each row is run against git by
-# `tests/test_worktree_guard.py`'s
+# `tests/hooks/test_worktree_guard.py`'s
 # `test_accepts_no_listed_form_that_moves_head_under_git`; the case it was
 # rebuilt from found `rebase`'s branch-naming form in round 1 of work item
 # 1791270162.
@@ -2826,7 +2826,7 @@ def stop_unrecognised(findings, trees, pressed, before_ask=None, switch_on_line=
     BEFORE_ASK runs on the `ask` path only, for the reason `choose` gives
     its own: the deny stops the whole line, while approving an ask runs every
     segment of it, so a creation on the same line is judged first
-    (`tests/test_worktree_guard.py`'s
+    (`tests/hooks/test_worktree_guard.py`'s
     `test_refuses_to_be_silent_where_the_writer_records`). A
     `git switch` on the line (SWITCH_ON_LINE) makes the stop a `deny` for
     the same reason: approving would run the switch past the rows of *A. Branch switch*, in a

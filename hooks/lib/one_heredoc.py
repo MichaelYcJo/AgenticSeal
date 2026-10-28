@@ -36,7 +36,7 @@ split of the rest on newlines, an exact comparison and a count.
 
 Each clause closes a row of `frame/design.md`'s disagreement table in the work item
 `1791089603-one-heredoc-shape-the-reader-matches-exactly-is-data`, and
-`tests/test_one_heredoc.py` runs every admitted string of a generated corpus
+`tests/hooks/test_one_heredoc.py` runs every admitted string of a generated corpus
 through the real bash and zsh to show they cut the body where this does. Widening the grammar reopens a row: a LEAD that
 assigns, a target that is a parameter or a program after a sink each needs a
 reader that proves line 1 closed, which is the splitter this module exists not

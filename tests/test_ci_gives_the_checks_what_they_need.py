@@ -185,7 +185,7 @@ def matrix_include_entries(text):
     entry written another way was not an entry, and nothing said so. Two
     other readings of the file remain, each asking something else:
     `tests/test_release_hygiene.py` takes the floor from every `python:` in
-    it, and `tests/test_arm_check.py` reads the Pythons of the jobs that run
+    it, and `tests/skills/test_arm_check.py` reads the Pythons of the jobs that run
     its own module.
 
     The name carries no `pytest_` prefix: in a `conftest.py`, pytest reads a

@@ -22,6 +22,22 @@ import tempfile
 
 import pytest
 
+# pytest's default `prepend` import mode puts a test file's own directory on
+# `sys.path` as it imports that file. A test file that imports a helper from
+# a test file in another directory under `tests/` would then find it only
+# where pytest happened to import that directory first, and never in a run
+# that names the importing file alone. So each directory under `tests/` that
+# holds a test file goes on the path here, before pytest imports a test file.
+_TESTS = os.path.dirname(os.path.abspath(__file__))
+for _directory, _subdirectories, _names in os.walk(_TESTS):
+    _subdirectories[:] = sorted(d for d in _subdirectories if d != "__pycache__")
+    if (
+        _directory != _TESTS
+        and _directory not in sys.path
+        and any(n.startswith("test_") and n.endswith(".py") for n in _names)
+    ):
+        sys.path.append(_directory)
+
 # The review run's documents: the record and the run, the hooks, the routing
 # check, and what each arm wants. A case that reads one of them for what is
 # THERE reads the one that holds the section; a case asserting what is NOT
@@ -1106,8 +1122,8 @@ def config():
     return load_hook_module("lib/config.py", "agentic_config_for_tests")
 
 
-# The config texts the reader's cases in `tests/test_config.py` and the
-# writer's in `tests/test_seal.py` both read. A row
+# The config texts the reader's cases in `tests/hooks/test_config.py` and the
+# writer's in `tests/skills/test_seal.py` both read. A row
 # that parses comes first in the piped table, because the walker stops at the
 # first line it refuses (#415, #871).
 PIPED_TABLE = (
@@ -1382,8 +1398,8 @@ def parity_file(sha):
 
 # --- the pact's world ---------------------------------------------------------
 #
-# `skills/verify/scripts/pact_check.py`'s cases in `tests/test_pact_check.py`
-# and the cases of `tests/test_config.py` that run it over a table the walker
+# `skills/verify/scripts/pact_check.py`'s cases in `tests/skills/test_pact_check.py`
+# and the cases of `tests/hooks/test_config.py` that run it over a table the walker
 # refuses share one world: the pact's repository, whose `seal/pact.md` carries
 # one clause committed as v1 and then v2 on `main` and v3 on a side branch HEAD
 # does not hold, and a signer beside it, which names the pact in its
@@ -1450,7 +1466,7 @@ def init(d, url):
     git_out(d, "remote", "add", "origin", url)
 
 
-# The name `_template` commits by, as `tests/test_pact_check.py` imports it.
+# The name `_template` commits by, as `tests/skills/test_pact_check.py` imports it.
 commit = commit_everything_as_e
 
 
@@ -1684,7 +1700,7 @@ def write_transcript(root, session, entries, slug="-Users-x-repo"):
 
 # The texts other test files compare the guard's deny with, for the
 # tracked-changes row under the press (#894, work item 1791779434); the guard's
-# own cases are `tests/test_worktree_guard.py`'s.
+# own cases are `tests/hooks/test_worktree_guard.py`'s.
 TOKEN = {
     "en": "[shared-tree-ok] carries the user's answer to switch in this shared tree",
     "ko": "[shared-tree-ok] 가 공용 트리에서 전환한다는 사용자의 답을 담고 있어",
@@ -1795,7 +1811,7 @@ def _a_dirty_w_under_a_clean_session(repo, tmp_path):
 
 # --- a work item's closing records, as the stamp's queue gates read them -------
 #
-# `tests/test_sealer_stamp_queue.py` writes them.
+# `tests/hooks/test_sealer_stamp_queue.py` writes them.
 
 STAMP_ITEM = "1799000000-an-item"
 
@@ -1966,7 +1982,7 @@ def korean_repo(tmp_path):
 
 
 # A spec's `## Rule changes` and the history `settle` reads, shared by
-# `tests/test_rule_changes.py`, `tests/test_settle.py` and the cases the two
+# `tests/skills/test_rule_changes.py`, `tests/skills/test_settle.py` and the cases the two
 # old settle files keep.
 
 

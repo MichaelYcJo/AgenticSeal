@@ -2,7 +2,7 @@
 named by content (#870, #519, #867).
 
 `skills/verify/scripts/coordinates.py`'s cases moved to
-`tests/test_coordinates.py` in #942's phase 6. The one left here reads this
+`tests/skills/test_coordinates.py` in #942's phase 6. The one left here reads this
 repository's workflow, which is #923's to place. `docs/the-pact.md` names this
 file on a `check:` line until the settle after the release applies
 `frame/design.md`'s item for it.

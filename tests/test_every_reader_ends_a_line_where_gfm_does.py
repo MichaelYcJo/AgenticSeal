@@ -20,13 +20,13 @@ Every one of the eight is built from its code point, never typed: an escape
 typed into an editing tool can come back as the character itself, and a file
 holding one is exactly what these cases are about.
 
-The splitter's own cases are `tests/test_blocks.py`'s `Test_gfm_lines`
+The splitter's own cases are `tests/hooks/test_blocks.py`'s `Test_gfm_lines`
 (#942's phase 6). What stays here holds every copy of it to it, three
 modules on one corpus. Each other reader's case judges that reader alone,
 so #942's round 9 fix pass placed it in that reader's file:
-`tests/test_fold_check.py`, `tests/test_gather_changelog.py`,
-`tests/test_chain_check.py`, `tests/test_payload_meter.py`,
-`tests/test_issue_claims_check.py` and `tests/test_worktree_guard.py`, whose
+`tests/skills/test_fold_check.py`, `tests/github/test_gather_changelog.py`,
+`tests/skills/test_chain_check.py`, `tests/skills/test_payload_meter.py`,
+`tests/github/test_issue_claims_check.py` and `tests/hooks/test_worktree_guard.py`, whose
 `Test_last_active_event_epoch` already held the second transcript reader's
 case. The two separators those cases name are `tests/conftest.py`'s `LS` and
 `FF`.

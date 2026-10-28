@@ -2,8 +2,8 @@
 skill's example of `## Rule changes`, which waits for #923.
 
 #942's phase 6 placed the reader's and the replay's cases in
-`tests/test_rule_changes.py`, and the cases that run `settle` over a git
-history in `tests/test_settle.py`. No `check:` line names this file.
+`tests/skills/test_rule_changes.py`, and the cases that run `settle` over a git
+history in `tests/skills/test_settle.py`. No `check:` line names this file.
 """
 
 import os

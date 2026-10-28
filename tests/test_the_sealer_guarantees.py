@@ -7,7 +7,7 @@ ready pull request passes only where the file names HEAD and its verdict
 reads `sealed`. Each group holds a case on good input and one on bad.
 
 #942 moved the cases of the arm and its readers, which read no file of this
-repository, into `tests/test_chain_check.py`: `Test_verdicts_of`,
+repository, into `tests/skills/test_chain_check.py`: `Test_verdicts_of`,
 `Test_earlier_verdicts` and `Test_guarantee`. What stays reads the template,
 the definition, the document, or every committed `guarantee.md`.
 """

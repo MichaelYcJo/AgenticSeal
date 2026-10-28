@@ -9,14 +9,14 @@ that file lives
 in #326). Nothing bounded a mutated run either, and one hung for 32 minutes
 (#577).
 
-The cases that run the command moved to `tests/test_mutation_check.py` in
+The cases that run the command moved to `tests/skills/test_mutation_check.py` in
 #942's phase 6. What stays here reads the sentences a session acts on: the
 crafter's definition, the verify skill's section, and the bound both of them
 state.
 
 **How the script is loaded here.** By path, with an `importlib` spec,
 registered in `sys.modules` before it executes -- the way
-`tests/test_arm_check.py` loads `arm_check.py`. The script reaches
+`tests/skills/test_arm_check.py` loads `arm_check.py`. The script reaches
 `arm_check.py` the same way rather than through `sys.path`, so nothing has to
 be put on the path first: a bare `from arm_check import ...` resolves only
 when the script is run by its path and `PYTHONSAFEPATH` is unset.

@@ -1,7 +1,7 @@
 """A gate that fails to load says so (#28).
 
 Work item 1790635415. The cases of `hooks/dispatch.py`'s failure report moved
-to `tests/test_dispatch.py` (#942's phase 6). What stays is the case that
+to `tests/hooks/test_dispatch.py` (#942's phase 6). What stays is the case that
 reads the policy, which `docs/the-session-hooks.md` *Registration* names
 on its `check:` line.
 """

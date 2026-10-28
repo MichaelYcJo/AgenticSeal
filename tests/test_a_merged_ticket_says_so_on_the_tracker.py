@@ -3,7 +3,7 @@
 `release/vX.Y.Z`. These cases read the workflow and wait for #923.
 
 #942's phase 6 placed the cases of the script's functions in
-`tests/test_label_merged_on_release_branch.py`.
+`tests/github/test_label_merged_on_release_branch.py`.
 """
 
 import os

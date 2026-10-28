@@ -3,7 +3,7 @@ documents, the READMEs, the checklist and the cheat sheets, which wait for
 #923. #458, closing #83.
 
 #942's phase 6 placed the cases that run the command or call
-`skills/settle/scripts/settle.py`'s functions in `tests/test_settle.py`, and
+`skills/settle/scripts/settle.py`'s functions in `tests/skills/test_settle.py`, and
 the `tree` fixture in `tests/conftest.py`. `docs/the-record-layout.md` names
 this file on the `check:` lines whose rules the skill cases here hold. Since
 #1033 the skill states the settling session's procedure, and the cases that

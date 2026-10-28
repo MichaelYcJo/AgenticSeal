@@ -27,7 +27,7 @@ is found, the copy is the defect.
 estimate are `templates/setup/config.md` *The fold's values*, and what a document
 past it owes is `skills/settle/SKILL.md` *A document past its ceiling is
 split, never trimmed*.
-check: tests/test_fold_check.py
+check: tests/skills/test_fold_check.py
 
 ## A change writes fragments, never a shared file
 
@@ -44,7 +44,7 @@ and `docs/release-checklist.md` *2. Gather, bump* holds it. The fragments are
 concatenated into the release's own file, `changelog/X.Y.Z.md`, and the
 release's heading goes into the index, `CHANGELOG.md`. A fragment lives from
 the work item's first entry to the release that ships it.
-check: tests/test_the_changelog_is_gathered_at_release.py tests/test_gather_changelog.py
+check: tests/test_the_changelog_is_gathered_at_release.py tests/github/test_gather_changelog.py
 
 ## A commit after the build brings its changelog fragment along
 
@@ -92,7 +92,7 @@ tracker. Each is closed in the record, `closed` with what closed it, and
 in the working tree. The settle's pull request body carries every closure,
 an issue carries every re-homed row, and git keeps the record. A released
 work item that wrote no `frame/design.md` states no rule and goes the same way.
-check: tests/test_settle.py
+check: tests/skills/test_settle.py
 
 **The settle writes each section as the latest decision among the released
 specs states it, checked against the code.** The specs whose rule changes
@@ -107,7 +107,7 @@ that no longer matches is history, not a refusal. The rest of the document
 stays as it was, and no marker is written. `settle` groups the specs, shows
 each group's history and removes the directories; it writes no policy
 document.
-check: tests/test_rule_changes.py tests/test_settle.py
+check: tests/skills/test_rule_changes.py tests/skills/test_settle.py
 
 **A settle is not a work item.** It opens no directory under `seal/threads/`.
 Its session records `seal no-work-item` on the settle's branch, its commits
@@ -140,7 +140,7 @@ check: tests/test_both_editions_carry_the_same_folds.py
 **Whether a line is live is asked by what the line does, and the four
 readers that ask it give three answers.** These are all four readers, grouped
 by the kind of line they read, with the cost each answer is chosen against.
-check: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py tests/test_routing.py
+check: tests/test_whether_a_line_is_live_is_asked_by_what_the_line_does.py tests/hooks/test_routing.py
 
 - **A line that HOLDS something — a claim or an anchor — is read on
   doubt.** The coordinate kernel's `quoted_lines`, which its `unquoted` and
@@ -207,7 +207,7 @@ session writes the committed policy root as in shared mode, and
 open row, with no commit holding what it removed. The settle's pull request
 changes the policy root alone, so no check reads a removal there, and its
 commits carry no trailer, as no local-mode commit does.
-check: tests/test_settle.py
+check: tests/skills/test_settle.py
 
 ## The unverified record, and the baseline it is read against
 
@@ -284,7 +284,7 @@ at the session start of each branch whose tree still holds them, as staged
 it writes the path a commit holds, as `<commit>:<path>`, which `git show`
 opens as written; in this repository `tests/censuses.py#HISTORY_PATH` is
 the one form `old_names` passes.
-check: tests/test_settle.py
+check: tests/skills/test_settle.py
 
 **A record a template starts carries no HTML comment.** Its template holds
 headings, table headers, placeholders, the labelled lines the record's
@@ -299,7 +299,7 @@ labelled line a check reads stands outside every fence, at the start of its
 line.** The readers keep one fence state, by the fence rule of
 `hooks/lib/blocks.py`, because a fix to a record's own grammar can hold a line
 shaped like a label, and that line belongs to the fix.
-check: tests/test_chain_check.py
+check: tests/skills/test_chain_check.py
 
 **A reader of a record keeps no comment state: it reads `<!--` as text, and
 refuses at its line a line outside every fence that begins with `<!--`.** A
@@ -333,7 +333,7 @@ index keeps the same line above the link to the file, because the update
 skill an installed copy already carries checks that an update landed by the
 first `## ` line of `CHANGELOG.md`. The GitHub Release reads the release's
 own file.
-check: tests/test_the_changelog_is_gathered_at_release.py tests/test_gather_changelog.py
+check: tests/test_the_changelog_is_gathered_at_release.py tests/github/test_gather_changelog.py
 
 **A `CLAUDE.md` row that points at a home carries three things: the home's
 path and section, the moment a session needs the rule, and the act in one

@@ -5,8 +5,8 @@ The work item is
 `aa687d35:seal/specs/1788354065-the-tree-that-must-stay-clean-has-no-way-to-opt-in/`;
 the clauses named per case are its spec's. The hooks resolve
 the root in code (`hooks/lib/optin.py#home_at`) and are pinned by
-`tests/test_optin.py`, `tests/test_commit_review_gate.py` and
-`tests/test_implementer_notice.py`. What is pinned HERE
+`tests/hooks/test_optin.py`, `tests/test_commit_review_gate.py` and
+`tests/hooks/test_implementer_notice.py`. What is pinned HERE
 is the text: the one question the `implement`
 skill asks, the sentence a session needs, the workflow template
 `seal pr-checks install` writes and what local mode does to it, and the

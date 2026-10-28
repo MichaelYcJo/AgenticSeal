@@ -55,7 +55,7 @@ the new side did not, whatever its graders, a case run a different number
 of times, a run whose `modelUsage` is missing or short of a count, or
 one whose trace cannot be read or holds no tool call is no result, never a
 pass.
-`tests/test_noninferiority.py` recomputes the record. Nothing in the tree
+`tests/evals/test_noninferiority.py` recomputes the record. Nothing in the tree
 makes a later edit owe a run.
 
 **A side already paid for is read again under another suite's truths

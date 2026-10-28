@@ -13,7 +13,7 @@ branch, the same check and the same commit.
 What stays here are the cases that read a shipped document: the workflow's
 spellings held against the gate's, and the documents that say which base the
 gate asks about. #923 places them. The resolver, the line it prints and the
-consumers it hands the commit to are `tests/test_broad_gate.py` since #942.
+consumers it hands the commit to are `tests/skills/test_broad_gate.py` since #942.
 """
 
 import ast

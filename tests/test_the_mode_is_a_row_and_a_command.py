@@ -1,6 +1,6 @@
 """`seal mode`: what is left here after #942's phase 5.
 
-The cases of `skills/implement/scripts/seal.py` are in `tests/test_seal.py`.
+The cases of `skills/implement/scripts/seal.py` are in `tests/skills/test_seal.py`.
 The three cases here read the documents and the workflows that name the
 command, and they are #923's.
 """

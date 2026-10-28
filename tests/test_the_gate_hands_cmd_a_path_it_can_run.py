@@ -8,7 +8,7 @@ failure form reported the suite as failing. `bin/test.cmd` exists so that
 `cmd.exe` can call the runner, and it is reached as `bin\\test`.
 
 #942 moved the cases of `skills/verify/scripts/broad_gate.py` from this file
-into `tests/test_broad_gate.py`: `Test_handed_to_shell`,
+into `tests/skills/test_broad_gate.py`: `Test_handed_to_shell`,
 `Test_command_names_backslashed`, `Test_run`, `Test_failure_lines` and
 `Test_module` hold them. What stays reads `templates/setup/config.md`, which #923
 places.
@@ -23,7 +23,7 @@ def test_the_template_says_which_positions_are_rewritten():
     """A2, the reader's half (contract rule 14). `templates/setup/config.md` *Broad gate* is
     where a person writing the row learns what `cmd.exe` is handed, and it
     states the rule and names the positions the scan leaves as written —
-    the gap `tests/test_broad_gate.py`'s cases pin is only a gap nobody is surprised by while
+    the gap `tests/skills/test_broad_gate.py`'s cases pin is only a gap nobody is surprised by while
     it is written down. It must not read as a complete count of them."""
     path = os.path.join(ROOT, "templates", "setup", "config.md")
     with open(path, encoding="utf-8") as handle:

@@ -5,7 +5,7 @@ and `docs/release-checklist.md`, and wait for #923;
 `docs/branch-and-release.md` names this file on its `check:` line.
 
 #942's phase 6 placed the cases of `.github/scripts/release_seal.py`'s
-functions in `tests/test_release_seal.py`.
+functions in `tests/github/test_release_seal.py`.
 """
 
 import os

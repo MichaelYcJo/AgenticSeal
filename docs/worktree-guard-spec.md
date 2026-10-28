@@ -57,7 +57,7 @@ one text for every form, never a sentence here.
 **The failure direction.** A verdict moves from `ask` to `deny` in one state
 and nowhere else, and the reader that decides it is the stop's. A wrong deny
 costs the model a turn.
-check: tests/test_worktree_consent.py tests/test_worktree_guard.py
+check: tests/hooks/test_worktree_consent.py tests/hooks/test_worktree_guard.py
 
 A command that also creates a worktree is judged by this table whichever of
 the two is written first, with the creation judged inside it (*Creation
@@ -144,7 +144,7 @@ where the tree matters, and allows one thing more: a creation only a hidden
 spelling holds, in a clean tree nobody else is in, where nothing the Premise
 protects is at stake. Under the press the stops ask no person anything;
 without it each is one `ask`.
-check: tests/test_worktree_guard.py tests/test_worktree_consent.py
+check: tests/hooks/test_worktree_guard.py tests/hooks/test_worktree_consent.py
 
 ### B. Worktree creation
 
@@ -176,7 +176,7 @@ session, because a spawn that ran writes the record. An Agent call carries
 prose, not a command line, and the model writes that prose, so a token in a
 prompt could not tell a person's answer from a sentence about the token; the
 path asks outright and the verdict does not depend on the prompt.
-check: tests/test_worktree_guard.py
+check: tests/hooks/test_worktree_guard.py
 
 ## Creation consent
 
@@ -290,7 +290,7 @@ matters, under consent too, and in a clean tree nobody else is in it says
 nothing. What the class costs is the allow on `/usr/bin/git worktree add …`:
 a wrong silence leaves the call to the user's own settings, and a wrong allow
 signs for a binary nobody identified.
-`Test_only_creates_a_worktree` in `tests/test_worktree_guard.py` pins
+`Test_only_creates_a_worktree` in `tests/hooks/test_worktree_guard.py` pins
 members of each group in the rows of its two cases, and is where a new
 spelling is checked.
 
@@ -320,7 +320,7 @@ repository.
 record for, the guard has either denied it or put the creation question in
 the text of its `ask`.
 `Test_main::test_refuses_to_be_silent_where_the_writer_records` in
-`tests/test_worktree_guard.py` walks every shape `CREATIONS` lists in four
+`tests/hooks/test_worktree_guard.py` walks every shape `CREATIONS` lists in four
 session states, from two shell directories, three attempts in the two
 states whose budget the attempts spend, and
 `Test_main::test_refuses_a_line_weaker_than_its_switch_or_its_creation`
@@ -345,7 +345,7 @@ allow five times. With consent, a creation written as one segment of a
 compound, or carrying an expansion, a redirection, a wrapper or a
 path-qualified command word, gets no allow; the guard is silent, and what each
 costs is whatever the user's own settings ask.
-check: tests/test_worktree_consent.py tests/test_worktree_guard.py
+check: tests/hooks/test_worktree_consent.py tests/hooks/test_worktree_guard.py
 
 ### Decided before git runs
 
@@ -418,7 +418,7 @@ fires. No marker is written, because none was asked, so a later `per axis` in
 the same clone meets the attended first attempt. `[shared-tree-ok]` still
 turns the switch rows silent and `[worktree-ok]` still reaches its `ask`
 above the creation rows. Without the press all four rows are as above.
-check: tests/test_worktree_guard.py
+check: tests/hooks/test_worktree_guard.py
 
 **Retry tokens, one per direction**, matched as bare words of the command,
 never as substrings, so a quoted sentence about a token answers nothing. The
@@ -486,7 +486,7 @@ blocker.
 
 Five minutes is safe only because of the second and third signals: keyboard
 input alone cannot tell a forgotten tab from an autonomous turn.
-check: tests/test_worktree_guard.py
+check: tests/hooks/test_worktree_guard.py
 
 ### Passive-event filtering
 
@@ -558,7 +558,7 @@ command that would not split or either side of an `&` the splitter cut is the
 finding, so a broken reader costs a stop where the tree matters and never a
 silence. Such a cut is judged in the tree the part before it names, and a
 `-C` written after the cut is not read.
-check: tests/test_worktree_guard.py tests/test_worktree_consent.py
+check: tests/hooks/test_worktree_guard.py tests/hooks/test_worktree_consent.py
 
 The advice follows the same tree. A command a reason tells the person to run
 (the worktree steer, a choice's option, the switch steer, the tracked-changes
@@ -602,7 +602,7 @@ check: tests/test_the_hook_surface_git_offers.py tests/test_the_frozen_reading_n
   The braced rows of
   `Test_main::test_accepts_data_no_shell_runs_as_no_command` and the braced
   half of `Test_shape_of::test_accepts_no_listed_form_that_moves_head_under_git`
-  in `tests/test_worktree_guard.py` pin the limit.
+  in `tests/hooks/test_worktree_guard.py` pin the limit.
 - A switch into the worktree the same command creates is judged against the
   session's own tree, because `../x` does not exist yet when the guard runs:
   `git worktree add ../x -b x && cd ../x && git switch y` meets that tree's
@@ -621,7 +621,7 @@ check: tests/test_the_hook_surface_git_offers.py tests/test_the_frozen_reading_n
   fi`) is judged in the session's own tree. `git -C <dir> switch …`, or a
   plain `cd <dir>` of its own, is the spelling the guard reads.
   `Test_main::test_a_switch_tree_the_guard_cannot_place_is_judged_as_its_own`
-  in `tests/test_worktree_guard.py` pins it.
+  in `tests/hooks/test_worktree_guard.py` pins it.
 - `LEAVES_THE_TREE` holds the subcommands this repository's recorded runs
   hold, each with its count, and nothing guessed. A git subcommand this
   repository never ran (`git submodule update`, `git notes`) is unrecognised
@@ -670,7 +670,7 @@ check: tests/test_the_hook_surface_git_offers.py tests/test_the_frozen_reading_n
   Under the press every switch without `[shared-tree-ok]` is row 2's deny, and
   every Bash creation in a clone the press was not given in and this session
   holds no record in is *B*'s detection-unusable deny. Two Windows-only cases
-  of `Test_main` in `tests/test_worktree_guard.py`,
+  of `Test_main` in `tests/hooks/test_worktree_guard.py`,
   `test_on_windows_a_switch_under_the_press_is_row_twos_deny` and
   `test_on_windows_a_creation_in_another_clone_is_row_fours_deny`, measure
   the two.

@@ -94,7 +94,7 @@ only the first call pays for an environment. It works from any directory in
 the repository or a worktree of it, and it prints the interpreter it used.
 
 ```bash
-bin/test tests/test_session_cost.py -q   # one module: the form to type
+bin/test tests/skills/test_session_cost.py -q   # one module: the form to type
 bin/test                                 # everything, in parallel: the orchestrator's broad run
 uvx ruff check . && uvx ruff format .    # the linter and formatter CI holds the tree to
 ```
@@ -124,7 +124,7 @@ interpreter it says which to install. What runs before any floor is checked
 (a hook, a git hook, the launcher, `bin/test`'s runner, and every module one
 of them loads in its own process) runs on whatever `python3` starts it.
 `ruff.toml` lints that code at the version its `per-file-target-version`
-names, and `tests/test_launch.py` derives the set, holds every file of it to
+names, and `tests/hooks/test_launch.py` derives the set, holds every file of it to
 that table, and refuses in it the syntax `ast` rejects at that version and the
 two constructs ruff pushes toward above it, `zip(..., strict=)` and
 `datetime.UTC`. Nothing runs that code at that version, so a standard-library
@@ -146,7 +146,7 @@ CI runs these jobs: lint (`ruff check` and `ruff format --check`); the suite
 on ubuntu, macOS and Windows at the floor stated above, macOS and Windows in
 shards that `pytest-split` divides from the one committed `.test_durations`,
 and ubuntu as one job; `durations`, which unions what the Windows shards
-measured; `tests/test_arm_check.py` at 3.13 and 3.14, because `seal arms`'s
+measured; `tests/skills/test_arm_check.py` at 3.13 and 3.14, because `seal arms`'s
 node-type tables are only as true as the interpreter that reads them;
 `release-report`, which on a pull request into `main` only prints the release
 table against the last release tag and fails nothing; and the hygiene
@@ -228,7 +228,11 @@ that run and the pull request.
 ## The test layout
 
 **Each shipped module has one test file, and the file names its module
-once.** The file is `tests/test_<stem>.py`. The stem is the module's file
+once.** The file is `tests/<area>/test_<stem>.py`. The area is the first
+directory of the module's path with a leading dot dropped, so the file for
+`hooks/lib/optin.py` is `tests/hooks/test_optin.py` and the file for a
+script under `.github/` stands in `tests/github/`; a module under `tests/`
+keeps its file at `tests/`. The stem is the module's file
 name without `.py`, with each hyphen written as an underscore, and where two
 shipped modules share a stem, the parent directory's name goes before it.
 The first assignment after the file's imports is
@@ -252,7 +256,7 @@ census reads it and refuses it once it excuses nothing.
 this, and lists the files that do not declare one yet. A contributor writing
 a case first reads its class and the pairs `bin/seal layout --pairs` names
 in it.
-check: tests/test_test_layout.py tests/test_censuses.py
+check: tests/skills/test_test_layout.py tests/test_censuses.py
 
 **A module's old cases get one verdict each when the module is rebuilt.**
 The contributor rebuilding a module reads its functions first and lists the

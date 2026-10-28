@@ -91,7 +91,7 @@ maintainer's last act, fires the note, because a note has to name a tag.
 `docs/release-checklist.md` *6. After the merge* carries a box for each of the
 first two. The first confirms the workflow fired and is not where the note
 gets written; the second is where the command is run.
-check: tests/test_a_release_publishes_its_note.py tests/test_publish_release_note.py tests/test_the_release_tail_does_not_end_at_the_tag.py tests/test_the_release_seal_is_drawn.py tests/test_release_seal.py
+check: tests/test_a_release_publishes_its_note.py tests/github/test_publish_release_note.py tests/test_the_release_tail_does_not_end_at_the_tag.py tests/test_the_release_seal_is_drawn.py tests/github/test_release_seal.py
 
 Which workflows GitHub starts on which event, and which run a newer push
 cancels, is GitHub's behaviour. No case here can start a run, so
@@ -313,7 +313,7 @@ exits non-zero only at the end, naming each issue both routes refused with
 both errors. A partial close is repaired by re-running the script with the
 run's `BEFORE`, `AFTER` and `REPO`: it skips what is already closed and
 reaches the rest.
-check: tests/test_close_issues_on_release.py
+check: tests/github/test_close_issues_on_release.py
 
 ```
 Closes #88

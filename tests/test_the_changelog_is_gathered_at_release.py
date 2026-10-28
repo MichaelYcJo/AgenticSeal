@@ -6,7 +6,7 @@ cases here read the workflow that runs the check, the documents that send a
 change to its fragment, and this repository's own changelog and records.
 
 #942's phase 6 placed the cases of `.github/scripts/gather_changelog.py`'s
-functions in `tests/test_gather_changelog.py`.
+functions in `tests/github/test_gather_changelog.py`.
 """
 
 import os

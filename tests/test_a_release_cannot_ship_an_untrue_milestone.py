@@ -4,7 +4,7 @@ docstring and this file's input boundary to each other, which wait for #923.
 
 #942's phase 6 placed the cases of
 `.github/scripts/release_completeness_check.py`'s functions in
-`tests/test_release_completeness_check.py`.
+`tests/github/test_release_completeness_check.py`.
 """
 
 import os

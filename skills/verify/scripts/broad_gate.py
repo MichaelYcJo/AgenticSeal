@@ -1468,7 +1468,7 @@ def command_names_backslashed(command, is_directory):
     a name, which only matters for a `/` written straight after one; and
     the `&` of `2>&1` is read as a separator, which makes the handle digit
     after it a "name" with no `/` in it. The `2>&1` row of
-    `tests/test_broad_gate.py`'s `Test_handed_to_shell` holds that last one
+    `tests/skills/test_broad_gate.py`'s `Test_handed_to_shell` holds that last one
     to what it hands over.
 
     **Not rewritten, and named rather than claimed:** a path after `call`,

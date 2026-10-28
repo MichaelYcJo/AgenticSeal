@@ -134,7 +134,7 @@ def is_wrapped(script):
 
 def names(text, script):
     """Whether `text` mentions the script by filename at all. A filename
-    standing inside a longer one is another file's name: `tests/test_settle.py`
+    standing inside a longer one is another file's name: `tests/skills/test_settle.py`
     on a `check:` line is not a mention of `settle.py`."""
     base = re.escape(os.path.basename(script))
     return re.search(rf"(?<![\w-]){base}", text) is not None

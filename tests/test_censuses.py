@@ -816,7 +816,7 @@ class Test_old_names:
             "evals/behaviour/proofer/seeded-1/prompt.md",
             "evals/scripts/recurred_truths.json",
             "hooks/root-migrate.py",
-            "tests/test_root_migrate.py",
+            "tests/hooks/test_root_migrate.py",
         ):
             plant(tmp_path, rel, old)
         (tmp_path / "x.png").write_bytes(b"\xff\xd8\xff" + OLD.encode())
@@ -836,7 +836,7 @@ class Test_old_names:
             "evals/behaviour/proofer/seeded-1/prompt.md",
             "evals/scripts/recurred_truths.json",
             "hooks/root-migrate.py",
-            "tests/test_root_migrate.py",
+            "tests/hooks/test_root_migrate.py",
             "x.png",
             "hooks/kept.py",
         ):

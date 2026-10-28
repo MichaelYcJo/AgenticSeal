@@ -8,9 +8,9 @@ in the orchestrator's session draws each undrawn file once, after that
 turn's text.
 
 This module holds the cases that read the documents, which are #923's. The
-hooks' own cases are `tests/test_sealer_stamp.py` and
-`tests/test_sealer_stamp_queue.py`, written anew by #942's phase 6, and
-`skills/verify/scripts/seal_stamp.py`'s are `tests/test_seal_stamp.py`.
+hooks' own cases are `tests/hooks/test_sealer_stamp.py` and
+`tests/hooks/test_sealer_stamp_queue.py`, written anew by #942's phase 6, and
+`skills/verify/scripts/seal_stamp.py`'s are `tests/skills/test_seal_stamp.py`.
 """
 
 import os

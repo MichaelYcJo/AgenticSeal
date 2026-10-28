@@ -24,7 +24,7 @@ script's sibling imports and its own path behave as they would.
 
 **This file is the floor's one source.** `.github/scripts/run_tests.py`
 reads `FLOOR` from it. `ruff.toml`'s `target-version` cannot import, so
-`tests/test_launch.py` holds it equal.
+`tests/hooks/test_launch.py` holds it equal.
 
 **Its syntax is the oldest Python 3's.** No f-string, no walrus, nothing
 keyword-only, and no import above the check that a new release added: a

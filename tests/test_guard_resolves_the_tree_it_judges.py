@@ -7,8 +7,8 @@ containment test in `sessions_in_tree` then matched every Claude session on the
 machine, and a single-stream switch was denied by sessions in unrelated
 repositories.
 
-The guard's cases moved to `tests/test_worktree_guard.py`, the consent
-writer's to `tests/test_worktree_consent.py`, and the commit gate's case that
+The guard's cases moved to `tests/hooks/test_worktree_guard.py`, the consent
+writer's to `tests/hooks/test_worktree_consent.py`, and the commit gate's case that
 says what declining does to `tests/test_commit_review_gate.py` (#942's phase
 6). What stays reads the policy and the READMEs, which is #923's.
 """

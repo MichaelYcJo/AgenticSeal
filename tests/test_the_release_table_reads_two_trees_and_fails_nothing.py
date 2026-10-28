@@ -4,7 +4,7 @@
 release pull request, printed by `.github/scripts/release_report.py`; the
 tests workflow's `release-report` job runs it after the suite, on a pull
 request into `main` only. #942's phase 6 placed the script's cases in
-`tests/test_release_report.py`; the case that reads the workflow stays here
+`tests/github/test_release_report.py`; the case that reads the workflow stays here
 for #923.
 """
 

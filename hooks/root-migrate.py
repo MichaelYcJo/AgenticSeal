@@ -23,7 +23,7 @@ already tracks, and `git diff --cached` shows the whole of it with the old
 text safe in history. The notice ends "review the diff and commit" because
 the write is the beginning of a review.
 
-Boundaries, each pinned in `tests/test_root_migrate.py` except the second
+Boundaries, each pinned in `tests/hooks/test_root_migrate.py` except the second
 limit under **on any branch**, which is stated and not pinned:
 
   - **never over uncommitted work** — anything `git status --porcelain`

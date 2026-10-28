@@ -15,7 +15,7 @@ runs at a session's edit tools and at the pull request
 request alone, as *Parity arm* below states. The migration config lives at
 `seal/parity.md`, so declaring it creates `seal/`, which opts the
 repository into the routing check too.
-check: tests/test_routing_edit_gate.py tests/test_chain_check.py
+check: tests/hooks/test_routing_edit_gate.py tests/skills/test_chain_check.py
 
 ### Review arm
 
@@ -27,7 +27,7 @@ conforms to and review finds defects there as it does in code. A
 documentation pass that should reach nobody is routed that way before the
 first edit, by declaring `straight to the PR`; it is never inferred from
 the paths it touches.
-check: tests/test_routing_edit_gate.py
+check: tests/hooks/test_routing_edit_gate.py
 
 #### The declaration, and where the check went
 
@@ -120,7 +120,7 @@ original was consulted.
 Where the pull request's diff cannot be listed, the check ends with exit 2
 before any record is judged, and `hooks/lib/gate.py#touches_code` answers True
 for a list it was not given.
-check: tests/test_gate.py tests/test_chain_check.py
+check: tests/hooks/test_gate.py tests/skills/test_chain_check.py
 
 An `original:` line says a comparison was recorded, not that it was a good
 one. Writing it for work nobody compared turns "nobody checked" into

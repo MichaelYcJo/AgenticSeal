@@ -2,7 +2,7 @@
 cheat sheets and the settle skill, which wait for #923.
 
 #942's phase 6 placed the cases that run `seal fold` or call
-`skills/settle/scripts/fold_check.py` in `tests/test_fold_check.py`, which
+`skills/settle/scripts/fold_check.py` in `tests/skills/test_fold_check.py`, which
 `docs/the-record-layout.md` *The size a reader takes whole* names on its
 `check:` line.
 """

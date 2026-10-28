@@ -97,7 +97,7 @@ LINKED = {
     # build (`agents/crafter.md` step 1), so `CLAUDE.md` no longer carries it.
     "CLAUDE.md": ("merge", "identifiers", "batch"),
     ".github/scripts/plugin_directory_check.py": ("identifiers",),
-    "tests/test_plugin_directory_check.py": ("identifiers",),
+    "tests/github/test_plugin_directory_check.py": ("identifiers",),
     "tests/test_conftest.py": ("identifiers",),
     "tests/test_the_gate_asks_the_range_ci_will_ask.py": ("identifiers",),
     # The fifth citation, spelled `no-real-identifiers`, which the enumerating
@@ -117,7 +117,7 @@ CARRIERS = (
     "docs/release-checklist.md",
     "templates/setup/claude-md-block.md",
     ".github/scripts/plugin_directory_check.py",
-    "tests/test_plugin_directory_check.py",
+    "tests/github/test_plugin_directory_check.py",
     "tests/test_conftest.py",
     "tests/test_the_gate_asks_the_range_ci_will_ask.py",
     "agents/proofer.md",

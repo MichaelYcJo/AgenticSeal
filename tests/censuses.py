@@ -647,8 +647,8 @@ def entry_point(rel, root=None):
     `console.to_utf8()`, which `hooks/lib/console.py` says each one carries
     rather than relying on `dispatch.py` having made the call. The census
     reads the order: the call after `main()` is refused as its absence is.
-    Whether the call works is `tests/test_console.py`'s and, for the
-    dispatcher's own loop, `tests/test_dispatch.py`'s."""
+    Whether the call works is `tests/hooks/test_console.py`'s and, for the
+    dispatcher's own loop, `tests/hooks/test_dispatch.py`'s."""
     text = _python(rel, root, ("hooks/",))
     if text is None:
         return []
@@ -780,7 +780,7 @@ def heading_rule(rel, root=None):
 # `python3` starts it, 3.9 on a stock macOS. `ruff.toml` lints that set at
 # the version its `per-file-target-version` names, so B905 and UP017 do not
 # ask it for `zip`'s `strict=` or `datetime.UTC`.
-# `tests/test_launch.py` derives the set
+# `tests/hooks/test_launch.py` derives the set
 # and holds the table to it; this census holds each file the table names to
 # its version.
 
@@ -1093,11 +1093,11 @@ RECORDED_CASE = re.compile(r"^evals/behaviour/[^/]+/(?:replay|seeded)-")
 # cases build those records.
 KEPT_FILES = (
     "hooks/root-migrate.py",
-    "tests/test_root_migrate.py",
+    "tests/hooks/test_root_migrate.py",
     "tests/test_the_root_migrates_itself.py",
     "hooks/lib/cmdline_base.py",
-    "tests/test_replay_targets.py",
-    "tests/test_seed_defects.py",
+    "tests/evals/test_replay_targets.py",
+    "tests/evals/test_seed_defects.py",
 )
 
 

@@ -707,7 +707,7 @@ def test_this_file_loads_the_one_reader_and_not_a_copy_of_it():
     `hooks/lib/config.py#config_rows` right up until one of them moved.
 
     Asserted by where the code was COMPILED, the way
-    `tests/test_seal.py#Test_module::test_the_command_and_the_gate_read_one_parser`
+    `tests/skills/test_seal.py#Test_module::test_the_command_and_the_gate_read_one_parser`
     already asserts it for `seal.py`: this file loads that module under a
     name of its own, so the two module objects differ while the
     implementation behind them must not. An `import` check alone would not
@@ -723,7 +723,7 @@ def test_this_file_loads_the_one_reader_and_not_a_copy_of_it():
 
 
 # The row reader's own cases, the ones that call `items` on a text written
-# for them, are in `tests/test_config.py` since #942's phase 6.
+# for them, are in `tests/hooks/test_config.py` since #942's phase 6.
 
 
 # --- every template has a reader --------------------------------------------

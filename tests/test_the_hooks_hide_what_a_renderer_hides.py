@@ -12,7 +12,7 @@ For every line L of a document, with `base(L)` a reader's reading at
 
 Halves 1 and 2 run here, over the frame's shapes and a seeded generated
 corpus. Half 3 is each reader's own case table, in the module that holds that
-reader's cases: the walk's own answers are `tests/test_blocks.py`'s (#942's
+reader's cases: the walk's own answers are `tests/hooks/test_blocks.py`'s (#942's
 phase 6).
 
 The oracle comes first, and it is the first thing held: before any reader

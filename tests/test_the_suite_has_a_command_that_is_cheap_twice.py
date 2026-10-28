@@ -7,7 +7,7 @@ definitions that send a reader to the runner, and wait for #923;
 lines.
 
 #942's phase 6 placed the cases of `.github/scripts/run_tests.py`'s
-functions in `tests/test_run_tests.py`, and this file reads the runner
+functions in `tests/github/test_run_tests.py`, and this file reads the runner
 through that file's `rt`.
 """
 

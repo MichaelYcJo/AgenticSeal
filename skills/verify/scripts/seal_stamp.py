@@ -174,7 +174,7 @@ MESSAGE_LIMIT = 10000
 # `dispatch.describe`, every gate this plugin names and three foreign ones,
 # in every group it names and a foreign one, at every phase, with every field
 # past its cap -- a record an older or newer plugin wrote;
-# `tests/test_dispatch.py#longest_report` is the
+# `tests/hooks/test_dispatch.py#longest_report` is the
 # measurement). Before #722 the name had no cap, so a class from outside the
 # plugin with a long enough name passed the reserve with two gates. The caps
 # count the same units, so a name or a text outside the BMP keeps these
@@ -431,7 +431,7 @@ def strip_ansi(s):
 # cut ref would read as a whole ref.
 #
 # Stated here and measured over there, and neither may move without the other
-# going red: `tests/test_seal_stamp.py`'s
+# going red: `tests/skills/test_seal_stamp.py`'s
 # `Test_stamp::test_accepts_a_value_as_wide_as_the_panel_at_eighty_columns`
 # draws a value of this width and measures the stamp's widest line.
 PANEL_VALUE_WIDTH = 41
@@ -1313,7 +1313,7 @@ def queue_for_written_guarantee(path, session, now=None):
 # Neutral values in the stamp's shape, so `seal stamp` shows a person what a
 # sealed guarantee's commit draws without one having been committed — every
 # row `guarantee_rows` can return, the conditional ones included, in its
-# order; a case in `tests/test_seal_stamp.py`'s `Test_module` holds the
+# order; a case in `tests/skills/test_seal_stamp.py`'s `Test_module` holds the
 # labels against `guarantee_rows`'. Since #975 the stamp carries
 # what the records say and no suite counts: those are the broad gate's
 # report's, which the gate prints as text.

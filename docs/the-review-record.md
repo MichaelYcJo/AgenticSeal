@@ -16,7 +16,7 @@ below places in a finding, why it matters with its grounds, and the
 paste-ready fix in a fenced block. The record is written in words, and no
 emoji stands anywhere in it. No report file stands beside it and nothing
 generates, copies or derives any part of it.
-check: tests/test_chain_check.py tests/test_the_record_is_written_in_words.py
+check: tests/skills/test_chain_check.py tests/test_the_record_is_written_in_words.py
 
 **The record's grammar is the two tables below, and nothing else states
 it.**
@@ -36,7 +36,7 @@ rules span rows: a finding carries at most one of a `regression:` and a
 `reopens:` line, no two findings share a heading number, and
 `## Confirmations` holds no table row. No `Record language` translates a
 cell of the table.
-check: tests/test_chain_check.py
+check: tests/skills/test_chain_check.py
 
 | Line | Shape | Where | How many | Refused as |
 |---|---|---|---|---|
@@ -84,7 +84,7 @@ line in a section, that the table says is `one` is refused where a record
 leaves it out, `## Confirmations` included. So a change that moves this
 heading or either table moves the loader's path in the same commit, or
 every check that reads a record stops.
-check: tests/test_chain_check.py
+check: tests/skills/test_chain_check.py
 
 **A finding's `verdict:` decides it, and severity is for people.** The
 proofer writes `open`; the fix pass answers with `fixed <commit>`,
@@ -96,7 +96,7 @@ it. What this round confirmed holds is a `confirms:` entry of
 with who answers it; neither is a finding. A wrong sentence an agent reads
 and acts on is `should`; a sentence in a record that merely reads badly is
 not a finding.
-check: tests/test_chain_check.py
+check: tests/skills/test_chain_check.py
 
 **A finding's `location:` names where the defect shows, and a `fixed` commit
 touches it.** Its coordinates are each place the defect shows, and the file
@@ -116,7 +116,7 @@ check holds the line to its row and reads nothing out of it. A backtick
 ends a command on the line, so a command that holds one is written and run
 with `$(printf '\140')` in place of the character, and the line names the
 command the round ran.
-check: tests/test_chain_check.py
+check: tests/skills/test_chain_check.py
 
 **A claim of absence is `executed` only.** A finding that says something is
 missing, that nothing catches, calls or states it, names the search that
@@ -161,20 +161,20 @@ N at `fixed <commit>` or `rejected` is named by a `confirms:`, a
 refused at its own heading in round N's record; a `deferred <home>`
 finding owes nothing. Round 1 has no earlier record, so its entries read
 `none`. A round with nothing to confirm leaves `## Confirmations` out.
-check: tests/test_chain_check.py
+check: tests/skills/test_chain_check.py
 
 **Every round file stays, so a finding can be followed from the round that
 found it to the commit that closed it.** The next round's proofer reads the
 earlier records directly; nothing summarises them. They leave with their
 work item's directory, which the settle after its release removes.
-check: tests/test_settle.py
+check: tests/skills/test_settle.py
 
 **`target:` names a commit, not a content anchor, because a round records a
 moment.** The record's one `target:` line names the reviewed commit, with
 the base a round that read the branch read it against, or the fix range a
 verifying round read. A squash orphans the commit after the merge, and the
 check reads it only while the branch that holds it is open.
-check: tests/test_chain_check.py
+check: tests/skills/test_chain_check.py
 
 ## What the check reads at the pull request
 
@@ -188,7 +188,7 @@ record.** It judges the
 add or change. A ready pull request fails on any refusal, each named
 `path:line  why`; a draft, or a run that observed no pull request, prints the
 same lines and exits 0.
-check: tests/test_chain_check.py
+check: tests/skills/test_chain_check.py
 
 **An item is judged at the pull request that carries it.** A declaration
 that reached the branch inside another pull request's squash, where every
@@ -242,7 +242,7 @@ check: last-record-at-head
 run, newest first, every earlier run kept behind it as `; earlier run: …`. At
 a ready pull request its newest run is HEAD, or only the work item's records
 follow it.
-check: tests/test_broad_gate.py tests/test_chain_check.py
+check: tests/skills/test_broad_gate.py tests/skills/test_chain_check.py
 
 **The check reads no record of the old table's shape.** It opens the
 records of the work items this pull request's own commits declare or change
@@ -271,7 +271,7 @@ is accepted (`docs/the-record-layout.md` *The fold, and what tells it from a
 deletion*). A declaration moved with its
 bytes unchanged is neither judged nor missed, because the pull request that
 only moved it did not make it.
-check: tests/test_chain_check.py
+check: tests/skills/test_chain_check.py
 
 **The check parses the `## Rule changes` section of the `frame/design.md` of
 every work item whose `routing.md` it judges, and of every work item
@@ -369,7 +369,7 @@ nothing or one `; earlier run: <sha> <word>` entry per earlier run, with
 word alone; any other text on the row is refused at it. An undecided question is the owner's: the
 answer goes on a line under the verdict, and the sealer runs again at the
 new HEAD.
-check: tests/test_the_sealer_guarantees.py tests/test_chain_check.py
+check: tests/test_the_sealer_guarantees.py tests/skills/test_chain_check.py
 
 **A ready pull request passes only where `guarantee.md` names HEAD and reads
 `sealed`.** Only the closing records, `trail/gate.md` and `guarantee.md`,
@@ -479,7 +479,7 @@ only one drawn as the text block with no disc. A stamp can
 come out without its disc or a turn later, and a session that ends first
 leaves it for `seal stamp --from`. `seal stamp` is not budgeted, because it
 is no hook's message.
-check: tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py tests/test_sealer_stamp.py
+check: tests/test_the_stamp_reaches_the_person_it_is_drawn_for.py tests/hooks/test_sealer_stamp.py
 
 **What the person's screen shows is not checked, and neither is the order of
 the text above it.** The cases prove that the hook emits the right bytes for
@@ -626,7 +626,7 @@ held, and neither is a question asked as plain text. A gate whose own
 reason says to ask with the question tool meets this refusal too, and
 its question states no default: the session takes none of the ways on
 that question offers, and hands the stop back at the end of the run.
-check: tests/test_question_gate.py
+check: tests/hooks/test_question_gate.py
 
 ## The handoff
 

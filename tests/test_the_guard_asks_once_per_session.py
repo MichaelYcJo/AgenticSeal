@@ -2,7 +2,7 @@
 at the first `git worktree add` and again at every one after it.
 
 `hooks/worktree_consent.py`'s cases, the writer's and the routing answer's
-reader's, moved to `tests/test_worktree_consent.py`, and the helpers other
+reader's, moved to `tests/hooks/test_worktree_consent.py`, and the helpers other
 files imported from here to `tests/conftest.py` (#942's phase 6). What stays
 is the case that reads `skills/implement/orchestration.md`'s routing question,
 which is #923's.
