@@ -485,7 +485,7 @@ met at close, because no work item had run under the change yet. It goes into
 
 ### Filed as new issues
 
-**F1, into `release: 0.24.0`, with the small fixes.** Title: "fix: the rename
+**F1, into `release: 0.24.0`, fixed directly before the small fixes.** Title: "fix: the rename
 turned describe into detracer at six places; the agent rename substituted
 inside words, and the old-name census reads only the old names".
 Evidence (executed, `git grep -n -o -i -E "[a-z]+tracer[a-z]*"` at `0b75346f`;
@@ -536,7 +536,7 @@ and move only with their checker, and the `docs/` occurrences through
 `## Rule changes`. The divergence section of `sdd-gaps.md` is #1045's to
 remove, so F2 leaves its words to #1045.
 
-**F3, into `release: 0.24.0`, with #992 and #956.** Title: "chore: most
+**F3, into `release: 0.24.0`, after #956.** Title: "chore: most
 contract rules are proved by a phrase of their own wording, so rewording a rule
 turns a case red while nothing reads the behaviour; each phrase pin is kept as
 a fact or removed". Evidence:
@@ -613,9 +613,9 @@ shared file is named and they run in the order given.
 | Step | Issues | Parallel, and the shared file where not |
 |---|---|---|
 | 1 | #1052 | alone |
-| 2, the small fixes | #1058, #913, #712, #920, F1 | all five in parallel. #920: `hooks/worktree-guard.py` and its tests, which #1096 in step 8 also edits. #1058: `tests/conftest.py`, `tests/skills/test_chain_check.py`, `tests/skills/test_broad_gate.py`, `skills/code-review/orchestration.md`. #913: `skills/verify/scripts/pact_check.py`, `coordinates.py`, `hooks/lib/config.py`, `templates/records/sdd-design.md`, `templates/setup/pact.md`. #712: `skills/verify/scripts/session_cost.py` and its tests. F1: `skills/implement/orchestration.md`, two `tests/behaviour/` modules, `.test_durations` |
+| 2, the small fixes | #1058, #913, #712, #920 | all four in parallel. F1 is fixed before them, directly and without a work item: six typo sites are below the SDD ladder (owner, 2026-10-28). #920: `hooks/worktree-guard.py` and its tests, which #1096 in step 8 also edits. #1058: `tests/conftest.py`, `tests/skills/test_chain_check.py`, `tests/skills/test_broad_gate.py`, `skills/code-review/orchestration.md`. #913: `skills/verify/scripts/pact_check.py`, `coordinates.py`, `hooks/lib/config.py`, `templates/records/sdd-design.md`, `templates/setup/pact.md`. #712: `skills/verify/scripts/session_cost.py` and its tests |
 | 3 | #1039, #1042, #1043, #1040, then #1041, then F2 | #1039, #1042, #1043 and #1040 in parallel. #1041 after #1040: both edit `agents/crafter.md`. F2 after #1041: it rewords `agents/*.md`, which #1040 edits, and `skills/implement/SKILL.md` and `agents/crafter.md`, which #1041 edits |
-| 4, the checks that read written text | #992, #956, F3 | all three in parallel. #992: `evals/scripts/noninferiority.py`, `tests/evals/test_noninferiority.py`, `evals/README.md`. #956 writes its table on the issue and edits no file. F3: `tests/text/test_the_agent_contract_holds_the_universal_rules.py`, `skills/agent-contract/SKILL.md` |
+| 4, the checks that read written text | #992, #956, then F3 | #992 and #956 in parallel. F3 after #956: both judge checks that read written text, and F3 decides each prose pin against what #956's audit settles (owner, 2026-10-28). #992: `evals/scripts/noninferiority.py`, `tests/evals/test_noninferiority.py`, `evals/README.md`. #956 writes its table on the issue and edits no file. F3: `tests/text/test_the_agent_contract_holds_the_universal_rules.py`, `skills/agent-contract/SKILL.md` |
 | 5 | #1055, #1056 | in parallel. #1055: the READMEs, `CONTRIBUTING.md`, `skills/config/SKILL.md`, the two hygiene workflows, `.claude-plugin/marketplace.json`, its listed tests. #1056: the six scripts its items name and their tests |
 | 6 | #1053 | alone |
 | 7 | #1020, then #951 | not in parallel: both edit `skills/code-review/scripts/chain_check.py`, and #951 annotates every Python file |
@@ -640,7 +640,7 @@ number its issue was filed under.
 
 `release: 0.24.0`:
 
-> Purpose: review the renamed tree and lighten what it carries, first the checks. Order: #1052 first and alone, one read of the tree after 0.23.0's rename and 0.23.1's reorganisation, which folded each issue below to the new names. Then the small fixes #1058, #913, #712, #920 and F1, which share no file and run in parallel. Then #1039, #1042, #1043 and #1040 in parallel; #1041 after #1040, because both edit agents/crafter.md; and F2 after both, because it rewords the agent definitions and skills/implement/SKILL.md that they edit. Then #992, #956 and F3, the checks that read written text, in parallel, after #1040 has changed the sentences F3's pins read. Then #1055 and #1056 in parallel, one source per fact and the code no input reaches. Then #1053, the GitHub Release as the release notes, opening with its theme, and changelog/ removed. Then #1020 and then #951, the static type check, because both edit chain_check.py and #951 annotates every Python file. Then #1096, the two environment variables, after #920 because both edit hooks/worktree-guard.py; and #1102 last, the README rewritten for a first reader once the rest of the release has changed what it describes. Released as 0.24.0 after the rename; these issues were planned as 0.22.5.
+> Purpose: review the renamed tree and lighten what it carries, first the checks. Order: #1052 first and alone, one read of the tree after 0.23.0's rename and 0.23.1's reorganisation, which folded each issue below to the new names. F1 was fixed directly, before the small fixes, without a work item. Then the small fixes #1058, #913, #712 and #920, which share no file and run in parallel. Then #1039, #1042, #1043 and #1040 in parallel; #1041 after #1040, because both edit agents/crafter.md; and F2 after both, because it rewords the agent definitions and skills/implement/SKILL.md that they edit. Then the checks that read written text: #992 and #956 in parallel, and F3 after #956, whose audit it builds on and after #1040 has changed the sentences its pins read. Then #1055 and #1056 in parallel, one source per fact and the code no input reaches. Then #1053, the GitHub Release as the release notes, opening with its theme, and changelog/ removed. Then #1020 and then #951, the static type check, because both edit chain_check.py and #951 annotates every Python file. Then #1096, the two environment variables, after #920 because both edit hooks/worktree-guard.py; and #1102 last, the README rewritten for a first reader once the rest of the release has changed what it describes. Released as 0.24.0 after the rename; these issues were planned as 0.22.5.
 
 `release: 0.24.1`:
 
