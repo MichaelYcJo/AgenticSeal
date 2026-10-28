@@ -886,7 +886,13 @@ def verdict_of(value):
     Read against the `verdict:` row whole: its word, and the commit of a
     `fixed` or the home of a `deferred`. Anything the row does not match —
     another case, emphasis, a trailing word or mark, a bare `fixed` or
-    `deferred` — is None, which the arm refuses by name."""
+    `deferred` — is None.
+
+    `finding_of` hands it only a line the row already matched whole, and
+    `deferred_home` is called only by cases, so no record reaches the None.
+    It stays because `Test_verdict_of` and `Test_deferred_home` call it with
+    values the row refuses, and those cases are where the `verdict:` grammar
+    is pinned."""
     found = as_row(VERDICT_ROW, value)
     if not found:
         return None
@@ -912,7 +918,12 @@ def location_of(value):
     its first `:`, which the row keeps out of a path. Anything the row does
     not match — a bare `:617`, a path with no backticks, a URL, an absolute
     path, a `path#unit`, emphasis around an item, a trailing word or mark,
-    an empty value — is None, which the arm refuses by name."""
+    an empty value — is None.
+
+    `finding_of`, the one caller in the tree, hands it only a line the row
+    already matched whole, so no record reaches the None. It stays because
+    `Test_location_of` calls it with values the row refuses, and those cases
+    are where the `location:` grammar is pinned."""
     if not as_row(LOCATION_ROW, value):
         return None
     return [item.strip("`").split(":")[0] for item in value.split(", ")]
@@ -924,18 +935,24 @@ def reference_of(value):
 
     Read against the `regression:` row whole, the one reference row that
     takes both: a different case, a space, a leading zero, emphasis, a
-    trailing mark or a second reference is None."""
+    trailing mark or a second reference is None.
+
+    `finding_of`, the one caller in the tree, hands it only a line the row
+    already matched whole, so no record reaches the None. It stays because
+    `Test_reference_of` calls this function with every spelling the row
+    refuses, and those cases are where the `regression:` grammar is pinned."""
     found = as_row(REGRESSION_ROW, value)
     return reference(found) if found else None
 
 
 def reopened_of(value):
-    """`(round, finding)` for a reference to a finding, or None: read
-    against the `reopens:` row whole, which takes a finding alone, since a
-    close is a finding's verdict and a fix pass no finding named closed
-    nothing to reopen."""
-    found = as_row(REOPENS_ROW, value)
-    return reference(found) if found else None
+    """`(round, finding)` for the value of a `reopens:` line, which takes a
+    finding alone, since a close is a finding's verdict and a fix pass no
+    finding named closed nothing to reopen.
+
+    `finding_of`, the one caller, hands it only a line the `reopens:` row's
+    shape already matched whole, so the match here is never None."""
+    return reference(as_row(REOPENS_ROW, value))
 
 
 def sections_of(reader, lines, key):

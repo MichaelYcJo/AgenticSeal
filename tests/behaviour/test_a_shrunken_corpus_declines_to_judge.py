@@ -86,9 +86,9 @@ APPLIES_THE_SHARED_GUARD = {
     # #867's heading rule held to markdown-it over every tracked `.md`. Both
     # its callers judge what they find, so it skips the missing half.
     "tests/behaviour/test_one_heading_rule_holds_to_commonmark.py#tracked_markdown": 1,
-    # #967's T5 reads every tracked file for a citation of `implement`'s
-    # headings. It judges what it finds, so it skips the missing half.
-    "tests/behaviour/test_the_set_a_work_item_always_has.py#cited_files": 1,
+    # #1043's reader of every citation of another file's section. It judges
+    # what it finds, so it skips the missing half.
+    "tests/behaviour/test_a_cited_section_stands_in_its_file.py#citations": 1,
     # #1055's outline sweep over every tracked edition pair. It returns the
     # missing half, and its caller asserts two pairs alive, so it hands that
     # half to `decline_if_shrunken` before judging.

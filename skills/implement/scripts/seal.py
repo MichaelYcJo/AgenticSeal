@@ -974,8 +974,10 @@ def read_manifest(archive, path):
 
     Never raises for a manifest this command cannot make sense of. It can
     still raise for a manifest whose DATA does not read — a bad CRC leaves
-    `archive.read` as `BadZipFile`, which is not one of the three this
+    `archive.read` as `BadZipFile`, which is not one of the two this
     catches. `import_` runs `testzip` before reaching here for that reason.
+    `ValueError` covers bytes that are not UTF-8 as well as text that is not
+    JSON: `UnicodeDecodeError` is a subclass of it.
     """
     try:
         raw = archive.read(MANIFEST)
@@ -985,7 +987,7 @@ def read_manifest(archive, path):
         )
     try:
         manifest = json.loads(raw.decode("utf-8"))
-    except (UnicodeDecodeError, ValueError) as exc:
+    except ValueError as exc:
         return None, f"{path}'s {MANIFEST} could not be read: {exc}"
     if not isinstance(manifest, dict):
         return None, f"{path}'s {MANIFEST} is not an object"
@@ -1154,12 +1156,14 @@ def import_(args, cwd):
         # does leave `testzip` is an encrypted member (`RuntimeError`) and a
         # compression method this build has no decompressor for
         # (`NotImplementedError`), both measured 2026-09-03 as tracebacks.
+        # `NotImplementedError` is a subclass of `RuntimeError`, so the one
+        # name catches both.
         #
         # It reads every member, which the two bounds above are what make
         # affordable.
         try:
             corrupt = archive.testzip()
-        except (zipfile.BadZipFile, RuntimeError, NotImplementedError) as bad:
+        except (zipfile.BadZipFile, RuntimeError) as bad:
             corrupt = str(bad)
         if corrupt:
             print(f"{path} holds a member this command cannot read: {corrupt}")

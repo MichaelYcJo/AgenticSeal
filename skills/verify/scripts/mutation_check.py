@@ -101,7 +101,7 @@ shipped script that reaches another file does it this way.
 **What it does not protect.** The original is held in this process's memory
 for the length of one run and nowhere else, so a `SIGKILL` delivered between
 the write and the restore leaves the mutation on disk. `agents/crafter.md`'s
-*commit before you mutate* is what bounds that loss; a copy on disk is #312.
+*Commit before you mutate* is what bounds that loss; a copy on disk is #312.
 
 Nothing is read from or written to git.
 """

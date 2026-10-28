@@ -78,6 +78,14 @@ HERE = (
     "`git rev-parse --show-toplevel` names where you start; run every command there."
 )
 COMMIT = r"git(?:\s+-C\s+\S+)?\s+commit\b"
+# The author and committer of every commit a scaffold makes: the project
+# every case builds, so no commit in the repository names the run as a
+# measurement (`tests/text/test_no_case_tells_the_agent_it_is_evaluated.py`).
+AUTHOR = "textutil"
+BY = f"git -c user.name={AUTHOR} -c user.email={AUTHOR}@example.com commit -q -m"
+# The directory a sealer case keeps the issue body and the pull request body
+# in, by its work item, outside the work tree the sealer guarantees.
+EVIDENCE = ".git/{item}"
 
 TEXTUTIL = '''def shout(text):
     """Return TEXT upper-cased, followed by one exclamation mark."""
@@ -202,7 +210,7 @@ def base_project(item, branch, planning, implementation):
     lines += [write(p, t) for p, t in files.items()]
     lines += [
         "git add -A",
-        "git -c user.name=eval -c user.email=eval@example.com commit -q -m 'base: textutil'",
+        f"{BY} 'base: textutil'",
         f"git checkout -q -b {branch}",
     ]
     return lines
@@ -277,7 +285,7 @@ def proofer_case():
             one_phase_plan("shout_twice", "`shout_twice(text)` in `src/textutil.py`"),
         ),
         "git add -A",
-        "git -c user.name=eval -c user.email=eval@example.com commit -q -m 'frame: shout_twice'",
+        f"{BY} 'frame: shout_twice'",
         write(
             "src/textutil.py",
             TEXTUTIL
@@ -285,7 +293,7 @@ def proofer_case():
             "    return shout(text) + shout(text)\n",
         ),
         "git add -A",
-        "git -c user.name=eval -c user.email=eval@example.com commit -q -m 'feat: shout_twice'",
+        f"{BY} 'feat: shout_twice'",
     ]
     report = f"seal/threads/{item}/trail/rounds/round-1.md"
     spawn = (
@@ -367,7 +375,7 @@ def crafter_case(index, slug, signature, rule, example):
         write(f"seal/threads/{item}/frame/design.md", spec + MARK),
         write(f"seal/threads/{item}/frame/plan.md", plan),
         "git add -A",
-        f"git -c user.name=eval -c user.email=eval@example.com commit -q -m 'frame: {name}'",
+        f"{BY} 'frame: {name}'",
     ]
     spawn = (
         f"Build phase 1 of work item `{item}` in this clone, on branch `{branch}`; the base is "
@@ -633,7 +641,6 @@ SEALER_TRUTH = {
     "stale": "The verdict says no broad run is on record at HEAD: a code "
     "commit follows the run `trail/gate.md` names.",
 }
-BY = "git -c user.name=eval -c user.email=eval@example.com commit -q -m"
 
 
 def sealer_case(slug, true_case, extra, verdict, names, gate):
@@ -657,7 +664,7 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
     item = f"1790000030-guarantee-{slug}"
     branch = f"feat/guarantee-{slug}"
     folder = f"seal/threads/{item}"
-    evidence = ".git/agentic-eval"
+    evidence = EVIDENCE.format(item=item)
     lines = base_project(item, branch, "framer", "crafter")
     test = TEST_TEXTUTIL.replace(
         "from textutil import", "from src.textutil import"
