@@ -30,7 +30,9 @@ normalised, is the origin URL of this repository; a row naming another pact
 is passed over. Refused at the row's line: a `Pact` cell that is not one
 remote URL, and, in a row naming this pact, a `Clause` cell that opens with
 no heading or a `Hash` cell that is not eight lowercase hex digits. Refused
-at the frame: every refusal of the walk, and a second anchor table. Every
+at the frame: every refusal of the walk, and a second anchor table. Another
+table below the anchor table, such as a section's policy table, ends it
+and is no refusal (`gfm_table`'s BESIDE). Every
 `pact:` token outside a closed fence is refused at its line, with the row
 to write in its place: it is the inline anchor this command read through
 0.23.x.
@@ -260,14 +262,15 @@ def origin(root):
     return (git(root, "remote", "get-url", "origin") or "").strip()
 
 
-def first_table(config, text, header):
+def first_table(config, text, header, beside=False):
     """(rows, refusals) for the first table of TEXT headed HEADER, read by
     `hooks/lib/config.py#gfm_table`: its rows and its refusals, and, where
     the walk refused nothing, one refusal per further HEADER outside a
     fence, at its line, because the walk reads the first table only. A
     refusal of the walk already says every row below it goes unread, a
-    second header among them."""
-    rows, walked = config.gfm_table(text, header)
+    second header among them. BESIDE is `gfm_table`'s: true where TEXT may
+    hold other tables after this one, as a frame's section does."""
+    rows, walked = config.gfm_table(text, header, beside=beside)
     if walked:
         return rows, list(walked)
     # exempt from splitlines: lines the GFM walk numbers
@@ -650,7 +653,7 @@ def check(root, out=sys.stdout, home_dir=None):
             if body is None:
                 found(UNREADABLE, written, where, "could not be read")
                 continue
-            rows, table_refusals = first_table(config, body, ANCHOR_TABLE)
+            rows, table_refusals = first_table(config, body, ANCHOR_TABLE, beside=True)
             if table_refusals and table_refusals[0].startswith("holds no "):
                 # A frame that cites no pact holds no anchor table.
                 table_refusals = []

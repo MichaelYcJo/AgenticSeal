@@ -735,21 +735,62 @@ class Test_check:
                 "into the first table and delete the second header",
             ),
             (
+                anchor_table((PACT_URL, CLAUSE_PATH, "1a2b3c4d"))
+                + "\n"
+                + anchor_table((PACT_URL, CLAUSE_PATH, "1a2b3c4d")),
+                "the frame holds a second `| Pact | Clause | Hash |` header at "
+                "line 5, and the walk reads the first table only — move its rows "
+                "into the first table and delete the second header",
+            ),
+            (
                 anchor_table((PACT_URL, CLAUSE_PATH, "1a2b3c4d")) + "| x | y |\n",
                 "the frame has a `Pact | Clause | Hash` table that stops at "
                 "`| x | y |`, which is not a 3-cell row written `| … | … | … |` — "
                 "every row below it would go unread",
             ),
+            (
+                anchor_table((PACT_URL, CLAUSE_PATH, "1a2b3c4d"))
+                + "\n| a | b |\n|---|\n",
+                "the frame has a `Pact | Clause | Hash` table that ends above "
+                "`| a | b |`, a row the walk never reaches — it and every row "
+                "below it would go unread",
+            ),
         ],
-        ids=["a second table", "a row the walk stops at"],
+        ids=[
+            "a second table",
+            "a second table under a blank line",
+            "a row the walk stops at",
+            "a row under a delimiter of another width",
+        ],
     )
     def test_refuses_an_anchor_row_nobody_reads(self, world, text, said):
         """A row the walk does not reach would read as a signer citing
-        nothing, so the frame is refused at exit 2, as the map is."""
+        nothing, so the frame is refused at exit 2. A second anchor table is
+        named as one wherever it stands, and a line under the table that
+        opens no table of its own, here a delimiter row of another width, is
+        a row nobody reads."""
         write(world.web, SPEC, text)
         code, out = world.run()
         assert code == 2, out
         assert f"REFUSED {SIGNER_URL} {SPEC} — {said}" in out, out
+
+    def test_accepts_an_anchor_table_above_another_table_in_its_section(self, world):
+        """Round 1 of #913, finding 1: under `## Grounding` the anchor table
+        stands above the policy table `templates/records/sdd-design.md`
+        writes, and GitHub renders two tables. The anchor row is graded and
+        nothing is refused. Seen red at `29e1b040`, which refused the policy
+        table's header as a row the walk never reaches, at exit 2."""
+        write(
+            world.web,
+            SPEC,
+            "# Feature\n\n## Grounding\n\n"
+            + anchor_table((PACT_URL, CLAUSE_PATH, clause(V2)))
+            + "\n| Policy clause | What it fixes for this work |\n|---|---|\n"
+            + "| a | b |\n\n## Scope\n\nx\n",
+        )
+        code, out = world.run()
+        assert code == 0, out
+        assert "REFUSED" not in out and " 1 ok " in out, out
 
     @pytest.mark.parametrize("shape", ["directory", "undecodable"])
     def test_refuses_a_signer_config_that_will_not_read(self, world, shape):

@@ -1049,7 +1049,24 @@ def gfm_line_starts(text):
     ]
 
 
-def gfm_table(text, header):
+def opens_table(lines, index, line, under):
+    """True where LINE, at INDEX of LINES, is the header of a table GFM
+    renders apart from any table above it: written `| … |` with a blank line
+    above it, and UNDER, `[(index, line)]` for the next shown line or `[]`,
+    a delimiter row of the header's width directly below it."""
+    cells = table_cells(line)
+    if cells is None or index == 0 or lines[index - 1].strip() or not under:
+        return False
+    below, row = under[0]
+    return (
+        below == index + 1
+        and "|" in row
+        and DELIMITER_ROW.match(row) is not None
+        and row.strip().strip("|").count("|") + 1 == len(cells)
+    )
+
+
+def gfm_table(text, header, beside=False):
     """(rows, refusals) for the first GFM table in TEXT whose header row's
     cells are HEADER, a tuple of names.
 
@@ -1074,7 +1091,12 @@ def gfm_table(text, header):
                    a list item, an HTML block, or a line four columns in. GFM
                    ends the table there; a line written `| … |` after it and
                    before the next heading is a row nobody reads, and is
-                   refused
+                   refused, except where BESIDE is true and that line opens
+                   a table of its own (`opens_table`): the walk stops there.
+                   A caller whose file holds one table, `seal/config.md` or
+                   the machine-local pact map, leaves BESIDE false; the
+                   anchor table's reader sets it, because a frame's section
+                   holds other tables
       a row        written `| … |` with the header's width
       anything     refused, saying what it is: a delimiter row out of place,
         else       a row of another width or without its outer pipes, or a
@@ -1164,7 +1186,8 @@ def gfm_table(text, header):
             "its own"
         ]
     rows, stray, ended, previous = [], None, False, delimiter[0]
-    for index, line in shown[at + 2 :]:
+    body = shown[at + 2 :]
+    for k, (index, line) in enumerate(body):
         if not ended and (index != previous + 1 or table_end(line)):
             ended = True
         if ended:
@@ -1175,6 +1198,10 @@ def gfm_table(text, header):
             ):
                 break
             if line.lstrip().startswith("|"):
+                if beside and opens_table(lines, index, line, body[k + 1 : k + 2]):
+                    # A table of its own, which GFM renders apart from this
+                    # one: this table ended above it, and no row is lost.
+                    break
                 stray = (
                     f"has a `{name}` table that ends above `{line.strip()}`, "
                     "a row the walk never reaches — it and every row below it "
