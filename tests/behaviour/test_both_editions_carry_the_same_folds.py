@@ -17,7 +17,8 @@ import importlib.util
 import os
 import re
 
-from conftest import ROOT, decline_if_shrunken, git_listing, on_disk
+import pytest
+from conftest import ROOT, build_tracked_tree, decline_if_shrunken, git_listing, on_disk
 
 READER = os.path.join(ROOT, "skills", "verify", "scripts", "unverified_check.py")
 
@@ -56,21 +57,20 @@ def disagreements(name, english, korean):
     ]
 
 
-def pairs():
-    """`(names, missing)`: every tracked `X.ko.md` on disk beside an `X.md`,
-    wherever it stands, as repository-relative names without the extension,
-    and the tracked editions the working tree has deleted. The listing is
-    git's, so an untracked file is no pair, and `on_disk` keeps a deleted
-    edition from ending the walk at its `open` (#432)."""
-    listed = git_listing(ROOT, "ls-files", "--", "*.ko.md")
-    present, missing = on_disk(ROOT, listed)
-    names = [
-        name[: -len(".ko.md")]
-        for name in sorted(present)
-        if name.endswith(".ko.md")
-        and os.path.isfile(under_root(name[: -len(".ko.md")] + ".md"))
-    ]
-    return names, missing
+def pairs(root=ROOT):
+    """`(names, missing)`: every tracked `X.ko.md` whose tracked `X.md` stands
+    beside it, both on disk, as repository-relative names without the
+    extension; and each tracked half of such a pair the working tree has
+    deleted. The listing is git's, so an untracked file is no pair, and
+    `on_disk` keeps a deleted half from ending the walk at its `open` (#432)."""
+    listed = git_listing(root, "ls-files", "--", "*.md")
+    present, gone = on_disk(root, listed)
+    present = set(present)
+    korean = sorted(n for n in listed if n.endswith(".ko.md"))
+    english = {k: k[: -len(".ko.md")] + ".md" for k in korean}
+    names = [k[: -len(".ko.md")] for k in korean if {k, english[k]} <= present]
+    halves = set(korean) | set(english.values())
+    return names, sorted(n for n in gone if n in halves)
 
 
 def under_root(name):
@@ -83,22 +83,65 @@ def read(name):
         return f.read()
 
 
+# The pairs the walk must reach (#1055 S11).
+ALIVE = ("README", "docs/experiments/README")
+
+
+def unread(names, missing):
+    """The ALIVE pairs the walk did not read, or `pytest.skip` when every one
+    of them is unread only because the working tree deleted one of its halves.
+
+    Conditional, as `test_no_document_names_the_old_roots.py#uncovered` is: a
+    decline over a neighbour that is merely mid-edit would carry a real
+    finding away with it."""
+    absent = [n for n in ALIVE if n not in names]
+    halves = {h: n for n in absent for h in (n + ".md", n + ".ko.md")}
+    explained = {halves[m] for m in missing if m in halves}
+    if absent and set(absent) == explained:
+        decline_if_shrunken(
+            sorted(m for m in missing if m in halves), "the edition pairs"
+        )
+    return [n for n in absent if n not in explained]
+
+
 def test_every_paired_document_carries_the_same_headings():
     """A1, A2. The walk reads at least one pair, so a broken listing cannot
-    pass on an empty walk."""
+    pass on an empty walk. Every pair on disk is judged before anything
+    declines, so a deleted edition takes no other pair's finding with it."""
     names, missing = pairs()
-    # The two names below are asserted alive, and to that assertion a deleted
-    # edition and a listing that lost it are the same evidence, so a tree
-    # missing a tracked edition is declined rather than judged.
-    decline_if_shrunken(missing, "the edition pairs")
     assert names, "no X.ko.md beside an X.md was read"
-    # #1055 S11: the pairs outside top-level `docs/` are read too.
-    for name in ("README", "docs/experiments/README"):
-        assert name in names, f"{name}.ko.md beside {name}.md was not read"
     found = []
     for name in names:
         found += disagreements(name, read(name + ".md"), read(name + ".ko.md"))
     assert not found, "\n".join(found)
+    # #1055 S11: the pairs outside top-level `docs/` are read too.
+    gone = unread(names, missing)
+    assert not gone, f"not read: {gone}"
+
+
+def test_a_deleted_half_of_a_named_pair_declines_and_nothing_else_does(tmp_path):
+    """The liveness half declines only over a named pair the working tree
+    deleted a half of, and reports one that is simply not there. The deleted
+    half is the English one, which a listing of `*.ko.md` alone dropped
+    without a word (#1055 round 3, finding 2)."""
+    root = build_tracked_tree(
+        tmp_path,
+        {
+            "README.md": "# A\n",
+            "README.ko.md": "# A\n",
+            "docs/experiments/README.md": "# B\n",
+            "docs/experiments/README.ko.md": "# B\n",
+        },
+        deleted=("README.md",),
+    )
+    names, missing = pairs(root)
+    assert names == ["docs/experiments/README"], names
+    assert missing == ["README.md"], missing
+    with pytest.raises(pytest.skip.Exception):
+        unread(names, missing)
+    assert unread(names, []) == ["README"]
+    # A neighbour mid-edit is no reason to decline: every named pair was read.
+    assert unread(list(ALIVE), ["docs/other.ko.md"]) == []
 
 
 def test_the_contribution_guide_owns_the_rule_and_names_this_check():
