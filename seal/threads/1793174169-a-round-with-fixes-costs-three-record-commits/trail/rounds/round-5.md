@@ -9,7 +9,7 @@ target: 3a0b6c09 against aa8b54cb
 severity: should
 location: `skills/implement/orchestration.md:666`, `seal/threads/1793174169-a-round-with-fixes-costs-three-record-commits/changelog.md:5`, `seal/threads/1793174169-a-round-with-fixes-costs-three-record-commits/frame/design.md:79-82`
 evidence: read `skills/implement/orchestration.md:666`, `skills/code-review/orchestration.md:78-84`, `agents/crafter.md:156-159`, `seal/threads/1793174169-a-round-with-fixes-costs-three-record-commits/changelog.md:5`, `seal/threads/1793174169-a-round-with-fixes-costs-three-record-commits/frame/design.md:79-82`
-verdict: open
+verdict: fixed 8b09c50d
 
 The phase rewrote the last sentence of the `Grounds` cell at
 `skills/implement/orchestration.md:666`. It now reads: "Who wrote a
@@ -94,7 +94,7 @@ def test_the_acts_table_says_no_commit_holds_who_wrote_the_two_lines():
     assert "whether that commit changed them are in the round record's history" not in row
 ```
 
-answer:
+answer: `8b09c50d` rewrites the last sentence of the `Grounds` cell at `skills/implement/orchestration.md:666` and the last two sentences of the changelog's third bullet to the blocks above, as given; the frame's block was the orchestrator's at `e8bb7028`. The draft case is `tests/text/test_the_rules_have_one_owner.py#test_the_acts_table_says_no_commit_holds_who_wrote_the_two_lines`, unchanged but for the formatter's wrapping: it ran red at its first assertion against the cell at `30e31aac` before the cell changed, and green after (executed). After the commit, `seal mutate` over the cell turned each assertion red once, "is in no commit" replaced by "is in the round record's history", and the old phrase appended after the new sentence (executed, both red, the file restored by `seal mutate`). The same commit removes `gaps.md`'s *Not verified* row saying no case holds the cell's sentence, since this case now does. The sweep, `git grep` for "who wrote", "in which commit", "record's history" and "in the history" outside `seal/threads/` and over this work item's records, found no other place saying the history holds who wrote the lines; `frame/plan.md:51` and `frame/design.md:131-136` describe phase 1's sentence as it stood at `aa8b54cb`, which stays true, and are the frame's (executed).
 
 ### 2. The policy sentence for the settle says a second hand on either line costs a record commit, and under the chosen design it costs none
 
