@@ -1,6 +1,6 @@
 # Implementation Plan: 1793169126-a-case-passes-before-the-pull-request-and-fails-on-it
 
-Approved <date> by <who>, when `crafter` was spawned.
+Approved 2026-10-28 by the orchestrator under the owner's automation answer, when `crafter` was spawned for phases 1 and 2.
 
 ## Summary
 
