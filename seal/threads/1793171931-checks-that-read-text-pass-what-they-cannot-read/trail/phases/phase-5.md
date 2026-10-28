@@ -33,7 +33,7 @@ This is the audit #956 asks for, read at `c825fd2c` by work item `1793171931-che
 | R5 | `skills/verify/scripts/seal_stamp.py#queue_for_written_guarantee`, `#sealed_before` | the same line at the guarantee's write; queues the stamp | `mixed`: an unreadable verdict queues nothing; a fence nobody closed is not looked for | `yes`: the stamp is queued for a guarantee the pull request refuses (R43) | `Verdict: sealed`, an unclosed fence, `Verdict: withheld ...`: queued, and `guarantee` refused the file | #1122 |
 | R6 | `chain_check.py#target_row`, `#target_of`, `#earlier_verdicts` | the `Target SHA` row of `guarantee.md` | `refuses` | `no` | a backticked or emphasised SHA, no `against`, `Earlier run`: each refused at the row | none |
 | R7 | `chain_check.py#frame_foot` | the framer's mark at the foot of `frame/design.md` | `refuses` | `no` | emphasis, no period, a comment line after it: no mark, refused; `by Framer`: refused as not the framer | none |
-| R8 | `chain_check.py#routing_trailers`, `#trailer_findings` | `Seal-Routing` trailers of the pull request's commits | `mixed`: a value in another case is refused; a key git does not read is no trailer, and the commit is not judged | `yes`: a session's commit at a shared root carries the trailer (`skills/commit-pr-convention/SKILL.md:142`), so a misspelt key arises in the flow, and its undeclared work item is not judged | `SealRouting:` naming an undeclared work item: not read, not reported; `No work item` and `no work item.` refused | #1038: `docs/the-routing-check.md:115-117` chooses to judge no commit without the trailer |
+| R8 | `chain_check.py#routing_trailers`, `#trailer_findings` | `Seal-Routing` trailers of the pull request's commits | `mixed`: a value in another case is refused; a key git does not read is no trailer, and the commit is not judged | `yes`: a session's commit at a shared root carries the trailer (`skills/commit-pr-convention/SKILL.md:142`), so a misspelt key arises in the flow, and its undeclared work item is not judged | `SealRouting:` naming an undeclared work item: not read, not reported; `No work item` and `no work item.` refused | #1121 |
 | R9 | `chain_check.py#original_of`, `#originals_of` | `original:` lines, in a migration repository | `mixed`: misspelt in a round record, refused; misspelt in a guarantee, counted as present and not read | `yes`: a guarantee naming another baseline as `Original: 0000000` | `Original:`, `**original:**`, `original:0000000`: both arms passed; `original: 0000000`: refused | #1121 |
 | R10 | `hooks/lib/routing.py#parse`, `#shown`, `#table_rows`, with the edit gate, the question gate and `chain_check.py` | `routing.md` | `mixed`: an unreadable `Review`, `Destination` or `Branch` is no declaration, and the edit gate denies; an unreadable `Automation` is unanswered | `yes`: with `Automation` reading `Yes` the question gate allows a question | `yes`: deny; `Yes` and `**yes**`: no output | #1038 |
 | R11 | `routing.py#rounds`, `#rounds_unreadable`, `#stray_rounds`, `chain_check.py#round_records` | the file names under `trail/rounds/` | `skips`: a name other than `round-<N>.md` is no record | `yes`: `Round-2.md` holding an open finding | `Round-2.md`, `round_2.md`, `round-2.MD`: `records()` named no problem | #1121 |
@@ -78,7 +78,7 @@ Each was created with `gh issue create --repo MichaelYcJo/AgenticSeal --mileston
 
 | Issue | Module | Rows |
 |---|---|---|
-| #1121 | `skills/code-review/scripts/chain_check.py` | R3, R9, R11 |
+| #1121 | `skills/code-review/scripts/chain_check.py` | R3, R8, R9, R11 |
 | #1122 | `skills/verify/scripts/seal_stamp.py` | R5, R43 |
 | #1123 | `skills/verify/scripts/deferral_check.py` | R14 |
 | #1124 | `.github/scripts/gather_changelog.py` | R25 |
@@ -90,7 +90,7 @@ Each was created with `gh issue create --repo MichaelYcJo/AgenticSeal --mileston
 | #1132 | `skills/verify/scripts/pact_check.py`, at `5287dd42` | R24 |
 | #1133 | `hooks/worktree-guard.py` | R23 |
 
-R8, R10, R37 and R40 read `#1038`: R8's fix would judge a commit with no trailer, which `docs/the-routing-check.md:115-117` chooses not to do; R10's would take a declaring line on doubt, which `docs/the-record-layout.md:153-172` decides against for every reader of `routing.md`; and R37 and R40 are one class across a dozen modules and every eval case.
+R10, R37 and R40 read `#1038`: R10's fix would take a declaring line on doubt, which `docs/the-record-layout.md:153-172` decides against for every reader of `routing.md`; and R37 and R40 are one class across a dozen modules and every eval case.
 
 ### R24 at the release base
 
@@ -108,7 +108,7 @@ The file, its output, the extracted tree and the scratch repositories were delet
 
 ### R8 and R23 after review round 1
 
-Round 1 found both `limit` cells resting on a document stating the limit, which `frame/design.md:272-274` does not accept. R23 reads `yes`: a model types `G=git; $G switch` in any session, and #1133 carries it. R8 reads `yes` too: the replacement the round proposed says a trailer is written only under `no work item`, but `skills/commit-pr-convention/SKILL.md:142` and `docs/the-routing-check.md:98-100` have every session's commit at a shared root end with one naming its work item, so the flow does write trailers and a misspelt key can arise there.
+Round 1 found both `limit` cells resting on a document stating the limit, which `frame/design.md:272-274` does not accept. R23 reads `yes`: a model types `G=git; $G switch` in any session, and #1133 carries it. R8 reads `yes` too: the replacement the round proposed says a trailer is written only under `no work item`, but `skills/commit-pr-convention/SKILL.md:142` and `docs/the-routing-check.md:98-100` have every session's commit at a shared root end with one naming its work item, so the flow does write trailers and a misspelt key can arise there. Review round 2 sent R8's fix to #1121 with the module's other rows: refusing a near-miss key changes `chain_check.py#routing_trailers` and `#trailer_findings` and their tests alone, which `frame/design.md:276-282` files into `release: 0.24.1`.
 
 ### The comment, and the checks the plan names
 
