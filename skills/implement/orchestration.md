@@ -526,8 +526,8 @@ where the root is shared each commit's trailer reads `no work item`
 **Which branch the pull request lands on is decided with the routing
 question.** A pull request into the release branch is not a release: its
 entry accumulates unreleased, and the version is left alone. A pull request
-into `main` is a release: the version moves, the accumulated entries are
-gathered and dated, and the tag follows the merge. The release branch is the
+into `main` is a release: the version moves, the accumulated entries go out
+under it, and the tag follows the merge. The release branch is the
 default. The orchestrator takes `main` when the accumulated entries read as
 one release, or when the change is a gate or a hook firing where it should
 not, which does not wait for other changes.
@@ -575,11 +575,11 @@ in the handback and write nothing into it.
 `date +%s` once, pick one slug, and use the resulting directory name in every
 repository. The id is what every share is keyed by:
 its changelog fragment and the `<!-- specs/<work-item-id> -->` marker the
-changelog gather writes. A directory named differently in each repository
-would have to be renamed later, and the rename moves both. Nothing checks
-this, because nothing can tell an id minted twice from a signer's own work
-item that cites the pact without changing it, and that second case is
-legitimate and common.
+release note carries above that fragment. A directory named differently in
+each repository would have to be renamed later, and the rename moves both.
+Nothing checks this, because nothing can tell an id minted twice from a
+signer's own work item that cites the pact without changing it, and that
+second case is legitimate and common.
 
 **Where the repositories keep a contract together, they sign a pact.**
 `docs/the-pact.md` holds the model. Two conditions decide it, and both must
