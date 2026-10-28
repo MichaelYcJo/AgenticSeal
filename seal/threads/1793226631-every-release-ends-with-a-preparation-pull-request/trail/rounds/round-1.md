@@ -9,7 +9,7 @@ target: c3cd08c6 against origin/release/v0.24.0
 severity: should
 location: `skills/implement/orchestration.md:529-533`
 evidence: read `skills/implement/orchestration.md:526-540`, `seal/threads/1793226631-every-release-ends-with-a-preparation-pull-request/frame/design.md:35-40`
-verdict: open
+verdict: fixed 13b9d759
 
 The rewritten paragraph reads "Where the repository names the version when
 it cuts the release branch, as this one does with `release/vX.Y.Z`, the
@@ -52,14 +52,14 @@ entries read as one release, or when the change is a gate or a hook firing
 where it should not, which does not wait for other changes.
 ```
 
-answer:
+answer: Fixed as worded above. The sentence now reads "as a branch named `release/vX.Y.Z` does" and "that work item's changelog entry". Every line this branch added to a shipped file (`skills/`, `agents/`, `templates/`, `hooks/`, `bin/`) was swept for a phrase that names the reading repository. The other added lines name "the repository" generically, or name the plugin's own `seal/threads/` layout, so no other line changed. `git grep -n -E "as this (one|repository) does"` over those roots now finds no line, exit 1. `bin/test -q` over the 35 modules naming `orchestration.md` passed, 1059 cases, exit 0.
 
 ### 2. The rule change for checklist step 5 says the owner's one act at a release is the merge, but the section keeps the owner's sweep and a check line read "at release preparation"
 
 severity: should
 location: `seal/threads/1793226631-every-release-ends-with-a-preparation-pull-request/frame/design.md:261-274`, `docs/release-checklist.md:194-202`
 evidence: read `seal/threads/1793226631-every-release-ends-with-a-preparation-pull-request/frame/design.md:261-274`, `docs/release-checklist.md:174-202`, `seal/threads/1793226631-every-release-ends-with-a-preparation-pull-request/frame/questions.md:29`
-verdict: open
+verdict: fixed 78512510
 
 The rule change for *5. The release pull request* replaces "Its hygiene
 checks fail until step 4 is squashed in" with a bold sentence: "The
@@ -107,14 +107,14 @@ renames the check line's reader.
   to: check: none reader: the owner before the release pull request's merge
 ```
 
-answer:
+answer: Fixed by the orchestrator at 78512510, which changes `frame/design.md`'s `## Rule changes` as worded above. The section-5 `to:` now says the owner's one required act is the merge, and that the reads and step 6's boxes are reports that fail nothing. A second change re-points the check line's reader. The block parses, 30 operations and 0 errors, as executed by the orchestrator. This pass did not re-run that parse.
 
 ### 3. The 0.24.0 process table leaves out #913's change to how a signer cites the pact, which changes what a framer writes
 
 severity: should
 location: `seal/threads/1793226631-every-release-ends-with-a-preparation-pull-request/changelog.md:14-18`
 evidence: executed `git show --format= 7da1a77e -- skills/implement/orchestration.md`, `git grep -n "Pact | Clause | Hash" -- skills templates`, `gh issue view 913 --repo MichaelYcJo/AgenticSeal --json title,state`
-verdict: open
+verdict: fixed 78512510
 
 `frame/design.md` *Scope* item 6 asks for a row for each of the six commits
 that changed a way-of-working path and "changed the way of working", and
@@ -138,7 +138,7 @@ row names the columns in words, so that no pipe stands inside a cell:
 
 The row goes after the 2026-10-28 row for #1041, at `changelog.md:16`.
 
-answer:
+answer: Fixed by the orchestrator at 78512510, which adds #913's row to this work item's `changelog.md` process table. That commit changes the fragment by one line (read, `git show --stat 78512510`).
 
 ## Confirmations
 
