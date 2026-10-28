@@ -23,7 +23,7 @@
 Claude Code **플러그인**으로 배포됩니다. 인계 규약과 `seal rules --check` 는 git 이
 있는 곳이면 어디서든 동작합니다.
 
-## 상시 컨텍스트가 12줄인 이유
+## 상시 컨텍스트가 작은 이유
 
 도장은 작아야 도장입니다. [arxiv 2602.11988](https://arxiv.org/abs/2602.11988) 에
 따르면 컨텍스트 파일은 대체로 성공률을 높이지 못하면서 추론 비용만 20% 넘게
@@ -40,9 +40,9 @@ Claude Code **플러그인**으로 배포됩니다. 인계 규약과 `seal rules
 | **proofer** (서브에이전트) | `agent-contract` | 스펙 준수를 먼저 보고 그다음 품질을 본다. 첫 단계에서 `code-review` 를 열고, 회차 기록을 쓰기 전에 `writing-style` 을 연다. 오케스트레이터가 회차 기록을 검증한 뒤에 그에 따라 움직이고, pull request 검사가 그 기록을 읽는다. 리뷰어가 자기 보고를 직접 검증하지는 않는다 |
 | **tracer** (서브에이전트) | `agent-contract` | 원본 코드가 실제로 하는 일을 `경로#앵커` 좌표로 기록하고, 판정이 아니라 사실만 돌려준다. 첫 단계에서 `legacy-parity` 를 연다. `seal/parity.md` 를 선언한 레포에서만 등장한다 |
 | **sealer** (서브에이전트, Opus) | `agent-contract` | 마지막에 독립적으로 보증하는 쪽이다. 회차가 끝나고 changelog 가 쓰이고, 오케스트레이터가 광역 관문을 한 번 돌리고(`seal gate` 가 `trail/gate.md` 를 쓴다), `seal pr-body` 가 기록을 PR 본문의 앞부분에 옮겨 쓴 뒤, 그 기록을 읽는다. 광역 검사는 직접 돌리지 않는다. `seal pr-body --check` 로 본문의 앞부분이 기록의 글 그대로인지 확인하고, 구현자가 실행했다고 적은 주장 가운데 일부를 다시 돌려 보고, 설계·구현·마지막 리뷰·changelog·PR 본문 가운데 오케스트레이터가 쓴 부분을 이슈와 실제 트리에 견주어 읽는다. 판정은 작업 항목의 `guarantee.md` 에 남는다. `sealed`, 트리와 어긋난 곳을 짚은 `withheld`, 또는 소유자에게 넘기는 질문을 단 `undecided` 셋 중 하나다. 설계나 코드 품질을 다시 판정하지는 않는다 |
-| 스킬 | — | 열네 개이고 세 묶음이다. 에이전트가 첫 도구 호출 전부터 따르는 한 개는 왼쪽 열에 있다. 아홉 개는 작업이 그것을 요구할 때 세션이 알아서 로드하고, 에이전트는 그중 자기 단계가 가리키는 것을 그 단계에서 연다 — `code-review`, `commit-pr-convention`, `confidence-check`, `feature-planner`, `implement`, `legacy-parity`, `settle`, `verify`, `writing-style`. 나머지 네 개는 사용자가 이름을 불러야 움직이며 아래 치트시트에 있다 |
+| 스킬 | — | 에이전트가 첫 도구 호출 전부터 따르는 스킬은 왼쪽 열에 있다. 다음 스킬은 작업이 그것을 요구할 때 세션이 알아서 로드하고, 에이전트는 그중 자기 단계가 가리키는 것을 그 단계에서 연다 — `code-review`, `commit-pr-convention`, `confidence-check`, `feature-planner`, `implement`, `legacy-parity`, `settle`, `verify`, `writing-style`. 나머지는 사용자가 이름을 불러야 움직이며 아래 치트시트에 있다 |
 | 훅 | — | 게이트 그 자체. 플러그인이 자동으로 등록하므로 설정을 따로 만질 필요가 없다 |
-| CLAUDE.md 블록 | — | 늘 로드되는 12줄 — 절 제목 넷(`Tooling`·`Safety`·`Session cost`·`Git`)에 규칙 여덟이다. 툴링 하나, 안전 셋, 세션 비용 하나, git 셋. 응답 언어 규칙은 없다. 그것은 사용자 몫이다. 정본은 `templates/setup/claude-md-block.md` 하나이고, `install.sh` 와 `/agentic:update` 가 이것을 `CLAUDE.md` 에 써 넣는다. 사본을 따로 두는 파일은 없다 |
+| CLAUDE.md 블록 | — | 세션이 첫 메시지부터 지키는 규칙이고, 매 턴 로드된다. 응답 언어 규칙은 없다. 그것은 사용자 몫이다. 정본은 `templates/setup/claude-md-block.md` 하나이고, `install.sh` 와 `/agentic:update` 가 이것을 `CLAUDE.md` 에 써 넣는다. 사본을 따로 두는 파일은 없다 |
 
 ## 체인
 
@@ -165,7 +165,7 @@ PR 검사가 그중 무엇을 읽는지, 세션이 에이전트에게 일을 어
 |---|---|---|---|
 | routing-edit-gate | `Write`·`Edit`·`NotebookEdit` 호출 직전 | 파일이 있는 곳에 체크아웃된 브랜치를 가리키는 `routing.md` 가 없고 세션이 그 브랜치에서 `seal no-work-item` 을 돌리지 않았으면 그 파일의 편집을 거부한다. 판정하는 레포와 브랜치는 셸이 있는 곳이 아니라 편집하는 파일의 것이다. `seal/` 루트 아래 파일, git 이 무시하는 파일, opt-in 한 어느 레포에도 속하지 않는 파일은 판정하지 않으므로 선언은 언제나 먼저 쓸 수 있다. 거부는 모델에게 가고, 쓸 선언과 `seal no-work-item` 을 알려 준다. 라우팅 질문에서 `automation` 을 눌렀다면 사람에게 물을 질문은 알려 주지 않는다. 이 플러그인은 git 안에서 아무것도 돌리지 않으므로, 사람이 터미널에서 한 커밋은 이 플러그인의 코드를 하나도 돌리지 않는다. pull request 에서는 `chain-check` 가, `Seal-Routing` 트레일러가 어느 선언도 가리키지 않는 작업 항목을 적은 커밋을 실패로 처리한다 | 루트에 `seal/` 이 있는 레포, 또는 local 모드로 공통 git 디렉터리 아래에 있는 레포. 그 밖에서는 아무것도 하지 않는다 |
 | stub-remove | 세션 시작 | 예전 릴리스가 클론의 공용 `hooks/` 디렉터리에 써 둔 `pre-commit`·`reference-transaction`·`post-commit` 스텁을 지운다. 둘째 줄이 표시 `# specseal-git-hook` 인 파일만 지우고, 다른 쪽이 쓴 훅은 바이트 하나 바꾸지 않는다. 지운 것은 한 번 알리고, 지울 것이 없으면 아무 말도 하지 않는다 | 모든 git 레포 |
-| root-migrate | 세션 시작 | 예전 릴리스가 쓴 배치를 지금 배치로 옮긴다. `seal/README.md` 를 표시 줄로 시작하게 다시 쓰고, `seal/specs/<id>/` 를 하나씩 `seal/threads/<id>/` 로 옮긴다. 사용자가 검토하고 커밋하도록 `git mv` 로 스테이징하며, local 모드면 공통 git 디렉터리 아래에서 이름만 바꾼다. 옮길 곳 아래에 커밋하지 않은 변경이 있으면 아무것도 옮기지 않고, 무엇을 옮겼는지 한 줄로 알린다. 예전 릴리스가 루트 옆과 `~/.claude/specseal/` 아래에 쓴 상태 파일의 이름도 플러그인 이름으로 바꾼다 | 트리나 공통 git 디렉터리에 예전 배치가 남은 git 레포. 상태 파일 이름 바꾸기는 세션이 시작할 때마다 말없이 돈다 |
+| root-migrate | 세션 시작 | 예전 릴리스가 쓴 배치를 지금 배치로 옮긴다. `seal/README.md` 를 표시 줄로 시작하게 다시 쓰고, 0.22.x 의 작업 항목을 하나씩 `seal/threads/<id>/` 로 옮긴다. 사용자가 검토하고 커밋하도록 `git mv` 로 스테이징하며, local 모드면 공통 git 디렉터리 아래에서 이름만 바꾼다. 옮길 곳 아래에 커밋하지 않은 변경이 있으면 아무것도 옮기지 않고, 무엇을 옮겼는지 한 줄로 알린다. 예전 릴리스가 옛 이름으로 루트 옆과 `~/.claude/` 아래에 쓴 상태 파일의 이름도 플러그인 이름으로 바꾼다 | 트리나 공통 git 디렉터리에 예전 배치가 남은 git 레포. 상태 파일 이름 바꾸기는 세션이 시작할 때마다 말없이 돈다 |
 | implementer-mark | `subagent_type` 이 `framer` 나 `crafter`(`agentic:crafter`, 또는 프로젝트 로컬의 `crafter`)인 Agent·Task 호출 직전 | 체크아웃된 브랜치 이름을 `.git/agentic-planner` 나 `.git/agentic-implementer` 에, 축마다 파일 하나씩 적는다. 아무것도 출력하지 않으므로 막지도 묻지도 못한다. 아래 알림이 읽는 흔적일 뿐이다. 그룹이 판정하기 전에 쓰므로, 워크트리 가드가 그 호출을 멈춰도 흔적은 남는다 | 루트에 `seal/` 이 있는 레포, 또는 local 모드로 공통 git 디렉터리 아래에 있는 레포. 그 밖에서는 침묵하고 아무것도 쓰지 않는다 |
 | implementer-notice | 실제로 `git commit` 을 실행한 명령 직후 | 이 브랜치의 `routing.md` 가 `Planning` 에 `framer` 를, 또는 `Implementation` 에 `crafter` 를 적었는데 그 축의 흔적이 이 브랜치에 없으면, 그 파일을 적은 한 줄을 출력한다 — **두 축이어도 한 줄**이지 축마다 한 줄이 아니다. 흔적이 있는 축, 행이 없거나 읽을 수 없는 축, `the session` 으로 답한 축에는 아무 말도 하지 않는다. **세션·레포당 한 번**이고 막지 않는다 — 선언해 놓고 아무도 띄우지 않은 에이전트는 세션이 자기 답을 잊은 것이고, 그 값은 알림 한 줄이다 | 같은 옵트인 |
 | review-skill-gate | 모델이 `code-review` 라는 이름의 스킬을 열기 직전 | 고르지 않고 사용자에게 고르게 한다. 그 이름은 Claude Code 내장이지 이 플러그인 것이 아니다. 내장은 diff 에서 버그와 중복을 훑고, `agentic:code-review` 는 스펙 준수를 먼저 본 뒤 이전 회차 판정을 이어받는다. **세션·작업트리당 한 번**만 물으므로, 내장을 골라 다시 부르면 그대로 통과한다. 사용자가 직접 부른 스킬은 여기를 거치지 않는다 | 루트에 `seal/` 이 있는 레포, 또는 local 모드로 공통 git 디렉터리 아래에 있는 레포. 그 밖에서는 아무것도 하지 않는다 |
@@ -215,12 +215,13 @@ version-check 는 `~/.claude/agentic/` 아래에 시각 파일을 씁니다.
 지우는 것이 없습니다. lint-python 은
 방금 저장한 `.py` 파일을 고쳐 씁니다 — ruff 를 설정한 프로젝트에서만입니다.
 
-네트워크를 타는 훅은 둘입니다. lint-python 은 `uvx ruff` 로 넘어갈 때 uv 가 처음
+네트워크를 타는 훅은 lint-python 과 version-check 입니다. lint-python 은
+`uvx ruff` 로 넘어갈 때 uv 가 처음
 한 번 PyPI 에서 ruff 를 내려받습니다. version-check 는 이 저장소에 `git ls-remote
 --tags` 를 한 번 보냅니다. `seal/` 이 있는 곳에서 하루 한 번 돌고, 조회가
 실패하면 하루를 기다리지 않고 20분쯤 뒤에 다시 시도합니다. 이때 GitHub 이 알게
 되는 것은 어딘가의 기계가 AgenticSeal 을 쓴다는 사실입니다.
-둘 다 네트워크가 없으면 조용히 넘어갑니다.
+어느 훅이든 네트워크가 없으면 조용히 넘어갑니다.
 
 일부러 읽는 것도 하나 있습니다. worktree-guard 가 브랜치 전환을 막을 때, 지금
 무엇을 보호하는지 사람이 알아볼 수 있게 다른 세션 기록에서 마지막 사용자 메시지

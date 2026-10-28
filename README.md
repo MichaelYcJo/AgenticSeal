@@ -22,7 +22,7 @@ are a record you have to walk past knowingly.
 Distributed as a Claude Code **plugin**; the handoff protocol and
 `seal rules --check` work anywhere git does.
 
-## Why the always-on context is 12 lines
+## Why the always-on context is small
 
 A seal is small; that is the point. Based on
 [arxiv 2602.11988](https://arxiv.org/abs/2602.11988), context files generally
@@ -40,9 +40,9 @@ works outside the context entirely (hooks).
 | **proofer** (subagent) | `agent-contract` | Reviews spec compliance first, then quality. It opens `code-review` at its first step and `writing-style` before it writes its round record. The orchestrator verifies the record before acting on it, and the pull request's check reads it — the reviewer never verifies its own report |
 | **tracer** (subagent) | `agent-contract` | Records what the original code does as `path#anchor` coordinates and returns facts, not verdicts. It opens `legacy-parity` at its first step. Appears only in repos that declare `seal/parity.md` |
 | **sealer** (subagent, Opus) | `agent-contract` | The final, independent guarantor. After the rounds settle, the changelog is written, the orchestrator has run the one broad gate (`seal gate`, which writes `trail/gate.md`), and `seal pr-body` has copied the records into the first part of the pull request body, it reads that record and runs nothing broad itself, confirms through `seal pr-body --check` that the copied part still matches the records, re-runs a sample of the implementer's claims, and reads the design, the build, the last review, the changelog and the part of the pull request body the orchestrator wrote against the issue and the tree. Its verdict is the work item's `guarantee.md`: `sealed`, `withheld` naming what the tree contradicts, or `undecided` with a question for the owner. It does not re-judge the design or the code's quality |
-| Skills | — | Fourteen, in three groups. The one the agents follow from their first tool call is in the column to the left. Nine more a session loads on its own when the work calls for them, and an agent opens at the step that names one — `code-review`, `commit-pr-convention`, `confidence-check`, `feature-planner`, `implement`, `legacy-parity`, `settle`, `verify`, `writing-style`. Four you invoke by name; they are in the cheat sheet below |
+| Skills | — | The skill the agents follow from their first tool call is in the column to the left. These a session loads on its own when the work calls for them, and an agent opens each at the step that names it — `code-review`, `commit-pr-convention`, `confidence-check`, `feature-planner`, `implement`, `legacy-parity`, `settle`, `verify`, `writing-style`. The rest you invoke by name; they are in the cheat sheet below |
 | Hooks | — | The gates themselves — auto-registered by the plugin, no settings wiring |
-| CLAUDE.md block | — | 12 always-on lines — four section headings (`Tooling`, `Safety`, `Session cost`, `Git`) over eight rules: one on tooling, three on safety, one on session cost, three on git. No response-language rule — that stays yours. Its one source is `templates/setup/claude-md-block.md`, which `install.sh` and `/agentic:update` write into a `CLAUDE.md`; no other file carries a copy |
+| CLAUDE.md block | — | The rules a session holds from its first message, loaded every turn. No response-language rule — that stays yours. Its one source is `templates/setup/claude-md-block.md`, which `install.sh` and `/agentic:update` write into a `CLAUDE.md`; no other file carries a copy |
 
 ## The chain
 
@@ -171,7 +171,7 @@ tables:
 |---|---|---|---|
 | routing-edit-gate | before a `Write`, `Edit` or `NotebookEdit` call | refuses an edit when no `routing.md` declares the edited file's branch, unless this session ran `seal no-work-item` on that branch. It judges the file's repository and branch, wherever the shell sits. Files under `seal/`, files git ignores and files in no opted-in repository pass, so the declaration itself is always writable. The model gets the refusal with its two ways on — write the declaration, or run `seal no-work-item` — and under the `automation` press it names no question to put to you. Nothing of this plugin runs inside git, so a person's own commit from a terminal runs none of its code; at the pull request, `chain-check` fails a commit whose `Seal-Routing` trailer names a work item no declaration names | `seal/` at the root, or under the common git dir in local mode — silent elsewhere |
 | stub-remove | at session start | removes the `pre-commit`, `reference-transaction` and `post-commit` stubs an earlier release wrote into the clone's common `hooks/` directory: only a file whose second line is the marker `# specseal-git-hook`. A hook somebody else wrote is left byte for byte. Says once what it removed, and nothing where there was nothing | any git repo |
-| root-migrate | at session start | moves a layout an earlier release wrote into the current one: it rewrites `seal/README.md` to open with the marker line and moves each `seal/specs/<id>/` to `seal/threads/<id>/`, as staged `git mv` steps for you to review and commit, or as plain renames under the common git dir in local mode. It refuses the whole move over uncommitted changes under what it would move, and says in one line what moved. It also renames the state files an earlier release wrote beside the root and under `~/.claude/specseal/` to the plugin's name | any git repo whose tree or common git dir still holds an earlier layout; the state rename runs at every session start, silently |
+| root-migrate | at session start | moves a layout an earlier release wrote into the current one: it rewrites `seal/README.md` to open with the marker line and moves each 0.22.x work item to `seal/threads/<id>/`, as staged `git mv` steps for you to review and commit, or as plain renames under the common git dir in local mode. It refuses the whole move over uncommitted changes under what it would move, and says in one line what moved. It also gives the plugin's name to the state files an earlier release wrote under its old name, beside the root and under `~/.claude/` | any git repo whose tree or common git dir still holds an earlier layout; the state rename runs at every session start, silently |
 | implementer-mark | before an Agent/Task call whose `subagent_type` is `framer` or `crafter` (`agentic:crafter`, or a project-local `crafter`) | writes the checked-out branch name to `.git/agentic-planner` or `.git/agentic-implementer`, one file per axis. It prints nothing, so it can neither deny nor ask; it is the trace the notice below reads. Written before the group decides, so a spawn the worktree guard then stops still leaves one | `seal/` at the root, or under the common git dir in local mode — silent elsewhere, and writes nothing |
 | implementer-notice | after a command that actually runs `git commit` | where this branch's `routing.md` answers `Planning` with `framer` or `Implementation` with `crafter` and no mark of that axis stands for this branch, prints one line naming the file — **one line for both axes**, never one each. Nothing is said for an axis whose mark stands, whose row is absent or unreadable, or which answers `the session`. **Once per session per repository**, and it never blocks — a declared agent nobody spawned is a session forgetting its own answer, and a reminder is what that costs | same opt-in |
 | review-skill-gate | before the model opens a skill named `code-review` | puts the choice to you rather than making it: that name is Claude Code's built-in, not this plugin's. The built-in sweeps the diff for bugs and cleanup; `agentic:code-review` judges spec compliance first and inherits earlier rounds' verdicts. Fires **once per session per working tree**, so picking the built-in and retrying goes straight through. A skill you invoke yourself never routes through here | `seal/` at the root, or under the common git dir in local mode — silent elsewhere |
@@ -222,12 +222,12 @@ either mode, which nothing prunes either,
 and lint-python rewrites the `.py` file you just saved — in
 ruff-configured projects only.
 
-Two hooks reach the network. lint-python falls back to `uvx ruff`, and uv
-fetches ruff from PyPI on first use. version-check runs one `git ls-remote
---tags` against this repository, once a day where `seal/` exists. A lookup
-that fails retries about twenty minutes later rather than waiting out the day.
-What that tells GitHub is that a machine somewhere runs AgenticSeal. Both stay
-silent when the network is unavailable.
+lint-python and version-check reach the network. lint-python falls back to
+`uvx ruff`, and uv fetches ruff from PyPI on first use. version-check runs
+one `git ls-remote --tags` against this repository, once a day where `seal/`
+exists. A lookup that fails retries about twenty minutes later rather than
+waiting out the day. What that tells GitHub is that a machine somewhere runs
+AgenticSeal. Each stays silent when the network is unavailable.
 
 One deliberate read to know about:
 when the worktree-guard blocks a switch, it quotes the last user message

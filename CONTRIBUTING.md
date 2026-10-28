@@ -438,15 +438,15 @@ a question is not its difficulty, it is when it arrives.
   on, and failure must never block a tool call. A gate that crashes should
   let the work through, not wedge the session.
 
-  Two hooks reach the network, and both are named in the README's privacy
-  section because a rule with undisclosed exceptions is not a rule.
+  Every hook that reaches the network is named in the README's privacy
+  section, because a rule with undisclosed exceptions is not a rule.
   `lint-python` fetches ruff through `uvx` when no local copy exists.
   `version-check` asks the plugin's own repository for its newest release tag.
-  A third needs the same three limits the second carries (an opt-in condition
-  so unrelated repos are untouched, a throttle so it is not per-session, and
-  silence on every failure), plus a line in the README saying what leaves the
-  machine. Anything that would send repository contents, paths, or prompts is
-  not on the table.
+  A new one needs the same limits `version-check` carries (an opt-in
+  condition so unrelated repos are untouched, a throttle so it is not
+  per-session, and silence on every failure), plus a line in the README
+  saying what leaves the machine. Anything that would send repository
+  contents, paths, or prompts is not on the table.
 - **Hooks are Python invoked as `python3 <script>`, with `py -3 <script>`
   behind it.** Shebangs and exec bits do not exist on Windows, and `python3`
   is the one name its official installer does not create, so the registered
