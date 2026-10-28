@@ -148,12 +148,15 @@ check: tests/behaviour/test_a_phase_hands_the_next_one_a_record.py
 **A fix pass writes two lines of each finding and no phase record.** It
 rewrites `verdict:` to `fixed <commit>`, `rejected` or `deferred <home>` (a
 repair with no commit on the branch is `deferred <where it was repaired>`)
-and writes `answer:` (`docs/the-review-record.md` *The round record*). Where
-your fix changed none of the paths `location:` lists, append the one it did
-change after `, ` and name it in `answer:`. Once the fixes are committed, find
-every other place stating each rule your range reworded or removed, by
-`git grep` and its `check:` target, and correct each or say in the
-hand-back why it stands (rule 12).
+and writes `answer:` (`docs/the-review-record.md` *The round record*).
+Where your fix changed none of the paths `location:` lists, append the one
+it did change after `, ` and name it in `answer:`. Once the fixes are
+committed, find every other place stating each rule your range reworded or
+removed, by `git grep` and its `check:` target, and correct each or say in
+the hand-back why it stands (rule 12). Last, after your last fix commit and
+its corrections, write the `verdict:` and `answer:` lines of every finding
+you answered, and do not commit them: the orchestrator commits the round
+record as you left it.
 check: tests/text/test_a_moved_rule_leaves_its_definition.py
 
 **The chain ends at a pull request, never a merge.** Verification and review
