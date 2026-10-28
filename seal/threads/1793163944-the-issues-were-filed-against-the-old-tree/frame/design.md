@@ -44,10 +44,10 @@ Out:
   (#20, #24, #630, #723, #886, #893, #900): #1049's own work closes or carries them.
 - Milestones `release: 0.25.0` and `release: 0.26.0`. Their descriptions name
   only #1038 and #1054, which no verdict here moves.
-- The issues' titles. A title is the issue's identity in every commit subject
-  and changelog line that cites it, and the read found no title naming a file
-  that no longer exists in a way the body cannot correct. #1040's title names
-  the old agents and is the one exception argued below.
+- The issues' titles, except where a title names a path, an agent, a command
+  or a figure that the fold corrected: those titles take the folded form
+  (#712, #1039, #1040, #1042, #1043, #1045, #1046, #1048, #1049), and every
+  other title is unchanged (review round 1, finding 2).
 
 ## Verdicts
 
@@ -504,8 +504,8 @@ found nothing but `\ncrafter` in a test string and `redesign`.
 `tests/censuses.py#old_names` refuses the old names (`:984-1030`, read), so a
 new name substituted into another word passes it. Done when: each site reads
 `describe` or `describes`, the case and its `.test_durations` key are renamed,
-and the issue's frame says whether one census case is worth adding, given that
-the search above found no other instance.
+and the census question goes to F2's frame (#1110), because F1 is fixed without
+a work item.
 
 **F2, into `release: 0.24.0`, after #1040 and #1041.** Title: "chore: 0.23.0
 stopped calling the frame's design a spec, and the living text still does;
@@ -566,8 +566,9 @@ fact a reader needs fixed (a citation's spelling, a heading a reader resolves,
 a word a checker matches), and otherwise removed, with the rule's `check:` line
 naming what reads the behaviour, or `check: none reader: <who>`. It starts with
 the contract module and records the count for the other `tests/text`
-modules. #956 asks which way a reader fails on input it cannot read; F3 asks
-whether a pin reads a fact at all. #1040 removes sentences two of these pins read.
+modules. F3 runs after #956, whose audit settles which way each reader
+fails on input it cannot read, and F3 decides each pin against that (owner,
+2026-10-28). #1040 removes sentences two of these pins read.
 
 ### Folded into an existing issue
 
