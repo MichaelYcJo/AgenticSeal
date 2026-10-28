@@ -62,6 +62,7 @@ SHIPPED = {
     "seal mutate": (NO_WALK, "breaks and restores the one file it is named"),
     "seal layout": (NO_WALK, "reads tests/ and the modules its files name"),
     "seal deferrals": (NO_WALK, "reads the pull request body and round records"),
+    "seal pr-body": (NO_WALK, "reads the one work item it is named and a body file"),
     "seal": (NOT_A_CHECK, "the mode command, writing seal/config.md"),
     "seal stamp": (NOT_A_CHECK, "draws the sealer's stamp from a sealed guarantee"),
     "seal cost": (NOT_A_CHECK, "measures a transcript"),

@@ -62,7 +62,9 @@ stopping.
 That row governs the **commit subject and body**, the **pull request title and
 body** (all four, because a squash makes them one text) and the **review
 report posted as a pull-request comment**, which is prose for whoever opens
-that pull request.
+that pull request. In the body of a work item routed through the review
+chain it governs the orchestrator's part, as *Pull request bodies* below
+says.
 
 **It does not govern the work-item records.** `frame/design.md`, `frame/plan.md`,
 `gaps.md`, `frame/questions.md`, `changelog.md` and `trail/rounds/round-N.md`'s cells
@@ -176,12 +178,22 @@ carries this at length; this file carries the prefix in front of it.
 `writing-style`'s, and the writer reads it **before** writing, not after:
 structure that came out wrong is not recovered by fixing sentences.
 
-**A work item routed through the review chain carries a chain section, and it
-has one shape: the comparison table first, then what the rounds found.** The
-table is what makes this run readable beside the last one, so it goes above
-the prose rather than under it, where a reader who stops after the first
-screen still has the numbers. What the rounds found comes after it: which
-findings changed something, and what they changed.
+**A work item routed through the review chain has a body in two parts.**
+`seal pr-body` writes the first part from the work item's records, above
+the line `skills/code-review/scripts/pr_body.py#HEADING` holds, and the
+orchestrator writes the second part under that line
+(`skills/code-review/orchestration.md` *Orchestrator: the pull request
+opens once the sealer seals*). The first part is the records' own text, so
+it is in `Record language`, and nobody rewrites or translates it. The second
+part is in the language `Commit and pull request language` names.
+
+**Its chain section has one shape: what the rounds found is the first
+part's *Review rounds* section, and the comparison table opens the
+orchestrator's part.** The table is what makes this run readable beside the
+last one, so it stands above the orchestrator's prose rather than under it,
+where a reader who stops after that part's first screen still has the
+numbers. What the rounds found is copied from the round records, so the
+orchestrator's part does not restate it.
 
 **The rows have one owner: `skills/verify/orchestration.md` *Measure the
 segment, and feed the flow log*.** That section states each row and where it

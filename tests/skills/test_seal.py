@@ -3813,6 +3813,7 @@ class Test_main:
             ("stamp", "skills/verify/scripts/seal_stamp.py"),
             ("layout", "skills/verify/scripts/test_layout.py"),
             ("rules", ".github/scripts/rules.py"),
+            ("pr-body", "skills/code-review/scripts/pr_body.py"),
         ],
     )
     def test_accepts_each_tool_and_hands_its_script_every_argument(

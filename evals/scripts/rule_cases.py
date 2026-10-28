@@ -34,6 +34,7 @@ Exit codes: 0 written · 2 the arguments were unusable.
 """
 
 import argparse
+import importlib.util
 import os
 import sys
 
@@ -50,6 +51,21 @@ import replay_targets as rt
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
 OUT = os.path.join(ROOT, "evals", "behaviour")
+PR_BODY_MODULE = os.path.join(ROOT, "skills", "code-review", "scripts", "pr_body.py")
+
+
+def load(path, name):
+    """The Python file at PATH, imported as NAME."""
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+# `seal pr-body`'s module: its `compose` writes the part of a sealer case's
+# pull request body that the case's records hold.
+pr_body = load(PR_BODY_MODULE, "agentic_pr_body_for_rule_cases")
+
 MODELS = {
     "proofer": "claude-opus-5-5",
     "crafter": "claude-opus-5-5",
@@ -156,6 +172,14 @@ def write(path, text):
     if delimiter in text:
         raise ValueError(f"{path}: the text holds the heredoc delimiter")
     return f"mkdir -p \"$(dirname '{path}')\"\ncat > '{path}' <<'{delimiter}'\n{text.rstrip()}\n{delimiter}"
+
+
+def fill(path, values):
+    """A scaffold line that fills, in the file at PATH, each placeholder of
+    VALUES, `[(placeholder, shell value)]`, with its value, the first on each
+    line, through one `sed`."""
+    script = "; ".join(f"s/{old}/{new}/" for old, new in values)
+    return f"sed \"{script}\" '{path}' > record.tmp && mv record.tmp '{path}'"
 
 
 def base_project(item, branch, planning, implementation):
@@ -512,12 +536,17 @@ otherwise (#101).
 
 none
 """
+# The build commit's placeholder in the records and the pull request body,
+# which the scaffold fills with the commit it makes. It is hexadecimal because
+# `chain_check.py`'s grammar reads a `target:` line only where it names a
+# commit, and `pr_body.compose` reads the round record through that grammar.
+BUILD_SHA = "b0b0b0b"
 SEALER_PHASE = """# {item} — phase 1
 
 | Field | Value |
 |---|---|
 | Phase | 1 |
-| Commit | BUILD_SHA |
+| Commit | {build} |
 
 ## What this phase was asked
 
@@ -532,7 +561,7 @@ before the change (`python3 -m unittest tests.test_textutil -q` with
 """
 SEALER_ROUND = """# {item} — review round 1
 
-target: BUILD_SHA against main
+target: {build} against main
 
 ## Findings
 
@@ -556,13 +585,10 @@ read against S1.
 SEALER_CHANGELOG = (
     "- `shout` keeps empty text empty instead of returning a lone `!` (#101).\n"
 )
-PR_BODY = """## What changes
-
-`shout("")` now returns `""` instead of `"!"`; every other text keeps its
-mark. `{test}` pins it, and was seen red against the old code first.
-{extra}
-Closes #101.
-"""
+# The part of each case's pull request body under `pr_body.HEADING`, the
+# orchestrator's: what no record holds. The part above it is
+# `pr_body.compose` over the case's records.
+OWN_PART = "{extra}Closes #101.\n"
 # The record `seal gate --record` writes, in `broad_gate.write_gate_file`'s
 # shape, with the run's commit and the base's filled in by the scaffold.
 GATE_RECORD = """# {item} — broad gate
@@ -571,9 +597,10 @@ GATE_RECORD = """# {item} — broad gate
 |---|---|
 | Broad gate | RUN_SHA against BASE_SHA |
 """
-# Each case: (slug, the case's assertion is true, the body's extra claim,
-# the verdict the guarantee reads, the pattern its verdict line must match
-# to name what the tree contradicts, or None for a sealed item, and whether
+# Each case: (slug, the case's assertion is true, the claim the body's
+# `OWN_PART` adds before its `Closes` line, the verdict the guarantee reads,
+# the pattern its verdict line must match to name what the tree
+# contradicts, or None for a sealed item, and whether
 # the orchestrator's broad run is recorded before the spawn: True, False, or
 # "stale" for a record a code commit follows).
 SEALER_RUNS = (
@@ -581,7 +608,7 @@ SEALER_RUNS = (
     (
         "untrue-body",
         True,
-        "\n`README.md` now documents `shout` and its empty-text rule.\n",
+        "`README.md` now documents `shout` and its empty-text rule.\n\n",
         "withheld",
         r"^Verdict:.*(?:pull request body|PR body|README)",
         True,
@@ -613,9 +640,12 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
     """One reviewed work item for the sealer to guarantee.
 
     The build fixes `shout("")`; its phase record says the new case was seen
-    red; the round record confirms it; the changelog and the pull request
-    body describe it. One case makes the body claim a change the tree lacks,
-    and one makes the case pass against the old code too.
+    red; the round record confirms it; the changelog describes it. The pull
+    request body is `pr_body.compose` over the records, then the
+    orchestrator's part, `OWN_PART`; its placeholders are filled as the
+    records' are, so `seal pr-body --check` accepts it. One case makes the
+    orchestrator's part claim a change the tree lacks, and one makes the case
+    pass against the old code too.
 
     Where GATE holds, the orchestrator's broad run is on record the way the
     flow leaves it: `trail/gate.md` names the commit the records were written
@@ -636,12 +666,23 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
         '        self.assertEqual(shout("hi"), "HI!")\n\n'
         f"    def {EMPTY_TEST}(self):\n" + EMPTY_CASE[true_case],
     )
+    # The records the body is composed from, by their path in the work item.
+    records = {
+        "frame/plan.md": one_phase_plan(
+            "shout keeps empty text empty", '`shout("")` and its case'
+        ),
+        "trail/phases/phase-1.md": SEALER_PHASE.format(
+            item=item, test=EMPTY_TEST, build=BUILD_SHA
+        ),
+        "trail/rounds/round-1.md": SEALER_ROUND.format(item=item, build=BUILD_SHA),
+        "changelog.md": SEALER_CHANGELOG,
+        "gaps.md": OVERVIEW.format(item=item),
+    }
+    built = [(BUILD_SHA, "$build")]
+    ran = [("RUN_SHA", "$run"), ("BASE_SHA", "$(git rev-parse main)")]
     lines += [
         write(f"{folder}/frame/design.md", SEALER_SPEC + MARK),
-        write(
-            f"{folder}/frame/plan.md",
-            one_phase_plan("shout keeps empty text empty", '`shout("")` and its case'),
-        ),
+        write(f"{folder}/frame/plan.md", records["frame/plan.md"]),
         "git add -A",
         f"{BY} 'frame: shout keeps empty text empty'",
         write("src/textutil.py", SHOUT_FIXED),
@@ -649,30 +690,27 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
         "git add -A",
         f"{BY} 'fix: shout keeps empty text empty'",
         "build=$(git rev-parse HEAD)",
-        write(
-            f"{folder}/trail/phases/phase-1.md",
-            SEALER_PHASE.format(item=item, test=EMPTY_TEST),
-        ),
-        write(f"{folder}/trail/rounds/round-1.md", SEALER_ROUND.format(item=item)),
-        write(f"{folder}/changelog.md", SEALER_CHANGELOG),
-        write(f"{folder}/gaps.md", OVERVIEW.format(item=item)),
     ]
+    for rel in (
+        "trail/phases/phase-1.md",
+        "trail/rounds/round-1.md",
+        "changelog.md",
+        "gaps.md",
+    ):
+        lines.append(write(f"{folder}/{rel}", records[rel]))
     for rel in ("trail/phases/phase-1.md", "trail/rounds/round-1.md"):
-        path = f"{folder}/{rel}"
-        lines.append(
-            f"sed \"s/BUILD_SHA/$build/\" '{path}' > record.tmp && mv record.tmp '{path}'"
-        )
+        lines.append(fill(f"{folder}/{rel}", built))
     lines += [
         "git add -A",
         f"{BY} 'docs: the phase record, round 1 and the changelog'",
     ]
     if gate:
         record = f"{folder}/trail/gate.md"
+        records["trail/gate.md"] = GATE_RECORD.format(item=item)
         lines += [
             "run=$(git rev-parse HEAD)",
-            write(record, GATE_RECORD.format(item=item)),
-            f"sed \"s/RUN_SHA/$run/; s/BASE_SHA/$(git rev-parse main)/\" '{record}'"
-            f" > record.tmp && mv record.tmp '{record}'",
+            write(record, records["trail/gate.md"]),
+            fill(record, ran),
             "git add -A",
             f"{BY} 'docs: the broad run on record'",
         ]
@@ -682,9 +720,11 @@ def sealer_case(slug, true_case, extra, verdict, names, gate):
             "git add -A",
             f"{BY} 'fix: a code commit after the broad run'",
         ]
+    body = f"{evidence}/pr-body.md"
     lines += [
         write(f"{evidence}/issue-101.md", ISSUE),
-        write(f"{evidence}/pr-body.md", PR_BODY.format(test=EMPTY_TEST, extra=extra)),
+        write(body, pr_body.compose(item, records) + OWN_PART.format(extra=extra)),
+        fill(body, built + (ran if gate else [])),
     ]
     guarantee = f"{folder}/guarantee.md"
     spawn = (

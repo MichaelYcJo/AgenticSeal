@@ -1,5 +1,6 @@
 """A chain-routed pull request body carries one chain section, in one shape:
-the comparison table first, then what the rounds found.
+what the rounds found is the first part's *Review rounds* section, and
+the comparison table opens the orchestrator's part (#1044).
 
 Two bodies of the same chain came out unreadable side by side. PR #162 wrote
 that section as prose and PR #168 as a table, so the numbers a reader wants to
@@ -63,9 +64,10 @@ def body_section():
 def test_the_section_states_the_chain_sections_shape():
     """Both halves of the shape, and the condition it holds under.
 
-    The order is the claim: a reader who stops at the first paragraph has
-    the numbers, and one who reads on learns what they mean. A body that
-    puts the prose first makes the table something to scroll for."""
+    The placement is the claim: a reader who reaches the orchestrator's part
+    meets the numbers first, and what the rounds found is the round
+    records' own text above it. A body that puts the prose first makes the
+    table something to scroll for."""
     section = body_section()
     assert "through the review chain" in section, (
         "the section states a shape without saying which work items it "
@@ -73,7 +75,10 @@ def test_the_section_states_the_chain_sections_shape():
         "chain, and a rule with no condition on it reads as a rule for them "
         "too"
     )
-    assert "the comparison table first, then what the rounds found" in section, (
+    assert (
+        "what the rounds found is the first part's *Review rounds* section, "
+        "and the comparison table opens the orchestrator's part"
+    ) in section, (
         "the chain section has no stated shape, so two runs of the same "
         "chain come out in two shapes -- PR #162 in prose, PR #168 as a "
         "table, neither readable beside the other"

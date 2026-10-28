@@ -1111,8 +1111,12 @@ def _literal_strings():
         "unverified_check", "skills", "verify", "scripts", "unverified_check.py"
     )
     rules = _checker("rule_changes", "skills", "settle", "scripts", "rule_changes.py")
+    body = _checker("pr_body", "skills", "code-review", "scripts", "pr_body.py")
     fields = {f"{f}:" for need, may in rules.GRAMMAR.values() for f in need + may}
     found = {
+        body.HEADING,
+        body.PHASES,
+        body.NOT_DONE,
         chain.TARGET,
         chain.BROAD_GATE,
         unverified.HEADING,
