@@ -174,7 +174,9 @@ item, and it overrides any wording in the phase rows below.
   not move, so a workflow pinned to 0.23.0 runs 0.23.0's tree whole and one
   written by `seal pr-checks install` at 0.23.1 runs 0.23.1's whole. The
   CLAUDE.md block names `skills/implement/orchestration.md`, which does not
-  move. `seal/config.md`'s `Broad gate` row is the repository's own
+  move, and `templates/sdd-routing.md`, which moves to
+  `templates/records/sdd-routing.md`; a machine keeps the old block until it
+  is rewritten, and the changelog fragment says how. `seal/config.md`'s `Broad gate` row is the repository's own
   command. No hook reads a path out of a user's repository that names the
   plugin's layout.
 - **Two files in an installed repository cite a plugin path in prose.**
