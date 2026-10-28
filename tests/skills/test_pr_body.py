@@ -322,13 +322,23 @@ class Test_compose:
                 "## Not from the records",
             ),
             ("frame/plan.md", PLAN + "\n## Phases\n\nagain\n", 20, "## Phases"),
+            (
+                "changelog.md",
+                CHANGELOG
+                + "This closes #7.\n\n`Closes #8` in a span.\n\n```\nFixes #9\n```\n",
+                3,
+                "#7",
+            ),
         ],
     )
     def test_refuses_a_record_it_cannot_copy_faithfully(self, rel, text, line, said):
         """S6. A round record `chain_check.py` refuses, a copied line equal
-        to `HEADING`, where the body would split, and a second section of
-        one the body copies are each refused at the record's path and line,
-        with a sentence naming what was read there."""
+        to `HEADING`, where the body would split, a second section of one
+        the body copies, and a copied line holding a closing keyword, which
+        would close an issue no party claimed, are each refused at the
+        record's path and line, with a sentence naming what was read there.
+        A closing keyword in a code span or a fence claims nothing, as
+        `close_issues_on_release.py#keywords_in` reads it."""
         with pytest.raises(PR.Refused) as refused:
             PR.compose(NAME, {**RECORDS, rel: text})
         assert [(where, at) for where, at, _ in refused.value.causes] == [(rel, line)]
@@ -411,9 +421,33 @@ class Test_main:
         capsys.readouterr()
         assert PR.main([str(item), "--body", str(body), "--check"]) == 1
         out = capsys.readouterr().out
-        assert out.startswith(f"refused: {body}:7: ")
+        assert out.startswith("refused: pr-body.md:7: ")
         assert "`changelog.md:1`" in out
         assert body.read_bytes() == (edited + OWN).encode("utf-8")
+
+    def test_refuses_naming_no_machine_path(self, tmp_path, capsys):
+        """The sealer copies the first `refused:` line into a committed
+        `guarantee.md`, so the line names the body file by its name and a
+        record by its path under the `seal/` root, whatever absolute paths
+        the command was given."""
+        item = item_of(
+            tmp_path,
+            {
+                **RECORDS,
+                "trail/rounds/round-1.md": ROUND_1.replace(
+                    "verdict: fixed 2222222", "verdict: done"
+                ),
+            },
+        )
+        body = tmp_path / "pr-body.md"
+        body.write_bytes((EXPECTED + OWN).encode("utf-8"))
+        capsys.readouterr()
+        assert PR.main([str(item), "--body", str(body), "--check"]) == 1
+        out = capsys.readouterr().out
+        assert out.startswith(
+            f"refused: seal/threads/{NAME}/trail/rounds/round-1.md:12: "
+        )
+        assert str(tmp_path) not in out
 
     @pytest.mark.parametrize(
         "records, text",

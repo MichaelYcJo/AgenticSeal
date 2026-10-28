@@ -17,7 +17,10 @@ section opens with a line of `FIXED` naming its source, and a record that is
 not there is named by its own line of `FIXED`. The orchestrator writes its
 own part under `HEADING`, and a rewrite keeps that part byte for byte.
 `frame/design.md` *Data & interfaces* of the work item that added this lays
-out the part line for line.
+out the part line for line. A copied line equal to `HEADING` is refused at
+the record's line, and so is a copied line where
+`close_issues_on_release.py#keywords_in` reads a closing keyword: the
+`Closes` line is the orchestrator's, written under `HEADING`.
 
 Round records are read through `chain_check.py`'s grammar, the one reader of
 a round record, and a record it refuses is refused here with its sentence.
@@ -33,10 +36,14 @@ Limits, stated here and not guarded:
   pull request cannot open the paths the generated part names. The copied
   text still stands in the body.
 - A body edited on GitHub after the pull request opens is read by nobody.
+- Exit 2's line names `<item>` as it was given, or the module that would not
+  load by its installed path. The normal flow gives neither: the sealer is
+  handed a work item's directory that exists, from an installed plugin.
 
 Exit: 0 written, or under `--check` the part above the heading is what the
 records give; 1 refused and nothing written, each cause on a line that opens
-with `refused:` naming the file and line; 2 the arguments are unusable,
+with `refused:` naming the body file by its name, or a record by its path
+under the `seal/` root, and the line; 2 the arguments are unusable,
 `<item>` is not a directory, or a module this loads will not load.
 """
 
@@ -69,14 +76,23 @@ def _load(path, name):
 
 
 # Loaded once, here: `chain_check.py` with the round record's grammar it
-# loads at its import and the shared markdown reader it loads, and
+# loads at its import and the shared markdown reader it loads,
 # `hooks/lib/routing.py`, whose `round_number` is the one ordering rule of
-# round records and whose `optin` names a work item's files. As a command, a
-# module that will not load ends the run at exit 2; imported, the error is
-# raised to the importer.
+# round records and whose `optin` names a work item's files, and
+# `.github/scripts/close_issues_on_release.py`, whose `keywords_in` is the one
+# reader of a closing keyword. The plugin ships from the repository root, so
+# `.github/scripts/` stands three levels above HERE in a clone and in an
+# installed copy alike. As a command, a module that will not load ends the
+# run at exit 2; imported, the error is raised to the importer.
 try:
     CHAIN = _load(CHAIN_CHECK, "agentic_chain_check_for_the_pr_body")
     ROUTING = CHAIN.load(CHAIN.ROUTING, "agentic_routing_for_the_pr_body")
+    CLOSER = _load(
+        os.path.join(
+            HERE, "..", "..", "..", ".github", "scripts", "close_issues_on_release.py"
+        ),
+        "agentic_closer_for_the_pr_body",
+    )
 except (OSError, SyntaxError, ImportError, SystemExit, ValueError) as _exc:
     if __name__ != "__main__":
         raise
@@ -385,11 +401,29 @@ def _questions(texts):
     ]
 
 
+def _claims(rel, line, seen):
+    """`(rel, line, why)` for each issue a closing keyword on the copied line
+    LINE of REL claims, read by `CLOSER.keywords_in` over SEEN, the record's
+    `readable` lines, so a fenced line and a code span claim nothing."""
+    return [
+        (
+            rel,
+            line,
+            f"a closing keyword before #{number} would close that issue when "
+            f"this pull request ships; the `Closes` line is the orchestrator's "
+            f"alone, under `{HEADING}`, so write #{number} here in a code span",
+        )
+        for number in CLOSER.keywords_in(seen[line - 1])
+    ]
+
+
 def _composed(name, texts):
     """`[(line, source)]` for the generated part above `HEADING`, ending with
     the blank line before it: `source` is `(path, line)` for a copied line
-    and None for a fixed one. Refused where a copied line is equal to
-    `HEADING`, since the body would split there."""
+    and None for a fixed one. Refused at the record's line where a copied
+    line is equal to `HEADING`, since the body would split there, or holds a
+    closing keyword outside a fence and a code span, since GitHub and the
+    release's closer would close the issue it names."""
     blocks = [_fixed(OPENING.format(name=name))]
     blocks += _changed(texts)
     blocks += _built(texts)
@@ -402,13 +436,20 @@ def _composed(name, texts):
     for block in blocks:
         if block:
             above += [*block, ("", None)]
-    splits = [
-        (rel, line, f"reads `{HEADING}`, the line the body's two parts split at")
-        for said, (rel, line) in (pair for pair in above if pair[1])
-        if said == HEADING
-    ]
-    if splits:
-        raise Refused(splits)
+    seen = {rel: READER.readable(text) for rel, text in texts.items()}
+    causes = []
+    for said, (rel, line) in (pair for pair in above if pair[1]):
+        if said == HEADING:
+            causes.append(
+                (
+                    rel,
+                    line,
+                    f"reads `{HEADING}`, the line the body's two parts split at",
+                )
+            )
+        causes += _claims(rel, line, seen[rel])
+    if causes:
+        raise Refused(causes)
     return above
 
 
@@ -485,7 +526,15 @@ def _check(above, body):
 
 
 def _place(where, line, item, body):
-    path = body if where is None else os.path.join(item, *where.split("/"))
+    """Where a cause stands, with no machine path in it: the body file BODY
+    by its name, and a record by its path under the `seal/` root, whatever
+    path the work item ITEM was given by. The sealer copies the first
+    `refused:` line into a `guarantee.md` that is committed."""
+    if where is None:
+        path = os.path.basename(body)
+    else:
+        name = os.path.basename(os.path.normpath(os.path.abspath(item)))
+        path = "/".join(p for p in (OPTIN.HOME, OPTIN.WORK_ITEMS, name, where) if p)
     return f"{path}:{line}" if line else path
 
 
