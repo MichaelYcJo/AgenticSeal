@@ -353,10 +353,10 @@ from `templates/`*, cannot tell which file that means, and writes one from
 scratch.
 
 `Written by` is the same kind of column, for the same kind of reason. The
-split it records is what `agents/framer.md` exists for: a `frame/design.md` written by
-whoever then builds against it stops being a contract and becomes an account
-of what got built, which leaves the review's first stage comparing the work
-with its own description of itself. A table that lists the set without naming
+split it records is what `agents/framer.md` exists for, and
+`docs/the-agent-set.md` *One contract every agent receives, and one
+definition each* says why the party that draws a contract is not the party
+that executes it. A table that lists the set without naming
 an author reads as a list one session works through — which is what every work
 item here did before the framer shipped, and what nothing in the set could say
 was wrong. Below the ladder's top rung there is no framer and no `frame/design.md`;

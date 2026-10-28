@@ -523,7 +523,10 @@ def test_the_readme_gives_both_moves_under_first_run(readme):
     assert "seal pr-checks install" in body and "seal pr-checks remove" in body, (
         "the checks are their own command, and the section does not name it"
     )
-    assert "`git reset -- :/seal`" in body and "reset -- :/seal :/" not in body
+    # #1055 S6: the way back before the commit to shared has one home, the
+    # skill section, which the README links to and does not restate.
+    assert "git reset -- :/seal" not in body, readme
+    assert SHARED_WAY_BACK in flat(body), readme
     for sentence in LEFT_BEHIND[readme]:
         assert sentence in flat(body), sentence
     assert "seal export" in body and "seal import" in body, (
@@ -535,6 +538,26 @@ def test_the_readme_gives_both_moves_under_first_run(readme):
 
 COMMON = "$(git rev-parse --git-common-dir)/seal"
 TOP = "$(git rev-parse --show-toplevel)/seal"
+
+# The one home of the way back before the commit to shared (#1055 S6), and
+# the citation of it each README carries.
+SHARED_HEADING = "Before switching to shared, say what cannot be undone"
+SHARED_WAY_BACK = f"`skills/config/SKILL.md` *{SHARED_HEADING}*"
+
+
+def test_the_way_back_before_the_commit_to_shared_is_told_in_its_home():
+    """#1055 S6. The skill section is where the way back is said before the
+    act, so it holds the command and both reasons the READMEs used to give,
+    and it cites the policy for the rule rather than restating it."""
+    skill = read("skills", "config", "SKILL.md")
+    body = flat(section(skill, "## " + SHARED_HEADING, 2))
+    for said in (
+        "`git reset -- :/seal` and then `seal mode local` walk the whole thing back",
+        "refuses a switch over a staged change",
+        "a bare `git reset` unstages the whole index",
+        "`docs/one-root-by-lifetime.md` *Shared or local*",
+    ):
+        assert said in body, said
 
 
 def switch_block(readme):
