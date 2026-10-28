@@ -279,10 +279,6 @@ def path_map(config, home_dir):
     refusals = list(walked)
     places = {}
     for line, cells in rows:
-        if cells == MAP_TABLE:
-            # A second header with no blank line above it is one of the
-            # table's rows to GFM; the walk refuses the delimiter under it.
-            continue
         remote, path = cells
         if not remote or not path:
             refusals.append(

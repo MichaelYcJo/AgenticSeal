@@ -846,8 +846,18 @@ class Test_check:
                 f"{MAP_TOP}\n## Laptop\n\n{MAP_TOP}",
                 "holds a second `| Remote | Path |` header at line 6",
             ),
+            (
+                f"{MAP_TOP}\n{MAP_TOP}",
+                "has a `Remote | Path` table that ends above `| Remote | Path |`",
+            ),
         ],
-        ids=["no table", "one remote twice", "an empty cell", "a second header"],
+        ids=[
+            "no table",
+            "one remote twice",
+            "an empty cell",
+            "a second header",
+            "a second header the walk names",
+        ],
     )
     def test_refuses_each_map_line_it_does_not_read_at_exit_2(self, world, text, said):
         """S3: each shape is one line naming it, at exit 2, where `977b6613`
