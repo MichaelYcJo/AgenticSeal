@@ -187,10 +187,10 @@ def test_the_fix_pass_reads_the_implementers_context_before_it_resumes():
         "hands it the round record and the phase records",
         "the largest context a fresh, never-resumed crafter reached in the 0.22.0 run",
         # #1041, S1: both lines of every finding in one commit for the pass,
-        # and a doubt goes to the next round rather than into a rewrite of
-        # the line.
+        # after the sweep's corrections, and a doubt goes to the next round
+        # rather than into a rewrite of the line.
         "commits the two lines of every finding it answered in one commit for "
-        "the whole pass, after its last fix commit",
+        "the whole pass, after its fix commits and those corrections",
         "A close the orchestrator doubts goes into the verifying round's spawn prompt",
         "the orchestrator does not rewrite the line",
     ):

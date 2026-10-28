@@ -55,13 +55,11 @@ that before the spawn (`skills/implement/orchestration.md` *Question 1*).
 `trail/rounds/round-N.md`, its verdict and its answer, and nothing else but a
 coordinate it appends to `location:` where its fix went elsewhere**
 (`docs/the-review-record.md` *The round record*); it writes no
-`trail/phases/phase-N.md` and no `plan.md` row. It commits the two lines of
-every finding it answered in one commit for the whole pass, after its last
-fix commit, because a `fixed` verdict names a commit that already exists.
-**The orchestrator writes neither line of a finding the fix pass answers, and
-its fix-pass prompt leaves both lines to the crafter.** A close the
-orchestrator doubts goes into the verifying round's spawn prompt, since that
-round weighs every close, and the orchestrator does not rewrite the line.
+`trail/phases/phase-N.md` and no `plan.md` row. **The orchestrator writes
+neither line of a finding the fix pass answers, and its fix-pass prompt leaves
+both lines to the crafter.** A close the orchestrator doubts goes into the
+verifying round's spawn prompt, since that round weighs every close, and the
+orchestrator does not rewrite the line.
 
 **Two commits after the build are yours, not the crafter's**: a fix written after
 the last round, and the commit that integrates a sibling's squash. Each one that
@@ -77,7 +75,9 @@ a later round; that is contract rule 12. For each rule its range reworded or
 removed, the crafter finds every other place stating it, by its words and by
 the `check:` target that holds it, and corrects each or names it in the
 hand-back with why it stands. The round that follows reads that list against
-the diff.
+the diff. Last, the fix pass commits the two lines of every finding it
+answered in one commit for the whole pass, after its fix commits and those
+corrections, because a `fixed` verdict names a commit that already exists.
 
 **You type only the half of a spawn prompt that changes between rounds.**
 `skills/agent-contract/SKILL.md` reaches every agent you spawn at startup,
