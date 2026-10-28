@@ -80,7 +80,7 @@ The contract and the policy root do not change. One phase builds it.
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | The 13 sentences of `frame/design.md` *Removes* rows 1 to 12 gone from `agents/crafter.md`, `proofer.md`, `sealer.md`, `framer.md` and `tracer.md`; each narrowing of *Scope* item 2 kept and citing its rule; each assertion of *Scope* item 3 re-pointed or removed, with the two docstrings rewritten in place; `changelog.md` written for this work item | S1 by the whitespace-collapsed search, its phrases found at `4c90a988` first; S3 by `seal mutate` over each sentence a re-pointed assertion reads, seen red; S2, S4, S5 and S6 green through `bin/test`, one module per call, the modules S4 names. The suite is labelled `unverified`, its answerer the orchestrator (contract rule 2) | |
+| 1 | The 13 sentences of `frame/design.md` *Removes* rows 1 to 12 gone from `agents/crafter.md`, `proofer.md`, `sealer.md`, `framer.md` and `tracer.md`; each narrowing of *Scope* item 2 kept and citing its rule; each assertion of *Scope* item 3 re-pointed or removed, with the two docstrings rewritten in place; `changelog.md` written for this work item | S1 by the whitespace-collapsed search, its phrases found at `4c90a988` first; S3 by `seal mutate` over each sentence a re-pointed assertion reads, seen red; S2, S4, S5 and S6 green through `bin/test`, one module per call, the modules S4 names. The suite is labelled `unverified`, its answerer the orchestrator (contract rule 2) | 3eecf8a0 |
 
 ## Operational impact
 
