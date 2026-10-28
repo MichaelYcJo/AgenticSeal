@@ -25,11 +25,17 @@ something. This work removes that code, or writes beside it why it stays.
 
 ## Not done
 
-**`chain_check.py#reference_of` keeps its None branch.** It has the shape
-k12 had, and no record reaches that branch either, because `finding_of` is
-its one caller in the tree. It stays because `Test_reference_of` pins the
-`regression:` row's grammar by calling it with every spelling the row
-refuses. Its docstring says so since `5d3e53c9`.
+**Three readers in `chain_check.py` keep their None branch: `reference_of`,
+`verdict_of` and `location_of`.** Each has the shape k12 had. No record
+reaches any of the three branches, because `finding_of` hands each one only
+a line its row already matched whole. `verdict_of`'s other caller,
+`deferred_home`, is called only by cases. Each branch stays because the
+direct-call cases (`Test_reference_of`, `Test_verdict_of`,
+`Test_deferred_home` and `Test_location_of`) pin the row's grammar by
+calling the function with values the row refuses. Each docstring says so,
+`reference_of`'s since `5d3e53c9` and the other two since review round 1's
+fix pass. The repository owner decides whether the cases should call
+`as_row` directly instead, which would let all three branches go.
 
 **`chain_check.py#deferred_home` has no caller outside the tests.** `git grep`
 finds it only at its definition and in `Test_deferred_home` and
