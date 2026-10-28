@@ -909,6 +909,7 @@ ALLOWED_DOMAINS = (
     "github.com",
     "arxiv.org",
     "claude.com",  # official docs this plugin is built against
+    "w3.org",  # the SVG namespace, which every SVG file must declare to open
 )
 # A host allowed bare, or under the paths named for it, and nowhere else. The
 # developer portal sits under /directory on the product's own address, and it

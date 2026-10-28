@@ -103,13 +103,15 @@ it, because an entry is drawn from its tag.
 The placeholder S above stands on the disc whose frame the owner settled
 on 2026-10-07: 28 cells across, a wax edge, a rim lit from the upper left,
 a groove and the field. Its chart is 28 lines of 28 characters over `.M`.
-The owner looked at these three marks the same day and shipped none of
-them; they wait here for #857.
+The owner looked at the two section signs the same day and shipped neither;
+they wait here for #857, beside the owl and the bee the owner kept on
+2026-10-28.
 
 Each candidate is three files, and no code reads any of them:
 
 - **`<name>.txt`** — the mark as a chart: `M` where the mark is pressed,
-  `.` where the field shows.
+  `.` where the field shows. The owl's and the bee's are a 16 × 16 sprite
+  instead, one letter per cell, read below.
 - **`<name>.ans`** — the stamp the owner looked at, its caption line
   dropped and its colour codes written only where something changes, so a
   terminal prints it whole. Every cell is the one the owner saw.
@@ -139,16 +141,38 @@ with a sentence naming the line and the column.
   the mark without them, and `read_chart` refuses the chart until they are
   dropped.
 
-### The key at 28 cells — `key-28`
+### The owl and the bee in the stamp's reds — `owl-28-pixel`, `bee-28-pixel`
 
-![The key at 28 cells: a key lying flat in three red tones with a drop shadow on a 28-cell disc, at the right of a parchment sheet carrying a sample panel](candidates/key-28.png)
+![The owl in the stamp's reds: a square-eyed owl drawn as 16-cell pixel art on the 28-cell disc, in the stamp's own reds](candidates/owl-28-pixel.png)
+![The bee in the stamp's reds: a bee seen from above, wings spread, drawn as 16-cell pixel art on the 28-cell disc, in the stamp's own reds](candidates/bee-28-pixel.png)
 
-- **What it is:** a key lying flat, bow at the left, fitted to the 28-cell
-  frame in the same tones.
-- **Drawn by:** the same reference renderer over the same sample panel.
-  No tag draws it again.
-- **Its chart is accepted as it stands**, and the `.ans` shows every `M`
-  of it.
+- **What they are:** two marks drawn on 2026-10-28 as pixel art, one cell
+  at a time, rather than reduced from a larger drawing. Each is a 16 × 16
+  sprite at the centre of the 28-cell disc, and every colour is one of the
+  stamp's own reds, so the emblem reads as pressed into the same wax.
+- **The sprite's letters:** `K` the outline, `INNER`; `P` a pupil,
+  `FIELD`, so no eye is near black; `R` the body, `RIM_MID`; `L` the
+  breast, `FACE`; `W` an eye or a wing, `LIGHT`; `Y` a beak, a foot or a
+  stripe, `RIM_LIT`; `.` the field. A field cell whose upper-left
+  neighbour is drawn takes the drop shadow.
+- **Why both:** the owner chose the stamp's reds over a colour sprite and
+  over a one-colour relief, and has not chosen between the motifs. The owl
+  stands for the guarantee, as on an Athenian coin. The bee stands for
+  workers who need no one to tell them what to do, and for the wax a seal
+  is pressed in. #857 holds the choice.
+- **What it would take:** neither is a `.M` chart, so `read_chart` refuses
+  both. A sprite with its own colours becomes the mark only when
+  `seal_stamp.py#build` draws one, which #857 owns.
+- **What a page shows:** each motif is a set. The terminal draws the
+  sprite, made for its grid; a page draws `owl-web.svg` or `bee-web.svg`,
+  a vector seal with the detail an image can carry, for a release note,
+  the README or the plugin icon. Each has a `.png` preview beside it. The
+  owl's vector carries more than its sprite: ringed eyes, the wing lines
+  and the chevrons on its breast. The bee's vector is a faceted bee inside
+  a hexagonal wax cell, the honeycomb its sprite has no room for.
+
+![The owl as a vector seal: a raised owl with ringed eyes, wing lines and chevrons on its breast, pressed into a red disc](candidates/owl-web.png)
+![The bee as a vector seal: a faceted bee with banded body and kite-shaped wings inside a raised hexagonal wax cell, on a red disc](candidates/bee-web.png)
 
 ### The light-red section sign at 14 cells — `section-14-light-red`
 
