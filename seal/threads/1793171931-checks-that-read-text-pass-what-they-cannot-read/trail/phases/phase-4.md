@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Phase | 4 |
-| Commit | the commit that adds this file; `frame/plan.md`'s Status cell for phase 4 names it |
+| Commit | 06bada02 |
 
 ## What this phase was asked
 
