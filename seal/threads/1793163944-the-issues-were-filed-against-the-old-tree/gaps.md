@@ -10,13 +10,16 @@ The issues of 0.24.0 and 0.24.1 were filed against the tree before the rename an
 |---|---|---|---|
 | F2's `docs/` count | `frame/design.md` *F2*: "`docs/` 17"; the same command at `c1b79d40` counts 18 | 18, filed in #1110 with the command | the issue carries the measurement this phase ran (executed); `trail/phases/phase-1.md` names the three path lines the word-bound match counts |
 | F3's assert counts | `frame/design.md` *F3*: "`tests/text` 193, `tests/behaviour` 340, `tests/skills` 270, `tests/github` 67, `tests/hooks` 36, `tests/evals` 15", with no command given; the command this phase ran counts 182, 308, 224, 57, 31, 13 | the re-run figures, filed in #1111 with their command | a count with no command cannot be re-run; the frame's own caveat that the figure bounds the class from above stays in the body |
+| `frame/questions.md` Q1, #920's milestone | the spawn prompt: build on the default (a), move #920 to `release: 0.24.1` and comment the reason; phase 2 did both. The owner then answered (b) after the frame was committed, relayed in the orchestrator's message during phase 2: #920 stays in `release: 0.24.0`, no move comment, #1049 does not gain #920, and the 0.24.0 description keeps #920 in the small-fix group | (b): #920 put back in `release: 0.24.0` and the comment deleted, both exit 0; #1049's fold and both descriptions follow (b) | the owner's answer, as the orchestrator's message relays it; the orchestrator folded it into `frame/design.md` and `frame/questions.md` at `64dca63a`; acts in `trail/phases/phase-2.md` |
+| #1056, who reads `LABEL_DESCRIPTION_LIMIT` | `frame/design.md` *#1056*: "only `tests/github/test_label_merged_on_release_branch.py:383` reads it"; `git grep` also finds `tests/github/test_tracker_labels.py:146`, through `.github/scripts/tracker_labels.py`'s `signal` | both readers, named in #1056 | executed, `git grep -n LABEL_DESCRIPTION_LIMIT` at `c1b79d40` |
+| The mapping beyond the rows | each verdict row lists its instances; six bodies held an instance of a mapped class the row did not list: #913's `plan.md` of #871, #951's `arm-check`, #1042's "SpecSeal's", #992's "the warden's recall", #1055's `templates/seal-README.md`, #1058's `env.pop` line | each folded with its class | `frame/design.md` *The name mapping every fold applies*: "Each fold below applies these, where the issue's body uses the old form"; contract rule 12; each listed in `trail/phases/phase-2.md` |
 
 ## Not verified
 
 | Item | Who must answer |
 |---|---|
 | The broad gate over this branch; no phase ran a test, because no tree file outside this directory changes | the orchestrator |
-| `frame/questions.md` Q1, built on its default (a), moving #920 to `release: 0.24.1` | the owner |
+| closed `frame/questions.md` Q1, built on its default (a), moving #920 to `release: 0.24.1` | answered (b) by the owner, relayed by the orchestrator during phase 2; #920 put back in `release: 0.24.0` |
 
 ## Not done
 
