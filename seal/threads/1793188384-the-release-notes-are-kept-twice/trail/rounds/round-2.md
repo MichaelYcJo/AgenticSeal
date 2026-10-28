@@ -23,7 +23,7 @@ again from round 1's `## Probes` rows.
 severity: should
 location: `.github/scripts/publish_release_note.py:19-21`, `seal/threads/1793188384-the-release-notes-are-kept-twice/frame/design.md:31-32`, `seal/threads/1793188384-the-release-notes-are-kept-twice/frame/design.md:208-209`, `seal/threads/1793188384-the-release-notes-are-kept-twice/frame/design.md:313-314`, `seal/threads/1793188384-the-release-notes-are-kept-twice/frame/questions.md:9`, `seal/threads/1793188384-the-release-notes-are-kept-twice/changelog.md:3`
 evidence: executed `bin/test tests/github/test_tmp_round2_fragments.py -q -s -p no:xdist`, `git grep -n -E 'commit in that range added|commits after the previous|a commit after the previous' -- .github seal/threads/1793188384-the-release-notes-are-kept-twice ':!*/trail/rounds/*'`
-verdict: open
+verdict: fixed c8f6b31e
 
 `d60ca012` gave `fragments` a second arm. A fragment that the range's lower
 tag already holds is skipped, even where a commit in the range added it again
@@ -104,14 +104,14 @@ changelog.md:3, the clause:
 now reads every fragment the commits after the previous version tag added and that tag does not already hold, from the history at the tag,
 ```
 
-answer:
+answer: Holds. The orchestrator's `5087abed` rewrites the four frame sentences. This pass's `c8f6b31e` rewrites the module docstring at `publish_release_note.py:19-21` and the clause in `changelog.md:3`, each as the round gives it. The sweep (contract rule 12) found five more sentences that state the selection without the skip, and the same commit rewrites them. They are the docstring's exit-code line, the empty-range message in `main`, `publish-release.yml:17`, the A1 and A3 lines of `tests/github/test_publish_release_note.py`'s summary, and the docstrings of the two emptied modules. The message is something a person reads, so S5 now asserts its new clause, `that v1.2.2 does not already hold`. That assertion failed against the old message and passes after the change (executed). These stay as they are: `publish-release.yml:56-57` and `frame/plan.md:56` for the round's reasons; `test_publish_release_note.py:63`, `:148` and `:236`, which describe the list the cases' stub of `fragments` returns, not the selection rule; and the phase records and `gaps.md`, which already name the skip. Executed: the 5 modules naming `publish_release_note` or this work item's id, 91 passed, exit 0; `ruff check` 0, `ruff format --check` 0, `seal layout --check` 0, `seal rules --check` 0.
 
 ### 2. The phase 4 record says the two follow-up rows read the 0.12.2 file at `v0.12.2`, and both rows say `v0.23.1`
 
 severity: should
 location: `seal/threads/1793188384-the-release-notes-are-kept-twice/trail/phases/phase-4.md:83-85`
 evidence: read `seal/follow-up.md:47`, `seal/follow-up.md:49`, `seal/threads/1793188384-the-release-notes-are-kept-twice/trail/phases/phase-4.md:39-41`, `seal/threads/1793188384-the-release-notes-are-kept-twice/trail/phases/phase-4.md:83-85`
-verdict: open
+verdict: fixed c8f6b31e
 
 Round 1's finding 3 was about one false fact: that the 0.12.2 file is read
 at its own tag, `v0.12.2`, which holds no such file. That finding listed the
@@ -140,7 +140,7 @@ names the v0.12.2 GitHub Release as the released copy and `changelog/0.12.2.md`
 at `v0.23.1` as its folded text. Each says a published note is never rebuilt,
 ```
 
-answer:
+answer: Holds; fixed in place as given at `phase-4.md:84-85`. A search for other places that read the 0.12.2 file at `v0.12.2` found none: `git grep -n -E 'at \`v0\.12\.2\`|v0\.12\.2:changelog'`, with the round records excluded, printed nothing (executed).
 
 ## Confirmations
 
