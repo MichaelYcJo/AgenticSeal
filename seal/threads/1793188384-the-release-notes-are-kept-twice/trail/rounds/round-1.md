@@ -14,7 +14,7 @@ declares no `seal/parity.md`, so this round has no `original:` line.
 severity: must
 location: `.github/scripts/publish_release_note.py:186-216`, `tests/github/test_publish_release_note.py:249-302`
 evidence: executed `TMP_BOTH_ROOTS=1 bin/test test_tmp_fragments_against_released_files.py -q -s -p no:xdist`, `git log --format=%h v0.22.3..v0.22.4 -- seal/specs/1792926874-the-records-carry-no-comment-and-the-readers-drop-it/changelog.md`, `git log --full-history --format=%h v0.22.3..v0.22.4 -- seal/specs/1792926874-the-records-carry-no-comment-and-the-readers-drop-it/changelog.md`, `bin/test tests/github/test_tmp_merge_tagged_settle.py -q -s -p no:xdist`
-verdict: open
+verdict: fixed d60ca012
 
 `frame/design.md` *Scope* item 1 says each fragment is read "at the newest
 commit of the range whose tree holds the path, so a fragment a settle removed
@@ -138,14 +138,14 @@ The docstring of `fragments` at `:187-195` gains one sentence for each of the
 two arms. `frame/design.md` *Data & interfaces* names the per-path
 `git log`, so the fix pass adds `--full-history` and the guard there too.
 
-answer:
+answer: Holds; fixed as given. `fragments` adds `--full-history` to the per-path log and skips a path the range's lower tag already holds, and its docstring gains a sentence for each arm. The round's case is `Test_module::test_a_fragment_the_settle_removed_reaches_a_note_tagged_on_a_merge`. Against the build it failed with `assert [] == [('1700000001-first', '- first entry')]`; after the fix the module passed (executed). The comparison re-ran once as a deleted `test_tmp_*` probe: the fixed `fragments` with both roots read, against each released file's markers at `v0.23.1`, 0.14.0 to 0.23.1. All 26 were equal, 0.22.4 at 9 of 9 and 0.15.3 at 6 of 6 (executed). The frame's *Data & interfaces* line is not this pass's to edit: `gaps.md` records the divergence, and the orchestrator amends the frame.
 
 ### 2. Step 3 of the update skill prints every release body ever published into the session, about 880 KB today
 
 severity: should
 location: `skills/update/SKILL.md:72-90`, `tests/behaviour/test_release_hygiene.py:1080-1101`
 evidence: executed `curl -fsS "https://api.github.com/repos/$repo/releases?per_page=100" -o /dev/null -w '%{size_download} bytes, http %{http_code}\n'`
-verdict: open
+verdict: fixed 9251500c
 
 Step 3 tells the session updating the plugin to run
 `curl -fsS ".../releases?per_page=100"`, then read the `body` of each release
@@ -202,14 +202,14 @@ Summarize every entry in them." The S8 case at
 the flattened step, so the step's prose must still hold no word that ends in
 "gh" before a space.
 
-answer:
+answer: Holds; fixed. Step 3 downloads the list to a file and prints only the releases in the span, oldest first, each under its tag. The sentence after the block is the round's. One change from the round's block: its last line read `<old version> <new version>`, which a shell takes as a redirection. The step sets `old` and `new` in prose and passes `"$old" "$new"` (recorded in `gaps.md`). S8 gains `'releases?per_page=100" -o "$f"'`, `"reversed("` and `"old < at <= new"`. The extended case failed against the unchanged skill on the first of these and passed after the fix (executed). The new step ran on this machine for 0.22.4 to 0.23.1: `curl` exit 0, filter exit 0, 16,760 bytes printing `v0.23.0` and `v0.23.1` (executed). `phase-2.md` now says the built step printed the whole list.
 
 ### 3. The frame still reads the 0.12.2 file at its own tag, and `v0.12.2` holds no such file
 
 severity: should
 location: `seal/threads/1793188384-the-release-notes-are-kept-twice/frame/design.md:97-100`, `seal/threads/1793188384-the-release-notes-are-kept-twice/frame/questions.md:13-16`
 evidence: executed `git cat-file -e v0.12.2:changelog/0.12.2.md`, `git cat-file -e v0.23.1:changelog/0.12.2.md`
-verdict: open
+verdict: fixed ce0105d9
 
 The orchestrator folded phase 4's divergence into the frame at `8b286eb7`
 and `9f193554`, rewriting *Scope* item 5, S11 and the plan's phase 5 row.
@@ -237,14 +237,14 @@ questions.md:13-16, in place:
   tag's own file only from `v0.18.1`). #557 fixed `survivor_check.py`'s
 ```
 
-answer:
+answer: Holds. The frame is the orchestrator's, and its commit `ce0105d9` rewrites both blocks in `frame/design.md` *Scope* item 8 and `frame/questions.md`, the two paths `location:` names (read: `git show --stat ce0105d9`). This pass built nothing for it.
 
 ### 4. Three sentences still state the gather or its files, and neither the build nor `## Rule changes` reaches them
 
 severity: should
 location: `docs/the-record-layout.md:36-37`, `docs/release-checklist.md:146`, `skills/verify/scripts/unverified_check.py:257`, `seal/threads/1793188384-the-release-notes-are-kept-twice/frame/design.md:189-463`
 evidence: executed `git grep -n -i -E 'changelog/|CHANGELOG\.md|gather|changelog marker|release file|released file' -- docs`, `git grep -n -i -E 'changelog marker|marker the changelog|gathered entr|ungathered|live_markers'`
-verdict: open
+verdict: fixed db3c20cf
 
 *Grounding* row 3 of the frame asks that every sentence naming the gathered
 files or the gather be removed or re-pointed. Outside `docs/` the build does
@@ -294,7 +294,7 @@ in the script:
     line that HOLDS something — an open row — reads it,
 ```
 
-answer:
+answer: Holds. The orchestrator's `ce0105d9` adds the two `## Rule changes` operations to `frame/design.md`. This pass's `db3c20cf` makes the in-place edit at `skills/verify/scripts/unverified_check.py:257`. The sweep found no other sentence outside `docs/` and `seal/` that names the changelog marker: `git grep -n -i -E 'changelog marker|marker the changelog'` with those two excluded printed nothing (executed). `skills/implement/orchestration.md:578` states it across a line wrap, which that grep does not match, and it is #1041's under Q4 (read).
 
 ## Confirmations
 
