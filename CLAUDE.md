@@ -30,7 +30,7 @@ mechanism's edge cases, ask what it decides; what exists is a reference, not
 a constraint. A thing is re-checked only when the diff or CI shows it
 changed. A change rewrites the text it amends in place, and in the same
 commit removes what stood on the old fact: a check, an exception, a comment,
-a copy. History goes to git, the changelog and the work record.
+a copy. History goes to git, the release notes and the work record.
 `CONTRIBUTING.md` *What a change to a gate must carry* is where a pull
 request answers this rule and the goal above.
 

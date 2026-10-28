@@ -215,25 +215,14 @@ def is_a_record_of_a_moment(rel):
     )
 
 
-def shipped_versions():
-    """Every version `CHANGELOG.md` records as released.
-
-    Read by the illustrative-version case alone, and NOT the source of the
-    shipped set `timers_in` keeps: the preparation commit writes the heading
-    and bumps `plugin.json` together, so a changelog-derived set would wave
-    through the very version being cut (#363).
-    """
-    return set(re.findall(r"^## (\d+\.\d+\.\d+)\b", read_text("CHANGELOG.md"), re.M))
-
-
 def shipped_tags(root=ROOT):
     """Every version `root` has a `v*` tag for, bare.
 
     A tag exists only once the release reached `main`, which is what makes it
-    the one truthful source for *shipped* — `CHANGELOG.md` gets its heading
-    in the same commit that bumps the running version, and the version being
-    cut is the timer the rule exists to catch. A tag that is not
-    version-shaped is not a release and is dropped.
+    the one truthful source for *shipped* — the preparation commit bumps the
+    running version before the release ships, and the version being cut is
+    the timer the rule exists to catch. A tag that is not version-shaped is
+    not a release and is dropped.
     """
     return {
         tag[1:]
@@ -258,7 +247,7 @@ def timers_in(rel, text, running, shipped=frozenset()):
     commit until the next bump the running version is one that has already
     shipped, and the documents shipping with it could not name it. `shipped`
     is the set of tagged versions of the root being swept — never derived
-    from `CHANGELOG.md`, whose heading lands in the bump's own commit.
+    from anything the bump's own commit writes.
     """
     if is_a_record_of_a_moment(rel):
         return []
@@ -538,8 +527,8 @@ def test_the_illustrative_version_is_not_one_this_repository_could_ship():
         "rewrite the paragraph at `docs/issues-and-milestones.md` that opens "
         "**A rolling log is titled after the version it rolled from** with it"
     )
-    shipped = shipped_versions()
-    assert shipped, "CHANGELOG.md records no releases — this case is blind"
+    shipped = shipped_tags()
+    assert shipped, "no `v*` tag is readable from this checkout — this case is blind"
     assert ILLUSTRATIVE_VERSION not in shipped, (
         f"the illustrative version {ILLUSTRATIVE_VERSION} has shipped "
         f"({sorted(shipped)}), so a loaded file naming it names a real "
@@ -583,8 +572,8 @@ def test_no_loaded_file_names_a_version_at_or_above_the_running_one():
     Three exemptions, each argued where it is declared rather than here:
 
     - `RECORDS_OF_A_MOMENT` — files whose whole job is to name a moment.
-      `seal/threads/`, `CHANGELOG.md` and `changelog/` are outside the scanned
-      set entirely. `docs/experiments/` holds dated measurements whose
+      `seal/threads/` is outside the scanned set entirely.
+      `docs/experiments/` holds dated measurements whose
       numbers are the reading.
     - `ILLUSTRATIVE_VERSION` — the value the repository already tells authors
       to write, with its own case above asserting it is not a real one.
@@ -645,9 +634,9 @@ def test_a_tagged_version_is_history_and_is_kept():
 
 
 def test_the_shipped_set_is_the_tags_of_the_root_being_swept(tmp_path):
-    """The trap #363 names: `CHANGELOG.md` gets its heading in the SAME
-    commit that bumps `plugin.json`, so *shipped* derived from the changelog
-    would wave through the very version being cut. A tag exists only after
+    """The trap #363 names: the gathered changelog got its heading in the
+    SAME commit that bumped `plugin.json`, so *shipped* derived from it would
+    have waved through the very version being cut. A tag exists only after
     the release reaches `main`, so tags are the source and nothing else.
 
     The fixture tags its running version and names three: one below it, the
@@ -1110,98 +1099,6 @@ def test_update_shows_what_changed_from_the_github_releases():
         assert needed in flat, f"step 3 does not carry {needed!r}: {why}"
     for refused in ("changelog/", "CHANGELOG.md", "Authorization", "gh "):
         assert refused not in flat, f"step 3 carries {refused!r}"
-
-
-def test_no_section_accumulates_entries_in_the_shared_file():
-    """`## Unreleased` was the region every branch appended to.
-
-    This case used to check that it sat ABOVE every dated section, after a
-    rebase conflict resolved the wrong way sank it below one. That ordering
-    stopped being the problem when the section stopped existing: entries
-    accumulate as `seal/threads/<work-item-id>/changelog.md` fragments now, and
-    the
-    release gathers them into a dated section at the top. A heading by that
-    name means somebody went back to the shared file, which is issue #46.
-
-    The order still matters and is still checked — by
-    `tests/github/test_gather_changelog.py`, against the gather script that
-    produces it, which is the only thing that writes a section now.
-    """
-    with open(os.path.join(ROOT, "CHANGELOG.md"), encoding="utf-8") as f:
-        headings = re.findall(r"^## (.+)$", f.read(), re.M)
-    found = [h for h in headings if h.lower().startswith("unreleased")]
-    assert not found, (
-        f"CHANGELOG.md carries {found} again. An entry goes in "
-        "seal/threads/<work-item-id>/changelog.md; `gather_changelog.py --version "
-        "X.Y.Z` is what writes a section here"
-    )
-
-
-def duplicated_version_headings(text):
-    """`[(version, [line numbers])]` for every version `## ` heads twice.
-
-    #289: `gather_changelog.py` used to write a second `## X.Y.Z` when run
-    twice for one version, and one release shipped with its entries split
-    across two headings that read as two releases with the same number. The
-    gather appends now; this is the half that keeps it closed, because the
-    append is a one-line change a later edit can undo silently.
-    """
-    lines = {}
-    for number, line in enumerate(text.splitlines(), 1):
-        found = re.match(r"^## (\d+\.\d+\.\d+)\b", line)
-        if found:
-            lines.setdefault(found.group(1), []).append(number)
-    return [(version, at) for version, at in lines.items() if len(at) > 1]
-
-
-def test_a_version_heading_appears_once_in_a_changelog():
-    """The reader, against a file that has the defect and one that does not,
-    so the real-tree case below cannot pass by reading nothing."""
-    split = (
-        "# Changelog\n\n## 0.2.0 — d\n\n- a\n\n## 0.2.0 — d\n\n- b\n\n## 0.1.0 — c\n"
-    )
-    assert duplicated_version_headings(split) == [("0.2.0", [3, 7])]
-    assert duplicated_version_headings("# Changelog\n\n## 0.2.0 — d\n\n- a\n") == []
-
-
-def test_no_version_heads_two_sections_of_this_changelog():
-    """This repository's own file. A second heading for one version is a
-    second gather that did not append — the defect #289 measured at one
-    release and removed by hand at the next."""
-    found = duplicated_version_headings(read_text("CHANGELOG.md"))
-    assert not found, "\n".join(
-        f"CHANGELOG.md heads {version} twice, at lines {at}. One release, "
-        "one section: merge the later heading's entries into the first and "
-        "delete it"
-        for version, at in found
-    )
-
-
-def test_the_newest_changelog_entry_is_the_version_being_shipped():
-    """`test_plugin_version_is_in_changelog` accepts the version appearing
-    anywhere, and an older entry satisfies that forever. What has to hold is
-    that the newest dated entry IS the shipping version: a bump with no entry
-    and an entry with no bump are the two ways a release goes out unexplained.
-
-    An `## Unreleased` heading is skipped. On `next` the entries collect there
-    while `plugin.json` stays at the last release, which is the whole point of
-    accumulating."""
-    with open(os.path.join(ROOT, "CHANGELOG.md"), encoding="utf-8") as f:
-        headings = re.findall(r"^## (.+)$", f.read(), re.M)
-    dated = [h for h in headings if not h.lower().startswith("unreleased")]
-    assert dated, "CHANGELOG has no released entry"
-    newest = dated[0].split()[0]
-    assert newest == version(), (
-        f"CHANGELOG's newest entry is {newest}, plugin.json ships {version()}"
-    )
-    # S3 of #728: the index heads the release, and the release's own file is
-    # there too. A preparation commit that staged the index line and left
-    # `changelog/X.Y.Z.md` untracked ships a heading that links nowhere.
-    release = os.path.join(ROOT, "changelog", f"{newest}.md")
-    assert os.path.isfile(release), (
-        f"CHANGELOG.md heads {newest} and changelog/{newest}.md is not there. "
-        "`gather_changelog.py --version X.Y.Z` writes both; stage both"
-    )
 
 
 def test_the_release_target_is_asked_before_the_work_starts():

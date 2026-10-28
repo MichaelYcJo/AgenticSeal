@@ -11,7 +11,6 @@ import re
 import subprocess
 import sys
 
-import pytest
 from conftest import ROOT
 
 # --- packaging sanity ------------------------------------------------------
@@ -101,21 +100,6 @@ def test_the_gate_table_has_one_row_for_each_script_groups_registers():
     )
     for edition in GATE_TABLE:
         assert sorted(gate_table_names(edition)) == registered, edition
-
-
-def test_plugin_version_is_in_changelog():
-    # The changelog starts at the first public release, so commits before it
-    # legitimately have no file — the claim under test is "if a changelog
-    # exists, it must mention the version being shipped".
-    changelog = os.path.join(ROOT, "CHANGELOG.md")
-    if not os.path.isfile(changelog):
-        pytest.skip("no CHANGELOG.md in this tree")
-    with open(
-        os.path.join(ROOT, ".claude-plugin", "plugin.json"), encoding="utf-8"
-    ) as f:
-        version = json.load(f)["version"]
-    with open(changelog, encoding="utf-8") as f:
-        assert version in f.read(), f"CHANGELOG missing {version}"
 
 
 def test_the_plugin_icon_is_a_png_the_directory_accepts():

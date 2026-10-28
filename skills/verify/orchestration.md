@@ -324,8 +324,8 @@ segment that just finished, not as a follow-up someone might do later:
    **A span runs from its window's first call to the last call to end.** A
    long-lived call, such as a background command or a suite spanning the
    window, ends after the window that counts it, and the span covers it. A
-   reading taken before the release whose file under `changelog/` lists #300
-   ended a span at the last call to begin: its span is the shorter of the two
+   reading taken before the release whose release note lists #300 ended a
+   span at the last call to begin: its span is the shorter of the two
    wherever a call outlived its window, and identical everywhere else.
    `command` can still exceed 100 per cent of the span, because command time
    is a sum over calls and calls can run concurrently. Where a share reads
@@ -344,8 +344,8 @@ segment that just finished, not as a follow-up someone might do later:
    after a leading assignment. The family reads the command with its newlines
    kept and removes a heredoc's body up to its closing line, so a `gh issue
    create` after `cat > body.md <<'EOF'` and a `bin/test` after a `python3 -
-   <<'EOF'` script are read. In a reading taken before the release whose file
-   under `changelog/` lists #377, `git` and `test` read low and `other` reads
+   <<'EOF'` script are read. In a reading taken before the release whose
+   release note lists #377, `git` and `test` read low and `other` reads
    high by the same calls, the `other` note may name a command that was a
    `git` run, and the two repeats figures, which keep only `test`,
    `lint/type` and `build`, may read low; span, command, model, idle, tokens,
@@ -364,7 +364,7 @@ segment that just finished, not as a follow-up someone might do later:
    or runs from inside its quotes is not seen, and such a call is `read`. It
    is judged after the other four, so `grep -rn pytest` stays `test` and
    `ls && git status` stays `git`. In a reading taken before the release
-   whose file under `changelog/` lists #642 there is no `read` row, `other`
+   whose release note lists #642 there is no `read` row, `other`
    holds those calls, and the `other` note may fire where it would not now
    and name a read command; every other row, the two repeats figures, span,
    command, model, idle, tokens, tools per turn and the `slowest` list do not
