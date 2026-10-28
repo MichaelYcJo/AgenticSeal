@@ -1148,8 +1148,8 @@ def test_the_release_target_is_asked_before_the_work_starts():
         # as `seal/threads/<work-item-id>/changelog.md` fragments. A `crafter`
         # reading
         # its own contract therefore either created the heading — reddening
-        # `test_no_section_accumulates_entries_in_the_shared_file` — or
-        # appended under the newest released section, which is the collision
+        # the case that refused it in `CHANGELOG.md`, which #1053 removed with
+        # the file — or appended under the newest released section, the collision
         # the fragments exist to remove. The two cases pulled against each
         # other and the contract was the one that was wrong.
         assert "## Unreleased" not in text, (

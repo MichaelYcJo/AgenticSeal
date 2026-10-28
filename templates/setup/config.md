@@ -140,11 +140,11 @@ every repository, whatever either row says:
   `## Rule changes` heading, the items `add`, `change`, `remove` and
   `nothing`, and the fields `file:`, `section:`, `from:`, `to:` and `why:`.
   A translated field name is not a translation, it is a broken gate.
-- **The markers and anchors.** `<!-- specs/<work-item-id> -->`, a release
-  section's `## X.Y.Z — <date>`, the word `closed` that opens a closed
-  `## Not verified` row, the line `## Not from the records` that ends the
-  part of a pull request body `seal pr-body` copies from the records, and
-  the anchor table's header cells `Pact`, `Clause` and `Hash`.
+- **The markers and anchors.** `<!-- specs/<work-item-id> -->`, the word
+  `closed` that opens a closed `## Not verified` row, the line
+  `## Not from the records` that ends the part of a pull request body
+  `seal pr-body` copies from the records, and the anchor table's header
+  cells `Pact`, `Clause` and `Hash`.
 - **Code.** Identifiers, comments, docstrings, file names, and test function
   names.
 - **The item column of this table**, which is a key rather than prose: the
