@@ -3295,6 +3295,7 @@ class Test_main:
         spawned* puts one before the description. `--json` keeps the whole
         name, and that is where a reader of a cut row finds it."""
         name = "vercel:performance-optimizer"
+        label = "cycle 1  vercel:performance-op"
         lines = spawn("A", 0, 59.6, name, "Build phase 1")
         lines += call("a", 80, 85, "git status")
         path = tmp_path / "long.jsonl"
@@ -3304,9 +3305,12 @@ class Test_main:
         printed = out.splitlines()
         header = next(line for line in printed if line.startswith("  row "))
         row = next(line for line in printed if line.startswith("  cycle 1 "))
-        assert row.startswith("  cycle 1  vercel:performance-op "), out
+        assert row.startswith(f"  {label} "), out
         assert len(row) == len(header), out
-        assert "  cycle 1  vercel:performance-op Build phase 1" in printed, out
+        # The run's first act is the spawn, so `head` has no call, and its
+        # label column is as wide as the cut label's.
+        assert f"  {'head':<{len(label)}}     no call in this window" in printed, out
+        assert f"  {label} Build phase 1" in printed, out
         cycle = [r for r in spawns_of(path)["rows"] if r["kind"] == "cycle"]
         assert [r["subagent_type"] for r in cycle] == [name], cycle
 
