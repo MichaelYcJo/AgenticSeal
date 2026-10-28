@@ -9,7 +9,7 @@ target: a589145d, fixes 99c1649a..a589145d
 severity: should
 location: `seal/threads/1793201097-two-environment-variables-still-carry-the-old-brand/gaps.md:13`
 evidence: read `seal/threads/1793201097-two-environment-variables-still-carry-the-old-brand/gaps.md:13`, `seal/threads/1793201097-two-environment-variables-still-carry-the-old-brand/frame/design.md:80`, `.claude-plugin/plugin.json:25`
-verdict: open
+verdict: fixed 37d07f13
 
 The row's *Spec says* cell states, in the present tense, that
 `frame/design.md` *Data and interfaces* says "Left empty, the system locale
@@ -45,7 +45,7 @@ The fix deletes the row. Its history is already in `round-1#1` and in
 -| The option's description | `frame/design.md` *Data and interfaces*: "Left empty, the system locale decides." The manifest says "Left empty, the variable SPECSEAL_LANG decides through 0.24.x, then the system locale.", and S5's case asserts the description names `SPECSEAL_LANG` | The manifest's text, from `trail/rounds/round-1.md` finding 1 | `hooks/worktree-guard.py#_lang` reads `SPECSEAL_LANG` before the locale wherever the option is empty. The description is the help text Claude Code shows where a person sets the option, in its dialog and in `/config`, and the README that states the fallback is not shown there. The frame's text told the person the fallback exists for, the owner with `SPECSEAL_LANG=ko` and an `en_US.UTF-8` locale, that an empty option gives English. The next minor release removes the clause and its assertion with the read |
 ```
 
-answer:
+answer: The orchestrator, whose fold at `a589145d` left the row, deleted it as the diff above gives at `37d07f13`; `bin/seal unverified` on `gaps.md` exits 0 after. No fix pass ran for this finding, so the orchestrator writes both its lines.
 
 ## Confirmations
 
