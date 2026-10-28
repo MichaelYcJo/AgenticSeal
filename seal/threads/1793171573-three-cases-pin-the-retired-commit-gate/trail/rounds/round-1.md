@@ -12,7 +12,7 @@ was opened this round. The spec is issue #1039, read with `gh issue view 1039`.
 severity: should
 location: `tests/behaviour/test_the_hook_surface_git_offers.py:16-33`
 evidence: read `tests/behaviour/test_the_hook_surface_git_offers.py:4-33`, `docs/worktree-guard-spec.md:576-587`, `tests/behaviour/test_the_hook_surface_git_offers.py:191-242`
-verdict: open
+verdict: fixed f8703927
 
 Issue #1039 asks the docstring to state "what the seven remaining cases pin
 for `docs/worktree-guard-spec.md`". The phase record claims the docstring
@@ -52,14 +52,14 @@ no `post-checkout` at all. The first two of these are the creation facts
 keeps them.
 ```
 
-answer:
+answer: The finding holds: `docs/worktree-guard-spec.md:582-584` states the creation half of *Which tree*, and `test_a_refused_creation_leaves_no_worktree_and_keeps_its_branch` and `test_post_checkout_tells_a_creation_from_a_switch_and_runs_in_the_tree` are its grounds. `f8703927` takes the suggested paragraph as written: the four creation cases pin *Decided before git runs* and the creation half of *Which tree*, and a change that retires the first rule keeps the first two cases. The phase record's sentence at `trail/phases/phase-1.md:42-43` states what `5f2efce2` did and stands as that commit's record. No other file assigns these cases to a rule (`git grep` for the four case names finds them only in the module, `.test_durations` and this work item's records).
 
 ### 2. The switch case's failure message still sends its reader to #692's retired design, which the rewritten docstring no longer names
 
 severity: should
 location: `tests/behaviour/test_the_hook_surface_git_offers.py:170-175`
 evidence: executed `git grep -n "buildable as framed"`, `git show 6e322bb7:tests/behaviour/test_the_hook_surface_git_offers.py`, `git grep -n "writes nothing into a clone's git hooks" docs`
-verdict: open
+verdict: fixed f8703927
 
 The old docstring ended "that is the moment the design's switch arm becomes
 buildable as framed". Commit `5f2efce2` rewrote that sentence at `:22-24`
@@ -92,14 +92,14 @@ the current rule, so they steer nowhere. This message is the one instance.
     )
 ```
 
-answer:
+answer: The finding holds, and contract rule 19 asked `5f2efce2` to remove this copy of the sentence along with the docstring's. `f8703927` replaces the message with the suggested text, which names the guard's reading of the command and points to `docs/worktree-guard-spec.md` *Which tree*. After the commit, `git grep -n "buildable as framed"` finds the phrase only in this round record. The other hits for "switch arm" (`tests/behaviour/test_the_frozen_reading_never_grows.py`, `tests/e2e/creation/test_creation_flow.py:9`, `hooks/worktree-guard.py:2091`, `docs/worktree-guard-spec.md:700`) name the guard's own switch arm as it stands, not #692's design inside a git hook, so they stand.
 
 ### 3. The docstring dates the take-back limits to phase 1 on four gits, and they were found in round 1, on 2.50.1 only
 
 severity: should
 location: `tests/behaviour/test_the_hook_surface_git_offers.py:7-11`
 evidence: executed `git show c7f4ed67:seal/specs/1790815613-a-gate-decides-at-the-moment-of-the-action-not-from-the-text/phases/phase-1.md`, `git log -S"test_what_a_take_back_cannot_undo" --format='%h %s' -- tests`
-verdict: open
+verdict: fixed f8703927
 
 The rewritten docstring lists "a take-back cannot undo all of it" among
 "these facts" at `:7-9`. At `:10` it says phase 1 of #692 measured them on
@@ -125,7 +125,7 @@ Phase 1 of #692 measured the switch and a creation's take-back on git
 what a take-back cannot undo was found in its round 1, on 2.50.1 only.
 ```
 
-answer:
+answer: The finding holds. Phase 1 at `c7f4ed67` marks M1 (the switch) and M3 (the creation) `executed, 4 gits`, and M14 (the take-back) sits in its section executed on the same four gits. No row there names `-B` or `--no-checkout`. `f8703927` says phase 1 measured the switch and a creation's take-back on the four gits, and that what a take-back cannot undo was found in round 1 of #692, on 2.50.1 only. It writes this as two sentences rather than the suggestion's semicolon. Every other statement of the take-back limits gives no git version for them, so each stands: `docs/worktree-guard-spec.md:354`, `hooks/lib/cmdline_base.py:16`, `tests/e2e/creation/test_creation_flow.py:4` (which already says round 1 found them) and `changelog/0.17.0.md:154`.
 
 ## Confirmations
 
