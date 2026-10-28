@@ -5,4 +5,4 @@
 
 ### Removed
 
-- **`changelog/`, `CHANGELOG.md` and the changelog gather (#1053).** `.github/scripts/gather_changelog.py`, the hygiene step that ran its `--check` on a release pull request, and the broad gate's row for that step are gone. Each released file stays readable at its own tag, `git show vX.Y.Z:changelog/X.Y.Z.md`.
+- **`changelog/`, `CHANGELOG.md` and the changelog gather (#1053).** `.github/scripts/gather_changelog.py`, the hygiene step that ran its `--check` on a release pull request, and the broad gate's row for that step are gone. Every released file stays readable at `v0.23.1`, the last release that carries them all: `git show v0.23.1:changelog/X.Y.Z.md`.
