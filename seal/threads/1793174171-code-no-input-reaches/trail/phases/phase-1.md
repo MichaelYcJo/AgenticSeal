@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Phase | 1 |
-| Commit | af0c79cc |
+| Commit | 5d3e53c9 |
 
 ## What this phase was asked
 
@@ -22,6 +22,13 @@ holds a citation module, `gather_changelog.py` and `mutation_check.py`.
 Write a `changelog.md` fragment only if a release note would state the
 change.
 
+After the first hand-back, the orchestrator corrected the spawn: #1041's
+frame (`260ff5c1`) leaves `chain_check.py` unchanged, and its build
+(`749cb56c`) does not touch it, so k12 is this work item's. It asked for k12
+to be removed on the measurement already run, and for `reference_of`, which
+has the same shape, to be checked for whether it needs a comment saying why
+it keeps its branch.
+
 ## What this phase found
 
 **Every premise held at `5287dd42`** (read). The issue's line numbers were
@@ -37,7 +44,8 @@ every test module that `git grep -l` finds reading the file.
 | `invocation_dir` on the recorder's `session` line | `"invocation_dir": _invocation_dir(self.config),` to nothing | `tests/skills/test_agentic_pytest_record.py`, `tests/skills/test_broad_gate.py`, `tests/github/test_release_seal.py`, `tests/behaviour/test_a_release_publishes_its_note.py` | red, 0 | removed, with `_invocation_dir` and the cases pinning it |
 | `wasxfail` on the recorder's `test` line | `if hasattr(report, "wasxfail"):` to `if False:` | the same four modules | red, 0 | removed, with the cases pinning it |
 | both recorder fields, pinning cases deselected | the same two mutants | the same modules, less `Test_pytest_configure::test_accepts_the_measured_process_as_the_one_that_records`, `-k 'not wasxfail and not xfail_reason'` | SURVIVED for both, 1 | the red came from those three cases alone |
-| k12, `chain_check.py#reopened_of`'s None branch | `found = as_row(...)` and `return reference(found) if found else None` to `return reference(as_row(REOPENS_ROW, value))` | `tests/skills/test_chain_check.py` | SURVIVED, 1 | not edited: #1041 holds the file |
+| k12, `chain_check.py#reopened_of`'s None branch | `found = as_row(...)` and `return reference(found) if found else None` to `return reference(as_row(REOPENS_ROW, value))` | `tests/skills/test_chain_check.py` | SURVIVED, 1, 261 passed | removed in `5d3e53c9`; the docstring says why the match is never None |
+| `chain_check.py#reference_of`'s None branch, the same shape | `found = as_row(...)` and `return reference(found) if found else None` to `return reference(as_row(REGRESSION_ROW, value))` | `tests/skills/test_chain_check.py`, `-k 'not test_refuses_every_other_spelling'` | SURVIVED, 1, 246 passed and 15 deselected | kept: the deselected cases pin the `regression:` grammar through it, and its docstring says so |
 | s47, `NotImplementedError` in `import_`'s clause | the tuple without it | `tests/skills/test_seal.py` | SURVIVED, 1 | removed; the comment says `RuntimeError` catches both |
 | i12, the `< end` bound in `read` | `start <= c[1] < end` to `start <= c[1]` | `tests/github/test_issue_claims_check.py`, `tests/behaviour/test_a_body_naming_two_issues_claims_one.py`, `tests/behaviour/test_every_reader_ends_a_line_where_gfm_does.py` | SURVIVED as mutant 1 of one call with i13 and i7, which exited 1 | removed |
 | i13, `read`'s `if not here: continue` | the two lines to nothing | the same three modules | SURVIVED as mutant 2 of that call | removed |
@@ -46,6 +54,13 @@ every test module that `git grep -l` finds reading the file.
 | k3, `worktree_consent.py#main`'s `if not session` return | the two lines to nothing | `tests/hooks/test_worktree_consent.py`, `tests/hooks/test_dispatch.py`, `tests/behaviour/test_the_guard_asks_once_per_session.py`, `tests/hooks/test_worktree_guard.py`, `tests/behaviour/test_the_frozen_reading_never_grows.py`, `tests/text/test_guard_resolves_the_tree_it_judges.py` | SURVIVED, 1 | removed |
 | m6, `LABEL_DESCRIPTION_LIMIT` | `= 100` to `= 10` | `tests/github/test_label_merged_on_release_branch.py` and `tests/github/test_tracker_labels.py` | red, 0, from one case in each | kept, with its reason |
 | `UnicodeDecodeError` in `read_manifest`'s clause | the tuple to `ValueError` alone | `tests/skills/test_seal.py`, `tests/text/test_the_records_can_be_carried_out_and_in.py` | SURVIVED, 1 | removed; the docstring says `ValueError` covers both |
+
+**k12's match cannot be None.** `finding_of` keeps a `reopens:` line only
+where the row's shape matches the whole line. `label_of` reads the line as
+`reopens: ` followed by its value, so `as_row` rebuilds the same text and
+matches it again (read). After `5d3e53c9`, every test module that `git grep
+-l` finds naming `chain_check`, plus `tests/github/test_release_seal.py`,
+which imports it, exited 0: 2059 passed and 9 skipped (executed).
 
 **s47's input is in the suite, and the clause still catches it.**
 `tests/skills/test_seal.py:1564` hands `testzip` "a method with no
