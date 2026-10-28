@@ -9,7 +9,7 @@ target: 951f316b against origin/release/v0.24.0
 severity: should
 location: `skills/agent-contract/SKILL.md:78`, `seal/threads/1793226630-most-contract-rules-are-proved-by-their-own-wording/changelog.md:3`
 evidence: read `skills/agent-contract/SKILL.md:69-78`, `evals/behaviour/sealer/rule-sealer-false-red/graders/truth-false-red.md:1-7`, `evals/behaviour/sealer/rule-sealer-untrue-body/graders/truth-untrue-body.md:1-7`, `evals/behaviour/sealer/rule-sealer-false-red/scaffold.sh:155-158`, `agents/sealer.md:114-117`
-verdict: open
+verdict: fixed 16e0d911
 
 Rule 5 says a fact handed to an agent in prose is a claim, and that for a
 reviewer the implementer's account is a claim and not evidence. Its
@@ -46,14 +46,14 @@ sentences:
 Rules 3 and 17 name the orchestrator at each hand-back. Rule 5 names the sealer's `rule-sealer-false-red` and `rule-sealer-untrue-body` eval cases, and rules 12, 13, 14, 18, 19 and 20 name the proofer at review.
 ```
 
-answer:
+answer: The finding holds. `truth-false-red.md` and `truth-untrue-body.md` pass only where the sealer's verdict names a party's claim that it re-ran instead of taking on the record's word. That is rule 5 applied by the agent under test (read). Rule 5's line now names both cases, `bin/seal rules --check` exits 0, and the changelog sentence is the round's text. `gaps.md`'s eval row now reads "the three sealer eval cases that rules 2, 5 and 7 now name". Frame lines that state the old reader, for the orchestrator to fold: `frame/design.md:123`, `frame/questions.md:30-31` (judgment 4 lists rule 5 under the proofer) and `frame/questions.md:36-38` (judgment 5).
 
 ### 2. Rules 4 and 15 name an eval case whose graders read the sealer catching another party's breach, not either rule's own act
 
 severity: should
 location: `skills/agent-contract/SKILL.md:67`, `skills/agent-contract/SKILL.md:182`, `seal/threads/1793226630-most-contract-rules-are-proved-by-their-own-wording/changelog.md:3`
 evidence: read `evals/behaviour/sealer/rule-sealer-false-red/graders/shape-verdict.md:1-7`, `evals/behaviour/sealer/rule-sealer-false-red/graders/truth-false-red.md:1-7`, `evals/behaviour/sealer/rule-sealer-false-red/scaffold.sh:155-158`, `agents/sealer.md:132-136`, `evals/behaviour/crafter/rule-crafter-slugify/graders/shape-phase-record.md:1-5`
-verdict: open
+verdict: fixed 16e0d911
 
 The caller asked whether each eval case now named reads its rule. For rules
 2 and 7 it does. The agent under test is the one the rule binds, and a
@@ -101,14 +101,14 @@ guarantee". The fix pass might hold that a downstream catch counts as a
 rule's proof. If so, its answer says that, and the sentence of judgment 5
 that it would contradict is named there.
 
-answer:
+answer: Fixed as the round wrote it, and not rejected. The catch downstream is the sealer's own rule, and `agents/sealer.md:132-136` already names this case for it. No grader of `rule-sealer-false-red` reads an act of the sealer under rule 4 or rule 15 (read, all seven graders). Judgment 5 names an eval case "only where its grader reads the rule's behaviour", so the case is not the proof of either rule. Rules 4 and 15 now read `check: none reader: the sealer at each guarantee`, and the changelog says so. Contract rule 12 sweep: `git grep` finds 11 `check:` lines in the tree that name an eval case. They are `agents/proofer.md:74`, `agents/sealer.md:125`, `:130`, `:136` and `:148`, `skills/code-review/SKILL.md:38` and `:140`, and the contract's rules 2, 5 and 7. For each, I read the graders against the rule above the line. Each grades an act of the agent under test under that rule, so none other moves. Frame lines that state the old reader: `frame/design.md:122`, `:133` and `:150-154`, `frame/questions.md:36-38`, and `frame/plan.md:45-47`, whose list of eval targets omits `rule-sealer-untrue-body`. `trail/phases/phase-1.md:28` says "all six eval targets" of `9ad992b6`, which is a past state, so it stands.
 
 ### 3. The count's records say that the issue does not record how it reached 182, and route that question to the owner, but the issue states its command and the command reproduces 182
 
 severity: should
 location: `seal/threads/1793226630-most-contract-rules-are-proved-by-their-own-wording/gaps.md:16`, `seal/threads/1793226630-most-contract-rules-are-proved-by-their-own-wording/gaps.md:23`, `seal/threads/1793226630-most-contract-rules-are-proved-by-their-own-wording/trail/phases/phase-2.md:144-149`
 evidence: executed `gh issue view 1111 --json body`, `for f in $(git ls-tree --name-only 0b75346f tests/text/ | grep "\.py$"); do git show 0b75346f:$f | grep -c -E "assert \(?\s*\"[^\"]{25,}\"\s*\)?\s+in\b"; done`, `for f in $(git ls-tree --name-only ee746f3b tests/text/ | grep "\.py$"); do git show ee746f3b:$f | grep -c -E "assert \(?\s*\"[^\"]{25,}\"\s*\)?\s+in\b"; done`
-verdict: open
+verdict: fixed 16e0d911
 
 The orchestrator is about to post the count on #1111 with these records as
 its source. `phase-2.md:148-149` says "How the issue reached 182 is not on
@@ -151,14 +151,14 @@ The method as written. The issue's own grep counts only an assert that opens wit
 Delete the `## Not verified` row *How the issue reached its rough figure of
 182*.
 
-answer:
+answer: The finding holds. I re-ran the issue's grep per file over `tests/text` (executed): 182 at `0b75346f`, 174 of them outside the contract module, and 168 over the 39 modules at `ee746f3b`. The bullet in `phase-2.md` and the grounds cell in `gaps.md` now carry the round's text. The `## Not verified` row that asked the owner is deleted, so nothing goes to the owner. Frame line that states the bound, for the orchestrator to fold: `frame/design.md:228-229`.
 
 ### 4. Phase 2 describes "field or marker" as every table-cell value, yet counts three table cells as phrase pins, so a re-derivation from that description gets a different number
 
 severity: should
 location: `seal/threads/1793226630-most-contract-rules-are-proved-by-their-own-wording/trail/phases/phase-2.md:124-130`
 evidence: executed `python3 -I test_tmp_pin_sample.py <worktree> ee746f3b test_review_axes.py`, `git grep -n "still a sentence"`
-verdict: open
+verdict: fixed 16e0d911
 
 `phase-2.md:124-125` says "*Field or marker* holds table separators and
 table-cell values". The count applies a narrower rule, and that rule is the
@@ -190,7 +190,7 @@ Replace the sentence's first clause, so that `phase-2.md:124-130` reads:
   at `test_review_axes.py:16`, `:31` and `:138`, is prose, and it counts.
 ```
 
-answer:
+answer: The finding holds. `tests/behaviour/test_every_orchestrator_act_names_its_delivery.py:106` matches `still a sentence`, and the axis cells at `test_review_axes.py:16`, `:31` and `:138` were counted as prose (read). The description now carries the round's sentence. No number in the count changes.
 
 ## Confirmations
 
