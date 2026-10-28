@@ -106,8 +106,9 @@ Test_check_record"`).**
    `agents/crafter.md` orders the commit before the mutation, so this red
    was shown after the cases were committed and not before.
 
-**Each unit added has a case behind it (executed, `seal mutate` over
-`evals/scripts/noninferiority.py` at `c6e47cfe`).** The batch of five
+**Each unit added has a case behind it except the `1e-9` in the margin's
+bar (executed, `seal mutate` over `evals/scripts/noninferiority.py` at
+`c6e47cfe`).** The batch of five
 mutants over `Test_verdict` and `Test_check_record` ended with "5 mutants, 5
 red, 0 SURVIVED", exit 0. Each mutant was then run on its scenario's case
 alone, exit 0 and red each time:
@@ -121,6 +122,16 @@ alone, exit 0 and red each time:
 | `TOKEN_MARGIN = 0.07` turned to 0.12 | S3 |
 
 `git status` was clean after each run.
+
+The `- 1e-9` mutant moves the bar below the margin, and it does not test
+whether the term is needed. With the term deleted, every case at
+`c6e47cfe` stayed green (`trail/rounds/round-1.md`, finding 1). At the
+shipped margin the term changes no verdict, because `1 + 0.07` comes out
+just above 1.07 in binary floating point. At `TOKEN_MARGIN = 0.13`,
+`1 + 0.13` comes out just below 1.13, and the term is what passes a side
+exactly at the margin. The fix pass for round 1 added
+`Test_verdict::test_passes_a_figure_exactly_at_a_margin_whose_float_falls_short`
+at that margin. It goes red with the term deleted (executed, `seal mutate`).
 
 **A choice made while writing the comparison.** The comparison is written as
 `new_t > old_t * bar and new_t * old_c > old_t * new_c * bar`, with `bar = 1
