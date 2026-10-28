@@ -60,7 +60,7 @@ place of the sentence that asks for the user's confirmation and names
 
 | Phase | Delivers | Verified by | Status |
 |---|---|---|---|
-| 1 | Under the press, row 5's deny names no `[worktree-ok]` and asks for no confirmation, on every attempt, in both languages, with and without an unbalanced quote; attended byte-identical; S5's pin `[1, 2, 2, 2]`; every comment and docstring in `frame/design.md` *In* rewritten in place | S1, S2, S3 and S5 seen red at `977b6613` as `frame/design.md` says for each, then green; S4 and S6 green unchanged; `bin/test tests/hooks/test_worktree_guard.py`, the crafter's narrow run | |
+| 1 | Under the press, row 5's deny names no `[worktree-ok]` and asks for no confirmation, on every attempt, in both languages, with and without an unbalanced quote; attended byte-identical; S5's pin `[1, 2, 2, 2]`; every comment and docstring in `frame/design.md` *In* rewritten in place | S1, S2, S3 and S5 seen red at `977b6613` as `frame/design.md` says for each, then green; S4 and S6 green unchanged; `bin/test tests/hooks/test_worktree_guard.py`, the crafter's narrow run | b1dfeee1 |
 
 ## Operational impact
 
