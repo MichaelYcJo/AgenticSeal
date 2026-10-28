@@ -60,6 +60,10 @@ config = pc.load(os.path.join(pc.HOOKS, "config.py"), "config_for_pact_tests")
 
 SIGNER = (SIGNER_URL, config.normalise_remote(SIGNER_URL), "orders-web")
 SPEC_Y = "seal/threads/1790000001-y/frame/design.md"
+# The machine-local map's header and delimiter row, as `seal pact`'s remedy
+# line teaches a person to begin it.
+MAP_TOP = "| Remote | Path |\n|---|---|\n"
+MAP_REFUSED = "REFUSED ~/.claude/agentic/pact-paths.md — the map "
 
 
 def posix(path):
@@ -282,25 +286,74 @@ class Test_path_map:
             ("git@example.com:org/orders-web.git", "~/work/orders-web"),
             ("https://example.com/org/b", "/x/b"),
         )
-        found, refusal = pc.path_map(config, str(world.home))
-        assert refusal is None
+        found, refusals = pc.path_map(config, str(world.home))
+        assert refusals == []
         assert found == {
             "example.com/org/orders-web": os.path.expanduser("~/work/orders-web"),
             "example.com/org/b": "/x/b",
         }
 
     def test_accepts_no_map_as_an_empty_one(self, world):
-        assert pc.path_map(config, str(world.home)) == ({}, None)
+        assert pc.path_map(config, str(world.home)) == ({}, [])
 
-    def test_refuses_to_read_a_row_past_the_tables_end(self, world):
-        write(
-            world.home,
-            ".claude/agentic/pact-paths.md",
-            "| Remote | Path |\n|---|---|\n| https://example.com/org/a | /x/a |\n"
-            "\nprose\n\n| https://example.com/org/b | /x/b |\n",
-        )
-        found, _ = pc.path_map(config, str(world.home))
-        assert list(found) == ["example.com/org/a"]
+    @pytest.mark.parametrize(
+        "text, read, said",
+        [
+            (
+                f"{MAP_TOP}| https://example.com/org/a | /x/a |\n"
+                "\nprose\n\n| https://example.com/org/b | /x/b |\n",
+                ["example.com/org/a"],
+                "has a `Remote | Path` table that ends above "
+                "`| https://example.com/org/b | /x/b |`, a row the walk never "
+                "reaches — it and every row below it would go unread",
+            ),
+            (
+                "# Checkouts\n\nhttps://example.com/org/a /x/a\n",
+                [],
+                "holds no `| Remote | Path |` table",
+            ),
+            (
+                f"{MAP_TOP}| https://example.com/org/a | /x/a |\n"
+                "| git@example.com:org/a.git | /y/a |\n"
+                "| https://example.com/org/b | /x/b |\n",
+                ["example.com/org/b"],
+                "has rows at lines 3 and 4 naming one repository, "
+                "`example.com/org/a`, so neither is read — keep one",
+            ),
+            (
+                f"{MAP_TOP}| https://example.com/org/a |  |\n"
+                "| https://example.com/org/b | /x/b |\n",
+                ["example.com/org/b"],
+                "has a row at line 3 with an empty cell — write the remote and "
+                "the path of its checkout, or delete the row",
+            ),
+            (
+                f"{MAP_TOP}| https://example.com/org/a | /x/a |\n"
+                f"\n## Laptop\n\n{MAP_TOP}| https://example.com/org/b | /x/b |\n",
+                ["example.com/org/a"],
+                "holds a second `| Remote | Path |` header at line 7, and the "
+                "walk reads the first table only — move its rows into the first "
+                "table and delete the second header",
+            ),
+        ],
+        ids=[
+            "a row past the end",
+            "no table",
+            "one remote twice",
+            "an empty cell",
+            "a second header",
+        ],
+    )
+    def test_refuses_each_line_it_does_not_read_and_reads_the_rest(
+        self, world, text, read, said
+    ):
+        """S2 and S3. The rows the walk read are used, and every line it did
+        not is a sentence. Seen red against `977b6613`, whose loop ended the
+        map at the first line it did not read and said nothing."""
+        write(world.home, ".claude/agentic/pact-paths.md", text)
+        found, refusals = pc.path_map(config, str(world.home))
+        assert list(found) == read
+        assert refusals == [said]
 
     @pytest.mark.parametrize("shape", ["directory", "dangling link"])
     def test_refuses_a_map_that_is_there_and_will_not_read(self, world, shape):
@@ -311,11 +364,9 @@ class Test_path_map:
             where.mkdir()
         else:
             symlink_or_skip(str(world.tmp / "gone"), where)
-        found, refusal = pc.path_map(config, str(world.home))
+        found, refusals = pc.path_map(config, str(world.home))
         assert found == {}
-        assert refusal == (
-            "~/.claude/agentic/pact-paths.md is there and could not be read"
-        )
+        assert refusals == ["is there and could not be read"]
 
 
 class Test_checkout:
@@ -746,14 +797,67 @@ class Test_check:
         assert out == "UNREADABLE seal/pact.md — the pact could not be read", out
 
     def test_refuses_a_map_that_will_not_read(self, world):
+        """S4: the path is printed once, and the sentence reads after the
+        words `the map` like every other refusal of the map."""
         (world.home / ".claude" / "agentic" / "pact-paths.md").mkdir(parents=True)
         world.cite(clause(V2))
         code, out = world.run()
         assert code == 2, out
+        assert f"{MAP_REFUSED}is there and could not be read" in out, out
+        assert out.count("pact-paths.md") == 1, out
+
+    def test_refuses_a_map_row_past_the_tables_end_and_reads_the_row_above(self, world):
+        """S2. The signer the row above names is found and read, and the row
+        below the paragraph is named at exit 2. Seen red against `977b6613`,
+        which dropped that row with nothing printed and exited 0."""
+        moved = world.tmp / "elsewhere" / "orders-web"
+        moved.parent.mkdir()
+        world.web.rename(moved)
+        world.web = moved
+        world.cite(clause(V2))
+        write(
+            world.home,
+            ".claude/agentic/pact-paths.md",
+            f"{MAP_TOP}| {SIGNER_URL} | {moved} |\n"
+            "\nprose\n\n| https://example.com/org/b | /x/b |\n",
+        )
+        code, out = world.run()
+        assert code == 2, out
+        assert f"READ {SIGNER_URL} {posix(moved)} — 1 pact anchor" in out, out
         assert (
-            "REFUSED ~/.claude/agentic/pact-paths.md — ~/.claude/agentic/"
-            "pact-paths.md is there and could not be read"
+            f"{MAP_REFUSED}has a `Remote | Path` table that ends above "
+            "`| https://example.com/org/b | /x/b |`, a row the walk never reaches"
         ) in out, out
+
+    @pytest.mark.parametrize(
+        "text, said",
+        [
+            ("# Checkouts\n", "holds no `| Remote | Path |` table"),
+            (
+                f"{MAP_TOP}| https://example.com/org/a | /x/a |\n"
+                "| https://example.com/org/a/ | /y/a |\n",
+                "has rows at lines 3 and 4 naming one repository",
+            ),
+            (
+                f"{MAP_TOP}| https://example.com/org/a |  |\n",
+                "has a row at line 3 with an empty cell",
+            ),
+            (
+                f"{MAP_TOP}\n## Laptop\n\n{MAP_TOP}",
+                "holds a second `| Remote | Path |` header at line 6",
+            ),
+        ],
+        ids=["no table", "one remote twice", "an empty cell", "a second header"],
+    )
+    def test_refuses_each_map_line_it_does_not_read_at_exit_2(self, world, text, said):
+        """S3: each shape is one line naming it, at exit 2, where `977b6613`
+        read the map as complete and printed nothing."""
+        world.cite(clause(V2))
+        write(world.home, ".claude/agentic/pact-paths.md", text)
+        code, out = world.run()
+        assert code == 2, out
+        assert f"{MAP_REFUSED}{said}" in out, out
+        assert out.count(MAP_REFUSED) == 1, out
 
     def test_refuses_a_root_outside_git_no_pact_and_no_origin(self, world):
         """Exit 2 for each way the pact's repository cannot be read."""

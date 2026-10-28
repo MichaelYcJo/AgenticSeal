@@ -92,14 +92,8 @@ CONFIG_TABLE = ("Item", "Value")
 # closing pipe returns the same value byte for byte. Found by round 1 of
 # #415.
 #
-# `TABLE_ROW` and `CELL_PIPE` below are built on it, and so is
-# `skills/verify/scripts/pact_check.py#path_map`, which reads the
-# machine-local `| Remote | Path |` map with it and `CONFIG_SEPARATOR`.
+# `TABLE_ROW`, `CELL_PIPE` and `FIRST_CELL` below are built on it.
 CELL = r"(?:[^|\\]|\\.)"
-# A separator line, for one reader alone: `pact_check.py#path_map`, whose
-# machine-local map is not `seal/config.md` and is not read by the walker.
-# Nothing here reads it.
-CONFIG_SEPARATOR = re.compile(r"^\|[\s:|-]+\|$")
 
 # A fenced code block's delimiter line, as CommonMark spells one: up to three
 # spaces of indentation, then a run of three or more backticks or three or

@@ -32,6 +32,14 @@ checkout is found for each, in this order and with nothing guessed:
 
 A signer neither finds is reported with the map line to add.
 
+The map is read by `hooks/lib/config.py#gfm_table`, as every other table
+here is, and a line it does not read is refused at exit 2, printed as
+`REFUSED ~/.claude/agentic/pact-paths.md — the map <sentence>`: a map that
+is there and will not read, one holding no `| Remote | Path |` table, every
+refusal of the walk, a row with an empty cell, a remote on two rows, of
+which neither is read, and a second header. A row nobody reads would report
+its signer as not found. The rows the walk did read are used.
+
 ## What each anchor reads
 
   OK          the hash matches the clause in the pact's current checkout
@@ -57,7 +65,7 @@ A pact under local mode has no history, so every mismatch there reads
   1  a `SUPERSEDED`, `NOT TAKEN` or `UNMATCHED` anchor, or a signer not
      found on this machine
   2  unusable input: no pact here, a pact or file that cannot be read, a
-     `BROKEN` anchor, an anchor naming this pact that does not parse, a
+     line of the machine-local map it does not read, a `BROKEN` anchor, an anchor naming this pact that does not parse, a
      `Pact` row that will not parse, a relationship
      recorded on one side only, or a pact's repository with no origin
      remote
@@ -141,7 +149,9 @@ def shown(path, repo=None, home_dir=None, flavour=os.path):
     return drive + rest
 
 
-MAP_HEADER = re.compile(r"^\|\s*Remote\s*\|\s*Path\s*\|\s*$")
+# The machine-local map's header, as the cells `gfm_table` matches a header by.
+MAP_TABLE = ("Remote", "Path")
+MAP_NAMED = f"`| {' | '.join(MAP_TABLE)} |`"
 
 OK, SUPERSEDED, NOT_TAKEN, UNMATCHED, BROKEN = (
     "OK",
@@ -247,33 +257,68 @@ def origin(root):
 
 
 def path_map(config, home_dir):
-    """({normalised remote: path}, refusal or None) from the machine-local
-    map under HOME_DIR. No map is an empty one; a map that is there and will
-    not read is a refusal, because reading it as empty would report every
-    signer it names as not found."""
+    """({normalised remote: path}, refusals) from the machine-local map
+    under HOME_DIR, each refusal a sentence that reads after the words `the
+    map`.
+
+    No map is an empty one. Every other line the map's reader does not read
+    is a refusal, because a row nobody reads reports its signer as not
+    found: a map that is there and will not read, one holding no
+    `| Remote | Path |` table, every refusal of the walk
+    (`hooks/lib/config.py#gfm_table`), a row with an empty cell, a remote on
+    two rows, compared normalised, of which neither is read, and a second
+    header, because the walk reads the first table only. The rows the walk
+    did read are used, as `pact_signers`' are."""
     where = os.path.join(home_dir, MAP)
     if not os.path.lexists(where):
-        return {}, None
+        return {}, []
     text = read(where)
     if text is None:
-        return {}, f"{shown(where, home_dir=home_dir)} is there and could not be read"
-    found, seen_header = {}, False
-    row = re.compile(
-        rf"^\|\s*(?P<remote>{config.CELL}+?)\s*\|\s*(?P<path>{config.CELL}+?)\s*\|\s*$"
-    )
-    # exempt from splitlines: lines the GFM walk numbers
-    for _index, line in config.unfenced(text.splitlines(), text):
-        if not seen_header:
-            seen_header = bool(MAP_HEADER.match(line))
+        return {}, ["is there and could not be read"]
+    rows, walked = config.gfm_table(text, MAP_TABLE)
+    refusals = list(walked)
+    places = {}
+    for line, cells in rows:
+        if cells == MAP_TABLE:
+            # A second header with no blank line above it is one of the
+            # table's rows to GFM; the walk refuses the delimiter under it.
             continue
-        if config.CONFIG_SEPARATOR.match(line.strip()) and not found:
+        remote, path = cells
+        if not remote or not path:
+            refusals.append(
+                f"has a row at line {line} with an empty cell — write the remote "
+                "and the path of its checkout, or delete the row"
+            )
             continue
-        match = row.match(line)
-        if not match:
-            break
-        remote = config.normalise_remote(config.unescaped(match.group("remote")))
-        found[remote] = os.path.expanduser(config.unescaped(match.group("path")))
-    return found, None
+        places.setdefault(config.normalise_remote(remote), []).append((line, path))
+    found = {}
+    for remote, held in places.items():
+        if len(held) == 1:
+            found[remote] = os.path.expanduser(held[0][1])
+            continue
+        lines = [str(line) for line, _path in held]
+        refusals.append(
+            f"has rows at lines {', '.join(lines[:-1])} and {lines[-1]} naming one "
+            f"repository, `{remote}`, so "
+            f"{'neither' if len(held) == 2 else 'none of them'} is read — keep one"
+        )
+    if not walked:
+        # A refusal of the walk already says every row below it goes unread,
+        # a second header among them.
+        # exempt from splitlines: lines the GFM walk numbers
+        lines = text.splitlines()
+        headers = [
+            index + 1
+            for index, line in config.unfenced(lines, text)
+            if config.table_cells(line) == MAP_TABLE
+        ]
+        refusals.extend(
+            f"holds a second {MAP_NAMED} header at line {at}, and the walk reads "
+            "the first table only — move its rows into the first table and "
+            "delete the second header"
+            for at in headers[1:]
+        )
+    return found, refusals
 
 
 def checkout(config, signer, root, mapped, home_dir=None):
@@ -507,9 +552,9 @@ def check(root, out=sys.stdout, home_dir=None):
     # The table's own word in the lines below, so a refusal about a pact
     # headed the old way names the header the pact holds.
     table = f"`{(header or config.SIGNER_HEADER)[0]}` table"
-    mapped, map_refusal = path_map(config, home_dir)
-    if map_refusal:
-        found(REFUSED, MAP_SHOWN, "", map_refusal)
+    mapped, map_refusals = path_map(config, home_dir)
+    for refusal in map_refusals:
+        found(REFUSED, MAP_SHOWN, "", f"the map {refusal}")
 
     counts = dict.fromkeys((OK, SUPERSEDED, NOT_TAKEN, UNMATCHED, BROKEN), 0)
     read_count = 0
