@@ -458,7 +458,7 @@ def test_the_gate_sweep_reads_a_seal_that_ends_a_sentence():
 # --- "the stamp" — the sealer's, never the broad gate's --------------------
 
 # #975: the stamp is drawn once per work item from the sealer's `sealed`
-# (`docs/the-review-record.md` *The stamp*), and `docs/the-broad-gate.md`
+# (`docs/the-review-record.md` *The stamp*), and `f6ae6db6:docs/the-broad-gate.md`
 # *Where the stamp is drawn* is gone. Read by construction rather than by a
 # list of sentences: the gate, possessive or not, with at most three words
 # before `stamp`, each of which may carry an apostrophe (`gate's stamp`,

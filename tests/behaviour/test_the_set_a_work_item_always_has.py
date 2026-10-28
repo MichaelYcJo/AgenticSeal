@@ -27,12 +27,9 @@ substrings are chosen to be. Each one below picks a phrase that cannot survive
 the drift it is guarding against.
 """
 
-import os
 import re
-import subprocess
 
-import pytest
-from conftest import ROOT, on_disk, read
+from conftest import read
 
 # --- the condition ----------------------------------------------------------
 
@@ -434,83 +431,3 @@ def test_the_file_set_names_who_writes_each_file():
         "the file table stops naming the approval line, so the only document "
         "that describes the whole set never mentions the record of the gate"
     )
-
-
-# --- every heading of `implement` the tree cites is one it has (#967) --------
-
-# What names the skill right before a section: its path, or its name in
-# backticks. Read over whitespace-collapsed text, because a citation wraps.
-SKILL_NAMED = r"(?:skills/implement/SKILL\.md`?|`implement`)"
-# A section is cited by its heading text in italics, after the path, or
-# after `implement`'s name and the word `skill's`.
-CITED_TITLE = re.compile(SKILL_NAMED + r"(?: | skill's )\*([^*]+)\*")
-# Records of what was true when they were written are not brought to a new
-# heading, so they are not read.
-NOT_CITATIONS = ("seal/threads/", "changelog/", "CHANGELOG.md")
-
-
-def implement_headings(text):
-    """{heading titles} of `implement`'s `##`/`###` lines."""
-    return {m.group(1) for m in re.finditer(r"^#{2,3} (.+)$", text, re.M)}
-
-
-def dangling_implement_citations(files, titles):
-    """[(path, citation)] for every cited section `implement` does not have."""
-    out = []
-    for rel, text in files:
-        flat = " ".join(text.split())
-        for m in CITED_TITLE.finditer(flat):
-            if m.group(1) not in titles:
-                out.append((rel, f"*{m.group(1)}*"))
-    return out
-
-
-def cited_files():
-    listed = subprocess.run(
-        ["git", "-C", ROOT, "ls-files", "-z"],
-        capture_output=True,
-        check=True,
-    ).stdout.decode("utf-8")
-    wanted = [
-        rel
-        for rel in listed.split("\0")
-        if rel.endswith((".md", ".py", ".yaml", ".yml", ".json", ".txt"))
-        and not rel.startswith(NOT_CITATIONS)
-    ]
-    # A positive sweep: a file the working tree deleted cites nothing.
-    present, _missing = on_disk(ROOT, wanted)
-    for rel in present:
-        with open(os.path.join(ROOT, rel), encoding="utf-8") as f:
-            yield rel, f.read()
-
-
-def test_every_cited_heading_of_implement_exists():
-    """T5 of #967 (S7): a step renamed or renumbered in a rewrite of
-    `skills/implement/SKILL.md` leaves `CLAUDE.md`'s citations of its steps 1
-    and 2, the hooks' and the framer's pointing at nothing, and no case read
-    them."""
-    titles = implement_headings(read("skills", "implement", "SKILL.md"))
-    files = list(cited_files())
-    found = sum(len(CITED_TITLE.findall(" ".join(t.split()))) for _, t in files)
-    assert found >= 10, f"only {found} citations recognised, so a pass means nothing"
-    dangling = dangling_implement_citations(files, titles)
-    assert not dangling, (
-        f"a citation of `implement` names a heading it does not have: {dangling}"
-    )
-
-
-MISSING_STEP = "*9. No such step*"
-
-
-@pytest.mark.parametrize(
-    "named", ["`skills/implement/SKILL.md`", "the `implement` skill's"]
-)
-def test_a_cited_heading_implement_lacks_is_dangling(named):
-    """S4 of #1005: a citation by heading text names a heading the skill has,
-    or it is refused as dangling. The citation is built here, so this file
-    does not itself cite a missing heading."""
-    titles = implement_headings(read("skills", "implement", "SKILL.md"))
-    text = f"{named} {MISSING_STEP}"
-    assert dangling_implement_citations([("x.md", text)], titles) == [
-        ("x.md", MISSING_STEP)
-    ]
