@@ -25,15 +25,18 @@ cites at `:153-156` stands at `:148-157` now (executed,
 
 1. **The orchestrator writes neither line of a finding that a fix pass
    answers.** `skills/code-review/orchestration.md` *Orchestrator: a phase
-   is a fresh crafter, and a fix pass resumes the implementer*, the
-   paragraph at `:54-58`, is rewritten in place. It states three things:
-   - the crafter's fix pass commits the `verdict:` and `answer:` lines of
-     every finding it answered in one commit for the whole pass, after its
-     last fix commit and its corrections;
-   - the orchestrator writes neither line of such a finding, and its
-     fix-pass prompt leaves both lines to the crafter;
-   - a close the orchestrator doubts goes into the verifying round's spawn
-     prompt, and the orchestrator does not rewrite the line.
+   is a fresh crafter, and a fix pass resumes the implementer* is rewritten
+   in place, in two of its paragraphs:
+   - the paragraph at `:54-58` states that the orchestrator writes neither
+     line of such a finding and that its fix-pass prompt leaves both lines
+     to the crafter, and that a close the orchestrator doubts goes into the
+     verifying round's spawn prompt, where the orchestrator does not
+     rewrite the line;
+   - the paragraph *The fix pass then finds what the fixes left standing*
+     ends with the crafter's fix pass committing the `verdict:` and
+     `answer:` lines of every finding it answered in one commit for the
+     whole pass, after its fix commits and the corrections that paragraph
+     names.
 
    The paragraph keeps its citation of `docs/the-review-record.md` *The
    round record*. It also keeps what it says today: the coordinate appended
