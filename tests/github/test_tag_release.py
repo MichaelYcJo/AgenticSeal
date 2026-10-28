@@ -128,7 +128,7 @@ def local_tag(repo):
 
 
 class Test_main:
-    def test_a_push_that_moved_the_version_creates_the_tag_and_passes_it_on(
+    def test_accepts_a_push_that_moved_the_version_by_creating_the_tag(
         self, monkeypatch, tmp_path, capsys
     ):
         """S1. The tag is created on the pushed commit through the API, then
@@ -156,7 +156,7 @@ class Test_main:
         out = capsys.readouterr().out
         assert f"from {BEFORE_VERSION} to {VERSION}" in out, out
 
-    def test_a_refused_creation_goes_red_and_passes_on_no_tag(
+    def test_refuses_to_pass_on_a_tag_github_did_not_create(
         self, monkeypatch, tmp_path, capsys
     ):
         """Exit 1 where GitHub refuses the tag, naming its error: the release
@@ -172,9 +172,7 @@ class Test_main:
         out = capsys.readouterr().out
         assert "Reference already exists" in out, out
 
-    def test_a_dry_run_creates_nothing_and_passes_on_no_tag(
-        self, monkeypatch, tmp_path, capsys
-    ):
+    def test_refuses_to_create_a_tag_in_a_dry_run(self, monkeypatch, tmp_path, capsys):
         """S7. The tag it would create and the commit are printed; no `gh`
         call is made, no tag lands in the checkout, and no tag is passed on."""
         repo, before, after = released(tmp_path)
@@ -188,7 +186,9 @@ class Test_main:
         out = capsys.readouterr().out
         assert f"would create {TAG} on {after}" in out, out
 
-    def test_a_rerun_passes_on_the_tag_it_created_before(self, monkeypatch, tmp_path):
+    def test_accepts_a_rerun_by_passing_on_the_tag_it_created(
+        self, monkeypatch, tmp_path
+    ):
         """S3, read from the checkout: the tag the first run created is in
         the checkout's tags, so a re-run passes it on and calls nothing."""
         repo, before, after = released(tmp_path)
@@ -208,7 +208,7 @@ class Test_main:
             pytest.param(None, "names no version", id="no version before"),
         ],
     )
-    def test_without_an_earlier_commit_nothing_is_tagged(
+    def test_refuses_to_tag_without_an_earlier_version(
         self, monkeypatch, tmp_path, capsys, before, said
     ):
         """S6, read from the checkout: a `before` of all zeros, one the
@@ -227,36 +227,36 @@ class Test_main:
 
 
 class Test_decide:
-    def test_a_moved_version_with_no_tag_is_created(self):
+    def test_accepts_a_moved_version_with_no_tag_for_creation(self):
         """S1's decision."""
         decided = tagger().decide(MAIN, PUSHED, BEFORE_VERSION, VERSION, None)
         assert (decided.tag, decided.create) == (TAG, True)
 
-    def test_a_push_that_moves_no_version_tags_nothing(self):
+    def test_refuses_a_push_that_moves_no_version(self):
         """S2. The log says the version did not move."""
         decided = tagger().decide(MAIN, PUSHED, VERSION, VERSION, None)
         assert (decided.tag, decided.create) == ("", False)
         assert "did not move the version" in decided.said, decided.said
 
-    def test_a_tag_on_the_pushed_commit_is_passed_on_and_not_created(self):
+    def test_accepts_a_tag_on_the_pushed_commit_without_creating_it(self):
         """S3. A re-run after a failed note step finds the tag it created and
         passes it on, so the note step runs and leaves a release that exists
         as it is."""
         decided = tagger().decide(MAIN, PUSHED, BEFORE_VERSION, VERSION, PUSHED)
         assert (decided.tag, decided.create) == (TAG, False)
 
-    def test_a_tag_on_another_commit_is_neither_created_nor_passed_on(self):
+    def test_refuses_a_tag_on_another_commit(self):
         """S4. The log names the commit the tag names."""
         decided = tagger().decide(MAIN, PUSHED, BEFORE_VERSION, VERSION, ELSEWHERE)
         assert (decided.tag, decided.create) == ("", False)
         assert ELSEWHERE in decided.said, decided.said
 
-    def test_a_tag_pushed_by_hand_is_passed_on(self):
+    def test_accepts_a_tag_pushed_by_hand(self):
         """S5. Nothing about the version is read for a tag push."""
         decided = tagger().decide(f"refs/tags/{TAG}", PUSHED, None, None, None)
         assert (decided.tag, decided.create) == (TAG, False)
 
-    def test_no_earlier_version_tags_nothing_and_says_why(self):
+    def test_refuses_a_push_with_no_earlier_version_and_says_why(self):
         """S6. The reason the version before the push is unknown reaches the
         log as given."""
         why = "the push names no earlier commit"
@@ -264,7 +264,7 @@ class Test_decide:
         assert (decided.tag, decided.create) == ("", False)
         assert why in decided.said, decided.said
 
-    def test_no_version_at_the_pushed_commit_tags_nothing(self):
+    def test_refuses_a_pushed_commit_that_names_no_version(self):
         """A pushed commit whose `plugin.json` names no version is no
         release, and no `vNone` tag is made of it."""
         decided = tagger().decide(MAIN, PUSHED, BEFORE_VERSION, None, None)
@@ -273,6 +273,12 @@ class Test_decide:
 
 
 class Test_version_at:
+    def test_accepts_the_version_a_manifest_names(self, monkeypatch, tmp_path):
+        repo, _, after = released(tmp_path)
+        mod = tagger()
+        monkeypatch.setattr(mod, "ROOT", str(repo))
+        assert mod.version_at(after) == VERSION
+
     @pytest.mark.parametrize(
         "text",
         [
@@ -282,7 +288,7 @@ class Test_version_at:
             pytest.param('{"version": ""}', id="an empty version"),
         ],
     )
-    def test_a_manifest_that_names_no_version_reads_as_none(
+    def test_refuses_a_manifest_that_names_no_version(
         self, monkeypatch, tmp_path, text
     ):
         repo = git_repo(tmp_path / "repo")
@@ -296,7 +302,17 @@ class Test_version_at:
 
 
 class Test_create:
-    def test_without_gh_nothing_is_created_and_it_says_so(self, monkeypatch, tmp_path):
+    def test_accepts_a_tag_github_and_the_checkout_both_take(
+        self, monkeypatch, tmp_path
+    ):
+        repo, _, after = released(tmp_path)
+        fake_gh(monkeypatch, tmp_path / "bin")
+        mod = tagger()
+        monkeypatch.setattr(mod, "ROOT", str(repo))
+        assert mod.create(REPO, TAG, after) == ""
+        assert git_out(repo, "rev-parse", f"{TAG}^{{commit}}") == after
+
+    def test_refuses_without_gh_and_says_so(self, monkeypatch, tmp_path):
         repo, _, after = released(tmp_path)
         mod = tagger()
         monkeypatch.setattr(mod, "ROOT", str(repo))
@@ -304,7 +320,9 @@ class Test_create:
         assert mod.create(REPO, TAG, after) == "gh is not on PATH"
         assert local_tag(repo) == ""
 
-    def test_a_tag_the_checkout_refuses_is_named(self, monkeypatch, tmp_path):
+    def test_refuses_a_tag_the_checkout_refuses_and_names_it(
+        self, monkeypatch, tmp_path
+    ):
         """GitHub took the tag and the checkout did not: the note step would
         not find it, so the step names the local refusal rather than passing
         the tag on as made."""
