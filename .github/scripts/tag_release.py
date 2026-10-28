@@ -31,9 +31,9 @@ publishes a release the push to `main` did not.
 Every other push to `main` passes on no tag, and the note step and the seal
 job are skipped.
 
-`DRY_RUN=1` prints the tag it would create and the commit, creates none, and
-passes on no tag, for the reason `close_issues_on_release.py`'s docstring
-gives.
+Where a tag is to be created, `DRY_RUN=1` prints the tag and the commit,
+creates none, and passes on no tag, for the reason
+`close_issues_on_release.py`'s docstring gives.
 
 Environment: `REF` (`github.ref`), `BEFORE` (`github.event.before`), `AFTER`
 (`github.sha`), `REPO`, `GH_TOKEN`, `DRY_RUN`, and `GITHUB_OUTPUT` where the
@@ -208,7 +208,7 @@ def main():
             write_output("tag", "")
             return 1
         print(f"created {decided.tag} on {after}")
-    write_output("tag", "" if dry else decided.tag)
+    write_output("tag", decided.tag)
     return 0
 
 

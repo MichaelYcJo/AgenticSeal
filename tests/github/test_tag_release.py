@@ -261,5 +261,45 @@ class Test_decide:
         assert (decided.tag, decided.create) == ("", False)
         assert why in decided.said, decided.said
 
+    def test_no_version_at_the_pushed_commit_tags_nothing(self):
+        """A pushed commit whose `plugin.json` names no version is no
+        release, and no `vNone` tag is made of it."""
+        decided = tagger().decide(MAIN, PUSHED, BEFORE_VERSION, None, None)
+        assert (decided.tag, decided.create) == ("", False)
+        assert "names no version" in decided.said, decided.said
+
+
+class Test_version_at:
+    @pytest.mark.parametrize(
+        "text",
+        [
+            pytest.param(None, id="no manifest"),
+            pytest.param("not json", id="not JSON"),
+            pytest.param("[]", id="not an object"),
+            pytest.param('{"version": ""}', id="an empty version"),
+        ],
+    )
+    def test_a_manifest_that_names_no_version_reads_as_none(
+        self, monkeypatch, tmp_path, text
+    ):
+        repo = git_repo(tmp_path / "repo")
+        commit = git_out(repo, "rev-parse", "HEAD")
+        if text is not None:
+            write(repo, MANIFEST, text)
+            commit = commit_everything(repo, "a commit")
+        mod = tagger()
+        monkeypatch.setattr(mod, "ROOT", str(repo))
+        assert mod.version_at(commit) is None
+
+
+class Test_create:
+    def test_without_gh_nothing_is_created_and_it_says_so(self, monkeypatch, tmp_path):
+        repo, _, after = released(tmp_path)
+        mod = tagger()
+        monkeypatch.setattr(mod, "ROOT", str(repo))
+        monkeypatch.setattr(mod.shutil, "which", lambda name: None)
+        assert mod.create(REPO, TAG, after) == "gh is not on PATH"
+        assert local_tag(repo) == ""
+
 
 test_census = census_case(TARGET)
