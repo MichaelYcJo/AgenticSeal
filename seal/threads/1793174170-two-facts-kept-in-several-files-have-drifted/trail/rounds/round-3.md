@@ -9,9 +9,9 @@ target: 143f80b0, fixes 930665ec..143f80b0
 severity: should
 location: `tests/behaviour/test_both_editions_carry_the_same_folds.py:86-100`
 evidence: executed `sed -n 56,110p tests/behaviour/test_both_editions_carry_the_same_folds.py`, `sed -n 100,160p tests/behaviour/test_no_document_names_the_old_roots.py`, `git grep -n "pairs()" -- tests | grep -v "def pairs"`
-verdict: open
+verdict: fixed c81cb9ff
 regression: round-2
-answer:
+answer: The finding holds: `d91641fb` declined the whole case over any deleted half, sweep included. The outline case now compares every pair on disk first. The record's `unread()` then declines only where every unread named pair is explained by a deleted half of it, as `test_no_document_names_the_old_roots.py#uncovered` does. The record's `build_tracked_tree` case was added. Run against the old listing logic, it failed with exit 1 (`assert [] == ['README.md']`), and the module then passed, 7 cases, exit 0. Two mutants survived that case, so `27b8deee` strengthened it. The first made the decline unconditional (`if missing:`): a skip raised inside the case skipped it, which counts as a pass. The second returned every deleted file as missing. The case now fails where `unread()` declines instead of reporting, covers one named pair lost and the other absent, and deletes a file that has no edition. Both mutants then went `red` with exit 0, and so did removing the decline call and emptying `unread()`'s report. `git grep` found no other statement of the walk's scope to correct, outside the 0.14.0 changelog, which is history.
 
 The unit is `test_every_paired_document_carries_the_same_headings`, which
 `d91641fb` changed. `frame/plan.md` phase 5 and `frame/design.md` S11 say each
@@ -108,8 +108,8 @@ def test_a_deleted_half_of_a_named_pair_declines_and_nothing_else_does(tmp_path)
 severity: should
 location: `tests/behaviour/test_both_editions_carry_the_same_folds.py:59-73`
 evidence: read `tests/behaviour/test_both_editions_carry_the_same_folds.py:59-73`, `tests/conftest.py:266-285`
-verdict: open
-answer:
+verdict: fixed c81cb9ff
+answer: The finding holds. `pairs(root)` is now the record's text: it lists `*.md` once, runs `on_disk` over the whole listing, and returns each tracked half of a pair the working tree deleted, English halves included. The scope still makes one listing call, and the census module passed, 9 cases, exit 0. With `README.md` deleted in a `build_tracked_tree` repository, the old logic returned no missing half (red, exit 1). The new one returns `["README.md"]`, and with `docs/alone.md` also deleted it still returns `["README.md"]`. A mutant listing `*.ko.md` alone went `red`, exit 0, and so did one returning every deleted file.
 
 `pairs()` lists only `*.ko.md` from git and runs `on_disk` over that list.
 It finds the English half with `os.path.isfile`. A tracked `X.md` that the
