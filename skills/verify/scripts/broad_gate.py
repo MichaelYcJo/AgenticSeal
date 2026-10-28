@@ -202,7 +202,7 @@ class Refused(Exception):
 def load(path, name):
     """Import a sibling script by path, or raise `Refused`: where the file is
     not there, and where executing it raises (#869) — `seal_stamp.py` reads
-    its disc's mark chart at import and raises `CHART_MALFORMED`'s sentence
+    its disc's mark sprite at import and raises `SPRITE_MALFORMED`'s sentence
     for one that is not in shape, which then ends the gate at exit 2 with
     that sentence and nothing run, rather than in a traceback. The
     exception's own sentence is what the person reads; one with none is

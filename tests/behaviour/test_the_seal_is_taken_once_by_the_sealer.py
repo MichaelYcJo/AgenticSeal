@@ -207,7 +207,7 @@ def test_the_docstrings_detracer_the_letter_and_the_rows_it_carries():
     diagram list the rows the panel carries now; the comment above
     `SAMPLE_ROWS` says which rows left. #832, the owner's frame and layout
     of 2026-10-07: the disc at the left and the text beside it with nothing
-    painted outside the disc, the disc's mark a chart in a file of its own,
+    painted outside the disc, the disc's mark a sprite in a file of its own,
     the twin's letters the nine colours', and nothing names the parchment
     sheet, the 14-cell disc's four colours, the vector source, the area
     sampler, the corner overhang, a fleur-de-lis, a chart of stitches or the
@@ -221,7 +221,7 @@ def test_the_docstrings_detracer_the_letter_and_the_rows_it_carries():
         "Two things side by side on the terminal's own background, and nothing "
         "else: at the left a wax disc with the disc's mark pressed into it"
     ) in stamp
-    assert "a 28 x 28 chart in `seal-mark.txt` beside this file, read as data" in stamp
+    assert "a 16 x 16 sprite in `seal-mark.txt` beside this file, read as data" in stamp
     assert "every cell exactly one of nine colours" in stamp
     assert "`m` its wax edge, `M n N` its rim lit, mid and dark, `.` its field" in (
         stamp
