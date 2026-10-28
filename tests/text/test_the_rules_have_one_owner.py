@@ -206,12 +206,29 @@ def test_the_orchestrator_writes_the_body_file_the_sealer_reads():
     exists when the sealer runs. The owner section writes that file, names it
     in the spawn, opens the pull request with it, and gives a repaired body to
     a pull request already open on the stated limit's path. Round 1 of #943
-    reverted each of the first three and this module stayed green."""
+    reverted each of the first three and this module stayed green.
+
+    S12 of #1044: `seal pr-body` writes the body's first part from the
+    records, so the orchestrator runs it after `trail/gate.md` is committed,
+    which that part copies, writes its own part under the heading and
+    restates no record there, and runs it again before every later sealer
+    spawn and every `PATCH` of the body, which is every repair's last step."""
     text = flat(*ORCH)
-    assert "once you have written the pull request body to a file" in text
-    assert "the issue and the file holding the pull request body" in text
-    assert "`gh pr create --body-file <that file>`" in text
-    assert "`gh api -X PATCH repos/<owner>/<repo>/pulls/<N> -F body=@<file>`" in text
+    pinned = [
+        "the issue and the file holding the pull request body",
+        "`gh pr create --body-file <that file>`",
+        "`gh api -X PATCH repos/<owner>/<repo>/pulls/<N> -F body=@<file>`",
+        "write the pull request body after `trail/gate.md` is committed",
+        "`seal pr-body <item> --body <scratchpad>/<work-item-id>/pr-body.md`",
+        "`skills/code-review/scripts/pr_body.py#HEADING`",
+        "Then write your own part under that line",
+        "Your part restates no record",
+        "before every later spawn of the sealer and before every "
+        "`gh api -X PATCH` of the body",
+    ]
+    missing = [phrase for phrase in pinned if phrase not in text]
+    assert missing == [], missing
+    assert "once you have written the pull request body to a file" not in text
     gate = flat("docs", "the-broad-gate.md")
     assert "before the pull request opens" in gate
     assert "before a pull request is marked ready" not in gate
@@ -290,12 +307,15 @@ def test_the_order_opens_the_pull_request_after_the_sealer():
     # 1790815611 (#638) wrote the orchestrator's preflight in as the step
     # before the sealer's spawn, and #969 the broad run after it: the sealer
     # reads the run's record, so the run comes before the spawn. Since #940
-    # the step says it in words rather than arrows.
+    # the step says it in words rather than arrows. #1044 put the body's
+    # first part between the run and the spawn, since it copies the run's
+    # record and the sealer checks it.
     assert (
         "spawns the crafter (*The plan is approved at the spawn* below). The "
         "proofer's rounds follow, then `seal gate --preflight` and `seal gate "
-        "--record`, both run by the orchestrator, then the sealer, and then the "
-        "pull request opens (" in step
+        "--record`, both run by the orchestrator, then `seal pr-body`, which "
+        "the orchestrator runs to write the pull request body's first part, "
+        "then the sealer, and then the pull request opens (" in step
     ), step
     assert "draft" not in step, step
 

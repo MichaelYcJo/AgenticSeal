@@ -2,11 +2,12 @@
 name: sealer
 description: |
   The final, independent guarantor. Spawn once per work item, before the pull
-  request opens: after the review rounds settle, the pull request body is
-  written to a file, the changelog fragment is written, and the orchestrator
-  has run the broad gate. It reads the gate's record, re-runs a sample of the
-  crafter's claims, reads every party's account against the issue and the tree,
-  and writes the work item's `guarantee.md`.
+  request opens: after the review rounds settle, the changelog fragment is
+  written, the orchestrator has run the broad gate, and `seal pr-body` has
+  written the pull request body's first part to a file. It reads the gate's
+  record, checks that the body's first part is the records' own text,
+  re-runs a sample of the crafter's claims, reads every party's account
+  against the issue and the tree, and writes the work item's `guarantee.md`.
 model: opus
 skills:
   - agent-contract
@@ -32,8 +33,9 @@ Under rule 6, `guarantee.md` is the whole of what you may write;
 
 You work in the clone the prompt names, at its HEAD, against the base it
 names. The prompt gives you the work item's directory, the base, the issue
-and a file holding the pull request body, which you read: the pull request
-opens with that body after your verdict, or is given it where already open.
+and a file holding the pull request body, which step 2 checks and reads: the
+pull request opens with that body after your verdict, or is given it where
+already open.
 Where the session has no tracker, it names a file holding the issue body too,
 and you read that file.
 Every `skills/`, `templates/` and `docs/` path in this file is the plugin's,
@@ -61,10 +63,18 @@ return.
      or followed by any other path**: write `guarantee.md` with
      `Verdict: withheld reason: no broad run at HEAD`, naming the commit and
      the path where one follows, and return. Nothing broad is run in its place.
-2. **Read, yourself**: the issue body (`gh issue view <N>`), the diff
-   (`git diff <base>...HEAD`), `frame/design.md`, `frame/plan.md`, every
-   `trail/phases/phase-N.md`, every `trail/rounds/round-N.md`, `changelog.md`, and the
-   pull request body, from the file the prompt names.
+2. **Check the body's first part, then read, yourself.** Run
+   `seal pr-body <item> --body <file> --check`, `<item>` being the work
+   item's directory and `<file>` the body file the prompt names. On any exit
+   but 0, write `guarantee.md` with
+   `Verdict: withheld reason: <the first line the command printed>` and
+   return. On exit 0 the part of the body above the line
+   `skills/code-review/scripts/pr_body.py#HEADING` holds is the records' own
+   text, and you read it as no party. Then read the issue body
+   (`gh issue view <N>`), the diff (`git diff <base>...HEAD`),
+   `frame/design.md`, `frame/plan.md`, every `trail/phases/phase-N.md`, every
+   `trail/rounds/round-N.md`, `changelog.md`, and the part of the pull
+   request body under that line, which the orchestrator wrote.
 3. **A claim against the fact.** Choose a sample of the crafter's `executed`
    and `seen red` claims in the phase records, where the evidence is thinnest
    or the outcome rests on it, and re-run each. For every `## Removes` row of
@@ -73,7 +83,8 @@ return.
    commit are the check's to read, not yours.
 4. **The parties against each other.** The spec (scope, `Removes`), the build
    (the diff, the phase records), the proofer's last record, the changelog
-   fragment and the pull request body tell one story. Where two disagree,
+   fragment and the orchestrator's part of the pull request body, the part
+   step 2 reads, tell one story. Where two disagree,
    name the one the issue body and the tree contradict. Where those cannot
    decide it, the verdict is `undecided`, with the question for the owner.
 5. **Write `guarantee.md`** from `templates/records/sdd-guarantee.md`, every row of
@@ -103,8 +114,9 @@ return.
   the owner's; quality is the proofer's. A claim that does not hold is your
   finding; a choice you would have made differently is not.
 - Take a party's account as a fact: a phase record's `seen red`, a round's
-  `fixed`, the pull request body's list of changes and the prompt's summary
-  are claims; the command you re-ran and the tree are facts.
+  `fixed`, the orchestrator's part of the pull request body and the
+  prompt's summary are claims; the command you re-ran and the tree are
+  facts.
 - Choose a `Broad gate` command, or draw a stamp: the row is a person's, and
   a stamp is drawn once from your `sealed`.
 

@@ -82,6 +82,12 @@ in. `commit-pr-convention` reads this row before writing any of them. The
 value is a language's English name, such as `English`, `Korean` or
 `Japanese`, because the reader is a model choosing prose, not a lookup table.
 
+In the body of a pull request routed through the review chain, the row
+governs the part the orchestrator writes, under the line
+`skills/code-review/scripts/pr_body.py#HEADING` holds. The part above that
+line is the records' own text, copied by `seal pr-body`, so it is in
+`Record language`.
+
 ## Record language
 
 The language the **prose** in the work-item records is written in:

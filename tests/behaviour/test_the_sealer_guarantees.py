@@ -227,6 +227,34 @@ class TestDefinition:
         assert "or is given it where already open" in intro, intro
         assert "gh pr view" not in text, "the sealer still reads an open pull request"
 
+    def test_the_sealer_checks_the_copy_and_reads_only_the_orchestrators_part(
+        self,
+    ):
+        """S13 of #1044. The part of the body above `pr_body.py#HEADING` is
+        the records' own text, so step 2 checks it with `seal pr-body
+        --check` and withholds on any exit but 0, naming what the command
+        printed; steps 2 and 4 and *Never* then read only the part under the
+        heading as a party, the part the orchestrator wrote. Before this,
+        most withheld verdicts were a body sentence restating a record."""
+        step_2 = between(SEALER, "2. **", "3. **")
+        step_4 = between(SEALER, "4. **", "5. **")
+        never = between(SEALER, "## Never", "## Rules")
+        pinned = [
+            (step_2, "`seal pr-body <item> --body <file> --check`"),
+            (step_2, "On any exit but 0"),
+            (
+                step_2,
+                "`Verdict: withheld reason: <the first line the command printed>`",
+            ),
+            (step_2, "`skills/code-review/scripts/pr_body.py#HEADING`"),
+            (step_2, "the part of the pull request body under that line"),
+            (step_4, "the orchestrator's part of the pull request body"),
+            (never, "the orchestrator's part of the pull request body"),
+        ]
+        missing = [phrase for where, phrase in pinned if phrase not in where]
+        assert missing == [], missing
+        assert "list of changes" not in never, never
+
     def test_the_guarantee_rule_exempts_only_the_closing_records(self):
         """Round 1 of #969, finding 1. `chain_check.py#guarantee` lets only
         `trail/gate.md` and `guarantee.md` follow the commit the guarantee
