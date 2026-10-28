@@ -257,9 +257,18 @@ def test_the_owner_states_the_dispatch_step_and_the_limit():
     """S4 of #943. Opening the pull request after the sealer moves the other
     platforms to the end, so the owner section says how a platform-specific
     change pays for them earlier, and states what is left: a defect only one
-    platform shows is met at the pull request and takes the repair path."""
+    platform shows is met at the pull request and takes the repair path.
+    #1058: the step names the run it reads, why that run's cases see what a
+    `pull_request` run's cases see, and what it cannot have."""
     text = flat(*ORCH)
     assert "run `gh workflow run tests --ref <branch>`" in text
+    assert (
+        "That run is a `workflow_dispatch` run of `tests`. Its cases see what "
+        "a `pull_request` run's cases see, because `tests/conftest.py` removes "
+        "every `GITHUB_` variable at import. It cannot have a pull request's "
+        "merge commit, or the `hygiene` workflow, which starts only on a "
+        "`pull_request` event."
+    ) in text
     assert (
         "**The stated limit: a defect that only one platform shows, in work "
         "nobody expected to be platform-specific, is found when the pull "

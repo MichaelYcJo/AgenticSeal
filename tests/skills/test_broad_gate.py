@@ -72,9 +72,11 @@ SUITE_ROW = f"{sys.executable} -m pytest -q -p no:cacheprovider tests"
 OVERVIEW = (
     "# overview\n\n## Not verified\n\n- nothing\n  why: the fixture verifies nothing\n"
 )
-# The variables a runner sets that would make the chain check judge the
-# fixture as the runner's own pull request, and the live session's id.
-AMBIENT = ("GITHUB_EVENT_PATH", "GITHUB_HEAD_REF", "CLAUDE_CODE_SESSION_ID")
+# The live session's id. The conftest clears it before each case, and a
+# fixture scoped to the module, such as `a_recorded_run`, starts the gate
+# before that, so `clean_env` leaves it out of the gate's environment. No
+# `GITHUB_` variable is listed: the conftest removes them all at import.
+AMBIENT = ("CLAUDE_CODE_SESSION_ID",)
 
 
 def config_of(row=SUITE_ROW, before="", after=""):
@@ -147,14 +149,6 @@ WORKFLOW = (
     "      - name: both READMEs move together\n"
     "      - name: a step nobody classified\n"
 )
-
-
-@pytest.fixture(autouse=True)
-def _no_ambient_pull_request(monkeypatch):
-    """Each case reads the fixture it built, never the pull request a runner
-    describes in its environment."""
-    for name in AMBIENT:
-        monkeypatch.delenv(name, raising=False)
 
 
 def clean_env():
@@ -2486,11 +2480,6 @@ def run_gate(repo, keep, base="base"):
         encoding="utf-8",
         errors="replace",
         timeout=300,
-        env={
-            key: value
-            for key, value in os.environ.items()
-            if key not in ("GITHUB_EVENT_PATH", "GITHUB_HEAD_REF")
-        },
     )
 
 
