@@ -143,19 +143,15 @@ and 2 (rows below).
 - "§*The class*" style citations and "agent contract §12" become
   "contract rule 12". The 0.22.4 move comment stays as history.
 
-**#920, stands, folded, and moved to `release: 0.24.1`.**
+**#920, stands, folded, and stays in `release: 0.24.0` among the small fixes.**
 - `steer_to_switch` is `hooks/worktree-guard.py:1382`, and its two hints still
   name `[worktree-ok]` (`:1389`, `:1394`, read).
 - "agent contract §12" becomes "contract rule 12", and "#903's frame kept
   unchanged (§*The class*)" becomes "(*The class*)".
-- It moves to `release: 0.24.1` and is added to #1049's list of the guard's
-  open issues that #1049's decision closes or carries. #1049 decides whether
-  the worktree guard stays, narrows or goes. A fix to one hint of a guard
-  #1049 may remove is a whole chain run (frame, build, review, seal) that
-  #1049's own *Done when* already provides for: "#20, #24, #630, #723, #886,
-  #893 and #900 are each closed with the decision's reason, or carried into
-  the work item". The move is the default of `questions.md` Q1, because the
-  owner placed #920 among the small fixes.
+- It stays where the owner placed it: `questions.md` Q1 was answered (b) on
+  2026-10-28, so the hint is fixed in 0.24.0, before #1049 decides whether
+  the worktree guard stays, narrows or goes, at the cost of one chain run that
+  decision may later remove.
 
 **#712, stands, folded.**
 - `session-cost --spawns` becomes `seal cost --spawns`.
@@ -460,7 +456,6 @@ and a dated figure is history, so the body is not edited.
   `hooks/lib/one_heredoc.py`, `hooks/worktree-guard.py` and
   `hooks/worktree_consent.py` (executed, `git grep -l`). The body's
   `implementer-notice.py` is replaced by that list.
-- #920 joins the list of open issues the decision closes or carries.
 - One sentence: #1096 changes `hooks/worktree-guard.py`'s language reading in
   0.24.0, before this decision.
 
@@ -618,7 +613,7 @@ shared file is named and they run in the order given.
 | Step | Issues | Parallel, and the shared file where not |
 |---|---|---|
 | 1 | #1052 | alone |
-| 2, the small fixes | #1058, #913, #712, F1 | all four in parallel. #1058: `tests/conftest.py`, `tests/skills/test_chain_check.py`, `tests/skills/test_broad_gate.py`, `skills/code-review/orchestration.md`. #913: `skills/verify/scripts/pact_check.py`, `coordinates.py`, `hooks/lib/config.py`, `templates/records/sdd-design.md`, `templates/setup/pact.md`. #712: `skills/verify/scripts/session_cost.py` and its tests. F1: `skills/implement/orchestration.md`, two `tests/behaviour/` modules, `.test_durations` |
+| 2, the small fixes | #1058, #913, #712, #920, F1 | all five in parallel. #920: `hooks/worktree-guard.py` and its tests, which #1096 in step 8 also edits. #1058: `tests/conftest.py`, `tests/skills/test_chain_check.py`, `tests/skills/test_broad_gate.py`, `skills/code-review/orchestration.md`. #913: `skills/verify/scripts/pact_check.py`, `coordinates.py`, `hooks/lib/config.py`, `templates/records/sdd-design.md`, `templates/setup/pact.md`. #712: `skills/verify/scripts/session_cost.py` and its tests. F1: `skills/implement/orchestration.md`, two `tests/behaviour/` modules, `.test_durations` |
 | 3 | #1039, #1042, #1043, #1040, then #1041, then F2 | #1039, #1042, #1043 and #1040 in parallel. #1041 after #1040: both edit `agents/crafter.md`. F2 after #1041: it rewords `agents/*.md`, which #1040 edits, and `skills/implement/SKILL.md` and `agents/crafter.md`, which #1041 edits |
 | 4, the checks that read written text | #992, #956, F3 | all three in parallel. #992: `evals/scripts/noninferiority.py`, `tests/evals/test_noninferiority.py`, `evals/README.md`. #956 writes its table on the issue and edits no file. F3: `tests/text/test_the_agent_contract_holds_the_universal_rules.py`, `skills/agent-contract/SKILL.md` |
 | 5 | #1055, #1056 | in parallel. #1055: the READMEs, `CONTRIBUTING.md`, `skills/config/SKILL.md`, the two hygiene workflows, `.claude-plugin/marketplace.json`, its listed tests. #1056: the six scripts its items name and their tests |
@@ -633,7 +628,7 @@ Step 3 runs before step 4 because F3 weighs pins that #1040 changes.
 
 | Step | Issues | Parallel, and the shared file where not |
 |---|---|---|
-| 1 | #1045, #1047, #1049 with #920 | in parallel. #1045: `skills/code-review/scripts/chain_check.py`, `skills/code-review/orchestration.md`, `templates/records/sdd-gaps.md`, `agents/crafter.md`, `agents/sealer.md`, `skills/settle/SKILL.md`. #1047: `agents/framer.md`, `evals/behaviour/framer/`. #1049: the guard's hooks, `hooks/dispatch.py`, the guard's tests. #920 is decided inside #1049 |
+| 1 | #1045, #1047, #1049 | in parallel. #1045: `skills/code-review/scripts/chain_check.py`, `skills/code-review/orchestration.md`, `templates/records/sdd-gaps.md`, `agents/crafter.md`, `agents/sealer.md`, `skills/settle/SKILL.md`. #1047: `agents/framer.md`, `evals/behaviour/framer/`. #1049: the guard's hooks, `hooks/dispatch.py`, the guard's tests |
 | 2 | #1046 | after #1045: both can edit `skills/implement/orchestration.md`, whose acts table carries the row for *Orchestrator: the run ends with a verifying round* that #1045 changes |
 | 3 | #1048, then #1091 | not in parallel: both edit `agents/sealer.md` and `skills/verify/SKILL.md`. Both come after step 1: #1048 shares `skills/code-review/orchestration.md` and `agents/sealer.md` with #1045, and #1091 shares `agents/crafter.md` with #1045 |
 | 4 | #947 | last, the measurement on the final state |
@@ -645,11 +640,11 @@ number its issue was filed under.
 
 `release: 0.24.0`:
 
-> Purpose: review the renamed tree and lighten what it carries, first the checks. Order: #1052 first and alone, one read of the tree after 0.23.0's rename and 0.23.1's reorganisation, which folded each issue below to the new names. Then the small fixes #1058, #913, #712 and F1, which share no file and run in parallel. Then #1039, #1042, #1043 and #1040 in parallel; #1041 after #1040, because both edit agents/crafter.md; and F2 after both, because it rewords the agent definitions and skills/implement/SKILL.md that they edit. Then #992, #956 and F3, the checks that read written text, in parallel, after #1040 has changed the sentences F3's pins read. Then #1055 and #1056 in parallel, one source per fact and the code no input reaches. Then #1053, the GitHub Release as the release notes, opening with its theme, and changelog/ removed. Then #1020 and then #951, the static type check, because both edit chain_check.py and #951 annotates every Python file. Then #1096, the two environment variables; and #1102 last, the README rewritten for a first reader once the rest of the release has changed what it describes. #920 moved to 0.24.1, into #1049's decision on the worktree guard it edits. Released as 0.24.0 after the rename; these issues were planned as 0.22.5.
+> Purpose: review the renamed tree and lighten what it carries, first the checks. Order: #1052 first and alone, one read of the tree after 0.23.0's rename and 0.23.1's reorganisation, which folded each issue below to the new names. Then the small fixes #1058, #913, #712, #920 and F1, which share no file and run in parallel. Then #1039, #1042, #1043 and #1040 in parallel; #1041 after #1040, because both edit agents/crafter.md; and F2 after both, because it rewords the agent definitions and skills/implement/SKILL.md that they edit. Then #992, #956 and F3, the checks that read written text, in parallel, after #1040 has changed the sentences F3's pins read. Then #1055 and #1056 in parallel, one source per fact and the code no input reaches. Then #1053, the GitHub Release as the release notes, opening with its theme, and changelog/ removed. Then #1020 and then #951, the static type check, because both edit chain_check.py and #951 annotates every Python file. Then #1096, the two environment variables, after #920 because both edit hooks/worktree-guard.py; and #1102 last, the README rewritten for a first reader once the rest of the release has changed what it describes. Released as 0.24.0 after the rename; these issues were planned as 0.22.5.
 
 `release: 0.24.1`:
 
-> Purpose: lighten the process itself, then measure what the 0.22.x and 0.24.x lightening changed. Order: #1045 (verifying rounds over records), #1047 (the framer's read-only probes) and #1049 (the worktree guard weighed against its cost, with #920 decided inside it) in parallel, because they share no file. Then #1046, after #1045, because both can edit skills/implement/orchestration.md. Then #1048 and then #1091 (a rename or a move owes no red-first case and no mutation run), because both edit agents/sealer.md and skills/verify/SKILL.md, and each shares an agent definition with #1045. Then #947 last, the measurement taken on the final state, which also counts the sealer's withholds over the pull request body after #1103 shipped #1044 in 0.23.1. Planned as 0.22.6.
+> Purpose: lighten the process itself, then measure what the 0.22.x and 0.24.x lightening changed. Order: #1045 (verifying rounds over records), #1047 (the framer's read-only probes) and #1049 (the worktree guard weighed against its cost) in parallel, because they share no file. Then #1046, after #1045, because both can edit skills/implement/orchestration.md. Then #1048 and then #1091 (a rename or a move owes no red-first case and no mutation run), because both edit agents/sealer.md and skills/verify/SKILL.md, and each shares an agent definition with #1045. Then #947 last, the measurement taken on the final state, which also counts the sealer's withholds over the pull request body after #1103 shipped #1044 in 0.23.1. Planned as 0.22.6.
 
 ## User scenarios & acceptance *(mandatory)*
 
@@ -657,7 +652,7 @@ number its issue was filed under.
 |---|---|---|
 | S1, a folded body | Given an issue this frame folds, when the crafter has applied its row, then the body holds every change its row names, keeps every other sentence, and holds no old form from the mapping table outside a `<commit>:<path>` citation or a sentence of history its row keeps | `gh issue view <N> --json body` read back against the row, and `grep -n -i -E` with the pattern in `plan.md` *Technical context* over the body, each remaining hit judged in the phase record |
 | S2, a body left alone | Given #1053, #1096 or #1102, when the work ends, then its body is the one the frame read | `gh issue view <N> --json updatedAt` still reads its value at the read (executed 2026-10-28T05:24:47Z): #1053 2026-10-27T02:26:00Z, #1096 2026-10-28T04:03:25Z, #1102 2026-10-28T04:05:42Z |
-| S3, the moved issue | Given #920, when phase 2 ends, then its milestone is `release: 0.24.1` and it carries one comment naming #1049 and this work item as the reason | `gh issue view 920 --json milestone,comments` |
+| S3, the issue that stays | Given #920, when phase 2 ends, then its milestone is `release: 0.24.0` and it carries no comment about a move | `gh issue view 920 --json milestone,comments` |
 | S4, the new issues | Given F1, F2 and F3, when phase 1 ends, then each is open in `release: 0.24.0` with the title above and a body holding every evidence line of its section | `gh issue view <N> --json title,body,milestone` |
 | S5, the descriptions | Given milestones 65 and 67, when phase 4 ends, then each description is the text above with the F numbers filled, opens with `Purpose:`, and names each open issue of its milestone once and no closed issue or issue of another milestone | `gh api repos/MichaelYcJo/AgenticSeal/milestones/<n> --jq .description` compared with `gh issue list --milestone "<title>" --state open --json number` |
 | S6, #1044 | Given #1044, when phase 3 ends, then it carries one comment saying its count now lives in #947 | `gh issue view 1044 --json comments` |
@@ -667,8 +662,7 @@ number its issue was filed under.
 
 The objects this work edits are on GitHub, in `MichaelYcJo/AgenticSeal`:
 issue bodies through `gh issue edit <N> --body-file <file>`, one title through
-`gh issue edit 1040 --title`, one milestone through
-`gh issue edit 920 --milestone "release: 0.24.1"`, comments through
+`gh issue edit 1040 --title`, comments through
 `gh issue comment`, new issues through
 `gh issue create --milestone "release: 0.24.0"`, and the two descriptions
 through `gh api -X PATCH repos/MichaelYcJo/AgenticSeal/milestones/65 -F description=@<file>`
