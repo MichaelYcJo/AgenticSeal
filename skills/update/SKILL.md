@@ -72,17 +72,39 @@ version directory is free to remove.
 **3. Name what changed.** Each release's notes are its GitHub Release, the
 note published at its `vX.Y.Z` tag. Read them from GitHub's public API, with
 no token: `gh` is not used, because it needs a login. The repository is the
-one the refreshed marketplace clone was cloned from, its `origin`:
+one the refreshed marketplace clone was cloned from, its `origin`. The list
+holds every release's whole note, close to a megabyte, so it goes to a file
+and only the span is printed. Set `old` to the version step 1 recorded and
+`new` to the one step 2 reported, then run:
 
 ```bash
 repo=$(git -C ~/.claude/plugins/marketplaces/agenticseal remote get-url origin | sed -E 's#^.*github\.com[:/]##; s#\.git$##')
-curl -fsS "https://api.github.com/repos/$repo/releases?per_page=100"
+f=$(mktemp)
+curl -fsS "https://api.github.com/repos/$repo/releases?per_page=100" -o "$f"; echo "curl exit $?"
+python3 -c '
+import json, sys
+
+def key(name):
+    try:
+        return tuple(int(n) for n in name.lstrip("v").split("."))
+    except ValueError:
+        return None
+
+old, new = key(sys.argv[2]), key(sys.argv[3])
+with open(sys.argv[1], encoding="utf-8") as handle:
+    releases = json.load(handle)
+for release in reversed(releases):
+    at = key(release["tag_name"])
+    if at and old < at <= new:
+        print("## " + release["tag_name"])
+        print(release["body"])
+' "$f" "$old" "$new"
+rm -f "$f"
 ```
 
-The answer is a list of releases, newest first, each with its `tag_name` and
-its `body`. Read the `body` of every release after the old version up to the
-new one, oldest first, and summarize every entry in it. Lead each with what
-it changes for the user, not with the release number.
+It prints the `body` of every release after the old version up to the new
+one, oldest first, each under its tag. Summarize every entry in them. Lead
+each with what it changes for the user, not with the release number.
 
 Where `curl` exits non-zero, or the list holds no release in that span, say
 that what changed could not be read, name the releases page,

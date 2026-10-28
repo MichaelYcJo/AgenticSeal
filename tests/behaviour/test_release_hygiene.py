@@ -1082,13 +1082,20 @@ def test_update_shows_what_changed_from_the_github_releases():
     login; it takes the repository from the marketplace clone's `origin`,
     reads every release after the old version up to the new one oldest
     first, and where the read fails it says so, names the releases page and
-    goes on, because the update has already landed."""
+    goes on, because the update has already landed.
+
+    Round 1 of #1053, finding 2: the list holds every release's whole note,
+    about 880 KB, so it is downloaded to a file and only the releases in the
+    span are printed, oldest first."""
     update = read_text("skills", "update", "SKILL.md")
     step = update[update.index("**3.") : update.index("**4.")]
     flat = " ".join(step.split())
     for needed, why in (
         ("https://api.github.com/repos/", "the public API the releases are read from"),
         ("/releases", "the releases endpoint and page"),
+        ('releases?per_page=100" -o "$f"', "the list goes to a file, not the session"),
+        ("reversed(", "the span is printed oldest first"),
+        ("old < at <= new", "only the releases after the old version up to the new"),
         ("remote get-url origin", "where the repository is taken from"),
         ("marketplaces/agenticseal", "the clone whose origin it is"),
         ("no token", "that the read carries no credentials"),
