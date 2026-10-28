@@ -20,6 +20,10 @@
 | Readers that listed `tests/` one level deep | `frame/plan.md` row 3 names `test_layout.py --check` and the `check:` lines | `test_layout.py#_moved_main`, `tests/skills/test_arm_check.py#selects_this_module`, `tests/test_one_word_one_meaning.py` and the session-cost segment join read the areas, the first two with a case seen red | each would have read no file under an area |
 | `tests/evals/test_seed_defects.py` after phase 2 | phase 2's narrow run did not include it, and its scaffold copied every `CHECK_FILES` entry from the working tree, `hooks/blocks.py` among them | the scaffold skips an entry the tree does not hold | `hooks/blocks.py` is a spelling `CHECK_FILES` keeps for commits cut before the move |
 | `CONTRIBUTING.md` *The test layout* | `frame/plan.md` row 3 rewrites it in place | phase 3 states the area rule; the rule that a test file takes its root from `conftest.ROOT` is phase 4's, with its case | the root rule's case is phase 4's |
+| Where the nine edge files stand | `frame/design.md` *Data & interfaces* counts 43 behaviour files and 48 text files | 52 and 39: nine files that run shipped code through a helper imported from a module test file stand in `tests/behaviour/` | the criterion's own words, "loads or runs shipped code", send them there |
+| What the root case reads | `frame/plan.md` row 4: no file under `tests/` but `conftest.py` computes the root from `__file__` | the case reads `test_*.py` files only; `tests/censuses.py` keeps its own root | `evals/scripts/noninferiority.py` loads `censuses.py` by path without pytest |
+| What the name case reads | `frame/plan.md` row 4: no two test files share a name | the case reads `.py` files under `tests/` | only Python files are imported by name, and a `.DS_Store` may stand in several directories |
+| Where the two cases stand | `frame/plan.md` row 4 names `tests/test_conftest.py` | both stand in `Test_module` | the tree's `seal layout --check` refuses a class that names no top-level definition of `tests/conftest.py` |
 
 ## Not verified
 
