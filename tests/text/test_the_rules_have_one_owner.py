@@ -137,6 +137,15 @@ RULES = {
         "`crafter` spawn otherwise.",
         {},
     ),
+    # #1041: in #955 and #1016 the orchestrator's fix-pass prompts left every
+    # `verdict:` line to the orchestrator, which rewrote them in a commit of
+    # its own, so a round with fixes cost three record commits.
+    "19 the orchestrator writes neither line of a finding a fix pass answers": (
+        ORCH,
+        "The orchestrator writes neither line of a finding the fix pass "
+        "answers, and its fix-pass prompt leaves both lines to the crafter.",
+        {},
+    ),
 }
 
 
@@ -177,10 +186,38 @@ def test_the_fix_pass_reads_the_implementers_context_before_it_resumes():
         "the largest value of its `context` column",
         "hands it the round record and the phase records",
         "the largest context a fresh, never-resumed crafter reached in the 0.22.0 run",
+        # #1041, S1: both lines in one commit, and a doubt goes to the next
+        # round rather than into a rewrite of the line.
+        "commits both lines of each finding together, in one commit after any "
+        "fix commit it made",
+        "A close the orchestrator doubts goes into the verifying round's spawn prompt",
+        "the orchestrator does not rewrite the line",
     ):
         assert said in section, f"the fix-pass section no longer says {said!r}"
     assert "Orchestrator: a fix pass resumes the implementer" not in text
     assert "never spawn a fresh one while that session still exists" not in text
+
+
+REGRESSION = "### A regression is routed by comparing the fix with the frame"
+
+
+def test_the_framers_route_closes_each_finding_with_both_lines_in_one_commit():
+    """S2 of #1041. On the framer's route no fix pass runs, so the
+    orchestrator closes every open finding itself; row *The record* names the
+    `answer:` line beside `deferred the frame`, and one commit for both."""
+    text = flat(*ORCH)
+    section = text[
+        text.index(REGRESSION) : text.index("## Orchestrator: the pull request opens")
+    ]
+    row = section[section.index("| The record |") : section.index("| The framer |")]
+    for said in (
+        "every open finding closes `deferred the frame`",
+        "its `answer:` line names the regression that sent the work item back",
+        "you write both lines of each finding in one commit",
+    ):
+        assert said in row, (
+            f"row *The record* of the framer's route no longer says {said!r}"
+        )
 
 
 def test_a_draft_is_tolerated_and_still_owes_the_record():
