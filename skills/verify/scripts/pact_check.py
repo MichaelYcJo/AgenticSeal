@@ -500,7 +500,7 @@ def grade(checker, pact_text, history, clause, want):
         if text is not None and clause_hash(checker, text, clause)[0] == want:
             return SUPERSEDED, (
                 f"the signer was built against a superseded clause, the one "
-                f"at {sha[:8]}; it reads @{current} now. Re-read it in the "
+                f"at {sha[:8]}; its hash is {current} now. Re-read it in the "
                 "signer and re-anchor"
             )
     for sha in history.other():
@@ -513,8 +513,8 @@ def grade(checker, pact_text, history, clause, want):
                 "change, or reconcile"
             )
     return UNMATCHED, (
-        f"no commit in this repository gave the clause this hash, and it reads "
-        f"@{current} now: the version was squashed away or never existed. "
+        f"no commit in this repository gave the clause this hash, and its hash "
+        f"is {current} now: the version was squashed away or never existed. "
         "Read both sides"
     )
 

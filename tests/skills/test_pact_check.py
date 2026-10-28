@@ -492,7 +492,7 @@ class Test_grade:
         assert status == pc.SUPERSEDED
         assert detail == (
             "the signer was built against a superseded clause, the one at "
-            f"bbbbbbbb; it reads @{clause(V2)} now. Re-read it in the signer and "
+            f"bbbbbbbb; its hash is {clause(V2)} now. Re-read it in the signer and "
             "re-anchor"
         )
         status, detail = pc.grade(checker, pact(V2), history, CLAUSE_PATH, clause(V3))
@@ -506,7 +506,13 @@ class Test_grade:
         history = _History(head=[(B, pact(V1))], other=[(C, pact(V3))])
         status, detail = pc.grade(checker, pact(V2), history, CLAUSE_PATH, "deadbeef")
         assert status == pc.UNMATCHED
-        assert detail.endswith("Read both sides"), detail
+        # The hash is printed bare, as the `Hash` cell takes it (round 1 of
+        # #913, finding 2).
+        assert detail == (
+            "no commit in this repository gave the clause this hash, and its "
+            f"hash is {clause(V2)} now: the version was squashed away or never "
+            "existed. Read both sides"
+        ), detail
         status, detail = pc.grade(
             checker, pact(V2), history, "## Order response shape / ### Gone", "x"
         )
@@ -872,36 +878,17 @@ class Test_check:
     @pytest.mark.parametrize(
         "text, said",
         [
-            ("# Checkouts\n", "holds no `| Remote | Path |` table"),
-            (
-                f"{MAP_TOP}| https://example.com/org/a | /x/a |\n"
-                "| https://example.com/org/a/ | /y/a |\n",
-                "has rows at lines 3 and 4 naming one repository",
-            ),
-            (
-                f"{MAP_TOP}| https://example.com/org/a |  |\n",
-                "has a row at line 3 with an empty cell",
-            ),
-            (
-                f"{MAP_TOP}\n## Laptop\n\n{MAP_TOP}",
-                "holds a second `| Remote | Path |` header at line 6",
-            ),
             (
                 f"{MAP_TOP}\n{MAP_TOP}",
                 "has a `Remote | Path` table that ends above `| Remote | Path |`",
             ),
         ],
-        ids=[
-            "no table",
-            "one remote twice",
-            "an empty cell",
-            "a second header",
-            "a second header the walk names",
-        ],
+        ids=["a second header the walk names"],
     )
     def test_refuses_each_map_line_it_does_not_read_at_exit_2(self, world, text, said):
-        """S3: each shape is one line naming it, at exit 2, where `977b6613`
-        read the map as complete and printed nothing."""
+        """S3: a second header the walk already refuses is named once, at
+        exit 2. The other shapes are `Test_path_map`'s, and `check` prints
+        each of them through the one loop the two cases above hold."""
         world.cite(clause(V2))
         write(world.home, ".claude/agentic/pact-paths.md", text)
         code, out = world.run()
