@@ -353,8 +353,8 @@ TYPES = (
 )
 OTHER = "📦 Other"
 TITLE_RE = re.compile(r"^(?P<type>[a-z]+)(?:\([^)]*\))?!?:\s*(?P<text>.+)$", re.I)
-# The preparation pull request -- `chore: release X.Y.Z -- ...` -- gathers the
-# release and changes nothing a user reads, so it is not one of the changes.
+# The preparation pull request -- `chore: release X.Y.Z -- ...` -- moves the
+# version and changes nothing a user reads, so it is not one of the changes.
 PREPARATION_RE = re.compile(r"^chore:\s*release\s+\d+\.\d+\.\d+\b", re.I)
 # A title that ends in the issue it closes, `... (#572)`, would read
 # `(#572) (#574)`; the closing list carries the issue instead.

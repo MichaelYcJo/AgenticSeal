@@ -89,10 +89,9 @@ sys.path.insert(0, os.path.join(HERE, "..", "..", "hooks", "lib"))
 import console  # noqa: E402
 from close_issues_on_release import CLOSING, FENCE, KEYWORDS, SPAN  # noqa: E402
 
-# Where a line ends is the shared reader's rule, loaded by path the way
-# `gather_changelog.py#load_reader` loads it (#664). A reader that is moved or
-# renamed stops this check at load with a traceback, which is the loud
-# direction.
+# Where a line ends is the shared reader's rule, loaded by path (#664). A
+# reader that is moved or renamed stops this check at load with a traceback,
+# which is the loud direction.
 READER = os.path.join(
     HERE, "..", "..", "skills", "verify", "scripts", "unverified_check.py"
 )

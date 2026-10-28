@@ -663,8 +663,8 @@ MARKER = r"^<!-- specs/(\S+) -->$"
 
 
 def live_markers(body):
-    """The marker ids on the live lines of BODY, read line-anchored as the
-    changelog gather writes one."""
+    """The marker ids on the live lines of BODY, each read line-anchored, on
+    a line of its own."""
 
     return {
         found

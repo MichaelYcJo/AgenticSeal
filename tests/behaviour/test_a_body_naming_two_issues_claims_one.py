@@ -59,9 +59,9 @@ def test_the_body_reaches_the_script_through_the_environment():
 
 @pytest.mark.parametrize("stays_home", ["issue_claims_check"])
 def test_the_check_does_not_travel_to_user_repositories(stays_home):
-    """`.github/scripts/` is this repository's own automation, the way
-    `gather_changelog` and `fold_ledger` are — `test_first_setup_asks_once.py`
-    pins those two the same way. Shipping this one means first deciding it
+    """`.github/scripts/` is this repository's own automation, and
+    `test_first_setup_asks_once.py` pins its other rows out of the template
+    the same way. Shipping this one means first deciding it
     belongs under `skills/`, which is a wider change than this issue asks
     for."""
     with open(

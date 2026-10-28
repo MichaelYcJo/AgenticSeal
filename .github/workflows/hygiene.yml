@@ -107,28 +107,6 @@ jobs:
             exit 1
           fi
 
-      # A change writes `seal/threads/<work-item-id>/changelog.md` instead of
-      # appending to the changelog — three parallel branches shared that one
-      # file and nothing else, and the conflict arrived after the broad gate
-      # had run, where nothing may be edited.
-      #
-      # Gathering them is a step somebody has to remember, and the release
-      # pull request is the last moment anyone is looking. A fragment that
-      # reached no release file under `changelog/` ships with no entry: the
-      # user `hooks/version-check.py` tells about a new release has nothing
-      # to read.
-      #
-      # It runs only for a release, because that is the only moment the
-      # fragments are meant to be in a release file. On a feature pull
-      # request every fragment on the branch is legitimately ungathered.
-      - name: every changelog fragment reached the released file
-        shell: bash
-        run: |
-          if [ "${{ github.base_ref }}" != "main" ]; then
-            echo "base is ${{ github.base_ref }} — fragments are gathered when the release reaches main"; exit 0
-          fi
-          python3 .github/scripts/gather_changelog.py --check
-
       # One source: `templates/setup/hygiene.yml`, the workflow the plugin ships.
       - name: a declared review chain has the round record it claimed
         shell: bash
@@ -150,7 +128,7 @@ jobs:
       # repaired by a person adding a label by hand, which is the act #359
       # exists to remove.
       #
-      # Release only, like the version and changelog steps. The head must ALSO be a
+      # Release only, like the version step. The head must ALSO be a
       # `release/v*` branch, and that half is the script's rather than this
       # guard's: `docs/branch-and-release.md` lists a hotfix branch as the
       # other thing that reaches `main`, a hotfix carries no release
