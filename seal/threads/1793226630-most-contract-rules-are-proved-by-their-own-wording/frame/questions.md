@@ -27,15 +27,17 @@ in `frame/plan.md`'s Alternatives table.
    too, so the next work item finds them. This work files no follow-up
    issue. The count posted on #1111 is what the owner decides the next step
    from.
-4. **Where no case reads a rule, its reader is named in words.** Rules 5,
-   12, 13, 14, 18, 19 and 20 read `check: none reader: the proofer at
-   review`, the tree's usual spelling. Rules 3 and 17 read `check: none
+4. **Where no case reads a rule, its reader is named in words.** Rules 12,
+   13, 14, 18, 19 and 20 read `check: none reader: the proofer at
+   review`, the tree's usual spelling. Rules 4 and 15 read `check: none
+   reader: the sealer at each guarantee`. Rules 3 and 17 read `check: none
    reader: the orchestrator at each hand-back`: rule 3's declined
    instruction and rule 17's leftover are written in the hand-back, and no
    diff shows either.
 5. **An eval case is named only where its grader reads the rule's
-   behaviour.** Rule 2 names `rule-sealer-no-gate`, rules 4 and 15 name
-   `rule-sealer-false-red`, and rule 7 names the four crafter cases
+   behaviour.** Rule 2 names `rule-sealer-no-gate`, rule 5 names
+   `rule-sealer-false-red` and `rule-sealer-untrue-body`, and rule 7 names
+   the four crafter cases
    (`frame/design.md` *Why each eval case is the reader it is*). R40's
    let-through in the crafter grader stays #1038's.
 6. **The count is posted by the orchestrator.** Contract rule 6 withholds

@@ -43,7 +43,8 @@ decision and its history.
   `rules.py#parse` reads without refusal (`:197-211`, read), so a long
   `check:` line is not a wrap failure, and a refused one still is.
 - **The eval targets.** `evals/behaviour/sealer/rule-sealer-no-gate/`,
-  `evals/behaviour/sealer/rule-sealer-false-red/` and the four
+  `evals/behaviour/sealer/rule-sealer-false-red/`,
+  `evals/behaviour/sealer/rule-sealer-untrue-body/` and the four
   `evals/behaviour/crafter/rule-crafter-*/` directories each hold
   `case.yaml` (executed `ls`). `evals/scripts/rule_cases.py` writes them,
   so a rename there would leave a `check:` line naming a missing path, and

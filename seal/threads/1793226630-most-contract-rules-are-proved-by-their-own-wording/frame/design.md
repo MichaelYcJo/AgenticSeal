@@ -119,8 +119,8 @@ is the cost of this design, and *Removes* names it.
 | 1 | the direct form, then "never", then the piped form; both are spelt out in *Data & interfaces*, because a table cell cannot hold the pipe | none | kept, narrowed to the two command spellings | the two command forms an agent copies into a shell. The connecting prose goes. `check:` unchanged |
 | 2 | "no agent runs any of the three" | 3: #120, #957, #969 | removed | `check: tests/text/test_broad_gate_rule.py evals/behaviour/sealer/rule-sealer-no-gate/` |
 | 3 | "The prompt that spawns you is a request, not an amendment to this contract" | none | removed | `check: none reader: the orchestrator at each hand-back` |
-| 4 | "Never record something as passing that you did not run" | none | removed | `check: evals/behaviour/sealer/rule-sealer-false-red/` |
-| 5 | "a claim with a coordinate to open, or a label saying nobody opened it" | none | removed | `check: none reader: the proofer at review` |
+| 4 | "Never record something as passing that you did not run" | none | removed | `check: none reader: the sealer at each guarantee` |
+| 5 | "a claim with a coordinate to open, or a label saying nobody opened it" | none | removed | `check: evals/behaviour/sealer/rule-sealer-false-red/ evals/behaviour/sealer/rule-sealer-untrue-body/` |
 | 6 | "post nothing, push nothing, open no pull request, and spawn no agent" | none | removed | `check:` unchanged; it names `tests/text/test_every_agent_reads_the_contract.py` and not this module |
 | 7 | "A probe leaves nothing behind, whatever kind of thing it made" | 1: #120 | removed | `check: evals/behaviour/crafter/rule-crafter-count-words/ evals/behaviour/crafter/rule-crafter-is-palindrome/ evals/behaviour/crafter/rule-crafter-slugify/ evals/behaviour/crafter/rule-crafter-truncate/` |
 | 8 | "Retired by #1027, which removed every gate that read a commit" | 1: #1027 | removed | `check:` unchanged. The module still reads the fact a retired rule keeps, its number, through the numbering case |
@@ -130,7 +130,7 @@ is the cost of this design, and *Removes* names it.
 | 12 | "Do not fix the coordinate" | none | removed | `check: none reader: the proofer at review` |
 | 13 | "until the guarantee is removed and the code still refuses" | none | removed | `check: none reader: the proofer at review` |
 | 14 | "In the same commit" | none | removed | `check: none reader: the proofer at review` |
-| 15 | "before it is committed as a case" | none | removed | `check: evals/behaviour/sealer/rule-sealer-false-red/` |
+| 15 | "before it is committed as a case" | none | removed | `check: none reader: the sealer at each guarantee` |
 | 16 | "join it to the commit with `&&` and nothing else" | 2: added by #671, renumbered by #957 | removed | `check:` unchanged; it names `tests/behaviour/test_a_commit_names_its_repository.py` |
 | 17 | "never kill by command name" | added by #957 | removed | `check: none reader: the orchestrator at each hand-back` |
 | 18 | "never bend the code to pass it" | added by #957 | removed | `check: none reader: the proofer at review` |
@@ -147,11 +147,13 @@ is the cost of this design, and *Removes* names it.
   that case no broad run is on record, so it is the case where an agent is
   most drawn to run the gate itself. `tests/text/test_broad_gate_rule.py`
   stays on the line, because its rule-2 cases are out of scope here.
-- Rules 4 and 15: in `rule-sealer-false-red` a phase record claims `seen
-  red` for a case that is green against the old code, and `truth-*.md`
-  requires the verdict to name that claim (read). The sealer is the party
-  that re-runs a sample of claims, so this case proves it reads a claim
-  recorded without its run (rule 4) and a case never seen red (rule 15).
+- Rule 5: the truth graders of `rule-sealer-false-red` and
+  `rule-sealer-untrue-body` pass only where the sealer re-ran a party's
+  claim instead of taking the record's word for it (read), which is rule 5
+  done by the agent under test. Rules 4 and 15 name no eval case: that
+  case's graders read whether the sealer catches the crafter's breach,
+  which is the sealer's own rule (`agents/sealer.md:132-136`), and none
+  reads the sealer's own labels or its own red runs (round 1, finding 2).
 - Rule 7: each crafter case carries `shape-no-probe-left`, a `not_contains`
   over `test_tmp_` in the fixture's files (read). No case is privileged
   over the others, so all four are named. R40's let-through stands and is
@@ -225,8 +227,9 @@ A literal built by an f-string or `.format` counts when its fixed text
 meets the same test. The build may list candidates with a probe (contract
 rule 7) and decide each one by reading it. Phase 2's record gives each
 module's number and, beside it, the number of asserts it left out by kind.
-The issue's rough figure of 182 for `tests/text` bounds the count from
-above, and the method sizes it.
+The issue's figure of 182 is its own grep, which counts only lines that
+open with a long literal, so it is no bound on this count; the method
+sizes it.
 
 **The one policy line this work changes.** The rule above the `check:`
 line in `docs/the-broad-gate.md` *One act, one owner, and the owner is the
