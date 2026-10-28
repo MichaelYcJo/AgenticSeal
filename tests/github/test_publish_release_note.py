@@ -4,32 +4,34 @@
 Publishing a GitHub Release was a habit and nothing else, and three
 consecutive releases skipped it. The repair is a workflow the tag push fires:
 
-  A1  a gathered `## X.Y.Z` section becomes the release note at that tag
+  A1  the changelog fragments the release's commits added become the release
+      note at that tag, each under its work item's marker
   A2  a release already at the tag is left exactly as it is, exit 0
-  A3  a tag with no release file goes RED, naming the tag and the file
+  A3  a tag whose range added no fragment goes RED, naming the range's tags
   A4  the title is read from the `release: X.Y.Z symptoms: <symptoms>` line,
       and where no such line is readable it is the tag name and the log says
       which was used, what it expected and what it found
   A5  the note is a summary read from the release's pull requests -- counts,
       one line per change under its type with the issues it closed, every
-      outside contributor thanked by handle -- over the gathered section,
-      folded; with no pull request to read it is the section alone (#572)
+      outside contributor thanked by handle -- over the fragments, folded;
+      with no pull request to read it is the fragments alone (#572)
+
+#1053 removed the gathered release files, so the fragments are read from the
+history at the tag (S1, S5, S6) and the note opens with the release's theme,
+one sentence of its milestone's description (S2, S3, S4).
 
 **Nothing here reaches GitHub.** `gh` is replaced at the module's own `run`
 and `release_exists` by `Releases`, which records the calls as argument
 tuples, in order, so a case can assert about a write that did NOT happen as
-well as one that did.
-
-**The release's own file is a fixture, `changelog/X.Y.Z.md` since #728, and
-one case builds it with the real gatherer.**
-`Test_module::test_the_reader_reads_what_the_gatherer_writes` runs
-`gather_changelog.py#section` and feeds its output to this module's reader,
-so a heading change in the gatherer goes red at the seam instead of a
-release going out with empty notes.
+well as one that did. The milestone list is answered by `Milestones`, which
+stands in for `subprocess.run`. The cases that read the history drive a real
+`git` repository in `tmp_path`.
 
 **Shown red before it was committed (contract rule 15).** Each case was run
 against the script with the one behaviour it pins removed, in phase 1 of
-work item `1790076050-the-release-tail-is-three-acts-no-document-names`.
+work item `1790076050-the-release-tail-is-three-acts-no-document-names`, and
+S1 to S6 against the script at `8a1173c8`, in phase 1 of work item
+`1793188384-the-release-notes-are-kept-twice`.
 
 #942's phase 6 placed these cases from
 `tests/behaviour/test_a_release_publishes_its_note.py`, which keeps the cases that
@@ -37,35 +39,29 @@ read the workflow and the release checklist.
 """
 
 import importlib.util
+import json
 import os
 
 import pytest
-from conftest import ROOT, census_case
+from conftest import ROOT, census_case, commit_everything, git_out, git_repo, write
 
 TARGET = ".github/scripts/publish_release_note.py"
 
 SCRIPTS = os.path.join(ROOT, ".github", "scripts")
 SCRIPT = os.path.join(SCRIPTS, "publish_release_note.py")
-GATHERER = os.path.join(SCRIPTS, "gather_changelog.py")
 
 # `tests/behaviour/test_release_hygiene.py` refuses a loaded document naming the running
 # version or anything above it. These are illustrative, which is the form that
 # document's own message points at.
 VERSION = "1.2.3"
 TAG = "v1.2.3"
+PREVIOUS = "v1.2.2"
 REPO = "example/repo"
 SYMPTOMS = "two acts nobody wrote down"
 NOTES = "- **A thing that changed.** And what it changes for a reader."
 
-# The release's own file, as the gather writes it (#728).
-RELEASE_FILE = f"""## {VERSION} — 2026-01-02
-
-<!-- specs/1700000000-a-work-item -->
-{NOTES}
-"""
-
-# The release before it, in a file of its own, which must not reach the note.
-OLDER_FILE = "## 1.2.2 — 2026-01-01\n\n- the release before it\n"
+# The fragments the release's commits added, as `fragments` returns them.
+ENTRIES = [("1700000000-a-work-item", NOTES)]
 
 
 def module(path, name):
@@ -79,8 +75,34 @@ def publisher():
     return module(SCRIPT, "agentic_publish_release_note_for_tests")
 
 
-def gatherer():
-    return module(GATHERER, "agentic_gather_changelog_for_publish_tests")
+class Done:
+    """What `subprocess.run` returns, with the three fields the script reads."""
+
+    def __init__(self, code, out="", err=""):
+        self.returncode, self.stdout, self.stderr = code, out, err
+
+
+class Milestones:
+    """The repository's milestones, answered where the script lists them.
+
+    `listed` is the list `gh api` prints, or None for a list that cannot be
+    read. `calls` holds each argument list the script passed, in order.
+    """
+
+    def __init__(self, listed):
+        self.listed = listed
+        self.calls = []
+
+    def __call__(self, args, **_):
+        self.calls.append(list(args))
+        assert list(args[:2]) == ["gh", "api"], f"unexpected command: {args}"
+        if self.listed is None:
+            return Done(1, err="HTTP 403: Resource not accessible by integration")
+        return Done(0, json.dumps(self.listed))
+
+
+def milestone(description, version=VERSION):
+    return {"title": f"release: {version}", "description": description}
 
 
 class Releases:
@@ -115,14 +137,16 @@ class Releases:
 def wire(
     monkeypatch,
     tmp_path,
-    changelog=RELEASE_FILE,
+    entries=ENTRIES,
     message="",
     existing=(),
     pulls=(),
+    milestones=(),
     **env,
 ):
-    """The script, with fixture release files and no route to GitHub.
-    `changelog` is the tagged release's own file; None leaves it out."""
+    """The script, with fixture fragments and no route to GitHub. `entries`
+    are the fragments the range added, read after `PREVIOUS`; `milestones` is
+    the milestone list, None for one that cannot be read."""
     mod = publisher()
     monkeypatch.setattr(
         mod,
@@ -131,15 +155,13 @@ def wire(
     )
     tracker = Releases(existing)
     tracker.message = message
-    (tmp_path / "changelog").mkdir(exist_ok=True)
-    (tmp_path / "changelog" / "1.2.2.md").write_text(OLDER_FILE, encoding="utf-8")
-    if changelog is not None:
-        (tmp_path / "changelog" / f"{VERSION}.md").write_text(
-            changelog, encoding="utf-8"
-        )
     monkeypatch.setattr(mod, "ROOT", str(tmp_path))
     monkeypatch.setattr(mod, "run", tracker.run)
     monkeypatch.setattr(mod, "release_exists", tracker.exists)
+    monkeypatch.setattr(mod, "previous_tag", lambda tag: PREVIOUS)
+    monkeypatch.setattr(mod, "fragments", lambda revisions: list(entries))
+    tracker.milestones = Milestones(None if milestones is None else list(milestones))
+    monkeypatch.setattr(mod.subprocess, "run", tracker.milestones)
     monkeypatch.setenv("TAG", env.pop("TAG", TAG))
     monkeypatch.setenv("REPO", REPO)
     monkeypatch.delenv("DRY_RUN", raising=False)
@@ -189,8 +211,8 @@ def body_of(tracker):
     return args[args.index("--notes") + 1]
 
 
-def published(monkeypatch, tmp_path, pulls):
-    mod, tracker = wire(monkeypatch, tmp_path, message=title_line(), pulls=pulls)
+def published(monkeypatch, tmp_path, pulls, **kw):
+    mod, tracker = wire(monkeypatch, tmp_path, message=title_line(), pulls=pulls, **kw)
     assert mod.main() == 0
     return mod, body_of(tracker)
 
@@ -208,12 +230,11 @@ def lines_under(body, heading):
 
 
 class Test_main:
-    def test_accepts_the_gathered_section_as_the_release_note(
+    def test_accepts_the_releases_fragments_as_the_release_note(
         self, monkeypatch, tmp_path, capsys
     ):
-        """A1. The body is what the preparation commit already gathered, and only
-        that version's section — a note carrying the release before it would be
-        wrong in the one direction nobody re-reads."""
+        """A1. The body is the fragments the release's commits added, each under
+        the marker naming its work item, and it links to no file in the tree."""
         mod, tracker = wire(monkeypatch, tmp_path, message=title_line())
         assert mod.main() == 0
         created = tracker.creates()
@@ -221,15 +242,117 @@ class Test_main:
         args = created[0]
         assert args[3] == TAG
         body = args[args.index("--notes") + 1]
-        assert NOTES in body
-        assert "the release before it" not in body, (
-            "the note carries the previous release's section too — the reader ran "
-            "past the next `## ` heading"
-        )
-        assert f"## {VERSION}" not in body, (
-            "the heading is in the body; it carries the date GitHub already shows"
-        )
+        assert f"<!-- specs/1700000000-a-work-item -->\n{NOTES}" in body, body
+        assert "changelog/" not in body, "the note still names a gathered file"
         assert "published the release" in capsys.readouterr().out
+
+    def test_the_note_is_built_from_the_fragments_the_range_added(
+        self, monkeypatch, tmp_path, capsys
+    ):
+        """S1 of #1053. Two fragments added after `v1.2.2`, one of them edited
+        and then removed by a settle before `v1.2.3`, both reach the note in id
+        order, the removed one as it stood last. The fragment added before
+        `v1.2.2` stays out though a commit in the range edited it, and no
+        `changelog/` path is named. Driven through a real `git` history."""
+        repo = git_repo(tmp_path / "repo")
+        thread = "seal/threads/{}/changelog.md"
+        write(repo, thread.format("1700000000-older"), "- older entry\n")
+        commit_everything(repo, "the release before")
+        git_out(repo, "tag", PREVIOUS)
+        write(repo, thread.format("1700000002-second"), "- second entry\n")
+        commit_everything(repo, "the later work item")
+        write(repo, thread.format("1700000001-first"), "- first entry\n")
+        commit_everything(repo, "the earlier work item")
+        write(repo, thread.format("1700000001-first"), "- first entry, revised\n")
+        write(repo, thread.format("1700000000-older"), "- older entry, edited\n")
+        commit_everything(repo, "a fix brings its fragment along")
+        git_out(repo, "rm", "-q", "-r", "seal/threads/1700000001-first")
+        git_out(repo, "rm", "-q", "-r", "seal/threads/1700000000-older")
+        commit_everything(repo, "the settle")
+        git_out(repo, "tag", TAG)
+
+        mod = publisher()
+        monkeypatch.setattr(mod, "ROOT", str(repo))
+        monkeypatch.chdir(repo)
+        monkeypatch.setattr(mod, "release_exists", lambda repo, tag: False)
+        monkeypatch.setattr(mod, "merged_pulls", lambda repo, version: None)
+        monkeypatch.setattr(
+            mod, "milestone_description", lambda repo, version: ("", "none")
+        )
+        monkeypatch.setenv("TAG", TAG)
+        monkeypatch.setenv("REPO", REPO)
+        monkeypatch.setenv("DRY_RUN", "1")
+        assert mod.main() == 0
+        out = capsys.readouterr().out
+        first = "<!-- specs/1700000001-first -->\n- first entry, revised"
+        second = "<!-- specs/1700000002-second -->\n- second entry"
+        assert first in out and second in out, out
+        assert out.index(first) < out.index(second), "the fragments are not in id order"
+        assert "older entry" not in out, "a fragment of the release before reached it"
+        assert "changelog/" not in out, out
+
+    def test_the_note_opens_with_the_releases_theme(
+        self, monkeypatch, tmp_path, capsys
+    ):
+        """S2 of #1053. The first line of the note is the first sentence of the
+        description of the milestone `release: X.Y.Z`, its `Purpose:` label
+        left out, read from every milestone in every state."""
+        described = "Purpose: the notes come from the fragments. Order: S1, then S2."
+        mod, tracker = wire(
+            monkeypatch,
+            tmp_path,
+            message=title_line(),
+            pulls=RELEASE,
+            milestones=[
+                milestone("Purpose: an older one.", "1.2.2"),
+                milestone(described),
+            ],
+            DRY_RUN="1",
+        )
+        assert mod.main() == 0
+        out = capsys.readouterr().out
+        note = out.split("characters of notes\n", 1)[1]
+        assert note.splitlines()[0] == "The notes come from the fragments.", note[:300]
+        assert note.splitlines()[2] == mod.GLANCE_HEADING, note[:300]
+        (args,) = tracker.milestones.calls
+        assert "--paginate" in args, args
+        assert args[-1].startswith(f"repos/{REPO}/milestones?state=all"), args
+
+    @pytest.mark.parametrize(
+        "milestones, said",
+        [
+            pytest.param(None, "the milestones could not be listed", id="unread"),
+            pytest.param(
+                [milestone("Purpose: another.", "1.2.2")],
+                f"no milestone is titled `release: {VERSION}`",
+                id="not found",
+            ),
+            pytest.param(
+                [milestone(" \n ")],
+                f"the milestone `release: {VERSION}` has no description",
+                id="empty",
+            ),
+        ],
+    )
+    def test_without_a_theme_the_note_has_no_theme_line_and_the_job_goes_on(
+        self, monkeypatch, tmp_path, capsys, milestones, said
+    ):
+        """S4 of #1053. A milestone that cannot be listed, is not found or has
+        an empty description leaves the note without a theme line, the job log
+        says which of the three it was, and the release is published as it would
+        have been with one."""
+        mod, tracker = wire(
+            monkeypatch,
+            tmp_path,
+            message=title_line(),
+            pulls=RELEASE,
+            milestones=milestones,
+        )
+        assert mod.main() == 0
+        assert len(tracker.creates()) == 1, tracker.calls
+        assert body_of(tracker).startswith(mod.GLANCE_HEADING), body_of(tracker)[:200]
+        out = capsys.readouterr().out
+        assert said in out and "no theme line" in out, out
 
     def test_an_existing_release_is_left_exactly_as_it_is(
         self, monkeypatch, tmp_path, capsys
@@ -245,32 +368,21 @@ class Test_main:
         )
         assert "already exists" in capsys.readouterr().out
 
-    @pytest.mark.parametrize(
-        "changelog",
-        [
-            pytest.param(None, id="no release file"),
-            pytest.param("## 1.2.2 — 2026-01-01\n\n- misfiled\n", id="no heading"),
-        ],
-    )
-    def test_refuses_a_tag_with_no_changelog_section(
-        self, monkeypatch, tmp_path, capsys, changelog
+    def test_refuses_a_tag_whose_range_added_no_fragment(
+        self, monkeypatch, tmp_path, capsys
     ):
-        """A3. This is the release shipping unexplained, and the body is the whole
-        of what the job publishes — so it is the one direction that fails. S9 of
-        #728: the file it names is the release's own, `changelog/X.Y.Z.md`."""
-        mod, tracker = wire(
-            monkeypatch, tmp_path, changelog=changelog, message=title_line()
-        )
+        """A3, and S5 of #1053. This is the release shipping unexplained, and the
+        body is the whole of what the job publishes — so it is the one direction
+        that fails. The message names both tags of the range it read."""
+        mod, tracker = wire(monkeypatch, tmp_path, entries=[], message=title_line())
         assert mod.main() == 1
         assert tracker.creates() == [], "it published a release with no notes"
         out = capsys.readouterr().out
-        assert TAG in out and f"changelog/{VERSION}.md" in out, (
-            "the message names neither the tag nor the file it looked in, so the "
-            "job log does not say what to fix"
+        assert PREVIOUS in out and TAG in out, (
+            "the message does not name the range it read, so the job log does "
+            "not say what to fix"
         )
-        assert "gather_changelog.py" in out, (
-            "the message does not name the command that writes the section"
-        )
+        assert "changelog.md" in out, "the message does not name what it looked for"
 
     def test_a_tag_that_is_not_a_version_goes_red(self, monkeypatch, tmp_path, capsys):
         """A3's neighbour. `v*` matches `vnext` too, and a tag this cannot name a
@@ -395,20 +507,21 @@ class Test_main:
         for excluded in (OWNER, "dependabot", "renovate"):
             assert f"@{excluded}" not in body, f"{excluded} is thanked for its own work"
 
-    def test_the_section_is_kept_folded_under_the_summary(self, monkeypatch, tmp_path):
-        """A5. The gathered section is the reasoning, and none of it is lost: it
-        follows the summary whole, inside a fold, with a link to the file."""
-        mod, body = published(monkeypatch, tmp_path, RELEASE)
-        section = mod.section_body(RELEASE_FILE, VERSION)
+    def test_the_fragments_are_kept_folded_under_the_summary(
+        self, monkeypatch, tmp_path
+    ):
+        """A5. The fragments are the reasoning, and none of it is lost: they
+        follow the summary whole, inside a fold that ends the note, each under
+        its marker with a blank line before the next (#1053: no link to a file
+        follows)."""
+        entries = [*ENTRIES, ("1700000001-b", "- b")]
+        mod, body = published(monkeypatch, tmp_path, RELEASE, entries=entries)
         fold = body[body.index("<details>") :]
-        assert (
-            f"<summary>{mod.FULL_SUMMARY}</summary>\n\n{section}\n\n</details>" in fold
-        )
-        # S9 of #728: the link is the release's own file at the tag.
-        link = f"[`changelog/{VERSION}.md` at {TAG}]"
-        link += f"(https://github.com/{REPO}/blob/{TAG}/changelog/{VERSION}.md)"
-        assert fold.endswith(link), fold[-200:]
-        assert "the release before it" not in body, "an older release reached the note"
+        assert fold == (
+            f"<details>\n<summary>{mod.FULL_SUMMARY}</summary>\n\n"
+            f"<!-- specs/1700000000-a-work-item -->\n{NOTES}\n\n"
+            "<!-- specs/1700000001-b -->\n- b\n\n</details>"
+        ), fold
         assert body.index(mod.UPDATE_HEADING) < body.index("<details>")
         assert "/agentic:update" in body
 
@@ -430,13 +543,15 @@ class Test_main:
             pytest.param([RELEASE[0]], id="only the preparation"),
         ],
     )
-    def test_with_nothing_to_summarise_the_note_is_the_section(
+    def test_with_nothing_to_summarise_the_note_is_the_theme_and_the_fragments(
         self, monkeypatch, tmp_path, capsys, pulls
     ):
         """A5 adds no way to fail the tag's job: a summary that cannot be built
-        leaves the note the section alone, as it was before #572."""
-        mod, body = published(monkeypatch, tmp_path, pulls)
-        assert body == mod.section_body(RELEASE_FILE, VERSION)
+        leaves the note the theme line and the fragments, unfolded, as the
+        section alone was before #572."""
+        theme = [milestone("Purpose: a theme. And more.")]
+        _, body = published(monkeypatch, tmp_path, pulls, milestones=theme)
+        assert body == f"A theme.\n\n<!-- specs/1700000000-a-work-item -->\n{NOTES}"
         if pulls is None:
             assert "no outside contribution" not in capsys.readouterr().out, (
                 "a list that could not be read is reported as a release nobody helped"
@@ -505,15 +620,13 @@ class Test_module:
             mod.title_from(line, VERSION, TAG)
         assert time.monotonic() - start < 5.0
 
-    def test_the_list_is_read_from_the_release_branch(self, monkeypatch):
+    def test_the_list_is_read_from_the_release_branch(self, monkeypatch, capsys):
         """The set is the pull requests merged into `release/vX.Y.Z` — the base
-        every feature branch squashes into — and a failed `gh` call is None."""
+        every feature branch squashes into — and a failed `gh` call is None,
+        with the log saying what the note is instead (#1053: the theme line
+        and the fragments)."""
         mod = publisher()
         seen = []
-
-        class Done:
-            def __init__(self, code, out="", err=""):
-                self.returncode, self.stdout, self.stderr = code, out, err
 
         def fake(args, **_):
             seen.append(args)
@@ -537,6 +650,8 @@ class Test_module:
             mod.subprocess, "run", lambda args, **_: Done(1, err="HTTP 502")
         )
         assert mod.merged_pulls(REPO, VERSION) is None
+        out = capsys.readouterr().out
+        assert "the note is the theme line and the fragments alone" in out, out
 
     def test_the_glance_block_is_built_by_one_function_and_its_sealed_twin_by_another(
         self, monkeypatch, tmp_path
@@ -572,31 +687,79 @@ class Test_module:
             'width="80">'
         ) in odd, odd
 
-    def test_the_reader_reads_what_the_gatherer_writes(self, tmp_path):
-        """The two scripts agree by construction rather than by a comment.
+    @pytest.mark.parametrize(
+        "description, theme",
+        [
+            pytest.param(
+                "Purpose: the notes come from the fragments. Order: x",
+                "The notes come from the fragments.",
+                id="the Purpose label left out",
+            ),
+            pytest.param(
+                "the notes come once. Then twice.",
+                "The notes come once.",
+                id="no label",
+            ),
+            pytest.param(
+                "Purpose: a first line\nthat goes on. Then.",
+                "A first line",
+                id="the line ends first",
+            ),
+            pytest.param(
+                "Purpose: what 0.18.0 left. Then.",
+                "What 0.18.0 left.",
+                id="a version inside the sentence",
+            ),
+            pytest.param(
+                "Purpose:   the  notes\tcome.",
+                "The notes come.",
+                id="whitespace collapsed",
+            ),
+            pytest.param("no full stop at all", "No full stop at all", id="no stop"),
+        ],
+    )
+    def test_the_theme_is_the_descriptions_first_sentence(self, description, theme):
+        """S3 of #1053. The sentence runs to the first `.` followed by
+        whitespace or the end, or to the first line end where that comes first;
+        a leading `Purpose:` is left out, the whitespace is collapsed and the
+        first letter is upper-cased."""
+        assert publisher().theme_of(description) == theme
 
-        `gather_changelog.py` has no section reader to import: it writes sections
-        and finds the first `## ` line to insert above. So the reader here is new
-        code, and what keeps it honest is being run against the real writer's
-        output. A heading change in the gatherer fails here, at the seam, instead
-        of publishing a release with empty notes.
-        """
-        gather = gatherer()
-        block = gather.section(
-            VERSION, "2026-01-02", [("1700000000-a-work-item", NOTES)]
-        )
-        # A release file is the section, as a new gather writes it (#728), and
-        # the same file after a second gather appended into it.
-        later = gather.insert(
-            block, gather.section(VERSION, "d", [("2-b", "later")]), VERSION
-        )
-        for text in (block, later):
-            assert publisher().section_body(text, VERSION) is not None, (
-                "the reader no longer recognises the section the gatherer writes, so "
-                "every release would publish with no notes at all"
-            )
-            assert NOTES in publisher().section_body(text, VERSION)
-        assert "later" in publisher().section_body(later, VERSION)
+    def test_the_previous_tag_is_the_highest_version_on_the_first_parent(
+        self, tmp_path, monkeypatch
+    ):
+        """S6 of #1053. Tags that are not `vX.Y.Z` are passed over, a version
+        tag the tagged merge brings in through its second parent is passed over, the
+        highest is taken by number rather than by spelling, and with none the
+        range is the whole history up to the tag."""
+        repo = git_repo(tmp_path / "repo")
+        mod = publisher()
+        monkeypatch.setattr(mod, "ROOT", str(repo))
+        git_out(repo, "tag", "v0.9.0")
+        write(repo, "a.txt", "a\n")
+        commit_everything(repo, "a")
+        git_out(repo, "tag", "v0.10.0")
+        git_out(repo, "tag", "vnext")
+        git_out(repo, "tag", "v0.11")
+        git_out(repo, "switch", "-q", "-c", "aside")
+        write(repo, "b.txt", "b\n")
+        commit_everything(repo, "b")
+        git_out(repo, "tag", "v0.12.0")
+        git_out(repo, "switch", "-q", "-")
+        # The tagged commit merges `aside`, so `v0.12.0` is merged into the tag
+        # and not into its first parent.
+        git_out(repo, "merge", "-q", "--no-ff", "-m", "c", "aside")
+        git_out(repo, "tag", "v0.11.0")
+        assert mod.previous_tag("v0.11.0") == "v0.10.0"
+        assert mod.commit_range("v0.10.0", "v0.11.0") == "v0.10.0..v0.11.0"
+
+        bare = git_repo(tmp_path / "bare")
+        write(bare, "a.txt", "a\n")
+        commit_everything(bare, "a")
+        git_out(bare, "tag", "v0.1.0")
+        monkeypatch.setattr(mod, "ROOT", str(bare))
+        assert mod.previous_tag("v0.1.0") is None
+        assert mod.commit_range(None, "v0.1.0") == "v0.1.0"
 
 
 test_census = census_case(TARGET)

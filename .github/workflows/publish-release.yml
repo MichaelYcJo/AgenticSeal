@@ -13,9 +13,9 @@ name: publish the release note
 #
 # So the tag push publishes it. That is the release's last manual act and the
 # one `docs/branch-and-release.md` keeps a person's — nothing in CI pushes a
-# tag, and nothing here creates one either. By the time it exists, the
-# release's own file this publishes, `changelog/X.Y.Z.md`, has been gathered,
-# reviewed and merged to `main`.
+# tag, and nothing here creates one either. The note is built from the
+# changelog fragments the release's commits added, read from the history at
+# the tag (`.github/scripts/publish_release_note.py`'s docstring says how).
 #
 # Then the seal (#718). A second job, `seal`, runs only when `publish` created
 # the release in this run (`created` is its output; a re-pushed tag or a full
@@ -53,10 +53,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # The tagged commit's message is where the title comes from, and a
-          # depth-1 checkout of a tag still carries that one commit. The whole
-          # history is fetched anyway so `git log -1 <tag>` resolves the tag
-          # itself rather than whatever the runner happened to check out.
+          # The whole history and every tag: the note reads the fragments the
+          # commits after the previous version tag added, and the title from
+          # the tagged commit's message, so `git log -1 <tag>` resolves the
+          # tag itself rather than whatever the runner happened to check out.
           fetch-depth: 0
 
       - name: publish the GitHub Release for this tag

@@ -13,17 +13,26 @@ So this reads the tag instead of asking anybody to remember. It runs when a
 `v*` tag is pushed, which is the release's last manual act and the moment
 `docs/branch-and-release.md` says stays a person's.
 
-**The body is a summary a reader scans, over the release's own file the
-preparation commit gathered** (#572), `changelog/X.Y.Z.md` since #728. By the
-time the tag exists that file is written, reviewed and on `main`:
-`gather_changelog.py --version X.Y.Z` wrote it and the hygiene workflow ran
-`--check` over it at the release pull request. It is also a page of reasoning per change, and a note that was only
-that section read as a wall of prose to somebody asking what changed. So the
-note opens with what the pull requests merged into `release/vX.Y.Z` already
-say -- a count, one line per pull request under its conventional-commit type
-with the issues its body closes, a credit for every outside contributor, how
-to update -- and keeps the whole section beneath, folded. Nothing here
-composes prose: every line is a pull request title, a number, or a handle.
+**The body is built from the release's changelog fragments, read from the
+history at the tag** (#1053). A change writes its note once, in
+`seal/threads/<work-item-id>/changelog.md`, and no copy of the notes is kept
+in the tree. The fragments are the ones the commits after the previous
+`vX.Y.Z` tag added, each read at the newest commit of that range whose tree
+holds it, so a work item a settle removed before the tag still has its entry.
+Each goes under an HTML comment naming its work item, the one link from a
+released entry back to the work that produced it.
+
+**The note opens with the release's theme**, the first sentence of the
+description of the milestone `release: X.Y.Z`, its `Purpose:` label left out.
+
+The fragments are also a page of reasoning per change, and a note that was
+only that read as a wall of prose to somebody asking what changed (#572). So
+after the theme the note says what the pull requests merged into
+`release/vX.Y.Z` already say -- a count, one line per pull request under its
+conventional-commit type with the issues its body closes, a credit for every
+outside contributor, how to update -- and keeps the fragments beneath,
+folded. Nothing here composes prose: every line is a milestone's sentence, a
+pull request title, a number, a handle or a fragment.
 
 **The title comes from the tagged commit's message**, which carries the
 `release: X.Y.Z symptoms: <symptoms>` line `docs/release-checklist.md`
@@ -43,16 +52,17 @@ is -- printed and exited 0 -- so a re-pushed tag and a re-run job change
 nothing. The note may have been edited by hand after it was published, and
 overwriting that is the one way this could destroy something a person wrote.
 
-**It does not fail a release for a missing title line.** Nothing holds that
-convention -- `gather_changelog.py --check` holds the changelog section and
-no check holds the commit subject -- so a missing line falls back to the tag
-name and says in the job log which branch it took. A wrong title is visible
-on the releases page and fixable in one edit; a failed job at the tag is a
-release that stops after `main` has already moved.
+**It does not fail a release for a missing title line or theme.** No check
+holds the commit subject or the milestone's description, so a missing title
+line falls back to the tag name, and a milestone that cannot be listed, is
+not found or has an empty description leaves the note without a theme line.
+Either way the job log says which branch it took. A wrong title or a missing
+theme is visible on the releases page and fixable in one edit; a failed job
+at the tag is a release that stops after `main` has already moved.
 
-**It does fail for a missing changelog section**, which is the opposite
-direction on purpose. That is the release shipping unexplained, and the body
-is the whole of what this publishes.
+**It does fail for a range that added no fragment**, which is the opposite
+direction on purpose. That is the release shipping unexplained, and the
+fragments are the whole of what this publishes.
 
 **Outside contributors are thanked by handle.** An outside contribution
 carries no work item and so no changelog fragment, so a release that carried
@@ -61,9 +71,9 @@ The set is read instead: the pull requests' authors, less the repository
 owner and any bot. A release with none gets no credit line and no count.
 
 **The summary adds no way to fail.** A `gh` call that cannot list the pull
-requests publishes the section alone, as every note before #572 was, and
-says so in the job log -- a plain note is fixable in one edit, and a failed
-job at the tag is not.
+requests publishes the theme line and the fragments alone, as every note
+before #572 was the section alone, and says so in the job log -- a plain
+note is fixable in one edit, and a failed job at the tag is not.
 
 **It says whether it created the release** (#718). `created=true` or
 `created=false` goes to `$GITHUB_OUTPUT` where the workflow sets it, and the
@@ -82,8 +92,7 @@ Environment: `TAG` (`github.ref_name`), `REPO`, `GH_TOKEN`, and
 `GITHUB_OUTPUT` where the workflow runner sets it.
 
 Exit codes: 0 published, or already published, or a dry run -- 1 the tag is
-not `vX.Y.Z`, or `changelog/X.Y.Z.md` is not there or carries no section for
-it.
+not `vX.Y.Z`, or its range added no fragment.
 """
 
 import html
@@ -97,11 +106,15 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(HERE, "..", "..", "hooks", "lib"))
 import console  # noqa: E402
+from blocks import gfm_lines  # noqa: E402
 from close_issues_on_release import keywords_in  # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-# Where each release's own file is, `changelog/X.Y.Z.md` (#728).
-RELEASES = "changelog"
+# A work item's changelog fragment, its id captured.
+FRAGMENT_RE = re.compile(r"^seal/threads/([^/]+)/changelog\.md$")
+# The milestone a release's theme is read from, by its title.
+MILESTONE_TITLE = "release: {version}"
+PURPOSE_LABEL = "Purpose:"
 
 # `vX.Y.Z`. Anything else under `v*` -- `v1.2`, `vnext`, a typo -- is a shape
 # this cannot name a version for, and it says so rather than guessing one.
@@ -131,17 +144,6 @@ def title_line_re(version):
     )
 
 
-# The heading `gather_changelog.py#section` writes, with its date left open.
-# The two are held against each other by
-# `tests/github/test_publish_release_note.py#Test_module::test_the_reader_reads_what_the_gatherer_writes`
-# rather than by this comment: that script has no section READER to import --
-# it writes sections and finds the first `## ` line to insert above -- so what
-# is owed is a case proving this pattern reads that writer's output, not a
-# second hand-checked copy of the format.
-def section_heading_re(version):
-    return re.compile(r"^## " + re.escape(version) + r"\b.*$", re.M)
-
-
 def run(*args):
     out = subprocess.run(args, capture_output=True, encoding="utf-8")
     if out.returncode:
@@ -155,25 +157,120 @@ def version_of(tag):
     return found.group(1) if found else None
 
 
-def section_body(text, version):
-    """The released section's body for `version`, or None if there is none.
+def git(*args):
+    """`git` run in the repository at `ROOT`; its standard output."""
+    return run("git", "-C", ROOT, *args)
 
-    From the line after the `## X.Y.Z -- <date>` heading to the line before
-    the next `## ` heading, stripped. The heading itself is left out: it
-    carries the date, which GitHub already shows beside the release.
+
+def previous_tag(tag):
+    """The highest `vX.Y.Z` tag merged into `tag`'s first parent, or None.
+
+    The first parent is the release's own line: a tag the tagged merge brings
+    in through its second parent was not released before this one. The
+    highest is taken by number, so `v0.10.0` is above `v0.9.0`.
     """
-    found = section_heading_re(version).search(text)
-    if not found:
-        return None
-    rest = text[found.end() :]
-    after = re.search(r"^## ", rest, re.M)
-    body = rest[: after.start()] if after else rest
-    return body.strip()
+    found = []
+    for name in git("tag", "--merged", f"{tag}^", "--list", "v*").split():
+        version = version_of(name)
+        if version:
+            found.append((tuple(int(n) for n in version.split(".")), name))
+    return max(found)[1] if found else None
 
 
-def release_file(version):
-    """The release's own file, as a path from the repository root."""
-    return f"{RELEASES}/{version}.md"
+def commit_range(previous, tag):
+    """The commits the release added: after `previous` up to `tag`, or every
+    commit reachable from `tag` where there is no previous version tag."""
+    return f"{previous}..{tag}" if previous else tag
+
+
+def fragments(revisions):
+    """`[(work item id, body)]` for every changelog fragment a commit in
+    `revisions` added, sorted by id, an empty body skipped.
+
+    Each is read at the newest commit of the range whose tree holds it, so a
+    fragment a settle removed before the tag is read as it stood last.
+    `--no-renames` keeps a fragment from reading as a rename of an older one
+    the settle deleted in the same range.
+    """
+    added = git(
+        "log",
+        "--no-renames",
+        "--diff-filter=A",
+        "--name-only",
+        "--format=",
+        revisions,
+    )
+    out = []
+    # exempt from splitlines: git output
+    for path in sorted(set(added.splitlines())):
+        found = FRAGMENT_RE.match(path)
+        if not found:
+            continue
+        for commit in git("log", "--format=%H", revisions, "--", path).split():
+            if git("ls-tree", "--name-only", commit, "--", path).strip():
+                body = git("show", f"{commit}:{path}").strip()
+                if body:
+                    out.append((found.group(1), body))
+                break
+    return sorted(out)
+
+
+def section(entries):
+    """The fragments as the note carries them: each work item's marker line,
+    its body, and a blank line before the next."""
+    return "\n\n".join(f"<!-- specs/{item} -->\n{body}" for item, body in entries)
+
+
+def milestone_description(repo, version):
+    """`(the description of the milestone `release: <version>`, why not)`.
+
+    The first element is "" where there is no description to read: the list
+    could not be read, no milestone carries the title, or its description is
+    empty. The second element says which, for the job log. `--paginate`
+    merges the pages into one list (`release_completeness_check.py`'s
+    `milestone_titles` measured it).
+    """
+    out = subprocess.run(
+        [
+            "gh",
+            "api",
+            "--paginate",
+            f"repos/{repo}/milestones?state=all&per_page=100",
+        ],
+        capture_output=True,
+        encoding="utf-8",
+    )
+    title = MILESTONE_TITLE.format(version=version)
+    try:
+        listed = json.loads(out.stdout) if not out.returncode else None
+    except ValueError:
+        listed = None
+    if listed is None:
+        return "", f"the milestones could not be listed: {out.stderr.strip()}"
+    for entry in listed:
+        if entry.get("title") == title:
+            text = (entry.get("description") or "").strip()
+            if not text:
+                return "", f"the milestone `{title}` has no description"
+            return text, f"the milestone `{title}`"
+    return "", f"no milestone is titled `{title}`"
+
+
+def theme_of(description):
+    """The release's theme line from a milestone's description.
+
+    A leading `Purpose:` is left out. The sentence runs to the first `.`
+    followed by whitespace or the end of the text, or to the first line end
+    where that comes first, so a version such as `0.18.0` inside it does not
+    end it. Its whitespace is collapsed and its first letter upper-cased.
+    """
+    text = description.strip()
+    if text.startswith(PURPOSE_LABEL):
+        text = text[len(PURPOSE_LABEL) :].lstrip()
+    line = gfm_lines(text)[0] if text else ""
+    stop = re.search(r"\.(?=\s|$)", line)
+    sentence = " ".join((line[: stop.end()] if stop else line).split())
+    return sentence[:1].upper() + sentence[1:]
 
 
 def title_from(message, version, tag):
@@ -268,8 +365,8 @@ def merged_pulls(repo, version):
 
     Each is `{"number", "title", "body", "author": {"login", "is_bot"}}` as
     `gh pr list --json` prints it. None means the list could not be read, and
-    the caller publishes the changelog section alone rather than failing
-    the tag's job.
+    the caller publishes the theme line and the fragments alone rather than
+    failing the tag's job.
     """
     out = subprocess.run(
         [
@@ -295,8 +392,8 @@ def merged_pulls(repo, version):
     )
     if out.returncode:
         print(
-            "gh pr list failed, so the note is the changelog section alone: "
-            f"{out.stderr.strip()}"
+            "gh pr list failed, so the note is the theme line and the fragments "
+            f"alone: {out.stderr.strip()}"
         )
         return None
     try:
@@ -304,7 +401,7 @@ def merged_pulls(repo, version):
     except ValueError:
         print(
             "gh pr list printed something that is not JSON, so the note is the "
-            "changelog section alone"
+            "theme line and the fragments alone"
         )
         return None
 
@@ -446,24 +543,26 @@ def write_output(name, value):
         print(f"could not write {name}={value} to $GITHUB_OUTPUT: {problem}")
 
 
-def release_body(section, pulls, owner, repo, tag):
-    """The note: a summary a reader scans, over the section they can open.
+def release_body(theme, rendered, pulls, owner):
+    """The note: the theme line, a summary a reader scans, and the fragments
+    they can open.
 
-    Read top to bottom it answers, in order, how big the release is, what
-    changed -- one line per pull request under its type, with the issues it
-    closed -- who outside the project helped, and how to get it. The gathered
-    release's own file follows, folded, because it is the reasoning a
-    reader wants for one change rather than the list they read for all of
-    them. Every line is read from the pull requests and the tree; nothing
-    here writes a sentence.
+    Read top to bottom it answers, in order, what the release is for, how
+    big it is, what changed -- one line per pull request under its type, with
+    the issues it closed -- who outside the project helped, and how to get
+    it. The fragments `section` rendered follow, folded, because they are
+    the reasoning a reader wants for one change rather than the list they
+    read for all of them. Every line is read from the milestone, the pull
+    requests and the history; nothing here writes a sentence.
 
     With no pull request to read -- the list failed, or a release was cut
-    with none -- the note is `section` alone, which is what it always was.
+    with none -- the note is the theme line and `rendered`, unfolded. With no
+    theme, the line and the blank line after it are left out.
     """
+    opening = [theme, ""] if theme else []
     work, closed, people = tally(pulls, owner)
     if not work:
-        return section
-    shown = release_file(version_of(tag))
+        return "\n".join([*opening, rendered])
     groups = {}
     for pull in work:
         heading, text = kind_and_text(pull["title"])
@@ -476,7 +575,7 @@ def release_body(section, pulls, owner, repo, tag):
             line += f" — thanks @{login}"
         groups.setdefault(heading, []).append(line)
 
-    parts = [glance(work, closed, people)]
+    parts = [*opening, glance(work, closed, people)]
     order = list(dict.fromkeys([h for _, h in TYPES] + [OTHER]))
     for heading in order:
         if heading in groups:
@@ -498,11 +597,9 @@ def release_body(section, pulls, owner, repo, tag):
         "<details>",
         f"<summary>{FULL_SUMMARY}</summary>",
         "",
-        section,
+        rendered,
         "",
         "</details>",
-        "",
-        f"[`{shown}` at {tag}](https://github.com/{repo}/blob/{tag}/{shown})",
     ]
     return "\n".join(parts)
 
@@ -533,25 +630,19 @@ def main(argv=None):
     version = version_of(tag)
     if version is None:
         print(
-            f"{tag!r} is not a vX.Y.Z tag, so there is no changelog section "
-            "to name. Nothing published."
+            f"{tag!r} is not a vX.Y.Z tag, so there is no release to read the "
+            "fragments of. Nothing published."
         )
         return 1
 
-    shown = release_file(version)
-    path = os.path.join(ROOT, *shown.split("/"))
-    body = None
-    if os.path.isfile(path):
-        with open(path, encoding="utf-8") as handle:
-            body = section_body(handle.read(), version)
-    if body is None:
+    previous = previous_tag(tag)
+    entries = fragments(commit_range(previous, tag))
+    if not entries:
+        span = f"after {previous} up to {tag}" if previous else f"up to {tag}"
         print(
-            f"{tag} was pushed and {shown} is not there or carries no "
-            f"`## {version}` section, so this release would be published with "
-            "no notes at all.\n"
-            "Release preparation gathers the fragments into that file:\n"
-            "  python3 .github/scripts/gather_changelog.py --version "
-            f"{version}"
+            f"{tag} was pushed and no commit {span} added a changelog fragment, "
+            "seal/threads/<work-item-id>/changelog.md, so this release would be "
+            "published with no notes at all."
         )
         return 1
 
@@ -566,8 +657,14 @@ def main(argv=None):
 
     title, source = title_from(commit_message(tag), version, tag)
     print(f"title {title!r}, from {source}")
+    description, said = milestone_description(repo, version)
+    theme = theme_of(description)
+    if theme:
+        print(f"theme {theme!r}, from {said}")
+    else:
+        print(f"no theme line: {said}")
     pulls = merged_pulls(repo, version)
-    body = release_body(body, pulls, repo.split("/")[0], repo, tag)
+    body = release_body(theme, section(entries), pulls, repo.split("/")[0])
     if pulls is not None and not thanks_section(pulls, repo.split("/")[0]):
         print("no outside contribution in this release, so no Thanks to section")
     if dry:
