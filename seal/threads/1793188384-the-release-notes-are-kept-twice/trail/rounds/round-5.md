@@ -29,7 +29,7 @@ otherwise (finding 1).
 severity: must
 location: `seal/threads/1793188384-the-release-notes-are-kept-twice/gaps.md:14`, `seal/threads/1793188384-the-release-notes-are-kept-twice/frame/questions.md:47`, `seal/threads/1793188384-the-release-notes-are-kept-twice/frame/design.md:18`, `seal/threads/1793188384-the-release-notes-are-kept-twice/frame/design.md:65-78`, `seal/threads/1793188384-the-release-notes-are-kept-twice/frame/design.md:148`, `seal/threads/1793188384-the-release-notes-are-kept-twice/frame/plan.md:13-15`, `seal/threads/1793188384-the-release-notes-are-kept-twice/frame/plan.md:86-88`, `seal/threads/1793188384-the-release-notes-are-kept-twice/trail/phases/phase-4.md:21-23`, `seal/threads/1793188384-the-release-notes-are-kept-twice/trail/phases/phase-5.md:36-38`
 evidence: executed `gh api --paginate 'repos/MichaelYcJo/SpecSeal/releases?per_page=100' -q '.[] | [.tag_name, .updated_at, (.body | length), (.body | test("Full changelog — what each change"))] | @tsv'`, `python3 -I test_tmp_notes.py`, `diff -q notes/v0.3.0.block notes/file-0.3.0.body`
-verdict: open
+verdict: fixed bb1c65c5
 
 The owner decided that no published note is republished. The records state
 that decision as done. `gaps.md:14` says v0.2.0's note "was restored from
@@ -93,14 +93,14 @@ that case each sentence `location:` names is rewritten to "16 republished
 by appending, 10 left as they are". That reverses part of Q2's answer, so
 only the owner can choose it.
 
-answer:
+answer: Holds. The fix that keeps the owner's decision is the one built. The orchestrator restored the 16 notes from their backups on GitHub, and its `4b42844b` records in Q2's Status the 17 notes edited and restored. This pass's `bb1c65c5` sets `gaps.md:14`'s *Grounds* as the round gives it, with the restore dated 2026-10-28. It also writes the paragraph after the S11 table in `phase-5.md`. Re-read for that paragraph at 2026-10-28T14:13:26Z, `gh api --paginate 'repos/MichaelYcJo/AgenticSeal/releases?per_page=100'` (a read; the repository's name since the rename) listed 58 releases (executed). None of the 26 holds the folded block. v0.2.0's `updated_at` is 13:55:41Z, v0.3.0 to v0.10.0 carry 14:11:30Z to 14:11:56Z (the restore), and v0.11.0 to v0.13.0 carry 2026-09-23 stamps. The summary stands only in the notes of v0.15.1 to v0.23.1. The *Scope* item 5 criterion re-ran over the 58 as one deleted `test_tmp_*` probe: 32 notes hold their file and 26 do not, the same 26 *Scope* item 5 lists (executed). The sweep rewrote `phase-4.md:21-23` and the rows' sentences there, and `phase-5.md:36-38`, which now says the 32 hold their text in the Release and all 58 files are at `v0.23.1`. A `git grep -i` for `no other release`, `only v0.2.0`, `v0.2.0's note`, `rows keep`, `keep their question`, `left as they are` and `no published note changes` outside the frame and the round records finds none of my records left saying only v0.2.0 was touched (executed).
 
 ### 2. The departure row in `gaps.md` has five cells, its neighbour has three, and it does not name the *Done when* clause it departs from
 
 severity: should
 location: `seal/threads/1793188384-the-release-notes-are-kept-twice/gaps.md:13-14`
 evidence: executed `awk -F'|' 'NR>=9 && NR<=18 {print NR": "NF-2" cells"}' gaps.md`
-verdict: open
+verdict: fixed bb1c65c5
 
 The divergence table has four columns (`gaps.md:9`). After `58f3a6a7`, row
 13 has three cells, and row 14, the new departure row, has five. The cell
@@ -123,14 +123,14 @@ name that clause.
 | The 26 published notes that lack their file's text | Issue #1053 *The change* asks that they be "republished from the file", and its *Done when* asks that "every released version's GitHub Release holds its notes" | Not built. No published note is republished, so the first *Done when* item holds for the 32 releases whose note holds its file, and the other 26 keep their text in `changelog/X.Y.Z.md` at `v0.23.1` | The owner's answer to `frame/questions.md` Q2, 2026-10-28. <the history sentence as finding 1's fix leaves it> |
 ```
 
-answer:
+answer: Holds; fixed in `bb1c65c5`. Row 13 has its *Grounds* cell back. Row 14 quotes *The change* and the *Done when* clause, says the first *Done when* item holds for the 32, and carries finding 1's history sentence as its *Grounds*. One departure from the round's row 13: its third cell no longer names "the two `seal/follow-up.md` rows" among the readers at `v0.23.1`, because finding 4's fix removed them. A new row 15 records that removal. Executed: `awk -F'|' 'NR>=9 && NR<=19 && /^\|/ {print NR": "NF-2" cells"}' gaps.md` printed 4 cells for every row from 9 to 19.
 
 ### 3. The frame still says the two follow-up rows' coordinate becomes the v0.12.2 GitHub Release
 
 severity: should
 location: `seal/threads/1793188384-the-release-notes-are-kept-twice/frame/design.md:522`, `seal/threads/1793188384-the-release-notes-are-kept-twice/frame/questions.md:40-42`
 evidence: read `seal/threads/1793188384-the-release-notes-are-kept-twice/frame/design.md:522`, `seal/threads/1793188384-the-release-notes-are-kept-twice/frame/questions.md:40-42`, `seal/threads/1793188384-the-release-notes-are-kept-twice/frame/design.md:100-103`
-verdict: open
+verdict: fixed 4b42844b
 
 The reframe at `10cbc6e9` rewrote *Scope* item 8. The rows' coordinate now
 "becomes `changelog/0.12.2.md` at `v0.23.1`, since the v0.12.2 GitHub
@@ -160,14 +160,14 @@ change.
 If finding 4's fix removes the two rows, both places instead say the rows
 go, in the words that fix gives *Scope* item 8.
 
-answer:
+answer: Holds. The frame is the orchestrator's, and its `4b42844b` rewrites `frame/design.md` and `frame/questions.md:40-42` to say the rows go, the two paths `location:` names (read: `git show --stat 4b42844b`). This pass built nothing for it.
 
 ### 4. The two follow-up rows ask a question that no act can now answer, and their reader premise is false
 
 severity: should
 location: `seal/follow-up.md:47`, `seal/follow-up.md:49`, `seal/threads/1793188384-the-release-notes-are-kept-twice/frame/design.md:100-103`, `seal/threads/1793188384-the-release-notes-are-kept-twice/frame/design.md:131-132`
 evidence: executed `gh release view v0.12.2 -R MichaelYcJo/SpecSeal --json body -q .body`, `grep -n -i -E "404|190 rows|baseline|ledger" notes/v0.12.2.txt`, `git show v0.23.1:changelog/0.12.2.md`
-verdict: open
+verdict: fixed bb1c65c5
 
 Row 47 asks "whether the label is carried into a released copy of 0.12.2".
 Row 49 says "one answer settles both". After this work, only two released
@@ -222,7 +222,7 @@ the deletion that citation reads `8a1173c8:seal/follow-up.md:47` and
 not covering the rows, the rows stay. In that case each still needs a
 question that names an act a person can take, and this round found none.
 
-answer:
+answer: Holds. The orchestrator's `4b42844b` reframes *Scope* item 8, the out-of-scope bullet, the *Removes* row and `frame/questions.md:40-42`, and cites `8a1173c8:seal/follow-up.md:47` at `frame/plan.md:61`. This pass's `bb1c65c5` deletes `seal/follow-up.md:47` and `:49`, each with the blank line after it (`git diff --stat`: 4 deletions). It also adds a `gaps.md` divergence row saying the rows were removed and citing Q2. The sweep rewrote the records that said the rows stay or name the file: `phase-4.md:40-42`, `:52-53` and `:84-88`, and `phase-5.md`'s paragraph on the rows and its grep-table row. `phase-4.md:17` and `phase-5.md:12-14` stand, because they quote what each phase was asked. Nothing under `tests/` reads the two rows: `tests/text/test_a_rider_reaches_its_file.py` passes with them gone (executed, in the 21-module run).
 
 ## Confirmations
 
