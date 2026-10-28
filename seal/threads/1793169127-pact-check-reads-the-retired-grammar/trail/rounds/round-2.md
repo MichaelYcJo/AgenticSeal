@@ -9,7 +9,7 @@ target: e9acea12, fixes 8729d434..e9acea12
 severity: must
 location: `hooks/lib/config.py:1052-1066`, `tests/skills/test_pact_check.py:771-777`
 evidence: executed `bin/test tests/skills/test_tmp_round2_probe.py -q -s -p no:xdist`
-verdict: open
+verdict: fixed 9181f646
 reopens: round-1#1
 
 Why the close does not hold. Round 1's finding 1 was that a correct frame
@@ -85,14 +85,14 @@ def test_accepts_an_anchor_table_above_another_table_in_its_section(self, world,
     assert "REFUSED" not in out and " 1 ok " in out, out
 ```
 
-answer:
+answer: The finding holds. My round-1 answer carried the rule for the table `gfm_table` reads over to a table it never reads. `9181f646` drops the blank-line condition and the `lines` parameter from `config.py#opens_table`, as proposed; its docstring says why. The `***` shape left the refusal group, and `test_accepts_an_anchor_table_above_another_table_in_its_section` now takes `between` as `a blank line`, `a sentence` or `a thematic break`. Red at HEAD `49bb6ba5`: `-k "anchor_row_nobody or above_another_table"` gave 3 failed and 6 passed, exit 1. The sentence and the thematic break were refused as a row the walk never reaches. The third failure was finding 2's new case. Green after `9181f646`: 9 passed, exit 0. `seal mutate` over the delimiter-directly-below condition was red. `pact_check.py`'s module docstring changed in `9181f646`. `gaps.md` *Fed back into the spec* and the changelog fragment state the rule as it now stands, in `857244b5`. Round 2's five modules: 975 passed, exit 0.
 
 ### 2. A row written below the other table, before the next heading, is now dropped with nothing printed
 
 severity: should
 location: `hooks/lib/config.py:1189-1209`
 evidence: executed `bin/test tests/skills/test_tmp_round2_probe.py -q -s -p no:xdist`
-verdict: open
+verdict: fixed 9181f646
 regression: round-1#1
 
 The unit is the `beside` arm of `gfm_table`'s ended branch
@@ -154,7 +154,7 @@ Add a refusal case to `test_refuses_an_anchor_row_nobody_reads`: the
 anchor table, a blank line, a two-column table, a blank line, and a lone
 anchor-width row. Expect the `ends above` sentence naming that row.
 
-answer:
+answer: The finding holds; `break` was the cause. `9181f646` takes the proposed step-over. The `beside` arm marks the other table's header, the walk steps over each line directly under it that is not an end, and a `| … |` line after that table and before the next heading is refused as before. The id `a row below another table` in `test_refuses_an_anchor_row_nobody_reads` is the probe's shape. It was red at HEAD `49bb6ba5`: the row was read by nobody, and the run exited 1 on the first row's `UNMATCHED` alone. It is green after `9181f646`. `seal mutate` over the step-over found two survivors. The `other = None` reset was redundant: once a line is not directly under the other table, the adjacency test cannot hold again. `693d6dc6` removes it. The adjacency test had no case, so `693d6dc6` adds the id `a row a comment parts from another table`, and its mutant was then red, exit 0. The mutants for the reset kept in place and for `break` put back were red. Round 2's five modules after `693d6dc6`: 975 passed, exit 0.
 
 ## Confirmations
 
