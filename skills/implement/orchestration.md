@@ -527,9 +527,9 @@ where the root is shared each commit's trailer reads `no work item`
 question.** A pull request into the release branch is not a release: its
 entry accumulates unreleased. Whether it moves the version is the
 repository's convention. Where the repository names the version when it
-cuts the release branch, as this one does with `release/vX.Y.Z`, the
+cuts the release branch, as a branch named `release/vX.Y.Z` does, the
 orchestrator moves the version to that name in the first pull request into
-the branch, in the commit that adds that work item's changelog fragment,
+the branch, in the commit that adds that work item's changelog entry,
 and every later pull request into the branch leaves it. Where the
 repository moves the version at the release, a pull request into the
 release branch leaves it alone. A pull request into `main` is a release:
